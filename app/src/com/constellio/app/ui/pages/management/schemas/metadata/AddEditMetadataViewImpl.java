@@ -4,10 +4,16 @@ import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.ui.entities.FormMetadataVO;
 import com.constellio.app.ui.entities.MetadataVO;
+import com.constellio.app.ui.entities.RoleVO;
 import com.constellio.app.ui.framework.components.MetadataFieldFactory;
+import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
+import com.constellio.app.ui.framework.components.breadcrumb.IntermediateBreadCrumbTailItem;
+import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
+import com.constellio.app.ui.framework.components.fields.ListOptionGroup;
 import com.constellio.app.ui.framework.components.fields.MultilingualTextField;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.app.ui.pages.breadcrumb.BreadcrumbTrailUtil;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.MetadataValueType;
@@ -25,6 +31,7 @@ import com.vaadin.ui.Field;
 import com.vaadin.ui.OptionGroup;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -75,6 +82,10 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 	@PropertyId("ParentMetadataLabel")
 	private TextField parentMetadataLabel;
 
+	@PropertyId("readAccessRoles")
+	private ListOptionGroup listOptionGroupRole;
+
+
 	@PropertyId("uniqueValue")
 	private CheckBox uniqueField;
 
@@ -98,15 +109,25 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 	}
 
 	@Override
-	protected Component buildMainComponent(ViewChangeEvent event) {
+	protected void initBeforeCreateComponents(ViewChangeEvent event) {
 		Map<String, String> params = ParamUtils.getParamsMap(event.getParameters());
 		presenter.setSchemaCode(params.get("schemaCode"));
 		presenter.setParameters(params);
-		presenter.setMetadataCode(params.get("metadataCode"));
+		if (StringUtils.isNotBlank(params.get("metadataCode"))) {
+			presenter.setMetadataCode(params.get("metadataCode"));
+		}
+	}
 
+	@Override
+	protected Component buildMainComponent(ViewChangeEvent event) {
 		viewLayout = new VerticalLayout();
 		viewLayout.setSizeFull();
 		viewLayout.addComponents(buildTables());
+
+		if (!presenter.isRoleAccessSupportedOnThisMetadata()) {
+			listOptionGroupRole.setVisible(false);
+		}
+
 		return viewLayout;
 	}
 
@@ -150,6 +171,10 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 				if (!searchableField.getValue()) {
 					advancedSearchField.setValue(false);
 				}
+			}
+
+			if (value == MetadataValueType.CONTENT) {
+				listOptionGroupRole.setVisible(false);
 			}
 
 			if (value == MetadataValueType.REFERENCE && multivalue) {
@@ -494,7 +519,7 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 
 		MetadataFieldFactory factory = new MetadataFieldFactory();
 
-		MetadataVO defaultValueMetadataVO = presenter.getDefaultValueMetadataVO(formMetadataVO);
+		MetadataVO defaultValueMetadataVO = presenter.getDefaultValueMetadataVO(formMetadataVO, editMode);
 
 		Field<?> previousDefaultValueField = defaultValueField;
 		if (defaultValueMetadataVO != null && presenter.isDefaultValuePossible(formMetadataVO)) {
@@ -523,9 +548,28 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 
 		inputMask = new BaseTextField($("AddEditMetadataView.inputMask"));
 		inputMask.setEnabled(false);
+		listOptionGroupRole = new ListOptionGroup();
+		listOptionGroupRole.setCaption($("AddEditMetadataView.RoleAccess"));
+
+		List<RoleVO> roleList = presenter.getAllCollectionRole();
+		listOptionGroupRole.setMultiSelect(true);
+		listOptionGroupRole.setImmediate(true);
+		List<String> initialSelectedRoles = new ArrayList<>();
+		for (RoleVO role : roleList) {
+			listOptionGroupRole.addItem(role.getCode());
+			listOptionGroupRole.setItemCaption(role.getCode(), role.getTitle());
+			for (String roleCode : presenter.getMetadataReadRole()) {
+				if (roleCode.equals(role.getCode())) {
+					initialSelectedRoles.add(role.getCode());
+				}
+			}
+		}
+
+		listOptionGroupRole.setValue(initialSelectedRoles);
+		formMetadataVO.setReadAccessRoles(initialSelectedRoles);
 
 		List<Field<?>> fields = new ArrayList<>(asList((Field<?>) localcodeField, labelsField, valueType, multivalueType,
-				inputType, inputMask, metadataGroup, refType, requiredField, duplicableField, enabledField, searchableField, sortableField,
+				inputType, inputMask, metadataGroup, listOptionGroupRole, refType, requiredField, duplicableField, enabledField, searchableField, sortableField,
 				advancedSearchField, highlight, autocomplete, uniqueField, multiLingualField));
 
 		for (CheckBox customAttributeField : customAttributesField) {
@@ -559,13 +603,21 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 
 			@Override
 			protected void saveButtonClick(FormMetadataVO viewObject) {
-
 				for (CheckBox customAttributeField : customAttributesField) {
 					if (Boolean.TRUE.equals(customAttributeField.getValue())) {
 						formMetadataVO.addCustomAttribute(customAttributeField.getId());
 					} else {
 						formMetadataVO.removeCustomAttribute(customAttributeField.getId());
 					}
+				}
+
+				if (!listOptionGroupRole.isVisible()) {
+					formMetadataVO.setReadAccessRoles(new ArrayList<String>());
+				}
+
+				if(presenter.isAccessRoleAndRequired(formMetadataVO)) {
+					showErrorMessage($("AddEditMetadataView.requiredMetadataCannotBeSecureByRole"));
+					return;
 				}
 
 				try {
@@ -660,5 +712,21 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 				advancedSearchField.setEnabled(false);
 			}
 		}
+	}
+
+	@Override
+	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
+
+		return new TitleBreadcrumbTrail(this, getTitle()) {
+			@Override
+			public List<? extends IntermediateBreadCrumbTailItem> getIntermediateItems() {
+				List<IntermediateBreadCrumbTailItem> intermediateBreadCrumbTailItemList = BreadcrumbTrailUtil.llistSchemaTypeSchemaList(presenter.getSchemaCode());
+				intermediateBreadCrumbTailItemList.add(BreadcrumbTrailUtil
+						.editSchemaMetadata(presenter.getParamSchemaCode(), presenter.getSchemaTypeCode(),
+								presenter.getSchemaVO().getLabel(getSessionContext().getCurrentLocale().getLanguage())));
+
+				return intermediateBreadCrumbTailItemList;
+			}
+		};
 	}
 }

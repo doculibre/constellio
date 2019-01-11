@@ -9,7 +9,7 @@ import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.security.Authorization;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 
@@ -79,7 +79,7 @@ public class ListContentRoleAuthorizationsPresenter extends ListAuthorizationsPr
 
 	@Override
 	protected boolean isOwnAuthorization(Authorization authorization) {
-		return authorization.getGrantedOnRecord().equals(recordId);
+		return authorization.getTarget().equals(recordId);
 	}
 
 	@Override

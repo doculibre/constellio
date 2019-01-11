@@ -328,6 +328,10 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 			importedMetadata.setVisibleInTablesIn(toListOfString(element.getAttributeValue(VISIBLE_IN_TABLES_IN)));
 		}
 
+		if(element.getAttribute(REQUIRED_READ_ROLES) != null) {
+			importedMetadata.setRequiredReadRoles(toListOfString(element.getAttributeValue(REQUIRED_READ_ROLES)));
+		}
+
 		if (element.getChild(POPULATE_CONFIGS) != null) {
 			importedMetadata.newPopulateConfigs();
 			for (Element regexElement : element.getChild(POPULATE_CONFIGS).getChildren(POPULATE_CONFIGS_REGEX)) {

@@ -1,15 +1,17 @@
 package com.constellio.app.ui.pages.base;
 
-import com.constellio.app.ui.application.ConstellioUI;
-import com.constellio.app.ui.entities.UserVO;
-import com.vaadin.server.VaadinSession;
-
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
+
+import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.entities.UserVO;
+import com.vaadin.server.VaadinSession;
 
 public class VaadinSessionContext extends BaseSessionContext {
 
@@ -19,6 +21,7 @@ public class VaadinSessionContext extends BaseSessionContext {
 	public static final String FORCED_SIGN_OUT_ATTRIBUTE = VaadinSessionContext.class.getName() + ".forcedSignOut";
 	public static final String SELECTED_RECORD_IDS_ATTRIBUTE = VaadinSessionContext.class.getName() + ".selectedRecordIds";
 	public static final String SELECTED_RECORD_SCHEMA_TYPE_CODES_ATTRIBUTE = VaadinSessionContext.class.getName() + ".selectedRecordSchemaTypeCodes";
+	public static final String VISITED_ATTRIBUTE = VaadinSessionContext.class.getName() + ".visited";
 
 	public VaadinSessionContext() {
 	}
@@ -107,4 +110,16 @@ public class VaadinSessionContext extends BaseSessionContext {
 		}
 		return selectedRecordSchemaTypeCodes;
 	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	protected Set<String> ensureVisited() {
+		Set<String> visited = (Set<String>) getAttribute(VISITED_ATTRIBUTE);
+		if (visited == null) {
+			visited = new HashSet<>();
+			setAttribute(VISITED_ATTRIBUTE, visited);
+		}
+		return visited;
+	}
+	
 }

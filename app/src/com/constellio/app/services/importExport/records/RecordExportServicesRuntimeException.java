@@ -16,8 +16,8 @@ public class RecordExportServicesRuntimeException extends RuntimeException {
 
 	public static class ExportServicesRuntimeException_FailedToZip extends RecordExportServicesRuntimeException {
 
-		public ExportServicesRuntimeException_FailedToZip(String collection, Throwable cause) {
-			super("Cannot zip records of collection '" + collection + "'", cause);
+		public ExportServicesRuntimeException_FailedToZip(Throwable cause) {
+			super("Cannot zip records ", cause);
 		}
 
 	}

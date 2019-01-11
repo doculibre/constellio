@@ -13,7 +13,7 @@ import com.constellio.model.entities.records.wrappers.Facet;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.ImportAudit;
 import com.constellio.model.entities.records.wrappers.Report;
-import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.TemporaryRecord;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.ValueListItem;
@@ -25,8 +25,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.global.GlobalGroup;
-import com.constellio.model.entities.security.global.SolrGlobalGroup;
-import com.constellio.model.entities.security.global.SolrUserCredential;
+import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.factories.ModelLayerFactoryWithRequestCacheImpl;
@@ -92,47 +91,47 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 	// User Credentials
 
 	public MetadataSchemaType credentialSchemaType() {
-		return getTypes().getSchemaType(SolrUserCredential.SCHEMA_TYPE);
+		return getTypes().getSchemaType(UserCredential.SCHEMA_TYPE);
 	}
 
 	public MetadataSchema credentialSchema() {
-		return getTypes().getSchema(SolrUserCredential.DEFAULT_SCHEMA);
+		return getTypes().getSchema(UserCredential.DEFAULT_SCHEMA);
 	}
 
 	public Metadata credentialUsername() {
-		return credentialSchema().getMetadata(SolrUserCredential.USERNAME);
+		return credentialSchema().getMetadata(UserCredential.USERNAME);
 	}
 
 	public Metadata credentialStatus() {
-		return credentialSchema().getMetadata(SolrUserCredential.STATUS);
+		return credentialSchema().getMetadata(UserCredential.STATUS);
 	}
 
 	public Metadata credentialCollections() {
-		return credentialSchema().getMetadata(SolrUserCredential.COLLECTIONS);
+		return credentialSchema().getMetadata(UserCredential.COLLECTIONS);
 	}
 
 	public Metadata credentialTokenKeys() {
-		return credentialSchema().getMetadata(SolrUserCredential.TOKEN_KEYS);
+		return credentialSchema().getMetadata(UserCredential.TOKEN_KEYS);
 	}
 
 	public Metadata credentialTokenExpirations() {
-		return credentialSchema().getMetadata(SolrUserCredential.TOKEN_EXPIRATIONS);
+		return credentialSchema().getMetadata(UserCredential.TOKEN_EXPIRATIONS);
 	}
 
 	public Metadata credentialGroups() {
-		return credentialSchema().getMetadata(SolrUserCredential.GLOBAL_GROUPS);
+		return credentialSchema().getMetadata(UserCredential.GLOBAL_GROUPS);
 	}
 
 	public Metadata credentialServiceKey() {
-		return credentialSchema().getMetadata(SolrUserCredential.SERVICE_KEY);
+		return credentialSchema().getMetadata(UserCredential.SERVICE_KEY);
 	}
 
 	public UserCredential newCredential() {
-		return new SolrUserCredential(create(credentialSchema()), getTypes());
+		return new UserCredential(create(credentialSchema()), getTypes());
 	}
 
 	public UserCredential wrapCredential(Record record) {
-		return new SolrUserCredential(record, getTypes());
+		return new UserCredential(record, getTypes());
 	}
 
 	public List<UserCredential> wrapCredentials(List<Record> records) {
@@ -147,38 +146,38 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 
 	public MetadataSchemaType globalGroupSchemaType() {
 		MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(Collection.SYSTEM_COLLECTION);
-		return types.getSchemaType(SolrGlobalGroup.SCHEMA_TYPE);
+		return types.getSchemaType(GlobalGroup.SCHEMA_TYPE);
 	}
 
 	public MetadataSchema globalGroupSchema() {
 		MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(Collection.SYSTEM_COLLECTION);
-		return types.getSchema(SolrGlobalGroup.DEFAULT_SCHEMA);
+		return types.getSchema(GlobalGroup.DEFAULT_SCHEMA);
 	}
 
 	public Metadata globalGroupCode() {
-		return globalGroupSchema().getMetadata(SolrGlobalGroup.CODE);
+		return globalGroupSchema().getMetadata(GlobalGroup.CODE);
 	}
 
 	public Metadata globalGroupHierarchy() {
-		return globalGroupSchema().getMetadata(SolrGlobalGroup.HIERARCHY);
+		return globalGroupSchema().getMetadata(GlobalGroup.HIERARCHY);
 	}
 
 	public Metadata globalGroupStatus() {
-		return globalGroupSchema().getMetadata(SolrGlobalGroup.STATUS);
+		return globalGroupSchema().getMetadata(GlobalGroup.STATUS);
 	}
 
 	public Metadata globalGroupCollections() {
-		return globalGroupSchema().getMetadata(SolrGlobalGroup.COLLECTIONS);
+		return globalGroupSchema().getMetadata(GlobalGroup.COLLECTIONS);
 	}
 
 	public GlobalGroup newGlobalGroup() {
 		MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(Collection.SYSTEM_COLLECTION);
-		return new SolrGlobalGroup(create(globalGroupSchema()), types);
+		return new GlobalGroup(create(globalGroupSchema()), types);
 	}
 
 	public GlobalGroup wrapGlobalGroup(Record record) {
 		MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(Collection.SYSTEM_COLLECTION);
-		return new SolrGlobalGroup(record, types);
+		return new GlobalGroup(record, types);
 	}
 
 	public List<GlobalGroup> wrapGlobalGroups(List<Record> records) {
@@ -404,7 +403,7 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 	}
 
 	public UserCredential wrapUserCredential(Record record) {
-		return new SolrUserCredential(record, getTypes());
+		return new UserCredential(record, getTypes());
 	}
 
 	public List<User> wrapUsers(List<Record> records) {
@@ -450,12 +449,12 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 		getModelLayerFactory().newRecordServices().executeWithoutImpactHandling(tx);
 	}
 
-	public List<SolrAuthorizationDetails> getAllAuthorizations() {
+	public List<Authorization> getAllAuthorizations() {
 		return wrapSolrAuthorizationDetailss(
 				getModelLayerFactory().newSearchServices().getAllRecordsInUnmodifiableState(authorizationDetails.schemaType()));
 	}
 
-	public List<SolrAuthorizationDetails> getAllAuthorizationsInUnmodifiableState() {
+	public List<Authorization> getAllAuthorizationsInUnmodifiableState() {
 		return wrapSolrAuthorizationDetailss(
 				getModelLayerFactory().newSearchServices().getAllRecordsInUnmodifiableState(authorizationDetails.schemaType()));
 	}
@@ -476,7 +475,7 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 		return wrapReports(getModelLayerFactory().newSearchServices().getAllRecords(report.schemaType()));
 	}
 
-	public SolrAuthorizationDetails getSolrAuthorizationDetails(String id) {
+	public Authorization getSolrAuthorizationDetails(String id) {
 		return wrapSolrAuthorizationDetails(get(id));
 	}
 

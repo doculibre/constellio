@@ -95,8 +95,6 @@ public class MetadataNetworkBuilder {
 					if (link.mustBeOdd && level % 2 == 0) {
 						level++;
 					}
-					//					System.out.println("setting level of " + link.fromMetadata.getCode()
-					//							+ "->" + link.toMetadata.getCode() + " to " + level);
 
 					if (link.level != level) {
 						noLinksModified = false;
@@ -105,10 +103,6 @@ public class MetadataNetworkBuilder {
 					link.setLevel(level);
 				}
 			}
-
-			//			List<ModifiableMetadataNetworkLink> links = new ArrayList<>();
-			//			KeyListMap<String, ModifiableMetadataNetworkLink> linksFromMetadata = new KeyListMap<>();
-			//			KeyListMap<String, ModifiableMetadataNetworkLink> linksToMetadata = new KeyListMap<>();
 
 		}
 
@@ -142,11 +136,6 @@ public class MetadataNetworkBuilder {
 
 	int getDependencyLevelRequiredFor(Metadata from, List<Metadata> tos, boolean mustBeOdd, boolean mustBeEven) {
 		int level = 0;
-
-		String fromSchemaType = schemaUtils.getSchemaTypeCode(from);
-		if (schemaUtils.getSchemaTypeCode(from).equals("aThirdSchemaType")) {
-			System.out.println();
-		}
 
 		for (Metadata to : tos) {
 
@@ -382,20 +371,21 @@ public class MetadataNetworkBuilder {
 		} else if (DataEntryType.AGGREGATED == metadata.getDataEntry().getType()) {
 			AggregatedDataEntry dataEntry = (AggregatedDataEntry) metadata.getDataEntry();
 
-			Metadata refMetadata = builder.metadata(dataEntry.getReferenceMetadata());
+			List<String> referenceMetadatas = dataEntry.getReferenceMetadatas();
+			for (String referenceMetadata : referenceMetadatas) {
+				Metadata refMetadata = builder.metadata(referenceMetadata);
 
-			GetMetadatasUsedToCalculateParams params = new GetMetadatasUsedToCalculateParams(metadata) {
+				GetMetadatasUsedToCalculateParams params = new GetMetadatasUsedToCalculateParams(metadata, referenceMetadata) {
+					@Override
+					public Metadata getMetadata(String metadataCode) {
+						return builder.metadata(metadataCode);
+					}
+				};
 
-				@Override
-				public Metadata getMetadata(String metadataCode) {
-					return builder.metadata(metadataCode);
-				}
-			};
-
-			List<Metadata> tos = getHandlerFor(metadata).getMetadatasUsedToCalculate(params);
-			int level = builder.getDependencyLevelRequiredFor(metadata, tos, true, false);
-			builder.addNetworkLink(metadata, tos, refMetadata, level, AGGREGATION_INPUT, true, false);
-
+				List<Metadata> tos = getHandlerFor(metadata).getMetadatasUsedToCalculate(params);
+				int level = builder.getDependencyLevelRequiredFor(metadata, tos, true, false);
+				builder.addNetworkLink(metadata, tos, refMetadata, level, AGGREGATION_INPUT, true, false);
+			}
 		}
 	}
 

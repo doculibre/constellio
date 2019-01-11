@@ -90,8 +90,8 @@ public class DataLayerFactory extends LayerFactoryImpl {
 
 	private final IOServicesFactory ioServicesFactory;
 	private final SolrServers solrServers;
-	private ConstellioCacheManager settingsCacheManager;
-	private ConstellioCacheManager recordsCacheManager;
+	private ConstellioCacheManager localCacheManager;
+	private ConstellioCacheManager distributedCacheManager;
 	private final ConfigManager configManager;
 	private final UniqueIdGenerator idGenerator;
 	private final UniqueIdGenerator secondaryIdGenerator;
@@ -158,9 +158,9 @@ public class DataLayerFactory extends LayerFactoryImpl {
 
 		if (dataLayerConfiguration.getCacheType() == CacheType.IGNITE) {
 
-			settingsCacheManager = new ConstellioIgniteCacheManager(dataLayerConfiguration.getCacheUrl(), warVersion);
-			igniteClient = ((ConstellioIgniteCacheManager) settingsCacheManager).getClient();
-			recordsCacheManager = new ConstellioIgniteCacheManager(dataLayerConfiguration.getCacheUrl(), warVersion);
+			localCacheManager = new ConstellioIgniteCacheManager(dataLayerConfiguration.getCacheUrl(), warVersion);
+			igniteClient = ((ConstellioIgniteCacheManager) localCacheManager).getClient();
+			distributedCacheManager = new ConstellioIgniteCacheManager(dataLayerConfiguration.getCacheUrl(), warVersion);
 
 		} else if (dataLayerConfiguration.getCacheType() == CacheType.MEMORY) {
 
@@ -171,17 +171,17 @@ public class DataLayerFactory extends LayerFactoryImpl {
 				igniteClient = cacheManager.getClient();
 			}
 
-			settingsCacheManager = new ConstellioMapCacheManager(dataLayerConfiguration);
-			recordsCacheManager = new ConstellioEventMapCacheManager(eventBusManager);
+			localCacheManager = new ConstellioMapCacheManager(dataLayerConfiguration);
+			distributedCacheManager = new ConstellioEventMapCacheManager(eventBusManager);
 
 		} else if (dataLayerConfiguration.getCacheType() == CacheType.TEST) {
-			settingsCacheManager = new SerializationCheckCacheManager(dataLayerConfiguration);
-			recordsCacheManager = new SerializationCheckCacheManager(dataLayerConfiguration);
+			localCacheManager = new SerializationCheckCacheManager(dataLayerConfiguration);
+			distributedCacheManager = new SerializationCheckCacheManager(dataLayerConfiguration);
 		} else {
 			throw new ImpossibleRuntimeException("Unsupported CacheConfigManager");
 		}
-		add(settingsCacheManager);
-		add(recordsCacheManager);
+		add(localCacheManager);
+		add(distributedCacheManager);
 
 		EventBus configManagerEventBus = eventBusManager.createEventBus("configManager", ONLY_SENT_REMOTELY);
 		ConfigManager configManagerWithoutCache;
@@ -193,7 +193,7 @@ public class DataLayerFactory extends LayerFactoryImpl {
 			configManagerWithoutCache = add(new FileSystemConfigManager(dataLayerConfiguration.getSettingsFileSystemBaseFolder(),
 					ioServicesFactory.newIOServices(),
 					ioServicesFactory.newHashingService(dataLayerConfiguration.getHashingEncoding()),
-					settingsCacheManager.getCache(FileSystemConfigManager.class.getName()), dataLayerExtensions,
+					localCacheManager.getCache(FileSystemConfigManager.class.getName()), dataLayerExtensions,
 					configManagerEventBus));
 
 		} else {
@@ -201,9 +201,9 @@ public class DataLayerFactory extends LayerFactoryImpl {
 		}
 
 		if (dataLayerConfiguration.getCacheType() == CacheType.IGNITE) {
-			configManager = new CachedConfigManager(configManagerWithoutCache, settingsCacheManager.getCache("configManager"));
+			configManager = new CachedConfigManager(configManagerWithoutCache, localCacheManager.getCache("configManager"));
 		} else {
-			configManager = new CachedConfigManager(configManagerWithoutCache, recordsCacheManager.getCache("configManager"));
+			configManager = new CachedConfigManager(configManagerWithoutCache, distributedCacheManager.getCache("configManager"));
 		}
 
 		if (dataLayerConfiguration.getIdGeneratorType() == IdGeneratorType.UUID_V1) {
@@ -286,12 +286,12 @@ public class DataLayerFactory extends LayerFactoryImpl {
 		return configManager;
 	}
 
-	public ConstellioCacheManager getSettingsCacheManager() {
-		return settingsCacheManager;
+	public ConstellioCacheManager getLocalCacheManager() {
+		return localCacheManager;
 	}
 
-	public ConstellioCacheManager getRecordsCacheManager() {
-		return recordsCacheManager;
+	public ConstellioCacheManager getDistributedCacheManager() {
+		return distributedCacheManager;
 	}
 
 	public ContentDao getContentsDao() {

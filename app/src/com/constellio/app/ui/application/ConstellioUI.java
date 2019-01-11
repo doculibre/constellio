@@ -1,5 +1,19 @@
 package com.constellio.app.ui.application;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
+
+import java.lang.reflect.InvocationTargetException;
+import java.security.Principal;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.joda.time.LocalDateTime;
+import org.vaadin.dialogs.ConfirmDialog;
+import org.vaadin.dialogs.DefaultConfirmDialogFactory;
+
 import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
 import com.constellio.app.modules.rm.ui.contextmenu.RMRecordContextMenuHandler;
 import com.constellio.app.modules.rm.ui.menuBar.RMRecordMenuBarHandler;
@@ -40,6 +54,7 @@ import com.vaadin.event.UIEvents.PollListener;
 import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
+import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.Page;
 import com.vaadin.server.Page.BrowserWindowResizeEvent;
 import com.vaadin.server.Page.BrowserWindowResizeListener;
@@ -51,19 +66,6 @@ import com.vaadin.server.VaadinSession;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
-import org.joda.time.LocalDateTime;
-import org.vaadin.dialogs.ConfirmDialog;
-import org.vaadin.dialogs.DefaultConfirmDialogFactory;
-
-import java.lang.reflect.InvocationTargetException;
-import java.security.Principal;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 
 @SuppressWarnings("serial")
 @Theme("constellio")
@@ -85,6 +87,8 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 	private SSOServices ssoServices;
 
 	private View currentView;
+
+	private ViewChangeEvent viewChangeEvent;
 
 	static {
 		try {
@@ -108,6 +112,14 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+
+	public ViewChangeEvent getViewChangeEvent() {
+		return viewChangeEvent;
+	}
+
+	public void setViewChangeEvent(ViewChangeEvent viewChangeEvent) {
+		this.viewChangeEvent = viewChangeEvent;
 	}
 
 	public void addRequestHandler(RequestHandler handler) {
@@ -238,7 +250,7 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 			addStyleName("right-to-left");
 		}
 		if (isSetupRequired()) {
-			ConstellioSetupViewImpl setupView = new ConstellioSetupViewImpl();
+			ConstellioSetupViewImpl setupView = new ConstellioSetupViewImpl(VaadinService.getCurrentRequest().getPathInfo());
 			setContent(setupView);
 			addStyleName("setupview");
 		} else {
@@ -262,6 +274,7 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 				navigator.addViewChangeListener(new ViewChangeListener() {
 					@Override
 					public boolean beforeViewChange(ViewChangeEvent event) {
+
 						ConstellioFactories.getInstance().onRequestEnded();
 						ConstellioFactories.getInstance().onRequestStarted();
 						return true;
@@ -269,6 +282,7 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 
 					@Override
 					public void afterViewChange(ViewChangeEvent event) {
+						ConstellioUI.getCurrent().setViewChangeEvent(event);
 						View oldView = event.getOldView();
 						if (oldView instanceof PollListener) {
 							removePollListener((PollListener) oldView);
@@ -329,7 +343,8 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 
 	private boolean isSetupRequired() {
 		ConstellioFactories constellioFactories = getConstellioFactories();
-		return constellioFactories.getAppLayerFactory().getCollectionsManager().getCollectionCodesExcludingSystem().isEmpty();
+		return constellioFactories.getAppLayerFactory().getCollectionsManager().getCollectionCodesExcludingSystem().isEmpty()
+				&& constellioFactories.getAppLayerFactory().isInitializationFinished();
 	}
 
 	public ConstellioHeader getHeader() {
@@ -425,6 +440,33 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 
 	public MainLayout getMainLayout() {
 		return mainLayout;
+	}
+
+	public void runAsync(final Runnable runnable, int pollInterval) {
+		final boolean stopPolling;
+		if (getPollInterval() <= 0) {
+			setPollInterval(pollInterval);
+			stopPolling = true;
+		} else {
+			stopPolling = false;
+		}
+		new Thread() {
+			@Override
+			public void run() {
+				try {
+					access(runnable);
+				} finally {
+					if (stopPolling) {
+						access(new Runnable() {
+							@Override
+							public void run() {
+								setPollInterval(-1);
+							}
+						});
+					}
+				}
+			}
+		}.start();
 	}
 
 }

@@ -16,6 +16,7 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
+import com.constellio.sdk.tests.FakeUIContext;
 import com.constellio.sdk.tests.MockedNavigation;
 import org.joda.time.LocalDate;
 import org.junit.Before;
@@ -66,6 +67,7 @@ public class DecommissioningBuilderPresenterAcceptanceTest extends ConstellioTes
 		when(view.getCollection()).thenReturn(zeCollection);
 		when(view.getConstellioFactories()).thenReturn(getConstellioFactories());
 		when(view.navigate()).thenReturn(navigator);
+		when(view.getUIContext()).thenReturn(new FakeUIContext());
 
 		decommissioningList = buildDefaultFolderDecommissioningList();
 		recordServices.add(decommissioningList.getWrappedRecord());

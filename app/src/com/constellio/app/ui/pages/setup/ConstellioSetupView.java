@@ -15,4 +15,7 @@ public interface ConstellioSetupView extends BaseView {
 
 	void reloadForm();
 
+	void navigateToMonitoring();
+
+	void setSubmitButtonEnabled(boolean enabled);
 }

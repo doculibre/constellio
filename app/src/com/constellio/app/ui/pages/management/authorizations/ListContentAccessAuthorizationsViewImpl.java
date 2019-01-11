@@ -49,10 +49,11 @@ public class ListContentAccessAuthorizationsViewImpl extends ListAuthorizationsV
 		protected Component buildWindowContent() {
 			buildUsersAndGroupsField();
 			buildAccessField();
+			buildNegativeAuthorizationField();
 			buildRolesField();
 			buildDateFields();
-			return new BaseForm<AuthorizationVO>(
-					AuthorizationVO.forContent(record.getId()), this, users, groups, accessRoles, userRoles, startDate, endDate) {
+			BaseForm authorizationComponent = new BaseForm<AuthorizationVO>(
+					AuthorizationVO.forContent(record.getId()), this, users, groups, negative, accessRoles, userRoles, startDate, endDate) {
 				@Override
 				protected void saveButtonClick(AuthorizationVO authorization)
 						throws ValidationException {
@@ -65,6 +66,9 @@ public class ListContentAccessAuthorizationsViewImpl extends ListAuthorizationsV
 					getWindow().close();
 				}
 			};
+			authorizationComponent.getField("negative").setValue(negative.getItemIds().iterator().next());
+			((Component) authorizationComponent).setHeight("95%");
+			return authorizationComponent;
 		}
 
 		private void buildUsersAndGroupsField() {

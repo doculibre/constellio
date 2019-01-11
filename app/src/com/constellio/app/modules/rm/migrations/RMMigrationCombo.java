@@ -6,7 +6,6 @@ import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.modules.rm.RMEmailTemplateConstants;
-import com.constellio.app.modules.rm.constants.RMRoles;
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
@@ -42,7 +41,6 @@ import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
-import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.users.UserServices;
 import org.apache.commons.io.IOUtils;
@@ -148,6 +146,13 @@ public class RMMigrationCombo implements ComboMigrationScript {
 		scripts.add(new RMMigrationTo8_0_2());
 		scripts.add(new RMMigrationTo8_0_3());
 		scripts.add(new RMMigrationTo8_1());
+		scripts.add(new RMMigrationTo8_1_0_1());
+		scripts.add(new RMMigrationTo8_1_1());
+		scripts.add(new RMMigrationTo8_1_1_1());
+		scripts.add(new RMMigrationTo8_1_1_2());
+		scripts.add(new RMMigrationTo8_1_2());
+		scripts.add(new RMMigrationTo8_1_4());
+		scripts.add(new RMMigrationTo8_2());
 
 		return scripts;
 	}
@@ -201,20 +206,8 @@ public class RMMigrationCombo implements ComboMigrationScript {
 		taxonomiesManager.editTaxonomy(taxonomiesManager.getEnabledTaxonomyWithCode(collection, "admUnits"));
 
 		RMMigrationTo7_2.reloadEmailTemplates(appLayerFactory, migrationResourcesProvider, collection);
-		changeRolesNamesIfMultilingualCollection(appLayerFactory, collection);
 	}
 
-	private void changeRolesNamesIfMultilingualCollection(AppLayerFactory appLayerFactory, String collection) {
-		RolesManager rolesManager = appLayerFactory.getModelLayerFactory().getRolesManager();
-		if (appLayerFactory.getCollectionsManager().getCollectionInfo(collection).getCollectionLanguages().size() > 1) {
-			rolesManager.updateRole(rolesManager.getRole(collection, RMRoles.USER)
-					.withTitle("Utilisateur / User"));
-			rolesManager.updateRole(rolesManager.getRole(collection, RMRoles.MANAGER)
-					.withTitle("Gestionnaire / Manager"));
-			rolesManager.updateRole(rolesManager.getRole(collection, RMRoles.RGD)
-					.withTitle("Responsable de la gestion documentaire / Records General Director"));
-		}
-	}
 
 	private void applySchemasDisplay2(String collection, SchemasDisplayManager manager) {
 		SchemaTypesDisplayTransactionBuilder transaction = manager.newTransactionBuilderFor(collection);
@@ -256,15 +249,15 @@ public class RMMigrationCombo implements ComboMigrationScript {
 
 		transaction.add(rm.newMediumType().setCode(migrationResourcesProvider.getDefaultLanguageString("MediumType.paperCode"))
 				.setTitles(migrationResourcesProvider.getLanguagesString("MediumType.paperTitle"))
-				.setAnalogical(true));
+				.setAnalogical(true).setActivatedOnContent(null));
 
 		transaction.add(rm.newMediumType().setCode(migrationResourcesProvider.getDefaultLanguageString("MediumType.filmCode"))
 				.setTitles(migrationResourcesProvider.getLanguagesString("MediumType.filmTitle"))
-				.setAnalogical(true));
+				.setAnalogical(true).setActivatedOnContent(null));
 
 		transaction.add(rm.newMediumType().setCode(migrationResourcesProvider.getDefaultLanguageString("MediumType.driveCode"))
 				.setTitles(migrationResourcesProvider.getLanguagesString("MediumType.driveTitle"))
-				.setAnalogical(false));
+				.setAnalogical(false).setActivatedOnContent(null));
 
 		transaction.add(rm.newDocumentType().setCode(DocumentType.EMAIL_DOCUMENT_TYPE)
 				.setTitles(migrationResourcesProvider.getLanguagesString("DocumentType.emailDocumentType"))

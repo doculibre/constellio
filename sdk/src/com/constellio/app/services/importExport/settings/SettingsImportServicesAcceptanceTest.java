@@ -3645,6 +3645,96 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		}
 	}
 
+	@Test
+	public void whenImportingMetadataWithReadRoleAccessThenOK()
+			throws ValidationException {
+
+		ImportedCollectionSettings collectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
+
+		ImportedType folderType = new ImportedType().setCode("folder").setLabel("Dossier");
+		ImportedMetadataSchema defaultSchema = new ImportedMetadataSchema().setCode("default");
+		folderType.setDefaultSchema(defaultSchema);
+
+		ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setType("STRING").setRequiredReadRoles(asList("RGI", "U"));
+
+		defaultSchema.addMetadata(m1);
+
+		collectionSettings.addType(folderType);
+		settings.addCollectionSettings(collectionSettings);
+
+		importSettings();
+
+		MetadataSchemaType schemaType = metadataSchemasManager
+				.getSchemaTypes(zeCollection).getSchemaType("folder");
+
+		Metadata metadata1 = schemaType.getDefaultSchema().get("folder_default_m1");
+
+
+		assertThat(metadata1).isNotNull();
+
+		assertThat(metadata1.getAccessRestrictions().getRequiredReadRoles()).contains("RGI", "U");
+	}
+
+	@Test
+	public void whenImportingMetadataInCustomSchemaWithReadRoleAccessThenOK()
+			throws ValidationException {
+
+		ImportedCollectionSettings collectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
+
+		ImportedType folderType = new ImportedType().setCode("folder").setLabel("Dossier");
+		ImportedMetadataSchema usrFolder2Schema = new ImportedMetadataSchema().setCode("usrFolder2");
+		folderType.setCustomSchemata(asList(usrFolder2Schema));
+
+		ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setType("STRING").setRequiredReadRoles(asList("RGI", "U"));
+
+		usrFolder2Schema.addMetadata(m1);
+
+		collectionSettings.addType(folderType);
+		settings.addCollectionSettings(collectionSettings);
+
+		importSettings();
+
+		MetadataSchemaType schemaType = metadataSchemasManager
+				.getSchemaTypes(zeCollection).getSchemaType("folder");
+
+		Metadata metadata1 = schemaType.getCustomSchema("usrFolder2").get("folder_usrFolder2_m1");
+
+
+		assertThat(metadata1).isNotNull();
+
+		assertThat(metadata1.getAccessRestrictions().getRequiredReadRoles()).contains("RGI", "U");
+	}
+
+	@Test
+	public void whenImportingFolderTitleMetadataWithReadRoleAccessThenOK()
+			throws ValidationException {
+
+		ImportedCollectionSettings collectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
+
+		ImportedType folderType = new ImportedType().setCode("folder").setLabel("Dossier");
+		ImportedMetadataSchema defaultSchema = new ImportedMetadataSchema().setCode("default");
+		folderType.setDefaultSchema(defaultSchema);
+
+		ImportedMetadata title = new ImportedMetadata().setCode("title").setType("STRING").setRequiredReadRoles(asList("M"));
+
+		defaultSchema.addMetadata(title);
+
+		collectionSettings.addType(folderType);
+		settings.addCollectionSettings(collectionSettings);
+
+		importSettings();
+
+		MetadataSchemaType schemaType = metadataSchemasManager
+				.getSchemaTypes(zeCollection).getSchemaType("folder");
+
+		Metadata folderDefaultTitleMetadata = schemaType.getDefaultSchema().get("folder_default_title");
+
+		assertThat(folderDefaultTitleMetadata).isNotNull();
+
+		assertThat(folderDefaultTitleMetadata.getAccessRestrictions().getRequiredReadRoles()).contains("M");
+	}
+
+
 	@Before
 	public void setUp()
 			throws Exception {

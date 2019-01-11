@@ -7,6 +7,7 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.summaryconfig.SummaryConfigParams;
+import com.constellio.app.ui.pages.summaryconfig.SummaryConfigParams.DisplayCondition;
 import com.constellio.app.ui.pages.summaryconfig.SummaryConfigPresenter;
 import com.constellio.app.ui.pages.summaryconfig.SummaryConfigView;
 import com.constellio.model.services.records.RecordServices;
@@ -102,6 +103,86 @@ public class SummaryCalculatorAcceptanceTest extends ConstellioTest {
 		String summary = resultFolder.get(Folder.SUMMARY);
 
 		assertThat(summary).isEqualTo("prefix : Unité 11-B");
+	}
+
+	@Test
+	public void givenFolderWithSummaryThatIsAReferenceShowingATitleAndFolderTitleParameterThenSummaryMetadataHaveAValueTest()
+			throws Exception {
+		SummaryConfigParams summaryConfigParams1 = new SummaryConfigParams();
+
+		summaryConfigParams1.setMetadataVO(findMetadata(Folder.ADMINISTRATIVE_UNIT));
+		summaryConfigParams1.setPrefix("adminunit :");
+		summaryConfigParams1.setDisplayCondition(SummaryConfigParams.DisplayCondition.ALWAYS);
+		summaryConfigParams1.setReferenceMetadataDisplay(SummaryConfigParams.ReferenceMetadataDisplay.TITLE);
+
+		summaryConfigPresenter.addMetadaForSummary(summaryConfigParams1);
+
+		SummaryConfigParams summaryConfigParams2 = new SummaryConfigParams();
+		summaryConfigParams2.setMetadataVO(findMetadata(Folder.TITLE));
+		summaryConfigParams2.setPrefix("title :");
+		summaryConfigParams2.setDisplayCondition(SummaryConfigParams.DisplayCondition.ALWAYS);
+
+		summaryConfigPresenter.addMetadaForSummary(summaryConfigParams2);
+
+		Folder folder = createFolder();
+		recordServices.add(folder);
+
+		Folder resultFolder = rmRecordSchemaManager.getFolder(folder.getId());
+
+		String summary = resultFolder.get(Folder.SUMMARY);
+
+		assertThat(summary).isEqualTo("adminunit : Unité 11-B title : Ze folder");
+	}
+
+	@Test
+	public void givenFolderWithSummaryAndConditionalPrefixThenSummaryDoesContainTheFirstPrefix()
+			throws Exception {
+		SummaryConfigParams summaryConfigParams1 = new SummaryConfigParams();
+
+		summaryConfigParams1.setMetadataVO(findMetadata(Folder.ADMINISTRATIVE_UNIT));
+		summaryConfigParams1.setPrefix("adminunit :");
+		summaryConfigParams1.setDisplayCondition(DisplayCondition.COMPLETED);
+		summaryConfigParams1.setReferenceMetadataDisplay(SummaryConfigParams.ReferenceMetadataDisplay.TITLE);
+
+		summaryConfigPresenter.addMetadaForSummary(summaryConfigParams1);
+
+		SummaryConfigParams summaryConfigParams2 = new SummaryConfigParams();
+		summaryConfigParams2.setMetadataVO(findMetadata(Folder.TITLE));
+		summaryConfigParams2.setPrefix("title :");
+		summaryConfigParams2.setDisplayCondition(SummaryConfigParams.DisplayCondition.COMPLETED);
+
+		summaryConfigPresenter.addMetadaForSummary(summaryConfigParams2);
+
+		Folder folder = createFolder();
+		recordServices.add(folder);
+
+		Folder resultFolder = rmRecordSchemaManager.getFolder(folder.getId());
+
+		String summary = resultFolder.get(Folder.SUMMARY);
+
+		assertThat(summary).isEqualTo("Unité 11-B title : Ze folder");
+	}
+
+	@Test
+	public void givenFolderWithEnumInSummaryThenEnumIsEasyToUnderstandByUser()
+			throws Exception {
+		SummaryConfigParams summaryConfigParams1 = new SummaryConfigParams();
+
+		summaryConfigParams1.setMetadataVO(findMetadata(Folder.ACTIVE_RETENTION_TYPE));
+		summaryConfigParams1.setPrefix("active rentetion code :");
+		summaryConfigParams1.setDisplayCondition(DisplayCondition.COMPLETED);
+		summaryConfigParams1.setReferenceMetadataDisplay(SummaryConfigParams.ReferenceMetadataDisplay.TITLE);
+
+		summaryConfigPresenter.addMetadaForSummary(summaryConfigParams1);
+
+		Folder folder = createFolder();
+		recordServices.add(folder);
+
+		Folder resultFolder = rmRecordSchemaManager.getFolder(folder.getId());
+
+		String summary = resultFolder.get(Folder.SUMMARY);
+
+		assertThat(summary).isEqualTo("Durée fixe");
 	}
 
 	@NotNull
@@ -208,7 +289,7 @@ public class SummaryCalculatorAcceptanceTest extends ConstellioTest {
 
 		String summary = resultFolder.get(Folder.SUMMARY);
 
-		assertThat(summary).isEqualTo("prefix1 : keyword1, keyword2, keyword3, prefix2 : 11B");
+		assertThat(summary).isEqualTo("prefix1 : keyword1, keyword2, keyword3 prefix2 : 11B");
 	}
 
 	@Test

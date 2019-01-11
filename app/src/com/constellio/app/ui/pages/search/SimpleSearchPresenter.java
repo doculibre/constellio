@@ -1,28 +1,29 @@
 package com.constellio.app.ui.pages.search;
 
+import com.constellio.app.api.extensions.params.SearchPageConditionParam;
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
-import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
-import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.RMUser;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
+import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.MetadataVO;
+import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.NoSuchMetadataWithAtomicCode;
 import com.constellio.model.services.records.RecordImpl;
+import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.vaadin.ui.Component;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -80,10 +81,29 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 		searchExpression = search.getFreeTextSearch();
 		facetSelections.putAll(search.getSelectedFacets());
 		sortCriterion = search.getSortField();
-		sortOrder = SortOrder.valueOf(search.getSortOrder().name());
+		if(search.getSortOrder() != null) {
+			sortOrder = SortOrder.valueOf(search.getSortOrder().name());
+		}
 		pageNumber = search.getPageNumber();
 		resultsViewMode = search.getResultsViewMode() != null ? search.getResultsViewMode() : SearchResultsViewMode.DETAILED;
 		setSelectedPageLength(search.getPageLength());
+	}
+
+	@Override
+	void init(ConstellioFactories constellioFactories, SessionContext sessionContext) {
+		super.init(constellioFactories, sessionContext);
+
+		User user = view.getConstellioFactories().getAppLayerFactory()
+				.getModelLayerFactory().newUserServices().getUserInCollection(
+						view.getSessionContext().getCurrentUser().getUsername(),
+						collection);
+
+		if (allowedSchemaTypes().isEmpty()) {
+			service = new SearchPresenterService(collection, user, modelLayerFactory,null);
+		} else {
+			service = new SearchPresenterService(collection, user, modelLayerFactory,allowedSchemaTypes());
+		}
+
 	}
 
 	@Override
@@ -141,14 +161,32 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 	private List<MetadataVO> getCommonMetadataAllowedInSort(List<MetadataSchemaType> schemaTypes) {
 		List<MetadataVO> result = new ArrayList<>();
 		Set<String> resultCodes = new HashSet<>();
+		Set<String> notAcceptedLocalCode = new HashSet<>();
 		for (MetadataSchemaType metadataSchemaType : schemaTypes) {
-			for (MetadataVO metadata : getMetadataAllowedInSort(metadataSchemaType)) {
-				if (resultCodes.add(metadata.getLocalCode())) {
+			MetadataList nonAccessibleMetadataList = metadataSchemaType.getAllMetadatas()
+					.onlyNotAccessibleGloballyBy(getCurrentUser());
+			for (MetadataVO metadata : getMetadataAllowedInSortWithNoSecurity(metadataSchemaType)) {
+				if (isLocalCodeInMetadataList(metadata.getLocalCode(), nonAccessibleMetadataList)) {
+					notAcceptedLocalCode.add(metadata.getLocalCode());
+				} else if (resultCodes.add(metadata.getLocalCode())) {
 					result.add(metadata);
 				}
 			}
 		}
+
+		filterMetadataVOWithLocalCodeSet(result, notAcceptedLocalCode);
+
 		return result;
+	}
+
+	private void filterMetadataVOWithLocalCodeSet(List<MetadataVO> result, Set<String> notAcceptedLocalCode) {
+		Iterator<MetadataVO> resultIterator = result.iterator();
+		while (resultIterator.hasNext()) {
+			MetadataVO resultItem = resultIterator.next();
+			if (notAcceptedLocalCode.contains(resultItem.getLocalCode())) {
+				resultIterator.remove();
+			}
+		}
 	}
 
 	private boolean isMetadataInAllTypes(String localCode, List<MetadataSchemaType> types) {
@@ -162,6 +200,7 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 		return true;
 	}
 
+
 	@Override
 	protected LogicalSearchCondition getSearchCondition() {
 		LogicalSearchCondition logicalSearchCondition;
@@ -170,24 +209,9 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 		} else {
 			logicalSearchCondition = from(allowedSchemaTypes()).returnAll();
 		}
-		//TODO RM Module extension
-		if (isRMModuleActivated()) {
-			User user = getCurrentUser();
-			if (Boolean.TRUE.equals(user.get(RMUser.HIDE_NOT_ACTIVE))) {
-				List<String> notActiveCodes = new ArrayList<>();
-				notActiveCodes.add(FolderStatus.SEMI_ACTIVE.getCode());
-				notActiveCodes.add(FolderStatus.INACTIVE_DEPOSITED.getCode());
-				notActiveCodes.add(FolderStatus.INACTIVE_DESTROYED.getCode());
 
-				MetadataSchema folderSchema = schema(Folder.DEFAULT_SCHEMA);
-				logicalSearchCondition = logicalSearchCondition.andWhere(folderSchema.getMetadata(Folder.ARCHIVISTIC_STATUS)).isNotIn(notActiveCodes);
-			}
-		}
+		logicalSearchCondition = appCollectionExtentions.adjustSearchPageCondition(new SearchPageConditionParam((Component) view, logicalSearchCondition, getCurrentUser()));
 		return logicalSearchCondition;
-	}
-
-	private boolean isRMModuleActivated() {
-		return appLayerFactory.getModulesManager().isModuleEnabled(collection, new ConstellioRMModule());
 	}
 
 	@Override
@@ -197,15 +221,19 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 				.setPageNumber(pageNumber);
 	}
 
-	private List<MetadataSchemaType> allowedSchemaTypes() {
+	protected List<MetadataSchemaType> allowedSchemaTypes() {
 		List<MetadataSchemaType> result = new ArrayList<>();
-		for (MetadataSchemaType type : types().getSchemaTypes()) {
-			SchemaTypeDisplayConfig config = schemasDisplayManager()
-					.getType(view.getSessionContext().getCurrentCollection(), type.getCode());
-			if (config.isSimpleSearch() && isVisibleForUser(type, getCurrentUser())) {
-				result.add(type);
+		if(types() != null) {
+			for (MetadataSchemaType type : types().getSchemaTypes()) {
+				SchemaTypeDisplayConfig config = schemasDisplayManager()
+						.getType(view.getSessionContext().getCurrentCollection(), type.getCode());
+				if (config.isSimpleSearch() && isVisibleForUser(type, getCurrentUser())) {
+					result.add(type);
+				}
 			}
 		}
+
+
 		return result;
 	}
 

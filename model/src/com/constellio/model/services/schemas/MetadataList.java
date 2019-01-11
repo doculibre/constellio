@@ -1,13 +1,14 @@
 package com.constellio.model.services.schemas;
 
 import com.constellio.model.entities.Language;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -18,6 +19,7 @@ import java.util.ListIterator;
 import java.util.Map;
 
 import static com.constellio.data.utils.LangUtils.compareStrings;
+import static java.util.Arrays.asList;
 
 public class MetadataList implements List<Metadata>, Serializable {
 
@@ -33,7 +35,7 @@ public class MetadataList implements List<Metadata>, Serializable {
 
 	public MetadataList(Metadata... metadatas) {
 		super();
-		addAll(Arrays.asList(metadatas));
+		addAll(asList(metadatas));
 	}
 
 	public MetadataList(Collection<? extends Metadata> collection) {
@@ -623,4 +625,50 @@ public class MetadataList implements List<Metadata>, Serializable {
 		return new MetadataList(filteredMetadatasList).unModifiable();
 	}
 
+	public MetadataList excludingValueTypes(MetadataValueType... types) {
+		List<Metadata> filteredMetadatasList = new ArrayList<>();
+		List<MetadataValueType> excludedTypes = asList(types);
+		for (Metadata metadata : nestedList) {
+			if (!excludedTypes.contains(metadata.getType())) {
+				filteredMetadatasList.add(metadata);
+			}
+		}
+		return new MetadataList(filteredMetadatasList).unModifiable();
+	}
+
+	public MetadataList onlyAccessibleGloballyBy(User user) {
+		List<Metadata> metadataList = new ArrayList<>();
+
+		for(Metadata metadataListItem : nestedList) {
+				if (user == null || user.hasGlobalAccessToMetadata(metadataListItem)) {
+					metadataList.add(metadataListItem);
+				}
+		}
+
+		return new MetadataList(metadataList).unModifiable();
+	}
+
+	public MetadataList onlyNotAccessibleGloballyBy(User user) {
+		List<Metadata> metadataList = new ArrayList<>();
+
+		for (Metadata metadataListItem : nestedList) {
+			if (!user.hasGlobalAccessToMetadata(metadataListItem)) {
+				metadataList.add(metadataListItem);
+			}
+		}
+
+		return new MetadataList(metadataList).unModifiable();
+	}
+
+	public MetadataList onlyAccessibleOnRecordBy(User user, Record record) {
+		List<Metadata> metadataList = new ArrayList<>();
+
+		for(Metadata metadataListItem : nestedList) {
+			if(user.hasAccessToMetadata(metadataListItem, record)) {
+				metadataList.add(metadataListItem);
+			}
+		}
+
+		return new MetadataList(metadataList).unModifiable();
+	}
 }

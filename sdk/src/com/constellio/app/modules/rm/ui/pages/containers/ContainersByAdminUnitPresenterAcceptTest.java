@@ -2,8 +2,11 @@ package com.constellio.app.modules.rm.ui.pages.containers;
 
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
+import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.wrappers.User;
@@ -39,19 +42,23 @@ public class ContainersByAdminUnitPresenterAcceptTest extends ConstellioTest {
 				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
 						.withFoldersAndContainersOfEveryStatus().withEvents()
 		);
-		getDataLayerFactory().getDataLayerLogger().monitor("idx_rfc_00000000001");
 
 		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
 
 		recordServices = getModelLayerFactory().newRecordServices();
 		rmSchemasRecordsServices = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		admin = records.getAdmin();
 
 		when(view.getConstellioFactories()).thenReturn(getConstellioFactories());
 		when(view.getCollection()).thenReturn(zeCollection);
 		when(view.getSessionContext()).thenReturn(sessionContext);
 		when(sessionContext.getCurrentLocale()).thenReturn(Locale.FRENCH);
 		when(sessionContext.getCurrentCollection()).thenReturn(zeCollection);
-		admin = records.getAdmin();
+
+		UserVO userVO = new UserToVOBuilder().build(admin.getWrappedRecord(), VIEW_MODE.DISPLAY, sessionContext);
+
+		when(sessionContext.getCurrentUser()).thenReturn(userVO);
+
 
 		presenter = new ContainersByAdministrativeUnitsPresenter(view) {
 			@Override

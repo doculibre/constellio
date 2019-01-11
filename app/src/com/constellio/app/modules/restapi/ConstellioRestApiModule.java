@@ -7,7 +7,9 @@ import com.constellio.app.modules.restapi.core.config.RestApiResourceConfig;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.start.ApplicationStarter;
 import com.constellio.model.entities.configs.SystemConfiguration;
+import com.google.common.base.Strings;
 import lombok.extern.slf4j.Slf4j;
+import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.glassfish.jersey.servlet.ServletContainer;
@@ -95,7 +97,19 @@ public class ConstellioRestApiModule implements InstallableSystemModule {
 		servletHolder.setInitParameter("jersey.config.server.provider.packages", "com.constellio.app.modules.restapi");
 
 		ApplicationStarter.registerServlet(SERVICE_PATH + "*", servletHolder);
-		ApplicationStarter.registerFilter(SERVICE_PATH + "*", new CrossOriginFilter());
+
+		FilterHolder filterHolder = new FilterHolder(new CrossOriginFilter());
+		filterHolder.setInitParameter(CrossOriginFilter.ALLOWED_METHODS_PARAM, "GET,HEAD,POST,PUT,PATCH,DELETE,OPTIONS");
+		filterHolder.setInitParameter(CrossOriginFilter.ALLOWED_HEADERS_PARAM,
+				"X-Requested-With,Content-Type,Accept,Origin,Constellio-Flushing-Mode,Host,If-Match");
+		filterHolder.setInitParameter(CrossOriginFilter.CHAIN_PREFLIGHT_PARAM, "false");
+
+		String allowedOrigins = new RestApiConfigs(appLayerFactory).getCorsAllowedOrigins();
+		if (!Strings.isNullOrEmpty(allowedOrigins) && !allowedOrigins.equals("*")) {
+			filterHolder.setInitParameter(CrossOriginFilter.ALLOWED_ORIGINS_PARAM, allowedOrigins);
+		}
+
+		ApplicationStarter.registerFilter(SERVICE_PATH + "*", filterHolder);
 	}
 
 	@Override

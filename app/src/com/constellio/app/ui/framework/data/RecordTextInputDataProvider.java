@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRUCTURE;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.valueCondition.ConditionTemplateFactory.autocompleteFieldMatchingInMetadatas;
 
@@ -170,7 +171,8 @@ public class RecordTextInputDataProvider extends TextInputDataProvider<String> {
 
 			MetadataSchemaType type = modelLayerFactory.getMetadataSchemasManager()
 					.getSchemaTypes(getCurrentCollection()).getSchemaType(schemaTypeCode);
-			List<Metadata> extraMetadatas = type.getDefaultSchema().getMetadatas().onlySearchable().onlySchemaAutocomplete();
+			List<Metadata> extraMetadatas = type.getDefaultSchema().getMetadatas().onlySearchable()
+					.onlySchemaAutocomplete().excludingValueTypes(STRUCTURE);
 			if (StringUtils.isNotBlank(text)) {
 				condition = from(type).where(autocompleteFieldMatchingInMetadatas(text, extraMetadatas));
 			} else {

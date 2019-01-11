@@ -12,8 +12,8 @@ import java.util.List;
 public class UserFolderToVOBuilder extends RecordToVOBuilder {
 
 	@Override
-	protected RecordVO newRecordVO(String id, List<MetadataValueVO> metadataValueVOs, VIEW_MODE viewMode) {
-		return new UserFolderVO(id, metadataValueVOs, viewMode);
+	protected RecordVO newRecordVO(String id, List<MetadataValueVO> metadataValueVOs, VIEW_MODE viewMode, List<String> excludedMetadata) {
+		return new UserFolderVO(id, metadataValueVOs, viewMode, excludedMetadata);
 	}
 
 	@Override

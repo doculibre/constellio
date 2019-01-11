@@ -5,6 +5,7 @@ import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.navigation.RMViews;
+import com.constellio.app.modules.rm.reports.builders.administration.plan.AdministrativeUnitExcelReportParameters;
 import com.constellio.app.modules.rm.reports.builders.administration.plan.AdministrativeUnitReportParameters;
 import com.constellio.app.modules.rm.reports.builders.administration.plan.AvailableSpaceReportParameters;
 import com.constellio.app.modules.rm.reports.builders.administration.plan.ClassificationReportPlanParameters;
@@ -18,7 +19,9 @@ import com.constellio.app.ui.framework.reports.ReportWithCaptionVO;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.model.entities.records.wrappers.User;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -27,6 +30,7 @@ public class RMNewReportsPresenter extends BasePresenter<RMReportsView> implemen
 
 	private static final boolean BY_ADMINISTRATIVE_UNIT = true;
 	private String schemaTypeValue;
+	private Object userParams;
 
 	public RMNewReportsPresenter(RMReportsView view) {
 		super(view);
@@ -43,7 +47,8 @@ public class RMNewReportsPresenter extends BasePresenter<RMReportsView> implemen
 				new ReportWithCaptionVO("Reports.AdministrativeUnitsAndUsers", $("Reports.AdministrativeUnitsAndUsers")),
 				new ReportWithCaptionVO("Reports.Users", $("Reports.Users")),
 				new ReportWithCaptionVO("Reports.AvailableSpaceReport", $("Reports.AvailableSpaceReport")),
-				new ReportWithCaptionVO("Reports.AvailableSpaceReportAll", $("Reports.AvailableSpaceReportAll")));
+				new ReportWithCaptionVO("Reports.AvailableSpaceReportAll", $("Reports.AvailableSpaceReportAll")),
+				new ReportWithCaptionVO("Reports.administrativeUnitExcelFormat", $("Reports.administrativeUnitExcelFormat")));
 	}
 
 	public NewReportWriterFactory getReport(String report) {
@@ -73,7 +78,8 @@ public class RMNewReportsPresenter extends BasePresenter<RMReportsView> implemen
 				return rmModuleExtensions.getReportBuilderFactories().availableSpaceBuilderFactory.getValue();
 			case "Reports.AvailableSpaceReportAll":
 				return rmModuleExtensions.getReportBuilderFactories().availableSpaceBuilderFactory.getValue();
-
+			case "Reports.administrativeUnitExcelFormat":
+				return 	rmModuleExtensions.getReportBuilderFactories().administrativeUnitExcelBuilderFactory.getValue();
 		}
 
 		throw new RuntimeException("BUG: Unknown report: " + report);
@@ -82,17 +88,26 @@ public class RMNewReportsPresenter extends BasePresenter<RMReportsView> implemen
 
 	@Override
 	public Object getReportParameters(String report) {
+		List<String> listString  = null;
+
 		switch (report) {
 			case "Reports.fakeReport2":
 				return new ExampleReportWithoutRecordsParameters();
 			case "Reports.ClassificationPlan":
-				return new ClassificationReportPlanParameters(false, null);
+				return new ClassificationReportPlanParameters(false, null, null);
 			case "Reports.DetailedClassificationPlan":
-				return new ClassificationReportPlanParameters(true, null);
+
+				if(userParams != null) {
+					listString = new ArrayList<>((Collection<String>) userParams);
+				}
+				return new ClassificationReportPlanParameters(true, null, listString);
 			case "Reports.ConservationRulesList":
-				return new ConservationRulesReportParameters(false, null);
+				if(userParams != null) {
+					listString = new ArrayList<>((Collection<String>) userParams);
+				}
+				return new ConservationRulesReportParameters(false, null, listString);
 			case "Reports.ConservationRulesListByAdministrativeUnit":
-				return new ConservationRulesReportParameters(true, null);
+				return new ConservationRulesReportParameters(true, null, null);
 			case "Reports.AdministrativeUnits":
 				return new AdministrativeUnitReportParameters(false);
 			case "Reports.AdministrativeUnitsAndUsers":
@@ -100,20 +115,57 @@ public class RMNewReportsPresenter extends BasePresenter<RMReportsView> implemen
 			case "Reports.Users":
 				return new UserReportParameters();
 			case "Reports.ClassificationPlanByAdministrativeUnit":
-				return new ClassificationReportPlanParameters(false, schemaTypeValue);
+				return new ClassificationReportPlanParameters(false, schemaTypeValue, null);
 			case "Reports.AvailableSpaceReport":
 				return new AvailableSpaceReportParameters(false);
 			case "Reports.AvailableSpaceReportAll":
 				return new AvailableSpaceReportParameters(true);
+			case "Reports.administrativeUnitExcelFormat":
+				return 	new AdministrativeUnitExcelReportParameters((List<String>) userParams);
 		}
 
 		throw new RuntimeException("BUG: Unknown report: " + report);
+	}
+
+	public void setUserReportParameters(Object userParams) {
+		this.userParams = userParams;
+	}
+
+	public Object getUserReportParameters() {
+		return userParams;
+	}
+
+	public boolean isRetentionRuleReport(String report) {
+		switch (report) {
+		case "Reports.ConservationRulesList":
+			return true;
+		default:
+			return false;
+		}
 	}
 
 	public boolean isWithSchemaType(String report) {
 		switch (report) {
 			case "Reports.ConservationRulesListByAdministrativeUnit":
 			case "Reports.ClassificationPlanByAdministrativeUnit":
+				return true;
+			default:
+				return false;
+		}
+	}
+
+	public boolean isAdministrativeUnitExcelReport(String reports) {
+		switch (reports) {
+			case "Reports.administrativeUnitExcelFormat":
+				return true;
+			default:
+				return false;
+		}
+	}
+
+	public boolean isDetailedClassificationPlan(String reports) {
+		switch (reports) {
+			case "Reports.DetailedClassificationPlan":
 				return true;
 			default:
 				return false;

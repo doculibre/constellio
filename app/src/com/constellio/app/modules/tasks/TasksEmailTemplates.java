@@ -16,6 +16,8 @@ public class TasksEmailTemplates {
 	public static final String TASK_ASSIGNED_BY = "taskAssignedBy";
 	public static final String TASK_ASSIGNED_ON = "taskAssignedOn";
 	public static final String TASK_ASSIGNED = "taskAssigned";
+	public static final String TASK_USERS_CANDIDATES = "taskUsersCandidates";
+	public static final String TASK_GROUPS_CANDIDATES = "taskGroupsCandidates";
 	public static final String TASK_DUE_DATE = "taskDueDate";
 	public static final String TASK_DUE_DATE_TITLE = "taskDueDateTitle";
 	public static final String TASK_STATUS = "taskStatus";

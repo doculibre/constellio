@@ -17,11 +17,11 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.sdk.SDKPasswords;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.annotations.InternetTest;
 import com.constellio.sdk.tests.annotations.SlowTest;
 import jcifs.smb.NtlmPasswordAuthentication;
 import jcifs.smb.SmbFile;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -37,6 +37,7 @@ import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 
+@InternetTest
 public class DeleteConnectorSmbRealTest extends ConstellioTest {
 
 	private ConnectorManager connectorManager;
@@ -77,7 +78,6 @@ public class DeleteConnectorSmbRealTest extends ConstellioTest {
 	}
 
 	@Test
-	@Ignore
 	@SlowTest
 	public void givenConnectorSmbHierarchyWhenDeleteThenOk()
 			throws Exception {

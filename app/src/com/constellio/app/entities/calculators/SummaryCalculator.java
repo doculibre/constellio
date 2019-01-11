@@ -1,8 +1,11 @@
 package com.constellio.app.entities.calculators;
 
+import com.constellio.app.ui.framework.components.converters.EnumWithSmallCodeToCaptionConverter;
 import com.constellio.app.ui.pages.summaryconfig.SummaryConfigParams;
 import com.constellio.app.ui.util.DateFormatUtils;
 import com.constellio.data.utils.SimpleDateFormatSingleton;
+import com.constellio.model.entities.EnumWithSmallCode;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.DynamicDependencyValues;
 import com.constellio.model.entities.calculators.InitializedMetadataValueCalculator;
@@ -30,7 +33,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import static com.constellio.app.ui.i18n.i18n.$;
 import static java.util.Arrays.asList;
 
 public class SummaryCalculator implements InitializedMetadataValueCalculator<String>, MetadataValueCalculator<String> {
@@ -47,12 +49,16 @@ public class SummaryCalculator implements InitializedMetadataValueCalculator<Str
 
 	List<Dependency> dependencies = new ArrayList<>();
 	String metadataCode;
+	boolean isFirstPrefixSpikedOrShown;
 
 	@Override
 	public String calculate(CalculatorParameters parameters) {
 		DynamicDependencyValues values = parameters.get(dynamicMetadatasDependency);
 		StringBuilder summmaryColumnValue = new StringBuilder();
 		List<Map> listMap = (List<Map>) parameters.getMetadata().getCustomParameter().get(SUMMARY_CONFIG);
+		isFirstPrefixSpikedOrShown = false;
+
+		Language language = parameters.getSchemaType().getCollectionInfo().getMainSystemLanguage();
 
 		if (listMap != null) {
 
@@ -68,14 +74,14 @@ public class SummaryCalculator implements InitializedMetadataValueCalculator<Str
 							List metadataValue = values.getValue(localeCode);
 							for (int i = 0; i < metadataValue.size(); i++) {
 								Object object = metadataValue.get(i);
-								textForMetadata.append(getValue(values, parameters, metadata, object));
+								textForMetadata.append(getValue(values, parameters, metadata, object, language));
 								if (i != metadataValue.size() - 1) {
 									textForMetadata.append(", ");
 								}
 							}
 						} else {
 							Object metadataValue = values.getValue(localeCode);
-							textForMetadata.append(getValue(values, parameters, metadata, metadataValue));
+							textForMetadata.append(getValue(values, parameters, metadata, metadataValue, language));
 						}
 					} else {
 						ReferenceDependency referenceDependency = getReferenceDependancy(code);
@@ -88,18 +94,14 @@ public class SummaryCalculator implements InitializedMetadataValueCalculator<Str
 									textForMetadata.append(", ");
 								}
 							}
-
 						} else {
 							textForMetadata.append((String) parameters.get(referenceDependency));
 						}
-
 					}
-				}
-				String prefixContentToStirng = addPrefixContentToString(textForMetadata.toString(), currentMap);
 
-				if (!Strings.isNullOrEmpty(prefixContentToStirng) && summmaryColumnValue.length() > 0) {
-					prefixContentToStirng = ", " + prefixContentToStirng;
 				}
+
+				String prefixContentToStirng = addPrefixContentToString(textForMetadata.toString(), currentMap);
 
 				summmaryColumnValue.append(prefixContentToStirng);
 			}
@@ -108,7 +110,7 @@ public class SummaryCalculator implements InitializedMetadataValueCalculator<Str
 			return null;
 		}
 
-		return summmaryColumnValue.toString();
+		return summmaryColumnValue.toString().trim();
 
 	}
 
@@ -179,22 +181,35 @@ public class SummaryCalculator implements InitializedMetadataValueCalculator<Str
 
 	public String addPrefixContentToString(String itemShown, Map summarySettings) {
 		boolean isAlwaysShow = Boolean.TRUE.toString().equalsIgnoreCase(summarySettings.get(IS_ALWAYS_SHOWN).toString());
+		boolean itemShowIsNotNullOrNotEmpty = !Strings.isNullOrEmpty(itemShown);
 
-		if (isAlwaysShow || !Strings.isNullOrEmpty(itemShown)) {
+		if(!isAlwaysShow && itemShowIsNotNullOrNotEmpty && !isFirstPrefixSpikedOrShown) {
+			isFirstPrefixSpikedOrShown = true;
+			return itemShown;
+		}
+
+		if (isAlwaysShow || itemShowIsNotNullOrNotEmpty) {
+
 			String prefix = (String) summarySettings.get(PREFIX);
 
-			if (Strings.isNullOrEmpty(prefix)) {
+			boolean isPrefixNullOrEmpty = Strings.isNullOrEmpty(prefix);
+
+			if(!isFirstPrefixSpikedOrShown && !isPrefixNullOrEmpty) {
+				isFirstPrefixSpikedOrShown = true;
+			}
+
+			if (isPrefixNullOrEmpty) {
 				prefix = "";
 			}
 
-			itemShown = prefix + " " + itemShown;
+			itemShown = " " + prefix + " " + itemShown;
 		}
 
 		return itemShown;
 	}
 
 	public String getValue(DynamicDependencyValues values, CalculatorParameters parameters, Metadata metadata,
-						   Object value) {
+						   Object value, Language language) {
 		String returnValue = "";
 		if (value != null) {
 			switch (metadata.getType()) {
@@ -233,7 +248,10 @@ public class SummaryCalculator implements InitializedMetadataValueCalculator<Str
 					returnValue = values.getValue(Schemas.TITLE.getLocalCode());
 					break;
 				case ENUM:
-					returnValue = $(value.toString());
+					EnumWithSmallCodeToCaptionConverter disposalTypeConverter = new EnumWithSmallCodeToCaptionConverter(
+							(Class<? extends EnumWithSmallCode>) metadata.getEnumClass());
+					EnumWithSmallCode enumWithSmallCode = (EnumWithSmallCode) value;
+					returnValue = disposalTypeConverter.convertToPresentation(enumWithSmallCode.getCode(), String.class, language.getLocale());
 					break;
 			}
 		}

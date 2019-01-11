@@ -4,10 +4,12 @@ import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.reports.label.LabelXmlGenerator;
 import com.constellio.app.modules.rm.services.reports.parameters.XmlReportGeneratorParameters;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.PrintableLabel;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.LabelParametersVO;
+import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveRecordLookupField;
 import com.constellio.app.ui.pages.base.BaseView;
@@ -62,7 +64,7 @@ public class GetXMLButton extends WindowButton {
 	private RecordServices recordServices;
 
 	public GetXMLButton(String caption, String windowsCaption, AppLayerFactory factory, String collection,
-						BaseView view, boolean isForTest) {
+						BaseView view, boolean isForTest, UserVO user) {
 		super(caption, windowsCaption, WindowConfiguration.modalDialog("75%", "75%"));
 		this.model = factory.getModelLayerFactory();
 		this.collection = collection;
@@ -70,7 +72,7 @@ public class GetXMLButton extends WindowButton {
 		this.ss = model.newSearchServices();
 		this.rm = new RMSchemasRecordsServices(this.collection, factory);
 		this.contentManager = model.getContentManager();
-		this.reportXmlGenerator = new LabelXmlGenerator(collection, factory, view.getSessionContext().getCurrentLocale());
+		this.reportXmlGenerator = new LabelXmlGenerator(collection, factory, view.getSessionContext().getCurrentLocale(), user);
 		if (isForTest) {
 			reportXmlGenerator.setXmlGeneratorParameters(new XmlReportGeneratorParameters().markAsTestXml());
 		}
@@ -82,7 +84,17 @@ public class GetXMLButton extends WindowButton {
 	@Override
 	protected Component buildWindowContent() {
 		final ListAddRemoveRecordLookupField listAddRemoveRecordLookupField = new ListAddRemoveRecordLookupField(currentSchema);
-		listAddRemoveRecordLookupField.setCaption(currentSchema.equals(Folder.SCHEMA_TYPE) ? $("GenerateXML.nbFolder") : $("GenerateXML.nbContainer"));
+		String caption;
+
+		if(currentSchema.equals(Folder.SCHEMA_TYPE)) {
+			caption =  $("GenerateXML.nbFolder");
+		} else if (currentSchema.equals(ContainerRecord.SCHEMA_TYPE)) {
+			caption = $("GenerateXML.nbContainer");
+		} else {
+			caption = $("GenerateXML.nbDocument");
+		}
+
+		listAddRemoveRecordLookupField.setCaption(caption);
 
 		return new BaseForm<LabelParametersVO>(
 				new LabelParametersVO(new LabelTemplate()), this, listAddRemoveRecordLookupField) {

@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.ui.pages.cart;
 
+import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
@@ -22,6 +23,9 @@ import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import org.vaadin.dialogs.ConfirmDialog;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -91,46 +95,51 @@ public class CartsListViewImpl extends BaseViewImpl implements CartsListView {
 		Table table = buildTable();
 		tabLayout.addComponents(addButton, table);
 		tabLayout.setExpandRatio(table, 1);
-		tabLayout.setComponentAlignment(addButton, Alignment.TOP_RIGHT);
+		tabLayout.setSpacing(true);
+		tabLayout.setComponentAlignment(addButton, Alignment.BOTTOM_RIGHT);
 		return tabLayout;
 	}
 
-	private Table buildTable() {
-		RecordVOLazyContainer container = new RecordVOLazyContainer(presenter.getOwnedCartsDataProvider());
+	private DefaultFavoritesTable buildTable() {
+		List<DefaultFavoritesTable.CartItem> cartItems = new ArrayList<>();
+		cartItems.add(new DefaultFavoritesTable.CartItem($("CartView.defaultFavorites")));
+		for (Cart cart : presenter.getOwnedCarts()) {
+			cartItems.add(new DefaultFavoritesTable.CartItem(cart, cart.getTitle()));
+		}
+		DefaultFavoritesTable.FavoritesContainer container = new DefaultFavoritesTable.FavoritesContainer(DefaultFavoritesTable.CartItem.class, cartItems);
 
-		final ButtonsContainer<RecordVOLazyContainer> buttonsContainer = new ButtonsContainer<>(container);
+		final ButtonsContainer<DefaultFavoritesTable.FavoritesContainer> buttonsContainer = new ButtonsContainer(container, DefaultFavoritesTable.CartItem.DISPLAY_BUTTON);
 		buttonsContainer.addButton(new ButtonsContainer.ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
+			protected Button newButtonInstance(final Object item, ButtonsContainer<?> container) {
 				return new DisplayButton() {
 					@Override
 					protected void buttonClick(ClickEvent event) {
-						RecordVO recordVO = buttonsContainer.getNestedContainer().getRecordVO((int) itemId);
-						presenter.displayButtonClicked(recordVO);
+						Cart cart = buttonsContainer.getNestedContainer().getCart((DefaultFavoritesTable.CartItem) item);
+						if (cart != null) {
+							presenter.displayButtonClicked(cart);
+						} else {
+							presenter.displayDefaultFavorites();
+						}
 					}
 				};
 			}
 		});
 		buttonsContainer.addButton(new ButtonsContainer.ContainerButton() {
 			@Override
-			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
+			protected Button newButtonInstance(final Object item, ButtonsContainer<?> container) {
 				DeleteButton deleteButton = new DeleteButton() {
 					@Override
 					protected void confirmButtonClick(ConfirmDialog dialog) {
-						RecordVO recordVO = buttonsContainer.getNestedContainer().getRecordVO((int) itemId);
-						presenter.deleteButtonClicked(recordVO);
+						Cart cart = buttonsContainer.getNestedContainer().getCart((DefaultFavoritesTable.CartItem) item);
+						presenter.deleteButtonClicked(cart);
 					}
 				};
+				deleteButton.setVisible(buttonsContainer.getNestedContainer().getCart((DefaultFavoritesTable.CartItem) item) != null);
 				return deleteButton;
 			}
 		});
-
-		RecordVOTable table = new RecordVOTable("", buttonsContainer);
-		table.setColumnHeader(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID, "");
-		table.setColumnWidth(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID, 90);
-		table.setPageLength(Math.min(15, container.size()));
-		table.setWidth("100%");
-		return table;
+		return new DefaultFavoritesTable("favoritesTable", buttonsContainer, presenter.getSchema());
 	}
 
 	private Layout buildSharedCartsTab() {

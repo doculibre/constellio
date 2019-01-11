@@ -68,12 +68,19 @@ public class SearchResultDisplay extends VerticalLayout {
 	BaseButton elevateButton;
 
 	String query;
+	Map<String, String> extraParam;
 
 	private Component titleComponent;
 
 	public SearchResultDisplay(SearchResultVO searchResultVO, MetadataDisplayFactory componentFactory,
 							   AppLayerFactory appLayerFactory, String query) {
+		this(searchResultVO, componentFactory, appLayerFactory, query, null);
+	}
+
+	public SearchResultDisplay(SearchResultVO searchResultVO, MetadataDisplayFactory componentFactory,
+							   AppLayerFactory appLayerFactory, String query, Map<String,String> extraParam) {
 		this.appLayerFactory = appLayerFactory;
+		this.extraParam = extraParam;
 		schemasRecordsService = new SchemasRecordsServices(ConstellioUI.getCurrentSessionContext().getCurrentCollection(),
 				getAppLayerFactory().getModelLayerFactory());
 		this.query = query;
@@ -81,6 +88,14 @@ public class SearchResultDisplay extends VerticalLayout {
 
 		this.sessionContext = getCurrent().getSessionContext();
 		init(searchResultVO, componentFactory);
+	}
+
+	public Map<String, String> getExtraParam() {
+		return extraParam;
+	}
+
+	public void setExtraParam(Map<String, String> extraParam) {
+		this.extraParam = extraParam;
 	}
 
 	protected void init(SearchResultVO searchResultVO, MetadataDisplayFactory componentFactory) {
@@ -99,6 +114,7 @@ public class SearchResultDisplay extends VerticalLayout {
 		CssLayout titleLayout = new CssLayout();
 		Component titleLink = newTitleLink(searchResultVO);
 		titleLink.addStyleName(TITLE_STYLE);
+		
 		titleLink.setWidthUndefined();
 		titleLayout.addComponent(titleLink);
 
@@ -148,9 +164,16 @@ public class SearchResultDisplay extends VerticalLayout {
 		}
 		return titleLayout;
 	}
-
+	
+	protected void addVisitedStyleNameIfNecessary(Component titleLink, String id) {
+		SessionContext sessionContext = getCurrent().getSessionContext();
+		if (sessionContext.isVisited(id)) {
+			titleLink.addStyleName("visited-link");
+		}
+	}
+	
 	protected Component newTitleLink(SearchResultVO searchResultVO) {
-		return new ReferenceDisplay(searchResultVO.getRecordVO());
+		return new ReferenceDisplay(searchResultVO.getRecordVO(), true, extraParam);
 	}
 
 	protected Component newMetadataComponent(SearchResultVO searchResultVO, MetadataDisplayFactory componentFactory) {
@@ -202,25 +225,25 @@ public class SearchResultDisplay extends VerticalLayout {
 		VerticalLayout layout = new VerticalLayout();
 		layout.setSpacing(true);
 		for (MetadataValueVO metadataValue : recordVO.getSearchMetadataValues()) {
-			MetadataVO metadataVO = metadataValue.getMetadata();
-			if (metadataVO.codeMatches(CommonMetadataBuilder.TITLE)) {
-				continue;
+			if(recordVO.getMetadataCodes().contains(metadataValue.getMetadata().getCode())) {
+
+				MetadataVO metadataVO = metadataValue.getMetadata();
+				if (!metadataVO.codeMatches(CommonMetadataBuilder.TITLE)) {
+
+					Component value = componentFactory.build(recordVO, metadataValue);
+					if (value != null) {
+						Label caption = new Label(metadataVO.getLabel() + ":");
+						caption.addStyleName("metadata-caption");
+
+						I18NHorizontalLayout item = new I18NHorizontalLayout(caption, value);
+						item.setHeight("100%");
+						item.setSpacing(true);
+						item.addStyleName("metadata-caption-layout");
+
+						layout.addComponent(item);
+					}
+				}
 			}
-
-			Component value = componentFactory.build(recordVO, metadataValue);
-			if (value == null) {
-				continue;
-			}
-
-			Label caption = new Label(metadataVO.getLabel() + ":");
-			caption.addStyleName("metadata-caption");
-
-			I18NHorizontalLayout item = new I18NHorizontalLayout(caption, value);
-			item.setHeight("100%");
-			item.setSpacing(true);
-			item.addStyleName("metadata-caption-layout");
-
-			layout.addComponent(item);
 		}
 		return layout;
 	}

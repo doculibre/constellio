@@ -5,24 +5,46 @@ import com.constellio.app.ui.entities.SystemConfigurationGroupVO;
 import com.constellio.app.ui.entities.SystemConfigurationVO;
 import com.constellio.app.ui.framework.data.SystemConfigurationGroupdataProvider;
 import com.constellio.app.ui.pages.base.BasePresenter;
+import com.constellio.data.conf.HashingEncoding;
+import com.constellio.data.io.streamFactories.StreamFactory;
+import com.constellio.data.io.streams.factories.StreamsServices;
+import com.constellio.data.utils.hashing.HashingService;
+import com.constellio.data.utils.hashing.HashingServiceException;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.configs.SystemConfiguration;
+import com.constellio.model.entities.records.ConditionnedActionExecutorInBatchBuilder;
+import com.constellio.model.entities.records.ConditionnedActionExecutorInBatchBuilder.RecordScript;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.RecordUpdateOptions;
+import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import com.constellio.model.services.records.SchemasRecordsServices;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ConfigManagementPresenter extends BasePresenter<ConfigManagementView> {
 
+	public static final String TEMP_FILE_PRIVACY_POLICY_VO = "ConfigManagementPresenter-Temp-file-privacy-policy-vo";
+	public static final String TEMP_FILE_PRIVACY_POLICY = "ConfigManagementPresenter-Temp-file-privacy-policy";
+
 	private SystemConfigurationGroupdataProvider dataProvider;
+	private SchemasRecordsServices schemasRecordsServices;
+	private HashingService hashingService;
 
 	public ConfigManagementPresenter(ConfigManagementView view) {
 		super(view);
 		this.dataProvider = new SystemConfigurationGroupdataProvider();
 		view.setDataProvider(dataProvider);
+		schemasRecordsServices = SchemasRecordsServices.usingMainModelLayerFactory(Collection.SYSTEM_COLLECTION, modelLayerFactory);
+		hashingService = modelLayerFactory.getIOServicesFactory().newHashingService(HashingEncoding.BASE64);
 	}
 
 	public void forParams(String parameters) {
@@ -44,6 +66,8 @@ public class ConfigManagementPresenter extends BasePresenter<ConfigManagementVie
 		if (errors.getValidationErrors().size() != 0) {
 			view.showErrorMessage(buildErrorMessage(errors));
 		} else {
+			privacyPolicyUpdateCheck();
+
 			boolean reindexingRequired = false;
 			for (String groupCode : groupCodes) {
 				boolean reindexingRequiredForGroup = saveGroup(groupCode);
@@ -60,7 +84,56 @@ public class ConfigManagementPresenter extends BasePresenter<ConfigManagementVie
 			}
 			view.navigate().to().adminModule();
 		}
+	}
 
+	private void privacyPolicyUpdateCheck() {
+		SystemConfigurationVO systemConfigurationVO = dataProvider.getSystemConfigurationGroup("others")
+				.getSystemConfigurationVO("privacyPolicy");
+
+		boolean reShowPrivacyPolicyToUser = false;
+
+		StreamsServices.ByteArrayStreamFactory oldPrivacyPolicy = appLayerFactory.getModelLayerFactory()
+				.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.PRIVACY_POLICY);
+		if (systemConfigurationVO != null && systemConfigurationVO.isUpdated()) {
+			if (systemConfigurationVO.getValue() != null && oldPrivacyPolicy != null) {
+				StreamFactory<InputStream> newPrivacyPolicyStreamFactory = (StreamFactory<InputStream>) systemConfigurationVO
+						.getValue();
+				InputStream newPrivacyPolicyInputStream;
+				try {
+					newPrivacyPolicyInputStream = newPrivacyPolicyStreamFactory.create(TEMP_FILE_PRIVACY_POLICY_VO);
+				} catch (IOException e) {
+					throw new RuntimeException(e);
+				}
+				try {
+					InputStream oldPrivacyPolicyInputStream = oldPrivacyPolicy.create(TEMP_FILE_PRIVACY_POLICY);
+						reShowPrivacyPolicyToUser = !hashingService.getHashFromStream(newPrivacyPolicyInputStream)
+								.equals(hashingService.getHashFromStream(oldPrivacyPolicyInputStream));
+				} catch (IOException e) {
+					throw new RuntimeException(e);
+				} catch (HashingServiceException e) {
+					throw new RuntimeException(e);
+				}
+			} else {
+				if (systemConfigurationVO.getValue() != null && oldPrivacyPolicy == null) {
+					reShowPrivacyPolicyToUser = true;
+				}
+			}
+			if (reShowPrivacyPolicyToUser) {
+				new ConditionnedActionExecutorInBatchBuilder(modelLayerFactory, appLayerFactory.getModelLayerFactory()
+						.getUserCredentialsManager().getUserCredentialsWithAgreedToPolicyQuery().getCondition())
+						.setOptions(RecordUpdateOptions
+								.validationExceptionSafeOptions())
+						.modifyingRecordsWithImpactHandling(new RecordScript() {
+
+							@Override
+							public void modifyRecord(Record record) {
+								UserCredential userCredential = schemasRecordsServices.wrapUserCredential(record);
+								userCredential.setAgreedPrivacyPolicy(false);
+							}
+						});
+			}
+
+		}
 	}
 
 	void validateGroup(String groupCode, ValidationErrors errors) {
@@ -96,8 +169,8 @@ public class ConfigManagementPresenter extends BasePresenter<ConfigManagementVie
 			SystemConfiguration systemConfiguration = previousConfigs.get(i);
 			SystemConfigurationVO systemConfigurationVO = systemConfigurationGroup.getSystemConfigurationVO(i);
 			if (systemConfigurationVO.isUpdated()) {
-				reindexingRequired = reindexingRequired || systemConfigurationsManager
-						.setValue(systemConfiguration, systemConfigurationVO.getValue());
+				reindexingRequired = systemConfigurationsManager.setValue(systemConfiguration, systemConfigurationVO.getValue())
+									 || reindexingRequired;
 				systemConfigurationVO.afterSetValue();
 				systemConfigurationGroup.valueSave(i);
 			}

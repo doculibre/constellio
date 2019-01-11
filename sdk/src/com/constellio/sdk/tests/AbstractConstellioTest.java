@@ -59,6 +59,7 @@ import com.constellio.sdk.tests.annotations.UiTest;
 import com.constellio.sdk.tests.concurrent.ConcurrentJob;
 import com.constellio.sdk.tests.concurrent.OngoingConcurrentExecution;
 import com.constellio.sdk.tests.schemas.SchemaTestFeatures;
+import com.constellio.sdk.tests.schemas.SchemasSetup;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
 import com.constellio.sdk.tests.setups.TestsSpeedStats;
 import com.constellio.sdk.tests.setups.Users;
@@ -789,6 +790,17 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 			throw new RuntimeException("Must use defineSchemas(mockedMetadataSchemasManager)");
 		}
 		return getCurrentTestSession().getSchemaTestFeatures().use();
+	}
+
+	protected SchemaTestFeatures defineFrenchSystemBilingualCollection(String collection) {
+		if (isUnitTestStatic()) {
+			throw new RuntimeException("Must use defineSchemas(mockedMetadataSchemasManager)");
+		}
+		givenSystemLanguageIs("fr");
+		givenCollection(collection, asList("fr", "en"));
+
+		SchemasSetup.prepareSetups(getModelLayerFactory().getMetadataSchemasManager(), getAppLayerFactory().getCollectionsManager());
+		return getCurrentTestSession().getSchemaTestFeatures();
 	}
 
 	protected SchemaTestFeatures define(MetadataSchemasManager metadataSchemaManager) {
@@ -1574,7 +1586,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	protected Session newCMISSessionAsUserInCollection(String username, String collection) {
 		ensureNotUnitTest();
 		UserServices userServices = getModelLayerFactory().newUserServices();
-		userServices.addUpdateUserCredential(userServices.getUser(username).withServiceKey(username + "-key"));
+		userServices.addUpdateUserCredential(userServices.getUser(username).setServiceKey(username + "-key"));
 		String token = userServices.generateToken(username, Duration.standardHours(72));
 		System.out.println("Logging as " + username + "-key / " + token);
 		Session session = newCmisSessionBuilder().authenticatedBy(username + "-key", token).onCollection(collection).build();

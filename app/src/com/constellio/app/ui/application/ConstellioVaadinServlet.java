@@ -2,6 +2,11 @@ package com.constellio.app.ui.application;
 
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.vaadin.annotations.VaadinServletConfiguration;
+import com.vaadin.server.CustomizedSystemMessages;
+import com.vaadin.server.DefaultSystemMessagesProvider;
+import com.vaadin.server.SystemMessages;
+import com.vaadin.server.SystemMessagesInfo;
+import com.vaadin.server.SystemMessagesProvider;
 import com.vaadin.server.VaadinServlet;
 
 import javax.servlet.ServletConfig;
@@ -10,6 +15,8 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 @SuppressWarnings("serial")
 @WebServlet(value = "/*", asyncSupported = true)
@@ -73,7 +80,37 @@ public class ConstellioVaadinServlet extends VaadinServlet {
 			throws ServletException {
 		super.servletInitialized();
 		getService().addSessionInitListener(new ConstellioSessionInitListener());
+
+		final CustomizedSystemMessages messages = new CustomizedSystemMessages() {
+			@Override
+			public String getSessionExpiredCaption() {
+				return $("ConstellioVaadinServlet.internalErrorCaption");
+			}
+
+			@Override
+			public String getSessionExpiredMessage() {
+				return $("ConstellioVaadinServlet.internalErrorMessage");
+			}
+
+			@Override
+			public String getInternalErrorCaption() {
+				return $("ConstellioVaadinServlet.internalErrorCaption");
+			}
+
+			@Override
+			public String getInternalErrorMessage() {
+				return $("ConstellioVaadinServlet.internalErrorMessage");
+			}
+		};
+		getService().setSystemMessagesProvider(new SystemMessagesProvider() {
+			@Override
+			public SystemMessages getSystemMessages(SystemMessagesInfo systemMessagesInfo) {
+				return messages;
+			}
+		});
 	}
+
+
 
 	public static ConstellioVaadinServlet getCurrent() {
 		return (ConstellioVaadinServlet) VaadinServlet.getCurrent();

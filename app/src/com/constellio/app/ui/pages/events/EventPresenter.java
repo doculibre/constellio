@@ -1,5 +1,6 @@
 package com.constellio.app.ui.pages.events;
 
+import au.com.bytecode.opencsv.CSVWriter;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.events.RMEventsSearchServices;
@@ -7,15 +8,20 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.tasks.navigation.TaskViews;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
+import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
+import com.constellio.app.ui.framework.components.content.InputStreamWrapper;
+import com.constellio.app.ui.framework.components.content.InputStreamWrapper.SimpleAction;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.data.event.EventTypeUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
+import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
+import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
@@ -31,9 +37,17 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.apache.commons.lang.CharEncoding;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -49,10 +63,14 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 	private EventCategory eventCategory;
 	private String eventType;
 	private String id;
+	private IOServices ioServices;
+	public static final String STREAM_NAME = EventPresenter.class.getName() + "-stream";
+	public static final String TEMPORARY_FILE = EventPresenter.class.getName() + "-file";
 
 	public EventPresenter(EventView view) {
 		super(view, Event.DEFAULT_SCHEMA);
 		recordServices().flush();
+		ioServices = view.getConstellioFactories().getModelLayerFactory().getIOServicesFactory().newIOServices();
 	}
 
 	@Override
@@ -119,7 +137,92 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 				return buildQueryFromParameters();
 			}
 		};
+
 		return eventsDataProvider;
+	}
+
+	public InputStreamWrapper createInputStreamWrapper() {
+		InputStreamWrapper inputStreamWrapper = new InputStreamWrapper();
+		inputStreamWrapper.addSimpleAction(new SimpleAction() {
+			@Override
+			public void action(InputStreamWrapper inputStreamWrapper) {
+				try {
+					final File tempFile = generateCsvReport();
+					InputStream inputStream = new FileInputStream(tempFile) {
+						@Override
+						public void close()
+								throws IOException {
+							super.close();
+							ioServices.deleteQuietly(tempFile);
+						}
+					};
+
+					inputStreamWrapper.setInputStream(inputStream);
+				} catch (FileNotFoundException e) {
+					e.printStackTrace();
+					throw new RuntimeException(e);
+				}
+			}
+		});
+
+		return inputStreamWrapper;
+	}
+
+	public File generateCsvReport() {
+
+		OutputStreamWriter outputStreamWriter = null;
+		CSVWriter csvWriter = null;
+		OutputStream byteArrayOutputStream = null;
+		File temporaryFile = null;
+		try {
+			temporaryFile = ioServices.newTemporaryFile(TEMPORARY_FILE);
+			byteArrayOutputStream = ioServices.newFileOutputStream(temporaryFile, STREAM_NAME);
+			outputStreamWriter = new OutputStreamWriter(byteArrayOutputStream, CharEncoding.ISO_8859_1);
+			csvWriter = new CSVWriter(outputStreamWriter, ',', CSVWriter.NO_QUOTE_CHARACTER);
+			writeCsvReport(csvWriter);
+			csvWriter.flush();
+			ioServices.closeQuietly(csvWriter);
+			ioServices.closeQuietly(outputStreamWriter);
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			ioServices.closeQuietly(csvWriter);
+			ioServices.closeQuietly(outputStreamWriter);
+			ioServices.closeQuietly(byteArrayOutputStream);
+		}
+
+		return temporaryFile;
+	}
+
+	public void writeCsvReport(CSVWriter csvWriter) {
+		RecordVODataProvider dataProvider = getDataProvider();
+
+		String[] headerRecord = view.getTableColumn();
+		csvWriter.writeNext(headerRecord);
+		SearchResponseIterator<Record> searchResponseIterator = dataProvider.getIterator();
+		Object[] visiblePropertyObject = view.getTableVisibleProperties();
+
+		while (searchResponseIterator.hasNext()) {
+			Record currentRecord = searchResponseIterator.next();
+			RecordToVOBuilder voBuilder = new RecordToVOBuilder();
+			RecordVO recordVO = voBuilder.build(currentRecord, VIEW_MODE.TABLE, view.getSessionContext());
+			String[] stringArray = new String[visiblePropertyObject.length];
+
+			int counter = 0;
+			for (Object object : visiblePropertyObject) {
+				MetadataVO metadataVO = (MetadataVO) object;
+				Object metadataValue = recordVO.get(metadataVO);
+				String valueAsString = null;
+
+				if (metadataValue != null) {
+					valueAsString = metadataValue.toString();
+				}
+
+				stringArray[counter++] = valueAsString;
+			}
+			csvWriter.writeNext(stringArray);
+		}
 	}
 
 	private RMSchemasRecordsServices rmSchemasRecordsServices() {
@@ -217,6 +320,10 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 
 	public boolean isTypeMetadata(MetadataValueVO metadataValue) {
 		return metadataValue.getMetadata().getCode().contains(Event.TYPE);
+	}
+
+	public boolean isNegativeAuthorizationMetadata(MetadataValueVO metadataValue) {
+		return metadataValue.getMetadata().getCode().contains(Event.NEGATIVE_AUTHORIZATION);
 	}
 
 	public boolean isTaskMetadata(MetadataValueVO metadataValue) {

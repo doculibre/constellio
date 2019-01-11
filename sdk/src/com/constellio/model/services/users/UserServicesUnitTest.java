@@ -15,9 +15,9 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
+import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
-import com.constellio.model.entities.security.global.XmlGlobalGroup;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
@@ -71,8 +71,8 @@ public class UserServicesUnitTest extends ConstellioTest {
 	@Mock Metadata collection2UserGroupsMetadata;
 	@Mock Metadata collection2GroupCodeMetadata;
 
-	@Mock UserCredentialsManager userCredentialsManager;
-	@Mock XmlGlobalGroupsManager globalGroupsManager;
+	@Mock SolrUserCredentialsManager userCredentialsManager;
+	@Mock SolrGlobalGroupsManager globalGroupsManager;
 	@Mock CollectionsListManager collectionsListManager;
 	@Mock RecordServices recordServices;
 	@Mock SearchServices searchServices;
@@ -358,7 +358,7 @@ public class UserServicesUnitTest extends ConstellioTest {
 			throws Exception {
 
 		when(globalGroupsManager.getActiveGroups()).thenReturn(Arrays.asList(legends, heroes));
-		doNothing().when(userServices).sync(any(XmlGlobalGroup.class));
+		doNothing().when(userServices).sync(any(GlobalGroup.class));
 
 		userServices.addGlobalGroupsInCollection("collection1");
 

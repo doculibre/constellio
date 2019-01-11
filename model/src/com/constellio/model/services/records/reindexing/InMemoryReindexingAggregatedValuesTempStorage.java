@@ -15,7 +15,7 @@ public class InMemoryReindexingAggregatedValuesTempStorage implements Reindexing
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(InMemoryReindexingAggregatedValuesTempStorage.class);
 
-	private KeyIntMap<String> referenceCounts = new KeyIntMap<>();
+	private Map<String, KeyIntMap<String>> referenceCounts = new HashMap<>();
 
 	private Map<String, Map<String, Map<String, List<Object>>>> entries = new HashMap<>();
 
@@ -95,12 +95,16 @@ public class InMemoryReindexingAggregatedValuesTempStorage implements Reindexing
 	}
 
 	@Override
-	public void incrementReferenceCount(String recordIdAggregatingValues) {
-		referenceCounts.increment(recordIdAggregatingValues);
+	public void incrementReferenceCount(String recordIdAggregatingValues, String aggregatedMetadataLocalCode) {
+		if (!referenceCounts.containsKey(recordIdAggregatingValues)) {
+			referenceCounts.put(recordIdAggregatingValues, new KeyIntMap<String>());
+		}
+		referenceCounts.get(recordIdAggregatingValues).increment(aggregatedMetadataLocalCode);
 	}
 
 	@Override
-	public int getReferenceCount(String recordIdAggregatingValues) {
-		return referenceCounts.get(recordIdAggregatingValues);
+	public int getReferenceCount(String recordIdAggregatingValues, String aggregatedMetadataLocalCode) {
+		KeyIntMap<String> keyIntMap = referenceCounts.get(recordIdAggregatingValues);
+		return keyIntMap != null ? keyIntMap.get(aggregatedMetadataLocalCode) : 0;
 	}
 }

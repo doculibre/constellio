@@ -36,7 +36,11 @@ import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
+import com.constellio.model.services.users.UserDocumentsServices;
 import com.constellio.model.services.users.UserServices;
+import com.vaadin.event.dd.DragAndDropEvent;
+import com.vaadin.ui.DragAndDropWrapper;
+import com.vaadin.ui.Html5File;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -387,5 +391,30 @@ public class ListUserDocumentsPresenter extends SingleSchemaBasePresenter<ListUs
 	public ContentVersionVO getUpdatedContentVersionVO(RecordVO recordVO, ContentVersionVO previousConventVersionVO) {
 		UserDocumentVO updatedUserDocument = voBuilder.build(recordServices().getDocumentById(recordVO.getId()), VIEW_MODE.FORM, view.getSessionContext());
 		return updatedUserDocument.getContent();
+	}
+
+	public boolean isQuotaSpaceConfigActivated() {
+		return new UserDocumentsServices(modelLayerFactory).isQuotaSpaceConfigActivated();
+	}
+
+	public double getAvailableSpace() {
+		return new UserDocumentsServices(modelLayerFactory).getAvailableSpaceInMegaBytes(getCurrentUser().getUsername(), collection);
+	}
+
+	public boolean isSpaceLimitReached(DragAndDropEvent event) {
+		long totalLength = 0L;
+		DragAndDropWrapper.WrapperTransferable transferable = (DragAndDropWrapper.WrapperTransferable) event
+				.getTransferable();
+		Html5File[] files = transferable.getFiles();
+		for (Html5File file : files) {
+			totalLength = totalLength + file.getFileSize();
+		}
+		return new UserDocumentsServices(modelLayerFactory)
+				.isSpaceLimitReached(getCurrentUser().getUsername(), collection, totalLength);
+	}
+
+	public boolean isSpaceLimitReached(long length) {
+		return new UserDocumentsServices(modelLayerFactory)
+				.isSpaceLimitReached(getCurrentUser().getUsername(), collection, length);
 	}
 }

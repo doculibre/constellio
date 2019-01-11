@@ -92,7 +92,7 @@ public class RecordAutomaticMetadataServicesCalculationTest extends ConstellioTe
 
 	@Mock ModelLayerFactory modelLayerFactory;
 
-	TransactionExecutionContext context = new TransactionExecutionContext();
+	TransactionExecutionContext context = new TransactionExecutionContext(null);
 
 	@SuppressWarnings("unchecked")
 	@Before

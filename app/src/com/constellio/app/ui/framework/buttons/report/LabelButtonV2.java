@@ -13,6 +13,7 @@ import com.constellio.app.modules.rm.wrappers.PrintableLabel;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.LabelParametersVO;
 import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.BaseForm;
@@ -90,10 +91,12 @@ public class LabelButtonV2 extends WindowButton {
 
 	private String schemaType;
 
+	private UserVO userVO;
+
 	public LabelButtonV2(String caption, String windowsCaption,
 						 Factory<List<LabelTemplate>> customLabelTemplatesFactory,
 						 Factory<List<LabelTemplate>> defaultLabelTemplatesFactory, AppLayerFactory factory,
-						 String collection) {
+						 String collection, UserVO userVO) {
 		super(caption, windowsCaption);
 		this.factory = factory;
 		this.collection = collection;
@@ -106,15 +109,15 @@ public class LabelButtonV2 extends WindowButton {
 
 		this.customLabelTemplatesFactory = customLabelTemplatesFactory;
 		this.defaultLabelTemplatesFactory = defaultLabelTemplatesFactory;
-
+		this.userVO = userVO;
 
 	}
 
 	public LabelButtonV2(String caption, String windowsCaption,
 						 Factory<List<LabelTemplate>> customLabelTemplatesFactory,
 						 Factory<List<LabelTemplate>> defaultLabelTemplatesFactory, AppLayerFactory factory,
-						 String collection, RecordVO... elements) {
-		this(caption, windowsCaption, customLabelTemplatesFactory, defaultLabelTemplatesFactory, factory, collection);
+						 String collection, UserVO userVO, RecordVO... elements) {
+		this(caption, windowsCaption, customLabelTemplatesFactory, defaultLabelTemplatesFactory, factory, collection, userVO);
 		this.setElements(elements);
 	}
 
@@ -223,14 +226,14 @@ public class LabelButtonV2 extends WindowButton {
 		return ids;
 	}
 
-    private void setItemsForFormatFields(List<? extends Dimensionnable> listOfAllTemplates) {
-        sortListOfAllTemplates();
-        for (Dimensionnable template : listOfAllTemplates) {
-            formatField.addItem(template);
-            //Check the captions of the current template.
-            String itemCaption = template instanceof PrintableLabel ? ((PrintableLabel) template).getTitle(i18n.getLocale()): $(((LabelTemplate) template).getName());
-            formatField.setItemCaption(template, itemCaption);
-        }
+	private void setItemsForFormatFields(List<? extends Dimensionnable> listOfAllTemplates) {
+		sortListOfAllTemplates();
+		for (Dimensionnable template : listOfAllTemplates) {
+			formatField.addItem(template);
+			//Check the captions of the current template.
+			String itemCaption = template instanceof PrintableLabel ? ((PrintableLabel) template).getTitle(i18n.getLocale()) : $(((LabelTemplate) template).getName());
+			formatField.setItemCaption(template, itemCaption);
+		}
 
 		if (listOfAllTemplates.size() > 0) {
 			formatField.select(listOfAllTemplates.get(0));
@@ -254,18 +257,18 @@ public class LabelButtonV2 extends WindowButton {
 
 	}
 
-    private void sortListOfAllTemplates(){
-        Collections.sort(listOfAllTemplates, new Comparator<Dimensionnable>() {
-            @Override
-            public int compare(Dimensionnable o1, Dimensionnable o2) {
-                String caption1 = ((PrintableLabel) o1).getTitle(i18n.getLocale());
-                String caption2 = ((PrintableLabel) o2).getTitle(i18n.getLocale());
-                return StringUtils.lowerCase(caption1).compareTo(StringUtils.lowerCase(caption2));
-            }
-        });
-    }
+	private void sortListOfAllTemplates() {
+		Collections.sort(listOfAllTemplates, new Comparator<Dimensionnable>() {
+			@Override
+			public int compare(Dimensionnable o1, Dimensionnable o2) {
+				String caption1 = ((PrintableLabel) o1).getTitle(i18n.getLocale());
+				String caption2 = ((PrintableLabel) o2).getTitle(i18n.getLocale());
+				return StringUtils.lowerCase(caption1).compareTo(StringUtils.lowerCase(caption2));
+			}
+		});
+	}
 
-    private class TemplateValueChangeListener implements Property.ValueChangeListener {
+	private class TemplateValueChangeListener implements Property.ValueChangeListener {
 
 		@Override
 		public void valueChange(Property.ValueChangeEvent event) {
@@ -323,7 +326,7 @@ public class LabelButtonV2 extends WindowButton {
 		private VerticalLayout generateLabelFromPrintableLabel(Dimensionnable selectedTemplate) throws Exception {
 			VerticalLayout layout = null;
 			if (validateInputs(selectedTemplate)) {
-				LabelXmlGenerator labelXmlGenerator = new LabelXmlGenerator(collection, factory, getLocale()).setStartingPosition((Integer) startPositionField.getValue())
+				LabelXmlGenerator labelXmlGenerator = new LabelXmlGenerator(collection, factory, getLocale(), userVO).setStartingPosition((Integer) startPositionField.getValue())
 						.setNumberOfCopies(Integer.parseInt(copiesField.getValue().trim())).setElements(getRecordFromElements(elements));
 				PrintableLabel selectedTemplateAsPrintableLabel = ((PrintableLabel) selectedTemplate);
 				JasperPdfGenerator jasperPdfGenerator = new JasperPdfGenerator(labelXmlGenerator);

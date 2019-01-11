@@ -13,10 +13,11 @@ import com.constellio.model.services.schemas.SchemaUtils;
 import com.vaadin.server.Page;
 
 import java.io.Serializable;
+import java.util.Map;
 
 public class ConstellioAgentClickHandler implements Serializable {
 
-	public void handleClick(String agentURL, RecordVO recordVO, ContentVersionVO contentVersionVO) {
+	public void handleClick(String agentURL, RecordVO recordVO, ContentVersionVO contentVersionVO, Map<String, String> params) {
 		ConstellioUI ui = ConstellioUI.getCurrent();
 		SessionContext sessionContext = ui.getSessionContext();
 		ConstellioFactories constellioFactories = ui.getConstellioFactories();
@@ -35,7 +36,7 @@ public class ConstellioAgentClickHandler implements Serializable {
 				} else if (!readOnlyWarning) {
 					openAgentURL(agentURL);
 				} else {
-					DocumentContentVersionWindowImpl warningWindowContent = new DocumentContentVersionWindowImpl(recordVO, contentVersionVO);
+					DocumentContentVersionWindowImpl warningWindowContent = new DocumentContentVersionWindowImpl(recordVO, contentVersionVO, params);
 					warningWindowContent.openWindow();
 				}
 			} else {

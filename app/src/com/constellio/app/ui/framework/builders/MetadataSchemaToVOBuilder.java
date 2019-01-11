@@ -48,6 +48,12 @@ public class MetadataSchemaToVOBuilder implements Serializable {
 
 	public MetadataSchemaVO build(MetadataSchema schema, VIEW_MODE viewMode, List<String> metadataCodes,
 								  SessionContext sessionContext, boolean addMetadataCodes) {
+		return build(schema, viewMode, metadataCodes, sessionContext, addMetadataCodes, false);
+	}
+
+	public MetadataSchemaVO build(MetadataSchema schema, VIEW_MODE viewMode, List<String> metadataCodes,
+								  SessionContext sessionContext, boolean addMetadataCodes,
+								  boolean withoutBuildingMetadatas) {
 		String code = schema.getCode();
 		String collection = schema.getCollection();
 		String localCode = schema.getLocalCode();
@@ -125,14 +131,17 @@ public class MetadataSchemaToVOBuilder implements Serializable {
 				collectionInfo.getMainSystemLocale(), collectionInfo.getSecondaryCollectionLanguesCodes(), collectionInfo.getCollectionLanguesCodes(), collectionInfo.getCollectionLocales());
 		MetadataSchemaVO schemaVO = new MetadataSchemaVO(code, collection, localCode, formMetadataCodes, displayMetadataCodes,
 				tableMetadataCodes, searchMetadataCodes, labels, collectionInfoVO);
-		for (Metadata metadata : schema.getMetadatas()) {
-			if (viewMode == VIEW_MODE.FORM && metadata.isMultiLingual()) {
-				List<Locale> supportedLocales = schema.getCollectionInfo().getCollectionLocales();
-				for (Locale supportedLocale : supportedLocales) {
-					metadataToVOBuilder.build(metadata, supportedLocale, schemaVO, sessionContext);
+
+		if (!withoutBuildingMetadatas) {
+			for (Metadata metadata : schema.getMetadatas()) {
+				if (viewMode == VIEW_MODE.FORM && metadata.isMultiLingual()) {
+					List<Locale> supportedLocales = schema.getCollectionInfo().getCollectionLocales();
+					for (Locale supportedLocale : supportedLocales) {
+						metadataToVOBuilder.build(metadata, supportedLocale, schemaVO, sessionContext);
+					}
+				} else {
+					metadataToVOBuilder.build(metadata, schemaVO, sessionContext);
 				}
-			} else {
-				metadataToVOBuilder.build(metadata, schemaVO, sessionContext);
 			}
 		}
 

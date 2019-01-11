@@ -2,7 +2,7 @@ package com.constellio.model.services.background;
 
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.batch.actions.ReindexMetadatasBatchProcessAction;
 import com.constellio.model.services.collections.CollectionsListManager;
@@ -41,7 +41,7 @@ public class AuthorizationWithTimeRangeTokenUpdateBackgroundAction implements Ru
 
 		for (String collection : collectionsListManager.getCollectionsExcludingSystem()) {
 			SchemasRecordsServices schemas = new SchemasRecordsServices(collection, modelLayerFactory);
-			for (SolrAuthorizationDetails auth : schemas.getAllAuthorizationsInUnmodifiableState()) {
+			for (Authorization auth : schemas.getAllAuthorizationsInUnmodifiableState()) {
 				if (auth.hasModifiedStatusSinceLastTokenRecalculate()) {
 					auth = auth.getCopyOfOriginalRecord();
 					try {

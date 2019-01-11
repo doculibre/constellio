@@ -59,4 +59,12 @@ public interface SessionContext extends Serializable {
 	void addSelectedRecordIdsChangeListener(SelectedRecordIdsChangeListener listener);
 
 	void removeSelectedRecordIdsChangeListener(SelectedRecordIdsChangeListener listener);
+	
+	void addVisited(String id);
+	
+	boolean isVisited(String id);
+	
+	void clearVisited(String id);
+	
+	void clearAllVisited();
 }

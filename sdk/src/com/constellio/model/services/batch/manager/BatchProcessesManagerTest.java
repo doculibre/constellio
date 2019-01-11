@@ -137,15 +137,15 @@ public class BatchProcessesManagerTest extends ConstellioTest {
 		when(anotherBatchProcessConfiguration.getHash()).thenReturn(initialHash);
 		when(configManager.getXML(anotherBatchProcessPath)).thenReturn(anotherBatchProcessConfiguration);
 
-		when(searchServices.getLanguage(any(LogicalSearchQuery.class))).thenReturn("en");
+		when(searchServices.getLanguages(any(LogicalSearchQuery.class))).thenReturn(asList("en"));
 		when(searchServices.addSolrModifiableParams(any(LogicalSearchQuery.class))).thenCallRealMethod();
 
 		when(modelLayerFactory.newSearchServices()).thenReturn(searchServices);
 		when(modelLayerFactory.getDataLayerFactory()).thenReturn(dataLayerFactory);
 		when(dataLayerFactory.getConfigManager()).thenReturn(configManager);
 
-		when(dataLayerFactory.getRecordsCacheManager()).thenReturn(constellioCacheManager);
-		when(dataLayerFactory.getSettingsCacheManager()).thenReturn(constellioCacheManager);
+		when(dataLayerFactory.getDistributedCacheManager()).thenReturn(constellioCacheManager);
+		when(dataLayerFactory.getLocalCacheManager()).thenReturn(constellioCacheManager);
 		when(constellioCacheManager.getCache(anyString())).thenReturn(cache);
 	}
 

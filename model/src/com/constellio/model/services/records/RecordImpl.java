@@ -31,6 +31,7 @@ import com.constellio.model.services.records.RecordImplRuntimeException.RecordIm
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.utils.EnumWithSmallCodeUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,6 +60,7 @@ public class RecordImpl implements Record {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RecordImpl.class);
 
 	protected Map<String, Object> modifiedValues = new HashMap<String, Object>();
+	private Record unmodifiableCopyOfOriginalRecord;
 	private String schemaCode;
 	private String schemaTypeCode;
 	private final String collection;
@@ -236,10 +238,7 @@ public class RecordImpl implements Record {
 		if (code.startsWith("global_default")) {
 			return;
 		}
-		if (code.startsWith(schemaTypeCode + "_default")) {
-			return;
-		}
-		if (!code.startsWith(schemaCode)) {
+		if (!code.startsWith(schemaCode) && !code.startsWith(schemaTypeCode + "_default")) {
 			throw new InvalidMetadata(code);
 		}
 		if (metadata.getDataEntry().getType() != MANUAL && metadata.getDataEntry().getType() != SEQUENCE) {
@@ -576,6 +575,7 @@ public class RecordImpl implements Record {
 
 		this.version = version;
 		this.recordDTO = recordDTO;
+		this.unmodifiableCopyOfOriginalRecord = null;
 		this.modifiedValues.clear();
 		if (structuredValues != null) {
 			this.structuredValues.clear();
@@ -734,7 +734,49 @@ public class RecordImpl implements Record {
 			String localCode = SchemaUtils.underscoreSplitWithCache(modifiedMetadataDataStoreCode)[0];
 
 			try {
-				modifiedMetadatas.add(schemaTypes.getSchema(schemaCode).getMetadata(localCode));
+
+				Metadata metadata = schemaTypes.getSchema(schemaCode).getMetadata(localCode);
+
+				boolean modified;
+				if (metadata.isMultivalue()) {
+					List<Object> currentValues = getList(metadata);
+					List<Object> originalValues;
+					if (isSaved()) {
+						originalValues = getUnmodifiableCopyOfOriginalRecord().getList(metadata);
+					} else {
+						originalValues = new ArrayList<>();
+					}
+
+					modified = ObjectUtils.notEqual(originalValues, currentValues);
+				} else {
+
+					if (metadata.getType() == MetadataValueType.NUMBER) {
+						Double currentDoubleValue = get(metadata);
+						if (new Double(0.0).equals(currentDoubleValue)) {
+							currentDoubleValue = null;
+						}
+
+						Double originalDoubleValue;
+						if (isSaved()) {
+							originalDoubleValue = getUnmodifiableCopyOfOriginalRecord().get(metadata);
+							if (new Double(0.0).equals(originalDoubleValue)) {
+								originalDoubleValue = null;
+							}
+						} else {
+							originalDoubleValue = null;
+						}
+
+						modified = ObjectUtils.notEqual(originalDoubleValue, currentDoubleValue);
+					} else {
+						Object currentValue = get(metadata);
+						Object originalValue = isSaved() ? getUnmodifiableCopyOfOriginalRecord().get(metadata) : null;
+						modified = ObjectUtils.notEqual(currentValue, originalValue);
+					}
+				}
+
+				if (modified) {
+					modifiedMetadatas.add(metadata);
+				}
 			} catch (NoSuchMetadata e) {
 				if (isSaved()) {
 					Record originalRecord = getCopyOfOriginalRecord();
@@ -921,6 +963,7 @@ public class RecordImpl implements Record {
 		//		}
 		this.version = otherVersion.getVersion();
 		this.recordDTO = otherVersion.getRecordDTO();
+		this.unmodifiableCopyOfOriginalRecord = null;
 	}
 
 	private boolean isCreationOrModificationInfo(String key) {
@@ -1008,7 +1051,11 @@ public class RecordImpl implements Record {
 		if (recordDTO == null) {
 			throw new RecordImplException_UnsupportedOperationOnUnsavedRecord("getCopyOfOriginalRecord", id);
 		}
-		return new RecordImpl(recordDTO, collectionInfo, eagerTransientValues, fullyLoaded, true);
+
+		if (unmodifiableCopyOfOriginalRecord == null) {
+			unmodifiableCopyOfOriginalRecord = new RecordImpl(recordDTO, collectionInfo, eagerTransientValues, fullyLoaded, true);
+		}
+		return unmodifiableCopyOfOriginalRecord;
 	}
 
 	@Override

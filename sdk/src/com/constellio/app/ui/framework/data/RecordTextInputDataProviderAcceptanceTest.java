@@ -42,8 +42,6 @@ public class RecordTextInputDataProviderAcceptanceTest extends ConstellioTest {
 	public void whenSearchingCategoriesThenGoodBehavior()
 			throws Exception {
 
-		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
-
 		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {

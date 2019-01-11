@@ -20,8 +20,8 @@ public class RMEmailDocumentRecordExtensionAcceptanceTest extends ConstellioTest
 		RecordServices recordServices = getModelLayerFactory().newRecordServices();
 
 		Record emailDocumentType = rm.emailDocumentType().getWrappedRecord();
-		assertThat(recordServices.isLogicallyDeletable(emailDocumentType, User.GOD)).isFalse();
-		assertThat(recordServices.isLogicallyThenPhysicallyDeletable(emailDocumentType, User.GOD)).isFalse();
+		assertThat(recordServices.validateLogicallyDeletable(emailDocumentType, User.GOD).isEmpty()).isFalse();
+		assertThat(recordServices.validateLogicallyThenPhysicallyDeletable(emailDocumentType, User.GOD).isEmpty()).isFalse();
 
 	}
 }

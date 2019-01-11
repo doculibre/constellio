@@ -102,7 +102,11 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 
 	@Override
 	protected String getTitle() {
-		return $("CartView.viewTitle");
+		if (presenter.isDefaultCart()) {
+			return $("CartView.defaultFavoritesViewTitle");
+		} else {
+			return $("CartView.viewTitle");
+		}
 	}
 
 	@Override
@@ -114,10 +118,13 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		buttons.add(buildFoldersBatchProcessingButton());
 		buttons.add(buildContainersBatchProcessingButton());
 		buttons.add(buildFoldersLabelsButton());
+		buttons.add(buildDocumentLabelsButton());
 		buttons.add(buildContainersLabelsButton());
 		buttons.add(buildBatchDeleteButton());
 		buttons.add(buildEmptyButton());
-		buttons.add(buildShareButton());
+		if (!presenter.isDefaultCart()) {
+			buttons.add(buildShareButton());
+		}
 		buttons.add(buildDecommissionButton());
 		buttons.add(buildPrintMetadataReportButton());
 		buttons.add(buildCreateSIPArchivesButton());
@@ -134,6 +141,12 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 	private Button buildContainersLabelsButton() {
 		Button button = buildLabelsButton(ContainerRecord.SCHEMA_TYPE);
 		button.setCaption($("CartView.containersLabelsButton"));
+		return button;
+	}
+
+	private Button buildDocumentLabelsButton() {
+		Button button = buildLabelsButton(Document.SCHEMA_TYPE);
+		button.setCaption($("CartView.documentLabelsButton"));
 		return button;
 	}
 
@@ -156,7 +169,8 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 				customLabelTemplatesFactory,
 				defaultLabelTemplatesFactory,
 				getConstellioFactories().getAppLayerFactory(),
-				getSessionContext().getCurrentCollection()
+				getSessionContext().getCurrentCollection(),
+				getSessionContext().getCurrentUser()
 		);
 		labelsButton.setElementsWithIds(presenter.getNotDeletedRecordsIds(schemaType), schemaType, getSessionContext());
 		labelsButton.setEnabled(presenter.isLabelsButtonVisible(schemaType));
@@ -198,7 +212,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 	}
 
 	private Button buildShareButton() {
-		return new WindowButton($("CartView.share"), $("CartView.shareWindow")) {
+		Button shareButton = new WindowButton($("CartView.share"), $("CartView.shareWindow")) {
 			@Override
 			protected Component buildWindowContent() {
 				VerticalLayout layout = new VerticalLayout();
@@ -221,6 +235,9 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 				return layout;
 			}
 		};
+		shareButton.setEnabled(presenter.cartHasRecords());
+		shareButton.setVisible(presenter.cartHasRecords());
+		return shareButton;
 	}
 
 	private HorizontalLayout buildFolderFilterComponent() {
@@ -277,7 +294,8 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 				super.buttonClick(event);
 			}
 		};
-
+		reportGeneratorButton.setEnabled(presenter.cartHasRecords());
+		reportGeneratorButton.setVisible(presenter.cartHasRecords());
 		return reportGeneratorButton;
 	}
 
@@ -341,7 +359,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
 		FireableTabSheet tabSheet = new FireableTabSheet();
-		folderTable = buildTable("CartView.folders", presenter.getFolderRecords());
+		folderTable = buildFolderTable("CartView.folders", presenter.getFolderRecords());
 		documentTable = buildTable("CartView.documents", presenter.getDocumentRecords());
 		containerTable = buildTable("CartView.containers", presenter.getContainerRecords());
 		TabSheet.Tab folderTab = tabSheet.addTab(folderLayout = new CartTabLayout(buildFolderFilterComponent(), folderTable));
@@ -380,8 +398,8 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		return mainLayout;
 	}
 
-	private Table buildTable(final String tableId, final RecordVOWithDistinctSchemasDataProvider dataProvider) {
-		final Container container = buildContainer(dataProvider);
+	private Table buildFolderTable(final String tableId, final RecordVOWithDistinctSchemasDataProvider dataProvider) {
+		final Container container = buildFolderContainer(dataProvider);
 		Table table = new RecordVOTable($("CartView.records", container.size()), container) {
 			@Override
 			protected String getTableId() {
@@ -398,20 +416,62 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 				Property loadContainerProperty = null;
 				if (itemId instanceof Integer && CommonMetadataBuilder.SUMMARY.equals(propertyId)) {
 					RecordVO recordVO = dataProvider.getRecordVO((int) itemId);
-					MetadataVO metadataVO = recordVO.getSchema().getMetadata(Folder.SUMMARY);
-					String value = recordVO.get(recordVO.getSchema().getMetadata(Folder.SUMMARY));
-					if (metadataVO != null && !Strings.isNullOrEmpty(value)) {
-						loadContainerProperty = new ObjectProperty(value, Component.class);
+					if(recordVO.getMetadataOrNull(recordVO.getSchema().getCode() + "_" + Folder.SUMMARY) != null) {
+						MetadataVO metadataVO = recordVO.getSchema().getMetadata(Folder.SUMMARY);
+						String value = recordVO.get(recordVO.getSchema().getMetadata(Folder.SUMMARY));
+						if (metadataVO != null && !Strings.isNullOrEmpty(value)) {
+							loadContainerProperty = new ObjectProperty(value, Component.class);
+						}
 					}
-				}
-
-				if (loadContainerProperty == null) {
+				} else {
 					loadContainerProperty = super.loadContainerProperty(itemId, propertyId);
 					if (loadContainerProperty.getValue() instanceof String) {
 						String value = (String) loadContainerProperty.getValue();
 						if (Strings.isNullOrEmpty(value)) {
 							loadContainerProperty = super.loadContainerProperty(itemId, Schemas.TITLE.getLocalCode());
 						}
+					}
+				}
+
+				return loadContainerProperty;
+			}
+
+		};
+		table.addItemClickListener(new ItemClickEvent.ItemClickListener() {
+			@Override
+			public void itemClick(ItemClickEvent event) {
+				int itemId = (int) event.getItemId();
+				presenter.displayRecordRequested(dataProvider.getRecordVO(itemId));
+			}
+		});
+		table.setColumnHeader(CommonMetadataBuilder.SUMMARY, $("CartViewImpl.title"));
+		table.setColumnHeader(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID, "");
+		table.setColumnWidth(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID, 50);
+		table.setPageLength(Math.min(15, container.size()));
+		table.setSizeFull();
+		return table;
+	}
+
+	private Table buildTable(final String tableId, final RecordVOWithDistinctSchemasDataProvider dataProvider) {
+		final Container container = buildContainer(dataProvider);
+		Table table = new RecordVOTable($("CartView.records", container.size()), container) {
+			@Override
+			protected String getTableId() {
+				return tableId;
+			}
+
+			@Override
+			protected TableColumnsManager newColumnsManager() {
+				return new TableColumnsManager();
+			}
+
+			@Override
+			protected Property<?> loadContainerProperty(Object itemId, Object propertyId) {
+				Property loadContainerProperty = super.loadContainerProperty(itemId, propertyId);
+				if(loadContainerProperty.getValue() instanceof String) {
+					String value = (String) loadContainerProperty.getValue();
+					if (Strings.isNullOrEmpty(value)) {
+						loadContainerProperty = super.loadContainerProperty(itemId, Schemas.TITLE.getLocalCode());
 					}
 				}
 
@@ -509,29 +569,57 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 	}
 
 	private Button buildBatchDeleteButton() {
-		Button button = new DeleteWithJustificationButton(false) {
-			@Override
-			protected void deletionConfirmed(String reason) {
-				presenter.deletionRequested(reason);
-			}
-
-			@Override
-			protected String getConfirmDialogMessage() {
-				List<String> cartFolderIds = presenter.getCartFolderIds();
-				List<String> cartDocumentIds = presenter.getCartDocumentIds();
-
-				StringBuilder stringBuilder = new StringBuilder();
-				String prefix = "";
-				if (cartFolderIds != null && !cartFolderIds.isEmpty()) {
-					stringBuilder.append(prefix + cartFolderIds.size() + " " + $("CartView.folders"));
-					prefix = " " + $("CartView.andAll") + " ";
+		Button button = new Button();
+		if(!presenter.isNeedingAReasonToDeleteRecords()) {
+			button = new DeleteButton(false) {
+				@Override
+				protected void confirmButtonClick(ConfirmDialog dialog) {
+					presenter.deletionRequested(null);
 				}
-				if (cartDocumentIds != null && !cartDocumentIds.isEmpty()) {
-					stringBuilder.append(prefix + cartDocumentIds.size() + " " + $("CartView.documents"));
+
+				@Override
+				protected String getConfirmDialogMessage() {
+					List<String> cartFolderIds = presenter.getCartFolderIds();
+					List<String> cartDocumentIds = presenter.getCartDocumentIds();
+
+					StringBuilder stringBuilder = new StringBuilder();
+					String prefix = "";
+					if (cartFolderIds != null && !cartFolderIds.isEmpty()) {
+						stringBuilder.append(prefix + cartFolderIds.size() + " " + $("CartView.folders"));
+						prefix = " " + $("CartView.andAll") + " ";
+					}
+					if (cartDocumentIds != null && !cartDocumentIds.isEmpty()) {
+						stringBuilder.append(prefix + cartDocumentIds.size() + " " + $("CartView.documents"));
+					}
+					return $("CartView.deleteConfirmationMessageWithoutJustification", stringBuilder.toString());
 				}
-				return $("CartView.deleteConfirmationMessage", stringBuilder.toString());
-			}
-		};
+			};
+		} else {
+			button = new DeleteWithJustificationButton(false) {
+				@Override
+				protected void deletionConfirmed(String reason) {
+					presenter.deletionRequested(reason);
+				}
+
+				@Override
+				protected String getConfirmDialogMessage() {
+					List<String> cartFolderIds = presenter.getCartFolderIds();
+					List<String> cartDocumentIds = presenter.getCartDocumentIds();
+
+					StringBuilder stringBuilder = new StringBuilder();
+					String prefix = "";
+					if (cartFolderIds != null && !cartFolderIds.isEmpty()) {
+						stringBuilder.append(prefix + cartFolderIds.size() + " " + $("CartView.folders"));
+						prefix = " " + $("CartView.andAll") + " ";
+					}
+					if (cartDocumentIds != null && !cartDocumentIds.isEmpty()) {
+						stringBuilder.append(prefix + cartDocumentIds.size() + " " + $("CartView.documents"));
+					}
+					return $("CartView.deleteConfirmationMessage", stringBuilder.toString());
+				}
+			};
+		}
+
 		button.setEnabled(presenter.canDelete());
 		button.setVisible(presenter.canDelete());
 		return button;
@@ -573,6 +661,25 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		return container;
 	}
 
+	private Container buildFolderContainer(final RecordVOWithDistinctSchemasDataProvider dataProvider) {
+		RecordVOWithDistinctSchemaTypesLazyContainer records = new RecordVOWithDistinctSchemaTypesLazyContainer(
+				dataProvider, asList(CommonMetadataBuilder.TITLE, CommonMetadataBuilder.SUMMARY));
+		ButtonsContainer<RecordVOWithDistinctSchemaTypesLazyContainer> container = new ButtonsContainer<>(records);
+		container.addButton(new ContainerButton() {
+			@Override
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
+				return new DeleteButton() {
+					@Override
+					protected void confirmButtonClick(ConfirmDialog dialog) {
+						int index = (int) itemId;
+						presenter.itemRemovalRequested(dataProvider.getRecordVO(index));
+					}
+				};
+			}
+		});
+		return container;
+	}
+
 	private Button buildCreateSIPArchivesButton() {
 		SIPButtonImpl siPbutton = new SIPButtonImpl($("SIPButton.caption"), $("SIPButton.caption"), ConstellioUI.getCurrent().getHeader(), true) {
 			@Override
@@ -581,6 +688,8 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 				super.buttonClick(event);
 			}
 		};
+		siPbutton.setEnabled(presenter.cartHasRecords());
+		siPbutton.setVisible(presenter.cartHasRecords());
 		return siPbutton;
 	}
 
@@ -601,6 +710,8 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 			}
 
 		};
+		consolidatedPdfButton.setEnabled(presenter.cartHasRecords());
+		consolidatedPdfButton.setVisible(presenter.cartHasRecords());
 		return consolidatedPdfButton;
 	}
 

@@ -26,11 +26,11 @@ public class FolderEssentialCalculatorTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenRuleHasNoEssentialStatusAndCopyRuleEssentialStatusSetToFalseThenFolderNotEssential()
+	public void givenRuleHasNoEssentialStatusAndCopyRuleEssentialStatusSetToFalseThenFolderEssentialIsNull()
 			throws Exception {
 		ruleConfidentialStatus = null;
 		copyRetentionRule.setEssential(false);
-		assertThat(calculate()).isEqualTo(false);
+		assertThat(calculate()).isNull();
 
 	}
 
@@ -53,11 +53,11 @@ public class FolderEssentialCalculatorTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenRuleHasEssentialStatusToFalseAndCopyRuleEssentialStatusToFalseThenFolderNotEssential()
+	public void givenRuleHasEssentialStatusToFalseAndCopyRuleEssentialStatusToFalseThenFolderEssentialIsNull()
 			throws Exception {
 		ruleConfidentialStatus = false;
 		copyRetentionRule.setEssential(false);
-		assertThat(calculate()).isEqualTo(false);
+		assertThat(calculate()).isNull();
 
 	}
 
@@ -72,7 +72,7 @@ public class FolderEssentialCalculatorTest extends ConstellioTest {
 
 	//--------------------------------------------
 
-	private boolean calculate() {
+	private Boolean calculate() {
 		FolderEssentialCalculator calculator = new FolderEssentialCalculator();
 
 		when(parameters.get(calculator.retentionRuleEssentialParam)).thenReturn(ruleConfidentialStatus);

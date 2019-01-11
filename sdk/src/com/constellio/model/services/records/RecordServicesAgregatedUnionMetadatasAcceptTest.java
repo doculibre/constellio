@@ -4,6 +4,7 @@ import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransaction;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
@@ -15,6 +16,8 @@ import com.constellio.sdk.tests.schemas.TestsSchemasSetup.AnotherSchemaMetadatas
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ThirdSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
 import org.junit.Test;
+
+import java.util.ArrayList;
 
 import static com.constellio.data.dao.dto.records.RecordsFlushing.NOW;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
@@ -59,6 +62,8 @@ public class RecordServicesAgregatedUnionMetadatasAcceptTest extends ConstellioT
 		}));
 
 		assertThat(getNetworkLinksOf(zeCollection)).containsOnly(
+				tuple("group_default_ancestors", "group_default_parent", 0),
+				tuple("group_default_ancestors", "group_default_ancestors", 0),
 				tuple("anotherSchemaType_default_stringValuesUnion", "zeSchemaType_default_ref", 1),
 				tuple("aThirdSchemaType_default_stringValuesUnion", "anotherSchemaType_default_ref", 1),
 				tuple("aThirdSchemaType_default_stringValuesUnion", "anotherSchemaType_default_stringValuesUnion", 1),
@@ -118,6 +123,103 @@ public class RecordServicesAgregatedUnionMetadatasAcceptTest extends ConstellioT
 	}
 
 	@Test
+	public void whenCreatingRecordWithoutValueToAggregateSourceThenParentNotMarkedToReindex()
+			throws Exception {
+
+		givenBackgroundThreadsEnabled();
+		defineSchemasManager().using(schemas.with(new MetadataSchemaTypesConfigurator() {
+			@Override
+			public void configure(MetadataSchemaTypesBuilder schemaTypes) {
+				MetadataSchemaTypeBuilder zeType = schemaTypes.getSchemaType(zeSchema.typeCode());
+				MetadataSchemaTypeBuilder anotherType = schemaTypes.getSchemaType(anotherSchema.typeCode());
+				MetadataSchemaTypeBuilder thirdType = schemaTypes.getSchemaType(thirdSchema.typeCode());
+				MetadataBuilder zeSchema_value1 = zeType.createMetadata("stringValue1").setType(STRING);
+				MetadataBuilder zeSchema_Value2 = zeType.createMetadata("stringValue2").setType(STRING).setMultivalue(true);
+				MetadataBuilder zeSchema_zeRef = zeType.createMetadata("ref").defineReferencesTo(anotherType);
+				MetadataBuilder anotherSchema_stringValuesUnion = anotherType.createMetadata("stringValuesUnion").setType(STRING)
+						.setMultivalue(true).defineDataEntry().asUnion(zeSchema_zeRef, zeSchema_value1, zeSchema_Value2);
+				MetadataBuilder anotherSchema_zeRef = anotherType.createMetadata("ref").defineReferencesTo(thirdType);
+				MetadataBuilder anotherSchema_value = anotherType.createMetadata("stringValue").setType(STRING)
+						.setMultivalue(true);
+				thirdType.createMetadata("stringValuesUnion").setType(STRING).setMultivalue(true)
+						.defineDataEntry().asUnion(anotherSchema_zeRef, anotherSchema_stringValuesUnion, anotherSchema_value);
+
+			}
+		}));
+
+		Transaction tx = new Transaction();
+
+		tx.add(new TestRecord(anotherSchema, "merge1").set("ref", "merge3"));
+		tx.add(new TestRecord(anotherSchema, "merge2").set("ref", "merge3"));
+		tx.add(new TestRecord(thirdSchema, "merge3"));
+		getModelLayerFactory().newRecordServices().execute(tx);
+		Metadata anotherSchema_stringValuesUnion = anotherSchema.metadata("stringValuesUnion");
+		Metadata thirdSchema_stringValuesUnion = thirdSchema.metadata("stringValuesUnion");
+
+		//1. Creating records with empty values
+
+		assertThat(record("merge1").get(Schemas.MARKED_FOR_REINDEXING)).isNull();
+		assertThat(record("merge2").get(Schemas.MARKED_FOR_REINDEXING)).isNull();
+
+		TestRecord r1 = new TestRecord(zeSchema, "r1").set("stringValue1", null).set("ref", "merge1");
+		TestRecord r2 = new TestRecord(zeSchema, "r2").set("stringValue2", new ArrayList<>()).set("ref", "merge1");
+		TestRecord r3 = new TestRecord(zeSchema, "r3").set("stringValue1", null).set("stringValue2", new ArrayList<>())
+				.set("ref", "merge2");
+
+		getModelLayerFactory().newRecordServices().execute(new Transaction(r1, r2, r3));
+
+		assertThat(record("merge1").get(Schemas.MARKED_FOR_REINDEXING)).isNull();
+		assertThat(record("merge2").get(Schemas.MARKED_FOR_REINDEXING)).isNull();
+		waitForBatchProcess();
+		assertThat(record("merge1").getList(anotherSchema_stringValuesUnion)).isEmpty();
+		assertThat(record("merge2").getList(anotherSchema_stringValuesUnion)).isEmpty();
+
+		//2. Changing empty values with null, which is equivalent
+
+		r1.set("stringValue1", null).set("ref", "merge1");
+		r2.set("stringValue2", null).set("ref", "merge1");
+		r3.set("stringValue1", null).set("stringValue2", null).set("ref", "merge2");
+		getModelLayerFactory().newRecordServices().execute(new Transaction(r1, r2, r3));
+
+		assertThat(record("merge1").get(Schemas.MARKED_FOR_REINDEXING)).isNull();
+		assertThat(record("merge2").get(Schemas.MARKED_FOR_REINDEXING)).isNull();
+		waitForBatchProcess();
+		assertThat(record("merge1").getList(anotherSchema_stringValuesUnion)).isEmpty();
+		assertThat(record("merge2").getList(anotherSchema_stringValuesUnion)).isEmpty();
+
+		//3. empty list and null values become not nulls
+
+		r1.set("stringValue1", "pouet").set("ref", "merge1");
+		r2.set("stringValue2", asList("test")).set("ref", "merge1");
+		r3.set("stringValue1", "norris").set("stringValue2", asList("chuck"))
+				.set("ref", "merge2");
+
+		getModelLayerFactory().newRecordServices().execute(new Transaction(r1, r2, r3));
+
+		assertThat(record("merge1").<Boolean>get(Schemas.MARKED_FOR_REINDEXING)).isTrue();
+		assertThat(record("merge2").<Boolean>get(Schemas.MARKED_FOR_REINDEXING)).isTrue();
+		waitForBatchProcess();
+		assertThat(record("merge1").getList(anotherSchema_stringValuesUnion)).containsOnly("pouet", "test");
+		assertThat(record("merge2").getList(anotherSchema_stringValuesUnion)).containsOnly("chuck", "norris");
+
+
+		//4. not nulls are replaced with empty ones
+
+		r1.set("stringValue1", null).set("ref", "merge1");
+		r2.set("stringValue2", null).set("ref", "merge1");
+		r3.set("stringValue1", null).set("stringValue2", new ArrayList<>())
+				.set("ref", "merge2");
+
+		getModelLayerFactory().newRecordServices().execute(new Transaction(r1, r2, r3));
+
+		assertThat(record("merge1").<Boolean>get(Schemas.MARKED_FOR_REINDEXING)).isTrue();
+		assertThat(record("merge2").<Boolean>get(Schemas.MARKED_FOR_REINDEXING)).isTrue();
+		waitForBatchProcess();
+		assertThat(record("merge1").getList(anotherSchema_stringValuesUnion)).isEmpty();
+		assertThat(record("merge2").getList(anotherSchema_stringValuesUnion)).isEmpty();
+	}
+
+	@Test
 	public void givenRecordAndTheirUnionsCreatedInSameTransactionThenOk()
 			throws Exception {
 
@@ -145,6 +247,8 @@ public class RecordServicesAgregatedUnionMetadatasAcceptTest extends ConstellioT
 		Metadata thirdSchema_stringValuesUnion = thirdSchema.metadata("stringValuesUnion");
 
 		assertThat(getNetworkLinksOf(zeCollection)).containsOnly(
+				tuple("group_default_ancestors", "group_default_parent", 0),
+				tuple("group_default_ancestors", "group_default_ancestors", 0),
 				tuple("anotherSchemaType_default_stringValuesUnion", "zeSchemaType_default_ref", 1),
 				tuple("aThirdSchemaType_default_stringValuesUnion", "anotherSchemaType_default_ref", 1),
 				tuple("aThirdSchemaType_default_stringValuesUnion", "anotherSchemaType_default_stringValuesUnion", 1),

@@ -10,6 +10,7 @@ import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.params.ParamUtils;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -23,8 +24,10 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import static com.constellio.app.ui.i18n.i18n.$;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -154,17 +157,21 @@ public class TaxonomyManagementSearchPresenterAcceptTest extends ConstellioTest 
 	//
 
 	@Test
-	public void whenDeletingANotDeletableTaxonomyThenShowErrorMessage() {
-		when(recordVO.getId()).thenReturn(records.categoryId_X100);
+	public void whenDeletingANotDeletableTaxonomyThenReturnValidationErrors() {
+		presenter = spy(new TaxonomyManagementSearchPresenter(view));
+		ValidationErrors validationErrors = new ValidationErrors();
+		validationErrors.add(TaxonomyManagementSearchPresenterAcceptTest.class, "errorMessage");
 
+		when(recordVO.getId()).thenReturn(records.categoryId_X100);
+		when(recordVO.getId()).thenReturn(records.categoryId_X100);
 		String freeText = "X*";
 		String taxonmyCode = RMTaxonomies.CLASSIFICATION_PLAN;
 		String viewPath = configurePathWithParams(freeText, taxonmyCode);
 		presenter.forParams(viewPath);
+		doNothing().when(presenter).displayButtonClicked(recordVO);
+		doReturn(validationErrors).when(presenter).validateDeletable(recordVO);
 
-		presenter.deleteButtonClicked(recordVO);
-
-		verify(view).showErrorMessage($("TaxonomyManagementView.cannotDelete"));
+		assertThat(presenter.validateDeletable(recordVO).isEmpty()).isFalse();
 	}
 
 	@Test

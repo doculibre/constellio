@@ -15,6 +15,7 @@ import com.constellio.app.ui.framework.data.AbstractDataProvider;
 import com.constellio.app.ui.framework.data.LazyTreeDataProvider;
 import com.constellio.app.ui.framework.data.RecordLookupTreeDataProvider;
 import com.constellio.app.ui.handlers.OnEnterKeyHandler;
+import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.PresenterService;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -28,6 +29,7 @@ import com.vaadin.data.util.converter.Converter;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.server.ErrorMessage;
+import com.vaadin.server.Page;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
 import com.vaadin.ui.Button;
@@ -35,6 +37,9 @@ import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomField;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.Notification;
+import com.vaadin.ui.Notification.Type;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.Table;
@@ -79,6 +84,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 	private Button clearButton;
 	private ConverterWithCache<String, T> itemConverter;
 	private ConstellioEIMConfigs configs;
+	private String readOnlyMessageI18NKey = null;
 
 	protected boolean isShowDeactivated = true;
 
@@ -159,13 +165,6 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 				ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
 				return modelLayerFactory.getSystemConfigs().getAutocompleteSize();
 			}
-
-
-			@SuppressWarnings("unchecked")
-			@Override
-			public Class<T> getModelType() {
-				return (Class<T>) LookupField.this.getType();
-			}
 		};
 		autoCompleteField = newAutocompleteField(suggestionsProvider);
 		autoCompleteField.addStyleName(AUTOCOMPLETE_FIELD_STYLE_NAME);
@@ -216,8 +215,36 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 			protected Component buildWindowContent() {
 				return new LookupWindowContent(getWindow());
 			}
+
+			@Override
+			protected boolean acceptWindowOpen(ClickEvent event) {
+				if(LookupField.this.isReadOnly()) {
+					showReadOnlyMessage();
+					return false;
+				} else {
+					return super.acceptWindowOpen(event);
+				}
+			}
 		};
 		return lookupWindowButton;
+	}
+
+	public LookupField<T> setReadOnlyMessageI18NKey(String readOnlyMessageI18NKey) {
+		this.readOnlyMessageI18NKey = readOnlyMessageI18NKey;
+		return this;
+	}
+
+	protected String getReadOnlyMessage() {
+		if(!StringUtils.isBlank(readOnlyMessageI18NKey)) {
+			return $(readOnlyMessageI18NKey);
+		}
+		return $("readOnlyComponent");
+	}
+
+	private void showReadOnlyMessage() {
+		Notification notification = new Notification(getReadOnlyMessage(), Type.WARNING_MESSAGE);
+		notification.setHtmlContentAllowed(true);
+		notification.show(Page.getCurrent());
 	}
 
 	protected BaseAutocompleteField<T> newAutocompleteField(AutocompleteSuggestionsProvider<T> suggestionsProvider) {
@@ -355,6 +382,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 			super();
 
 			setSizeFull();
+			setHeight("95%");
 
 			window.setWidth("80%");
 			window.setHeight("80%");

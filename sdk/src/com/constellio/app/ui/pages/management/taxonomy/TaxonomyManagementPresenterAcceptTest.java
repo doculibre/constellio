@@ -11,6 +11,7 @@ import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.Language;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import org.junit.Before;
@@ -23,9 +24,11 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import static com.constellio.app.ui.i18n.i18n.$;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -155,18 +158,23 @@ public class TaxonomyManagementPresenterAcceptTest extends ConstellioTest {
 	}
 
 	@Test
-	public void whenDeletingANotDeletableTaxonomyThenShowErrorMessage() {
+	public void whenDeletingANotDeletableTaxonomyThenReturnValidationErrors() {
 		when(recordVO.getId()).thenReturn(records.categoryId_X100);
 
+		presenter = spy(new TaxonomyManagementPresenter(view));
 		Map<String, String> paramsMap = new HashMap<>();
 		paramsMap.put(TaxonomyManagementPresenter.TAXONOMY_CODE, RMTaxonomies.CLASSIFICATION_PLAN);
 		paramsMap.put(TaxonomyManagementPresenter.CONCEPT_ID, records.categoryId_X);
 		String params = ParamUtils.addParams(null, paramsMap);
 		presenter.forParams(params);
+		ValidationErrors validationErrors = new ValidationErrors();
+		validationErrors.add(TaxonomyManagementPresenterAcceptTest.class, "cannotDeleteError");
+		doReturn(validationErrors).when(presenter).validateDeletable(recordVO);
+		doNothing().when(presenter).displayErrorWindow(validationErrors);
 
 		presenter.deleteButtonClicked(recordVO);
 
-		verify(view).showErrorMessage($("TaxonomyManagementView.cannotDelete"));
+		assertThat(presenter.validateDeletable(recordVO).isEmpty()).isFalse();
 	}
 
 	@Test

@@ -3,7 +3,7 @@ package com.constellio.app.api.cmis.accept;
 import com.constellio.app.api.cmis.accept.CmisAcceptanceTestSetup.Records;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.security.Authorization;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.security.global.AuthorizationAddRequest;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
@@ -126,7 +126,7 @@ public class CmisACLAcceptanceTest extends ConstellioTest {
 		recordServices.update(users.adminIn(zeCollection).setCollectionAllAccess(true));
 		recordServices.update(users.chuckNorrisIn(zeCollection).setCollectionReadAccess(true));
 
-		userServices.addUpdateUserCredential(users.admin().withServiceKey("admin-key"));
+		userServices.addUpdateUserCredential(users.admin().setServiceKey("admin-key"));
 		getModelLayerFactory().newAuthenticationService().changePassword(admin, "1qaz2wsx");
 		adminToken = userServices.generateToken(admin);
 		authorizationsServices = getModelLayerFactory().newAuthorizationsServices();
@@ -519,9 +519,9 @@ public class CmisACLAcceptanceTest extends ConstellioTest {
 		List<Tuple> tuples = new ArrayList<>();
 		for (Authorization authorization : authorizationsServices.getRecordAuthorizations(record)) {
 			Tuple tuple = new Tuple();
-			tuple.addData(new HashSet<>(authorization.getDetail().getRoles()));
-			tuple.addData(new HashSet<>(authorization.getGrantedToPrincipals()));
-			tuple.addData(new HashSet<>(asList(authorization.getGrantedOnRecord())));
+			tuple.addData(new HashSet<>(authorization.getRoles()));
+			tuple.addData(new HashSet<>(authorization.getPrincipals()));
+			tuple.addData(new HashSet<>(asList(authorization.getTarget())));
 			tuples.add(tuple);
 		}
 

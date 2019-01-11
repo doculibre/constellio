@@ -63,6 +63,7 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.model.services.search.RecordsOfSchemaTypesIterator;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.users.UserServices;
@@ -196,7 +197,7 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		recordServices.add(emailToSend);
 
 		exportThenImportInAnotherCollection(
-				options.setExportedSchemaTypes(asList(EmailToSend.SCHEMA_TYPE)));
+				options.setRecordsToExportIterator(new RecordsOfSchemaTypesIterator(getModelLayerFactory(), zeCollection, EmailToSend.SCHEMA_TYPE)));
 
 		RMSchemasRecordsServices rmFromAnOtherCollection = new RMSchemasRecordsServices("anotherCollection",
 				getAppLayerFactory());
@@ -285,7 +286,7 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		recordServices.add(emailToSend);
 
 		exportThenImportInAnotherCollection(
-				options.setExportedSchemaTypes(asList(EmailToSend.SCHEMA_TYPE)));
+				options.setRecordsToExportIterator(new RecordsOfSchemaTypesIterator(getModelLayerFactory(), zeCollection, (asList(EmailToSend.SCHEMA_TYPE)))));
 
 		RMSchemasRecordsServices rmFromAnOtherCollection = new RMSchemasRecordsServices("anotherCollection",
 				getAppLayerFactory());
@@ -351,7 +352,7 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		recordServices.add(emailToSend);
 
 		exportThenImportInAnotherCollection(
-				options.setExportedSchemaTypes(asList(EmailToSend.SCHEMA_TYPE)));
+				options.setRecordsToExportIterator(new RecordsOfSchemaTypesIterator(getModelLayerFactory(), zeCollection, (asList(EmailToSend.SCHEMA_TYPE)))));
 
 		RMSchemasRecordsServices rmFromAnOtherCollection = new RMSchemasRecordsServices("anotherCollection",
 				getAppLayerFactory());
@@ -468,8 +469,8 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		assertThat(listSearchTask).hasSize(0);
 
 		exportThenImportInAnotherCollection(
-				options.setExportedSchemaTypes(
-						asList(AdministrativeUnit.SCHEMA_TYPE, TaskStatus.SCHEMA_TYPE, RMTask.SCHEMA_TYPE)));
+				options.setRecordsToExportIterator(new RecordsOfSchemaTypesIterator(getModelLayerFactory(), zeCollection, (
+						asList(AdministrativeUnit.SCHEMA_TYPE, TaskStatus.SCHEMA_TYPE, RMTask.SCHEMA_TYPE)))));
 
 		listSearchTask = rmAnotherCollection.searchRMTasks(returnAll());
 
@@ -521,7 +522,7 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		recordServices.execute(transaction);
 
 		exportThenImportInAnotherCollection(
-				options.setExportedSchemaTypes(asList(Report.SCHEMA_TYPE)));
+				options.setRecordsToExportIterator(new RecordsOfSchemaTypesIterator(getModelLayerFactory(), zeCollection, (asList(Report.SCHEMA_TYPE)))));
 
 		List<Record> listRecordReport;
 
@@ -589,8 +590,8 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 
 		SearchServices searchServices = getModelLayerFactory().newSearchServices();
 
-		RecordExportOptions recordExportOptions = options.setExportedSchemaTypes(asList(
-				Report.SCHEMA_TYPE)).setForSameSystem(true);
+		RecordExportOptions recordExportOptions = options.setRecordsToExportIterator(new RecordsOfSchemaTypesIterator(getModelLayerFactory(), zeCollection, (asList(
+				Report.SCHEMA_TYPE)))).setForSameSystem(true);
 
 		File file = exportToZip(recordExportOptions);
 
@@ -625,10 +626,10 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 				withCollection("anotherCollection").withConstellioRMModule().withAllTest(users));
 
 		exportThenImportInAnotherCollection(
-				options.setExportedSchemaTypes(asList(Event.SCHEMA_TYPE, Folder.SCHEMA_TYPE, AdministrativeUnit.SCHEMA_TYPE,
+				options.setRecordsToExportIterator(new RecordsOfSchemaTypesIterator(getModelLayerFactory(), zeCollection, (asList(Event.SCHEMA_TYPE, Folder.SCHEMA_TYPE, AdministrativeUnit.SCHEMA_TYPE,
 						MediumType.SCHEMA_TYPE, Category.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE, StorageSpace.SCHEMA_TYPE,
 						ContainerRecordType.SCHEMA_TYPE, RetentionRule.SCHEMA_TYPE, Document.SCHEMA_TYPE,
-						DocumentType.SCHEMA_TYPE)));
+						DocumentType.SCHEMA_TYPE)))));
 
 		RMSchemasRecordsServices rmAnotherCollection = new RMSchemasRecordsServices("anotherCollection", getAppLayerFactory());
 
@@ -687,10 +688,10 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		}
 
 		exportThenImportInAnotherCollection(
-				options.setExportedSchemaTypes(asList(Folder.SCHEMA_TYPE, AdministrativeUnit.SCHEMA_TYPE,
+				options.setRecordsToExportIterator(new RecordsOfSchemaTypesIterator(getModelLayerFactory(), zeCollection, (asList(Folder.SCHEMA_TYPE, AdministrativeUnit.SCHEMA_TYPE,
 						MediumType.SCHEMA_TYPE, Category.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE, StorageSpace.SCHEMA_TYPE,
 						ContainerRecordType.SCHEMA_TYPE, RetentionRule.SCHEMA_TYPE, Document.SCHEMA_TYPE,
-						DocumentType.SCHEMA_TYPE)));
+						DocumentType.SCHEMA_TYPE)))));
 
 		SearchServices searchService = getModelLayerFactory().newSearchServices();
 
@@ -727,6 +728,84 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		//assertThat(abeillefolderFromAnOtherCollection.getFormModifiedBy()).isEqualTo(abeilleFolderFromZeCollection.getFormModifiedBy());
 	}
 
+
+	@Test
+	public void whenExportingAndImportingFolderWithContainer()
+			throws Exception {
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withFoldersAndContainersOfEveryStatus().withAllTest(users)
+						.withRMTest(records).withFoldersAndContainersOfEveryStatus(),
+				withCollection("anotherCollection").withConstellioRMModule().withAllTest(users));
+
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+
+		Transaction tx = new Transaction();
+		tx.add(records.getFolder_A01().setContainer(records.getContainerBac01()));
+		tx.add(records.getContainerBac01().setLegacyId("zeGreatContainerId"));
+		getModelLayerFactory().newRecordServices().execute(tx);
+
+		Folder abeillefolderFromAnOtherCollection = null;
+		Folder abeilleFolderFromZeCollection = null;
+
+		List<Folder> folderList = rm.searchFolders(ALL);
+
+		boolean isFound = false;
+
+		for (Folder folderFromZeCollection : folderList) {
+			isFound = false;
+			if (folderFromZeCollection.getTitle().equals("Abeille")) {
+				abeilleFolderFromZeCollection = folderFromZeCollection;
+				isFound = true;
+				break;
+			}
+		}
+
+		RecordServices recordServices = getModelLayerFactory().newRecordServices();
+		abeilleFolderFromZeCollection.setFormModifiedOn(new LocalDateTime());
+		abeilleFolderFromZeCollection.setFormCreatedOn(new LocalDateTime());
+		//abeilleFolderFromZeCollection.setFormCreatedBy(records.getAdmin());
+		//abeilleFolderFromZeCollection.setFormModifiedBy(records.getAdmin());
+
+		recordServices.update(abeilleFolderFromZeCollection.getWrappedRecord());
+
+		if (!isFound) {
+			fail("Folder abeille not found.");
+		}
+
+		exportThenImportInAnotherCollection(
+				options.setRecordsToExportIterator(new RecordsOfSchemaTypesIterator(getModelLayerFactory(), zeCollection, (asList(Folder.SCHEMA_TYPE, AdministrativeUnit.SCHEMA_TYPE,
+						MediumType.SCHEMA_TYPE, Category.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE, StorageSpace.SCHEMA_TYPE,
+						ContainerRecordType.SCHEMA_TYPE, RetentionRule.SCHEMA_TYPE, Document.SCHEMA_TYPE,
+						DocumentType.SCHEMA_TYPE)))));
+
+		SearchServices searchService = getModelLayerFactory().newSearchServices();
+
+		RMSchemasRecordsServices rmSchemasRecordsServicesAnOtherCollection = new RMSchemasRecordsServices("anotherCollection",
+				getAppLayerFactory());
+
+		List<Folder> folderListFromAnOtherCollection = rmSchemasRecordsServicesAnOtherCollection.searchFolders(ALL);
+
+		for (Folder folderFromAnOtherCollection : folderListFromAnOtherCollection) {
+			isFound = false;
+
+			for (Folder folderFromZeCollection : folderList) {
+
+				if (folderFromAnOtherCollection.getTitle().equals(folderFromZeCollection.getTitle())) {
+					if (folderFromAnOtherCollection.getTitle().equals("Abeille")) {
+						abeillefolderFromAnOtherCollection = folderFromAnOtherCollection;
+					}
+
+					isFound = true;
+					break;
+				}
+			}
+			assertThat(isFound).isTrue();
+		}
+
+		assertThat(abeillefolderFromAnOtherCollection.getContainer())
+				.isNotEqualTo(records.containerId_bac01);
+	}
+
 	@Test
 	public void whenExportingAndImportingFolderSameSystem()
 			throws Exception {
@@ -743,8 +822,8 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 
 		int originalSize = folderList.size();
 
-		RecordExportOptions recordExportOptions = options.setExportedSchemaTypes(asList(
-				Folder.SCHEMA_TYPE)).setForSameSystem(true);
+		RecordExportOptions recordExportOptions = options.setRecordsToExportIterator(new RecordsOfSchemaTypesIterator(getModelLayerFactory(), zeCollection, (asList(
+				Folder.SCHEMA_TYPE)))).setForSameSystem(true);
 
 		Folder updatedFolder = folderList.get(1);
 		Folder deletedFolder = rmSchemasRecordsServices.getFolder("A05");
@@ -830,10 +909,10 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		recordServices.update(documentFromZeCollection.getWrappedRecord());
 
 		exportThenImportInAnotherCollection(
-				options.setExportedSchemaTypes(asList(Folder.SCHEMA_TYPE, AdministrativeUnit.SCHEMA_TYPE,
+				options.setRecordsToExportIterator(new RecordsOfSchemaTypesIterator(getModelLayerFactory(), zeCollection, (asList(Folder.SCHEMA_TYPE, AdministrativeUnit.SCHEMA_TYPE,
 						MediumType.SCHEMA_TYPE, Category.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE, StorageSpace.SCHEMA_TYPE,
 						ContainerRecordType.SCHEMA_TYPE, RetentionRule.SCHEMA_TYPE, Document.SCHEMA_TYPE,
-						DocumentType.SCHEMA_TYPE)));
+						DocumentType.SCHEMA_TYPE)))));
 
 		RMSchemasRecordsServices rmSchemasRecordsServicesAnOtherCollection = new RMSchemasRecordsServices("anotherCollection",
 				getAppLayerFactory());
@@ -884,8 +963,8 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 
 		int originalSize = documentList.size();
 
-		RecordExportOptions recordExportOptions = options.setExportedSchemaTypes(asList(
-				Document.SCHEMA_TYPE)).setForSameSystem(true);
+		RecordExportOptions recordExportOptions = options.setRecordsToExportIterator(new RecordsOfSchemaTypesIterator(getModelLayerFactory(), zeCollection, (asList(
+				Document.SCHEMA_TYPE)))).setForSameSystem(true);
 
 		Document updatedDocument = documentList.get(1);
 		Document deletedDocument = documentList.get(0);
@@ -985,11 +1064,11 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		recordServices.update(exportedDecommissiongLists.get(0));
 
 		exportThenImportInAnotherCollection(
-				options.setExportedSchemaTypes(
+				options.setRecordsToExportIterator(new RecordsOfSchemaTypesIterator(getModelLayerFactory(), zeCollection, (
 						asList(AdministrativeUnit.SCHEMA_TYPE, Document.SCHEMA_TYPE, DocumentType.SCHEMA_TYPE,
 								Folder.SCHEMA_TYPE, DecommissioningList.SCHEMA_TYPE, RetentionRule.SCHEMA_TYPE,
 								Category.SCHEMA_TYPE, MediumType.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE,
-								ContainerRecordType.SCHEMA_TYPE, StorageSpace.SCHEMA_TYPE, User.SCHEMA_TYPE, Group.SCHEMA_TYPE)));
+								ContainerRecordType.SCHEMA_TYPE, StorageSpace.SCHEMA_TYPE, User.SCHEMA_TYPE, Group.SCHEMA_TYPE)))));
 
 		listSearchDecommissiongList = rmAnotherCollection.searchDecommissioningLists(returnAll());
 
@@ -1058,8 +1137,8 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 			exportedDecommissiongListsValidations.add(decommissioningList.getValidations());
 		}
 
-		RecordExportOptions recordExportOptions = options.setExportedSchemaTypes(asList(
-				DecommissioningList.SCHEMA_TYPE)).setForSameSystem(true);
+		RecordExportOptions recordExportOptions = options.setRecordsToExportIterator(new RecordsOfSchemaTypesIterator(getModelLayerFactory(), zeCollection, (asList(
+				DecommissioningList.SCHEMA_TYPE)))).setForSameSystem(true);
 
 		ContentManager contentManager = getModelLayerFactory().getContentManager();
 		Content content = contentManager.createMajor(records.getAdmin(), "Contract.docx", records.upload("contrat.docx"));
@@ -1174,7 +1253,7 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		recordServices.execute(transaction);
 
 		RecordExportOptions recordExportOptions = options
-				.setExportedSchemaTypes(asList(Category.SCHEMA_TYPE, RetentionRule.SCHEMA_TYPE))
+				.setRecordsToExportIterator(new RecordsOfSchemaTypesIterator(getModelLayerFactory(), zeCollection, (asList(Category.SCHEMA_TYPE, RetentionRule.SCHEMA_TYPE))))
 				.setForSameSystem(true);
 
 		File file = exportToZip(recordExportOptions);
@@ -1232,8 +1311,8 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		recordServices.execute(transaction);
 
 		exportThenImportInAnotherCollection(
-				options.setExportedSchemaTypes(asList(User.SCHEMA_TYPE, AdministrativeUnit.SCHEMA_TYPE, RetentionRule.SCHEMA_TYPE,
-						Category.SCHEMA_TYPE, Group.SCHEMA_TYPE)));
+				options.setRecordsToExportIterator(new RecordsOfSchemaTypesIterator(getModelLayerFactory(), zeCollection, (asList(User.SCHEMA_TYPE, AdministrativeUnit.SCHEMA_TYPE, RetentionRule.SCHEMA_TYPE,
+						Category.SCHEMA_TYPE, Group.SCHEMA_TYPE)))));
 
 		RMSchemasRecordsServices rmAnotherCollection = new RMSchemasRecordsServices("anotherCollection", getAppLayerFactory());
 
@@ -1283,8 +1362,8 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		recordServices.execute(transaction);
 
 		exportThenImportInAnotherCollection(
-				options.setExportedSchemaTypes(asList(User.SCHEMA_TYPE, AdministrativeUnit.SCHEMA_TYPE, RetentionRule.SCHEMA_TYPE,
-						Category.SCHEMA_TYPE, Group.SCHEMA_TYPE)));
+				options.setRecordsToExportIterator(new RecordsOfSchemaTypesIterator(getModelLayerFactory(), zeCollection, (asList(User.SCHEMA_TYPE, AdministrativeUnit.SCHEMA_TYPE, RetentionRule.SCHEMA_TYPE,
+						Category.SCHEMA_TYPE, Group.SCHEMA_TYPE)))));
 
 		RMSchemasRecordsServices rmAnotherCollection = new RMSchemasRecordsServices("anotherCollection", getAppLayerFactory());
 
@@ -1301,8 +1380,9 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 				withZeCollection().withConstellioRMModule().withConstellioRMModule().withAllTest(users).withRMTest(records),
 				withCollection("anotherCollection").withConstellioRMModule().withAllTest(users));
 
+
 		exportThenImportInAnotherCollection(
-				options.setExportValueLists(true));
+				options.setRecordsToExportIterator(new RecordsOfSchemaTypesIterator(getModelLayerFactory(), zeCollection, DocumentType.SCHEMA_TYPE)));
 
 		RMSchemasRecordsServices rmAnotherCollection = new RMSchemasRecordsServices("anotherCollection", getAppLayerFactory());
 
@@ -1357,8 +1437,8 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 
 		// Category.SCHEMA_TYPE, RetentionRule.SCHEMA_TYPE
 		exportThenImportInAnotherCollection(
-				options.setExportedSchemaTypes(
-						asList(AdministrativeUnit.SCHEMA_TYPE, RetentionRule.SCHEMA_TYPE)));
+				options.setRecordsToExportIterator(new RecordsOfSchemaTypesIterator(getModelLayerFactory(), zeCollection, (
+						asList(AdministrativeUnit.SCHEMA_TYPE, RetentionRule.SCHEMA_TYPE)))));
 
 		RMSchemasRecordsServices rmAnOtherCollection = new RMSchemasRecordsServices("anotherCollection", getAppLayerFactory());
 
@@ -1415,8 +1495,8 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 
 		// GetCopyRetentionRule.
 		// Save avec une transaction.
-		RecordExportOptions recordExportOptions = options.setExportedSchemaTypes(asList(
-				RetentionRule.SCHEMA_TYPE)).setForSameSystem(true);
+		RecordExportOptions recordExportOptions = options.setRecordsToExportIterator(new RecordsOfSchemaTypesIterator(getModelLayerFactory(), zeCollection, (asList(
+				RetentionRule.SCHEMA_TYPE)))).setForSameSystem(true);
 
 		// Category.SCHEMA_TYPE, RetentionRule.SCHEMA_TYPE
 		File file = exportToZip(recordExportOptions);
@@ -1481,8 +1561,8 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		recordService.execute(transaction);
 
 		exportThenImportInAnotherCollection(
-				options.setExportedSchemaTypes(
-						asList(AdministrativeUnit.SCHEMA_TYPE, RetentionRule.SCHEMA_TYPE)));
+				options.setRecordsToExportIterator(new RecordsOfSchemaTypesIterator(getModelLayerFactory(), zeCollection, (
+						asList(AdministrativeUnit.SCHEMA_TYPE, RetentionRule.SCHEMA_TYPE)))));
 
 		RMSchemasRecordsServices rmAnOtherCollection = new RMSchemasRecordsServices("anotherCollection", getAppLayerFactory());
 
@@ -1512,10 +1592,10 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		RecordServices recordServices = getModelLayerFactory().newRecordServices();
 
 		RecordExportOptions recordExportOptions = options
-				.setExportedSchemaTypes(asList(Folder.SCHEMA_TYPE, AdministrativeUnit.SCHEMA_TYPE,
+				.setRecordsToExportIterator(new RecordsOfSchemaTypesIterator(getModelLayerFactory(), zeCollection, asList(Folder.SCHEMA_TYPE, AdministrativeUnit.SCHEMA_TYPE,
 						MediumType.SCHEMA_TYPE, Category.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE, StorageSpace.SCHEMA_TYPE,
 						ContainerRecordType.SCHEMA_TYPE, RetentionRule.SCHEMA_TYPE, Document.SCHEMA_TYPE,
-						DocumentType.SCHEMA_TYPE));
+						DocumentType.SCHEMA_TYPE)));
 
 		Document documentWithCustomSchema = documentList.get(0);
 		documentWithCustomSchema.setType(rmSchemasRecordsServices.getDocumentTypeWithCode(DocumentType.EMAIL_DOCUMENT_TYPE));
@@ -1608,7 +1688,7 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	private File exportToZip(RecordExportOptions optios) {
-		return new RecordExportServices(getAppLayerFactory()).exportRecords(zeCollection, SDK_STREAM, options);
+		return new RecordExportServices(getAppLayerFactory()).exportRecordsAndZip(SDK_STREAM, options);
 	}
 
 	private void importFromZip(File zipFile, String collection) {
@@ -1634,7 +1714,7 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	private void exportThenImportInAnotherCollection(RecordExportOptions options) {
-		File zipFile = new RecordExportServices(getAppLayerFactory()).exportRecords(zeCollection, SDK_STREAM, options);
+		File zipFile = new RecordExportServices(getAppLayerFactory()).exportRecordsAndZip(SDK_STREAM, options);
 		ImportDataProvider importDataProvider = null;
 		try {
 			importDataProvider = XMLImportDataProvider.forZipFile(getModelLayerFactory(), zipFile);

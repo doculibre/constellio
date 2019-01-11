@@ -1,6 +1,7 @@
 package com.constellio.model.services.records.bulkImport;
 
 import com.constellio.app.services.schemas.bulkImport.BulkImportProgressionListener;
+import com.constellio.model.frameworks.validation.ValidationError;
 
 import java.util.ArrayList;
 import java.util.HashMap;

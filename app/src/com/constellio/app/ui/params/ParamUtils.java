@@ -1,8 +1,10 @@
 package com.constellio.app.ui.params;
 
+import com.constellio.app.ui.application.ConstellioUI;
 import com.vaadin.server.Page;
 import com.vaadin.ui.UI;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
@@ -118,4 +120,13 @@ public class ParamUtils {
 		}
 	}
 
+	@Nullable
+	public static Map<String, String> getCurrentParams() {
+		Map<String, String> params = null;
+
+		if(ConstellioUI.getCurrent() != null && ConstellioUI.getCurrent().getViewChangeEvent() != null) {
+			params = ParamUtils.getParamsMap(ConstellioUI.getCurrent().getViewChangeEvent().getParameters());
+		}
+		return params;
+	}
 }

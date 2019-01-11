@@ -67,13 +67,18 @@ public class HttpSolrServerFactory extends AbstractSolrServerFactory {
 		}
 	}
 
+	private static boolean atomicFileSystemDoesNotSupportHttpSolrWarningShown = false;
+
 	@Override
 	public synchronized AtomicFileSystem getConfigFileSystem(String core) {
 		try {
 			URL urlToSolrServer = new URL(url);
 			String host = urlToSolrServer.getHost();
 			if (!host.equals("localhost") && !host.equals("127.0.0.1")) {
-				LOGGER.warn("AtomicFileSystem does not support HTTP solr");
+				if (!atomicFileSystemDoesNotSupportHttpSolrWarningShown) {
+					LOGGER.warn("AtomicFileSystem does not support HTTP solr");
+					atomicFileSystemDoesNotSupportHttpSolrWarningShown = true;
+				}
 				return null;
 			}
 			AtomicFileSystem fileSystem = getAtomicFileSystem(core);

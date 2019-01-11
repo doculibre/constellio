@@ -73,6 +73,9 @@ public abstract class MultiFileUpload extends CssLayout implements DropHandler {
 			private LinkedList<ProgressIndicator> indicators;
 
 			public void streamingStarted(StreamingStartEvent event) {
+				if (isSpaceLimitReached(event)) {
+					throw new SpaceLimitException();
+				}
 			}
 
 			public void streamingFinished(StreamingEndEvent event) {
@@ -88,7 +91,7 @@ public abstract class MultiFileUpload extends CssLayout implements DropHandler {
 			public void streamingFailed(StreamingErrorEvent event) {
 				Logger.getLogger(getClass().getName()).log(Level.FINE,
 						"Streaming failed", event.getException());
-
+				displayStreamingFailedMessage();
 				for (ProgressIndicator progressIndicator : indicators) {
 					progressBars.removeComponent(progressIndicator);
 				}
@@ -132,6 +135,15 @@ public abstract class MultiFileUpload extends CssLayout implements DropHandler {
 		upload.setButtonCaption(getUploadButtonCaption());
 		uploads.addComponent(upload);
 
+	}
+
+	protected void displayStreamingFailedMessage() {
+	}
+
+	;
+
+	protected boolean isSpaceLimitReached(StreamingStartEvent event) {
+		return false;
 	}
 
 	private ProgressIndicator createProgressIndicator() {
@@ -255,52 +267,53 @@ public abstract class MultiFileUpload extends CssLayout implements DropHandler {
 		DragAndDropWrapper.WrapperTransferable transferable = (WrapperTransferable) event
 				.getTransferable();
 		Html5File[] files = transferable.getFiles();
-		for (final Html5File html5File : files) {
-			final ProgressIndicator pi = new ProgressIndicator();
-			pi.setCaption(html5File.getFileName());
-			progressBars.addComponent(pi);
-			final FileBuffer receiver = createReceiver();
-			html5File.setStreamVariable(new StreamVariable() {
+		if (files != null) {
+			for (final Html5File html5File : files) {
+				final ProgressIndicator pi = new ProgressIndicator();
+				pi.setCaption(html5File.getFileName());
+				progressBars.addComponent(pi);
+				final FileBuffer receiver = createReceiver();
+				html5File.setStreamVariable(new StreamVariable() {
 
-				private String name;
-				private String mime;
+					private String name;
+					private String mime;
 
-				public OutputStream getOutputStream() {
-					return receiver.receiveUpload(name, mime);
-				}
+					public OutputStream getOutputStream() {
+						return receiver.receiveUpload(name, mime);
+					}
 
-				public boolean listenProgress() {
-					return true;
-				}
+					public boolean listenProgress() {
+						return true;
+					}
 
-				public void onProgress(StreamingProgressEvent event) {
-					float p = (float) event.getBytesReceived()
-							  / (float) event.getContentLength();
-					pi.setValue(p);
-				}
+					public void onProgress(StreamingProgressEvent event) {
+						float p = (float) event.getBytesReceived()
+								  / (float) event.getContentLength();
+						pi.setValue(p);
+					}
 
-				public void streamingStarted(StreamingStartEvent event) {
-					name = event.getFileName();
-					mime = event.getMimeType();
+					public void streamingStarted(StreamingStartEvent event) {
+						name = event.getFileName();
+						mime = event.getMimeType();
 
-				}
+					}
 
-				public void streamingFinished(StreamingEndEvent event) {
-					progressBars.removeComponent(pi);
-					handleFile(receiver.getFile(), html5File.getFileName(),
-							html5File.getType(), html5File.getFileSize());
-					receiver.setValue(null);
-				}
+					public void streamingFinished(StreamingEndEvent event) {
+						progressBars.removeComponent(pi);
+						handleFile(receiver.getFile(), html5File.getFileName(),
+								html5File.getType(), html5File.getFileSize());
+						receiver.setValue(null);
+					}
 
-				public void streamingFailed(StreamingErrorEvent event) {
-					progressBars.removeComponent(pi);
-				}
+					public void streamingFailed(StreamingErrorEvent event) {
+						progressBars.removeComponent(pi);
+					}
 
-				public boolean isInterrupted() {
-					return false;
-				}
-			});
+					public boolean isInterrupted() {
+						return false;
+					}
+				});
+			}
 		}
-
 	}
 }

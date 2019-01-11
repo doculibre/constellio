@@ -1,23 +1,29 @@
 package com.constellio.app.modules.rm.ui.components.content;
 
+import com.constellio.app.modules.rm.ConstellioRMModule;
+import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
+import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
+import com.constellio.app.modules.rm.util.RMNavigationUtils;
 import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.Email;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.entities.RecordVORuntimeException;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.data.utils.TimeProvider;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.wrappers.SearchEvent;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -25,6 +31,7 @@ import com.constellio.model.services.logging.SearchEventServices;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.app.ui.pages.search.SearchPresenter.CURRENT_SEARCH_EVENT;
@@ -32,6 +39,7 @@ import static com.constellio.app.ui.pages.search.SearchPresenter.SEARCH_EVENT_DW
 import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 
 public class DocumentContentVersionPresenter implements Serializable {
+
 
 	private DocumentContentVersionWindow window;
 
@@ -51,10 +59,13 @@ public class DocumentContentVersionPresenter implements Serializable {
 	private transient AppLayerFactory appLayerFactory;
 
 	private transient RMSchemasRecordsServices rmSchemasRecordsServices;
+	private RMModuleExtensions rmModuleExtensions;
 
-	public DocumentContentVersionPresenter(DocumentContentVersionWindow window) {
+	private Map<String, String> params;
+
+	public DocumentContentVersionPresenter(DocumentContentVersionWindow window, Map<String, String> params) {
 		this.window = window;
-
+		this.params = params;
 		initTransientObjects();
 
 		RecordVO recordVO = window.getRecordVO();
@@ -67,6 +78,9 @@ public class DocumentContentVersionPresenter implements Serializable {
 
 		boolean checkOutLinkVisible = isCheckOutLinkVisible();
 		window.setCheckOutLinkVisible(checkOutLinkVisible);
+
+		rmModuleExtensions = appLayerFactory.getExtensions().forCollection(window.getSessionContext().getCurrentCollection())
+				.forModule(ConstellioRMModule.ID);
 
 		String readOnlyMessage;
 		if (!hasWritePermission()) {
@@ -131,15 +145,23 @@ public class DocumentContentVersionPresenter implements Serializable {
 	}
 
 	private boolean isCheckOutLinkVisible() {
-		return hasWritePermission() && !isCheckedOut() && isLatestVersion() && !Email.SCHEMA
-				.equals(documentVO.getSchema().getCode());
+		return hasWritePermission() && !isCheckedOut() && isLatestVersion() && !rmSchemasRecordsServices.isEmail(contentVersionVO.getFileName());
 	}
 
 	public void displayDocumentLinkClicked() {
 		window.closeWindow();
 		String documentId = documentVO.getId();
-		window.navigate().to(RMViews.class).displayDocument(documentId);
+
+		RMNavigationUtils.navigateToDisplayDocument(documentId, params, appLayerFactory,
+				window.getSessionContext().getCurrentCollection());
+
 		updateSearchResultClicked();
+	}
+
+	public boolean isNavigationStateDocumentView() {
+		String documentId = documentVO.getId();
+		Navigation navigation = new Navigation();
+		return navigation.to(RMViews.class).getState().equals(RMNavigationConfiguration.DISPLAY_DOCUMENT + "/" + documentId);
 	}
 
 	void checkOutLinkClicked() {
@@ -148,7 +170,8 @@ public class DocumentContentVersionPresenter implements Serializable {
 			User currentUser = presenterUtils.getCurrentUser();
 			Document document = rmSchemasRecordsServices.getDocument(documentVO.getId());
 			document.getContent().checkOut(currentUser);
-			presenterUtils.addOrUpdate(document.getWrappedRecord());
+			presenterUtils.addOrUpdate(document.getWrappedRecord(), new RecordUpdateOptions().setOverwriteModificationDateAndUser(false));
+			modelLayerFactory.newLoggingServices().borrowRecord(document.getWrappedRecord(), currentUser, TimeProvider.getLocalDateTime());
 
 			SessionContext sessionContext = window.getSessionContext();
 			documentVO = documentVOBuilder.build(document.getWrappedRecord(), VIEW_MODE.DISPLAY, window.getSessionContext());
@@ -173,16 +196,17 @@ public class DocumentContentVersionPresenter implements Serializable {
 			SearchEventServices searchEventServices = new SearchEventServices(presenterUtils.getCollection(),
 					presenterUtils.modelLayerFactory());
 			SearchEvent searchEvent = ConstellioUI.getCurrentSessionContext().getAttribute(CURRENT_SEARCH_EVENT);
+			if (searchEvent != null) {
+				searchEventServices.incrementClickCounter(searchEvent.getId());
 
-			searchEventServices.incrementClickCounter(searchEvent.getId());
-
-			String url = null;
-			try {
-				url = documentVO.get("url");
-			} catch (RecordVORuntimeException.RecordVORuntimeException_NoSuchMetadata e) {
+				String url = null;
+				try {
+					url = documentVO.get("url");
+				} catch (RecordVORuntimeException.RecordVORuntimeException_NoSuchMetadata e) {
+				}
+				String clicks = defaultIfBlank(url, documentVO.getId());
+				searchEventServices.updateClicks(searchEvent, clicks);
 			}
-			String clicks = defaultIfBlank(url, documentVO.getId());
-			searchEventServices.updateClicks(searchEvent, clicks);
 		}
 	}
 }

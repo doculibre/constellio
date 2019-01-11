@@ -10,10 +10,12 @@ import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.users.UserServices;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -27,17 +29,26 @@ public class RecordToVOBuilder implements Serializable {
 		return build(record, viewMode, null, sessionContext);
 	}
 
+
 	@SuppressWarnings("unchecked")
 	public RecordVO build(Record record, VIEW_MODE viewMode, MetadataSchemaVO schemaVO, SessionContext sessionContext) {
 		String id = record.getId();
 		String schemaCode = record.getSchemaCode();
 		String collection = record.getCollection();
 		boolean saved = record.isSaved();
+		List<String> metadataCodeExcludedList = new ArrayList<>();
 
 		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
 		ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
 		MetadataSchemasManager metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
 		MetadataSchema schema = metadataSchemasManager.getSchemaTypes(collection).getSchema(schemaCode);
+		UserServices userServices = modelLayerFactory.newUserServices();
+
+		User user = null;
+
+		if (sessionContext.getCurrentUser() != null && sessionContext.getCurrentCollection() != null) {
+			user = userServices.getUserInCollection(sessionContext.getCurrentUser().getUsername(), sessionContext.getCurrentCollection());
+		}
 
 		if (schemaVO == null) {
 			schemaVO = new MetadataSchemaToVOBuilder().build(schema, viewMode, sessionContext);
@@ -51,6 +62,7 @@ public class RecordToVOBuilder implements Serializable {
 			String metadataCode = metadataVO.getCode();
 			Metadata metadata = schema.getMetadata(metadataCode);
 			Object recordVOValue;
+
 			if (metadata.isMultiLingual() && metadataVO.getLocale() != null) {
 				recordVOValue = record.get(metadata, metadataVO.getLocale());
 			} else {
@@ -74,10 +86,15 @@ public class RecordToVOBuilder implements Serializable {
 				recordVOValue = listRecordVOValue;
 			}
 			MetadataValueVO metadataValueVO = new MetadataValueVO(metadataVO, recordVOValue);
-			metadataValueVOs.add(metadataValueVO);
+			if (user == null || user.hasAccessToMetadata(metadata, record)) {
+				metadataValueVOs.add(metadataValueVO);
+			} else {
+				metadataCodeExcludedList.add(metadataVO.getCode());
+			}
+
 		}
 
-		RecordVO recordVO = newRecordVO(id, metadataValueVOs, viewMode);
+		RecordVO recordVO = newRecordVO(id, metadataValueVOs, viewMode, metadataCodeExcludedList);
 		recordVO.setSaved(saved);
 		recordVO.setRecord(record);
 		if (recordVO.getSchema() != null) {
@@ -96,8 +113,9 @@ public class RecordToVOBuilder implements Serializable {
 		return record.get(metadata);
 	}
 
-	protected RecordVO newRecordVO(String id, List<MetadataValueVO> metadataValueVOs, VIEW_MODE viewMode) {
-		return new RecordVO(id, metadataValueVOs, viewMode);
+	protected RecordVO newRecordVO(String id, List<MetadataValueVO> metadataValueVOs, VIEW_MODE viewMode,
+								   List<String> excludedMetadata) {
+		return new RecordVO(id, metadataValueVOs, viewMode, excludedMetadata);
 	}
 
 	protected int getIndexOfMetadataCode(String metadataCode, List<MetadataValueVO> metadataValueVOs) {

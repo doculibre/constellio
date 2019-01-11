@@ -8,6 +8,8 @@ import com.constellio.app.services.appManagement.AppManagementServiceException;
 import com.constellio.app.services.appManagement.AppManagementServiceRuntimeException.CannotConnectToServer;
 import com.constellio.app.services.recovery.UpdateRecoveryImpossibleCause;
 import com.constellio.app.services.recovery.UpgradeAppRecoveryService;
+import com.constellio.app.services.systemInformations.SystemInformationsService;
+import com.constellio.app.services.recovery.UpgradeAppRecoveryServiceImpl;
 import com.constellio.app.servlet.ConstellioMonitoringServlet;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.data.utils.TimeProvider;
@@ -38,8 +40,10 @@ import static com.constellio.app.ui.pages.management.updates.UpdateNotRecommende
 import static java.util.Arrays.asList;
 
 public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
+	private SystemInformationsService systemInformationsService = new SystemInformationsService();
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(UpdateManagerPresenter.class);
+
 
 	public UpdateManagerPresenter(UpdateManagerView view) {
 		super(view);
@@ -100,12 +104,14 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 			appLayerFactory.newApplicationService().getWarFromServer(progressInfo);
 			appLayerFactory.newApplicationService().update(progressInfo);
 			view.showRestartRequiredPanel();
+
 		} catch (CannotConnectToServer cc) {
 			view.showErrorMessage($("UpdateManagerViewImpl.error.connection"));
 		} catch (AppManagementServiceException ase) {
 			view.showErrorMessage($("UpdateManagerViewImpl.error.file"));
 		} finally {
 			view.closeProgressPopup();
+
 		}
 	}
 
@@ -243,13 +249,73 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 		return version;
 	}
 
+	public String getLinuxVersion() {
+		return systemInformationsService.getLinuxVersion();
+	}
+
+	public boolean isLinuxVersionDeprecated(String version) {
+		return StringUtils.isBlank(version) || systemInformationsService.isLinuxVersionDeprecated(version);
+	}
+
+	public boolean isPrivateRepositoryInstalled() {
+		return systemInformationsService.isPrivateRepositoryInstalled();
+	}
+
+	public boolean isSolrUserRoot(String solrUser) {
+		return StringUtils.isBlank(solrUser) || solrUser.equals("root");
+	}
+
+	public boolean isConstellioUserRoot(String constellioUser) {
+		return StringUtils.isBlank(constellioUser) || constellioUser.equals("root");
+	}
+
+	public String getConstellioUser() {
+		return systemInformationsService.getConstellioUser();
+	}
+
+	public String getSolrUser() {
+		return systemInformationsService.getSolrUser();
+	}
+
+	public String getJavaVersion() {
+		return systemInformationsService.getJavaVersion();
+	}
+
+	public String getWrapperJavaVersion() {
+		return systemInformationsService.getWrapperJavaVersion();
+	}
+
+	public boolean isJavaVersionDeprecated(String version) {
+		return StringUtils.isBlank(version) || systemInformationsService.isJavaVersionDeprecated(version);
+	}
+
+	public String getSolrVersion() {
+		return systemInformationsService.getSolrVersion();
+	}
+
+	public boolean isSolrVersionDeprecated(String version) {
+		return StringUtils.isBlank(version) || systemInformationsService.isSolrVersionDeprecated(version);
+	}
+
+	public String getDiskUsage(String path) {
+		return systemInformationsService.getDiskUsage(path);
+	}
+
+	public boolean isDiskUsageProblematic(String diskUsage) {
+		return StringUtils.isBlank(diskUsage) || systemInformationsService.isDiskUsageProblematic(diskUsage);
+	}
+
 	@Override
 	protected boolean hasPageAccess(String params, final User user) {
 		return user.has(CorePermissions.MANAGE_SYSTEM_UPDATES).globally();
 	}
 
 	public boolean isRestartWithReindexButtonEnabled() {
-		return !recoveryModeEnabled();
+		if(appLayerFactory.getModelLayerFactory().getDataLayerFactory().getDataLayerConfiguration().isSystemDistributed()) {
+			return !UpgradeAppRecoveryServiceImpl.HAS_UPLOADED_A_WAR_SINCE_REBOOTING;
+		} else {
+			return !recoveryModeEnabled();
+		}
 	}
 
 	private boolean recoveryModeEnabled() {

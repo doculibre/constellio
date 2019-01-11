@@ -19,7 +19,9 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Capsule;
 import com.constellio.model.entities.records.wrappers.CapsuleLanguage;
+import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
@@ -67,8 +69,9 @@ public class SimpleSearchPresenterAcceptanceTest extends ConstellioTest {
 	SearchServices searchServices;
 	SearchPresenterService searchPresenterService;
 	SchemasRecordsServices schemasRecordsServices;
+	MetadataSchemaTypes types;
 
-	@Mock SimpleSearchView view;
+	@Mock SimpleSearchViewImpl view;
 	SimpleSearchPresenter simpleSearchPresenter;
 
 	long allFolderDocumentsContainersCount;
@@ -95,6 +98,7 @@ public class SimpleSearchPresenterAcceptanceTest extends ConstellioTest {
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
 		searchServices = getModelLayerFactory().newSearchServices();
+		types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
 
 		allFolders = new LogicalSearchQuery(from(rm.folderSchemaType()).returnAll());
 		allFoldersAndDocuments = new LogicalSearchQuery(from(asList(rm.folderSchemaType(), rm.documentSchemaType())).returnAll());
@@ -316,6 +320,21 @@ public class SimpleSearchPresenterAcceptanceTest extends ConstellioTest {
 		assertThat(returnedCapsule.getCode()).isEqualTo(code);
 		assertThat(returnedCapsule.getHTML()).isEqualTo(html);
 		assertThat(returnedCapsule.getKeywords()).containsOnly(keywords.toArray(new String[0]));
+	}
+
+	@Test
+	public void givenCreatedSavedSearchThenCreatedProperly() {
+		simpleSearchPresenter.saveSearch("New Title", false,
+				asList(users.alice().getId(), users.bob().getId()), users.aliceIn(zeCollection).getUserGroups());
+
+		SavedSearch savedSearch =
+				rm.wrapSavedSearch(searchServices.getAllRecords(types.getSchemaType(SavedSearch.SCHEMA_TYPE)).get(0));
+
+		assertThat(savedSearch.getTitle()).isEqualTo("New Title");
+		assertThat(savedSearch.isPublic()).isFalse();
+		assertThat(savedSearch.getSharedUsers()).containsOnly(users.alice().getId(), users.bob().getId());
+		assertThat(savedSearch.getSharedGroups())
+				.containsOnly(users.aliceIn(zeCollection).getUserGroups().toArray(new String[0]));
 	}
 
 	private List<String> getRecordsIds(List<SearchResultVO> records) {

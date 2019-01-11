@@ -11,6 +11,7 @@ import com.constellio.app.modules.rm.reports.factories.labels.LabelsReportParame
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
+import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.application.CoreViews;
@@ -22,15 +23,18 @@ import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.NewReportPresenter;
+import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import com.constellio.app.ui.framework.reports.ReportWithCaptionVO;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
@@ -44,6 +48,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
 public class DisplayContainerPresenter extends BasePresenter<DisplayContainerView> implements NewReportPresenter {
@@ -51,7 +56,10 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 	private transient RMSchemasRecordsServices rmRecordServices;
 	private transient DecommissioningService decommissioningService;
 
+	private MetadataSchemaToVOBuilder schemaVOBuilder = new MetadataSchemaToVOBuilder();
 	private String containerId;
+	private String tabName;
+	private String administrativeUnitId;
 
 	public DisplayContainerPresenter(DisplayContainerView view) {
 		this(view, null, false);
@@ -60,9 +68,10 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 	public DisplayContainerPresenter(DisplayContainerView view, RecordVO recordVO, boolean popup) {
 		super(view);
 		if (recordVO != null) {
-			forContainerId(recordVO.getId());
+			forParams(recordVO.getId());
 		}
 	}
+
 
 	String getBorrowMessageState(RecordVO containerRecord) {
 		String borrowedMessage = null;
@@ -114,7 +123,7 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 
 	@Override
 	protected List<String> getRestrictedRecordIds(String params) {
-		return asList(params);
+		return asList(containerId);
 	}
 
 	public void backButtonClicked() {
@@ -160,13 +169,18 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 			ContainerRecord container = rmRecordServices().getContainerRecord(containerId);
 			recordServices().logicallyDelete(container.getWrappedRecord(), getCurrentUser());
 			view.navigate().to(CoreViews.class).home();
-		} catch (Exception e) {
+		} catch (RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord e) {
 			view.showErrorMessage(MessageUtils.toMessage(e));
 		}
 	}
 
 	public void displayFolderButtonClicked(RecordVO folder) {
-		view.navigate().to(RMViews.class).displayFolder(folder.getId());
+		if(view.getUIContext().getAttribute(BaseBreadcrumbTrail.SEARCH_ID) != null && containerId != null) {
+			view.navigate().to(RMViews.class).displayFolderFromContainer(folder.getId(), containerId);
+		} else {
+			view.navigate().to(RMViews.class).displayFolder(folder.getId());
+		}
+
 	}
 
 	@Override
@@ -200,8 +214,24 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 		return true;
 	}
 
-	public void forContainerId(String containerId) {
-		this.containerId = containerId;
+	public void forParams(String containerId) {
+		String[] parts = containerId.split("/");
+
+		if(parts.length == 1) {
+			this.containerId = containerId;
+		} else {
+			this.containerId = parts[0];
+			this.tabName = parts[1];
+			this.administrativeUnitId = parts[2];
+		}
+	}
+
+	public String getTabName() {
+		return tabName;
+	}
+
+	public String getAdministrativeUnitId() {
+		return administrativeUnitId;
 	}
 
 	public String getContainerId() {
@@ -336,4 +366,80 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 		ContainerRecord record = rmRecordServices().getContainerRecord(containerId);
 		return getCurrentUser().hasWriteAccess().on(record);
 	}
+
+	public void addToDefaultFavorite() {
+		if (rmRecordServices().numberOfContainersInFavoritesReachesLimit(getCurrentUser().getId(), 1)) {
+			view.showMessage($("DisplayContainerViewImpl.cartCannotContainMoreThanAThousandContainers"));
+		} else {
+			ContainerRecord container = rmRecordServices().getContainerRecord(containerId);
+			container.addFavorite(getCurrentUser().getId());
+			try {
+				recordServices().update(container);
+			} catch (RecordServicesException e) {
+				e.printStackTrace();
+				throw new RuntimeException(e);
+			}
+			view.showMessage($("DisplayContainerViewImpl.containerAddedToDefaultFavorites"));
+		}
+	}
+
+	public void createNewCartAndAddToItRequested(String title) {
+		Cart cart = rmRecordServices().newCart();
+		ContainerRecord container = rmRecordServices().wrapContainerRecord(getContainer().getRecord());
+		cart.setTitle(title);
+		cart.setOwner(getCurrentUser());
+		try {
+			container.addFavorite(cart.getId());
+			recordServices().execute(new Transaction(cart.getWrappedRecord()).setUser(getCurrentUser()));
+			recordServices().update(container);
+			view.showMessage($("DisplayContainerView.addedToCart"));
+		} catch (RecordServicesException e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
+	}
+
+	public RecordVODataProvider getSharedCartsDataProvider() {
+		final MetadataSchemaVO cartSchemaVO = schemaVOBuilder
+				.build(rmRecordServices().cartSchema(), VIEW_MODE.TABLE, view.getSessionContext());
+		return new RecordVODataProvider(cartSchemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
+			@Override
+			protected LogicalSearchQuery getQuery() {
+				return new LogicalSearchQuery(
+						from(rmRecordServices().cartSchema()).where(rmRecordServices().cartSharedWithUsers())
+								.isContaining(asList(getCurrentUser().getId()))).sortAsc(Schemas.TITLE);
+			}
+		};
+	}
+
+	public void addToCartRequested(RecordVO recordVO) {
+		Cart cart = rmRecordServices().getCart(recordVO.getId());
+		addToCartRequested(cart);
+	}
+
+	public void addToCartRequested(Cart cart) {
+		if (rmRecordServices().numberOfContainersInFavoritesReachesLimit(cart.getId(), 1)) {
+			view.showMessage($("DisplayContainerViewImpl.cartCannotContainMoreThanAThousandContainers"));
+		} else {
+			ContainerRecord container = rmRecordServices().wrapContainerRecord(getContainer().getRecord());
+			container.addFavorite(cart.getId());
+			try {
+				recordServices().update(container);
+				view.showMessage($("DisplayContainerViewImpl.addedToCart"));
+			} catch (RecordServicesException e) {
+				e.printStackTrace();
+				throw new RuntimeException(e);
+			}
+		}
+	}
+
+	public List<Cart> getOwnedCarts() {
+		return rmRecordServices().wrapCarts(searchServices().search(new LogicalSearchQuery(from(rmRecordServices().cartSchema()).where(rmRecordServices().cart.owner())
+				.isEqualTo(getCurrentUser().getId())).sortAsc(Schemas.TITLE)));
+	}
+
+	public MetadataSchemaVO getSchema() {
+		return new MetadataSchemaToVOBuilder().build(schema(Cart.DEFAULT_SCHEMA), RecordVO.VIEW_MODE.TABLE, view.getSessionContext());
+	}
+
 }

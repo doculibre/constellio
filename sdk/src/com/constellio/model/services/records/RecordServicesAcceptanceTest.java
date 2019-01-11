@@ -417,6 +417,33 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 
 	}
 
+	@Test
+	public void givenRecordInCacheMarkedForReindexingThenVersionInCacheIsUpdated()
+			throws Exception {
+
+		defineSchemasManager().using(schemas.withAStringMetadata().withAnotherStringMetadata());
+
+		getModelLayerFactory().getRecordsCaches().getCache(zeCollection)
+				.configureCache(permanentCache(schemas.zeDefaultSchemaType()));
+
+		Transaction tx = new Transaction();
+		Record record1 = tx.add(new TestRecord(zeSchema, "record1").set(zeSchema.stringMetadata(), "value1"));
+		Record record2 = tx.add(new TestRecord(zeSchema, "record2").set(zeSchema.stringMetadata(), "value1"));
+
+		recordServices.execute(tx);
+
+		tx = new Transaction();
+		tx.add(record2.set(zeSchema.anotherStringMetadata(), "mouahahaha"));
+		tx.addRecordToReindex("record1");
+		recordServices.execute(tx);
+
+		assertThat(getModelLayerFactory().newRecordServices().getDocumentById("record1").getVersion())
+				.isNotEqualTo(record1.getVersion())
+				.isEqualTo(getModelLayerFactory().newCachelessRecordServices().getDocumentById("record1").getVersion());
+
+
+	}
+
 	@Test()
 	public void givenSchemaWithFixedSequenceMetadataWhenAddingValidRecordThenSetNewSequenceValue()
 			throws Exception {
@@ -1175,7 +1202,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 			fail("ValidationException expected");
 		} catch (ValidationException e) {
 			Map<String, Object> parameters = asMap(METADATA_CODE, "zeSchemaType_default_stringMetadata");
-			parameters.put(Validator.METADATA_LABEL, TestUtils.asMap("fr", "A toAString metadata", "en", "stringMetadata"));
+			parameters.put(Validator.METADATA_LABEL, TestUtils.asMap("fr", "A toAString metadata"));
 			assertThat(e.getErrors().getValidationErrors()).containsOnly(new ValidationError(
 					MetadataUnmodifiableValidator.class, UNMODIFIABLE_METADATA,
 					parameters)
@@ -1187,7 +1214,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 			fail("ValidationException expected");
 		} catch (ValidationException e) {
 			Map<String, Object> parameters = asMap(METADATA_CODE, "zeSchemaType_default_stringMetadata");
-			parameters.put(Validator.METADATA_LABEL, TestUtils.asMap("fr", "A toAString metadata", "en", "stringMetadata"));
+			parameters.put(Validator.METADATA_LABEL, TestUtils.asMap("fr", "A toAString metadata"));
 			assertThat(e.getErrors().getValidationErrors()).containsOnly(new ValidationError(
 					MetadataUnmodifiableValidator.class, UNMODIFIABLE_METADATA,
 					parameters)

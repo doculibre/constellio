@@ -192,7 +192,7 @@ public class RecordAutomaticMetadataServicesTest extends ConstellioTest {
 	@Test
 	public void givenCopiedMetadataWhenUpdateAutomaticMetadataThenSetCopiedValuesInRecords()
 			throws Exception {
-		TransactionExecutionContext context = new TransactionExecutionContext();
+		TransactionExecutionContext context = new TransactionExecutionContext(mock(Transaction.class));
 		Metadata metadata = mock(Metadata.class);
 		when(metadata.getDataEntry()).thenReturn(new CopiedDataEntry(aString(), aString()));
 		doNothing().when(services).setCopiedValuesInRecords(
@@ -208,7 +208,7 @@ public class RecordAutomaticMetadataServicesTest extends ConstellioTest {
 	@Test
 	public void givenCalculatedMetadataWhenUpdateAutomaticMetadataThenSetCopiedValuesInRecords()
 			throws Exception {
-		TransactionExecutionContext context = new TransactionExecutionContext();
+		TransactionExecutionContext context = new TransactionExecutionContext(mock(Transaction.class));
 		Metadata metadata = mock(Metadata.class);
 		when(metadata.getDataEntry()).thenReturn(new CalculatedDataEntry(mock(MetadataValueCalculator.class)));
 		doNothing().when(services).setCalculatedValuesInRecords(eq(context), eq(record), eq(metadata), eq(recordProvider), eq(

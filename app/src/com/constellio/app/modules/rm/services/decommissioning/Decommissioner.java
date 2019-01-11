@@ -15,6 +15,7 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetail;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
+import com.constellio.app.modules.rm.wrappers.structures.FolderDetailStatus;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.io.services.facades.FileService;
@@ -77,6 +78,10 @@ public abstract class Decommissioner {
 	private LocalDate processingDate;
 	private User user;
 
+	private final static int MAX_RECORDS_PER_TRANSACTION_MEMORY = 100;
+	private final static int MAX_RECORDS_PER_TRANSACTION_NORMAL = 500;
+	private final static int MAX_RECORDS_PER_TRANSACTION_PERFORMANCE = 1000;
+
 	public static Decommissioner forList(DecommissioningList decommissioningList,
 										 DecommissioningService decommissioningService,
 										 AppLayerFactory appLayerFactory) {
@@ -111,7 +116,8 @@ public abstract class Decommissioner {
 		loggingServices = new DecommissioningLoggingService(modelLayerFactory);
 	}
 
-	public void process(DecommissioningList decommissioningList, User user, LocalDate processingDate) {
+	public void process(DecommissioningList decommissioningList, User user, LocalDate processingDate)
+			throws RecordServicesException.OptimisticLocking {
 		prepare(decommissioningList, user, processingDate);
 		validate();
 		saveCertificates(decommissioningList);
@@ -128,14 +134,16 @@ public abstract class Decommissioner {
 		execute(true);
 	}
 
-	public void approve(DecommissioningList decommissioningList, User user, LocalDate processingDate) {
+	public void approve(DecommissioningList decommissioningList, User user, LocalDate processingDate)
+			throws RecordServicesException.OptimisticLocking {
 		prepare(decommissioningList, user, processingDate);
 		approveFolders();
 		markApproved();
 		execute(false);
 	}
 
-	public void denyApproval(DecommissioningList decommissioningList, User denier, String comment) {
+	public void denyApproval(DecommissioningList decommissioningList, User denier, String comment)
+			throws RecordServicesException.OptimisticLocking {
 		prepare(decommissioningList, user, processingDate);
 		String approvalRequester = decommissioningList.getApprovalRequest();
 		removeApprovalRequest();
@@ -209,7 +217,7 @@ public abstract class Decommissioner {
 
 	protected void approveFolders() {
 		for (DecomListFolderDetail detail : decommissioningList.getFolderDetails()) {
-			if (detail.isFolderExcluded()) {
+			if (FolderDetailStatus.EXCLUDED.equals(detail.getFolderDetailStatus())) {
 				continue;
 			}
 			Folder folder = rm.getFolder(detail.getFolderId());
@@ -284,7 +292,7 @@ public abstract class Decommissioner {
 	private void processFolders() {
 		DecommissioningListType decommissioningListType = decommissioningList.getDecommissioningListType();
 		for (DecomListFolderDetail detail : decommissioningList.getFolderDetails()) {
-			if (detail.isFolderExcluded()) {
+			if (FolderDetailStatus.EXCLUDED.equals(detail.getFolderDetailStatus())) {
 				continue;
 			}
 			Folder folder = rm.getFolder(detail.getFolderId());
@@ -451,7 +459,7 @@ public abstract class Decommissioner {
 		List<String> containerIdUsed = new ArrayList<>();
 		Map<String, DecomListContainerDetail> detailsToProcess = new HashMap<>();
 		for (DecomListFolderDetail detail : decommissioningList.getFolderDetails()) {
-			if (detail.isFolderExcluded()) {
+			if (FolderDetailStatus.EXCLUDED.equals(detail.getFolderDetailStatus())) {
 				continue;
 			}
 			containerIdUsed.add(detail.getContainerRecordId());
@@ -516,7 +524,8 @@ public abstract class Decommissioner {
 			empty = true;
 			// Current transaction folders would not be taken into account otherwise
 			for (DecomListFolderDetail detail : decommissioningList.getFolderDetails()) {
-				if (detail.isFolderExcluded() || destroyedFolders.contains(detail.getFolderId())) {
+				if (FolderDetailStatus.EXCLUDED.equals(detail.getFolderDetailStatus()) || destroyedFolders
+						.contains(detail.getFolderId())) {
 					continue;
 				}
 				if (container.getId().equals(detail.getContainerRecordId())) {
@@ -538,7 +547,7 @@ public abstract class Decommissioner {
 		add(decommissioningList.setProcessingDate(processingDate).setProcessingUser(user));
 	}
 
-	private void execute(boolean logging) {
+	private void execute(boolean logging) throws RecordServicesException.OptimisticLocking {
 		if (logging) {
 			loggingServices.logDecommissioning(decommissioningList, user);
 		}
@@ -550,7 +559,11 @@ public abstract class Decommissioner {
 
 		try {
 			transaction.getRecordUpdateOptions().setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
-			recordServices.execute(transaction);
+			if (transaction.getRecordCount() <= getMaxRecordsPerTransaction()) {
+				recordServices.execute(transaction);
+			} else {
+				recordServices.executeHandlingImpactsAsync(transaction);
+			}
 			for (Record record : recordsToDelete) {
 				recordServices.logicallyDelete(record, user);
 			}
@@ -568,6 +581,9 @@ public abstract class Decommissioner {
 					recordServices.logicallyDelete(record, user);
 				}
 			}
+		} catch (RecordServicesException.OptimisticLocking e) {
+			throw e;
+
 		} catch (RecordServicesException e) {
 			// TODO: Proper exception
 			throw new RecordServicesWrapperRuntimeException(e);
@@ -576,6 +592,16 @@ public abstract class Decommissioner {
 
 	public interface DocumentUpdater {
 		void update(Document document);
+	}
+
+	protected int getMaxRecordsPerTransaction() {
+		ConstellioEIMConfigs configs = new ConstellioEIMConfigs(modelLayerFactory);
+		if (configs.getMemoryConsumptionLevel().isPrioritizingMemoryConsumption()) {
+			return MAX_RECORDS_PER_TRANSACTION_MEMORY;
+		} else if (configs.getMemoryConsumptionLevel().isPrioritizingPerformance()) {
+			return MAX_RECORDS_PER_TRANSACTION_PERFORMANCE;
+		}
+		return MAX_RECORDS_PER_TRANSACTION_NORMAL;
 	}
 }
 

@@ -91,7 +91,6 @@ public class SearchWebServiceAcceptTest extends ConstellioTest {
 			throws Exception {
 
 		givenFrenchCollectionWithUnSearchableMetadatas();
-		getDataLayerFactory().getDataLayerLogger().monitor("00000000005");
 
 		Content content1 = contentManager.createMinor(aliceInZeCollection, "gandalf.docx", textContent(quote1));
 		Content content2 = contentManager.createMajor(aliceInZeCollection, "darth.docx", textContent(quote2));

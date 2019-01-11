@@ -4,10 +4,9 @@ import com.constellio.app.api.cmis.accept.CmisAcceptanceTestSetup;
 import com.constellio.app.api.cmis.accept.CmisAcceptanceTestSetup.Records;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Group;
-import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
@@ -80,7 +79,7 @@ public class GetChildrenRequestAcceptTest extends ConstellioTest {
 
 		RecordsCache cache = getModelLayerFactory().getRecordsCaches().getCache(zeCollection);
 		MetadataSchemaTypes types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
-		cache.configureCache(permanentCache(types.getSchemaType(SolrAuthorizationDetails.SCHEMA_TYPE)));
+		cache.configureCache(permanentCache(types.getSchemaType(Authorization.SCHEMA_TYPE)));
 		cache.configureCache(permanentCache(types.getSchemaType(User.SCHEMA_TYPE)));
 		cache.configureCache(permanentCache(types.getSchemaType(Group.SCHEMA_TYPE)));
 
@@ -91,12 +90,12 @@ public class GetChildrenRequestAcceptTest extends ConstellioTest {
 		zeCollectionRecords = zeCollectionSchemas.givenRecords(recordServices);
 
 		userServices.addUpdateUserCredential(
-				userServices.getUserCredential(chuckNorris).withServiceKey(chuckNorrisKey).withSystemAdminPermission());
+				userServices.getUserCredential(chuckNorris).setServiceKey(chuckNorrisKey).setSystemAdminEnabled());
 		chuckNorrisToken = userServices.generateToken(chuckNorris);
 		userServices.addUserToCollection(users.chuckNorris(), zeCollection);
 		cmisSession = givenAdminSessionOnZeCollection();
 		userServices.addUpdateUserCredential(
-				userServices.getUserCredential(bobGratton).withServiceKey(bobKey).withSystemAdminPermission());
+				userServices.getUserCredential(bobGratton).setServiceKey(bobKey).setSystemAdminEnabled());
 		bobToken = userServices.generateToken(bobGratton);
 		userServices.addUserToCollection(users.bob(), zeCollection);
 
@@ -164,7 +163,7 @@ public class GetChildrenRequestAcceptTest extends ConstellioTest {
 	@Test
 	public void whenGettingChildrenOnRootThenCorrectChildrenReturned()
 			throws Exception {
-		ItemIterable<CmisObject> obtainedChildren = getChildrenOfObject("@root@");
+		ItemIterable<CmisObject> obtainedChildren = getChildrenOfObject("zeCollection");
 		validateThat(obtainedChildren).hasChildrenIds("taxo_taxo1", "taxo_taxo2")
 				.withPaths("/taxo_taxo1", "/taxo_taxo2");
 	}
@@ -224,7 +223,7 @@ public class GetChildrenRequestAcceptTest extends ConstellioTest {
 
 	private ItemIterable<CmisObject> getChildrenOfObject(String objectId) {
 		CmisObject object;
-		if ("@root@".equals(objectId)) {
+		if ("zeCollection".equals(objectId)) {
 			object = cmisSession.getRootFolder();
 		} else {
 			object = cmisSession.getObject(objectId);

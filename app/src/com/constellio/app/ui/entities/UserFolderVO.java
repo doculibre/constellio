@@ -12,8 +12,8 @@ import static com.constellio.model.entities.records.wrappers.UserFolder.PARENT_U
 
 public class UserFolderVO extends RecordVO {
 
-	public UserFolderVO(String id, List<MetadataValueVO> metadataValues, VIEW_MODE viewMode) {
-		super(id, metadataValues, viewMode);
+	public UserFolderVO(String id, List<MetadataValueVO> metadataValues, VIEW_MODE viewMode, List<String> excludedMetadata) {
+		super(id, metadataValues, viewMode, excludedMetadata);
 	}
 
 	public LocalDateTime getFormCreatedOn() {

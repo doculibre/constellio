@@ -1017,13 +1017,6 @@ public class RecordsCacheImplTest extends ConstellioTest {
 		assertThatQueryResults(from(zeType()).where(TITLE).isEqualTo("value1")).containsExactly(zeTypeRecord4, zeTypeRecord6);
 		assertThatQueryResults(from(zeType()).where(TITLE).isEqualTo("value2")).isNull();
 
-		//Inserting a record from the schema with same version - no impact
-		cache.insert(zeTypeRecord5, WAS_MODIFIED);
-
-		assertThatQueryResults(from(zeType()).returnAll()).containsExactly(zeTypeRecord4, zeTypeRecord5, zeTypeRecord6);
-		assertThatQueryResults(from(zeType()).where(TITLE).isEqualTo("value1")).containsExactly(zeTypeRecord4, zeTypeRecord6);
-		assertThatQueryResults(from(zeType()).where(TITLE).isEqualTo("value2")).isNull();
-
 		//Inserting a record from the schema with different version - all queries invalidated
 		cache.insert(zeTypeRecord5_v2, WAS_MODIFIED);
 
@@ -1032,6 +1025,56 @@ public class RecordsCacheImplTest extends ConstellioTest {
 		assertThatQueryResults(from(zeType()).where(TITLE).isEqualTo("value2")).isNull();
 
 	}
+
+
+	@Test
+	public void givenCachedSearchResultsOfAQueryWhenInsertARecordWithSameVersionThenAllQueriesInvalidated()
+			throws Exception {
+		cache.configureCache(CacheConfig.permanentCacheNotLoadedInitially(zeType, withoutIndexByMetadata));
+		cache.configureCache(CacheConfig.permanentCacheNotLoadedInitially(anotherType, withoutIndexByMetadata));
+		Record anotherTypeRecord1 = newRecord(anotherType, 1);
+		Record anotherTypeRecord2 = newRecord(anotherType, 2);
+		Record anotherTypeRecord3 = newRecord(anotherType, 3);
+		Record zeTypeRecord4 = newRecord(zeType, 4);
+		Record zeTypeRecord5 = newRecord(zeType, 5);
+		Record zeTypeRecord6 = newRecord(zeType, 6);
+
+		Record zeTypeRecord5_v2 = newRecord(zeType, 5, 2);
+		Record anotherTypeRecord2_v2 = newRecord(anotherType, 2, 2);
+
+		cache.insert(
+				asList(anotherTypeRecord1, anotherTypeRecord2, anotherTypeRecord3, zeTypeRecord4, zeTypeRecord5, zeTypeRecord6),
+				WAS_MODIFIED);
+
+		assertThatQueryResults(from(anotherType()).returnAll()).isNull();
+		assertThatQueryResults(from(zeType()).returnAll()).isNull();
+		assertThatQueryResults(fromAllSchemasIn(zeCollection).returnAll()).isNull();
+
+		cache.insertQueryResults(query(from(zeType()).returnAll()), asList(zeTypeRecord4, zeTypeRecord5, zeTypeRecord6));
+		cache.insertQueryResults(query(from(zeType()).where(TITLE).isEqualTo("value1")), asList(zeTypeRecord4, zeTypeRecord6));
+
+		assertThatQueryResults(from(zeType()).returnAll()).containsExactly(zeTypeRecord4, zeTypeRecord5, zeTypeRecord6);
+		assertThatQueryResults(from(zeType()).where(TITLE).isEqualTo("value1")).containsExactly(zeTypeRecord4, zeTypeRecord6);
+		assertThatQueryResults(from(zeType()).where(TITLE).isEqualTo("value2")).isNull();
+
+		//Inserting a record from another schema - no impacts
+		cache.insert(anotherTypeRecord2, WAS_MODIFIED);
+		cache.insert(anotherTypeRecord2_v2, WAS_MODIFIED);
+
+		assertThatQueryResults(from(zeType()).returnAll()).containsExactly(zeTypeRecord4, zeTypeRecord5, zeTypeRecord6);
+		assertThatQueryResults(from(zeType()).where(TITLE).isEqualTo("value1")).containsExactly(zeTypeRecord4, zeTypeRecord6);
+		assertThatQueryResults(from(zeType()).where(TITLE).isEqualTo("value2")).isNull();
+
+		//Inserting a record from the schema with same version - all queries invalidated
+		//This behavior was modified, since it was causing problems with event based caches
+		cache.insert(zeTypeRecord5, WAS_MODIFIED);
+
+		assertThatQueryResults(from(zeType()).returnAll()).isNull();
+		assertThatQueryResults(from(zeType()).where(TITLE).isEqualTo("value1")).isNull();
+		assertThatQueryResults(from(zeType()).where(TITLE).isEqualTo("value2")).isNull();
+
+	}
+
 
 	@Test
 	public void givenCachedSearchResultsOfAQueryWhenInvalidateARecordThenAllQueriesInvalidated()

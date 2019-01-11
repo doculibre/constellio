@@ -9,6 +9,7 @@ import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.SelectDeselectAllButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
+import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.components.RecordDisplayFactory;
 import com.constellio.app.ui.framework.components.ReportViewer.DownloadStreamResource;
 import com.constellio.app.ui.framework.components.SearchResultDetailedTable;
@@ -17,6 +18,7 @@ import com.constellio.app.ui.framework.components.SearchResultTable;
 import com.constellio.app.ui.framework.components.capsule.CapsuleComponent;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
+import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveRecordLookupField;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.containers.SearchResultContainer;
@@ -27,13 +29,15 @@ import com.constellio.app.ui.pages.search.SearchPresenter.SortOrder;
 import com.constellio.data.utils.KeySetMap;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.wrappers.Capsule;
+import com.constellio.model.entities.records.wrappers.Group;
+import com.constellio.model.entities.records.wrappers.SavedSearch;
+import com.constellio.model.entities.records.wrappers.User;
 import com.jensjansson.pagedtable.PagedTable.PagedTableChangeEvent;
 import com.vaadin.data.Container.ItemSetChangeEvent;
 import com.vaadin.data.Container.ItemSetChangeListener;
 import com.vaadin.data.Property;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
-import com.vaadin.event.ItemClickEvent;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.shared.ui.label.ContentMode;
@@ -59,11 +63,14 @@ import com.vaadin.ui.themes.ValoTheme;
 import org.jetbrains.annotations.Nullable;
 import org.vaadin.dialogs.ConfirmDialog;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
+import static com.constellio.app.ui.framework.components.BaseForm.BUTTONS_LAYOUT;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 
@@ -74,6 +81,10 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	public static final String SORT_BOX_STYLE = "sort-box";
 	public static final String SORT_TITLE_STYLE = "sort-title";
 	public static final String SAVE_SEARCH = "save-search";
+
+	private enum ShareType {
+		NONE, ALL, RESTRICTED
+	}
 
 	protected T presenter;
 	private VerticalLayout thesaurusDisambiguation;
@@ -86,6 +97,12 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	private SelectDeselectAllButton selectDeselectAllButton;
 	private Button addToSelectionButton;
 	private HashMap<Integer, Boolean> hashMapAllSelection = new HashMap<>();
+	private List<SaveSearchListener> saveSearchListenerList = new ArrayList<>();
+	private Map<String, String> extraParameters = null;
+
+	public void addSaveSearchListenerList(SaveSearchListener saveSearchListener) {
+		saveSearchListenerList.add(saveSearchListener);
+	}
 
 	@Override
 	protected boolean isFullWidthIfActionMenuAbsent() {
@@ -120,6 +137,14 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		return layout;
 	}
 
+	protected Map<String, String> getExtraParameters() {
+		return extraParameters;
+	}
+
+	protected void setExtraParameters(Map<String, String> extraParameters) {
+		this.extraParameters = extraParameters;
+	}
+
 	private void buildThesaurusDisambiguation(List<String> disambiguationSuggestions) {
 		if (disambiguationSuggestions != null && disambiguationSuggestions.size() > 0) {
 			thesaurusDisambiguation.setVisible(true);
@@ -139,7 +164,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 				suggestionButton.addClickListener(new ClickListener() {
 					@Override
 					public void buttonClick(ClickEvent event) {
-						((SearchPresenter<?>) presenter).disambiguationClicked(entry);
+						presenter.disambiguationClicked(entry);
 					}
 				});
 				suggestionButton.addStyleName(ValoTheme.BUTTON_LINK);
@@ -228,7 +253,11 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	@Override
 	public SearchResultVODataProvider refreshSearchResults(boolean temporarySave, boolean includeFacets) {
 		if (temporarySave) {
-			presenter.saveTemporarySearch(false);
+			SavedSearch savedSearch = presenter.saveTemporarySearch(false);
+
+			for(SaveSearchListener saveSearchListener : saveSearchListenerList) {
+				saveSearchListener.save(new SaveSearchListener.Event(savedSearch));
+			}
 		}
 
 		SearchResultVODataProvider dataProvider = presenter.getSearchResults(includeFacets);
@@ -377,6 +406,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			@Override
 			protected void onSetPageButtonClicked(int page) {
 				super.onSetPageButtonClicked(page);
+				scrollBackUp();
 				presenter.searchNavigationButtonClicked();
 			}
 		};
@@ -391,13 +421,6 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		srTable.setPageLength(selectedPageLength);
 		srTable.setItemsPerPageValue(selectedPageLength);
 		srTable.setCurrentPage(currentPage);
-
-		srTable.addItemClickListener(new ItemClickEvent.ItemClickListener() {
-			@Override
-			public void itemClick(ItemClickEvent event) {
-				System.out.println("Jonathan Plamndon");
-			}
-		});
 
 		srTable.addListener(new SearchResultDetailedTable.PageChangeListener() {
 			public void pageChanged(PagedTableChangeEvent event) {
@@ -426,6 +449,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		});
 
 		srTable.setWidth("100%");
+
 		return srTable;
 	}
 
@@ -434,7 +458,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	}
 
 	protected SearchResultContainer buildResultContainer(SearchResultVODataProvider dataProvider) {
-		RecordDisplayFactory displayFactory = new RecordDisplayFactory(getSessionContext().getCurrentUser());
+		RecordDisplayFactory displayFactory = new RecordDisplayFactory(getSessionContext().getCurrentUser(), extraParameters);
 		SearchResultVOLazyContainer results = new SearchResultVOLazyContainer(dataProvider);
 		SearchResultContainer container = new SearchResultContainer(results, displayFactory,
 				presenter.getSearchQuery().getFreeTextQuery()) {
@@ -444,7 +468,6 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 					@Override
 					public void buttonClick(ClickEvent event) {
 						presenter.searchResultClicked(searchResultVO.getRecordVO());
-
 					}
 				};
 			}
@@ -553,6 +576,9 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			criterion.setItemCaption(metadata.getCode(), metadata.getLabel());
 		}
 		//		criterion.setPageLength(criterion.size());
+		criterion.addItem("SearchSortType.RELEVENCE");
+		criterion.setNullSelectionItemId("SearchSortType.RELEVENCE");
+		criterion.setItemCaption("SearchSortType.RELEVENCE", $("SearchSortType.RELEVENCE"));
 		criterion.setValue(presenter.getSortCriterionValueAmong(sortableMetadata));
 
 		final OptionGroup order = new OptionGroup();
@@ -738,27 +764,49 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	}
 
 	protected Button buildSavedSearchButton() {
-		WindowButton button = new WindowButton($("SearchView.saveSearch"),
-				$("SearchView.saveSearch")) {
+		WindowButton button = new WindowButton($("SearchView.saveSearch"), $("SearchView.saveSearch"),
+				WindowConfiguration.modalDialog("50%", "70%")) {
 			@Override
 			protected Component buildWindowContent() {
-
 				final TextField titleField = new BaseTextField();
 				titleField.setCaption($("SearchView.savedSearch.title"));
 				titleField.setRequired(true);
 				titleField.setId("title");
 				titleField.addStyleName("title");
 
-				final CheckBox publicField = new CheckBox();
-				publicField.setCaption($("SearchView.savedSearch.public"));
-				publicField.setRequired(true);
-				publicField.setId("public");
-				publicField.addStyleName("public");
+				final ListAddRemoveRecordLookupField users = new ListAddRemoveRecordLookupField(User.SCHEMA_TYPE);
+				users.setCaption($("SearchView.savedSearch.users"));
+				users.setVisible(false);
+
+				final ListAddRemoveRecordLookupField groups = new ListAddRemoveRecordLookupField(Group.SCHEMA_TYPE);
+				groups.setCaption($("SearchView.savedSearch.groups"));
+				groups.setVisible(false);
+
+				final OptionGroup shareOptions = new OptionGroup();
+				shareOptions.addItems(ShareType.NONE, ShareType.ALL, ShareType.RESTRICTED);
+				shareOptions.setItemCaption(ShareType.NONE, $("SearchView.savedSearch.share.none"));
+				shareOptions.setItemCaption(ShareType.ALL, $("SearchView.savedSearch.share.all"));
+				shareOptions.setItemCaption(ShareType.RESTRICTED, $("SearchView.savedSearch.share.restrict"));
+				shareOptions.setValue(ShareType.NONE);
+				shareOptions.addValueChangeListener(new Property.ValueChangeListener() {
+					@Override
+					public void valueChange(Property.ValueChangeEvent event) {
+						boolean visible = event.getProperty().getValue().equals(ShareType.RESTRICTED);
+						users.setVisible(visible);
+						groups.setVisible(visible);
+						if (!visible) {
+							groups.clear();
+							users.clear();
+						}
+					}
+				});
 
 				BaseButton saveSearchButton = new BaseButton($("SearchView.savedSearch.save")) {
 					@Override
 					protected void buttonClick(ClickEvent event) {
-						if (presenter.saveSearch(titleField.getValue(), (publicField.getValue()))) {
+						boolean publicAccess = !shareOptions.getValue().equals(ShareType.NONE);
+						if (presenter.saveSearch(titleField.getValue(), publicAccess, users.getValue(),
+								groups.getValue())) {
 							getWindow().close();
 						}
 					}
@@ -774,17 +822,17 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 
 				I18NHorizontalLayout horizontalLayout = new I18NHorizontalLayout();
 				horizontalLayout.setSpacing(true);
+				horizontalLayout.addStyleName(BUTTONS_LAYOUT);
 				horizontalLayout.addComponents(saveSearchButton, cancelButton);
 
 				VerticalLayout verticalLayout = new VerticalLayout();
-				verticalLayout.addComponents(titleField, publicField, horizontalLayout);
+				verticalLayout.addComponents(titleField, shareOptions, groups, users, horizontalLayout);
 				verticalLayout.setSpacing(true);
 
 				return verticalLayout;
 			}
 		};
 		button.addStyleName(ValoTheme.BUTTON_LINK);
-		button.addStyleName(SAVE_SEARCH);
 		return button;
 	}
 

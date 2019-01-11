@@ -12,32 +12,48 @@ import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.data.io.ConversionManager;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.records.Content;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.behaviors.RecordExtension;
 import com.constellio.model.extensions.events.records.RecordInCreationBeforeSaveEvent;
 import com.constellio.model.extensions.events.records.RecordInModificationBeforeSaveEvent;
+import com.constellio.model.extensions.events.records.RecordInModificationBeforeValidationAndAutomaticValuesCalculationEvent;
 import com.constellio.model.extensions.events.records.RecordLogicalDeletionValidationEvent;
 import com.constellio.model.extensions.events.records.RecordModificationEvent;
 import com.constellio.model.extensions.events.records.RecordSetCategoryEvent;
+import com.constellio.model.frameworks.validation.ValidationErrors;
+import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
 public class RMDocumentExtension extends RecordExtension {
+	private final ModelLayerFactory modelLayerFactory;
+	private final RMSchemasRecordsServices rmSchema;
 
 	private static String OUTLOOK_MSG_MIMETYPE = "application/vnd.ms-outlook";
 
 	private String collection;
-
 	private AppLayerFactory appLayerFactory;
+	private List<String> removedCartsIds;
 
 	public RMDocumentExtension(String collection, AppLayerFactory appLayerFactory) {
 		this.collection = collection;
 		this.appLayerFactory = appLayerFactory;
+		rmSchema = new RMSchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory());
+		modelLayerFactory = appLayerFactory.getModelLayerFactory();
+		removedCartsIds = new ArrayList<>();
 	}
 
 	@Override
@@ -148,7 +164,16 @@ public class RMDocumentExtension extends RecordExtension {
 	}
 
 	@Override
-	public ExtensionBooleanResult isLogicallyDeletable(RecordLogicalDeletionValidationEvent event) {
+	public void recordInModificationBeforeValidationAndAutomaticValuesCalculation(
+			RecordInModificationBeforeValidationAndAutomaticValuesCalculationEvent event) {
+		if (event.isSchemaType(Document.SCHEMA_TYPE)) {
+			Document document = rmSchema.wrapDocument(event.getRecord());
+			deleteNonExistentFavoritesIds(document);
+		}
+	}
+
+	@Override
+	public ValidationErrors validateLogicallyDeletable(RecordLogicalDeletionValidationEvent event) {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection,
 				ConstellioFactories.getInstance().getAppLayerFactory());
 
@@ -162,19 +187,47 @@ public class RMDocumentExtension extends RecordExtension {
 			SearchServices searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
 			TasksSchemasRecordsServices taskSchemas = new TasksSchemasRecordsServices(collection, appLayerFactory);
 			boolean usedInTasks = false;
-
+			List<Record> tasks = new ArrayList<>();
 			if (!event.isThenPhysicallyDeleted()) {
-				usedInTasks = searchServices.hasResults(from(rm.userTask.schemaType())
+				tasks = searchServices.search(new LogicalSearchQuery(from(rm.userTask.schemaType())
 						.where(rm.userTask.linkedDocuments()).isContaining(asList(event.getRecord().getId()))
 						.andWhere(taskSchemas.userTask.status()).isNotIn(taskSchemas.getFinishedOrClosedStatuses())
-						.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull());
+						.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()));
+				usedInTasks = !tasks.isEmpty();
 			}
 			if ((checkoutUserId != null && (user == null || !user.has(RMPermissionsTo.DELETE_BORROWED_DOCUMENT).on(document)))
 				|| usedInTasks) {
-				return ExtensionBooleanResult.FALSE;
+				ValidationErrors validationErrors = new ValidationErrors();
+				if (usedInTasks) {
+					Map<String, Object> parameter = new HashMap<>();
+					parameter.put("records", tasks);
+					validationErrors.add(RMDocumentExtension.class, "documentUsedInTasks", parameter);
+				}
+				if ((checkoutUserId != null && (user == null || !user.has(RMPermissionsTo.DELETE_BORROWED_DOCUMENT).on(document)))) {
+					validationErrors.add(RMDocumentExtension.class, "userDoesNotHavePremissionToDeleteBorrowedDocument");
+				}
+				return validationErrors;
 			}
 		}
-		return super.isLogicallyDeletable(event);
+		return super.validateLogicallyDeletable(event);
+	}
+
+	private void deleteNonExistentFavoritesIds(Document document) {
+		List<String> removedIds = new ArrayList<>();
+		RecordsCaches recordsCaches = modelLayerFactory.getRecordsCaches();
+		for (String cartId : document.getFavorites()) {
+			if (!removedCartsIds.contains(cartId)) {
+				if (recordsCaches.getRecord(cartId) == null) {
+					removedIds.add(cartId);
+					removedCartsIds.add(cartId);
+				}
+			} else {
+				removedIds.add(cartId);
+			}
+		}
+		if (!removedIds.isEmpty()) {
+			document.removeFavorites(removedIds);
+		}
 	}
 
 }

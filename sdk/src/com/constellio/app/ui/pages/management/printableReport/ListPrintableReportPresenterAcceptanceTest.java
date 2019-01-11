@@ -7,13 +7,18 @@ import com.constellio.app.modules.rm.wrappers.PrintableReport;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.Navigation;
+import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.management.Report.ListPrintableReportPresenter;
 import com.constellio.app.ui.pages.management.Report.ListPrintableReportView;
 import com.constellio.app.ui.pages.management.Report.ListPrintableReportViewImpl;
 import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
+import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -23,6 +28,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
+import java.io.File;
+import java.io.InputStream;
 import java.util.List;
 
 import static junit.framework.TestCase.fail;
@@ -31,6 +38,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class ListPrintableReportPresenterAcceptanceTest extends ConstellioTest {
+
+	private static final String STREAMID = ListPrintableReportPresenter.class.getName() + "-Stream";
 	private ListPrintableReportPresenter presenter;
 	private RMSchemasRecordsServices rm;
 	@Mock
@@ -38,12 +47,17 @@ public class ListPrintableReportPresenterAcceptanceTest extends ConstellioTest {
 	@Mock
 	Navigation navigator;
 
+	private File jasperFile;
+	private IOServices ioServices;
+	private ContentManager contentManager;
+
 	@Before
 	public void setUp() {
 		prepareSystem(
 				withZeCollection().withConstellioESModule().withConstellioRMModule().withAllTestUsers()
 		);
-
+		jasperFile = getTestResourceFile("jasperfile.jrxml");
+		ioServices = getModelLayerFactory().getIOServicesFactory().newIOServices();
 		navigator = new MockedNavigation();
 		viewMock = mock(ListPrintableReportViewImpl.class);
 		ConstellioFactories factories = getConstellioFactories();
@@ -53,66 +67,84 @@ public class ListPrintableReportPresenterAcceptanceTest extends ConstellioTest {
 		when(viewMock.navigate()).thenReturn(navigator);
 		presenter = new ListPrintableReportPresenter(viewMock);
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		contentManager = getModelLayerFactory().getContentManager();
 	}
 
 	@Test
 	public void testGettingPrintableReportDataProviderForFolder() throws Exception {
 		//Prepare data
 		Transaction transaction = new Transaction();
-		//Content jasperFileContentForFolder1 = mock(Content.class);
 		String titleForFolder1 = "title for folder 1";
 		String reportTypeForFolder1 = PrintableReportListPossibleType.FOLDER.getSchemaType();
 		String schemaForFolder1 = Folder.DEFAULT_SCHEMA;
 
-		//Content jasperFileContentForFolder2 = mock(Content.class);
 		String titleForFolder2 = "title for folder 2";
 		String reportTypeForFolder2 = PrintableReportListPossibleType.FOLDER.getSchemaType();
 		String schemaForFolder2 = Folder.SCHEMA_TYPE + "_meeting";
 
-		//Content jasperFileContentForFolder3 = mock(Content.class);
 		String titleForFolder3 = "title for folder 3";
 		String reportTypeForFolder3 = PrintableReportListPossibleType.FOLDER.getSchemaType();
 		String schemaForFolder3 = Folder.SCHEMA_TYPE + "_employee";
 
+		InputStream jasperInputStream = null;
 
-		PrintableReport report1 = rm.newPrintableReport();
-		report1.setTitle(titleForFolder1)
-				.set(PrintableReport.RECORD_TYPE, reportTypeForFolder1)
-				.set(PrintableReport.RECORD_SCHEMA, schemaForFolder1);
+		try {
+			jasperInputStream = ioServices.newFileInputStream(jasperFile, STREAMID);
 
-		PrintableReport report2 = rm.newPrintableReport();
-		report2.setTitle(titleForFolder2)
-				.set(PrintableReport.RECORD_TYPE, reportTypeForFolder2)
-				.set(PrintableReport.RECORD_SCHEMA, schemaForFolder2);
+			ContentVersionDataSummary newFileVersion = contentManager
+					.upload(jasperInputStream, "test.jasper").getContentVersionDataSummary();
 
-		PrintableReport report3 = rm.newPrintableReport();
-		report3.setTitle(titleForFolder3)
-				.set(PrintableReport.RECORD_TYPE, reportTypeForFolder3)
-				.set(PrintableReport.RECORD_SCHEMA, schemaForFolder3);
+			Content jasperFileContent = contentManager.createSystemContent("jasperFile.jasper", newFileVersion);
 
-		transaction.addAll(report1, report2, report3);
-		getModelLayerFactory().newRecordServices().execute(transaction);
+			PrintableReport report1 = rm.newPrintableReport();
+			report1.setTitle(titleForFolder1)
+					.set(PrintableReport.RECORD_TYPE, reportTypeForFolder1)
+					.set(PrintableReport.RECORD_SCHEMA, schemaForFolder1)
+					.set(PrintableReport.JASPERFILE, jasperFileContent);
 
-		RecordVODataProvider folderRecordVODataProvider = presenter.getPrintableReportFolderDataProvider();
-		List<RecordVO> recordVOList = folderRecordVODataProvider.listRecordVOs(0, folderRecordVODataProvider.size());
+			PrintableReport report2 = rm.newPrintableReport();
+			report2.setTitle(titleForFolder2)
+					.set(PrintableReport.RECORD_TYPE, reportTypeForFolder2)
+					.set(PrintableReport.RECORD_SCHEMA, schemaForFolder2)
+					.set(PrintableReport.JASPERFILE, jasperFileContent);
 
-		RecordVO firstLabel = recordVOList.get(0);
-		assertThat(firstLabel.getTitle()).isEqualTo(titleForFolder1);
-		//assertThat(firstLabel.get(PrintableReport.JASPERFILE)).isEqualTo(jasperFileContentForFolder1);
-		assertThat(firstLabel.<String>get(PrintableReport.RECORD_TYPE)).isEqualTo(reportTypeForFolder1);
-		assertThat(firstLabel.<String>get(PrintableReport.RECORD_SCHEMA)).isEqualTo(schemaForFolder1);
+			PrintableReport report3 = rm.newPrintableReport();
+			report3.setTitle(titleForFolder3)
+					.set(PrintableReport.RECORD_TYPE, reportTypeForFolder3)
+					.set(PrintableReport.RECORD_SCHEMA, schemaForFolder3)
+					.set(PrintableReport.JASPERFILE, jasperFileContent);
 
-		RecordVO secondLabel = recordVOList.get(1);
-		assertThat(secondLabel.getTitle()).isEqualTo(titleForFolder2);
-		//assertThat(secondLabel.get(PrintableReport.JASPERFILE)).isEqualTo(jasperFileContentForFolder2);
-		assertThat(secondLabel.<String>get(PrintableReport.RECORD_TYPE)).isEqualTo(reportTypeForFolder2);
-		assertThat(secondLabel.<String>get(PrintableReport.RECORD_SCHEMA)).isEqualTo(schemaForFolder2);
+			transaction.addAll(report1, report2, report3);
+			getModelLayerFactory().newRecordServices().execute(transaction);
 
-		RecordVO thirdLabel = recordVOList.get(2);
-		assertThat(thirdLabel.getTitle()).isEqualTo(titleForFolder3);
-		//assertThat(thirdLabel.get(PrintableReport.JASPERFILE)).isEqualTo(jasperFileContentForFolder3);
-		assertThat(thirdLabel.<String>get(PrintableReport.RECORD_TYPE)).isEqualTo(reportTypeForFolder3);
-		assertThat(thirdLabel.<String>get(PrintableReport.RECORD_SCHEMA)).isEqualTo(schemaForFolder3);
+			RecordVODataProvider folderRecordVODataProvider = presenter.getPrintableReportFolderDataProvider();
+			List<RecordVO> recordVOList = folderRecordVODataProvider.listRecordVOs(0, folderRecordVODataProvider.size());
+
+			RecordVO firstLabel = recordVOList.get(0);
+			assertThat(firstLabel.getTitle()).isEqualTo(titleForFolder1);
+			String hash = jasperFileContent.getCurrentVersion().getHash();
+			assertThat(((ContentVersionVO) firstLabel.get(PrintableReport.JASPERFILE)).getHash())
+					.isEqualTo(hash);
+			assertThat(firstLabel.get(PrintableReport.RECORD_TYPE)).isEqualTo(reportTypeForFolder1);
+			assertThat(firstLabel.get(PrintableReport.RECORD_SCHEMA)).isEqualTo(schemaForFolder1);
+
+			RecordVO secondLabel = recordVOList.get(1);
+			assertThat(secondLabel.getTitle()).isEqualTo(titleForFolder2);
+			assertThat(((ContentVersionVO) secondLabel.get(PrintableReport.JASPERFILE)).getHash())
+					.isEqualTo(hash);
+			assertThat(secondLabel.get(PrintableReport.RECORD_TYPE)).isEqualTo(reportTypeForFolder2);
+			assertThat(secondLabel.get(PrintableReport.RECORD_SCHEMA)).isEqualTo(schemaForFolder2);
+
+			RecordVO thirdLabel = recordVOList.get(2);
+			assertThat(thirdLabel.getTitle()).isEqualTo(titleForFolder3);
+			assertThat(((ContentVersionVO) thirdLabel.get(PrintableReport.JASPERFILE)).getHash())
+					.isEqualTo(hash);
+			assertThat(thirdLabel.get(PrintableReport.RECORD_TYPE)).isEqualTo(reportTypeForFolder3);
+			assertThat(thirdLabel.get(PrintableReport.RECORD_SCHEMA)).isEqualTo(schemaForFolder3);
+		} finally {
+			ioServices.closeQuietly(jasperInputStream);
+		}
+
 	}
 
 	@Test
@@ -134,105 +166,141 @@ public class ListPrintableReportPresenterAcceptanceTest extends ConstellioTest {
 		String reportTypeForFolder3 = PrintableReportListPossibleType.DOCUMENT.getSchemaType();
 		String schemaForFolder3 = Document.SCHEMA_TYPE + "_employe";
 
+		InputStream jasperInputStream = null;
 
-		PrintableReport report1 = rm.newPrintableReport();
-		report1.setTitle(titleForFolder1)
-				.set(PrintableReport.RECORD_TYPE, reportTypeForFolder1)
-				.set(PrintableReport.RECORD_SCHEMA, schemaForFolder1);
+		try {
+			jasperInputStream = ioServices.newFileInputStream(jasperFile, STREAMID);
 
-		PrintableReport report2 = rm.newPrintableReport();
-		report2.setTitle(titleForFolder2)
-				.set(PrintableReport.RECORD_TYPE, reportTypeForFolder2)
-				.set(PrintableReport.RECORD_SCHEMA, schemaForFolder2);
+			ContentVersionDataSummary newFileVersion = contentManager
+					.upload(jasperInputStream, "test.jasper").getContentVersionDataSummary();
 
-		PrintableReport report3 = rm.newPrintableReport();
-		report3.setTitle(titleForFolder3)
-				.set(PrintableReport.RECORD_TYPE, reportTypeForFolder3)
-				.set(PrintableReport.RECORD_SCHEMA, schemaForFolder3);
+			Content jasperFileContent = contentManager.createSystemContent("jasperFile.jasper", newFileVersion);
 
-		transaction.addAll(report1, report2, report3);
-		getModelLayerFactory().newRecordServices().execute(transaction);
+			PrintableReport report1 = rm.newPrintableReport();
+			report1.setTitle(titleForFolder1)
+					.set(PrintableReport.RECORD_TYPE, reportTypeForFolder1)
+					.set(PrintableReport.RECORD_SCHEMA, schemaForFolder1)
+					.set(PrintableReport.JASPERFILE, jasperFileContent);
 
-		RecordVODataProvider documentDataProvider = presenter.getPrintableReportDocumentDataProvider();
-		List<RecordVO> recordVOList = documentDataProvider.listRecordVOs(0, documentDataProvider.size());
+			PrintableReport report2 = rm.newPrintableReport();
+			report2.setTitle(titleForFolder2)
+					.set(PrintableReport.RECORD_TYPE, reportTypeForFolder2)
+					.set(PrintableReport.RECORD_SCHEMA, schemaForFolder2)
+					.set(PrintableReport.JASPERFILE, jasperFileContent);
 
-		RecordVO firstLabel = recordVOList.get(0);
-		assertThat(firstLabel.getTitle()).isEqualTo(titleForFolder1);
-		//assertThat(firstLabel.get(PrintableReport.JASPERFILE)).isEqualTo(jasperFileContentForFolder1);
-		assertThat(firstLabel.<String>get(PrintableReport.RECORD_TYPE)).isEqualTo(reportTypeForFolder1);
-		assertThat(firstLabel.<String>get(PrintableReport.RECORD_SCHEMA)).isEqualTo(schemaForFolder1);
+			PrintableReport report3 = rm.newPrintableReport();
+			report3.setTitle(titleForFolder3)
+					.set(PrintableReport.RECORD_TYPE, reportTypeForFolder3)
+					.set(PrintableReport.RECORD_SCHEMA, schemaForFolder3)
+					.set(PrintableReport.JASPERFILE, jasperFileContent);
 
-		RecordVO secondLabel = recordVOList.get(1);
-		assertThat(secondLabel.getTitle()).isEqualTo(titleForFolder2);
-		//assertThat(secondLabel.get(PrintableReport.JASPERFILE)).isEqualTo(jasperFileContentForFolder2);
-		assertThat(secondLabel.<String>get(PrintableReport.RECORD_TYPE)).isEqualTo(reportTypeForFolder2);
-		assertThat(secondLabel.<String>get(PrintableReport.RECORD_SCHEMA)).isEqualTo(schemaForFolder2);
+			transaction.addAll(report1, report2, report3);
+			getModelLayerFactory().newRecordServices().execute(transaction);
 
-		RecordVO thirdLabel = recordVOList.get(2);
-		assertThat(thirdLabel.getTitle()).isEqualTo(titleForFolder3);
-		//assertThat(thirdLabel.get(PrintableReport.JASPERFILE)).isEqualTo(jasperFileContentForFolder3);
-		assertThat(thirdLabel.<String>get(PrintableReport.RECORD_TYPE)).isEqualTo(reportTypeForFolder3);
-		assertThat(thirdLabel.<String>get(PrintableReport.RECORD_SCHEMA)).isEqualTo(schemaForFolder3);
+			RecordVODataProvider documentDataProvider = presenter.getPrintableReportDocumentDataProvider();
+			List<RecordVO> recordVOList = documentDataProvider.listRecordVOs(0, documentDataProvider.size());
+
+			RecordVO firstLabel = recordVOList.get(0);
+			String hash = jasperFileContent.getCurrentVersion().getHash();
+			assertThat(((ContentVersionVO) firstLabel.get(PrintableReport.JASPERFILE)).getHash())
+					.isEqualTo(hash);
+			assertThat(firstLabel.getTitle()).isEqualTo(titleForFolder1);
+			assertThat(firstLabel.get(PrintableReport.RECORD_TYPE)).isEqualTo(reportTypeForFolder1);
+			assertThat(firstLabel.get(PrintableReport.RECORD_SCHEMA)).isEqualTo(schemaForFolder1);
+
+			RecordVO secondLabel = recordVOList.get(1);
+			assertThat(((ContentVersionVO) secondLabel.get(PrintableReport.JASPERFILE)).getHash())
+					.isEqualTo(hash);
+			assertThat(secondLabel.getTitle()).isEqualTo(titleForFolder2);
+			assertThat(secondLabel.get(PrintableReport.RECORD_TYPE)).isEqualTo(reportTypeForFolder2);
+			assertThat(secondLabel.get(PrintableReport.RECORD_SCHEMA)).isEqualTo(schemaForFolder2);
+
+			RecordVO thirdLabel = recordVOList.get(2);
+			assertThat(((ContentVersionVO) thirdLabel.get(PrintableReport.JASPERFILE)).getHash())
+					.isEqualTo(hash);
+			assertThat(thirdLabel.getTitle()).isEqualTo(titleForFolder3);
+			assertThat(thirdLabel.get(PrintableReport.RECORD_TYPE)).isEqualTo(reportTypeForFolder3);
+			assertThat(thirdLabel.get(PrintableReport.RECORD_SCHEMA)).isEqualTo(schemaForFolder3);
+		} finally {
+			ioServices.closeQuietly(jasperInputStream);
+		}
+
 	}
 
 	@Test
 	public void testGettingPrintableReportDataProviderForTask() throws Exception {
 		//Prepare data
 		Transaction transaction = new Transaction();
-		//Content jasperFileContentForFolder1 = mock(Content.class);
 		String titleForFolder1 = "title for folder 1";
 		String reportTypeForFolder1 = PrintableReportListPossibleType.TASK.getSchemaType();
 		String schemaForFolder1 = Task.DEFAULT_SCHEMA;
 
-		//Content jasperFileContentForFolder2 = mock(Content.class);
 		String titleForFolder2 = "title for folder 2";
 		String reportTypeForFolder2 = PrintableReportListPossibleType.TASK.getSchemaType();
 		String schemaForFolder2 = Task.SCHEMA_TYPE + "_todo";
 
-		//Content jasperFileContentForFolder3 = mock(Content.class);
 		String titleForFolder3 = "title for folder 3";
 		String reportTypeForFolder3 = PrintableReportListPossibleType.TASK.getSchemaType();
 		String schemaForFolder3 = Task.SCHEMA_TYPE + "_done";
 
+		InputStream jasperInputStream = null;
 
-		PrintableReport report1 = rm.newPrintableReport();
-		report1.setTitle(titleForFolder1)
-				.set(PrintableReport.RECORD_TYPE, reportTypeForFolder1)
-				.set(PrintableReport.RECORD_SCHEMA, schemaForFolder1);
+		try {
+			jasperInputStream = ioServices.newFileInputStream(jasperFile, STREAMID);
 
-		PrintableReport report2 = rm.newPrintableReport();
-		report2.setTitle(titleForFolder2)
-				.set(PrintableReport.RECORD_TYPE, reportTypeForFolder2)
-				.set(PrintableReport.RECORD_SCHEMA, schemaForFolder2);
+			ContentVersionDataSummary newFileVersion = contentManager
+					.upload(jasperInputStream, "test.jasper").getContentVersionDataSummary();
 
-		PrintableReport report3 = rm.newPrintableReport();
-		report3.setTitle(titleForFolder3)
-				.set(PrintableReport.RECORD_TYPE, reportTypeForFolder3)
-				.set(PrintableReport.RECORD_SCHEMA, schemaForFolder3);
+			Content jasperFileContent = contentManager.createSystemContent("jasperFile.jasper", newFileVersion);
 
-		transaction.addAll(report1, report2, report3);
-		getModelLayerFactory().newRecordServices().execute(transaction);
+			PrintableReport report1 = rm.newPrintableReport();
+			report1.setTitle(titleForFolder1)
+					.set(PrintableReport.RECORD_TYPE, reportTypeForFolder1)
+					.set(PrintableReport.RECORD_SCHEMA, schemaForFolder1)
+					.set(PrintableReport.JASPERFILE, jasperFileContent);
 
-		RecordVODataProvider taskRecordVODataProvider = presenter.getPrintableReportTaskDataProvider();
-		List<RecordVO> recordVOList = taskRecordVODataProvider.listRecordVOs(0, taskRecordVODataProvider.size());
+			PrintableReport report2 = rm.newPrintableReport();
+			report2.setTitle(titleForFolder2)
+					.set(PrintableReport.RECORD_TYPE, reportTypeForFolder2)
+					.set(PrintableReport.RECORD_SCHEMA, schemaForFolder2)
+					.set(PrintableReport.JASPERFILE, jasperFileContent);
 
-		RecordVO firstLabel = recordVOList.get(0);
-		assertThat(firstLabel.getTitle()).isEqualTo(titleForFolder1);
-		//assertThat(firstLabel.get(PrintableReport.JASPERFILE)).isEqualTo(jasperFileContentForFolder1);
-		assertThat(firstLabel.<String>get(PrintableReport.RECORD_TYPE)).isEqualTo(reportTypeForFolder1);
-		assertThat(firstLabel.<String>get(PrintableReport.RECORD_SCHEMA)).isEqualTo(schemaForFolder1);
+			PrintableReport report3 = rm.newPrintableReport();
+			report3.setTitle(titleForFolder3)
+					.set(PrintableReport.RECORD_TYPE, reportTypeForFolder3)
+					.set(PrintableReport.RECORD_SCHEMA, schemaForFolder3)
+					.set(PrintableReport.JASPERFILE, jasperFileContent);
 
-		RecordVO secondLabel = recordVOList.get(1);
-		assertThat(secondLabel.getTitle()).isEqualTo(titleForFolder2);
-		//assertThat(secondLabel.get(PrintableReport.JASPERFILE)).isEqualTo(jasperFileContentForFolder2);
-		assertThat(secondLabel.<String>get(PrintableReport.RECORD_TYPE)).isEqualTo(reportTypeForFolder2);
-		assertThat(secondLabel.<String>get(PrintableReport.RECORD_SCHEMA)).isEqualTo(schemaForFolder2);
+			transaction.addAll(report1, report2, report3);
+			getModelLayerFactory().newRecordServices().execute(transaction);
 
-		RecordVO thirdLabel = recordVOList.get(2);
-		assertThat(thirdLabel.getTitle()).isEqualTo(titleForFolder3);
-		//assertThat(thirdLabel.get(PrintableReport.JASPERFILE)).isEqualTo(jasperFileContentForFolder3);
-		assertThat(thirdLabel.<String>get(PrintableReport.RECORD_TYPE)).isEqualTo(reportTypeForFolder3);
-		assertThat(thirdLabel.<String>get(PrintableReport.RECORD_SCHEMA)).isEqualTo(schemaForFolder3);
+			RecordVODataProvider taskRecordVODataProvider = presenter.getPrintableReportTaskDataProvider();
+			List<RecordVO> recordVOList = taskRecordVODataProvider.listRecordVOs(0, taskRecordVODataProvider.size());
+
+			RecordVO firstLabel = recordVOList.get(0);
+			String hash = jasperFileContent.getCurrentVersion().getHash();
+			assertThat(((ContentVersionVO) firstLabel.get(PrintableReport.JASPERFILE)).getHash())
+					.isEqualTo(hash);
+			assertThat(firstLabel.getTitle()).isEqualTo(titleForFolder1);
+			assertThat(firstLabel.get(PrintableReport.RECORD_TYPE)).isEqualTo(reportTypeForFolder1);
+			assertThat(firstLabel.get(PrintableReport.RECORD_SCHEMA)).isEqualTo(schemaForFolder1);
+
+			RecordVO secondLabel = recordVOList.get(1);
+			assertThat(((ContentVersionVO) firstLabel.get(PrintableReport.JASPERFILE)).getHash())
+					.isEqualTo(hash);
+			assertThat(secondLabel.getTitle()).isEqualTo(titleForFolder2);
+			assertThat(secondLabel.get(PrintableReport.RECORD_TYPE)).isEqualTo(reportTypeForFolder2);
+			assertThat(secondLabel.get(PrintableReport.RECORD_SCHEMA)).isEqualTo(schemaForFolder2);
+
+			RecordVO thirdLabel = recordVOList.get(2);
+			assertThat(((ContentVersionVO) firstLabel.get(PrintableReport.JASPERFILE)).getHash())
+					.isEqualTo(hash);
+			assertThat(thirdLabel.getTitle()).isEqualTo(titleForFolder3);
+			assertThat(thirdLabel.get(PrintableReport.RECORD_TYPE)).isEqualTo(reportTypeForFolder3);
+			assertThat(thirdLabel.get(PrintableReport.RECORD_SCHEMA)).isEqualTo(schemaForFolder3);
+		} finally {
+			ioServices.closeQuietly(jasperInputStream);
+		}
 	}
 
 	@Test
@@ -240,34 +308,52 @@ public class ListPrintableReportPresenterAcceptanceTest extends ConstellioTest {
 		Transaction transaction = new Transaction();
 		RecordServices recordServices = getModelLayerFactory().newRecordServices();
 
-		PrintableReport reportToRemoveByIndex = rm.newPrintableReport();
-		reportToRemoveByIndex.setTitle("testToRemoveByIndex")
-				.set(PrintableReport.RECORD_TYPE, PrintableReportListPossibleType.FOLDER.getSchemaType())
-				.set(PrintableReport.RECORD_SCHEMA, Folder.DEFAULT_SCHEMA);
+		InputStream jasperInputStream = null;
 
-		PrintableReport reportToRemoveById = rm.newPrintableReport();
-		reportToRemoveById.setTitle("testToRemoveById")
-				.set(PrintableReport.RECORD_TYPE, PrintableReportListPossibleType.FOLDER.getSchemaType())
-				.set(PrintableReport.RECORD_SCHEMA, Folder.DEFAULT_SCHEMA);
-
-
-		transaction.addAll(reportToRemoveById, reportToRemoveByIndex);
-		getModelLayerFactory().newRecordServices().execute(transaction);
-
-		RecordVODataProvider recordVODataProvider = presenter.getPrintableReportFolderDataProvider();
-		List<RecordVO> recordVOS = recordVODataProvider.listRecordVOs(0, recordVODataProvider.size());
-
-		presenter.removeRecord(0 + "", PrintableReportListPossibleType.FOLDER);
 		try {
-			recordServices.getDocumentById(recordVOS.get(0).getId());
-			fail();
-		} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) { /* OK ! */}
+			jasperInputStream = ioServices.newFileInputStream(jasperFile, STREAMID);
 
+			ContentVersionDataSummary newFileVersion = contentManager
+					.upload(jasperInputStream, "test.jasper").getContentVersionDataSummary();
 
-		presenter.removeRecord(reportToRemoveById.getId(), PrintableReportListPossibleType.FOLDER);
-		try {
-			recordServices.getDocumentById(reportToRemoveById.getId());
-			fail();
-		} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) { /* OK ! */}
+			Content jasperFileContent = contentManager.createSystemContent("jasperFile.jasper", newFileVersion);
+
+			PrintableReport reportToRemoveByIndex = rm.newPrintableReport();
+			reportToRemoveByIndex.setTitle("testToRemoveByIndex")
+					.set(PrintableReport.RECORD_TYPE, PrintableReportListPossibleType.FOLDER.getSchemaType())
+					.set(PrintableReport.RECORD_SCHEMA, Folder.DEFAULT_SCHEMA)
+					.set(PrintableReport.JASPERFILE, jasperFileContent);
+
+			PrintableReport reportToRemoveById = rm.newPrintableReport();
+			reportToRemoveById.setTitle("testToRemoveById")
+					.set(PrintableReport.RECORD_TYPE, PrintableReportListPossibleType.FOLDER.getSchemaType())
+					.set(PrintableReport.RECORD_SCHEMA, Folder.DEFAULT_SCHEMA)
+					.set(PrintableReport.JASPERFILE, jasperFileContent);
+
+			transaction.addAll(reportToRemoveById, reportToRemoveByIndex);
+			getModelLayerFactory().newRecordServices().execute(transaction);
+
+			RecordVODataProvider recordVODataProvider = presenter.getPrintableReportFolderDataProvider();
+			List<RecordVO> recordVOS = recordVODataProvider.listRecordVOs(0, recordVODataProvider.size());
+
+			presenter.removeRecord(recordVOS.get(0));
+			try {
+				recordServices.getDocumentById(recordVOS.get(0).getId());
+				fail();
+			} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) { /* OK ! */}
+
+			for (RecordVO recordVO : recordVOS) {
+				if (recordVO.getId().equals(reportToRemoveById.getId())) {
+					presenter.removeRecord(recordVO);
+				}
+			}
+
+			try {
+				recordServices.getDocumentById(reportToRemoveById.getId());
+				fail();
+			} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) { /* OK ! */}
+		} finally {
+			ioServices.closeQuietly(jasperInputStream);
+		}
 	}
 }

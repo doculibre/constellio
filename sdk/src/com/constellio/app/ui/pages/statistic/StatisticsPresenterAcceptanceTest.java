@@ -18,6 +18,7 @@ import static com.constellio.app.ui.pages.statistic.StatisticsPresenter.FAMOUS_R
 import static com.constellio.app.ui.pages.statistic.StatisticsPresenter.FAMOUS_REQUEST_WITH_CLICK;
 import static com.constellio.app.ui.pages.statistic.StatisticsPresenter.FAMOUS_REQUEST_WITH_RESULT;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assume.assumeTrue;
 
 public class StatisticsPresenterAcceptanceTest extends StatisticsAcceptanceTest {
 
@@ -55,6 +56,8 @@ public class StatisticsPresenterAcceptanceTest extends StatisticsAcceptanceTest 
 
 	@Test
 	public void givenFixedNumberOfEventAddedThenSameFamousRequestFacetNumberFound() {
+		assumeTrue(getSolrVersion() >= 6);
+
 		int nb = 10;
 		final List<SearchEvent> searchEvents = addSomeSearchEventForTest(nb, true, true);
 
@@ -73,6 +76,8 @@ public class StatisticsPresenterAcceptanceTest extends StatisticsAcceptanceTest 
 
 	@Test
 	public void givenFixedNumberOfEventAddedThenSameFamousRequestWithResultFacetNumberFound() {
+		assumeTrue(getSolrVersion() >= 6);
+
 		int nb = 10;
 		final List<SearchEvent> searchEvents = addSomeSearchEventForTest(nb, false, true);
 
@@ -91,6 +96,8 @@ public class StatisticsPresenterAcceptanceTest extends StatisticsAcceptanceTest 
 
 	@Test
 	public void givenFixedNumberOfEventAddedThenSameFamousWithoutResultRequestFacetNumberFound() {
+		assumeTrue(getSolrVersion() >= 6);
+
 		int nb = 10;
 		final List<SearchEvent> searchEvents = addSomeSearchEventForTest(nb, true, false);
 
@@ -109,6 +116,8 @@ public class StatisticsPresenterAcceptanceTest extends StatisticsAcceptanceTest 
 
 	@Test
 	public void givenFixedNumberOfEventAddedThenSameFamousRequestWithClickFacetNumberFound() {
+		assumeTrue(getSolrVersion() >= 6);
+
 		int nb = 10;
 		final List<SearchEvent> searchEvents = addSomeSearchEventForTest(nb, true, false);
 
@@ -127,6 +136,8 @@ public class StatisticsPresenterAcceptanceTest extends StatisticsAcceptanceTest 
 
 	@Test
 	public void givenFixedNumberOfEventAddedThenSameFamousRequestWithoutClickFacetNumberFound() {
+		assumeTrue(getSolrVersion() >= 6);
+
 		int nb = 10;
 		final List<SearchEvent> searchEvents = addSomeSearchEventForTest(nb, false, false);
 
@@ -145,6 +156,8 @@ public class StatisticsPresenterAcceptanceTest extends StatisticsAcceptanceTest 
 
 	@Test
 	public void givenFixedNumberOfEventAddedWhenRequestIsExcludedThenNotFound() {
+		assumeTrue(getSolrVersion() >= 6);
+
 		Random random = new Random();
 		int nb = 10;
 		String excludedRequest = "query" + random.nextInt(nb);

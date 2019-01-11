@@ -33,7 +33,6 @@ public class DocumentDto {
 	private List<AceDto> inheritedAces;
 	@Valid
 	private List<ExtendedAttributeDto> extendedAttributes;
-
 	@JsonIgnore @Getter(onMethod = @__(@JsonIgnore))
 	private String eTag;
 }

@@ -17,7 +17,6 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.ManualDataEntry;
-import com.constellio.model.entities.security.XMLAuthorizationDetails;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.frameworks.validation.ValidationError;
 import com.constellio.model.frameworks.validation.ValidationErrors;
@@ -371,14 +370,6 @@ public class TestUtils {
 		}
 		when(metadata.getDataEntry()).thenReturn(new ManualDataEntry());
 		return metadata;
-	}
-
-	public static List<String> idsOf(List<XMLAuthorizationDetails> details) {
-		List<String> ids = new ArrayList<>();
-		for (XMLAuthorizationDetails detail : details) {
-			ids.add(detail.getId());
-		}
-		return ids;
 	}
 
 	public static List<String> recordsIds(List<Record> records) {
@@ -1081,7 +1072,9 @@ public class TestUtils {
 
 			if (!link.getToMetadata().isGlobal()
 				&& !link.getFromMetadata().isGlobal()
+				&& !link.getFromMetadata().getCode().startsWith("savedSearch_")
 				&& !link.getFromMetadata().getCode().startsWith("user_")
+				&& !link.getFromMetadata().getCode().startsWith("userDocument_")
 				&& !link.getFromMetadata().getCode().startsWith("user_")
 				&& !link.getFromMetadata().getCode().startsWith("temporaryRecord_")) {
 				Tuple tuple = new Tuple(link.getFromMetadata().getCode(), link.getToMetadata().getCode(), link.getLevel());

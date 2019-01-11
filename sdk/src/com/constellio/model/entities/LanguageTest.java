@@ -12,7 +12,7 @@ public class LanguageTest extends ConstellioTest {
 	@Test
 	public void givenLanguageElementsThenSupported() {
 		Language[] values = Language.values();
-		for(Language l:values) {
+		for (Language l : values) {
 			assertThat(Language.isSupported(l.code));
 		}
 	}
@@ -20,7 +20,7 @@ public class LanguageTest extends ConstellioTest {
 	@Test
 	public void givenLanguageElementsThenGettersOk() {
 		Language[] values = Language.values();
-		for(Language l:values) {
+		for (Language l : values) {
 			assertThat(l.code).isEqualTo(l.getCode());
 			assertThat(l.locale).isEqualTo(l.getLocale());
 		}
@@ -29,7 +29,7 @@ public class LanguageTest extends ConstellioTest {
 	@Test
 	public void givenLanguageElementsThenWithLocaleOk() {
 		Language[] values = Language.values();
-		for(Language l:values) {
+		for (Language l : values) {
 			if (l.locale != null) {
 				assertThat(Language.withLocale(l.locale)).isEqualTo(l);
 			} else {
@@ -51,7 +51,7 @@ public class LanguageTest extends ConstellioTest {
 	@Test
 	public void givenLanguageElementsThenWithCodeOk() {
 		Language[] values = Language.values();
-		for(Language l:values) {
+		for (Language l : values) {
 			assertThat(Language.withCode(l.code)).isEqualTo(l);
 		}
 	}
@@ -61,7 +61,7 @@ public class LanguageTest extends ConstellioTest {
 		Language[] values = Language.values();
 
 		List<String> codes = new ArrayList<>();
-		for(Language l:values) {
+		for (Language l : values) {
 			codes.add(l.code);
 		}
 

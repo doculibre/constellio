@@ -4,7 +4,7 @@ import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.AuthorizationVO;
 import com.constellio.app.ui.framework.builders.AuthorizationToVOBuilder;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.security.Authorization;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.security.AuthorizationsServices;

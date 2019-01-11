@@ -4,6 +4,7 @@ import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.dao.services.bigVault.solr.SolrUtils;
 import com.constellio.data.threads.ConstellioThread;
 import com.constellio.data.utils.BatchBuilderIterator;
+import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.entities.batchprocess.AsyncTask;
 import com.constellio.model.entities.batchprocess.AsyncTaskBatchProcess;
 import com.constellio.model.entities.batchprocess.AsyncTaskExecutionParams;
@@ -29,6 +30,7 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.iterators.RecordSearchResponseIterator;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.users.UserServices;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,6 +42,8 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+
+import static com.constellio.model.conf.FoldersLocatorMode.PROJECT;
 
 public class BatchProcessControllerThread extends ConstellioThread {
 
@@ -56,6 +60,7 @@ public class BatchProcessControllerThread extends ConstellioThread {
 	private Semaphore newEventSemaphore;
 	private AtomicLong completed = new AtomicLong();
 	private UserServices userServices;
+	private boolean nextBatchProcessReportExistenceCheckRequired;
 
 	public BatchProcessControllerThread(ModelLayerFactory modelLayerFactory, int numberOfRecordsPerTask) {
 		super(modelLayerFactory.toResourceName(RESOURCE_NAME));
@@ -72,6 +77,8 @@ public class BatchProcessControllerThread extends ConstellioThread {
 			|| modelLayerFactory.getDataLayerFactory().getLeaderElectionService() == null) {
 			throw new IllegalArgumentException("modelLayerFactory parameter is invalid");
 		}
+
+		this.nextBatchProcessReportExistenceCheckRequired = new FoldersLocator().getFoldersLocatorMode() != PROJECT;
 	}
 
 	@Override
@@ -139,6 +146,7 @@ public class BatchProcessControllerThread extends ConstellioThread {
 								state.incrementCurrentlyProcessed(numberToAdd);
 								batchProcessesManager.updateBatchProcessState(batchProcess.getId(), state);
 							}
+
 							@Override
 							public void setProgressionUpperLimit(long progressionUpperLimit) {
 								state.setTotalToProcess(progressionUpperLimit);
@@ -192,7 +200,6 @@ public class BatchProcessControllerThread extends ConstellioThread {
 			StoredBatchProcessPart storedBatchProcessPart = new StoredBatchProcessPart(batchProcess.getId(), index, firstId,
 					lastId, false, false);
 
-			//System.out.println("processing batch #" + index + " [" + firstId + "-" + lastId + "]");
 			batchProcessProgressionServices.markNewPartAsStarted(storedBatchProcessPart);
 			List<BatchProcessTask> tasks = newBatchProcessTasksFactory(taskList).createBatchProcessTasks(batchProcess,
 					records, recordsWithErrors, numberOfRecordsPerTask, schemasManager, report);
@@ -250,7 +257,6 @@ public class BatchProcessControllerThread extends ConstellioThread {
 			StoredBatchProcessPart storedBatchProcessPart = new StoredBatchProcessPart(batchProcess.getId(), index, firstId,
 					lastId, false, false);
 
-			//System.out.println("processing batch #" + index + " [" + firstId + "-" + lastId + "]");
 			batchProcessProgressionServices.markNewPartAsStarted(storedBatchProcessPart);
 			List<BatchProcessTask> tasks = newBatchProcessTasksFactory(taskList).createBatchProcessTasks(batchProcess,
 					records, recordsWithErrors, numberOfRecordsPerTask, schemasManager, report);
@@ -277,22 +283,30 @@ public class BatchProcessControllerThread extends ConstellioThread {
 		String collection = batchProcess.getCollection();
 		if (collection != null) {
 			SchemasRecordsServices schemas = new SchemasRecordsServices(collection, modelLayerFactory);
-			User user = userServices.getUserRecordInCollection(batchProcess.getUsername(), collection);
-			String userId = user != null ? user.getId() : null;
-			try {
-				MetadataSchema batchProcessReportSchema = schemasManager.getSchemaTypes(collection)
-						.getSchema(BatchProcessReport.FULL_SCHEMA);
-				Record reportRecord = searchServices.searchSingleResult(LogicalSearchQueryOperators.from(batchProcessReportSchema)
-						.where(batchProcessReportSchema.getMetadata(BatchProcessReport.LINKED_BATCH_PROCESS))
-						.isEqualTo(batchProcess.getId()));
-				if (reportRecord != null) {
-					report = new BatchProcessReport(reportRecord, schemasManager.getSchemaTypes(collection));
-				} else {
-					report = schemas.newBatchProcessReport();
-					report.setLinkedBatchProcess(batchProcess.getId());
-					report.setCreatedBy(userId);
+
+			String userId = null;
+			if (StringUtils.isNotBlank(batchProcess.getUsername())) {
+				User user = userServices.getUserRecordInCollection(batchProcess.getUsername(), collection);
+				userId = user != null ? user.getId() : null;
+			}
+			if (nextBatchProcessReportExistenceCheckRequired) {
+
+				nextBatchProcessReportExistenceCheckRequired = false;
+				try {
+					MetadataSchema batchProcessReportSchema = schemasManager.getSchemaTypes(collection)
+							.getSchema(BatchProcessReport.FULL_SCHEMA);
+					Record reportRecord = searchServices.searchSingleResult(LogicalSearchQueryOperators.from(batchProcessReportSchema)
+							.where(batchProcessReportSchema.getMetadata(BatchProcessReport.LINKED_BATCH_PROCESS))
+							.isEqualTo(batchProcess.getId()));
+					if (reportRecord != null) {
+						report = new BatchProcessReport(reportRecord, schemasManager.getSchemaTypes(collection));
+					}
+				} catch (Exception e) {
+					//Ok
 				}
-			} catch (Exception e) {
+			}
+
+			if (report == null) {
 				report = schemas.newBatchProcessReport();
 				report.setLinkedBatchProcess(batchProcess.getId());
 				report.setCreatedBy(userId);

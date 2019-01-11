@@ -63,7 +63,7 @@ public class ListExcelReportPresenter extends BasePresenter<ListExcelReportView>
 		List<MetadataSchemaType> allMetadataSchemaTypes = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchemaTypes();
 		for (MetadataSchemaType schemaType : allMetadataSchemaTypes) {
 			if (isMetadataSchemaTypesSearchable(schemaType)) {
-				map.put(schemaType.getLabel(Language.withLocale(locale)), schemaType.getCode());
+				map.put(schemaType.getCode(), schemaType.getLabel(Language.withLocale(locale)));
 			}
 		}
 
@@ -109,11 +109,6 @@ public class ListExcelReportPresenter extends BasePresenter<ListExcelReportView>
 
 	protected void displayButtonClicked(String item, String schema) {
 		view.navigate().to().displayExcelReport(item);
-	}
-
-	public RecordVO getRecordsWithIndex(String schema, String itemIndex) {
-		RecordVODataProvider dataProvider = this.getDataProviderForSchemaType(schema);
-		return itemIndex == null ? null : dataProvider.getRecordVO(Integer.parseInt(itemIndex));
 	}
 
 	private boolean isMetadataSchemaTypesSearchable(MetadataSchemaType types) {

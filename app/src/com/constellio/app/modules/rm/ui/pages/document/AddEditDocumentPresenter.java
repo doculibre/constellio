@@ -19,6 +19,7 @@ import com.constellio.app.modules.rm.ui.components.document.fields.DocumentTypeF
 import com.constellio.app.modules.rm.ui.components.document.newFile.NewFileWindow.NewFileCreatedListener;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
+import com.constellio.app.modules.rm.util.RMNavigationUtils;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Email;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -62,11 +63,11 @@ import org.joda.time.LocalDateTime;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
 
 public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditDocumentView> {
 
@@ -82,6 +83,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 	private boolean newFile;
 	private boolean newFileAtStart;
 	ConstellioEIMConfigs eimConfigs;
+	private Map<String, String> params;
 
 	public AddEditDocumentPresenter(AddEditDocumentView view) {
 		super(view, Document.DEFAULT_SCHEMA);
@@ -116,6 +118,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		String idCopy = paramsMap.get("idCopy");
 		String parentId = paramsMap.get("parentId");
 		userDocumentId = paramsMap.get("userDocumentId");
+		this.params = paramsMap;
 		newFile = false;
 		newFileAtStart = "true".equals(paramsMap.get("newFile"));
 
@@ -290,15 +293,24 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		} else if (addView) {
 			String parentId = documentVO.getFolder();
 			if (parentId != null) {
-				view.navigate().to(RMViews.class).displayFolder(parentId);
+				navigateToFolderDisplay(parentId);
 			} else if (userDocumentId != null) {
 				view.navigate().to(RMViews.class).listUserDocuments();
 			} else {
 				view.navigate().to().home();
 			}
 		} else {
-			view.navigate().to(RMViews.class).displayDocument(documentVO.getId());
+			view.navigate().to().previousView();
 		}
+	}
+
+	private void navigateToDocumentDisplay(String id) {
+		RMNavigationUtils.navigateToDisplayDocument(id, params, appLayerFactory, view.getCollection());
+
+	}
+
+	private void navigateToFolderDisplay(String id) {
+		RMNavigationUtils.navigateToDisplayFolder(id, params, appLayerFactory, view.getCollection());
 	}
 
 	private void setAsNewVersionOfContent(Document document) {
@@ -377,7 +389,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 			User userDocumentUser = userServices.getUserInCollection(currentUser.getUsername(), userDocumentCollection);
 			userDocumentPresenterUtils.delete(userDocumentRecord, null, userDocumentUser);
 		}
-		view.navigate().to(RMViews.class).displayDocument(record.getId());
+		navigateToDocumentDisplay(record.getId());
 		if (newFile && rmConfigs.areDocumentCheckedOutAfterCreation()) {
 			String agentURL = ConstellioAgentUtils.getAgentURL(documentVO, documentVO.getContent());
 			if (agentURL != null) {
@@ -424,6 +436,9 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 	void adjustTypeField(CustomDocumentField<?> valueChangeField) {
 		String currentSchemaCode = getSchemaCode();
 		DocumentTypeField documentTypeField = getTypeField();
+		if(documentTypeField == null) {
+			return;
+		}
 		DocumentContentField contentField = getContentField();
 		String recordIdForDocumentType = documentTypeField.getFieldValue();
 		if (valueChangeField instanceof DocumentTypeField) {
@@ -505,7 +520,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 				recordServices().recalculate(record);
 				documentVO.set(Document.APPLICABLE_COPY_RULES, record.getApplicableCopyRules());
 			}
-			List<String> ignoredMetadataCodes = Arrays.asList(Document.FOLDER);
+			List<String> ignoredMetadataCodes = asList(Document.FOLDER);
 			reloadFormAndPopulateCurrentMetadatasExcept(ignoredMetadataCodes);
 			view.getForm().getCustomField(Document.FOLDER).focus();
 		}
@@ -735,7 +750,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 								ioServices.closeQuietly(inputStream);
 							}
 						}
-						modelLayerFactory.newRecordPopulateServices().populate(documentRecord);
+						modelLayerFactory.newRecordPopulateServices().populate(documentRecord, documentVO.getRecord());
 						documentVO = voBuilder.build(documentRecord, VIEW_MODE.FORM, view.getSessionContext());
 						documentVO.getContent().setMajorVersion(null);
 						documentVO.getContent().setHash(null);
@@ -745,6 +760,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 						documentVO.setTitle(filename);
 						view.setRecord(documentVO);
 						view.getForm().reload();
+						addContentFieldListeners();
 					} catch (final IcapException e) {
 						view.showErrorMessage(e.getMessage());
 

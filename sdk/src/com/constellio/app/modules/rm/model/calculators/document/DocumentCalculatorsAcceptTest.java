@@ -282,14 +282,11 @@ public class DocumentCalculatorsAcceptTest extends ConstellioTest {
 		assertThat(secondaryDocumentWithType2.getApplicableCopyRules()).containsOnly(secondary888_2_C.in(rule, category));
 		assertThat(secondaryDocumentWithType3.getApplicableCopyRules()).containsOnly(secondary888_2_C.in(rule, category));
 
-		assertThat(principalFolder.getDecommissioningDate()).isEqualTo(date(2016, 10, 31));
 		assertThat(principalFolder.getExpectedTransferDate()).isEqualTo(date(2017, 10, 31));
 		assertThat(principalFolder.getExpectedDepositDate()).isEqualTo(date(2018, 10, 31));
 		assertThat(principalFolder.getExpectedDestructionDate()).isNull();
 
 		assertThat(principalDocumentWithoutType.getFolderExpectedTransferDate()).isEqualTo(date(2017, 10, 31));
-		//		assertThat(principalDocumentWithoutType.getExpectedDepositDate()).isEqualTo(date(2017, 10, 31));
-		//		assertThat(principalDocumentWithoutType.getExpectedDestructionDate()).isEqualTo(date(2017, 10, 31));
 
 		assertThat(principalDocumentWithoutType.isSemiActiveSameFateAsFolder()).isTrue();
 		assertThat(principalDocumentWithoutType.isInactiveSameFateAsFolder()).isTrue();
@@ -781,7 +778,6 @@ public class DocumentCalculatorsAcceptTest extends ConstellioTest {
 		assertThat(folder7.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
 		assertThat(folder7.getApplicableCopyRules()).containsOnly(principal888_6_C);
 		assertThat(folder7.getCloseDate()).isEqualTo(null);
-		assertThat(folder7.getDecommissioningDate()).isEqualTo(null);
 		assertThat(folder7.getCategory()).isEqualTo(w120.getId());
 		assertThat(folder7.getRetentionRule()).isEqualTo("rule2");
 		assertThat(folder7.getExpectedDestructionDate()).isEqualTo(null);

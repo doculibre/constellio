@@ -20,6 +20,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 import static java.util.Arrays.asList;
 
@@ -39,6 +40,8 @@ public class FakeSessionContext extends BaseSessionContext {
 	Record searchEvent = null;
 
 	private Map<String, Object> attributes = new HashMap<>();
+	
+	private Set<String> visited = new HashSet<>();
 
 	private static FakeSessionContext current;
 
@@ -167,7 +170,7 @@ public class FakeSessionContext extends BaseSessionContext {
 		labels.put(Locale.ENGLISH, "Email");
 		String collection = userSchema.getCollection();
 
-		return new MetadataVO(User.EMAIL, MetadataValueType.STRING, collection, userSchema, true, false, false, labels, null,
+		return new MetadataVO(User.EMAIL, User.EMAIL, MetadataValueType.STRING, collection, userSchema, true, false, false, labels, null,
 				null, null, null, null, null,
 				null, null, false, new HashSet<String>(), false,
 				null, new HashMap<String, Object>(), getCollectionInfoVO(collection));
@@ -179,7 +182,7 @@ public class FakeSessionContext extends BaseSessionContext {
 		labels.put(Locale.ENGLISH, "Last name");
 		String collection = userSchema.getCollection();
 
-		return new MetadataVO(User.LASTNAME, MetadataValueType.STRING, collection, userSchema, true, false, false, labels, null,
+		return new MetadataVO(User.LASTNAME, User.LASTNAME, MetadataValueType.STRING, collection, userSchema, true, false, false, labels, null,
 				null, null, null, null, null,
 				null, null, false,
 				new HashSet<String>(), false, null, new HashMap<String, Object>(), getCollectionInfoVO(collection));
@@ -191,7 +194,7 @@ public class FakeSessionContext extends BaseSessionContext {
 		labels.put(Locale.ENGLISH, "First name");
 		String collection = userSchema.getCollection();
 
-		return new MetadataVO(User.FIRSTNAME, MetadataValueType.STRING, collection, userSchema, true, false, false, labels, null,
+		return new MetadataVO(User.FIRSTNAME, User.FIRSTNAME, MetadataValueType.STRING, collection, userSchema, true, false, false, labels, null,
 				null, null, null, null, null,
 				null, null, false, new HashSet<String>(), false, null,
 				new HashMap<String, Object>(), getCollectionInfoVO(collection));
@@ -203,7 +206,7 @@ public class FakeSessionContext extends BaseSessionContext {
 		labels.put(Locale.ENGLISH, "Username");
 		String collection = userSchema.getCollection();
 
-		return new MetadataVO(User.USERNAME, MetadataValueType.STRING, collection, userSchema, true, false, false, labels, null,
+		return new MetadataVO(User.USERNAME, User.USERNAME, MetadataValueType.STRING, collection, userSchema, true, false, false, labels, null,
 				null, null, null, null, null, null,
 				null, false, new HashSet<String>(), false, null, new HashMap<String, Object>(), getCollectionInfoVO(collection));
 	}
@@ -277,6 +280,11 @@ public class FakeSessionContext extends BaseSessionContext {
 	@Override
 	protected Map<String, Long> ensureSelectedRecordSchemaTypeCodes() {
 		return selectedRecordSchemaTypeCodes;
+	}
+
+	@Override
+	protected Set<String> ensureVisited() {
+		return visited;
 	}
 
 	@SuppressWarnings("unchecked")

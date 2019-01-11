@@ -17,9 +17,21 @@ import com.vaadin.server.ExternalResource;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Responsive;
 import com.vaadin.server.VaadinService;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Alignment;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
+import com.vaadin.ui.CheckBox;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.CssLayout;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.Link;
+import com.vaadin.ui.Notification;
+import com.vaadin.ui.PasswordField;
+import com.vaadin.ui.TextField;
+import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
 
 import javax.servlet.http.Cookie;
@@ -215,7 +227,8 @@ public class LoginViewImpl extends BaseViewImpl implements LoginView {
 		VaadinService.getCurrentResponse().addCookie(usernameCookie);
 	}
 
-	public void popPrivacyPolicyWindow(final ModelLayerFactory modelLayerFactory, final User userInLastCollection, final String lastCollection) {
+	public void popPrivacyPolicyWindow(final ModelLayerFactory modelLayerFactory, final User userInLastCollection,
+									   final String lastCollection) {
 		final Window window = new Window();
 		window.setWidth("90%");
 		window.setHeight("90%");
@@ -223,11 +236,10 @@ public class LoginViewImpl extends BaseViewImpl implements LoginView {
 		window.setCaption($("LoginView.privacyPolicyWindow"));
 
 		VerticalLayout mainLayout = new VerticalLayout();
-		mainLayout.setSizeFull();
 		mainLayout.setSpacing(true);
 
 		VerticalLayout textLayout = new VerticalLayout();
-
+		textLayout.setSizeFull();
 		HorizontalLayout buttonLayout = new HorizontalLayout();
 		buttonLayout.setSpacing(true);
 		buttonLayout.setHeight("50px");
@@ -243,21 +255,23 @@ public class LoginViewImpl extends BaseViewImpl implements LoginView {
 			protected void buttonClick(ClickEvent event) {
 				UserServices userServices = modelLayerFactory.newUserServices();
 				userServices.addUpdateUserCredential(userServices.getUserCredential(userInLastCollection.getUsername())
-						.withAgreedPrivacyPolicy(true));
+						.setAgreedPrivacyPolicy(true));
 				presenter.signInValidated(userInLastCollection, lastCollection);
 				window.close();
 			}
 		};
 		acceptButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
+		DocumentViewer documentViewer = new DocumentViewer(presenter.getPrivacyPolicyFile());
 
-		textLayout.addComponent(new DocumentViewer(presenter.getPrivacyPolicyFile()));
+		textLayout.addComponent(documentViewer);
 		buttonLayout.addComponents(acceptButton, cancelButton);
 
 		mainLayout.addComponents(textLayout, buttonLayout);
 		mainLayout.setComponentAlignment(buttonLayout, Alignment.BOTTOM_CENTER);
 
 		window.setContent(mainLayout);
-
+		window.setSizeUndefined();
+		window.center();
 		ConstellioUI.getCurrent().addWindow(window);
 	}
 }

@@ -423,6 +423,11 @@ public class TestsSchemasSetup extends SchemasSetup {
 		super(collection);
 	}
 
+
+	public TestsSchemasSetup(String collection, List<String> languages) {
+		super(collection, languages);
+	}
+
 	public static MetadataBuilderConfigurator whichHasLabel(final String label) {
 
 		return new MetadataBuilderConfigurator() {
@@ -701,6 +706,14 @@ public class TestsSchemasSetup extends SchemasSetup {
 	public TestsSchemasSetup withANumberMetadata(MetadataBuilderConfigurator... builderConfigurators)
 			throws Exception {
 		MetadataBuilder metadataBuilder = zeDefaultSchemaBuilder.create("numberMetadata").setType(NUMBER)
+				.addLabel(Language.French, "A number metadata");
+		configureMetadataBuilder(metadataBuilder, typesBuilder, builderConfigurators);
+		return this;
+	}
+
+	public TestsSchemasSetup withANumberMetadataInAnotherSchema(MetadataBuilderConfigurator... builderConfigurators)
+			throws Exception {
+		MetadataBuilder metadataBuilder = anOtherDefaultSchemaBuilder.create("numberMetadata").setType(NUMBER)
 				.addLabel(Language.French, "A number metadata");
 		configureMetadataBuilder(metadataBuilder, typesBuilder, builderConfigurators);
 		return this;

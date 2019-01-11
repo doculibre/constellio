@@ -1,28 +1,5 @@
 package com.constellio.app.modules.rm.pdfgenerator;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.apache.pdfbox.multipdf.PDFMergerUtility;
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.PDPage;
-import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDPageFitWidthDestination;
-import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDDocumentOutline;
-import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDOutlineItem;
-import org.apache.tika.io.IOUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.modules.rm.model.PrintableReport.PrintableReportTemplate;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.reports.JasperPdfGenerator;
@@ -57,6 +34,7 @@ import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.users.UserServices;
 import net.sf.jasperreports.engine.JRException;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.pdfbox.multipdf.PDFMergerUtility;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -108,6 +86,12 @@ public class PdfGeneratorAsyncTask implements AsyncTask {
 	private static final String DOCUMENT_INCLUDED_IN_CONSOLIDATED_PDF = "PdfGeneratorAsyncTask.documentIncludedInConsolidatedPdf";
 
 	public static final String READ_CONTENT_FOR_PREVIEW_CONVERSION = "PdfGeneratorAsyncTask-ReadContentForPreviewConversion";
+
+	public PdfGeneratorAsyncTask(List<String> documentIdList, String consolidatedId,
+								 String consolidatedName, String consolidatedTitle,
+								 String username, Boolean withMetadata) {
+		this(documentIdList, consolidatedId, consolidatedName, consolidatedTitle, username, withMetadata, "fr");
+	}
 
 	public PdfGeneratorAsyncTask(List<String> documentIdList, String consolidatedId,
 								 String consolidatedName, String consolidatedTitle,

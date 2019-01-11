@@ -12,6 +12,7 @@ import com.constellio.model.services.background.ModelLayerBackgroundThreadsManag
 import com.constellio.model.services.batch.controller.BatchProcessController;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.batch.state.StoredBatchProcessProgressionServices;
+import com.constellio.model.services.caches.ModelLayerCachesManager;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.contents.ContentManager;
@@ -35,8 +36,8 @@ import com.constellio.model.services.search.SearchBoostManager;
 import com.constellio.model.services.search.SearchConfigurationsManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.SynonymsConfigurationsManager;
-import com.constellio.model.services.security.AuthorizationDetailsManager;
 import com.constellio.model.services.security.AuthorizationsServices;
+import com.constellio.model.services.security.SecurityModelCache;
 import com.constellio.model.services.security.SecurityTokenManager;
 import com.constellio.model.services.security.authentification.AuthenticationService;
 import com.constellio.model.services.security.authentification.LDAPAuthenticationService;
@@ -47,22 +48,17 @@ import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServicesCache;
 import com.constellio.model.services.thesaurus.ThesaurusManager;
 import com.constellio.model.services.trash.TrashQueueManager;
-import com.constellio.model.services.users.GlobalGroupsManager;
-import com.constellio.model.services.users.UserCredentialsManager;
+import com.constellio.model.services.users.SolrGlobalGroupsManager;
+import com.constellio.model.services.users.SolrUserCredentialsManager;
 import com.constellio.model.services.users.UserPhotosServices;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.model.services.users.sync.LDAPUserSyncManager;
 
 import java.security.Key;
-import java.util.List;
 
 public interface ModelLayerFactory extends LayerFactory {
 
 	RecordMigrationsManager getRecordMigrationsManager();
-
-	List<SystemCollectionListener> getSystemCollectionListeners();
-
-	void addSystemCollectionListener(SystemCollectionListener listener);
 
 	ModelLayerExtensions getExtensions();
 
@@ -94,8 +90,6 @@ public interface ModelLayerFactory extends LayerFactory {
 
 	RolesManager getRolesManager();
 
-	AuthorizationDetailsManager getAuthorizationDetailsManager();
-
 	AuthorizationsServices newAuthorizationsServices();
 
 	//After rename get...
@@ -103,11 +97,11 @@ public interface ModelLayerFactory extends LayerFactory {
 
 	CollectionsListManager getCollectionsListManager();
 
-	UserCredentialsManager getUserCredentialsManager();
+	SolrUserCredentialsManager getUserCredentialsManager();
 
 	StoredBatchProcessProgressionServices getStoredBatchProcessProgressionServices();
 
-	GlobalGroupsManager getGlobalGroupsManager();
+	SolrGlobalGroupsManager getGlobalGroupsManager();
 
 	UserServices newUserServices();
 
@@ -174,5 +168,9 @@ public interface ModelLayerFactory extends LayerFactory {
 	TaxonomiesSearchServicesCache getTaxonomiesSearchServicesCache();
 
 	ThesaurusManager getThesaurusManager();
+
+	SecurityModelCache getSecurityModelCache();
+
+	ModelLayerCachesManager getCachesManager();
 
 }

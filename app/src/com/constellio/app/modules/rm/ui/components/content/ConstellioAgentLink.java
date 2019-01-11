@@ -1,9 +1,13 @@
 package com.constellio.app.modules.rm.ui.components.content;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.content.DownloadContentVersionLink;
 import com.constellio.app.ui.framework.components.content.UpdatableContentVersionPresenter;
+import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.util.FileIconUtils;
 import com.vaadin.server.Resource;
 import com.vaadin.server.ThemeResource;
@@ -13,9 +17,11 @@ import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
 public class ConstellioAgentLink extends HorizontalLayout {
+	
+	private AgentLink agentLink;
+	
+	private DownloadContentVersionLink downloadContentLink;
 
 	public ConstellioAgentLink(String agentURL, RecordVO recordVO, ContentVersionVO contentVersionVO, String caption,
 							   UpdatableContentVersionPresenter presenter) {
@@ -30,16 +36,15 @@ public class ConstellioAgentLink extends HorizontalLayout {
 	public ConstellioAgentLink(final String agentURL, final RecordVO recordVO, final ContentVersionVO contentVersionVO,
 							   String caption, boolean downloadLink, UpdatableContentVersionPresenter presenter) {
 		addStyleName("agent-link");
-		AgentLink agentLink = new AgentLink(agentURL, contentVersionVO, caption);
+		agentLink = new AgentLink(agentURL, contentVersionVO, caption);
 		agentLink.addClickListener(new ClickListener() {
 			@Override
 			public void buttonClick(ClickEvent event) {
-				new ConstellioAgentClickHandler().handleClick(agentURL, recordVO, contentVersionVO);
+				new ConstellioAgentClickHandler().handleClick(agentURL, recordVO, contentVersionVO, null);
 			}
 		});
 		addComponent(agentLink);
 		if (downloadLink) {
-			DownloadContentVersionLink downloadContentLink;
 			if (presenter != null) {
 				downloadContentLink = new DownloadContentVersionLink(recordVO, contentVersionVO, new ThemeResource("images/icons/actions/download.png"), presenter);
 			} else {
@@ -48,6 +53,24 @@ public class ConstellioAgentLink extends HorizontalLayout {
 			downloadContentLink.setDescription($("download"));
 			addComponent(downloadContentLink);
 		}
+	}
+
+	public AgentLink getAgentLink() {
+		return agentLink;
+	}
+
+	public DownloadContentVersionLink getDownloadContentLink() {
+		return downloadContentLink;
+	}
+	
+	public void addVisitedClickListener(final String id) {
+		agentLink.addClickListener(new ClickListener() {
+			@Override
+			public void buttonClick(ClickEvent event) {
+				SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
+				sessionContext.addVisited(id);
+			}
+		});
 	}
 
 	public static class AgentLink extends Button {

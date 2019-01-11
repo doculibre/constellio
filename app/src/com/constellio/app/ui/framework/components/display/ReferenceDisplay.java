@@ -1,5 +1,13 @@
 package com.constellio.app.ui.framework.components.display;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedListener.ComponentListener;
+import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnComponentEvent;
+
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.extensions.records.RecordNavigationExtension;
 import com.constellio.app.extensions.records.params.NavigationParams;
@@ -26,12 +34,8 @@ import com.vaadin.data.util.converter.Converter;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.ui.Button;
+import com.vaadin.ui.Component;
 import com.vaadin.ui.themes.ValoTheme;
-import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedListener.ComponentListener;
-import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnComponentEvent;
-
-import java.util.List;
-import java.util.Locale;
 
 public class ReferenceDisplay extends Button {
 
@@ -40,14 +44,21 @@ public class ReferenceDisplay extends Button {
 	private String recordId;
 	private RecordContextMenu contextMenu;
 	private boolean openLinkInNewTab = false;
+	private Map<String,String> extraParameters = new HashMap<>();
 
 	public ReferenceDisplay(RecordVO recordVO) {
 		this(recordVO, true);
 	}
 
 	public ReferenceDisplay(RecordVO recordVO, boolean link) {
+		this(recordVO, link,  null);
+	}
+
+	public ReferenceDisplay(RecordVO recordVO, boolean link, Map<String, String> extraParameters) {
 		this.recordVO = recordVO;
 		String caption = new RecordVOToCaptionConverter().convertToPresentation(recordVO, String.class, getLocale());
+		this.extraParameters = extraParameters;
+
 		Resource icon = FileIconUtils.getIcon(recordVO);
 		if (icon != null) {
 			setIcon(icon);
@@ -75,6 +86,14 @@ public class ReferenceDisplay extends Button {
 		}
 		setCaption(caption);
 		init(recordId, link);
+	}
+
+	public Map<String, String> getExtraParameters() {
+		return extraParameters;
+	}
+
+	public void setExtraParameters(Map<String, String> extraParameters) {
+		this.extraParameters = extraParameters;
 	}
 
 	@Override
@@ -139,6 +158,8 @@ public class ReferenceDisplay extends Button {
 	}
 
 	protected void prepareLink() {
+		addStyleName(STYLE_NAME + "-link");
+		
 		final ConstellioUI ui = ConstellioUI.getCurrent();
 		SessionContext sessionContext = ui.getSessionContext();
 		String collection = sessionContext.getCurrentCollection();
@@ -170,6 +191,16 @@ public class ReferenceDisplay extends Button {
 			for (final RecordNavigationExtension recordNavigationExtension : recordNavigationExtensions) {
 				recordNavigationExtension.prepareLinkToView(navigationParams, isRecordInTrash, sessionContext.getCurrentLocale());
 			}
+			
+			// Mark as visited
+			Component component = navigationParams.getComponent();
+			if (component instanceof Button) {
+				Button button = (Button) component;
+				String id = recordVO != null ? recordVO.getId() : recordId;
+				if (id != null && sessionContext.isVisited(id)) {
+					button.addStyleName("visited-link");
+				}
+			}	
 		}
 	}
 

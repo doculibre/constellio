@@ -23,6 +23,7 @@ import com.constellio.data.utils.HashMapBuilder;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.entities.EnumWithSmallCode;
+import com.constellio.model.entities.calculators.JEXLMetadataValueCalculator;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Collection;
@@ -35,7 +36,6 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataTransiency;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.ModifiableStructure;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.AggregatedDataEntry;
 import com.constellio.model.entities.schemas.entries.AggregationType;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
@@ -47,6 +47,7 @@ import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.extensions.ConstellioModulesManager;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
@@ -81,6 +82,8 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.constellio.model.entities.records.wrappers.Collection.SYSTEM_COLLECTION;
+import static com.constellio.model.entities.schemas.entries.AggregationType.LOGICAL_AND;
+import static com.constellio.model.entities.schemas.entries.AggregationType.LOGICAL_OR;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static java.util.Arrays.asList;
 
@@ -91,6 +94,9 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 	public Class[] problems = new Class[]{
 			ArrayList.class,
 			RolesManager.class,
+			Map.class,
+			List.class,
+			HashMap.class,
 			MetadataValueType.class,
 			MetadataTransiency.class,
 			SchemaTypesDisplayConfig.class,
@@ -691,7 +697,7 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 				.addModifiers(Modifier.PUBLIC)
 				.returns(void.class);
 
-		main.addStatement("RolesManager rolesManager = appLayerFactory.getModelLayerFactory().getRolesManager();");
+		main.addStatement("$T rolesManager = appLayerFactory.getModelLayerFactory().getRolesManager();", RolesManager.class);
 		for (Role role : rolesManager.getAllRoles(collection)) {
 
 			boolean roleWithSameCode = false;
@@ -700,8 +706,8 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 			}
 
 			if (!roleWithSameCode) {
-				main.addStatement("rolesManager.addRole(new $T(collection, $S, $S, $L))", Role.class, role.getCode(),
-						role.getTitle(),
+				main.addStatement("rolesManager.addRole(new $T(collection, $S, resourcesProvider.getValuesOfAllLanguagesWithSeparator($S, \" / \"), $L))", Role.class, role.getCode(),
+						"init.roles." + role.getCode(),
 						asListLitteral(role.getOperationPermissions()));
 			} else {
 				main.addStatement("rolesManager.updateRole(rolesManager.getRole(collection, $S).withNewPermissions($L))",
@@ -979,23 +985,33 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 						}
 						if (metadata.getDataEntry().getType() == DataEntryType.CALCULATED) {
 							CalculatedDataEntry dataEntry = (CalculatedDataEntry) metadata.getDataEntry();
-							main.addStatement("$L.get($S).defineDataEntry().asCalculated($T.class)",
-									variableOf(schema),
-									metadata.getLocalCode(),
-									dataEntry.getCalculator().getClass());
+							if (dataEntry.getCalculator() instanceof JEXLMetadataValueCalculator) {
+								main.addStatement("$L.get($S).defineDataEntry().asCalculated(new $T($S))",
+										variableOf(schema),
+										metadata.getLocalCode(),
+										dataEntry.getCalculator().getClass(),
+										((JEXLMetadataValueCalculator) dataEntry.getCalculator()).getExpression());
+							} else {
+								main.addStatement("$L.get($S).defineDataEntry().asCalculated($T.class)",
+										variableOf(schema),
+										metadata.getLocalCode(),
+										dataEntry.getCalculator().getClass());
+							}
 						}
 						if (metadata.getDataEntry().getType() == DataEntryType.AGGREGATED) {
 							AggregatedDataEntry dataEntry = (AggregatedDataEntry) metadata.getDataEntry();
 
 							if (dataEntry.getAgregationType().equals(AggregationType.REFERENCE_COUNT)) {
-								Metadata referenceMetadata = types.getMetadata(dataEntry.getReferenceMetadata());
+								List<Metadata> referenceMetadatas = types.getMetadatas(dataEntry.getReferenceMetadatas());
+								Metadata referenceMetadata = !referenceMetadatas.isEmpty() ? referenceMetadatas.get(0) : null;
 								main.addStatement("$L.get($S).defineDataEntry().asReferenceCount(typesBuilder.getMetadata($S))",
 										variableOf(schema),
 										metadata.getLocalCode(),
 										referenceMetadata.getCode());
 							}
 							if (dataEntry.getAgregationType().equals(AggregationType.SUM)) {
-								Metadata referenceMetadata = types.getMetadata(dataEntry.getReferenceMetadata());
+								List<Metadata> referenceMetadatas = types.getMetadatas(dataEntry.getReferenceMetadatas());
+								Metadata referenceMetadata = !referenceMetadatas.isEmpty() ? referenceMetadatas.get(0) : null;
 
 								List<String> inputMetadatasCalls = new ArrayList<>();
 								//types.getMetadata($S)
@@ -1012,7 +1028,8 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 							}
 
 							if (dataEntry.getAgregationType().equals(AggregationType.VALUES_UNION)) {
-								Metadata referenceMetadata = types.getMetadata(dataEntry.getReferenceMetadata());
+								List<Metadata> referenceMetadatas = types.getMetadatas(dataEntry.getReferenceMetadatas());
+								Metadata referenceMetadata = !referenceMetadatas.isEmpty() ? referenceMetadatas.get(0) : null;
 
 								List<String> inputMetadatasCalls = new ArrayList<>();
 								//types.getMetadata($S)
@@ -1026,6 +1043,60 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 										metadata.getLocalCode(),
 										referenceMetadata.getCode(),
 										StringUtils.join(inputMetadatasCalls, ", "));
+							}
+
+							if (dataEntry.getAgregationType().equals(LOGICAL_OR) || dataEntry.getAgregationType().equals(LOGICAL_AND)) {
+								List<Metadata> referenceMetadatas = types.getMetadatas(dataEntry.getReferenceMetadatas());
+								Metadata referenceMetadata = !referenceMetadatas.isEmpty() ? referenceMetadatas.get(0) : null;
+
+								List<String> inputMetadatasCalls = new ArrayList<>();
+								//types.getMetadata($S)
+
+								for (String inputMetadata : dataEntry.getInputMetadatas()) {
+									inputMetadatasCalls.add("typesBuilder.getMetadata(\"" + inputMetadata + "\")");
+								}
+
+								Map<MetadataBuilder, List<MetadataBuilder>> metadatasBy = new HashMap<>();
+								//								metadatasByRefMetadata.put(documentSchema.get(Document.FOLDER), singletonList(documentSchema.get(Document.HAS_CONTENT)));
+								//								metadatasByRefMetadata.put(folderSchema.get(Folder.PARENT_FOLDER), singletonList(folderHasContent));
+								//								folderHasContent.defineDataEntry().asAggregatedOr(metadatasByRefMetadata);
+
+								main.addStatement("Map<MetadataBuilder, List<MetadataBuilder>> $LRefs = new HashMap<>();", metadata.getCode());
+
+								for (Map.Entry<String, List<String>> entry : dataEntry.getInputMetadatasByReferenceMetadata().entrySet()) {
+									String schemaCode = new SchemaUtils().getSchemaCode(entry.getKey());
+									String metadataLocalCode = new SchemaUtils().getLocalCode(entry.getKey(), schemaCode);
+
+									StringBuilder valuesInstructions = new StringBuilder();
+
+									for (String value : entry.getValue()) {
+
+										String valueSchemaCode = new SchemaUtils().getSchemaCode(value);
+										String valueMetadataLocalCode = new SchemaUtils().getLocalCode(value, valueSchemaCode);
+
+										if (valuesInstructions.length() > 0) {
+											valuesInstructions.append(", ");
+										}
+										valuesInstructions.append(variableOfSchema(valueSchemaCode));
+										valuesInstructions.append(".get(\"");
+										valuesInstructions.append(valueMetadataLocalCode);
+										valuesInstructions.append("\")");
+									}
+
+									main.addStatement("$LRefs.put($L.get($S), asList($L));",
+											metadata.getCode(),
+											variableOfSchema(schemaCode),
+											metadataLocalCode,
+											valuesInstructions);
+								}
+
+
+								main.addStatement("$L.get($S).defineDataEntry().asAggregated$L($LRefs)",
+										variableOf(schema),
+										metadata.getLocalCode(),
+										dataEntry.getAgregationType() == LOGICAL_OR ? "Or" : "And",
+										metadata.getCode()
+								);
 							}
 						}
 					}
@@ -1113,10 +1184,14 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 	}
 
 	protected String variableOf(MetadataSchema schema) {
-		if ("default".equals(schema.getLocalCode())) {
-			return schema.getCode().split("_")[0] + "Schema";
+		return variableOfSchema(schema.getCode());
+	}
+
+	protected String variableOfSchema(String schemaCode) {
+		if (schemaCode.contains("_default")) {
+			return schemaCode.split("_")[0] + "Schema";
 		} else {
-			return schema.getCode() + "Schema";
+			return schemaCode + "Schema";
 		}
 	}
 
@@ -1257,7 +1332,7 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 					asListLitteral(metadata.getPopulateConfigs().getProperties()));
 		}
 
-		if (metadata.getType() == MetadataValueType.REFERENCE && !Schemas.isGlobalMetadata(metadata.getLocalCode())) {
+		if (metadata.getType() == MetadataValueType.REFERENCE /*&& !Schemas.isGlobalMetadata(metadata.getLocalCode()) */) {
 			MetadataSchemaTypes types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
 			if (metadata.getAllowedReferences().getAllowedSchemas().isEmpty()) {
 				String referencedType = metadata.getAllowedReferences().getAllowedSchemaType();

@@ -1,12 +1,16 @@
 package com.constellio.app.ui.framework.buttons.SIPButton;
 
+import com.constellio.app.api.extensions.params.UpdateComponentExtensionParams;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.BagInfoVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.pages.base.ConstellioHeader;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.batchprocess.AsyncTaskBatchProcess;
 import com.constellio.model.entities.batchprocess.AsyncTaskCreationRequest;
@@ -52,6 +56,17 @@ public class SIPButtonPresenter {
 				button.setVisible(false);
 			}
 		}
+
+		updateComponent();
+	}
+
+	private void updateComponent() {
+		AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
+		ConstellioHeader view = button.getView();
+		SessionContext sessionContext = (view != null && view.getSessionContext() != null) ?
+										view.getSessionContext() : ConstellioUI.getCurrentSessionContext();
+		appLayerFactory.getExtensions().forCollection(sessionContext.getCurrentCollection())
+				.updateComponent(new UpdateComponentExtensionParams(null, button));
 	}
 
 	protected List<String> getDocumentIDListFromObjectList() {

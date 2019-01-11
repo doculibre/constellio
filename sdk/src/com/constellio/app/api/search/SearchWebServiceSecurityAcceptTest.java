@@ -5,7 +5,7 @@ import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.SearchEvent;
-import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -91,7 +91,7 @@ public class SearchWebServiceSecurityAcceptTest extends ConstellioTest {
 		for (String collection : asList(zeCollection, anotherCollection)) {
 			RecordsCache cache = getModelLayerFactory().getRecordsCaches().getCache(collection);
 			MetadataSchemaTypes types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
-			cache.configureCache(permanentCache(types.getSchemaType(SolrAuthorizationDetails.SCHEMA_TYPE)));
+			cache.configureCache(permanentCache(types.getSchemaType(Authorization.SCHEMA_TYPE)));
 			cache.configureCache(permanentCache(types.getSchemaType(User.SCHEMA_TYPE)));
 			cache.configureCache(permanentCache(types.getSchemaType(Group.SCHEMA_TYPE)));
 			cache.configureCache(permanentCache(types.getSchemaType(SearchEvent.SCHEMA_TYPE)));
@@ -467,7 +467,7 @@ public class SearchWebServiceSecurityAcceptTest extends ConstellioTest {
 	private void setupUsers()
 			throws RecordServicesException, InterruptedException {
 		UserServices userServices = getModelLayerFactory().newUserServices();
-		userServices.addUpdateUserCredential(users.chuckNorris().withSystemAdminPermission());
+		userServices.addUpdateUserCredential(users.chuckNorris().setSystemAdminEnabled());
 
 		userWithZeCollectionReadAccess = users.alice();
 		userWithAnotherCollectionReadAccess = users.bob();

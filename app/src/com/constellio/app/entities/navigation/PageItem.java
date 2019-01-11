@@ -8,6 +8,7 @@ import com.constellio.app.ui.framework.data.RecordLazyTreeDataProvider;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
+import com.vaadin.event.ItemClickEvent;
 import com.vaadin.ui.Component;
 import org.joda.time.LocalDateTime;
 
@@ -120,6 +121,7 @@ public abstract class PageItem implements CodedItem, Serializable {
 			super(code, Type.CUSTOM_ITEM);
 		}
 
-		public abstract Component buildCustomComponent(ConstellioFactories factories, SessionContext context);
+		public abstract Component buildCustomComponent(ConstellioFactories factories, SessionContext context,
+													   ItemClickEvent.ItemClickListener itemClickListener);
 	}
 }

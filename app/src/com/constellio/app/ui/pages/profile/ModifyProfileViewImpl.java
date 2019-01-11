@@ -1,5 +1,18 @@
 package com.constellio.app.ui.pages.profile;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
+
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
+import com.constellio.app.api.extensions.params.RecordFieldsExtensionParams;
+import com.constellio.app.ui.framework.components.fields.AdditionnalRecordField;
+import com.vaadin.ui.*;
+import org.apache.commons.lang.StringUtils;
+
 import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.ui.application.ConstellioUI;
@@ -79,23 +92,6 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 	private PasswordField oldPasswordField;
 	@PropertyId("loginLanguageCode")
 	private ComboBox loginLanguageCodeField;
-	@PropertyId("startTab")
-	private OptionGroup startTabField;
-	@PropertyId("defaultTabInFolderDisplay")
-	private EnumWithSmallCodeOptionGroup<DefaultTabInFolderDisplay> defaultTabInFolderDisplay;
-	@PropertyId("defaultPageLength")
-	private EnumWithSmallCodeComboBox defaultPageLength;
-	@PropertyId("defaultTaxonomy")
-	private ListOptionGroup taxonomyField;
-	@PropertyId("agentManuallyDisabled")
-	private CheckBox agentManuallyDisabledField;
-	//TODO RM Module Extension
-	@PropertyId("defaultAdministrativeUnit")
-	private Field defaultAdministrativeUnitField;
-	@PropertyId("hideNotActive")
-	private Field hideNotActiveField;
-
-	private boolean agentManuallyDisabledVisible;
 
 	ModifyProfilePresenter presenter;
 
@@ -310,73 +306,34 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 		}
 		loginLanguageCodeField.setEnabled(true);
 
-		startTabField = new OptionGroup($("ModifyProfileView.startTab"));
-		startTabField.setId("startTab");
-		for (String tab : presenter.getAvailableHomepageTabs()) {
-			startTabField.addItem(tab);
-			startTabField.setItemCaption(tab, $("HomeView.tab." + tab));
-		}
-
-		defaultTabInFolderDisplay = new EnumWithSmallCodeOptionGroup<DefaultTabInFolderDisplay>(DefaultTabInFolderDisplay.class);
-		defaultTabInFolderDisplay.setCaption($("ModifyProfileView.defaultTabInFolderDisplay"));
-		defaultTabInFolderDisplay.setId("defaultTabInFolderDisplay");
-		defaultTabInFolderDisplay.setItemCaption(DefaultTabInFolderDisplay.CONTENT,
-				$("defaultTabInFolderDisplay." + DefaultTabInFolderDisplay.CONTENT));
-		defaultTabInFolderDisplay.setItemCaption(DefaultTabInFolderDisplay.METADATA,
-				$("defaultTabInFolderDisplay." + DefaultTabInFolderDisplay.METADATA));
-
-		defaultPageLength = new EnumWithSmallCodeComboBox<SearchPageLength>(SearchPageLength.class);
-		defaultPageLength.setCaption($("ModifyProfileView.searchPageLength"));
-		defaultPageLength.setId("defaultPageLength");
-		defaultPageLength.setNullSelectionAllowed(false);
-		//		defaultPageLength.setItemCaption(DefaultTabInFolderDisplay.CONTENT,
-		//				$("defaultTabInFolderDisplay." + DefaultTabInFolderDisplay.CONTENT));
-		//		defaultPageLength.setItemCaption(DefaultTabInFolderDisplay.METADATA,
-		//				$("defaultTabInFolderDisplay." + DefaultTabInFolderDisplay.METADATA));
-
-		taxonomyField = new ListOptionGroup($("ModifyProfileView.defaultTaxonomy"));
-		taxonomyField.addStyleName("defaultTaxonomy");
-		taxonomyField.setId("defaultTaxonomy");
-		taxonomyField.setMultiSelect(false);
-		taxonomyField.setRequired(false);
-		for (TaxonomyVO value : presenter.getEnabledTaxonomies()) {
-			taxonomyField.addItem(value.getCode());
-			taxonomyField.setItemCaption(value.getCode(), value.getTitle());
-		}
-
-
-		if (presenter.isRMModuleActivated()) {
-			defaultAdministrativeUnitField = new LookupRecordField(AdministrativeUnit.SCHEMA_TYPE, true, false);
-			defaultAdministrativeUnitField.setCaption($("ModifyProfileView.defaultAdministrativeUnit"));
-
-			hideNotActiveField = new CheckBox($("ModifyProfileView.hideNotActive"));
-		} else {
-			defaultAdministrativeUnitField = new TextField();
-			defaultAdministrativeUnitField.setVisible(false);
-			defaultAdministrativeUnitField.setEnabled(false);
-
-			hideNotActiveField = new TextField();
-			hideNotActiveField.setVisible(false);
-			hideNotActiveField.setEnabled(false);
-		}
-
-		agentManuallyDisabledField = new CheckBox($("ModifyProfileView.agentManuallyDisabled"));
-		agentManuallyDisabledField.setId("agentManuallyDisabled");
-		agentManuallyDisabledField.addStyleName("agentManuallyDisabled");
-		agentManuallyDisabledField.setVisible(agentManuallyDisabledVisible);
-
-		form = new BaseForm<ProfileVO>(profileVO, this, imageField, usernameField, firstNameField, lastNameField, emailField, personalEmailsField,
-				phoneField, faxField, jobTitleField, addressField, passwordField, confirmPasswordField, oldPasswordField, loginLanguageCodeField, startTabField, defaultTabInFolderDisplay,
-				taxonomyField, defaultAdministrativeUnitField, defaultPageLength, agentManuallyDisabledField, hideNotActiveField) {
+		List<Field> allFields = new ArrayList<Field>(asList(imageField, usernameField, firstNameField, lastNameField, emailField, personalEmailsField,
+				phoneField, faxField, jobTitleField, addressField, passwordField, confirmPasswordField, oldPasswordField, loginLanguageCodeField));
+		final List<AdditionnalRecordField> configFields = getAdditionnalFields();
+		allFields.addAll(configFields);
+		form = new BaseForm<ProfileVO>(profileVO, this, allFields.toArray(new Field[0])) {
 			@Override
 			protected void saveButtonClick(ProfileVO profileVO)
 					throws ValidationException {
-				presenter.saveButtonClicked(profileVO);
+				HashMap<String, Object> additionnalMetadataValues = new HashMap<>();
+				for(AdditionnalRecordField field: configFields) {
+					field.commit();
+					additionnalMetadataValues.put(field.getMetadataLocalCode(), field.getCommittableValue());
+				}
+				presenter.saveButtonClicked(profileVO, additionnalMetadataValues);
 			}
 
 			@Override
 			protected void cancelButtonClick(ProfileVO profileVO) {
 				presenter.cancelButtonClicked();
+			}
+
+			@Override
+			protected String getTabCaption(Field<?> field, Object propertyId) {
+				if(field instanceof AdditionnalRecordField) {
+					return $("ModifyProfileView.configsTab");
+				} else {
+					return $("ModifyProfileView.profileTab");
+				}
 			}
 		};
 
@@ -411,9 +368,8 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 		ConstellioUI.getCurrent().updateContent();
 	}
 
-	@Override
-	public void setAgentManuallyDisabledVisible(boolean visible) {
-		this.agentManuallyDisabledVisible = visible;
+	public List<AdditionnalRecordField> getAdditionnalFields() {
+		RecordFieldsExtensionParams params = new RecordFieldsExtensionParams(this, presenter.getUserRecord().getWrappedRecord());
+		return getConstellioFactories().getAppLayerFactory().getExtensions().forCollection(getCollection()).getAdditionnalFields(params);
 	}
-
 }

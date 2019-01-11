@@ -137,7 +137,6 @@ public class FolderDecommissioningDateAcceptanceTest extends ConstellioTest {
 		assertThat(folderWithOpenDate.getOpenDate()).isEqualTo(november4_2009);
 		assertThat(folderWithOpenDate.getCloseDate()).isEqualTo(december31_2015);
 		assertThat(folderWithOpenDate.getCloseDateEntered()).isNull();
-		assertThat(folderWithOpenDate.getDecommissioningDate()).isEqualTo(december31_2010);
 	}
 
 	@Test
@@ -160,7 +159,6 @@ public class FolderDecommissioningDateAcceptanceTest extends ConstellioTest {
 		assertThat(folderWithOpenDate.getOpenDate()).isEqualTo(november4_2009);
 		assertThat(folderWithOpenDate.getCloseDate()).isEqualTo(december31_2014);
 		assertThat(folderWithOpenDate.getCloseDateEntered()).isNull();
-		assertThat(folderWithOpenDate.getDecommissioningDate()).isEqualTo(december31_2014);
 	}
 
 	@Test
@@ -176,7 +174,6 @@ public class FolderDecommissioningDateAcceptanceTest extends ConstellioTest {
 		assertThat(folderWithEnteredCloseDate.getOpenDate()).isEqualTo(november4_2009);
 		assertThat(folderWithEnteredCloseDate.getCloseDate()).isEqualTo(january12_2012);
 		assertThat(folderWithEnteredCloseDate.getCloseDateEntered()).isEqualTo(january12_2012);
-		assertThat(folderWithEnteredCloseDate.getDecommissioningDate()).isEqualTo(december31_2012);
 	}
 
 	@Test
@@ -191,7 +188,6 @@ public class FolderDecommissioningDateAcceptanceTest extends ConstellioTest {
 				.setActualTransferDate(february16_2015));
 
 		assertThat(folder.getArchivisticStatus()).isEqualTo(FolderStatus.SEMI_ACTIVE);
-		assertThat(folder.getDecommissioningDate()).isEqualTo(december31_2015);
 		assertThat(folder.getCopyRulesExpectedTransferDates()).isEqualTo(asList(new LocalDate[]{null}));
 
 	}
@@ -209,7 +205,6 @@ public class FolderDecommissioningDateAcceptanceTest extends ConstellioTest {
 				.setActualDepositDate(february16_2017));
 
 		assertThat(folder.getArchivisticStatus()).isEqualTo(FolderStatus.INACTIVE_DEPOSITED);
-		assertThat(folder.getDecommissioningDate()).isEqualTo(december31_2012);
 		assertThat(folder.getCopyRulesExpectedTransferDates()).isEqualTo(asList(new LocalDate[]{null}));
 		assertThat(folder.getCopyRulesExpectedDepositDates()).isEqualTo(asList(new LocalDate[]{null}));
 

@@ -12,6 +12,8 @@ import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.components.LocalDateLabel;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.util.ComponentTreeUtils;
+import com.constellio.model.conf.FoldersLocator;
+import com.constellio.model.conf.FoldersLocatorMode;
 import com.vaadin.event.dd.DragAndDropEvent;
 import com.vaadin.event.dd.DropHandler;
 import com.vaadin.event.dd.acceptcriteria.AcceptAll;
@@ -46,7 +48,8 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManagerView, DropHandler {
 
-	private final UpdateManagerPresenter presenter;
+	private UpdateManagerPresenter presenter;
+
 	private UploadWaitWindow uploadWaitWindow;
 	private VerticalLayout layout;
 	private Component panel;
@@ -54,6 +57,7 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 	private Button standardUpdate;
 	private Button alternateUpdate;
 	private ConfirmDialogButton reindex;
+	FoldersLocator locator = new FoldersLocator();
 
 	public UpdateManagerViewImpl() {
 		presenter = new UpdateManagerPresenter(this);
@@ -131,16 +135,9 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
-		layout = new VerticalLayout(buildInfoItem($("UpdateManagerViewImpl.version"), presenter.getCurrentVersion()));
+		layout = new VerticalLayout(buildInfoItem("", ""));
 		layout.setSpacing(true);
 		layout.setWidth("100%");
-
-		LicenseInfo info = presenter.getLicenseInfo();
-		if (info != null) {
-			layout.addComponents(
-					buildInfoItem($("UpdateManagerViewImpl.clientName"), info.getClientName()),
-					buildInfoItem($("UpdateManagerViewImpl.expirationDate"), info.getExpirationDate()));
-		}
 
 		WindowButton allocatedMemoryButton = buildAllocatedMemoryButton();
 		layout.addComponent(allocatedMemoryButton);
@@ -152,7 +149,100 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 		layout.setSpacing(true);
 
 		showStandardUpdatePanel();
+		layout.addComponents(buildInfoItem($("UpdateManagerViewImpl.currentVersionofConstellio"), presenter.getCurrentVersion()));
 
+		final String allocatedMemoryForConstellio = SystemAnalysisUtils.getAllocatedMemoryForConstellio();
+		if (allocatedMemoryForConstellio != null) {
+			layout.addComponents(buildInfoItem($("UpdateManagerViewImpl.allocatedMemoryForConstellio"), allocatedMemoryForConstellio));
+		} else {
+			layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.allocatedMemoryForConstellio"), $("UpdateManagerViewImpl.statut")));
+		}
+
+		LicenseInfo info = presenter.getLicenseInfo();
+		if (info != null) {
+			layout.addComponents(
+					buildInfoItem($("UpdateManagerViewImpl.clientName"), info.getClientName()),
+					buildInfoItem($("UpdateManagerViewImpl.expirationDate"), info.getExpirationDate()));
+		} else {
+			layout.addComponents(
+					buildInfoItemRed($("UpdateManagerViewImpl.clientName"), $("UpdateManagerViewImpl.statut")),
+					buildInfoItemRed($("UpdateManagerViewImpl.expirationDate"), $("UpdateManagerViewImpl.statut")));
+		}
+
+		if (locator.getFoldersLocatorMode() != FoldersLocatorMode.WRAPPER) {
+			layout.addComponents(
+					buildInfoItemRed($("UpdateManagerViewImpl.versionofKernel"), $("UpdateManagerViewImpl.statut")),
+					buildInfoItemRed($("UpdateManagerViewImpl.privatedirectoryinstalled"), $("UpdateManagerViewImpl.statut")),
+					buildInfoItemRed($("UpdateManagerViewImpl.javaversionofwrapper"), $("UpdateManagerViewImpl.statut")),
+					buildInfoItemRed($("UpdateManagerViewImpl.javaversionoflinux"), $("UpdateManagerViewImpl.statut")),
+					buildInfoItemRed($("UpdateManagerViewImpl.versionofSolr"), $("UpdateManagerViewImpl.statut")),
+					buildInfoItemRed($("UpdateManagerViewImpl.UserrunningSolr"), $("UpdateManagerViewImpl.statut")),
+					buildInfoItemRed($("UpdateManagerViewImpl.UserrunningConstellio"), $("UpdateManagerViewImpl.statut")),
+					buildInfoItemRed($("UpdateManagerViewImpl.diskUsageOpt"), $("UpdateManagerViewImpl.statut")),
+					buildInfoItemRed($("UpdateManagerViewImpl.diskUsageSolr"), $("UpdateManagerViewImpl.statut")));
+		} else {
+			String linuxVersion = presenter.getLinuxVersion();
+			if (presenter.isLinuxVersionDeprecated(linuxVersion)) {
+				layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.versionofKernel"), linuxVersion));
+			} else {
+				layout.addComponents(buildInfoItem($("UpdateManagerViewImpl.versionofKernel"), linuxVersion));
+			}
+
+			if (!presenter.isPrivateRepositoryInstalled()) {
+				layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.privatedirectoryinstalled"), $("no")));
+			} else {
+				layout.addComponents(buildInfoItem($("UpdateManagerViewImpl.privatedirectoryinstalled"), $("yes")));
+			}
+
+			String wrapperJavaVersion = presenter.getWrapperJavaVersion();
+			if (presenter.isJavaVersionDeprecated(wrapperJavaVersion)) {
+				layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.javaversionofwrapper"), wrapperJavaVersion));
+			} else {
+				layout.addComponents(buildInfoItem($("UpdateManagerViewImpl.javaversionofwrapper"), wrapperJavaVersion));
+			}
+
+			String javaVersion = presenter.getJavaVersion();
+			if (presenter.isJavaVersionDeprecated(javaVersion)) {
+				layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.javaversionoflinux"), javaVersion));
+			} else {
+				layout.addComponents(buildInfoItem($("UpdateManagerViewImpl.javaversionoflinux"), javaVersion));
+			}
+
+			String solrVersion = presenter.getSolrVersion();
+			if (presenter.isSolrVersionDeprecated(solrVersion)) {
+				layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.versionofSolr"), solrVersion));
+			} else {
+				layout.addComponents(buildInfoItem($("UpdateManagerViewImpl.versionofSolr"), solrVersion));
+			}
+
+			String solrUser = presenter.getSolrUser();
+			if (presenter.isSolrUserRoot(solrUser)) {
+				layout.addComponents(buildInfoItem($("UpdateManagerViewImpl.UserrunningSolr"), solrUser));
+			} else {
+				layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.UserrunningSolr"), solrUser));
+			}
+
+			String constellioUser = presenter.getConstellioUser();
+			if (presenter.isConstellioUserRoot(constellioUser)) {
+				layout.addComponents(buildInfoItem($("UpdateManagerViewImpl.UserrunningConstellio"), constellioUser));
+			} else {
+				layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.UserrunningConstellio"), constellioUser));
+			}
+
+			String diskUsageOpt = presenter.getDiskUsage("/opt");
+			if (presenter.isDiskUsageProblematic(diskUsageOpt)) {
+				layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.diskUsageOpt"), diskUsageOpt));
+			} else {
+				layout.addComponents(buildInfoItem($("UpdateManagerViewImpl.diskUsageOpt"), diskUsageOpt));
+			}
+
+			String diskUsageSolr = presenter.getDiskUsage("/var/solr");
+			if (presenter.isDiskUsageProblematic(diskUsageSolr)) {
+				layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.diskUsageSolr"), diskUsageSolr));
+			} else {
+				layout.addComponents(buildInfoItem($("UpdateManagerViewImpl.diskUsageSolr"), diskUsageSolr));
+			}
+		}
 		return layout;
 	}
 
@@ -160,6 +250,7 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 		final String totalSystemMemory = SystemAnalysisUtils.getTotalSystemMemory();
 		final String allocatedMemoryForConstellio = SystemAnalysisUtils.getAllocatedMemoryForConstellio();
 		final String allocatedMemoryForSolr = SystemAnalysisUtils.getAllocatedMemoryForSolr();
+
 		Double percentageOfAllocatedMemory = SystemAnalysisUtils.getPercentageOfAllocatedMemory(totalSystemMemory, allocatedMemoryForConstellio, allocatedMemoryForSolr);
 
 		WindowButton allocatedMemoryButton = new WindowButton("", $("UpdateManagerViewImpl.allocatedMemoryButtonCaption")) {
@@ -280,11 +371,28 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 		Label captionLabel = new Label(caption);
 		captionLabel.addStyleName(ValoTheme.LABEL_BOLD);
 
-		Label valueLabel = value instanceof LocalDate ? new LocalDateLabel((LocalDate) value) : new Label(value.toString());
+		Label valueLabel = value instanceof LocalDate ? new LocalDateLabel((LocalDate) value) : new Label(value == null ? "" : value.toString());
 
 		HorizontalLayout layout = new HorizontalLayout(captionLabel, valueLabel);
 		layout.setSpacing(true);
 
+		return layout;
+	}
+
+	private Component buildInfoItemRed(String caption, Object value) {
+		Label captionLabel = new Label(caption);
+		captionLabel.addStyleName(ValoTheme.LABEL_BOLD);
+
+		if (value == null || StringUtils.isEmpty(value.toString())) {
+			value = $("UpdateManagerViewImpl.statut");
+		}
+		Label valueLabel = value instanceof LocalDate ?
+						   new LocalDateLabel((LocalDate) value) :
+						   new Label(value.toString());
+		valueLabel.setStyleName("important-label");
+
+		HorizontalLayout layout = new HorizontalLayout(captionLabel, valueLabel);
+		layout.setSpacing(true);
 		return layout;
 	}
 
@@ -345,6 +453,7 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 	public void closeProgressPopup() {
 		uploadWaitWindow.close();
 	}
+
 
 	private Component buildUpToDateUpdateLayout() {
 		Label message = new Label($("UpdateManagerViewImpl.upToDate"));

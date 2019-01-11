@@ -18,10 +18,10 @@ import com.constellio.model.extensions.events.records.RecordInModificationBefore
 import com.constellio.model.extensions.events.records.RecordInModificationBeforeValidationAndAutomaticValuesCalculationEvent;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Set;
 
 import static com.constellio.app.modules.rm.model.enums.CompleteDatesWhenAddingFolderWithManualStatusChoice.ENABLED;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class RMFolderExtension extends RecordExtension {
 	private final RMSchemasRecordsServices rmSchema;
@@ -48,6 +49,8 @@ public class RMFolderExtension extends RecordExtension {
 	final RMSchemasRecordsServices rm;
 	final RMConfigs configs;
 
+	private List<String> removedCartsIds;
+
 	public RMFolderExtension(String collection, ModelLayerFactory modelLayerFactory) {
 		this.collection = collection;
 		this.modelLayerFactory = modelLayerFactory;
@@ -58,6 +61,7 @@ public class RMFolderExtension extends RecordExtension {
 		taxonomyManager = modelLayerFactory.getTaxonomiesManager();
 		this.rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
 		this.configs = new RMConfigs(modelLayerFactory.getSystemConfigurationsManager());
+		removedCartsIds = new ArrayList<>();
 	}
 
 	@Override
@@ -93,6 +97,25 @@ public class RMFolderExtension extends RecordExtension {
 		if (event.isSchemaType(Folder.SCHEMA_TYPE)) {
 			Folder folder = rmSchema.wrapFolder(event.getRecord());
 			deleteRootFolderMetadatasIfSubFolder(folder);
+			deleteNonExistentFavoritesIds(folder);
+		}
+	}
+
+	private void deleteNonExistentFavoritesIds(Folder folder) {
+		List<String> removedIds = new ArrayList<>();
+		RecordsCaches recordsCaches = modelLayerFactory.getRecordsCaches();
+		for (String cartId : folder.getFavorites()) {
+			if (!removedCartsIds.contains(cartId)) {
+				if (recordsCaches.getRecord(cartId) == null) {
+					removedIds.add(cartId);
+					removedCartsIds.add(cartId);
+				}
+			} else {
+				removedIds.add(cartId);
+			}
+		}
+		if (!removedIds.isEmpty()) {
+			folder.removeFavorites(removedIds);
 		}
 	}
 
@@ -197,7 +220,7 @@ public class RMFolderExtension extends RecordExtension {
 
 	private List<String> getUserAdminUnits(User user) {
 		List<String> returnList = new ArrayList<>();
-		LogicalSearchCondition condition = LogicalSearchQueryOperators.from(this.rmSchema.administrativeUnit.schema())
+		LogicalSearchCondition condition = from(this.rmSchema.administrativeUnit.schema())
 				.returnAll();
 		List<Record> results = this.searchServices.search(new LogicalSearchQuery(condition).filteredWithUserWrite(user)
 				.setReturnedMetadatas(ReturnedMetadatasFilter.idVersionSchema()));

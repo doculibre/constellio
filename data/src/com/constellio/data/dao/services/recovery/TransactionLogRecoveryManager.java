@@ -262,20 +262,23 @@ public class TransactionLogRecoveryManager implements RecoveryService, BigVaultS
 
 	private void provokeRecordsLoad(Set<String> recordsIds) {
 		//do not reload
-		Set<String> recordsToLoadIds = new HashSet<>(recordsIds);
-		recordsToLoadIds.removeAll(this.fullyLoadedRecordsIds);
-		if (recordsToLoadIds.isEmpty()) {
-			return;
-		}
-		//query solr to load non loaded
-		ModifiableSolrParams solrParams = new ModifiableSolrParams();
-		//field:(value1 OR value2 OR value3)
-		solrParams.set("rows", "999999999");
-		solrParams.set("q", "id:(" + StringUtils.join(recordsToLoadIds, " OR ") + ")");
-		try {
-			dataLayerFactory.getRecordsVaultServer().query(solrParams);
-		} catch (CouldNotExecuteQuery e) {
-			throw new RuntimeException(e);
+
+		for (String id : recordsIds) {
+			Set<String> recordsToLoadIds = new HashSet<>(recordsIds);
+			recordsToLoadIds.removeAll(this.fullyLoadedRecordsIds);
+			if (recordsToLoadIds.isEmpty()) {
+				return;
+			}
+			//query solr to load non loaded
+			ModifiableSolrParams solrParams = new ModifiableSolrParams();
+			//field:(value1 OR value2 OR value3)
+			solrParams.set("rows", "999999999");
+			solrParams.set("q", "id:" + id);
+			try {
+				dataLayerFactory.getRecordsVaultServer().query(solrParams);
+			} catch (CouldNotExecuteQuery e) {
+				throw new RuntimeException(e);
+			}
 		}
 	}
 

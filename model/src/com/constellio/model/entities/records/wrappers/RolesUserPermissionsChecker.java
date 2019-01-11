@@ -4,7 +4,6 @@ import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.security.Role;
-import com.constellio.model.entities.security.global.AuthorizationDetails;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.security.roles.Roles;
 import org.slf4j.Logger;
@@ -132,9 +131,9 @@ public class RolesUserPermissionsChecker extends UserPermissionsChecker {
 			return false;
 		}
 		Set<String> allUserPermissions = new HashSet<>();
-		for (String authId : user.getAllUserAuthorizations()) {
+		for (String authId : UserAuthorizationsUtils.getAuthsReceivedBy(user)) {
 			try {
-				AuthorizationDetails details = user.getAuthorizationDetail(authId);
+				Authorization details = user.getAuthorizationDetail(authId);
 				for (String roleOrAccess : details.getRoles()) {
 					if (!roleOrAccess.equals(READ) && !roleOrAccess.equals(WRITE) && !roleOrAccess.equals(DELETE)) {
 						Role role = roles.getRole(roleOrAccess);

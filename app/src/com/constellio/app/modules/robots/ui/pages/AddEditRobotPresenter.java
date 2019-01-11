@@ -59,7 +59,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static com.constellio.app.ui.framework.components.table.BasePagedTable.DEFAULT_PAGE_LENGTH;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
@@ -100,7 +99,11 @@ public class AddEditRobotPresenter extends BaseRobotPresenter<AddEditRobotView>
 	}
 
 	private void init() {
-		searchPresenterService = new SearchPresenterService(collection, modelLayerFactory);
+
+		User user = view.getConstellioFactories().getAppLayerFactory()
+				.getModelLayerFactory().newUserServices()
+				.getUserInCollection(view.getSessionContext().getCurrentUser().getUsername(), collection);
+		searchPresenterService = new SearchPresenterService(collection, user, modelLayerFactory, null);
 		schemasDisplayManager = appLayerFactory.getMetadataSchemasDisplayManager();
 		searchCriteriaPresenterUtils = new SearchCriteriaPresenterUtils(view.getSessionContext());
 	}

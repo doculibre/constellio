@@ -10,6 +10,7 @@ import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.util.SchemaCaptionUtils;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.services.contents.ContentManager;
@@ -118,6 +119,7 @@ public class UpdateContentVersionPresenter implements Serializable {
 
 	public void contentVersionSaved(ContentVersionVO newVersionVO, Boolean majorVersion) {
 		Iterator<RecordVO> iterator = records.keySet().iterator();
+		RecordUpdateOptions updateOptions = new RecordUpdateOptions();
 		while (iterator.hasNext()) {
 			RecordVO recordVO = iterator.next();
 			if (validateSavePossible(recordVO)) {
@@ -196,11 +198,15 @@ public class UpdateContentVersionPresenter implements Serializable {
 						content.checkIn();
 						if (!wasMajorVersion(content)) {
 							content.finalizeVersion();
+						} else {
+							updateOptions.setOverwriteModificationDateAndUser(false);
 						}
 					} else if (newMinorVersion) {
 						content.checkIn();
 						if (!wasMinorVersion(content)) {
 							content.updateMinorVersion();
+						} else {
+							updateOptions.setOverwriteModificationDateAndUser(false);
 						}
 					} else {
 						// TODO Throw appropriate exception
@@ -210,7 +216,7 @@ public class UpdateContentVersionPresenter implements Serializable {
 				}
 
 				try {
-					getPresenterUtils(recordVO).addOrUpdate(record);
+					getPresenterUtils(recordVO).addOrUpdate(record, updateOptions);
 					modelLayerFactory.newLoggingServices().uploadDocument(record, currentUser);
 					if (newVersionVO != null) {
 						newVersionVO.setVersion(content.getCurrentVersion().getVersion());

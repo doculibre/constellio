@@ -37,13 +37,11 @@ import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
-import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
@@ -618,42 +616,6 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 		assertThat(frenchMessages(systemCheckResults.errors)).contains(
 				"Dossier Framboise (B06) : La valeur «Framboise» de la métadonnée «Titre» ne respecte pas le format «AAAA-AAAA»"
 		);
-	}
-
-	@Test
-	public void givenAuthorizationWithInvalidTargetThenDetectedAndFixed()
-			throws Exception {
-		prepareSystem(
-				withZeCollection().withConstellioRMModule().withConstellioESModule().withAllTestUsers()
-						.withRMTest(records).withFoldersAndContainersOfEveryStatus()
-		);
-		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
-
-		SchemasRecordsServices schemas = new SchemasRecordsServices(zeCollection, getModelLayerFactory());
-		UserServices userServices = getModelLayerFactory().newUserServices();
-		User dakotaInZeCollection = userServices.getUserInCollection(dakota, zeCollection);
-
-		Transaction tx = new Transaction();
-		tx.add(schemas.newSolrAuthorizationDetailsWithId("zeInvalidAuth").setTarget("anInvalidRecord").setRoles(asList("R")));
-		tx.add((RecordWrapper) dakotaInZeCollection.set(Schemas.AUTHORIZATIONS, asList("zeInvalidAuth")));
-		getModelLayerFactory().newRecordServices().execute(tx);
-		assertThat(dakotaInZeCollection.getUserAuthorizations()).containsOnly("zeInvalidAuth");
-
-		SystemCheckManager systemCheckManager = new SystemCheckManager(getAppLayerFactory());
-		SystemCheckResults systemCheckResults = systemCheckManager.runSystemCheck(false);
-		assertThat(frenchMessages(systemCheckResults.errors)).hasSize(4);
-		assertThat(systemCheckResults.getMetric("core.brokenAuths")).isEqualTo(1);
-
-		systemCheckResults = systemCheckManager.runSystemCheck(true);
-		assertThat(frenchMessages(systemCheckResults.errors)).hasSize(4);
-		assertThat(systemCheckResults.getMetric("core.brokenAuths")).isEqualTo(1);
-
-		systemCheckResults = systemCheckManager.runSystemCheck(false);
-		assertThat(frenchMessages(systemCheckResults.errors)).hasSize(4);
-		assertThat(systemCheckResults.getMetric("core.brokenAuths")).isEqualTo(0);
-
-		getModelLayerFactory().newRecordServices().refresh(dakotaInZeCollection);
-		assertThat(dakotaInZeCollection.getUserAuthorizations()).isEmpty();
 	}
 
 	@Test

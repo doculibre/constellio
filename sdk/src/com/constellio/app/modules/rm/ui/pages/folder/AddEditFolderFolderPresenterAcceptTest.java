@@ -80,6 +80,8 @@ public class AddEditFolderFolderPresenterAcceptTest extends ConstellioTest {
 
 		presenter = spy(new AddEditFolderPresenter(view));
 
+		doNothing().when(presenter).navigateToFolderDisplay(any(String.class));
+
 		doReturn("type1").when(presenter).getTypeFieldValue();
 		doNothing().when(presenter).commitForm();
 		doNothing().when(presenter).reloadForm();

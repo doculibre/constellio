@@ -44,6 +44,7 @@ import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.TimeProvider;
+import com.constellio.data.utils.comparators.AbstractTextComparator;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
@@ -81,7 +82,6 @@ import org.apache.commons.lang3.StringUtils;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -109,6 +109,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 	private transient AppLayerFactory appLayerFactory;
 	private transient ModelLayerFactory modelLayerFactory;
 	private transient SchemasDisplayManager schemasDisplayManager;
+	private transient RMSchemasRecordsServices rm;
 	private boolean advancedSearchFormVisible;
 
 	private BasePresenterUtils presenterUtils;
@@ -243,6 +244,16 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		return new SortParameters(sortCriterion, sortOrder);
 	}
 
+	public List<Cart> getOwnedCarts() {
+		SearchServices searchServices = modelLayerFactory.newSearchServices();
+		return rm.wrapCarts(searchServices.search(new LogicalSearchQuery(from(rm.cartSchema()).where(rm.cart.owner())
+				.isEqualTo(getCurrentUser().getId())).sortAsc(Schemas.TITLE)));
+	}
+
+	public MetadataSchemaVO getSchema() {
+		return new MetadataSchemaToVOBuilder().build(types().getSchema(Cart.DEFAULT_SCHEMA), RecordVO.VIEW_MODE.TABLE, header.getSessionContext());
+	}
+
 	static public class SortParameters {
 		private String sortCriterion;
 		private SearchPresenter.SortOrder sortOrder;
@@ -349,7 +360,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 				}
 			} else {
 				for (Metadata metadata : schemaType.getAllMetadatas()) {
-					metadataCodes.add(metadata.getCode());
+						metadataCodes.add(metadata.getCode());
 				}
 			}
 		}
@@ -361,6 +372,10 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		MetadataList allMetadatas = schemaType.getAllMetadatas();
 		for (Metadata metadata : allMetadatas) {
 			if (!schemaType.hasSecurity() || (metadataCodes.contains(metadata.getCode()))) {
+				if(!getCurrentUser().hasGlobalAccessToMetadata(metadata)) {
+					continue;
+				}
+
 				boolean isTextOrString =
 						metadata.getType() == MetadataValueType.STRING || metadata.getType() == MetadataValueType.TEXT;
 				MetadataDisplayConfig config = schemasDisplayManager().getMetadata(header.getCollection(), metadata.getCode());
@@ -409,10 +424,10 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 	}
 
 	protected void sort(List<MetadataVO> metadataVOs) {
-		Collections.sort(metadataVOs, new Comparator<MetadataVO>() {
+		Collections.sort(metadataVOs, new AbstractTextComparator<MetadataVO>() {
 			@Override
-			public int compare(MetadataVO o1, MetadataVO o2) {
-				return o1.getLabel().toLowerCase().compareTo(o2.getLabel().toLowerCase());
+			protected String getText(MetadataVO object) {
+				return object.getLabel();
 			}
 		});
 	}
@@ -458,6 +473,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		SessionContext sessionContext = header.getSessionContext();
 		appLayerFactory = constellioFactories.getAppLayerFactory();
 		modelLayerFactory = constellioFactories.getModelLayerFactory();
+		rm = new RMSchemasRecordsServices(header.getCollection(), appLayerFactory);
 		this.presenterUtils = new BasePresenterUtils(constellioFactories, sessionContext);
 		this.deselectedRecordsWithSchema = new HashMap<>();
 
@@ -714,29 +730,44 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		Cart cart = rm.newCart();
 		cart.setTitle(title);
 		cart.setOwner(getCurrentUser());
-		RecordServices recordServices = modelLayerFactory.newRecordServices();
-		for (String record : recordIds) {
-			switch (recordServices.getDocumentById(record).getTypeCode()) {
-				case Folder.SCHEMA_TYPE:
-					cart.addFolders(asList(record));
-					break;
-				case Document.SCHEMA_TYPE:
-					cart.addDocuments(asList(record));
-					break;
-				case ContainerRecord.SCHEMA_TYPE:
-					cart.addContainers(asList(record));
-					break;
-			}
-		}
+		List<Record> records = getRecords(recordIds);
+		addRecordsToCart(records, cart.getId());
 
 		try {
 			modelLayerFactory.newRecordServices().execute(new Transaction(cart.getWrappedRecord()).setUser(getCurrentUser()));
+			modelLayerFactory.newRecordServices().execute(new Transaction(records));
 			showMessage($("ConstellioHeader.selection.actions.actionCompleted", recordIds.size()));
 			//			view.showMessage($("SearchView.addedToCart"));
 		} catch (RecordServicesException e) {
 			e.printStackTrace();
 			throw new RuntimeException(e);
 		}
+	}
+
+	private void addRecordsToCart(List<Record> records, String cartId) {
+		List<Folder> folders = new ArrayList<>();
+		List<Document> documents = new ArrayList<>();
+		List<ContainerRecord> containers = new ArrayList<>();
+		for (Record record : records) {
+			switch (record.getTypeCode()) {
+				case Folder.SCHEMA_TYPE:
+					folders.add(rm.wrapFolder(record));
+					break;
+				case Document.SCHEMA_TYPE:
+					documents.add(rm.wrapDocument(record));
+					break;
+				case ContainerRecord.SCHEMA_TYPE:
+					containers.add(rm.wrapContainerRecord(record));
+					break;
+			}
+		}
+		addFoldersToCart(cartId, folders);
+		addDocumentsToCart(cartId, documents);
+		addContainersToCart(cartId, containers);
+	}
+
+	private List<Record> getRecords(List<String> recordIds) {
+		return modelLayerFactory.newRecordServices().getRecordsById(header.getCollection(), recordIds);
 	}
 
 	public RecordVODataProvider getOwnedCartsDataProvider() {
@@ -767,29 +798,62 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		};
 	}
 
-	public void addToCartRequested(List<String> recordIds, RecordVO cartVO) {
-		// TODO: Create an extension for this
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(header.getCollection(), appLayerFactory);
-		Cart cart = rm.getOrCreateCart(getCurrentUser(), cartVO.getId());
-		RecordServices recordServices = modelLayerFactory.newRecordServices();
-		for (String record : recordIds) {
-			switch (recordServices.getDocumentById(record).getTypeCode()) {
-				case Folder.SCHEMA_TYPE:
-					cart.addFolders(asList(record));
-					break;
-				case Document.SCHEMA_TYPE:
-					cart.addDocuments(asList(record));
-					break;
-				case ContainerRecord.SCHEMA_TYPE:
-					cart.addContainers(asList(record));
-					break;
-			}
-		}
+	public void addToDefaultFavoriteRequested(List<String> recordIds) {
+		List<Record> records = getRecords(recordIds);
+		addRecordsToCart(records, getCurrentUser().getId());
 		try {
-			modelLayerFactory.newRecordServices().add(cart);
+			modelLayerFactory.newRecordServices().execute(new Transaction(records));
 			showMessage($("ConstellioHeader.selection.actions.actionCompleted", recordIds.size()));
 		} catch (RecordServicesException e) {
 			showMessage($(e));
+		}
+	}
+
+	public void addToCartRequested(List<String> recordIds, Cart cart) {
+		List<Record> records = getRecords(recordIds);
+		addRecordsToCart(records, cart.getId());
+		try {
+			modelLayerFactory.newRecordServices().add(cart);
+			modelLayerFactory.newRecordServices().execute(new Transaction(records));
+			showMessage($("ConstellioHeader.selection.actions.actionCompleted", recordIds.size()));
+		} catch (RecordServicesException e) {
+			showMessage($(e));
+		}
+	}
+
+	public void addToCartRequested(List<String> recordIds, RecordVO cartVO) {
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(header.getCollection(), appLayerFactory);
+		Cart cart = rm.getOrCreateCart(getCurrentUser(), cartVO.getId());
+		addToCartRequested(recordIds, cart);
+	}
+
+	private void addFoldersToCart(String cartId, List<Folder> folders) {
+		if (rm.numberOfFoldersInFavoritesReachesLimit(cartId, folders.size())) {
+			showMessage($("DisplayFolderViewImpl.cartCannotContainMoreThanAThousandFolders"));
+		} else {
+			for (Folder folder : folders) {
+				folder.addFavorite(cartId);
+			}
+		}
+	}
+
+	private void addDocumentsToCart(String cartId, List<Document> documents) {
+		if (rm.numberOfDocumentsInFavoritesReachesLimit(cartId, documents.size())) {
+			showMessage($("DisplayDocumentView.cartCannotContainMoreThanAThousandDocuments"));
+		} else {
+			for (Document document : documents) {
+				document.addFavorite(cartId);
+			}
+		}
+	}
+
+	private void addContainersToCart(String cartId, List<ContainerRecord> containers) {
+		if (rm.numberOfContainersInFavoritesReachesLimit(cartId, containers.size())) {
+			showMessage($("DisplayContainerViewImpl.cartCannotContainMoreThanAThousandContainers"));
+		} else {
+			for (ContainerRecord container : containers) {
+				container.addFavorite(cartId);
+			}
 		}
 	}
 
@@ -883,5 +947,4 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
 		return modelLayerFactory.getSystemConfigs().getAutocompleteSize();
 	}
-
 }

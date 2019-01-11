@@ -14,10 +14,12 @@ import com.constellio.data.utils.BatchBuilderSearchResponseIterator;
 import com.constellio.data.utils.ThreadList;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.DataStoreField;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.collections.CollectionsListManagerRuntimeException.CollectionsListManagerRuntimeException_NoSuchCollection;
@@ -31,8 +33,12 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.QueryElevation.DocElevation;
 import com.constellio.model.services.search.entities.SearchBoost;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
-import com.constellio.model.services.search.query.logical.*;
+import com.constellio.model.services.search.query.logical.FieldLogicalSearchQuerySort;
+import com.constellio.model.services.search.query.logical.FunctionLogicalSearchQuerySort;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery.UserFilter;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuerySort;
+import com.constellio.model.services.search.query.logical.ScoreLogicalSearchQuerySort;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.condition.SolrQueryBuilderParams;
 import com.constellio.model.services.security.SecurityTokenManager;
@@ -49,7 +55,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -62,6 +67,7 @@ import java.util.Set;
 import static com.constellio.data.dao.services.cache.InsertionReason.WAS_OBTAINED;
 import static com.constellio.model.services.records.RecordUtils.splitByCollection;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
 
 public class SearchServices {
 
@@ -104,6 +110,7 @@ public class SearchServices {
 		this.collectionsListManager = modelLayerFactory.getCollectionsListManager();
 		this.metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
 		mainDataLanguage = modelLayerFactory.getConfiguration().getMainDataLanguage();
+
 		this.systemConfigs = modelLayerFactory.getSystemConfigs();
 		this.disconnectableRecordsCaches = recordsCaches;
 		this.modelLayerFactory = modelLayerFactory;
@@ -259,12 +266,7 @@ public class SearchServices {
 		querCompatibleWithCache.setNumberOfRows(100000);
 		querCompatibleWithCache.setReturnedMetadatas(ReturnedMetadatasFilter.all());
 
-		//final List<Record> original = search(query);
 		final List<Record> records = cachedSearch(querCompatibleWithCache);
-
-		//		if (original.size() != records.size()) {
-		//			System.out.println("different");
-		//		}
 
 		final Iterator<Record> nestedIterator = records.iterator();
 		return new SearchResponseIterator<Record>() {
@@ -311,15 +313,6 @@ public class SearchServices {
 			iterator.next();
 		}
 		return iterator;
-		//		ModifiableSolrParams params = addSolrModifiableParams(query);
-		//		final boolean fullyLoaded = query.getReturnedMetadatas().isFullyLoaded();
-		//		return new LazyResultsKeepingOrderIterator<Record>(recordDao, params, batchSize, skipping) {
-		//
-		//			@Override
-		//			public Record convert(RecordDTO recordDTO) {
-		//				return recordServices.toRecord(recordDTO, fullyLoaded);
-		//			}
-		//		};
 	}
 
 	public long getResultsCount(LogicalSearchCondition condition) {
@@ -381,15 +374,15 @@ public class SearchServices {
 		return getResultsCount(condition) != 0;
 	}
 
-	public String getLanguage(LogicalSearchQuery query) {
+	public List<String> getLanguages(LogicalSearchQuery query) {
 		if (query.getLanguage() != null) {
-			return query.getLanguage();
+			return getLanguageCodes(query.getCondition().getCollection());
 
 		} else if (query.getCondition().isCollectionSearch()) {
-			return getLanguageCode(query.getCondition().getCollection());
+			return getLanguageCodes(query.getCondition().getCollection());
 
 		} else {
-			return mainDataLanguage;
+			return Collections.singletonList(mainDataLanguage);
 		}
 	}
 
@@ -425,6 +418,22 @@ public class SearchServices {
 		return metadataSchemaTypes;
 	}
 
+	public List<String> getLanguageCodes(String collection) {
+		List<String> languages = new ArrayList<>();
+		try {
+			List<String> languageCodes = collectionsListManager.getCollectionLanguages(collection);
+			if (languageCodes == null || languageCodes.size() == 0) {
+				languages = Collections.singletonList(mainDataLanguage);
+			} else {
+				languages = Collections.unmodifiableList(languageCodes);
+			}
+		} catch (CollectionsListManagerRuntimeException_NoSuchCollection e) {
+			languages = Collections.singletonList(mainDataLanguage);
+		}
+		return languages;
+	}
+
+	@Deprecated
 	public String getLanguageCode(String collection) {
 		String language;
 		try {
@@ -459,8 +468,9 @@ public class SearchServices {
 
 		List<MetadataSchemaType> searchedSchemaTypes = getSearchedTypes(query, types);
 
-		String language = getLanguage(query);
-		params.add(CommonParams.FQ, "" + query.getQuery(language, types));
+		List<String> languages = getLanguages(query);
+		String queryLanguage = query.getLanguage() == null ? mainDataLanguage : query.getLanguage();
+		params.add(CommonParams.FQ, "" + query.getQuery(queryLanguage, types));
 
 		if (DataStore.RECORDS.equals(query.getDataStore()) || query.getDataStore() == null) {
 			if (query.isMoreLikeThis()) {
@@ -472,19 +482,23 @@ public class SearchServices {
 			}
 		}
 		if (query.getFreeTextQuery() != null) {
-			String qf = getQfFor(language, query.getFieldBoosts(), searchedSchemaTypes);
+			User user = null;
+			if (query.getUserFilters() != null && query.getUserFilters().size() > 0) {
+				user = query.getUserFilters().get(0).getUser();
+			}
+			String qf = getQfFor(languages, query.getLanguage(), query.getFieldBoosts(), searchedSchemaTypes, user);
 			params.add(DisMaxParams.QF, qf);
 			params.add(DisMaxParams.PF, qf);
 			if (systemConfigs.isReplaceSpacesInSimpleSearchForAnds()) {
 				int mm = calcMM(query.getFreeTextQuery());
 				params.add(DisMaxParams.MM, "" + mm);
-				if(systemConfigs.isRunningWithSolr6()) {
+				if (systemConfigs.isRunningWithSolr6()) {
 					params.add(DisMaxParams.MM, "1");
 					params.add("q.op", "AND");
 				}
 			} else {
 				params.add(DisMaxParams.MM, "1");
-				if(systemConfigs.isRunningWithSolr6()) {
+				if (systemConfigs.isRunningWithSolr6()) {
 					params.add("q.op", "OR");
 				}
 			}
@@ -495,24 +509,6 @@ public class SearchServices {
 				params.add(DisMaxParams.BQ, boost.getKey() + "^" + boost.getValue());
 			}
 		}
-
-		//		String userCondition = "";
-		//		if (query.getQueryCondition() != null) {
-		//			userCondition = " AND " + query.getQueryCondition().getSolrQuery(new SolrQueryBuilderParams(false, "?")) + " AND (";
-		//			if (query.getUserFilters() != null) {
-		//				if (!userCondition.endsWith("(")) {
-		//					userCondition += " OR ";
-		//				}
-		//				for (UserFilter userFilter : query.getUserFilters()) {
-		//					userCondition += userFilter.buildFQ(securityTokenManager);
-		//				}
-		//
-		//			}
-		//			if (userCondition.endsWith("(")) {
-		//				userCondition += "*:*";
-		//			}
-		//			userCondition += ")";
-		//		}
 
 		if (query.getUserFilters() != null) {
 			for (UserFilter userFilter : query.getUserFilters()) {
@@ -582,7 +578,9 @@ public class SearchServices {
 		if (query.isHighlighting() && types != null) {
 			HashSet<String> highligthedMetadatas = new HashSet<>();
 			for (Metadata metadata : types.getSearchableMetadatas()) {
-				highligthedMetadatas.add(metadata.getAnalyzedField(language).getDataStoreCode());
+				for (String language : languages) {
+					highligthedMetadatas.add(metadata.getAnalyzedField(language).getDataStoreCode());
+				}
 			}
 
 			params.add(HighlightParams.HIGHLIGHT, "true");
@@ -619,7 +617,7 @@ public class SearchServices {
 
 			List<String> moreLikeThisFields = query.getMoreLikeThisFields();
 			if (moreLikeThisFields.isEmpty()) {
-				moreLikeThisFields.addAll(Arrays.asList("content_txt_fr", "content_txt_en", "content_txt_ar"));
+				moreLikeThisFields.addAll(asList("content_txt_fr", "content_txt_en", "content_txt_ar"));
 			}
 
 			StringBuilder similarityFields = new StringBuilder();
@@ -753,36 +751,79 @@ public class SearchServices {
 	 * @return
 	 */
 	private int calcMM(String userQuery) {
-		HashSet queryTerms = new HashSet(Arrays.asList(StringUtils.split(StringUtils.lowerCase(userQuery))));
-		queryTerms.removeAll(Arrays.asList(STOP_WORDS_FR));
+		HashSet queryTerms = new HashSet(asList(StringUtils.split(StringUtils.lowerCase(userQuery))));
+		queryTerms.removeAll(asList(STOP_WORDS_FR));
 		return queryTerms.size();
 	}
 
-	private String getQfFor(String language, List<SearchBoost> boosts,
-							List<MetadataSchemaType> searchedSchemaTypes) {
+	String getQfFor(List<String> languages, String queryLanguage, List<SearchBoost> boosts,
+					List<MetadataSchemaType> searchedSchemaTypes, User user) {
 		StringBuilder sb = new StringBuilder();
 
 		Set<String> fields = new HashSet<>();
 
-		for (SearchBoost boost : boosts) {
-			sb.append(boost.getKey());
-			sb.append("^");
-			sb.append(boost.getValue());
-			sb.append(" ");
-			fields.add(boost.getKey());
+		List<String> localCodeWithNoAccess = new ArrayList<>();
+		List<String> dataFieldCodeWithNoAccess = new ArrayList<>();
+		if (user != null) {
+			for (MetadataSchemaType schemaType : searchedSchemaTypes) {
+				for (Metadata metadata : schemaType.getAllMetadatas()) {
+					if (!user.hasGlobalAccessToMetadata(metadata)) {
+						localCodeWithNoAccess.add(metadata.getLocalCode());
+						dataFieldCodeWithNoAccess.add(metadata.getDataStoreCode());
+					}
+				}
+			}
 		}
+
+		for (SearchBoost boost : boosts) {
+			String dataStoreValue;
+			int lastIndexOfSemiColumn = boost.getKey().lastIndexOf(":");
+
+			if (lastIndexOfSemiColumn == -1) {
+				dataStoreValue = boost.getKey();
+			} else {
+				dataStoreValue = boost.getKey().substring(0, lastIndexOfSemiColumn);
+			}
+
+			String[] dataStoreValueSplited = dataStoreValue.split("_");
+			dataStoreValue = dataStoreValueSplited[0] + "_" + dataStoreValueSplited[1];
+
+			if (!dataFieldCodeWithNoAccess.contains(dataStoreValue)) {
+				sb.append(boost.getKey());
+				sb.append("^");
+				sb.append(boost.getValue());
+				sb.append(" ");
+				fields.add(boost.getKey());
+			}
+		}
+
 
 		for (MetadataSchemaType schemaType : searchedSchemaTypes) {
 			for (Metadata metadata : schemaType.getAllMetadatas()) {
+				if (localCodeWithNoAccess.contains(metadata.getLocalCode())) {
+					continue;
+				}
+
 				if (metadata.isSearchable()) {
-					if (metadata.hasSameCode(Schemas.LEGACY_ID)) {
+					if (metadata.hasSameCode(Schemas.LEGACY_ID) && fields.add(Schemas.LEGACY_ID.getDataStoreCode())) {
 						sb.append(Schemas.LEGACY_ID.getDataStoreCode());
 						sb.append("^20 ");
 					} else {
-						String analyzedField = metadata.getAnalyzedField(metadata.isMultiLingual() ? language : mainDataLanguage)
-								.getDataStoreCode();
-						if (!fields.contains(analyzedField)) {
-							sb.append(analyzedField + " ");
+						if (metadata.getType() == MetadataValueType.CONTENT) {
+							for (String language : languages) {
+								String analyzedField = metadata.getAnalyzedField(language).getDataStoreCode();
+								if (!fields.contains(analyzedField)) {
+									sb.append(analyzedField + " ");
+									fields.add(analyzedField);
+								}
+							}
+						} else {
+							String analyzedField = metadata.getAnalyzedField(metadata.isMultiLingual() ? queryLanguage : mainDataLanguage).getDataStoreCode();
+							if (!fields.contains(analyzedField)) {
+								sb.append(analyzedField + " ");
+								fields.add(analyzedField);
+							}
+
 						}
 					}
 				}
@@ -792,6 +833,7 @@ public class SearchServices {
 		String idAnalyzedField = Schemas.IDENTIFIER.getAnalyzedField(mainDataLanguage).getDataStoreCode();
 		if (!fields.contains(idAnalyzedField)) {
 			sb.append(idAnalyzedField + " ");
+			fields.add(idAnalyzedField);
 		}
 		return sb.toString();
 	}

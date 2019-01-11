@@ -32,6 +32,7 @@ public class UpgradeAppRecoveryServiceImpl implements UpgradeAppRecoveryService 
 	private final File oldSetting;
 	private final ConfigManager configManager;
 	private final UpgradeAppRecoveryConfigManager upgradeAppRecoveryConfigManager;
+	public static boolean HAS_UPLOADED_A_WAR_SINCE_REBOOTING = false;
 
 	public UpgradeAppRecoveryServiceImpl(AppLayerFactory appLayerFactory, IOServices ioServices) {
 		this.appLayerFactory = appLayerFactory;
@@ -51,6 +52,7 @@ public class UpgradeAppRecoveryServiceImpl implements UpgradeAppRecoveryService 
 		SystemConfigurationsManager systemConfigurationsManager = appLayerFactory.getModelLayerFactory()
 				.getSystemConfigurationsManager();
 		systemConfigurationsManager.setValue(ConstellioEIMConfigs.IN_UPDATE_PROCESS, false);
+		HAS_UPLOADED_A_WAR_SINCE_REBOOTING = false;
 		pointToPreviousValidVersion();
 	}
 
@@ -81,6 +83,7 @@ public class UpgradeAppRecoveryServiceImpl implements UpgradeAppRecoveryService 
 		SystemConfigurationsManager systemConfigurationsManager = appLayerFactory.getModelLayerFactory()
 				.getSystemConfigurationsManager();
 		systemConfigurationsManager.setValue(ConstellioEIMConfigs.IN_UPDATE_PROCESS, false);
+		HAS_UPLOADED_A_WAR_SINCE_REBOOTING = false;
 	}
 
 	@Override
@@ -120,6 +123,7 @@ public class UpgradeAppRecoveryServiceImpl implements UpgradeAppRecoveryService 
 		SystemConfigurationsManager systemConfigurationsManager = appLayerFactory.getModelLayerFactory()
 				.getSystemConfigurationsManager();
 		systemConfigurationsManager.setValue(ConstellioEIMConfigs.IN_UPDATE_PROCESS, true);
+		HAS_UPLOADED_A_WAR_SINCE_REBOOTING = true;
 	}
 
 	@Override

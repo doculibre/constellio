@@ -71,7 +71,6 @@ public class ReindexingServicesOneSchemaWithMultipleSelfReferencesAcceptanceTest
 		prepareSystem(
 				withZeCollection().withAllTest(users)
 		);
-		getDataLayerFactory().getDataLayerLogger().logAllTransactions();
 		inCollection(zeCollection).giveWriteAccessTo(dakota);
 
 		recordServices = getModelLayerFactory().newRecordServices();

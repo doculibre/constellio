@@ -34,8 +34,6 @@ import static com.constellio.app.api.cmis.builders.object.AclBuilder.CMIS_WRITE;
 
 public class ConstellioCollectionRepositoryInfoManager {
 
-	private static final String ROOT_ID = "@root@";
-
 	private final String collection;
 	private final String constellioVersion;
 
@@ -64,7 +62,7 @@ public class ConstellioCollectionRepositoryInfoManager {
 		repositoryInfo.setProductVersion(constellioVersion);
 		repositoryInfo.setVendorName("DocuLibre");
 
-		repositoryInfo.setRootFolder(ROOT_ID);
+		repositoryInfo.setRootFolder(collection);
 
 		repositoryInfo.setThinClientUri("");
 		repositoryInfo.setChangesIncomplete(true);

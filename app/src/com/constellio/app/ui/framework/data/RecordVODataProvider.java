@@ -9,6 +9,7 @@ import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.SessionContextProvider;
+import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -74,12 +75,20 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 		init(ConstellioFactories.getInstance().getModelLayerFactory());
 	}
 
+	public SessionContext getSessionContext() {
+		return sessionContext;
+	}
+
 	void init(ModelLayerFactory modelLayerFactory) {
 		this.modelLayerFactory = modelLayerFactory;
 
 		query = getQuery();
 		query.setLanguage(sessionContext.getCurrentLocale());
 		cache = new HashMap<>();
+	}
+
+	public ModelLayerFactory getModelLayerFactory() {
+		return modelLayerFactory;
 	}
 
 	private List<RecordVOFilter> filters = new ArrayList<>();
@@ -106,7 +115,7 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 	}
 
 	protected void initializeQuery() {
-		query = getQuery();
+		query = getFilteredQuery();
 		query.setLanguage(sessionContext.getCurrentLocale());
 		size = null;
 		cache.clear();
@@ -153,6 +162,13 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 			recordList = searchServices.search(query, batchSize);
 		}
 		return recordList;
+	}
+
+	public SearchResponseIterator<Record> getIterator(){
+		query.setLanguage(sessionContext.getCurrentLocale());
+		SearchServices searchServices = getModelLayerFactory().newSearchServices();
+		SearchResponseIterator<Record> searchResponseIterator = searchServices.recordsIterator(query, batchSize);
+		return searchResponseIterator;
 	}
 
 	public int getBatchSize() {

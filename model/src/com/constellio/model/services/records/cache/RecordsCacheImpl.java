@@ -3,8 +3,8 @@ package com.constellio.model.services.records.cache;
 import com.constellio.data.dao.services.cache.InsertionReason;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.Group;
-import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -389,6 +389,13 @@ public class RecordsCacheImpl implements RecordsCache {
 						if (cacheConfig.isPermanent() && insertionReason == WAS_MODIFIED) {
 							permanentCaches.get(cacheConfig.getSchemaType()).queryResults.clear();
 						}
+
+					} else if (previousRecord.getVersion() == recordCopy.getVersion()) {
+						if (cacheConfig.isPermanent() && insertionReason == WAS_MODIFIED) {
+							permanentCaches.get(cacheConfig.getSchemaType()).queryResults.clear();
+						}
+						return REFUSED_OLD_VERSION;
+
 					} else {
 						return REFUSED_OLD_VERSION;
 					}
@@ -535,7 +542,7 @@ public class RecordsCacheImpl implements RecordsCache {
 					.getSchemaTypes(collection).getSchemaType(cacheConfig.getSchemaType());
 			long resultCount = searchServices.getResultsCount(from(schemaType).returnAll());
 			if (resultCount > 0 && (resultCount < 10000 || asList(User.SCHEMA_TYPE,
-					Group.SCHEMA_TYPE, SolrAuthorizationDetails.SCHEMA_TYPE).contains(cacheConfig.getSchemaType()))) {
+					Group.SCHEMA_TYPE, Authorization.SCHEMA_TYPE).contains(cacheConfig.getSchemaType()))) {
 
 				LOGGER.info("Loading cache of type '" + cacheConfig.getSchemaType() + "' of collection '" + collection + "'");
 				searchServices.getAllRecords(schemaType);
@@ -676,7 +683,6 @@ public class RecordsCacheImpl implements RecordsCache {
 			if (invalidationMethod == VolatileCacheInvalidationMethod.LRU) {
 				if (holder != null && holder.getCopy() != null && holder.getCopy().getTypeCode() != null
 					&& holder.getCopy().getTypeCode().equals("savedSearch")) {
-					System.out.println("hit on savedSearch " + holder.getCopy().getId());
 				}
 
 				if (holder.volatileCacheOccurences <= 2) {

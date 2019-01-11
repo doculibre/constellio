@@ -24,7 +24,9 @@ import com.constellio.model.entities.schemas.MetadataNetworkLink;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.entries.AggregatedDataEntry;
 import com.constellio.model.entities.schemas.entries.AggregatedValuesEntry;
+import com.constellio.model.entities.schemas.entries.DataEntry;
 import com.constellio.model.entities.schemas.entries.InMemoryAggregatedValuesParams;
 import com.constellio.model.services.background.RecordsReindexingBackgroundAction;
 import com.constellio.model.services.batch.actions.ReindexMetadatasBatchProcessAction;
@@ -64,7 +66,11 @@ import java.util.List;
 import java.util.Map;
 
 import static com.constellio.model.conf.FoldersLocatorMode.PROJECT;
+import static com.constellio.model.entities.enums.MemoryConsumptionLevel.LEAST_MEMORY_CONSUMPTION;
+import static com.constellio.model.entities.enums.MemoryConsumptionLevel.LESS_MEMORY_CONSUMPTION;
 import static com.constellio.model.entities.schemas.Schemas.SCHEMA;
+import static com.constellio.model.entities.schemas.entries.AggregationType.REFERENCE_COUNT;
+import static com.constellio.model.entities.schemas.entries.DataEntryType.AGGREGATED;
 import static com.constellio.model.services.migrations.ConstellioEIMConfigs.WRITE_ZZRECORDS_IN_TLOG;
 import static com.constellio.model.services.records.BulkRecordTransactionImpactHandling.NO_IMPACT_HANDLING;
 import static com.constellio.model.services.records.RecordUtils.removeMetadataValuesOn;
@@ -94,7 +100,19 @@ public class ReindexingServices {
 		this.recordServices = modelLayerFactory.newRecordServices();
 		this.dataLayerFactory = modelLayerFactory.getDataLayerFactory();
 		this.logManager = dataLayerFactory.getSecondTransactionLogManager();
-		this.mainThreadQueryRows = modelLayerFactory.getConfiguration().getReindexingQueryBatchSize();
+
+		if (modelLayerFactory.getSystemConfigs().getMemoryConsumptionLevel() == LEAST_MEMORY_CONSUMPTION) {
+			this.mainThreadQueryRows = 50;
+
+		} else if (modelLayerFactory.getSystemConfigs().getMemoryConsumptionLevel() == LESS_MEMORY_CONSUMPTION) {
+			this.mainThreadQueryRows = 100;
+
+			//		} else if (modelLayerFactory.getSystemConfigs().getMemoryConsumptionLevel() == NORMAL) {
+			//			this.mainThreadQueryRows = 1000;
+
+		} else {
+			this.mainThreadQueryRows = modelLayerFactory.getConfiguration().getReindexingQueryBatchSize();
+		}
 	}
 
 	public static SystemReindexingInfos getReindexingInfos() {
@@ -288,7 +306,17 @@ public class ReindexingServices {
 			} else {
 				int batchSize = params.getBatchSize();
 				if (batchSize == 0) {
-					batchSize = modelLayerFactory.getConfiguration().getReindexingThreadBatchSize();
+
+					if (modelLayerFactory.getSystemConfigs().getMemoryConsumptionLevel() == LEAST_MEMORY_CONSUMPTION) {
+						batchSize = 20;
+
+					} else if (modelLayerFactory.getSystemConfigs().getMemoryConsumptionLevel() == LESS_MEMORY_CONSUMPTION) {
+						batchSize = 20;
+
+					} else {
+						batchSize = modelLayerFactory.getConfiguration().getReindexingThreadBatchSize();
+					}
+
 				}
 				options.withRecordsPerBatch(batchSize);
 			}
@@ -447,12 +475,16 @@ public class ReindexingServices {
 						List<String> referencedRecordIds = record.getValues(refMetadata);
 
 						for (String referencedRecordId : referencedRecordIds) {
-							aggregatedValuesTempStorage.incrementReferenceCount(referencedRecordId);
 							for (MetadataNetworkLink link : links) {
+								DataEntry dataEntry = link.getFromMetadata().getDataEntry();
+								if (dataEntry.getType() == AGGREGATED &&
+									((AggregatedDataEntry) dataEntry).getAgregationType().equals(REFERENCE_COUNT)) {
+									String aggregatedMetadataLocalCode = link.getFromMetadata().getLocalCode();
+									aggregatedValuesTempStorage.incrementReferenceCount(referencedRecordId, aggregatedMetadataLocalCode);
+								}
 								aggregatedValuesTempStorage.addOrReplace(referencedRecordId, record.getId(),
 										link.getToMetadata().getLocalCode(), record.getValues(link.getToMetadata()));
 							}
-
 						}
 					}
 				} else {
@@ -512,7 +544,7 @@ public class ReindexingServices {
 
 	}
 
-	private boolean updateAggregatedMetadata(final Record record, Metadata aggregatingMetadata,
+	private boolean updateAggregatedMetadata(final Record record, final Metadata aggregatingMetadata,
 											 final ReindexingAggregatedValuesTempStorage aggregatedValuesTempStorage) {
 
 		final MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(record.getCollection());
@@ -540,7 +572,7 @@ public class ReindexingServices {
 
 			@Override
 			public int getReferenceCount() {
-				return aggregatedValuesTempStorage.getReferenceCount(record.getId());
+				return aggregatedValuesTempStorage.getReferenceCount(record.getId(), aggregatingMetadata.getLocalCode());
 			}
 		};
 		Object aggregatedValue = handler.calculate(params);

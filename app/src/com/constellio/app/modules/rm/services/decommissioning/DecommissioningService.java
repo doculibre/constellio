@@ -15,6 +15,7 @@ import com.constellio.app.modules.rm.model.enums.OriginStatus;
 import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
+import com.constellio.app.modules.rm.services.decommissioning.DecommissioningServiceException.DecommissioningServiceException_TooMuchOptimisticLockingWhileAttemptingToDecommission;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
@@ -275,12 +276,44 @@ public class DecommissioningService {
 		return securityService().canValidate(decommissioningList, user);
 	}
 
-	public void approveList(DecommissioningList decommissioningList, User user) {
-		decommissioner(decommissioningList).approve(decommissioningList, user, TimeProvider.getLocalDate());
+	public void approveList(DecommissioningList decommissioningList, User user) throws DecommissioningServiceException {
+		approveList(decommissioningList, user, 0);
 	}
 
-	public void denyApprovalOnList(DecommissioningList decommissioningList, User denier, String comment) {
-		decommissioner(decommissioningList).denyApproval(decommissioningList, denier, comment);
+	public void approveList(DecommissioningList decommissioningList, User user, int attempt)
+			throws DecommissioningServiceException {
+
+		try {
+			decommissioner(decommissioningList).approve(decommissioningList, user, TimeProvider.getLocalDate());
+
+		} catch (RecordServicesException.OptimisticLocking e) {
+			if (attempt < 3) {
+				LOGGER.warn("Operation failed, retrying...", e);
+				approveList(rm.getDecommissioningList(decommissioningList.getId()), user, attempt + 1);
+			} else {
+				throw new DecommissioningServiceException_TooMuchOptimisticLockingWhileAttemptingToDecommission();
+			}
+		}
+	}
+
+	public void denyApprovalOnList(DecommissioningList decommissioningList, User denier, String comment)
+			throws DecommissioningServiceException {
+		denyApprovalOnList(decommissioningList, denier, comment, 0);
+	}
+
+	public void denyApprovalOnList(DecommissioningList decommissioningList, User denier, String comment, int attempt)
+			throws DecommissioningServiceException {
+		try {
+
+			decommissioner(decommissioningList).denyApproval(decommissioningList, denier, comment);
+		} catch (RecordServicesException.OptimisticLocking e) {
+			if (attempt < 3) {
+				LOGGER.warn("Operation failed, retrying...", e);
+				denyApprovalOnList(rm.getDecommissioningList(decommissioningList.getId()), denier, comment, attempt + 1);
+			} else {
+				throw new DecommissioningServiceException_TooMuchOptimisticLockingWhileAttemptingToDecommission();
+			}
+		}
 	}
 
 	public void approvalRequest(List<User> managerList, DecommissioningList decommissioningList, User approvalUser)
@@ -413,8 +446,33 @@ public class DecommissioningService {
 		return returnAddresses;
 	}
 
-	public void decommission(DecommissioningList decommissioningList, User user) {
-		decommissioner(decommissioningList).process(decommissioningList, user, TimeProvider.getLocalDate());
+	public void decommission(DecommissioningList decommissioningList, User user)
+			throws DecommissioningServiceException {
+
+		decommission(decommissioningList, user, 0);
+	}
+
+	public void decommission(DecommissioningList decommissioningList, User user, int attempt)
+			throws DecommissioningServiceException {
+
+		try {
+			decommissioner(decommissioningList).process(decommissioningList, user, TimeProvider.getLocalDate());
+
+		} catch (RecordServicesException.OptimisticLocking e) {
+			modelLayerFactory.getRecordsCaches().getCache(decommissioningList.getCollection())
+					.invalidateRecordsOfType(Folder.SCHEMA_TYPE);
+
+			modelLayerFactory.getRecordsCaches().getCache(decommissioningList.getCollection())
+					.invalidateRecordsOfType(ContainerRecord.SCHEMA_TYPE);
+
+			if (attempt < 3) {
+				LOGGER.warn("Decommission failed, retrying...", e);
+				decommission(rm.getDecommissioningList(decommissioningList.getId()), user, attempt + 1);
+			} else {
+				throw new DecommissioningServiceException_TooMuchOptimisticLockingWhileAttemptingToDecommission();
+			}
+		}
+
 	}
 
 	public void recycleContainer(ContainerRecord container, User user) {
@@ -815,6 +873,13 @@ public class DecommissioningService {
 		return duplicatedFolder;
 	}
 
+	public void validateDuplicateStructure(Folder folder, User currentUser, boolean forceTitleDuplication)
+			throws RecordServicesException {
+		Transaction transaction = new Transaction();
+		Folder duplicatedFolder = duplicateStructureAndAddToTransaction(folder, currentUser, transaction, forceTitleDuplication);
+		recordServices.prepareRecords(transaction);
+	}
+
 	public Folder duplicateStructureAndDocuments(Folder folder, User currentUser, boolean forceTitleDuplication) {
 
 		Transaction transaction = new Transaction();
@@ -1044,7 +1109,7 @@ public class DecommissioningService {
 
 	private void delete(Record record, String reason, boolean physically, User user) {
 		boolean putFirstInTrash = putFirstInTrash(record);
-		if (recordServices.isLogicallyThenPhysicallyDeletable(record, user) || putFirstInTrash) {
+		if (recordServices.validateLogicallyThenPhysicallyDeletable(record, user).isEmpty() || putFirstInTrash) {
 			recordServices.logicallyDelete(record, user);
 			modelLayerFactory.newLoggingServices().logDeleteRecordWithJustification(record, user, reason);
 			if (physically && !putFirstInTrash) {
