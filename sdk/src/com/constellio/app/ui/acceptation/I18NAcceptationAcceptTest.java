@@ -36,6 +36,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
+import static org.junit.Assume.assumeTrue;
 
 public class I18NAcceptationAcceptTest extends ConstellioTest {
 
@@ -61,6 +62,7 @@ public class I18NAcceptationAcceptTest extends ConstellioTest {
 		assertThat(i18n.getDefaultBundle()).extracting("bundleName")
 				.containsOnly("baseView", "imports", "managementViews", "model", "schemasManagementViews", "search", "security", "usersAndGroupsManagementViews", "userViews", "webservices", "i18n", "i18n", "audits", "decommissioningViews", "demo", "foldersAndDocuments", "managementViews", "model", "reports", "storageAndContainers", "userViews", "i18n", "model", "views", "workflowBeta");
 	}
+
 	@Test
 	public void whenDetectDuplicatedKeyThenReturnTrue() {
 		givenEnglishSystem();
@@ -200,12 +202,21 @@ public class I18NAcceptationAcceptTest extends ConstellioTest {
 	@Test
 	public void ensureArabicAndFrenchLanguageFilesHaveSameKeys()
 			throws Exception {
+		assumeArabicLabelsValidated();
 		ListComparisonResults<String> results = CompareI18nKeys.compare(Language.Arabic);
 
 		if (!results.getNewItems().isEmpty() || !results.getRemovedItems().isEmpty()) {
 			String comparisonMessage = CompareI18nKeys.getComparisonMessage(Language.Arabic, results);
 			fail("Missing i18n keys\n" + comparisonMessage);
 		}
+	}
+
+	protected void assumeArabicLabelsValidated() {
+		assumeTrue("Arabic i18n validations are disabled, set 'skip.arabicI18nTests=false' in sdk.properties to enable them", areArabicI18nValidationsEnabled());
+	}
+
+	protected boolean areArabicI18nValidationsEnabled() {
+		return "false".equalsIgnoreCase(getCurrentTestSession().getProperty("skip.arabicI18nTests"));
 	}
 
 	private void givenEnglishSystem() {
