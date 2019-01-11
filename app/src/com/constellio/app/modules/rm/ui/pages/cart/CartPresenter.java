@@ -133,19 +133,17 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	}
 
 	private void removeFromFavorite(Record record) {
-		switch (record.getSchemaCode()) {
-			case Folder.DEFAULT_SCHEMA:
+		String schemaCode = record.getSchemaCode();
+
+		if (schemaCode.startsWith(Folder.SCHEMA_TYPE)) {
 				Folder folder = rm().wrapFolder(record);
 				folder.removeFavorite(cartId);
-				break;
-			case Document.DEFAULT_SCHEMA:
+		} else if (schemaCode.startsWith(Document.SCHEMA_TYPE)) {
 				Document document = rm().wrapDocument(record);
 				document.removeFavorite(cartId);
-				break;
-			case ContainerRecord.DEFAULT_SCHEMA:
+		} else if (schemaCode.startsWith(ContainerRecord.SCHEMA_TYPE)) {
 				ContainerRecord containerRecord = rm().wrapContainerRecord(record);
 				containerRecord.removeFavorite(cartId);
-				break;
 		}
 	}
 
