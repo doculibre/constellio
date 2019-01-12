@@ -61,6 +61,7 @@ import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import org.apache.solr.common.params.ModifiableSolrParams;
@@ -247,10 +248,8 @@ public class ContentManager implements StatefulService {
 		for (VaultScanReport report : reportList) {
 			report.set(VaultScanReport.MESSAGE, vaultScanResults.getReportMessage());
 			report.set(VaultScanReport.NUMBER_OF_DELETED_CONTENTS, vaultScanResults.getNumberOfDeletedContents());
+			recordServices.add(report);
 		}
-		Transaction transaction = new Transaction();
-		transaction.addAll(reportList);
-		recordServices.execute(transaction);
 	}
 
 	private void createContentScanLockFile() throws IOException {
@@ -639,7 +638,8 @@ public class ContentManager implements StatefulService {
 		}
 
 		SearchResponseIterator<Record> recordsIterator =
-				searchServices.recordsIterator(new LogicalSearchQuery(condition));
+				searchServices.recordsIterator(new LogicalSearchQuery(condition)
+				.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(contentMetadatas)));
 		while (recordsIterator.hasNext()) {
 			Record record = recordsIterator.next();
 			for (Metadata metadata : contentMetadatas) {
@@ -1122,7 +1122,7 @@ public class ContentManager implements StatefulService {
 		}
 	}
 
-	private class VaultScanResults {
+	public static class VaultScanResults {
 		private StringBuilder reportMessage = new StringBuilder();
 		private int numberOfDeletedContents = 0;
 
