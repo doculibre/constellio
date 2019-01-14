@@ -43,6 +43,7 @@ public class ClassificationPlanReportPresenter {
 	private RMSchemasRecordsServices rm;
 	private Locale locale;
 	private List<String> categoryList;
+	private boolean showDeactivated = true;
 
 	public ClassificationPlanReportPresenter(String collection, ModelLayerFactory modelLayerFactory, Locale locale) {
 		this(collection, modelLayerFactory, false, locale);
@@ -50,12 +51,13 @@ public class ClassificationPlanReportPresenter {
 
 	public ClassificationPlanReportPresenter(String collection, ModelLayerFactory modelLayerFactory, boolean detailed,
 			Locale locale) {
-		this(collection, modelLayerFactory, detailed, null, locale, null);
+		this(collection, modelLayerFactory, detailed, null, locale, null, true);
 	}
 
 	public ClassificationPlanReportPresenter(String collection, ModelLayerFactory modelLayerFactory, boolean detailed,
-			String administrativeUnitId, Locale locale, List<String> categoryList) {
+			String administrativeUnitId, Locale locale, List<String> categoryList, boolean showDeactivated) {
 
+		this.showDeactivated = showDeactivated;
 		this.collection = collection;
 		this.modelLayerFactory = modelLayerFactory;
 		this.detailed = (detailed || StringUtils.isNotBlank(administrativeUnitId) ? true : false);
@@ -100,7 +102,7 @@ public class ClassificationPlanReportPresenter {
 
 				for (Record categoryRecord : categoryRecords) {
 					Category recordCategory = new Category(categoryRecord, types, locale);
-					if (recordCategory != null) {
+					if (recordCategory != null && isCategoryShown(recordCategory)) {
 						ClassificationPlanReportModel_Category modelCategory = new ClassificationPlanReportModel_Category();
 
 						String code = StringUtils.defaultString(recordCategory.getCode());
@@ -140,7 +142,7 @@ public class ClassificationPlanReportPresenter {
 						if (record != null && ((categoryList != null && categoryList.contains(record.getId())) || categoryList == null || categoryList.isEmpty())) {
 							Category recordCategory = new Category(record, types, locale);
 
-							if (recordCategory != null) {
+							if (recordCategory != null  && (isCategoryShown(recordCategory))) {
 								ClassificationPlanReportModel_Category modelCategory = new ClassificationPlanReportModel_Category();
 
 								String code = StringUtils.defaultString(recordCategory.getCode());
@@ -163,6 +165,13 @@ public class ClassificationPlanReportPresenter {
 		}
 
 		return model;
+	}
+
+	private boolean isCategoryShown(Category category) {
+		Boolean deactivated = category.get(Category.DEACTIVATE);
+
+		return showDeactivated ||  Boolean.FALSE.equals(
+				deactivated) || deactivated  == null;
 	}
 
 	private void init() {
@@ -188,7 +197,7 @@ public class ClassificationPlanReportPresenter {
 						if (childRecord != null) {
 							Category recordCategory = new Category(childRecord, types, locale);
 
-							if (recordCategory != null) {
+							if (recordCategory != null  && (isCategoryShown(recordCategory))) {
 								ClassificationPlanReportModel_Category modelCategory = new ClassificationPlanReportModel_Category();
 
 								String categoryCode = StringUtils.defaultString(recordCategory.getCode());
