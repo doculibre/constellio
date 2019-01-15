@@ -78,7 +78,8 @@ public class RMConfigs {
 			COPY_RULES_ALWAYS_VISIBLE_IN_ADD_FORM,
 			NEED_REASON_BEFORE_DELETING_FOLDERS,
 			IS_DECOMMISSIONING_TYPE_REQUIRED_IN_CONTAINERS,
-			DEPOSIT_AND_DESTRUCTION_DATES_BASED_ON_ACTUAL_TRANSFER_DATE;
+			DEPOSIT_AND_DESTRUCTION_DATES_BASED_ON_ACTUAL_TRANSFER_DATE,
+			DECOMMISSIONING_LIST_WITH_SELECTED_FOLDERS;
 
 	// Category configs
 	public static final SystemConfiguration LINKABLE_CATEGORY_MUST_NOT_BE_ROOT, LINKABLE_CATEGORY_MUST_HAVE_APPROVED_RULES;
@@ -302,6 +303,8 @@ public class RMConfigs {
 				.createBooleanTrueByDefault("depositAndDestructionDatesBasedOnActualTransferDate").withReIndexionRequired());
 
 		add(NEED_REASON_BEFORE_DELETING_FOLDERS = others.createBooleanTrueByDefault("needReasonBeforeDeletingFolders"));
+
+		add(DECOMMISSIONING_LIST_WITH_SELECTED_FOLDERS = decommissioning.createBooleanFalseByDefault("decommissioningListWithSelectedFolders"));
 
 	}
 
@@ -569,6 +572,10 @@ public class RMConfigs {
 
 	public boolean isDepositAndDestructionDatesBasedOnActualTransferDate() {
 		return manager.getValue(DEPOSIT_AND_DESTRUCTION_DATES_BASED_ON_ACTUAL_TRANSFER_DATE);
+	}
+
+	public boolean isDecommissioningListWithSelectedFolders() {
+		return manager.getValue(DECOMMISSIONING_LIST_WITH_SELECTED_FOLDERS);
 	}
 
 }

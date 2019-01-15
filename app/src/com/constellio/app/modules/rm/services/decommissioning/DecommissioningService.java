@@ -142,10 +142,10 @@ public class DecommissioningService {
 				folders.addAll(getFoldersInContainers(containers));
 				folders = LangUtils.withoutDuplicates(folders);
 			}
-			decommissioningList.setFolderDetailsFor(folders);
+			decommissioningList.setFolderDetailsFor(folders, params.getFolderDetailStatus());
 			decommissioningList.setContainerDetailsFrom(containers);
 		} else {
-			decommissioningList.setFolderDetailsFor(rm.getFolders(recordIds));
+			decommissioningList.setFolderDetailsFor(rm.getFolders(recordIds), params.getFolderDetailStatus());
 			decommissioningList.setContainerDetailsFrom(getContainersOfFolders(recordIds));
 		}
 
