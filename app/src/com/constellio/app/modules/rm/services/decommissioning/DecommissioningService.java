@@ -216,7 +216,7 @@ public class DecommissioningService {
 				   !configs.isApprovalRequiredForDepositOfSemiActive();
 		}
 		if (decommissioningList.getDecommissioningListType().isDestroyal()) {
-			return decommissioningList.isFromActive() ?
+  			return decommissioningList.isFromActive() ?
 				   !configs.isApprovalRequiredForDestructionOfActive() :
 				   !configs.isApprovalRequiredForDestructionOfSemiActive();
 		}

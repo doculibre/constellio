@@ -962,11 +962,16 @@ public class RecordImpl implements Record {
 	public void markAsSaved(long version, MetadataSchema schema) {
 		ensureModifiable();
 		if (!isSaved()) {
+			if (lastCreatedRecordDTO == null) {
+				//This should never happen
+				lastCreatedRecordDTO = toNewDocumentDTO(schema, new ArrayList<FieldsPopulator>()).withVersion(version);
+			}
 			RecordDTO dto = lastCreatedRecordDTO.withVersion(version);
 			refresh(version, dto);
 
 		} else {
 			if (lastCreatedDeltaDTO == null) {
+				//This should never happen
 				lastCreatedDeltaDTO = toRecordDeltaDTO(schema, new ArrayList<FieldsPopulator>());
 			}
 

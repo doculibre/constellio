@@ -27,7 +27,7 @@ public class EnumWithSmallCodeToCaptionConverter implements Converter<String, St
 			throws com.vaadin.data.util.converter.Converter.ConversionException {
 		String caption;
 		if (StringUtils.isNotBlank(value)) {
-			caption = $(enumWithSmallCodeClass.getSimpleName() + "." + value);
+			caption = $(enumWithSmallCodeClass.getSimpleName() + "." + value, locale);
 		} else {
 			caption = "";
 		}

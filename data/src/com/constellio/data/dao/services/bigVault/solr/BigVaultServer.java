@@ -31,7 +31,9 @@ import org.apache.solr.client.solrj.util.ClientUtils;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.SolrInputDocument;
+import org.apache.solr.common.params.CommonParams;
 import org.apache.solr.common.params.ModifiableSolrParams;
+import org.apache.solr.common.params.MoreLikeThisParams;
 import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.common.params.UpdateParams;
 import org.apache.solr.common.util.NamedList;
@@ -98,7 +100,8 @@ public class BigVaultServer implements Cloneable {
 		}
 		this.listeners.add(listener);
 	}
-	public  String getVersion() {
+
+	public String getVersion() {
 		SolrRequest request = new GenericSolrRequest(SolrRequest.METHOD.GET, "/admin/system", new ModifiableSolrParams());
 		try {
 			NamedList<Object> response = server.request(request);
@@ -723,5 +726,24 @@ public class BigVaultServer implements Cloneable {
 
 	public void unregisterAllListeners() {
 		this.listeners.clear();
+	}
+
+	public boolean isMLTAvailable() {
+		ModifiableSolrParams params = new ModifiableSolrParams();
+		params.set("mlt", "true");
+		params.set("mlt.count", "1");
+		params.set("q", "id:the_private_key");
+		params.set("mlt.fl", "value_s");
+		params.add(MoreLikeThisParams.MIN_DOC_FREQ, "0");
+		params.add(MoreLikeThisParams.MIN_TERM_FREQ, "0");
+		params.add(CommonParams.QT, "/mlt");
+		try {
+			QueryResponse response = server.query(params);
+			return response.getResponse().get("response") != null && response.getResponse().get("match") != null;
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+			return false;
+		}
 	}
 }

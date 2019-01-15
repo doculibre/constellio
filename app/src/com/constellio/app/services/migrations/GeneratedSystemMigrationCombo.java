@@ -4,6 +4,9 @@ import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionB
 import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
 import com.constellio.model.entities.schemas.MetadataTransiency;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import com.constellio.model.services.security.roles.RolesManager;
 import java.util.ArrayList;
 import static com.constellio.data.utils.HashMapBuilder.stringObjectMap;
@@ -376,6 +379,10 @@ public final class GeneratedSystemMigrationCombo {
     capsule_errorOnPhysicalDeletion.setSystemReserved(true);
     capsule_errorOnPhysicalDeletion.setUndeletable(true);
     capsule_errorOnPhysicalDeletion.setMultiLingual(false);
+    MetadataBuilder capsule_estimatedSize = capsuleSchema.create("estimatedSize").setType(MetadataValueType.INTEGER);
+    capsule_estimatedSize.setSystemReserved(true);
+    capsule_estimatedSize.setUndeletable(true);
+    capsule_estimatedSize.setMultiLingual(false);
     MetadataBuilder capsule_html = capsuleSchema.create("html").setType(MetadataValueType.TEXT);
     MetadataBuilder capsule_id = capsuleSchema.create("id").setType(MetadataValueType.STRING);
     capsule_id.setDefaultRequirement(true);
@@ -549,6 +556,10 @@ public final class GeneratedSystemMigrationCombo {
     collection_errorOnPhysicalDeletion.setSystemReserved(true);
     collection_errorOnPhysicalDeletion.setUndeletable(true);
     collection_errorOnPhysicalDeletion.setMultiLingual(false);
+    MetadataBuilder collection_estimatedSize = collectionSchema.create("estimatedSize").setType(MetadataValueType.INTEGER);
+    collection_estimatedSize.setSystemReserved(true);
+    collection_estimatedSize.setUndeletable(true);
+    collection_estimatedSize.setMultiLingual(false);
     MetadataBuilder collection_id = collectionSchema.create("id").setType(MetadataValueType.STRING);
     collection_id.setDefaultRequirement(true);
     collection_id.setSystemReserved(true);
@@ -721,6 +732,10 @@ public final class GeneratedSystemMigrationCombo {
     printable_errorOnPhysicalDeletion.setSystemReserved(true);
     printable_errorOnPhysicalDeletion.setUndeletable(true);
     printable_errorOnPhysicalDeletion.setMultiLingual(false);
+    MetadataBuilder printable_estimatedSize = printableSchema.create("estimatedSize").setType(MetadataValueType.INTEGER);
+    printable_estimatedSize.setSystemReserved(true);
+    printable_estimatedSize.setUndeletable(true);
+    printable_estimatedSize.setMultiLingual(false);
     MetadataBuilder printable_id = printableSchema.create("id").setType(MetadataValueType.STRING);
     printable_id.setDefaultRequirement(true);
     printable_id.setSystemReserved(true);
@@ -907,6 +922,10 @@ public final class GeneratedSystemMigrationCombo {
     thesaurusConfig_errorOnPhysicalDeletion.setSystemReserved(true);
     thesaurusConfig_errorOnPhysicalDeletion.setUndeletable(true);
     thesaurusConfig_errorOnPhysicalDeletion.setMultiLingual(false);
+    MetadataBuilder thesaurusConfig_estimatedSize = thesaurusConfigSchema.create("estimatedSize").setType(MetadataValueType.INTEGER);
+    thesaurusConfig_estimatedSize.setSystemReserved(true);
+    thesaurusConfig_estimatedSize.setUndeletable(true);
+    thesaurusConfig_estimatedSize.setMultiLingual(false);
     MetadataBuilder thesaurusConfig_id = thesaurusConfigSchema.create("id").setType(MetadataValueType.STRING);
     thesaurusConfig_id.setDefaultRequirement(true);
     thesaurusConfig_id.setSystemReserved(true);
@@ -1079,6 +1098,10 @@ public final class GeneratedSystemMigrationCombo {
     savedSearch_errorOnPhysicalDeletion.setSystemReserved(true);
     savedSearch_errorOnPhysicalDeletion.setUndeletable(true);
     savedSearch_errorOnPhysicalDeletion.setMultiLingual(false);
+    MetadataBuilder savedSearch_estimatedSize = savedSearchSchema.create("estimatedSize").setType(MetadataValueType.INTEGER);
+    savedSearch_estimatedSize.setSystemReserved(true);
+    savedSearch_estimatedSize.setUndeletable(true);
+    savedSearch_estimatedSize.setMultiLingual(false);
     MetadataBuilder savedSearch_facetSelections = savedSearchSchema.create("facetSelections").setType(MetadataValueType.STRUCTURE);
     savedSearch_facetSelections.setMultivalue(true);
     savedSearch_facetSelections.setUndeletable(true);
@@ -1286,6 +1309,10 @@ public final class GeneratedSystemMigrationCombo {
     authorizationDetails_errorOnPhysicalDeletion.setSystemReserved(true);
     authorizationDetails_errorOnPhysicalDeletion.setUndeletable(true);
     authorizationDetails_errorOnPhysicalDeletion.setMultiLingual(false);
+    MetadataBuilder authorizationDetails_estimatedSize = authorizationDetailsSchema.create("estimatedSize").setType(MetadataValueType.INTEGER);
+    authorizationDetails_estimatedSize.setSystemReserved(true);
+    authorizationDetails_estimatedSize.setUndeletable(true);
+    authorizationDetails_estimatedSize.setMultiLingual(false);
     MetadataBuilder authorizationDetails_id = authorizationDetailsSchema.create("id").setType(MetadataValueType.STRING);
     authorizationDetails_id.setDefaultRequirement(true);
     authorizationDetails_id.setSystemReserved(true);
@@ -1480,6 +1507,10 @@ public final class GeneratedSystemMigrationCombo {
     userDocument_errorOnPhysicalDeletion.setSystemReserved(true);
     userDocument_errorOnPhysicalDeletion.setUndeletable(true);
     userDocument_errorOnPhysicalDeletion.setMultiLingual(false);
+    MetadataBuilder userDocument_estimatedSize = userDocumentSchema.create("estimatedSize").setType(MetadataValueType.INTEGER);
+    userDocument_estimatedSize.setSystemReserved(true);
+    userDocument_estimatedSize.setUndeletable(true);
+    userDocument_estimatedSize.setMultiLingual(false);
     MetadataBuilder userDocument_formCreatedOn = userDocumentSchema.create("formCreatedOn").setType(MetadataValueType.DATE_TIME);
     MetadataBuilder userDocument_formModifiedOn = userDocumentSchema.create("formModifiedOn").setType(MetadataValueType.DATE_TIME);
     MetadataBuilder userDocument_id = userDocumentSchema.create("id").setType(MetadataValueType.STRING);
@@ -1669,6 +1700,10 @@ public final class GeneratedSystemMigrationCombo {
     task_errorOnPhysicalDeletion.setSystemReserved(true);
     task_errorOnPhysicalDeletion.setUndeletable(true);
     task_errorOnPhysicalDeletion.setMultiLingual(false);
+    MetadataBuilder task_estimatedSize = taskSchema.create("estimatedSize").setType(MetadataValueType.INTEGER);
+    task_estimatedSize.setSystemReserved(true);
+    task_estimatedSize.setUndeletable(true);
+    task_estimatedSize.setMultiLingual(false);
     MetadataBuilder task_finishedBy = taskSchema.create("finishedBy").setType(MetadataValueType.REFERENCE);
     task_finishedBy.setUndeletable(true);
     task_finishedBy.defineReferencesTo(types.getSchemaType("user"));
@@ -1803,6 +1838,7 @@ public final class GeneratedSystemMigrationCombo {
     MetadataBuilder task_approval_detachedauthorizations = task_approvalSchema.get("detachedauthorizations");
     MetadataBuilder task_approval_dueDate = task_approvalSchema.get("dueDate");
     MetadataBuilder task_approval_errorOnPhysicalDeletion = task_approvalSchema.get("errorOnPhysicalDeletion");
+    MetadataBuilder task_approval_estimatedSize = task_approvalSchema.get("estimatedSize");
     MetadataBuilder task_approval_finishedBy = task_approvalSchema.get("finishedBy");
     MetadataBuilder task_approval_finishedOn = task_approvalSchema.get("finishedOn");
     MetadataBuilder task_approval_id = task_approvalSchema.get("id");
@@ -1887,6 +1923,10 @@ public final class GeneratedSystemMigrationCombo {
     userFolder_errorOnPhysicalDeletion.setSystemReserved(true);
     userFolder_errorOnPhysicalDeletion.setUndeletable(true);
     userFolder_errorOnPhysicalDeletion.setMultiLingual(false);
+    MetadataBuilder userFolder_estimatedSize = userFolderSchema.create("estimatedSize").setType(MetadataValueType.INTEGER);
+    userFolder_estimatedSize.setSystemReserved(true);
+    userFolder_estimatedSize.setUndeletable(true);
+    userFolder_estimatedSize.setMultiLingual(false);
     MetadataBuilder userFolder_formCreatedOn = userFolderSchema.create("formCreatedOn").setType(MetadataValueType.DATE_TIME);
     MetadataBuilder userFolder_formModifiedOn = userFolderSchema.create("formModifiedOn").setType(MetadataValueType.DATE_TIME);
     MetadataBuilder userFolder_id = userFolderSchema.create("id").setType(MetadataValueType.STRING);
@@ -2071,6 +2111,10 @@ public final class GeneratedSystemMigrationCombo {
     globalGroup_errorOnPhysicalDeletion.setSystemReserved(true);
     globalGroup_errorOnPhysicalDeletion.setUndeletable(true);
     globalGroup_errorOnPhysicalDeletion.setMultiLingual(false);
+    MetadataBuilder globalGroup_estimatedSize = globalGroupSchema.create("estimatedSize").setType(MetadataValueType.INTEGER);
+    globalGroup_estimatedSize.setSystemReserved(true);
+    globalGroup_estimatedSize.setUndeletable(true);
+    globalGroup_estimatedSize.setMultiLingual(false);
     MetadataBuilder globalGroup_hierarchy = globalGroupSchema.create("hierarchy").setType(MetadataValueType.STRING);
     globalGroup_hierarchy.setUndeletable(true);
     MetadataBuilder globalGroup_id = globalGroupSchema.create("id").setType(MetadataValueType.STRING);
@@ -2254,6 +2298,10 @@ public final class GeneratedSystemMigrationCombo {
     report_errorOnPhysicalDeletion.setSystemReserved(true);
     report_errorOnPhysicalDeletion.setUndeletable(true);
     report_errorOnPhysicalDeletion.setMultiLingual(false);
+    MetadataBuilder report_estimatedSize = reportSchema.create("estimatedSize").setType(MetadataValueType.INTEGER);
+    report_estimatedSize.setSystemReserved(true);
+    report_estimatedSize.setUndeletable(true);
+    report_estimatedSize.setMultiLingual(false);
     MetadataBuilder report_id = reportSchema.create("id").setType(MetadataValueType.STRING);
     report_id.setDefaultRequirement(true);
     report_id.setSystemReserved(true);
@@ -2446,6 +2494,10 @@ public final class GeneratedSystemMigrationCombo {
     emailToSend_errorOnPhysicalDeletion.setSystemReserved(true);
     emailToSend_errorOnPhysicalDeletion.setUndeletable(true);
     emailToSend_errorOnPhysicalDeletion.setMultiLingual(false);
+    MetadataBuilder emailToSend_estimatedSize = emailToSendSchema.create("estimatedSize").setType(MetadataValueType.INTEGER);
+    emailToSend_estimatedSize.setSystemReserved(true);
+    emailToSend_estimatedSize.setUndeletable(true);
+    emailToSend_estimatedSize.setMultiLingual(false);
     MetadataBuilder emailToSend_from = emailToSendSchema.create("from").setType(MetadataValueType.STRUCTURE);
     emailToSend_from.setUndeletable(true);
     emailToSend_from.defineStructureFactory(EmailAddressFactory.class);
@@ -2636,6 +2688,10 @@ public final class GeneratedSystemMigrationCombo {
     event_errorOnPhysicalDeletion.setSystemReserved(true);
     event_errorOnPhysicalDeletion.setUndeletable(true);
     event_errorOnPhysicalDeletion.setMultiLingual(false);
+    MetadataBuilder event_estimatedSize = eventSchema.create("estimatedSize").setType(MetadataValueType.INTEGER);
+    event_estimatedSize.setSystemReserved(true);
+    event_estimatedSize.setUndeletable(true);
+    event_estimatedSize.setMultiLingual(false);
     MetadataBuilder event_eventPrincipalPath = eventSchema.create("eventPrincipalPath").setType(MetadataValueType.STRING);
     event_eventPrincipalPath.setUndeletable(true);
     MetadataBuilder event_id = eventSchema.create("id").setType(MetadataValueType.STRING);
@@ -2835,6 +2891,10 @@ public final class GeneratedSystemMigrationCombo {
     searchEvent_errorOnPhysicalDeletion.setSystemReserved(true);
     searchEvent_errorOnPhysicalDeletion.setUndeletable(true);
     searchEvent_errorOnPhysicalDeletion.setMultiLingual(false);
+    MetadataBuilder searchEvent_estimatedSize = searchEventSchema.create("estimatedSize").setType(MetadataValueType.INTEGER);
+    searchEvent_estimatedSize.setSystemReserved(true);
+    searchEvent_estimatedSize.setUndeletable(true);
+    searchEvent_estimatedSize.setMultiLingual(false);
     MetadataBuilder searchEvent_id = searchEventSchema.create("id").setType(MetadataValueType.STRING);
     searchEvent_id.setDefaultRequirement(true);
     searchEvent_id.setSystemReserved(true);
@@ -3043,6 +3103,10 @@ public final class GeneratedSystemMigrationCombo {
     temporaryRecord_errorOnPhysicalDeletion.setSystemReserved(true);
     temporaryRecord_errorOnPhysicalDeletion.setUndeletable(true);
     temporaryRecord_errorOnPhysicalDeletion.setMultiLingual(false);
+    MetadataBuilder temporaryRecord_estimatedSize = temporaryRecordSchema.create("estimatedSize").setType(MetadataValueType.INTEGER);
+    temporaryRecord_estimatedSize.setSystemReserved(true);
+    temporaryRecord_estimatedSize.setUndeletable(true);
+    temporaryRecord_estimatedSize.setMultiLingual(false);
     MetadataBuilder temporaryRecord_id = temporaryRecordSchema.create("id").setType(MetadataValueType.STRING);
     temporaryRecord_id.setDefaultRequirement(true);
     temporaryRecord_id.setSystemReserved(true);
@@ -3166,6 +3230,7 @@ public final class GeneratedSystemMigrationCombo {
     MetadataBuilder temporaryRecord_batchProcessReport_destructionDate = temporaryRecord_batchProcessReportSchema.get("destructionDate");
     MetadataBuilder temporaryRecord_batchProcessReport_detachedauthorizations = temporaryRecord_batchProcessReportSchema.get("detachedauthorizations");
     MetadataBuilder temporaryRecord_batchProcessReport_errorOnPhysicalDeletion = temporaryRecord_batchProcessReportSchema.get("errorOnPhysicalDeletion");
+    MetadataBuilder temporaryRecord_batchProcessReport_estimatedSize = temporaryRecord_batchProcessReportSchema.get("estimatedSize");
     MetadataBuilder temporaryRecord_batchProcessReport_id = temporaryRecord_batchProcessReportSchema.get("id");
     MetadataBuilder temporaryRecord_batchProcessReport_legacyIdentifier = temporaryRecord_batchProcessReportSchema.get("legacyIdentifier");
     MetadataBuilder temporaryRecord_batchProcessReport_logicallyDeletedOn = temporaryRecord_batchProcessReportSchema.get("logicallyDeletedOn");
@@ -3201,6 +3266,7 @@ public final class GeneratedSystemMigrationCombo {
     MetadataBuilder temporaryRecord_exportAudit_destructionDate = temporaryRecord_exportAuditSchema.get("destructionDate");
     MetadataBuilder temporaryRecord_exportAudit_detachedauthorizations = temporaryRecord_exportAuditSchema.get("detachedauthorizations");
     MetadataBuilder temporaryRecord_exportAudit_errorOnPhysicalDeletion = temporaryRecord_exportAuditSchema.get("errorOnPhysicalDeletion");
+    MetadataBuilder temporaryRecord_exportAudit_estimatedSize = temporaryRecord_exportAuditSchema.get("estimatedSize");
     MetadataBuilder temporaryRecord_exportAudit_id = temporaryRecord_exportAuditSchema.get("id");
     MetadataBuilder temporaryRecord_exportAudit_legacyIdentifier = temporaryRecord_exportAuditSchema.get("legacyIdentifier");
     MetadataBuilder temporaryRecord_exportAudit_logicallyDeletedOn = temporaryRecord_exportAuditSchema.get("logicallyDeletedOn");
@@ -3236,6 +3302,7 @@ public final class GeneratedSystemMigrationCombo {
     MetadataBuilder temporaryRecord_importAudit_destructionDate = temporaryRecord_importAuditSchema.get("destructionDate");
     MetadataBuilder temporaryRecord_importAudit_detachedauthorizations = temporaryRecord_importAuditSchema.get("detachedauthorizations");
     MetadataBuilder temporaryRecord_importAudit_errorOnPhysicalDeletion = temporaryRecord_importAuditSchema.get("errorOnPhysicalDeletion");
+    MetadataBuilder temporaryRecord_importAudit_estimatedSize = temporaryRecord_importAuditSchema.get("estimatedSize");
     MetadataBuilder temporaryRecord_importAudit_id = temporaryRecord_importAuditSchema.get("id");
     MetadataBuilder temporaryRecord_importAudit_legacyIdentifier = temporaryRecord_importAuditSchema.get("legacyIdentifier");
     MetadataBuilder temporaryRecord_importAudit_logicallyDeletedOn = temporaryRecord_importAuditSchema.get("logicallyDeletedOn");
@@ -3271,6 +3338,7 @@ public final class GeneratedSystemMigrationCombo {
     MetadataBuilder temporaryRecord_scriptReport_destructionDate = temporaryRecord_scriptReportSchema.get("destructionDate");
     MetadataBuilder temporaryRecord_scriptReport_detachedauthorizations = temporaryRecord_scriptReportSchema.get("detachedauthorizations");
     MetadataBuilder temporaryRecord_scriptReport_errorOnPhysicalDeletion = temporaryRecord_scriptReportSchema.get("errorOnPhysicalDeletion");
+    MetadataBuilder temporaryRecord_scriptReport_estimatedSize = temporaryRecord_scriptReportSchema.get("estimatedSize");
     MetadataBuilder temporaryRecord_scriptReport_id = temporaryRecord_scriptReportSchema.get("id");
     MetadataBuilder temporaryRecord_scriptReport_legacyIdentifier = temporaryRecord_scriptReportSchema.get("legacyIdentifier");
     MetadataBuilder temporaryRecord_scriptReport_logicallyDeletedOn = temporaryRecord_scriptReportSchema.get("logicallyDeletedOn");
@@ -3369,6 +3437,10 @@ public final class GeneratedSystemMigrationCombo {
     user_errorOnPhysicalDeletion.setSystemReserved(true);
     user_errorOnPhysicalDeletion.setUndeletable(true);
     user_errorOnPhysicalDeletion.setMultiLingual(false);
+    MetadataBuilder user_estimatedSize = userSchema.create("estimatedSize").setType(MetadataValueType.INTEGER);
+    user_estimatedSize.setSystemReserved(true);
+    user_estimatedSize.setUndeletable(true);
+    user_estimatedSize.setMultiLingual(false);
     MetadataBuilder user_fax = userSchema.create("fax").setType(MetadataValueType.STRING);
     MetadataBuilder user_firstname = userSchema.create("firstname").setType(MetadataValueType.STRING);
     user_firstname.setUndeletable(true);
@@ -3591,6 +3663,10 @@ public final class GeneratedSystemMigrationCombo {
     facet_errorOnPhysicalDeletion.setSystemReserved(true);
     facet_errorOnPhysicalDeletion.setUndeletable(true);
     facet_errorOnPhysicalDeletion.setMultiLingual(false);
+    MetadataBuilder facet_estimatedSize = facetSchema.create("estimatedSize").setType(MetadataValueType.INTEGER);
+    facet_estimatedSize.setSystemReserved(true);
+    facet_estimatedSize.setUndeletable(true);
+    facet_estimatedSize.setMultiLingual(false);
     MetadataBuilder facet_facetType = facetSchema.create("facetType").setType(MetadataValueType.ENUM);
     facet_facetType.setDefaultRequirement(true);
     facet_facetType.setUndeletable(true);
@@ -3737,6 +3813,7 @@ public final class GeneratedSystemMigrationCombo {
     MetadataBuilder facet_field_detachedauthorizations = facet_fieldSchema.get("detachedauthorizations");
     MetadataBuilder facet_field_elementPerPage = facet_fieldSchema.get("elementPerPage");
     MetadataBuilder facet_field_errorOnPhysicalDeletion = facet_fieldSchema.get("errorOnPhysicalDeletion");
+    MetadataBuilder facet_field_estimatedSize = facet_fieldSchema.get("estimatedSize");
     MetadataBuilder facet_field_facetType = facet_fieldSchema.get("facetType");
     MetadataBuilder facet_field_fieldDatastoreCode = facet_fieldSchema.get("fieldDatastoreCode");
     MetadataBuilder facet_field_id = facet_fieldSchema.get("id");
@@ -3778,6 +3855,7 @@ public final class GeneratedSystemMigrationCombo {
     MetadataBuilder facet_query_detachedauthorizations = facet_querySchema.get("detachedauthorizations");
     MetadataBuilder facet_query_elementPerPage = facet_querySchema.get("elementPerPage");
     MetadataBuilder facet_query_errorOnPhysicalDeletion = facet_querySchema.get("errorOnPhysicalDeletion");
+    MetadataBuilder facet_query_estimatedSize = facet_querySchema.get("estimatedSize");
     MetadataBuilder facet_query_facetType = facet_querySchema.get("facetType");
     MetadataBuilder facet_query_fieldDatastoreCode = facet_querySchema.get("fieldDatastoreCode");
     MetadataBuilder facet_query_id = facet_querySchema.get("id");
@@ -3878,6 +3956,10 @@ public final class GeneratedSystemMigrationCombo {
     userCredential_errorOnPhysicalDeletion.setSystemReserved(true);
     userCredential_errorOnPhysicalDeletion.setUndeletable(true);
     userCredential_errorOnPhysicalDeletion.setMultiLingual(false);
+    MetadataBuilder userCredential_estimatedSize = userCredentialSchema.create("estimatedSize").setType(MetadataValueType.INTEGER);
+    userCredential_estimatedSize.setSystemReserved(true);
+    userCredential_estimatedSize.setUndeletable(true);
+    userCredential_estimatedSize.setMultiLingual(false);
     MetadataBuilder userCredential_fax = userCredentialSchema.create("fax").setType(MetadataValueType.STRING);
     MetadataBuilder userCredential_firstname = userCredentialSchema.create("firstname").setType(MetadataValueType.STRING);
     userCredential_firstname.setUndeletable(true);
@@ -4089,6 +4171,10 @@ public final class GeneratedSystemMigrationCombo {
     group_errorOnPhysicalDeletion.setSystemReserved(true);
     group_errorOnPhysicalDeletion.setUndeletable(true);
     group_errorOnPhysicalDeletion.setMultiLingual(false);
+    MetadataBuilder group_estimatedSize = groupSchema.create("estimatedSize").setType(MetadataValueType.INTEGER);
+    group_estimatedSize.setSystemReserved(true);
+    group_estimatedSize.setUndeletable(true);
+    group_estimatedSize.setMultiLingual(false);
     MetadataBuilder group_id = groupSchema.create("id").setType(MetadataValueType.STRING);
     group_id.setDefaultRequirement(true);
     group_id.setSystemReserved(true);
