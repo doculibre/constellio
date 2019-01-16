@@ -1,6 +1,5 @@
 package com.constellio.app.services.migrations.scripts;
 
-import com.constellio.app.api.admin.services.WrapperConfUpdateUtils;
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
@@ -8,7 +7,7 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.security.global.SolrUserCredential;
+import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
@@ -50,7 +49,7 @@ public class CoreMigrationTo_8_2_1 implements MigrationScript {
 					.setType(BOOLEAN);
 
 			if(Collection.SYSTEM_COLLECTION.equals(typesBuilder.getCollection())) {
-				typesBuilder.getDefaultSchema(SolrUserCredential.SCHEMA_TYPE).createUndeletable(SolrUserCredential.DO_NOT_RECEIVE_EMAILS)
+				typesBuilder.getDefaultSchema(UserCredential.SCHEMA_TYPE).createUndeletable(UserCredential.DO_NOT_RECEIVE_EMAILS)
 						.setType(BOOLEAN);
 			}
 
@@ -59,15 +58,21 @@ public class CoreMigrationTo_8_2_1 implements MigrationScript {
 			Set<MetadataBuilder> integerMetadatas = typesBuilder.getAllMetadatasOfType(INTEGER);
 
 			for(MetadataBuilder metadata: booleanMetadatas) {
-				metadata.setSearchable(false).setSchemaAutocomplete(false);
+				if (metadata.getInheritance() == null) {
+					metadata.setSearchable(false).setSchemaAutocomplete(false);
+				}
 			}
 
 			for(MetadataBuilder metadata: numberMetadatas) {
-				metadata.setSearchable(false).setSchemaAutocomplete(false);
+				if (metadata.getInheritance() == null) {
+					metadata.setSearchable(false).setSchemaAutocomplete(false);
+				}
 			}
 
 			for(MetadataBuilder metadata: integerMetadatas) {
-				metadata.setSearchable(false).setSchemaAutocomplete(false);
+				if (metadata.getInheritance() == null) {
+					metadata.setSearchable(false).setSchemaAutocomplete(false);
+				}
 			}
 		}
 	}

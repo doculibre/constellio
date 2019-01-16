@@ -20,7 +20,7 @@ import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.enums.SearchPageLength;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.AgentStatus;
-import com.constellio.model.entities.security.global.SolrUserCredential;
+import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.vaadin.data.util.converter.Converter;
 import com.vaadin.ui.CheckBox;
@@ -108,7 +108,7 @@ public class CoreUserProfileFieldsExtension extends PagesComponentsExtension {
 	private AdditionnalRecordField buildDoNotReceiveEmailsField(RecordFieldsExtensionParams params) {
 		User user = new SchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory()).wrapUser(params.getRecord());
 
-		SolrUserCredential userCredentials = (SolrUserCredential) appLayerFactory.getModelLayerFactory().newUserServices().getUser(user.getUsername());
+		UserCredential userCredentials = (UserCredential) appLayerFactory.getModelLayerFactory().newUserServices().getUser(user.getUsername());
 
 		boolean isNotReceivingEmails = userCredentials.isNotReceivingEmails();
 		DoNotReceiveEmailsFieldImpl doNotReceiveEmailsField = new DoNotReceiveEmailsFieldImpl();
