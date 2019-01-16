@@ -9,7 +9,6 @@ import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -32,6 +31,8 @@ import static com.constellio.app.ui.util.FileIconUtils.getIcon;
 public class RMRecordAppExtension extends RecordAppExtension {
 
 	private static final String IMAGES_DIR = "images";
+	public static final String PURPLE = "purple";
+	public static final String GREY = "grey";
 
 	private final String collection;
 	private final AppLayerFactory appLayerFactory;
@@ -179,13 +180,13 @@ public class RMRecordAppExtension extends RecordAppExtension {
 	private String getFolderExtension(RecordVO recordVO, boolean expanded) {
 		FolderStatus archivisticStatus = recordVO.getMetadataValue(recordVO.getMetadata(Folder.ARCHIVISTIC_STATUS)).getValue();
 		FolderMediaType folderMediaType = recordVO.getMetadataValue(recordVO.getMetadata(Folder.MEDIA_TYPE)).getValue();
-		return getArchivisticStatusFilename(archivisticStatus) + "_" + getSupportType(folderMediaType) + "_folder_" + getIsOpenOrClose(expanded);
+		return getArchivisticStatusFilename(archivisticStatus) + "_" + getSupportType(archivisticStatus, folderMediaType) + "_folder_" + getIsOpenOrClose(expanded);
 	}
 
 	private String getFolderExtension(Folder folder, boolean expanded) {
 		FolderStatus archivisticStatus = folder.getArchivisticStatus();
 		FolderMediaType folderMediaType = folder.getMediaType();
-		return getArchivisticStatusFilename(archivisticStatus) + "_" + getSupportType(folderMediaType) + "_folder_" + getIsOpenOrClose(expanded);
+		return getArchivisticStatusFilename(archivisticStatus) + "_" + getSupportType(archivisticStatus, folderMediaType) + "_folder_" + getIsOpenOrClose(expanded);
 	}
 
 	public static String getIsOpenOrClose(boolean expanded) {
@@ -196,8 +197,8 @@ public class RMRecordAppExtension extends RecordAppExtension {
 		}
 	}
 
-	public static String getSupportType(FolderMediaType folderMediaType) {
-		if(folderMediaType == null) {
+	public static String getSupportType(FolderStatus archivisticStatus, FolderMediaType folderMediaType) {
+		if(folderMediaType == null || archivisticStatus != null && archivisticStatus.isDestroyed()) {
 			return "empty";
 		}
 
@@ -216,12 +217,13 @@ public class RMRecordAppExtension extends RecordAppExtension {
 	}
 
 	public static String getArchivisticStatusFilename(FolderStatus archivisticStatus) {
+
 		String imgName;
 		if (archivisticStatus != null) {
 			if (archivisticStatus.isDestroyed()) {
-				imgName = "grey";
+				imgName = GREY;
 			} else if (archivisticStatus.isDeposited()) {
-				imgName = "purple";
+				imgName = PURPLE;
 			} else if (archivisticStatus.isSemiActive()) {
 				imgName = "orange";
 			} else {
