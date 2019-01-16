@@ -151,11 +151,15 @@ public class ClassificationPlanReportPresenter {
 								if(categoryList != null && categoryList.size() > 0)  {
 									ClassificationPlanReportModel_Category modelCategory = new ClassificationPlanReportModel_Category();
 
+									String description = StringUtils.defaultString(recordCategory.getDescription());
+									String code = StringUtils.defaultString(recordCategory.getCode());
+									String title = StringUtils.defaultString(recordCategory.getTitle());
+
 									modelCategory.setCategories(categoryList);
-									modelCategory.setDescription(null);
+									modelCategory.setDescription(description);
 									modelCategory.setDeactivated(true);
-									modelCategory.setCode("");
-									modelCategory.setLabel(i18n.$("RMReportsViewImpl.deactivated"));
+									modelCategory.setCode(code);
+									modelCategory.setLabel(i18n.$("RMReportsViewImpl.deactivated", title));
 
 									rootCategories.add(modelCategory);
 								}
@@ -188,8 +192,7 @@ public class ClassificationPlanReportPresenter {
 	private boolean isCategoryShown(Category category) {
 		Boolean deactivated = category.get(Category.DEACTIVATE);
 
-		return showDeactivated ||  Boolean.FALSE.equals(
-				deactivated) || deactivated  == null;
+		return showDeactivated || !Boolean.TRUE.equals(deactivated);
 	}
 
 	private void init() {
