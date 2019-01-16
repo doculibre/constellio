@@ -49,6 +49,7 @@ import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.extensions.events.schemas.PutSchemaRecordsInTrashEvent;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
+import com.constellio.model.services.emails.EmailRecipientServices;
 import com.constellio.model.services.extensions.ModelLayerExtensions;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.logging.LoggingServices;
@@ -436,14 +437,7 @@ public class DecommissioningService {
 	}
 
 	private List<EmailAddress> getEmailReceivers(List<User> managersList) {
-		List<EmailAddress> returnAddresses = new ArrayList<>();
-		if (managersList == null) {
-			return returnAddresses;
-		}
-		for (User currentManager : managersList) {
-			returnAddresses.add(new EmailAddress(currentManager.getTitle(), currentManager.getEmail()));
-		}
-		return returnAddresses;
+		return EmailRecipientServices.toFilteredEmailAddressList(managersList);
 	}
 
 	public void decommission(DecommissioningList decommissioningList, User user)

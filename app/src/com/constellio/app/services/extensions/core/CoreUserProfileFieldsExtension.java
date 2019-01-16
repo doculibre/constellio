@@ -4,6 +4,7 @@ import com.constellio.app.api.extensions.PagesComponentsExtension;
 import com.constellio.app.api.extensions.params.RecordFieldsExtensionParams;
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.entities.navigation.PageItem;
+import com.constellio.app.modules.rm.wrappers.RMUser;
 import com.constellio.app.services.extensions.ConstellioModulesManagerImpl;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.TaxonomyVO;
@@ -18,8 +19,11 @@ import com.constellio.app.ui.pages.profile.ModifyProfileView;
 import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.enums.SearchPageLength;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.security.global.AgentStatus;
+import com.constellio.model.entities.security.global.SolrUserCredential;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.vaadin.data.util.converter.Converter;
+import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.OptionGroup;
 
@@ -49,8 +53,9 @@ public class CoreUserProfileFieldsExtension extends PagesComponentsExtension {
 			AdditionnalRecordField startTabField = buildStartTabField(params);
 			AdditionnalRecordField defaultTaxonomyField = buildDefaultTaxonomyField(params);
 			AdditionnalRecordField taxonomyOrderField = buildTaxonomyDisplayOrderField(params);
+			AdditionnalRecordField doNotReceiveEmailsField = buildDoNotReceiveEmailsField(params);
 
-			additionnalFields.addAll(asList(defaultPageLengthField, startTabField, defaultTaxonomyField, taxonomyOrderField));
+			additionnalFields.addAll(asList(defaultPageLengthField, startTabField, defaultTaxonomyField, taxonomyOrderField, doNotReceiveEmailsField));
 		}
 		return additionnalFields;
 	}
@@ -98,6 +103,20 @@ public class CoreUserProfileFieldsExtension extends PagesComponentsExtension {
 		TaxonomyDisplayOrderFieldImpl taxonomyDisplayOrderField = new TaxonomyDisplayOrderFieldImpl(dataProvider.getTaxonomyVOs());
 		taxonomyDisplayOrderField.setValue((List<String>) user.get(User.TAXONOMY_DISPLAY_ORDER));
 		return taxonomyDisplayOrderField;
+	}
+
+	private AdditionnalRecordField buildDoNotReceiveEmailsField(RecordFieldsExtensionParams params) {
+		User user = new SchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory()).wrapUser(params.getRecord());
+
+		SolrUserCredential userCredentials = (SolrUserCredential) appLayerFactory.getModelLayerFactory().newUserServices().getUser(user.getUsername());
+
+		boolean isNotReceivingEmails = userCredentials.isNotReceivingEmails();
+		DoNotReceiveEmailsFieldImpl doNotReceiveEmailsField = new DoNotReceiveEmailsFieldImpl();
+		doNotReceiveEmailsField.setImmediate(true);
+
+		doNotReceiveEmailsField.setValue(isNotReceivingEmails);
+
+		return doNotReceiveEmailsField;
 	}
 
 	private class DefaultSearchPageLengthFieldImpl extends EnumWithSmallCodeComboBox<SearchPageLength> implements AdditionnalRecordField<Object> {
@@ -251,6 +270,23 @@ public class CoreUserProfileFieldsExtension extends PagesComponentsExtension {
 				return taxonomiesTitle.get(itemId);
 			}
 			return super.getItemCaption(itemId);
+		}
+	}
+
+	private class DoNotReceiveEmailsFieldImpl extends CheckBox implements AdditionnalRecordField<Boolean>{
+
+		public DoNotReceiveEmailsFieldImpl() {
+			super($("ModifyProfileView.doNotReceiveEmails"));
+		}
+
+		@Override
+		public String getMetadataLocalCode() {
+			return User.DO_NOT_RECEIVE_EMAILS;
+		}
+
+		@Override
+		public Boolean getCommittableValue() {
+			return getValue();
 		}
 	}
 }

@@ -1009,6 +1009,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			} else {
 				borrower = rmSchemasRecordsServices.getUser(folderVO.getBorrowUserId());
 			}
+			
 			EmailAddress borrowerAddress = new EmailAddress(borrower.getTitle(), borrower.getEmail());
 			emailToSend.setTo(Arrays.asList(borrowerAddress));
 			emailToSend.setSendOn(TimeProvider.getLocalDateTime());

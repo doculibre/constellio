@@ -5,9 +5,18 @@ import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.security.global.SolrUserCredential;
+import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+
+import java.util.Set;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
+import static com.constellio.model.entities.schemas.MetadataValueType.INTEGER;
+import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
 
 public class CoreMigrationTo_8_2_1 implements MigrationScript {
 
@@ -34,8 +43,16 @@ public class CoreMigrationTo_8_2_1 implements MigrationScript {
 
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
-			builder.getDefaultSchema(User.SCHEMA_TYPE).createUndeletable(User.TAXONOMY_DISPLAY_ORDER)
+			typesBuilder.getDefaultSchema(User.SCHEMA_TYPE).createUndeletable(User.TAXONOMY_DISPLAY_ORDER)
 					.setType(MetadataValueType.STRING).setMultivalue(true);
+
+			typesBuilder.getDefaultSchema(User.SCHEMA_TYPE).createUndeletable(User.DO_NOT_RECEIVE_EMAILS)
+					.setType(BOOLEAN);
+
+			if(Collection.SYSTEM_COLLECTION.equals(typesBuilder.getCollection())) {
+				typesBuilder.getDefaultSchema(SolrUserCredential.SCHEMA_TYPE).createUndeletable(SolrUserCredential.DO_NOT_RECEIVE_EMAILS)
+						.setType(BOOLEAN);
+			}
 
 			Set<MetadataBuilder> booleanMetadatas = typesBuilder.getAllMetadatasOfType(BOOLEAN);
 			Set<MetadataBuilder> numberMetadatas = typesBuilder.getAllMetadatasOfType(NUMBER);

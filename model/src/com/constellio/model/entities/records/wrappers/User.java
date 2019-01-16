@@ -605,8 +605,4 @@ public class User extends RecordWrapper {
 	public boolean isNotReceivingEmails() {
 		return Boolean.TRUE.equals(DO_NOT_RECEIVE_EMAILS);
 	}
-
-	public boolean getDoNotReceiveEmails() {
-		return Boolean.TRUE.equals(DO_NOT_RECEIVE_EMAILS);
-	}
 }
