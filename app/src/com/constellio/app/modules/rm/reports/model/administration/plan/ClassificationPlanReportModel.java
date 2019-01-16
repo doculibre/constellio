@@ -83,6 +83,8 @@ public class ClassificationPlanReportModel {
 
 	public static class ClassificationPlanReportModel_Category {
 
+		private boolean isDeactivated = false;
+
 		private String code;
 
 		private String label;
@@ -148,6 +150,14 @@ public class ClassificationPlanReportModel {
 
 		public List<String> getRetentionRules() {
 			return rententionRules;
+		}
+
+		public boolean isDeactivated() {
+			return isDeactivated;
+		}
+
+		public void setDeactivated(boolean deactivated) {
+			isDeactivated = deactivated;
 		}
 	}
 

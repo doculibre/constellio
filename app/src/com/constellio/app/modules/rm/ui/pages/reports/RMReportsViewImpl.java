@@ -25,6 +25,7 @@ import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
+import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CssLayout;
 import com.vaadin.ui.Field;
@@ -100,7 +101,7 @@ public class RMReportsViewImpl extends BaseViewImpl implements RMReportsView {
 
 				field.setCaption($("RMReportsViewImpl.category"));
 
-				WindowButton windowButton = getParametersFromUser(field, $("RMReportsViewImpl.allCategory"), $("RMReportsViewImpl.onlyCategory"), report);
+				WindowButton windowButton = getParametersFromUser(field, $("RMReportsViewImpl.allCategory"), $("RMReportsViewImpl.onlyCategory"), report, true);
 
 				setReportButtonStyle(report.getTitle(), windowButton);
 				panel.addComponent(windowButton);
@@ -120,7 +121,12 @@ public class RMReportsViewImpl extends BaseViewImpl implements RMReportsView {
 				panel.addComponent(windowButton);
 			} else if (presenter.isWithSchemaType(report.getTitle())) {
 				String schemaType = presenter.getSchemaTypeValue(report.getTitle());
-				WindowButton windowButton = buildLookupButton(schemaType, report);
+				WindowButton windowButton = buildLookupButton(schemaType, report, true);
+
+				setReportButtonStyle(report.getTitle(), windowButton);
+				panel.addComponent(windowButton);
+			} else if(presenter.isClassificationPlan(report.getTitle())) {
+				WindowButton windowButton = getIsDeativatedFromUser(report);
 
 				setReportButtonStyle(report.getTitle(), windowButton);
 				panel.addComponent(windowButton);
@@ -162,7 +168,7 @@ public class RMReportsViewImpl extends BaseViewImpl implements RMReportsView {
 		};
 	}
 
-	private WindowButton buildLookupButton(final String schemaType, final ReportWithCaptionVO report) {
+	private WindowButton buildLookupButton(final String schemaType, final ReportWithCaptionVO report, final boolean askToShowDeativated) {
 		return new WindowButton($(report.getCaption()),
 				$(report.getCaption())) {
 			@Override
@@ -173,10 +179,19 @@ public class RMReportsViewImpl extends BaseViewImpl implements RMReportsView {
 				lookupSchemaType.setId("schemaType");
 				lookupSchemaType.addStyleName("schemaType");
 
+				final CheckBox includedDeactivatedCheckbox = new CheckBox($("ReportViewer.includeDeactivatedElement"));
+				includedDeactivatedCheckbox.setValue(true);
+
 				BaseButton okButton = new BaseButton($("Ok")) {
 					@Override
 					protected void buttonClick(ClickEvent event) {
 						presenter.setSchemaTypeValue((String) lookupSchemaType.getValue());
+						if(askToShowDeativated) {
+							presenter.setShowDeactivated(includedDeactivatedCheckbox.getValue());
+						} else {
+							presenter.setShowDeactivated(true);
+						}
+
 						ReportButton reportButton = new ReportButton(report, presenter);
 						reportButton.click();
 						getWindow().close();
@@ -206,6 +221,11 @@ public class RMReportsViewImpl extends BaseViewImpl implements RMReportsView {
 
 
 				VerticalLayout verticalLayout = new VerticalLayout();
+
+				if(askToShowDeativated) {
+					verticalLayout.addComponent(includedDeactivatedCheckbox);
+				}
+
 				verticalLayout.addComponents(lookupSchemaType, horizontalLayout2);
 				verticalLayout.setSpacing(true);
 
@@ -215,6 +235,10 @@ public class RMReportsViewImpl extends BaseViewImpl implements RMReportsView {
 	}
 
 	private WindowButton getParametersFromUser(final Field field, final String allCaption, final String onlyCaption, final ReportWithCaptionVO report) {
+		return getParametersFromUser(field, allCaption, onlyCaption, report, false);
+	}
+
+	private WindowButton getParametersFromUser(final Field field, final String allCaption, final String onlyCaption, final ReportWithCaptionVO report, final boolean askForDesativated) {
 		WindowButton windowButton = new WindowButton($(report.getCaption()),
 				$(report.getCaption()), new WindowConfiguration(true, true, "600px", "500px")) {
 			@Override
@@ -225,6 +249,13 @@ public class RMReportsViewImpl extends BaseViewImpl implements RMReportsView {
 
 				VerticalLayout verticalLayout2 = new VerticalLayout();
 				verticalLayout2.setSpacing(true);
+
+				final CheckBox includedDeactivatedCheckbox = new CheckBox($("ReportViewer.includeDeactivatedElement"));
+				includedDeactivatedCheckbox.setValue(true);
+
+				if(askForDesativated) {
+					verticalLayout2.addComponent(includedDeactivatedCheckbox);
+				}
 
 				final OptionGroup optionGroup = new OptionGroup();
 				optionGroup.addItem(Selected.All);
@@ -239,6 +270,7 @@ public class RMReportsViewImpl extends BaseViewImpl implements RMReportsView {
 
 				okButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
 				Button cancelButton = new Button($("cancel"));
+
 				verticalLayout2.addComponent(field);
 
 				HorizontalLayout horizontalLayout1 = new HorizontalLayout();
@@ -268,6 +300,13 @@ public class RMReportsViewImpl extends BaseViewImpl implements RMReportsView {
 					public void buttonClick(ClickEvent event) {
 						Selected selected = (Selected) optionGroup.getValue();
 						presenter.setUserReportParameters(null);
+
+						if(askForDesativated) {
+							presenter.setShowDeactivated(includedDeactivatedCheckbox.getValue());
+						} else {
+							presenter.setShowDeactivated(true);
+						}
+
 						if(selected == Selected.All) {
 							ReportButton reportButton = new ReportButton(report, presenter);
 							reportButton.click();
@@ -282,6 +321,72 @@ public class RMReportsViewImpl extends BaseViewImpl implements RMReportsView {
 								reportButton.click();
 							}
 						}
+					}
+				});
+
+				cancelButton.addClickListener(new ClickListener() {
+					@Override
+					public void buttonClick(ClickEvent event) {
+						getWindow().close();
+					}
+				});
+
+				HorizontalLayout horizontalLayout2 = new HorizontalLayout();
+				horizontalLayout2.setWidth("100%");
+
+				horizontalLayout2.addComponent(horizontalLayout1);
+				horizontalLayout2.setComponentAlignment(horizontalLayout1, Alignment.MIDDLE_CENTER);
+
+				verticalLayout2.addComponent(horizontalLayout2);
+
+				verticalLayout.addComponent(verticalLayout2);
+
+				return verticalLayout;
+			}
+		};
+
+
+		return windowButton;
+	}
+
+	private WindowButton getIsDeativatedFromUser(final ReportWithCaptionVO report) {
+		WindowButton windowButton = new WindowButton($(report.getCaption()),
+				$(report.getCaption()), new WindowConfiguration(true, true, "600px", "500px")) {
+			@Override
+			protected Component buildWindowContent() {
+				VerticalLayout verticalLayout = new VerticalLayout();
+				verticalLayout.setWidth("100%");
+				verticalLayout.setHeight("100%");
+
+				VerticalLayout verticalLayout2 = new VerticalLayout();
+				verticalLayout2.setSpacing(true);
+
+				final CheckBox includedDeactivatedCheckbox = new CheckBox($("ReportViewer.includeDeactivatedElement"));
+				includedDeactivatedCheckbox.setValue(true);
+
+				final Button okButton = new Button($("Ok"));
+
+
+				okButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
+				Button cancelButton = new Button($("cancel"));
+				verticalLayout2.addComponent(includedDeactivatedCheckbox);
+
+				HorizontalLayout horizontalLayout1 = new HorizontalLayout();
+				horizontalLayout1.setWidth("195px");
+				horizontalLayout1.setSpacing(true);
+				horizontalLayout1.addComponent(okButton);
+				horizontalLayout1.addComponent(cancelButton);
+
+
+				okButton.addClickListener(new ClickListener() {
+					@Override
+					public void buttonClick(ClickEvent event) {
+						presenter.setUserReportParameters(null);
+
+						presenter.setShowDeactivated(includedDeactivatedCheckbox.getValue());
+						ReportButton reportButton = new ReportButton(report, presenter);
+						reportButton.click();
+						getWindow().close();
 					}
 				});
 
