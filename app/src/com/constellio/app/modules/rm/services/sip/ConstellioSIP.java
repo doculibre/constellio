@@ -28,6 +28,7 @@ import com.constellio.app.modules.rm.services.sip.slip.SIPSlip;
 import com.constellio.app.modules.rm.services.sip.xsd.XMLDocumentValidator;
 import com.constellio.data.dao.services.bigVault.RecordDaoException;
 import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.compress.archivers.ArchiveEntry;
@@ -248,7 +249,7 @@ public class ConstellioSIP {
 	public void build(File zipFile)
 			throws IOException, JDOMException {
 		ValidationErrors errors = new ValidationErrors();
-		sipCreationDate = new Date();
+		sipCreationDate = TimeProvider.getLocalDateTime().toDate();
 
 		File outputDir = zipFile.getParentFile();
 		outputDir.mkdirs();
@@ -798,7 +799,7 @@ public class ConstellioSIP {
 		bagInfoLines.add("Logiciel : Constellio");
 		bagInfoLines.add("Site web de l’éditeur : http://www.constellio.com");
 		bagInfoLines.add("Version du logiciel : " + currentVersion);
-		bagInfoLines.add("Date de création du paquet : " + sdfDate.format(new Date()));
+		bagInfoLines.add("Date de création du paquet : " + sdfDate.format(TimeProvider.getLocalDateTime().toDate()));
 		bagInfoLines.add("");
 	}
 

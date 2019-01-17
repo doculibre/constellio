@@ -216,8 +216,13 @@ public class EAD {
 			if (metadata != null) {
 				if (metadata.getType().equals(MetadataValueType.REFERENCE)) {
 					metadataElement.addContent(AbstractXmlGenerator.createMetadataTagFromMetadataOfTypeReference(metadata, sipObject.getRecord(), collection, factory, eadNamespace));
+
 				} else if (metadata.getType().equals(MetadataValueType.ENUM)) {
 					metadataElement.addContent(AbstractXmlGenerator.createMetadataTagFromMetadataOfTypeEnum(metadata, sipObject.getRecord(), eadNamespace, locale));
+
+				} else if (metadata.getType().equals(MetadataValueType.CONTENT)) {
+					metadataElement.addContent(AbstractXmlGenerator.createMetadataTagFromMetadataOfTypeContent(metadata, sipObject.getRecord(), eadNamespace, locale));
+
 				} else {
 					Object metadataValue = sipObject.getRecord().get(metadata);
 					Element currentMetadataElement = new Element(metadata.getCode(), eadNamespace);
