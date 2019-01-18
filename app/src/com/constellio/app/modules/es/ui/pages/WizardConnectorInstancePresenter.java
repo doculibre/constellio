@@ -6,6 +6,7 @@ import com.constellio.app.modules.es.model.connectors.ConnectorType;
 import com.constellio.app.modules.es.model.connectors.RegisteredConnector;
 import com.constellio.app.modules.es.navigation.ESViews;
 import com.constellio.app.modules.es.services.ConnectorManager;
+import com.constellio.app.modules.es.ui.pages.ConnectorUtil.ConnectionStatus;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
@@ -62,9 +63,20 @@ public class WizardConnectorInstancePresenter extends AddEditConnectorInstancePr
 
 	@Override
 	public void saveButtonClicked(RecordVO recordVO) {
+		String schemaCode = recordVO.getSchema().getCode();
 		Record record = toRecord(recordVO);
 		ConnectorInstance<?> connectorInstance = esSchemasRecordsServices.wrapConnectorInstance(record);
+
+		ConnectorUtil.ConnectionStatusResult connectonStatusResult = ConnectorUtil
+				.testAuthentication(schemaCode, record, esSchemasRecordsServices);
+
+		if (connectonStatusResult.getConnectionStatus() != ConnectionStatus.Ok) {
+			view.showErrorMessage(ConnectorUtil.getErrorMessage(connectonStatusResult));
+			return;
+		}
+
 		esSchemasRecordsServices.getConnectorManager().createConnector(connectorInstance);
+
 		view.navigate().to(ESViews.class).displayConnectorInstance(connectorInstance.getId());
 	}
 
