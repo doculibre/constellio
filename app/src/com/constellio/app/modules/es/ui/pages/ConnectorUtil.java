@@ -15,12 +15,16 @@ import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.model.conf.ldap.services.LDAPConnectionFailure;
 import com.constellio.model.entities.records.Record;
+import jcifs.smb.NtlmPasswordAuthentication;
+import jcifs.smb.SmbFile;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
 
 import javax.naming.NamingException;
 import javax.naming.ldap.LdapContext;
+import java.io.IOException;
+import java.net.MalformedURLException;
 import java.util.List;
 
 public class ConnectorUtil {
@@ -33,6 +37,7 @@ public class ConnectorUtil {
 		httpStatusError,
 		connectionError,
 		badUrl,
+		badUrlNoParam,
 		Ok,
 	}
 
@@ -70,12 +75,31 @@ public class ConnectorUtil {
 	public static ConnectionStatusResult testAuthentication(String schemaCode, Record record,
 			ESSchemasRecordsServices esSchemasRecordsServices) {
 		if (ConnectorSmbInstance.SCHEMA_CODE.equals(schemaCode)) {
-			ConnectorSmbInstance connectorSmbInstance = esSchemasRecordsServices.wrapConnectorSmbInstance(record);
-			//String
+			return smbConnectorAutheticationTest(record, esSchemasRecordsServices);
 		} else if (ConnectorHttpInstance.SCHEMA_CODE.equals(schemaCode)) {
 			return testHttpBasicAuthentification(record, esSchemasRecordsServices);
 		} else if (ConnectorLDAPInstance.SCHEMA_CODE.equals(schemaCode)) {
 			return new ConnectionStatusResult(testLDAPConnection(record, esSchemasRecordsServices));
+		}
+
+		return new ConnectionStatusResult(ConnectionStatus.Ok);
+	}
+
+	private static ConnectionStatusResult smbConnectorAutheticationTest(Record record,
+			ESSchemasRecordsServices esSchemasRecordsServices) {
+		ConnectorSmbInstance connectorSmbInstance = esSchemasRecordsServices.wrapConnectorSmbInstance(record);
+		NtlmPasswordAuthentication auth = new NtlmPasswordAuthentication(connectorSmbInstance.getDomain(),
+				connectorSmbInstance.getUsername(), connectorSmbInstance.getPassword());
+		SmbFile smbFile;
+		if (connectorSmbInstance.getSeeds().size() > 0) {
+			try {
+				smbFile = new SmbFile(connectorSmbInstance.getSeeds().get(0), auth);
+				smbFile.connect();
+			} catch (MalformedURLException e) {
+				return new ConnectionStatusResult(ConnectionStatus.badUrlNoParam);
+			} catch (IOException e) {
+				return new ConnectionStatusResult(ConnectionStatus.ioError);
+			}
 		}
 
 		return new ConnectionStatusResult(ConnectionStatus.Ok);
@@ -147,7 +171,8 @@ public class ConnectorUtil {
 
 		if (connectionStatus == ConnectionStatus.onlyOneUrlSupported
 				|| ConnectionStatus.authentificationFailure == connectionStatus
-				|| ConnectionStatus.ioError == connectionStatus) {
+				|| ConnectionStatus.ioError == connectionStatus
+				|| ConnectionStatus.badUrlNoParam == connectionStatus) {
 			return i18n.$("ConnectorUtil." + connectionStatusResult.getConnectionStatus().name());
 		} else if (ConnectionStatus.httpStatusError == connectionStatus
 				|| ConnectionStatus.connectionError == connectionStatus
