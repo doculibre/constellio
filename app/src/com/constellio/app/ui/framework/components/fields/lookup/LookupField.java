@@ -5,17 +5,18 @@ import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.converters.ConverterWithCache;
+import com.constellio.app.ui.framework.components.converters.RecordIdToDescriptionContent;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.autocomplete.BaseAutocompleteField;
 import com.constellio.app.ui.framework.components.fields.autocomplete.BaseAutocompleteField.AutocompleteSuggestionsProvider;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
+import com.constellio.app.ui.framework.components.mouseover.NiceTitle;
 import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.components.tree.LazyTree;
 import com.constellio.app.ui.framework.data.AbstractDataProvider;
 import com.constellio.app.ui.framework.data.LazyTreeDataProvider;
 import com.constellio.app.ui.framework.data.RecordLookupTreeDataProvider;
 import com.constellio.app.ui.handlers.OnEnterKeyHandler;
-import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.PresenterService;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -29,6 +30,7 @@ import com.vaadin.data.util.converter.Converter;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.server.ErrorMessage;
+import com.vaadin.server.Extension;
 import com.vaadin.server.Page;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
@@ -37,7 +39,6 @@ import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomField;
-import com.vaadin.ui.Label;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.Notification.Type;
 import com.vaadin.ui.Panel;
@@ -83,6 +84,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 	private WindowButton lookupWindowButton;
 	private Button clearButton;
 	private ConverterWithCache<String, T> itemConverter;
+	private ConverterWithCache<String, String> niceTitleItemConverter;
 	private ConstellioEIMConfigs configs;
 	private String readOnlyMessageI18NKey = null;
 
@@ -117,6 +119,10 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 		}
 	}
 
+	public ConverterWithCache getNiceTitleItemConverter() {
+		return new ConverterWithCache(new RecordIdToDescriptionContent());
+	}
+
 	public final Integer getWindowZIndex() {
 		return windowZIndex;
 	}
@@ -134,6 +140,26 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 
 	public List<LookupTreeDataProvider<T>> getLookupTreeDataProviders() {
 		return lookupTreeDataProviders;
+	}
+
+	public String getNiceTitle(Object property) {
+
+		String recordId = null;
+
+		if(this.niceTitleItemConverter == null) {
+			this.niceTitleItemConverter = getNiceTitleItemConverter();
+		}
+
+		if(property != null && property instanceof String) {
+			recordId = (String) property;
+		}
+
+		if(niceTitleItemConverter != null && recordId != null) {
+			Locale locale = ConstellioUI.getCurrentSessionContext().getCurrentLocale();
+			return niceTitleItemConverter.convertToPresentation(recordId, String.class, locale);
+		}
+
+		return "";
 	}
 
 	@Override
@@ -658,7 +684,14 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 			Property<?> property;
 			if (CAPTION_PROPERTY_ID.equals(id)) {
 				String caption = getCaption(item);
-				Button selectButton = new Button(caption);
+
+				ExtensibleButton selectButton = new ExtensibleButton(caption);
+
+				String tooltip = getNiceTitle(item);
+				if(tooltip != null) {
+					NiceTitle niceTitle = new NiceTitle(selectButton, tooltip);
+					selectButton.addExtension(niceTitle);
+				}
 				selectButton.addClickListener(new ClickListener() {
 					@Override
 					public void buttonClick(ClickEvent event) {
@@ -700,6 +733,17 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 			throw new UnsupportedOperationException("Item is read-only");
 		}
 
+	}
+
+	private class ExtensibleButton extends Button {
+		public ExtensibleButton(String caption) {
+			super(caption);
+		}
+
+		@Override
+		public void addExtension(Extension extension) {
+			super.addExtension(extension);
+		}
 	}
 
 	private interface SerializableQuery extends Query, Serializable {
