@@ -8,8 +8,8 @@ import com.constellio.app.services.appManagement.AppManagementServiceException;
 import com.constellio.app.services.appManagement.AppManagementServiceRuntimeException.CannotConnectToServer;
 import com.constellio.app.services.recovery.UpdateRecoveryImpossibleCause;
 import com.constellio.app.services.recovery.UpgradeAppRecoveryService;
-import com.constellio.app.services.systemInformations.SystemInformationsService;
 import com.constellio.app.services.recovery.UpgradeAppRecoveryServiceImpl;
+import com.constellio.app.services.systemInformations.SystemInformationsService;
 import com.constellio.app.servlet.ConstellioMonitoringServlet;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.data.utils.TimeProvider;
@@ -20,6 +20,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.reindexing.ReindexationMode;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
@@ -79,6 +80,10 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 	}
 
 	public String getChangelog() {
+		if (!appLayerFactory.getModelLayerFactory().getSystemConfigs().isUpdateServerConnectionEnabled()) {
+			return null;
+		}
+
 		String changelog;
 		try {
 			changelog = appLayerFactory.newApplicationService().getChangelogFromServer();
@@ -90,10 +95,16 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 	}
 
 	public String getUpdateVersion() {
+		if (!appLayerFactory.getModelLayerFactory().getSystemConfigs().isUpdateServerConnectionEnabled()) {
+			return "0";
+		}
+
 		try {
 			return appLayerFactory.newApplicationService().getVersionFromServer();
 		} catch (CannotConnectToServer cc) {
 			view.showErrorMessage($("UpdateManagerViewImpl.error.connection"));
+			appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager().setValue(
+					ConstellioEIMConfigs.UPDATE_SERVER_CONNECTION_ENABLED, false);
 			return "0";
 		}
 	}
@@ -311,7 +322,7 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 	}
 
 	public boolean isRestartWithReindexButtonEnabled() {
-		if(appLayerFactory.getModelLayerFactory().getDataLayerFactory().getDataLayerConfiguration().isSystemDistributed()) {
+		if (appLayerFactory.getModelLayerFactory().getDataLayerFactory().getDataLayerConfiguration().isSystemDistributed()) {
 			return !UpgradeAppRecoveryServiceImpl.HAS_UPLOADED_A_WAR_SINCE_REBOOTING;
 		} else {
 			return !recoveryModeEnabled();
