@@ -9,9 +9,11 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.contents.ContentImpl;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.TestUtils;
 import com.constellio.sdk.tests.setups.Users;
 import org.apache.commons.io.FileUtils;
 import org.joda.time.LocalDate;
@@ -20,6 +22,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -87,8 +90,16 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 		ConstellioSIPObjectsProvider metsObjectsProvider = new ConstellioSIPObjectsProvider(zeCollection, getAppLayerFactory(),
 				filter, new ProgressInfo());
 		ConstellioSIP constellioSIP = new ConstellioSIP(metsObjectsProvider, bagInfoLines, false,
-				getAppLayerFactory().newApplicationService().getWarVersion(), new ProgressInfo(), Locale.FRENCH);
-		constellioSIP.build(sipFile);
+				getAppLayerFactory().newApplicationService().getWarVersion(), new ProgressInfo(), Locale.FRENCH) {
+			@Override
+			protected String getHash(File file, String sipPath) throws IOException {
+				return "{{" + sipPath.replace("\\", "/ d") + "}}";
+			}
+		};
+		ValidationErrors errors = constellioSIP.build(sipFile);
+		if (!errors.isEmpty()) {
+			assertThat(TestUtils.frenchMessages(errors)).describedAs("errors").isEmpty();
+		}
 
 		return sipFile;
 	}

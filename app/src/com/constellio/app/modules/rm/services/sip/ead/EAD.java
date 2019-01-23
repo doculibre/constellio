@@ -1,11 +1,9 @@
 package com.constellio.app.modules.rm.services.sip.ead;
 
-import com.constellio.app.modules.rm.services.reports.AbstractXmlGenerator;
 import com.constellio.app.modules.rm.services.sip.model.SIPObject;
 import com.constellio.app.modules.rm.services.sip.xsd.XMLDocumentValidator;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 import org.apache.commons.lang3.StringUtils;
 import org.jdom2.Document;
 import org.jdom2.Element;
@@ -23,6 +21,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
+
+import static java.util.Arrays.asList;
 
 public class EAD {
 
@@ -46,6 +46,8 @@ public class EAD {
 	private static XMLDocumentValidator validator = new XMLDocumentValidator();
 
 	private Locale locale;
+
+	private static List<String> XSDs = asList("xlink.xsd", "ead.xsd");
 
 	static {
 		builder = new SAXBuilder();
@@ -210,35 +212,117 @@ public class EAD {
 			}
 		}
 
-		Element metadataElement = new Element("metadata", eadNamespace);
+		Element oddElement = new Element("odd", eadNamespace);
 
-		for (Metadata metadata : sipObject.getMetadataList()) {
-			if (metadata != null) {
-				if (metadata.getType().equals(MetadataValueType.REFERENCE)) {
-					metadataElement.addContent(AbstractXmlGenerator.createMetadataTagFromMetadataOfTypeReference(metadata, sipObject.getRecord(), collection, factory, eadNamespace));
+		Element tableElement = new Element("table", eadNamespace);
+		tableElement.setAttribute("frame", "none");
+		oddElement.addContent(tableElement);
 
-				} else if (metadata.getType().equals(MetadataValueType.ENUM)) {
-					metadataElement.addContent(AbstractXmlGenerator.createMetadataTagFromMetadataOfTypeEnum(metadata, sipObject.getRecord(), eadNamespace, locale));
+		Element tGroup = new Element("tgroup", eadNamespace);
+		tGroup.setAttribute("cols", "2");
+		tableElement.addContent(tGroup);
 
-				} else if (metadata.getType().equals(MetadataValueType.CONTENT)) {
-					metadataElement.addContent(AbstractXmlGenerator.createMetadataTagFromMetadataOfTypeContent(metadata, sipObject.getRecord(), eadNamespace, locale));
+		Element thead = new Element("thead", eadNamespace);
+		tGroup.addContent(thead);
 
-				} else {
-					Object metadataValue = sipObject.getRecord().get(metadata);
-					Element currentMetadataElement = new Element(metadata.getCode(), eadNamespace);
-					if (metadataValue != null) {
-						currentMetadataElement.setText(AbstractXmlGenerator.defaultFormatData(metadata.isMultivalue() ? StringUtils.join(sipObject.getRecord().getList(metadata), ", ") : sipObject.getRecord().get(metadata).toString(), metadata, factory, collection));
-					}
-					metadataElement.addContent(currentMetadataElement);
-				}
-			}
+		Element theadRow = new Element("row", eadNamespace);
+		thead.addContent(theadRow);
+
+		Element headColId = new Element("entry", eadNamespace);
+		headColId.setAttribute("colname", "1");
+		headColId.setText("Id");
+		theadRow.addContent(headColId);
+
+		Element headColCode = new Element("entry", eadNamespace);
+		headColCode.setAttribute("colname", "2");
+		headColCode.setText("Code");
+		theadRow.addContent(headColCode);
+
+		Element headColTitle = new Element("entry", eadNamespace);
+		headColTitle.setAttribute("colname", "3");
+		headColTitle.setText("Title");
+		theadRow.addContent(headColTitle);
+
+		Element tbody = new Element("tbody", eadNamespace);
+		tGroup.addContent(tbody);
+
+		Element row = new Element("row", eadNamespace);
+		tbody.addContent(row);
+
+		for (int i = 1; i <= 4; i++) {
+			Element entry1 = new Element("entry", eadNamespace);
+			entry1.setAttribute("colname", "1");
+			entry1.setText("id" + i);
+			row.addContent(entry1);
+
+
+			Element entry2 = new Element("entry", eadNamespace);
+			entry2.setAttribute("colname", "2");
+			entry2.setText("code " + i);
+			row.addContent(entry2);
+
+
+			Element entry3 = new Element("entry", eadNamespace);
+			entry3.setAttribute("colname", "3");
+			entry3.setText("title " + i);
+			row.addContent(entry3);
+
 		}
 
-		eadElement.addContent(metadataElement);
+		Element meta1 = new Element("odd", eadNamespace);
+		meta1.setAttribute("id", "metadata1");
+		meta1.setAttribute("type", "string");
+
+		Element meta1P = new Element("p", eadNamespace);
+		meta1P.setText("Ze value");
+		meta1.addContent(meta1P);
+
+		oddElement.addContent(meta1);
+
+		Element meta2 = new Element("odd", eadNamespace);
+		meta2.setAttribute("id", "metadata2");
+
+		Element meta2P = new Element("p", eadNamespace);
+		meta2P.setText("false");
+		meta2.addContent(meta2P);
+		oddElement.addContent(meta2);
+
+		Element meta3 = new Element("list", eadNamespace);
+		meta3.setAttribute("type", "metadatas");
+
+		Element item1 = new Element("item", eadNamespace);
+		meta3.addContent(item1);
+		oddElement.addContent(meta3);
+
+
+		//		for (Metadata metadata : sipObject.getMetadataList()) {
+		//			if (metadata != null) {
+		//				if (metadata.getType().equals(MetadataValueType.REFERENCE)) {
+		//					metadataElement.addContent(SipXmlUtils.createMetadataTagFromMetadataOfTypeReference(metadata, sipObject.getRecord(), collection, factory, eadNamespace));
+		//
+		//				} else if (metadata.getType().equals(MetadataValueType.ENUM)) {
+		//					metadataElement.addContent(SipXmlUtils.createMetadataTagFromMetadataOfTypeEnum(metadata, sipObject.getRecord(), eadNamespace, locale));
+		//
+		//				} else if (metadata.getType().equals(MetadataValueType.CONTENT)) {
+		//					metadataElement.addContent(SipXmlUtils.createMetadataTagFromMetadataOfTypeContent(metadata, sipObject.getRecord(), eadNamespace, locale));
+		//
+		//				} else {
+		//					Object metadataValue = sipObject.getRecord().get(metadata);
+		//					Element currentMetadataElement = new Element(metadata.getLocalCode(), eadNamespace);
+		//					if (metadataValue != null) {
+		//						currentMetadataElement.setText(SipXmlUtils.defaultFormatData(metadata.isMultivalue() ? StringUtils.join(sipObject.getRecord().getList(metadata), ", ") : sipObject.getRecord().get(metadata).toString(), metadata, factory, collection));
+		//					}
+		//					metadataElement.addContent(currentMetadataElement);
+		//				}
+		//			}
+		//		}
+
+		archdescElement.addContent(oddElement);
 	}
 
-	public void build(File file) throws IOException {
-		validator.validate(doc, "xlink.xsd", "ead.xsd");
+
+	public void build(String sipPath, ValidationErrors errors, File file) throws IOException {
+		validator.validate(sipPath, doc, errors, XSDs);
 		OutputStream out = new FileOutputStream(file);
 		try {
 			// Output as XML

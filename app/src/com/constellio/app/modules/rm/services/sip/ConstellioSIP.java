@@ -65,6 +65,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
 
+import static java.util.Arrays.asList;
+
 /**
  * metsHdr CREATEDATE="..." RECORDSTATUS="Complete"
  * - agent ROLE="CREATOR" ORGANIZATION=""
@@ -175,6 +177,8 @@ public class ConstellioSIP {
 			']',
 			};
 
+	private static List<String> METS_XSDs = asList("xlink.xsd", "mets.xsd");
+
 	private static final String BAG_INFO_FILE_NAME = "bag-info.txt";
 
 	private static final String HASH_TYPE = "sha256";
@@ -246,7 +250,7 @@ public class ConstellioSIP {
 		this.locale = locale;
 	}
 
-	public void build(File zipFile)
+	public ValidationErrors build(File zipFile)
 			throws IOException, JDOMException {
 		ValidationErrors errors = new ValidationErrors();
 		sipCreationDate = TimeProvider.getLocalDateTime().toDate();
@@ -276,6 +280,8 @@ public class ConstellioSIP {
 		zipOutputStream.close();
 		zipFileOutputStream.close();
 		slipFileOutputStream.close();
+
+		return errors;
 	}
 
 	private void addToZip(File file, String path)
@@ -313,7 +319,7 @@ public class ConstellioSIP {
 		return sipObject.getZipPath();
 	}
 
-	private void addMdRefAndGenerateEAD(SIPObject sipObject, DmdSec dmdSec)
+	private void addMdRefAndGenerateEAD(SIPObject sipObject, DmdSec dmdSec, ValidationErrors errors)
 			throws IOException, METSException {
 		EADArchdesc archdesc = sipObjectsProvider.getEADArchdesc(sipObject);
 		if (sipObject instanceof SIPDocument) {
@@ -328,11 +334,11 @@ public class ConstellioSIP {
 			tempXMLFile.deleteOnExit();
 
 			EAD ead = new EAD(sipObject, archdesc, sipObjectsProvider.getAppLayerCollection(), sipObjectsProvider.getCollection(), locale);
-			ead.build(tempXMLFile);
+			ead.build(zipXMLPath, errors, tempXMLFile);
 
 			addToZip(tempXMLFile, zipXMLPath);
 
-			String hash = getHash(tempXMLFile);
+			String hash = getHash(tempXMLFile, zipXMLPath);
 			addManifestLine(hash, zipXMLPath);
 			tempXMLFile.delete();
 
@@ -358,11 +364,11 @@ public class ConstellioSIP {
 			tempXMLFile.deleteOnExit();
 
 			EAD ead = new EAD(sipObject, archdesc, sipObjectsProvider.getAppLayerCollection(), sipObjectsProvider.getCollection(), locale);
-			ead.build(tempXMLFile);
+			ead.build(zipXMLPath, errors, tempXMLFile);
 
 			addToZip(tempXMLFile, zipXMLPath);
 
-			String hash = getHash(tempXMLFile);
+			String hash = getHash(tempXMLFile, zipXMLPath);
 			addManifestLine(hash, zipXMLPath);
 			tempXMLFile.delete();
 
@@ -435,8 +441,9 @@ public class ConstellioSIP {
 					currentDocumentIndex++;
 				}
 				String hash = null;
+				String zipFilePath = getZipPath(sipDocument);
 				if (file != null) {
-					hash = getHash(file);
+					hash = getHash(file, zipFilePath);
 				}
 				String extension = FilenameUtils.getExtension(filename);
 				Integer extensionCount = extensionCounts.get(extension);
@@ -451,7 +458,6 @@ public class ConstellioSIP {
 					addToSIP(sipFolder, mets, documentFileGroup, bagDiv, errors);
 				}
 
-				String zipFilePath = getZipPath(sipDocument);
 
 				au.edu.apsr.mtk.base.File documentFile = documentFileGroup.newFile();
 				documentFileGroup.addFile(documentFile);
@@ -492,9 +498,9 @@ public class ConstellioSIP {
 							byte[] extraFileBytes = entry.getValue();
 							FileUtils.writeByteArrayToFile(extraTempFile, extraFileBytes);
 
-							String extraFileHash = getHash(extraTempFile);
 							String extraZipFilePath =
 									StringUtils.substringBeforeLast(zipFilePath, ".") + "-" + i + "." + extraFileExtension;
+							String extraFileHash = getHash(extraTempFile, extraZipFilePath);
 
 							au.edu.apsr.mtk.base.File extraDocumentFile = documentFileGroup.newFile();
 							documentFileGroup.addFile(extraDocumentFile);
@@ -544,7 +550,7 @@ public class ConstellioSIP {
 				}
 			}
 			mets.addDmdSec(dmdSec);
-			addMdRefAndGenerateEAD(sipObject, dmdSec);
+			addMdRefAndGenerateEAD(sipObject, dmdSec, errors);
 		} catch (IOException e) {
 			errors.add(IOException.class, e.getMessage());
 		} finally {
@@ -704,7 +710,9 @@ public class ConstellioSIP {
 		xml.output(jdomDoc, fos);
 		fos.close();
 
-		validator.validate(jdomDoc, "xlink.xsd", "mets.xsd");
+		String metsFileZipPath = "/" + metsFilename;
+
+		validator.validate(metsFileZipPath, jdomDoc, errors, METS_XSDs);
 
 		SAXBuilder builder = new SAXBuilder();
 		builder.build(metsFile);
@@ -713,7 +721,7 @@ public class ConstellioSIP {
 		String manifestFileZipPath = "/" + MANIFEST_FILE_NAME;
 		addToZip(manifestFile, manifestFileZipPath);
 
-		String metsFileZipPath = "/" + metsFilename;
+
 		addToZip(metsFile, metsFileZipPath);
 
 		buildTagmanifestFile();
@@ -821,11 +829,11 @@ public class ConstellioSIP {
 			throws IOException {
 		List<String> tagmanifestLines = new ArrayList<String>();
 
-		String bagInfoFileHash = getHash(bagInfoFile);
+		String bagInfoFileHash = getHash(bagInfoFile, BAG_INFO_FILE_NAME);
 		tagmanifestLines.add(bagInfoFileHash + " " + BAG_INFO_FILE_NAME);
 
-		String metsFileHash = getHash(metsFile);
-		String manifestFileHash = getHash(manifestFile);
+		String metsFileHash = getHash(metsFile, metsFilename);
+		String manifestFileHash = getHash(manifestFile, MANIFEST_FILE_NAME);
 
 		tagmanifestLines.add(metsFileHash + " " + metsFilename);
 		tagmanifestLines.add(manifestFileHash + " " + MANIFEST_FILE_NAME);
@@ -849,7 +857,7 @@ public class ConstellioSIP {
 		IOUtils.closeQuietly(fos);
 	}
 
-	private String getHash(File file)
+	protected String getHash(File file, String sipPath)
 			throws IOException {
 		return getHash(new FileInputStream(file));
 	}
