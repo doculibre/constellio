@@ -36,7 +36,7 @@ public class ESRMRobotsMigrationCombo implements ComboMigrationScript {
 		migrations.add(new ESRMRobotsMigrationTo7_3_1());
 		migrations.add(new ESRMRobotsMigrationTo7_5());
 		migrations.add(new ESRMRobotsMigrationTo8_1_1());
-
+		migrations.add(new ESRMRobotsMigrationTo8_1_1_1());
 		return migrations;
 	}
 

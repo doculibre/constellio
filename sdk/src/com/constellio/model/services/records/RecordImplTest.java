@@ -277,7 +277,8 @@ public class RecordImplTest extends ConstellioTest {
 				entry(multipleTextMetadataCodeAndType, asList("firstValue")),
 				entry(dateMetadataCodeAndType, "secondValue"),
 				entry("collection_s", "zeCollection"),
-				entry("schema_s", "a_b"));
+				entry("schema_s", "a_b"),
+				entry("estimatedSize_i", 260));
 
 		assertThat(recordDTO.getCopyFields()).containsOnly(
 				entry("copiedField1", "copiedValue1"),
@@ -396,7 +397,7 @@ public class RecordImplTest extends ConstellioTest {
 				.toRecordDeltaDTO(zeSchema, asList(copyfieldsPopulator, copyfieldsPopulator2));
 		assertThat(deltaDTO.getId()).isEqualTo(record.getId());
 		assertThat(deltaDTO.getFromVersion()).isEqualTo(1L);
-		assertThat(deltaDTO.getModifiedFields()).hasSize(2).containsEntry(dateMetadataCodeAndType, "secondValue")
+		assertThat(deltaDTO.getModifiedFields()).containsEntry(dateMetadataCodeAndType, "secondValue")
 				.containsEntry(multipleBooleanMetadataCodeAndType, null);
 		assertThat(deltaDTO.getCopyfields()).hasSize(3).containsEntry("copiedField1",
 				"copiedValue1").containsEntry("copiedField2", "copiedValue2").containsEntry("copiedField3", "copiedValue3");
@@ -928,7 +929,7 @@ public class RecordImplTest extends ConstellioTest {
 
 		assertThat(
 				record.toRecordDeltaDTO(zeSchema, asList(copyfieldsPopulator)).getModifiedFields())
-				.containsEntry(factoredMetadataCodeAndType, zeStructureModifiedValue).hasSize(1);
+				.containsEntry(factoredMetadataCodeAndType, zeStructureModifiedValue);
 
 		verify(copyfieldsPopulator).populateCopyfields(zeSchema, record);
 
@@ -954,7 +955,7 @@ public class RecordImplTest extends ConstellioTest {
 		assertThat(record.getModifiedValues()).containsEntry(factoredMetadataCodeAndType, anotherStructure).hasSize(1);
 
 		assertThat(record.toRecordDeltaDTO(zeSchema, asList(copyfieldsPopulator)).getModifiedFields())
-				.containsEntry(factoredMetadataCodeAndType, anotherStructureInitialValue).hasSize(1);
+				.containsEntry(factoredMetadataCodeAndType, anotherStructureInitialValue);
 
 		verify(copyfieldsPopulator).populateCopyfields(zeSchema, record);
 	}
@@ -1005,7 +1006,7 @@ public class RecordImplTest extends ConstellioTest {
 
 		assertThat(record.toRecordDeltaDTO(zeSchema, asList(copyfieldsPopulator)).getModifiedFields())
 				.containsEntry(factoredListMetadataCodeAndType,
-						asList(zeStructureModifiedValue, anotherStructureInitialValue)).hasSize(1);
+						asList(zeStructureModifiedValue, anotherStructureInitialValue));
 
 		verify(copyfieldsPopulator).populateCopyfields(zeSchema, record);
 	}
@@ -1057,7 +1058,7 @@ public class RecordImplTest extends ConstellioTest {
 
 		assertThat(record.toRecordDeltaDTO(zeSchema, asList(copyfieldsPopulator)).getModifiedFields())
 				.containsEntry(factoredListMetadataCodeAndType,
-						asList(zeStructureInitialValue, aThirdStructureInitialValue)).hasSize(1);
+						asList(zeStructureInitialValue, aThirdStructureInitialValue));
 
 		verify(copyfieldsPopulator).populateCopyfields(zeSchema, record);
 	}

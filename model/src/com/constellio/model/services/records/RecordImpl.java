@@ -52,6 +52,7 @@ import static com.constellio.model.entities.records.LocalisedRecordMetadataRetri
 import static com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval.STRICT;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.SEQUENCE;
+import static com.constellio.model.services.records.RecordUtils.estimateRecordUpdateSize;
 import static java.util.Arrays.asList;
 import static java.util.Collections.unmodifiableList;
 
@@ -74,6 +75,9 @@ public class RecordImpl implements Record {
 	private boolean fullyLoaded;
 	private boolean unmodifiable;
 	private CollectionInfo collectionInfo;
+
+	private RecordDTO lastCreatedRecordDTO;
+	private RecordDeltaDTO lastCreatedDeltaDTO;
 
 	public RecordImpl(MetadataSchema schema, String id) {
 		if (schema == null) {
@@ -212,17 +216,6 @@ public class RecordImpl implements Record {
 		} else {
 			convertedRecord = value;
 		}
-
-		//		if (metadata.getInputMask() != null) {
-		//			try {
-		//				convertedRecord = MaskUtils.format(metadata.getInputMask(), (String) convertedRecord);
-		//			} catch (MaskUtilsException e) {
-		//				//Cannot convert the value, setting the raw value (will fail in further validations)
-		//				LOGGER.info("Value '" + convertedRecord + "' in metadata '" + metadata.getCode() + "' is incompatible with mask '"
-		//						+ metadata.getInputMask() + "'");
-		//
-		//			}
-		//		}
 
 		return setModifiedValue(metadata, language, convertedRecord);
 	}
@@ -721,8 +714,9 @@ public class RecordImpl implements Record {
 		fields.remove("_version_");
 		fields.put("schema_s", schemaCode);
 		fields.put("collection_s", collection);
+		fields.put("estimatedSize_i", RecordUtils.estimateRecordSize(fields, copyfields));
 
-		return new RecordDTO(id, version, null, fields, copyfields);
+		return lastCreatedRecordDTO = new RecordDTO(id, version, null, fields, copyfields);
 
 	}
 
@@ -830,7 +824,16 @@ public class RecordImpl implements Record {
 			convertedValues.put("schema_s", schemaCode);
 		}
 
-		return new RecordDeltaDTO(id, version, convertedValues, recordDTO.getFields(), copyfields);
+		Integer currentSize = (Integer) recordDTO.getFields().get("estimatedSize_i");
+		if (currentSize == null) {
+			currentSize = RecordUtils.estimateRecordSize(recordDTO.getFields(), recordDTO.getCopyFields());
+		}
+
+		int estimatedSizeDelta = estimateRecordUpdateSize(
+				convertedValues, recordDTO.getFields(), copyfields, recordDTO.getCopyFields());
+		convertedValues.put("estimatedSize_i", currentSize + estimatedSizeDelta);
+
+		return lastCreatedDeltaDTO = new RecordDeltaDTO(id, version, convertedValues, recordDTO.getFields(), copyfields);
 	}
 
 	@Override
@@ -937,30 +940,6 @@ public class RecordImpl implements Record {
 			modifiedValues.remove(removedKey);
 		}
 
-		//		for (Entry<String, Object> entry : otherVersionRecordDTO.getFields().entrySet()) {
-		//			String key = entry.getKey();
-		//			if (!isCreationOrModificationInfo(key)) {
-		//				Object dataStoreValue = correctValue(otherVersionRecordDTO.getFields().get(key));
-		//				Object value = correctValue(recordDTO.getFields().get(key));
-		//
-		//				String metadataCode = new SchemaUtils().getLocalCodeFromDataStoreCode(key);
-		//
-		//				boolean specialField =
-		//						key.equals("schema_s") || key.equals("id") || key.equals("_version_") || key.equals("autocomplete_ss")
-		//								|| key.equals("collection_s");
-		//
-		//				if (!specialField && schema.getMetadata(metadataCode).getDataEntry().getType() != DataEntryType.CALCULATED) {
-		//					if (!LangUtils.areNullableEqual(dataStoreValue, value)) {
-		//
-		//						if (modifiedValues.containsKey(key) && !modifiedValues.get(key).equals(dataStoreValue)) {
-		//							throw new RecordRuntimeException.CannotMerge();
-		//						} else {
-		//							toMerge.put(entry.getKey(), dataStoreValue);
-		//						}
-		//					}
-		//				}
-		//			}
-		//		}
 		this.version = otherVersion.getVersion();
 		this.recordDTO = otherVersion.getRecordDTO();
 		this.unmodifiableCopyOfOriginalRecord = null;
@@ -983,15 +962,25 @@ public class RecordImpl implements Record {
 	public void markAsSaved(long version, MetadataSchema schema) {
 		ensureModifiable();
 		if (!isSaved()) {
-			RecordDTO dto = toNewDocumentDTO(schema, new ArrayList<FieldsPopulator>()).withVersion(
-					version);
+			if (lastCreatedRecordDTO == null) {
+				//This should never happen
+				lastCreatedRecordDTO = toNewDocumentDTO(schema, new ArrayList<FieldsPopulator>()).withVersion(version);
+			}
+			RecordDTO dto = lastCreatedRecordDTO.withVersion(version);
 			refresh(version, dto);
+
 		} else {
-			RecordDTO dto = recordDTO
-					.createCopyWithDelta(toRecordDeltaDTO(schema, new ArrayList<FieldsPopulator>()))
-					.withVersion(version);
+			if (lastCreatedDeltaDTO == null) {
+				//This should never happen
+				lastCreatedDeltaDTO = toRecordDeltaDTO(schema, new ArrayList<FieldsPopulator>());
+			}
+
+			RecordDTO dto = recordDTO.createCopyWithDelta(lastCreatedDeltaDTO).withVersion(version);
 			refresh(version, dto);
 		}
+
+		lastCreatedRecordDTO = null;
+		lastCreatedDeltaDTO = null;
 
 	}
 
@@ -1121,30 +1110,9 @@ public class RecordImpl implements Record {
 		modifiedValues.put(metadata.getDataStoreCode(), get(metadata));
 	}
 
-	//	@Override
-	//	public void changeSchemaTo(String newSchemaCodeOrLocalCode) {
-	//		SchemaUtils schemaUtils = new SchemaUtils();
-	//		if (isSaved()) {
-	//			throw new RecordImplException_CannotChangeSchemaOfSavedRecord(id);
-	//		}
-	//		String currentType = schemaUtils.getSchemaTypeCode(schemaCode);
-	//		String newSchemaCode;
-	//		if (newSchemaCodeOrLocalCode.contains("_")) {
-	//			String newType = schemaUtils.getSchemaTypeCode(newSchemaCodeOrLocalCode);
-	//			if (!currentType.equals(newType)) {
-	//				throw new RecordImplException_CannotChangeTypeOfRecord(id);
-	//			}
-	//			newSchemaCode = newSchemaCodeOrLocalCode;
-	//		} else {
-	//			newSchemaCode = currentType + "_" + newSchemaCodeOrLocalCode;
-	//		}
-	//
-	//		this.schemaCode = newSchemaCode;
-	//	}
 
 	@Override
 	public boolean changeSchema(MetadataSchema wasSchema, MetadataSchema newSchema) {
-		//LOGGER.info("changeSchema (" + wasSchema.getCode() + "=>" + newSchema.getCode() + ")");
 		ensureModifiable();
 		boolean lostMetadataValues = false;
 		Map<String, Metadata> newSchemasMetadatas = new HashMap<>();

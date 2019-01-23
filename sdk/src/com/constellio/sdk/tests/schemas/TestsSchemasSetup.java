@@ -263,6 +263,14 @@ public class TestsSchemasSetup extends SchemasSetup {
 		}
 
 	};
+	public static MetadataBuilderConfigurator whichIsNotSearchable = new MetadataBuilderConfigurator() {
+
+		@Override
+		public void configure(MetadataBuilder builder, MetadataSchemaTypesBuilder schemaTypes) {
+			builder.setSearchable(false);
+		}
+
+	};
 	public static MetadataBuilderConfigurator whichIsSortable = new MetadataBuilderConfigurator() {
 
 		@Override

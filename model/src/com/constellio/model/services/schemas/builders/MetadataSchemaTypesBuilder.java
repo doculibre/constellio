@@ -272,6 +272,16 @@ public class MetadataSchemaTypesBuilder {
 		return calculatedMetadatas;
 	}
 
+	public Set<MetadataBuilder> getAllMetadatasOfType(MetadataValueType type) {
+		Set<MetadataBuilder> filteredMetadatas = new HashSet<>();
+		for (MetadataBuilder metadataBuilder : getAllMetadatas()) {
+			if (metadataBuilder.getType() == type) {
+				filteredMetadatas.add(metadataBuilder);
+			}
+		}
+		return filteredMetadatas;
+	}
+
 	List<String> validateNoCyclicDependenciesBetweenSchemas() {
 		Map<String, Set<String>> primaryTypesDependencies = new HashMap<>();
 		Map<String, Set<String>> secondaryTypesDependencies = new HashMap<>();

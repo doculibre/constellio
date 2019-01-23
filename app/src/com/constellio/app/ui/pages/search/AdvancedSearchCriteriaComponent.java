@@ -183,8 +183,8 @@ public class AdvancedSearchCriteriaComponent extends Table {
 			if (extensionComponentForCriterion != null) {
 				return extensionComponentForCriterion;
 			}
-			if (criterion.getMetadataCode().contains("_default_schema")) {
-				return buildMultipleValuesComponent(criterion);
+			if (criterion.getMetadataCode().endsWith("_schema")) {
+				return buildSchemaCriterionComponent(criterion);
 			}
 			switch (criterion.getMetadataType()) {
 				case STRING:
@@ -256,7 +256,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 			return field;
 		}
 
-		private Component buildMultipleValuesComponent(final Criterion criterion) {
+		private Component buildSchemaCriterionComponent(final Criterion criterion) {
 			final ComboBox value = new BaseComboBox();
 			Map<String, String> metadataSchemas = presenter.getMetadataSchemasList(criterion.getSchemaType());
 			for (String code : metadataSchemas.keySet()) {
@@ -274,6 +274,10 @@ public class AdvancedSearchCriteriaComponent extends Table {
 			});
 
 			final SearchOperator searchOperator = criterion.getSearchOperator();
+			if(SearchOperator.CONTAINS_TEXT.equals(searchOperator)) {
+				criterion.setSearchOperator(SearchOperator.EQUALS);
+			}
+
 			final ComboBox operator = buildIsEmptyIsNotEmptyComponent(criterion);
 			operator.addValueChangeListener(new ValueChangeListener() {
 				@Override
@@ -287,7 +291,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 							criterion.setValue(null);
 						}
 					} else {
-						criterion.setSearchOperator(searchOperator);
+						criterion.setSearchOperator(SearchOperator.EQUALS);
 						value.setVisible(true);
 					}
 				}

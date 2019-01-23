@@ -1014,4 +1014,8 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 			view.showMessage($(e));
 		}
 	}
+
+	public void showErrorMessage(String message) {
+		view.showErrorMessage(message);
+	}
 }

@@ -113,7 +113,7 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 	private Table buildTable() {
 		final RecordVODataProvider dataProvider = presenter.getDataProvider();
 		final String eventType = presenter.getEventType();
-		container = new RecordVOLazyContainer(dataProvider, false);
+		container = new RecordVOLazyContainer(dataProvider);
 
 		String eventTypeCaption;
 		try {

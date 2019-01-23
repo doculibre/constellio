@@ -56,8 +56,8 @@ public class RecordUtils {
 		}
 	}
 
-	public static long estimateRecordSize(Record record) {
-		if (record == null || !(record instanceof RecordImpl)) {
+	public static int estimateRecordSize(Record record) {
+		if (!(record instanceof RecordImpl)) {
 			return 0;
 		}
 		RecordDTO recordDTO = ((RecordImpl) record).getRecordDTO();
@@ -66,21 +66,67 @@ public class RecordUtils {
 			return 0;
 		}
 
+		return estimateRecordSize(recordDTO.getFields(), recordDTO.getCopyFields());
+	}
+
+	public static int estimateRecordSize(Map<String, Object> fields, Map<String, Object> copyFields) {
 		long size = 0;
 
-		if (recordDTO.getCopyFields() != null) {
-			for (Object object : recordDTO.getCopyFields().values()) {
-				size += sizeOf(object);
+		if (copyFields != null) {
+			for (Map.Entry<String, Object> entry : copyFields.entrySet()) {
+				if (!EXCLUDED_METADATAS_FROM_RECORD_ESTIMATE.contains(entry.getKey()) && !entry.getKey().startsWith("id_")) {
+					size += sizeOf(entry.getValue());
+				}
 			}
 
 		}
-		if (recordDTO.getFields() != null) {
-			for (Object object : recordDTO.getFields().values()) {
-				size += sizeOf(object);
+		if (fields != null) {
+			for (Map.Entry<String, Object> entry : fields.entrySet()) {
+				if (!EXCLUDED_METADATAS_FROM_RECORD_ESTIMATE.contains(entry.getKey()) && !entry.getKey().startsWith("id_")) {
+					size += sizeOf(entry.getValue());
+				}
+			}
+		}
+		return size > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) size;
+	}
+
+	private static final List<String> EXCLUDED_METADATAS_FROM_RECORD_ESTIMATE = asList(
+			Schemas.VERSION.getLocalCode(), Schemas.ESTIMATED_SIZE.getLocalCode(),
+			Schemas.MIGRATION_DATA_VERSION.getLocalCode(), Schemas.IDENTIFIER.getLocalCode());
+
+	public static int estimateRecordUpdateSize(Map<String, Object> modifiedFields, Map<String, Object> fields,
+											   Map<String, Object> modifiedCopyFields,
+											   Map<String, Object> copyFields) {
+
+		int size = 0;
+
+		if (modifiedCopyFields != null) {
+			for (Map.Entry<String, Object> entry : modifiedCopyFields.entrySet()) {
+				if (!EXCLUDED_METADATAS_FROM_RECORD_ESTIMATE.contains(entry.getKey()) && !entry.getKey().startsWith("id_")) {
+					size += sizeOf(entry.getValue());
+
+					Object originalValue = copyFields.get(entry.getKey());
+					if (originalValue != null) {
+						size -= sizeOf(originalValue);
+					}
+				}
+			}
+		}
+		if (modifiedFields != null) {
+			for (Map.Entry<String, Object> entry : modifiedFields.entrySet()) {
+				if (!EXCLUDED_METADATAS_FROM_RECORD_ESTIMATE.contains(entry.getKey()) && !entry.getKey().startsWith("id_")) {
+					size += sizeOf(entry.getValue());
+
+					Object originalValue = fields.get(entry.getKey());
+					if (originalValue != null) {
+						size -= sizeOf(originalValue);
+					}
+				}
 			}
 		}
 		return size;
 	}
+
 
 	/**
 	 * This method is far, very far from being complete!

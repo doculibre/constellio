@@ -231,7 +231,7 @@ public class SearchResultDisplay extends VerticalLayout {
 				if (!metadataVO.codeMatches(CommonMetadataBuilder.TITLE)) {
 
 					Component value = componentFactory.build(recordVO, metadataValue);
-					if (value == null) {
+					if (value != null) {
 						Label caption = new Label(metadataVO.getLabel() + ":");
 						caption.addStyleName("metadata-caption");
 
