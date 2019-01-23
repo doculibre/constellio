@@ -53,9 +53,9 @@ public class CoreUserProfileFieldsExtension extends PagesComponentsExtension {
 			AdditionnalRecordField startTabField = buildStartTabField(params);
 			AdditionnalRecordField defaultTaxonomyField = buildDefaultTaxonomyField(params);
 			AdditionnalRecordField taxonomyOrderField = buildTaxonomyDisplayOrderField(params);
-			AdditionnalRecordField doNotReceiveEmailsField = buildDoNotReceiveEmailsField(params);
+//			AdditionnalRecordField doNotReceiveEmailsField = buildDoNotReceiveEmailsField(params);
 
-			additionnalFields.addAll(asList(defaultPageLengthField, startTabField, defaultTaxonomyField, taxonomyOrderField, doNotReceiveEmailsField));
+			additionnalFields.addAll(asList(defaultPageLengthField, startTabField, defaultTaxonomyField, taxonomyOrderField/*, doNotReceiveEmailsField*/));
 		}
 		return additionnalFields;
 	}

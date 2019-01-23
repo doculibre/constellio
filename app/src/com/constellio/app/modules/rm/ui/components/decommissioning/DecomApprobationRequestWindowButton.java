@@ -85,6 +85,8 @@ public class DecomApprobationRequestWindowButton extends WindowButton {
 
 					presenter.approvalRequestButtonClicked(userList);
 					getWindow().close();
+				} else {
+					presenter.showErrorMessage($("DecomAskForValidationWindowButton.approbationWithoutUserError"));
 				}
 			}
 		};

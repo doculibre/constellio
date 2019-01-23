@@ -52,6 +52,8 @@ public class DecomValidationRequestWindowButton extends WindowButton {
 					if (presenter.validationRequested(users.getValue(), comments.getValue(), checkBox.getValue())) {
 						getWindow().close();
 					}
+				} else {
+					presenter.showErrorMessage($("DecomAskForValidationWindowButton.validationWithoutUserError"));
 				}
 			}
 		};
