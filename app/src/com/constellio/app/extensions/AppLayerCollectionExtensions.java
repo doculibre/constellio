@@ -24,6 +24,7 @@ import com.constellio.app.api.extensions.TaxonomyPageExtension;
 import com.constellio.app.api.extensions.params.AddFieldsInLabelXMLParams;
 import com.constellio.app.api.extensions.params.AvailableActionsParam;
 import com.constellio.app.api.extensions.params.CollectionSystemCheckParams;
+import com.constellio.app.api.extensions.params.ConvertStructureToMapParams;
 import com.constellio.app.api.extensions.params.DecorateMainComponentAfterInitExtensionParams;
 import com.constellio.app.api.extensions.params.DocumentViewButtonExtensionParam;
 import com.constellio.app.api.extensions.params.FilterCapsuleParam;
@@ -194,6 +195,16 @@ public class AppLayerCollectionExtensions {
 		for (RecordExportExtension recordExportExtension : recordExportExtensions) {
 			recordExportExtension.onWriteRecord(params);
 		}
+	}
+
+	public Map<String, Object> convertStructureToMap(ConvertStructureToMapParams params) {
+		for (RecordExportExtension recordExportExtension : recordExportExtensions) {
+			Map<String, Object> converted = recordExportExtension.convertStructureToMap(params);
+			if (converted != null) {
+				return converted;
+			}
+		}
+		return null;
 	}
 
 	public void buildRecordVO(BuildRecordVOParams params) {
@@ -736,9 +747,10 @@ public class AppLayerCollectionExtensions {
 		return metadataFilter;
 	}
 
-	public boolean isMetadataAccessExclusionByPropertyFilter(RMSchemaTypesPageExtensionExclusionByPropertyParams rmSchemaTypesPageExtensionExclusionByPropertyParams) {
+	public boolean isMetadataAccessExclusionByPropertyFilter(
+			RMSchemaTypesPageExtensionExclusionByPropertyParams rmSchemaTypesPageExtensionExclusionByPropertyParams) {
 		for (SchemaTypesPageExtension schemaTypesPageExtension : schemaTypesPageExtensions) {
-			if(schemaTypesPageExtension.getMetadataAccessExclusionPropertyFilter(rmSchemaTypesPageExtensionExclusionByPropertyParams)) {
+			if (schemaTypesPageExtension.getMetadataAccessExclusionPropertyFilter(rmSchemaTypesPageExtensionExclusionByPropertyParams)) {
 				return true;
 			}
 		}
@@ -746,11 +758,11 @@ public class AppLayerCollectionExtensions {
 		return false;
 	}
 
-    public List<AdditionnalRecordField> getAdditionnalFields(RecordFieldsExtensionParams params) {
+	public List<AdditionnalRecordField> getAdditionnalFields(RecordFieldsExtensionParams params) {
 		List<AdditionnalRecordField> additionnalFields = new ArrayList<>();
-		for(PagesComponentsExtension extension: pagesComponentsExtensions) {
+		for (PagesComponentsExtension extension : pagesComponentsExtensions) {
 			additionnalFields.addAll(extension.getAdditionnalFields(params));
 		}
 		return additionnalFields;
-    }
+	}
 }

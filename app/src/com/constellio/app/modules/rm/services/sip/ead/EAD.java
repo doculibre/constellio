@@ -1,10 +1,25 @@
 package com.constellio.app.modules.rm.services.sip.ead;
 
+import com.constellio.app.api.extensions.params.ConvertStructureToMapParams;
 import com.constellio.app.modules.rm.services.sip.model.SIPObject;
 import com.constellio.app.modules.rm.services.sip.xsd.XMLDocumentValidator;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.model.entities.EnumWithSmallCode;
+import com.constellio.model.entities.records.Content;
+import com.constellio.model.entities.records.ContentVersion;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.ModifiableStructure;
+import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.structures.MapStringListStringStructure;
+import com.constellio.model.entities.structures.MapStringStringStructure;
 import com.constellio.model.frameworks.validation.ValidationErrors;
+import com.constellio.model.services.records.RecordServicesRuntimeException;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.ss.formula.functions.T;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.JDOMException;
@@ -12,15 +27,26 @@ import org.jdom2.Namespace;
 import org.jdom2.input.SAXBuilder;
 import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.joda.time.format.ISODateTimeFormat;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.TreeMap;
 
 import static java.util.Arrays.asList;
 
@@ -48,6 +74,8 @@ public class EAD {
 	private Locale locale;
 
 	private static List<String> XSDs = asList("xlink.xsd", "ead.xsd");
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(EAD.class);
 
 	static {
 		builder = new SAXBuilder();
@@ -212,14 +240,267 @@ public class EAD {
 			}
 		}
 
-		Element oddElement = new Element("odd", eadNamespace);
+		Element metadatasElement = new Element("odd", eadNamespace);
+		for (Metadata metadata : sipObject.getMetadataList()) {
+
+			if (isMetadataIncludedInEAD(metadata) && isNotEmpty(sipObject.getRecord().getValues(metadata))) {
+				addMetadata(sipObject.getRecord(), metadata, metadatasElement);
+			}
+		}
+		if (!metadatasElement.getChildren().isEmpty()) {
+			archdescElement.addContent(metadatasElement);
+		}
+
+	}
+
+	private boolean isMetadataIncludedInEAD(Metadata metadata) {
+		//		if (metadata.getType() == MetadataValueType.STRUCTURE && metadata.getDataEntry().getType() != DataEntryType.MANUAL) {
+		//			return false;
+		//		}
+
+		return true;
+	}
+
+	private void addMetadata(Record record, Metadata metadata, Element metadatasElement) {
+
+		Element metadataElement = new Element("odd", eadNamespace);
+		metadataElement.setAttribute("id", metadata.getLocalCode());
+		metadataElement.setAttribute("type", metadata.getType().name());
+
+		//TODO Francis singleton
+		AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
+		if (metadata.getType() == MetadataValueType.REFERENCE && metadata.isMultivalue()) {
+			writeMultivalueReferenceMetadata(record, metadata, metadataElement, appLayerFactory);
+
+		} else if (metadata.getType() == MetadataValueType.REFERENCE && !metadata.isMultivalue()) {
+			writeSinglevalueReferenceMetadata(record, metadata, metadataElement, appLayerFactory);
+
+		} else if (metadata.getType() == MetadataValueType.STRUCTURE && metadata.isMultivalue()) {
+			writeMultivalueStructureMetadata(record, metadata, metadataElement, appLayerFactory);
+
+		} else if (metadata.getType() == MetadataValueType.STRUCTURE && !metadata.isMultivalue()) {
+			writeSinglevalueStructureMetadata(record, metadata, metadataElement, appLayerFactory);
+
+		} else if (metadata.getType() == MetadataValueType.CONTENT) {
+			writeContentMetadata(record, metadata, metadataElement, appLayerFactory);
+
+		} else {
+			if (metadata.isMultivalue()) {
+				addValueToElement(metadataElement, record.getValues(metadata));
+
+			} else {
+				addValueToElement(metadataElement, record.get(metadata));
+			}
+
+		}
+
+		metadatasElement.addContent(metadataElement);
+
+	}
+
+	private void writeContentMetadata(Record record, Metadata metadata, Element metadataElement,
+									  AppLayerFactory appLayerFactory) {
+
+
+		List<Map<String, Object>> tableRows = new ArrayList<>();
+		for (Content content : record.<Content>getValues(metadata)) {
+
+			for (ContentVersion contentVersion : content.getVersions()) {
+				tableRows.add(newContentVersionTableRow(contentVersion));
+			}
+
+			if (content.getCurrentCheckedOutVersion() != null) {
+				Map<String, Object> row = newContentVersionTableRow(content.getCurrentCheckedOutVersion());
+				row.put("checkedOutDate", content.getCheckoutDateTime());
+				row.put("checkedOutByUser", content.getCheckoutUserId());
+				row.put("version", null);
+				tableRows.add(row);
+			}
+
+
+		}
+
+		metadataElement.addContent(newEADTable(tableRows));
+	}
+
+	private void writeSinglevalueStructureMetadata(Record record, Metadata metadata, Element metadataElement,
+												   AppLayerFactory appLayerFactory) {
+
+		ModifiableStructure modifiableStructure = record.get(metadata);
+		if (modifiableStructure != null) {
+			Map<String, Object> infos = convertModifiableStructureToMap(record.getCollection(), metadata, modifiableStructure, appLayerFactory);
+			metadataElement.addContent(newEADDefList(infos));
+		}
+
+	}
+
+
+	private void writeMultivalueStructureMetadata(Record record, Metadata metadata, Element metadataElement,
+												  AppLayerFactory appLayerFactory) {
+
+		List<Map<String, Object>> tableRows = new ArrayList<>();
+		for (ModifiableStructure modifiableStructure : record.<ModifiableStructure>getValues(metadata)) {
+			Map<String, Object> tableRow = convertModifiableStructureToMap(record.getCollection(), metadata, modifiableStructure, appLayerFactory);
+			tableRows.add(tableRow);
+		}
+
+		metadataElement.addContent(this.<T>newEADTable(tableRows));
+
+	}
+
+
+	private Map<String, Object> convertModifiableStructureToMap(String collection,
+																Metadata metadata,
+																ModifiableStructure modifiableStructure,
+																AppLayerFactory appLayerFactory) {
+
+		Map<String, Object> mappedStructure = appLayerFactory.getExtensions().forCollection(collection).convertStructureToMap(
+				new ConvertStructureToMapParams(modifiableStructure, metadata));
+
+		if (mappedStructure == null) {
+
+			if (modifiableStructure instanceof MapStringStringStructure) {
+				mappedStructure = new TreeMap<String, Object>((MapStringStringStructure) modifiableStructure);
+			}
+
+			if (modifiableStructure instanceof MapStringListStringStructure) {
+				mappedStructure = new TreeMap<String, Object>((MapStringStringStructure) modifiableStructure);
+			}
+
+		}
+
+		if (mappedStructure == null) {
+			throw new ImpossibleRuntimeException("Unsupported structure : " + modifiableStructure.getClass());
+		}
+
+		return mappedStructure;
+	}
+
+	private Map<String, Object> newContentVersionTableRow(ContentVersion version) {
+		Map<String, Object> row = new HashMap<>();
+		row.put("sha1", version.getHash());
+		row.put("filename", version.getFilename());
+		row.put("version", version.getVersion());
+		row.put("mimetype", version.getMimetype());
+		row.put("modifiedBy", version.getModifiedBy());
+		row.put("length", version.getLength());
+		row.put("lastModification", version.getLastModificationDateTime());
+		row.put("comment", version.getComment());
+		return row;
+	}
+
+	private void writeMultivalueReferenceMetadata(Record record, Metadata metadata, Element metadataElement,
+												  AppLayerFactory appLayerFactory) {
+
+		List<Map<String, Object>> tableRows = new ArrayList<>();
+		for (String id : record.<String>getValues(metadata)) {
+			try {
+				Record referencedRecord = appLayerFactory.getModelLayerFactory().newRecordServices().getDocumentById(id);
+
+				LinkedHashMap<String, Object> tableRow = new LinkedHashMap<>();
+				tableRow.put("id", referencedRecord.getId());
+				tableRow.put("code", referencedRecord.get(Schemas.CODE));
+				tableRow.put("schema", referencedRecord.get(Schemas.SCHEMA));
+				tableRow.put("title", referencedRecord.getTitle());
+				tableRows.add(tableRow);
+
+			} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+				LOGGER.warn("Record '" + id + "' was not found");
+			}
+		}
+
+		metadataElement.addContent(this.<T>newEADTable(tableRows));
+	}
+
+	private void writeSinglevalueReferenceMetadata(Record record, Metadata metadata, Element metadataElement,
+												   AppLayerFactory appLayerFactory) {
+		Record referencedRecord = null;
+
+		String id = record.get(metadata);
+		if (id != null) {
+			try {
+				referencedRecord = appLayerFactory.getModelLayerFactory().newRecordServices().getDocumentById(id);
+			} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+				LOGGER.warn("Record '" + id + "' was not found");
+			}
+		}
+
+		if (referencedRecord != null) {
+			LinkedHashMap<String, Object> infos = new LinkedHashMap<>();
+			infos.put("id", id);
+			infos.put("code", referencedRecord.get(Schemas.CODE));
+			infos.put("schema", referencedRecord.get(Schemas.SCHEMA));
+			infos.put("title", referencedRecord.getTitle());
+			metadataElement.addContent(newEADDefList(infos));
+		}
+
+	}
+
+	/**
+	 * Build an EAD table based on extracted values of items.
+	 */
+	private <T> Element newEADDefList(Map<String, Object> values) {
+		Element listElement = new Element("list", eadNamespace);
+		listElement.setAttribute("type", "deflist");
+
+		for (Map.Entry<String, Object> entry : values.entrySet()) {
+			if (isNotEmpty(entry.getValue())) {
+				Element defitemElement = new Element("defitem", eadNamespace);
+
+				Element labelElement = new Element("label", eadNamespace);
+				labelElement.setText(entry.getKey());
+				defitemElement.addContent(labelElement);
+
+				Element itemElement = new Element("item", eadNamespace);
+				defitemElement.addContent(itemElement);
+
+				addValueToElement(itemElement, entry.getValue());
+
+				listElement.addContent(defitemElement);
+			}
+		}
+
+		return listElement;
+	}
+
+	private boolean isNotEmpty(Object value) {
+		boolean writtenValue = value != null;
+		if (value instanceof String) {
+			writtenValue = StringUtils.isNotEmpty((String) value);
+		}
+
+		if (value instanceof Collection) {
+			Iterator<Object> iterator = ((Collection) value).iterator();
+			writtenValue = false;
+			while (!writtenValue && iterator.hasNext()) {
+				writtenValue = isNotEmpty(iterator.next());
+			}
+
+		}
+		return writtenValue;
+	}
+
+	/**
+	 * Build an EAD table based on extracted values of items.
+	 */
+	private <T> Element newEADTable(List<Map<String, Object>> tableRows) {
+
+		List<String> columnNamesInReceivedOrder = new ArrayList<>();
+
+		for (Map<String, Object> tableRow : tableRows) {
+			for (Map.Entry<String, Object> mapEntry : tableRow.entrySet()) {
+
+				if (isNotEmpty(mapEntry.getValue()) && !columnNamesInReceivedOrder.contains(mapEntry.getKey())) {
+					columnNamesInReceivedOrder.add(mapEntry.getKey());
+				}
+			}
+		}
 
 		Element tableElement = new Element("table", eadNamespace);
 		tableElement.setAttribute("frame", "none");
-		oddElement.addContent(tableElement);
 
 		Element tGroup = new Element("tgroup", eadNamespace);
-		tGroup.setAttribute("cols", "2");
+		tGroup.setAttribute("cols", String.valueOf(columnNamesInReceivedOrder.size()));
 		tableElement.addContent(tGroup);
 
 		Element thead = new Element("thead", eadNamespace);
@@ -228,98 +509,105 @@ public class EAD {
 		Element theadRow = new Element("row", eadNamespace);
 		thead.addContent(theadRow);
 
-		Element headColId = new Element("entry", eadNamespace);
-		headColId.setAttribute("colname", "1");
-		headColId.setText("Id");
-		theadRow.addContent(headColId);
-
-		Element headColCode = new Element("entry", eadNamespace);
-		headColCode.setAttribute("colname", "2");
-		headColCode.setText("Code");
-		theadRow.addContent(headColCode);
-
-		Element headColTitle = new Element("entry", eadNamespace);
-		headColTitle.setAttribute("colname", "3");
-		headColTitle.setText("Title");
-		theadRow.addContent(headColTitle);
+		for (int i = 0; i < columnNamesInReceivedOrder.size(); i++) {
+			String column = columnNamesInReceivedOrder.get(i);
+			Element theader = new Element("entry", eadNamespace);
+			theader.setAttribute("colname", String.valueOf(i + 1));
+			theader.setText(column);
+			theadRow.addContent(theader);
+		}
 
 		Element tbody = new Element("tbody", eadNamespace);
 		tGroup.addContent(tbody);
 
-		Element row = new Element("row", eadNamespace);
-		tbody.addContent(row);
+		for (Map<String, Object> tableLine : tableRows) {
+			Element row = new Element("row", eadNamespace);
+			tbody.addContent(row);
 
-		for (int i = 1; i <= 4; i++) {
-			Element entry1 = new Element("entry", eadNamespace);
-			entry1.setAttribute("colname", "1");
-			entry1.setText("id" + i);
-			row.addContent(entry1);
+			for (int i = 0; i < columnNamesInReceivedOrder.size(); i++) {
+				Element entry = new Element("entry", eadNamespace);
+				entry.setAttribute("colname", String.valueOf(i + 1));
+				row.addContent(entry);
 
+				Object value = tableLine.get(columnNamesInReceivedOrder.get(i));
+				if (value != null) {
+					addValueToElement(entry, value);
+				}
 
-			Element entry2 = new Element("entry", eadNamespace);
-			entry2.setAttribute("colname", "2");
-			entry2.setText("code " + i);
-			row.addContent(entry2);
-
-
-			Element entry3 = new Element("entry", eadNamespace);
-			entry3.setAttribute("colname", "3");
-			entry3.setText("title " + i);
-			row.addContent(entry3);
+			}
 
 		}
 
-		Element meta1 = new Element("odd", eadNamespace);
-		meta1.setAttribute("id", "metadata1");
-		meta1.setAttribute("type", "string");
-
-		Element meta1P = new Element("p", eadNamespace);
-		meta1P.setText("Ze value");
-		meta1.addContent(meta1P);
-
-		oddElement.addContent(meta1);
-
-		Element meta2 = new Element("odd", eadNamespace);
-		meta2.setAttribute("id", "metadata2");
-
-		Element meta2P = new Element("p", eadNamespace);
-		meta2P.setText("false");
-		meta2.addContent(meta2P);
-		oddElement.addContent(meta2);
-
-		Element meta3 = new Element("list", eadNamespace);
-		meta3.setAttribute("type", "metadatas");
-
-		Element item1 = new Element("item", eadNamespace);
-		meta3.addContent(item1);
-		oddElement.addContent(meta3);
-
-
-		//		for (Metadata metadata : sipObject.getMetadataList()) {
-		//			if (metadata != null) {
-		//				if (metadata.getType().equals(MetadataValueType.REFERENCE)) {
-		//					metadataElement.addContent(SipXmlUtils.createMetadataTagFromMetadataOfTypeReference(metadata, sipObject.getRecord(), collection, factory, eadNamespace));
-		//
-		//				} else if (metadata.getType().equals(MetadataValueType.ENUM)) {
-		//					metadataElement.addContent(SipXmlUtils.createMetadataTagFromMetadataOfTypeEnum(metadata, sipObject.getRecord(), eadNamespace, locale));
-		//
-		//				} else if (metadata.getType().equals(MetadataValueType.CONTENT)) {
-		//					metadataElement.addContent(SipXmlUtils.createMetadataTagFromMetadataOfTypeContent(metadata, sipObject.getRecord(), eadNamespace, locale));
-		//
-		//				} else {
-		//					Object metadataValue = sipObject.getRecord().get(metadata);
-		//					Element currentMetadataElement = new Element(metadata.getLocalCode(), eadNamespace);
-		//					if (metadataValue != null) {
-		//						currentMetadataElement.setText(SipXmlUtils.defaultFormatData(metadata.isMultivalue() ? StringUtils.join(sipObject.getRecord().getList(metadata), ", ") : sipObject.getRecord().get(metadata).toString(), metadata, factory, collection));
-		//					}
-		//					metadataElement.addContent(currentMetadataElement);
-		//				}
-		//			}
-		//		}
-
-		archdescElement.addContent(oddElement);
+		return tableElement;
 	}
 
+	private boolean isWrittenUsingPTag(Class<?> clazz) {
+		return clazz.equals(String.class) || clazz.equals(Boolean.class) || Number.class.isAssignableFrom(clazz)
+			   || EnumWithSmallCode.class.isAssignableFrom(clazz);
+	}
+
+	private void addValueToElement(Element element, Object value) {
+		if (isWrittenUsingPTag(value.getClass())) {
+			String stringValue = String.valueOf(value);
+
+			if ("odd".equals(element.getName())) {
+				Element pElement = new Element("p", eadNamespace);
+				pElement.setText(stringValue);
+				element.addContent(pElement);
+
+			} else {
+				element.setText(stringValue);
+			}
+
+		} else if (value instanceof List) {
+			element.addContent(buildListElement((List) value));
+
+		} else if (value instanceof LocalDate || value instanceof LocalDateTime) {
+			Element dateElement = buildDateElement(value);
+
+			if ("odd".equals(element.getName())) {
+				Element pElement = new Element("p", eadNamespace);
+				pElement.addContent(dateElement);
+				element.addContent(pElement);
+
+			} else {
+				element.addContent(dateElement);
+			}
+
+		} else {
+			throw new ImpossibleRuntimeException("Unsupported type of class " + value.getClass());
+
+		}
+	}
+
+	private Element buildListElement(List<Object> values) {
+		Element listElement = new Element("list", eadNamespace);
+		listElement.setAttribute("type", "ordered");
+
+		for (Object value : values) {
+			if (value != null) {
+				Element itemElement = new Element("item", eadNamespace);
+				listElement.addContent(itemElement);
+				addValueToElement(itemElement, value);
+			}
+		}
+
+		return listElement;
+	}
+
+	private Element buildDateElement(Object value) {
+		Element dateElement = new Element("date", eadNamespace);
+
+		if (value instanceof LocalDate) {
+			dateElement.setText(((LocalDate) value).toString(ISODateTimeFormat.date()));
+		}
+
+		if (value instanceof LocalDateTime) {
+			dateElement.setText(((LocalDateTime) value).toString(ISODateTimeFormat.dateTime()));
+		}
+
+		return dateElement;
+	}
 
 	public void build(String sipPath, ValidationErrors errors, File file) throws IOException {
 		validator.validate(sipPath, doc, errors, XSDs);
@@ -343,5 +631,4 @@ public class EAD {
 			out.close();
 		}
 	}
-
 }

@@ -1,10 +1,13 @@
 package com.constellio.app.modules.rm.services.sip.xsd;
 
+import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.jdom2.Document;
+import org.jdom2.output.Format;
+import org.jdom2.output.XMLOutputter;
 import org.jdom2.transform.JDOMSource;
 import org.xml.sax.SAXException;
 
@@ -18,6 +21,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -39,10 +43,21 @@ public class XMLDocumentValidator {
 			validator.validate(new JDOMSource(document));
 		} catch (SAXException e) {
 
+			StringWriter stringWriter = new StringWriter();
+
+			XMLOutputter output = new XMLOutputter();
+			output.setFormat(Format.getPrettyFormat());
+			try {
+				output.output(document, stringWriter);
+			} catch (IOException e1) {
+				throw new ImpossibleRuntimeException(e1);
+			}
+
 			Map<String, Object> params = new HashMap<>();
 			params.put("file", filePath);
 			params.put("schemas", StringUtils.join(schemaFilenames));
 			params.put("exception", ExceptionUtils.getStackTrace(e));
+			params.put("xml", stringWriter.toString());
 
 			errors.add(XMLDocumentValidator.class, INVALID_XML_FILE, params);
 
@@ -72,7 +87,7 @@ public class XMLDocumentValidator {
 					}
 					schema = schemaFactory.newSchema(schemaSources.toArray(new Source[0]));
 				} finally {
-//					for (InputStream in : inputStreams) {
+					//					for (InputStream in : inputStreams) {
 					//						IOUtils.closeQuietly(in);
 					//					}
 				}
