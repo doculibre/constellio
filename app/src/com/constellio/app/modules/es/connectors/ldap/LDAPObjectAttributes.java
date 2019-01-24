@@ -1,5 +1,7 @@
 package com.constellio.app.modules.es.connectors.ldap;
 
+import com.constellio.app.utils.NamingEnumerationUtils;
+
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
@@ -12,16 +14,22 @@ public class LDAPObjectAttributes {
 
 	public LDAPObjectAttributes(Attributes attrs) {
 		if (attrs != null) {
-			NamingEnumeration<? extends Attribute> all = attrs.getAll();
-			while (all.hasMoreElements()) {
-				try {
-					Attribute att;
-					LDAPObjectAttribute attribute = new LDAPObjectAttribute(att = all.next());
-					ldapObjects.put(att.getID(), attribute);
-				} catch (NamingException e) {
-					//TODO
-					throw new RuntimeException(e);
+			NamingEnumeration<? extends Attribute> all = null;
+
+			try {
+				all = attrs.getAll();
+				while (all.hasMoreElements()) {
+					try {
+						Attribute att;
+						LDAPObjectAttribute attribute = new LDAPObjectAttribute(att = all.next());
+						ldapObjects.put(att.getID(), attribute);
+					} catch (NamingException e) {
+						//TODO
+						throw new RuntimeException(e);
+					}
 				}
+			} finally {
+				NamingEnumerationUtils.closeQuietly(all);
 			}
 		}
 	}

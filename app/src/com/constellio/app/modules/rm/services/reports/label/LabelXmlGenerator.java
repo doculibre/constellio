@@ -81,7 +81,8 @@ public class LabelXmlGenerator extends AbstractXmlGenerator {
 		this.factory = appLayerFactory;
 		this.recordServices = factory.getModelLayerFactory().newRecordServices();
 		this.metadataSchemasManager = factory.getModelLayerFactory().getMetadataSchemasManager();
-		this.user = appLayerFactory.getModelLayerFactory().newUserServices().getUserInCollection(userVO.getUsername(), collection);
+		this.user = userVO == null ? null :
+					appLayerFactory.getModelLayerFactory().newUserServices().getUserInCollection(userVO.getUsername(), collection);
 	}
 
 	public LabelXmlGenerator(String collection, AppLayerFactory appLayerFactory, Locale locale, UserVO userVO,
@@ -155,7 +156,10 @@ public class LabelXmlGenerator extends AbstractXmlGenerator {
 							recordElement, xmlSingularElement, XMLMetadatasOfSingularElement));
 
 					// List of all metadatas of current RecordElement
-					List<Metadata> listOfMetadataOfRecordElement = getListOfMetadataForElement(recordElement).onlyAccessibleOnRecordBy(user, recordElement);
+					MetadataList listOfMetadataOfRecordElement = getListOfMetadataForElement(recordElement);
+					if (user != null) {
+						listOfMetadataOfRecordElement = listOfMetadataOfRecordElement.onlyAccessibleOnRecordBy(user, recordElement);
+					}
 
 					//Add the additional informations to the metadatas.
 					XMLMetadatasOfSingularElement.addContent(getAdditionalInformations(recordElement));

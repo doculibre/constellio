@@ -314,10 +314,15 @@ public class FilterUtils {
 	}
 
 	public static String permissionFilter(User user, String permission) {
-		SolrFilterBuilder filterBuilder = SolrFilterBuilder.createAndFilterReturningFalseIfEmpty();
 
-		if (user.isActiveUser() && !user.has(permission).globally()) {
+		if (!user.isActiveUser()) {
+			return SolrFilterBuilder.createAndFilterReturningFalseIfEmpty().build();
 
+		} else if (user.has(permission).globally()) {
+			return SolrFilterBuilder.createAndFilterReturningTrueIfEmpty().build();
+
+		} else {
+			SolrFilterBuilder filterBuilder = SolrFilterBuilder.createAndFilterReturningFalseIfEmpty();
 			List<String> rolesGivingPermission = Role.toCodes(user.getRolesDetails().getRolesGivingPermission(permission));
 			for (String role : rolesGivingPermission) {
 
@@ -332,8 +337,9 @@ public class FilterUtils {
 
 			addRecordAuths(filterBuilder, user, false,
 					UserAuthorizationsUtils.anyRole(rolesGivingPermission.toArray(new String[0])));
+			return filterBuilder.build();
 		}
-		return filterBuilder.build();
+
 	}
 
 	public static String userDeleteFilter(User user, SecurityTokenManager securityTokenManager) {

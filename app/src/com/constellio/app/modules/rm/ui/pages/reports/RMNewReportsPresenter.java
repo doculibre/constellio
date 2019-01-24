@@ -31,6 +31,7 @@ public class RMNewReportsPresenter extends BasePresenter<RMReportsView> implemen
 	private static final boolean BY_ADMINISTRATIVE_UNIT = true;
 	private String schemaTypeValue;
 	private Object userParams;
+	private boolean showDeactivated;
 
 	public RMNewReportsPresenter(RMReportsView view) {
 		super(view);
@@ -86,6 +87,10 @@ public class RMNewReportsPresenter extends BasePresenter<RMReportsView> implemen
 
 	}
 
+	public void setShowDeactivated(boolean showDeactivated) {
+		this.showDeactivated = showDeactivated;
+	}
+
 	@Override
 	public Object getReportParameters(String report) {
 		List<String> listString  = null;
@@ -94,13 +99,13 @@ public class RMNewReportsPresenter extends BasePresenter<RMReportsView> implemen
 			case "Reports.fakeReport2":
 				return new ExampleReportWithoutRecordsParameters();
 			case "Reports.ClassificationPlan":
-				return new ClassificationReportPlanParameters(false, null, null);
+				return new ClassificationReportPlanParameters(false, null, null, showDeactivated);
 			case "Reports.DetailedClassificationPlan":
 
 				if(userParams != null) {
 					listString = new ArrayList<>((Collection<String>) userParams);
 				}
-				return new ClassificationReportPlanParameters(true, null, listString);
+				return new ClassificationReportPlanParameters(true, null, listString, this.showDeactivated);
 			case "Reports.ConservationRulesList":
 				if(userParams != null) {
 					listString = new ArrayList<>((Collection<String>) userParams);
@@ -115,7 +120,7 @@ public class RMNewReportsPresenter extends BasePresenter<RMReportsView> implemen
 			case "Reports.Users":
 				return new UserReportParameters();
 			case "Reports.ClassificationPlanByAdministrativeUnit":
-				return new ClassificationReportPlanParameters(false, schemaTypeValue, null);
+				return new ClassificationReportPlanParameters(false, schemaTypeValue, null, showDeactivated);
 			case "Reports.AvailableSpaceReport":
 				return new AvailableSpaceReportParameters(false);
 			case "Reports.AvailableSpaceReportAll":
@@ -169,6 +174,15 @@ public class RMNewReportsPresenter extends BasePresenter<RMReportsView> implemen
 				return true;
 			default:
 				return false;
+		}
+	}
+
+	public boolean isClassificationPlan(String reports) {
+		switch (reports) {
+		case "Reports.ClassificationPlan":
+			return true;
+		default:
+			return false;
 		}
 	}
 

@@ -8,6 +8,8 @@ public interface DataStoreTypesFactory {
 
 	String forDouble(boolean multivalue);
 
+	String forInteger(boolean multivalue);
+
 	String forDate(boolean multivalue);
 
 	String forDateTime(boolean multivalue);

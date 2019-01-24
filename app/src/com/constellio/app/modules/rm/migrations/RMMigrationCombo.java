@@ -146,6 +146,13 @@ public class RMMigrationCombo implements ComboMigrationScript {
 		scripts.add(new RMMigrationTo8_0_2());
 		scripts.add(new RMMigrationTo8_0_3());
 		scripts.add(new RMMigrationTo8_1());
+		scripts.add(new RMMigrationTo8_1_0_1());
+		scripts.add(new RMMigrationTo8_1_1());
+		scripts.add(new RMMigrationTo8_1_1_1());
+		scripts.add(new RMMigrationTo8_1_1_2());
+		scripts.add(new RMMigrationTo8_1_2());
+		scripts.add(new RMMigrationTo8_1_4());
+		scripts.add(new RMMigrationTo8_2());
 
 		return scripts;
 	}
@@ -242,15 +249,15 @@ public class RMMigrationCombo implements ComboMigrationScript {
 
 		transaction.add(rm.newMediumType().setCode(migrationResourcesProvider.getDefaultLanguageString("MediumType.paperCode"))
 				.setTitles(migrationResourcesProvider.getLanguagesString("MediumType.paperTitle"))
-				.setAnalogical(true));
+				.setAnalogical(true).setActivatedOnContent(null));
 
 		transaction.add(rm.newMediumType().setCode(migrationResourcesProvider.getDefaultLanguageString("MediumType.filmCode"))
 				.setTitles(migrationResourcesProvider.getLanguagesString("MediumType.filmTitle"))
-				.setAnalogical(true));
+				.setAnalogical(true).setActivatedOnContent(null));
 
 		transaction.add(rm.newMediumType().setCode(migrationResourcesProvider.getDefaultLanguageString("MediumType.driveCode"))
 				.setTitles(migrationResourcesProvider.getLanguagesString("MediumType.driveTitle"))
-				.setAnalogical(false));
+				.setAnalogical(false).setActivatedOnContent(null));
 
 		transaction.add(rm.newDocumentType().setCode(DocumentType.EMAIL_DOCUMENT_TYPE)
 				.setTitles(migrationResourcesProvider.getLanguagesString("DocumentType.emailDocumentType"))
