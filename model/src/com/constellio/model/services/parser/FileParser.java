@@ -519,6 +519,7 @@ public class FileParser {
 		//tesseractOCRConfig.setEnableImageProcessing(1); // FIXME warning, very slow
 		tesseractOCRConfig.setLanguage("fra+eng");
 		parseContext.set(TesseractOCRConfig.class, tesseractOCRConfig);
+		tesseractOCRConfig.setTesseractPath("C:\\Users\\Martin\\AppData\\Local\\Tesseract-OCR");
 
 		PDFParserConfig pdfConfig = new PDFParserConfig();
 		// mode 1
