@@ -307,9 +307,7 @@ public class ContentManager implements StatefulService {
 				if (file.isDirectory()) {
 					getAllContentsFromVaultAndRemoveOrphan(fileId, fileList, vaultScanResults);
 				} else {
-					if (!isReferenced(file)) {
-						fileList.add(fileId);
-					}
+					fileList.add(fileId);
 				}
 			}
 		}
