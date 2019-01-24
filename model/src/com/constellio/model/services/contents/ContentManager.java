@@ -64,6 +64,7 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.joda.time.Duration;
 import org.joda.time.LocalDateTime;
@@ -186,7 +187,7 @@ public class ContentManager implements StatefulService {
 					try {
 						createContentScanLockFile();
 						VaultScanResults vaultScanResults = new VaultScanResults();
-						scanVaultContents(vaultScanResults);
+						scanVaultContentAndDeleteUnreferencedFiles(vaultScanResults);
 						addReportsAsTemporaryRecords(vaultScanResults);
 					} catch (IOException e) {
 						e.printStackTrace();
@@ -273,37 +274,78 @@ public class ContentManager implements StatefulService {
 		ioServices.deleteQuietly(lockFile);
 	}
 
-	public void scanVaultContents(VaultScanResults vaultScanResults) {
-		vaultScanResults.appendMessage("INFO: Starting scan of content folder\n\n");
+	public void scanVaultContentAndDeleteUnreferencedFiles(VaultScanResults vaultScanResults) {
+		List<String> vaultContentFileList = new ArrayList<>();
+		getAllContentsFromVaultAndRemoveOrphan("", vaultContentFileList, vaultScanResults);
+		recordServices.flushRecords();
 		Set<String> allReferencedHashes = getAllReferencedHashes();
-		scanFolder("", allReferencedHashes, vaultScanResults);
-		vaultScanResults.appendMessage("\nINFO: Scan of content folder completed");
+
+		ContentDao contentDao = getContentDao();
+		for(String fileId : vaultContentFileList) {
+			if(!allReferencedHashes.contains(fileId)) {
+				File file = contentDao.getFileOf(fileId);
+				if(file.exists()) {
+					try {
+						contentDao.delete(asList(fileId, fileId + "__parsed", fileId + ".preview"));
+						vaultScanResults.incrementNumberOfDeletedContents();
+						vaultScanResults.appendMessage("INFO: Successfully deleted file " + file.getName() + "\n");
+					} catch (Exception e) {
+						vaultScanResults.appendMessage("ERROR: Could not delete file " + file.getName() + "\n");
+						vaultScanResults.appendMessage(e.getMessage() + "\n");
+					}
+				}
+			}
+		}
 	}
 
-	private void scanFolder(String folderId, Set<String> firstScanReferencedContents,
-							VaultScanResults vaultScanResults) {
+	public void getAllContentsFromVaultAndRemoveOrphan(String folderId,List<String> fileList, VaultScanResults vaultScanResults) {
 		ContentDao contentDao = getContentDao();
 		List<String> subFiles = contentDao.getFolderContents(folderId);
 		for (String fileId : subFiles) {
 			File file = contentDao.getFileOf(fileId);
 			if (file.exists() && shouldFileBeScannedForDeletion(file)) {
 				if (file.isDirectory()) {
-					scanFolder(fileId, firstScanReferencedContents, vaultScanResults);
-				} else if (!firstScanReferencedContents.contains(file.getName())) {
-					recordServices.flushRecords();
+					getAllContentsFromVaultAndRemoveOrphan(fileId, fileList, vaultScanResults);
+				} else {
 					if (!isReferenced(file)) {
-						try {
-							contentDao.delete(asList(fileId, fileId + "__parsed", fileId + ".preview"));
-							vaultScanResults.incrementNumberOfDeletedContents();
-							vaultScanResults.appendMessage("INFO: Successfully deleted file " + file.getName() + "\n");
-						} catch (Exception e) {
-							vaultScanResults.appendMessage("ERROR: Could not delete file " + file.getName() + "\n");
-							vaultScanResults.appendMessage(e.getMessage() + "\n");
-						}
+						fileList.add(fileId);
 					}
 				}
 			}
 		}
+		deleteOrphanParsedContentOrPreview(subFiles, vaultScanResults);
+	}
+
+	private boolean deleteOrphanParsedContentOrPreview(List<String> subFiles, VaultScanResults vaultScanResults) {
+		ContentDao contentDao = getContentDao();
+		boolean containsParsedContentOrPreview = false;
+		boolean containsMainFile = false;
+		for (String fileId : subFiles) {
+			File file = contentDao.getFileOf(fileId);
+			if (file.exists() && (file.getName().endsWith("__parsed") || file.getName().endsWith(".preview"))) {
+				File mainFile = getMainFile(file);
+				if(!mainFile.exists()) {
+					try {
+						contentDao.delete(asList(fileId));
+						vaultScanResults.incrementNumberOfDeletedContents();
+						vaultScanResults.appendMessage("INFO: Successfully deleted file " + file.getName() + "\n");
+					} catch (Exception e) {
+						vaultScanResults.appendMessage("ERROR: Could not delete file " + file.getName() + "\n");
+						vaultScanResults.appendMessage(e.getMessage() + "\n");
+					}
+				}
+			}
+		}
+		return containsParsedContentOrPreview && !containsMainFile;
+	}
+
+	private File getMainFile(File parsedContentOrPreviewFile) {
+		String parsedContentOrPreviewFileAbsolutePath = parsedContentOrPreviewFile.getAbsolutePath();
+		String mainFileAbsolutePath = StringUtils.removeEnd(parsedContentOrPreviewFileAbsolutePath, "__parsed");
+		if(parsedContentOrPreviewFileAbsolutePath.equals(mainFileAbsolutePath)) {
+			mainFileAbsolutePath = StringUtils.removeEnd(parsedContentOrPreviewFileAbsolutePath, ".preview");
+		}
+		return new File(mainFileAbsolutePath);
 	}
 
 	private boolean shouldFileBeScannedForDeletion(File file) {
@@ -1122,7 +1164,7 @@ public class ContentManager implements StatefulService {
 		}
 	}
 
-	public static class VaultScanResults {
+	protected static class VaultScanResults {
 		private StringBuilder reportMessage = new StringBuilder();
 		private int numberOfDeletedContents = 0;
 
