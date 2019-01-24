@@ -1,17 +1,21 @@
 package com.constellio.model.services.background;
 
+import com.constellio.data.utils.TimeProvider;
+import org.apache.commons.io.filefilter.AgeFileFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
+import java.util.Date;
 
 public class TemporaryFolderCleanerBackgroundAction implements Runnable {
 
-	Logger logger =  LoggerFactory.getLogger(TemporaryFolderCleanerBackgroundAction.class);
+	Logger LOGGER =  LoggerFactory.getLogger(TemporaryFolderCleanerBackgroundAction.class);
 
 	public static final String DEFAULT_TEMP_FILE = "/tmp";
 	public static final long DEFAULT_TIME_TO_DELETION_MILLI = 1800000;
@@ -39,27 +43,18 @@ public class TemporaryFolderCleanerBackgroundAction implements Runnable {
 		this.timeInMilliSecondBeforeDeletion = timeToDeleteMilli;
 	}
 
-	public long getcurrentTimeInMillis() {
-		return System.currentTimeMillis();
-	}
-
 	public synchronized void run() {
 		if(tempFolder.exists()) {
-			for(File file : tempFolder.listFiles()) {
-				try {
-					BasicFileAttributes attrs = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
-					FileTime fileTime = attrs.lastAccessTime();
-
-					//2 if to make it easyer to test.
-					if(file.getName().startsWith(PREFIX_OF_FILE_TO_DELETE) && file.getName().endsWith(SUFFIX_OF_FILE_TO_DELETE)) {
-						long differenceInMilli = getcurrentTimeInMillis() - fileTime.toMillis();
-
-						if (differenceInMilli > timeInMilliSecondBeforeDeletion){
+			File[] files = tempFolder.listFiles((FileFilter) new AgeFileFilter(System.currentTimeMillis() - DEFAULT_TIME_TO_DELETION_MILLI));
+			if(files != null) {
+				for(File file : files) {
+					try {
+						if(file.getName().startsWith(PREFIX_OF_FILE_TO_DELETE) && file.getName().endsWith(SUFFIX_OF_FILE_TO_DELETE)) {
 							file.delete();
 						}
+					} catch (Exception e) {
+						e.printStackTrace();
 					}
-				} catch (IOException e) {
-					logger.warn("IOException on read file properties", e);
 				}
 			}
 		}
