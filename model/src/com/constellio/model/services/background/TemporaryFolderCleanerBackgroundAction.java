@@ -1,6 +1,7 @@
 package com.constellio.model.services.background;
 
 import com.constellio.data.utils.TimeProvider;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.AgeFileFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,7 +51,10 @@ public class TemporaryFolderCleanerBackgroundAction implements Runnable {
 				for(File file : files) {
 					try {
 						if(file.getName().startsWith(PREFIX_OF_FILE_TO_DELETE) && file.getName().endsWith(SUFFIX_OF_FILE_TO_DELETE)) {
-							file.delete();
+							boolean deleted = FileUtils.deleteQuietly(file);
+							if(!deleted) {
+								LOGGER.error("Could not delete file " + file.getName());
+							}
 						}
 					} catch (Exception e) {
 						e.printStackTrace();
