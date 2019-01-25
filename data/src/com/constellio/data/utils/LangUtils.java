@@ -1,5 +1,6 @@
 package com.constellio.data.utils;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.joda.time.LocalDate;
@@ -476,5 +477,22 @@ public class LangUtils {
 
 	public static boolean isNullOrEmptyCollection(Object value) {
 		return value == null || ((value instanceof Collection) && ((Collection) value).isEmpty());
+	}
+
+	public static boolean isNotEmptyValue(Object value) {
+		boolean notEmptyValue = value != null;
+		if (value instanceof String) {
+			notEmptyValue = StringUtils.isNotEmpty((String) value);
+		}
+
+		if (value instanceof Collection) {
+			Iterator<Object> iterator = ((Collection) value).iterator();
+			notEmptyValue = false;
+			while (!notEmptyValue && iterator.hasNext()) {
+				notEmptyValue = isNotEmptyValue(iterator.next());
+			}
+
+		}
+		return notEmptyValue;
 	}
 }

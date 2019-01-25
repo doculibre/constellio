@@ -16,8 +16,7 @@ import au.edu.apsr.mtk.base.MetsHdr;
 import au.edu.apsr.mtk.base.StructMap;
 import com.constellio.app.entities.modules.ProgressInfo;
 import com.constellio.app.modules.rm.services.sip.data.SIPObjectsProvider;
-import com.constellio.app.modules.rm.services.sip.ead.EAD;
-import com.constellio.app.modules.rm.services.sip.ead.EADArchdesc;
+import com.constellio.app.modules.rm.services.sip.ead.RecordEADBuilder;
 import com.constellio.app.modules.rm.services.sip.exceptions.SIPMaxFileCountReachedException;
 import com.constellio.app.modules.rm.services.sip.exceptions.SIPMaxFileLengthReachedException;
 import com.constellio.app.modules.rm.services.sip.model.SIPCategory;
@@ -321,7 +320,9 @@ public class ConstellioSIP {
 
 	private void addMdRefAndGenerateEAD(SIPObject sipObject, DmdSec dmdSec, ValidationErrors errors)
 			throws IOException, METSException {
-		EADArchdesc archdesc = sipObjectsProvider.getEADArchdesc(sipObject);
+
+		RecordEADBuilder recordEadBuilder = new RecordEADBuilder(sipObjectsProvider.getAppLayerCollection(), errors);
+
 		if (sipObject instanceof SIPDocument) {
 			SIPDocument sipDocument = (SIPDocument) sipObject;
 			SIPFolder sipFolder = sipDocument.getFolder();
@@ -333,8 +334,7 @@ public class ConstellioSIP {
 			File tempXMLFile = File.createTempFile(ConstellioSIP.class.getSimpleName(), ".xml");
 			tempXMLFile.deleteOnExit();
 
-			EAD ead = new EAD(sipObject, archdesc, sipObjectsProvider.getAppLayerCollection(), sipObjectsProvider.getCollection(), locale);
-			ead.build(zipXMLPath, errors, tempXMLFile);
+			recordEadBuilder.build(sipObject.getRecord(), zipXMLPath, tempXMLFile);
 
 			addToZip(tempXMLFile, zipXMLPath);
 
@@ -363,8 +363,7 @@ public class ConstellioSIP {
 			File tempXMLFile = File.createTempFile(ConstellioSIP.class.getSimpleName(), ".xml");
 			tempXMLFile.deleteOnExit();
 
-			EAD ead = new EAD(sipObject, archdesc, sipObjectsProvider.getAppLayerCollection(), sipObjectsProvider.getCollection(), locale);
-			ead.build(zipXMLPath, errors, tempXMLFile);
+			recordEadBuilder.build(sipObject.getRecord(), zipXMLPath, tempXMLFile);
 
 			addToZip(tempXMLFile, zipXMLPath);
 

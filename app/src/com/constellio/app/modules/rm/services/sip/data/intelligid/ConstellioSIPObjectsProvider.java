@@ -4,30 +4,20 @@ import com.constellio.app.entities.modules.ProgressInfo;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.sip.data.SIPObjectsProvider;
-import com.constellio.app.modules.rm.services.sip.ead.EADArchdesc;
 import com.constellio.app.modules.rm.services.sip.filter.SIPFilter;
 import com.constellio.app.modules.rm.services.sip.model.EntityRetriever;
 import com.constellio.app.modules.rm.services.sip.model.SIPDocument;
 import com.constellio.app.modules.rm.services.sip.model.SIPFolder;
 import com.constellio.app.modules.rm.services.sip.model.SIPObject;
-import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
-import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Email;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
-import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.schemas.MetadataListFilter;
-import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
-import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
@@ -42,6 +32,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+
+import static java.lang.String.join;
 
 public class ConstellioSIPObjectsProvider implements SIPObjectsProvider {
 	public static final String JOINT_FILES_KEY = "attachments";
@@ -162,10 +154,12 @@ public class ConstellioSIPObjectsProvider implements SIPObjectsProvider {
 				} else {
 					metadataName = null;
 				}
+
+
 				if (metadataName != null) {
 					Object metadataValue = document.get(metadataName);
 					if (metadataValue != null) {
-						String metadataValueAsString = metadataValue instanceof List ? String.join(", ", (List<String>) metadataValue) : metadataValue.toString();
+						String metadataValueAsString = metadataValue instanceof List ? join(", ", (List<String>) metadataValue) : metadataValue.toString();
 						if (StringUtils.isNotBlank(metadataValueAsString)) {
 							metadataValues.add(metadataValueAsString);
 						}
@@ -253,110 +247,6 @@ public class ConstellioSIPObjectsProvider implements SIPObjectsProvider {
 	@Override
 	public AppLayerFactory getAppLayerCollection() {
 		return this.factory;
-	}
-
-	private String formatDate(LocalDate date) {
-		return date != null ? new SimpleDateFormat("yyyyMMdd").format(date.toDate()) : null;
-	}
-
-	@Override
-	public EADArchdesc getEADArchdesc(SIPObject sipObject) {
-		EADArchdesc archdesc;
-		if (sipObject instanceof SIPDocument) {
-			SIPDocument sipDocument = (SIPDocument) sipObject;
-			Document document = rm.wrapDocument(sipDocument.getFicheMetadonnees());
-			Folder folder = rm.getFolder(document.getFolder());
-
-			archdesc = new EADArchdesc();
-
-			String creationDate = formatDate(document.getCreatedOn().toLocalDate());
-			if (creationDate != null) {
-				archdesc.getDidUnitDates().put("creation", creationDate);
-			}
-
-			String publishDate = formatDate(document.getFolderActualDepositDate());
-			if (publishDate != null) {
-				archdesc.getDidUnitDates().put("publication", publishDate);
-			}
-
-			String summary = document.getDescription();
-			if (StringUtils.isNotBlank(summary)) {
-				archdesc.getDidAbstracts().add(summary);
-			}
-
-			List<String> keywords = document.getKeywords();
-			if (keywords != null) {
-				for (String keyword : keywords) {
-					archdesc.getControlAccessSubjects().add(keyword);
-				}
-			}
-
-		} else if (sipObject instanceof SIPFolder) {
-			SIPFolder sipFolder = (SIPFolder) sipObject;
-			Folder folder = rm.wrapFolder(sipFolder.getFicheMetadonnees());
-
-			archdesc = new EADArchdesc();
-
-			Category processusActivite = rm.getCategory(folder.getCategory());
-			archdesc.getFileplanPs().add(processusActivite.getTitle());
-
-			String openingDate = formatDate(folder.getOpenDate());
-			if (openingDate != null) {
-				archdesc.getDidUnitDates().put("creation", openingDate);
-			}
-
-			String closingDate = formatDate(folder.getCloseDate());
-			if (closingDate != null) {
-				archdesc.getDidUnitDates().put("closure", closingDate);
-			}
-
-			String summary = folder.getDescription();
-			if (StringUtils.isNotBlank(summary)) {
-				archdesc.getDidAbstracts().add(summary);
-			}
-
-			AdministrativeUnit administrativeUnit = rm.getAdministrativeUnit(folder.<String>get(Folder.ADMINISTRATIVE_UNIT));
-			String adminstrativeUnitParentId = administrativeUnit.get(AdministrativeUnit.PARENT);
-			if (adminstrativeUnitParentId != null) {
-				AdministrativeUnit parentAdministrativeUnit = rm.getAdministrativeUnit(adminstrativeUnitParentId);
-				archdesc.setDidOriginationCorpname(parentAdministrativeUnit.getCode());
-			}
-
-			MetadataSchemasManager manager = factory.getModelLayerFactory().getMetadataSchemasManager();
-			MetadataSchemaType documentSchemaType = manager.getSchemaTypes(collection).getSchemaType(Document.SCHEMA_TYPE);
-			LogicalSearchCondition conditionDocument = LogicalSearchQueryOperators.from(documentSchemaType).where(documentSchemaType.getDefaultSchema().getMetadata(Document.FOLDER)).isEqualTo(folder.getId());
-			SearchResponseIterator<Record> iteratorDocument = factory.getModelLayerFactory().newSearchServices().recordsIterator(new LogicalSearchQuery(conditionDocument));
-			if (iteratorDocument != null) {
-				while (iteratorDocument.hasNext()) {
-					Document documentLie = rm.wrapDocument(iteratorDocument.next());
-					List<String> relatedmaterialList = new ArrayList<>();
-					relatedmaterialList.add(documentLie.getId() + " " + documentLie.getTitle());
-					archdesc.getRelatedmaterialLists().add(relatedmaterialList);
-				}
-			}
-
-			MetadataSchemaType folderSchemaType = manager.getSchemaTypes(collection).getSchemaType(Folder.SCHEMA_TYPE);
-			LogicalSearchCondition conditionFolder = LogicalSearchQueryOperators.from(folderSchemaType).where(folderSchemaType.getDefaultSchema().getMetadata(Folder.PARENT_FOLDER)).isEqualTo(folder.getId());
-			SearchResponseIterator<Record> iteratorFolder = factory.getModelLayerFactory().newSearchServices().recordsIterator(new LogicalSearchQuery(conditionFolder));
-			if (iteratorFolder != null) {
-				while (iteratorFolder.hasNext()) {
-					Folder dossierLie = rm.wrapFolder(iteratorFolder.next());
-					List<String> relatedmaterialList = new ArrayList<>();
-					relatedmaterialList.add(dossierLie.getId() + " " + dossierLie.getTitle());
-					archdesc.getRelatedmaterialLists().add(relatedmaterialList);
-				}
-			}
-
-
-			//TODO
-			List<String> keywords = folder.getKeywords();
-			for (String keyword : keywords) {
-				archdesc.getControlAccessSubjects().add(keyword);
-			}
-		} else {
-			archdesc = null;
-		}
-		return archdesc;
 	}
 
 	private class SearchableMetadataListFilter implements MetadataListFilter {

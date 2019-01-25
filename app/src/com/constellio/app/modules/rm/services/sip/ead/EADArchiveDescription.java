@@ -1,11 +1,13 @@
 package com.constellio.app.modules.rm.services.sip.ead;
 
+import org.joda.time.ReadablePartial;
+
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-public class EADArchdesc {
+public class EADArchiveDescription {
 
 	// DID
 
@@ -13,7 +15,7 @@ public class EADArchdesc {
 
 	private String didUnittitle;
 
-	private Map<String, String> didUnitDates = new LinkedHashMap<String, String>();
+	private Map<String, ReadablePartial> didUnitDates = new LinkedHashMap<String, ReadablePartial>();
 
 	private List<String> didLangmaterials = new ArrayList<String>();
 
@@ -50,11 +52,11 @@ public class EADArchdesc {
 		this.didUnittitle = didUnittitle;
 	}
 
-	public Map<String, String> getDidUnitDates() {
+	public Map<String, ReadablePartial> getDidUnitDates() {
 		return didUnitDates;
 	}
 
-	public void setDidUnitDates(Map<String, String> didUnitDates) {
+	public void setDidUnitDates(Map<String, ReadablePartial> didUnitDates) {
 		this.didUnitDates = didUnitDates;
 	}
 
