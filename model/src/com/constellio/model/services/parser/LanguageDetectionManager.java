@@ -43,7 +43,7 @@ public class LanguageDetectionManager implements StatefulService {
 	}
 
 	public String tryDetectLanguage(String content) {
-		if (StringUtils.isNoneBlank(content)) {
+		if (StringUtils.isNoneBlank(content) && content.length() > 10) {
 			try {
 				return detectLanguage(content);
 			} catch (LanguageDetectionServicesRuntimeException e) {

@@ -94,7 +94,26 @@ public class ConnectorCrawler {
 			Map<CrawledConnector, List<ConnectorJob>> connectorJobsMap = new HashMap<>();
 			List<ConnectorJob> allJobs = new ArrayList<>();
 
+
+			List<CrawledConnector> connectorsWithOldLastTraversal = new ArrayList<>();
 			for (CrawledConnector crawledConnector : crawledConnectors) {
+				ConnectorInstance instance = es.getConnectorInstance(crawledConnector.connectorInstance.getId());
+
+				if (instance.getLastTraversalOn() == null
+					|| instance.getLastTraversalOn().isBefore(LocalDateTime.now().minusHours(3))) {
+					connectorsWithOldLastTraversal.add(crawledConnector);
+				}
+			}
+
+			List<CrawledConnector> connectorsCrawledInCurrentBatch;
+			if (!connectorsWithOldLastTraversal.isEmpty()) {
+				connectorsCrawledInCurrentBatch = connectorsWithOldLastTraversal;
+			} else {
+				connectorsCrawledInCurrentBatch = crawledConnectors;
+			}
+
+
+			for (CrawledConnector crawledConnector : connectorsCrawledInCurrentBatch) {
 
 				ConnectorInstance instance = es.getConnectorInstance(crawledConnector.connectorInstance.getId());
 				if (instance.isCurrentlyRunning()) {
@@ -127,7 +146,7 @@ public class ConnectorCrawler {
 
 				eventObserver.flush();
 
-				for (CrawledConnector crawledConnector : crawledConnectors) {
+				for (CrawledConnector crawledConnector : connectorsCrawledInCurrentBatch) {
 					try {
 						crawledConnector.connector.afterJobs(connectorJobsMap.get(crawledConnector));
 					} catch (Exception e) {

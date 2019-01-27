@@ -16,6 +16,8 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.gargoylesoftware.htmlunit.DefaultCredentialsProvider;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.auth.AuthScope;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -24,9 +26,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
 public class ConnectorHttp extends Connector {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(ConnectorHttp.class);
 
 	private ConnectorHttpContext context;
 
@@ -139,7 +144,26 @@ public class ConnectorHttp extends Connector {
 	}
 
 	public void resume() {
-		context = contextServices.loadContext(connectorId);
+
+		try {
+			context = contextServices.loadContext(connectorId);
+
+		} catch (Exception e) {
+			LOGGER.warn("Context of connector " + connectorId + " does not existe, recreating it...");
+
+			context = contextServices.createContext(connectorId);
+
+			Iterator<Record> iterator = es.getModelLayerFactory().newSearchServices().recordsIterator(
+					from(es.connectorHttpDocument.schemaType()).where(es.connectorHttpDocument.connector()).isEqualTo(connectorId), 5000);
+
+			while (iterator.hasNext()) {
+				ConnectorHttpDocument connectorHttpDocument = es.wrapConnectorHttpDocument(iterator.next());
+				context.addDocumentDigest(connectorHttpDocument.getDigest(), connectorHttpDocument.getURL());
+			}
+
+			contextServices.save(context);
+
+		}
 	}
 
 	@Override
