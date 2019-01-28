@@ -5,6 +5,7 @@ import com.constellio.app.modules.rm.services.decommissioning.DecommissioningLis
 import com.constellio.app.modules.rm.services.decommissioning.SearchType;
 import com.constellio.app.modules.rm.ui.pages.decommissioning.breadcrumb.DecommissionBreadcrumbTrail;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
+import com.constellio.app.modules.rm.wrappers.structures.FolderDetailStatus;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.SearchResultTable;
@@ -249,6 +250,11 @@ public class DecommissioningBuilderViewImpl extends SearchViewImpl<Decommissioni
 						throws ValidationException {
 					getWindow().close();
 					params.setSelectedRecordIds(getSelectedRecordIds());
+					if (presenter.isDecommissioningListWithSelectedFolders()) {
+						params.setFolderDetailStatus(FolderDetailStatus.SELECTED);
+					} else {
+						params.setFolderDetailStatus(FolderDetailStatus.INCLUDED);
+					}
 					presenter.decommissioningListCreationRequested(params);
 				}
 

@@ -282,7 +282,7 @@ public class ReportTabButton extends WindowButton {
 				getWindow().setContent(ReportGeneratorUtils
 						.saveButtonClick(factory, collection, selectedSchema.getTypeCode(), template, 1,
 								buttonPresenter.getRecordVOIdFilteredList(selectedSchema),
-								getLogicalSearchQuery(selectedSchema.getCode()), sessionContext.getCurrentLocale()));
+								getLogicalSearchQuery(selectedSchema.getCode()), sessionContext.getCurrentLocale(), view.getSessionContext().getCurrentUser()));
 			}
 		});
 		return button;

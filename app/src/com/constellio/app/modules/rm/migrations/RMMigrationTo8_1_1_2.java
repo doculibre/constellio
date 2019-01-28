@@ -10,6 +10,7 @@ import com.constellio.app.modules.rm.model.calculators.FolderCopyRulesExpectedTr
 import com.constellio.app.modules.rm.model.calculators.FolderCopyRulesExpectedTransferDatesCalculator2;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.model.entities.schemas.MetadataTransiency;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
@@ -41,7 +42,8 @@ public class RMMigrationTo8_1_1_2 extends MigrationHelper implements MigrationSc
 			MetadataSchemaBuilder folderSchema = types().getSchema(Folder.DEFAULT_SCHEMA);
 
 			if (folderSchema.hasMetadata(FOLDER_DECOMMISSIONING_DATE)) {
-				folderSchema.get(FOLDER_DECOMMISSIONING_DATE).setEssential(false).setEnabled(false)
+				folderSchema.get(FOLDER_DECOMMISSIONING_DATE).setEssential(false)
+						.setTransiency(MetadataTransiency.PERSISTED).setEnabled(false)
 						.defineDataEntry().asManual();
 			}
 

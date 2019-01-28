@@ -1,6 +1,7 @@
 package com.constellio.app.modules.es.ui.pages;
 
 import com.constellio.app.modules.es.navigation.ESViews;
+import com.constellio.app.modules.es.ui.pages.ConnectorUtil.ConnectionStatus;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.model.entities.records.Record;
@@ -30,8 +31,18 @@ public class EditConnectorInstancePresenter extends AddEditConnectorInstancePres
 
 	@Override
 	public void saveButtonClicked(RecordVO recordVO) {
-		setCurrentSchemaCode(recordVO.getSchema().getCode());
+		String schemaCode = recordVO.getSchema().getCode();
+		setCurrentSchemaCode(schemaCode);
 		Record record = toRecord(recordVO);
+
+		ConnectorUtil.ConnectionStatusResult connectonStatusResult = ConnectorUtil
+				.testAuthentication(schemaCode, record, esSchemasRecordsServices);
+
+		if (connectonStatusResult.getConnectionStatus() != ConnectionStatus.Ok) {
+			view.showErrorMessage(ConnectorUtil.getErrorMessage(connectonStatusResult));
+			return;
+		}
+
 		try {
 			recordServices.update(record);
 		} catch (RecordServicesException e) {

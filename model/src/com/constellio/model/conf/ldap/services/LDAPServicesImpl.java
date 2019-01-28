@@ -44,16 +44,23 @@ public class LDAPServicesImpl implements LDAPServices {
 
 	public List<String> getRootContexts(LdapContext context) {
 		List<String> rootContexts = new ArrayList<>();
+		List<NamingEnumeration> closables = new ArrayList<>();
+		NamingEnumeration attributesEnum = null;
+		NamingEnumeration attributeEnum = null;
 		try {
 			Attributes attributes = context.getAttributes("", new String[]{"namingContexts"});
-			for (NamingEnumeration attributesEnum = attributes.getAll(); attributesEnum.hasMore(); ) {
+			for (attributesEnum = attributes.getAll(); attributesEnum.hasMore(); ) {
 				Attribute attribute = (Attribute) attributesEnum.next();
-				for (NamingEnumeration attributeEnum = attribute.getAll(); attributeEnum.hasMore(); ) {
+				for (attributeEnum = attribute.getAll(); attributeEnum.hasMore(); ) {
 					rootContexts.add("" + attributeEnum.next());
+					closables.add(attributeEnum);
 				}
+				closables.add(attributesEnum);
 			}
 		} catch (NamingException ne) {
 			System.err.println("Error getting root contexts: " + ne.getMessage());
+		} finally {
+			closeQuietly(closables);
 		}
 		return rootContexts;
 	}
@@ -92,6 +99,7 @@ public class LDAPServicesImpl implements LDAPServices {
 	private List<LDAPGroup> searchGroupsFromContext(LdapContext ctx, String groupsContainer)
 			throws NamingException {
 		List<LDAPGroup> groups = new ArrayList<>();
+		NamingEnumeration results = null;
 		try {
 			int pageSize = 100;
 			byte[] cookie = null;
@@ -102,9 +110,9 @@ public class LDAPServicesImpl implements LDAPServices {
 				searchCtls.setSearchScope(SearchControls.SUBTREE_SCOPE);
 				searchCtls.setReturningAttributes(LDAPGroup.FETCHED_ATTRIBUTES);
 
-				NamingEnumeration results = ctx.search(groupsContainer, "(objectclass=group)", searchCtls);
+				results = ctx.search(groupsContainer, "(objectclass=group)", searchCtls);
 
-					/* for each entry print out name + all attrs and values */
+				/* for each entry print out name + all attrs and values */
 				while (results != null && results.hasMore()) {
 					SearchResult entry = (SearchResult) results.next();
 
@@ -126,43 +134,45 @@ public class LDAPServicesImpl implements LDAPServices {
 				}
 				// Re-activate paged results
 				ctx.setRequestControls(new Control[] { new PagedResultsControl(pageSize, cookie, Control.CRITICAL) });
-
+				closeQuietly(results);
 			} while (cookie != null);
 		} catch (Exception e) {
 			LOGGER.warn("PagedSearch failed.", e);
+		} finally {
+			closeQuietly(results);
 		}
 		return groups;
 	}
 
-    private String buildUserSearchFilter(LDAPDirectoryType directoryType, List<String> userFilterGroups) {
-        final StringBuilder filter = new StringBuilder();
+	private String buildUserSearchFilter(LDAPDirectoryType directoryType, List<String> userFilterGroups) {
+		final StringBuilder filter = new StringBuilder();
 
-        // Construct conjunction with "objectclass=person" and disjunction groups filter
-        filter.append("(").append("&").append("(objectclass=person)");
+		// Construct conjunction with "objectclass=person" and disjunction groups filter
+		filter.append("(").append("&").append("(objectclass=person)");
 
-        // Construct disjunction groups filter
-        if (userFilterGroups != null && !userFilterGroups.isEmpty()) {
-            final String userMembershipAttribute = LDAPDirectoryType.ACTIVE_DIRECTORY.equals(directoryType) ? ADUserBuilder.MEMBER_OF : EdirectoryUserBuilder.MEMBER_OF;
+		// Construct disjunction groups filter
+		if (userFilterGroups != null && !userFilterGroups.isEmpty()) {
+			final String userMembershipAttribute = LDAPDirectoryType.ACTIVE_DIRECTORY.equals(directoryType) ? ADUserBuilder.MEMBER_OF : EdirectoryUserBuilder.MEMBER_OF;
 
-            filter.append("(").append("|").append(
-                    Joiner.on("").join(
-                            CollectionUtils.collect(
-                                    userFilterGroups,
-                                    new Transformer() {
-                                        @Override
-                                        public Object transform(Object groupDn) {
-                                            return new StringBuilder("(").append(userMembershipAttribute).append("=").append(groupDn).append(")");
-                                        }
-                                    }
-                            )
-                    )
-            ).append(")");
-        }
+			filter.append("(").append("|").append(
+					Joiner.on("").join(
+							CollectionUtils.collect(
+									userFilterGroups,
+									new Transformer() {
+										@Override
+										public Object transform(Object groupDn) {
+											return new StringBuilder("(").append(userMembershipAttribute).append("=").append(groupDn).append(")");
+										}
+									}
+							)
+					)
+			).append(")");
+		}
 
-        filter.append(")");
+		filter.append(")");
 
-        return filter.toString();
-    }
+		return filter.toString();
+	}
 
 	public List<String> searchUsersIdsFromContext(LDAPDirectoryType directoryType, LdapContext ctx,
 												  String usersContainer, List<String> userFilterGroups)
@@ -173,23 +183,25 @@ public class LDAPServicesImpl implements LDAPServices {
 		ctls.setReturningAttributes(new String[] { userIdAttributeName });
 		ctls.setSearchScope(SearchControls.SUBTREE_SCOPE);
 
-        String searchFilter = buildUserSearchFilter(directoryType, userFilterGroups);
-        String[] returnAttributes = { "cn" };
+		String searchFilter = buildUserSearchFilter(directoryType, userFilterGroups);
+		String[] returnAttributes = { "cn" };
 
-        /////////////////////////////
+		/////////////////////////////
+		NamingEnumeration results = null;
 		try {
 			int pageSize = 100;
 			byte[] cookie = null;
 			ctx.setRequestControls(new Control[] { new PagedResultsControl(pageSize, Control.NONCRITICAL) });
+
 			do {
 				//Query
 				SearchControls searchCtls = new SearchControls();
 				searchCtls.setSearchScope(SearchControls.SUBTREE_SCOPE);
 				searchCtls.setReturningAttributes(returnAttributes);
 
-				NamingEnumeration results = ctx.search(usersContainer, searchFilter, searchCtls);
+				results = ctx.search(usersContainer, searchFilter, searchCtls);
 
-					/* for each entry print out name + all attrs and values */
+				/* for each entry print out name + all attrs and values */
 				while (results != null && results.hasMore()) {
 					SearchResult entry = (SearchResult) results.next();
 					String currentUserId = entry.getNameInNamespace();
@@ -212,10 +224,12 @@ public class LDAPServicesImpl implements LDAPServices {
 				}
 				// Re-activate paged results
 				ctx.setRequestControls(new Control[] { new PagedResultsControl(pageSize, cookie, Control.CRITICAL) });
-
+				closeQuietly(results);
 			} while (cookie != null);
 		} catch (Exception e) {
 			LOGGER.error("PagedSearch failed.", e);
+		} finally {
+			closeQuietly(results);
 		}
 		Collections.sort(usersIds);
 		return usersIds;
@@ -269,7 +283,7 @@ public class LDAPServicesImpl implements LDAPServices {
 
 	public LdapContext connectToLDAP(List<String> domains, String url, String user, String password,
 									 Boolean followReferences,
-			boolean activeDirectory) {
+									 boolean activeDirectory) {
 		LDAPFastBind ldapFastBind = new LDAPFastBind(url, followReferences, activeDirectory);
 		boolean authenticated = ldapFastBind.authenticate(user, password);
 		if (!authenticated) {
@@ -289,7 +303,7 @@ public class LDAPServicesImpl implements LDAPServices {
 	}
 
 	public LdapContext connectToLDAP(List<String> domains, List<String> urls, String user, String password,
-			Boolean followReferences, boolean activeDirectory) {
+									 Boolean followReferences, boolean activeDirectory) {
 		for (String url : urls) {
 			LdapContext ctx;
 			try {
@@ -329,8 +343,9 @@ public class LDAPServicesImpl implements LDAPServices {
 		searchControls.setSearchScope(SearchControls.SUBTREE_SCOPE);
 
 		for (String searchBase : searchBases) {
+			NamingEnumeration<SearchResult> results = null;
 			try {
-				NamingEnumeration<SearchResult> results = ctx.search(searchBase, searchFilter, searchControls);
+				results = ctx.search(searchBase, searchFilter, searchControls);
 				if (results.hasMoreElements()) {
 					SearchResult searchResult = results.nextElement();
 					LDAPUserBuilder userBuilder = LDAPUserBuilderFactory.getUserBuilder(directoryType);
@@ -339,6 +354,8 @@ public class LDAPServicesImpl implements LDAPServices {
 				}
 			} catch (NamingException e) {
 				// Try next search base
+			} finally {
+				closeQuietly(results);
 			}
 		}
 
@@ -354,6 +371,8 @@ public class LDAPServicesImpl implements LDAPServices {
 			//FIXME
 			return true;
 		}
+		NamingEnumeration<SearchResult> found = null;
+
 		try {
 			LDAPUserBuilder userBuilder = LDAPUserBuilderFactory.getUserBuilder(directoryType);
 			if (groupMemberId.contains("\\")) {
@@ -369,10 +388,12 @@ public class LDAPServicesImpl implements LDAPServices {
 
 			// specify the search scope
 			searchControls.setSearchScope(SearchControls.SUBTREE_SCOPE);
-			NamingEnumeration<SearchResult> found = ctx.search(groupMemberId, searchFilter, searchControls);
+			found = ctx.search(groupMemberId, searchFilter, searchControls);
 			return found != null && found.hasMoreElements();
 		} catch (NamingException e) {
 			throw new RuntimeException(e);
+		} finally {
+			closeQuietly(found);
 		}
 	}
 
@@ -401,6 +422,9 @@ public class LDAPServicesImpl implements LDAPServices {
 		if (baseSearch == null || baseSearch.isEmpty()) {
 			return null;
 		}
+
+		NamingEnumeration<SearchResult> srchResponse = null;
+
 		try {
 			String[] returnAttribute = { "dn" };
 			SearchControls srchControls = new SearchControls();
@@ -411,17 +435,41 @@ public class LDAPServicesImpl implements LDAPServices {
 			//String searchFilter = "(&(objectClass=inetOrgPerson)(|(uid=" + cnORuid + ")(cn=" + cnORuid + ")))";
 
 			//FIXME search in all baseSearch elements
-			NamingEnumeration<SearchResult> srchResponse = dirContext.search(baseSearch.get(0), searchFilter, srchControls);
+			srchResponse = dirContext.search(baseSearch.get(0), searchFilter, srchControls);
 			if (srchResponse.hasMore()) {
 				return srchResponse.next().getNameInNamespace();
 			}
 		} catch (NamingException namEx) {
 			namEx.printStackTrace();
+
+		} finally {
+			closeQuietly(srchResponse);
 		}
 		return null;
 	}
 
+	private void closeQuietly(List<NamingEnumeration> closables) {
+		if(closables == null) {
+			return;
+		}
+
+		for(NamingEnumeration namingEnumeration: closables) {
+			closeQuietly(namingEnumeration);
+		}
+	}
+
+	private void closeQuietly(NamingEnumeration namingEnumeration) {
+		if(namingEnumeration != null) {
+			try {
+				namingEnumeration.close();
+			} catch (NamingException e) {
+			}
+		}
+	}
+
 	public String dnForEdirectoryUser(LdapContext dirContext, String searchBase, String cnORuid) {
+		NamingEnumeration<SearchResult> srchResponse = null;
+
 		try {
 			String[] returnAttribute = { "dn" };
 			SearchControls srchControls = new SearchControls();
@@ -429,12 +477,14 @@ public class LDAPServicesImpl implements LDAPServices {
 			srchControls.setSearchScope(SearchControls.SUBTREE_SCOPE);
 			String searchFilter = "(&(objectClass=inetOrgPerson)(|(uid=" + cnORuid + ")(cn=" + cnORuid + ")))";
 
-			NamingEnumeration<SearchResult> srchResponse = dirContext.search(searchBase, searchFilter, srchControls);
+			srchResponse = dirContext.search(searchBase, searchFilter, srchControls);
 			if (srchResponse.hasMore()) {
 				return srchResponse.next().getNameInNamespace();
 			}
 		} catch (NamingException namEx) {
 			namEx.printStackTrace();
+		} finally {
+			closeQuietly(srchResponse);
 		}
 		return null;
 	}
@@ -468,7 +518,7 @@ public class LDAPServicesImpl implements LDAPServices {
 
 	@Override
 	public List<String> getTestSynchronisationGroups(LDAPServerConfiguration ldapServerConfiguration,
-			LDAPUserSyncConfiguration ldapUserSyncConfiguration) {
+													 LDAPUserSyncConfiguration ldapUserSyncConfiguration) {
 		Set<String> returnGroups = new HashSet<>();
 
 		boolean activeDirectory = ldapServerConfiguration.getDirectoryType().equals(LDAPDirectoryType.ACTIVE_DIRECTORY);
@@ -477,8 +527,8 @@ public class LDAPServicesImpl implements LDAPServices {
 			LdapContext ctx = null;
 			try {
 				ctx = connectToLDAP(ldapServerConfiguration.getDomains(), url,
-					ldapUserSyncConfiguration.getUser(), ldapUserSyncConfiguration.getPassword(),
-					ldapServerConfiguration.getFollowReferences(), activeDirectory);
+						ldapUserSyncConfiguration.getUser(), ldapUserSyncConfiguration.getPassword(),
+						ldapServerConfiguration.getFollowReferences(), activeDirectory);
 				if (ctx != null) {
 					Set<LDAPGroup> groups = getGroupsUsingFilter(ctx, ldapUserSyncConfiguration.getGroupBaseContextList(),
 							ldapUserSyncConfiguration.getGroupFilter());
@@ -502,7 +552,7 @@ public class LDAPServicesImpl implements LDAPServices {
 
 	@Override
 	public LDAPUsersAndGroups importUsersAndGroups(LDAPServerConfiguration serverConfiguration,
-			LDAPUserSyncConfiguration userSyncConfiguration, String url) {
+												   LDAPUserSyncConfiguration userSyncConfiguration, String url) {
 
 		boolean activeDirectory = serverConfiguration.getDirectoryType().equals(LDAPDirectoryType.ACTIVE_DIRECTORY);
 		LdapContext ldapContext = null;
@@ -510,22 +560,22 @@ public class LDAPServicesImpl implements LDAPServices {
 			ldapContext = connectToLDAP(serverConfiguration.getDomains(), url, userSyncConfiguration.getUser(),
 					userSyncConfiguration.getPassword(), serverConfiguration.getFollowReferences(), activeDirectory);
 
-			//
+
 			final Set<LDAPUser> ldapUsers = new HashSet<>();
 			final Set<LDAPGroup> ldapGroups = new HashSet<>();
 
-			// Get accepted groups list using groups search base and groups regex search filter
+			//			// Get accepted groups list using groups search base and groups regex search filter
 			final Set<LDAPGroup> acceptedGroups = getGroupsUsingFilter(ldapContext, userSyncConfiguration.getGroupBaseContextList(), userSyncConfiguration.getGroupFilter());
 			ldapGroups.addAll(acceptedGroups);
 
 			// Get accepted users list using users search base, user groups filter and users regex search filter
 			final List<LDAPUser> acceptedUsers = getAcceptedUsersNotLinkedToGroups(ldapContext, serverConfiguration, userSyncConfiguration);
 			ldapUsers.addAll(acceptedUsers);
-
+			//
 			// Add groups of accepted users to accepted groups list
 			Set<LDAPGroup> groupsFromUsers = getGroupsFromUser(acceptedUsers);
 			ldapGroups.addAll(groupsFromUsers);
-
+			//
 			//
 			if (userSyncConfiguration.isMembershipAutomaticDerivationActivated()) {
 				//
@@ -536,22 +586,23 @@ public class LDAPServicesImpl implements LDAPServices {
 				ldapGroups.addAll(getGroupsFromUser(acceptedUsersDerivedFromAcceptedGroups));
 			}
 
-			return new LDAPUsersAndGroups(ldapUsers, ldapGroups);
+			return new LDAPUsersAndGroups( ldapUsers, ldapGroups);
 
 		} finally {
-			if (ldapContext != null) {
-				try {
+			try {
+				if(ldapContext != null) {
+					ldapContext.setRequestControls(null);
 					ldapContext.close();
-				} catch (NamingException e) {
-					LOGGER.warn("Naming exception", e);
 				}
+			} catch (NamingException e) {
+				LOGGER.warn("Naming exception", e);
 			}
 		}
 	}
 
 	@Override
 	public List<String> getTestSynchronisationUsersNames(LDAPServerConfiguration ldapServerConfiguration,
-			LDAPUserSyncConfiguration ldapUserSyncConfiguration) {
+														 LDAPUserSyncConfiguration ldapUserSyncConfiguration) {
 		Set<String> returnUsers = new HashSet<>();
 
 		boolean activeDirectory = ldapServerConfiguration.getDirectoryType().equals(LDAPDirectoryType.ACTIVE_DIRECTORY);
@@ -561,8 +612,8 @@ public class LDAPServicesImpl implements LDAPServices {
 					ldapUserSyncConfiguration.getUser(), ldapUserSyncConfiguration.getPassword(),
 					ldapServerConfiguration.getFollowReferences(), activeDirectory);
 			if (ctx != null) {
-			    Set<String> users = getUsersUsingFilter(ldapServerConfiguration.getDirectoryType(), ctx,
-					ldapUserSyncConfiguration.getUsersWithoutGroupsBaseContextList(), ldapUserSyncConfiguration.getUserFilter(), ldapUserSyncConfiguration.getUserGroups());
+				Set<String> users = getUsersUsingFilter(ldapServerConfiguration.getDirectoryType(), ctx,
+						ldapUserSyncConfiguration.getUsersWithoutGroupsBaseContextList(), ldapUserSyncConfiguration.getUserFilter(), ldapUserSyncConfiguration.getUserGroups());
 
 				returnUsers.addAll(users);
 			}

@@ -1,5 +1,7 @@
 package com.constellio.app.modules.rm.services.decommissioning;
 
+import com.constellio.app.modules.rm.wrappers.structures.FolderDetailStatus;
+
 import java.io.Serializable;
 import java.util.List;
 
@@ -9,6 +11,7 @@ public class DecommissioningListParams implements Serializable {
 	private List<String> selectedRecordIds;
 	private String administrativeUnit;
 	private SearchType searchType;
+	private FolderDetailStatus folderDetailStatus;
 
 	public String getTitle() {
 		return title;
@@ -48,5 +51,13 @@ public class DecommissioningListParams implements Serializable {
 
 	public void setSearchType(SearchType searchType) {
 		this.searchType = searchType;
+	}
+
+	public void setFolderDetailStatus(FolderDetailStatus folderDetailStatus) {
+		this.folderDetailStatus = folderDetailStatus;
+	}
+
+	public FolderDetailStatus getFolderDetailStatus() {
+		return folderDetailStatus;
 	}
 }

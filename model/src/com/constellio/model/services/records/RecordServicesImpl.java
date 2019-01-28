@@ -3,7 +3,6 @@ package com.constellio.model.services.records;
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordDeltaDTO;
-import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.dao.dto.records.TransactionDTO;
 import com.constellio.data.dao.dto.records.TransactionResponseDTO;
 import com.constellio.data.dao.services.DataStoreTypesFactory;
@@ -610,15 +609,6 @@ public class RecordServicesImpl extends BaseRecordServices {
 		TransactionRecordsReindexation reindexation = transaction.getRecordUpdateOptions().getTransactionRecordsReindexation();
 		MetadataSchemaTypes types = modelFactory.getMetadataSchemasManager().getSchemaTypes(transaction.getCollection());
 		RecordUpdateOptions options = transaction.getRecordUpdateOptions();
-		if (transaction.getRecordUpdateOptions().getRecordsFlushing() != RecordsFlushing.NOW()) {
-			//			RecordsCache cache = recordsCaches.getCache(transaction.getCollection());
-			//			for (Record record : transaction.getRecords()) {
-			//				if (record.isDirty() && record.isSaved() && cache.getCacheConfigOf(record.getSchemaCode()) != null) {
-			//					throw new RecordServicesRuntimeException_CannotDelayFlushingOfRecordsInCache(record.getSchemaCode(),
-			//							record.getId());
-			//				}
-			//			}
-		}
 
 		for (Record record : transaction.getRecords()) {
 			MetadataSchemaType schemaType = types.getSchemaType(record.getTypeCode());
@@ -674,8 +664,6 @@ public class RecordServicesImpl extends BaseRecordServices {
 		}
 
 		boolean validations = transaction.getRecordUpdateOptions().isValidationsEnabled();
-		//List<Record> records = RecordUtils.sortRecordByDependency(types, transaction.getRecords());
-		//List<Record> records = DependencyUtils.sortRecordByDependency(types, transaction.getRecords());
 		ParsedContentProvider parsedContentProvider = new ParsedContentProvider(modelFactory.getContentManager(),
 				transaction.getParsedContentCache());
 		for (Record record : transaction.getRecords()) {
@@ -870,7 +858,9 @@ public class RecordServicesImpl extends BaseRecordServices {
 			throw new RecordServicesException.ValidationException(transaction, errors);
 		}
 
+
 	}
+
 
 	public void validateRecordInTransaction(Record record, Transaction transaction)
 			throws ValidationException {
@@ -1241,7 +1231,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 	public Record newRecordWithSchema(MetadataSchema schema, String id, boolean withDefaultValues) {
 		Record record = new RecordImpl(schema, id);
 
-		if(withDefaultValues) {
+		if (withDefaultValues) {
 			for (Metadata metadata : schema.getMetadatas().onlyWithDefaultValue().onlyManuals()) {
 
 				if (metadata.isMultivalue()) {

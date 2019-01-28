@@ -134,6 +134,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	private transient RMModuleExtensions rmModuleExtensions;
 	private transient ConstellioEIMConfigs eimConfigs;
 	private String taxonomyCode;
+	private User user;
 
 	Boolean allItemsSelected = false;
 
@@ -148,6 +149,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		this.popup = popup;
 		initTransientObjects();
 		if (recordVO != null) {
+			this.taxonomyCode = recordVO.getId();
 			forParams(recordVO.getId());
 		}
 
@@ -170,6 +172,11 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		rmModuleExtensions = appLayerFactory.getExtensions().forCollection(collection).forModule(ConstellioRMModule.ID);
 		rmConfigs = new RMConfigs(modelLayerFactory.getSystemConfigurationsManager());
 		eimConfigs = new ConstellioEIMConfigs(modelLayerFactory.getSystemConfigurationsManager());
+		user = appLayerFactory.getModelLayerFactory().newUserServices().getUserInCollection(view.getSessionContext().getCurrentUser().getUsername(), collection);
+	}
+
+	public User getUser() {
+		return user;
 	}
 
 	protected void setTaxonomyCode(String taxonomyCode) {
@@ -184,16 +191,17 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	public void forParams(String params) {
 		String id;
 
-		if(params.contains("id")) {
+		if (params.contains("id=")) {
 			this.params = ParamUtils.getParamsMap(params);
 			id = this.params.get("id");
 		} else {
 			id = params;
 		}
-		
+
 		view.getSessionContext().addVisited(id);
 
 		String taxonomyCode = view.getUIContext().getAttribute(FolderDocumentContainerBreadcrumbTrail.TAXONOMY_CODE);
+		this.setTaxonomyCode(taxonomyCode);
 		view.setTaxonomyCode(taxonomyCode);
 
 		Record record = getRecord(id);
@@ -725,11 +733,14 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		if (validateLogicallyDeletable.isEmpty()) {
 			appLayerFactory.getExtensions().forCollection(collection)
 					.notifyFolderDeletion(new FolderDeletionEvent(rmSchemasRecordsServices.wrapFolder(record)));
-			delete(record, reason, false, WAIT_ONE_SECOND);
-			if (parentId != null) {
-				navigateToFolder(parentId);
-			} else {
-				navigate().to().home();
+
+			boolean isDeleteSuccessful = delete(record, reason, false, WAIT_ONE_SECOND);
+			if(isDeleteSuccessful) {
+				if (parentId != null) {
+					navigateToFolder(parentId);
+				} else {
+					navigate().to().home();
+				}
 			}
 		} else {
 			MessageUtils.getCannotDeleteWindow(validateLogicallyDeletable).openWindow();
@@ -998,6 +1009,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			} else {
 				borrower = rmSchemasRecordsServices.getUser(folderVO.getBorrowUserId());
 			}
+			
 			EmailAddress borrowerAddress = new EmailAddress(borrower.getTitle(), borrower.getEmail());
 			emailToSend.setTo(Arrays.asList(borrowerAddress));
 			emailToSend.setSendOn(TimeProvider.getLocalDateTime());

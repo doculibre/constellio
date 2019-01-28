@@ -48,8 +48,12 @@ public class DecomValidationRequestWindowButton extends WindowButton {
 		BaseButton sendButton = new BaseButton($("DecomAskForValidationWindowButton.okButton")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
-				if (presenter.validationRequested(users.getValue(), comments.getValue(), checkBox.getValue())) {
-					getWindow().close();
+				if (users.getValue() != null && users.getValue().size() > 0) {
+					if (presenter.validationRequested(users.getValue(), comments.getValue(), checkBox.getValue())) {
+						getWindow().close();
+					}
+				} else {
+					presenter.showErrorMessage($("DecomAskForValidationWindowButton.validationWithoutUserError"));
 				}
 			}
 		};

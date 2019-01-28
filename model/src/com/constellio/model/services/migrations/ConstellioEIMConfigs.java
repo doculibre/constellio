@@ -1,5 +1,6 @@
 package com.constellio.model.services.migrations;
 
+import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.configs.AbstractSystemConfigurationScript;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.configs.SystemConfigurationGroup;
@@ -486,7 +487,7 @@ public class ConstellioEIMConfigs {
 	}
 
 	public boolean isInScanVaultContentsSchedule() {
-		return LocalDate.now().getDayOfWeek() >= 6;
+		return TimeProvider.getLocalDate().getDayOfWeek() >= 6;
 	}
 
 	public boolean isInBatchProcessesSchedule() {
@@ -511,10 +512,6 @@ public class ConstellioEIMConfigs {
 
 	public int getBatchProcessMaximumHistorySize() {
 		return manager.getValue(BATCH_PROCESSES_MAXIMUM_HISTORY_SIZE);
-	}
-
-	public boolean isNegativeAuthorizationEnabled() {
-		return true;
 	}
 
 }

@@ -20,6 +20,11 @@ public class SolrDataStoreTypesFactory implements DataStoreTypesFactory {
 	}
 
 	@Override
+	public String forInteger(boolean multivalue) {
+		return multivalue ? "is" : "i";
+	}
+
+	@Override
 	public String forDate(boolean multivalue) {
 		return multivalue ? "das" : "da";
 	}

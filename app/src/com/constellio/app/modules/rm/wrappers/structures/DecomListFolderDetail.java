@@ -7,7 +7,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 public class DecomListFolderDetail implements ModifiableStructure {
 	String folderId;
-	FolderDetailStatus folderDetailStatus = FolderDetailStatus.SELECTED;
+	FolderDetailStatus folderDetailStatus;
 	String containerRecordId;
 	boolean reversedSort;
 	Double folderLinearSize;
@@ -19,11 +19,12 @@ public class DecomListFolderDetail implements ModifiableStructure {
 		isPlacedInContainer = false;
 	}
 
-	public DecomListFolderDetail(Folder folder) {
+	public DecomListFolderDetail(Folder folder, FolderDetailStatus folderDetailStatus) {
 		this.folderId = folder.getId();
 		this.containerRecordId = folder.getContainer();
 		this.folderLinearSize = folder.getLinearSize();
 		this.isPlacedInContainer = false;
+		this.folderDetailStatus = folderDetailStatus;
 	}
 
 	public String getFolderId() {

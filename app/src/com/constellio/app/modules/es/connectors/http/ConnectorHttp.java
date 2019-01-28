@@ -16,6 +16,7 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.gargoylesoftware.htmlunit.DefaultCredentialsProvider;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.auth.AuthScope;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -34,6 +35,7 @@ public class ConnectorHttp extends Connector {
 
 	ConnectorHttpContextServices contextServices;
 
+
 	@Override
 	public void initialize(Record instanceRecord) {
 		this.connectorId = instanceRecord.getId();
@@ -43,8 +45,14 @@ public class ConnectorHttp extends Connector {
 	public HttpURLFetchingService newFetchingService() {
 		int timeout = 60_000;
 		ConnectorHttpInstance connectorInstance = getConnectorInstance();
-		DefaultCredentialsProvider credentialProvider = new DefaultCredentialsProvider();
+
+		return getHttpURLFetchingService(timeout, connectorInstance);
+	}
+
+	@NotNull
+	public static HttpURLFetchingService getHttpURLFetchingService(int timeout, ConnectorHttpInstance connectorInstance) {
 		AuthScope authScope = new AuthScope(AuthScope.ANY_HOST, AuthScope.ANY_PORT);
+		DefaultCredentialsProvider credentialProvider = new DefaultCredentialsProvider();
 		if (AuthenticationScheme.NTLM.equals(connectorInstance.getAuthenticationScheme())) {
 			String username = connectorInstance.getUsername();
 			String password = connectorInstance.getPasssword();
@@ -53,6 +61,10 @@ public class ConnectorHttp extends Connector {
 			//FIXME
 			//Credentials credentials = new NTCredentials(username, password, "contellio", domain);
 			credentialProvider.addNTLMCredentials(username, password, null, -1, null, domain);
+		} else {
+			if (connectorInstance.getUsername() != null && connectorInstance.getPasssword() != null) {
+				credentialProvider.addCredentials(connectorInstance.getUsername(), connectorInstance.getPasssword());
+			}
 		}
 		return new HttpURLFetchingService(timeout, credentialProvider);
 	}

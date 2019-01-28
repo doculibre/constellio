@@ -123,10 +123,10 @@ public class ZipService {
 
 	private void unzip(ZipFile zipFile, ZipEntry entry, File zipFileContentDestinationDir)
 			throws IOException {
-		if (entry.isDirectory()) {
+		if (entry.isDirectory() || entry.getName().endsWith("\\")) {
 			new File(zipFileContentDestinationDir, entry.getName()).mkdirs();
 		} else {
-			File zipFileItemDestination = new File(zipFileContentDestinationDir, entry.getName());
+			File zipFileItemDestination = new File(zipFileContentDestinationDir, entry.getName().replace("\\", "/"));
 
 			zipFileItemDestination.getParentFile().mkdirs();
 

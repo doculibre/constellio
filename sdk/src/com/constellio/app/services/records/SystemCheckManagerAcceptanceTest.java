@@ -15,6 +15,7 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Email;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
+import com.constellio.app.modules.rm.wrappers.structures.FolderDetailStatus;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.app.modules.robots.model.wrappers.Robot;
@@ -697,7 +698,7 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 				.setParentFolder(records.folder_A03);
 		getModelLayerFactory().newRecordServices().add(zeFolder);
 		List<DecomListFolderDetail> details = new ArrayList<>(list.getFolderDetails());
-		details.add(new DecomListFolderDetail().setFolderId(zeFolder.getId()));
+		details.add(new DecomListFolderDetail().setFolderId(zeFolder.getId()).setFolderDetailStatus(FolderDetailStatus.INCLUDED));
 		list.setFolderDetails(details);
 		getModelLayerFactory().newRecordServices().update(list);
 

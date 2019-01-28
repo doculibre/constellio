@@ -18,6 +18,8 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.type.MediumType;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
+import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.data.utils.KeySetMap;
 import com.constellio.model.entities.records.ConditionnedActionExecutorInBatchBuilder;
 import com.constellio.model.entities.records.Record;
@@ -81,19 +83,28 @@ public class RMMigrationTo8_2 implements MigrationScript {
 			}
 		}
 
-		modifyRecords(rm.folder.schemaType(), Folder.FAVORITES, modelLayerFactory);
-		modifyRecords(rm.document.schemaType(), Document.FAVORITES, modelLayerFactory);
-		modifyRecords(rm.containerRecord.schemaType(), ContainerRecord.FAVORITES, modelLayerFactory);
+		modifyRecords(rm.folder.schemaType(), Folder.FAVORITES, modelLayerFactory, 1000);
+		modifyRecords(rm.document.schemaType(), Document.FAVORITES, modelLayerFactory, 100);
+		modifyRecords(rm.containerRecord.schemaType(), ContainerRecord.FAVORITES, modelLayerFactory, 1000);
 
 		new SchemaAlterationFor8_2b(collection, provider, appLayerFactory).migrate();
+
+		SchemasDisplayManager displayManager = appLayerFactory.getMetadataSchemasDisplayManager();
+		SchemaTypesDisplayTransactionBuilder transaction = displayManager.newTransactionBuilderFor(collection);
+
+		transaction.add(displayManager.getSchema(collection, MediumType.DEFAULT_SCHEMA)
+				.withNewFormMetadata(MediumType.DEFAULT_SCHEMA + "_" + MediumType.ACTIVATED_ON_CONTENT)
+		);
+		displayManager.execute(transaction.build());
+
 	}
 
 	private void modifyRecords(final MetadataSchemaType metadataSchemaType, final String metadataCode,
-							   final ModelLayerFactory modelLayerFactory) {
+							   final ModelLayerFactory modelLayerFactory, int batch) {
 		ConditionnedActionExecutorInBatchBuilder conditionnedActionExecutorInBatchBuilder = onCondition(modelLayerFactory, from(metadataSchemaType).returnAll());
-		conditionnedActionExecutorInBatchBuilder.setBatchSize(500);
+		conditionnedActionExecutorInBatchBuilder.setBatchSize(batch);
 		conditionnedActionExecutorInBatchBuilder.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
-		conditionnedActionExecutorInBatchBuilder.modifyingRecordsWithImpactHandling(new ConditionnedActionExecutorInBatchBuilder.RecordScript() {
+		conditionnedActionExecutorInBatchBuilder.modifyingRecordsWithoutImpactHandling(new ConditionnedActionExecutorInBatchBuilder.RecordScript() {
 			@Override
 			public void modifyRecord(Record record) {
 				Metadata metadata = modelLayerFactory.getMetadataSchemasManager().getSchemaOf(record).getMetadata(metadataCode);

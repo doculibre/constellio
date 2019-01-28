@@ -11,6 +11,7 @@ import java.util.List;
 import static com.constellio.data.dao.services.bigVault.BigVaultRecordDao.DATE_SEARCH_FIELD;
 import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
 import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
+import static com.constellio.model.entities.schemas.MetadataValueType.INTEGER;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
 import static java.util.Arrays.asList;
@@ -40,6 +41,7 @@ Schemas {
 	public static final Metadata TOKENS = add(new Metadata("tokens_ss", STRING, true));
 	public static final Metadata TOKENS_OF_HIERARCHY = add(new Metadata("tokensHierarchy_ss", STRING, true));
 	public static final Metadata ATTACHED_ANCESTORS = add(new Metadata("attachedAncestors_ss", STRING, true));
+	public static final Metadata ESTIMATED_SIZE = add(new Metadata("estimatedSize_i", INTEGER, false));
 
 	public static final Metadata COLLECTION = add(new Metadata("collection_s", STRING, false));
 	public static final Metadata LOGICALLY_DELETED_STATUS = add(new Metadata("deleted_s", BOOLEAN, false));

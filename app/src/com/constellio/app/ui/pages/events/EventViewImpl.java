@@ -87,8 +87,8 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 
 		ArrayList<String> containerPropertyIdArray = new ArrayList<>();
 
-		for(Object property : propertyIdCollection) {
-			if(!table.isColumnCollapsed(property)) {
+		for (Object property : propertyIdCollection) {
+			if (!table.isColumnCollapsed(property)) {
 				containerPropertyIdArray.add(table.getColumnHeader(property));
 			}
 		}
@@ -101,8 +101,8 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 		Object[] propertyIdCollection = table.getVisibleColumns();
 		List<Object> nonCollapsedPropertyList = new ArrayList<>();
 
-		for(Object propertyId : propertyIdCollection) {
-			if(!table.isColumnCollapsed(propertyId)) {
+		for (Object propertyId : propertyIdCollection) {
+			if (!table.isColumnCollapsed(propertyId)) {
 				nonCollapsedPropertyList.add(propertyId);
 			}
 		}
@@ -113,7 +113,7 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 	private Table buildTable() {
 		final RecordVODataProvider dataProvider = presenter.getDataProvider();
 		final String eventType = presenter.getEventType();
-		container = new RecordVOLazyContainer(dataProvider, false);
+		container = new RecordVOLazyContainer(dataProvider);
 
 		String eventTypeCaption;
 		try {
@@ -202,9 +202,7 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 						@Override
 						public void manage(Table table, String tableId) {
 							super.manage(table, tableId);
-							if (presenter.isNegativeAuthorizationConfigEnabled()) {
-								setColumnCollapsed("event_default_negative", false);
-							}
+							setColumnCollapsed("event_default_negative", false);
 						}
 					};
 				}

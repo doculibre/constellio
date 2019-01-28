@@ -40,6 +40,7 @@ public class SearchResultReportPresenter extends BaseExcelReportPresenter {
 	private final String username;
 	private final String reportTitle;
 	private final LogicalSearchQuery searchQuery;
+	private final User userInCollection;
 
 	public SearchResultReportPresenter(AppLayerFactory appLayerFactory, List<String> selectedRecords, String schemaType,
 									   String collection, String username,
@@ -51,6 +52,7 @@ public class SearchResultReportPresenter extends BaseExcelReportPresenter {
 		this.username = username;
 		this.reportTitle = reportTitle;
 		this.searchQuery = searchQuery;
+		userInCollection = appLayerFactory.getModelLayerFactory().newUserServices().getUserInCollection(username, collection);
 	}
 
 	public SearchResultReportModel buildModel(ModelLayerFactory modelLayerFactory) {
@@ -90,7 +92,7 @@ public class SearchResultReportPresenter extends BaseExcelReportPresenter {
 	private List<Record> getAllSelectedRecordsFromIndex(ModelLayerFactory modelLayerFactory,
 														List<Metadata> orderedEnabledReportedMetadataList) {
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
-		User userInCollection = modelLayerFactory.newUserServices().getUserInCollection(username, collection);
+
 		LogicalSearchQuery newSearchQuery = new LogicalSearchQuery()
 				.setCondition(LogicalSearchQueryOperators.from(asList(schemaTypeCode), collection).where(Schemas.IDENTIFIER)
 						.isIn(selectedRecords)).filteredWithUser(userInCollection)
@@ -105,9 +107,9 @@ public class SearchResultReportPresenter extends BaseExcelReportPresenter {
 												 List<Metadata> orderedEnabledReportedMetadataList) {
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
 		ReturnedMetadatasFilter returnMetadata = ReturnedMetadatasFilter.onlyMetadatas(orderedEnabledReportedMetadataList);
-		User userInCollection = modelLayerFactory.newUserServices().getUserInCollection(username, collection);
 		LogicalSearchQuery newSearchQuery = new LogicalSearchQuery()
-				.setCondition(LogicalSearchQueryOperators.from(asList(schemaTypeCode), collection).returnAll()).filteredWithUser(userInCollection)
+				.setCondition(LogicalSearchQueryOperators.from(asList(schemaTypeCode), collection).returnAll()).filteredWithUser(
+						userInCollection)
 				.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(orderedEnabledReportedMetadataList))
 				.setStartRow(index)
 				.setNumberOfRows(BATCH_SIZE);
@@ -122,7 +124,8 @@ public class SearchResultReportPresenter extends BaseExcelReportPresenter {
 		List<Object> returnList = new ArrayList<>();
 		for (Metadata metadata : orderedEnabledReportedMetadataList) {
 			Object metadataValue = record.get(metadata, locale);
-			if (metadataValue == null) {
+
+			if (metadataValue == null || !userInCollection.hasAccessToMetadata(metadata, record)) {
 				returnList.add(null);
 			} else {
 				Metadata metadataOfRecordSchema = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager()
@@ -176,7 +179,7 @@ public class SearchResultReportPresenter extends BaseExcelReportPresenter {
 		List<Metadata> returnList = new ArrayList<>();
 		MetadataSchemasManager metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
 		MetadataSchemaType schemaType = metadataSchemasManager.getSchemaTypes(collection).getSchemaType(schemaTypeCode);
-		MetadataList allMetadata = schemaType.getAllMetadatas();
+		MetadataList allMetadata = schemaType.getAllMetadatas().onlyAccessibleGloballyBy(userInCollection);
 
 		for (ReportedMetadata reportedMetadata : reportedMetadataList) {
 			boolean found = false;
