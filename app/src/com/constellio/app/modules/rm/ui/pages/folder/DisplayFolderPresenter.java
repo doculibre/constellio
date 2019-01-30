@@ -191,7 +191,16 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	public void forParams(String params) {
 		String id;
 
-		if (params.contains("id=")) {
+		boolean parseParamsAsMapWithFavGroupId = false;
+
+		if(params.contains(RMViews.FAV_GROUP_ID_KEY)) {
+			Map<String, String> paramMap = ParamUtils.getParamsMap(params);
+			if(paramMap.get(RMViews.FAV_GROUP_ID_KEY) != null) {
+				parseParamsAsMapWithFavGroupId = true;
+			}
+		}
+
+		if (params.contains("id=") || parseParamsAsMapWithFavGroupId) {
 			this.params = ParamUtils.getParamsMap(params);
 			id = this.params.get("id");
 		} else {

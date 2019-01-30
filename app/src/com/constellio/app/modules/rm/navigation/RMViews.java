@@ -197,6 +197,13 @@ public class RMViews extends CoreViews {
 		navigator.navigateTo(addParams(RMNavigationConfiguration.ADD_DOCUMENT, params));
 	}
 
+	public void addDocumentWithContentFromFav(String id, String favGroupId) {
+		Map<String, String> params = new HashMap<>();
+		params.put("idCopy", id);
+		params.put(RMViews.FAV_GROUP_ID_KEY, favGroupId);
+		navigator.navigateTo(addParams(RMNavigationConfiguration.ADD_DOCUMENT, params));
+	}
+
 	public void addDocumentWithContentFromDecommission(String id, String decommissioningSearchId, String decommissioningType) {
 		Map<String, String> params = new HashMap<>();
 		params.put("idCopy", id);
