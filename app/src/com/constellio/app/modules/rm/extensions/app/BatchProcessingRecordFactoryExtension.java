@@ -45,14 +45,14 @@ public class BatchProcessingRecordFactoryExtension extends RecordFieldFactoryExt
 
 		public BatchProcessingFieldFactoryExtensionParams(String key, MetadataFieldFactory metadataFieldFactory,
 														  String schemaType, LogicalSearchQuery query) {
-			super(key, metadataFieldFactory);
+			super(key, metadataFieldFactory, null);
 			this.schemaType = schemaType;
 			this.query = query;
 		}
 
 		public BatchProcessingFieldFactoryExtensionParams(String key, MetadataFieldFactory metadataFieldFactory,
 														  String schemaType, List<String> selectedRecords) {
-			super(key, metadataFieldFactory);
+			super(key, metadataFieldFactory, null);
 			this.schemaType = schemaType;
 			this.selectedRecords = selectedRecords;
 		}
