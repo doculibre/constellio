@@ -837,7 +837,11 @@ class SortingDecommissioner extends DeactivatingDecommissioner {
 	@Override
 	protected void processContainer(ContainerRecord container, DecomListContainerDetail detail) {
 		if (isContainerEmpty(container, destroyedFolders)) {
-			delete(container);
+			if (configs.isContainerRecyclingAllowed()) {
+				add(decommissioningService.prepareToRecycle(container));
+			} else {
+				delete(container);
+			}
 		} else {
 			processDepositedContainer(container, detail);
 		}
