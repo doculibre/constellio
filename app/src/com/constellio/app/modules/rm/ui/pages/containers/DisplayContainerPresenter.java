@@ -175,12 +175,7 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 	}
 
 	public void displayFolderButtonClicked(RecordVO folder) {
-		if(view.getUIContext().getAttribute(BaseBreadcrumbTrail.SEARCH_ID) != null && containerId != null) {
-			view.navigate().to(RMViews.class).displayFolderFromContainer(folder.getId(), containerId);
-		} else {
-			view.navigate().to(RMViews.class).displayFolder(folder.getId());
-		}
-
+		view.navigate().to(RMViews.class).displayFolder(folder.getId());
 	}
 
 	@Override
