@@ -101,7 +101,7 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 			taxonomyCode = uiContext.getAttribute(BaseBreadcrumbTrail.TAXONOMY_CODE);
 		}
 
-		if (taxonomyCode != null) {
+		if (taxonomyCode != null && recordId != null) {
 			Record record = folderPresenterUtils.getRecord(recordId);
 			String schemaCode = record.getSchemaCode();
 			String schemaTypeCode = SchemaUtils.getSchemaTypeCode(schemaCode);
