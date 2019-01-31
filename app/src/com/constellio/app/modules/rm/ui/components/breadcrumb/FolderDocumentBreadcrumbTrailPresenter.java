@@ -25,6 +25,8 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesManagerRuntimeException.TaxonomiesManagerRuntimeException_EnableTaxonomyNotFound;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -34,6 +36,8 @@ import java.util.List;
 import static java.util.Arrays.asList;
 
 public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
+
+	private final static Logger LOGGER = LoggerFactory.getLogger(FolderDocumentBreadcrumbTrailPresenter.class);
 
 	private String recordId;
 
@@ -192,7 +196,8 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 				Document document = rmSchemasRecordsServices.wrapDocument(currentRecord);
 				currentRecordId = document.getFolder();
 			} else {
-				throw new RuntimeException("Unrecognized schema type code : " + currentSchemaTypeCode);
+				currentRecordId = null;
+				LOGGER.error("Unrecognized schema type code : " + currentSchemaTypeCode);
 			}
 		}
 
