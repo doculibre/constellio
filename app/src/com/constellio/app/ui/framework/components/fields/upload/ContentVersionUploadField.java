@@ -30,7 +30,12 @@ public class ContentVersionUploadField extends BaseUploadField {
 
 	public ContentVersionUploadField(boolean multiValue, boolean haveDeleteButton, boolean isViewOnly) {
 		super(haveDeleteButton, isViewOnly);
-		setConverter(new TempFileUploadToContentVersionVOConverter());
+		setConverter(new TempFileUploadToContentVersionVOConverter() {
+			@Override
+			protected boolean shouldSetHashForTemporaryFiles() {
+				return true;
+			}
+		});
 		setMultiValue(multiValue);
 	}
 
