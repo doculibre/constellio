@@ -149,9 +149,8 @@ public class RecordVOWithDistinctSchemaTypesLazyContainer extends LazyQueryConta
 							Object value = recordVO.get(schemaCode + "_" + reportMetadata);
 							if (value == null) {
 								value = "";
-
-								addItemProperty(reportMetadata, new ObjectProperty<>(value));
 							}
+							addItemProperty(reportMetadata, new ObjectProperty<>(value));
 						}
 					}
 				}
