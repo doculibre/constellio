@@ -688,7 +688,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		}
 
 		try {
-			recordServices().add(list);
+			recordServices().add(list, getCurrentUser());
 			view.navigate().to(RMViews.class).displayDecommissioningList(list.getId());
 		} catch (RecordServicesException e) {
 			e.printStackTrace();
