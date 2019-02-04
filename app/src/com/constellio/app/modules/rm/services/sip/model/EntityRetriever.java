@@ -13,7 +13,7 @@ public class EntityRetriever {
 	private String collection;
 	private AppLayerFactory appLayerFactory;
 	private ModelLayerFactory modelLayerFactory;
-	private RMSchemasRecordsServices rm;
+	RMSchemasRecordsServices rm;
 
 	public EntityRetriever(String collection, AppLayerFactory appLayerFactory) {
 		this.collection = collection;

@@ -20,12 +20,10 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.schemas.MetadataListFilter;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDate;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
-import java.text.SimpleDateFormat;
 import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -96,22 +94,22 @@ public class ConstellioSIPObjectsProvider implements SIPObjectsProvider {
 	public List<String> getMetadataIds(SIPObject sipObject) {
 		List<String> metadataIds = new ArrayList<>();
 		if (sipObject instanceof SIPFolder) {
-			metadataIds.add("numeroRegleConservation");
-			metadataIds.add("regleConservation");
+			//metadataIds.add("numeroRegleConservation");
+			//metadataIds.add("regleConservation");
 		} else if (sipObject instanceof SIPDocument) {
-			SIPDocument sipDocument = (SIPDocument) sipObject;
-			Document document = rm.wrapDocument(sipDocument.getFicheMetadonnees());
-			boolean isCourriel = document.getSchema().getCode().equals(Email.SCHEMA);
-			if (isCourriel) {
-				metadataIds.add(Email.EMAIL_TO);
-				metadataIds.add(Email.EMAIL_FROM);
-				metadataIds.add(Email.EMAIL_IN_NAME_OF);
-				metadataIds.add(Email.EMAIL_CC_TO);
-				metadataIds.add(Email.EMAIL_BCC_TO);
-				metadataIds.add(Email.EMAIL_OBJECT);
-			} else {
-				metadataIds.add("typeDocument");
-			}
+//			SIPDocument sipDocument = (SIPDocument) sipObject;
+			//			Document document = rm.wrapDocument(sipDocument.getFicheMetadonnees());
+			//			boolean isCourriel = document.getSchema().getCode().equals(Email.SCHEMA);
+			//			if (isCourriel) {
+			//				metadataIds.add(Email.EMAIL_TO);
+			//				metadataIds.add(Email.EMAIL_FROM);
+			//				metadataIds.add(Email.EMAIL_IN_NAME_OF);
+			//				metadataIds.add(Email.EMAIL_CC_TO);
+			//				metadataIds.add(Email.EMAIL_BCC_TO);
+			//				metadataIds.add(Email.EMAIL_OBJECT);
+			//			} else {
+			//				metadataIds.add("typeDocument");
+			//			}
 		}
 		return metadataIds;
 	}

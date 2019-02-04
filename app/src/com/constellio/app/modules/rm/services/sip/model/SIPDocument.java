@@ -107,7 +107,11 @@ public class SIPDocument extends SIPMetadataObject implements SIPObject {
 		String fileId = getFileId();
 		String filename = getFilename();
 		String fileExtension = FilenameUtils.getExtension(filename);
-		String documentFilename = fileId + "." + fileExtension;
+
+		Document document = entityRetriever.rm.wrapDocument(getRecord());
+
+		String documentFilename = Document.SCHEMA_TYPE + "-" +
+								  fileId + "-" + document.getContent().getCurrentVersion().getVersion() + "." + fileExtension;
 
 		sb.append("/");
 		sb.append(documentFilename);

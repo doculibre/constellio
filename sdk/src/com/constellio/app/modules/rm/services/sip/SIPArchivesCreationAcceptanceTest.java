@@ -2,11 +2,14 @@ package com.constellio.app.modules.rm.services.sip;
 
 import com.constellio.app.entities.modules.ProgressInfo;
 import com.constellio.app.modules.rm.RMTestRecords;
+import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.sip.data.intelligid.ConstellioSIPObjectsProvider;
 import com.constellio.app.modules.rm.services.sip.filter.SIPFilter;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.data.dao.services.idGenerator.InMemorySequentialGenerator;
+import com.constellio.data.io.services.zip.ZipServiceException;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.frameworks.validation.ValidationErrors;
@@ -27,6 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import static com.constellio.sdk.tests.TestUtils.zipFileWithSameContentExceptingFiles;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -38,14 +42,31 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 
 	@Before
 	public void setUp() throws Exception {
+
+		records.copyBuilder = new CopyRetentionRuleBuilder(new InMemorySequentialGenerator());
+
 		prepareSystem(withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records));
 		this.rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		givenTimeIs(new LocalDateTime(2018, 1, 2, 3, 4, 5));
+
+		Transaction tx = new Transaction();
+
+		tx.add(records.getRule1().setCopyRetentionRules(records.getRule1().getCopyRetentionRules()));
+		tx.add(records.getRule2().setCopyRetentionRules(records.getRule1().getCopyRetentionRules()));
+		tx.add(records.getRule3().setCopyRetentionRules(records.getRule1().getCopyRetentionRules()));
+		tx.add(records.getRule4().setCopyRetentionRules(records.getRule1().getCopyRetentionRules()));
+		tx.add(records.getRule5().setCopyRetentionRules(records.getRule1().getCopyRetentionRules()));
+
+		rm.executeTransaction(tx);
 	}
 
 	@Test
 	public void givenSIPArchivesOfTwoDocumentsInSameFolderThenArchiveContainsAllMetadatasContentsAndManifests()
 			throws Exception {
+
+		getIOLayerFactory().newZipService().zip(getTestResourceFile("sip1.zip"),
+				asList(new File("/Users/francisbaril/Downloads/SIPArchivesCreationAcceptanceTest-sip1").listFiles()));
+
 
 		Transaction tx = new Transaction();
 		Folder zeFolder = tx.add(rm.newFolderWithId("zeFolderId").setOpenDate(new LocalDate(2018, 1, 1)).setTitle("Ze folder")
@@ -57,21 +78,41 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 				.setContent(minorContent("content2.doc"));
 		rm.executeTransaction(tx);
 
-		File sipFile1 = buildSIPWithDocuments("document1", "document2");
-		File sipFile2 = buildSIPWithDocuments("document1", "document2");
+		File sipFile = buildSIPWithDocuments("document1", "document2");
+		unzipInDownloadFolder(sipFile, "testSIP");
 
-		File testSIPFolder1 = new File("/Users/francisbaril/Downloads/testSIP1");
-		File testSIPFolder2 = new File("/Users/francisbaril/Downloads/testSIP2");
+		assertThat(sipFile).is(zipFileWithSameContentExceptingFiles(getTestResourceFile("sip1.zip"), "bag-info.txt"));
 
-		FileUtils.deleteDirectory(testSIPFolder1);
-		FileUtils.deleteDirectory(testSIPFolder2);
-		testSIPFolder1.mkdirs();
-		testSIPFolder1.mkdirs();
 
-		getIOLayerFactory().newZipService().unzip(sipFile1, testSIPFolder1);
-		getIOLayerFactory().newZipService().unzip(sipFile2, testSIPFolder2);
+		//		File sipFile2 = buildSIPWithDocuments("document1", "document2");
+		//
+		//		File testSIPFolder1 = new File("/Users/francisbaril/Downloads/testSIP1");
+		//		File testSIPFolder2 = new File("/Users/francisbaril/Downloads/testSIP2");
+		//
+		//		FileUtils.deleteDirectory(testSIPFolder1);
+		//		FileUtils.deleteDirectory(testSIPFolder2);
+		//		testSIPFolder1.mkdirs();
+		//		testSIPFolder1.mkdirs();
+		//
+		//		getIOLayerFactory().newZipService().unzip(sipFile, testSIPFolder1);
+		//		getIOLayerFactory().newZipService().unzip(sipFile2, testSIPFolder2);
+		//		assertThat(sipFile.length()).isEqualTo(sipFile2.length());
+	}
 
-		assertThat(sipFile1.length()).isEqualTo(sipFile2.length());
+	private void unzipInDownloadFolder(File sipFile, String name) {
+		File folder = new File("/Users/francisbaril/Downloads/" + name);
+		try {
+			FileUtils.deleteDirectory(folder);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+		folder.mkdirs();
+
+		try {
+			getIOLayerFactory().newZipService().unzip(sipFile, folder);
+		} catch (ZipServiceException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	//-------------------------------------------
@@ -93,7 +134,7 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 				getAppLayerFactory().newApplicationService().getWarVersion(), new ProgressInfo(), Locale.FRENCH) {
 			@Override
 			protected String getHash(File file, String sipPath) throws IOException {
-				return "{{" + sipPath.replace("\\", "/ d") + "}}";
+				return "CHECKSUM{{" + sipPath.replace("\\", "/ d") + "}}";
 			}
 		};
 		ValidationErrors errors = constellioSIP.build(sipFile);

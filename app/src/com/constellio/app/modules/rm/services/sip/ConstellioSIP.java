@@ -329,7 +329,7 @@ public class ConstellioSIP {
 
 			String zipFolderPath = getZipPath(sipFolder);
 			String fileId = sipDocument.getFileId();
-			String zipXMLPath = zipFolderPath + "/" + fileId + ".xml";
+			String zipXMLPath = zipFolderPath + "/" + sipDocument.getRecord().getTypeCode() + "-" + fileId + ".xml";
 
 			File tempXMLFile = File.createTempFile(ConstellioSIP.class.getSimpleName(), ".xml");
 			tempXMLFile.deleteOnExit();
@@ -358,7 +358,7 @@ public class ConstellioSIP {
 			}
 
 			String folderId = sipFolder.getId();
-			String zipXMLPath = zipParentPath + "/" + folderId + "-D.xml";
+			String zipXMLPath = zipParentPath + "/" + sipFolder.getRecord().getTypeCode() + "-" + folderId + ".xml";
 
 			File tempXMLFile = File.createTempFile(ConstellioSIP.class.getSimpleName(), ".xml");
 			tempXMLFile.deleteOnExit();
