@@ -44,6 +44,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.RecordServicesWrapperRuntimeException;
@@ -1046,5 +1047,9 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 			}
 		}
 		return hasPermissionToManageContainers;
+	}
+
+	public List<String> getUsersWithReadPermissionOnAdministrativeUnit() {
+		return modelLayerFactory.newAuthorizationsServices().getUsersIdsWithRoleForRecord(Role.READ, getRecord(decommissioningList().getAdministrativeUnit()));
 	}
 }
