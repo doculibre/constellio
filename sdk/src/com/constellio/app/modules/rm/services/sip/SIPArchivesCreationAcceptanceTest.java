@@ -6,8 +6,6 @@ import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.sip.data.intelligid.ConstellioSIPObjectsProvider;
 import com.constellio.app.modules.rm.services.sip.filter.SIPFilter;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.data.dao.services.idGenerator.InMemorySequentialGenerator;
 import com.constellio.data.io.services.zip.ZipServiceException;
 import com.constellio.model.entities.records.Content;
@@ -69,13 +67,16 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 
 
 		Transaction tx = new Transaction();
-		Folder zeFolder = tx.add(rm.newFolderWithId("zeFolderId").setOpenDate(new LocalDate(2018, 1, 1)).setTitle("Ze folder")
+		tx.add(rm.newFolderWithId("zeFolderId").setOpenDate(new LocalDate(2018, 1, 1)).setTitle("Ze folder")
 				.setAdministrativeUnitEntered(records.unitId_10a).setCategoryEntered(records.categoryId_X13)
 				.setRetentionRuleEntered(records.ruleId_1));
-		Document document1 = tx.add(rm.newDocumentWithId("document1").setTitle("Document 1").setFolder("zeFolderId")
+
+		tx.add(rm.newDocumentWithId("document1").setTitle("Document 1").setFolder("zeFolderId")
 				.setContent(majorContent("content1.doc")));
-		Document document2 = tx.add(rm.newDocumentWithId("document2").setTitle("Document 2").setFolder("zeFolderId"))
+
+		tx.add(rm.newDocumentWithId("document2").setTitle("Document 2").setFolder("zeFolderId"))
 				.setContent(minorContent("content2.doc"));
+
 		rm.executeTransaction(tx);
 
 		File sipFile = buildSIPWithDocuments("document1", "document2");
@@ -83,20 +84,6 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 
 		assertThat(sipFile).is(zipFileWithSameContentExceptingFiles(getTestResourceFile("sip1.zip"), "bag-info.txt"));
 
-
-		//		File sipFile2 = buildSIPWithDocuments("document1", "document2");
-		//
-		//		File testSIPFolder1 = new File("/Users/francisbaril/Downloads/testSIP1");
-		//		File testSIPFolder2 = new File("/Users/francisbaril/Downloads/testSIP2");
-		//
-		//		FileUtils.deleteDirectory(testSIPFolder1);
-		//		FileUtils.deleteDirectory(testSIPFolder2);
-		//		testSIPFolder1.mkdirs();
-		//		testSIPFolder1.mkdirs();
-		//
-		//		getIOLayerFactory().newZipService().unzip(sipFile, testSIPFolder1);
-		//		getIOLayerFactory().newZipService().unzip(sipFile2, testSIPFolder2);
-		//		assertThat(sipFile.length()).isEqualTo(sipFile2.length());
 	}
 
 	private void unzipInDownloadFolder(File sipFile, String name) {

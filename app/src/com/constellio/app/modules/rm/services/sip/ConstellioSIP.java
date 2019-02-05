@@ -25,14 +25,14 @@ import com.constellio.app.modules.rm.services.sip.model.SIPFolder;
 import com.constellio.app.modules.rm.services.sip.model.SIPObject;
 import com.constellio.app.modules.rm.services.sip.slip.SIPSlip;
 import com.constellio.app.modules.rm.services.sip.xsd.XMLDocumentValidator;
+import com.constellio.app.modules.rm.services.sip.zip.SIPZipWriter;
+import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.data.dao.services.bigVault.RecordDaoException;
+import com.constellio.data.io.IOServicesFactory;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.compress.archivers.ArchiveEntry;
-import org.apache.commons.compress.archivers.zip.Zip64Mode;
-import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
@@ -52,7 +52,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -182,10 +181,6 @@ public class ConstellioSIP {
 
 	private static final String HASH_TYPE = "sha256";
 
-	private static final String TAGMANIFEST_FILE_NAME = "tagmanifest-" + HASH_TYPE + ".txt";
-
-	private static final String MANIFEST_FILE_NAME = "manifest-" + HASH_TYPE + ".txt";
-
 	private SIPObjectsProvider sipObjectsProvider;
 
 	private List<String> providedBagInfoLines;
@@ -198,11 +193,7 @@ public class ConstellioSIP {
 
 	private File bagInfoFile;
 
-	private File manifestFile;
-
-	private File tagmanifestFile;
-
-	private ZipArchiveOutputStream zipOutputStream;
+	private SIPZipWriter sipZipWriter;
 
 	private Date sipCreationDate;
 
@@ -216,19 +207,13 @@ public class ConstellioSIP {
 
 	private Map<String, Integer> extensionCounts = new HashMap<String, Integer>();
 
-	private List<String> bagInfoLines = new ArrayList<String>();
-
-	private List<String> manifestLines = new ArrayList<String>();
-
 	private SIPSlip sipSlip = new SIPSlip();
 
 	private XMLDocumentValidator validator = new XMLDocumentValidator();
 
-	private long sipFilesLength;
-
 	private int currentDocumentIndex;
 
-	private int sipFilesCount;
+	private List<String> bagInfoLines = new ArrayList<String>();
 
 	private boolean limitSize;
 
@@ -257,11 +242,17 @@ public class ConstellioSIP {
 		File outputDir = zipFile.getParentFile();
 		outputDir.mkdirs();
 
-		OutputStream zipFileOutputStream = new FileOutputStream(zipFile);
-		zipOutputStream = new ZipArchiveOutputStream(zipFileOutputStream);
-		zipOutputStream.setUseZip64(Zip64Mode.AsNeeded);
+		IOServicesFactory ioServicesFactory = ConstellioFactories.getInstance().getIoServicesFactory();
 
 		String sipFilename = FilenameUtils.removeExtension(zipFile.getName());
+		sipZipWriter = new SIPZipWriter(ioServicesFactory, zipFile, sipFilename) {
+
+			@Override
+			protected String computeHashOfFile(File file, String filePath) throws IOException {
+				return ConstellioSIP.this.getHash(file, filePath);
+			}
+		};
+
 		metsFilename = sipFilename + ".xml";
 
 		try {
@@ -276,29 +267,12 @@ public class ConstellioSIP {
 		OutputStream slipFileOutputStream = new FileOutputStream(slipFile);
 		sipSlip.write(slipFileOutputStream, bagInfoLines);
 
-		zipOutputStream.close();
-		zipFileOutputStream.close();
+		sipZipWriter.close();
 		slipFileOutputStream.close();
 
 		return errors;
 	}
 
-	private void addToZip(File file, String path)
-			throws IOException {
-		if (path.startsWith("/")) {
-			path = path.substring(1);
-		}
-
-		sipFilesLength += file.length();
-		sipFilesCount++;
-
-		ArchiveEntry entry = zipOutputStream.createArchiveEntry(file, path);
-		zipOutputStream.putArchiveEntry(entry);
-		InputStream fis = new FileInputStream(file);
-		IOUtils.copy(fis, zipOutputStream);
-		fis.close();
-		zipOutputStream.closeArchiveEntry();
-	}
 
 	private void buildMetsFileAndBagDir(ValidationErrors errors)
 			throws IOException, METSException, SAXException, JDOMException, RecordDaoException.NoSuchRecordWithId {
@@ -336,10 +310,8 @@ public class ConstellioSIP {
 
 			recordEadBuilder.build(sipObject.getRecord(), zipXMLPath, tempXMLFile);
 
-			addToZip(tempXMLFile, zipXMLPath);
+			sipZipWriter.addToZip(tempXMLFile, zipXMLPath);
 
-			String hash = getHash(tempXMLFile, zipXMLPath);
-			addManifestLine(hash, zipXMLPath);
 			tempXMLFile.delete();
 
 			MdRef mdRef = dmdSec.newMdRef();
@@ -365,10 +337,8 @@ public class ConstellioSIP {
 
 			recordEadBuilder.build(sipObject.getRecord(), zipXMLPath, tempXMLFile);
 
-			addToZip(tempXMLFile, zipXMLPath);
+			sipZipWriter.addToZip(tempXMLFile, zipXMLPath);
 
-			String hash = getHash(tempXMLFile, zipXMLPath);
-			addManifestLine(hash, zipXMLPath);
 			tempXMLFile.delete();
 
 			MdRef mdRef = dmdSec.newMdRef();
@@ -417,19 +387,19 @@ public class ConstellioSIP {
 
 				if (limitSize) {
 					Map<String, Object> errorsMap = new HashMap<>();
-					if (sipFilesLength + documentFilesLength > SIP_MAX_FILES_LENGTH) {
+					if (sipZipWriter.sipFilesLength + documentFilesLength > SIP_MAX_FILES_LENGTH) {
 						errorsMap.put("sipObjectType", sipObject.getType());
 						errorsMap.put("sipObjectId", sipObject.getId());
 						errorsMap.put("sipObjectTitle", sipObject.getTitle());
-						errorsMap.put("sipFilesLength", sipFilesLength + documentFilesLength);
+						errorsMap.put("sipFilesLength", sipZipWriter.sipFilesLength + documentFilesLength);
 						errorsMap.put("sipMaxFilesLength", SIP_MAX_FILES_LENGTH);
 						errorsMap.put("lastDocumentIndex", currentDocumentIndex);
 						errors.add(SIPMaxFileLengthReachedException.class, "SIPMaxFileLengthReached", errorsMap);
-					} else if (sipFilesCount + documentFilesCount > SIP_MAX_FILES) {
+					} else if (sipZipWriter.sipFilesCount + documentFilesCount > SIP_MAX_FILES) {
 						errorsMap.put("sipObjectType", sipObject.getType());
 						errorsMap.put("sipObjectId", sipObject.getId());
 						errorsMap.put("sipObjectTitle", sipObject.getTitle());
-						errorsMap.put("sipFilesCount", sipFilesCount + documentFilesCount);
+						errorsMap.put("sipFilesCount", sipZipWriter.sipFilesCount + documentFilesCount);
 						errorsMap.put("sipMaxFilesCount", SIP_MAX_FILES);
 						errorsMap.put("lastDocumentIndex", currentDocumentIndex);
 						errors.add(SIPMaxFileCountReachedException.class, "SIPMaxFileCountReached", errorsMap);
@@ -481,9 +451,8 @@ public class ConstellioSIP {
 
 				if (file != null) {
 
-					addToZip(file, zipFilePath);
+					sipZipWriter.addToZip(file, zipFilePath);
 				}
-				addManifestLine(hash, zipFilePath);
 
 				if (extraFiles != null) {
 					int i = 1;
@@ -518,8 +487,8 @@ public class ConstellioSIP {
 							extraFileFptr.setFileID(extraFileId);
 							folderDiv.addFptr(extraFileFptr);
 
-							addToZip(extraTempFile, extraZipFilePath);
-							addManifestLine(extraFileHash, extraZipFilePath);
+							sipZipWriter.addToZip(extraTempFile, extraZipFilePath);
+
 							extraTempFile.delete();
 
 							i++;
@@ -684,7 +653,7 @@ public class ConstellioSIP {
 		collectBagInfoLines();
 		buildBagInfoFile();
 		String bagInfoFileZipPath = "/" + BAG_INFO_FILE_NAME;
-		addToZip(bagInfoFile, bagInfoFileZipPath);
+		sipZipWriter.addToZip(bagInfoFile, bagInfoFileZipPath);
 
 		metsFile = File.createTempFile(ConstellioSIP.class.getSimpleName(), metsFilename);
 		metsFile.deleteOnExit();
@@ -713,24 +682,13 @@ public class ConstellioSIP {
 
 		validator.validate(metsFileZipPath, jdomDoc, errors, METS_XSDs);
 
+
 		SAXBuilder builder = new SAXBuilder();
 		builder.build(metsFile);
 
-		buildManifestFile();
-		String manifestFileZipPath = "/" + MANIFEST_FILE_NAME;
-		addToZip(manifestFile, manifestFileZipPath);
-
-
-		addToZip(metsFile, metsFileZipPath);
-
-		buildTagmanifestFile();
-		String tagmanifestFileZipPath = "/" + TAGMANIFEST_FILE_NAME;
-		addToZip(tagmanifestFile, tagmanifestFileZipPath);
-
+		sipZipWriter.addToZip(metsFile, metsFileZipPath);
 		bagInfoFile.delete();
-		manifestFile.delete();
 		metsFile.delete();
-		tagmanifestFile.delete();
 		progressInfo.setDone(true);
 	}
 
@@ -788,7 +746,7 @@ public class ConstellioSIP {
 	private void collectBagInfoLines() {
 		bagInfoLines.addAll(this.providedBagInfoLines);
 
-		bagInfoLines.add("Nombre de fichiers numériques : " + sipFilesCount);
+		bagInfoLines.add("Nombre de fichiers numériques : " + sipZipWriter.sipFilesCount);
 		StringBuffer extensionsAndCounts = new StringBuffer();
 		for (Entry<String, Integer> extensionAndCount : extensionCounts.entrySet()) {
 			if (extensionsAndCounts.length() > 0) {
@@ -800,8 +758,8 @@ public class ConstellioSIP {
 		}
 		bagInfoLines.add("Portrait général des formats numériques : " + extensionsAndCounts);
 		bagInfoLines
-				.add("Taille des fichiers numériques non compressés : " + FileUtils.byteCountToDisplaySize(sipFilesLength) + " ("
-					 + sipFilesLength + " octets)");
+				.add("Taille des fichiers numériques non compressés : " + FileUtils.byteCountToDisplaySize(sipZipWriter.sipFilesLength) + " ("
+					 + sipZipWriter.sipFilesLength + " octets)");
 		bagInfoLines.add("");
 		bagInfoLines.add("Logiciel : Constellio");
 		bagInfoLines.add("Site web de l’éditeur : http://www.constellio.com");
@@ -817,37 +775,6 @@ public class ConstellioSIP {
 		writeFile(bagInfoFile, bagInfoLines);
 	}
 
-	private void buildManifestFile()
-			throws IOException {
-		manifestFile = File.createTempFile(ConstellioSIP.class.getSimpleName(), MANIFEST_FILE_NAME);
-		manifestFile.deleteOnExit();
-		writeFile(manifestFile, manifestLines);
-	}
-
-	private void buildTagmanifestFile()
-			throws IOException {
-		List<String> tagmanifestLines = new ArrayList<String>();
-
-		String bagInfoFileHash = getHash(bagInfoFile, BAG_INFO_FILE_NAME);
-		tagmanifestLines.add(bagInfoFileHash + " " + BAG_INFO_FILE_NAME);
-
-		String metsFileHash = getHash(metsFile, metsFilename);
-		String manifestFileHash = getHash(manifestFile, MANIFEST_FILE_NAME);
-
-		tagmanifestLines.add(metsFileHash + " " + metsFilename);
-		tagmanifestLines.add(manifestFileHash + " " + MANIFEST_FILE_NAME);
-
-		tagmanifestFile = File.createTempFile(ConstellioSIP.class.getSimpleName(), TAGMANIFEST_FILE_NAME);
-		tagmanifestFile.deleteOnExit();
-		writeFile(tagmanifestFile, tagmanifestLines);
-	}
-
-	private void addManifestLine(String hash, String filePath) {
-		if (filePath.startsWith("/")) {
-			filePath = filePath.substring(1);
-		}
-		manifestLines.add(hash + " " + filePath);
-	}
 
 	private void writeFile(File file, List<String> lines)
 			throws IOException {
@@ -858,65 +785,13 @@ public class ConstellioSIP {
 
 	protected String getHash(File file, String sipPath)
 			throws IOException {
-		return getHash(new FileInputStream(file));
-	}
+		FileInputStream fileInputStream = new FileInputStream(file);
 
-	private String getHash(InputStream in)
-			throws IOException {
-		String hash = DigestUtils.sha256Hex(in);
-		IOUtils.closeQuietly(in);
-		return hash;
-	}
-
-	/**
-	 * https://share.fcla.edu/FDAPublic/Affiliates/FDASipSpecification_version2.2.pdf (page 4)
-	 * <p>
-	 * semi-colon: “;”
-	 * slash: “/”
-	 * reverse slash: “\”
-	 * question mark: “?”
-	 * colon: “:”
-	 * at sign: “@”
-	 * ampersand: “&”
-	 * equals sign: “=”
-	 * plus sign: “+”
-	 * dollar sign: “$”
-	 * comma: “,”
-	 * curly brackets: “{“ and “}”
-	 * vertical line: “|”
-	 * caret: “^”
-	 * square brackets: “[“ and “]”
-	 * multiple spaces
-	 * SIP directory names may not start with dot/period ( . )
-	 *
-	 * @param text
-	 * @return
-	 */
-	protected String escapePath(String text) {
-		StringBuffer sb = new StringBuffer();
-		for (int i = 0; i < text.length(); i++) {
-			char c = text.charAt(i);
-
-			boolean escape = false;
-			if (i == 0 && c == '.') {
-				escape = true;
-			} else if (c == ' ' && sb.toString().endsWith(" ")) {
-				escape = true;
-			} else {
-				for (int j = 0; j < RESERVED_PATH_CHARS.length; j++) {
-					char reservedPathChar = RESERVED_PATH_CHARS[j];
-					if (reservedPathChar == c) {
-						escape = true;
-					}
-				}
-			}
-			if (escape) {
-				sb.append("_");
-			} else {
-				sb.append(c);
-			}
+		try {
+			return DigestUtils.sha256Hex(fileInputStream);
+		} finally {
+			IOUtils.closeQuietly(fileInputStream);
 		}
-		return sb.toString();
 	}
 
 }
