@@ -196,6 +196,7 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 			}
 		};
 
+		taskTable.setColumnExpandRatio("userTask_default_linkedWorkflowExecution", 0);
 		FilterTableAdapter tableAdapter = new FilterTableAdapter(taskTable, new DemoFilterDecorator(), new DemoFilterGenerator());
 
 		// cas uniquement pour l'exemple
