@@ -1,5 +1,6 @@
 package com.constellio.app.api.extensions;
 
+import com.constellio.app.api.extensions.params.AddComponentToSearchResultParams;
 import com.constellio.app.api.extensions.params.FilterCapsuleParam;
 import com.constellio.app.api.extensions.params.GetSearchResultSimpleTableWindowComponentParam;
 import com.constellio.app.api.extensions.params.SearchPageConditionParam;
@@ -9,6 +10,8 @@ import com.constellio.app.ui.framework.components.SearchResultDisplay;
 import com.constellio.model.entities.records.wrappers.Capsule;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.vaadin.ui.Component;
+
+import java.util.List;
 
 public class SearchPageExtension {
 
@@ -31,5 +34,7 @@ public class SearchPageExtension {
 		return param.getCondition();
 	}
 
-	;
+	public List<Component> addComponentToSearchResult(AddComponentToSearchResultParams addComponentToSearchResultParams) {
+		return null;
+	}
 }
