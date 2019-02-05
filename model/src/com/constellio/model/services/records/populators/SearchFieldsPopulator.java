@@ -5,8 +5,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import org.apache.commons.io.FilenameUtils;
 import org.joda.time.LocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,6 +43,8 @@ public class SearchFieldsPopulator extends SeparatedFieldsPopulator implements F
 
 	ConstellioEIMConfigs systemConf;
 
+	Set<String> fileExtensionsExcludedFromParsing;
+
 	public SearchFieldsPopulator(MetadataSchemaTypes types, boolean fullRewrite,
 								 ParsedContentProvider parsedContentProvider, List<String> collectionLanguages, ConstellioEIMConfigs systemConf) {
 		super(types, fullRewrite);
@@ -48,6 +52,7 @@ public class SearchFieldsPopulator extends SeparatedFieldsPopulator implements F
 		this.parsedContentProvider = parsedContentProvider;
 		this.collectionLanguages = collectionLanguages;
 		this.systemConf = systemConf;
+		this.fileExtensionsExcludedFromParsing = systemConf.getFileExtensionsExcludedFromParsing();
 	}
 
 	@Override
@@ -143,7 +148,8 @@ public class SearchFieldsPopulator extends SeparatedFieldsPopulator implements F
 				keyListMap.add(code + "_" + contentLanguage + "_ss", currentVersion.getFilename());
 			}
 
-			if (parsedContent != null && contentLanguage != null) {
+			if (parsedContent != null && contentLanguage != null &&
+				!fileExtensionsExcludedFromParsing.contains(FilenameUtils.getExtension(currentVersion.getFilename()))) {
 				keyListMap.add(code + "_txt_" + contentLanguage, parsedContent.getParsedContent());
 			}
 		} catch (ContentManagerRuntimeException_NoSuchContent e) {
@@ -368,7 +374,8 @@ public class SearchFieldsPopulator extends SeparatedFieldsPopulator implements F
 				} else {
 					keyListMap.add(copiedMetadataCode + "_" + contentLanguage + "_ss", currentVersion.getFilename());
 				}
-				if (parsedContent != null && contentLanguage != null) {
+				if (parsedContent != null && contentLanguage != null &&
+					!fileExtensionsExcludedFromParsing.contains(FilenameUtils.getExtension(currentVersion.getFilename()))) {
 					keyListMap.add(copiedMetadataCode + "_txt_" + contentLanguage, parsedContent.getParsedContent());
 				}
 			} catch (ContentManagerRuntimeException_NoSuchContent e) {
