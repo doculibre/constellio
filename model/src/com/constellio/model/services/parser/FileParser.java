@@ -516,7 +516,6 @@ public class FileParser {
 		}
 
 		TesseractOCRConfig tesseractOCRConfig = new TesseractOCRConfig();
-		//tesseractOCRConfig.setEnableImageProcessing(1); // FIXME warning, very slow
 		tesseractOCRConfig.setLanguage("fra+eng");
 		parseContext.set(TesseractOCRConfig.class, tesseractOCRConfig);
 
