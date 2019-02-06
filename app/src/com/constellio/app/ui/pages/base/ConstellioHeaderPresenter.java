@@ -360,7 +360,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 				}
 			} else {
 				for (Metadata metadata : schemaType.getAllMetadatas()) {
-						metadataCodes.add(metadata.getCode());
+					metadataCodes.add(metadata.getCode());
 				}
 			}
 		}
@@ -372,7 +372,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		MetadataList allMetadatas = schemaType.getAllMetadatas();
 		for (Metadata metadata : allMetadatas) {
 			if (!schemaType.hasSecurity() || (metadataCodes.contains(metadata.getCode()))) {
-				if(!getCurrentUser().hasGlobalAccessToMetadata(metadata)) {
+				if (!getCurrentUser().hasGlobalAccessToMetadata(metadata)) {
 					continue;
 				}
 
@@ -935,7 +935,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 				int thesaurusMaxResults = maxResults - statsSuggestions.size();
 				List<String> thesaurusSuggestions = thesaurusService
 						.suggestSimpleSearch(text, header.getSessionContext().getCurrentLocale(), minInputLength,
-								thesaurusMaxResults);
+								thesaurusMaxResults, true);
 				suggestions.addAll(thesaurusSuggestions);
 			}
 		}
