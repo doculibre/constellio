@@ -369,6 +369,12 @@ public class ThesaurusService implements Serializable {
 	}
 
 	public SkosConcept getSkosConcept(String id) {
+
+		SkosConcept concept = allConcepts.get(id);
+		if (concept != null) {
+			return concept;
+		}
+
 		for (Map.Entry<String, SkosConcept> skosConceptEntry : allConcepts.entrySet()) {
 			SkosConcept skosConcept = skosConceptEntry.getValue();
 			String currentId = SkosUtil.getSkosConceptId(skosConcept.getRdfAbout());
