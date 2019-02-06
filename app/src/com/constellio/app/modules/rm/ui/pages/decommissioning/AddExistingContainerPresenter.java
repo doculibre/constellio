@@ -113,7 +113,7 @@ public class AddExistingContainerPresenter extends SearchPresenter<AddExistingCo
 				.getAdministrativeUnit(decommissioningList.getAdministrativeUnit());
 		DecommissioningSecurityService decommissioningSecurityService = new DecommissioningSecurityService(view.getCollection(),
 				appLayerFactory);
-		return user.has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).on(administrativeUnit) || decommissioningSecurityService
+		return user.has(RMPermissionsTo.CREATE_DECOMISSIONING_LIST).on(administrativeUnit) || decommissioningSecurityService
 				.hasPermissionToCreateTransferOnList(decommissioningList, user);
 	}
 

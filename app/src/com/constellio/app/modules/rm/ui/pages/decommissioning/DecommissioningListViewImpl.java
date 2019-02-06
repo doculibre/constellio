@@ -358,7 +358,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 
 	private Button buildValidationRequestButton() {
 		validationRequest = new DecomValidationRequestWindowButton(presenter);
-		validationRequest.setEnabled(presenter.canSendValidationRequest());
+		validationRequest.setEnabled(presenter.canUserSendValidationRequest());
 		validationRequest.addStyleName(VALIDATION_REQUEST_BUTTON);
 		return validationRequest;
 	}

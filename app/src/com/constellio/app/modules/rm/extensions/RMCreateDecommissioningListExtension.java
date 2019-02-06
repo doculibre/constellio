@@ -89,7 +89,7 @@ public class RMCreateDecommissioningListExtension extends RecordExtension {
 			List<EmailAddress> emailAddresses = new ArrayList<>();
 
 			for (User user : userList) {
-				if (user.has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).on(record)) {
+				if (user.has(RMPermissionsTo.PROCESS_DECOMISSIONING_LIST).on(record)) {
 					emailAddresses.add(new EmailAddress(user.getTitle(), user.getEmail()));
 				}
 			}

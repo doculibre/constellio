@@ -142,7 +142,7 @@ public class DocumentDecommissioningListViewImpl extends BaseViewImpl implements
 				presenter.processButtonClicked();
 			}
 		};
-		process.setEnabled(presenter.isProcessable());
+		process.setEnabled(presenter.isProcessableByUser());
 		process.addStyleName(PROCESS);
 		return process;
 	}

@@ -92,8 +92,9 @@ public class DocumentDecommissioningListPresenter extends SingleSchemaBasePresen
 		view.navigate().to(RMViews.class).decommissioning();
 	}
 
-	public boolean isProcessable() {
-		return decommissioningService().isProcessable(decommissioningList(), getCurrentUser());
+	public boolean isProcessableByUser() {
+		return decommissioningService().isProcessable(decommissioningList(), getCurrentUser())
+				&& securityService().hasCreatePermissionOnList(getCurrentUser(), decommissioningList());
 	}
 
 	public void processButtonClicked() {

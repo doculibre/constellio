@@ -150,10 +150,10 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 	protected boolean hasPageAccess(String params, User user) {
 		String[] parts = params.split("/", 3);
 		if (SearchType.transfer.equals(SearchType.valueOf(parts[0]))) {
-			return user.has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).onSomething() ||
+			return user.has(RMPermissionsTo.CREATE_DECOMISSIONING_LIST).onSomething() ||
 				   user.has(RMPermissionsTo.CREATE_TRANSFER_DECOMMISSIONING_LIST).globally();
 		} else {
-			return user.has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).onSomething();
+			return user.has(RMPermissionsTo.CREATE_DECOMISSIONING_LIST).onSomething();
 		}
 	}
 
@@ -274,16 +274,6 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 		}
 	}
 
-	public List<SelectItemVO> getAdministrativeUnits() {
-		User currentUser = presenterService().getCurrentUser(view.getSessionContext());
-		List<SelectItemVO> results = new ArrayList<>();
-		List<String> conceptIds = decommissioningService().getAdministrativeUnitsForUser(currentUser);
-		List<Record> concepts = recordServices().getRecordsById(currentUser.getCollection(), conceptIds);
-		for (Record record : concepts) {
-			results.add(new SelectItemVO(record.getId(), (String) record.get(Schemas.TITLE)));
-		}
-		return results;
-	}
 
 	@Override
 	public void addCriterionRequested() {
@@ -351,7 +341,7 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 			condition = condition.andWhere(rmRecordServices().folder.borrowed()).isFalseOrNull();
 		}
 
-		if (!getCurrentUser().has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).onSomething() &&
+		if (!getCurrentUser().has(RMPermissionsTo.CREATE_DECOMISSIONING_LIST).onSomething() &&
 			getCurrentUser().has(RMPermissionsTo.CREATE_TRANSFER_DECOMMISSIONING_LIST).globally()) {
 			if (searchType.isFolderSearch()) {
 				condition = condition.andWhere(rmRecordServices().folder.mediaType()).isEqualTo(FolderMediaType.ANALOG);

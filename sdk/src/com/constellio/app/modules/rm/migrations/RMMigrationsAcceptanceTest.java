@@ -296,7 +296,7 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 
 		assertThat(managerRole.getOperationPermissions()).containsAll(userRole.getOperationPermissions());
 		assertThat(managerRole.getOperationPermissions()).doesNotContain(RMPermissionsTo.EDIT_DECOMMISSIONING_LIST);
-		assertThat(managerRole.getOperationPermissions()).doesNotContain(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST);
+		assertThat(managerRole.getOperationPermissions()).doesNotContain(RMPermissionsTo.PROCESS_DECOMISSIONING_LIST);
 		assertThat(managerRole.getOperationPermissions()).contains(RMPermissionsTo.MANAGE_FOLDER_AUTHORIZATIONS);
 		assertThat(managerRole.getOperationPermissions()).contains(RMPermissionsTo.MANAGE_DOCUMENT_AUTHORIZATIONS);
 		assertThat(managerRole.getOperationPermissions()).contains(RMPermissionsTo.SHARE_FOLDER);

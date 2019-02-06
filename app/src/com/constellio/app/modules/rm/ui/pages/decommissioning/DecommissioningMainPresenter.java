@@ -130,7 +130,8 @@ public class DecommissioningMainPresenter extends SingleSchemaBasePresenter<Deco
 	private LogicalSearchQuery getQueryForTab(String tabId) {
 		switch (tabId) {
 			case GENERATED:
-				if (presenterService().getCurrentUser(view.getSessionContext()).has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).onSomething()) {
+				if (presenterService().getCurrentUser(view.getSessionContext()).has(RMPermissionsTo.PROCESS_DECOMISSIONING_LIST).onSomething() ||
+						presenterService().getCurrentUser(view.getSessionContext()).has(RMPermissionsTo.CREATE_DECOMISSIONING_LIST).onSomething()) {
 					return queryFactory().getGeneratedListsQuery(getCurrentUser());
 				} else {
 					return queryFactory().getGeneratedTransferListsQuery(getCurrentUser());
