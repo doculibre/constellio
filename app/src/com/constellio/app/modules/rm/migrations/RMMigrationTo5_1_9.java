@@ -121,7 +121,7 @@ public class RMMigrationTo5_1_9 implements MigrationScript {
 
 		Role manager = roleManager.getRole(collection, RMRoles.MANAGER);
 		List<String> permissions = new ArrayList<>(manager.getOperationPermissions());
-		permissions.remove(RMPermissionsTo.PROCESS_DECOMISSIONING_LIST);
+		permissions.remove(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST);
 		permissions.remove(RMPermissionsTo.EDIT_DECOMMISSIONING_LIST);
 
 		roleManager.updateRole(manager.withPermissions(permissions));

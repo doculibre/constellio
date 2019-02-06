@@ -541,7 +541,7 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 		givenAliceHasPermission(RMPermissionsTo.CREATE_DOCUMENTS);
 		assertThat(navigationToAddDocumentPossible()).isTrue();
 
-		givenAliceHasPermission(RMPermissionsTo.PROCESS_DECOMISSIONING_LIST);
+		givenAliceHasPermission(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST);
 		assertThatUserHasOnlyAccessToRMArchivesPages(DECOMMISSIONING_CAPTION);
 		assertThatUserHasAccessToAdminPages();
 		assertThatUserHasAccessTORMEventsPages();

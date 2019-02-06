@@ -33,7 +33,7 @@ public class DecommissioningSecurityService {
 	}
 
 	public boolean hasAccessToDecommissioningMainPage(User user) {
-		if (user.hasAny(RMPermissionsTo.APPROVE_DECOMMISSIONING_LIST, RMPermissionsTo.PROCESS_DECOMISSIONING_LIST, RMPermissionsTo.CREATE_DECOMISSIONING_LIST).onSomething()
+		if (user.hasAny(RMPermissionsTo.APPROVE_DECOMMISSIONING_LIST, RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST, RMPermissionsTo.CREATE_DECOMMISSIONING_LIST).onSomething()
 			|| user.hasAny(RMPermissionsTo.CREATE_TRANSFER_DECOMMISSIONING_LIST, RMPermissionsTo.EDIT_TRANSFER_DECOMMISSIONING_LIST).onSomething()) {
 			return true;
 		}
@@ -49,11 +49,11 @@ public class DecommissioningSecurityService {
 	}
 
 	public boolean hasCreatePermissionOnList(User user, DecommissioningList list) {
-		return hasPermissionOnList(user, list, RMPermissionsTo.CREATE_DECOMISSIONING_LIST);
+		return hasPermissionOnList(user, list, RMPermissionsTo.CREATE_DECOMMISSIONING_LIST);
 	}
 
 	public boolean hasProcessPermissionOnList(User user, DecommissioningList list) {
-		return hasPermissionOnList(user, list, RMPermissionsTo.PROCESS_DECOMISSIONING_LIST);
+		return hasPermissionOnList(user, list, RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST);
 	}
 
 	private boolean hasManageDecommissioningPermissionOnList(User user, DecommissioningList list) {
@@ -80,7 +80,7 @@ public class DecommissioningSecurityService {
 	}
 
 	public boolean canCreateLists(User user) {
-		return user.has(RMPermissionsTo.CREATE_DECOMISSIONING_LIST).onSomething() ||
+		return user.has(RMPermissionsTo.CREATE_DECOMMISSIONING_LIST).onSomething() ||
 			   user.has(RMPermissionsTo.CREATE_TRANSFER_DECOMMISSIONING_LIST).onSomething();
 	}
 
@@ -110,8 +110,8 @@ public class DecommissioningSecurityService {
 
 	public List<String> getVisibleTabsInDecommissioningMainPage(User user) {
 		List<String> tabs;
-		boolean createDecommissioningListPerm = user.has(RMPermissionsTo.CREATE_DECOMISSIONING_LIST).onSomething();
-		if (user.has(RMPermissionsTo.PROCESS_DECOMISSIONING_LIST).onSomething()
+		boolean createDecommissioningListPerm = user.has(RMPermissionsTo.CREATE_DECOMMISSIONING_LIST).onSomething();
+		if (user.has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).onSomething()
 				|| createDecommissioningListPerm) {
 			tabs = new ArrayList<>(Arrays.asList(
 					DecommissioningMainPresenter.GENERATED,

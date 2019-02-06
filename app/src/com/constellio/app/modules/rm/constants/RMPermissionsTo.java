@@ -112,8 +112,8 @@ public class RMPermissionsTo {
 	//BagInfo
 	public static final String MANAGE_BAG_INFO = permission(DECOMMISSIONING, "manageBagInfo");
 
-	public static final String CREATE_DECOMISSIONING_LIST = permission(DECOMMISSIONING, "createDecommissioningList");
-	public static final String PROCESS_DECOMISSIONING_LIST = permission(DECOMMISSIONING, "processDecommissioningList");
+	public static final String CREATE_DECOMMISSIONING_LIST = permission(DECOMMISSIONING, "createDecommissioningList");
+	public static final String PROCESS_DECOMMISSIONING_LIST = permission(DECOMMISSIONING, "processDecommissioningList");
 
 	// Cart
 	private static final String CART_GROUP = "carts";

@@ -57,8 +57,8 @@ public class DecommissioningListQueryFactory {
 							where(rm.decommissioningList.analogicalMedium()).isTrue(),
 							where(rm.decommissioningList.electronicMedium()).isFalse()
 					);
-			return newQueryWithAdministrativeUnitFilter(condition, user, asList(RMPermissionsTo.PROCESS_DECOMISSIONING_LIST,
-					RMPermissionsTo.CREATE_DECOMISSIONING_LIST,
+			return newQueryWithAdministrativeUnitFilter(condition, user, asList(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST,
+					RMPermissionsTo.CREATE_DECOMMISSIONING_LIST,
 					RMPermissionsTo.EDIT_TRANSFER_DECOMMISSIONING_LIST));
 		} else {
 			return getGeneratedListsQuery(user);
@@ -84,8 +84,8 @@ public class DecommissioningListQueryFactory {
 	}
 
 	private boolean hasProcessOrCreateDecomissioningPerm(User user) {
-		return user.has(RMPermissionsTo.PROCESS_DECOMISSIONING_LIST).onSomething()
-				|| user.has(RMPermissionsTo.CREATE_DECOMISSIONING_LIST).onSomething();
+		return user.has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).onSomething()
+				|| user.has(RMPermissionsTo.CREATE_DECOMMISSIONING_LIST).onSomething();
 	}
 
 	public LogicalSearchQuery getListsToValidateQuery(User user) {
@@ -148,11 +148,11 @@ public class DecommissioningListQueryFactory {
 	}
 
 	private LogicalSearchQuery newQueryWithAdministrativeUnitFilter(LogicalSearchCondition condition, User user) {
-		return newQueryWithAdministrativeUnitFilter(condition, user, RMPermissionsTo.PROCESS_DECOMISSIONING_LIST);
+		return newQueryWithAdministrativeUnitFilter(condition, user, RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST);
 	}
 
 	private LogicalSearchQuery newQueryWithProcessAndCreateDecomissioningPermWithAdministrativeUnitFilter(LogicalSearchCondition condition, User user) {
-		return newQueryWithAdministrativeUnitFilter(condition, user, asList(RMPermissionsTo.PROCESS_DECOMISSIONING_LIST, RMPermissionsTo.CREATE_DECOMISSIONING_LIST));
+		return newQueryWithAdministrativeUnitFilter(condition, user, asList(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST, RMPermissionsTo.CREATE_DECOMMISSIONING_LIST));
 	}
 
 

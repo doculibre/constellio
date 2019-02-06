@@ -895,7 +895,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	}
 
 	public boolean canCurrentUserBuildDecommissioningList() {
-		return getCurrentUser().has(RMPermissionsTo.CREATE_DECOMISSIONING_LIST).onSomething() ||
+		return getCurrentUser().has(RMPermissionsTo.CREATE_DECOMMISSIONING_LIST).onSomething() ||
 			   getCurrentUser().has(RMPermissionsTo.CREATE_TRANSFER_DECOMMISSIONING_LIST).onSomething();
 	}
 

@@ -33,7 +33,6 @@ import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.rometools.utils.Strings;
 import com.vaadin.ui.Component;
@@ -41,7 +40,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -150,10 +148,10 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 	protected boolean hasPageAccess(String params, User user) {
 		String[] parts = params.split("/", 3);
 		if (SearchType.transfer.equals(SearchType.valueOf(parts[0]))) {
-			return user.has(RMPermissionsTo.CREATE_DECOMISSIONING_LIST).onSomething() ||
+			return user.has(RMPermissionsTo.CREATE_DECOMMISSIONING_LIST).onSomething() ||
 				   user.has(RMPermissionsTo.CREATE_TRANSFER_DECOMMISSIONING_LIST).globally();
 		} else {
-			return user.has(RMPermissionsTo.CREATE_DECOMISSIONING_LIST).onSomething();
+			return user.has(RMPermissionsTo.CREATE_DECOMMISSIONING_LIST).onSomething();
 		}
 	}
 
@@ -341,7 +339,7 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 			condition = condition.andWhere(rmRecordServices().folder.borrowed()).isFalseOrNull();
 		}
 
-		if (!getCurrentUser().has(RMPermissionsTo.CREATE_DECOMISSIONING_LIST).onSomething() &&
+		if (!getCurrentUser().has(RMPermissionsTo.CREATE_DECOMMISSIONING_LIST).onSomething() &&
 			getCurrentUser().has(RMPermissionsTo.CREATE_TRANSFER_DECOMMISSIONING_LIST).globally()) {
 			if (searchType.isFolderSearch()) {
 				condition = condition.andWhere(rmRecordServices().folder.mediaType()).isEqualTo(FolderMediaType.ANALOG);
