@@ -48,6 +48,7 @@ import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessR
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.dao.services.bigVault.solr.SolrUtils;
+import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.batchprocess.AsyncTask;
 import com.constellio.model.entities.batchprocess.AsyncTaskCreationRequest;
@@ -574,6 +575,11 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 				.onSomething()) {
 			return false;
 		}
+
+		if(!getCurrentUser().has(CorePermissions.BATCH_PROCESS).globally()) {
+			return false;
+		}
+
 		return getNotDeletedRecordsIds(schemaType).size() != 0;
 	}
 
