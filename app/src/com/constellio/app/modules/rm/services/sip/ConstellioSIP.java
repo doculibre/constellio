@@ -17,11 +17,15 @@ import com.constellio.app.modules.rm.services.sip.slip.SIPSlip;
 import com.constellio.app.modules.rm.services.sip.zip.SIPZipWriter;
 import com.constellio.app.modules.rm.services.sip.zip.SIPZipWriterTransaction;
 import com.constellio.app.modules.rm.wrappers.Category;
+import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.data.dao.services.bigVault.RecordDaoException;
 import com.constellio.data.io.IOServicesFactory;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.TimeProvider;
+import com.constellio.model.entities.records.Content;
+import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
@@ -183,6 +187,8 @@ public class ConstellioSIP {
 
 	private Locale locale;
 
+	private RMSchemasRecordsServices rm;
+
 	public ConstellioSIP(SIPObjectsProvider sipObjectsProvider, List<String> bagInfoLines, boolean limitSize,
 						 String currentVersion, ProgressInfo progressInfo, Locale locale) {
 		this.sipObjectsProvider = sipObjectsProvider;
@@ -192,6 +198,7 @@ public class ConstellioSIP {
 		this.currentVersion = currentVersion;
 		this.progressInfo = progressInfo;
 		this.locale = locale;
+		this.rm = new RMSchemasRecordsServices(sipObjectsProvider.getCollection(), sipObjectsProvider.getAppLayerCollection());
 	}
 
 	public ValidationErrors build(File zipFile)
@@ -209,10 +216,13 @@ public class ConstellioSIP {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(sipObjectsProvider.getCollection(),
 				ConstellioFactories.getInstance().getAppLayerFactory());
 		for (Category category : rm.getAllCategories()) {
-			MetsDivisionInfo metsDivisionInfo = new MetsDivisionInfo(category.getId(), category.getParent(),
-					category.getCode() + " - " + category.getTitle(), "CATEGORY");
-			divisionInfoMap.put(category.getId(), metsDivisionInfo);
+
+			String parentCode = category.getParent() == null ? null : rm.getCategory(category.getParent()).getCode();
+
+			MetsDivisionInfo metsDivisionInfo = new MetsDivisionInfo(category.getCode(), parentCode, category.getTitle(), Category.SCHEMA_TYPE);
+			divisionInfoMap.put(category.getCode(), metsDivisionInfo);
 		}
+
 		String sipFilename = FilenameUtils.removeExtension(zipFile.getName());
 		sipZipWriter = new SIPZipWriter(ioServicesFactory, zipFile, sipFilename, divisionInfoMap) {
 
@@ -261,7 +271,6 @@ public class ConstellioSIP {
 
 	private void addToSIP(SIPZipWriterTransaction transaction, SIPObject sipObject, ValidationErrors errors)
 			throws METSException {
-		File file = null;
 		try {
 
 
@@ -273,12 +282,86 @@ public class ConstellioSIP {
 				SIPDocument sipDocument = (SIPDocument) sipObject;
 				SIPFolder sipFolder = sipDocument.getFolder();
 
-				String fileId = "_" + sipDocument.getFileId();
-				String filename = sipDocument.getFilename();
-				file = sipDocument.getFile();
+				Document document = rm.wrapDocument(sipDocument.getRecord());
+				Content content = document.getContent();
+				String zipFilePath = getZipPath(sipDocument);
+				if (content != null) {
 
-				long length = sipDocument.getLength();
-				documentFilesLength += length;
+					for (ContentVersion contentVersion : document.getContent().getVersions()) {
+						File file = sipDocument.getFile();
+						try {
+							String fileId = document.getId() + "-content-" + contentVersion.getVersion();
+							String filename = sipDocument.getFilename();
+
+
+							long length = sipDocument.getLength();
+							documentFilesLength += length;
+
+							if (limitSize) {
+								Map<String, Object> errorsMap = new HashMap<>();
+								if (sipZipWriter.sipFilesLength + documentFilesLength > SIP_MAX_FILES_LENGTH) {
+									errorsMap.put("sipObjectType", sipObject.getType());
+									errorsMap.put("sipObjectId", sipObject.getId());
+									errorsMap.put("sipObjectTitle", sipObject.getTitle());
+									errorsMap.put("sipFilesLength", sipZipWriter.sipFilesLength + documentFilesLength);
+									errorsMap.put("sipMaxFilesLength", SIP_MAX_FILES_LENGTH);
+									errorsMap.put("lastDocumentIndex", currentDocumentIndex);
+									errors.add(SIPMaxFileLengthReachedException.class, "SIPMaxFileLengthReached", errorsMap);
+								} else if (sipZipWriter.sipFilesCount + documentFilesCount > SIP_MAX_FILES) {
+									errorsMap.put("sipObjectType", sipObject.getType());
+									errorsMap.put("sipObjectId", sipObject.getId());
+									errorsMap.put("sipObjectTitle", sipObject.getTitle());
+									errorsMap.put("sipFilesCount", sipZipWriter.sipFilesCount + documentFilesCount);
+									errorsMap.put("sipMaxFilesCount", SIP_MAX_FILES);
+									errorsMap.put("lastDocumentIndex", currentDocumentIndex);
+									errors.add(SIPMaxFileCountReachedException.class, "SIPMaxFileCountReached", errorsMap);
+								} else {
+									currentDocumentIndex++;
+								}
+							} else {
+								currentDocumentIndex++;
+							}
+							String hash = null;
+
+							if (file != null) {
+								hash = getHash(file, zipFilePath);
+							}
+							String extension = FilenameUtils.getExtension(filename);
+							Integer extensionCount = extensionCounts.get(extension);
+							if (extensionCount == null) {
+								extensionCounts.put(extension, 1);
+							} else {
+								extensionCounts.put(extension, extensionCount + 1);
+							}
+
+							String folderDmdSecId = getDmdSecId(sipFolder);
+
+							if (!transaction.containsEADMetadatasOf(folderDmdSecId) &&
+								!sipZipWriter.containsEADMetadatasOf(folderDmdSecId)) {
+								addToSIP(transaction, sipFolder, errors);
+							}
+
+							MetsContentFileReference reference = new MetsContentFileReference();
+							reference.setId(fileId);
+							reference.setDmdid(dmdSecId);
+							reference.setSize(length);
+							reference.setCheckSum(hash);
+							reference.setCheckSumType("SHA-256");
+							reference.setPath(zipFilePath);
+							reference.setTitle(filename);
+							transaction.add(reference);
+
+
+							if (file != null) {
+								sipZipWriter.addToZip(file, zipFilePath);
+							}
+
+						} finally {
+							rm.getModelLayerFactory().getIOServicesFactory().newIOServices().deleteQuietly(file);
+						}
+					}
+				}
+
 				Map<String, byte[]> extraFiles = sipObjectsProvider.getExtraFiles(sipDocument);
 				if (extraFiles != null) {
 					for (byte[] extraFileBytes : extraFiles.values()) {
@@ -287,69 +370,12 @@ public class ConstellioSIP {
 					}
 				}
 
-				if (limitSize) {
-					Map<String, Object> errorsMap = new HashMap<>();
-					if (sipZipWriter.sipFilesLength + documentFilesLength > SIP_MAX_FILES_LENGTH) {
-						errorsMap.put("sipObjectType", sipObject.getType());
-						errorsMap.put("sipObjectId", sipObject.getId());
-						errorsMap.put("sipObjectTitle", sipObject.getTitle());
-						errorsMap.put("sipFilesLength", sipZipWriter.sipFilesLength + documentFilesLength);
-						errorsMap.put("sipMaxFilesLength", SIP_MAX_FILES_LENGTH);
-						errorsMap.put("lastDocumentIndex", currentDocumentIndex);
-						errors.add(SIPMaxFileLengthReachedException.class, "SIPMaxFileLengthReached", errorsMap);
-					} else if (sipZipWriter.sipFilesCount + documentFilesCount > SIP_MAX_FILES) {
-						errorsMap.put("sipObjectType", sipObject.getType());
-						errorsMap.put("sipObjectId", sipObject.getId());
-						errorsMap.put("sipObjectTitle", sipObject.getTitle());
-						errorsMap.put("sipFilesCount", sipZipWriter.sipFilesCount + documentFilesCount);
-						errorsMap.put("sipMaxFilesCount", SIP_MAX_FILES);
-						errorsMap.put("lastDocumentIndex", currentDocumentIndex);
-						errors.add(SIPMaxFileCountReachedException.class, "SIPMaxFileCountReached", errorsMap);
-					} else {
-						currentDocumentIndex++;
-					}
-				} else {
-					currentDocumentIndex++;
-				}
-				String hash = null;
-				String zipFilePath = getZipPath(sipDocument);
-				if (file != null) {
-					hash = getHash(file, zipFilePath);
-				}
-				String extension = FilenameUtils.getExtension(filename);
-				Integer extensionCount = extensionCounts.get(extension);
-				if (extensionCount == null) {
-					extensionCounts.put(extension, 1);
-				} else {
-					extensionCounts.put(extension, extensionCount + 1);
-				}
-
-				String folderDmdSecId = getDmdSecId(sipFolder);
-
-				if (!transaction.containsEADMetadatasOf(folderDmdSecId) &&
-					!sipZipWriter.containsEADMetadatasOf(folderDmdSecId)) {
-					addToSIP(transaction, sipFolder, errors);
-				}
-
-				MetsContentFileReference reference = new MetsContentFileReference();
-				reference.setId(fileId);
-				reference.setDmdid(dmdSecId);
-				reference.setSize(length);
-				reference.setCheckSum(hash);
-				reference.setCheckSumType("SHA-256");
-				reference.setPath(zipFilePath);
-				reference.setTitle(filename);
-				transaction.add(reference);
-
-				if (file != null) {
-
-					sipZipWriter.addToZip(file, zipFilePath);
-				}
-
 				if (extraFiles != null) {
+
 					int i = 1;
 					for (Entry<String, byte[]> entry : extraFiles.entrySet()) {
-						String extraFileId = fileId + "-" + i;
+
+						String extraFileId = document.getId() + "-extra-" + "-" + i;
 						String extraFilename = entry.getKey();
 						String extraFileExtension = FilenameUtils.getExtension(extraFilename);
 						if (StringUtils.isNotBlank(extraFileExtension)) {
@@ -362,9 +388,9 @@ public class ConstellioSIP {
 									StringUtils.substringBeforeLast(zipFilePath, ".") + "-" + i + "." + extraFileExtension;
 							String extraFileHash = getHash(extraTempFile, extraZipFilePath);
 
-							reference = new MetsContentFileReference();
+							MetsContentFileReference reference = new MetsContentFileReference();
 							reference.setId(extraFileId);
-							reference.setPath(folderDmdSecId);
+							reference.setPath(document.getFolder());
 							reference.setSize(extraFileBytes.length);
 							reference.setCheckSum(extraFileHash);
 							reference.setCheckSumType("SHA-256");
@@ -410,12 +436,12 @@ public class ConstellioSIP {
 
 			}
 
-		} catch (IOException e) {
+		} catch (
+				IOException e) {
 			errors.add(IOException.class, e.getMessage());
 		} finally {
 			IOServices ioServices = sipObjectsProvider.getAppLayerCollection().getModelLayerFactory().getIOServicesFactory()
 					.newIOServices();
-			ioServices.deleteQuietly(file);
 		}
 
 	}
@@ -439,7 +465,8 @@ public class ConstellioSIP {
 
 			recordEadBuilder.build(sipObject.getRecord(), zipXMLPath, tempXMLFile);
 
-			transaction.add(new MetsEADMetadataReference(getDmdSecId(sipObject), getDmdSecId(sipFolder), "DOCUMENT", sipObject.getTitle(), zipXMLPath));
+			transaction.add(new MetsEADMetadataReference(getDmdSecId(sipObject), getDmdSecId(sipFolder),
+					Document.SCHEMA_TYPE, sipObject.getTitle(), zipXMLPath));
 			sipZipWriter.addToZip(tempXMLFile, zipXMLPath);
 
 			tempXMLFile.delete();
@@ -453,8 +480,9 @@ public class ConstellioSIP {
 				zipParentPath = getZipPath(sipFolder.getParentFolder());
 				parentDivisionId = getDmdSecId(sipFolder.getParentFolder());
 			} else {
+				RMSchemasRecordsServices rm = new RMSchemasRecordsServices(sipFolder.getRecord().getCollection(), ConstellioFactories.getInstance().getAppLayerFactory());
 				zipParentPath = getZipPath(sipFolder.getCategory());
-				parentDivisionId = sipFolder.getCategory().getId();
+				parentDivisionId = rm.getCategory(sipFolder.getCategory().getId()).getCode();
 			}
 
 			String folderId = sipFolder.getId();
@@ -465,7 +493,7 @@ public class ConstellioSIP {
 
 			recordEadBuilder.build(sipObject.getRecord(), zipXMLPath, tempXMLFile);
 
-			transaction.add(new MetsEADMetadataReference(getDmdSecId(sipObject), parentDivisionId, "FOLDER", sipObject.getTitle(), zipXMLPath));
+			transaction.add(new MetsEADMetadataReference(getDmdSecId(sipObject), parentDivisionId, Folder.SCHEMA_TYPE, sipObject.getTitle(), zipXMLPath));
 
 			sipZipWriter.addToZip(tempXMLFile, zipXMLPath);
 
@@ -476,9 +504,8 @@ public class ConstellioSIP {
 	}
 
 	private String getDmdSecId(SIPObject sipObject) {
-		return sipObject.getType() + "-" + sipObject.getId();
+		return sipObject.getId();//sipObject.getType() + "-" + sipObject.getId();
 	}
-
 
 
 	private void buildMetsFile(ValidationErrors errors)

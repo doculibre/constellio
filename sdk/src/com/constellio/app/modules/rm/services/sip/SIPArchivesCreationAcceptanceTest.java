@@ -61,7 +61,7 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenSIPArchivesOfTwoDocumentsInSameFolderThenArchiveContainsAllMetadatasContentsAndManifests()
 			throws Exception {
-		//
+
 		getIOLayerFactory().newZipService().zip(getTestResourceFile("sip1.zip"),
 				asList(new File("/Users/francisbaril/Downloads/SIPArchivesCreationAcceptanceTest-sip1").listFiles()));
 

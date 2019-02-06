@@ -1,7 +1,6 @@
 package com.constellio.app.modules.rm.services.sip.zip;
 
 import com.constellio.app.modules.rm.services.sip.mets.MetsContentFileReference;
-import com.constellio.app.modules.rm.services.sip.mets.MetsDivisionInfo;
 import com.constellio.app.modules.rm.services.sip.mets.MetsEADMetadataReference;
 import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
 
@@ -20,8 +19,6 @@ public class SIPZipWriterTransaction {
 	private List<MetsContentFileReference> contentFileReferences = new ArrayList<>();
 
 	private List<MetsEADMetadataReference> eadMetadataReferences = new ArrayList<>();
-
-
 
 	public SIPZipWriterTransaction(File tempFolder) {
 		this.tempFolder = tempFolder;
