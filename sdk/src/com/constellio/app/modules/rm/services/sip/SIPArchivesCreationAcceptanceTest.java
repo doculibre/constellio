@@ -114,7 +114,9 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 		bagInfoLines.add("This is the second bagInfo line");
 		bagInfoLines.add("This is the last bagInfo line");
 
-		File sipFile = new File(newTempFolder(), "test.sip");
+		File tempFolder = newTempFolder();
+
+		File sipFile = new File(tempFolder, "test.sip");
 		SIPFilter filter = new SIPFilter(zeCollection, getAppLayerFactory())
 				.withIncludeDocumentIds(asList(documentsIds));
 		ConstellioSIPObjectsProvider metsObjectsProvider = new ConstellioSIPObjectsProvider(zeCollection, getAppLayerFactory(),
@@ -126,6 +128,7 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 				return "CHECKSUM{{" + sipPath.replace("\\", "/ d") + "}}";
 			}
 		};
+		System.out.println(tempFolder.getAbsolutePath());
 		ValidationErrors errors = constellioSIP.build(sipFile);
 		if (!errors.isEmpty()) {
 			assertThat(TestUtils.frenchMessages(errors)).describedAs("errors").isEmpty();
