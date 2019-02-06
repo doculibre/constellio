@@ -6,19 +6,19 @@ public class MetsContentFileReference {
 	//        <FLocat LOCTYPE="URL" xlink:href="/data/X/X13/zeFolderId/document-document1-1.0.doc" xlink:title="content1.doc" />
 	//      </file>
 
-	String checkSum;
+	private String checkSum;
 
-	String checkSumType;
+	private String checkSumType;
 
-	String dmdid;
+	private String dmdid;
 
-	String id;
+	private String id;
 
-	long size;
+	private long size;
 
-	String path;
+	private String path;
 
-	String title;
+	private String title;
 
 	public String getCheckSum() {
 		return checkSum;

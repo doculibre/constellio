@@ -55,7 +55,7 @@ public class MetsFileWriter {
 
 	private String metsFileZipPath;
 
-	private Map<String, MetsDivisionInfo> divisionsInfoMap = new HashMap<>();
+	private Map<String, MetsDivisionInfo> divisionsInfoMap;
 
 	private static List<String> METS_XSDs = asList("xlink.xsd", "mets.xsd");
 
@@ -117,22 +117,21 @@ public class MetsFileWriter {
 			fileSec.addFileGrp(documentFileGroup);
 
 			for (MetsContentFileReference contentFileReference : contentFileReferences) {
-				au.edu.apsr.mtk.base.File extraDocumentFile = documentFileGroup.newFile();
-				documentFileGroup.addFile(extraDocumentFile);
+				au.edu.apsr.mtk.base.File file = documentFileGroup.newFile();
+				documentFileGroup.addFile(file);
 				if (contentFileReference.getDmdid() != null) {
-					extraDocumentFile.setDmdID(contentFileReference.getDmdid());
+					file.setDmdID(contentFileReference.getDmdid());
 				}
-				extraDocumentFile.setID(contentFileReference.id);
-				extraDocumentFile.setSize(contentFileReference.size);
-				extraDocumentFile.setChecksum(contentFileReference.checkSum);
-				extraDocumentFile.setChecksumType(contentFileReference.checkSumType);
+				file.setID(contentFileReference.getId());
+				file.setSize(contentFileReference.getSize());
+				file.setChecksum(contentFileReference.getCheckSum());
+				file.setChecksumType(contentFileReference.getCheckSumType());
 
-				FLocat extraDocumentFileFLocat = extraDocumentFile.newFLocat();
-				extraDocumentFile.addFLocat(extraDocumentFileFLocat);
-				extraDocumentFileFLocat.setLocType("URL");
-				//extraDocumentFileFLocat.setID(contentFileReference.id);
-				extraDocumentFileFLocat.setHref(contentFileReference.path);
-				extraDocumentFileFLocat.setTitle(contentFileReference.title);
+				FLocat fileLocation = file.newFLocat();
+				file.addFLocat(fileLocation);
+				fileLocation.setLocType("URL");
+				fileLocation.setHref(contentFileReference.getPath());
+				fileLocation.setTitle(contentFileReference.getTitle());
 
 			}
 
@@ -147,25 +146,6 @@ public class MetsFileWriter {
 
 			mets.setFileSec(fileSec);
 			mets.addStructMap(structMap);
-
-
-			//TODO File Pointers :
-			//			Fptr extraFileFptr = folderDiv.newFptr();
-			//			extraFileFptr.setFileID(extraFileId);
-			//			folderDiv.addFptr(extraFileFptr);
-
-
-			//			Div folderDiv = findOrCreateFolderDiv(sipDocument, bagDiv);
-			//			Fptr fileFptr = folderDiv.newFptr();
-			//			fileFptr.setFileID(fileId);
-			//			folderDiv.addFptr(fileFptr);
-			//
-			//			List<Div> subDivs = new ArrayList<Div>(folderDiv.getDivs());
-			//			for (Div subDiv : subDivs) {
-			//				String subDivId = subDiv.getID();
-			//				folderDiv.removeDiv(subDivId);
-			//				folderDiv.addDiv(subDiv);
-			//			}
 
 
 			FileOutputStream fos = new FileOutputStream(file);
@@ -301,7 +281,7 @@ public class MetsFileWriter {
 		}
 
 		for (MetsContentFileReference contentFileReference : contentFileReferences) {
-			allDivisions.get(contentFileReference.dmdid).filePointers.add(new MetsFilePointer(contentFileReference.id));
+			allDivisions.get(contentFileReference.getDmdid()).filePointers.add(new MetsFilePointer(contentFileReference.getId()));
 		}
 
 
@@ -313,27 +293,6 @@ public class MetsFileWriter {
 		org.jdom2.Document jdomDoc = new org.jdom2.Document();
 		Element xmlData = new Element("extends", constellioNamespace);
 		jdomDoc.setRootElement(xmlData);
-
-		//		List<String> metadataIds = sipObjectsProvider.getMetadataIds(sipObject);
-		//		for (String metadataId : metadataIds) {
-		//			List<String> metadataValues = sipObjectsProvider.getMetadataValues(sipObject, metadataId);
-		//			if (!metadataValues.isEmpty()) {
-		//				Element field = new Element("field", constellioNamespace);
-		//				xmlData.addContent(field);
-		//
-		//				field.setAttribute("name", metadataId);
-		//				if (metadataValues.size() == 1) {
-		//					String metadataValue = metadataValues.get(0);
-		//					field.setText(printable(metadataValue));
-		//				} else {
-		//					for (String metadataValue : metadataValues) {
-		//						Element value = new Element("value");
-		//						field.addContent(value);
-		//						field.setText(printable(metadataValue));
-		//					}
-		//				}
-		//			}
-		//		}
 
 		DOMOutputter domOutputter = new DOMOutputter();
 		org.w3c.dom.Document w3cDoc;
