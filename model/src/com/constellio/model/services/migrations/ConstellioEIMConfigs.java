@@ -6,6 +6,7 @@ import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.configs.SystemConfigurationGroup;
 import com.constellio.model.entities.configs.core.listeners.UserTitlePatternConfigScript;
 import com.constellio.model.entities.enums.BatchProcessingMode;
+import com.constellio.model.entities.enums.EmailTextFormat;
 import com.constellio.model.entities.enums.GroupAuthorizationsInheritance;
 import com.constellio.model.entities.enums.MemoryConsumptionLevel;
 import com.constellio.model.entities.enums.MetadataPopulatePriority;
@@ -137,6 +138,8 @@ public class ConstellioEIMConfigs {
 
 	public static final SystemConfiguration BATCH_PROCESSES_MAXIMUM_HISTORY_SIZE;
 
+	public static final SystemConfiguration GENERATED_EMAIL_FORMAT;
+
 
 	static {
 		SystemConfigurationGroup others = new SystemConfigurationGroup(null, "others");
@@ -265,6 +268,8 @@ public class ConstellioEIMConfigs {
 
 
 		add(SPACE_QUOTA_FOR_USER_DOCUMENTS = others.createInteger("spaceQuotaForUserDocuments").withDefaultValue(-1));
+
+		add(GENERATED_EMAIL_FORMAT = others.createEnum("generatedEmailFormat", EmailTextFormat.class).withDefaultValue(EmailTextFormat.PLAIN_TEXT));
 
 
 		configurations = Collections.unmodifiableList(modifiableConfigs);
@@ -512,6 +517,10 @@ public class ConstellioEIMConfigs {
 
 	public int getBatchProcessMaximumHistorySize() {
 		return manager.getValue(BATCH_PROCESSES_MAXIMUM_HISTORY_SIZE);
+	}
+
+	public EmailTextFormat getGeneratedEmailFormat() {
+		return manager.getValue(GENERATED_EMAIL_FORMAT);
 	}
 
 }
