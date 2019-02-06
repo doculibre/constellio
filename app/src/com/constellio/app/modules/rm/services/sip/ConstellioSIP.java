@@ -21,9 +21,8 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Email;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.data.dao.services.bigVault.RecordDaoException;
-import com.constellio.data.io.IOServicesFactory;
+import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
@@ -205,7 +204,7 @@ public class ConstellioSIP {
 
 	private RMSchemasRecordsServices rm;
 
-	private IOServicesFactory ioServicesFactory;
+	private IOServices ioServices;
 
 	private ContentManager contentManager;
 
@@ -221,7 +220,7 @@ public class ConstellioSIP {
 		this.appLayerFactory = sipObjectsProvider.getAppLayerCollection();
 		this.rm = new RMSchemasRecordsServices(sipObjectsProvider.getCollection(), appLayerFactory);
 		this.recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
-		this.ioServicesFactory = rm.getModelLayerFactory().getIOServicesFactory();
+		this.ioServices = rm.getModelLayerFactory().getIOServicesFactory().newIOServices();
 		this.contentManager = appLayerFactory.getModelLayerFactory().getContentManager();
 	}
 
@@ -242,7 +241,7 @@ public class ConstellioSIP {
 		}
 
 		String sipFilename = FilenameUtils.removeExtension(zipFile.getName());
-		sipZipWriter = new SIPZipWriter(ioServicesFactory, zipFile, sipFilename, divisionInfoMap) {
+		sipZipWriter = new SIPZipWriter(ioServices, zipFile, sipFilename, divisionInfoMap) {
 
 			@Override
 			protected String computeHashOfFile(File file, String filePath) throws IOException {
@@ -380,10 +379,10 @@ public class ConstellioSIP {
 						}
 
 						//TODO Stream and temp file safety
-						File tempFile = ioServicesFactory.newIOServices().newTemporaryFile(READ_VAULT_FILE_TEMP_FILE_STREAM_NAME);
+						File tempFile = ioServices.newTemporaryFile(READ_VAULT_FILE_TEMP_FILE_STREAM_NAME);
 						InputStream inputStream = contentManager.getContentInputStream(contentVersion.getHash(), READ_VAULT_FILE_STREAM_NAME);
-						OutputStream outputStream = ioServicesFactory.newIOServices().newBufferedFileOutputStream(tempFile, WRITE_VAULT_FILE_TO_TEMP_FILE_STREAM_NAME);
-						ioServicesFactory.newIOServices().copyAndClose(inputStream, outputStream);
+						OutputStream outputStream = ioServices.newBufferedFileOutputStream(tempFile, WRITE_VAULT_FILE_TO_TEMP_FILE_STREAM_NAME);
+						ioServices.copyAndClose(inputStream, outputStream);
 
 						String zipFilePath = getZipPath(folder.getWrappedRecord()) + "/document-" + document.getId() +
 											 "-" + contentVersion.getVersion() + "." + extension;
@@ -398,7 +397,7 @@ public class ConstellioSIP {
 						transaction.add(reference);
 
 						sipZipWriter.addToZip(tempFile, zipFilePath);
-						ioServicesFactory.newFileService().deleteQuietly(tempFile);
+						ioServices.deleteQuietly(tempFile);
 
 
 					}
@@ -576,11 +575,6 @@ public class ConstellioSIP {
 		}
 	}
 
-	private String getDmdSecId(SIPObject sipObject) {
-		return sipObject.getId();//sipObject.getType() + "-" + sipObject.getId();
-	}
-
-
 	private void buildMetsFile(ValidationErrors errors)
 			throws IOException, METSException, SAXException, JDOMException {
 
@@ -588,12 +582,10 @@ public class ConstellioSIP {
 		List<SIPObject> sipObjects = sipObjectsProvider.list();
 		int index = 0;
 		progressInfo.setEnd(sipObjects.size());
-		IOServicesFactory ioServicesFactory = ConstellioFactories.getInstance().getIoServicesFactory();
 
 		for (SIPObject sipObject : sipObjects) {
 			progressInfo.setCurrentState(++index);
-			SIPZipWriterTransaction transaction = new SIPZipWriterTransaction(
-					ioServicesFactory.newIOServices().newTemporaryFolder("ConstellioSIP-transaction"));
+			SIPZipWriterTransaction transaction = new SIPZipWriterTransaction(ioServices.newTemporaryFolder("ConstellioSIP-transaction"));
 
 			addToSIP(transaction, sipObject, errors);
 

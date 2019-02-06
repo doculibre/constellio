@@ -5,8 +5,6 @@ import com.constellio.app.modules.rm.services.sip.mets.MetsContentFileReference;
 import com.constellio.app.modules.rm.services.sip.mets.MetsDivisionInfo;
 import com.constellio.app.modules.rm.services.sip.mets.MetsEADMetadataReference;
 import com.constellio.app.modules.rm.services.sip.mets.MetsFileWriter;
-import com.constellio.data.io.IOServicesFactory;
-import com.constellio.data.io.services.facades.FileService;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.TimeProvider;
 import org.apache.commons.compress.archivers.ArchiveEntry;
@@ -73,8 +71,6 @@ public abstract class SIPZipWriter {
 
 	private IOServices ioServices;
 
-	private FileService fileService;
-
 	private String sipFileName;
 
 	private ZipArchiveOutputStream zipOutputStream;
@@ -94,11 +90,10 @@ public abstract class SIPZipWriter {
 
 	private File zipFile;
 
-	public SIPZipWriter(IOServicesFactory ioServicesFactory, File zipFile, String sipFileName,
+	public SIPZipWriter(IOServices ioServices, File zipFile, String sipFileName,
 						Map<String, MetsDivisionInfo> divisionsInfoMap) {
 		this.zipFile = zipFile;
-		this.ioServices = ioServicesFactory.newIOServices();
-		this.fileService = ioServicesFactory.newFileService();
+		this.ioServices = ioServices;
 		this.sipFileName = sipFileName;
 		this.divisionsInfoMap = divisionsInfoMap;
 		this.sipCreationTime = TimeProvider.getLocalDateTime().toDate();
@@ -148,7 +143,7 @@ public abstract class SIPZipWriter {
 
 	public OutputStream newZipFileOutputStream(final String path) {
 		String tempFileMpnitorName = "temp file '" + path + "' in sip file '" + sipFileName + "'";
-		final File tempFile = fileService.newTemporaryFile("SIPZipWriter-" + tempFileMpnitorName);
+		final File tempFile = ioServices.newTemporaryFile("SIPZipWriter-" + tempFileMpnitorName);
 
 		Runnable fileClosingAction = new Runnable() {
 			@Override
@@ -158,7 +153,7 @@ public abstract class SIPZipWriter {
 				} catch (IOException e) {
 					throw new RuntimeException(e);
 				}
-				fileService.deleteQuietly(tempFile);
+				ioServices.deleteQuietly(tempFile);
 			}
 		};
 
@@ -173,7 +168,7 @@ public abstract class SIPZipWriter {
 
 	public BufferedWriter newZipFileWriter(final String path) {
 		String tempFileMonitorName = "temp file '" + path + "' in sip file '" + sipFileName + "'";
-		final File tempFile = fileService.newTemporaryFile("SIPZipWriter-tempFile");
+		final File tempFile = ioServices.newTemporaryFile("SIPZipWriter-tempFile");
 
 		Runnable fileClosingAction = new Runnable() {
 			@Override
@@ -183,7 +178,7 @@ public abstract class SIPZipWriter {
 				} catch (IOException e) {
 					throw new RuntimeException(e);
 				}
-				fileService.deleteQuietly(tempFile);
+				ioServices.deleteQuietly(tempFile);
 			}
 		};
 
