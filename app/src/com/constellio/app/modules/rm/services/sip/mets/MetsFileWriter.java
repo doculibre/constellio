@@ -172,7 +172,7 @@ public class MetsFileWriter {
 
 			ValidationErrors errors = new ValidationErrors();
 			validator.validate(metsFileZipPath, jdomDoc, errors, METS_XSDs);
-			//errors.throwIfNonEmpty();
+			errors.throwIfNonEmpty();
 
 
 			SAXBuilder builder = new SAXBuilder();
@@ -199,10 +199,12 @@ public class MetsFileWriter {
 
 				if (division.divisionInfo instanceof MetsEADMetadataReference) {
 					div.setDmdID(division.divisionInfo.getId());
+				} else {
+					div.setID(division.divisionInfo.getId());
 				}
-				div.setID(division.divisionInfo.getId());
 				div.setLabel(division.divisionInfo.getLabel());
 				div.setType(division.divisionInfo.getType());
+				System.out.println("Adding " + division.divisionInfo.getId());
 				parentDiv.addDiv(div);
 
 				addDivisions(div, division.childDivisions);
@@ -266,9 +268,10 @@ public class MetsFileWriter {
 
 					}
 					parentDivision = allDivisions.get(parentId);
+				} else {
+					parentDivision.childDivisions.add(division);
 				}
 
-				parentDivision.childDivisions.add(division);
 			}
 
 			allDivisions.put(metsEADMetadataReference.getId(), division);
