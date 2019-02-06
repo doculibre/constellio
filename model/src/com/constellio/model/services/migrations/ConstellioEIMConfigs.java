@@ -551,10 +551,11 @@ public class ConstellioEIMConfigs {
 		if(!StringUtils.isBlank(extensionsAsString)) {
 			String[] splittedExtensions = extensionsAsString.split(",");
 			for(String currentExtension: splittedExtensions) {
-				if(currentExtension.startsWith(".")) {
-					extensionSet.add(currentExtension.substring(1));
+				String formattedExtension = currentExtension.trim().toLowerCase();
+				if(formattedExtension.startsWith(".")) {
+					extensionSet.add(formattedExtension.substring(1));
 				} else {
-					extensionSet.add(currentExtension);
+					extensionSet.add(formattedExtension);
 				}
 			}
 		}

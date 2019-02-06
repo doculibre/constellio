@@ -177,8 +177,10 @@ public class SearchFieldsPopulator extends SeparatedFieldsPopulator implements F
 				keyListMap.add(code + "_" + contentLanguage + "_ss", currentVersion.getFilename());
 			}
 
+			String currentExtension = FilenameUtils.getExtension(currentVersion.getFilename());
+			currentExtension = currentExtension == null? null : currentExtension.toLowerCase();
 			if (parsedContent != null && contentLanguage != null &&
-				!fileExtensionsExcludedFromParsing.contains(FilenameUtils.getExtension(currentVersion.getFilename()))) {
+				!fileExtensionsExcludedFromParsing.contains(currentExtension)) {
 				keyListMap.add(code + "_txt_" + contentLanguage, parsedContent.getParsedContent());
 			}
 		} catch (ContentManagerRuntimeException_NoSuchContent e) {
