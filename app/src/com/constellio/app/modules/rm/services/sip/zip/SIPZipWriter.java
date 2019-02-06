@@ -1,8 +1,14 @@
 package com.constellio.app.modules.rm.services.sip.zip;
 
+import com.constellio.app.modules.rm.services.sip.ConstellioSIP;
+import com.constellio.app.modules.rm.services.sip.mets.MetsContentFileReference;
+import com.constellio.app.modules.rm.services.sip.mets.MetsDivisionInfo;
+import com.constellio.app.modules.rm.services.sip.mets.MetsEADMetadataReference;
+import com.constellio.app.modules.rm.services.sip.mets.MetsFileWriter;
 import com.constellio.data.io.IOServicesFactory;
 import com.constellio.data.io.services.facades.FileService;
 import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.data.utils.TimeProvider;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.zip.Zip64Mode;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
@@ -18,7 +24,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static java.util.Arrays.asList;
 
@@ -73,10 +82,23 @@ public abstract class SIPZipWriter {
 	private List<String> manifestLines = new ArrayList<String>();
 	private List<String> tagManifestLines = new ArrayList<String>();
 
-	public SIPZipWriter(IOServicesFactory ioServicesFactory, File zipFile, String sipFileName) {
+	private String metsFilename;
+
+	private Date sipCreationTime;
+
+	private List<MetsContentFileReference> contentFileReferences = new ArrayList<>();
+
+	private List<MetsEADMetadataReference> eadMetadataReferences = new ArrayList<>();
+
+	private Map<String, MetsDivisionInfo> divisionsInfoMap = new HashMap<>();
+
+	public SIPZipWriter(IOServicesFactory ioServicesFactory, File zipFile, String sipFileName,
+						Map<String, MetsDivisionInfo> divisionsInfoMap) {
 		this.ioServices = ioServicesFactory.newIOServices();
 		this.fileService = ioServicesFactory.newFileService();
 		this.sipFileName = sipFileName;
+		this.divisionsInfoMap = divisionsInfoMap;
+		this.sipCreationTime = TimeProvider.getLocalDateTime().toDate();
 
 		OutputStream zipFileOutputStream = null;
 		try {
@@ -87,9 +109,24 @@ public abstract class SIPZipWriter {
 		}
 		zipOutputStream = new ZipArchiveOutputStream(zipFileOutputStream);
 		zipOutputStream.setUseZip64(Zip64Mode.AsNeeded);
+
+		metsFilename = sipFileName + ".xml";
 	}
 
+
 	public void close() throws IOException {
+
+		File metsFile = File.createTempFile(ConstellioSIP.class.getSimpleName(), metsFilename);
+		metsFile.deleteOnExit();
+
+
+		MetsFileWriter metsFileWriter = new MetsFileWriter(metsFile, metsFilename, sipCreationTime, divisionsInfoMap);
+
+		metsFileWriter.build(eadMetadataReferences, contentFileReferences);
+
+		String metsFileZipPath = "/" + metsFilename;
+		addToZip(metsFile, metsFileZipPath);
+		metsFile.delete();
 
 		//TODO Improve stream safety
 
@@ -154,6 +191,15 @@ public abstract class SIPZipWriter {
 
 	}
 
+	public void addToZip(SIPZipWriterTransaction transaction) throws IOException {
+		for (Map.Entry<String, File> entry : transaction.getFiles().entrySet()) {
+			addToZip(entry.getValue(), entry.getKey());
+		}
+
+		contentFileReferences.addAll(transaction.getContentFileReferences());
+		eadMetadataReferences.addAll(transaction.getEadMetadataReferences());
+	}
+
 	public void addToZip(File file, String path) throws IOException {
 		String hash = computeHashOfFile(file, path);
 		if (path.startsWith("/")) {
@@ -183,4 +229,14 @@ public abstract class SIPZipWriter {
 
 	protected abstract String computeHashOfFile(File file, String filePath)
 			throws IOException;
+
+	public boolean containsEADMetadatasOf(String id) {
+		for (MetsEADMetadataReference reference : eadMetadataReferences) {
+			if (id.equals(reference.getId())) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 }

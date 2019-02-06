@@ -61,13 +61,14 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenSIPArchivesOfTwoDocumentsInSameFolderThenArchiveContainsAllMetadatasContentsAndManifests()
 			throws Exception {
-
+		//
 		getIOLayerFactory().newZipService().zip(getTestResourceFile("sip1.zip"),
 				asList(new File("/Users/francisbaril/Downloads/SIPArchivesCreationAcceptanceTest-sip1").listFiles()));
 
 
 		Transaction tx = new Transaction();
-		tx.add(rm.newFolderWithId("zeFolderId").setOpenDate(new LocalDate(2018, 1, 1)).setTitle("Ze folder")
+		tx.add(rm.newFolderWithId("zeFolderId").setOpenDate(new LocalDate(2018, 1, 1))
+				.setTitle("Ze folder")
 				.setAdministrativeUnitEntered(records.unitId_10a).setCategoryEntered(records.categoryId_X13)
 				.setRetentionRuleEntered(records.ruleId_1));
 

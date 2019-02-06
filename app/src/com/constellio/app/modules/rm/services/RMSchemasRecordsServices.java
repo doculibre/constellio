@@ -6,6 +6,7 @@ import com.auxilii.msgparser.attachment.Attachment;
 import com.auxilii.msgparser.attachment.FileAttachment;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Cart;
+import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Email;
 import com.constellio.app.modules.rm.wrappers.FilingSpace;
@@ -1158,6 +1159,10 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 
 	public List<AdministrativeUnit> getAllAdministrativeUnits() {
 		return wrapAdministrativeUnits(getModelLayerFactory().newSearchServices().getAllRecords(administrativeUnit.schemaType()));
+	}
+
+	public List<Category> getAllCategories() {
+		return wrapCategorys(getModelLayerFactory().newSearchServices().getAllRecords(category.schemaType()));
 	}
 
 	public List<AdministrativeUnit> getAllAdministrativeUnitsInUnmodifiableState() {

@@ -4,7 +4,6 @@ import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
-import org.joda.time.LocalDate;
 
 import java.util.List;
 
@@ -19,7 +18,7 @@ public class SIPFolder extends SIPMetadataObject implements SIPObject {
 	private EntityRetriever entityRetriever;
 
 	public SIPFolder(Folder folder, List<Metadata> folderMetadatas, EntityRetriever entityRetriever) {
-		super(adjust(folder).getWrappedRecord(), folderMetadatas);
+		super(folder.getWrappedRecord(), folderMetadatas);
 		this.title = folder.getTitle();
 		this.entityRetriever = entityRetriever;
 		Folder ficheDossierParent = entityRetriever.getFoldersFromString(folder.getParentFolder());
@@ -31,10 +30,6 @@ public class SIPFolder extends SIPMetadataObject implements SIPObject {
 		}
 	}
 
-	private static Folder adjust(Folder ficheDossier) {
-		ficheDossier.setCloseDateEntered(new LocalDate());
-		return ficheDossier;
-	}
 
 	public String getType() {
 		return FOLDER_TYPE;
