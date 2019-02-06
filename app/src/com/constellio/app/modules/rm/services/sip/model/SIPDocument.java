@@ -34,7 +34,7 @@ public class SIPDocument extends SIPMetadataObject implements SIPObject {
 		if (content != null) {
 			contentLength = content.getCurrentVersion().getLength();
 			sipFilename = content.getCurrentVersion().getFilename();
-			findCommonsTransactionFilename(content);
+			//findCommonsTransactionFilename(content);
 		}
 
 		if (document.getFolder() != null) {

@@ -81,6 +81,7 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 		rm.executeTransaction(tx);
 
 		File sipFile = buildSIPWithDocuments("document1", "document2");
+		System.out.println(sipFile.getAbsolutePath());
 		unzipInDownloadFolder(sipFile, "testSIP");
 
 		assertThat(sipFile).is(zipFileWithSameContentExceptingFiles(getTestResourceFile("sip1.zip"), "bag-info.txt"));

@@ -18,23 +18,17 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.schemas.MetadataListFilter;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
 import java.util.AbstractList;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import static java.lang.String.join;
 
 public class ConstellioSIPObjectsProvider implements SIPObjectsProvider {
-	public static final String JOINT_FILES_KEY = "attachments";
+
 
 	private List<Metadata> folderMetadatas;
 
@@ -97,7 +91,7 @@ public class ConstellioSIPObjectsProvider implements SIPObjectsProvider {
 			//metadataIds.add("numeroRegleConservation");
 			//metadataIds.add("regleConservation");
 		} else if (sipObject instanceof SIPDocument) {
-//			SIPDocument sipDocument = (SIPDocument) sipObject;
+			//			SIPDocument sipDocument = (SIPDocument) sipObject;
 			//			Document document = rm.wrapDocument(sipDocument.getFicheMetadonnees());
 			//			boolean isCourriel = document.getSchema().getCode().equals(Email.SCHEMA);
 			//			if (isCourriel) {
@@ -197,44 +191,7 @@ public class ConstellioSIPObjectsProvider implements SIPObjectsProvider {
 	@SuppressWarnings("unchecked")
 	@Override
 	public Map<String, byte[]> getExtraFiles(SIPObject sipObject) {
-		Map<String, byte[]> result;
-		if (sipObject instanceof SIPDocument) {
-			SIPDocument sipDocument = (SIPDocument) sipObject;
-			Document document = rm.wrapDocument(sipDocument.getFicheMetadonnees());
-			boolean isEmail = document.getSchema().getCode().equals(Email.SCHEMA);
-			if (isEmail && document.getContent() != null) {
-				File sipDocumentFile = sipDocument.getFile();
-				String filename = sipDocument.getFilename();
-				Map<String, Object> parsedMessage;
-				try {
-					if (sipDocumentFile != null) {
-						InputStream in = new FileInputStream(sipDocumentFile);
-						parsedMessage = rm.parseEmail(filename, in);
-						if (parsedMessage != null) {
-							result = new LinkedHashMap<>();
-							Map<String, InputStream> streamMap = (Map<String, InputStream>) parsedMessage.get(JOINT_FILES_KEY);
-							for (Entry<String, InputStream> entry : streamMap.entrySet()) {
-								InputStream fichierJointIn = entry.getValue();
-								byte[] joinFilesBytes = IOUtils.toByteArray(fichierJointIn);
-								result.put(entry.getKey(), joinFilesBytes);
-							}
-						} else {
-							result = null;
-						}
-					} else {
-						result = null;
-					}
-				} catch (Throwable t) {
-					t.printStackTrace();
-					result = null;
-				}
-			} else {
-				result = null;
-			}
-		} else {
-			result = null;
-		}
-		return result;
+		return null;
 	}
 
 	@Override

@@ -92,8 +92,11 @@ public abstract class SIPZipWriter {
 
 	private Map<String, MetsDivisionInfo> divisionsInfoMap = new HashMap<>();
 
+	private File zipFile;
+
 	public SIPZipWriter(IOServicesFactory ioServicesFactory, File zipFile, String sipFileName,
 						Map<String, MetsDivisionInfo> divisionsInfoMap) {
+		this.zipFile = zipFile;
 		this.ioServices = ioServicesFactory.newIOServices();
 		this.fileService = ioServicesFactory.newFileService();
 		this.sipFileName = sipFileName;
@@ -139,6 +142,7 @@ public abstract class SIPZipWriter {
 		IOUtils.closeQuietly(tagManifestWriter);
 
 		IOUtils.closeQuietly(zipOutputStream);
+
 	}
 
 
@@ -201,6 +205,7 @@ public abstract class SIPZipWriter {
 	}
 
 	public void addToZip(File file, String path) throws IOException {
+		System.out.println("Adding " + path + " with length " + file.length());
 		String hash = computeHashOfFile(file, path);
 		if (path.startsWith("/")) {
 			path = path.substring(1);

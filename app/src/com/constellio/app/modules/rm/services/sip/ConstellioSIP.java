@@ -18,15 +18,19 @@ import com.constellio.app.modules.rm.services.sip.zip.SIPZipWriter;
 import com.constellio.app.modules.rm.services.sip.zip.SIPZipWriterTransaction;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Email;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.data.dao.services.bigVault.RecordDaoException;
 import com.constellio.data.io.IOServicesFactory;
-import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.frameworks.validation.ValidationErrors;
+import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.records.RecordServices;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -40,10 +44,12 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -135,6 +141,8 @@ import java.util.Map.Entry;
  */
 public class ConstellioSIP {
 
+	public static final String JOINT_FILES_KEY = "attachments";
+
 	private static final long SIP_MAX_FILES_LENGTH = (6 * FileUtils.ONE_GB);
 
 	private static final int SIP_MAX_FILES = 9000;
@@ -160,6 +168,10 @@ public class ConstellioSIP {
 			};
 
 	private static final String BAG_INFO_FILE_NAME = "bag-info.txt";
+
+	private static final String READ_VAULT_FILE_STREAM_NAME = ConstellioSIP.class.getSimpleName() + "-ReadVaultFile";
+	private static final String READ_VAULT_FILE_TEMP_FILE_STREAM_NAME = ConstellioSIP.class.getSimpleName() + "-ReadVaultFileTempFile";
+	private static final String WRITE_VAULT_FILE_TO_TEMP_FILE_STREAM_NAME = ConstellioSIP.class.getSimpleName() + "-WriteVaultFileToTempFile";
 
 	private static final String HASH_TYPE = "sha256";
 
@@ -187,7 +199,15 @@ public class ConstellioSIP {
 
 	private Locale locale;
 
+	private AppLayerFactory appLayerFactory;
+
+	private RecordServices recordServices;
+
 	private RMSchemasRecordsServices rm;
+
+	private IOServicesFactory ioServicesFactory;
+
+	private ContentManager contentManager;
 
 	public ConstellioSIP(SIPObjectsProvider sipObjectsProvider, List<String> bagInfoLines, boolean limitSize,
 						 String currentVersion, ProgressInfo progressInfo, Locale locale) {
@@ -198,7 +218,11 @@ public class ConstellioSIP {
 		this.currentVersion = currentVersion;
 		this.progressInfo = progressInfo;
 		this.locale = locale;
-		this.rm = new RMSchemasRecordsServices(sipObjectsProvider.getCollection(), sipObjectsProvider.getAppLayerCollection());
+		this.appLayerFactory = sipObjectsProvider.getAppLayerCollection();
+		this.rm = new RMSchemasRecordsServices(sipObjectsProvider.getCollection(), appLayerFactory);
+		this.recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
+		this.ioServicesFactory = rm.getModelLayerFactory().getIOServicesFactory();
+		this.contentManager = appLayerFactory.getModelLayerFactory().getContentManager();
 	}
 
 	public ValidationErrors build(File zipFile)
@@ -209,16 +233,10 @@ public class ConstellioSIP {
 		File outputDir = zipFile.getParentFile();
 		outputDir.mkdirs();
 
-		IOServicesFactory ioServicesFactory = ConstellioFactories.getInstance().getIoServicesFactory();
-
 		Map<String, MetsDivisionInfo> divisionInfoMap = new HashMap<>();
 
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(sipObjectsProvider.getCollection(),
-				ConstellioFactories.getInstance().getAppLayerFactory());
 		for (Category category : rm.getAllCategories()) {
-
 			String parentCode = category.getParent() == null ? null : rm.getCategory(category.getParent()).getCode();
-
 			MetsDivisionInfo metsDivisionInfo = new MetsDivisionInfo(category.getCode(), parentCode, category.getTitle(), Category.SCHEMA_TYPE);
 			divisionInfoMap.put(category.getCode(), metsDivisionInfo);
 		}
@@ -265,104 +283,128 @@ public class ConstellioSIP {
 		tempFile.delete();
 	}
 
-	private String getZipPath(SIPObject sipObject) {
-		return sipObject.getZipPath();
+	private String getZipPath(Record record) {
+
+		if (Category.SCHEMA_TYPE.equals(record.getTypeCode())) {
+			Category currentCategory = rm.wrapCategory(record);
+			if (currentCategory.getParent() != null) {
+				return getZipPath(recordServices.getDocumentById(currentCategory.getParent())) + "/" + currentCategory.getCode();
+			} else {
+				return "/data/" + currentCategory.getCode();
+			}
+
+		} else if (Folder.SCHEMA_TYPE.equals(record.getTypeCode())) {
+			Folder folder = rm.wrapFolder(record);
+			if (folder.getParentFolder() != null) {
+				return getZipPath(recordServices.getDocumentById(folder.getParentFolder())) + "/" + folder.getId();
+			} else {
+				return getZipPath(recordServices.getDocumentById(folder.getCategory())) + "/" + folder.getId();
+			}
+
+		} else if (Document.SCHEMA_TYPE.equals(record.getTypeCode())) {
+			Document document = rm.wrapDocument(record);
+			return getZipPath(recordServices.getDocumentById(document.getFolder())) + "/" + document.getId();
+
+		} else {
+			return "/data/" + record.getId();
+		}
+
 	}
 
-	private void addToSIP(SIPZipWriterTransaction transaction, SIPObject sipObject, ValidationErrors errors)
+	private void addToSIP(SIPZipWriterTransaction transaction, SIPObject killMeSIPObject, ValidationErrors errors)
 			throws METSException {
 		try {
 
-
-			if (sipObject instanceof SIPDocument) {
-				String dmdSecId = getDmdSecId(sipObject);
+			Record record = killMeSIPObject.getRecord();
+			if (Document.SCHEMA_TYPE.equals(record.getTypeCode())) {
+				String dmdSecId = record.getId();
 				long documentFilesLength = 0;
 				int documentFilesCount = 1;
 
-				SIPDocument sipDocument = (SIPDocument) sipObject;
-				SIPFolder sipFolder = sipDocument.getFolder();
 
-				Document document = rm.wrapDocument(sipDocument.getRecord());
+				Document document = rm.wrapDocument(record);
+				Folder folder = rm.getFolder(document.getFolder());
 				Content content = document.getContent();
-				String zipFilePath = getZipPath(sipDocument);
+
 				if (content != null) {
 
 					for (ContentVersion contentVersion : document.getContent().getVersions()) {
-						File file = sipDocument.getFile();
-						try {
-							String fileId = document.getId() + "-content-" + contentVersion.getVersion();
-							String filename = sipDocument.getFilename();
+						//File file = sipDocument.getFile();
+
+						String fileId = document.getId() + "-content-" + contentVersion.getVersion();
+						String filename = contentVersion.getFilename();
 
 
-							long length = sipDocument.getLength();
-							documentFilesLength += length;
+						long length = contentVersion.getLength();
+						documentFilesLength += length;
 
-							if (limitSize) {
-								Map<String, Object> errorsMap = new HashMap<>();
-								if (sipZipWriter.sipFilesLength + documentFilesLength > SIP_MAX_FILES_LENGTH) {
-									errorsMap.put("sipObjectType", sipObject.getType());
-									errorsMap.put("sipObjectId", sipObject.getId());
-									errorsMap.put("sipObjectTitle", sipObject.getTitle());
-									errorsMap.put("sipFilesLength", sipZipWriter.sipFilesLength + documentFilesLength);
-									errorsMap.put("sipMaxFilesLength", SIP_MAX_FILES_LENGTH);
-									errorsMap.put("lastDocumentIndex", currentDocumentIndex);
-									errors.add(SIPMaxFileLengthReachedException.class, "SIPMaxFileLengthReached", errorsMap);
-								} else if (sipZipWriter.sipFilesCount + documentFilesCount > SIP_MAX_FILES) {
-									errorsMap.put("sipObjectType", sipObject.getType());
-									errorsMap.put("sipObjectId", sipObject.getId());
-									errorsMap.put("sipObjectTitle", sipObject.getTitle());
-									errorsMap.put("sipFilesCount", sipZipWriter.sipFilesCount + documentFilesCount);
-									errorsMap.put("sipMaxFilesCount", SIP_MAX_FILES);
-									errorsMap.put("lastDocumentIndex", currentDocumentIndex);
-									errors.add(SIPMaxFileCountReachedException.class, "SIPMaxFileCountReached", errorsMap);
-								} else {
-									currentDocumentIndex++;
-								}
+						if (limitSize) {
+							Map<String, Object> errorsMap = new HashMap<>();
+							if (sipZipWriter.sipFilesLength + documentFilesLength > SIP_MAX_FILES_LENGTH) {
+								errorsMap.put("sipObjectType", record.getTypeCode());
+								errorsMap.put("sipObjectId", record.getId());
+								errorsMap.put("sipObjectTitle", record.getTitle());
+								errorsMap.put("sipFilesLength", sipZipWriter.sipFilesLength + documentFilesLength);
+								errorsMap.put("sipMaxFilesLength", SIP_MAX_FILES_LENGTH);
+								errorsMap.put("lastDocumentIndex", currentDocumentIndex);
+								errors.add(SIPMaxFileLengthReachedException.class, "SIPMaxFileLengthReached", errorsMap);
+							} else if (sipZipWriter.sipFilesCount + documentFilesCount > SIP_MAX_FILES) {
+								errorsMap.put("sipObjectType", record.getTypeCode());
+								errorsMap.put("sipObjectId", record.getId());
+								errorsMap.put("sipObjectTitle", record.getTitle());
+								errorsMap.put("sipFilesCount", sipZipWriter.sipFilesCount + documentFilesCount);
+								errorsMap.put("sipMaxFilesCount", SIP_MAX_FILES);
+								errorsMap.put("lastDocumentIndex", currentDocumentIndex);
+								errors.add(SIPMaxFileCountReachedException.class, "SIPMaxFileCountReached", errorsMap);
 							} else {
 								currentDocumentIndex++;
 							}
-							String hash = null;
-
-							if (file != null) {
-								hash = getHash(file, zipFilePath);
-							}
-							String extension = FilenameUtils.getExtension(filename);
-							Integer extensionCount = extensionCounts.get(extension);
-							if (extensionCount == null) {
-								extensionCounts.put(extension, 1);
-							} else {
-								extensionCounts.put(extension, extensionCount + 1);
-							}
-
-							String folderDmdSecId = getDmdSecId(sipFolder);
-
-							if (!transaction.containsEADMetadatasOf(folderDmdSecId) &&
-								!sipZipWriter.containsEADMetadatasOf(folderDmdSecId)) {
-								addToSIP(transaction, sipFolder, errors);
-							}
-
-							MetsContentFileReference reference = new MetsContentFileReference();
-							reference.setId(fileId);
-							reference.setDmdid(dmdSecId);
-							reference.setSize(length);
-							reference.setCheckSum(hash);
-							reference.setCheckSumType("SHA-256");
-							reference.setPath(zipFilePath);
-							reference.setTitle(filename);
-							transaction.add(reference);
-
-
-							if (file != null) {
-								sipZipWriter.addToZip(file, zipFilePath);
-							}
-
-						} finally {
-							rm.getModelLayerFactory().getIOServicesFactory().newIOServices().deleteQuietly(file);
+						} else {
+							currentDocumentIndex++;
 						}
+						String hash = contentVersion.getHash();
+						String extension = FilenameUtils.getExtension(filename);
+						Integer extensionCount = extensionCounts.get(extension);
+						if (extensionCount == null) {
+							extensionCounts.put(extension, 1);
+						} else {
+							extensionCounts.put(extension, extensionCount + 1);
+						}
+
+						String folderDmdSecId = folder.getId();
+
+						if (!transaction.containsEADMetadatasOf(folderDmdSecId) &&
+							!sipZipWriter.containsEADMetadatasOf(folderDmdSecId)) {
+							SIPFolder killMeSIPFolder = ((SIPDocument) killMeSIPObject).getFolder();
+							addToSIP(transaction, killMeSIPFolder, errors);
+						}
+
+						//TODO Stream and temp file safety
+						File tempFile = ioServicesFactory.newIOServices().newTemporaryFile(READ_VAULT_FILE_TEMP_FILE_STREAM_NAME);
+						InputStream inputStream = contentManager.getContentInputStream(contentVersion.getHash(), READ_VAULT_FILE_STREAM_NAME);
+						OutputStream outputStream = ioServicesFactory.newIOServices().newBufferedFileOutputStream(tempFile, WRITE_VAULT_FILE_TO_TEMP_FILE_STREAM_NAME);
+						ioServicesFactory.newIOServices().copyAndClose(inputStream, outputStream);
+
+						String zipFilePath = getZipPath(folder.getWrappedRecord()) + "/document-" + document.getId() +
+											 "-" + contentVersion.getVersion() + "." + extension;
+						MetsContentFileReference reference = new MetsContentFileReference();
+						reference.setId(fileId);
+						reference.setDmdid(dmdSecId);
+						reference.setSize(length);
+						reference.setCheckSum(getHash(tempFile, zipFilePath));
+						reference.setCheckSumType("SHA-256");
+						reference.setPath(zipFilePath);
+						reference.setTitle(filename);
+						transaction.add(reference);
+
+						sipZipWriter.addToZip(tempFile, zipFilePath);
+						ioServicesFactory.newFileService().deleteQuietly(tempFile);
+
+
 					}
 				}
 
-				Map<String, byte[]> extraFiles = sipObjectsProvider.getExtraFiles(sipDocument);
+				Map<String, byte[]> extraFiles = getExtraFiles(record);
 				if (extraFiles != null) {
 					for (byte[] extraFileBytes : extraFiles.values()) {
 						documentFilesLength += extraFileBytes.length;
@@ -385,7 +427,7 @@ public class ConstellioSIP {
 							FileUtils.writeByteArrayToFile(extraTempFile, extraFileBytes);
 
 							String extraZipFilePath =
-									StringUtils.substringBeforeLast(zipFilePath, ".") + "-" + i + "." + extraFileExtension;
+									getZipPath(folder.getWrappedRecord()) + "/document-" + document.getId() + "-" + i + "." + extraFileExtension;
 							String extraFileHash = getHash(extraTempFile, extraZipFilePath);
 
 							MetsContentFileReference reference = new MetsContentFileReference();
@@ -407,31 +449,29 @@ public class ConstellioSIP {
 					}
 				}
 
-				sipSlip.add(sipDocument);
+				sipSlip.add((SIPDocument) killMeSIPObject);
 
 				if (!transaction.containsEADMetadatasOf(dmdSecId) &&
 					!sipZipWriter.containsEADMetadatasOf(dmdSecId)) {
 
-					addMdRefAndGenerateEAD(transaction, sipObject, errors);
+					addMdRefAndGenerateEAD(transaction, record, errors);
 				}
 
-			} else if (sipObject instanceof SIPFolder) {
-				SIPFolder folder = (SIPFolder) sipObject;
+			} else if (Folder.SCHEMA_TYPE.equals(record.getTypeCode())) {
+				SIPFolder killMeSIPFolder = (SIPFolder) killMeSIPObject;
+				SIPFolder killMeSIPParentFolder = killMeSIPFolder.getParentFolder();
 
-				SIPFolder parentFolder = folder.getParentFolder();
-				if (parentFolder != null) {
-					String currentFolderId = getDmdSecId(parentFolder);
-					if (!transaction.containsEADMetadatasOf(currentFolderId) &&
-						!sipZipWriter.containsEADMetadatasOf(currentFolderId)) {
+				if (killMeSIPParentFolder != null) {
+					if (!transaction.containsEADMetadatasOf(record.getId()) &&
+						!sipZipWriter.containsEADMetadatasOf(record.getId())) {
 						// Recursive call
-						addToSIP(transaction, parentFolder, errors);
+						addToSIP(transaction, killMeSIPParentFolder, errors);
 					}
 				}
 
-				String currentFolderId = getDmdSecId(folder);
-				if (!transaction.containsEADMetadatasOf(currentFolderId) &&
-					!sipZipWriter.containsEADMetadatasOf(currentFolderId)) {
-					addMdRefAndGenerateEAD(transaction, folder, errors);
+				if (!transaction.containsEADMetadatasOf(record.getId()) &&
+					!sipZipWriter.containsEADMetadatasOf(record.getId())) {
+					addMdRefAndGenerateEAD(transaction, record, errors);
 				}
 
 			}
@@ -439,61 +479,94 @@ public class ConstellioSIP {
 		} catch (
 				IOException e) {
 			errors.add(IOException.class, e.getMessage());
-		} finally {
-			IOServices ioServices = sipObjectsProvider.getAppLayerCollection().getModelLayerFactory().getIOServicesFactory()
-					.newIOServices();
 		}
 
 	}
 
-	private void addMdRefAndGenerateEAD(SIPZipWriterTransaction transaction, SIPObject sipObject,
+	private Map<String, byte[]> getExtraFiles(Record record) {
+		if (Document.SCHEMA_TYPE.equals(record.getTypeCode())) {
+			Map<String, byte[]> result;
+			Document document = rm.wrapDocument(record);
+			boolean isEmail = document.getSchema().getCode().equals(Email.SCHEMA);
+			if (isEmail && document.getContent() != null) {
+				String filename = document.getContent().getCurrentVersion().getFilename();
+				Map<String, Object> parsedMessage;
+				try {
+					InputStream in = contentManager.getContentInputStream(document.getContent().getCurrentVersion().getHash(), READ_VAULT_FILE_STREAM_NAME);
+					parsedMessage = rm.parseEmail(filename, in);
+					if (parsedMessage != null) {
+						result = new LinkedHashMap<>();
+						Map<String, InputStream> streamMap = (Map<String, InputStream>) parsedMessage.get(JOINT_FILES_KEY);
+						for (Entry<String, InputStream> entry : streamMap.entrySet()) {
+							InputStream fichierJointIn = entry.getValue();
+							byte[] joinFilesBytes = IOUtils.toByteArray(fichierJointIn);
+							result.put(entry.getKey(), joinFilesBytes);
+						}
+					} else {
+						result = null;
+					}
+				} catch (Throwable t) {
+					t.printStackTrace();
+					result = null;
+				}
+			} else {
+				result = null;
+			}
+			return result;
+		} else {
+			return null;
+		}
+	}
+
+	private void addMdRefAndGenerateEAD(SIPZipWriterTransaction transaction, Record record,
 										ValidationErrors errors)
 			throws IOException, METSException {
 
-		RecordEADBuilder recordEadBuilder = new RecordEADBuilder(sipObjectsProvider.getAppLayerCollection(), errors);
+		RecordEADBuilder recordEadBuilder = new RecordEADBuilder(appLayerFactory, errors);
 
-		if (sipObject instanceof SIPDocument) {
-			SIPDocument sipDocument = (SIPDocument) sipObject;
-			SIPFolder sipFolder = sipDocument.getFolder();
+		if (Document.SCHEMA_TYPE.equals(record.getTypeCode())) {
 
-			String zipFolderPath = getZipPath(sipFolder);
-			String fileId = sipDocument.getFileId();
-			String zipXMLPath = zipFolderPath + "/" + sipDocument.getRecord().getTypeCode() + "-" + fileId + ".xml";
+			Document document = rm.wrapDocument(record);
+			Folder folder = rm.getFolder(document.getFolder());
+
+
+			String zipFolderPath = getZipPath(folder.getWrappedRecord());
+			String fileId = record.getId();
+			String zipXMLPath = zipFolderPath + "/" + record.getTypeCode() + "-" + fileId + ".xml";
 
 			File tempXMLFile = File.createTempFile(ConstellioSIP.class.getSimpleName(), ".xml");
 			tempXMLFile.deleteOnExit();
 
-			recordEadBuilder.build(sipObject.getRecord(), zipXMLPath, tempXMLFile);
+			recordEadBuilder.build(record, zipXMLPath, tempXMLFile);
 
-			transaction.add(new MetsEADMetadataReference(getDmdSecId(sipObject), getDmdSecId(sipFolder),
-					Document.SCHEMA_TYPE, sipObject.getTitle(), zipXMLPath));
+			transaction.add(new MetsEADMetadataReference(record.getId(), folder.getId(),
+					Document.SCHEMA_TYPE, record.getTitle(), zipXMLPath));
 			sipZipWriter.addToZip(tempXMLFile, zipXMLPath);
 
 			tempXMLFile.delete();
 
-		} else if (sipObject instanceof SIPFolder) {
-			SIPFolder sipFolder = (SIPFolder) sipObject;
+		} else if (Folder.SCHEMA_TYPE.equals(record.getTypeCode())) {
 
+			Folder folder = rm.wrapFolder(record);
 			String zipParentPath;
 			String parentDivisionId;
-			if (sipFolder.getParentFolder() != null) {
-				zipParentPath = getZipPath(sipFolder.getParentFolder());
-				parentDivisionId = getDmdSecId(sipFolder.getParentFolder());
+			if (folder.getParentFolder() != null) {
+				zipParentPath = getZipPath(recordServices.getDocumentById(folder.getParentFolder()));
+				parentDivisionId = record.getId();
 			} else {
-				RMSchemasRecordsServices rm = new RMSchemasRecordsServices(sipFolder.getRecord().getCollection(), ConstellioFactories.getInstance().getAppLayerFactory());
-				zipParentPath = getZipPath(sipFolder.getCategory());
-				parentDivisionId = rm.getCategory(sipFolder.getCategory().getId()).getCode();
+				Category category = rm.getCategory(folder.getCategory());
+				zipParentPath = getZipPath(category.getWrappedRecord());
+				parentDivisionId = category.getCode();
 			}
 
-			String folderId = sipFolder.getId();
-			String zipXMLPath = zipParentPath + "/" + sipFolder.getRecord().getTypeCode() + "-" + folderId + ".xml";
+			String zipXMLPath = zipParentPath + "/" + record.getTypeCode() + "-" + record.getId() + ".xml";
 
 			File tempXMLFile = File.createTempFile(ConstellioSIP.class.getSimpleName(), ".xml");
 			tempXMLFile.deleteOnExit();
 
-			recordEadBuilder.build(sipObject.getRecord(), zipXMLPath, tempXMLFile);
+			recordEadBuilder.build(record, zipXMLPath, tempXMLFile);
 
-			transaction.add(new MetsEADMetadataReference(getDmdSecId(sipObject), parentDivisionId, Folder.SCHEMA_TYPE, sipObject.getTitle(), zipXMLPath));
+			transaction.add(new MetsEADMetadataReference(record.getId(), parentDivisionId, Folder.SCHEMA_TYPE, record.getTitle(), zipXMLPath));
 
 			sipZipWriter.addToZip(tempXMLFile, zipXMLPath);
 
