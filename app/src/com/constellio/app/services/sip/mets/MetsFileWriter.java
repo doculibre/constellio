@@ -1,4 +1,4 @@
-package com.constellio.app.modules.rm.services.sip.mets;
+package com.constellio.app.services.sip.mets;
 
 import au.edu.apsr.mtk.base.Agent;
 import au.edu.apsr.mtk.base.Div;
@@ -14,7 +14,7 @@ import au.edu.apsr.mtk.base.MdRef;
 import au.edu.apsr.mtk.base.MdWrap;
 import au.edu.apsr.mtk.base.MetsHdr;
 import au.edu.apsr.mtk.base.StructMap;
-import com.constellio.app.modules.rm.services.sip.xsd.XMLDocumentValidator;
+import com.constellio.app.services.sip.xsd.XMLDocumentValidator;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationException;

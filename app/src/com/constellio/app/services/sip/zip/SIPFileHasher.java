@@ -1,4 +1,4 @@
-package com.constellio.app.modules.rm.services.sip.zip;
+package com.constellio.app.services.sip.zip;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;

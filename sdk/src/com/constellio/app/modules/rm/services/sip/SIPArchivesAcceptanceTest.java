@@ -10,7 +10,6 @@ import com.constellio.app.ui.framework.buttons.SIPButton.SIPBuildAsyncTask;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.entities.batchprocess.AsyncTaskCreationRequest;
 import com.constellio.model.entities.records.Content;
-import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -39,7 +38,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Stack;
 import java.util.zip.ZipEntry;
@@ -77,10 +75,9 @@ public class SIPArchivesAcceptanceTest extends ConstellioTest {
 		recordServices = getModelLayerFactory().newRecordServices();
 		searchServices = getModelLayerFactory().newSearchServices();
 
-		Iterator<Record> recordIterator = asList(records.getFolder_A01().getWrappedRecord()).iterator();
 		SIPBuilderParams params = new SIPBuilderParams().setProvidedBagInfoHeaderLines(bagInfoLines);
-		RMSIPBuilder constellioSIP = new RMSIPBuilder(params, zeCollection, getAppLayerFactory());
-		constellioSIP.build(outFile, recordIterator, null);
+		RMSIPBuilder constellioSIP = new RMSIPBuilder(zeCollection, getAppLayerFactory());
+		constellioSIP.build(outFile, asList(records.folder_A01), new ArrayList<String>(), null, params);
 
 	}
 

@@ -1,4 +1,4 @@
-package com.constellio.app.modules.rm.services.sip.mets;
+package com.constellio.app.services.sip.mets;
 
 public class MetsDivisionInfo {
 

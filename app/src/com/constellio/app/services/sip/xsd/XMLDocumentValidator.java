@@ -1,4 +1,4 @@
-package com.constellio.app.modules.rm.services.sip.xsd;
+package com.constellio.app.services.sip.xsd;
 
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.conf.FoldersLocator;

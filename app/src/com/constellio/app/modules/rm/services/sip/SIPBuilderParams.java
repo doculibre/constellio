@@ -1,6 +1,6 @@
 package com.constellio.app.modules.rm.services.sip;
 
-import com.constellio.app.modules.rm.services.sip.zip.SIPFileHasher;
+import com.constellio.app.services.sip.zip.SIPFileHasher;
 
 import java.util.List;
 import java.util.Locale;

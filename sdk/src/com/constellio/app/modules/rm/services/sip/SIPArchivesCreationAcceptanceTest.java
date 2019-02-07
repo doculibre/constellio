@@ -3,7 +3,7 @@ package com.constellio.app.modules.rm.services.sip;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.services.sip.zip.SIPFileHasher;
+import com.constellio.app.services.sip.zip.SIPFileHasher;
 import com.constellio.data.dao.services.idGenerator.InMemorySequentialGenerator;
 import com.constellio.data.io.services.zip.ZipServiceException;
 import com.constellio.model.entities.records.Content;
@@ -155,8 +155,9 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 			}
 		});
 
-		RMSIPBuilder constellioSIP = new RMSIPBuilder(params, zeCollection, getAppLayerFactory());
-		ValidationErrors errors = constellioSIP.build(sipFile, recordIterator, null);
+
+		RMSIPBuilder constellioSIP = new RMSIPBuilder(zeCollection, getAppLayerFactory());
+		ValidationErrors errors = constellioSIP.build(sipFile, new ArrayList<String>(), asList(documentsIds), null, params);
 		if (!errors.isEmpty()) {
 			assertThat(TestUtils.frenchMessages(errors)).describedAs("errors").isEmpty();
 		}

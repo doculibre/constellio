@@ -1,10 +1,6 @@
-package com.constellio.app.modules.rm.services.sip.mets;
+package com.constellio.app.services.sip.mets;
 
 public class MetsContentFileReference {
-
-	//	      <file CHECKSUM="CHECKSUM{{/data/X/X13/zeFolderId/document-document1-1.0.doc}}" CHECKSUMTYPE="SHA-256" DMDID="DOCUMENT-document1" ID="_document1" SIZE="188416">
-	//        <FLocat LOCTYPE="URL" xlink:href="/data/X/X13/zeFolderId/document-document1-1.0.doc" xlink:title="content1.doc" />
-	//      </file>
 
 	private String checkSum;
 

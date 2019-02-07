@@ -1,4 +1,4 @@
-package com.constellio.app.modules.rm.services.sip.xsd;
+package com.constellio.app.services.sip.xsd;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.xerces.dom.DOMInputImpl;

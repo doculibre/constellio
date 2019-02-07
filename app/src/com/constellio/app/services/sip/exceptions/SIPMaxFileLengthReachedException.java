@@ -1,4 +1,4 @@
-package com.constellio.app.modules.rm.services.sip.exceptions;
+package com.constellio.app.services.sip.exceptions;
 
 @SuppressWarnings("serial")
 public class SIPMaxFileLengthReachedException extends SIPMaxReachedException {

@@ -1,7 +1,7 @@
-package com.constellio.app.modules.rm.services.sip.zip;
+package com.constellio.app.services.sip.zip;
 
-import com.constellio.app.modules.rm.services.sip.mets.MetsContentFileReference;
-import com.constellio.app.modules.rm.services.sip.mets.MetsEADMetadataReference;
+import com.constellio.app.services.sip.mets.MetsContentFileReference;
+import com.constellio.app.services.sip.mets.MetsEADMetadataReference;
 import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
 
 import java.io.File;

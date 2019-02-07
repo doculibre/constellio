@@ -1,4 +1,4 @@
-package com.constellio.app.modules.rm.services.sip.ead;
+package com.constellio.app.services.sip.ead;
 
 import com.constellio.app.api.extensions.params.ConvertStructureToMapParams;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;

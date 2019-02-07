@@ -1,9 +1,9 @@
-package com.constellio.app.modules.rm.services.sip.zip;
+package com.constellio.app.services.sip.zip;
 
-import com.constellio.app.modules.rm.services.sip.mets.MetsContentFileReference;
-import com.constellio.app.modules.rm.services.sip.mets.MetsDivisionInfo;
-import com.constellio.app.modules.rm.services.sip.mets.MetsEADMetadataReference;
-import com.constellio.app.modules.rm.services.sip.mets.MetsFileWriter;
+import com.constellio.app.services.sip.mets.MetsContentFileReference;
+import com.constellio.app.services.sip.mets.MetsDivisionInfo;
+import com.constellio.app.services.sip.mets.MetsEADMetadataReference;
+import com.constellio.app.services.sip.mets.MetsFileWriter;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.TimeProvider;
 import org.apache.commons.compress.archivers.ArchiveEntry;

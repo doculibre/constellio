@@ -1,6 +1,6 @@
-package com.constellio.app.modules.rm.services.sip.ead;
+package com.constellio.app.services.sip.ead;
 
-import com.constellio.app.modules.rm.services.sip.xsd.XMLDocumentValidator;
+import com.constellio.app.services.sip.xsd.XMLDocumentValidator;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.schemas.Metadata;
@@ -257,7 +257,7 @@ public class RecordEADWriter {
 	/**
 	 * Build an EAD table based on extracted values of items.
 	 */
-	public <T> Element newEADDefList(Map<String, Object> values) {
+	public Element newEADDefList(Map<String, Object> values) {
 		Element listElement = new Element("list", eadNamespace);
 		listElement.setAttribute("type", "deflist");
 
