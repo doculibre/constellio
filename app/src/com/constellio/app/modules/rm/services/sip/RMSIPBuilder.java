@@ -16,7 +16,6 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Email;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.data.dao.services.bigVault.RecordDaoException;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Content;
@@ -25,7 +24,6 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.records.RecordServices;
-import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
@@ -35,7 +33,6 @@ import org.xml.sax.SAXException;
 
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -133,57 +130,23 @@ import java.util.Map.Entry;
  *
  * @author Vincent
  */
-public class ConstellioSIP {
+public class RMSIPBuilder {
 
 	public static final String JOINT_FILES_KEY = "attachments";
 
-	private static final long SIP_MAX_FILES_LENGTH = (6 * FileUtils.ONE_GB);
-
-	private static final int SIP_MAX_FILES = 9000;
-
-	private static final char[] RESERVED_PATH_CHARS = {
-			';',
-			'/',
-			'\\',
-			'?',
-			':',
-			'@',
-			'&',
-			'=',
-			'+',
-			'$',
-			',',
-			'{',
-			'}',
-			'|',
-			'^',
-			'[',
-			']',
-			};
-
 	private static final String BAG_INFO_FILE_NAME = "bag-info.txt";
 
-	private static final String READ_VAULT_FILE_STREAM_NAME = ConstellioSIP.class.getSimpleName() + "-ReadVaultFile";
-	private static final String READ_VAULT_FILE_TEMP_FILE_STREAM_NAME = ConstellioSIP.class.getSimpleName() + "-ReadVaultFileTempFile";
-	private static final String WRITE_VAULT_FILE_TO_TEMP_FILE_STREAM_NAME = ConstellioSIP.class.getSimpleName() + "-WriteVaultFileToTempFile";
-
-	private static final String HASH_TYPE = "sha256";
-
-	private List<String> providedBagInfoLines;
+	private static final String READ_VAULT_FILE_STREAM_NAME = RMSIPBuilder.class.getSimpleName() + "-ReadVaultFile";
+	private static final String READ_VAULT_FILE_TEMP_FILE_STREAM_NAME = RMSIPBuilder.class.getSimpleName() + "-ReadVaultFileTempFile";
+	private static final String WRITE_VAULT_FILE_TO_TEMP_FILE_STREAM_NAME = RMSIPBuilder.class.getSimpleName() + "-WriteVaultFileToTempFile";
 
 	private SIPZipWriter sipZipWriter;
 
 	private SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd");
 
-	private SimpleDateFormat sdfTimestamp = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
-
 	private Map<String, Integer> extensionCounts = new HashMap<String, Integer>();
 
-	private boolean limitSize;
-
 	private String currentVersion;
-
-	private ProgressInfo progressInfo;
 
 	private Locale locale;
 
@@ -197,28 +160,33 @@ public class ConstellioSIP {
 
 	private ContentManager contentManager;
 
-	private Iterator<Record> recordsIterator;
+	private SIPBuilderParams params;
 
-	public ConstellioSIP(Iterator<Record> recordsIterator, List<String> bagInfoLines, boolean limitSize,
-						 String currentVersion, ProgressInfo progressInfo, Locale locale, String collection,
-						 AppLayerFactory appLayerFactory) {
-		this.recordsIterator = recordsIterator;
-		this.providedBagInfoLines = bagInfoLines;
-		this.limitSize = limitSize;
-		this.currentVersion = currentVersion;
-		this.progressInfo = progressInfo;
-		this.locale = locale;
+	public RMSIPBuilder(SIPBuilderParams params,
+						String collection,
+						AppLayerFactory appLayerFactory) {
+		this.params = params;
+		this.currentVersion = appLayerFactory.newApplicationService().getWarVersion();
+		this.locale = params.getLocale();
 		this.appLayerFactory = appLayerFactory;
 		this.rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		this.recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 		this.ioServices = rm.getModelLayerFactory().getIOServicesFactory().newIOServices();
 		this.contentManager = appLayerFactory.getModelLayerFactory().getContentManager();
+		if (this.locale == null) {
+			this.locale = appLayerFactory.getModelLayerFactory().getCollectionsListManager()
+					.getCollectionInfo(collection).getMainSystemLocale();
+		}
+
 	}
 
-	public ValidationErrors build(File zipFile)
+	public ValidationErrors build(File zipFile, Iterator<Record> recordsIterator, ProgressInfo progressInfo)
 			throws IOException, JDOMException {
 		ValidationErrors errors = new ValidationErrors();
 
+		if (progressInfo == null) {
+			progressInfo = new ProgressInfo();
+		}
 
 		File outputDir = zipFile.getParentFile();
 		outputDir.mkdirs();
@@ -232,13 +200,7 @@ public class ConstellioSIP {
 		}
 
 		String sipFilename = FilenameUtils.removeExtension(zipFile.getName());
-		sipZipWriter = new SIPZipWriter(ioServices, zipFile, sipFilename, divisionInfoMap) {
-
-			@Override
-			protected String computeHashOfFile(File file, String filePath) throws IOException {
-				return ConstellioSIP.this.getHash(file, filePath);
-			}
-		};
+		sipZipWriter = new SIPZipWriter(ioServices, params.getSipFileHasher(), zipFile, sipFilename, divisionInfoMap);
 
 		List<String> bagInfoLines = collectBagInfoLines();
 		try {
@@ -246,7 +208,7 @@ public class ConstellioSIP {
 			IOUtils.writeLines(bagInfoLines, "\n", bufferedWriter);
 			IOUtils.closeQuietly(bufferedWriter);
 
-			buildMetsFileAndBagDir(errors);
+			buildMetsFile(errors, recordsIterator, progressInfo);
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new RuntimeException(e);
@@ -258,15 +220,6 @@ public class ConstellioSIP {
 		return errors;
 	}
 
-
-	private void buildMetsFileAndBagDir(ValidationErrors errors)
-			throws IOException, METSException, SAXException, JDOMException, RecordDaoException.NoSuchRecordWithId {
-		File tempFile = File.createTempFile(ConstellioSIP.class.getSimpleName(), ".temp");
-		tempFile.deleteOnExit();
-
-		buildMetsFile(errors);
-		tempFile.delete();
-	}
 
 	private String getZipPath(Record record) {
 
@@ -322,23 +275,23 @@ public class ConstellioSIP {
 						long length = contentVersion.getLength();
 						documentFilesLength += length;
 
-						if (limitSize) {
+						if (params.getSipBytesLimit() > 0 && sipZipWriter.sipFilesLength + documentFilesLength > params.getSipBytesLimit()) {
 							Map<String, Object> errorsMap = new HashMap<>();
-							if (sipZipWriter.sipFilesLength + documentFilesLength > SIP_MAX_FILES_LENGTH) {
-								errorsMap.put("sipObjectType", record.getTypeCode());
-								errorsMap.put("sipObjectId", record.getId());
-								errorsMap.put("sipObjectTitle", record.getTitle());
-								errorsMap.put("sipFilesLength", sipZipWriter.sipFilesLength + documentFilesLength);
-								errorsMap.put("sipMaxFilesLength", SIP_MAX_FILES_LENGTH);
-								errors.add(SIPMaxFileLengthReachedException.class, "SIPMaxFileLengthReached", errorsMap);
-							} else if (sipZipWriter.sipFilesCount + documentFilesCount > SIP_MAX_FILES) {
-								errorsMap.put("sipObjectType", record.getTypeCode());
-								errorsMap.put("sipObjectId", record.getId());
-								errorsMap.put("sipObjectTitle", record.getTitle());
-								errorsMap.put("sipFilesCount", sipZipWriter.sipFilesCount + documentFilesCount);
-								errorsMap.put("sipMaxFilesCount", SIP_MAX_FILES);
-								errors.add(SIPMaxFileCountReachedException.class, "SIPMaxFileCountReached", errorsMap);
-							}
+							errorsMap.put("sipObjectType", record.getTypeCode());
+							errorsMap.put("sipObjectId", record.getId());
+							errorsMap.put("sipObjectTitle", record.getTitle());
+							errorsMap.put("sipFilesLength", sipZipWriter.sipFilesLength + documentFilesLength);
+							errorsMap.put("sipMaxFilesLength", params.getSipBytesLimit());
+							errors.add(SIPMaxFileLengthReachedException.class, "SIPMaxFileLengthReached", errorsMap);
+
+						} else if (params.getSipFilesLimit() > 0 && sipZipWriter.sipFilesCount + documentFilesCount > params.getSipFilesLimit()) {
+							Map<String, Object> errorsMap = new HashMap<>();
+							errorsMap.put("sipObjectType", record.getTypeCode());
+							errorsMap.put("sipObjectId", record.getId());
+							errorsMap.put("sipObjectTitle", record.getTitle());
+							errorsMap.put("sipFilesCount", sipZipWriter.sipFilesCount + documentFilesCount);
+							errorsMap.put("sipMaxFilesCount", params.getSipFilesLimit());
+							errors.add(SIPMaxFileCountReachedException.class, "SIPMaxFileCountReached", errorsMap);
 						}
 						String extension = FilenameUtils.getExtension(filename);
 						Integer extensionCount = extensionCounts.get(extension);
@@ -367,8 +320,8 @@ public class ConstellioSIP {
 						reference.setId(fileId);
 						reference.setDmdid(dmdSecId);
 						reference.setSize(length);
-						reference.setCheckSum(getHash(tempFile, zipFilePath));
-						reference.setCheckSumType("SHA-256");
+						reference.setCheckSum(params.getSipFileHasher().computeHash(tempFile, zipFilePath));
+						reference.setCheckSumType(params.getSipFileHasher().getFunctionName());
 						reference.setPath(zipFilePath);
 						reference.setTitle(filename);
 						transaction.add(reference);
@@ -395,14 +348,14 @@ public class ConstellioSIP {
 
 								String extraFileExtension = FilenameUtils.getExtension(extraFilename);
 								if (StringUtils.isNotBlank(extraFileExtension)) {
-									File extraTempFile = File.createTempFile(ConstellioSIP.class.getName(), extraFilename);
+									File extraTempFile = File.createTempFile(RMSIPBuilder.class.getName(), extraFilename);
 
 									byte[] extraFileBytes = entry.getValue();
 									FileUtils.writeByteArrayToFile(extraTempFile, extraFileBytes);
 
 									String extraZipFilePath =
 											getZipPath(folder.getWrappedRecord()) + "/document-" + extraFileId;
-									String extraFileHash = getHash(extraTempFile, extraZipFilePath);
+									String extraFileHash = params.getSipFileHasher().computeHash(extraTempFile, extraZipFilePath);
 
 									reference = new MetsContentFileReference();
 									reference.setId(extraFileId);
@@ -410,7 +363,7 @@ public class ConstellioSIP {
 									reference.setPath(document.getFolder());
 									reference.setSize(extraFileBytes.length);
 									reference.setCheckSum(extraFileHash);
-									reference.setCheckSumType("SHA-256");
+									reference.setCheckSumType(params.getSipFileHasher().getFunctionName());
 									reference.setPath(extraZipFilePath);
 									reference.setTitle(extraFilename);
 									reference.setUse("Attachement");
@@ -511,7 +464,7 @@ public class ConstellioSIP {
 			String fileId = record.getId();
 			String zipXMLPath = zipFolderPath + "/" + record.getTypeCode() + "-" + fileId + ".xml";
 
-			File tempXMLFile = File.createTempFile(ConstellioSIP.class.getSimpleName(), ".xml");
+			File tempXMLFile = File.createTempFile(RMSIPBuilder.class.getSimpleName(), ".xml");
 			tempXMLFile.deleteOnExit();
 
 			recordEadBuilder.build(record, zipXMLPath, tempXMLFile);
@@ -538,7 +491,7 @@ public class ConstellioSIP {
 
 			String zipXMLPath = zipParentPath + "/" + record.getTypeCode() + "-" + record.getId() + ".xml";
 
-			File tempXMLFile = File.createTempFile(ConstellioSIP.class.getSimpleName(), ".xml");
+			File tempXMLFile = File.createTempFile(RMSIPBuilder.class.getSimpleName(), ".xml");
 			tempXMLFile.deleteOnExit();
 
 			recordEadBuilder.build(record, zipXMLPath, tempXMLFile);
@@ -553,7 +506,7 @@ public class ConstellioSIP {
 		}
 	}
 
-	private void buildMetsFile(ValidationErrors errors)
+	private void buildMetsFile(ValidationErrors errors, Iterator<Record> recordsIterator, ProgressInfo progressInfo)
 			throws IOException, METSException, SAXException, JDOMException {
 
 
@@ -576,7 +529,9 @@ public class ConstellioSIP {
 
 	private List<String> collectBagInfoLines() {
 		List<String> bagInfoLines = new ArrayList<>();
-		bagInfoLines.addAll(this.providedBagInfoLines);
+		if (params.getProvidedBagInfoHeaderLines() != null) {
+			bagInfoLines.addAll(params.getProvidedBagInfoHeaderLines());
+		}
 
 		bagInfoLines.add("Nombre de fichiers numériques : " + sipZipWriter.sipFilesCount);
 		StringBuffer extensionsAndCounts = new StringBuffer();
@@ -599,18 +554,6 @@ public class ConstellioSIP {
 		bagInfoLines.add("Date de création du paquet : " + sdfDate.format(TimeProvider.getLocalDateTime().toDate()));
 		bagInfoLines.add("");
 		return bagInfoLines;
-	}
-
-
-	protected String getHash(File file, String sipPath)
-			throws IOException {
-		FileInputStream fileInputStream = new FileInputStream(file);
-
-		try {
-			return DigestUtils.sha256Hex(fileInputStream);
-		} finally {
-			IOUtils.closeQuietly(fileInputStream);
-		}
 	}
 
 }

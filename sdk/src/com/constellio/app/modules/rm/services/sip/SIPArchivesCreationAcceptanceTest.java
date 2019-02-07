@@ -1,10 +1,9 @@
 package com.constellio.app.modules.rm.services.sip;
 
-import com.constellio.app.entities.modules.ProgressInfo;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.services.sip.filter.SIPFilter;
+import com.constellio.app.modules.rm.services.sip.zip.SIPFileHasher;
 import com.constellio.data.dao.services.idGenerator.InMemorySequentialGenerator;
 import com.constellio.data.io.services.zip.ZipServiceException;
 import com.constellio.model.entities.records.Content;
@@ -27,7 +26,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Locale;
 
 import static com.constellio.sdk.tests.TestUtils.zipFileWithSameContentExceptingFiles;
 import static java.util.Arrays.asList;
@@ -146,20 +144,19 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 		File tempFolder = newTempFolder();
 
 		File sipFile = new File(tempFolder, "test.sip");
-		SIPFilter filter = new SIPFilter(zeCollection, getAppLayerFactory())
-				.withIncludeDocumentIds(asList(documentsIds));
 
 		Iterator<Record> recordIterator = getModelLayerFactory().newRecordServices().getRecordsById(zeCollection, asList(documentsIds)).iterator();
 
-		ConstellioSIP constellioSIP = new ConstellioSIP(recordIterator, bagInfoLines, false,
-				getAppLayerFactory().newApplicationService().getWarVersion(), new ProgressInfo(), Locale.FRENCH, zeCollection, getAppLayerFactory()) {
+		SIPBuilderParams params = new SIPBuilderParams().setProvidedBagInfoHeaderLines(bagInfoLines);
+		params.setSipFileHasher(new SIPFileHasher() {
 			@Override
-			protected String getHash(File file, String sipPath) throws IOException {
+			public String computeHash(File input, String sipPath) throws IOException {
 				return "CHECKSUM{{" + sipPath.replace("\\", "/ d") + "}}";
 			}
-		};
-		System.out.println(tempFolder.getAbsolutePath());
-		ValidationErrors errors = constellioSIP.build(sipFile);
+		});
+
+		RMSIPBuilder constellioSIP = new RMSIPBuilder(params, zeCollection, getAppLayerFactory());
+		ValidationErrors errors = constellioSIP.build(sipFile, recordIterator, null);
 		if (!errors.isEmpty()) {
 			assertThat(TestUtils.frenchMessages(errors)).describedAs("errors").isEmpty();
 		}

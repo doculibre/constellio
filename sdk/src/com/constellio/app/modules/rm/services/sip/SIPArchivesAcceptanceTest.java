@@ -1,6 +1,5 @@
 package com.constellio.app.modules.rm.services.sip;
 
-import com.constellio.app.entities.modules.ProgressInfo;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Category;
@@ -42,7 +41,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Locale;
 import java.util.Stack;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -80,10 +78,9 @@ public class SIPArchivesAcceptanceTest extends ConstellioTest {
 		searchServices = getModelLayerFactory().newSearchServices();
 
 		Iterator<Record> recordIterator = asList(records.getFolder_A01().getWrappedRecord()).iterator();
-		ConstellioSIP constellioSIP = new ConstellioSIP(recordIterator, bagInfoLines, false,
-				getAppLayerFactory().newApplicationService().getWarVersion(), new ProgressInfo(), Locale.FRENCH,
-				zeCollection, getAppLayerFactory());
-		constellioSIP.build(outFile);
+		SIPBuilderParams params = new SIPBuilderParams().setProvidedBagInfoHeaderLines(bagInfoLines);
+		RMSIPBuilder constellioSIP = new RMSIPBuilder(params, zeCollection, getAppLayerFactory());
+		constellioSIP.build(outFile, recordIterator, null);
 
 	}
 

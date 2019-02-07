@@ -2,7 +2,8 @@ package com.constellio.app.ui.framework.buttons.SIPButton;
 
 import com.constellio.app.entities.modules.ProgressInfo;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.services.sip.ConstellioSIP;
+import com.constellio.app.modules.rm.services.sip.RMSIPBuilder;
+import com.constellio.app.modules.rm.services.sip.SIPBuilderParams;
 import com.constellio.app.modules.rm.wrappers.SIParchive;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
@@ -22,6 +23,7 @@ import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import org.apache.commons.collections.ListUtils;
+import org.apache.commons.io.FileUtils;
 import org.joda.time.LocalDateTime;
 
 import java.io.File;
@@ -31,6 +33,9 @@ import java.util.Locale;
 import java.util.UUID;
 
 public class SIPBuildAsyncTask implements AsyncTask {
+
+	private static final long SIP_MAX_FILES_LENGTH = (6 * FileUtils.ONE_GB);
+	private static final int SIP_MAX_FILES = 9000;
 
 	private String sipFileName;
 	private List<String> bagInfoLines;
@@ -99,9 +104,14 @@ public class SIPBuildAsyncTask implements AsyncTask {
 					}
 				};
 
-				ConstellioSIP constellioSIP = new ConstellioSIP(recordsIterator, bagInfoLines, limitSize, currentVersion,
-						progressInfo, locale, collection, appLayerFactory);
-				constellioSIP.build(outFile);
+				SIPBuilderParams builderParams = new SIPBuilderParams()
+						.setProvidedBagInfoHeaderLines(bagInfoLines)
+						.setLocale(locale)
+						.setSipBytesLimit(limitSize ? SIP_MAX_FILES_LENGTH : 0)
+						.setSipFilesLimit(limitSize ? SIP_MAX_FILES : 0);
+
+				RMSIPBuilder constellioSIP = new RMSIPBuilder(builderParams, collection, appLayerFactory);
+				constellioSIP.build(outFile, recordsIterator, progressInfo);
 
 				//Create SIParchive record
 				ContentManager contentManager = modelLayerFactory.getContentManager();

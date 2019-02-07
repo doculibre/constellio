@@ -1,6 +1,6 @@
 package com.constellio.app.modules.rm.services.sip.zip;
 
-import com.constellio.app.modules.rm.services.sip.ConstellioSIP;
+import com.constellio.app.modules.rm.services.sip.RMSIPBuilder;
 import com.constellio.app.modules.rm.services.sip.mets.MetsContentFileReference;
 import com.constellio.app.modules.rm.services.sip.mets.MetsDivisionInfo;
 import com.constellio.app.modules.rm.services.sip.mets.MetsEADMetadataReference;
@@ -10,7 +10,6 @@ import com.constellio.data.utils.TimeProvider;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.zip.Zip64Mode;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 
 import java.io.BufferedWriter;
@@ -27,47 +26,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static java.util.Arrays.asList;
-
-public abstract class SIPZipWriter {
+public class SIPZipWriter {
 
 	//TODO
 	public long sipFilesLength;
 	public int sipFilesCount;
-
-	private static final long SIP_MAX_FILES_LENGTH = (6 * FileUtils.ONE_GB);
-
-	private static final int SIP_MAX_FILES = 9000;
-
-	private static final char[] RESERVED_PATH_CHARS = {
-			';',
-			'/',
-			'\\',
-			'?',
-			':',
-			'@',
-			'&',
-			'=',
-			'+',
-			'$',
-			',',
-			'{',
-			'}',
-			'|',
-			'^',
-			'[',
-			']',
-			};
-
-	private static List<String> METS_XSDs = asList("xlink.xsd", "mets.xsd");
-
-	private static final String BAG_INFO_FILE_NAME = "bag-info.txt";
-
-	private static final String HASH_TYPE = "sha256";
-
-	private static final String TAGMANIFEST_FILE_NAME = "tagmanifest-" + HASH_TYPE + ".txt";
-
-	private static final String MANIFEST_FILE_NAME = "manifest-" + HASH_TYPE + ".txt";
 
 	private IOServices ioServices;
 
@@ -90,8 +53,11 @@ public abstract class SIPZipWriter {
 
 	private File zipFile;
 
-	public SIPZipWriter(IOServices ioServices, File zipFile, String sipFileName,
+	private SIPFileHasher sipFileHasher;
+
+	public SIPZipWriter(IOServices ioServices, SIPFileHasher sipFileHasher, File zipFile, String sipFileName,
 						Map<String, MetsDivisionInfo> divisionsInfoMap) {
+		this.sipFileHasher = sipFileHasher;
 		this.zipFile = zipFile;
 		this.ioServices = ioServices;
 		this.sipFileName = sipFileName;
@@ -114,7 +80,7 @@ public abstract class SIPZipWriter {
 
 	public void close() throws IOException {
 
-		File metsFile = File.createTempFile(ConstellioSIP.class.getSimpleName(), metsFilename);
+		File metsFile = File.createTempFile(RMSIPBuilder.class.getSimpleName(), metsFilename);
 		metsFile.deleteOnExit();
 
 
@@ -128,11 +94,12 @@ public abstract class SIPZipWriter {
 
 		//TODO Improve stream safety
 
-		BufferedWriter manifestWriter = newZipFileWriter("/" + MANIFEST_FILE_NAME);
+		String hashingType = sipFileHasher.getFunctionName().toLowerCase().replace("-", "");
+		BufferedWriter manifestWriter = newZipFileWriter("/" + "manifest-" + hashingType + ".txt");
 		IOUtils.writeLines(manifestLines, "\n", manifestWriter);
 		IOUtils.closeQuietly(manifestWriter);
 
-		BufferedWriter tagManifestWriter = newZipFileWriter("/" + TAGMANIFEST_FILE_NAME);
+		BufferedWriter tagManifestWriter = newZipFileWriter("/" + "tagmanifest-" + hashingType + ".txt");
 		IOUtils.writeLines(tagManifestLines, "\n", tagManifestWriter);
 		IOUtils.closeQuietly(tagManifestWriter);
 
@@ -201,7 +168,7 @@ public abstract class SIPZipWriter {
 
 	public void addToZip(File file, String path) throws IOException {
 		System.out.println("Adding " + path + " with length " + file.length());
-		String hash = computeHashOfFile(file, path);
+		String hash = sipFileHasher.computeHash(file, path);
 		if (path.startsWith("/")) {
 			path = path.substring(1);
 		}
@@ -227,8 +194,6 @@ public abstract class SIPZipWriter {
 
 	}
 
-	protected abstract String computeHashOfFile(File file, String filePath)
-			throws IOException;
 
 	public boolean containsEADMetadatasOf(String id) {
 		for (MetsEADMetadataReference reference : eadMetadataReferences) {
