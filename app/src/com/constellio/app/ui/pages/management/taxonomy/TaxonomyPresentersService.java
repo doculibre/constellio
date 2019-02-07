@@ -27,6 +27,15 @@ public class TaxonomyPresentersService {
 
 	}
 
+	public boolean canConsult(String taxonomyCode, final User user) {
+		final Taxonomy taxonomy = appLayerFactory.getModelLayerFactory().getTaxonomiesManager()
+				.getEnabledTaxonomyWithCode(user.getCollection(), taxonomyCode);
+
+		AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions().forCollectionOf(user);
+
+		return extensions.canConsultTaxonomy(false, user, taxonomy);
+	}
+
 	public boolean displayTaxonomy(String taxonomyCode, final User user) {
 
 		final Taxonomy taxonomy = appLayerFactory.getModelLayerFactory().getTaxonomiesManager()

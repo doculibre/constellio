@@ -440,6 +440,15 @@ public class AppLayerCollectionExtensions {
 		});
 	}
 
+	public boolean canConsultTaxonomy(boolean defaultValue, final User user, final Taxonomy taxonomy) {
+		return taxonomyAccessExtensions.getBooleanValue(defaultValue, new BooleanCaller<TaxonomyPageExtension>() {
+			@Override
+			public ExtensionBooleanResult call(TaxonomyPageExtension behavior) {
+				return behavior.canConsultTaxonomy(user, taxonomy);
+			}
+		});
+	}
+
 	public boolean displayTaxonomy(boolean defaultValue, final User user, final Taxonomy taxonomy) {
 		return taxonomyAccessExtensions.getBooleanValue(defaultValue, new BooleanCaller<TaxonomyPageExtension>() {
 			@Override

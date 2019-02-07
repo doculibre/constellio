@@ -35,6 +35,7 @@ public class DisplayRetentionRulePresenter extends SingleSchemaBasePresenter<Dis
 		implements RetentionRuleDisplayPresenter {
 	private RetentionRuleVO retentionRuleVO;
 	private transient DecommissioningService decommissioningService;
+	private Record currentRetentionRuleRecord;
 
 	public DisplayRetentionRulePresenter(DisplayRetentionRuleView view) {
 		super(view, RetentionRule.DEFAULT_SCHEMA);
@@ -42,10 +43,10 @@ public class DisplayRetentionRulePresenter extends SingleSchemaBasePresenter<Dis
 	}
 
 	public void forParams(String params) {
-		Record record = getRecord(params);
+		currentRetentionRuleRecord = getRecord(params);
 		retentionRuleVO = new RetentionRuleToVOBuilder(
 				appLayerFactory, types().getDefaultSchema(Category.SCHEMA_TYPE), schema(UniformSubdivision.DEFAULT_SCHEMA))
-				.build(record, VIEW_MODE.DISPLAY, view.getSessionContext());
+				.build(currentRetentionRuleRecord, VIEW_MODE.DISPLAY, view.getSessionContext());
 		view.setRetentionRule(retentionRuleVO);
 	}
 
@@ -123,7 +124,17 @@ public class DisplayRetentionRulePresenter extends SingleSchemaBasePresenter<Dis
 
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
-		return user.has(RMPermissionsTo.MANAGE_RETENTIONRULE).globally();
+		return isManageRetentionRulesGlobally() || user.has(RMPermissionsTo.CONSULT_RETENTIONRULE).globally();
+	}
+
+
+	public boolean isConsultRetentionRuleGlobally() {
+		return getCurrentUser().has(RMPermissionsTo.CONSULT_RETENTIONRULE).globally();
+	}
+
+
+	public boolean isManageRetentionRulesGlobally() {
+		return getCurrentUser().has(RMPermissionsTo.MANAGE_RETENTIONRULE).globally();
 	}
 
 	private boolean areDocumentRetentionRulesEnabled() {
