@@ -143,7 +143,7 @@ public class DisplayRetentionRuleViewImpl extends BaseViewImpl implements Displa
 
 					@Override
 					public boolean isEnabled() {
-						return presenter.isConsultRetentionRuleGlobally() || presenter.isConsultRetentionRuleGlobally();
+						return true;
 					}
 				});
 			}
