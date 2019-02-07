@@ -76,6 +76,10 @@ public class ListRetentionRulesPresenter extends SingleSchemaBasePresenter<ListR
 				|| user.has(RMPermissionsTo.CONSULT_RETENTIONRULE).globally();
 	}
 
+	public boolean userHaveManageRetentionRulePermission() {
+		return getCurrentUser().has(RMPermissionsTo.MANAGE_RETENTIONRULE).globally();
+	}
+
 	@Override
 	public ValidationErrors validateDeletable(RecordVO entity) {
 		RecordServices recordService = modelLayerFactory.newRecordServices();
