@@ -20,6 +20,17 @@ public class MetsContentFileReference {
 
 	private String title;
 
+	private String use;
+
+	public String getUse() {
+		return use;
+	}
+
+	public MetsContentFileReference setUse(String use) {
+		this.use = use;
+		return this;
+	}
+
 	public String getCheckSum() {
 		return checkSum;
 	}

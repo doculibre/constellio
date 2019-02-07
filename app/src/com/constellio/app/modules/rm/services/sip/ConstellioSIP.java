@@ -377,53 +377,56 @@ public class ConstellioSIP {
 						ioServices.deleteQuietly(tempFile);
 
 
-					}
-				}
+						Map<String, byte[]> extraFiles = getExtraFiles(record, contentVersion);
+						if (extraFiles != null) {
+							for (byte[] extraFileBytes : extraFiles.values()) {
+								documentFilesLength += extraFileBytes.length;
+								documentFilesCount++;
+							}
+						}
 
-				Map<String, byte[]> extraFiles = getExtraFiles(record);
-				if (extraFiles != null) {
-					for (byte[] extraFileBytes : extraFiles.values()) {
-						documentFilesLength += extraFileBytes.length;
-						documentFilesCount++;
-					}
-				}
+						if (extraFiles != null) {
 
-				if (extraFiles != null) {
+							int i = 1;
+							for (Entry<String, byte[]> entry : extraFiles.entrySet()) {
 
-					int i = 1;
-					for (Entry<String, byte[]> entry : extraFiles.entrySet()) {
+								String extraFilename = entry.getKey();
+								String extraFileId = document.getId() + "-content-" + contentVersion.getVersion() + "-" + extraFilename;
 
-						String extraFileId = document.getId() + "-extra-" + "-" + i;
-						String extraFilename = entry.getKey();
-						String extraFileExtension = FilenameUtils.getExtension(extraFilename);
-						if (StringUtils.isNotBlank(extraFileExtension)) {
-							File extraTempFile = File.createTempFile(ConstellioSIP.class.getName(), extraFilename);
+								String extraFileExtension = FilenameUtils.getExtension(extraFilename);
+								if (StringUtils.isNotBlank(extraFileExtension)) {
+									File extraTempFile = File.createTempFile(ConstellioSIP.class.getName(), extraFilename);
 
-							byte[] extraFileBytes = entry.getValue();
-							FileUtils.writeByteArrayToFile(extraTempFile, extraFileBytes);
+									byte[] extraFileBytes = entry.getValue();
+									FileUtils.writeByteArrayToFile(extraTempFile, extraFileBytes);
 
-							String extraZipFilePath =
-									getZipPath(folder.getWrappedRecord()) + "/document-" + document.getId() + "-" + i + "." + extraFileExtension;
-							String extraFileHash = getHash(extraTempFile, extraZipFilePath);
+									String extraZipFilePath =
+											getZipPath(folder.getWrappedRecord()) + "/document-" + extraFileId;
+									String extraFileHash = getHash(extraTempFile, extraZipFilePath);
 
-							MetsContentFileReference reference = new MetsContentFileReference();
-							reference.setId(extraFileId);
-							reference.setPath(document.getFolder());
-							reference.setSize(extraFileBytes.length);
-							reference.setCheckSum(extraFileHash);
-							reference.setCheckSumType("SHA-256");
-							reference.setPath(extraZipFilePath);
-							reference.setTitle(extraFilename);
-							transaction.add(reference);
+									reference = new MetsContentFileReference();
+									reference.setId(extraFileId);
+									reference.setDmdid(dmdSecId);
+									reference.setPath(document.getFolder());
+									reference.setSize(extraFileBytes.length);
+									reference.setCheckSum(extraFileHash);
+									reference.setCheckSumType("SHA-256");
+									reference.setPath(extraZipFilePath);
+									reference.setTitle(extraFilename);
+									reference.setUse("Attachement");
+									transaction.add(reference);
 
-							sipZipWriter.addToZip(extraTempFile, extraZipFilePath);
+									sipZipWriter.addToZip(extraTempFile, extraZipFilePath);
 
-							extraTempFile.delete();
+									extraTempFile.delete();
 
-							i++;
+									i++;
+								}
+							}
 						}
 					}
 				}
+
 
 				if (!transaction.containsEADMetadatasOf(dmdSecId) &&
 					!sipZipWriter.containsEADMetadatasOf(dmdSecId)) {
@@ -457,16 +460,16 @@ public class ConstellioSIP {
 
 	}
 
-	private Map<String, byte[]> getExtraFiles(Record record) {
+	private Map<String, byte[]> getExtraFiles(Record record, ContentVersion contentVersion) {
 		if (Document.SCHEMA_TYPE.equals(record.getTypeCode())) {
 			Map<String, byte[]> result;
 			Document document = rm.wrapDocument(record);
 			boolean isEmail = document.getSchema().getCode().equals(Email.SCHEMA);
-			if (isEmail && document.getContent() != null) {
-				String filename = document.getContent().getCurrentVersion().getFilename();
+			if (isEmail) {
+				String filename = contentVersion.getFilename();
 				Map<String, Object> parsedMessage;
 				try {
-					InputStream in = contentManager.getContentInputStream(document.getContent().getCurrentVersion().getHash(), READ_VAULT_FILE_STREAM_NAME);
+					InputStream in = contentManager.getContentInputStream(contentVersion.getHash(), READ_VAULT_FILE_STREAM_NAME);
 					parsedMessage = rm.parseEmail(filename, in);
 					if (parsedMessage != null) {
 						result = new LinkedHashMap<>();
@@ -566,7 +569,7 @@ public class ConstellioSIP {
 			recordsHandled++;
 
 		}
-		
+
 		progressInfo.setDone(true);
 	}
 

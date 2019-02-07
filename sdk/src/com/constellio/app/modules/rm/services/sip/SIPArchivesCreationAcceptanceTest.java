@@ -4,7 +4,6 @@ import com.constellio.app.entities.modules.ProgressInfo;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.services.sip.data.intelligid.ConstellioSIPObjectsProvider;
 import com.constellio.app.modules.rm.services.sip.filter.SIPFilter;
 import com.constellio.data.dao.services.idGenerator.InMemorySequentialGenerator;
 import com.constellio.data.io.services.zip.ZipServiceException;
@@ -90,6 +89,34 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 
 	}
 
+	@Test
+	public void givenSIPArchivesOfAnEmailThenAttachementsExtractedInSIP()
+			throws Exception {
+
+		getIOLayerFactory().newZipService().zip(getTestResourceFile("sip2.zip"),
+				asList(new File("/Users/francisbaril/Downloads/SIPArchivesCreationAcceptanceTest-sip2").listFiles()));
+
+
+		Transaction tx = new Transaction();
+		tx.add(rm.newFolderWithId("zeFolderId").setOpenDate(new LocalDate(2018, 1, 1))
+				.setTitle("Ze folder")
+				.setAdministrativeUnitEntered(records.unitId_10a).setCategoryEntered(records.categoryId_X13)
+				.setRetentionRuleEntered(records.ruleId_1));
+
+		tx.add(rm.newEmailWithId("theEmailId").setTitle("My important email").setFolder("zeFolderId"))
+				.setContent(minorContent("testFile.msg"));
+
+
+		rm.executeTransaction(tx);
+
+		File sipFile = buildSIPWithDocuments("theEmailId");
+		System.out.println(sipFile.getAbsolutePath());
+		unzipInDownloadFolder(sipFile, "testSIP");
+
+		assertThat(sipFile).is(zipFileWithSameContentExceptingFiles(getTestResourceFile("sip2.zip"), "bag-info.txt"));
+
+	}
+
 	private void unzipInDownloadFolder(File sipFile, String name) {
 		File folder = new File("/Users/francisbaril/Downloads/" + name);
 		try {
@@ -121,8 +148,6 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 		File sipFile = new File(tempFolder, "test.sip");
 		SIPFilter filter = new SIPFilter(zeCollection, getAppLayerFactory())
 				.withIncludeDocumentIds(asList(documentsIds));
-		ConstellioSIPObjectsProvider metsObjectsProvider = new ConstellioSIPObjectsProvider(zeCollection, getAppLayerFactory(),
-				filter, new ProgressInfo());
 
 		Iterator<Record> recordIterator = getModelLayerFactory().newRecordServices().getRecordsById(zeCollection, asList(documentsIds)).iterator();
 

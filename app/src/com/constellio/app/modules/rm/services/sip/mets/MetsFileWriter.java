@@ -126,6 +126,9 @@ public class MetsFileWriter {
 				file.setSize(contentFileReference.getSize());
 				file.setChecksum(contentFileReference.getCheckSum());
 				file.setChecksumType(contentFileReference.getCheckSumType());
+				if (contentFileReference.getUse() != null) {
+					file.setUse(contentFileReference.getUse());
+				}
 
 				FLocat fileLocation = file.newFLocat();
 				file.addFLocat(fileLocation);
