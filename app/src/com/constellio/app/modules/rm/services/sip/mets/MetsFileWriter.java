@@ -15,19 +15,20 @@ import au.edu.apsr.mtk.base.MdWrap;
 import au.edu.apsr.mtk.base.MetsHdr;
 import au.edu.apsr.mtk.base.StructMap;
 import com.constellio.app.modules.rm.services.sip.xsd.XMLDocumentValidator;
+import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.frameworks.validation.ValidationErrors;
+import com.constellio.model.frameworks.validation.ValidationException;
 import org.jdom2.Element;
 import org.jdom2.JDOMException;
 import org.jdom2.Namespace;
 import org.jdom2.input.DOMBuilder;
-import org.jdom2.input.SAXBuilder;
 import org.jdom2.output.DOMOutputter;
 import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
 import org.w3c.dom.Node;
 
-import java.io.File;
-import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -49,7 +50,7 @@ public class MetsFileWriter {
 
 	private SimpleDateFormat sdfTimestamp = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
 
-	private File file;
+	private OutputStream outputStream;
 
 	private Date sipCreationDate;
 
@@ -57,18 +58,22 @@ public class MetsFileWriter {
 
 	private Map<String, MetsDivisionInfo> divisionsInfoMap;
 
+	private IOServices ioServices;
+
 	private static List<String> METS_XSDs = asList("xlink.xsd", "mets.xsd");
 
-	public MetsFileWriter(File file, String metsFileZipPath, Date sipCreationDate,
+	public MetsFileWriter(IOServices ioServices, OutputStream outputStream, String metsFileZipPath,
+						  Date sipCreationDate,
 						  Map<String, MetsDivisionInfo> divisionsInfoMap) {
-		this.file = file;
+		this.ioServices = ioServices;
+		this.outputStream = outputStream;
 		this.sipCreationDate = sipCreationDate;
 		this.metsFileZipPath = metsFileZipPath;
 		this.divisionsInfoMap = divisionsInfoMap;
 	}
 
 
-	public void build(List<MetsEADMetadataReference> metsEADMetadataReferences,
+	public void write(List<MetsEADMetadataReference> metsEADMetadataReferences,
 					  List<MetsContentFileReference> contentFileReferences) {
 
 		List<MetsStructureDivision> divisionsHierarchy = buildStructureDivisionHierarchy(metsEADMetadataReferences, contentFileReferences);
@@ -150,9 +155,6 @@ public class MetsFileWriter {
 			mets.setFileSec(fileSec);
 			mets.addStructMap(structMap);
 
-
-			FileOutputStream fos = new FileOutputStream(file);
-
 			org.w3c.dom.Document domDoc = metsWrapper.getMETSDocument();
 			DOMBuilder domBuilder = new DOMBuilder();
 			org.jdom2.Document jdomDoc = domBuilder.build(domDoc);
@@ -169,8 +171,8 @@ public class MetsFileWriter {
 
 			XMLOutputter xml = new XMLOutputter();
 			xml.setFormat(Format.getPrettyFormat());
-			xml.output(jdomDoc, fos);
-			fos.close();
+			xml.output(jdomDoc, outputStream);
+			outputStream.flush();
 
 
 			ValidationErrors errors = new ValidationErrors();
@@ -178,13 +180,14 @@ public class MetsFileWriter {
 			errors.throwIfNonEmpty();
 
 
-			SAXBuilder builder = new SAXBuilder();
-			builder.build(file);
-
-
-		} catch (Exception e) {
+		} catch (IOException | METSException | ValidationException e) {
 			throw new RuntimeException(e);
+
 		}
+	}
+
+	public void close() {
+		ioServices.closeQuietly(outputStream);
 	}
 
 	private void addDivisions(Div parentDiv, List<MetsStructureDivision> divisions) {

@@ -181,7 +181,7 @@ public class RMSIPBuilder {
 	}
 
 	public ValidationErrors build(File zipFile, Iterator<Record> recordsIterator, ProgressInfo progressInfo)
-			throws IOException, JDOMException {
+			throws IOException {
 		ValidationErrors errors = new ValidationErrors();
 
 		if (progressInfo == null) {

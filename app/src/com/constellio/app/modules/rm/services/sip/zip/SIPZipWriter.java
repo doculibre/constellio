@@ -1,6 +1,5 @@
 package com.constellio.app.modules.rm.services.sip.zip;
 
-import com.constellio.app.modules.rm.services.sip.RMSIPBuilder;
 import com.constellio.app.modules.rm.services.sip.mets.MetsContentFileReference;
 import com.constellio.app.modules.rm.services.sip.mets.MetsDivisionInfo;
 import com.constellio.app.modules.rm.services.sip.mets.MetsEADMetadataReference;
@@ -10,6 +9,7 @@ import com.constellio.data.utils.TimeProvider;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.zip.Zip64Mode;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 
 import java.io.BufferedWriter;
@@ -41,8 +41,6 @@ public class SIPZipWriter {
 	private List<String> manifestLines = new ArrayList<String>();
 	private List<String> tagManifestLines = new ArrayList<String>();
 
-	private String metsFilename;
-
 	private Date sipCreationTime;
 
 	private List<MetsContentFileReference> contentFileReferences = new ArrayList<>();
@@ -51,67 +49,74 @@ public class SIPZipWriter {
 
 	private Map<String, MetsDivisionInfo> divisionsInfoMap = new HashMap<>();
 
-	private File zipFile;
-
 	private SIPFileHasher sipFileHasher;
 
 	public SIPZipWriter(IOServices ioServices, SIPFileHasher sipFileHasher, File zipFile, String sipFileName,
-						Map<String, MetsDivisionInfo> divisionsInfoMap) {
+						Map<String, MetsDivisionInfo> divisionsInfoMap) throws FileNotFoundException {
 		this.sipFileHasher = sipFileHasher;
-		this.zipFile = zipFile;
 		this.ioServices = ioServices;
 		this.sipFileName = sipFileName;
 		this.divisionsInfoMap = divisionsInfoMap;
 		this.sipCreationTime = TimeProvider.getLocalDateTime().toDate();
 
-		OutputStream zipFileOutputStream = null;
-		try {
-			zipFileOutputStream = new FileOutputStream(zipFile);
-		} catch (FileNotFoundException e) {
-			//TODO
-			throw new RuntimeException(e);
-		}
+		OutputStream zipFileOutputStream = new FileOutputStream(zipFile);
 		zipOutputStream = new ZipArchiveOutputStream(zipFileOutputStream);
 		zipOutputStream.setUseZip64(Zip64Mode.AsNeeded);
 
-		metsFilename = sipFileName + ".xml";
+
 	}
 
 
 	public void close() throws IOException {
 
-		File metsFile = File.createTempFile(RMSIPBuilder.class.getSimpleName(), metsFilename);
-		metsFile.deleteOnExit();
+		try {
+			addMetsFile();
+			addManifestFiles();
 
+		} finally {
+			IOUtils.closeQuietly(zipOutputStream);
+		}
 
-		MetsFileWriter metsFileWriter = new MetsFileWriter(metsFile, metsFilename, sipCreationTime, divisionsInfoMap);
+	}
 
-		metsFileWriter.build(eadMetadataReferences, contentFileReferences);
+	protected void addMetsFile() {
+		String metsFilename = sipFileName + ".xml";
+		MetsFileWriter metsFileWriter = new MetsFileWriter(ioServices, newZipFileOutputStream("/" + metsFilename),
+				metsFilename, sipCreationTime, divisionsInfoMap);
+		try {
+			metsFileWriter.write(eadMetadataReferences, contentFileReferences);
 
-		String metsFileZipPath = "/" + metsFilename;
-		addToZip(metsFile, metsFileZipPath);
-		metsFile.delete();
+		} finally {
+			metsFileWriter.close();
+		}
+	}
 
-		//TODO Improve stream safety
-
+	protected void addManifestFiles() throws IOException {
 		String hashingType = sipFileHasher.getFunctionName().toLowerCase().replace("-", "");
 		BufferedWriter manifestWriter = newZipFileWriter("/" + "manifest-" + hashingType + ".txt");
-		IOUtils.writeLines(manifestLines, "\n", manifestWriter);
-		IOUtils.closeQuietly(manifestWriter);
+		try {
+			IOUtils.writeLines(manifestLines, "\n", manifestWriter);
+		} finally {
+			IOUtils.closeQuietly(manifestWriter);
+		}
 
 		BufferedWriter tagManifestWriter = newZipFileWriter("/" + "tagmanifest-" + hashingType + ".txt");
-		IOUtils.writeLines(tagManifestLines, "\n", tagManifestWriter);
-		IOUtils.closeQuietly(tagManifestWriter);
-
-		IOUtils.closeQuietly(zipOutputStream);
-
+		try {
+			IOUtils.writeLines(tagManifestLines, "\n", tagManifestWriter);
+		} finally {
+			IOUtils.closeQuietly(tagManifestWriter);
+		}
 	}
 
 
 	public OutputStream newZipFileOutputStream(final String path) {
 		String tempFileMpnitorName = "temp file '" + path + "' in sip file '" + sipFileName + "'";
 		final File tempFile = ioServices.newTemporaryFile("SIPZipWriter-" + tempFileMpnitorName);
-
+		try {
+			FileUtils.touch(tempFile);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
 		Runnable fileClosingAction = new Runnable() {
 			@Override
 			public void run() {
