@@ -157,7 +157,7 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 
 
 		RMSIPBuilder constellioSIP = new RMSIPBuilder(zeCollection, getAppLayerFactory());
-		ValidationErrors errors = constellioSIP.build(sipFile, new ArrayList<String>(), asList(documentsIds), null, params);
+		ValidationErrors errors = constellioSIP.buildWithFoldersAndDocuments(sipFile, new ArrayList<String>(), asList(documentsIds), null, params);
 		if (!errors.isEmpty()) {
 			assertThat(TestUtils.frenchMessages(errors)).describedAs("errors").isEmpty();
 		}

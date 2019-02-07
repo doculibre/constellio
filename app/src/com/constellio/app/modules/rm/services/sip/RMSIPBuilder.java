@@ -7,20 +7,16 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.sip.mets.MetsDivisionInfo;
-import com.constellio.app.services.sip.zip.SIPZipWriter;
-import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.Provider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.frameworks.validation.ValidationErrors;
-import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
 import java.io.File;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -34,22 +30,6 @@ import static java.util.Arrays.asList;
 
 public class RMSIPBuilder {
 
-	public static final String JOINT_FILES_KEY = "attachments";
-
-	private static final String BAG_INFO_FILE_NAME = "bag-info.txt";
-
-	private static final String READ_VAULT_FILE_STREAM_NAME = RMSIPBuilder.class.getSimpleName() + "-ReadVaultFile";
-	private static final String READ_VAULT_FILE_TEMP_FILE_STREAM_NAME = RMSIPBuilder.class.getSimpleName() + "-ReadVaultFileTempFile";
-	private static final String WRITE_VAULT_FILE_TO_TEMP_FILE_STREAM_NAME = RMSIPBuilder.class.getSimpleName() + "-WriteVaultFileToTempFile";
-
-	private SIPZipWriter sipZipWriter;
-
-	private SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd");
-
-	private Map<String, Integer> extensionCounts = new HashMap<String, Integer>();
-
-	private String currentVersion;
-
 	private AppLayerFactory appLayerFactory;
 
 	private RecordServices recordServices;
@@ -58,28 +38,20 @@ public class RMSIPBuilder {
 
 	private RMSchemasRecordsServices rm;
 
-	private IOServices ioServices;
-
-	private ContentManager contentManager;
-
 	private RecordSIPWriter recordSIPWriter;
 
 	private SearchServices searchServices;
 
 	public RMSIPBuilder(String collection,
 						AppLayerFactory appLayerFactory) {
-		this.currentVersion = appLayerFactory.newApplicationService().getWarVersion();
 		this.appLayerFactory = appLayerFactory;
 		this.recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 		this.rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		this.collection = collection;
-		this.ioServices = rm.getModelLayerFactory().getIOServicesFactory().newIOServices();
-		this.contentManager = appLayerFactory.getModelLayerFactory().getContentManager();
-
 		this.searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
 	}
 
-	public ValidationErrors build(File zipFile, List<String> folderIds, List<String> documentIds,
+	public ValidationErrors buildWithFoldersAndDocuments(File zipFile, List<String> folderIds, List<String> documentIds,
 								  ProgressInfo progressInfo, SIPBuilderParams params)
 			throws IOException {
 

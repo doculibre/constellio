@@ -44,93 +44,10 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 
-/**
- * metsHdr CREATEDATE="..." RECORDSTATUS="Complete"
- * - agent ROLE="CREATOR" ORGANIZATION=""
- * - name
- * <p>
- * dmdSec
- * - mdWrap MDTYPE="OTHER"
- * - xmlData
- * - field type="unité administrative"
- * - field*
- * <p>
- * TODO : Obtenir la liste des versions de logiciels/formats utilisés (Tika?)
- * amdSec
- * - digiprovMD ID="???"
- * - mdWrap MDTYPE="PREMIS"
- * - xmlData
- * - PREMIS:premis version="2.0"
- * - PREMIS:object xsi:type="PREMIS:file"
- * - PREMIS:objectIdentifier
- * - PREMIS:objectIdentifierType (internal)
- * - PREMIS:objectIdentifierValue (???)
- * - PREMIS:objectCharacteristics
- * - PREMIS:compositionLevel (0)
- * - PREMIS:format
- * - PREMIS:formatDesignation
- * - PREMIS:formatName (Acrobat PDF = Portable Document Format)
- * - PREMIS:formatVersion (1.5)
- * <p>
- * - digiprovMD ID="???"
- * - mdWrap MDTYPE="PREMIS"
- * - xmlData
- * - PREMIS:premis version="2.0"
- * - PREMIS:object xsi:type="PREMIS:file"
- * - PREMIS:objectIdentifier
- * - PREMIS:objectIdentifierType (internal)
- * - PREMIS:objectIdentifierValue (???)
- * - PREMIS:objectCharacteristics
- * - PREMIS:compositionLevel (0)
- * - PREMIS:format
- * - PREMIS:formatDesignation
- * - PREMIS:formatName (image/tiff)
- * - PREMIS:formatVersion (6.0)
- * <p>
- * - digiprovMD ID="???"
- * - mdWrap MDTYPE="PREMIS"
- * - xmlData
- * - PREMIS:premis version="2.0"
- * - PREMIS:object xsi:type="PREMIS:file"
- * - PREMIS:objectIdentifier
- * - PREMIS:objectIdentifierType (internal)
- * - PREMIS:objectIdentifierValue (???)
- * - PREMIS:objectCharacteristics
- * - PREMIS:compositionLevel (0)
- * - PREMIS:format
- * - PREMIS:formatDesignation
- * - PREMIS:formatName (text/plain)
- * - PREMIS:formatVersion (1.0)
- * <p>
- * fileSec
- * - fileGrp
- * - file ID="constellio_meta_mets_id" MIMETYPE="text/xml" SIZE="..." CHECKSUM="..." CHECKSUMTYPE="SHA2"
- * - FLocat LOCTYPE="URL" xlink:href="bag/constellio_meta_mets.xml"
- * - file ID="constellio_paquet_info_id" MIMETYPE="text/plain" SIZE="..." CHECKSUM="..." CHECKSUMTYPE="SHA2"
- * - FLocat LOCTYPE="URL" xlink:href="bag/constellio_paquet_info.txt"
- * - file ID="constellio_manifest_sha2_id" MIMETYPE="text/plain" SIZE="..." CHECKSUM="..." CHECKSUMTYPE="SHA2"
- * - FLocat LOCTYPE="URL" xlink:href="bag/constellio_manifest_sha2.txt"
- * <p>
- * - fileGrp
- * - file ID="fichier_1_id" DMDID="[id dmdSec]" AMDID="[id amdSec]"
- * TODO
- * <p>
- * structMap
- * - div LABEL="bag" TYPE="folder"
- * - fptr* (fichiers descriptifs du SIP)
- * <p>
- * - div* LABEL="1234 - unité administrative 1000" TYPE="folder" DMDID="[Référence dmdSec]"
- * - div* LABEL="5678 - poste classement 1001" TYPE="folder" DMDID="[Référence dmdSec]"
- * - div* LABEL="d001 - Dossier machin 001" TYPE="folder" DMDID="[Référence dmdSec]"
- * - fptr* (fichiers électroniques des fiches de document)
- * <p>
- * - div* LABEL="d002 - Sous-dossier machin 002" TYPE="folder" DMDID="[Référence dmdSec]".
- *
- * @author Vincent
- */
+
 public class RecordSIPWriter {
 
-	public static final String JOINT_FILES_KEY = "attachments";
+	private static final String JOINT_FILES_KEY = "attachments";
 
 	private static final String BAG_INFO_FILE_NAME = "bag-info.txt";
 
@@ -143,8 +60,6 @@ public class RecordSIPWriter {
 	private SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd");
 
 	private Map<String, Integer> extensionCounts = new HashMap<String, Integer>();
-
-	private String currentVersion;
 
 	private Locale locale;
 
@@ -160,8 +75,6 @@ public class RecordSIPWriter {
 
 	private SIPBuilderParams params;
 
-	private File zipFile;
-	private Map<String, MetsDivisionInfo> divisionInfoMap;
 
 	private Provider<Record, String> recordPathProvider;
 
@@ -171,8 +84,8 @@ public class RecordSIPWriter {
 						   File zipFile,
 						   Map<String, MetsDivisionInfo> divisionInfoMap,
 						   Provider<Record, String> recordPathProvider) {
+
 		this.params = params;
-		this.currentVersion = appLayerFactory.newApplicationService().getWarVersion();
 		this.locale = params.getLocale();
 		this.appLayerFactory = appLayerFactory;
 		this.rm = new RMSchemasRecordsServices(collection, appLayerFactory);
@@ -183,10 +96,7 @@ public class RecordSIPWriter {
 			this.locale = appLayerFactory.getModelLayerFactory().getCollectionsListManager()
 					.getCollectionInfo(collection).getMainSystemLocale();
 		}
-		this.divisionInfoMap = divisionInfoMap;
 		this.recordPathProvider = recordPathProvider;
-		this.zipFile = zipFile;
-
 		String sipFilename = FilenameUtils.removeExtension(zipFile.getName());
 		try {
 			sipZipWriter = new SIPZipWriter(ioServices, params.getSipFileHasher(), zipFile, sipFilename, divisionInfoMap);
@@ -489,6 +399,7 @@ public class RecordSIPWriter {
 	}
 
 	private List<String> collectBagInfoLines() {
+		String currentVersion = appLayerFactory.newApplicationService().getWarVersion();
 		List<String> bagInfoLines = new ArrayList<>();
 		if (params.getProvidedBagInfoHeaderLines() != null) {
 			bagInfoLines.addAll(params.getProvidedBagInfoHeaderLines());

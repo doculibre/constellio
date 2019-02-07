@@ -77,7 +77,7 @@ public class SIPArchivesAcceptanceTest extends ConstellioTest {
 
 		SIPBuilderParams params = new SIPBuilderParams().setProvidedBagInfoHeaderLines(bagInfoLines);
 		RMSIPBuilder constellioSIP = new RMSIPBuilder(zeCollection, getAppLayerFactory());
-		constellioSIP.build(outFile, asList(records.folder_A01), new ArrayList<String>(), null, params);
+		constellioSIP.buildWithFoldersAndDocuments(outFile, asList(records.folder_A01), new ArrayList<String>(), null, params);
 
 	}
 

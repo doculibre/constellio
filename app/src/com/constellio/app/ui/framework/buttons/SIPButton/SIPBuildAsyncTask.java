@@ -111,7 +111,7 @@ public class SIPBuildAsyncTask implements AsyncTask {
 						.setSipFilesLimit(limitSize ? SIP_MAX_FILES : 0);
 
 				RMSIPBuilder constellioSIP = new RMSIPBuilder(collection, appLayerFactory);
-				constellioSIP.build(outFile, this.includeFolderIds, this.includeDocumentIds, progressInfo, builderParams);
+				constellioSIP.buildWithFoldersAndDocuments(outFile, this.includeFolderIds, this.includeDocumentIds, progressInfo, builderParams);
 
 				//Create SIParchive record
 				ContentManager contentManager = modelLayerFactory.getContentManager();
