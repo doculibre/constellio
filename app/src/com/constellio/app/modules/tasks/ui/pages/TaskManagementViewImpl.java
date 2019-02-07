@@ -1,6 +1,7 @@
 package com.constellio.app.modules.tasks.ui.pages;
 
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
+import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.ui.components.DemoFilterDecorator;
 import com.constellio.app.modules.tasks.ui.components.DemoFilterGenerator;
 import com.constellio.app.modules.tasks.ui.components.FilterTableAdapter;
@@ -195,14 +196,24 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 				};
 			}
 		};
-
-		taskTable.setColumnExpandRatio("userTask_default_linkedWorkflowExecution", 0);
 		FilterTableAdapter tableAdapter = new FilterTableAdapter(taskTable, new DemoFilterDecorator(), new DemoFilterGenerator());
 
 		// cas uniquement pour l'exemple
 		tableAdapter.setFilterFieldVisible("menuBar", false);
 		tableAdapter.setFilterBarVisible(true);
 
+		String linkedWorkflowExecutionCode = Task.DEFAULT_SCHEMA + "_" + "linkedWorkflowExecution";
+		String titleCode = Task.DEFAULT_SCHEMA + "_" + "title";
+		for(Object visibleColumn : taskTable.getVisibleColumns()){
+			if (visibleColumn instanceof MetadataVO) {
+				if(linkedWorkflowExecutionCode.equals(((MetadataVO)visibleColumn).getCode())){
+					tableAdapter.setColumnExpandRatio(visibleColumn, 1);
+				}
+				if(titleCode.equals(((MetadataVO)visibleColumn).getCode())){
+					tableAdapter.setColumnExpandRatio(visibleColumn, 0);
+				}
+			}
+		}
 
 		layout.addComponent(tableAdapter);
 		//layout.addComponent(new BaseFilteringTable());
