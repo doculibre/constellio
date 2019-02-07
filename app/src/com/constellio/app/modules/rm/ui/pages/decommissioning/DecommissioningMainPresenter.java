@@ -50,6 +50,12 @@ public class DecommissioningMainPresenter extends SingleSchemaBasePresenter<Deco
 		return securityService().hasAccessToDecommissioningMainPage(user);
 	}
 
+	public boolean hasCreatePermissionOnList(RecordVO recordVO) {
+		DecommissioningList decommissioningList = rmRecordServices.getDecommissioningList(recordVO.getId());
+		return securityService().hasCreatePermissionOnList(getCurrentUser(), decommissioningList);
+	}
+
+
 	public List<String> getTabs() {
 		SearchServices service = searchServices();
 		List<String> result = new ArrayList<>();

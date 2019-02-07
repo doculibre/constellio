@@ -93,8 +93,15 @@ public class DocumentDecommissioningListPresenter extends SingleSchemaBasePresen
 	}
 
 	public boolean isProcessableByUser() {
-		return decommissioningService().isProcessable(decommissioningList(), getCurrentUser())
-				&& securityService().hasCreatePermissionOnList(getCurrentUser(), decommissioningList());
+		return decommissioningService().isProcessable(decommissioningList(), getCurrentUser());
+	}
+
+	public boolean processPermissionOnList() {
+		return securityService().hasProcessPermissionOnList(getCurrentUser(), decommissioningList());
+	}
+
+	public boolean creationPermissionOnList() {
+		return securityService().hasCreatePermissionOnList(getCurrentUser(), decommissioningList());
 	}
 
 	public void processButtonClicked() {

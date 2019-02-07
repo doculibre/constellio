@@ -173,6 +173,7 @@ public class DecommissioningMainViewImpl extends BaseViewImpl implements Decommi
 				};
 			}
 		});
+
 		container.addButton(new ContainerButton() {
 			@Override
 			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
@@ -181,6 +182,12 @@ public class DecommissioningMainViewImpl extends BaseViewImpl implements Decommi
 					protected void buttonClick(ClickEvent event) {
 						RecordVO entity = dataProvider.getRecordVO((int) itemId);
 						presenter.editButtonClicked(entity);
+					}
+
+					@Override
+					public boolean isVisible() {
+						RecordVO decommissionningList = dataProvider.getRecordVO((int) itemId);
+						return presenter.hasCreatePermissionOnList(decommissionningList);
 					}
 				};
 			}
@@ -199,6 +206,12 @@ public class DecommissioningMainViewImpl extends BaseViewImpl implements Decommi
 					protected String getConfirmDialogMessage() {
 						RecordVO entity = dataProvider.getRecordVO((int) itemId);
 						return presenter.getDeleteConfirmMessage(entity);
+					}
+
+					@Override
+					public boolean isVisible() {
+						RecordVO decommissionningList = dataProvider.getRecordVO((int) itemId);
+						return presenter.hasCreatePermissionOnList(decommissionningList);
 					}
 				};
 			}

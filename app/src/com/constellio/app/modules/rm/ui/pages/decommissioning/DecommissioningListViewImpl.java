@@ -213,19 +213,27 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 	@Override
 	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
 		List<Button> buttons = super.buildActionMenuButtons(event);
-		buttons.add(buildEditButton());
-		buttons.add(buildDeleteButton());
-		buttons.add(buildValidationRequestButton());
+		if(presenter.hasCreatePermissionOnList()) {
+			buttons.add(buildEditButton());
+			buttons.add(buildDeleteButton());
+		}
+		if(presenter.hasProcessPermissionOnList()) {
+			buttons.add(buildValidationRequestButton());
+		}
 		buttons.add(buildValidationButton());
-		buttons.add(buildProcessButton());
-		buttons.add(buildApprovalRequestButton());
+		if(presenter.hasProcessPermissionOnList()) {
+			buttons.add(buildProcessButton());
+			buttons.add(buildApprovalRequestButton());
+		}
 		buttons.add(buildApprovalButton());
 		buttons.add(buildDenyApprovalButton());
 		buttons.add(buildPrintButton());
 		buttons.add(buildDocumentsCertificateButton());
 		buttons.add(buildFoldersCertificateButton());
-		buttons.add(buildAddFoldersButton());
-		buttons.add(buildRemoveFoldersButton());
+		if(presenter.hasCreatePermissionOnList()) {
+			buttons.add(buildAddFoldersButton());
+			buttons.add(buildRemoveFoldersButton());
+		}
 		buttons.add(buildCreateSIPARchivesButton());
 		return buttons;
 	}
