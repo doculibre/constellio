@@ -9,6 +9,7 @@ import com.constellio.app.modules.rm.services.sip.filter.SIPFilter;
 import com.constellio.data.dao.services.idGenerator.InMemorySequentialGenerator;
 import com.constellio.data.io.services.zip.ZipServiceException;
 import com.constellio.model.entities.records.Content;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.contents.ContentImpl;
@@ -25,6 +26,7 @@ import org.junit.Test;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 
@@ -121,8 +123,11 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 				.withIncludeDocumentIds(asList(documentsIds));
 		ConstellioSIPObjectsProvider metsObjectsProvider = new ConstellioSIPObjectsProvider(zeCollection, getAppLayerFactory(),
 				filter, new ProgressInfo());
-		ConstellioSIP constellioSIP = new ConstellioSIP(metsObjectsProvider, bagInfoLines, false,
-				getAppLayerFactory().newApplicationService().getWarVersion(), new ProgressInfo(), Locale.FRENCH) {
+
+		Iterator<Record> recordIterator = getModelLayerFactory().newRecordServices().getRecordsById(zeCollection, asList(documentsIds)).iterator();
+
+		ConstellioSIP constellioSIP = new ConstellioSIP(recordIterator, bagInfoLines, false,
+				getAppLayerFactory().newApplicationService().getWarVersion(), new ProgressInfo(), Locale.FRENCH, zeCollection, getAppLayerFactory()) {
 			@Override
 			protected String getHash(File file, String sipPath) throws IOException {
 				return "CHECKSUM{{" + sipPath.replace("\\", "/ d") + "}}";

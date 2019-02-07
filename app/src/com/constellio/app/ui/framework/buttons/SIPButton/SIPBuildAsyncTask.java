@@ -3,13 +3,12 @@ package com.constellio.app.ui.framework.buttons.SIPButton;
 import com.constellio.app.entities.modules.ProgressInfo;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.sip.ConstellioSIP;
-import com.constellio.app.modules.rm.services.sip.data.intelligid.ConstellioSIPObjectsProvider;
-import com.constellio.app.modules.rm.services.sip.filter.SIPFilter;
 import com.constellio.app.modules.rm.wrappers.SIParchive;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.data.utils.LazyIterator;
 import com.constellio.model.entities.batchprocess.AsyncTask;
 import com.constellio.model.entities.batchprocess.AsyncTaskExecutionParams;
 import com.constellio.model.entities.records.Record;
@@ -26,6 +25,7 @@ import org.apache.commons.collections.ListUtils;
 import org.joda.time.LocalDateTime;
 
 import java.io.File;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
@@ -73,26 +73,34 @@ public class SIPBuildAsyncTask implements AsyncTask {
 	public void execute(AsyncTaskExecutionParams params)
 			throws ImpossibleRuntimeException {
 		ValidationErrors errors = new ValidationErrors();
-		AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
-		String collection = params.getCollection();
-		ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
-		File outFolder = null;
-		File outFile = null;
-		try {
-			List<String> ids = ListUtils.union(this.includeDocumentIds, this.includeFolderIds);
-			User currentUser = modelLayerFactory.newUserServices().getUserInCollection(this.username, collection);
+		List<String> ids = ListUtils.union(this.includeDocumentIds, this.includeFolderIds);
+		if (ids.isEmpty()) {
+			errors.add(SIPGenerationValidationException.class, "Lists cannot be null");
+		} else {
+			final AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
+			String collection = params.getCollection();
+			ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
+			File outFolder = null;
+			File outFile = null;
+			try {
 
-			RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
-			outFolder = modelLayerFactory.getIOServicesFactory().newIOServices().newTemporaryFolder("SIPArchives");
-			outFile = new File(outFolder, this.sipFileName);
-			SIPFilter filter = new SIPFilter(collection, appLayerFactory).withIncludeDocumentIds(this.includeDocumentIds)
-					.withIncludeFolderIds(this.includeFolderIds);
-			ConstellioSIPObjectsProvider metsObjectsProvider = new ConstellioSIPObjectsProvider(collection, appLayerFactory,
-					filter, progressInfo);
+				User currentUser = modelLayerFactory.newUserServices().getUserInCollection(this.username, collection);
 
-			if (!metsObjectsProvider.list().isEmpty()) {
-				ConstellioSIP constellioSIP = new ConstellioSIP(metsObjectsProvider, bagInfoLines, limitSize, currentVersion,
-						progressInfo, locale);
+				RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+				outFolder = modelLayerFactory.getIOServicesFactory().newIOServices().newTemporaryFolder("SIPArchives");
+				outFile = new File(outFolder, this.sipFileName);
+
+				final Iterator<String> idsIterator = ids.iterator();
+				final RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
+				Iterator<Record> recordsIterator = new LazyIterator<Record>() {
+					@Override
+					protected Record getNextOrNull() {
+						return idsIterator.hasNext() ? recordServices.getDocumentById(idsIterator.next()) : null;
+					}
+				};
+
+				ConstellioSIP constellioSIP = new ConstellioSIP(recordsIterator, bagInfoLines, limitSize, currentVersion,
+						progressInfo, locale, collection, appLayerFactory);
 				constellioSIP.build(outFile);
 
 				//Create SIParchive record
@@ -106,13 +114,8 @@ public class SIPBuildAsyncTask implements AsyncTask {
 				Transaction transaction = new Transaction();
 				transaction.add(sipArchive);
 				modelLayerFactory.newRecordServices().execute(transaction);
-			}
 
-			if (ids.isEmpty()) {
-				errors.add(SIPGenerationValidationException.class, "Lists cannot be null");
-			} else {
 				if (deleteFiles) {
-					RecordServices recordServices = modelLayerFactory.newRecordServices();
 					for (String documentIds : ids) {
 						try {
 							Record record = recordServices.getDocumentById(documentIds);
@@ -124,13 +127,13 @@ public class SIPBuildAsyncTask implements AsyncTask {
 						}
 					}
 				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			} finally {
+				IOServices ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();
+				ioServices.deleteQuietly(outFile);
+				ioServices.deleteQuietly(outFolder);
 			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		} finally {
-			IOServices ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();
-			ioServices.deleteQuietly(outFile);
-			ioServices.deleteQuietly(outFolder);
 		}
 	}
 
