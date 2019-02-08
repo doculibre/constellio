@@ -2,12 +2,12 @@ package com.constellio.app.modules.rm.services.sip;
 
 import com.constellio.app.entities.modules.ProgressInfo;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.services.sip.RecordSIPWriter.RecordPathProvider;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.sip.mets.MetsDivisionInfo;
-import com.constellio.data.utils.Provider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.frameworks.validation.ValidationErrors;
@@ -51,6 +51,9 @@ public class RMSIPBuilder {
 		this.searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
 	}
 
+	/**
+	 * Create an SIP Archive using given folders and document ids
+	 */
 	public ValidationErrors buildWithFoldersAndDocuments(File zipFile, List<String> folderIds, List<String> documentIds,
 														 ProgressInfo progressInfo, SIPBuilderParams params)
 			throws IOException {
@@ -142,10 +145,10 @@ public class RMSIPBuilder {
 		return parentIds;
 	}
 
-	private class RMZipPathProvider implements Provider<Record, String> {
+	private class RMZipPathProvider implements RecordPathProvider {
 
 		@Override
-		public String get(Record record) {
+		public String getPath(Record record) {
 
 			String parent = null;
 			String pathIdentifier = record.getId();
@@ -170,7 +173,7 @@ public class RMSIPBuilder {
 			if (parent == null) {
 				path.append("/data/");
 			} else {
-				path.append(get(recordServices.getDocumentById(parent))).append("/");
+				path.append(getPath(recordServices.getDocumentById(parent))).append("/");
 			}
 
 			if (addSchemaTypeInPath) {

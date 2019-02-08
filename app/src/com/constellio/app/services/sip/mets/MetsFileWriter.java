@@ -264,7 +264,11 @@ public class MetsFileWriter {
 						MetsStructureDivision aParentDivision = allDivisions.get(lastAddedDivision.divisionInfo.getParentId());
 
 						if (aParentDivision == null) {
-							aParentDivision = new MetsStructureDivision(divisionsInfoMap.get(lastAddedDivision.divisionInfo.getParentId()));
+							MetsDivisionInfo metsDivisionInfo = divisionsInfoMap.get(lastAddedDivision.divisionInfo.getParentId());
+							if (metsDivisionInfo == null) {
+								throw new IllegalArgumentException("No such division with id '" + lastAddedDivision.divisionInfo.getParentId() + "'");
+							}
+							aParentDivision = new MetsStructureDivision(metsDivisionInfo);
 							aParentDivision.childDivisions.add(lastAddedDivision);
 							allDivisions.put(aParentDivision.divisionInfo.getId(), aParentDivision);
 							lastAddedDivision = aParentDivision;
@@ -290,7 +294,11 @@ public class MetsFileWriter {
 		}
 
 		for (MetsContentFileReference contentFileReference : contentFileReferences) {
-			allDivisions.get(contentFileReference.getDmdid()).filePointers.add(new MetsFilePointer(contentFileReference.getId()));
+			MetsStructureDivision structureDivision = allDivisions.get(contentFileReference.getDmdid());
+			if (structureDivision == null) {
+				throw new IllegalArgumentException("No such division with id '" + contentFileReference.getDmdid() + "'");
+			}
+			structureDivision.filePointers.add(new MetsFilePointer(contentFileReference.getId()));
 		}
 
 
