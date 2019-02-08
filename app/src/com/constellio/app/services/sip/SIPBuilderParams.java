@@ -1,4 +1,4 @@
-package com.constellio.app.modules.rm.services.sip;
+package com.constellio.app.services.sip;
 
 import com.constellio.app.services.sip.zip.SIPFileHasher;
 

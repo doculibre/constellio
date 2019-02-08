@@ -2,11 +2,13 @@ package com.constellio.app.modules.rm.services.sip;
 
 import com.constellio.app.entities.modules.ProgressInfo;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.services.sip.RecordSIPWriter.RecordPathProvider;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.sip.RecordSIPWriter;
+import com.constellio.app.services.sip.RecordSIPWriter.RecordPathProvider;
+import com.constellio.app.services.sip.SIPBuilderParams;
 import com.constellio.app.services.sip.mets.MetsDivisionInfo;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Schemas;
@@ -99,7 +101,7 @@ public class RMSIPBuilder {
 		for (String id : orderedIds) {
 			Record record = recordServices.getDocumentById(id);
 			if (Folder.SCHEMA_TYPE.equals(record.getTypeCode())) {
-				writer.add(asList(record));
+				errors.addAll(writer.add(asList(record)).getValidationErrors());
 
 				progressInfo.setCurrentState(recordsHandled + 1);
 				recordsHandled++;
@@ -109,7 +111,7 @@ public class RMSIPBuilder {
 		for (String id : orderedIds) {
 			Record record = recordServices.getDocumentById(id);
 			if (Document.SCHEMA_TYPE.equals(record.getTypeCode())) {
-				writer.add(asList(record));
+				errors.addAll(writer.add(asList(record)).getValidationErrors());
 
 				progressInfo.setCurrentState(recordsHandled + 1);
 				recordsHandled++;
@@ -120,6 +122,7 @@ public class RMSIPBuilder {
 
 		return errors;
 	}
+
 
 	private List<String> getChildrenIds(Folder folder) {
 		return searchServices.searchRecordIds(new LogicalSearchQuery(

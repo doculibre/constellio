@@ -3,7 +3,7 @@ package com.constellio.app.ui.framework.buttons.SIPButton;
 import com.constellio.app.entities.modules.ProgressInfo;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.sip.RMSIPBuilder;
-import com.constellio.app.modules.rm.services.sip.SIPBuilderParams;
+import com.constellio.app.services.sip.SIPBuilderParams;
 import com.constellio.app.modules.rm.wrappers.SIParchive;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;

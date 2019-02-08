@@ -66,6 +66,13 @@ public class SIPZipWriter {
 
 	}
 
+	public SIPFileHasher getSipFileHasher() {
+		return sipFileHasher;
+	}
+
+	public IOServices getIoServices() {
+		return ioServices;
+	}
 
 	public void close() throws IOException {
 
@@ -162,13 +169,14 @@ public class SIPZipWriter {
 
 	}
 
-	public void addToZip(SIPZipWriterTransaction transaction) throws IOException {
+	public void insertAll(SIPZipWriterTransaction transaction) throws IOException {
 		for (Map.Entry<String, File> entry : transaction.getFiles().entrySet()) {
 			addToZip(entry.getValue(), entry.getKey());
 		}
 
 		contentFileReferences.addAll(transaction.getContentFileReferences());
 		eadMetadataReferences.addAll(transaction.getEadMetadataReferences());
+		ioServices.deleteQuietly(transaction.tempFolder);
 	}
 
 	public void addToZip(File file, String path) throws IOException {
@@ -199,14 +207,34 @@ public class SIPZipWriter {
 
 	}
 
-
-	public boolean containsEADMetadatasOf(String id) {
-		for (MetsEADMetadataReference reference : eadMetadataReferences) {
-			if (id.equals(reference.getId())) {
-				return true;
-			}
-		}
-		return false;
+	public SIPZipWriterTransaction newInsertTransaction() {
+		return new SIPZipWriterTransaction(ioServices.newTemporaryFolder("ConstellioSIP-transaction"), this);
 	}
 
+	public void discard(SIPZipWriterTransaction transaction) {
+		ioServices.deleteQuietly(transaction.tempFolder);
+	}
+
+
+	//						long length = contentVersion.getLength();
+	//						documentFilesLength += length;
+	//
+	//						if (params.getSipBytesLimit() > 0 && sipZipWriter.sipFilesLength + documentFilesLength > params.getSipBytesLimit()) {
+	//							Map<String, Object> errorsMap = new HashMap<>();
+	//							errorsMap.put("sipObjectType", record.getTypeCode());
+	//							errorsMap.put("sipObjectId", record.getId());
+	//							errorsMap.put("sipObjectTitle", record.getTitle());
+	//							errorsMap.put("sipFilesLength", sipZipWriter.sipFilesLength + documentFilesLength);
+	//							errorsMap.put("sipMaxFilesLength", params.getSipBytesLimit());
+	//							errors.add(SIPMaxFileLengthReachedException.class, "SIPMaxFileLengthReached", errorsMap);
+	//
+	//						} else if (params.getSipFilesLimit() > 0 && sipZipWriter.sipFilesCount + documentFilesCount > params.getSipFilesLimit()) {
+	//							Map<String, Object> errorsMap = new HashMap<>();
+	//							errorsMap.put("sipObjectType", record.getTypeCode());
+	//							errorsMap.put("sipObjectId", record.getId());
+	//							errorsMap.put("sipObjectTitle", record.getTitle());
+	//							errorsMap.put("sipFilesCount", sipZipWriter.sipFilesCount + documentFilesCount);
+	//							errorsMap.put("sipMaxFilesCount", params.getSipFilesLimit());
+	//							errors.add(SIPMaxFileCountReachedException.class, "SIPMaxFileCountReached", errorsMap);
+	//						}
 }

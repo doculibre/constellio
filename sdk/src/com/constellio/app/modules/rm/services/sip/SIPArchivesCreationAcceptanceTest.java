@@ -3,6 +3,7 @@ package com.constellio.app.modules.rm.services.sip;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.services.sip.SIPBuilderParams;
 import com.constellio.app.services.sip.zip.SIPFileHasher;
 import com.constellio.data.dao.services.idGenerator.InMemorySequentialGenerator;
 import com.constellio.data.io.services.zip.ZipServiceException;
