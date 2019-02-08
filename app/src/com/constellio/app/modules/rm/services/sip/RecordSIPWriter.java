@@ -154,6 +154,8 @@ public class RecordSIPWriter {
 			throws METSException {
 		try {
 
+			String path = recordPathProvider.get(record);
+
 			if (Document.SCHEMA_TYPE.equals(record.getTypeCode())) {
 				String dmdSecId = record.getId();
 				long documentFilesLength = 0;
@@ -212,8 +214,11 @@ public class RecordSIPWriter {
 						OutputStream outputStream = ioServices.newBufferedFileOutputStream(tempFile, WRITE_VAULT_FILE_TO_TEMP_FILE_STREAM_NAME);
 						ioServices.copyAndClose(inputStream, outputStream);
 
+						System.out.println(path);
 						String zipFilePath = recordPathProvider.get(folder.getWrappedRecord()) + "/document-" + document.getId() +
 											 "-" + contentVersion.getVersion() + "." + extension;
+						System.out.println(zipFilePath);
+						System.out.println("");
 						MetsContentFileReference reference = new MetsContentFileReference();
 						reference.setId(fileId);
 						reference.setDmdid(dmdSecId);

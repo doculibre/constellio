@@ -52,7 +52,7 @@ public class RMSIPBuilder {
 	}
 
 	public ValidationErrors buildWithFoldersAndDocuments(File zipFile, List<String> folderIds, List<String> documentIds,
-								  ProgressInfo progressInfo, SIPBuilderParams params)
+														 ProgressInfo progressInfo, SIPBuilderParams params)
 			throws IOException {
 
 		Map<String, MetsDivisionInfo> divisionInfoMap = new HashMap<>();
@@ -144,32 +144,41 @@ public class RMSIPBuilder {
 
 	private class RMZipPathProvider implements Provider<Record, String> {
 
-
 		@Override
 		public String get(Record record) {
+
+			String parent = null;
+			String pathIdentifier = record.getId();
+			boolean addSchemaTypeInPath = true;
+
 			if (Category.SCHEMA_TYPE.equals(record.getTypeCode())) {
-				Category currentCategory = rm.wrapCategory(record);
-				if (currentCategory.getParent() != null) {
-					return get(recordServices.getDocumentById(currentCategory.getParent())) + "/" + currentCategory.getCode();
-				} else {
-					return "/data/" + currentCategory.getCode();
-				}
+				Category category = rm.wrapCategory(record);
+				addSchemaTypeInPath = false;
+				pathIdentifier = category.getCode();
+				parent = category.getParent();
 
 			} else if (Folder.SCHEMA_TYPE.equals(record.getTypeCode())) {
 				Folder folder = rm.wrapFolder(record);
-				if (folder.getParentFolder() != null) {
-					return get(recordServices.getDocumentById(folder.getParentFolder())) + "/" + folder.getId();
-				} else {
-					return get(recordServices.getDocumentById(folder.getCategory())) + "/" + folder.getId();
-				}
+				parent = folder.getParentFolder() != null ? folder.getParentFolder() : folder.getCategory();
 
 			} else if (Document.SCHEMA_TYPE.equals(record.getTypeCode())) {
-				Document document = rm.wrapDocument(record);
-				return get(recordServices.getDocumentById(document.getFolder())) + "/" + document.getId();
+				parent = rm.wrapDocument(record).getFolder();
 
-			} else {
-				return "/data/" + record.getId();
 			}
+
+			StringBuilder path = new StringBuilder();
+			if (parent == null) {
+				path.append("/data/");
+			} else {
+				path.append(get(recordServices.getDocumentById(parent))).append("/");
+			}
+
+			if (addSchemaTypeInPath) {
+				path.append(record.getTypeCode()).append("-");
+			}
+			path.append(pathIdentifier);
+
+			return path.toString();
 		}
 	}
 
