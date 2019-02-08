@@ -76,7 +76,7 @@ public class DecommissioningSecurityService {
 	}
 
 	public boolean canAskValidation(DecommissioningList list, User user) {
-		return hasProcessPermissionOnList(user, list) || hasPermissionToCreateTransferOnList(list, user) || hasManageDecommissioningPermissionOnList(user, list);
+		return hasProcessPermissionOnList(user, list) || hasCreatePermissionOnList(user, list) || hasPermissionToCreateTransferOnList(list, user) || hasManageDecommissioningPermissionOnList(user, list);
 	}
 
 	public boolean canCreateLists(User user) {
@@ -85,7 +85,7 @@ public class DecommissioningSecurityService {
 	}
 
 	public boolean canAskApproval(DecommissioningList list, User user) {
-		return hasProcessPermissionOnList(user, list) || hasPermissionToCreateTransferOnList(list, user);
+		return hasProcessPermissionOnList(user, list) || hasCreatePermissionOnList(user, list) || hasPermissionToCreateTransferOnList(list, user);
 	}
 
 	public boolean canApprove(DecommissioningList list, User user) {

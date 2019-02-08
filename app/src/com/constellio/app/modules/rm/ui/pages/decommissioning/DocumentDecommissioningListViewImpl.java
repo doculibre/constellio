@@ -75,10 +75,8 @@ public class DocumentDecommissioningListViewImpl extends BaseViewImpl implements
 	@Override
 	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
 		List<Button> buttons = super.buildActionMenuButtons(event);
-		if(presenter.creationPermissionOnList()) {
-			buttons.add(buildEditButton());
-			buttons.add(buildDeleteButton());
-		}
+		buttons.add(buildEditButton());
+		buttons.add(buildDeleteButton());
 		if(presenter.processPermissionOnList()) {
 			buttons.add(buildProcessButton());
 		}

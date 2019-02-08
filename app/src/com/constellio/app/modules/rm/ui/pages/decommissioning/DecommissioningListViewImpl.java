@@ -213,18 +213,17 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 	@Override
 	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
 		List<Button> buttons = super.buildActionMenuButtons(event);
-		if(presenter.hasCreatePermissionOnList()) {
-			buttons.add(buildEditButton());
-			buttons.add(buildDeleteButton());
-		}
-		if(presenter.hasProcessPermissionOnList()) {
-			buttons.add(buildValidationRequestButton());
-		}
+
+		buttons.add(buildEditButton());
+		buttons.add(buildDeleteButton());
+
+		buttons.add(buildValidationRequestButton());
+
 		buttons.add(buildValidationButton());
 		if(presenter.hasProcessPermissionOnList()) {
 			buttons.add(buildProcessButton());
-			buttons.add(buildApprovalRequestButton());
 		}
+		buttons.add(buildApprovalRequestButton());
 		buttons.add(buildApprovalButton());
 		buttons.add(buildDenyApprovalButton());
 		buttons.add(buildPrintButton());

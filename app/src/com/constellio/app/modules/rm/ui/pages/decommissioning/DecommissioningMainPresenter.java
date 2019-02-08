@@ -7,6 +7,7 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningListQueryFactory;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSearchConditionFactory;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSecurityService;
+import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.services.decommissioning.SearchType;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
@@ -88,6 +89,18 @@ public class DecommissioningMainPresenter extends SingleSchemaBasePresenter<Deco
 				throw new ImpossibleRuntimeException("Unknown tabId + " + tabId);
 		}
 	}
+	public boolean isDeletable(RecordVO recordVO) {
+		return decommissioningService().isDeletable(rmRecordServices.getDecommissioningList(recordVO.getId()), getCurrentUser());
+	}
+
+	public boolean isEditable(RecordVO recordVO) {
+		return decommissioningService().isEditable(rmRecordServices.getDecommissioningList(recordVO.getId()), getCurrentUser());
+	}
+
+	private DecommissioningService decommissioningService() {
+		return new DecommissioningService(collection, appLayerFactory);
+	}
+
 
 	public List<SearchType> getCriteriaForFoldersWithoutPlanifiedDate() {
 		return DecommissioningSearchConditionFactory.availableCriteriaForFoldersWithoutPlanifiedDate();

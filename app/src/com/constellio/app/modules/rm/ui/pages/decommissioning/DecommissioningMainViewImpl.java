@@ -187,7 +187,7 @@ public class DecommissioningMainViewImpl extends BaseViewImpl implements Decommi
 					@Override
 					public boolean isVisible() {
 						RecordVO decommissionningList = dataProvider.getRecordVO((int) itemId);
-						return presenter.hasCreatePermissionOnList(decommissionningList);
+						return presenter.isEditable(decommissionningList);
 					}
 				};
 			}
@@ -211,7 +211,7 @@ public class DecommissioningMainViewImpl extends BaseViewImpl implements Decommi
 					@Override
 					public boolean isVisible() {
 						RecordVO decommissionningList = dataProvider.getRecordVO((int) itemId);
-						return presenter.hasCreatePermissionOnList(decommissionningList);
+						return presenter.isDeletable(decommissionningList);
 					}
 				};
 			}
