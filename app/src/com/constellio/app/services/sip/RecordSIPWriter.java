@@ -26,7 +26,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
@@ -80,7 +79,7 @@ public class RecordSIPWriter {
 						   AppLayerFactory appLayerFactory,
 						   File zipFile,
 						   Map<String, MetsDivisionInfo> divisionInfoMap,
-						   RecordPathProvider recordPathProvider) {
+						   RecordPathProvider recordPathProvider) throws IOException {
 
 		this.collection = collection;
 		this.params = params;
@@ -96,19 +95,11 @@ public class RecordSIPWriter {
 		this.recordPathProvider = recordPathProvider;
 		this.metadataSchemasManager = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager();
 		String sipFilename = FilenameUtils.removeExtension(zipFile.getName());
-		try {
-			sipZipWriter = new SIPZipWriter(ioServices, params.getSipFileHasher(), zipFile, sipFilename, divisionInfoMap);
-		} catch (FileNotFoundException e) {
-			throw new RuntimeException(e);
-		}
+		sipZipWriter = new SIPZipWriter(ioServices, params.getSipFileHasher(), zipFile, sipFilename, divisionInfoMap);
 
 		List<String> bagInfoLines = collectBagInfoLines();
 		BufferedWriter bufferedWriter = sipZipWriter.newZipFileWriter("/" + BAG_INFO_FILE_NAME);
-		try {
-			IOUtils.writeLines(bagInfoLines, "\n", bufferedWriter);
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
+		IOUtils.writeLines(bagInfoLines, "\n", bufferedWriter);
 		IOUtils.closeQuietly(bufferedWriter);
 
 
@@ -146,11 +137,7 @@ public class RecordSIPWriter {
 	}
 
 	public void close() {
-		try {
-			sipZipWriter.close();
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
+		sipZipWriter.close();
 	}
 
 	private void addToSIP(SIPZipWriterTransaction transaction, Record record, ValidationErrors errors)

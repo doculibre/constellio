@@ -119,7 +119,6 @@ public class RMSIPBuilder {
 		}
 
 		writer.close();
-
 		return errors;
 	}
 

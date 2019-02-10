@@ -1,5 +1,6 @@
 package com.constellio.app.services.sip.ead;
 
+import com.constellio.app.services.sip.ead.RecordEADWriterRuntimeException.RecordEADWriterRuntimeException_ErrorCreatingFile;
 import com.constellio.app.services.sip.xsd.XMLDocumentValidator;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.EnumWithSmallCode;
@@ -80,7 +81,7 @@ public class RecordEADWriter {
 			SAXBuilder builder = new SAXBuilder();
 			builder.build(file);
 		} catch (JDOMException e) {
-			throw new RuntimeException("Exception for sip file '" + sipPath + "'", e);
+			throw new RecordEADWriterRuntimeException_ErrorCreatingFile(sipPath, e);
 		} finally {
 			out.close();
 		}
@@ -241,7 +242,7 @@ public class RecordEADWriter {
 			return ((LocalDateTime) dateOrDateTime).toString(ISODateTimeFormat.dateTime());
 
 		} else {
-			throw new IllegalArgumentException("Unsupported ReadablePartial of instance " + dateOrDateTime.getClass());
+			throw new ImpossibleRuntimeException("Unsupported ReadablePartial of instance " + dateOrDateTime.getClass());
 		}
 	}
 

@@ -4,6 +4,7 @@ import com.constellio.app.services.sip.mets.MetsContentFileReference;
 import com.constellio.app.services.sip.mets.MetsDivisionInfo;
 import com.constellio.app.services.sip.mets.MetsEADMetadataReference;
 import com.constellio.app.services.sip.mets.MetsFileWriter;
+import com.constellio.app.services.sip.zip.SIPZipWriterRuntimeException.SIPZipWriterRuntimeException_ErrorAddingToSIP;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.TimeProvider;
 import org.apache.commons.compress.archivers.ArchiveEntry;
@@ -51,8 +52,10 @@ public class SIPZipWriter {
 
 	private SIPFileHasher sipFileHasher;
 
+
 	public SIPZipWriter(IOServices ioServices, SIPFileHasher sipFileHasher, File zipFile, String sipFileName,
-						Map<String, MetsDivisionInfo> divisionsInfoMap) throws FileNotFoundException {
+						Map<String, MetsDivisionInfo> divisionsInfoMap)
+			throws FileNotFoundException {
 		this.sipFileHasher = sipFileHasher;
 		this.ioServices = ioServices;
 		this.sipFileName = sipFileName;
@@ -74,7 +77,7 @@ public class SIPZipWriter {
 		return ioServices;
 	}
 
-	public void close() throws IOException {
+	public void close() {
 
 		try {
 			addMetsFile();
@@ -96,20 +99,31 @@ public class SIPZipWriter {
 		} finally {
 			metsFileWriter.close();
 		}
+
 	}
 
-	protected void addManifestFiles() throws IOException {
+	protected void addManifestFiles() {
 		String hashingType = sipFileHasher.getFunctionName().toLowerCase().replace("-", "");
-		BufferedWriter manifestWriter = newZipFileWriter("/" + "manifest-" + hashingType + ".txt");
+		String manigestFilename = "/" + "manifest-" + hashingType + ".txt";
+		BufferedWriter manifestWriter = newZipFileWriter(manigestFilename);
 		try {
 			IOUtils.writeLines(manifestLines, "\n", manifestWriter);
+
+		} catch (IOException e) {
+			throw new SIPZipWriterRuntimeException_ErrorAddingToSIP(manigestFilename, e);
+
 		} finally {
 			IOUtils.closeQuietly(manifestWriter);
 		}
 
-		BufferedWriter tagManifestWriter = newZipFileWriter("/" + "tagmanifest-" + hashingType + ".txt");
+		String tagManifestFilename = "/" + "tagmanifest-" + hashingType + ".txt";
+		BufferedWriter tagManifestWriter = newZipFileWriter(tagManifestFilename);
 		try {
 			IOUtils.writeLines(tagManifestLines, "\n", tagManifestWriter);
+
+		} catch (IOException e) {
+			throw new SIPZipWriterRuntimeException_ErrorAddingToSIP(tagManifestFilename, e);
+
 		} finally {
 			IOUtils.closeQuietly(tagManifestWriter);
 		}
@@ -122,7 +136,7 @@ public class SIPZipWriter {
 		try {
 			FileUtils.touch(tempFile);
 		} catch (IOException e) {
-			throw new RuntimeException(e);
+			throw new SIPZipWriterRuntimeException_ErrorAddingToSIP(path, e);
 		}
 		Runnable fileClosingAction = new Runnable() {
 			@Override
@@ -130,7 +144,7 @@ public class SIPZipWriter {
 				try {
 					addToZip(tempFile, path);
 				} catch (IOException e) {
-					throw new RuntimeException(e);
+					throw new SIPZipWriterRuntimeException_ErrorAddingToSIP(path, e);
 				}
 				ioServices.deleteQuietly(tempFile);
 			}
@@ -139,7 +153,7 @@ public class SIPZipWriter {
 		try {
 			return ioServices.newBufferedFileOutputStreamWithFileClosingAction(tempFile, "SIPZipWriter-writing " + tempFileMpnitorName, fileClosingAction);
 		} catch (FileNotFoundException e) {
-			throw new RuntimeException(e);
+			throw new SIPZipWriterRuntimeException_ErrorAddingToSIP(path, e);
 		}
 
 	}
@@ -155,7 +169,7 @@ public class SIPZipWriter {
 				try {
 					addToZip(tempFile, path);
 				} catch (IOException e) {
-					throw new RuntimeException(e);
+					throw new SIPZipWriterRuntimeException_ErrorAddingToSIP(path, e);
 				}
 				ioServices.deleteQuietly(tempFile);
 			}
@@ -164,7 +178,7 @@ public class SIPZipWriter {
 		try {
 			return ioServices.newBufferedFileWriterWithFileClosingAction(tempFile, "SIPZipWriter-writing " + tempFileMonitorName, fileClosingAction);
 		} catch (IOException e) {
-			throw new RuntimeException(e);
+			throw new SIPZipWriterRuntimeException_ErrorAddingToSIP(path, e);
 		}
 
 	}

@@ -29,7 +29,7 @@ import java.util.Map;
 
 public class XMLDocumentValidator {
 
-	private static String INVALID_XML_FILE = "invalidXmlFile";
+	private static final String INVALID_XML_FILE = "invalidXmlFile";
 
 
 	private static Map<String, Schema> schemas = new HashMap<>();
@@ -66,6 +66,34 @@ public class XMLDocumentValidator {
 		}
 	}
 
+	public void validate(Document document, List<String> schemaFilenames)
+			throws XMLDocumentValidatorException {
+
+		try {
+			Schema schema = getXMLSchema(schemaFilenames);
+
+			Validator validator = schema.newValidator();
+			validator.validate(new JDOMSource(document));
+		} catch (SAXException e) {
+
+
+			StringWriter stringWriter = new StringWriter();
+
+			XMLOutputter output = new XMLOutputter();
+			output.setFormat(Format.getPrettyFormat());
+			try {
+				output.output(document, stringWriter);
+			} catch (IOException e1) {
+				throw new ImpossibleRuntimeException(e1);
+			}
+
+			throw new XMLDocumentValidatorException(stringWriter.toString(), schemaFilenames, e);
+
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
 	protected Schema getXMLSchema(List<String> schemaFilenames) throws SAXException {
 		String key = StringUtils.join(schemaFilenames);
 		Schema schema = schemas.get(key);
@@ -76,22 +104,12 @@ public class XMLDocumentValidator {
 				schemaFactory.setResourceResolver(new XSDResourceResolver());
 				List<Source> schemaSources = new ArrayList<Source>();
 				List<InputStream> inputStreams = new ArrayList<>();
-				try {
-					for (String schemaFilename : schemaFilenames) {
-						InputStream schemaFileInputStream = null;
-
-						schemaFileInputStream = new FileInputStream(new File(new FoldersLocator().getModuleResourcesFolder("rm"), "SIPArchiveGenerator/" + schemaFilename));
-
-						inputStreams.add(schemaFileInputStream);
-						schemaSources.add(new StreamSource(schemaFileInputStream));
-					}
-					schema = schemaFactory.newSchema(schemaSources.toArray(new Source[0]));
-				} finally {
-					//					for (InputStream in : inputStreams) {
-					//						IOUtils.closeQuietly(in);
-					//					}
+				for (String schemaFilename : schemaFilenames) {
+					InputStream schemaFileInputStream = new FileInputStream(new File(new FoldersLocator().getModuleResourcesFolder("rm"), "SIPArchiveGenerator/" + schemaFilename));
+					inputStreams.add(schemaFileInputStream);
+					schemaSources.add(new StreamSource(schemaFileInputStream));
 				}
-				//schemas.put(key, schema);
+				schema = schemaFactory.newSchema(schemaSources.toArray(new Source[0]));
 			} catch (FileNotFoundException e) {
 				throw new RuntimeException(e);
 			}

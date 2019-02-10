@@ -11,21 +11,18 @@ import au.edu.apsr.mtk.base.METS;
 import au.edu.apsr.mtk.base.METSException;
 import au.edu.apsr.mtk.base.METSWrapper;
 import au.edu.apsr.mtk.base.MdRef;
-import au.edu.apsr.mtk.base.MdWrap;
 import au.edu.apsr.mtk.base.MetsHdr;
 import au.edu.apsr.mtk.base.StructMap;
+import com.constellio.app.services.sip.mets.MetsFileWriterRuntimeException.MetsFileWriterRuntimeException_CreatedFileIsInvalid;
+import com.constellio.app.services.sip.mets.MetsFileWriterRuntimeException.MetsFileWriterRuntimeException_ErrorCreatingFile;
 import com.constellio.app.services.sip.xsd.XMLDocumentValidator;
+import com.constellio.app.services.sip.xsd.XMLDocumentValidatorException;
 import com.constellio.data.io.services.facades.IOServices;
-import com.constellio.model.frameworks.validation.ValidationErrors;
-import com.constellio.model.frameworks.validation.ValidationException;
 import org.jdom2.Element;
-import org.jdom2.JDOMException;
 import org.jdom2.Namespace;
 import org.jdom2.input.DOMBuilder;
-import org.jdom2.output.DOMOutputter;
 import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
-import org.w3c.dom.Node;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -77,7 +74,6 @@ public class MetsFileWriter {
 					  List<MetsContentFileReference> contentFileReferences) {
 
 		List<MetsStructureDivision> divisionsHierarchy = buildStructureDivisionHierarchy(metsEADMetadataReferences, contentFileReferences);
-
 		try {
 
 			METSWrapper metsWrapper = null;
@@ -101,12 +97,6 @@ public class MetsFileWriter {
 			for (MetsEADMetadataReference metsEADMetadataReference : metsEADMetadataReferences) {
 				DmdSec dmdSec = mets.newDmdSec();
 				dmdSec.setID(metsEADMetadataReference.getId());
-
-				MdWrap mdWrap = dmdSec.newMdWrap();
-				dmdSec.setMdWrap(mdWrap);
-				mdWrap.setMDType("OTHER");
-				Node xmlData = toXmlData();
-				mdWrap.setXmlData(xmlData);
 				mets.addDmdSec(dmdSec);
 
 				MdRef mdRef = dmdSec.newMdRef();
@@ -174,15 +164,12 @@ public class MetsFileWriter {
 			xml.output(jdomDoc, outputStream);
 			outputStream.flush();
 
+			validator.validate(jdomDoc, METS_XSDs);
+		} catch (IOException | METSException e) {
+			throw new MetsFileWriterRuntimeException_ErrorCreatingFile(metsFileZipPath, e);
 
-			ValidationErrors errors = new ValidationErrors();
-			validator.validate(metsFileZipPath, jdomDoc, errors, METS_XSDs);
-			errors.throwIfNonEmpty();
-
-
-		} catch (IOException | METSException | ValidationException e) {
-			throw new RuntimeException(e);
-
+		} catch (XMLDocumentValidatorException e) {
+			throw new MetsFileWriterRuntimeException_CreatedFileIsInvalid(metsFileZipPath, e);
 		}
 	}
 
@@ -232,7 +219,7 @@ public class MetsFileWriter {
 				}
 
 			} catch (METSException e) {
-				throw new RuntimeException(e);
+				throw new MetsFileWriterRuntimeException_ErrorCreatingFile(metsFileZipPath, e);
 			}
 		}
 
@@ -303,22 +290,6 @@ public class MetsFileWriter {
 
 
 		return rootDivisions;
-	}
-
-
-	private Node toXmlData() {
-		org.jdom2.Document jdomDoc = new org.jdom2.Document();
-		Element xmlData = new Element("extends", constellioNamespace);
-		jdomDoc.setRootElement(xmlData);
-
-		DOMOutputter domOutputter = new DOMOutputter();
-		org.w3c.dom.Document w3cDoc;
-		try {
-			w3cDoc = domOutputter.output(jdomDoc);
-		} catch (JDOMException e) {
-			throw new RuntimeException(e);
-		}
-		return w3cDoc.getDocumentElement();
 	}
 
 
