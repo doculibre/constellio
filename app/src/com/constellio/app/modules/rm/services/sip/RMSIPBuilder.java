@@ -7,21 +7,23 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.sip.mets.MetsDivisionInfo;
-import com.constellio.app.services.sip.record.RecordPathProvider;
 import com.constellio.app.services.sip.record.RecordSIPWriter;
 import com.constellio.app.services.sip.zip.SIPZipWriter;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -44,6 +46,7 @@ public class RMSIPBuilder {
 
 	private SearchServices searchServices;
 
+	private User user;
 
 	public RMSIPBuilder(String collection, AppLayerFactory appLayerFactory) {
 		this.appLayerFactory = appLayerFactory;
@@ -64,6 +67,17 @@ public class RMSIPBuilder {
 		return this;
 	}
 
+	public User getUser() {
+		return user;
+	}
+
+	public RMSIPBuilder setUser(User user) {
+		this.user = user;
+		return this;
+	}
+
+
+
 	/**
 	 * Create an SIP Archive using given folders and document ids
 	 */
@@ -71,22 +85,52 @@ public class RMSIPBuilder {
 														 List<String> documentIds, ProgressInfo progressInfo)
 			throws IOException {
 
-		Map<String, MetsDivisionInfo> divisionInfoMap = new HashMap<>();
-		for (Category category : rm.getAllCategories()) {
-			String parentCode = category.getParent() == null ? null : rm.getCategory(category.getParent()).getCode();
-			divisionInfoMap.put(category.getCode(), new MetsDivisionInfo(
-					category.getCode(), parentCode, category.getTitle(), Category.SCHEMA_TYPE));
-		}
-		sipZipWriter.addDivisionsInfoMap(divisionInfoMap);
+		sipZipWriter.addDivisionsInfoMap(buildCategoryDivisionInfos());
 
 		if (progressInfo == null) {
 			progressInfo = new ProgressInfo();
 		}
 
-		RecordSIPWriter writer = new RecordSIPWriter(appLayerFactory, sipZipWriter, new RMZipPathProvider(), locale);
+		List<String> ids = getRecordIdsToExport(folderIds, documentIds);
+		progressInfo.setEnd(ids.size());
 
-		//TODO : Improve scalability and document/folder grouping
+		ValidationErrors errors = new ValidationErrors();
+		RecordSIPWriter writer = new RecordSIPWriter(appLayerFactory, sipZipWriter, new RMZipPathProvider(rm), locale);
+		try {
+			int recordsHandled = 0;
 
+			//TODO : Improve scalability and document/folder grouping
+
+			for (String id : ids) {
+				Record record = recordServices.getDocumentById(id);
+
+				if (Folder.SCHEMA_TYPE.equals(record.getTypeCode()) && (user == null || user.hasReadAccess().on(record))) {
+					errors.addAll(writer.add(asList(record)).getValidationErrors());
+
+					progressInfo.setCurrentState(recordsHandled + 1);
+					recordsHandled++;
+				}
+			}
+
+			for (String id : ids) {
+				Record record = recordServices.getDocumentById(id);
+				if (Document.SCHEMA_TYPE.equals(record.getTypeCode()) && (user == null || user.hasReadAccess().on(record))) {
+					errors.addAll(writer.add(asList(record)).getValidationErrors());
+
+					progressInfo.setCurrentState(recordsHandled + 1);
+					recordsHandled++;
+				}
+			}
+
+		} finally {
+			writer.close();
+		}
+
+		return errors;
+	}
+
+	@NotNull
+	protected List<String> getRecordIdsToExport(List<String> folderIds, List<String> documentIds) {
 		Set<String> ids = new HashSet<>();
 		ids.addAll(folderIds);
 		ids.addAll(documentIds);
@@ -94,7 +138,10 @@ public class RMSIPBuilder {
 		for (String folderId : folderIds) {
 			ids.add(folderId);
 			ids.addAll(getParentIds(rm.getFolder(folderId)));
-			ids.addAll(getChildrenIds(rm.getFolder(folderId)));
+			Iterator<String> idsIterator = getChildrenIds(rm.getFolder(folderId));
+			while (idsIterator.hasNext()) {
+				ids.add(idsIterator.next());
+			}
 		}
 
 		for (String documentId : documentIds) {
@@ -102,40 +149,26 @@ public class RMSIPBuilder {
 			ids.addAll(getParentIds(rm.getDocument(documentId)));
 		}
 
-		int recordsHandled = 0;
-		ValidationErrors errors = new ValidationErrors();
 
 		List<String> orderedIds = new ArrayList<>();
 		orderedIds.addAll(ids);
 		Collections.sort(orderedIds);
+		return orderedIds;
+	}
 
-		for (String id : orderedIds) {
-			Record record = recordServices.getDocumentById(id);
-			if (Folder.SCHEMA_TYPE.equals(record.getTypeCode())) {
-				errors.addAll(writer.add(asList(record)).getValidationErrors());
-
-				progressInfo.setCurrentState(recordsHandled + 1);
-				recordsHandled++;
-			}
+	private Map<String, MetsDivisionInfo> buildCategoryDivisionInfos() {
+		Map<String, MetsDivisionInfo> divisionInfoMap = new HashMap<>();
+		for (Category category : rm.getAllCategories()) {
+			String parentCode = category.getParent() == null ? null : rm.getCategory(category.getParent()).getCode();
+			divisionInfoMap.put(category.getCode(), new MetsDivisionInfo(
+					category.getCode(), parentCode, category.getTitle(), Category.SCHEMA_TYPE));
 		}
-
-		for (String id : orderedIds) {
-			Record record = recordServices.getDocumentById(id);
-			if (Document.SCHEMA_TYPE.equals(record.getTypeCode())) {
-				errors.addAll(writer.add(asList(record)).getValidationErrors());
-
-				progressInfo.setCurrentState(recordsHandled + 1);
-				recordsHandled++;
-			}
-		}
-
-		writer.close();
-		return errors;
+		return divisionInfoMap;
 	}
 
 
-	private List<String> getChildrenIds(Folder folder) {
-		return searchServices.searchRecordIds(new LogicalSearchQuery(
+	private Iterator<String> getChildrenIds(Folder folder) {
+		return searchServices.recordsIdsIterator(new LogicalSearchQuery(
 				fromAllSchemasIn(collection).where(Schemas.PATH_PARTS).isEqualTo(folder.getId())));
 	}
 
@@ -156,46 +189,6 @@ public class RMSIPBuilder {
 		parentIds.add(parentFolder.getId());
 		parentIds.addAll(getParentIds(parentFolder));
 		return parentIds;
-	}
-
-	private class RMZipPathProvider implements RecordPathProvider {
-
-		@Override
-		public String getPath(Record record) {
-
-			String parent = null;
-			String pathIdentifier = record.getId();
-			boolean addSchemaTypeInPath = true;
-
-			if (Category.SCHEMA_TYPE.equals(record.getTypeCode())) {
-				Category category = rm.wrapCategory(record);
-				addSchemaTypeInPath = false;
-				pathIdentifier = category.getCode();
-				parent = category.getParent();
-
-			} else if (Folder.SCHEMA_TYPE.equals(record.getTypeCode())) {
-				Folder folder = rm.wrapFolder(record);
-				parent = folder.getParentFolder() != null ? folder.getParentFolder() : folder.getCategory();
-
-			} else if (Document.SCHEMA_TYPE.equals(record.getTypeCode())) {
-				parent = rm.wrapDocument(record).getFolder();
-
-			}
-
-			StringBuilder path = new StringBuilder();
-			if (parent == null) {
-				path.append("/data/");
-			} else {
-				path.append(getPath(recordServices.getDocumentById(parent))).append("/");
-			}
-
-			if (addSchemaTypeInPath) {
-				path.append(record.getTypeCode()).append("-");
-			}
-			path.append(pathIdentifier);
-
-			return path.toString();
-		}
 	}
 
 }

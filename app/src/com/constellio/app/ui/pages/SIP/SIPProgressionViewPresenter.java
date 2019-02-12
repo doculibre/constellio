@@ -1,7 +1,6 @@
 package com.constellio.app.ui.pages.SIP;
 
 import com.constellio.app.entities.modules.ProgressInfo;
-import com.constellio.app.ui.framework.buttons.SIPButton.SIPBuildAsyncTask;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.model.entities.batchprocess.AsyncTaskBatchProcess;
 import com.constellio.model.entities.records.wrappers.User;
@@ -29,6 +28,6 @@ public class SIPProgressionViewPresenter extends BasePresenter<SIPProgressionVie
 	}
 
 	protected void setTask(String id) {
-		progressInfo = ((SIPBuildAsyncTask) getTask(id).getTask()).getProgressInfo();
+		progressInfo = new ProgressInfo();
 	}
 }

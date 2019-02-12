@@ -54,7 +54,6 @@ public class SIPBuildAsyncTask implements AsyncTask {
 	private String username;
 	private boolean deleteFiles;
 	private String currentVersion;
-	private ProgressInfo progressInfo;
 	private UUID uuid;
 	private Locale locale;
 
@@ -76,7 +75,6 @@ public class SIPBuildAsyncTask implements AsyncTask {
 		this.deleteFiles = deleteFiles;
 		this.currentVersion = currentVersion;
 		this.uuid = UUID.randomUUID();
-		this.progressInfo = new ProgressInfo();
 		this.locale = Locale.forLanguageTag(localeLanguage);
 
 		this.sipFileName = sipFileName;
@@ -95,7 +93,7 @@ public class SIPBuildAsyncTask implements AsyncTask {
 		IOServices ioServices = appLayerFactory.getModelLayerFactory().getIOServicesFactory().newIOServices();
 		File outFolder = ioServices.newTemporaryFolder("SIPArchives");
 		try {
-			buildSIPFiles(appLayerFactory, params.getCollection(), outFolder);
+			buildSIPFiles(appLayerFactory, params, outFolder);
 
 			RMSchemasRecordsServices rm = new RMSchemasRecordsServices(params.getCollection(), appLayerFactory);
 			uploadSIPFilesInVault(rm, outFolder);
@@ -108,9 +106,9 @@ public class SIPBuildAsyncTask implements AsyncTask {
 		}
 	}
 
-	private void buildSIPFiles(AppLayerFactory appLayerFactory, String collection, File outFolder)
+	private void buildSIPFiles(AppLayerFactory appLayerFactory, final AsyncTaskExecutionParams params, File outFolder)
 			throws IOException {
-		RMSIPBuilder sipBuilder = new RMSIPBuilder(collection, appLayerFactory);
+		RMSIPBuilder sipBuilder = new RMSIPBuilder(params.getCollection(), appLayerFactory);
 		DefaultSIPZipBagInfoFactory bagInfoFactory = new DefaultSIPZipBagInfoFactory(appLayerFactory, locale);
 		bagInfoFactory.setHeaderLines(bagInfoLines);
 
@@ -118,7 +116,21 @@ public class SIPBuildAsyncTask implements AsyncTask {
 		SIPFileNameProvider sipFileNameProvider = new DefaultSIPFileNameProvider(outFolder, sipFileName);
 		AutoSplittedSIPZipWriter writer = new AutoSplittedSIPZipWriter(
 				appLayerFactory, sipFileNameProvider, zipMaximumLength, bagInfoFactory);
-		sipBuilder.buildWithFoldersAndDocuments(writer, this.includeFolderIds, this.includeDocumentIds, progressInfo);
+		sipBuilder.buildWithFoldersAndDocuments(writer, this.includeFolderIds, this.includeDocumentIds, new ProgressInfo() {
+			@Override
+			public void setEnd(long end) {
+				params.setProgressionUpperLimit((int) end);
+			}
+
+			long lastCurrentState;
+
+			@Override
+			public void setCurrentState(long currentState) {
+				params.incrementProgression((int) (currentState - lastCurrentState));
+				lastCurrentState = currentState;
+			}
+
+		});
 	}
 
 	@SuppressWarnings("unchecked")
@@ -195,9 +207,6 @@ public class SIPBuildAsyncTask implements AsyncTask {
 							currentVersion, locale.getLanguage()};
 	}
 
-	public ProgressInfo getProgressInfo() {
-		return progressInfo;
-	}
 
 	private void validateParams()
 			throws ImpossibleRuntimeException {
