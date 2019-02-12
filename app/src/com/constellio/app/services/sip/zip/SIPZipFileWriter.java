@@ -86,10 +86,6 @@ public class SIPZipFileWriter implements SIPZipWriter {
 		this.divisionsInfoMap.putAll(divisionsInfoMap);
 	}
 
-	public SIPFileHasher getSipFileHasher() {
-		return sipFileHasher;
-	}
-
 	public IOServices getIoServices() {
 		return ioServices;
 	}

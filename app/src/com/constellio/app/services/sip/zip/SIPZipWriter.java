@@ -11,8 +11,6 @@ import java.util.Map;
 
 public interface SIPZipWriter {
 
-	SIPFileHasher getSipFileHasher();
-
 	IOServices getIoServices();
 
 	void close();

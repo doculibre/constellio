@@ -37,11 +37,6 @@ public class AutoSplittedSIPZipWriter implements SIPZipWriter {
 	}
 
 	@Override
-	public SIPFileHasher getSipFileHasher() {
-		return sipFileHasher;
-	}
-
-	@Override
 	public IOServices getIoServices() {
 		return ioServices;
 	}
