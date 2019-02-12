@@ -6,7 +6,7 @@ import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.Email;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.SIParchive;
-import com.constellio.app.services.sip.SIPBuilderParams;
+import com.constellio.app.services.sip.bagInfo.DefaultSIPZipBagInfoFactory;
 import com.constellio.app.services.sip.zip.SIPZipFileWriter;
 import com.constellio.app.ui.framework.buttons.SIPButton.SIPBuildAsyncTask;
 import com.constellio.data.io.services.facades.IOServices;
@@ -47,6 +47,7 @@ import java.util.zip.ZipInputStream;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.ALL;
 import static com.constellio.sdk.tests.TestUtils.asList;
+import static java.util.Locale.FRENCH;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class SIPArchivesAcceptanceTest extends ConstellioTest {
@@ -77,10 +78,11 @@ public class SIPArchivesAcceptanceTest extends ConstellioTest {
 		recordServices = getModelLayerFactory().newRecordServices();
 		searchServices = getModelLayerFactory().newSearchServices();
 
-		SIPBuilderParams params = new SIPBuilderParams().setProvidedBagInfoHeaderLines(bagInfoLines);
+		DefaultSIPZipBagInfoFactory bagInfoFactory = new DefaultSIPZipBagInfoFactory(getAppLayerFactory(), FRENCH);
+		bagInfoFactory.setHeaderLines(bagInfoLines);
 		RMSIPBuilder constellioSIP = new RMSIPBuilder(zeCollection, getAppLayerFactory());
-		SIPZipFileWriter writer = new SIPZipFileWriter(getAppLayerFactory(), outFile, outFile.getName());
-		constellioSIP.buildWithFoldersAndDocuments(writer, asList(records.folder_A01), new ArrayList<String>(), null, params);
+		SIPZipFileWriter writer = new SIPZipFileWriter(getAppLayerFactory(), outFile, outFile.getName(), bagInfoFactory);
+		constellioSIP.buildWithFoldersAndDocuments(writer, asList(records.folder_A01), new ArrayList<String>(), null);
 
 	}
 

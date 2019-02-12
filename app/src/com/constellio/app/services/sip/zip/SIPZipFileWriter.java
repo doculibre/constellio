@@ -1,6 +1,8 @@
 package com.constellio.app.services.sip.zip;
 
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.sip.bagInfo.SIPZipBagInfoFactory;
+import com.constellio.app.services.sip.bagInfo.SIPZipInfos;
 import com.constellio.app.services.sip.mets.MetsContentFileReference;
 import com.constellio.app.services.sip.mets.MetsDivisionInfo;
 import com.constellio.app.services.sip.mets.MetsEADMetadataReference;
@@ -53,10 +55,6 @@ public class SIPZipFileWriter implements SIPZipWriter {
 	private SIPZipBagInfoFactory bagInfoFactory;
 
 	private SIPZipInfos sipZipInfos;
-
-	public SIPZipFileWriter(AppLayerFactory appLayerFactory, File zipFile, String sipFileName) throws IOException {
-		this(appLayerFactory, zipFile, sipFileName, new DefaultSIPZipBagInfoFactory(appLayerFactory));
-	}
 
 	public SIPZipFileWriter(AppLayerFactory appLayerFactory, File zipFile, String sipFileName,
 							SIPZipBagInfoFactory bagInfoFactory)

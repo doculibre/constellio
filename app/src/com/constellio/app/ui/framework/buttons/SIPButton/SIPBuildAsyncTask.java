@@ -6,7 +6,8 @@ import com.constellio.app.modules.rm.services.sip.RMSIPBuilder;
 import com.constellio.app.modules.rm.wrappers.SIParchive;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.services.sip.SIPBuilderParams;
+import com.constellio.app.services.sip.bagInfo.DefaultSIPZipBagInfoFactory;
+import com.constellio.app.services.sip.bagInfo.SIPZipBagInfoFactory;
 import com.constellio.app.services.sip.zip.SIPZipFileWriter;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.ImpossibleRuntimeException;
@@ -105,15 +106,10 @@ public class SIPBuildAsyncTask implements AsyncTask {
 					}
 				};
 
-				SIPBuilderParams builderParams = new SIPBuilderParams()
-						.setProvidedBagInfoHeaderLines(bagInfoLines)
-						.setLocale(locale);
-				//						.setSipBytesLimit(limitSize ? SIP_MAX_FILES_LENGTH : 0)
-				//						.setSipFilesLimit(limitSize ? SIP_MAX_FILES : 0);
-
 				RMSIPBuilder constellioSIP = new RMSIPBuilder(collection, appLayerFactory);
-				SIPZipFileWriter writer = new SIPZipFileWriter(appLayerFactory, outFile, sipFileName);
-				constellioSIP.buildWithFoldersAndDocuments(writer, this.includeFolderIds, this.includeDocumentIds, progressInfo, builderParams);
+				SIPZipBagInfoFactory bagInfoFactory = new DefaultSIPZipBagInfoFactory(appLayerFactory, Locale.FRENCH);
+				SIPZipFileWriter writer = new SIPZipFileWriter(appLayerFactory, outFile, sipFileName, bagInfoFactory);
+				constellioSIP.buildWithFoldersAndDocuments(writer, this.includeFolderIds, this.includeDocumentIds, progressInfo);
 
 				//Create SIParchive record
 				ContentManager contentManager = modelLayerFactory.getContentManager();

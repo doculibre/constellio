@@ -1,6 +1,7 @@
 package com.constellio.app.services.sip.zip;
 
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.sip.bagInfo.SIPZipBagInfoFactory;
 import com.constellio.app.services.sip.mets.MetsDivisionInfo;
 import com.constellio.data.io.services.facades.IOServices;
 
@@ -23,12 +24,6 @@ public class AutoSplittedSIPZipWriter implements SIPZipWriter {
 
 	int index = 0;
 	SIPFileNameProvider sipFileProvider;
-
-	public AutoSplittedSIPZipWriter(AppLayerFactory appLayerFactory, SIPFileHasher sipFileHasher,
-									SIPFileNameProvider sipFileProvider, long sipBytesLimit) {
-		this(appLayerFactory, sipFileHasher, sipFileProvider, sipBytesLimit, new DefaultSIPZipBagInfoFactory(appLayerFactory));
-
-	}
 
 	public AutoSplittedSIPZipWriter(AppLayerFactory appLayerFactory, SIPFileHasher sipFileHasher,
 									SIPFileNameProvider sipFileProvider, long sipBytesLimit,

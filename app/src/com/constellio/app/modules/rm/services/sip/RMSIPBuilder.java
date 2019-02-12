@@ -6,10 +6,9 @@ import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.services.sip.RecordSIPWriter;
-import com.constellio.app.services.sip.RecordSIPWriter.RecordPathProvider;
-import com.constellio.app.services.sip.SIPBuilderParams;
 import com.constellio.app.services.sip.mets.MetsDivisionInfo;
+import com.constellio.app.services.sip.record.RecordSIPWriter;
+import com.constellio.app.services.sip.record.RecordPathProvider;
 import com.constellio.app.services.sip.zip.SIPZipFileWriter;
 import com.constellio.app.services.sip.zip.SIPZipWriter;
 import com.constellio.model.entities.records.Record;
@@ -25,6 +24,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -41,6 +41,7 @@ public class RMSIPBuilder {
 
 	private RMSchemasRecordsServices rm;
 
+	private Locale locale;
 
 	private SearchServices searchServices;
 
@@ -52,14 +53,24 @@ public class RMSIPBuilder {
 		this.rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		this.collection = collection;
 		this.searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
+		this.locale = appLayerFactory.getModelLayerFactory().getCollectionsListManager().getCollectionInfo(collection)
+				.getMainSystemLocale();
+	}
+
+	public Locale getLocale() {
+		return locale;
+	}
+
+	public RMSIPBuilder setLocale(Locale locale) {
+		this.locale = locale;
+		return this;
 	}
 
 	/**
 	 * Create an SIP Archive using given folders and document ids
 	 */
 	public ValidationErrors buildWithFoldersAndDocuments(SIPZipWriter sipZipFileWriter, List<String> folderIds,
-														 List<String> documentIds,
-														 ProgressInfo progressInfo, SIPBuilderParams params)
+														 List<String> documentIds, ProgressInfo progressInfo)
 			throws IOException {
 
 
@@ -75,7 +86,7 @@ public class RMSIPBuilder {
 			progressInfo = new ProgressInfo();
 		}
 
-		RecordSIPWriter writer = new RecordSIPWriter(params, rm.getCollection(), appLayerFactory, sipZipFileWriter, new RMZipPathProvider());
+		RecordSIPWriter writer = new RecordSIPWriter(rm.getCollection(), appLayerFactory, sipZipFileWriter, new RMZipPathProvider(), locale);
 
 		//TODO : Improve scalability and document/folder grouping
 

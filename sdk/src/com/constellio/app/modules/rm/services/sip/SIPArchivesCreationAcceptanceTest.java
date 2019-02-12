@@ -4,7 +4,7 @@ import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.services.sip.SIPBuilderParams;
+import com.constellio.app.services.sip.bagInfo.DefaultSIPZipBagInfoFactory;
 import com.constellio.app.services.sip.zip.AutoSplittedSIPZipWriter;
 import com.constellio.app.services.sip.zip.AutoSplittedSIPZipWriter.SIPFileNameProvider;
 import com.constellio.app.services.sip.zip.SIPFileHasher;
@@ -35,6 +35,7 @@ import java.util.List;
 
 import static com.constellio.sdk.tests.TestUtils.zipFileWithSameContentExceptingFiles;
 import static java.util.Arrays.asList;
+import static java.util.Locale.FRENCH;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
@@ -195,11 +196,17 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 
 
 	private File buildSIPWithDocuments(String... documentsIds) throws Exception {
+		List<String> bagInfoLines = new ArrayList<>();
+		bagInfoLines.add("This is the first bagInfo line");
+		bagInfoLines.add("This is the second bagInfo line");
+		bagInfoLines.add("This is the last bagInfo line");
+		DefaultSIPZipBagInfoFactory bagInfoFactory = new DefaultSIPZipBagInfoFactory(getAppLayerFactory(), FRENCH);
+		bagInfoFactory.setHeaderLines(bagInfoLines);
 
 
 		File sipFile = new File(newTempFolder(), "test.sip");
 
-		SIPZipWriter writer = new SIPZipFileWriter(getAppLayerFactory(), sipFile, "test");
+		SIPZipWriter writer = new SIPZipFileWriter(getAppLayerFactory(), sipFile, "test", bagInfoFactory);
 		writer.setSipFileHasher(new SIPFileHasher() {
 			@Override
 			public String computeHash(File input, String sipPath) throws IOException {
@@ -207,12 +214,8 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 			}
 		});
 
-		List<String> bagInfoLines = new ArrayList<>();
-		bagInfoLines.add("This is the first bagInfo line");
-		bagInfoLines.add("This is the second bagInfo line");
-		bagInfoLines.add("This is the last bagInfo line");
-		SIPBuilderParams params = new SIPBuilderParams().setProvidedBagInfoHeaderLines(bagInfoLines);
-		ValidationErrors errors = constellioSIP.buildWithFoldersAndDocuments(writer, new ArrayList<String>(), asList(documentsIds), null, params);
+
+		ValidationErrors errors = constellioSIP.buildWithFoldersAndDocuments(writer, new ArrayList<String>(), asList(documentsIds), null);
 
 		if (!errors.isEmpty()) {
 			assertThat(TestUtils.frenchMessages(errors)).describedAs("errors").isEmpty();
@@ -227,10 +230,10 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 		bagInfoLines.add("This is the first bagInfo line");
 		bagInfoLines.add("This is the second bagInfo line");
 		bagInfoLines.add("This is the last bagInfo line");
+		DefaultSIPZipBagInfoFactory bagInfoFactory = new DefaultSIPZipBagInfoFactory(getAppLayerFactory(), FRENCH);
+		bagInfoFactory.setHeaderLines(bagInfoLines);
 
 		final File tempFolder = newTempFolder();
-
-		SIPBuilderParams params = new SIPBuilderParams().setProvidedBagInfoHeaderLines(bagInfoLines);
 
 		SIPFileHasher sipFileHasher = new SIPFileHasher() {
 			@Override
@@ -250,7 +253,9 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 				return String.format("test%03d", index);
 			}
 		};
-		AutoSplittedSIPZipWriter writer = new AutoSplittedSIPZipWriter(getAppLayerFactory(), sipFileHasher, fileNameProvider, 1000 * 1000);
+		AutoSplittedSIPZipWriter writer = new AutoSplittedSIPZipWriter(getAppLayerFactory(), sipFileHasher,
+				fileNameProvider, 1000 * 1000, bagInfoFactory);
+
 		writer.setSipFileHasher(new SIPFileHasher() {
 			@Override
 			public String computeHash(File input, String sipPath) throws IOException {
@@ -259,7 +264,8 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 		});
 
 		RMSIPBuilder constellioSIP = new RMSIPBuilder(zeCollection, getAppLayerFactory());
-		ValidationErrors errors = constellioSIP.buildWithFoldersAndDocuments(writer, new ArrayList<String>(), documentsIds, null, params);
+		ValidationErrors errors = constellioSIP.buildWithFoldersAndDocuments(writer, new ArrayList<String>(), documentsIds, null
+		);
 
 		if (!errors.isEmpty()) {
 			assertThat(TestUtils.frenchMessages(errors)).describedAs("errors").isEmpty();

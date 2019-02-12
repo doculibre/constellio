@@ -1,4 +1,4 @@
-package com.constellio.app.services.sip.zip;
+package com.constellio.app.services.sip.bagInfo;
 
 import com.constellio.data.utils.KeyIntMap;
 import org.joda.time.LocalDateTime;

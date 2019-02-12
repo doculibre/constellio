@@ -1,4 +1,4 @@
-package com.constellio.app.services.sip;
+package com.constellio.app.services.sip.record;
 
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.sip.ead.RecordEADBuilder;
@@ -23,10 +23,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Map.Entry;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.CONTENT;
@@ -41,8 +39,6 @@ public class RecordSIPWriter {
 
 	private SIPZipWriter sipZipWriter;
 
-	private Map<String, Integer> extensionCounts = new HashMap<String, Integer>();
-
 	private Locale locale;
 
 	private AppLayerFactory appLayerFactory;
@@ -55,33 +51,27 @@ public class RecordSIPWriter {
 
 	private MetadataSchemasManager metadataSchemasManager;
 
-	private SIPBuilderParams params;
-
 	private String collection;
 
 	private RecordPathProvider recordPathProvider;
 
-	public RecordSIPWriter(SIPBuilderParams params,
-						   String collection,
+	public RecordSIPWriter(String collection,
 						   AppLayerFactory appLayerFactory,
 						   SIPZipWriter sipZipWriter,
-						   RecordPathProvider recordPathProvider) throws IOException {
+						   RecordPathProvider recordPathProvider,
+						   Locale locale) throws IOException {
 
 		this.collection = collection;
-		this.params = params;
-		this.locale = params.getLocale();
 		this.appLayerFactory = appLayerFactory;
 		this.recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 		this.ioServices = appLayerFactory.getModelLayerFactory().getIOServicesFactory().newIOServices();
 		this.contentManager = appLayerFactory.getModelLayerFactory().getContentManager();
-		if (this.locale == null) {
-			this.locale = appLayerFactory.getModelLayerFactory().getCollectionsListManager()
-					.getCollectionInfo(collection).getMainSystemLocale();
-		}
+
 		this.recordPathProvider = recordPathProvider;
 		this.metadataSchemasManager = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager();
 		this.sipZipWriter = sipZipWriter;
 
+		this.locale = locale;
 	}
 
 	public ValidationErrors add(Record record) throws IOException {
@@ -191,13 +181,6 @@ public class RecordSIPWriter {
 	}
 
 
-
-
-	public interface RecordPathProvider {
-
-		String getPath(Record record);
-	}
-
 	private class RecordInsertionContext {
 
 		String dmdId;
@@ -210,7 +193,7 @@ public class RecordSIPWriter {
 		ValidationErrors errors;
 		MetadataSchema schema;
 
-		public RecordInsertionContext(SIPZipWriterTransaction transaction, Record record, ValidationErrors errors) {
+		RecordInsertionContext(SIPZipWriterTransaction transaction, Record record, ValidationErrors errors) {
 			this.transaction = transaction;
 			this.record = record;
 			this.errors = errors;

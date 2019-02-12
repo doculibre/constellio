@@ -1,4 +1,4 @@
-package com.constellio.app.services.sip.zip;
+package com.constellio.app.services.sip.bagInfo;
 
 import com.constellio.app.services.factories.AppLayerFactory;
 import org.apache.commons.io.FileUtils;
@@ -6,18 +6,22 @@ import org.apache.commons.io.FileUtils;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map.Entry;
 
 public class DefaultSIPZipBagInfoFactory implements SIPZipBagInfoFactory {
 
 	private SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd");
 
-	List<String> headerLines = new ArrayList<>();
+	private List<String> headerLines = new ArrayList<>();
 
-	AppLayerFactory appLayerFactory;
+	private AppLayerFactory appLayerFactory;
 
-	public DefaultSIPZipBagInfoFactory(AppLayerFactory appLayerFactory) {
+	private Locale locale;
+
+	public DefaultSIPZipBagInfoFactory(AppLayerFactory appLayerFactory, Locale locale) {
 		this.appLayerFactory = appLayerFactory;
+		this.locale = locale;
 	}
 
 	public List<String> getHeaderLines() {
