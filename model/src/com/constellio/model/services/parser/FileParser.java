@@ -130,7 +130,7 @@ public class FileParser {
 		CopyInputStreamFactory inputStreamFactory = null;
 		try {
 			inputStreamFactory = ioServices.copyToReusableStreamFactory(inputStream, null);
-			return parse(inputStreamFactory, inputStreamFactory.length(), detectLanguage);
+			return parse(inputStreamFactory, inputStreamFactory.length(), detectLanguage, ocr);
 		} finally {
 			ioServices.closeQuietly(inputStream);
 			ioServices.closeQuietly(inputStreamFactory);
@@ -142,8 +142,8 @@ public class FileParser {
 		return parse(inputStreamFactory, length, detectLanguage, false);
 	}
 
-	public ParsedContent parse(StreamFactory<InputStream> inputStreamFactory, long length, boolean detectLanguage,
-							   boolean ocr)
+	private ParsedContent parse(StreamFactory<InputStream> inputStreamFactory, long length, boolean detectLanguage,
+								boolean ocr)
 			throws FileParserException {
 
 		//Pattern patternForChar = Pattern.compile("([^\u0000-\u00FF]+)");
@@ -245,8 +245,8 @@ public class FileParser {
 		return parseWithoutBeautifying(inputStreamFactory, length, detectLanguage, false);
 	}
 
-	public ParsedContent parseWithoutBeautifying(StreamFactory<InputStream> inputStreamFactory, long length,
-												 boolean detectLanguage, boolean ocr)
+	private ParsedContent parseWithoutBeautifying(StreamFactory<InputStream> inputStreamFactory, long length,
+												  boolean detectLanguage, boolean ocr)
 			throws FileParserException {
 
 		int contentMaxLengthForParsingInMegaoctets = systemConfigurationsManager
