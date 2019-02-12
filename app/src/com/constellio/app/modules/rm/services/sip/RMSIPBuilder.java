@@ -10,6 +10,8 @@ import com.constellio.app.services.sip.RecordSIPWriter;
 import com.constellio.app.services.sip.RecordSIPWriter.RecordPathProvider;
 import com.constellio.app.services.sip.SIPBuilderParams;
 import com.constellio.app.services.sip.mets.MetsDivisionInfo;
+import com.constellio.app.services.sip.zip.SIPZipFileWriter;
+import com.constellio.app.services.sip.zip.SIPZipWriter;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.frameworks.validation.ValidationErrors;
@@ -17,7 +19,6 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -40,12 +41,12 @@ public class RMSIPBuilder {
 
 	private RMSchemasRecordsServices rm;
 
-	private RecordSIPWriter recordSIPWriter;
 
 	private SearchServices searchServices;
 
-	public RMSIPBuilder(String collection,
-						AppLayerFactory appLayerFactory) {
+	private SIPZipFileWriter sipZipFileWriter;
+
+	public RMSIPBuilder(String collection, AppLayerFactory appLayerFactory) {
 		this.appLayerFactory = appLayerFactory;
 		this.recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 		this.rm = new RMSchemasRecordsServices(collection, appLayerFactory);
@@ -56,9 +57,11 @@ public class RMSIPBuilder {
 	/**
 	 * Create an SIP Archive using given folders and document ids
 	 */
-	public ValidationErrors buildWithFoldersAndDocuments(File zipFile, List<String> folderIds, List<String> documentIds,
+	public ValidationErrors buildWithFoldersAndDocuments(SIPZipWriter sipZipFileWriter, List<String> folderIds,
+														 List<String> documentIds,
 														 ProgressInfo progressInfo, SIPBuilderParams params)
 			throws IOException {
+
 
 		Map<String, MetsDivisionInfo> divisionInfoMap = new HashMap<>();
 		for (Category category : rm.getAllCategories()) {
@@ -66,13 +69,13 @@ public class RMSIPBuilder {
 			MetsDivisionInfo metsDivisionInfo = new MetsDivisionInfo(category.getCode(), parentCode, category.getTitle(), Category.SCHEMA_TYPE);
 			divisionInfoMap.put(category.getCode(), metsDivisionInfo);
 		}
-
+		sipZipFileWriter.addDivisionsInfoMap(divisionInfoMap);
 
 		if (progressInfo == null) {
 			progressInfo = new ProgressInfo();
 		}
 
-		RecordSIPWriter writer = new RecordSIPWriter(params, rm.getCollection(), appLayerFactory, zipFile, divisionInfoMap, new RMZipPathProvider());
+		RecordSIPWriter writer = new RecordSIPWriter(params, rm.getCollection(), appLayerFactory, sipZipFileWriter, new RMZipPathProvider());
 
 		//TODO : Improve scalability and document/folder grouping
 

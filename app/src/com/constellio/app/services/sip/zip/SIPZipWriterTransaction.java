@@ -28,14 +28,17 @@ public class SIPZipWriterTransaction {
 
 	private List<MetsEADMetadataReference> eadMetadataReferences = new ArrayList<>();
 
-	private SIPZipWriter writer;
+	private IOServices ioServices;
 
-	public SIPZipWriterTransaction(File tempFolder, SIPZipWriter writer) {
-		this.writer = writer;
+	private SIPFileHasher sipFileHasher;
+
+	public SIPZipWriterTransaction(File tempFolder, IOServices ioServices, SIPFileHasher sipFileHasher) {
+		this.ioServices = ioServices;
+		this.sipFileHasher = sipFileHasher;
 		this.tempFolder = tempFolder;
 	}
 
-	private long length() {
+	public long length() {
 		long length = 0;
 
 		for (File file : files.values()) {
@@ -75,7 +78,6 @@ public class SIPZipWriterTransaction {
 	}
 
 	public MetsContentFileReference addContentFileFromFile(String zipFilePath, File file) throws IOException {
-		IOServices ioServices = writer.getIoServices();
 		InputStream inputStream = null;
 		try {
 			inputStream = ioServices.newBufferedFileInputStream(file, READ_INPUTSTREAM_STREAM_NAME);
@@ -90,7 +92,6 @@ public class SIPZipWriterTransaction {
 	}
 
 	public void addUnreferencedContentFileFromFile(String zipFilePath, File file) throws IOException {
-		IOServices ioServices = writer.getIoServices();
 		InputStream inputStream = null;
 		try {
 			inputStream = ioServices.newBufferedFileInputStream(file, READ_INPUTSTREAM_STREAM_NAME);
@@ -107,7 +108,6 @@ public class SIPZipWriterTransaction {
 	}
 
 	public MetsContentFileReference addContentFileFromBytes(String zipFilePath, byte[] bytesArray) throws IOException {
-		IOServices ioServices = writer.getIoServices();
 		InputStream inputStream = new ByteArrayInputStream(bytesArray);
 		try {
 			return addContentFileFromInputStream(zipFilePath, inputStream);
@@ -119,7 +119,6 @@ public class SIPZipWriterTransaction {
 	}
 
 	public File addUnreferencedContentFileFromBytes(String zipFilePath, byte[] bytesArray) throws IOException {
-		IOServices ioServices = writer.getIoServices();
 		InputStream inputStream = new ByteArrayInputStream(bytesArray);
 		try {
 			return addUnreferencedContentFileFromInputStream(zipFilePath, inputStream);
@@ -136,8 +135,8 @@ public class SIPZipWriterTransaction {
 
 		MetsContentFileReference reference = new MetsContentFileReference();
 		reference.setSize(file.length());
-		reference.setCheckSum(writer.getSipFileHasher().computeHash(file, zipFilePath));
-		reference.setCheckSumType(writer.getSipFileHasher().getFunctionName());
+		reference.setCheckSum(sipFileHasher.computeHash(file, zipFilePath));
+		reference.setCheckSumType(sipFileHasher.getFunctionName());
 		reference.setPath(zipFilePath);
 
 		files.put(zipFilePath, file);
@@ -148,7 +147,6 @@ public class SIPZipWriterTransaction {
 
 	public File addUnreferencedContentFileFromInputStream(String zipFilePath, InputStream inputStream)
 			throws IOException {
-		IOServices ioServices = writer.getIoServices();
 		File tempFile = new File(tempFolder, zipFilePath.replace("/", File.separator));
 		tempFile.getParentFile().mkdirs();
 
@@ -162,7 +160,6 @@ public class SIPZipWriterTransaction {
 	public MetsContentFileReference addContentFileFromInputStream(String zipFilePath,
 																  CloseableStreamFactory<InputStream> inputStreamFactory)
 			throws IOException {
-		IOServices ioServices = writer.getIoServices();
 		InputStream inputStream = null;
 		try {
 			inputStream = inputStreamFactory.create(READ_INPUTSTREAM_STREAM_NAME);
@@ -180,7 +177,6 @@ public class SIPZipWriterTransaction {
 	public File addUnreferencedContentFileFromInputStream(String zipFilePath,
 														  CloseableStreamFactory<InputStream> inputStreamFactory)
 			throws IOException {
-		IOServices ioServices = writer.getIoServices();
 		InputStream inputStream = null;
 		try {
 			inputStream = inputStreamFactory.create(READ_INPUTSTREAM_STREAM_NAME);

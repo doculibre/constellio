@@ -32,8 +32,10 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static java.util.Arrays.asList;
 
@@ -140,7 +142,11 @@ public class MetsFileWriter {
 			bagDiv.setLabel("bag");
 			bagDiv.setType("folder");
 
-			addDivisions(bagDiv, divisionsHierarchy);
+			Set<String> includedDivisionKeys = new HashSet<>();
+			for (MetsEADMetadataReference metsEADMetadataReference : metsEADMetadataReferences) {
+				includedDivisionKeys.add(metsEADMetadataReference.getId());
+			}
+			addDivisions(bagDiv, divisionsHierarchy, includedDivisionKeys);
 
 			mets.setFileSec(fileSec);
 			mets.addStructMap(structMap);
@@ -177,7 +183,7 @@ public class MetsFileWriter {
 		ioServices.closeQuietly(outputStream);
 	}
 
-	private void addDivisions(Div parentDiv, List<MetsStructureDivision> divisions) {
+	private void addDivisions(Div parentDiv, List<MetsStructureDivision> divisions, Set<String> includedDivisionKeys) {
 
 		Collections.sort(divisions, new Comparator<MetsStructureDivision>() {
 			@Override
@@ -191,16 +197,19 @@ public class MetsFileWriter {
 				Div div = parentDiv.newDiv();
 
 				if (division.divisionInfo instanceof MetsEADMetadataReference) {
-					div.setDmdID(division.divisionInfo.getId());
+					if (includedDivisionKeys.contains(division.divisionInfo.getId())) {
+						div.setDmdID(division.divisionInfo.getId());
+					} else {
+						div.setID(division.divisionInfo.getId());
+					}
 				} else {
 					div.setID(division.divisionInfo.getId());
 				}
 				div.setLabel(division.divisionInfo.getLabel());
 				div.setType(division.divisionInfo.getType());
-				System.out.println("Adding " + division.divisionInfo.getId());
 				parentDiv.addDiv(div);
 
-				addDivisions(div, division.childDivisions);
+				addDivisions(div, division.childDivisions, includedDivisionKeys);
 
 				if (!division.filePointers.isEmpty()) {
 
@@ -274,10 +283,11 @@ public class MetsFileWriter {
 			allDivisions.put(metsEADMetadataReference.getId(), division);
 		}
 
-		for (MetsStructureDivision division : allDivisions.values()) {
-			if (division.divisionInfo.getParentId() == null) {
-				rootDivisions.add(division);
+		for (Map.Entry<String, MetsStructureDivision> entry : allDivisions.entrySet()) {
+			if (entry.getValue().divisionInfo.getParentId() == null) {
+				rootDivisions.add(entry.getValue());
 			}
+			divisionsInfoMap.put(entry.getKey(), entry.getValue().divisionInfo);
 		}
 
 		for (MetsContentFileReference contentFileReference : contentFileReferences) {
@@ -287,7 +297,6 @@ public class MetsFileWriter {
 			}
 			structureDivision.filePointers.add(new MetsFilePointer(contentFileReference.getId()));
 		}
-
 
 		return rootDivisions;
 	}

@@ -3,12 +3,10 @@ package com.constellio.app.services.sip;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.sip.ead.RecordEADBuilder;
 import com.constellio.app.services.sip.mets.MetsContentFileReference;
-import com.constellio.app.services.sip.mets.MetsDivisionInfo;
 import com.constellio.app.services.sip.mets.MetsEADMetadataReference;
 import com.constellio.app.services.sip.zip.SIPZipWriter;
 import com.constellio.app.services.sip.zip.SIPZipWriterTransaction;
 import com.constellio.data.io.services.facades.IOServices;
-import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
@@ -19,21 +17,14 @@ import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.parser.EmailParser;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -44,15 +35,11 @@ import static org.apache.commons.io.FilenameUtils.getExtension;
 
 public class RecordSIPWriter {
 
-	private static final String BAG_INFO_FILE_NAME = "bag-info.txt";
-
 	private static final String READ_VAULT_FILE_STREAM_NAME = RecordSIPWriter.class.getSimpleName() + "-ReadVaultFile";
 
 	private static final String TEMP_EAD_FILE_STREAM_NAME = RecordSIPWriter.class.getSimpleName() + "-ReadVaultFile";
 
 	private SIPZipWriter sipZipWriter;
-
-	private SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd");
 
 	private Map<String, Integer> extensionCounts = new HashMap<String, Integer>();
 
@@ -77,8 +64,7 @@ public class RecordSIPWriter {
 	public RecordSIPWriter(SIPBuilderParams params,
 						   String collection,
 						   AppLayerFactory appLayerFactory,
-						   File zipFile,
-						   Map<String, MetsDivisionInfo> divisionInfoMap,
+						   SIPZipWriter sipZipWriter,
 						   RecordPathProvider recordPathProvider) throws IOException {
 
 		this.collection = collection;
@@ -94,14 +80,7 @@ public class RecordSIPWriter {
 		}
 		this.recordPathProvider = recordPathProvider;
 		this.metadataSchemasManager = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager();
-		String sipFilename = FilenameUtils.removeExtension(zipFile.getName());
-		sipZipWriter = new SIPZipWriter(ioServices, params.getSipFileHasher(), zipFile, sipFilename, divisionInfoMap);
-
-		List<String> bagInfoLines = collectBagInfoLines();
-		BufferedWriter bufferedWriter = sipZipWriter.newZipFileWriter("/" + BAG_INFO_FILE_NAME);
-		IOUtils.writeLines(bagInfoLines, "\n", bufferedWriter);
-		IOUtils.closeQuietly(bufferedWriter);
-
+		this.sipZipWriter = sipZipWriter;
 
 	}
 
@@ -211,35 +190,7 @@ public class RecordSIPWriter {
 		}
 	}
 
-	private List<String> collectBagInfoLines() {
-		String currentVersion = appLayerFactory.newApplicationService().getWarVersion();
-		List<String> bagInfoLines = new ArrayList<>();
-		if (params.getProvidedBagInfoHeaderLines() != null) {
-			bagInfoLines.addAll(params.getProvidedBagInfoHeaderLines());
-		}
 
-		bagInfoLines.add("Nombre de fichiers numériques : " + sipZipWriter.sipFilesCount);
-		StringBuffer extensionsAndCounts = new StringBuffer();
-		for (Entry<String, Integer> extensionAndCount : extensionCounts.entrySet()) {
-			if (extensionsAndCounts.length() > 0) {
-				extensionsAndCounts.append(", ");
-			}
-			String extension = extensionAndCount.getKey();
-			Integer count = extensionAndCount.getValue();
-			extensionsAndCounts.append("." + extension + " = " + count);
-		}
-		bagInfoLines.add("Portrait général des formats numériques : " + extensionsAndCounts);
-		bagInfoLines
-				.add("Taille des fichiers numériques non compressés : " + FileUtils.byteCountToDisplaySize(sipZipWriter.sipFilesLength) + " ("
-					 + sipZipWriter.sipFilesLength + " octets)");
-		bagInfoLines.add("");
-		bagInfoLines.add("Logiciel : Constellio");
-		bagInfoLines.add("Site web de l’éditeur : http://www.constellio.com");
-		bagInfoLines.add("Version du logiciel : " + currentVersion);
-		bagInfoLines.add("Date de création du paquet : " + sdfDate.format(TimeProvider.getLocalDateTime().toDate()));
-		bagInfoLines.add("");
-		return bagInfoLines;
-	}
 
 
 	public interface RecordPathProvider {
