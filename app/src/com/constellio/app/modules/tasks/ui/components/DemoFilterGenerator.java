@@ -56,11 +56,16 @@ public class DemoFilterGenerator implements FilterGenerator {
 			} else if (Number.class.isAssignableFrom(javaType)) {
 				customFilterComponent = new NumberFilterPopup(new DemoFilterDecorator());
 			} else {
-				MetadataFieldFactory factory = new TaskFieldFactory(false);
-				final Field<?> field = factory.build(metadataVO);
+				final Field<?> field;
+				if(((MetadataVO) propertyId).codeMatches("linkedWorkflowExecution")){
+					MetadataFieldFactory factory = new WorkflowExecutionFieldFactory();
+					field = factory.build(metadataVO);
+				}else{
+					MetadataFieldFactory factory = new TaskFieldFactory(false);
+					field = factory.build(metadataVO);
+				}
 				if (field != null) {
-					if (field instanceof AbstractTextField ||
-						field instanceof ComboBox) {
+					if (field instanceof AbstractTextField || field instanceof ComboBox) {
 						customFilterComponent = (AbstractField) field;
 					} else {
 						customFilterComponent = new FilterWindowButtonField(field);
