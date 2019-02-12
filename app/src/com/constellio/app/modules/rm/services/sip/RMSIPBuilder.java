@@ -7,9 +7,8 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.sip.mets.MetsDivisionInfo;
-import com.constellio.app.services.sip.record.RecordSIPWriter;
 import com.constellio.app.services.sip.record.RecordPathProvider;
-import com.constellio.app.services.sip.zip.SIPZipFileWriter;
+import com.constellio.app.services.sip.record.RecordSIPWriter;
 import com.constellio.app.services.sip.zip.SIPZipWriter;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Schemas;
@@ -45,7 +44,6 @@ public class RMSIPBuilder {
 
 	private SearchServices searchServices;
 
-	private SIPZipFileWriter sipZipFileWriter;
 
 	public RMSIPBuilder(String collection, AppLayerFactory appLayerFactory) {
 		this.appLayerFactory = appLayerFactory;
@@ -69,24 +67,23 @@ public class RMSIPBuilder {
 	/**
 	 * Create an SIP Archive using given folders and document ids
 	 */
-	public ValidationErrors buildWithFoldersAndDocuments(SIPZipWriter sipZipFileWriter, List<String> folderIds,
+	public ValidationErrors buildWithFoldersAndDocuments(SIPZipWriter sipZipWriter, List<String> folderIds,
 														 List<String> documentIds, ProgressInfo progressInfo)
 			throws IOException {
-
 
 		Map<String, MetsDivisionInfo> divisionInfoMap = new HashMap<>();
 		for (Category category : rm.getAllCategories()) {
 			String parentCode = category.getParent() == null ? null : rm.getCategory(category.getParent()).getCode();
-			MetsDivisionInfo metsDivisionInfo = new MetsDivisionInfo(category.getCode(), parentCode, category.getTitle(), Category.SCHEMA_TYPE);
-			divisionInfoMap.put(category.getCode(), metsDivisionInfo);
+			divisionInfoMap.put(category.getCode(), new MetsDivisionInfo(
+					category.getCode(), parentCode, category.getTitle(), Category.SCHEMA_TYPE));
 		}
-		sipZipFileWriter.addDivisionsInfoMap(divisionInfoMap);
+		sipZipWriter.addDivisionsInfoMap(divisionInfoMap);
 
 		if (progressInfo == null) {
 			progressInfo = new ProgressInfo();
 		}
 
-		RecordSIPWriter writer = new RecordSIPWriter(rm.getCollection(), appLayerFactory, sipZipFileWriter, new RMZipPathProvider(), locale);
+		RecordSIPWriter writer = new RecordSIPWriter(appLayerFactory, sipZipWriter, new RMZipPathProvider(), locale);
 
 		//TODO : Improve scalability and document/folder grouping
 

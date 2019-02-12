@@ -14,23 +14,21 @@ import java.util.Map;
 
 public class AutoSplittedSIPZipWriter implements SIPZipWriter {
 
-	AppLayerFactory appLayerFactory;
-	IOServices ioServices;
-	SIPFileHasher sipFileHasher;
-	SIPZipWriter currentWriter;
-	Map<String, MetsDivisionInfo> divisionsInfoMap = new HashMap<>();
-	SIPZipBagInfoFactory bagInfoFactory;
+	private AppLayerFactory appLayerFactory;
+	private IOServices ioServices;
+	private SIPFileHasher sipFileHasher;
+	private FileSIPZipWriter currentWriter;
+	private Map<String, MetsDivisionInfo> divisionsInfoMap = new HashMap<>();
+	private SIPZipBagInfoFactory bagInfoFactory;
 	private long sipBytesLimit;
+	private int index = 0;
+	private SIPFileNameProvider sipFileProvider;
 
-	int index = 0;
-	SIPFileNameProvider sipFileProvider;
-
-	public AutoSplittedSIPZipWriter(AppLayerFactory appLayerFactory, SIPFileHasher sipFileHasher,
-									SIPFileNameProvider sipFileProvider, long sipBytesLimit,
-									SIPZipBagInfoFactory bagInfoFactory) {
+	public AutoSplittedSIPZipWriter(AppLayerFactory appLayerFactory, SIPFileNameProvider sipFileProvider,
+									long sipBytesLimit, SIPZipBagInfoFactory bagInfoFactory) {
 		this.appLayerFactory = appLayerFactory;
 		this.ioServices = appLayerFactory.getModelLayerFactory().getIOServicesFactory().newIOServices();
-		this.sipFileHasher = sipFileHasher;
+		this.sipFileHasher = new SIPFileHasher();
 		this.sipFileProvider = sipFileProvider;
 		this.sipBytesLimit = sipBytesLimit;
 		this.bagInfoFactory = bagInfoFactory;
@@ -74,19 +72,10 @@ public class AutoSplittedSIPZipWriter implements SIPZipWriter {
 
 	}
 
-	private void newCurrentWriter() throws IOException {
-		int newWriterIndex = ++index;
-		currentWriter = new SIPZipFileWriter(appLayerFactory,
-				sipFileProvider.newSIPFile(newWriterIndex),
-				sipFileProvider.newSIPName(newWriterIndex), bagInfoFactory);
-		((SIPZipFileWriter) currentWriter).divisionsInfoMap = divisionsInfoMap;
-		currentWriter.setSipFileHasher(sipFileHasher);
-	}
-
 	@Override
 	public void addToZip(File file, String path) throws IOException {
 		SIPZipWriterTransaction transaction = newInsertTransaction();
-		transaction.addUnreferencedContentFileFromFile(path, file);
+		transaction.moveFileToSIPAsUnreferencedContentFile(path, file);
 		insertAll(transaction);
 	}
 
@@ -125,12 +114,14 @@ public class AutoSplittedSIPZipWriter implements SIPZipWriter {
 		}
 	}
 
-	public interface SIPFileNameProvider {
 
-		File newSIPFile(int index);
-
-		String newSIPName(int index);
-
+	private void newCurrentWriter() throws IOException {
+		int newWriterIndex = ++index;
+		currentWriter = new FileSIPZipWriter(appLayerFactory,
+				sipFileProvider.newSIPFile(newWriterIndex),
+				sipFileProvider.newSIPName(newWriterIndex), bagInfoFactory);
+		currentWriter.divisionsInfoMap = divisionsInfoMap;
+		currentWriter.setSipFileHasher(sipFileHasher);
 	}
 
 

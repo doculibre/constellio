@@ -7,37 +7,44 @@ import com.constellio.app.modules.rm.wrappers.SIParchive;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.sip.bagInfo.DefaultSIPZipBagInfoFactory;
-import com.constellio.app.services.sip.bagInfo.SIPZipBagInfoFactory;
-import com.constellio.app.services.sip.zip.SIPZipFileWriter;
+import com.constellio.app.services.sip.zip.AutoSplittedSIPZipWriter;
+import com.constellio.app.services.sip.zip.DefaultSIPFileNameProvider;
+import com.constellio.app.services.sip.zip.SIPFileNameProvider;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.ImpossibleRuntimeException;
-import com.constellio.data.utils.LazyIterator;
 import com.constellio.model.entities.batchprocess.AsyncTask;
 import com.constellio.model.entities.batchprocess.AsyncTaskExecutionParams;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.contents.ContentManager.UploadOptions;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import org.apache.commons.collections.ListUtils;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
 
 import java.io.File;
-import java.util.Iterator;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
 public class SIPBuildAsyncTask implements AsyncTask {
 
-	private static final long SIP_MAX_FILES_LENGTH = (6 * FileUtils.ONE_GB);
-	private static final int SIP_MAX_FILES = 9000;
+	private static final String UPLOAD_FILE_STREAM_NAME = "SIPBuildAsyncTask-UploadFile";
+
+	//private static final long SIP_MAX_FILES_LENGTH = (6 * FileUtils.ONE_GB);
+	private static final long SIP_MAX_FILES_LENGTH = (2 * FileUtils.ONE_MB);
 
 	private String sipFileName;
 	private List<String> bagInfoLines;
@@ -64,7 +71,6 @@ public class SIPBuildAsyncTask implements AsyncTask {
 		this.bagInfoLines = bagInfoLines;
 		this.includeDocumentIds = includeDocumentIds;
 		this.includeFolderIds = includeFolderIds;
-		this.sipFileName = sipFileName;
 		this.limitSize = limitSize;
 		this.username = username;
 		this.deleteFiles = deleteFiles;
@@ -72,76 +78,110 @@ public class SIPBuildAsyncTask implements AsyncTask {
 		this.uuid = UUID.randomUUID();
 		this.progressInfo = new ProgressInfo();
 		this.locale = Locale.forLanguageTag(localeLanguage);
+
+		this.sipFileName = sipFileName;
+		if (sipFileName.toLowerCase().endsWith(".zip") || sipFileName.toLowerCase().endsWith(".sip")) {
+			this.sipFileName = StringUtils.substringBeforeLast(sipFileName, ".");
+		}
+
 		validateParams();
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public void execute(AsyncTaskExecutionParams params)
-			throws ImpossibleRuntimeException {
-		ValidationErrors errors = new ValidationErrors();
-		List<String> ids = ListUtils.union(this.includeDocumentIds, this.includeFolderIds);
-		if (ids.isEmpty()) {
-			errors.add(SIPGenerationValidationException.class, "Lists cannot be null");
-		} else {
-			final AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
-			String collection = params.getCollection();
-			ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
-			File outFolder = null;
-			File outFile = null;
-			try {
+			throws Exception {
 
-				User currentUser = modelLayerFactory.newUserServices().getUserInCollection(this.username, collection);
+		final AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
+		IOServices ioServices = appLayerFactory.getModelLayerFactory().getIOServicesFactory().newIOServices();
+		File outFolder = ioServices.newTemporaryFolder("SIPArchives");
+		try {
+			buildSIPFiles(appLayerFactory, params.getCollection(), outFolder);
 
-				RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
-				outFolder = modelLayerFactory.getIOServicesFactory().newIOServices().newTemporaryFolder("SIPArchives");
-				outFile = new File(outFolder, this.sipFileName);
-
-				final Iterator<String> idsIterator = ids.iterator();
-				final RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
-				Iterator<Record> recordsIterator = new LazyIterator<Record>() {
-					@Override
-					protected Record getNextOrNull() {
-						return idsIterator.hasNext() ? recordServices.getDocumentById(idsIterator.next()) : null;
-					}
-				};
-
-				RMSIPBuilder constellioSIP = new RMSIPBuilder(collection, appLayerFactory);
-				SIPZipBagInfoFactory bagInfoFactory = new DefaultSIPZipBagInfoFactory(appLayerFactory, Locale.FRENCH);
-				SIPZipFileWriter writer = new SIPZipFileWriter(appLayerFactory, outFile, sipFileName, bagInfoFactory);
-				constellioSIP.buildWithFoldersAndDocuments(writer, this.includeFolderIds, this.includeDocumentIds, progressInfo);
-
-				//Create SIParchive record
-				ContentManager contentManager = modelLayerFactory.getContentManager();
-				SIParchive sipArchive = rm.newSIParchive();
-				ContentVersionDataSummary summary = contentManager.upload(outFile);
-				sipArchive.setContent(contentManager.createMajor(currentUser, sipFileName, summary));
-				sipArchive.setUser(currentUser);
-				sipArchive.setCreatedBy(currentUser.getId());
-				sipArchive.setCreationDate(new LocalDateTime());
-				Transaction transaction = new Transaction();
-				transaction.add(sipArchive);
-				modelLayerFactory.newRecordServices().execute(transaction);
-
-				if (deleteFiles) {
-					for (String documentIds : ids) {
-						try {
-							Record record = recordServices.getDocumentById(documentIds);
-							recordServices.logicallyDelete(record, currentUser);
-							recordServices.physicallyDelete(record, currentUser,
-									new RecordPhysicalDeleteOptions().setMostReferencesToNull(true));
-						} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
-							e.printStackTrace();
-						}
-					}
-				}
-			} catch (Exception e) {
-				e.printStackTrace();
-			} finally {
-				IOServices ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();
-				ioServices.deleteQuietly(outFile);
-				ioServices.deleteQuietly(outFolder);
+			RMSchemasRecordsServices rm = new RMSchemasRecordsServices(params.getCollection(), appLayerFactory);
+			uploadSIPFilesInVault(rm, outFolder);
+			if (deleteFiles) {
+				deleteRecords(appLayerFactory.getModelLayerFactory(), params.getCollection());
 			}
+
+		} finally {
+			ioServices.deleteQuietly(outFolder);
+		}
+	}
+
+	private void buildSIPFiles(AppLayerFactory appLayerFactory, String collection, File outFolder)
+			throws IOException {
+		RMSIPBuilder sipBuilder = new RMSIPBuilder(collection, appLayerFactory);
+		DefaultSIPZipBagInfoFactory bagInfoFactory = new DefaultSIPZipBagInfoFactory(appLayerFactory, locale);
+		bagInfoFactory.setHeaderLines(bagInfoLines);
+
+		long zipMaximumLength = limitSize ? SIP_MAX_FILES_LENGTH : 0;
+		SIPFileNameProvider sipFileNameProvider = new DefaultSIPFileNameProvider(outFolder, sipFileName);
+		AutoSplittedSIPZipWriter writer = new AutoSplittedSIPZipWriter(
+				appLayerFactory, sipFileNameProvider, zipMaximumLength, bagInfoFactory);
+		sipBuilder.buildWithFoldersAndDocuments(writer, this.includeFolderIds, this.includeDocumentIds, progressInfo);
+	}
+
+	@SuppressWarnings("unchecked")
+	protected void deleteRecords(ModelLayerFactory modelLayerFactory, String collection) {
+		List<String> ids = ListUtils.union(this.includeDocumentIds, this.includeFolderIds);
+		final RecordServices recordServices = modelLayerFactory.newRecordServices();
+		User user = modelLayerFactory.newUserServices().getUserInCollection(this.username, collection);
+		for (String documentIds : ids) {
+			try {
+				Record record = recordServices.getDocumentById(documentIds);
+				recordServices.logicallyDelete(record, user);
+				recordServices.physicallyDelete(record, user,
+						new RecordPhysicalDeleteOptions().setMostReferencesToNull(true));
+			} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	private void uploadSIPFilesInVault(RMSchemasRecordsServices rm, File outFolder) throws RecordServicesException {
+
+		ModelLayerFactory modelLayerFactory = rm.getModelLayerFactory();
+		IOServices ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();
+		ContentManager contentManager = modelLayerFactory.getContentManager();
+		User user = modelLayerFactory.newUserServices().getUserInCollection(this.username, rm.getCollection());
+		File[] sipFiles = outFolder.listFiles();
+		if (sipFiles != null) {
+			Transaction transaction = new Transaction();
+			for (int i = 1; i <= sipFiles.length; i++) {
+				File sipFile = sipFiles[i - 1];
+
+				SIParchive sipArchive = rm.newSIParchive();
+
+				String fileName;
+				if (sipFiles.length > 1) {
+					fileName = sipFileName + " (" + i + " " + $("SIPBuildAsyncTask.of", locale) + " " + sipFiles.length + ").zip";
+				} else {
+					fileName = sipFileName + ".zip";
+				}
+				UploadOptions uploadOptions = new UploadOptions(fileName);
+				uploadOptions.setParse(false);
+
+				ContentVersionDataSummary summary;
+				InputStream inputStream = ioServices.newBufferedFileInputStreamWithoutExpectableFileNotFoundException(
+						sipFile, UPLOAD_FILE_STREAM_NAME);
+				try {
+					summary = contentManager.upload(inputStream, uploadOptions).getContentVersionDataSummary();
+
+				} finally {
+					ioServices.closeQuietly(inputStream);
+				}
+
+				sipArchive.setContent(contentManager.createMajor(user, fileName, summary));
+				sipArchive.setUser(user);
+				sipArchive.setCreatedBy(user.getId());
+				sipArchive.setCreationDate(new LocalDateTime(sipFile.lastModified()));
+				transaction.add(sipArchive);
+
+				//The containing folder will be deleted later, the file is deleted now to free space on server
+				ioServices.deleteQuietly(sipFile);
+
+			}
+			modelLayerFactory.newRecordServices().execute(transaction);
 		}
 	}
 

@@ -6,9 +6,10 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.services.sip.bagInfo.DefaultSIPZipBagInfoFactory;
 import com.constellio.app.services.sip.zip.AutoSplittedSIPZipWriter;
-import com.constellio.app.services.sip.zip.AutoSplittedSIPZipWriter.SIPFileNameProvider;
+import com.constellio.app.services.sip.zip.DefaultSIPFileNameProvider;
+import com.constellio.app.services.sip.zip.FileSIPZipWriter;
 import com.constellio.app.services.sip.zip.SIPFileHasher;
-import com.constellio.app.services.sip.zip.SIPZipFileWriter;
+import com.constellio.app.services.sip.zip.SIPFileNameProvider;
 import com.constellio.app.services.sip.zip.SIPZipWriter;
 import com.constellio.data.dao.services.idGenerator.InMemorySequentialGenerator;
 import com.constellio.data.io.services.facades.IOServices;
@@ -72,9 +73,8 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 	public void givenSIPArchivesOfTwoDocumentsInSameFolderThenArchiveContainsAllMetadatasContentsAndManifests()
 			throws Exception {
 
-		//		getIOLayerFactory().newZipService().zip(getTestResourceFile("sip1.zip"),
-		//				asList(new File("/Users/francisbaril/Downloads/SIPArchivesCreationAcceptanceTest-sip1").listFiles()));
-
+		getIOLayerFactory().newZipService().zip(getTestResourceFile("sip1.zip"),
+				asList(new File("/Users/francisbaril/Downloads/SIPArchivesCreationAcceptanceTest-sip1").listFiles()));
 
 		Transaction tx = new Transaction();
 		tx.add(rm.newFolderWithId("zeFolderId").setOpenDate(new LocalDate(2018, 1, 1))
@@ -94,7 +94,7 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 		System.out.println(sipFile.getAbsolutePath());
 		unzipInDownloadFolder(sipFile, "testSIP");
 
-		assertThat(sipFile).is(zipFileWithSameContentExceptingFiles(getTestResourceFile("sip1.zip"), "bag-info.txt"));
+		assertThat(sipFile).is(zipFileWithSameContentExceptingFiles(getTestResourceFile("sip1.zip")));
 
 	}
 
@@ -102,8 +102,8 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 	public void givenSIPArchivesOfAnEmailThenAttachementsExtractedInSIP()
 			throws Exception {
 
-		//		getIOLayerFactory().newZipService().zip(getTestResourceFile("sip2.zip"),
-		//				asList(new File("/Users/francisbaril/Downloads/SIPArchivesCreationAcceptanceTest-sip2").listFiles()));
+		getIOLayerFactory().newZipService().zip(getTestResourceFile("sip2.zip"),
+				asList(new File("/Users/francisbaril/Downloads/SIPArchivesCreationAcceptanceTest-sip2").listFiles()));
 
 
 		Transaction tx = new Transaction();
@@ -122,7 +122,7 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 		System.out.println(sipFile.getAbsolutePath());
 		unzipInDownloadFolder(sipFile, "testSIP");
 
-		assertThat(sipFile).is(zipFileWithSameContentExceptingFiles(getTestResourceFile("sip2.zip"), "bag-info.txt"));
+		assertThat(sipFile).is(zipFileWithSameContentExceptingFiles(getTestResourceFile("sip2.zip")));
 
 	}
 
@@ -206,7 +206,7 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 
 		File sipFile = new File(newTempFolder(), "test.sip");
 
-		SIPZipWriter writer = new SIPZipFileWriter(getAppLayerFactory(), sipFile, "test", bagInfoFactory);
+		SIPZipWriter writer = new FileSIPZipWriter(getAppLayerFactory(), sipFile, "test", bagInfoFactory);
 		writer.setSipFileHasher(new SIPFileHasher() {
 			@Override
 			public String computeHash(File input, String sipPath) throws IOException {
@@ -242,19 +242,11 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 			}
 		};
 
-		SIPFileNameProvider fileNameProvider = new SIPFileNameProvider() {
-			@Override
-			public File newSIPFile(int index) {
-				return new File(tempFolder, newSIPName(index) + ".sip");
-			}
-
-			@Override
-			public String newSIPName(int index) {
-				return String.format("test%03d", index);
-			}
-		};
-		AutoSplittedSIPZipWriter writer = new AutoSplittedSIPZipWriter(getAppLayerFactory(), sipFileHasher,
+		SIPFileNameProvider fileNameProvider = new DefaultSIPFileNameProvider(tempFolder, "test");
+		AutoSplittedSIPZipWriter writer = new AutoSplittedSIPZipWriter(getAppLayerFactory(),
 				fileNameProvider, 1000 * 1000, bagInfoFactory);
+
+		writer.setSipFileHasher(sipFileHasher);
 
 		writer.setSipFileHasher(new SIPFileHasher() {
 			@Override

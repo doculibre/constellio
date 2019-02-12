@@ -43,6 +43,10 @@ public class DefaultSIPZipBagInfoFactory implements SIPZipBagInfoFactory {
 			}
 		}
 
+		if (content.length() > 0) {
+			content.append("\n");
+		}
+
 		content.append("Nombre de fichiers numériques : ").append(zipInfos.getTotalFilesCount()).append("\n");
 
 		content.append("Portrait général des formats numériques : ");

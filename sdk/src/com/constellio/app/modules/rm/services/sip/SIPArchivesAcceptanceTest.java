@@ -7,7 +7,7 @@ import com.constellio.app.modules.rm.wrappers.Email;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.SIParchive;
 import com.constellio.app.services.sip.bagInfo.DefaultSIPZipBagInfoFactory;
-import com.constellio.app.services.sip.zip.SIPZipFileWriter;
+import com.constellio.app.services.sip.zip.FileSIPZipWriter;
 import com.constellio.app.ui.framework.buttons.SIPButton.SIPBuildAsyncTask;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.entities.batchprocess.AsyncTaskCreationRequest;
@@ -81,7 +81,7 @@ public class SIPArchivesAcceptanceTest extends ConstellioTest {
 		DefaultSIPZipBagInfoFactory bagInfoFactory = new DefaultSIPZipBagInfoFactory(getAppLayerFactory(), FRENCH);
 		bagInfoFactory.setHeaderLines(bagInfoLines);
 		RMSIPBuilder constellioSIP = new RMSIPBuilder(zeCollection, getAppLayerFactory());
-		SIPZipFileWriter writer = new SIPZipFileWriter(getAppLayerFactory(), outFile, outFile.getName(), bagInfoFactory);
+		FileSIPZipWriter writer = new FileSIPZipWriter(getAppLayerFactory(), outFile, outFile.getName(), bagInfoFactory);
 		constellioSIP.buildWithFoldersAndDocuments(writer, asList(records.folder_A01), new ArrayList<String>(), null);
 
 	}

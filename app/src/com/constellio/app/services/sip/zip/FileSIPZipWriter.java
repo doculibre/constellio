@@ -30,7 +30,7 @@ import java.util.Map;
 
 import static org.apache.commons.io.FilenameUtils.getExtension;
 
-public class SIPZipFileWriter implements SIPZipWriter {
+public class FileSIPZipWriter implements SIPZipWriter {
 
 	private static final String READ_FILE_STREAM_NAME = "SIPZipFileWriter-readFile";
 	private static final String BAG_INFO_FILE_NAME = "bag-info.txt";
@@ -56,7 +56,7 @@ public class SIPZipFileWriter implements SIPZipWriter {
 
 	private SIPZipInfos sipZipInfos;
 
-	public SIPZipFileWriter(AppLayerFactory appLayerFactory, File zipFile, String sipFileName,
+	public FileSIPZipWriter(AppLayerFactory appLayerFactory, File zipFile, String sipFileName,
 							SIPZipBagInfoFactory bagInfoFactory)
 			throws IOException {
 		this.ioServices = appLayerFactory.getModelLayerFactory().getIOServicesFactory().newIOServices();
@@ -71,6 +71,10 @@ public class SIPZipFileWriter implements SIPZipWriter {
 		zipOutputStream.setUseZip64(Zip64Mode.AsNeeded);
 
 
+	}
+
+	public File getZipFile() {
+		return zipFile;
 	}
 
 	public void setSipFileHasher(SIPFileHasher sipFileHasher) {
@@ -213,7 +217,11 @@ public class SIPZipFileWriter implements SIPZipWriter {
 
 	public void insertAll(SIPZipWriterTransaction transaction) throws IOException {
 		for (Map.Entry<String, File> entry : transaction.getFiles().entrySet()) {
-			addFileWithoutFlushing(entry.getValue(), entry.getKey());
+			String hash = transaction.getComputedHashesCache().get(entry.getKey());
+			if (hash == null) {
+				hash = sipFileHasher.computeHash(entry.getValue(), entry.getKey());
+			}
+			addFileWithoutFlushing(entry.getValue(), hash, entry.getKey());
 		}
 		zipOutputStream.flush();
 
@@ -223,12 +231,12 @@ public class SIPZipFileWriter implements SIPZipWriter {
 	}
 
 	public void addToZip(File file, String path) throws IOException {
-		addFileWithoutFlushing(file, path);
+		String hash = sipFileHasher.computeHash(file, path);
+		addFileWithoutFlushing(file, hash, path);
 		zipOutputStream.flush();
 	}
 
-	protected void addFileWithoutFlushing(File file, String path) throws IOException {
-		String hash = sipFileHasher.computeHash(file, path);
+	protected void addFileWithoutFlushing(File file, String hash, String path) throws IOException {
 		String pathWithoutSlash = path.startsWith("/") ? path.substring(1) : path;
 
 		sipZipInfos.logFile(getExtension(path), file.length());
