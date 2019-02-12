@@ -1,6 +1,7 @@
 package com.constellio.app.services.sip.zip;
 
 import com.constellio.app.services.factories.AppLayerFactory;
+import org.apache.commons.io.FileUtils;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -52,8 +53,10 @@ public class DefaultSIPZipBagInfoFactory implements SIPZipBagInfoFactory {
 		content.append("\n\n");
 
 		content.append("Taille des fichiers numériques non compressés : ")
+				.append(FileUtils.byteCountToDisplaySize(zipInfos.getUncompressedLengthOfFiles()))
+				.append(" (")
 				.append(zipInfos.getUncompressedLengthOfFiles())
-				.append(" octets").append("\n\n");
+				.append(" octets").append(")").append("\n\n");
 
 		content.append("Logiciel : Constellio").append("\n");
 		content.append("Site web de l’éditeur : http://www.constellio.com").append("\n");

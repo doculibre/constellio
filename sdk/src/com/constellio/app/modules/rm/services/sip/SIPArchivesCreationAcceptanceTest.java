@@ -125,7 +125,7 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 
 	}
 
-	//@Test
+	@Test
 	public void whenExportingAllFoldersAndDocumentsSplittedBySizeThen()
 			throws Exception {
 
