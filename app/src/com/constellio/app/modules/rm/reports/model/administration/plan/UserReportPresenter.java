@@ -32,8 +32,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
 public class UserReportPresenter {
 	private String collection;
 	private ModelLayerFactory modelLayerFactory;
@@ -146,7 +144,7 @@ public class UserReportPresenter {
 			List<String> groupAffected = doesListHaveOneItemInCommon(groups, authorization.getPrincipals());
 			if(groupAffected != null) {
 				for(String currentGroup : groupAffected) {
-					addItemToMapList(mapAuthorizationByGroup, currentGroup, authorization);
+					ReportUtil.addItemToMapList(mapAuthorizationByGroup, currentGroup, authorization);
 				}
 			}
 		}
@@ -158,7 +156,7 @@ public class UserReportPresenter {
 			for(Authorization authorization : authorizationByGroupList) {
 				Record record = recordServices.getDocumentById(authorization.getTarget());
 				String label = metadataSchemasManager.getSchemaTypeOf(record).getLabel(Language.withLocale(locale));
-				userReportModel_group.addTarget(label + " : " + record.getTitle() + " (" + accessAbreviation(getAccess(authorization)) + ")");
+				userReportModel_group.addTarget(label + " : " + record.getTitle() + " (" + ReportUtil.accessAbreviation(ReportUtil.getAccess(authorization, modelLayerFactory)) + ")");
 			}
 
 			userReportModelGroups.add(userReportModel_group);
@@ -167,64 +165,7 @@ public class UserReportPresenter {
 		return userReportModelGroups;
 	}
 
-	private List<String> getAccess(Authorization authorization) {
-		List<String> access = new ArrayList<>();
-		for (String roleCode : authorization.getRoles()) {
-			RolesManager rolesManager = modelLayerFactory.getRolesManager();
-			Role role = rolesManager.getRole(authorization.getCollection(), roleCode);
-			if (role.isContentPermissionRole()) {
-				access.add(roleCode);
-			}
-		}
 
-		return access;
-	}
-
-	private String stringListToString(List<String> stringList, String separator) {
-		StringBuilder stringBuilder = new StringBuilder();
-		for (String item : stringList) {
-
-			if (stringBuilder.length() != 0) {
-				stringBuilder.append(separator + " ");
-			}
-
-			stringBuilder.append(item);
-		}
-
-		return stringBuilder.toString();
-	}
-
-	private void addItemToMapList(Map map, String key, Object item) {
-		List list = (List) map.get(key);
-
-		if(list == null) {
-			list = new ArrayList<>();
-			map.put(key,list);
-		}
-
-		list.add(item);
-	}
-
-	private String accessAbreviation(List<String> roles) {
-		List<String> shortened = new ArrayList<>(3);
-
-
-		if (roles.contains(Role.READ)) {
-			shortened.add($("AuthorizationsView.short.READ"));
-		}
-		if (roles.contains(Role.WRITE)) {
-			shortened.add($("AuthorizationsView.short.WRITE"));
-		}
-		if (roles.contains(Role.DELETE)) {
-			shortened.add($("AuthorizationsView.short.DELETE"));
-		}
-
-		if(shortened == null || roles.isEmpty()) {
-			return "";
-		}
-
-		return stringListToString(shortened, "/");
-	}
 
 	private List<String> doesListHaveOneItemInCommon(List<String> itemList1, List<String> itemList2) {
 		List<String> commonItem = new ArrayList<>();
