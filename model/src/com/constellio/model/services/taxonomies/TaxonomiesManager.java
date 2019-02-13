@@ -367,7 +367,7 @@ public class TaxonomiesManager implements StatefulService, OneXMLConfigPerCollec
 
 		String globalConfigOrder = eimConfigs.getTaxonomyOrderInHomeView();
 		List<String> userTaxonomyDisplayOrder = user.getTaxonomyDisplayOrder();
-		if(userTaxonomyDisplayOrder != null && !userTaxonomyDisplayOrder.isEmpty()) {
+		if (userTaxonomyDisplayOrder != null && !userTaxonomyDisplayOrder.isEmpty()) {
 			taxonomiesInOrder.addAll(userTaxonomyDisplayOrder);
 		} else if (globalConfigOrder != null) {
 			taxonomiesInOrder.addAll(asList(globalConfigOrder.replaceAll("\\s", "").split(",")));

@@ -15,7 +15,6 @@ import com.constellio.model.entities.enums.TitleMetadataPopulatePriority;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import org.joda.time.LocalDate;
 
 import java.util.ArrayList;
 import java.util.Collection;

@@ -304,7 +304,8 @@ public class RMConfigs {
 
 		add(NEED_REASON_BEFORE_DELETING_FOLDERS = others.createBooleanTrueByDefault("needReasonBeforeDeletingFolders"));
 
-		add(DECOMMISSIONING_LIST_WITH_SELECTED_FOLDERS = decommissioning.createBooleanFalseByDefault("decommissioningListWithSelectedFolders"));
+		add(DECOMMISSIONING_LIST_WITH_SELECTED_FOLDERS = decommissioning
+				.createBooleanFalseByDefault("decommissioningListWithSelectedFolders"));
 
 	}
 

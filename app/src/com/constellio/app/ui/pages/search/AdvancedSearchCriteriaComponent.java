@@ -274,7 +274,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 			});
 
 			final SearchOperator searchOperator = criterion.getSearchOperator();
-			if(SearchOperator.CONTAINS_TEXT.equals(searchOperator)) {
+			if (SearchOperator.CONTAINS_TEXT.equals(searchOperator)) {
 				criterion.setSearchOperator(SearchOperator.EQUALS);
 			}
 

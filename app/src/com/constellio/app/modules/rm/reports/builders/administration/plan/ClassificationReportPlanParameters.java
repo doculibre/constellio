@@ -9,8 +9,8 @@ public class ClassificationReportPlanParameters {
 	private String administrativeUnitId;
 	private List<String> listOfCategory;
 
-
-	public ClassificationReportPlanParameters(boolean detail, String administrativeUnitId, List<String> listOfCategory, boolean showDeactivated) {
+	public ClassificationReportPlanParameters(boolean detail, String administrativeUnitId, List<String> listOfCategory,
+			boolean showDeactivated) {
 		this.showDeactivated = showDeactivated;
 		this.detail = detail;
 		this.administrativeUnitId = administrativeUnitId;

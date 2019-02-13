@@ -1,6 +1,7 @@
 package com.constellio.model.services.security;
 
 import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
@@ -3881,6 +3882,29 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 
 	}
 
+	@Test
+	public void givenUserWithWriteAccessAndRGBTRoleToUnit10ThenCorePermissionBatchProcessIsPresentOnA01Folder()
+			throws RecordServicesException {
+		recordServices.update(users.aliceIn(zeCollection).setCollectionReadAccess(false));
+		recordServices.update(users.aliceIn(zeCollection).setCollectionWriteAccess(false));
+		recordServices.update(users.aliceIn(zeCollection).setCollectionDeleteAccess(false));
+
+		Role admRole = getModelLayerFactory().getRolesManager().getRole(zeCollection, ROLE1);
+		getModelLayerFactory().getRolesManager().updateRole(admRole.withNewPermissions(asList(CorePermissions.BATCH_PROCESS)));
+
+		authorizationForUser(users.alice().getUsername()).on(TAXO1_CATEGORY1).giving(ROLE1);
+
+		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery();
+		logicalSearchQuery.setCondition(from(setup.folderSchema.type()).where(setup.folderSchema.title()).is(FOLDER1));
+
+		assertThat(searchServices.query(logicalSearchQuery).getNumFound()).isEqualTo(1);
+
+		LogicalSearchQuery logicalSearchQueryWithFilter = new LogicalSearchQuery(logicalSearchQuery.getCondition());
+		logicalSearchQueryWithFilter.filteredWithUser(users.aliceIn(zeCollection), CorePermissions.BATCH_PROCESS);
+
+		assertThat(searchServices.query(logicalSearchQueryWithFilter).getNumFound()).isEqualTo(1);
+
+	}
 
 	private ListAssert<String> assertThatAllFoldersVisibleBy(String username) {
 		ModifiableSolrParams params = new ModifiableSolrParams();

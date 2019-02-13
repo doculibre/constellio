@@ -52,7 +52,8 @@ public class DisplayConfigPresenter extends SingleSchemaBasePresenter<DisplayCon
 		MetadataSchemasManager schemasManager = modelLayerFactory.getMetadataSchemasManager();
 		MetadataList list = schemasManager.getSchemaTypes(collection).getSchema(getSchemaCode()).getMetadatas();
 		SchemasDisplayManager displayManager = appLayerFactory.getMetadataSchemasDisplayManager();
-		MetadataSchemaType schemaType = schemasManager.getSchemaTypes(collection).getSchemaType(SchemaUtils.getSchemaTypeCode(getSchemaCode()));
+		MetadataSchemaType schemaType = schemasManager.getSchemaTypes(collection)
+				.getSchemaType(SchemaUtils.getSchemaTypeCode(getSchemaCode()));
 
 		List<FormMetadataVO> formMetadataVOs = new ArrayList<>();
 		MetadataToFormVOBuilder builder = new MetadataToFormVOBuilder(view.getSessionContext());
@@ -79,7 +80,8 @@ public class DisplayConfigPresenter extends SingleSchemaBasePresenter<DisplayCon
 	public List<FormMetadataVO> getValueMetadatas() {
 		MetadataSchemasManager schemasManager = modelLayerFactory.getMetadataSchemasManager();
 		SchemasDisplayManager displayManager = schemasDisplayManager();
-		MetadataSchemaType schemaType = schemasManager.getSchemaTypes(collection).getSchemaType(SchemaUtils.getSchemaTypeCode(getSchemaCode()));
+		MetadataSchemaType schemaType = schemasManager.getSchemaTypes(collection)
+				.getSchemaType(SchemaUtils.getSchemaTypeCode(getSchemaCode()));
 		List<String> codeList = displayManager.getSchema(collection, getSchemaCode()).getDisplayMetadataCodes();
 
 		List<FormMetadataVO> formMetadataVOs = new ArrayList<>();
@@ -105,7 +107,9 @@ public class DisplayConfigPresenter extends SingleSchemaBasePresenter<DisplayCon
 				Schemas.SCHEMA_AUTOCOMPLETE_FIELD, Schemas.VISIBLE_IN_TREES, Schemas.MIGRATION_DATA_VERSION);
 
 		List<String> localCodes = new SchemaUtils().toMetadataLocalCodes(restrictedMetadata);
-		boolean isEnabled = metadata.getSchemaCode().contains("_default")? isEnabledInAtLeastOneSchema(metadata, schemaType): metadata.isEnabled();
+		boolean isEnabled = metadata.getSchemaCode().contains("_default") ?
+				isEnabledInAtLeastOneSchema(metadata, schemaType) :
+				metadata.isEnabled();
 
 		return !localCodes.contains(metadata.getLocalCode()) && (!mustBeEnabled || isEnabled);
 	}

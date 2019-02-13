@@ -22,9 +22,9 @@ public class RMRecordDisplayFactoryExtension extends RecordDisplayFactoryExtensi
 	@Override
 	public ReferenceDisplay getDisplayForReference(AllowedReferences allowedReferences, String id) {
 		if (allowedReferences != null && allowedReferences.getAllowedSchemaType() != null) {
-			if(allowedReferences.getAllowedSchemaType().contains(AdministrativeUnit.SCHEMA_TYPE)) {
+			if (allowedReferences.getAllowedSchemaType().contains(AdministrativeUnit.SCHEMA_TYPE)) {
 				return getReferenceDisplayForAdministrativeUnit(id);
-			} else if(allowedReferences.getAllowedSchemaType().contains(RetentionRule.SCHEMA_TYPE)) {
+			} else if (allowedReferences.getAllowedSchemaType().contains(RetentionRule.SCHEMA_TYPE)) {
 				return new RetentionRuleReferenceDisplay(id);
 			}
 		}

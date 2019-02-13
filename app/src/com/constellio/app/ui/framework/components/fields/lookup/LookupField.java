@@ -146,15 +146,15 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 
 		String recordId = null;
 
-		if(this.niceTitleItemConverter == null) {
+		if (this.niceTitleItemConverter == null) {
 			this.niceTitleItemConverter = getNiceTitleItemConverter();
 		}
 
-		if(property != null && property instanceof String) {
+		if (property != null && property instanceof String) {
 			recordId = (String) property;
 		}
 
-		if(niceTitleItemConverter != null && recordId != null) {
+		if (niceTitleItemConverter != null && recordId != null) {
 			Locale locale = ConstellioUI.getCurrentSessionContext().getCurrentLocale();
 			return niceTitleItemConverter.convertToPresentation(recordId, String.class, locale);
 		}
@@ -688,7 +688,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 				ExtensibleButton selectButton = new ExtensibleButton(caption);
 
 				String tooltip = getNiceTitle(item);
-				if(tooltip != null) {
+				if (tooltip != null) {
 					NiceTitle niceTitle = new NiceTitle(selectButton, tooltip);
 					selectButton.addExtension(niceTitle);
 				}

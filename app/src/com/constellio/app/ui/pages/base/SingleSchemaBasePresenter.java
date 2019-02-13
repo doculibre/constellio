@@ -2,7 +2,6 @@ package com.constellio.app.ui.pages.base;
 
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.ContentVersionVO;
-import com.constellio.app.ui.entities.FormMetadataVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.i18n.i18n;
@@ -16,7 +15,6 @@ import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.services.records.RecordDeleteServicesRuntimeException;
 import com.constellio.model.services.records.RecordDeleteServicesRuntimeException;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord;
 
@@ -50,12 +48,13 @@ public abstract class SingleSchemaBasePresenter<T extends BaseView> extends Base
 	}
 
 	protected boolean isEnabledInAtLeastOneSchema(Metadata metadata, MetadataSchemaType schemaType) {
-		if(metadata.isEnabled()) {
+		if (metadata.isEnabled()) {
 			return true;
 		} else {
 			List<MetadataSchema> allSchemas = schemaType.getAllSchemas();
-			for(MetadataSchema schema: allSchemas) {
-				if(schema.hasMetadataWithCode(metadata.getLocalCode()) && schema.getMetadata(metadata.getLocalCode()).isEnabled()) {
+			for (MetadataSchema schema : allSchemas) {
+				if (schema.hasMetadataWithCode(metadata.getLocalCode()) && schema.getMetadata(metadata.getLocalCode())
+						.isEnabled()) {
 					return true;
 				}
 			}
