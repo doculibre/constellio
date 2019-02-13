@@ -125,22 +125,22 @@ public class ListPrintableReportPresenterAcceptanceTest extends ConstellioTest {
 			String hash = jasperFileContent.getCurrentVersion().getHash();
 			assertThat(((ContentVersionVO) firstLabel.get(PrintableReport.JASPERFILE)).getHash())
 					.isEqualTo(hash);
-			assertThat(firstLabel.get(PrintableReport.RECORD_TYPE)).isEqualTo(reportTypeForFolder1);
-			assertThat(firstLabel.get(PrintableReport.RECORD_SCHEMA)).isEqualTo(schemaForFolder1);
+			assertThat(firstLabel.<String>get(PrintableReport.RECORD_TYPE)).isEqualTo(reportTypeForFolder1);
+			assertThat(firstLabel.<String>get(PrintableReport.RECORD_SCHEMA)).isEqualTo(schemaForFolder1);
 
 			RecordVO secondLabel = recordVOList.get(1);
 			assertThat(secondLabel.getTitle()).isEqualTo(titleForFolder2);
 			assertThat(((ContentVersionVO) secondLabel.get(PrintableReport.JASPERFILE)).getHash())
 					.isEqualTo(hash);
-			assertThat(secondLabel.get(PrintableReport.RECORD_TYPE)).isEqualTo(reportTypeForFolder2);
-			assertThat(secondLabel.get(PrintableReport.RECORD_SCHEMA)).isEqualTo(schemaForFolder2);
+			assertThat(secondLabel.<String>get(PrintableReport.RECORD_TYPE)).isEqualTo(reportTypeForFolder2);
+			assertThat(secondLabel.<String>get(PrintableReport.RECORD_SCHEMA)).isEqualTo(schemaForFolder2);
 
 			RecordVO thirdLabel = recordVOList.get(2);
 			assertThat(thirdLabel.getTitle()).isEqualTo(titleForFolder3);
 			assertThat(((ContentVersionVO) thirdLabel.get(PrintableReport.JASPERFILE)).getHash())
 					.isEqualTo(hash);
-			assertThat(thirdLabel.get(PrintableReport.RECORD_TYPE)).isEqualTo(reportTypeForFolder3);
-			assertThat(thirdLabel.get(PrintableReport.RECORD_SCHEMA)).isEqualTo(schemaForFolder3);
+			assertThat(thirdLabel.<String>get(PrintableReport.RECORD_TYPE)).isEqualTo(reportTypeForFolder3);
+			assertThat(thirdLabel.<String>get(PrintableReport.RECORD_SCHEMA)).isEqualTo(schemaForFolder3);
 		} finally {
 			ioServices.closeQuietly(jasperInputStream);
 		}
@@ -205,22 +205,22 @@ public class ListPrintableReportPresenterAcceptanceTest extends ConstellioTest {
 			assertThat(((ContentVersionVO) firstLabel.get(PrintableReport.JASPERFILE)).getHash())
 					.isEqualTo(hash);
 			assertThat(firstLabel.getTitle()).isEqualTo(titleForFolder1);
-			assertThat(firstLabel.get(PrintableReport.RECORD_TYPE)).isEqualTo(reportTypeForFolder1);
-			assertThat(firstLabel.get(PrintableReport.RECORD_SCHEMA)).isEqualTo(schemaForFolder1);
+			assertThat(firstLabel.<String>get(PrintableReport.RECORD_TYPE)).isEqualTo(reportTypeForFolder1);
+			assertThat(firstLabel.<String>get(PrintableReport.RECORD_SCHEMA)).isEqualTo(schemaForFolder1);
 
 			RecordVO secondLabel = recordVOList.get(1);
 			assertThat(((ContentVersionVO) secondLabel.get(PrintableReport.JASPERFILE)).getHash())
 					.isEqualTo(hash);
 			assertThat(secondLabel.getTitle()).isEqualTo(titleForFolder2);
-			assertThat(secondLabel.get(PrintableReport.RECORD_TYPE)).isEqualTo(reportTypeForFolder2);
-			assertThat(secondLabel.get(PrintableReport.RECORD_SCHEMA)).isEqualTo(schemaForFolder2);
+			assertThat(secondLabel.<String>get(PrintableReport.RECORD_TYPE)).isEqualTo(reportTypeForFolder2);
+			assertThat(secondLabel.<String>get(PrintableReport.RECORD_SCHEMA)).isEqualTo(schemaForFolder2);
 
 			RecordVO thirdLabel = recordVOList.get(2);
 			assertThat(((ContentVersionVO) thirdLabel.get(PrintableReport.JASPERFILE)).getHash())
 					.isEqualTo(hash);
 			assertThat(thirdLabel.getTitle()).isEqualTo(titleForFolder3);
-			assertThat(thirdLabel.get(PrintableReport.RECORD_TYPE)).isEqualTo(reportTypeForFolder3);
-			assertThat(thirdLabel.get(PrintableReport.RECORD_SCHEMA)).isEqualTo(schemaForFolder3);
+			assertThat(thirdLabel.<String>get(PrintableReport.RECORD_TYPE)).isEqualTo(reportTypeForFolder3);
+			assertThat(thirdLabel.<String>get(PrintableReport.RECORD_SCHEMA)).isEqualTo(schemaForFolder3);
 		} finally {
 			ioServices.closeQuietly(jasperInputStream);
 		}
@@ -282,22 +282,22 @@ public class ListPrintableReportPresenterAcceptanceTest extends ConstellioTest {
 			assertThat(((ContentVersionVO) firstLabel.get(PrintableReport.JASPERFILE)).getHash())
 					.isEqualTo(hash);
 			assertThat(firstLabel.getTitle()).isEqualTo(titleForFolder1);
-			assertThat(firstLabel.get(PrintableReport.RECORD_TYPE)).isEqualTo(reportTypeForFolder1);
-			assertThat(firstLabel.get(PrintableReport.RECORD_SCHEMA)).isEqualTo(schemaForFolder1);
+			assertThat(firstLabel.<String>get(PrintableReport.RECORD_TYPE)).isEqualTo(reportTypeForFolder1);
+			assertThat(firstLabel.<String>get(PrintableReport.RECORD_SCHEMA)).isEqualTo(schemaForFolder1);
 
 			RecordVO secondLabel = recordVOList.get(1);
 			assertThat(((ContentVersionVO) firstLabel.get(PrintableReport.JASPERFILE)).getHash())
 					.isEqualTo(hash);
 			assertThat(secondLabel.getTitle()).isEqualTo(titleForFolder2);
-			assertThat(secondLabel.get(PrintableReport.RECORD_TYPE)).isEqualTo(reportTypeForFolder2);
-			assertThat(secondLabel.get(PrintableReport.RECORD_SCHEMA)).isEqualTo(schemaForFolder2);
+			assertThat(secondLabel.<String>get(PrintableReport.RECORD_TYPE)).isEqualTo(reportTypeForFolder2);
+			assertThat(secondLabel.<String>get(PrintableReport.RECORD_SCHEMA)).isEqualTo(schemaForFolder2);
 
 			RecordVO thirdLabel = recordVOList.get(2);
 			assertThat(((ContentVersionVO) firstLabel.get(PrintableReport.JASPERFILE)).getHash())
 					.isEqualTo(hash);
 			assertThat(thirdLabel.getTitle()).isEqualTo(titleForFolder3);
-			assertThat(thirdLabel.get(PrintableReport.RECORD_TYPE)).isEqualTo(reportTypeForFolder3);
-			assertThat(thirdLabel.get(PrintableReport.RECORD_SCHEMA)).isEqualTo(schemaForFolder3);
+			assertThat(thirdLabel.<String>get(PrintableReport.RECORD_TYPE)).isEqualTo(reportTypeForFolder3);
+			assertThat(thirdLabel.<String>get(PrintableReport.RECORD_SCHEMA)).isEqualTo(schemaForFolder3);
 		} finally {
 			ioServices.closeQuietly(jasperInputStream);
 		}

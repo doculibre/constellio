@@ -13,8 +13,9 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+
+import static java.util.Collections.singletonList;
 
 public class CloudSolrServerFactory extends AbstractSolrServerFactory {
 
@@ -82,7 +83,7 @@ public class CloudSolrServerFactory extends AbstractSolrServerFactory {
 
 	@Override
 	SolrClient getSolrClient(String core) {
-		CloudSolrClient solrClient = new CloudSolrClient.Builder(Collections.singletonList(zkHost)).build();
+		CloudSolrClient solrClient = new CloudSolrClient.Builder(singletonList(zkHost)).build();
 		solrClient.setSoTimeout(60_000);
 		solrClient.setZkClientTimeout(60_000);
 		solrClient.setZkConnectTimeout(60_000);

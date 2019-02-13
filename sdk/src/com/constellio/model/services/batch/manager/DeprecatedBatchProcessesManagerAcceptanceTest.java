@@ -17,12 +17,11 @@ import org.junit.Test;
 import org.mockito.Mock;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-import static com.constellio.sdk.tests.TestUtils.asList;
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
@@ -42,7 +41,7 @@ public class DeprecatedBatchProcessesManagerAcceptanceTest extends ConstellioTes
 	@Mock Metadata firstMetadata;
 	@Mock Metadata secondMetadata;
 	@Mock Metadata otherMetadata;
-	BatchProcessAction action = new ReindexMetadatasBatchProcessAction(new ArrayList<String>(Arrays.asList("a", "b")));
+	BatchProcessAction action = new ReindexMetadatasBatchProcessAction(new ArrayList<String>(asList("a", "b")));
 	List<Metadata> indexMetadatas;
 
 	LocalDateTime currentDate = aDateTime();

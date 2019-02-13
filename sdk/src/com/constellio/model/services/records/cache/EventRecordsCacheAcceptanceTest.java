@@ -183,14 +183,14 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 		record.set(TITLE, "modified title");
 		recordsCaches.getCache(record.getCollection()).get(record.getId()).set(TITLE, "modified title");
 
-		assertThat(recordsCaches.getRecord(record.getId()).get(TITLE)).isEqualTo("original title");
+		assertThat(recordsCaches.getRecord(record.getId()).<String>get(TITLE)).isEqualTo("original title");
 		assertThat(recordsCaches.getCache(record.getCollection())
 				.getByMetadata(zeCollectionSchemaWithPermanentCache.metadata(Schemas.LEGACY_ID.getLocalCode()), "zeLegacyId")
-				.get(TITLE)).isEqualTo("original title");
+				.<String>get(TITLE)).isEqualTo("original title");
 		assertThat(recordsCaches.getRecord(record.getId()).isDirty()).isFalse();
-		assertThat(record.get(TITLE)).isEqualTo("modified title");
+		assertThat(record.<String>get(TITLE)).isEqualTo("modified title");
 		assertThat(record.isDirty()).isTrue();
-		assertThat(record.get(TITLE)).isEqualTo("modified title");
+		assertThat(record.<String>get(TITLE)).isEqualTo("modified title");
 		assertThat(record.isDirty()).isTrue();
 
 		String type = zeCollectionSchemaWithPermanentCache.typeCode();
