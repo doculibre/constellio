@@ -2,7 +2,7 @@ package com.constellio.app.ui.framework.buttons.SIPButton;
 
 import com.constellio.app.entities.modules.ProgressInfo;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.services.sip.RMSIPBuilder;
+import com.constellio.app.modules.rm.services.sip.RMSelectedFoldersAndDocumentsSIPBuilder;
 import com.constellio.app.modules.rm.wrappers.SIParchive;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
@@ -43,8 +43,7 @@ public class SIPBuildAsyncTask implements AsyncTask {
 
 	private static final String UPLOAD_FILE_STREAM_NAME = "SIPBuildAsyncTask-UploadFile";
 
-	//private static final long SIP_MAX_FILES_LENGTH = (6 * FileUtils.ONE_GB);
-	private static final long SIP_MAX_FILES_LENGTH = (2 * FileUtils.ONE_MB);
+	private static final long SIP_MAX_FILES_LENGTH = (6 * FileUtils.ONE_GB);
 
 	private String sipFileName;
 	private List<String> bagInfoLines;
@@ -108,7 +107,8 @@ public class SIPBuildAsyncTask implements AsyncTask {
 
 	private void buildSIPFiles(AppLayerFactory appLayerFactory, final AsyncTaskExecutionParams params, File outFolder)
 			throws IOException {
-		RMSIPBuilder sipBuilder = new RMSIPBuilder(params.getCollection(), appLayerFactory);
+		RMSelectedFoldersAndDocumentsSIPBuilder sipBuilder = new RMSelectedFoldersAndDocumentsSIPBuilder(
+				params.getCollection(), appLayerFactory);
 		DefaultSIPZipBagInfoFactory bagInfoFactory = new DefaultSIPZipBagInfoFactory(appLayerFactory, locale);
 		bagInfoFactory.setHeaderLines(bagInfoLines);
 

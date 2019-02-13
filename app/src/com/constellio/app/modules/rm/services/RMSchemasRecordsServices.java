@@ -25,6 +25,7 @@ import com.constellio.app.modules.rm.wrappers.type.YearType;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.pages.base.SessionContextProvider;
 import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.data.utils.LazyIterator;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.DocumentListPDF;
 import com.constellio.model.entities.records.wrappers.HierarchicalValueListItem;
@@ -78,6 +79,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -86,6 +88,7 @@ import java.util.Properties;
 import static com.constellio.model.entities.schemas.Schemas.SCHEMA;
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
 
 public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 
@@ -418,7 +421,25 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 		return new Folder(record, getTypes()).setType(type);
 	}
 
-	//
+	public Iterator<Folder> foldersIterator(LogicalSearchCondition condition) {
+		MetadataSchemaType type = folder.schemaType();
+		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
+		return foldersIterator(query);
+	}
+
+	public Iterator<Folder> foldersIterator(LogicalSearchQuery query) {
+		final Iterator<Record> recordIterator = modelLayerFactory.newSearchServices().recordsIterator(query, 2000);
+		return new LazyIterator<Folder>() {
+			@Override
+			protected Folder getNextOrNull() {
+				if (recordIterator.hasNext()) {
+					return wrapFolder(recordIterator.next());
+				} else {
+					return null;
+				}
+			}
+		};
+	}
 
 	//Folder type
 

@@ -54,6 +54,11 @@ public class RecordSIPWriter {
 
 	private RecordPathProvider recordPathProvider;
 
+	/**
+	 * For test purposes only
+	 */
+	private boolean includeContentFiles = true;
+
 	public RecordSIPWriter(AppLayerFactory appLayerFactory,
 						   SIPZipWriter sipZipWriter,
 						   RecordPathProvider recordPathProvider,
@@ -69,6 +74,11 @@ public class RecordSIPWriter {
 		this.sipZipWriter = sipZipWriter;
 
 		this.locale = locale;
+	}
+
+	public RecordSIPWriter setIncludeContentFiles(boolean includeContentFiles) {
+		this.includeContentFiles = includeContentFiles;
+		return this;
 	}
 
 	public ValidationErrors add(Record record) throws IOException {
@@ -112,10 +122,12 @@ public class RecordSIPWriter {
 		RecordInsertionContext recordInsertionContext = new RecordInsertionContext(transaction, record, errors);
 		buildRecordEADFile(transaction, recordInsertionContext);
 
-		for (Metadata contentMetadata : recordInsertionContext.schema.getMetadatas().onlyWithType(CONTENT)) {
-			for (Content content : recordInsertionContext.record.<Content>getValues(contentMetadata)) {
-				for (ContentVersion contentVersion : content.getVersions()) {
-					insertContentVersion(recordInsertionContext, contentMetadata, contentVersion);
+		if (includeContentFiles) {
+			for (Metadata contentMetadata : recordInsertionContext.schema.getMetadatas().onlyWithType(CONTENT)) {
+				for (Content content : recordInsertionContext.record.<Content>getValues(contentMetadata)) {
+					for (ContentVersion contentVersion : content.getVersions()) {
+						insertContentVersion(recordInsertionContext, contentMetadata, contentVersion);
+					}
 				}
 			}
 		}

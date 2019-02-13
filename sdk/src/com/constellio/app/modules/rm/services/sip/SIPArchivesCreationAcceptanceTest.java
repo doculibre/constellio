@@ -45,7 +45,7 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 	Users users = new Users();
 	RMSchemasRecordsServices rm;
 	IOServices ioServices;
-	RMSIPBuilder constellioSIP;
+	RMSelectedFoldersAndDocumentsSIPBuilder constellioSIP;
 
 	@Before
 	public void setUp() throws Exception {
@@ -66,7 +66,7 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 
 		rm.executeTransaction(tx);
 		ioServices = getModelLayerFactory().getIOServicesFactory().newIOServices();
-		constellioSIP = new RMSIPBuilder(zeCollection, getAppLayerFactory());
+		constellioSIP = new RMSelectedFoldersAndDocumentsSIPBuilder(zeCollection, getAppLayerFactory());
 	}
 
 	@Test
@@ -104,6 +104,31 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 
 		getIOLayerFactory().newZipService().zip(getTestResourceFile("sip2.zip"),
 				asList(new File("/Users/francisbaril/Downloads/SIPArchivesCreationAcceptanceTest-sip2").listFiles()));
+
+
+		Transaction tx = new Transaction();
+		tx.add(rm.newFolderWithId("zeFolderId").setOpenDate(new LocalDate(2018, 1, 1))
+				.setTitle("Ze folder")
+				.setAdministrativeUnitEntered(records.unitId_10a).setCategoryEntered(records.categoryId_X13)
+				.setRetentionRuleEntered(records.ruleId_1));
+
+		tx.add(rm.newEmailWithId("theEmailId").setTitle("My important email").setFolder("zeFolderId"))
+				.setContent(minorContent("testFile.msg"));
+
+
+		rm.executeTransaction(tx);
+
+		File sipFile = buildSIPWithDocuments("theEmailId");
+		System.out.println(sipFile.getAbsolutePath());
+		unzipInDownloadFolder(sipFile, "testSIP");
+
+		assertThat(sipFile).is(zipFileWithSameContentExceptingFiles(getTestResourceFile("sip2.zip")));
+
+	}
+
+	@Test
+	public void whenExportingCollectionThenAll()
+			throws Exception {
 
 
 		Transaction tx = new Transaction();
@@ -255,7 +280,7 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 			}
 		});
 
-		RMSIPBuilder constellioSIP = new RMSIPBuilder(zeCollection, getAppLayerFactory());
+		RMSelectedFoldersAndDocumentsSIPBuilder constellioSIP = new RMSelectedFoldersAndDocumentsSIPBuilder(zeCollection, getAppLayerFactory());
 		ValidationErrors errors = constellioSIP.buildWithFoldersAndDocuments(writer, new ArrayList<String>(), documentsIds, null
 		);
 

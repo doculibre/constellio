@@ -32,7 +32,7 @@ import java.util.Set;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static java.util.Arrays.asList;
 
-public class RMSIPBuilder {
+public class RMSelectedFoldersAndDocumentsSIPBuilder {
 
 	private AppLayerFactory appLayerFactory;
 
@@ -48,7 +48,7 @@ public class RMSIPBuilder {
 
 	private User user;
 
-	public RMSIPBuilder(String collection, AppLayerFactory appLayerFactory) {
+	public RMSelectedFoldersAndDocumentsSIPBuilder(String collection, AppLayerFactory appLayerFactory) {
 		this.appLayerFactory = appLayerFactory;
 		this.recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 		this.rm = new RMSchemasRecordsServices(collection, appLayerFactory);
@@ -62,7 +62,7 @@ public class RMSIPBuilder {
 		return locale;
 	}
 
-	public RMSIPBuilder setLocale(Locale locale) {
+	public RMSelectedFoldersAndDocumentsSIPBuilder setLocale(Locale locale) {
 		this.locale = locale;
 		return this;
 	}
@@ -71,11 +71,10 @@ public class RMSIPBuilder {
 		return user;
 	}
 
-	public RMSIPBuilder setUser(User user) {
+	public RMSelectedFoldersAndDocumentsSIPBuilder setUser(User user) {
 		this.user = user;
 		return this;
 	}
-
 
 
 	/**
@@ -150,8 +149,7 @@ public class RMSIPBuilder {
 		}
 
 
-		List<String> orderedIds = new ArrayList<>();
-		orderedIds.addAll(ids);
+		List<String> orderedIds = new ArrayList<>(ids);
 		Collections.sort(orderedIds);
 		return orderedIds;
 	}

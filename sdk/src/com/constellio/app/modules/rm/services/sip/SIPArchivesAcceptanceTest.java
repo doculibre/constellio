@@ -80,7 +80,7 @@ public class SIPArchivesAcceptanceTest extends ConstellioTest {
 
 		DefaultSIPZipBagInfoFactory bagInfoFactory = new DefaultSIPZipBagInfoFactory(getAppLayerFactory(), FRENCH);
 		bagInfoFactory.setHeaderLines(bagInfoLines);
-		RMSIPBuilder constellioSIP = new RMSIPBuilder(zeCollection, getAppLayerFactory());
+		RMSelectedFoldersAndDocumentsSIPBuilder constellioSIP = new RMSelectedFoldersAndDocumentsSIPBuilder(zeCollection, getAppLayerFactory());
 		FileSIPZipWriter writer = new FileSIPZipWriter(getAppLayerFactory(), outFile, outFile.getName(), bagInfoFactory);
 		constellioSIP.buildWithFoldersAndDocuments(writer, asList(records.folder_A01), new ArrayList<String>(), null);
 
