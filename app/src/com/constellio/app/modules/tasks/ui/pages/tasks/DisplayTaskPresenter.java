@@ -193,7 +193,7 @@ public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskV
 	@Override
 	public void setReadByUser(RecordVO recordVO, boolean readByUser) {
 		try {
-			taskPresenterServices.setReadByUser(toRecord(recordVO), readByUser);
+			taskPresenterServices.setReadByUser(getCurrentRecord(), readByUser);
 			reloadCurrentTask();
 			view.getMainLayout().getMenu().refreshBadges();
 		} catch (RecordServicesException e) {

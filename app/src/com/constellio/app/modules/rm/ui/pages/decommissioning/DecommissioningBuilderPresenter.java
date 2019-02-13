@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.ui.pages.decommissioning;
 
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.modules.rm.ConstellioRMModule;
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.extensions.api.DecommissioningBuilderPresenterExtension;
 import com.constellio.app.modules.rm.extensions.api.DecommissioningBuilderPresenterExtension.AddAdditionalSearchFiltersParams;
@@ -16,6 +17,7 @@ import com.constellio.app.modules.rm.services.decommissioning.SearchType;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.structures.FolderDetailStatus;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.pages.search.AdvancedSearchCriteriaComponent.SearchCriteriaPresenter;
@@ -255,7 +257,11 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 			} else {
 
 				if (decommissioningList.getDecommissioningListType().isFolderList()) {
-					decommissioningList.addFolderDetailsFor(rmRecordServices.getFolders(selected).toArray(new Folder[0]));
+					if (isDecommissioningListWithSelectedFolders()) {
+						decommissioningList.addFolderDetailsFor(FolderDetailStatus.SELECTED, rmRecordServices.getFolders(selected).toArray(new Folder[0]));
+					} else {
+						decommissioningList.addFolderDetailsFor(FolderDetailStatus.INCLUDED, rmRecordServices.getFolders(selected).toArray(new Folder[0]));
+					}
 					decommissioningList
 							.addContainerDetailsFromFolders(rmRecordServices.getFolders(selected).toArray(new Folder[0]));
 					recordServices().update(decommissioningList.getWrappedRecord());
@@ -459,6 +465,10 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 			view.navigate().to(RMViews.class).decommissioningListBuilderReplay(searchType.name(), search.getId());
 		}
 		return search;
+	}
+
+	protected boolean isDecommissioningListWithSelectedFolders() {
+		return new RMConfigs(modelLayerFactory.getSystemConfigurationsManager()).isDecommissioningListWithSelectedFolders();
 	}
 
 	@Override

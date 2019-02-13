@@ -23,6 +23,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import static com.constellio.app.utils.NamingEnumerationUtils.closeQuietly;
+
 public class ConnectorLDAPServicesImpl implements ConnectorLDAPServices {
 	private static final Logger LOGGER = LogManager.getLogger(ConnectorLDAPServicesImpl.class);
 
@@ -57,11 +59,13 @@ public class ConnectorLDAPServicesImpl implements ConnectorLDAPServices {
 													   String contextName) {
 		Set<String> objectsIds = new HashSet<>();
 		/////////////////////////////
+		NamingEnumeration results = null;
 		Boolean errorDuringSearch = false;
 		try {
 			int pageSize = 100;
 			byte[] cookie = null;
 			ctx.setRequestControls(new Control[]{new PagedResultsControl(pageSize, Control.NONCRITICAL)});
+
 			do {
 				//Query
 				SearchControls searchCtls = new SearchControls();
@@ -69,7 +73,7 @@ public class ConnectorLDAPServicesImpl implements ConnectorLDAPServices {
 				String[] returnAttributes = {userIdAttributeName};
 				searchCtls.setReturningAttributes(returnAttributes);
 
-				NamingEnumeration results = ctx.search(contextName, searchFilter, searchCtls);
+				results = ctx.search(contextName, searchFilter, searchCtls);
 
 				/* for each entry print out name + all attrs and values */
 				while (results != null && results.hasMore()) {
@@ -101,10 +105,13 @@ public class ConnectorLDAPServicesImpl implements ConnectorLDAPServices {
 				// Re-activate paged results
 				ctx.setRequestControls(new Control[]{new PagedResultsControl(pageSize, cookie, Control.CRITICAL)});
 
+				closeQuietly(results);
 			} while (cookie != null);
 		} catch (Exception e) {
 			errorDuringSearch = true;
 			LOGGER.error("PagedSearch failed.", e);
+		} finally {
+			closeQuietly(results);
 		}
 		return new ConnectorLDAPSearchResult().setDocumentIds(objectsIds).setErrorDuringSearch(errorDuringSearch);
 	}
@@ -119,13 +126,18 @@ public class ConnectorLDAPServicesImpl implements ConnectorLDAPServices {
 		Set<String> returnContextes = new HashSet<>();
 		Attributes attributes = ctx.getAttributes("", new String[]{"namingContexts"});
 		Attribute attribute = attributes.get("namingContexts");
-		NamingEnumeration<?> all = attribute.getAll();
-		while (all.hasMore()) {
-			String next = (String) all.next();
-			String nextWithoutCaps = next.toLowerCase();
-			if (nextWithoutCaps.startsWith("ou") || nextWithoutCaps.startsWith("dc")) {
-				returnContextes.add(next);
+		NamingEnumeration<?> all = null;
+		try {
+			all = attribute.getAll();
+			while (all.hasMore()) {
+				String next = (String) all.next();
+				String nextWithoutCaps = next.toLowerCase();
+				if (nextWithoutCaps.startsWith("ou") || nextWithoutCaps.startsWith("dc")) {
+					returnContextes.add(next);
+				}
 			}
+		} finally {
+			closeQuietly(all);
 		}
 		return returnContextes;
 	}

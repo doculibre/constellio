@@ -229,7 +229,7 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 	@Override
 	public void setReadByUser(RecordVO recordVO, boolean readByUser) {
 		try {
-			taskPresenterServices.setReadByUser(toRecord(recordVO), readByUser);
+			taskPresenterServices.setReadByUser(getRecord(recordVO.getId()), readByUser);
 			refreshCurrentTab();
 			view.getMainLayout().getMenu().refreshBadges();
 		} catch (RecordServicesException e) {

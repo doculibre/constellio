@@ -58,9 +58,10 @@ public class User extends RecordWrapper {
 	public static final String AGENT_ENABLED = "agentEnabled";
 	public static final String DEFAULT_PAGE_LENGTH = "defaultPageLength";
 	public static final String USER_DOCUMENT_SIZE_SUM = "userDocumentSizeSum";
+	public static final String TAXONOMY_DISPLAY_ORDER = "taxonomyDisplayOrder";
+	public static final String DO_NOT_RECEIVE_EMAILS = "doNotReceiveEmails";
 
 	private Logger LOGGER = LoggerFactory.getLogger(User.class);
-
 
 	private transient Roles roles;
 	AuthorizationsServices authorizationsServices;
@@ -597,4 +598,11 @@ public class User extends RecordWrapper {
 		return get(USER_DOCUMENT_SIZE_SUM);
 	}
 
+	public List<String> getTaxonomyDisplayOrder() {
+		return get(TAXONOMY_DISPLAY_ORDER);
+	}
+
+	public boolean isNotReceivingEmails() {
+		return Boolean.TRUE.equals(DO_NOT_RECEIVE_EMAILS);
+	}
 }

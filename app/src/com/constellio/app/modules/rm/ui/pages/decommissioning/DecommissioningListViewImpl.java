@@ -34,11 +34,13 @@ import com.constellio.app.ui.framework.components.fields.comment.RecordCommentsE
 import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.reports.ReportWithCaptionVO;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.app.ui.util.SchemaCaptionUtils;
 import com.vaadin.data.Container;
 import com.vaadin.data.Item;
 import com.vaadin.data.Property;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
+import com.vaadin.data.util.BeanItem;
 import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.data.util.DefaultItemSorter;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
@@ -784,11 +786,16 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 	}
 
 	private BaseTable buildFolderTable(List<FolderDetailVO> folders, boolean containerizable) {
-		BeanItemContainer<FolderDetailVO> container = new BeanItemContainer<>(FolderDetailVO.class, folders);
-		container.setItemSorter(buildItemSorter());
-		BaseTable table = new BaseTable("DecommissioningListView.folderTable", $("DecommissioningListView.folderDetails", container.size()), container) {
-
+		BeanItemContainer<FolderDetailVO> container = new BeanItemContainer<FolderDetailVO>(FolderDetailVO.class, folders) {
+			@Override
+			protected Collection<?> getSortablePropertyIds() {
+				List<Object> sortablePropertyIds = new ArrayList<>(super.getSortablePropertyIds());
+				sortablePropertyIds.add(FolderDetailTableGenerator.FOLDER);
+				return sortablePropertyIds;
+			}
 		};
+		container.setItemSorter(buildItemSorter());
+		BaseTable table = new BaseTable("DecommissioningListView.folderTable", $("DecommissioningListView.folderDetails", container.size()), container);
 		table.setPageLength(container.size());
 		table.setWidth("100%");
 
@@ -852,6 +859,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 	private DefaultItemSorter buildItemSorter() {
 		if (presenter.getFolderDetailTableExtension() != null) {
 			return new DefaultItemSorter() {
+				@SuppressWarnings("unchecked")
 				@Override
 				protected int compareProperty(Object propertyId, boolean sortDirection, Item item1, Item item2) {
 					// Get the properties to compare
@@ -873,6 +881,14 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
+					} else if (FolderDetailTableGenerator.FOLDER.equals(propertyId)) {
+						FolderDetailVO vo1 = ((BeanItem<FolderDetailVO>) item1).getBean();
+						FolderDetailVO vo2 = ((BeanItem<FolderDetailVO>) item2).getBean();
+						int returnedValue = SchemaCaptionUtils.getCaptionForRecordId(vo1.getFolderId()).compareTo(SchemaCaptionUtils.getCaptionForRecordId(vo2.getFolderId()));
+						if (!sortDirection) {
+							returnedValue = -returnedValue;
+						}
+						return returnedValue;
 					}
 
 					int returnedValue = super.compareProperty(propertyId, sortDirection, item1, item2);
@@ -885,34 +901,44 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 						}
 					} else if (value2 == null) {
 						return -returnedValue;
-					}
+					} 
 
 					return returnedValue;
 				}
 			};
 		} else {
 			return new DefaultItemSorter() {
+				@SuppressWarnings("unchecked")
 				@Override
 				protected int compareProperty(Object propertyId, boolean sortDirection, Item item1, Item item2) {
 					// Get the properties to compare
-					int returnedValue = super.compareProperty(propertyId, sortDirection, item1, item2);
-					final Property<?> property1 = item1.getItemProperty(propertyId);
-					final Property<?> property2 = item2.getItemProperty(propertyId);
-
-					// Get the values to compare
-					final Object value1 = (property1 == null) ? null : property1.getValue();
-					final Object value2 = (property2 == null) ? null : property2.getValue();
-					if (value1 == null) {
-						if (value2 == null) {
-							return 0;
-						} else {
-							return -returnedValue;
+					if (FolderDetailTableGenerator.FOLDER.equals(propertyId)) {
+						FolderDetailVO vo1 = ((BeanItem<FolderDetailVO>) item1).getBean();
+						FolderDetailVO vo2 = ((BeanItem<FolderDetailVO>) item2).getBean();
+						int returnedValue = SchemaCaptionUtils.getCaptionForRecordId(vo1.getFolderId()).compareTo(SchemaCaptionUtils.getCaptionForRecordId(vo2.getFolderId()));
+						if (!sortDirection) {
+							returnedValue = -returnedValue;
 						}
-					} else if (value2 == null) {
-						return -returnedValue;
-					}
+						return returnedValue;
+					} else {
+						int returnedValue = super.compareProperty(propertyId, sortDirection, item1, item2);
+						final Property<?> property1 = item1.getItemProperty(propertyId);
+						final Property<?> property2 = item2.getItemProperty(propertyId);
 
-					return returnedValue;
+						// Get the values to compare
+						final Object value1 = (property1 == null) ? null : property1.getValue();
+						final Object value2 = (property2 == null) ? null : property2.getValue();
+						if (value1 == null) {
+							if (value2 == null) {
+								return 0;
+							} else {
+								return -returnedValue;
+							}
+						} else if (value2 == null) {
+							return -returnedValue;
+						} 
+						return returnedValue;
+					}
 				}
 			};
 		}

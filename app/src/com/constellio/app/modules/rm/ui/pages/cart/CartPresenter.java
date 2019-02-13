@@ -28,6 +28,7 @@ import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.structures.FolderDetailStatus;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -158,19 +159,17 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	}
 
 	private void removeFromFavorite(Record record) {
-		switch (record.getSchemaCode()) {
-			case Folder.DEFAULT_SCHEMA:
+		String schemaCode = record.getSchemaCode();
+
+		if (schemaCode.startsWith(Folder.SCHEMA_TYPE)) {
 				Folder folder = rm().wrapFolder(record);
 				folder.removeFavorite(cartId);
-				break;
-			case Document.DEFAULT_SCHEMA:
+		} else if (schemaCode.startsWith(Document.SCHEMA_TYPE)) {
 				Document document = rm().wrapDocument(record);
 				document.removeFavorite(cartId);
-				break;
-			case ContainerRecord.DEFAULT_SCHEMA:
+		} else if (schemaCode.startsWith(ContainerRecord.SCHEMA_TYPE)) {
 				ContainerRecord containerRecord = rm().wrapContainerRecord(record);
 				containerRecord.removeFavorite(cartId);
-				break;
 		}
 	}
 
@@ -716,7 +715,11 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		list.setTitle(title);
 		list.setAdministrativeUnit(getCommonAdministrativeUnit(getCartFolders()));
 		list.setDecommissioningListType(decomType);
-		list.setFolderDetailsFor(getNotDeletedCartFolders());
+		if (isDecommissioningListWithSelectedFolders()) {
+			list.setFolderDetailsFor(getNotDeletedCartFolders(), FolderDetailStatus.SELECTED);
+		} else {
+			list.setFolderDetailsFor(getNotDeletedCartFolders(), FolderDetailStatus.INCLUDED);
+		}
 
 		try {
 			recordServices().add(list);
@@ -982,6 +985,10 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 
 	public boolean isNeedingAReasonToDeleteRecords() {
 		return new RMConfigs(modelLayerFactory.getSystemConfigurationsManager()).isNeedingAReasonBeforeDeletingFolders();
+	}
+
+	public boolean isDecommissioningListWithSelectedFolders() {
+		return new RMConfigs(modelLayerFactory.getSystemConfigurationsManager()).isDecommissioningListWithSelectedFolders();
 	}
 
 	public List<String> getCartFolderIds() {

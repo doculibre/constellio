@@ -867,6 +867,10 @@ public class MetadataBuilder {
 			case TEXT:
 				dataStoreType = typesFactory.forText(multivalue);
 				break;
+			case INTEGER:
+				dataStoreType = typesFactory.forInteger(multivalue);
+				break;
+
 			default:
 				throw new ImpossibleRuntimeException("Unsupported type : " + type);
 		}
@@ -1026,7 +1030,8 @@ public class MetadataBuilder {
 		return accessRestrictionBuilder;
 	}
 
-	public MetadataBuilder setAccessRestrictionBuilder(MetadataAccessRestrictionBuilder metadataAccessRestrictionBuilder) {
+	public MetadataBuilder setAccessRestrictionBuilder(
+			MetadataAccessRestrictionBuilder metadataAccessRestrictionBuilder) {
 		accessRestrictionBuilder = metadataAccessRestrictionBuilder;
 		return this;
 	}
