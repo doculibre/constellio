@@ -122,7 +122,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	}
 
 	public boolean hasBatchProcessPermission(){
-		return getCurrentUser().has(CorePermissions.BATCH_PROCESS).globally();
+		return getCurrentUser().has(CorePermissions.BATCH_PROCESS).onSomething();
 	}
 
 	public void setSchemaType(String schemaType) {

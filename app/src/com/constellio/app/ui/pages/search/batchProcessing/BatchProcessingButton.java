@@ -121,7 +121,7 @@ public class BatchProcessingButton extends WindowButton {
 
 	private Component buildBatchProcessingFormOrShowError() {
 		if (!presenter.validateUserHaveBatchProcessPermissionOnAllRecords(view.getSchemaType())) {
-			return new Label("error");
+			return new Label($("BatchProcess.batchProcessPermissionMissing"));
 		}
 
 		Panel panel = new Panel();
