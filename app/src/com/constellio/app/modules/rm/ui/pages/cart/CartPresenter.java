@@ -69,11 +69,13 @@ import com.constellio.model.services.emails.EmailServices.EmailMessage;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.reports.ReportServices;
+import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.jgoodies.common.base.Strings;
 import org.apache.solr.common.params.ModifiableSolrParams;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -602,7 +604,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 			return false;
 		}
 
-		if(!getCurrentUser().has(CorePermissions.BATCH_PROCESS).globally()) {
+		if (!getCurrentUser().has(CorePermissions.BATCH_PROCESS).onSomething()) {
 			return false;
 		}
 
@@ -909,6 +911,31 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		return new ValidationErrors();
 	}
 
+	@Override
+	public boolean validateUserHaveBatchProcessPermissionOnAllRecords(String schemaType) {
+		switch (schemaType) {
+		case Folder.SCHEMA_TYPE:
+			return doesQueryAndQueryWithFilterOnBatchProcessPermHaveSameResult(getCartFoldersLogicalSearchQuery());
+		case ContainerRecord.SCHEMA_TYPE:
+			return doesQueryAndQueryWithFilterOnBatchProcessPermHaveSameResult(getCartContainersLogicalSearchQuery());
+		case Document.SCHEMA_TYPE:
+			return doesQueryAndQueryWithFilterOnBatchProcessPermHaveSameResult(getCartDocumentsLogicalSearchQuery());
+
+		default:
+			throw new RuntimeException("No labels for type : " + schemaType);
+		}
+	}
+
+	private boolean doesQueryAndQueryWithFilterOnBatchProcessPermHaveSameResult(LogicalSearchQuery logicalSearchQuery) {
+		SPEQueryResponse speQueryResponse = searchServices().query(logicalSearchQuery);
+
+		LogicalSearchQuery logicalSearchQueryWithFilter = logicalSearchQuery
+				.filteredWithUser(getCurrentUser(), CorePermissions.BATCH_PROCESS);
+		SPEQueryResponse speQueryResponseWithFilter = searchServices().query(logicalSearchQueryWithFilter);
+
+		return speQueryResponse.getNumFound() == speQueryResponseWithFilter.getNumFound();
+	}
+
 	private boolean isBatchEditable(Metadata metadata) {
 		return !metadata.isSystemReserved()
 			   && !metadata.isUnmodifiable()
@@ -917,8 +944,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 			   && metadata.getDataEntry().getType() == DataEntryType.MANUAL
 			   && isNotHidden(metadata)
 			   // XXX: Not supported in the backend
-			   && metadata.getType() != MetadataValueType.ENUM
-				;
+				&& metadata.getType() != MetadataValueType.ENUM;
 	}
 
 	private boolean isNotHidden(Metadata metadata) {
@@ -968,8 +994,13 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	}
 
 	protected List<Folder> getCartFolders() {
-		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(from(rm().folder.schemaType()).where(rm().folder.favorites()).isEqualTo(cartId));
+		LogicalSearchQuery logicalSearchQuery = getCartFoldersLogicalSearchQuery();
 		return rm().searchFolders(logicalSearchQuery);
+	}
+
+	@NotNull
+	private LogicalSearchQuery getCartFoldersLogicalSearchQuery() {
+		return new LogicalSearchQuery(from(rm().folder.schemaType()).where(rm().folder.favorites()).isEqualTo(cartId));
 	}
 
 	public List<String> getCartDocumentIds() {
@@ -982,8 +1013,13 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	}
 
 	private List<Document> getCartDocuments() {
-		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(from(rm().document.schemaType()).where(rm().document.favorites()).isEqualTo(cartId));
+		LogicalSearchQuery logicalSearchQuery = getCartDocumentsLogicalSearchQuery();
 		return rm().searchDocuments(logicalSearchQuery);
+	}
+
+	@NotNull
+	private LogicalSearchQuery getCartDocumentsLogicalSearchQuery() {
+		return new LogicalSearchQuery(from(rm().document.schemaType()).where(rm().document.favorites()).isEqualTo(cartId));
 	}
 
 	public List<String> getCartContainersIds() {
@@ -996,35 +1032,41 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	}
 
 	private List<ContainerRecord> getCartContainers() {
-		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(from(rm().containerRecord.schemaType()).where(rm().containerRecord.favorites()).isEqualTo(cartId));
+		LogicalSearchQuery logicalSearchQuery = getCartContainersLogicalSearchQuery();
 		return rm().searchContainerRecords(logicalSearchQuery);
 	}
 
 	private List<Record> getCartRecords() {
 		List<Record> records = new ArrayList<>();
-		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(from(rm().folder.schemaType()).where(rm().folder.favorites()).isEqualTo(cartId));
+		LogicalSearchQuery logicalSearchQuery = getCartFoldersLogicalSearchQuery();
 		SearchServices searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
 		records.addAll(searchServices.search(logicalSearchQuery));
-		logicalSearchQuery = new LogicalSearchQuery(from(rm().document.schemaType()).where(rm().document.favorites()).isEqualTo(cartId));
+		logicalSearchQuery = getCartDocumentsLogicalSearchQuery();
 		records.addAll((searchServices.search(logicalSearchQuery)));
-		logicalSearchQuery = new LogicalSearchQuery(from(rm().containerRecord.schemaType()).where(rm().containerRecord.favorites()).isEqualTo(cartId));
+		logicalSearchQuery = getCartContainersLogicalSearchQuery();
 		records.addAll((searchServices.search(logicalSearchQuery)));
 		return records;
 	}
 
 	protected boolean cartFoldersIsEmpty() {
-		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(from(rm().folder.schemaType()).where(rm().folder.favorites()).isEqualTo(cartId));
+		LogicalSearchQuery logicalSearchQuery = getCartFoldersLogicalSearchQuery();
 		return searchServices().getResultsCount(logicalSearchQuery) == 0;
 	}
 
 	private boolean cartDocumentsIsEmpty() {
-		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(from(rm().document.schemaType()).where(rm().document.favorites()).isEqualTo(cartId));
+		LogicalSearchQuery logicalSearchQuery = getCartDocumentsLogicalSearchQuery();
 		return searchServices().getResultsCount(logicalSearchQuery) == 0;
 	}
 
 	private boolean cartContainerIsEmpty() {
-		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(from(rm().containerRecord.schemaType()).where(rm().containerRecord.favorites()).isEqualTo(cartId));
+		LogicalSearchQuery logicalSearchQuery = getCartContainersLogicalSearchQuery();
 		return searchServices().getResultsCount(logicalSearchQuery) == 0;
+	}
+
+	@NotNull
+	private LogicalSearchQuery getCartContainersLogicalSearchQuery() {
+		return new LogicalSearchQuery(
+				from(rm().containerRecord.schemaType()).where(rm().containerRecord.favorites()).isEqualTo(cartId));
 	}
 
 	public List<String> getAllCartItems() {

@@ -48,4 +48,6 @@ public interface BatchProcessingPresenter {
 	List<MetadataVO> getMetadataAllowedInBatchEdit(String schemaType);
 
 	ValidationErrors validateBatchProcessing();
+
+	boolean validateUserHaveBatchProcessPermissionOnAllRecords(String schemaType);
 }

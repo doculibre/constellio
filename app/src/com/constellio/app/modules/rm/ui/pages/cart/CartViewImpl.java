@@ -218,6 +218,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		} else {
 			throw new RuntimeException("Unsupported mode " + mode);
 		}
+
 		button.setEnabled(presenter.isBatchProcessingButtonVisible(schemaType));
 		button.setVisible(presenter.isBatchProcessingButtonVisible(schemaType));
 		return button;
