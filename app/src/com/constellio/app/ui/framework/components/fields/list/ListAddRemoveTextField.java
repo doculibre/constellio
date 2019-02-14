@@ -92,4 +92,9 @@ public class ListAddRemoveTextField extends ListAddRemoveField<String, TextField
 		parameters.put(MaskedMetadataValidator.VALUE, value);
 		return new ValidationError(MaskedMetadataValidator.class, MaskedMetadataValidator.VALUE_INCOMPATIBLE_WITH_SPECIFIED_MASK, parameters);
 	}
+
+	@Override
+	public void addValue(String value) {
+		super.addValue(value);
+	}
 }

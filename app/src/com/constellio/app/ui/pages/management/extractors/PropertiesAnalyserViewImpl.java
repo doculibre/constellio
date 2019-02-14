@@ -15,6 +15,8 @@ import com.vaadin.data.Item;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.util.IndexedContainer;
+import com.vaadin.event.ItemClickEvent;
+import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
@@ -105,7 +107,21 @@ public class PropertiesAnalyserViewImpl extends BaseViewImpl implements Properti
 		table.setColumnHeader("Value", $("PropertiesAnalyserView.value"));
 
 		table.setContainerDataSource(buildContainer(presenter.getPropertiesContainer(), String.class));
+		table.addItemClickListener(new ItemClickListener() {
+			@Override
+			public void itemClick(ItemClickEvent event) {
+				handlePropertyClick(event);
+			}
+		});
 		return table;
+	}
+
+	protected void handlePropertyClick(ItemClickEvent event) {
+
+	}
+
+	protected void handleStyleClick(ItemClickEvent event) {
+
 	}
 
 	private Table buildStylesTable() {
@@ -115,6 +131,12 @@ public class PropertiesAnalyserViewImpl extends BaseViewImpl implements Properti
 		table.setColumnHeader("Value", $("PropertiesAnalyserView.value"));
 
 		table.setContainerDataSource(buildContainer(presenter.getStylesContainer(), String.class));
+		table.addItemClickListener(new ItemClickListener() {
+			@Override
+			public void itemClick(ItemClickEvent event) {
+				handleStyleClick(event);
+			}
+		});
 		return table;
 	}
 
