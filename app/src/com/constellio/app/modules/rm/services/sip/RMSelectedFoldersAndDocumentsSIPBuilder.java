@@ -2,11 +2,9 @@ package com.constellio.app.modules.rm.services.sip;
 
 import com.constellio.app.entities.modules.ProgressInfo;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.services.sip.mets.MetsDivisionInfo;
 import com.constellio.app.services.sip.record.RecordSIPWriter;
 import com.constellio.app.services.sip.zip.SIPZipWriter;
 import com.constellio.model.entities.records.Record;
@@ -21,14 +19,13 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Set;
 
+import static com.constellio.app.modules.rm.services.sip.RMSIPUtils.buildCategoryDivisionInfos;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static java.util.Arrays.asList;
 
@@ -84,7 +81,7 @@ public class RMSelectedFoldersAndDocumentsSIPBuilder {
 														 List<String> documentIds, ProgressInfo progressInfo)
 			throws IOException {
 
-		sipZipWriter.addDivisionsInfoMap(buildCategoryDivisionInfos());
+		sipZipWriter.addDivisionsInfoMap(buildCategoryDivisionInfos(rm));
 
 		if (progressInfo == null) {
 			progressInfo = new ProgressInfo();
@@ -152,16 +149,6 @@ public class RMSelectedFoldersAndDocumentsSIPBuilder {
 		List<String> orderedIds = new ArrayList<>(ids);
 		Collections.sort(orderedIds);
 		return orderedIds;
-	}
-
-	private Map<String, MetsDivisionInfo> buildCategoryDivisionInfos() {
-		Map<String, MetsDivisionInfo> divisionInfoMap = new HashMap<>();
-		for (Category category : rm.getAllCategories()) {
-			String parentCode = category.getParent() == null ? null : rm.getCategory(category.getParent()).getCode();
-			divisionInfoMap.put(category.getCode(), new MetsDivisionInfo(
-					category.getCode(), parentCode, category.getTitle(), Category.SCHEMA_TYPE));
-		}
-		return divisionInfoMap;
 	}
 
 

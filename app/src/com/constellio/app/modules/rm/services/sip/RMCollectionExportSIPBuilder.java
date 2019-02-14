@@ -1,10 +1,12 @@
 package com.constellio.app.modules.rm.services.sip;
 
+import com.constellio.app.entities.modules.ProgressInfo;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.sip.bagInfo.DefaultSIPZipBagInfoFactory;
+import com.constellio.app.services.sip.mets.MetsDivisionInfo;
 import com.constellio.app.services.sip.record.RecordSIPWriter;
 import com.constellio.app.services.sip.zip.AutoSplittedSIPZipWriter;
 import com.constellio.app.services.sip.zip.DefaultSIPFileNameProvider;
@@ -14,6 +16,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import org.apache.commons.io.FileUtils;
@@ -26,11 +29,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
+import static com.constellio.app.modules.rm.services.sip.RMSIPUtils.buildCategoryDivisionInfos;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static org.apache.commons.io.FileUtils.ONE_GB;
@@ -69,8 +73,10 @@ public class RMCollectionExportSIPBuilder {
 
 	}
 
-	public void exportAllFoldersAndDocuments() throws IOException {
-		RecordSIPWriter writer = newRecordSIPWriter("foldersAndDocuments");
+	public void exportAllFoldersAndDocuments(ProgressInfo progressInfo) throws IOException {
+
+		progressInfo.setTask("Exporting folders and documents of collection '" + collection + "'");
+		RecordSIPWriter writer = newRecordSIPWriter("foldersAndDocuments", buildCategoryDivisionInfos(rm));
 		writer.setIncludeContentFiles(false);
 
 		Set<String> failedExports = new HashSet<>();
@@ -78,14 +84,14 @@ public class RMCollectionExportSIPBuilder {
 		Set<String> exportedDocuments = new HashSet<>();
 
 		try {
-			Iterator<Record> folderIterator = newRootFoldersIterator();
+			SearchResponseIterator<Record> folderIterator = newRootFoldersIterator();
+			progressInfo.setEnd(countFoldersAndDocuments());
 
 			while (folderIterator.hasNext()) {
 				Record folder = folderIterator.next();
+				List<Record> records = new ArrayList<>();
+				records.add(folder);
 				try {
-					List<Record> records = new ArrayList<>();
-					records.add(folder);
-
 					SearchResponseIterator<Record> subFoldersIterator = newChildrenIterator(folder);
 
 					while (subFoldersIterator.hasNext()) {
@@ -105,8 +111,9 @@ public class RMCollectionExportSIPBuilder {
 
 				} catch (Throwable t) {
 					t.printStackTrace();
-					failedExports.add(folder.getId());
+					failedExports.addAll(new RecordUtils().toIdList(records));
 				}
+				progressInfo.setCurrentState(progressInfo.getCurrentState() + records.size());
 			}
 
 		} finally {
@@ -119,6 +126,10 @@ public class RMCollectionExportSIPBuilder {
 
 	}
 
+	private long countFoldersAndDocuments() {
+		return searchServices.getResultsCount(from(rm.folder.schemaType(), rm.document.schemaType()).returnAll());
+	}
+
 	private void writeListInFile(Set<String> ids, File file) throws IOException {
 		List<String> sortedIds = new ArrayList<>(ids);
 		Collections.sort(sortedIds);
@@ -128,15 +139,17 @@ public class RMCollectionExportSIPBuilder {
 
 	}
 
-	private RecordSIPWriter newRecordSIPWriter(String sipName) throws IOException {
+	private RecordSIPWriter newRecordSIPWriter(String sipName, Map<String, MetsDivisionInfo> divisionInfoMap)
+			throws IOException {
 		SIPFileNameProvider sipFileNameProvider = new DefaultSIPFileNameProvider(exportFolder, "foldersAndDocuments");
 		AutoSplittedSIPZipWriter writer = new AutoSplittedSIPZipWriter(appLayerFactory, sipFileNameProvider,
 				sipBytesLimit, new DefaultSIPZipBagInfoFactory(appLayerFactory, locale));
+		writer.addDivisionsInfoMap(divisionInfoMap);
 		RMZipPathProvider zipPathProvider = new RMZipPathProvider(rm);
 		return new RecordSIPWriter(appLayerFactory, writer, zipPathProvider, locale);
 	}
 
-	private Iterator<Record> newRootFoldersIterator() {
+	private SearchResponseIterator<Record> newRootFoldersIterator() {
 		LogicalSearchQuery query = new LogicalSearchQuery(from(rm.folder.schemaType())
 				.where(rm.folder.parentFolder()).isNull());
 		query.sortAsc(rm.folder.categoryCode()).sortAsc(Schemas.IDENTIFIER);

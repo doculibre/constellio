@@ -1,8 +1,10 @@
 package com.constellio.app.modules.rm.services.sip;
 
+import com.constellio.app.entities.modules.ProgressInfo;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.services.sip.bagInfo.DefaultSIPZipBagInfoFactory;
 import com.constellio.app.services.sip.zip.AutoSplittedSIPZipWriter;
@@ -24,6 +26,8 @@ import com.constellio.sdk.tests.TestUtils;
 import com.constellio.sdk.tests.setups.Users;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.solr.client.solrj.SolrClient;
+import org.apache.solr.common.SolrInputDocument;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
@@ -34,10 +38,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.constellio.data.dao.services.bigVault.solr.SolrUtils.atomicSet;
 import static com.constellio.sdk.tests.TestUtils.zipFileWithSameContentExceptingFiles;
 import static java.util.Arrays.asList;
 import static java.util.Locale.FRENCH;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.contentOf;
 
 public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 
@@ -130,25 +136,77 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 	public void whenExportingCollectionThenAll()
 			throws Exception {
 
+		//		getIOLayerFactory().newZipService().zip(getTestResourceFile("sip1.zip"),
+		//				asList(new File("/Users/francisbaril/Downloads/SIPArchivesCreationAcceptanceTest-sip1").listFiles()));
 
 		Transaction tx = new Transaction();
-		tx.add(rm.newFolderWithId("zeFolderId").setOpenDate(new LocalDate(2018, 1, 1))
-				.setTitle("Ze folder")
+
+		int folderIndex = 0;
+		for (Category category : rm.getAllCategories()) {
+
+			String folderId = "folder" + ++folderIndex;
+			tx.add(rm.newFolderWithId(folderId).setOpenDate(new LocalDate(2018, 1, 1))
+					.setTitle("Folder in category " + category)
+					.setAdministrativeUnitEntered(records.unitId_10a).setCategoryEntered(category)
+					.setRetentionRuleEntered(records.ruleId_1));
+
+			tx.add(rm.newDocumentWithId(folderId + "_document1").setTitle("Document 1").setFolder(folderId)
+					.setContent(majorContent("content1.doc")));
+
+			tx.add(rm.newDocumentWithId(folderId + "_document2").setTitle("Document 2").setFolder(folderId))
+					.setContent(minorContent("content2.doc"));
+
+		}
+		rm.executeTransaction(tx);
+		createAnInvalidFolder666();
+
+		File tempFolder = newTempFolder();
+		RMCollectionExportSIPBuilder builder = new RMCollectionExportSIPBuilder(zeCollection, getAppLayerFactory(), tempFolder);
+
+
+		builder.exportAllFoldersAndDocuments(new ProgressInfo());
+
+		assertThat(tempFolder.list()).containsOnly("info", "foldersAndDocuments-001.zip");
+
+		assertThat(new File(tempFolder, "info").list())
+				.containsOnly("failedFolderExport.txt", "exportedFolders.txt", "exportedDocuments.txt");
+
+		assertThat(contentOf(new File(tempFolder, "info" + File.separator + "failedFolderExport.txt")))
+				.isEqualTo("folder666, folder666_document1, folder666_document2");
+
+		assertThat(contentOf(new File(tempFolder, "info" + File.separator + "exportedFolders.txt")))
+				.contains("folder12,").doesNotContain("folder12_document1,");
+
+		assertThat(contentOf(new File(tempFolder, "info" + File.separator + "exportedDocuments.txt")))
+				.doesNotContain("folder12,").contains("folder12_document1,");
+
+	}
+
+	protected void createAnInvalidFolder666() throws Exception {
+		Transaction tx;
+		tx = new Transaction();
+
+		tx.add(rm.newFolderWithId("folder666").setOpenDate(new LocalDate(2018, 1, 1))
+				.setTitle("Folder in an invalid category")
 				.setAdministrativeUnitEntered(records.unitId_10a).setCategoryEntered(records.categoryId_X13)
 				.setRetentionRuleEntered(records.ruleId_1));
 
-		tx.add(rm.newEmailWithId("theEmailId").setTitle("My important email").setFolder("zeFolderId"))
-				.setContent(minorContent("testFile.msg"));
+		tx.add(rm.newDocumentWithId("folder666_document1").setTitle("Document 1").setFolder("folder666")
+				.setContent(majorContent("content1.doc")));
 
+		tx.add(rm.newDocumentWithId("folder666_document2").setTitle("Document 2").setFolder("folder666"))
+				.setContent(minorContent("content2.doc"));
 
 		rm.executeTransaction(tx);
+		waitForBatchProcess();
 
-		File sipFile = buildSIPWithDocuments("theEmailId");
-		System.out.println(sipFile.getAbsolutePath());
-		unzipInDownloadFolder(sipFile, "testSIP");
-
-		assertThat(sipFile).is(zipFileWithSameContentExceptingFiles(getTestResourceFile("sip2.zip")));
-
+		SolrClient solrClient = getDataLayerFactory().getRecordsVaultServer().getNestedSolrServer();
+		SolrInputDocument doc = new SolrInputDocument();
+		doc.setField("id", "folder666");
+		doc.setField(rm.folder.categoryEntered().getDataStoreCode(), atomicSet("mouhahahaha"));
+		doc.setField(rm.folder.category().getDataStoreCode(), atomicSet("mouhahahaha"));
+		solrClient.add(doc);
+		solrClient.commit();
 	}
 
 	@Test

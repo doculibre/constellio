@@ -3,6 +3,7 @@ package com.constellio.app.extensions.api.scripts;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.ConditionnedActionExecutorInBatchBuilder;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,7 +41,14 @@ public abstract class ScriptWithLogOutput extends Script {
 
 		this.outputLogger = outputLogger;
 		this.parameterValues = parameterValues;
-		execute();
+		try {
+			execute();
+		} catch (Exception e) {
+			if (outputLogger != null) {
+				this.outputLogger.error("Exception thrown while executing script : " + ExceptionUtils.getStackTrace(e));
+			}
+			throw e;
+		}
 
 		if (outputLogger != null) {
 			outputLogger.info("Execution of " + getClass().getSimpleName() + " finished successfully");

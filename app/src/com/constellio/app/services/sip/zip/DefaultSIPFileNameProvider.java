@@ -15,7 +15,7 @@ public class DefaultSIPFileNameProvider implements SIPFileNameProvider {
 
 	@Override
 	public File newSIPFile(int index) {
-		return new File(folder, newSIPName(index) + ".sip");
+		return new File(folder, newSIPName(index) + ".zip");
 	}
 
 	@Override
