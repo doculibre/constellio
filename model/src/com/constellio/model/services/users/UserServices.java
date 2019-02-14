@@ -853,6 +853,10 @@ public class UserServices {
 		return userCredentialsManager.getUserCredential(username);
 	}
 
+	public UserCredential getUserCredentialByDN(String dn) {
+		return userCredentialsManager.getUserCredentialByDN(dn);
+	}
+
 	public List<UserCredential> getActiveUserCredentials() {
 		return userCredentialsManager.getActiveUserCredentials();
 	}

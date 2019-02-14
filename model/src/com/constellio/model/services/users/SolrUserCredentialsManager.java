@@ -258,6 +258,12 @@ public class SolrUserCredentialsManager {
 		return record != null ? schemas.wrapCredential(record) : null;
 	}
 
+	public UserCredential getUserCredentialByDN(String dn) {
+		Record record = searchServices.searchSingleResult(from(schemas.credentialSchemaType())
+				.where(schemas.credentialSchema().get(UserCredential.DN)).isEqualTo(dn));
+		return record != null ? schemas.wrapCredential(record) : null;
+	}
+
 	public String getUsernameByServiceKey(String serviceKey) {
 		UserCredential credential = getUserCredentialByServiceKey(serviceKey);
 		return credential != null ? credential.getUsername() : null;
