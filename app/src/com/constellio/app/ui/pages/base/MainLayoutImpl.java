@@ -141,7 +141,13 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 
 		Component footer = buildFooter();
 		if (footer != null) {
-			contentFooterLayout.addComponent(footer);
+			boolean isSystemDistributed = appLayerFactory.getModelLayerFactory().getDataLayerFactory().getDataLayerConfiguration().isSystemDistributed();
+			VerticalLayout layoutWithoutSpacing = new VerticalLayout();
+			layoutWithoutSpacing.setSpacing(false);
+			layoutWithoutSpacing.setHeight("50px");
+			layoutWithoutSpacing.addComponent(footer);
+			layoutWithoutSpacing.addComponent(buildInstanceType(isSystemDistributed));
+			contentFooterLayout.addComponent(layoutWithoutSpacing);
 		}
 
 		Component license = buildLicense();
@@ -203,6 +209,14 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 				new ExternalResource("http://www.constellio.com"));
 		poweredByConstellioLink.setTargetName("_blank");
 		poweredByConstellioLink.addStyleName(ValoTheme.LINK_LARGE);
+		poweredByConstellioLink.addStyleName("footer");
+		return poweredByConstellioLink;
+	}
+
+	protected Component buildInstanceType(boolean isDistributed) {
+
+		Link poweredByConstellioLink = new Link($("MainLayout.distributed." + isDistributed), null);
+		poweredByConstellioLink.setTargetName("_blank");
 		poweredByConstellioLink.addStyleName("footer");
 		return poweredByConstellioLink;
 	}
