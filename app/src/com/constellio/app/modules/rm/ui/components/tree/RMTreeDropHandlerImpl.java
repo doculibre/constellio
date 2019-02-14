@@ -22,7 +22,7 @@ public abstract class RMTreeDropHandlerImpl implements DropHandler, RMTreeDropHa
 
 	@Override
 	public void drop(DragAndDropEvent dragEvent) {
-		if(true/*!ConstellioAgentUtils.isAgentSupported()*/) {
+		if(!ConstellioAgentUtils.isAgentSupported()) {
 			return;
 		}
 
