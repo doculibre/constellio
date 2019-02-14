@@ -42,7 +42,7 @@ public class RecordCommentsEditorImpl extends ListAddRemoveCommentField implemen
 	protected Component initContent() {
 		Component finalComponent = super.initContent();
 
-		presenter.setAddButtonState();
+		enableModification(presenter.isAddEditButtonEnabled());
 
 		return finalComponent;
 	}

@@ -66,12 +66,6 @@ public class RecordCommentsEditorPresenter implements Serializable {
 		editor.setCaption(caption);
 	}
 
-	public void setAddButtonState() {
-
-		if (!isAddEditButtonEnabled()) {
-			editor.enableModification(false);
-		}
-	}
 
 	public boolean isAddEditButtonEnabled() {
 		User currentUser = presenterUtils.getCurrentUser();
