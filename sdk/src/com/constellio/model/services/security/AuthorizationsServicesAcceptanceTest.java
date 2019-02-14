@@ -3892,7 +3892,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		Role admRole = getModelLayerFactory().getRolesManager().getRole(zeCollection, ROLE1);
 		getModelLayerFactory().getRolesManager().updateRole(admRole.withNewPermissions(asList(CorePermissions.BATCH_PROCESS)));
 
-		authorizationForUser(users.alice().getUsername()).on(TAXO1_CATEGORY1).giving(ROLE1);
+		add(authorizationForUser(users.alice().getUsername()).on(TAXO1_CATEGORY1).giving(ROLE1));
 
 		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery();
 		logicalSearchQuery.setCondition(from(setup.folderSchema.type()).where(setup.folderSchema.title()).is(FOLDER1));
