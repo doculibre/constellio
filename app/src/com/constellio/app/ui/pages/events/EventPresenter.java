@@ -216,12 +216,18 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 				Object metadataValue = recordVO.get(metadataVO);
 				String valueAsString = null;
 
-				if (metadataValue != null) {
+			 	if (metadataVO.getCode() != null && metadataVO.getLocalCode().equals(Event.NEGATIVE_AUTHORIZATION)) {
+					valueAsString = EventViewImpl.negativeAuthorizationString((MetadataValueVO) metadataValue);
+				} else if (metadataValue != null) {
 					valueAsString = metadataValue.toString();
+
+					if (metadataVO.getType() == MetadataValueType.STRING) {
+						valueAsString = valueAsString.replaceAll("\n", "");
+						valueAsString = valueAsString.replaceAll("\t", "");
+						valueAsString = "\"" + valueAsString + "\"";
+					}
 				}
-				if(metadataVO.getType() == MetadataValueType.STRING) {
-					valueAsString = "\"" + valueAsString + "\"";
-				}
+
 
 				stringArray[counter++] = valueAsString;
 			}

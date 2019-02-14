@@ -242,9 +242,15 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 		return new Label(eventTypeCaption);
 	}
 
+
+
 	private static Component negativeAuthorizationLabel(MetadataValueVO metadataValue) {
-		final String negative = (metadataValue.getValue() != null) ? $("yes") : $("no");
+		final String negative = negativeAuthorizationString(metadataValue);
 		return new Label(negative);
+	}
+
+	public static String negativeAuthorizationString(MetadataValueVO metadataValue) {
+		return (metadataValue != null && metadataValue.getValue() != null) ? $("yes") : $("no");
 	}
 
 	private static Component displayButton(MetadataValueVO metadataValue) {
