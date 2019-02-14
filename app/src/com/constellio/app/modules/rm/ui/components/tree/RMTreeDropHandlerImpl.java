@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.ui.components.tree;
 
+import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.pages.base.SessionContext;
@@ -21,6 +22,10 @@ public abstract class RMTreeDropHandlerImpl implements DropHandler, RMTreeDropHa
 
 	@Override
 	public void drop(DragAndDropEvent dragEvent) {
+		if(true/*!ConstellioAgentUtils.isAgentSupported()*/) {
+			return;
+		}
+
 		AbstractSelectTargetDetails dropTargetData = (AbstractSelectTargetDetails) dragEvent.getTargetDetails();
 		Tree tree = (Tree) dragEvent.getTargetDetails().getTarget();
 		Transferable transferable = dragEvent.getTransferable();
