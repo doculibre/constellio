@@ -217,7 +217,7 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 				String valueAsString = null;
 
 			 	if (metadataVO.getCode() != null && metadataVO.getLocalCode().equals(Event.NEGATIVE_AUTHORIZATION)) {
-					valueAsString = EventViewImpl.negativeAuthorizationString((MetadataValueVO) metadataValue);
+					valueAsString = EventViewImpl.negativeAuthorizationString((Boolean) metadataValue);
 				} else if (metadataValue != null) {
 					valueAsString = metadataValue.toString();
 

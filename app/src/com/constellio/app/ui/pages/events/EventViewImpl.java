@@ -253,6 +253,10 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 		return (metadataValue != null && metadataValue.getValue() != null) ? $("yes") : $("no");
 	}
 
+	public static String negativeAuthorizationString(Boolean metadataValue) {
+		return (metadataValue != null && metadataValue) ? $("yes") : $("no");
+	}
+
 	private static Component displayButton(MetadataValueVO metadataValue) {
 		final String delta = (metadataValue.getValue() != null) ? metadataValue.getValue().toString() : "";
 		DisplayWindowButton displayButton = new DisplayWindowButton("", delta) {
