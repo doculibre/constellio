@@ -3885,9 +3885,9 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	@Test
 	public void givenUserWithWriteAccessAndRGBTRoleToUnit10ThenCorePermissionBatchProcessIsPresentOnA01Folder()
 			throws RecordServicesException {
-		recordServices.update(users.aliceIn(zeCollection).setCollectionReadAccess(false));
-		recordServices.update(users.aliceIn(zeCollection).setCollectionWriteAccess(false));
-		recordServices.update(users.aliceIn(zeCollection).setCollectionDeleteAccess(false));
+		recordServices.update(users.aliceIn(zeCollection).setCollectionReadAccess(true));
+		recordServices.update(users.aliceIn(zeCollection).setCollectionWriteAccess(true));
+		recordServices.update(users.aliceIn(zeCollection).setCollectionDeleteAccess(true));
 
 		Role admRole = getModelLayerFactory().getRolesManager().getRole(zeCollection, ROLE1);
 		getModelLayerFactory().getRolesManager().updateRole(admRole.withNewPermissions(asList(CorePermissions.BATCH_PROCESS)));
