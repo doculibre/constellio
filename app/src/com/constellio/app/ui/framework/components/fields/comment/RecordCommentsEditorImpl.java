@@ -7,6 +7,9 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveCommentField;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.vaadin.data.Property;
+import com.vaadin.shared.ui.label.ContentMode;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.Label;
 
 import java.util.List;
 
@@ -33,6 +36,15 @@ public class RecordCommentsEditorImpl extends ListAddRemoveCommentField implemen
 		this.recordId = recordId;
 		this.metadataCode = metadataCode;
 		init();
+	}
+
+	@Override
+	protected Component initContent() {
+		Component finalComponent = super.initContent();
+
+		presenter.setAddButtonState();
+
+		return finalComponent;
 	}
 
 	private void init() {
@@ -68,4 +80,34 @@ public class RecordCommentsEditorImpl extends ListAddRemoveCommentField implemen
 		return ConstellioFactories.getInstance();
 	}
 
+	@Override
+	protected CommentField newAddEditField() {
+		CommentField components = super.newAddEditField();
+
+		components.setEnabled(presenter.isAddEditButtonEnabled());
+		return components;
+	}
+
+	@Override
+	protected Component newCaptionComponent(Comment itemId, String caption) {
+		Component component = super.newCaptionComponent(itemId, caption);
+		component.setEnabled(presenter.isAddEditButtonEnabled());
+		return component;
+	}
+
+	@Override
+	protected boolean isEditButtonVisible(Comment item) {
+		return presenter.isAddEditButtonEnabled();
+	}
+
+	@Override
+	protected boolean isDeleteButtonVisible(Comment item) {
+		return presenter.isAddEditButtonEnabled();
+	}
+
+	@Override
+	public void enableModification(boolean modification) {
+		getAddButton().setEnabled(modification);
+	}
 }
+

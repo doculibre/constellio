@@ -19,4 +19,6 @@ public interface RecordCommentsEditor extends Serializable {
 
 	ConstellioFactories getConstellioFactories();
 
+	void enableModification(boolean modification);
+
 }
