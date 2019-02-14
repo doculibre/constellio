@@ -1,12 +1,17 @@
 package com.constellio.app.ui.handlers;
 
 import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.framework.containers.exception.ContainerException.ContainerException_ItemListChanged;
+import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.app.ui.pages.home.HomeView;
 import com.constellio.app.ui.util.ComponentTreeUtils;
 import com.vaadin.server.DefaultErrorHandler;
 import com.vaadin.server.ErrorEvent;
+import com.vaadin.server.Page;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Label;
+import com.vaadin.ui.Table.CacheUpdateException;
 import com.vaadin.ui.UI;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
@@ -22,10 +27,15 @@ public class ConstellioErrorHandler extends DefaultErrorHandler {
 		Throwable throwable = event.getThrowable();
 		LOGGER.error(throwable.getMessage(), throwable);
 
-		UI ui = UI.getCurrent();
-		BaseViewImpl view = ComponentTreeUtils.getFirstChild(ui, BaseViewImpl.class);
+		BaseViewImpl view = getCurrentView();
 		if (view != null) {
-			if (ConstellioUI.getCurrent().isProductionMode()) {
+			if((!(view instanceof HomeView)) && (throwable instanceof CacheUpdateException)
+					&& throwable.getCause() != null
+					&& throwable.getCause() instanceof ContainerException_ItemListChanged) {
+
+				view.updateUI();
+				getCurrentView().showMessage(i18n.$("ConstellioErrorHandler.tableElement"));
+			} else if (ConstellioUI.getCurrent().isProductionMode()) {
 				view.navigateTo().home();
 			} else {
 				view.removeAllComponents();
@@ -50,6 +60,11 @@ public class ConstellioErrorHandler extends DefaultErrorHandler {
 				doDefault(event);
 			}
 		}
+	}
+
+	private BaseViewImpl getCurrentView() {
+		UI ui = UI.getCurrent();
+		return ComponentTreeUtils.getFirstChild(ui, BaseViewImpl.class);
 	}
 
 }

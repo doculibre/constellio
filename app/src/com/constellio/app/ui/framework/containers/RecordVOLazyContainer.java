@@ -4,6 +4,7 @@ import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.framework.containers.exception.ContainerException.ContainerException_ItemListChanged;
 import com.constellio.app.ui.framework.data.DataProvider.DataRefreshListener;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.data.RecordVOFilter;
@@ -326,7 +327,7 @@ public class RecordVOLazyContainer extends LazyQueryContainer implements Refresh
 
 				@Override
 				public Item constructItem() {
-					throw new UnsupportedOperationException("Query is read-only");
+					throw new ContainerException_ItemListChanged();
 				}
 			};
 		}
