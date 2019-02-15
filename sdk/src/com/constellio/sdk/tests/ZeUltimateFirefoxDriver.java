@@ -10,7 +10,6 @@ import org.openqa.selenium.Platform;
 import org.openqa.selenium.Proxy;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriverException;
-import org.openqa.selenium.firefox.ExtensionConnection;
 import org.openqa.selenium.firefox.FirefoxBinary;
 import org.openqa.selenium.io.TemporaryFilesystem;
 import org.openqa.selenium.io.Zip;
@@ -33,9 +32,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.openqa.selenium.Platform.WINDOWS;
 import static org.openqa.selenium.remote.CapabilityType.ACCEPT_SSL_CERTS;
-import static org.openqa.selenium.remote.CapabilityType.HAS_NATIVE_EVENTS;
 import static org.openqa.selenium.remote.CapabilityType.LOGGING_PREFS;
-import static org.openqa.selenium.remote.CapabilityType.PROXY;
 import static org.openqa.selenium.remote.CapabilityType.SUPPORTS_WEB_STORAGE;
 
 public class ZeUltimateFirefoxDriver extends RemoteWebDriver implements TakesScreenshot {
@@ -295,7 +292,7 @@ public class ZeUltimateFirefoxDriver extends RemoteWebDriver implements TakesScr
 	}
 
 	private static class LazyCommandExecutor implements CommandExecutor, NeedsLocalLogs {
-		private ExtensionConnection connection;
+		//private ExtensionConnection connection;
 		private final FirefoxBinary binary;
 		private final ZeUltimateFirefoxProfile profile;
 		private LocalLogs logs = LocalLogs.getNullLogger();
@@ -305,16 +302,18 @@ public class ZeUltimateFirefoxDriver extends RemoteWebDriver implements TakesScr
 			this.profile = profile;
 		}
 
+		/*
 		public void setConnection(ExtensionConnection connection) {
-			this.connection = connection;
-			connection.setLocalLogs(logs);
+			//this.connection = connection;
+			//connection.setLocalLogs(logs);
 		}
+		*/
 
 		public void quit() {
-			if (connection != null) {
+			/*if (connection != null) {
 				connection.quit();
 				connection = null;
-			}
+			}*/
 			if (profile != null) {
 				profile.cleanTemporaryModel();
 			}
@@ -322,23 +321,24 @@ public class ZeUltimateFirefoxDriver extends RemoteWebDriver implements TakesScr
 
 		public Response execute(Command command)
 				throws IOException {
+			/*
 			if (connection == null) {
 				if (command.getName().equals(DriverCommand.QUIT)) {
 					return new Response();
 				}
-				/*
 				throw new SessionNotFoundException(
 						"The FirefoxDriver cannot be used after quit() was called.");
-						*/
 			}
 			return connection.execute(command);
+			*/
+			return null;
 		}
 
 		public void setLocalLogs(LocalLogs logs) {
 			this.logs = logs;
-			if (connection != null) {
+			/*if (connection != null) {
 				connection.setLocalLogs(logs);
-			}
+			}*/
 		}
 	}
 

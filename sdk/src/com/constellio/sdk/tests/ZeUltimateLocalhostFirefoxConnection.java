@@ -1,7 +1,6 @@
 package com.constellio.sdk.tests;
 
 import org.openqa.selenium.WebDriverException;
-import org.openqa.selenium.firefox.ExtensionConnection;
 import org.openqa.selenium.firefox.FirefoxBinary;
 import org.openqa.selenium.firefox.FirefoxProfile;
 import org.openqa.selenium.firefox.NotConnectedException;
@@ -14,12 +13,15 @@ import org.openqa.selenium.remote.Response;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.*;
+import java.net.InetSocketAddress;
+import java.net.MalformedURLException;
+import java.net.Socket;
+import java.net.URL;
 
 import static org.openqa.selenium.firefox.FirefoxProfile.PORT_PREFERENCE;
 
 //Same as NewProfileExtensionConnection, except that "localhost" hostname is used instead of calling NetworkUtils which cause problems on some networks
-public class ZeUltimateLocalhostFirefoxConnection implements ExtensionConnection, NeedsLocalLogs {
+public class ZeUltimateLocalhostFirefoxConnection implements /*ExtensionConnection,*/ NeedsLocalLogs {
 	private final static int BUFFER_SIZE = 4096;
 
 	private final long connectTimeout;
@@ -66,7 +68,7 @@ public class ZeUltimateLocalhostFirefoxConnection implements ExtensionConnection
 				}
 			}
 
-			process.startProfile(profile, profileDir, "-foreground");
+			//process.startProfile(profile, profileDir, "-foreground");
 
 			// Just for the record; the critical section is all along while firefox is starting with the
 			// profile.
@@ -154,11 +156,12 @@ public class ZeUltimateLocalhostFirefoxConnection implements ExtensionConnection
 			profile.clean(profileDir);
 		}
 	}
-
+	/*
 	@Override
 	public URI getAddressOfRemoteServer() {
 		return null;
 	}
+	*/
 
 	/**
 	 * Builds the URL for the Firefox extension running on the given host and port. If the host is
