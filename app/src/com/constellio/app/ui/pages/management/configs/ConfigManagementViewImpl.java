@@ -248,6 +248,6 @@ public class ConfigManagementViewImpl extends BaseViewImpl implements ConfigMana
 
 	@Override
 	protected String getGuideUrl() {
-		return "http://documentation.constellio.com/pages/viewpage.action?pageId=2326848";
+		return null;//"http://documentation.constellio.com/pages/viewpage.action?pageId=2326848";
 	}
 }
