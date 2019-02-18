@@ -22,6 +22,7 @@ import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.LocaleUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.james.mime4j.io.LimitedInputStream;
 import org.jetbrains.annotations.NotNull;
@@ -160,11 +161,12 @@ public class HtmlPageParser {
 		String language = parsedContent.getLanguage();
 		HtmlElement docElement = page.getDocumentElement();
 		if (docElement != null) {
-			String lang = docElement.getLangAttribute();
-			try {
-				Locale langLocale = new Locale(lang);
-				language = langLocale.getLanguage();
-			} catch (Exception e) {
+			String langAttribute = docElement.getLangAttribute();
+			if (StringUtils.isNotBlank(langAttribute)) {
+				Locale langLocale = new Locale(langAttribute);
+				if (LocaleUtils.isAvailableLocale(langLocale)) {
+					language = langLocale.getLanguage();
+				}
 			}
 		}
 
