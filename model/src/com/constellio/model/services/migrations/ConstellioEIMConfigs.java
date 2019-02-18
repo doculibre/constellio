@@ -6,6 +6,14 @@ import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.configs.SystemConfigurationGroup;
 import com.constellio.model.entities.configs.core.listeners.UserTitlePatternConfigScript;
 import com.constellio.model.entities.enums.BatchProcessingMode;
+import com.constellio.model.entities.enums.EmailTextFormat;
+import com.constellio.model.entities.enums.GroupAuthorizationsInheritance;
+import com.constellio.model.entities.enums.MemoryConsumptionLevel;
+import com.constellio.model.entities.enums.MetadataPopulatePriority;
+import com.constellio.model.entities.enums.ParsingBehavior;
+import com.constellio.model.entities.enums.SearchSortType;
+import com.constellio.model.entities.enums.TitleMetadataPopulatePriority;
+import com.constellio.model.entities.enums.BatchProcessingMode;
 import com.constellio.model.entities.enums.GroupAuthorizationsInheritance;
 import com.constellio.model.entities.enums.MemoryConsumptionLevel;
 import com.constellio.model.entities.enums.MetadataPopulatePriority;
@@ -23,6 +31,19 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static com.constellio.model.services.migrations.TimeScheduleConfigurationValidator.isCurrentlyInSchedule;
+import org.apache.commons.lang.StringUtils;
+import org.joda.time.LocalDate;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static com.constellio.model.services.migrations.TimeScheduleConfigurationValidator.isCurrentlyInSchedule;
 
@@ -43,6 +64,7 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration USER_ROLES_IN_AUTHORIZATIONS;
 	public static final SystemConfiguration PARSED_CONTENT_MAX_LENGTH_IN_KILOOCTETS;
 	public static final SystemConfiguration CONTENT_MAX_LENGTH_FOR_PARSING_IN_MEGAOCTETS;
+	public static final SystemConfiguration FILE_EXTENSIONS_EXCLUDED_FROM_PARSING;
 
 	public static final SystemConfiguration METADATA_POPULATE_PRIORITY, TITLE_METADATA_POPULATE_PRIORITY;
 	public static final SystemConfiguration LOGO;
@@ -137,6 +159,8 @@ public class ConstellioEIMConfigs {
 
 	public static final SystemConfiguration BATCH_PROCESSES_MAXIMUM_HISTORY_SIZE;
 
+	public static final SystemConfiguration GENERATED_EMAIL_FORMAT;
+
 
 	static {
 		SystemConfigurationGroup others = new SystemConfigurationGroup(null, "others");
@@ -169,6 +193,7 @@ public class ConstellioEIMConfigs {
 				.withDefaultValue(3000));
 		add(CONTENT_MAX_LENGTH_FOR_PARSING_IN_MEGAOCTETS = advanced.createInteger("contentMaxLengthForParsingInMegaoctets")
 				.withDefaultValue(30));
+		add(FILE_EXTENSIONS_EXCLUDED_FROM_PARSING = advanced.createString("fileExtensionsExcludedFromParsing").withReIndexionRequired());
 
 		add(CLEAN_DURING_INSTALL = advanced.createBooleanFalseByDefault("cleanDuringInstall"));
 
@@ -265,6 +290,8 @@ public class ConstellioEIMConfigs {
 
 
 		add(SPACE_QUOTA_FOR_USER_DOCUMENTS = others.createInteger("spaceQuotaForUserDocuments").withDefaultValue(-1));
+
+		add(GENERATED_EMAIL_FORMAT = others.createEnum("generatedEmailFormat", EmailTextFormat.class).withDefaultValue(EmailTextFormat.PLAIN_TEXT));
 
 
 		configurations = Collections.unmodifiableList(modifiableConfigs);
@@ -514,4 +541,24 @@ public class ConstellioEIMConfigs {
 		return manager.getValue(BATCH_PROCESSES_MAXIMUM_HISTORY_SIZE);
 	}
 
+	public EmailTextFormat getGeneratedEmailFormat() {
+		return manager.getValue(GENERATED_EMAIL_FORMAT);
+	}
+
+	public Set<String> getFileExtensionsExcludedFromParsing() {
+		String extensionsAsString = manager.getValue(FILE_EXTENSIONS_EXCLUDED_FROM_PARSING);
+		Set<String> extensionSet = new HashSet<>();
+		if(!StringUtils.isBlank(extensionsAsString)) {
+			String[] splittedExtensions = extensionsAsString.split(",");
+			for(String currentExtension: splittedExtensions) {
+				String formattedExtension = currentExtension.trim().toLowerCase();
+				if(formattedExtension.startsWith(".")) {
+					extensionSet.add(formattedExtension.substring(1));
+				} else {
+					extensionSet.add(formattedExtension);
+				}
+			}
+		}
+		return extensionSet;
+	}
 }

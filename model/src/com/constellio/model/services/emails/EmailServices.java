@@ -112,10 +112,10 @@ public class EmailServices {
 		}
 
 		MimeBodyPart content = new MimeBodyPart();
-		if (body != null) {
-			content.setText(body);
+		if(configs.getGeneratedEmailFormat().isHtml()) {
+			content.setContent(StringUtils.defaultString(body), "text/html");
 		} else {
-			content.setText("");
+			content.setText(StringUtils.defaultString(body));
 		}
 
 		Multipart multipart = new MimeMultipart();
