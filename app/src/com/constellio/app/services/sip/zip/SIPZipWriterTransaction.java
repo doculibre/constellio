@@ -205,4 +205,8 @@ public class SIPZipWriterTransaction {
 		}
 
 	}
+
+	public int filesCount() {
+		return contentFileReferences.size() + eadMetadataReferences.size();
+	}
 }

@@ -6,6 +6,7 @@ import com.constellio.model.frameworks.validation.ValidationErrors;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.jdom2.Document;
+import org.jdom2.input.SAXBuilder;
 import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
 import org.jdom2.transform.JDOMSource;
@@ -26,6 +27,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static java.util.Arrays.asList;
 
 public class XMLDocumentValidator {
 
@@ -117,4 +120,13 @@ public class XMLDocumentValidator {
 		return schema;
 	}
 
+	public static void main(String[] args) throws Exception {
+		String path = args[0];
+		List<String> xsds = new ArrayList<>(asList(args));
+		xsds.remove(0);
+		XMLDocumentValidator validator = new XMLDocumentValidator();
+
+		Document document = new SAXBuilder().build(new File(path));
+		validator.validate(document, xsds);
+	}
 }

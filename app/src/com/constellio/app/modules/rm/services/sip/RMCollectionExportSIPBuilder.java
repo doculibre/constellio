@@ -59,7 +59,10 @@ public class RMCollectionExportSIPBuilder {
 
 	private File exportFolder;
 
-	private long sipBytesLimit = 10 * ONE_GB;
+	private int filesLimit = 25000;
+
+	private long sipBytesLimit = 2 * ONE_GB;
+	//private long sipBytesLimit = 1 * ONE_MB;
 
 	public RMCollectionExportSIPBuilder(String collection, AppLayerFactory appLayerFactory, File exportFolder) {
 		this.appLayerFactory = appLayerFactory;
@@ -73,7 +76,17 @@ public class RMCollectionExportSIPBuilder {
 
 	}
 
-	public void exportAllFoldersAndDocuments(ProgressInfo progressInfo) throws IOException {
+	public int getFilesLimit() {
+		return filesLimit;
+	}
+
+	public RMCollectionExportSIPBuilder setFilesLimit(int filesLimit) {
+		this.filesLimit = filesLimit;
+		return this;
+	}
+
+	public void exportAllFoldersAndDocuments(ProgressInfo progressInfo)
+			throws IOException {
 
 		progressInfo.setTask("Exporting folders and documents of collection '" + collection + "'");
 		RecordSIPWriter writer = newRecordSIPWriter("foldersAndDocuments", buildCategoryDivisionInfos(rm));
@@ -130,21 +143,22 @@ public class RMCollectionExportSIPBuilder {
 		return searchServices.getResultsCount(from(rm.folder.schemaType(), rm.document.schemaType()).returnAll());
 	}
 
-	private void writeListInFile(Set<String> ids, File file) throws IOException {
+	private void writeListInFile(Set<String> ids, File file)
+			throws IOException {
 		List<String> sortedIds = new ArrayList<>(ids);
 		Collections.sort(sortedIds);
 
 		FileUtils.write(file, StringUtils.join(sortedIds, ", "), "UTF-8");
 
-
 	}
 
 	private RecordSIPWriter newRecordSIPWriter(String sipName, Map<String, MetsDivisionInfo> divisionInfoMap)
 			throws IOException {
-		SIPFileNameProvider sipFileNameProvider = new DefaultSIPFileNameProvider(exportFolder, "foldersAndDocuments");
+		SIPFileNameProvider sipFileNameProvider = new DefaultSIPFileNameProvider(exportFolder, sipName);
 		AutoSplittedSIPZipWriter writer = new AutoSplittedSIPZipWriter(appLayerFactory, sipFileNameProvider,
 				sipBytesLimit, new DefaultSIPZipBagInfoFactory(appLayerFactory, locale));
 		writer.addDivisionsInfoMap(divisionInfoMap);
+		writer.setMetsFilesEntriesLimit(filesLimit);
 		RMZipPathProvider zipPathProvider = new RMZipPathProvider(rm);
 		return new RecordSIPWriter(appLayerFactory, writer, zipPathProvider, locale);
 	}
@@ -152,7 +166,7 @@ public class RMCollectionExportSIPBuilder {
 	private SearchResponseIterator<Record> newRootFoldersIterator() {
 		LogicalSearchQuery query = new LogicalSearchQuery(from(rm.folder.schemaType())
 				.where(rm.folder.parentFolder()).isNull());
-		query.sortAsc(rm.folder.categoryCode()).sortAsc(Schemas.IDENTIFIER);
+		query.sortAsc(rm.folder.categoryCode()).sortAsc(rm.folder.categoryCode());
 		return searchServices.recordsIterator(query, 1000);
 	}
 

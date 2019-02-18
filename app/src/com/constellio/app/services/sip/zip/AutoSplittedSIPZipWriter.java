@@ -4,6 +4,8 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.sip.bagInfo.SIPZipBagInfoFactory;
 import com.constellio.app.services.sip.mets.MetsDivisionInfo;
 import com.constellio.data.io.services.facades.IOServices;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -21,6 +23,14 @@ public class AutoSplittedSIPZipWriter implements SIPZipWriter {
 	private Map<String, MetsDivisionInfo> divisionsInfoMap = new HashMap<>();
 	private SIPZipBagInfoFactory bagInfoFactory;
 	private long sipBytesLimit;
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(AutoSplittedSIPZipWriter.class);
+
+	/**
+	 * Too much files in a SIP archive will create a large METS file. Since it is writen using DOM, it could require too much memory.
+	 * This limit will create METS file of 250mb
+	 */
+	private long metsFilesEntriesLimit = 250;
 	private int index = 0;
 	private SIPFileNameProvider sipFileProvider;
 
@@ -32,6 +42,12 @@ public class AutoSplittedSIPZipWriter implements SIPZipWriter {
 		this.sipFileProvider = sipFileProvider;
 		this.sipBytesLimit = sipBytesLimit;
 		this.bagInfoFactory = bagInfoFactory;
+	}
+
+	public AutoSplittedSIPZipWriter setMetsFilesEntriesLimit(long metsFilesEntriesLimit) {
+		this.metsFilesEntriesLimit = metsFilesEntriesLimit;
+		LOGGER.info("Mets file entries limit changed to '" + metsFilesEntriesLimit + "'");
+		return this;
 	}
 
 	@Override
@@ -57,14 +73,20 @@ public class AutoSplittedSIPZipWriter implements SIPZipWriter {
 	}
 
 	@Override
-	public void insertAll(SIPZipWriterTransaction transaction) throws IOException {
+	public void insertAll(SIPZipWriterTransaction transaction)
+			throws IOException {
 
 		if (currentWriter == null) {
 			newCurrentWriter();
 		}
 		long currentWriterLength = currentWriter.length();
+		int currentWriterMetsEntries = currentWriter.metsFileEntriesCount();
 		long transactionLength = transaction.length();
-		if (currentWriterLength > 0 && currentWriterLength + transactionLength > sipBytesLimit) {
+		int transactionMetsEntries = transaction.filesCount();
+
+		if ((currentWriterLength > 0 && currentWriterLength + transactionLength > sipBytesLimit) ||
+			(currentWriterMetsEntries > 0 && currentWriterMetsEntries + transactionMetsEntries > metsFilesEntriesLimit)) {
+			LOGGER.info("Closing zip '" + currentWriter.getZipFile().getAbsolutePath() + "'");
 			currentWriter.close();
 			newCurrentWriter();
 		}
@@ -73,7 +95,8 @@ public class AutoSplittedSIPZipWriter implements SIPZipWriter {
 	}
 
 	@Override
-	public void addToZip(File file, String path) throws IOException {
+	public void addToZip(File file, String path)
+			throws IOException {
 		SIPZipWriterTransaction transaction = newInsertTransaction();
 		transaction.moveFileToSIPAsUnreferencedContentFile(path, file);
 		insertAll(transaction);
@@ -102,8 +125,18 @@ public class AutoSplittedSIPZipWriter implements SIPZipWriter {
 	}
 
 	@Override
+	public int metsFileEntriesCount() {
+		return currentWriter == null ? 0 : currentWriter.metsFileEntriesCount();
+	}
+
+	@Override
 	public void addDivisionsInfoMap(Map<String, MetsDivisionInfo> divisionInfoMap) {
 		this.divisionsInfoMap.putAll(divisionInfoMap);
+	}
+
+	@Override
+	public void addDivisionInfo(MetsDivisionInfo divisionInfo) {
+		this.divisionsInfoMap.put(divisionInfo.getId(), divisionInfo);
 	}
 
 	@Override
@@ -115,14 +148,15 @@ public class AutoSplittedSIPZipWriter implements SIPZipWriter {
 	}
 
 
-	private void newCurrentWriter() throws IOException {
+	private void newCurrentWriter()
+			throws IOException {
 		int newWriterIndex = ++index;
 		currentWriter = new FileSIPZipWriter(appLayerFactory,
 				sipFileProvider.newSIPFile(newWriterIndex),
 				sipFileProvider.newSIPName(newWriterIndex), bagInfoFactory);
+		LOGGER.info("Creating zip '" + currentWriter.getZipFile().getAbsolutePath() + "'");
 		currentWriter.divisionsInfoMap = divisionsInfoMap;
 		currentWriter.setSipFileHasher(sipFileHasher);
 	}
-
 
 }

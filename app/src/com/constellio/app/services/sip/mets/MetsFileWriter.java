@@ -23,6 +23,8 @@ import org.jdom2.Namespace;
 import org.jdom2.input.DOMBuilder;
 import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -60,6 +62,8 @@ public class MetsFileWriter {
 	private IOServices ioServices;
 
 	private static List<String> METS_XSDs = asList("xlink.xsd", "mets.xsd");
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(MetsFileWriter.class);
 
 	public MetsFileWriter(IOServices ioServices, OutputStream outputStream, String metsFileZipPath,
 						  Date sipCreationDate,
@@ -262,6 +266,7 @@ public class MetsFileWriter {
 						if (aParentDivision == null) {
 							MetsDivisionInfo metsDivisionInfo = divisionsInfoMap.get(lastAddedDivision.divisionInfo.getParentId());
 							if (metsDivisionInfo == null) {
+
 								throw new IllegalArgumentException("No such division with id '" + lastAddedDivision.divisionInfo.getParentId() + "'");
 							}
 							aParentDivision = new MetsStructureDivision(metsDivisionInfo);

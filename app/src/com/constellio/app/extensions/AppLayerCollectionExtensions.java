@@ -15,6 +15,7 @@ import com.constellio.app.api.extensions.PagesComponentsExtension;
 import com.constellio.app.api.extensions.RecordDisplayFactoryExtension;
 import com.constellio.app.api.extensions.RecordExportExtension;
 import com.constellio.app.api.extensions.RecordFieldFactoryExtension;
+import com.constellio.app.api.extensions.SIPExtension;
 import com.constellio.app.api.extensions.SchemaTypesPageExtension;
 import com.constellio.app.api.extensions.SearchCriterionExtension;
 import com.constellio.app.api.extensions.SearchPageExtension;
@@ -27,6 +28,7 @@ import com.constellio.app.api.extensions.params.CollectionSystemCheckParams;
 import com.constellio.app.api.extensions.params.ConvertStructureToMapParams;
 import com.constellio.app.api.extensions.params.DecorateMainComponentAfterInitExtensionParams;
 import com.constellio.app.api.extensions.params.DocumentViewButtonExtensionParam;
+import com.constellio.app.api.extensions.params.ExportCollectionInfosSIPIsTaxonomySupportedParams;
 import com.constellio.app.api.extensions.params.FilterCapsuleParam;
 import com.constellio.app.api.extensions.params.GetAvailableExtraMetadataAttributesParam;
 import com.constellio.app.api.extensions.params.GetSearchResultSimpleTableWindowComponentParam;
@@ -165,6 +167,7 @@ public class AppLayerCollectionExtensions {
 
 	public VaultBehaviorsList<MetadataFieldExtension> metadataFieldExtensions = new VaultBehaviorsList<>();
 
+	public VaultBehaviorsList<SIPExtension> sipExtensions = new VaultBehaviorsList<>();
 
 	//Key : schema type code
 	//Values : record's code
@@ -173,6 +176,7 @@ public class AppLayerCollectionExtensions {
 	public <T extends ModuleExtensions> T forModule(String moduleId) {
 		return (T) moduleExtensionsMap.get(moduleId);
 	}
+
 
 	//----------------- Callers ---------------
 
@@ -722,7 +726,8 @@ public class AppLayerCollectionExtensions {
 	public LogicalSearchCondition adjustSearchPageCondition(SearchPageConditionParam param) {
 		LogicalSearchCondition condition = param.getCondition();
 		for (SearchPageExtension extension : searchPageExtensions) {
-			condition = extension.adjustSearchPageCondition(new SearchPageConditionParam(param.getMainComponent(), condition, param.getUser()));
+			condition = extension.adjustSearchPageCondition(
+					new SearchPageConditionParam(param.getMainComponent(), condition, param.getUser()));
 		}
 		return condition;
 	}
@@ -750,7 +755,8 @@ public class AppLayerCollectionExtensions {
 	public boolean isMetadataAccessExclusionByPropertyFilter(
 			RMSchemaTypesPageExtensionExclusionByPropertyParams rmSchemaTypesPageExtensionExclusionByPropertyParams) {
 		for (SchemaTypesPageExtension schemaTypesPageExtension : schemaTypesPageExtensions) {
-			if (schemaTypesPageExtension.getMetadataAccessExclusionPropertyFilter(rmSchemaTypesPageExtensionExclusionByPropertyParams)) {
+			if (schemaTypesPageExtension
+					.getMetadataAccessExclusionPropertyFilter(rmSchemaTypesPageExtensionExclusionByPropertyParams)) {
 				return true;
 			}
 		}
@@ -764,5 +770,14 @@ public class AppLayerCollectionExtensions {
 			additionnalFields.addAll(extension.getAdditionnalFields(params));
 		}
 		return additionnalFields;
+	}
+
+	public boolean isExportedTaxonomyInSIPCollectionInfos(final Taxonomy taxonomy) {
+		return sipExtensions.getBooleanValue(true, new BooleanCaller<SIPExtension>() {
+			@Override
+			public ExtensionBooleanResult call(SIPExtension extension) {
+				return extension.isExportedTaxonomyInSIPCollectionInfos(new ExportCollectionInfosSIPIsTaxonomySupportedParams(taxonomy));
+			}
+		});
 	}
 }

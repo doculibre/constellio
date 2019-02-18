@@ -24,7 +24,7 @@ class RMZipPathProvider implements RecordPathProvider {
 
 		if (Category.SCHEMA_TYPE.equals(record.getTypeCode())) {
 			Category category = rm.wrapCategory(record);
-			addSchemaTypeInPath = false;
+			//addSchemaTypeInPath = false;
 			pathIdentifier = category.getCode();
 			parent = category.getParent();
 

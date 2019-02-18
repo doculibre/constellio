@@ -19,9 +19,11 @@ public interface SIPZipWriter {
 
 	BufferedWriter newZipFileWriter(final String path);
 
-	void insertAll(SIPZipWriterTransaction transaction) throws IOException;
+	void insertAll(SIPZipWriterTransaction transaction)
+			throws IOException;
 
-	void addToZip(File file, String path) throws IOException;
+	void addToZip(File file, String path)
+			throws IOException;
 
 	SIPZipWriterTransaction newInsertTransaction();
 
@@ -31,6 +33,10 @@ public interface SIPZipWriter {
 
 	void addDivisionsInfoMap(Map<String, MetsDivisionInfo> divisionInfoMap);
 
+	void addDivisionInfo(MetsDivisionInfo divisionInfo);
+
 	void setSipFileHasher(SIPFileHasher hasher);
+
+	int metsFileEntriesCount();
 
 }

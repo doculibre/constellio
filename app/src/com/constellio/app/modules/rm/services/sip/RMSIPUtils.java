@@ -13,9 +13,9 @@ public class RMSIPUtils {
 	public static Map<String, MetsDivisionInfo> buildCategoryDivisionInfos(RMSchemasRecordsServices rm) {
 		Map<String, MetsDivisionInfo> divisionInfoMap = new HashMap<>();
 		for (Category category : rm.getAllCategories()) {
-			String parentCode = category.getParent() == null ? null : rm.getCategory(category.getParent()).getCode();
-			divisionInfoMap.put(category.getCode(), new MetsDivisionInfo(
-					category.getCode(), parentCode, category.getTitle(), Category.SCHEMA_TYPE));
+			String parentCode = category.getParent() == null ? null : Category.SCHEMA_TYPE + "-" + rm.getCategory(category.getParent()).getCode();
+			String code = Category.SCHEMA_TYPE + "-" + category.getCode();
+			divisionInfoMap.put(code, new MetsDivisionInfo(code, parentCode, category.getTitle(), Category.SCHEMA_TYPE));
 		}
 		return divisionInfoMap;
 	}

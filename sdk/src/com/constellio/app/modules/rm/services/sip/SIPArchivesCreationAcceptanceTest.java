@@ -111,7 +111,6 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 		getIOLayerFactory().newZipService().zip(getTestResourceFile("sip2.zip"),
 				asList(new File("/Users/francisbaril/Downloads/SIPArchivesCreationAcceptanceTest-sip2").listFiles()));
 
-
 		Transaction tx = new Transaction();
 		tx.add(rm.newFolderWithId("zeFolderId").setOpenDate(new LocalDate(2018, 1, 1))
 				.setTitle("Ze folder")
@@ -236,6 +235,10 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 
 		File sipFilesFolder = buildSIPWithDocumentsWith10MegabytesLimit(ids);
 		System.out.println(sipFilesFolder.getAbsolutePath());
+
+		System.out.println(getModelLayerFactory().getDataLayerFactory().getIOServicesFactory().getTempFolder());
+		assertThat(getModelLayerFactory().getDataLayerFactory().getIOServicesFactory().getTempFolder().list()).isNull();
+
 		unzipAllInDownloadFolder(sipFilesFolder, "testSIP");
 
 		//assertThat(sipFile).is(zipFileWithSameContentExceptingFiles(getTestResourceFile("sip2.zip"), "bag-info.txt"));
@@ -318,18 +321,9 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 
 		final File tempFolder = newTempFolder();
 
-		SIPFileHasher sipFileHasher = new SIPFileHasher() {
-			@Override
-			public String computeHash(File input, String sipPath) throws IOException {
-				return "CHECKSUM{{" + sipPath.replace("\\", "/ d") + "}}";
-			}
-		};
-
 		SIPFileNameProvider fileNameProvider = new DefaultSIPFileNameProvider(tempFolder, "test");
 		AutoSplittedSIPZipWriter writer = new AutoSplittedSIPZipWriter(getAppLayerFactory(),
 				fileNameProvider, 1000 * 1000, bagInfoFactory);
-
-		writer.setSipFileHasher(sipFileHasher);
 
 		writer.setSipFileHasher(new SIPFileHasher() {
 			@Override
