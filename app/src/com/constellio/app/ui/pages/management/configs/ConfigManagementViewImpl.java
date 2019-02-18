@@ -9,6 +9,7 @@ import com.constellio.app.ui.framework.components.fields.BasePasswordField;
 import com.constellio.app.ui.framework.components.fields.BaseTextArea;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.upload.BaseUploadField;
+import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.data.SystemConfigurationGroupdataProvider;
 import com.constellio.app.ui.handlers.OnEnterKeyHandler;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
@@ -166,7 +167,7 @@ public class ConfigManagementViewImpl extends BaseViewImpl implements ConfigMana
 
 	private HorizontalLayout wrapFieldWithDocumentation(
 			SystemConfigurationVO configVO, String groupCode, Field<?> field) {
-		HorizontalLayout layout = new HorizontalLayout();
+		I18NHorizontalLayout layout = new I18NHorizontalLayout();
 		String descriptionKey = "SystemConfigurationGroup." + groupCode + "." + configVO.getCode() + ".description";
 		String configDescription = $(descriptionKey);
 		BaseMouseOverIcon baseMouseOverIcon = new BaseMouseOverIcon(new ThemeResource("images/icons/information2.png"), configDescription);
@@ -174,8 +175,11 @@ public class ConfigManagementViewImpl extends BaseViewImpl implements ConfigMana
 			baseMouseOverIcon.setVisible(false);
 		}
 		layout.setSizeFull();
+		field.setWidth(null);
 		layout.addComponents(field, baseMouseOverIcon);
-		layout.setExpandRatio(field, 1);
+		layout.setComponentAlignment(field, Alignment.MIDDLE_LEFT);
+		layout.setComponentAlignment(baseMouseOverIcon, Alignment.MIDDLE_LEFT);
+		layout.setExpandRatio(baseMouseOverIcon, 1.0f);
 		return layout;
 	}
 
@@ -242,4 +246,8 @@ public class ConfigManagementViewImpl extends BaseViewImpl implements ConfigMana
 		};
 	}
 
+	@Override
+	protected String getGuideUrl() {
+		return "http://documentation.constellio.com/pages/viewpage.action?pageId=2326848";
+	}
 }
