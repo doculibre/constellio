@@ -12,11 +12,14 @@ import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.security.SecurityModel;
+import com.constellio.model.entities.security.SecurityModelAuthorization;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.parser.EmailParser;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.security.AuthorizationsServices;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
@@ -54,10 +57,14 @@ public class RecordSIPWriter {
 
 	private RecordPathProvider recordPathProvider;
 
+	private AuthorizationsServices authorizationsServices;
+
 	/**
 	 * For test purposes only
 	 */
 	private boolean includeContentFiles = true;
+
+	private boolean includeAuths = true;
 
 	public RecordSIPWriter(AppLayerFactory appLayerFactory,
 						   SIPZipWriter sipZipWriter,
@@ -72,7 +79,7 @@ public class RecordSIPWriter {
 		this.recordPathProvider = recordPathProvider;
 		this.metadataSchemasManager = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager();
 		this.sipZipWriter = sipZipWriter;
-
+		this.authorizationsServices = appLayerFactory.getModelLayerFactory().newAuthorizationsServices();
 		this.locale = locale;
 	}
 
@@ -103,6 +110,13 @@ public class RecordSIPWriter {
 			while (recordsIterator.hasNext()) {
 				Record record = recordsIterator.next();
 				addToSIP(transaction, record, errors);
+
+				if (includeAuths) {
+					SecurityModel securityModel = recordServices.getSecurityModel(record.getCollection());
+					for (SecurityModelAuthorization authorization : securityModel.getAuthorizationsOnTarget(record.getId())) {
+						addToSIP(transaction, authorization.getDetails().getWrappedRecord(), errors);
+					}
+				}
 			}
 
 		} catch (Throwable t) {
@@ -229,7 +243,13 @@ public class RecordSIPWriter {
 		}
 
 		MetsEADMetadataReference newMetsEADMetadataReference() {
-			return new MetsEADMetadataReference(dmdId, parent, record.getTypeCode(), record.getTitle(), sipXMLPath);
+			String recordTitle = record.getTitle();
+
+			if (recordTitle == null) {
+				recordTitle = record.getId();
+			}
+
+			return new MetsEADMetadataReference(dmdId, parent, record.getTypeCode(), recordTitle, sipXMLPath);
 		}
 
 		public String fileId(Metadata metadata, ContentVersion contentVersion) {

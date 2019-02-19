@@ -21,6 +21,7 @@ import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetail;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListValidation;
+import com.constellio.app.modules.rm.wrappers.structures.RetentionRuleDocumentType;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollower;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskReminder;
@@ -72,6 +73,22 @@ public class RMRecordExportExtension extends RecordExportExtension {
 			String schemaType = Folder.SCHEMA_TYPE;
 
 			return (Map) writeCopyRetentionRule(rm, ((CopyRetentionRuleInRule) structure).getCopyRetentionRule(), schemaType);
+		}
+
+		if (structure instanceof RetentionRuleDocumentType) {
+			return (Map) writeRetentionRuleDocumentType(((RetentionRuleDocumentType) structure));
+		}
+
+		if (structure instanceof DecomListFolderDetail) {
+			return (Map) writeDecomListFolderDetail(((DecomListFolderDetail) structure));
+		}
+
+		if (structure instanceof DecomListContainerDetail) {
+			return (Map) writedecomListContainerDetail(((DecomListContainerDetail) structure));
+		}
+
+		if (structure instanceof DecomListValidation) {
+			return (Map) writeDecomListValidation(((DecomListValidation) structure));
 		}
 
 		return super.convertStructureToMap(params);
@@ -430,6 +447,19 @@ public class RMRecordExportExtension extends RecordExportExtension {
 			}
 		}
 
+
+		return map;
+	}
+
+
+	private Map<String, String> writeRetentionRuleDocumentType(RetentionRuleDocumentType type) {
+		Map<String, String> map = new HashMap<>();
+		map.put(RetentionRuleImportExtension.TYPE_ID, type.getDocumentTypeId());
+		if (type.getDisposalType() != null) {
+			map.put(RetentionRuleImportExtension.INACTIVE_DISPOSAL_TYPE, type.getDisposalType().getCode());
+		} else {
+			map.put(RetentionRuleImportExtension.INACTIVE_DISPOSAL_TYPE, "");
+		}
 
 		return map;
 	}

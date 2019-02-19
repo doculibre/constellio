@@ -316,6 +316,9 @@ public class MetsFileWriter {
 		List<MetsFilePointer> filePointers = new ArrayList<>();
 
 		public MetsStructureDivision(MetsDivisionInfo divisionInfo) {
+			if (divisionInfo == null) {
+				throw new IllegalArgumentException("divisionInfo must be not-null");
+			}
 			this.divisionInfo = divisionInfo;
 		}
 
