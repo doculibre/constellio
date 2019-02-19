@@ -76,6 +76,10 @@ public class RecordSIPWriter {
 		this.locale = locale;
 	}
 
+	public SIPZipWriter getSipZipWriter() {
+		return sipZipWriter;
+	}
+
 	public RecordSIPWriter setIncludeContentFiles(boolean includeContentFiles) {
 		this.includeContentFiles = includeContentFiles;
 		return this;
