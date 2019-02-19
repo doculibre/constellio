@@ -35,6 +35,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.constellio.app.modules.rm.services.sip.RMSIPUtils.buildCategoryDivisionInfos;
+import static com.constellio.app.modules.rm.services.sip.RMSIPUtils.buildStorageSpaceInfo;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static org.apache.commons.io.FileUtils.ONE_GB;
@@ -85,8 +86,63 @@ public class RMCollectionExportSIPBuilder {
 		return this;
 	}
 
-	public void exportAllFoldersAndDocuments(ProgressInfo progressInfo)
+	public void exportAllContainersBySpace(ProgressInfo progressInfo)
 			throws IOException {
+		progressInfo.setTask("Exporting containers by boxes in collection '" + collection + "'");
+		RecordSIPWriter writer = newRecordSIPWriter("containerByBoxes", buildStorageSpaceInfo(rm));
+
+		Set<String> failedExports = new HashSet<>();
+		Set<String> exportedContainers = new HashSet<>();
+
+		try {
+			SearchResponseIterator<Record> storageSpaceIterator = newRootStorageSpaceIterator();
+			progressInfo.setEnd(countFoldersAndDocuments());
+
+			while(storageSpaceIterator.hasNext()) {
+				storageSpaceProcessing(progressInfo, writer, failedExports, exportedContainers, storageSpaceIterator.next());
+			}
+		} finally {
+			writer.close();
+		}
+
+		writeListInFile(failedExports, new File(exportFolder, "info" + File.separator + "failedContainersExport.txt"));
+		writeListInFile(exportedContainers, new File(exportFolder, "info" + File.separator + "exportedContainers.txt"));
+	}
+
+	private void storageSpaceProcessing(ProgressInfo progressInfo, RecordSIPWriter writer, Set<String> failedExports,
+			Set<String> exportedContainers, Record storageSpace) {
+
+		SearchResponseIterator<Record> searchResponseContainerIterator = newChildrenContainerIterator(storageSpace);
+		List<Record> records = new ArrayList<>();
+
+		try {
+			while(searchResponseContainerIterator.hasNext()) {
+				Record containerFound = searchResponseContainerIterator.next();
+
+				records.add(containerFound);
+			}
+
+			for (Record record : records) {
+				exportedContainers.add(record.getId());
+			}
+
+			writer.add(records);
+		} catch (Throwable t) {
+			t.printStackTrace();
+			failedExports.addAll(new RecordUtils().toIdList(records));
+		}
+
+		progressInfo.setCurrentState(progressInfo.getCurrentState() + records.size());
+
+		SearchResponseIterator<Record> storageSpaceChildrenIterator = newStorageSpaceChildrenIterator(storageSpace);
+
+		while(storageSpaceChildrenIterator.hasNext()) {
+			Record currentStorageSpace = storageSpaceChildrenIterator.next();
+			storageSpaceProcessing(progressInfo, writer, failedExports, exportedContainers, currentStorageSpace);
+		}
+	}
+
+	public void exportAllFoldersAndDocuments(ProgressInfo progressInfo) throws IOException {
 
 		progressInfo.setTask("Exporting folders and documents of collection '" + collection + "'");
 		RecordSIPWriter writer = newRecordSIPWriter("foldersAndDocuments", buildCategoryDivisionInfos(rm));
@@ -171,11 +227,28 @@ public class RMCollectionExportSIPBuilder {
 	}
 
 	private SearchResponseIterator<Record> newChildrenIterator(Record folderRecord) {
-		LogicalSearchQuery query = new LogicalSearchQuery(fromAllSchemasIn(folderRecord.getCollection())
-				.where(rm.folder.parentFolder()).isNull());
-		query.sortAsc(Schemas.IDENTIFIER);
 		return searchServices.recordsIterator(new LogicalSearchQuery(
 				fromAllSchemasIn(collection).where(Schemas.PATH_PARTS).isEqualTo(folderRecord.getId())));
 	}
 
+	private SearchResponseIterator<Record> newChildrenContainerIterator(Record storageSpace) {
+		return searchServices.recordsIterator(new LogicalSearchQuery(
+				from(rm.containerRecord.schemaType()).where(rm.containerRecord.storageSpace()).isEqualTo(storageSpace.getId())));
+	}
+
+	private SearchResponseIterator<Record> newRootStorageSpaceIterator() {
+		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(from(rm.storageSpace.schema()).where(rm.storageSpace.parentStorageSpace()).isNull());
+		logicalSearchQuery.sortAsc(Schemas.IDENTIFIER);
+
+		return searchServices.recordsIterator(logicalSearchQuery, 1000);
+	}
+
+	private SearchResponseIterator<Record> newStorageSpaceChildrenIterator(Record storageSpaceChildren) {
+		return searchServices.recordsIterator(new LogicalSearchQuery(
+				from(rm.storageSpace.schema()).where(rm.storageSpace.parentStorageSpace()).isEqualTo(storageSpaceChildren.getId())));
+	}
+
+	private long countContainers() {
+		return searchServices.getResultsCount(from(rm.containerRecord.schemaType()).returnAll());
+	}
 }

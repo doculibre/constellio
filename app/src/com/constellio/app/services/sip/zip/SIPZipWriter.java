@@ -17,7 +17,8 @@ public interface SIPZipWriter {
 
 	OutputStream newZipFileOutputStream(final String path);
 
-	BufferedWriter newZipFileWriter(final String path);
+	BufferedWriter newZipFileWriter(final String path)
+			throws IOException;
 
 	void insertAll(SIPZipWriterTransaction transaction)
 			throws IOException;
