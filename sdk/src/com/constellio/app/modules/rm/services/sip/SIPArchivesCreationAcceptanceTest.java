@@ -80,7 +80,7 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		getIOLayerFactory().newZipService().zip(getTestResourceFile("sip1.zip"),
-				asList(new File("/Users/francisbaril/Downloads/SIPArchivesCreationAcceptanceTest-sip1").listFiles()));
+						asList(new File("/Users/francisbaril/Downloads/SIPArchivesCreationAcceptanceTest-sip1").listFiles()));
 
 		Transaction tx = new Transaction();
 		tx.add(rm.newFolderWithId("zeFolderId").setOpenDate(new LocalDate(2018, 1, 1))
@@ -108,8 +108,8 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 	public void givenSIPArchivesOfAnEmailThenAttachementsExtractedInSIP()
 			throws Exception {
 
-		getIOLayerFactory().newZipService().zip(getTestResourceFile("sip2.zip"),
-				asList(new File("/Users/francisbaril/Downloads/SIPArchivesCreationAcceptanceTest-sip2").listFiles()));
+//				getIOLayerFactory().newZipService().zip(getTestResourceFile("sip2.zip"),
+//						asList(new File("/Users/francisbaril/Downloads/SIPArchivesCreationAcceptanceTest-sip2").listFiles()));
 
 		Transaction tx = new Transaction();
 		tx.add(rm.newFolderWithId("zeFolderId").setOpenDate(new LocalDate(2018, 1, 1))
