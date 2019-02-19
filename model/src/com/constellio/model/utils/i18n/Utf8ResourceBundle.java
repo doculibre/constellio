@@ -1,5 +1,6 @@
 package com.constellio.model.utils.i18n;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Enumeration;
 import java.util.Locale;
 import java.util.PropertyResourceBundle;
@@ -77,7 +78,8 @@ public abstract class Utf8ResourceBundle {
 
 		@Override
 		protected Object handleGetObject(final String key) {
-			return bundle.getString(key);
+			final String value = bundle.getString(key);
+			return new String(value.getBytes(StandardCharsets.ISO_8859_1), StandardCharsets.UTF_8);
 		}
 	}
 }
