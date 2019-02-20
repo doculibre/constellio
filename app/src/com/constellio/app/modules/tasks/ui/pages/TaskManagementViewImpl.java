@@ -34,6 +34,7 @@ import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
 import org.apache.commons.collections4.CollectionUtils;
+import org.tepi.filtertable.FilterGenerator;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -48,6 +49,7 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 	private TabSheet sheet;
 	private ComboBox timestamp;
 	private String previousSelectedTab;
+	private FilterGenerator filterGenerator;
 
 	enum Timestamp {
 		ALL, TODAY, WEEK, MONTH
@@ -196,7 +198,13 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 				};
 			}
 		};
-		FilterTableAdapter tableAdapter = new FilterTableAdapter(taskTable, new DemoFilterDecorator(), new DemoFilterGenerator());
+
+		FilterTableAdapter tableAdapter;
+		if (filterGenerator == null) {
+			tableAdapter = new FilterTableAdapter(taskTable, new DemoFilterDecorator(), new DemoFilterGenerator());
+		} else {
+			tableAdapter = new FilterTableAdapter(taskTable, new DemoFilterDecorator(), filterGenerator);
+		}
 
 		// cas uniquement pour l'exemple
 		tableAdapter.setFilterFieldVisible("menuBar", false);
@@ -247,6 +255,10 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 
 	public TabSheet getSheet() {
 		return sheet;
+	}
+
+	public void setFilterGenerator(FilterGenerator filterGenerator) {
+		this.filterGenerator = filterGenerator;
 	}
 
 	private class StartWorkflowButton extends WindowButton {
