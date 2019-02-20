@@ -475,8 +475,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	private ComponentState getReturnFolderButtonState(User user, Folder folder) {
 		try {
 			borrowingServices.validateCanReturnFolder(user, folder);
-			return ComponentState
-					.visibleIf(user.hasAll(RMPermissionsTo.BORROW_FOLDER, RMPermissionsTo.BORROWING_FOLDER_DIRECTLY).on(folder));
+			return ComponentState.ENABLED;
 		} catch (Exception e) {
 			return ComponentState.INVISIBLE;
 		}
