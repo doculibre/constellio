@@ -102,7 +102,7 @@ public class RecordSIPWriter {
 	}
 
 	public RecordSIPWriter setIncludeArchiveDescriptionMetadatasFromODDs(
-			boolean inccludeArchiveDescriptionMetadatasFromODDs) {
+			boolean includeArchiveDescriptionMetadatasFromODDs) {
 		this.includeArchiveDescriptionMetadatasFromODDs = includeArchiveDescriptionMetadatasFromODDs;
 		return this;
 	}
