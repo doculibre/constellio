@@ -107,6 +107,11 @@ public class RecordSIPWriter {
 		return this;
 	}
 
+	public RecordSIPWriter setIncludeAuths(boolean includeAuths) {
+		this.includeAuths = includeAuths;
+		return this;
+	}
+
 	public ValidationErrors add(Record record) throws IOException {
 		return add(Collections.singletonList(record));
 	}

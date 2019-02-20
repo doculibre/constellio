@@ -137,6 +137,63 @@ public class RMCollectionExportSIPBuilder {
 
 	}
 
+	public void exportAllTasks(ProgressInfo progressInfo)
+			throws IOException {
+
+		progressInfo.setTask("Exporting tasks of collection '" + collection + "'");
+		RecordSIPWriter writer = newRecordSIPWriter("tasks", buildCategoryDivisionInfos(rm), progressInfo);
+		writer.setIncludeRelatedMaterials(false);
+		writer.setIncludeArchiveDescriptionMetadatasFromODDs(true);
+
+		Set<String> failedExports = new HashSet<>();
+		Set<String> exportedFolders = new HashSet<>();
+		Set<String> exportedDocuments = new HashSet<>();
+
+		try {
+			SearchResponseIterator<Record> folderIterator = newRootFoldersIterator();
+			progressInfo.setEnd(countFoldersAndDocuments());
+			progressInfo.setCurrentState(0);
+
+			while (folderIterator.hasNext()) {
+				Record folder = folderIterator.next();
+				List<Record> records = new ArrayList<>();
+				records.add(folder);
+				try {
+					SearchResponseIterator<Record> subFoldersIterator = newChildrenIterator(folder);
+
+					while (subFoldersIterator.hasNext()) {
+						records.add(subFoldersIterator.next());
+					}
+
+					writer.add(records);
+					for (Record record : records) {
+						if (Folder.SCHEMA_TYPE.equals(record.getTypeCode())) {
+							exportedFolders.add(record.getId());
+						}
+						if (Document.SCHEMA_TYPE.equals(record.getTypeCode())) {
+							exportedDocuments.add(record.getId());
+						}
+					}
+
+				} catch (Throwable t) {
+					t.printStackTrace();
+					failedExports.addAll(new RecordUtils().toIdList(records));
+				}
+
+				progressInfo.setCurrentState(progressInfo.getCurrentState() + records.size());
+			}
+
+		} finally {
+			writer.close();
+		}
+
+		writeListInFile(failedExports, new File(exportFolder, "info" + File.separator + "failedFolderExport.txt"));
+		writeListInFile(exportedFolders, new File(exportFolder, "info" + File.separator + "exportedFolders.txt"));
+		writeListInFile(exportedDocuments, new File(exportFolder, "info" + File.separator + "exportedDocuments.txt"));
+
+	}
+
+
 	private long countFoldersAndDocuments() {
 		return searchServices.getResultsCount(from(rm.folder.schemaType(), rm.document.schemaType()).returnAll());
 	}
