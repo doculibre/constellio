@@ -77,6 +77,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -418,7 +419,8 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 					Object formValue = folderVO.get(metadataVO);
 					Object newDefaultValue = matchingMetadata.getDefaultValue();
 					Object oldDefaultValue = metadataVO.getDefaultValue();
-					if (formValue == null || formValue.equals(oldDefaultValue)) {
+					boolean formValueIsEmpty = formValue == null || (formValue instanceof Collection && ((Collection) formValue).isEmpty());
+					if (formValueIsEmpty || formValue.equals(oldDefaultValue)) {
 						folder.getWrappedRecord().set(matchingMetadata, newDefaultValue);
 					} else {
 						folder.getWrappedRecord().set(matchingMetadata, formValue);
