@@ -2,6 +2,7 @@ package com.constellio.app.services.sip.record;
 
 import com.constellio.app.api.extensions.SIPExtension;
 import com.constellio.app.api.extensions.params.ExportCollectionInfosSIPParams;
+import com.constellio.app.entities.modules.ProgressInfo;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.modules.rm.wrappers.Printable;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -62,9 +63,10 @@ public class CollectionInfosSIPWriter {
 	TaxonomiesManager taxonomiesManager;
 	ConfigManager configManager;
 	IOServices ioServices;
+	ProgressInfo progressInfo;
 
 	public CollectionInfosSIPWriter(String collection, AppLayerFactory appLayerFactory, SIPZipWriter writer,
-									Locale locale)
+									Locale locale, ProgressInfo progressInfo)
 			throws IOException {
 		this.collection = collection;
 		this.appLayerFactory = appLayerFactory;
@@ -79,6 +81,7 @@ public class CollectionInfosSIPWriter {
 		this.taxonomySearchServices = new ConceptNodesTaxonomySearchServices(appLayerFactory.getModelLayerFactory());
 		this.configManager = appLayerFactory.getModelLayerFactory().getDataLayerFactory().getConfigManager();
 		this.ioServices = appLayerFactory.getModelLayerFactory().getIOServicesFactory().newIOServices();
+		this.progressInfo = progressInfo;
 
 	}
 
@@ -216,13 +219,19 @@ public class CollectionInfosSIPWriter {
 		LogicalSearchQuery query = new LogicalSearchQuery(from(schemaType).returnAll());
 		query.sortAsc(IDENTIFIER);
 
-		SearchResponseIterator<Record> recordIterator = searchServices.recordsIterator(query);
+		SearchResponseIterator<Record> recordIterator = searchServices.recordsIterator(query, 1000);
 		if (recordIterator.getNumFound() > 0) {
+			progressInfo.setProgressMessage("Exporting '" + schemaTypeCode + "'");
+			progressInfo.setEnd(recordIterator.getNumFound());
+
+			int added = 0;
+			progressInfo.setCurrentState(0);
 			if (createDivision) {
 				writer.addDivisionInfo(toDivisionInfo(schemaType, null));
 			}
 			while (recordIterator.hasNext()) {
 				recordSIPWriter.add(recordIterator.next());
+				progressInfo.setCurrentState(++added);
 			}
 		}
 
