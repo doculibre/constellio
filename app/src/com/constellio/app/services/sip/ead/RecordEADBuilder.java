@@ -7,10 +7,14 @@ import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.sip.record.RecordSIPWriter.RecordInsertionContext;
+import com.constellio.app.ui.pages.search.criteria.Criterion;
+import com.constellio.app.ui.pages.search.criteria.CriterionFactory;
+import com.constellio.app.ui.pages.search.criteria.FacetSelections;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.structure.ReportedMetadata;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -44,6 +48,7 @@ import static com.constellio.model.entities.schemas.Schemas.TITLE_CODE;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
+import static org.apache.commons.lang3.StringUtils.join;
 
 public class RecordEADBuilder {
 
@@ -64,6 +69,8 @@ public class RecordEADBuilder {
 
 	private boolean includeRelatedMaterials = true;
 
+	private boolean includeArchiveDescriptionMetadatasFromODDs = true;
+
 	public RecordEADBuilder(AppLayerFactory appLayerFactory, ValidationErrors errors) {
 		this.errors = errors;
 		this.appLayerFactory = appLayerFactory;
@@ -77,6 +84,12 @@ public class RecordEADBuilder {
 
 	public RecordEADBuilder setIncludeRelatedMaterials(boolean includeRelatedMaterials) {
 		this.includeRelatedMaterials = includeRelatedMaterials;
+		return this;
+	}
+
+	public RecordEADBuilder setIncludeArchiveDescriptionMetadatasFromODDs(
+			boolean includeArchiveDescriptionMetadatasFromODDs) {
+		this.includeArchiveDescriptionMetadatasFromODDs = includeArchiveDescriptionMetadatasFromODDs;
 		return this;
 	}
 
@@ -167,6 +180,23 @@ public class RecordEADBuilder {
 				new ConvertStructureToMapParams(modifiableStructure, metadata));
 
 		if (mappedStructure == null) {
+
+			if (modifiableStructure instanceof ReportedMetadata) {
+				mappedStructure = new TreeMap<>();
+				mappedStructure.put("metadata", ((ReportedMetadata) modifiableStructure).getMetadataCode());
+				mappedStructure.put("x", ((ReportedMetadata) modifiableStructure).getXPosition());
+				mappedStructure.put("y", ((ReportedMetadata) modifiableStructure).getYPosition());
+			}
+
+			if (modifiableStructure instanceof Criterion) {
+				mappedStructure = new CriterionFactory().toMap(modifiableStructure);
+			}
+
+			if (modifiableStructure instanceof FacetSelections) {
+				mappedStructure = new TreeMap<>();
+				mappedStructure.put("metadata", ((FacetSelections) modifiableStructure).getFacetField());
+				mappedStructure.put("x", join(((FacetSelections) modifiableStructure).getSelectedValues(), ", "));
+			}
 
 			if (modifiableStructure instanceof MapStringStringStructure) {
 				mappedStructure = new TreeMap<String, Object>((MapStringStringStructure) modifiableStructure);
@@ -299,7 +329,8 @@ public class RecordEADBuilder {
 	}
 
 	private boolean isMetadataIncludedInEAD(Metadata metadata) {
-		return !METADATAS_ALWAYS_IN_ARCHIVE_DESCRIPTION.contains(metadata.getLocalCode());
+		return includeArchiveDescriptionMetadatasFromODDs
+			   || !METADATAS_ALWAYS_IN_ARCHIVE_DESCRIPTION.contains(metadata.getLocalCode());
 	}
 
 	public void build(RecordInsertionContext recordCtx, File file) throws IOException {
