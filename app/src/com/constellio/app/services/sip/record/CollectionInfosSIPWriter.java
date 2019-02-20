@@ -5,6 +5,10 @@ import com.constellio.app.api.extensions.params.ExportCollectionInfosSIPParams;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.modules.rm.wrappers.Printable;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.importExport.settings.SettingsExportOptions;
+import com.constellio.app.services.importExport.settings.SettingsExportServices;
+import com.constellio.app.services.importExport.settings.model.ImportedSettings;
+import com.constellio.app.services.importExport.settings.utils.SettingsXMLFileWriter;
 import com.constellio.app.services.sip.mets.MetsDivisionInfo;
 import com.constellio.app.services.sip.zip.SIPZipWriter;
 import com.constellio.model.entities.Language;
@@ -12,16 +16,23 @@ import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Facet;
 import com.constellio.model.entities.records.wrappers.Group;
+import com.constellio.model.entities.records.wrappers.Report;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
+import org.apache.commons.io.IOUtils;
+import org.jdom2.Document;
+import org.jdom2.output.Format;
+import org.jdom2.output.XMLOutputter;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.Iterator;
 import java.util.Locale;
 
@@ -62,6 +73,7 @@ public class CollectionInfosSIPWriter {
 		exportRecordsInSchemaTypesDivision(User.SCHEMA_TYPE);
 		exportRecordsInSchemaTypesDivision(Group.SCHEMA_TYPE);
 		exportRecordsInSchemaTypesDivision(Printable.SCHEMA_TYPE);
+		exportRecordsInSchemaTypesDivision(Report.SCHEMA_TYPE);
 		exportRecordsInSchemaTypesDivision(SavedSearch.SCHEMA_TYPE);
 		exportRecordsInSchemaTypesDivision(Facet.SCHEMA_TYPE);
 
@@ -69,6 +81,32 @@ public class CollectionInfosSIPWriter {
 		exportTaxonomies();
 		for (SIPExtension extension : extensions.sipExtensions) {
 			extension.exportCollectionInfosSIP(new ExportCollectionInfosSIPParams(this, recordSIPWriter, writer));
+		}
+
+		exportSettings();
+	}
+
+	protected void exportSettings() throws IOException {
+		SettingsExportServices settingsExportServices = new SettingsExportServices(appLayerFactory);
+		SettingsExportOptions options = new SettingsExportOptions();
+		try {
+			ImportedSettings settings = settingsExportServices.exportSettings(collection, options);
+			Document document = new SettingsXMLFileWriter().writeSettings(settings);
+
+			XMLOutputter xmlOutput = new XMLOutputter();
+			xmlOutput.setFormat(Format.getPrettyFormat());
+
+			OutputStream outputStream = writer.newZipFileOutputStream("/data/configs.xml");
+			try {
+				xmlOutput.output(document, outputStream);
+
+			} finally {
+				IOUtils.closeQuietly(outputStream);
+			}
+
+
+		} catch (ValidationException e) {
+			throw new RuntimeException(e);
 		}
 	}
 
@@ -93,13 +131,6 @@ public class CollectionInfosSIPWriter {
 
 				for (String taxonomySchemaTypeCode : taxonomy.getSchemaTypes()) {
 					exportRecordsInSchemaTypesDivision(taxonomySchemaTypeCode, false);
-					//					MetadataSchemaType schemaType = types.getSchemaType(taxonomySchemaTypeCode);
-					//					writer.addDivisionInfo(toDivisionInfo(schemaType, taxonomy.getCode()));
-					//
-					//					Iterator<Record> recordIterator = searchServices.recordsIterator(new LogicalSearchQuery(from(schemaType).returnAll()));
-					//					while (recordIterator.hasNext()) {
-					//						recordSIPWriter.add(recordIterator.next());
-					//					}
 				}
 			}
 		}

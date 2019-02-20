@@ -173,7 +173,7 @@ public class RecordEADBuilder {
 			}
 
 			if (modifiableStructure instanceof MapStringListStringStructure) {
-				mappedStructure = new TreeMap<String, Object>((MapStringStringStructure) modifiableStructure);
+				mappedStructure = new TreeMap<String, Object>((MapStringListStringStructure) modifiableStructure);
 			}
 
 		}
