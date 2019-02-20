@@ -69,6 +69,8 @@ public class RecordEADBuilder {
 
 	private boolean includeRelatedMaterials = true;
 
+	private boolean includeArchiveDescriptionMetadatasFromODDs = true;
+
 	public RecordEADBuilder(AppLayerFactory appLayerFactory, ValidationErrors errors) {
 		this.errors = errors;
 		this.appLayerFactory = appLayerFactory;
@@ -82,6 +84,12 @@ public class RecordEADBuilder {
 
 	public RecordEADBuilder setIncludeRelatedMaterials(boolean includeRelatedMaterials) {
 		this.includeRelatedMaterials = includeRelatedMaterials;
+		return this;
+	}
+
+	public RecordEADBuilder setIncludeArchiveDescriptionMetadatasFromODDs(
+			boolean includeArchiveDescriptionMetadatasFromODDs) {
+		this.includeArchiveDescriptionMetadatasFromODDs = includeArchiveDescriptionMetadatasFromODDs;
 		return this;
 	}
 
@@ -321,7 +329,8 @@ public class RecordEADBuilder {
 	}
 
 	private boolean isMetadataIncludedInEAD(Metadata metadata) {
-		return !METADATAS_ALWAYS_IN_ARCHIVE_DESCRIPTION.contains(metadata.getLocalCode());
+		return includeArchiveDescriptionMetadatasFromODDs
+			   || !METADATAS_ALWAYS_IN_ARCHIVE_DESCRIPTION.contains(metadata.getLocalCode());
 	}
 
 	public void build(RecordInsertionContext recordCtx, File file) throws IOException {

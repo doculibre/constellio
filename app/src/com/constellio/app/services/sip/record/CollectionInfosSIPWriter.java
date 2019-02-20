@@ -75,6 +75,9 @@ public class CollectionInfosSIPWriter {
 		this.types = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
 		this.recordSIPWriter = new RecordSIPWriter(appLayerFactory, writer,
 				new DefaultRecordZipPathProvider(collection, appLayerFactory.getModelLayerFactory()), locale);
+
+		this.recordSIPWriter.setIncludeRelatedMaterials(false);
+		this.recordSIPWriter.setIncludeArchiveDescriptionMetadatasFromODDs(true);
 		this.language = Language.withLocale(locale);
 		this.searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
 		this.taxonomiesManager = appLayerFactory.getModelLayerFactory().getTaxonomiesManager();

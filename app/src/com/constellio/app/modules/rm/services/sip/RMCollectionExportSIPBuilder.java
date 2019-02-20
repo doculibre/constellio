@@ -86,7 +86,8 @@ public class RMCollectionExportSIPBuilder {
 
 		progressInfo.setTask("Exporting folders and documents of collection '" + collection + "'");
 		RecordSIPWriter writer = newRecordSIPWriter("foldersAndDocuments", buildCategoryDivisionInfos(rm), progressInfo);
-
+		writer.setIncludeRelatedMaterials(false);
+		writer.setIncludeArchiveDescriptionMetadatasFromODDs(true);
 
 		Set<String> failedExports = new HashSet<>();
 		Set<String> exportedFolders = new HashSet<>();

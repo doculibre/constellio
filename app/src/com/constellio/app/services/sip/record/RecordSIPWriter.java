@@ -66,6 +66,10 @@ public class RecordSIPWriter {
 
 	private boolean includeAuths = true;
 
+	private boolean includeRelatedMaterials = true;
+
+	private boolean includeArchiveDescriptionMetadatasFromODDs = false;
+
 	public RecordSIPWriter(AppLayerFactory appLayerFactory,
 						   SIPZipWriter sipZipWriter,
 						   RecordPathProvider recordPathProvider,
@@ -89,6 +93,17 @@ public class RecordSIPWriter {
 
 	public RecordSIPWriter setIncludeContentFiles(boolean includeContentFiles) {
 		this.includeContentFiles = includeContentFiles;
+		return this;
+	}
+
+	public RecordSIPWriter setIncludeRelatedMaterials(boolean includeRelatedMaterials) {
+		this.includeRelatedMaterials = includeRelatedMaterials;
+		return this;
+	}
+
+	public RecordSIPWriter setIncludeArchiveDescriptionMetadatasFromODDs(
+			boolean inccludeArchiveDescriptionMetadatasFromODDs) {
+		this.includeArchiveDescriptionMetadatasFromODDs = includeArchiveDescriptionMetadatasFromODDs;
 		return this;
 	}
 
@@ -154,6 +169,8 @@ public class RecordSIPWriter {
 	private void buildRecordEADFile(SIPZipWriterTransaction transaction, RecordInsertionContext ctx)
 			throws IOException {
 		RecordEADBuilder recordEadBuilder = new RecordEADBuilder(appLayerFactory, ctx.errors);
+		recordEadBuilder.setIncludeRelatedMaterials(includeRelatedMaterials);
+		recordEadBuilder.setIncludeArchiveDescriptionMetadatasFromODDs(includeArchiveDescriptionMetadatasFromODDs);
 		File tempXMLFile = ioServices.newTemporaryFile(TEMP_EAD_FILE_STREAM_NAME);
 		try {
 			recordEadBuilder.build(ctx, tempXMLFile);
