@@ -170,8 +170,8 @@ public class DecommissioningListPresenterAcceptanceTest extends ConstellioTest {
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				boolean container100 = decommissioningList.getContainerDetail("container100") == null;
 				return container100 ?
-					   new ContainerVO("container100", "container100", 100D) :
-					   new ContainerVO("container100", "container100", decommissioningList.getContainerDetail("container100").getAvailableSize());
+					   new ContainerVO("container100", "container100", 100D, null) :
+					   new ContainerVO("container100", "container100", decommissioningList.getContainerDetail("container100").getAvailableSize(), null);
 			}
 		}).when(view).getContainer(rm.getContainerRecord("container100"));
 		doAnswer(new Answer() {
@@ -179,8 +179,8 @@ public class DecommissioningListPresenterAcceptanceTest extends ConstellioTest {
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				boolean container150 = decommissioningList.getContainerDetail("container150") == null;
 				return container150 ?
-					   new ContainerVO("container150", "container150", 150D) :
-					   new ContainerVO("container150", "container150", decommissioningList.getContainerDetail("container150").getAvailableSize());
+					   new ContainerVO("container150", "container150", 150D, null) :
+					   new ContainerVO("container150", "container150", decommissioningList.getContainerDetail("container150").getAvailableSize(), null);
 			}
 		}).when(view).getContainer(rm.getContainerRecord("container150"));
 
