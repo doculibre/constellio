@@ -144,7 +144,7 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 			boolean isSystemDistributed = appLayerFactory.getModelLayerFactory().getDataLayerFactory().getDataLayerConfiguration().isSystemDistributed();
 			VerticalLayout layoutWithoutSpacing = new VerticalLayout();
 			layoutWithoutSpacing.setSpacing(false);
-			layoutWithoutSpacing.setHeight("50px");
+			layoutWithoutSpacing.setHeight("75px");
 			layoutWithoutSpacing.addComponent(footer);
 			layoutWithoutSpacing.addComponent(buildInstanceType(isSystemDistributed));
 			contentFooterLayout.addComponent(layoutWithoutSpacing);
