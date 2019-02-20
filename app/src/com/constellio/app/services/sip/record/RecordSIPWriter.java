@@ -12,11 +12,14 @@ import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.security.SecurityModel;
+import com.constellio.model.entities.security.SecurityModelAuthorization;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.parser.EmailParser;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.security.AuthorizationsServices;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
@@ -54,10 +57,14 @@ public class RecordSIPWriter {
 
 	private RecordPathProvider recordPathProvider;
 
+	private AuthorizationsServices authorizationsServices;
+
 	/**
 	 * For test purposes only
 	 */
 	private boolean includeContentFiles = true;
+
+	private boolean includeAuths = true;
 
 	public RecordSIPWriter(AppLayerFactory appLayerFactory,
 						   SIPZipWriter sipZipWriter,
@@ -72,8 +79,12 @@ public class RecordSIPWriter {
 		this.recordPathProvider = recordPathProvider;
 		this.metadataSchemasManager = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager();
 		this.sipZipWriter = sipZipWriter;
-
+		this.authorizationsServices = appLayerFactory.getModelLayerFactory().newAuthorizationsServices();
 		this.locale = locale;
+	}
+
+	public SIPZipWriter getSipZipWriter() {
+		return sipZipWriter;
 	}
 
 	public RecordSIPWriter setIncludeContentFiles(boolean includeContentFiles) {
@@ -99,6 +110,13 @@ public class RecordSIPWriter {
 			while (recordsIterator.hasNext()) {
 				Record record = recordsIterator.next();
 				addToSIP(transaction, record, errors);
+
+				if (includeAuths) {
+					SecurityModel securityModel = recordServices.getSecurityModel(record.getCollection());
+					for (SecurityModelAuthorization authorization : securityModel.getAuthorizationsOnTarget(record.getId())) {
+						addToSIP(transaction, authorization.getDetails().getWrappedRecord(), errors);
+					}
+				}
 			}
 
 		} catch (Throwable t) {
@@ -138,7 +156,7 @@ public class RecordSIPWriter {
 		RecordEADBuilder recordEadBuilder = new RecordEADBuilder(appLayerFactory, ctx.errors);
 		File tempXMLFile = ioServices.newTemporaryFile(TEMP_EAD_FILE_STREAM_NAME);
 		try {
-			recordEadBuilder.build(ctx.record, ctx.sipXMLPath, tempXMLFile);
+			recordEadBuilder.build(ctx, tempXMLFile);
 
 			ctx.transaction.add(ctx.newMetsEADMetadataReference());
 			transaction.moveFileToSIPAsUnreferencedContentFile(ctx.sipXMLPath, tempXMLFile);
@@ -151,8 +169,10 @@ public class RecordSIPWriter {
 
 	private void insertContentVersion(RecordInsertionContext ctx, Metadata metadata,
 									  ContentVersion contentVersion) throws IOException {
-		String fileId = ctx.dmdId + "-" + metadata.getLocalCode() + "-" + contentVersion.getVersion();
-		String zipFilePath = ctx.parentPath + "/" + fileId + "." + getExtension(contentVersion.getFilename());
+
+
+		String fileId = ctx.fileId(metadata, contentVersion);
+		String zipFilePath = ctx.sipXMLPath(metadata, contentVersion);
 
 		File vaultFile = contentManager.getContentDao().getFileOf(contentVersion.getHash());
 		MetsContentFileReference reference = ctx.transaction.addContentFileFromVaultFile(zipFilePath, vaultFile);
@@ -193,7 +213,7 @@ public class RecordSIPWriter {
 	}
 
 
-	private class RecordInsertionContext {
+	public class RecordInsertionContext {
 
 		String dmdId;
 		String sipRecordPath;
@@ -223,7 +243,57 @@ public class RecordSIPWriter {
 		}
 
 		MetsEADMetadataReference newMetsEADMetadataReference() {
-			return new MetsEADMetadataReference(dmdId, parent, record.getTypeCode(), record.getTitle(), sipXMLPath);
+			String recordTitle = record.getTitle();
+
+			if (recordTitle == null) {
+				recordTitle = record.getId();
+			}
+
+			return new MetsEADMetadataReference(dmdId, parent, record.getTypeCode(), recordTitle, sipXMLPath);
+		}
+
+		public String fileId(Metadata metadata, ContentVersion contentVersion) {
+			return dmdId + "-" + metadata.getLocalCode() + "-" + contentVersion.getVersion();
+		}
+
+		public String sipXMLPath(Metadata metadata, ContentVersion contentVersion) {
+			return parentPath + "/" + fileId(metadata, contentVersion) + "." + getExtension(contentVersion.getFilename());
+		}
+
+		public String getDmdId() {
+			return dmdId;
+		}
+
+		public String getSipRecordPath() {
+			return sipRecordPath;
+		}
+
+		public String getSipXMLPath() {
+			return sipXMLPath;
+		}
+
+		public String getParent() {
+			return parent;
+		}
+
+		public String getParentPath() {
+			return parentPath;
+		}
+
+		public SIPZipWriterTransaction getTransaction() {
+			return transaction;
+		}
+
+		public Record getRecord() {
+			return record;
+		}
+
+		public ValidationErrors getErrors() {
+			return errors;
+		}
+
+		public MetadataSchema getSchema() {
+			return schema;
 		}
 	}
 }

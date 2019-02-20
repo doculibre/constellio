@@ -78,6 +78,10 @@ public class FileSIPZipWriter implements SIPZipWriter {
 
 	}
 
+	public SIPZipInfos getSipZipInfos() {
+		return sipZipInfos;
+	}
+
 	public File getZipFile() {
 		return zipFile;
 	}

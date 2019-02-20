@@ -6,6 +6,7 @@ import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.sip.record.RecordSIPWriter.RecordInsertionContext;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
@@ -29,7 +30,6 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -80,46 +80,51 @@ public class RecordEADBuilder {
 		return this;
 	}
 
-	private void addMetadata(Record record, Metadata metadata) {
+	private void addMetadata(RecordInsertionContext recordCtx, Metadata metadata) {
 
 		if (metadata.getType() == MetadataValueType.REFERENCE && metadata.isMultivalue()) {
-			writeMultivalueReferenceMetadata(record, metadata);
+			writeMultivalueReferenceMetadata(recordCtx.getRecord(), metadata);
 
 		} else if (metadata.getType() == MetadataValueType.REFERENCE && !metadata.isMultivalue()) {
-			writeSinglevalueReferenceMetadata(record, metadata);
+			writeSinglevalueReferenceMetadata(recordCtx.getRecord(), metadata);
 
 		} else if (metadata.getType() == MetadataValueType.STRUCTURE && metadata.isMultivalue()) {
-			writeMultivalueStructureMetadata(record, metadata);
+			writeMultivalueStructureMetadata(recordCtx.getRecord(), metadata);
 
 		} else if (metadata.getType() == MetadataValueType.STRUCTURE && !metadata.isMultivalue()) {
-			writeSinglevalueStructureMetadata(record, metadata);
+			writeSinglevalueStructureMetadata(recordCtx.getRecord(), metadata);
 
 		} else if (metadata.getType() == MetadataValueType.CONTENT) {
-			writeContentMetadata(record, metadata);
+			writeContentMetadata(recordCtx, metadata);
 
 		} else {
 			if (metadata.isMultivalue()) {
-				eadXmlWriter.addMetadataWithSimpleValue(metadata, record.getValues(metadata));
+				eadXmlWriter.addMetadataWithSimpleValue(metadata, recordCtx.getRecord().getValues(metadata));
 
 			} else {
-				eadXmlWriter.addMetadataWithSimpleValue(metadata, record.get(metadata));
+				eadXmlWriter.addMetadataWithSimpleValue(metadata, recordCtx.getRecord().get(metadata));
 			}
 		}
 
 	}
 
-	private void writeContentMetadata(Record record, Metadata metadata) {
+	private void writeContentMetadata(RecordInsertionContext recordCtx, Metadata metadata) {
 
 
 		List<Map<String, Object>> tableRows = new ArrayList<>();
-		for (Content content : record.<Content>getValues(metadata)) {
+		for (Content content : recordCtx.getRecord().<Content>getValues(metadata)) {
+
 
 			for (ContentVersion contentVersion : content.getVersions()) {
-				tableRows.add(newContentVersionTableRow(contentVersion));
+				String fileId = recordCtx.fileId(metadata, contentVersion);
+				String sipPath = recordCtx.sipXMLPath(metadata, contentVersion);
+				tableRows.add(newContentVersionTableRow(fileId, sipPath, contentVersion));
 			}
 
 			if (content.getCurrentCheckedOutVersion() != null) {
-				Map<String, Object> row = newContentVersionTableRow(content.getCurrentCheckedOutVersion());
+				String fileId = recordCtx.fileId(metadata, content.getCurrentCheckedOutVersion());
+				String sipPath = recordCtx.sipXMLPath(metadata, content.getCurrentCheckedOutVersion());
+				Map<String, Object> row = newContentVersionTableRow(fileId, sipPath, content.getCurrentCheckedOutVersion());
 				row.put("checkedOutDate", content.getCheckoutDateTime());
 				row.put("checkedOutByUser", content.getCheckoutUserId());
 				row.put("version", null);
@@ -168,7 +173,7 @@ public class RecordEADBuilder {
 			}
 
 			if (modifiableStructure instanceof MapStringListStringStructure) {
-				mappedStructure = new TreeMap<String, Object>((MapStringStringStructure) modifiableStructure);
+				mappedStructure = new TreeMap<String, Object>((MapStringListStringStructure) modifiableStructure);
 			}
 
 		}
@@ -180,14 +185,16 @@ public class RecordEADBuilder {
 		return mappedStructure;
 	}
 
-	private Map<String, Object> newContentVersionTableRow(ContentVersion version) {
-		Map<String, Object> row = new HashMap<>();
-		row.put("sha1", version.getHash());
+	private Map<String, Object> newContentVersionTableRow(String fileId, String sipPath, ContentVersion version) {
+		Map<String, Object> row = new LinkedHashMap<>();
+		row.put("sipFileId", fileId);
+		row.put("sipFilePath", sipPath);
 		row.put("filename", version.getFilename());
 		row.put("version", version.getVersion());
-		row.put("mimetype", version.getMimetype());
-		row.put("modifiedBy", version.getModifiedBy());
+		row.put("sha1", version.getHash());
 		row.put("length", version.getLength());
+		row.put("mimetype", version.getMimetype());
+		row.put("modifiedByUserId", version.getModifiedBy());
 		row.put("lastModification", version.getLastModificationDateTime());
 		row.put("comment", version.getComment());
 		return row;
@@ -295,8 +302,9 @@ public class RecordEADBuilder {
 		return !METADATAS_ALWAYS_IN_ARCHIVE_DESCRIPTION.contains(metadata.getLocalCode());
 	}
 
-	public void build(Record record, String sipPath, File file) throws IOException {
+	public void build(RecordInsertionContext recordCtx, File file) throws IOException {
 
+		Record record = recordCtx.getRecord();
 		MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(record.getCollection());
 		MetadataSchema schema = types.getSchema(record.getSchemaCode());
 		EADArchiveDescription archdesc = buildArchiveDescription(record, schema);
@@ -308,12 +316,11 @@ public class RecordEADBuilder {
 		for (Metadata metadata : types.getSchema(record.getSchemaCode()).getMetadatas()) {
 			if (isMetadataIncludedInEAD(metadata)
 				&& isNotEmptyValue(record.getValues(metadata))) {
-				addMetadata(record, metadata);
+				addMetadata(recordCtx, metadata);
 			}
 		}
 
-		eadXmlWriter.build(sipPath, errors, file);
+		eadXmlWriter.build(recordCtx.getSipXMLPath(), errors, file);
 	}
-
 
 }

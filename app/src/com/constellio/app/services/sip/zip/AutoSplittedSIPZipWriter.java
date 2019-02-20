@@ -11,7 +11,9 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class AutoSplittedSIPZipWriter implements SIPZipWriter {
@@ -24,13 +26,15 @@ public class AutoSplittedSIPZipWriter implements SIPZipWriter {
 	private SIPZipBagInfoFactory bagInfoFactory;
 	private long sipBytesLimit;
 
+	private List<AutoSplittedSIPZipWriterListener> listeners = new ArrayList<>();
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(AutoSplittedSIPZipWriter.class);
 
 	/**
 	 * Too much files in a SIP archive will create a large METS file. Since it is writen using DOM, it could require too much memory.
 	 * This limit will create METS file of 250mb
 	 */
-	private long metsFilesEntriesLimit = 250;
+	private long metsFilesEntriesLimit;
 	private int index = 0;
 	private SIPFileNameProvider sipFileProvider;
 
@@ -42,12 +46,16 @@ public class AutoSplittedSIPZipWriter implements SIPZipWriter {
 		this.sipFileProvider = sipFileProvider;
 		this.sipBytesLimit = sipBytesLimit;
 		this.bagInfoFactory = bagInfoFactory;
+
+		if (appLayerFactory.getModelLayerFactory().getSystemConfigs().getMemoryConsumptionLevel().isPrioritizingMemoryConsumption()) {
+			metsFilesEntriesLimit = 10000;
+		} else {
+			metsFilesEntriesLimit = 100000;
+		}
 	}
 
-	public AutoSplittedSIPZipWriter setMetsFilesEntriesLimit(long metsFilesEntriesLimit) {
-		this.metsFilesEntriesLimit = metsFilesEntriesLimit;
-		LOGGER.info("Mets file entries limit changed to '" + metsFilesEntriesLimit + "'");
-		return this;
+	public void register(AutoSplittedSIPZipWriterListener listener) {
+		this.listeners.add(listener);
 	}
 
 	@Override
@@ -58,7 +66,7 @@ public class AutoSplittedSIPZipWriter implements SIPZipWriter {
 	@Override
 	public void close() {
 		if (currentWriter != null) {
-			currentWriter.close();
+			closeCurrentWriter(true);
 		}
 	}
 
@@ -87,11 +95,18 @@ public class AutoSplittedSIPZipWriter implements SIPZipWriter {
 		if ((currentWriterLength > 0 && currentWriterLength + transactionLength > sipBytesLimit) ||
 			(currentWriterMetsEntries > 0 && currentWriterMetsEntries + transactionMetsEntries > metsFilesEntriesLimit)) {
 			LOGGER.info("Closing zip '" + currentWriter.getZipFile().getAbsolutePath() + "'");
-			currentWriter.close();
+			closeCurrentWriter(false);
 			newCurrentWriter();
 		}
 		currentWriter.insertAll(transaction);
 
+	}
+
+	protected void closeCurrentWriter(boolean lastFile) {
+		currentWriter.close();
+		for (AutoSplittedSIPZipWriterListener listener : listeners) {
+			listener.onSIPFileClosed(currentWriter.getSipZipInfos().getSipName(), currentWriter.getZipFile(), lastFile);
+		}
 	}
 
 	@Override
@@ -157,6 +172,17 @@ public class AutoSplittedSIPZipWriter implements SIPZipWriter {
 		LOGGER.info("Creating zip '" + currentWriter.getZipFile().getAbsolutePath() + "'");
 		currentWriter.divisionsInfoMap = divisionsInfoMap;
 		currentWriter.setSipFileHasher(sipFileHasher);
+
+		for (AutoSplittedSIPZipWriterListener listener : listeners) {
+			listener.onSIPFileCreated(currentWriter.getSipZipInfos().getSipName(), currentWriter.getZipFile());
+		}
+	}
+
+	public interface AutoSplittedSIPZipWriterListener {
+
+		void onSIPFileCreated(String sipName, File file);
+
+		void onSIPFileClosed(String sipName, File file, boolean lastFile);
 	}
 
 }

@@ -8,6 +8,7 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.services.sip.record.RecordPathProvider;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.Authorization;
 
 class RMZipPathProvider implements RecordPathProvider {
 
@@ -24,7 +25,12 @@ class RMZipPathProvider implements RecordPathProvider {
 		String pathIdentifier = record.getId();
 		boolean addSchemaTypeInPath = true;
 
-		if (Category.SCHEMA_TYPE.equals(record.getTypeCode())) {
+		if (Authorization.SCHEMA_TYPE.equals(record.getTypeCode())) {
+			Authorization authorization = rm.wrapSolrAuthorizationDetails(record);
+			//addSchemaTypeInPath = false;
+			parent = authorization.getTarget();
+
+		} else if (Category.SCHEMA_TYPE.equals(record.getTypeCode())) {
 			Category category = rm.wrapCategory(record);
 			//addSchemaTypeInPath = false;
 			pathIdentifier = category.getCode();

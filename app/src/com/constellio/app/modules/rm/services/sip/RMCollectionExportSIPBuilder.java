@@ -9,6 +9,7 @@ import com.constellio.app.services.sip.bagInfo.DefaultSIPZipBagInfoFactory;
 import com.constellio.app.services.sip.mets.MetsDivisionInfo;
 import com.constellio.app.services.sip.record.RecordSIPWriter;
 import com.constellio.app.services.sip.zip.AutoSplittedSIPZipWriter;
+import com.constellio.app.services.sip.zip.AutoSplittedSIPZipWriter.AutoSplittedSIPZipWriterListener;
 import com.constellio.app.services.sip.zip.DefaultSIPFileNameProvider;
 import com.constellio.app.services.sip.zip.SIPFileNameProvider;
 import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
@@ -60,10 +61,9 @@ public class RMCollectionExportSIPBuilder {
 
 	private File exportFolder;
 
-	private int filesLimit = 25000;
-
 	private long sipBytesLimit = 2 * ONE_GB;
-	//private long sipBytesLimit = 1 * ONE_MB;
+
+	private boolean includeContents;
 
 	public RMCollectionExportSIPBuilder(String collection, AppLayerFactory appLayerFactory, File exportFolder) {
 		this.appLayerFactory = appLayerFactory;
@@ -77,12 +77,8 @@ public class RMCollectionExportSIPBuilder {
 
 	}
 
-	public int getFilesLimit() {
-		return filesLimit;
-	}
-
-	public RMCollectionExportSIPBuilder setFilesLimit(int filesLimit) {
-		this.filesLimit = filesLimit;
+	public RMCollectionExportSIPBuilder setIncludeContents(boolean includeContents) {
+		this.includeContents = includeContents;
 		return this;
 	}
 
@@ -145,8 +141,8 @@ public class RMCollectionExportSIPBuilder {
 	public void exportAllFoldersAndDocuments(ProgressInfo progressInfo) throws IOException {
 
 		progressInfo.setTask("Exporting folders and documents of collection '" + collection + "'");
-		RecordSIPWriter writer = newRecordSIPWriter("foldersAndDocuments", buildCategoryDivisionInfos(rm));
-		writer.setIncludeContentFiles(false);
+		RecordSIPWriter writer = newRecordSIPWriter("foldersAndDocuments", buildCategoryDivisionInfos(rm), progressInfo);
+
 
 		Set<String> failedExports = new HashSet<>();
 		Set<String> exportedFolders = new HashSet<>();
@@ -155,6 +151,7 @@ public class RMCollectionExportSIPBuilder {
 		try {
 			SearchResponseIterator<Record> folderIterator = newRootFoldersIterator();
 			progressInfo.setEnd(countFoldersAndDocuments());
+			progressInfo.setCurrentState(0);
 
 			while (folderIterator.hasNext()) {
 				Record folder = folderIterator.next();
@@ -168,7 +165,6 @@ public class RMCollectionExportSIPBuilder {
 					}
 
 					writer.add(records);
-
 					for (Record record : records) {
 						if (Folder.SCHEMA_TYPE.equals(record.getTypeCode())) {
 							exportedFolders.add(record.getId());
@@ -182,6 +178,7 @@ public class RMCollectionExportSIPBuilder {
 					t.printStackTrace();
 					failedExports.addAll(new RecordUtils().toIdList(records));
 				}
+
 				progressInfo.setCurrentState(progressInfo.getCurrentState() + records.size());
 			}
 
@@ -208,15 +205,29 @@ public class RMCollectionExportSIPBuilder {
 
 	}
 
-	private RecordSIPWriter newRecordSIPWriter(String sipName, Map<String, MetsDivisionInfo> divisionInfoMap)
+	private RecordSIPWriter newRecordSIPWriter(String sipName, Map<String, MetsDivisionInfo> divisionInfoMap,
+											   final ProgressInfo progressInfo)
 			throws IOException {
 		SIPFileNameProvider sipFileNameProvider = new DefaultSIPFileNameProvider(exportFolder, sipName);
 		AutoSplittedSIPZipWriter writer = new AutoSplittedSIPZipWriter(appLayerFactory, sipFileNameProvider,
 				sipBytesLimit, new DefaultSIPZipBagInfoFactory(appLayerFactory, locale));
+		writer.register(new AutoSplittedSIPZipWriterListener() {
+			@Override
+			public void onSIPFileCreated(String sipName, File file) {
+				progressInfo.setProgressMessage("Writing sip file '" + file.getName() + "'");
+			}
+
+			@Override
+			public void onSIPFileClosed(String sipName, File file, boolean lastFile) {
+
+			}
+		});
+		//progressInfo.setProgressMessage("Writing sip file '" + sipFileNameProvider.newSIPFile(1).getName() + "'");
 		writer.addDivisionsInfoMap(divisionInfoMap);
-		writer.setMetsFilesEntriesLimit(filesLimit);
 		RMZipPathProvider zipPathProvider = new RMZipPathProvider(rm);
-		return new RecordSIPWriter(appLayerFactory, writer, zipPathProvider, locale);
+		RecordSIPWriter recordSIPWriter = new RecordSIPWriter(appLayerFactory, writer, zipPathProvider, locale);
+		recordSIPWriter.setIncludeContentFiles(includeContents);
+		return recordSIPWriter;
 	}
 
 	private SearchResponseIterator<Record> newRootFoldersIterator() {

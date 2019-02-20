@@ -12,38 +12,24 @@ public class FileLoggedProgressInfo extends ProgressInfo {
 
 	File outputFile;
 
-	private boolean newTask;
-	private boolean newEnd;
-
 	public FileLoggedProgressInfo(File outputFile) {
 		this.outputFile = outputFile;
 	}
 
 	@Override
 	public void setTask(String task) {
-		newTask = true;
 		super.setTask(task);
-		if (newEnd) {
-			logProgression();
-		}
 	}
 
 	@Override
 	public void setEnd(long end) {
-		newEnd = true;
-		super.setCurrentState(0);
 		super.setEnd(end);
-		if (newTask) {
-			logProgression();
-		}
 	}
 
 	@Override
 	public void setCurrentState(long currentState) {
 		super.setCurrentState(currentState);
-		if (currentState != 0) {
-			logProgression();
-		}
+		logProgression();
 	}
 
 	@Override
@@ -64,8 +50,19 @@ public class FileLoggedProgressInfo extends ProgressInfo {
 
 	private void logProgression() {
 		try {
-			String status = this.getTask() + " - " + this.getCurrentState() + "/" + this.getEnd() + "\n";
-			FileUtils.writeStringToFile(outputFile, status, "UTF-8", true);
+
+			StringBuilder stringBuilder = new StringBuilder();
+			if (getTask() != null) {
+				stringBuilder.append(getTask()).append(" - ");
+			}
+
+			if (getProgressMessage() != null) {
+				stringBuilder.append(getProgressMessage()).append(" - ");
+			}
+
+			stringBuilder.append(this.getCurrentState()).append("/").append(this.getEnd()).append("\n");
+
+			FileUtils.writeStringToFile(outputFile, stringBuilder.toString(), "UTF-8", true);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
