@@ -236,6 +236,16 @@ public class AuthorizationsServices {
 		return users;
 	}
 
+	public List<String> getUsersIdsWithRoleForRecord(String role, Record record) {
+		List<User> usersWithRoleForRecord = getUsersWithRoleForRecord(role, record);
+		ArrayList<String> usersIds = new ArrayList<>();
+
+		for(User user: usersWithRoleForRecord) {
+			usersIds.add(user.getId());
+		}
+		return usersIds;
+	}
+
 	public List<Record> getUserRecordsInGroup(Record groupRecord) {
 
 		SchemasRecordsServices schemas = new SchemasRecordsServices(groupRecord.getCollection(), modelLayerFactory);
