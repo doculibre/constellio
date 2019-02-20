@@ -91,6 +91,14 @@ public class RMRecordExportExtension extends RecordExportExtension {
 			return (Map) writeDecomListValidation(((DecomListValidation) structure));
 		}
 
+		if (structure instanceof TaskFollower) {
+			return (Map) writeTaskFollowers(((TaskFollower) structure));
+		}
+
+		if (structure instanceof TaskReminder) {
+			return (Map) writeTaskReminder(((TaskReminder) structure));
+		}
+
 		return super.convertStructureToMap(params);
 	}
 

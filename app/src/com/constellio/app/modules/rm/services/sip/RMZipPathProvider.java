@@ -4,9 +4,12 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.services.sip.record.RecordPathProvider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Authorization;
+import com.constellio.model.entities.schemas.Schemas;
+import org.joda.time.LocalDateTime;
 
 class RMZipPathProvider implements RecordPathProvider {
 
@@ -23,7 +26,17 @@ class RMZipPathProvider implements RecordPathProvider {
 		String pathIdentifier = record.getId();
 		boolean addSchemaTypeInPath = true;
 
-		if (Authorization.SCHEMA_TYPE.equals(record.getTypeCode())) {
+		if (Task.SCHEMA_TYPE.equals(record.getTypeCode())) {
+			LocalDateTime createdOn = record.get(Schemas.CREATED_ON);
+			int year = createdOn == null ? 1900 : createdOn.getYear();
+			int month = createdOn == null ? 1 : createdOn.getMonthOfYear();
+			int day = createdOn == null ? 1 : createdOn.getDayOfMonth();
+
+			return "/data/_" + year + "/_" + year + "-" + month + "/_" + year + "-" + month + "-" + day + "/"
+				   + record.getTypeCode() + "-" + record.getId();
+
+
+		} else if (Authorization.SCHEMA_TYPE.equals(record.getTypeCode())) {
 			Authorization authorization = rm.wrapSolrAuthorizationDetails(record);
 			//addSchemaTypeInPath = false;
 			parent = authorization.getTarget();

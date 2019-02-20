@@ -1,3 +1,4 @@
+import com.constellio.app.entities.modules.ProgressInfo;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -44,7 +45,7 @@ public class CollectionInfosSIPWriterAcceptanceTest extends ConstellioTest {
 		File sipFile = new File(newTempFolder(), "archive.zip");
 		SIPZipBagInfoFactory bagInfoFactory = new DefaultSIPZipBagInfoFactory(getAppLayerFactory(), Locale.FRENCH);
 		SIPZipWriter zipWriter = new FileSIPZipWriter(getAppLayerFactory(), sipFile, "test", bagInfoFactory);
-		CollectionInfosSIPWriter writer = new CollectionInfosSIPWriter(zeCollection, getAppLayerFactory(), zipWriter, Locale.FRENCH);
+		CollectionInfosSIPWriter writer = new CollectionInfosSIPWriter(zeCollection, getAppLayerFactory(), zipWriter, Locale.FRENCH, new ProgressInfo());
 
 		writer.exportCollectionConfigs();
 		writer.close();
