@@ -49,8 +49,6 @@ public class ListMetadataExtractorsViewImpl extends BaseViewImpl implements List
 
 	private Button addButton;
 
-	private Button propertiesAnalyser;
-
 	private Table table;
 
 	private ListMetadataExtractorsPresenter presenter;
@@ -164,19 +162,6 @@ public class ListMetadataExtractorsViewImpl extends BaseViewImpl implements List
 		mainLayout.setComponentAlignment(addButton, Alignment.TOP_RIGHT);
 
 		return mainLayout;
-	}
-
-	@Override
-	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
-		List<Button> actionMenuButtons = new ArrayList<Button>();
-		propertiesAnalyser = new BaseButton($("ListMetadataExtractorsView.propertiesAnalyser")) {
-			@Override
-			protected void buttonClick(ClickEvent event) {
-				presenter.propertiesAnalyserButtonClicked();
-			}
-		};
-		actionMenuButtons.add(propertiesAnalyser);
-		return actionMenuButtons;
 	}
 
 	@Override

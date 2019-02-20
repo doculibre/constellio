@@ -4,6 +4,8 @@ import com.constellio.app.ui.entities.MetadataExtractorVO;
 import com.constellio.app.ui.entities.MetadataSchemaTypeVO;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataVO;
+import com.constellio.app.ui.framework.buttons.WindowButton;
+import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveTextField;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
@@ -13,7 +15,9 @@ import com.constellio.model.frameworks.validation.ValidationException;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.fieldgroup.PropertyId;
+import com.vaadin.event.ItemClickEvent;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.CheckBox;
@@ -219,5 +223,35 @@ public class AddEditMetadataExtractorViewImpl extends BaseViewImpl implements Ad
 	@Override
 	public void setMetadataFieldEnabled(boolean enabled) {
 		this.metadataFieldEnabled = enabled;
+	}
+
+	@Override
+	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
+		ArrayList<Button> buttons = new ArrayList<>();
+		WindowButton analyserButton = new WindowButton($("PropertiesAnalyserView.viewTitle"), $("PropertiesAnalyserView.viewTitle"),
+				WindowConfiguration.modalDialog("80%", "80%")) {
+			@Override
+			protected Component buildWindowContent() {
+				PropertiesAnalyserViewImpl view = new PropertiesAnalyserViewImpl() {
+					@Override
+					protected void handlePropertyClick(ItemClickEvent event) {
+						super.handlePropertyClick(event);
+						propertiesField.addValue((String) event.getItemId());
+						showMessage($("AddEditMetadataExtractorView.propertyAdded"));
+					}
+
+					@Override
+					protected void handleStyleClick(ItemClickEvent event) {
+						super.handleStyleClick(event);
+						stylesField.addValue((String) event.getItemId());
+						showMessage($("AddEditMetadataExtractorView.styleAdded"));
+					}
+				};
+				view.enter(null);
+				return view;
+			}
+		};
+		buttons.add(analyserButton);
+		return buttons;
 	}
 }
