@@ -7,6 +7,12 @@ import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.frameworks.validation.ValidationErrors;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonPrimitive;
+import com.google.gson.JsonSerializationContext;
+import com.google.gson.JsonSerializer;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.formula.functions.T;
 import org.jdom2.Document;
@@ -19,6 +25,8 @@ import org.jdom2.output.XMLOutputter;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.joda.time.ReadablePartial;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,7 +35,9 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -358,9 +368,43 @@ public class RecordEADWriter {
 		return tableElement;
 	}
 
+	final String DATE_TIME_ISO_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSS";
+
+	private JsonSerializer<LocalDateTime> newLocalDateTimeTypeAdapter() {
+		return new JsonSerializer<LocalDateTime>() {
+			@Override
+			public JsonElement serialize(LocalDateTime src, Type typeOfSrc, JsonSerializationContext context) {
+				final DateTimeFormatter formatter = DateTimeFormat.forPattern(DATE_TIME_ISO_PATTERN);
+				return new JsonPrimitive(formatter.print(src));
+			}
+		};
+	}
+
+	private JsonSerializer<EnumWithSmallCode> newEnumWithSmallCodeTypeAdapter() {
+		return new JsonSerializer<EnumWithSmallCode>() {
+			@Override
+			public JsonElement serialize(EnumWithSmallCode src, Type typeOfSrc, JsonSerializationContext context) {
+				return new JsonPrimitive(src.getClass().getName());
+			}
+		};
+	}
+
+	private Gson gson() {
+		GsonBuilder gsonBuilder = new GsonBuilder();
+		gsonBuilder.registerTypeAdapter(EnumWithSmallCode.class, newEnumWithSmallCodeTypeAdapter());
+		gsonBuilder = new GsonBuilder().registerTypeAdapter(LocalDateTime.class, newLocalDateTimeTypeAdapter());
+		return gsonBuilder.create();
+	}
+
 	public void addValueToElement(Element element, Object value) {
 		if (isWrittenUsingPTag(value.getClass())) {
-			String stringValue = String.valueOf(value);
+			String stringValue;
+
+			if (value instanceof LinkedHashMap) {
+				stringValue = gson().toJson(value);
+			} else {
+				stringValue = String.valueOf(value);
+			}
 
 			if ("odd".equals(element.getName())) {
 				Element pElement = new Element("p", eadNamespace);
@@ -416,6 +460,6 @@ public class RecordEADWriter {
 
 	private boolean isWrittenUsingPTag(Class<?> clazz) {
 		return clazz.equals(String.class) || clazz.equals(Boolean.class) || Number.class.isAssignableFrom(clazz)
-			   || EnumWithSmallCode.class.isAssignableFrom(clazz);
+			   || EnumWithSmallCode.class.isAssignableFrom(clazz) || LinkedHashMap.class.isAssignableFrom(clazz);
 	}
 }

@@ -11,6 +11,9 @@ import com.constellio.app.services.importExport.settings.model.ImportedSettings;
 import com.constellio.app.services.importExport.settings.utils.SettingsXMLFileWriter;
 import com.constellio.app.services.sip.mets.MetsDivisionInfo;
 import com.constellio.app.services.sip.zip.SIPZipWriter;
+import com.constellio.data.dao.managers.config.ConfigManager;
+import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
+import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
@@ -31,15 +34,21 @@ import org.jdom2.Document;
 import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Iterator;
 import java.util.Locale;
 
+import static com.constellio.app.services.schemasDisplay.SchemasDisplayManager.SCHEMAS_DISPLAY_CONFIG;
 import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
+import static com.constellio.model.services.search.SearchBoostManager.SEARCH_BOOST_CONFIG;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.security.roles.RolesManager.ROLES_CONFIG;
 
 public class CollectionInfosSIPWriter {
+
+	public static final String READ_EMAIL_TEMPLATE_RESOURCE_NAME = "CollectionInfosSIPWriter-ReadEmailTemplate";
 
 	String collection;
 	AppLayerFactory appLayerFactory;
@@ -51,6 +60,8 @@ public class CollectionInfosSIPWriter {
 	SearchServices searchServices;
 	ConceptNodesTaxonomySearchServices taxonomySearchServices;
 	TaxonomiesManager taxonomiesManager;
+	ConfigManager configManager;
+	IOServices ioServices;
 
 	public CollectionInfosSIPWriter(String collection, AppLayerFactory appLayerFactory, SIPZipWriter writer,
 									Locale locale)
@@ -66,6 +77,14 @@ public class CollectionInfosSIPWriter {
 		this.searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
 		this.taxonomiesManager = appLayerFactory.getModelLayerFactory().getTaxonomiesManager();
 		this.taxonomySearchServices = new ConceptNodesTaxonomySearchServices(appLayerFactory.getModelLayerFactory());
+		this.configManager = appLayerFactory.getModelLayerFactory().getDataLayerFactory().getConfigManager();
+		this.ioServices = appLayerFactory.getModelLayerFactory().getIOServicesFactory().newIOServices();
+
+	}
+
+	public CollectionInfosSIPWriter setIncludeContents(boolean includeContents) {
+		this.recordSIPWriter.setIncludeContentFiles(includeContents);
+		return this;
 	}
 
 	public void exportCollectionConfigs() throws IOException {
@@ -89,24 +108,70 @@ public class CollectionInfosSIPWriter {
 	protected void exportSettings() throws IOException {
 		SettingsExportServices settingsExportServices = new SettingsExportServices(appLayerFactory);
 		SettingsExportOptions options = new SettingsExportOptions();
+		options.setExportingConfigs(true);
 		try {
 			ImportedSettings settings = settingsExportServices.exportSettings(collection, options);
 			Document document = new SettingsXMLFileWriter().writeSettings(settings);
 
-			XMLOutputter xmlOutput = new XMLOutputter();
-			xmlOutput.setFormat(Format.getPrettyFormat());
-
-			OutputStream outputStream = writer.newZipFileOutputStream("/data/configs.xml");
-			try {
-				xmlOutput.output(document, outputStream);
-
-			} finally {
-				IOUtils.closeQuietly(outputStream);
-			}
-
+			writeJDomDocument(document, "/data/collectionSettings/settings.xml");
 
 		} catch (ValidationException e) {
 			throw new RuntimeException(e);
+		}
+
+		exportConfig("/data/collectionSettings/schemasDisplay.xml", SCHEMAS_DISPLAY_CONFIG);
+		exportConfig("/data/collectionSettings/roles.xml", ROLES_CONFIG);
+		exportConfig("/data/collectionSettings/searchBoosts.xml", SEARCH_BOOST_CONFIG);
+		exportEmailTemplates();
+	}
+
+
+	private void exportConfig(String sipPath, String partialConfigPath) throws IOException {
+		Document document = configManager.getXML("/" + collection + partialConfigPath).getDocument();
+		writeJDomDocument(document, sipPath);
+
+	}
+
+	private void exportEmailTemplates() throws IOException {
+		File configFolder = appLayerFactory.getModelLayerFactory().getDataLayerFactory()
+				.getDataLayerConfiguration().getSettingsFileSystemBaseFolder();
+		if (configFolder != null && configFolder.exists()) {
+
+			File collectionConfigFolder = new File(configFolder, collection);
+			File emailTemplatesFolder = new File(collectionConfigFolder, "emailTemplates");
+
+			File[] emailTemplates = emailTemplatesFolder.listFiles();
+			if (emailTemplates != null) {
+				for (File emailTemplate : emailTemplates) {
+					String emailTemplateSipPath = "/data/collectionSettings/emailTemplates/" + emailTemplate.getName() + ".html";
+					InputStream inputStream = null;
+					OutputStream outputStream = null;
+
+					try {
+						inputStream = ioServices.newBufferedFileInputStream(emailTemplate, READ_EMAIL_TEMPLATE_RESOURCE_NAME);
+						outputStream = writer.newZipFileOutputStream(emailTemplateSipPath);
+						ioServices.copy(inputStream, outputStream);
+
+					} finally {
+						ioServices.closeQuietly(inputStream);
+						ioServices.closeQuietly(outputStream);
+					}
+				}
+			}
+		}
+
+	}
+
+	private void writeJDomDocument(Document document, String s) throws IOException {
+		XMLOutputter xmlOutput = new XMLOutputter();
+		xmlOutput.setFormat(Format.getPrettyFormat());
+
+		OutputStream outputStream = writer.newZipFileOutputStream(s);
+		try {
+			xmlOutput.output(document, outputStream);
+
+		} finally {
+			IOUtils.closeQuietly(outputStream);
 		}
 	}
 
@@ -115,9 +180,11 @@ public class CollectionInfosSIPWriter {
 	}
 
 	private void exportValueLists() throws IOException {
+		writer.addDivisionInfo(new MetsDivisionInfo("valueLists", "Value lists", "schemaTypes"));
 		for (MetadataSchemaType schemaType : types.getSchemaTypes()) {
 			if (schemaType.getCode().startsWith("ddv")) {
-				exportRecordsInSchemaTypesDivision(schemaType.getCode());
+				writer.addDivisionInfo(toDivisionInfo(schemaType, "valueLists"));
+				exportRecordsInSchemaTypesDivision(schemaType.getCode(), false);
 			}
 		}
 	}
@@ -149,12 +216,14 @@ public class CollectionInfosSIPWriter {
 		LogicalSearchQuery query = new LogicalSearchQuery(from(schemaType).returnAll());
 		query.sortAsc(IDENTIFIER);
 
-		if (createDivision) {
-			writer.addDivisionInfo(toDivisionInfo(schemaType, null));
-		}
-		Iterator<Record> recordIterator = searchServices.recordsIterator(query);
-		while (recordIterator.hasNext()) {
-			recordSIPWriter.add(recordIterator.next());
+		SearchResponseIterator<Record> recordIterator = searchServices.recordsIterator(query);
+		if (recordIterator.getNumFound() > 0) {
+			if (createDivision) {
+				writer.addDivisionInfo(toDivisionInfo(schemaType, null));
+			}
+			while (recordIterator.hasNext()) {
+				recordSIPWriter.add(recordIterator.next());
+			}
 		}
 
 	}

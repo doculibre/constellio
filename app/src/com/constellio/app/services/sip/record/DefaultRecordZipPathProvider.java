@@ -3,7 +3,6 @@ package com.constellio.app.services.sip.record;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Authorization;
-import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
@@ -44,6 +43,10 @@ public class DefaultRecordZipPathProvider implements RecordPathProvider {
 
 			if (taxonomy != null) {
 				path.append(taxonomy.getCode()).append("/");
+
+			} else if (record.getTypeCode().startsWith("ddv")) {
+				path.append("valueLists/").append(record.getTypeCode()).append("/");
+
 			} else {
 				path.append(record.getTypeCode()).append("/");
 			}
@@ -56,16 +59,16 @@ public class DefaultRecordZipPathProvider implements RecordPathProvider {
 
 		MetadataSchema schema = metadataSchemasManager.getSchemaTypeOf(record).getDefaultSchema();
 
-		if (schema.hasMetadataWithCode("code") && schema.getMetadata("code").isDefaultRequirement()) {
-			path.append(record.get(schema.getMetadata("code")));
-
-		} else if (User.SCHEMA_TYPE.equals(record.getTypeCode())) {
-			path.append(record.<String>get(schema.get(User.USERNAME)));
-
-
-		} else {
-			path.append(pathIdentifier);
-		}
+		//		if (schema.hasMetadataWithCode("code") && schema.getMetadata("code").isDefaultRequirement()) {
+		//			path.append(record.get(schema.getMetadata("code")));
+		//
+		//		} else if (User.SCHEMA_TYPE.equals(record.getTypeCode())) {
+		//			path.append(record.<String>get(schema.get(User.USERNAME)));
+		//
+		//
+		//		} else {
+		path.append(pathIdentifier);
+		//		}
 
 		return path.toString();
 	}

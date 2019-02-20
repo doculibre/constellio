@@ -7,6 +7,7 @@ import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.ModifiableStructure;
 import com.constellio.model.entities.schemas.StructureFactory;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
@@ -19,7 +20,10 @@ import org.joda.time.LocalDateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
+import java.io.IOException;
 import java.lang.reflect.Type;
+import java.util.HashMap;
+import java.util.Map;
 
 public class CriterionFactory implements StructureFactory {
 	final String DATE_TIME_ISO_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSS";
@@ -27,6 +31,14 @@ public class CriterionFactory implements StructureFactory {
 	@Override
 	public String toString(ModifiableStructure structure) {
 		return gson().toJson(structure);
+	}
+
+	public Map<String, Object> toMap(ModifiableStructure structure) {
+		try {
+			return new ObjectMapper().readValue(toString(structure), HashMap.class);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	@Override
