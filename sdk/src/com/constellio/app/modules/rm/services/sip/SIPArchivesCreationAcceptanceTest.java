@@ -6,6 +6,7 @@ import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.sip.bagInfo.DefaultSIPZipBagInfoFactory;
 import com.constellio.app.services.sip.zip.AutoSplittedSIPZipWriter;
 import com.constellio.app.services.sip.zip.DefaultSIPFileNameProvider;
@@ -73,6 +74,17 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 		rm.executeTransaction(tx);
 		ioServices = getModelLayerFactory().getIOServicesFactory().newIOServices();
 		constellioSIP = new RMSelectedFoldersAndDocumentsSIPBuilder(zeCollection, getAppLayerFactory());
+	}
+
+	@Test
+	public void name() {
+
+		System.out.println("Record count " + getDataLayerFactory().newRecordDao().documentsCount());
+		ConstellioFactories.clear();
+		System.out.println("Is alive : " + ConstellioFactories.isInitialized());
+		getAppLayerFactory();
+		System.out.println("Is alive : " + ConstellioFactories.isInitialized());
+		System.out.println("Record count " + getDataLayerFactory().newRecordDao().documentsCount());
 	}
 
 	@Test

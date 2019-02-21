@@ -255,14 +255,14 @@ public class RMCollectionExportSIPBuilder {
 		LogicalSearchQuery query = new LogicalSearchQuery(from(rm.userTask.schemaType())
 				.where(tasks.userTask.isModel()).isFalseOrNull());
 		query.sortAsc(rm.folder.categoryCode()).sortAsc(Schemas.IDENTIFIER);
-		return searchServices.recordsIterator(query, 1000);
+		return searchServices.recordsIteratorKeepingOrder(query, 1000);
 	}
 
 	private SearchResponseIterator<Record> newRootFoldersIterator() {
 		LogicalSearchQuery query = new LogicalSearchQuery(from(rm.folder.schemaType())
 				.where(rm.folder.parentFolder()).isNull());
 		query.sortAsc(rm.folder.categoryCode()).sortAsc(rm.folder.categoryCode());
-		return searchServices.recordsIterator(query, 1000);
+		return searchServices.recordsIteratorKeepingOrder(query, 1000);
 	}
 
 	private SearchResponseIterator<Record> newChildrenIterator(Record folderRecord) {
