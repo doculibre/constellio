@@ -85,14 +85,17 @@ public class RMCollectionExportSIPBuilder {
 	public void exportAllContainersBySpace(ProgressInfo progressInfo)
 			throws IOException {
 		progressInfo.setTask("Exporting containers by boxes in collection '" + collection + "'");
-		RecordSIPWriter writer = newRecordSIPWriter("containerByBoxes", buildStorageSpaceInfo(rm));
+		RecordSIPWriter writer = newRecordSIPWriter("containerByBoxes", buildStorageSpaceInfo(rm), progressInfo);
+
+		writer.setIncludeRelatedMaterials(false);
+		writer.setIncludeArchiveDescriptionMetadatasFromODDs(true);
 
 		Set<String> failedExports = new HashSet<>();
 		Set<String> exportedContainers = new HashSet<>();
 
 		try {
+			progressInfo.setEnd(countContainers());
 			SearchResponseIterator<Record> storageSpaceIterator = newRootStorageSpaceIterator();
-			progressInfo.setEnd(countFoldersAndDocuments());
 
 			while(storageSpaceIterator.hasNext()) {
 				storageSpaceProcessing(progressInfo, writer, failedExports, exportedContainers, storageSpaceIterator.next());
@@ -264,8 +267,7 @@ public class RMCollectionExportSIPBuilder {
 	}
 
 	private RecordSIPWriter newRecordSIPWriter(String sipName, Map<String, MetsDivisionInfo> divisionInfoMap,
-											   final ProgressInfo progressInfo)
-			throws IOException {
+											   final ProgressInfo progressInfo) {
 		SIPFileNameProvider sipFileNameProvider = new DefaultSIPFileNameProvider(exportFolder, sipName);
 		AutoSplittedSIPZipWriter writer = new AutoSplittedSIPZipWriter(appLayerFactory, sipFileNameProvider,
 				sipBytesLimit, new DefaultSIPZipBagInfoFactory(appLayerFactory, locale));

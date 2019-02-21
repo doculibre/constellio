@@ -130,7 +130,7 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 
 		File sipFile = buildSIPWithDocuments("theEmailId");
 		System.out.println(sipFile.getAbsolutePath());
-		unzipInDownloadFolder(sipFile, "testSIP");
+//		unzipInDownloadFolder(sipFile, "testSIP");
 
 		assertThat(sipFile).is(zipFileWithSameContentExceptingFiles(getTestResourceFile("sip2.zip")));
 
@@ -140,8 +140,6 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 	public void whenExportingCollectionThenAll()
 			throws Exception {
 
-		//		getIOLayerFactory().newZipService().zip(getTestResourceFile("sip1.zip"),
-		//				asList(new File("/Users/francisbaril/Downloads/SIPArchivesCreationAcceptanceTest-sip1").listFiles()));
 
 		Transaction tx = new Transaction();
 
@@ -201,6 +199,11 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 						.setTitle("Tablette 2").setParentStorageSpace(records.storageSpaceId_S01)).setDecommissioningType(
 				DEPOSIT);
 
+		tx.add(
+				rm.newStorageSpaceWithId("storageSpaceId_S01_02_01").setCode("storageSpaceId_S01_02_01")
+						.setTitle("Tablette 2").setParentStorageSpace(records.storageSpaceId_S01_01)).setDecommissioningType(
+				DEPOSIT);
+
 		tx.add(rm.newContainerRecordTypeWithId(records.containerTypeId_boite22x22).setTitle("Boite 22X22")
 				.setCode("B22x22"));
 
@@ -219,12 +222,33 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 						.setRealTransferDate(date(2005, 10, 31)))
 				.setDecommissioningType(TRANSFERT_TO_SEMI_ACTIVE).setType(records.containerTypeId_boite22x22);
 
-		tx.add(rm.newContainerRecordWithId(records.containerId_bac11 + "extra").setTemporaryIdentifier("10_A_04_extra")
+		tx.add(rm.newContainerRecordWithId(records.containerId_bac11 + "extra1").setTemporaryIdentifier("10_A_04_extra1")
 						.setFull(false).setStorageSpace(records.storageSpaceId_S01_01).setAdministrativeUnit(records.unitId_10a)
 						.setRealTransferDate(date(2005, 10, 31)))
 				.setDecommissioningType(TRANSFERT_TO_SEMI_ACTIVE).setType(records.containerTypeId_boite22x22);
 
+		tx.add(rm.newContainerRecordWithId(records.containerId_bac11 + "extra2").setTemporaryIdentifier("10_A_04_extra2")
+				.setFull(false).setStorageSpace("storageSpaceId_S01_02_01").setAdministrativeUnit(records.unitId_10a)
+				.setRealTransferDate(date(2005, 10, 31)))
+				.setDecommissioningType(TRANSFERT_TO_SEMI_ACTIVE).setType(records.containerTypeId_boite22x22);
+
 		rm.executeTransaction(tx);
+	}
+
+	@Test
+	public void whenExportingContainersOfCollectionThenValidateZipContent()
+			throws IOException, RecordServicesException {
+		File tempFolder = newTempFolder();
+
+		createContainersAndStorageSpace();
+
+		RMCollectionExportSIPBuilder builder = new RMCollectionExportSIPBuilder(zeCollection, getAppLayerFactory(), tempFolder);
+		builder.exportAllContainersBySpace(new ProgressInfo());
+
+		System.out.println(tempFolder.getAbsolutePath());
+		File tempFolder1 = new File(tempFolder, "containerByBoxes-001.zip");
+
+		assertThat(tempFolder1).is(zipFileWithSameContentExceptingFiles(getTestResourceFile("containerByBoxesSip1.zip")));
 	}
 
 	@Test
@@ -237,7 +261,16 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 		RMCollectionExportSIPBuilder builder = new RMCollectionExportSIPBuilder(zeCollection, getAppLayerFactory(), tempFolder);
 		builder.exportAllContainersBySpace(new ProgressInfo());
 
-		System.out.println("hi");
+		assertThat(tempFolder.list()).containsOnly("info", "containerByBoxes-001.zip");
+
+		assertThat(new File(tempFolder, "info").list())
+				.containsOnly("exportedContainers.txt", "failedContainersExport.txt");
+
+		assertThat(contentOf(new File(tempFolder, "info" + File.separator + "failedContainersExport.txt")))
+				.isEqualTo("");
+
+		assertThat(contentOf(new File(tempFolder, "info" + File.separator + "exportedContainers.txt")))
+				.isEqualTo("bac11, bac11extra1, bac11extra2, bac12, bac13");
 	}
 
 	protected void createAnInvalidFolder666() throws Exception {
@@ -298,7 +331,7 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 		System.out.println(getModelLayerFactory().getDataLayerFactory().getIOServicesFactory().getTempFolder());
 		assertThat(getModelLayerFactory().getDataLayerFactory().getIOServicesFactory().getTempFolder().list()).isNull();
 
-		unzipAllInDownloadFolder(sipFilesFolder, "testSIP");
+		//unzipAllInDownloadFolder(sipFilesFolder, "testSIP");
 
 		//assertThat(sipFile).is(zipFileWithSameContentExceptingFiles(getTestResourceFile("sip2.zip"), "bag-info.txt"));
 
