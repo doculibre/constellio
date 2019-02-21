@@ -51,11 +51,10 @@ public class EventServiceAcceptanceTest extends ConstellioTest {
 	public static final String CUT_OFF_DATE_2 = "10/01/1999 00:00:00";
 
 	public static final String FOLDER_NAME = "eventsBackup";
-	public static final String FILE_NAME_1 = "eventsBackup/" + EventService.EVENTS_ZIP_WITH_EXTENTION;
+	public static final String FILE_NAME_1 = "eventsBackup/2000-01-10.zip";
 
 	public static final String ZIP_TEMP_FILE_1 = "zipTempFile.zip";
 	public static final String TEMP_FILE_1 = "tempFile1";
-	public static final String TEMP_FILE_2 = "tempFile2";
 
 	private LocalDateTime getLocalDateTimeFromString(String dateTimeAsString) {
 		DateTimeFormatter dateTimeFormatter = DateTimeFormat.forPattern(EventService.DATE_TIME_FORMAT);
@@ -118,9 +117,7 @@ public class EventServiceAcceptanceTest extends ConstellioTest {
 		logicalSearchQuery.sortAsc(Schemas.CREATED_ON);
 		SPEQueryResponse allRecord1 = searchServices.query(logicalSearchQuery);
 
-		File backupZipFile = eventService.backupAndRemove();
-
-		ioServices.deleteQuietly(backupZipFile);
+		eventService.backupAndRemove();
 
 		SPEQueryResponse allRecord2 = searchServices.query(logicalSearchQuery);
 
@@ -130,7 +127,6 @@ public class EventServiceAcceptanceTest extends ConstellioTest {
 	@Test
 	public void backupEventInVaultAndRemoveFromSolrThenOk()
 			throws Exception {
-
 		LocalDateTime localDateTime = getLocalDateTimeFromString(DATE_1);
 
 		LocalDateTime event1LocalDateTime = localDateTime;
@@ -160,30 +156,18 @@ public class EventServiceAcceptanceTest extends ConstellioTest {
 		Event event9 = createEvent(eventService.getArchivedUntilLocalDate().plusDays(2));
 		recordServices.add(event9);
 
-		File backup1 = eventService.backupAndRemove();
+		eventService.backupAndRemove();
 
-		String vaultPathToZip1 = EventService.addNumberToContentIdForEventZip(EventService.getContentIdForEventZip(), ".zip", 1);
-		findZipFileAndAssertXml(Arrays.asList(event1, event2, event3),
-				vaultPathToZip1,
-				3, AutoSplitByDayEventsExecutor.getPathFromDateTime(
-				(LocalDateTime) event1.get(Schemas.CREATED_ON)));
-		findZipFileAndAssertXml(Arrays.asList(event4, event5, event6),
-				vaultPathToZip1
-				, 3,
-				AutoSplitByDayEventsExecutor.getPathFromDateTime(
-				(LocalDateTime) event4.get(Schemas.CREATED_ON)));
+		findZipFileAndAssertXml(Arrays.asList(event1, event2, event3), FILE_NAME_1, 3);
+		findZipFileAndAssertXml(Arrays.asList(event4, event5, event6), FOLDER_NAME + "/" + eventService
+				.dateAsFileName(eventService.getDeletetionDateCutOff().minusHours(1)) + ".zip", 3);
 
 		findZipFileAndAssertXml(Arrays.asList(event7),
-				vaultPathToZip1, 1,
-				AutoSplitByDayEventsExecutor.getPathFromDateTime(
-						(LocalDateTime) event7.get(Schemas.CREATED_ON)));
-
-
-		assertThat(findNumberOfFileInZip(backup1)).isEqualTo(3);
-
+				FOLDER_NAME + "/" +
+						eventService.dateAsFileName(eventService.getDeletetionDateCutOff()) + ".zip", 1);
 
 		assertThat(getAppLayerFactory().getModelLayerFactory().getContentManager()
-				.getContentDao().getFolderContents(FOLDER_NAME).size()).isEqualTo(1);
+				.getContentDao().getFolderContents(FOLDER_NAME).size()).isEqualTo(3);
 
 		// Verify solar state.
 		assertThat(searchServices.search(eventService.getEventAfterLastArchivedDayAndBeforeLastDayToArchiveLogicalSearchQuery())
@@ -198,50 +182,22 @@ public class EventServiceAcceptanceTest extends ConstellioTest {
 				.equals(eventService.getDeletetionDateCutOff().toString(EventService.DATE_TIME_FORMAT));
 
 		givenTimeIs(LocalDateTime.now().plusDays(2));
-
-		File backup2 = eventService.backupAndRemove();
-
+		eventService.backupAndRemove();
 
 		findZipFileAndAssertXml(Arrays.asList(event8),
-				EventService.addNumberToContentIdForEventZip(EventService.getContentIdForEventZip(), ".zip", 2), 1,
-				AutoSplitByDayEventsExecutor.getPathFromDateTime(
-						(LocalDateTime) event8.get(Schemas.CREATED_ON)));
+				FOLDER_NAME + "/" +
+						eventService.dateAsFileName(event8.getCreatedOn()) + ".zip", 1);
 
 		assertThat(getAppLayerFactory().getModelLayerFactory().getContentManager()
-				.getContentDao().getFolderContents(FOLDER_NAME).size()).isEqualTo(2);
-
-		ioServices.deleteQuietly(backup2);
-		ioServices.deleteQuietly(backup1);
-
+				.getContentDao().getFolderContents(FOLDER_NAME).size()).isEqualTo(4);
 
 		// Event 7 is not deleted
 		//DELETE HAS BEEN DISABLED FOR THE MOMENT assertThat(searchServices.search(logicalSearchQuery).size()).isEqualTo(2);
 
 	}
 
-	private int findNumberOfFileInZip(File zip)
-			throws ZipServiceException {
-		File tmpFile2 = ioServices.newTemporaryFolder(TEMP_FILE_2);
-		zipService.unzip(zip, tmpFile2);
-		return findNumberOfFile(tmpFile2);
-	}
 
-	private int findNumberOfFile(File rootFile) {
-		int numberOfFile = 0;
-
-		for(File file : rootFile.listFiles()) {
-			if(file.isFile()) {
-				numberOfFile++;
-			} else {
-				numberOfFile += findNumberOfFile(file);
-			}
-		}
-		return numberOfFile;
-
-	}
-
-	private void findZipFileAndAssertXml(List<Event> eventList, String vaultPathToZip, int numberOfEventToBeExpected, String pathToFileInZip)
-			throws ContentDaoException.ContentDaoException_NoSuchContent, IOException, ZipServiceException, XMLStreamException {
+	private void findZipFileAndAssertXml(List<Event> eventList, String vaultPathToZip, int numberOfEventToBeExpected) throws ContentDaoException.ContentDaoException_NoSuchContent, IOException, ZipServiceException, XMLStreamException {
 		InputStream zipInputStream = getAppLayerFactory().getModelLayerFactory().getContentManager()
 				.getContentDao().getContentInputStream(vaultPathToZip, SDK_STREAM);
 
@@ -260,7 +216,7 @@ public class EventServiceAcceptanceTest extends ConstellioTest {
 
 		zipService.unzip(zipTEmpFile1, tmpFile1);
 
-		File zipFilefolder = new File(tmpFile1, pathToFileInZip);
+		File zipFilefolder = tmpFile1.listFiles()[0];
 		InputStream tmpInputStream1 = ioServices.newFileInputStream(zipFilefolder, SDK_STREAM);
 		XMLStreamReader xmlReader = factory.createXMLStreamReader(tmpInputStream1);
 

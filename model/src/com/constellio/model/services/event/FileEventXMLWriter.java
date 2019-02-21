@@ -78,6 +78,11 @@ public class FileEventXMLWriter implements EventXMLWriter {
 		}
 	}
 
+	@Override
+	public File getXMLFile() {
+		return file;
+	}
+
 	private void initializeXmlFile() {
 
 		if(!isFirstWrite) {

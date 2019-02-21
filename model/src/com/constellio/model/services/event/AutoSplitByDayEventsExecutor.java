@@ -65,8 +65,8 @@ public class AutoSplitByDayEventsExecutor {
 
 				if (!isSameDay(currentEvent, oldLocalDateTime)) {
 					closeEventXMLWriter();
-					if(oldLocalDateTime != null) {
-						fireDateProcessedListener(oldLocalDateTime.withTime(0, 0, 0, 0).plusDays(1).minusMillis(1));
+					if(oldLocalDateTime != null && eventXMLWriter != null) {
+						fireDateProcessedListener(oldLocalDateTime, eventXMLWriter.getXMLFile());
 					}
 
 					eventXMLWriter = new FileEventXMLWriter(
@@ -78,12 +78,11 @@ public class AutoSplitByDayEventsExecutor {
 				oldLocalDateTime = localDateTime;
 			}
 		} finally {
+			closeEventXMLWriter();
 			if(currentEvent != null) {
 				LocalDateTime localDateTime = currentEvent.get(Schemas.CREATED_ON);
-				fireDateProcessedListener(localDateTime.withTime(0, 0, 0, 0).plusDays(1).minusMillis(1));
+				fireDateProcessedListener(localDateTime, eventXMLWriter.getXMLFile());
 			}
-
-			closeEventXMLWriter();
 		}
 	}
 
@@ -128,8 +127,8 @@ public class AutoSplitByDayEventsExecutor {
 		dayProcessedListenerList.add(dayProcessedListener);
 	}
 
-	public void fireDateProcessedListener(LocalDateTime localDateTime) {
-		DayProcessedEvent dayProcessedEvent = new DayProcessedEvent(localDateTime);
+	public void fireDateProcessedListener(LocalDateTime localDateTime, File file) {
+		DayProcessedEvent dayProcessedEvent = new DayProcessedEvent(localDateTime, file);
 
 		for(DayProcessedListener dayProcessedListener : dayProcessedListenerList) {
 			dayProcessedListener.lastDateProcessed(dayProcessedEvent);

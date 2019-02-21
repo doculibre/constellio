@@ -17,7 +17,6 @@ import org.joda.time.format.DateTimeFormatter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.Arrays;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromEveryTypesOfEveryCollection;
@@ -82,10 +81,9 @@ public class EventService implements Runnable {
 	 *
 	 * @return a zip file containing the backup created.
 	 */
-	public File backupAndRemove() {
-		File file = backupEventsInVault();
+	public void backupAndRemove() {
+		backupEventsInVault();
 		removeOldEventFromSolr();
-		return file;
 	}
 
 
@@ -104,10 +102,9 @@ public class EventService implements Runnable {
 	public static final String EVENTS_XML_TAG = "Events";
 	public static final String EVENT_XML_TAG = "Event";
 
-	public File backupEventsInVault() {
+	public void backupEventsInVault() {
 		LocalDateTime lastDayTimeArchived = getLastDayTimeArchived();
 		File rootFolder = createNewFolder(ROOT_EVENT_FOLDER);
-		File zipFile = null;
 
 		if (lastDayTimeArchived == null || lastDayTimeArchived.compareTo(getArchivedUntilLocalDate()) < 0) {
 			AutoSplitByDayEventsExecutor autoSplitByDayEventsExecutor = new AutoSplitByDayEventsExecutor(rootFolder,
@@ -115,37 +112,30 @@ public class EventService implements Runnable {
 			autoSplitByDayEventsExecutor.addDateProcessedListener(new DayProcessedListener() {
 				@Override
 				public void lastDateProcessed(DayProcessedEvent dayProcessedEvent) {
-					setLastArchivedDayTime(dayProcessedEvent.getLocalDateTime());
+					setLastArchivedDayTime(dayProcessedEvent.getLocalDateTime().withTime(0, 0, 0, 0).plusDays(1).minusMillis(1));
+
+					String fileName = dateAsFileName(dayProcessedEvent.getLocalDateTime());
+					File zipFile = createNewFile(fileName, ".zip");
+					try {
+						InputStream zipFileInputStream;
+
+						zipService.zip(zipFile, Arrays.asList(dayProcessedEvent.getFile()));
+						zipFileInputStream = ioServices.newFileInputStream(zipFile, IO_STREAM_NAME_CLOSE);
+						modelayerFactory.getContentManager()
+								.getContentDao().add(FOLDER + "/" + fileName + ".zip", zipFileInputStream);
+						ioServices.deleteQuietly(zipFile);
+					} catch (ZipServiceException e) {
+						throw new RuntimeException("ZipService exception", e);
+					} catch (FileNotFoundException e) {
+						throw new RuntimeException("File not found exception", e);
+					}
 				}
 			});
 
 			autoSplitByDayEventsExecutor.writeEvents(getEventAfterLastArchivedDayAndBeforeLastDayToArchiveLogicalSearchQuery());
 
-			zipFile = createNewFile(EVENTS_ZIP, "zip");
-
-			try {
-				ArrayList zipRootDocumentAndFolder = new ArrayList();
-				File[] rootFolderList = rootFolder.listFiles();
-				if(rootFolderList != null && rootFolderList.length > 0) {
-					zipRootDocumentAndFolder.addAll(Arrays.asList(rootFolderList));
-				}
-
-				zipService.zip(zipFile, zipRootDocumentAndFolder);
-
-				InputStream zipFileInputStream = ioServices.newFileInputStream(zipFile, IO_STREAM_NAME_CLOSE);
-				String contentId = getContentIdForEventZip();
-				modelayerFactory.getContentManager()
-						.getContentDao().add(addNumberForSameContentId(contentId, ".zip"), zipFileInputStream);
-			} catch (ZipServiceException e) {
-				throw new RuntimeException("Zip service exception", e);
-			} catch (FileNotFoundException e) {
-				throw new RuntimeException("File not found", e);
-			}
-
 			ioServices.deleteQuietly(rootFolder);
 		}
-
-		return zipFile;
 	}
 
 	public static String getContentIdForEventZip() {
