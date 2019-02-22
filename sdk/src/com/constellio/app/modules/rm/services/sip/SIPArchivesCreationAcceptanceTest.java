@@ -113,8 +113,8 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 	public void givenSIPArchivesOfAnEmailThenAttachementsExtractedInSIP()
 			throws Exception {
 
-//				getIOLayerFactory().newZipService().zip(getTestResourceFile("sip2.zip"),
-//						asList(new File("/Users/francisbaril/Downloads/SIPArchivesCreationAcceptanceTest-sip2").listFiles()));
+		//				getIOLayerFactory().newZipService().zip(getTestResourceFile("sip2.zip"),
+		//						asList(new File("/Users/francisbaril/Downloads/SIPArchivesCreationAcceptanceTest-sip2").listFiles()));
 
 		Transaction tx = new Transaction();
 		tx.add(rm.newFolderWithId("zeFolderId").setOpenDate(new LocalDate(2018, 1, 1))
@@ -271,6 +271,36 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 
 		assertThat(contentOf(new File(tempFolder, "info" + File.separator + "exportedContainers.txt")))
 				.isEqualTo("bac11, bac11extra1, bac11extra2, bac12, bac13");
+	}
+
+
+	@Test
+	public void whenExportingCollectionThenExportTasks()
+			throws Exception {
+
+		//		getIOLayerFactory().newZipService().zip(getTestResourceFile("sip1.zip"),
+		//				asList(new File("/Users/francisbaril/Downloads/SIPArchivesCreationAcceptanceTest-sip1").listFiles()));
+
+		Transaction tx = new Transaction();
+
+		int folderIndex = 0;
+
+		tx.add(rm.newRMTask().setAssigner(users.aliceIn(zeCollection).getId())
+				.setAssignee(users.bobIn(zeCollection).getId()).setTitle("My task to ya")
+				.setAssignedOn(new LocalDate(2012, 12, 12))
+				.setCreatedOn(new LocalDateTime(2011, 11, 11, 11, 11, 1)));
+
+		rm.executeTransaction(tx);
+		//createAnInvalidFolder666();
+
+		File tempFolder = newTempFolder();
+		RMCollectionExportSIPBuilder builder = new RMCollectionExportSIPBuilder(zeCollection, getAppLayerFactory(), tempFolder);
+
+
+		builder.exportAllTasks(new ProgressInfo());
+
+		assertThat(tempFolder.list()).containsOnly("info", "tasks-001.zip");
+
 	}
 
 	protected void createAnInvalidFolder666() throws Exception {

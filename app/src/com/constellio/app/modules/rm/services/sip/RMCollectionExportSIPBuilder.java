@@ -4,6 +4,7 @@ import com.constellio.app.entities.modules.ProgressInfo;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.sip.bagInfo.DefaultSIPZipBagInfoFactory;
 import com.constellio.app.services.sip.mets.MetsDivisionInfo;
@@ -13,6 +14,7 @@ import com.constellio.app.services.sip.zip.AutoSplittedSIPZipWriter.AutoSplitted
 import com.constellio.app.services.sip.zip.DefaultSIPFileNameProvider;
 import com.constellio.app.services.sip.zip.SIPFileNameProvider;
 import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
+import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
@@ -22,6 +24,7 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,6 +32,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -52,6 +56,7 @@ public class RMCollectionExportSIPBuilder {
 	private String collection;
 
 	private RMSchemasRecordsServices rm;
+	private TasksSchemasRecordsServices tasks;
 
 	private Locale locale;
 
@@ -69,6 +74,7 @@ public class RMCollectionExportSIPBuilder {
 		this.appLayerFactory = appLayerFactory;
 		this.recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 		this.rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+		this.tasks = new TasksSchemasRecordsServices(collection, appLayerFactory);
 		this.collection = collection;
 		this.exportFolder = exportFolder;
 		this.searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
@@ -200,55 +206,68 @@ public class RMCollectionExportSIPBuilder {
 			throws IOException {
 
 		progressInfo.setTask("Exporting tasks of collection '" + collection + "'");
-		RecordSIPWriter writer = newRecordSIPWriter("tasks", buildCategoryDivisionInfos(rm), progressInfo);
+		Map<String, MetsDivisionInfo> divisionInfoMap = new HashMap<>();
+		LocalDate localDate = new LocalDate(2000, 1, 1);
+		while (localDate.isBefore(TimeProvider.getLocalDate())) {
+
+			String yearDivId = "_" + localDate.getYear();
+			String monthDivId = "_" + localDate.getYear() + "-" + localDate.getMonthOfYear();
+			String dayDivId = "_" + localDate.getYear() + "-" + localDate.getMonthOfYear() + "-" + localDate.getDayOfMonth();
+
+			MetsDivisionInfo yearDiv = divisionInfoMap.get(yearDivId);
+			if (yearDiv == null) {
+				yearDiv = new MetsDivisionInfo(yearDivId, yearDivId, "year");
+				divisionInfoMap.put(yearDivId, yearDiv);
+			}
+
+			MetsDivisionInfo monthDiv = divisionInfoMap.get(monthDivId);
+			if (monthDiv == null) {
+				monthDiv = new MetsDivisionInfo(monthDivId, yearDivId, monthDivId, "month");
+				divisionInfoMap.put(monthDivId, monthDiv);
+			}
+
+			MetsDivisionInfo dayDiv = divisionInfoMap.get(dayDivId);
+			if (dayDiv == null) {
+				dayDiv = new MetsDivisionInfo(dayDivId, monthDivId, dayDivId, "day");
+				divisionInfoMap.put(dayDivId, dayDiv);
+			}
+
+			localDate = localDate.plusDays(1);
+		}
+
+
+		RecordSIPWriter writer = newRecordSIPWriter("tasks", divisionInfoMap, progressInfo);
 		writer.setIncludeRelatedMaterials(false);
 		writer.setIncludeArchiveDescriptionMetadatasFromODDs(true);
 
 		Set<String> failedExports = new HashSet<>();
-		Set<String> exportedFolders = new HashSet<>();
-		Set<String> exportedDocuments = new HashSet<>();
+		Set<String> exportedTasks = new HashSet<>();
 
 		try {
-			SearchResponseIterator<Record> folderIterator = newRootFoldersIterator();
-			progressInfo.setEnd(countFoldersAndDocuments());
+			SearchResponseIterator<Record> tasksIterator = newTasksIterator();
+			progressInfo.setEnd(tasksIterator.getNumFound());
 			progressInfo.setCurrentState(0);
 
-			while (folderIterator.hasNext()) {
-				Record folder = folderIterator.next();
-				List<Record> records = new ArrayList<>();
-				records.add(folder);
+			while (tasksIterator.hasNext()) {
+				Record task = tasksIterator.next();
 				try {
-					SearchResponseIterator<Record> subFoldersIterator = newChildrenIterator(folder);
-
-					while (subFoldersIterator.hasNext()) {
-						records.add(subFoldersIterator.next());
-					}
-
-					writer.add(records);
-					for (Record record : records) {
-						if (Folder.SCHEMA_TYPE.equals(record.getTypeCode())) {
-							exportedFolders.add(record.getId());
-						}
-						if (Document.SCHEMA_TYPE.equals(record.getTypeCode())) {
-							exportedDocuments.add(record.getId());
-						}
-					}
+					writer.add(task);
+					exportedTasks.add(task.getId());
 
 				} catch (Throwable t) {
 					t.printStackTrace();
-					failedExports.addAll(new RecordUtils().toIdList(records));
+					failedExports.add(task.getId());
 				}
 
-				progressInfo.setCurrentState(progressInfo.getCurrentState() + records.size());
+				progressInfo.setCurrentState(progressInfo.getCurrentState() + 1);
 			}
 
 		} finally {
 			writer.close();
 		}
 
-		writeListInFile(failedExports, new File(exportFolder, "info" + File.separator + "failedFolderExport.txt"));
-		writeListInFile(exportedFolders, new File(exportFolder, "info" + File.separator + "exportedFolders.txt"));
-		writeListInFile(exportedDocuments, new File(exportFolder, "info" + File.separator + "exportedDocuments.txt"));
+		writeListInFile(failedExports, new File(exportFolder, "info" + File.separator + "failedTasksExport.txt"));
+		writeListInFile(exportedTasks, new File(exportFolder, "info" + File.separator + "exportedTasks.txt"));
 
 	}
 
@@ -288,6 +307,13 @@ public class RMCollectionExportSIPBuilder {
 		RecordSIPWriter recordSIPWriter = new RecordSIPWriter(appLayerFactory, writer, zipPathProvider, locale);
 		recordSIPWriter.setIncludeContentFiles(includeContents);
 		return recordSIPWriter;
+	}
+
+	private SearchResponseIterator<Record> newTasksIterator() {
+		LogicalSearchQuery query = new LogicalSearchQuery(from(rm.userTask.schemaType())
+				.where(tasks.userTask.isModel()).isFalseOrNull());
+		query.sortAsc(rm.folder.categoryCode()).sortAsc(Schemas.IDENTIFIER);
+		return searchServices.recordsIterator(query, 1000);
 	}
 
 	private SearchResponseIterator<Record> newRootFoldersIterator() {
