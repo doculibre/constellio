@@ -7,10 +7,12 @@ import java.io.File;
 public class DayProcessedEvent {
 	private LocalDateTime localDateTime;
 	private File file;
+	private String pathToFile;
 
-	public DayProcessedEvent(LocalDateTime localDateTime, File file) {
+	public DayProcessedEvent(LocalDateTime localDateTime, File file, String pathToFile) {
 		this.localDateTime = localDateTime;
 		this.file = file;
+		this.pathToFile = pathToFile;
 	}
 
 	public File getFile() {
@@ -19,5 +21,9 @@ public class DayProcessedEvent {
 
 	public LocalDateTime getLocalDateTime() {
 		return localDateTime;
+	}
+
+	public String getPathToFile() {
+		return pathToFile;
 	}
 }

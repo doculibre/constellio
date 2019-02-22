@@ -18,9 +18,11 @@ import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.services.zip.ZipServiceException;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.contents.ContentImpl;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
+import com.constellio.model.services.event.EventTestUtil;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestUtils;
@@ -50,11 +52,13 @@ import static org.assertj.core.api.Assertions.contentOf;
 
 public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 
-	RMTestRecords records = new RMTestRecords(zeCollection);
-	Users users = new Users();
-	RMSchemasRecordsServices rm;
-	IOServices ioServices;
-	RMSelectedFoldersAndDocumentsSIPBuilder constellioSIP;
+	public static final String DATE_1 = "10/01/2000 12:00:00";
+	private RMTestRecords records = new RMTestRecords(zeCollection);
+	private Users users = new Users();
+	private RMSchemasRecordsServices rm;
+	private IOServices ioServices;
+	private RMSelectedFoldersAndDocumentsSIPBuilder constellioSIP;
+	private RMSchemasRecordsServices rmSchemasRecordsServices;
 
 	@Before
 	public void setUp() throws Exception {
@@ -76,6 +80,7 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 		rm.executeTransaction(tx);
 		ioServices = getModelLayerFactory().getIOServicesFactory().newIOServices();
 		constellioSIP = new RMSelectedFoldersAndDocumentsSIPBuilder(zeCollection, getAppLayerFactory());
+		rmSchemasRecordsServices = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 	}
 
 	@Test
@@ -182,6 +187,62 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 		assertThat(contentOf(new File(tempFolder, "info" + File.separator + "exportedDocuments.txt")))
 				.doesNotContain("folder12,").contains("folder12_document1,");
 
+	}
+
+	public void createEvents()
+			throws RecordServicesException {
+		LocalDateTime localDateTime = EventTestUtil.getLocalDateTimeFromString(DATE_1);
+
+		Transaction tx = new Transaction();
+
+		LocalDateTime event1LocalDateTime = localDateTime;
+		Event event1 = createEvent(event1LocalDateTime.minusSeconds(6));
+		Event event2 = createEvent(event1LocalDateTime.minusSeconds(5));
+		Event event3 = createEvent(event1LocalDateTime.minusSeconds(4));
+		tx.add(event1);
+		tx.add(event2);
+		tx.add(event3);
+
+		Event event4 = createEvent(event1LocalDateTime.plusDays(1));
+		Event event5 = createEvent(event1LocalDateTime.plusDays(2));
+		Event event6 = createEvent(event1LocalDateTime.plusMonths(3));
+		tx.add(event4);
+		tx.add(event5);
+		tx.add(event6);
+
+		Event event7 = createEvent(event1LocalDateTime.plusMonths(4));
+		tx.add(event7);
+
+		Event event8 = createEvent(event1LocalDateTime.plusMonths(5));
+		tx.add(event8);
+
+		Event event9 = createEvent(event1LocalDateTime.plusYears(2));
+		tx.add(event9);
+
+		rm.executeTransaction(tx);
+	}
+
+	private Event createEvent(LocalDateTime localDateTime) {
+		Event event = rmSchemasRecordsServices.newEvent();
+		event.setTitle("Event1").setCreatedOn(localDateTime).setCreatedBy(users.adminIn(zeCollection).getId());
+		event.setType("Type1");
+
+		return event;
+	}
+
+	@Test
+	public void givenEventsWriteThemInSipArchiveThenValidateIntegrity()
+			throws Exception {
+		createEvents();
+
+		File tempFolder = newTempFolder();
+
+		RMCollectionExportSIPBuilder builder = new RMCollectionExportSIPBuilder(zeCollection, getAppLayerFactory(), tempFolder);
+		builder.exportAllEvents(new ProgressInfo());
+
+		File tempFolder1 = new File(tempFolder, "events-001.zip");
+
+		assertThat(tempFolder1).is(zipFileWithSameContentExceptingFiles(getTestResourceFile("events-001.zip")));
 	}
 
 	@Test

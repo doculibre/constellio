@@ -13,11 +13,16 @@ import com.constellio.app.services.sip.zip.AutoSplittedSIPZipWriter;
 import com.constellio.app.services.sip.zip.AutoSplittedSIPZipWriter.AutoSplittedSIPZipWriterListener;
 import com.constellio.app.services.sip.zip.DefaultSIPFileNameProvider;
 import com.constellio.app.services.sip.zip.SIPFileNameProvider;
+import com.constellio.app.services.sip.zip.SIPZipWriter;
 import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
+import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.event.AutoSplitByDayEventsExecutor;
+import com.constellio.model.services.event.DayProcessedEvent;
+import com.constellio.model.services.event.DayProcessedListener;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.search.SearchServices;
@@ -69,6 +74,7 @@ public class RMCollectionExportSIPBuilder {
 	private long sipBytesLimit = 2 * ONE_GB;
 
 	private boolean includeContents;
+	private IOServices ioServices;
 
 	public RMCollectionExportSIPBuilder(String collection, AppLayerFactory appLayerFactory, File exportFolder) {
 		this.appLayerFactory = appLayerFactory;
@@ -80,12 +86,40 @@ public class RMCollectionExportSIPBuilder {
 		this.searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
 		this.locale = appLayerFactory.getModelLayerFactory().getCollectionsListManager().getCollectionInfo(collection)
 				.getMainSystemLocale();
+		this.ioServices = appLayerFactory.getModelLayerFactory().getIOServicesFactory().newIOServices();
 
 	}
 
 	public RMCollectionExportSIPBuilder setIncludeContents(boolean includeContents) {
 		this.includeContents = includeContents;
 		return this;
+	}
+
+	public void exportAllEvents(ProgressInfo progressInfo) {
+
+		final SIPZipWriter sipZipWriter = newSIPZipWriter("events", new HashMap<String, MetsDivisionInfo>(), progressInfo);
+
+		File rootFolder = ioServices.newTemporaryFolder("rootFolder");
+		try {
+			AutoSplitByDayEventsExecutor autoSplitByDayEventsExecutor = new AutoSplitByDayEventsExecutor(rootFolder,
+					appLayerFactory.getModelLayerFactory());
+			autoSplitByDayEventsExecutor.addDateProcessedListener(new DayProcessedListener() {
+
+				@Override
+				public void lastDateProcessed(DayProcessedEvent dayProcessedEvent) {
+					try {
+						sipZipWriter.addToZip(dayProcessedEvent.getFile(), dayProcessedEvent.getPathToFile());
+					} catch (IOException e) {
+						throw new RuntimeException("Error while adding file to zip", e);
+					}
+				}
+			});
+
+			autoSplitByDayEventsExecutor.wrtieAllEvents();
+		} finally {
+			sipZipWriter.close();
+			ioServices.deleteQuietly(rootFolder);
+		}
 	}
 
 	public void exportAllContainersBySpace(ProgressInfo progressInfo)
@@ -206,34 +240,7 @@ public class RMCollectionExportSIPBuilder {
 			throws IOException {
 
 		progressInfo.setTask("Exporting tasks of collection '" + collection + "'");
-		Map<String, MetsDivisionInfo> divisionInfoMap = new HashMap<>();
-		LocalDate localDate = new LocalDate(2000, 1, 1);
-		while (localDate.isBefore(TimeProvider.getLocalDate())) {
-
-			String yearDivId = "_" + localDate.getYear();
-			String monthDivId = "_" + localDate.getYear() + "-" + localDate.getMonthOfYear();
-			String dayDivId = "_" + localDate.getYear() + "-" + localDate.getMonthOfYear() + "-" + localDate.getDayOfMonth();
-
-			MetsDivisionInfo yearDiv = divisionInfoMap.get(yearDivId);
-			if (yearDiv == null) {
-				yearDiv = new MetsDivisionInfo(yearDivId, yearDivId, "year");
-				divisionInfoMap.put(yearDivId, yearDiv);
-			}
-
-			MetsDivisionInfo monthDiv = divisionInfoMap.get(monthDivId);
-			if (monthDiv == null) {
-				monthDiv = new MetsDivisionInfo(monthDivId, yearDivId, monthDivId, "month");
-				divisionInfoMap.put(monthDivId, monthDiv);
-			}
-
-			MetsDivisionInfo dayDiv = divisionInfoMap.get(dayDivId);
-			if (dayDiv == null) {
-				dayDiv = new MetsDivisionInfo(dayDivId, monthDivId, dayDivId, "day");
-				divisionInfoMap.put(dayDivId, dayDiv);
-			}
-
-			localDate = localDate.plusDays(1);
-		}
+		Map<String, MetsDivisionInfo> divisionInfoMap = getDateMetsDivisionInfoMap();
 
 
 		RecordSIPWriter writer = newRecordSIPWriter("tasks", divisionInfoMap, progressInfo);
@@ -271,6 +278,37 @@ public class RMCollectionExportSIPBuilder {
 
 	}
 
+	public static Map<String, MetsDivisionInfo> getDateMetsDivisionInfoMap() {
+		Map<String, MetsDivisionInfo> divisionInfoMap = new HashMap<>();
+		LocalDate localDate = new LocalDate(2000, 1, 1);
+		while (localDate.isBefore(TimeProvider.getLocalDate())) {
+
+			String yearDivId = "_" + localDate.getYear();
+			String monthDivId = "_" + localDate.getYear() + "-" + localDate.getMonthOfYear();
+			String dayDivId = "_" + localDate.getYear() + "-" + localDate.getMonthOfYear() + "-" + localDate.getDayOfMonth();
+
+			MetsDivisionInfo yearDiv = divisionInfoMap.get(yearDivId);
+			if (yearDiv == null) {
+				yearDiv = new MetsDivisionInfo(yearDivId, yearDivId, "year");
+				divisionInfoMap.put(yearDivId, yearDiv);
+			}
+
+			MetsDivisionInfo monthDiv = divisionInfoMap.get(monthDivId);
+			if (monthDiv == null) {
+				monthDiv = new MetsDivisionInfo(monthDivId, yearDivId, monthDivId, "month");
+				divisionInfoMap.put(monthDivId, monthDiv);
+			}
+
+			MetsDivisionInfo dayDiv = divisionInfoMap.get(dayDivId);
+			if (dayDiv == null) {
+				dayDiv = new MetsDivisionInfo(dayDivId, monthDivId, dayDivId, "day");
+				divisionInfoMap.put(dayDivId, dayDiv);
+			}
+
+			localDate = localDate.plusDays(1);
+		}
+		return divisionInfoMap;
+	}
 
 	private long countFoldersAndDocuments() {
 		return searchServices.getResultsCount(from(rm.folder.schemaType(), rm.document.schemaType()).returnAll());
@@ -287,6 +325,15 @@ public class RMCollectionExportSIPBuilder {
 
 	private RecordSIPWriter newRecordSIPWriter(String sipName, Map<String, MetsDivisionInfo> divisionInfoMap,
 											   final ProgressInfo progressInfo) {
+		SIPZipWriter writer = newSIPZipWriter(sipName, divisionInfoMap, progressInfo);
+		RMZipPathProvider zipPathProvider = new RMZipPathProvider(rm);
+		RecordSIPWriter recordSIPWriter = new RecordSIPWriter(appLayerFactory, writer, zipPathProvider, locale);
+		recordSIPWriter.setIncludeContentFiles(includeContents);
+		return recordSIPWriter;
+	}
+
+	private SIPZipWriter newSIPZipWriter(String sipName, Map<String, MetsDivisionInfo> divisionInfoMap,
+			final ProgressInfo progressInfo) {
 		SIPFileNameProvider sipFileNameProvider = new DefaultSIPFileNameProvider(exportFolder, sipName);
 		AutoSplittedSIPZipWriter writer = new AutoSplittedSIPZipWriter(appLayerFactory, sipFileNameProvider,
 				sipBytesLimit, new DefaultSIPZipBagInfoFactory(appLayerFactory, locale));
@@ -303,10 +350,7 @@ public class RMCollectionExportSIPBuilder {
 		});
 		//progressInfo.setProgressMessage("Writing sip file '" + sipFileNameProvider.newSIPFile(1).getName() + "'");
 		writer.addDivisionsInfoMap(divisionInfoMap);
-		RMZipPathProvider zipPathProvider = new RMZipPathProvider(rm);
-		RecordSIPWriter recordSIPWriter = new RecordSIPWriter(appLayerFactory, writer, zipPathProvider, locale);
-		recordSIPWriter.setIncludeContentFiles(includeContents);
-		return recordSIPWriter;
+		return writer;
 	}
 
 	private SearchResponseIterator<Record> newTasksIterator() {

@@ -5,11 +5,12 @@ import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
+import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.services.sip.record.RecordPathProvider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Authorization;
+import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.schemas.Schemas;
 import org.joda.time.LocalDateTime;
 
@@ -28,7 +29,7 @@ class RMZipPathProvider implements RecordPathProvider {
 		String pathIdentifier = record.getId();
 		boolean addSchemaTypeInPath = true;
 
-		if (Task.SCHEMA_TYPE.equals(record.getTypeCode())) {
+		if (Task.SCHEMA_TYPE.equals(record.getTypeCode()) || Event.SCHEMA_TYPE.equals(record.getTypeCode())) {
 			LocalDateTime createdOn = record.get(Schemas.CREATED_ON);
 			int year = createdOn == null ? 1900 : createdOn.getYear();
 			int month = createdOn == null ? 1 : createdOn.getMonthOfYear();

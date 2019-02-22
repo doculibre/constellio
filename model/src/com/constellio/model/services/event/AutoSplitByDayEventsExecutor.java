@@ -104,10 +104,9 @@ public class AutoSplitByDayEventsExecutor {
 	public static String getPathFromDateTime(LocalDateTime localDateTime) {
 		StringBuilder stringBuilder = new StringBuilder();
 
-		stringBuilder.append("data" + File.separator);
-		stringBuilder.append(localDateTime.getYear() + File.separator);
-		stringBuilder.append(localDateTime.getMonthOfYear() + File.separator);
-		stringBuilder.append(localDateTime.getYear() + "-" + localDateTime.getMonthOfYear() + "-" + localDateTime
+		stringBuilder.append("_" + localDateTime.getYear() + "/");
+		stringBuilder.append("_" + localDateTime.getYear()+ "-" + localDateTime.getMonthOfYear() + "/");
+		stringBuilder.append("_" + localDateTime.getYear() + "-" + localDateTime.getMonthOfYear() + "-" + localDateTime
 				.getDayOfMonth() + ".xml");
 
 		return stringBuilder.toString();
@@ -128,7 +127,7 @@ public class AutoSplitByDayEventsExecutor {
 	}
 
 	public void fireDateProcessedListener(LocalDateTime localDateTime, File file) {
-		DayProcessedEvent dayProcessedEvent = new DayProcessedEvent(localDateTime, file);
+		DayProcessedEvent dayProcessedEvent = new DayProcessedEvent(localDateTime, file, getPathFromDateTime(localDateTime));
 
 		for(DayProcessedListener dayProcessedListener : dayProcessedListenerList) {
 			dayProcessedListener.lastDateProcessed(dayProcessedEvent);
