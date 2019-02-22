@@ -14,7 +14,6 @@ public class ThesaurusManagerAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenMultipleInstancesWhenSavingAThesaurusThenUpdatedOnAllInstances()
 			throws Exception {
-
 		prepareSystem(withZeCollection());
 
 		linkEventBus(getModelLayerFactory(), getModelLayerFactory("other-instance"));
@@ -28,4 +27,20 @@ public class ThesaurusManagerAcceptanceTest extends ConstellioTest {
 		assertThat(otherInstanceThesaurusManager.get(zeCollection).getAllConcepts()).hasSize(9849);
 
 	}
+
+	@Test
+	public void givenSameThesaurusUsedInTwoCollectionsThenThesaurusServiceIsSameObject() throws Exception {
+		givenCollection("constellio");
+
+		prepareSystem(withZeCollection());
+
+		ThesaurusManager thesaurusManager = getModelLayerFactory().getThesaurusManager();
+
+		thesaurusManager.set(getTestResourceInputStream(SearchWebServiceAcceptTest.class, SKOS_XML_FILE_PATH), zeCollection);
+		thesaurusManager.set(getTestResourceInputStream(SearchWebServiceAcceptTest.class, SKOS_XML_FILE_PATH), "constellio");
+
+		assertThat(thesaurusManager.get(zeCollection)).isSameAs(thesaurusManager.get("constellio"));
+	}
+
+
 }

@@ -61,7 +61,6 @@ public class ThesaurusService implements Serializable {
 	private Date dcDate;
 	private Locale dcLanguage;
 
-	private SearchEventServices searchEventServices;
 	private Set<String> deniedTerms;
 	private Set<SkosConcept> topConcepts;
 	private Map<String, SkosConcept> allConcepts;
@@ -70,10 +69,6 @@ public class ThesaurusService implements Serializable {
 		deniedTerms = new HashSet<>();
 		topConcepts = new HashSet<>();
 		allConcepts = new ConcurrentHashMap<>();
-	}
-
-	public void setSearchEventServices(SearchEventServices searchEventServices) {
-		this.searchEventServices = searchEventServices;
 	}
 
 	public void setDeniedTerms(List<String> deniedTerms) {
@@ -575,7 +570,8 @@ public class ThesaurusService implements Serializable {
 	}
 
 	public List<String> suggestSimpleSearch(String input, Locale locale, int minInputLength, int maxResults,
-											boolean useMostPopularQueriesAutocomplete) {
+											boolean useMostPopularQueriesAutocomplete,
+											SearchEventServices searchEventServices) {
 
 		// ordered Set to prioritize results found first (since last results are often found as last resort)
 		List<String> suggestions = new ArrayList<>();

@@ -267,19 +267,21 @@ public class ListCollectionUserViewImpl extends BaseViewImpl implements ListColl
 				};
 			}
 		});
-		container.addButton(new ContainerButton() {
-			@Override
-			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
-				return new AuthorizationsButton(true) {
-					@Override
-					protected void buttonClick(ClickEvent event) {
-						Integer index = (Integer) itemId;
-						RecordVO entity = dataProvider.getRecordVO(index);
-						presenter.accessAuthorizationsButtonClicked(entity);
-					}
-				};
-			}
-		});
+		if (presenter.isRMModuleEnabled()) {
+			container.addButton(new ContainerButton() {
+				@Override
+				protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
+					return new AuthorizationsButton(true) {
+						@Override
+						protected void buttonClick(ClickEvent event) {
+							Integer index = (Integer) itemId;
+							RecordVO entity = dataProvider.getRecordVO(index);
+							presenter.accessAuthorizationsButtonClicked(entity);
+						}
+					};
+				}
+			});
+		}
 		container.addButton(new ContainerButton() {
 			@Override
 			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
@@ -326,19 +328,21 @@ public class ListCollectionUserViewImpl extends BaseViewImpl implements ListColl
 				return displayButton;
 			}
 		});
-		container.addButton(new ContainerButton() {
-			@Override
-			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
-				return new AuthorizationsButton(true) {
-					@Override
-					protected void buttonClick(ClickEvent event) {
-						Integer index = (Integer) itemId;
-						GlobalGroupVO entity = dataProvider.getGlobalGroupVO(index);
-						presenter.accessAuthorizationsGlobalGroupButtonClicked(entity);
-					}
-				};
-			}
-		});
+		if (presenter.isRMModuleEnabled()) {
+			container.addButton(new ContainerButton() {
+				@Override
+				protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
+					return new AuthorizationsButton(true) {
+						@Override
+						protected void buttonClick(ClickEvent event) {
+							Integer index = (Integer) itemId;
+							GlobalGroupVO entity = dataProvider.getGlobalGroupVO(index);
+							presenter.accessAuthorizationsGlobalGroupButtonClicked(entity);
+						}
+					};
+				}
+			});
+		}
 		container.addButton(new ContainerButton() {
 			@Override
 			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
