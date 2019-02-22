@@ -59,6 +59,10 @@ public class ConnectorCrawler {
 		this.recordServices = es.getModelLayerFactory().newRecordServices();
 	}
 
+	public List<CrawledConnector> getCrawledConnectors() {
+		return crawledConnectors;
+	}
+
 	public Connector createConnectorFor(ConnectorInstance instance) {
 
 		Connector connector = es.getConnectorManager().instanciate(instance);
@@ -159,6 +163,9 @@ public class ConnectorCrawler {
 
 		} catch (MetadataSchemasManagerRuntimeException_NoSuchCollection e) {
 			// Ignore
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+			
 		} finally {
 			eventObserver.cleanup();
 		}
@@ -250,6 +257,12 @@ public class ConnectorCrawler {
 
 	public void shutdown() {
 		eventObserver.close();
+
+		for (CrawledConnector crawledConnector : crawledConnectors) {
+			crawledConnector.connector.stop();
+		}
+
+		this.crawledConnectors.clear();
 	}
 
 	public synchronized ConnectorCrawler stopCrawlingConnector(ConnectorInstance instance) {
@@ -351,6 +364,7 @@ public class ConnectorCrawler {
 			//			}
 		}
 	}
+
 
 	public ConnectorCrawler withoutSleeps() {
 		timeWaitedWhenNoJobs = 0;

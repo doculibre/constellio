@@ -16,6 +16,8 @@ import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.dao.dto.records.TransactionDTO;
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
+import com.constellio.data.dao.services.leaderElection.LeaderElectionManager;
+import com.constellio.data.dao.services.leaderElection.LeaderElectionManagerObserver;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.threads.BackgroundThreadConfiguration;
 import com.constellio.data.threads.BackgroundThreadExceptionHandling;
@@ -33,6 +35,8 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.joda.time.Duration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -42,6 +46,8 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
 
 public class ConnectorManager implements StatefulService {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(ConnectorManager.class);
 
 	public static final String ID = "connectorManager";
 
@@ -66,6 +72,17 @@ public class ConnectorManager implements StatefulService {
 		this.metadataSchemasManager = es.getModelLayerFactory().getMetadataSchemasManager();
 		this.es = es;
 		this.connectorInstanciator = es;
+		this.es.getModelLayerFactory().getDataLayerFactory().getLeaderElectionService().register(new LeaderElectionManagerObserver() {
+			@Override
+			public void onLeaderStatusChanged(boolean newStatus) {
+				if (!newStatus && crawler != null) {
+					String instanceName = ConnectorManager.this.es.getModelLayerFactory().getInstanceName();
+					LOGGER.info("Shutdowning crawler on instance '" + instanceName + "'");
+					crawler.shutdown();
+					crawler = null;
+				}
+			}
+		});
 	}
 
 	public void setCrawler(ConnectorCrawler crawler) {
@@ -94,7 +111,9 @@ public class ConnectorManager implements StatefulService {
 					getCrawler().crawlUntil(new Factory<Boolean>() {
 						@Override
 						public Boolean get() {
-							return paused;
+							LeaderElectionManager leaderElectionManager =
+									es.getModelLayerFactory().getDataLayerFactory().getLeaderElectionService();
+							return paused || !leaderElectionManager.isCurrentNodeLeader();
 						}
 					});
 				}

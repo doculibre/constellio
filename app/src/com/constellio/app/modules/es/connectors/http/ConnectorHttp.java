@@ -135,16 +135,18 @@ public class ConnectorHttp extends Connector {
 
 	@Override
 	public void stop() {
-
+		LOGGER.info("Stopping connector on instance '" + es.getModelLayerFactory().getInstanceName() + "'");
 	}
 
 	@Override
 	public void afterJobs(List<ConnectorJob> jobs) {
+		LOGGER.info("Saving context on instance '" + es.getModelLayerFactory().getInstanceName() + "'");
 		contextServices.save(context);
 	}
 
 	public void resume() {
 
+		LOGGER.info("Resuming connector on instance '" + es.getModelLayerFactory().getInstanceName() + "'");
 		try {
 			context = contextServices.loadContext(connectorId);
 

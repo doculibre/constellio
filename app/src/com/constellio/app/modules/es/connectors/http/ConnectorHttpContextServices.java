@@ -35,10 +35,6 @@ public class ConnectorHttpContextServices {
 	}
 
 	public void save(ConnectorHttpContext context) {
-		save(context, false);
-	}
-
-	private void save(ConnectorHttpContext context, boolean add) {
 
 		if (dirtyContexts.contains(context.connectorId)) {
 			dirtyContexts.remove(context.connectorId);
@@ -89,7 +85,7 @@ public class ConnectorHttpContextServices {
 
 		ConnectorHttpContext connectorHttpContext = new ConnectorHttpContext(connectorId);
 		ConnectorHttpContextServices.dirtyContexts.add(connectorId);
-		save(connectorHttpContext, true);
+		save(connectorHttpContext);
 		return connectorHttpContext;
 	}
 
