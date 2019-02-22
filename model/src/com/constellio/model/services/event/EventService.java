@@ -138,37 +138,6 @@ public class EventService implements Runnable {
 		}
 	}
 
-	public static String getContentIdForEventZip() {
-		return FOLDER + "/" + EVENTS_ZIP + "-" + dateAsFileName(LocalDateTime.now());
-	}
-
-	public static String addNumberToContentIdForEventZip(String begining, String extention, int number) {
-		if(number <= 1) {
-			return begining + extention;
-		}
-		return begining + "-" + number + extention;
-	}
-
-	public String addNumberForSameContentId(String contentId, String extention) {
-		int number = 1;
-		File fileFromVault;
-		String uniqueContentId = contentId + extention;
-		boolean exists;
-		do
-		{
-			 fileFromVault = modelayerFactory.getContentManager()
-					 .getContentDao().getFileOf(uniqueContentId);
-
-			exists = fileFromVault.exists();
-			if(exists) {
-				uniqueContentId = addNumberToContentIdForEventZip(contentId, extention, ++number);
-			}
-		}
-		while(exists);
-
-		return uniqueContentId;
-	}
-
 	public static String dateAsFileName(LocalDateTime localDateTime) {
 
 		if (localDateTime == null) {
