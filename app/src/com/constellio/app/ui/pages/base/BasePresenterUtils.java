@@ -80,6 +80,10 @@ public class BasePresenterUtils implements Serializable {
 		return types().getSchema(code);
 	}
 
+	public final boolean hasSchema(String code) {
+		return types().hasSchema(code);
+	}
+
 	public final User getCurrentUser() {
 		if (currentUser == null) {
 			currentUser = presenterService().getCurrentUser(sessionContext);

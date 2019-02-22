@@ -314,6 +314,8 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 			}
 			super.setCaption(caption);
 			super.setWindowCaption(caption);
+			super.setVisible(presenter.isRMModuleActive());
+			super.setEnabled(presenter.isRMModuleActive());
 		}
 
 		protected void buildAccessField() {
@@ -342,7 +344,7 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 			userRoles.setId("userRoles");
 		}
 
-		protected void buildNegativeAuthorizationField(){
+		protected void buildNegativeAuthorizationField() {
 			negative = new ComboBox();
 			negative.setCaption($("AuthorizationsView.negativeAuthotization"));
 			negative.setEnabled(presenter.hasManageSecurityPermission());
