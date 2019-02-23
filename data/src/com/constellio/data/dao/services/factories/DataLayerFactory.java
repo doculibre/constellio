@@ -463,4 +463,8 @@ public class DataLayerFactory extends LayerFactoryImpl {
 	public CuratorFramework getCuratorFramework() {
 		return ZooKeeperConfigManager.getInstance(dataLayerConfiguration.getSettingsZookeeperAddress());
 	}
+
+	public boolean isDistributed() {
+		return !(leaderElectionManager.getNestedLeaderElectionManager() instanceof StandaloneLeaderElectionManager);
+	}
 }

@@ -104,10 +104,23 @@ public class ConnectorManager implements StatefulService {
 		BackgroundThreadsManager backgroundThreadsManager = es.getModelLayerFactory().getDataLayerFactory()
 				.getBackgroundThreadsManager();
 
+
 		Runnable crawlAction = new Runnable() {
+
+
 			@Override
 			public void run() {
 				if (!paused) {
+					if (es.getModelLayerFactory().getDataLayerFactory().isDistributed()) {
+						//The server may have received the leader status during the previous leader is struggling to execute connector jobs.
+						//We wait some time to reduce the risk of creating duplicate records
+						try {
+							Thread.sleep(120_000);
+						} catch (InterruptedException e) {
+							throw new RuntimeException(e);
+						}
+
+					}
 					getCrawler().crawlUntil(new Factory<Boolean>() {
 						@Override
 						public Boolean get() {
@@ -117,6 +130,7 @@ public class ConnectorManager implements StatefulService {
 						}
 					});
 				}
+
 			}
 		};
 

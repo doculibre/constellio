@@ -146,6 +146,12 @@ public class ConnectorHttp extends Connector {
 
 	public void resume() {
 
+		//		if (es.getModelLayerFactory().getDataLayerFactory().isDistributed()) {
+		//			LOGGER.warn("Loading context of connector " + connectorId + " from solr...");
+		//			loadFromSolr();
+		//
+		//		} else {
+
 		LOGGER.info("Resuming connector on instance '" + es.getModelLayerFactory().getInstanceName() + "'");
 		try {
 			context = contextServices.loadContext(connectorId);
@@ -153,19 +159,24 @@ public class ConnectorHttp extends Connector {
 		} catch (Exception e) {
 			LOGGER.warn("Context of connector " + connectorId + " does not existe, recreating it...");
 
-			context = contextServices.createContext(connectorId);
-
-			Iterator<Record> iterator = es.getModelLayerFactory().newSearchServices().recordsIterator(
-					from(es.connectorHttpDocument.schemaType()).where(es.connectorHttpDocument.connector()).isEqualTo(connectorId), 5000);
-
-			while (iterator.hasNext()) {
-				ConnectorHttpDocument connectorHttpDocument = es.wrapConnectorHttpDocument(iterator.next());
-				context.addDocumentDigest(connectorHttpDocument.getDigest(), connectorHttpDocument.getURL());
-			}
-
-			contextServices.save(context);
+			loadFromSolr();
 
 		}
+		//		}
+	}
+
+	protected void loadFromSolr() {
+		context = contextServices.createContext(connectorId);
+
+		Iterator<Record> iterator = es.getModelLayerFactory().newSearchServices().recordsIterator(
+				from(es.connectorHttpDocument.schemaType()).where(es.connectorHttpDocument.connector()).isEqualTo(connectorId), 5000);
+
+		while (iterator.hasNext()) {
+			ConnectorHttpDocument connectorHttpDocument = es.wrapConnectorHttpDocument(iterator.next());
+			context.addDocumentDigest(connectorHttpDocument.getDigest(), connectorHttpDocument.getURL());
+		}
+
+		contextServices.save(context);
 	}
 
 	@Override
