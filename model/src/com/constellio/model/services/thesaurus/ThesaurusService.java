@@ -50,7 +50,7 @@ public class ThesaurusService implements Serializable {
 	private static final int EXACT_PREF_RESULTS_NUMBER_FOR_NARROWING = 1;
 	private static final int SUFFICIENT_RESULTS_NUMBER = 2;
 	private static final int MAX_AUTOCOMPLETE_RESULTS = 5;
-	public static final String DESAMBIUGATIONS = "disambiguations";
+	public static final String DISAMBIGUATIONS = "disambiguations";
 	public static final String SUGGESTIONS = "suggestions";
 	public static final String DOMAINE_LABEL = "DOMAINE";
 
@@ -205,7 +205,7 @@ public class ThesaurusService implements Serializable {
 				for (ThesaurusLabel thesaurusLabel : thesaurusLabels) {
 
 					String parsedLabelValue = thesaurusLabel.getParsedForSearchValue(locale);
-					if (parsedLabelValue.contains(inputParsedForSearch)) {
+					if (parsedLabelValue != null && parsedLabelValue.contains(inputParsedForSearch)) {
 						skosConcepts.add(skosConcept);
 					}
 				}
@@ -225,10 +225,12 @@ public class ThesaurusService implements Serializable {
 				SkosConcept skosConcept = skosConceptEntry.getValue();
 				Set<String> labelValues = skosConcept.getAltLabelsParsedForSearch(locale);
 
-				// for each label of given lang
-				for (String labelValue : labelValues) {
-					if (labelValue.contains(inputParsedForSearch)) {
-						skosConcepts.add(skosConcept);
+				if (labelValues != null) {
+					// for each label of given lang
+					for (String labelValue : labelValues) {
+						if (labelValue.contains(inputParsedForSearch)) {
+							skosConcepts.add(skosConcept);
+						}
 					}
 				}
 			}
@@ -249,10 +251,12 @@ public class ThesaurusService implements Serializable {
 				SkosConcept skosConcept = skosConceptEntry.getValue();
 				Set<String> labelValues = skosConcept.getAltLabelsParsedForSearch(locale);
 
-				// for each label of given lang
-				for (String labelValue : labelValues) {
-					if (LangUtils.isEqual(inputParsedForSearch, labelValue)) {
-						skosConcepts.add(skosConcept);
+				if (labelValues != null) {
+					// for each label of given lang
+					for (String labelValue : labelValues) {
+						if (LangUtils.isEqual(inputParsedForSearch, labelValue)) {
+							skosConcepts.add(skosConcept);
+						}
 					}
 				}
 			}
