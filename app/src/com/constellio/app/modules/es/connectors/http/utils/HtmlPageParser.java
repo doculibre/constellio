@@ -134,28 +134,8 @@ public class HtmlPageParser {
 
 		String description = parsedContent.getDescription();
 		if (StringUtils.isEmpty(description)) {
-			List<HtmlElement> h1 = ListUtils.emptyIfNull(page.getDocumentElement().getHtmlElementsByTagName("h1"));
-			if (!h1.isEmpty()) {
-				List<HtmlElement> scripts = ListUtils.emptyIfNull(page.getDocumentElement().getHtmlElementsByTagName("script"));
-
-				DomElement h1Element = h1.get(0);
-				StringBuilder builder = new StringBuilder();
-				for (DomElement nextElement = h1Element; nextElement != null; nextElement = nextElement.getNextElementSibling()) {
-					String textContent = getTextContent(nextElement);
-					if (StringUtils.isNotBlank(textContent)) {
-						for (HtmlElement script : scripts) {
-							textContent = StringUtils.remove(textContent, getTextContent(script));
-						}
-
-						builder.append(textContent);
-						if (builder.length() > 200) {
-							break;
-						}
-					}
-				}
-
-				parsedContent.setDescription(StringUtils.left(builder.toString(), 200));
-			}
+			String textAfterH1 = textAfterH1(page);
+			parsedContent.setDescription(StringUtils.left(textAfterH1, 200));
 		}
 
 		String language = parsedContent.getLanguage();
@@ -183,34 +163,38 @@ public class HtmlPageParser {
 				parsedContent.getMimetypeWithoutCharset(), language, parsedContent.getDescription());
 	}
 
-	public String getTextContent(DomNode node) {
-		switch (node.getNodeType()) {
-			case DomNode.ELEMENT_NODE:
-			case DomNode.ATTRIBUTE_NODE:
-			case DomNode.ENTITY_NODE:
-			case DomNode.ENTITY_REFERENCE_NODE:
-			case DomNode.DOCUMENT_FRAGMENT_NODE:
-				final StringBuilder builder = new StringBuilder();
-				for (final DomNode child : node.getChildren()) {
-					final short childType = child.getNodeType();
-					if (childType != DomNode.COMMENT_NODE && childType != DomNode.PROCESSING_INSTRUCTION_NODE) {
-						if (builder.length() > 0) {
-							builder.append(" ");
-						}
-						builder.append(getTextContent(child));
+	private String textAfterH1(HtmlPage page) {
+		StringBuilder builder = new StringBuilder();
+		DomNode h1Node = page.getBody().querySelector("h1");
+		if (h1Node != null) {
+			DomNodeList domNodes = page.getBody().querySelectorAll("*");
+			ListIterator<DomNode> nodesIt = domNodes.listIterator();
+			boolean afterH1 = false;
+			while (nodesIt.hasNext()) {
+				DomNode node = nodesIt.next();
+				if (afterH1) {
+					String textContent = getShallowTextContent(node);
+					builder.append(textContent);
+					if (builder.length() > 200) {
+						break;
 					}
+				} else if (node.getNodeType() == DomNode.ELEMENT_NODE && StringUtils.equalsIgnoreCase("h1", ((DomElement) node).getTagName())) {
+					afterH1 = true;
 				}
-				return builder.toString();
-
-			case DomNode.TEXT_NODE:
-			case DomNode.CDATA_SECTION_NODE:
-			case DomNode.COMMENT_NODE:
-			case DomNode.PROCESSING_INSTRUCTION_NODE:
-				return node.getNodeValue();
-
-			default:
-				return null;
+			}
 		}
+		return builder.toString();
+	}
+
+	private String getShallowTextContent(DomNode node) {
+		StringBuilder builder = new StringBuilder();
+		for (final DomNode child : node.getChildren()) {
+			final short childType = child.getNodeType();
+			if (childType ==  DomNode.TEXT_NODE) {
+				builder.append(child.getNodeValue());
+			}
+		}
+		return builder.toString();
 	}
 
 	private byte[] getContent(HtmlPage page)
