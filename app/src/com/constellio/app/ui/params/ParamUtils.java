@@ -30,12 +30,10 @@ public class ParamUtils {
 		return getParamsMap(path);
 	}
 
-	public static boolean isIdParamPresentInPath(String path) {
-		return path.contains("%3Bid%3D");
-	}
-
 	public static String getParams(String path) {
-		if (path != null && path.startsWith("!")) {
+		if(path == null) {
+			return null;
+		} else if (path.startsWith("!")) {
 			path = path.substring(1);
 		}
 		path = urlDecode(path);
