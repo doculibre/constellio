@@ -114,12 +114,14 @@ public class FileSIPZipWriter implements SIPZipWriter {
 			addBagInfoFile();
 			addMetsFile();
 			addManifestFiles();
+			addBagItFile();
 
 		} finally {
 			IOUtils.closeQuietly(zipOutputStream);
 		}
 
 	}
+
 
 	private void addBagInfoFile() {
 
@@ -176,6 +178,23 @@ public class FileSIPZipWriter implements SIPZipWriter {
 		} finally {
 			IOUtils.closeQuietly(tagManifestWriter);
 		}
+	}
+
+
+	private void addBagItFile() {
+		String bagItFilename = "/bagit.txt";
+		BufferedWriter bagItWriter = newZipFileWriter(bagItFilename);
+		try {
+			bagItWriter.append("BagIt-Version: 0.97").append("\n");
+			bagItWriter.append("Tag-File-Character-Encoding: UTF-8").append("\n");
+
+		} catch (IOException e) {
+			throw new SIPZipWriterRuntimeException_ErrorAddingToSIP(bagItFilename, e);
+
+		} finally {
+			IOUtils.closeQuietly(bagItWriter);
+		}
+
 	}
 
 	public OutputStream newZipFileOutputStream(final String path) {
