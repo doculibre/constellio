@@ -69,7 +69,7 @@ public class RecordCommentsEditorPresenter implements Serializable {
 
 	public boolean isAddEditButtonEnabled() {
 		User currentUser = presenterUtils.getCurrentUser();
-		return authorizationsServices.canWrite(currentUser, record);
+		return currentUser.hasWriteAccess().on(record);
 	}
 
 	public void commentsChanged(List<Comment> newComments) {
@@ -79,13 +79,8 @@ public class RecordCommentsEditorPresenter implements Serializable {
 			Record record = presenterUtils.getRecord(recordId);
 			List<Comment> existingComments = record.get(metadata);
 			if (!newComments.equals(existingComments)) {
-				User user = presenterUtils.getCurrentUser();
-				ConstellioFactories constellioFactories = editor.getConstellioFactories();
-				ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
-				AuthorizationsServices authorizationsServices = modelLayerFactory.newAuthorizationsServices();
-
 				record.set(metadata, newComments);
-				if (authorizationsServices.canWrite(user, record)) {
+				if (presenterUtils.getCurrentUser().hasWriteAccess().on(record)) {
 					presenterUtils.addOrUpdate(record);
 				}
 			}
