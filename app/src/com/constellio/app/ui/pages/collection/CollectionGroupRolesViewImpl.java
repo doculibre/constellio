@@ -24,10 +24,12 @@ import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.Field;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.OptionGroup;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.ColumnGenerator;
+import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import org.vaadin.dialogs.ConfirmDialog;
@@ -47,7 +49,7 @@ public class CollectionGroupRolesViewImpl extends BaseViewImpl implements Collec
 	private final CollectionGroupRolesPresenter presenter;
 	private RecordVO group;
 	@PropertyId("roles") private OptionGroup availableRolesField;
-	@PropertyId("target") private LookupRecordField targetField;
+	@PropertyId("target") private Field targetField;
 
 	private Table inheritedRolesTable;
 	private Table specificRolesTable;
@@ -154,8 +156,13 @@ public class CollectionGroupRolesViewImpl extends BaseViewImpl implements Collec
 			protected Component buildWindowContent() {
 				VerticalLayout mainLayout = new VerticalLayout();
 
-				targetField = new LookupRecordField(presenter.getPrincipalTaxonomySchemaCode());
-				targetField.setCaption($("CollectionGroupRolesView.targetField"));
+				if (presenter.isRMModuleEnabled()) {
+					targetField = new LookupRecordField(presenter.getPrincipalTaxonomySchemaCode());
+					targetField.setCaption($("CollectionGroupRolesView.targetField"));
+				} else {
+					targetField = new TextField();
+					targetField.setVisible(false);
+				}
 
 				final Label warningLabel = new Label("<p style=\"color:red\">" + $("CollectionUserRolesView.onCollectionWarning") + "</p>", ContentMode.HTML);
 				warningLabel.setReadOnly(true);
@@ -163,7 +170,7 @@ public class CollectionGroupRolesViewImpl extends BaseViewImpl implements Collec
 				targetField.addValueChangeListener(new Property.ValueChangeListener() {
 					@Override
 					public void valueChange(Property.ValueChangeEvent event) {
-						warningLabel.setVisible(event.getProperty().getValue() == null);
+						warningLabel.setVisible(presenter.isRMModuleEnabled() && event.getProperty().getValue() == null);
 					}
 				});
 
