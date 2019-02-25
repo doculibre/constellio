@@ -26,6 +26,10 @@ public class RecordCommentsEditorPresenter implements Serializable {
 
 	private SchemaPresenterUtils presenterUtils;
 
+	private AuthorizationsServices authorizationsServices;
+
+	private Record record;
+
 	public RecordCommentsEditorPresenter(RecordCommentsEditor editor) {
 		this.editor = editor;
 	}
@@ -48,9 +52,9 @@ public class RecordCommentsEditorPresenter implements Serializable {
 		ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
 		RecordServices recordServices = modelLayerFactory.newRecordServices();
 
-		AuthorizationsServices authorizationsServices = modelLayerFactory.newAuthorizationsServices();
+		authorizationsServices = modelLayerFactory.newAuthorizationsServices();
 
-		Record record = recordServices.getDocumentById(recordId);
+		record = recordServices.getDocumentById(recordId);
 		String schemaCode = record.getSchemaCode();
 
 		presenterUtils = new SchemaPresenterUtils(schemaCode, constellioFactories, sessionContext);
@@ -60,11 +64,12 @@ public class RecordCommentsEditorPresenter implements Serializable {
 		List<Comment> comments = record.get(metadata);
 		editor.setComments(comments);
 		editor.setCaption(caption);
+	}
 
+
+	public boolean isAddEditButtonEnabled() {
 		User currentUser = presenterUtils.getCurrentUser();
-		if (!authorizationsServices.canWrite(currentUser, record)) {
-			editor.setVisible(false);
-		}
+		return authorizationsServices.canWrite(currentUser, record);
 	}
 
 	public void commentsChanged(List<Comment> newComments) {
