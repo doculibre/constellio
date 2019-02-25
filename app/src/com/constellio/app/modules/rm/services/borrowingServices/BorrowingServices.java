@@ -367,10 +367,15 @@ public class BorrowingServices {
 	public void validateCanReturnFolder(User currentUser, Folder folder) {
 		boolean hasPermissionToReturnOtherUsersFolder = currentUser.has(RMPermissionsTo.RETURN_OTHER_USERS_FOLDERS)
 				.on(folder);
+		boolean hasPermissionToReturnOwnFolderDirectly = currentUser.has(RMPermissionsTo.BORROW_FOLDER).on(folder)
+														&& currentUser.has(RMPermissionsTo.BORROWING_FOLDER_DIRECTLY).on(folder);
 		if (currentUser.hasReadAccess().on(folder)) {
 			if (folder.getBorrowed() == null || !folder.getBorrowed()) {
 				throw new BorrowingServicesRunTimeException_FolderIsNotBorrowed(folder.getId());
 			} else if (!hasPermissionToReturnOtherUsersFolder && !currentUser.getId()
+					.equals(folder.getBorrowUserEntered())) {
+				throw new BorrowingServicesRunTimeException_UserNotAllowedToReturnFolder(currentUser.getUsername());
+			} else if (!hasPermissionToReturnOwnFolderDirectly && currentUser.getId()
 					.equals(folder.getBorrowUserEntered())) {
 				throw new BorrowingServicesRunTimeException_UserNotAllowedToReturnFolder(currentUser.getUsername());
 			}
