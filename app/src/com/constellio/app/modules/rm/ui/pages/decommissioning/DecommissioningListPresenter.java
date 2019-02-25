@@ -1050,6 +1050,11 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 	}
 
 	public List<String> getUsersWithReadPermissionOnAdministrativeUnit() {
-		return modelLayerFactory.newAuthorizationsServices().getUsersIdsWithRoleForRecord(Role.READ, getRecord(decommissioningList().getAdministrativeUnit()));
+		Record administrativeUnit = getRecord(decommissioningList().getAdministrativeUnit());
+		if(administrativeUnit != null) {
+			return modelLayerFactory.newAuthorizationsServices().getUsersIdsWithRoleForRecord(Role.READ, administrativeUnit);
+		} else {
+			return modelLayerFactory.newAuthorizationsServices().getUsersIdsWithGlobalReadRightInCollection(collection);
+		}
 	}
 }

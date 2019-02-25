@@ -42,6 +42,7 @@ import com.constellio.model.services.security.AuthorizationsServicesRuntimeExcep
 import com.constellio.model.services.security.roles.Roles;
 import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -111,6 +112,18 @@ public class AuthorizationsServices {
 
 	public List<User> getUsersWithGlobalPermissionInCollection(String permission, String collection) {
 		return getUsersWithGlobalPermissionInCollectionExcludingRoles(permission, collection, new ArrayList<String>());
+	}
+
+	public List<String> getUsersIdsWithGlobalReadRightInCollection(String collection) {
+		List<User> allUsersInCollection = modelLayerFactory.newUserServices().getAllUsersInCollection(collection);
+		List<String> returnedUsers = new ArrayList<>();
+
+		for(User currentUser: allUsersInCollection) {
+			if (StringUtils.isNotBlank(currentUser.getEmail()) && currentUser.getStatus() == UserCredentialStatus.ACTIVE && currentUser.hasCollectionReadAccess()) {
+				returnedUsers.add(currentUser.getId());
+			}
+		}
+		return returnedUsers;
 	}
 
 	public List<User> getUsersWithGlobalPermissionInCollectionExcludingRoles(String permission, String collection,
