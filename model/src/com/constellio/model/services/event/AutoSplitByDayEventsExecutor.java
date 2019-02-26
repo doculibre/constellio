@@ -104,6 +104,7 @@ public class AutoSplitByDayEventsExecutor {
 	public static String getPathFromDateTime(LocalDateTime localDateTime) {
 		StringBuilder stringBuilder = new StringBuilder();
 
+		stringBuilder.append("data" + "/");
 		stringBuilder.append("_" + localDateTime.getYear() + "/");
 		stringBuilder.append("_" + localDateTime.getYear()+ "-" + localDateTime.getMonthOfYear() + "/");
 		stringBuilder.append("_" + localDateTime.getYear() + "-" + localDateTime.getMonthOfYear() + "-" + localDateTime

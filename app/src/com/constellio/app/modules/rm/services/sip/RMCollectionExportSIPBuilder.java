@@ -140,12 +140,42 @@ public class RMCollectionExportSIPBuilder {
 			while(storageSpaceIterator.hasNext()) {
 				storageSpaceProcessing(progressInfo, writer, failedExports, exportedContainers, storageSpaceIterator.next());
 			}
+
+			storageSpaceProcessOrphan(progressInfo, writer, failedExports, exportedContainers);
+
+
 		} finally {
 			writer.close();
 		}
 
 		writeListInFile(failedExports, new File(exportFolder, "info" + File.separator + "failedContainersExport.txt"));
 		writeListInFile(exportedContainers, new File(exportFolder, "info" + File.separator + "exportedContainers.txt"));
+	}
+
+	private void storageSpaceProcessOrphan(ProgressInfo progressInfo, RecordSIPWriter writer, Set<String> failedExports,
+			Set<String> exportedContainers) {
+		SearchResponseIterator<Record> searchResponseContainerIterator = newOrphanContainerIterator();
+		List<Record> records = new ArrayList<>();
+
+		try {
+			while(searchResponseContainerIterator.hasNext()) {
+				Record containerFound = searchResponseContainerIterator.next();
+
+				records.add(containerFound);
+			}
+
+			for (Record record : records) {
+				exportedContainers.add(record.getId());
+			}
+
+			writer.add(records);
+		} catch (Throwable t) {
+			t.printStackTrace();
+			failedExports.addAll(new RecordUtils().toIdList(records));
+		}
+
+
+		progressInfo.setCurrentState(progressInfo.getCurrentState() + records.size());
 	}
 
 	private void storageSpaceProcessing(ProgressInfo progressInfo, RecordSIPWriter writer, Set<String> failedExports,
@@ -387,6 +417,11 @@ public class RMCollectionExportSIPBuilder {
 	private SearchResponseIterator<Record> newStorageSpaceChildrenIterator(Record storageSpaceChildren) {
 		return searchServices.recordsIterator(new LogicalSearchQuery(
 				from(rm.storageSpace.schema()).where(rm.storageSpace.parentStorageSpace()).isEqualTo(storageSpaceChildren.getId())));
+	}
+
+	private SearchResponseIterator<Record> newOrphanContainerIterator() {
+		return searchServices.recordsIterator(new LogicalSearchQuery(
+				from(rm.containerRecord.schema()).where(rm.containerRecord.storageSpace()).isNull()));
 	}
 
 	private long countContainers() {
