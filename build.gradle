@@ -91,6 +91,7 @@ subprojects {
     }
 
     configurations {
+        compile.exclude group: 'org.apache.cxf', module:'cxf-rt-rs-client'
     }
 
     jar {

@@ -1,18 +1,15 @@
 # === WEB DRIVERS CONFIGURATION ===
 # if both are specified, phantomjs is used, unless you call newFirefoxWebDriver() in the test
 #firefoxBinary=detect
-firefoxBinary=/opt/firefox/firefox
+#firefoxBinary=
 #phantomJSBinary=
 port=7070
-
-
 # === DATASTORE CONFIGURATION ===
 # *** WARNING : collections will be deleted ***3
-dao.records.type=cloud
-dao.records.cloud.zkHost=192.168.1.99:2181
+dao.records.type=http
+dao.records.http.url=http://localhost:8983/solr/
 dao.contents.type=filesystem
 dao.settings.type=filesystem
-
 # === RUN/SKIP TESTS CONFIGURATION ===
 skip.slowtests=false
 skip.uitests=true
@@ -21,8 +18,7 @@ skip.loadtests=true
 skip.internettests=true
 skip.indevelopment=true
 skip.importtests=true
-skip.testsWithGradle=false
-
+skip.testsWithGradle=true
 tests.whitelist=
 tests.blacklist=com.constellio.model.conf.ldap.LDAPConfigurationManagerAcceptanceTest,\
 com.constellio.app.services.migrations.ComboMigrationsAcceptanceTest,\
@@ -41,4 +37,5 @@ com.constellio.workflows.model.authorizations.AuthorizationsWorkflowAcceptanceTe
 com.constellio.app.modules.ai.services.AIDocumentServicesAcceptanceTest,\
 com.constellio.app.modules.ai.ui.components.userDocument.DeclareRMRecordPresenterAcceptanceTest,\
 com.constellio.app.modules.sct.services.document.SCTMigrationAcceptanceTest,\
-com.constellio.model.services.contents.BulkUploaderAcceptTest
+com.constellio.model.services.contents.BulkUploaderAcceptTest,\
+com.constellio.model.services.batch.controller.BatchProcessControllerWithTaxonomiesAcceptanceTest

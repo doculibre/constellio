@@ -77,7 +77,10 @@ public class DateUtilsTest {
 
 	private String getTimezoneValue(DateTime dateTime) {
 		Instant instant = dateTime.toInstant();
-		return DateTimeZone.getDefault().getName(instant.getMillis()).replace(":", "");
+		int offsetInMillis = DateTimeZone.getDefault().getOffset(instant);
+		String offset = String.format("%02d:%02d", Math.abs(offsetInMillis / 3600000), Math.abs((offsetInMillis / 60000) % 60));
+		offset = (offsetInMillis >= 0 ? "+" : "-") + offset;
+		return offset.replace(":", "");
 	}
 
 }
