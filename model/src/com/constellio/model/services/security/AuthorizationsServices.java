@@ -114,6 +114,19 @@ public class AuthorizationsServices {
 		return getUsersWithGlobalPermissionInCollectionExcludingRoles(permission, collection, new ArrayList<String>());
 	}
 
+	public List<User> getUsersWithGlobalAccessInCollection(String collection) {
+		List<User> allUsersInCollection = modelLayerFactory.newUserServices().getAllUsersInCollection(collection);
+		List<User> returnedUsers = new ArrayList<>();
+
+		for(User currentUser: allUsersInCollection) {
+			if (StringUtils.isNotBlank(currentUser.getEmail()) && currentUser.getStatus() == UserCredentialStatus.ACTIVE &&
+				(currentUser.hasCollectionReadAccess() || currentUser.hasCollectionWriteAccess() || currentUser.hasCollectionDeleteAccess())) {
+				returnedUsers.add(currentUser);
+			}
+		}
+		return returnedUsers;
+	}
+
 	public List<String> getUsersIdsWithGlobalReadRightInCollection(String collection) {
 		List<User> allUsersInCollection = modelLayerFactory.newUserServices().getAllUsersInCollection(collection);
 		List<String> returnedUsers = new ArrayList<>();

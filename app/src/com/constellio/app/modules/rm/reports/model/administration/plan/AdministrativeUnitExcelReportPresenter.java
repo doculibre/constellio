@@ -18,6 +18,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.security.AuthorizationsServices;
@@ -147,6 +148,7 @@ public class AdministrativeUnitExcelReportPresenter extends BaseExcelReportPrese
 			}
 		}
 	}
+
 	private void getCategoriesForRecord(Record record, List<AdministrativeUnit> administrativeUnits) {
 
 		searchOptions = new TaxonomiesSearchOptions().setReturnedMetadatasFilter(ReturnedMetadatasFilter.all())
@@ -201,6 +203,22 @@ public class AdministrativeUnitExcelReportPresenter extends BaseExcelReportPrese
 						groupList.add(record.getTitle());
 					}
 				}
+			}
+		}
+
+		List<User> usersWithGlobalAccessInCollection = authorizationsServices.getUsersWithGlobalAccessInCollection(collection);
+		for(User currentUser: usersWithGlobalAccessInCollection) {
+			List<String> accessList = new ArrayList<>();
+			if(currentUser.hasCollectionReadAccess()) {
+				accessList.add(Role.READ);
+			} else if(currentUser.hasCollectionWriteAccess()) {
+				accessList.add(Role.WRITE);
+			} else if(currentUser.hasCollectionDeleteAccess()) {
+				accessList.add(Role.DELETE);
+			}
+
+			if(!accessList.isEmpty()) {
+				updateAcces(currentUser.getTitle(), userAccessHashMap, accessList);
 			}
 		}
 
