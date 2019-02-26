@@ -17,6 +17,7 @@ import com.constellio.app.services.sip.zip.SIPZipWriter;
 import com.constellio.data.dao.services.idGenerator.InMemorySequentialGenerator;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.services.zip.ZipServiceException;
+import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.frameworks.validation.ValidationErrors;
@@ -319,16 +320,20 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 
 		rm.executeTransaction(tx);
 
+		File tempFolder = getModelLayerFactory().getDataLayerFactory().getIOServicesFactory().getTempFolder();
+
+		List<String> tempFilesBeforeSIPCreation = LangUtils.listFilenames(tempFolder);
+
 		File sipFilesFolder = buildSIPWithDocumentsWith10MegabytesLimit(ids);
-		System.out.println(sipFilesFolder.getAbsolutePath());
 
-		System.out.println(getModelLayerFactory().getDataLayerFactory().getIOServicesFactory().getTempFolder());
-		assertThat(getModelLayerFactory().getDataLayerFactory().getIOServicesFactory().getTempFolder().list()).isNull();
+		List<String> tempFilesAfterSIPCreation = new ArrayList<>(LangUtils.listFilenames(tempFolder));
+		tempFilesAfterSIPCreation.removeAll(tempFilesBeforeSIPCreation);
+		assertThat(tempFilesAfterSIPCreation).isEmpty();
 
-
-		unzipAllInDownloadFolder(sipFilesFolder, "testSIP");
-
-		//assertThat(sipFile).is(zipFileWithSameContentExceptingFiles(getTestResourceFile("sip2.zip"), "bag-info.txt"));
+		assertThat(sipFilesFolder.list()).containsOnly("test-001.zip", "test-002.zip", "test-003.zip", "test-004.zip",
+				"test-005.zip", "test-006.zip", "test-007.zip", "test-008.zip", "test-009.zip", "test-010.zip",
+				"test-011.zip", "test-012.zip", "test-013.zip", "test-014.zip", "test-015.zip", "test-016.zip",
+				"test-017.zip");
 
 	}
 
