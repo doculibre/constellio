@@ -3,6 +3,7 @@ package com.constellio.app.services.sip.ead;
 import com.constellio.app.services.sip.ead.RecordEADWriterRuntimeException.RecordEADWriterRuntimeException_ErrorCreatingFile;
 import com.constellio.app.services.sip.xsd.XMLDocumentValidator;
 import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
@@ -39,6 +40,7 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -98,23 +100,45 @@ public class RecordEADWriter {
 
 	}
 
-	public void addHeader(String recordId, String recordTitle) {
+	public void addHeader(CollectionInfo collectionInfo, String collectionName, String schemaCode,
+						  String recordSchemaTypeLabel, String recordSchemaLabel) {
 		Element eadheaderElement = new Element("eadheader", eadNamespace);
 
 		Element eadidElement = new Element("eadid", eadNamespace);
-		eadidElement.setAttribute("identifier", "Identifiant externe");
-		eadidElement.setText(recordId);
+		eadidElement.setAttribute("identifier", collectionInfo.getCode() + "_" + schemaCode);
+		eadidElement.setText(collectionInfo.getCode() + ", " + schemaCode);
 
 		Element filedescElement = new Element("filedesc", eadNamespace);
 		Element titlestmtElement = new Element("titlestmt", eadNamespace);
 		Element titleproperElement = new Element("titleproper", eadNamespace);
-		titleproperElement.setText(recordTitle);
+		titleproperElement.setText(collectionName + ", " + recordSchemaTypeLabel);
+		titlestmtElement.addContent(titleproperElement);
+
+		if (!recordSchemaLabel.equals(recordSchemaTypeLabel)) {
+			Element subtitleElement = new Element("subtitle", eadNamespace);
+			subtitleElement.setText(recordSchemaLabel);
+			titlestmtElement.addContent(subtitleElement);
+		}
 
 		eadElement.addContent(eadheaderElement);
 		eadheaderElement.addContent(eadidElement);
 		eadheaderElement.addContent(filedescElement);
 		filedescElement.addContent(titlestmtElement);
-		titlestmtElement.addContent(titleproperElement);
+
+
+		Element profiledescElement = new Element("profiledesc", eadNamespace);
+		Element langusageElement = new Element("langusage", eadNamespace);
+
+		for (Locale locale : collectionInfo.getCollectionLocales()) {
+			Element languageElement = new Element("language", eadNamespace);
+			languageElement.setAttribute("langcode", locale.getISO3Language());
+			languageElement.setText(locale.getDisplayName(locale));
+			langusageElement.addContent(languageElement);
+		}
+
+		profiledescElement.addContent(langusageElement);
+		eadheaderElement.addContent(profiledescElement);
+
 	}
 
 

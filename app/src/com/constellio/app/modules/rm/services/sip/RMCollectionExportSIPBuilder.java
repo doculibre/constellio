@@ -254,7 +254,7 @@ public class RMCollectionExportSIPBuilder {
 	private SearchResponseIterator<Record> newTasksIterator() {
 		LogicalSearchQuery query = new LogicalSearchQuery(from(rm.userTask.schemaType())
 				.where(tasks.userTask.isModel()).isFalseOrNull());
-		query.sortAsc(rm.folder.categoryCode()).sortAsc(Schemas.IDENTIFIER);
+		query.sortAsc(Schemas.IDENTIFIER);
 		return searchServices.recordsIteratorKeepingOrder(query, 1000);
 	}
 

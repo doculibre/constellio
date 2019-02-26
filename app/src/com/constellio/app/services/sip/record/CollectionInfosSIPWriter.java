@@ -18,6 +18,7 @@ import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.Facet;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.Report;
@@ -25,6 +26,8 @@ import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.security.global.GlobalGroup;
+import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -95,23 +98,51 @@ public class CollectionInfosSIPWriter {
 
 	public void exportCollectionConfigs() throws IOException {
 
-		exportRecordsInSchemaTypesDivision(User.SCHEMA_TYPE);
-		exportRecordsInSchemaTypesDivision(Group.SCHEMA_TYPE);
-		exportRecordsInSchemaTypesDivision(Printable.SCHEMA_TYPE);
-		exportRecordsInSchemaTypesDivision(Report.SCHEMA_TYPE);
-		exportRecordsInSchemaTypesDivision(SavedSearch.SCHEMA_TYPE);
-		exportRecordsInSchemaTypesDivision(Facet.SCHEMA_TYPE);
+		if (Collection.SYSTEM_COLLECTION.equals(collection)) {
+			exportRecordsInSchemaTypesDivision(UserCredential.SCHEMA_TYPE);
+			exportRecordsInSchemaTypesDivision(GlobalGroup.SCHEMA_TYPE);
+			exportSystemSettings();
 
-		exportValueLists();
-		exportTaxonomies();
-		for (SIPExtension extension : extensions.sipExtensions) {
-			extension.exportCollectionInfosSIP(new ExportCollectionInfosSIPParams(this, recordSIPWriter, writer));
+		} else {
+
+			exportRecordsInSchemaTypesDivision(User.SCHEMA_TYPE);
+			exportRecordsInSchemaTypesDivision(Group.SCHEMA_TYPE);
+			exportRecordsInSchemaTypesDivision(Printable.SCHEMA_TYPE);
+			exportRecordsInSchemaTypesDivision(Report.SCHEMA_TYPE);
+			exportRecordsInSchemaTypesDivision(SavedSearch.SCHEMA_TYPE);
+			exportRecordsInSchemaTypesDivision(Facet.SCHEMA_TYPE);
+
+			exportValueLists();
+			exportTaxonomies();
+			for (SIPExtension extension : extensions.sipExtensions) {
+				extension.exportCollectionInfosSIP(new ExportCollectionInfosSIPParams(this, recordSIPWriter, writer));
+			}
+
+			exportCollectionSettings();
 		}
-
-		exportSettings();
 	}
 
-	protected void exportSettings() throws IOException {
+
+	protected void exportSystemSettings() throws IOException {
+		SettingsExportServices settingsExportServices = new SettingsExportServices(appLayerFactory);
+		SettingsExportOptions options = new SettingsExportOptions();
+		options.setExportingConfigs(true);
+		try {
+			ImportedSettings settings = settingsExportServices.exportSettings(collection, options);
+			Document document = new SettingsXMLFileWriter().writeSettings(settings);
+
+			writeJDomDocument(document, "/data/collectionSettings/settings.xml");
+
+		} catch (ValidationException e) {
+			throw new RuntimeException(e);
+		}
+
+		exportConfig("/data/collectionSettings/schemasDisplay.xml", SCHEMAS_DISPLAY_CONFIG);
+		exportConfig("/data/collectionSettings/roles.xml", ROLES_CONFIG);
+		exportConfig("/data/collectionSettings/searchBoosts.xml", SEARCH_BOOST_CONFIG);
+	}
+
+	protected void exportCollectionSettings() throws IOException {
 		SettingsExportServices settingsExportServices = new SettingsExportServices(appLayerFactory);
 		SettingsExportOptions options = new SettingsExportOptions();
 		options.setExportingConfigs(true);

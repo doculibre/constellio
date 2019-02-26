@@ -5,12 +5,15 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.services.collections.CollectionsManager;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.sip.record.RecordSIPWriter.RecordInsertionContext;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.app.ui.pages.search.criteria.CriterionFactory;
 import com.constellio.app.ui.pages.search.criteria.FacetSelections;
 import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.model.entities.CollectionInfo;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
@@ -37,6 +40,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -59,6 +63,8 @@ public class RecordEADBuilder {
 
 	private MetadataSchemasManager metadataSchemasManager;
 
+	private CollectionsManager collectionsManager;
+
 	private RecordServices recordServices;
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(RecordEADBuilder.class);
@@ -71,11 +77,15 @@ public class RecordEADBuilder {
 
 	private boolean includeArchiveDescriptionMetadatasFromODDs = true;
 
-	public RecordEADBuilder(AppLayerFactory appLayerFactory, ValidationErrors errors) {
+	private Locale locale;
+
+	public RecordEADBuilder(AppLayerFactory appLayerFactory, Locale locale, ValidationErrors errors) {
 		this.errors = errors;
+		this.locale = locale;
 		this.appLayerFactory = appLayerFactory;
 		this.metadataSchemasManager = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager();
 		this.recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
+		this.collectionsManager = appLayerFactory.getCollectionsManager();
 	}
 
 	public boolean isIncludeRelatedMaterials() {
@@ -341,7 +351,11 @@ public class RecordEADBuilder {
 		EADArchiveDescription archdesc = buildArchiveDescription(record, schema);
 
 		this.eadXmlWriter = new RecordEADWriter();
-		eadXmlWriter.addHeader(record.getId(), record.getTitle());
+		CollectionInfo collectionInfo = collectionsManager.getCollectionInfo(record.getCollection());
+		String collectionName = collectionsManager.getCollection(record.getCollection()).getName();
+		String schemaTypeLabel = metadataSchemasManager.getSchemaTypeOf(record).getLabel(Language.withLocale(locale));
+		String schemaLabel = schema.getLabel(Language.withLocale(locale));
+		eadXmlWriter.addHeader(collectionInfo, collectionName, record.getSchemaCode(), schemaTypeLabel, schemaLabel);
 		eadXmlWriter.addArchdesc(archdesc, record.getId(), record.getTitle());
 
 		for (Metadata metadata : types.getSchema(record.getSchemaCode()).getMetadatas()) {

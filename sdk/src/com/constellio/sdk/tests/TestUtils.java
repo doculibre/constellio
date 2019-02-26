@@ -36,6 +36,7 @@ import com.constellio.sdk.tests.setups.SchemaShortcuts;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.common.SolrInputDocument;
 import org.assertj.core.api.Condition;
@@ -494,6 +495,37 @@ public class TestUtils {
 
 	public static Condition<? super File> zipFileWithSameContentThan(final File expectedZipFile) {
 		return zipFileWithSameContentExceptingFiles(expectedZipFile);
+	}
+
+	public static ListAssert<String> assertFilesInZip(File file) {
+
+		File tempFolder = null;
+		try {
+
+			tempFolder = File.createTempFile("temp", Long.toString(System.nanoTime()));
+			tempFolder.delete();
+			ZipService zipService = new ZipService(new IOServices(tempFolder));
+
+			File unzipFolder = new File(tempFolder, "unzipFolder");
+			unzipFolder.mkdirs();
+			zipService.unzip(file, unzipFolder);
+
+			List<String> containedFiles = new ArrayList<>();
+			for (File aContainedFile : FileUtils.listFiles(unzipFolder, TrueFileFilter.INSTANCE, TrueFileFilter.INSTANCE)) {
+				String filePath = aContainedFile.getAbsolutePath().replace(unzipFolder.getAbsolutePath(), "").replace("\\", "/");
+				containedFiles.add(filePath.substring(1));
+			}
+
+			Collections.sort(containedFiles);
+
+			return assertThat(containedFiles);
+
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+
+		} finally {
+			FileUtils.deleteQuietly(tempFolder);
+		}
 	}
 
 	public static Condition<? super File> zipFileWithSameContentExceptingFiles(final File expectedZipFile,
