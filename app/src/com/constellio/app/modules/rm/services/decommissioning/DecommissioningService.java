@@ -904,7 +904,8 @@ public class DecommissioningService {
 		transaction.add(duplicatedFolder);
 
 		List<Folder> children = rm.wrapFolders(searchServices.search(new LogicalSearchQuery()
-				.setCondition(from(rm.folder.schemaType()).where(rm.folder.parentFolder()).isEqualTo(folder))));
+				.setCondition(from(rm.folder.schemaType()).where(rm.folder.parentFolder()).isEqualTo(folder))
+				.filteredByStatus(StatusFilter.ACTIVES)));
 		for (Folder child : children) {
 			Folder duplicatedChild = duplicateStructureAndAddToTransaction(child, currentUser, transaction,
 					forceTitleDuplication);
@@ -921,7 +922,8 @@ public class DecommissioningService {
 		transaction.add(duplicatedFolder);
 
 		List<Folder> children = rm.wrapFolders(searchServices.search(new LogicalSearchQuery()
-				.setCondition(from(rm.folder.schemaType()).where(rm.folder.parentFolder()).isEqualTo(folder))));
+				.setCondition(from(rm.folder.schemaType()).where(rm.folder.parentFolder()).isEqualTo(folder))
+				.filteredByStatus(StatusFilter.ACTIVES)));
 		for (Folder child : children) {
 			Folder duplicatedChild = duplicateStructureAndDocumentsAndAddToTransaction(child, currentUser, transaction,
 					forceTitleDuplication);
