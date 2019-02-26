@@ -23,6 +23,7 @@ import com.constellio.model.entities.batchprocess.AsyncTaskExecutionParams;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.BatchProcessReport;
 import com.constellio.model.entities.records.wrappers.User;
@@ -199,7 +200,8 @@ public class ChangeValueOfMetadataBatchAsyncTask implements AsyncTask {
 												 List<Record> batch,
 												 MetadataSchemaTypes schemaTypes, RecordProvider recordProvider) {
 		SchemaUtils utils = new SchemaUtils();
-		Transaction transaction = new Transaction().setSkippingRequiredValuesValidation(true);
+		Transaction transaction = new Transaction();
+		transaction.setOptions(RecordUpdateOptions.userModificationsSafeOptions());
 		for (Record record : batch) {
 			String schemaCode = record.getSchemaCode();
 
