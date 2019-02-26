@@ -296,6 +296,23 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 		rm.executeTransaction(tx);
 	}
 
+	public void createOrphanContainersAndStorageSpace()
+			throws Exception {
+		Transaction tx = new Transaction();
+
+		tx.add(rm.newContainerRecordWithId(records.containerId_bac12 + "_Orphan").setTemporaryIdentifier("10_A_05_Orphan")
+				.setFull(false).setAdministrativeUnit(records.unitId_10a)
+				.setRealTransferDate(date(2006, 10, 31)))
+				.setDecommissioningType(TRANSFERT_TO_SEMI_ACTIVE).setType(records.containerTypeId_boite22x22);
+
+		tx.add(rm.newContainerRecordWithId(records.containerId_bac11 + "_Orphan").setTemporaryIdentifier("10_A_04_Orphan")
+				.setFull(false).setAdministrativeUnit(records.unitId_10a)
+				.setRealTransferDate(date(2005, 10, 31)))
+				.setDecommissioningType(TRANSFERT_TO_SEMI_ACTIVE).setType(records.containerTypeId_boite22x22);
+
+		rm.executeTransaction(tx);
+	}
+
 	@Test
 	public void whenExportingContainersOfCollectionThenValidateZipContent()
 			throws IOException, RecordServicesException {
@@ -307,9 +324,9 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 		builder.exportAllContainersBySpace(new ProgressInfo());
 
 		System.out.println(tempFolder.getAbsolutePath());
-		File tempFolder1 = new File(tempFolder, "containerByBoxes-001.zip");
+		File zipFile = new File(tempFolder, "containerByBoxes-001.zip");
 
-		assertThat(tempFolder1).is(zipFileWithSameContentExceptingFiles(getTestResourceFile("containerByBoxesSip1.zip")));
+		assertThat(zipFile).is(zipFileWithSameContentExceptingFiles(getTestResourceFile("containerByBoxesSip1.zip")));
 	}
 
 	@Test
@@ -334,6 +351,32 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 				.isEqualTo("bac11, bac11extra1, bac11extra2, bac12, bac13");
 	}
 
+
+	@Test
+	public void whenExportingContainersWithSomeWithNoStorageSpaceOfCollectionThenOk()
+			throws Exception {
+		File tempFolder = newTempFolder();
+
+		createContainersAndStorageSpace();
+		createOrphanContainersAndStorageSpace();
+
+		RMCollectionExportSIPBuilder builder = new RMCollectionExportSIPBuilder(zeCollection, getAppLayerFactory(), tempFolder);
+		builder.exportAllContainersBySpace(new ProgressInfo());
+
+		assertThat(tempFolder.list()).containsOnly("info", "containerByBoxes-001.zip");
+
+		assertThat(new File(tempFolder, "info").list())
+				.containsOnly("exportedContainers.txt", "failedContainersExport.txt");
+
+		assertThat(contentOf(new File(tempFolder, "info" + File.separator + "failedContainersExport.txt")))
+				.isEqualTo("");
+
+		assertThat(contentOf(new File(tempFolder, "info" + File.separator + "exportedContainers.txt")))
+				.isEqualTo("bac11, bac11_Orphan, bac11extra1, bac11extra2, bac12, bac12_Orphan, bac13");
+
+		File zipFile = new File(tempFolder, "containerByBoxes-001.zip");
+		assertThat(zipFile).is(zipFileWithSameContentExceptingFiles(getTestResourceFile("containerByBoxesSipOrphan.zip")));
+	}
 
 	@Test
 	public void whenExportingCollectionThenExportTasks()
