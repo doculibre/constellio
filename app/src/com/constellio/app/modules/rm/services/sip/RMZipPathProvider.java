@@ -14,6 +14,8 @@ import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.schemas.Schemas;
 import org.joda.time.LocalDateTime;
 
+import java.util.List;
+
 class RMZipPathProvider implements RecordPathProvider {
 
 	private RMSchemasRecordsServices rm;
@@ -57,7 +59,21 @@ class RMZipPathProvider implements RecordPathProvider {
 			parent = rm.wrapDocument(record).getFolder();
 
 		} else if (ContainerRecord.SCHEMA_TYPE.equals(record.getTypeCode())) {
-			parent = rm.wrapContainerRecord(record).getStorageSpace();
+			Object storageSpaceObject = rm.wrapContainerRecord(record).get(ContainerRecord.STORAGE_SPACE);
+
+			if(storageSpaceObject == null) {
+				parent = null;
+			} else if(storageSpaceObject instanceof List) {
+				List storageSpaceList = (List) storageSpaceObject;
+
+				if(storageSpaceList.size() == 0) {
+					parent = null;
+				} else {
+					parent = (String) storageSpaceList.get(0);
+				}
+			} else {
+				parent = rm.wrapContainerRecord(record).getStorageSpace();
+			}
 		} else if (StorageSpace.SCHEMA_TYPE.equals(StorageSpace.SCHEMA_TYPE)) {
 			parent = rm.wrapStorageSpace(record).getParentStorageSpace();
 		}

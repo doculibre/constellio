@@ -132,13 +132,15 @@ public class RMCollectionExportSIPBuilder {
 
 		Set<String> failedExports = new HashSet<>();
 		Set<String> exportedContainers = new HashSet<>();
+		// Use to avoid same container added multiple time
+		Set<String> exportedContainersId = new HashSet<>();
 
 		try {
 			progressInfo.setEnd(countContainers());
 			SearchResponseIterator<Record> storageSpaceIterator = newRootStorageSpaceIterator();
 
 			while(storageSpaceIterator.hasNext()) {
-				storageSpaceProcessing(progressInfo, writer, failedExports, exportedContainers, storageSpaceIterator.next());
+				storageSpaceProcessing(progressInfo, writer, failedExports, exportedContainers, exportedContainersId, storageSpaceIterator.next());
 			}
 
 			storageSpaceProcessOrphan(progressInfo, writer, failedExports, exportedContainers);
@@ -179,16 +181,17 @@ public class RMCollectionExportSIPBuilder {
 	}
 
 	private void storageSpaceProcessing(ProgressInfo progressInfo, RecordSIPWriter writer, Set<String> failedExports,
-			Set<String> exportedContainers, Record storageSpace) {
+			Set<String> exportedContainers, Set<String> exportedId, Record storageSpace) {
 
 		SearchResponseIterator<Record> searchResponseContainerIterator = newChildrenContainerIterator(storageSpace);
 		List<Record> records = new ArrayList<>();
-
 		try {
 			while(searchResponseContainerIterator.hasNext()) {
 				Record containerFound = searchResponseContainerIterator.next();
-
-				records.add(containerFound);
+				if(!exportedId.contains(containerFound.getId())) {
+					exportedId.add(containerFound.getId());
+					records.add(containerFound);
+				}
 			}
 
 			for (Record record : records) {
@@ -207,7 +210,7 @@ public class RMCollectionExportSIPBuilder {
 
 		while(storageSpaceChildrenIterator.hasNext()) {
 			Record currentStorageSpace = storageSpaceChildrenIterator.next();
-			storageSpaceProcessing(progressInfo, writer, failedExports, exportedContainers, currentStorageSpace);
+			storageSpaceProcessing(progressInfo, writer, failedExports, exportedContainers, exportedId, currentStorageSpace);
 		}
 	}
 
@@ -362,7 +365,7 @@ public class RMCollectionExportSIPBuilder {
 		return recordSIPWriter;
 	}
 
-	private SIPZipWriter newSIPZipWriter(String sipName, Map<String, MetsDivisionInfo> divisionInfoMap,
+	protected SIPZipWriter newSIPZipWriter(String sipName, Map<String, MetsDivisionInfo> divisionInfoMap,
 			final ProgressInfo progressInfo) {
 		SIPFileNameProvider sipFileNameProvider = new DefaultSIPFileNameProvider(exportFolder, sipName);
 		AutoSplittedSIPZipWriter writer = new AutoSplittedSIPZipWriter(appLayerFactory, sipFileNameProvider,

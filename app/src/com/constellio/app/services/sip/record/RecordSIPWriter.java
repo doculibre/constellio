@@ -79,7 +79,6 @@ public class RecordSIPWriter {
 		this.recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 		this.ioServices = appLayerFactory.getModelLayerFactory().getIOServicesFactory().newIOServices();
 		this.contentManager = appLayerFactory.getModelLayerFactory().getContentManager();
-
 		this.recordPathProvider = recordPathProvider;
 		this.metadataSchemasManager = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager();
 		this.sipZipWriter = sipZipWriter;
