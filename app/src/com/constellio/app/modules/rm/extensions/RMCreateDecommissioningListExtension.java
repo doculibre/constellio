@@ -104,7 +104,12 @@ public class RMCreateDecommissioningListExtension extends RecordExtension {
 			parameters.add("returnDate" + EmailToSend.PARAMETER_SEPARATOR + formatDateToParameter(creationDate));
 			parameters.add("creationDate" + EmailToSend.PARAMETER_SEPARATOR + formatDateToParameter(creationDate));
 			String rmObjectTitle = decommissioningList.getTitle();
-			parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(rmObjectTitle));
+			boolean isAddingRecordIdInEmails = eimConfigs.isAddingRecordIdInEmails();
+			if(isAddingRecordIdInEmails) {
+				parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(rmObjectTitle) + " (" + decommissioningList.getId() + ")");
+			} else {
+				parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(rmObjectTitle));
+			}
 			String constellioUrl = eimConfigs.getConstellioUrl();
 			parameters.add("constellioURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl);
 			parameters.add("recordURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl + "#!" + displayURL + "/" + record.getId());

@@ -46,6 +46,7 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
@@ -188,7 +189,12 @@ public abstract class Decommissioner {
 						   " (" + denier.getUsername() + ")");
 			parameters.add("comment" + EmailToSend.PARAMETER_SEPARATOR + StringUtils.defaultIfBlank(comment, ""));
 			String rmObjectTitle = decommissioningList.getTitle();
-			parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + rmObjectTitle);
+			boolean isAddingRecordIdInEmails = new ConstellioEIMConfigs(modelLayerFactory).isAddingRecordIdInEmails();
+			if(isAddingRecordIdInEmails) {
+				parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + rmObjectTitle + " (" + decommissioningList.getId() + ")");
+			} else {
+				parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + rmObjectTitle);
+			}
 			String constellioUrl = new ConstellioEIMConfigs(appLayerFactory.getModelLayerFactory()).getConstellioUrl();
 			parameters.add("constellioURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl);
 			parameters.add("recordURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl + "#!" + displayURL + "/" + decommissioningList.getId());

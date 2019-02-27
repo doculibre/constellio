@@ -171,7 +171,12 @@ public class TaskReminderEmailManager implements StatefulService {
 		String status_fr = taskSchemas.getTaskStatus(task.getStatus()).getTitle(Locale.FRENCH);
 		String status_en = taskSchemas.getTaskStatus(task.getStatus()).getTitle(Locale.ENGLISH);
 
-		newParameters.add(TASK_TITLE_PARAMETER + ":" + formatToParameter(StringEscapeUtils.escapeHtml4(task.getTitle())));
+		boolean isAddingRecordIdInEmails = eimConfigs.isAddingRecordIdInEmails();
+		if(isAddingRecordIdInEmails) {
+			newParameters.add(TASK_TITLE_PARAMETER + ":" + formatToParameter(StringEscapeUtils.escapeHtml4(task.getTitle())) + " (" + task.getId() + ")");
+		} else {
+			newParameters.add(TASK_TITLE_PARAMETER + ":" + formatToParameter(StringEscapeUtils.escapeHtml4(task.getTitle())));
+		}
 		newParameters.add(PARENT_TASK_TITLE + ":" + formatToParameter(StringEscapeUtils.escapeHtml4(parentTaskTitle)));
 		newParameters.add(TASK_ASSIGNED_BY + ":" + formatToParameter(StringEscapeUtils.escapeHtml4(assignerFullName)));
 		newParameters.add(TASK_ASSIGNED_ON + ":" + formatToParameter(task.getAssignedOn()));
