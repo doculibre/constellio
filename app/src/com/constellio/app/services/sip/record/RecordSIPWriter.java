@@ -172,7 +172,7 @@ public class RecordSIPWriter {
 
 	private void buildRecordEADFile(SIPZipWriterTransaction transaction, RecordInsertionContext ctx)
 			throws IOException {
-		RecordEADBuilder recordEadBuilder = new RecordEADBuilder(appLayerFactory, ctx.errors);
+		RecordEADBuilder recordEadBuilder = new RecordEADBuilder(appLayerFactory, locale, ctx.errors);
 		recordEadBuilder.setIncludeRelatedMaterials(includeRelatedMaterials);
 		recordEadBuilder.setIncludeArchiveDescriptionMetadatasFromODDs(includeArchiveDescriptionMetadatasFromODDs);
 		File tempXMLFile = ioServices.newTemporaryFile(TEMP_EAD_FILE_STREAM_NAME);

@@ -6,7 +6,9 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 
+import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -275,6 +277,18 @@ public class LangUtils {
 
 	public static boolean isEmptyList(Object modifiedValue) {
 		return (modifiedValue instanceof List) && (((List) modifiedValue).isEmpty());
+	}
+
+	public static List<File> listFiles(File tempFolder) {
+		File[] files = tempFolder.listFiles();
+		return files == null ? Collections.<File>emptyList() : Arrays.<File>asList(files);
+
+	}
+
+	public static List<String> listFilenames(File tempFolder) {
+		String[] files = tempFolder.list();
+		return files == null ? Collections.<String>emptyList() : Arrays.<String>asList(files);
+
 	}
 
 	public static class StringReplacer {

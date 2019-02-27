@@ -8,6 +8,7 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.sip.bagInfo.DefaultSIPZipBagInfoFactory;
 import com.constellio.app.services.sip.mets.MetsDivisionInfo;
 import com.constellio.app.services.sip.zip.AutoSplittedSIPZipWriter;
@@ -19,6 +20,7 @@ import com.constellio.app.services.sip.zip.SIPZipWriter;
 import com.constellio.data.dao.services.idGenerator.InMemorySequentialGenerator;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.services.zip.ZipServiceException;
+import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Event;
@@ -91,11 +93,6 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 	public void givenSIPArchivesOfTwoDocumentsInSameFolderThenArchiveContainsAllMetadatasContentsAndManifests()
 			throws Exception {
 
-		getIOLayerFactory().newZipService().zip(getTestResourceFile("sip1.zip"),
-						asList(new File("/Users/francisbaril/Downloads/SIPArchivesCreationAcceptanceTest-sip1").listFiles()));
-//		getIOLayerFactory().newZipService().zip(getTestResourceFile("sip1.zip"),
-//				asList(new File("C:\\Users\\constellios\\Downloads\\SIPArchivesCreationAcceptanceTest-sip1").listFiles()));
-
 		Transaction tx = new Transaction();
 		tx.add(rm.newFolderWithId("zeFolderId").setOpenDate(new LocalDate(2018, 1, 1))
 				.setTitle("Ze folder")
@@ -112,18 +109,15 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 
 		File sipFile = buildSIPWithDocuments("document1", "document2");
 		System.out.println(sipFile.getAbsolutePath());
-//		unzipInDownloadFolder(sipFile, "testSIP");
 
-		assertThat(sipFile).is(zipFileWithSameContentExceptingFiles(getTestResourceFile("sip1.zip")));
+		assertThat(sipFile).is(zipFileWithSameContentExceptingFiles(getTestResourceFile("sip1.zip"), "bag-info.txt"));
 
 	}
+
 
 	@Test
 	public void givenSIPArchivesOfAnEmailThenAttachementsExtractedInSIP()
 			throws Exception {
-
-		//				getIOLayerFactory().newZipService().zip(getTestResourceFile("sip2.zip"),
-		//						asList(new File("/Users/francisbaril/Downloads/SIPArchivesCreationAcceptanceTest-sip2").listFiles()));
 
 		Transaction tx = new Transaction();
 		tx.add(rm.newFolderWithId("zeFolderId").setOpenDate(new LocalDate(2018, 1, 1))
@@ -139,14 +133,14 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 
 		File sipFile = buildSIPWithDocuments("theEmailId");
 		System.out.println(sipFile.getAbsolutePath());
-//		unzipInDownloadFolder(sipFile, "testSIP");
+		unzipInDownloadFolder(sipFile, "testSIP");
 
 		assertThat(sipFile).is(zipFileWithSameContentExceptingFiles(getTestResourceFile("sip2.zip")));
 
 	}
 
 	@Test
-	public void whenExportingCollectionThenAll()
+	public void whenExportingCollectionFoldersAndDocumentsThenAllExported()
 			throws Exception {
 
 
@@ -190,6 +184,20 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 
 		assertThat(contentOf(new File(tempFolder, "info" + File.separator + "exportedDocuments.txt")))
 				.doesNotContain("folder12,").contains("folder12_document1,");
+
+		TestUtils.assertFilesInZip(new File(tempFolder, "foldersAndDocuments-001.zip")).contains(
+				"bag-info.txt",
+				"data/category-X/folder-folder1.xml",
+				"data/category-X/folder-folder1/document-folder1_document1.xml",
+				"data/category-X/folder-folder1/document-folder1_document2.xml",
+				"data/category-X/category-X100/category-X110/folder-folder9.xml",
+				"data/category-X/category-X100/category-X110/folder-folder9/document-folder9_document1.xml",
+				"data/category-X/category-X100/category-X110/folder-folder9/document-folder9_document2.xml",
+				"data/category-X/category-X100/category-X120/folder-folder10.xml",
+				"data/category-X/category-X100/category-X120/folder-folder10/document-folder10_document1.xml",
+				"data/category-X/category-X100/category-X120/folder-folder10/document-folder10_document2.xml",
+				"foldersAndDocuments-001.xml", "manifest-sha256.txt", "tagmanifest-sha256.txt"
+		);
 
 	}
 
@@ -468,13 +476,18 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 
 		int folderIndex = 0;
 
-		tx.add(rm.newRMTask().setAssigner(users.aliceIn(zeCollection).getId())
+		tx.add(rm.newRMTaskWithId("taskId").setAssigner(users.aliceIn(zeCollection).getId())
 				.setAssignee(users.bobIn(zeCollection).getId()).setTitle("My task to ya")
 				.setAssignedOn(new LocalDate(2012, 12, 12))
 				.setCreatedOn(new LocalDateTime(2011, 11, 11, 11, 11, 1)));
 
+		tx.add(rm.newRMTaskWithId("modelTaskId").setAssigner(users.aliceIn(zeCollection).getId())
+				.setAssignee(users.bobIn(zeCollection).getId()).setTitle("My task to ya").setModel(true)
+				.setAssignedOn(new LocalDate(2012, 12, 12))
+				.setCreatedOn(new LocalDateTime(2011, 11, 11, 11, 11, 1)));
+
 		rm.executeTransaction(tx);
-		//createAnInvalidFolder666();
+		createAnInvalidTask666();
 
 		File tempFolder = newTempFolder();
 		RMCollectionExportSIPBuilder builder = new RMCollectionExportSIPBuilder(zeCollection, getAppLayerFactory(), tempFolder);
@@ -483,6 +496,25 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 		builder.exportAllTasks(new ProgressInfo());
 
 		assertThat(tempFolder.list()).containsOnly("info", "tasks-001.zip");
+
+		assertThat(contentOf(new File(tempFolder, "info" + File.separator + "exportedTasks.txt")))
+				.contains("taskId");
+
+
+		assertThat(new File(tempFolder, "info").list())
+				.containsOnly("failedTasksExport.txt", "exportedTasks.txt");
+
+		assertThat(contentOf(new File(tempFolder, "info" + File.separator + "failedTasksExport.txt")))
+				.isEqualTo("task666");
+
+
+		TestUtils.assertFilesInZip(new File(tempFolder, "tasks-001.zip")).contains(
+				"bag-info.txt",
+				"bagit.txt",
+				"data/_2011/_2011-11/_2011-11-11/userTask-taskId.xml",
+				"manifest-sha256.txt", "tagmanifest-sha256.txt",
+				"tasks-001.xml"
+		);
 
 	}
 
@@ -513,6 +545,30 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 		solrClient.commit();
 	}
 
+	protected void createAnInvalidTask666() throws Exception {
+		Transaction tx;
+		tx = new Transaction();
+
+
+		tx.add(rm.newRMTaskWithId("task666").setAssigner(users.aliceIn(zeCollection).getId())
+				.setAssignee(users.bobIn(zeCollection).getId()).setTitle("My task to ya")
+				.setAssignedOn(new LocalDate(2012, 12, 12))
+				.setCreatedOn(new LocalDateTime(2011, 11, 11, 11, 11, 1)));
+
+		rm.executeTransaction(tx);
+		waitForBatchProcess();
+
+		TasksSchemasRecordsServices tasks = new TasksSchemasRecordsServices(zeCollection, getAppLayerFactory());
+
+		SolrClient solrClient = getDataLayerFactory().getRecordsVaultServer().getNestedSolrServer();
+		SolrInputDocument doc = new SolrInputDocument();
+		doc.setField("id", "task666");
+		doc.setField(tasks.userTask.statusType().getDataStoreCode(), atomicSet("Mouahahahahaha"));
+		solrClient.add(doc);
+		solrClient.commit();
+	}
+
+
 	@Test
 	public void whenExportingAllFoldersAndDocumentsSplittedBySizeThen()
 			throws Exception {
@@ -538,15 +594,20 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 
 		rm.executeTransaction(tx);
 
+		File tempFolder = getModelLayerFactory().getDataLayerFactory().getIOServicesFactory().getTempFolder();
+
+		List<String> tempFilesBeforeSIPCreation = LangUtils.listFilenames(tempFolder);
+
 		File sipFilesFolder = buildSIPWithDocumentsWith10MegabytesLimit(ids);
-		System.out.println(sipFilesFolder.getAbsolutePath());
 
-		System.out.println(getModelLayerFactory().getDataLayerFactory().getIOServicesFactory().getTempFolder());
-		assertThat(getModelLayerFactory().getDataLayerFactory().getIOServicesFactory().getTempFolder().list()).isNull();
+		List<String> tempFilesAfterSIPCreation = new ArrayList<>(LangUtils.listFilenames(tempFolder));
+		tempFilesAfterSIPCreation.removeAll(tempFilesBeforeSIPCreation);
+		assertThat(tempFilesAfterSIPCreation).isEmpty();
 
-		//unzipAllInDownloadFolder(sipFilesFolder, "testSIP");
-
-		//assertThat(sipFile).is(zipFileWithSameContentExceptingFiles(getTestResourceFile("sip2.zip"), "bag-info.txt"));
+		assertThat(sipFilesFolder.list()).containsOnly("test-001.zip", "test-002.zip", "test-003.zip", "test-004.zip",
+				"test-005.zip", "test-006.zip", "test-007.zip", "test-008.zip", "test-009.zip", "test-010.zip",
+				"test-011.zip", "test-012.zip", "test-013.zip", "test-014.zip", "test-015.zip", "test-016.zip",
+				"test-017.zip");
 
 	}
 
