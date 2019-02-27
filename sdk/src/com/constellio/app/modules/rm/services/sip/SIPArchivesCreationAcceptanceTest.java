@@ -258,22 +258,6 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 		assertThat(tempFolder1).is(zipFileWithSameContentExceptingFiles(getTestResourceFile("events-001.zip")));
 	}
 
-	@Test
-	public void createContainersWithMultipleStorageSpace()
-			throws Exception {
-
-		File tempFolder = newTempFolder();
-
-		createContainersWithMultipleStorageSpaceAndStorageSpaces();
-
-		RMCollectionExportSIPBuilder builder = new RMCollectionExportSIPBuilder(zeCollection, getAppLayerFactory(), tempFolder);
-		builder.exportAllContainersBySpace(new ProgressInfo());
-
-		System.out.println(tempFolder.getAbsolutePath());
-		File zipFile = new File(tempFolder, "containerByBoxes-001.zip");
-
-		assertThat(zipFile).is(zipFileWithSameContentExceptingFiles(getTestResourceFile("containerByBoxesSip1.zip")));
-	}
 
 	public void createStorageSpace()
 			throws Exception {
