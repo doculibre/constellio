@@ -2,6 +2,7 @@ package com.constellio.model.services.event;
 
 import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.search.SearchServices;
@@ -11,9 +12,10 @@ import org.joda.time.LocalDateTime;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromEveryTypesOfEveryCollection;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class AutoSplitByDayEventsExecutor {
 	File folder;
@@ -27,17 +29,17 @@ public class AutoSplitByDayEventsExecutor {
 		this.dayProcessedListenerList = new ArrayList<>();
 	}
 
-	public static LogicalSearchQuery getAllEventsQuery() {
+	public static LogicalSearchQuery getAllEventsQuery(String collection) {
 		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery();
-		LogicalSearchCondition logicalSearchCondition = fromEveryTypesOfEveryCollection().where(Schemas.SCHEMA)
-				.isStartingWithText("event_");
+		LogicalSearchCondition logicalSearchCondition = from(Arrays.asList(Event.SCHEMA_TYPE), collection)
+				.returnAll();
 		logicalSearchQuery.setCondition(logicalSearchCondition);
 
 		return logicalSearchQuery;
 	}
 
-	public void wrtieAllEvents() {
-		writeEvents(getAllEventsQuery());
+	public void wrtieAllEvents(String collection) {
+		writeEvents(getAllEventsQuery(collection));
 	}
 
 	/**

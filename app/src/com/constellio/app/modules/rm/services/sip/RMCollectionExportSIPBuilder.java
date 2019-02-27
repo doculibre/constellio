@@ -118,7 +118,7 @@ public class RMCollectionExportSIPBuilder {
 				}
 			});
 
-			autoSplitByDayEventsExecutor.wrtieAllEvents();
+			autoSplitByDayEventsExecutor.wrtieAllEvents(collection);
 		} finally {
 			sipZipWriter.close();
 			ioServices.deleteQuietly(rootFolder);
