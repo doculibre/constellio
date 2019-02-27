@@ -16,6 +16,7 @@ import com.constellio.app.services.sip.zip.SIPFileNameProvider;
 import com.constellio.app.services.sip.zip.SIPZipWriter;
 import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
 import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.data.utils.KeySetMap;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
@@ -76,6 +77,8 @@ public class RMCollectionExportSIPBuilder {
 	private boolean includeContents;
 	private IOServices ioServices;
 
+	private KeySetMap<String, String> exportedRecords = new KeySetMap<>();
+
 	public RMCollectionExportSIPBuilder(String collection, AppLayerFactory appLayerFactory, File exportFolder) {
 		this.appLayerFactory = appLayerFactory;
 		this.recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
@@ -120,6 +123,10 @@ public class RMCollectionExportSIPBuilder {
 			sipZipWriter.close();
 			ioServices.deleteQuietly(rootFolder);
 		}
+	}
+
+	public KeySetMap<String, String> getExportedRecords() {
+		return exportedRecords;
 	}
 
 	public void exportAllContainersBySpace(ProgressInfo progressInfo)
@@ -263,6 +270,8 @@ public class RMCollectionExportSIPBuilder {
 			writer.close();
 		}
 
+		exportedRecords.addAll(writer.getSavedRecords());
+
 		writeListInFile(failedExports, new File(exportFolder, "info" + File.separator + "failedFolderExport.txt"));
 		writeListInFile(exportedFolders, new File(exportFolder, "info" + File.separator + "exportedFolders.txt"));
 		writeListInFile(exportedDocuments, new File(exportFolder, "info" + File.separator + "exportedDocuments.txt"));
@@ -306,6 +315,8 @@ public class RMCollectionExportSIPBuilder {
 			writer.close();
 		}
 
+		exportedRecords.addAll(writer.getSavedRecords());
+		writeListInFile(failedExports, new File(exportFolder, "info" + File.separator + "failedTasksExport.txt"));
 		writeListInFile(failedExports, new File(exportFolder, "info" + File.separator + "failedTasksExport.txt"));
 		writeListInFile(exportedTasks, new File(exportFolder, "info" + File.separator + "exportedTasks.txt"));
 

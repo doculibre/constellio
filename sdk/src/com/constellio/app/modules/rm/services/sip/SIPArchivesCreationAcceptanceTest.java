@@ -10,7 +10,9 @@ import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.sip.bagInfo.DefaultSIPZipBagInfoFactory;
+import com.constellio.app.services.sip.bagInfo.SIPZipBagInfoFactory;
 import com.constellio.app.services.sip.mets.MetsDivisionInfo;
+import com.constellio.app.services.sip.record.UnclassifiedDataSIPWriter;
 import com.constellio.app.services.sip.zip.AutoSplittedSIPZipWriter;
 import com.constellio.app.services.sip.zip.DefaultSIPFileNameProvider;
 import com.constellio.app.services.sip.zip.FileSIPZipWriter;
@@ -21,9 +23,12 @@ import com.constellio.data.dao.services.idGenerator.InMemorySequentialGenerator;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.services.zip.ZipServiceException;
 import com.constellio.data.utils.LangUtils;
+import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Event;
+import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.records.wrappers.UserFolder;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.contents.ContentImpl;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
@@ -45,6 +50,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import static com.constellio.app.modules.rm.model.enums.DecommissioningType.DEPOSIT;
@@ -515,6 +521,80 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 				"manifest-sha256.txt", "tagmanifest-sha256.txt",
 				"tasks-001.xml"
 		);
+
+	}
+
+
+	@Test
+	public void whenExportingUnclassifiedInfosThenExportUserFolderDocumentAndTemporaryRecords()
+			throws Exception {
+
+		tx = new Transaction();
+		for (User user : asList(users.gandalfIn(zeCollection), users.bobIn(zeCollection), users.dakotaLIndienIn(zeCollection))) {
+			UserFolder f1 = tx.add(rm.newUserFolderWithId(user.getUsername() + "userFolder1"))
+					.setUser(user).setTitle("Ze dossier de " + user.getUsername());
+			UserFolder f1_1 = tx.add(rm.newUserFolderWithId(user.getUsername() + "userFolder1Sub1"))
+					.setUser(user).setTitle("Ze sous-dossier 1 de " + user.getUsername()).setParent(f1);
+			UserFolder f1_2 = tx.add(rm.newUserFolderWithId(user.getUsername() + "userFolder1Sub2"))
+					.setUser(user).setTitle("Ze sous-dossier 2 de " + user.getUsername()).setParent(f1);
+
+			tx.add(rm.newUserDocumentWithId(f1.getId() + "_doc")).setUser(user).setUserFolder(f1)
+					.setContent(majorContent("content1.doc"));
+
+			tx.add(rm.newUserDocumentWithId(f1_1.getId() + "_doc")).setUser(user).setUserFolder(f1_1)
+					.setContent(majorContent("content2.doc"));
+
+			tx.add(rm.newUserDocumentWithId(f1_2.getId() + "_doc")).setUser(user).setUserFolder(f1_2)
+					.setContent(majorContent("content1.doc"));
+
+			tx.add(rm.newUserDocumentWithId(user.getUsername() + "doc1")).setUser(user).setContent(majorContent("content2.doc"));
+			tx.add(rm.newUserDocumentWithId(user.getUsername() + "doc2")).setUser(user).setContent(majorContent("content2.doc"));
+		}
+
+		tx.add(rm.newTemporaryRecordWithId("tempRecord1").setTitle("Temporary record 1").setContent(majorContent("content1.doc"))
+				.setCreatedBy(users.bobIn(zeCollection).getId())).setCreatedOn(TimeProvider.getLocalDateTime());
+
+		tx.add(rm.newTemporaryRecordWithId("tempRecord2").setTitle("Temporary record 1").setContent(majorContent("content2.doc"))
+				.setCreatedBy(users.aliceIn(zeCollection).getId())).setCreatedOn(TimeProvider.getLocalDateTime());
+
+		rm.executeTransaction(tx);
+
+		File sipFile = new File(newTempFolder(), "test.zip");
+
+
+		SIPZipBagInfoFactory factory = new DefaultSIPZipBagInfoFactory(getAppLayerFactory(), Locale.FRENCH);
+		SIPZipWriter writer = new FileSIPZipWriter(getAppLayerFactory(), sipFile, "unclassified.zip", factory);
+		ProgressInfo progressInfo = new ProgressInfo();
+		UnclassifiedDataSIPWriter builder = new UnclassifiedDataSIPWriter(zeCollection, getAppLayerFactory(), writer, Locale.FRENCH, progressInfo);
+
+		builder.exportUnclassifiedData();
+		builder.close();
+
+		List<String> expectedFiles = new ArrayList<>();
+
+		String aliceId = users.aliceIn(zeCollection).getId();
+		String bobId = users.bobIn(zeCollection).getId();
+
+		expectedFiles.add("data/user/user-" + bobId + "/temporaryRecord-tempRecord1.xml");
+		expectedFiles.add("data/user/user-" + bobId + "/temporaryRecord-tempRecord1-content-1.0.doc");
+		expectedFiles.add("data/user/user-" + aliceId + "/temporaryRecord-tempRecord2.xml");
+		expectedFiles.add("data/user/user-" + aliceId + "/temporaryRecord-tempRecord2-content-1.0.doc");
+
+		expectedFiles.add("data/user/user-" + bobId + "/userDocument-bobdoc1-content-1.0.doc");
+		expectedFiles.add("data/user/user-" + bobId + "/userDocument-bobdoc1.xml");
+		expectedFiles.add("data/user/user-" + bobId + "/userDocument-bobdoc2-content-1.0.doc");
+		expectedFiles.add("data/user/user-" + bobId + "/userDocument-bobdoc2.xml");
+		expectedFiles.add("data/user/user-" + bobId + "/userFolder-bobuserFolder1.xml");
+		expectedFiles.add("data/user/user-" + bobId + "/userFolder-bobuserFolder1/userDocument-bobuserFolder1_doc-content-1.0.doc");
+		expectedFiles.add("data/user/user-" + bobId + "/userFolder-bobuserFolder1/userDocument-bobuserFolder1_doc.xml");
+		expectedFiles.add("data/user/user-" + bobId + "/userFolder-bobuserFolder1/userFolder-bobuserFolder1Sub1.xml");
+		expectedFiles.add("data/user/user-" + bobId + "/userFolder-bobuserFolder1/userFolder-bobuserFolder1Sub1/userDocument-bobuserFolder1Sub1_doc-content-1.0.doc");
+		expectedFiles.add("data/user/user-" + bobId + "/userFolder-bobuserFolder1/userFolder-bobuserFolder1Sub1/userDocument-bobuserFolder1Sub1_doc.xml");
+		expectedFiles.add("data/user/user-" + bobId + "/userFolder-bobuserFolder1/userFolder-bobuserFolder1Sub2.xml");
+		expectedFiles.add("data/user/user-" + bobId + "/userFolder-bobuserFolder1/userFolder-bobuserFolder1Sub2/userDocument-bobuserFolder1Sub2_doc-content-1.0.doc");
+		expectedFiles.add("data/user/user-" + bobId + "/userFolder-bobuserFolder1/userFolder-bobuserFolder1Sub2/userDocument-bobuserFolder1Sub2_doc.xml");
+
+		TestUtils.assertFilesInZip(sipFile).contains(expectedFiles.toArray(new String[0]));
 
 	}
 

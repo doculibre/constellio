@@ -3,6 +3,7 @@ package com.constellio.data.io.streams.factories;
 import com.constellio.data.io.services.facades.FileService;
 import com.constellio.data.io.services.facades.OpenedResourcesWatcher;
 import com.constellio.data.io.streamFactories.StreamFactory;
+import com.constellio.data.io.streams.factories.StreamsServicesRuntimeException.StreamsServicesRuntimeException_CannotWriteInFile;
 import com.constellio.data.io.streams.factories.StreamsServicesRuntimeException.StreamsServicesRuntimeException_FileNotFound;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.ReaderInputStream;
@@ -287,6 +288,31 @@ public class StreamsServices {
 			return newBufferedReader(fileReader, name);
 		} catch (FileNotFoundException e) {
 			throw new StreamsServicesRuntimeException_FileNotFound(e);
+		}
+
+	}
+
+	public BufferedWriter newFileWriter(final File file, final String name) {
+
+		try {
+
+			FileWriter fileWriter = OpenedResourcesWatcher.onOpen(new FileWriter(file) {
+
+				@Override
+				public String toString() {
+					return name + "[" + file.getPath() + "]";
+				}
+
+				@Override
+				public void close()
+						throws IOException {
+					OpenedResourcesWatcher.onClose(this);
+					super.close();
+				}
+			});
+			return newBufferedWriter(fileWriter, name);
+		} catch (IOException e) {
+			throw new StreamsServicesRuntimeException_CannotWriteInFile(file, e);
 		}
 
 	}

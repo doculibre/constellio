@@ -3,7 +3,10 @@ package com.constellio.app.services.sip.record;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Authorization;
-import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.records.wrappers.TemporaryRecord;
+import com.constellio.model.entities.records.wrappers.UserDocument;
+import com.constellio.model.entities.records.wrappers.UserFolder;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.SchemasRecordsServices;
@@ -14,13 +17,13 @@ public class DefaultRecordZipPathProvider implements RecordPathProvider {
 	private TaxonomiesManager taxonomiesManager;
 	private MetadataSchemasManager metadataSchemasManager;
 	private RecordServices recordServices;
-	private SchemasRecordsServices schemasRecordsServices;
+	private ModelLayerFactory modelLayerFactory;
 
-	public DefaultRecordZipPathProvider(String collection, ModelLayerFactory modelLayerFactory) {
+	public DefaultRecordZipPathProvider(ModelLayerFactory modelLayerFactory) {
 		this.taxonomiesManager = modelLayerFactory.getTaxonomiesManager();
 		this.recordServices = modelLayerFactory.newRecordServices();
 		this.metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
-		this.schemasRecordsServices = new SchemasRecordsServices(collection, modelLayerFactory);
+		this.modelLayerFactory = modelLayerFactory;
 	}
 
 	@Override
@@ -33,8 +36,30 @@ public class DefaultRecordZipPathProvider implements RecordPathProvider {
 
 		if (taxonomy != null) {
 			parent = record.getParentId();
+
 		} else if (Authorization.SCHEMA_TYPE.equals(record.getTypeCode())) {
-			parent = schemasRecordsServices.wrapSolrAuthorizationDetails(record).getTarget();
+			parent = schemasOf(record).wrapSolrAuthorizationDetails(record).getTarget();
+
+		} else if (UserFolder.SCHEMA_TYPE.equals(record.getTypeCode())) {
+			UserFolder userFolder = schemasOf(record).wrapUserFolder(record);
+			parent = userFolder.getParent() == null ? userFolder.getUser() : userFolder.getParent();
+			if (parent == null) {
+				parent = "unknown";
+			}
+
+		} else if (UserDocument.SCHEMA_TYPE.equals(record.getTypeCode())) {
+			UserDocument userDocument = schemasOf(record).wrapUserDocument(record);
+			parent = userDocument.getUserFolder() == null ? userDocument.getUser() : userDocument.getUserFolder();
+			if (parent == null) {
+				parent = "unknown";
+			}
+
+		} else if (TemporaryRecord.SCHEMA_TYPE.equals(record.getTypeCode())) {
+			parent = record.get(Schemas.CREATED_BY);
+			if (parent == null) {
+				parent = "unknown";
+			}
+
 		}
 
 		StringBuilder path = new StringBuilder();
@@ -57,19 +82,12 @@ public class DefaultRecordZipPathProvider implements RecordPathProvider {
 
 		path.append(record.getTypeCode()).append("-");
 
-		MetadataSchema schema = metadataSchemasManager.getSchemaTypeOf(record).getDefaultSchema();
-
-		//		if (schema.hasMetadataWithCode("code") && schema.getMetadata("code").isDefaultRequirement()) {
-		//			path.append(record.get(schema.getMetadata("code")));
-		//
-		//		} else if (User.SCHEMA_TYPE.equals(record.getTypeCode())) {
-		//			path.append(record.<String>get(schema.get(User.USERNAME)));
-		//
-		//
-		//		} else {
 		path.append(pathIdentifier);
-		//		}
 
 		return path.toString();
+	}
+
+	private SchemasRecordsServices schemasOf(Record record) {
+		return new SchemasRecordsServices(record.getCollection(), modelLayerFactory);
 	}
 }

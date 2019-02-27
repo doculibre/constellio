@@ -7,6 +7,7 @@ import com.constellio.app.services.sip.mets.MetsEADMetadataReference;
 import com.constellio.app.services.sip.zip.SIPZipWriter;
 import com.constellio.app.services.sip.zip.SIPZipWriterTransaction;
 import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.data.utils.KeySetMap;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
@@ -70,6 +71,8 @@ public class RecordSIPWriter {
 
 	private boolean includeArchiveDescriptionMetadatasFromODDs = false;
 
+	private KeySetMap<String, String> savedRecords = new KeySetMap<>();
+
 	public RecordSIPWriter(AppLayerFactory appLayerFactory,
 						   SIPZipWriter sipZipWriter,
 						   RecordPathProvider recordPathProvider,
@@ -123,11 +126,14 @@ public class RecordSIPWriter {
 	public ValidationErrors add(Iterator<Record> recordsIterator) throws IOException {
 		ValidationErrors errors = new ValidationErrors();
 
+		KeySetMap<String, String> recordIdsToAdd = new KeySetMap<>();
+
 		SIPZipWriterTransaction transaction = sipZipWriter.newInsertTransaction();
 		try {
 
 			while (recordsIterator.hasNext()) {
 				Record record = recordsIterator.next();
+				recordIdsToAdd.add(record.getTypeCode(), record.getId());
 				addToSIP(transaction, record, errors);
 
 				if (includeAuths) {
@@ -145,6 +151,7 @@ public class RecordSIPWriter {
 		}
 
 		sipZipWriter.insertAll(transaction);
+		savedRecords.addAll(recordIdsToAdd);
 
 		return errors;
 	}
@@ -233,6 +240,9 @@ public class RecordSIPWriter {
 		}
 	}
 
+	public KeySetMap<String, String> getSavedRecords() {
+		return savedRecords;
+	}
 
 	public class RecordInsertionContext {
 

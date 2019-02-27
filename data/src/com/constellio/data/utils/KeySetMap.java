@@ -4,9 +4,9 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -24,9 +24,15 @@ public class KeySetMap<K, V> implements Serializable {
 		}
 	}
 
-	public void addAll(K key, List<V> values) {
+	public void addAll(K key, Collection<V> values) {
 		for (V value : values) {
 			add(key, value);
+		}
+	}
+
+	public void addAll(KeySetMap<K, V> values) {
+		for (Map.Entry<K, Set<V>> entry : values.getMapEntries()) {
+			addAll(entry.getKey(), entry.getValue());
 		}
 	}
 
