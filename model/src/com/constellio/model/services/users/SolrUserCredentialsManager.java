@@ -8,6 +8,7 @@ import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.SearchServices;
@@ -29,11 +30,13 @@ import static com.constellio.model.services.users.UserUtils.cleanUsername;
 public class SolrUserCredentialsManager {
 	private final ModelLayerFactory modelLayerFactory;
 	private final SearchServices searchServices;
+	private final RecordServices recordServices;
 	private final SchemasRecordsServices schemas;
 
 	public SolrUserCredentialsManager(ModelLayerFactory modelLayerFactory) {
 		this.modelLayerFactory = modelLayerFactory;
 		searchServices = modelLayerFactory.newSearchServices();
+		recordServices = modelLayerFactory.newRecordServices();
 		schemas = SchemasRecordsServices.usingMainModelLayerFactory(Collection.SYSTEM_COLLECTION, modelLayerFactory);
 	}
 
@@ -259,9 +262,8 @@ public class SolrUserCredentialsManager {
 	}
 
 	public UserCredential getUserCredentialByDN(String dn) {
-		Record record = searchServices.searchSingleResult(from(schemas.credentialSchemaType())
-				.where(schemas.credentialSchema().get(UserCredential.DN)).isEqualTo(dn));
-		return record != null ? schemas.wrapCredential(record) : null;
+		Record record = recordServices.getRecordByMetadata(schemas.credentialDN(), dn);
+		return record != null ? schemas.wrapUserCredential(record) : null;
 	}
 
 	public String getUsernameByServiceKey(String serviceKey) {
