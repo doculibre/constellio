@@ -211,14 +211,20 @@ public class AdministrativeUnitExcelReportPresenter extends BaseExcelReportPrese
 			List<String> accessList = new ArrayList<>();
 			if(currentUser.hasCollectionReadAccess()) {
 				accessList.add(Role.READ);
-			} else if(currentUser.hasCollectionWriteAccess()) {
+			}
+			if(currentUser.hasCollectionWriteAccess()) {
 				accessList.add(Role.WRITE);
-			} else if(currentUser.hasCollectionDeleteAccess()) {
+			}
+			if(currentUser.hasCollectionDeleteAccess()) {
 				accessList.add(Role.DELETE);
 			}
 
 			if(!accessList.isEmpty()) {
 				updateAcces(currentUser.getTitle(), userAccessHashMap, accessList);
+			}
+
+			if (!userList.contains(currentUser.getTitle())) {
+				userList.add(currentUser.getTitle());
 			}
 		}
 
