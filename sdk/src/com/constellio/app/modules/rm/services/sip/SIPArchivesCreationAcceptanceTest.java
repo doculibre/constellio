@@ -133,7 +133,7 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 
 		File sipFile = buildSIPWithDocuments("theEmailId");
 		System.out.println(sipFile.getAbsolutePath());
-		unzipInDownloadFolder(sipFile, "testSIP");
+//		unzipInDownloadFolder(sipFile, "testSIP");
 
 		assertThat(sipFile).is(zipFileWithSameContentExceptingFiles(getTestResourceFile("sip2.zip")));
 
@@ -263,7 +263,7 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 
 		File tempFolder1 = new File(tempFolder, "events-001.zip");
 
-		assertThat(tempFolder1).is(zipFileWithSameContentExceptingFiles(getTestResourceFile("events-001.zip")));
+		assertThat(tempFolder1).is(zipFileWithSameContentExceptingFiles(getTestResourceFile("events1.zip")));
 	}
 
 
