@@ -44,6 +44,12 @@ public class UserFolder extends RecordWrapper {
 		return this;
 	}
 
+	@Override
+	public UserFolder setTitle(String title) {
+		super.setTitle(title);
+		return this;
+	}
+
 	public LocalDateTime getFormCreatedOn() {
 		return get(FORM_CREATED_ON);
 	}

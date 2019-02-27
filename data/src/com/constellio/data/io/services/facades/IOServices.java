@@ -105,6 +105,11 @@ public class IOServices {
 		return streamsServices.newFileReader(file, uniqueIdWith(name));
 	}
 
+
+	public BufferedWriter newBufferedFileWriter(File file, String name) {
+		return streamsServices.newFileWriter(file, uniqueIdWith(name));
+	}
+
 	public BufferedReader newFileReader(File file, String name) {
 		return streamsServices.newFileReader(file, uniqueIdWith(name));
 	}

@@ -15,10 +15,15 @@ import com.constellio.app.services.sip.zip.SIPZipWriter;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
 import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.data.io.services.zip.ZipService;
+import com.constellio.data.io.services.zip.ZipServiceException;
+import com.constellio.data.utils.KeySetMap;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.Capsule;
 import com.constellio.model.entities.records.wrappers.Collection;
+import com.constellio.model.entities.records.wrappers.EmailToSend;
 import com.constellio.model.entities.records.wrappers.Facet;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.Report;
@@ -33,6 +38,7 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
+import com.constellio.model.services.users.UserPhotosServices;
 import org.apache.commons.io.IOUtils;
 import org.jdom2.Document;
 import org.jdom2.output.Format;
@@ -42,6 +48,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Arrays;
 import java.util.Locale;
 
 import static com.constellio.app.services.schemasDisplay.SchemasDisplayManager.SCHEMAS_DISPLAY_CONFIG;
@@ -49,10 +56,14 @@ import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
 import static com.constellio.model.services.search.SearchBoostManager.SEARCH_BOOST_CONFIG;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.security.roles.RolesManager.ROLES_CONFIG;
+import static java.util.Objects.requireNonNull;
 
 public class CollectionInfosSIPWriter {
 
 	public static final String READ_EMAIL_TEMPLATE_RESOURCE_NAME = "CollectionInfosSIPWriter-ReadEmailTemplate";
+
+	public static final String EXPORT_FOLDER_AS_ZIP_TEMP_FILE_RESOURCE_NAME = "CollectionInfosSIPWriter-ExportFolderAsZipTempFile";
+	public static final String EXPORT_FOLDER_AS_ZIP_TEMP_FILE_INPUTSTREAM_RESOURCE_NAME = "CollectionInfosSIPWriter-ExportFolderAsZipTempFileInputStream";
 
 	String collection;
 	AppLayerFactory appLayerFactory;
@@ -67,6 +78,8 @@ public class CollectionInfosSIPWriter {
 	ConfigManager configManager;
 	IOServices ioServices;
 	ProgressInfo progressInfo;
+	UserPhotosServices userPhotosServices;
+	ZipService zipService;
 
 	public CollectionInfosSIPWriter(String collection, AppLayerFactory appLayerFactory, SIPZipWriter writer,
 									Locale locale, ProgressInfo progressInfo)
@@ -77,7 +90,7 @@ public class CollectionInfosSIPWriter {
 		this.writer = writer;
 		this.types = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
 		this.recordSIPWriter = new RecordSIPWriter(appLayerFactory, writer,
-				new DefaultRecordZipPathProvider(collection, appLayerFactory.getModelLayerFactory()), locale);
+				new DefaultRecordZipPathProvider(appLayerFactory.getModelLayerFactory()), locale);
 
 		this.recordSIPWriter.setIncludeRelatedMaterials(false);
 		this.recordSIPWriter.setIncludeArchiveDescriptionMetadatasFromODDs(true);
@@ -88,7 +101,13 @@ public class CollectionInfosSIPWriter {
 		this.configManager = appLayerFactory.getModelLayerFactory().getDataLayerFactory().getConfigManager();
 		this.ioServices = appLayerFactory.getModelLayerFactory().getIOServicesFactory().newIOServices();
 		this.progressInfo = progressInfo;
+		this.userPhotosServices = appLayerFactory.getModelLayerFactory().newUserPhotosServices();
+		this.zipService = appLayerFactory.getModelLayerFactory().getIOServicesFactory().newZipService();
 
+	}
+
+	public KeySetMap<String, String> getExportedRecords() {
+		return recordSIPWriter.getSavedRecords();
 	}
 
 	public CollectionInfosSIPWriter setIncludeContents(boolean includeContents) {
@@ -99,12 +118,16 @@ public class CollectionInfosSIPWriter {
 	public void exportCollectionConfigs() throws IOException {
 
 		if (Collection.SYSTEM_COLLECTION.equals(collection)) {
+			exportRecordsInSchemaTypesDivision(Collection.SCHEMA_TYPE);
 			exportRecordsInSchemaTypesDivision(UserCredential.SCHEMA_TYPE);
 			exportRecordsInSchemaTypesDivision(GlobalGroup.SCHEMA_TYPE);
+			exportRecordsInSchemaTypesDivision(EmailToSend.SCHEMA_TYPE);
 			exportSystemSettings();
 
 		} else {
 
+			exportRecordsInSchemaTypesDivision(Collection.SCHEMA_TYPE);
+			exportRecordsInSchemaTypesDivision(Capsule.SCHEMA_TYPE);
 			exportRecordsInSchemaTypesDivision(User.SCHEMA_TYPE);
 			exportRecordsInSchemaTypesDivision(Group.SCHEMA_TYPE);
 			exportRecordsInSchemaTypesDivision(Printable.SCHEMA_TYPE);
@@ -134,6 +157,13 @@ public class CollectionInfosSIPWriter {
 			writeJDomDocument(document, "/data/collectionSettings/settings.xml");
 
 		} catch (ValidationException e) {
+			throw new RuntimeException(e);
+		}
+
+		try {
+			exportFolderZip("/data/photos.zip", userPhotosServices.getPhotosFolder());
+			exportFolderZip("/data/userLogs.zip", userPhotosServices.getUserLogsFolder());
+		} catch (ZipServiceException e) {
 			throw new RuntimeException(e);
 		}
 
@@ -169,6 +199,32 @@ public class CollectionInfosSIPWriter {
 
 	}
 
+
+	private void exportFolderZip(String sipPath, File folder) throws IOException, ZipServiceException {
+
+		if (folder.exists() && folder.listFiles() != null) {
+
+			File tempFile = ioServices.newTemporaryFile(EXPORT_FOLDER_AS_ZIP_TEMP_FILE_RESOURCE_NAME);
+			OutputStream outputStream = null;
+			InputStream inputStream = null;
+			try {
+
+				zipService.zip(tempFile, Arrays.asList(requireNonNull(folder.listFiles())));
+
+				inputStream = ioServices.newBufferedFileInputStream(tempFile, EXPORT_FOLDER_AS_ZIP_TEMP_FILE_INPUTSTREAM_RESOURCE_NAME);
+				outputStream = writer.newZipFileOutputStream(sipPath);
+				ioServices.copy(inputStream, outputStream);
+
+			} finally {
+				IOUtils.closeQuietly(inputStream);
+				IOUtils.closeQuietly(outputStream);
+				ioServices.deleteQuietly(tempFile);
+			}
+		}
+
+	}
+
+
 	private void exportEmailTemplates() throws IOException {
 		File configFolder = appLayerFactory.getModelLayerFactory().getDataLayerFactory()
 				.getDataLayerConfiguration().getSettingsFileSystemBaseFolder();
@@ -199,11 +255,11 @@ public class CollectionInfosSIPWriter {
 
 	}
 
-	private void writeJDomDocument(Document document, String s) throws IOException {
+	private void writeJDomDocument(Document document, String sipPath) throws IOException {
 		XMLOutputter xmlOutput = new XMLOutputter();
 		xmlOutput.setFormat(Format.getPrettyFormat());
 
-		OutputStream outputStream = writer.newZipFileOutputStream(s);
+		OutputStream outputStream = writer.newZipFileOutputStream(sipPath);
 		try {
 			xmlOutput.output(document, outputStream);
 
