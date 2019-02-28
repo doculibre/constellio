@@ -30,6 +30,12 @@ public class LangUtils {
 		return value != null ? value : defaultValue;
 	}
 
+
+	public static String toNullableString(Object o) {
+		return o == null ? null : o.toString();
+	}
+
+
 	public static Comparator<Entry<String, String>> mapStringStringEntryValueComparator() {
 		return new Comparator<Entry<String, String>>() {
 

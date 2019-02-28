@@ -42,6 +42,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.constellio.data.utils.LangUtils.toNullableString;
+
 public class RMRecordExportExtension extends RecordExportExtension {
 
 	String collection;
@@ -228,26 +230,25 @@ public class RMRecordExportExtension extends RecordExportExtension {
 	public static final String LEFT_PARENS = "leftParens";
 	public static final String RIGHT_PARENS = "rightParens";
 	public static final String BOOLEAN_OPERATOR = "booleanOperator";
-	public static final String RELATIVE_CRITERIA = "relativeCriteria";
 
 	private Map<String, String> writeSavedSearchCriterion(Criterion criterion) {
 		Map<String, String> map = new HashMap<>();
 
 		map.put(SCHEMA_TYPE, criterion.getSchemaType());
 		map.put(METADATA_CODE, criterion.getMetadataCode());
-		map.put(METADATA_TYPE, criterion.getMetadataType().toString());
+		map.put(METADATA_TYPE, toNullableString(criterion.getMetadataType()));
 		map.put(ENUM_CLASS_NAME, criterion.getEnumClassName());
-		map.put(SEARCH_OPERATOR, criterion.getSearchOperator().toString());
-		//		map.put(VALUE,schemaType);
-		//		map.put(END_VALUE,schemaType);
-		//		map.put(LEFT_PARENS,schemaType);
-		//		map.put(RIGHT_PARENS,schemaType);
-		//		map.put(BOOLEAN_OPERATOR,schemaType);
-		//		map.put(RELATIVE_CRITERIA,schemaType);
+		map.put(SEARCH_OPERATOR, toNullableString(criterion.getSearchOperator()));
+		map.put(VALUE, toNullableString(criterion.getValue()));
+		map.put(END_VALUE, toNullableString(criterion.getEndValue()));
+		map.put(LEFT_PARENS, Boolean.toString(criterion.isLeftParens()));
+		map.put(RIGHT_PARENS, Boolean.toString(criterion.isRightParens()));
+		map.put(BOOLEAN_OPERATOR, toNullableString(criterion.getBooleanOperator()));
 
 
 		return map;
 	}
+
 
 	private void manageReport(OnWriteRecordParams params) {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
@@ -455,6 +456,10 @@ public class RMRecordExportExtension extends RecordExportExtension {
 			}
 		}
 
+		map.put(RetentionRuleImportExtension.ACTIVE_DATE_METADATA, copyRetentionRule.getActiveDateMetadata());
+		map.put(RetentionRuleImportExtension.SEMI_ACTIVE_DATE_METADATA, copyRetentionRule.getSemiActiveDateMetadata());
+		map.put(RetentionRuleImportExtension.SEMI_ACTIVE_YEAR_TYPE, copyRetentionRule.getSemiActiveYearTypeId());
+		map.put(RetentionRuleImportExtension.INACTIVE_YEAR_TYPE, copyRetentionRule.getInactiveYearTypeId());
 
 		return map;
 	}
