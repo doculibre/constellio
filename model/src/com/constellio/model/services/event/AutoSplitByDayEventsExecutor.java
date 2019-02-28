@@ -9,6 +9,8 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.apache.log4j.Logger;
+import org.apache.log4j.Priority;
 import org.joda.time.LocalDateTime;
 
 import java.io.File;
@@ -27,6 +29,7 @@ public class AutoSplitByDayEventsExecutor {
 	KeySetMap<String, String> savedRecords;
 	KeySetMap<String, String> allWritenEventBySchema;
 	int numberOfEventWrittenInFile;
+	Logger logger = Logger.getLogger(AutoSplitByDayEventsExecutor.class);
 
 	public AutoSplitByDayEventsExecutor(File folder, ModelLayerFactory modelLayerFactory) {
 		this.folder = folder;
@@ -73,12 +76,15 @@ public class AutoSplitByDayEventsExecutor {
 			LocalDateTime oldLocalDateTime = null;
 			LocalDateTime localDateTime;
 
+			logger.log(Priority.INFO, "searchResponseIterator.number : " +  searchResponseIterator.getNumFound());
+
 			while (searchResponseIterator.hasNext()) {
 				currentEvent = searchResponseIterator.next();
 				localDateTime = currentEvent.get(Schemas.CREATED_ON);
 
 				if (!isSameDay(currentEvent, oldLocalDateTime)) {
 					closeEventXMLWriter();
+					logger.log(Priority.INFO, "close event xml writer 1");
 					if(oldLocalDateTime != null && eventXMLWriter != null) {
 						fireDateProcessedListener(oldLocalDateTime, eventXMLWriter.getXMLFile());
 					}
@@ -95,8 +101,9 @@ public class AutoSplitByDayEventsExecutor {
 		}catch(Throwable t) {
 			throw new RuntimeException("error while writing events", t);
 		} finally {
+			logger.log(Priority.INFO, "close event xml writer 2");
 			closeEventXMLWriter();
-			if(currentEvent != null) {
+			if(currentEvent != null && eventXMLWriter != null && !eventXMLWriter.isClose()) {
 				LocalDateTime localDateTime = currentEvent.get(Schemas.CREATED_ON);
 				fireDateProcessedListener(localDateTime, eventXMLWriter.getXMLFile());
 			}
@@ -104,7 +111,7 @@ public class AutoSplitByDayEventsExecutor {
 	}
 
 	private void closeEventXMLWriter() {
-		if(eventXMLWriter != null) {
+		if(eventXMLWriter != null && !eventXMLWriter.isClose()) {
 			allWritenEventBySchema.addAll(eventXMLWriter.getAllEventWrittenEventsBySchema());
 			eventXMLWriter.close();
 		}

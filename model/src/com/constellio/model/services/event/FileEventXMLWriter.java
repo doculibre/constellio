@@ -10,6 +10,8 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.log4j.Logger;
+import org.apache.log4j.Priority;
 
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
@@ -29,6 +31,9 @@ public class FileEventXMLWriter implements EventXMLWriter {
 	MetadataSchemasManager metadataSchemasManager;
 	KeySetMap<String, String> allWritenEventBySchema;
 	int numberOfEventWriten = 0;
+	boolean isClose;
+
+	Logger logger = Logger.getLogger(FileEventXMLWriter.class);
 
 	public FileEventXMLWriter(File file, ModelLayerFactory modelayerFactory) {
 			this.file = file;
@@ -37,6 +42,7 @@ public class FileEventXMLWriter implements EventXMLWriter {
 			this.metadataSchemasManager = modelayerFactory.getMetadataSchemasManager();
 			this.allWritenEventBySchema = new KeySetMap<>();
 		isFirstWrite = true;
+		isClose = false;
 		numberOfEventWriten = 0;
 	}
 
@@ -80,6 +86,9 @@ public class FileEventXMLWriter implements EventXMLWriter {
 			xmlStreamWriter.writeEndElement();
 			allWritenEventBySchema.add(Event.SCHEMA_TYPE, event.getId());
 			this.numberOfEventWriten++;
+
+			logger.log(Priority.INFO, "Element written : " + event.getId() + file.getAbsoluteFile());
+			logger.log(Priority.INFO, "Element number : " + numberOfEventWriten + file.getAbsoluteFile());
 		} catch (XMLStreamException xmlStreamException) {
 			throw new RuntimeException("Stream exception", xmlStreamException);
 		}
@@ -96,6 +105,7 @@ public class FileEventXMLWriter implements EventXMLWriter {
 			return;
 		}
 
+		logger.log(Priority.INFO, "initializeXmlFile : " + file.getAbsoluteFile());
 		XMLOutputFactory factory = XMLOutputFactory.newInstance();
 		try {
 			isFirstWrite = false;
@@ -107,6 +117,8 @@ public class FileEventXMLWriter implements EventXMLWriter {
 			xmlStreamWriter = factory.createXMLStreamWriter(fileOutputStream, EventService.ENCODING);
 			xmlStreamWriter.writeStartDocument(EventService.ENCODING, "1.0");
 			xmlStreamWriter.writeStartElement(EventService.EVENTS_XML_TAG);
+
+			logger.log(Priority.INFO, "writeStartDocument : " + file.getAbsoluteFile());
 		} catch (XMLStreamException xmlStreamException) {
 			throw new RuntimeException("ioServices", xmlStreamException);
 		} catch (FileNotFoundException file) {
@@ -116,15 +128,18 @@ public class FileEventXMLWriter implements EventXMLWriter {
 		}
 	}
 
+	public boolean isClose() {
+		return isClose;
+	}
+
 	public void closeXMLFile() {
 		try {
-			if (xmlStreamWriter != null && !isFirstWrite) {
-				if(numberOfEventWriten > 0) {
-					xmlStreamWriter.writeEndElement();
-					xmlStreamWriter.writeEndDocument();
-				}
+			if (xmlStreamWriter != null && !isFirstWrite && !isClose) {
+				logger.log(Priority.INFO, "write end element and end document numberofelemementwritten: " + numberOfEventWriten +  ": " + file.getAbsoluteFile());
+				xmlStreamWriter.writeEndElement();
+				xmlStreamWriter.writeEndDocument();
 				xmlStreamWriter.flush();
-
+				isClose = true;
 				xmlStreamWriter.close();
 			}
 		} catch (XMLStreamException e) {
