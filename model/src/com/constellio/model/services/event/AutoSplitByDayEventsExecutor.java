@@ -1,6 +1,7 @@
 package com.constellio.model.services.event;
 
 import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
+import com.constellio.data.utils.KeySetMap;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.schemas.Schemas;
@@ -23,10 +24,16 @@ public class AutoSplitByDayEventsExecutor {
 	EventXMLWriter eventXMLWriter;
 	List<DayProcessedListener> dayProcessedListenerList;
 
+	KeySetMap<String, String> savedRecords;
+	KeySetMap<String, String> allWritenEventBySchema;
+	int numberOfEventWrittenInFile;
+
 	public AutoSplitByDayEventsExecutor(File folder, ModelLayerFactory modelLayerFactory) {
 		this.folder = folder;
 		this.modelLayerFactory = modelLayerFactory;
 		this.dayProcessedListenerList = new ArrayList<>();
+		this.allWritenEventBySchema = new KeySetMap<>();
+		numberOfEventWrittenInFile = 0;
 	}
 
 	public static LogicalSearchQuery getAllEventsQuery(String collection) {
@@ -35,11 +42,16 @@ public class AutoSplitByDayEventsExecutor {
 				.returnAll();
 		logicalSearchQuery.setCondition(logicalSearchCondition);
 
+
 		return logicalSearchQuery;
 	}
 
 	public void wrtieAllEvents(String collection) {
 		writeEvents(getAllEventsQuery(collection));
+	}
+
+	public KeySetMap<String, String> getSavedRecords() {
+		return allWritenEventBySchema;
 	}
 
 	/**
@@ -76,9 +88,12 @@ public class AutoSplitByDayEventsExecutor {
 				}
 
 				eventXMLWriter.write(currentEvent);
+				numberOfEventWrittenInFile++;
 
 				oldLocalDateTime = localDateTime;
 			}
+		}catch(Throwable t) {
+			throw new RuntimeException("error while writing events", t);
 		} finally {
 			closeEventXMLWriter();
 			if(currentEvent != null) {
@@ -90,6 +105,7 @@ public class AutoSplitByDayEventsExecutor {
 
 	private void closeEventXMLWriter() {
 		if(eventXMLWriter != null) {
+			allWritenEventBySchema.addAll(eventXMLWriter.getAllEventWrittenEventsBySchema());
 			eventXMLWriter.close();
 		}
 	}
@@ -130,10 +146,12 @@ public class AutoSplitByDayEventsExecutor {
 	}
 
 	public void fireDateProcessedListener(LocalDateTime localDateTime, File file) {
-		DayProcessedEvent dayProcessedEvent = new DayProcessedEvent(localDateTime, file, getPathFromDateTime(localDateTime));
+		DayProcessedEvent dayProcessedEvent = new DayProcessedEvent(localDateTime, file, getPathFromDateTime(localDateTime), numberOfEventWrittenInFile);
 
 		for(DayProcessedListener dayProcessedListener : dayProcessedListenerList) {
 			dayProcessedListener.lastDateProcessed(dayProcessedEvent);
 		}
+
+		numberOfEventWrittenInFile = 0;
 	}
 }

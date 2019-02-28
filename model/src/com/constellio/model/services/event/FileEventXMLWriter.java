@@ -1,6 +1,7 @@
 package com.constellio.model.services.event;
 
 import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.data.utils.KeySetMap;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.schemas.Metadata;
@@ -26,13 +27,17 @@ public class FileEventXMLWriter implements EventXMLWriter {
 	OutputStream fileOutputStream;
 	XMLStreamWriter xmlStreamWriter;
 	MetadataSchemasManager metadataSchemasManager;
+	KeySetMap<String, String> allWritenEventBySchema;
+	int numberOfEventWriten = 0;
 
 	public FileEventXMLWriter(File file, ModelLayerFactory modelayerFactory) {
 			this.file = file;
 			this.modelLayerFactory = modelayerFactory;
 			this.ioServices = modelayerFactory.getIOServicesFactory().newIOServices();
 			this.metadataSchemasManager = modelayerFactory.getMetadataSchemasManager();
+			this.allWritenEventBySchema = new KeySetMap<>();
 		isFirstWrite = true;
+		numberOfEventWriten = 0;
 	}
 
 	private boolean isRecordAnEvent(Record event) {
@@ -73,6 +78,8 @@ public class FileEventXMLWriter implements EventXMLWriter {
 			}
 
 			xmlStreamWriter.writeEndElement();
+			allWritenEventBySchema.add(Event.SCHEMA_TYPE, event.getId());
+			this.numberOfEventWriten++;
 		} catch (XMLStreamException xmlStreamException) {
 			throw new RuntimeException("Stream exception", xmlStreamException);
 		}
@@ -112,9 +119,10 @@ public class FileEventXMLWriter implements EventXMLWriter {
 	public void closeXMLFile() {
 		try {
 			if (xmlStreamWriter != null && !isFirstWrite) {
-
-				xmlStreamWriter.writeEndElement();
-				xmlStreamWriter.writeEndDocument();
+				if(numberOfEventWriten > 0) {
+					xmlStreamWriter.writeEndElement();
+					xmlStreamWriter.writeEndDocument();
+				}
 				xmlStreamWriter.flush();
 
 				xmlStreamWriter.close();
@@ -134,5 +142,10 @@ public class FileEventXMLWriter implements EventXMLWriter {
 		if(!isFirstWrite) {
 			closeXMLFile();
 		}
+	}
+
+	@Override
+	public KeySetMap<String, String> getAllEventWrittenEventsBySchema() {
+		return allWritenEventBySchema;
 	}
 }

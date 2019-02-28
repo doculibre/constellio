@@ -34,6 +34,6 @@ public class RMSIPUtils {
 	}
 
 	private static String addStorageSpaceToCode(String code) {
-		return "storageSpace-" + code;
+		return StorageSpace.SCHEMA_TYPE + "-" + code;
 	}
 }

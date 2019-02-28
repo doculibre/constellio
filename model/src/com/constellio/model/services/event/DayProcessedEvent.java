@@ -8,11 +8,13 @@ public class DayProcessedEvent {
 	private LocalDateTime localDateTime;
 	private File file;
 	private String pathToFile;
+	private int numberOfEvents;
 
-	public DayProcessedEvent(LocalDateTime localDateTime, File file, String pathToFile) {
+	public DayProcessedEvent(LocalDateTime localDateTime, File file, String pathToFile, int numberOfEvents) {
 		this.localDateTime = localDateTime;
 		this.file = file;
 		this.pathToFile = pathToFile;
+		this.numberOfEvents = numberOfEvents;
 	}
 
 	public File getFile() {
@@ -25,5 +27,9 @@ public class DayProcessedEvent {
 
 	public String getPathToFile() {
 		return pathToFile;
+	}
+
+	public int getNumberOfEvents() {
+		return numberOfEvents;
 	}
 }
