@@ -1,5 +1,24 @@
 package com.constellio.app.modules.rm.ui.pages.document;
 
+import static com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration.modalDialog;
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.io.output.ByteArrayOutputStream;
+import org.apache.commons.lang3.StringUtils;
+import org.vaadin.dialogs.ConfirmDialog;
+
 import com.constellio.app.api.extensions.params.DocumentFolderBreadCrumbParams;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
@@ -14,6 +33,7 @@ import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.ui.components.fields.StarredFieldImpl;
+import com.constellio.app.services.migrations.VersionsComparator;
 import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.MetadataVO;
@@ -35,7 +55,9 @@ import com.constellio.app.ui.framework.components.RecordDisplay;
 import com.constellio.app.ui.framework.components.ReportTabButton;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
+import com.constellio.app.ui.framework.components.diff.DiffPanel;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
+import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.components.table.ContentVersionVOTable;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.components.table.columns.EventVOTableColumnsManager;
@@ -65,6 +87,7 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomComponent;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
+import com.vaadin.ui.Notification;
 import com.vaadin.ui.PasswordField;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.Table;
@@ -76,22 +99,6 @@ import com.vaadin.ui.Upload.SucceededListener;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
-import org.apache.commons.io.output.ByteArrayOutputStream;
-import org.apache.commons.lang3.StringUtils;
-import org.vaadin.dialogs.ConfirmDialog;
-
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-import static com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration.modalDialog;
-import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocumentView, DropHandler {
 
@@ -216,6 +223,11 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 			}
 
 			@Override
+			protected boolean isSelectionPossible(ContentVersionVO contentVersionVO) {
+				return true;
+			}
+
+			@Override
 			protected boolean isDeleteColumn() {
 				return presenter.isDeleteContentVersionPossible();
 			}
@@ -273,6 +285,37 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 	private Component buildVersionTab() {
 		final VerticalLayout tabLayout = new VerticalLayout();
+		I18NHorizontalLayout buttonsLayout = new I18NHorizontalLayout();
+		buttonsLayout.setSpacing(true);
+		
+		WindowButton diffButton = new WindowButton("≠ Differences", "Differences between versions", WindowConfiguration.modalDialog("90%", "90%")) {
+			@Override
+			public void buttonClick(ClickEvent event) {
+				HashSet<ContentVersionVO> selectedContentVersions = versionTable.getSelectedContentVersions();
+				if (selectedContentVersions.size() != 2) {
+					Notification.show("You need to select two versions");
+				} else {
+					super.buttonClick(event);
+				}
+			}
+
+			@Override
+			protected Component buildWindowContent() {
+				List<ContentVersionVO> selectedContentVersions = new ArrayList<>(versionTable.getSelectedContentVersions());
+				Collections.sort(selectedContentVersions, new Comparator<ContentVersionVO>() {
+					@Override
+					public int compare(ContentVersionVO o1, ContentVersionVO o2) {
+						return new VersionsComparator().compare(o1.getVersion(), o2.getVersion());
+					}
+					
+				});
+				ContentVersionVO contentVersionVO1 = selectedContentVersions.get(0);
+				ContentVersionVO contentVersionVO2 = selectedContentVersions.get(1);
+				return new DiffPanel(contentVersionVO1, contentVersionVO2);
+			}
+		};
+		diffButton.addStyleName(ValoTheme.BUTTON_LINK);
+		
 		deleteSelectedVersions = new ConfirmDialogButton($("delete.icon") + " " + $("DisplayDocumentView.deleteSelectedVersionsLabel")) {
 			@Override
 			protected void confirmButtonClick(ConfirmDialog dialog) {
@@ -300,7 +343,10 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		};
 		deleteSelectedVersions.setEnabled(deleteSelectedVersions.isEnabled());
 		deleteSelectedVersions.addStyleName(ValoTheme.BUTTON_LINK);
-		tabLayout.addComponents(deleteSelectedVersions, versionTable);
+		
+		buttonsLayout.addComponents(diffButton, deleteSelectedVersions);
+		
+		tabLayout.addComponents(buttonsLayout, versionTable);
 		return tabLayout;
 	}
 
