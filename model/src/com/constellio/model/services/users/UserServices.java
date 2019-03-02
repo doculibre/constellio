@@ -861,6 +861,10 @@ public class UserServices {
 		return userCredentialsManager.getUserCredentials();
 	}
 
+	public List<GlobalGroup> getAllGlobalGroups() {
+		return globalGroupsManager.getAllGroups();
+	}
+
 	public List<Group> getChildrenOfGroupInCollection(String groupParentCode, String collection) {
 		List<Group> groups = new ArrayList<>();
 		String parentId = getGroupIdInCollection(groupParentCode, collection);

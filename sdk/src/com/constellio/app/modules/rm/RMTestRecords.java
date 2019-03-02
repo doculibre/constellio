@@ -93,7 +93,7 @@ import static java.util.Locale.ENGLISH;
 
 public class RMTestRecords {
 
-	CopyRetentionRuleBuilder copyBuilder = CopyRetentionRuleBuilder.UUID();
+	public CopyRetentionRuleBuilder copyBuilder = CopyRetentionRuleBuilder.UUID();
 
 	public final String categoryId_Z = "categoryId_Z";
 	public final String categoryId_Z100 = "categoryId_Z100";

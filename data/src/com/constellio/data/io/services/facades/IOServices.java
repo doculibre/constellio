@@ -23,6 +23,7 @@ import org.apache.commons.io.filefilter.IOFileFilter;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
@@ -104,6 +105,11 @@ public class IOServices {
 		return streamsServices.newFileReader(file, uniqueIdWith(name));
 	}
 
+
+	public BufferedWriter newBufferedFileWriter(File file, String name) {
+		return streamsServices.newFileWriter(file, uniqueIdWith(name));
+	}
+
 	public BufferedReader newFileReader(File file, String name) {
 		return streamsServices.newFileReader(file, uniqueIdWith(name));
 	}
@@ -135,6 +141,26 @@ public class IOServices {
 			throws FileNotFoundException {
 		return streamsServices.newBufferedFileInputStreamWithFileDeleteOnClose(file, uniqueIdWith(name));
 	}
+
+
+	public InputStream newBufferedFileInputStreamWithFileClosingAction(File file, String name,
+																	   Runnable runnable)
+			throws FileNotFoundException {
+		return streamsServices.newBufferedFileInputStreamWithFileClosingAction(file, uniqueIdWith(name), runnable);
+	}
+
+	public OutputStream newBufferedFileOutputStreamWithFileClosingAction(File file, String name,
+																		 Runnable runnable)
+			throws FileNotFoundException {
+		return streamsServices.newBufferedFileOutputStreamWithFileClosingAction(file, uniqueIdWith(name), runnable);
+	}
+
+	public BufferedWriter newBufferedFileWriterWithFileClosingAction(File file, String name,
+																	 Runnable runnable)
+			throws IOException {
+		return streamsServices.newBufferedFileWriterWithFileClosingAction(file, uniqueIdWith(name), runnable);
+	}
+
 
 	public BufferedInputStream newBufferedFileInputStreamWithoutExpectableFileNotFoundException(File file,
 																								String name) {

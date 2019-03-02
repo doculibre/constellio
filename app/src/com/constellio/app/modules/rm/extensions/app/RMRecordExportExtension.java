@@ -1,20 +1,14 @@
 package com.constellio.app.modules.rm.extensions.app;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.lang3.NotImplementedException;
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.api.extensions.RecordExportExtension;
+import com.constellio.app.api.extensions.params.ConvertStructureToMapParams;
 import com.constellio.app.api.extensions.params.OnWriteRecordParams;
 import com.constellio.app.modules.rm.extensions.imports.DecommissioningListImportExtension;
 import com.constellio.app.modules.rm.extensions.imports.ReportImportExtension;
 import com.constellio.app.modules.rm.extensions.imports.RetentionRuleImportExtension;
 import com.constellio.app.modules.rm.extensions.imports.TaskImportExtension;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
+import com.constellio.app.modules.rm.model.CopyRetentionRuleInRule;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.DecommissioningListType;
 import com.constellio.app.modules.rm.model.enums.OriginStatus;
@@ -27,6 +21,7 @@ import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetail;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListValidation;
+import com.constellio.app.modules.rm.wrappers.structures.RetentionRuleDocumentType;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollower;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskReminder;
@@ -36,8 +31,18 @@ import com.constellio.model.entities.records.wrappers.Report;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.structure.ReportedMetadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.ModifiableStructure;
 import com.constellio.model.services.contents.UserSerializedContentFactory;
 import com.constellio.model.services.records.StructureImportContent;
+import org.apache.commons.lang3.NotImplementedException;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.data.utils.LangUtils.toNullableString;
 
 public class RMRecordExportExtension extends RecordExportExtension {
 
@@ -49,6 +54,54 @@ public class RMRecordExportExtension extends RecordExportExtension {
 	public RMRecordExportExtension(String collection, AppLayerFactory appLayerFactory) {
 		this.collection = collection;
 		this.appLayerFactory = appLayerFactory;
+	}
+
+	@Override
+	public Map<String, Object> convertStructureToMap(ConvertStructureToMapParams params) {
+
+		ModifiableStructure structure = params.getStructure();
+
+		if (structure instanceof CopyRetentionRule) {
+			RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+
+			String schemaType = Folder.SCHEMA_TYPE;
+
+			return (Map) writeCopyRetentionRule(rm, (CopyRetentionRule) structure, schemaType);
+		}
+
+		if (structure instanceof CopyRetentionRuleInRule) {
+			RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+
+			String schemaType = Folder.SCHEMA_TYPE;
+
+			return (Map) writeCopyRetentionRule(rm, ((CopyRetentionRuleInRule) structure).getCopyRetentionRule(), schemaType);
+		}
+
+		if (structure instanceof RetentionRuleDocumentType) {
+			return (Map) writeRetentionRuleDocumentType(((RetentionRuleDocumentType) structure));
+		}
+
+		if (structure instanceof DecomListFolderDetail) {
+			return (Map) writeDecomListFolderDetail(((DecomListFolderDetail) structure));
+		}
+
+		if (structure instanceof DecomListContainerDetail) {
+			return (Map) writedecomListContainerDetail(((DecomListContainerDetail) structure));
+		}
+
+		if (structure instanceof DecomListValidation) {
+			return (Map) writeDecomListValidation(((DecomListValidation) structure));
+		}
+
+		if (structure instanceof TaskFollower) {
+			return (Map) writeTaskFollowers(((TaskFollower) structure));
+		}
+
+		if (structure instanceof TaskReminder) {
+			return (Map) writeTaskReminder(((TaskReminder) structure));
+		}
+
+		return super.convertStructureToMap(params);
 	}
 
 	@Override
@@ -177,26 +230,25 @@ public class RMRecordExportExtension extends RecordExportExtension {
 	public static final String LEFT_PARENS = "leftParens";
 	public static final String RIGHT_PARENS = "rightParens";
 	public static final String BOOLEAN_OPERATOR = "booleanOperator";
-	public static final String RELATIVE_CRITERIA = "relativeCriteria";
 
 	private Map<String, String> writeSavedSearchCriterion(Criterion criterion) {
 		Map<String, String> map = new HashMap<>();
 
 		map.put(SCHEMA_TYPE, criterion.getSchemaType());
 		map.put(METADATA_CODE, criterion.getMetadataCode());
-		map.put(METADATA_TYPE, criterion.getMetadataType().toString());
+		map.put(METADATA_TYPE, toNullableString(criterion.getMetadataType()));
 		map.put(ENUM_CLASS_NAME, criterion.getEnumClassName());
-		map.put(SEARCH_OPERATOR, criterion.getSearchOperator().toString());
-		//		map.put(VALUE,schemaType);
-		//		map.put(END_VALUE,schemaType);
-		//		map.put(LEFT_PARENS,schemaType);
-		//		map.put(RIGHT_PARENS,schemaType);
-		//		map.put(BOOLEAN_OPERATOR,schemaType);
-		//		map.put(RELATIVE_CRITERIA,schemaType);
+		map.put(SEARCH_OPERATOR, toNullableString(criterion.getSearchOperator()));
+		map.put(VALUE, toNullableString(criterion.getValue()));
+		map.put(END_VALUE, toNullableString(criterion.getEndValue()));
+		map.put(LEFT_PARENS, Boolean.toString(criterion.isLeftParens()));
+		map.put(RIGHT_PARENS, Boolean.toString(criterion.isRightParens()));
+		map.put(BOOLEAN_OPERATOR, toNullableString(criterion.getBooleanOperator()));
 
 
 		return map;
 	}
+
 
 	private void manageReport(OnWriteRecordParams params) {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
@@ -404,6 +456,23 @@ public class RMRecordExportExtension extends RecordExportExtension {
 			}
 		}
 
+		map.put(RetentionRuleImportExtension.ACTIVE_DATE_METADATA, copyRetentionRule.getActiveDateMetadata());
+		map.put(RetentionRuleImportExtension.SEMI_ACTIVE_DATE_METADATA, copyRetentionRule.getSemiActiveDateMetadata());
+		map.put(RetentionRuleImportExtension.SEMI_ACTIVE_YEAR_TYPE, copyRetentionRule.getSemiActiveYearTypeId());
+		map.put(RetentionRuleImportExtension.INACTIVE_YEAR_TYPE, copyRetentionRule.getInactiveYearTypeId());
+
+		return map;
+	}
+
+
+	private Map<String, String> writeRetentionRuleDocumentType(RetentionRuleDocumentType type) {
+		Map<String, String> map = new HashMap<>();
+		map.put(RetentionRuleImportExtension.TYPE_ID, type.getDocumentTypeId());
+		if (type.getDisposalType() != null) {
+			map.put(RetentionRuleImportExtension.INACTIVE_DISPOSAL_TYPE, type.getDisposalType().getCode());
+		} else {
+			map.put(RetentionRuleImportExtension.INACTIVE_DISPOSAL_TYPE, "");
+		}
 
 		return map;
 	}

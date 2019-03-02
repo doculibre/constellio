@@ -1,14 +1,13 @@
 package com.constellio.app.modules.rm.services.sip;
 
-import com.constellio.app.entities.modules.ProgressInfo;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.services.sip.data.intelligid.ConstellioSIPObjectsProvider;
-import com.constellio.app.modules.rm.services.sip.filter.SIPFilter;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.Email;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.SIParchive;
+import com.constellio.app.services.sip.bagInfo.DefaultSIPZipBagInfoFactory;
+import com.constellio.app.services.sip.zip.FileSIPZipWriter;
 import com.constellio.app.ui.framework.buttons.SIPButton.SIPBuildAsyncTask;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.entities.batchprocess.AsyncTaskCreationRequest;
@@ -42,13 +41,13 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
 import java.util.Stack;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.ALL;
 import static com.constellio.sdk.tests.TestUtils.asList;
+import static java.util.Locale.FRENCH;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class SIPArchivesAcceptanceTest extends ConstellioTest {
@@ -79,15 +78,11 @@ public class SIPArchivesAcceptanceTest extends ConstellioTest {
 		recordServices = getModelLayerFactory().newRecordServices();
 		searchServices = getModelLayerFactory().newSearchServices();
 
-		SIPFilter filter = new SIPFilter(zeCollection, getAppLayerFactory())
-				.withIncludeFolderIds(Collections.singletonList(records.getFolder_A01().getId()));
-		ConstellioSIPObjectsProvider metsObjectsProvider = new ConstellioSIPObjectsProvider(zeCollection, getAppLayerFactory(),
-				filter, new ProgressInfo());
-		if (!metsObjectsProvider.list().isEmpty()) {
-			ConstellioSIP constellioSIP = new ConstellioSIP(metsObjectsProvider, bagInfoLines, false,
-					getAppLayerFactory().newApplicationService().getWarVersion(), new ProgressInfo(), Locale.FRENCH);
-			constellioSIP.build(outFile);
-		}
+		DefaultSIPZipBagInfoFactory bagInfoFactory = new DefaultSIPZipBagInfoFactory(getAppLayerFactory(), FRENCH);
+		bagInfoFactory.setHeaderLines(bagInfoLines);
+		RMSelectedFoldersAndDocumentsSIPBuilder constellioSIP = new RMSelectedFoldersAndDocumentsSIPBuilder(zeCollection, getAppLayerFactory());
+		FileSIPZipWriter writer = new FileSIPZipWriter(getAppLayerFactory(), outFile, outFile.getName(), bagInfoFactory);
+		constellioSIP.buildWithFoldersAndDocuments(writer, asList(records.folder_A01), new ArrayList<String>(), null);
 
 	}
 
