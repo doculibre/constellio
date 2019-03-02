@@ -8,6 +8,7 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.sip.bagInfo.DefaultSIPZipBagInfoFactory;
 import com.constellio.app.services.sip.bagInfo.SIPZipBagInfoFactory;
@@ -77,7 +78,9 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 
 		records.copyBuilder = new CopyRetentionRuleBuilder(new InMemorySequentialGenerator());
 
-		prepareSystem(withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records));
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records),
+				withCollection("otherCollection").withConstellioRMModule().withAllTest(users));
 		this.rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		givenTimeIs(new LocalDateTime(2018, 1, 2, 3, 4, 5));
 
@@ -139,7 +142,7 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 
 		File sipFile = buildSIPWithDocuments("theEmailId");
 		System.out.println(sipFile.getAbsolutePath());
-//		unzipInDownloadFolder(sipFile, "testSIP");
+		//		unzipInDownloadFolder(sipFile, "testSIP");
 
 		assertThat(sipFile).is(zipFileWithSameContentExceptingFiles(getTestResourceFile("sip2.zip")));
 
@@ -257,13 +260,15 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 
 		RMCollectionExportSIPBuilder builder = new RMCollectionExportSIPBuilder(zeCollection, getAppLayerFactory(), tempFolder) {
 			@Override
-			protected SIPZipWriter newSIPZipWriter(String sipName, Map<String, MetsDivisionInfo> divisionInfoMap,
-					ProgressInfo progressInfo) {
-				 SIPZipWriter sipZipWriter = super.newSIPZipWriter(sipName, divisionInfoMap, progressInfo);
-				 sipZipWriter.setSipFileHasher(SIPFileHasher());
+			protected SIPZipWriter newFileSIPZipWriter(String sipName, Map<String, MetsDivisionInfo> divisionInfoMap,
+													   final ProgressInfo progressInfo) throws IOException {
+				SIPZipWriter sipZipWriter = super.newFileSIPZipWriter(sipName, divisionInfoMap, progressInfo);
+				sipZipWriter.setSipFileHasher(SIPFileHasher());
 
-				 return sipZipWriter;
-			};
+				return sipZipWriter;
+			}
+
+			;
 		};
 		builder.exportAllEvents(new ProgressInfo());
 
@@ -326,6 +331,27 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 		rm.executeTransaction(tx);
 	}
 
+	public void createContainersInStorageSpacesOfOtherCollections()
+			throws Exception {
+		createStorageSpace();
+
+		RMSchemasRecordsServices otherCollectionRM = new RMSchemasRecordsServices("otherCollection", getAppLayerFactory());
+		StorageSpace storageSpace = otherCollectionRM.newStorageSpaceWithId("otherCollectionStorageSpace")
+				.setCode("space").setTitle("Other collection storage space");
+		otherCollectionRM.executeTransaction(new Transaction(storageSpace));
+
+		ContainerRecord containerRecordProblematic = rm.newContainerRecordWithId(records.containerId_bac13)
+				.setTemporaryIdentifier("problem").setFull(false).setAdministrativeUnit(records.unitId_10a)
+				.setRealTransferDate(date(2008, 10, 31)).setStorageSpace(storageSpace)
+				.setDecommissioningType(TRANSFERT_TO_SEMI_ACTIVE).setType(records.containerTypeId_boite22x22);
+
+		Transaction tx = new Transaction(containerRecordProblematic);
+		tx.getRecordUpdateOptions().setValidationsEnabled(false);
+
+		rm.executeTransaction(tx);
+
+	}
+
 	@Test
 	public void createContainersAndStorageSpace()
 			throws Exception {
@@ -335,23 +361,23 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 		Transaction tx = new Transaction();
 
 		tx.add(rm.newContainerRecordWithId(records.containerId_bac13).setTemporaryIdentifier("10_A_06")
-						.setFull(false).setStorageSpace(records.storageSpaceId_S01).setAdministrativeUnit(records.unitId_10a)
-						.setRealTransferDate(date(2008, 10, 31)))
+				.setFull(false).setStorageSpace(records.storageSpaceId_S01).setAdministrativeUnit(records.unitId_10a)
+				.setRealTransferDate(date(2008, 10, 31)))
 				.setDecommissioningType(TRANSFERT_TO_SEMI_ACTIVE).setType(records.containerTypeId_boite22x22);
 
 		tx.add(rm.newContainerRecordWithId(records.containerId_bac12).setTemporaryIdentifier("10_A_05")
-						.setFull(false).setStorageSpace(records.storageSpaceId_S01_01).setAdministrativeUnit(records.unitId_10a)
-						.setRealTransferDate(date(2006, 10, 31)))
+				.setFull(false).setStorageSpace(records.storageSpaceId_S01_01).setAdministrativeUnit(records.unitId_10a)
+				.setRealTransferDate(date(2006, 10, 31)))
 				.setDecommissioningType(TRANSFERT_TO_SEMI_ACTIVE).setType(records.containerTypeId_boite22x22);
 
 		tx.add(rm.newContainerRecordWithId(records.containerId_bac11).setTemporaryIdentifier("10_A_04")
-						.setFull(false).setStorageSpace(records.storageSpaceId_S01_02).setAdministrativeUnit(records.unitId_10a)
-						.setRealTransferDate(date(2005, 10, 31)))
+				.setFull(false).setStorageSpace(records.storageSpaceId_S01_02).setAdministrativeUnit(records.unitId_10a)
+				.setRealTransferDate(date(2005, 10, 31)))
 				.setDecommissioningType(TRANSFERT_TO_SEMI_ACTIVE).setType(records.containerTypeId_boite22x22);
 
 		tx.add(rm.newContainerRecordWithId(records.containerId_bac11 + "extra1").setTemporaryIdentifier("10_A_04_extra1")
-						.setFull(false).setStorageSpace(records.storageSpaceId_S01_01).setAdministrativeUnit(records.unitId_10a)
-						.setRealTransferDate(date(2005, 10, 31)))
+				.setFull(false).setStorageSpace(records.storageSpaceId_S01_01).setAdministrativeUnit(records.unitId_10a)
+				.setRealTransferDate(date(2005, 10, 31)))
 				.setDecommissioningType(TRANSFERT_TO_SEMI_ACTIVE).setType(records.containerTypeId_boite22x22);
 
 		tx.add(rm.newContainerRecordWithId(records.containerId_bac11 + "extra2").setTemporaryIdentifier("10_A_04_extra2")
@@ -390,7 +416,7 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 		builder.exportAllContainersBySpace(new ProgressInfo());
 
 		System.out.println(tempFolder.getAbsolutePath());
-		File zipFile = new File(tempFolder, "containerByBoxes-001.zip");
+		File zipFile = new File(tempFolder, "warehouse.zip");
 
 		assertThat(zipFile).is(zipFileWithSameContentExceptingFiles(getTestResourceFile("containerByBoxesSip1.zip")));
 	}
@@ -405,7 +431,9 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 		RMCollectionExportSIPBuilder builder = new RMCollectionExportSIPBuilder(zeCollection, getAppLayerFactory(), tempFolder);
 		builder.exportAllContainersBySpace(new ProgressInfo());
 
-		assertThat(tempFolder.list()).containsOnly("info", "containerByBoxes-001.zip");
+		assertThat(tempFolder.list()).containsOnly("info", "warehouse.zip");
+
+		unzipInDownloadFolder(new File(tempFolder, "warehouse.zip"), "TEST-SIP");
 
 		assertThat(new File(tempFolder, "info").list())
 				.containsOnly("exportedContainers.txt", "failedContainersExport.txt");
@@ -429,9 +457,9 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 
 		RMCollectionExportSIPBuilder builder = new RMCollectionExportSIPBuilder(zeCollection, getAppLayerFactory(), tempFolder) {
 			@Override
-			protected SIPZipWriter newSIPZipWriter(String sipName, Map<String, MetsDivisionInfo> divisionInfoMap,
-					ProgressInfo progressInfo) {
-				SIPZipWriter sipZipWriter = super.newSIPZipWriter(sipName, divisionInfoMap, progressInfo);
+			protected SIPZipWriter newFileSIPZipWriter(String sipName, Map<String, MetsDivisionInfo> divisionInfoMap,
+													   final ProgressInfo progressInfo) throws IOException {
+				SIPZipWriter sipZipWriter = super.newFileSIPZipWriter(sipName, divisionInfoMap, progressInfo);
 				sipZipWriter.setSipFileHasher(SIPFileHasher());
 
 				return sipZipWriter;
@@ -440,7 +468,7 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 
 		builder.exportAllContainersBySpace(new ProgressInfo());
 
-		File sipFile = new File(tempFolder, "containerByBoxes-001.zip");
+		File sipFile = new File(tempFolder, "warehouse.zip");
 
 		assertThat(sipFile).is(zipFileWithSameContentExceptingFiles(getTestResourceFile("multipleStorageBoxByContainer.zip")));
 	}
@@ -467,9 +495,10 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 		assertThat(contentOf(new File(tempFolder, "info" + File.separator + "exportedContainers.txt")))
 				.isEqualTo("bac11, bac11_Orphan, bac11extra1, bac11extra2, bac12, bac12_Orphan, bac13");
 
-		File zipFile = new File(tempFolder, "containerByBoxes-001.zip");
+		File zipFile = new File(tempFolder, "warehouse.zip");
 		assertThat(zipFile).is(zipFileWithSameContentExceptingFiles(getTestResourceFile("containerByBoxesSipOrphan.zip")));
 	}
+
 
 	@Test
 	public void whenExportingCollectionThenExportTasks()

@@ -12,6 +12,7 @@ import com.constellio.app.services.sip.record.RecordSIPWriter;
 import com.constellio.app.services.sip.zip.AutoSplittedSIPZipWriter;
 import com.constellio.app.services.sip.zip.AutoSplittedSIPZipWriter.AutoSplittedSIPZipWriterListener;
 import com.constellio.app.services.sip.zip.DefaultSIPFileNameProvider;
+import com.constellio.app.services.sip.zip.FileSIPZipWriter;
 import com.constellio.app.services.sip.zip.SIPFileNameProvider;
 import com.constellio.app.services.sip.zip.SIPZipWriter;
 import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
@@ -46,7 +47,6 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.constellio.app.modules.rm.services.sip.RMSIPUtils.buildCategoryDivisionInfos;
-import static com.constellio.app.modules.rm.services.sip.RMSIPUtils.buildStorageSpaceInfo;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static org.apache.commons.io.FileUtils.ONE_GB;
@@ -98,9 +98,9 @@ public class RMCollectionExportSIPBuilder {
 		return this;
 	}
 
-	public void exportAllEvents(final ProgressInfo progressInfo) {
+	public void exportAllEvents(final ProgressInfo progressInfo) throws IOException {
 
-		final SIPZipWriter sipZipWriter = newSIPZipWriter("events", new HashMap<String, MetsDivisionInfo>(), progressInfo);
+		final SIPZipWriter sipZipWriter = newFileSIPZipWriter("events", new HashMap<String, MetsDivisionInfo>(), progressInfo);
 		progressInfo.setEnd(countEvents());
 		File rootFolder = ioServices.newTemporaryFolder("rootFolder");
 		try {
@@ -135,7 +135,7 @@ public class RMCollectionExportSIPBuilder {
 	public void exportAllContainersBySpace(ProgressInfo progressInfo)
 			throws IOException {
 		progressInfo.setTask("Exporting containers by boxes in collection '" + collection + "'");
-		RecordSIPWriter writer = newRecordSIPWriter("containerByBoxes", buildStorageSpaceInfo(rm), progressInfo);
+		RecordSIPWriter writer = newRecordSIPWriter("warehouse", new HashMap<String, MetsDivisionInfo>(), progressInfo, false);
 
 		writer.setIncludeRelatedMaterials(false);
 		writer.setIncludeArchiveDescriptionMetadatasFromODDs(true);
@@ -147,7 +147,7 @@ public class RMCollectionExportSIPBuilder {
 			progressInfo.setEnd(countContainers());
 			SearchResponseIterator<Record> storageSpaceIterator = newRootStorageSpaceIterator();
 
-			while(storageSpaceIterator.hasNext()) {
+			while (storageSpaceIterator.hasNext()) {
 				storageSpaceProcessing(progressInfo, writer, failedExports, exportedContainers, storageSpaceIterator.next());
 			}
 
@@ -166,12 +166,12 @@ public class RMCollectionExportSIPBuilder {
 	}
 
 	private void storageSpaceProcessOrphan(ProgressInfo progressInfo, RecordSIPWriter writer, Set<String> failedExports,
-			Set<String> exportedContainers) {
+										   Set<String> exportedContainers) {
 		SearchResponseIterator<Record> searchResponseContainerIterator = newOrphanContainerIterator();
 		List<Record> records = new ArrayList<>();
 
 		try {
-			while(searchResponseContainerIterator.hasNext()) {
+			while (searchResponseContainerIterator.hasNext()) {
 				Record containerFound = searchResponseContainerIterator.next();
 				writer.add(containerFound);
 				exportedContainers.add(containerFound.getId());
@@ -184,27 +184,34 @@ public class RMCollectionExportSIPBuilder {
 	}
 
 	private void storageSpaceProcessing(ProgressInfo progressInfo, RecordSIPWriter writer, Set<String> failedExports,
-			Set<String> exportedContainers, Record storageSpace) {
+										Set<String> exportedContainers, Record storageSpace) {
 
-		SearchResponseIterator<Record> searchResponseContainerIterator = newChildrenContainerIterator(storageSpace);
-		List<Record> records = new ArrayList<>();
 		try {
-			while(searchResponseContainerIterator.hasNext()) {
-				Record containerFound = searchResponseContainerIterator.next();
-				if(!exportedContainers.contains(containerFound.getId())) {
+			writer.add(storageSpace);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+		SearchResponseIterator<Record> searchResponseContainerIterator = newChildrenContainerIterator(storageSpace);
+		while (searchResponseContainerIterator.hasNext()) {
+
+			Record containerFound = searchResponseContainerIterator.next();
+			try {
+
+
+				if (!exportedContainers.contains(containerFound.getId())) {
 					exportedContainers.add(containerFound.getId());
 					writer.add(containerFound);
 					progressInfo.setCurrentState(progressInfo.getCurrentState() + 1);
 				}
-			}
-		} catch (Throwable t) {
-			t.printStackTrace();
-			failedExports.addAll(new RecordUtils().toIdList(records));
-		}
 
+			} catch (Throwable t) {
+				t.printStackTrace();
+				failedExports.add(containerFound.getId());
+			}
+		}
 		SearchResponseIterator<Record> storageSpaceChildrenIterator = newStorageSpaceChildrenIterator(storageSpace);
 
-		while(storageSpaceChildrenIterator.hasNext()) {
+		while (storageSpaceChildrenIterator.hasNext()) {
 			Record currentStorageSpace = storageSpaceChildrenIterator.next();
 			storageSpaceProcessing(progressInfo, writer, failedExports, exportedContainers, currentStorageSpace);
 		}
@@ -213,7 +220,7 @@ public class RMCollectionExportSIPBuilder {
 	public void exportAllFoldersAndDocuments(ProgressInfo progressInfo) throws IOException {
 
 		progressInfo.setTask("Exporting folders and documents of collection '" + collection + "'");
-		RecordSIPWriter writer = newRecordSIPWriter("foldersAndDocuments", buildCategoryDivisionInfos(rm), progressInfo);
+		RecordSIPWriter writer = newRecordSIPWriter("foldersAndDocuments", buildCategoryDivisionInfos(rm), progressInfo, true);
 		writer.setIncludeRelatedMaterials(false);
 		writer.setIncludeArchiveDescriptionMetadatasFromODDs(true);
 
@@ -274,7 +281,7 @@ public class RMCollectionExportSIPBuilder {
 		Map<String, MetsDivisionInfo> divisionInfoMap = getDateMetsDivisionInfoMap();
 
 
-		RecordSIPWriter writer = newRecordSIPWriter("tasks", divisionInfoMap, progressInfo);
+		RecordSIPWriter writer = newRecordSIPWriter("tasks", divisionInfoMap, progressInfo, true);
 		writer.setIncludeRelatedMaterials(false);
 		writer.setIncludeArchiveDescriptionMetadatasFromODDs(true);
 
@@ -357,16 +364,24 @@ public class RMCollectionExportSIPBuilder {
 	}
 
 	private RecordSIPWriter newRecordSIPWriter(String sipName, Map<String, MetsDivisionInfo> divisionInfoMap,
-											   final ProgressInfo progressInfo) {
-		SIPZipWriter writer = newSIPZipWriter(sipName, divisionInfoMap, progressInfo);
+											   final ProgressInfo progressInfo, boolean splitted) throws IOException {
+
+		SIPZipWriter writer;
+
+		if (splitted) {
+			writer = newSplittedSIPZipWriter(sipName, divisionInfoMap, progressInfo);
+		} else {
+			writer = newFileSIPZipWriter(sipName, divisionInfoMap, progressInfo);
+		}
+
 		RMZipPathProvider zipPathProvider = new RMZipPathProvider(rm);
 		RecordSIPWriter recordSIPWriter = new RecordSIPWriter(appLayerFactory, writer, zipPathProvider, locale);
 		recordSIPWriter.setIncludeContentFiles(includeContents);
 		return recordSIPWriter;
 	}
 
-	protected SIPZipWriter newSIPZipWriter(String sipName, Map<String, MetsDivisionInfo> divisionInfoMap,
-			final ProgressInfo progressInfo) {
+	protected SIPZipWriter newSplittedSIPZipWriter(String sipName, Map<String, MetsDivisionInfo> divisionInfoMap,
+												   final ProgressInfo progressInfo) {
 		SIPFileNameProvider sipFileNameProvider = new DefaultSIPFileNameProvider(exportFolder, sipName);
 		AutoSplittedSIPZipWriter writer = new AutoSplittedSIPZipWriter(appLayerFactory, sipFileNameProvider,
 				sipBytesLimit, new DefaultSIPZipBagInfoFactory(appLayerFactory, locale));
@@ -381,6 +396,19 @@ public class RMCollectionExportSIPBuilder {
 
 			}
 		});
+		//progressInfo.setProgressMessage("Writing sip file '" + sipFileNameProvider.newSIPFile(1).getName() + "'");
+		writer.addDivisionsInfoMap(divisionInfoMap);
+		return writer;
+	}
+
+	protected SIPZipWriter newFileSIPZipWriter(String sipName, Map<String, MetsDivisionInfo> divisionInfoMap,
+											   final ProgressInfo progressInfo) throws IOException {
+		SIPFileNameProvider sipFileNameProvider = new DefaultSIPFileNameProvider(exportFolder, sipName);
+		File sipFile = new File(exportFolder, sipName + ".zip");
+		progressInfo.setProgressMessage("Writing sip file '" + sipFile.getName() + "'");
+		FileSIPZipWriter writer = new FileSIPZipWriter(appLayerFactory, sipFile, sipName,
+				new DefaultSIPZipBagInfoFactory(appLayerFactory, locale));
+
 		//progressInfo.setProgressMessage("Writing sip file '" + sipFileNameProvider.newSIPFile(1).getName() + "'");
 		writer.addDivisionsInfoMap(divisionInfoMap);
 		return writer;

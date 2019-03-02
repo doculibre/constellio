@@ -21,17 +21,17 @@ public class RMSIPUtils {
 		return divisionInfoMap;
 	}
 
-	public static Map<String, MetsDivisionInfo> buildStorageSpaceInfo(RMSchemasRecordsServices rm) {
-		Map<String, MetsDivisionInfo> divisionInfoMap = new HashMap<>();
-		for(StorageSpace storageSpace : rm.getAllStorageSpaces()) {
-			String parentCode = storageSpace.getParentStorageSpace() == null ? null : addStorageSpaceToCode(rm.getStorageSpace(storageSpace.getParentStorageSpace()).getCode());
-			String code = addStorageSpaceToCode(storageSpace.getCode());
-			divisionInfoMap.put(code, new MetsDivisionInfo(
-					code, parentCode, storageSpace.getTitle(), StorageSpace.SCHEMA_TYPE));
-		}
-
-		return divisionInfoMap;
-	}
+	//	public static Map<String, MetsDivisionInfo> buildStorageSpaceInfo(RMSchemasRecordsServices rm) {
+	//		Map<String, MetsDivisionInfo> divisionInfoMap = new HashMap<>();
+	//		for(StorageSpace storageSpace : rm.getAllStorageSpaces()) {
+	//			String parentCode = storageSpace.getParentStorageSpace() == null ? null : addStorageSpaceToCode(rm.getStorageSpace(storageSpace.getParentStorageSpace()).getCode());
+	//			String code = addStorageSpaceToCode(storageSpace.getCode());
+	//			divisionInfoMap.put(code, new MetsDivisionInfo(
+	//					code, parentCode, storageSpace.getTitle(), StorageSpace.SCHEMA_TYPE));
+	//		}
+	//
+	//		return divisionInfoMap;
+	//	}
 
 	private static String addStorageSpaceToCode(String code) {
 		return StorageSpace.SCHEMA_TYPE + "-" + code;
