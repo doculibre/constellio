@@ -76,13 +76,12 @@ public class RecordSIPWriter {
 	public RecordSIPWriter(AppLayerFactory appLayerFactory,
 						   SIPZipWriter sipZipWriter,
 						   RecordPathProvider recordPathProvider,
-						   Locale locale) throws IOException {
+						   Locale locale) {
 
 		this.appLayerFactory = appLayerFactory;
 		this.recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 		this.ioServices = appLayerFactory.getModelLayerFactory().getIOServicesFactory().newIOServices();
 		this.contentManager = appLayerFactory.getModelLayerFactory().getContentManager();
-
 		this.recordPathProvider = recordPathProvider;
 		this.metadataSchemasManager = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager();
 		this.sipZipWriter = sipZipWriter;

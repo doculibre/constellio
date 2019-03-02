@@ -244,6 +244,8 @@ public class FileSIPZipWriter implements SIPZipWriter {
 		};
 
 		try {
+			tempFile.getParentFile().mkdirs();
+			tempFile.createNewFile();
 			return ioServices.newBufferedFileWriterWithFileClosingAction(tempFile, "SIPZipWriter-writing " + tempFileMonitorName,
 					fileClosingAction);
 		} catch (IOException e) {

@@ -12,13 +12,19 @@ import com.constellio.app.services.sip.record.RecordSIPWriter;
 import com.constellio.app.services.sip.zip.AutoSplittedSIPZipWriter;
 import com.constellio.app.services.sip.zip.AutoSplittedSIPZipWriter.AutoSplittedSIPZipWriterListener;
 import com.constellio.app.services.sip.zip.DefaultSIPFileNameProvider;
+import com.constellio.app.services.sip.zip.FileSIPZipWriter;
 import com.constellio.app.services.sip.zip.SIPFileNameProvider;
+import com.constellio.app.services.sip.zip.SIPZipWriter;
 import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
+import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.KeySetMap;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.event.AutoSplitByDayEventsExecutor;
+import com.constellio.model.services.event.DayProcessedEvent;
+import com.constellio.model.services.event.DayProcessedListener;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.search.SearchServices;
@@ -69,6 +75,7 @@ public class RMCollectionExportSIPBuilder {
 	private long sipBytesLimit = 2 * ONE_GB;
 
 	private boolean includeContents;
+	private IOServices ioServices;
 
 	private KeySetMap<String, String> exportedRecords = new KeySetMap<>();
 
@@ -82,6 +89,7 @@ public class RMCollectionExportSIPBuilder {
 		this.searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
 		this.locale = appLayerFactory.getModelLayerFactory().getCollectionsListManager().getCollectionInfo(collection)
 				.getMainSystemLocale();
+		this.ioServices = appLayerFactory.getModelLayerFactory().getIOServicesFactory().newIOServices();
 
 	}
 
@@ -90,15 +98,129 @@ public class RMCollectionExportSIPBuilder {
 		return this;
 	}
 
+	public void exportAllEvents(final ProgressInfo progressInfo) throws IOException {
+
+		final SIPZipWriter sipZipWriter = newFileSIPZipWriter("events", new HashMap<String, MetsDivisionInfo>(), progressInfo);
+		progressInfo.setEnd(countEvents());
+		File rootFolder = ioServices.newTemporaryFolder("rootFolder");
+		try {
+			AutoSplitByDayEventsExecutor autoSplitByDayEventsExecutor = new AutoSplitByDayEventsExecutor(rootFolder,
+					appLayerFactory.getModelLayerFactory());
+			autoSplitByDayEventsExecutor.addDateProcessedListener(new DayProcessedListener() {
+
+				@Override
+				public void lastDateProcessed(DayProcessedEvent dayProcessedEvent) {
+					try {
+						sipZipWriter.addToZip(dayProcessedEvent.getFile(), dayProcessedEvent.getPathToFile());
+						progressInfo.setCurrentState(progressInfo.getCurrentState() + dayProcessedEvent.getNumberOfEvents());
+					} catch (IOException e) {
+						throw new RuntimeException("Error while adding file to zip", e);
+					}
+				}
+			});
+
+			autoSplitByDayEventsExecutor.wrtieAllEvents(collection);
+
+			exportedRecords.addAll(autoSplitByDayEventsExecutor.getSavedRecords());
+		} finally {
+			sipZipWriter.close();
+			ioServices.deleteQuietly(rootFolder);
+		}
+	}
+
 	public KeySetMap<String, String> getExportedRecords() {
 		return exportedRecords;
 	}
 
-	public void exportAllFoldersAndDocuments(ProgressInfo progressInfo)
+	public void exportAllContainersBySpace(ProgressInfo progressInfo)
 			throws IOException {
+		progressInfo.setTask("Exporting containers by boxes in collection '" + collection + "'");
+		RecordSIPWriter writer = newRecordSIPWriter("warehouse", new HashMap<String, MetsDivisionInfo>(), progressInfo, false);
+
+		writer.setIncludeRelatedMaterials(false);
+		writer.setIncludeArchiveDescriptionMetadatasFromODDs(true);
+
+		Set<String> failedExports = new HashSet<>();
+		Set<String> exportedContainers = new HashSet<>();
+
+		try {
+			progressInfo.setEnd(countContainers());
+			SearchResponseIterator<Record> storageSpaceIterator = newRootStorageSpaceIterator();
+
+			while (storageSpaceIterator.hasNext()) {
+				storageSpaceProcessing(progressInfo, writer, failedExports, exportedContainers, storageSpaceIterator.next());
+			}
+
+			storageSpaceProcessOrphan(progressInfo, writer, failedExports, exportedContainers);
+
+
+		} finally {
+			writer.close();
+		}
+
+
+		exportedRecords.addAll(writer.getSavedRecords());
+
+		writeListInFile(failedExports, new File(exportFolder, "info" + File.separator + "failedContainersExport.txt"));
+		writeListInFile(exportedContainers, new File(exportFolder, "info" + File.separator + "exportedContainers.txt"));
+	}
+
+	private void storageSpaceProcessOrphan(ProgressInfo progressInfo, RecordSIPWriter writer, Set<String> failedExports,
+										   Set<String> exportedContainers) {
+		SearchResponseIterator<Record> searchResponseContainerIterator = newOrphanContainerIterator();
+		List<Record> records = new ArrayList<>();
+
+		try {
+			while (searchResponseContainerIterator.hasNext()) {
+				Record containerFound = searchResponseContainerIterator.next();
+				writer.add(containerFound);
+				exportedContainers.add(containerFound.getId());
+				progressInfo.setCurrentState(progressInfo.getCurrentState() + 1);
+			}
+		} catch (Throwable t) {
+			t.printStackTrace();
+			failedExports.addAll(new RecordUtils().toIdList(records));
+		}
+	}
+
+	private void storageSpaceProcessing(ProgressInfo progressInfo, RecordSIPWriter writer, Set<String> failedExports,
+										Set<String> exportedContainers, Record storageSpace) {
+
+		try {
+			writer.add(storageSpace);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+		SearchResponseIterator<Record> searchResponseContainerIterator = newChildrenContainerIterator(storageSpace);
+		while (searchResponseContainerIterator.hasNext()) {
+
+			Record containerFound = searchResponseContainerIterator.next();
+			try {
+
+
+				if (!exportedContainers.contains(containerFound.getId())) {
+					exportedContainers.add(containerFound.getId());
+					writer.add(containerFound);
+					progressInfo.setCurrentState(progressInfo.getCurrentState() + 1);
+				}
+
+			} catch (Throwable t) {
+				t.printStackTrace();
+				failedExports.add(containerFound.getId());
+			}
+		}
+		SearchResponseIterator<Record> storageSpaceChildrenIterator = newStorageSpaceChildrenIterator(storageSpace);
+
+		while (storageSpaceChildrenIterator.hasNext()) {
+			Record currentStorageSpace = storageSpaceChildrenIterator.next();
+			storageSpaceProcessing(progressInfo, writer, failedExports, exportedContainers, currentStorageSpace);
+		}
+	}
+
+	public void exportAllFoldersAndDocuments(ProgressInfo progressInfo) throws IOException {
 
 		progressInfo.setTask("Exporting folders and documents of collection '" + collection + "'");
-		RecordSIPWriter writer = newRecordSIPWriter("foldersAndDocuments", buildCategoryDivisionInfos(rm), progressInfo);
+		RecordSIPWriter writer = newRecordSIPWriter("foldersAndDocuments", buildCategoryDivisionInfos(rm), progressInfo, true);
 		writer.setIncludeRelatedMaterials(false);
 		writer.setIncludeArchiveDescriptionMetadatasFromODDs(true);
 
@@ -156,37 +278,10 @@ public class RMCollectionExportSIPBuilder {
 			throws IOException {
 
 		progressInfo.setTask("Exporting tasks of collection '" + collection + "'");
-		Map<String, MetsDivisionInfo> divisionInfoMap = new HashMap<>();
-		LocalDate localDate = new LocalDate(2000, 1, 1);
-		while (localDate.isBefore(TimeProvider.getLocalDate())) {
-
-			String yearDivId = "_" + localDate.getYear();
-			String monthDivId = "_" + localDate.getYear() + "-" + localDate.getMonthOfYear();
-			String dayDivId = "_" + localDate.getYear() + "-" + localDate.getMonthOfYear() + "-" + localDate.getDayOfMonth();
-
-			MetsDivisionInfo yearDiv = divisionInfoMap.get(yearDivId);
-			if (yearDiv == null) {
-				yearDiv = new MetsDivisionInfo(yearDivId, yearDivId, "year");
-				divisionInfoMap.put(yearDivId, yearDiv);
-			}
-
-			MetsDivisionInfo monthDiv = divisionInfoMap.get(monthDivId);
-			if (monthDiv == null) {
-				monthDiv = new MetsDivisionInfo(monthDivId, yearDivId, monthDivId, "month");
-				divisionInfoMap.put(monthDivId, monthDiv);
-			}
-
-			MetsDivisionInfo dayDiv = divisionInfoMap.get(dayDivId);
-			if (dayDiv == null) {
-				dayDiv = new MetsDivisionInfo(dayDivId, monthDivId, dayDivId, "day");
-				divisionInfoMap.put(dayDivId, dayDiv);
-			}
-
-			localDate = localDate.plusDays(1);
-		}
+		Map<String, MetsDivisionInfo> divisionInfoMap = getDateMetsDivisionInfoMap();
 
 
-		RecordSIPWriter writer = newRecordSIPWriter("tasks", divisionInfoMap, progressInfo);
+		RecordSIPWriter writer = newRecordSIPWriter("tasks", divisionInfoMap, progressInfo, true);
 		writer.setIncludeRelatedMaterials(false);
 		writer.setIncludeArchiveDescriptionMetadatasFromODDs(true);
 
@@ -223,6 +318,37 @@ public class RMCollectionExportSIPBuilder {
 
 	}
 
+	public static Map<String, MetsDivisionInfo> getDateMetsDivisionInfoMap() {
+		Map<String, MetsDivisionInfo> divisionInfoMap = new HashMap<>();
+		LocalDate localDate = new LocalDate(2000, 1, 1);
+		while (localDate.isBefore(TimeProvider.getLocalDate())) {
+
+			String yearDivId = "_" + localDate.getYear();
+			String monthDivId = "_" + localDate.getYear() + "-" + localDate.getMonthOfYear();
+			String dayDivId = "_" + localDate.getYear() + "-" + localDate.getMonthOfYear() + "-" + localDate.getDayOfMonth();
+
+			MetsDivisionInfo yearDiv = divisionInfoMap.get(yearDivId);
+			if (yearDiv == null) {
+				yearDiv = new MetsDivisionInfo(yearDivId, yearDivId, "year");
+				divisionInfoMap.put(yearDivId, yearDiv);
+			}
+
+			MetsDivisionInfo monthDiv = divisionInfoMap.get(monthDivId);
+			if (monthDiv == null) {
+				monthDiv = new MetsDivisionInfo(monthDivId, yearDivId, monthDivId, "month");
+				divisionInfoMap.put(monthDivId, monthDiv);
+			}
+
+			MetsDivisionInfo dayDiv = divisionInfoMap.get(dayDivId);
+			if (dayDiv == null) {
+				dayDiv = new MetsDivisionInfo(dayDivId, monthDivId, dayDivId, "day");
+				divisionInfoMap.put(dayDivId, dayDiv);
+			}
+
+			localDate = localDate.plusDays(1);
+		}
+		return divisionInfoMap;
+	}
 
 	private long countFoldersAndDocuments() {
 		return searchServices.getResultsCount(from(rm.folder.schemaType(), rm.document.schemaType()).returnAll());
@@ -238,8 +364,24 @@ public class RMCollectionExportSIPBuilder {
 	}
 
 	private RecordSIPWriter newRecordSIPWriter(String sipName, Map<String, MetsDivisionInfo> divisionInfoMap,
-											   final ProgressInfo progressInfo)
-			throws IOException {
+											   final ProgressInfo progressInfo, boolean splitted) throws IOException {
+
+		SIPZipWriter writer;
+
+		if (splitted) {
+			writer = newSplittedSIPZipWriter(sipName, divisionInfoMap, progressInfo);
+		} else {
+			writer = newFileSIPZipWriter(sipName, divisionInfoMap, progressInfo);
+		}
+
+		RMZipPathProvider zipPathProvider = new RMZipPathProvider(rm);
+		RecordSIPWriter recordSIPWriter = new RecordSIPWriter(appLayerFactory, writer, zipPathProvider, locale);
+		recordSIPWriter.setIncludeContentFiles(includeContents);
+		return recordSIPWriter;
+	}
+
+	protected SIPZipWriter newSplittedSIPZipWriter(String sipName, Map<String, MetsDivisionInfo> divisionInfoMap,
+												   final ProgressInfo progressInfo) {
 		SIPFileNameProvider sipFileNameProvider = new DefaultSIPFileNameProvider(exportFolder, sipName);
 		AutoSplittedSIPZipWriter writer = new AutoSplittedSIPZipWriter(appLayerFactory, sipFileNameProvider,
 				sipBytesLimit, new DefaultSIPZipBagInfoFactory(appLayerFactory, locale));
@@ -256,10 +398,20 @@ public class RMCollectionExportSIPBuilder {
 		});
 		//progressInfo.setProgressMessage("Writing sip file '" + sipFileNameProvider.newSIPFile(1).getName() + "'");
 		writer.addDivisionsInfoMap(divisionInfoMap);
-		RMZipPathProvider zipPathProvider = new RMZipPathProvider(rm);
-		RecordSIPWriter recordSIPWriter = new RecordSIPWriter(appLayerFactory, writer, zipPathProvider, locale);
-		recordSIPWriter.setIncludeContentFiles(includeContents);
-		return recordSIPWriter;
+		return writer;
+	}
+
+	protected SIPZipWriter newFileSIPZipWriter(String sipName, Map<String, MetsDivisionInfo> divisionInfoMap,
+											   final ProgressInfo progressInfo) throws IOException {
+		SIPFileNameProvider sipFileNameProvider = new DefaultSIPFileNameProvider(exportFolder, sipName);
+		File sipFile = new File(exportFolder, sipName + ".zip");
+		progressInfo.setProgressMessage("Writing sip file '" + sipFile.getName() + "'");
+		FileSIPZipWriter writer = new FileSIPZipWriter(appLayerFactory, sipFile, sipName,
+				new DefaultSIPZipBagInfoFactory(appLayerFactory, locale));
+
+		//progressInfo.setProgressMessage("Writing sip file '" + sipFileNameProvider.newSIPFile(1).getName() + "'");
+		writer.addDivisionsInfoMap(divisionInfoMap);
+		return writer;
 	}
 
 	private SearchResponseIterator<Record> newTasksIterator() {
@@ -277,11 +429,37 @@ public class RMCollectionExportSIPBuilder {
 	}
 
 	private SearchResponseIterator<Record> newChildrenIterator(Record folderRecord) {
-		LogicalSearchQuery query = new LogicalSearchQuery(fromAllSchemasIn(folderRecord.getCollection())
-				.where(rm.folder.parentFolder()).isNull());
-		query.sortAsc(Schemas.IDENTIFIER);
 		return searchServices.recordsIterator(new LogicalSearchQuery(
-				fromAllSchemasIn(collection).where(Schemas.PATH_PARTS).isEqualTo(folderRecord.getId())));
+				fromAllSchemasIn(collection).where(Schemas.PATH_PARTS).isEqualTo(folderRecord.getId())), 1000);
 	}
 
+	private SearchResponseIterator<Record> newChildrenContainerIterator(Record storageSpace) {
+		return searchServices.recordsIterator(new LogicalSearchQuery(
+				from(rm.containerRecord.schemaType()).where(rm.containerRecord.storageSpace()).isEqualTo(storageSpace.getId())), 1000);
+	}
+
+	private SearchResponseIterator<Record> newRootStorageSpaceIterator() {
+		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(from(rm.storageSpace.schemaType()).where(rm.storageSpace.parentStorageSpace()).isNull());
+		logicalSearchQuery.sortAsc(Schemas.IDENTIFIER);
+
+		return searchServices.recordsIterator(logicalSearchQuery, 1000);
+	}
+
+	private SearchResponseIterator<Record> newStorageSpaceChildrenIterator(Record storageSpaceChildren) {
+		return searchServices.recordsIterator(new LogicalSearchQuery(
+				from(rm.storageSpace.schemaType()).where(rm.storageSpace.parentStorageSpace()).isEqualTo(storageSpaceChildren.getId())), 1000);
+	}
+
+	private SearchResponseIterator<Record> newOrphanContainerIterator() {
+		return searchServices.recordsIterator(new LogicalSearchQuery(
+				from(rm.containerRecord.schemaType()).where(rm.containerRecord.storageSpace()).isNull()), 1000);
+	}
+
+	private long countEvents() {
+		return searchServices.getResultsCount(from(rm.event.schemaType()).returnAll());
+	}
+
+	private long countContainers() {
+		return searchServices.getResultsCount(from(rm.containerRecord.schemaType()).returnAll());
+	}
 }

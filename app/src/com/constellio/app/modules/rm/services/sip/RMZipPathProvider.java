@@ -2,14 +2,19 @@ package com.constellio.app.modules.rm.services.sip;
 
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Category;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.services.sip.record.RecordPathProvider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Authorization;
+import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.schemas.Schemas;
 import org.joda.time.LocalDateTime;
+
+import java.util.List;
 
 class RMZipPathProvider implements RecordPathProvider {
 
@@ -26,7 +31,7 @@ class RMZipPathProvider implements RecordPathProvider {
 		String pathIdentifier = record.getId();
 		boolean addSchemaTypeInPath = true;
 
-		if (Task.SCHEMA_TYPE.equals(record.getTypeCode())) {
+		if (Task.SCHEMA_TYPE.equals(record.getTypeCode()) || Event.SCHEMA_TYPE.equals(record.getTypeCode())) {
 			LocalDateTime createdOn = record.get(Schemas.CREATED_ON);
 			int year = createdOn == null ? 1900 : createdOn.getYear();
 			int month = createdOn == null ? 1 : createdOn.getMonthOfYear();
@@ -50,10 +55,27 @@ class RMZipPathProvider implements RecordPathProvider {
 		} else if (Folder.SCHEMA_TYPE.equals(record.getTypeCode())) {
 			Folder folder = rm.wrapFolder(record);
 			parent = folder.getParentFolder() != null ? folder.getParentFolder() : folder.getCategory();
-
 		} else if (Document.SCHEMA_TYPE.equals(record.getTypeCode())) {
 			parent = rm.wrapDocument(record).getFolder();
 
+		} else if (ContainerRecord.SCHEMA_TYPE.equals(record.getTypeCode())) {
+			Object storageSpaceObject = rm.wrapContainerRecord(record).get(ContainerRecord.STORAGE_SPACE);
+
+			if(storageSpaceObject == null) {
+				parent = null;
+			} else if(storageSpaceObject instanceof List) {
+				List storageSpaceList = (List) storageSpaceObject;
+
+				if(storageSpaceList.size() == 0) {
+					parent = null;
+				} else {
+					parent = (String) storageSpaceList.get(0);
+				}
+			} else {
+				parent = rm.wrapContainerRecord(record).getStorageSpace();
+			}
+		} else if (StorageSpace.SCHEMA_TYPE.equals(StorageSpace.SCHEMA_TYPE)) {
+			parent = rm.wrapStorageSpace(record).getParentStorageSpace();
 		}
 
 		StringBuilder path = new StringBuilder();
