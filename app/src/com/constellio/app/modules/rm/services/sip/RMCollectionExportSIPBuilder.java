@@ -145,6 +145,7 @@ public class RMCollectionExportSIPBuilder {
 
 		try {
 			progressInfo.setEnd(countContainers());
+			progressInfo.setCurrentState(0);
 			SearchResponseIterator<Record> storageSpaceIterator = newRootStorageSpaceIterator();
 
 			while (storageSpaceIterator.hasNext()) {
