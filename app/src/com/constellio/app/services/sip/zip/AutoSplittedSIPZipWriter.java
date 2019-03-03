@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.zip.Deflater;
 
 public class AutoSplittedSIPZipWriter implements SIPZipWriter {
 
@@ -25,6 +26,7 @@ public class AutoSplittedSIPZipWriter implements SIPZipWriter {
 	private Map<String, MetsDivisionInfo> divisionsInfoMap = new HashMap<>();
 	private SIPZipBagInfoFactory bagInfoFactory;
 	private long sipBytesLimit;
+	private int compressionLevel = Deflater.DEFAULT_COMPRESSION;
 
 	private List<AutoSplittedSIPZipWriterListener> listeners = new ArrayList<>();
 
@@ -52,6 +54,11 @@ public class AutoSplittedSIPZipWriter implements SIPZipWriter {
 		} else {
 			metsFilesEntriesLimit = 100000;
 		}
+	}
+
+	public AutoSplittedSIPZipWriter setCompressionLevel(int compressionLevel) {
+		this.compressionLevel = compressionLevel;
+		return this;
 	}
 
 	public void register(AutoSplittedSIPZipWriterListener listener) {
@@ -172,7 +179,7 @@ public class AutoSplittedSIPZipWriter implements SIPZipWriter {
 		LOGGER.info("Creating zip '" + currentWriter.getZipFile().getAbsolutePath() + "'");
 		currentWriter.divisionsInfoMap = divisionsInfoMap;
 		currentWriter.setSipFileHasher(sipFileHasher);
-
+		currentWriter.setCompressionLevel(compressionLevel);
 		for (AutoSplittedSIPZipWriterListener listener : listeners) {
 			listener.onSIPFileCreated(currentWriter.getSipZipInfos().getSipName(), currentWriter.getZipFile());
 		}

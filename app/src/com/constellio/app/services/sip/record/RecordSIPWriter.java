@@ -11,6 +11,7 @@ import com.constellio.data.utils.KeySetMap;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.security.SecurityModel;
@@ -139,6 +140,7 @@ public class RecordSIPWriter {
 				if (includeAuths) {
 					SecurityModel securityModel = recordServices.getSecurityModel(record.getCollection());
 					for (SecurityModelAuthorization authorization : securityModel.getAuthorizationsOnTarget(record.getId())) {
+						recordIdsToAdd.add(Authorization.SCHEMA_TYPE, authorization.getDetails().getId());
 						addToSIP(transaction, authorization.getDetails().getWrappedRecord(), errors);
 					}
 				}

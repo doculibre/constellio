@@ -75,7 +75,11 @@ public class FileSIPZipWriter implements SIPZipWriter {
 		OutputStream zipFileOutputStream = new FileOutputStream(zipFile);
 		zipOutputStream = new ZipArchiveOutputStream(zipFileOutputStream);
 		zipOutputStream.setUseZip64(Zip64Mode.AsNeeded);
+	}
 
+	public FileSIPZipWriter setCompressionLevel(int compressionLevel) {
+		zipOutputStream.setLevel(compressionLevel);
+		return this;
 	}
 
 	public SIPZipInfos getSipZipInfos() {

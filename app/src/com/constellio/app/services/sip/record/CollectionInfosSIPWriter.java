@@ -122,6 +122,8 @@ public class CollectionInfosSIPWriter {
 			exportRecordsInSchemaTypesDivision(UserCredential.SCHEMA_TYPE);
 			exportRecordsInSchemaTypesDivision(GlobalGroup.SCHEMA_TYPE);
 			exportRecordsInSchemaTypesDivision(EmailToSend.SCHEMA_TYPE);
+			exportRecordsInSchemaTypesDivision(Facet.SCHEMA_TYPE);
+			exportRecordsInSchemaTypesDivision(Group.SCHEMA_TYPE);
 			exportSystemSettings();
 
 		} else {

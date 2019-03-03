@@ -45,6 +45,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.zip.Deflater;
 
 import static com.constellio.app.modules.rm.services.sip.RMSIPUtils.buildCategoryDivisionInfos;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -74,6 +75,8 @@ public class RMCollectionExportSIPBuilder {
 
 	private long sipBytesLimit = 2 * ONE_GB;
 
+	private int compressionLevel = Deflater.DEFAULT_COMPRESSION;
+
 	private boolean includeContents;
 	private IOServices ioServices;
 
@@ -95,6 +98,11 @@ public class RMCollectionExportSIPBuilder {
 
 	public RMCollectionExportSIPBuilder setIncludeContents(boolean includeContents) {
 		this.includeContents = includeContents;
+		return this;
+	}
+
+	public RMCollectionExportSIPBuilder setCompressionLevel(int compressionLevel) {
+		this.compressionLevel = compressionLevel;
 		return this;
 	}
 
@@ -386,6 +394,7 @@ public class RMCollectionExportSIPBuilder {
 		SIPFileNameProvider sipFileNameProvider = new DefaultSIPFileNameProvider(exportFolder, sipName);
 		AutoSplittedSIPZipWriter writer = new AutoSplittedSIPZipWriter(appLayerFactory, sipFileNameProvider,
 				sipBytesLimit, new DefaultSIPZipBagInfoFactory(appLayerFactory, locale));
+		writer.setCompressionLevel(compressionLevel);
 		writer.register(new AutoSplittedSIPZipWriterListener() {
 			@Override
 			public void onSIPFileCreated(String sipName, File file) {
@@ -404,14 +413,14 @@ public class RMCollectionExportSIPBuilder {
 
 	protected SIPZipWriter newFileSIPZipWriter(String sipName, Map<String, MetsDivisionInfo> divisionInfoMap,
 											   final ProgressInfo progressInfo) throws IOException {
-		SIPFileNameProvider sipFileNameProvider = new DefaultSIPFileNameProvider(exportFolder, sipName);
 		File sipFile = new File(exportFolder, sipName + ".zip");
 		progressInfo.setProgressMessage("Writing sip file '" + sipFile.getName() + "'");
 		FileSIPZipWriter writer = new FileSIPZipWriter(appLayerFactory, sipFile, sipName,
 				new DefaultSIPZipBagInfoFactory(appLayerFactory, locale));
-
+		writer.setCompressionLevel(compressionLevel);
 		//progressInfo.setProgressMessage("Writing sip file '" + sipFileNameProvider.newSIPFile(1).getName() + "'");
 		writer.addDivisionsInfoMap(divisionInfoMap);
+
 		return writer;
 	}
 
