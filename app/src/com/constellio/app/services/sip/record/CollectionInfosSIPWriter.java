@@ -152,6 +152,7 @@ public class CollectionInfosSIPWriter {
 		SettingsExportServices settingsExportServices = new SettingsExportServices(appLayerFactory);
 		SettingsExportOptions options = new SettingsExportOptions();
 		options.setExportingConfigs(true);
+		options.setExportingSequences(true);
 		try {
 			ImportedSettings settings = settingsExportServices.exportSettings(collection, options);
 			Document document = new SettingsXMLFileWriter().writeSettings(settings);
