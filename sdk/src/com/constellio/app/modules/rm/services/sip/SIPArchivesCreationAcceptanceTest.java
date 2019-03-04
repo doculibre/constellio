@@ -272,7 +272,7 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 		};
 		builder.exportAllEvents(new ProgressInfo());
 
-		File tempFolder1 = new File(tempFolder, "events-001.zip");
+		File tempFolder1 = new File(tempFolder, "events.zip");
 
 		assertThat(tempFolder1).is(zipFileWithSameContentExceptingFiles(getTestResourceFile("events1.zip")));
 	}
@@ -418,7 +418,7 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 		System.out.println(tempFolder.getAbsolutePath());
 		File zipFile = new File(tempFolder, "warehouse.zip");
 
-		assertThat(zipFile).is(zipFileWithSameContentExceptingFiles(getTestResourceFile("containerByBoxesSip1.zip")));
+		assertThat(zipFile).is(zipFileWithSameContentExceptingFiles(getTestResourceFile("warehouse1.zip")));
 	}
 
 	@Test
@@ -432,8 +432,6 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 		builder.exportAllContainersBySpace(new ProgressInfo());
 
 		assertThat(tempFolder.list()).containsOnly("info", "warehouse.zip");
-
-		unzipInDownloadFolder(new File(tempFolder, "warehouse.zip"), "TEST-SIP");
 
 		assertThat(new File(tempFolder, "info").list())
 				.containsOnly("exportedContainers.txt", "failedContainersExport.txt");
@@ -470,7 +468,7 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 
 		File sipFile = new File(tempFolder, "warehouse.zip");
 
-		assertThat(sipFile).is(zipFileWithSameContentExceptingFiles(getTestResourceFile("multipleStorageBoxByContainer.zip")));
+		assertThat(sipFile).is(zipFileWithSameContentExceptingFiles(getTestResourceFile("multipleStoragewarehouse.zip")));
 	}
 
 	@Test
@@ -484,7 +482,7 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 		RMCollectionExportSIPBuilder builder = new RMCollectionExportSIPBuilder(zeCollection, getAppLayerFactory(), tempFolder);
 		builder.exportAllContainersBySpace(new ProgressInfo());
 
-		assertThat(tempFolder.list()).containsOnly("info", "containerByBoxes-001.zip");
+		assertThat(tempFolder.list()).containsOnly("info", "warehouse.zip");
 
 		assertThat(new File(tempFolder, "info").list())
 				.containsOnly("exportedContainers.txt", "failedContainersExport.txt");
@@ -496,7 +494,7 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 				.isEqualTo("bac11, bac11_Orphan, bac11extra1, bac11extra2, bac12, bac12_Orphan, bac13");
 
 		File zipFile = new File(tempFolder, "warehouse.zip");
-		assertThat(zipFile).is(zipFileWithSameContentExceptingFiles(getTestResourceFile("containerByBoxesSipOrphan.zip")));
+		assertThat(zipFile).is(zipFileWithSameContentExceptingFiles(getTestResourceFile("warehouseSipOrphan.zip")));
 	}
 
 
