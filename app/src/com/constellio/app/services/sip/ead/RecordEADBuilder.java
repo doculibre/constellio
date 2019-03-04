@@ -5,6 +5,7 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.services.collections.CollectionsManager;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.sip.record.RecordSIPWriter.RecordInsertionContext;
@@ -205,7 +206,7 @@ public class RecordEADBuilder {
 			if (modifiableStructure instanceof FacetSelections) {
 				mappedStructure = new TreeMap<>();
 				mappedStructure.put("metadata", ((FacetSelections) modifiableStructure).getFacetField());
-				mappedStructure.put("x", join(((FacetSelections) modifiableStructure).getSelectedValues(), ", "));
+				mappedStructure.put("selectedValues", join(((FacetSelections) modifiableStructure).getSelectedValues(), ", "));
 			}
 
 			if (modifiableStructure instanceof MapStringStringStructure) {
@@ -214,6 +215,14 @@ public class RecordEADBuilder {
 
 			if (modifiableStructure instanceof MapStringListStringStructure) {
 				mappedStructure = new TreeMap<String, Object>((MapStringListStringStructure) modifiableStructure);
+			}
+
+			if (modifiableStructure instanceof Comment) {
+				mappedStructure = new TreeMap<>();
+				mappedStructure.put("message", ((Comment) modifiableStructure).getMessage());
+				mappedStructure.put("username", ((Comment) modifiableStructure).getUsername());
+				mappedStructure.put("userId", ((Comment) modifiableStructure).getUserId());
+				mappedStructure.put("dateTime", ((Comment) modifiableStructure).getDateTime());
 			}
 
 		}
