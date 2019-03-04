@@ -25,15 +25,12 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.event.AutoSplitByDayEventsExecutor;
 import com.constellio.model.services.event.DayProcessedEvent;
 import com.constellio.model.services.event.DayProcessedListener;
-import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -54,11 +51,7 @@ import static org.apache.commons.io.FileUtils.ONE_GB;
 
 public class RMCollectionExportSIPBuilder {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(RMCollectionExportSIPBuilder.class);
-
 	private AppLayerFactory appLayerFactory;
-
-	private RecordServices recordServices;
 
 	private String collection;
 
@@ -84,7 +77,6 @@ public class RMCollectionExportSIPBuilder {
 
 	public RMCollectionExportSIPBuilder(String collection, AppLayerFactory appLayerFactory, File exportFolder) {
 		this.appLayerFactory = appLayerFactory;
-		this.recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 		this.rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		this.tasks = new TasksSchemasRecordsServices(collection, appLayerFactory);
 		this.collection = collection;
@@ -109,7 +101,11 @@ public class RMCollectionExportSIPBuilder {
 	public void exportAllEvents(final ProgressInfo progressInfo) throws IOException {
 
 		final SIPZipWriter sipZipWriter = newFileSIPZipWriter("events", new HashMap<String, MetsDivisionInfo>(), progressInfo);
+
+		progressInfo.setTask("Exporting events in collection '" + collection + "'");
 		progressInfo.setEnd(countEvents());
+		progressInfo.setCurrentState(0);
+
 		File rootFolder = ioServices.newTemporaryFolder("rootFolder");
 		try {
 			AutoSplitByDayEventsExecutor autoSplitByDayEventsExecutor = new AutoSplitByDayEventsExecutor(rootFolder,
