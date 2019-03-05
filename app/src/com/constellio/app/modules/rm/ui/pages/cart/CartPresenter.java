@@ -829,6 +829,15 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 						.andWhere(rm().decommissioningList.folders()).isContaining(getCartFolderIds())) > 0;
 	}
 
+	public boolean isAnyFolderASubFolder() {
+		return  searchServices().getResultsCount(from(rm().folder.schemaType()).where(rm().folder.parentFolder()).isNotNull()
+				.andWhere(Schemas.IDENTIFIER).isIn(getCartFolderIds())) > 0;
+	}
+
+	public boolean isSubFolderDecommissioningAllowed() {
+		return appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager().getValue(RMConfigs.SUB_FOLDER_DECOMMISSIONING);
+	}
+
 	public boolean batchEditRequested(String code, Object value, String schemaType) {
 		List<String> recordIds = schemaType.equals(Folder.SCHEMA_TYPE) ? getCartFolderIds() : getCartDocumentIds();
 		for (Record record : recordServices().getRecordsById(view.getCollection(), recordIds)) {

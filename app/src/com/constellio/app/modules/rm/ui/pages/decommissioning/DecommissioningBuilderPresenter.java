@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.ui.pages.decommissioning;
 
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.modules.rm.ConstellioRMModule;
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.extensions.api.DecommissioningBuilderPresenterExtension;
 import com.constellio.app.modules.rm.extensions.api.DecommissioningBuilderPresenterExtension.AddAdditionalSearchFiltersParams;
@@ -360,6 +361,11 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 
 		for (DecommissioningBuilderPresenterExtension extension : rmModuleExtensions.getDecommissioningBuilderPresenterExtensions()) {
 			condition = extension.addAdditionalSearchFilters(new AddAdditionalSearchFiltersParams(searchType, condition));
+		}
+
+		if(!((boolean) modelLayerFactory.getSystemConfigurationsManager().getValue(RMConfigs.SUB_FOLDER_DECOMMISSIONING))
+				&& getSchemaType() != null && getSchemaType().equals(Folder.SCHEMA_TYPE)) {
+			condition = condition.andWhere(rmRecordServices().folder.parentFolder()).isNull();
 		}
 
 		return condition;
