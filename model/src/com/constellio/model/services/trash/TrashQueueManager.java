@@ -8,6 +8,7 @@ import com.constellio.data.threads.BackgroundThreadsManager;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import org.joda.time.Duration;
@@ -37,10 +38,14 @@ public class TrashQueueManager implements StatefulService {
 	}
 
 	private void configureBackgroundThread() {
+
 		Runnable deleteTrashRecordsAction = new Runnable() {
 			@Override
 			public void run() {
 				try {
+					if(! (boolean) modelLayerfactory.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.IS_TRASH_THREAD_EXECUTING)) {
+						return;
+					}
 					deleteTrashRecords();
 				} catch (Throwable e) {
 					LOGGER.error("Exception when deleting records ", e);
