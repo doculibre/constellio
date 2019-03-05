@@ -10,5 +10,6 @@ public interface EventXMLWriter {
 	File getXMLFile();
 	void close();
 	boolean isClose();
+	void deleteFile();
 	KeySetMap<String, String> getAllEventWrittenEventsBySchema();
 }
