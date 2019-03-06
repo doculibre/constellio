@@ -174,7 +174,7 @@ public class UpdateContentVersionWindowImpl extends BaseWindow implements Update
 
 		uploadForm.setSizeFull();
 
-		if(getDocumentTitle() != null && Strings.isNotBlank(getDocumentTitle())) {
+		if(Strings.isNotBlank(getDocumentTitle())) {
 			mainLayout.addComponent(new Label(getDocumentTitle()));
 		}
 

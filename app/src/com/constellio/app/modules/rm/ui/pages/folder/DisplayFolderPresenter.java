@@ -54,15 +54,17 @@ import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.RMSelectionPanelReportPresenter;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
-import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.app.ui.util.MessageUtils;
+import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.CorePermissions;
+import com.constellio.model.entities.records.Content;
+import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.EmailToSend;
@@ -107,6 +109,7 @@ import java.util.Map;
 
 import static com.constellio.app.modules.tasks.model.wrappers.Task.STARRED_BY_USERS;
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.contents.ContentFactory.isFilename;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
@@ -137,6 +140,8 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	private String taxonomyCode;
 	private User user;
 	private SchemaPresenterUtils presenterUtilsForDocument;
+
+	protected RecordToVOBuilder voBuilder = new RecordToVOBuilder();
 
 
 	Boolean allItemsSelected = false;
@@ -855,22 +860,23 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		return new RMSchemasRecordsServices(getCurrentUser().getCollection(), appLayerFactory);
 	}
 
-	private List<RecordVO> getExistingDocumentInCurrentFolder(String fileName) {
-		final RecordVOLazyContainer nestedContainer = new RecordVOLazyContainer(Arrays.asList(subFoldersDataProvider, documentsDataProvider));
+	private SearchResponseIterator<Record> getExistingDocumentInCurrentFolder(String fileName) {
+		Record record = getRecord(folderVO.getId());
 
-		List<RecordVO> recordVOWithNameMatch = new ArrayList<>();
+		MetadataSchemaType documentsSchemaType = getDocumentsSchemaType();
+		MetadataSchema documentsSchema = getDocumentsSchema();
 
-		for(int i = 0; i < nestedContainer.size(); i++) {
-			RecordVO recordVO = nestedContainer.getRecordVO(i);
-			if(recordVO.get(Document.CONTENT) != null) {
-				ContentVersionVO contentVersionVO = recordVO.get(Document.CONTENT);
-				if(contentVersionVO.getFileName().equals(fileName)) {
-					recordVOWithNameMatch.add(recordVO);
-				}
-			}
-		}
+		Metadata folderMetadata = documentsSchema.getMetadata(Document.FOLDER);
+		LogicalSearchQuery query = new LogicalSearchQuery();
+		LogicalSearchCondition queryCondition = from(documentsSchemaType).where(folderMetadata).is(record)
+				.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull().andWhere(rmSchemasRecordsServices.documentContent()).is(isFilename(fileName));
+		query.setCondition(queryCondition);
 
-		return recordVOWithNameMatch;
+		SearchServices searchServices = modelLayerFactory.newSearchServices();
+
+		SearchResponseIterator<Record> speQueryResponse = searchServices.recordsIterator(query, 100);
+
+		return speQueryResponse;
 	}
 
 	private Record currentFolder() {
@@ -880,8 +886,8 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	public void contentVersionUploaded(ContentVersionVO uploadedContentVO) {
 		view.selectFolderContentTab();
 		String fileName = uploadedContentVO.getFileName();
-		List<RecordVO> existingDocument = getExistingDocumentInCurrentFolder(fileName);
-		if (existingDocument.size() == 0 && !extensions.isModifyBlocked(currentFolder(), getCurrentUser())) {
+		SearchResponseIterator<Record> existingDocument = getExistingDocumentInCurrentFolder(fileName);
+		if (existingDocument.getNumFound() == 0 && !extensions.isModifyBlocked(currentFolder(), getCurrentUser())) {
 			try {
 				if (Boolean.TRUE.equals(uploadedContentVO.hasFoundDuplicate())) {
 					RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
@@ -939,23 +945,26 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			} finally {
 				view.clearUploadField();
 			}
-		} else if (existingDocument.size() > 0) {
+		} else if (existingDocument.getNumFound() > 0) {
 			StringBuilder message = new StringBuilder();
 			boolean refreshDocument = false;
 
-			for(RecordVO recordVO : existingDocument) {
-				ContentVersionVO contentVersionVO = recordVO.get(Document.CONTENT);
-				if(contentVersionVO.getHash() != null && !uploadedContentVO.getHash().equals(contentVersionVO.getHash())) {
+			while(existingDocument.hasNext()) {
+				Record currentRecord = existingDocument.next();
+				Content content = currentRecord.get(rmSchemasRecordsServices.document.content());
+				ContentVersion contentVersion = content.getCurrentVersion();
+				if(contentVersion.getHash() != null && !uploadedContentVO.getHash().equals(contentVersion.getHash())) {
 					refreshDocument = true;
-					if (!hasWritePermission(recordVO)){
-						message.append($("displayFolderView.noWritePermission", recordVO) + "</br>");
-					} else if(isCheckedOutByOtherUser(recordVO)) {
-						message.append($("displayFolderView.checkoutByAnOtherUser", recordVO) + "</br>");
+					if (!hasWritePermission(currentRecord)){
+						message.append($("displayFolderView.noWritePermission", currentRecord) + "</br>");
+					} else if(isCheckedOutByOtherUser(currentRecord)) {
+						message.append($("displayFolderView.checkoutByAnOtherUser", currentRecord) + "</br>");
 					} else {
-						view.showVersionUpdateWindow(recordVO, uploadedContentVO);
+						view.showVersionUpdateWindow(voBuilder.build(currentRecord,
+								VIEW_MODE.DISPLAY, view.getSessionContext()), uploadedContentVO);
 					}
 				} else {
-					message.append($("displayfolderview.unchangeFile", recordVO.getTitle()) + "</br>");
+					message.append($("displayfolderview.unchangeFile", currentRecord.getTitle()) + "</br>");
 				}
 			}
 			if(message.length() > 0) {
@@ -968,17 +977,16 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		}
 	}
 
-	private boolean hasWritePermission(RecordVO recordVO) {
+	private boolean hasWritePermission(Record record) {
 		User currentUser = presenterUtilsForDocument.getCurrentUser();
-		Record record = presenterUtilsForDocument.getRecord(recordVO.getId());
 		return currentUser.hasWriteAccess().on(record);
 	}
 
-	private boolean isCheckedOutByOtherUser(RecordVO recordVO) {
-		if(recordVO.getSchema().getTypeCode().equals(Document.SCHEMA_TYPE) && recordVO.get(Document.CONTENT) != null) {
+	private boolean isCheckedOutByOtherUser(Record recordVO) {
+		Content content = recordVO.get(rmSchemasRecordsServices.document.content());
+		if(recordVO.getTypeCode().equals(Document.SCHEMA_TYPE) && content != null) {
 			User currentUser = presenterUtilsForDocument.getCurrentUser();
-			ContentVersionVO contentVersionVO = recordVO.get(Document.CONTENT);
-			String checkOutUserId = contentVersionVO.getCheckoutUserId();
+			String checkOutUserId = content.getCheckoutUserId();
 			return checkOutUserId != null && !checkOutUserId.equals(currentUser.getId());
 		} else {
 			return false;
