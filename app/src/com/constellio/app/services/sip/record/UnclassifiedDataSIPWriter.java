@@ -29,6 +29,7 @@ import com.constellio.model.services.users.UserPhotosServices;
 import java.io.IOException;
 import java.util.Locale;
 
+import static com.constellio.app.services.sip.record.DefaultRecordZipPathProvider.UKNOWN_USER;
 import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
@@ -89,6 +90,8 @@ public class UnclassifiedDataSIPWriter {
 		for (User user : schemas.getAllUsers()) {
 			writer.addDivisionInfo(new MetsDivisionInfo("user-" + user.getId(), user.getTitle(), "user"));
 		}
+
+		writer.addDivisionInfo(new MetsDivisionInfo(UKNOWN_USER, UKNOWN_USER, "user"));
 
 		if (!Collection.SYSTEM_COLLECTION.equals(collection)) {
 

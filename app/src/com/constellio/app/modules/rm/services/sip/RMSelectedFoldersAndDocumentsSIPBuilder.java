@@ -91,7 +91,7 @@ public class RMSelectedFoldersAndDocumentsSIPBuilder {
 		progressInfo.setEnd(ids.size());
 
 		ValidationErrors errors = new ValidationErrors();
-		RecordSIPWriter writer = new RecordSIPWriter(appLayerFactory, sipZipWriter, new RMZipPathProvider(rm), locale);
+		RecordSIPWriter writer = new RecordSIPWriter(appLayerFactory, sipZipWriter, new RMZipPathProvider(appLayerFactory), locale);
 		try {
 			int recordsHandled = 0;
 

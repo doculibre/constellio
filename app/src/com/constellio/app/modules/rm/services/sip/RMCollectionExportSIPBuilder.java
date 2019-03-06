@@ -46,7 +46,7 @@ import java.util.zip.Deflater;
 
 import static com.constellio.app.modules.rm.services.sip.RMSIPUtils.buildCategoryDivisionInfos;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromEveryTypesOfEveryCollection;
 import static org.apache.commons.io.FileUtils.ONE_GB;
 
 public class RMCollectionExportSIPBuilder {
@@ -379,7 +379,7 @@ public class RMCollectionExportSIPBuilder {
 			writer = newFileSIPZipWriter(sipName, divisionInfoMap, progressInfo);
 		}
 
-		RMZipPathProvider zipPathProvider = new RMZipPathProvider(rm);
+		RMZipPathProvider zipPathProvider = new RMZipPathProvider(appLayerFactory);
 		RecordSIPWriter recordSIPWriter = new RecordSIPWriter(appLayerFactory, writer, zipPathProvider, locale);
 		recordSIPWriter.setIncludeContentFiles(includeContents);
 		return recordSIPWriter;
@@ -430,13 +430,14 @@ public class RMCollectionExportSIPBuilder {
 	private SearchResponseIterator<Record> newRootFoldersIterator() {
 		LogicalSearchQuery query = new LogicalSearchQuery(from(rm.folder.schemaType())
 				.where(rm.folder.parentFolder()).isNull());
-		query.sortAsc(rm.folder.categoryCode()).sortAsc(rm.folder.categoryCode());
+		query.sortAsc(rm.folder.categoryCode()).sortAsc(Schemas.IDENTIFIER);
 		return searchServices.recordsIteratorKeepingOrder(query, 1000);
 	}
 
 	private SearchResponseIterator<Record> newChildrenIterator(Record folderRecord) {
 		return searchServices.recordsIterator(new LogicalSearchQuery(
-				fromAllSchemasIn(collection).where(Schemas.PATH_PARTS).isEqualTo(folderRecord.getId())), 1000);
+				fromEveryTypesOfEveryCollection()
+						.where(Schemas.PATH_PARTS).isEqualTo(folderRecord.getId())), 1000);
 	}
 
 	private SearchResponseIterator<Record> newChildrenContainerIterator(Record storageSpace) {

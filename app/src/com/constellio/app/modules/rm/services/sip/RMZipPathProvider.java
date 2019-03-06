@@ -7,6 +7,7 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.sip.record.RecordPathProvider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Authorization;
@@ -18,14 +19,16 @@ import java.util.List;
 
 class RMZipPathProvider implements RecordPathProvider {
 
-	private RMSchemasRecordsServices rm;
+	private AppLayerFactory appLayerFactory;
 
-	public RMZipPathProvider(RMSchemasRecordsServices rm) {
-		this.rm = rm;
+	public RMZipPathProvider(AppLayerFactory appLayerFactory) {
+		this.appLayerFactory = appLayerFactory;
 	}
 
 	@Override
 	public String getPath(Record record) {
+
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(record.getCollection(), appLayerFactory);
 
 		String parent = null;
 		String pathIdentifier = record.getId();
@@ -61,12 +64,12 @@ class RMZipPathProvider implements RecordPathProvider {
 		} else if (ContainerRecord.SCHEMA_TYPE.equals(record.getTypeCode())) {
 			Object storageSpaceObject = rm.wrapContainerRecord(record).get(ContainerRecord.STORAGE_SPACE);
 
-			if(storageSpaceObject == null) {
+			if (storageSpaceObject == null) {
 				parent = null;
-			} else if(storageSpaceObject instanceof List) {
+			} else if (storageSpaceObject instanceof List) {
 				List storageSpaceList = (List) storageSpaceObject;
 
-				if(storageSpaceList.size() == 0) {
+				if (storageSpaceList.size() == 0) {
 					parent = null;
 				} else {
 					parent = (String) storageSpaceList.get(0);

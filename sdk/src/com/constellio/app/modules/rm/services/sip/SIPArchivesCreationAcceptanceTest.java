@@ -41,6 +41,7 @@ import com.constellio.sdk.tests.setups.Users;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.SolrClient;
+import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrInputDocument;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -173,6 +174,7 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 		}
 		rm.executeTransaction(tx);
 		createAnInvalidFolder666();
+		movefolder1document2InAnotherCollection();
 
 		File tempFolder = newTempFolder();
 		RMCollectionExportSIPBuilder builder = new RMCollectionExportSIPBuilder(zeCollection, getAppLayerFactory(), tempFolder);
@@ -208,6 +210,43 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 				"foldersAndDocuments-001.xml", "manifest-sha256.txt", "tagmanifest-sha256.txt"
 		);
 
+	}
+
+	private void createADocumentInAnInvalidFolder() throws Exception {
+		getModelLayerFactory().newRecordServices().add(rm.newDocumentWithId("documentWithInexistingFolder")
+				.setTitle("Document 2").setFolder("folder1")
+				.setContent(minorContent("content2.doc")));
+
+		SolrClient solrClient = getDataLayerFactory().getRecordsVaultServer().getNestedSolrServer();
+		SolrInputDocument doc = new SolrInputDocument();
+		doc.setField("id", "documentWithInexistingFolder");
+		doc.setField("folderId_s", atomicSet("mouhahahaha"));
+		solrClient.add(doc);
+		solrClient.commit();
+	}
+
+	private void createADocumentWithoutFolder() throws Exception {
+		getModelLayerFactory().newRecordServices().add(rm.newDocumentWithId("documentWithoutParent")
+				.setTitle("Document 2").setFolder("folder1")
+				.setContent(minorContent("content2.doc")));
+
+		SolrClient solrClient = getDataLayerFactory().getRecordsVaultServer().getNestedSolrServer();
+		SolrInputDocument doc = new SolrInputDocument();
+		doc.setField("id", "documentWithoutParent");
+		doc.setField("folderId_s", atomicSet(""));
+		solrClient.add(doc);
+		solrClient.commit();
+	}
+
+	private void movefolder1document2InAnotherCollection() throws IOException, SolrServerException {
+		//
+
+		SolrClient solrClient = getDataLayerFactory().getRecordsVaultServer().getNestedSolrServer();
+		SolrInputDocument doc = new SolrInputDocument();
+		doc.setField("id", "folder1_document2");
+		doc.setField("collection_s", atomicSet("otherCollection"));
+		solrClient.add(doc);
+		solrClient.commit();
 	}
 
 	public void createEvents()

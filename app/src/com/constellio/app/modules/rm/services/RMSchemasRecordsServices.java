@@ -569,7 +569,7 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 	}
 
 	public MediumType getMediumType(String id) {
-		return new MediumType(get(id), getTypes());
+		return wrapMediumType(get(id));
 	}
 
 	public MediumType getMediumTypeByCode(String code) {

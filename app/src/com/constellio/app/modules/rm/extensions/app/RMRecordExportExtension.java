@@ -27,11 +27,13 @@ import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollower;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskReminder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Report;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.structure.ReportedMetadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.ModifiableStructure;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.contents.UserSerializedContentFactory;
 import com.constellio.model.services.records.StructureImportContent;
 import org.apache.commons.lang3.NotImplementedException;
@@ -422,7 +424,8 @@ public class RMRecordExportExtension extends RecordExportExtension {
 
 		List<String> mediumTypesCodes = new ArrayList<>();
 		for (String mediumTypeId : copyRetentionRule.getMediumTypeIds()) {
-			mediumTypesCodes.add(rm.getMediumType(mediumTypeId).getCode());
+			Record record = rm.getModelLayerFactory().newRecordServices().getDocumentById(mediumTypeId);
+			mediumTypesCodes.add(record.<String>get(Schemas.CODE));
 		}
 
 		map.put(RetentionRuleImportExtension.CODE, copyRetentionRule.getCode());
@@ -449,11 +452,8 @@ public class RMRecordExportExtension extends RecordExportExtension {
 		}
 
 		if (copyRetentionRule.getTypeId() != null) {
-			if (RetentionRuleImportExtension.RULES_TYPE_FOLDER.equals(ruleType)) {
-				map.put(RetentionRuleImportExtension.TYPE_ID, rm.getFolderType(copyRetentionRule.getTypeId()).getCode());
-			} else {
-				map.put(RetentionRuleImportExtension.TYPE_ID, rm.getDocumentType(copyRetentionRule.getTypeId()).getCode());
-			}
+			Record record = rm.getModelLayerFactory().newRecordServices().getDocumentById(copyRetentionRule.getTypeId());
+			map.put(RetentionRuleImportExtension.TYPE_ID, record.<String>get(Schemas.CODE));
 		}
 
 		map.put(RetentionRuleImportExtension.ACTIVE_DATE_METADATA, copyRetentionRule.getActiveDateMetadata());

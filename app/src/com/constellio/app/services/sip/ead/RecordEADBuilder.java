@@ -323,7 +323,6 @@ public class RecordEADBuilder {
 		if (com.constellio.app.modules.rm.wrappers.Document.SCHEMA_TYPE.equals(record.getTypeCode())) {
 			RMSchemasRecordsServices rm = new RMSchemasRecordsServices(record.getCollection(), appLayerFactory);
 			com.constellio.app.modules.rm.wrappers.Document document = rm.wrapDocument(record);
-			Folder folder = rm.getFolder(document.getFolder());
 
 			archdesc.getDidUnitDates().put("publication", document.getFolderActualDepositDate());
 

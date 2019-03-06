@@ -14,6 +14,9 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 
 public class DefaultRecordZipPathProvider implements RecordPathProvider {
+
+	public static final String UKNOWN_USER = "user-unknown";
+
 	private TaxonomiesManager taxonomiesManager;
 	private MetadataSchemasManager metadataSchemasManager;
 	private RecordServices recordServices;
@@ -31,6 +34,7 @@ public class DefaultRecordZipPathProvider implements RecordPathProvider {
 
 		String parent = null;
 		String pathIdentifier = record.getId();
+		boolean classifyInUnknownUserIfNullParent = false;
 
 		Taxonomy taxonomy = taxonomiesManager.getTaxonomyFor(record.getCollection(), record.getTypeCode());
 
@@ -43,22 +47,16 @@ public class DefaultRecordZipPathProvider implements RecordPathProvider {
 		} else if (UserFolder.SCHEMA_TYPE.equals(record.getTypeCode())) {
 			UserFolder userFolder = schemasOf(record).wrapUserFolder(record);
 			parent = userFolder.getParent() == null ? userFolder.getUser() : userFolder.getParent();
-			if (parent == null) {
-				parent = "unknown";
-			}
+			classifyInUnknownUserIfNullParent = true;
 
 		} else if (UserDocument.SCHEMA_TYPE.equals(record.getTypeCode())) {
 			UserDocument userDocument = schemasOf(record).wrapUserDocument(record);
 			parent = userDocument.getUserFolder() == null ? userDocument.getUser() : userDocument.getUserFolder();
-			if (parent == null) {
-				parent = "unknown";
-			}
+			classifyInUnknownUserIfNullParent = true;
 
 		} else if (TemporaryRecord.SCHEMA_TYPE.equals(record.getTypeCode())) {
 			parent = record.get(Schemas.CREATED_BY);
-			if (parent == null) {
-				parent = "unknown";
-			}
+			classifyInUnknownUserIfNullParent = true;
 
 		}
 
@@ -66,7 +64,10 @@ public class DefaultRecordZipPathProvider implements RecordPathProvider {
 		if (parent == null) {
 			path.append("/data/");
 
-			if (taxonomy != null) {
+			if (classifyInUnknownUserIfNullParent) {
+				path.append(UKNOWN_USER).append("/");
+
+			} else if (taxonomy != null) {
 				path.append(taxonomy.getCode()).append("/");
 
 			} else if (record.getTypeCode().startsWith("ddv")) {
@@ -78,6 +79,7 @@ public class DefaultRecordZipPathProvider implements RecordPathProvider {
 
 		} else {
 			path.append(getPath(recordServices.getDocumentById(parent))).append("/");
+
 		}
 
 		path.append(record.getTypeCode()).append("-");
