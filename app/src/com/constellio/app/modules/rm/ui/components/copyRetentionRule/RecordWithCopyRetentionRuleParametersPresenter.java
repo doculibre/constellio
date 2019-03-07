@@ -178,18 +178,28 @@ public class RecordWithCopyRetentionRuleParametersPresenter {
 			}
 
 		} else {
-			CopyRetentionRuleDependencyField retentionRuleField = fields.getCopyRetentionRuleDependencyField();
-			if (retentionRuleField != null && retentionRuleField.getFieldValue() != null) {
+			CopyRetentionRuleDependencyField retentionRuleDependencyField = fields.getCopyRetentionRuleDependencyField();
+			if (retentionRuleDependencyField != null && retentionRuleDependencyField.getFieldValue() != null) {
 				AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
 				RMSchemasRecordsServices rm = new RMSchemasRecordsServices(request.getSchemaType().getCollection(), appLayerFactory);
+				Record retentionRuleDependency = appLayerFactory.getModelLayerFactory().newRecordServices().getDocumentById(retentionRuleDependencyField.getFieldValue());
+				List<CopyRetentionRule> copyRetentionRules = new ArrayList<>();
 
-				RetentionRule retentionRule = rm.getRetentionRule(retentionRuleField.getFieldValue());
+				if(retentionRuleDependency.isOfSchemaType(RetentionRule.SCHEMA_TYPE)) {
+					RetentionRule retentionRule = rm.getRetentionRule(retentionRuleDependencyField.getFieldValue());
+					copyRetentionRules = retentionRule.getCopyRetentionRules();
+				} else if(retentionRuleDependency.isOfSchemaType(Folder.SCHEMA_TYPE)) {
+					Folder folder = rm.getFolder(retentionRuleDependencyField.getFieldValue());
+					copyRetentionRules = folder.getApplicableCopyRules();
+				}
+
 				CopyType uniformCopyType = getUniformCopyType(request);
 
 				options = new ArrayList<>();
 				Set<String> ids = new HashSet<>();
 
-				for (CopyRetentionRule copyRetentionRule : retentionRule.getCopyRetentionRules()) {
+
+				for (CopyRetentionRule copyRetentionRule : copyRetentionRules) {
 					if (copyRetentionRule.getTypeId() == null
 						&& copyRetentionRule.getCopyType() == uniformCopyType
 						|| (uniformCopyType == null && copyRetentionRule.getCopyType() == CopyType.PRINCIPAL)

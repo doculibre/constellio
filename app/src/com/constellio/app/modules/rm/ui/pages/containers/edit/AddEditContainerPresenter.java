@@ -68,7 +68,6 @@ public class AddEditContainerPresenter extends SingleSchemaBasePresenter<AddEdit
 	}
 
 	public AddEditContainerPresenter forParams(String parameters) {
-		StringUtils.countMatches(parameters, "/");
 		editMode = StringUtils.isNotBlank(parameters) && StringUtils.countMatches(parameters, "/") == 0;
 
 		String recordId = parameters;
@@ -80,7 +79,7 @@ public class AddEditContainerPresenter extends SingleSchemaBasePresenter<AddEdit
 			administrativeUnitId = parts[3];
 		}
 
-		multipleMode = parameters.endsWith("/m/t");
+		multipleMode = parameters.equals("m/t");
 		Record container = editMode ? getRecord(recordId) : newContainerRecord();
 		setSchemaCode(container.getSchemaCode());
 		this.container = new RecordToVOBuilder().build(container, VIEW_MODE.FORM, view.getSessionContext());

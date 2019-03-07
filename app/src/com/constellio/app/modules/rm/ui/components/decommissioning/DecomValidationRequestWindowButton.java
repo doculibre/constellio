@@ -3,7 +3,9 @@ package com.constellio.app.modules.rm.ui.components.decommissioning;
 import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningListPresenter;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
+import com.constellio.app.ui.framework.components.converters.RecordIdToCaptionConverter;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveRecordLookupField;
+import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveStringLookupField;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.model.entities.records.wrappers.User;
 import com.vaadin.ui.Alignment;
@@ -14,12 +16,14 @@ import com.vaadin.ui.TextArea;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
+import java.util.List;
+
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DecomValidationRequestWindowButton extends WindowButton {
 	private final DecommissioningListPresenter presenter;
 
-	private ListAddRemoveRecordLookupField users;
+	private ListAddRemoveStringLookupField users;
 	private TextArea comments;
 	private CheckBox checkBox;
 
@@ -33,7 +37,9 @@ public class DecomValidationRequestWindowButton extends WindowButton {
 	protected Component buildWindowContent() {
 		VerticalLayout layout = new VerticalLayout();
 		layout.setSpacing(true);
-		users = new ListAddRemoveRecordLookupField(User.SCHEMA_TYPE);
+
+		this.users = new ListAddRemoveStringLookupField(presenter.getUsersWithReadPermissionOnAdministrativeUnit());
+		this.users.setItemConverter(new RecordIdToCaptionConverter());
 		users.setCaption($("DecomAskForValidationWindowButton.usersCaption"));
 		users.setRequired(true);
 
@@ -48,8 +54,12 @@ public class DecomValidationRequestWindowButton extends WindowButton {
 		BaseButton sendButton = new BaseButton($("DecomAskForValidationWindowButton.okButton")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
-				if (presenter.validationRequested(users.getValue(), comments.getValue(), checkBox.getValue())) {
-					getWindow().close();
+				if (users.getValue() != null && users.getValue().size() > 0) {
+					if (presenter.validationRequested(users.getValue(), comments.getValue(), checkBox.getValue())) {
+						getWindow().close();
+					}
+				} else {
+					presenter.showErrorMessage($("DecomAskForValidationWindowButton.validationWithoutUserError"));
 				}
 			}
 		};

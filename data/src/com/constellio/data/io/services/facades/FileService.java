@@ -166,6 +166,7 @@ public class FileService {
 		}
 	}
 
+	@Deprecated
 	public File newTemporaryFolder(String resourceName) {
 		File temporaryFolder = new File(tempFolder, "tmp" + System.nanoTime());
 		temporaryFolder.mkdirs();

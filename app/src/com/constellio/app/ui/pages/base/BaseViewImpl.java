@@ -7,6 +7,7 @@ import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.framework.buttons.BackButton;
+import com.constellio.app.ui.framework.components.BaseMouseOverIcon;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
@@ -18,11 +19,14 @@ import com.vaadin.event.UIEvents.PollListener;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.Page;
+import com.vaadin.server.Resource;
 import com.vaadin.server.ThemeResource;
+import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CssLayout;
+import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.Notification.Type;
@@ -51,7 +55,11 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 
 	public static final String BACK_BUTTON_CODE = "seleniumBackButtonCode";
 
+	private I18NHorizontalLayout breadcrumbTrailLayout;
+
 	private BaseBreadcrumbTrail breadcrumbTrail;
+
+	private BaseMouseOverIcon guideButton;
 
 	private Label titleLabel;
 
@@ -131,6 +139,9 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 
 			removeAllComponents();
 
+			breadcrumbTrailLayout = new I18NHorizontalLayout();
+			breadcrumbTrailLayout.setWidth("100%");
+
 			if (isBreadcrumbsVisible()) {
 				breadcrumbTrail = buildBreadcrumbTrail();
 			}
@@ -146,6 +157,15 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 					titleLabel = new Label(title);
 					titleLabel.addStyleName(ValoTheme.LABEL_H1);
 				}
+			}
+
+			if(getGuideUrl() != null) {
+				guideButton = new BaseMouseOverIcon(new ThemeResource("images/icons/audit-icon.png"), $("guide")) {
+					@Override
+					protected void buttonClick(ClickEvent event) {
+						getUI().getPage().open(getGuideUrl(), "_blank");
+					}
+				};
 			}
 
 
@@ -173,7 +193,19 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 			addComponent(titleBackButtonLayout);
 
 			if (breadcrumbTrail != null) {
-				addComponent(breadcrumbTrail);
+				breadcrumbTrail.setWidth(null);
+				breadcrumbTrailLayout.addComponent(breadcrumbTrail);
+				breadcrumbTrailLayout.setComponentAlignment(breadcrumbTrail, Alignment.MIDDLE_LEFT);
+			}
+
+			if(guideButton != null) {
+				breadcrumbTrailLayout.addComponent(guideButton);
+				breadcrumbTrailLayout.setComponentAlignment(guideButton, Alignment.MIDDLE_LEFT);
+				breadcrumbTrailLayout.setExpandRatio(guideButton, 1.0f);
+			}
+
+			if(breadcrumbTrailLayout.getComponentCount() != 0) {
+				addComponent(breadcrumbTrailLayout);
 			}
 
 			addComponent(mainComponent);
@@ -309,6 +341,10 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 
 	protected String getTitle() {
 		return getClass().getSimpleName();
+	}
+
+	protected String getGuideUrl() {
+		return null;
 	}
 
 	/**

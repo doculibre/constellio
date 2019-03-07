@@ -96,6 +96,30 @@ public abstract class URLFetchingServiceRuntimeException extends RuntimeExceptio
 		}
 	}
 
+	public static class URLFetchingServiceServiceRuntimeException_ConnectionException extends URLFetchingServiceRuntimeException {
+
+		private String url;
+
+		public URLFetchingServiceServiceRuntimeException_ConnectionException(String url, Exception e) {
+			super("Cannot connect to url '" + url + "'", e);
+			this.url = url;
+		}
+
+		public String getUrl() {
+			return url;
+		}
+
+		@Override
+		public String getErrorCode() {
+			return "io exception";
+		}
+
+		@Override
+		public String getDescription() {
+			return "Cannot connect to server";
+		}
+	}
+
 	public static class URLFetchingServiceRuntimeException_NoSuchAlgorithm extends URLFetchingServiceRuntimeException {
 
 		private String url;

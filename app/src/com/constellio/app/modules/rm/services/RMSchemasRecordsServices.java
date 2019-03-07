@@ -6,6 +6,7 @@ import com.auxilii.msgparser.attachment.Attachment;
 import com.auxilii.msgparser.attachment.FileAttachment;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Cart;
+import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Email;
 import com.constellio.app.modules.rm.wrappers.FilingSpace;
@@ -13,6 +14,7 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.PrintableReport;
 import com.constellio.app.modules.rm.wrappers.RMObject;
 import com.constellio.app.modules.rm.wrappers.RMUserFolder;
+import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
@@ -24,6 +26,7 @@ import com.constellio.app.modules.rm.wrappers.type.YearType;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.pages.base.SessionContextProvider;
 import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.data.utils.LazyIterator;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.DocumentListPDF;
 import com.constellio.model.entities.records.wrappers.HierarchicalValueListItem;
@@ -77,6 +80,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -85,6 +89,7 @@ import java.util.Properties;
 import static com.constellio.model.entities.schemas.Schemas.SCHEMA;
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
 
 public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 
@@ -417,7 +422,25 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 		return new Folder(record, getTypes()).setType(type);
 	}
 
-	//
+	public Iterator<Folder> foldersIterator(LogicalSearchCondition condition) {
+		MetadataSchemaType type = folder.schemaType();
+		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
+		return foldersIterator(query);
+	}
+
+	public Iterator<Folder> foldersIterator(LogicalSearchQuery query) {
+		final Iterator<Record> recordIterator = modelLayerFactory.newSearchServices().recordsIterator(query, 2000);
+		return new LazyIterator<Folder>() {
+			@Override
+			protected Folder getNextOrNull() {
+				if (recordIterator.hasNext()) {
+					return wrapFolder(recordIterator.next());
+				} else {
+					return null;
+				}
+			}
+		};
+	}
 
 	//Folder type
 
@@ -546,7 +569,7 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 	}
 
 	public MediumType getMediumType(String id) {
-		return new MediumType(get(id), getTypes());
+		return wrapMediumType(get(id));
 	}
 
 	public MediumType getMediumTypeByCode(String code) {
@@ -1158,6 +1181,14 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 
 	public List<AdministrativeUnit> getAllAdministrativeUnits() {
 		return wrapAdministrativeUnits(getModelLayerFactory().newSearchServices().getAllRecords(administrativeUnit.schemaType()));
+	}
+
+	public List<Category> getAllCategories() {
+		return wrapCategorys(getModelLayerFactory().newSearchServices().getAllRecords(category.schemaType()));
+	}
+
+	public List<StorageSpace> getAllStorageSpaces() {
+		return wrapStorageSpaces(getModelLayerFactory().newSearchServices().getAllRecords(storageSpace.schemaType()));
 	}
 
 	public List<AdministrativeUnit> getAllAdministrativeUnitsInUnmodifiableState() {

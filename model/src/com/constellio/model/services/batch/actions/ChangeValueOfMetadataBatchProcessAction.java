@@ -2,6 +2,7 @@ package com.constellio.model.services.batch.actions;
 
 import com.constellio.model.entities.batchprocess.BatchProcessAction;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
@@ -28,7 +29,8 @@ public class ChangeValueOfMetadataBatchProcessAction implements BatchProcessActi
 	public Transaction execute(List<Record> batch, User user, MetadataSchemaTypes schemaTypes,
 							   RecordProvider recordProvider, ModelLayerFactory modelLayerFactory) {
 		SchemaUtils utils = new SchemaUtils();
-		Transaction transaction = new Transaction().setSkippingRequiredValuesValidation(true);
+		Transaction transaction = new Transaction();
+		transaction.setOptions(RecordUpdateOptions.userModificationsSafeOptions());
 		for (Record record : batch) {
 			String schemaCode = record.getSchemaCode();
 			for (Entry<String, Object> entry : metadataChangedValues.entrySet()) {

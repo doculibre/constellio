@@ -220,6 +220,9 @@ public class SolrSDKToolsServices {
 			dataBefore.remove("fieldValuesLabel_s");
 			dataAfter.remove("fieldValuesLabel_s");
 
+			dataBefore.remove("estimatedSize_i");
+			dataAfter.remove("estimatedSize_i");
+
 			MapComparisonResults<String, Object> results = LangUtils.compare(dataBefore, dataAfter);
 
 			StringBuilder sb = new StringBuilder();

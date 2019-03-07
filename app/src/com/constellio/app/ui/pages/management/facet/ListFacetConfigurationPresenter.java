@@ -12,6 +12,7 @@ import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Facet;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotPhysicallyDeleteRecord;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -63,7 +64,7 @@ public class ListFacetConfigurationPresenter extends BasePresenter<ListFacetConf
 		Record record = recordServices().getDocumentById(recordVO.getId());
 		recordServices().logicallyDelete(record, User.GOD);
 		try {
-			recordServices().physicallyDelete(record, User.GOD);
+			recordServices().physicallyDeleteNoMatterTheStatus(record, User.GOD, new RecordPhysicalDeleteOptions());
 		} catch (RecordServicesRuntimeException_CannotPhysicallyDeleteRecord e) {
 			recordServices().restore(record, User.GOD);
 			throw new RuntimeException(e);

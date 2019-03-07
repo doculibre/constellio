@@ -196,7 +196,7 @@ public class ConnectorLDAP extends DefaultAbstractConnector {
 		return returnSet;
 	}
 
-	static LdapContext connectToLDAP(String url, ConnectorLDAPInstance connectorInstance,
+	public static LdapContext connectToLDAP(String url, ConnectorLDAPInstance connectorInstance,
 									 ConnectorLDAPServices ldapServices) {
 		String user = connectorInstance.getConnectionUsername();
 		String password = connectorInstance.getPassword();

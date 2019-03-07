@@ -149,6 +149,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		this.popup = popup;
 		initTransientObjects();
 		if (recordVO != null) {
+			this.taxonomyCode = recordVO.getId();
 			forParams(recordVO.getId());
 		}
 
@@ -189,14 +190,15 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 	public void forParams(String params) {
 		String id;
+		Map<String, String> paramsMap = ParamUtils.getParamsMap(params);
 
-		if(params.contains("id")) {
-			this.params = ParamUtils.getParamsMap(params);
+		if (paramsMap.get("id") != null) {
+			this.params = paramsMap;
 			id = this.params.get("id");
 		} else {
 			id = params;
 		}
-		
+
 		view.getSessionContext().addVisited(id);
 
 		String taxonomyCode = view.getUIContext().getAttribute(FolderDocumentContainerBreadcrumbTrail.TAXONOMY_CODE);
@@ -474,8 +476,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	private ComponentState getReturnFolderButtonState(User user, Folder folder) {
 		try {
 			borrowingServices.validateCanReturnFolder(user, folder);
-			return ComponentState
-					.visibleIf(user.hasAll(RMPermissionsTo.BORROW_FOLDER, RMPermissionsTo.BORROWING_FOLDER_DIRECTLY).on(folder));
+			return ComponentState.ENABLED;
 		} catch (Exception e) {
 			return ComponentState.INVISIBLE;
 		}
@@ -732,11 +733,14 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		if (validateLogicallyDeletable.isEmpty()) {
 			appLayerFactory.getExtensions().forCollection(collection)
 					.notifyFolderDeletion(new FolderDeletionEvent(rmSchemasRecordsServices.wrapFolder(record)));
-			delete(record, reason, false, WAIT_ONE_SECOND);
-			if (parentId != null) {
-				navigateToFolder(parentId);
-			} else {
-				navigate().to().home();
+
+			boolean isDeleteSuccessful = delete(record, reason, false, WAIT_ONE_SECOND);
+			if(isDeleteSuccessful) {
+				if (parentId != null) {
+					navigateToFolder(parentId);
+				} else {
+					navigate().to().home();
+				}
 			}
 		} else {
 			MessageUtils.getCannotDeleteWindow(validateLogicallyDeletable).openWindow();
@@ -1005,6 +1009,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			} else {
 				borrower = rmSchemasRecordsServices.getUser(folderVO.getBorrowUserId());
 			}
+			
 			EmailAddress borrowerAddress = new EmailAddress(borrower.getTitle(), borrower.getEmail());
 			emailToSend.setTo(Arrays.asList(borrowerAddress));
 			emailToSend.setSendOn(TimeProvider.getLocalDateTime());
@@ -1016,8 +1021,15 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			parameters.add("borrower" + EmailToSend.PARAMETER_SEPARATOR + borrower.getUsername());
 			String borrowedFolderTitle = folderVO.getTitle();
 			parameters.add("borrowedFolderTitle" + EmailToSend.PARAMETER_SEPARATOR + borrowedFolderTitle);
-			parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + $("DisplayFolderView.returnFolderReminder") + " \""
-						   + folderVO.getTitle() + "\"");
+			boolean isAddingRecordIdInEmails = eimConfigs.isAddingRecordIdInEmails();
+			if(isAddingRecordIdInEmails) {
+				parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + $("DisplayFolderView.returnFolderReminder") + " \""
+							   + folderVO.getTitle() + "\" (" + folderVO.getId() + ")");
+			} else {
+				parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + $("DisplayFolderView.returnFolderReminder") + " \""
+							   + folderVO.getTitle() + "\"");
+			}
+
 			parameters.add("constellioURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl);
 			parameters.add("recordURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl + "#!"
 						   + RMNavigationConfiguration.DISPLAY_FOLDER + "/" + folderVO.getId());

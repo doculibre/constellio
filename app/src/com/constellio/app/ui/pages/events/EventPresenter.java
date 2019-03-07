@@ -30,6 +30,7 @@ import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
@@ -97,7 +98,7 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 			metadataCodes.add(titleMetadata.getCode());
 
 			schemaVO = new MetadataSchemaToVOBuilder()
-					.build(documentDefaultSchema, VIEW_MODE.TABLE, metadataCodes, view.getSessionContext(), false);
+					.build(documentDefaultSchema, VIEW_MODE.TABLE, metadataCodes, view.getSessionContext(), true);
 
 		} else if (EventCategory.CURRENTLY_BORROWED_FOLDERS.equals(eventCategory) || getEventType()
 				.equals(EventType.CURRENTLY_BORROWED_FOLDERS) || getEventType()
@@ -120,7 +121,7 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 			metadataCodes.add(titleMetadata.getCode());
 
 			schemaVO = new MetadataSchemaToVOBuilder()
-					.build(folderDefaultSchema, VIEW_MODE.TABLE, metadataCodes, view.getSessionContext(), false);
+					.build(folderDefaultSchema, VIEW_MODE.TABLE, metadataCodes, view.getSessionContext(), true);
 
 		} else {
 			voBuilder = new RecordToVOBuilder();
@@ -178,7 +179,7 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 			temporaryFile = ioServices.newTemporaryFile(TEMPORARY_FILE);
 			byteArrayOutputStream = ioServices.newFileOutputStream(temporaryFile, STREAM_NAME);
 			outputStreamWriter = new OutputStreamWriter(byteArrayOutputStream, CharEncoding.ISO_8859_1);
-			csvWriter = new CSVWriter(outputStreamWriter, ',', CSVWriter.NO_QUOTE_CHARACTER);
+			csvWriter = new CSVWriter(outputStreamWriter, ',', CSVWriter.NO_QUOTE_CHARACTER, CSVWriter.NO_ESCAPE_CHARACTER);
 			writeCsvReport(csvWriter);
 			csvWriter.flush();
 			ioServices.closeQuietly(csvWriter);
@@ -215,8 +216,21 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 				Object metadataValue = recordVO.get(metadataVO);
 				String valueAsString = null;
 
+			 	if (metadataVO != null && metadataVO.getLocalCode().equals(Event.NEGATIVE_AUTHORIZATION)) {
+					valueAsString = EventViewImpl.negativeAuthorizationString((Boolean) metadataValue);
+				}
+
 				if (metadataValue != null) {
-					valueAsString = metadataValue.toString();
+					valueAsString = metadataValue.toString().trim();
+
+					if(metadataVO != null && metadataVO.getLocalCode().equals(Event.DELTA)) {
+						valueAsString = valueAsString.replaceAll("\\[" + "", "");
+						valueAsString = valueAsString.replaceAll(']' + "", "");
+					}
+
+					if (metadataVO.getType() == MetadataValueType.STRING) {
+						valueAsString = "\"" + valueAsString + "\"";
+					}
 				}
 
 				stringArray[counter++] = valueAsString;

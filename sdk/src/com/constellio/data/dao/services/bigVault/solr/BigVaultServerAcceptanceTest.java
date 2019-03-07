@@ -4,6 +4,7 @@ import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
+import com.constellio.data.dao.services.records.DataStore;
 import com.constellio.data.io.concurrent.filesystem.AtomicFileSystem;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.services.records.RecordServices;
@@ -43,6 +44,11 @@ public class BigVaultServerAcceptanceTest extends ConstellioTest {
 		AtomicFileSystem configManger = getDataLayerFactory().getRecordsVaultServer().getSolrFileSystem();
 		//Then
 		assertThat(configManger.exists("/solrconfig.xml")).isTrue();
+	}
+
+	@Test
+	public void whenMLTAvailableThenAvailable() {
+		assertThat(getDataLayerFactory().getSolrServers().getSolrServer(DataStore.RECORDS).isMLTAvailable()).isTrue();
 	}
 
 	@Test

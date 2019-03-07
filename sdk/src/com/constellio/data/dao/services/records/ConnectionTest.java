@@ -11,8 +11,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
+import static com.constellio.data.dao.services.bigVault.solr.SolrUtils.atomicSet;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ConnectionTest {
@@ -111,12 +111,6 @@ public class ConnectionTest {
 		ModifiableSolrParams solrParams = new ModifiableSolrParams();
 		solrParams.set("q", q);
 		return server.query(solrParams).getResults();
-	}
-
-	private Map<String, Object> atomicSet(Object newValue) {
-		Map<String, Object> atomicValueMap = new HashMap<>();
-		atomicValueMap.put("set", newValue);
-		return atomicValueMap;
 	}
 
 }

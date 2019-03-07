@@ -16,6 +16,7 @@ import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetail;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
+import com.constellio.app.modules.rm.wrappers.structures.FolderDetailStatus;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
@@ -169,8 +170,8 @@ public class DecommissioningListPresenterAcceptanceTest extends ConstellioTest {
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				boolean container100 = decommissioningList.getContainerDetail("container100") == null;
 				return container100 ?
-					   new ContainerVO("container100", "container100", 100D) :
-					   new ContainerVO("container100", "container100", decommissioningList.getContainerDetail("container100").getAvailableSize());
+					   new ContainerVO("container100", "container100", 100D, null) :
+					   new ContainerVO("container100", "container100", decommissioningList.getContainerDetail("container100").getAvailableSize(), null);
 			}
 		}).when(view).getContainer(rm.getContainerRecord("container100"));
 		doAnswer(new Answer() {
@@ -178,8 +179,8 @@ public class DecommissioningListPresenterAcceptanceTest extends ConstellioTest {
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				boolean container150 = decommissioningList.getContainerDetail("container150") == null;
 				return container150 ?
-					   new ContainerVO("container150", "container150", 150D) :
-					   new ContainerVO("container150", "container150", decommissioningList.getContainerDetail("container150").getAvailableSize());
+					   new ContainerVO("container150", "container150", 150D, null) :
+					   new ContainerVO("container150", "container150", decommissioningList.getContainerDetail("container150").getAvailableSize(), null);
 			}
 		}).when(view).getContainer(rm.getContainerRecord("container150"));
 
@@ -236,7 +237,7 @@ public class DecommissioningListPresenterAcceptanceTest extends ConstellioTest {
 	private DecommissioningList buildDefaultDecommissioningList() {
 		return rm.newDecommissioningListWithId("decomTest").setAdministrativeUnit(records.unitId_10).setTitle("decomTest").setOriginArchivisticStatus(OriginStatus.ACTIVE)
 				.setDecommissioningListType(DecommissioningListType.FOLDERS_TO_TRANSFER)
-				.addFolderDetailsFor(rm.getFolders(asList(records.folder_A01, records.folder_A02, records.folder_A03, records.folder_A04)).toArray(new Folder[0]));
+				.addFolderDetailsFor(FolderDetailStatus.INCLUDED, rm.getFolders(asList(records.folder_A01, records.folder_A02, records.folder_A03, records.folder_A04)).toArray(new Folder[0]));
 	}
 
 	private void buildAutoFillContainers() throws RecordServicesException {

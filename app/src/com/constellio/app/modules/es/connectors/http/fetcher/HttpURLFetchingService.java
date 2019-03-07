@@ -3,6 +3,7 @@ package com.constellio.app.modules.es.connectors.http.fetcher;
 import com.constellio.app.modules.es.connectors.http.fetcher.URLFetchingServiceRuntimeException.URLFetchingServiceRuntimeException_HttpError;
 import com.constellio.app.modules.es.connectors.http.fetcher.URLFetchingServiceRuntimeException.URLFetchingServiceRuntimeException_IOException;
 import com.constellio.app.modules.es.connectors.http.fetcher.URLFetchingServiceRuntimeException.URLFetchingServiceRuntimeException_MalformedUrl;
+import com.constellio.app.modules.es.connectors.http.fetcher.URLFetchingServiceRuntimeException.URLFetchingServiceServiceRuntimeException_ConnectionException;
 import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
 import com.gargoylesoftware.htmlunit.Page;
 import com.gargoylesoftware.htmlunit.RefreshHandler;
@@ -70,7 +71,7 @@ public class HttpURLFetchingService implements AutoCloseable {
 			throw new URLFetchingServiceRuntimeException_HttpError(url, e);
 
 		} catch (ConnectException e) {
-			throw new URLFetchingServiceRuntimeException_IOException(url, e);
+			throw new URLFetchingServiceServiceRuntimeException_ConnectionException(url, e);
 
 		} catch (MalformedURLException e) {
 			throw new URLFetchingServiceRuntimeException_MalformedUrl(url, e);

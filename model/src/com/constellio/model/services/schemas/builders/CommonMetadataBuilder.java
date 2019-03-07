@@ -25,6 +25,7 @@ import java.util.Map;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
 import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
+import static com.constellio.model.entities.schemas.MetadataValueType.INTEGER;
 import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static java.util.Arrays.asList;
@@ -63,6 +64,7 @@ public class CommonMetadataBuilder {
 	public static final String SCHEMA_AUTOCOMPLETE_FIELD = "autocomplete";
 	public static final String CAPTION = "caption";
 	public static final String DATA_VERSION = "migrationDataVersion";
+	public static final String ESTIMATED_SIZE = "estimatedSize";
 
 	private interface MetadataCreator {
 		void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types);
@@ -420,6 +422,16 @@ public class CommonMetadataBuilder {
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
 				MetadataBuilder metadataBuilder = schema.createSystemReserved(CAPTION).setType(STRING)
 						.setSortable(true);
+				for (Language language : types.getLanguages()) {
+					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
+				}
+			}
+		});
+
+		metadata.put(ESTIMATED_SIZE, new MetadataCreator() {
+			@Override
+			public void define(MetadataSchemaBuilder builder, MetadataSchemaTypesBuilder types) {
+				MetadataBuilder metadataBuilder = builder.createSystemReserved(ESTIMATED_SIZE).setType(INTEGER);
 				for (Language language : types.getLanguages()) {
 					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
 				}

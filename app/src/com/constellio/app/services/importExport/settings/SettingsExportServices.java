@@ -11,11 +11,13 @@ import com.constellio.app.services.importExport.settings.model.ImportedConfig;
 import com.constellio.app.services.importExport.settings.model.ImportedDataEntry;
 import com.constellio.app.services.importExport.settings.model.ImportedMetadata;
 import com.constellio.app.services.importExport.settings.model.ImportedMetadataSchema;
+import com.constellio.app.services.importExport.settings.model.ImportedSequence;
 import com.constellio.app.services.importExport.settings.model.ImportedSettings;
 import com.constellio.app.services.importExport.settings.model.ImportedTab;
 import com.constellio.app.services.importExport.settings.model.ImportedTaxonomy;
 import com.constellio.app.services.importExport.settings.model.ImportedType;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
+import com.constellio.data.dao.services.sequence.SequencesManager;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.calculators.JEXLMetadataValueCalculator;
@@ -53,6 +55,7 @@ public class SettingsExportServices {
 	AppLayerFactory appLayerFactory;
 	SystemConfigurationsManager systemConfigurationsManager;
 	MetadataSchemasManager schemasManager;
+	SequencesManager sequencesManager;
 	ValidationErrors validationErrors;
 	static final private List<String> nonUSRTaxonomies = asList(
 			ArrayUtils.addAll(RMTaxonomies.ALL_RM_TAXONOMIES, ESTaxonomies.ALL_EN_TAXONOMIES));
@@ -64,6 +67,7 @@ public class SettingsExportServices {
 		validationErrors = new ValidationErrors();
 		systemConfigurationsManager = appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager();
 		schemasManager = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager();
+		sequencesManager = appLayerFactory.getModelLayerFactory().getDataLayerFactory().getSequencesManager();
 	}
 
 	public ImportedSettings exportSettings(String collection, SettingsExportOptions options)
@@ -104,6 +108,15 @@ public class SettingsExportServices {
 
 		if (options.isExportingConfigs()) {
 			appendSystemConfigurations(settings);
+		}
+
+		if (options.isExportingSequences()) {
+			List<ImportedSequence> sequences = new ArrayList<>();
+			for (Map.Entry<String, Long> entry : sequencesManager.getSequences().entrySet()) {
+
+				sequences.add(new ImportedSequence(entry.getKey(), String.valueOf(entry.getValue())));
+			}
+			settings.setImportedSequences(sequences);
 		}
 
 		for (String collection : collections) {
@@ -296,7 +309,7 @@ public class SettingsExportServices {
 
 			importedMetadata.setUnmodifiable(metadata.isUnmodifiable());
 
-			if(metadata.getAccessRestrictions() != null && metadata.getAccessRestrictions().getRequiredReadRoles() != null) {
+			if (metadata.getAccessRestrictions() != null && metadata.getAccessRestrictions().getRequiredReadRoles() != null) {
 				importedMetadata.setRequiredReadRoles(metadata.getAccessRestrictions().getRequiredReadRoles());
 			}
 		}

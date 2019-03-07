@@ -102,22 +102,28 @@ public class SystemInformationsService {
 	}
 
 	private boolean isVersionLower(String version, String requiredVersion) {
-		if (StringUtils.isBlank(version)) {
-			return true;
-		}
-
-		String[] version1 = version.split("\\.");
-		String[] version2 = requiredVersion.split("\\.");
-
-		for (int i = 0; i < version1.length; i++) {
-			int versionPart = Integer.valueOf(version1[i]);
-			int requiredVersionPart = Integer.valueOf(version2[i]);
-			if (versionPart > requiredVersionPart) {
-				return false;
-			} else if (versionPart < requiredVersionPart) {
+		try {
+			if (StringUtils.isBlank(version)) {
 				return true;
 			}
+
+			String[] version1 = version.split("\\.");
+			String[] version2 = requiredVersion.split("\\.");
+
+			for (int i = 0; i < version1.length; i++) {
+				int versionPart = Integer.valueOf(version1[i]);
+				int requiredVersionPart = Integer.valueOf(version2[i]);
+				if (versionPart > requiredVersionPart) {
+					return false;
+				} else if (versionPart < requiredVersionPart) {
+					return true;
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
 		}
+
 		return false;
 	}
 }

@@ -3,6 +3,7 @@ package com.constellio.data.io.streams.factories;
 import com.constellio.data.io.services.facades.FileService;
 import com.constellio.data.io.services.facades.OpenedResourcesWatcher;
 import com.constellio.data.io.streamFactories.StreamFactory;
+import com.constellio.data.io.streams.factories.StreamsServicesRuntimeException.StreamsServicesRuntimeException_CannotWriteInFile;
 import com.constellio.data.io.streams.factories.StreamsServicesRuntimeException.StreamsServicesRuntimeException_FileNotFound;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.ReaderInputStream;
@@ -10,6 +11,7 @@ import org.apache.commons.io.input.ReaderInputStream;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
@@ -18,11 +20,13 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Reader;
 import java.io.StringReader;
+import java.io.Writer;
 import java.util.Scanner;
 
 public class StreamsServices {
@@ -90,6 +94,23 @@ public class StreamsServices {
 
 	public BufferedReader newBufferedReader(Reader reader, final String name) {
 		return OpenedResourcesWatcher.onOpen(new BufferedReader(reader, 65536) {
+
+			@Override
+			public String toString() {
+				return "Buffered " + name;
+			}
+
+			@Override
+			public void close()
+					throws IOException {
+				OpenedResourcesWatcher.onClose(this);
+				super.close();
+			}
+		});
+	}
+
+	public BufferedWriter newBufferedWriter(Writer writer, final String name) {
+		return OpenedResourcesWatcher.onOpen(new BufferedWriter(writer, 65536) {
 
 			@Override
 			public String toString() {
@@ -175,6 +196,77 @@ public class StreamsServices {
 		return newBufferedInputStream(fileInputStream, name);
 	}
 
+	public InputStream newBufferedFileInputStreamWithFileClosingAction(final File file, final String name,
+																	   final Runnable runnable)
+			throws FileNotFoundException {
+
+		FileInputStream fileInputStream = OpenedResourcesWatcher.onOpen(new FileInputStream(file) {
+
+			@Override
+			public String toString() {
+				return name + "[" + file.getPath() + "]";
+			}
+
+			@Override
+			public void close()
+					throws IOException {
+				OpenedResourcesWatcher.onClose(this);
+
+				super.close();
+				runnable.run();
+			}
+		});
+
+		return newBufferedInputStream(fileInputStream, name);
+	}
+
+	public OutputStream newBufferedFileOutputStreamWithFileClosingAction(final File file, final String name,
+																		 final Runnable runnable)
+			throws FileNotFoundException {
+
+		FileOutputStream fileOutputStream = OpenedResourcesWatcher.onOpen(new FileOutputStream(file) {
+
+			@Override
+			public String toString() {
+				return name + "[" + file.getPath() + "]";
+			}
+
+			@Override
+			public void close()
+					throws IOException {
+				OpenedResourcesWatcher.onClose(this);
+				super.close();
+				runnable.run();
+			}
+		});
+
+		return newBufferedOutputStream(fileOutputStream, name);
+	}
+
+
+	public BufferedWriter newBufferedFileWriterWithFileClosingAction(final File file, final String name,
+																	 final Runnable runnable)
+			throws IOException {
+
+		FileWriter fileWriter = OpenedResourcesWatcher.onOpen(new FileWriter(file) {
+
+			@Override
+			public String toString() {
+				return name + "[" + file.getPath() + "]";
+			}
+
+			@Override
+			public void close()
+					throws IOException {
+				OpenedResourcesWatcher.onClose(this);
+				super.close();
+				runnable.run();
+			}
+		});
+
+		return newBufferedWriter(fileWriter, name);
+	}
+
 	public BufferedReader newFileReader(final File file, final String name) {
 
 		try {
@@ -196,6 +288,31 @@ public class StreamsServices {
 			return newBufferedReader(fileReader, name);
 		} catch (FileNotFoundException e) {
 			throw new StreamsServicesRuntimeException_FileNotFound(e);
+		}
+
+	}
+
+	public BufferedWriter newFileWriter(final File file, final String name) {
+
+		try {
+
+			FileWriter fileWriter = OpenedResourcesWatcher.onOpen(new FileWriter(file) {
+
+				@Override
+				public String toString() {
+					return name + "[" + file.getPath() + "]";
+				}
+
+				@Override
+				public void close()
+						throws IOException {
+					OpenedResourcesWatcher.onClose(this);
+					super.close();
+				}
+			});
+			return newBufferedWriter(fileWriter, name);
+		} catch (IOException e) {
+			throw new StreamsServicesRuntimeException_CannotWriteInFile(file, e);
 		}
 
 	}

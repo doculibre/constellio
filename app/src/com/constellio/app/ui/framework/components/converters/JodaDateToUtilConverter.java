@@ -12,7 +12,7 @@ public class JodaDateToUtilConverter implements Converter<Date, LocalDate> {
 	@Override
 	public LocalDate convertToModel(Date value, Class<? extends LocalDate> targetType, Locale locale)
 			throws com.vaadin.data.util.converter.Converter.ConversionException {
-		return value != null ? new LocalDate(value) : null;
+		return value != null ? LocalDate.fromDateFields(value) : null;
 	}
 
 	@Override
