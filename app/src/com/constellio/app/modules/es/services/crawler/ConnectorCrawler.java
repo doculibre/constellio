@@ -117,6 +117,7 @@ public class ConnectorCrawler {
 			}
 
 
+			List<CrawledConnector> connectorsWithJobs = new ArrayList<>();
 			for (CrawledConnector crawledConnector : connectorsCrawledInCurrentBatch) {
 
 				ConnectorInstance instance = es.getConnectorInstance(crawledConnector.connectorInstance.getId());
@@ -127,6 +128,7 @@ public class ConnectorCrawler {
 					//									+ " job(s) " + "' **** ");
 
 					if (!connectorJobs.isEmpty()) {
+						connectorsWithJobs.add(crawledConnector);
 						connectorJobsMap.put(crawledConnector, connectorJobs);
 						allJobs.addAll(connectorJobs);
 					} else {
@@ -150,7 +152,7 @@ public class ConnectorCrawler {
 
 				eventObserver.flush();
 
-				for (CrawledConnector crawledConnector : connectorsCrawledInCurrentBatch) {
+				for (CrawledConnector crawledConnector : connectorsWithJobs) {
 					try {
 						crawledConnector.connector.afterJobs(connectorJobsMap.get(crawledConnector));
 					} catch (Exception e) {
