@@ -35,6 +35,8 @@ public class ConnectorHttp extends Connector {
 
 	private ConnectorHttpContext context;
 
+	private long lastVersion = -1;
+
 	String connectorId;
 
 	ConnectorHttpContextServices contextServices;
@@ -140,8 +142,11 @@ public class ConnectorHttp extends Connector {
 
 	@Override
 	public void afterJobs(List<ConnectorJob> jobs) {
-		LOGGER.info("Saving context on instance '" + connectorId + "'");
-		contextServices.save(context);
+		if (context.getVersion() != lastVersion) {
+			LOGGER.info("Saving context on instance '" + connectorId + "'");
+			contextServices.save(context);
+			lastVersion = context.getVersion();
+		}
 	}
 
 	public void resume() {
