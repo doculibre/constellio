@@ -39,8 +39,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.IN_PROGRESS;
 import static junit.framework.TestCase.fail;
@@ -273,6 +275,7 @@ public class XmlReportGeneratorAcceptanceTest extends ConstellioTest {
 
 		zeTask.setLinkedFolders(Arrays.asList(records.folder_A01, records.folder_A04));
 
+
 		XmlReportGeneratorParameters xmlReportGeneratorParameters = new XmlReportGeneratorParameters(1);
 		xmlReportGeneratorParameters
 				.setRecordsElements(zeTask.getWrappedRecord());
@@ -291,11 +294,13 @@ public class XmlReportGeneratorAcceptanceTest extends ConstellioTest {
 
 		Element xmlRecordElement = xmlDocument.getRootElement().getChild(AbstractXmlGenerator.XML_EACH_RECORD_ELEMENTS);
 		List<Tuple> xmlRecordValues = new ArrayList<>();
+		Map<String, String> tagNameTextMap = new HashMap<>();
 		for (Object ob : xmlRecordElement.getChild(AbstractXmlGenerator.XML_METADATA_TAGS).getChildren()) {
 			Element element = (Element) ob;
 
 			if (element.getName().startsWith(PrintableReportXmlGenerator.XML_LINKED_FOLDER_PREFIX)) {
 				xmlRecordValues.add(tuple(element.getName(), element.getText()));
+				tagNameTextMap.put(element.getName(), element.getText());
 			}
 		}
 
@@ -310,6 +315,12 @@ public class XmlReportGeneratorAcceptanceTest extends ConstellioTest {
 		for (Element element : elementOfMetadata) {
 			listOfMetadataInFolder.add(tuple(element.getName(), element.getText()));
 		}
+
+		assertThat(listOfMetadataInFolder.size()).isGreaterThanOrEqualTo(310);
+		assertThat(tagNameTextMap.get("linkedFolders_0_title")).isEqualTo("Abeille");
+		assertThat(tagNameTextMap.get("linkedFolders_0_id")).isEqualTo("A01");
+		assertThat(tagNameTextMap.get("linkedFolders_1_title")).isEqualTo("Baleine");
+		assertThat(tagNameTextMap.get("linkedFolders_1_id")).isEqualTo("A04");
 
 		assertThat(xmlRecordValues).contains(listOfMetadataInFolder.toArray(new Tuple[0]));
 	}
