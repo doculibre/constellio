@@ -27,9 +27,9 @@ public class FolderDocumentContainerBreadcrumbTrail extends TitleBreadcrumbTrail
 		this(recordId, taxonomyCode, null, view);
 	}
 
-	public FolderDocumentContainerBreadcrumbTrail(String recordId, String taxonomyCode, String containerId, String favId, BaseView view) {
+	public FolderDocumentContainerBreadcrumbTrail(String recordId, String taxonomyCode, String containerId, String favoritesId, BaseView view) {
 		super(view, null, false);
-		this.presenter = new FolderDocumentBreadcrumbTrailPresenter(recordId, taxonomyCode, this, containerId, favId);
+		this.presenter = new FolderDocumentBreadcrumbTrailPresenter(recordId, taxonomyCode, this, containerId, favoritesId);
 	}
 
 	public FolderDocumentContainerBreadcrumbTrail(String recordId, String taxonomyCode, String containerId, BaseView view) {

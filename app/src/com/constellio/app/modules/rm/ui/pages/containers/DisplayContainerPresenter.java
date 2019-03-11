@@ -158,7 +158,7 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 
 	public void editContainer() {
 		if(getFavoriteGroupId()  != null) {
-			view.navigate().to(RMViews.class).editContainerFromFav(containerId, getFavoriteGroupId());
+			view.navigate().to(RMViews.class).editContainerFromFavorites(containerId, getFavoriteGroupId());
 		} else {
 			view.navigate().to(RMViews.class).editContainer(containerId);
 		}
@@ -190,7 +190,7 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 
 	public void displayFolderButtonClicked(RecordVO folder) {
 		if(params != null && params.get(RMViews.FAV_GROUP_ID_KEY) != null) {
-			view.navigate().to(RMViews.class).displayFolderFromFav(folder.getId(), params.get(RMViews.FAV_GROUP_ID_KEY));
+			view.navigate().to(RMViews.class).displayFolderFromFavorites(folder.getId(), params.get(RMViews.FAV_GROUP_ID_KEY));
 		} else if(view.getUIContext().getAttribute(BaseBreadcrumbTrail.SEARCH_ID) != null && containerId != null) {
 			view.navigate().to(RMViews.class).displayFolderFromContainer(folder.getId(), containerId);
 		} else {

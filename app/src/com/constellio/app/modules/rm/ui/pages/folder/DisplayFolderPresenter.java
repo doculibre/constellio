@@ -332,7 +332,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	public BaseBreadcrumbTrail getBreadCrumbTrail() {
 		String saveSearchDecommissioningId = null;
 		String searchTypeAsString = null;
-		String favId = null;
+		String favoritesId = null;
 
 		Map<String, String> params = getParams();
 
@@ -347,7 +347,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 				searchTypeAsString = params.get("decommissioningType");
 				view.getUIContext().setAttribute(DecommissioningBuilderViewImpl.DECOMMISSIONING_BUILDER_TYPE, searchTypeAsString);
 			}
-			favId = params.get(RMViews.FAV_GROUP_ID_KEY);
+			favoritesId = params.get(RMViews.FAV_GROUP_ID_KEY);
 		}
 
 		SearchType searchType = null;
@@ -363,8 +363,8 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 		if (breadcrumbTrail != null) {
 			return breadcrumbTrail;
-		} else if (favId != null) {
-			return new FolderDocumentContainerBreadcrumbTrail(view.getRecord().getId(), null, null, favId, this.view);
+		} else if (favoritesId != null) {
+			return new FolderDocumentContainerBreadcrumbTrail(view.getRecord().getId(), null, null, favoritesId, this.view);
 		} else if (saveSearchDecommissioningId == null) {
 			String containerId = null;
 			if (params != null && params instanceof Map) {

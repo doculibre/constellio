@@ -15,7 +15,7 @@ public class GroupFavoritesBreadcrumbItem implements BreadcrumbItem {
 
 	@Override
 	public String getLabel() {
-		return i18n.$("groupfavorites");
+		return i18n.$("GroupFavoritesBreadcrumbItem.groupfavorites");
 	}
 
 	@Override

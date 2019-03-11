@@ -45,7 +45,7 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 
 	private String containerId;
 
-	private String favId;
+	private String favoritesId;
 
 	private FolderDocumentContainerBreadcrumbTrail breadcrumbTrail;
 
@@ -61,12 +61,12 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 	}
 
 	public FolderDocumentBreadcrumbTrailPresenter(String recordId, String taxonomyCode,
-												  FolderDocumentContainerBreadcrumbTrail breadcrumbTrail, String containerId, String favId) {
+												  FolderDocumentContainerBreadcrumbTrail breadcrumbTrail, String containerId, String favoritesId) {
 		this.recordId = recordId;
 		this.taxonomyCode = taxonomyCode;
 		this.breadcrumbTrail = breadcrumbTrail;
 		this.containerId = containerId;
-		this.favId = favId;
+		this.favoritesId = favoritesId;
 		initTransientObjects();
 		addBreadcrumbItems();
 	}
@@ -170,9 +170,9 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 			if (selectedTaxonomy != null) {
 				breadcrumbItems.add(0, new TaxonomyBreadcrumbItem(taxonomyCode, selectedTaxonomy.getTitle(Language.withCode(breadcrumbTrail.getSessionContext().getCurrentLocale().getLanguage()))));
 			}
-		} else if (favId != null) {
+		} else if (favoritesId != null) {
 			breadcrumbItems.add(0, new FavoritesBreadcrumbItem());
-			breadcrumbItems.add(1, new GroupFavoritesBreadcrumbItem(favId));
+			breadcrumbItems.add(1, new GroupFavoritesBreadcrumbItem(favoritesId));
 		}
 		else if (searchId != null) {
 			breadcrumbItems.add(0, new SearchResultsBreadcrumbItem(searchId, advancedSearch));
@@ -218,16 +218,16 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 		if (item instanceof FolderBreadCrumbItem) {
 			handled = true;
 			String folderId = ((FolderBreadCrumbItem) item).getFolderId();
-			if(favId != null) {
-				breadcrumbTrail.navigate().to(RMViews.class).displayFolderFromFav(folderId, favId);
+			if(favoritesId != null) {
+				breadcrumbTrail.navigate().to(RMViews.class).displayFolderFromFavorites(folderId, favoritesId);
 			} else {
 				breadcrumbTrail.navigate().to(RMViews.class).displayFolder(folderId);
 			}
 		} else if (item instanceof DocumentBreadCrumbItem) {
 			handled = true;
 			String documentId = ((DocumentBreadCrumbItem) item).getDocumentId();
-			if(favId != null) {
-				breadcrumbTrail.navigate().to(RMViews.class).displayDocumentFromFav(documentId, favId);
+			if(favoritesId != null) {
+				breadcrumbTrail.navigate().to(RMViews.class).displayDocumentFromFavorites(documentId, favoritesId);
 			} else {
 				breadcrumbTrail.navigate().to(RMViews.class).displayDocument(documentId);
 			}
@@ -252,8 +252,9 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 		} else if (item instanceof ContainerBreadcrumbItem) {
 			handled = true;
 			ContainerBreadcrumbItem containerBreadcrumbItem = (ContainerBreadcrumbItem) item;
-			if(favId != null) {
-				breadcrumbTrail.navigate().to(RMViews.class).displayDocumentFromFav(containerBreadcrumbItem.getContainerId(), favId);
+			if(favoritesId != null) {
+				breadcrumbTrail.navigate().to(RMViews.class).displayDocumentFromFavorites(containerBreadcrumbItem.getContainerId(),
+						favoritesId);
 			} else {
 				breadcrumbTrail.navigate().to(RMViews.class).displayContainer(containerBreadcrumbItem.getContainerId());
 			}

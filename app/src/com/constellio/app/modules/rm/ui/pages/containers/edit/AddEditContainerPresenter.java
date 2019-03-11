@@ -141,7 +141,7 @@ public class AddEditContainerPresenter extends SingleSchemaBasePresenter<AddEdit
 			addOrUpdate(toRecord(record));
 
 			if(params != null && params.get(RMViews.FAV_GROUP_ID_KEY) != null) {
-				view.navigate().to(RMViews.class).displayContainerFromFav(record.getId(), params.get(RMViews.FAV_GROUP_ID_KEY));
+				view.navigate().to(RMViews.class).displayContainerFromFavorites(record.getId(), params.get(RMViews.FAV_GROUP_ID_KEY));
 			} else if(Strings.isNotBlank(tabName) && Strings.isNotBlank(administrativeUnitId)) {
 				view.navigate().to(RMViews.class)
 						.displayContainerFromContainerByAdministrativeUnit(record.getId(), tabName, administrativeUnitId);

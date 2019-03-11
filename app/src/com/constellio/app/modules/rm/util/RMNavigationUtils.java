@@ -27,7 +27,7 @@ public class RMNavigationUtils {
 		}
 
 		if(favGroupId != null) {
-			navigation.to(RMViews.class).displayFolderFromFav(id, favGroupId);
+			navigation.to(RMViews.class).displayFolderFromFavorites(id, favGroupId);
 		} else if (containerId != null) {
 			navigation.to(RMViews.class).displayFolderFromContainer(id, containerId);
 		} else if (DecommissionNavUtil.areTypeAndSearchIdPresent(params)) {
@@ -56,7 +56,7 @@ public class RMNavigationUtils {
 		}
 
 		if(favGroupId != null) {
-			navigation.to(RMViews.class).editFolderFromFav(id, favGroupId);
+			navigation.to(RMViews.class).editFolderFromFavorites(id, favGroupId);
 		} else if (areTypeAndSearchIdPresent) {
 			navigation.to(RMViews.class).editFolderFromDecommission(id,
 					DecommissionNavUtil.getSearchId(params), DecommissionNavUtil.getSearchType(params));
@@ -86,7 +86,7 @@ public class RMNavigationUtils {
 		}
 
 		if(favGroupId != null) {
-			navigation.to(RMViews.class).displayDocumentFromFav(id, favGroupId);
+			navigation.to(RMViews.class).displayDocumentFromFavorites(id, favGroupId);
 		} else if (containerId != null) {
 			navigation.to(RMViews.class).displayDocumentFromContainer(id, containerId);
 		} else if (DecommissionNavUtil.areTypeAndSearchIdPresent(params)) {
@@ -115,7 +115,7 @@ public class RMNavigationUtils {
 		}
 
 		if(favGroupId != null) {
-			navigation.to(RMViews.class).editDocumentFromFav(id, favGroupId);
+			navigation.to(RMViews.class).editDocumentFromFavorites(id, favGroupId);
 		} else if (areTypeAndSearchIdPresent) {
 			navigation.to(RMViews.class).editDocumentFromDecommission(id,
 					DecommissionNavUtil.getSearchId(params), DecommissionNavUtil.getSearchType(params));
