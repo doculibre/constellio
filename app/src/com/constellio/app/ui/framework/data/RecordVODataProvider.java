@@ -10,6 +10,7 @@ import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.SessionContextProvider;
 import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
+import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -34,19 +35,22 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 	transient LogicalSearchQuery query;
 	transient Integer size = null;
 	transient Map<Integer, Record> cache;
-	transient MetadataSchemaVO schema;
+	transient MetadataSchemaVO defaultSchema;
 	protected transient ModelLayerFactory modelLayerFactory;
-	RecordToVOBuilder voBuilder;
 	SessionContext sessionContext;
 	private int batchSize = 20;
 
 	private boolean cachedSearch;
 
+	private Map<String, RecordToVOBuilder> voBuilders = new HashMap<>();
+
+	private List<MetadataSchemaVO> extraSchemas = new ArrayList<>();
+
 	@Deprecated
 	public RecordVODataProvider(MetadataSchemaVO schema, RecordToVOBuilder voBuilder,
 								ModelLayerFactory modelLayerFactory) {
-		this.schema = schema;
-		this.voBuilder = voBuilder;
+		this.defaultSchema = schema;
+		this.voBuilders.put(schema.getCode(), voBuilder);
 		this.sessionContext = ConstellioUI.getCurrentSessionContext();
 		init(modelLayerFactory);
 
@@ -54,8 +58,8 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 
 	public RecordVODataProvider(MetadataSchemaVO schema, RecordToVOBuilder voBuilder,
 								SessionContextProvider sessionContextProvider) {
-		this.schema = schema;
-		this.voBuilder = voBuilder;
+		this.defaultSchema = schema;
+		this.voBuilders.put(schema.getCode(), voBuilder);
 		this.sessionContext = sessionContextProvider.getSessionContext();
 		init(sessionContextProvider.getConstellioFactories().getModelLayerFactory());
 	}
@@ -63,9 +67,27 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 	public RecordVODataProvider(MetadataSchemaVO schema, RecordToVOBuilder voBuilder,
 								ModelLayerFactory modelLayerFactory,
 								SessionContext sessionContext) {
-		this.schema = schema;
-		this.voBuilder = voBuilder;
+		this.defaultSchema = schema;
+		this.voBuilders.put(schema.getCode(), voBuilder);
 		this.sessionContext = sessionContext;
+		init(modelLayerFactory);
+	}
+
+	public RecordVODataProvider(List<MetadataSchemaVO> schemas, Map<String, RecordToVOBuilder> voBuilders, ModelLayerFactory modelLayerFactory,
+			SessionContext sessionContext) {
+		this.defaultSchema = schemas.get(0);
+		this.voBuilders = voBuilders;
+		this.sessionContext = sessionContext;
+
+		for (int i = 0; i < schemas.size(); i++) {
+			MetadataSchemaVO schema = schemas.get(i);
+			if (i == 0) {
+				this.defaultSchema = schema;
+			} else {
+				extraSchemas.add(schema);
+			}
+		}
+
 		init(modelLayerFactory);
 	}
 
@@ -123,10 +145,30 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 	}
 
 	public MetadataSchemaVO getSchema() {
-		return schema;
+		return defaultSchema;
+	}
+
+	public List<MetadataSchemaVO> getExtraSchemas() {
+		return extraSchemas;
+	}
+
+	private MetadataSchemaVO getSchema(String code) {
+		MetadataSchemaVO match = null;
+		if (defaultSchema.getCode().equals(code)) {
+			match = defaultSchema;
+		} else {
+			for (MetadataSchemaVO extraSchema : extraSchemas) {
+				if (extraSchema.getCode().equals(code)) {
+					match = extraSchema;
+					break;
+				}
+			}
+		}
+		return match;
 	}
 
 	public RecordVO getRecordVO(int index) {
+		RecordVO recordVO;
 		Record record = cache.get(index);
 		if (record == null) {
 			List<Record> recordList = doSearch();
@@ -137,7 +179,14 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 				record = null;
 			}
 		}
-		return record != null ? voBuilder.build(record, VIEW_MODE.TABLE, schema, sessionContext) : null;
+		if (record != null) {
+			String schemaCode = record.getSchemaCode();
+			RecordToVOBuilder voBuilder = getVOBuilder(record);
+			recordVO = voBuilder.build(record, VIEW_MODE.TABLE, getSchema(schemaCode), sessionContext);
+		} else {
+			recordVO = null;
+		}
+		return recordVO;
 	}
 
 	public int size() {
@@ -180,10 +229,23 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 		List<Record> recordList = doSearch();
 		for (int i = startIndex; i < startIndex + numberOfItems && i < recordList.size(); i++) {
 			Record record = recordList.get(i);
+			MetadataSchemaVO schema = getSchema(record.getSchemaCode());
+			RecordToVOBuilder voBuilder = getVOBuilder(record);
 			RecordVO recordVO = voBuilder.build(record, VIEW_MODE.TABLE, schema, sessionContext);
 			recordVOs.add(recordVO);
 		}
 		return recordVOs;
+	}
+
+	private RecordToVOBuilder getVOBuilder(Record record) {
+		String schemaCode = record.getSchemaCode();
+		String typeCode = record.getTypeCode();
+		RecordToVOBuilder voBuilder = voBuilders.get(schemaCode);
+		if (voBuilder == null) {
+			String defaultSchemaCode = typeCode + "_default";
+			voBuilder = voBuilders.get(defaultSchemaCode);
+		}
+		return voBuilder;
 	}
 
 	public void sort(MetadataVO[] propertyId, boolean[] ascending) {
@@ -225,6 +287,16 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 
 	protected boolean isSearchCache() {
 		return false;
+	}
+
+	public Map<String, List<FacetValue>> getFieldFacetValues() {
+		SerializedCacheSearchService searchServices = new SerializedCacheSearchService(modelLayerFactory, queryCache, true);
+		return searchServices.getFieldFacetValues();
+	}
+
+	public Map<String, Integer> getQueryFacetsValues() {
+		SerializedCacheSearchService searchServices = new SerializedCacheSearchService(modelLayerFactory, queryCache, true);
+		return searchServices.getQueryFacetsValues();
 	}
 
 }

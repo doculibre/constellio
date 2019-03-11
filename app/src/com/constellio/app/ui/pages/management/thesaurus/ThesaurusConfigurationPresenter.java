@@ -295,60 +295,76 @@ public class ThesaurusConfigurationPresenter extends BasePresenter<ThesaurusConf
 	}
 
 	int getDocumentsWithAConcept() {
-		ESSchemasRecordsServices es = new ESSchemasRecordsServices(collection, appLayerFactory);
-		SearchServices searchService = modelLayerFactory.newSearchServices();
-		schemaRecordService = new SchemasRecordsServices(collection, modelLayerFactory);
-		LogicalSearchCondition condition = from(es.connectorHttpDocument.schemaType())
-				.where(es.connectorHttpDocument.thesaurusMatch()).isNotNull();
-		LogicalSearchQuery query = new LogicalSearchQuery(condition);
-		query.setNumberOfRows(0);
-		SPEQueryResponse response = searchService.query(query);
+		try {
+			ESSchemasRecordsServices es = new ESSchemasRecordsServices(collection, appLayerFactory);
+			SearchServices searchService = modelLayerFactory.newSearchServices();
+			schemaRecordService = new SchemasRecordsServices(collection, modelLayerFactory);
+			LogicalSearchCondition condition = from(es.connectorHttpDocument.schemaType())
+					.where(es.connectorHttpDocument.thesaurusMatch()).isNotNull();
+			LogicalSearchQuery query = new LogicalSearchQuery(condition);
+			query.setNumberOfRows(0);
+			SPEQueryResponse response = searchService.query(query);
 
-		return (int) response.getNumFound();
+			return (int) response.getNumFound();
+		} catch (com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.NoSuchSchemaType e) {
+			return 0;
+		}
 	}
 
 	int getDocumentsWithoutAConcept() {
-		ESSchemasRecordsServices es = new ESSchemasRecordsServices(collection, appLayerFactory);
-		SearchServices searchService = modelLayerFactory.newSearchServices();
-		schemaRecordService = new SchemasRecordsServices(collection, modelLayerFactory);
-		LogicalSearchCondition condition = from(es.connectorHttpDocument.schemaType())
-				.where(es.connectorHttpDocument.thesaurusMatch()).isNull();
-		LogicalSearchQuery query = new LogicalSearchQuery(condition);
-		query.setNumberOfRows(0);
-		SPEQueryResponse response = searchService.query(query);
+		try {
+			ESSchemasRecordsServices es = new ESSchemasRecordsServices(collection, appLayerFactory);
+			SearchServices searchService = modelLayerFactory.newSearchServices();
+			schemaRecordService = new SchemasRecordsServices(collection, modelLayerFactory);
+			LogicalSearchCondition condition = from(es.connectorHttpDocument.schemaType())
+					.where(es.connectorHttpDocument.thesaurusMatch()).isNull();
+			LogicalSearchQuery query = new LogicalSearchQuery(condition);
+			query.setNumberOfRows(0);
+			SPEQueryResponse response = searchService.query(query);
 
-		return (int) response.getNumFound();
+			return (int) response.getNumFound();
+		} catch (com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.NoSuchSchemaType e) {
+			return 0;
+		}
 	}
 
 	int getUsedConcepts() {
-		ESSchemasRecordsServices es = new ESSchemasRecordsServices(collection, appLayerFactory);
-		SearchServices searchService = modelLayerFactory.newSearchServices();
-		schemaRecordService = new SchemasRecordsServices(collection, modelLayerFactory);
-		LogicalSearchCondition condition = from(es.connectorHttpDocument.schemaType()).returnAll();
-		LogicalSearchQuery query = new LogicalSearchQuery(condition);
-		query.setNumberOfRows(0);
-		query.setFieldFacetLimit(-1);
-		query.addFieldFacet("thesaurusMatch_ss");
+		try {
+			ESSchemasRecordsServices es = new ESSchemasRecordsServices(collection, appLayerFactory);
+			SearchServices searchService = modelLayerFactory.newSearchServices();
+			schemaRecordService = new SchemasRecordsServices(collection, modelLayerFactory);
+			LogicalSearchCondition condition = from(es.connectorHttpDocument.schemaType()).returnAll();
+			LogicalSearchQuery query = new LogicalSearchQuery(condition);
+			query.setNumberOfRows(0);
+			query.setFieldFacetLimit(-1);
+			query.addFieldFacet("thesaurusMatch_ss");
 
-		SPEQueryResponse response = searchService.query(query);
-		List<FacetValue> usedConcept = response.getFieldFacetValues().get("thesaurusMatch_ss");
+			SPEQueryResponse response = searchService.query(query);
+			List<FacetValue> usedConcept = response.getFieldFacetValues().get("thesaurusMatch_ss");
 
-		return usedConcept.size();
+			return usedConcept.size();
+		} catch (com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.NoSuchSchemaType e) {
+			return 0;
+		}
 	}
 
 	List<FacetValue> getMostUsedConcepts() {
-		//  résultat de la facette : facet.field=thesaurusMatch_ss facet.limit=1000
-		ESSchemasRecordsServices es = new ESSchemasRecordsServices(collection, appLayerFactory);
-		SearchServices searchService = modelLayerFactory.newSearchServices();
-		schemaRecordService = new SchemasRecordsServices(collection, modelLayerFactory);
-		LogicalSearchCondition condition = from(es.connectorHttpDocument.schemaType()).returnAll();
-		LogicalSearchQuery query = new LogicalSearchQuery(condition);
-		query.setNumberOfRows(0);
-		query.setFieldFacetLimit(1000);
-		query.addFieldFacet("thesaurusMatch_ss");
+		try {
+			//  résultat de la facette : facet.field=thesaurusMatch_ss facet.limit=1000
+			ESSchemasRecordsServices es = new ESSchemasRecordsServices(collection, appLayerFactory);
+			SearchServices searchService = modelLayerFactory.newSearchServices();
+			schemaRecordService = new SchemasRecordsServices(collection, modelLayerFactory);
+			LogicalSearchCondition condition = from(es.connectorHttpDocument.schemaType()).returnAll();
+			LogicalSearchQuery query = new LogicalSearchQuery(condition);
+			query.setNumberOfRows(0);
+			query.setFieldFacetLimit(1000);
+			query.addFieldFacet("thesaurusMatch_ss");
 
-		SPEQueryResponse response = searchService.query(query);
-		return response.getFieldFacetValues().get("thesaurusMatch_ss");
+			SPEQueryResponse response = searchService.query(query);
+			return response.getFieldFacetValues().get("thesaurusMatch_ss");
+		} catch (com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.NoSuchSchemaType e) {
+			return new ArrayList<>();
+		}
 	}
 
 	InputStream getMostUsedConceptsInputStream(List<FacetValue> mostUsedConcepts) {
@@ -379,8 +395,7 @@ public class ThesaurusConfigurationPresenter extends BasePresenter<ThesaurusConf
 	}
 
 	List<SkosConcept> getUnusedConcepts() {
-		List<SkosConcept> result = new ArrayList<>();
-
+		try {List<SkosConcept> result = new ArrayList<>();
 		// Tous les concepts du thesaurusManager MOINS résultat de la facette : facet.field=thesaurusMatch_ss facet.limit=100000
 		ESSchemasRecordsServices es = new ESSchemasRecordsServices(collection, appLayerFactory);
 		SearchServices searchService = modelLayerFactory.newSearchServices();
@@ -408,7 +423,9 @@ public class ThesaurusConfigurationPresenter extends BasePresenter<ThesaurusConf
 				result.add(concept);
 			}
 		}
-		return result;
+		return result;} catch (com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.NoSuchSchemaType e) {
+			return new ArrayList<>();
+		}
 	}
 
 	public InputStream getUnusedConceptsInputStream(final List<SkosConcept> unusedConcepts) {

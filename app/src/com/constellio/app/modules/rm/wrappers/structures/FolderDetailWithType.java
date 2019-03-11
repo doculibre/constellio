@@ -1,9 +1,9 @@
 package com.constellio.app.modules.rm.wrappers.structures;
 
-import java.io.Serializable;
-
 import com.constellio.app.modules.rm.model.enums.DecommissioningListType;
 import com.constellio.app.modules.rm.model.enums.FolderMediaType;
+
+import java.io.Serializable;
 
 public class FolderDetailWithType implements Serializable {
 	private final DecomListFolderDetail detail;

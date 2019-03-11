@@ -1,5 +1,18 @@
 package com.constellio.app.services.schemasDisplay;
 
+import static com.constellio.app.services.schemasDisplay.SchemaDisplayUtils.getCustomSchemaDefaultDisplay;
+import static com.constellio.app.services.schemasDisplay.SchemaDisplayUtils.getDefaultSchemaDefaultDisplay;
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
@@ -97,7 +110,7 @@ public class SchemasDisplayManagerCache implements Serializable {
 
 	private SchemaTypeDisplayConfig getDefaultSchemaTypeDisplayConfig(String typeCode) {
 
-		Map<String, Map<Language, String>> metadataGroup = new HashMap<>();
+		Map<String, Map<Language, String>> metadataGroup = new LinkedHashMap<>();
 		Map<Language, String> label = new HashMap<>();
 		// TODO iterate on all collections' languages
 

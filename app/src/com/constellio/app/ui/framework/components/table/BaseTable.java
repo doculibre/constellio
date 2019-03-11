@@ -40,10 +40,14 @@ public class BaseTable extends Table {
 				String tableId = getTableId();
 				if (tableId != null && columnsManager == null) {
 					columnsManager = newColumnsManager();
-					columnsManager.manage(BaseTable.this, tableId);
+					manageColumns(tableId);
 				}
 			}
 		});
+	}
+
+	protected void manageColumns(String tableId) {
+		columnsManager.manage(BaseTable.this, tableId);
 	}
 
 	protected TableColumnsManager newColumnsManager() {

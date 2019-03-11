@@ -10,7 +10,10 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.ui.framework.components.SearchResultDisplay;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
+import com.constellio.app.ui.util.ComponentTreeUtils;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.Language;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.vaadin.ui.Button.ClickEvent;
@@ -142,7 +145,7 @@ public class RMRecordNavigationExtension implements RecordNavigationExtension {
 					public void buttonClick(ClickEvent event) {
 						if (isRecordInTrash) {
 							RecordNavigationExtensionUtils.showMessage(errorMessage);
-						} else {
+						} else if (!isOpenInViewer(referenceDisplay)) {
 							navigateToView(navigationParams.setOpenInNewTab(referenceDisplay.isOpenLinkInNewTab()));
 						}
 					}
@@ -159,5 +162,15 @@ public class RMRecordNavigationExtension implements RecordNavigationExtension {
 				}
 			}
 		}
+	}
+	
+	protected boolean isOpenInViewer(ReferenceDisplay referenceDisplay) {
+		boolean openInViewer;
+		if (Toggle.SEARCH_RESULTS_VIEWER.isEnabled() && ComponentTreeUtils.findParent(referenceDisplay, SearchResultDisplay.class) != null) {
+			openInViewer = true;
+		} else {
+			openInViewer = false;
+		}
+		return openInViewer;
 	}
 }

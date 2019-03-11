@@ -121,15 +121,15 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 
 	public void setMetadataCode(String metadataCode) {
 		this.metadataCode = metadataCode;
-
-		if (this.metadataCode.split("_").length == 1) {
-			this.metadataCode = getSchemaCode() + "_" + metadataCode;
-		}
-
-		try {
-			this.metadata = types.getMetadata(this.metadataCode);
-		} catch (Exception e) {
-			e.printStackTrace();
+		if (StringUtils.isNotBlank(this.metadataCode)) {
+			if (this.metadataCode.split("_").length == 1) {
+				this.metadataCode = getSchemaCode() + "_" + metadataCode;
+			}
+			try {
+				this.metadata = types.getMetadata(this.metadataCode);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 	}
 

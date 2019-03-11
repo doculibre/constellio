@@ -17,6 +17,8 @@ import java.util.List;
 
 import static com.constellio.model.entities.schemas.MetadataAttribute.REQUIRED;
 
+import static com.constellio.model.entities.schemas.MetadataAttribute.REQUIRED;
+
 public class RMSchemaTypesPageExtension extends SchemaTypesPageExtension {
 
 	@Override

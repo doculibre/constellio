@@ -1,5 +1,29 @@
 package com.constellio.app.modules.rm.ui.pages.folder;
 
+import static com.constellio.app.modules.tasks.model.wrappers.Task.STARRED_BY_USERS;
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
+import static org.apache.commons.lang.StringUtils.isNotBlank;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.constellio.app.api.extensions.params.DocumentFolderBreadCrumbParams;
 import com.constellio.app.api.extensions.params.NavigateToFromAPageParams;
 import com.constellio.app.api.extensions.taxonomies.FolderDeletionEvent;
@@ -45,11 +69,14 @@ import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.ContentVersionVO.InputStreamProvider;
+import com.constellio.app.ui.entities.FacetVO;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
+import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.EventToVOBuilder;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
+import com.constellio.app.ui.framework.builders.MetadataToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.RMSelectionPanelReportPresenter;
@@ -58,14 +85,20 @@ import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
+import com.constellio.app.ui.util.MessageUtils;
+import com.constellio.app.ui.pages.search.SearchPresenter.SortOrder;
+import com.constellio.app.ui.pages.search.SearchPresenterService;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.app.ui.util.MessageUtils;
+import com.constellio.data.utils.KeySetMap;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.EmailToSend;
+import com.constellio.model.entities.records.wrappers.Facet;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.records.wrappers.structure.FacetType;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -80,44 +113,31 @@ import com.constellio.model.services.contents.icap.IcapException;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.records.RecordServicesRuntimeException;
+import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.FunctionLogicalSearchQuerySort;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryFacetFilters;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuerySort;
+import com.constellio.model.services.search.query.logical.ScoreLogicalSearchQuerySort;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.security.AuthorizationsServices;
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static com.constellio.app.modules.tasks.model.wrappers.Task.STARRED_BY_USERS;
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-import static org.apache.commons.lang.StringUtils.isNotBlank;
 
 public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFolderView> {
 
 	private static final int WAIT_ONE_SECOND = 1;
 	private static final long NUMBER_OF_FOLDERS_IN_CART_LIMIT = 1000;
 	private static Logger LOGGER = LoggerFactory.getLogger(DisplayFolderPresenter.class);
-	private RecordVODataProvider documentsDataProvider;
+
+	private RecordVODataProvider folderContentDataProvider;
+//	private RecordVODataProvider subFoldersDataProvider;
+//	private RecordVODataProvider documentsDataProvider;
 	private RecordVODataProvider tasksDataProvider;
-	private RecordVODataProvider subFoldersDataProvider;
 	private RecordVODataProvider eventsDataProvider;
 	private MetadataSchemaToVOBuilder schemaVOBuilder = new MetadataSchemaToVOBuilder();
 	private FolderToVOBuilder folderVOBuilder;
@@ -135,6 +155,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	private transient ConstellioEIMConfigs eimConfigs;
 	private String taxonomyCode;
 	private User user;
+	transient SearchPresenterService service;
 
 	Boolean allItemsSelected = false;
 
@@ -143,6 +164,11 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	private boolean popup;
 
 	private Map<String, String> params = null;
+
+	KeySetMap<String, String> facetSelections = new KeySetMap<>();
+	Map<String, Boolean> facetStatus = new HashMap<>();
+	String sortCriterion;
+	SortOrder sortOrder;
 
 	public DisplayFolderPresenter(DisplayFolderView view, RecordVO recordVO, boolean popup) {
 		super(view, Folder.DEFAULT_SCHEMA);
@@ -173,6 +199,8 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		rmConfigs = new RMConfigs(modelLayerFactory.getSystemConfigurationsManager());
 		eimConfigs = new ConstellioEIMConfigs(modelLayerFactory.getSystemConfigurationsManager());
 		user = appLayerFactory.getModelLayerFactory().newUserServices().getUserInCollection(view.getSessionContext().getCurrentUser().getUsername(), collection);
+		List<MetadataSchemaType> types = Arrays.asList(getFoldersSchemaType(), getDocumentsSchemaType());
+		service = new SearchPresenterService(collection, user, modelLayerFactory, types);
 	}
 
 	public User getUser() {
@@ -210,24 +238,25 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		setSchemaCode(record.getSchemaCode());
 		view.setRecord(folderVO);
 
+		MetadataSchemaVO foldersSchemaVO = schemaVOBuilder.build(defaultSchema(), VIEW_MODE.TABLE, view.getSessionContext());
 		MetadataSchema documentsSchema = getDocumentsSchema();
 		MetadataSchemaVO documentsSchemaVO = schemaVOBuilder.build(documentsSchema, VIEW_MODE.TABLE, view.getSessionContext());
-		documentsDataProvider = new RecordVODataProvider(
-				documentsSchemaVO, documentVOBuilder, modelLayerFactory, view.getSessionContext()) {
-			@Override
-			protected LogicalSearchQuery getQuery() {
-				return getDocumentsQuery();
-			}
-		};
 
-		MetadataSchemaVO foldersSchemaVO = schemaVOBuilder.build(defaultSchema(), VIEW_MODE.TABLE, view.getSessionContext());
-		subFoldersDataProvider = new RecordVODataProvider(
-				foldersSchemaVO, folderVOBuilder, modelLayerFactory, view.getSessionContext()) {
+		Map<String, RecordToVOBuilder> voBuilders = new HashMap<>();
+		voBuilders.put(foldersSchemaVO.getCode(), folderVOBuilder);
+		voBuilders.put(documentsSchemaVO.getCode(), documentVOBuilder);
+		folderContentDataProvider = new RecordVODataProvider(Arrays.asList(foldersSchemaVO, documentsSchemaVO), voBuilders, modelLayerFactory, view.getSessionContext()) {
 			@Override
 			protected LogicalSearchQuery getQuery() {
-				return getSubFoldersQuery();
+				return getFolderContentQuery();
 			}
 		};
+//		folderContentDataProvider = new SearchResultVODataProvider(new RecordToVOBuilder(), appLayerFactory, view.getSessionContext()) {
+//			@Override
+//			public LogicalSearchQuery getQuery() {
+//				return getFolderContentQuery();
+//			}
+//		};
 
 		MetadataSchemaVO tasksSchemaVO = schemaVOBuilder
 				.build(getTasksSchema(), VIEW_MODE.TABLE, Arrays.asList(STARRED_BY_USERS), view.getSessionContext(), true);
@@ -248,7 +277,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			}
 		};
 
-		view.setFolderContent(Arrays.asList(subFoldersDataProvider, documentsDataProvider));
+		view.setFolderContent(folderContentDataProvider);
 		view.setTasks(tasksDataProvider);
 
 		eventsDataProvider = getEventsDataProvider();
@@ -299,6 +328,67 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		query.filteredByStatus(StatusFilter.ACTIVES);
 		query.sortAsc(Schemas.TITLE);
 		return query;
+	}
+
+	private LogicalSearchQuery getFolderContentQuery() {
+		Record record = getRecord(folderVO.getId());
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+		Folder folder = rm.wrapFolder(record);
+
+		List<String> referencedDocuments = new ArrayList<>();
+		for (Metadata folderMetadata : folder.getSchema().getMetadatas().onlyReferencesToType(Document.SCHEMA_TYPE)) {
+			referencedDocuments.addAll(record.<String>getValues(folderMetadata));
+		}
+
+		MetadataSchemaType foldersSchemaType = getFoldersSchemaType();
+		MetadataSchemaType documentsSchemaType = getDocumentsSchemaType();
+
+		LogicalSearchQuery query = new LogicalSearchQuery();
+
+		LogicalSearchCondition condition = from(foldersSchemaType, documentsSchemaType).where(rm.folder.parentFolder()).is(record).orWhere(rm.document.folder()).is(record);
+
+		if (!referencedDocuments.isEmpty()) {
+			condition = condition.orWhere(Schemas.IDENTIFIER).isIn(referencedDocuments);
+		}
+		query.setCondition(condition);
+
+		service.configureQueryToComputeFacets(query);
+
+		SchemasRecordsServices schemas = new SchemasRecordsServices(collection, modelLayerFactory);
+		LogicalSearchQueryFacetFilters filters = query.getFacetFilters();
+		filters.clear();
+		for (Entry<String, Set<String>> selection : facetSelections.getMapEntries()) {
+			try {
+				Facet facet = schemas.getFacet(selection.getKey());
+				if (!selection.getValue().isEmpty()) {
+					if (facet.getFacetType() == FacetType.FIELD) {
+						filters.selectedFieldFacetValues(facet.getFieldDataStoreCode(), selection.getValue());
+					} else if (facet.getFacetType() == FacetType.QUERY) {
+						filters.selectedQueryFacetValues(facet.getId(), selection.getValue());
+					}
+				}
+			} catch (RecordServicesRuntimeException.NoSuchRecordWithId id) {
+				LOGGER.warn("Facet '" + id + "' has been deleted");
+			}
+		}
+
+		query.filteredWithUser(getCurrentUser());
+		query.filteredByStatus(StatusFilter.ACTIVES);
+		// Folder, Document
+		query.sortDesc(Schemas.SCHEMA);
+
+		if (sortCriterion == null) {
+			if (new ConstellioEIMConfigs(modelLayerFactory.getSystemConfigurationsManager()).isAddingSecondarySortWhenSortingByScore()) {
+				return sortOrder == SortOrder.ASCENDING ?
+					   query.sortFirstOn(new ScoreLogicalSearchQuerySort(true)).sortAsc(Schemas.IDENTIFIER) :
+					   query.sortFirstOn(new ScoreLogicalSearchQuerySort(false)).sortDesc(Schemas.IDENTIFIER);
+			} else {
+				return query;
+			}
+		}
+
+		Metadata metadata = getMetadata(sortCriterion);
+		return sortOrder == SortOrder.ASCENDING ? query.sortAsc(metadata) : query.sortDesc(metadata);
 	}
 
 	private LogicalSearchQuery getTasksQuery() {
@@ -371,7 +461,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	public int getFolderContentCount() {
-		return subFoldersDataProvider.size() + documentsDataProvider.size();
+		return folderContentDataProvider.size();
 	}
 
 	public int getTaskCount() {
@@ -680,7 +770,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	public void viewAssembled() {
-		view.setFolderContent(Arrays.asList(subFoldersDataProvider, documentsDataProvider));
+		view.setFolderContent(folderContentDataProvider);
 		view.setTasks(tasksDataProvider);
 		view.setEvents(eventsDataProvider);
 
@@ -805,20 +895,6 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		navigate().to().shareContent(folderVO.getId());
 	}
 
-	public void editDocumentButtonClicked(RecordVO recordVO) {
-		RMNavigationUtils.navigateToEditDocument(recordVO.getId(), params, appLayerFactory, collection);
-
-	}
-
-	public void downloadDocumentButtonClicked(RecordVO recordVO) {
-		ContentVersionVO contentVersionVO = recordVO.get(Document.CONTENT);
-		view.downloadContentVersion(recordVO, contentVersionVO);
-	}
-
-	public void displayDocumentButtonClicked(RecordVO record) {
-		navigateToDocument(record);
-	}
-
 	public void documentClicked(RecordVO recordVO) {
 		ContentVersionVO contentVersionVO = recordVO.get(Document.CONTENT);
 		if (contentVersionVO == null) {
@@ -926,7 +1002,8 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 				newRecord = documentPresenterUtils.toRecord(documentVO);
 
 				documentPresenterUtils.addOrUpdate(newRecord);
-				documentsDataProvider.fireDataRefreshEvent();
+//				documentsDataProvider.fireDataRefreshEvent();
+				folderContentDataProvider.fireDataRefreshEvent();
 				view.refreshFolderContentTab();
 				//				view.selectFolderContentTab();
 			} catch (final IcapException e) {
@@ -1009,7 +1086,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			} else {
 				borrower = rmSchemasRecordsServices.getUser(folderVO.getBorrowUserId());
 			}
-			
+
 			EmailAddress borrowerAddress = new EmailAddress(borrower.getTitle(), borrower.getEmail());
 			emailToSend.setTo(Arrays.asList(borrowerAddress));
 			emailToSend.setSendOn(TimeProvider.getLocalDateTime());
@@ -1361,6 +1438,120 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	public boolean isNeedingAReasonToDeleteFolder() {
 		return new RMConfigs(modelLayerFactory.getSystemConfigurationsManager()).isNeedingAReasonBeforeDeletingFolders();
 	}
+
+	public void facetValueSelected(String facetId, String facetValue) {
+		facetSelections.get(facetId).add(facetValue);
+		folderContentDataProvider.fireDataRefreshEvent();
+		view.refreshFolderContentAndFacets();
+	}
+
+	public void facetValueDeselected(String facetId, String facetValue) {
+		facetSelections.get(facetId).remove(facetValue);
+		folderContentDataProvider.fireDataRefreshEvent();
+		view.refreshFolderContentAndFacets();
+	}
+
+	public void facetDeselected(String facetId) {
+		facetSelections.get(facetId).clear();
+		folderContentDataProvider.fireDataRefreshEvent();
+		view.refreshFolderContentAndFacets();
+	}
+
+	public void facetOpened(String facetId) {
+		facetStatus.put(facetId, true);
+	}
+
+	public void facetClosed(String facetId) {
+		facetStatus.put(facetId, false);
+	}
+
+	public KeySetMap<String, String> getFacetSelections() {
+		return facetSelections;
+	}
+
+	public void setFacetSelections(Map<String, Set<String>> facetSelections) {
+		this.facetSelections.putAll(facetSelections);
+	}
+
+	public void sortCriterionSelected(String sortCriterion, SortOrder sortOrder) {
+		this.sortCriterion = sortCriterion;
+		this.sortOrder = sortOrder;
+		folderContentDataProvider.fireDataRefreshEvent();
+		view.refreshFolderContent();
+	}
+
+	public List<FacetVO> getFacets(RecordVODataProvider dataProvider) {
+		//Call #1
+		if (dataProvider == null /* || dataProvider.getFieldFacetValues() == null */) {
+			return service.getFacets(getFolderContentQuery(), facetStatus, getCurrentLocale());
+		} else {
+			return service.buildFacetVOs(dataProvider.getFieldFacetValues(), dataProvider.getQueryFacetsValues(),
+					facetStatus, getCurrentLocale());
+		}
+	}
+
+	public String getSortCriterion() {
+		return sortCriterion;
+	}
+
+	public SortOrder getSortOrder() {
+		return sortOrder;
+	}
+
+	protected List<MetadataVO> getMetadataAllowedInSort(String schemaTypeCode) {
+		MetadataSchemaType schemaType = schemaType(schemaTypeCode);
+		return getMetadataAllowedInSort(schemaType);
+	}
+
+	protected List<MetadataVO> getMetadataAllowedInSort(MetadataSchemaType schemaType) {
+		MetadataToVOBuilder builder = new MetadataToVOBuilder();
+
+		List<MetadataVO> result = new ArrayList<>();
+		for (Metadata metadata : schemaType.getAllMetadatas()) {
+			if (metadata.isSortable()) {
+				result.add(builder.build(metadata, view.getSessionContext()));
+			}
+		}
+		return result;
+	}
+
+	public List<MetadataVO> getMetadataAllowedInSort() {
+		List<MetadataSchemaType> schemaTypes = new ArrayList<>();
+		schemaTypes.add(rmSchemasRecordsServices.folderSchemaType());
+		schemaTypes.add(rmSchemasRecordsServices.documentSchemaType());
+		return getCommonMetadataAllowedInSort(schemaTypes);
+	}
+
+	private List<MetadataVO> getCommonMetadataAllowedInSort(List<MetadataSchemaType> schemaTypes) {
+		List<MetadataVO> result = new ArrayList<>();
+		Set<String> resultCodes = new HashSet<>();
+		for (MetadataSchemaType metadataSchemaType : schemaTypes) {
+			for (MetadataVO metadata : getMetadataAllowedInSort(metadataSchemaType)) {
+				if (resultCodes.add(metadata.getLocalCode())) {
+					result.add(metadata);
+				}
+			}
+		}
+		return result;
+	}
+
+	public String getSortCriterionValueAmong(List<MetadataVO> sortableMetadata) {
+		if (this.sortCriterion == null) {
+			return null;
+		}
+		if (!this.sortCriterion.startsWith("global_")) {
+			return this.sortCriterion;
+		} else {
+			String localCode = new SchemaUtils().getLocalCodeFromMetadataCode(this.sortCriterion);
+			for (MetadataVO metadata : sortableMetadata) {
+				if (metadata.getLocalCode().equals(localCode)) {
+					return metadata.getCode();
+				}
+			}
+		}
+		return this.sortCriterion;
+	}
+
 
 	public List<Cart> getOwnedCarts() {
 		return rmSchemasRecordsServices().wrapCarts(searchServices().search(new LogicalSearchQuery(from(rmSchemasRecordsServices().cartSchema()).where(rmSchemasRecordsServices().cart.owner())

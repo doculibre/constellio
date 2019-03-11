@@ -1,5 +1,17 @@
 package com.constellio.app.ui.pages.base;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.pages.management.labels.ListLabelViewImpl.TYPE_TABLE;
+
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.constellio.app.api.extensions.params.DecorateMainComponentAfterInitExtensionParams;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
@@ -14,10 +26,13 @@ import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.decorators.base.ActionMenuButtonsDecorator;
 import com.constellio.app.ui.pages.home.HomeViewImpl;
 import com.constellio.model.entities.records.wrappers.RecordWrapperRuntimeException;
+import com.constellio.app.ui.util.ComponentTreeUtils;
+import com.constellio.model.entities.records.wrappers.RecordWrapperRuntimeException;
 import com.vaadin.event.UIEvents.PollEvent;
 import com.vaadin.event.UIEvents.PollListener;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
+import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.server.ThemeResource;
@@ -28,6 +43,9 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.CssLayout;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
+import com.vaadin.ui.MenuBar;
+import com.vaadin.ui.MenuBar.Command;
+import com.vaadin.ui.MenuBar.MenuItem;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.Notification.Type;
 import com.vaadin.ui.Table;
@@ -180,11 +198,8 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 			}
 
 			actionMenu = buildActionMenu(event);
-			if (actionMenu != null || !isFullWidthIfActionMenuAbsent()) {
+			if ((actionMenu != null  && !isActionMenuBar()) || !isFullWidthIfActionMenuAbsent()) {
 				addStyleName("action-menu-wrapper");
-				if (actionMenu != null) {
-					actionMenu.addStyleName("action-menu");
-				}
 			}
 
 			mainComponent = buildMainComponent(event);
@@ -262,6 +277,8 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 				}
 			}
 			if (!exceptionHandled) {
+				e.printStackTrace();
+				LOGGER.error("Error when entering view", e);
 				throw (e instanceof RuntimeException) ? (RuntimeException) e : new RuntimeException(e);
 			}
 		}
@@ -339,11 +356,19 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 		return false;
 	}
 
+	protected boolean isActionMenuBar() {
+		return false;
+	}
+
 	protected String getTitle() {
 		return getClass().getSimpleName();
 	}
 
 	protected String getGuideUrl() {
+		return null;
+	}
+
+	protected String getActionMenuBarCaption() {
 		return null;
 	}
 
@@ -353,39 +378,79 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 	 * @param event
 	 * @return
 	 */
-	protected Component buildActionMenu(ViewChangeEvent event) {
-		VerticalLayout actionMenuLayout;
-		actionMenuButtons = buildActionMenuButtons(event);
+    protected Component buildActionMenu(ViewChangeEvent event) {
+        Component result;
+        actionMenuButtons = buildActionMenuButtons(event);
+        for (ActionMenuButtonsDecorator actionMenuButtonsDecorator : actionMenuButtonsDecorators) {
+            actionMenuButtonsDecorator.decorate(this, actionMenuButtons);
+        }
 
-		for (ActionMenuButtonsDecorator actionMenuButtonsDecorator : actionMenuButtonsDecorators) {
-			actionMenuButtonsDecorator.decorate(this, actionMenuButtons);
-		}
+        if (actionMenuButtons == null || actionMenuButtons.isEmpty()) {
+            result = null;
+        } else {
+            if (isActionMenuBar()) {
+            	String menuBarCaption = getActionMenuBarCaption();
+            	if (menuBarCaption == null) {
+            		menuBarCaption = "";
+            	}
 
-		if (actionMenuButtons == null || actionMenuButtons.isEmpty()) {
-			actionMenuLayout = null;
-		} else {
-			actionMenuLayout = new VerticalLayout();
-			actionMenuLayout.setSizeUndefined();
+                MenuBar menuBar = new MenuBar();
+                menuBar.addStyleName("action-menu-bar");
+                menuBar.setAutoOpen(false);
+                if (StringUtils.isNotBlank(menuBarCaption)) {
+                	menuBar.setIcon(null);
+                	menuBar.setCaption(menuBarCaption);
+                } else {
+                    menuBar.setIcon(FontAwesome.ELLIPSIS_H);
+                }
+                result = menuBar;
 
-			int visibleButtons = 0;
-			for (Button actionMenuButton : actionMenuButtons) {
-				if (actionMenuButton.isVisible()) {
-					actionMenuButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
-					actionMenuButton.removeStyleName(ValoTheme.BUTTON_LINK);
-					actionMenuButton.addStyleName("action-menu-button");
-					actionMenuLayout.addComponent(actionMenuButton);
+                MenuItem rootItem = menuBar.addItem("", FontAwesome.BARS, null);
+                if (StringUtils.isNotBlank(menuBarCaption)) {
+                	rootItem.setIcon(null);
+                	rootItem.setText(menuBarCaption);
+                } else {
+                	rootItem.setIcon(FontAwesome.ELLIPSIS_H);
+                }
 
-					visibleButtons++;
-				}
-			}
+                for (final Button actionMenuButton : actionMenuButtons) {
+                    Resource icon = actionMenuButton.getIcon();
+                    String caption = actionMenuButton.getCaption();
+                    rootItem.addItem(caption, icon, new Command() {
+                        @Override
+                        public void menuSelected(MenuItem selectedItem) {
+                            actionMenuButton.click();
+                        }
+                    });
+                }
+            } else {
+                VerticalLayout actionMenuLayout = new VerticalLayout();
+                actionMenuLayout.addStyleName("action-menu-layout");
+                actionMenuLayout.setSizeUndefined();
 
-			if (visibleButtons == 0) {
-				actionMenuLayout = null;
-			}
-		}
+                int visibleButtons = 0;
+                for (Button actionMenuButton : actionMenuButtons) {
+                    if (actionMenuButton.isVisible()) {
+                        actionMenuButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
+                        actionMenuButton.removeStyleName(ValoTheme.BUTTON_LINK);
+                        actionMenuButton.addStyleName("action-menu-button");
+                        actionMenuLayout.addComponent(actionMenuButton);
 
-		return actionMenuLayout;
-	}
+                        visibleButtons++;
+                    }
+                }
+
+                if (visibleButtons == 0) {
+                    actionMenuLayout = null;
+                }
+                result = actionMenuLayout;
+            }
+        }
+        if (result != null) {
+			result.addStyleName("action-menu");
+        }
+        return result;
+    }
 
 	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
 		List<Button> actionMenuButtons = new ArrayList<>();
@@ -497,6 +562,11 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 		table.setColumnExpandRatio("caption", 1);
 		table.addStyleName(TYPE_TABLE);
 		return table;
+	}
+
+	@Override
+	public boolean isInWindow() {
+		return ComponentTreeUtils.findParent(this, Window.class) != null;
 	}
 
 	@Override

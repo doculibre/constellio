@@ -14,6 +14,7 @@ import com.constellio.app.ui.framework.components.menuBar.RecordMenuBarHandler;
 import com.constellio.app.ui.framework.components.table.TablePropertyCache.CellKey;
 import com.constellio.app.ui.framework.components.table.columns.RecordVOTableColumnsManager;
 import com.constellio.app.ui.framework.components.table.columns.TableColumnsManager;
+import com.constellio.app.ui.framework.components.viewers.panel.ViewableRecordVOContainer;
 import com.constellio.app.ui.framework.containers.ContainerAdapter;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
@@ -42,6 +43,7 @@ import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableHeaderEv
 import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableRowEvent;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public class RecordVOTable extends BaseTable {
@@ -52,6 +54,7 @@ public class RecordVOTable extends BaseTable {
 	private RecordContextMenu contextMenu;
 	private List<MetadataSchemaVO> schemaVOs = new ArrayList<>();
 	private MetadataDisplayFactory metadataDisplayFactory = new MetadataDisplayFactory();
+	private boolean menuBarColumnAdded = false;
 
 	public RecordVOTable() {
 		super(null);
@@ -304,6 +307,9 @@ public class RecordVOTable extends BaseTable {
 		} else if (container instanceof ContainerAdapter) {
 			ContainerAdapter<?> containerAdapter = (ContainerAdapter<?>) container;
 			findSchemaVOs(containerAdapter.getNestedContainer());
+		} else if (container instanceof ViewableRecordVOContainer) {
+			ViewableRecordVOContainer viewableRecordVOContainer = (ViewableRecordVOContainer) container;
+			findSchemaVOs(viewableRecordVOContainer.getRecordVOContainer());
 		}
 	}
 
@@ -317,6 +323,24 @@ public class RecordVOTable extends BaseTable {
 			}
 		}
 	}
+	
+	public void setExpandTitleColumn(boolean expand) {
+		if (schemaVOs != null && !schemaVOs.isEmpty()) {
+			MetadataVO titleMetadata = schemaVOs.get(0).getMetadata(Schemas.TITLE.getCode());
+			if (expand) {
+				setColumnExpandRatio(titleMetadata, 1);
+			} else {
+				setColumnExpandRatio(titleMetadata, 0);
+			}
+		}	
+	} 
+	
+	public void setTitleColumnWidth(int width) {
+		if (schemaVOs != null && !schemaVOs.isEmpty()) {
+			MetadataVO titleMetadata = schemaVOs.get(0).getMetadata(Schemas.TITLE.getCode());
+			setColumnWidth(titleMetadata, width);
+		}	
+	} 
 
 	protected RecordVO getRecordVO(Object itemId) {
 		RecordVOItem recordVOItem = (RecordVOItem) getItem(itemId);
@@ -408,8 +432,18 @@ public class RecordVOTable extends BaseTable {
 				});
 				setColumnHeader(MENUBAR_PROPERTY_ID, "");
 				setColumnCollapsible(MENUBAR_PROPERTY_ID, false);
+				menuBarColumnAdded = true;
 			}
 		}
+	}
+
+	@Override
+	public Collection<?> getContainerPropertyIds() {
+		List<Object> containerPropertyIds = new ArrayList<>(super.getContainerPropertyIds());
+		if (menuBarColumnAdded) {
+			containerPropertyIds.add(MENUBAR_PROPERTY_ID);
+		}
+		return containerPropertyIds;
 	}
 
 	@Override

@@ -10,6 +10,7 @@ import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentCont
 import com.constellio.app.modules.rm.ui.components.document.DocumentActionsPresenterUtils;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.wrappers.Cart;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.modules.tasks.TasksPermissionsTo;
@@ -262,7 +263,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	}
 
 	public void viewAssembled() {
-		presenterUtils.updateActionsComponent();
+//		presenterUtils.updateActionsComponent();
 		view.setTasks(tasksDataProvider);
 		view.setEvents(eventsDataProvider);
 		view.setPublishButtons(presenterUtils.isDocumentPublished());
@@ -326,7 +327,11 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	}
 
 	public void editDocumentButtonClicked() {
-		presenterUtils.editDocumentButtonClicked(params);
+		if (view.isInWindow()) {
+			view.editInWindow();
+		} else {
+			presenterUtils.editDocumentButtonClicked(params);
+		}
 	}
 
 	public void deleteDocumentButtonClicked() {

@@ -735,7 +735,8 @@ public class RecordServicesImpl extends BaseRecordServices {
 									String metadataProvidingReferenceValue = record.get(metadataProvidingReference);
 
 									if (metadataProvidingReferenceValue != null) {
-										sequenceCode = getDocumentById(metadataProvidingReferenceValue).get(metadataProvidingSequenceCode);
+										sequenceCode = getDocumentById(metadataProvidingReferenceValue)
+												.get(metadataProvidingSequenceCode);
 									}
 								} else {
 									metadataProvidingReference = schema.getMetadata(dataEntry.getMetadataProvidingSequenceCode());

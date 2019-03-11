@@ -271,4 +271,8 @@ public class SearchResultDisplay extends VerticalLayout {
 		}
 	}
 
+	public Component getTitleComponent() {
+		return titleComponent;
+	}
+
 }

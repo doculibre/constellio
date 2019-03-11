@@ -39,8 +39,10 @@ import java.util.UUID;
 
 public class ConstellioResourceHandler implements RequestHandler {
 
-	private static final long serialVersionUID = 1L;
-	private static final String PATH = UUID.randomUUID().toString();
+    public enum ResourceType {
+		NORMAL, PREVIEW, THUMBNAIL, JPEG_CONVERSION;
+	}private static final long serialVersionUID = 1L;
+    private static final String PATH = UUID.randomUUID().toString();
 
 	@Override
 	public boolean handleRequest(VaadinSession session, VaadinRequest request, VaadinResponse response)
@@ -55,7 +57,9 @@ public class ConstellioResourceHandler implements RequestHandler {
 			String metadataCode = paramsMap.get("metadataCode");
 			String version = paramsMap.get("version");
 			String preview = paramsMap.get("preview");
-			String filePath = paramsMap.get("file");
+			String thumbnail = paramsMap.get("thumbnail");
+			String jpegConversion = paramsMap.get("jpegConversion");
+    		String filePath = paramsMap.get("file");
 			String hashParam = paramsMap.get("hash");
 			String filenameParam = paramsMap.get("z-filename");
 
@@ -94,6 +98,18 @@ public class ConstellioResourceHandler implements RequestHandler {
 							if ("true".equals(preview)) {
 								if (contentManager.hasContentPreview(hash)) {
 									in = contentManager.getContentPreviewInputStream(hash, getClass().getSimpleName() + ".handleRequest");
+								} else {
+									in = null;
+								}
+							} else if ("true".equals(thumbnail)) {
+			    				if (contentManager.hasContentThumbnail(hash)) {
+					    			in = contentManager.getContentThumbnailInputStream(hash, getClass().getSimpleName() + ".handleRequest");
+			    				} else {
+			    					in = null;
+			    				}
+							} else if ("true".equals(jpegConversion)) {
+								if (contentManager.hasContentJpegConversion(hash)) {
+									in = contentManager.getContentJpegConversionInputStream(hash, getClass().getSimpleName() + ".handleRequest");
 								} else {
 									in = null;
 								}
@@ -141,52 +157,97 @@ public class ConstellioResourceHandler implements RequestHandler {
 	}
 
 	public static Resource createResource(String recordId, String metadataCode, String version, String filename) {
-		return createResource(recordId, metadataCode, version, filename, false);
+		return createResource(recordId, metadataCode, version, filename, ResourceType.NORMAL);
+	}
+
+    public static Resource createPreviewResource(String recordId, String metadataCode, String version, String filename) {
+		return createResource(recordId, metadataCode, version, filename, ResourceType.PREVIEW);
+    }
+
+    public static Resource createThumbnailResource(String recordId, String metadataCode, String version, String filename) {
+		return createResource(recordId, metadataCode, version, filename, ResourceType.THUMBNAIL);
+	}
+
+	public static Resource createConvertedResource(String recordId, String metadataCode, String version,
+												   String filename) {
+		return createResource(recordId, metadataCode, version, filename, ResourceType.JPEG_CONVERSION);
+	}
+
+    private static Resource createResource(String recordId, String metadataCode, String version, String filename,
+										   ResourceType resourceType) {
+		return createResource(recordId, metadataCode, version, filename, resourceType, false);
 	}
 
 	public static Resource createResource(String recordId, String metadataCode, String version, String filename,
-										  boolean preview) {
-		return createResource(recordId, metadataCode, version, filename, preview, false);
-	}
-
-	public static Resource createResource(String recordId, String metadataCode, String version, String filename,
-										  boolean preview, boolean useBrowserCache) {
+			ResourceType resourceType, boolean useBrowserCache) {	
 		Map<String, String> params = new LinkedHashMap<>();
-		params.put("recordId", recordId);
-		params.put("metadataCode", metadataCode);
-		params.put("preview", "" + preview);
-		params.put("version", version);
-		params.put("z-filename", filename);
-		if (!useBrowserCache) {
+    	params.put("recordId", recordId);
+    	params.put("metadataCode", metadataCode);
+    	params.put("preview", "" + (resourceType == ResourceType.PREVIEW));
+		params.put("thumbnail", "" + (resourceType == ResourceType.THUMBNAIL));
+		params.put("jpegConversion", "" + (resourceType == ResourceType.JPEG_CONVERSION));
+    	params.put("version", version);
+    	params.put("z-filename", filename);if (!useBrowserCache) {
 			Random random = new Random();
 			params.put("cacheRandomizer", String.valueOf(random.nextLong()));
 		}
-		String resourcePath = ParamUtils.addParams(PATH, params);
-		return new ExternalResource(resourcePath);
+    	String resourcePath = ParamUtils.addParams(PATH , params);
+        return new ExternalResource(resourcePath);
+    }
+    
+    public static Resource createResource(File file) {
+    	Map<String, String> params = new LinkedHashMap<>();
+    	params.put("file", file.getAbsolutePath());
+    	String resourcePath = ParamUtils.addParams(PATH, params);
+        return new ExternalResource(resourcePath);
+    }
+
+    public static Resource createResource(String hash, String filename) {
+    	Map<String, String> params = new LinkedHashMap<>();
+    	params.put("hash", hash);
+    	params.put("z-filename", filename);
+    	String resourcePath = ParamUtils.addParams(PATH , params);
+        return new ExternalResource(resourcePath);
+    }
+    
+    public static boolean hasContentPreview(String recordId, String metadataCode, String version) {
+    	Content content = getContent(recordId, metadataCode);
+		if (content != null) {
+			ContentVersion contentVersion = content.getVersion(version);
+			String hash = contentVersion.getHash();
+			return ConstellioFactories.getInstance().getModelLayerFactory().getContentManager()
+					.hasContentPreview(hash);
+		}
+		return false;
 	}
 
-	public static Resource createResource(File file) {
-		Map<String, String> params = new LinkedHashMap<>();
-		params.put("file", file.getAbsolutePath());
-		String resourcePath = ParamUtils.addParams(PATH, params);
-		return new ExternalResource(resourcePath);
+    public static boolean hasContentThumbnail(String recordId, String metadataCode, String version) {
+		Content content = getContent(recordId, metadataCode);
+		if (content != null) {
+			ContentVersion contentVersion = content.getVersion(version);
+			String hash = contentVersion.getHash();
+			return ConstellioFactories.getInstance().getModelLayerFactory().getContentManager()
+					.hasContentThumbnail(hash);
+		}
+		return false;
+    }
+
+	public static boolean hasContentJpegConversion(String recordId, String metadataCode, String version) {
+		Content content = getContent(recordId, metadataCode);
+		if (content != null) {
+			ContentVersion contentVersion = content.getVersion(version);
+			String hash = contentVersion.getHash();
+			return ConstellioFactories.getInstance().getModelLayerFactory().getContentManager()
+					.hasContentJpegConversion(hash);
+		}
+		return false;
 	}
 
-	public static Resource createResource(String hash, String filename) {
-		Map<String, String> params = new LinkedHashMap<>();
-		params.put("hash", hash);
-		params.put("z-filename", filename);
-		String resourcePath = ParamUtils.addParams(PATH, params);
-		return new ExternalResource(resourcePath);
-	}
-
-	public static boolean hasContentPreview(String recordId, String metadataCode, String version) {
-		boolean contentPreview;
+	private static Content getContent(String recordId, String metadataCode) {
 		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
 		ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
 		UserServices userServices = modelLayerFactory.newUserServices();
 		RecordServices recordServices = modelLayerFactory.newRecordServices();
-		ContentManager contentManager = modelLayerFactory.getContentManager();
 		MetadataSchemasManager metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
 
 		VaadinSession vaadinSession = VaadinSession.getCurrent();
@@ -200,15 +261,10 @@ public class ConstellioResourceHandler implements RequestHandler {
 		if (user.hasReadAccess().on(record)) {
 			String schemaCode = record.getSchemaCode();
 			Metadata metadata = types.getMetadata(schemaCode + "_" + metadataCode);
-			Content content = (Content) record.get(metadata);
-			ContentVersion contentVersion = content.getVersion(version);
+			return record.get(metadata);
 
-			String hash = contentVersion.getHash();
-			contentPreview = contentManager.hasContentPreview(hash);
-		} else {
-			contentPreview = false;
 		}
-		return contentPreview;
+		return null;
 	}
 
 }

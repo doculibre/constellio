@@ -1,9 +1,15 @@
 package com.constellio.app.modules.rm.ui.pages.document;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
 import com.constellio.app.modules.rm.ui.components.document.DocumentForm;
 import com.constellio.app.modules.rm.ui.components.document.DocumentFormImpl;
 import com.constellio.app.modules.rm.ui.components.document.fields.CustomDocumentField;
+import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
+import com.constellio.app.ui.framework.components.viewers.ContentViewer;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.vaadin.data.Buffered.SourceException;
@@ -15,25 +21,32 @@ import com.vaadin.server.Page;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Field;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
 public class AddEditDocumentViewImpl extends BaseViewImpl implements AddEditDocumentView {
 
 	private final AddEditDocumentPresenter presenter;
 	private RecordVO recordVO;
 	private DocumentFormImpl recordForm;
+	private I18NHorizontalLayout mainLayout;
 
 	public AddEditDocumentViewImpl() {
-		presenter = newPresenter();
+		this(null);
 	}
 
-	protected AddEditDocumentPresenter newPresenter() {
-		return new AddEditDocumentPresenter(this);
+	public AddEditDocumentViewImpl(RecordVO documentVO) {
+		presenter = newPresenter(documentVO);
+	}
+
+	protected AddEditDocumentPresenter newPresenter(RecordVO documentVO) {
+		return new AddEditDocumentPresenter(this, documentVO);
 	}
 
 	@Override
 	protected void initBeforeCreateComponents(ViewChangeEvent event) {
-		presenter.forParams(event.getParameters());
+		if (event != null) {
+			presenter.forParams(event.getParameters());
+		} else {
+			presenter.forParams(null);
+		}
 	}
 
 	@Override
@@ -59,7 +72,22 @@ public class AddEditDocumentViewImpl extends BaseViewImpl implements AddEditDocu
 
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
-		return newForm();
+		newForm();
+		
+		mainLayout = new I18NHorizontalLayout();
+		mainLayout.setSizeFull();
+		
+		ContentVersionVO contentVersionVO = recordVO.get(Document.CONTENT); 
+		if (contentVersionVO != null) {
+			mainLayout.setSpacing(true);
+			
+			ContentViewer contentViewer = new ContentViewer(recordVO, Document.CONTENT, contentVersionVO);
+			mainLayout.addComponent(contentViewer);
+			
+			recordForm.setWidth("700px");
+		}
+		mainLayout.addComponent(recordForm);
+		return mainLayout;
 	}
 
 	private DocumentFormImpl newForm() {
@@ -78,7 +106,7 @@ public class AddEditDocumentViewImpl extends BaseViewImpl implements AddEditDocu
 			@Override
 			public void reload() {
 				recordForm = newForm();
-				AddEditDocumentViewImpl.this.replaceComponent(this, recordForm);
+				mainLayout.replaceComponent(this, recordForm);
 			}
 
 			@Override

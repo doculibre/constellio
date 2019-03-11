@@ -8,6 +8,10 @@ import com.constellio.model.entities.security.TransactionSecurityModel;
 import java.util.HashMap;
 import java.util.Map;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 public class TransactionExecutionContext {
 
 	Map<String, KeyListMap<String, Record>> metadatasInvertedAggregatedValuesMap = new HashMap<>();

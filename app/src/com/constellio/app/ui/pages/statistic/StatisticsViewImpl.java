@@ -323,7 +323,7 @@ public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, 
 		}
 
 		List<String> visibleColumns = initVisibleColumns();
-		resultTable.setVisibleColumns(visibleColumns.toArray(new String[0]));
+		resultTable.setVisibleColumns(visibleColumns.toArray(new Object[0]));
 
 		tableLayout.removeAllComponents();
 

@@ -5,6 +5,9 @@ import com.constellio.app.modules.rm.ui.entities.RetentionRuleVO;
 import com.constellio.app.ui.framework.components.RecordDisplay;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
+import com.vaadin.ui.VerticalLayout;
+
+import java.util.Locale;
 
 import java.util.Locale;
 
@@ -15,28 +18,30 @@ public class RetentionRuleDisplay extends RecordDisplay {
 		super(retentionRuleVO, new RetentionRuleDisplayFactory(presenter, locale));
 
 		addStyleName("retention-rule-display");
-		mainLayout.setWidth("100%");
 	}
 
 	@Override
-	protected void addCaptionAndDisplayComponent(Label captionLabel, Component displayComponent) {
+	protected void addCaptionAndDisplayComponent(Label captionLabel, Component displayComponent, VerticalLayout layout) {
+		if (layout.getWidth() != 100 && layout.getWidthUnits() != Unit.PERCENTAGE) {
+			layout.setWidth("100%");
+		}
 		if (displayComponent instanceof FolderCopyRetentionRuleTable) {
 			FolderCopyRetentionRuleTable folderCopyRetentionRuleTable = (FolderCopyRetentionRuleTable) displayComponent;
 			folderCopyRetentionRuleTable.setCaption(captionLabel.getValue());
 			folderCopyRetentionRuleTable.setWidth("100%");
-			mainLayout.addComponent(folderCopyRetentionRuleTable);
+			layout.addComponent(folderCopyRetentionRuleTable);
 		} else if (displayComponent instanceof DocumentCopyRetentionRuleTable) {
 			DocumentCopyRetentionRuleTable documentCopyRetentionRuleTable = (DocumentCopyRetentionRuleTable) displayComponent;
 			documentCopyRetentionRuleTable.setCaption(captionLabel.getValue());
 			documentCopyRetentionRuleTable.setWidth("100%");
-			mainLayout.addComponent(documentCopyRetentionRuleTable);
+			layout.addComponent(documentCopyRetentionRuleTable);
 		} else if (displayComponent instanceof DocumentDefaultCopyRetentionRuleTable) {
 			DocumentDefaultCopyRetentionRuleTable documentDefaultCopyRetentionRuleTable = (DocumentDefaultCopyRetentionRuleTable) displayComponent;
 			documentDefaultCopyRetentionRuleTable.setCaption(captionLabel.getValue());
 			documentDefaultCopyRetentionRuleTable.setWidth("100%");
-			mainLayout.addComponent(documentDefaultCopyRetentionRuleTable);
+			layout.addComponent(documentDefaultCopyRetentionRuleTable);
 		} else {
-			super.addCaptionAndDisplayComponent(captionLabel, displayComponent);
+			super.addCaptionAndDisplayComponent(captionLabel, displayComponent, layout);
 		}
 	}
 

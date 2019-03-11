@@ -5,6 +5,23 @@ import com.constellio.app.api.extensions.BatchProcessingExtension.BatchProcessFe
 import com.constellio.app.api.extensions.BatchProcessingExtension.BatchProcessFeededByQueryParams;
 import com.constellio.app.api.extensions.params.SearchPageConditionParam;
 import com.constellio.app.entities.batchProcess.ChangeValueOfMetadataBatchAsyncTask;
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.data.dao.services.cache.InsertionReason.WAS_MODIFIED;
+import static com.constellio.data.dao.services.idGenerator.UUIDV1Generator.newRandomId;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
@@ -64,7 +81,6 @@ import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
-import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordImpl;
 import com.constellio.model.services.records.RecordServices;
@@ -76,21 +92,6 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 import com.vaadin.ui.Component;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.common.params.ModifiableSolrParams;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.data.dao.services.cache.InsertionReason.WAS_MODIFIED;
-import static com.constellio.data.dao.services.idGenerator.UUIDV1Generator.newRandomId;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView> implements BatchProcessingPresenter {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AdvancedSearchPresenter.class);
@@ -154,7 +155,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 			resetFacetSelection();
 			schemaTypeCode = view.getSchemaType();
 			pageNumber = 1;
-			resultsViewMode = SearchResultsViewMode.DETAILED;
+			resultsViewMode = DEFAULT_VIEW_MODE;
 			saveTemporarySearch(false);
 		}
 		setSchemaTypeOnPresenterService();
@@ -169,7 +170,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		sortOrder = SortOrder.valueOf(search.getSortOrder().name());
 		schemaTypeCode = search.getSchemaFilter();
 		pageNumber = search.getPageNumber();
-		resultsViewMode = search.getResultsViewMode() != null ? search.getResultsViewMode() : SearchResultsViewMode.DETAILED;
+		resultsViewMode = search.getResultsViewMode();
 		setSelectedPageLength(search.getPageLength());
 
 		view.setSchemaType(schemaTypeCode);
@@ -397,13 +398,13 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		String cartId = cart.getId();
 		switch (schemaTypeCode) {
 			case Folder.SCHEMA_TYPE:
-				addFoldersToCart(cartId, records);
+				addFoldersToCart(cart, records);
 				break;
 			case Document.SCHEMA_TYPE:
-				addDocumentsToCart(cartId, records);
+				addDocumentsToCart(cart, records);
 				break;
 			case ContainerRecord.SCHEMA_TYPE:
-				addContainersToCart(cartId, records);
+				addContainersToCart(cart, records);
 				break;
 		}
 		try {
@@ -424,13 +425,13 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		List<Record> records = getRecords(view.getSelectedRecordIds());
 		switch (schemaTypeCode) {
 			case Folder.SCHEMA_TYPE:
-				addFoldersToCart(cartId, records);
+				addFoldersToCart(cart, records);
 				break;
 			case Document.SCHEMA_TYPE:
-				addDocumentsToCart(cartId, records);
+				addDocumentsToCart(cart, records);
 				break;
 			case ContainerRecord.SCHEMA_TYPE:
-				addContainersToCart(cartId, records);
+				addContainersToCart(cart, records);
 				break;
 		}
 		try {
@@ -774,15 +775,6 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		return query;
 	}
 
-	public void logRecordView(RecordVO recordVO) {
-		Record record = presenterService().getRecord(recordVO.getId());
-		ModelLayerFactory modelLayerFactory = view.getConstellioFactories().getModelLayerFactory();
-		User user = getCurrentUser();
-		modelLayerFactory.newLoggingServices().logRecordView(record, user);
-		setChanged();
-		notifyObservers(recordVO);
-	}
-
 	@Override
 	public void allSearchResultsButtonClicked() {
 		batchProcessOnAllSearchResults = true;
@@ -802,10 +794,6 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		this.result = result;
 	}
 
-	public User getUser() {
-		return getCurrentUser();
-	}
-
 	public List<RecordVO> getRecordVOList(List<String> ids) {
 		List<RecordVO> recordsVO = new ArrayList<>();
 		RecordServices recordServices = modelLayerFactory.newRecordServices();
@@ -814,14 +802,6 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 			recordsVO.add(builder.build(recordServices.getDocumentById(id), RecordVO.VIEW_MODE.FORM, view.getSessionContext()));
 		}
 		return recordsVO;
-	}
-
-	public void fireSomeRecordsSelected() {
-		view.fireSomeRecordsSelected();
-	}
-
-	public void fireNoRecordSelected() {
-		view.fireNoRecordSelected();
 	}
 
 	public boolean hasAnyReportForSchemaType(String schemaTypeCode) {

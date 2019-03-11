@@ -1583,12 +1583,83 @@ div.v-layout.v-horizontal.v-widget {
 	color: #ff0000;
 }
 
+.v-slot-list-add-remove-comment .v-has-caption {
+	width: 100%;
+}
+
+.v-slot-list-add-remove-comment .v-has-caption .list-add-remove-comment {
+	width: 100%;
+}
+
 .constellio {
 	@media screen and (max-width: 480px) {
 	.notifications.v-window {
 		right: 13px;
 	}
 }
+}
+
+.constellio .v-context-menu {
+	float: left;
+	font-family: Arial;
+	font-size: 12px;
+	background-color: #f0f0f0;
+	box-shadow: 5px 5px 10px #999;
+}
+
+.constellio .v-context-menu .v-context-menu-item-basic, .constellio .v-context-menu .v-context-menu-item-basic-submenu {
+	float: left;
+	clear: left;
+	height: 26px;
+	color: #222;
+	cursor: pointer;
+	background-color: #f0f0f0;
+}
+
+.constellio .v-context-menu .v-context-menu-item-basic.v-context-menu-item-separator, .constellio .v-context-menu .v-context-menu-item-basic-submenu.v-context-menu-item-separator {
+	border-bottom: 1px solid #d0d0d0;
+}
+
+.constellio .v-context-menu .v-context-menu-item-basic-submenu {
+	background: transparent url(../../../VAADIN/themes/contextmenu/img/basic/arrow.png) no-repeat center right;
+}
+
+.constellio .v-context-menu .v-context-menu-item-basic:focus, .constellio .v-context-menu .v-context-menu-item-basic-submenu:focus, .constellio .v-context-menu .v-context-menu-item-basic-open {
+	background-color: #e0e0e0;
+	outline: none;
+}
+
+.constellio .v-context-menu .v-context-menu-item-basic.v-context-menu-item-disabled {
+	opacity: 0.3;
+	filter: alpha(opacity = 30);
+	zoom: 1;
+}
+
+.constellio .v-context-menu .v-context-menu-item-basic.v-context-menu-item-disabled:hover, .constellio .v-context-menu .v-context-menu-item-basic-submenu.v-context-menu-item-disabled:hover {
+	background-color: #f0f0f0;
+}
+
+.constellio .v-context-menu .v-context-menu-item-basic-icon-container {
+	float: left;
+	width: 26px;
+	height: 26px;
+	margin-right: 5px;
+	border-right: 1px solid #d0d0d0;
+	text-align: center;
+}
+
+.constellio .v-context-menu .v-context-menu-item-basic-icon-container .v-icon {
+	float: left;
+	width: 16px;
+	height: 16px;
+	padding: 5px;
+}
+
+.constellio .v-context-menu .v-context-menu-item-basic-text {
+	float: left;
+	height: 26px;
+	line-height: 26px;
+	padding: 0 20px 0 10px;
 }
 
 .constellio.v-app, .constellio.v-app-loading {
@@ -11947,6 +12018,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/chm.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-chm .v-table-cell-wrapper {
@@ -11959,6 +12031,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/cpp.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-cpp .v-table-cell-wrapper {
@@ -11971,6 +12044,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/css.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-css .v-table-cell-wrapper {
@@ -11983,6 +12057,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/csv.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-csv .v-table-cell-wrapper {
@@ -11995,6 +12070,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/doc.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-doc .v-table-cell-wrapper {
@@ -12007,6 +12083,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/document.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-document .v-table-cell-wrapper {
@@ -12019,6 +12096,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/docx.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-docx .v-table-cell-wrapper {
@@ -12031,6 +12109,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/docm.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-docm .v-table-cell-wrapper {
@@ -12043,6 +12122,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/eml.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-eml .v-table-cell-wrapper {
@@ -12055,6 +12135,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/gif.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-gif .v-table-cell-wrapper {
@@ -12067,6 +12148,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/html.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-html .v-table-cell-wrapper {
@@ -12079,6 +12161,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/jpg.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-jpg .v-table-cell-wrapper {
@@ -12091,6 +12174,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/mhtml.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-mhtml .v-table-cell-wrapper {
@@ -12103,6 +12187,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/mid.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-mid .v-table-cell-wrapper {
@@ -12115,6 +12200,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/mov.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-mov .v-table-cell-wrapper {
@@ -12127,6 +12213,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/msg.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-msg .v-table-cell-wrapper {
@@ -12139,6 +12226,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/odb.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-odb .v-table-cell-wrapper {
@@ -12151,6 +12239,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/odf.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-odf .v-table-cell-wrapper {
@@ -12163,6 +12252,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/odg.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-odg .v-table-cell-wrapper {
@@ -12175,6 +12265,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/odp.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-odp .v-table-cell-wrapper {
@@ -12187,6 +12278,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/ods.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-ods .v-table-cell-wrapper {
@@ -12199,6 +12291,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/odt.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-odt .v-table-cell-wrapper {
@@ -12211,6 +12304,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/one.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-one .v-table-cell-wrapper {
@@ -12223,6 +12317,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/pcx.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-pcx .v-table-cell-wrapper {
@@ -12235,6 +12330,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/pdf.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-pdf .v-table-cell-wrapper {
@@ -12247,6 +12343,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/png.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-png .v-table-cell-wrapper {
@@ -12259,6 +12356,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/pot.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-pot .v-table-cell-wrapper {
@@ -12271,6 +12369,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/pps.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-pps .v-table-cell-wrapper {
@@ -12283,6 +12382,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/ppt.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-ppt .v-table-cell-wrapper {
@@ -12295,6 +12395,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/pptx.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-pptx .v-table-cell-wrapper {
@@ -12307,6 +12408,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/pub.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-pub .v-table-cell-wrapper {
@@ -12319,6 +12421,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/reg.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-reg .v-table-cell-wrapper {
@@ -12331,6 +12434,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/text.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-text .v-table-cell-wrapper {
@@ -12343,6 +12447,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/tif.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-tif .v-table-cell-wrapper {
@@ -12355,6 +12460,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/tiff.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-tiff .v-table-cell-wrapper {
@@ -12367,6 +12473,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/unknown.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-unknown .v-table-cell-wrapper {
@@ -12379,6 +12486,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/vsd.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-vsd .v-table-cell-wrapper {
@@ -12391,6 +12499,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/vsl.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-vsl .v-table-cell-wrapper {
@@ -12403,6 +12512,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/vst.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-vst .v-table-cell-wrapper {
@@ -12415,6 +12525,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/wav.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-wav .v-table-cell-wrapper {
@@ -12427,6 +12538,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/wbk.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-wbk .v-table-cell-wrapper {
@@ -12439,6 +12551,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/wri.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-wri .v-table-cell-wrapper {
@@ -12451,6 +12564,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/xls.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-xls .v-table-cell-wrapper {
@@ -12463,6 +12577,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/xlsx.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-xlsx .v-table-cell-wrapper {
@@ -12475,6 +12590,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/xlsm.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-xlsm .v-table-cell-wrapper {
@@ -12487,6 +12603,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/xlt.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-xlt .v-table-cell-wrapper {
@@ -12499,6 +12616,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/xml.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-xml .v-table-cell-wrapper {
@@ -12511,6 +12629,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/zip.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-zip .v-table-cell-wrapper {
@@ -12523,6 +12642,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/mp3.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-mp3 .v-table-cell-wrapper {
@@ -12535,6 +12655,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/mp4.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-mp4 .v-table-cell-wrapper {
@@ -12547,6 +12668,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/wmv.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-wmv .v-table-cell-wrapper {
@@ -12559,6 +12681,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/flv.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-flv .v-table-cell-wrapper {
@@ -13207,6 +13330,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/folder2/yellow_hybrid_folder_frozen_opened.png');
 	background-repeat: no-repeat;
 	background-position: 2px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-yellow_hybrid_folder_frozen_opened .v-table-cell-wrapper {
@@ -13219,6 +13343,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/folder2/yellow_hybrid_folder_locked_closed.png');
 	background-repeat: no-repeat;
 	background-position: 2px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-yellow_hybrid_folder_locked_closed .v-table-cell-wrapper {
@@ -13442,6 +13567,27 @@ div.v-layout.v-horizontal.v-widget {
 	overflow-y: auto;
 }
 
+.constellio .viewable-record-window {
+	width: 100%;
+}
+
+.constellio .viewable-record-window .main-component-wrapper .base-display-tab-panel .v-panel-content {
+	height: calc(100% - 170px);
+}
+
+.constellio .viewable-record-window .list-add-remove-comment {
+	width: 100%;
+}
+
+.constellio .viewable-record-window .list-add-remove-comment .v-slot-list-add-remove {
+	width: 100%;
+}
+
+.constellio .viewable-record-window .list-add-remove-comment .v-slot-list-add-remove .v-has-caption {
+	background-color: red;
+	width: 100%;
+}
+
 .constellio .autocomplete {
 	width: 100%;
 }
@@ -13662,9 +13808,6 @@ div.v-layout.v-horizontal.v-widget {
 	top: 63px;
 	right: 20px;
 	margin-top: 70px;
-	width: 225px;
-	border: 1px solid #3a434d;
-	border-radius: 4px;
 }
 
 .constellio .v-window .popupContent .action-menu .v-button {
@@ -13696,10 +13839,24 @@ div.v-layout.v-horizontal.v-widget {
 	background-color: #414B56;
 }
 
+.constellio .v-window .popupContent .v-caption-action-menu-bar {
+	display: none;
+}
+
+.constellio .v-window .popupContent .action-menu-bar {
+	z-index: 2000;
+	position: absolute;
+	top: -40px;
+	right: 30px;
+}
+
 .constellio .v-window .popupContent .action-menu-wrapper {
 	overflow: auto;
 	padding-right: 260px;
 	padding-left: 10px;
+	width: 225px;
+	border: 1px solid #3a434d;
+	border-radius: 4px;
 }
 
 .constellio .v-window .popupContent .action-menu-wrapper .back-button {
@@ -13743,21 +13900,21 @@ div.v-layout.v-horizontal.v-widget {
 	padding-right: 0px;
 }
 
-.constellio .base-window .v-scrollable {
-	overflow: hidden;
-}
-
 .constellio .base-window .v-scrollable .base-window-content {
 	padding-left: 5px;
 	padding-right: 5px;
 	padding-top: 25px;
 }
 
-.constellio .base-window .v-scrollable .v-panel .v-scrollable {
+.constellio .base-window-content-scroll .v-scrollable {
+	overflow: hidden;
+}
+
+.constellio .base-window-content-scroll .v-scrollable .v-panel .v-scrollable {
 	overflow: auto;
 }
 
-.constellio .base-window .v-table .v-scrollable {
+.constellio .base-window-content-scroll .v-table .v-scrollable {
 	overflow: auto;
 }
 
@@ -13913,8 +14070,7 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .clickable-row .v-table-body tr:hover, .constellio .clickable-row .v-table-body .reference-display:hover {
-	color: white;
-	background-color: #197de1;
+	background-color: #e6e6e6;
 	text-decoration: none;
 }
 
@@ -14125,6 +14281,116 @@ div.v-layout.v-horizontal.v-widget {
 	color: red;
 }
 
+.constellio .v-slot-button-toggle-facets {
+	height: 100%;
+	line-height: 100%;
+}
+
+.constellio .v-slot-button-toggle-facets .button-toggle-facets {
+	height: 100%;
+	line-height: 100%;
+}
+
+.constellio .collapsible-horizontal-splitpanel {
+	padding-bottom: 2px;
+}
+
+.constellio .collapsible-horizontal-splitpanel .v-splitpanel-hsplitter-collapsible-horizontal-splitpanel {
+	width: 10px;
+	text-align: center;
+	white-space: nowrap;
+	outline: medium none;
+	cursor: pointer;
+	color: #191919;
+	font-weight: 400;
+	border-radius: 4px 4px 4px 4px;
+	border-width: 1px 1px 2px 1px;
+	border-style: solid;
+	border-right: 1px solid #c5c5c5;
+	border-left: 1px solid #c5c5c5;
+	-moz-border-top-colors: none;
+	-moz-border-right-colors: none;
+	-moz-border-bottom-colors: none;
+	-moz-border-left-colors: none;
+	border-image: none;
+	border-color: #c5c5c5 #c5c5c5 #bcbcbc;
+	background-color: #fafafa;
+	background-image: linear, to bottom, #fafafa 2%, #efefef 98%;
+	text-shadow: 0px 1px 0px rgba(255, 255, 255, 0.05);
+}
+
+.constellio .collapsible-horizontal-splitpanel .v-splitpanel-second-container-collapsible-horizontal-splitpanel {
+	padding-left: 12px;
+}
+
+.constellio .collapsible-horizontal-splitpanel .v-splitpanel-hsplitter-collapsible-horizontal-splitpanel:before {
+	position: absolute;
+	top: 50%;
+	margin-left: -4px;
+}
+
+.constellio .collapsible-horizontal-splitpanel .v-splitpanel-hsplitter-collapsible-horizontal-splitpanel-second-visible:before {
+	content: "\f101";
+}
+
+.constellio .collapsible-horizontal-splitpanel .v-splitpanel-hsplitter-collapsible-horizontal-splitpanel-second-hidden:before {
+	content: "\f100";
+}
+
+.constellio .collapsible-horizontal-splitpanel .viewable-record-table-panel {
+	min-height: 2000px;
+}
+
+.constellio .collapsible-horizontal-splitpanel .viewable-record-table-panel .close-button-viewer-metadata-layout {
+	position: absolute;
+}
+
+.constellio .collapsible-horizontal-splitpanel .viewable-record-table-panel .folder-content-table.viewable-record-table-compressed .v-table-body {
+	border: none;
+}
+
+.constellio .collapsible-horizontal-splitpanel .viewable-record-table-panel .folder-content-table.viewable-record-table-compressed .v-table-body .v-table-cell-content {
+	border: none;
+}
+
+.constellio .collapsible-horizontal-splitpanel .viewable-record-table-panel .folder-content-table.viewable-record-table-compressed .search-result-record .search-result-title {
+	padding-top: 8px;
+	text-align: left;
+	font-weight: bold;
+}
+
+.constellio .collapsible-horizontal-splitpanel .viewable-record-table-panel .folder-content-table.viewable-record-table-compressed .search-result-record .document-search-result-title {
+	padding-top: 10px;
+}
+
+.constellio .collapsible-horizontal-splitpanel .viewable-record-table-panel .folder-content-table.viewable-record-table-compressed .search-result-record .search-result-metadata {
+	font-size: 14px;
+}
+
+.constellio .collapsible-horizontal-splitpanel .viewable-record-table-panel .folder-content-table.viewable-record-table-compressed .search-result-record .search-result-metadata .metadata-caption {
+	font-weight: bold;
+}
+
+.constellio .collapsible-horizontal-splitpanel .viewable-record-table-panel .folder-content-table.viewable-record-table-uncompressed .search-result-table .v-table-table .v-table-cell-content {
+	vertical-align: middle;
+}
+
+.constellio .collapsible-horizontal-splitpanel .viewable-record-table-panel .folder-content-table.viewable-record-table-uncompressed .search-result-table .v-table-table .v-table-cell-content .v-checkbox {
+	margin-top: 13px;
+}
+
+.constellio .collapsible-horizontal-splitpanel .viewable-record-table-panel .folder-content-table.viewable-record-table-uncompressed .search-result-table .v-table-table .v-table-cell-content .v-spacing {
+	height: 5px;
+}
+
+.constellio .collapsible-horizontal-splitpanel-second-visible2 .viewable-search-results-panel .close-button-viewer-metadata-layout {
+	width: calc(100% - 960px);
+}
+
+.constellio .collapsible-horizontal-splitpanel-second-hidden2 .viewable-search-results-panel .close-button-viewer-metadata-layout {
+	width: calc(100% - 660px);
+}
+
 .constellio .constellio-layout .sidebar {
 	overflow-y: hidden;
 }
@@ -14306,11 +14572,20 @@ div.v-layout.v-horizontal.v-widget {
 	border: none;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .search-result-table .v-table-table {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .search-result-detailed-table .v-table-table {
 	box-shadow: none;
 }
 
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .search-result-detailed-table .v-table-row-odd {
+	background-color: #fff;
+}
+
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .search-result-table .v-table-body {
+	border: none;
+}
+
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .search-result-table .v-table-table .v-table-cell-content {
+	border: none;
 	vertical-align: top;
 }
 
@@ -14322,10 +14597,16 @@ div.v-layout.v-horizontal.v-widget {
 	margin-top: 23px;
 }
 
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .search-result-table .v-table-table .v-table-cell-content .v-spacing {
+	height: 5px;
+}
+
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .search-result-table .search-result-title {
 	padding-top: 16px;
 	font-size: 18px;
 	text-align: left;
+	color: #197de1;
+	font-weight: bold;
 }
 
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .search-result-table .document-search-result-title {
@@ -14333,7 +14614,6 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .search-result-table .search-result-highlights {
-	margin-bottom: 10px;
 	white-space: normal;
 	display: inline-block;
 	line-height: normal;
@@ -14369,8 +14649,17 @@ div.v-layout.v-horizontal.v-widget {
 	text-decoration: none;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .search-result-table .v-table-row-odd {
-	background-color: #fff;
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .viewable-record-table-compressed .search-result-title {
+	width: 350px;
+}
+
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .viewable-record-table-compressed .search-result-elevation-buttons {
+	border: none;
+	margin-top: inherit;
+}
+
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .viewable-record-table-compressed .search-result-elevation-buttons .v-button-caption {
+	display: none;
 }
 
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .facet-box {
@@ -14412,6 +14701,49 @@ div.v-layout.v-horizontal.v-widget {
 	text-decoration: underline;
 }
 
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .facet-box-viewer {
+	border-radius: 4px 4px 4px 4px;
+	border: 1px solid #d5d5d5;
+	background-color: #fafafa;
+	background-image: -webkit-linear-gradient(top, #fafafa 2%, #f6f6f6 98%);
+}
+
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .facet-box-viewer .facet-title {
+	font-size: 0.9em;
+	padding-left: 13px;
+	border-bottom: 1px solid #d5d5d5;
+}
+
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .facet-box-viewer table * {
+	border: none;
+}
+
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .facet-box-viewer .v-table-body {
+	border: none;
+}
+
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .facet-box-viewer .v-table-cell-content {
+	height: auto;
+	padding-top: 2px;
+}
+
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .facet-box-viewer .v-table-row-odd {
+	background-color: #fff;
+}
+
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .facet-box-viewer .v-checkbox > label {
+	max-width: 260px;
+	word-break: break-word;
+	white-space: normal;
+	display: inline-block;
+	color: #197de1;
+	font-size: 0.8em;
+}
+
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .facet-box-viewer .v-checkbox > label:hover {
+	text-decoration: underline;
+}
+
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .sort-box {
 	border: 1px solid #3a434d;
 	border-radius: 4px;
@@ -14434,18 +14766,40 @@ div.v-layout.v-horizontal.v-widget {
 	padding-right: 13px;
 }
 
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .sort-box-viewer {
+	border-radius: 4px 4px 4px 4px;
+	border: 1px solid #d5d5d5;
+	background-color: #fafafa;
+	background-image: -webkit-linear-gradient(top, #fafafa 2%, #f6f6f6 98%);
+}
+
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .sort-box-viewer .sort-title {
+	font-size: 0.9em;
+	padding-left: 13px;
+	border-bottom: 1px solid #d5d5d5;
+}
+
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .sort-box-viewer .sort-box-content {
+	font-size: 0.8em;
+	background: #fff;
+	padding-left: 13px;
+	padding-top: 8px;
+	padding-bottom: 4px;
+	padding-right: 13px;
+}
+
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .records-management .v-tree-node-caption:hover, .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .display-folder .v-tree-node-caption:hover {
 	color: white;
 	background-color: #197de1;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .action-menu {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .action-menu-layout {
 	width: 225px;
 	border: 1px solid #3a434d;
 	border-radius: 4px;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .action-menu .v-button {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .action-menu-layout .v-button {
 	padding-left: 8px;
 	color: white;
 	font-weight: normal;
@@ -14459,19 +14813,29 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: linear, to left, #38414a 0%, #414B56 9px;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .action-menu .v-button:hover {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .action-menu-layout .v-button:hover {
 	color: #197de1;
 	background-color: #3a434d;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .action-menu .v-button:after {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .action-menu-layout .v-button:after {
 	box-shadow: none;
 	border: none;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .action-menu .v-disabled:hover {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .action-menu-layout .v-disabled:hover {
 	color: white;
 	background-color: #414B56;
+}
+
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .v-caption-action-menu-bar {
+	display: none;
+}
+
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .action-menu-bar {
+	position: absolute;
+	top: -40px;
+	right: 30px;
 }
 
 .constellio .constellio-layout .content-footer-wrapper .content-footer .v-slot-footer {
@@ -15190,6 +15554,16 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .right-to-left .popupContent .action-menu .v-button {
 	text-align: right;
+}
+
+.constellio .right-to-left .popupContent .v-caption-action-menu-bar {
+	display: none;
+}
+
+.constellio .right-to-left .popupContent .action-menu-bar {
+	position: absolute;
+	top: -40px;
+	right: 30px;
 }
 
 .constellio .right-to-left .popupContent .action-menu-wrapper {

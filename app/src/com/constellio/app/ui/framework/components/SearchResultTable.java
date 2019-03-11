@@ -16,7 +16,5 @@ public interface SearchResultTable extends Component {
 	Component createSummary(Component component, Component... extra);
 
 	Component createSummary(List<Component> alwaysActive, final List<Component> extra);
-
 	void addItemClickListener(final ItemClickListener listener);
-
 }
