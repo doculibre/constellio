@@ -338,7 +338,6 @@ public abstract class AbstractXmlGenerator {
 							.setAttribute("label", metadata.getFrenchLabel()).setAttribute("code", elementNamePrefix + "_code"),
 					new Element(elementNamePrefix + "_title", namespace).setText(null)
 							.setAttribute("label", metadata.getFrenchLabel()).setAttribute("code", elementNamePrefix + "_title"));
-
 		} else {
 			StringBuilder titleBuilder = new StringBuilder();
 			StringBuilder codeBuilder = new StringBuilder();
