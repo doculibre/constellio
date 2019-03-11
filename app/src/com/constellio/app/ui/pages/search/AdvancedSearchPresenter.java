@@ -5,23 +5,6 @@ import com.constellio.app.api.extensions.BatchProcessingExtension.BatchProcessFe
 import com.constellio.app.api.extensions.BatchProcessingExtension.BatchProcessFeededByQueryParams;
 import com.constellio.app.api.extensions.params.SearchPageConditionParam;
 import com.constellio.app.entities.batchProcess.ChangeValueOfMetadataBatchAsyncTask;
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.data.dao.services.cache.InsertionReason.WAS_MODIFIED;
-import static com.constellio.data.dao.services.idGenerator.UUIDV1Generator.newRandomId;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
@@ -92,6 +75,21 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 import com.vaadin.ui.Component;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.common.params.ModifiableSolrParams;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.data.dao.services.cache.InsertionReason.WAS_MODIFIED;
+import static com.constellio.data.dao.services.idGenerator.UUIDV1Generator.newRandomId;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView> implements BatchProcessingPresenter {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AdvancedSearchPresenter.class);
@@ -121,14 +119,13 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	}
 
 
-
 	public void setSchemaType(String schemaType) {
 		this.schemaTypeCode = schemaType;
 		setSchemaTypeOnPresenterService();
 	}
 
 	private void setSchemaTypeOnPresenterService() {
-		if(schemaTypeCode != null) {
+		if (schemaTypeCode != null) {
 			service.setMetadataSchemaTypesList(Arrays.asList(modelLayerFactory.getMetadataSchemasManager()
 					.getSchemaTypes(collection).getSchemaType(schemaTypeCode)));
 		} else {
@@ -398,13 +395,13 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		String cartId = cart.getId();
 		switch (schemaTypeCode) {
 			case Folder.SCHEMA_TYPE:
-				addFoldersToCart(cart, records);
+				addFoldersToCart(cartId, records);
 				break;
 			case Document.SCHEMA_TYPE:
-				addDocumentsToCart(cart, records);
+				addDocumentsToCart(cartId, records);
 				break;
 			case ContainerRecord.SCHEMA_TYPE:
-				addContainersToCart(cart, records);
+				addContainersToCart(cartId, records);
 				break;
 		}
 		try {
@@ -425,13 +422,13 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		List<Record> records = getRecords(view.getSelectedRecordIds());
 		switch (schemaTypeCode) {
 			case Folder.SCHEMA_TYPE:
-				addFoldersToCart(cart, records);
+				addFoldersToCart(cartId, records);
 				break;
 			case Document.SCHEMA_TYPE:
-				addDocumentsToCart(cart, records);
+				addDocumentsToCart(cartId, records);
 				break;
 			case ContainerRecord.SCHEMA_TYPE:
-				addContainersToCart(cart, records);
+				addContainersToCart(cartId, records);
 				break;
 		}
 		try {

@@ -1,18 +1,8 @@
 package com.constellio.app.ui.pages.search;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.jetbrains.annotations.Nullable;
-import org.vaadin.dialogs.ConfirmDialog;
-
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.FacetVO;
+import com.constellio.app.ui.entities.FacetValueVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.SearchResultVO;
@@ -27,11 +17,13 @@ import com.constellio.app.ui.framework.components.SearchResultDetailedTable;
 import com.constellio.app.ui.framework.components.SearchResultSimpleTable;
 import com.constellio.app.ui.framework.components.SearchResultTable;
 import com.constellio.app.ui.framework.components.capsule.CapsuleComponent;
+import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveRecordLookupField;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.components.search.FacetsPanel;
 import com.constellio.app.ui.framework.components.splitpanel.CollapsibleHorizontalSplitPanel;
+import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.components.table.SelectionTableAdapter;
 import com.constellio.app.ui.framework.components.viewers.panel.ViewableRecordTablePanel;
 import com.constellio.app.ui.framework.containers.SearchResultContainer;
@@ -49,22 +41,29 @@ import com.jensjansson.pagedtable.PagedTable.PagedTableChangeEvent;
 import com.vaadin.data.Container.ItemSetChangeEvent;
 import com.vaadin.data.Container.ItemSetChangeListener;
 import com.vaadin.data.Property;
+import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.shared.ui.label.ContentMode;
+import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
+import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.CheckBox;
+import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.ComponentContainer;
 import com.vaadin.ui.CssLayout;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Link;
+import com.vaadin.ui.OptionGroup;
 import com.vaadin.ui.Table;
+import com.vaadin.ui.Table.ColumnHeaderMode;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
@@ -266,7 +265,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		if (temporarySave) {
 			SavedSearch savedSearch = presenter.saveTemporarySearch(false);
 
-			for(SaveSearchListener saveSearchListener : saveSearchListenerList) {
+			for (SaveSearchListener saveSearchListener : saveSearchListenerList) {
 				saveSearchListener.save(new SaveSearchListener.Event(savedSearch));
 			}
 		}
@@ -460,19 +459,19 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	}
 
 	protected SearchResultTable buildResultTable(SearchResultVODataProvider dataProvider) {
-        if (presenter.getResultsViewMode().equals(SearchResultsViewMode.TABLE)) {
-            return buildSimpleResultsTable(dataProvider);
-        } else {
-            return buildDetailedResultsTable(dataProvider);
-        }
+		if (presenter.getResultsViewMode().equals(SearchResultsViewMode.TABLE)) {
+			return buildSimpleResultsTable(dataProvider);
+		} else {
+			return buildDetailedResultsTable(dataProvider);
+		}
 	}
 
-    protected SearchResultTable buildSimpleResultsTable(SearchResultVODataProvider dataProvider) {
-        //Fixme : use dataProvider instead
+	protected SearchResultTable buildSimpleResultsTable(SearchResultVODataProvider dataProvider) {
+		//Fixme : use dataProvider instead
 		final SearchResultContainer container = buildResultContainer(dataProvider);
-        SearchResultSimpleTable table = new SearchResultSimpleTable(container, presenter);
-        table.setWidth("100%");
-        table.getTable().addItemClickListener(new ItemClickListener() {
+		SearchResultSimpleTable table = new SearchResultSimpleTable(container, presenter);
+		table.setWidth("100%");
+		table.getTable().addItemClickListener(new ItemClickListener() {
 			@SuppressWarnings("rawtypes")
 			@Override
 			public void itemClick(ItemClickEvent event) {
@@ -481,8 +480,8 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 				((SearchPresenter) presenter).searchResultClicked(recordVO);
 			}
 		});
-        return table;
-    }
+		return table;
+	}
 
 	protected SearchResultTable buildDetailedResultsTable(SearchResultVODataProvider dataProvider) {
 		SearchResultContainer container = buildResultContainer(dataProvider);
