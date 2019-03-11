@@ -374,7 +374,7 @@ public class SmbFileDTOSimpleBuilderAcceptanceTest extends ConstellioTest {
 		assertThat(smbFileDTO.getAllowShareTokens()).isEmpty();
 		assertThat(smbFileDTO.getDenyTokens()).isEmpty();
 		assertThat(smbFileDTO.getDenyShareTokens()).isEmpty();
-		assertThat(smbFileDTO.getPermissionsHash()).isEmpty();
+		assertThat(smbFileDTO.getPermissionsHash()).isNull();
 		assertThat(smbFileDTO.isFile()).isFalse();
 		assertThat(smbFileDTO.isDirectory()).isFalse();
 		assertThat(smbFileDTO.getExtension()).isEmpty();
@@ -424,7 +424,7 @@ public class SmbFileDTOSimpleBuilderAcceptanceTest extends ConstellioTest {
 		assertThat(smbFileDTO.getAllowShareTokens()).isEmpty();
 		assertThat(smbFileDTO.getDenyTokens()).isEmpty();
 		assertThat(smbFileDTO.getDenyShareTokens()).isEmpty();
-		assertThat(smbFileDTO.getPermissionsHash()).isEmpty();
+		assertThat(smbFileDTO.getPermissionsHash()).isNull();
 		assertThat(smbFileDTO.isFile()).isFalse();
 		assertThat(smbFileDTO.isDirectory()).isFalse();
 		assertThat(smbFileDTO.getExtension()).isEmpty();

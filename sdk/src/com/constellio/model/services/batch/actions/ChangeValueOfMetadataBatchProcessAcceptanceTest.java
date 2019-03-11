@@ -69,7 +69,7 @@ public class ChangeValueOfMetadataBatchProcessAcceptanceTest extends ConstellioT
 	}
 
 	@Test
-	public void whenExecutingThenCreateTransactionSetForcedChangeFieldsForAllRecords()
+	public void whenExecutingThenCreateTransactionWhichDoesNotSkipRequiredValueValidation()
 			throws Exception {
 
 		Transaction transaction = action.execute(batch, null, schemaTypes, recordProvider, getModelLayerFactory());
@@ -80,7 +80,7 @@ public class ChangeValueOfMetadataBatchProcessAcceptanceTest extends ConstellioT
 			verify(record).set(changedMetadata2, changedValue2);
 		}
 
-		assertThat(transaction.isSkippingRequiredValuesValidation()).isTrue();
+		assertThat(transaction.isSkippingRequiredValuesValidation()).isFalse();
 	}
 
 }
