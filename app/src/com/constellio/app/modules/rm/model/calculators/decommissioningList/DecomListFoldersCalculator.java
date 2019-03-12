@@ -2,8 +2,8 @@ package com.constellio.app.modules.rm.model.calculators.decommissioningList;
 
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
+import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
-import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.schemas.MetadataValueType;
@@ -13,7 +13,7 @@ import java.util.List;
 
 import static java.util.Arrays.asList;
 
-public class DecomListFoldersCalculator implements MetadataValueCalculator<List<String>> {
+public class DecomListFoldersCalculator extends AbstractMetadataValueCalculator<List<String>> {
 
 	LocalDependency<List<DecomListFolderDetail>> folderDetailsParam = LocalDependency
 			.toAStructure(DecommissioningList.FOLDER_DETAILS).whichIsMultivalue();

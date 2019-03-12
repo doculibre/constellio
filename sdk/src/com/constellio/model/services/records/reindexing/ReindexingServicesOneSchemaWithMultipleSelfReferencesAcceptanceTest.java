@@ -7,8 +7,8 @@ import com.constellio.data.dao.dto.records.TransactionDTO;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
+import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
-import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
@@ -255,7 +255,7 @@ public class ReindexingServicesOneSchemaWithMultipleSelfReferencesAcceptanceTest
 		};
 	}
 
-	public static class ReindexingServicesAcceptanceTest_Calculator implements MetadataValueCalculator<String> {
+	public static class ReindexingServicesAcceptanceTest_Calculator extends AbstractMetadataValueCalculator<String> {
 
 		ReferenceDependency<String> inputDependency = ReferenceDependency
 				.toAString("referenceToZeSchema", "calculatedMetadataInput");
@@ -286,7 +286,7 @@ public class ReindexingServicesOneSchemaWithMultipleSelfReferencesAcceptanceTest
 		}
 	}
 
-	public static class ReindexingServicesAcceptanceTest_Calculator2 implements MetadataValueCalculator<String> {
+	public static class ReindexingServicesAcceptanceTest_Calculator2 extends AbstractMetadataValueCalculator<String> {
 
 		ReferenceDependency<String> calcualtedMetadata = ReferenceDependency.toAString("childOfReference", "calculatedMetadata");
 		LocalDependency<String> textMetadata = LocalDependency.toAString("textMetadata");

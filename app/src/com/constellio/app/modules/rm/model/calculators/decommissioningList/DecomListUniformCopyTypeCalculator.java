@@ -3,8 +3,8 @@ package com.constellio.app.modules.rm.model.calculators.decommissioningList;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
-import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
 import com.constellio.model.entities.schemas.MetadataValueType;
@@ -15,7 +15,7 @@ import java.util.Set;
 
 import static java.util.Arrays.asList;
 
-public class DecomListUniformCopyTypeCalculator implements MetadataValueCalculator<CopyType> {
+public class DecomListUniformCopyTypeCalculator extends AbstractMetadataValueCalculator<CopyType> {
 
 	ReferenceDependency<List<CopyType>> foldersCopyTypesParam = ReferenceDependency.toAnEnum(DecommissioningList.FOLDERS,
 			Folder.COPY_STATUS).whichIsMultivalue();

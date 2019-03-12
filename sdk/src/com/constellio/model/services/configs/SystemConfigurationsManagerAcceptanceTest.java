@@ -7,8 +7,8 @@ import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.data.utils.Delayed;
+import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
-import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.ConfigDependency;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.configs.SystemConfiguration;
@@ -479,7 +479,7 @@ public class SystemConfigurationsManagerAcceptanceTest extends ConstellioTest {
 		}
 	}
 
-	public static class FavoriteNumberCalculator implements MetadataValueCalculator<Double> {
+	public static class FavoriteNumberCalculator extends AbstractMetadataValueCalculator<Double> {
 		ConfigDependency<Integer> numberConfig = new ConfigDependency<>(numberUsedByCalculators);
 
 		@Override

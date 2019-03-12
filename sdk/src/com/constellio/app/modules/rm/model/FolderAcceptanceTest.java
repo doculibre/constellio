@@ -20,8 +20,8 @@ import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.modules.tasks.services.TasksSearchServices;
 import com.constellio.data.utils.Builder;
+import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
-import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
 import com.constellio.model.entities.records.Transaction;
@@ -3274,7 +3274,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		return new LocalDate(year, 3, 31);
 	}
 
-	public static class ZeCategoryCodeCalculator implements MetadataValueCalculator<String> {
+	public static class ZeCategoryCodeCalculator extends AbstractMetadataValueCalculator<String> {
 
 		ReferenceDependency<String> codeParam = ReferenceDependency.toAString(Folder.CATEGORY, Category.CODE);
 

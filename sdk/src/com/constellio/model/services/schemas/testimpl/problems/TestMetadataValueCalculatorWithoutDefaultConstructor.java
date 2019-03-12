@@ -1,7 +1,7 @@
 package com.constellio.model.services.schemas.testimpl.problems;
 
+import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
-import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.schemas.MetadataValueType;
@@ -9,7 +9,7 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TestMetadataValueCalculatorWithoutDefaultConstructor implements MetadataValueCalculator<String> {
+public class TestMetadataValueCalculatorWithoutDefaultConstructor extends AbstractMetadataValueCalculator<String> {
 
 	public TestMetadataValueCalculatorWithoutDefaultConstructor(String s) {
 		super();

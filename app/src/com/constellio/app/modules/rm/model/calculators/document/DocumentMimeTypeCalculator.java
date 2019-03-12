@@ -1,8 +1,8 @@
 package com.constellio.app.modules.rm.model.calculators.document;
 
 import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
-import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.records.Content;
@@ -17,7 +17,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 /**
  * Created by Constellio on 2017-03-03.
  */
-public class DocumentMimeTypeCalculator implements MetadataValueCalculator<String> {
+public class DocumentMimeTypeCalculator extends AbstractMetadataValueCalculator<String> {
 	LocalDependency<Content> contentParam = LocalDependency.toAContent(Document.CONTENT);
 
 	@Override

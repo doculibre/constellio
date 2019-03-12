@@ -1,8 +1,8 @@
 package com.constellio.app.modules.rm.model.calculators;
 
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
-import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.schemas.MetadataValueType;
@@ -12,7 +12,7 @@ import java.util.List;
 
 import static java.util.Collections.singletonList;
 
-public class DummyListDateCalculator implements MetadataValueCalculator<List<LocalDate>> {
+public class DummyListDateCalculator extends AbstractMetadataValueCalculator<List<LocalDate>> {
 	LocalDependency<String> titleParam = LocalDependency.toAString(Folder.TITLE);
 
 	@Override

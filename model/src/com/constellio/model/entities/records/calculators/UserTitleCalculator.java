@@ -1,7 +1,7 @@
 package com.constellio.model.entities.records.calculators;
 
+import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
-import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.ConfigDependency;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
@@ -12,7 +12,7 @@ import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import java.util.Arrays;
 import java.util.List;
 
-public class UserTitleCalculator implements MetadataValueCalculator<String> {
+public class UserTitleCalculator extends AbstractMetadataValueCalculator<String> {
 
 	ConfigDependency<String> titlePatternParam = ConstellioEIMConfigs.USER_TITLE_PATTERN.dependency();
 	LocalDependency<String> firstNameParam = LocalDependency.toAString(User.FIRSTNAME);

@@ -4,8 +4,8 @@ import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
+import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
-import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
@@ -17,7 +17,7 @@ import java.util.List;
 
 import static com.constellio.data.utils.LangUtils.isEqual;
 
-public class FolderApplicableCopyRuleCalculator implements MetadataValueCalculator<List<CopyRetentionRule>> {
+public class FolderApplicableCopyRuleCalculator extends AbstractMetadataValueCalculator<List<CopyRetentionRule>> {
 
 	LocalDependency<CopyType> folderCopyTypeParam = LocalDependency.toAnEnum(Folder.COPY_STATUS).whichIsRequired();
 	LocalDependency<List<String>> folderMediumTypesParam = LocalDependency.toAReference(Folder.MEDIUM_TYPES).whichIsMultivalue();

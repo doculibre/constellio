@@ -1,8 +1,8 @@
 package com.constellio.model.services.records;
 
+import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.DynamicDependencyValues;
-import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.DynamicLocalDependency;
 import com.constellio.model.entities.records.Record;
@@ -379,7 +379,7 @@ public class DynamicDependencyCalculatorAcceptanceTest extends ConstellioTest {
 
 	}
 
-	public static final class CalculatorDependentOfEveryMetadatas implements MetadataValueCalculator<String> {
+	public static final class CalculatorDependentOfEveryMetadatas extends AbstractMetadataValueCalculator<String> {
 
 		DynamicLocalDependency dynamicLocalDependency = new DynamicLocalDependency() {
 			@Override
@@ -424,7 +424,7 @@ public class DynamicDependencyCalculatorAcceptanceTest extends ConstellioTest {
 		}
 	}
 
-	public static final class CalculatorDependentOfSomeMetadatas implements MetadataValueCalculator<String> {
+	public static final class CalculatorDependentOfSomeMetadatas extends AbstractMetadataValueCalculator<String> {
 
 		DynamicLocalDependency dynamicLocalDependency = new DynamicLocalDependency() {
 			@Override
@@ -465,7 +465,7 @@ public class DynamicDependencyCalculatorAcceptanceTest extends ConstellioTest {
 		}
 	}
 
-	public static final class BadCalculator implements MetadataValueCalculator<String> {
+	public static final class BadCalculator extends AbstractMetadataValueCalculator<String> {
 
 		DynamicLocalDependency dynamicLocalDependency = new DynamicLocalDependency() {
 			@Override
@@ -505,7 +505,7 @@ public class DynamicDependencyCalculatorAcceptanceTest extends ConstellioTest {
 	}
 
 	public static final class CalculatorWhichReturnListOfAllAvailableMetadataLocalCodes
-			implements MetadataValueCalculator<String> {
+			extends AbstractMetadataValueCalculator<String> {
 
 		DynamicLocalDependency dynamicLocalDependency = new DynamicLocalDependency() {
 			@Override
@@ -548,7 +548,7 @@ public class DynamicDependencyCalculatorAcceptanceTest extends ConstellioTest {
 	}
 
 	public static final class CalculatorWhichReturnListOfAllAvailableMetadataWithValueLocalCodes
-			implements MetadataValueCalculator<String> {
+			extends AbstractMetadataValueCalculator<String> {
 
 		DynamicLocalDependency dynamicLocalDependency = new DynamicLocalDependency() {
 			@Override
@@ -590,8 +590,7 @@ public class DynamicDependencyCalculatorAcceptanceTest extends ConstellioTest {
 		}
 	}
 
-	public static final class Metadata4CalculatorDependingOnA_5 extends AbstractCalculatorSumOfDependencies
-			implements MetadataValueCalculator<Double> {
+	public static final class Metadata4CalculatorDependingOnA_5 extends AbstractCalculatorSumOfDependencies {
 
 		public Metadata4CalculatorDependingOnA_5() {
 			dynamicLocalDependency = new DynamicLocalDependency() {
@@ -603,8 +602,7 @@ public class DynamicDependencyCalculatorAcceptanceTest extends ConstellioTest {
 		}
 	}
 
-	public static final class Metadata2CalculatorDependingOnD_5 extends AbstractCalculatorSumOfDependencies
-			implements MetadataValueCalculator<Double> {
+	public static final class Metadata2CalculatorDependingOnD_5 extends AbstractCalculatorSumOfDependencies {
 
 		public Metadata2CalculatorDependingOnD_5() {
 			dynamicLocalDependency = new DynamicLocalDependency() {
@@ -616,8 +614,7 @@ public class DynamicDependencyCalculatorAcceptanceTest extends ConstellioTest {
 		}
 	}
 
-	public static final class Metadata3CalculatorDependingOn2_4 extends AbstractCalculatorSumOfDependencies
-			implements MetadataValueCalculator<Double> {
+	public static final class Metadata3CalculatorDependingOn2_4 extends AbstractCalculatorSumOfDependencies {
 
 		public Metadata3CalculatorDependingOn2_4() {
 			dynamicLocalDependency = new DynamicLocalDependency() {
@@ -629,8 +626,7 @@ public class DynamicDependencyCalculatorAcceptanceTest extends ConstellioTest {
 		}
 	}
 
-	public static final class Metadata1CalculatorDependingOn2_3_4 extends AbstractCalculatorSumOfDependencies
-			implements MetadataValueCalculator<Double> {
+	public static final class Metadata1CalculatorDependingOn2_3_4 extends AbstractCalculatorSumOfDependencies {
 
 		public Metadata1CalculatorDependingOn2_3_4() {
 			dynamicLocalDependency = new DynamicLocalDependency() {
@@ -642,8 +638,7 @@ public class DynamicDependencyCalculatorAcceptanceTest extends ConstellioTest {
 		}
 	}
 
-	public static final class Metadata5CalculatorDependingOnB_C extends AbstractCalculatorSumOfDependencies
-			implements MetadataValueCalculator<Double> {
+	public static final class Metadata5CalculatorDependingOnB_C extends AbstractCalculatorSumOfDependencies {
 
 		public Metadata5CalculatorDependingOnB_C() {
 			dynamicLocalDependency = new DynamicLocalDependency() {
@@ -656,7 +651,7 @@ public class DynamicDependencyCalculatorAcceptanceTest extends ConstellioTest {
 	}
 
 	public static abstract class AbstractCalculatorSumOfDependencies
-			implements MetadataValueCalculator<Double> {
+			extends AbstractMetadataValueCalculator<Double> {
 
 		protected DynamicLocalDependency dynamicLocalDependency;
 

@@ -5,6 +5,8 @@ import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
+import com.constellio.model.entities.calculators.evaluators.CalculatorEvaluator;
+import com.constellio.model.entities.calculators.evaluators.CalculatorEvaluatorParameters;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
@@ -24,6 +26,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static java.util.Arrays.asList;
@@ -447,6 +450,26 @@ public class RecordAutomaticMetadataServicesCopyAcceptanceTest extends Constelli
 			}
 
 			@Override
+			public List<? extends LocalDependency> getEvaluatorDependencies() {
+				return Collections.emptyList();
+			}
+
+			@Override
+			public boolean isAutomaticallyFilled(CalculatorEvaluatorParameters parameters) {
+				return false;
+			}
+
+			@Override
+			public CalculatorEvaluator getCalculatorEvaluator() {
+				throw new UnsupportedOperationException("TODO");
+			}
+
+			@Override
+			public boolean hasEvaluator() {
+				return false;
+			}
+
+			@Override
 			public boolean isMultiValue() {
 				return false;
 			}
@@ -478,6 +501,26 @@ public class RecordAutomaticMetadataServicesCopyAcceptanceTest extends Constelli
 					dependencies.add(ReferenceDependency.toAString(dependencyCode, "notImportant").whichIsRequired());
 				}
 				return dependencies;
+			}
+
+			@Override
+			public List<? extends LocalDependency> getEvaluatorDependencies() {
+				return Collections.emptyList();
+			}
+
+			@Override
+			public boolean isAutomaticallyFilled(CalculatorEvaluatorParameters parameters) {
+				return true;
+			}
+
+			@Override
+			public CalculatorEvaluator getCalculatorEvaluator() {
+				throw new UnsupportedOperationException("TODO");
+			}
+
+			@Override
+			public boolean hasEvaluator() {
+				return false;
 			}
 
 			@Override

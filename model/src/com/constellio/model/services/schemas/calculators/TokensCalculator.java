@@ -1,7 +1,7 @@
 package com.constellio.model.services.schemas.calculators;
 
+import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
-import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.schemas.MetadataValueType;
 
@@ -10,7 +10,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-public class TokensCalculator implements MetadataValueCalculator<List<String>> {
+public class TokensCalculator extends AbstractMetadataValueCalculator<List<String>> {
 
 	@Override
 	public List<String> calculate(CalculatorParameters parameters) {

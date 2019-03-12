@@ -5,8 +5,8 @@ import com.constellio.data.dao.dto.records.RecordDeltaDTO;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.dao.dto.records.TransactionDTO;
 import com.constellio.data.dao.services.records.RecordDao;
+import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
-import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
 import com.constellio.model.entities.records.Record;
@@ -384,7 +384,7 @@ public class ReindexingServicesOneSchemaAcceptanceTest extends ConstellioTest {
 		};
 	}
 
-	public static class ReindexingServicesAcceptanceTest_Calculator implements MetadataValueCalculator<String> {
+	public static class ReindexingServicesAcceptanceTest_Calculator extends AbstractMetadataValueCalculator<String> {
 
 		ReferenceDependency<String> inputDependency = ReferenceDependency
 				.toAString("referenceToZeSchema", "calculatedMetadataInput");

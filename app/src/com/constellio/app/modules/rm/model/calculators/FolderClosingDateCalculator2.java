@@ -3,8 +3,8 @@ package com.constellio.app.modules.rm.model.calculators;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
-import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.ConfigDependency;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
@@ -18,7 +18,7 @@ import java.util.Set;
 
 import static com.constellio.app.modules.rm.model.calculators.CalculatorUtils.toNextEndOfYearDate;
 
-public class FolderClosingDateCalculator2 implements MetadataValueCalculator<LocalDate> {
+public class FolderClosingDateCalculator2 extends AbstractMetadataValueCalculator<LocalDate> {
 
 	LocalDependency<LocalDate> openingDateParam = LocalDependency.toADate(Folder.OPENING_DATE);
 	LocalDependency<LocalDate> enteredClosingDateParam = LocalDependency.toADate(Folder.ENTERED_CLOSING_DATE);

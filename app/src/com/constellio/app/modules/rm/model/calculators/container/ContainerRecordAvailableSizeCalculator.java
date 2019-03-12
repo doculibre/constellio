@@ -1,8 +1,8 @@
 package com.constellio.app.modules.rm.model.calculators.container;
 
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
-import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.schemas.MetadataValueType;
@@ -11,7 +11,7 @@ import java.util.List;
 
 import static java.util.Arrays.asList;
 
-public class ContainerRecordAvailableSizeCalculator implements MetadataValueCalculator<Double> {
+public class ContainerRecordAvailableSizeCalculator extends AbstractMetadataValueCalculator<Double> {
 
 	LocalDependency<Double> linearSizeParam = LocalDependency.toANumber(ContainerRecord.LINEAR_SIZE);
 

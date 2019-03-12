@@ -23,7 +23,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.NoSuchMetadata;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.schemas.entries.DataEntryType;
+import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.extensions.events.schemas.PutSchemaRecordsInTrashEvent;
 import com.constellio.model.frameworks.validation.ValidationException;
@@ -46,6 +46,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+
+import static com.constellio.model.entities.schemas.entries.DataEntryType.CALCULATED;
+import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
 
 public class SchemaPresenterUtils extends BasePresenterUtils {
 
@@ -248,7 +251,7 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 			}
 
 			boolean systemReserved = metadata.isSystemReserved() && !metadata.hasSameCode(Schemas.LEGACY_ID);
-			if (!systemReserved && metadata.isEnabled() && metadata.getDataEntry().getType() == DataEntryType.MANUAL) {
+			if (!systemReserved && metadata.isEnabled() && isMetadataManuallyFilled(metadata)) {
 				Object metadataValue;
 				if (metadataVO.isMultiLingual() && metadataVO.getLocale() != null) {
 					metadataValue = record.get(metadata, metadataVO.getLocale());
@@ -410,6 +413,12 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 	public final MetadataSchema defaultSchema() {
 		String schemaTypeCode = new SchemaUtils().getSchemaTypeCode(schemaCode);
 		return schemaType(schemaTypeCode).getDefaultSchema();
+	}
+
+	public boolean isMetadataManuallyFilled(Metadata metadata) {
+		return metadata.getDataEntry().getType() == MANUAL ||
+			   (metadata.getDataEntry().getType() == CALCULATED &&
+				((CalculatedDataEntry) metadata.getDataEntry()).getCalculator().hasEvaluator());
 	}
 
 }

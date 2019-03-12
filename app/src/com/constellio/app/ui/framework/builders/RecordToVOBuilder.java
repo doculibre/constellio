@@ -13,14 +13,20 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.RecordAutomaticMetadataServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.users.UserServices;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
+
+import static com.constellio.app.ui.entities.RecordVO.VIEW_MODE.FORM;
 
 @SuppressWarnings("serial")
 public class RecordToVOBuilder implements Serializable {
@@ -37,12 +43,15 @@ public class RecordToVOBuilder implements Serializable {
 		String collection = record.getCollection();
 		boolean saved = record.isSaved();
 		List<String> metadataCodeExcludedList = new ArrayList<>();
+		Set<String> metadataFormExcludedCodes = new HashSet<>();
 
 		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
 		ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
 		MetadataSchemasManager metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
 		MetadataSchema schema = metadataSchemasManager.getSchemaTypes(collection).getSchema(schemaCode);
 		UserServices userServices = modelLayerFactory.newUserServices();
+		RecordAutomaticMetadataServices recordAutomaticMetadataServices =
+				new RecordAutomaticMetadataServices(modelLayerFactory);
 
 		User user = null;
 
@@ -61,6 +70,7 @@ public class RecordToVOBuilder implements Serializable {
 		for (MetadataVO metadataVO : metadatas) {
 			String metadataCode = metadataVO.getCode();
 			Metadata metadata = schema.getMetadata(metadataCode);
+
 			Object recordVOValue;
 
 			if (metadata.isMultiLingual() && metadataVO.getLocale() != null) {
@@ -92,9 +102,14 @@ public class RecordToVOBuilder implements Serializable {
 				metadataCodeExcludedList.add(metadataVO.getCode());
 			}
 
+			if (viewMode == FORM && metadata.getDataEntry().getType() == DataEntryType.CALCULATED &&
+				isMetadataFilledAutomatically(metadata, record, recordAutomaticMetadataServices)) {
+				metadataFormExcludedCodes.add(metadataVO.getCode());
+			}
 		}
 
 		RecordVO recordVO = newRecordVO(id, metadataValueVOs, viewMode, metadataCodeExcludedList);
+		recordVO.setExcludedFormMetadataCodes(metadataFormExcludedCodes);
 		recordVO.setSaved(saved);
 		recordVO.setRecord(record);
 		if (recordVO.getSchema() != null) {
@@ -129,6 +144,11 @@ public class RecordToVOBuilder implements Serializable {
 			}
 		}
 		return index;
+	}
+
+	protected boolean isMetadataFilledAutomatically(Metadata metadata, Record record,
+													RecordAutomaticMetadataServices recordAutomaticMetadataServices) {
+		return recordAutomaticMetadataServices.isValueAutomaticallyFilled(metadata, record);
 	}
 
 }

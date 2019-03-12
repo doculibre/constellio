@@ -11,8 +11,8 @@ import com.constellio.data.extensions.BigVaultServerExtension;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.conf.PropertiesModelLayerConfiguration.InMemoryModelLayerConfiguration;
 import com.constellio.model.entities.Language;
+import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
-import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.records.Content;
@@ -2368,7 +2368,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		};
 	}
 
-	public static class CalculatorReturningBingoIf42 implements MetadataValueCalculator<String> {
+	public static class CalculatorReturningBingoIf42 extends AbstractMetadataValueCalculator<String> {
 
 		LocalDependency<Double> numberDependency = LocalDependency.toANumber("numberMetadata");
 		LocalDependency<Boolean> booleanDependency = LocalDependency.toABoolean("booleanMetadata");

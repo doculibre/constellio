@@ -5,8 +5,8 @@ import com.constellio.app.modules.rm.model.CopyRetentionRuleInRule;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
+import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
-import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
@@ -18,7 +18,7 @@ import java.util.SortedMap;
 
 import static java.util.Arrays.asList;
 
-public abstract class CategoryDefaultCopyRuleInRuleCalculator<T> implements MetadataValueCalculator<T> {
+public abstract class CategoryDefaultCopyRuleInRuleCalculator<T> extends AbstractMetadataValueCalculator<T> {
 
 	LocalDependency<String> copyRuleIdDependency = LocalDependency.toAString(Category.DEFAULT_COPY_RULE_ID).whichIsRequired();
 	ReferenceDependency<SortedMap<String, List<CopyRetentionRule>>> copyRulesDependency = ReferenceDependency.toAStructure(
@@ -70,8 +70,7 @@ public abstract class CategoryDefaultCopyRuleInRuleCalculator<T> implements Meta
 		}
 	}
 
-	public static class CategoryDefaultRetentionRuleCalculator extends CategoryDefaultCopyRuleInRuleCalculator<String>
-			implements MetadataValueCalculator<String> {
+	public static class CategoryDefaultRetentionRuleCalculator extends CategoryDefaultCopyRuleInRuleCalculator<String> {
 
 		@Override
 		public String calculate(CalculatorParameters parameters) {
@@ -86,8 +85,7 @@ public abstract class CategoryDefaultCopyRuleInRuleCalculator<T> implements Meta
 
 	}
 
-	public static class CategoryDefaultCopyRuleCalculator extends CategoryDefaultCopyRuleInRuleCalculator<CopyRetentionRule>
-			implements MetadataValueCalculator<CopyRetentionRule> {
+	public static class CategoryDefaultCopyRuleCalculator extends CategoryDefaultCopyRuleInRuleCalculator<CopyRetentionRule> {
 
 		@Override
 		public CopyRetentionRule calculate(CalculatorParameters parameters) {

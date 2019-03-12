@@ -38,22 +38,19 @@ public class RecordValidationServices {
 	private final ConfigProvider configProvider;
 	private final RecordProvider recordProvider;
 	private SearchServices searchService;
-
-	public RecordValidationServices(ConfigProvider configProvider, RecordProvider recordProvider,
-									MetadataSchemasManager schemasManager,
-									SearchServices searchService) {
-		this(configProvider, recordProvider, schemasManager, searchService, null);
-	}
+	private final RecordAutomaticMetadataServices recordAutomaticMetadataServices;
 
 	public RecordValidationServices(ConfigProvider configProvider, RecordProvider recordProvider,
 									MetadataSchemasManager schemasManager,
 									SearchServices searchService,
-									AuthorizationsServices authorizationsServices) {
+									AuthorizationsServices authorizationsServices,
+									RecordAutomaticMetadataServices recordAutomaticMetadataServices) {
 		this.configProvider = configProvider;
 		this.recordProvider = recordProvider;
 		this.schemasManager = schemasManager;
 		this.searchService = searchService;
 		this.authorizationServices = authorizationsServices;
+		this.recordAutomaticMetadataServices = recordAutomaticMetadataServices;
 	}
 
 	public void validateManualMetadatas(Record record, RecordProvider recordProvider, Transaction transaction)
@@ -167,11 +164,11 @@ public class RecordValidationServices {
 		new MetadataValueTypeValidator(metadatas).validate(record, validationErrors);
 		if (!transaction.isSkippingRequiredValuesValidation()) {
 			boolean skipUSRMetadatas = transaction.getRecordUpdateOptions().isSkipUSRMetadatasRequirementValidations();
-			new ValueRequirementValidator(metadatas, skipUSRMetadatas).validate(record, validationErrors);
+			new ValueRequirementValidator(metadatas, skipUSRMetadatas, recordAutomaticMetadataServices)
+					.validate(record, validationErrors);
 		}
 		new MetadataUnmodifiableValidator(metadatas).validate(record, validationErrors);
 		if (transaction.getRecordUpdateOptions() == null || transaction.getRecordUpdateOptions().isUnicityValidationsEnabled()) {
-
 
 
 			new MetadataUniqueValidator(metadatas, schemaTypes, searchService).validate(record, validationErrors);

@@ -6,7 +6,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 
 import java.util.List;
 
-public interface InitializedMetadataValueCalculator<T> extends MetadataValueCalculator<T> {
+public interface InitializedMetadataValueCalculator<T> {
 
 	void initialize(List<Metadata> schemaMetadatas, Metadata calculatedMetadata);
 

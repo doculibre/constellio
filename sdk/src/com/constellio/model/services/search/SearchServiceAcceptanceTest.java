@@ -7,8 +7,8 @@ import com.constellio.data.dao.services.bigVault.solr.BigVaultRuntimeException.B
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.Language;
+import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
-import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.records.Record;
@@ -3423,7 +3423,7 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		return new TestRecord(otherSchemaInCollection2);
 	}
 
-	public static final class TitleLengthCalculator implements MetadataValueCalculator<Double> {
+	public static final class TitleLengthCalculator extends AbstractMetadataValueCalculator<Double> {
 
 		LocalDependency<String> titleDependency = LocalDependency.toAString(Schemas.TITLE.getLocalCode());
 

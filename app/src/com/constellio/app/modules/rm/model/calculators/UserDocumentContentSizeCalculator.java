@@ -1,7 +1,7 @@
 package com.constellio.app.modules.rm.model.calculators;
 
+import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
-import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.records.Content;
@@ -12,7 +12,7 @@ import java.util.List;
 
 import static java.util.Collections.singletonList;
 
-public class UserDocumentContentSizeCalculator implements MetadataValueCalculator<Long> {
+public class UserDocumentContentSizeCalculator extends AbstractMetadataValueCalculator<Long> {
 
 	private LocalDependency<Content> contentParam = LocalDependency.toAContent(UserDocument.CONTENT);
 

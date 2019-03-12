@@ -1,8 +1,8 @@
 package com.constellio.app.modules.rm.model.calculators.storageSpace;
 
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
+import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
-import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
@@ -12,7 +12,7 @@ import java.util.List;
 
 import static java.util.Arrays.asList;
 
-public class StorageSpaceTitleCalculator implements MetadataValueCalculator<String> {
+public class StorageSpaceTitleCalculator extends AbstractMetadataValueCalculator<String> {
 
 	ReferenceDependency<String> parentStorageParam = ReferenceDependency.toAString(StorageSpace.PARENT_STORAGE_SPACE, StorageSpace.TITLE);
 

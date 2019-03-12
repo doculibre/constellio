@@ -2,8 +2,8 @@ package com.constellio.app.modules.rm.model.calculators.container;
 
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
+import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
-import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
 import com.constellio.model.entities.schemas.MetadataValueType;
@@ -13,7 +13,7 @@ import java.util.List;
 
 import static java.util.Arrays.asList;
 
-public class ContainerRecordMultipleStorageSpacesLocalizationCalculator implements MetadataValueCalculator<String> {
+public class ContainerRecordMultipleStorageSpacesLocalizationCalculator extends AbstractMetadataValueCalculator<String> {
 
 	ReferenceDependency<List<String>> storageSpaceTitleParam =
 			ReferenceDependency.toAString(ContainerRecord.STORAGE_SPACE, StorageSpace.TITLE).whichIsRequired();

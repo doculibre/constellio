@@ -93,7 +93,8 @@ public class RecordValidationServicesAcceptanceTest extends ConstellioTest {
 
 		services = new RecordValidationServices(configProvider, recordProvider,
 				getModelLayerFactory().getMetadataSchemasManager(),
-				getModelLayerFactory().newSearchServices(), getModelLayerFactory().newAuthorizationsServices());
+				getModelLayerFactory().newSearchServices(), getModelLayerFactory().newAuthorizationsServices(),
+				new RecordAutomaticMetadataServices(getModelLayerFactory()));
 
 		recordServices = getModelLayerFactory().newCachelessRecordServices();
 		recordProvider = getModelLayerFactory().newCachelessRecordServices().newRecordProvider(null, new Transaction());

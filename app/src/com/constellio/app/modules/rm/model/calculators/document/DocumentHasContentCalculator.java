@@ -1,8 +1,8 @@
 package com.constellio.app.modules.rm.model.calculators.document;
 
 import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
-import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.records.Content;
@@ -13,7 +13,7 @@ import java.util.List;
 
 import static java.util.Arrays.asList;
 
-public class DocumentHasContentCalculator implements MetadataValueCalculator<Boolean> {
+public class DocumentHasContentCalculator extends AbstractMetadataValueCalculator<Boolean> {
 
 	private LocalDependency<Content> contentParam = LocalDependency.toAContent(Document.CONTENT);
 	private LocalDependency<Boolean> logicallyDeletedParam =

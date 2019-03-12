@@ -8,8 +8,8 @@ import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
+import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
-import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.ConfigDependency;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
@@ -22,7 +22,7 @@ import java.util.List;
 import static com.constellio.data.utils.LangUtils.withoutNulls;
 import static java.util.Arrays.asList;
 
-public class DocumentApplicableCopyRulesCalculator implements MetadataValueCalculator<List<CopyRetentionRuleInRule>> {
+public class DocumentApplicableCopyRulesCalculator extends AbstractMetadataValueCalculator<List<CopyRetentionRuleInRule>> {
 
 	ConfigDependency<Boolean> documentRetentionRulesEnabledParam = RMConfigs.DOCUMENT_RETENTION_RULES.dependency();
 	ReferenceDependency<List<CopyRetentionRuleInRule>> rubricDocumentCopyRetentionRulesParam = ReferenceDependency.toAStructure(

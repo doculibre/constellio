@@ -2,8 +2,8 @@ package com.constellio.app.modules.rm.model.calculators.decommissioningList;
 
 import com.constellio.app.modules.rm.model.enums.FolderMediaType;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
+import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
-import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.schemas.MetadataValueType;
@@ -11,7 +11,7 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import java.util.Arrays;
 import java.util.List;
 
-public class DecomListHasElectronicMediumTypesCalculator implements MetadataValueCalculator<Boolean> {
+public class DecomListHasElectronicMediumTypesCalculator extends AbstractMetadataValueCalculator<Boolean> {
 
 	LocalDependency<List<FolderMediaType>> folderMediaTypesParam = LocalDependency
 			.toAnEnum(DecommissioningList.FOLDERS_MEDIA_TYPES)

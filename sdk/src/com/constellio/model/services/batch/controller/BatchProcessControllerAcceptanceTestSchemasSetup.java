@@ -1,7 +1,7 @@
 package com.constellio.model.services.batch.controller;
 
+import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
-import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.schemas.Metadata;
@@ -41,7 +41,7 @@ public class BatchProcessControllerAcceptanceTestSchemasSetup extends TestsSchem
 		return this;
 	}
 
-	public static class TextMetadataLengthCalculator implements MetadataValueCalculator<Double> {
+	public static class TextMetadataLengthCalculator extends AbstractMetadataValueCalculator<Double> {
 
 		LocalDependency<String> copiedTextDependency = LocalDependency.toAString("copiedTextMetadata").whichIsRequired();
 

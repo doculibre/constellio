@@ -5,8 +5,8 @@ import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleInRule;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
-import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.ConfigDependency;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
@@ -17,7 +17,7 @@ import java.util.List;
 
 import static java.util.Arrays.asList;
 
-public class DocumentMainCopyRuleCalculator2 implements MetadataValueCalculator<CopyRetentionRule> {
+public class DocumentMainCopyRuleCalculator2 extends AbstractMetadataValueCalculator<CopyRetentionRule> {
 
 	LocalDependency<String> enteredCopyRuleParam = LocalDependency.toAString(Folder.MAIN_COPY_RULE_ID_ENTERED);
 

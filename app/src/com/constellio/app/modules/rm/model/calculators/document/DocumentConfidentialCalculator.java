@@ -2,8 +2,8 @@ package com.constellio.app.modules.rm.model.calculators.document;
 
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
+import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
-import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
 import com.constellio.model.entities.schemas.MetadataValueType;
@@ -12,7 +12,7 @@ import java.util.List;
 
 import static java.util.Arrays.asList;
 
-public class DocumentConfidentialCalculator implements MetadataValueCalculator<Boolean> {
+public class DocumentConfidentialCalculator extends AbstractMetadataValueCalculator<Boolean> {
 
 	//	LocalDependency<CopyRetentionRule> mainCopyRuleParam = LocalDependency.toAStructure(Folder.MAIN_COPY_RULE).whichIsRequired();
 	ReferenceDependency<Boolean> retentionRuleConfidentialParam = ReferenceDependency.toABoolean(Document.FOLDER_RETENTION_RULE,

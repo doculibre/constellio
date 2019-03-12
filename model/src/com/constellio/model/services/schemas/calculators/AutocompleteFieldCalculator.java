@@ -1,9 +1,9 @@
 package com.constellio.model.services.schemas.calculators;
 
 import com.constellio.data.utils.AccentApostropheCleaner;
+import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.DynamicDependencyValues;
-import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.DynamicLocalDependency;
 import com.constellio.model.entities.schemas.Metadata;
@@ -17,7 +17,7 @@ import java.util.Set;
 
 import static java.util.Arrays.asList;
 
-public class AutocompleteFieldCalculator implements MetadataValueCalculator<List<String>> {
+public class AutocompleteFieldCalculator extends AbstractMetadataValueCalculator<List<String>> {
 
 	DynamicLocalDependency autocompleteMetadatasDependency = new LocalAutocompleteMetadatasDependency();
 

@@ -1,8 +1,8 @@
 package com.constellio.model.services.schemas.calculators;
 
+import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.DynamicDependencyValues;
-import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.DynamicLocalDependency;
 import com.constellio.model.entities.schemas.Metadata;
@@ -16,7 +16,7 @@ import java.util.Set;
 import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 import static java.util.Arrays.asList;
 
-public class AllReferencesCalculator implements MetadataValueCalculator<List<String>> {
+public class AllReferencesCalculator extends AbstractMetadataValueCalculator<List<String>> {
 
 	DynamicLocalDependency dependency = new DynamicLocalDependency() {
 		@Override
