@@ -132,8 +132,25 @@ public class HtmlPageParser {
 		title = (String) parsedContent.getNormalizedProperty("title");
 		parsedContentText = parsedContent.getParsedContent();
 
-		String description = parsedContent.getDescription();
-		if (StringUtils.isEmpty(description)) {
+		//Try meta again
+		if (StringUtils.isBlank( parsedContent.getDescription())) {
+			List<DomElement> domElements = (List<DomElement>) page.getByXPath("//meta");
+			for (DomElement domElement : domElements) {
+				if (domElement.hasAttribute("name")) {
+					String nameValue = domElement.getAttribute("name");
+					if (StringUtils.containsIgnoreCase(nameValue, "description")) {
+						String contentValue = domElement.getAttribute("content");
+						if (StringUtils.isNotBlank(contentValue)) {
+							parsedContent.setDescription(StringUtils.left(contentValue, 200));
+							break;
+						}
+					}
+				}
+			}
+		}
+
+		//Extract after 1st h1
+		if (StringUtils.isBlank(parsedContent.getDescription())) {
 			String textAfterH1 = textAfterH1(page);
 			parsedContent.setDescription(StringUtils.left(textAfterH1, 200));
 		}
