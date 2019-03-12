@@ -47,7 +47,7 @@ public class CartsListPresenter extends SingleSchemaBasePresenter<CartsListView>
 		view.navigate().to(RMViews.class).cart(recordVO.getId());
 	}
 
-	public boolean reNameFavoritesGroup(Cart cart, String name) {
+	public boolean renameFavoritesGroup(Cart cart, String name) {
 
 		if (Strings.isNotBlank(name)) {
 			try {

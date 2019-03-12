@@ -1,6 +1,7 @@
 package com.constellio.app.modules.rm.ui.pages.decommissioning;
 
 import com.constellio.app.modules.rm.ConstellioRMModule;
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.extensions.api.DecommissioningListFolderTableExtension;
 import com.constellio.app.modules.rm.extensions.api.DecommissioningListPresenterExtension;
@@ -96,7 +97,9 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		return this;
 	}
 
-
+	public boolean sortFolderList() {
+		return modelLayerFactory.getSystemConfigurationsManager().getValue(RMConfigs.ALLOW_SORTING_IN_FOLDER_LIST_OF_DECOMMISSIONING);
+	}
 
 	@Override
 	protected boolean hasPageAccess(String params, User user) {

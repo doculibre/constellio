@@ -1,6 +1,5 @@
 package com.constellio.app.modules.rm.ui.components.breadcrumb;
 
-import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
@@ -134,7 +133,7 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 //						public boolean isEnabled() {
 //							Record record = schemaPresenterUtils.getRecord(finalCurrentCategoryId);
 //							User user = schemaPresenterUtils.getCurrentUser();
-//							return user.hasAny(RMPermissionsTo.CONSULT_CLASSIFICATION_PLAN, RMPermissionsTo.MANAGE_CLASSIFICATION_PLAN).on(record);
+//							return user.hasAny(RMPermissionsTo.DISPLAY_CLASSIFICATION_PLAN, RMPermissionsTo.MANAGE_CLASSIFICATION_PLAN).on(record);
 //						}
 					});
 					currentCategoryId = currentCategory.getParent();

@@ -1,6 +1,8 @@
 package com.constellio.app.modules.rm.extensions;
 
 import com.constellio.app.api.extensions.TaxonomyPageExtension;
+import com.constellio.app.api.extensions.params.CanConsultTaxonomyParams;
+import com.constellio.app.api.extensions.params.CanManageTaxonomyParams;
 import com.constellio.app.api.extensions.taxonomies.GetTaxonomyExtraFieldsParam;
 import com.constellio.app.api.extensions.taxonomies.GetTaxonomyManagementClassifiedTypesParams;
 import com.constellio.app.api.extensions.taxonomies.TaxonomyExtraField;
@@ -49,24 +51,26 @@ public class RMTaxonomyPageExtension extends TaxonomyPageExtension {
 	}
 
 	@Override
-	public ExtensionBooleanResult canManageTaxonomy(User user, Taxonomy taxonomy) {
-		if (taxonomy.getCode().equals(RMTaxonomies.ADMINISTRATIVE_UNITS)) {
+	public ExtensionBooleanResult canManageTaxonomy(CanManageTaxonomyParams canManageTaxonomyParams) {
+		User user = canManageTaxonomyParams.getUser();
+
+		if (canManageTaxonomyParams.getTaxonomy().getCode().equals(RMTaxonomies.ADMINISTRATIVE_UNITS)) {
 			return ExtensionBooleanResult.forceTrueIf(user.has(CorePermissions.MANAGE_SECURITY).globally());
 
-		} else if (taxonomy.getCode().equals(RMTaxonomies.CLASSIFICATION_PLAN)) {
-			return ExtensionBooleanResult.forceTrueIf(user.has(RMPermissionsTo.MANAGE_CLASSIFICATION_PLAN).globally());
-
-		} else if (taxonomy.getCode().equals(RMTaxonomies.STORAGES)) {
-			return ExtensionBooleanResult.forceTrueIf(user.has(RMPermissionsTo.MANAGE_STORAGE_SPACES).globally());
-
+		} else if (canManageTaxonomyParams.getTaxonomy().getCode().equals(RMTaxonomies.CLASSIFICATION_PLAN)) {
+			return ExtensionBooleanResult.forceTrueIf(
+					user.has(RMPermissionsTo.MANAGE_CLASSIFICATION_PLAN).globally());
+		} else if (canManageTaxonomyParams.getTaxonomy().getCode().equals(RMTaxonomies.STORAGES)) {
+			return ExtensionBooleanResult.forceTrueIf(
+					user.has(RMPermissionsTo.MANAGE_STORAGE_SPACES).globally());
 		} else {
 			return ExtensionBooleanResult.NOT_APPLICABLE;
 		}
 	}
 
-	public ExtensionBooleanResult canConsultTaxonomy(User user, Taxonomy taxonomy) {
-		if(taxonomy.getCode().equals(RMTaxonomies.CLASSIFICATION_PLAN)) {
-			return ExtensionBooleanResult.forceTrueIf(user.has(RMPermissionsTo.CONSULT_CLASSIFICATION_PLAN).globally());
+	public ExtensionBooleanResult canConsultTaxonomy(CanConsultTaxonomyParams canConsultTaxonomyParams) {
+		if(canConsultTaxonomyParams.getTaxonomy().getCode().equals(RMTaxonomies.CLASSIFICATION_PLAN)) {
+			return ExtensionBooleanResult.forceTrueIf(canConsultTaxonomyParams.getUser().has(RMPermissionsTo.DISPLAY_CLASSIFICATION_PLAN).globally());
 		} else {
 			return ExtensionBooleanResult.NOT_APPLICABLE;
 		}

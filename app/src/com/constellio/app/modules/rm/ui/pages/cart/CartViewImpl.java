@@ -140,7 +140,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 				$("CartView.reNameCartGroup"), false) {
 			@Override
 			public void save(String newTitle) {
-				if (presenter.reNameFavoritesGroup(newTitle)) {
+				if (presenter.renameFavoritetsGroup(newTitle)) {
 					getWindow().close();
 					navigate().to(RMViews.class).cart(presenter.cart().getId());
 				}

@@ -125,7 +125,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		return cartHasRecords();
 	}
 
-	public boolean reNameFavoritesGroup(String name) {
+	public boolean renameFavoritetsGroup(String name) {
 
 		if (Strings.isNotBlank(name)) {
 			try {
@@ -603,7 +603,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 			return false;
 		}
 
-		if (!getCurrentUser().has(CorePermissions.BATCH_PROCESS).onSomething()) {
+		if (!getCurrentUser().has(CorePermissions.MODIFY_RECORDS_USING_BATCH_PROCESS).onSomething()) {
 			return false;
 		}
 
@@ -933,10 +933,10 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		SPEQueryResponse speQueryResponse = searchServices().query(logicalSearchQuery);
 
 		LogicalSearchQuery logicalSearchQueryWithFilter = logicalSearchQuery
-				.filteredWithUser(getCurrentUser(), CorePermissions.BATCH_PROCESS);
-		SPEQueryResponse speQueryResponseWithFilter = searchServices().query(logicalSearchQueryWithFilter);
+				.filteredWithUser(getCurrentUser(), CorePermissions.MODIFY_RECORDS_USING_BATCH_PROCESS);
+		long numberFound = searchServices().getResultsCount(logicalSearchQueryWithFilter);
 
-		return speQueryResponse.getNumFound() == speQueryResponseWithFilter.getNumFound();
+		return speQueryResponse.getNumFound() == numberFound;
 	}
 
 	private boolean isBatchEditable(Metadata metadata) {

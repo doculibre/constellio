@@ -114,7 +114,7 @@ public class CoreNavigationConfiguration implements Serializable {
 
 			@Override
 			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
-				return ComponentState.visibleIf(user.has(CorePermissions.BATCH_PROCESS).onSomething());
+				return ComponentState.visibleIf(user.has(CorePermissions.MODIFY_RECORDS_USING_BATCH_PROCESS).onSomething());
 			}
 		});
 		config.add(ConstellioHeader.ACTION_MENU, new NavigationItem.Active(TEMPORARY_RECORDS) {

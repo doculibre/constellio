@@ -6,9 +6,11 @@ import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.constants.RMRoles;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.migrations.CoreRoles;
-import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.security.roles.RolesManager;
+
+import java.util.List;
 
 import static java.util.Arrays.asList;
 
@@ -23,14 +25,22 @@ public class RMMigrationTo9_0 implements MigrationScript {
 			throws Exception {
 		ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
 
-		Role rgbRole = modelLayerFactory.getRolesManager().getRole(collection, RMRoles.RGD);
-		Role admRole = modelLayerFactory.getRolesManager().getRole(collection, CoreRoles.ADMINISTRATOR);
-		modelLayerFactory.getRolesManager().updateRole(rgbRole.withNewPermissions(asList(CorePermissions.BATCH_PROCESS,
-				RMPermissionsTo.CONSULT_RETENTIONRULE, RMPermissionsTo.CONSULT_CLASSIFICATION_PLAN,
-				RMPermissionsTo.CREATE_DECOMMISSIONING_LIST, RMPermissionsTo.CART_BATCH_DELETE)));
+		RolesManager rolesManager = modelLayerFactory.getRolesManager();
+		Role rgbRole = rolesManager.getRole(collection, RMRoles.RGD);
+		Role admRole = rolesManager.getRole(collection, CoreRoles.ADMINISTRATOR);
+		rolesManager.updateRole(rgbRole.withNewPermissions(asList(
+				RMPermissionsTo.DISPLAY_RETENTIONRULE, RMPermissionsTo.DISPLAY_CLASSIFICATION_PLAN,
+				RMPermissionsTo.CREATE_DECOMMISSIONING_LIST)));
 
-		modelLayerFactory.getRolesManager().updateRole(admRole.withNewPermissions(asList(
-				RMPermissionsTo.CONSULT_RETENTIONRULE, RMPermissionsTo.CONSULT_CLASSIFICATION_PLAN,
-				RMPermissionsTo.CREATE_DECOMMISSIONING_LIST, RMPermissionsTo.CART_BATCH_DELETE)));
+				rolesManager.updateRole(admRole.withNewPermissions(asList(
+						RMPermissionsTo.DISPLAY_RETENTIONRULE, RMPermissionsTo.DISPLAY_CLASSIFICATION_PLAN,
+				RMPermissionsTo.CREATE_DECOMMISSIONING_LIST)));
+
+
+		List<Role> roleManager = rolesManager.getAllRoles(collection);
+
+		for(Role role : roleManager){
+			rolesManager.updateRole(role.withNewPermissions(asList(RMPermissionsTo.CART_BATCH_DELETE)));
+		}
 	}
 }

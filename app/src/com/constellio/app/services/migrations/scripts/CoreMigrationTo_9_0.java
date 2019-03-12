@@ -3,10 +3,12 @@ package com.constellio.app.services.migrations.scripts;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.services.migrations.CoreRoles;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.security.roles.RolesManager;
+
+import java.util.List;
 
 import static java.util.Arrays.asList;
 
@@ -22,7 +24,12 @@ public class CoreMigrationTo_9_0 implements MigrationScript {
 			throws Exception {
 		ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
 
-		Role admRole = modelLayerFactory.getRolesManager().getRole(collection, CoreRoles.ADMINISTRATOR);
-		modelLayerFactory.getRolesManager().updateRole(admRole.withNewPermissions(asList(CorePermissions.BATCH_PROCESS)));
+
+		RolesManager rolesManager = modelLayerFactory.getRolesManager();
+		List<Role> roleList = rolesManager.getAllRoles(collection);
+
+		for(Role role : roleList){
+			rolesManager.updateRole(role.withNewPermissions(asList(CorePermissions.MODIFY_RECORDS_USING_BATCH_PROCESS)));
+		}
 	}
 }

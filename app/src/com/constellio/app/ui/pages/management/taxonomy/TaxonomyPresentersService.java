@@ -1,5 +1,7 @@
 package com.constellio.app.ui.pages.management.taxonomy;
 
+import com.constellio.app.api.extensions.params.CanConsultTaxonomyParams;
+import com.constellio.app.api.extensions.params.CanManageTaxonomyParams;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.CorePermissions;
@@ -23,7 +25,7 @@ public class TaxonomyPresentersService {
 		AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions().forCollectionOf(user);
 		boolean defaultValue = user.has(CorePermissions.MANAGE_TAXONOMIES).globally();
 
-		return extensions.canManageTaxonomy(defaultValue, user, taxonomy);
+		return extensions.canManageTaxonomy(new CanManageTaxonomyParams(defaultValue, user, taxonomy));
 
 	}
 
@@ -33,7 +35,7 @@ public class TaxonomyPresentersService {
 
 		AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions().forCollectionOf(user);
 
-		return extensions.canConsultTaxonomy(false, user, taxonomy);
+		return extensions.canConsultTaxonomy(new CanConsultTaxonomyParams(false, user, taxonomy));
 	}
 
 	public boolean displayTaxonomy(String taxonomyCode, final User user) {

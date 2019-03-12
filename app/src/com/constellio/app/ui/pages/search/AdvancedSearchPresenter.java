@@ -122,7 +122,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	}
 
 	public boolean hasBatchProcessPermission(){
-		return getCurrentUser().has(CorePermissions.BATCH_PROCESS).onSomething();
+		return getCurrentUser().has(CorePermissions.MODIFY_RECORDS_USING_BATCH_PROCESS).onSomething();
 	}
 
 	public void setSchemaType(String schemaType) {
@@ -597,7 +597,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	public boolean validateUserHaveBatchProcessPermissionOnAllRecords(String schemaTypeCode) {
 		LogicalSearchQuery logicalSearchQuery = buildBatchProcessLogicalSearchQuery();
 		long numFound = searchServices().query(logicalSearchQuery).getNumFound();
-		logicalSearchQuery = logicalSearchQuery.filteredWithUser(getUser(), CorePermissions.BATCH_PROCESS);
+		logicalSearchQuery = logicalSearchQuery.filteredWithUser(getUser(), CorePermissions.MODIFY_RECORDS_USING_BATCH_PROCESS);
 		SPEQueryResponse speQueryResponse = searchServices().query(logicalSearchQuery);
 		long numFoundWithFilter = speQueryResponse.getNumFound();
 

@@ -794,7 +794,11 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 				return sortablePropertyIds;
 			}
 		};
-		container.setItemSorter(buildItemSorter());
+
+		if(presenter.sortFolderList()) {
+			container.setItemSorter(buildItemSorter());
+		}
+
 		BaseTable table = new BaseTable("DecommissioningListView.folderTable",
 				$("DecommissioningListView.folderDetails", container.size()), container);
 		table.setPageLength(container.size());

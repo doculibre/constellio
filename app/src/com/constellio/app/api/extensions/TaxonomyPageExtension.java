@@ -1,5 +1,7 @@
 package com.constellio.app.api.extensions;
 
+import com.constellio.app.api.extensions.params.CanConsultTaxonomyParams;
+import com.constellio.app.api.extensions.params.CanManageTaxonomyParams;
 import com.constellio.app.api.extensions.taxonomies.GetTaxonomyExtraFieldsParam;
 import com.constellio.app.api.extensions.taxonomies.GetTaxonomyManagementClassifiedTypesParams;
 import com.constellio.app.api.extensions.taxonomies.TaxonomyExtraField;
@@ -15,7 +17,7 @@ import java.util.List;
 
 public class TaxonomyPageExtension implements Serializable {
 
-	public ExtensionBooleanResult canManageTaxonomy(User user, Taxonomy taxonomy) {
+	public ExtensionBooleanResult canManageTaxonomy(CanManageTaxonomyParams canManageTaxonomyParams) {
 		return ExtensionBooleanResult.NOT_APPLICABLE;
 	}
 
@@ -28,7 +30,7 @@ public class TaxonomyPageExtension implements Serializable {
 		return Collections.emptyList();
 	}
 
-	public ExtensionBooleanResult canConsultTaxonomy(User user, Taxonomy taxonomy) {
+	public ExtensionBooleanResult canConsultTaxonomy(CanConsultTaxonomyParams canConsultTaxonomyParams) {
 		return ExtensionBooleanResult.NOT_APPLICABLE;
 	}
 
