@@ -100,7 +100,8 @@ public class RMConfigs {
 
 		SystemConfigurationGroup decommissioning = new SystemConfigurationGroup(ID, decommissioningGroup);
 
-		add(SUB_FOLDER_DECOMMISSIONING = decommissioning.createBooleanTrueByDefault("subfolderSeparateDecommissioning"));
+		add(SUB_FOLDER_DECOMMISSIONING = decommissioning.createBooleanTrueByDefault("subfolderSeparateDecommissioning")
+				.withReIndexionRequired());
 
 		// Allow to enter retention rules for documents
 		add(DOCUMENT_RETENTION_RULES = decommissioning.createBooleanFalseByDefault("documentRetentionRules"));

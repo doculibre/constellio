@@ -1,7 +1,6 @@
 package com.constellio.model.entities.calculators;
 
 import com.constellio.model.entities.calculators.dependencies.Dependency;
-import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.evaluators.CalculatorEvaluator;
 import com.constellio.model.entities.calculators.evaluators.CalculatorEvaluatorParameters;
 import com.constellio.model.entities.schemas.MetadataValueType;
@@ -21,7 +20,7 @@ public interface MetadataValueCalculator<T> extends Serializable {
 
 	List<? extends Dependency> getDependencies();
 
-	List<? extends LocalDependency> getEvaluatorDependencies();
+	List<? extends Dependency> getEvaluatorDependencies();
 
 	boolean isAutomaticallyFilled(CalculatorEvaluatorParameters parameters);
 

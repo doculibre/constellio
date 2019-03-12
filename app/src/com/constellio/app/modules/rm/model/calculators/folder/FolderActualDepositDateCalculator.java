@@ -1,37 +1,32 @@
 package com.constellio.app.modules.rm.model.calculators.folder;
 
-import com.constellio.app.modules.rm.model.evaluators.FolderHasParentCalculatorEvaluator;
+import com.constellio.app.modules.rm.model.evaluators.FolderCanInheritFromParentCalculatorEvaluator;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
-import com.constellio.model.entities.calculators.evaluators.CalculatorEvaluatorParameters;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import org.joda.time.LocalDate;
 
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class FolderActualDepositDateCalculator extends AbstractMetadataValueCalculator<LocalDate> {
 
-	LocalDependency<String> parentFolderParam = LocalDependency.toAReference(Folder.PARENT_FOLDER);
 	ReferenceDependency<LocalDate> parentActualDepositDateParam =
 			ReferenceDependency.toADate(Folder.PARENT_FOLDER, Folder.ACTUAL_DEPOSIT_DATE);
 	LocalDependency<LocalDate> actualDepositDateParam = LocalDependency.toADate(Folder.ACTUAL_DEPOSIT_DATE);
 
 	public FolderActualDepositDateCalculator() {
-		calculatorEvaluator = new FolderHasParentCalculatorEvaluator();
+		calculatorEvaluator = new FolderCanInheritFromParentCalculatorEvaluator();
 	}
 
 	@Override
 	public LocalDate calculate(CalculatorParameters parameters) {
-		Map<Dependency, Object> values = new HashMap<>();
-		values.put(parentFolderParam, parameters.get(parentFolderParam));
-		if (calculatorEvaluator.isAutomaticallyFilled(new CalculatorEvaluatorParameters(values))) {
+		if (calculatorEvaluator.isAutomaticallyFilled(buildCalculatorEvaluatorParameters(parameters))) {
 			return parameters.get(parentActualDepositDateParam);
 		}
 		return parameters.get(actualDepositDateParam);
@@ -54,6 +49,9 @@ public class FolderActualDepositDateCalculator extends AbstractMetadataValueCalc
 
 	@Override
 	public List<? extends Dependency> getDependencies() {
-		return Arrays.asList(parentFolderParam, parentActualDepositDateParam, actualDepositDateParam);
+		List<Dependency> dependencies = new ArrayList<>();
+		dependencies.addAll(calculatorEvaluator.getDependencies());
+		dependencies.addAll(Arrays.asList(parentActualDepositDateParam, actualDepositDateParam));
+		return dependencies;
 	}
 }

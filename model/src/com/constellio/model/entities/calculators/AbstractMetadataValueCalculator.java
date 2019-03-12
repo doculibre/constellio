@@ -1,11 +1,13 @@
 package com.constellio.model.entities.calculators;
 
-import com.constellio.model.entities.calculators.dependencies.LocalDependency;
+import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.evaluators.CalculatorEvaluator;
 import com.constellio.model.entities.calculators.evaluators.CalculatorEvaluatorParameters;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public abstract class AbstractMetadataValueCalculator<T> implements MetadataValueCalculator<T> {
 
@@ -27,7 +29,7 @@ public abstract class AbstractMetadataValueCalculator<T> implements MetadataValu
 	}
 
 	@Override
-	public List<? extends LocalDependency> getEvaluatorDependencies() {
+	public List<? extends Dependency> getEvaluatorDependencies() {
 		if (hasEvaluator()) {
 			return getCalculatorEvaluator().getDependencies();
 		}
@@ -45,5 +47,13 @@ public abstract class AbstractMetadataValueCalculator<T> implements MetadataValu
 	@Override
 	public boolean hasEvaluator() {
 		return calculatorEvaluator != null;
+	}
+
+	protected CalculatorEvaluatorParameters buildCalculatorEvaluatorParameters(CalculatorParameters parameters) {
+		Map<Dependency, Object> values = new HashMap<>();
+		for (Dependency dependency : getEvaluatorDependencies()) {
+			values.put(dependency, parameters.get(dependency));
+		}
+		return new CalculatorEvaluatorParameters(values);
 	}
 }

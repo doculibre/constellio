@@ -1,20 +1,26 @@
 package com.constellio.app.modules.rm.model.calculators.folder;
 
+import com.constellio.app.modules.rm.model.evaluators.FolderCanInheritFromParentCalculatorEvaluator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
+import com.constellio.model.entities.calculators.evaluators.CalculatorEvaluatorParameters;
 import com.constellio.sdk.tests.ConstellioTest;
 import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.spy;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
 
 public class FolderActualDestructionDateCalculatorAcceptanceTest extends ConstellioTest {
 
-	private FolderActualDestructionDateCalculator calculator;
+	@Mock FolderCanInheritFromParentCalculatorEvaluator calculatorEvaluator;
+
+	@InjectMocks @Spy private FolderActualDestructionDateCalculator calculator;
 
 	@Mock CalculatorParameters parameters;
 	private LocalDate parentDate;
@@ -22,7 +28,7 @@ public class FolderActualDestructionDateCalculatorAcceptanceTest extends Constel
 
 	@Before
 	public void setUp() {
-		calculator = spy(new FolderActualDestructionDateCalculator());
+		initMocks(this);
 
 		parentDate = new LocalDate(2018, 1, 1);
 		date = new LocalDate(2019, 1, 1);
@@ -32,7 +38,8 @@ public class FolderActualDestructionDateCalculatorAcceptanceTest extends Constel
 	public void givenFolderWithParentThenActualDestructionDateIsInheritedFromParent() {
 		when(parameters.get(calculator.actualDestructionDateParam)).thenReturn(date);
 		when(parameters.get(calculator.parentActualDestructionDateParam)).thenReturn(parentDate);
-		when(parameters.get(calculator.parentFolderParam)).thenReturn(anyString());
+
+		when(calculatorEvaluator.isAutomaticallyFilled(any(CalculatorEvaluatorParameters.class))).thenReturn(true);
 
 		assertThat(calculator.calculate(parameters)).isEqualTo(parentDate);
 	}
@@ -41,7 +48,8 @@ public class FolderActualDestructionDateCalculatorAcceptanceTest extends Constel
 	public void givenFolderWithoutParentThenActualDestructionDateIsDate() {
 		when(parameters.get(calculator.actualDestructionDateParam)).thenReturn(date);
 		when(parameters.get(calculator.parentActualDestructionDateParam)).thenReturn(parentDate);
-		when(parameters.get(calculator.parentFolderParam)).thenReturn(null);
+
+		when(calculatorEvaluator.isAutomaticallyFilled(any(CalculatorEvaluatorParameters.class))).thenReturn(false);
 
 		assertThat(calculator.calculate(parameters)).isEqualTo(date);
 	}
