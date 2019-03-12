@@ -29,18 +29,26 @@ public class RMMigrationTo9_0 implements MigrationScript {
 		Role rgbRole = rolesManager.getRole(collection, RMRoles.RGD);
 		Role admRole = rolesManager.getRole(collection, CoreRoles.ADMINISTRATOR);
 		rolesManager.updateRole(rgbRole.withNewPermissions(asList(
-				RMPermissionsTo.DISPLAY_RETENTIONRULE, RMPermissionsTo.DISPLAY_CLASSIFICATION_PLAN,
-				RMPermissionsTo.CREATE_DECOMMISSIONING_LIST)));
+				RMPermissionsTo.DISPLAY_RETENTIONRULE, RMPermissionsTo.DISPLAY_CLASSIFICATION_PLAN)));
 
 				rolesManager.updateRole(admRole.withNewPermissions(asList(
-						RMPermissionsTo.DISPLAY_RETENTIONRULE, RMPermissionsTo.DISPLAY_CLASSIFICATION_PLAN,
-				RMPermissionsTo.CREATE_DECOMMISSIONING_LIST)));
+						RMPermissionsTo.DISPLAY_RETENTIONRULE, RMPermissionsTo.DISPLAY_CLASSIFICATION_PLAN)));
 
 
-		List<Role> roleManager = rolesManager.getAllRoles(collection);
+		List<Role> roleList1 = rolesManager.getAllRoles(collection);
 
-		for(Role role : roleManager){
+		for(Role role : roleList1) {
+			if(role.hasOperationPermission(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST)) {
+				rolesManager.updateRole(role.withNewPermissions(asList(RMPermissionsTo.CREATE_DECOMMISSIONING_LIST)));
+			}
+		}
+
+		List<Role> roleList2 = rolesManager.getAllRoles(collection);
+
+		for(Role role : roleList2){
 			rolesManager.updateRole(role.withNewPermissions(asList(RMPermissionsTo.CART_BATCH_DELETE)));
 		}
+
+
 	}
 }
