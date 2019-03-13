@@ -1,5 +1,6 @@
 package com.constellio.app.modules.es.connectors.http;
 
+import com.constellio.app.modules.es.connectors.caches.ConnectorDocumentURLCache;
 import com.constellio.app.modules.es.connectors.http.fetcher.HttpURLFetchingService;
 import com.constellio.app.modules.es.connectors.spi.Connector;
 import com.constellio.app.modules.es.connectors.spi.ConnectorJob;
@@ -7,11 +8,15 @@ import com.constellio.app.modules.es.model.connectors.AuthenticationScheme;
 import com.constellio.app.modules.es.model.connectors.ConnectorDocument;
 import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpDocument;
 import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance;
+import com.constellio.app.modules.es.services.ConnectorManager;
 import com.constellio.app.modules.es.services.mapping.ConnectorField;
 import com.constellio.app.modules.es.ui.pages.ConnectorReportView;
 import com.constellio.data.utils.BatchBuilderIterator;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.schemas.MetadataListFilter;
+import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.gargoylesoftware.htmlunit.DefaultCredentialsProvider;
 import org.apache.commons.lang3.StringUtils;
@@ -31,6 +36,7 @@ import static java.util.Arrays.asList;
 
 public class ConnectorHttp extends Connector {
 
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(ConnectorHttp.class);
 
 	private ConnectorHttpContext context;
@@ -39,12 +45,16 @@ public class ConnectorHttp extends Connector {
 
 	String connectorId;
 
-	ConnectorHttpContextServices contextServices;
+	ConnectorDocumentURLCache cache;
+
+	//ConnectorHttpContextServices contextServices;
 
 	@Override
 	public void initialize(Record instanceRecord) {
 		this.connectorId = instanceRecord.getId();
-		this.contextServices = new ConnectorHttpContextServices(es);
+		cache = es.getModelLayerFactory().getCachesManager().getUserCache(
+				instanceRecord.getCollection(), ConnectorManager.DOCUMENT_URL_CACHE_NAME);
+		//this.contextServices = new ConnectorHttpContextServices(es);
 	}
 
 	public HttpURLFetchingService newFetchingService() {
@@ -84,7 +94,7 @@ public class ConnectorHttp extends Connector {
 	}
 
 	public void start() {
-		context = contextServices.createContext(connectorId);
+		//context = contextServices.createContext(connectorId);
 
 		ConnectorHttpInstance connectorInstance = getConnectorInstance();
 		List<ConnectorDocument> documents = new ArrayList<>();
@@ -144,12 +154,15 @@ public class ConnectorHttp extends Connector {
 	public void afterJobs(List<ConnectorJob> jobs) {
 		if (context.getVersion() != lastVersion) {
 			LOGGER.info("Saving context on instance '" + connectorId + "'");
-			contextServices.save(context);
+			//contextServices.save(context);
 			lastVersion = context.getVersion();
 		}
 	}
 
 	public void resume() {
+
+		LOGGER.info("Resuming connector on instance '" + connectorId + "'");
+		cache.onConnectorResume(getConnectorInstance());
 
 		//		if (es.getModelLayerFactory().getDataLayerFactory().isDistributed()) {
 		//			LOGGER.warn("Loading context of connector " + connectorId + " from solr...");
@@ -157,16 +170,16 @@ public class ConnectorHttp extends Connector {
 		//
 		//		} else {
 
-		LOGGER.info("Resuming connector on instance '" + connectorId + "'");
-		try {
-			context = contextServices.loadContext(connectorId);
 
-		} catch (Exception e) {
-			LOGGER.warn("Context of connector " + connectorId + " does not existe, recreating it...");
-
-			loadFromSolr();
-
-		}
+//		try {
+		//			//context = contextServices.loadContext(connectorId);
+		//
+		//		} catch (Exception e) {
+		//			LOGGER.warn("Context of connector " + connectorId + " does not existe, recreating it...");
+		//
+		//			loadFromSolr();
+		//
+		//		}
 		//		}
 	}
 
@@ -203,7 +216,7 @@ public class ConnectorHttp extends Connector {
 
 	@Override
 	public void onAllDocumentsDeleted() {
-		contextServices.deleteContext(connectorId);
+
 	}
 
 	@Override
@@ -232,6 +245,15 @@ public class ConnectorHttp extends Connector {
 		query.sortAsc(es.connectorHttpDocument.fetched());
 		query.sortAsc(es.connectorHttpDocument.level());
 		query.setNumberOfRows(connectorInstance.getNumberOfJobsInParallel() * connectorInstance.getDocumentsPerJobs());
+
+		List<Metadata> metadatas = es.connectorHttpDocument.schema().getMetadatas().only(new MetadataListFilter() {
+			@Override
+			public boolean isReturned(Metadata metadata) {
+				return !metadata.getLocalCode().equals(ConnectorHttpDocument.PARSED_CONTENT)
+					   && !metadata.getLocalCode().equals(ConnectorHttpDocument.DESCRIPTION);
+			}
+		});
+		query.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(metadatas));
 
 		List<ConnectorJob> jobs = new ArrayList<>();
 		List<ConnectorHttpDocument> documentsToFetch = new ArrayList<>();

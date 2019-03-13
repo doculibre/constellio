@@ -51,6 +51,8 @@ public class ConnectorManager implements StatefulService {
 
 	public static final String ID = "connectorManager";
 
+	public static final String DOCUMENT_URL_CACHE_NAME = "connectorDocumentsUrlCache";
+
 	RecordServices recordServices;
 
 	MetadataSchemasManager metadataSchemasManager;
