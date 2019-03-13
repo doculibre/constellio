@@ -681,7 +681,7 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 		connectWithAlice();
 		assertThat(presenter.hasCurrentUserPermissionToUseCartGroup()).isFalse();
 
-		Role editedRole2 = editedRole.withPermissions(asList(RMPermissionsTo.USE_MY_CART));
+		Role editedRole2 = editedRole.withPermissions(asList(RMPermissionsTo.USE_GROUP_CART));
 		rolesManager.updateRole(editedRole2);
 
 		connectWithAlice();
