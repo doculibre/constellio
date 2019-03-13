@@ -190,33 +190,30 @@ class ConnectorHttpFetchJob extends ConnectorJob {
 					throw new ConnectorHttpDocumentFetchException_CannotDownloadDocument(httpDocument.getURL(), e);
 				}
 				ParsedContent parsedContent = fileParser.parse(inputStream, true);
-				if (parsedContent.getParsedContent().isEmpty()) {
-					//TODO Test!
-					throw new ConnectorHttpDocumentFetchException_DocumentHasNoParsedContent(httpDocument.getURL());
-				} else {
-					httpDocument.addStringProperty("lastModified", page.getWebResponse().getResponseHeaderValue("Last-Modified"));
-					httpDocument.addStringProperty("charset", page.getWebResponse().getContentCharset());
-					httpDocument.setLanguage(parsedContent.getLanguage());
-					httpDocument.setParsedContent(parsedContent.getParsedContent());
-					httpDocument.setDescription(parsedContent.getDescription());
 
-					String metadataTitle = parsedContent.getTitle();
-					if (StringUtils.isBlank(metadataTitle)) {
-						metadataTitle = extractFilename(httpDocument.getURL());
-					}
+				httpDocument.addStringProperty("lastModified", page.getWebResponse().getResponseHeaderValue("Last-Modified"));
+				httpDocument.addStringProperty("charset", page.getWebResponse().getContentCharset());
+				httpDocument.setLanguage(parsedContent.getLanguage());
+				httpDocument.setParsedContent(parsedContent.getParsedContent());
+				httpDocument.setDescription(parsedContent.getDescription());
 
-					httpDocument.setTitle(metadataTitle);
-					httpDocument.setDigest(hashingService.getHashFromString(parsedContent.getParsedContent()));
-					httpDocument.setMimetype(parsedContent.getMimetypeWithoutCharset());
-
-					AppLayerCollectionExtensions extentions = connectorHttp.getEs().getAppLayerFactory().getExtensions()
-							.forCollection(connectorHttp.getEs().collection.code().getCollection());
-					ESModuleExtensions esExtensions = extentions.forModule(ConstellioESModule.ID);
-
-					esExtensions.onHttpDocumentFetched(new OnHttpDocumentFetchedParams()
-							.setConnectorHttpDocument(httpDocument)
-							.setModelLayerFactory(this.es.getModelLayerFactory()));
+				String metadataTitle = parsedContent.getTitle();
+				if (StringUtils.isBlank(metadataTitle)) {
+					metadataTitle = extractFilename(httpDocument.getURL());
 				}
+
+				httpDocument.setTitle(metadataTitle);
+				httpDocument.setDigest(hashingService.getHashFromString(parsedContent.getParsedContent()));
+				httpDocument.setMimetype(parsedContent.getMimetypeWithoutCharset());
+
+				AppLayerCollectionExtensions extentions = connectorHttp.getEs().getAppLayerFactory().getExtensions()
+						.forCollection(connectorHttp.getEs().collection.code().getCollection());
+				ESModuleExtensions esExtensions = extentions.forModule(ConstellioESModule.ID);
+
+				esExtensions.onHttpDocumentFetched(new OnHttpDocumentFetchedParams()
+						.setConnectorHttpDocument(httpDocument)
+						.setModelLayerFactory(this.es.getModelLayerFactory()));
+
 			} catch (FileParserException e) {
 				//TODO Test!
 				throw new ConnectorHttpDocumentFetchException_CannotParseDocument(httpDocument.getURL(), e);
