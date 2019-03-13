@@ -6,6 +6,8 @@ import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.DisplayButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
+import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
+import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
@@ -31,6 +33,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 public class CartsListViewImpl extends BaseViewImpl implements CartsListView {
 
+	public static final String TITLE = "CartsListView.viewTitle";
 	private final CartsListPresenter presenter;
 
 	public CartsListViewImpl() {
@@ -39,7 +42,11 @@ public class CartsListViewImpl extends BaseViewImpl implements CartsListView {
 
 	@Override
 	protected String getTitle() {
-		return $("CartsListView.viewTitle");
+		return "";
+	}
+
+	private String getBreadCrumbTitle() {
+		return $(TITLE);
 	}
 
 	@Override
@@ -100,9 +107,17 @@ public class CartsListViewImpl extends BaseViewImpl implements CartsListView {
 		return tabLayout;
 	}
 
+	@Override
+	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
+		return new TitleBreadcrumbTrail(this, getBreadCrumbTitle(), false);
+	}
+
 	private DefaultFavoritesTable buildTable() {
 		List<DefaultFavoritesTable.CartItem> cartItems = new ArrayList<>();
-		cartItems.add(new DefaultFavoritesTable.CartItem($("CartView.defaultFavorites")));
+		if(presenter.isMyCartVisible()) {
+			cartItems.add(new DefaultFavoritesTable.CartItem($("CartView.defaultFavorites")));
+		}
+
 		for (Cart cart : presenter.getOwnedCarts()) {
 			cartItems.add(new DefaultFavoritesTable.CartItem(cart, cart.getTitle()));
 		}

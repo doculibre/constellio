@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.ui.pages.cart;
 
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Cart;
@@ -35,7 +36,7 @@ public class CartsListPresenter extends SingleSchemaBasePresenter<CartsListView>
 
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
-		return true;
+		return user.has(RMPermissionsTo.USE_GROUP_CART).globally();
 	}
 
 	public void displayButtonClicked(RecordVO recordVO) {
@@ -64,6 +65,10 @@ public class CartsListPresenter extends SingleSchemaBasePresenter<CartsListView>
 						.isEqualTo(getCurrentUser().getId())).sortAsc(Schemas.TITLE);
 			}
 		};
+	}
+
+	public boolean isMyCartVisible() {
+		return getCurrentUser().has(RMPermissionsTo.USE_MY_CART).globally();
 	}
 
 	public RecordVODataProvider getSharedCartsDataProvider() {

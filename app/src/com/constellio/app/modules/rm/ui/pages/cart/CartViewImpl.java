@@ -3,6 +3,7 @@ package com.constellio.app.modules.rm.ui.pages.cart;
 import com.constellio.app.api.extensions.params.AvailableActionsParam;
 import com.constellio.app.modules.rm.model.enums.DecommissioningListType;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
+import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.entities.FolderVO;
 import com.constellio.app.modules.rm.ui.pages.pdf.ConsolidatedPdfButton;
@@ -10,6 +11,7 @@ import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
@@ -23,6 +25,9 @@ import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
 import com.constellio.app.ui.framework.components.ReportSelector;
 import com.constellio.app.ui.framework.components.ReportTabButton;
 import com.constellio.app.ui.framework.components.ReportViewer.DownloadStreamResource;
+import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
+import com.constellio.app.ui.framework.components.breadcrumb.IntermediateBreadCrumbTailItem;
+import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.enumWithSmallCode.EnumWithSmallCodeComboBox;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveRecordLookupFieldWithIgnoreOneRecord;
@@ -102,6 +107,10 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 
 	@Override
 	protected String getTitle() {
+		return "";
+	}
+
+	protected String getBreadCrumbTitle() {
 		if (presenter.isDefaultCart()) {
 			return $("CartView.defaultFavoritesViewTitle");
 		} else {
@@ -148,6 +157,35 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		Button button = buildLabelsButton(Document.SCHEMA_TYPE);
 		button.setCaption($("CartView.documentLabelsButton"));
 		return button;
+	}
+
+	@Override
+	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
+		return new TitleBreadcrumbTrail(this, getBreadCrumbTitle(), false) {
+			@Override
+			public List<? extends IntermediateBreadCrumbTailItem> getIntermediateItems() {
+				if(presenter.havePermisionToGroupCart()) {
+					return Arrays.asList(new IntermediateBreadCrumbTailItem() {
+						@Override
+						public String getTitle() {
+							return $(CartsListViewImpl.TITLE);
+						}
+
+						@Override
+						public void activate(Navigation navigate) {
+							navigate.to(RMViews.class).listCarts();
+						}
+
+						@Override
+						public boolean isEnabled() {
+							return true;
+						}
+					});
+				} else {
+					return new ArrayList<>();
+				}
+			}
+		};
 	}
 
 	private Button buildLabelsButton(final String schemaType) {

@@ -118,7 +118,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	private boolean waitForContentViewerToBecomeVisible;
 
 	private Button linkToDocumentButton, addAuthorizationButton, uploadButton, checkInButton, checkOutButton, finalizeButton,
-			shareDocumentButton, createPDFAButton, alertWhenAvailableButton, addToCartButton, addToOrRemoveFromSelectionButton, publishButton, unpublishButton,
+			shareDocumentButton, createPDFAButton, alertWhenAvailableButton, addToCartButton, addToCartMyCartButton, addToOrRemoveFromSelectionButton, publishButton, unpublishButton,
 			publicLinkButton, reportGeneratorButton;
 
 	private List<TabSheetDecorator> tabSheetDecorators = new ArrayList<>();
@@ -522,6 +522,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 				getSessionContext().getCurrentCollection(), getSessionContext().getCurrentUser(), presenter.getDocumentVO());
 
 		addToCartButton = buildAddToCartButton();
+		addToCartMyCartButton = buildAddToMyCartButton();
 
 		addToOrRemoveFromSelectionButton = new AddToOrRemoveFromSelectionButton(documentVO, getSessionContext().getSelectedRecordIds().contains(documentVO.getId()));
 
@@ -714,8 +715,10 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		actionMenuButtons.add(addAuthorizationButton);
 		actionMenuButtons.add(createPDFAButton);
 		actionMenuButtons.add(shareDocumentButton);
-		if (presenter.hasCurrentUserPermissionToUseCart()) {
+		if (presenter.hasCurrentUserPermissionToUseCartGroup()) {
 			actionMenuButtons.add(addToCartButton);
+		} else if (presenter.hasCurrentUserPermissionToUseMyCart()){
+			actionMenuButtons.add(addToCartMyCartButton);
 		}
 		actionMenuButtons.add(addToOrRemoveFromSelectionButton);
 		actionMenuButtons.add(uploadButton);
@@ -736,6 +739,17 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		actionMenuButtons.addAll(presenter.getButtonsFromExtension());
 
 		return actionMenuButtons;
+	}
+
+	private Button buildAddToMyCartButton(){
+		Button button = new BaseButton($("DisplayFolderView.addToCart")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				presenter.addToDefaultFavorite();
+			}
+		};
+
+		return button;
 	}
 
 	private WindowButton buildAddToCartButton() {
@@ -791,7 +805,9 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 	private DefaultFavoritesTable buildOwnedFavoritesTable(final Window window) {
 		List<DefaultFavoritesTable.CartItem> cartItems = new ArrayList<>();
-		cartItems.add(new DefaultFavoritesTable.CartItem($("CartView.defaultFavorites")));
+		if(presenter.hasCurrentUserPermissionToUseMyCart()) {
+			cartItems.add(new DefaultFavoritesTable.CartItem($("CartView.defaultFavorites")));
+		}
 		for (Cart cart : presenter.getOwnedCarts()) {
 			cartItems.add(new DefaultFavoritesTable.CartItem(cart, cart.getTitle()));
 		}

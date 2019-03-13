@@ -105,6 +105,11 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		rmModuleExtensions = appLayerFactory.getExtensions().forCollection(view.getCollection()).forModule(ConstellioRMModule.ID);
 	}
 
+
+	public boolean havePermisionToGroupCart() {
+		return getCurrentUser().has(RMPermissionsTo.USE_GROUP_CART).globally();
+	}
+
 	public void itemRemovalRequested(RecordVO recordVO) {
 		Record record = recordVO.getRecord();
 		removeFromFavorite(record);
@@ -415,6 +420,10 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
+		if(params != null && user.getId().equals(params)) {
+			return user.has(RMPermissionsTo.USE_MY_CART).globally();
+		}
+
 		return true;
 	}
 
@@ -675,6 +684,8 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 
 		return administrativeUnit;
 	}
+
+
 
 	public void buildDecommissioningListRequested(String title, DecommissioningListType decomType) {
 		DecommissioningList list = rm().newDecommissioningList();
