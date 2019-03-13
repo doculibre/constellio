@@ -22,7 +22,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class FolderClosingDateCalculatorTest extends ConstellioTest {
+public class FolderClosingDateCalculator2AcceptanceTest extends ConstellioTest {
 
 	LocalDate aDay = LocalDate.now().minusWeeks(42);
 	LocalDate openingDate;
@@ -38,6 +38,9 @@ public class FolderClosingDateCalculatorTest extends ConstellioTest {
 	int configNumberOfYearWhenVariableDelay = 0;
 	boolean addAYearIfYEarEnd = true;
 	String configYearEnd;
+	boolean subFoldersDecommission = true;
+	String parentFolder = null;
+	LocalDate parentClosingDate = null;
 
 	CopyRetentionRuleBuilder copyBuilder = CopyRetentionRuleBuilder.UUID();
 
@@ -228,6 +231,25 @@ public class FolderClosingDateCalculatorTest extends ConstellioTest {
 
 	}
 
+	@Test
+	public void givenSubfolderDecommissionedSeparatelyDisabledAndNoParentFolderThenReturnClosingDate() {
+		subFoldersDecommission = false;
+		enteredClosingDate = aDay;
+
+		assertThat(calculate()).isEqualTo(aDay);
+		verify(calculator, never()).calculateForCopy(any(CopyRetentionRule.class), any(CalculatorParameters.class));
+	}
+
+	@Test
+	public void givenSubfolderDecommissionedSeparatelyDisabledAndParentFolderThenReturnParentClosingDate() {
+		subFoldersDecommission = false;
+		parentFolder = "A01";
+		parentClosingDate = new LocalDate(2017, 6, 6);
+
+		assertThat(calculate()).isEqualTo(new LocalDate(2017, 6, 6));
+		verify(calculator, never()).calculateForCopy(any(CopyRetentionRule.class), any(CalculatorParameters.class));
+	}
+
 	//todo when null date
 
 	// -----------------
@@ -253,6 +275,9 @@ public class FolderClosingDateCalculatorTest extends ConstellioTest {
 		when(parameters.get(calculator.configNumberOfYearWhenVariableDelayParam)).thenReturn(configNumberOfYearWhenVariableDelay);
 		when(parameters.get(calculator.configYearEndParam)).thenReturn(configYearEnd);
 		when(parameters.get(calculator.configAddYEarIfDateIsEndOfYearParam)).thenReturn(addAYearIfYEarEnd);
+		when(parameters.get(calculator.configSubFoldersDecommissionParam)).thenReturn(subFoldersDecommission);
+		when(parameters.get(calculator.parentFolderParam)).thenReturn(parentFolder);
+		when(parameters.get(calculator.parentClosingDateParam)).thenReturn(parentClosingDate);
 
 		return calculator.calculate(new CalculatorParametersValidatingDependencies(parameters, calculator));
 	}

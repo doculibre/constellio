@@ -8,6 +8,7 @@ import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.dependencies.ConfigDependency;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
+import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import org.joda.time.LocalDate;
 
@@ -35,9 +36,19 @@ public class FolderClosingDateCalculator2 extends AbstractMetadataValueCalculato
 			RMConfigs.ADD_YEAR_IF_CALULATION_DATE_IS_END_IF_YEAR.dependency();
 	ConfigDependency<String> configYearEndParam = RMConfigs.YEAR_END_DATE.dependency();
 	LocalDependency<String> mainCopyRuleIdEnteredParam = LocalDependency.toAString(Folder.MAIN_COPY_RULE_ID_ENTERED);
+	ConfigDependency<Boolean> configSubFoldersDecommissionParam = RMConfigs.SUB_FOLDER_DECOMMISSIONING.dependency();
+	LocalDependency<String> parentFolderParam = LocalDependency.toAReference(Folder.PARENT_FOLDER);
+	ReferenceDependency<LocalDate> parentClosingDateParam =
+			ReferenceDependency.toADate(Folder.PARENT_FOLDER, Folder.CLOSING_DATE);
 
 	@Override
 	public LocalDate calculate(CalculatorParameters parameters) {
+		boolean folderDecommissionedSeparately = parameters.get(configSubFoldersDecommissionParam);
+		String parentFolder = parameters.get(parentFolderParam);
+		if (!folderDecommissionedSeparately && parentFolder != null) {
+			return parameters.get(parentClosingDateParam);
+		}
+
 		LocalDate enteredClosingDate = parameters.get(enteredClosingDateParam);
 		LocalDate openingDate = parameters.get(openingDateParam);
 		boolean configCalculatedClosingDate = parameters.get(configCalculatedClosingDateParam);
@@ -127,7 +138,10 @@ public class FolderClosingDateCalculator2 extends AbstractMetadataValueCalculato
 				configRequiredDaysBeforeYearEndParam,
 				configYearEndParam,
 				configAddYEarIfDateIsEndOfYearParam,
-				mainCopyRuleIdEnteredParam);
+				mainCopyRuleIdEnteredParam,
+				configSubFoldersDecommissionParam,
+				parentFolderParam,
+				parentClosingDateParam);
 	}
 
 }

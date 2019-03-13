@@ -552,6 +552,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		if (customField instanceof FolderParentFolderFieldImpl) {
 			folderHasParent = customField.getFieldValue() != null;
 		}
+		adjustClosingDateField();
 	}
 
 	void adjustTypeField() {
@@ -943,6 +944,11 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		}
 	}
 
+	void adjustClosingDateField() {
+		boolean visible = isSubfolderDecommissioningSeparatelyEnabled() || !folderHasParent;
+		view.getForm().setFieldVisible(Folder.ENTERED_CLOSING_DATE, visible);
+	}
+
 	void adjustDisposalTypeField() {
 		FolderDisposalTypeField disposalTypeField = (FolderDisposalTypeField) view.getForm()
 				.getCustomField(Folder.MANUAL_DISPOSAL_TYPE);
@@ -1102,5 +1108,9 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 			}
 		}
 		return record;
+	}
+
+	private boolean isSubfolderDecommissioningSeparatelyEnabled() {
+		return modelLayerFactory.getSystemConfigurationsManager().getValue(RMConfigs.SUB_FOLDER_DECOMMISSIONING);
 	}
 }
