@@ -1,9 +1,28 @@
 package com.constellio.app.ui.framework.components.fields.lookup;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Locale;
+import java.util.UUID;
+
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
+import org.vaadin.addons.lazyquerycontainer.LazyQueryContainer;
+import org.vaadin.addons.lazyquerycontainer.LazyQueryDefinition;
+import org.vaadin.addons.lazyquerycontainer.Query;
+import org.vaadin.addons.lazyquerycontainer.QueryDefinition;
+import org.vaadin.addons.lazyquerycontainer.QueryFactory;
+
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
+import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.converters.ConverterWithCache;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.autocomplete.BaseAutocompleteField;
@@ -43,23 +62,6 @@ import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
-import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
-import org.vaadin.addons.lazyquerycontainer.LazyQueryContainer;
-import org.vaadin.addons.lazyquerycontainer.LazyQueryDefinition;
-import org.vaadin.addons.lazyquerycontainer.Query;
-import org.vaadin.addons.lazyquerycontainer.QueryDefinition;
-import org.vaadin.addons.lazyquerycontainer.QueryFactory;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Locale;
-import java.util.UUID;
-
-import static com.constellio.app.ui.i18n.i18n.$;
 
 public abstract class LookupField<T extends Serializable> extends CustomField<T> {
 
@@ -87,6 +89,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 	 */
 	private boolean delayedFocus;
 	private Integer windowZIndex;
+	private boolean multiValue;
 
 	@SuppressWarnings("unchecked")
 	public LookupField(
@@ -128,6 +131,14 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 
 	public List<LookupTreeDataProvider<T>> getLookupTreeDataProviders() {
 		return lookupTreeDataProviders;
+	}
+
+	public boolean isMultiValue() {
+		return multiValue;
+	}
+
+	public void setMultiValue(boolean multiValue) {
+		this.multiValue = multiValue;
 	}
 
 	@Override
@@ -206,6 +217,11 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 	public WindowButton createLookupWindowBouton() {
 		lookupWindowButton = new WindowButton(null, $("search")) {
 			@Override
+			protected BaseWindow newWindow(String windowCaption) {
+				return new LookupWindow(windowCaption);
+			}
+
+			@Override
 			protected Component buildWindowContent() {
 				return new LookupWindowContent(getWindow());
 			}
@@ -217,7 +233,6 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 		return new BaseAutocompleteField<>(suggestionsProvider);
 	}
 
-	@SuppressWarnings("unchecked")
 	protected LazyTree<T> newLazyTree(LookupTreeDataProvider<T> lookupTreeDataProvider, int treeBufferSize) {
 		return new LazyTree<T>(lookupTreeDataProvider, treeBufferSize) {
 			@Override
@@ -330,6 +345,22 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 	public void setOnlyLinkables(boolean onlyLinkables) {
 		suggestInputDataProvider.setOnlyLinkables(onlyLinkables);
 	}
+	
+	public class LookupWindow extends BaseWindow {
+
+		public LookupWindow() {
+			super();
+		}
+
+		public LookupWindow(String caption, Component content) {
+			super(caption, content);
+		}
+
+		public LookupWindow(String caption) {
+			super(caption);
+		}
+		
+	}
 
 	protected class LookupWindowContent extends VerticalLayout {
 
@@ -387,6 +418,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 				}
 				for (final LookupTreeDataProvider<T> lookupTreeDataProvider : getLookupTreeDataProviders()) {
 					LazyTree<T> lazyTree = newLazyTree(lookupTreeDataProvider, getTreeBufferSize());
+					lazyTree.setMultiValue(multiValue);
 					lazyTree.setWidth("100%");
 					lazyTree.setItemCaptionMode(ItemCaptionMode.PROPERTY);
 					lazyTree.setItemCaptionPropertyId(CAPTION_PROPERTY_ID);

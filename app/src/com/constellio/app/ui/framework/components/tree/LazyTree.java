@@ -1,44 +1,58 @@
 package com.constellio.app.ui.framework.components.tree;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.ui.framework.components.table.TablePropertyCache;
+import com.constellio.app.ui.framework.components.table.TablePropertyCache.CellKey;
 import com.constellio.app.ui.framework.data.LazyTreeDataProvider;
 import com.constellio.app.ui.framework.data.ObjectsResponse;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.vaadin.data.Container;
 import com.vaadin.data.Item;
 import com.vaadin.data.Property;
+import com.vaadin.data.util.ObjectProperty;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.server.Extension;
 import com.vaadin.server.Resource;
 import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
 import com.vaadin.ui.AbstractSelect.ItemDescriptionGenerator;
+import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomField;
-import com.vaadin.ui.Tree;
 import com.vaadin.ui.Tree.CollapseEvent;
 import com.vaadin.ui.Tree.CollapseListener;
 import com.vaadin.ui.Tree.ExpandEvent;
 import com.vaadin.ui.Tree.ExpandListener;
 import com.vaadin.ui.Tree.ItemStyleGenerator;
+import com.vaadin.ui.TreeTable;
+import com.vaadin.ui.themes.ValoTheme;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+public class LazyTree<T extends Serializable> extends CustomField<Object> {
 
-public class LazyTree<T extends Serializable> extends CustomField<T> {
-
+	private static final String CAPTION_PROPERTY = "caption";
 	private static final String LOADER_NEXT_LOADED_INDEX_ID = "loaderNextLoadedIndex";
 	private static final String LOADER_PARENT_ITEM_ID = "loaderParentItemId";
 
 	private LazyTreeDataProvider<T> dataProvider;
 
 	private int bufferSize;
-
-	private Tree adaptee;
+	
+	private boolean multiValue = false;
+	
+	private TreeTable adaptee;
 
 	private List<ItemClickListener> itemClickListeners = new ArrayList<ItemClickListener>();
-
+	
+	private Map<Object, List<Object>> loaderPropertyCache = new HashMap<>();
+	
 	public LazyTree(LazyTreeDataProvider<T> treeDataProvider) {
 		this(treeDataProvider, getBufferSizeFromConfig());
 	}
@@ -54,24 +68,68 @@ public class LazyTree<T extends Serializable> extends CustomField<T> {
 		this.dataProvider = treeDataProvider;
 		this.bufferSize = bufferSize;
 
-		adaptee = new Tree() {
+		adaptee = new TreeTable() {
+			protected final TablePropertyCache cellProperties = new TablePropertyCache();
+			
 			@SuppressWarnings({"rawtypes", "unchecked"})
 			@Override
 			public Collection getContainerPropertyIds() {
 				Collection propertyIds = LazyTree.this.getContainerPropertyIds();
 				if (propertyIds == null) {
-					propertyIds = super.getContainerPropertyIds();
+					propertyIds = new ArrayList<>();
 				}
+				propertyIds.add(CAPTION_PROPERTY);
 				propertyIds.add(LOADER_NEXT_LOADED_INDEX_ID);
 				propertyIds.add(LOADER_PARENT_ITEM_ID);
 				return propertyIds;
 			}
 
 			@Override
-			public Property<?> getContainerProperty(Object itemId, Object propertyId) {
+			public void containerItemSetChange(Container.ItemSetChangeEvent event) {
+				cellProperties.clear();
+				super.containerItemSetChange(event);
+			}
+
+			@Override
+			public final Property<?> getContainerProperty(Object itemId, Object propertyId) {
+				Property<?> containerProperty;
+				CellKey cellKey = getCellKey(itemId, propertyId);
+				if (cellKey != null) {
+					containerProperty = cellProperties.get(cellKey);
+					if (containerProperty == null) {
+						containerProperty = loadContainerProperty(itemId, propertyId);
+						cellProperties.put(cellKey, containerProperty);
+					}
+				} else {
+					containerProperty = loadContainerProperty(itemId, propertyId);
+				}
+				return containerProperty;
+			}
+
+			@SuppressWarnings("unchecked")
+			public Property<?> loadContainerProperty(Object itemId, Object propertyId) {
 				Property<?> property;
 				if (isLoader(itemId)) {
-					property = super.getContainerProperty(itemId, propertyId);
+					Object propertyValue;
+					if (CAPTION_PROPERTY.equals(propertyId)) {
+						String itemCaption = getItemCaption(itemId);
+						propertyValue = itemCaption;
+					} else if (LOADER_NEXT_LOADED_INDEX_ID.equals(propertyId)) {
+						propertyValue = getNextLoadedIndexForLoader(itemId);
+					} else if (LOADER_PARENT_ITEM_ID.equals(propertyId)) {
+						propertyValue = ((List<Object>) loaderPropertyCache.get(itemId)).get(1);
+					} else {
+						propertyValue = "UNKNOWN";
+					}
+					property = new ObjectProperty<>(propertyValue);
+				} else if (CAPTION_PROPERTY.equals(propertyId)) {
+					Component itemCaptionComponent = getItemCaptionComponent((T) itemId);
+					if (itemCaptionComponent != null) {
+						property = new ObjectProperty<>(itemCaptionComponent);
+					} else {
+						String itemCaption = getItemCaption(itemId);
+						property = new ObjectProperty<>(itemCaption);
+					}
 				} else {
 					property = LazyTree.this.getContainerProperty(itemId, propertyId);
 					if (property == null) {
@@ -102,11 +160,13 @@ public class LazyTree<T extends Serializable> extends CustomField<T> {
 				Resource itemIcon;
 				if (isLoader(itemId)) {
 					itemIcon = null;
-				} else {
+				} else if (!multiValue) {
 					itemIcon = LazyTree.this.getItemIcon((T) itemId);
 					if (itemIcon == null) {
 						itemIcon = super.getItemIcon(itemId);
 					}
+				} else {
+					itemIcon = null;
 				}
 				return itemIcon;
 			}
@@ -124,8 +184,22 @@ public class LazyTree<T extends Serializable> extends CustomField<T> {
 				return itemDescription;
 			}
 		});
+		adaptee.addContainerProperty(CAPTION_PROPERTY, Component.class, null);
 		adaptee.addContainerProperty(LOADER_NEXT_LOADED_INDEX_ID, Integer.class, null);
 		adaptee.addContainerProperty(LOADER_PARENT_ITEM_ID, LazyTree.this.getType(), null);
+		adaptee.setVisibleColumns(CAPTION_PROPERTY);
+		adaptee.setWidth("100%");
+		adaptee.setPageLength(0);
+		adaptee.addStyleName(ValoTheme.TREETABLE_BORDERLESS);
+		adaptee.addStyleName(ValoTheme.TREETABLE_NO_HEADER);
+		adaptee.addStyleName(ValoTheme.TREETABLE_NO_HORIZONTAL_LINES);
+		adaptee.addStyleName(ValoTheme.TREETABLE_NO_VERTICAL_LINES);
+		adaptee.addStyleName(ValoTheme.TREETABLE_NO_STRIPES);
+		adaptee.addStyleName(ValoTheme.TREETABLE_COMPACT);
+	}
+
+	protected CellKey getCellKey(Object itemId, Object propertyId) {
+		return null;
 	}
 
 	@Override
@@ -168,8 +242,12 @@ public class LazyTree<T extends Serializable> extends CustomField<T> {
 						}
 					}
 				} else {
-					setValue((T) itemId);
-					// Forward to the adaptee
+					if (!multiValue) {
+						setValue((T) itemId);
+						// Forward to the adaptee
+					} else {
+						System.out.println("Test");
+					}
 
 					boolean shouldExpandOrCollapse = true;
 					for (ItemClickListener itemClickListener : itemClickListeners) {
@@ -181,9 +259,11 @@ public class LazyTree<T extends Serializable> extends CustomField<T> {
 
 					if (shouldExpandOrCollapse) {
 						if (isExpanded(itemId)) {
-							adaptee.collapseItem(itemId);
+//							adaptee.collapseItem(itemId);
+							adaptee.setCollapsed(itemId, true);
 						} else {
-							adaptee.expandItem(itemId);
+//							adaptee.expandItem(itemId);
+							adaptee.setCollapsed(itemId, false);
 						}
 					}
 
@@ -211,6 +291,20 @@ public class LazyTree<T extends Serializable> extends CustomField<T> {
 
 		return adaptee;
 	}
+	
+	private Object adjustValue(Object value) {
+		Object adjustedValue;
+		if (multiValue) {
+			if (!(value instanceof List)) {
+				adjustedValue = Arrays.asList(value);
+			} else {
+				adjustedValue = value;
+			}
+		} else {
+			adjustedValue = value;
+		}
+		return adjustedValue;
+	}
 
 	private void adjustLoaderAfterExpand(T itemId) {
 		Object loaderId = getLoaderId(itemId);
@@ -222,13 +316,17 @@ public class LazyTree<T extends Serializable> extends CustomField<T> {
 				addLoaderItem(itemId, childrenResponse.getObjects().size());
 			}
 		}
-		Resource icon = getItemIcon(itemId);
-		setItemIcon(itemId, icon, "");
+		if (!multiValue) {
+			Resource icon = getItemIcon(itemId);
+			setItemIcon(itemId, icon, "");
+		}
 	}
 
 	private void adjustLoaderAfterCollapse(T itemId) {
-		Resource icon = getItemIcon(itemId);
-		setItemIcon(itemId, icon, "");
+		if (!multiValue) {
+			Resource icon = getItemIcon(itemId);
+			setItemIcon(itemId, icon, "");
+		}
 	}
 
 	public final LazyTreeDataProvider<T> getDataProvider() {
@@ -253,36 +351,27 @@ public class LazyTree<T extends Serializable> extends CustomField<T> {
 		}
 	}
 
-	@SuppressWarnings("unchecked")
 	private void addLoaderItem(T parent, int nextLoadedIndex) {
-		Object loaderItemId = adaptee.addItem();
-		Item loadingItem = adaptee.getItem(loaderItemId);
-		loadingItem.getItemProperty(LOADER_NEXT_LOADED_INDEX_ID).setValue(nextLoadedIndex);
-		loadingItem.getItemProperty(LOADER_PARENT_ITEM_ID).setValue(parent);
+		Object loaderItemId = loaderPropertyCache.size() + 1;
+		loaderPropertyCache.put(loaderItemId, new ArrayList<Object>(Arrays.asList(nextLoadedIndex, parent)));
+		adaptee.addItem(loaderItemId);
 		if (parent != null) {
 			adaptee.setParent(loaderItemId, parent);
 		}
 		adaptee.setChildrenAllowed(loaderItemId, false);
 	}
 
+	private Integer getNextLoadedIndexForLoader(Object loaderItemId) {
+		return (Integer) ((List<Object>) loaderPropertyCache.get(loaderItemId)).get(0);
+	}
+	
 	@SuppressWarnings("unchecked")
 	private T getParentForLoader(Object loaderItemId) {
-		Item loaderItem = adaptee.getItem(loaderItemId);
-		return (T) loaderItem.getItemProperty(LOADER_PARENT_ITEM_ID).getValue();
+		return (T) ((List<Object>) loaderPropertyCache.get(loaderItemId)).get(1);
 	}
 
-	@SuppressWarnings("unchecked")
-	private Integer getNextLoadedIndexForLoader(Object loaderItemId) {
-		Item loaderItem = adaptee.getItem(loaderItemId);
-		Property<Integer> nextLoadedIndexProperty = loaderItem.getItemProperty(LOADER_NEXT_LOADED_INDEX_ID);
-		return nextLoadedIndexProperty != null ? nextLoadedIndexProperty.getValue() : null;
-	}
-
-	@SuppressWarnings("unchecked")
 	private boolean isLoader(Object itemId) {
-		Item item = adaptee.getItem(itemId);
-		Property<Integer> nextLoadedIndexProperty = item.getItemProperty(LOADER_NEXT_LOADED_INDEX_ID);
-		return nextLoadedIndexProperty != null && nextLoadedIndexProperty.getValue() != null;
+		return loaderPropertyCache.containsKey(itemId);
 	}
 
 	private Object getLoaderId(T parent) {
@@ -310,8 +399,7 @@ public class LazyTree<T extends Serializable> extends CustomField<T> {
 
 	private String getLoaderItemCaption(Object itemId) {
 		String loaderItemCaption;
-		Item loaderItem = adaptee.getItem(itemId);
-		int lowerLimit = (int) loaderItem.getItemProperty(LOADER_NEXT_LOADED_INDEX_ID).getValue();
+		int lowerLimit = (int) getNextLoadedIndexForLoader(itemId);
 		int upperLimit;
 		int sameLevelNodeCount;
 		T parent = getParentForLoader(itemId);
@@ -341,6 +429,30 @@ public class LazyTree<T extends Serializable> extends CustomField<T> {
 
 	protected String getLoaderItemDescription(Object itemId) {
 		return null;
+	}
+	
+	protected Component getItemCaptionComponent(T object) {
+		Component itemCaptionComponent;
+		if (multiValue) {
+			String itemCaption = getItemCaption(object);
+			
+			CheckBox checkBox = new CheckBox(itemCaption);
+			checkBox.addValueChangeListener(new Property.ValueChangeListener() {
+				@Override
+				public void valueChange(Property.ValueChangeEvent event) {
+					System.out.println("FIXME!");
+				}
+			});
+
+			Resource icon = getItemIcon(object);
+			checkBox.setIcon(icon);
+			
+			itemCaptionComponent = checkBox;
+		} else {
+			itemCaptionComponent = null;
+		}
+		return itemCaptionComponent;
+		
 	}
 
 	public String getItemCaption(T object) {
@@ -402,11 +514,11 @@ public class LazyTree<T extends Serializable> extends CustomField<T> {
 	}
 
 	public void setItemIcon(Object itemId, Resource icon, String altText) {
-		adaptee.setItemIcon(itemId, icon, altText);
+//		adaptee.setItemIcon(itemId, icon, altText);
 	}
 
 	public void setItemIconAlternateText(Object itemId, String altText) {
-		adaptee.setItemIconAlternateText(itemId, altText);
+//		adaptee.setItemIconAlternateText(itemId, altText);
 	}
 
 	public void setItemCaption(Object itemId, String caption) {
@@ -418,7 +530,7 @@ public class LazyTree<T extends Serializable> extends CustomField<T> {
 	}
 
 	public void setItemStyleGenerator(ItemStyleGenerator itemStyleGenerator) {
-		adaptee.setItemStyleGenerator(itemStyleGenerator);
+//		adaptee.setItemStyleGenerator(itemStyleGenerator);
 	}
 
 	public void setItemCaptionPropertyId(Object propertyId) {
@@ -435,7 +547,8 @@ public class LazyTree<T extends Serializable> extends CustomField<T> {
 	}
 
 	public final String getItemIconAlternateText(Object itemId) {
-		return adaptee.getItemIconAlternateText(itemId);
+//		return adaptee.getItemIconAlternateText(itemId);
+		return null;
 	}
 
 	public Resource getItemIcon(Object itemId) {
@@ -466,18 +579,27 @@ public class LazyTree<T extends Serializable> extends CustomField<T> {
 		return null;
 	}
 
+	public boolean isMultiValue() {
+		return multiValue;
+	}
+
+	public void setMultiValue(boolean multiValue) {
+		this.multiValue = multiValue;
+	}
+
 	@SuppressWarnings({"rawtypes", "unchecked"})
 	@Override
 	public Class getType() {
 		return Object.class;
 	}
 
-	public final Tree getNestedTree() {
+	public final TreeTable getNestedTreeTable() {
 		return adaptee;
 	}
 
 	public boolean isExpanded(Object itemId) {
-		return adaptee.isExpanded(itemId);
+//		return adaptee.isExpanded(itemId);
+		return !adaptee.isCollapsed(itemId);
 	}
 
 	/**
@@ -584,7 +706,8 @@ public class LazyTree<T extends Serializable> extends CustomField<T> {
 			}
 		}
 		if (match != null) {
-			adaptee.expandItem(itemId);
+//			adaptee.expandItem(itemId);
+			adaptee.setCollapsed(itemId, false);
 			adjustLoaderAfterExpand(itemId);
 		}
 		return match;

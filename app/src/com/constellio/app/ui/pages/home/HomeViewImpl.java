@@ -1,5 +1,17 @@
 package com.constellio.app.ui.pages.home;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.vaadin.peter.contextmenu.ContextMenu;
+import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableFooterEvent;
+import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableHeaderEvent;
+import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableRowEvent;
+
 import com.constellio.app.entities.navigation.PageItem;
 import com.constellio.app.entities.navigation.PageItem.CustomItem;
 import com.constellio.app.entities.navigation.PageItem.RecentItemTable;
@@ -49,18 +61,7 @@ import com.vaadin.ui.MenuBar;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.TabSheet.Tab;
 import com.vaadin.ui.Table;
-import com.vaadin.ui.Tree.TreeDragMode;
-import org.vaadin.peter.contextmenu.ContextMenu;
-import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableFooterEvent;
-import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableHeaderEvent;
-import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableRowEvent;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static com.constellio.app.ui.i18n.i18n.$;
+import com.vaadin.ui.Table.TableDragMode;
 
 public class HomeViewImpl extends BaseViewImpl implements HomeView {
 
@@ -313,11 +314,11 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 			menu = contextMenuDecorator.decorate(this, menu);
 		}
 		if (menu != null) {
-			menu.setAsTreeContextMenu(tree.getNestedTree());
+			menu.setAsTableContextMenu(tree.getNestedTreeTable());
 		}
 
-		tree.getNestedTree().setDragMode(TreeDragMode.NODE);
-		tree.getNestedTree().setDropHandler(new RMTreeDropHandlerImpl() {
+		tree.getNestedTreeTable().setDragMode(TableDragMode.NONE);
+		tree.getNestedTreeTable().setDropHandler(new RMTreeDropHandlerImpl() {
 			@Override
 			public void showErrorMessage(String errorMessage) {
 				HomeViewImpl.this.showErrorMessage(errorMessage);

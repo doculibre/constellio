@@ -1,5 +1,9 @@
 package com.constellio.app.ui.framework.components;
 
+import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
+
+import com.constellio.app.api.extensions.params.BaseWindowParams;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.pages.base.SessionContext;
@@ -9,8 +13,6 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.JavaScript;
 import com.vaadin.ui.Window;
 
-import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
-
 public class BaseWindow extends Window {
 
 	public static final String WINDOW_STYLE_NAME = "base-window";
@@ -19,6 +21,8 @@ public class BaseWindow extends Window {
 	public static final int OVER_ADVANCED_SEARCH_FORM_Z_INDEX = 20001;
 
 	private Integer zIndex = null;
+	
+	private Float opacity = null;
 
 	private float widthBeforeMinimize;
 	private float heightBeforeMinimize;
@@ -126,11 +130,27 @@ public class BaseWindow extends Window {
 		this.zIndex = zIndex;
 	}
 
+	public final Float getOpacity() {
+		return opacity;
+	}
+
+	public final void setOpacity(Float opacity) {
+		this.opacity = opacity;
+	}
+
 	@Override
 	public void attach() {
 		super.attach();
+
+		BaseWindowParams params = new BaseWindowParams(this);
+		AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
+		appLayerFactory.getExtensions().getSystemWideExtensions().decorateWindow(params);
+		
 		if (zIndex != null) {
 			executeZIndexAdjustJavascript(zIndex);
+		}
+		if (opacity != null) {
+			executeOpacityAdjustJavascript(opacity);
 		}
 	}
 
@@ -140,6 +160,17 @@ public class BaseWindow extends Window {
 		zIndexFixJS.append("var " + jsVarName + " = document.getElementsByClassName('v-window');\n");
 		zIndexFixJS.append("for (i = 0; i < " + jsVarName + ".length; i++) {\n");
 		zIndexFixJS.append("    " + jsVarName + "[i].style.zIndex=" + zIndex + ";\n");
+		zIndexFixJS.append("}");
+
+		JavaScript.getCurrent().execute(zIndexFixJS.toString());
+	}
+
+	public static void executeOpacityAdjustJavascript(float opacity) {
+		String jsVarName = "var_" + ((int) (Math.random() * 1000)) + "_" + System.currentTimeMillis();
+		StringBuffer zIndexFixJS = new StringBuffer();
+		zIndexFixJS.append("var " + jsVarName + " = document.getElementsByClassName('v-window-modalitycurtain');\n");
+		zIndexFixJS.append("for (i = 0; i < " + jsVarName + ".length; i++) {\n");
+		zIndexFixJS.append("    " + jsVarName + "[i].style.opacity=" + opacity + ";\n");
 		zIndexFixJS.append("}");
 
 		JavaScript.getCurrent().execute(zIndexFixJS.toString());
