@@ -9,9 +9,13 @@ import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpDocument
 import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance;
 import com.constellio.app.modules.es.services.mapping.ConnectorField;
 import com.constellio.app.modules.es.ui.pages.ConnectorReportView;
+import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
 import com.constellio.data.utils.BatchBuilderIterator;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.schemas.MetadataListFilter;
+import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.gargoylesoftware.htmlunit.DefaultCredentialsProvider;
 import org.apache.commons.lang3.StringUtils;
@@ -173,13 +177,27 @@ public class ConnectorHttp extends Connector {
 	protected void loadFromSolr() {
 		context = contextServices.createContext(connectorId);
 
-		Iterator<Record> iterator = es.getModelLayerFactory().newSearchServices().recordsIterator(
-				from(es.connectorHttpDocument.schemaType()).where(es.connectorHttpDocument.connector()).isEqualTo(connectorId), 5000);
+		LogicalSearchQuery query = new LogicalSearchQuery(from(es.connectorHttpDocument.schemaType())
+				.where(es.connectorHttpDocument.connector()).isEqualTo(connectorId));
 
+		query.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(
+				es.connectorHttpDocument.digest(), es.connectorHttpDocument.url()));
+
+		SearchResponseIterator<Record> iterator = es.getModelLayerFactory().newSearchServices().recordsIterator(query, 10000);
+
+		String connectorName = getConnectorInstance().getCode();
+		int count = 0;
 		while (iterator.hasNext()) {
+			if (count % 10000 == 0) {
+				LOGGER.info("Resuming connector '" + connectorName + "' : " + count + "/" + iterator.getNumFound());
+			}
+
 			ConnectorHttpDocument connectorHttpDocument = es.wrapConnectorHttpDocument(iterator.next());
 			context.addDocumentDigest(connectorHttpDocument.getDigest(), connectorHttpDocument.getURL());
+			count++;
+
 		}
+		LOGGER.info("Resuming connector '" + connectorName + "' : " + count + "/" + iterator.getNumFound());
 
 		contextServices.save(context);
 	}
@@ -227,6 +245,16 @@ public class ConnectorHttp extends Connector {
 		List<ConnectorHttpDocument> onDemands = getOnDemandDocuments();
 
 		LogicalSearchQuery query = es.connectorDocumentsToFetchQuery(connectorInstance);
+
+		List<Metadata> metadatas = es.connectorHttpDocument.schema().getMetadatas().only(new MetadataListFilter() {
+			@Override
+			public boolean isReturned(Metadata metadata) {
+				return !metadata.getLocalCode().equals(ConnectorHttpDocument.PARSED_CONTENT)
+					   && !metadata.getLocalCode().equals(ConnectorHttpDocument.DESCRIPTION)
+					   && !metadata.getLocalCode().equals(ConnectorHttpDocument.THESAURUS_MATCH);
+			}
+		});
+		query.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(metadatas));
 
 		query.clearSort();
 		query.sortAsc(es.connectorHttpDocument.fetched());
