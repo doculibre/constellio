@@ -50,6 +50,7 @@ public class Task extends RecordWrapper {
 	public static final String REASON = "reason";
 	public static final String STARRED_BY_USERS = "starredByUsers";
 	public static final String READ_BY_USER = "readByUser";
+	public static final String SCRIPT = "script";
 
 	/**
 	 * Fields used by second and third version of the workflow feature
