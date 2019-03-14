@@ -11,7 +11,6 @@ import com.constellio.model.services.parser.FileParserException.FileParserExcept
 import com.constellio.model.services.parser.FileParserException.FileParserException_CannotParse;
 import com.constellio.model.services.parser.FileParserException.FileParserException_FileSizeExceedLimitForParsing;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.poi.hwpf.HWPFDocument;
 import org.apache.poi.hwpf.HWPFDocumentCore;
 import org.apache.poi.hwpf.HWPFOldDocument;
@@ -172,8 +171,7 @@ public class FileParser {
 			}
 
 		} catch (Throwable t) {
-			if (!t.getClass().getSimpleName().equals("WriteLimitReachedException") &&
-				!ExceptionUtils.getRootCause(t).getClass().getSimpleName().equals("WriteLimitReachedException")) {
+			if (!t.getClass().getSimpleName().equals("WriteLimitReachedException")) {
 				String detectedMimetype = metadata.get(Metadata.CONTENT_TYPE);
 				throw new FileParserException_CannotParse(t, detectedMimetype);
 			}

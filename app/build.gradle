@@ -68,6 +68,7 @@ dependencies {
     compile 'com.jgoodies:jgoodies-common:1.7.0'
     compile 'org.mockito:mockito-all:1.10.8'
     compile 'net.sf.jasperreports:jasperreports:6.7.0'
+    compile 'net.sourceforge.barbecue:barbecue:1.5-beta1'
     compile 'nl.bitwalker:UserAgentUtils:1.2.4'
     compile 'org.samba.jcifs:jcifs_gcm:322'
     compile 'au.com.bytecode:opencsv:2.4'
