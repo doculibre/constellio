@@ -186,7 +186,7 @@ public class TaskModule implements InstallableSystemModule, ModuleWithComboMigra
 	public void start(AppLayerFactory appLayerFactory) {
 		TasksNavigationConfiguration.configureNavigation(appLayerFactory.getNavigatorConfigurationService());
 	}
-
+	
 	@Override
 	public void stop(AppLayerFactory appLayerFactory) {
 
