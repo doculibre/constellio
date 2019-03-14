@@ -6,8 +6,8 @@ import com.constellio.model.entities.schemas.Schemas;
 
 import java.util.List;
 
-public class WorkflowExecutionComboBox extends RecordComboBox {
-    public WorkflowExecutionComboBox(String schemaCode) {
+public class WorkflowDefinitionComboBox extends RecordComboBox {
+    public WorkflowDefinitionComboBox(String schemaCode) {
         super(schemaCode);
     }
 

@@ -1,5 +1,6 @@
 package com.constellio.app.modules.tasks.extensions;
 
+import com.constellio.app.modules.tasks.caches.IncompleteTasksUserCache;
 import com.constellio.app.modules.tasks.caches.UnreadTasksUserCache;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollower;
@@ -85,7 +86,8 @@ public class TaskRecordExtension extends RecordExtension {
 	RecordServices recordServices;
 	UserServices userServices;
 	ConstellioEIMConfigs eimConfigs;
-	UnreadTasksUserCache cache;
+	UnreadTasksUserCache unreadTasksUserCache;
+	IncompleteTasksUserCache incompleteTasksUserCache;
 
 	public TaskRecordExtension(String collection, AppLayerFactory appLayerFactory) {
 		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
@@ -94,7 +96,8 @@ public class TaskRecordExtension extends RecordExtension {
 		recordServices = this.modelLayerFactory.newRecordServices();
 		userServices = appLayerFactory.getModelLayerFactory().newUserServices();
 		eimConfigs = new ConstellioEIMConfigs(appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager());
-		cache = appLayerFactory.getModelLayerFactory().getCachesManager().getUserCache(UnreadTasksUserCache.NAME);
+		unreadTasksUserCache = appLayerFactory.getModelLayerFactory().getCachesManager().getUserCache(UnreadTasksUserCache.NAME);
+		incompleteTasksUserCache = appLayerFactory.getModelLayerFactory().getCachesManager().getUserCache(IncompleteTasksUserCache.NAME);
 	}
 
 	@Override
@@ -103,7 +106,11 @@ public class TaskRecordExtension extends RecordExtension {
 			Task task = tasksSchema.wrapTask(event.getRecord());
 			sendDeletionEventToFollowers(task);
 			if (Boolean.TRUE != task.getReadByUser()) {
-				invalidateAllAssignees(task);
+				invalidateAllAssigneesForUnreadTasksCache(task);
+			}
+			List<String> finishedOrClosedStatuses = tasksSchema.getFinishedOrClosedStatusesIds();
+			if (!finishedOrClosedStatuses.contains(task.getStatus())) {
+				invalidateAssigneeForIncompleteTaskCache(task);
 			}
 		}
 	}
@@ -113,7 +120,11 @@ public class TaskRecordExtension extends RecordExtension {
 		if (event.getRecord().getSchemaCode().startsWith(Task.SCHEMA_TYPE)) {
 			Task task = tasksSchema.wrapTask(event.getRecord());
 			if (Boolean.TRUE != task.getReadByUser()) {
-				invalidateAllAssignees(task);
+				invalidateAllAssigneesForUnreadTasksCache(task);
+			}
+			List<String> finishedOrClosedStatuses = tasksSchema.getFinishedOrClosedStatusesIds();
+			if (!finishedOrClosedStatuses.contains(task.getStatus())) {
+				invalidateAssigneeForIncompleteTaskCache(task);
 			}
 		}
 	}
@@ -121,17 +132,24 @@ public class TaskRecordExtension extends RecordExtension {
 	@Override
 	public void recordModified(RecordModificationEvent event) {
 		if (event.getRecord().getSchemaCode().startsWith(Task.SCHEMA_TYPE)) {
-
 			Task task = tasksSchema.wrapTask(event.getRecord());
 			taskModified(task, event);
-
-			if (hasModifiedMetadataRequiringInvalidation(event)) {
-				invalidateOldAndNewAssignees(task, event);
+			if (hasModifiedMetadataRequiringInvalidationForUnreadTasksCache(event)) {
+				invalidateOldAndNewAssigneesForUnreadTasksCache(task, event);
+			}
+			if (hasModifiedMetadataRequiringInvalidationForIncompleteTasksCache(event)) {
+				invalidateOldANdNewAssigneeForIncompleteTaskCache(task, event);
 			}
 		}
 	}
 
-	private boolean hasModifiedMetadataRequiringInvalidation(RecordModificationEvent event) {
+	private boolean hasModifiedMetadataRequiringInvalidationForIncompleteTasksCache(RecordModificationEvent event) {
+		List<String> modifiedMetadatas = event.getModifiedMetadatas().toLocalCodesList();
+
+		return modifiedMetadatas.contains(Task.ASSIGNEE) || modifiedMetadatas.contains(Task.STATUS);
+	}
+
+	private boolean hasModifiedMetadataRequiringInvalidationForUnreadTasksCache(RecordModificationEvent event) {
 		List<String> modifiedMetadatas = event.getModifiedMetadatas().toLocalCodesList();
 
 		return modifiedMetadatas.contains(Task.READ_BY_USER) || modifiedMetadatas.contains(Task.ASSIGNEE)
@@ -162,7 +180,11 @@ public class TaskRecordExtension extends RecordExtension {
 		if (event.getRecord().getSchemaCode().startsWith(Task.SCHEMA_TYPE)) {
 			Task task = tasksSchema.wrapTask(event.getRecord());
 			if (Boolean.TRUE != task.getReadByUser()) {
-				invalidateAllAssignees(task);
+				invalidateAllAssigneesForUnreadTasksCache(task);
+			}
+			List<String> finishedOrClosedStatuses = tasksSchema.getFinishedOrClosedStatusesIds();
+			if (!finishedOrClosedStatuses.contains(task.getStatus())) {
+				invalidateAssigneeForIncompleteTaskCache(task);
 			}
 		}
 	}
@@ -173,8 +195,6 @@ public class TaskRecordExtension extends RecordExtension {
 
 		if (record.getSchemaCode().startsWith(Task.SCHEMA_TYPE)) {
 			final Task task = tasksSchema.wrapTask(record);
-
-			//
 			addAssignerAsCompletionEventFollower(task);
 		}
 	}
@@ -183,24 +203,25 @@ public class TaskRecordExtension extends RecordExtension {
 	public void recordCreated(RecordCreationEvent event) {
 		if (event.getRecord().getSchemaCode().startsWith(Task.SCHEMA_TYPE)) {
 			Task task = tasksSchema.wrapTask(event.getRecord());
-			invalidateAllAssignees(task);
+			invalidateAllAssigneesForUnreadTasksCache(task);
+			invalidateAssigneeForIncompleteTaskCache(task);
 		}
 	}
 
-	private void invalidateAllAssignees(Task task) {
+	private void invalidateAllAssigneesForUnreadTasksCache(Task task) {
 		for (User user : userServices.getAllUsersInCollection(collection)) {
 			if (user.getId().equals(task.getAssignee()) || task.getAssigneeUsersCandidates().contains(user.getId())) {
-				cache.invalidateUser(user);
+				unreadTasksUserCache.invalidateUser(user);
 			}
 		}
 		for (Group group : userServices.getAllGroupsInCollections(collection)) {
 			if (task.getAssigneeGroupsCandidates().contains(group.getId())) {
-				cache.invalidateGroup(group);
+				unreadTasksUserCache.invalidateGroup(group);
 			}
 		}
 	}
 
-	private void invalidateOldAndNewAssignees(Task task, RecordModificationEvent event) {
+	private void invalidateOldAndNewAssigneesForUnreadTasksCache(Task task, RecordModificationEvent event) {
 		Boolean assigneeModified = event.hasModifiedMetadata(Task.ASSIGNEE);
 		Boolean assigneeUserCandidatesModified = event.hasModifiedMetadata(Task.ASSIGNEE_USERS_CANDIDATES);
 		Boolean assigneeGroupsCandidatesModified = event.hasModifiedMetadata(Task.ASSIGNEE_GROUPS_CANDIDATES);
@@ -208,21 +229,21 @@ public class TaskRecordExtension extends RecordExtension {
 		for (User user : userServices.getAllUsersInCollection(collection)) {
 			if (assigneeModified) {
 				if (user.getId().equals(event.getPreviousValue(Task.ASSIGNEE))) {
-					cache.invalidateUser(user);
+					unreadTasksUserCache.invalidateUser(user);
 				}
 			}
 			if (user.getId().equals(task.getAssignee())) {
-				cache.invalidateUser(user);
+				unreadTasksUserCache.invalidateUser(user);
 			}
 
 			if (assigneeUserCandidatesModified) {
 				List<String> previousUserCandidates = event.getPreviousValue(Task.ASSIGNEE_USERS_CANDIDATES);
 				if (previousUserCandidates.contains(user.getId())) {
-					cache.invalidateUser(user);
+					unreadTasksUserCache.invalidateUser(user);
 				}
 			}
 			if (task.getAssigneeUsersCandidates().contains(user.getId())) {
-				cache.invalidateUser(user);
+				unreadTasksUserCache.invalidateUser(user);
 			}
 		}
 
@@ -230,14 +251,38 @@ public class TaskRecordExtension extends RecordExtension {
 			if (assigneeGroupsCandidatesModified) {
 				List<String> previousUserCandidates = event.getPreviousValue(Task.ASSIGNEE_GROUPS_CANDIDATES);
 				if (previousUserCandidates.contains(group.getId())) {
-					cache.invalidateGroup(group);
+					unreadTasksUserCache.invalidateGroup(group);
 				}
 			}
 			if (task.getAssigneeGroupsCandidates().contains(group.getId())) {
-				cache.invalidateGroup(group);
+				unreadTasksUserCache.invalidateGroup(group);
 			}
 		}
 	}
+
+
+	private void invalidateOldANdNewAssigneeForIncompleteTaskCache(Task task, RecordModificationEvent event) {
+		Boolean assigneeModified = event.hasModifiedMetadata(Task.ASSIGNEE);
+		for (User user : userServices.getAllUsersInCollection(collection)) {
+			if (assigneeModified) {
+				if (user.getId().equals(event.getPreviousValue(Task.ASSIGNEE))) {
+					incompleteTasksUserCache.invalidateUser(user);
+				}
+			}
+			if (user.getId().equals(task.getAssignee())) {
+				incompleteTasksUserCache.invalidateUser(user);
+			}
+		}
+	}
+
+	private void invalidateAssigneeForIncompleteTaskCache(Task task) {
+		for (User user : userServices.getAllUsersInCollection(collection)) {
+			if (user.getId().equals(task.getAssignee())) {
+				incompleteTasksUserCache.invalidateUser(user);
+			}
+		}
+	}
+
 
 	private void taskInCreation(Task task, RecordInCreationBeforeValidationAndAutomaticValuesCalculationEvent event) {
 		sendEmailToAssignee(task);

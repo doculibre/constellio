@@ -22,6 +22,7 @@ import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.model.entities.records.wrappers.User;
 import com.vaadin.data.Property;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
@@ -210,6 +211,8 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 		tableAdapter.setFilterFieldVisible("menuBar", false);
 		tableAdapter.setFilterBarVisible(true);
 
+
+		//TODO: Ajouter cela dans l'extension pour les workflows
 		String linkedWorkflowExecutionCode = Task.DEFAULT_SCHEMA + "_" + "linkedWorkflowExecution";
 		String titleCode = Task.DEFAULT_SCHEMA + "_" + "title";
 		for(Object visibleColumn : taskTable.getVisibleColumns()){
@@ -280,6 +283,10 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 			});
 			return table;
 		}
+	}
+
+	public User getCurrentUser() {
+		return presenter.getCurrentUser();
 	}
 
 	@Override

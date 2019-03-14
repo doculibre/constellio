@@ -1,5 +1,6 @@
 package com.constellio.app.modules.tasks.services;
 
+import com.constellio.app.modules.tasks.caches.IncompleteTasksUserCache;
 import com.constellio.app.modules.tasks.caches.UnreadTasksUserCache;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskType;
@@ -15,7 +16,6 @@ import org.joda.time.LocalDate;
 
 import java.util.List;
 
-import static com.constellio.app.modules.tasks.caches.UnreadTasksUserCache.NAME;
 import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.CLOSED;
 import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.FINISHED;
 import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.CLOSED_CODE;
@@ -72,8 +72,7 @@ public class TasksSearchServices {
 	}
 
 	public long getCountUnreadTasksToUserQuery(User user) {
-
-		UnreadTasksUserCache cache = tasksSchemas.getModelLayerFactory().getCachesManager().getUserCache(NAME);
+		UnreadTasksUserCache cache = tasksSchemas.getModelLayerFactory().getCachesManager().getUserCache(UnreadTasksUserCache.NAME);
 		Long cachedValue = cache.getCachedUnreadTasks(user);
 		if (cachedValue == null) {
 			cachedValue = calculateCountUnreadTasksToUserQuery(user);
@@ -81,6 +80,23 @@ public class TasksSearchServices {
 		}
 
 		return cachedValue;
+	}
+
+	public long getCountIncompleteTasksToUserQuery(User user) {
+		IncompleteTasksUserCache cache = tasksSchemas.getModelLayerFactory().getCachesManager().getUserCache(IncompleteTasksUserCache.NAME);
+		Long cachedValue = cache.getCachedIncompleteTasks(user);
+		if (cachedValue == null) {
+			cachedValue = calculateCountIncompleteTasksToUserQuery(user);
+			cache.insertIncompleteTasks(user, cachedValue);
+		}
+
+		return cachedValue;
+	}
+
+	private Long calculateCountIncompleteTasksToUserQuery(User user) {
+		LogicalSearchQuery query = getTasksAssignedToUserQuery(user);
+		LogicalSearchCondition condition = query.getCondition().andWhere(tasksSchemas.userTask.status()).isNotEqual(getTerminatedStatus());
+		return searchServices.getResultsCount(new LogicalSearchQuery(condition));
 	}
 
 	private long calculateCountUnreadTasksToUserQuery(User user) {

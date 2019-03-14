@@ -60,6 +60,8 @@ public class User extends RecordWrapper {
 	public static final String USER_DOCUMENT_SIZE_SUM = "userDocumentSizeSum";
 	public static final String TAXONOMY_DISPLAY_ORDER = "taxonomyDisplayOrder";
 	public static final String DO_NOT_RECEIVE_EMAILS = "doNotReceiveEmails";
+	public static final String AUTOMATIC_TASK_ASSIGNATION = "automaticTaskAssignation";
+	public static final String AUTOMATIC_TASK_ASSIGNATION_WORKFLOW = "automaticTaskAssignationWorkflow";
 
 	private Logger LOGGER = LoggerFactory.getLogger(User.class);
 
@@ -604,5 +606,13 @@ public class User extends RecordWrapper {
 
 	public boolean isNotReceivingEmails() {
 		return Boolean.TRUE.equals(DO_NOT_RECEIVE_EMAILS);
+	}
+
+	public boolean isAutomaticTaskAssignation() {
+		return Boolean.TRUE.equals(get(AUTOMATIC_TASK_ASSIGNATION));
+	}
+
+	public List<String> getAutomaticTaskAssignationWorkflow() {
+		return getList(AUTOMATIC_TASK_ASSIGNATION_WORKFLOW);
 	}
 }
