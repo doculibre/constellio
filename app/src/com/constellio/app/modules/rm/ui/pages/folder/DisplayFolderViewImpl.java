@@ -36,6 +36,7 @@ import com.constellio.app.ui.framework.components.RecordDisplay;
 import com.constellio.app.ui.framework.components.ReportTabButton;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.content.ContentVersionVOResource;
+import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
@@ -92,8 +93,10 @@ import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import static com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration.modalDialog;
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -170,7 +173,12 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		mainLayout.setSizeFull();
 		mainLayout.setSpacing(true);
 
-		uploadField = new ContentVersionUploadField();
+		uploadField = new ContentVersionUploadField() {
+			@Override
+			public boolean fireValueChangeWhenEqual() {
+				return true;
+			}
+		} ;
 		uploadField.setVisible(false);
 		uploadField.setImmediate(true);
 		uploadField.setMultiValue(false);
@@ -694,20 +702,20 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				}
 
 				@Override
-			public boolean isSelected(Object itemId) {
-				RecordVOItem item = (RecordVOItem) table.getItem(itemId);
-				RecordVO recordVO = item.getRecord();
-				return presenter.isSelected(recordVO);
-			}
+				public boolean isSelected(Object itemId) {
+					RecordVOItem item = (RecordVOItem) table.getItem(itemId);
+					RecordVO recordVO = item.getRecord();
+					return presenter.isSelected(recordVO);
+				}
 
-			@Override
-			public void setSelected(Object itemId, boolean selected) {
-				RecordVOItem item = (RecordVOItem) table.getItem(itemId);
-				RecordVO recordVO = item.getRecord();
-				presenter.recordSelectionChanged(recordVO, selected);
-				adjustSelectAllButton(selected);
-			}
-		};
+				@Override
+				public void setSelected(Object itemId, boolean selected) {
+					RecordVOItem item = (RecordVOItem) table.getItem(itemId);
+					RecordVO recordVO = item.getRecord();
+					presenter.recordSelectionChanged(recordVO, selected);
+					adjustSelectAllButton(selected);
+				}
+			};
 			tabSheet.replaceComponent(folderContentComponent, tableAdapter);
 			folderContentComponent = tableAdapter;
 
@@ -728,7 +736,8 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				@Override
 				protected Component buildMetadataComponent(MetadataValueVO metadataValue, RecordVO recordVO) {
 					if (Task.STARRED_BY_USERS.equals(metadataValue.getMetadata().getLocalCode())) {
-						return new StarredFieldImpl(recordVO.getId(), (List<String>) metadataValue.getValue(), getSessionContext().getCurrentUser().getId()) {
+						return new StarredFieldImpl(recordVO.getId(), (List<String>) metadataValue.getValue(),
+								getSessionContext().getCurrentUser().getId()) {
 							@Override
 							public void updateTaskStarred(boolean isStarred, String taskId) {
 								presenter.updateTaskStarred(isStarred, taskId, tasksDataProvider);
@@ -761,7 +770,8 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 					Iterator<?> iterator = sortableContainerPropertyIds.iterator();
 					while (iterator.hasNext()) {
 						Object property = iterator.next();
-						if (property != null && property instanceof MetadataVO && Task.STARRED_BY_USERS.equals(((MetadataVO) property).getLocalCode())) {
+						if (property != null && property instanceof MetadataVO && Task.STARRED_BY_USERS
+								.equals(((MetadataVO) property).getLocalCode())) {
 							iterator.remove();
 						}
 					}
@@ -899,6 +909,23 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		if (dragNDropAllowed) {
 			uploadField.drop(event);
 		}
+	}
+
+	@Override
+	public void showVersionUpdateWindow(final RecordVO recordVO, ContentVersionVO contentVersionVO) {
+		final Map<RecordVO, MetadataVO> record = new HashMap<>();
+		record.put(recordVO, recordVO.getMetadata(Document.CONTENT));
+
+		UpdateContentVersionWindowImpl uploadField = new UpdateContentVersionWindowImpl(record) {
+			@Override
+			public String getDocumentTitle() {
+				return recordVO.getTitle();
+			}
+		};
+		uploadField.setHeight("375px");
+		uploadField.setWidth("900px");
+		uploadField.setContentVersion(contentVersionVO);
+		UI.getCurrent().addWindow(uploadField);
 	}
 
 	@Override
@@ -1078,7 +1105,8 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 	@Override
 	public void openDocumentContentVersiontWindow(DocumentVO documentVO, ContentVersionVO contentVersionVO) {
-		documentVersionWindow.setContent(new DocumentContentVersionWindowImpl(documentVO, contentVersionVO, presenter.getParams()));
+		documentVersionWindow
+				.setContent(new DocumentContentVersionWindowImpl(documentVO, contentVersionVO, presenter.getParams()));
 		UI.getCurrent().addWindow(documentVersionWindow);
 	}
 

@@ -76,4 +76,6 @@ public interface DisplayFolderView extends BaseView, RecordsManagementViewGroup 
 
 	void clearUploadField();
 
+	void showVersionUpdateWindow(RecordVO recordVO, ContentVersionVO dragAndDropEvent);
+
 }
