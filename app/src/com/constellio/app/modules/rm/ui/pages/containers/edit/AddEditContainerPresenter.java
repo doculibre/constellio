@@ -17,6 +17,7 @@ import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
+import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
@@ -40,6 +41,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -55,6 +57,7 @@ public class AddEditContainerPresenter extends SingleSchemaBasePresenter<AddEdit
 
 	private String tabName;
 	private String administrativeUnitId;
+	private Map<String, String> params;
 
 	public static final String STYLE_NAME = "window-button";
 	public static final String WINDOW_STYLE_NAME = STYLE_NAME + "-window";
@@ -71,7 +74,10 @@ public class AddEditContainerPresenter extends SingleSchemaBasePresenter<AddEdit
 		editMode = StringUtils.isNotBlank(parameters) && StringUtils.countMatches(parameters, "/") == 0;
 
 		String recordId = parameters;
-		if(parameters.startsWith("edit")) {
+		if(parameters.contains(RMViews.FAV_GROUP_ID_KEY)) {
+			this.params = ParamUtils.getParamsMap(parameters);
+			recordId = params.get(RMViews.ID_KEY);
+		} else if(parameters.startsWith("edit")) {
 			editMode = true;
 			String[] parts = parameters.split("/");
 			recordId = parts[1];
@@ -88,6 +94,10 @@ public class AddEditContainerPresenter extends SingleSchemaBasePresenter<AddEdit
 
 	public RecordVO getContainerRecord() {
 		return container;
+	}
+
+	public Map<String, String> getParams() {
+		return params;
 	}
 
 	public void typeSelected(String type) {
@@ -128,7 +138,10 @@ public class AddEditContainerPresenter extends SingleSchemaBasePresenter<AddEdit
 			}
 		} else {
 			addOrUpdate(toRecord(record));
-			if(Strings.isNotBlank(tabName) && Strings.isNotBlank(administrativeUnitId)) {
+
+			if(params != null && params.get(RMViews.FAV_GROUP_ID_KEY) != null) {
+				view.navigate().to(RMViews.class).displayContainerFromFavorites(record.getId(), params.get(RMViews.FAV_GROUP_ID_KEY));
+			} else if(Strings.isNotBlank(tabName) && Strings.isNotBlank(administrativeUnitId)) {
 				view.navigate().to(RMViews.class)
 						.displayContainerFromContainerByAdministrativeUnit(record.getId(), tabName, administrativeUnitId);
 			} else {

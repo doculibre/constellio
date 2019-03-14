@@ -341,17 +341,22 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	public BaseBreadcrumbTrail getBreadCrumbTrail() {
 		String saveSearchDecommissioningId = null;
 		String searchTypeAsString = null;
+		String favoritesId = null;
 
 		Map<String, String> params = getParams();
-		if (params != null && params.get("decommissioningSearchId") != null) {
-			saveSearchDecommissioningId = params.get("decommissioningSearchId");
-			view.getUIContext()
-					.setAttribute(DecommissioningBuilderViewImpl.SAVE_SEARCH_DECOMMISSIONING, saveSearchDecommissioningId);
-		}
 
-		if (params != null && params.get("decommissioningType") != null) {
-			searchTypeAsString = params.get("decommissioningType");
-			view.getUIContext().setAttribute(DecommissioningBuilderViewImpl.DECOMMISSIONING_BUILDER_TYPE, searchTypeAsString);
+		if(params != null) {
+			if (params.get("decommissioningSearchId") != null) {
+				saveSearchDecommissioningId = params.get("decommissioningSearchId");
+				view.getUIContext()
+						.setAttribute(DecommissioningBuilderViewImpl.SAVE_SEARCH_DECOMMISSIONING, saveSearchDecommissioningId);
+			}
+
+			if (params.get("decommissioningType") != null) {
+				searchTypeAsString = params.get("decommissioningType");
+				view.getUIContext().setAttribute(DecommissioningBuilderViewImpl.DECOMMISSIONING_BUILDER_TYPE, searchTypeAsString);
+			}
+			favoritesId = params.get(RMViews.FAV_GROUP_ID_KEY);
 		}
 
 		SearchType searchType = null;
@@ -367,6 +372,8 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 		if (breadcrumbTrail != null) {
 			return breadcrumbTrail;
+		} else if (favoritesId != null) {
+			return new FolderDocumentContainerBreadcrumbTrail(view.getRecord().getId(), null, null, favoritesId, this.view);
 		} else if (saveSearchDecommissioningId == null) {
 			String containerId = null;
 			if (params != null && params instanceof Map) {
@@ -729,6 +736,10 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 	public void addSubFolderButtonClicked() {
 		navigate().to(RMViews.class).addFolder(folderVO.getId());
+	}
+
+	public void navigateToSelf() {
+		navigateToFolder(this.folderVO.getId());
 	}
 
 	public void editFolderButtonClicked() {

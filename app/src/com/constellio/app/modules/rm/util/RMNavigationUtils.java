@@ -19,12 +19,16 @@ public class RMNavigationUtils {
 		RMModuleExtensions rmModuleExtensions = appLayerFactory.getExtensions().forCollection(collection)
 				.forModule(ConstellioRMModule.ID);
 		String containerId = null;
+		String favGroupId = null;
 
 		if (params != null) {
 			containerId = params.get("containerId");
+			favGroupId = params.get(RMViews.FAV_GROUP_ID_KEY);
 		}
 
-		if (containerId != null) {
+		if(favGroupId != null) {
+			navigation.to(RMViews.class).displayFolderFromFavorites(id, favGroupId);
+		} else if (containerId != null) {
 			navigation.to(RMViews.class).displayFolderFromContainer(id, containerId);
 		} else if (DecommissionNavUtil.areTypeAndSearchIdPresent(params)) {
 
@@ -45,7 +49,15 @@ public class RMNavigationUtils {
 
 		Navigation navigation = new Navigation();
 
-		if (areTypeAndSearchIdPresent) {
+		String favGroupId = null;
+
+		if(params != null) {
+			favGroupId = params.get(RMViews.FAV_GROUP_ID_KEY);
+		}
+
+		if(favGroupId != null) {
+			navigation.to(RMViews.class).editFolderFromFavorites(id, favGroupId);
+		} else if (areTypeAndSearchIdPresent) {
 			navigation.to(RMViews.class).editFolderFromDecommission(id,
 					DecommissionNavUtil.getSearchId(params), DecommissionNavUtil.getSearchType(params));
 		} else if (rmModuleExtensions.navigateToEditFolderWhileKeepingTraceOfPreviousView(new NavigateToFromAPageParams(params, id))) {
@@ -67,7 +79,15 @@ public class RMNavigationUtils {
 		RMModuleExtensions rmModuleExtensions = appLayerFactory.getExtensions().forCollection(collection)
 				.forModule(ConstellioRMModule.ID);
 
-		if (containerId != null) {
+		String favGroupId = null;
+
+		if(params != null) {
+			favGroupId = params.get(RMViews.FAV_GROUP_ID_KEY);
+		}
+
+		if(favGroupId != null) {
+			navigation.to(RMViews.class).displayDocumentFromFavorites(id, favGroupId);
+		} else if (containerId != null) {
 			navigation.to(RMViews.class).displayDocumentFromContainer(id, containerId);
 		} else if (DecommissionNavUtil.areTypeAndSearchIdPresent(params)) {
 			ConstellioEIMConfigs configs = new ConstellioEIMConfigs(appLayerFactory.getModelLayerFactory());
@@ -89,7 +109,14 @@ public class RMNavigationUtils {
 
 		boolean areTypeAndSearchIdPresent = DecommissionNavUtil.areTypeAndSearchIdPresent(params);
 
-		if (areTypeAndSearchIdPresent) {
+		String favGroupId = null;
+		if(params != null) {
+			favGroupId = params.get(RMViews.FAV_GROUP_ID_KEY);
+		}
+
+		if(favGroupId != null) {
+			navigation.to(RMViews.class).editDocumentFromFavorites(id, favGroupId);
+		} else if (areTypeAndSearchIdPresent) {
 			navigation.to(RMViews.class).editDocumentFromDecommission(id,
 					DecommissionNavUtil.getSearchId(params), DecommissionNavUtil.getSearchType(params));
 		} else if (rmModuleExtensions.navigateToEditDocumentWhileKeepingTraceOfPreviousView(new NavigateToFromAPageParams(params, id))) {

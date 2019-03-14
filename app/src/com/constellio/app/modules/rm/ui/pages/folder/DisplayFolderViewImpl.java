@@ -245,6 +245,9 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		return presenter.getBreadCrumbTrail();
 	}
 
+	public void navigateToSelf() {
+		presenter.navigateToSelf();
+	}
 
 	@Override
 	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {

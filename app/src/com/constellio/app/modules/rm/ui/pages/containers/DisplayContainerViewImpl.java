@@ -1,6 +1,7 @@
 package com.constellio.app.modules.rm.ui.pages.containers;
 
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
+import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.ui.breadcrumb.ContainerByAdministrativeUnitBreadcrumbTrail;
 import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentContainerBreadcrumbTrail;
 import com.constellio.app.modules.rm.ui.pages.cart.DefaultFavoritesTable;
@@ -363,7 +364,15 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 		String regularSearchId = getUIContext().getAttribute(BaseBreadcrumbTrail.SEARCH_ID);
 		Boolean advancedSearch = getUIContext().getAttribute(BaseBreadcrumbTrail.ADVANCED_SEARCH);
 
-		if (searchId == null && regularSearchId != null && advancedSearch) {
+		String favGroupIdKey = null;
+
+		if(presenter.getParams() != null) {
+			favGroupIdKey = presenter.getParams().get(RMViews.FAV_GROUP_ID_KEY);
+		}
+
+		if(favGroupIdKey != null) {
+			return new FolderDocumentContainerBreadcrumbTrail(null, null,presenter.getContainer().getId(), favGroupIdKey, this);
+		} else if (searchId == null && regularSearchId != null && advancedSearch) {
 			return new FolderDocumentContainerBreadcrumbTrail(null, null, presenter.getContainer().getId(), this);
 		} else {
 			return new FolderDocumentContainerBreadcrumbTrail(null, null, presenter.getContainer().getId(), this) {
