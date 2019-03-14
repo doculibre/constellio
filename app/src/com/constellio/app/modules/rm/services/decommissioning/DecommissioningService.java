@@ -217,7 +217,7 @@ public class DecommissioningService {
 				   !configs.isApprovalRequiredForDepositOfSemiActive();
 		}
 		if (decommissioningList.getDecommissioningListType().isDestroyal()) {
-  			return decommissioningList.isFromActive() ?
+			return decommissioningList.isFromActive() ?
 				   !configs.isApprovalRequiredForDestructionOfActive() :
 				   !configs.isApprovalRequiredForDestructionOfSemiActive();
 		}
@@ -617,11 +617,6 @@ public class DecommissioningService {
 			ids.add(record.getId());
 		}
 		return ids;
-	}
-
-	public List<String> getAdministrativeUnitsForUser(User user) {
-		return modelLayerFactory.newAuthorizationsServices()
-				.getConceptsForWhichUserHasPermission(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST, user);
 	}
 
 	public List<String> getRetentionRulesForCategory(String categoryId, String uniformSubdivisionId) {

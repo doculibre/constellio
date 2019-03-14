@@ -136,11 +136,20 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 					currentAdministrativeUnitId = currentAdministrativeUnit.getParent();
 				}
 			} else if (categoryTaxonomy != null && categoryTaxonomy.getCode().equals(taxonomyCode)) {
+				SchemaPresenterUtils schemaPresenterUtils = new SchemaPresenterUtils(categoryTaxonomy.getCode(), breadcrumbTrail.getView().getConstellioFactories(), breadcrumbTrail.getSessionContext());
 				selectedTaxonomy = categoryTaxonomy;
 				String currentCategoryId = folder.getCategory();
 				while (currentCategoryId != null) {
+					final String finalCurrentCategoryId = currentCategoryId;
 					Category currentCategory = rmSchemasRecordsServices.getCategory(currentCategoryId);
-					breadcrumbItems.add(0, new TaxonomyElementBreadcrumbItem(currentCategoryId));
+					breadcrumbItems.add(0, new TaxonomyElementBreadcrumbItem(currentCategoryId) {
+//						@Override
+//						public boolean isEnabled() {
+//							Record record = schemaPresenterUtils.getRecord(finalCurrentCategoryId);
+//							User user = schemaPresenterUtils.getCurrentUser();
+//							return user.hasAny(RMPermissionsTo.DISPLAY_CLASSIFICATION_PLAN, RMPermissionsTo.MANAGE_CLASSIFICATION_PLAN).on(record);
+//						}
+					});
 					currentCategoryId = currentCategory.getParent();
 				}
 			} else {

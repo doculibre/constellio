@@ -59,7 +59,7 @@ public class BatchProcessingButton extends WindowButton {
 		} else if (presenter.isSearchResultsSelectionForm()) {
 			windowContent = buildSearchResultsSelectionForm();
 		} else {
-			windowContent = buildBatchProcessingForm();
+			windowContent = buildBatchProcessingFormOrShowError();
 		}
 		return windowContent;
 	}
@@ -87,7 +87,7 @@ public class BatchProcessingButton extends WindowButton {
 					view.showErrorMessage($(validationErrors.getValidationErrors().get(0)));
 					getWindow().close();
 				}
-				getWindow().setContent(buildBatchProcessingForm());
+				getWindow().setContent(buildBatchProcessingFormOrShowError());
 				getWindow().setHeight(BatchProcessingButton.this.getConfiguration().getHeight());
 				getWindow().setPosition(getWindow().getPositionX(), 30);
 			}
@@ -102,7 +102,7 @@ public class BatchProcessingButton extends WindowButton {
 					view.showErrorMessage($(validationErrors.getValidationErrors().get(0)));
 					getWindow().close();
 				}
-				getWindow().setContent(buildBatchProcessingForm());
+				getWindow().setContent(buildBatchProcessingFormOrShowError());
 				getWindow().setHeight(BatchProcessingButton.this.getConfiguration().getHeight());
 				getWindow().setPosition(getWindow().getPositionX(), 30);
 			}
@@ -119,7 +119,11 @@ public class BatchProcessingButton extends WindowButton {
 		return panel;
 	}
 
-	private Component buildBatchProcessingForm() {
+	private Component buildBatchProcessingFormOrShowError() {
+		if (!presenter.validateUserHaveBatchProcessPermissionOnAllRecords(view.getSchemaType())) {
+			return new Label($("BatchProcess.batchProcessPermissionMissing"));
+		}
+
 		Panel panel = new Panel();
 		vLayout = new VerticalLayout();
 		vLayout.setSpacing(true);

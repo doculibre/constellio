@@ -33,7 +33,7 @@ public class DecommissioningSecurityService {
 	}
 
 	public boolean hasAccessToDecommissioningMainPage(User user) {
-		if (user.hasAny(RMPermissionsTo.APPROVE_DECOMMISSIONING_LIST, RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).onSomething()
+		if (user.hasAny(RMPermissionsTo.APPROVE_DECOMMISSIONING_LIST, RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST, RMPermissionsTo.CREATE_DECOMMISSIONING_LIST).onSomething()
 			|| user.hasAny(RMPermissionsTo.CREATE_TRANSFER_DECOMMISSIONING_LIST, RMPermissionsTo.EDIT_TRANSFER_DECOMMISSIONING_LIST).onSomething()) {
 			return true;
 		}
@@ -42,12 +42,17 @@ public class DecommissioningSecurityService {
 	}
 
 	public boolean hasAccessToDecommissioningListPage(DecommissioningList list, User user) {
-		return hasProcessPermissionOnList(user, list) || hasManageDecommissioningPermissionOnList(user, list) ||
+		return hasProcessPermissionOnList(user, list) || hasCreatePermissionOnList(user, list)
+				|| hasManageDecommissioningPermissionOnList(user, list) ||
 			   hasPermissionToCreateTransferOnList(list, user) ||
 			   canValidate(list, user);
 	}
 
-	private boolean hasProcessPermissionOnList(User user, DecommissioningList list) {
+	public boolean hasCreatePermissionOnList(User user, DecommissioningList list) {
+		return hasPermissionOnList(user, list, RMPermissionsTo.CREATE_DECOMMISSIONING_LIST);
+	}
+
+	public boolean hasProcessPermissionOnList(User user, DecommissioningList list) {
 		return hasPermissionOnList(user, list, RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST);
 	}
 
@@ -71,16 +76,16 @@ public class DecommissioningSecurityService {
 	}
 
 	public boolean canAskValidation(DecommissioningList list, User user) {
-		return hasProcessPermissionOnList(user, list) || hasPermissionToCreateTransferOnList(list, user) || hasManageDecommissioningPermissionOnList(user, list);
+		return hasProcessPermissionOnList(user, list) || hasCreatePermissionOnList(user, list) || hasPermissionToCreateTransferOnList(list, user) || hasManageDecommissioningPermissionOnList(user, list);
 	}
 
 	public boolean canCreateLists(User user) {
-		return user.has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).onSomething() ||
+		return user.has(RMPermissionsTo.CREATE_DECOMMISSIONING_LIST).onSomething() ||
 			   user.has(RMPermissionsTo.CREATE_TRANSFER_DECOMMISSIONING_LIST).onSomething();
 	}
 
 	public boolean canAskApproval(DecommissioningList list, User user) {
-		return hasProcessPermissionOnList(user, list) || hasPermissionToCreateTransferOnList(list, user);
+		return hasProcessPermissionOnList(user, list) || hasCreatePermissionOnList(user, list) || hasPermissionToCreateTransferOnList(list, user);
 	}
 
 	public boolean canApprove(DecommissioningList list, User user) {
@@ -105,9 +110,10 @@ public class DecommissioningSecurityService {
 
 	public List<String> getVisibleTabsInDecommissioningMainPage(User user) {
 		List<String> tabs;
-		if (user.has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).onSomething()) {
+		boolean createDecommissioningListPerm = user.has(RMPermissionsTo.CREATE_DECOMMISSIONING_LIST).onSomething();
+		if (user.has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).onSomething()
+				|| createDecommissioningListPerm) {
 			tabs = new ArrayList<>(Arrays.asList(
-					DecommissioningMainPresenter.CREATE,
 					DecommissioningMainPresenter.GENERATED,
 					DecommissioningMainPresenter.PENDING_VALIDATION,
 					DecommissioningMainPresenter.TO_VALIDATE,
@@ -116,6 +122,10 @@ public class DecommissioningSecurityService {
 					DecommissioningMainPresenter.TO_APPROVE,
 					DecommissioningMainPresenter.APPROVED,
 					DecommissioningMainPresenter.PROCESSED));
+
+			if(createDecommissioningListPerm) {
+				tabs.add(0,	DecommissioningMainPresenter.CREATE);
+			}
 		} else if (user.has(RMPermissionsTo.APPROVE_DECOMMISSIONING_LIST).onSomething()) {
 			tabs = new ArrayList<>(Arrays.asList(
 					DecommissioningMainPresenter.PENDING_VALIDATION,

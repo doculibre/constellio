@@ -102,23 +102,25 @@ public class DisplayRetentionRuleViewImpl extends BaseViewImpl implements Displa
 	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
 		List<Button> actionMenuButtons = super.buildActionMenuButtons(event);
 
-		editButton = new EditButton(false) {
-			@Override
-			protected void buttonClick(ClickEvent event) {
-				presenter.editButtonClicked();
-			}
-		};
+		if(presenter.isManageRetentionRulesGlobally()) {
+			editButton = new EditButton(false) {
+				@Override
+				protected void buttonClick(ClickEvent event) {
+					presenter.editButtonClicked();
+				}
+			};
 
-		deleteButton = new DeleteButton(false) {
-			@Override
-			protected void confirmButtonClick(ConfirmDialog dialog) {
-				presenter.deleteButtonClicked();
-			}
-		};
-		deleteButton.setEnabled(presenter.validateDeletable(retentionRuleVO).isEmpty());
+			deleteButton = new DeleteButton(false) {
+				@Override
+				protected void confirmButtonClick(ConfirmDialog dialog) {
+					presenter.deleteButtonClicked();
+				}
+			};
+			deleteButton.setEnabled(presenter.validateDeletable(retentionRuleVO).isEmpty());
 
-		actionMenuButtons.add(editButton);
-		actionMenuButtons.add(deleteButton);
+			actionMenuButtons.add(editButton);
+			actionMenuButtons.add(deleteButton);
+		}
 
 		return actionMenuButtons;
 	}

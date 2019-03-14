@@ -231,34 +231,37 @@ public class TaxonomyManagementViewImpl extends BaseViewImpl implements Taxonomy
 				}
 			});
 
-			buttonsContainer.addButton(new ContainerButton() {
-				@Override
-				protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
-					return new EditButton() {
-						@Override
-						protected void buttonClick(ClickEvent event) {
-							Integer index = (Integer) itemId;
-							RecordVO entity = dataProvider.getRecordVO(index);
-							presenter.editButtonClicked(entity);
-						}
-					};
-				}
-			});
+			boolean canOnlyConsultTaxonomy = presenter.canOnlyConsultTaxonomy();
+			if(!canOnlyConsultTaxonomy) {
+				buttonsContainer.addButton(new ContainerButton() {
+					@Override
+					protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
+						return new EditButton() {
+							@Override
+							protected void buttonClick(ClickEvent event) {
+								Integer index = (Integer) itemId;
+								RecordVO entity = dataProvider.getRecordVO(index);
+								presenter.editButtonClicked(entity);
+							}
+						};
+					}
+				});
 
-			buttonsContainer.addButton(new ContainerButton() {
-				@Override
-				protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
-					DeleteButton deleteButton = new DeleteButton() {
-						@Override
-						protected void confirmButtonClick(ConfirmDialog dialog) {
-							Integer index = (Integer) itemId;
-							RecordVO entity = dataProvider.getRecordVO(index);
-							presenter.deleteButtonClicked(entity);
-						}
-					};
-					return deleteButton;
-				}
-			});
+				buttonsContainer.addButton(new ContainerButton() {
+					@Override
+					protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
+						DeleteButton deleteButton = new DeleteButton() {
+							@Override
+							protected void confirmButtonClick(ConfirmDialog dialog) {
+								Integer index = (Integer) itemId;
+								RecordVO entity = dataProvider.getRecordVO(index);
+								presenter.deleteButtonClicked(entity);
+							}
+						};
+						return deleteButton;
+					}
+				});
+			}
 			// TODO Implement deleteLogically for taxonomy concepts
 			recordsContainer = buttonsContainer;
 
@@ -274,8 +277,12 @@ public class TaxonomyManagementViewImpl extends BaseViewImpl implements Taxonomy
 			setDefaultOrderBy(presenter.getDefaultOrderField(), dataProvider, table);
 			table.sort();
 
-			layout.addComponents(addButton, table);
-			layout.setComponentAlignment(addButton, Alignment.TOP_RIGHT);
+			if(!canOnlyConsultTaxonomy) {
+				layout.addComponents(addButton);
+				layout.setComponentAlignment(addButton, Alignment.TOP_RIGHT);
+			}
+
+			layout.addComponent(table);
 		}
 		return layout;
 	}
@@ -289,36 +296,38 @@ public class TaxonomyManagementViewImpl extends BaseViewImpl implements Taxonomy
 	@Override
 	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
 		List<Button> actionMenuButtons = new ArrayList<Button>();
-		if (presenter.getCurrentConcept() != null && presenter.isPrincipalTaxonomy()) {
-			actionMenuButtons.add(new LinkButton($("TaxonomyManagementView.manageAuthorizations")) {
-				@Override
-				protected void buttonClick(ClickEvent event) {
-					presenter.manageAccessAuthorizationsButtonClicked();
+		if(!presenter.canOnlyConsultTaxonomy()) {
+			if (presenter.getCurrentConcept() != null && presenter.isPrincipalTaxonomy()) {
+				actionMenuButtons.add(new LinkButton($("TaxonomyManagementView.manageAuthorizations")) {
+					@Override
+					protected void buttonClick(ClickEvent event) {
+						presenter.manageAccessAuthorizationsButtonClicked();
+					}
+				});
+				actionMenuButtons.add(new LinkButton($("TaxonomyManagementView.manageRoles")) {
+					@Override
+					protected void buttonClick(ClickEvent event) {
+						presenter.manageRoleAuthorizationsButtonClicked();
+					}
+				});
+			}
+			RecordVO currentConcept = presenter.getCurrentConcept();
+			if (currentConcept != null) {
+				actionMenuButtons.add(new EditButton($("TaxonomyManagementView.edit")) {
+					@Override
+					protected void buttonClick(ClickEvent event) {
+						presenter.editButtonClicked(presenter.getCurrentConcept());
+					}
+				});
+				actionMenuButtons.add(new DeleteButton($("TaxonomyManagementView.delete")) {
+					@Override
+					protected void confirmButtonClick(ConfirmDialog dialog) {
+						presenter.deleteButtonClicked(presenter.getCurrentConcept());
+					}
+				});
+				if (presenter.isSequenceTable(currentConcept)) {
+					actionMenuButtons.add(new ListSequencesButton(currentConcept.getId(), $("TaxonomyManagementView.sequences")));
 				}
-			});
-			actionMenuButtons.add(new LinkButton($("TaxonomyManagementView.manageRoles")) {
-				@Override
-				protected void buttonClick(ClickEvent event) {
-					presenter.manageRoleAuthorizationsButtonClicked();
-				}
-			});
-		}
-		RecordVO currentConcept = presenter.getCurrentConcept();
-		if (currentConcept != null) {
-			actionMenuButtons.add(new EditButton($("TaxonomyManagementView.edit")) {
-				@Override
-				protected void buttonClick(ClickEvent event) {
-					presenter.editButtonClicked(presenter.getCurrentConcept());
-				}
-			});
-			actionMenuButtons.add(new DeleteButton($("TaxonomyManagementView.delete")) {
-				@Override
-				protected void confirmButtonClick(ConfirmDialog dialog) {
-					presenter.deleteButtonClicked(presenter.getCurrentConcept());
-				}
-			});
-			if (presenter.isSequenceTable(currentConcept)) {
-				actionMenuButtons.add(new ListSequencesButton(currentConcept.getId(), $("TaxonomyManagementView.sequences")));
 			}
 		}
 

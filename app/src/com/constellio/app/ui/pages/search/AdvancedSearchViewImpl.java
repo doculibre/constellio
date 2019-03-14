@@ -147,6 +147,11 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 		} else if (StorageSpace.SCHEMA_TYPE.equals(schemaType)) {
 			batchProcessingButton.setVisible(presenter.getUser().has(RMPermissionsTo.MANAGE_STORAGE_SPACES).globally());
 		}
+
+		if(!presenter.hasBatchProcessPermission()) {
+			batchProcessingButton.setVisible(false);
+		}
+
 		selectionActions.add(batchProcessingButton);
 
 		if (Folder.SCHEMA_TYPE.equals(schemaType) || ContainerRecord.SCHEMA_TYPE.equals(schemaType) || Document.SCHEMA_TYPE.equals(schemaType)) {

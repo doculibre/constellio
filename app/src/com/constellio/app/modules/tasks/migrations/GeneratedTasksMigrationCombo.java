@@ -1,18 +1,7 @@
 package com.constellio.app.modules.tasks.migrations;
 
-import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
-import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
-import com.constellio.model.entities.schemas.MetadataTransiency;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import com.constellio.model.services.security.roles.RolesManager;
-import java.util.ArrayList;
-import static com.constellio.data.utils.HashMapBuilder.stringObjectMap;
-import static java.util.Arrays.asList;
-
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
+import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.modules.rm.wrappers.structures.CommentFactory;
 import com.constellio.app.modules.tasks.model.calculators.DecisionsTasksCalculator;
@@ -27,7 +16,9 @@ import com.constellio.app.modules.tasks.model.wrappers.WorkflowInstanceStatus;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollowerFactory;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskReminderFactory;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.structures.MapStringListStringStructureFactory;
 import com.constellio.model.entities.structures.MapStringStringStructureFactory;
 import com.constellio.model.services.contents.ContentFactory;
@@ -47,7 +38,8 @@ import com.constellio.model.services.schemas.calculators.TokensCalculator4;
 import com.constellio.model.services.schemas.validators.ManualTokenValidator;
 import com.constellio.model.services.schemas.validators.PercentageValidator;
 import com.constellio.model.services.security.roles.RolesManager;
-import java.lang.String;
+
+import static java.util.Arrays.asList;
 
 public final class GeneratedTasksMigrationCombo {
   String collection;
@@ -252,10 +244,11 @@ public final class GeneratedTasksMigrationCombo {
     workflowInstance_errorOnPhysicalDeletion.setSystemReserved(true);
     workflowInstance_errorOnPhysicalDeletion.setUndeletable(true);
     workflowInstance_errorOnPhysicalDeletion.setMultiLingual(false);
-    MetadataBuilder workflowInstance_estimatedSize = workflowInstanceSchema.create("estimatedSize").setType(MetadataValueType.INTEGER);
-    workflowInstance_estimatedSize.setSystemReserved(true);
-    workflowInstance_estimatedSize.setUndeletable(true);
-    workflowInstance_estimatedSize.setMultiLingual(false);
+	  MetadataBuilder workflowInstance_estimatedSize = workflowInstanceSchema.create("estimatedSize")
+			  .setType(MetadataValueType.INTEGER);
+	  workflowInstance_estimatedSize.setSystemReserved(true);
+	  workflowInstance_estimatedSize.setUndeletable(true);
+	  workflowInstance_estimatedSize.setMultiLingual(false);
     MetadataBuilder workflowInstance_extraFields = workflowInstanceSchema.create("extraFields").setType(MetadataValueType.STRUCTURE);
     workflowInstance_extraFields.defineStructureFactory(MapStringListStringStructureFactory.class);
     MetadataBuilder workflowInstance_id = workflowInstanceSchema.create("id").setType(MetadataValueType.STRING);
@@ -438,10 +431,10 @@ public final class GeneratedTasksMigrationCombo {
     workflow_errorOnPhysicalDeletion.setSystemReserved(true);
     workflow_errorOnPhysicalDeletion.setUndeletable(true);
     workflow_errorOnPhysicalDeletion.setMultiLingual(false);
-    MetadataBuilder workflow_estimatedSize = workflowSchema.create("estimatedSize").setType(MetadataValueType.INTEGER);
-    workflow_estimatedSize.setSystemReserved(true);
-    workflow_estimatedSize.setUndeletable(true);
-    workflow_estimatedSize.setMultiLingual(false);
+	  MetadataBuilder workflow_estimatedSize = workflowSchema.create("estimatedSize").setType(MetadataValueType.INTEGER);
+	  workflow_estimatedSize.setSystemReserved(true);
+	  workflow_estimatedSize.setUndeletable(true);
+	  workflow_estimatedSize.setMultiLingual(false);
     MetadataBuilder workflow_id = workflowSchema.create("id").setType(MetadataValueType.STRING);
     workflow_id.setDefaultRequirement(true);
     workflow_id.setSystemReserved(true);
@@ -626,10 +619,10 @@ public final class GeneratedTasksMigrationCombo {
     ddvTaskType_errorOnPhysicalDeletion.setSystemReserved(true);
     ddvTaskType_errorOnPhysicalDeletion.setUndeletable(true);
     ddvTaskType_errorOnPhysicalDeletion.setMultiLingual(false);
-    MetadataBuilder ddvTaskType_estimatedSize = ddvTaskTypeSchema.create("estimatedSize").setType(MetadataValueType.INTEGER);
-    ddvTaskType_estimatedSize.setSystemReserved(true);
-    ddvTaskType_estimatedSize.setUndeletable(true);
-    ddvTaskType_estimatedSize.setMultiLingual(false);
+	  MetadataBuilder ddvTaskType_estimatedSize = ddvTaskTypeSchema.create("estimatedSize").setType(MetadataValueType.INTEGER);
+	  ddvTaskType_estimatedSize.setSystemReserved(true);
+	  ddvTaskType_estimatedSize.setUndeletable(true);
+	  ddvTaskType_estimatedSize.setMultiLingual(false);
     MetadataBuilder ddvTaskType_id = ddvTaskTypeSchema.create("id").setType(MetadataValueType.STRING);
     ddvTaskType_id.setDefaultRequirement(true);
     ddvTaskType_id.setSystemReserved(true);
@@ -844,10 +837,10 @@ public final class GeneratedTasksMigrationCombo {
     MetadataBuilder userTask_escalationAssignee = userTaskSchema.create("escalationAssignee").setType(MetadataValueType.REFERENCE);
     userTask_escalationAssignee.setUndeletable(true);
     userTask_escalationAssignee.defineReferencesTo(types.getSchemaType("user"));
-    MetadataBuilder userTask_estimatedSize = userTaskSchema.create("estimatedSize").setType(MetadataValueType.INTEGER);
-    userTask_estimatedSize.setSystemReserved(true);
-    userTask_estimatedSize.setUndeletable(true);
-    userTask_estimatedSize.setMultiLingual(false);
+	  MetadataBuilder userTask_estimatedSize = userTaskSchema.create("estimatedSize").setType(MetadataValueType.INTEGER);
+	  userTask_estimatedSize.setSystemReserved(true);
+	  userTask_estimatedSize.setUndeletable(true);
+	  userTask_estimatedSize.setMultiLingual(false);
     MetadataBuilder userTask_id = userTaskSchema.create("id").setType(MetadataValueType.STRING);
     userTask_id.setDefaultRequirement(true);
     userTask_id.setSystemReserved(true);
@@ -1055,7 +1048,7 @@ public final class GeneratedTasksMigrationCombo {
     MetadataBuilder task_approval_detachedauthorizations = task_approvalSchema.get("detachedauthorizations");
     MetadataBuilder task_approval_dueDate = task_approvalSchema.get("dueDate");
     MetadataBuilder task_approval_errorOnPhysicalDeletion = task_approvalSchema.get("errorOnPhysicalDeletion");
-    MetadataBuilder task_approval_estimatedSize = task_approvalSchema.get("estimatedSize");
+	  MetadataBuilder task_approval_estimatedSize = task_approvalSchema.get("estimatedSize");
     MetadataBuilder task_approval_finishedBy = task_approvalSchema.get("finishedBy");
     MetadataBuilder task_approval_finishedOn = task_approvalSchema.get("finishedOn");
     MetadataBuilder task_approval_id = task_approvalSchema.get("id");
@@ -1154,10 +1147,11 @@ public final class GeneratedTasksMigrationCombo {
     ddvTaskStatus_errorOnPhysicalDeletion.setSystemReserved(true);
     ddvTaskStatus_errorOnPhysicalDeletion.setUndeletable(true);
     ddvTaskStatus_errorOnPhysicalDeletion.setMultiLingual(false);
-    MetadataBuilder ddvTaskStatus_estimatedSize = ddvTaskStatusSchema.create("estimatedSize").setType(MetadataValueType.INTEGER);
-    ddvTaskStatus_estimatedSize.setSystemReserved(true);
-    ddvTaskStatus_estimatedSize.setUndeletable(true);
-    ddvTaskStatus_estimatedSize.setMultiLingual(false);
+	  MetadataBuilder ddvTaskStatus_estimatedSize = ddvTaskStatusSchema.create("estimatedSize")
+			  .setType(MetadataValueType.INTEGER);
+	  ddvTaskStatus_estimatedSize.setSystemReserved(true);
+	  ddvTaskStatus_estimatedSize.setUndeletable(true);
+	  ddvTaskStatus_estimatedSize.setMultiLingual(false);
     MetadataBuilder ddvTaskStatus_id = ddvTaskStatusSchema.create("id").setType(MetadataValueType.STRING);
     ddvTaskStatus_id.setDefaultRequirement(true);
     ddvTaskStatus_id.setSystemReserved(true);
@@ -1308,7 +1302,8 @@ public final class GeneratedTasksMigrationCombo {
     MetadataBuilder temporaryRecord_batchProcessReport_destructionDate = temporaryRecord_batchProcessReportSchema.get("destructionDate");
     MetadataBuilder temporaryRecord_batchProcessReport_detachedauthorizations = temporaryRecord_batchProcessReportSchema.get("detachedauthorizations");
     MetadataBuilder temporaryRecord_batchProcessReport_errorOnPhysicalDeletion = temporaryRecord_batchProcessReportSchema.get("errorOnPhysicalDeletion");
-    MetadataBuilder temporaryRecord_batchProcessReport_estimatedSize = temporaryRecord_batchProcessReportSchema.get("estimatedSize");
+	  MetadataBuilder temporaryRecord_batchProcessReport_estimatedSize = temporaryRecord_batchProcessReportSchema
+			  .get("estimatedSize");
     MetadataBuilder temporaryRecord_batchProcessReport_id = temporaryRecord_batchProcessReportSchema.get("id");
     MetadataBuilder temporaryRecord_batchProcessReport_legacyIdentifier = temporaryRecord_batchProcessReportSchema.get("legacyIdentifier");
     MetadataBuilder temporaryRecord_batchProcessReport_logicallyDeletedOn = temporaryRecord_batchProcessReportSchema.get("logicallyDeletedOn");
@@ -1344,7 +1339,7 @@ public final class GeneratedTasksMigrationCombo {
     MetadataBuilder temporaryRecord_exportAudit_destructionDate = temporaryRecord_exportAuditSchema.get("destructionDate");
     MetadataBuilder temporaryRecord_exportAudit_detachedauthorizations = temporaryRecord_exportAuditSchema.get("detachedauthorizations");
     MetadataBuilder temporaryRecord_exportAudit_errorOnPhysicalDeletion = temporaryRecord_exportAuditSchema.get("errorOnPhysicalDeletion");
-    MetadataBuilder temporaryRecord_exportAudit_estimatedSize = temporaryRecord_exportAuditSchema.get("estimatedSize");
+	  MetadataBuilder temporaryRecord_exportAudit_estimatedSize = temporaryRecord_exportAuditSchema.get("estimatedSize");
     MetadataBuilder temporaryRecord_exportAudit_id = temporaryRecord_exportAuditSchema.get("id");
     MetadataBuilder temporaryRecord_exportAudit_legacyIdentifier = temporaryRecord_exportAuditSchema.get("legacyIdentifier");
     MetadataBuilder temporaryRecord_exportAudit_logicallyDeletedOn = temporaryRecord_exportAuditSchema.get("logicallyDeletedOn");
@@ -1380,7 +1375,7 @@ public final class GeneratedTasksMigrationCombo {
     MetadataBuilder temporaryRecord_importAudit_destructionDate = temporaryRecord_importAuditSchema.get("destructionDate");
     MetadataBuilder temporaryRecord_importAudit_detachedauthorizations = temporaryRecord_importAuditSchema.get("detachedauthorizations");
     MetadataBuilder temporaryRecord_importAudit_errorOnPhysicalDeletion = temporaryRecord_importAuditSchema.get("errorOnPhysicalDeletion");
-    MetadataBuilder temporaryRecord_importAudit_estimatedSize = temporaryRecord_importAuditSchema.get("estimatedSize");
+	  MetadataBuilder temporaryRecord_importAudit_estimatedSize = temporaryRecord_importAuditSchema.get("estimatedSize");
     MetadataBuilder temporaryRecord_importAudit_id = temporaryRecord_importAuditSchema.get("id");
     MetadataBuilder temporaryRecord_importAudit_legacyIdentifier = temporaryRecord_importAuditSchema.get("legacyIdentifier");
     MetadataBuilder temporaryRecord_importAudit_logicallyDeletedOn = temporaryRecord_importAuditSchema.get("logicallyDeletedOn");
@@ -1416,7 +1411,7 @@ public final class GeneratedTasksMigrationCombo {
     MetadataBuilder temporaryRecord_scriptReport_destructionDate = temporaryRecord_scriptReportSchema.get("destructionDate");
     MetadataBuilder temporaryRecord_scriptReport_detachedauthorizations = temporaryRecord_scriptReportSchema.get("detachedauthorizations");
     MetadataBuilder temporaryRecord_scriptReport_errorOnPhysicalDeletion = temporaryRecord_scriptReportSchema.get("errorOnPhysicalDeletion");
-    MetadataBuilder temporaryRecord_scriptReport_estimatedSize = temporaryRecord_scriptReportSchema.get("estimatedSize");
+	  MetadataBuilder temporaryRecord_scriptReport_estimatedSize = temporaryRecord_scriptReportSchema.get("estimatedSize");
     MetadataBuilder temporaryRecord_scriptReport_id = temporaryRecord_scriptReportSchema.get("id");
     MetadataBuilder temporaryRecord_scriptReport_legacyIdentifier = temporaryRecord_scriptReportSchema.get("legacyIdentifier");
     MetadataBuilder temporaryRecord_scriptReport_logicallyDeletedOn = temporaryRecord_scriptReportSchema.get("logicallyDeletedOn");
@@ -1452,7 +1447,7 @@ public final class GeneratedTasksMigrationCombo {
     MetadataBuilder temporaryRecord_vaultScanReport_destructionDate = temporaryRecord_vaultScanReportSchema.get("destructionDate");
     MetadataBuilder temporaryRecord_vaultScanReport_detachedauthorizations = temporaryRecord_vaultScanReportSchema.get("detachedauthorizations");
     MetadataBuilder temporaryRecord_vaultScanReport_errorOnPhysicalDeletion = temporaryRecord_vaultScanReportSchema.get("errorOnPhysicalDeletion");
-    MetadataBuilder temporaryRecord_vaultScanReport_estimatedSize = temporaryRecord_vaultScanReportSchema.get("estimatedSize");
+	  MetadataBuilder temporaryRecord_vaultScanReport_estimatedSize = temporaryRecord_vaultScanReportSchema.get("estimatedSize");
     MetadataBuilder temporaryRecord_vaultScanReport_id = temporaryRecord_vaultScanReportSchema.get("id");
     MetadataBuilder temporaryRecord_vaultScanReport_legacyIdentifier = temporaryRecord_vaultScanReportSchema.get("legacyIdentifier");
     MetadataBuilder temporaryRecord_vaultScanReport_logicallyDeletedOn = temporaryRecord_vaultScanReportSchema.get("logicallyDeletedOn");
@@ -1498,7 +1493,7 @@ public final class GeneratedTasksMigrationCombo {
     MetadataBuilder facet_field_detachedauthorizations = facet_fieldSchema.get("detachedauthorizations");
     MetadataBuilder facet_field_elementPerPage = facet_fieldSchema.get("elementPerPage");
     MetadataBuilder facet_field_errorOnPhysicalDeletion = facet_fieldSchema.get("errorOnPhysicalDeletion");
-    MetadataBuilder facet_field_estimatedSize = facet_fieldSchema.get("estimatedSize");
+	  MetadataBuilder facet_field_estimatedSize = facet_fieldSchema.get("estimatedSize");
     MetadataBuilder facet_field_facetType = facet_fieldSchema.get("facetType");
     MetadataBuilder facet_field_fieldDatastoreCode = facet_fieldSchema.get("fieldDatastoreCode");
     MetadataBuilder facet_field_id = facet_fieldSchema.get("id");
@@ -1540,7 +1535,7 @@ public final class GeneratedTasksMigrationCombo {
     MetadataBuilder facet_query_detachedauthorizations = facet_querySchema.get("detachedauthorizations");
     MetadataBuilder facet_query_elementPerPage = facet_querySchema.get("elementPerPage");
     MetadataBuilder facet_query_errorOnPhysicalDeletion = facet_querySchema.get("errorOnPhysicalDeletion");
-    MetadataBuilder facet_query_estimatedSize = facet_querySchema.get("estimatedSize");
+	  MetadataBuilder facet_query_estimatedSize = facet_querySchema.get("estimatedSize");
     MetadataBuilder facet_query_facetType = facet_querySchema.get("facetType");
     MetadataBuilder facet_query_fieldDatastoreCode = facet_querySchema.get("fieldDatastoreCode");
     MetadataBuilder facet_query_id = facet_querySchema.get("id");

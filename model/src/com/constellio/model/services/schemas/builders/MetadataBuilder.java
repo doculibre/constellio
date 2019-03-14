@@ -867,9 +867,9 @@ public class MetadataBuilder {
 			case TEXT:
 				dataStoreType = typesFactory.forText(multivalue);
 				break;
-			case INTEGER:
-				dataStoreType = typesFactory.forInteger(multivalue);
-				break;
+		case INTEGER:
+			dataStoreType = typesFactory.forInteger(multivalue);
+			break;
 
 			default:
 				throw new ImpossibleRuntimeException("Unsupported type : " + type);

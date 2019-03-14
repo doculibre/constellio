@@ -45,6 +45,7 @@ import com.constellio.app.ui.pages.search.criteria.ConditionException.ConditionE
 import com.constellio.app.ui.pages.search.criteria.ConditionException.ConditionException_UnclosedParentheses;
 import com.constellio.data.dao.services.bigVault.solr.SolrUtils;
 import com.constellio.data.frameworks.extensions.VaultBehaviorsList;
+import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.batchprocess.AsyncTask;
 import com.constellio.model.entities.batchprocess.AsyncTaskCreationRequest;
@@ -70,6 +71,7 @@ import com.constellio.model.services.records.RecordImpl;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.reports.ReportServices;
+import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
@@ -119,7 +121,9 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		batchProcessingExtensions = appLayerFactory.getExtensions().forCollection(view.getCollection()).batchProcessingExtensions;
 	}
 
-
+	public boolean hasBatchProcessPermission(){
+		return getCurrentUser().has(CorePermissions.MODIFY_RECORDS_USING_BATCH_PROCESS).onSomething();
+	}
 
 	public void setSchemaType(String schemaType) {
 		this.schemaTypeCode = schemaType;
@@ -590,9 +594,21 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	}
 
 	@Override
+	public boolean validateUserHaveBatchProcessPermissionOnAllRecords(String schemaTypeCode) {
+		LogicalSearchQuery logicalSearchQuery = buildBatchProcessLogicalSearchQuery();
+		long numFound = searchServices().query(logicalSearchQuery).getNumFound();
+		logicalSearchQuery = logicalSearchQuery.filteredWithUser(getUser(), CorePermissions.MODIFY_RECORDS_USING_BATCH_PROCESS);
+		SPEQueryResponse speQueryResponse = searchServices().query(logicalSearchQuery);
+		long numFoundWithFilter = speQueryResponse.getNumFound();
+
+		return numFoundWithFilter == numFound;
+	}
+
+	@Override
 	public boolean processBatchButtonClicked(String selectedType, String schemaType, RecordVO viewObject)
 			throws RecordServicesException {
-		batchProcessingPresenterService().execute(selectedType, buildBatchProcessLogicalSearchQuery(), viewObject, getCurrentUser());
+		batchProcessingPresenterService()
+				.execute(selectedType, buildBatchProcessLogicalSearchQuery(), viewObject, getCurrentUser());
 		if (searchID != null) {
 			view.navigate().to().advancedSearchReplay(searchID);
 		} else {
@@ -656,9 +672,9 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	@Override
 	public Object getReportParameters(String report) {
 		switch (report) {
-			case "Reports.fakeReport":
-			case "Reports.FolderLinearMeasureStats":
-				return super.getReportParameters(report);
+		case "Reports.fakeReport":
+		case "Reports.FolderLinearMeasureStats":
+			return super.getReportParameters(report);
 		}
 
 		return new SearchResultReportParameters(view.getSelectedRecordIds(), view.getSchemaType(),
@@ -676,7 +692,8 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	public LogicalSearchQuery buildBatchProcessLogicalSearchQuery() {
 		LogicalSearchQuery query = buildLogicalSearchQuery();
 		for (AdvancedSearchPresenterExtension extension : rmModuleExtensions.getAdvancedSearchPresenterExtensions()) {
-			query = extension.addAdditionalSearchQueryFilters(new AdvancedSearchPresenterExtension.AddAdditionalSearchQueryFiltersParams(query, schemaTypeCode));
+			query = extension.addAdditionalSearchQueryFilters(
+					new AdvancedSearchPresenterExtension.AddAdditionalSearchQueryFiltersParams(query, schemaTypeCode));
 		}
 		return query;
 	}
@@ -898,15 +915,15 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		List<Record> records = getRecords(selectedRecordIds);
 		String currentUserId = getCurrentUser().getId();
 		switch (schemaTypeCode) {
-			case Folder.SCHEMA_TYPE:
-				addFoldersToCart(currentUserId, records);
-				break;
-			case Document.SCHEMA_TYPE:
-				addDocumentsToCart(currentUserId, records);
-				break;
-			case ContainerRecord.SCHEMA_TYPE:
-				addContainersToCart(currentUserId, records);
-				break;
+		case Folder.SCHEMA_TYPE:
+			addFoldersToCart(currentUserId, records);
+			break;
+		case Document.SCHEMA_TYPE:
+			addDocumentsToCart(currentUserId, records);
+			break;
+		case ContainerRecord.SCHEMA_TYPE:
+			addContainersToCart(currentUserId, records);
+			break;
 		}
 		try {
 			recordServices().execute(new Transaction(records));
@@ -917,6 +934,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	}
 
 	public MetadataSchemaVO getSchema() {
-		return new MetadataSchemaToVOBuilder().build(schema(Cart.DEFAULT_SCHEMA), RecordVO.VIEW_MODE.TABLE, view.getSessionContext());
+		return new MetadataSchemaToVOBuilder()
+				.build(schema(Cart.DEFAULT_SCHEMA), RecordVO.VIEW_MODE.TABLE, view.getSessionContext());
 	}
 }

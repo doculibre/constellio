@@ -322,7 +322,7 @@ public class FilterUtils {
 			return SolrFilterBuilder.createAndFilterReturningTrueIfEmpty().build();
 
 		} else {
-			SolrFilterBuilder filterBuilder = SolrFilterBuilder.createAndFilterReturningFalseIfEmpty();
+			SolrFilterBuilder filterBuilder = SolrFilterBuilder.createOrFilterReturningFalseIfEmpty();
 			List<String> rolesGivingPermission = Role.toCodes(user.getRolesDetails().getRolesGivingPermission(permission));
 			for (String role : rolesGivingPermission) {
 

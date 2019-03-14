@@ -1,18 +1,7 @@
 package com.constellio.app.modules.es.migrations;
 
-import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
-import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
-import com.constellio.model.entities.schemas.MetadataTransiency;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import com.constellio.model.services.security.roles.RolesManager;
-import java.util.ArrayList;
-import static com.constellio.data.utils.HashMapBuilder.stringObjectMap;
-import static java.util.Arrays.asList;
-
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
+import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.modules.es.connectors.smb.LastFetchedStatus;
 import com.constellio.app.modules.es.connectors.smb.model.SmbFolderPathPartsCalculator;
@@ -29,7 +18,9 @@ import com.constellio.app.modules.es.model.connectors.structures.TraversalSchedu
 import com.constellio.app.modules.es.services.mapping.ConnectorFieldFactory;
 import com.constellio.app.modules.es.services.mapping.ConnectorFieldValidator;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.structures.MapStringListStringStructureFactory;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
@@ -46,7 +37,10 @@ import com.constellio.model.services.schemas.calculators.PrincipalPathCalculator
 import com.constellio.model.services.schemas.calculators.TokensCalculator4;
 import com.constellio.model.services.schemas.validators.ManualTokenValidator;
 import com.constellio.model.services.security.roles.RolesManager;
-import java.lang.String;
+
+import java.util.ArrayList;
+
+import static java.util.Arrays.asList;
 
 public final class GeneratedESMigrationCombo {
   String collection;
@@ -282,10 +276,11 @@ public final class GeneratedESMigrationCombo {
     connectorType_errorOnPhysicalDeletion.setSystemReserved(true);
     connectorType_errorOnPhysicalDeletion.setUndeletable(true);
     connectorType_errorOnPhysicalDeletion.setMultiLingual(false);
-    MetadataBuilder connectorType_estimatedSize = connectorTypeSchema.create("estimatedSize").setType(MetadataValueType.INTEGER);
-    connectorType_estimatedSize.setSystemReserved(true);
-    connectorType_estimatedSize.setUndeletable(true);
-    connectorType_estimatedSize.setMultiLingual(false);
+	  MetadataBuilder connectorType_estimatedSize = connectorTypeSchema.create("estimatedSize")
+			  .setType(MetadataValueType.INTEGER);
+	  connectorType_estimatedSize.setSystemReserved(true);
+	  connectorType_estimatedSize.setUndeletable(true);
+	  connectorType_estimatedSize.setMultiLingual(false);
     MetadataBuilder connectorType_id = connectorTypeSchema.create("id").setType(MetadataValueType.STRING);
     connectorType_id.setDefaultRequirement(true);
     connectorType_id.setSystemReserved(true);
@@ -491,10 +486,11 @@ public final class GeneratedESMigrationCombo {
     MetadataBuilder connectorHttpDocument_errorsCount = connectorHttpDocumentSchema.create("errorsCount").setType(MetadataValueType.NUMBER);
     connectorHttpDocument_errorsCount.setUndeletable(true);
     connectorHttpDocument_errorsCount.setDefaultValue(0);
-    MetadataBuilder connectorHttpDocument_estimatedSize = connectorHttpDocumentSchema.create("estimatedSize").setType(MetadataValueType.INTEGER);
-    connectorHttpDocument_estimatedSize.setSystemReserved(true);
-    connectorHttpDocument_estimatedSize.setUndeletable(true);
-    connectorHttpDocument_estimatedSize.setMultiLingual(false);
+	  MetadataBuilder connectorHttpDocument_estimatedSize = connectorHttpDocumentSchema.create("estimatedSize")
+			  .setType(MetadataValueType.INTEGER);
+	  connectorHttpDocument_estimatedSize.setSystemReserved(true);
+	  connectorHttpDocument_estimatedSize.setUndeletable(true);
+	  connectorHttpDocument_estimatedSize.setMultiLingual(false);
     MetadataBuilder connectorHttpDocument_fetchDelay = connectorHttpDocumentSchema.create("fetchDelay").setType(MetadataValueType.NUMBER);
     connectorHttpDocument_fetchDelay.setUndeletable(true);
     connectorHttpDocument_fetchDelay.setDefaultValue(10);
@@ -738,10 +734,11 @@ public final class GeneratedESMigrationCombo {
     MetadataBuilder connectorSmbFolder_errorsCount = connectorSmbFolderSchema.create("errorsCount").setType(MetadataValueType.NUMBER);
     connectorSmbFolder_errorsCount.setUndeletable(true);
     connectorSmbFolder_errorsCount.setDefaultValue(0);
-    MetadataBuilder connectorSmbFolder_estimatedSize = connectorSmbFolderSchema.create("estimatedSize").setType(MetadataValueType.INTEGER);
-    connectorSmbFolder_estimatedSize.setSystemReserved(true);
-    connectorSmbFolder_estimatedSize.setUndeletable(true);
-    connectorSmbFolder_estimatedSize.setMultiLingual(false);
+	  MetadataBuilder connectorSmbFolder_estimatedSize = connectorSmbFolderSchema.create("estimatedSize")
+			  .setType(MetadataValueType.INTEGER);
+	  connectorSmbFolder_estimatedSize.setSystemReserved(true);
+	  connectorSmbFolder_estimatedSize.setUndeletable(true);
+	  connectorSmbFolder_estimatedSize.setMultiLingual(false);
     MetadataBuilder connectorSmbFolder_fetchDelay = connectorSmbFolderSchema.create("fetchDelay").setType(MetadataValueType.NUMBER);
     connectorSmbFolder_fetchDelay.setUndeletable(true);
     connectorSmbFolder_fetchDelay.setDefaultValue(10);
@@ -1123,10 +1120,11 @@ public final class GeneratedESMigrationCombo {
     connectorInstance_errorOnPhysicalDeletion.setSystemReserved(true);
     connectorInstance_errorOnPhysicalDeletion.setUndeletable(true);
     connectorInstance_errorOnPhysicalDeletion.setMultiLingual(false);
-    MetadataBuilder connectorInstance_estimatedSize = connectorInstanceSchema.create("estimatedSize").setType(MetadataValueType.INTEGER);
-    connectorInstance_estimatedSize.setSystemReserved(true);
-    connectorInstance_estimatedSize.setUndeletable(true);
-    connectorInstance_estimatedSize.setMultiLingual(false);
+	  MetadataBuilder connectorInstance_estimatedSize = connectorInstanceSchema.create("estimatedSize")
+			  .setType(MetadataValueType.INTEGER);
+	  connectorInstance_estimatedSize.setSystemReserved(true);
+	  connectorInstance_estimatedSize.setUndeletable(true);
+	  connectorInstance_estimatedSize.setMultiLingual(false);
     MetadataBuilder connectorInstance_id = connectorInstanceSchema.create("id").setType(MetadataValueType.STRING);
     connectorInstance_id.setDefaultRequirement(true);
     connectorInstance_id.setSystemReserved(true);
@@ -1263,7 +1261,7 @@ public final class GeneratedESMigrationCombo {
     MetadataBuilder connectorInstance_http_detachedauthorizations = connectorInstance_httpSchema.get("detachedauthorizations");
     MetadataBuilder connectorInstance_http_enabled = connectorInstance_httpSchema.get("enabled");
     MetadataBuilder connectorInstance_http_errorOnPhysicalDeletion = connectorInstance_httpSchema.get("errorOnPhysicalDeletion");
-    MetadataBuilder connectorInstance_http_estimatedSize = connectorInstance_httpSchema.get("estimatedSize");
+	  MetadataBuilder connectorInstance_http_estimatedSize = connectorInstance_httpSchema.get("estimatedSize");
     MetadataBuilder connectorInstance_http_id = connectorInstance_httpSchema.get("id");
     MetadataBuilder connectorInstance_http_lastTraversalOn = connectorInstance_httpSchema.get("lastTraversalOn");
     MetadataBuilder connectorInstance_http_legacyIdentifier = connectorInstance_httpSchema.get("legacyIdentifier");
@@ -1304,7 +1302,7 @@ public final class GeneratedESMigrationCombo {
     MetadataBuilder connectorInstance_ldap_detachedauthorizations = connectorInstance_ldapSchema.get("detachedauthorizations");
     MetadataBuilder connectorInstance_ldap_enabled = connectorInstance_ldapSchema.get("enabled");
     MetadataBuilder connectorInstance_ldap_errorOnPhysicalDeletion = connectorInstance_ldapSchema.get("errorOnPhysicalDeletion");
-    MetadataBuilder connectorInstance_ldap_estimatedSize = connectorInstance_ldapSchema.get("estimatedSize");
+	  MetadataBuilder connectorInstance_ldap_estimatedSize = connectorInstance_ldapSchema.get("estimatedSize");
     MetadataBuilder connectorInstance_ldap_id = connectorInstance_ldapSchema.get("id");
     MetadataBuilder connectorInstance_ldap_lastTraversalOn = connectorInstance_ldapSchema.get("lastTraversalOn");
     MetadataBuilder connectorInstance_ldap_legacyIdentifier = connectorInstance_ldapSchema.get("legacyIdentifier");
@@ -1345,7 +1343,7 @@ public final class GeneratedESMigrationCombo {
     MetadataBuilder connectorInstance_smb_detachedauthorizations = connectorInstance_smbSchema.get("detachedauthorizations");
     MetadataBuilder connectorInstance_smb_enabled = connectorInstance_smbSchema.get("enabled");
     MetadataBuilder connectorInstance_smb_errorOnPhysicalDeletion = connectorInstance_smbSchema.get("errorOnPhysicalDeletion");
-    MetadataBuilder connectorInstance_smb_estimatedSize = connectorInstance_smbSchema.get("estimatedSize");
+	  MetadataBuilder connectorInstance_smb_estimatedSize = connectorInstance_smbSchema.get("estimatedSize");
     MetadataBuilder connectorInstance_smb_id = connectorInstance_smbSchema.get("id");
     MetadataBuilder connectorInstance_smb_lastTraversalOn = connectorInstance_smbSchema.get("lastTraversalOn");
     MetadataBuilder connectorInstance_smb_legacyIdentifier = connectorInstance_smbSchema.get("legacyIdentifier");
@@ -1473,10 +1471,11 @@ public final class GeneratedESMigrationCombo {
     MetadataBuilder connectorLdapUserDocument_errorsCount = connectorLdapUserDocumentSchema.create("errorsCount").setType(MetadataValueType.NUMBER);
     connectorLdapUserDocument_errorsCount.setUndeletable(true);
     connectorLdapUserDocument_errorsCount.setDefaultValue(0);
-    MetadataBuilder connectorLdapUserDocument_estimatedSize = connectorLdapUserDocumentSchema.create("estimatedSize").setType(MetadataValueType.INTEGER);
-    connectorLdapUserDocument_estimatedSize.setSystemReserved(true);
-    connectorLdapUserDocument_estimatedSize.setUndeletable(true);
-    connectorLdapUserDocument_estimatedSize.setMultiLingual(false);
+	  MetadataBuilder connectorLdapUserDocument_estimatedSize = connectorLdapUserDocumentSchema.create("estimatedSize")
+			  .setType(MetadataValueType.INTEGER);
+	  connectorLdapUserDocument_estimatedSize.setSystemReserved(true);
+	  connectorLdapUserDocument_estimatedSize.setUndeletable(true);
+	  connectorLdapUserDocument_estimatedSize.setMultiLingual(false);
     MetadataBuilder connectorLdapUserDocument_fetchDelay = connectorLdapUserDocumentSchema.create("fetchDelay").setType(MetadataValueType.NUMBER);
     connectorLdapUserDocument_fetchDelay.setUndeletable(true);
     connectorLdapUserDocument_fetchDelay.setDefaultValue(10);
@@ -1658,7 +1657,7 @@ public final class GeneratedESMigrationCombo {
     MetadataBuilder task_approval_detachedauthorizations = task_approvalSchema.get("detachedauthorizations");
     MetadataBuilder task_approval_dueDate = task_approvalSchema.get("dueDate");
     MetadataBuilder task_approval_errorOnPhysicalDeletion = task_approvalSchema.get("errorOnPhysicalDeletion");
-    MetadataBuilder task_approval_estimatedSize = task_approvalSchema.get("estimatedSize");
+	  MetadataBuilder task_approval_estimatedSize = task_approvalSchema.get("estimatedSize");
     MetadataBuilder task_approval_finishedBy = task_approvalSchema.get("finishedBy");
     MetadataBuilder task_approval_finishedOn = task_approvalSchema.get("finishedOn");
     MetadataBuilder task_approval_id = task_approvalSchema.get("id");
@@ -1719,7 +1718,8 @@ public final class GeneratedESMigrationCombo {
     MetadataBuilder temporaryRecord_batchProcessReport_destructionDate = temporaryRecord_batchProcessReportSchema.get("destructionDate");
     MetadataBuilder temporaryRecord_batchProcessReport_detachedauthorizations = temporaryRecord_batchProcessReportSchema.get("detachedauthorizations");
     MetadataBuilder temporaryRecord_batchProcessReport_errorOnPhysicalDeletion = temporaryRecord_batchProcessReportSchema.get("errorOnPhysicalDeletion");
-    MetadataBuilder temporaryRecord_batchProcessReport_estimatedSize = temporaryRecord_batchProcessReportSchema.get("estimatedSize");
+	  MetadataBuilder temporaryRecord_batchProcessReport_estimatedSize = temporaryRecord_batchProcessReportSchema
+			  .get("estimatedSize");
     MetadataBuilder temporaryRecord_batchProcessReport_id = temporaryRecord_batchProcessReportSchema.get("id");
     MetadataBuilder temporaryRecord_batchProcessReport_legacyIdentifier = temporaryRecord_batchProcessReportSchema.get("legacyIdentifier");
     MetadataBuilder temporaryRecord_batchProcessReport_logicallyDeletedOn = temporaryRecord_batchProcessReportSchema.get("logicallyDeletedOn");
@@ -1755,7 +1755,7 @@ public final class GeneratedESMigrationCombo {
     MetadataBuilder temporaryRecord_exportAudit_destructionDate = temporaryRecord_exportAuditSchema.get("destructionDate");
     MetadataBuilder temporaryRecord_exportAudit_detachedauthorizations = temporaryRecord_exportAuditSchema.get("detachedauthorizations");
     MetadataBuilder temporaryRecord_exportAudit_errorOnPhysicalDeletion = temporaryRecord_exportAuditSchema.get("errorOnPhysicalDeletion");
-    MetadataBuilder temporaryRecord_exportAudit_estimatedSize = temporaryRecord_exportAuditSchema.get("estimatedSize");
+	  MetadataBuilder temporaryRecord_exportAudit_estimatedSize = temporaryRecord_exportAuditSchema.get("estimatedSize");
     MetadataBuilder temporaryRecord_exportAudit_id = temporaryRecord_exportAuditSchema.get("id");
     MetadataBuilder temporaryRecord_exportAudit_legacyIdentifier = temporaryRecord_exportAuditSchema.get("legacyIdentifier");
     MetadataBuilder temporaryRecord_exportAudit_logicallyDeletedOn = temporaryRecord_exportAuditSchema.get("logicallyDeletedOn");
@@ -1791,7 +1791,7 @@ public final class GeneratedESMigrationCombo {
     MetadataBuilder temporaryRecord_importAudit_destructionDate = temporaryRecord_importAuditSchema.get("destructionDate");
     MetadataBuilder temporaryRecord_importAudit_detachedauthorizations = temporaryRecord_importAuditSchema.get("detachedauthorizations");
     MetadataBuilder temporaryRecord_importAudit_errorOnPhysicalDeletion = temporaryRecord_importAuditSchema.get("errorOnPhysicalDeletion");
-    MetadataBuilder temporaryRecord_importAudit_estimatedSize = temporaryRecord_importAuditSchema.get("estimatedSize");
+	  MetadataBuilder temporaryRecord_importAudit_estimatedSize = temporaryRecord_importAuditSchema.get("estimatedSize");
     MetadataBuilder temporaryRecord_importAudit_id = temporaryRecord_importAuditSchema.get("id");
     MetadataBuilder temporaryRecord_importAudit_legacyIdentifier = temporaryRecord_importAuditSchema.get("legacyIdentifier");
     MetadataBuilder temporaryRecord_importAudit_logicallyDeletedOn = temporaryRecord_importAuditSchema.get("logicallyDeletedOn");
@@ -1827,7 +1827,7 @@ public final class GeneratedESMigrationCombo {
     MetadataBuilder temporaryRecord_scriptReport_destructionDate = temporaryRecord_scriptReportSchema.get("destructionDate");
     MetadataBuilder temporaryRecord_scriptReport_detachedauthorizations = temporaryRecord_scriptReportSchema.get("detachedauthorizations");
     MetadataBuilder temporaryRecord_scriptReport_errorOnPhysicalDeletion = temporaryRecord_scriptReportSchema.get("errorOnPhysicalDeletion");
-    MetadataBuilder temporaryRecord_scriptReport_estimatedSize = temporaryRecord_scriptReportSchema.get("estimatedSize");
+	  MetadataBuilder temporaryRecord_scriptReport_estimatedSize = temporaryRecord_scriptReportSchema.get("estimatedSize");
     MetadataBuilder temporaryRecord_scriptReport_id = temporaryRecord_scriptReportSchema.get("id");
     MetadataBuilder temporaryRecord_scriptReport_legacyIdentifier = temporaryRecord_scriptReportSchema.get("legacyIdentifier");
     MetadataBuilder temporaryRecord_scriptReport_logicallyDeletedOn = temporaryRecord_scriptReportSchema.get("logicallyDeletedOn");
@@ -1863,7 +1863,7 @@ public final class GeneratedESMigrationCombo {
     MetadataBuilder temporaryRecord_vaultScanReport_destructionDate = temporaryRecord_vaultScanReportSchema.get("destructionDate");
     MetadataBuilder temporaryRecord_vaultScanReport_detachedauthorizations = temporaryRecord_vaultScanReportSchema.get("detachedauthorizations");
     MetadataBuilder temporaryRecord_vaultScanReport_errorOnPhysicalDeletion = temporaryRecord_vaultScanReportSchema.get("errorOnPhysicalDeletion");
-    MetadataBuilder temporaryRecord_vaultScanReport_estimatedSize = temporaryRecord_vaultScanReportSchema.get("estimatedSize");
+	  MetadataBuilder temporaryRecord_vaultScanReport_estimatedSize = temporaryRecord_vaultScanReportSchema.get("estimatedSize");
     MetadataBuilder temporaryRecord_vaultScanReport_id = temporaryRecord_vaultScanReportSchema.get("id");
     MetadataBuilder temporaryRecord_vaultScanReport_legacyIdentifier = temporaryRecord_vaultScanReportSchema.get("legacyIdentifier");
     MetadataBuilder temporaryRecord_vaultScanReport_logicallyDeletedOn = temporaryRecord_vaultScanReportSchema.get("logicallyDeletedOn");
@@ -1904,7 +1904,7 @@ public final class GeneratedESMigrationCombo {
     MetadataBuilder facet_field_detachedauthorizations = facet_fieldSchema.get("detachedauthorizations");
     MetadataBuilder facet_field_elementPerPage = facet_fieldSchema.get("elementPerPage");
     MetadataBuilder facet_field_errorOnPhysicalDeletion = facet_fieldSchema.get("errorOnPhysicalDeletion");
-    MetadataBuilder facet_field_estimatedSize = facet_fieldSchema.get("estimatedSize");
+	  MetadataBuilder facet_field_estimatedSize = facet_fieldSchema.get("estimatedSize");
     MetadataBuilder facet_field_facetType = facet_fieldSchema.get("facetType");
     MetadataBuilder facet_field_fieldDatastoreCode = facet_fieldSchema.get("fieldDatastoreCode");
     MetadataBuilder facet_field_id = facet_fieldSchema.get("id");
@@ -1946,7 +1946,7 @@ public final class GeneratedESMigrationCombo {
     MetadataBuilder facet_query_detachedauthorizations = facet_querySchema.get("detachedauthorizations");
     MetadataBuilder facet_query_elementPerPage = facet_querySchema.get("elementPerPage");
     MetadataBuilder facet_query_errorOnPhysicalDeletion = facet_querySchema.get("errorOnPhysicalDeletion");
-    MetadataBuilder facet_query_estimatedSize = facet_querySchema.get("estimatedSize");
+	  MetadataBuilder facet_query_estimatedSize = facet_querySchema.get("estimatedSize");
     MetadataBuilder facet_query_facetType = facet_querySchema.get("facetType");
     MetadataBuilder facet_query_fieldDatastoreCode = facet_querySchema.get("fieldDatastoreCode");
     MetadataBuilder facet_query_id = facet_querySchema.get("id");
@@ -2061,10 +2061,11 @@ public final class GeneratedESMigrationCombo {
     MetadataBuilder connectorSmbDocument_errorsCount = connectorSmbDocumentSchema.create("errorsCount").setType(MetadataValueType.NUMBER);
     connectorSmbDocument_errorsCount.setUndeletable(true);
     connectorSmbDocument_errorsCount.setDefaultValue(0);
-    MetadataBuilder connectorSmbDocument_estimatedSize = connectorSmbDocumentSchema.create("estimatedSize").setType(MetadataValueType.INTEGER);
-    connectorSmbDocument_estimatedSize.setSystemReserved(true);
-    connectorSmbDocument_estimatedSize.setUndeletable(true);
-    connectorSmbDocument_estimatedSize.setMultiLingual(false);
+	  MetadataBuilder connectorSmbDocument_estimatedSize = connectorSmbDocumentSchema.create("estimatedSize")
+			  .setType(MetadataValueType.INTEGER);
+	  connectorSmbDocument_estimatedSize.setSystemReserved(true);
+	  connectorSmbDocument_estimatedSize.setUndeletable(true);
+	  connectorSmbDocument_estimatedSize.setMultiLingual(false);
     MetadataBuilder connectorSmbDocument_extension = connectorSmbDocumentSchema.create("extension").setType(MetadataValueType.STRING);
     connectorSmbDocument_extension.setUndeletable(true);
     connectorSmbDocument_extension.setSearchable(true);

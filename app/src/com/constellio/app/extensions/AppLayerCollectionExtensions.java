@@ -25,6 +25,8 @@ import com.constellio.app.api.extensions.TaxonomyPageExtension;
 import com.constellio.app.api.extensions.params.AddComponentToSearchResultParams;
 import com.constellio.app.api.extensions.params.AddFieldsInLabelXMLParams;
 import com.constellio.app.api.extensions.params.AvailableActionsParam;
+import com.constellio.app.api.extensions.params.CanConsultTaxonomyParams;
+import com.constellio.app.api.extensions.params.CanManageTaxonomyParams;
 import com.constellio.app.api.extensions.params.CollectionSystemCheckParams;
 import com.constellio.app.api.extensions.params.ConvertStructureToMapParams;
 import com.constellio.app.api.extensions.params.DecorateMainComponentAfterInitExtensionParams;
@@ -447,11 +449,20 @@ public class AppLayerCollectionExtensions {
 		return schemaTypeDisplayGroup != null ? schemaTypeDisplayGroup : OTHERS_TAB;
 	}
 
-	public boolean canManageTaxonomy(boolean defaultValue, final User user, final Taxonomy taxonomy) {
-		return taxonomyAccessExtensions.getBooleanValue(defaultValue, new BooleanCaller<TaxonomyPageExtension>() {
+	public boolean canManageTaxonomy(final CanManageTaxonomyParams canManageTaxonomyParams) {
+		return taxonomyAccessExtensions.getBooleanValue(canManageTaxonomyParams.isDefaultValue(), new BooleanCaller<TaxonomyPageExtension>() {
 			@Override
 			public ExtensionBooleanResult call(TaxonomyPageExtension behavior) {
-				return behavior.canManageTaxonomy(user, taxonomy);
+				return behavior.canManageTaxonomy(canManageTaxonomyParams);
+			}
+		});
+	}
+
+	public boolean canConsultTaxonomy(final CanConsultTaxonomyParams canConsultTaxonomyParams) {
+		return taxonomyAccessExtensions.getBooleanValue(canConsultTaxonomyParams.getDefaultValue(), new BooleanCaller<TaxonomyPageExtension>() {
+			@Override
+			public ExtensionBooleanResult call(TaxonomyPageExtension behavior) {
+				return behavior.canConsultTaxonomy(canConsultTaxonomyParams);
 			}
 		});
 	}

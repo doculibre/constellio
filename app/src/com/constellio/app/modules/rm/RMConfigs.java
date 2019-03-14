@@ -79,7 +79,8 @@ public class RMConfigs {
 			NEED_REASON_BEFORE_DELETING_FOLDERS,
 			IS_DECOMMISSIONING_TYPE_REQUIRED_IN_CONTAINERS,
 			DEPOSIT_AND_DESTRUCTION_DATES_BASED_ON_ACTUAL_TRANSFER_DATE,
-			DECOMMISSIONING_LIST_WITH_SELECTED_FOLDERS;
+			DECOMMISSIONING_LIST_WITH_SELECTED_FOLDERS,
+			ALLOW_SORTING_IN_FOLDER_LIST_OF_DECOMMISSIONING;
 
 	// Category configs
 	public static final SystemConfiguration LINKABLE_CATEGORY_MUST_NOT_BE_ROOT, LINKABLE_CATEGORY_MUST_HAVE_APPROVED_RULES;
@@ -290,6 +291,9 @@ public class RMConfigs {
 						CompleteDatesWhenAddingFolderWithManualStatusChoice.class)
 						.withDefaultValue(CompleteDatesWhenAddingFolderWithManualStatusChoice.DISABLED));
 
+		add(ALLOW_SORTING_IN_FOLDER_LIST_OF_DECOMMISSIONING = decommissioning
+				.createBooleanFalseByDefault("allowFolderSortingOfDecommissioningList").whichIsHidden());
+
 		add(LOG_FOLDER_DOCUMENT_ACCESS_WITH_CMIS = others.createBooleanFalseByDefault("logFolderDocumentAccessWithCMIS"));
 
 		add(COPY_RULES_ALWAYS_VISIBLE_IN_ADD_FORM = decommissioning
@@ -304,7 +308,8 @@ public class RMConfigs {
 
 		add(NEED_REASON_BEFORE_DELETING_FOLDERS = others.createBooleanTrueByDefault("needReasonBeforeDeletingFolders"));
 
-		add(DECOMMISSIONING_LIST_WITH_SELECTED_FOLDERS = decommissioning.createBooleanFalseByDefault("decommissioningListWithSelectedFolders"));
+		add(DECOMMISSIONING_LIST_WITH_SELECTED_FOLDERS = decommissioning
+				.createBooleanFalseByDefault("decommissioningListWithSelectedFolders"));
 
 	}
 

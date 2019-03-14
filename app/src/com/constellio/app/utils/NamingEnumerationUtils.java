@@ -5,7 +5,7 @@ import javax.naming.NamingException;
 
 public class NamingEnumerationUtils {
 	public static void closeQuietly(NamingEnumeration namingEnumeration) {
-		if(namingEnumeration != null) {
+		if (namingEnumeration != null) {
 			try {
 				namingEnumeration.close();
 			} catch (NamingException e) {

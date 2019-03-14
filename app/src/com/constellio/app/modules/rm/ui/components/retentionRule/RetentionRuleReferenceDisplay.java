@@ -26,9 +26,11 @@ public class RetentionRuleReferenceDisplay extends ReferenceDisplay {
 		SessionContext sessionContext = ConstellioUI.getCurrent().getSessionContext();
 		String username = sessionContext.getCurrentUser().getUsername();
 		String collection = sessionContext.getCurrentCollection();
+
 		UserServices userServices = constellioFactories.getModelLayerFactory().newUserServices();
 		User user = userServices.getUserInCollection(username, collection);
-		return user.has(RMPermissionsTo.MANAGE_RETENTIONRULE).globally();
+
+		return user.hasAny(RMPermissionsTo.MANAGE_RETENTIONRULE).globally() || user.has(RMPermissionsTo.DISPLAY_RETENTIONRULE).globally();
 	}
 
 	@Override
