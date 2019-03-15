@@ -198,7 +198,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 
 	public boolean canDelete() {
 		return cartHasRecords() && cartContainerIsEmpty()
-				&& canDeleteFolders(getCurrentUser()) && canDeleteDocuments(getCurrentUser());
+			   && canDeleteFolders(getCurrentUser()) && canDeleteDocuments(getCurrentUser());
 	}
 
 	public void deletionRequested(String reason) {
@@ -302,23 +302,23 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	private boolean canDuplicateFolders(User user) {
 		for (Folder folder : getCartFolders()) {
 			RecordWrapper parent = folder.getParentFolder() != null ?
-					rm().getFolder(folder.getParentFolder()) :
-					rm().getAdministrativeUnit(folder.getAdministrativeUnitEntered());
+								   rm().getFolder(folder.getParentFolder()) :
+								   rm().getAdministrativeUnit(folder.getAdministrativeUnitEntered());
 			if (!user.hasWriteAccess().on(parent)) {
 				return false;
 			}
 			switch (folder.getPermissionStatus()) {
-			case SEMI_ACTIVE:
-				if (!user.has(RMPermissionsTo.DUPLICATE_SEMIACTIVE_FOLDER).on(folder)) {
-					return false;
-				}
-				break;
-			case INACTIVE_DEPOSITED:
-			case INACTIVE_DESTROYED:
-				if (!user.has(RMPermissionsTo.DUPLICATE_INACTIVE_FOLDER).on(folder)) {
-					return false;
-				}
-				break;
+				case SEMI_ACTIVE:
+					if (!user.has(RMPermissionsTo.DUPLICATE_SEMIACTIVE_FOLDER).on(folder)) {
+						return false;
+					}
+					break;
+				case INACTIVE_DEPOSITED:
+				case INACTIVE_DESTROYED:
+					if (!user.has(RMPermissionsTo.DUPLICATE_INACTIVE_FOLDER).on(folder)) {
+						return false;
+					}
+					break;
 			}
 		}
 		return true;
@@ -330,17 +330,17 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 				return false;
 			}
 			switch (folder.getPermissionStatus()) {
-			case SEMI_ACTIVE:
-				if (!user.has(RMPermissionsTo.DELETE_SEMIACTIVE_FOLDERS).on(folder)) {
-					return false;
-				}
-				break;
-			case INACTIVE_DEPOSITED:
-			case INACTIVE_DESTROYED:
-				if (!user.has(RMPermissionsTo.DELETE_INACTIVE_FOLDERS).on(folder)) {
-					return false;
-				}
-				break;
+				case SEMI_ACTIVE:
+					if (!user.has(RMPermissionsTo.DELETE_SEMIACTIVE_FOLDERS).on(folder)) {
+						return false;
+					}
+					break;
+				case INACTIVE_DEPOSITED:
+				case INACTIVE_DESTROYED:
+					if (!user.has(RMPermissionsTo.DELETE_INACTIVE_FOLDERS).on(folder)) {
+						return false;
+					}
+					break;
 			}
 		}
 		return true;
@@ -352,16 +352,16 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 				return false;
 			}
 			switch (document.getArchivisticStatus()) {
-			case SEMI_ACTIVE:
-				if (!user.has(RMPermissionsTo.DELETE_SEMIACTIVE_DOCUMENT).on(document)) {
-					return false;
-				}
-				break;
-			case INACTIVE_DEPOSITED:
-			case INACTIVE_DESTROYED:
-				if (!user.has(RMPermissionsTo.DELETE_INACTIVE_DOCUMENT).on(document)) {
-					return false;
-				}
+				case SEMI_ACTIVE:
+					if (!user.has(RMPermissionsTo.DELETE_SEMIACTIVE_DOCUMENT).on(document)) {
+						return false;
+					}
+					break;
+				case INACTIVE_DEPOSITED:
+				case INACTIVE_DESTROYED:
+					if (!user.has(RMPermissionsTo.DELETE_INACTIVE_DOCUMENT).on(document)) {
+						return false;
+					}
 			}
 			if (document.isPublished() && !user.has(RMPermissionsTo.DELETE_PUBLISHED_DOCUMENT).on(document)) {
 				return false;
@@ -435,17 +435,17 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	public List<String> getNotDeletedRecordsIds(String schemaType) {
 		User currentUser = getCurrentUser();
 		switch (schemaType) {
-		case Folder.SCHEMA_TYPE:
-			List<String> folders = getCartFolderIds();
-			return getNonDeletedRecordsIds(rm().getFolders(folders), currentUser);
-		case Document.SCHEMA_TYPE:
-			List<String> documents = getCartDocumentIds();
-			return getNonDeletedRecordsIds(rm().getDocuments(documents), currentUser);
-		case ContainerRecord.SCHEMA_TYPE:
-			List<String> containers = getCartContainersIds();
-			return getNonDeletedRecordsIds(rm().getContainerRecords(containers), currentUser);
-		default:
-			throw new RuntimeException("Unsupported type : " + schemaType);
+			case Folder.SCHEMA_TYPE:
+				List<String> folders = getCartFolderIds();
+				return getNonDeletedRecordsIds(rm().getFolders(folders), currentUser);
+			case Document.SCHEMA_TYPE:
+				List<String> documents = getCartDocumentIds();
+				return getNonDeletedRecordsIds(rm().getDocuments(documents), currentUser);
+			case ContainerRecord.SCHEMA_TYPE:
+				List<String> containers = getCartContainersIds();
+				return getNonDeletedRecordsIds(rm().getContainerRecords(containers), currentUser);
+			default:
+				throw new RuntimeException("Unsupported type : " + schemaType);
 		}
 	}
 
@@ -566,15 +566,15 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 
 	public boolean isLabelsButtonVisible(String schemaType) {
 		switch (schemaType) {
-		case Folder.SCHEMA_TYPE:
-			return !cartFoldersIsEmpty();
-		case ContainerRecord.SCHEMA_TYPE:
-			return !cartContainerIsEmpty();
-		case Document.SCHEMA_TYPE:
-			return !cartDocumentsIsEmpty();
+			case Folder.SCHEMA_TYPE:
+				return !cartFoldersIsEmpty();
+			case ContainerRecord.SCHEMA_TYPE:
+				return !cartContainerIsEmpty();
+			case Document.SCHEMA_TYPE:
+				return !cartDocumentsIsEmpty();
 
-		default:
-			throw new RuntimeException("No labels for type : " + schemaType);
+			default:
+				throw new RuntimeException("No labels for type : " + schemaType);
 		}
 	}
 
@@ -707,15 +707,15 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 
 	public void displayRecordRequested(RecordVO recordVO) {
 		switch (recordVO.getSchema().getTypeCode()) {
-		case Folder.SCHEMA_TYPE:
-			view.navigate().to(RMViews.class).displayFolder(recordVO.getId());
-			break;
-		case Document.SCHEMA_TYPE:
-			view.navigate().to(RMViews.class).displayDocument(recordVO.getId());
-			break;
-		case ContainerRecord.SCHEMA_TYPE:
-			view.navigate().to(RMViews.class).displayContainer(recordVO.getId());
-			break;
+			case Folder.SCHEMA_TYPE:
+				view.navigate().to(RMViews.class).displayFolder(recordVO.getId());
+				break;
+			case Document.SCHEMA_TYPE:
+				view.navigate().to(RMViews.class).displayDocument(recordVO.getId());
+				break;
+			case ContainerRecord.SCHEMA_TYPE:
+				view.navigate().to(RMViews.class).displayContainer(recordVO.getId());
+				break;
 		}
 	}
 
@@ -894,13 +894,13 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 
 	private boolean isBatchEditable(Metadata metadata) {
 		return !metadata.isSystemReserved()
-				&& !metadata.isUnmodifiable()
-				&& metadata.isEnabled()
-				&& !metadata.getType().isStructureOrContent()
-				&& metadata.getDataEntry().getType() == DataEntryType.MANUAL
-				&& isNotHidden(metadata)
-				// XXX: Not supported in the backend
-				&& metadata.getType() != MetadataValueType.ENUM
+			   && !metadata.isUnmodifiable()
+			   && metadata.isEnabled()
+			   && !metadata.getType().isStructureOrContent()
+			   && metadata.getDataEntry().getType() == DataEntryType.MANUAL
+			   && isNotHidden(metadata)
+			   // XXX: Not supported in the backend
+			   && metadata.getType() != MetadataValueType.ENUM
 				;
 	}
 
@@ -911,7 +911,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 
 	public boolean canCurrentUserBuildDecommissioningList() {
 		return getCurrentUser().has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).onSomething() ||
-				getCurrentUser().has(RMPermissionsTo.CREATE_TRANSFER_DECOMMISSIONING_LIST).onSomething();
+			   getCurrentUser().has(RMPermissionsTo.CREATE_TRANSFER_DECOMMISSIONING_LIST).onSomething();
 	}
 
 	public boolean isPdfGenerationActionPossible(List<String> recordIds) {
