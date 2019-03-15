@@ -20,8 +20,7 @@ public class ZookeeperLeaderElectionManager implements LeaderElectionManager {
 	}
 
 	public boolean isCurrentNodeLeader() {
-		boolean leader = leaderLatch.hasLeadership();
-		return leader;
+		return leaderLatch.hasLeadership();
 	}
 
 	@Override

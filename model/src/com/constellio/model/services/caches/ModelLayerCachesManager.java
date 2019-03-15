@@ -28,11 +28,22 @@ public class ModelLayerCachesManager implements StatefulService {
 
 	public void register(String collection, String cacheName, CollectionCache collectionCache) {
 		Map<String, CollectionCache> collectionCaches = collectionsCaches.get(collection);
+
+		if (collectionCaches == null) {
+			synchronized (this) {
+				if (collectionCaches == null) {
+					collectionCaches = new HashMap<>();
+				}
+				collectionsCaches.put(collection, collectionCaches);
+			}
+		}
+
 		collectionCaches.put(cacheName, collectionCache);
 	}
 
 	public CollectionCache getCollectionCache(String collection, String cacheName) {
-		return collectionsCaches.get(collection).get(cacheName);
+		Map<String, CollectionCache> collectionCaches = collectionsCaches.get(collection);
+		return collectionCaches == null ? null : collectionsCaches.get(collection).get(cacheName);
 	}
 
 	public Map<String, UserCache> getUserCaches() {

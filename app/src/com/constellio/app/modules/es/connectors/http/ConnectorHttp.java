@@ -1,6 +1,5 @@
 package com.constellio.app.modules.es.connectors.http;
 
-import com.constellio.app.modules.es.connectors.caches.ConnectorDocumentURLCache;
 import com.constellio.app.modules.es.connectors.http.fetcher.HttpURLFetchingService;
 import com.constellio.app.modules.es.connectors.spi.Connector;
 import com.constellio.app.modules.es.connectors.spi.ConnectorJob;
@@ -8,10 +7,8 @@ import com.constellio.app.modules.es.model.connectors.AuthenticationScheme;
 import com.constellio.app.modules.es.model.connectors.ConnectorDocument;
 import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpDocument;
 import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance;
-import com.constellio.app.modules.es.services.ConnectorManager;
 import com.constellio.app.modules.es.services.mapping.ConnectorField;
 import com.constellio.app.modules.es.ui.pages.ConnectorReportView;
-import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
 import com.constellio.data.utils.BatchBuilderIterator;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
@@ -32,7 +29,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
 public class ConnectorHttp extends Connector {
@@ -40,22 +36,22 @@ public class ConnectorHttp extends Connector {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ConnectorHttp.class);
 
-	private ConnectorHttpContext context;
+	private ConnectorHttpDocumentURLCache cache;
+
+	//private ConnectorHttpContext context;
 
 	private long lastVersion = -1;
 
 	String connectorId;
-
-	ConnectorDocumentURLCache cache;
 
 	//ConnectorHttpContextServices contextServices;
 
 	@Override
 	public void initialize(Record instanceRecord) {
 		this.connectorId = instanceRecord.getId();
-		cache = es.getModelLayerFactory().getCachesManager().getUserCache(
-				instanceRecord.getCollection(), ConnectorManager.DOCUMENT_URL_CACHE_NAME);
-		//this.contextServices = new ConnectorHttpContextServices(es);
+		cache = new ConnectorHttpDocumentURLCache(instanceRecord.getCollection(), connectorId, es.getAppLayerFactory());
+		es.getModelLayerFactory().getCachesManager().register(instanceRecord.getCollection(), connectorId, cache);
+
 	}
 
 	public HttpURLFetchingService newFetchingService() {
@@ -96,17 +92,19 @@ public class ConnectorHttp extends Connector {
 
 	public void start() {
 		//context = contextServices.createContext(connectorId);
+		cache.onConnectorStart();
 
 		ConnectorHttpInstance connectorInstance = getConnectorInstance();
 		List<ConnectorDocument> documents = new ArrayList<>();
 		Set<String> urls = new HashSet<>();
 		urls.addAll(connectorInstance.getSeedsList());
 		urls.removeAll(connectorInstance.getOnDemandsList());
+
 		for (String url : urls) {
 			ConnectorHttpDocument httpDocument = newUnfetchedURLDocument(url, 0);
 			httpDocument.setInlinks(Arrays.asList(url));
 			documents.add(httpDocument);
-			context.markAsFetched(url);
+			//context.markAsFetched(url);
 
 		}
 		eventObserver.addUpdateEvents(documents);
@@ -122,11 +120,12 @@ public class ConnectorHttp extends Connector {
 
 		List<ConnectorHttpDocument> documents = new ArrayList<>();
 		for (String url : getConnectorInstance().getOnDemandsList()) {
-			if (context.isNewUrl(url)) {
-				ConnectorHttpDocument httpDocument = newUnfetchedURLDocument(url, 0);
-				httpDocument.setInlinks(Arrays.asList(url));
-				documents.add(httpDocument);
-				context.markAsFetched(url);
+			if (!cache.exists(url)) {
+				if (cache.tryLockingDocumentForFetching(url)) {
+					ConnectorHttpDocument httpDocument = newUnfetchedURLDocument(url, 0);
+					httpDocument.setInlinks(Arrays.asList(url));
+					documents.add(httpDocument);
+				}
 			} else {
 				documents.add(es.getConnectorHttpDocumentByUrl(url));
 			}
@@ -149,67 +148,17 @@ public class ConnectorHttp extends Connector {
 	@Override
 	public void stop() {
 		LOGGER.info("Stopping connector on instance '" + connectorId + "'");
+		cache.onConnectorStop();
 	}
 
 	@Override
 	public void afterJobs(List<ConnectorJob> jobs) {
-		if (context.getVersion() != lastVersion) {
-			LOGGER.info("Saving context on instance '" + connectorId + "'");
-			//contextServices.save(context);
-			lastVersion = context.getVersion();
-		}
 	}
 
 	public void resume() {
-
 		LOGGER.info("Resuming connector on instance '" + connectorId + "'");
-		cache.onConnectorResume(getConnectorInstance());
+		cache.onConnectorResume();
 
-		//		if (es.getModelLayerFactory().getDataLayerFactory().isDistributed()) {
-		//			LOGGER.warn("Loading context of connector " + connectorId + " from solr...");
-		//			loadFromSolr();
-		//
-		//		} else {
-
-
-//		try {
-		//			//context = contextServices.loadContext(connectorId);
-		//
-		//		} catch (Exception e) {
-		//			LOGGER.warn("Context of connector " + connectorId + " does not existe, recreating it...");
-		//
-		//			loadFromSolr();
-		//
-		//		}
-		//		}
-	}
-
-	protected void loadFromSolr() {
-		context = contextServices.createContext(connectorId);
-
-		LogicalSearchQuery query = new LogicalSearchQuery(from(es.connectorHttpDocument.schemaType())
-				.where(es.connectorHttpDocument.connector()).isEqualTo(connectorId));
-
-		query.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(
-				es.connectorHttpDocument.digest(), es.connectorHttpDocument.url()));
-
-		SearchResponseIterator<Record> iterator = es.getModelLayerFactory().newSearchServices().recordsIterator(query, 10000);
-
-		String connectorName = getConnectorInstance().getCode();
-		int count = 0;
-		while (iterator.hasNext()) {
-			if (count % 10000 == 0) {
-				LOGGER.info("Resuming connector '" + connectorName + "' : " + count + "/" + iterator.getNumFound());
-			}
-
-			ConnectorHttpDocument connectorHttpDocument = es.wrapConnectorHttpDocument(iterator.next());
-			context.addDocumentDigest(connectorHttpDocument.getDigest(), connectorHttpDocument.getURL());
-			count++;
-
-		}
-		LOGGER.info("Resuming connector '" + connectorName + "' : " + count + "/" + iterator.getNumFound());
-
-		contextServices.save(context);
 	}
 
 	@Override
@@ -231,14 +180,16 @@ public class ConnectorHttp extends Connector {
 
 	@Override
 	public void onAllDocumentsDeleted() {
-
+		cache.onAllDocumentsDeleted();
 	}
 
 	@Override
 	public synchronized List<ConnectorJob> getJobs() {
+		cache.onConnectorGetJobsCalled();
 		ConnectorHttpInstance connectorInstance = getConnectorInstance();
 		for (String url : connectorInstance.getSeedsList()) {
-			if (context.isNewUrl(url)) {
+
+			if (!cache.exists(url)) {
 				try {
 					ConnectorHttpDocument connectorHttpDocument = newUnfetchedURLDocument(url, 0);
 					connectorHttpDocument.setInlinks(Arrays.asList(url));
@@ -247,7 +198,6 @@ public class ConnectorHttp extends Connector {
 				} catch (RecordServicesException e) {
 					throw new RuntimeException(e);
 				}
-				context.markAsFetched(url);
 			}
 		}
 
@@ -271,15 +221,6 @@ public class ConnectorHttp extends Connector {
 		query.sortAsc(es.connectorHttpDocument.level());
 		query.setNumberOfRows(connectorInstance.getNumberOfJobsInParallel() * connectorInstance.getDocumentsPerJobs());
 
-		List<Metadata> metadatas = es.connectorHttpDocument.schema().getMetadatas().only(new MetadataListFilter() {
-			@Override
-			public boolean isReturned(Metadata metadata) {
-				return !metadata.getLocalCode().equals(ConnectorHttpDocument.PARSED_CONTENT)
-					   && !metadata.getLocalCode().equals(ConnectorHttpDocument.DESCRIPTION);
-			}
-		});
-		query.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(metadatas));
-
 		List<ConnectorJob> jobs = new ArrayList<>();
 		List<ConnectorHttpDocument> documentsToFetch = new ArrayList<>();
 		documentsToFetch.addAll(onDemands);
@@ -288,7 +229,7 @@ public class ConnectorHttp extends Connector {
 				connectorInstance.getDocumentsPerJobs());
 
 		while (documentBatchsIterator.hasNext()) {
-			jobs.add(new ConnectorHttpFetchJob(this, connectorInstance, documentBatchsIterator.next(), context, logger));
+			jobs.add(new ConnectorHttpFetchJob(this, connectorInstance, documentBatchsIterator.next(), cache, logger));
 		}
 
 		if (!onDemands.isEmpty()) {

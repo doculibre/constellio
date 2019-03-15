@@ -167,7 +167,7 @@ public class ConnectorCrawler {
 			// Ignore
 		} catch (InterruptedException e) {
 			throw new RuntimeException(e);
-			
+
 		} finally {
 			eventObserver.cleanup();
 		}
@@ -307,7 +307,6 @@ public class ConnectorCrawler {
 		List<MetadataSchemaType> types = es.getTypes().getSchemaTypesWithCode(asList(schemaTypeCodes));
 
 		LocalDateTime timeoutTime = new LocalDateTime().plus(duration);
-		boolean recordsFound = true;
 
 		LocalDateTime lastModification = null;
 		while (new LocalDateTime().isBefore(timeoutTime) && !getLastModificationDate(types).equals(lastModification)) {
@@ -341,15 +340,8 @@ public class ConnectorCrawler {
 
 	public void crawlUntil(Factory<Boolean> condition) {
 		while (!condition.get()) {
-			//			try {
-			//if (COLLECTIONS_CRAWLING_SEMAPHORE.tryAcquire(10, TimeUnit.SECONDS)) {
-			boolean hasCrawledSomething;
-			//					try {
-			hasCrawledSomething = crawlAllConnectors();
+			boolean hasCrawledSomething = crawlAllConnectors();
 
-			//					} finally {
-			//						COLLECTIONS_CRAWLING_SEMAPHORE.release();
-			//					}
 			if (!hasCrawledSomething) {
 				waitSinceNoJobs();
 			}
@@ -360,10 +352,6 @@ public class ConnectorCrawler {
 					throw new RuntimeException(e);
 				}
 			}
-			//}
-			//			} catch (InterruptedException e) {
-			//				e.printStackTrace();
-			//			}
 		}
 	}
 
@@ -373,7 +361,7 @@ public class ConnectorCrawler {
 		return this;
 	}
 
-	private static class CrawledConnector {
+	public static class CrawledConnector {
 
 		Connector connector;
 
@@ -382,6 +370,14 @@ public class ConnectorCrawler {
 		private CrawledConnector(Connector connector, Record connectorInstance) {
 			this.connector = connector;
 			this.connectorInstance = connectorInstance;
+		}
+
+		public Connector getConnector() {
+			return connector;
+		}
+
+		public Record getConnectorInstance() {
+			return connectorInstance;
 		}
 	}
 

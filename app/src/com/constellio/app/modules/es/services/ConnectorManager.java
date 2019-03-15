@@ -117,20 +117,22 @@ public class ConnectorManager implements StatefulService {
 						//The server may have received the leader status during the previous leader is struggling to execute connector jobs.
 						//We wait some time to reduce the risk of creating duplicate records
 						try {
-							Thread.sleep(120_000);
+							Thread.sleep(20_000);
 						} catch (InterruptedException e) {
 							throw new RuntimeException(e);
 						}
-
 					}
-					getCrawler().crawlUntil(new Factory<Boolean>() {
-						@Override
-						public Boolean get() {
-							LeaderElectionManager leaderElectionManager =
-									es.getModelLayerFactory().getDataLayerFactory().getLeaderElectionService();
-							return paused || !leaderElectionManager.isCurrentNodeLeader();
-						}
-					});
+
+					final LeaderElectionManager leaderElectionManager =
+							es.getModelLayerFactory().getDataLayerFactory().getLeaderElectionService();
+					if (leaderElectionManager.isCurrentNodeLeader()) {
+						getCrawler().crawlUntil(new Factory<Boolean>() {
+							@Override
+							public Boolean get() {
+								return paused || !leaderElectionManager.isCurrentNodeLeader();
+							}
+						});
+					}
 				}
 
 			}

@@ -621,6 +621,7 @@ public class ESSchemasRecordsServices extends ESGeneratedSchemasRecordsServices 
 		};
 	}
 
+
 	public Iterator<ConnectorSmbFolder> iterateConnectorSmbFolders(LogicalSearchCondition condition) {
 		MetadataSchemaType type = connectorSmbDocument.schemaType();
 		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));

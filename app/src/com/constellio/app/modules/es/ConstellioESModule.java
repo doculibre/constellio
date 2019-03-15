@@ -7,7 +7,6 @@ import com.constellio.app.entities.modules.ModuleWithComboMigration;
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.extensions.treenode.TreeNodeAppExtension;
-import com.constellio.app.modules.es.connectors.caches.ConnectorDocumentURLCache;
 import com.constellio.app.modules.es.connectors.http.ConnectorHttpUtilsServices;
 import com.constellio.app.modules.es.connectors.ldap.ConnectorLDAPUtilsServices;
 import com.constellio.app.modules.es.connectors.smb.SMBConnectorUtilsServices;
@@ -163,9 +162,6 @@ public class ConstellioESModule implements InstallableSystemModule, ModuleWithCo
 	public void start(String collection, AppLayerFactory appLayerFactory) {
 
 		registerManagers(collection, appLayerFactory);
-
-		appLayerFactory.getModelLayerFactory().getCachesManager().register(collection,
-				ConnectorManager.DOCUMENT_URL_CACHE_NAME, new ConnectorDocumentURLCache(collection, appLayerFactory) );
 
 		setupModelLayerExtensions(collection, appLayerFactory);
 		setupAppLayerExtensions(collection, appLayerFactory);
