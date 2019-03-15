@@ -23,15 +23,14 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import org.jetbrains.annotations.NotNull;
 import org.joda.time.LocalDateTime;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import static com.constellio.app.modules.es.connectors.caches.ConnectorDocumentURLCache.ConnectorDocumentStatus.CURRENTLY_FETCHED;
-import static com.constellio.app.modules.es.connectors.caches.ConnectorDocumentURLCache.ConnectorDocumentStatus.NOT_FETCHED;
+import static com.constellio.app.modules.es.connectors.caches.ConnectorDocumentURLCacheStatus.CURRENTLY_FETCHED;
+import static com.constellio.app.modules.es.connectors.caches.ConnectorDocumentURLCacheStatus.NOT_FETCHED;
 import static com.constellio.app.modules.es.model.connectors.ConnectorDocument.URL;
 import static com.constellio.data.dao.services.cache.InsertionReason.WAS_MODIFIED;
 import static com.constellio.data.dao.services.cache.InsertionReason.WAS_OBTAINED;
@@ -237,7 +236,7 @@ public class ConnectorDocumentURLCache implements CollectionCache, LeaderElectio
 	private ConnectorDocumentURLCacheEntry newEntryFromRecord(MetadataSchema schema, Record record) {
 		String id = record.getId();
 		boolean fetched = Boolean.TRUE.equals(record.get(es.connectorHttpDocument.fetched()));
-		ConnectorDocumentStatus status = fetched ? ConnectorDocumentStatus.FETCHED : NOT_FETCHED;
+		ConnectorDocumentURLCacheStatus status = fetched ? ConnectorDocumentURLCacheStatus.FETCHED : NOT_FETCHED;
 		Map<String, Object> extraMetadataValues = populateExtraCacheFields(record, schema);
 		return new ConnectorDocumentURLCacheEntry(id, status, null, extraMetadataValues);
 	}
@@ -276,54 +275,6 @@ public class ConnectorDocumentURLCache implements CollectionCache, LeaderElectio
 		invalidateAll();
 	}
 
-
-	enum ConnectorDocumentStatus {
-		FETCHED,
-
-		CURRENTLY_FETCHED,
-
-		NOT_FETCHED,
-	}
-
-
-	public static class ConnectorDocumentURLCacheEntry implements Serializable {
-		String id;
-		ConnectorDocumentStatus status;
-		Map<String, Object> metadatas;
-		LocalDateTime fetchingStartTime;
-
-		public ConnectorDocumentURLCacheEntry(String id, ConnectorDocumentStatus status,
-											  LocalDateTime fetchingStartTime, Map<String, Object> metadatas) {
-			this.id = id;
-			this.status = status;
-			this.metadatas = metadatas;
-			this.fetchingStartTime = fetchingStartTime;
-		}
-
-		public String getId() {
-			return id;
-		}
-
-		public ConnectorDocumentStatus getStatus() {
-			return status;
-		}
-
-		public Map<String, Object> getMetadatas() {
-			return metadatas;
-		}
-
-		public <T> T getMetadata(Metadata metadata) {
-			return (T) metadatas.get(metadata.getLocalCode());
-		}
-
-		public <T> T getMetadata(String metadataLocalCode) {
-			return (T) metadatas.get(metadataLocalCode);
-		}
-
-		public LocalDateTime getFetchingStartTime() {
-			return fetchingStartTime;
-		}
-	}
 
 	protected void insertInCache(String url, ConnectorDocumentURLCacheEntry entry, InsertionReason insertionReason) {
 		cache.put(url, entry, insertionReason);

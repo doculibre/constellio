@@ -1,6 +1,8 @@
 package com.constellio.app.modules.es.connectors.http;
 
 import com.constellio.app.modules.es.connectors.caches.ConnectorDocumentURLCache;
+import com.constellio.app.modules.es.connectors.caches.ConnectorDocumentURLCacheEntry;
+import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
 import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpDocument;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.dao.services.cache.InsertionReason;
@@ -13,6 +15,13 @@ import static java.util.Arrays.asList;
 public class ConnectorHttpDocumentURLCache extends ConnectorDocumentURLCache {
 
 	Map<String, String> documentUrlsClassifiedByDigests = new HashMap<>();
+
+
+	public ConnectorHttpDocumentURLCache(ConnectorInstance instance,
+										 AppLayerFactory appLayerFactory) {
+		this(instance.getCollection(), instance.getId(), appLayerFactory);
+
+	}
 
 	public ConnectorHttpDocumentURLCache(String collection, String connectorId,
 										 AppLayerFactory appLayerFactory) {
