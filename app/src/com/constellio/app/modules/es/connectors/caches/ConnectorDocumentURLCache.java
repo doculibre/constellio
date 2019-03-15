@@ -1,9 +1,10 @@
 package com.constellio.app.modules.es.connectors.caches;
 
-import com.constellio.app.modules.es.connectors.caches.ConnectorDocumentURLCacheRuntimeException.ConnectorDocumentURLCacheRuntimeException_CouldNotLockDocumentForFetching;
 import com.constellio.app.modules.es.model.connectors.ConnectorDocument;
+import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
 import com.constellio.data.dao.services.cache.ConstellioCache;
 import com.constellio.data.dao.services.cache.InsertionReason;
 import com.constellio.data.dao.services.leaderElection.LeaderElectionManagerObserver;
@@ -22,10 +23,11 @@ import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import org.jetbrains.annotations.NotNull;
 import org.joda.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -39,6 +41,8 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 
 public class ConnectorDocumentURLCache implements CollectionCache, LeaderElectionManagerObserver {
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(ConnectorDocumentURLCache.class);
+
 	private static final String CACHE_NAME = "ConnectorDocumentURLCache";
 
 	ConstellioCache cache;
@@ -46,6 +50,8 @@ public class ConnectorDocumentURLCache implements CollectionCache, LeaderElectio
 	String collection;
 
 	String connectorId;
+
+	String connectorCode;
 
 	AppLayerFactory appLayerFactory;
 
@@ -61,9 +67,15 @@ public class ConnectorDocumentURLCache implements CollectionCache, LeaderElectio
 
 	private List<String> cachedMetadatas = new ArrayList<>();
 
-	public ConnectorDocumentURLCache(String collection, String connectorId,
+	public ConnectorDocumentURLCache(ConnectorInstance connectorInstance,
+									 AppLayerFactory appLayerFactory, List<String> cachedSchemaTypes) {
+		this(connectorInstance.getCollection(), connectorInstance.getId(), connectorInstance.getCode(), appLayerFactory, cachedSchemaTypes);
+	}
+
+	public ConnectorDocumentURLCache(String collection, String connectorId, String connectorCode,
 									 AppLayerFactory appLayerFactory, List<String> cachedSchemaTypes) {
 		this.collection = collection;
+		this.connectorCode = connectorCode;
 		this.connectorId = connectorId;
 		this.appLayerFactory = appLayerFactory;
 		this.recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
@@ -88,8 +100,7 @@ public class ConnectorDocumentURLCache implements CollectionCache, LeaderElectio
 	}
 
 
-	public boolean isLockableForFetching(String url)
-			throws ConnectorDocumentURLCacheRuntimeException_CouldNotLockDocumentForFetching {
+	public boolean isLockableForFetching(String url) {
 
 		boolean lockable = false;
 		if (currentLeaderStatus) {
@@ -121,11 +132,6 @@ public class ConnectorDocumentURLCache implements CollectionCache, LeaderElectio
 		return cache.get(url) != null;
 	}
 
-	public synchronized void lockDocumentForFetching(String url) {
-		if (!tryLockingDocumentForFetching(url)) {
-			throw new ConnectorDocumentURLCacheRuntimeException_CouldNotLockDocumentForFetching(url, currentLeaderStatus);
-		}
-	}
 
 	public synchronized boolean tryLockingDocumentForFetching(String url) {
 		if (!isLockableForFetching(url)) {
@@ -223,13 +229,21 @@ public class ConnectorDocumentURLCache implements CollectionCache, LeaderElectio
 			}
 
 			query.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(metadatas));
-			Iterator<Record> iterator = es.getModelLayerFactory().newSearchServices().recordsIterator(query, 5000);
+			SearchResponseIterator<Record> iterator = es.getModelLayerFactory().newSearchServices().recordsIterator(query, 5000);
+			int count = 0;
+			long total = iterator.getNumFound();
 			while (iterator.hasNext()) {
 				Record record = iterator.next();
 				String url = record.get(es.connectorHttpDocument.url());
 				insertInCache(url, newEntryFromRecord(schema, record), WAS_OBTAINED);
+				count++;
+				if (count % 10000 == 0 || count == total) {
+					LOGGER.info("Loading cache of connector '" + connectorId + "' of collection '" + collection + "' : "
+								+ count + "/" + total);
+				}
 			}
 		}
+		loadedCache = true;
 	}
 
 	@NotNull
@@ -272,6 +286,7 @@ public class ConnectorDocumentURLCache implements CollectionCache, LeaderElectio
 	@Override
 	public void onLeaderStatusChanged(boolean newStatus) {
 		currentLeaderStatus = newStatus;
+		LOGGER.info(newStatus ? "Server is now the leader" : "Server is no more the leader");
 		invalidateAll();
 	}
 

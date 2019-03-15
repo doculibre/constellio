@@ -19,9 +19,11 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.gargoylesoftware.htmlunit.DefaultCredentialsProvider;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.auth.AuthScope;
+import org.apache.solr.client.solrj.SolrServerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -49,7 +51,7 @@ public class ConnectorHttp extends Connector {
 	@Override
 	public void initialize(Record instanceRecord) {
 		this.connectorId = instanceRecord.getId();
-		cache = new ConnectorHttpDocumentURLCache(instanceRecord.getCollection(), connectorId, es.getAppLayerFactory());
+		cache = new ConnectorHttpDocumentURLCache(es.wrapConnectorInstance(instanceRecord), es.getAppLayerFactory());
 		es.getModelLayerFactory().getCachesManager().register(instanceRecord.getCollection(), connectorId, cache);
 
 	}
@@ -101,10 +103,12 @@ public class ConnectorHttp extends Connector {
 		urls.removeAll(connectorInstance.getOnDemandsList());
 
 		for (String url : urls) {
-			ConnectorHttpDocument httpDocument = newUnfetchedURLDocument(url, 0);
-			httpDocument.setInlinks(Arrays.asList(url));
-			documents.add(httpDocument);
-			//context.markAsFetched(url);
+			if (!cache.exists(url)) {
+				ConnectorHttpDocument httpDocument = newUnfetchedURLDocument(url, 0);
+				httpDocument.setInlinks(Arrays.asList(url));
+				documents.add(httpDocument);
+				//context.markAsFetched(url);
+			}
 
 		}
 		eventObserver.addUpdateEvents(documents);
@@ -185,11 +189,18 @@ public class ConnectorHttp extends Connector {
 
 	@Override
 	public synchronized List<ConnectorJob> getJobs() {
+		try {
+			es.getModelLayerFactory().getDataLayerFactory().getRecordsVaultServer().flush();
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		} catch (SolrServerException e) {
+			throw new RuntimeException(e);
+		}
 		cache.onConnectorGetJobsCalled();
 		ConnectorHttpInstance connectorInstance = getConnectorInstance();
 		for (String url : connectorInstance.getSeedsList()) {
 
-			if (!cache.exists(url)) {
+			if (!cache.exists(url) && cache.tryLockingDocumentForFetching(url)) {
 				try {
 					ConnectorHttpDocument connectorHttpDocument = newUnfetchedURLDocument(url, 0);
 					connectorHttpDocument.setInlinks(Arrays.asList(url));
