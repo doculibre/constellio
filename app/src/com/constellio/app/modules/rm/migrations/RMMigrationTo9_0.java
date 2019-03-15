@@ -10,10 +10,6 @@ import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.security.roles.RolesManager;
 
-import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.model.entities.security.Role;
-import com.constellio.model.services.security.roles.RolesManager;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,7 +24,8 @@ public class RMMigrationTo9_0 implements MigrationScript {
 	}
 
 	@Override
-	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+						AppLayerFactory appLayerFactory)
 			throws Exception {
 		ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
 
@@ -38,39 +35,22 @@ public class RMMigrationTo9_0 implements MigrationScript {
 		rolesManager.updateRole(rgbRole.withNewPermissions(asList(
 				RMPermissionsTo.DISPLAY_RETENTIONRULE, RMPermissionsTo.DISPLAY_CLASSIFICATION_PLAN)));
 
-				rolesManager.updateRole(admRole.withNewPermissions(asList(
-						RMPermissionsTo.DISPLAY_RETENTIONRULE, RMPermissionsTo.DISPLAY_CLASSIFICATION_PLAN)));
+		rolesManager.updateRole(admRole.withNewPermissions(asList(
+				RMPermissionsTo.DISPLAY_RETENTIONRULE, RMPermissionsTo.DISPLAY_CLASSIFICATION_PLAN)));
 
-
-		List<Role> roleList1 = rolesManager.getAllRoles(collection);
-
-		for(Role role : roleList1) {
-			if(role.hasOperationPermission(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST)) {
-				rolesManager.updateRole(role.withNewPermissions(asList(RMPermissionsTo.CREATE_DECOMMISSIONING_LIST)));
-			}
-		}
-
-		List<Role> roleList2 = rolesManager.getAllRoles(collection);
-
-		for(Role role : roleList2){
-			rolesManager.updateRole(role.withNewPermissions(asList(RMPermissionsTo.CART_BATCH_DELETE)));
-		}
-
-
-		RolesManager rolesManager = appLayerFactory.getModelLayerFactory().getRolesManager();
 
 		List<Role> roleList = rolesManager.getAllRoles(collection);
 
 		for (Role role : roleList) {
 			boolean oldPermission = role.hasOperationPermission(USE_CART_OLD_PERMISSION);
-			if(role.hasOperationPermission(RMPermissionsTo.USE_MY_CART) || oldPermission) {
+			if (role.hasOperationPermission(RMPermissionsTo.USE_MY_CART) || oldPermission) {
 				rolesManager.updateRole(role.withNewPermissions(asList(RMPermissionsTo.USE_GROUP_CART)));
 
-				if(oldPermission) {
+				if (oldPermission) {
 					Role newRole = rolesManager.getRole(collection, role.getCode());
 					List<String> permissions = new ArrayList<>(newRole.getOperationPermissions());
 
-					if(!role.hasOperationPermission(RMPermissionsTo.USE_MY_CART)) {
+					if (!role.hasOperationPermission(RMPermissionsTo.USE_MY_CART)) {
 						permissions.add(RMPermissionsTo.USE_MY_CART);
 					}
 
@@ -78,6 +58,20 @@ public class RMMigrationTo9_0 implements MigrationScript {
 					rolesManager.updateRole(newRole.withPermissions(permissions));
 				}
 			}
+		}
+
+		List<Role> roleList1 = rolesManager.getAllRoles(collection);
+
+		for (Role role : roleList1) {
+			if (role.hasOperationPermission(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST)) {
+				rolesManager.updateRole(role.withNewPermissions(asList(RMPermissionsTo.CREATE_DECOMMISSIONING_LIST)));
+			}
+		}
+
+		List<Role> roleList2 = rolesManager.getAllRoles(collection);
+
+		for (Role role : roleList2) {
+			rolesManager.updateRole(role.withNewPermissions(asList(RMPermissionsTo.CART_BATCH_DELETE)));
 		}
 	}
 }
