@@ -822,7 +822,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		return currentDocument;
 	}
 
-	User getCurrentUser() {
+	protected User getCurrentUser() {
 		if (currentUser == null) {
 			currentUser = presenterUtils.getCurrentUser();
 		}

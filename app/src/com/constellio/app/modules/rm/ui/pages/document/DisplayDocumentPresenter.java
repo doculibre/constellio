@@ -493,8 +493,13 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 				.on(getRecord(presenterUtils.getDocumentVO().getId()));
 	}
 
-	public boolean hasCurrentUserPermissionToUseCart() {
-		return getCurrentUser().has(RMPermissionsTo.USE_CART).globally();
+	public boolean hasCurrentUserPermissionToUseCartGroup() {
+		return getCurrentUser().has(RMPermissionsTo.USE_GROUP_CART).globally();
+	}
+
+
+	public boolean hasCurrentUserPermissionToUseMyCart() {
+		return getCurrentUser().has(RMPermissionsTo.USE_MY_CART).globally();
 	}
 
 	public RecordVODataProvider getEventsDataProvider() {

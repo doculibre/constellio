@@ -347,13 +347,14 @@ public class DisplayDocumentPresenterAcceptTest extends ConstellioTest {
 		rolesManager.updateRole(editedRole);
 
 		connectWithAlice();
-		assertThat(presenter.hasCurrentUserPermissionToUseCart()).isFalse();
+		assertThat(presenter.hasCurrentUserPermissionToUseMyCart()).isFalse();
+		assertThat(presenter.hasCurrentUserPermissionToUseCartGroup()).isFalse();
 
-		Role editedRole2 = editedRole.withPermissions(asList(RMPermissionsTo.USE_CART));
+		Role editedRole2 = editedRole.withPermissions(asList(RMPermissionsTo.USE_MY_CART, RMPermissionsTo.USE_GROUP_CART));
 		rolesManager.updateRole(editedRole2);
 
 		connectWithAlice();
-		assertThat(presenter.hasCurrentUserPermissionToUseCart()).isTrue();
+		assertThat(presenter.hasCurrentUserPermissionToUseMyCart()).isTrue();
 	}
 
 	private void connectWithAlice() {

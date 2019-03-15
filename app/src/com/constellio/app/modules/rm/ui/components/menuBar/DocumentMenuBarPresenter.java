@@ -1,6 +1,7 @@
 package com.constellio.app.modules.rm.ui.components.menuBar;
 
 import com.constellio.app.modules.rm.ConstellioRMModule;
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.ui.components.document.DocumentActionsPresenterUtils;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
@@ -15,6 +16,7 @@ import com.constellio.app.utils.ReportGeneratorUtils;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Event;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.schemas.SchemaUtils;
 
 import java.util.Map;
@@ -23,6 +25,7 @@ public class DocumentMenuBarPresenter extends DocumentActionsPresenterUtils<Docu
 
 	private DocumentMenuBar menuBar;
 	private RMModuleExtensions rmModuleExtensions;
+	private User user;
 
 	public DocumentMenuBarPresenter(DocumentMenuBar menuBar) {
 		super(menuBar);
@@ -53,6 +56,10 @@ public class DocumentMenuBarPresenter extends DocumentActionsPresenterUtils<Docu
 			menuBar.setOpenDocumentButtonVisible(false);
 		}
 		menuBar.buildMenuItems();
+	}
+
+	public boolean hasPermissionToUserCart() {
+		return getCurrentUser().has(RMPermissionsTo.USE_MY_CART).globally();
 	}
 
 	public void displayDocumentButtonClicked() {

@@ -114,6 +114,7 @@ public class RMNavigationConfiguration implements Serializable {
 	public static final String AGENT = "agent";
 	public static final String CART = "cart";
 	public static final String LIST_CARTS = "listCarts";
+	public static final String MY_CART = "myCart";
 	public static final String LOGS = "logs";
 	public static final String REPORTS = "reports";
 	public static final String REQUEST_AGENT = "requestAgent";
@@ -158,6 +159,7 @@ public class RMNavigationConfiguration implements Serializable {
 		service.register(LIST_AGENT_LOGS, ListAgentLogsViewImpl.class);
 		service.register(CART, CartViewImpl.class);
 		service.register(LIST_CARTS, CartsListViewImpl.class);
+		service.register(MY_CART, CartViewImpl.class);
 		service.register(EDIT_CONTAINER, AddEditContainerViewImpl.class);
 		service.register(CONTAINERS_BY_ADMIN_UNITS, ContainersByAdministrativeUnitsViewImpl.class);
 		service.register(DISPLAY_ADMIN_UNIT_WITH_CONTAINERS, ContainersInAdministrativeUnitViewImpl.class);
@@ -299,11 +301,18 @@ public class RMNavigationConfiguration implements Serializable {
 				return new CheckedOutDocumentsTable(appLayerFactory, sessionContext).getDataProvider();
 			}
 		});
+
+
 		config.add(HomeView.TABS, new PageItem.CustomItem("defaultFavorites") {
 			@Override
 			public Component buildCustomComponent(ConstellioFactories factories, SessionContext context,
 												  ItemClickEvent.ItemClickListener itemClickListener) {
 				return new RMFavoritesTable(factories.getAppLayerFactory(), context).builtCustomSheet(itemClickListener);
+			}
+
+			@Override
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
+				return visibleIf(user.has(RMPermissionsTo.USE_MY_CART).globally());
 			}
 		});
 	}
@@ -420,6 +429,24 @@ public class RMNavigationConfiguration implements Serializable {
 					}
 				});
 		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION,
+				new NavigationItem.Active(MY_CART, FontAwesome.LIST_ALT, CartViewGroup.class) {
+					@Override
+					public void activate(Navigation navigate) {
+						String userId = ConstellioUI.getCurrentSessionContext().getCurrentUser().getId();
+						navigate.to(RMViews.class).cart(userId);
+					}
+
+					@Override
+					public int getOrderValue() {
+						return 45;
+					}
+
+					@Override
+					public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
+						return visibleIf(user.has(RMPermissionsTo.USE_MY_CART).globally() && !user.has(RMPermissionsTo.USE_GROUP_CART).globally());
+					}
+				});
+		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION,
 				new NavigationItem.Active(LIST_CARTS, FontAwesome.LIST_ALT, CartViewGroup.class) {
 					@Override
 					public void activate(Navigation navigate) {
@@ -433,7 +460,7 @@ public class RMNavigationConfiguration implements Serializable {
 
 					@Override
 					public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
-						return visibleIf(user.has(RMPermissionsTo.USE_CART).globally());
+						return visibleIf(user.has(RMPermissionsTo.USE_GROUP_CART).globally());
 					}
 				});
 		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION, new NavigationItem.Active(LOGS, FontAwesome.BOOK, LogsViewGroup.class) {

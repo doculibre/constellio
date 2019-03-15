@@ -187,7 +187,7 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 
 	@Override
 	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
-		List<Button> buttons = super.buildActionMenuButtons(event);
+		List<Button> actionMenuButtons = super.buildActionMenuButtons(event);
 		Button edit = new EditButton($("DisplayContainerView.edit")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
@@ -195,7 +195,7 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 			}
 		};
 		edit.setVisible(presenter.isEditButtonVisible());
-		buttons.add(edit);
+		actionMenuButtons.add(edit);
 
 		Button slip = new ReportButton(new ReportWithCaptionVO("Reports.ContainerRecordReport", $("Reports.ContainerRecordReport")), presenter) {
 			@Override
@@ -207,7 +207,7 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 		slip.setCaption($("DisplayContainerView.slip"));
 		slip.setStyleName(ValoTheme.BUTTON_LINK);
 		slip.setEnabled(presenter.canPrintReports());
-		buttons.add(slip);
+		actionMenuButtons.add(slip);
 		Factory<List<LabelTemplate>> customLabelTemplatesFactory = new Factory<List<LabelTemplate>>() {
 			@Override
 			public List<LabelTemplate> get() {
@@ -224,9 +224,17 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 				defaultLabelTemplatesFactory, getConstellioFactories().getAppLayerFactory(),
 				getSessionContext().getCurrentCollection(),getSessionContext().getCurrentUser(), presenter.getContainer());
 		labels.setEnabled(presenter.canPrintReports());
-		buttons.add(labels);
+		actionMenuButtons.add(labels);
 		WindowButton addToCartButton = buildAddToCartButton();
-		buttons.add(addToCartButton);
+		Button addToCartMyCartButton = buildAddToMyCartButton();
+
+		if (presenter.hasCurrentUserPermissionToUseCartGroup()) {
+			actionMenuButtons.add(addToCartButton);
+		} else if (presenter.hasCurrentUserPermissionToUseMyCart()){
+			actionMenuButtons.add(addToCartMyCartButton);
+		}
+
+		actionMenuButtons.add(addToCartButton);
 		Button empty = new ConfirmDialogButton($("DisplayContainerView.empty")) {
 			@Override
 			protected String getConfirmDialogMessage() {
@@ -241,7 +249,7 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 		ComponentState state = presenter.getEmptyButtonState();
 		empty.setVisible(state.isVisible());
 		empty.setEnabled(state.isEnabled());
-		buttons.add(empty);
+		actionMenuButtons.add(empty);
 
 		Button delete = new DeleteButton($("DisplayContainerView.delete")) {
 			@Override
@@ -251,9 +259,20 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 		};
 		delete.setVisible(presenter.canDelete());
 		delete.setEnabled(presenter.canDelete());
-		buttons.add(delete);
+		actionMenuButtons.add(delete);
 
-		return buttons;
+		return actionMenuButtons;
+	}
+
+	private Button buildAddToMyCartButton(){
+		Button button = new BaseButton($("DisplayFolderView.addToCart")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				presenter.addToDefaultFavorite();
+			}
+		};
+
+		return button;
 	}
 
 	// TODO: Quick hack to make printing container labels work...
@@ -438,7 +457,10 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 
 	private DefaultFavoritesTable buildOwnedFavoritesTable(final Window window) {
 		List<DefaultFavoritesTable.CartItem> cartItems = new ArrayList<>();
-		cartItems.add(new DefaultFavoritesTable.CartItem($("CartView.defaultFavorites")));
+		if(presenter.hasCurrentUserPermissionToUseMyCart()) {
+			cartItems.add(new DefaultFavoritesTable.CartItem($("CartView.defaultFavorites")));
+		}
+
 		for (Cart cart : presenter.getOwnedCarts()) {
 			cartItems.add(new DefaultFavoritesTable.CartItem(cart, cart.getTitle()));
 		}

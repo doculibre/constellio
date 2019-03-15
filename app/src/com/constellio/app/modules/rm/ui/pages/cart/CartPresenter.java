@@ -113,13 +113,16 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		recordServices = modelLayerFactory.newRecordServices();
 	}
 
+	public boolean havePermisionToGroupCart() {
+		return getCurrentUser().has(RMPermissionsTo.USE_GROUP_CART).globally();
+	}
+
 	public void itemRemovalRequested(RecordVO recordVO) {
 		Record record = recordVO.getRecord();
 		removeFromFavorite(record);
 		addOrUpdate(record);
 		view.navigate().to(RMViews.class).cart(cartId);
 	}
-
 
 	public boolean canEmptyCart() {
 		return cartHasRecords();
@@ -162,14 +165,14 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		String schemaCode = record.getSchemaCode();
 
 		if (schemaCode.startsWith(Folder.SCHEMA_TYPE)) {
-				Folder folder = rm().wrapFolder(record);
-				folder.removeFavorite(cartId);
+			Folder folder = rm().wrapFolder(record);
+			folder.removeFavorite(cartId);
 		} else if (schemaCode.startsWith(Document.SCHEMA_TYPE)) {
-				Document document = rm().wrapDocument(record);
-				document.removeFavorite(cartId);
+			Document document = rm().wrapDocument(record);
+			document.removeFavorite(cartId);
 		} else if (schemaCode.startsWith(ContainerRecord.SCHEMA_TYPE)) {
-				ContainerRecord containerRecord = rm().wrapContainerRecord(record);
-				containerRecord.removeFavorite(cartId);
+			ContainerRecord containerRecord = rm().wrapContainerRecord(record);
+			containerRecord.removeFavorite(cartId);
 		}
 	}
 
@@ -179,7 +182,8 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	}
 
 	public void emailPreparationRequested() {
-		EmailMessage emailMessage = new CartEmailService(collection, modelLayerFactory).createEmailForCart(cartOwner(), getCartDocumentIds(), getCurrentUser());
+		EmailMessage emailMessage = new CartEmailService(collection, modelLayerFactory)
+				.createEmailForCart(cartOwner(), getCartDocumentIds(), getCurrentUser());
 		String filename = emailMessage.getFilename();
 		InputStream stream = emailMessage.getInputStream();
 		view.startDownload(stream, filename);
@@ -277,10 +281,12 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 							.filteredByStatus(StatusFilter.ACTIVES)
 							.sortAsc(Schemas.TITLE);
 				} else if (user.hasAny(RMPermissionsTo.DISPLAY_CONTAINERS, RMPermissionsTo.MANAGE_CONTAINERS).onSomething()) {
-					List<String> adminUnitIds = getConceptsWithPermissionsForCurrentUser(RMPermissionsTo.DISPLAY_CONTAINERS, RMPermissionsTo.MANAGE_CONTAINERS);
+					List<String> adminUnitIds = getConceptsWithPermissionsForCurrentUser(RMPermissionsTo.DISPLAY_CONTAINERS,
+							RMPermissionsTo.MANAGE_CONTAINERS);
 					return new LogicalSearchQuery(
 							from(rm().containerRecord.schemaType()).where(Schemas.IDENTIFIER).isIn(getAllCartItems())
-									.andWhere(schema(ContainerRecord.DEFAULT_SCHEMA).getMetadata(ContainerRecord.ADMINISTRATIVE_UNITS)).isIn(adminUnitIds))
+									.andWhere(schema(ContainerRecord.DEFAULT_SCHEMA)
+											.getMetadata(ContainerRecord.ADMINISTRATIVE_UNITS)).isIn(adminUnitIds))
 							.filteredByStatus(StatusFilter.ACTIVES)
 							.sortAsc(Schemas.TITLE);
 				} else {
@@ -444,6 +450,10 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
+		if (params != null && user.getId().equals(params)) {
+			return user.has(RMPermissionsTo.USE_MY_CART).globally();
+		}
+
 		return true;
 	}
 
@@ -791,10 +801,12 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 							.filteredByStatus(StatusFilter.ACTIVES).setFreeTextQuery(freeText)
 							.sortAsc(Schemas.TITLE);
 				} else if (user.hasAny(RMPermissionsTo.DISPLAY_CONTAINERS, RMPermissionsTo.MANAGE_CONTAINERS).onSomething()) {
-					List<String> adminUnitIds = getConceptsWithPermissionsForCurrentUser(RMPermissionsTo.DISPLAY_CONTAINERS, RMPermissionsTo.MANAGE_CONTAINERS);
+					List<String> adminUnitIds = getConceptsWithPermissionsForCurrentUser(RMPermissionsTo.DISPLAY_CONTAINERS,
+							RMPermissionsTo.MANAGE_CONTAINERS);
 					return new LogicalSearchQuery(
 							from(rm().containerRecord.schemaType()).where(Schemas.IDENTIFIER).isIn(getAllCartItems())
-									.andWhere(schema(ContainerRecord.DEFAULT_SCHEMA).getMetadata(ContainerRecord.ADMINISTRATIVE_UNIT)).isIn(adminUnitIds))
+									.andWhere(schema(ContainerRecord.DEFAULT_SCHEMA)
+											.getMetadata(ContainerRecord.ADMINISTRATIVE_UNIT)).isIn(adminUnitIds))
 							.filteredByStatus(StatusFilter.ACTIVES).setFreeTextQuery(freeText)
 							.sortAsc(Schemas.TITLE);
 				} else {
