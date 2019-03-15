@@ -59,7 +59,7 @@ public class DocumentMenuBarPresenter extends DocumentActionsPresenterUtils<Docu
 	}
 
 	public boolean hasPermissionToUserCart() {
-		return presenterUtils.getCurrentUser().has(RMPermissionsTo.USE_MY_CART).globally();
+		return getCurrentUser().has(RMPermissionsTo.USE_MY_CART).globally();
 	}
 
 	public void displayDocumentButtonClicked() {

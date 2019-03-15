@@ -114,7 +114,7 @@ public class RMNavigationConfiguration implements Serializable {
 	public static final String AGENT = "agent";
 	public static final String CART = "cart";
 	public static final String LIST_CARTS = "listCarts";
-	public static final String MY_CARTS = "myCart";
+	public static final String MY_CART = "myCart";
 	public static final String LOGS = "logs";
 	public static final String REPORTS = "reports";
 	public static final String REQUEST_AGENT = "requestAgent";
@@ -159,7 +159,7 @@ public class RMNavigationConfiguration implements Serializable {
 		service.register(LIST_AGENT_LOGS, ListAgentLogsViewImpl.class);
 		service.register(CART, CartViewImpl.class);
 		service.register(LIST_CARTS, CartsListViewImpl.class);
-		service.register(MY_CARTS, CartViewImpl.class);
+		service.register(MY_CART, CartViewImpl.class);
 		service.register(EDIT_CONTAINER, AddEditContainerViewImpl.class);
 		service.register(CONTAINERS_BY_ADMIN_UNITS, ContainersByAdministrativeUnitsViewImpl.class);
 		service.register(DISPLAY_ADMIN_UNIT_WITH_CONTAINERS, ContainersInAdministrativeUnitViewImpl.class);
@@ -429,7 +429,7 @@ public class RMNavigationConfiguration implements Serializable {
 					}
 				});
 		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION,
-				new NavigationItem.Active(MY_CARTS, FontAwesome.LIST_ALT, CartViewGroup.class) {
+				new NavigationItem.Active(MY_CART, FontAwesome.LIST_ALT, CartViewGroup.class) {
 					@Override
 					public void activate(Navigation navigate) {
 						String userId = ConstellioUI.getCurrentSessionContext().getCurrentUser().getId();

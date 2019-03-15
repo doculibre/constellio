@@ -25,10 +25,9 @@ public class RMMigrationTo9_0 implements MigrationScript {
 			throws Exception {
 		RolesManager rolesManager = appLayerFactory.getModelLayerFactory().getRolesManager();
 
+		List<Role> roleList = rolesManager.getAllRoles(collection);
 
-		List<Role> roleList1 = rolesManager.getAllRoles(collection);
-
-		for(Role role : roleList1) {
+		for (Role role : roleList) {
 			boolean oldPermission = role.hasOperationPermission(USE_CART_OLD_PERMISSION);
 			if(role.hasOperationPermission(RMPermissionsTo.USE_MY_CART) || oldPermission) {
 				rolesManager.updateRole(role.withNewPermissions(asList(RMPermissionsTo.USE_GROUP_CART)));
