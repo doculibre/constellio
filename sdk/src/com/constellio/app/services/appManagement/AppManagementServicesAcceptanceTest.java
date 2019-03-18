@@ -432,7 +432,7 @@ public class AppManagementServicesAcceptanceTest extends ConstellioTest {
 
 		assertThat(new File(newLibPath, "jcifs_gcm-322.jar")).doesNotExist();
 		assertThat(new File(newLibPath, "jcifs_gcm-322.jar.disabled")).exists();
-		assertThat(new File(newLibPath, "-jcifs_novell.jar.disabled")).doesNotExist();
+		assertThat(new File(newLibPath, "jcifs_novell.jar.disabled")).doesNotExist();
 		assertThat(new File(newLibPath, "jcifs_novell.jar")).exists();
 	}
 
