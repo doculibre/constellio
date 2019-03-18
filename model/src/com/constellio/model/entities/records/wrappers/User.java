@@ -61,7 +61,7 @@ public class User extends RecordWrapper {
 	public static final String TAXONOMY_DISPLAY_ORDER = "taxonomyDisplayOrder";
 	public static final String DO_NOT_RECEIVE_EMAILS = "doNotReceiveEmails";
 	public static final String AUTOMATIC_TASK_ASSIGNATION = "automaticTaskAssignation";
-	public static final String AUTOMATIC_TASK_ASSIGNATION_WORKFLOW = "automaticTaskAssignationWorkflow";
+	public static final String AUTOMATIC_TASK_ASSIGNATION_WORKFLOWS = "automaticTaskAssignationWorkflows";
 
 	private Logger LOGGER = LoggerFactory.getLogger(User.class);
 
@@ -612,7 +612,7 @@ public class User extends RecordWrapper {
 		return Boolean.TRUE.equals(get(AUTOMATIC_TASK_ASSIGNATION));
 	}
 
-	public List<String> getAutomaticTaskAssignationWorkflow() {
-		return getList(AUTOMATIC_TASK_ASSIGNATION_WORKFLOW);
+	public List<String> getAutomaticTaskAssignationWorkflows() {
+		return getList(AUTOMATIC_TASK_ASSIGNATION_WORKFLOWS);
 	}
 }
