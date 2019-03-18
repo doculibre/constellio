@@ -66,7 +66,6 @@ import static com.constellio.model.entities.records.wrappers.RecordWrapper.TITLE
 public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManagementView>
 		implements TaskPresenter, WorkflowPresenter {
 	public static final String TASK_MANAGEMENT_PRESENTER_PREVIOUS_TAB = "TaskManagementPresenterPreviousTab";
-
 	public static final String TASKS_ASSIGNED_BY_CURRENT_USER = "tasksAssignedByCurrentUser";
 	public static final String TASKS_NOT_ASSIGNED = "nonAssignedTasks";
 	public static final String TASKS_ASSIGNED_TO_CURRENT_USER = "tasksAssignedToCurrentUser";
@@ -539,5 +538,9 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 		LogicalSearchQuerySort sortField = new FunctionLogicalSearchQuerySort(
 				"termfreq(" + metadata.getDataStoreCode() + ",\'" + getCurrentUserId() + "\')", false);
 		query.sortFirstOn(sortField);
+	}
+
+	public User getCurrentUser() {
+		return super.getCurrentUser();
 	}
 }

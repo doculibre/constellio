@@ -1,5 +1,6 @@
 package com.constellio.app.modules.tasks.services;
 
+import com.constellio.app.modules.tasks.caches.IncompleteTasksUserCache;
 import com.constellio.app.modules.tasks.caches.UnreadTasksUserCache;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskType;
@@ -15,7 +16,6 @@ import org.joda.time.LocalDate;
 
 import java.util.List;
 
-import static com.constellio.app.modules.tasks.caches.UnreadTasksUserCache.NAME;
 import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.CLOSED;
 import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.FINISHED;
 import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.CLOSED_CODE;
@@ -46,15 +46,19 @@ public class TasksSearchServices {
 	}
 
 	public LogicalSearchQuery getUnassignedTasksQuery(User user) {
-		return new LogicalSearchQuery(
-				from(tasksSchemas.userTask.schemaType()).where(tasksSchemas.userTask.assignee()).isNull()
-						.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()
-						.andWhere(tasksSchemas.userTask.assigneeGroupsCandidates()).isNull()
-						.andWhere(tasksSchemas.userTask.assigneeUsersCandidates()).isNull()
-						.andWhere(tasksSchemas.userTask.status()).isNotEqual(getClosedStatus())
-						.andWhere(tasksSchemas.userTask.statusType()).isNotEqual(TERMINATED_STATUS)
-						.andWhere(tasksSchemas.userTask.isModel()).isFalseOrNull())
-				.filteredWithUser(user).sortDesc(tasksSchemas.userTask.dueDate()).sortDesc(tasksSchemas.userTask.modifiedOn());
+		LogicalSearchCondition condition = from(tasksSchemas.userTask.schemaType()).whereAllConditions(
+				where(tasksSchemas.userTask.assignee()).isNull(),
+				where(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull(),
+				where(tasksSchemas.userTask.status()).isNotEqual(getClosedStatus()),
+				where(tasksSchemas.userTask.statusType()).isNotEqual(TERMINATED_STATUS),
+				where(tasksSchemas.userTask.isModel()).isFalseOrNull(),
+				allConditions(
+						anyConditions(
+								where(tasksSchemas.userTask.assignee()).isNull(),
+								where(tasksSchemas.userTask.assigneeGroupsCandidates()).isIn(user.getUserGroups()),
+								where(tasksSchemas.userTask.assigneeUsersCandidates()).isEqualTo(user)
+						)));
+		return new LogicalSearchQuery(condition).filteredWithUser(user).sortDesc(tasksSchemas.userTask.dueDate()).sortDesc(tasksSchemas.userTask.modifiedOn());
 	}
 
 	public LogicalSearchQuery getTasksAssignedToUserQuery(User user) {
@@ -63,22 +67,12 @@ public class TasksSearchServices {
 				where(tasksSchemas.userTask.status()).isNotEqual(getClosedStatus()),
 				where(tasksSchemas.userTask.statusType()).isNotEqual(TERMINATED_STATUS),
 				where(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull(),
-				anyConditions(
-						where(tasksSchemas.userTask.assignee()).isEqualTo(user),
-						allConditions(
-								where(tasksSchemas.userTask.assignee()).isNull(),
-								anyConditions(
-										where(tasksSchemas.userTask.assigneeGroupsCandidates()).isIn(user.getUserGroups()),
-										where(tasksSchemas.userTask.assigneeUsersCandidates()).isEqualTo(user)
-								)
-						)
-				));
+				where(tasksSchemas.userTask.assignee()).isEqualTo(user));
 		return new LogicalSearchQuery(condition).filteredWithUser(user).sortDesc(tasksSchemas.userTask.dueDate()).sortDesc(tasksSchemas.userTask.modifiedOn());
 	}
 
 	public long getCountUnreadTasksToUserQuery(User user) {
-
-		UnreadTasksUserCache cache = tasksSchemas.getModelLayerFactory().getCachesManager().getUserCache(NAME);
+		UnreadTasksUserCache cache = tasksSchemas.getModelLayerFactory().getCachesManager().getUserCache(UnreadTasksUserCache.NAME);
 		Long cachedValue = cache.getCachedUnreadTasks(user);
 		if (cachedValue == null) {
 			cachedValue = calculateCountUnreadTasksToUserQuery(user);
@@ -86,6 +80,23 @@ public class TasksSearchServices {
 		}
 
 		return cachedValue;
+	}
+
+	public long getCountIncompleteTasksToUserQuery(User user) {
+		IncompleteTasksUserCache cache = tasksSchemas.getModelLayerFactory().getCachesManager().getUserCache(IncompleteTasksUserCache.NAME);
+		Long cachedValue = cache.getCachedIncompleteTasks(user);
+		if (cachedValue == null) {
+			cachedValue = calculateCountIncompleteTasksToUserQuery(user);
+			cache.insertIncompleteTasks(user, cachedValue);
+		}
+
+		return cachedValue;
+	}
+
+	private Long calculateCountIncompleteTasksToUserQuery(User user) {
+		LogicalSearchQuery query = getTasksAssignedToUserQuery(user);
+		LogicalSearchCondition condition = query.getCondition().andWhere(tasksSchemas.userTask.status()).isNotEqual(getTerminatedStatus());
+		return searchServices.getResultsCount(new LogicalSearchQuery(condition));
 	}
 
 	private long calculateCountUnreadTasksToUserQuery(User user) {

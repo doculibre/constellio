@@ -1,6 +1,7 @@
 package com.constellio.app.modules.tasks.ui.pages;
 
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
+import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.ui.components.DemoFilterDecorator;
 import com.constellio.app.modules.tasks.ui.components.DemoFilterGenerator;
 import com.constellio.app.modules.tasks.ui.components.FilterTableAdapter;
@@ -21,6 +22,7 @@ import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.model.entities.records.wrappers.User;
 import com.vaadin.data.Property;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
@@ -33,6 +35,7 @@ import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
 import org.apache.commons.collections4.CollectionUtils;
+import org.tepi.filtertable.FilterGenerator;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -47,6 +50,7 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 	private TabSheet sheet;
 	private ComboBox timestamp;
 	private String previousSelectedTab;
+	private FilterGenerator filterGenerator;
 
 	enum Timestamp {
 		ALL, TODAY, WEEK, MONTH
@@ -196,12 +200,31 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 			}
 		};
 
-		FilterTableAdapter tableAdapter = new FilterTableAdapter(taskTable, new DemoFilterDecorator(), new DemoFilterGenerator());
+		FilterTableAdapter tableAdapter;
+		if (filterGenerator == null) {
+			tableAdapter = new FilterTableAdapter(taskTable, new DemoFilterDecorator(), new DemoFilterGenerator());
+		} else {
+			tableAdapter = new FilterTableAdapter(taskTable, new DemoFilterDecorator(), filterGenerator);
+		}
 
 		// cas uniquement pour l'exemple
 		tableAdapter.setFilterFieldVisible("menuBar", false);
 		tableAdapter.setFilterBarVisible(true);
 
+
+		//TODO: Ajouter cela dans l'extension pour les workflows
+		String linkedWorkflowExecutionCode = Task.DEFAULT_SCHEMA + "_" + "linkedWorkflowExecution";
+		String titleCode = Task.DEFAULT_SCHEMA + "_" + "title";
+		for(Object visibleColumn : taskTable.getVisibleColumns()){
+			if (visibleColumn instanceof MetadataVO) {
+				if(linkedWorkflowExecutionCode.equals(((MetadataVO)visibleColumn).getCode())){
+					tableAdapter.setColumnExpandRatio(visibleColumn, 1);
+				}
+				if(titleCode.equals(((MetadataVO)visibleColumn).getCode())){
+					tableAdapter.setColumnExpandRatio(visibleColumn, 0);
+				}
+			}
+		}
 
 		layout.addComponent(tableAdapter);
 		//layout.addComponent(new BaseFilteringTable());
@@ -237,6 +260,10 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 		return sheet;
 	}
 
+	public void setFilterGenerator(FilterGenerator filterGenerator) {
+		this.filterGenerator = filterGenerator;
+	}
+
 	private class StartWorkflowButton extends WindowButton {
 		public StartWorkflowButton() {
 			super($("TasksManagementView.startWorkflowBeta"), $("TasksManagementView.startWorkflow"), modalDialog("75%", "75%"));
@@ -256,6 +283,10 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 			});
 			return table;
 		}
+	}
+
+	public User getCurrentUser() {
+		return presenter.getCurrentUser();
 	}
 
 	@Override

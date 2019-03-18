@@ -172,6 +172,9 @@ public class AppLayerCollectionExtensions {
 
 	public VaultBehaviorsList<SIPExtension> sipExtensions = new VaultBehaviorsList<>();
 
+	public VaultBehaviorsList<MetadataFieldExtension> workflowExecutionFieldExtensions = new VaultBehaviorsList<>();
+
+
 	//Key : schema type code
 	//Values : record's code
 	public KeyListMap<String, String> lockedRecords = new KeyListMap<>();
@@ -700,6 +703,14 @@ public class AppLayerCollectionExtensions {
 			}
 		}
 		return new MetadataFieldFactory().build(metadataVO);
+	}
+
+	public Field<?> getFieldForMetadata() {
+		for (MetadataFieldExtension extension : workflowExecutionFieldExtensions) {
+			Field<?> component = extension.getMetadataField(null);
+				return component;
+		}
+		return null;
 	}
 
 	public List<Button> getDocumentViewButtonExtension(Record record, User user) {

@@ -101,7 +101,7 @@ public class DynamicParametersField extends CustomField<String> {
 				AppLayerFactory appLayerFactory = ConstellioUI.getCurrent().getConstellioFactories().getAppLayerFactory();
 				AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions().forCollection(collection);
 				RecordFieldFactory recordFieldFactory = extensions
-						.newRecordFieldFactory(new RecordFieldFactoryExtensionParams(RECORD_FIELD_FACTORY_KEY, null));
+						.newRecordFieldFactory(new RecordFieldFactoryExtensionParams(RECORD_FIELD_FACTORY_KEY, null, effectiveRecord));
 				if (recordFieldFactory == null) {
 					recordFieldFactory = new RecordFieldFactory();
 				}

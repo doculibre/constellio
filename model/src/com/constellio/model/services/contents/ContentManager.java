@@ -440,6 +440,10 @@ public class ContentManager implements StatefulService {
 
 	}
 
+	public void updateParsedContent(String id, ParsedContent parsedContent) {
+		saveParsedContent(id, parsedContent);
+	}
+
 	void saveParsedContent(String id, ParsedContent parsingResults)
 			throws ContentManagerRuntimeException_CannotSaveContent {
 

@@ -78,6 +78,11 @@ public class RecordWrapper implements Serializable, CollectionObject {
 		return value == null ? null : value.intValue();
 	}
 
+	public Long getLong(String localCode) {
+		Number value = get(localCode);
+		return value == null ? null : value.longValue();
+	}
+
 	public int getPrimitiveInteger(String localCode) {
 		Number value = get(localCode);
 		return value == null ? 0 : value.intValue();
