@@ -110,11 +110,6 @@ public class CartsListViewImpl extends BaseViewImpl implements CartsListView {
 		return tabLayout;
 	}
 
-	@Override
-	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
-		return new TitleBreadcrumbTrail(this, getBreadCrumbTitle(), false);
-	}
-
 	private DefaultFavoritesTable buildTable() {
 		List<DefaultFavoritesTable.CartItem> cartItems = new ArrayList<>();
 		if(presenter.isMyCartVisible()) {
