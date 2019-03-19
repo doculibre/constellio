@@ -261,6 +261,18 @@ public class SDKPasswords {
 		return sdkPasswords.get("testAzure.authentication.clientId");
 	}
 
+	// Azure AD SSO
+	public static String testAzureAdSSOClientId() {
+		return getValue("testAzureAdSSO.clientId");
+	}
+
+	public static String testAzureAdSSOClientSecret() {
+		return getValue("testAzureAdSSO.clientSecret");
+	}
+
+	public static String testAzureAdSSOTenant() {
+		return getValue("testAzureAdSSO.tenant");
+	}
 
 	//
 	// Utils
@@ -288,5 +300,10 @@ public class SDKPasswords {
 				ConsoleLogger.log("Couldn't create file " + sdkPasswordsUserFile.getPath());
 			}
 		}
+	}
+
+	private static String getValue(String key) {
+		loadCorrectIfRequired();
+		return sdkPasswords.get(key);
 	}
 }

@@ -85,6 +85,8 @@ subprojects {
         compile 'com.fasterxml.uuid:java-uuid-generator:3.1.5'
         compile 'com.sun.xml.messaging.saaj:saaj-impl:1.4.0'
         compile 'com.sun.mail:javax.mail:1.6.2'
+        compile 'com.microsoft.azure:adal4j:1.6.3'
+        compile 'com.nimbusds:oauth2-oidc-sdk:4.5'
 
         compileOnly "org.projectlombok:lombok:1.18.2"
         annotationProcessor "org.projectlombok:lombok:1.18.2"
