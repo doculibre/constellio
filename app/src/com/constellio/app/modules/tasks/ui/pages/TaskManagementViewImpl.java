@@ -211,7 +211,6 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 		tableAdapter.setFilterFieldVisible("menuBar", false);
 		tableAdapter.setFilterBarVisible(true);
 
-
 		//TODO: Ajouter cela dans l'extension pour les workflows
 		String linkedWorkflowExecutionCode = Task.DEFAULT_SCHEMA + "_" + "linkedWorkflowExecution";
 		String titleCode = Task.DEFAULT_SCHEMA + "_" + "title";
