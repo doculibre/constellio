@@ -18,7 +18,7 @@ public interface DisplayFolderView extends BaseView, RecordsManagementViewGroup 
 
 	void setEvents(RecordVODataProvider dataProvider);
 
-	void setFolderContent(List<RecordVODataProvider> dataProviders);
+	void setFolderContent(RecordVODataProvider dataProvider);
 
 	void setTasks(RecordVODataProvider dataProvider);
 
@@ -75,6 +75,10 @@ public interface DisplayFolderView extends BaseView, RecordsManagementViewGroup 
 	void setTaxonomyCode(String taxonomyCode);
 
 	void clearUploadField();
+
+	void refreshFolderContentAndFacets();
+
+	void refreshFolderContent();
 
 	void showVersionUpdateWindow(RecordVO recordVO, ContentVersionVO dragAndDropEvent);
 

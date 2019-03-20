@@ -26,6 +26,7 @@ import com.constellio.model.services.contents.ContentImplRuntimeException.Conten
 import com.constellio.model.services.contents.ContentImplRuntimeException.ContentImplRuntimeException_VersionMustBeHigherThanPreviousVersion;
 import com.constellio.model.services.contents.ContentManager.UploadOptions;
 import com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_ContentHasNoPreview;
+import com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_ContentHasNoThumbnail;
 import com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_NoSuchContent;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
@@ -1552,8 +1553,9 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenTheRequireConversionFlagIsActivatedWhenCheckContentsToConvertThenConvert()
+	public void givenTheRequireConversionFlagIsActivatedWhenCheckContentsToConvertThenConvertAndGenerateThumbnail()
 			throws Exception {
+		givenConfig(ConstellioEIMConfigs.ENABLE_THUMBNAIL_GENERATION, true);
 
 		ContentVersionDataSummary zeContent = uploadDocx1InputStream();
 		givenRecord().withSingleValueContent(contentManager.createMajor(alice, "file.docx", zeContent))
@@ -1568,10 +1570,18 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 			//OK
 		}
 
+		try {
+			contentManager.getContentThumbnailInputStream(zeContent.getHash(), SDK_STREAM);
+			fail("Exception expected");
+		} catch (ContentManagerRuntimeException_ContentHasNoThumbnail e) {
+			//OK
+		}
+
 		contentManager.convertPendingContentForPreview();
 
 		assertThat(theRecord().<Boolean>get(Schemas.MARKED_FOR_PREVIEW_CONVERSION)).isNull();
 		assertThat(contentManager.hasContentPreview(zeContent.getHash())).isTrue();
+		assertThat(contentManager.hasContentThumbnail(zeContent.getHash())).isTrue();
 
 		InputStream in = contentManager.getContentPreviewInputStream(zeContent.getHash(), SDK_STREAM);
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -1608,6 +1618,28 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 			//OK
 		}
 
+	}
+
+	@Test
+	public void givenTheRequireConversionFlagIsActivatedAndThumbnailGenerationFlagIsDisabledThenNoThumbnail() throws Exception {
+		givenConfig(ConstellioEIMConfigs.ENABLE_THUMBNAIL_GENERATION, false);
+
+		ContentVersionDataSummary zeContent = uploadDocx1InputStream();
+		givenRecord().withSingleValueContent(contentManager.createMajor(alice, "file.docx", zeContent))
+				.withRequireConversionFlag(true).isSaved();
+
+		assertThat(theRecord().get(Schemas.MARKED_FOR_PREVIEW_CONVERSION)).isEqualTo(Boolean.TRUE);
+		try {
+			contentManager.getContentThumbnailInputStream(zeContent.getHash(), SDK_STREAM);
+			fail("Exception expected");
+		} catch (ContentManagerRuntimeException_ContentHasNoThumbnail e) {
+			//OK
+		}
+
+		contentManager.convertPendingContentForPreview();
+
+		assertThat(theRecord().get(Schemas.MARKED_FOR_PREVIEW_CONVERSION)).isNull();
+		assertThat(contentManager.hasContentThumbnail(zeContent.getHash())).isFalse();
 	}
 
 	@Test

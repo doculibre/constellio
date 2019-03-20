@@ -318,15 +318,10 @@ public class ThesaurusConfigurationViewImpl extends BaseViewImpl implements Thes
 		this.showErrorMessage($("ThesaurusConfigurationView.saveUnexpectedError"));
 	}
 
-	@Override
-	protected Component buildActionMenu(ViewChangeListener.ViewChangeEvent event) {
-		return super.buildActionMenu(event);
-	}
-
-	@Override
-	public void removeAllTheSelectedFile() {
-		uploadSkosField.setValue(null);
-	}
+    @Override
+    public void removeAllTheSelectedFile() {
+        uploadSkosField.setValue(null);
+    }
 
 	public class FormBean {
 

@@ -50,8 +50,7 @@ public class DocumentViewer extends CustomComponent {
 
 	private static final int DEFAULT_WIDTH = 750;
 
-	private static final int DEFAULT_HEIGHT = 600;
-
+	private static final int DEFAULT_HEIGHT = 1000;
 	private RecordVO recordVO;
 
 	private String metadataCode;
@@ -113,12 +112,12 @@ public class DocumentViewer extends CustomComponent {
 					boolean preview = Arrays.asList(CONVERSION_EXTENSIONS).contains(extension);
 					if (preview) {
 						if (ConstellioResourceHandler.hasContentPreview(recordVO.getId(), metadataCode, version)) {
-							contentResource = ConstellioResourceHandler.createResource(recordVO.getId(), metadataCode, version, fileName + ".pdf", true);
+							contentResource = ConstellioResourceHandler.createPreviewResource(recordVO.getId(), metadataCode, version, fileName + ".pdf");
 						} else {
 							contentResource = null;
 						}
 					} else {
-						contentResource = ConstellioResourceHandler.createResource(recordVO.getId(), metadataCode, version, fileName, false);
+						contentResource = ConstellioResourceHandler.createResource(recordVO.getId(), metadataCode, version, fileName);
 					}
 				}
 			} else if (file != null) {
@@ -153,9 +152,9 @@ public class DocumentViewer extends CustomComponent {
 			if (contentResource != null) {
 				ResourceReference contentResourceReference = ResourceReference.create(contentResource, this, "DocumentViewer.file");
 				String contentURL = contentResourceReference.getURL();
+				
 
-				//				String iframeHTML = "<iframe src = \"./VAADIN/themes/constellio/viewerjs/index.html?/VIEWER/#../../../../" + contentURL + "\" width=\"" + width + "\" height=\"" + height + "\" allowfullscreen webkitallowfullscreen></iframe>";
-				String iframeHTML = "<iframe src = \"./VAADIN/themes/constellio/pdfjs/web/viewer.html?file=../../../../../" + contentURL + "\" width=\"" + width + "\" height=\"" + height + "\" allowfullscreen webkitallowfullscreen></iframe>";
+				String iframeHTML = "<iframe src = \"./VAADIN/themes/constellio/pdfjs/web/viewer.html?file=../../../../../" + contentURL + "\" width=\"100%\" height=\"" + height + "\" allowfullscreen webkitallowfullscreen></iframe>";
 				setCompositionRoot(new Label(iframeHTML, ContentMode.HTML));
 			} else {
 				setVisible(false);

@@ -1,16 +1,29 @@
 package com.constellio.model.extensions;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.data.frameworks.extensions.ExtensionUtils.BooleanCaller;
 import com.constellio.data.frameworks.extensions.VaultBehaviorsList;
+import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.extensions.behaviors.BatchProcessingSpecialCaseExtension;
+import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.extensions.behaviors.BatchProcessingSpecialCaseExtension;
 import com.constellio.model.extensions.behaviors.RecordExtension;
 import com.constellio.model.extensions.behaviors.RecordExtension.IsRecordModifiableByParams;
 import com.constellio.model.extensions.behaviors.RecordImportExtension;
 import com.constellio.model.extensions.behaviors.SchemaExtension;
+import com.constellio.model.extensions.behaviors.TaxonomyExtension;
 import com.constellio.model.extensions.events.records.RecordCreationEvent;
 import com.constellio.model.extensions.events.records.RecordInCreationBeforeSaveEvent;
 import com.constellio.model.extensions.events.records.RecordInCreationBeforeValidationAndAutomaticValuesCalculationEvent;
@@ -65,6 +78,8 @@ public class ModelLayerCollectionExtensions {
 		this.systemExtensions = systemExtensions;
 		this.recordExtensions = new VaultBehaviorsList<>(systemExtensions.recordExtensions);
 	}
+
+	public VaultBehaviorsList<TaxonomyExtension> taxonomyExtensions = new VaultBehaviorsList<>();
 
 	//----------------- Callers ---------------
 
@@ -352,5 +367,13 @@ public class ModelLayerCollectionExtensions {
 		}
 
 		return metadataChangeOnRecord;
+	}
+
+	public Metadata[] getSortMetadatas(Taxonomy taxonomy) {
+		Metadata[] sortMetadatas = new TaxonomyExtension().getSortMetadatas(taxonomy);
+		for (TaxonomyExtension extension : taxonomyExtensions) {
+			sortMetadatas = extension.getSortMetadatas(taxonomy);
+		}
+		return sortMetadatas;
 	}
 }

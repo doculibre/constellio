@@ -125,12 +125,7 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 				}
 			}
 		};
-		layout.addComponents(borrowedLabel, new RecordDisplay(recordVO, metadataDisplayFactory) {
-			@Override
-			protected void addCaptionAndDisplayComponent(Label captionLabel, Component displayComponent) {
-				super.addCaptionAndDisplayComponent(captionLabel, displayComponent);
-			}
-		});
+		layout.addComponents(borrowedLabel, new RecordDisplay(recordVO, metadataDisplayFactory));
 
 		layout.addComponent(buildFoldersTable(presenter.getFolders()));
 

@@ -8,7 +8,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 @SuppressWarnings("serial")
 public abstract class ListMetadataGroupButton extends IconButton {
 
-	public static final Resource ICON_RESOURCE = new ThemeResource("images/commun/businesspeople.png");
+	public static final Resource ICON_RESOURCE = new ThemeResource("images/icons/config/metadata-group.png");
 
 	public static final String BUTTON_STYLE = "edit-button";
 

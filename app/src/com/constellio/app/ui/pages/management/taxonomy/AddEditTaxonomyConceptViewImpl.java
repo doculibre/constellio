@@ -2,10 +2,14 @@ package com.constellio.app.ui.pages.management.taxonomy;
 
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.RecordForm;
+import com.constellio.app.ui.framework.components.fields.upload.ContentVersionUploadField;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.model.frameworks.validation.ValidationException;
+import com.vaadin.data.Property.ValueChangeEvent;
+import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.Field;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -33,7 +37,7 @@ public class AddEditTaxonomyConceptViewImpl extends BaseViewImpl implements AddE
 
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
-		return new RecordForm(recordVO) {
+		RecordForm recordForm = new RecordForm(recordVO) {
 			@Override
 			protected void saveButtonClick(RecordVO recordVO)
 					throws ValidationException {
@@ -45,6 +49,19 @@ public class AddEditTaxonomyConceptViewImpl extends BaseViewImpl implements AddE
 				presenter.cancelButtonClicked(recordVO);
 			}
 		};
+
+		for (final Field<?> field : recordForm.getFields()) {
+			if (field instanceof ContentVersionUploadField) {
+				field.addValueChangeListener(new ValueChangeListener() {
+					@Override
+					public void valueChange(ValueChangeEvent event) {
+						presenter.contentVersionUploadFieldChanged((ContentVersionUploadField) field);
+					}
+				});
+			}
+		}
+
+		return recordForm;
 	}
 
 }

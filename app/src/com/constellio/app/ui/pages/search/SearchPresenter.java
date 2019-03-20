@@ -1,5 +1,33 @@
 package com.constellio.app.ui.pages.search;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.data.dao.services.idGenerator.UUIDV1Generator.newRandomId;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.solr.common.params.ModifiableSolrParams;
+import org.joda.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.constellio.app.api.extensions.taxonomies.UserSearchEvent;
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
@@ -57,6 +85,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.extensions.ConstellioModulesManager;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.logging.SearchEventServices;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServicesException;
@@ -80,39 +109,14 @@ import com.constellio.model.services.thesaurus.ResponseSkosConcept;
 import com.constellio.model.services.thesaurus.ThesaurusManager;
 import com.constellio.model.services.thesaurus.ThesaurusService;
 import com.vaadin.server.StreamResource.StreamSource;
-import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.solr.common.params.ModifiableSolrParams;
-import org.joda.time.LocalDateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.data.dao.services.idGenerator.UUIDV1Generator.newRandomId;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
 
 public abstract class SearchPresenter<T extends SearchView> extends BasePresenter<T> implements NewReportPresenter {
 
 	private static final String ZIP_CONTENT_RESOURCE = "zipContentsFolder";
 	public static final String SEARCH_EVENT_DWELL_TIME = "SEARCH_EVENT_DWELL_TIME";
 	public static final String CURRENT_SEARCH_EVENT = "CURRENT_SEARCH_EVENT";
+
+	public static final String DEFAULT_VIEW_MODE = Toggle.SEARCH_RESULTS_VIEWER.isEnabled() ? SearchResultsViewMode.TABLE : SearchResultsViewMode.DETAILED;
 
 	public int getDefaultPageLength() {
 		SearchPageLength defaultPageLength = getCurrentUser().getDefaultPageLength();
@@ -129,7 +133,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	List<String> suggestions;
 	String sortCriterion;
 	SortOrder sortOrder;
-	String resultsViewMode;
+	String resultsViewMode = DEFAULT_VIEW_MODE;
 	String collection;
 	transient SchemasDisplayManager schemasDisplayManager;
 	transient SearchPresenterService service;
@@ -975,11 +979,12 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 			String url = null;
 			try {
 				url = recordVO.get("url");
+
+				String clicks = StringUtils.defaultIfBlank(url, recordVO.getId());
+				searchEventServices.updateClicks(searchEvent, clicks);
 			} catch (RecordVORuntimeException_NoSuchMetadata e) {
-				LOGGER.warn(e.getMessage(), e);
+	//			LOGGER.warn(e.getMessage(), e);
 			}
-			String clicks = StringUtils.defaultIfBlank(url, recordVO.getId());
-			searchEventServices.updateClicks(searchEvent, clicks);
 		}
 	}
 
@@ -1059,4 +1064,26 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 			}
 		});
 	}
+
+	public void fireSomeRecordsSelected() {
+		view.fireSomeRecordsSelected();
+	}
+
+	public void fireNoRecordSelected() {
+		view.fireNoRecordSelected();
+	}
+
+	public User getUser() {
+		return getCurrentUser();
+	}
+
+	public void logRecordView(RecordVO recordVO) {
+		Record record = presenterService().getRecord(recordVO.getId());
+		ModelLayerFactory modelLayerFactory = view.getConstellioFactories().getModelLayerFactory();
+		User user = getCurrentUser();
+		modelLayerFactory.newLoggingServices().logRecordView(record, user);
+		setChanged();
+		notifyObservers(recordVO);
+	}
+
 }

@@ -371,6 +371,14 @@ public class AppLayerCollectionExtensions {
 		return fields;
 	}
 
+	public String getSortMetadataCode(Taxonomy taxonomy) {
+		String sortMetadataCode = null;
+		for (TaxonomyPageExtension extension : taxonomyAccessExtensions) {
+			sortMetadataCode = extension.getSortMetadataCode(taxonomy);
+		}
+		return sortMetadataCode;
+	}
+
 	public boolean hasPageAccess(boolean defaultValue, final Class<? extends BasePresenter> presenterClass,
 								 final String params,
 								 final User user) {
@@ -743,10 +751,8 @@ public class AppLayerCollectionExtensions {
 				unwantedTaxonomies.addAll(unwantedTaxonomiesFromExtension);
 			}
 		}
-		return new ArrayList<>(unwantedTaxonomies);
-	}
-
-	public LogicalSearchCondition adjustSearchPageCondition(SearchPageConditionParam param) {
+        return new ArrayList<>(unwantedTaxonomies);
+    }public LogicalSearchCondition adjustSearchPageCondition(SearchPageConditionParam param) {
 		LogicalSearchCondition condition = param.getCondition();
 		for (SearchPageExtension extension : searchPageExtensions) {
 			condition = extension.adjustSearchPageCondition(

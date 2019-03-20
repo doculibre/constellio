@@ -4,6 +4,7 @@ import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.FacetVO;
 import com.constellio.app.ui.entities.FacetValueVO;
 import com.constellio.app.ui.entities.MetadataVO;
+import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.SearchResultVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
@@ -20,7 +21,11 @@ import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveRecordLookupField;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
+import com.constellio.app.ui.framework.components.search.FacetsPanel;
+import com.constellio.app.ui.framework.components.splitpanel.CollapsibleHorizontalSplitPanel;
 import com.constellio.app.ui.framework.components.table.BaseTable;
+import com.constellio.app.ui.framework.components.table.SelectionTableAdapter;
+import com.constellio.app.ui.framework.components.viewers.panel.ViewableRecordTablePanel;
 import com.constellio.app.ui.framework.containers.SearchResultContainer;
 import com.constellio.app.ui.framework.containers.SearchResultVOLazyContainer;
 import com.constellio.app.ui.framework.data.SearchResultVODataProvider;
@@ -38,6 +43,8 @@ import com.vaadin.data.Container.ItemSetChangeListener;
 import com.vaadin.data.Property;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
+import com.vaadin.event.ItemClickEvent;
+import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.shared.ui.label.ContentMode;
@@ -90,10 +97,13 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	private VerticalLayout thesaurusDisambiguation;
 	private VerticalLayout spellCheckerSuggestions;
 	private VerticalLayout summary;
+	private Component resultsAndFacetsPanel;
 	private VerticalLayout resultsArea;
-	private VerticalLayout facetsArea;
+	private FacetsPanel facetsArea;
 	private VerticalLayout capsuleArea;
-	private SearchResultTable results;
+
+	private ViewableRecordTablePanel viewableSearchResultsPanel;
+	private SearchResultTable resultsTable;
 	private SelectDeselectAllButton selectDeselectAllButton;
 	private Button addToSelectionButton;
 	private HashMap<Integer, Boolean> hashMapAllSelection = new HashMap<>();
@@ -255,30 +265,41 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		if (temporarySave) {
 			SavedSearch savedSearch = presenter.saveTemporarySearch(false);
 
-			for(SaveSearchListener saveSearchListener : saveSearchListenerList) {
+			for (SaveSearchListener saveSearchListener : saveSearchListenerList) {
 				saveSearchListener.save(new SaveSearchListener.Event(savedSearch));
 			}
 		}
 
 		SearchResultVODataProvider dataProvider = presenter.getSearchResults(includeFacets);
 		spellCheckerSuggestions.removeAllComponents();
-		results = buildResultTable(dataProvider);
-
+		resultsTable = buildResultTable(dataProvider);
 
 		List<String> disambiguationSuggestions = presenter.getDisambiguationSuggestions();
 		buildThesaurusDisambiguation(disambiguationSuggestions);
 		buildSpellCheckerSuggestions(dataProvider, disambiguationSuggestions);
 
 		summary.removeAllComponents();
-		summary.addComponent(buildSummary(results));
+		summary.addComponent(buildSummary(resultsTable));
+
+		if (Toggle.SEARCH_RESULTS_VIEWER.isEnabled()) {
+			Table table;
+			if (resultsTable instanceof Table) {
+				table = (Table) resultsTable;
+			} else {
+				SelectionTableAdapter selectionTableAdapter = (SelectionTableAdapter) resultsTable;
+				table = selectionTableAdapter.getTable();
+			}
+			viewableSearchResultsPanel.setTable(table);
+		}
+
 
 		if (isDetailedView()) {
 			resultsArea.removeAllComponents();
-			resultsArea.addComponents(results, ((SearchResultDetailedTable) results).createControls());
-			((SearchResultDetailedTable) results).setItemsPerPageValue(presenter.getSelectedPageLength());
+			resultsArea.addComponents(resultsTable, ((SearchResultDetailedTable) resultsTable).createControls());
+			((SearchResultDetailedTable) resultsTable).setItemsPerPageValue(presenter.getSelectedPageLength());
 		} else {
 			resultsArea.removeAllComponents();
-			resultsArea.addComponent(results);
+			resultsArea.addComponent(resultsTable);
 		}
 
 		refreshCapsule();
@@ -292,19 +313,23 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 
 	@Override
 	public void refreshFacets(SearchResultVODataProvider dataProvider) {
-		facetsArea.removeAllComponents();
-		addFacetComponents(facetsArea, dataProvider);
+		List<FacetVO> facets = presenter.getFacets(dataProvider);
+		KeySetMap<String, String> facetSelections = presenter.getFacetSelections();
+		List<MetadataVO> sortableMetadata = presenter.getMetadataAllowedInSort();
+		String sortCriterionValue = presenter.getSortCriterionValueAmong(sortableMetadata);
+		SortOrder sortOrder = presenter.getSortOrder();
+		facetsArea.refresh(facets, facetSelections, sortableMetadata, sortCriterionValue, sortOrder);
 		presenter.setPageNumber(1);
 	}
 
 	@Override
 	public List<String> getSelectedRecordIds() {
-		return results.getSelectedRecordIds();
+		return resultsTable.getSelectedRecordIds();
 	}
 
 	@Override
 	public List<String> getUnselectedRecordIds() {
-		return results.getUnselectedRecordIds();
+		return resultsTable.getUnselectedRecordIds();
 	}
 
 	protected abstract Component buildSearchUI();
@@ -338,22 +363,67 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		//		resultsArea.setWidth("100%");
 		resultsArea.setSpacing(true);
 
-		facetsArea = new VerticalLayout();
+		facetsArea = new FacetsPanel() {
+			@Override
+			protected void sortCriterionSelected(String sortCriterion, SortOrder sortOrder) {
+				presenter.sortCriterionSelected(sortCriterion, sortOrder);
+			}
+
+			@Override
+			protected void facetDeselected(String id) {
+				presenter.facetDeselected(id);
+			}
+
+			@Override
+			protected void facetValueSelected(String facetId, String value) {
+				presenter.facetValueSelected(facetId, value);
+			}
+
+			@Override
+			protected void facetValueDeselected(String facetId, String value) {
+				presenter.facetValueDeselected(facetId, value);
+			}
+
+			@Override
+			protected void facetOpened(String id) {
+				presenter.facetOpened(id);
+			}
+
+			@Override
+			protected void facetClosed(String id) {
+				presenter.facetClosed(id);
+			}
+
+		};
 		facetsArea.addStyleName("search-result-facets");
-		facetsArea.setWidth("300px");
+		facetsArea.setWidth("250px");
 		facetsArea.setSpacing(true);
 
-		I18NHorizontalLayout body = new I18NHorizontalLayout(resultsArea, facetsArea);
-		body.addStyleName("search-result-and-facets-container");
-		body.setWidth("100%");
-		body.setExpandRatio(resultsArea, 1);
-		body.setSpacing(true);
+		if (Toggle.SEARCH_RESULTS_VIEWER.isEnabled()) {
+			viewableSearchResultsPanel = new ViewableRecordTablePanel(resultsArea);
+
+			CollapsibleHorizontalSplitPanel body = new CollapsibleHorizontalSplitPanel("search-result-and-facets-container");
+			body.addStyleName("search-result-and-facets-container");
+			body.setSecondComponentWidth(250, Unit.PIXELS);
+			body.setFirstComponent(viewableSearchResultsPanel);
+			body.setSecondComponent(facetsArea);
+
+			resultsAndFacetsPanel = body;
+		} else {
+			I18NHorizontalLayout body = new I18NHorizontalLayout(resultsArea, facetsArea);
+			body.addStyleName("search-result-and-facets-container");
+			body.setWidth("100%");
+			body.setExpandRatio(resultsArea, 1);
+			body.setSpacing(true);
+
+			resultsAndFacetsPanel = body;
+		}
 
 		refreshCapsule();
 
 		VerticalLayout main = new VerticalLayout(thesaurusDisambiguation, spellCheckerSuggestions, summary, capsuleArea);
 
-		main.addComponent(body);
+		main.addComponent(resultsAndFacetsPanel);
 		main.addStyleName("suggestions-summary-results-facets");
 		main.setWidth("100%");
 		main.setSpacing(true);
@@ -365,6 +435,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	private void refreshCapsule() {
 		if (capsuleArea == null) {
 			capsuleArea = new VerticalLayout();
+			capsuleArea.addStyleName("search-capsule");
 		} else {
 			capsuleArea.removeAllComponents();
 		}
@@ -378,12 +449,38 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		}
 
 		if (capsuleComponent != null) {
+			if (!capsuleArea.isVisible()) {
+				capsuleArea.setVisible(true);
+			}
 			capsuleArea.addComponent(capsuleComponent);
+		} else {
+			capsuleArea.setVisible(false);
 		}
 	}
 
 	protected SearchResultTable buildResultTable(SearchResultVODataProvider dataProvider) {
-		return buildDetailedResultsTable(dataProvider);
+		if (presenter.getResultsViewMode().equals(SearchResultsViewMode.TABLE)) {
+			return buildSimpleResultsTable(dataProvider);
+		} else {
+			return buildDetailedResultsTable(dataProvider);
+		}
+	}
+
+	protected SearchResultTable buildSimpleResultsTable(SearchResultVODataProvider dataProvider) {
+		//Fixme : use dataProvider instead
+		final SearchResultContainer container = buildResultContainer(dataProvider);
+		SearchResultSimpleTable table = new SearchResultSimpleTable(container, presenter);
+		table.setWidth("100%");
+		table.getTable().addItemClickListener(new ItemClickListener() {
+			@SuppressWarnings("rawtypes")
+			@Override
+			public void itemClick(ItemClickEvent event) {
+				Object itemId = event.getItemId();
+				RecordVO recordVO = container.getRecordVO((int) itemId);
+				((SearchPresenter) presenter).searchResultClicked(recordVO);
+			}
+		});
+		return table;
 	}
 
 	protected SearchResultTable buildDetailedResultsTable(SearchResultVODataProvider dataProvider) {
@@ -725,18 +822,18 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			@Override
 			protected void onSelectAll(ClickEvent event) {
 				if (isDetailedView()) {
-					((SearchResultDetailedTable) results).selectCurrentPage();
+					((SearchResultDetailedTable) resultsTable).selectCurrentPage();
 				} else {
-					((SearchResultSimpleTable) results).askSelectionRange();
+					((SearchResultSimpleTable) resultsTable).askSelectionRange();
 				}
 			}
 
 			@Override
 			protected void onDeselectAll(ClickEvent event) {
 				if (isDetailedView()) {
-					((SearchResultDetailedTable) results).deselectCurrentPage();
+					((SearchResultDetailedTable) resultsTable).deselectCurrentPage();
 				} else {
-					((SearchResultSimpleTable) results).askSelectionRange();
+					((SearchResultSimpleTable) resultsTable).askSelectionRange();
 				}
 			}
 
@@ -851,6 +948,16 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	}
 
 	public SearchResultTable getResult() {
-		return this.results;
+		return this.resultsTable;
 	}
+
+	@Override
+	public void fireSomeRecordsSelected() {
+
+	}
+
+	@Override
+	public void fireNoRecordSelected() {
+	}
+
 }

@@ -194,6 +194,13 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		return document.getFavorites().contains(getCurrentUser().getId());
 	}
 
+	public void editDocumentButtonClicked() {
+		if (isEditDocumentPossible()) {
+			actionsComponent.navigate().to(RMViews.class).editDocument(documentVO.getId());
+			updateSearchResultClicked();
+		}
+	}
+
 	public Document renameContentButtonClicked(String newName) {
 		if (isEditDocumentPossible()) {
 			Record record = presenterUtils.getRecord(documentVO.getId());

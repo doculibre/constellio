@@ -65,6 +65,8 @@ public class Toggle {
 
 	public static AvailableToggle RETURN_EMPTY_VALUE_WHEN_KEY_IS_MISSING = newToggle(false);
 
+	public static AvailableToggle SEARCH_RESULTS_VIEWER = newToggle(true);
+
 	// ------------------------------------------------
 
 	private static Map<String, AvailableToggle> toggleMap = new HashMap<>();

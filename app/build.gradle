@@ -76,14 +76,17 @@ dependencies {
     compile 'org.apache.commons:commons-compress:1.18'
     compile 'net.sourceforge.htmlunit:htmlunit:2.23'
     compile 'org.apache.james:apache-mime4j-core:0.8.2'
+    compile "org.imgscalr:imgscalr-lib:4.2"
 
     compile files("../libs/vaadin-breadcrumb-1.7.3.jar")
     compile files("../libs/vaadin-filteringtable-1.0.0.v7.jar")
+    compile files("../libs/vaadin-tiff-viewer-1.1.2.jar")
 
     compile 'com.google.gwt:gwt-elemental:2.8.2'
     compile 'com.google.gwt:gwt-dev:2.8.2'
 
     runtime 'org.projectlombok:lombok:1.18.2'
+    
 }
 
 war {

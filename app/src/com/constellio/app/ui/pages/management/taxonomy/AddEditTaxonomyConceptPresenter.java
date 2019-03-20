@@ -3,6 +3,7 @@ package com.constellio.app.ui.pages.management.taxonomy;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
+import com.constellio.app.ui.framework.components.fields.upload.ContentVersionUploadField;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.model.entities.records.Record;
@@ -158,5 +159,10 @@ public class AddEditTaxonomyConceptPresenter extends SingleSchemaBasePresenter<A
 			isReindexationNeeded = false;
 			saveButtonClicked(recordVO, isReindexationNeeded);
 		}
+	}
+
+
+	public void contentVersionUploadFieldChanged(ContentVersionUploadField field) {
+		// TODO
 	}
 }

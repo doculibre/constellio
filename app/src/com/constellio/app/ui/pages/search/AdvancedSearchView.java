@@ -28,7 +28,7 @@ public interface AdvancedSearchView extends SearchView {
 
 	void fireSomeRecordsSelected();
 
-	void fireNoRecordSelected();
+    void fireNoRecordSelected();
 
 	NewReportPresenter getPresenter();
 }

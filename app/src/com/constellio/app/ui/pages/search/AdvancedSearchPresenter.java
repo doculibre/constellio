@@ -65,7 +65,6 @@ import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
-import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordImpl;
 import com.constellio.model.services.records.RecordServices;
@@ -131,7 +130,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	}
 
 	private void setSchemaTypeOnPresenterService() {
-		if(schemaTypeCode != null) {
+		if (schemaTypeCode != null) {
 			service.setMetadataSchemaTypesList(Arrays.asList(modelLayerFactory.getMetadataSchemasManager()
 					.getSchemaTypes(collection).getSchemaType(schemaTypeCode)));
 		} else {
@@ -158,7 +157,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 			resetFacetSelection();
 			schemaTypeCode = view.getSchemaType();
 			pageNumber = 1;
-			resultsViewMode = SearchResultsViewMode.DETAILED;
+			resultsViewMode = DEFAULT_VIEW_MODE;
 			saveTemporarySearch(false);
 		}
 		setSchemaTypeOnPresenterService();
@@ -173,7 +172,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		sortOrder = SortOrder.valueOf(search.getSortOrder().name());
 		schemaTypeCode = search.getSchemaFilter();
 		pageNumber = search.getPageNumber();
-		resultsViewMode = search.getResultsViewMode() != null ? search.getResultsViewMode() : SearchResultsViewMode.DETAILED;
+		resultsViewMode = search.getResultsViewMode();
 		setSelectedPageLength(search.getPageLength());
 
 		view.setSchemaType(schemaTypeCode);
@@ -791,15 +790,6 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		return query;
 	}
 
-	public void logRecordView(RecordVO recordVO) {
-		Record record = presenterService().getRecord(recordVO.getId());
-		ModelLayerFactory modelLayerFactory = view.getConstellioFactories().getModelLayerFactory();
-		User user = getCurrentUser();
-		modelLayerFactory.newLoggingServices().logRecordView(record, user);
-		setChanged();
-		notifyObservers(recordVO);
-	}
-
 	@Override
 	public void allSearchResultsButtonClicked() {
 		batchProcessOnAllSearchResults = true;
@@ -819,10 +809,6 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		this.result = result;
 	}
 
-	public User getUser() {
-		return getCurrentUser();
-	}
-
 	public List<RecordVO> getRecordVOList(List<String> ids) {
 		List<RecordVO> recordsVO = new ArrayList<>();
 		RecordServices recordServices = modelLayerFactory.newRecordServices();
@@ -831,14 +817,6 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 			recordsVO.add(builder.build(recordServices.getDocumentById(id), RecordVO.VIEW_MODE.FORM, view.getSessionContext()));
 		}
 		return recordsVO;
-	}
-
-	public void fireSomeRecordsSelected() {
-		view.fireSomeRecordsSelected();
-	}
-
-	public void fireNoRecordSelected() {
-		view.fireNoRecordSelected();
 	}
 
 	public boolean hasAnyReportForSchemaType(String schemaTypeCode) {

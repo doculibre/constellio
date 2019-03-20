@@ -148,6 +148,8 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration IS_TRASH_THREAD_EXECUTING;
 
 
+	public static final SystemConfiguration ENABLE_THUMBNAIL_GENERATION;
+
 	static {
 		SystemConfigurationGroup others = new SystemConfigurationGroup(null, "others");
 		add(DEFAULT_PARSING_BEHAVIOR = others.createEnum("defaultParsingBehavior", ParsingBehavior.class)
@@ -282,6 +284,9 @@ public class ConstellioEIMConfigs {
 		add(ADD_RECORD_ID_IN_EMAILS = others.createBooleanFalseByDefault("addRecordIdInEmails"));
 		add(GENERATED_EMAIL_FORMAT = others.createEnum("generatedEmailFormat", EmailTextFormat.class).withDefaultValue(EmailTextFormat.PLAIN_TEXT));
 
+
+		add(ENABLE_THUMBNAIL_GENERATION = others.createBooleanFalseByDefault("enableThumbnailGeneration")
+				.withReIndexionRequired());
 
 		configurations = Collections.unmodifiableList(modifiableConfigs);
 	}
@@ -529,6 +534,8 @@ public class ConstellioEIMConfigs {
 	public int getBatchProcessMaximumHistorySize() {
 		return manager.getValue(BATCH_PROCESSES_MAXIMUM_HISTORY_SIZE);
 	}
+
+	public boolean isThumbnailGenerationEnabled() { return manager.getValue(ENABLE_THUMBNAIL_GENERATION); }
 
 	public boolean isAddingRecordIdInEmails() {
 		return manager.getValue(ADD_RECORD_ID_IN_EMAILS);

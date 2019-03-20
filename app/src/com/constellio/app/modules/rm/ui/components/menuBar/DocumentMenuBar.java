@@ -14,5 +14,11 @@ public interface DocumentMenuBar extends DocumentActionsComponent {
 	void setOpenDocumentButtonVisible(boolean visible);
 
 	void setDownloadDocumentButtonVisible(boolean visible);
+	
+	boolean isInViewer();
+	
+	void displayInWindow();
+	
+	void editInWindow();
 
 }

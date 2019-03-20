@@ -1,11 +1,11 @@
 package com.constellio.app.entities.schemasDisplay;
 
-import static java.util.Arrays.asList;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import static java.util.Arrays.asList;
 
 public class SchemaDisplayConfig implements Serializable {
 

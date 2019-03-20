@@ -435,20 +435,20 @@ public class ContentManagerTest extends ConstellioTest {
 		inOrder.verify(contentManager).getNextPotentiallyUnreferencedContentMarkers();
 		inOrder.verify(contentManager).isReferenced("hash2");
 		inOrder.verify(contentManager).isReferenced("hash3");
-		inOrder.verify(contentDao)
-				.delete(Arrays.asList("hash2", "hash2__parsed", "hash2.preview", "hash3", "hash3__parsed", "hash3.preview"));
+		inOrder.verify(contentDao).delete(Arrays.asList("hash2", "hash2__parsed", "hash2.preview", "hash2.thumbnail",
+				"hash3", "hash3__parsed", "hash3.preview", "hash3.thumbnail"));
 		inOrder.verify(recordDao).execute(flushNow.withDeletedRecords(Arrays.asList(recordDTO2, recordDTO3)));
 		inOrder.verify(contentManager).getNextPotentiallyUnreferencedContentMarkers();
 		inOrder.verify(contentManager).isReferenced("hash5");
 		inOrder.verify(contentManager).isReferenced("hash6");
-		inOrder.verify(contentDao).delete(Arrays.asList("hash6", "hash6__parsed", "hash6.preview"));
+		inOrder.verify(contentDao).delete(Arrays.asList("hash6", "hash6__parsed", "hash6.preview", "hash6.thumbnail"));
 		inOrder.verify(recordDao).execute(flushNow.withDeletedRecords(Arrays.asList(recordDTO5, recordDTO6)));
 		inOrder.verify(contentManager).getNextPotentiallyUnreferencedContentMarkers();
 		inOrder.verify(contentManager).isReferenced("hash7");
 		inOrder.verify(recordDao).execute(flushNow.withDeletedRecords(Arrays.asList(recordDTO7)));
 		inOrder.verify(contentManager).getNextPotentiallyUnreferencedContentMarkers();
 		inOrder.verify(contentManager).isReferenced("hash8");
-		inOrder.verify(contentDao).delete(Arrays.asList("hash8", "hash8__parsed", "hash8.preview"));
+		inOrder.verify(contentDao).delete(Arrays.asList("hash8", "hash8__parsed", "hash8.preview", "hash8.thumbnail"));
 		inOrder.verify(recordDao).execute(flushNow.withDeletedRecords(Arrays.asList(recordDTO8)));
 		inOrder.verify(contentManager).getNextPotentiallyUnreferencedContentMarkers();
 

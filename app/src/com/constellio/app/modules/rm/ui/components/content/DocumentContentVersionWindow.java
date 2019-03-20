@@ -7,6 +7,7 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.pages.base.SessionContextProvider;
 
 public interface DocumentContentVersionWindow extends SessionContextProvider {
+	
 	RecordVO getRecordVO();
 
 	ContentVersionVO getContentVersionVO();
@@ -25,4 +26,7 @@ public interface DocumentContentVersionWindow extends SessionContextProvider {
 	CoreViews navigateTo();
 
 	Navigation navigate();
+	
+	void displayInWindow();
+	
 }

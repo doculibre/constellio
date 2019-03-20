@@ -145,6 +145,7 @@ public class RMNavigationConfiguration implements Serializable {
 	public static final String RETENTION_RULES_SEARCH = "retentionRuleSearch";
 	public static final String LIST_USER_DOCUMENTS = "listUserDocuments";
 
+
 	public static void configureNavigation(NavigationConfig config) {
 		configureHeaderActionMenu(config);
 		configureHomeFragments(config);

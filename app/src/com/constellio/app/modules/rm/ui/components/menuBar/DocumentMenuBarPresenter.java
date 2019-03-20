@@ -13,6 +13,7 @@ import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.app.utils.ReportGeneratorUtils;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Event;
@@ -63,13 +64,25 @@ public class DocumentMenuBarPresenter extends DocumentActionsPresenterUtils<Docu
 	}
 
 	public void displayDocumentButtonClicked() {
-		Map<String, String> params = ParamUtils.getCurrentParams();
+		if (Toggle.SEARCH_RESULTS_VIEWER.isEnabled() && menuBar.isInViewer()) {
+			menuBar.displayInWindow();
+		} else {
+			Map<String, String> params = ParamUtils.getCurrentParams();
 
-		RMNavigationUtils.navigateToDisplayDocument(documentVO.getId(),
-				params, menuBar.getConstellioFactories().getAppLayerFactory(),
-				menuBar.getSessionContext().getCurrentCollection());
-
+			RMNavigationUtils.navigateToDisplayDocument(documentVO.getId(),
+					params, menuBar.getConstellioFactories().getAppLayerFactory(),
+					menuBar.getSessionContext().getCurrentCollection());
+		}
 		updateSearchResultClicked();
+	}
+
+	@Override
+	public void editDocumentButtonClicked() {
+		if (Toggle.SEARCH_RESULTS_VIEWER.isEnabled() && menuBar.isInViewer()) {
+			menuBar.editInWindow();
+		} else {
+			super.editDocumentButtonClicked();
+		}
 	}
 
 	public boolean openForRequested(String recordId) {

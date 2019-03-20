@@ -1,5 +1,22 @@
 package com.constellio.app.modules.rm.ui.pages.document;
 
+import static com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration.modalDialog;
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.io.output.ByteArrayOutputStream;
+import org.apache.commons.lang3.StringUtils;
+import org.vaadin.dialogs.ConfirmDialog;
+
 import com.constellio.app.api.extensions.params.DocumentFolderBreadCrumbParams;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
@@ -37,6 +54,7 @@ import com.constellio.app.ui.framework.components.ReportTabButton;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
+import com.constellio.app.ui.framework.components.splitpanel.CollapsibleHorizontalSplitPanel;
 import com.constellio.app.ui.framework.components.table.ContentVersionVOTable;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.components.table.columns.EventVOTableColumnsManager;
@@ -48,8 +66,10 @@ import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.decorators.tabs.TabSheetDecorator;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.app.ui.util.ComponentTreeUtils;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.utils.Factory;
+import com.constellio.data.utils.dev.Toggle;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.event.dd.DragAndDropEvent;
@@ -66,6 +86,7 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomComponent;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
+import com.vaadin.ui.Panel;
 import com.vaadin.ui.PasswordField;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.Table;
@@ -77,22 +98,6 @@ import com.vaadin.ui.Upload.SucceededListener;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
-import org.apache.commons.io.output.ByteArrayOutputStream;
-import org.apache.commons.lang3.StringUtils;
-import org.vaadin.dialogs.ConfirmDialog;
-
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-import static com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration.modalDialog;
-import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocumentView, DropHandler {
 
@@ -199,6 +204,8 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
+		addStyleName("display-document-view");
+
 		mainLayout = new VerticalLayout();
 		mainLayout.setSizeFull();
 
@@ -213,7 +220,9 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 		tabSheet = new TabSheet();
 
-		recordDisplay = new RecordDisplay(documentVO, new RMMetadataDisplayFactory());
+		recordDisplay = new RecordDisplay(documentVO, new RMMetadataDisplayFactory(), Toggle.SEARCH_RESULTS_VIEWER.isEnabled());
+		recordDisplay.setSizeFull();
+
 		versionTable = new ContentVersionVOTable("DocumentVersions", presenter.getAppLayerFactory(), presenter.hasCurrentUserPermissionToViewFileSystemName()) {
 			@Override
 			protected boolean isSelectionColumn() {
@@ -246,7 +255,11 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		tasksComponent = new CustomComponent();
 		versionTable.setSizeFull();
 
-		tabSheet.addTab(recordDisplay, $("DisplayDocumentView.tabs.metadata"));
+		Panel recordDisplayPanel = new Panel(recordDisplay);
+		recordDisplayPanel.setSizeFull();
+		recordDisplayPanel.addStyleName(ValoTheme.PANEL_BORDERLESS);
+		recordDisplayPanel.addStyleName(ValoTheme.PANEL_SCROLL_INDICATOR);
+		tabSheet.addTab(recordDisplayPanel, $("DisplayDocumentView.tabs.metadata"));
 		tabSheet.addTab(buildVersionTab(), $("DisplayDocumentView.tabs.versions"));
 		tabSheet.addTab(tasksComponent, $("DisplayDocumentView.tabs.tasks", presenter.getTaskCount()));
 
@@ -267,8 +280,25 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 			}
 		});
 
-		mainLayout.addComponents(borrowedLabel, contentViewer, tabSheet);
+		Component contentMetadataComponent;
+		if (contentViewerInitiallyVisible) {
+			CollapsibleHorizontalSplitPanel splitPanel = new CollapsibleHorizontalSplitPanel(DisplayDocumentViewImpl.class.getName());
+			splitPanel.setFirstComponent(contentViewer);
+			splitPanel.setSecondComponent(tabSheet);
+			splitPanel.setSecondComponentWidth(700, Unit.PIXELS);
+			contentMetadataComponent = splitPanel;
 
+//			tabSheet.setWidth("700px");
+//			I18NHorizontalLayout contentMetadataLayout = new I18NHorizontalLayout();
+//			contentMetadataLayout.setSizeFull();
+//			contentMetadataLayout.setSpacing(true);
+//			contentMetadataLayout.addComponents(tabSheet);
+//			contentMetadataLayout.addComponents( contentViewer, tabSheet);
+		//			contentMetadataLayout.setExpandRatio(contentViewer, 1);
+		} else {
+			contentMetadataComponent = tabSheet;
+		}
+		mainLayout.addComponents(borrowedLabel, contentMetadataComponent);
 		for (TabSheetDecorator tabSheetDecorator : tabSheetDecorators) {
 			tabSheetDecorator.decorate(this, tabSheet);
 		}
@@ -591,12 +621,10 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 		actionMenuButtons.add(copyContentButton);
 
-		reportGeneratorButton = new ReportTabButton($("SearchView.metadataReportTitle"), $("SearchView.metadataReportTitle"), presenter.getApplayerFactory(),
-				getCollection(), false, false, presenter.buildReportPresenter(), getSessionContext()) {
+		reportGeneratorButton = new ReportTabButton($("SearchView.metadataReportTitle"), $("SearchView.metadataReportTitle"), presenter.getApplayerFactory(), getCollection(), false, false, presenter.buildReportPresenter(), getSessionContext()) {
 			@Override
 			public void buttonClick(ClickEvent event) {
-				setRecordVoList(getDocumentVO());
-				super.buttonClick(event);
+				setRecordVoList(  getDocumentVO());super.buttonClick(event);
 			}
 		};
 
@@ -1068,6 +1096,24 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		Navigation navigation = super.navigate();
 		closeAllWindows();
 		return navigation;
+	}
+
+	@Override
+	protected boolean isActionMenuBar() {
+		return Toggle.SEARCH_RESULTS_VIEWER.isEnabled();
+	}
+
+	@Override
+	protected boolean isFullWidthIfActionMenuAbsent() {
+		return Toggle.SEARCH_RESULTS_VIEWER.isEnabled();
+	}
+
+	@Override
+	public void editInWindow() {
+		Window window = ComponentTreeUtils.findParent(this, Window.class);
+		AddEditDocumentViewImpl editView = new AddEditDocumentViewImpl(documentVO);
+		editView.enter(null);
+		window.setContent(editView);
 	}
 
 	private class StartWorkflowButton extends WindowButton {

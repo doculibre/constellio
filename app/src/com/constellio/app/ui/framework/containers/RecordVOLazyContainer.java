@@ -52,8 +52,7 @@ public class RecordVOLazyContainer extends LazyQueryContainer implements Refresh
 		this(dataProviders, batchSize, isOnlyTableMetadatasShown());
 	}
 
-	public RecordVOLazyContainer(List<RecordVODataProvider> dataProviders, int batchSize,
-			boolean isOnlyTableMetadatasShown) {
+	public RecordVOLazyContainer(List<RecordVODataProvider> dataProviders, int batchSize, boolean isOnlyTableMetadatasShown) {
 		super(new RecordVOLazyQueryDefinition(dataProviders, isOnlyTableMetadatasShown, batchSize),
 				new RecordVOLazyQueryFactory(dataProviders));
 		this.dataProviders = dataProviders;
@@ -85,6 +84,7 @@ public class RecordVOLazyContainer extends LazyQueryContainer implements Refresh
 		List<MetadataSchemaVO> schemas = new ArrayList<>();
 		for (RecordVODataProvider dataProvider : dataProviders) {
 			schemas.add(dataProvider.getSchema());
+			schemas.addAll(dataProvider.getExtraSchemas());
 		}
 		return schemas;
 	}
@@ -171,7 +171,7 @@ public class RecordVOLazyContainer extends LazyQueryContainer implements Refresh
 			User user = null;
 
 			for (RecordVODataProvider dataProvider : dataProviders) {
-				if(modelLayerFactory == null) {
+				if (modelLayerFactory == null) {
 					modelLayerFactory = dataProviders.get(0).getModelLayerFactory();
 					sessionContext = dataProviders.get(0).getSessionContext();
 					userServices = modelLayerFactory.newUserServices();
@@ -180,31 +180,36 @@ public class RecordVOLazyContainer extends LazyQueryContainer implements Refresh
 					user = userServices.getUserInCollection(sessionContext.getCurrentUser().getUsername(),
 							sessionContext.getCurrentCollection());
 				}
-				MetadataSchemaVO schema = dataProvider.getSchema();
-				List<MetadataVO> dataProviderTableMetadataVOs = schema.getTableMetadatas();
 
-				for(MetadataVO metadataVO : dataProviderTableMetadataVOs) {
+				List<MetadataSchemaVO> schemas = new ArrayList<>();
+				MetadataSchemaVO defaultSchema = dataProvider.getSchema();
+				schemas.add(defaultSchema);
+				schemas.addAll(dataProvider.getExtraSchemas());
+
+				for (MetadataSchemaVO schema : schemas) {
+					List<MetadataVO> dataProviderTableMetadataVOs = schema.getTableMetadatas();
+
+					for (MetadataVO metadataVO : dataProviderTableMetadataVOs) {
 						tablePropertyMetadataVOs.add(metadataVO);
-				}
+					}
 
+					List<MetadataVO> dataProviderQueryMetadataVOs = new ArrayList<>(dataProviderTableMetadataVOs);
+					if (!tableMetadatasOnly) {
 
-
-				List<MetadataVO> dataProviderQueryMetadataVOs = new ArrayList<>(dataProviderTableMetadataVOs);
-				if (!tableMetadatasOnly) {
-
-					List<MetadataVO> dataProviderDisplayMetadataVOs = schema.getDisplayMetadatas();
-					for (MetadataVO metadataVO : dataProviderDisplayMetadataVOs) {
-						if (!dataProviderQueryMetadataVOs.contains(metadataVO)) {
-							dataProviderQueryMetadataVOs.add(metadataVO);
+						List<MetadataVO> dataProviderDisplayMetadataVOs = schema.getDisplayMetadatas();
+						for (MetadataVO metadataVO : dataProviderDisplayMetadataVOs) {
+							if (!dataProviderQueryMetadataVOs.contains(metadataVO)) {
+								dataProviderQueryMetadataVOs.add(metadataVO);
+							}
 						}
 					}
-				}
-				for (MetadataVO metadataVO : dataProviderQueryMetadataVOs) {
-					if (!queryMetadataVOs.contains(metadataVO)) {
-						if (dataProviderTableMetadataVOs.contains(metadataVO)) {
-							tablePropertyMetadataVOs.add(metadataVO);
-						} else {
-							extraPropertyMetadataVOs.add(metadataVO);
+					for (MetadataVO metadataVO : dataProviderQueryMetadataVOs) {
+						if (!queryMetadataVOs.contains(metadataVO)) {
+							if (dataProviderTableMetadataVOs.contains(metadataVO)) {
+								tablePropertyMetadataVOs.add(metadataVO);
+							} else {
+								extraPropertyMetadataVOs.add(metadataVO);
+							}
 						}
 					}
 				}

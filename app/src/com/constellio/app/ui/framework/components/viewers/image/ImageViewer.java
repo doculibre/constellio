@@ -26,12 +26,12 @@ import java.util.Arrays;
 @StyleSheet("theme://iviewer/jquery.iviewer.css")
 public class ImageViewer extends CustomComponent {
 
-	public static String[] SUPPORTED_EXTENSIONS = {"jpg", "jpeg", "png", "gif"};
+	public static String[] SUPPORTED_EXTENSIONS = {"jpg", "jpeg", "png", "gif", "tif", "tiff"};
+	private static String[] NEED_CONVERSION_EXTENSIONS = {"tif", "tiff"};
 
 	private static final int DEFAULT_WIDTH = 800;
 
-	private static final int DEFAULT_HEIGHT = 600;
-
+	private static final int DEFAULT_HEIGHT = 1000;
 	private RecordVO recordVO;
 
 	private String metadataCode;
@@ -76,7 +76,16 @@ public class ImageViewer extends CustomComponent {
 			if (recordVO != null) {
 				String version = contentVersionVO.getVersion();
 				String filename = contentVersionVO.getFileName();
-				contentResource = ConstellioResourceHandler.createResource(recordVO.getId(), metadataCode, version, filename);
+				if (Arrays.asList(NEED_CONVERSION_EXTENSIONS).contains(recordVO.getExtension())) {
+					if (ConstellioResourceHandler.hasContentJpegConversion(recordVO.getId(), metadataCode, version)) {
+						contentResource = ConstellioResourceHandler.createConvertedResource(recordVO.getId(), metadataCode, version, filename);
+					} else {
+						setVisible(false);
+						return;
+					}
+				} else {
+					contentResource = ConstellioResourceHandler.createResource(recordVO.getId(), metadataCode, version, filename);
+				}
 				in = contentVersionVO.getInputStreamProvider().getInputStream(getClass().getSimpleName());
 			} else if (file != null) {
 				contentResource = ConstellioResourceHandler.createResource(file);
@@ -103,9 +112,9 @@ public class ImageViewer extends CustomComponent {
 
 				ResourceReference contentResourceReference = ResourceReference.create(contentResource, this, "ImageViewer.file");
 				String contentURL = contentResourceReference.getURL();
-
-				String divHTML = "<div id=\"" + divId + "\" class=\"viewer\" style=\"position:relative; width:" + width + "px; height:" + height + "px;\"></div>";
-
+				
+//				String divHTML = "<div id=\"" + divId + "\" class=\"viewer\" style=\"position:relative; width:" + width + "px; height:"+ height + "px;\"></div>";
+				String divHTML = "<div id=\"" + divId + "\" class=\"viewer\" style=\"position:relative; width:100%; height:"+ height + "px;\"></div>";
 				StringBuffer js = new StringBuffer();
 				js.append("var $ = jQuery;");
 				js.append("\n");

@@ -9,6 +9,9 @@ import com.constellio.model.entities.schemas.MetadataFilter;
 import java.util.ArrayList;
 import java.util.List;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class SchemaTypesPageExtension {
 
 	/**
