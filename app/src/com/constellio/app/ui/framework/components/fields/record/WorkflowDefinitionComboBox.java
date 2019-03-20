@@ -20,4 +20,9 @@ public class WorkflowDefinitionComboBox extends RecordComboBox {
             setItemCaption(recordVO.get(Schemas.CODE), recordVO.getTitle());
         }
     }
+
+    @Override
+    public Object getValue() {
+        return getItemCaption(super.getValue());
+    }
 }

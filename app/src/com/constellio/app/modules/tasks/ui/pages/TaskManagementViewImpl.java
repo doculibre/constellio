@@ -31,6 +31,7 @@ import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
@@ -48,12 +49,17 @@ import static java.util.Arrays.asList;
 public class TaskManagementViewImpl extends BaseViewImpl implements TaskManagementView {
 	private final TaskManagementPresenter presenter;
 	private TabSheet sheet;
+	private HorizontalLayout horizontalLayout;
 	private ComboBox timestamp;
 	private String previousSelectedTab;
 	private FilterGenerator filterGenerator;
 
 	enum Timestamp {
 		ALL, TODAY, WEEK, MONTH
+	}
+
+	public void setHorizontalLayout(HorizontalLayout horizontalLayout) {
+		this.horizontalLayout = horizontalLayout;
 	}
 
 	public TaskManagementViewImpl() {
@@ -101,6 +107,8 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 				reloadCurrentTab();
 			}
 		});
+		horizontalLayout.addComponent(timestamp, 0);
+		horizontalLayout.setSpacing(true);
 		sheet = new TabSheet();
 		sheet.setSizeFull();
 		sheet.addSelectedTabChangeListener(new TabSheet.SelectedTabChangeListener() {
@@ -114,7 +122,7 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 			sheet.addTab(buildEmptyTab(tabId));
 		}
 
-		mainLayout.addComponents(timestamp, sheet);
+		mainLayout.addComponents(horizontalLayout, sheet);
 
 		previousSelectedTab = presenter.getPreviousSelectedTab();
 		backToPreviousSelectedTab();
