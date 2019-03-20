@@ -52,6 +52,7 @@ abstract class BaseImageThumbnailGenerator implements ImageThumbnailGenerator {
 
         BufferedImage image = reader.read(0, params);
         reader.dispose();
+        imageInputStream.close();
 
         return image;
     }

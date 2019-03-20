@@ -118,13 +118,16 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		String idCopy;
 		String parentId;
 
-		if (params != null) {Map<String, String> paramsMap = ParamUtils.getParamsMap(params);
-		 id = paramsMap.get("id");
-		 idCopy = paramsMap.get("idCopy");
-		 parentId = paramsMap.get("parentId");
-		userDocumentId = paramsMap.get("userDocumentId");
-		this.params = paramsMap;newFile = false;
-		newFileAtStart = "true".equals(paramsMap.get("newFile"));} else {
+		if (params != null) {
+			Map<String, String> paramsMap = ParamUtils.getParamsMap(params);
+			id = paramsMap.get("id");
+			idCopy = paramsMap.get("idCopy");
+			parentId = paramsMap.get("parentId");
+			userDocumentId = paramsMap.get("userDocumentId");
+			this.params = paramsMap;
+			newFile = false;
+			newFileAtStart = "true".equals(paramsMap.get("newFile"));
+		} else {
 			idCopy = null;
 			parentId = null;
 			userDocumentId = null;
@@ -453,7 +456,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 	void adjustTypeField(CustomDocumentField<?> valueChangeField) {
 		String currentSchemaCode = getSchemaCode();
 		DocumentTypeField documentTypeField = getTypeField();
-		if(documentTypeField == null) {
+		if (documentTypeField == null) {
 			return;
 		}
 		DocumentContentField contentField = getContentField();
@@ -756,31 +759,32 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 											.newEmail(filename, inputStream);
 									document = rmSchemas().wrapEmail(document.changeSchemaTo(Email.SCHEMA));
 
-								((Email) document).setSubject(email.getSubject());
-								((Email) document).setEmailObject(email.getEmailObject());
-								((Email) document).setEmailSentOn(email.getEmailSentOn());
-								((Email) document).setEmailReceivedOn(email.getEmailReceivedOn());
-								((Email) document).setEmailFrom(email.getEmailFrom());
-								((Email) document).setEmailTo(email.getEmailTo());
-								((Email) document).setEmailCCTo(email.getEmailCCTo());
-								((Email) document).setEmailBCCTo(email.getEmailBCCTo());
-								((Email) document).setEmailAttachmentsList(email.getEmailAttachmentsList());
-							} finally {
-								ioServices.closeQuietly(inputStream);
+									((Email) document).setSubject(email.getSubject());
+									((Email) document).setEmailObject(email.getEmailObject());
+									((Email) document).setEmailSentOn(email.getEmailSentOn());
+									((Email) document).setEmailReceivedOn(email.getEmailReceivedOn());
+									((Email) document).setEmailFrom(email.getEmailFrom());
+									((Email) document).setEmailTo(email.getEmailTo());
+									((Email) document).setEmailCCTo(email.getEmailCCTo());
+									((Email) document).setEmailBCCTo(email.getEmailBCCTo());
+									((Email) document).setEmailAttachmentsList(email.getEmailAttachmentsList());
+								} finally {
+									ioServices.closeQuietly(inputStream);
+								}
 							}
-						}
-						modelLayerFactory.newRecordPopulateServices().populate(documentRecord, documentVO.getRecord());
-						documentVO = voBuilder.build(documentRecord, VIEW_MODE.FORM, view.getSessionContext());
-						documentVO.getContent().setMajorVersion(null);
-						documentVO.getContent().setHash(null);
-						if (eimConfigs.isRemoveExtensionFromRecordTitle()) {
-							filename = FilenameUtils.removeExtension(filename);
-						}
-						documentVO.setTitle(filename);
-						view.setRecord(documentVO);
-						view.getForm().reload();addContentFieldListeners();
-					} catch (final IcapException e) {
-						view.showErrorMessage(e.getMessage());
+							modelLayerFactory.newRecordPopulateServices().populate(documentRecord, documentVO.getRecord());
+							documentVO = voBuilder.build(documentRecord, VIEW_MODE.FORM, view.getSessionContext());
+							documentVO.getContent().setMajorVersion(null);
+							documentVO.getContent().setHash(null);
+							if (eimConfigs.isRemoveExtensionFromRecordTitle()) {
+								filename = FilenameUtils.removeExtension(filename);
+							}
+							documentVO.setTitle(filename);
+							view.setRecord(documentVO);
+							view.getForm().reload();
+							addContentFieldListeners();
+						} catch (final IcapException e) {
+							view.showErrorMessage(e.getMessage());
 
 							documentVO.setContent(null);
 							getContentField().setFieldValue(null);

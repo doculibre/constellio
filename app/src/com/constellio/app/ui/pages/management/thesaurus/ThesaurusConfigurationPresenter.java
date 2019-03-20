@@ -395,35 +395,37 @@ public class ThesaurusConfigurationPresenter extends BasePresenter<ThesaurusConf
 	}
 
 	List<SkosConcept> getUnusedConcepts() {
-		try {List<SkosConcept> result = new ArrayList<>();
-		// Tous les concepts du thesaurusManager MOINS résultat de la facette : facet.field=thesaurusMatch_ss facet.limit=100000
-		ESSchemasRecordsServices es = new ESSchemasRecordsServices(collection, appLayerFactory);
-		SearchServices searchService = modelLayerFactory.newSearchServices();
-		schemaRecordService = new SchemasRecordsServices(collection, modelLayerFactory);
-		LogicalSearchCondition condition = from(es.connectorHttpDocument.schemaType()).returnAll();
-		LogicalSearchQuery query = new LogicalSearchQuery(condition);
-		query.setNumberOfRows(0);
-		query.setFieldFacetLimit(-1);
-		query.addFieldFacet("thesaurusMatch_ss");
+		try {
+			List<SkosConcept> result = new ArrayList<>();
+			// Tous les concepts du thesaurusManager MOINS résultat de la facette : facet.field=thesaurusMatch_ss facet.limit=100000
+			ESSchemasRecordsServices es = new ESSchemasRecordsServices(collection, appLayerFactory);
+			SearchServices searchService = modelLayerFactory.newSearchServices();
+			schemaRecordService = new SchemasRecordsServices(collection, modelLayerFactory);
+			LogicalSearchCondition condition = from(es.connectorHttpDocument.schemaType()).returnAll();
+			LogicalSearchQuery query = new LogicalSearchQuery(condition);
+			query.setNumberOfRows(0);
+			query.setFieldFacetLimit(-1);
+			query.addFieldFacet("thesaurusMatch_ss");
 
-		SPEQueryResponse response = searchService.query(query);
-		List<FacetValue> usedConcept = response.getFieldFacetValues().get("thesaurusMatch_ss");
+			SPEQueryResponse response = searchService.query(query);
+			List<FacetValue> usedConcept = response.getFieldFacetValues().get("thesaurusMatch_ss");
 
 
-		ThesaurusService thesaurusService = thesaurusManager.get(collection);
-		if (thesaurusService != null) {
-			Map<String, SkosConcept> allConcept = thesaurusService.getAllConcepts();
+			ThesaurusService thesaurusService = thesaurusManager.get(collection);
+			if (thesaurusService != null) {
+				Map<String, SkosConcept> allConcept = thesaurusService.getAllConcepts();
 
-			for (FacetValue value : usedConcept) {
-				allConcept.remove(value.getValue());
+				for (FacetValue value : usedConcept) {
+					allConcept.remove(value.getValue());
+				}
+
+				for (String conceptKey : allConcept.keySet()) {
+					SkosConcept concept = allConcept.get(conceptKey);
+					result.add(concept);
+				}
 			}
-
-			for (String conceptKey : allConcept.keySet()) {
-				SkosConcept concept = allConcept.get(conceptKey);
-				result.add(concept);
-			}
-		}
-		return result;} catch (com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.NoSuchSchemaType e) {
+			return result;
+		} catch (com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.NoSuchSchemaType e) {
 			return new ArrayList<>();
 		}
 	}
