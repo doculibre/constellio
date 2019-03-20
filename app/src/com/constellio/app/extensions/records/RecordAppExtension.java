@@ -1,20 +1,16 @@
 package com.constellio.app.extensions.records;
 
+import java.util.Collections;
+import java.util.List;
+
 import com.constellio.app.api.extensions.taxonomies.FolderDeletionEvent;
 import com.constellio.app.extensions.records.params.BuildRecordVOParams;
 import com.constellio.app.extensions.records.params.GetDynamicFieldMetadatasParams;
 import com.constellio.app.extensions.records.params.GetIconPathParams;
 import com.constellio.app.extensions.records.params.IsMetadataVisibleInRecordFormParams;
-import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.ui.entities.ContentVersionVO;
-import com.constellio.app.ui.entities.MetadataValueVO;
-import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.extensions.records.params.isMetadataSpecialCaseOfNotBeingInFormParams;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.vaadin.server.Resource;
-
-import java.util.Collections;
-import java.util.List;
 
 public class RecordAppExtension {
 
@@ -37,6 +33,10 @@ public class RecordAppExtension {
 	}
 
 	public ExtensionBooleanResult isMetadataVisibleInRecordForm(IsMetadataVisibleInRecordFormParams params) {
+		return ExtensionBooleanResult.NOT_APPLICABLE;
+	}
+
+	public ExtensionBooleanResult isMetadataSpecialCaseToNotBeShown(isMetadataSpecialCaseOfNotBeingInFormParams params) {
 		return ExtensionBooleanResult.NOT_APPLICABLE;
 	}
 

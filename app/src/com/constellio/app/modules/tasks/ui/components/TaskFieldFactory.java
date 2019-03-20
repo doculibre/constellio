@@ -1,5 +1,22 @@
 package com.constellio.app.modules.tasks.ui.components;
 
+import static com.constellio.app.modules.rm.wrappers.Document.TYPE;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.ASSIGNEE;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.DECISION;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.LINKED_DOCUMENTS;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.LINKED_FOLDERS;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.PROGRESS_PERCENTAGE;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.QUESTION;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.RELATIVE_DUE_DATE;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.REMINDERS;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.REMINDER_FREQUENCY;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.TASK_FOLLOWERS;
+
+import java.io.Serializable;
+import java.util.List;
+import java.util.Locale;
+
+import com.constellio.app.api.extensions.params.MetadataFieldExtensionParams;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.modules.tasks.model.wrappers.request.BorrowRequest;
 import com.constellio.app.modules.tasks.ui.components.fields.CustomTaskField;
@@ -29,22 +46,6 @@ import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordFiel
 import com.constellio.model.entities.records.wrappers.User;
 import com.vaadin.ui.Field;
 
-import java.io.Serializable;
-import java.util.List;
-import java.util.Locale;
-
-import static com.constellio.app.modules.rm.wrappers.Document.TYPE;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.ASSIGNEE;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.DECISION;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.LINKED_DOCUMENTS;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.LINKED_FOLDERS;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.PROGRESS_PERCENTAGE;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.QUESTION;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.RELATIVE_DUE_DATE;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.REMINDERS;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.REMINDER_FREQUENCY;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.TASK_FOLLOWERS;
-
 public class TaskFieldFactory extends MetadataFieldFactory {
 
 	public static final String INCLUSIVE_DECISION = "inclusiveDecision";
@@ -53,6 +54,7 @@ public class TaskFieldFactory extends MetadataFieldFactory {
 	public static final String ASSIGNATION_MODES = "assignationModes";
 	public static final String INSTANCE_WORKFLOW = "linkedWorkflowExecution";
 	public static final String ASSIGNER = "assigner";
+	public static final String SCRIPT = "script";
 
 	private List<String> unavailablesTaskTypes;
 
@@ -140,14 +142,17 @@ public class TaskFieldFactory extends MetadataFieldFactory {
 				field = new TaskAssignationEnumField(metadata.getEnumClass());
 				postBuild(field, metadata);
 				break;
-			case INSTANCE_WORKFLOW:
+		default:
 				AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
 				String currentCollection = metadata.getCollection();
-				field = appLayerFactory.getExtensions().forCollection(currentCollection).getFieldForMetadata(metadata);
+			field = appLayerFactory.getExtensions().forCollection(currentCollection)
+					.getMetadataField(new MetadataFieldExtensionParams(metadata));
+			if (field != null) {
 				postBuild(field, metadata);
-				break;
-			default:
+			} else {
 				field = super.build(metadata, locale);
+			}
+
 		}
 		if (field instanceof CustomTaskField) {
 			postBuild(field, metadata);

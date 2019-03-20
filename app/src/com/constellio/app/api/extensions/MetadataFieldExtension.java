@@ -1,8 +1,12 @@
 package com.constellio.app.api.extensions;
 
-import com.constellio.app.ui.entities.MetadataVO;
+import java.util.List;
+
+import com.constellio.app.api.extensions.params.MetadataFieldExtensionParams;
 import com.vaadin.ui.Field;
 
 public interface MetadataFieldExtension {
-	Field<?> getMetadataField(MetadataVO metadataVO);
+	Field<?> getMetadataField(MetadataFieldExtensionParams metadataFieldExtensionParams);
+
+	List<String> getMetadataFieldToHide(MetadataFieldExtensionParams metadataFieldExtensionParams);
 }

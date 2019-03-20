@@ -1,5 +1,16 @@
 package com.constellio.app.extensions;
 
+import static com.constellio.app.api.extensions.GenericRecordPageExtension.OTHERS_TAB;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+
 import com.constellio.app.api.extensions.BatchProcessingExtension;
 import com.constellio.app.api.extensions.BatchProcessingExtension.AddCustomLabelsParams;
 import com.constellio.app.api.extensions.BatchProcessingExtension.IsMetadataDisplayedWhenModifiedParams;
@@ -9,6 +20,7 @@ import com.constellio.app.api.extensions.DownloadContentVersionLinkExtension;
 import com.constellio.app.api.extensions.GenericRecordPageExtension;
 import com.constellio.app.api.extensions.LabelTemplateExtension;
 import com.constellio.app.api.extensions.ListSchemaExtention;
+import com.constellio.app.api.extensions.MetadataDisplayCustomValueExtention;
 import com.constellio.app.api.extensions.MetadataFieldExtension;
 import com.constellio.app.api.extensions.PageExtension;
 import com.constellio.app.api.extensions.PagesComponentsExtension;
@@ -32,6 +44,8 @@ import com.constellio.app.api.extensions.params.GetSearchResultSimpleTableWindow
 import com.constellio.app.api.extensions.params.IsBuiltInMetadataAttributeModifiableParam;
 import com.constellio.app.api.extensions.params.ListSchemaExtraCommandParams;
 import com.constellio.app.api.extensions.params.ListSchemaExtraCommandReturnParams;
+import com.constellio.app.api.extensions.params.MetadataDisplayCustomValueExtentionParams;
+import com.constellio.app.api.extensions.params.MetadataFieldExtensionParams;
 import com.constellio.app.api.extensions.params.OnWriteRecordParams;
 import com.constellio.app.api.extensions.params.PagesComponentsExtensionParams;
 import com.constellio.app.api.extensions.params.RecordFieldFactoryExtensionParams;
@@ -63,6 +77,7 @@ import com.constellio.app.extensions.records.params.BuildRecordVOParams;
 import com.constellio.app.extensions.records.params.GetDynamicFieldMetadatasParams;
 import com.constellio.app.extensions.records.params.GetIconPathParams;
 import com.constellio.app.extensions.records.params.IsMetadataVisibleInRecordFormParams;
+import com.constellio.app.extensions.records.params.isMetadataSpecialCaseOfNotBeingInFormParams;
 import com.constellio.app.extensions.sequence.AvailableSequence;
 import com.constellio.app.extensions.sequence.AvailableSequenceForRecordParams;
 import com.constellio.app.extensions.sequence.CollectionSequenceExtension;
@@ -100,17 +115,6 @@ import com.vaadin.server.Resource;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Field;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-
-import static com.constellio.app.api.extensions.GenericRecordPageExtension.OTHERS_TAB;
 
 public class AppLayerCollectionExtensions {
 
@@ -164,6 +168,7 @@ public class AppLayerCollectionExtensions {
 
 	public VaultBehaviorsList<MetadataFieldExtension> metadataFieldExtensions = new VaultBehaviorsList<>();
 
+	public VaultBehaviorsList<MetadataDisplayCustomValueExtention> metadataDisplayCustomValueExtentions = new VaultBehaviorsList<>();
 
 	//Key : schema type code
 	//Values : record's code
@@ -608,6 +613,25 @@ public class AppLayerCollectionExtensions {
 		});
 	}
 
+	public boolean isMetadataSpecialCaseToNotBeShown(final Record record, final MetadataVO metadataVO) {
+		return ExtensionUtils.getBooleanValue(recordAppExtensions, true, new BooleanCaller<RecordAppExtension>() {
+			@Override
+			public ExtensionBooleanResult call(RecordAppExtension extension) {
+				return extension.isMetadataSpecialCaseToNotBeShown(new isMetadataSpecialCaseOfNotBeingInFormParams() {
+					@Override
+					public MetadataVO getMetadataVO() {
+						return metadataVO;
+					}
+
+					@Override
+					public Record getRecord() {
+						return record;
+					}
+				});
+			}
+		});
+	}
+
 	public List<String> getDynamicFieldMetadatas(GetDynamicFieldMetadatasParams params) {
 		List<String> dynamicFieldMetadatas = new ArrayList<>();
 		for (RecordAppExtension recordAppExtension : recordAppExtensions) {
@@ -665,14 +689,27 @@ public class AppLayerCollectionExtensions {
 		return getDefaultDisplayForReference(id);
 	}
 
-	public Field<?> getFieldForMetadata(MetadataVO metadataVO) {
+	public Field<?> getMetadataField(MetadataFieldExtensionParams metadataFieldExtensionParams) {
 		for (MetadataFieldExtension extension : metadataFieldExtensions) {
-			Field<?> component = extension.getMetadataField(metadataVO);
+			Field<?> component = extension.getMetadataField(metadataFieldExtensionParams);
 			if (component != null) {
 				return component;
 			}
 		}
-		return new MetadataFieldFactory().build(metadataVO);
+		return new MetadataFieldFactory().build(metadataFieldExtensionParams.getMetadataVO());
+	}
+
+	public Object getMetadataDisplayCustomValueExtention(
+			MetadataDisplayCustomValueExtentionParams metadataDisplayCustomValueExtentionParams) {
+		Object valueFound = null;
+		for (MetadataDisplayCustomValueExtention metadataDisplayCustomValueExtention : metadataDisplayCustomValueExtentions) {
+			valueFound = metadataDisplayCustomValueExtention.getCustomDisplayValue(metadataDisplayCustomValueExtentionParams);
+			if (valueFound != null) {
+				break;
+			}
+		}
+
+		return valueFound;
 	}
 
 	public List<Button> getDocumentViewButtonExtension(Record record, User user) {

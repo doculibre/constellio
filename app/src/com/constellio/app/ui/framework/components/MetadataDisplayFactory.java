@@ -1,5 +1,20 @@
 package com.constellio.app.ui.framework.components;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.io.Serializable;
+import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
+
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+
+import com.constellio.app.api.extensions.params.MetadataDisplayCustomValueExtentionParams;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.structures.CommentFactory;
@@ -34,19 +49,6 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Link;
 import com.vaadin.ui.VerticalLayout;
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-
-import java.io.Serializable;
-import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
-
-import static com.constellio.app.ui.i18n.i18n.$;
 
 @SuppressWarnings("serial")
 public class MetadataDisplayFactory implements Serializable {
@@ -67,6 +69,16 @@ public class MetadataDisplayFactory implements Serializable {
 		StructureFactory structureFactory = metadataVO.getStructureFactory();
 
 		MetadataValueType metadataValueType = metadataVO.getType();
+
+		AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
+
+		Object customValue = appLayerFactory.getExtensions().forCollection(metadataVO.getCollection())
+				.getMetadataDisplayCustomValueExtention(
+						new MetadataDisplayCustomValueExtentionParams(displayValue, recordVO, metadataVO));
+
+		if (customValue != null) {
+			displayValue = customValue;
+		}
 
 		if (!metadataVO.isEnabled()) {
 			displayComponent = null;

@@ -1,5 +1,13 @@
 package com.constellio.app.modules.tasks;
 
+import static com.constellio.data.threads.BackgroundThreadConfiguration.repeatingAction;
+import static com.constellio.data.threads.BackgroundThreadExceptionHandling.CONTINUE;
+import static org.joda.time.Duration.standardMinutes;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 import com.constellio.app.entities.modules.ComboMigrationScript;
 import com.constellio.app.entities.modules.InstallableSystemModule;
 import com.constellio.app.entities.modules.MigrationScript;
@@ -47,14 +55,6 @@ import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.background.ModelLayerBackgroundThreadsManager;
 import com.constellio.model.services.records.cache.CacheConfig;
 import com.constellio.model.services.records.cache.RecordsCache;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import static com.constellio.data.threads.BackgroundThreadConfiguration.repeatingAction;
-import static com.constellio.data.threads.BackgroundThreadExceptionHandling.CONTINUE;
-import static org.joda.time.Duration.standardMinutes;
 
 public class TaskModule implements InstallableSystemModule, ModuleWithComboMigration {
 	public static final String ID = "tasks";
