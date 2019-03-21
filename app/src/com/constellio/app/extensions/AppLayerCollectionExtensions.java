@@ -116,7 +116,7 @@ public class AppLayerCollectionExtensions {
 
 	//------------ Extension points -----------
 
-	public Map<String, ModuleExtensions> moduleExtensionsMap = new HashMap<>();
+	private Map<String, ModuleExtensions> moduleExtensionsMap = new HashMap<>();
 
 	public VaultBehaviorsList<PageExtension> pageAccessExtensions = new VaultBehaviorsList<>();
 
@@ -171,6 +171,10 @@ public class AppLayerCollectionExtensions {
 
 	public <T extends ModuleExtensions> T forModule(String moduleId) {
 		return (T) moduleExtensionsMap.get(moduleId);
+	}
+
+	public void registerModuleExtensionsPoint(String moduleId, ModuleExtensions extensions) {
+		moduleExtensionsMap.put(moduleId, extensions);
 	}
 
 	//----------------- Callers ---------------
@@ -736,9 +740,10 @@ public class AppLayerCollectionExtensions {
 		return metadataFilter;
 	}
 
-	public boolean isMetadataAccessExclusionByPropertyFilter(RMSchemaTypesPageExtensionExclusionByPropertyParams rmSchemaTypesPageExtensionExclusionByPropertyParams) {
+	public boolean isMetadataAccessExclusionByPropertyFilter(
+			RMSchemaTypesPageExtensionExclusionByPropertyParams rmSchemaTypesPageExtensionExclusionByPropertyParams) {
 		for (SchemaTypesPageExtension schemaTypesPageExtension : schemaTypesPageExtensions) {
-			if(schemaTypesPageExtension.getMetadataAccessExclusionPropertyFilter(rmSchemaTypesPageExtensionExclusionByPropertyParams)) {
+			if (schemaTypesPageExtension.getMetadataAccessExclusionPropertyFilter(rmSchemaTypesPageExtensionExclusionByPropertyParams)) {
 				return true;
 			}
 		}
@@ -746,11 +751,11 @@ public class AppLayerCollectionExtensions {
 		return false;
 	}
 
-    public List<AdditionnalRecordField> getAdditionnalFields(RecordFieldsExtensionParams params) {
+	public List<AdditionnalRecordField> getAdditionnalFields(RecordFieldsExtensionParams params) {
 		List<AdditionnalRecordField> additionnalFields = new ArrayList<>();
-		for(PagesComponentsExtension extension: pagesComponentsExtensions) {
+		for (PagesComponentsExtension extension : pagesComponentsExtensions) {
 			additionnalFields.addAll(extension.getAdditionnalFields(params));
 		}
 		return additionnalFields;
-    }
+	}
 }
