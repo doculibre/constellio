@@ -481,11 +481,6 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 
 	@Override
 	public void completeQuicklyButtonClicked(RecordVO recordVO) {
-		if (rmModuleExtensions != null) {
-			for (TaskManagementPresenterExtension extension : rmModuleExtensions.getTaskManagementPresenterExtensions()) {
-				extension.assignAvailableTasks(getCurrentUser());
-			}
-		}
 		TasksSchemasRecordsServices tasksSchemas = new TasksSchemasRecordsServices(collection, appLayerFactory);
 		Task task = tasksSchemas.getTask(recordVO.getId());
 		Object decisions = task.get(Task.BETA_NEXT_TASKS_DECISIONS);
@@ -501,6 +496,11 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 			} catch (RecordServicesException e) {
 				e.printStackTrace();
 				view.showErrorMessage(e.getMessage());
+			}
+		}
+		if (rmModuleExtensions != null) {
+			for (TaskManagementPresenterExtension extension : rmModuleExtensions.getTaskManagementPresenterExtensions()) {
+				extension.assignAvailableTasks(getCurrentUser());
 			}
 		}
 	}
