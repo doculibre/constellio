@@ -3,6 +3,7 @@ package com.constellio.app.ui.framework.builders;
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
+import com.constellio.app.entities.schemasDisplay.enums.MetadataSortingType;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
@@ -79,6 +80,7 @@ public class MetadataToVOBuilder implements Serializable {
 		String[] taxonomyCodes;
 		MetadataInputType metadataInputType;
 		MetadataDisplayType metadataDisplayType;
+		MetadataSortingType metadataSortingType;
 		String metadataGroup;
 
 		if (collection != null) {
@@ -114,6 +116,7 @@ public class MetadataToVOBuilder implements Serializable {
 
 			metadataInputType = metadataDisplayConfig.getInputType();
 			metadataDisplayType = metadataDisplayConfig.getDisplayType();
+			metadataSortingType = metadataDisplayConfig.getSortingType();
 
 			Language language = Language.withCode(sessionContext.getCurrentLocale().getLanguage());
 			metadataGroup = metadataDisplayConfig.getMetadataGroupCode();
@@ -138,6 +141,7 @@ public class MetadataToVOBuilder implements Serializable {
 			taxonomyCodes = new String[0];
 			metadataInputType = null;
 			metadataDisplayType = null;
+			metadataSortingType = null;
 			metadataGroup = null;
 		}
 
@@ -167,7 +171,7 @@ public class MetadataToVOBuilder implements Serializable {
 		AllowedReferences allowedReferences = metadata.getAllowedReferences();
 
 		return newMetadataVO(metadataCode, datastoreCode, type, collection, schemaVO, required, multivalue, readOnly, unmodifiable,
-				labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType, metadataDisplayType, allowedReferences,
+				labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType, metadataDisplayType, metadataSortingType, allowedReferences,
 				enabled,
 				structureFactory, metadataGroup, metadata.getDefaultValue(), metadata.getInputMask(),
 				metadata.getCustomAttributes(), isMultiLingual, locale, metadata.getCustomParameter(),
@@ -190,6 +194,7 @@ public class MetadataToVOBuilder implements Serializable {
 			String schemaTypeCode,
 			MetadataInputType metadataInputType,
 			MetadataDisplayType metadataDisplayType,
+			MetadataSortingType metadataSortingType,
 			AllowedReferences allowedReferences,
 			boolean enabled,
 			StructureFactory structureFactory,
@@ -200,7 +205,7 @@ public class MetadataToVOBuilder implements Serializable {
 			Map<String, Object> customParameters,
 			CollectionInfoVO collectionInfoVO) {
 		return new MetadataVO(metadataCode, datastoreCode, type, collection, schemaVO, required, multivalue, readOnly, unmodifiable,
-				labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType, metadataDisplayType, allowedReferences,
+				labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType, metadataDisplayType, metadataSortingType, allowedReferences,
 				enabled,
 				structureFactory, metadataGroup, defaultValue, inputMask, customAttributes, isMultiLingual, locale, customParameters, collectionInfoVO);
 	}

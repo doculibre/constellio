@@ -35,4 +35,6 @@ public class ListAddRemoveRecordLookupFieldWithIgnoreOneRecord extends ListAddRe
 		field.setIgnoreLinkability(ignoreLinkability);
 		return field;
 	}
+
+
 }

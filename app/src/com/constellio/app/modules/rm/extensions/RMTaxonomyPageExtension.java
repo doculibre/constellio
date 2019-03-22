@@ -123,23 +123,6 @@ public class RMTaxonomyPageExtension extends TaxonomyPageExtension {
 		return new RecordUtils().toWrappedRecordIdsList(decommissioningService.getRetentionRulesForAdministrativeUnit(conceptId));
 	}
 
-	private Component buildDisplayList(List<String> list) {
-		Component retentionRulesDisplayComponent;
-		MetadataDisplayFactory metadataDisplayFactory = new MetadataDisplayFactory();
-		List<Component> elementDisplayComponents = new ArrayList<Component>();
-		for (String elementDisplayValue : list) {
-			Component elementDisplayComponent = new ReferenceDisplay(elementDisplayValue);
-			elementDisplayComponent.setSizeFull();
-			elementDisplayComponents.add(elementDisplayComponent);
-		}
-		if (!elementDisplayComponents.isEmpty()) {
-			retentionRulesDisplayComponent = metadataDisplayFactory.newCollectionValueDisplayComponent(elementDisplayComponents);
-		} else {
-			retentionRulesDisplayComponent = null;
-		}
-		return retentionRulesDisplayComponent;
-	}
-
 	private TaxonomyManagementClassifiedType getClassifiedFolderInAdministrativeUnits(final String conceptId,
 																					  final SessionContextProvider sessionContextProvider) {
 		return new TaxonomyManagementClassifiedType() {

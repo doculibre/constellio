@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.ui.builders;
 
 import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
+import com.constellio.app.entities.schemasDisplay.enums.MetadataSortingType;
 import com.constellio.app.ui.entities.CollectionInfoVO;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataVO;
@@ -33,6 +34,7 @@ public class DocumentEventSchemaToVOBuilder extends MetadataSchemaToVOBuilder {
 											   String schemaTypeCode,
 											   MetadataInputType metadataInputType,
 											   MetadataDisplayType metadataDisplayType,
+											   MetadataSortingType metadataSortingType,
 											   AllowedReferences allowedReferences, boolean enabled,
 											   StructureFactory structureFactory, String metadataGroup,
 											   Object defaultValue, String inputMask,
@@ -52,7 +54,7 @@ public class DocumentEventSchemaToVOBuilder extends MetadataSchemaToVOBuilder {
 							.newMetadataVO(metadataCode, datastoreCode, type, collection, schemaVO, required, multivalue,
 									readOnly,
 									unmodifiable, labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType,
-									metadataDisplayType, allowedReferences,
+									metadataDisplayType, metadataSortingType, allowedReferences,
 									enabled, structureFactory, metadataGroup, defaultValue, inputMask, customAttributes,
 									isMultiLingual, locale, customParameters, collectionInfoVO);
 				} else {
@@ -60,7 +62,7 @@ public class DocumentEventSchemaToVOBuilder extends MetadataSchemaToVOBuilder {
 							.newMetadataVO(metadataCode, datastoreCode, type, collection, schemaVO, required, multivalue,
 									readOnly,
 									unmodifiable, labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType,
-									metadataDisplayType, allowedReferences,
+									metadataDisplayType, metadataSortingType, allowedReferences,
 									enabled, structureFactory, metadataGroup, defaultValue, inputMask, customAttributes,
 									isMultiLingual, locale, customParameters, collectionInfoVO);
 				}
