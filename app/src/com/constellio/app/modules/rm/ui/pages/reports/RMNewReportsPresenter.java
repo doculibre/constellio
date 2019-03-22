@@ -46,10 +46,10 @@ public class RMNewReportsPresenter extends BasePresenter<RMReportsView> implemen
 				new ReportWithCaptionVO("Reports.ConservationRulesListByAdministrativeUnit", $("Reports.ConservationRulesListByAdministrativeUnit")),
 				new ReportWithCaptionVO("Reports.AdministrativeUnits", $("Reports.AdministrativeUnits")),
 				new ReportWithCaptionVO("Reports.AdministrativeUnitsAndUsers", $("Reports.AdministrativeUnitsAndUsers")),
+				new ReportWithCaptionVO("Reports.administrativeUnitExcelFormat", $("Reports.administrativeUnitExcelFormat")),
 				new ReportWithCaptionVO("Reports.Users", $("Reports.Users")),
 				new ReportWithCaptionVO("Reports.AvailableSpaceReport", $("Reports.AvailableSpaceReport")),
-				new ReportWithCaptionVO("Reports.AvailableSpaceReportAll", $("Reports.AvailableSpaceReportAll")),
-				new ReportWithCaptionVO("Reports.administrativeUnitExcelFormat", $("Reports.administrativeUnitExcelFormat")));
+				new ReportWithCaptionVO("Reports.AvailableSpaceReportAll", $("Reports.AvailableSpaceReportAll")));
 	}
 
 	public NewReportWriterFactory getReport(String report) {

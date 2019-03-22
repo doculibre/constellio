@@ -22,7 +22,6 @@ import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.security.AuthorizationsServices;
-import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
 import com.constellio.model.services.taxonomies.TaxonomySearchRecord;
@@ -137,54 +136,6 @@ public class AdministrativeUnitExcelReportPresenter extends BaseExcelReportPrese
 		return recordLine;
 	}
 
-	private List<String> getAccess(Authorization authorization) {
-		List<String> access = new ArrayList<>();
-		for (String roleCode : authorization.getRoles()) {
-			RolesManager rolesManager = modelLayerFactory.getRolesManager();
-			Role role = rolesManager.getRole(authorization.getCollection(), roleCode);
-			if (role.isContentPermissionRole()) {
-				access.add(roleCode);
-			}
-		}
-
-		return access;
-	}
-
-	private String stringListToString(List<String> stringList, String separator) {
-		StringBuilder stringBuilder = new StringBuilder();
-		for (String item : stringList) {
-
-			if (stringBuilder.length() != 0) {
-				stringBuilder.append(separator + " ");
-			}
-
-			stringBuilder.append(item);
-		}
-
-		return stringBuilder.toString();
-	}
-
-	private String accessAbreviation(List<String> roles) {
-		List<String> shortened = new ArrayList<>(3);
-
-
-		if (roles.contains(Role.READ)) {
-			shortened.add($("AuthorizationsView.short.READ"));
-		}
-		if (roles.contains(Role.WRITE)) {
-			shortened.add($("AuthorizationsView.short.WRITE"));
-		}
-		if (roles.contains(Role.DELETE)) {
-			shortened.add($("AuthorizationsView.short.DELETE"));
-		}
-
-		if(shortened == null || roles.isEmpty()) {
-			return "";
-		}
-
-		return stringListToString(shortened, "/");
-	}
-
 	private void updateAcces(String user, Map<String, List<String>> accessList, List<String> newAcessList) {
 		List<String> currentAcces = accessList.get(user);
 		if(currentAcces == null) {
@@ -197,6 +148,7 @@ public class AdministrativeUnitExcelReportPresenter extends BaseExcelReportPrese
 			}
 		}
 	}
+
 	private void getCategoriesForRecord(Record record, List<AdministrativeUnit> administrativeUnits) {
 
 		searchOptions = new TaxonomiesSearchOptions().setReturnedMetadatasFilter(ReturnedMetadatasFilter.all())
@@ -235,7 +187,7 @@ public class AdministrativeUnitExcelReportPresenter extends BaseExcelReportPrese
 		Map<String, List<String>> userAccessHashMap = new HashMap<>();
 
 		for (Authorization authorization : authorizationList) {
-			List<String> accessList = getAccess(authorization);
+			List<String> accessList = ReportUtil.getAccess(authorization,modelLayerFactory);
 			for (String principal : authorization.getPrincipals()) {
 				Record record = rmSchemasRecordsServices.get(principal);
 				if (record.getSchemaCode().split("_")[0].equals(User.SCHEMA_TYPE)) {
@@ -254,6 +206,28 @@ public class AdministrativeUnitExcelReportPresenter extends BaseExcelReportPrese
 			}
 		}
 
+		List<User> usersWithGlobalAccessInCollection = authorizationsServices.getUsersWithGlobalAccessInCollection(collection);
+		for(User currentUser: usersWithGlobalAccessInCollection) {
+			List<String> accessList = new ArrayList<>();
+			if(currentUser.hasCollectionReadAccess()) {
+				accessList.add(Role.READ);
+			}
+			if(currentUser.hasCollectionWriteAccess()) {
+				accessList.add(Role.WRITE);
+			}
+			if(currentUser.hasCollectionDeleteAccess()) {
+				accessList.add(Role.DELETE);
+			}
+
+			if(!accessList.isEmpty()) {
+				updateAcces(currentUser.getTitle(), userAccessHashMap, accessList);
+			}
+
+			if (!userList.contains(currentUser.getTitle())) {
+				userList.add(currentUser.getTitle());
+			}
+		}
+
 		recordLine.add(getUserCellContent(userList, userAccessHashMap));
 		recordLine.add(getUserCellContent(groupList, groupHashMap));
 	}
@@ -266,7 +240,7 @@ public class AdministrativeUnitExcelReportPresenter extends BaseExcelReportPrese
 				stringBuilder.append(", ");
 			}
 
-			String access = accessAbreviation(userAccessHashMap.get(item));
+			String access = ReportUtil.accessAbreviation(userAccessHashMap.get(item));
 
 			stringBuilder.append(item);
 

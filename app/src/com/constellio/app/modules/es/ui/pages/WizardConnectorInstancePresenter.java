@@ -63,21 +63,31 @@ public class WizardConnectorInstancePresenter extends AddEditConnectorInstancePr
 
 	@Override
 	public void saveButtonClicked(RecordVO recordVO) {
-		String schemaCode = recordVO.getSchema().getCode();
 		Record record = toRecord(recordVO);
 		ConnectorInstance<?> connectorInstance = esSchemasRecordsServices.wrapConnectorInstance(record);
 
-		ConnectorUtil.ConnectionStatusResult connectonStatusResult = ConnectorUtil
-				.testAuthentication(schemaCode, record, esSchemasRecordsServices);
-
-		if (connectonStatusResult.getConnectionStatus() != ConnectionStatus.Ok) {
-			view.showErrorMessage(ConnectorUtil.getErrorMessage(connectonStatusResult));
+		try {
+			validateConnectionInfoAreValid(recordVO);
+		} catch (Exception e) {
+			view.showErrorMessage(e.getMessage());
 			return;
 		}
 
 		esSchemasRecordsServices.getConnectorManager().createConnector(connectorInstance);
 
 		view.navigate().to(ESViews.class).displayConnectorInstance(connectorInstance.getId());
+	}
+
+	public void validateConnectionInfoAreValid(RecordVO recordVO) {
+		String schemaCode = recordVO.getSchema().getCode();
+		Record record = toRecord(recordVO);
+
+		ConnectorUtil.ConnectionStatusResult connectonStatusResult = ConnectorUtil
+				.testAuthentication(schemaCode, record, esSchemasRecordsServices);
+
+		if (connectonStatusResult.getConnectionStatus() != ConnectionStatus.Ok) {
+			throw new RuntimeException((ConnectorUtil.getErrorMessage(connectonStatusResult)));
+		}
 	}
 
 	public void connectorTypeSelected(String id) {

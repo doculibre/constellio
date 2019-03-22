@@ -154,7 +154,7 @@ public class BorrowingServices {
 			t.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
 			for (String folderId : task.getLinkedFolders()) {
 				if (isAccepted) {
-					returnFolder(folderId, applicant, returnDate, false);
+					returnFolder(folderId, respondant, returnDate, false);
 				}
 				loggingServices
 						.completeReturnRequestTask(recordServices.getDocumentById(folderId), task.getId(), isAccepted, applicant,
@@ -367,10 +367,15 @@ public class BorrowingServices {
 	public void validateCanReturnFolder(User currentUser, Folder folder) {
 		boolean hasPermissionToReturnOtherUsersFolder = currentUser.has(RMPermissionsTo.RETURN_OTHER_USERS_FOLDERS)
 				.on(folder);
+		boolean hasPermissionToReturnOwnFolderDirectly = currentUser.has(RMPermissionsTo.BORROW_FOLDER).on(folder)
+														&& currentUser.has(RMPermissionsTo.BORROWING_FOLDER_DIRECTLY).on(folder);
 		if (currentUser.hasReadAccess().on(folder)) {
 			if (folder.getBorrowed() == null || !folder.getBorrowed()) {
 				throw new BorrowingServicesRunTimeException_FolderIsNotBorrowed(folder.getId());
 			} else if (!hasPermissionToReturnOtherUsersFolder && !currentUser.getId()
+					.equals(folder.getBorrowUserEntered())) {
+				throw new BorrowingServicesRunTimeException_UserNotAllowedToReturnFolder(currentUser.getUsername());
+			} else if (!hasPermissionToReturnOwnFolderDirectly && currentUser.getId()
 					.equals(folder.getBorrowUserEntered())) {
 				throw new BorrowingServicesRunTimeException_UserNotAllowedToReturnFolder(currentUser.getUsername());
 			}
@@ -579,7 +584,12 @@ public class BorrowingServices {
 			emailToSend.setTemplate(fullTemplate);
 			parameters.add("subject" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(subject));
 			String recordTitle = record.getTitle();
-			parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(recordTitle));
+			boolean isAddingRecordIdInEmails = eimConfigs.isAddingRecordIdInEmails();
+			if(isAddingRecordIdInEmails) {
+				parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(recordTitle) + " (" + record.getId() + ")");
+			} else {
+				parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(recordTitle));
+			}
 			parameters.add("currentUser" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(currentUser.getFirstName() + " " + currentUser.getLastName() +
 																										   " (" + currentUser.getUsername() + ")"));
 			String constellioUrl = eimConfigs.getConstellioUrl();

@@ -62,6 +62,7 @@ import org.vaadin.dialogs.ConfirmDialog;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -1019,7 +1020,18 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 			protected List<?> getOptionsWithFilter(boolean needNullSelectOption) {
 				try {
 					inFilterMode = true;
-					return super.getOptionsWithFilter(needNullSelectOption);
+
+					//TODO show only containers available for user administrative units (MANAGE_CONTAINER)
+					Collection<? extends ContainerVO> filteredContainers = (Collection<? extends ContainerVO>) super.getOptionsWithFilter(needNullSelectOption);
+
+					if(filteredContainers == null) {
+						return null;
+					}
+
+					List<ContainerVO> modifiableFilteredContainers = new ArrayList<>(filteredContainers);
+					modifiableFilteredContainers = presenter.removeContainersCurrentUserCannotManage(modifiableFilteredContainers);
+
+					return modifiableFilteredContainers;
 				} finally {
 					inFilterMode = false;
 				}
@@ -1053,7 +1065,8 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 			}
 		}
 		if (containerVO == null) {
-			containerVO = new ContainerVO(containerRecord.getId(), containerRecord.getTitle(), containerRecord.getAvailableSize());
+			containerVO = new ContainerVO(containerRecord.getId(), containerRecord.getTitle(),
+					containerRecord.getAvailableSize(), containerRecord.getAdministrativeUnits());
 		}
 		return containerVO;
 	}
@@ -1068,7 +1081,8 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 			}
 		}
 		if (containerVO == null) {
-			containerVO = new ContainerVO(containerRecord.getId(), containerRecord.getCaption(), containerRecord.getAvailableSize());
+			containerVO = new ContainerVO(containerRecord.getId(), containerRecord.getCaption(),
+					containerRecord.getAvailableSize(), containerRecord.getAdministrativeUnits());
 		}
 		return containerVO;
 	}

@@ -453,4 +453,8 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 		return defaultFavoritesTable;
 	}
 
+	public String getRecordId() {
+		return presenter.getContainerId();
+	}
+
 }

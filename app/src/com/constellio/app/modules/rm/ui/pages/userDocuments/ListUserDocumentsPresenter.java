@@ -406,6 +406,10 @@ public class ListUserDocumentsPresenter extends SingleSchemaBasePresenter<ListUs
 		DragAndDropWrapper.WrapperTransferable transferable = (DragAndDropWrapper.WrapperTransferable) event
 				.getTransferable();
 		Html5File[] files = transferable.getFiles();
+		if(files != null) {
+			return false;
+		}
+
 		for (Html5File file : files) {
 			totalLength = totalLength + file.getFileSize();
 		}

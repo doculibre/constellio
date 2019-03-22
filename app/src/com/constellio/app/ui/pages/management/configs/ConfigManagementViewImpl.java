@@ -1,20 +1,29 @@
 package com.constellio.app.ui.pages.management.configs;
 
 import com.constellio.app.ui.entities.SystemConfigurationVO;
+import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.components.BaseForm;
+import com.constellio.app.ui.framework.components.BaseMouseOverIcon;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.components.fields.BasePasswordField;
 import com.constellio.app.ui.framework.components.fields.BaseTextArea;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.upload.BaseUploadField;
+import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.data.SystemConfigurationGroupdataProvider;
 import com.constellio.app.ui.handlers.OnEnterKeyHandler;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.model.entities.configs.SystemConfigurationType;
+import com.google.gwt.event.dom.client.MouseOverEvent;
+import com.google.gwt.event.dom.client.MouseOverHandler;
+import com.vaadin.client.ui.Icon;
+import com.vaadin.client.ui.ImageIcon;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.validator.IntegerRangeValidator;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
+import com.vaadin.server.Resource;
+import com.vaadin.server.ThemeResource;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.AbstractComponent;
 import com.vaadin.ui.AbstractField;
@@ -27,6 +36,7 @@ import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.DateField;
 import com.vaadin.ui.Field;
+import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.TextField;
@@ -126,7 +136,9 @@ public class ConfigManagementViewImpl extends BaseViewImpl implements ConfigMana
 					if (field instanceof AbstractComponent) {
 						((AbstractComponent) field).setCaptionAsHtml(true);
 					}
-					groupLayout.addComponent(field);
+
+					HorizontalLayout currentConfigLayout = wrapFieldWithDocumentation(currentConfigurationVO, groupCode, field);
+					groupLayout.addComponent(currentConfigLayout);
 				}
 
 				tabsheet.addTab(groupLayout, presenter.getGroupLabel(groupCode));
@@ -150,6 +162,25 @@ public class ConfigManagementViewImpl extends BaseViewImpl implements ConfigMana
 		layout.addComponent(saveButton);
 		layout.setComponentAlignment(saveButton, Alignment.BOTTOM_RIGHT);
 
+		return layout;
+	}
+
+	private HorizontalLayout wrapFieldWithDocumentation(
+			SystemConfigurationVO configVO, String groupCode, Field<?> field) {
+		I18NHorizontalLayout layout = new I18NHorizontalLayout();
+		String descriptionKey = "SystemConfigurationGroup." + groupCode + "." + configVO.getCode() + ".description";
+		String configDescription = $(descriptionKey);
+		BaseMouseOverIcon baseMouseOverIcon = new BaseMouseOverIcon(new ThemeResource("images/icons/information2.png"), configDescription);
+		if(StringUtils.isBlank(configDescription) || configDescription.equals(descriptionKey)) {
+			baseMouseOverIcon.setVisible(false);
+		}
+		layout.setSizeFull();
+//		field.setWidth(null);
+		layout.addComponents(field, baseMouseOverIcon);
+		layout.setExpandRatio(field, 1);
+//		layout.setComponentAlignment(field, Alignment.MIDDLE_LEFT);
+//		layout.setComponentAlignment(baseMouseOverIcon, Alignment.MIDDLE_LEFT);
+//		layout.setExpandRatio(baseMouseOverIcon, 1.0f);
 		return layout;
 	}
 
@@ -216,4 +247,8 @@ public class ConfigManagementViewImpl extends BaseViewImpl implements ConfigMana
 		};
 	}
 
+	@Override
+	protected String getGuideUrl() {
+		return null;//"http://documentation.constellio.com/pages/viewpage.action?pageId=2326848";
+	}
 }

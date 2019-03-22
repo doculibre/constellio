@@ -30,7 +30,9 @@ import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 import com.constellio.model.services.search.SearchServices;
@@ -66,11 +68,14 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 	private IOServices ioServices;
 	public static final String STREAM_NAME = EventPresenter.class.getName() + "-stream";
 	public static final String TEMPORARY_FILE = EventPresenter.class.getName() + "-file";
+	private boolean removeTabAndNewLine;
 
 	public EventPresenter(EventView view) {
 		super(view, Event.DEFAULT_SCHEMA);
 		recordServices().flush();
 		ioServices = view.getConstellioFactories().getModelLayerFactory().getIOServicesFactory().newIOServices();
+		removeTabAndNewLine = modelLayerFactory.getSystemConfigurationsManager()
+				.getValue(ConstellioEIMConfigs.REMOVE_TAB_AND_NEW_LINE_ON_DELTA_FIELD_IN_EDIT_REPORT);
 	}
 
 	@Override
@@ -178,7 +183,7 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 			temporaryFile = ioServices.newTemporaryFile(TEMPORARY_FILE);
 			byteArrayOutputStream = ioServices.newFileOutputStream(temporaryFile, STREAM_NAME);
 			outputStreamWriter = new OutputStreamWriter(byteArrayOutputStream, CharEncoding.ISO_8859_1);
-			csvWriter = new CSVWriter(outputStreamWriter, ',', CSVWriter.NO_QUOTE_CHARACTER);
+			csvWriter = new CSVWriter(outputStreamWriter, ',', CSVWriter.NO_QUOTE_CHARACTER, CSVWriter.NO_ESCAPE_CHARACTER);
 			writeCsvReport(csvWriter);
 			csvWriter.flush();
 			ioServices.closeQuietly(csvWriter);
@@ -215,8 +220,25 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 				Object metadataValue = recordVO.get(metadataVO);
 				String valueAsString = null;
 
+			 	if (metadataVO != null && metadataVO.getLocalCode().equals(Event.NEGATIVE_AUTHORIZATION)) {
+					valueAsString = EventViewImpl.negativeAuthorizationString((Boolean) metadataValue);
+				}
+
 				if (metadataValue != null) {
-					valueAsString = metadataValue.toString();
+					valueAsString = metadataValue.toString().trim();
+
+					if(metadataVO != null && metadataVO.getLocalCode().equals(Event.DELTA)) {
+						if (removeTabAndNewLine) {
+							valueAsString = valueAsString.replaceAll('\n' + "", " ");
+							valueAsString = valueAsString.replaceAll('\t' + "", " ");
+						}
+						valueAsString = valueAsString.replaceAll("\\[" + "", "");
+						valueAsString = valueAsString.replaceAll(']' + "", "");
+					}
+
+					if (metadataVO.getType() == MetadataValueType.STRING) {
+						valueAsString = "\"" + valueAsString + "\"";
+					}
 				}
 
 				stringArray[counter++] = valueAsString;

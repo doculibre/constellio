@@ -7,6 +7,7 @@ import com.constellio.app.entities.navigation.PageItem.RecentItemTable.RecentIte
 import com.constellio.app.entities.navigation.PageItem.RecordTable;
 import com.constellio.app.entities.navigation.PageItem.RecordTree;
 import com.constellio.app.modules.rm.ui.components.tree.RMTreeDropHandlerImpl;
+import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataVO;

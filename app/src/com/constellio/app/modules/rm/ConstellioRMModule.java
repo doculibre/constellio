@@ -145,6 +145,7 @@ import com.constellio.app.modules.rm.migrations.RMMigrationTo8_1_1_2;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo8_1_2;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo8_1_4;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo8_2;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo8_2_1_4;
 import com.constellio.app.modules.rm.migrations.records.RMContainerRecordMigrationTo7_3;
 import com.constellio.app.modules.rm.migrations.records.RMDocumentMigrationTo7_6_10;
 import com.constellio.app.modules.rm.migrations.records.RMEmailMigrationTo7_7_1;
@@ -315,6 +316,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		scripts.add(new RMMigrationTo8_1_2());
 		scripts.add(new RMMigrationTo8_1_4());
 		scripts.add(new RMMigrationTo8_2());
+		scripts.add(new RMMigrationTo8_2_1_4());
 
 		return scripts;
 	}
@@ -426,7 +428,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		extensions.searchPageExtensions.add(new RMSearchPageExtension(collection, appLayerFactory));
 		extensions.batchProcessingExtensions.add(new RMBatchProcessingExtension(collection, appLayerFactory));
 		extensions.recordFieldFactoryExtensions.add(new BatchProcessingRecordFactoryExtension());
-		extensions.moduleExtensionsMap.put(ID, new RMModuleExtensions(appLayerFactory));
+		extensions.registerModuleExtensionsPoint(ID, new RMModuleExtensions(appLayerFactory));
 		extensions.systemCheckExtensions.add(new RMSystemCheckExtension(collection, appLayerFactory));
 		extensions.recordExportExtensions.add(new RMRecordExportExtension(collection, appLayerFactory));
 		extensions.pagesComponentsExtensions.add(new RMCleanAdministrativeUnitButtonExtension(collection, appLayerFactory));

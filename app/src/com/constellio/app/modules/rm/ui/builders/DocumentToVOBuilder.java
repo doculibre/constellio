@@ -21,9 +21,6 @@ import java.util.List;
 
 public class DocumentToVOBuilder extends RecordToVOBuilder {
 
-	transient boolean parsedContentFetched;
-	transient ParsedContent parsedContent;
-
 	transient ModelLayerFactory modelLayerFactory;
 	transient AppLayerFactory appLayerFactory;
 
@@ -54,30 +51,6 @@ public class DocumentToVOBuilder extends RecordToVOBuilder {
 
 	@Override
 	protected Object getValue(Record record, Metadata metadata) {
-		if (isExtractedMetadata(metadata)) {
-			if (!parsedContentFetched) {
-				parsedContentFetched = true;
-				ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
-				ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
-
-				RMSchemasRecordsServices rm = new RMSchemasRecordsServices(record.getCollection(), modelLayerFactory);
-				Content content = rm.wrapDocument(record).getContent();
-				if (content != null) {
-					ContentVersion contentVersion = content.getCurrentVersion();
-					try {
-						parsedContent = modelLayerFactory.getContentManager().getParsedContent(contentVersion.getHash());
-					} catch (ContentManagerException_ContentNotParsed contentManagerException_contentNotParsed) {
-						//OK
-					}
-				}
-			}
-		}
-
 		return super.getValue(record, metadata);
-	}
-
-	private boolean isExtractedMetadata(Metadata metadata) {
-		String localCode = metadata.getLocalCode();
-		return localCode.equals("author") || localCode.equals("company") || localCode.equals("subject");
 	}
 }

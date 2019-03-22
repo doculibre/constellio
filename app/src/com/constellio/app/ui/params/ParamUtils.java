@@ -31,7 +31,9 @@ public class ParamUtils {
 	}
 
 	public static String getParams(String path) {
-		if (path != null && path.startsWith("!")) {
+		if(path == null) {
+			return null;
+		} else if (path.startsWith("!")) {
 			path = path.substring(1);
 		}
 		path = urlDecode(path);

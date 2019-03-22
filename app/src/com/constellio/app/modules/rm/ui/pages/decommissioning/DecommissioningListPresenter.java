@@ -24,6 +24,7 @@ import com.constellio.app.modules.rm.ui.entities.ContainerVO;
 import com.constellio.app.modules.rm.ui.entities.FolderComponent;
 import com.constellio.app.modules.rm.ui.entities.FolderDetailVO;
 import com.constellio.app.modules.rm.ui.entities.FolderVO;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -43,6 +44,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.RecordServicesWrapperRuntimeException;
@@ -59,6 +61,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -377,7 +380,7 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		decommissioningList.getFolderDetail(folder.getFolderId()).setFolderLinearSize(folderLinearSize)
 				.setContainerRecordId(container.getId()).setIsPlacedInContainer(true);
 		addOrUpdate(decommissioningList.getWrappedRecord());
-		view.addUpdateContainer(new ContainerVO(container.getId(), container.getCaption(), containerAvailableSize),
+		view.addUpdateContainer(new ContainerVO(container.getId(), container.getCaption(), containerAvailableSize, container.getAdministrativeUnits()),
 				newContainerDetail);
 
 		view.setProcessable(folder);
@@ -598,11 +601,11 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 				recordServices().getRecordsById(view.getCollection(), decommissioningList.getContainers()))) {
 			ContainerVO containerVO;
 			if (container.getAvailableSize() == null) {
-				containerVO = new ContainerVO(container.getId(), container.getTitle(), null);
+				containerVO = new ContainerVO(container.getId(), container.getTitle(), null, container.getAdministrativeUnits());
 			} else {
 				Double usedSpace = usedSpaceMap.get(container.getId());
 				usedSpace = usedSpace == null ? 0.0 : usedSpace;
-				containerVO = new ContainerVO(container.getId(), container.getTitle(), container.getAvailableSize() - usedSpace);
+				containerVO = new ContainerVO(container.getId(), container.getTitle(), container.getAvailableSize() - usedSpace, container.getAdministrativeUnits());
 			}
 			decommissioningList.getContainerDetail(containerVO.getId()).setAvailableSize(containerVO.getAvailableSize());
 			result.add(containerVO);
@@ -630,7 +633,7 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 
 	public boolean shouldDisplayOrder() {
 		return true;
-	}	
+	}
 
 	public boolean shouldDisplayRetentionRuleInDetails() {
 		return StringUtils.isBlank(decommissioningList().getUniformRule());
@@ -1017,5 +1020,41 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 
 	public void showErrorMessage(String message) {
 		view.showErrorMessage(message);
+	}
+
+	public List<ContainerVO> removeContainersCurrentUserCannotManage(List<ContainerVO> filteredContainers) {
+		if(filteredContainers != null) {
+			Iterator<ContainerVO> iterator = filteredContainers.iterator();
+			while (iterator.hasNext()) {
+				ContainerVO currentContainer = iterator.next();
+
+				if(!hasUserPermissionToManageContainersOn(currentContainer)) {
+					iterator.remove();
+				}
+			}
+		}
+		return filteredContainers;
+	}
+
+	public boolean hasUserPermissionToManageContainersOn(ContainerVO currentContainer) {
+		boolean hasPermissionToManageContainers = getCurrentUser().has(RMPermissionsTo.MANAGE_CONTAINERS).globally();
+
+		List<String> administrativeUnitIds = currentContainer.getAdministrativeUnits();
+		if(administrativeUnitIds != null && !hasPermissionToManageContainers) {
+			List<AdministrativeUnit> administrativeUnits = rmRecordsServices.getAdministrativeUnits(administrativeUnitIds);
+			for(AdministrativeUnit unit: administrativeUnits) {
+				hasPermissionToManageContainers |= getCurrentUser().has(RMPermissionsTo.MANAGE_CONTAINERS).on(unit);
+			}
+		}
+		return hasPermissionToManageContainers;
+	}
+
+	public List<String> getUsersWithReadPermissionOnAdministrativeUnit() {
+		Record administrativeUnit = getRecord(decommissioningList().getAdministrativeUnit());
+		if(administrativeUnit != null) {
+			return modelLayerFactory.newAuthorizationsServices().getUsersIdsWithRoleForRecord(Role.READ, administrativeUnit);
+		} else {
+			return modelLayerFactory.newAuthorizationsServices().getUsersIdsWithGlobalReadRightInCollection(collection);
+		}
 	}
 }

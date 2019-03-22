@@ -129,9 +129,9 @@ public class RecordVOTable extends BaseTable {
 					RecordVO recordVO = getRecordVOForTitleColumn(getItem(itemId));
 					columnStyle = getTitleColumnStyle(recordVO);
 
-					String id = recordVO.getId();
+					String id = recordVO == null ? null: recordVO.getId();
 					SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
-					if (sessionContext.isVisited(id)) {
+					if (id != null && sessionContext.isVisited(id)) {
 						String visitedStyleName = "v-table-cell-visited-link";
 						columnStyle = StringUtils.isNotBlank(columnStyle) ? columnStyle + " " + visitedStyleName : visitedStyleName;
 					}

@@ -51,24 +51,28 @@ public class WindowsPermissions {
 	private SmbFile file;
 	private TrusteeManager trusteeManager;
 	private boolean skipSharePermissions;
+	private boolean skipACL;
 
 	private Set<String> errors = new HashSet<>();
 
-	public WindowsPermissions(SmbFile file, TrusteeManager trusteeManager, boolean skipSharePermissions) {
+	public WindowsPermissions(SmbFile file, TrusteeManager trusteeManager, boolean skipSharePermissions, boolean skipACL) {
 		this.file = file;
 		this.trusteeManager = trusteeManager;
 		this.skipSharePermissions = skipSharePermissions;
+		this.skipACL = skipACL;
 	}
 
 	public void process() {
-		boolean foundNovellPermissions = processNovellPermissions(file, trusteeManager);
-		if (!foundNovellPermissions) {
-			processNTFSPermissions(file);
-			if (!skipSharePermissions) {
-				processSharePermissions(file);
+		if (!skipACL) {
+			boolean foundNovellPermissions = processNovellPermissions(file, trusteeManager);
+			if (!foundNovellPermissions) {
+				processNTFSPermissions(file);
+				if (!skipSharePermissions) {
+					processSharePermissions(file);
+				}
 			}
+			computePermissionsHash();
 		}
-		computePermissionsHash();
 	}
 
 	private void computePermissionsHash() {

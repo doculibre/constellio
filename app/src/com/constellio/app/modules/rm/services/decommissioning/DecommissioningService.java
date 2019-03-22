@@ -27,6 +27,7 @@ import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.rm.wrappers.structures.FolderDetailWithType;
+import com.constellio.app.modules.rm.wrappers.type.YearType;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.TimeProvider;
@@ -84,6 +85,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import static com.constellio.app.modules.rm.constants.RMTaxonomies.ADMINISTRATIVE_UNITS;
@@ -320,7 +322,12 @@ public class DecommissioningService {
 	public void approvalRequest(List<User> managerList, DecommissioningList decommissioningList, User approvalUser)
 			throws RecordServicesException {
 		List<String> parameters = new ArrayList<>();
-		parameters.add("decomList" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(decommissioningList.getTitle()));
+		boolean isAddingRecordIdInEmails = eimConfigs.isAddingRecordIdInEmails();
+		if(isAddingRecordIdInEmails) {
+			parameters.add("decomList" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(decommissioningList.getTitle()) + " (" + decommissioningList.getId() + ")");
+		} else {
+			parameters.add("decomList" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(decommissioningList.getTitle()));
+		}
 
 		String constellioUrl = eimConfigs.getConstellioUrl();
 		String displayURL = RMNavigationConfiguration.DECOMMISSIONING_LIST_DISPLAY;
@@ -406,7 +413,13 @@ public class DecommissioningService {
 									  boolean saveComment) {
 		List<String> parameters = new ArrayList<>();
 		List<Comment> commentaires = new ArrayList<>();
-		parameters.add("decomList" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(list.getTitle()));
+		boolean isAddingRecordIdInEmails = eimConfigs.isAddingRecordIdInEmails();
+		if(isAddingRecordIdInEmails) {
+			parameters.add("decomList" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(list.getTitle()) + " (" + list.getId() + ")");
+		} else {
+			parameters.add("decomList" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(list.getTitle()));
+		}
+
 		parameters.add("comments" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(comments));
 
 		String constellioUrl = eimConfigs.getConstellioUrl();
@@ -893,7 +906,8 @@ public class DecommissioningService {
 		transaction.add(duplicatedFolder);
 
 		List<Folder> children = rm.wrapFolders(searchServices.search(new LogicalSearchQuery()
-				.setCondition(from(rm.folder.schemaType()).where(rm.folder.parentFolder()).isEqualTo(folder))));
+				.setCondition(from(rm.folder.schemaType()).where(rm.folder.parentFolder()).isEqualTo(folder))
+				.filteredByStatus(StatusFilter.ACTIVES)));
 		for (Folder child : children) {
 			Folder duplicatedChild = duplicateStructureAndAddToTransaction(child, currentUser, transaction,
 					forceTitleDuplication);
@@ -910,7 +924,8 @@ public class DecommissioningService {
 		transaction.add(duplicatedFolder);
 
 		List<Folder> children = rm.wrapFolders(searchServices.search(new LogicalSearchQuery()
-				.setCondition(from(rm.folder.schemaType()).where(rm.folder.parentFolder()).isEqualTo(folder))));
+				.setCondition(from(rm.folder.schemaType()).where(rm.folder.parentFolder()).isEqualTo(folder))
+				.filteredByStatus(StatusFilter.ACTIVES)));
 		for (Folder child : children) {
 			Folder duplicatedChild = duplicateStructureAndDocumentsAndAddToTransaction(child, currentUser, transaction,
 					forceTitleDuplication);
@@ -1120,6 +1135,42 @@ public class DecommissioningService {
 		ModelLayerCollectionExtensions extensions = ext.forCollection(record.getCollection());
 		PutSchemaRecordsInTrashEvent event = new PutSchemaRecordsInTrashEvent(record.getSchemaCode(), null);
 		return extensions.isPutInTrashBeforePhysicalDelete(event);
+	}
+
+	public YearType getYearType(ContainerRecord container) {
+		LocalDate comparedDate = null;
+		List<Record> records = getFoldersInContainer(container);
+		YearType yearType = null;
+
+		if (getRMConfigs().isPopulateBordereauxWithLesserDispositionDate()) {
+			for (Record record : records) {
+				LocalDate minDate = LangUtils.min(comparedDate, getMinimumLocalDateForRecord(record, false));
+				if(!minDate.equals(comparedDate)) {
+					yearType = getYearType(rm.wrapFolder(record), minDate);
+				}
+				comparedDate = minDate;
+			}
+		} else {
+			for (Record record : records) {
+				LocalDate maxDate = LangUtils.max(comparedDate, getMaximalLocalDateForRecord(record, false));
+				if(!Objects.equals(maxDate, comparedDate)) {
+					yearType = getYearType(rm.wrapFolder(record), maxDate);
+				}
+				comparedDate = maxDate;
+			}
+		}
+
+		return yearType;
+	}
+
+	private YearType getYearType(Folder folder, LocalDate comparedDate) {
+		if(comparedDate == null) {
+			return null;
+		} else if(comparedDate.equals(folder.getExpectedTransferDate()) || comparedDate.equals(folder.getActualTransferDate())) {
+			return folder.getMainCopyRule().getSemiActiveYearTypeId() == null? null:rm.getYearType(folder.getMainCopyRule().getSemiActiveYearTypeId());
+		} else {
+			return folder.getMainCopyRule().getInactiveYearTypeId() == null? null:rm.getYearType(folder.getMainCopyRule().getInactiveYearTypeId());
+		}
 	}
 
 	private List<Record> getFoldersInContainer(ContainerRecord container, Metadata... metadatas) {
@@ -1355,7 +1406,12 @@ public class DecommissioningService {
 			emailToSend.setTemplate(fullTemplate);
 			parameters.add("subject" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(subject));
 			String recordTitle = record.getTitle();
-			parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(recordTitle));
+			boolean isAddingRecordIdInEmails = eimConfigs.isAddingRecordIdInEmails();
+			if(isAddingRecordIdInEmails) {
+				parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(recordTitle) + " (" + record.getId() + ")");
+			} else {
+				parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(recordTitle));
+			}
 			parameters.add("currentUser" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(currentUser.getFirstName() + " " + currentUser.getLastName() +
 																										   " (" + currentUser.getUsername() + ")"));
 			String constellioUrl = eimConfigs.getConstellioUrl();

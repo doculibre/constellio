@@ -190,9 +190,10 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 	public void forParams(String params) {
 		String id;
+		Map<String, String> paramsMap = ParamUtils.getParamsMap(params);
 
-		if (params.contains("id=")) {
-			this.params = ParamUtils.getParamsMap(params);
+		if (paramsMap.get("id") != null) {
+			this.params = paramsMap;
 			id = this.params.get("id");
 		} else {
 			id = params;
@@ -475,8 +476,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	private ComponentState getReturnFolderButtonState(User user, Folder folder) {
 		try {
 			borrowingServices.validateCanReturnFolder(user, folder);
-			return ComponentState
-					.visibleIf(user.hasAll(RMPermissionsTo.BORROW_FOLDER, RMPermissionsTo.BORROWING_FOLDER_DIRECTLY).on(folder));
+			return ComponentState.ENABLED;
 		} catch (Exception e) {
 			return ComponentState.INVISIBLE;
 		}
@@ -1021,8 +1021,15 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			parameters.add("borrower" + EmailToSend.PARAMETER_SEPARATOR + borrower.getUsername());
 			String borrowedFolderTitle = folderVO.getTitle();
 			parameters.add("borrowedFolderTitle" + EmailToSend.PARAMETER_SEPARATOR + borrowedFolderTitle);
-			parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + $("DisplayFolderView.returnFolderReminder") + " \""
-						   + folderVO.getTitle() + "\"");
+			boolean isAddingRecordIdInEmails = eimConfigs.isAddingRecordIdInEmails();
+			if(isAddingRecordIdInEmails) {
+				parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + $("DisplayFolderView.returnFolderReminder") + " \""
+							   + folderVO.getTitle() + "\" (" + folderVO.getId() + ")");
+			} else {
+				parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + $("DisplayFolderView.returnFolderReminder") + " \""
+							   + folderVO.getTitle() + "\"");
+			}
+
 			parameters.add("constellioURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl);
 			parameters.add("recordURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl + "#!"
 						   + RMNavigationConfiguration.DISPLAY_FOLDER + "/" + folderVO.getId());
