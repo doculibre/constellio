@@ -38,6 +38,7 @@ import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.services.extensions.ModelLayerExtensions;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.logging.LoggingServices;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.migrations.RecordMigrationsManager;
 import com.constellio.model.services.migrations.RequiredRecordMigrations;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_RecordsFlushingFailed;
@@ -72,6 +73,7 @@ import org.mockito.Mock;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -128,6 +130,7 @@ public class RecordServicesTest extends ConstellioTest {
 	@Mock Factory<EncryptionServices> encryptionServiceFactory;
 	@Mock AuthorizationsServices authorizationServices;
 	@Mock RecordMigrationsManager recordMigrationsManager;
+	@Mock ConstellioEIMConfigs systemConfigs;
 	ModelLayerExtensions extensions = new ModelLayerExtensions();
 
 	long firstVersion = anInteger();
@@ -255,6 +258,9 @@ public class RecordServicesTest extends ConstellioTest {
 		when(modelFactory.newLoggingServices()).thenReturn(loggingServices);
 		when(modelFactory.getExtensions()).thenReturn(extensions);
 		when(modelFactory.getRecordMigrationsManager()).thenReturn(recordMigrationsManager);
+		when(modelFactory.getSystemConfigs()).thenReturn(systemConfigs);
+
+		when(systemConfigs.getFileExtensionsExcludedFromParsing()).thenReturn(new HashSet<String>());
 
 		when(recordMigrationsManager.getCurrentDataVersion(anyString(), anyString())).thenReturn(0L);
 		when(recordMigrationsManager.getRecordMigrationsFor(any(Record.class)))

@@ -19,6 +19,7 @@ public class ConnectorSmbInstance extends ConnectorInstance<ConnectorSmbInstance
 	public static final String RESUME_URL = "resumeUrl";
 
 	public static final String SKIP_SHARE_ACCESS_CONTROL = "skipShareAccessControl";
+	public static final String SKIP_CONTENT_AND_ACL = "skipContentAndACL";
 
 	public ConnectorSmbInstance(Record record, MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_CODE);
@@ -105,6 +106,15 @@ public class ConnectorSmbInstance extends ConnectorInstance<ConnectorSmbInstance
 
 	public ConnectorSmbInstance setSkipShareAccessControl(boolean skipShareAccessControl) {
 		set(SKIP_SHARE_ACCESS_CONTROL, skipShareAccessControl);
+		return this;
+	}
+
+	public boolean isSkipContentAndAcl() {
+		return getBooleanWithDefaultValue(SKIP_CONTENT_AND_ACL, false);
+	}
+
+	public ConnectorSmbInstance setSkipContentAndAcl(boolean skipContentAndAcl) {
+		set(SKIP_CONTENT_AND_ACL, skipContentAndAcl);
 		return this;
 	}
 

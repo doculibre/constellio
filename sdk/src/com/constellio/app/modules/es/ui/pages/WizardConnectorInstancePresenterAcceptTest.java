@@ -26,6 +26,9 @@ import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 public class WizardConnectorInstancePresenterAcceptTest extends ConstellioTest {
@@ -66,7 +69,8 @@ public class WizardConnectorInstancePresenterAcceptTest extends ConstellioTest {
 
 		configureConnectorsInstances();
 
-		presenter = new WizardConnectorInstancePresenter(view);
+		presenter = spy(new WizardConnectorInstancePresenter(view));
+		doNothing().when(presenter).validateConnectionInfoAreValid(any(RecordVO.class));
 	}
 
 	private void configureConnectorsInstances() {

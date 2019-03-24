@@ -431,7 +431,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		extensions.searchPageExtensions.add(new RMSearchPageExtension(collection, appLayerFactory));
 		extensions.batchProcessingExtensions.add(new RMBatchProcessingExtension(collection, appLayerFactory));
 		extensions.recordFieldFactoryExtensions.add(new BatchProcessingRecordFactoryExtension());
-		extensions.moduleExtensionsMap.put(ID, new RMModuleExtensions(appLayerFactory));
+		extensions.registerModuleExtensionsPoint(ID, new RMModuleExtensions(appLayerFactory));
 		extensions.systemCheckExtensions.add(new RMSystemCheckExtension(collection, appLayerFactory));
 		extensions.recordExportExtensions.add(new RMRecordExportExtension(collection, appLayerFactory));
 		extensions.pagesComponentsExtensions.add(new RMCleanAdministrativeUnitButtonExtension(collection, appLayerFactory));

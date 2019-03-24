@@ -42,6 +42,7 @@ import com.constellio.app.modules.es.migrations.ESMigrationTo7_7_0_42;
 import com.constellio.app.modules.es.migrations.ESMigrationTo8_0;
 import com.constellio.app.modules.es.migrations.ESMigrationTo8_0_1;
 import com.constellio.app.modules.es.migrations.ESMigrationTo8_0_2;
+import com.constellio.app.modules.es.migrations.ESMigrationTo8_1_1;
 import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance;
 import com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPInstance;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
@@ -123,6 +124,7 @@ public class ConstellioESModule implements InstallableSystemModule, ModuleWithCo
 		scripts.add(new ESMigrationTo8_0());
 		scripts.add(new ESMigrationTo8_0_1());
 		scripts.add(new ESMigrationTo8_0_2());
+		scripts.add(new ESMigrationTo8_1_1());
 
 		return scripts;
 	}
@@ -192,7 +194,7 @@ public class ConstellioESModule implements InstallableSystemModule, ModuleWithCo
 	private void setupAppLayerExtensions(String collection, AppLayerFactory appLayerFactory) {
 		AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions()
 				.forCollection(collection);
-		extensions.moduleExtensionsMap.put(ID, new ESModuleExtensions());
+		extensions.registerModuleExtensionsPoint(ID, new ESModuleExtensions());
 		extensions.taxonomyAccessExtensions.add(new ESTaxonomyPageExtension(collection));
 		extensions.recordAppExtensions.add(new ESRecordAppExtension(collection, appLayerFactory));
 		extensions.recordNavigationExtensions.add(new ESRecordNavigationExtension(collection, appLayerFactory));
