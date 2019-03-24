@@ -1,5 +1,10 @@
 package com.constellio.app.modules.tasks.ui.pages.tasks;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import org.vaadin.dialogs.ConfirmDialog;
+
+import com.constellio.app.api.extensions.params.FieldBindingExtentionParam;
 import com.constellio.app.modules.tasks.model.wrappers.request.BorrowRequest;
 import com.constellio.app.modules.tasks.navigation.TaskViews;
 import com.constellio.app.modules.tasks.ui.components.fields.CustomTaskField;
@@ -11,7 +16,6 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.fields.BooleanOptionGroup;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.frameworks.validation.ValidationException;
 import com.vaadin.data.Buffered.SourceException;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
@@ -20,9 +24,6 @@ import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Field;
 import com.vaadin.ui.UI;
-import org.vaadin.dialogs.ConfirmDialog;
-
-import static com.constellio.app.ui.i18n.i18n.$;
 
 public class AddEditTaskViewImpl extends BaseViewImpl implements AddEditTaskView {
 
@@ -77,8 +78,7 @@ public class AddEditTaskViewImpl extends BaseViewImpl implements AddEditTaskView
 	private TaskFormImpl newForm() {
 		recordForm = new TaskFormImpl(taskVO, presenter.isEditMode(), presenter.getUnavailableTaskTypes()) {
 			@Override
-			protected void saveButtonClick(final RecordVO viewObject)
-					throws ValidationException {
+			protected void saveButtonClick(final RecordVO viewObject) {
 				if (presenter.isCompletedOrClosedStatus(viewObject) && presenter.isSubTaskPresentAndHaveCertainStatus(viewObject)) {
 					ConfirmDialog.show(UI.getCurrent(), $("DisplayTaskView.subTaskSpecialCaseCompleteTask"),
 							new ConfirmDialog.Listener() {
@@ -116,6 +116,10 @@ public class AddEditTaskViewImpl extends BaseViewImpl implements AddEditTaskView
 
 
 		};
+
+		getConstellioFactories().getAppLayerFactory().getExtensions()
+				.forCollection(taskVO.getSchema().getCollection())
+				.fieldBindingExtentions(new FieldBindingExtentionParam(recordForm.getFields()));
 
 		for (final Field<?> field : recordForm.getFields()) {
 			if (field instanceof CustomTaskField) {

@@ -6,6 +6,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.constellio.app.extensions.records.params.BuildRecordVOParams;
+import com.constellio.app.extensions.records.params.IsMetadataSpecialCaseToNotBeShownParams;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
@@ -111,10 +112,21 @@ public class RecordToVOBuilder implements Serializable {
 		return recordVO;
 	}
 
-	private boolean isMetadataSpecialCaseToNotBeShown(AppLayerFactory appLayerFactory, MetadataVO metadataVO, Record record) {
+	private boolean isMetadataSpecialCaseToNotBeShown(AppLayerFactory appLayerFactory, final MetadataVO metadataVO,
+			final Record record) {
 		return appLayerFactory.getExtensions()
 				.forCollection(record.getCollection())
-				.isMetadataSpecialCaseToNotBeShown(record, metadataVO);
+				.isMetadataSpecialCaseToNotBeShown(new IsMetadataSpecialCaseToNotBeShownParams() {
+					@Override
+					public MetadataVO getMetadataVO() {
+						return metadataVO;
+					}
+
+					@Override
+					public Record getRecord() {
+						return record;
+					}
+				});
 	}
 
 	protected Object getValue(Record record, Metadata metadata) {

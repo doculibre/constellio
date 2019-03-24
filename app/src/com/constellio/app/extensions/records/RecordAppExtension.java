@@ -7,8 +7,8 @@ import com.constellio.app.api.extensions.taxonomies.FolderDeletionEvent;
 import com.constellio.app.extensions.records.params.BuildRecordVOParams;
 import com.constellio.app.extensions.records.params.GetDynamicFieldMetadatasParams;
 import com.constellio.app.extensions.records.params.GetIconPathParams;
+import com.constellio.app.extensions.records.params.IsMetadataSpecialCaseToNotBeShownParams;
 import com.constellio.app.extensions.records.params.IsMetadataVisibleInRecordFormParams;
-import com.constellio.app.extensions.records.params.isMetadataSpecialCaseOfNotBeingInFormParams;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.vaadin.server.Resource;
 
@@ -36,7 +36,7 @@ public class RecordAppExtension {
 		return ExtensionBooleanResult.NOT_APPLICABLE;
 	}
 
-	public ExtensionBooleanResult isMetadataSpecialCaseToNotBeShown(isMetadataSpecialCaseOfNotBeingInFormParams params) {
+	public ExtensionBooleanResult isMetadataSpecialCaseToNotBeShown(IsMetadataSpecialCaseToNotBeShownParams params) {
 		return ExtensionBooleanResult.NOT_APPLICABLE;
 	}
 

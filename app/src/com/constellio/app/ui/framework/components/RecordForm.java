@@ -65,6 +65,7 @@ public abstract class RecordForm extends BaseForm<RecordVO> {
 				}
 			}
 		}
+
 		return fieldsAndPropertyIds;
 	}
 
@@ -157,5 +158,4 @@ public abstract class RecordForm extends BaseForm<RecordVO> {
 			firstFieldWithError.focus();
 		}
 	}
-
 }

@@ -40,6 +40,7 @@ import com.constellio.app.modules.tasks.ui.components.fields.list.TaskListAddRem
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.MetadataVO;
+import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.MetadataFieldFactory;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupField;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
@@ -57,14 +58,16 @@ public class TaskFieldFactory extends MetadataFieldFactory {
 	public static final String SCRIPT = "script";
 
 	private List<String> unavailablesTaskTypes;
+	private RecordVO recordVO;
 
 	public TaskFieldFactory(boolean isViewOnly) {
 		super(isViewOnly);
 	}
 
-	public TaskFieldFactory(boolean isViewOnly, List<String> unavailablesTaskTypes) {
+	public TaskFieldFactory(boolean isViewOnly, List<String> unavailablesTaskTypes, RecordVO recordVO) {
 		super(isViewOnly);
 		this.unavailablesTaskTypes = unavailablesTaskTypes;
+		this.recordVO = recordVO;
 	}
 
 	@Override
@@ -146,7 +149,7 @@ public class TaskFieldFactory extends MetadataFieldFactory {
 				AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
 				String currentCollection = metadata.getCollection();
 			field = appLayerFactory.getExtensions().forCollection(currentCollection)
-					.getMetadataField(new MetadataFieldExtensionParams(metadata));
+					.getMetadataField(new MetadataFieldExtensionParams(metadata, recordVO));
 			if (field != null) {
 				postBuild(field, metadata);
 			} else {

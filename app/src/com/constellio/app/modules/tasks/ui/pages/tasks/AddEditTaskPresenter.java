@@ -14,6 +14,7 @@ import java.util.Objects;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 
+import com.constellio.app.api.extensions.params.TaskFormParams;
 import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflowTask;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
@@ -99,6 +100,10 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		tasksSchemasRecordsServices = new TasksSchemasRecordsServices(collection, appLayerFactory);
 		finishedOrClosedStatuses = getFinishedOrClosedStatuses();
 		tasksSchemasRecordsServices = new TasksSchemasRecordsServices(collection, appLayerFactory);
+	}
+
+	public AddEditTaskView getView() {
+		return view;
 	}
 
 	private List<String> getFinishedOrClosedStatuses() {
@@ -231,6 +236,9 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 			if (!task.isModel() && task.getDueDate() == null && task.getRelativeDueDate() != null && task.getAssignedOn() != null) {
 				task.setDueDate(task.getAssignedOn().plusDays(task.getRelativeDueDate()));
 			}
+
+			appLayerFactory.getExtensions().forCollection(collection)
+					.taskFormExtentions(new TaskFormParams(this, task.getWrappedRecord()));
 
 			if (task.isModel()) {
 				addOrUpdate(task.getWrappedRecord(), RecordUpdateOptions.userModificationsSafeOptions());
