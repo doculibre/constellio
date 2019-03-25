@@ -319,7 +319,7 @@ public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskV
 		Object decisions = task.get(Task.BETA_NEXT_TASKS_DECISIONS);
 		if ((task.getModelTask() != null && decisions != null && !((MapStringStringStructure) decisions).isEmpty()
 			 && task.getDecision() == null && !containsExpressionLanguage(decisions))
-			|| tasksSchemas.isRequestTask(task)) {
+			|| tasksSchemas.isRequestTask(task) || QuickCompleteWindow.hasRequiredFieldUncompleted(recordVO)) {
 			QuickCompleteWindow quickCompleteWindow = new QuickCompleteWindow(this, appLayerFactory, recordVO);
 			quickCompleteWindow.show();
 		} else {

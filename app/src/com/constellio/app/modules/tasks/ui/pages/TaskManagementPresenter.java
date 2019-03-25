@@ -63,6 +63,7 @@ import static com.constellio.app.modules.tasks.model.wrappers.Task.END_DATE;
 import static com.constellio.app.modules.tasks.model.wrappers.Task.SCHEMA_TYPE;
 import static com.constellio.app.modules.tasks.model.wrappers.Task.STARRED_BY_USERS;
 import static com.constellio.app.modules.tasks.model.wrappers.Task.STATUS;
+import static com.constellio.app.ui.entities.RecordVO.VIEW_MODE.FORM;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.entities.records.wrappers.RecordWrapper.TITLE;
 
@@ -483,9 +484,10 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 		TasksSchemasRecordsServices tasksSchemas = new TasksSchemasRecordsServices(collection, appLayerFactory);
 		Task task = tasksSchemas.getTask(recordVO.getId());
 		Object decisions = task.get(Task.BETA_NEXT_TASKS_DECISIONS);
-
+		Record record = task.getWrappedRecord();
+		TaskVO taskVO = new TaskVO(new TaskToVOBuilder().build(record, FORM, view.getSessionContext()));
 		if ((task.getModelTask() != null && decisions != null && !((MapStringStringStructure) decisions).isEmpty() && task.getDecision() == null && !DisplayTaskPresenter.containsExpressionLanguage(decisions))
-			|| tasksSchemas.isRequestTask(task) || QuickCompleteWindow.hasRequiredFieldUncompleted(recordVO)) {
+			|| tasksSchemas.isRequestTask(task) || QuickCompleteWindow.hasRequiredFieldUncompleted(taskVO)) {
 			QuickCompleteWindow quickCompleteWindow = new QuickCompleteWindow(this, appLayerFactory, recordVO);
 			quickCompleteWindow.show();
 		} else {
