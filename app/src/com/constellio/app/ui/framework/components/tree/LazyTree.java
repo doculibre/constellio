@@ -438,7 +438,7 @@ public class LazyTree<T extends Serializable> extends CustomField<Object> {
 		if (multiValue) {
 			if (isSelectable(object)) {
 				String itemCaption = getItemCaption(object);
-				CheckBox checkBox = new CheckBox(itemCaption);
+				final CheckBox checkBox = new CheckBox(itemCaption);
 				checkBox.addValueChangeListener(new Property.ValueChangeListener() {
 					@Override
 					public void valueChange(Property.ValueChangeEvent event) {

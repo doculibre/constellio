@@ -402,7 +402,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<Ob
 		return itemCaptionAndInfoLayout;
 	}
 
-	protected LazyTree<T> newLazyTree(LookupTreeDataProvider<T> lookupTreeDataProvider, int treeBufferSize) {
+	protected LazyTree<T> newLazyTree(final LookupTreeDataProvider<T> lookupTreeDataProvider, int treeBufferSize) {
 		return new LazyTree<T>(lookupTreeDataProvider, treeBufferSize) {
 			@Override
 			public String getItemCaption(T itemId) {
@@ -985,7 +985,9 @@ public abstract class LookupField<T extends Serializable> extends CustomField<Ob
 								LookupField.this.setValue(item);
 								if (multiValue) {
 									for (SelectionChangeListener selectionChangeListener : selectionChangeListeners) {
-										selectionChangeListener.selectionChanged(Arrays.asList(item));
+										List<Object> objectList = new ArrayList<>();
+										objectList.add(item);
+										selectionChangeListener.selectionChanged(objectList);
 									}
 								}
 							}

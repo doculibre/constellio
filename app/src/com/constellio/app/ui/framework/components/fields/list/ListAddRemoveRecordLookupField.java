@@ -54,7 +54,7 @@ public class ListAddRemoveRecordLookupField extends ListAddRemoveField<String, L
 
 	@Override
 	protected LookupRecordField newAddEditField() {
-		LookupRecordField field = new LookupRecordField(schemaTypeCode, schemaCode);
+		final LookupRecordField field = new LookupRecordField(schemaTypeCode, schemaCode);
 		field.setIgnoreLinkability(ignoreLinkability);
 		field.setMultiValue(true);
 		field.setItemInformation(itemInformation);
