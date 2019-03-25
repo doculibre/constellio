@@ -563,6 +563,12 @@ $popup-view-z-index: 3;
 		border: 1px solid red;
 	}
 
+	.lookup-window-content {
+		.lookup-information-icon {
+    		cursor: pointer;
+		}
+	}
+
     .lookup-window-content, .document-window-content {
     	padding-top: 10px;
     	padding-left: 10px;
