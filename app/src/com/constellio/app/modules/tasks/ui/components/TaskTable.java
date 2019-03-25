@@ -1,9 +1,17 @@
 package com.constellio.app.modules.tasks.ui.components;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+
+import org.vaadin.dialogs.ConfirmDialog;
+
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.ui.components.fields.StarredFieldImpl;
 import com.constellio.app.modules.tasks.ui.entities.TaskVO;
-import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.modules.tasks.ui.pages.tasks.TaskCompleteWindowButton;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -30,13 +38,6 @@ import com.vaadin.ui.MenuBar;
 import com.vaadin.ui.MenuBar.Command;
 import com.vaadin.ui.MenuBar.MenuItem;
 import com.vaadin.ui.Table;
-import org.vaadin.dialogs.ConfirmDialog;
-
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-
-import static com.constellio.app.ui.i18n.i18n.$;
 
 public class TaskTable extends RecordVOTable {
 	public static final String PREFIX = "images/icons/task/";
@@ -128,31 +129,23 @@ public class TaskTable extends RecordVOTable {
 				}
 
 				if (presenter.isCompleteButtonEnabled(recordVO)) {
-
-
 					rootItem.addItem($("TaskTable.complete"), COMPLETE_ICON, new Command() {
 						@Override
 						public void menuSelected(MenuItem selectedItem) {
-							String completeTaskDialog = $("DisplayTaskView.completeTaskDialogMessage");
+							TaskCompleteWindowButton completeTask = new TaskCompleteWindowButton(presenter.getTask(recordVO),
+									$("DisplayTaskView.completeTask"),
+									presenter.getView().getConstellioFactories().getAppLayerFactory(), presenter) {
+								@Override
+								protected String getConfirmDialogMessage() {
+									if (presenter.isSubTaskPresentAndHaveCertainStatus(recordVO)) {
+										return $("DisplayTaskView.subTaskPresentComplete");
+									}
 
-							if (presenter.isSubTaskPresentAndHaveCertainStatus(recordVO)) {
-								completeTaskDialog = $("DisplayTaskView.subTaskPresentComplete");
-							}
+									return $("DisplayTaskView.completeTaskDialogMessage");
+								}
+							};
 
-							ConfirmDialog.show(ConstellioUI.getCurrent(), $("DisplayTaskView.completeTask"), completeTaskDialog,
-									$("DisplayTaskView.quickComplete"), $("cancel"), $("DisplayTaskView.slowComplete"),
-									new ConfirmDialog.Listener() {
-										@Override
-										public void onClose(ConfirmDialog dialog) {
-											if (dialog.isConfirmed()) {
-												presenter.completeQuicklyButtonClicked(recordVO);
-											} else if (dialog.isCanceled()) {
-
-											} else {
-												presenter.completeButtonClicked(recordVO);
-											}
-										}
-									});
+							completeTask.click();
 						}
 					});
 				}
@@ -236,8 +229,6 @@ public class TaskTable extends RecordVOTable {
 
 		void deleteButtonClicked(RecordVO record);
 
-		void completeButtonClicked(RecordVO record);
-
 		void closeButtonClicked(RecordVO record);
 
 		void generateReportButtonClicked(RecordVO recordVO);
@@ -266,8 +257,6 @@ public class TaskTable extends RecordVOTable {
 
 		boolean isMetadataReportAllowed(RecordVO recordVO);
 
-		void completeQuicklyButtonClicked(RecordVO recordVO);
-
 		BaseView getView();
 
 		void reloadTaskModified(Task task);
@@ -277,6 +266,8 @@ public class TaskTable extends RecordVOTable {
 		void updateTaskStarred(boolean isStarred, String taskId);
 
 		void registerPreviousSelectedTab();
+
+		Task getTask(RecordVO recordVO);
 	}
 
 	public class TaskStyleGenerator implements CellStyleGenerator {
