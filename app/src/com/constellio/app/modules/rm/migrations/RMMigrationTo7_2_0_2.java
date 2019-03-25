@@ -115,8 +115,7 @@ public class RMMigrationTo7_2_0_2 implements MigrationScript {
 		InputStream inputStream = null;
 		try {
 			inputStream = ioServices.newFileInputStream(jasperFile, "installLabel");
-			UploadOptions options = new UploadOptions("jasperFile.jasper").setHandleDeletionOfUnreferencedHashes(false)
-					.setParse(false);
+			UploadOptions options = new UploadOptions("jasperFile.jasper").setHandleDeletionOfUnreferencedHashes(false);
 			ContentVersionDataSummary summary = contentManager.upload(inputStream, options).getContentVersionDataSummary();
 			Content newContent = contentManager.createSystemContent(content.getCurrentVersion().getFilename(), summary);
 			printableLabel.setJasperFile(newContent);

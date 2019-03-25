@@ -178,7 +178,7 @@ public class DocumentDao extends BaseDao {
 
 		String filename = documentContent.getFilename();
 		ContentVersionDataSummaryResponse contentResponse = contentManager.upload(contentInputStream,
-				new UploadOptions(false, false, false, filename));
+				new UploadOptions(false, null, false, filename));
 
 		Content content = documentRecord != null ? this.<Content>getMetadataValue(documentRecord, Document.CONTENT) : null;
 		if (content != null) {

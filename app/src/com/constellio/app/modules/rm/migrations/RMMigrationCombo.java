@@ -339,7 +339,7 @@ public class RMMigrationCombo implements ComboMigrationScript {
 			titre += " (" + etiquetteName + " " + format + ")";
 			record.set(typeBuilder.getMetadata(PrintableLabel.COLONNE), 2);
 			record.set(typeBuilder.getMetadata(Printable.ISDELETABLE), true);
-			UploadOptions options = new UploadOptions(etiquetteName + " " + format + " " + type).setParse(false)
+			UploadOptions options = new UploadOptions(etiquetteName + " " + format + " " + type)
 					.setHandleDeletionOfUnreferencedHashes(false);
 			ContentVersionDataSummary upload = contentManager.upload(new FileInputStream(fi), options)
 					.getContentVersionDataSummary();
