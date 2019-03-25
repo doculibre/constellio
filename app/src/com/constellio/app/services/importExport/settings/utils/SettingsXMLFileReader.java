@@ -1,5 +1,6 @@
 package com.constellio.app.services.importExport.settings.utils;
 
+import com.constellio.app.entities.schemasDisplay.enums.MetadataSortingType;
 import com.constellio.app.services.importExport.settings.SettingsExportServices;
 import com.constellio.app.services.importExport.settings.model.ImportedCollectionSettings;
 import com.constellio.app.services.importExport.settings.model.ImportedConfig;
@@ -224,6 +225,10 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 
 		if (element.getAttribute(UNIQUE) != null) {
 			importedMetadata.setUnique(Boolean.parseBoolean(element.getAttributeValue(UNIQUE)));
+		}
+
+		if (element.getAttribute(SORTING_TYPE) != null) {
+			importedMetadata.setSortingType(element.getAttributeValue(SORTING_TYPE));
 		}
 
 		if (element.getAttribute(SORTABLE) != null) {

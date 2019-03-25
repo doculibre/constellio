@@ -1,14 +1,21 @@
 package com.constellio.app.entities.schemasDisplay.enums;
 
+import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.schemas.MetadataValueType;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public enum MetadataSortingType {
+public enum MetadataSortingType implements EnumWithSmallCode {
 
-	ENTRY_ORDER,
-	ALPHANUMERICAL_ORDER;
+	ENTRY_ORDER("EO"),
+	ALPHANUMERICAL_ORDER("AO");
+
+	private String code;
+
+	MetadataSortingType(String code) {
+		this.code = code;
+	}
 
 	public static String getCaptionFor(MetadataSortingType type) {
 		String caption = "";
@@ -38,5 +45,10 @@ public enum MetadataSortingType {
 		displayTypes.add(ENTRY_ORDER);
 
 		return displayTypes;
+	}
+
+	@Override
+	public String getCode() {
+		return code;
 	}
 }
