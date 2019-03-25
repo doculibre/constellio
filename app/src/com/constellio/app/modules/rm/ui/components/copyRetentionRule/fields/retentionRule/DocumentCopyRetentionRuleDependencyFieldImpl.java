@@ -10,7 +10,7 @@ public class DocumentCopyRetentionRuleDependencyFieldImpl extends LookupFolderFi
 
 	@Override
 	public String getFieldValue() {
-		return super.getValue();
+		return (String) super.getValue();
 	}
 
 	@Override

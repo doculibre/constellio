@@ -1,8 +1,11 @@
 package com.constellio.app.modules.tasks.ui.components.fields.list;
 
+import java.util.List;
+
 import com.constellio.app.modules.rm.ui.components.converters.FolderIdToContextCaptionConverter;
 import com.constellio.app.modules.tasks.ui.components.fields.TaskLinkedFoldersFieldImpl;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveField;
+import com.constellio.app.ui.framework.components.fields.lookup.LookupField.SelectionChangeListener;
 
 /**
  * Created by Constellio on 2017-03-29.
@@ -12,7 +15,17 @@ public class TaskListAddRemoveLinkedFoldersLookupField extends ListAddRemoveFiel
 
 	@Override
 	protected TaskLinkedFoldersFieldImpl newAddEditField() {
-		return new TaskLinkedFoldersFieldImpl();
+		TaskLinkedFoldersFieldImpl field = new TaskLinkedFoldersFieldImpl();
+		field.setMultiValue(true);
+		field.addSelectionChangeListener(new SelectionChangeListener() {
+			@Override
+			public void selectionChanged(List<Object> newSelection) {
+				if (newSelection != null) {
+					tryAdd();
+				}
+			}
+		});
+		return field;
 	}
 
 	@Override

@@ -285,7 +285,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 					BaseButton saveButton = new BaseButton($("save")) {
 						@Override
 						protected void buttonClick(ClickEvent event) {
-							String parentId = field.getValue();
+							String parentId = (String) field.getValue();
 							try {
 								presenter.parentFolderButtonClicked(parentId);
 							} catch (Throwable e) {

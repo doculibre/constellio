@@ -58,8 +58,8 @@ public class ContainersButton extends WindowButton {
 			@Override
 			public void buttonClick(ClickEvent event) {
 				try {
-					if (StringUtils.isNotBlank(containerLookup.getValue())) {
-						selector.putRecordsInContainer(containerLookup.getValue());
+					if (StringUtils.isNotBlank((String) containerLookup.getValue())) {
+						selector.putRecordsInContainer((String) containerLookup.getValue());
 						getWindow().close();
 					}
 				} catch (Throwable e) {

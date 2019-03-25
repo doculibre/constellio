@@ -142,7 +142,7 @@ public class ListCollectionUserViewImpl extends BaseViewImpl implements ListColl
 		addUserRole = new AddButton() {
 			@Override
 			protected void buttonClick(ClickEvent event) {
-				presenter.addButtonClicked(lookupUser.getValue(), (String) comboboxUserRoles.getValue());
+				presenter.addButtonClicked((UserCredentialVO) lookupUser.getValue(), (String) comboboxUserRoles.getValue());
 			}
 		};
 		addUserRole.addStyleName(USER_ADD);
@@ -212,7 +212,7 @@ public class ListCollectionUserViewImpl extends BaseViewImpl implements ListColl
 		addGroupRole = new AddButton() {
 			@Override
 			protected void buttonClick(ClickEvent event) {
-				presenter.addGlobalGroupButtonClicked(lookupGroup.getValue(), (String) comboboxGroupRoles.getValue());
+				presenter.addGlobalGroupButtonClicked((GlobalGroupVO) lookupGroup.getValue(), (String) comboboxGroupRoles.getValue());
 			}
 		};
 		addGroupRole.addStyleName(GROUP_ADD);

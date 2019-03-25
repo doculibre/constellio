@@ -245,8 +245,6 @@ public class LazyTree<T extends Serializable> extends CustomField<Object> {
 					if (!multiValue) {
 						setValue((T) itemId);
 						// Forward to the adaptee
-					} else {
-						System.out.println("Test");
 					}
 
 					boolean shouldExpandOrCollapse = true;
@@ -431,28 +429,51 @@ public class LazyTree<T extends Serializable> extends CustomField<Object> {
 		return null;
 	}
 	
-	protected Component getItemCaptionComponent(T object) {
+	protected boolean isSelectable(T object) {
+		return true;
+	}
+	
+	protected Component getItemCaptionComponent(final T object) {
 		Component itemCaptionComponent;
 		if (multiValue) {
-			String itemCaption = getItemCaption(object);
+			if (isSelectable(object)) {
+				String itemCaption = getItemCaption(object);
+				CheckBox checkBox = new CheckBox(itemCaption);
+				checkBox.addValueChangeListener(new Property.ValueChangeListener() {
+					@Override
+					public void valueChange(Property.ValueChangeEvent event) {
+						List<T> listValue = ensureListValue();
+						Boolean selected = checkBox.getValue();
+						if (selected && !listValue.contains(object)) {
+							listValue.add(object);
+							setValue(listValue);
+						} else if (!selected && listValue.contains(object)) {
+							listValue.remove(object);
+							setValue(listValue);
+						}
+					}
+				});
+				Resource icon = getItemIcon(object);
+				checkBox.setIcon(icon);
+				
+				itemCaptionComponent = checkBox;
+			} else {
+				itemCaptionComponent = null;
+			}
 			
-			CheckBox checkBox = new CheckBox(itemCaption);
-			checkBox.addValueChangeListener(new Property.ValueChangeListener() {
-				@Override
-				public void valueChange(Property.ValueChangeEvent event) {
-					System.out.println("FIXME!");
-				}
-			});
-
-			Resource icon = getItemIcon(object);
-			checkBox.setIcon(icon);
-			
-			itemCaptionComponent = checkBox;
 		} else {
 			itemCaptionComponent = null;
 		}
 		return itemCaptionComponent;
 		
+	}
+	
+	private List<T> ensureListValue() {
+		List<T> value = (List<T>) getValue();
+		if (value == null) {
+			value = new ArrayList<>();
+		}
+		return value;
 	}
 
 	public String getItemCaption(T object) {

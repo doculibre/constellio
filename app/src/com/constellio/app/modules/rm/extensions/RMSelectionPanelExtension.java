@@ -166,7 +166,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
 				BaseButton saveButton = new BaseButton($("save")) {
 					@Override
 					protected void buttonClick(ClickEvent event) {
-						String parentId = field.getValue();
+						String parentId = (String) field.getValue();
 						try {
 							parentFolderButtonClicked(parentId, param);
 						} catch (Throwable e) {
@@ -219,7 +219,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
 				BaseButton saveButton = new BaseButton($("save")) {
 					@Override
 					protected void buttonClick(ClickEvent event) {
-						String parentId = field.getValue();
+						String parentId = (String) field.getValue();
 						duplicateButtonClicked(parentId, param);
 						getWindow().close();
 					}
@@ -333,7 +333,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
 						categoryField.setVisible(categoryClassification);
 						categoryField.setRequired(categoryClassification);
 						if (categoryClassification) {
-							String categoryId = categoryField.getValue();
+							String categoryId = (String) categoryField.getValue();
 							adjustRetentionRuleField(categoryId, retentionRuleField);
 						} else {
 							retentionRuleField.setVisible(false);
@@ -359,8 +359,8 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
 				BaseButton saveButton = new BaseButton($("save")) {
 					@Override
 					protected void buttonClick(ClickEvent event) {
-						String parentId = folderField.getValue();
-						String categoryId = categoryField.getValue();
+						String parentId = (String) folderField.getValue();
+						String categoryId = (String) categoryField.getValue();
 						String retentionRuleId = retentionRuleField.getValue();
 						if (parentId == null && categoryId == null) {
 							if (folderField.isVisible()) {

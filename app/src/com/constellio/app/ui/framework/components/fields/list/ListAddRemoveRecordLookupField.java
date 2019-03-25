@@ -1,14 +1,17 @@
 package com.constellio.app.ui.framework.components.fields.list;
 
+import java.util.List;
+
 import com.constellio.app.ui.framework.components.converters.RecordIdToCaptionConverter;
+import com.constellio.app.ui.framework.components.fields.lookup.LookupField.SelectionChangeListener;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 
-@SuppressWarnings("unchecked")
 public class ListAddRemoveRecordLookupField extends ListAddRemoveField<String, LookupRecordField> {
 
 	private String schemaTypeCode;
 	private String schemaCode;
 	private boolean ignoreLinkability;
+	private boolean itemInformation;
 
 	public ListAddRemoveRecordLookupField(String schemaTypeCode) {
 		this(schemaTypeCode, null);
@@ -22,6 +25,18 @@ public class ListAddRemoveRecordLookupField extends ListAddRemoveField<String, L
 		ignoreLinkability = false;
 	}
 
+	public String getSchemaTypeCode() {
+		return schemaTypeCode;
+	}
+
+	public String getSchemaCode() {
+		return schemaCode;
+	}
+
+	public boolean isIgnoreLinkability() {
+		return ignoreLinkability;
+	}
+
 	public void setIgnoreLinkability(boolean ignoreLinkability) {
 		this.ignoreLinkability = ignoreLinkability;
 		if (addEditField != null) {
@@ -29,10 +44,29 @@ public class ListAddRemoveRecordLookupField extends ListAddRemoveField<String, L
 		}
 	}
 
+	public boolean isItemInformation() {
+		return itemInformation;
+	}
+
+	public void setItemInformation(boolean itemInformation) {
+		this.itemInformation = itemInformation;
+	}
+
 	@Override
 	protected LookupRecordField newAddEditField() {
 		LookupRecordField field = new LookupRecordField(schemaTypeCode, schemaCode);
 		field.setIgnoreLinkability(ignoreLinkability);
+		field.setMultiValue(true);
+		field.setItemInformation(itemInformation);
+		field.addSelectionChangeListener(new SelectionChangeListener() {
+			@Override
+			public void selectionChanged(List<Object> newSelection) {
+				if (newSelection != null) {
+					tryAdd();
+					field.getAutoCompleteField().clear();
+				}
+			}
+		});
 		return field;
 	}
 }
