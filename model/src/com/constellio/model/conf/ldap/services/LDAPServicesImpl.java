@@ -44,6 +44,7 @@ public class LDAPServicesImpl implements LDAPServices {
 
 	public List<String> getRootContexts(LdapContext context) {
 		List<String> rootContexts = new ArrayList<>();
+		List<NamingEnumeration> closables = new ArrayList<>();
 		NamingEnumeration attributesEnum = null;
 		NamingEnumeration attributeEnum = null;
 		try {
@@ -52,15 +53,14 @@ public class LDAPServicesImpl implements LDAPServices {
 				Attribute attribute = (Attribute) attributesEnum.next();
 				for (attributeEnum = attribute.getAll(); attributeEnum.hasMore(); ) {
 					rootContexts.add("" + attributeEnum.next());
-					closeQuietly(attributeEnum);
+					closables.add(attributeEnum);
 				}
-				closeQuietly(attributesEnum);
+				closables.add(attributesEnum);
 			}
 		} catch (NamingException ne) {
 			System.err.println("Error getting root contexts: " + ne.getMessage());
 		} finally {
-			closeQuietly(attributesEnum);
-			closeQuietly(attributeEnum);
+			closeQuietly(closables);
 		}
 		return rootContexts;
 	}
@@ -446,6 +446,16 @@ public class LDAPServicesImpl implements LDAPServices {
 			closeQuietly(srchResponse);
 		}
 		return null;
+	}
+
+	private void closeQuietly(List<NamingEnumeration> closables) {
+		if(closables == null) {
+			return;
+		}
+
+		for(NamingEnumeration namingEnumeration: closables) {
+			closeQuietly(namingEnumeration);
+		}
 	}
 
 	private void closeQuietly(NamingEnumeration namingEnumeration) {
