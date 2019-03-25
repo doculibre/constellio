@@ -107,6 +107,9 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 				reloadCurrentTab();
 			}
 		});
+		if (horizontalLayout == null) {
+			setHorizontalLayout(new HorizontalLayout());
+		}
 		horizontalLayout.addComponent(timestamp, 0);
 		horizontalLayout.setSpacing(true);
 		sheet = new TabSheet();
