@@ -55,7 +55,7 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
-import com.constellio.model.services.search.query.logical.condition.SolrQueryBuilderParams;
+import com.constellio.model.services.search.query.logical.condition.SolrQueryBuilderContext;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -736,7 +736,7 @@ public class RecordServicesTest extends ConstellioTest {
 		LogicalSearchCondition thirdRecordCondition = LogicalSearchQueryOperators.where(Schemas.IDENTIFIER).is(thirdRecordId)
 				.andWhere(Schemas.VERSION).isNotEqual(thirdRecordVersion);
 
-		SolrQueryBuilderParams params = new SolrQueryBuilderParams(false, null, null);
+		SolrQueryBuilderContext params = new SolrQueryBuilderContext(false, new ArrayList<>(), null, null, null, null);
 		assertThat(condition.getSolrQuery(params)).isEqualTo(
 				LogicalSearchQueryOperators.fromAllSchemasIn(condition.getCollection())
 						.whereAnyCondition(Arrays.asList(firstRecordCondition, secondRecordCondition, thirdRecordCondition))

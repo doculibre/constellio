@@ -5,9 +5,10 @@ import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.constellio.model.services.search.query.logical.condition.SolrQueryBuilderParams;
+import com.constellio.model.services.search.query.logical.condition.SolrQueryBuilderContext;
 import org.joda.time.LocalDateTime;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -74,7 +75,7 @@ public class UserSearchEvent {
 	}
 
 	public String getSolrQuery() {
-		return query.getCondition().getSolrQuery(new SolrQueryBuilderParams(true, language, null));
+		return query.getCondition().getSolrQuery(new SolrQueryBuilderContext(true, new ArrayList<>(), language, null, null, null));
 	}
 
 	public List<Criterion> getCriterionList() {

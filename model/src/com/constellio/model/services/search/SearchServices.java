@@ -37,10 +37,11 @@ import com.constellio.model.services.search.query.logical.FieldLogicalSearchQuer
 import com.constellio.model.services.search.query.logical.FunctionLogicalSearchQuerySort;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery.UserFilter;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuerySort;
 import com.constellio.model.services.search.query.logical.ScoreLogicalSearchQuerySort;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
-import com.constellio.model.services.search.query.logical.condition.SolrQueryBuilderParams;
+import com.constellio.model.services.search.query.logical.condition.SolrQueryBuilderContext;
 import com.constellio.model.services.security.SecurityTokenManager;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.common.params.CommonParams;
@@ -51,18 +52,29 @@ import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.common.params.MoreLikeThisParams;
 import org.apache.solr.common.params.ShardParams;
 import org.apache.solr.common.params.StatsParams;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
+import java.util.Spliterator;
+import java.util.Spliterators;
+import java.util.function.BiFunction;
+import java.util.function.BinaryOperator;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import static com.constellio.data.dao.services.cache.InsertionReason.WAS_OBTAINED;
 import static com.constellio.model.services.records.RecordUtils.splitByCollection;
@@ -154,6 +166,203 @@ public class SearchServices {
 		return query(query).getMoreLikeThisRecords();
 	}
 
+	public Stream<Record> stream(LogicalSearchQuery query) {
+
+		final LogicalSearchQuery clonedQuery = new LogicalSearchQuery(query);
+		//return search(query).stream();
+
+		Stream<Record> stream = StreamSupport.stream(new Supplier<Spliterator<Record>>() {
+			@Override
+			public Spliterator<Record> get() {
+				if (clonedQuery.getNumberOfRows() == 0) {
+					SearchResponseIterator<Record> iterator = recordsIteratorKeepingOrder(clonedQuery, 1000);
+					return Spliterators.spliterator(iterator, iterator.getNumFound(), 0);
+
+				} else {
+					SPEQueryResponse response = query(clonedQuery);
+					return Spliterators.spliterator(response.getRecords().iterator(), response.getNumFound(), 0);
+				}
+			}
+		}, 0, false);
+
+		return new StreamAdaptor<Record>(stream) {
+
+			@Override
+			public Stream<Record> filter(Predicate<? super Record> predicate) {
+				LogicalSearchCondition condition = (LogicalSearchCondition) predicate;
+				if (clonedQuery.getCondition() == null) {
+					clonedQuery.setCondition(null);
+				} else {
+					clonedQuery.setCondition(LogicalSearchQueryOperators.allConditions(clonedQuery.getCondition(), condition));
+				}
+				return this;
+			}
+
+			@NotNull
+			@Override
+			public Optional<Record> findFirst() {
+				clonedQuery.setNumberOfRows(1);
+				return super.findFirst();
+			}
+
+			@NotNull
+			@Override
+			public Optional<Record> findAny() {
+				clonedQuery.setNumberOfRows(1);
+				return super.findAny();
+			}
+
+			@Override
+			public boolean anyMatch(Predicate<? super Record> predicate) {
+				filter(predicate);
+				return count() > 1;
+			}
+
+			@Override
+			public boolean allMatch(Predicate<? super Record> predicate) {
+				LogicalSearchCondition condition = (LogicalSearchCondition) predicate;
+				String facet = condition.getSolrQuery(newSolrQueryBuilderContext(clonedQuery));
+				clonedQuery.addQueryFacet("filterMatch", facet);
+				clonedQuery.setNumberOfRows(0);
+				SPEQueryResponse response = query(clonedQuery);
+				return response.getNumFound() == 0 || response.getNumFound() == response.getQueryFacetCount(facet);
+
+			}
+
+			@Override
+			public boolean noneMatch(Predicate<? super Record> predicate) {
+				filter(predicate);
+				return count() == 0;
+			}
+
+			@Override
+			public Stream<Record> limit(long maxSize) {
+				clonedQuery.setNumberOfRows((int) maxSize);
+				return this;
+			}
+
+			@Override
+			public Stream<Record> skip(long n) {
+				clonedQuery.setStartRow(clonedQuery.getStartRow() + (int) n);
+				return this;
+			}
+
+			@Override
+			public long count() {
+				return getResultsCount(clonedQuery);
+			}
+
+			@Override
+			public Stream<Record> distinct() {
+				//Always distinct when loaded from solr, no need to iterate over the stream
+				return this;
+			}
+
+			@Override
+			public Record reduce(Record identity, BinaryOperator<Record> accumulator) {
+				throw new UnsupportedOperationException("Unsupported operation");
+			}
+
+			@NotNull
+			@Override
+			public Optional<Record> reduce(BinaryOperator<Record> accumulator) {
+				throw new UnsupportedOperationException("Unsupported operation");
+			}
+
+			@Override
+			public <U> U reduce(U identity, BiFunction<U, ? super Record, U> accumulator, BinaryOperator<U> combiner) {
+				throw new UnsupportedOperationException("Unsupported operation");
+			}
+
+			@NotNull
+			@Override
+			public Stream<Record> unordered() {
+				clonedQuery.clearSort();
+				return this;
+			}
+
+			@Override
+			public Stream<Record> sorted() {
+				clonedQuery.clearSort();
+				clonedQuery.sortAsc(Schemas.IDENTIFIER);
+				return this;
+			}
+
+
+			@Override
+			public Stream<Record> sorted(Comparator<? super Record> comparator) {
+				if (comparator instanceof SolrFieldsComparator) {
+					clonedQuery.clearSort();
+					for (int i = 0; i < ((SolrFieldsComparator<? super Record>) comparator).fields.size(); i++) {
+
+						DataStoreField field = ((SolrFieldsComparator<? super Record>) comparator).fields.get(i);
+						boolean direction = ((SolrFieldsComparator<? super Record>) comparator).directions.get(i);
+						if (direction) {
+							clonedQuery.sortAsc(field);
+						} else {
+							clonedQuery.sortDesc(field);
+						}
+					}
+
+					return this;
+
+				} else {
+					throw new IllegalArgumentException("Comparator must be of type SolrFieldsComparator");
+				}
+
+
+			}
+
+			@NotNull
+			@Override
+			public Optional<Record> min(Comparator<? super Record> comparator) {
+				if (comparator instanceof SolrFieldsComparator) {
+					clonedQuery.clearSort();
+					for (int i = 0; i < ((SolrFieldsComparator<? super Record>) comparator).fields.size(); i++) {
+
+						DataStoreField field = ((SolrFieldsComparator<? super Record>) comparator).fields.get(i);
+						boolean direction = ((SolrFieldsComparator<? super Record>) comparator).directions.get(i);
+						if (direction) {
+							clonedQuery.sortAsc(field);
+						} else {
+							clonedQuery.sortDesc(field);
+						}
+					}
+					clonedQuery.setNumberOfRows(1);
+					return super.min(comparator);
+
+				} else {
+					throw new IllegalArgumentException("Comparator must be of type SolrFieldsComparator");
+				}
+			}
+
+			@NotNull
+			@Override
+			public Optional<Record> max(Comparator<? super Record> comparator) {
+				if (comparator instanceof SolrFieldsComparator) {
+					clonedQuery.clearSort();
+					for (int i = 0; i < ((SolrFieldsComparator<? super Record>) comparator).fields.size(); i++) {
+
+						DataStoreField field = ((SolrFieldsComparator<? super Record>) comparator).fields.get(i);
+						boolean direction = ((SolrFieldsComparator<? super Record>) comparator).directions.get(i);
+						if (!direction) {
+							clonedQuery.sortAsc(field);
+						} else {
+							clonedQuery.sortDesc(field);
+						}
+					}
+					clonedQuery.setNumberOfRows(1);
+					return super.max(comparator);
+
+				} else {
+					throw new IllegalArgumentException("Comparator must be of type SolrFieldsComparator");
+				}
+			}
+		};
+
+
+	}
+
 	public List<Record> search(LogicalSearchQuery query) {
 		return query(query).getRecords();
 	}
@@ -161,7 +370,7 @@ public class SearchServices {
 	public Record searchSingleResult(LogicalSearchCondition condition) {
 		SPEQueryResponse response = query(new LogicalSearchQuery(condition).setNumberOfRows(1));
 		if (response.getNumFound() > 1) {
-			SolrQueryBuilderParams params = new SolrQueryBuilderParams(false, "?", null) {
+			SolrQueryBuilderContext params = new SolrQueryBuilderContext(false, new ArrayList<>(), "?", null, null, null) {
 			};
 			throw new SearchServicesRuntimeException.TooManyRecordsInSingleSearchResult(condition.getSolrQuery(params));
 		}
@@ -460,17 +669,9 @@ public class SearchServices {
 			params.add(CommonParams.FQ, filterQuery);
 		}
 
-		String collection = getCollection(query);
-		MetadataSchemaTypes types = null;
-		if (collection != null && metadataSchemasManager != null && !collection.equals("inexistentCollection42")) {
-			types = metadataSchemasManager.getSchemaTypes(collection);
-		}
+		SolrQueryBuilderContext ctx = newSolrQueryBuilderContext(query);
 
-		List<MetadataSchemaType> searchedSchemaTypes = getSearchedTypes(query, types);
-
-		List<String> languages = getLanguages(query);
-		String queryLanguage = query.getLanguage() == null ? mainDataLanguage : query.getLanguage();
-		params.add(CommonParams.FQ, "" + query.getQuery(queryLanguage, types));
+		params.add(CommonParams.FQ, "" + query.getCondition().getSolrQuery(ctx));
 
 		if (DataStore.RECORDS.equals(query.getDataStore()) || query.getDataStore() == null) {
 			if (query.isMoreLikeThis()) {
@@ -486,7 +687,7 @@ public class SearchServices {
 			if (query.getUserFilters() != null && query.getUserFilters().size() > 0) {
 				user = query.getUserFilters().get(0).getUser();
 			}
-			String qf = getQfFor(languages, query.getLanguage(), query.getFieldBoosts(), searchedSchemaTypes, user);
+			String qf = getQfFor(ctx.getLanguages(), query.getLanguage(), query.getFieldBoosts(), ctx.getSearchedSchemaTypes(), user);
 			params.add(DisMaxParams.QF, qf);
 			params.add(DisMaxParams.PF, qf);
 			if (systemConfigs.isReplaceSpacesInSimpleSearchForAnds()) {
@@ -559,9 +760,9 @@ public class SearchServices {
 			fields.add("collection_s");
 
 			List<String> secondaryCollectionLanguages = new ArrayList<>();
-			if (collection != null) {
+			if (ctx.getCollection() != null) {
 				secondaryCollectionLanguages.addAll(
-						collectionsListManager.getCollectionInfo(collection).getSecondaryCollectionLanguesCodes());
+						collectionsListManager.getCollectionInfo(ctx.getCollection()).getSecondaryCollectionLanguesCodes());
 			}
 
 			for (String field : query.getReturnedMetadatas().getAcceptedFields()) {
@@ -575,10 +776,10 @@ public class SearchServices {
 
 		}
 
-		if (query.isHighlighting() && types != null) {
+		if (query.isHighlighting() && ctx.getTypes() != null) {
 			HashSet<String> highligthedMetadatas = new HashSet<>();
-			for (Metadata metadata : types.getSearchableMetadatas()) {
-				for (String language : languages) {
+			for (Metadata metadata : ctx.getTypes().getSearchableMetadatas()) {
+				for (String language : ctx.getLanguages()) {
 					highligthedMetadatas.add(metadata.getAnalyzedField(language).getDataStoreCode());
 				}
 			}
@@ -634,12 +835,12 @@ public class SearchServices {
 			params.add(MoreLikeThisParams.SIMILARITY_FIELDS, similarityFields.toString());
 		}
 
-		if (collection != null) {
+		if (ctx.getCollection() != null) {
 			SearchConfigurationsManager manager = modelLayerFactory.getSearchConfigurationsManager();
-			List<String> excludeIds = manager.getDocExlusions(collection);
+			List<String> excludeIds = manager.getDocExlusions(ctx.getCollection());
 
 			List<String> elevateIds = new ArrayList<>();
-			List<DocElevation> docElevation = manager.getDocElevations(collection, query.getFreeTextQuery());
+			List<DocElevation> docElevation = manager.getDocElevations(ctx.getCollection(), query.getFreeTextQuery());
 			for (DocElevation doc : docElevation) {
 				if (doc.getId() != null && !excludeIds.contains(doc.getId())) {
 					elevateIds.add(doc.getId());
@@ -657,14 +858,31 @@ public class SearchServices {
 
 		if (query.isMoreLikeThis()) {
 			params.add(CommonParams.Q, "id:" + query.getMoreLikeThisRecordId());
-		} else if (addSynonyms && collection != null && query.getFreeTextQuery() != null) {
+		} else if (addSynonyms && ctx.getCollection() != null && query.getFreeTextQuery() != null) {
 			params.add(CommonParams.Q,
-					modelLayerFactory.getSynonymsConfigurationsManager().computeSynonyms(collection, query.getFreeTextQuery()));
+					modelLayerFactory.getSynonymsConfigurationsManager().computeSynonyms(ctx.getCollection(), query.getFreeTextQuery()));
 		} else {
 			params.add(CommonParams.Q, StringUtils.defaultString(query.getFreeTextQuery(), "*:*"));
 		}
 
 		return params;
+	}
+
+	@NotNull
+	private SolrQueryBuilderContext newSolrQueryBuilderContext(LogicalSearchQuery query) {
+		String collection = getCollection(query);
+		MetadataSchemaTypes types = null;
+		if (collection != null && metadataSchemasManager != null && !collection.equals("inexistentCollection42")) {
+			types = metadataSchemasManager.getSchemaTypes(collection);
+		}
+
+		List<MetadataSchemaType> searchedSchemaTypes = getSearchedTypes(query, types);
+
+		List<String> languages = getLanguages(query);
+		String queryLanguage = query.getLanguage() == null ? mainDataLanguage : query.getLanguage();
+
+		return new SolrQueryBuilderContext(
+				query.isPreferAnalyzedFields(), languages, queryLanguage, types, searchedSchemaTypes, collection);
 	}
 
 	public String getSortQuery(LogicalSearchQuery query) {

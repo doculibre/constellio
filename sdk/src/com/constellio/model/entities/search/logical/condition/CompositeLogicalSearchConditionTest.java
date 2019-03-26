@@ -7,7 +7,7 @@ import com.constellio.model.services.search.query.logical.LogicalOperator;
 import com.constellio.model.services.search.query.logical.condition.CompositeLogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.condition.SchemaFilters;
-import com.constellio.model.services.search.query.logical.condition.SolrQueryBuilderParams;
+import com.constellio.model.services.search.query.logical.condition.SolrQueryBuilderContext;
 import com.constellio.sdk.tests.ConstellioTest;
 import org.junit.Before;
 import org.junit.Test;
@@ -29,7 +29,7 @@ public class CompositeLogicalSearchConditionTest extends ConstellioTest {
 	@Mock Metadata booleanMetadata;
 	@Mock Metadata firstTextMetadata;
 	private List<LogicalSearchCondition> validConditions;
-	private SolrQueryBuilderParams params = new SolrQueryBuilderParams(false, null, null);
+	private SolrQueryBuilderContext params = new SolrQueryBuilderContext(false, new ArrayList<>(), null, null, null, null);
 
 	@Before
 	public void setUp() {

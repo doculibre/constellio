@@ -23,7 +23,7 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.CollectionFilters;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
-import com.constellio.model.services.search.query.logical.condition.SolrQueryBuilderParams;
+import com.constellio.model.services.search.query.logical.condition.SolrQueryBuilderContext;
 import com.constellio.sdk.tests.ConstellioTest;
 import org.jdom2.Document;
 import org.joda.time.LocalDateTime;
@@ -116,7 +116,7 @@ public class BatchProcessesManagerTest extends ConstellioTest {
 			throws Exception {
 		when(aBatchProcess.getQuery()).thenReturn("zeQuery");
 		when(condition.getFilters()).thenReturn(new CollectionFilters(zeCollection, DataStore.RECORDS, false));
-		when(condition.getSolrQuery(any(SolrQueryBuilderParams.class))).thenReturn("zeQuery");
+		when(condition.getSolrQuery(any(SolrQueryBuilderContext.class))).thenReturn("zeQuery");
 		when(condition.getCollection()).thenReturn(zeCollection);
 
 		when(aBatchProcess.getId()).thenReturn(aBatchProcessId);

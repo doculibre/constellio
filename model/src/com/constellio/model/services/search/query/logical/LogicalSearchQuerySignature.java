@@ -1,6 +1,6 @@
 package com.constellio.model.services.search.query.logical;
 
-import com.constellio.model.services.search.query.logical.condition.SolrQueryBuilderParams;
+import com.constellio.model.services.search.query.logical.condition.SolrQueryBuilderContext;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
@@ -28,7 +28,7 @@ public class LogicalSearchQuerySignature implements Serializable {
 		filterQueries.addAll(query.getFilterQueries());
 		Collections.sort(filterQueries);
 
-		SolrQueryBuilderParams params = new SolrQueryBuilderParams(query.isPreferAnalyzedFields(), "?", null);
+		SolrQueryBuilderContext params = new SolrQueryBuilderContext(query.isPreferAnalyzedFields(), new ArrayList<>(), "?", null, null, null);
 		filterQueries.add(query.getFreeTextQuery());
 		filterQueries.add(query.getCondition().getSolrQuery(params));
 		String conditionSignature = StringUtils.join(filterQueries, ",");

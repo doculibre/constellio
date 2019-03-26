@@ -7,8 +7,10 @@ import com.constellio.model.services.search.query.logical.LogicalOperator;
 import com.constellio.model.services.search.query.logical.condition.CompositeLogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.condition.SchemaFilters;
-import com.constellio.model.services.search.query.logical.condition.SolrQueryBuilderParams;
+import com.constellio.model.services.search.query.logical.condition.SolrQueryBuilderContext;
 import org.mockito.Mock;
+
+import java.util.ArrayList;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.endingWithText;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.not;
@@ -31,7 +33,7 @@ public class NotCriterionTest extends com.constellio.sdk.tests.ConstellioTest {
 	private java.util.List<LogicalSearchCondition> firstConditions;
 	private java.util.List<LogicalSearchCondition> secondConditions;
 
-	private SolrQueryBuilderParams params = new SolrQueryBuilderParams(false, null, null);
+	private SolrQueryBuilderContext params = new SolrQueryBuilderContext(false, new ArrayList<>(), null, null, null, null);
 
 	@org.junit.Before
 	public void setUp() {

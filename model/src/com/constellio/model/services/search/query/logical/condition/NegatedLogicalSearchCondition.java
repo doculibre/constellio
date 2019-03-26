@@ -24,21 +24,21 @@ public class NegatedLogicalSearchCondition extends LogicalSearchCondition {
 
 	@Override
 	public LogicalSearchCondition withOrValueConditions(List<LogicalSearchValueCondition> conditions) {
-		throw new UnsupportedOperationException("Cannot add value conditions on a negated condition");
+		throw new UnsupportedOperationException("Cannot add value conditions on a negate condition");
 	}
 
 	@Override
 	public LogicalSearchCondition withAndValueConditions(List<LogicalSearchValueCondition> conditions) {
-		throw new UnsupportedOperationException("Cannot add value conditions on a negated condition");
+		throw new UnsupportedOperationException("Cannot add value conditions on a negate condition");
 	}
 
 	@Override
-	public LogicalSearchCondition negated() {
+	public LogicalSearchCondition negate() {
 		return negated;
 	}
 
 	@Override
-	public String getSolrQuery(SolrQueryBuilderParams params) {
+	public String getSolrQuery(SolrQueryBuilderContext params) {
 		return "( *:* -" + negated.getSolrQuery(params) + " )";
 	}
 }

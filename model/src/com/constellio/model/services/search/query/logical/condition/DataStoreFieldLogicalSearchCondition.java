@@ -124,7 +124,7 @@ public class DataStoreFieldLogicalSearchCondition extends LogicalSearchCondition
 	}
 
 	@Override
-	public String getSolrQuery(SolrQueryBuilderParams params) {
+	public String getSolrQuery(SolrQueryBuilderContext params) {
 		String query = "(";
 
 		if (dataStoreFields == null) {
@@ -146,7 +146,7 @@ public class DataStoreFieldLogicalSearchCondition extends LogicalSearchCondition
 		return query;
 	}
 
-	private DataStoreField getSearchedField(SolrQueryBuilderParams params, DataStoreField dataStoreField) {
+	private DataStoreField getSearchedField(SolrQueryBuilderContext params, DataStoreField dataStoreField) {
 
 		boolean useSecondaryLanguageField = false;
 
