@@ -89,12 +89,12 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 
 		verticalLayout.addComponent(horrizontal);
 
-		setWindowheight(decisionField, acceptedField, reasonField, fields);
+		setWindowHeight(decisionField, acceptedField, reasonField, fields);
 
 		return verticalLayout;
 	}
 
-	private void setWindowheight(Entry<MetadataVO, Field> decisionField, Field acceptedField, Field reasonField,
+	private void setWindowHeight(Entry<MetadataVO, Field> decisionField, Field acceptedField, Field reasonField,
 			Map<MetadataVO, Field> fields) {
 		double height = 200;
 
