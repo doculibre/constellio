@@ -37,6 +37,7 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.structures.MapStringStringStructure;
 import com.constellio.model.services.records.RecordServicesException;
 import com.vaadin.data.Validator;
+import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Field;
@@ -56,7 +57,7 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 
 	public TaskCompleteWindowButton(Task task, String caption, AppLayerFactory appLayerFactory,
 			TaskTable.TaskPresenter presenter) {
-		super(caption, caption);
+		super(caption, caption, WindowConfiguration.modalDialog("400px", "260px"));
 
 		this.task = task;
 		this.appLayerFactory = appLayerFactory;
@@ -69,6 +70,7 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 	@Override
 	protected Component buildWindowContent() {
 		VerticalLayout verticalLayout = new VerticalLayout();
+		verticalLayout.setSizeFull();
 		verticalLayout.setSpacing(true);
 		Label label = new Label(getConfirmDialogMessage());
 		verticalLayout.addComponent(label);
@@ -87,8 +89,6 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 				buildQuickCompleteButton(task, verticalLayout, decisionField, acceptedField, reasonField, fields));
 
 		verticalLayout.addComponent(horrizontal);
-		//		getWindow().setWidth(verticalLayout.getWidth() + 50 + "px");
-		//		getWindow().setHeight((verticalLayout.getHeight() + 50) + "px") ;
 
 		return verticalLayout;
 	}

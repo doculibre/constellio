@@ -34,6 +34,7 @@ import com.constellio.app.modules.rm.extensions.RMSchemasLogicalDeleteExtension;
 import com.constellio.app.modules.rm.extensions.RMSearchPageExtension;
 import com.constellio.app.modules.rm.extensions.RMSelectionPanelExtension;
 import com.constellio.app.modules.rm.extensions.RMSystemCheckExtension;
+import com.constellio.app.modules.rm.extensions.RMTaskRecordExtension;
 import com.constellio.app.modules.rm.extensions.RMTaxonomyPageExtension;
 import com.constellio.app.modules.rm.extensions.RMUserProfileFieldsExtension;
 import com.constellio.app.modules.rm.extensions.RMUserRecordExtension;
@@ -146,6 +147,7 @@ import com.constellio.app.modules.rm.migrations.RMMigrationTo8_1_2;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo8_1_4;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo8_2;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo8_2_1_4;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo9_0;
 import com.constellio.app.modules.rm.migrations.records.RMContainerRecordMigrationTo7_3;
 import com.constellio.app.modules.rm.migrations.records.RMDocumentMigrationTo7_6_10;
 import com.constellio.app.modules.rm.migrations.records.RMEmailMigrationTo7_7_1;
@@ -317,6 +319,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		scripts.add(new RMMigrationTo8_1_4());
 		scripts.add(new RMMigrationTo8_2());
 		scripts.add(new RMMigrationTo8_2_1_4());
+		scripts.add(new RMMigrationTo9_0());
 
 		return scripts;
 	}
@@ -480,6 +483,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		extensions.recordExtensions.add(new RMRecordCaptionExtension(collection, appLayerFactory));
 		extensions.recordExtensions.add(new RMContainerRecordExtension(collection, appLayerFactory));
 		extensions.schemaExtensions.add(new RMExcelReportSchemaExtension());
+		extensions.recordExtensions.add(new RMTaskRecordExtension(collection, appLayerFactory));
 		extensions.batchProcessingSpecialCaseExtensions
 				.add(new RMBatchProcessingSpecialCaseExtension(collection, appLayerFactory));
 
