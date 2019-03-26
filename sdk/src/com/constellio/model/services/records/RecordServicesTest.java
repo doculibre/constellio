@@ -38,6 +38,7 @@ import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.services.extensions.ModelLayerExtensions;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.logging.LoggingServices;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.migrations.RecordMigrationsManager;
 import com.constellio.model.services.migrations.RequiredRecordMigrations;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_RecordsFlushingFailed;
@@ -164,6 +165,7 @@ public class RecordServicesTest extends ConstellioTest {
 	@Mock SearchServices searchServices;
 
 	@Mock ModelLayerFactory modelFactory;
+	@Mock ConstellioEIMConfigs systemConfigs;
 
 	@Mock Metadata firstMetadataToReindex;
 	@Mock Metadata secondMetadataToReindex;
@@ -255,6 +257,7 @@ public class RecordServicesTest extends ConstellioTest {
 		when(modelFactory.newLoggingServices()).thenReturn(loggingServices);
 		when(modelFactory.getExtensions()).thenReturn(extensions);
 		when(modelFactory.getRecordMigrationsManager()).thenReturn(recordMigrationsManager);
+		when(modelFactory.getSystemConfigs()).thenReturn(systemConfigs);
 
 		when(recordMigrationsManager.getCurrentDataVersion(anyString(), anyString())).thenReturn(0L);
 		when(recordMigrationsManager.getRecordMigrationsFor(any(Record.class)))

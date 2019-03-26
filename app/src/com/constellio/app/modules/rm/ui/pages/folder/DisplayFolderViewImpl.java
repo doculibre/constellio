@@ -1,19 +1,5 @@
 package com.constellio.app.modules.rm.ui.pages.folder;
 
-import static com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration.modalDialog;
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.app.ui.util.SchemaCaptionUtils.getCaptionForRecordVO;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-
-import org.joda.time.LocalDate;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
 import com.constellio.app.modules.rm.ui.components.RMMetadataDisplayFactory;
@@ -208,7 +194,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			public boolean fireValueChangeWhenEqual() {
 				return true;
 			}
-		} ;
+		};
 		uploadField.setVisible(false);
 		uploadField.setImmediate(true);
 		uploadField.setMultiValue(false);
@@ -337,7 +323,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			};
 
 			deleteFolderButton = new Button();
-			if(!presenter.isNeedingAReasonToDeleteFolder()) {
+			if (!presenter.isNeedingAReasonToDeleteFolder()) {
 				deleteFolderButton = new DeleteButton($("DisplayFolderView.deleteFolder"), false) {
 					@Override
 					protected void confirmButtonClick(ConfirmDialog dialog) {
@@ -540,7 +526,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		}
 	}
 
-	private Button buildAddToMyCartButton(){
+	private Button buildAddToMyCartButton() {
 		Button button = new BaseButton($("DisplayFolderView.addToCart")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
@@ -605,7 +591,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 	private DefaultFavoritesTable buildOwnedFavoritesTable(final Window window) {
 		List<DefaultFavoritesTable.CartItem> cartItems = new ArrayList<>();
-		if(presenter.hasCurrentUserPermissionToUseMyCart()) {
+		if (presenter.hasCurrentUserPermissionToUseMyCart()) {
 			cartItems.add(new DefaultFavoritesTable.CartItem($("CartView.defaultFavorites")));
 		}
 		for (Cart cart : presenter.getOwnedCarts()) {

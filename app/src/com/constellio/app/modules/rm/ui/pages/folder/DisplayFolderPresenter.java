@@ -1,29 +1,5 @@
 package com.constellio.app.modules.rm.ui.pages.folder;
 
-import static com.constellio.app.modules.tasks.model.wrappers.Task.STARRED_BY_USERS;
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-import static org.apache.commons.lang.StringUtils.isNotBlank;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.api.extensions.params.DocumentFolderBreadCrumbParams;
 import com.constellio.app.api.extensions.params.NavigateToFromAPageParams;
 import com.constellio.app.api.extensions.taxonomies.FolderDeletionEvent;
@@ -85,7 +61,6 @@ import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
-import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.app.ui.pages.search.SearchPresenter.SortOrder;
 import com.constellio.app.ui.pages.search.SearchPresenterService;
 import com.constellio.app.ui.params.ParamUtils;
@@ -142,8 +117,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import static com.constellio.app.modules.tasks.model.wrappers.Task.STARRED_BY_USERS;
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -159,8 +137,8 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	private static Logger LOGGER = LoggerFactory.getLogger(DisplayFolderPresenter.class);
 
 	private RecordVODataProvider folderContentDataProvider;
-//	private RecordVODataProvider subFoldersDataProvider;
-//	private RecordVODataProvider documentsDataProvider;
+	//	private RecordVODataProvider subFoldersDataProvider;
+	//	private RecordVODataProvider documentsDataProvider;
 	private RecordVODataProvider tasksDataProvider;
 	private RecordVODataProvider eventsDataProvider;
 	private MetadataSchemaToVOBuilder schemaVOBuilder = new MetadataSchemaToVOBuilder();
@@ -280,12 +258,12 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 				return getFolderContentQuery();
 			}
 		};
-//		folderContentDataProvider = new SearchResultVODataProvider(new RecordToVOBuilder(), appLayerFactory, view.getSessionContext()) {
-//			@Override
-//			public LogicalSearchQuery getQuery() {
-//				return getFolderContentQuery();
-//			}
-//		};
+		//		folderContentDataProvider = new SearchResultVODataProvider(new RecordToVOBuilder(), appLayerFactory, view.getSessionContext()) {
+		//			@Override
+		//			public LogicalSearchQuery getQuery() {
+		//				return getFolderContentQuery();
+		//			}
+		//		};
 
 		MetadataSchemaVO tasksSchemaVO = schemaVOBuilder
 				.build(getTasksSchema(), VIEW_MODE.TABLE, Arrays.asList(STARRED_BY_USERS), view.getSessionContext(), true);
@@ -455,7 +433,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 		Map<String, String> params = getParams();
 
-		if(params != null) {
+		if (params != null) {
 			if (params.get("decommissioningSearchId") != null) {
 				saveSearchDecommissioningId = params.get("decommissioningSearchId");
 				view.getUIContext()
@@ -1046,7 +1024,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 				newRecord = documentPresenterUtils.toRecord(documentVO);
 
 				documentPresenterUtils.addOrUpdate(newRecord);
-//				documentsDataProvider.fireDataRefreshEvent();
+				//				documentsDataProvider.fireDataRefreshEvent();
 				folderContentDataProvider.fireDataRefreshEvent();
 				view.refreshFolderContentTab();
 				//				view.selectFolderContentTab();
@@ -1061,15 +1039,15 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			StringBuilder message = new StringBuilder();
 			boolean refreshDocument = false;
 
-			while(existingDocument.hasNext()) {
+			while (existingDocument.hasNext()) {
 				Record currentRecord = existingDocument.next();
 				Content content = currentRecord.get(rmSchemasRecordsServices.document.content());
 				ContentVersion contentVersion = content.getCurrentVersion();
-				if(contentVersion.getHash() != null && !uploadedContentVO.getHash().equals(contentVersion.getHash())) {
+				if (contentVersion.getHash() != null && !uploadedContentVO.getHash().equals(contentVersion.getHash())) {
 					refreshDocument = true;
-					if (!hasWritePermission(currentRecord)){
+					if (!hasWritePermission(currentRecord)) {
 						message.append($("displayFolderView.noWritePermission", currentRecord) + "</br>");
-					} else if(isCheckedOutByOtherUser(currentRecord)) {
+					} else if (isCheckedOutByOtherUser(currentRecord)) {
 						message.append($("displayFolderView.checkoutByAnOtherUser", currentRecord) + "</br>");
 					} else {
 						view.showVersionUpdateWindow(voBuilder.build(currentRecord,
@@ -1079,12 +1057,12 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 					message.append($("displayfolderview.unchangeFile", currentRecord.getTitle()) + "</br>");
 				}
 			}
-			if(message.length() > 0) {
+			if (message.length() > 0) {
 				view.showErrorMessage(message.toString());
 			}
 
-			if(refreshDocument) {
-				documentsDataProvider.fireDataRefreshEvent();
+			if (refreshDocument) {
+				//documentsDataProvider.fireDataRefreshEvent();
 			}
 		}
 	}
@@ -1096,7 +1074,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 	private boolean isCheckedOutByOtherUser(Record recordVO) {
 		Content content = recordVO.get(rmSchemasRecordsServices.document.content());
-		if(recordVO.getTypeCode().equals(Document.SCHEMA_TYPE) && content != null) {
+		if (recordVO.getTypeCode().equals(Document.SCHEMA_TYPE) && content != null) {
 			User currentUser = presenterUtilsForDocument.getCurrentUser();
 			String checkOutUserId = content.getCheckoutUserId();
 			return checkOutUserId != null && !checkOutUserId.equals(currentUser.getId());
@@ -1188,7 +1166,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			String borrowedFolderTitle = folderVO.getTitle();
 			parameters.add("borrowedFolderTitle" + EmailToSend.PARAMETER_SEPARATOR + borrowedFolderTitle);
 			boolean isAddingRecordIdInEmails = eimConfigs.isAddingRecordIdInEmails();
-			if(isAddingRecordIdInEmails) {
+			if (isAddingRecordIdInEmails) {
 				parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + $("DisplayFolderView.returnFolderReminder") + " \""
 							   + folderVO.getTitle() + "\" (" + folderVO.getId() + ")");
 			} else {

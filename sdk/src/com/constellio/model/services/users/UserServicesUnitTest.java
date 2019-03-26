@@ -15,7 +15,6 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
-import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.collections.CollectionsListManager;
@@ -115,6 +114,7 @@ public class UserServicesUnitTest extends ConstellioTest {
 		when(modelLayerFactory.getRolesManager()).thenReturn(rolesManager);
 		when(modelLayerFactory.getConfiguration()).thenReturn(modelLayerConfiguration);
 		when(modelLayerFactory.getLdapConfigurationManager()).thenReturn(configurationManager);
+		when(modelLayerConfiguration.getMainDataLanguage()).thenReturn("fr");
 
 		userServices = spy(new UserServices(modelLayerFactory));
 

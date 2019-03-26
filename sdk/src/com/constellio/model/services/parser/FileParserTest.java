@@ -90,7 +90,8 @@ public class FileParserTest extends ConstellioTest {
 				.getPropertiesHashMap(any(Metadata.class), anyString());
 
 		fileParserWithoutForkProcess.parse(inputStreamFactory, 42);
-		verify(autoDetectParser, times(1)).parse(eq(stream), any(BodyContentHandler.class), any(Metadata.class));
+		verify(autoDetectParser, times(1))
+				.parse(eq(stream), any(BodyContentHandler.class), any(Metadata.class), any(ParseContext.class));
 	}
 
 	@Test(expected = FileParserException_CannotParse.class)

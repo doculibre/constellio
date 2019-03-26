@@ -1628,7 +1628,7 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 		givenRecord().withSingleValueContent(contentManager.createMajor(alice, "file.docx", zeContent))
 				.withRequireConversionFlag(true).isSaved();
 
-		assertThat(theRecord().get(Schemas.MARKED_FOR_PREVIEW_CONVERSION)).isEqualTo(Boolean.TRUE);
+		assertThat(theRecord().<Boolean>get(Schemas.MARKED_FOR_PREVIEW_CONVERSION)).isEqualTo(Boolean.TRUE);
 		try {
 			contentManager.getContentThumbnailInputStream(zeContent.getHash(), SDK_STREAM);
 			fail("Exception expected");
@@ -1638,7 +1638,7 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 
 		contentManager.convertPendingContentForPreview();
 
-		assertThat(theRecord().get(Schemas.MARKED_FOR_PREVIEW_CONVERSION)).isNull();
+		assertThat(theRecord().<Boolean>get(Schemas.MARKED_FOR_PREVIEW_CONVERSION)).isNull();
 		assertThat(contentManager.hasContentThumbnail(zeContent.getHash())).isFalse();
 	}
 
