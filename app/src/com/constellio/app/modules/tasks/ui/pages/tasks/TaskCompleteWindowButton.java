@@ -9,6 +9,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -37,7 +38,6 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.structures.MapStringStringStructure;
 import com.constellio.model.services.records.RecordServicesException;
 import com.vaadin.data.Validator;
-import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Field;
@@ -57,7 +57,7 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 
 	public TaskCompleteWindowButton(Task task, String caption, AppLayerFactory appLayerFactory,
 			TaskTable.TaskPresenter presenter) {
-		super(caption, caption, WindowConfiguration.modalDialog("400px", "260px"));
+		super(caption, caption, WindowConfiguration.modalDialog("500px", "500px"));
 
 		this.task = task;
 		this.appLayerFactory = appLayerFactory;
@@ -70,7 +70,6 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 	@Override
 	protected Component buildWindowContent() {
 		VerticalLayout verticalLayout = new VerticalLayout();
-		verticalLayout.setSizeFull();
 		verticalLayout.setSpacing(true);
 		Label label = new Label(getConfirmDialogMessage());
 		verticalLayout.addComponent(label);
@@ -90,7 +89,29 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 
 		verticalLayout.addComponent(horrizontal);
 
+		setWindowheight(decisionField, acceptedField, reasonField, fields);
+
 		return verticalLayout;
+	}
+
+	private void setWindowheight(Entry<MetadataVO, Field> decisionField, Field acceptedField, Field reasonField,
+			Map<MetadataVO, Field> fields) {
+		double height = 200;
+
+		if (fields != null) {
+			height += fields.size() * 80;
+		}
+
+		if (decisionField != null) {
+			height += 80;
+		}
+		if (acceptedField != null) {
+			height += 60;
+		}
+		if (reasonField != null) {
+			height += 150;
+		}
+		getWindow().setHeight(height + "px");
 	}
 
 	private Button buildSlowCompleteButton() {
