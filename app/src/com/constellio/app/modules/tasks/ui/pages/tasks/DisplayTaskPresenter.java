@@ -103,7 +103,11 @@ public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskV
 
 	@Override
 	public Task getTask(RecordVO recordVO) {
-		return tasksSchemas.wrapTask(toRecord(recordVO));
+		String originalSchemaCode = schemaPresenterUtils.getSchemaCode();
+		schemaPresenterUtils.setSchemaCode(recordVO.getSchemaCode());
+		Task task = tasksSchemas.wrapTask(toRecord(recordVO));
+		schemaPresenterUtils.setSchemaCode(originalSchemaCode);
+		return task;
 	}
 
 	public RecordVO getTaskVO() {
