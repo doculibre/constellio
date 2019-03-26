@@ -6,38 +6,41 @@ import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
-public class RMMigrationTo9_0 extends MigrationHelper implements MigrationScript {
+public class RMMigrationTo9_0_1 extends MigrationHelper implements MigrationScript {
 
 	@Override
 	public String getVersion() {
-		return "9.0";
+		return "9.0.1";
 	}
 
 	@Override
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
 						AppLayerFactory appLayerFactory)
 			throws Exception {
-		new RMMigrationTo9_0.SchemaAlterationFor9_0(collection, migrationResourcesProvider, appLayerFactory).migrate();
+		new RMMigrationTo9_0_1.SchemaAlterationFor9_0_1(collection, migrationResourcesProvider, appLayerFactory).migrate();
 	}
 
-	class SchemaAlterationFor9_0 extends MetadataSchemasAlterationHelper {
+	class SchemaAlterationFor9_0_1 extends MetadataSchemasAlterationHelper {
 
-		protected SchemaAlterationFor9_0(String collection, MigrationResourcesProvider migrationResourcesProvider,
-										 AppLayerFactory appLayerFactory) {
+		protected SchemaAlterationFor9_0_1(String collection, MigrationResourcesProvider migrationResourcesProvider,
+										   AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			MetadataSchemaBuilder taskSchema = typesBuilder.getSchemaType(RMTask.SCHEMA_TYPE).getDefaultSchema();
+
+			if (taskSchema.hasMetadata(RMTask.CREATED_AUTHORIZATIONS)) {
+				taskSchema.deleteMetadataWithoutValidation(RMTask.CREATED_AUTHORIZATIONS);
+			}
+
 			taskSchema.createUndeletable(RMTask.CREATED_AUTHORIZATIONS).setSystemReserved(true)
-					.setType(MetadataValueType.REFERENCE).setMultivalue(true)
-					.defineReferencesTo(typesBuilder.getSchemaType(Authorization.SCHEMA_TYPE));
+					.setType(MetadataValueType.STRING).setMultivalue(true);
 		}
 	}
 }

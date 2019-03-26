@@ -16,6 +16,7 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.security.AuthorizationsServices;
+import com.constellio.model.services.security.AuthorizationsServicesRuntimeException;
 import org.apache.commons.collections4.ListUtils;
 
 import java.util.ArrayList;
@@ -167,39 +168,43 @@ public class RMTaskRecordExtension extends RecordExtension {
 
 	private void deleteAllCreatedAuthorizations(RMTask task) {
 		List<String> authorizationIds = task.getCreatedAuthorizations();
+		for (String authorizationId : authorizationIds) {
+			try {
+				authorizationsServices.execute(authorizationDeleteRequest(authorizationId, collection));
+			} catch (AuthorizationsServicesRuntimeException.NoSuchAuthorizationWithId ignored) {
+			}
+		}
 
-		task.setCreatedAuthorizations(null);
 		try {
-			recordServices.update(task);
+			recordServices.update(task.setCreatedAuthorizations(null));
 		} catch (RecordServicesException e) {
 			throw new RuntimeException(e);
 		}
 
-		for (String authorizationId : authorizationIds) {
-			authorizationsServices.execute(authorizationDeleteRequest(authorizationId, collection));
-		}
+
 	}
 
 	private void deleteCreatedAuthorizations(RMTask task, List<String> recordIds) {
 		List<String> deletedAuthorizationIds = new ArrayList<>();
 
 		for (String authorizationId : task.getCreatedAuthorizations()) {
-			Authorization authorization = authorizationsServices.getAuthorization(collection, authorizationId);
-			if (recordIds.contains(authorization.getTarget())) {
+			try {
+				Authorization authorization = authorizationsServices.getAuthorization(collection, authorizationId);
+				if (recordIds.contains(authorization.getTarget())) {
+					authorizationsServices.execute(authorizationDeleteRequest(authorizationId, collection));
+					deletedAuthorizationIds.add(authorizationId);
+				}
+			} catch (AuthorizationsServicesRuntimeException.NoSuchAuthorizationWithId e) {
+				// record not found, we remove it from metadata
 				deletedAuthorizationIds.add(authorizationId);
 			}
 		}
 
 		if (!deletedAuthorizationIds.isEmpty()) {
-			task.removeCreatedAuthorizations(deletedAuthorizationIds);
 			try {
-				recordServices.update(task.getWrappedRecord());
+				recordServices.update(task.removeCreatedAuthorizations(deletedAuthorizationIds));
 			} catch (RecordServicesException e) {
 				throw new RuntimeException(e);
-			}
-
-			for (String authorizationId : deletedAuthorizationIds) {
-				authorizationsServices.execute(authorizationDeleteRequest(authorizationId, collection));
 			}
 		}
 	}
