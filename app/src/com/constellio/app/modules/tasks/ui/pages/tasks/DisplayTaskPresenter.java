@@ -19,7 +19,6 @@ import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.modules.tasks.services.TasksSearchServices;
 import com.constellio.app.modules.tasks.ui.builders.TaskToVOBuilder;
 import com.constellio.app.modules.tasks.ui.components.TaskTable.TaskPresenter;
-import com.constellio.app.modules.tasks.ui.components.window.QuickCompleteWindow;
 import com.constellio.app.modules.tasks.ui.entities.TaskVO;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.application.ConstellioUI;
@@ -102,6 +101,11 @@ public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskV
 		ConstellioUI.getCurrentSessionContext().setAttribute(DISPLAY_TASK_PRESENTER_PREVIOUS_TAB, view.getSelectedTab().getId());
 	}
 
+	@Override
+	public Task getTask(RecordVO recordVO) {
+		return tasksSchemas.wrapTask(toRecord(recordVO));
+	}
+
 	public RecordVO getTaskVO() {
 		return taskVO;
 	}
@@ -132,14 +136,6 @@ public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskV
 		view.navigate().to().editTask(entity.getId());
 	}
 
-	public void completeButtonClicked() {
-		view.navigate().to().editTask(taskVO.getId(), true);
-	}
-
-	@Override
-	public void completeButtonClicked(RecordVO entity) {
-		view.navigate().to().editTask(entity.getId(), true);
-	}
 
 	public void closeButtonClicked() {
 		closeButtonClicked(taskVO);
@@ -316,26 +312,6 @@ public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskV
 		return true;
 	}
 
-	@Override
-	public void completeQuicklyButtonClicked(RecordVO recordVO) {
-		TasksSchemasRecordsServices tasksSchemas = new TasksSchemasRecordsServices(collection, appLayerFactory);
-		Task task = tasksSchemas.getTask(recordVO.getId());
-		Object decisions = task.get(Task.BETA_NEXT_TASKS_DECISIONS);
-		if ((task.getModelTask() != null && decisions != null && !((MapStringStringStructure) decisions).isEmpty()
-			 && task.getDecision() == null && !containsExpressionLanguage(decisions))
-			|| tasksSchemas.isRequestTask(task) || QuickCompleteWindow.hasRequiredFieldUncompleted(recordVO)) {
-			QuickCompleteWindow quickCompleteWindow = new QuickCompleteWindow(this, appLayerFactory, recordVO);
-			quickCompleteWindow.show();
-		} else {
-			try {
-				QuickCompleteWindow.quickCompleteTask(appLayerFactory, task, null, null, null, null);
-				reloadCurrentTask();
-			} catch (RecordServicesException e) {
-				view.showErrorMessage(e.getMessage());
-				e.printStackTrace();
-			}
-		}
-	}
 
 	public static boolean containsExpressionLanguage(Object decisions) {
 		if (decisions != null && decisions instanceof MapStringStringStructure) {

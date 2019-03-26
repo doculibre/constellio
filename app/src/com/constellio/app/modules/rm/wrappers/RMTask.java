@@ -6,6 +6,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import org.apache.poi.ss.formula.functions.T;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class RMTask extends Task {
@@ -13,6 +14,7 @@ public class RMTask extends Task {
 	public static final String LINKED_FOLDERS = "linkedFolders";
 	public static final String LINKED_DOCUMENTS = "linkedDocuments";
 	public static final String LINKED_CONTAINERS = "linkedContainers";
+	public static final String CREATED_AUTHORIZATIONS = "createdAuthorizations";
 
 	public RMTask(Record record, MetadataSchemaTypes types) {
 		super(record, types);
@@ -73,5 +75,32 @@ public class RMTask extends Task {
 
 	public RMTask set(Metadata metadata, T value) {
 		return super.set(metadata, value);
+	}
+
+	public List<String> getCreatedAuthorizations() {
+		return getList(CREATED_AUTHORIZATIONS);
+	}
+
+	public Task setCreatedAuthorizations(List<String> authorizationIds) {
+		set(CREATED_AUTHORIZATIONS, authorizationIds);
+		return this;
+	}
+
+	public Task addCreatedAuthorizations(List<String> authorizationIds) {
+		List<String> list = new ArrayList<>(this.<String>getList(CREATED_AUTHORIZATIONS));
+		for (String authorizationId : authorizationIds) {
+			if (!list.contains(authorizationId)) {
+				list.add(authorizationId);
+				set(CREATED_AUTHORIZATIONS, list);
+			}
+		}
+		return this;
+	}
+
+	public Task removeCreatedAuthorizations(List<String> authorizationIds) {
+		List<String> list = new ArrayList<>(this.<String>getList(CREATED_AUTHORIZATIONS));
+		list.removeAll(authorizationIds);
+		set(CREATED_AUTHORIZATIONS, list);
+		return this;
 	}
 }

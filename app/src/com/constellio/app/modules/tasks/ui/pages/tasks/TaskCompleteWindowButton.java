@@ -2,6 +2,7 @@ package com.constellio.app.modules.tasks.ui.pages.tasks;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -21,6 +22,7 @@ import com.constellio.app.modules.tasks.services.TasksSearchServices;
 import com.constellio.app.modules.tasks.ui.components.TaskFieldFactory;
 import com.constellio.app.modules.tasks.ui.components.TaskTable;
 import com.constellio.app.modules.tasks.ui.components.fields.TaskDecisionField;
+import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveWorkflowInclusiveDecisionFieldImpl;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.MetadataValueVO;
@@ -75,7 +77,7 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 		RecordVO recordVO = new RecordToVOBuilder().build(task.getWrappedRecord(), VIEW_MODE.FORM, sessionContext);
 		TaskFieldFactory taskFieldFactory = new TaskFieldFactory(false);
 
-		Field decisionField = buildDecisionField(task, recordVO, taskFieldFactory, verticalLayout);
+		Map.Entry<MetadataVO, Field> decisionField = buildDecisionField(task, recordVO, taskFieldFactory, verticalLayout);
 		Field acceptedField = buildAcceptedField(task, recordVO, taskFieldFactory, verticalLayout);
 		Field reasonField = buildReasonField(task, recordVO, taskFieldFactory, verticalLayout);
 
@@ -115,7 +117,8 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 		return cancelButton;
 	}
 
-	private Button buildQuickCompleteButton(final Task task, final VerticalLayout fieldLayout, final Field decisionField,
+	private Button buildQuickCompleteButton(final Task task, final VerticalLayout fieldLayout,
+			final Map.Entry<MetadataVO, Field> decisionMetadataAndField,
 			final Field acceptedField, final Field reasonField,
 			final Map<MetadataVO, Field> fields) {
 		final Button saveButton = new Button(getQuickCaption());
@@ -144,7 +147,8 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 				if (errors.isEmpty()) {
 					updateUncompletedRequiredField(task, fields);
 					completeQuicklyButtonClicked(task,
-							decisionField == null ? null : (String) decisionField.getValue(),
+							decisionMetadataAndField == null ? null : decisionMetadataAndField.getValue().getValue(),
+							decisionMetadataAndField == null ? null : decisionMetadataAndField.getKey().getLocalCode(),
 							acceptedField == null ? null : (Boolean) acceptedField.getValue(),
 							reasonField == null ? null : (String) reasonField.getValue());
 					getWindow().close();
@@ -164,9 +168,9 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 		return saveButton;
 	}
 
-	private void completeQuicklyButtonClicked(Task task, String decision, Boolean accepted, String reason) {
+	private void completeQuicklyButtonClicked(Task task, Object decision, String decisionCode, Boolean accepted, String reason) {
 		try {
-			quickCompleteTask(appLayerFactory, task, decision, accepted, reason,
+			quickCompleteTask(appLayerFactory, task, decision, decisionCode, accepted, reason,
 					view.getSessionContext().getCurrentUser().getId());
 		} catch (RecordServicesException e) {
 			e.printStackTrace();
@@ -181,7 +185,7 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 	}
 
 	static public void quickCompleteTask(AppLayerFactory appLayerFactory, Task task,
-			String decision, Boolean accepted, String reason, String respondantId)
+			Object decision, String decisionCode, Boolean accepted, String reason, String respondantId)
 			throws RecordServicesException {
 		TasksSchemasRecordsServices tasksSchemas = new TasksSchemasRecordsServices(task.getCollection(), appLayerFactory);
 		TasksSearchServices tasksSearchServices = new TasksSearchServices(tasksSchemas);
@@ -196,11 +200,14 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 			task.set(RequestTask.REASON, reason);
 		}
 
-		task.setDecision(decision);
+		if (decisionCode != null) {
+			task.set(decisionCode, decision);
+		}
+
 		appLayerFactory.getModelLayerFactory().newRecordServices().update(task);
 	}
 
-	abstract String getConfirmDialogMessage();
+	protected abstract String getConfirmDialogMessage();
 
 	protected String getQuickCaption() {
 		return $("DisplayTaskView.quickComplete");
@@ -234,12 +241,18 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 		}
 	}
 
-	private Field buildDecisionField(Task task, RecordVO recordVO, TaskFieldFactory fieldFactory,
+	private Map.Entry<MetadataVO, Field> buildDecisionField(Task task, RecordVO recordVO, TaskFieldFactory fieldFactory,
 			VerticalLayout fieldLayout) {
 		Field decisionField = null;
 		MapStringStringStructure decisions = task.get(Task.BETA_NEXT_TASKS_DECISIONS);
+		Map.Entry<MetadataVO, Field> decisionMetadataAndField = null;
+
 		if (task.getModelTask() != null && decisions != null) {
 			MetadataVO decisionMetadata = recordVO.getMetadata(Task.DECISION);
+			boolean isInclusiveDecision = Boolean.TRUE.equals(task.get(AddEditTaskPresenter.IS_INCLUSIVE_DECISION));
+			if (isInclusiveDecision) {
+				decisionMetadata = recordVO.getMetadata(AddEditTaskPresenter.INCLUSIVE_DECISION);
+			}
 			decisionField = fieldFactory.build(decisionMetadata);
 			decisionField.setRequired(true);
 
@@ -247,15 +260,21 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 			decisionCodes.addAll(decisions.keySet());
 			Collections.sort(decisionCodes);
 			for (String decision : decisionCodes) {
-				((TaskDecisionField) decisionField).addItem(decision);
+				if (decisionField instanceof TaskDecisionField) {
+					((TaskDecisionField) decisionField).addItem(decision);
+				} else {
+					((ListAddRemoveWorkflowInclusiveDecisionFieldImpl) decisionField).addItem(decision);
+				}
+
 				if (Task.isExpressionLanguage(decision)) {
 					decisionField.setRequired(true);
 					decisionField.setVisible(false);
 				}
 			}
 
-			if (task.getDecision() != null) {
-				decisionField.setValue(task.getDecision());
+			Object object = task.get(decisionMetadata.getLocalCode());
+			if (object != null) {
+				decisionField.setValue(object);
 			}
 
 			if (recordVO.getSchema().getMetadata(Task.QUESTION) != null && task.get(Task.QUESTION) != null) {
@@ -268,8 +287,11 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 			}
 
 			fieldLayout.addComponent(decisionField);
+
+			decisionMetadataAndField = new AbstractMap.SimpleEntry<>(decisionMetadata, decisionField);
 		}
-		return decisionField;
+
+		return decisionMetadataAndField;
 	}
 
 	private Field buildAcceptedField(Task task, RecordVO recordVO, TaskFieldFactory fieldFactory,
