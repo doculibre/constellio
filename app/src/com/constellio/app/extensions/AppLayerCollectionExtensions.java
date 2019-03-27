@@ -47,6 +47,7 @@ import com.constellio.app.api.extensions.params.ListSchemaExtraCommandReturnPara
 import com.constellio.app.api.extensions.params.OnWriteRecordParams;
 import com.constellio.app.api.extensions.params.PagesComponentsExtensionParams;
 import com.constellio.app.api.extensions.params.RecordFieldFactoryExtensionParams;
+import com.constellio.app.api.extensions.params.RecordFieldFactoryPostBuildExtensionParams;
 import com.constellio.app.api.extensions.params.RecordTextInputDataProviderSortMetadatasParam;
 import com.constellio.app.api.extensions.params.TryRepairAutomaticValueParams;
 import com.constellio.app.api.extensions.params.UpdateComponentExtensionParams;
@@ -706,6 +707,12 @@ public class AppLayerCollectionExtensions {
 			}
 		}
 		return new ArrayList<>(unwantedTaxonomies);
+	}
+
+	public void postRecordFieldFactoryBuild(RecordFieldFactoryPostBuildExtensionParams params) {
+		for (RecordFieldFactoryExtension extension : recordFieldFactoryExtensions) {
+			extension.postBuild(params);
+		}
 	}
 
 }

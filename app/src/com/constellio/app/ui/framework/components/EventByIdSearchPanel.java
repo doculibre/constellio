@@ -40,7 +40,7 @@ public class EventByIdSearchPanel extends Panel {
 		if (lookupField == null) {
 			return "";
 		}
-		return lookupField.getValue();
+		return (String) lookupField.getValue();
 	}
 
 	protected String getByIdFieldCaption() {

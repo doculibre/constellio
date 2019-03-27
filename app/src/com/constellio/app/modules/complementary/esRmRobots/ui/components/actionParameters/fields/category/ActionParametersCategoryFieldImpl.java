@@ -12,7 +12,7 @@ public class ActionParametersCategoryFieldImpl extends LookupRecordField impleme
 
 	@Override
 	public String getFieldValue() {
-		return getInternalValue();
+		return (String) getInternalValue();
 	}
 
 	@Override

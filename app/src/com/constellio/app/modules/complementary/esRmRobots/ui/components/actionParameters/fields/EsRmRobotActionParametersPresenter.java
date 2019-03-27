@@ -72,7 +72,7 @@ public class EsRmRobotActionParametersPresenter {
 				retentionRuleField.setOptions(new ArrayList<String>());
 			}
 		} else {
-			UniformSubdivision defaultSubdivision = rm.getUniformSubdivision(uniformSubdivisionField.getValue());
+			UniformSubdivision defaultSubdivision = rm.getUniformSubdivision((String) uniformSubdivisionField.getValue());
 			retentionRuleField.setOptions(defaultSubdivision.getRetentionRules());
 		}
 	}

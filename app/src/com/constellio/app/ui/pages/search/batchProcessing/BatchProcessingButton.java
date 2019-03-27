@@ -154,7 +154,7 @@ public class BatchProcessingButton extends WindowButton {
 	}
 
 	private BatchProcessingForm newForm() {
-		String selectedType = typeField.getValue();
+		String selectedType = (String) typeField.getValue();
 		RecordFieldFactory fieldFactory = newFieldFactory(selectedType);
 		String originSchema = presenter.getSchema(view.getSchemaType(), selectedType);
 		return new BatchProcessingForm(presenter.newRecordVO(originSchema, view.getSchemaType(), view.getSessionContext()),
@@ -179,7 +179,7 @@ public class BatchProcessingButton extends WindowButton {
 					BatchProcessingView batchProcessingView = BatchProcessingButton.this.view;
 
 					try {
-						InputStream inputStream = presenter.simulateButtonClicked(typeField.getValue(), view.getSchemaType(), viewObject);
+						InputStream inputStream = presenter.simulateButtonClicked((String) typeField.getValue(), view.getSchemaType(), viewObject);
 
 						downloadBatchProcessingResults(inputStream);
 					} catch (RecordServicesException.ValidationException e) {
@@ -199,7 +199,7 @@ public class BatchProcessingButton extends WindowButton {
 					BatchProcessingView batchProcessingView = BatchProcessingButton.this.view;
 
 					try {
-						boolean success = presenter.processBatchButtonClicked(typeField.getValue(), view.getSchemaType(), viewObject);
+						boolean success = presenter.processBatchButtonClicked((String) typeField.getValue(), view.getSchemaType(), viewObject);
 
 						getWindow().close();
 

@@ -1,14 +1,6 @@
 package com.constellio.app.ui.framework.components.fields.autocomplete;
 
-import com.constellio.app.ui.application.ConstellioUI;
-import com.constellio.app.ui.framework.components.fields.BaseComboBox;
-import com.vaadin.data.Item;
-import com.vaadin.data.Property;
-import com.vaadin.data.Validator.InvalidValueException;
-import com.vaadin.data.util.IndexedContainer;
-import com.vaadin.data.util.converter.Converter;
-import com.vaadin.data.util.filter.UnsupportedFilterException;
-import com.vaadin.shared.ui.combobox.FilteringMode;
+import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.io.Serializable;
 import java.util.Iterator;
@@ -16,7 +8,16 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import static com.constellio.app.ui.i18n.i18n.$;
+import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.framework.components.fields.BaseComboBox;
+import com.vaadin.data.Item;
+import com.vaadin.data.Property;
+import com.vaadin.data.Validator.InvalidValueException;
+import com.vaadin.data.util.IndexedContainer;
+import com.vaadin.data.util.converter.Converter;
+import com.vaadin.data.util.converter.Converter.ConversionException;
+import com.vaadin.data.util.filter.UnsupportedFilterException;
+import com.vaadin.shared.ui.combobox.FilteringMode;
 
 /**
  * Adapted from https://vaadin.com/forum#!/thread/897171/9060502
@@ -61,12 +62,24 @@ public class BaseAutocompleteField<T> extends BaseComboBox {
 			@Override
 			public void valueChange(Property.ValueChangeEvent event) {
 				T newValue = (T) event.getProperty().getValue();
-				if (newValue != null && !autocompleteContainer.contains(newValue)) {
-					autocompleteContainer.addContainerFilter(null);
-					addSuggestion(newValue, 0);
-				}
+				prepareForSetValue(newValue);
 			}
 		});
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Override
+	protected void setValue(Object newFieldValue, boolean repaintIsNotNeeded, boolean ignoreReadOnly)
+			throws ReadOnlyException, ConversionException, InvalidValueException {
+		prepareForSetValue((T) newFieldValue);
+		super.setValue(newFieldValue, repaintIsNotNeeded, ignoreReadOnly);
+	}
+
+	private void prepareForSetValue(T newValue) {
+		if (newValue != null && !autocompleteContainer.contains(newValue)) {
+			autocompleteContainer.addContainerFilter(null);
+			addSuggestion(newValue, 0);
+		}
 	}
 
 	@Override

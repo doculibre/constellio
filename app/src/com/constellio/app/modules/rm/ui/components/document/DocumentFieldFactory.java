@@ -57,6 +57,8 @@ public class DocumentFieldFactory extends RMRecordFieldFactory {
 		}
 		if (field instanceof CustomDocumentField) {
 			postBuild(field, recordVO, metadataVO);
+		} else {
+			callPostBuildExtensions(field, recordVO, metadataVO);
 		}
 		return field;
 	}

@@ -67,7 +67,7 @@ public class ESSMBConnectorUrlCriterionExtension extends SearchCriterionExtensio
 			public void valueChange(Property.ValueChangeEvent event) {
 				String connectorUrl = null;
 				if (value.getValue() != null) {
-					connectorUrl = esSchemasRecordsServices.wrapConnectorSmbFolder(recordServices.getDocumentById(value.getValue())).getConnectorUrl();
+					connectorUrl = esSchemasRecordsServices.wrapConnectorSmbFolder(recordServices.getDocumentById((String) value.getValue())).getConnectorUrl();
 				}
 				criterion.setValue(connectorUrl);
 			}

@@ -145,6 +145,31 @@ $popup-view-z-index: 3;
 	}
 
     // Insert your own theme rules here
+    
+    .v-treetable {
+    	.v-table-cell-wrapper {
+    		cursor: pointer;
+    		
+	    	.v-icon {
+	    		padding-right: 6px;
+	    	}
+	    
+	    	.v-horizontallayout {
+	    		.v-slot {
+	    			line-height: 0px;
+	    			
+	    			.v-label {
+	    				line-height: initial;
+	    			}
+	    		}
+	    	}
+    	}
+    
+    	.v-table-cell-wrapper:hover {
+    		color: white;
+			background-color: #197de1;
+    	}
+    }
 
     .v-table-cell-content-file-icon-box {
 		background-image: url('images/icons/container/box.png');
@@ -536,6 +561,12 @@ $popup-view-z-index: 3;
 	.error-label {
 		color: red;
 		border: 1px solid red;
+	}
+
+	.lookup-window-content {
+		.lookup-information-icon {
+    		cursor: pointer;
+		}
 	}
 
     .lookup-window-content, .document-window-content {

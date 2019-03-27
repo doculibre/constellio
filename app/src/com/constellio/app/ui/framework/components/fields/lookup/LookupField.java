@@ -1,9 +1,30 @@
 package com.constellio.app.ui.framework.components.fields.lookup;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
+import java.util.UUID;
+
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
+import org.vaadin.addons.lazyquerycontainer.LazyQueryContainer;
+import org.vaadin.addons.lazyquerycontainer.LazyQueryDefinition;
+import org.vaadin.addons.lazyquerycontainer.Query;
+import org.vaadin.addons.lazyquerycontainer.QueryDefinition;
+import org.vaadin.addons.lazyquerycontainer.QueryFactory;
+
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
+import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.converters.ConverterWithCache;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.autocomplete.BaseAutocompleteField;
@@ -22,19 +43,27 @@ import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.vaadin.data.Container;
 import com.vaadin.data.Item;
 import com.vaadin.data.Property;
+import com.vaadin.data.Validator;
 import com.vaadin.data.Validator.InvalidValueException;
 import com.vaadin.data.util.ObjectProperty;
 import com.vaadin.data.util.converter.Converter;
+import com.vaadin.data.util.converter.Converter.ConversionException;
+import com.vaadin.data.util.converter.ConverterUtil;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
+import com.vaadin.event.MouseEvents;
 import com.vaadin.server.ErrorMessage;
+import com.vaadin.server.Resource;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
+import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomField;
+import com.vaadin.ui.Image;
+import com.vaadin.ui.Label;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.Table;
@@ -43,25 +72,8 @@ import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
-import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
-import org.vaadin.addons.lazyquerycontainer.LazyQueryContainer;
-import org.vaadin.addons.lazyquerycontainer.LazyQueryDefinition;
-import org.vaadin.addons.lazyquerycontainer.Query;
-import org.vaadin.addons.lazyquerycontainer.QueryDefinition;
-import org.vaadin.addons.lazyquerycontainer.QueryFactory;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Locale;
-import java.util.UUID;
-
-import static com.constellio.app.ui.i18n.i18n.$;
-
-public abstract class LookupField<T extends Serializable> extends CustomField<T> {
+public abstract class LookupField<T extends Serializable> extends CustomField<Object> {
 
 	public static final String STYLE_NAME = "lookup";
 	public static final String ERROR_STYLE_NAME = STYLE_NAME + "-error";
@@ -81,12 +93,20 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 	private ConstellioEIMConfigs configs;
 
 	protected boolean isShowDeactivated = true;
-
+	
+	private List<SelectionChangeListener> selectionChangeListeners = new ArrayList<>();
+	
 	/**
 	 * The component should receive focus (if {@link Focusable}) when attached.
 	 */
 	private boolean delayedFocus;
 	private Integer windowZIndex;
+	private boolean multiValue;
+	private boolean itemInformation = false;
+
+	protected static final Resource INFORMATION_ICON = new ThemeResource("images/commun/information.png");
+	
+	private ValueChangeListener autoCompleteChangeListener;
 
 	@SuppressWarnings("unchecked")
 	public LookupField(
@@ -100,6 +120,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	public void setProviders(TextInputDataProvider<T> suggestInputDataProvider,
 							 LookupTreeDataProvider<T>... lookupTreeDataProviders) {
 		this.suggestInputDataProvider = suggestInputDataProvider;
@@ -130,6 +151,108 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 		return lookupTreeDataProviders;
 	}
 
+	public boolean isMultiValue() {
+		return multiValue;
+	}
+
+	public void setMultiValue(boolean multiValue) {
+		this.multiValue = multiValue;
+	}
+
+	public boolean isItemInformation() {
+		return itemInformation;
+	}
+
+	public void setItemInformation(boolean itemInformation) {
+		this.itemInformation = itemInformation;
+	}
+
+	@Override
+	public Object getValue() {
+		Object value;
+		if (multiValue) {
+			Property<?> dataSource = getPropertyDataSource();
+			if (dataSource != null) {
+				Object dataSourceValue = dataSource.getValue();
+				if (dataSourceValue != null && !(dataSourceValue instanceof List)) {
+					value = ensureList(dataSourceValue);
+				} else {
+					value = getInternalValue();
+				}
+			} else {
+				value = getInternalValue();
+			}
+		} else {
+			value = super.getValue();
+		}
+		return value;
+	}
+
+	@Override
+	protected Object getInternalValue() {
+		Object internalValue;
+		Object superInternalValue = super.getInternalValue();
+		if (multiValue && superInternalValue != null && !(superInternalValue instanceof List)) {
+			internalValue = ensureList(superInternalValue);
+		} else {
+			internalValue = superInternalValue;
+		}
+		return internalValue;
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Override
+	public Object getConvertedValue() {
+		Object convertedValue;
+		if (!multiValue) {
+			convertedValue = super.getConvertedValue();
+		} else {
+			Locale locale = getLocale();
+			List<Object> listValue = (List<Object>) getValue();
+			if (listValue != null) {
+				List<Object> convertedListValue = new ArrayList<>();
+				for (Object listItem : listValue) {
+			        Class<?> modelType = getModelType();
+			        try {
+			        	Object convertedListItem = ConverterUtil.convertToModel(listItem,
+			                    (Class<Object>) modelType, getConverter(), locale);
+			        	convertedListValue.add(convertedListItem);
+			        } catch (ConversionException e) {
+			            throw new ConversionException(getConversionError(modelType, e), e);
+			        }
+				}
+				convertedValue = convertedListValue;
+			} else {
+				convertedValue = null;
+			}
+		}
+		return convertedValue;
+	}
+
+	@Override
+	protected void setInternalValue(Object newValue) {
+		super.setInternalValue(newValue);
+		if (!multiValue && autoCompleteField != null) {
+			autoCompleteField.removeValueChangeListener(autoCompleteChangeListener);
+			autoCompleteField.setValue(newValue);
+			autoCompleteField.addValueChangeListener(autoCompleteChangeListener);
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	private List<Object> ensureList(Object value) {
+		List<Object> listValue;
+		if (value instanceof List) {
+			listValue = (List<Object>) value;
+		} else {
+			listValue = new ArrayList<>();
+			if (value != null) {
+				listValue.add(value);
+			}
+		}
+		return listValue;
+	}
+
 	@Override
 	protected Component initContent() {
 		addStyleName(STYLE_NAME);
@@ -139,16 +262,16 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 			@Override
 			public List<T> suggest(String text) {
 				List<T> values = new ArrayList<>(suggestInputDataProvider.getData(text, 0, getBufferSize()));
-				//				if (itemConverter != null) {
-				//					Collections.sort(values, new Comparator<T>() {
-				//						@Override
-				//						public int compare(T o1, T o2) {
-				//							String s1 = itemConverter.convertToPresentation(o1, String.class, getLocale());
-				//							String s2 = itemConverter.convertToPresentation(o2, String.class, getLocale());
-				//							return s1.compareTo(s2);
-				//						}
-				//					});
-				//				}
+//				if (itemConverter != null) {
+//					Collections.sort(values, new Comparator<T>() {
+//						@Override
+//						public int compare(T o1, T o2) {
+//							String s1 = itemConverter.convertToPresentation(o1, String.class, getLocale());
+//							String s2 = itemConverter.convertToPresentation(o2, String.class, getLocale());
+//							return s1.compareTo(s2);
+//						}
+//					});
+//				}
 				return values;
 			}
 
@@ -160,13 +283,26 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 				return modelLayerFactory.getSystemConfigs().getAutocompleteSize();
 			}
 		};
+		
+		autoCompleteChangeListener = new ValueChangeListener() {
+			@Override
+			public void valueChange(Property.ValueChangeEvent event) {
+				Object newValue = event.getProperty().getValue();
+				if (multiValue && newValue != null) {
+					LookupField.this.setValue(ensureList(newValue));
+				} else {
+					LookupField.this.setValue(newValue);
+				}
+			}
+		};
+		
 		autoCompleteField = newAutocompleteField(suggestionsProvider);
 		autoCompleteField.addStyleName(AUTOCOMPLETE_FIELD_STYLE_NAME);
 		autoCompleteField.setItemConverter(itemConverter);
-		autoCompleteField.setPropertyDataSource(this);
-		if (delayedFocus) {
-			autoCompleteField.focus();
+		if (!multiValue) {
+			autoCompleteField.setValue(super.getValue());
 		}
+		autoCompleteField.addValueChangeListener(autoCompleteChangeListener);
 
 		createLookupWindowBouton();
 		lookupWindowButton.setIcon(new ThemeResource("images/icons/actions/view.png"));
@@ -190,7 +326,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 		clearButton.addClickListener(new ClickListener() {
 			@Override
 			public void buttonClick(ClickEvent event) {
-				autoCompleteField.setValue(null);
+				LookupField.this.setValue(null);
 			}
 		});
 
@@ -201,10 +337,29 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 
 		return mainLayout;
 	}
+	
+	protected Component initItemInformationContent(T item) {
+		return new Label("" + item);
+	}
+
+	@Override
+	public void commit() throws SourceException, InvalidValueException {
+		super.commit();
+		if (multiValue) {
+			autoCompleteField.removeValueChangeListener(autoCompleteChangeListener);
+			autoCompleteField.setValue(null);
+			autoCompleteField.addValueChangeListener(autoCompleteChangeListener);
+		}
+	}
 
 	@NotNull
 	public WindowButton createLookupWindowBouton() {
 		lookupWindowButton = new WindowButton(null, $("search")) {
+			@Override
+			protected BaseWindow newWindow(String windowCaption) {
+				return new LookupWindow(windowCaption);
+			}
+
 			@Override
 			protected Component buildWindowContent() {
 				return new LookupWindowContent(getWindow());
@@ -216,9 +371,38 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 	protected BaseAutocompleteField<T> newAutocompleteField(AutocompleteSuggestionsProvider<T> suggestionsProvider) {
 		return new BaseAutocompleteField<>(suggestionsProvider);
 	}
+	
+	protected Component newItemCaptionAndInfoLayout(final T object, Component itemCaptionComponent) {
+		Image informationImage = new Image(null, INFORMATION_ICON);
+		informationImage.addStyleName("lookup-information-icon");
+		informationImage.addClickListener(new MouseEvents.ClickListener() {
+			@SuppressWarnings("unchecked")
+			@Override
+			public void click(MouseEvents.ClickEvent event) {
+				LookupWindowContent lookupWindowContent = (LookupWindowContent) lookupWindowButton.getWindow().getContent();
+				lookupWindowContent.loadInformation(object);
+			}
+		});
+		
+		// Not multiValue
+		if (itemCaptionComponent == null) {
+			Button selectButton = new BaseButton(getCaption(object)) {
+				@Override
+				protected void buttonClick(ClickEvent event) {
+					setValue(object);
+				}
+			};
+			selectButton.addStyleName(ValoTheme.BUTTON_LINK);
+			selectButton.addStyleName(ValoTheme.BUTTON_QUIET);
+			itemCaptionComponent = selectButton;
+		}
+		I18NHorizontalLayout itemCaptionAndInfoLayout = new I18NHorizontalLayout(itemCaptionComponent, informationImage);
+		itemCaptionAndInfoLayout.setComponentAlignment(informationImage, Alignment.MIDDLE_LEFT);
+		itemCaptionAndInfoLayout.setSpacing(true);
+		return itemCaptionAndInfoLayout;
+	}
 
-	@SuppressWarnings("unchecked")
-	protected LazyTree<T> newLazyTree(LookupTreeDataProvider<T> lookupTreeDataProvider, int treeBufferSize) {
+	protected LazyTree<T> newLazyTree(final LookupTreeDataProvider<T> lookupTreeDataProvider, int treeBufferSize) {
 		return new LazyTree<T>(lookupTreeDataProvider, treeBufferSize) {
 			@Override
 			public String getItemCaption(T itemId) {
@@ -226,8 +410,20 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 			}
 
 			@Override
-			public void addItemClickListener(ItemClickListener listener) {
-				super.addItemClickListener(listener);
+			protected boolean isSelectable(T object) {
+				return lookupTreeDataProvider.isSelectable(object);
+			}
+
+			@Override
+			protected Component getItemCaptionComponent(T object) {
+				Component itemCaptionComponent;
+				Component superItemCaptionComponent = super.getItemCaptionComponent(object);
+				if (isItemInformation() && isSelectable(object)) {
+					itemCaptionComponent = newItemCaptionAndInfoLayout(object, superItemCaptionComponent);
+				} else {
+					itemCaptionComponent = superItemCaptionComponent;
+				}
+				return itemCaptionComponent;
 			}
 		};
 	}
@@ -301,7 +497,14 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 			if (autoCompleteField != null) {
 				autoCompleteField.validate();
 			}
-			super.validate();
+			if (!multiValue) {
+				super.validate();
+			} else {
+		        if (isRequired() && isEmpty()) {
+		            throw new Validator.EmptyValueException(getRequiredError());
+		        }
+		        validate(getValue());
+			}
 			removeStyleName(ERROR_STYLE_NAME);
 		} catch (InvalidValueException e) {
 			throw e;
@@ -331,6 +534,40 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 		suggestInputDataProvider.setOnlyLinkables(onlyLinkables);
 	}
 
+	public BaseAutocompleteField<T> getAutoCompleteField() {
+		return autoCompleteField;
+	}
+
+	public List<SelectionChangeListener> getSelectionChangeListeners() {
+		return Collections.unmodifiableList(selectionChangeListeners);
+	}
+	
+	public void addSelectionChangeListener(SelectionChangeListener listener) {
+		if (!selectionChangeListeners.contains(listener)) {
+			selectionChangeListeners.add(listener);
+		}
+	}
+	
+	public void removeSelectionChangeListener(SelectionChangeListener listener) {
+		selectionChangeListeners.remove(listener);
+	}
+	
+	public class LookupWindow extends BaseWindow {
+
+		public LookupWindow() {
+			super();
+		}
+
+		public LookupWindow(String caption, Component content) {
+			super(caption, content);
+		}
+
+		public LookupWindow(String caption) {
+			super(caption);
+		}
+		
+	}
+
 	protected class LookupWindowContent extends VerticalLayout {
 
 		private I18NHorizontalLayout searchFieldLayout;
@@ -338,9 +575,19 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 		private TextField searchField;
 
 		private Button searchButton;
+		
+		private Button selectButton;
+		
+		private I18NHorizontalLayout itemsAndInformationLayout;
+		
+		private VerticalLayout informationLayout;
+		
+		private Button closeInformationButton;
+		
+		private Component currentInformationComponent;
 
 		private Component lookupTreeComponent;
-
+		
 		private Table searchResultsTable;
 
 		@SuppressWarnings("unchecked")
@@ -363,6 +610,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 			searchFieldLayout.setSpacing(true);
 
 			searchField = new BaseTextField();
+			searchField.setWidth("100%");
 			searchField.focus();
 			OnEnterKeyHandler onEnterKeyHandler = new OnEnterKeyHandler() {
 				@Override
@@ -380,6 +628,28 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 					search();
 				}
 			});
+			
+			selectButton = new Button($("select"));
+			selectButton.addClickListener(new ClickListener() {
+				@Override
+				public void buttonClick(ClickEvent event) {
+					List<Object> newSelection;
+					if (lookupTreeComponent != null) {
+						newSelection = (List<Object>) getCurrentLazyTree().getValue();
+						LookupField.this.setValue(newSelection);
+					} else {
+						newSelection = null;
+					}
+					for (SelectionChangeListener selectionChangeListener : selectionChangeListeners) {
+						selectionChangeListener.selectionChanged(newSelection);
+					}
+					if (lookupWindowButton.getWindow() != null) {
+						Window lookupWindow = lookupWindowButton.getWindow();
+						lookupWindow.close();
+					}
+				}
+			});
+			selectButton.setVisible(multiValue);
 
 			if (!getLookupTreeDataProviders().isEmpty()) {
 				if (getLookupTreeDataProviders().size() > 1) {
@@ -387,25 +657,28 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 				}
 				for (final LookupTreeDataProvider<T> lookupTreeDataProvider : getLookupTreeDataProviders()) {
 					LazyTree<T> lazyTree = newLazyTree(lookupTreeDataProvider, getTreeBufferSize());
+					lazyTree.setMultiValue(multiValue);
 					lazyTree.setWidth("100%");
 					lazyTree.setItemCaptionMode(ItemCaptionMode.PROPERTY);
 					lazyTree.setItemCaptionPropertyId(CAPTION_PROPERTY_ID);
-					lazyTree.addItemClickListener(new ItemClickListener() {
-						@Override
-						public void itemClick(ItemClickEvent event) {
-							T objectClicked = (T) event.getItemId();
-							if (lookupTreeDataProvider.isSelectable(objectClicked)) {
-								if (LookupField.this.getValue() != null && LookupField.this.getValue().equals(objectClicked)) {
-									if (lookupWindowButton.getWindow() != null) {
-										Window lookupWindow = lookupWindowButton.getWindow();
-										lookupWindow.close();
+					if (!multiValue) {
+						lazyTree.addItemClickListener(new ItemClickListener() {
+							@Override
+							public void itemClick(ItemClickEvent event) {
+								T objectClicked = (T) event.getItemId();
+								if (lookupTreeDataProvider.isSelectable(objectClicked)) {
+									if (LookupField.this.getValue() != null && LookupField.this.getValue().equals(objectClicked)) {
+										if (lookupWindowButton.getWindow() != null) {
+											Window lookupWindow = lookupWindowButton.getWindow();
+											lookupWindow.close();
+										}
+									} else {
+										LookupField.this.setValue(objectClicked);
 									}
-								} else {
-									LookupField.this.setValue(objectClicked);
 								}
 							}
-						}
-					});
+						});
+					}
 
 					Panel lazyTreePanel = new Panel(lazyTree);
 					lazyTreePanel.setWidth("100%");
@@ -426,27 +699,81 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 			searchResultsTable.setWidth("100%");
 			searchResultsTable.setHeight("98%");
 			searchResultsTable.setColumnHeaderMode(ColumnHeaderMode.HIDDEN);
+			
+			if (itemInformation) {
+				itemsAndInformationLayout = new I18NHorizontalLayout();
+				itemsAndInformationLayout.setSpacing(true);
+				itemsAndInformationLayout.setSizeFull();
+				
+				informationLayout = new VerticalLayout();
+				informationLayout.setSpacing(true);
+				
+				closeInformationButton = new BaseButton($("close")) {
+					@Override
+					protected void buttonClick(ClickEvent event) {
+						itemsAndInformationLayout.removeComponent(informationLayout);
+					}
+				};
+				closeInformationButton.setHeight("40px");
+				
+				informationLayout.addComponents(closeInformationButton);
+				informationLayout.setComponentAlignment(closeInformationButton, Alignment.TOP_RIGHT);
+			}
 
 			addComponent(searchFieldLayout);
+			if (isItemInformation()) {
+				addComponent(itemsAndInformationLayout);
+			}
 			if (!getLookupTreeDataProviders().isEmpty()) {
-				addComponent(lookupTreeComponent);
+				if (isItemInformation()) {
+					itemsAndInformationLayout.addComponent(lookupTreeComponent);
+				} else {
+					addComponent(lookupTreeComponent);
+				}
 			} else {
 				Container searchResultsContainer = new LookupSearchResultContainer(geSuggestInputDataProvider(), searchField);
 				searchResultsTable.setContainerDataSource(searchResultsContainer);
-				addComponent(searchResultsTable);
+				if (isItemInformation()) {
+					itemsAndInformationLayout.addComponent(searchResultsTable);
+				} else {
+					addComponent(searchResultsTable);
+				}
 			}
-			searchFieldLayout.addComponents(searchField, searchButton);
+			
+			searchFieldLayout.setWidth("100%");
+			searchFieldLayout.addComponents(searchField, searchButton, selectButton);
+			searchFieldLayout.setComponentAlignment(selectButton, Alignment.TOP_RIGHT);
 
 			if (!getLookupTreeDataProviders().isEmpty()) {
-				setExpandRatio(lookupTreeComponent, 1);
+				if (itemInformation) {
+					setExpandRatio(itemsAndInformationLayout, 1);
+				} else {
+					setExpandRatio(lookupTreeComponent, 1);
+				}
 			} else {
-				setExpandRatio(searchResultsTable, 1);
+				if (itemInformation) {
+					setExpandRatio(itemsAndInformationLayout, 1);
+				} else {
+					setExpandRatio(searchResultsTable, 1);
+				}
 			}
 			searchFieldLayout.setExpandRatio(searchField, 1);
 		}
 
+		public void loadInformation(T object) {
+			itemsAndInformationLayout.removeComponent(informationLayout);
+			
+			if (currentInformationComponent != null) {
+				informationLayout.removeComponent(currentInformationComponent);
+			}
+			currentInformationComponent = initItemInformationContent(object);
+			currentInformationComponent.setWidth("200px");
+			informationLayout.addComponent(currentInformationComponent);
+			itemsAndInformationLayout.addComponent(informationLayout);
+		}
+
 		@SuppressWarnings("unchecked")
-		private LookupTreeDataProvider<T> getCurrentTreeDataProvider() {
+		private LazyTree<T> getCurrentLazyTree() {
 			Panel currentLazyTreePanel;
 			if (lookupTreeComponent instanceof TabSheet) {
 				TabSheet tabSheet = (TabSheet) lookupTreeComponent;
@@ -454,7 +781,11 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 			} else {
 				currentLazyTreePanel = (Panel) lookupTreeComponent;
 			}
-			LazyTree<T> currentLazyTree = (LazyTree<T>) currentLazyTreePanel.getContent();
+			return (LazyTree<T>) currentLazyTreePanel.getContent();
+		}
+
+		private LookupTreeDataProvider<T> getCurrentTreeDataProvider() {
+			LazyTree<T> currentLazyTree = getCurrentLazyTree();
 			return (LookupTreeDataProvider<T>) currentLazyTree.getDataProvider();
 		}
 
@@ -462,6 +793,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 			return lookupTreeDataProviders;
 		}
 
+		@SuppressWarnings("unchecked")
 		private void search() {
 			String text = searchField.getValue();
 			if (lookupTreeComponent != null) {
@@ -469,6 +801,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 					if (lookupTreeComponent.isVisible()) {
 						lookupTreeComponent.setVisible(false);
 						searchResultsTable.setVisible(true);
+						selectButton.setVisible(false);
 					}
 					LookupTreeDataProvider<T> currentDataProvider = getCurrentTreeDataProvider();
 					Container searchResultsContainer;
@@ -480,13 +813,24 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 					}
 
 					searchResultsTable.setContainerDataSource(searchResultsContainer);
-					replaceComponent(lookupTreeComponent, searchResultsTable);
-					setExpandRatio(searchResultsTable, 1);
+					if (itemInformation) {
+						itemsAndInformationLayout.replaceComponent(lookupTreeComponent, searchResultsTable);
+						setExpandRatio(itemsAndInformationLayout, 1);
+					} else {
+						replaceComponent(lookupTreeComponent, searchResultsTable);
+						setExpandRatio(searchResultsTable, 1);
+					}
 				} else {
 					lookupTreeComponent.setVisible(true);
 					searchResultsTable.setVisible(false);
-					replaceComponent(searchResultsTable, lookupTreeComponent);
-					setExpandRatio(lookupTreeComponent, 1);
+					if (itemInformation) {
+						itemsAndInformationLayout.replaceComponent(searchResultsTable, lookupTreeComponent);
+						setExpandRatio(itemsAndInformationLayout, 1);
+					} else {
+						replaceComponent(searchResultsTable, lookupTreeComponent);
+						setExpandRatio(lookupTreeComponent, 1);
+					}
+					selectButton.setVisible(true);					
 				}
 			} else {
 				Container searchResultsContainer = new LookupSearchResultContainer(geSuggestInputDataProvider(), searchField);
@@ -494,6 +838,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 			}
 		}
 
+		@SuppressWarnings("rawtypes")
 		public TextInputDataProvider geSuggestInputDataProvider() {
 			return suggestInputDataProvider;
 		}
@@ -536,6 +881,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 
 		public abstract void setOnlyLinkables(boolean onlyLinkables);
 
+		@SuppressWarnings("rawtypes")
 		public TextInputDataProvider setConverterWithCache(
 				ConverterWithCache<String, T> converterWithCache) {
 			return this;
@@ -613,6 +959,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 	}
 
 	private class DataItem implements Item {
+		
 		private T item;
 
 		public DataItem(T item) {
@@ -636,12 +983,24 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 						} else {
 							if (!LookupField.this.isReadOnly()) {
 								LookupField.this.setValue(item);
+								if (multiValue) {
+									for (SelectionChangeListener selectionChangeListener : selectionChangeListeners) {
+										List<Object> objectList = new ArrayList<>();
+										objectList.add(item);
+										selectionChangeListener.selectionChanged(objectList);
+									}
+								}
 							}
 						}
 					}
 				});
 				selectButton.addStyleName(ValoTheme.BUTTON_LINK);
-				property = new ObjectProperty<Button>(selectButton);
+				if (itemInformation) {
+					Component buttonAndInfoComponent = newItemCaptionAndInfoLayout(item, selectButton);
+					property = new ObjectProperty<Component>(buttonAndInfoComponent);
+				} else {
+					property = new ObjectProperty<Button>(selectButton);
+				}
 			} else {
 				property = null;
 			}
@@ -671,5 +1030,11 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 	private interface SerializableQuery extends Query, Serializable {
 
 	}
+	
+	public static interface SelectionChangeListener {
+		
+		void selectionChanged(List<Object> newSelection);
+		
+	} 
 
 }
