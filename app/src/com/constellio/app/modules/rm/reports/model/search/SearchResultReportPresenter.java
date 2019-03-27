@@ -2,9 +2,11 @@ package com.constellio.app.modules.rm.reports.model.search;
 
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
+import com.constellio.app.entities.schemasDisplay.enums.MetadataSortingType;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.ui.framework.components.converters.EnumWithSmallCodeToCaptionConverter;
+import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
@@ -44,6 +46,7 @@ public class SearchResultReportPresenter {
 	private final String reportTitle;
 	private final LogicalSearchQuery searchQuery;
 	private final AppLayerFactory appLayerFactory;
+	private final SchemasDisplayManager displayManager;
 	private final Locale locale;
 
 	public SearchResultReportPresenter(AppLayerFactory appLayerFactory, List<String> selectedRecords, String schemaType,
@@ -56,6 +59,7 @@ public class SearchResultReportPresenter {
 		this.reportTitle = reportTitle;
 		this.searchQuery = searchQuery;
 		this.appLayerFactory = appLayerFactory;
+		this.displayManager = appLayerFactory.getMetadataSchemasDisplayManager();
 		this.locale = locale;
 	}
 
@@ -144,6 +148,17 @@ public class SearchResultReportPresenter {
 			for (Object item : items) {
 				convertedValue.add(getConvertedScalarValue(metadata, item));
 			}
+
+			if(metadata.getType() == MetadataValueType.REFERENCE &&
+			   displayManager.getMetadata(collection, metadata.getCode()).getSortingType() == MetadataSortingType.ALPHANUMERICAL_ORDER) {
+				Collections.sort(convertedValue, new Comparator<Object>() {
+					@Override
+					public int compare(Object o1, Object o2) {
+						return LangUtils.compareStrings(o1.toString(), o2.toString());
+					}
+				});
+			}
+
 			if (convertedValue.isEmpty()) {
 				return "";
 			}

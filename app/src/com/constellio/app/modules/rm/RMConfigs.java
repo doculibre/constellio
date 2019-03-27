@@ -8,6 +8,7 @@ import com.constellio.app.modules.rm.model.enums.CompleteDatesWhenAddingFolderWi
 import com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn;
 import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
 import com.constellio.app.modules.rm.model.enums.DocumentsTypeChoice;
+import com.constellio.app.modules.rm.model.enums.ReportsSortingMetadata;
 import com.constellio.app.modules.rm.validator.EndYearValueCalculator;
 import com.constellio.app.modules.rm.wrappers.RMDecommissioningTypeRequiredScript;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -76,7 +77,8 @@ public class RMConfigs {
 			LOG_FOLDER_DOCUMENT_ACCESS_WITH_CMIS,
 			ALLOW_TRANSFER_DATE_FIELD_WHEN_COPY_RULE_HAS_NO_SEMIACTIVE_STATE,
 			COPY_RULES_ALWAYS_VISIBLE_IN_ADD_FORM,
-			IS_DECOMMISSIONING_TYPE_REQUIRED_IN_CONTAINERS;
+			IS_DECOMMISSIONING_TYPE_REQUIRED_IN_CONTAINERS,
+			SORTING_METADATA_FOR_LABELS_AND_METADATA_REPORTS;
 
 	// Category configs
 	public static final SystemConfiguration LINKABLE_CATEGORY_MUST_NOT_BE_ROOT, LINKABLE_CATEGORY_MUST_HAVE_APPROVED_RULES;
@@ -294,6 +296,9 @@ public class RMConfigs {
 
 		add(ALLOW_TRANSFER_DATE_FIELD_WHEN_COPY_RULE_HAS_NO_SEMIACTIVE_STATE = decommissioning
 				.createBooleanFalseByDefault("allowTransferDateFieldWhenCopyRuleHasNoSemiActiveState"));
+
+		SystemConfigurationGroup reports = new SystemConfigurationGroup(null, "reports");
+		add(SORTING_METADATA_FOR_LABELS_AND_METADATA_REPORTS = reports.createEnum("sortingMetadataForLabelsAndMetadataReports", ReportsSortingMetadata.class).withDefaultValue(ReportsSortingMetadata.TITLE));
 	}
 
 	static void add(SystemConfiguration configuration) {
@@ -553,4 +558,9 @@ public class RMConfigs {
 	public boolean isDecommissioningTypeRequiredInContainers() {
 		return manager.getValue(IS_DECOMMISSIONING_TYPE_REQUIRED_IN_CONTAINERS);
 	}
+
+	public ReportsSortingMetadata getSortingMetadataForLabelsAndMetadataReports() {
+		return manager.getValue(SORTING_METADATA_FOR_LABELS_AND_METADATA_REPORTS);
+	}
+
 }

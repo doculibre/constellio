@@ -8,9 +8,16 @@ import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
 import com.constellio.app.ui.handlers.OnEnterKeyHandler;
+import com.constellio.data.utils.LangUtils;
+import com.vaadin.data.Container;
+import com.vaadin.data.Container.ItemSetChangeEvent;
+import com.vaadin.data.Container.Sortable;
 import com.vaadin.data.Property;
+import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Validator.InvalidValueException;
+import com.vaadin.data.util.DefaultItemSorter;
 import com.vaadin.data.util.IndexedContainer;
+import com.vaadin.data.util.ItemSorter;
 import com.vaadin.data.util.ObjectProperty;
 import com.vaadin.data.util.converter.Converter;
 import com.vaadin.data.util.converter.Converter.ConversionException;
@@ -35,6 +42,7 @@ import org.vaadin.dialogs.ConfirmDialog;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
@@ -296,7 +304,8 @@ public abstract class ListAddRemoveField<T extends Serializable, F extends Abstr
 		addButton.addStyleName(ADD_BUTTON_STYLE_NAME);
 		addButton.setVisible(isAddButtonVisible());
 
-		ValuesContainer valuesContainer = new ValuesContainer(new ArrayList<T>());
+		ValuesContainer valuesContainer = new ValuesContainer(new ArrayList<T>(), getItemSorter());
+
 		valuesAndButtonsContainer = new ButtonsContainer(valuesContainer);
 
 		if (isEditPossible()) {
@@ -528,7 +537,7 @@ public abstract class ListAddRemoveField<T extends Serializable, F extends Abstr
 
 	private class ValuesContainer extends IndexedContainer {
 
-		public ValuesContainer(List<T> values) {
+		public ValuesContainer(List<T> values, ItemSorter customItemSorter) {
 			super(values);
 			addContainerProperty(CAPTION_PROPERTY_ID, getCaptionComponentClass(), null);
 			List<?> extraPropertyIds = getExtraColumnPropertyIds();
@@ -538,7 +547,19 @@ public abstract class ListAddRemoveField<T extends Serializable, F extends Abstr
 					addContainerProperty(extraPropertyId, extraPropertyType, null);
 				}
 			}
+
+			if(customItemSorter != null) {
+				addItemSetChangeListener(new ItemSetChangeListener() {
+					@Override
+					public void containerItemSetChange(Container.ItemSetChangeEvent event) {
+						doSort();
+					}
+				});
+				setItemSorter(customItemSorter);
+			}
 		}
+
+
 
 		@SuppressWarnings("unchecked")
 		@Override
@@ -562,4 +583,23 @@ public abstract class ListAddRemoveField<T extends Serializable, F extends Abstr
 		return (T) value;
 	}
 
+	protected ItemSorter getItemSorter() {
+		return null;
+	}
+
+	final protected ItemSorter buildDefaultItemSorter() {
+		return new ItemSorter() {
+			@Override
+			public void setSortProperties(Sortable container, Object[] propertyId, boolean[] ascending) {
+
+			}
+
+			@Override
+			public int compare(Object itemId1, Object itemId2) {
+				String caption1 = getItemCaption(itemId1);
+				String caption2 = getItemCaption(itemId2);
+				return LangUtils.compareStrings(caption1, caption2);
+			}
+		};
+	}
 }

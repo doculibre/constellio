@@ -8,6 +8,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.app.entities.schemasDisplay.enums.MetadataSortingType;
 import org.apache.commons.lang3.StringUtils;
 import org.jdom2.Document;
 import org.jdom2.Element;
@@ -43,6 +44,7 @@ public class SchemasDisplayReader1 {
 	private static final String METADATA_DISPLAY_CONFIGS = "MetadataDisplayConfigs";
 	private static final String INPUT_TYPE = "InputType";
 	private static final String DISPLAY_TYPE = "DisplayType";
+	private static final String SORTING_TYPE = "SortingType";
 	private static final String VISIBLE_IN_ADVANCED_SEARCH = "VisibleInAdvancedSearch";
 	private static final String HIGHLIGHT = "Highlight";
 	private static final String METADATA_GROUPS_LABELS = "MetadataGroupsLabels";
@@ -280,14 +282,22 @@ public class SchemasDisplayReader1 {
 		Map<String, Map<Language, String>> groups = schemasDisplayManagerCache.getType(typeCode).getMetadataGroup();
 
 		String inputTypeString = metadataDisplayConfigElement.getAttributeValue(INPUT_TYPE);
+		MetadataInputType metadataInputType = MetadataInputType.valueOf(inputTypeString);
+
 		String displayTypeString = metadataDisplayConfigElement.getAttributeValue(DISPLAY_TYPE);
 		if (displayTypeString == null) {
 			displayTypeString = "VERTICAL";
 		}
-		MetadataInputType metadataInputType = MetadataInputType.valueOf(inputTypeString);
 		MetadataDisplayType metadataDisplayType = MetadataDisplayType.valueOf(displayTypeString);
+
+		String sortingTypeString = metadataDisplayConfigElement.getAttributeValue(SORTING_TYPE);
+		if (sortingTypeString == null) {
+			sortingTypeString = "ENTRY_ORDER";
+		}
+		MetadataSortingType metadataSortingType = MetadataSortingType.valueOf(sortingTypeString);
+
 		MetadataDisplayConfig metadataDisplayConfig = new MetadataDisplayConfig(collection, metadataCode,
-				visibleInAdvancedSearch, metadataInputType, highlight, metadataGroup, metadataDisplayType);
+				visibleInAdvancedSearch, metadataInputType, highlight, metadataGroup, metadataDisplayType, metadataSortingType);
 		return metadataDisplayConfig;
 	}
 }

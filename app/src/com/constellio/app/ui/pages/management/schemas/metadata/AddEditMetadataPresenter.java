@@ -7,6 +7,7 @@ import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
+import com.constellio.app.entities.schemasDisplay.enums.MetadataSortingType;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
@@ -365,27 +366,34 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 	private void saveDisplayConfig(FormMetadataVO formMetadataVO, String code, MetadataSchemasManager schemasManager,
 								   boolean editMode) {
 		SchemasDisplayManager displayManager = schemasDisplayManager();
-		MetadataInputType type = formMetadataVO.getInput();
+		MetadataValueType valueType = formMetadataVO.getValueType();
+		MetadataInputType inputType = formMetadataVO.getInput();
 		MetadataDisplayType displayType = formMetadataVO.getDisplayType();
+		MetadataSortingType sortingType = formMetadataVO.getSortingType();
 
-		if (type == null) {
-			type = MetadataInputType.FIELD;
+		if (inputType == null) {
+			inputType = MetadataInputType.FIELD;
 		}
-		if (displayType == null || (!MetadataInputType.CHECKBOXES.equals(type) && !MetadataInputType.RADIO_BUTTONS
-				.equals(type))) {
+
+		if (displayType == null || (!MetadataInputType.CHECKBOXES.equals(inputType) && !MetadataInputType.RADIO_BUTTONS
+				.equals(inputType))) {
 			displayType = MetadataDisplayType.VERTICAL;
+		}
+
+		if (sortingType == null || valueType != REFERENCE || !formMetadataVO.isMultivalue()) {
+			sortingType = MetadataSortingType.ENTRY_ORDER;
 		}
 
 		MetadataDisplayConfig displayConfig = displayManager.getMetadata(collection, code);
 		if (displayConfig == null) {
 			displayConfig = new MetadataDisplayConfig(collection, code,
 					!formMetadataVO.isInheritance() && formMetadataVO.isAdvancedSearch(),
-					type, formMetadataVO.isHighlight(), formMetadataVO.getMetadataGroup(), displayType);
+					inputType, formMetadataVO.isHighlight(), formMetadataVO.getMetadataGroup(), displayType, sortingType);
 		} else {
 			displayConfig = displayConfig.withHighlightStatus(formMetadataVO.isHighlight())
 					.withVisibleInAdvancedSearchStatus(!formMetadataVO.isInheritance() && formMetadataVO.isAdvancedSearch())
-					.withInputType(type)
-					.withDisplayType(displayType).withMetadataGroup(formMetadataVO.getMetadataGroup());
+					.withInputType(inputType)
+					.withDisplayType(displayType).withSortingType(sortingType).withMetadataGroup(formMetadataVO.getMetadataGroup());
 		}
 
 		displayManager.saveMetadata(displayConfig);
@@ -567,14 +575,21 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 	public MetadataVO getDefaultValueMetadataVO(FormMetadataVO formMetadataVO) {
 
 		try {
+			MetadataValueType valueType = formMetadataVO.getValueType();
+			boolean isMultivalue = formMetadataVO.isMultivalue();
 			MetadataInputType inputType = formMetadataVO.getInput();
 			MetadataDisplayType displayType = formMetadataVO.getDisplayType();
-			if (formMetadataVO.getValueType() == REFERENCE) {
+			MetadataSortingType sortingType = formMetadataVO.getSortingType();
+			if (valueType == REFERENCE) {
 				inputType = MetadataInputType.LOOKUP;
 			}
 			if (inputType == null ||
 				(!inputType.equals(MetadataInputType.CHECKBOXES) && !inputType.equals(MetadataInputType.RADIO_BUTTONS))) {
 				displayType = MetadataDisplayType.VERTICAL;
+			}
+
+			if (valueType != REFERENCE || !isMultivalue) {
+				sortingType = MetadataSortingType.ENTRY_ORDER;
 			}
 
 			CollectionInfoVO collectionInfoVO;
@@ -583,9 +598,9 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 			} else {
 				collectionInfoVO = null;
 			}
-			MetadataVO metadataVO = new MetadataVO(formMetadataVO.getCode(), formMetadataVO.getValueType(), collection,
-					formMetadataVO.getSchema(), formMetadataVO.isRequired(), formMetadataVO.isMultivalue(), false,
-					new HashMap<Locale, String>(), null, new String[]{}, formMetadataVO.getReference(), inputType, displayType,
+			MetadataVO metadataVO = new MetadataVO(formMetadataVO.getCode(), valueType, collection,
+					formMetadataVO.getSchema(), formMetadataVO.isRequired(), isMultivalue, false,
+					new HashMap<Locale, String>(), null, new String[]{}, formMetadataVO.getReference(), inputType, displayType, sortingType,
 					new AllowedReferences(formMetadataVO.getReference(), null), formMetadataVO.getMetadataGroup(),
 					formMetadataVO.getDefaultValue(), false, formMetadataVO.getCustomAttributes(),
 					formMetadataVO.isMultiLingual(), getCurrentLocale(), new HashMap<String, Object>(), collectionInfoVO);
