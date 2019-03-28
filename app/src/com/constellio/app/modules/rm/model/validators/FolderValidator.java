@@ -1,5 +1,11 @@
 package com.constellio.app.modules.rm.model.validators;
 
+import static com.constellio.app.modules.rm.model.enums.CopyType.PRINCIPAL;
+import static com.constellio.app.modules.rm.model.enums.CopyType.SECONDARY;
+
+import java.util.HashMap;
+import java.util.Map;
+
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.wrappers.Category;
@@ -8,12 +14,6 @@ import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
 import com.constellio.model.entities.schemas.validation.RecordValidator;
 import com.constellio.model.services.records.RecordValidatorParams;
-
-import java.util.HashMap;
-import java.util.Map;
-
-import static com.constellio.app.modules.rm.model.enums.CopyType.PRINCIPAL;
-import static com.constellio.app.modules.rm.model.enums.CopyType.SECONDARY;
 
 public class FolderValidator implements RecordValidator {
 
@@ -38,13 +38,16 @@ public class FolderValidator implements RecordValidator {
 	}
 
 	private void validate(Folder folder, RecordValidatorParams params) {
-		RetentionRule retentionRule = RetentionRule.wrap(params.getRecord(folder.getRetentionRule()), params.getTypes());
+		RetentionRule retentionRule = null;
+		if (folder.getRetentionRule() != null) {
+			retentionRule = RetentionRule.wrap(params.getRecord(folder.getRetentionRule()), params.getTypes());
+		}
 		boolean hasParentFolder = folder.getParentFolder() != null;
 		String uniformSubdivisionId = folder.getUniformSubdivision();
 		Boolean areUniformSubdivisionEnabled = (Boolean) params.getConfigProvider().get(RMConfigs.UNIFORM_SUBDIVISION_ENABLED);
 		String mainCopyRuleIdEntered = folder.getMainCopyRuleIdEntered();
 
-		if (areUniformSubdivisionEnabled && uniformSubdivisionId != null) {
+		if (areUniformSubdivisionEnabled && uniformSubdivisionId != null && retentionRule != null) {
 			UniformSubdivision uniformSubdivision = new UniformSubdivision(params.getRecord(uniformSubdivisionId),
 					params.getTypes());
 			if (uniformSubdivision.getRetentionRules() == null || !uniformSubdivision.getRetentionRules()

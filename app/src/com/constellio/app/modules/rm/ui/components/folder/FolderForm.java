@@ -40,7 +40,11 @@ public interface FolderForm extends Serializable {
 
 	CustomFolderField<?> getCustomField(String metadataCode);
 
+	Field getField(String field);
+
 	void setFieldVisible(String metadataCode, boolean visible);
 
 	List<Field<?>> getFields();
+
+	Field getExtraField(String key);
 }

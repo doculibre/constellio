@@ -69,11 +69,31 @@ public class AddEditFolderViewImpl extends BaseViewImpl implements AddEditFolder
 		return $(titleKey);
 	}
 
+	protected boolean showTab() {
+		return true;
+	}
+
+	protected boolean validateRequiredFields() {
+		return true;
+	}
+
 	protected FolderFormImpl newForm() {
 		recordForm = new FolderFormImpl(recordVO) {
 			@Override
 			protected void saveButtonClick(RecordVO viewObject) {
 				presenter.saveButtonClicked();
+			}
+
+			@Override
+			public boolean validateFields() {
+				if (validateRequiredFields()) {
+					return true;
+				} else {
+					for (Field field : fieldGroup.getFields()) {
+						field.setRequired(false);
+					}
+					return false;
+				}
 			}
 
 			@Override
@@ -96,6 +116,17 @@ public class AddEditFolderViewImpl extends BaseViewImpl implements AddEditFolder
 					}
 				}
 			}
+
+			@Override
+			protected String getTabCaption(Field<?> field, Object propertyId) {
+				if (!showTab()) {
+					return null;
+				}
+
+				return super.getTabCaption(field, propertyId);
+			}
+
+
 
 			@Override
 			public void commit() {

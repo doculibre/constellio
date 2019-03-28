@@ -33,7 +33,6 @@ import com.constellio.app.api.extensions.SearchCriterionExtension;
 import com.constellio.app.api.extensions.SearchPageExtension;
 import com.constellio.app.api.extensions.SelectionPanelExtension;
 import com.constellio.app.api.extensions.SystemCheckExtension;
-import com.constellio.app.api.extensions.TaskFormExtention;
 import com.constellio.app.api.extensions.TaxonomyPageExtension;
 import com.constellio.app.api.extensions.params.AddFieldsInLabelXMLParams;
 import com.constellio.app.api.extensions.params.AvailableActionsParam;
@@ -54,7 +53,6 @@ import com.constellio.app.api.extensions.params.PagesComponentsExtensionParams;
 import com.constellio.app.api.extensions.params.RecordFieldFactoryExtensionParams;
 import com.constellio.app.api.extensions.params.RecordFieldsExtensionParams;
 import com.constellio.app.api.extensions.params.SearchPageConditionParam;
-import com.constellio.app.api.extensions.params.TaskFormParams;
 import com.constellio.app.api.extensions.params.TryRepairAutomaticValueParams;
 import com.constellio.app.api.extensions.params.UpdateComponentExtensionParams;
 import com.constellio.app.api.extensions.params.ValidateRecordsCheckParams;
@@ -176,7 +174,6 @@ public class AppLayerCollectionExtensions {
 
 	public VaultBehaviorsList<FieldBindingExtention> fieldBindingExtentions = new VaultBehaviorsList<>();
 
-	public VaultBehaviorsList<TaskFormExtention> taskFormExtentions = new VaultBehaviorsList();
 
 	//Key : schema type code
 	//Values : record's code
@@ -800,12 +797,5 @@ public class AppLayerCollectionExtensions {
 		for (FieldBindingExtention fieldBindingExtention : fieldBindingExtentions) {
 			fieldBindingExtention.baseFormFieldBinding(fieldBindingExtentionParam);
 		}
-	}
-
-	public void taskFormExtentions(TaskFormParams taskFormParams) {
-		for (TaskFormExtention taskFormExtention : taskFormExtentions) {
-			taskFormExtention.taskBeingSave(taskFormParams);
-		}
-	}
 	}
 }

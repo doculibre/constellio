@@ -1,5 +1,21 @@
 package com.constellio.app.ui.framework.components;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.handlers.OnEnterKeyHandler;
 import com.constellio.app.ui.util.MessageUtils;
@@ -31,21 +47,6 @@ import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import static com.constellio.app.ui.i18n.i18n.$;
 
 @SuppressWarnings("serial")
 public abstract class BaseForm<T> extends CustomComponent {
@@ -198,6 +199,7 @@ public abstract class BaseForm<T> extends CustomComponent {
 		if (tabSheet.iterator().hasNext()) {
 			formLayout.addComponent(tabSheet);
 		}
+
 		formLayout.addComponent(buttonsLayout);
 		buttonsLayout.addComponents(saveButton, cancelButton);
 	}
@@ -309,6 +311,10 @@ public abstract class BaseForm<T> extends CustomComponent {
 		trySave();
 	}
 
+	public boolean validateFields() {
+		return true;
+	}
+
 	private void trySave() {
 		clearBackendValidators();
 		for (Field<?> field : fields) {
@@ -317,7 +323,7 @@ public abstract class BaseForm<T> extends CustomComponent {
 				abstractField.setValidationVisible(true);
 			}
 		}
-		if (fieldGroup.isValid()) {
+		if (!validateFields() || fieldGroup.isValid()) {
 			try {
 				fieldGroup.commit();
 				try {
