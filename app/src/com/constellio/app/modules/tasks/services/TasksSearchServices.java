@@ -58,7 +58,7 @@ public class TasksSearchServices {
 								where(tasksSchemas.userTask.assigneeGroupsCandidates()).isIn(user.getUserGroups()),
 								where(tasksSchemas.userTask.assigneeUsersCandidates()).isEqualTo(user)
 						)));
-		return new LogicalSearchQuery(condition).filteredWithUser(user).sortDesc(tasksSchemas.userTask.dueDate()).sortDesc(tasksSchemas.userTask.modifiedOn());
+		return new LogicalSearchQuery(condition).sortDesc(tasksSchemas.userTask.dueDate()).sortDesc(tasksSchemas.userTask.modifiedOn());
 	}
 
 	public LogicalSearchQuery getTasksAssignedToUserQuery(User user) {

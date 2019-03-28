@@ -1,13 +1,5 @@
 package com.constellio.app.modules.tasks.ui.components;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-
-import org.vaadin.dialogs.ConfirmDialog;
-
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.ui.components.fields.StarredFieldImpl;
 import com.constellio.app.modules.tasks.ui.entities.TaskVO;
@@ -38,6 +30,13 @@ import com.vaadin.ui.MenuBar;
 import com.vaadin.ui.MenuBar.Command;
 import com.vaadin.ui.MenuBar.MenuItem;
 import com.vaadin.ui.Table;
+import org.vaadin.dialogs.ConfirmDialog;
+
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class TaskTable extends RecordVOTable {
 	public static final String PREFIX = "images/icons/task/";
@@ -268,6 +267,8 @@ public class TaskTable extends RecordVOTable {
 		void registerPreviousSelectedTab();
 
 		Task getTask(RecordVO recordVO);
+
+		void callAssignationExtension();
 	}
 
 	public class TaskStyleGenerator implements CellStyleGenerator {

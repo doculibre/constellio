@@ -487,12 +487,16 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 
 	@Override
 	public void reloadTaskModified(Task task) {
+		view.reloadCurrentTab();
+	}
+
+	@Override
+	public void callAssignationExtension() {
 		if (rmModuleExtensions != null) {
 			for (TaskManagementPresenterExtension extension : rmModuleExtensions.getTaskManagementPresenterExtensions()) {
 				extension.assignAvailableTasks(getCurrentUser());
 			}
 		}
-		view.reloadCurrentTab();
 	}
 
 	@Override
