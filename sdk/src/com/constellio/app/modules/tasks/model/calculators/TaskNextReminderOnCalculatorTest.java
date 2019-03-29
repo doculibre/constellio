@@ -4,8 +4,11 @@ import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskReminder;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.CalculatorParametersValidatingDependencies;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.sdk.tests.ConstellioTest;
 import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.joda.time.LocalTime;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -23,6 +26,7 @@ public class TaskNextReminderOnCalculatorTest extends ConstellioTest {
 	List<TaskReminder> reminders;
 	private LocalDate now = LocalDate.now();
 	LocalDate startDate = now;
+	LocalDateTime creationDate = now.minusDays(1).toLocalDateTime(LocalTime.MIDNIGHT);
 	LocalDate endDate = now.plusDays(3);
 
 	@Before
@@ -124,8 +128,19 @@ public class TaskNextReminderOnCalculatorTest extends ConstellioTest {
 		assertThat(calculate()).isEqualTo(startDate.minusDays(3));
 	}
 
+	@Test
+	public void givenReminderWithFlexibleDate3AfterCreationDateWhenCalculatingThenReturn3DaysAfterCreationDate() {
+		reminders = new ArrayList<>();
+		TaskReminder taskReminder = new TaskReminder().setBeforeRelativeDate(false).setNumberOfDaysToRelativeDate(3)
+				.setRelativeDateMetadataCode(Schemas.CREATED_ON.getLocalCode());
+		reminders.add(taskReminder);
+
+		assertThat(calculate()).isEqualTo(creationDate.plusDays(3).toLocalDate());
+	}
+
 	private LocalDate calculate() {
 		when(parameters.get(calculator.remindersLocalDependency)).thenReturn(reminders);
+		when(parameters.get(calculator.creationDateLocalDependency)).thenReturn(creationDate);
 		when(parameters.get(calculator.startDateLocalDependency)).thenReturn(startDate);
 		when(parameters.get(calculator.endDateLocalDependency)).thenReturn(endDate);
 
