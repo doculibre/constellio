@@ -93,7 +93,7 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 	}
 
 	private Button buildDetachButton() {
-		if (presenter.seeAccessField()) {
+		if (presenter.seeAccessField()/* && user.canManageAutorisationForFolder*/) {
 			detach = new ConfirmDialogButton($("ListContentAccessAuthorizationsView.detach")) {
 				@Override
 				protected String getConfirmDialogMessage() {
@@ -106,7 +106,7 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 				}
 			};
 		}
-		if (presenter.seeRolesField()) {
+		if (presenter.seeRolesField()/* && user.canManageAutorisationForFolder*/) {
 			detach = new ConfirmDialogButton($("ListContentRoleAuthorizationsView.detach")) {
 				@Override
 				protected String getConfirmDialogMessage() {

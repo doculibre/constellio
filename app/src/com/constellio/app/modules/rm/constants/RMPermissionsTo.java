@@ -18,6 +18,7 @@ public class RMPermissionsTo {
 	private static final String FOLDER_GROUP = "folders";
 
 	public static final String MANAGE_FOLDER_AUTHORIZATIONS = permission(FOLDER_GROUP, "manageFolderAuthorizations");
+	public static final String DISPLAY_FOLDER_AUTHORIZATIONS = permission(FOLDER_GROUP, "displayFolderAuthorizations");
 
 	public static final String SHARE_FOLDER = permission(FOLDER_GROUP, "shareFolders");
 	public static final String SHARE_A_SEMIACTIVE_FOLDER = permission(FOLDER_GROUP, "shareSemiActiveFolders");
