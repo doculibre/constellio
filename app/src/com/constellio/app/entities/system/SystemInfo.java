@@ -34,6 +34,7 @@ public class SystemInfo {
 	}
 
 	private void init(AppLayerFactory appLayerFactory) {
+		//TODO merge SystemInformationsService with SystemAnalysisUtils
 		SystemInformationsService systemInformationsService = new SystemInformationsService();
 		systemMemory = SystemMemory.fetchSystemMemoryInfo();
 		licenseInfo = fetchLicenseInfo(appLayerFactory);
@@ -62,7 +63,7 @@ public class SystemInfo {
 				try {
 					version = FileUtils.readFileToString(versionFile);
 				} catch (IOException e) {
-					throw new RuntimeException(e);
+					version = "error when reading version file";
 				}
 			} else {
 				version = "no version file";
