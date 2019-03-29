@@ -4,6 +4,7 @@ import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.UserVO;
+import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.menuBar.BaseMenuBar;
 import com.constellio.app.ui.pages.viewGroups.MenuViewGroup;
 import com.constellio.app.ui.pages.viewGroups.MenuViewGroup.DisabledMenuViewGroup;
@@ -57,6 +58,8 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 	private MenuBar userMenu;
 
 	private Button valoMenuToggleButton;
+
+	private Button systemStateButton;
 
 	private CssLayout menuItemsLayout;
 
@@ -164,6 +167,16 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 			menuItemsLayout.addComponent(mainMenuItemComponent);
 		}
 
+		systemStateButton = new WindowButton($("System"), $("ConstellioMenu.systemState")) {
+			@Override
+			protected Component buildWindowContent() {
+				return null;
+			}
+		};
+		refreshSystemStateButton();
+		systemStateButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
+//		systemStateButton.addStyleName(ValoTheme.BUTTON_LINK);
+
 		UI.getCurrent().getNavigator().addViewChangeListener(new ViewChangeListener() {
 			@Override
 			public boolean beforeViewChange(ViewChangeEvent event) {
@@ -191,6 +204,7 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 				if (!newSelection && lastSelectedButton != null) {
 					lastSelectedButton.addStyleName(selectedStyleName);
 				}
+				refreshSystemStateButton();
 				return true;
 			}
 
@@ -198,6 +212,8 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 			public void afterViewChange(ViewChangeEvent event) {
 			}
 		});
+
+		menuItemsLayout.addComponent(systemStateButton);
 
 		return menuItemsLayout;
 	}
@@ -211,6 +227,25 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 		} else {
 			badgeLabel.setVisible(false);
 		}
+	}
+
+	private void refreshSystemStateButton() {
+		systemStateButton.setVisible(true);
+		String state = "error";
+		switch (state) {
+			case "ok":
+				systemStateButton.setIcon(new ThemeResource("images/commun/lancement.png"));
+				break;
+			case "warning":
+				systemStateButton.setIcon(new ThemeResource("images/commun/warning.png"));
+				break;
+			default:
+				systemStateButton.setIcon(new ThemeResource("images/commun/error.gif"));
+		}
+	}
+
+	private void getSystemStateConditions() {
+		systemStateButton.setVisible(true);
 	}
 
 	@Override
