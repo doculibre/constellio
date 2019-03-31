@@ -1,9 +1,18 @@
 package com.constellio.app.modules.rm.ui.components.document.newFile;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Serializable;
+import java.util.List;
+
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+
 import com.constellio.app.modules.rm.RMConfigs;
-import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.ui.util.NewFileUtils;
-import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.contents.ContentManager;
@@ -11,36 +20,20 @@ import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.contents.icap.IcapException;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.users.UserServices;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.constellio.app.ui.i18n.i18n.$;
-
-public class NewFilePresenter implements Serializable {
+public class NewFileWindowPresenter implements Serializable {
 
 	private NewFileWindow window;
-	private String documentTypeId;
 	private String filename;
 	private transient Content fileContent;
 	private transient ContentManager contentManager;
 	private transient UserServices userServices;
+
 	RMConfigs rmConfigs;
 
-	public NewFilePresenter(NewFileWindow window) {
+	public NewFileWindowPresenter(NewFileWindow window) {
 		this.window = window;
-
-		List<String> supportedExtensions = NewFileUtils.getSupportedExtensions();
-		window.setSupportedExtensions(supportedExtensions);
-
 		initTransientObjects();
-
 	}
 
 	private void readObject(java.io.ObjectInputStream stream)
@@ -54,6 +47,10 @@ public class NewFilePresenter implements Serializable {
 		contentManager = modelLayerFactory.getContentManager();
 		userServices = modelLayerFactory.newUserServices();
 		rmConfigs = new RMConfigs(modelLayerFactory.getSystemConfigurationsManager());
+	}
+
+	void documentTypeIdSet(String documentTypeId) {
+		window.setDocumentTypeId(documentTypeId);
 	}
 
 	public void newFileNameSubmitted() {
@@ -97,7 +94,7 @@ public class NewFilePresenter implements Serializable {
 			} else {
 				fileContent = createNewFile(filename);
 			}
-			window.notifyNewFileCreated(fileContent, documentTypeId);
+			window.notifyNewFileCreated(fileContent, getDocumentTypeId());
 		} else {
 			if (StringUtils.isNotBlank(extension)) {
 				if (filename == null || filename.equals("")) {
@@ -137,37 +134,10 @@ public class NewFilePresenter implements Serializable {
 		}
 	}
 
-	void documentTypeIdSet(String documentTypeId) {
-		this.documentTypeId = documentTypeId;
-		window.setTemplateOptions(getTemplateOptions());
-		window.setTemplateFieldValue(null);
-	}
 
-	void extensionSet(String value) {
-		if (value != null) {
-			window.setTemplateFieldValue(null);
-		}
-	}
-
-	void templateSet(Content value) {
-		if (value != null) {
-			window.setExtensionFieldValue(null);
-		}
-	}
-
-	private List<Content> getTemplateOptions() {
-		List<Content> templates = new ArrayList<>();
-		if (documentTypeId != null) {
-			AppLayerFactory appLayerFactory = window.getConstellioFactories().getAppLayerFactory();
-			RMSchemasRecordsServices rm = new RMSchemasRecordsServices(window.getSessionContext().getCurrentCollection(),
-					appLayerFactory);
-			templates = rm.getDocumentType(documentTypeId).getTemplates();
-		}
-		return templates;
-	}
 
 	public String getDocumentTypeId() {
-		return documentTypeId;
+		return window.getDocumentTypeId();
 	}
 
 	public String getFilename() {

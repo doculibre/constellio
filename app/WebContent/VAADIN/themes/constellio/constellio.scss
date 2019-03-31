@@ -1555,7 +1555,12 @@ $popup-view-z-index: 3;
 		font-weight: bold;
 		color: red;
 	}
-	
+
+	.constellio-layout-with-border {
+	    border: 1px solid lightgray;
+	}
+
+
     .constellio-layout {
 
 	    .sidebar {

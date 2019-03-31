@@ -553,4 +553,7 @@ public abstract class BaseForm<T> extends CustomComponent {
 		return saveButton;
 	}
 
+	public VerticalLayout getFormLayout() {
+		return formLayout;
+	}
 }
