@@ -54,6 +54,7 @@ public class TaskTable extends RecordVOTable {
 		setCellStyleGenerator(new TaskStyleGenerator());
 		setPageLength(Math.min(15, provider.size()));
 		setWidth("100%");
+		addStyleName("task-table");
 
 		addDisplayOnClickListener();
 	}
