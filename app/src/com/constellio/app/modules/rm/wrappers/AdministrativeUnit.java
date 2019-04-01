@@ -71,6 +71,11 @@ public class AdministrativeUnit extends RecordWrapper {
 		return this;
 	}
 
+	public List<String> getAncestors() {
+		return getList(ANCESTORS);
+	}
+
+
 	public String getAdress() {
 		return get(ADRESS);
 	}
@@ -156,9 +161,11 @@ public class AdministrativeUnit extends RecordWrapper {
 
 		List<String> foundUsers = new ArrayList<>();
 
-		for (int i = 0; i < functions.size(); i++) {
-			if (function.getId().equals(functions.get(i))) {
-				foundUsers.add(functionUsers.get(i));
+		if (functions != null && functionUsers != null && functions.size() == functionUsers.size()) {
+			for (int i = 0; i < functions.size(); i++) {
+				if (function.getId().equals(functions.get(i))) {
+					foundUsers.add(functionUsers.get(i));
+				}
 			}
 		}
 
