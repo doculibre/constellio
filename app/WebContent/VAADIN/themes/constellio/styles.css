@@ -12832,28 +12832,28 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .v-table-cell-content-file-icon-orange_hybrid_folder_frozen_opened {
- 	background-image: url('images/icons/folder2/orange_hybrid_folder_frozen_opened.png');
- 	background-repeat: no-repeat;
- 	background-position: 2px 10px;
- }
+	background-image: url('images/icons/folder2/orange_hybrid_folder_frozen_opened.png');
+	background-repeat: no-repeat;
+	background-position: 2px 10px;
+}
 
- .constellio .v-table-cell-content-file-icon-orange_hybrid_folder_frozen_opened .v-table-cell-wrapper {
- 	position: relative;
- 	text-align: left;
- 	left: 20px;
- }
+.constellio .v-table-cell-content-file-icon-orange_hybrid_folder_frozen_opened .v-table-cell-wrapper {
+	position: relative;
+	text-align: left;
+	left: 20px;
+}
 
- .constellio .v-table-cell-content-file-icon-orange_hybrid_folder_frozen_closed {
- 	background-image: url('images/icons/folder2/orange_hybrid_folder_frozen_closed.png');
- 	background-repeat: no-repeat;
- 	background-position: 2px 10px;
- }
+.constellio .v-table-cell-content-file-icon-orange_hybrid_folder_frozen_closed {
+	background-image: url('images/icons/folder2/orange_hybrid_folder_frozen_closed.png');
+	background-repeat: no-repeat;
+	background-position: 2px 10px;
+}
 
- .constellio .v-table-cell-content-file-icon-orange_hybrid_folder_frozen_closed .v-table-cell-wrapper {
- 	position: relative;
- 	text-align: left;
- 	left: 20px;
- }
+.constellio .v-table-cell-content-file-icon-orange_hybrid_folder_frozen_closed .v-table-cell-wrapper {
+	position: relative;
+	text-align: left;
+	left: 20px;
+}
 
 .constellio .v-table-cell-content-file-icon-orange_hybrid_folder_locked_closed {
 	background-image: url('images/icons/folder2/orange_hybrid_folder_locked_closed.png');
@@ -14371,6 +14371,10 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .search-result-table .v-table-row-odd {
 	background-color: #fff;
+}
+
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .task-table .reference-display-link {
+	color: inherit;
 }
 
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .facet-box {
