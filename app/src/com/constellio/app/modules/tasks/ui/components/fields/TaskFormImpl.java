@@ -3,6 +3,7 @@ package com.constellio.app.modules.tasks.ui.components.fields;
 import java.util.List;
 
 import com.constellio.app.modules.tasks.ui.components.TaskFieldFactory;
+import com.constellio.app.modules.tasks.ui.pages.tasks.AddEditTaskViewImpl;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.RecordVO;
@@ -15,8 +16,9 @@ public abstract class TaskFormImpl extends RecordForm implements TaskForm {
 		super(record, new TaskFieldFactory(isEditView));
 	}
 
-	public TaskFormImpl(RecordVO recordVO, boolean isEditView, List<String> unavailablesTaskTypes) {
-		super(recordVO, new TaskFieldFactory(isEditView, unavailablesTaskTypes, recordVO));
+	public TaskFormImpl(RecordVO recordVO, boolean isEditView, List<String> unavailablesTaskTypes,
+			AddEditTaskViewImpl addEditTaskView) {
+		super(recordVO, new TaskFieldFactory(isEditView, unavailablesTaskTypes, recordVO, addEditTaskView));
 	}
 
 	@Override

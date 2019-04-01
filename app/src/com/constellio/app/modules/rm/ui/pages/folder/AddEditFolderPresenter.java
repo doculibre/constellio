@@ -111,6 +111,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 	protected FolderToVOBuilder voBuilder = new FolderToVOBuilder();
 	protected boolean addView;
 	protected boolean folderHadAParent;
+	protected boolean alwaysShowParentField = false;
 	protected String currentSchemaCode;
 	protected FolderVO folderVO;
 	protected Map<CustomFolderField<?>, Object> customContainerDependencyFields = new HashMap<>();
@@ -558,7 +559,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 
 	void adjustParentFolderField() {
 		FolderParentFolderField parentFolderField = (FolderParentFolderField) view.getForm().getCustomField(Folder.PARENT_FOLDER);
-		parentFolderField.setVisible(folderHadAParent);
+		parentFolderField.setVisible(alwaysShowParentField || folderHadAParent);
 	}
 
 	void adjustAdministrativeUnitField() {

@@ -44,6 +44,7 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.MetadataFieldFactory;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupField;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
+import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.model.entities.records.wrappers.User;
 import com.vaadin.ui.Field;
 
@@ -59,15 +60,17 @@ public class TaskFieldFactory extends MetadataFieldFactory {
 
 	private List<String> unavailablesTaskTypes;
 	private RecordVO recordVO;
+	private BaseView baseView;
 
 	public TaskFieldFactory(boolean isViewOnly) {
 		super(isViewOnly);
 	}
 
-	public TaskFieldFactory(boolean isViewOnly, List<String> unavailablesTaskTypes, RecordVO recordVO) {
+	public TaskFieldFactory(boolean isViewOnly, List<String> unavailablesTaskTypes, RecordVO recordVO, BaseView taskForm) {
 		super(isViewOnly);
 		this.unavailablesTaskTypes = unavailablesTaskTypes;
 		this.recordVO = recordVO;
+		this.baseView = taskForm;
 	}
 
 	@Override
@@ -149,7 +152,7 @@ public class TaskFieldFactory extends MetadataFieldFactory {
 				AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
 				String currentCollection = metadata.getCollection();
 			field = appLayerFactory.getExtensions().forCollection(currentCollection)
-					.getMetadataField(new MetadataFieldExtensionParams(metadata, recordVO));
+					.getMetadataField(new MetadataFieldExtensionParams(metadata, recordVO, baseView));
 			if (field != null) {
 				postBuild(field, metadata);
 			} else {
