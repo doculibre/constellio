@@ -29,8 +29,10 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.stream.Stream;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
@@ -50,9 +52,13 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 	/** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
 	// Auto-generated methods by GenerateHelperClassAcceptTest -- start
 
+	/** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
+	// Auto-generated methods by GenerateHelperClassAcceptTest -- start
+
 	/**
 	 * * ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 	 **/
+
 
 	public AdministrativeUnit wrapAdministrativeUnit(Record record) {
 		return record == null ? null : new AdministrativeUnit(record, getTypes(), locale);
@@ -75,6 +81,14 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 		MetadataSchemaType type = administrativeUnit.schemaType();
 		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
 		return wrapAdministrativeUnits(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public Iterator<AdministrativeUnit> administrativeUnitIterator() {
+		return iterateFromCache(administrativeUnit.schemaType(), this::wrapAdministrativeUnit);
+	}
+
+	public Stream<AdministrativeUnit> administrativeUnitStream() {
+		return streamFromCache(administrativeUnit.schemaType(), this::wrapAdministrativeUnit);
 	}
 
 	public AdministrativeUnit getAdministrativeUnit(String id) {
@@ -169,6 +183,14 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 		return wrapCarts(modelLayerFactory.newSearchServices().search(query));
 	}
 
+	public Iterator<Cart> cartIterator() {
+		return iterateFromCache(cart.schemaType(), this::wrapCart);
+	}
+
+	public Stream<Cart> cartStream() {
+		return streamFromCache(cart.schemaType(), this::wrapCart);
+	}
+
 	public Cart getCart(String id) {
 		return wrapCart(get(cart.schemaType(), id));
 	}
@@ -205,6 +227,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("sharedWithUsers");
 		}
 	}
+
 	public Category wrapCategory(Record record) {
 		return record == null ? null : new Category(record, getTypes(), locale);
 	}
@@ -226,6 +249,14 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 		MetadataSchemaType type = category.schemaType();
 		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
 		return wrapCategorys(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public Iterator<Category> categoryIterator() {
+		return iterateFromCache(category.schemaType(), this::wrapCategory);
+	}
+
+	public Stream<Category> categoryStream() {
+		return streamFromCache(category.schemaType(), this::wrapCategory);
 	}
 
 	public Category getCategory(String id) {
@@ -254,6 +285,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_category_default category
 			= new SchemaTypeShortcuts_category_default("category_default");
+
 	public class SchemaTypeShortcuts_category_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_category_default(String schemaCode) {
 			super(schemaCode);
@@ -295,6 +327,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("retentionRules");
 		}
 	}
+
 	public ContainerRecord wrapContainerRecord(Record record) {
 		return record == null ? null : new ContainerRecord(record, getTypes());
 	}
@@ -316,6 +349,14 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 		MetadataSchemaType type = containerRecord.schemaType();
 		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
 		return wrapContainerRecords(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public Iterator<ContainerRecord> containerRecordIterator() {
+		return iterateFromCache(containerRecord.schemaType(), this::wrapContainerRecord);
+	}
+
+	public Stream<ContainerRecord> containerRecordStream() {
+		return streamFromCache(containerRecord.schemaType(), this::wrapContainerRecord);
 	}
 
 	public ContainerRecord getContainerRecord(String id) {
@@ -340,6 +381,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_containerRecord_default containerRecord
 			= new SchemaTypeShortcuts_containerRecord_default("containerRecord_default");
+
 	public class SchemaTypeShortcuts_containerRecord_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_containerRecord_default(String schemaCode) {
 			super(schemaCode);
@@ -469,6 +511,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("type");
 		}
 	}
+
 	public DocumentType wrapDocumentType(Record record) {
 		return record == null ? null : new DocumentType(record, getTypes());
 	}
@@ -490,6 +533,14 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 		MetadataSchemaType type = ddvDocumentType.schemaType();
 		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
 		return wrapDocumentTypes(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public Iterator<DocumentType> documentTypeIterator() {
+		return iterateFromCache(ddvDocumentType.schemaType(), this::wrapDocumentType);
+	}
+
+	public Stream<DocumentType> documentTypeStream() {
+		return streamFromCache(ddvDocumentType.schemaType(), this::wrapDocumentType);
 	}
 
 	public DocumentType getDocumentType(String id) {
@@ -518,6 +569,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_ddvDocumentType_default ddvDocumentType
 			= new SchemaTypeShortcuts_ddvDocumentType_default("ddvDocumentType_default");
+
 	public class SchemaTypeShortcuts_ddvDocumentType_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_ddvDocumentType_default(String schemaCode) {
 			super(schemaCode);
@@ -531,6 +583,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("templates");
 		}
 	}
+
 	public FolderType wrapFolderType(Record record) {
 		return record == null ? null : new FolderType(record, getTypes());
 	}
@@ -552,6 +605,14 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 		MetadataSchemaType type = ddvFolderType.schemaType();
 		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
 		return wrapFolderTypes(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public Iterator<FolderType> folderTypeIterator() {
+		return iterateFromCache(ddvFolderType.schemaType(), this::wrapFolderType);
+	}
+
+	public Stream<FolderType> folderTypeStream() {
+		return streamFromCache(ddvFolderType.schemaType(), this::wrapFolderType);
 	}
 
 	public FolderType getFolderType(String id) {
@@ -580,6 +641,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_ddvFolderType_default ddvFolderType
 			= new SchemaTypeShortcuts_ddvFolderType_default("ddvFolderType_default");
+
 	public class SchemaTypeShortcuts_ddvFolderType_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_ddvFolderType_default(String schemaCode) {
 			super(schemaCode);
@@ -589,6 +651,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("linkedSchema");
 		}
 	}
+
 	public StorageSpaceType wrapStorageSpaceType(Record record) {
 		return record == null ? null : new StorageSpaceType(record, getTypes());
 	}
@@ -610,6 +673,14 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 		MetadataSchemaType type = ddvStorageSpaceType.schemaType();
 		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
 		return wrapStorageSpaceTypes(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public Iterator<StorageSpaceType> storageSpaceTypeIterator() {
+		return iterateFromCache(ddvStorageSpaceType.schemaType(), this::wrapStorageSpaceType);
+	}
+
+	public Stream<StorageSpaceType> storageSpaceTypeStream() {
+		return streamFromCache(ddvStorageSpaceType.schemaType(), this::wrapStorageSpaceType);
 	}
 
 	public StorageSpaceType getStorageSpaceType(String id) {
@@ -638,6 +709,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_ddvStorageSpaceType_default ddvStorageSpaceType
 			= new SchemaTypeShortcuts_ddvStorageSpaceType_default("ddvStorageSpaceType_default");
+
 	public class SchemaTypeShortcuts_ddvStorageSpaceType_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_ddvStorageSpaceType_default(String schemaCode) {
 			super(schemaCode);
@@ -647,6 +719,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("linkedSchema");
 		}
 	}
+
 	public YearType wrapYearType(Record record) {
 		return record == null ? null : new YearType(record, getTypes());
 	}
@@ -668,6 +741,14 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 		MetadataSchemaType type = ddvYearType.schemaType();
 		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
 		return wrapYearTypes(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public Iterator<YearType> yearTypeIterator() {
+		return iterateFromCache(ddvYearType.schemaType(), this::wrapYearType);
+	}
+
+	public Stream<YearType> yearTypeStream() {
+		return streamFromCache(ddvYearType.schemaType(), this::wrapYearType);
 	}
 
 	public YearType getYearType(String id) {
@@ -696,6 +777,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_ddvYearType_default ddvYearType
 			= new SchemaTypeShortcuts_ddvYearType_default("ddvYearType_default");
+
 	public class SchemaTypeShortcuts_ddvYearType_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_ddvYearType_default(String schemaCode) {
 			super(schemaCode);
@@ -705,6 +787,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("yearEnd");
 		}
 	}
+
 	public DecommissioningList wrapDecommissioningList(Record record) {
 		return record == null ? null : new DecommissioningList(record, getTypes());
 	}
@@ -726,6 +809,14 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 		MetadataSchemaType type = decommissioningList.schemaType();
 		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
 		return wrapDecommissioningLists(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public Iterator<DecommissioningList> decommissioningListIterator() {
+		return iterateFromCache(decommissioningList.schemaType(), this::wrapDecommissioningList);
+	}
+
+	public Stream<DecommissioningList> decommissioningListStream() {
+		return streamFromCache(decommissioningList.schemaType(), this::wrapDecommissioningList);
 	}
 
 	public DecommissioningList getDecommissioningList(String id) {
@@ -750,6 +841,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_decommissioningList_default decommissioningList
 			= new SchemaTypeShortcuts_decommissioningList_default("decommissioningList_default");
+
 	public class SchemaTypeShortcuts_decommissioningList_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_decommissioningList_default(String schemaCode) {
 			super(schemaCode);
@@ -883,6 +975,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("validations");
 		}
 	}
+
 	public Document wrapDocument(Record record) {
 		return record == null ? null : new Document(record, getTypes());
 	}
@@ -904,6 +997,22 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 		MetadataSchemaType type = document.schemaType();
 		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
 		return wrapDocuments(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public Iterator<Document> documentIterator(LogicalSearchCondition condition) {
+		return searchIterator(from(document.schemaType()).whereAllConditions(asList(condition)), this::wrapDocument);
+	}
+
+	public Stream<Document> documentStream(LogicalSearchCondition condition) {
+		return searchIterator(from(document.schemaType()).whereAllConditions(asList(condition)), this::wrapDocument).stream();
+	}
+
+	public Iterator<Document> documentIterator(LogicalSearchQuery query) {
+		return searchIterator(query, this::wrapDocument);
+	}
+
+	public Stream<Document> documentStream(LogicalSearchQuery query) {
+		return searchIterator(query, this::wrapDocument).stream();
 	}
 
 	public Document getDocument(String id) {
@@ -928,6 +1037,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_document_default document
 			= new SchemaTypeShortcuts_document_default("document_default");
+
 	public class SchemaTypeShortcuts_document_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_document_default(String schemaCode) {
 			super(schemaCode);
@@ -1053,6 +1163,10 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("folder");
 		}
 
+		public Metadata hasContent() {
+			return metadata("hasContent");
+		}
+
 		public Metadata inheritedRetentionRule() {
 			return metadata("inheritedRetentionRule");
 		}
@@ -1105,6 +1219,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("version");
 		}
 	}
+
 	public Email wrapEmail(Record record) {
 		return record == null ? null : new Email(record, getTypes());
 	}
@@ -1126,6 +1241,22 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 		MetadataSchemaType type = document.schemaType();
 		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
 		return wrapEmails(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public Iterator<Email> emailIterator(LogicalSearchCondition condition) {
+		return searchIterator(from(document.schemaType()).whereAllConditions(asList(condition)), this::wrapEmail);
+	}
+
+	public Stream<Email> emailStream(LogicalSearchCondition condition) {
+		return searchIterator(from(document.schemaType()).whereAllConditions(asList(condition)), this::wrapEmail).stream();
+	}
+
+	public Iterator<Email> emailIterator(LogicalSearchQuery query) {
+		return searchIterator(query, this::wrapEmail);
+	}
+
+	public Stream<Email> emailStream(LogicalSearchQuery query) {
+		return searchIterator(query, this::wrapEmail).stream();
 	}
 
 	public Email getEmail(String id) {
@@ -1150,6 +1281,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_document_email document_email
 			= new SchemaTypeShortcuts_document_email("document_email");
+
 	public class SchemaTypeShortcuts_document_email extends SchemaTypeShortcuts_document_default {
 		protected SchemaTypeShortcuts_document_email(String schemaCode) {
 			super(schemaCode);
@@ -1199,6 +1331,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("subjectToBroadcastRule");
 		}
 	}
+
 	public Folder wrapFolder(Record record) {
 		return record == null ? null : new Folder(record, getTypes());
 	}
@@ -1220,6 +1353,22 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 		MetadataSchemaType type = folder.schemaType();
 		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
 		return wrapFolders(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public Iterator<Folder> folderIterator(LogicalSearchCondition condition) {
+		return searchIterator(from(folder.schemaType()).whereAllConditions(asList(condition)), this::wrapFolder);
+	}
+
+	public Stream<Folder> folderStream(LogicalSearchCondition condition) {
+		return searchIterator(from(folder.schemaType()).whereAllConditions(asList(condition)), this::wrapFolder).stream();
+	}
+
+	public Iterator<Folder> folderIterator(LogicalSearchQuery query) {
+		return searchIterator(query, this::wrapFolder);
+	}
+
+	public Stream<Folder> folderStream(LogicalSearchQuery query) {
+		return searchIterator(query, this::wrapFolder).stream();
 	}
 
 	public Folder getFolder(String id) {
@@ -1422,6 +1571,10 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("folderType");
 		}
 
+		public Metadata hasContent() {
+			return metadata("hasContent");
+		}
+
 		public Metadata inactiveDisposalType() {
 			return metadata("inactiveDisposalType");
 		}
@@ -1562,6 +1715,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("uniqueKey");
 		}
 	}
+
 	public PrintableLabel wrapPrintableLabel(Record record) {
 		return record == null ? null : new PrintableLabel(record, getTypes());
 	}
@@ -1583,6 +1737,14 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 		MetadataSchemaType type = printable.schemaType();
 		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
 		return wrapPrintableLabels(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public Iterator<PrintableLabel> printableLabelIterator() {
+		return iterateFromCache(printable.schemaType(), this::wrapPrintableLabel);
+	}
+
+	public Stream<PrintableLabel> printableLabelStream() {
+		return streamFromCache(printable.schemaType(), this::wrapPrintableLabel);
 	}
 
 	public PrintableLabel getPrintableLabel(String id) {
@@ -1607,6 +1769,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_printable_label printable_label
 			= new SchemaTypeShortcuts_printable_label("printable_label");
+
 	public class SchemaTypeShortcuts_printable_label extends SchemaTypeShortcuts_printable_default {
 		protected SchemaTypeShortcuts_printable_label(String schemaCode) {
 			super(schemaCode);
@@ -1624,6 +1787,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("typelabel");
 		}
 	}
+
 	public PrintableReport wrapPrintableReport(Record record) {
 		return record == null ? null : new PrintableReport(record, getTypes());
 	}
@@ -1645,6 +1809,14 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 		MetadataSchemaType type = printable.schemaType();
 		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
 		return wrapPrintableReports(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public Iterator<PrintableReport> printableReportIterator() {
+		return iterateFromCache(printable.schemaType(), this::wrapPrintableReport);
+	}
+
+	public Stream<PrintableReport> printableReportStream() {
+		return streamFromCache(printable.schemaType(), this::wrapPrintableReport);
 	}
 
 	public PrintableReport getPrintableReport(String id) {
@@ -1669,6 +1841,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_printable_report printable_report
 			= new SchemaTypeShortcuts_printable_report("printable_report");
+
 	public class SchemaTypeShortcuts_printable_report extends SchemaTypeShortcuts_printable_default {
 		protected SchemaTypeShortcuts_printable_report(String schemaCode) {
 			super(schemaCode);
@@ -1682,6 +1855,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("recordType");
 		}
 	}
+
 	public RetentionRule wrapRetentionRule(Record record) {
 		return record == null ? null : new RetentionRule(record, getTypes(), locale);
 	}
@@ -1703,6 +1877,14 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 		MetadataSchemaType type = retentionRule.schemaType();
 		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
 		return wrapRetentionRules(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public Iterator<RetentionRule> retentionRuleIterator() {
+		return iterateFromCache(retentionRule.schemaType(), this::wrapRetentionRule);
+	}
+
+	public Stream<RetentionRule> retentionRuleStream() {
+		return streamFromCache(retentionRule.schemaType(), this::wrapRetentionRule);
 	}
 
 	public RetentionRule getRetentionRule(String id) {
@@ -1731,6 +1913,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_retentionRule_default retentionRule
 			= new SchemaTypeShortcuts_retentionRule_default("retentionRule_default");
+
 	public class SchemaTypeShortcuts_retentionRule_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_retentionRule_default(String schemaCode) {
 			super(schemaCode);
@@ -1836,6 +2019,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("yearTypesYearEnd");
 		}
 	}
+
 	public StorageSpace wrapStorageSpace(Record record) {
 		return record == null ? null : new StorageSpace(record, getTypes());
 	}
@@ -1857,6 +2041,14 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 		MetadataSchemaType type = storageSpace.schemaType();
 		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
 		return wrapStorageSpaces(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public Iterator<StorageSpace> storageSpaceIterator() {
+		return iterateFromCache(storageSpace.schemaType(), this::wrapStorageSpace);
+	}
+
+	public Stream<StorageSpace> storageSpaceStream() {
+		return streamFromCache(storageSpace.schemaType(), this::wrapStorageSpace);
 	}
 
 	public StorageSpace getStorageSpace(String id) {
@@ -1885,6 +2077,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_storageSpace_default storageSpace
 			= new SchemaTypeShortcuts_storageSpace_default("storageSpace_default");
+
 	public class SchemaTypeShortcuts_storageSpace_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_storageSpace_default(String schemaCode) {
 			super(schemaCode);
@@ -1950,6 +2143,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("type");
 		}
 	}
+
 	public SIParchive wrapSIParchive(Record record) {
 		return record == null ? null : new SIParchive(record, getTypes());
 	}
@@ -1971,6 +2165,22 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 		MetadataSchemaType type = temporaryRecord.schemaType();
 		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
 		return wrapSIParchives(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public Iterator<SIParchive> sIParchiveIterator(LogicalSearchCondition condition) {
+		return searchIterator(from(temporaryRecord.schemaType()).whereAllConditions(asList(condition)), this::wrapSIParchive);
+	}
+
+	public Stream<SIParchive> sIParchiveStream(LogicalSearchCondition condition) {
+		return searchIterator(from(temporaryRecord.schemaType()).whereAllConditions(asList(condition)), this::wrapSIParchive).stream();
+	}
+
+	public Iterator<SIParchive> sIParchiveIterator(LogicalSearchQuery query) {
+		return searchIterator(query, this::wrapSIParchive);
+	}
+
+	public Stream<SIParchive> sIParchiveStream(LogicalSearchQuery query) {
+		return searchIterator(query, this::wrapSIParchive).stream();
 	}
 
 	public SIParchive getSIParchive(String id) {
@@ -1995,6 +2205,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_temporaryRecord_sipArchive temporaryRecord_sipArchive
 			= new SchemaTypeShortcuts_temporaryRecord_sipArchive("temporaryRecord_sipArchive");
+
 	public class SchemaTypeShortcuts_temporaryRecord_sipArchive extends SchemaTypeShortcuts_temporaryRecord_default {
 		protected SchemaTypeShortcuts_temporaryRecord_sipArchive(String schemaCode) {
 			super(schemaCode);
@@ -2012,6 +2223,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("user");
 		}
 	}
+
 	public UniformSubdivision wrapUniformSubdivision(Record record) {
 		return record == null ? null : new UniformSubdivision(record, getTypes());
 	}
@@ -2033,6 +2245,14 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 		MetadataSchemaType type = uniformSubdivision.schemaType();
 		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
 		return wrapUniformSubdivisions(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public Iterator<UniformSubdivision> uniformSubdivisionIterator() {
+		return iterateFromCache(uniformSubdivision.schemaType(), this::wrapUniformSubdivision);
+	}
+
+	public Stream<UniformSubdivision> uniformSubdivisionStream() {
+		return streamFromCache(uniformSubdivision.schemaType(), this::wrapUniformSubdivision);
 	}
 
 	public UniformSubdivision getUniformSubdivision(String id) {
@@ -2061,6 +2281,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_uniformSubdivision_default uniformSubdivision
 			= new SchemaTypeShortcuts_uniformSubdivision_default("uniformSubdivision_default");
+
 	public class SchemaTypeShortcuts_uniformSubdivision_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_uniformSubdivision_default(String schemaCode) {
 			super(schemaCode);
@@ -2082,6 +2303,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("retentionRule");
 		}
 	}
+
 	public RMUserFolder wrapRMUserFolder(Record record) {
 		return record == null ? null : new RMUserFolder(record, getTypes());
 	}
@@ -2103,6 +2325,22 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 		MetadataSchemaType type = userFolder.schemaType();
 		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
 		return wrapRMUserFolders(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public Iterator<RMUserFolder> rMUserFolderIterator(LogicalSearchCondition condition) {
+		return searchIterator(from(userFolder.schemaType()).whereAllConditions(asList(condition)), this::wrapRMUserFolder);
+	}
+
+	public Stream<RMUserFolder> rMUserFolderStream(LogicalSearchCondition condition) {
+		return searchIterator(from(userFolder.schemaType()).whereAllConditions(asList(condition)), this::wrapRMUserFolder).stream();
+	}
+
+	public Iterator<RMUserFolder> rMUserFolderIterator(LogicalSearchQuery query) {
+		return searchIterator(query, this::wrapRMUserFolder);
+	}
+
+	public Stream<RMUserFolder> rMUserFolderStream(LogicalSearchQuery query) {
+		return searchIterator(query, this::wrapRMUserFolder).stream();
 	}
 
 	public RMUserFolder getRMUserFolder(String id) {
@@ -2127,6 +2365,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_userFolder_default userFolder
 			= new SchemaTypeShortcuts_userFolder_default("userFolder_default");
+
 	public class SchemaTypeShortcuts_userFolder_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_userFolder_default(String schemaCode) {
 			super(schemaCode);
@@ -2148,6 +2387,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("retentionRule");
 		}
 	}
+
 	public RMTask wrapRMTask(Record record) {
 		return record == null ? null : new RMTask(record, getTypes());
 	}
@@ -2169,6 +2409,22 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 		MetadataSchemaType type = userTask.schemaType();
 		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
 		return wrapRMTasks(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public Iterator<RMTask> rMTaskIterator(LogicalSearchCondition condition) {
+		return searchIterator(from(userTask.schemaType()).whereAllConditions(asList(condition)), this::wrapRMTask);
+	}
+
+	public Stream<RMTask> rMTaskStream(LogicalSearchCondition condition) {
+		return searchIterator(from(userTask.schemaType()).whereAllConditions(asList(condition)), this::wrapRMTask).stream();
+	}
+
+	public Iterator<RMTask> rMTaskIterator(LogicalSearchQuery query) {
+		return searchIterator(query, this::wrapRMTask);
+	}
+
+	public Stream<RMTask> rMTaskStream(LogicalSearchQuery query) {
+		return searchIterator(query, this::wrapRMTask).stream();
 	}
 
 	public RMTask getRMTask(String id) {
@@ -2193,6 +2449,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_userTask_default userTask
 			= new SchemaTypeShortcuts_userTask_default("userTask_default");
+
 	public class SchemaTypeShortcuts_userTask_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_userTask_default(String schemaCode) {
 			super(schemaCode);

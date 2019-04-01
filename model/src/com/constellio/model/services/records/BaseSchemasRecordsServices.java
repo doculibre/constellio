@@ -1,5 +1,7 @@
 package com.constellio.model.services.records;
 
+import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
+import com.constellio.data.utils.BatchBuilderSearchResponseIterator;
 import com.constellio.data.utils.Factory;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
@@ -12,13 +14,18 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.SchemaUtils;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.AbstractList;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.function.Function;
+import java.util.stream.Stream;
 
 import static com.constellio.model.services.records.RecordUtils.changeSchemaTypeAccordingToTypeLinkedSchema;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -209,6 +216,90 @@ public class BaseSchemasRecordsServices implements Serializable {
 	public Record getByCode(MetadataSchemaType schemaType, String code) {
 		Metadata metadata = schemaType.getDefaultSchema().getMetadata(Schemas.CODE.getLocalCode());
 		return modelLayerFactory.newRecordServices().getRecordByMetadata(metadata, code);
+	}
+
+	protected <T> Stream<T> streamFromCache(MetadataSchemaType schemaType, Function<Record, T> wrapperFunction) {
+		List<Record> records = modelLayerFactory.newRecordServices().getRecordsCaches()
+				.getCache(schemaType.getCollection()).getAllValues(schemaType.getCode());
+		List<T> wrappedList = lazyWrapListItems(records, wrapperFunction);
+		return wrappedList.stream();
+	}
+
+	protected <T> Iterator<T> iterateFromCache(MetadataSchemaType schemaType, Function<Record, T> wrapperFunction) {
+		List<Record> records = modelLayerFactory.newRecordServices().getRecordsCaches()
+				.getCache(schemaType.getCollection()).getAllValues(schemaType.getCode());
+		List<T> wrappedList = lazyWrapListItems(records, wrapperFunction);
+		return wrappedList.iterator();
+	}
+
+	protected <T> SearchResponseIterator<T> wrapperIterator(SearchResponseIterator<Record> recordIterator,
+															Function<Record, T> wrapperFunction) {
+		return new SearchResponseIterator<T>() {
+			@Override
+			public long getNumFound() {
+				return recordIterator.getNumFound();
+			}
+
+			@Override
+			public SearchResponseIterator<List<T>> inBatches() {
+				final SearchResponseIterator iterator = this;
+				return new BatchBuilderSearchResponseIterator<T>(iterator, 10000) {
+
+					@Override
+					public long getNumFound() {
+						return iterator.getNumFound();
+					}
+				};
+			}
+
+			@Override
+			public boolean hasNext() {
+				return recordIterator.hasNext();
+			}
+
+			@Override
+			public T next() {
+				return wrapperFunction.apply(recordIterator.next());
+			}
+
+			@Override
+			public void remove() {
+				recordIterator.remove();
+			}
+		};
+	}
+
+	protected <T> SearchResponseIterator<T> searchIterator(LogicalSearchQuery query,
+														   Function<Record, T> wrapperFunction) {
+		return wrapperIterator(getModelLayerFactory().newSearchServices().recordsIterator(query), wrapperFunction);
+	}
+
+	protected <T> SearchResponseIterator<T> searchIterator(LogicalSearchCondition condition,
+														   Function<Record, T> wrapperFunction) {
+		return wrapperIterator(getModelLayerFactory().newSearchServices().recordsIterator(condition), wrapperFunction);
+	}
+
+
+	protected <T> Stream<T> streamResults(LogicalSearchQuery query, Function<Record, T> wrapperFunction) {
+		return searchIterator(query, wrapperFunction).stream();
+	}
+
+	protected <T> Stream<T> streamResults(LogicalSearchCondition condition, Function<Record, T> wrapperFunction) {
+		return searchIterator(condition, wrapperFunction).stream();
+	}
+
+	protected <T> List<T> lazyWrapListItems(List<Record> records, Function<Record, T> wrapperFunction) {
+		return new AbstractList<T>() {
+			@Override
+			public T get(int index) {
+				return wrapperFunction.apply(records.get(index));
+			}
+
+			@Override
+			public int size() {
+				return records.size();
+			}
+		};
 	}
 
 	public static abstract class AbstractSchemaTypeShortcuts {

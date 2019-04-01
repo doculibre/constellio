@@ -5,96 +5,80 @@ import com.constellio.data.extensions.AfterQueryParams;
 import com.constellio.data.extensions.BigVaultServerExtension;
 
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 
 public class QueryCounter extends BigVaultServerExtension {
 
-	private QueryCounterFilter filter;
-	private AtomicInteger counter = new AtomicInteger();
+	private Function<AfterQueryParams, Boolean> filter;
+	private AtomicInteger queryCounter = new AtomicInteger();
+	private AtomicInteger returnedResultsCounter = new AtomicInteger();
 
 	public QueryCounter(DataLayerFactory dataLayerFactory, final String name) {
-		this.filter = new QueryCounterFilter() {
-			@Override
-			public boolean isCounted(AfterQueryParams params) {
-				return params.getQueryName() != null && params.getQueryName().equals(name);
-			}
-		};
+		this.filter = params -> params.getQueryName() != null && params.getQueryName().equals(name);
 		dataLayerFactory.getExtensions().getSystemWideExtensions().bigVaultServerExtension.add(this);
 	}
 
-	public QueryCounter(DataLayerFactory dataLayerFactory, QueryCounterFilter filter) {
+	public QueryCounter(DataLayerFactory dataLayerFactory, Function<AfterQueryParams, Boolean> filter) {
 		this.filter = filter;
 		dataLayerFactory.getExtensions().getSystemWideExtensions().bigVaultServerExtension.add(this);
 	}
 
 	@Override
 	public void afterQuery(AfterQueryParams params) {
-		if (filter.isCounted(params)) {
-			counter.incrementAndGet();
+		if (filter.apply(params)) {
+			queryCounter.incrementAndGet();
+			returnedResultsCounter.addAndGet(params.getReturnedResultsCount());
 		}
 	}
 
 	public int newQueryCalls() {
-		int calls = counter.get();
-		counter.set(0);
+		int calls = queryCounter.get();
+		queryCounter.set(0);
+		return calls;
+	}
+
+	public int newQueryReturnedResultsCount() {
+		int calls = returnedResultsCounter.get();
+		returnedResultsCounter.set(0);
 		return calls;
 	}
 
 	public void reset() {
-		counter.set(0);
+		queryCounter.set(0);
+		returnedResultsCounter.set(0);
 	}
 
-	public interface QueryCounterFilter {
-
-		boolean isCounted(AfterQueryParams params);
-	}
-
-	public static QueryCounterFilter ACCEPT_ALL = new QueryCounterFilter() {
-
-		@Override
-		public boolean isCounted(AfterQueryParams params) {
-			return true;
-		}
-	};
-
-	public static QueryCounterFilter ON_SCHEMA_TYPES(final String... schemaTypes) {
-		return new QueryCounterFilter() {
-
-			@Override
-			public boolean isCounted(AfterQueryParams params) {
-				for (String fq : params.getSolrParams().getParams("fq")) {
-					for (String schemaType : schemaTypes) {
-						if (fq.equals("schema_s:" + schemaType + "_*")) {
-							return true;
-						}
-
-						if (fq.equals("schema_s:" + schemaType)) {
-							return true;
-						}
-
+	public static Function<AfterQueryParams, Boolean> ON_SCHEMA_TYPES(final String... schemaTypes) {
+		return params -> {
+			for (String fq : params.getSolrParams().getParams("fq")) {
+				for (String schemaType : schemaTypes) {
+					if (fq.equals("schema_s:" + schemaType + "_*")) {
+						return true;
 					}
+
+					if (fq.equals("schema_s:" + schemaType)) {
+						return true;
+					}
+
 				}
-				return false;
 			}
+			return false;
 		};
 	}
 
-	public static QueryCounterFilter ON_COLLECTION(final String collection) {
-		return new QueryCounterFilter() {
-
-			@Override
-			public boolean isCounted(AfterQueryParams params) {
-				for (String fq : params.getSolrParams().getParams("fq")) {
-					if (fq.contains("collection_s:" + collection)) {
-						return true;
-					}
-
-					if (fq.contains("collection_s:" + collection)) {
-						return true;
-					}
-
+	public static Function<AfterQueryParams, Boolean> ON_COLLECTION(final String collection) {
+		return params -> {
+			for (String fq : params.getSolrParams().getParams("fq")) {
+				if (fq.contains("collection_s:" + collection)) {
+					return true;
 				}
-				return false;
+
+				if (fq.contains("collection_s:" + collection)) {
+					return true;
+				}
+
 			}
+			return false;
 		};
 	}
 
