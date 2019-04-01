@@ -7,6 +7,7 @@ import java.util.List;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
@@ -173,7 +174,7 @@ public class NewFileComponent extends CustomComponent {
 
 	void extensionSet(String value) {
 		if (value != null) {
-			setTemplateFieldValue(null);
+			setTemplateFieldValue((Content) null);
 		}
 	}
 
@@ -216,12 +217,27 @@ public class NewFileComponent extends CustomComponent {
 		return (Content) templateField.getValue();
 	}
 
+	public ContentVersionVO getTemplateVO() {
+		Content content = (Content) templateField.getValue();
+
+		if (content == null) {
+			return null;
+		}
+
+		return presenter.getContentVO(content);
+	}
+
 	public void setExtensionFieldValue(String value) {
 		extensionField.setValue(value);
 	}
 
 	public void setTemplateFieldValue(Content value) {
 		templateField.setValue(value);
+	}
+
+	public void setTemplateFieldValue(ContentVersionVO value) {
+		Content content = presenter.getContentFromVO(value);
+		setTemplateFieldValue(content);
 	}
 
 	public String getDocumentTypeId() {
