@@ -27,6 +27,11 @@ $(document).ready(function() {
                     var canvas = bpmnViewer.get('canvas');
                     // zoom to fit full viewport
                     canvas.zoom('fit-viewport');
+
+	        	     $.post(selectionCallbackURL, {
+                        'bpmnResourceKey': bpmnResourceKey,
+                        'ready':  true
+                    });
                 });
             }
 
