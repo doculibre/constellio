@@ -5,6 +5,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.ValueListItem;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 
+import java.util.Locale;
 import java.util.Map;
 
 public class UserFunction extends ValueListItem {
@@ -23,6 +24,12 @@ public class UserFunction extends ValueListItem {
 	@Override
 	public UserFunction setTitle(String title) {
 		super.setTitle(title);
+		return this;
+	}
+
+	@Override
+	public UserFunction setTitle(Locale locale, String title) {
+		super.setTitle(locale, title);
 		return this;
 	}
 

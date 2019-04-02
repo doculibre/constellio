@@ -381,6 +381,7 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 
 				((InstallableModule) module).start(collection, appLayerFactory);
 			} catch (Throwable e) {
+				e.printStackTrace();
 				if (isPluginModule(module)) {
 					constellioPluginManager.handleModuleNotStartedCorrectly(module, collection, e);
 					return false;

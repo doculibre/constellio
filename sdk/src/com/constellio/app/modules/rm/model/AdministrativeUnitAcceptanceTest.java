@@ -1,12 +1,9 @@
 package com.constellio.app.modules.rm.model;
 
 import com.constellio.app.modules.rm.RMTestRecords;
-import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.UserFunction;
-import com.constellio.data.utils.Provider;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.records.RecordServices;
@@ -14,8 +11,6 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.util.Iterator;
 
 import static com.constellio.app.modules.rm.services.UserFunctionChecker.ParentAdministrativeUnitFunctionsInclusion.EXCLUDE_PARENT_USER_FUNCTIONS;
 import static com.constellio.app.modules.rm.services.UserFunctionChecker.ParentAdministrativeUnitFunctionsInclusion.INCLUDE_PARENT_USER_FUNCTIONS;
@@ -183,19 +178,4 @@ public class AdministrativeUnitAcceptanceTest extends ConstellioTest {
 				.extractingMetadata(User.USERNAME).containsOnly(gandalf);
 	}
 
-	@Test
-	public void givenSomeUsersWith()
-			throws Exception {
-
-		final User user = users.robinIn(zeCollection);
-		Iterator<AdministrativeUnit> administrativeUnitIterator = rm.streamAdministrativeUnitsAndFilter(new Provider<AdministrativeUnit, Boolean>() {
-			@Override
-			public Boolean get(AdministrativeUnit admUnit) {
-				return user.hasReadAccess().specificallyOn(admUnit) &&
-					   user.has(RMPermissionsTo.MANAGE_CONTAINERS).on(admUnit);
-			}
-		});
-
-
-	}
 }

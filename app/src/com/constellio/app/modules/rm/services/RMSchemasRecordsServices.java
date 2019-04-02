@@ -25,7 +25,6 @@ import com.constellio.app.modules.rm.wrappers.type.YearType;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.pages.base.SessionContextProvider;
 import com.constellio.data.utils.ImpossibleRuntimeException;
-import com.constellio.data.utils.LazyIterator;
 import com.constellio.data.utils.Provider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.DocumentListPDF;
@@ -80,7 +79,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -1208,83 +1206,80 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 	 *
 	 * @return
 	 */
-	public Iterator<AdministrativeUnit> streamAdministrativeUnitsAndFilter(
+	public List<AdministrativeUnit> getAdministrativeUnitsUsingFilter(
 			final Provider<AdministrativeUnit, Boolean> provider) {
-		final Iterator<AdministrativeUnit> stream = getAllAdministrativeUnits().iterator();
-		return new LazyIterator<AdministrativeUnit>() {
-			@Override
-			protected AdministrativeUnit getNextOrNull() {
-				while (stream.hasNext()) {
-					AdministrativeUnit administrativeUnit = stream.next();
-					if (provider.get(administrativeUnit)) {
-						return administrativeUnit;
-					}
-				}
-				return null;
+
+		List<AdministrativeUnit> administrativeUnits = new ArrayList<>();
+
+		for (AdministrativeUnit au : getAllAdministrativeUnitsInUnmodifiableState()) {
+			if (provider.get(au)) {
+				administrativeUnits.add(au);
 			}
-		};
+		}
+
+		return administrativeUnits;
 
 	}
 
-//	public List<AdministrativeUnit> getAdministrativeUnitsOfUser(User user,
-//																 boolean includeAuthsOfParentAdministrativeUnits,
-//																 Provider<SecurityModelAuthorization, Boolean> filter) {
-//
-//		List<SecurityModelAuthorization> authorizations = getModelLayerFactory().newRecordServices()
-//				.getSecurityModel(user.getCollection()).getAuthorizationsToPrincipal(user.getId(), true);
-//
-//		Set<String> foundIds = new HashSet<>();
-//
-//		for (SecurityModelAuthorization authorization : authorizations) {
-//			if (AdministrativeUnit.SCHEMA_TYPE.equals(authorization.getDetails().getTargetSchemaType())
-//				&& filter.get(authorization)) {
-//				foundIds.add(authorization.getDetails().getId());
-//			}
-//		}
-//
-//
-//		List<AdministrativeUnit> returnedAdmUnits = new ArrayList<>();
-//		for (AdministrativeUnit admUnit : getAllAdministrativeUnitsInUnmodifiableState()) {
-//
-//			if (foundIds.contains(admUnit.getId())
-//				|| (includeAuthsOfParentAdministrativeUnits && containsAny(admUnit.getAncestors(), foundIds))) {
-//				returnedAdmUnits.add(admUnit);
-//			}
-//		}
-//
-//		return returnedAdmUnits;
-//	}
-//
-//	public List<AdministrativeUnit> getAdministrativeUnitsOfUser(User user,
-//																 boolean includeAuthsOfParentAdministrativeUnits,
-//																 Provider<AdministrativeUnit, Boolean> filter) {
-//
-//		List<SecurityModelAuthorization> authorizations = getModelLayerFactory().newRecordServices()
-//				.getSecurityModel(user.getCollection()).getAuthorizationsToPrincipal(user.getId(), true);
-//
-//		Set<String> foundIds = new HashSet<>();
-//
-//		for (SecurityModelAuthorization authorization : authorizations) {
-//			if (AdministrativeUnit.SCHEMA_TYPE.equals(authorization.getDetails().getTargetSchemaType())
-//				&& filter.get(authorization)) {
-//				foundIds.add(authorization.getDetails().getId());
-//			}
-//		}
-//
-//
-//		List<AdministrativeUnit> returnedAdmUnits = new ArrayList<>();
-//		for (AdministrativeUnit admUnit : getAllAdministrativeUnitsInUnmodifiableState()) {
-//
-//
-//			user.h
-//
-//
-//			if (foundIds.contains(admUnit.getId())
-//				|| (includeAuthsOfParentAdministrativeUnits && containsAny(admUnit.getAncestors(), foundIds))) {
-//				returnedAdmUnits.add(admUnit);
-//			}
-//		}
-//
-//		return returnedAdmUnits;
-//	}
+	//	public List<AdministrativeUnit> getAdministrativeUnitsOfUser(User user,
+	//																 boolean includeAuthsOfParentAdministrativeUnits,
+	//																 Provider<SecurityModelAuthorization, Boolean> filter) {
+	//
+	//		List<SecurityModelAuthorization> authorizations = getModelLayerFactory().newRecordServices()
+	//				.getSecurityModel(user.getCollection()).getAuthorizationsToPrincipal(user.getId(), true);
+	//
+	//		Set<String> foundIds = new HashSet<>();
+	//
+	//		for (SecurityModelAuthorization authorization : authorizations) {
+	//			if (AdministrativeUnit.SCHEMA_TYPE.equals(authorization.getDetails().getTargetSchemaType())
+	//				&& filter.get(authorization)) {
+	//				foundIds.add(authorization.getDetails().getId());
+	//			}
+	//		}
+	//
+	//
+	//		List<AdministrativeUnit> returnedAdmUnits = new ArrayList<>();
+	//		for (AdministrativeUnit admUnit : getAllAdministrativeUnitsInUnmodifiableState()) {
+	//
+	//			if (foundIds.contains(admUnit.getId())
+	//				|| (includeAuthsOfParentAdministrativeUnits && containsAny(admUnit.getAncestors(), foundIds))) {
+	//				returnedAdmUnits.add(admUnit);
+	//			}
+	//		}
+	//
+	//		return returnedAdmUnits;
+	//	}
+	//
+	//	public List<AdministrativeUnit> getAdministrativeUnitsOfUser(User user,
+	//																 boolean includeAuthsOfParentAdministrativeUnits,
+	//																 Provider<AdministrativeUnit, Boolean> filter) {
+	//
+	//		List<SecurityModelAuthorization> authorizations = getModelLayerFactory().newRecordServices()
+	//				.getSecurityModel(user.getCollection()).getAuthorizationsToPrincipal(user.getId(), true);
+	//
+	//		Set<String> foundIds = new HashSet<>();
+	//
+	//		for (SecurityModelAuthorization authorization : authorizations) {
+	//			if (AdministrativeUnit.SCHEMA_TYPE.equals(authorization.getDetails().getTargetSchemaType())
+	//				&& filter.get(authorization)) {
+	//				foundIds.add(authorization.getDetails().getId());
+	//			}
+	//		}
+	//
+	//
+	//		List<AdministrativeUnit> returnedAdmUnits = new ArrayList<>();
+	//		for (AdministrativeUnit admUnit : getAllAdministrativeUnitsInUnmodifiableState()) {
+	//
+	//
+	//			user.h
+	//
+	//
+	//			if (foundIds.contains(admUnit.getId())
+	//				|| (includeAuthsOfParentAdministrativeUnits && containsAny(admUnit.getAncestors(), foundIds))) {
+	//				returnedAdmUnits.add(admUnit);
+	//			}
+	//		}
+	//
+	//		return returnedAdmUnits;
+	//	}
 }

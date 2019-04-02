@@ -182,7 +182,7 @@ public class RecordUtils {
 		return idList;
 	}
 
-	public List<String> toWrappedRecordIdsList(List<? extends RecordWrapper> records) {
+	public static List<String> toWrappedRecordIdsList(List<? extends RecordWrapper> records) {
 		List<String> idList = new ArrayList<>();
 
 		for (RecordWrapper record : records) {
