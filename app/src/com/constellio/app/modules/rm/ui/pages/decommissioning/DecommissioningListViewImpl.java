@@ -780,7 +780,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 	}
 
 	private BaseTable buildFolderTable(List<FolderDetailVO> folders, boolean containerizable) {
-		BeanItemContainer<FolderDetailVO> container = new BeanItemContainer<FolderDetailVO>(FolderDetailVO.class, folders) {
+		RefreshableBeanItemContainer<FolderDetailVO> container = new RefreshableBeanItemContainer<FolderDetailVO>(FolderDetailVO.class, folders) {
 			@Override
 			protected Collection<?> getSortablePropertyIds() {
 				List<Object> sortablePropertyIds = new ArrayList<>(super.getSortablePropertyIds());
@@ -833,7 +833,13 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 		for (Object itemId : itemIds) {
 			((FolderDetailVO) itemId).setSelected(true);
 		}
-		foldersTable.refreshRowCache();
+
+		Container container = foldersTable.getContainerDataSource();
+		if(container instanceof RefreshableBeanItemContainer) {
+			((RefreshableBeanItemContainer) container).fireContainerPropertySetChange();
+		} else {
+			foldersTable.refreshRowCache();
+		}
 	}
 
 	private void selectAllFolders(BaseTable foldersTable) {
@@ -841,7 +847,13 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 		for (Object itemId : itemIds) {
 			((FolderDetailVO) itemId).setSelected(true);
 		}
-		foldersTable.refreshRowCache();
+
+		Container container = foldersTable.getContainerDataSource();
+		if(container instanceof RefreshableBeanItemContainer) {
+			((RefreshableBeanItemContainer) container).fireContainerPropertySetChange();
+		} else {
+			foldersTable.refreshRowCache();
+		}
 	}
 
 	private DefaultItemSorter buildItemSorter() {
@@ -1121,5 +1133,25 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 	@Override
 	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
 		return new DecommissionBreadcrumbTrail(getTitle(), null, null, null, this);
+	}
+
+	public class RefreshableBeanItemContainer<BEANTYPE> extends BeanItemContainer {
+
+		public RefreshableBeanItemContainer(Class type) throws IllegalArgumentException {
+			super(type);
+		}
+
+		public RefreshableBeanItemContainer(Collection collection) throws IllegalArgumentException {
+			super(collection);
+		}
+
+		public RefreshableBeanItemContainer(Class type, Collection collection) throws IllegalArgumentException {
+			super(type, collection);
+		}
+
+		@Override
+		public void fireContainerPropertySetChange() {
+			super.fireContainerPropertySetChange();
+		}
 	}
 }
