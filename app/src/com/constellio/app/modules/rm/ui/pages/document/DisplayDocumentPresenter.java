@@ -35,6 +35,7 @@ import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.records.wrappers.User;
@@ -468,7 +469,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		document.addFavorite(cart.getId());
 		try {
 			recordServices().execute(new Transaction(cart.getWrappedRecord()).setUser(getCurrentUser()));
-			recordServices().update(document);
+			recordServices().update(document.getWrappedRecord(), RecordUpdateOptions.validationExceptionSafeOptions());
 			view.showMessage($("DocumentActionsComponent.addedToCart"));
 		} catch (RecordServicesException e) {
 			e.printStackTrace();
@@ -560,7 +561,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		} else {
 			document.addFavorite(getCurrentUser().getId());
 			try {
-				recordServices.update(document);
+				recordServices.update(document.getWrappedRecord(), RecordUpdateOptions.validationExceptionSafeOptions());
 			} catch (RecordServicesException e) {
 				e.printStackTrace();
 				throw new RuntimeException(e);

@@ -54,6 +54,7 @@ import com.constellio.model.entities.batchprocess.AsyncTask;
 import com.constellio.model.entities.batchprocess.AsyncTaskCreationRequest;
 import com.constellio.model.entities.enums.BatchProcessingMode;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
@@ -108,7 +109,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	public void itemRemovalRequested(RecordVO recordVO) {
 		Record record = recordVO.getRecord();
 		removeFromFavorite(record);
-		addOrUpdate(record);
+		addOrUpdate(record, RecordUpdateOptions.validationExceptionSafeOptions());
 		view.navigate().to(RMViews.class).cart(cartId);
 	}
 
@@ -124,6 +125,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		}
 		Transaction transaction = new Transaction();
 		transaction.setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
+		transaction.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
 		transaction.addUpdate(records);
 		try {
 			recordServices().execute(transaction);
