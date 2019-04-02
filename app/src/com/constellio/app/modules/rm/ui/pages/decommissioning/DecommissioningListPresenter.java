@@ -688,8 +688,19 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		return decommissioningList;
 	}
 
-	public void setValidationStatus(FolderDetailVO folder, Boolean valid) {
+	public void setValidationStatusAndRefreshView(FolderDetailVO folder, Boolean valid) {
 		decommissioningList().getFolderDetail(folder.getFolderId()).setFolderExcluded(Boolean.FALSE.equals(valid));
+		addOrUpdate(decommissioningList().getWrappedRecord());
+		// TODO: Do not hard-refresh the whole page
+		refreshView();
+	}
+
+	public void setValidationStatusForSelectedFoldersAndRefreshView(List<FolderDetailVO> folders, boolean valid) {
+		for (FolderDetailVO folder : folders) {
+			if (folder.isSelected()) {
+				decommissioningList().getFolderDetail(folder.getFolderId()).setFolderExcluded(Boolean.FALSE.equals(valid));
+			}
+		}
 		addOrUpdate(decommissioningList().getWrappedRecord());
 		// TODO: Do not hard-refresh the whole page
 		refreshView();

@@ -790,7 +790,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 		};
 		container.setItemSorter(buildItemSorter());
 		BaseTable table = new BaseTable("DecommissioningListView.folderTable", $("DecommissioningListView.folderDetails", container.size()), container);
-		table.setPageLength(container.size());
+		table.setPageLength(Math.min(5, container.size()));
 		table.setWidth("100%");
 
 		BaseTable tableGenerator = new FolderDetailTableGenerator(presenter, this, containerizable)
@@ -801,7 +801,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 				.displayingSort(presenter.shouldDisplaySort())
 				.displayingValidation(presenter.shouldDisplayValidation())
 				.displayingOrderNumber(true).attachTo(table);
-		tableGenerator.setPageLength(Math.min(25, container.size()));
+		tableGenerator.setPageLength(Math.min(5, container.size()));
 		return tableGenerator;
 	}
 
@@ -831,23 +831,17 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 	private void deselectAllFolders(BaseTable foldersTable) {
 		Collection<?> itemIds = foldersTable.getItemIds();
 		for (Object itemId : itemIds) {
-			FolderDetailTableGenerator folderDetailTableGenerator = (FolderDetailTableGenerator) foldersTable.getColumnGenerator(CHECKBOX);
-			Component checkBoxProperty = folderDetailTableGenerator.getCheckBox((FolderDetailVO) itemId);
-			if (checkBoxProperty != null) {
-				(((CheckBox) checkBoxProperty)).setValue(false);
-			}
+			((FolderDetailVO) itemId).setSelected(true);
 		}
+		foldersTable.refreshRowCache();
 	}
 
 	private void selectAllFolders(BaseTable foldersTable) {
 		Collection<?> itemIds = foldersTable.getItemIds();
 		for (Object itemId : itemIds) {
-			FolderDetailTableGenerator folderDetailTableGenerator = (FolderDetailTableGenerator) foldersTable.getColumnGenerator(CHECKBOX);
-			Component checkBoxProperty = folderDetailTableGenerator.getCheckBox((FolderDetailVO) itemId);
-			if (checkBoxProperty != null) {
-				(((CheckBox) checkBoxProperty)).setValue(true);
-			}
+			((FolderDetailVO) itemId).setSelected(true);
 		}
+		foldersTable.refreshRowCache();
 	}
 
 	private DefaultItemSorter buildItemSorter() {
@@ -979,11 +973,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 		Button excludeButton = new LinkButton($("DecommissioningListView.excludeButton")) {
 			@Override
 			public void buttonClick(ClickEvent event) {
-				for (FolderDetailVO folder : folders) {
-					if (folder.isSelected()) {
-						presenter.setValidationStatus(folder, false);
-					}
-				}
+				presenter.setValidationStatusForSelectedFoldersAndRefreshView(folders, false);
 			}
 		};
 		return excludeButton;
@@ -993,12 +983,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 		Button includeButton = new LinkButton($("DecommissioningListView.includeButton")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
-				for (FolderDetailVO folder : folders) {
-					if (folder.isSelected()) {
-						presenter.removeFromContainer(folder);
-						presenter.setValidationStatus(folder, true);
-					}
-				}
+				presenter.setValidationStatusForSelectedFoldersAndRefreshView(folders, true);
 			}
 
 		};
