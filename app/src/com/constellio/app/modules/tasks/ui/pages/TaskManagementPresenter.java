@@ -494,7 +494,7 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 	public void callAssignationExtension() {
 		if (rmModuleExtensions != null) {
 			for (TaskManagementPresenterExtension extension : rmModuleExtensions.getTaskManagementPresenterExtensions()) {
-				extension.assignAvailableTasks(getCurrentUser());
+				extension.automaticallyAssignAvailableTasks(getCurrentUser());
 			}
 		}
 	}
