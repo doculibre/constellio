@@ -1,14 +1,27 @@
 package com.constellio.app.extensions;
 
+import static com.constellio.app.api.extensions.GenericRecordPageExtension.OTHERS_TAB;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+
 import com.constellio.app.api.extensions.BatchProcessingExtension;
 import com.constellio.app.api.extensions.BatchProcessingExtension.AddCustomLabelsParams;
 import com.constellio.app.api.extensions.BatchProcessingExtension.IsMetadataDisplayedWhenModifiedParams;
 import com.constellio.app.api.extensions.BatchProcessingExtension.IsMetadataModifiableParams;
 import com.constellio.app.api.extensions.DocumentViewButtonExtension;
 import com.constellio.app.api.extensions.DownloadContentVersionLinkExtension;
+import com.constellio.app.api.extensions.FieldBindingExtention;
 import com.constellio.app.api.extensions.GenericRecordPageExtension;
 import com.constellio.app.api.extensions.LabelTemplateExtension;
 import com.constellio.app.api.extensions.ListSchemaExtention;
+import com.constellio.app.api.extensions.MetadataDisplayCustomValueExtention;
 import com.constellio.app.api.extensions.MetadataFieldExtension;
 import com.constellio.app.api.extensions.PageExtension;
 import com.constellio.app.api.extensions.PagesComponentsExtension;
@@ -26,12 +39,15 @@ import com.constellio.app.api.extensions.params.AvailableActionsParam;
 import com.constellio.app.api.extensions.params.CollectionSystemCheckParams;
 import com.constellio.app.api.extensions.params.DecorateMainComponentAfterInitExtensionParams;
 import com.constellio.app.api.extensions.params.DocumentViewButtonExtensionParam;
+import com.constellio.app.api.extensions.params.FieldBindingExtentionParam;
 import com.constellio.app.api.extensions.params.FilterCapsuleParam;
 import com.constellio.app.api.extensions.params.GetAvailableExtraMetadataAttributesParam;
 import com.constellio.app.api.extensions.params.GetSearchResultSimpleTableWindowComponentParam;
 import com.constellio.app.api.extensions.params.IsBuiltInMetadataAttributeModifiableParam;
 import com.constellio.app.api.extensions.params.ListSchemaExtraCommandParams;
 import com.constellio.app.api.extensions.params.ListSchemaExtraCommandReturnParams;
+import com.constellio.app.api.extensions.params.MetadataDisplayCustomValueExtentionParams;
+import com.constellio.app.api.extensions.params.MetadataFieldExtensionParams;
 import com.constellio.app.api.extensions.params.OnWriteRecordParams;
 import com.constellio.app.api.extensions.params.PagesComponentsExtensionParams;
 import com.constellio.app.api.extensions.params.RecordFieldFactoryExtensionParams;
@@ -62,6 +78,7 @@ import com.constellio.app.extensions.records.RecordNavigationExtension;
 import com.constellio.app.extensions.records.params.BuildRecordVOParams;
 import com.constellio.app.extensions.records.params.GetDynamicFieldMetadatasParams;
 import com.constellio.app.extensions.records.params.GetIconPathParams;
+import com.constellio.app.extensions.records.params.IsMetadataSpecialCaseToNotBeShownParams;
 import com.constellio.app.extensions.records.params.IsMetadataVisibleInRecordFormParams;
 import com.constellio.app.extensions.sequence.AvailableSequence;
 import com.constellio.app.extensions.sequence.AvailableSequenceForRecordParams;
@@ -101,22 +118,11 @@ import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Field;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-
-import static com.constellio.app.api.extensions.GenericRecordPageExtension.OTHERS_TAB;
-
 public class AppLayerCollectionExtensions {
 
 	//------------ Extension points -----------
 
-	public Map<String, ModuleExtensions> moduleExtensionsMap = new HashMap<>();
+	private Map<String, ModuleExtensions> moduleExtensionsMap = new HashMap<>();
 
 	public VaultBehaviorsList<PageExtension> pageAccessExtensions = new VaultBehaviorsList<>();
 
@@ -164,6 +170,10 @@ public class AppLayerCollectionExtensions {
 
 	public VaultBehaviorsList<MetadataFieldExtension> metadataFieldExtensions = new VaultBehaviorsList<>();
 
+	public VaultBehaviorsList<MetadataDisplayCustomValueExtention> metadataDisplayCustomValueExtentions = new VaultBehaviorsList<>();
+
+	public VaultBehaviorsList<FieldBindingExtention> fieldBindingExtentions = new VaultBehaviorsList<>();
+
 
 	//Key : schema type code
 	//Values : record's code
@@ -171,6 +181,10 @@ public class AppLayerCollectionExtensions {
 
 	public <T extends ModuleExtensions> T forModule(String moduleId) {
 		return (T) moduleExtensionsMap.get(moduleId);
+	}
+
+	public void registerModuleExtensionsPoint(String moduleId, ModuleExtensions extensions) {
+		moduleExtensionsMap.put(moduleId, extensions);
 	}
 
 	//----------------- Callers ---------------
@@ -608,6 +622,17 @@ public class AppLayerCollectionExtensions {
 		});
 	}
 
+	public boolean isMetadataSpecialCaseToNotBeShown(
+			final IsMetadataSpecialCaseToNotBeShownParams isMetadataSpecialCaseToNotBeShownParams) {
+		return ExtensionUtils.getBooleanValue(recordAppExtensions, false, new BooleanCaller<RecordAppExtension>() {
+			@Override
+			public ExtensionBooleanResult call(RecordAppExtension extension) {
+				return extension.isMetadataSpecialCaseToNotBeShown(isMetadataSpecialCaseToNotBeShownParams);
+			}
+		});
+	}
+
+
 	public List<String> getDynamicFieldMetadatas(GetDynamicFieldMetadatasParams params) {
 		List<String> dynamicFieldMetadatas = new ArrayList<>();
 		for (RecordAppExtension recordAppExtension : recordAppExtensions) {
@@ -665,14 +690,27 @@ public class AppLayerCollectionExtensions {
 		return getDefaultDisplayForReference(id);
 	}
 
-	public Field<?> getFieldForMetadata(MetadataVO metadataVO) {
+	public Field<?> getMetadataField(MetadataFieldExtensionParams metadataFieldExtensionParams) {
 		for (MetadataFieldExtension extension : metadataFieldExtensions) {
-			Field<?> component = extension.getMetadataField(metadataVO);
+			Field<?> component = extension.getMetadataField(metadataFieldExtensionParams);
 			if (component != null) {
 				return component;
 			}
 		}
-		return new MetadataFieldFactory().build(metadataVO);
+		return new MetadataFieldFactory().build(metadataFieldExtensionParams.getMetadataVO());
+	}
+
+	public Object getMetadataDisplayCustomValueExtention(
+			MetadataDisplayCustomValueExtentionParams metadataDisplayCustomValueExtentionParams) {
+		Object valueFound = null;
+		for (MetadataDisplayCustomValueExtention metadataDisplayCustomValueExtention : metadataDisplayCustomValueExtentions) {
+			valueFound = metadataDisplayCustomValueExtention.getCustomDisplayValue(metadataDisplayCustomValueExtentionParams);
+			if (valueFound != null) {
+				break;
+			}
+		}
+
+		return valueFound;
 	}
 
 	public List<Button> getDocumentViewButtonExtension(Record record, User user) {
@@ -736,9 +774,10 @@ public class AppLayerCollectionExtensions {
 		return metadataFilter;
 	}
 
-	public boolean isMetadataAccessExclusionByPropertyFilter(RMSchemaTypesPageExtensionExclusionByPropertyParams rmSchemaTypesPageExtensionExclusionByPropertyParams) {
+	public boolean isMetadataAccessExclusionByPropertyFilter(
+			RMSchemaTypesPageExtensionExclusionByPropertyParams rmSchemaTypesPageExtensionExclusionByPropertyParams) {
 		for (SchemaTypesPageExtension schemaTypesPageExtension : schemaTypesPageExtensions) {
-			if(schemaTypesPageExtension.getMetadataAccessExclusionPropertyFilter(rmSchemaTypesPageExtensionExclusionByPropertyParams)) {
+			if (schemaTypesPageExtension.getMetadataAccessExclusionPropertyFilter(rmSchemaTypesPageExtensionExclusionByPropertyParams)) {
 				return true;
 			}
 		}
@@ -746,11 +785,17 @@ public class AppLayerCollectionExtensions {
 		return false;
 	}
 
-    public List<AdditionnalRecordField> getAdditionnalFields(RecordFieldsExtensionParams params) {
+	public List<AdditionnalRecordField> getAdditionnalFields(RecordFieldsExtensionParams params) {
 		List<AdditionnalRecordField> additionnalFields = new ArrayList<>();
-		for(PagesComponentsExtension extension: pagesComponentsExtensions) {
+		for (PagesComponentsExtension extension : pagesComponentsExtensions) {
 			additionnalFields.addAll(extension.getAdditionnalFields(params));
 		}
 		return additionnalFields;
     }
+
+	public void fieldBindingExtentions(FieldBindingExtentionParam fieldBindingExtentionParam) {
+		for (FieldBindingExtention fieldBindingExtention : fieldBindingExtentions) {
+			fieldBindingExtention.baseFormFieldBinding(fieldBindingExtentionParam);
+		}
+	}
 }

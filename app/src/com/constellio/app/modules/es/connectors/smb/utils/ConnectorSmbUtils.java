@@ -25,7 +25,7 @@ public class ConnectorSmbUtils {
 	 */
 	public boolean isAccepted(String url, ConnectorSmbInstance connectorInstance) {
 		SmbRetrievalConfiguration smbRetrievalConfiguration = new SmbRetrievalConfiguration(connectorInstance.getSeeds(), connectorInstance.getInclusions(),
-				connectorInstance.getExclusions(), connectorInstance.isSkipShareAccessControl());
+				connectorInstance.getExclusions(), connectorInstance.isSkipShareAccessControl(), connectorInstance.isSkipContentAndAcl());
 		return isAccepted(url, smbRetrievalConfiguration);
 	}
 
