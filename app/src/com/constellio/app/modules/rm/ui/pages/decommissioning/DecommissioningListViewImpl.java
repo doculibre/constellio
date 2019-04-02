@@ -790,7 +790,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 		};
 		container.setItemSorter(buildItemSorter());
 		BaseTable table = new BaseTable("DecommissioningListView.folderTable", $("DecommissioningListView.folderDetails", container.size()), container);
-		table.setPageLength(Math.min(5, container.size()));
+		table.setPageLength(container.size());
 		table.setWidth("100%");
 
 		BaseTable tableGenerator = new FolderDetailTableGenerator(presenter, this, containerizable)
@@ -801,7 +801,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 				.displayingSort(presenter.shouldDisplaySort())
 				.displayingValidation(presenter.shouldDisplayValidation())
 				.displayingOrderNumber(true).attachTo(table);
-		tableGenerator.setPageLength(Math.min(5, container.size()));
+		tableGenerator.setPageLength(Math.min(25, container.size()));
 		return tableGenerator;
 	}
 
