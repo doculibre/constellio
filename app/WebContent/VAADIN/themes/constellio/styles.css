@@ -14377,6 +14377,10 @@ div.v-layout.v-horizontal.v-widget {
 	background-color: #fff;
 }
 
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .task-table .reference-display-link {
+	color: inherit;
+}
+
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .facet-box {
 	border: 1px solid #3a434d;
 	border-radius: 4px;

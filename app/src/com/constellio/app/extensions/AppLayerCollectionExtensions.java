@@ -174,6 +174,8 @@ public class AppLayerCollectionExtensions {
 
 	public VaultBehaviorsList<FieldBindingExtention> fieldBindingExtentions = new VaultBehaviorsList<>();
 
+	public VaultBehaviorsList<MetadataFieldExtension> workflowExecutionFieldExtensions = new VaultBehaviorsList<>();
+
 
 	//Key : schema type code
 	//Values : record's code
@@ -711,6 +713,14 @@ public class AppLayerCollectionExtensions {
 		}
 
 		return valueFound;
+	}
+
+	public Field<?> getFieldForMetadata() {
+		for (MetadataFieldExtension extension : workflowExecutionFieldExtensions) {
+			Field<?> component = extension.getMetadataField(null);
+				return component;
+		}
+		return null;
 	}
 
 	public List<Button> getDocumentViewButtonExtension(Record record, User user) {

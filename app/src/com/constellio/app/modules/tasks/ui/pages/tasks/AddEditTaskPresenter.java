@@ -99,6 +99,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 	String originalAssignedTo;
 
 	public static final String IS_INCLUSIVE_DECISION = "isInclusiveDecision";
+	public static final String INCLUSIVE_DECISION = "inclusiveDecision";
 
 	public AddEditTaskPresenter(AddEditTaskView view) {
 		super(view, Task.DEFAULT_SCHEMA);

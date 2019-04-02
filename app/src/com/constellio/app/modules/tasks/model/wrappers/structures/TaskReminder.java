@@ -2,10 +2,12 @@ package com.constellio.app.modules.tasks.model.wrappers.structures;
 
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.model.entities.schemas.ModifiableStructure;
+import com.constellio.model.entities.schemas.Schemas;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
 
 public class TaskReminder implements ModifiableStructure {
 	private boolean dirty;
@@ -100,6 +102,11 @@ public class TaskReminder implements ModifiableStructure {
 		return EqualsBuilder.reflectionEquals(this, obj, "dirty");
 	}
 
+	public boolean isRelativeToCreationDate() {
+		String relativeDateMetadataLocaleCode = getLocaleCode(relativeDateMetadataCode);
+		return relativeDateMetadataLocaleCode.equals(Schemas.CREATED_ON.getLocalCode());
+	}
+
 	public boolean isRelativeToStartDate() {
 		String relativeDateMetadataLocaleCode = getLocaleCode(relativeDateMetadataCode);
 		return relativeDateMetadataLocaleCode.equals(Task.START_DATE);
@@ -121,12 +128,17 @@ public class TaskReminder implements ModifiableStructure {
 		return relativeDateMetadataLocaleCode.equals(Task.DUE_DATE);
 	}
 
-	public LocalDate computeDate(LocalDate startDate, LocalDate endDate) {
+	public LocalDate computeDate(LocalDateTime creationDate, LocalDate startDate, LocalDate endDate) {
 		if (getFixedDate() != null) {
 			return getFixedDate();
 		}
 		LocalDate baseComputationDate;
-		if (isRelativeToStartDate()) {
+		if (isRelativeToCreationDate()) {
+			if (creationDate == null) {
+				return null;
+			}
+			baseComputationDate = creationDate.toLocalDate();
+		} else if (isRelativeToStartDate()) {
 			if (startDate == null) {
 				return null;
 			}

@@ -164,6 +164,16 @@ public class SDKPasswords {
 		return sdkPasswords.get("testSmtp.oldUsername");
 	}
 
+	public static String testIMAPExtractionPassword() {
+		loadCorrectIfRequired();
+		return sdkPasswords.get("testIMAPExtraction.password");
+	}
+
+	public static String testIMAPExtractionUsername() {
+		loadCorrectIfRequired();
+		return sdkPasswords.get("testIMAPExtraction.login");
+	}
+
 	//
 	// LDAP
 	public static String testLDAPServer() {
