@@ -1,5 +1,6 @@
 package com.constellio.model.services.search;
 
+import com.constellio.data.dao.dto.records.FacetPivotValue;
 import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.data.dao.dto.records.MoreLikeThisDTO;
 import com.constellio.data.dao.dto.records.QueryResponseDTO;
@@ -519,7 +520,8 @@ public class SearchServices {
 		params.add(CommonParams.ROWS, "" + query.getNumberOfRows());
 		params.add(CommonParams.START, "" + query.getStartRow());
 
-		if (!query.getFieldFacets().isEmpty() || !query.getQueryFacets().isEmpty()) {
+		if (!query.getFieldFacets().isEmpty() || !query.getQueryFacets().isEmpty() ||
+			!query.getFieldPivotFacets().isEmpty()) {
 			params.add(FacetParams.FACET, "true");
 			params.add(FacetParams.FACET_SORT, FacetParams.FACET_SORT_COUNT);
 		}
@@ -531,6 +533,9 @@ public class SearchServices {
 			if (query.getFieldFacetLimit() != 0) {
 				params.add(FacetParams.FACET_LIMIT, "" + query.getFieldFacetLimit());
 			}
+		}
+		if (!query.getFieldPivotFacets().isEmpty()) {
+			params.add(FacetParams.FACET_PIVOT, StringUtils.join(query.getFieldPivotFacets(), ","));
 		}
 		if (!query.getStatisticFields().isEmpty()) {
 			params.set(StatsParams.STATS, "true");
@@ -853,14 +858,15 @@ public class SearchServices {
 
 		Map<String, List<FacetValue>> fieldFacetValues = buildFacets(query.getFieldFacets(),
 				queryResponseDTO.getFieldFacetValues());
+		Map<String, List<FacetPivotValue>> facetPivotValues = queryResponseDTO.getFieldFacetPivotValues();
 		Map<String, Integer> queryFacetValues = withRemoveExclusions(queryResponseDTO.getQueryFacetValues());
 
 		Map<String, Map<String, Object>> statisticsValues = buildStats(query.getStatisticFields(),
 				queryResponseDTO.getFieldsStatistics());
-		SPEQueryResponse response = new SPEQueryResponse(fieldFacetValues, statisticsValues, queryFacetValues,
-				queryResponseDTO.getQtime(),
-				queryResponseDTO.getNumFound(), records, queryResponseDTO.getHighlights(),
-				queryResponseDTO.isCorrectlySpelt(), queryResponseDTO.getSpellCheckerSuggestions(), moreLikeThisResult);
+		SPEQueryResponse response = new SPEQueryResponse(fieldFacetValues, facetPivotValues, statisticsValues,
+				queryFacetValues, queryResponseDTO.getQtime(), queryResponseDTO.getNumFound(), records,
+				queryResponseDTO.getHighlights(), queryResponseDTO.isCorrectlySpelt(),
+				queryResponseDTO.getSpellCheckerSuggestions(), moreLikeThisResult);
 
 		if (query.getResultsProjection() != null) {
 			return query.getResultsProjection().project(query, response);

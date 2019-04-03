@@ -1,5 +1,6 @@
 package com.constellio.data.dao.services.bigVault;
 
+import com.constellio.data.dao.dto.records.FacetPivotValue;
 import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.data.dao.dto.records.MoreLikeThisDTO;
 import com.constellio.data.dao.dto.records.QueryResponseDTO;
@@ -28,6 +29,7 @@ import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.response.FacetField.Count;
 import org.apache.solr.client.solrj.response.FieldStatsInfo;
+import org.apache.solr.client.solrj.response.PivotField;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.client.solrj.response.SpellCheckResponse;
 import org.apache.solr.client.solrj.response.SpellCheckResponse.Collation;
@@ -49,6 +51,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -548,6 +551,7 @@ public class BigVaultRecordDao implements RecordDao {
 		}
 		Map<String, Map<String, List<String>>> highlights = response.getHighlighting();
 		Map<String, List<FacetValue>> fieldFacetValues = getFieldFacets(response);
+		Map<String, List<FacetPivotValue>> fieldFacetPivotValues = getFieldFacetPivots(response);
 		Map<String, Map<String, Object>> fieldsStatistics = getFieldsStats(response);
 		Map<String, Integer> facetQueries = response.getFacetQuery();
 
@@ -572,7 +576,7 @@ public class BigVaultRecordDao implements RecordDao {
 
 		long numfound = response.getResults() == null ? 0 : response.getResults().getNumFound();
 
-		return new QueryResponseDTO(documents, response.getQTime(), numfound, fieldFacetValues,
+		return new QueryResponseDTO(documents, response.getQTime(), numfound, fieldFacetValues, fieldFacetPivotValues,
 				fieldsStatistics, facetQueries, highlights, correctlySpelt, spellcheckerSuggestions, resultWithMoreLikeThis);
 	}
 
@@ -648,6 +652,24 @@ public class BigVaultRecordDao implements RecordDao {
 		}
 
 		return facetValues;
+	}
+
+	private Map<String, List<FacetPivotValue>> getFieldFacetPivots(QueryResponse response) {
+		Map<String, List<FacetPivotValue>> facetPivotValues = new LinkedHashMap<>();
+
+		if (response.getFacetPivot() != null) {
+			for (int i = 0; i < response.getFacetPivot().size(); i++) {
+				List<FacetPivotValue> fieldfacetPivotValues = new ArrayList<>();
+
+				List<PivotField> pivotFields = response.getFacetPivot().getVal(i);
+				for (PivotField pivotField : pivotFields) {
+					fieldfacetPivotValues.add(convertPivotFieldToFacetPivotValue(pivotField));
+				}
+				facetPivotValues.put(response.getFacetPivot().getName(i), fieldfacetPivotValues);
+			}
+		}
+
+		return facetPivotValues;
 	}
 
 	@Override
@@ -944,6 +966,24 @@ public class BigVaultRecordDao implements RecordDao {
 		} else {
 			return ((Number) fieldValue).doubleValue();
 		}
+	}
+
+	private FacetPivotValue convertPivotFieldToFacetPivotValue(PivotField pivotField) {
+		FacetPivotValue facetPivotValue = FacetPivotValue.builder()
+				.field(pivotField.getField())
+				.value(pivotField.getValue())
+				.count(pivotField.getCount())
+				.build();
+
+		if (pivotField.getPivot() != null && !pivotField.getPivot().isEmpty()) {
+			List<FacetPivotValue> facetPivotValues = new ArrayList<>();
+			for (PivotField nestedPivotField : pivotField.getPivot()) {
+				facetPivotValues.add(convertPivotFieldToFacetPivotValue(nestedPivotField));
+			}
+			facetPivotValue.setFacetPivotValues(facetPivotValues);
+		}
+
+		return facetPivotValue;
 	}
 
 	private boolean isSolrNullValue(Object fieldValue) {
