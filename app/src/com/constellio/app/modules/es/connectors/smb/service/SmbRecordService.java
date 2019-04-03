@@ -89,7 +89,6 @@ public class SmbRecordService {
 		}
 
 		String permissionHashValue = record.get(permissionHash);
-		permissionHashValue = StringUtils.defaultString(permissionHashValue);
 		Double sizeDouble = record.get(size);
 		double sizeValue = 0;
 		if (sizeDouble != null) {

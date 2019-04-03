@@ -20,10 +20,10 @@ import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
+import com.constellio.data.utils.BatchBuilderIterator;
 import com.constellio.data.utils.KeySetMap;
 import com.constellio.model.entities.records.ConditionnedActionExecutorInBatchBuilder;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -38,11 +38,21 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.apache.poi.ss.formula.functions.T;
+import org.apache.solr.client.solrj.SolrClient;
+import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.common.SolrInputDocument;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
@@ -52,7 +62,9 @@ public class RMMigrationTo8_2 implements MigrationScript {
 	private static final String FOLDERS = "folders";
 	private static final String DOCUMENTS = "documents";
 	private static final String CONTAINERS = "containers";
-	KeySetMap<String, String> FAVORITES_LIST_MAP = new KeySetMap<>();
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(RMMigrationTo8_2.class);
+
 	private static final String FOLDER_DECOMMISSIONING_DATE = "decommissioningDate";
 
 	@Override
@@ -63,29 +75,44 @@ public class RMMigrationTo8_2 implements MigrationScript {
 	@Override
 	public void migrate(String collection, MigrationResourcesProvider provider, AppLayerFactory appLayerFactory)
 			throws Exception {
-		new SchemaAlterationFor8_2a(collection, provider, appLayerFactory).migrate();
+
+		if (!appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection)
+				.getSchemaType(Folder.SCHEMA_TYPE).getDefaultSchema().hasMetadataWithCode(Folder.FAVORITES)) {
+
+			new SchemaAlterationFor8_2a(collection, provider, appLayerFactory).migrate();
+		}
 
 		ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
 		LogicalSearchQuery query = new LogicalSearchQuery(from(rm.cartSchema()).returnAll());
 
+		KeySetMap<String, String> foldersFavorites = new KeySetMap<>();
+		KeySetMap<String, String> documentsFavorites = new KeySetMap<>();
+		KeySetMap<String, String> containersFavorites = new KeySetMap<>();
+
 		for (Record record : searchServices.search(query)) {
 			Cart cart = rm.wrapCart(record);
 			if (cart.getMetadataSchemaTypes().hasMetadata(Cart.DEFAULT_SCHEMA + "_" + FOLDERS)) {
-				addToFavoritesList(cart.get(FOLDERS), cart.getId());
+				for (String recordId : cart.<List<String>>get(FOLDERS)) {
+					foldersFavorites.add(recordId, cart.getId());
+				}
 			}
 			if (cart.getMetadataSchemaTypes().hasMetadata(Cart.DEFAULT_SCHEMA + "_" + DOCUMENTS)) {
-				addToFavoritesList(cart.get(DOCUMENTS), cart.getId());
+				for (String recordId : cart.<List<String>>get(DOCUMENTS)) {
+					documentsFavorites.add(recordId, cart.getId());
+				}
 			}
 			if (cart.getMetadataSchemaTypes().hasMetadata(Cart.DEFAULT_SCHEMA + "_" + CONTAINERS)) {
-				addToFavoritesList(cart.get(CONTAINERS), cart.getId());
+				for (String recordId : cart.<List<String>>get(CONTAINERS)) {
+					containersFavorites.add(recordId, cart.getId());
+				}
 			}
 		}
 
-		modifyRecords(rm.folder.schemaType(), Folder.FAVORITES, modelLayerFactory, 1000);
-		modifyRecords(rm.document.schemaType(), Document.FAVORITES, modelLayerFactory, 100);
-		modifyRecords(rm.containerRecord.schemaType(), ContainerRecord.FAVORITES, modelLayerFactory, 1000);
+		modifyRecords(rm.folder.schemaType(), modelLayerFactory, foldersFavorites);
+		modifyRecords(rm.document.schemaType(), modelLayerFactory, documentsFavorites);
+		modifyRecords(rm.containerRecord.schemaType(), modelLayerFactory, containersFavorites);
 
 		new SchemaAlterationFor8_2b(collection, provider, appLayerFactory).migrate();
 
@@ -99,36 +126,74 @@ public class RMMigrationTo8_2 implements MigrationScript {
 
 	}
 
-	private void modifyRecords(final MetadataSchemaType metadataSchemaType, final String metadataCode,
-							   final ModelLayerFactory modelLayerFactory, int batch) {
-		ConditionnedActionExecutorInBatchBuilder conditionnedActionExecutorInBatchBuilder = onCondition(modelLayerFactory, from(metadataSchemaType).returnAll());
-		conditionnedActionExecutorInBatchBuilder.setBatchSize(batch);
-		conditionnedActionExecutorInBatchBuilder.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
-		conditionnedActionExecutorInBatchBuilder.modifyingRecordsWithoutImpactHandling(new ConditionnedActionExecutorInBatchBuilder.RecordScript() {
-			@Override
-			public void modifyRecord(Record record) {
-				Metadata metadata = modelLayerFactory.getMetadataSchemasManager().getSchemaOf(record).getMetadata(metadataCode);
-				if (FAVORITES_LIST_MAP.contains(record.getId())) {
-					List<String> favoritesList = new ArrayList<>();
-					for (String value : FAVORITES_LIST_MAP.get(record.getId())) {
-						favoritesList.add(value);
-					}
-					record.set(metadata, favoritesList);
+	private void modifyRecords(final MetadataSchemaType metadataSchemaType,
+							   final ModelLayerFactory modelLayerFactory, KeySetMap<String, String> favoritesList) {
+
+		LOGGER.info("Finding already migrated " + metadataSchemaType.getCode() + "s...");
+		Set<String> alreadyMigratedRecords = findAlreadyMigratedRecords(metadataSchemaType, modelLayerFactory);
+
+		Map<String, Set<String>> recordsCarts = favoritesList.getNestedMap();
+
+		BatchBuilderIterator<String> iterator = new BatchBuilderIterator<>(recordsCarts.keySet().iterator(), 10000);
+
+		int migratedCount = 0;
+		while (iterator.hasNext()) {
+			LOGGER.info(metadataSchemaType.getCode() + " migration : " + migratedCount + "/" + recordsCarts.size());
+			List<String> ids = iterator.next();
+
+			List<SolrInputDocument> inputDocuments = new ArrayList<>();
+
+			for (String id : ids) {
+				List<String> carts = new ArrayList<>(recordsCarts.get(id));
+				if (!alreadyMigratedRecords.contains(id)) {
+					SolrInputDocument inputDocument = new SolrInputDocument();
+					inputDocument.setField("id", id);
+
+					Map<String, Object> incrementalSet = new HashMap<>();
+					incrementalSet.put("set", carts);
+					inputDocument.setField("favorites_ss", incrementalSet);
+
+					inputDocuments.add(inputDocument);
+
+				}
+				migratedCount++;
+			}
+
+			if (!inputDocuments.isEmpty()) {
+				SolrClient solrClient = modelLayerFactory.getDataLayerFactory().newRecordDao().getBigVaultServer().getNestedSolrServer();
+				try {
+					solrClient.add(inputDocuments);
+					solrClient.commit(true, true, true);
+				} catch (SolrServerException | IOException e) {
+					throw new RuntimeException(e);
 				}
 			}
-		});
+
+
+		}
+		LOGGER.info(metadataSchemaType.getCode() + " migration : " + recordsCarts.size() + "/" + recordsCarts.size());
+
+	}
+
+	private Set<String> findAlreadyMigratedRecords(final MetadataSchemaType metadataSchemaType,
+												   final ModelLayerFactory modelLayerFactory) {
+
+		Set<String> alreadyMigratedRecords = new HashSet<>();
+		SearchServices searchServices = modelLayerFactory.newSearchServices();
+
+		Metadata favorites = metadataSchemaType.getDefaultSchema().getMetadata("favorites");
+		LogicalSearchQuery query = new LogicalSearchQuery(from(metadataSchemaType).where(favorites).<T>isNotNull());
+		Iterator<String> idsIterator = searchServices.recordsIdsIterator(query);
+		while (idsIterator.hasNext()) {
+			alreadyMigratedRecords.add(idsIterator.next());
+		}
+
+		return alreadyMigratedRecords;
 	}
 
 	public ConditionnedActionExecutorInBatchBuilder onCondition(ModelLayerFactory modelLayerFactory,
 																LogicalSearchCondition condition) {
 		return new ConditionnedActionExecutorInBatchBuilder(modelLayerFactory, condition);
-	}
-
-	public void addToFavoritesList(Object records, String cartId) {
-		for (String recordId : (List<String>) records) {
-			FAVORITES_LIST_MAP.add(recordId, cartId);
-		}
-
 	}
 
 	private class SchemaAlterationFor8_2a extends MetadataSchemasAlterationHelper {

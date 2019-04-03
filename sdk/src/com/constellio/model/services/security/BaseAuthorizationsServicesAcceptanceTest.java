@@ -903,6 +903,7 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 			recordServices.logicallyDelete(record, user);
 			recordServices.physicallyDelete(record, user);
 		}
+
 	}
 
 	protected AuthorizationModificationRequest authorizationOnRecord(String authorizationId, String recordId) {

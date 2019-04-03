@@ -1,5 +1,21 @@
 package com.constellio.app.modules.rm.ui.components.document.newFile;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.io.InputStream;
+import java.io.Reader;
+import java.io.StringReader;
+import java.util.Arrays;
+import java.util.Locale;
+
+import org.apache.commons.io.input.ReaderInputStream;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
@@ -17,21 +33,6 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.setups.Users;
-import org.apache.commons.io.input.ReaderInputStream;
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
-import java.io.InputStream;
-import java.io.Reader;
-import java.io.StringReader;
-import java.util.Arrays;
-import java.util.Locale;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 public class NewFilePresenterAcceptTest extends ConstellioTest {
 
@@ -41,7 +42,7 @@ public class NewFilePresenterAcceptTest extends ConstellioTest {
 	@Mock DocumentVO documentVO;
 	RMTestRecords rmRecords = new RMTestRecords(zeCollection);
 	RMSchemasRecordsServices schemasRecordsServices;
-	NewFilePresenter presenter;
+	NewFileWindowPresenter presenter;
 	SessionContext sessionContext;
 	RecordServices recordServices;
 	LocalDateTime now = new LocalDateTime();
@@ -74,7 +75,7 @@ public class NewFilePresenterAcceptTest extends ConstellioTest {
 		when(view.getConstellioFactories()).thenReturn(getConstellioFactories());
 		when(view.getSessionContext()).thenReturn(sessionContext);
 
-		presenter = new NewFilePresenter(view);
+		presenter = new NewFileWindowPresenter(view);
 	}
 
 	@Test

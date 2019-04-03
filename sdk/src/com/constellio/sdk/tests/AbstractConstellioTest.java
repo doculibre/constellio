@@ -863,7 +863,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		return new ModulesAndMigrationsTestFeatures(getCurrentTestSession().getFactoriesTestFeatures(), collection);
 	}
 
-	protected void givenTimeIs(final LocalDateTime localDateTime) {
+	public static void givenTimeIs(final LocalDateTime localDateTime) {
 		final LocalDate localDate = new LocalDate(localDateTime);
 		TimeProvider.setTimeProvider(new TimeProvider() {
 			@Override
@@ -878,7 +878,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		});
 	}
 
-	protected void givenTimeIs(final LocalDate localDate) {
+	public static void givenTimeIs(final LocalDate localDate) {
 		final LocalDateTime localDateTime = localDate.toDateMidnight().toDateTime().toLocalDateTime();
 		TimeProvider.setTimeProvider(new TimeProvider() {
 			@Override
@@ -893,7 +893,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		});
 	}
 
-	protected void givenActualTime() {
+	public static void givenActualTime() {
 		TimeProvider.setTimeProvider(new DefaultTimeProvider());
 	}
 

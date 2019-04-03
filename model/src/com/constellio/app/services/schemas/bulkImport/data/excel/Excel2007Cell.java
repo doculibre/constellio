@@ -33,12 +33,12 @@ public class Excel2007Cell implements ExcelCell {
 
 	@Override
 	public boolean isNotEmpty() {
-		return cell.getCellType() != Cell.CELL_TYPE_BLANK;
+		return cell.getCellType() != CellType.BLANK;
 	}
 
 	@Override
 	public boolean isDate() {
-		return cell.getCellType() == Cell.CELL_TYPE_NUMERIC && DateUtil.isCellDateFormatted(cell);
+		return cell.getCellType() == CellType.NUMERIC && DateUtil.isCellDateFormatted(cell);
 	}
 
 	@Override

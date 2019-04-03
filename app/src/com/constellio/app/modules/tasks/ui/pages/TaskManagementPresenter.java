@@ -1,8 +1,11 @@
 package com.constellio.app.modules.tasks.ui.pages;
 
 import com.constellio.app.api.extensions.params.UpdateComponentExtensionParams;
+import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.RMConfigs;
+import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.tasks.TasksPermissionsTo;
+import com.constellio.app.modules.tasks.extensions.TaskManagementPresenterExtension;
 import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflow;
 import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflowInstance;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
@@ -14,9 +17,7 @@ import com.constellio.app.modules.tasks.services.TasksSearchServices;
 import com.constellio.app.modules.tasks.ui.builders.TaskToVOBuilder;
 import com.constellio.app.modules.tasks.ui.components.TaskTable.TaskPresenter;
 import com.constellio.app.modules.tasks.ui.components.WorkflowTable.WorkflowPresenter;
-import com.constellio.app.modules.tasks.ui.components.window.QuickCompleteWindow;
 import com.constellio.app.modules.tasks.ui.entities.TaskVO;
-import com.constellio.app.modules.tasks.ui.pages.tasks.DisplayTaskPresenter;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -33,7 +34,6 @@ import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.structures.MapStringStringStructure;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.RecordUtils;
@@ -66,7 +66,6 @@ import static com.constellio.model.entities.records.wrappers.RecordWrapper.TITLE
 public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManagementView>
 		implements TaskPresenter, WorkflowPresenter {
 	public static final String TASK_MANAGEMENT_PRESENTER_PREVIOUS_TAB = "TaskManagementPresenterPreviousTab";
-
 	public static final String TASKS_ASSIGNED_BY_CURRENT_USER = "tasksAssignedByCurrentUser";
 	public static final String TASKS_NOT_ASSIGNED = "nonAssignedTasks";
 	public static final String TASKS_ASSIGNED_TO_CURRENT_USER = "tasksAssignedToCurrentUser";
@@ -79,6 +78,8 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 	private transient BetaWorkflowServices workflowServices;
 	private RecordVODataProvider provider;
 	private transient SearchServices searchServices;
+
+	private RMModuleExtensions rmModuleExtensions = appCollectionExtentions.forModule(ConstellioRMModule.ID);
 
 	public TaskManagementPresenter(TaskManagementView view) {
 		super(view, DEFAULT_SCHEMA);
@@ -181,11 +182,6 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 	}
 
 	@Override
-	public void completeButtonClicked(RecordVO record) {
-		view.navigate().to().editTask(record.getId(), true);
-	}
-
-	@Override
 	public void closeButtonClicked(RecordVO record) {
 		taskPresenterServices.closeTask(toRecord(record), getCurrentUser());
 		refreshCurrentTab();
@@ -250,6 +246,16 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 	}
 
 	@Override
+	public Task getTask(RecordVO recordVO) {
+		String originalSchemaCode = schemaPresenterUtils.getSchemaCode();
+		schemaPresenterUtils.setSchemaCode(recordVO.getSchemaCode());
+		Task task = tasksSchemasRecordsServices.wrapTask(toRecord(recordVO));
+		schemaPresenterUtils.setSchemaCode(originalSchemaCode);
+		return task;
+
+	}
+
+	@Override
 	public boolean isCompleteButtonEnabled(RecordVO recordVO) {
 		return taskPresenterServices.isCompleteTaskButtonVisible(toRecord(recordVO), getCurrentUser());
 	}
@@ -285,8 +291,7 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 	@Override
 	public void generateReportButtonClicked(RecordVO recordVO) {
 		ReportGeneratorButton button = new ReportGeneratorButton($("ReportGeneratorButton.buttonText"),
-				$("Générer un rapport de métadonnées"), view, appLayerFactory, collection, PrintableReportListPossibleType.TASK, view.getSessionContext().getCurrentUser(),
-				recordVO);
+				$("Générer un rapport de métadonnées"), view, appLayerFactory, collection, PrintableReportListPossibleType.TASK, recordVO);
 		button.click();
 	}
 
@@ -476,27 +481,6 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 	}
 
 	@Override
-	public void completeQuicklyButtonClicked(RecordVO recordVO) {
-		TasksSchemasRecordsServices tasksSchemas = new TasksSchemasRecordsServices(collection, appLayerFactory);
-		Task task = tasksSchemas.getTask(recordVO.getId());
-		Object decisions = task.get(Task.BETA_NEXT_TASKS_DECISIONS);
-
-		if ((task.getModelTask() != null && decisions != null && !((MapStringStringStructure) decisions).isEmpty() && task.getDecision() == null && !DisplayTaskPresenter.containsExpressionLanguage(decisions))
-			|| tasksSchemas.isRequestTask(task) || QuickCompleteWindow.hasRequiredFieldUncompleted(recordVO)) {
-			QuickCompleteWindow quickCompleteWindow = new QuickCompleteWindow(this, appLayerFactory, recordVO);
-			quickCompleteWindow.show();
-		} else {
-			try {
-				QuickCompleteWindow.quickCompleteTask(appLayerFactory, task, task.getDecision(), null, null, null);
-				refreshCurrentTab();
-			} catch (RecordServicesException e) {
-				e.printStackTrace();
-				view.showErrorMessage(e.getMessage());
-			}
-		}
-	}
-
-	@Override
 	public BaseView getView() {
 		return view;
 	}
@@ -504,6 +488,15 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 	@Override
 	public void reloadTaskModified(Task task) {
 		view.reloadCurrentTab();
+	}
+
+	@Override
+	public void callAssignationExtension() {
+		if (rmModuleExtensions != null) {
+			for (TaskManagementPresenterExtension extension : rmModuleExtensions.getTaskManagementPresenterExtensions()) {
+				extension.assignAvailableTasks(getCurrentUser());
+			}
+		}
 	}
 
 	@Override
@@ -539,5 +532,9 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 		LogicalSearchQuerySort sortField = new FunctionLogicalSearchQuerySort(
 				"termfreq(" + metadata.getDataStoreCode() + ",\'" + getCurrentUserId() + "\')", false);
 		query.sortFirstOn(sortField);
+	}
+
+	public User getCurrentUser() {
+		return super.getCurrentUser();
 	}
 }

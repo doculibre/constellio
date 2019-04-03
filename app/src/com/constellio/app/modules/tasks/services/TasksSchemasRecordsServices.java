@@ -1,5 +1,17 @@
 package com.constellio.app.modules.tasks.services;
 
+import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.FINISHED;
+import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.CLOSED_CODE;
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
+import static java.util.Arrays.asList;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.joda.time.LocalDate;
+
 import com.constellio.app.modules.rm.wrappers.type.SchemaLinkingType;
 import com.constellio.app.modules.tasks.TaskModule;
 import com.constellio.app.modules.tasks.model.managers.TaskReminderEmailManager;
@@ -25,17 +37,6 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
-import org.joda.time.LocalDate;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.FINISHED;
-import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.CLOSED_CODE;
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
-import static java.util.Arrays.asList;
 
 public class TasksSchemasRecordsServices extends SchemasRecordsServices {
 
@@ -57,6 +58,10 @@ public class TasksSchemasRecordsServices extends SchemasRecordsServices {
 		return record == null ? null : new TaskStatus(record, getTypes());
 	}
 
+	public AppLayerFactory getAppLayerFactory() {
+		return appLayerFactory;
+	}
+
 	public List<TaskStatus> wrapTaskStatuss(List<Record> records) {
 		List<TaskStatus> wrapped = new ArrayList<>();
 		for (Record record : records) {
@@ -74,6 +79,12 @@ public class TasksSchemasRecordsServices extends SchemasRecordsServices {
 		MetadataSchemaType type = ddvTaskStatus.schemaType();
 		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
 		return wrapTaskStatuss(appLayerFactory.getModelLayerFactory().newSearchServices().search(query));
+	}
+
+	public List<String> cachedSearchTaskStatussIds(LogicalSearchCondition condition) {
+		MetadataSchemaType type = ddvTaskStatus.schemaType();
+		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
+		return appLayerFactory.getModelLayerFactory().newSearchServices().cachedSearchRecordIds(query);
 	}
 
 	public List<TaskStatus> cachedSearchTaskStatuss(LogicalSearchCondition condition) {
@@ -569,6 +580,14 @@ public class TasksSchemasRecordsServices extends SchemasRecordsServices {
 		status.add(getTaskStatusWithCode(CLOSED_CODE));
 		return status;
 	}
+
+	public List<String> getFinishedOrClosedStatusesIds() {
+		List<String> status = new ArrayList<>();
+		status.addAll(cachedSearchTaskStatussIds(where(ddvTaskStatus.statusType()).is(FINISHED)));
+		status.add(getTaskStatusWithCode(CLOSED_CODE).getId());
+		return status;
+	}
+
 
 	public void setType(Task task, TaskType taskType) {
 		setType(task.getWrappedRecord(), taskType == null ? null : taskType.getWrappedRecord());

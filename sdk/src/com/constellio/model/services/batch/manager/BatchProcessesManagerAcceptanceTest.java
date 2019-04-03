@@ -49,7 +49,8 @@ public class BatchProcessesManagerAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void whenProcessIsFinishedAndHistoryLimitIsExceededThenOldestProcessIsDeletedFromXml() {
+	public void whenProcessIsFinishedAndHistoryLimitIsExceededThenOldestProcessIsDeletedFromXml()
+			throws InterruptedException {
 		givenConfig(ConstellioEIMConfigs.BATCH_PROCESSES_MAXIMUM_HISTORY_SIZE, 3);
 
 		List<String> batchProcessIds = new ArrayList<>();
@@ -68,6 +69,7 @@ public class BatchProcessesManagerAcceptanceTest extends ConstellioTest {
 		RecordBatchProcess process = batchProcessesManager
 				.addPendingBatchProcess(recordIds, action, User.ADMIN, null, zeCollection);
 		batchProcessesManager.waitUntilFinished(process);
+		waitForBatchProcess();
 
 		finishedBatchProcesses = batchProcessesManager.getFinishedBatchProcesses();
 		assertThat(finishedBatchProcesses).extracting("id")

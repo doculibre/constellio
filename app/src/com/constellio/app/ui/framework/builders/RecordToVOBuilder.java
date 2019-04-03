@@ -1,6 +1,13 @@
 package com.constellio.app.ui.framework.builders;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
 import com.constellio.app.extensions.records.params.BuildRecordVOParams;
+import com.constellio.app.extensions.records.params.IsMetadataSpecialCaseToNotBeShownParams;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataVO;
@@ -16,11 +23,6 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.users.UserServices;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 
 @SuppressWarnings("serial")
 public class RecordToVOBuilder implements Serializable {
@@ -86,7 +88,8 @@ public class RecordToVOBuilder implements Serializable {
 				recordVOValue = listRecordVOValue;
 			}
 			MetadataValueVO metadataValueVO = new MetadataValueVO(metadataVO, recordVOValue);
-			if (user == null || user.hasAccessToMetadata(metadata, record)) {
+			if ((user == null || user.hasAccessToMetadata(metadata, record)) && !isMetadataSpecialCaseToNotBeShown(
+					constellioFactories.getAppLayerFactory(), metadataVO, record)) {
 				metadataValueVOs.add(metadataValueVO);
 			} else {
 				metadataCodeExcludedList.add(metadataVO.getCode());
@@ -107,6 +110,23 @@ public class RecordToVOBuilder implements Serializable {
 		}
 
 		return recordVO;
+	}
+
+	private boolean isMetadataSpecialCaseToNotBeShown(AppLayerFactory appLayerFactory, final MetadataVO metadataVO,
+			final Record record) {
+		return appLayerFactory.getExtensions()
+				.forCollection(record.getCollection())
+				.isMetadataSpecialCaseToNotBeShown(new IsMetadataSpecialCaseToNotBeShownParams() {
+					@Override
+					public MetadataVO getMetadataVO() {
+						return metadataVO;
+					}
+
+					@Override
+					public Record getRecord() {
+						return record;
+					}
+				});
 	}
 
 	protected Object getValue(Record record, Metadata metadata) {

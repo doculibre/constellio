@@ -7,6 +7,7 @@ import com.constellio.data.io.streamFactories.impl.CopyInputStreamFactory;
 import com.constellio.data.utils.KeyListMap;
 import com.constellio.model.entities.records.ParsedContent;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
+import com.constellio.model.services.contents.ContentManager.ParseOptions;
 import com.constellio.model.services.parser.FileParserException.FileParserException_CannotExtractStyles;
 import com.constellio.model.services.parser.FileParserException.FileParserException_CannotParse;
 import com.constellio.model.services.parser.FileParserException.FileParserException_FileSizeExceedLimitForParsing;
@@ -33,6 +34,10 @@ import org.apache.tika.metadata.TikaCoreProperties;
 import org.apache.tika.mime.MediaType;
 import org.apache.tika.parser.AutoDetectParser;
 import org.apache.tika.parser.ParseContext;
+import org.apache.tika.parser.Parser;
+import org.apache.tika.parser.ocr.TesseractOCRConfig;
+import org.apache.tika.parser.pdf.PDFParserConfig;
+import org.apache.tika.parser.pdf.PDFParserConfig.OCR_STRATEGY;
 import org.apache.tika.sax.BodyContentHandler;
 
 import java.io.ByteArrayInputStream;
@@ -110,6 +115,14 @@ public class FileParser {
 		this.systemConfigurationsManager = systemConfigurationsManager;
 	}
 
+	public ParsedContent parse(StreamFactory<InputStream> inputStreamStreamFactory, long length,
+							   ParseOptions options) throws FileParserException {
+		if (!options.isBeautify()) {
+			return parseWithoutBeautifying(inputStreamStreamFactory, length, options.isDetectLanguage(), options.isOcr());
+		}
+		return parse(inputStreamStreamFactory, length, options.isDetectLanguage(), options.isOcr());
+	}
+
 	public ParsedContent parse(StreamFactory<InputStream> inputStreamFactory, long length)
 			throws FileParserException {
 		return parse(inputStreamFactory, length, true);
@@ -117,11 +130,16 @@ public class FileParser {
 
 	public ParsedContent parse(InputStream inputStream, boolean detectLanguage)
 			throws FileParserException {
+		return parse(inputStream, detectLanguage, false);
+	}
+
+	public ParsedContent parse(InputStream inputStream, boolean detectLanguage, boolean ocr)
+			throws FileParserException {
 
 		CopyInputStreamFactory inputStreamFactory = null;
 		try {
 			inputStreamFactory = ioServices.copyToReusableStreamFactory(inputStream, null);
-			return parse(inputStreamFactory, inputStreamFactory.length(), detectLanguage);
+			return parse(inputStreamFactory, inputStreamFactory.length(), detectLanguage, ocr);
 		} finally {
 			ioServices.closeQuietly(inputStream);
 			ioServices.closeQuietly(inputStreamFactory);
@@ -129,6 +147,12 @@ public class FileParser {
 	}
 
 	public ParsedContent parse(StreamFactory<InputStream> inputStreamFactory, long length, boolean detectLanguage)
+			throws FileParserException {
+		return parse(inputStreamFactory, length, detectLanguage, false);
+	}
+
+	private ParsedContent parse(StreamFactory<InputStream> inputStreamFactory, long length, boolean detectLanguage,
+								boolean ocr)
 			throws FileParserException {
 
 		//Pattern patternForChar = Pattern.compile("([^\u0000-\u00FF]+)");
@@ -159,7 +183,7 @@ public class FileParser {
 			inputStream = inputStreamFactory.create(READ_STREAM_FOR_PARSING_WITH_TIKA);
 			if (forkParserEnabled) {
 				ForkParser forkParser = parsers.getForkParser();
-				forkParser.parse(inputStream, handler, metadata, new ParseContext());
+				forkParser.parse(inputStream, handler, metadata, configureParseContext(forkParser, ocr));
 			} else {
 
 				AutoDetectParser parser = autoDetectParsers.get();
@@ -167,7 +191,7 @@ public class FileParser {
 				if (parser == null) {
 					autoDetectParsers.set(parser = newAutoDetectParser());
 				}
-				parser.parse(inputStream, handler, metadata);
+				parser.parse(inputStream, handler, metadata, configureParseContext(parser, ocr));
 			}
 
 		} catch (Throwable t) {
@@ -208,11 +232,16 @@ public class FileParser {
 
 	public ParsedContent parseWithoutBeautifying(InputStream inputStream, boolean detectLanguage)
 			throws FileParserException {
+		return parseWithoutBeautifying(inputStream, detectLanguage, false);
+	}
+
+	public ParsedContent parseWithoutBeautifying(InputStream inputStream, boolean detectLanguage, boolean ocr)
+			throws FileParserException {
 
 		CopyInputStreamFactory inputStreamFactory = null;
 		try {
 			inputStreamFactory = ioServices.copyToReusableStreamFactory(inputStream, null);
-			return parseWithoutBeautifying(inputStreamFactory, inputStreamFactory.length(), detectLanguage);
+			return parseWithoutBeautifying(inputStreamFactory, inputStreamFactory.length(), detectLanguage, ocr);
 		} finally {
 			ioServices.closeQuietly(inputStream);
 			ioServices.closeQuietly(inputStreamFactory);
@@ -221,6 +250,12 @@ public class FileParser {
 
 	public ParsedContent parseWithoutBeautifying(StreamFactory<InputStream> inputStreamFactory, long length,
 												 boolean detectLanguage)
+			throws FileParserException {
+		return parseWithoutBeautifying(inputStreamFactory, length, detectLanguage, false);
+	}
+
+	private ParsedContent parseWithoutBeautifying(StreamFactory<InputStream> inputStreamFactory, long length,
+												  boolean detectLanguage, boolean ocr)
 			throws FileParserException {
 
 		int contentMaxLengthForParsingInMegaoctets = systemConfigurationsManager
@@ -246,7 +281,7 @@ public class FileParser {
 			inputStream = inputStreamFactory.create(READ_STREAM_FOR_PARSING_WITH_TIKA);
 			if (forkParserEnabled) {
 				ForkParser forkParser = parsers.getForkParser();
-				forkParser.parse(inputStream, handler, metadata, new ParseContext());
+				forkParser.parse(inputStream, handler, metadata, configureParseContext(forkParser, ocr));
 			} else {
 
 				AutoDetectParser parser = autoDetectParsers.get();
@@ -254,7 +289,7 @@ public class FileParser {
 				if (parser == null) {
 					autoDetectParsers.set(parser = newAutoDetectParser());
 				}
-				parser.parse(inputStream, handler, metadata);
+				parser.parse(inputStream, handler, metadata, configureParseContext(parser, ocr));
 			}
 		} catch (Throwable t) {
 			if (!t.getClass().getSimpleName().equals("WriteLimitReachedException")) {
@@ -279,7 +314,7 @@ public class FileParser {
 		return new ParsedContent(parsedContent, language, type, length, properties, styles);
 	}
 
-	Map<String, Object> getPropertiesHashMap(Metadata metadata, String mimeType) {
+	protected Map<String, Object> getPropertiesHashMap(Metadata metadata, String mimeType) {
 		HashMap<String, Object> properties = new HashMap<String, Object>();
 
 		addKeywordsTo(properties, metadata, "Keywords", TikaCoreProperties.KEYWORDS);
@@ -313,7 +348,7 @@ public class FileParser {
 	}
 
 	//For String
-	private void addPropertyTo(HashMap<String, Object> properties, Metadata metadata, String key, String value) {
+	protected void addPropertyTo(HashMap<String, Object> properties, Metadata metadata, String key, String value) {
 		if (metadata.get(value) != null && metadata.get(value).isEmpty() == false) {
 			properties.put(key, metadata.get(value));
 		}
@@ -481,5 +516,38 @@ public class FileParser {
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	private ParseContext configureParseContext(Parser parser, boolean ocr) {
+		ParseContext parseContext = new ParseContext();
+		if (!ocr) {
+			TesseractOCRConfig tesseractOCRConfig = new TesseractOCRConfig();
+			// needed to disable tesseract when installed on drive
+			if (System.getProperty("os.name").startsWith("Windows")) {
+				tesseractOCRConfig.setTesseractPath("\\Device\\Null\\");
+			} else {
+				tesseractOCRConfig.setTesseractPath("/dev/null/");
+			}
+			parseContext.set(TesseractOCRConfig.class, tesseractOCRConfig);
+			return parseContext;
+		}
+
+		TesseractOCRConfig tesseractOCRConfig = new TesseractOCRConfig();
+		tesseractOCRConfig.setLanguage("fra+eng");
+		parseContext.set(TesseractOCRConfig.class, tesseractOCRConfig);
+
+		PDFParserConfig pdfConfig = new PDFParserConfig();
+		// mode 1
+		//pdfConfig.setExtractInlineImages(true);
+		//pdfConfig.setExtractUniqueInlineImagesOnly(false);
+		// mode 2
+		pdfConfig.setOcrStrategy(OCR_STRATEGY.OCR_AND_TEXT_EXTRACTION);
+		pdfConfig.setOcrImageType("rgb");
+		pdfConfig.setOcrDPI(300); // FIXME can be adjusted, 300 seems to be the best value overall
+		parseContext.set(PDFParserConfig.class, pdfConfig);
+
+		// needed to activate recursive parsing
+		parseContext.set(Parser.class, parser);
+		return parseContext;
 	}
 }

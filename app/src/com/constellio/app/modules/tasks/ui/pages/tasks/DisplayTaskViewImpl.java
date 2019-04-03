@@ -1,5 +1,12 @@
 package com.constellio.app.modules.tasks.ui.pages.tasks;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.vaadin.dialogs.ConfirmDialog;
+
 import com.constellio.app.modules.tasks.ui.components.TaskTable;
 import com.constellio.app.modules.tasks.ui.components.breadcrumb.TaskBreadcrumbTrail;
 import com.constellio.app.modules.tasks.ui.components.display.TaskDisplayFactory;
@@ -25,12 +32,6 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomComponent;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.VerticalLayout;
-import org.vaadin.dialogs.ConfirmDialog;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DisplayTaskViewImpl extends BaseViewImpl implements DisplayTaskView {
 	public static final String STYLE_NAME = "display-folder";
@@ -52,7 +53,7 @@ public class DisplayTaskViewImpl extends BaseViewImpl implements DisplayTaskView
 
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
-		RecordVO currentTask = presenter.getTask();
+		RecordVO currentTask = presenter.getTaskVO();
 		VerticalLayout verticalLayout = new VerticalLayout();
 
 		recordDisplayLayout = new VerticalLayout();
@@ -140,44 +141,17 @@ public class DisplayTaskViewImpl extends BaseViewImpl implements DisplayTaskView
 			};
 			actionMenuButtons.add(autoAssignTask);
 
-			ConfirmDialogButton completeTask = new ConfirmDialogButton($("DisplayTaskView.completeTask")) {
+			TaskCompleteWindowButton completeTask = new TaskCompleteWindowButton(presenter.getTask(),
+					$("DisplayTaskView.completeTask"), this.getConstellioFactories().getAppLayerFactory(), presenter) {
 				@Override
 				protected String getConfirmDialogMessage() {
-					if (presenter.isSubTaskPresentAndHaveCertainStatus(presenter.getTask())) {
+					if (presenter.isSubTaskPresentAndHaveCertainStatus(presenter.getTaskVO())) {
 						return $("DisplayTaskView.subTaskPresentComplete");
 					}
 
 					return $("DisplayTaskView.completeTaskDialogMessage");
 				}
 
-				@Override
-				protected String getConfirmDialogOKCaption() {
-					return $("DisplayTaskView.quickComplete");
-				}
-
-				@Override
-				protected String getConfirmDialogCancelCaption() {
-					return $("cancel");
-				}
-
-				@Override
-				protected String getConfirmDialogNotOkCaption() {
-					return $("DisplayTaskView.slowComplete");
-				}
-
-				@Override
-				protected void confirmButtonClick(ConfirmDialog dialog) {
-					if (dialog.isConfirmed()) {
-						presenter.completeQuicklyButtonClicked(presenter.getTask());
-					}
-				}
-
-				@Override
-				protected void dialogClosedWitoutConfirm(ConfirmDialog dialog) {
-					if (!dialog.isCanceled()) {
-						presenter.completeButtonClicked(presenter.getTask());
-					}
-				}
 
 				@Override
 				public boolean isVisible() {
@@ -304,7 +278,7 @@ public class DisplayTaskViewImpl extends BaseViewImpl implements DisplayTaskView
 
 	@Override
 	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
-		RecordVO currentTask = presenter.getTask();
+		RecordVO currentTask = presenter.getTaskVO();
 		String recordId = currentTask.getId();
 		return new TaskBreadcrumbTrail(recordId, this);
 	}
@@ -325,6 +299,6 @@ public class DisplayTaskViewImpl extends BaseViewImpl implements DisplayTaskView
 	}
 
 	public RecordVO getCurrentTask() {
-		return presenter.getTask();
+		return presenter.getTaskVO();
 	}
 }

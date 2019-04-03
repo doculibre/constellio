@@ -1,5 +1,9 @@
 package com.constellio.app.ui.framework.components;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.MetadataValueVO;
@@ -10,10 +14,6 @@ import com.constellio.app.ui.util.SchemaVOUtils;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.VerticalLayout;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
 
 @SuppressWarnings("serial")
 public class RecordDisplay extends BaseDisplay {
@@ -44,7 +44,7 @@ public class RecordDisplay extends BaseDisplay {
 
 		Locale locale = ConstellioUI.getCurrentSessionContext().getCurrentLocale();
 		for (MetadataValueVO metadataValue : recordVO.getDisplayMetadataValues()) {
-			if(SchemaVOUtils.isMetadataPresentInList(metadataValue.getMetadata(), recordVO.getExcludedMetadataCodeList())) {
+			if (SchemaVOUtils.isMetadataNotPresentInList(metadataValue.getMetadata(), recordVO.getExcludedMetadataCodeList())) {
 				Component displayComponent = metadataDisplayFactory.build(recordVO, metadataValue);
 				if (displayComponent != null) {
 					MetadataVO metadata = metadataValue.getMetadata();

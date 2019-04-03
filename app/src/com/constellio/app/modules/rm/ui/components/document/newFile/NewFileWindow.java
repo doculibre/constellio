@@ -1,11 +1,10 @@
 package com.constellio.app.modules.rm.ui.components.document.newFile;
 
+import java.io.Serializable;
+
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.Content;
-
-import java.io.Serializable;
-import java.util.List;
 
 public interface NewFileWindow extends Serializable {
 
@@ -27,11 +26,6 @@ public interface NewFileWindow extends Serializable {
 
 	ConstellioFactories getConstellioFactories();
 
-	void setSupportedExtensions(List<String> extensions);
-
-	void setTemplateOptions(List<Content> templates);
-
-	void setDocumentTypeId(String documentTypeId);
 
 	void addNewFileCreatedListener(NewFileCreatedListener listener);
 
@@ -39,9 +33,9 @@ public interface NewFileWindow extends Serializable {
 
 	void notifyNewFileCreated(Content content, String documentTypeId);
 
-	void setExtensionFieldValue(String value);
+	void setDocumentTypeId(String documentTypeId);
 
-	void setTemplateFieldValue(String value);
+	String getDocumentTypeId();
 
 	public static interface NewFileCreatedListener extends Serializable {
 		void newFileCreated(Content content, String documentTypeId);

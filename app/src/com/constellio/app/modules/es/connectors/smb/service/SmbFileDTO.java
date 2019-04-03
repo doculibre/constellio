@@ -35,7 +35,7 @@ public class SmbFileDTO {
 	private long lastModified = -10;
 	private LocalDateTime lastFetched = new LocalDateTime();
 	private long length = -10;
-	private String permissionsHash = "";
+	private String permissionsHash = null;
 	private String name = "";
 	private boolean isFile = false;
 	private boolean isDirectory = false;

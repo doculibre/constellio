@@ -4,6 +4,7 @@ import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.ui.entities.TaskReminderVO;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.components.fields.date.JodaDateField;
+import com.constellio.model.entities.schemas.Schemas;
 import com.vaadin.data.Property;
 import com.vaadin.data.Validator.InvalidValueException;
 import com.vaadin.data.fieldgroup.FieldGroup;
@@ -102,13 +103,18 @@ public class TaskReminderFieldImpl extends CustomField<TaskReminderVO> implement
 		relativeDateMetadataCodeField = new BaseComboBox();
 		relativeDateMetadataCodeField.addItem(Task.START_DATE);
 		relativeDateMetadataCodeField.addItem(Task.DUE_DATE);
+		relativeDateMetadataCodeField.addItem(Schemas.CREATED_ON.getLocalCode());
 		relativeDateMetadataCodeField.setItemCaption(Task.START_DATE, $("TaskReminderField.startDate"));
 		relativeDateMetadataCodeField.setItemCaption(Task.DUE_DATE, $("TaskReminderField.dueDate"));
+		relativeDateMetadataCodeField.setItemCaption(Schemas.CREATED_ON.getLocalCode(), $("TaskReminderField.createdOn"));
 		relativeDateMetadataCodeField.addValueChangeListener(new ValueChangeListener() {
 			@Override
 			public void valueChange(Property.ValueChangeEvent event) {
 				if (event.getProperty().getValue() != null) {
 					fixedDateField.setValue(null);
+					if (Schemas.CREATED_ON.getLocalCode().equals(event.getProperty().getValue()) && Boolean.TRUE.equals(beforeRelativeDateField.getValue())) {
+						beforeRelativeDateField.setValue(Boolean.FALSE);
+					}
 				}
 			}
 		});
@@ -124,6 +130,14 @@ public class TaskReminderFieldImpl extends CustomField<TaskReminderVO> implement
 		beforeRelativeDateField.addItem(Boolean.FALSE);
 		beforeRelativeDateField.setItemCaption(Boolean.TRUE, $("TaskReminderField.beforeRelativeDate"));
 		beforeRelativeDateField.setItemCaption(Boolean.FALSE, $("TaskReminderField.afterRelativeDate"));
+		beforeRelativeDateField.addValueChangeListener(new ValueChangeListener() {
+			@Override
+			public void valueChange(Property.ValueChangeEvent event) {
+				if (Boolean.TRUE.equals(event.getProperty().getValue()) && Schemas.CREATED_ON.getLocalCode().equals(relativeDateMetadataCodeField.getValue())) {
+					event.getProperty().setValue(Boolean.FALSE);
+				}
+			}
+		});
 
 		mainLayout.addComponents(fixedDateField, relativeDateLayout);
 		relativeDateLayout.addComponents(numberOfDaysToRelativeDateField, numberOfDaysToRelativeDateLabel, beforeRelativeDateField, relativeDateMetadataCodeField);

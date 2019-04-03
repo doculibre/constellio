@@ -1,5 +1,34 @@
 package com.constellio.app.modules.rm.ui.pages.folder;
 
+import static com.constellio.app.modules.rm.wrappers.Folder.ADMINISTRATIVE_UNIT;
+import static com.constellio.app.modules.rm.wrappers.Folder.ADMINISTRATIVE_UNIT_ENTERED;
+import static com.constellio.app.modules.rm.wrappers.Folder.CATEGORY;
+import static com.constellio.app.modules.rm.wrappers.Folder.CATEGORY_ENTERED;
+import static com.constellio.app.modules.rm.wrappers.Folder.COPY_STATUS;
+import static com.constellio.app.modules.rm.wrappers.Folder.COPY_STATUS_ENTERED;
+import static com.constellio.app.modules.rm.wrappers.Folder.MAIN_COPY_RULE;
+import static com.constellio.app.modules.rm.wrappers.Folder.MAIN_COPY_RULE_ID_ENTERED;
+import static com.constellio.app.modules.rm.wrappers.Folder.RETENTION_RULE;
+import static com.constellio.app.modules.rm.wrappers.Folder.RETENTION_RULE_ENTERED;
+import static com.constellio.app.modules.rm.wrappers.Folder.UNIFORM_SUBDIVISION;
+import static com.constellio.app.modules.rm.wrappers.Folder.UNIFORM_SUBDIVISION_ENTERED;
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.extensions.records.params.GetDynamicFieldMetadatasParams;
 import com.constellio.app.modules.rm.ConstellioRMModule;
@@ -32,7 +61,6 @@ import com.constellio.app.modules.rm.ui.components.folder.fields.FolderDisposalT
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderLinearSizeField;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderOpeningDateField;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderParentFolderField;
-
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderParentFolderFieldImpl;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderPreviewReturnDateField;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderRetentionRuleField;
@@ -69,34 +97,6 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.StatusFilter;
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static com.constellio.app.modules.rm.wrappers.Folder.ADMINISTRATIVE_UNIT;
-import static com.constellio.app.modules.rm.wrappers.Folder.ADMINISTRATIVE_UNIT_ENTERED;
-import static com.constellio.app.modules.rm.wrappers.Folder.CATEGORY;
-import static com.constellio.app.modules.rm.wrappers.Folder.CATEGORY_ENTERED;
-import static com.constellio.app.modules.rm.wrappers.Folder.COPY_STATUS;
-import static com.constellio.app.modules.rm.wrappers.Folder.COPY_STATUS_ENTERED;
-import static com.constellio.app.modules.rm.wrappers.Folder.MAIN_COPY_RULE;
-import static com.constellio.app.modules.rm.wrappers.Folder.MAIN_COPY_RULE_ID_ENTERED;
-import static com.constellio.app.modules.rm.wrappers.Folder.RETENTION_RULE;
-import static com.constellio.app.modules.rm.wrappers.Folder.RETENTION_RULE_ENTERED;
-import static com.constellio.app.modules.rm.wrappers.Folder.UNIFORM_SUBDIVISION;
-import static com.constellio.app.modules.rm.wrappers.Folder.UNIFORM_SUBDIVISION_ENTERED;
-import static com.constellio.app.ui.i18n.i18n.$;
 
 public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFolderView> {
 
@@ -108,15 +108,16 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 	private static final String STRUCTURE = "structure";
 	private static final String USER_FOLDER_ID = "userFolderId";
 
-	private FolderToVOBuilder voBuilder = new FolderToVOBuilder();
-	private boolean addView;
-	private boolean folderHadAParent;
-	private String currentSchemaCode;
-	private FolderVO folderVO;
-	private Map<CustomFolderField<?>, Object> customContainerDependencyFields = new HashMap<>();
-	boolean isDuplicateAction;
-	boolean isDuplicateStructureAction;
-	private String userFolderId;
+	protected FolderToVOBuilder voBuilder = new FolderToVOBuilder();
+	protected boolean addView;
+	protected boolean folderHadAParent;
+	protected boolean alwaysShowParentField = false;
+	protected String currentSchemaCode;
+	protected FolderVO folderVO;
+	protected Map<CustomFolderField<?>, Object> customContainerDependencyFields = new HashMap<>();
+	protected boolean isDuplicateAction;
+	protected boolean isDuplicateStructureAction;
+	protected String userFolderId;
 
 	private transient RMSchemasRecordsServices rmSchemasRecordsServices;
 	private transient BorrowingServices borrowingServices;
@@ -558,7 +559,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 
 	void adjustParentFolderField() {
 		FolderParentFolderField parentFolderField = (FolderParentFolderField) view.getForm().getCustomField(Folder.PARENT_FOLDER);
-		parentFolderField.setVisible(folderHadAParent);
+		parentFolderField.setVisible(alwaysShowParentField || folderHadAParent);
 	}
 
 	void adjustAdministrativeUnitField() {
