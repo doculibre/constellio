@@ -1,5 +1,7 @@
 package com.constellio.app.ui.pages.base;
 
+import com.constellio.app.entities.system.SystemInfo;
+import com.constellio.app.entities.system.SystemState;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.application.CoreViews;
@@ -231,12 +233,12 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 
 	private void refreshSystemStateButton() {
 		systemStateButton.setVisible(true);
-		String state = "error";
+		SystemState state = SystemInfo.build(getConstellioFactories().getAppLayerFactory()).getSystemState();
 		switch (state) {
-			case "ok":
+			case OK:
 				systemStateButton.setIcon(new ThemeResource("images/commun/lancement.png"));
 				break;
-			case "warning":
+			case WARNING:
 				systemStateButton.setIcon(new ThemeResource("images/commun/warning.png"));
 				break;
 			default:

@@ -14,19 +14,27 @@ public class SystemMemory {
 	MemoryDetails totalSystemMemory;
 	MemoryDetails constellioAllocatedMemory;
 	MemoryDetails solrAllocatedMemory;
-
-	private SystemMemory() {};
+	MemoryDetails nonAllocatedMemory;
 
 	private SystemMemory(MemoryDetails totalSystemMemory, MemoryDetails constellioAllocatedMemory, MemoryDetails solrAllocatedMemory) {
 		this.totalSystemMemory = totalSystemMemory;
 		this.constellioAllocatedMemory = constellioAllocatedMemory;
 		this.solrAllocatedMemory = solrAllocatedMemory;
+		this.nonAllocatedMemory = calculateNonAllocatedMemory();
 	}
 
 	public static SystemMemory fetchSystemMemoryInfo() {
 		return new SystemMemory(SystemAnalysisUtils.getTotalSystemMemory(),
 				SystemAnalysisUtils.getAllocatedMemoryForConstellio(),
 				SystemAnalysisUtils.getAllocatedMemoryForSolr());
+	}
+
+	private MemoryDetails calculateNonAllocatedMemory() {
+		if (totalSystemMemory.toNumberOfBytes() != null && constellioAllocatedMemory.toNumberOfBytes() != null && solrAllocatedMemory.toNumberOfBytes() != null) {
+			return new MemoryDetails(totalSystemMemory.toNumberOfBytes() - constellioAllocatedMemory.toNumberOfBytes() - solrAllocatedMemory.toNumberOfBytes(), MemoryUnit.B);
+		} else {
+			return MemoryDetails.buildUnavailableInformations();
+		}
 	}
 
 	public MemoryDetails getTotalSystemMemory() {
@@ -49,16 +57,12 @@ public class SystemMemory {
 		}
 	}
 
-	private static double roundToTwoDecimals(double value) {
-		return Math.round(value * 100.0) / 100.0;
+	public MemoryDetails getNonAllocatedMemory() {
+		return nonAllocatedMemory;
 	}
 
-	public static void main(String[] args) {
-		SystemMemory systemInfo = new SystemMemory(MemoryDetails.build("15728640", "k"), MemoryDetails.build("5120mb", null), MemoryDetails.build("5 G", null));
-		System.out.println(systemInfo.getPercentageOfAllocatedMemory() + " %");
-		System.out.println(systemInfo.getTotalSystemMemory().toNumberOfGigaBytes() + " GB");
-		System.out.println(systemInfo.getConstellioAllocatedMemory().toNumberOfGigaBytes() + " GB");
-		System.out.println(systemInfo.getSolrAllocatedMemory().toNumberOfGigaBytes() + " GB");
+	private static double roundToTwoDecimals(double value) {
+		return Math.round(value * 100.0) / 100.0;
 	}
 
 	public static class MemoryDetails {
@@ -73,7 +77,7 @@ public class SystemMemory {
 		static public MemoryDetails build(String amountAsString, String defaultUnit) {
 			try {
 				if(amountAsString == null) {
-					return buildUnavailableInformations(amountAsString);
+					return buildUnavailableInformations();
 				}
 				String regex = "((?<=[a-zA-Z])(?=[0-9]))|((?<=[0-9])(?=[a-zA-Z]))";
 				List<String> numericalAndAlphabeticBits = Arrays.asList(amountAsString.trim().replace(" ", "").split(regex));
@@ -122,6 +126,33 @@ public class SystemMemory {
 			return (amount*unit.getAmountOfByte())/unitToConvertTo.getAmountOfByte();
 		}
 
+		public boolean isGreaterThan(MemoryDetails comparatedMemoryDetails) {
+			if(this == null || this.toNumberOfBytes() == null) {
+				return false;
+			} else if (comparatedMemoryDetails == null || comparatedMemoryDetails.toNumberOfBytes() == null) {
+				return true;
+			}
+			return Double.compare(this.toNumberOfBytes(), comparatedMemoryDetails.toNumberOfBytes()) > 0;
+		}
+
+		public boolean isLessThan(MemoryDetails comparatedMemoryDetails) {
+			if(this == null || this.toNumberOfBytes() == null) {
+				return true;
+			} else if (comparatedMemoryDetails == null || comparatedMemoryDetails.toNumberOfBytes() == null) {
+				return false;
+			}
+			return Double.compare(this.toNumberOfBytes(), comparatedMemoryDetails.toNumberOfBytes()) < 0;
+		}
+
+		public boolean isEqualTo(MemoryDetails comparatedMemoryDetails) {
+			if(this == null && comparatedMemoryDetails == null) {
+				return true;
+			} else if(this != null && comparatedMemoryDetails != null) {
+				return Double.compare(this.toNumberOfBytes(), comparatedMemoryDetails.toNumberOfBytes()) == 0;
+			}
+			return false;
+		}
+
 		@Override
 		public String toString() {
 			if(amount == null|| unit == null) {
@@ -139,12 +170,12 @@ public class SystemMemory {
 			};
 		}
 
-		public static MemoryDetails buildUnavailableInformations(final String unrecognizableAmount) {
+		public static MemoryDetails buildUnavailableInformations() {
 			return new MemoryDetails(null, null);
 		}
 	}
 
-	private enum MemoryUnit implements EnumWithSmallCode {
+	public enum MemoryUnit implements EnumWithSmallCode {
 		B(1, "B"), KB(1024, "KB"), MB(1024*1024, "MB"), GB(1024*1024*1024, "GB");
 
 		private String code;
@@ -184,5 +215,13 @@ public class SystemMemory {
 					return null;
 			}
 		}
+	}
+
+	public static void main(String[] args) {
+		SystemMemory systemInfo = new SystemMemory(MemoryDetails.build("15728640", "k"), MemoryDetails.build("5120mb", null), MemoryDetails.build("5 G", null));
+		System.out.println(systemInfo.getPercentageOfAllocatedMemory() * 100 + " %");
+		System.out.println(systemInfo.getTotalSystemMemory().toNumberOfGigaBytes() + " GB");
+		System.out.println(systemInfo.getConstellioAllocatedMemory().toNumberOfGigaBytes() + " GB");
+		System.out.println(systemInfo.getSolrAllocatedMemory().toNumberOfGigaBytes() + " GB");
 	}
 }
