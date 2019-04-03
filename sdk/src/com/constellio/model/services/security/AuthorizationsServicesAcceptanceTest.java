@@ -36,7 +36,6 @@ import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.assertj.core.api.Condition;
 import org.assertj.core.api.ListAssert;
-import org.joda.time.LocalDate;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -1835,7 +1834,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 			//assertThat(users.dakotaLIndienIn(zeCollection).has(permission).specificallyOn().onSomething()).isTrue();
 		}
 
-//		/*****
+		//		/*****
 		//		 * Excluding inherited
 		//		 */
 		//
@@ -2038,17 +2037,6 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		verifyRecord(FOLDER4).usersWithReadAccess().containsOnly(chuck, bob);
 	}
 
-	public void givenTimeIs(LocalDate newDate) {
-		super.givenTimeIs(newDate);
-
-		getModelLayerFactory().getModelLayerBackgroundThreadsManager()
-				.getAuthorizationWithTimeRangeTokenUpdateBackgroundAction().run();
-		try {
-			waitForBatchProcess();
-		} catch (InterruptedException e) {
-			throw new RuntimeException(e);
-		}
-	}
 
 	@Test
 	public void whenDeleteAuthorizationThenDeletedFromEveryRecords()
