@@ -6,11 +6,9 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -31,7 +29,6 @@ import com.vaadin.data.fieldgroup.FieldGroup;
 import com.vaadin.data.fieldgroup.FieldGroup.CommitException;
 import com.vaadin.data.util.BeanItem;
 import com.vaadin.data.validator.AbstractValidator;
-import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.ui.AbstractField;
 import com.vaadin.ui.Button;
@@ -41,8 +38,6 @@ import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.CustomComponent;
 import com.vaadin.ui.DateField;
 import com.vaadin.ui.Field;
-import com.vaadin.ui.Notification;
-import com.vaadin.ui.Notification.Type;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
@@ -408,6 +403,14 @@ public abstract class BaseForm<T> extends CustomComponent {
 		}
 	}
 
+	protected void showErrorMessage(String message) {
+		ErrorDisplayUtil.showErrorMessage(message);
+	}
+
+	protected void showBackendValidationException(ValidationErrors validationErrors) {
+		ErrorDisplayUtil.showBackendValidationException(validationErrors);
+	}
+
 	private void addErrorMessage(StringBuilder missingRequiredFields, String message) {
 		if (missingRequiredFields.length() != 0) {
 			missingRequiredFields.append("<br/>");
@@ -429,25 +432,7 @@ public abstract class BaseForm<T> extends CustomComponent {
 		return emptyValue;
 	}
 
-	protected void showBackendValidationException(ValidationErrors validationErrors) {
-		Set<String> globalErrorMessages = new HashSet<String>();
-		for (ValidationError validationError : validationErrors.getValidationErrors()) {
-			String errorMessage = $(validationError);
-			globalErrorMessages.add(errorMessage);
-		}
 
-		if (!globalErrorMessages.isEmpty()) {
-			StringBuffer globalErrorMessagesSB = new StringBuffer();
-			for (String globalErrorMessage : globalErrorMessages) {
-				globalErrorMessage = $(globalErrorMessage);
-				if (globalErrorMessagesSB.length() != 0) {
-					globalErrorMessagesSB.append("<br />");
-				}
-				globalErrorMessagesSB.append(globalErrorMessage);
-			}
-			showErrorMessage(globalErrorMessagesSB.toString());
-		}
-	}
 
 	protected void clearBackendValidators() {
 		for (Field<?> field : fields) {
@@ -457,12 +442,6 @@ public abstract class BaseForm<T> extends CustomComponent {
 				}
 			}
 		}
-	}
-
-	protected void showErrorMessage(String message) {
-		Notification notification = new Notification(message + "<br/><br/>" + $("clickToClose"), Type.WARNING_MESSAGE);
-		notification.setHtmlContentAllowed(true);
-		notification.show(Page.getCurrent());
 	}
 
 	protected abstract void saveButtonClick(T viewObject)

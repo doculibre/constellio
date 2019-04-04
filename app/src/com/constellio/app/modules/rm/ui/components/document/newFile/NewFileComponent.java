@@ -109,22 +109,15 @@ public class NewFileComponent extends CustomComponent {
 
 		mainLayout.addComponents(documentTypeField, extensionAndTemplateLayout);
 
-		if (showFileNameField()) {
-			fileNameField = new BaseTextField();
-			fileNameField.setCaption($("NewFileWindow.fileName"));
-			fileNameField.setRequired(true);
-			fileNameField.setWidth("98%");
+		fileNameField = new BaseTextField();
+		fileNameField.setCaption($("NewFileWindow.fileName"));
+		fileNameField.setRequired(true);
+		fileNameField.setWidth("98%");
 
-			mainLayout.addComponent(fileNameField);
-		}
-
+		mainLayout.addComponent(fileNameField);
 		presenter = new NewFileComponentPresenter(this);
 
 		this.setCompositionRoot(mainLayout);
-	}
-
-	protected boolean showFileNameField() {
-		return true;
 	}
 
 	public String getMessage() {
@@ -201,7 +194,7 @@ public class NewFileComponent extends CustomComponent {
 		return templateField;
 	}
 
-	public final String getFileName() {
+	public String getFileName() {
 		return fileNameField.getValue();
 	}
 
@@ -238,6 +231,10 @@ public class NewFileComponent extends CustomComponent {
 	public void setTemplateFieldValue(ContentVersionVO value) {
 		Content content = presenter.getContentFromVO(value);
 		setTemplateFieldValue(content);
+	}
+
+	public void setFileName(String fileName) {
+		fileNameField.setValue(fileName);
 	}
 
 	public String getDocumentTypeId() {
