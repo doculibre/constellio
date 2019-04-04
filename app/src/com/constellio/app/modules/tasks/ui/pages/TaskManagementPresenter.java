@@ -1,5 +1,25 @@
 package com.constellio.app.modules.tasks.ui.pages;
 
+import static com.constellio.app.modules.tasks.model.wrappers.Task.ASSIGNEE;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.ASSIGNER;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.DEFAULT_SCHEMA;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.DUE_DATE;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.END_DATE;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.SCHEMA_TYPE;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.STARRED_BY_USERS;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.STATUS;
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.entities.records.wrappers.RecordWrapper.TITLE;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.joda.time.LocalDate;
+
 import com.constellio.app.api.extensions.params.UpdateComponentExtensionParams;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.RMConfigs;
@@ -25,6 +45,7 @@ import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.buttons.report.ReportGeneratorButton;
+import com.constellio.app.ui.framework.components.ErrorDisplayUtil;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
@@ -35,6 +56,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.records.RecordServicesException.ValidationException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.search.SearchServices;
@@ -43,25 +65,6 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuerySort;
 import com.vaadin.ui.Component;
-import org.joda.time.LocalDate;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static com.constellio.app.modules.tasks.model.wrappers.Task.ASSIGNEE;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.ASSIGNER;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.DEFAULT_SCHEMA;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.DUE_DATE;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.END_DATE;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.SCHEMA_TYPE;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.STARRED_BY_USERS;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.STATUS;
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.entities.records.wrappers.RecordWrapper.TITLE;
 
 public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManagementView>
 		implements TaskPresenter, WorkflowPresenter {
@@ -478,6 +481,31 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 
 	public boolean isMetadataReportAllowed(RecordVO recordVO) {
 		return true;
+	}
+
+	@Override
+	public void completeQuicklyButtonClicked(RecordVO recordVO) {
+		TasksSchemasRecordsServices tasksSchemas = new TasksSchemasRecordsServices(collection, appLayerFactory);
+		Task task = tasksSchemas.getTask(recordVO.getId());
+		Object decisions = task.get(Task.BETA_NEXT_TASKS_DECISIONS);
+		if ((task.getModelTask() != null && decisions != null && !((MapStringStringStructure) decisions).isEmpty()
+				&& task.getDecision() == null && !DisplayTaskPresenter.containsExpressionLanguage(decisions))
+				|| tasksSchemas.isRequestTask(task) || QuickCompleteWindow.hasRequiredFieldUncompleted(recordVO)) {
+			QuickCompleteWindow quickCompleteWindow = new QuickCompleteWindow(this, appLayerFactory, recordVO);
+			quickCompleteWindow.show();
+		} else {
+			try {
+				QuickCompleteWindow.quickCompleteTask(appLayerFactory, task, task.getDecision(), null, null, null);
+				refreshCurrentTab();
+			} catch (RecordServicesException e) {
+				if (e instanceof RecordServicesException.ValidationException) {
+					ErrorDisplayUtil.showBackendValidationException(((ValidationException) e).getErrors());
+				} else {
+					e.printStackTrace();
+					view.showErrorMessage(e.getMessage());
+				}
+			}
+		}
 	}
 
 	@Override

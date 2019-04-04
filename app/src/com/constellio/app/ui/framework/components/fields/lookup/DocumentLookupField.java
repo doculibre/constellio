@@ -66,6 +66,9 @@ public class DocumentLookupField extends LookupField<String> {
 			List<String> results = new ArrayList<>();
 			if (text != null) {
 				text = AccentApostropheCleaner.cleanAll(text.toLowerCase());
+				if (options == null) {
+					options = new ArrayList<>();
+				}
 				for (String option : options) {
 					String optionText;
 					if (itemConverter != null) {
@@ -87,6 +90,9 @@ public class DocumentLookupField extends LookupField<String> {
 
 		@Override
 		public List<String> getData(String text, int startIndex, int count) {
+			if (text == null) {
+				text = "";
+			}
 			List<String> results = filter(text);
 			int end = Math.min(startIndex + count, results.size());
 			return results.subList(startIndex, end);
