@@ -11843,6 +11843,64 @@ div.v-layout.v-horizontal.v-widget {
 	color: gray;
 }
 
+.constellio .v-menubar .v-menubar-submenu-indicator + .v-menubar-menuitem-caption:after {
+	display: none;
+}
+
+.constellio .v-menubar-popup {
+	border-radius: 0;
+}
+
+.constellio .v-menubar-popup .v-menubar-menuitem {
+	border-radius: 0;
+	padding-left: 20px;
+	font-size: 12px;
+}
+
+.constellio .tabsheet-secondary .v-tabsheet-tabitemcell .v-caption {
+	font-size: 14px;
+}
+
+.constellio .task-management-view .v-slot-add-task-button {
+	margin-top: -40px;
+	padding-right: 10px;
+	position: relative;
+	top: 90px;
+	z-index: 300000;
+}
+
+.constellio .task-management-view .v-slot-start-workflow-button {
+	margin-top: -40px;
+	padding-right: 10px;
+	position: relative;
+	top: 90px;
+	z-index: 300000;
+}
+
+.constellio .task-management-view .v-tabsheet-tabitem .v-caption {
+	z-index: 300001;
+}
+
+.constellio .task-table-layout .v-caption-task-table-sort {
+	display: inline-block;
+	line-height: 39px;
+}
+
+.constellio .task-table-layout .task-table-sort .v-filterselect-button:before {
+	content: "\f078";
+}
+
+.constellio .task-table-layout .clickable-row .v-table-body tr, .constellio .task-table-layout .clickable-row .v-table-body .reference-display {
+	cursor: default;
+}
+
+.constellio .task-table-layout .clickable-row .v-table-body:hover {
+	border-color: #197de1;
+	color: red;
+	background-color: white;
+	text-decoration: none;
+}
+
 .constellio .v-Notification-caption {
 	z-index: 20003;
 }
@@ -12832,28 +12890,28 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .v-table-cell-content-file-icon-orange_hybrid_folder_frozen_opened {
- 	background-image: url('images/icons/folder2/orange_hybrid_folder_frozen_opened.png');
- 	background-repeat: no-repeat;
- 	background-position: 2px 10px;
- }
+	background-image: url('images/icons/folder2/orange_hybrid_folder_frozen_opened.png');
+	background-repeat: no-repeat;
+	background-position: 2px 10px;
+}
 
- .constellio .v-table-cell-content-file-icon-orange_hybrid_folder_frozen_opened .v-table-cell-wrapper {
- 	position: relative;
- 	text-align: left;
- 	left: 20px;
- }
+.constellio .v-table-cell-content-file-icon-orange_hybrid_folder_frozen_opened .v-table-cell-wrapper {
+	position: relative;
+	text-align: left;
+	left: 20px;
+}
 
- .constellio .v-table-cell-content-file-icon-orange_hybrid_folder_frozen_closed {
- 	background-image: url('images/icons/folder2/orange_hybrid_folder_frozen_closed.png');
- 	background-repeat: no-repeat;
- 	background-position: 2px 10px;
- }
+.constellio .v-table-cell-content-file-icon-orange_hybrid_folder_frozen_closed {
+	background-image: url('images/icons/folder2/orange_hybrid_folder_frozen_closed.png');
+	background-repeat: no-repeat;
+	background-position: 2px 10px;
+}
 
- .constellio .v-table-cell-content-file-icon-orange_hybrid_folder_frozen_closed .v-table-cell-wrapper {
- 	position: relative;
- 	text-align: left;
- 	left: 20px;
- }
+.constellio .v-table-cell-content-file-icon-orange_hybrid_folder_frozen_closed .v-table-cell-wrapper {
+	position: relative;
+	text-align: left;
+	left: 20px;
+}
 
 .constellio .v-table-cell-content-file-icon-orange_hybrid_folder_locked_closed {
 	background-image: url('images/icons/folder2/orange_hybrid_folder_locked_closed.png');

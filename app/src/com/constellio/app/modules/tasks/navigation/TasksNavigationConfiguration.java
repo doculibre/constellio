@@ -1,5 +1,7 @@
 package com.constellio.app.modules.tasks.navigation;
 
+import java.io.Serializable;
+
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.modules.rm.RMConfigs;
@@ -8,7 +10,7 @@ import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderView;
 import com.constellio.app.modules.tasks.TasksPermissionsTo;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.modules.tasks.services.TasksSearchServices;
-import com.constellio.app.modules.tasks.ui.pages.TaskManagementPresenter;
+import com.constellio.app.modules.tasks.ui.pages.TaskManagementView;
 import com.constellio.app.modules.tasks.ui.pages.TaskManagementViewImpl;
 import com.constellio.app.modules.tasks.ui.pages.TasksLogsViewImpl;
 import com.constellio.app.modules.tasks.ui.pages.tasks.AddEditTaskViewImpl;
@@ -30,8 +32,6 @@ import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.wrappers.User;
 import com.vaadin.navigator.View;
 import com.vaadin.server.FontAwesome;
-
-import java.io.Serializable;
 
 public class TasksNavigationConfiguration implements Serializable {
 	public static final String TASK_MANAGEMENT = "taskManagement";
@@ -95,7 +95,7 @@ public class TasksNavigationConfiguration implements Serializable {
 		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION, new NavigationItem.Active(TASK_MANAGEMENT, FontAwesome.TASKS, TasksViewGroup.class) {
 			@Override
 			public void activate(Navigation navigate) {
-				ConstellioUI.getCurrentSessionContext().setAttribute(TaskManagementPresenter.TASK_MANAGEMENT_PRESENTER_PREVIOUS_TAB, null);
+				ConstellioUI.getCurrentSessionContext().setAttribute(TaskManagementView.TASK_MANAGEMENT_PRESENTER_PREVIOUS_TAB, null);
 
 				navigate.to(TaskViews.class).taskManagement();
 			}

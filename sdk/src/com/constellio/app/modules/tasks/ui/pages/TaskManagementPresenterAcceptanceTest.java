@@ -94,11 +94,11 @@ public class TaskManagementPresenterAcceptanceTest extends ConstellioTest {
 		TaskManagementPresenter presenter = Mockito.spy(new TaskManagementPresenter(view));
 		doReturn(true).when(presenter).areWorkflowsEnabled();
 
-		assertThat(presenter.getTabs()).contains(presenter.WORKFLOWS_STARTED);
+		assertThat(presenter.getPrimaryTabs()).contains(view.STARTED_WORKFLOWS_TAB);
 
 		sessionContext = FakeSessionContext.aliceInCollection(zeCollection);
 		presenter = Mockito.spy(new TaskManagementPresenter(view));
-		assertThat(presenter.getTabs()).doesNotContain(presenter.WORKFLOWS_STARTED);
+		assertThat(presenter.getPrimaryTabs()).doesNotContain(view.STARTED_WORKFLOWS_TAB);
 	}
 
 	@Test
@@ -110,7 +110,7 @@ public class TaskManagementPresenterAcceptanceTest extends ConstellioTest {
 		recordServices.add(zeTask.setStatus(CLOSED()).setAssignee(null).setAssignationDate(null)
 				.setAssigneeGroupsCandidates(null).setAssigneeUsersCandidates(null).setAssigner(null));
 
-		presenter.tabSelected(presenter.TASKS_RECENTLY_COMPLETED);
+		presenter.tabSelected(view.TASKS_RECENTLY_COMPLETED);
 
 		RecordVODataProvider recordVODataProvider = argumentCaptor.getValue();
 		List<RecordVO> recordVOList = recordVODataProvider.listRecordVOs(0, recordVODataProvider.size());
@@ -131,7 +131,7 @@ public class TaskManagementPresenterAcceptanceTest extends ConstellioTest {
 		recordServices.add(zeTask.setStatus(CLOSED()).setAssignee(null).setAssignationDate(null)
 				.setAssigneeGroupsCandidates(null).setAssigneeUsersCandidates(null).setAssigner(null));
 
-		presenter.tabSelected(presenter.TASKS_RECENTLY_COMPLETED);
+		presenter.tabSelected(view.TASKS_RECENTLY_COMPLETED);
 
 		RecordVODataProvider recordVODataProvider = argumentCaptor.getValue();
 		List<RecordVO> recordVOList = recordVODataProvider.listRecordVOs(0, recordVODataProvider.size());
@@ -152,7 +152,7 @@ public class TaskManagementPresenterAcceptanceTest extends ConstellioTest {
 		recordServices.add(zeTask.setStatus(CLOSED()).setAssignee(null).setAssignationDate(null)
 				.setAssigneeGroupsCandidates(null).setAssigneeUsersCandidates(null).setAssigner(null));
 
-		presenter.tabSelected(presenter.TASKS_RECENTLY_COMPLETED);
+		presenter.tabSelected(view.TASKS_RECENTLY_COMPLETED);
 
 		RecordVODataProvider recordVODataProvider = argumentCaptor.getValue();
 		List<RecordVO> recordVOList = recordVODataProvider.listRecordVOs(0, recordVODataProvider.size());

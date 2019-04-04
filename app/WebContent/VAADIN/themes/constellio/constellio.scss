@@ -73,6 +73,89 @@ $popup-view-z-index: 3;
 }
 
 @mixin constellio {
+	
+	.v-menubar .v-menubar-submenu-indicator  + .v-menubar-menuitem-caption:after {
+		display:none;
+	}
+
+	.v-menubar-popup {
+		border-radius: 0;
+		
+		.v-menubar-menuitem {
+			border-radius: 0;
+			padding-left: 20px;
+			font-size: 12px;
+		}
+	}
+
+	.tabsheet-secondary {
+		.v-tabsheet-tabitemcell {
+			.v-caption {
+				font-size: 14px;
+			}	
+		}
+	}
+
+	.task-management-view {
+		.v-slot-add-task-button {
+			margin-top: -40px;
+			padding-right: 10px;
+			position: relative;
+			top: 90px;
+			z-index: 300000;
+		}
+	
+		.v-slot-start-workflow-button {
+			margin-top: -40px;
+			padding-right: 10px;
+			position: relative;
+			top: 90px;
+			z-index: 300000;
+		}
+	
+		.v-tabsheet-tabitem {
+			.v-caption {
+				z-index: 300001;
+			}
+		}
+	}
+
+	.task-table-layout {
+		.task-table-filter {
+			
+		}
+	
+		.v-caption-task-table-sort {
+			display: inline-block;
+			line-height: 39px;
+		}
+	
+		.task-table-sort {
+			.v-filterselect-button:before {
+				content: "\f078";
+			}
+		}
+	
+		.task-table {
+			
+		}
+
+		.clickable-row {
+	    	.v-table-body {
+	    		tr, .reference-display {
+	    			cursor: default;
+	    		}
+
+				&:hover {
+					border-color: #197de1;
+    				color: red;
+    				background-color: white;
+    				text-decoration: none;
+    			}
+	    	}
+		}
+	}
+	 
 
 	.v-Notification-caption {
 		z-index: 20003;

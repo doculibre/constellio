@@ -211,7 +211,7 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 			@Override
 			protected String getTitleColumnStyle(RecordVO recordVO) {
 				return null;
-			}
+			} 
 		};
 
 		if (isRecordEvent) {

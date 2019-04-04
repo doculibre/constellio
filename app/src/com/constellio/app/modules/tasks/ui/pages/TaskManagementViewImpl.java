@@ -1,9 +1,16 @@
 package com.constellio.app.modules.tasks.ui.pages;
 
+import static com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration.modalDialog;
+import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+import org.apache.commons.collections4.CollectionUtils;
+
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
-import com.constellio.app.modules.tasks.ui.components.DemoFilterDecorator;
-import com.constellio.app.modules.tasks.ui.components.DemoFilterGenerator;
-import com.constellio.app.modules.tasks.ui.components.FilterTableAdapter;
 import com.constellio.app.modules.tasks.ui.components.TaskTable;
 import com.constellio.app.modules.tasks.ui.components.WorkflowTable;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -25,28 +32,32 @@ import com.vaadin.data.Property;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.navigator.ViewChangeListener;
-import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
+import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
-import org.apache.commons.collections4.CollectionUtils;
-
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
-import static com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration.modalDialog;
-import static com.constellio.app.ui.i18n.i18n.$;
-import static java.util.Arrays.asList;
+import com.vaadin.ui.themes.ValoTheme;
 
 public class TaskManagementViewImpl extends BaseViewImpl implements TaskManagementView {
+	
 	private final TaskManagementPresenter presenter;
-	private TabSheet sheet;
+	
+	private boolean workflowsTabsVisible;
+	private boolean startWorkflowButtonVisible;
+	
+	private List<String> primaryTabs;
+	private List<String> tasksTabs;
+	
+	private TabSheet primaryTabSheet;
+	private TabSheet tasksTabSheet;
+	private TabSheet workflowsTabSheet;
 	private ComboBox timestamp;
 	private String previousSelectedTab;
+	private Button addTaskButton;
+	private Button startWorkflowButton;
 
 	enum Timestamp {
 		ALL, TODAY, WEEK, MONTH
@@ -62,27 +73,61 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 	}
 
 	@Override
-	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
-		List<Button> buttons = super.buildActionMenuButtons(event);
-		buttons.add(new AddButton($("TasksManagementView.add")) {
-			@Override
-			protected void buttonClick(ClickEvent event) {
-				presenter.addTaskButtonClicked();
-			}
-		});
+	protected boolean isFullWidthIfActionMenuAbsent() {
+		return true;
+	}
+	
+	@Override
+	public void setPrimaryTabs(List<String> tabs) {
+		this.primaryTabs = tabs;
+	}
+	
+	@Override
+	public void setTasksTabs(List<String> tasksTabs) {
+		this.tasksTabs = tasksTabs;
+	}
+	
+	public boolean isWorkflowsTabsVisible() {
+		return workflowsTabsVisible;
+	}
 
-		if (presenter.areWorkflowsEnabled() && presenter.hasPermissionToStartWorkflow()) {
-			Button startWorkflowButton = new StartWorkflowButton();
-			startWorkflowButton.setVisible(presenter.hasPermissionToStartWorkflow());
-			buttons.add(startWorkflowButton);
-		}
-		return buttons;
+	@Override
+	public void setWorkflowsTabsVisible(boolean visible) {
+		this.workflowsTabsVisible = visible;
+	}
+	
+	public boolean isStartWorkflowButtonVisible() {
+		return startWorkflowButtonVisible;
+	}
+
+	@Override
+	public void setStartWorkflowButtonVisible(boolean visible) {
+		this.startWorkflowButtonVisible = visible;
 	}
 
 	@Override
 	protected Component buildMainComponent(ViewChangeListener.ViewChangeEvent event) {
+		addStyleName("task-management-view");
+		
+		addTaskButton = new AddButton($("TasksManagementView.add")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				presenter.addTaskButtonClicked();
+			}
+		};
+		addTaskButton.addStyleName("add-task-button");
+		addTaskButton.addStyleName(ValoTheme.BUTTON_LINK);
+		
+		if (startWorkflowButton == null) {
+			startWorkflowButton = new StartWorkflowButton();
+		}
+		startWorkflowButton.setVisible(startWorkflowButtonVisible);
+		startWorkflowButton.addStyleName("start-workflow-button");
+		startWorkflowButton.addStyleName(ValoTheme.BUTTON_LINK);
+		
 		VerticalLayout mainLayout = new VerticalLayout();
 		mainLayout.setSpacing(true);
+		
 		timestamp = new BaseComboBox(presenter.getDueDateCaption(), asList(Timestamp.ALL, Timestamp.TODAY, Timestamp.WEEK, Timestamp.MONTH));
 		timestamp.setNullSelectionAllowed(false);
 		timestamp.setValue(Timestamp.ALL);
@@ -94,56 +139,105 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 		timestamp.addValueChangeListener(new Property.ValueChangeListener() {
 			@Override
 			public void valueChange(Property.ValueChangeEvent event) {
-				reloadCurrentTab();
+				// FIXME
+				presenter.tabSelected(primaryTabSheet.getSelectedTab().getId());
 			}
 		});
-		sheet = new TabSheet();
-		sheet.setSizeFull();
-		sheet.addSelectedTabChangeListener(new TabSheet.SelectedTabChangeListener() {
+		
+		primaryTabSheet = new TabSheet();
+		primaryTabSheet.setSizeFull();
+		primaryTabSheet.addSelectedTabChangeListener(new TabSheet.SelectedTabChangeListener() {
 			@Override
 			public void selectedTabChange(TabSheet.SelectedTabChangeEvent event) {
-				reloadCurrentTab();
+				presenter.tabSelected(primaryTabSheet.getSelectedTab().getId());
 			}
 		});
-
-		for (String tabId : presenter.getTabs()) {
-			sheet.addTab(buildEmptyTab(tabId));
+		for (String tabId : primaryTabs) {
+			primaryTabSheet.addTab(buildEmptyTab(tabId));
 		}
-
-		mainLayout.addComponents(timestamp, sheet);
+		
+		if (workflowsTabsVisible) {
+			tasksTabSheet = new TabSheet();
+			tasksTabSheet.addStyleName("tabsheet-secondary");
+			tasksTabSheet.addSelectedTabChangeListener(new TabSheet.SelectedTabChangeListener() {
+				@Override
+				public void selectedTabChange(TabSheet.SelectedTabChangeEvent event) {
+					presenter.tabSelected(tasksTabSheet.getSelectedTab().getId());
+				}
+			});
+			
+			for (String tabId : tasksTabs) {
+				tasksTabSheet.addTab(buildEmptyTab(tabId));
+			}
+			
+			workflowsTabSheet = new TabSheet();
+			workflowsTabSheet.addStyleName("tabsheet-secondary");
+			workflowsTabSheet.addSelectedTabChangeListener(new TabSheet.SelectedTabChangeListener() {
+				@Override
+				public void selectedTabChange(TabSheet.SelectedTabChangeEvent event) {
+					presenter.tabSelected(workflowsTabSheet.getSelectedTab().getId());
+				}
+			});
+		}
+		
+		mainLayout.addComponent(addTaskButton);
+		mainLayout.setComponentAlignment(addTaskButton, Alignment.TOP_RIGHT);
+		if (startWorkflowButtonVisible) {
+			mainLayout.addComponent(startWorkflowButton);
+			mainLayout.setComponentAlignment(startWorkflowButton, Alignment.TOP_RIGHT);
+		}
+		mainLayout.addComponents(/*timestamp,*/ primaryTabSheet);
 
 		previousSelectedTab = presenter.getPreviousSelectedTab();
 		backToPreviousSelectedTab();
 
 		return mainLayout;
 	}
+	
+	public void setStartWorkflowButton(Button button) {
+		this.startWorkflowButton = button;
+	}
 
 	public void backToPreviousSelectedTab() {
 		if (previousSelectedTab != null) {
-			Iterator<Component> iterator = sheet.iterator();
-			while (iterator.hasNext()) {
-				Component component = iterator.next();
-				if (previousSelectedTab.equals(component.getId())) {
-					sheet.setSelectedTab(component);
-					presenter.tabSelected(previousSelectedTab);
-					break;
-				}
-			}
+			TabSheet tabSheet = getTabSheet(previousSelectedTab);
+			Component tabComponent = getTabComponent(tabSheet, previousSelectedTab);
+			tabSheet.setSelectedTab(tabComponent);
+			presenter.tabSelected(previousSelectedTab);
 		}
 	}
 
 	public String getPreviousSelectedTab() {
 		return previousSelectedTab;
 	}
-
-	@Override
-	public void reloadCurrentTab() {
-		presenter.tabSelected(sheet.getSelectedTab().getId());
+	
+	private TabSheet getTabSheet(String tabId) {
+		TabSheet tabSheet;
+		if (presenter.isWorkflowTab(tabId)) {
+			tabSheet = tasksTabSheet;
+		} else {
+			tabSheet = primaryTabSheet;
+		}
+		return tabSheet;
 	}
-
+	
+	private Component getTabComponent(TabSheet tabSheet, String tabId) {
+		Component tabComponent = null;
+		Iterator<Component> iterator = tabSheet.iterator();
+		while (iterator.hasNext()) {
+			Component component = iterator.next();
+			if (tabId.equals(component.getId())) {
+				tabComponent = component;
+				break;
+			}
+		}	
+		return tabComponent;
+	}
+	
 	@Override
-	public Component getSelectedTab() {
-		return sheet.getSelectedTab();
+	public Component getTabComponent(String tabId) {
+		TabSheet tabSheet = getTabSheet(tabId);
+		return getTabComponent(tabSheet, tabId);
 	}
 
 	@Override
@@ -153,10 +247,24 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 
 	@Override
 	public void displayTasks(RecordVODataProvider provider) {
-		VerticalLayout layout = getEmptiedSelectedTab();
+		addTaskButton.setVisible(true);
+		startWorkflowButton.setVisible(false);
+		
+		TabSheet tabSheet;
+		if (workflowsTabsVisible) {
+			VerticalLayout tasksTabLayout = getEmptiedSelectedTab(primaryTabSheet);
+			tasksTabLayout.addComponent(tasksTabSheet);
+			
+			tabSheet = tasksTabSheet;
+		} else {
+			tabSheet = primaryTabSheet;
+		}
+			
+		VerticalLayout layout = getEmptiedSelectedTab(tabSheet);
 		TaskTable taskTable = new TaskTable(provider, presenter) {
 			@Override
 			protected TableColumnsManager newColumnsManager() {
+				if (true) return super.newColumnsManager();
 				return new RecordVOTableColumnsManager() {
 					@Override
 					protected List<String> getDefaultVisibleColumnIds(Table table) {
@@ -196,27 +304,32 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 			}
 		};
 
-		FilterTableAdapter tableAdapter = new FilterTableAdapter(taskTable, new DemoFilterDecorator(), new DemoFilterGenerator());
+//		FilterTableAdapter tableAdapter = new FilterTableAdapter(taskTable.getTable(), new DemoFilterDecorator(), new DemoFilterGenerator());
+//
+//		// cas uniquement pour l'exemple
+//		tableAdapter.setFilterFieldVisible("menuBar", false);
+//		tableAdapter.setFilterBarVisible(true);
 
-		// cas uniquement pour l'exemple
-		tableAdapter.setFilterFieldVisible("menuBar", false);
-		tableAdapter.setFilterBarVisible(true);
 
-
-		layout.addComponent(tableAdapter);
+		layout.addComponent(taskTable);
 		//layout.addComponent(new BaseFilteringTable());
 	}
 
-	//	@Override
-	//	public void displayTasks(RecordVODataProvider provider, Object[] propertyId, boolean[] ascending) {
-	//		VerticalLayout layout = getEmptiedSelectedTab();
-	//		layout.addComponent(new TaskTable(provider, presenter).sort(propertyId, ascending));
-	//	}
-
 	@Override
 	public void displayWorkflows(RecordVODataProvider provider) {
-		VerticalLayout layout = getEmptiedSelectedTab();
+		addTaskButton.setVisible(false);
+		startWorkflowButton.setVisible(startWorkflowButtonVisible);
+		
+		VerticalLayout workflowsTabLayout = getEmptiedSelectedTab(primaryTabSheet);
+		workflowsTabLayout.addComponent(workflowsTabSheet);
+		
+		VerticalLayout layout = getEmptiedSelectedTab(workflowsTabSheet);
 		layout.addComponent(new WorkflowTable(provider, presenter));
+	}
+
+	@Override
+	public void reloadCurrentTab() {
+		presenter.reloadCurrentTabRequested();
 	}
 
 	private VerticalLayout buildEmptyTab(String tabId) {
@@ -227,14 +340,22 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 		return tab;
 	}
 
-	private VerticalLayout getEmptiedSelectedTab() {
-		VerticalLayout tab = (VerticalLayout) sheet.getSelectedTab();
+	private VerticalLayout getEmptiedSelectedTab(TabSheet tabSheet) {
+		VerticalLayout tab = (VerticalLayout) tabSheet.getSelectedTab();
 		tab.removeAllComponents();
 		return tab;
 	}
 
-	public TabSheet getSheet() {
-		return sheet;
+	public TabSheet getPrimaryTabSheet() {
+		return primaryTabSheet;
+	}
+	
+	public TabSheet getTasksTabSheet() {
+		return tasksTabSheet;
+	}
+	
+	public TabSheet getWorkflowsTabSheet() {
+		return workflowsTabSheet;
 	}
 
 	private class StartWorkflowButton extends WindowButton {
