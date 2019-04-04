@@ -1,10 +1,11 @@
 package com.constellio.app.modules.tasks.ui.components.fields;
 
+import java.io.Serializable;
+import java.util.List;
+
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.vaadin.ui.Field;
-
-import java.io.Serializable;
 
 /**
  * Implemented:
@@ -22,6 +23,8 @@ public interface TaskForm extends Serializable {
 	CustomTaskField<?> getCustomField(String metadataCode);
 
 	Field<?> getField(String metadataCode);
+
+	List<Field<?>> getFields();
 
 	void reload();
 

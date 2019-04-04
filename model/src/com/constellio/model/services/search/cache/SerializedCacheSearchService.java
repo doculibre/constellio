@@ -1,5 +1,6 @@
 package com.constellio.model.services.search.cache;
 
+import com.constellio.data.dao.dto.records.FacetPivotValue;
 import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -16,6 +17,7 @@ import java.util.Map;
 import static java.util.Collections.unmodifiableMap;
 
 public class SerializedCacheSearchService {
+	private static Map<String, List<FacetPivotValue>> emptyFacetPivotValues = Collections.emptyMap();
 	private static List<MoreLikeThisRecord> emptyRecordsWithMoreLikeThis = Collections.emptyList();
 	private static Map<String, Map<String, Object>> emptyStatisticsValues = Collections.emptyMap();
 	private static List<String> emptySpellcheckerSuggestions = Collections.emptyList();
@@ -69,7 +71,7 @@ public class SerializedCacheSearchService {
 
 		long duration = Math.max(System.currentTimeMillis() - qtime, 1);
 
-		return new SPEQueryResponse(fieldFacetValues, emptyStatisticsValues, queryFacetsValues, duration,
+		return new SPEQueryResponse(fieldFacetValues, emptyFacetPivotValues, emptyStatisticsValues, queryFacetsValues, duration,
 				numFound, records, highlights, correctlySpelt, emptySpellcheckerSuggestions, emptyRecordsWithMoreLikeThis);
 	}
 

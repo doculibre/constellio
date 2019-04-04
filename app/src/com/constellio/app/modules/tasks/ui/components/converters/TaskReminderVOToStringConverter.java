@@ -3,6 +3,7 @@ package com.constellio.app.modules.tasks.ui.components.converters;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.ui.entities.TaskReminderVO;
 import com.constellio.app.ui.framework.components.converters.JodaDateToStringConverter;
+import com.constellio.model.entities.schemas.Schemas;
 import com.vaadin.data.util.converter.Converter;
 import org.joda.time.LocalDate;
 
@@ -40,6 +41,8 @@ public class TaskReminderVOToStringConverter implements Converter<String, TaskRe
 					relativeDateLabel = $("TaskReminder.display.relativeDateMetadataCode.dueDate");
 				} else if (Task.END_DATE.equals(relativeDateMetadataCode)) {
 					relativeDateLabel = $("TaskReminder.display.relativeDateMetadataCode.endDate");
+				} else if (Schemas.CREATED_ON.getLocalCode().equals(relativeDateMetadataCode)) {
+					relativeDateLabel = $("TaskReminder.display.relativeDateMetadataCode.creationDate");
 				} else {
 					// Should never happen
 					throw new RuntimeException("Invalid metadata code : " + relativeDateMetadataCode);

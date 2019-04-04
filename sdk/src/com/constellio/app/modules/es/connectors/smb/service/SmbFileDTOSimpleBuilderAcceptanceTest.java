@@ -374,7 +374,7 @@ public class SmbFileDTOSimpleBuilderAcceptanceTest extends ConstellioTest {
 		assertThat(smbFileDTO.getAllowShareTokens()).isEmpty();
 		assertThat(smbFileDTO.getDenyTokens()).isEmpty();
 		assertThat(smbFileDTO.getDenyShareTokens()).isEmpty();
-		assertThat(smbFileDTO.getPermissionsHash()).isEmpty();
+		assertThat(smbFileDTO.getPermissionsHash()).isNull();
 		assertThat(smbFileDTO.isFile()).isFalse();
 		assertThat(smbFileDTO.isDirectory()).isFalse();
 		assertThat(smbFileDTO.getExtension()).isEmpty();
@@ -424,7 +424,7 @@ public class SmbFileDTOSimpleBuilderAcceptanceTest extends ConstellioTest {
 		assertThat(smbFileDTO.getAllowShareTokens()).isEmpty();
 		assertThat(smbFileDTO.getDenyTokens()).isEmpty();
 		assertThat(smbFileDTO.getDenyShareTokens()).isEmpty();
-		assertThat(smbFileDTO.getPermissionsHash()).isEmpty();
+		assertThat(smbFileDTO.getPermissionsHash()).isNull();
 		assertThat(smbFileDTO.isFile()).isFalse();
 		assertThat(smbFileDTO.isDirectory()).isFalse();
 		assertThat(smbFileDTO.getExtension()).isEmpty();
@@ -443,7 +443,7 @@ public class SmbFileDTOSimpleBuilderAcceptanceTest extends ConstellioTest {
 		LocalDateTime time1 = new LocalDateTime();
 		givenTimeIs(time1);
 
-		WindowsPermissionsFactory windowsPermissionsFactory = new WindowsPermissionsFactoryImpl(trusteeManager, false);
+		WindowsPermissionsFactory windowsPermissionsFactory = new WindowsPermissionsFactoryImpl(trusteeManager, false, false);
 		when(smbFile.getCanonicalPath()).thenReturn(SmbTestParams.EXISTING_SHARE + SmbTestParams.EXISTING_FILE);
 		SmbFileDTOSimpleBuilder builder = Mockito.spy(new SmbFileDTOSimpleBuilder(logger, es, windowsPermissionsFactory));
 

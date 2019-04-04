@@ -9,7 +9,6 @@ import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.modules.tasks.services.TasksSearchServices;
 import com.constellio.app.modules.tasks.ui.builders.TaskToVOBuilder;
 import com.constellio.app.modules.tasks.ui.components.TaskTable.TaskPresenter;
-import com.constellio.app.modules.tasks.ui.components.window.QuickCompleteWindow;
 import com.constellio.app.modules.tasks.ui.entities.TaskVO;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.application.ConstellioUI;
@@ -102,7 +101,20 @@ public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskV
 		ConstellioUI.getCurrentSessionContext().setAttribute(DISPLAY_TASK_PRESENTER_PREVIOUS_TAB, view.getSelectedTab().getId());
 	}
 
-	public RecordVO getTask() {
+	@Override
+	public Task getTask(RecordVO recordVO) {
+		String originalSchemaCode = schemaPresenterUtils.getSchemaCode();
+		schemaPresenterUtils.setSchemaCode(recordVO.getSchemaCode());
+		Task task = tasksSchemas.wrapTask(toRecord(recordVO));
+		schemaPresenterUtils.setSchemaCode(originalSchemaCode);
+		return task;
+	}
+
+	@Override
+	public void callAssignationExtension() {
+	}
+
+	public RecordVO getTaskVO() {
 		return taskVO;
 	}
 
@@ -132,14 +144,6 @@ public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskV
 		view.navigate().to().editTask(entity.getId());
 	}
 
-	public void completeButtonClicked() {
-		view.navigate().to().editTask(taskVO.getId(), true);
-	}
-
-	@Override
-	public void completeButtonClicked(RecordVO entity) {
-		view.navigate().to().editTask(entity.getId(), true);
-	}
 
 	public void closeButtonClicked() {
 		closeButtonClicked(taskVO);
@@ -274,6 +278,10 @@ public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskV
 		return currentRecord;
 	}
 
+	public Task getTask() {
+		return tasksSchemas.wrapTask(getCurrentRecord());
+	}
+
 	public boolean isCompleteCurrentTaskButtonVisible() {
 		return isCompleteTaskButtonVisible(taskVO);
 	}
@@ -312,26 +320,6 @@ public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskV
 		return true;
 	}
 
-	@Override
-	public void completeQuicklyButtonClicked(RecordVO recordVO) {
-		TasksSchemasRecordsServices tasksSchemas = new TasksSchemasRecordsServices(collection, appLayerFactory);
-		Task task = tasksSchemas.getTask(recordVO.getId());
-		Object decisions = task.get(Task.BETA_NEXT_TASKS_DECISIONS);
-		if ((task.getModelTask() != null && decisions != null && !((MapStringStringStructure) decisions).isEmpty()
-			 && task.getDecision() == null && !containsExpressionLanguage(decisions))
-			|| tasksSchemas.isRequestTask(task)) {
-			QuickCompleteWindow quickCompleteWindow = new QuickCompleteWindow(this, appLayerFactory, recordVO);
-			quickCompleteWindow.show();
-		} else {
-			try {
-				QuickCompleteWindow.quickCompleteTask(appLayerFactory, task, null, null, null, null);
-				reloadCurrentTask();
-			} catch (RecordServicesException e) {
-				view.showErrorMessage(e.getMessage());
-				e.printStackTrace();
-			}
-		}
-	}
 
 	public static boolean containsExpressionLanguage(Object decisions) {
 		if (decisions != null && decisions instanceof MapStringStringStructure) {
@@ -433,7 +421,7 @@ public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskV
 	}
 
 	public boolean isLogicallyDeleted() {
-		RecordVO task = getTask();
+		RecordVO task = getTaskVO();
 		return Boolean.TRUE
 				.equals(task.getMetadataValue(task.getMetadata(Schemas.LOGICALLY_DELETED_STATUS.getLocalCode())).getValue());
 	}

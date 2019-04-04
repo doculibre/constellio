@@ -22,7 +22,7 @@ public class WindowsPermissionsTest extends ConstellioTest {
 
 	@Test
 	public void whenProcessPermissionsThenNovellNtfsShare() {
-		WindowsPermissions windowsPermissions = spy(new WindowsPermissions(smbFile, trusteeManager, false));
+		WindowsPermissions windowsPermissions = spy(new WindowsPermissions(smbFile, trusteeManager, false, false));
 		windowsPermissions.process();
 		verify(windowsPermissions, times(1)).processNovellPermissions(smbFile, trusteeManager);
 		verify(windowsPermissions, times(1)).processNTFSPermissions(smbFile);
@@ -31,10 +31,19 @@ public class WindowsPermissionsTest extends ConstellioTest {
 
 	@Test
 	public void givenSkipSharePermissionsWhenProcessPermissionsThenOnlyNovellNtfs() {
-		WindowsPermissions windowsPermissions = spy(new WindowsPermissions(smbFile, trusteeManager, true));
+		WindowsPermissions windowsPermissions = spy(new WindowsPermissions(smbFile, trusteeManager, true, false));
 		windowsPermissions.process();
 		verify(windowsPermissions, times(1)).processNovellPermissions(smbFile, trusteeManager);
 		verify(windowsPermissions, times(1)).processNTFSPermissions(smbFile);
+		verify(windowsPermissions, times(0)).processSharePermissions(smbFile);
+	}
+
+	@Test
+	public void givenSkipACLWhenProcessPermissionsThenNoCalls() {
+		WindowsPermissions windowsPermissions = spy(new WindowsPermissions(smbFile, trusteeManager, false, true));
+		windowsPermissions.process();
+		verify(windowsPermissions, times(0)).processNovellPermissions(smbFile, trusteeManager);
+		verify(windowsPermissions, times(0)).processNTFSPermissions(smbFile);
 		verify(windowsPermissions, times(0)).processSharePermissions(smbFile);
 	}
 }

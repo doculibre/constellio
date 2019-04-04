@@ -1638,7 +1638,12 @@ $popup-view-z-index: 3;
 		font-weight: bold;
 		color: red;
 	}
-	
+
+	.constellio-layout-with-border {
+	    border: 1px solid lightgray;
+	}
+
+
     .constellio-layout {
 
 	    .sidebar {
@@ -1916,6 +1921,12 @@ $popup-view-z-index: 3;
 									background-color: #fff;
 								}
 							}
+						   
+						   	.task-table {
+						   		.reference-display-link {
+						   			color: inherit;
+						   		}	
+						   	}
 					    }
 
 					    .facet-box {

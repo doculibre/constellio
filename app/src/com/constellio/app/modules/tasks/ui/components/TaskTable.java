@@ -12,7 +12,7 @@ import org.vaadin.dialogs.ConfirmDialog;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.ui.components.fields.StarredFieldImpl;
 import com.constellio.app.modules.tasks.ui.entities.TaskVO;
-import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.modules.tasks.ui.pages.tasks.TaskCompleteWindowButton;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -60,21 +60,21 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
 public class TaskTable extends VerticalLayout {
-	
+
 	public static final String PREFIX = "images/icons/task/";
 	public static final ThemeResource COMPLETE_ICON = new ThemeResource(PREFIX + "task.png");
 	public static final ThemeResource CLOSE_ICON = new ThemeResource(PREFIX + "task_complete.png");
 
 	private I18NHorizontalLayout controlsLayout;
-	
+
 	private RecordVO selectedTask;
-	
+
 	private Button filterButton;
-	
+
 	private ComboBox sortField;
-	
+
 	private TaskRecordVOTable table;
-	
+
 	private final TaskPresenter presenter;
 
 	public TaskTable(RecordVODataProvider provider, TaskPresenter presenter) {
@@ -82,7 +82,7 @@ public class TaskTable extends VerticalLayout {
 
 		setWidth("100%");
 		addStyleName("task-table-layout");
-		
+
 		table = new TaskRecordVOTable($("TaskTable.caption", provider.size()));
 		table.setContainerDataSource(buildContainer(provider));
 		table.setColumnHeader(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID, "");
@@ -92,21 +92,21 @@ public class TaskTable extends VerticalLayout {
 		table.setWidth("100%");
 		table.addStyleName("task-table");
 		addDisplayOnClickListener();
-		
+
 		controlsLayout = new I18NHorizontalLayout();
 		controlsLayout.setWidth("100%");
 		controlsLayout.setSpacing(true);
 		controlsLayout.setDefaultComponentAlignment(Alignment.TOP_RIGHT);
-		
+
 		filterButton = new BaseButton($("filter"), FontAwesome.FILTER) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
-				
+
 			}
 		};
 		filterButton.addStyleName(ValoTheme.BUTTON_LINK);
 		filterButton.addStyleName("task-table-filter");
-		
+
 		sortField = new BaseComboBox($("sortBy"));
 		sortField.setWidth("250px");
 		sortField.addStyleName("task-table-sort");
@@ -125,15 +125,15 @@ public class TaskTable extends VerticalLayout {
 				MetadataVO metadataVO = (MetadataVO) sortablePropertyId;
 				sortField.addItem(metadataVO);
 				sortField.setItemCaption(metadataVO, metadataVO.getLabel());
-				
+
 				if (metadataVO.equals(sortPropertyId)) {
 					sortField.setValue(metadataVO);
 				}
 			}
 		}
-		
+
 		controlsLayout.addComponents(filterButton, sortField);
-		
+
 		addComponents(controlsLayout, table);
 	}
 
@@ -169,7 +169,7 @@ public class TaskTable extends VerticalLayout {
 				final RecordVO recordVO = records.getRecordVO((int) itemId);
 				MenuBar menuBar = new BaseMenuBar();
 				menuBar.addStyleName(ValoTheme.MENUBAR_BORDERLESS);
-				
+
 				MenuItem rootItem = menuBar.addItem("", FontAwesome.ELLIPSIS_V, null);
 
 				rootItem.addItem($("display"), DisplayButton.ICON_RESOURCE, new Command() {
@@ -208,26 +208,20 @@ public class TaskTable extends VerticalLayout {
 					rootItem.addItem($("TaskTable.complete"), COMPLETE_ICON, new Command() {
 						@Override
 						public void menuSelected(MenuItem selectedItem) {
-							String completeTaskDialog = $("DisplayTaskView.completeTaskDialogMessage");
+							TaskCompleteWindowButton completeTask = new TaskCompleteWindowButton(presenter.getTask(recordVO),
+									$("DisplayTaskView.completeTask"),
+									presenter.getView().getConstellioFactories().getAppLayerFactory(), presenter) {
+								@Override
+								protected String getConfirmDialogMessage() {
+									if (presenter.isSubTaskPresentAndHaveCertainStatus(recordVO)) {
+										return $("DisplayTaskView.subTaskPresentComplete");
+									}
 
-							if (presenter.isSubTaskPresentAndHaveCertainStatus(recordVO)) {
-								completeTaskDialog = $("DisplayTaskView.subTaskPresentComplete");
-							}
+									return $("DisplayTaskView.completeTaskDialogMessage");
+								}
+							};
 
-							ConfirmDialog.show(ConstellioUI.getCurrent(), $("DisplayTaskView.completeTask"), completeTaskDialog,
-									$("DisplayTaskView.quickComplete"), $("cancel"), $("DisplayTaskView.slowComplete"),
-									new ConfirmDialog.Listener() {
-										@Override
-										public void onClose(ConfirmDialog dialog) {
-											if (dialog.isConfirmed()) {
-												presenter.completeQuicklyButtonClicked(recordVO);
-											} else if (dialog.isCanceled()) {
-
-											} else {
-												presenter.completeButtonClicked(recordVO);
-											}
-										}
-									});
+							completeTask.click();
 						}
 					});
 				}
@@ -284,7 +278,7 @@ public class TaskTable extends VerticalLayout {
 	private void displayTask(Object itemId, RecordVO recordVO) {
 		presenter.setReadByUser(recordVO, true);
 		presenter.registerPreviousSelectedTab();
-		
+
 		if (itemId == null) {
 			// FIXME
 			presenter.displayButtonClicked(recordVO);
@@ -301,17 +295,17 @@ public class TaskTable extends VerticalLayout {
 	}
 
 	private static class TaskDetailsPanel extends VerticalLayout {
-		
+
 		private RecordVO taskVO;
-		
+
 		private TaskDetailsPanel(RecordVO taskVO) {
 			setSizeFull();
 			setSpacing(true);
-			
+
 			RecordDisplay taskDisplay = new RecordDisplay(taskVO);
 			addComponent(taskDisplay);
 		}
-		
+
 	}
 
 	public interface TaskPresenter {
@@ -322,8 +316,6 @@ public class TaskTable extends VerticalLayout {
 		void editButtonClicked(RecordVO record);
 
 		void deleteButtonClicked(RecordVO record);
-
-		void completeButtonClicked(RecordVO record);
 
 		void closeButtonClicked(RecordVO record);
 
@@ -353,8 +345,6 @@ public class TaskTable extends VerticalLayout {
 
 		boolean isMetadataReportAllowed(RecordVO recordVO);
 
-		void completeQuicklyButtonClicked(RecordVO recordVO);
-
 		BaseView getView();
 
 		void reloadTaskModified(Task task);
@@ -364,6 +354,10 @@ public class TaskTable extends VerticalLayout {
 		void updateTaskStarred(boolean isStarred, String taskId);
 
 		void registerPreviousSelectedTab();
+
+		Task getTask(RecordVO recordVO);
+
+		void callAssignationExtension();
 	}
 
 	public class TaskStyleGenerator implements CellStyleGenerator {
@@ -425,7 +419,7 @@ public class TaskTable extends VerticalLayout {
 	protected String getTitleColumnStyle(RecordVO recordVO) {
 		return table.getInheritedTitleColumnStyle(recordVO);
 	}
-	
+
 	protected TableColumnsManager newColumnsManager() {
 		return new RecordVOTableColumnsManager() {
 			@Override
@@ -440,11 +434,11 @@ public class TaskTable extends VerticalLayout {
 			}
 		};
 	}
-	
+
 	private class TaskRecordVOTable extends RecordVOTable {
-		
+
 		private List<Object> selectedIds = new ArrayList<>();
-		
+
 		public TaskRecordVOTable(String caption) {
 			super(caption);
 			addStyleName(ValoTheme.TABLE_BORDERLESS);

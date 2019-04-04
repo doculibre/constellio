@@ -14183,6 +14183,10 @@ div.v-layout.v-horizontal.v-widget {
 	color: red;
 }
 
+.constellio .constellio-layout-with-border {
+	border: 1px solid lightgray;
+}
+
 .constellio .constellio-layout .sidebar {
 	overflow-y: hidden;
 }
@@ -14429,6 +14433,10 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .search-result-table .v-table-row-odd {
 	background-color: #fff;
+}
+
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .task-table .reference-display-link {
+	color: inherit;
 }
 
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .facet-box {

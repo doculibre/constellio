@@ -14,6 +14,7 @@ public class QueryResponseDTO {
 	private long numFound;
 
 	private Map<String, List<FacetValue>> fieldFacetValues;
+	private Map<String, List<FacetPivotValue>> fieldFacetPivotValues;
 	private Map<String, Map<String, Object>> fieldsStatistics;
 	private Map<String, Map<String, List<String>>> highlights;
 	private Map<String, Integer> queryFacetValues;
@@ -23,6 +24,7 @@ public class QueryResponseDTO {
 
 	public QueryResponseDTO(List<RecordDTO> results, int qtime, long numFound,
 							Map<String, List<FacetValue>> fieldFacetValues,
+							Map<String, List<FacetPivotValue>> fieldFacetPivotValues,
 							Map<String, Map<String, Object>> fieldsStatistics,
 							Map<String, Integer> queryFacetValues, Map<String, Map<String, List<String>>> highlights,
 							boolean correctlySpelt,
@@ -31,6 +33,7 @@ public class QueryResponseDTO {
 		this.qtime = qtime;
 		this.numFound = numFound;
 		this.fieldFacetValues = fieldFacetValues;
+		this.fieldFacetPivotValues = fieldFacetPivotValues;
 		this.fieldsStatistics = fieldsStatistics;
 		this.queryFacetValues = queryFacetValues;
 		this.highlights = highlights;
@@ -57,6 +60,10 @@ public class QueryResponseDTO {
 
 	public Map<String, List<FacetValue>> getFieldFacetValues() {
 		return fieldFacetValues;
+	}
+
+	public Map<String, List<FacetPivotValue>> getFieldFacetPivotValues() {
+		return fieldFacetPivotValues;
 	}
 
 	public Map<String, Integer> getQueryFacetValues() {

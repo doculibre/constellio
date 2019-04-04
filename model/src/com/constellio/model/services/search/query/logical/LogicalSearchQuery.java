@@ -53,6 +53,7 @@ public class LogicalSearchQuery implements SearchQuery {
 
 	private KeySetMap<String, String> queryFacets = new KeySetMap<>();
 	private List<String> fieldFacets = new ArrayList<>();
+	private List<String> fieldPivotFacets = new ArrayList<>();
 	private List<String> statisticFields = new ArrayList<>();
 	private List<String> moreLikeThisFields = new ArrayList<>();
 	private int fieldFacetLimit;
@@ -102,6 +103,7 @@ public class LogicalSearchQuery implements SearchQuery {
 
 		queryFacets = new KeySetMap<>(query.queryFacets);
 		fieldFacets = new ArrayList<>(query.fieldFacets);
+		fieldPivotFacets = new ArrayList<>(query.fieldPivotFacets);
 		statisticFields = new ArrayList<>(query.statisticFields);
 		fieldFacetLimit = query.fieldFacetLimit;
 
@@ -245,6 +247,7 @@ public class LogicalSearchQuery implements SearchQuery {
 
 	public void clearFacets() {
 		fieldFacets.clear();
+		fieldPivotFacets.clear();
 		queryFacets.clear();
 	}
 
@@ -305,12 +308,26 @@ public class LogicalSearchQuery implements SearchQuery {
 		return fieldFacets;
 	}
 
+	public List<String> getFieldPivotFacets() {
+		return fieldPivotFacets;
+	}
+
 	public List<String> getStatisticFields() {
 		return statisticFields;
 	}
 
 	public LogicalSearchQuery addFieldFacet(String fieldFacet) {
 		fieldFacets.add(fieldFacet);
+		return this;
+	}
+
+	public LogicalSearchQuery setFieldPivotFacets(List<String> fieldPivotFacets) {
+		this.fieldPivotFacets = fieldPivotFacets;
+		return this;
+	}
+
+	public LogicalSearchQuery setFieldPivotFacets(String... fieldPivotFacet) {
+		fieldPivotFacets = asList(fieldPivotFacet);
 		return this;
 	}
 

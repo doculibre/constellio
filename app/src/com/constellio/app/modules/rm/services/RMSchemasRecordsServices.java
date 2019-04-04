@@ -13,6 +13,7 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.PrintableReport;
 import com.constellio.app.modules.rm.wrappers.RMObject;
 import com.constellio.app.modules.rm.wrappers.RMUserFolder;
+import com.constellio.app.modules.rm.wrappers.UserFunction;
 import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
@@ -24,6 +25,7 @@ import com.constellio.app.modules.rm.wrappers.type.YearType;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.pages.base.SessionContextProvider;
 import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.data.utils.Provider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.DocumentListPDF;
 import com.constellio.model.entities.records.wrappers.HierarchicalValueListItem;
@@ -1195,4 +1197,89 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 		return searchServices.getResultsCount(logicalSearchQuery) + size > NUMBER_OF_RECORDS_IN_CART_LIMIT;
 	}
 
+	public UserFunctionChecker getUsersWithFunction(UserFunction userFunction) {
+		return new UserFunctionChecker(this, userFunction);
+	}
+
+	/**
+	 * TODO Upgrade to streams
+	 *
+	 * @return
+	 */
+	public List<AdministrativeUnit> getAdministrativeUnitsUsingFilter(
+			final Provider<AdministrativeUnit, Boolean> provider) {
+
+		List<AdministrativeUnit> administrativeUnits = new ArrayList<>();
+
+		for (AdministrativeUnit au : getAllAdministrativeUnitsInUnmodifiableState()) {
+			if (provider.get(au)) {
+				administrativeUnits.add(au);
+			}
+		}
+
+		return administrativeUnits;
+
+	}
+
+	//	public List<AdministrativeUnit> getAdministrativeUnitsOfUser(User user,
+	//																 boolean includeAuthsOfParentAdministrativeUnits,
+	//																 Provider<SecurityModelAuthorization, Boolean> filter) {
+	//
+	//		List<SecurityModelAuthorization> authorizations = getModelLayerFactory().newRecordServices()
+	//				.getSecurityModel(user.getCollection()).getAuthorizationsToPrincipal(user.getId(), true);
+	//
+	//		Set<String> foundIds = new HashSet<>();
+	//
+	//		for (SecurityModelAuthorization authorization : authorizations) {
+	//			if (AdministrativeUnit.SCHEMA_TYPE.equals(authorization.getDetails().getTargetSchemaType())
+	//				&& filter.get(authorization)) {
+	//				foundIds.add(authorization.getDetails().getId());
+	//			}
+	//		}
+	//
+	//
+	//		List<AdministrativeUnit> returnedAdmUnits = new ArrayList<>();
+	//		for (AdministrativeUnit admUnit : getAllAdministrativeUnitsInUnmodifiableState()) {
+	//
+	//			if (foundIds.contains(admUnit.getId())
+	//				|| (includeAuthsOfParentAdministrativeUnits && containsAny(admUnit.getAncestors(), foundIds))) {
+	//				returnedAdmUnits.add(admUnit);
+	//			}
+	//		}
+	//
+	//		return returnedAdmUnits;
+	//	}
+	//
+	//	public List<AdministrativeUnit> getAdministrativeUnitsOfUser(User user,
+	//																 boolean includeAuthsOfParentAdministrativeUnits,
+	//																 Provider<AdministrativeUnit, Boolean> filter) {
+	//
+	//		List<SecurityModelAuthorization> authorizations = getModelLayerFactory().newRecordServices()
+	//				.getSecurityModel(user.getCollection()).getAuthorizationsToPrincipal(user.getId(), true);
+	//
+	//		Set<String> foundIds = new HashSet<>();
+	//
+	//		for (SecurityModelAuthorization authorization : authorizations) {
+	//			if (AdministrativeUnit.SCHEMA_TYPE.equals(authorization.getDetails().getTargetSchemaType())
+	//				&& filter.get(authorization)) {
+	//				foundIds.add(authorization.getDetails().getId());
+	//			}
+	//		}
+	//
+	//
+	//		List<AdministrativeUnit> returnedAdmUnits = new ArrayList<>();
+	//		for (AdministrativeUnit admUnit : getAllAdministrativeUnitsInUnmodifiableState()) {
+	//
+	//
+	//			user.h
+	//
+	//
+	//			if (foundIds.contains(admUnit.getId())
+	//				|| (includeAuthsOfParentAdministrativeUnits && containsAny(admUnit.getAncestors(), foundIds))) {
+	//				returnedAdmUnits.add(admUnit);
+	//			}
+	//		}
+	//
+	//		return returnedAdmUnits;
+	//	}
 }

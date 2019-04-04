@@ -55,15 +55,18 @@ public class UserReportModel {
 	}
 
 	private String getGroups(UserReportModel_User user) {
-		List<UserReportModel_Group> userReportModel = user.getGroups();
+		List<UserReportModel_Group> userGroups = user.getGroups();
 		StringBuilder stringBuilder = new StringBuilder();
-		for(UserReportModel_Group currentUserReportModel : userReportModel) {
-			if(stringBuilder.length() > 0) {
-				stringBuilder.append("\n");
-			}
-			stringBuilder.append("*" + currentUserReportModel.getLabel());
-			for(String currentTargetAccess : currentUserReportModel.getTargetWithAccessList()) {
-				stringBuilder.append("\n\t" + currentTargetAccess);
+
+		if(userGroups != null) {
+			for(UserReportModel_Group currentUserReportModel : userGroups) {
+				if(stringBuilder.length() > 0) {
+					stringBuilder.append("\n");
+				}
+				stringBuilder.append("*" + currentUserReportModel.getLabel());
+				for(String currentTargetAccess : currentUserReportModel.getTargetWithAccessList()) {
+					stringBuilder.append("\n\t" + currentTargetAccess);
+				}
 			}
 		}
 
@@ -74,20 +77,22 @@ public class UserReportModel {
 		Map<UserReportModel_Role,List<UserReportModel_RoleTarget>> roleList = user.getRoles();
 		StringBuilder stringBuilder = new StringBuilder();
 
-		for(UserReportModel_Role currentKey : roleList.keySet()) {
-			List<UserReportModel_RoleTarget> targetRoleList = roleList.get(currentKey);
+		if(roleList != null) {
+			for(UserReportModel_Role currentKey : roleList.keySet()) {
+				List<UserReportModel_RoleTarget> targetRoleList = roleList.get(currentKey);
 
-			if(stringBuilder.length() > 0) {
-				stringBuilder.append("\n");
-			}
+				if(stringBuilder.length() > 0) {
+					stringBuilder.append("\n");
+				}
 
-			stringBuilder.append("*" +  currentKey.getLabel());
-			for(UserReportModel_RoleTarget currentRoleTarget : targetRoleList) {
-				stringBuilder.append("\n\t");
-				if(currentRoleTarget != null) {
-					stringBuilder.append(currentRoleTarget.getLabel());
-				} else {
-					stringBuilder.append($("CollectionGroupRolesView.global"));
+				stringBuilder.append("*" +  currentKey.getLabel());
+				for(UserReportModel_RoleTarget currentRoleTarget : targetRoleList) {
+					stringBuilder.append("\n\t");
+					if(currentRoleTarget != null) {
+						stringBuilder.append(currentRoleTarget.getLabel());
+					} else {
+						stringBuilder.append($("CollectionGroupRolesView.global"));
+					}
 				}
 			}
 		}

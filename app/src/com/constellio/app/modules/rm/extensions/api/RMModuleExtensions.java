@@ -9,6 +9,7 @@ import com.constellio.app.modules.rm.extensions.api.DocumentExtension.DocumentEx
 import com.constellio.app.modules.rm.extensions.api.reports.RMReportBuilderFactories;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.tasks.extensions.TaskManagementPresenterExtension;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
@@ -23,6 +24,7 @@ public class RMModuleExtensions implements ModuleExtensions {
 	private VaultBehaviorsList<DecommissioningBuilderPresenterExtension> decommissioningBuilderPresenterExtensions;
 	private DecommissioningListFolderTableExtension decommissioningListFolderTableExtension;
 	private VaultBehaviorsList<DecommissioningListPresenterExtension> decommissioningListPresenterExtensions;
+	private VaultBehaviorsList<TaskManagementPresenterExtension> taskManagementPresenterExtensions;
 	private VaultBehaviorsList<DocumentExtension> documentExtensions;
 	private VaultBehaviorsList<FolderExtension> folderExtensions;
 	private VaultBehaviorsList<AdvancedSearchPresenterExtension> advancedSearchPresenterExtensions;
@@ -35,6 +37,7 @@ public class RMModuleExtensions implements ModuleExtensions {
 		rmReportBuilderFactories = new RMReportBuilderFactories(appLayerFactory);
 		decommissioningBuilderPresenterExtensions = new VaultBehaviorsList<>();
 		decommissioningListPresenterExtensions = new VaultBehaviorsList<>();
+		taskManagementPresenterExtensions = new VaultBehaviorsList<>();
 		documentExtensions = new VaultBehaviorsList<>();
 		folderExtensions = new VaultBehaviorsList<>();
 		advancedSearchPresenterExtensions = new VaultBehaviorsList<>();
@@ -66,6 +69,10 @@ public class RMModuleExtensions implements ModuleExtensions {
 
 	public VaultBehaviorsList<DecommissioningListPresenterExtension> getDecommissioningListPresenterExtensions() {
 		return decommissioningListPresenterExtensions;
+	}
+
+	public VaultBehaviorsList<TaskManagementPresenterExtension> getTaskManagementPresenterExtensions() {
+		return taskManagementPresenterExtensions;
 	}
 
 	public VaultBehaviorsList<DocumentExtension> getDocumentExtensions() {

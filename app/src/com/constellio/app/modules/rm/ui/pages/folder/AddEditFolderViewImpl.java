@@ -1,11 +1,12 @@
 package com.constellio.app.modules.rm.ui.pages.folder;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
 import com.constellio.app.modules.rm.ui.components.folder.FolderForm;
 import com.constellio.app.modules.rm.ui.components.folder.FolderFormImpl;
 import com.constellio.app.modules.rm.ui.components.folder.fields.CustomFolderField;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
-import com.constellio.model.frameworks.validation.ValidationException;
 import com.vaadin.data.Buffered.SourceException;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
@@ -13,8 +14,6 @@ import com.vaadin.data.Validator.InvalidValueException;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Field;
-
-import static com.constellio.app.ui.i18n.i18n.$;
 
 public class AddEditFolderViewImpl extends BaseViewImpl implements AddEditFolderView {
 
@@ -28,13 +27,21 @@ public class AddEditFolderViewImpl extends BaseViewImpl implements AddEditFolder
 		presenter = new AddEditFolderPresenter(this);
 	}
 
+	public void setPresenter(AddEditFolderPresenter presenter) {
+		this.presenter = presenter;
+	}
+
+	public AddEditFolderPresenter getPresenter() {
+		return presenter;
+	}
+
 	@Override
 	protected void initBeforeCreateComponents(ViewChangeEvent event) {
 		presenter.forParams(event.getParameters());
 	}
 
 	@Override
-	protected void afterViewAssembled(ViewChangeEvent event) {
+	public void afterViewAssembled(ViewChangeEvent event) {
 		presenter.viewAssembled();
 	}
 
@@ -62,12 +69,31 @@ public class AddEditFolderViewImpl extends BaseViewImpl implements AddEditFolder
 		return $(titleKey);
 	}
 
-	private FolderFormImpl newForm() {
+	protected boolean showTab() {
+		return true;
+	}
+
+	protected boolean validateRequiredFields() {
+		return true;
+	}
+
+	protected FolderFormImpl newForm() {
 		recordForm = new FolderFormImpl(recordVO) {
 			@Override
-			protected void saveButtonClick(RecordVO viewObject)
-					throws ValidationException {
+			protected void saveButtonClick(RecordVO viewObject) {
 				presenter.saveButtonClicked();
+			}
+
+			@Override
+			public boolean validateFields() {
+				if (validateRequiredFields()) {
+					return true;
+				} else {
+					for (Field field : fieldGroup.getFields()) {
+						field.setRequired(false);
+					}
+					return false;
+				}
 			}
 
 			@Override
@@ -90,6 +116,17 @@ public class AddEditFolderViewImpl extends BaseViewImpl implements AddEditFolder
 					}
 				}
 			}
+
+			@Override
+			protected String getTabCaption(Field<?> field, Object propertyId) {
+				if (!showTab()) {
+					return null;
+				}
+
+				return super.getTabCaption(field, propertyId);
+			}
+
+
 
 			@Override
 			public void commit() {

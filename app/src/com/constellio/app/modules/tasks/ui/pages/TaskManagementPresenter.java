@@ -1,8 +1,11 @@
 package com.constellio.app.modules.tasks.ui.pages;
 
 import com.constellio.app.api.extensions.params.UpdateComponentExtensionParams;
+import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.RMConfigs;
+import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.tasks.TasksPermissionsTo;
+import com.constellio.app.modules.tasks.extensions.TaskManagementPresenterExtension;
 import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflow;
 import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflowInstance;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
@@ -14,9 +17,7 @@ import com.constellio.app.modules.tasks.services.TasksSearchServices;
 import com.constellio.app.modules.tasks.ui.builders.TaskToVOBuilder;
 import com.constellio.app.modules.tasks.ui.components.TaskTable.TaskPresenter;
 import com.constellio.app.modules.tasks.ui.components.WorkflowTable.WorkflowPresenter;
-import com.constellio.app.modules.tasks.ui.components.window.QuickCompleteWindow;
 import com.constellio.app.modules.tasks.ui.entities.TaskVO;
-import com.constellio.app.modules.tasks.ui.pages.tasks.DisplayTaskPresenter;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -33,7 +34,6 @@ import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.structures.MapStringStringStructure;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.RecordUtils;
@@ -72,21 +72,23 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 	private transient BetaWorkflowServices workflowServices;
 	private RecordVODataProvider provider;
 	private transient SearchServices searchServices;
-	
+
 	private String selectedTab;
-	
+
 	private List<String> primaryTabs;
-	
+
 	private List<String> tasksTabs;
-	
+
 	private boolean workflowsTabsVisible;
 	private boolean startWorkflowButtonVisible;
+
+	private RMModuleExtensions rmModuleExtensions = appCollectionExtentions.forModule(ConstellioRMModule.ID);
 
 	public TaskManagementPresenter(TaskManagementView view) {
 		super(view, DEFAULT_SCHEMA);
 		initTransientObjects();
 		tasksSchemasRecordsServices = new TasksSchemasRecordsServices(collection, appLayerFactory);
-		
+
 		workflowsTabsVisible = /*areWorkflowsEnabled() &&*/ getCurrentUser().has(TasksPermissionsTo.MANAGE_WORKFLOWS).globally();
 		startWorkflowButtonVisible = workflowsTabsVisible && hasPermissionToStartWorkflow();
 
@@ -95,7 +97,7 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 		tasksTabs.add(TaskManagementView.TASKS_ASSIGNED_BY_CURRENT_USER);
 		tasksTabs.add(TaskManagementView.TASKS_NOT_ASSIGNED);
 		tasksTabs.add(TaskManagementView.TASKS_RECENTLY_COMPLETED);
-		
+
 		primaryTabs = new ArrayList<>();
 		if (workflowsTabsVisible) {
 			primaryTabs.add(TaskManagementView.TASKS_TAB);
@@ -104,17 +106,17 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 		} else {
 			primaryTabs.addAll(tasksTabs);
 		}
-		
+
 		view.setWorkflowsTabsVisible(workflowsTabsVisible);
 		view.setStartWorkflowButtonVisible(startWorkflowButtonVisible);
 		view.setPrimaryTabs(primaryTabs);
 		view.setTasksTabs(tasksTabs);
 	}
-	
+
 	List<String> getPrimaryTabs() {
 		return primaryTabs;
 	}
-	
+
 	List<String> getTasksTabs() {
 		return tasksTabs;
 	}
@@ -123,11 +125,11 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 	protected boolean hasPageAccess(String params, User user) {
 		return true;
 	}
-	
+
 	public void tabSelected(String tabId) {
 		loadTab(tabId);
 	}
-	
+
 	private void loadTab(String tabId) {
 		selectedTab = tabId;
 		if (isWorkflowTab(tabId)) {
@@ -205,11 +207,6 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 	}
 
 	@Override
-	public void completeButtonClicked(RecordVO record) {
-		view.navigate().to().editTask(record.getId(), true);
-	}
-
-	@Override
 	public void closeButtonClicked(RecordVO record) {
 		taskPresenterServices.closeTask(toRecord(record), getCurrentUser());
 		refreshCurrentTab();
@@ -273,6 +270,16 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 	}
 
 	@Override
+	public Task getTask(RecordVO recordVO) {
+		String originalSchemaCode = schemaPresenterUtils.getSchemaCode();
+		schemaPresenterUtils.setSchemaCode(recordVO.getSchemaCode());
+		Task task = tasksSchemasRecordsServices.wrapTask(toRecord(recordVO));
+		schemaPresenterUtils.setSchemaCode(originalSchemaCode);
+		return task;
+
+	}
+
+	@Override
 	public boolean isCompleteButtonEnabled(RecordVO recordVO) {
 		return taskPresenterServices.isCompleteTaskButtonVisible(toRecord(recordVO), getCurrentUser());
 	}
@@ -308,8 +315,7 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 	@Override
 	public void generateReportButtonClicked(RecordVO recordVO) {
 		ReportGeneratorButton button = new ReportGeneratorButton($("ReportGeneratorButton.buttonText"),
-				$("Générer un rapport de métadonnées"), view, appLayerFactory, collection, PrintableReportListPossibleType.TASK, view.getSessionContext().getCurrentUser(),
-				recordVO);
+				$("Générer un rapport de métadonnées"), view, appLayerFactory, collection, PrintableReportListPossibleType.TASK, recordVO);
 		button.click();
 	}
 
@@ -498,26 +504,6 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 		return true;
 	}
 
-	@Override
-	public void completeQuicklyButtonClicked(RecordVO recordVO) {
-		TasksSchemasRecordsServices tasksSchemas = new TasksSchemasRecordsServices(collection, appLayerFactory);
-		Task task = tasksSchemas.getTask(recordVO.getId());
-		Object decisions = task.get(Task.BETA_NEXT_TASKS_DECISIONS);
-
-		if ((task.getModelTask() != null && decisions != null && !((MapStringStringStructure) decisions).isEmpty() && task.getDecision() == null && !DisplayTaskPresenter.containsExpressionLanguage(decisions))
-			|| tasksSchemas.isRequestTask(task) || QuickCompleteWindow.hasRequiredFieldUncompleted(recordVO)) {
-			QuickCompleteWindow quickCompleteWindow = new QuickCompleteWindow(this, appLayerFactory, recordVO);
-			quickCompleteWindow.show();
-		} else {
-			try {
-				QuickCompleteWindow.quickCompleteTask(appLayerFactory, task, task.getDecision(), null, null, null);
-				refreshCurrentTab();
-			} catch (RecordServicesException e) {
-				e.printStackTrace();
-				view.showErrorMessage(e.getMessage());
-			}
-		}
-	}
 
 	@Override
 	public BaseView getView() {
@@ -527,6 +513,15 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 	@Override
 	public void reloadTaskModified(Task task) {
 		loadTab(selectedTab);
+	}
+
+	@Override
+	public void callAssignationExtension() {
+		if (rmModuleExtensions != null) {
+			for (TaskManagementPresenterExtension extension : rmModuleExtensions.getTaskManagementPresenterExtensions()) {
+				extension.assignAvailableTasks(getCurrentUser());
+			}
+		}
 	}
 
 	@Override
@@ -566,5 +561,9 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 
 	public void reloadCurrentTabRequested() {
 		refreshCurrentTab();
+	}
+
+	public User getCurrentUser() {
+		return super.getCurrentUser();
 	}
 }

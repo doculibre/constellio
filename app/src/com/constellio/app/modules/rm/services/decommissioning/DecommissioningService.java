@@ -27,6 +27,7 @@ import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.rm.wrappers.structures.FolderDetailWithType;
+import com.constellio.app.modules.rm.wrappers.type.YearType;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.TimeProvider;
@@ -84,6 +85,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import static com.constellio.app.modules.rm.constants.RMTaxonomies.ADMINISTRATIVE_UNITS;
@@ -1133,6 +1135,42 @@ public class DecommissioningService {
 		ModelLayerCollectionExtensions extensions = ext.forCollection(record.getCollection());
 		PutSchemaRecordsInTrashEvent event = new PutSchemaRecordsInTrashEvent(record.getSchemaCode(), null);
 		return extensions.isPutInTrashBeforePhysicalDelete(event);
+	}
+
+	public YearType getYearType(ContainerRecord container) {
+		LocalDate comparedDate = null;
+		List<Record> records = getFoldersInContainer(container);
+		YearType yearType = null;
+
+		if (getRMConfigs().isPopulateBordereauxWithLesserDispositionDate()) {
+			for (Record record : records) {
+				LocalDate minDate = LangUtils.min(comparedDate, getMinimumLocalDateForRecord(record, false));
+				if(!minDate.equals(comparedDate)) {
+					yearType = getYearType(rm.wrapFolder(record), minDate);
+				}
+				comparedDate = minDate;
+			}
+		} else {
+			for (Record record : records) {
+				LocalDate maxDate = LangUtils.max(comparedDate, getMaximalLocalDateForRecord(record, false));
+				if(!Objects.equals(maxDate, comparedDate)) {
+					yearType = getYearType(rm.wrapFolder(record), maxDate);
+				}
+				comparedDate = maxDate;
+			}
+		}
+
+		return yearType;
+	}
+
+	private YearType getYearType(Folder folder, LocalDate comparedDate) {
+		if(comparedDate == null) {
+			return null;
+		} else if(comparedDate.equals(folder.getExpectedTransferDate()) || comparedDate.equals(folder.getActualTransferDate())) {
+			return folder.getMainCopyRule().getSemiActiveYearTypeId() == null? null:rm.getYearType(folder.getMainCopyRule().getSemiActiveYearTypeId());
+		} else {
+			return folder.getMainCopyRule().getInactiveYearTypeId() == null? null:rm.getYearType(folder.getMainCopyRule().getInactiveYearTypeId());
+		}
 	}
 
 	private List<Record> getFoldersInContainer(ContainerRecord container, Metadata... metadatas) {

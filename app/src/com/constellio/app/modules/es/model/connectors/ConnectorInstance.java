@@ -41,20 +41,20 @@ public class ConnectorInstance<T extends ConnectorInstance> extends RecordWrappe
 		return get(CODE);
 	}
 
-	public ConnectorInstance setCode(String code) {
+	public T setCode(String code) {
 		this.set(CODE, code);
-		return this;
+		return (T) this;
 	}
 
 	@Override
-	public ConnectorInstance setTitle(String title) {
+	public T setTitle(String title) {
 		super.setTitle(title);
-		return this;
+		return (T) this;
 	}
 
 	@Override
-	public ConnectorInstance setTitles(Map<Language, String> titles) {
-		return (ConnectorInstance) super.setTitles(titles);
+	public T setTitles(Map<Language, String> titles) {
+		return (T) super.setTitles(titles);
 	}
 
 	public Boolean getEnabled() {

@@ -1,8 +1,9 @@
 package com.constellio.app.ui.pages.base;
 
+import java.util.List;
+
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.ContentVersionVO;
-import com.constellio.app.ui.entities.FormMetadataVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.i18n.i18n;
@@ -17,14 +18,11 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.records.RecordDeleteServicesRuntimeException;
-import com.constellio.model.services.records.RecordDeleteServicesRuntimeException;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord;
-
-import java.util.List;
 
 public abstract class SingleSchemaBasePresenter<T extends BaseView> extends BasePresenter<T> {
 
-	private SchemaPresenterUtils schemaPresenterUtils;
+	protected SchemaPresenterUtils schemaPresenterUtils;
 
 	public SingleSchemaBasePresenter(T view) {
 		this(view, "");

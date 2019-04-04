@@ -1,11 +1,11 @@
 package com.constellio.app.ui.util;
 
-import com.constellio.app.ui.entities.MetadataVO;
-
 import java.util.List;
 
+import com.constellio.app.ui.entities.MetadataVO;
+
 public class SchemaVOUtils {
-	public static boolean isMetadataPresentInList(MetadataVO metadataVO, List<String> excludedMetadataCodeList) {
+	public static boolean isMetadataNotPresentInList(MetadataVO metadataVO, List<String> excludedMetadataCodeList) {
 
 		if(excludedMetadataCodeList == null || 0 >= excludedMetadataCodeList.size()) {
 			return true;

@@ -64,6 +64,8 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.joda.time.Duration;
@@ -187,7 +189,7 @@ public class ContentManager implements StatefulService {
 					try {
 						createContentScanLockFile();
 						VaultScanResults vaultScanResults = new VaultScanResults();
-						scanVaultContents(vaultScanResults);
+						scanVaultContentAndDeleteUnreferencedFiles(vaultScanResults);
 						addReportsAsTemporaryRecords(vaultScanResults);
 					} catch (IOException e) {
 						e.printStackTrace();
@@ -274,38 +276,43 @@ public class ContentManager implements StatefulService {
 		ioServices.deleteQuietly(lockFile);
 	}
 
-	public void scanVaultContents(VaultScanResults vaultScanResults) {
-		vaultScanResults.appendMessage("INFO: Starting scan of content folder\n\n");
+	public void scanVaultContentAndDeleteUnreferencedFiles(VaultScanResults vaultScanResults) {
+		List<String> vaultContentFileList = new ArrayList<>();
+		getAllContentsFromVaultAndRemoveOrphan("", vaultContentFileList, vaultScanResults);
+		recordServices.flushRecords();
 		Set<String> allReferencedHashes = getAllReferencedHashes();
-		scanFolder("", allReferencedHashes, vaultScanResults);
-		vaultScanResults.appendMessage("\nINFO: Scan of content folder completed");
+
+		ContentDao contentDao = getContentDao();
+		for(String fileId : vaultContentFileList) {
+			if(!allReferencedHashes.contains(fileId)) {
+				File file = contentDao.getFileOf(fileId);
+				if(file.exists()) {
+					try {
+						contentDao.delete(asList(fileId, fileId + "__parsed", fileId + ".preview"));
+						vaultScanResults.incrementNumberOfDeletedContents();
+						vaultScanResults.appendMessage("INFO: Successfully deleted file " + file.getName() + "\n");
+					} catch (Exception e) {
+						vaultScanResults.appendMessage("ERROR: Could not delete file " + file.getName() + "\n");
+						vaultScanResults.appendMessage(e.getMessage() + "\n");
+					}
+				}
+			}
+		}
 	}
 
-	private void scanFolder(String folderId, Set<String> firstScanReferencedContents,
-							VaultScanResults vaultScanResults) {
+	public void getAllContentsFromVaultAndRemoveOrphan(String folderId,List<String> fileList, VaultScanResults vaultScanResults) {
 		ContentDao contentDao = getContentDao();
 		List<String> subFiles = contentDao.getFolderContents(folderId);
 		for (String fileId : subFiles) {
 			File file = contentDao.getFileOf(fileId);
 			if (file.exists() && shouldFileBeScannedForDeletion(file)) {
 				if (file.isDirectory()) {
-					scanFolder(fileId, firstScanReferencedContents, vaultScanResults);
-				} else if (!firstScanReferencedContents.contains(file.getName())) {
-					recordServices.flushRecords();
-					if (!isReferenced(file)) {
-						try {
-							contentDao.delete(asList(fileId, fileId + "__parsed", fileId + ".preview"));
-							vaultScanResults.incrementNumberOfDeletedContents();
-							vaultScanResults.appendMessage("INFO: Successfully deleted file " + file.getName() + "\n");
-						} catch (Exception e) {
-							vaultScanResults.appendMessage("ERROR: Could not delete file " + file.getName() + "\n");
-							vaultScanResults.appendMessage(e.getMessage() + "\n");
-						}
-					}
+					getAllContentsFromVaultAndRemoveOrphan(fileId, fileList, vaultScanResults);
+				} else {
+					fileList.add(file.getName());
 				}
 			}
 		}
-
 		deleteOrphanParsedContentOrPreview(subFiles, vaultScanResults);
 	}
 
@@ -317,7 +324,7 @@ public class ContentManager implements StatefulService {
 			File file = contentDao.getFileOf(fileId);
 			if (file.exists() && (file.getName().endsWith("__parsed") || file.getName().endsWith(".preview"))) {
 				File mainFile = getMainFile(file);
-				if(!mainFile.exists()) {
+				if (!mainFile.exists()) {
 					try {
 						contentDao.delete(asList(fileId));
 						vaultScanResults.incrementNumberOfDeletedContents();
@@ -335,7 +342,7 @@ public class ContentManager implements StatefulService {
 	private File getMainFile(File parsedContentOrPreviewFile) {
 		String parsedContentOrPreviewFileAbsolutePath = parsedContentOrPreviewFile.getAbsolutePath();
 		String mainFileAbsolutePath = StringUtils.removeEnd(parsedContentOrPreviewFileAbsolutePath, "__parsed");
-		if(parsedContentOrPreviewFileAbsolutePath.equals(mainFileAbsolutePath)) {
+		if (parsedContentOrPreviewFileAbsolutePath.equals(mainFileAbsolutePath)) {
 			mainFileAbsolutePath = StringUtils.removeEnd(parsedContentOrPreviewFileAbsolutePath, ".preview");
 		}
 		return new File(mainFileAbsolutePath);
@@ -504,10 +511,12 @@ public class ContentManager implements StatefulService {
 			}
 			String mimeType;
 			boolean duplicate = false;
+			ParsedContent parsedContent = null;
 			if (parse) {
-				ParsedContentResponse parsedContentResponse = getPreviouslyParsedContentOrParseFromStream(hash,
-						closeableInputStreamFactory);
-				ParsedContent parsedContent = parsedContentResponse.getParsedContent();
+				ParseOptions options = uploadOptions.parseOptions != null ? uploadOptions.parseOptions : new ParseOptions();
+				ParsedContentResponse parsedContentResponse =
+						getPreviouslyParsedContentOrParseFromStream(hash, closeableInputStreamFactory, options);
+				parsedContent = parsedContentResponse.getParsedContent();
 				mimeType = parsedContent.getMimeType();
 				if (mimeType == null) {
 					mimeType = detectMimetype(closeableInputStreamFactory, fileName);
@@ -521,7 +530,8 @@ public class ContentManager implements StatefulService {
 			//saveContent(hash, closeableInputStreamFactory);
 			long length = closeableInputStreamFactory.length();
 			saveContent(hash, closeableInputStreamFactory);
-			return new ContentVersionDataSummaryResponse(duplicate, new ContentVersionDataSummary(hash, mimeType, length));
+			return new ContentVersionDataSummaryResponse(duplicate,
+					new ContentVersionDataSummary(hash, mimeType, length), parsedContent);
 
 		} catch (HashingServiceException | IOException e) {
 			throw new ContentManagerRuntimeException_CannotReadInputStream(e);
@@ -531,13 +541,12 @@ public class ContentManager implements StatefulService {
 		}
 	}
 
-	int contentVersionSummary = 0;
-
 	public ContentVersionDataSummaryResponse getContentVersionSummary(String hash) {
 		ParsedContentResponse parsedContentResponse = getParsedContentParsingIfNotYetDone(hash);
-		ParsedContent parsedContent = (ParsedContent) parsedContentResponse.getParsedContent();
+		ParsedContent parsedContent = parsedContentResponse.getParsedContent();
 		return new ContentVersionDataSummaryResponse(parsedContentResponse.hasFoundDuplicate(),
-				new ContentVersionDataSummary(hash, parsedContent.getMimeType(), parsedContent.getLength()));
+				new ContentVersionDataSummary(hash, parsedContent.getMimeType(), parsedContent.getLength()),
+				parsedContent);
 	}
 
 	public boolean isParsed(String hash) {
@@ -552,6 +561,13 @@ public class ContentManager implements StatefulService {
 	ParsedContentResponse getPreviouslyParsedContentOrParseFromStream(String hash,
 																	  CloseableStreamFactory<InputStream> inputStreamFactory)
 			throws IOException {
+		return getPreviouslyParsedContentOrParseFromStream(hash, inputStreamFactory, new ParseOptions());
+	}
+
+	ParsedContentResponse getPreviouslyParsedContentOrParseFromStream(String hash,
+																	  CloseableStreamFactory<InputStream> inputStreamFactory,
+																	  ParseOptions parseOptions)
+			throws IOException {
 
 		ParsedContent parsedContent;
 		ParsedContentResponse response;
@@ -559,15 +575,16 @@ public class ContentManager implements StatefulService {
 			parsedContent = getParsedContent(hash);
 			response = new ParsedContentResponse(true, parsedContent);
 		} catch (ContentManagerException_ContentNotParsed e) {
-			parsedContent = parseAndSave(hash, inputStreamFactory);
+			parsedContent = parseAndSave(hash, inputStreamFactory, parseOptions);
 			response = new ParsedContentResponse(false, parsedContent);
 		}
 		return response;
 	}
 
-	private ParsedContent parseAndSave(String hash, CloseableStreamFactory<InputStream> inputStreamFactory)
+	private ParsedContent parseAndSave(String hash, CloseableStreamFactory<InputStream> inputStreamFactory,
+									   ParseOptions options)
 			throws IOException {
-		ParsedContent parsedContent = tryToParse(inputStreamFactory);
+		ParsedContent parsedContent = tryToParse(inputStreamFactory, options);
 		saveParsedContent(hash, parsedContent);
 		return parsedContent;
 	}
@@ -580,10 +597,10 @@ public class ContentManager implements StatefulService {
 		}
 	}
 
-	ParsedContent tryToParse(CloseableStreamFactory<InputStream> inputStreamFactory)
+	ParsedContent tryToParse(CloseableStreamFactory<InputStream> inputStreamFactory, ParseOptions options)
 			throws IOException {
 		try {
-			return fileParser.parse(inputStreamFactory, inputStreamFactory.length());
+			return fileParser.parse(inputStreamFactory, inputStreamFactory.length(), options);
 
 		} catch (FileParserException e) {
 			return ParsedContent.unparsable(e.getDetectedMimetype(), inputStreamFactory.length());
@@ -674,7 +691,7 @@ public class ContentManager implements StatefulService {
 
 		SearchResponseIterator<Record> recordsIterator =
 				searchServices.recordsIterator(new LogicalSearchQuery(condition)
-				.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(contentMetadatas)));
+						.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(contentMetadatas)));
 		while (recordsIterator.hasNext()) {
 			Record record = recordsIterator.next();
 			for (Metadata metadata : contentMetadatas) {
@@ -845,7 +862,7 @@ public class ContentManager implements StatefulService {
 						String hash = content.getCurrentVersion().getHash();
 						if (!isParsed(hash)) {
 							try {
-								parseAndSave(hash, getContentInputStreamFactory(hash));
+								parseAndSave(hash, getContentInputStreamFactory(hash), new ParseOptions());
 							} catch (IOException e) {
 								//TODO
 							}
@@ -1005,7 +1022,7 @@ public class ContentManager implements StatefulService {
 	public void reparse(String hash) {
 		CloseableStreamFactory<InputStream> streamFactory = getContentInputStreamFactory(hash);
 		try {
-			parseAndSave(hash, streamFactory);
+			parseAndSave(hash, streamFactory, new ParseOptions());
 		} catch (IOException e) {
 			throw new ContentManagerRuntimeException_CannotSaveContent(e);
 		}
@@ -1051,14 +1068,15 @@ public class ContentManager implements StatefulService {
 
 	public static class UploadOptions {
 		private boolean handleDeletionOfUnreferencedHashes;
-		private Boolean parse;
+		private ParseOptions parseOptions;
+		private Boolean ocr;
 		private boolean isThrowingException;
 		private String fileName;
 
-		public UploadOptions(boolean handleDeletionOfUnreferencedHashes, boolean parse, boolean isThrowingException,
-							 String fileName) {
+		public UploadOptions(boolean handleDeletionOfUnreferencedHashes, ParseOptions parseOptions,
+							 boolean isThrowingException, String fileName) {
 			this.handleDeletionOfUnreferencedHashes = handleDeletionOfUnreferencedHashes;
-			this.parse = parse;
+			this.parseOptions = parseOptions;
 			this.isThrowingException = isThrowingException;
 			this.fileName = fileName;
 		}
@@ -1080,8 +1098,8 @@ public class ContentManager implements StatefulService {
 			return this;
 		}
 
-		public UploadOptions setParse(Boolean parse) {
-			this.parse = parse;
+		public UploadOptions setParseOptions(ParseOptions parseOptions) {
+			this.parseOptions = parseOptions;
 			return this;
 		}
 
@@ -1100,7 +1118,7 @@ public class ContentManager implements StatefulService {
 		}
 
 		public boolean isParse(boolean defaultBehavior) {
-			return parse == null ? defaultBehavior : parse;
+			return parseOptions != null || defaultBehavior;
 		}
 
 		public boolean isThrowingException() {
@@ -1112,7 +1130,21 @@ public class ContentManager implements StatefulService {
 		}
 
 		public static UploadOptions asFastAsPossible() {
-			return new UploadOptions().setParse(false).setHandleDeletionOfUnreferencedHashes(false);
+			return new UploadOptions().setHandleDeletionOfUnreferencedHashes(false);
+		}
+	}
+
+	@Getter
+	@AllArgsConstructor
+	public static class ParseOptions {
+		private boolean beautify;
+		private boolean detectLanguage;
+		private boolean ocr;
+
+		public ParseOptions() {
+			beautify = true;
+			detectLanguage = true;
+			ocr = false;
 		}
 	}
 
@@ -1141,11 +1173,14 @@ public class ContentManager implements StatefulService {
 	public class ContentVersionDataSummaryResponse {
 		private boolean hasFoundDuplicate;
 		private ContentVersionDataSummary contentVersionDataSummary;
+		@Getter private ParsedContent parsedContent;
 
 		public ContentVersionDataSummaryResponse(boolean hasFoundDuplicate,
-												 ContentVersionDataSummary contentVersionDataSummary) {
+												 ContentVersionDataSummary contentVersionDataSummary,
+												 ParsedContent parsedContent) {
 			this.hasFoundDuplicate = hasFoundDuplicate;
 			this.contentVersionDataSummary = contentVersionDataSummary;
+			this.parsedContent = parsedContent;
 		}
 
 		public boolean hasFoundDuplicate() {
@@ -1157,7 +1192,7 @@ public class ContentManager implements StatefulService {
 		}
 	}
 
-	public static class VaultScanResults {
+	protected static class VaultScanResults {
 		private StringBuilder reportMessage = new StringBuilder();
 		private int numberOfDeletedContents = 0;
 
