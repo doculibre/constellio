@@ -1,15 +1,5 @@
 package com.constellio.app.modules.tasks.ui.pages.tasks;
 
-import static com.constellio.app.modules.tasks.model.wrappers.Task.ASSIGNEE;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.DUE_DATE;
-import static com.constellio.app.ui.entities.RecordVO.VIEW_MODE.FORM;
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.entities.records.wrappers.RecordWrapper.TITLE;
-import static java.util.Arrays.asList;
-
-import java.io.IOException;
-import java.util.List;
-
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.events.RMEventsSearchServices;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
@@ -28,7 +18,6 @@ import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.EventToVOBuilder;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.buttons.report.ReportGeneratorButton;
-import com.constellio.app.ui.framework.components.ErrorDisplayUtil;
 import com.constellio.app.ui.framework.components.RMSelectionPanelReportPresenter;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.BaseView;
@@ -42,10 +31,19 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.structures.MapStringStringStructure;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.records.RecordServicesException;
-import com.constellio.model.services.records.RecordServicesException.ValidationException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+
+import java.io.IOException;
+import java.util.List;
+
+import static com.constellio.app.modules.tasks.model.wrappers.Task.ASSIGNEE;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.DUE_DATE;
+import static com.constellio.app.ui.entities.RecordVO.VIEW_MODE.FORM;
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.entities.records.wrappers.RecordWrapper.TITLE;
+import static java.util.Arrays.asList;
 
 public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskView> implements TaskPresenter {
 	private static final String DISPLAY_TASK_PRESENTER_PREVIOUS_TAB = "DisplayTaskPresenterPreviousTab";
@@ -322,30 +320,6 @@ public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskV
 		return true;
 	}
 
-	@Override
-	public void completeQuicklyButtonClicked(RecordVO recordVO) {
-		TasksSchemasRecordsServices tasksSchemas = new TasksSchemasRecordsServices(collection, appLayerFactory);
-		Task task = tasksSchemas.getTask(recordVO.getId());
-		Object decisions = task.get(Task.BETA_NEXT_TASKS_DECISIONS);
-		if ((task.getModelTask() != null && decisions != null && !((MapStringStringStructure) decisions).isEmpty()
-			 && task.getDecision() == null && !containsExpressionLanguage(decisions))
-			|| tasksSchemas.isRequestTask(task)) {
-			QuickCompleteWindow quickCompleteWindow = new QuickCompleteWindow(this, appLayerFactory, recordVO);
-			quickCompleteWindow.show();
-		} else {
-			try {
-				QuickCompleteWindow.quickCompleteTask(appLayerFactory, task, null, null, null, null);
-				reloadCurrentTask();
-			} catch (RecordServicesException e) {
-				if (e instanceof RecordServicesException.ValidationException) {
-					ErrorDisplayUtil.showBackendValidationException(((ValidationException) e).getErrors());
-				} else {
-					e.printStackTrace();
-					view.showErrorMessage(e.getMessage());
-				}
-			}
-		}
-	}
 
 	public static boolean containsExpressionLanguage(Object decisions) {
 		if (decisions != null && decisions instanceof MapStringStringStructure) {
