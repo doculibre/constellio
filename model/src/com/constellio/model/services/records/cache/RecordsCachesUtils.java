@@ -32,6 +32,7 @@ public class RecordsCachesUtils {
 			   && !query.isPreferAnalyzedFields()
 			   && query.getResultsProjection() == null
 			   && query.getFieldFacets().isEmpty()
+			   && query.getFieldPivotFacets().isEmpty()
 			   && query.getQueryFacets().isEmpty()
 			   && (query.getReturnedMetadatas().isFullyLoaded() || onlyIds)
 			   && (query.getUserFilters() == null || query.getUserFilters().isEmpty())

@@ -1,8 +1,10 @@
 package com.constellio.model.services.search;
 
+import com.constellio.data.dao.dto.records.FacetPivotValue;
 import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.DataStoreField;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -13,6 +15,7 @@ import java.util.Map;
 public class SPEQueryResponse {
 
 	private final Map<String, List<FacetValue>> fieldFacetValues;
+	private final Map<String, List<FacetPivotValue>> fieldFacetPivotValues;
 	private final Map<String, Map<String, Object>> statisticsValues;
 
 	private final Map<String, Integer> queryFacetsValues;
@@ -32,6 +35,7 @@ public class SPEQueryResponse {
 
 	public SPEQueryResponse(List<Record> records, int numFound) {
 		this.fieldFacetValues = new HashMap<>();
+		this.fieldFacetPivotValues = new HashMap<>();
 		this.statisticsValues = new HashMap<>();
 		this.queryFacetsValues = new HashMap<>();
 		this.qtime = -1;
@@ -45,6 +49,7 @@ public class SPEQueryResponse {
 
 	public SPEQueryResponse(List<Record> records, List<MoreLikeThisRecord> moreLikeThisRecords) {
 		this.fieldFacetValues = new HashMap<>();
+		this.fieldFacetPivotValues = new HashMap<>();
 		this.statisticsValues = new HashMap<>();
 		this.queryFacetsValues = new HashMap<>();
 		this.qtime = -1;
@@ -58,6 +63,7 @@ public class SPEQueryResponse {
 
 	public SPEQueryResponse(List<Record> records, long numFound) {
 		this.fieldFacetValues = new HashMap<>();
+		this.fieldFacetPivotValues = new HashMap<>();
 		this.statisticsValues = new HashMap<>();
 		this.queryFacetsValues = new HashMap<>();
 		this.qtime = -1;
@@ -70,12 +76,13 @@ public class SPEQueryResponse {
 	}
 
 	public SPEQueryResponse(
-			Map<String, List<FacetValue>> fieldFacetValues, Map<String, Map<String, Object>> statisticsValues,
-			Map<String, Integer> queryFacetsValues, long qtime,
+			Map<String, List<FacetValue>> fieldFacetValues, Map<String, List<FacetPivotValue>> fieldFacetPivotValues,
+			Map<String, Map<String, Object>> statisticsValues, Map<String, Integer> queryFacetsValues, long qtime,
 			long numFound, List<Record> records, Map<String, Map<String, List<String>>> highlights,
 			boolean correctlySpelt,
 			List<String> spellcheckerSuggestions, List<MoreLikeThisRecord> moreLikeThisRecords) {
 		this.fieldFacetValues = fieldFacetValues;
+		this.fieldFacetPivotValues = fieldFacetPivotValues;
 		this.statisticsValues = statisticsValues;
 		this.queryFacetsValues = queryFacetsValues;
 		this.qtime = qtime;
@@ -90,6 +97,15 @@ public class SPEQueryResponse {
 	public List<FacetValue> getFieldFacetValues(String metadata) {
 		if (fieldFacetValues.containsKey(metadata)) {
 			return fieldFacetValues.get(metadata);
+		} else {
+			return Collections.emptyList();
+		}
+	}
+
+	public List<FacetPivotValue> getFieldFacetPivotValues(List<String> fieldFacetPivots) {
+		String pivots = StringUtils.join(fieldFacetPivots, ",");
+		if (fieldFacetPivotValues.containsKey(pivots)) {
+			return fieldFacetPivotValues.get(pivots);
 		} else {
 			return Collections.emptyList();
 		}
@@ -157,13 +173,13 @@ public class SPEQueryResponse {
 	}
 
 	public SPEQueryResponse withModifiedRecordList(List<Record> records) {
-		return new SPEQueryResponse(fieldFacetValues, statisticsValues, queryFacetsValues, qtime, numFound, records, null,
-				correctlySpelt, spellcheckerSuggestions, moreLikeThisRecords);
+		return new SPEQueryResponse(fieldFacetValues, fieldFacetPivotValues, statisticsValues, queryFacetsValues, qtime,
+				numFound, records, null, correctlySpelt, spellcheckerSuggestions, moreLikeThisRecords);
 	}
 
 	public SPEQueryResponse withNumFound(int numFound) {
-		return new SPEQueryResponse(fieldFacetValues, statisticsValues, queryFacetsValues, qtime, numFound, records, null,
-				correctlySpelt, spellcheckerSuggestions, moreLikeThisRecords);
+		return new SPEQueryResponse(fieldFacetValues, fieldFacetPivotValues, statisticsValues, queryFacetsValues, qtime,
+				numFound, records, null, correctlySpelt, spellcheckerSuggestions, moreLikeThisRecords);
 	}
 
 	public Map<String, Map<String, List<String>>> getHighlights() {
