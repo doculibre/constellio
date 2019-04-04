@@ -1,17 +1,5 @@
 package com.constellio.app.modules.tasks.services;
 
-import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.FINISHED;
-import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.CLOSED_CODE;
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.joda.time.LocalDate;
-
 import com.constellio.app.modules.rm.wrappers.type.SchemaLinkingType;
 import com.constellio.app.modules.tasks.TaskModule;
 import com.constellio.app.modules.tasks.model.managers.TaskReminderEmailManager;
@@ -37,6 +25,17 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.joda.time.LocalDate;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.FINISHED;
+import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.CLOSED_CODE;
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
+import static java.util.Arrays.asList;
 
 public class TasksSchemasRecordsServices extends SchemasRecordsServices {
 
@@ -315,6 +314,10 @@ public class TasksSchemasRecordsServices extends SchemasRecordsServices {
 
 		public Metadata readByUser() {
 			return metadata("readByUser");
+		}
+
+		public Metadata isLate() {
+			return metadata("isLate");
 		}
 	}
 
