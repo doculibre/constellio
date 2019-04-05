@@ -132,6 +132,10 @@ public class ContentVersionVOTable extends BaseTable {
 		return false;
 	}
 
+	protected boolean isSelectionPossible(ContentVersionVO contentVersionVO) {
+		return isDeletePossible(contentVersionVO);
+	}
+
 	protected boolean isDeletePossible(ContentVersionVO contentVersionVO) {
 		return false;
 	}
@@ -175,7 +179,7 @@ public class ContentVersionVOTable extends BaseTable {
 			final CheckBox checkBox = new CheckBox() {
 				@Override
 				public boolean isVisible() {
-					return isDeletePossible(contentVersion);
+					return isSelectionPossible(contentVersion);
 				}
 			};
 			checkBox.addValueChangeListener(new ValueChangeListener() {
