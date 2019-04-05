@@ -170,7 +170,7 @@ public class BetaWorkflowTask extends Task {
 	}
 
 	@Override
-	public BetaWorkflowTask setAssigneeUsersCandidates(List<String> users) {
+	public BetaWorkflowTask setAssigneeUsersCandidates(List<?> users) {
 		return (BetaWorkflowTask) super.setAssigneeUsersCandidates(users);
 	}
 
