@@ -94,7 +94,7 @@ public class EmailBuilderAcceptTest extends ConstellioTest {
 
 		emailTemplatesManager = getModelLayerFactory().getEmailTemplatesManager();
 		when(emailTemplatesManagerMock.getCollectionTemplate(any(String.class), any(String.class))).thenReturn(html);
-		builder = new EmailBuilder(emailTemplatesManager, getModelLayerFactory().getSystemConfigurationsManager());
+		builder = new EmailBuilder(emailTemplatesManager, getModelLayerFactory().getSystemConfigurationsManager(), getModelLayerFactory().getContentManager());
 		//		builder = new EmailBuilder(emailTemplatesManagerMock);
 	}
 
@@ -102,7 +102,7 @@ public class EmailBuilderAcceptTest extends ConstellioTest {
 	public void whenBuildMessageThenOk()
 			throws Exception {
 
-		builder = new EmailBuilder(emailTemplatesManagerMock, getModelLayerFactory().getSystemConfigurationsManager());
+		builder = new EmailBuilder(emailTemplatesManagerMock, getModelLayerFactory().getSystemConfigurationsManager(), getModelLayerFactory().getContentManager());
 
 		Properties props = System.getProperties();
 
@@ -146,7 +146,7 @@ public class EmailBuilderAcceptTest extends ConstellioTest {
 	public void whenBuildMessageWithNullFromThenReturnDefaultFrom()
 			throws Exception {
 
-		builder = new EmailBuilder(emailTemplatesManagerMock, getModelLayerFactory().getSystemConfigurationsManager());
+		builder = new EmailBuilder(emailTemplatesManagerMock, getModelLayerFactory().getSystemConfigurationsManager(), getModelLayerFactory().getContentManager());
 
 		Properties props = System.getProperties();
 
@@ -162,7 +162,7 @@ public class EmailBuilderAcceptTest extends ConstellioTest {
 	public void whenBuildMessageWithSubjectFromThenReturnTitleTemplateAsSubject()
 			throws Exception {
 
-		builder = new EmailBuilder(emailTemplatesManagerMock, getModelLayerFactory().getSystemConfigurationsManager());
+		builder = new EmailBuilder(emailTemplatesManagerMock, getModelLayerFactory().getSystemConfigurationsManager(), getModelLayerFactory().getContentManager());
 
 		Properties props = System.getProperties();
 
@@ -203,7 +203,7 @@ public class EmailBuilderAcceptTest extends ConstellioTest {
 		};
 
 		builder = new EmailBuilder(getModelLayerFactory().getEmailTemplatesManager(),
-				getModelLayerFactory().getSystemConfigurationsManager());
+				getModelLayerFactory().getSystemConfigurationsManager(), getModelLayerFactory().getContentManager());
 		Session session = Session.getInstance(props, auth);
 		Message message = builder.build(emailToSend, session, null);
 
