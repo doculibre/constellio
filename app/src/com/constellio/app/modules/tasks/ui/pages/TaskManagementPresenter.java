@@ -491,10 +491,19 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 	}
 
 	@Override
-	public void callAssignationExtension() {
+	public void afterCompletionActions() {
 		if (rmModuleExtensions != null) {
 			for (TaskManagementPresenterExtension extension : rmModuleExtensions.getTaskManagementPresenterExtensions()) {
-				extension.automaticallyAssignAvailableTasks(getCurrentUser());
+				extension.afterCompletionActions(getCurrentUser());
+			}
+		}
+	}
+
+	@Override
+	public void beforeCompletionActions(Task task) {
+		if (rmModuleExtensions != null) {
+			for (TaskManagementPresenterExtension extension : rmModuleExtensions.getTaskManagementPresenterExtensions()) {
+				extension.beforeCompletionActions(task);
 			}
 		}
 	}

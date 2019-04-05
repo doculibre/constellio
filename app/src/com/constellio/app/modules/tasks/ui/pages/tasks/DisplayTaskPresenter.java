@@ -111,7 +111,12 @@ public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskV
 	}
 
 	@Override
-	public void callAssignationExtension() {
+	public void afterCompletionActions() {
+	}
+
+	@Override
+	public void beforeCompletionActions(Task task) {
+
 	}
 
 	public RecordVO getTaskVO() {

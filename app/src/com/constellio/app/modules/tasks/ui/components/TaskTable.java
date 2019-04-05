@@ -269,7 +269,9 @@ public class TaskTable extends RecordVOTable {
 
 		Task getTask(RecordVO recordVO);
 
-		void callAssignationExtension();
+		void afterCompletionActions();
+
+		void beforeCompletionActions(Task task);
 	}
 
 	public class TaskStyleGenerator implements CellStyleGenerator {

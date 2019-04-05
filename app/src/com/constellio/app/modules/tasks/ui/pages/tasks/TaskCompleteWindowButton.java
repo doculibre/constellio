@@ -3,6 +3,7 @@ package com.constellio.app.modules.tasks.ui.pages.tasks;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.request.RequestTask;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
+import com.constellio.app.modules.tasks.navigation.TaskViews;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.modules.tasks.services.TasksSearchServices;
 import com.constellio.app.modules.tasks.ui.components.TaskFieldFactory;
@@ -172,6 +173,7 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 							acceptedField == null ? null : (Boolean) acceptedField.getValue(),
 							reasonField == null ? null : (String) reasonField.getValue());
 					getWindow().close();
+					view.navigate().to(TaskViews.class).taskManagement();
 				} else {
 					StringBuilder stringBuilder = new StringBuilder();
 					String prefix = "";
@@ -190,6 +192,7 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 
 	private void completeQuicklyButtonClicked(Task task, Object decision, String decisionCode, Boolean accepted, String reason) {
 		try {
+			presenter.beforeCompletionActions(task);
 			quickCompleteTask(appLayerFactory, task, decision, decisionCode, accepted, reason,
 					view.getSessionContext().getCurrentUser().getId());
 		} catch (RecordServicesException e) {
@@ -200,7 +203,7 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 			view.showErrorMessage(e.getMessage());
 			throw new RuntimeException();
 		}
-		presenter.callAssignationExtension();
+		presenter.afterCompletionActions();
 		presenter.reloadTaskModified(task);
 	}
 
