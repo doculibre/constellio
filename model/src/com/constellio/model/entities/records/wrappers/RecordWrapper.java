@@ -338,6 +338,12 @@ public class RecordWrapper implements Serializable, CollectionObject {
 		return this;
 	}
 
+
+	public RecordWrapper setCreatedBy(User createdBy) {
+		wrappedRecord.set(Schemas.CREATED_BY, createdBy);
+		return this;
+	}
+
 	public String getModifiedBy() {
 		return wrappedRecord.get(Schemas.MODIFIED_BY);
 	}

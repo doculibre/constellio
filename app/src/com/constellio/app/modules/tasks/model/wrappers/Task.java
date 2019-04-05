@@ -7,6 +7,7 @@ import com.constellio.app.modules.tasks.model.wrappers.types.TaskType;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
@@ -114,7 +115,7 @@ public class Task extends RecordWrapper {
 		return get(ASSIGNEE_USERS_CANDIDATES);
 	}
 
-	public Task setAssigneeUsersCandidates(List<String> users) {
+	public Task setAssigneeUsersCandidates(List<?> users) {
 		set(ASSIGNEE_USERS_CANDIDATES, users);
 		return this;
 	}
@@ -417,6 +418,18 @@ public class Task extends RecordWrapper {
 
 	public Task setReadByUser(Boolean readByUser) {
 		set(READ_BY_USER, readByUser);
+		return this;
+	}
+
+	@Override
+	public Task setCreatedBy(String createdBy) {
+		super.setCreatedBy(createdBy);
+		return this;
+	}
+
+	@Override
+	public Task setCreatedBy(User createdBy) {
+		super.setCreatedBy(createdBy);
 		return this;
 	}
 
