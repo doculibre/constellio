@@ -1,12 +1,5 @@
 package com.constellio.app.modules.rm.wrappers;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.lang3.BooleanUtils;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleInRule;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
@@ -16,6 +9,12 @@ import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import org.apache.commons.lang3.BooleanUtils;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class Document extends RMObject {
 	public static final String SCHEMA_TYPE = "document";
@@ -341,6 +340,16 @@ public class Document extends RMObject {
 	public boolean isPublished() {
 		return BooleanUtils.isTrue((Boolean) get(PUBLISHED));
 	}
+
+	public Document setModel(boolean model) {
+		set(IS_MODEL, model ? true : null);
+		return this;
+	}
+
+	public boolean isModel() {
+		return getBooleanWithDefaultValue(IS_MODEL, false);
+	}
+
 
 	public boolean isConfidential() {
 		return BooleanUtils.isTrue((Boolean) get(CONFIDENTIAL));

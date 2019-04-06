@@ -137,7 +137,7 @@ public class RMRecordNavigationExtension implements RecordNavigationExtension {
 			Component component = navigationParams.getComponent();
 			if (component instanceof ReferenceDisplay) {
 				final ReferenceDisplay referenceDisplay = (ReferenceDisplay) component;
-				final ClickListener clickListener = new ClickListener() {
+				final ClickListener clickListener  = new ClickListener() {
 					@Override
 					public void buttonClick(ClickEvent event) {
 						if (isRecordInTrash) {

@@ -6,11 +6,15 @@ import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder;
 import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeBuilderOptions;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
+import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.UserFunction;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.migrations.MigrationUtil;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
@@ -55,6 +59,15 @@ public class RMMigrationTo8_2_42 implements MigrationScript {
 			admUnitSchemaType.createMetadata(AdministrativeUnit.FUNCTIONS_USERS).setSystemReserved(true)
 					.setType(REFERENCE).setMultivalue(true)
 					.defineReferencesTo(builder.getSchemaType(User.SCHEMA_TYPE));
+
+
+			MetadataSchemaBuilder defaultFolderSchema = typesBuilder.getDefaultSchema(Folder.SCHEMA_TYPE);
+			defaultFolderSchema.createUndeletable(Folder.IS_MODEL).setType(MetadataValueType.BOOLEAN).setSystemReserved(true)
+					.setDefaultValue(false);
+
+			MetadataSchemaBuilder defaultDocumentSchema = typesBuilder.getDefaultSchema(Document.SCHEMA_TYPE);
+			defaultDocumentSchema.createUndeletable(Document.IS_MODEL).setType(MetadataValueType.BOOLEAN).setSystemReserved(true)
+					.setDefaultValue(false);
 		}
 	}
 }

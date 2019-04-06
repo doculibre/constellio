@@ -52,6 +52,8 @@ public class Task extends RecordWrapper {
 	public static final String STARRED_BY_USERS = "starredByUsers";
 	public static final String READ_BY_USER = "readByUser";
 	public static final String IS_LATE = "isLate";
+	public static final String WORK_HOURS = "workHours";
+	public static final String ESTIMATED_HOURS = "estimatedHours";
 
 	/**
 	 * Fields used by second and third version of the workflow feature
@@ -363,6 +365,25 @@ public class Task extends RecordWrapper {
 
 	public Task setNumberOfReminders(int numberOfReminder) {
 		set(NUMBER_OF_REMINDERS, numberOfReminder);
+		return this;
+	}
+
+	public Double getWorkHours() {
+		return get(WORK_HOURS);
+	}
+
+	public Task setWorkHours(Double workHours) {
+		set(WORK_HOURS, workHours);
+		return this;
+	}
+
+
+	public Double getEstimatedHours() {
+		return get(ESTIMATED_HOURS);
+	}
+
+	public Task setEstimatedHours(Double workHours) {
+		set(ESTIMATED_HOURS, workHours);
 		return this;
 	}
 
