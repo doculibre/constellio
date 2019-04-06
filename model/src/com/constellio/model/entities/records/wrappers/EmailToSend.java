@@ -1,5 +1,6 @@
 package com.constellio.model.entities.records.wrappers;
 
+import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.structures.EmailAddress;
@@ -24,6 +25,10 @@ public class EmailToSend extends RecordWrapper {
 	public static final String CC = "CC";
 
 	public static final String SUBJECT = "subject";
+
+	public static final String BODY = "body";
+
+	public static final String LINKED_FILES = "linkedFiles";
 
 	public static final String TEMPLATE = "template";
 
@@ -144,6 +149,24 @@ public class EmailToSend extends RecordWrapper {
 
 	public EmailToSend setError(String error) {
 		set(ERROR, error);
+		return this;
+	}
+
+	public String getBody() {
+		return get(BODY);
+	}
+
+	public EmailToSend setBody(String body) {
+		set(BODY, body);
+		return this;
+	}
+
+	public List<Content> getLinkedFiles() {
+		return getList(LINKED_FILES);
+	}
+
+	public EmailToSend setLinkedFiles(List<Content> linkedFiles) {
+		set(LINKED_FILES, linkedFiles);
 		return this;
 	}
 }

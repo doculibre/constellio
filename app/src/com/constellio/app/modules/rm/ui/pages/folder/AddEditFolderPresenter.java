@@ -557,12 +557,14 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		}
 	}
 
-	void adjustParentFolderField() {
+	protected FolderParentFolderField adjustParentFolderField() {
 		FolderParentFolderField parentFolderField = (FolderParentFolderField) view.getForm().getCustomField(Folder.PARENT_FOLDER);
 		parentFolderField.setVisible(alwaysShowParentField || folderHadAParent);
+
+		return parentFolderField;
 	}
 
-	void adjustAdministrativeUnitField() {
+	protected FolderAdministrativeUnitField adjustAdministrativeUnitField() {
 		FolderAdministrativeUnitField administrativeUnitField = (FolderAdministrativeUnitField) view.getForm().getCustomField(
 				Folder.ADMINISTRATIVE_UNIT_ENTERED);
 		FolderParentFolderField parentFolderField = (FolderParentFolderField) view.getForm().getCustomField(Folder.PARENT_FOLDER);
@@ -570,9 +572,11 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 			String parentId = parentFolderField.getFieldValue();
 			setFieldVisible(administrativeUnitField, parentId == null, Folder.ADMINISTRATIVE_UNIT_ENTERED);
 		}
+
+		return administrativeUnitField;
 	}
 
-	void adjustCategoryField(boolean wasParentRemoved) {
+	protected FolderCategoryField adjustCategoryField(boolean wasParentRemoved) {
 		FolderCategoryField categoryField = (FolderCategoryField) view.getForm().getCustomField(Folder.CATEGORY_ENTERED);
 		FolderParentFolderField parentFolderField = (FolderParentFolderField) view.getForm().getCustomField(Folder.PARENT_FOLDER);
 		if (categoryField != null && parentFolderField != null) {
@@ -614,6 +618,8 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 				setFieldVisible(categoryField, true, Folder.CATEGORY_ENTERED);
 			}
 		}
+
+		return categoryField;
 	}
 
 	void adjustUniformSubdivisionField(boolean wasParentRemoved) {

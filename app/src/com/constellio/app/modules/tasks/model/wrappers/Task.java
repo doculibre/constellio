@@ -7,6 +7,7 @@ import com.constellio.app.modules.tasks.model.wrappers.types.TaskType;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
@@ -51,6 +52,8 @@ public class Task extends RecordWrapper {
 	public static final String STARRED_BY_USERS = "starredByUsers";
 	public static final String READ_BY_USER = "readByUser";
 	public static final String IS_LATE = "isLate";
+	public static final String WORK_HOURS = "workHours";
+	public static final String ESTIMATED_HOURS = "estimatedHours";
 
 	/**
 	 * Fields used by second and third version of the workflow feature
@@ -114,7 +117,7 @@ public class Task extends RecordWrapper {
 		return get(ASSIGNEE_USERS_CANDIDATES);
 	}
 
-	public Task setAssigneeUsersCandidates(List<String> users) {
+	public Task setAssigneeUsersCandidates(List<?> users) {
 		set(ASSIGNEE_USERS_CANDIDATES, users);
 		return this;
 	}
@@ -365,6 +368,25 @@ public class Task extends RecordWrapper {
 		return this;
 	}
 
+	public Double getWorkHours() {
+		return get(WORK_HOURS);
+	}
+
+	public Task setWorkHours(Double workHours) {
+		set(WORK_HOURS, workHours);
+		return this;
+	}
+
+
+	public Double getEstimatedHours() {
+		return get(ESTIMATED_HOURS);
+	}
+
+	public Task setEstimatedHours(Double workHours) {
+		set(ESTIMATED_HOURS, workHours);
+		return this;
+	}
+
 	public String getEscalationAssignee() {
 		return get(ESCALATION_ASSIGNEE);
 	}
@@ -417,6 +439,18 @@ public class Task extends RecordWrapper {
 
 	public Task setReadByUser(Boolean readByUser) {
 		set(READ_BY_USER, readByUser);
+		return this;
+	}
+
+	@Override
+	public Task setCreatedBy(String createdBy) {
+		super.setCreatedBy(createdBy);
+		return this;
+	}
+
+	@Override
+	public Task setCreatedBy(User createdBy) {
+		super.setCreatedBy(createdBy);
 		return this;
 	}
 

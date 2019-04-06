@@ -40,7 +40,7 @@ public abstract class FolderFormImpl extends RecordForm implements FolderForm {
 		return ConstellioUI.getCurrentSessionContext();
 	}
 
-	public void addFieldToForm(Field component, int index, String key) {
+	public void addExtraFieldToForm(Field component, int index, String key) {
 		formLayout.addComponent(component, index);
 		extraField.put(key, component);
 	}
