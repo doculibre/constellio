@@ -123,7 +123,7 @@ public class EmailQueueManager implements StatefulService {
 			throws EmailServicesException.EmailServerException {
 		LocalDateTime tomorrow = TimeProvider.getLocalDateTime().plusDays(1);
 		EmailBuilder emailBuilder = new EmailBuilder(modelLayerFactory.getEmailTemplatesManager(),
-				modelLayerFactory.getSystemConfigurationsManager());
+				modelLayerFactory.getSystemConfigurationsManager(), modelLayerFactory.getContentManager());
 		String collection = query.getCondition().getCollection();
 		SchemasRecordsServices schemas = new SchemasRecordsServices(collection, modelLayerFactory);
 		Metadata numberOfTryMetadata = getNumberOfTryMetadata(collection);
