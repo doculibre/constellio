@@ -17,6 +17,9 @@ import org.joda.time.LocalDateTime;
 import org.tepi.filtertable.FilterGenerator;
 import org.vaadin.dialogs.ConfirmDialog;
 
+import com.constellio.app.modules.rm.ui.components.content.ConstellioAgentLink;
+import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
+import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.ui.components.fields.StarredFieldImpl;
@@ -26,6 +29,7 @@ import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.DisplayButton;
@@ -34,6 +38,7 @@ import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.BaseForm.FieldAndPropertyId;
+import com.constellio.app.ui.framework.components.BaseUpdatableContentVersionPresenter;
 import com.constellio.app.ui.framework.components.content.DownloadContentVersionLink;
 import com.constellio.app.ui.framework.components.converters.JodaDateTimeToStringConverter;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
@@ -468,7 +473,7 @@ public class TaskTable extends VerticalLayout {
 			Label contentsImage = new Label("");
 			contentsImage.setIcon(FontAwesome.PAPERCLIP);
 			contentsImage.addStyleName("task-details-contents-info");
-			contentsImage.setVisible(!contents.isEmpty());
+			contentsImage.setVisible(!contents.isEmpty() || !linkedDocumentIds.isEmpty() || !linkedFolderIds.isEmpty());
 			
 			I18NHorizontalLayout taskDetailsTopLayout = new I18NHorizontalLayout(createdByComponent, createdOnLabel, contentsImage);
 			taskDetailsTopLayout.addStyleName("task-details-top");
@@ -531,8 +536,17 @@ public class TaskTable extends VerticalLayout {
 				expandLayout.addComponent(linkedDocumentsLayout);
 				
 				for (String linkedDocumentId : linkedDocumentIds) {
-					ReferenceDisplay referenceDisplay = new ReferenceDisplay(linkedDocumentId);
-					linkedDocumentsLayout.addComponent(referenceDisplay);
+					RecordVO documentVO = presenter.getDocumentVO(linkedDocumentId);
+					ContentVersionVO contentVersionVO = documentVO.get(Document.CONTENT);
+					String agentURL = ConstellioAgentUtils.getAgentURL(documentVO, contentVersionVO);
+					Component linkComponent;
+					if (agentURL != null) {
+						linkComponent = new ConstellioAgentLink(agentURL, documentVO, contentVersionVO, documentVO.getTitle(), false, new BaseUpdatableContentVersionPresenter());
+						((ConstellioAgentLink) linkComponent).addVisitedClickListener(documentVO.getId());
+					} else {
+						linkComponent = new ReferenceDisplay(documentVO);
+					}
+					linkedDocumentsLayout.addComponent(linkComponent);
 				}
 			}
 			
@@ -671,6 +685,8 @@ public class TaskTable extends VerticalLayout {
 
 	public interface TaskPresenter {
 		boolean isSubTaskPresentAndHaveCertainStatus(RecordVO recordVO);
+
+		RecordVO getDocumentVO(String linkedDocumentId);
 
 		boolean taskCommentAdded(RecordVO taskVO, Comment newComment);
 

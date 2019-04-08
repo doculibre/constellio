@@ -9,6 +9,7 @@ import static java.util.Arrays.asList;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -21,6 +22,7 @@ import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.events.RMEventsSearchServices;
+import com.constellio.app.modules.rm.ui.components.content.ConstellioAgentClickHandler;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -37,6 +39,7 @@ import com.constellio.app.modules.tasks.ui.components.TaskTable.TaskPresenter;
 import com.constellio.app.modules.tasks.ui.entities.TaskVO;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -508,8 +511,22 @@ public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskV
 					view.navigate().to(RMViews.class).displayFolder(id);
 					navigating = true;
 				} else if (Document.SCHEMA_TYPE.equals(schemaTypeCode)) {
-					view.navigate().to(RMViews.class).displayDocument(id);
-					navigating = true;
+					SessionContext sessionContext = view.getSessionContext();
+					RecordVO documentVO = new RecordToVOBuilder().build(record, VIEW_MODE.DISPLAY, sessionContext);
+					ContentVersionVO contentVersionVO = documentVO.get(Document.CONTENT);
+					if (contentVersionVO == null) {
+						view.navigate().to(RMViews.class).displayDocument(id);
+						navigating = true;
+					}
+					String agentURL = ConstellioAgentUtils.getAgentURL(documentVO, contentVersionVO);
+					if (agentURL != null) {
+						//			view.openAgentURL(agentURL);
+						new ConstellioAgentClickHandler().handleClick(agentURL, documentVO, contentVersionVO, new HashMap<String, String>());
+						navigating = false;
+					} else {
+						view.navigate().to(RMViews.class).displayDocument(id);
+						navigating = true;
+					}
 				} else if (ContainerRecord.SCHEMA_TYPE.equals(schemaTypeCode)) {
 					view.navigate().to(RMViews.class).displayContainer(id);
 					navigating = true;
@@ -549,7 +566,6 @@ public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskV
 				navigating = false;
 			}
 		}
-
 		return navigating;
 	}
 	
@@ -578,6 +594,12 @@ public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskV
 			view.showErrorMessage(e.getMessage());
 		}
 		return added;
+	}
+
+	@Override
+	public RecordVO getDocumentVO(String linkedDocumentId) {
+		Record record = getRecord(linkedDocumentId);
+		return new RecordToVOBuilder().build(record, VIEW_MODE.DISPLAY, view.getSessionContext());
 	}
 	
 }
