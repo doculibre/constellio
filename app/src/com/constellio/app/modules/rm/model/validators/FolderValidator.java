@@ -59,7 +59,8 @@ public class FolderValidator implements RecordValidator {
 				params.getValidationErrors()
 						.add(FolderValidator.class, FOLDER_UNIFORM_SUBDIVISION_MUST_BE_RELATED_TO_ITS_RULE, parameters);
 			}
-		} else if (params.getConfigProvider().<Boolean>get(RMConfigs.ENFORCE_CATEGORY_AND_RULE_RELATIONSHIP_IN_FOLDER)) {
+		} else if (params.getConfigProvider().<Boolean>get(RMConfigs.ENFORCE_CATEGORY_AND_RULE_RELATIONSHIP_IN_FOLDER)
+				&& folder.getCategory() != null) {
 			Category category = Category.wrap(params.getRecord(folder.getCategory()), params.getTypes());
 			if (!category.getRententionRules().contains(retentionRule.getId())) {
 				Map<String, Object> parameters = new HashMap<>();
