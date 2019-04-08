@@ -87,21 +87,6 @@ public class TaskManagementPresenterAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenWorkflowsAreActivatedThenOnlyUsersWithNeededPermissionCanSeeTheTab()
-			throws Exception {
-		sessionContext = FakeSessionContext.adminInCollection(zeCollection);
-		when(view.getSessionContext()).thenReturn(sessionContext);
-		TaskManagementPresenter presenter = Mockito.spy(new TaskManagementPresenter(view));
-		doReturn(true).when(presenter).areWorkflowsEnabled();
-
-		assertThat(presenter.getPrimaryTabs()).contains(view.STARTED_WORKFLOWS_TAB);
-
-		sessionContext = FakeSessionContext.aliceInCollection(zeCollection);
-		presenter = Mockito.spy(new TaskManagementPresenter(view));
-		assertThat(presenter.getPrimaryTabs()).doesNotContain(view.STARTED_WORKFLOWS_TAB);
-	}
-
-	@Test
 	public void givenUserCreatedClosedTaskThenVisibleInRecentlyClosedTask()
 			throws Exception {
 		ArgumentCaptor<RecordVODataProvider> argumentCaptor = ArgumentCaptor.forClass(RecordVODataProvider.class);

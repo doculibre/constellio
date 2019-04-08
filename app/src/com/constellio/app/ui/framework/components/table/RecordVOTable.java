@@ -248,7 +248,7 @@ public class RecordVOTable extends BaseTable {
 			MetadataValueVO metadataValue = recordVO.getMetadataValue(metadataVO);
 			Component metadataDisplay;
 			if (metadataValue != null) {
-				metadataDisplay = buildMetadataComponent(metadataValue, recordVO);
+				metadataDisplay = buildMetadataComponent(itemId, metadataValue, recordVO);
 			} else {
 				metadataDisplay = new Label("");
 			}
@@ -270,12 +270,23 @@ public class RecordVOTable extends BaseTable {
 		}
 		return containerProperty;
 	}
+	
+	public Property<?> getMetadataProperty(Object itemId, String metadataCode) {
+		Property<?> match = null;
+		for (Object propertyId : getContainerPropertyIds()) {
+			if (propertyId instanceof MetadataVO && ((MetadataVO) propertyId).codeMatches(metadataCode)) {
+				match = getContainerProperty(itemId, propertyId);
+				break;
+			}
+		}
+		return match;
+	}
 
 	protected String getTitleForRecordVO(RecordVO titleRecordVO, String prefix, String title) {
 		return StringUtils.isNotBlank(prefix) ? prefix + " " + title : title;
 	}
 
-	protected Component buildMetadataComponent(MetadataValueVO metadataValue, RecordVO recordVO) {
+	protected Component buildMetadataComponent(Object itemId, MetadataValueVO metadataValue, RecordVO recordVO) {
 		return metadataDisplayFactory.build(recordVO, metadataValue);
 	}
 

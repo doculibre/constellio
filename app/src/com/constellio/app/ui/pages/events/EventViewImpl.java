@@ -126,7 +126,7 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 		final Boolean isRecordEvent = EventTypeUtils.isRecordEvent(eventType);
 		final RecordVOTable table = new RecordVOTable(title, container, isRecordEvent) {
 			@Override
-			protected Component buildMetadataComponent(MetadataValueVO metadataValue, RecordVO recordVO) {
+			protected Component buildMetadataComponent(Object itemId, MetadataValueVO metadataValue, RecordVO recordVO) {
 				if (presenter.isDeltaMetadata(metadataValue)) {
 					return displayButton(metadataValue);
 				} else if (presenter.isTypeMetadata(metadataValue)) {
@@ -140,7 +140,7 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 						referenceDisplay.setCaption(getTitleForRecordVO(linkedRecordVO, "", referenceDisplay.getCaption()));
 						return referenceDisplay;
 					} else {
-						return super.buildMetadataComponent(metadataValue, recordVO);
+						return super.buildMetadataComponent(itemId, metadataValue, recordVO);
 					}
 				}
 			}

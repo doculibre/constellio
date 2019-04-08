@@ -11,8 +11,11 @@ public interface TaskManagementView extends BaseView, TasksViewGroup {
 	String TASK_MANAGEMENT_PRESENTER_PREVIOUS_TAB = "TaskManagementPresenterPreviousTab";
 
 	String TASKS_TAB = "tasks";
-	String STARTED_WORKFLOWS_TAB = "startedWorkflows";
+	String WORKFLOWS_TAB = "workflows";
 	String KPI_TAB = "kpi";
+	
+	String IN_PROGRESS_WORKFLOW_DEFINITIONS_TAB = "inProgressWorkflowDefinitions";
+	String COMPLETED_WORKFLOW_DEFINITIONS_TAB = "completedWorkflowDefinitions";
 	
 	String TASKS_ASSIGNED_BY_CURRENT_USER = "tasksAssignedByCurrentUser";
 	String TASKS_NOT_ASSIGNED = "nonAssignedTasks";
@@ -21,7 +24,7 @@ public interface TaskManagementView extends BaseView, TasksViewGroup {
 	
 	void displayTasks(RecordVODataProvider provider);
 
-	void displayWorkflows(RecordVODataProvider provider);
+//	void displayWorkflows(RecordVODataProvider provider);
 
 	com.vaadin.ui.Component getTabComponent(String tabId);
 
@@ -29,14 +32,14 @@ public interface TaskManagementView extends BaseView, TasksViewGroup {
 
 	void registerPreviousSelectedTab();
 	
-	void setPrimaryTabs(List<String> tabs);
-	
 	void setTasksTabs(List<String> tasksTabs);
 
-	void setWorkflowsTabsVisible(boolean visible);
-	
-	void setStartWorkflowButtonVisible(boolean visible);
+//	void setWorkflowsTabsVisible(boolean visible);
+//	
+//	void setStartWorkflowButtonVisible(boolean visible);
 	
 	void reloadCurrentTab();
-
+	
+	void setTabBadge(String tabId, String badge);
+	
 }

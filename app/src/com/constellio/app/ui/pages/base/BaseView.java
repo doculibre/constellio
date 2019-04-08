@@ -46,6 +46,8 @@ public interface BaseView extends ViewComponent {
 	
 	void runAsync(Runnable runnable, int pollIntervall);
 
+	void openURL(String url);
+
 	public interface ViewEnterListener extends Serializable {
 
 		void viewEntered(String params);

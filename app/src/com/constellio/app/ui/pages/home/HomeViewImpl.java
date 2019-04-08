@@ -1,5 +1,18 @@
 package com.constellio.app.ui.pages.home;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
+import org.vaadin.peter.contextmenu.ContextMenu;
+import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableFooterEvent;
+import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableHeaderEvent;
+import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableRowEvent;
+
 import com.constellio.app.entities.navigation.PageItem;
 import com.constellio.app.entities.navigation.PageItem.CustomItem;
 import com.constellio.app.entities.navigation.PageItem.RecentItemTable;
@@ -7,7 +20,6 @@ import com.constellio.app.entities.navigation.PageItem.RecentItemTable.RecentIte
 import com.constellio.app.entities.navigation.PageItem.RecordTable;
 import com.constellio.app.entities.navigation.PageItem.RecordTree;
 import com.constellio.app.modules.rm.ui.components.tree.RMTreeDropHandlerImpl;
-import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataVO;
@@ -52,19 +64,6 @@ import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.TabSheet.Tab;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Tree.TreeDragMode;
-
-import org.apache.commons.lang3.StringUtils;
-import org.vaadin.peter.contextmenu.ContextMenu;
-import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableFooterEvent;
-import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableHeaderEvent;
-import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableRowEvent;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static com.constellio.app.ui.i18n.i18n.$;
 
 public class HomeViewImpl extends BaseViewImpl implements HomeView {
 
@@ -285,6 +284,7 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 				return buildRecordTree(recordTree, dataProvider);
 			}
 		};
+		subTabSheet.addStyleName("tabsheet-secondary");
 		subTabSheet.setSelectedTab(recordTree.getDefaultDataProvider());
 		return subTabSheet;
 	}
@@ -534,11 +534,6 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 				}
 			}
 		}
-	}
-
-	@Override
-	public void openURL(String url) {
-		Page.getCurrent().open(url, null);
 	}
 
 }

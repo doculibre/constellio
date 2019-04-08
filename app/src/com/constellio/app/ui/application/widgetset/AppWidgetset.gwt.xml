@@ -19,6 +19,7 @@
         <set-property name="vaadin.profiler" value="true" />
         <source path="client" />
         <source path="shared" />
+<!--        
         <stylesheet src="ckeditor/plugins/colordialog/dialogs/colordialog.css" />
         <stylesheet src="ckeditor/plugins/wsc/skins/moono-lisa/wsc.css" />
         <stylesheet src="ckeditor/plugins/wsc/dialogs/wsc.css" />
@@ -36,6 +37,7 @@
         <stylesheet src="ckeditor/skins/moono-lisa/dialog_ie.css" />
         <stylesheet src="ckeditor/skins/moono-lisa/dialog.css" />
         <stylesheet src="ckeditor/skins/moono-lisa/dialog_ie8.css" />
+-->
         <collapse-all-properties />
         <set-property name="compiler.useSymbolMaps" value="true" />
 </module>

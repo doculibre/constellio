@@ -183,11 +183,9 @@ public class RecordVOLazyContainer extends LazyQueryContainer implements Refresh
 				MetadataSchemaVO schema = dataProvider.getSchema();
 				List<MetadataVO> dataProviderTableMetadataVOs = schema.getTableMetadatas();
 
-				for(MetadataVO metadataVO : dataProviderTableMetadataVOs) {
-						tablePropertyMetadataVOs.add(metadataVO);
+				for (MetadataVO metadataVO : dataProviderTableMetadataVOs) {
+					tablePropertyMetadataVOs.add(metadataVO);
 				}
-
-
 
 				List<MetadataVO> dataProviderQueryMetadataVOs = new ArrayList<>(dataProviderTableMetadataVOs);
 				if (!tableMetadatasOnly) {

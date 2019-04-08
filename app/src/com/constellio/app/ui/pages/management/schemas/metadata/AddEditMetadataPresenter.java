@@ -686,7 +686,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 					new HashMap<Locale, String>(), enumClass, new String[]{}, formMetadataVO.getReference(), inputType, displayType,
 					new AllowedReferences(formMetadataVO.getReference(), null), formMetadataVO.getMetadataGroup(),
 					formMetadataVO.getDefaultValue(), false, formMetadataVO.getCustomAttributes(),
-					formMetadataVO.isMultiLingual(), getCurrentLocale(), new HashMap<String, Object>(), collectionInfoVO);
+					formMetadataVO.isMultiLingual(), getCurrentLocale(), new HashMap<String, Object>(), collectionInfoVO, formMetadataVO.isSortable());
 			return metadataVO;
 		} catch (Exception ex) {
 

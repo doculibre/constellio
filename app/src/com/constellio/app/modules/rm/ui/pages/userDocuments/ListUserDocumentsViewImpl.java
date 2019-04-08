@@ -143,12 +143,12 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 
 		userContentTable = new RecordVOTable() {
 			@Override
-			protected Component buildMetadataComponent(MetadataValueVO metadataValue, RecordVO recordVO) {
+			protected Component buildMetadataComponent(Object itemId, MetadataValueVO metadataValue, RecordVO recordVO) {
 				Component metadataComponent;
 				if (metadataValue.getMetadata().codeMatches(UserDocument.TITLE)) {
 					metadataComponent = newCaptionComponent(recordVO);
 				} else {
-					metadataComponent = super.buildMetadataComponent(metadataValue, recordVO);
+					metadataComponent = super.buildMetadataComponent(itemId, metadataValue, recordVO);
 				}
 				return metadataComponent;
 			}

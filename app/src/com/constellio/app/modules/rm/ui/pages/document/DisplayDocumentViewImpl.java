@@ -425,7 +425,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	public void setTasks(final RecordVODataProvider dataProvider) {
 		Table tasksTable = new RecordVOTable(dataProvider) {
 			@Override
-			protected Component buildMetadataComponent(MetadataValueVO metadataValue, RecordVO recordVO) {
+			protected Component buildMetadataComponent(Object itemId, MetadataValueVO metadataValue, RecordVO recordVO) {
 				if (Task.STARRED_BY_USERS.equals(metadataValue.getMetadata().getLocalCode())) {
 					return new StarredFieldImpl(recordVO.getId(), (List<String>) metadataValue.getValue(), getSessionContext().getCurrentUser().getId()) {
 						@Override
@@ -434,7 +434,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 						}
 					};
 				} else {
-					return super.buildMetadataComponent(metadataValue, recordVO);
+					return super.buildMetadataComponent(itemId, metadataValue, recordVO);
 				}
 			}
 

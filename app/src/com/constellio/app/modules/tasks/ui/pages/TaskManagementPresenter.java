@@ -1,5 +1,23 @@
 package com.constellio.app.modules.tasks.ui.pages;
 
+import static com.constellio.app.modules.tasks.model.wrappers.Task.ASSIGNEE;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.ASSIGNER;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.DEFAULT_SCHEMA;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.DUE_DATE;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.END_DATE;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.SCHEMA_TYPE;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.STARRED_BY_USERS;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.STATUS;
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.entities.records.wrappers.RecordWrapper.TITLE;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import org.joda.time.LocalDate;
+
 import com.constellio.app.api.extensions.params.UpdateComponentExtensionParams;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.RMConfigs;
@@ -43,25 +61,6 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuerySort;
 import com.vaadin.ui.Component;
-import org.joda.time.LocalDate;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static com.constellio.app.modules.tasks.model.wrappers.Task.ASSIGNEE;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.ASSIGNER;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.DEFAULT_SCHEMA;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.DUE_DATE;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.END_DATE;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.SCHEMA_TYPE;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.STARRED_BY_USERS;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.STATUS;
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.entities.records.wrappers.RecordWrapper.TITLE;
 
 public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManagementView>
 		implements TaskPresenter, WorkflowPresenter {
@@ -75,12 +74,7 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 
 	private String selectedTab;
 
-	private List<String> primaryTabs;
-
 	private List<String> tasksTabs;
-
-	private boolean workflowsTabsVisible;
-	private boolean startWorkflowButtonVisible;
 
 	private RMModuleExtensions rmModuleExtensions = appCollectionExtentions.forModule(ConstellioRMModule.ID);
 
@@ -89,8 +83,8 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 		initTransientObjects();
 		tasksSchemasRecordsServices = new TasksSchemasRecordsServices(collection, appLayerFactory);
 
-		workflowsTabsVisible = /*areWorkflowsEnabled() &&*/ getCurrentUser().has(TasksPermissionsTo.MANAGE_WORKFLOWS).globally();
-		startWorkflowButtonVisible = workflowsTabsVisible && hasPermissionToStartWorkflow();
+//		workflowsTabsVisible = /*areWorkflowsEnabled() &&*/ getCurrentUser().has(TasksPermissionsTo.MANAGE_WORKFLOWS).globally();
+//		startWorkflowButtonVisible = workflowsTabsVisible && hasPermissionToStartWorkflow();
 
 		tasksTabs = new ArrayList<>();
 		tasksTabs.add(TaskManagementView.TASKS_ASSIGNED_TO_CURRENT_USER);
@@ -98,23 +92,7 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 		tasksTabs.add(TaskManagementView.TASKS_NOT_ASSIGNED);
 		tasksTabs.add(TaskManagementView.TASKS_RECENTLY_COMPLETED);
 
-		primaryTabs = new ArrayList<>();
-		if (workflowsTabsVisible) {
-			primaryTabs.add(TaskManagementView.TASKS_TAB);
-			primaryTabs.add(TaskManagementView.STARTED_WORKFLOWS_TAB);
-			primaryTabs.add(TaskManagementView.KPI_TAB);
-		} else {
-			primaryTabs.addAll(tasksTabs);
-		}
-
-		view.setWorkflowsTabsVisible(workflowsTabsVisible);
-		view.setStartWorkflowButtonVisible(startWorkflowButtonVisible);
-		view.setPrimaryTabs(primaryTabs);
 		view.setTasksTabs(tasksTabs);
-	}
-
-	List<String> getPrimaryTabs() {
-		return primaryTabs;
 	}
 
 	List<String> getTasksTabs() {
@@ -131,12 +109,17 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 	}
 
 	private void loadTab(String tabId) {
+		if (selectedTab != null) {
+			view.setTabBadge(selectedTab, "");
+		}
+		
+		if (TaskManagementView.TASKS_TAB.equals(tabId)) {
+			tabId = TaskManagementView.TASKS_ASSIGNED_TO_CURRENT_USER;
+		}
 		selectedTab = tabId;
-		if (isWorkflowTab(tabId)) {
-			provider = getWorkflowInstances(tabId);
-			view.displayWorkflows(provider);
-		} else if (isTaskTab(tabId)) {
+		if (isTaskTab(tabId)) {
 			provider = getTasks(tabId);
+			view.setTabBadge(tabId, "" + provider.size());
 			view.displayTasks(provider);
 		} else {
 			UpdateComponentExtensionParams params = new UpdateComponentExtensionParams((Component) view, view.getTabComponent(selectedTab));
@@ -250,7 +233,9 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 	@Override
 	public void setReadByUser(RecordVO recordVO, boolean readByUser) {
 		try {
-			taskPresenterServices.setReadByUser(getRecord(recordVO.getId()), readByUser);
+			Record record = getRecord(recordVO.getId());
+			taskPresenterServices.setReadByUser(record, readByUser);
+			recordVO.set(Task.READ_BY_USER, readByUser);
 			refreshCurrentTab();
 			view.getMainLayout().getMenu().refreshBadges();
 		} catch (RecordServicesException e) {
@@ -331,19 +316,20 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 		};
 	}
 
-	public void workflowStartRequested(RecordVO record) {
-		BetaWorkflow workflow = new TasksSchemasRecordsServices(view.getCollection(), appLayerFactory)
-				.getBetaWorkflow(record.getId());
-		Map<String, List<String>> parameters = new HashMap<>();
-		workflowServices.start(workflow, getCurrentUser(), parameters);
-		refreshCurrentTab();
-	}
+//	public void workflowStartRequested(RecordVO record) {
+//		BetaWorkflow workflow = new TasksSchemasRecordsServices(view.getCollection(), appLayerFactory)
+//				.getBetaWorkflow(record.getId());
+//		Map<String, List<String>> parameters = new HashMap<>();
+//		workflowServices.start(workflow, getCurrentUser(), parameters);
+//		refreshCurrentTab();
+//	}
 
 	private RecordVODataProvider getTasks(String tabId) {
 		MetadataSchemaVO schemaVO = new MetadataSchemaToVOBuilder()
 				.build(defaultSchema(), VIEW_MODE.TABLE, getMetadataForTab(tabId), view.getSessionContext(), true);
 
 		switch (tabId) {
+			case TaskManagementView.TASKS_TAB:
 			case TaskManagementView.TASKS_ASSIGNED_TO_CURRENT_USER:
 				return new RecordVODataProvider(schemaVO, new TaskToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 					@Override
@@ -435,7 +421,7 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 				.build(schema(BetaWorkflowInstance.DEFAULT_SCHEMA), VIEW_MODE.TABLE, view.getSessionContext());
 
 		switch (tabId) {
-			case TaskManagementView.STARTED_WORKFLOWS_TAB:
+			case TaskManagementView.WORKFLOWS_TAB:
 				return new RecordVODataProvider(schemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 					@Override
 					protected LogicalSearchQuery getQuery() {
@@ -461,11 +447,19 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 	}
 
 	public boolean isWorkflowTab(String tabId) {
-		return TaskManagementView.STARTED_WORKFLOWS_TAB.equals(tabId);
+		switch (tabId) {
+			case TaskManagementView.WORKFLOWS_TAB:
+			case TaskManagementView.IN_PROGRESS_WORKFLOW_DEFINITIONS_TAB:
+			case TaskManagementView.COMPLETED_WORKFLOW_DEFINITIONS_TAB:
+				return true;
+			default:
+				return false;
+		}
 	}
 
-	private boolean isTaskTab(String tabId) {
+	public boolean isTaskTab(String tabId) {
 		switch (tabId) {
+			case TaskManagementView.TASKS_TAB:
 			case TaskManagementView.TASKS_ASSIGNED_TO_CURRENT_USER:
 			case TaskManagementView.TASKS_ASSIGNED_BY_CURRENT_USER:
 			case TaskManagementView.TASKS_NOT_ASSIGNED:
