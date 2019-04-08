@@ -140,13 +140,13 @@ $popup-view-z-index: 3;
 			margin-top: -40px;
 			padding-right: 10px;
 			position: relative;
-			top: 90px;
-			z-index: 19999;
+			top: 94px;
+			z-index: 2;
 		}
 	
 		.v-tabsheet-tabitem {
 			.v-caption {
-				z-index: 20000;
+				z-index: 3;
 			}
 		}
 	}
@@ -193,8 +193,18 @@ $popup-view-z-index: 3;
 				padding-right: 12px;
 			}
 		}
+					
+		.v-caption-task-table {
+			display:none;
+		}
 	
 		.task-table {
+		    border-bottom-color: #dfdfdf;
+			border-bottom-style: solid;
+			border-bottom-width: 1px;
+			border-bottom: collapse;
+			border-spacing: 0px 0px;
+			
 			.v-table-cell-content {
 				vertical-align: top;
 				
@@ -267,6 +277,7 @@ $popup-view-z-index: 3;
 					position: relative;
 				    top: 53px;
 				    margin-top: -53px;
+				    z-index: 2;
 				}
 			
 				.task-details-add-comment-button {
