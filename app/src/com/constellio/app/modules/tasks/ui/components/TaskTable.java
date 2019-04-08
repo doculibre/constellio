@@ -2,8 +2,6 @@ package com.constellio.app.modules.tasks.ui.components;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -16,34 +14,18 @@ import java.util.UUID;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.tepi.filtertable.FilterGenerator;
 import org.vaadin.dialogs.ConfirmDialog;
 
-import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
-import com.constellio.app.modules.rm.RMConfigs;
-import com.constellio.app.modules.rm.navigation.RMViews;
-import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
-import com.constellio.app.modules.tasks.data.trees.TaskFoldersTreeNodesDataProvider;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.ui.components.fields.StarredFieldImpl;
 import com.constellio.app.modules.tasks.ui.entities.TaskVO;
 import com.constellio.app.modules.tasks.ui.pages.tasks.TaskCompleteWindowButton;
-import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
-import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
-import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.DisplayButton;
@@ -65,29 +47,16 @@ import com.constellio.app.ui.framework.components.table.columns.RecordVOTableCol
 import com.constellio.app.ui.framework.components.table.columns.TableColumnsManager;
 import com.constellio.app.ui.framework.components.tree.RecordLazyTree;
 import com.constellio.app.ui.framework.components.tree.TreeItemClickListener;
+import com.constellio.app.ui.framework.components.user.UserDisplay;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.BaseRecordTreeDataProvider;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseView;
-import com.constellio.app.ui.pages.base.SessionContext;
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.frameworks.validation.ValidationException;
-import com.constellio.model.services.configs.SystemConfigurationsManager;
-import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.records.RecordServices;
-import com.constellio.model.services.records.RecordServicesException;
-import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
-import com.constellio.model.services.records.SchemasRecordsServices;
-import com.constellio.model.services.schemas.SchemaUtils;
-import com.constellio.model.services.users.UserPhotosServices;
-import com.constellio.model.services.users.UserPhotosServicesRuntimeException.UserPhotosServicesRuntimeException_UserHasNoPhoto;
 import com.vaadin.data.Container;
 import com.vaadin.data.Property;
 import com.vaadin.data.Property.ValueChangeEvent;
@@ -97,8 +66,6 @@ import com.vaadin.event.LayoutEvents.LayoutClickEvent;
 import com.vaadin.event.LayoutEvents.LayoutClickListener;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Resource;
-import com.vaadin.server.StreamResource;
-import com.vaadin.server.StreamResource.StreamSource;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.shared.MouseEventDetails.MouseButton;
 import com.vaadin.shared.ui.MultiSelectMode;
@@ -108,7 +75,6 @@ import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
-import com.vaadin.ui.Embedded;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Link;
 import com.vaadin.ui.Table;
@@ -119,8 +85,6 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
 public class TaskTable extends VerticalLayout {
-
-	private static Logger LOGGER = LoggerFactory.getLogger(TaskTable.class);
 
 	public static final String PREFIX = "images/icons/task/";
 	public static final ThemeResource COMPLETE_ICON = new ThemeResource(PREFIX + "task.png");
@@ -157,14 +121,13 @@ public class TaskTable extends VerticalLayout {
 		table = new TaskRecordVOTable("");
 		table.setContainerDataSource(buildContainer(provider));
 		table.setPageLength(Math.min(5, provider.size()));
-//		addDisplayOnClickListener();
 
 		controlsLayout = new I18NHorizontalLayout();
 		controlsLayout.addStyleName("task-table-controls");
 		controlsLayout.setSpacing(true);
 		controlsLayout.setDefaultComponentAlignment(Alignment.TOP_RIGHT);
 
-		filterButton = new WindowButton($("Filter"), $("Filter"), WindowConfiguration.modalDialog("90%", "90%")) {
+		filterButton = new WindowButton($("TaskTable.filter"), $("TaskTable.filter"), WindowConfiguration.modalDialog("90%", "90%")) {
 			@Override
 			protected Component buildWindowContent() {
 				VerticalLayout mainLayout = new VerticalLayout();
@@ -178,7 +141,7 @@ public class TaskTable extends VerticalLayout {
 		filterButton.addStyleName("task-table-filter");
 		filterButton.setVisible(filterGenerator != null);
 
-		sortField = new BaseComboBox($("Sort by"));
+		sortField = new BaseComboBox($("TaskTable.sortBy"));
 		sortField.addItem("_NULL_");
 		sortField.setNullSelectionItemId("_NULL_");
 		sortField.setItemCaption("_NULL_", "");
@@ -193,9 +156,9 @@ public class TaskTable extends VerticalLayout {
 				table.setSortContainerPropertyId(value);
 				table.setSortAscending(true);
 				if (value != null) {
-					sortAscButton.setCaption("ascending ");
+					sortAscButton.setCaption($("TaskTable.sort.asc"));
 				} else {
-					sortAscButton.setCaption("");
+					sortAscButton.setCaption($("TaskTable.sort.none"));
 				}
 			}
 		});
@@ -227,19 +190,19 @@ public class TaskTable extends VerticalLayout {
 			}
 		}
 		
-		sortAscButton = new BaseButton("") {
+		sortAscButton = new BaseButton($("TaskTable.sort.none")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
 				if (table.getSortContainerPropertyId() != null) {
 					if (table.isSortAscending()) {
-						sortAscButton.setCaption("descending ");
+						sortAscButton.setCaption($("TaskTable.sort.desc"));
 						table.setSortAscending(false);
 					} else {
-						sortAscButton.setCaption("ascending ");
+						sortAscButton.setCaption($("TaskTable.sort.asc"));
 						table.setSortAscending(true);
 					}
 				} else {
-					sortAscButton.setCaption("");
+					sortAscButton.setCaption($("TaskTable.sort.none"));
 				}
 			}
 		};
@@ -325,74 +288,6 @@ public class TaskTable extends VerticalLayout {
 				selectedTask = recordVO;
 				table.showSelectedTaskDetails(itemId);
 			}
-		}
-	}
-	
-	private Component getUserComponent(String userId) {
-		Component userComponent;
-		if (userId == null) {
-			userComponent = new Label();
-			userComponent.setVisible(false);
-		} else {
-			ModelLayerFactory modelLayerFactory = ConstellioFactories.getInstance().getModelLayerFactory(); 
-			RecordServices recordServices = modelLayerFactory.newRecordServices();
-			
-			Record userRecord = recordServices.getDocumentById(userId);
-			String collection = userRecord.getCollection();
-			
-			SchemasRecordsServices schemasRecordsServices = new SchemasRecordsServices(collection, modelLayerFactory);
-			User user = schemasRecordsServices.wrapUser(userRecord);
-
-			String username = user.getUsername();
-			Embedded image = getImage(username);
-			image.addStyleName("user-display-icon");
-			image.setCaption(null);
-			
-			String firstName = user.getFirstName();
-			String lastName = user.getLastName();
-			Label nameLabel = new Label(firstName + " " + lastName);
-			nameLabel.addStyleName("user-display-name");
-			
-			I18NHorizontalLayout userLayout = new I18NHorizontalLayout(image, nameLabel);
-			userLayout.addStyleName("user-display");
-			userComponent = userLayout;
-		}
-		return userComponent;
-	}
-
-	private Embedded getImage(String username) {
-		ModelLayerFactory modelLayerFactory = ConstellioFactories.getInstance().getModelLayerFactory();
-		UserPhotosServices photosServices = modelLayerFactory.newUserPhotosServices();
-		
-		Resource imageResource;
-		if (photosServices.hasPhoto(username)) {
-			imageResource = new StreamResource(readSourceStream(username), username + ".png");
-		} else {
-			imageResource = new ThemeResource("images/profiles/default.jpg");
-		}
-		Embedded image = new Embedded("", imageResource);
-//		image.setWidth("32px");
-//		image.setHeight("32px");
-		return image;
-	}
-
-	private StreamSource readSourceStream(final String username) {
-		return new StreamSource() {
-			@Override
-			public InputStream getStream() {
-				return newUserPhotoInputStream(username);
-			}
-		};
-	}
-
-	private InputStream newUserPhotoInputStream(String username) {
-		UserPhotosServices photosServices = ConstellioFactories.getInstance().getModelLayerFactory().newUserPhotosServices();
-		try {
-			return photosServices.getPhotoInputStream(username).create(TaskTable.class.getName() + ".UserPhoto");
-		} catch (UserPhotosServicesRuntimeException_UserHasNoPhoto u) {
-			return null;
-		} catch (IOException e) {
-			throw new RuntimeException(e);
 		}
 	}
 	
@@ -564,7 +459,7 @@ public class TaskTable extends VerticalLayout {
 			List<String> linkedContainerIds = taskVO.get(Task.LINKED_CONTAINERS);
 			List<ContentVersionVO> contents = taskVO.get(Task.CONTENTS);
 			
-			Component createdByComponent = getUserComponent(createdById);
+			Component createdByComponent = new UserDisplay(createdById);
 			createdByComponent.addStyleName("task-details-created-by");
 			
 			Label createdOnLabel = new Label(dateTimeConverter.convertToPresentation(createdOnDate, String.class, getLocale()));
@@ -585,7 +480,7 @@ public class TaskTable extends VerticalLayout {
 			addComponent(titleLabel);
 
 			if (dueDate != null) {
-				Label dueDateLabel = new Label(taskVO.getMetadata(Task.DUE_DATE).getLabel() + " : " + dueDate.toString());
+				Label dueDateLabel = new Label($("TaskTable.details.dueDate", taskVO.getMetadata(Task.DUE_DATE).getLabel(), dueDate.toString()));
 				dueDateLabel.addStyleName("task-details-due-date");
 				addComponent(dueDateLabel);
 			}
@@ -598,7 +493,7 @@ public class TaskTable extends VerticalLayout {
 			}
 			
 			if (assigneeId != null) {
-				Component assigneeComponent = getUserComponent(assigneeId);
+				Component assigneeComponent = new UserDisplay(assigneeId);
 				assigneeComponent.addStyleName("task-details-assignee");
 				assigneeComponent.setCaption(taskVO.getMetadata(Task.ASSIGNEE).getLabel());
 				expandLayout.addComponent(assigneeComponent);
@@ -642,10 +537,7 @@ public class TaskTable extends VerticalLayout {
 			}
 			
 			if (!linkedFolderIds.isEmpty()) {
-				AppLayerFactory appLayerFactory = ConstellioUI.getCurrent().getConstellioFactories().getAppLayerFactory();
-				SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
-				TaskFoldersTreeNodesDataProvider taskFoldersDataProvider = new TaskFoldersTreeNodesDataProvider(taskVO.getRecord(), appLayerFactory, sessionContext);
-				BaseRecordTreeDataProvider taskFoldersTreeDataProvider = new BaseRecordTreeDataProvider(taskFoldersDataProvider); 
+				BaseRecordTreeDataProvider taskFoldersTreeDataProvider = presenter.getTaskFoldersTreeDataProvider(taskVO); 
 				RecordLazyTree taskFoldersTree = new RecordLazyTree(taskFoldersTreeDataProvider);
 				taskFoldersTree.addItemClickListener(new TreeItemClickListener() {
 					boolean clickNavigating;
@@ -659,79 +551,10 @@ public class TaskTable extends VerticalLayout {
 					public void itemClick(ItemClickEvent event) {
 						if (event.getButton() == MouseButton.LEFT) {
 							String recordId = (String) event.getItemId();
-							clickNavigating = recordClicked(recordId);
+							clickNavigating = presenter.taskFolderOrDocumentClicked(taskVO, recordId);
 						} else {
 							clickNavigating = true;
 						}
-					}
-
-					
-					private boolean recordClicked(String id) {
-						boolean navigating = false;
-						if (id != null && !id.startsWith("dummy")) {
-							BaseView view = (BaseView) ConstellioUI.getCurrent().getCurrentView();
-							try {
-//									// Recent folders or documents
-//									if (taxonomyCode == null) {
-//										taxonomyCode = RMTaxonomies.CLASSIFICATION_PLAN;
-//									}
-								ModelLayerFactory modelLayerFactory = ConstellioUI.getCurrent().getConstellioFactories().getModelLayerFactory();
-								RecordServices recordServices = modelLayerFactory.newRecordServices();
-								
-								Record record = recordServices.getDocumentById(id);
-								String collection = record.getCollection();
-								MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
-								String schemaCode = record.getSchemaCode();
-								String schemaTypeCode = SchemaUtils.getSchemaTypeCode(schemaCode);
-								if (Folder.SCHEMA_TYPE.equals(schemaTypeCode)) {
-//										view.getUIContext().setAttribute(BaseBreadcrumbTrail.TAXONOMY_CODE, taxonomyCode);
-									view.navigate().to(RMViews.class).displayFolder(id);
-									navigating = true;
-								} else if (Document.SCHEMA_TYPE.equals(schemaTypeCode)) {
-//										view.getUIContext().setAttribute(BaseBreadcrumbTrail.TAXONOMY_CODE, taxonomyCode);
-									view.navigate().to(RMViews.class).displayDocument(id);
-									navigating = true;
-								} else if (ContainerRecord.SCHEMA_TYPE.equals(schemaTypeCode)) {
-									view.navigate().to(RMViews.class).displayContainer(id);
-									navigating = true;
-								} else if (ConstellioAgentUtils.isAgentSupported()) {
-									String smbMetadataCode;
-									if (ConnectorSmbDocument.SCHEMA_TYPE.equals(schemaTypeCode)) {
-										smbMetadataCode = ConnectorSmbDocument.URL;
-										//					} else if (ConnectorSmbFolder.SCHEMA_TYPE.equals(schemaTypeCode)) {
-										//						smbMetadataCode = ConnectorSmbFolder.URL;
-									} else {
-										smbMetadataCode = null;
-									}
-									if (smbMetadataCode != null) {
-										SystemConfigurationsManager systemConfigurationsManager = modelLayerFactory
-												.getSystemConfigurationsManager();
-										RMConfigs rmConfigs = new RMConfigs(systemConfigurationsManager);
-										if (rmConfigs.isAgentEnabled()) {
-											RecordVO recordVO = new RecordToVOBuilder().build(record, VIEW_MODE.DISPLAY, view.getSessionContext());
-											MetadataVO smbPathMetadata = recordVO.getMetadata(schemaTypeCode + "_default_" + smbMetadataCode);
-											String agentSmbPath = ConstellioAgentUtils.getAgentSmbURL(recordVO, smbPathMetadata);
-											view.openURL(agentSmbPath);
-										} else {
-											Metadata smbUrlMetadata = types.getMetadata(schemaTypeCode + "_default_" + smbMetadataCode);
-											String smbPath = record.get(smbUrlMetadata);
-											String path = smbPath;
-											if (StringUtils.startsWith(path, "smb://")) {
-												path = "file://" + StringUtils.removeStart(path, "smb://");
-											}
-											view.openURL(path);
-										}
-										navigating = true;
-									}
-								}
-							} catch (NoSuchRecordWithId e) {
-								view.showErrorMessage($("TaskTable.noSuchRecord"));
-								LOGGER.warn("Error while clicking on record id " + id, e);
-								navigating = false;
-							}
-						}
-
-						return navigating;
 					}
 				});
 				taskFoldersTree.setCaption(taskVO.getMetadata(Task.LINKED_FOLDERS).getLabel());
@@ -759,13 +582,13 @@ public class TaskTable extends VerticalLayout {
 			commentsLayout.setSpacing(true);
 			commentsLayout.addStyleName("task-details-comments");
 			
-			final Label noCommentLabel = new Label("No comment");
+			final Label noCommentLabel = new Label($("TaskTable.details.noComment"));
 			noCommentLabel.addStyleName("task-details-no-comment");
 			if (comments.isEmpty()) {
 				commentsLayout.addComponent(noCommentLabel);
 			}
 			
-			WindowButton addCommentButton = new WindowButton("Add comment", "Add comment", WindowConfiguration.modalDialog("400px", "280px")) {
+			WindowButton addCommentButton = new WindowButton($("TaskTable.details.addComment"), $("TaskTable.details.addComment"), WindowConfiguration.modalDialog("400px", "280px")) {
 				@Override
 				protected Component buildWindowContent() {
 					Comment newComment = new Comment();
@@ -775,29 +598,9 @@ public class TaskTable extends VerticalLayout {
 					BaseForm<Comment> commentForm = new BaseForm<Comment>(newComment, Arrays.asList(commentFieldAndPropertyId)) {
 						@Override
 						protected void saveButtonClick(Comment newComment) throws ValidationException {
-							SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
-							AppLayerFactory appLayerFactory = ConstellioUI.getCurrent().getConstellioFactories().getAppLayerFactory();
-							ModelLayerFactory modelLayerFactory = ConstellioUI.getCurrent().getConstellioFactories().getModelLayerFactory();
-							RecordServices recordServices = modelLayerFactory.newRecordServices();
-							String collection = sessionContext.getCurrentCollection();
-							RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
-							User currentUser = rm.getUser(sessionContext.getCurrentUser().getId());
-							
-							newComment.setDateTime(new LocalDateTime());
-							newComment.setUser(currentUser);
-							
-							Task task = rm.getRMTask(taskVO.getId());
-							List<Comment> newComments = new ArrayList<>(task.getComments());
-							newComments.add(newComment);
-							task.setComments(newComments);
-							try {
-								recordServices.update(task.getWrappedRecord());
+							if (presenter.taskCommentAdded(taskVO, newComment)) {
 								addComment(newComment, commentsLayout);
-							} catch (RecordServicesException e) {
-								LOGGER.error("Error while adding a comment", e);
-								((BaseView) ConstellioUI.getCurrent().getCurrentView()).showErrorMessage(e.getMessage());
 							}
-							
 							getWindow().close();
 						}
 
@@ -837,7 +640,7 @@ public class TaskTable extends VerticalLayout {
 			LocalDateTime commentDateTime = comment.getDateTime();
 			String commentDateTimeStr = dateTimeConverter.convertToPresentation(commentDateTime, String.class, getLocale());
 			
-			Component commentUserComponent = getUserComponent(userId);
+			Component commentUserComponent = new UserDisplay(userId);
 			commentUserComponent.addStyleName("task-details-comment-user");
 			
 			Label commentDateTimeLabel = new Label(commentDateTimeStr);
@@ -868,6 +671,12 @@ public class TaskTable extends VerticalLayout {
 
 	public interface TaskPresenter {
 		boolean isSubTaskPresentAndHaveCertainStatus(RecordVO recordVO);
+
+		boolean taskCommentAdded(RecordVO taskVO, Comment newComment);
+
+		boolean taskFolderOrDocumentClicked(RecordVO taskVO, String recordId);
+
+		BaseRecordTreeDataProvider getTaskFoldersTreeDataProvider(RecordVO taskVO);
 
 		void displayButtonClicked(RecordVO record);
 

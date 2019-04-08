@@ -1591,6 +1591,69 @@ div.v-layout.v-horizontal.v-widget {
 }
 }
 
+.constellio .v-context-menu {
+	float: left;
+	font-family: Arial;
+	font-size: 12px;
+	background-color: #f0f0f0;
+	box-shadow: 5px 5px 10px #999;
+}
+
+.constellio .v-context-menu .v-context-menu-item-basic, .constellio .v-context-menu .v-context-menu-item-basic-submenu {
+	float: left;
+	clear: left;
+	height: 26px;
+	color: #222;
+	cursor: pointer;
+	background-color: #f0f0f0;
+}
+
+.constellio .v-context-menu .v-context-menu-item-basic.v-context-menu-item-separator, .constellio .v-context-menu .v-context-menu-item-basic-submenu.v-context-menu-item-separator {
+	border-bottom: 1px solid #d0d0d0;
+}
+
+.constellio .v-context-menu .v-context-menu-item-basic-submenu {
+	background: transparent url(../../../VAADIN/themes/contextmenu/img/basic/arrow.png) no-repeat center right;
+}
+
+.constellio .v-context-menu .v-context-menu-item-basic:focus, .constellio .v-context-menu .v-context-menu-item-basic-submenu:focus, .constellio .v-context-menu .v-context-menu-item-basic-open {
+	background-color: #e0e0e0;
+	outline: none;
+}
+
+.constellio .v-context-menu .v-context-menu-item-basic.v-context-menu-item-disabled {
+	opacity: 0.3;
+	filter: alpha(opacity = 30);
+	zoom: 1;
+}
+
+.constellio .v-context-menu .v-context-menu-item-basic.v-context-menu-item-disabled:hover, .constellio .v-context-menu .v-context-menu-item-basic-submenu.v-context-menu-item-disabled:hover {
+	background-color: #f0f0f0;
+}
+
+.constellio .v-context-menu .v-context-menu-item-basic-icon-container {
+	float: left;
+	width: 26px;
+	height: 26px;
+	margin-right: 5px;
+	border-right: 1px solid #d0d0d0;
+	text-align: center;
+}
+
+.constellio .v-context-menu .v-context-menu-item-basic-icon-container .v-icon {
+	float: left;
+	width: 16px;
+	height: 16px;
+	padding: 5px;
+}
+
+.constellio .v-context-menu .v-context-menu-item-basic-text {
+	float: left;
+	height: 26px;
+	line-height: 26px;
+	padding: 0 20px 0 10px;
+}
+
 .constellio.v-app, .constellio.v-app-loading {
 	font: 300 16px/1.55 "JF Flat", "Open Sans", sans-serif, FontAwesome;
 	color: #464646;
@@ -11899,11 +11962,11 @@ div.v-layout.v-horizontal.v-widget {
 	padding-right: 10px;
 	position: relative;
 	top: 90px;
-	z-index: 20000;
+	z-index: 19999;
 }
 
 .constellio .task-management-view .v-tabsheet-tabitem .v-caption {
-	z-index: 20001;
+	z-index: 20000;
 }
 
 .constellio .task-table-layout .v-slot-task-table-controls {
@@ -15130,6 +15193,11 @@ div.v-layout.v-horizontal.v-widget {
 	direction: rtl;
 }
 
+.constellio .right-to-left .user-display .user-display-name {
+	padding-left: inherit;
+	padding-right: 4px;
+}
+
 .constellio .right-to-left .v-table .v-table-body .v-button {
 	direction: rtl;
 }
@@ -15150,6 +15218,10 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .right-to-left .v-table-cell-content-file-icon-folder.v-table-cell-content-file-icon .v-table-cell-wrapper {
 	right: 30px;
+}
+
+.constellio .right-to-left .v-slot-v-filterselect-suggestmenu .v-has-caption {
+	direction: rtl;
 }
 
 .constellio .right-to-left .v-filterselect-button {
@@ -15235,6 +15307,43 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .right-to-left .icon-only {
 	text-align: center;
+}
+
+.constellio .right-to-left .task-management-view .v-slot-task-action-buttons {
+	float: left;
+	padding-left: 10px;
+	direction: rtl;
+}
+
+.constellio .right-to-left .task-table-layout .task-table .task-details .v-slot-task-details-add-comment-button {
+	position: relative;
+	float: left;
+	top: 60px;
+}
+
+.constellio .right-to-left .task-table-layout .task-table .task-details .task-details-add-comment-button .v-button-caption {
+	margin-right: 7px;
+}
+
+.constellio .right-to-left .task-table-layout .task-table [class*="-row"].v-selected {
+	outline: 1px solid #197de1;
+	outline-offset: -1px;
+	background-color: inherit;
+	background-image: inherit;
+	background-origin: inherit;
+	text-shadow: inherit;
+	color: inherit;
+}
+
+.constellio .right-to-left .task-table-layout .clickable-row .v-table-body tr, .constellio .right-to-left .task-table-layout .clickable-row .v-table-body .reference-display {
+	cursor: default;
+}
+
+.constellio .right-to-left .task-table-layout .clickable-row .v-table-body:hover {
+	border-color: #197de1;
+	color: red;
+	background-color: white;
+	text-decoration: none;
 }
 
 .constellio .right-to-left .content-footer-wrapper {
