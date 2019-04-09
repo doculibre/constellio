@@ -14,30 +14,15 @@ import static com.constellio.model.entities.records.wrappers.RecordWrapper.TITLE
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.constellio.app.api.extensions.params.UpdateComponentExtensionParams;
-import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
-import com.constellio.app.modules.rm.navigation.RMViews;
-import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.ui.components.content.ConstellioAgentClickHandler;
-import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.tasks.TasksPermissionsTo;
-import com.constellio.app.modules.tasks.data.trees.TaskFoldersTreeNodesDataProvider;
 import com.constellio.app.modules.tasks.extensions.TaskManagementPresenterExtension;
 import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflow;
 import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflowInstance;
@@ -48,37 +33,26 @@ import com.constellio.app.modules.tasks.services.TaskPresenterServices;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.modules.tasks.services.TasksSearchServices;
 import com.constellio.app.modules.tasks.ui.builders.TaskToVOBuilder;
-import com.constellio.app.modules.tasks.ui.components.TaskTable.TaskPresenter;
 import com.constellio.app.modules.tasks.ui.components.WorkflowTable.WorkflowPresenter;
 import com.constellio.app.modules.tasks.ui.entities.TaskVO;
 import com.constellio.app.ui.application.ConstellioUI;
-import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
-import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.buttons.report.ReportGeneratorButton;
-import com.constellio.app.ui.framework.data.BaseRecordTreeDataProvider;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.BaseView;
-import com.constellio.app.ui.pages.base.SessionContext;
-import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.services.configs.SystemConfigurationsManager;
-import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
-import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
 import com.constellio.model.services.records.RecordUtils;
-import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.FunctionLogicalSearchQuerySort;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -86,10 +60,7 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQueryOper
 import com.constellio.model.services.search.query.logical.LogicalSearchQuerySort;
 import com.vaadin.ui.Component;
 
-public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManagementView>
-		implements TaskPresenter, WorkflowPresenter {
-
-	private static Logger LOGGER = LoggerFactory.getLogger(TaskManagementPresenter.class);
+public class TaskManagementPresenter extends AbstractTaskPresenter<TaskManagementView> implements WorkflowPresenter {
 
 	private TasksSchemasRecordsServices tasksSchemasRecordsServices;
 	private transient TasksSearchServices tasksSearchServices;
@@ -557,120 +528,6 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 
 	public User getCurrentUser() {
 		return super.getCurrentUser();
-	}
-	
-	@Override
-	public BaseRecordTreeDataProvider getTaskFoldersTreeDataProvider(RecordVO taskVO) {
-		SessionContext sessionContext = view.getSessionContext();
-		TaskFoldersTreeNodesDataProvider taskFoldersDataProvider = new TaskFoldersTreeNodesDataProvider(taskVO.getRecord(), appLayerFactory, sessionContext);
-		return new BaseRecordTreeDataProvider(taskFoldersDataProvider);
-	}
-	
-	@Override
-	public boolean taskFolderOrDocumentClicked(RecordVO taskVO, String id) {
-		boolean navigating = false;
-		if (id != null && !id.startsWith("dummy")) {
-			try {
-				RecordServices recordServices = modelLayerFactory.newRecordServices();
-				
-				Record record = recordServices.getDocumentById(id);
-				String collection = record.getCollection();
-				MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
-				String schemaCode = record.getSchemaCode();
-				String schemaTypeCode = SchemaUtils.getSchemaTypeCode(schemaCode);
-				if (Folder.SCHEMA_TYPE.equals(schemaTypeCode)) {
-					view.navigate().to(RMViews.class).displayFolder(id);
-					navigating = true;
-				} else if (Document.SCHEMA_TYPE.equals(schemaTypeCode)) {
-					SessionContext sessionContext = view.getSessionContext();
-					RecordVO documentVO = new RecordToVOBuilder().build(record, VIEW_MODE.DISPLAY, sessionContext);
-					ContentVersionVO contentVersionVO = documentVO.get(Document.CONTENT);
-					if (contentVersionVO == null) {
-						view.navigate().to(RMViews.class).displayDocument(id);
-						navigating = true;
-					}
-					String agentURL = ConstellioAgentUtils.getAgentURL(documentVO, contentVersionVO);
-					if (agentURL != null) {
-						//			view.openAgentURL(agentURL);
-						new ConstellioAgentClickHandler().handleClick(agentURL, documentVO, contentVersionVO, new HashMap<String, String>());
-						navigating = false;
-					} else {
-						view.navigate().to(RMViews.class).displayDocument(id);
-						navigating = true;
-					}
-				} else if (ContainerRecord.SCHEMA_TYPE.equals(schemaTypeCode)) {
-					view.navigate().to(RMViews.class).displayContainer(id);
-					navigating = true;
-				} else if (ConstellioAgentUtils.isAgentSupported()) {
-					String smbMetadataCode;
-					if (ConnectorSmbDocument.SCHEMA_TYPE.equals(schemaTypeCode)) {
-						smbMetadataCode = ConnectorSmbDocument.URL;
-						//					} else if (ConnectorSmbFolder.SCHEMA_TYPE.equals(schemaTypeCode)) {
-						//						smbMetadataCode = ConnectorSmbFolder.URL;
-					} else {
-						smbMetadataCode = null;
-					}
-					if (smbMetadataCode != null) {
-						SystemConfigurationsManager systemConfigurationsManager = modelLayerFactory
-								.getSystemConfigurationsManager();
-						RMConfigs rmConfigs = new RMConfigs(systemConfigurationsManager);
-						if (rmConfigs.isAgentEnabled()) {
-							RecordVO recordVO = new RecordToVOBuilder().build(record, VIEW_MODE.DISPLAY, view.getSessionContext());
-							MetadataVO smbPathMetadata = recordVO.getMetadata(schemaTypeCode + "_default_" + smbMetadataCode);
-							String agentSmbPath = ConstellioAgentUtils.getAgentSmbURL(recordVO, smbPathMetadata);
-							view.openURL(agentSmbPath);
-						} else {
-							Metadata smbUrlMetadata = types.getMetadata(schemaTypeCode + "_default_" + smbMetadataCode);
-							String smbPath = record.get(smbUrlMetadata);
-							String path = smbPath;
-							if (StringUtils.startsWith(path, "smb://")) {
-								path = "file://" + StringUtils.removeStart(path, "smb://");
-							}
-							view.openURL(path);
-						}
-						navigating = true;
-					}
-				}
-			} catch (NoSuchRecordWithId e) {
-				view.showErrorMessage($("TaskTable.noSuchRecord"));
-				LOGGER.warn("Error while clicking on record id " + id, e);
-				navigating = false;
-			}
-		}
-		return navigating;
-	}
-	
-	@Override
-	public boolean taskCommentAdded(RecordVO taskVO, Comment newComment) {
-		boolean added;
-		SessionContext sessionContext = view.getSessionContext();
-		RecordServices recordServices = modelLayerFactory.newRecordServices();
-		String collection = sessionContext.getCurrentCollection();
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
-		User currentUser = rm.getUser(sessionContext.getCurrentUser().getId());
-		
-		newComment.setDateTime(new LocalDateTime());
-		newComment.setUser(currentUser);
-		
-		Task task = rm.getRMTask(taskVO.getId());
-		List<Comment> newComments = new ArrayList<>(task.getComments());
-		newComments.add(newComment);
-		task.setComments(newComments);
-		try {
-			recordServices.update(task.getWrappedRecord());
-			added = true;
-		} catch (RecordServicesException e) {
-			added = false;
-			LOGGER.error("Error while adding a comment", e);
-			view.showErrorMessage(e.getMessage());
-		}
-		return added;
-	}
-
-	@Override
-	public RecordVO getDocumentVO(String linkedDocumentId) {
-		Record record = getRecord(linkedDocumentId);
-		return new RecordToVOBuilder().build(record, VIEW_MODE.DISPLAY, view.getSessionContext());
 	}
 	
 }

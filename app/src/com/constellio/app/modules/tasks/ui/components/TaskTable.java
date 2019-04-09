@@ -29,7 +29,6 @@ import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
-import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.DisplayButton;
@@ -56,6 +55,7 @@ import com.constellio.app.ui.framework.components.user.UserDisplay;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.BaseRecordTreeDataProvider;
+import com.constellio.app.ui.framework.data.LazyTreeDataProvider;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseView;
@@ -446,6 +446,8 @@ public class TaskTable extends VerticalLayout {
 		
 		private VerticalLayout expandLayout;
 		
+		private String dropFolderId;
+		
 		private TaskDetailsComponent(Object itemId, final RecordVO taskVO, boolean expanded) {
 			this.expanded = expanded;
 			setSizeFull();
@@ -551,8 +553,8 @@ public class TaskTable extends VerticalLayout {
 			}
 			
 			if (!linkedFolderIds.isEmpty()) {
-				BaseRecordTreeDataProvider taskFoldersTreeDataProvider = presenter.getTaskFoldersTreeDataProvider(taskVO); 
-				RecordLazyTree taskFoldersTree = new RecordLazyTree(taskFoldersTreeDataProvider);
+				final LazyTreeDataProvider<String> taskFoldersTreeDataProvider = presenter.getTaskFoldersTreeDataProvider(taskVO); 
+				final RecordLazyTree taskFoldersTree = new RecordLazyTree(taskFoldersTreeDataProvider);
 				taskFoldersTree.addItemClickListener(new TreeItemClickListener() {
 					boolean clickNavigating;
 
@@ -573,6 +575,7 @@ public class TaskTable extends VerticalLayout {
 				});
 				taskFoldersTree.setCaption(taskVO.getMetadata(Task.LINKED_FOLDERS).getLabel());
 				taskFoldersTree.addStyleName("task-details-linked-folders");
+				
 				expandLayout.addComponent(taskFoldersTree);
 			}
 			
@@ -686,14 +689,6 @@ public class TaskTable extends VerticalLayout {
 	public interface TaskPresenter {
 		boolean isSubTaskPresentAndHaveCertainStatus(RecordVO recordVO);
 
-		RecordVO getDocumentVO(String linkedDocumentId);
-
-		boolean taskCommentAdded(RecordVO taskVO, Comment newComment);
-
-		boolean taskFolderOrDocumentClicked(RecordVO taskVO, String recordId);
-
-		BaseRecordTreeDataProvider getTaskFoldersTreeDataProvider(RecordVO taskVO);
-
 		void displayButtonClicked(RecordVO record);
 
 		void editButtonClicked(RecordVO record);
@@ -741,6 +736,16 @@ public class TaskTable extends VerticalLayout {
 		Task getTask(RecordVO recordVO);
 
 		void callAssignationExtension();
+
+		RecordVO getDocumentVO(String linkedDocumentId);
+
+		boolean taskCommentAdded(RecordVO taskVO, Comment newComment);
+
+		boolean taskFolderOrDocumentClicked(RecordVO taskVO, String recordId);
+
+		BaseRecordTreeDataProvider getTaskFoldersTreeDataProvider(RecordVO taskVO);
+		
+		void contentVersionUploaded(ContentVersionVO uploadedContentVO, String folderId, LazyTreeDataProvider<String> treeDataProvider);
 	}
 
 	public class TaskStyleGenerator implements CellStyleGenerator {
