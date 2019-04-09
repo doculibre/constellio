@@ -872,8 +872,10 @@ public class TaxonomiesSearchServicesBasedOnHierarchyTokensImpl implements Taxon
 
 		ModelLayerCollectionExtensions collectionExtensions = extensions.forCollectionOf(usingTaxonomy);
 		Metadata[] sortMetadatas = collectionExtensions.getSortMetadatas(taxonomy);
-		for (Metadata sortMetadata : sortMetadatas) {
-			query.sortAsc(sortMetadata);
+		if (sortMetadatas != null) {
+			for (Metadata sortMetadata : sortMetadatas) {
+				query.sortAsc(sortMetadata);
+			}
 		}
 
 		HasChildrenQueryHandler hasChildrenQueryHandler = newHasChildrenQueryHandler(user, cacheMode, query);
@@ -958,8 +960,10 @@ public class TaxonomiesSearchServicesBasedOnHierarchyTokensImpl implements Taxon
 
 			ModelLayerCollectionExtensions collectionExtensions = extensions.forCollectionOf(ctx.taxonomy);
 			Metadata[] sortMetadatas = collectionExtensions.getSortMetadatas(ctx.taxonomy);
-			for (Metadata sortMetadata : sortMetadatas) {
-				mainQuery.sortAsc(sortMetadata);
+			if (sortMetadatas != null) {
+				for (Metadata sortMetadata : sortMetadatas) {
+					mainQuery.sortAsc(sortMetadata);
+				}
 			}
 
 			List<TaxonomySearchRecord> visibleRecords = new ArrayList<>();

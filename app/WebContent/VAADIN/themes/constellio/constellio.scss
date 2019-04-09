@@ -158,6 +158,31 @@ $popup-view-z-index: 3;
 
     // Insert your own theme rules here
 
+    .v-treetable {
+    	.v-table-cell-wrapper {
+    		cursor: pointer;
+
+	    	.v-icon {
+	    		padding-right: 6px;
+	    	}
+
+	    	.v-horizontallayout {
+	    		.v-slot {
+	    			line-height: 0px;
+
+	    			.v-label {
+	    				line-height: initial;
+	    			}
+	    		}
+	    	}
+    	}
+
+    	.v-table-cell-wrapper:hover {
+    		color: white;
+			background-color: #197de1;
+    	}
+    }
+
     .v-table-cell-content-file-icon-box {
 		background-image: url('images/icons/container/box.png');
 		background-repeat: no-repeat;
@@ -761,6 +786,12 @@ $popup-view-z-index: 3;
 		color: red;
 	}
 
+	.lookup-window-content {
+		.lookup-information-icon {
+    		cursor: pointer;
+		}
+	}
+
     .lookup-window-content, .document-window-content {
     	padding-top: 10px;
     	padding-left: 10px;
@@ -771,7 +802,10 @@ $popup-view-z-index: 3;
     		}
     	}
     }
-
+   .panel-no-scroll {
+   		overflow-x: hidden;
+   		overflow-y: hidden;
+   	}
     .viewable-record-window {
    		width: 100%;
 
@@ -1618,10 +1652,17 @@ $popup-view-z-index: 3;
 			line-height: 100%;
 		}
 	}
-
+	.fixed-content-viewer {
+		position: fixed;
+		width: calc(100% - 500px);
+	}
 	.collapsible-horizontal-splitpanel {
 		padding-bottom: 2px;
-
+		.v-panel {
+			.v-scrollable {
+				overflow: auto;
+			}
+		}
 		.v-splitpanel-hsplitter-collapsible-horizontal-splitpanel {
 			width: 10px;
 
@@ -1667,8 +1708,7 @@ $popup-view-z-index: 3;
 		}
 
 	    .viewable-record-table-panel {
-	    	min-height: 2000px;
-
+	  min-height: 2000px;
 	  		.close-button-viewer-metadata-layout {
 			    position: absolute;
 	  		}
@@ -2243,6 +2283,7 @@ $popup-view-z-index: 3;
 						}
 
 					    .action-menu-bar {
+					    	z-index: 2000;
 					    	position: absolute;
 					    	top: -40px;
 					    	right: 30px;
@@ -3023,6 +3064,7 @@ $popup-view-z-index: 3;
 			}
 
 		    .action-menu-bar {
+		    	z-index: 2000;
 		    	position: absolute;
 		    	top: -40px;
 		    	right: 30px;

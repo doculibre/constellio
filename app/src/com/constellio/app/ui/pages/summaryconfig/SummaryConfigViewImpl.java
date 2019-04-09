@@ -107,7 +107,7 @@ public class SummaryConfigViewImpl extends BaseViewImpl implements SummaryConfig
 					removeMetadataFromPossibleSelection();
 				}
 
-				MetadataVO metadataVO = metadataLookupField.getValue();
+				MetadataVO metadataVO = (MetadataVO) metadataLookupField.getValue();
 
 				if (metadataVO != null && metadataVO.getType() == MetadataValueType.REFERENCE) {
 					referenceMetadataDisplayComboBox.setRequired(true);

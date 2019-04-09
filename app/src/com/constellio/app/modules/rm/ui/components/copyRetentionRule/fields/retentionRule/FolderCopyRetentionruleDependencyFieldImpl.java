@@ -11,7 +11,7 @@ public class FolderCopyRetentionruleDependencyFieldImpl extends LookupRecordFiel
 
 	@Override
 	public String getFieldValue() {
-		return super.getValue();
+		return (String) super.getValue();
 	}
 
 	@Override

@@ -1,5 +1,18 @@
 package com.constellio.app.modules.rm.navigation;
 
+import static com.constellio.app.ui.framework.components.ComponentState.enabledIf;
+import static com.constellio.app.ui.framework.components.ComponentState.visibleIf;
+
+import java.io.Serializable;
+import java.util.List;
+
+import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedListener.TableListener;
+import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedListener.TreeListener;
+import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableFooterEvent;
+import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableHeaderEvent;
+import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableRowEvent;
+import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTreeItemEvent;
+
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.entities.navigation.PageItem;
@@ -269,6 +282,21 @@ public class RMNavigationConfiguration implements Serializable {
 					public void onContextMenuOpenFromTreeItem(ContextMenuOpenedOnTreeItemEvent event) {
 						String recordId = (String) event.getItemId();
 						menu.openFor(recordId);
+					}
+				});
+				menu.addContextMenuTableListener(new TableListener() {
+					@Override
+					public void onContextMenuOpenFromRow(ContextMenuOpenedOnTableRowEvent event) {
+						String recordId = (String) event.getItemId();
+						menu.openFor(recordId);
+					}
+
+					@Override
+					public void onContextMenuOpenFromHeader(ContextMenuOpenedOnTableHeaderEvent event) {
+					}
+
+					@Override
+					public void onContextMenuOpenFromFooter(ContextMenuOpenedOnTableFooterEvent event) {
 					}
 				});
 				return menu;

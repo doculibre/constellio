@@ -1,6 +1,7 @@
 package com.constellio.app.api.extensions;
 
 import com.constellio.app.api.extensions.params.RecordFieldFactoryExtensionParams;
+import com.constellio.app.api.extensions.params.RecordFieldFactoryPostBuildExtensionParams;
 import com.constellio.app.ui.framework.components.MetadataFieldFactory;
 import com.constellio.app.ui.framework.components.RecordFieldFactory;
 
@@ -12,6 +13,9 @@ public class RecordFieldFactoryExtension {
 			metadataFieldFactory = new MetadataFieldFactory();
 		}
 		return new RecordFieldFactory(metadataFieldFactory);
+	}
+	
+	public void postBuild(RecordFieldFactoryPostBuildExtensionParams params) {
 	}
 
 }

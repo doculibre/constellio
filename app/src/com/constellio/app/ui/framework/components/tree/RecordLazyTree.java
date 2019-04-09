@@ -1,9 +1,14 @@
 package com.constellio.app.ui.framework.components.tree;
 
 import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.entities.MetadataVO;
+import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.converters.RecordIdToCaptionConverter;
+import com.constellio.app.ui.framework.components.table.TablePropertyCache.CellKey;
 import com.constellio.app.ui.framework.data.LazyTreeDataProvider;
 import com.constellio.app.ui.framework.data.RecordLazyTreeDataProvider;
+import com.constellio.app.ui.framework.items.RecordVOItem;
+import com.vaadin.data.Item;
 import com.vaadin.server.Resource;
 
 public class RecordLazyTree extends LazyTree<String> {
@@ -48,6 +53,32 @@ public class RecordLazyTree extends LazyTree<String> {
 	@Override
 	public Class<String> getType() {
 		return String.class;
+	}
+
+	@Override
+	protected CellKey getCellKey(Object itemId, Object propertyId) {
+		RecordVO recordVO;
+		Item item = getNestedTreeTable().getItem(itemId);
+		if (item instanceof RecordVOItem) {
+			RecordVOItem recordVOItem = (RecordVOItem) item;
+			recordVO = recordVOItem.getRecord();
+		} else {
+			recordVO = null;
+		}
+
+		CellKey cellKey;
+		if (recordVO != null) {
+			String recordId = recordVO.getId();
+			if (propertyId instanceof MetadataVO) {
+				MetadataVO metadataVO = (MetadataVO) propertyId;
+				cellKey = new CellKey(recordId, metadataVO.getCode());
+			} else {
+				cellKey = new CellKey(recordId, propertyId);
+			}
+		} else {
+			cellKey = null;
+		}
+		return cellKey;
 	}
 
 }

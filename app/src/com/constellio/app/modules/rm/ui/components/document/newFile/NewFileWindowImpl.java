@@ -79,7 +79,7 @@ public class NewFileWindowImpl extends BaseWindow implements NewFileWindow {
 		documentTypeField.addValueChangeListener(new ValueChangeListener() {
 			@Override
 			public void valueChange(ValueChangeEvent event) {
-				presenter.documentTypeIdSet(documentTypeField.getValue());
+				presenter.documentTypeIdSet((String) documentTypeField.getValue());
 			}
 		});
 

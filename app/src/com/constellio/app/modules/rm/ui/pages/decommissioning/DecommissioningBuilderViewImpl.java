@@ -202,7 +202,7 @@ public class DecommissioningBuilderViewImpl extends SearchViewImpl<Decommissioni
 			@Override
 			public void valueChange(ValueChangeEvent event) {
 				searchButton.setEnabled(adminUnit.getValue() != null);
-				presenter.administrativeUnitSelected(adminUnit.getValue());
+				presenter.administrativeUnitSelected((String) adminUnit.getValue());
 				presenter.saveTemporarySearch(false);
 			}
 		});

@@ -108,8 +108,10 @@ public class ConceptNodesTaxonomySearchServices {
 
 		ModelLayerCollectionExtensions collectionExtensions = extensions.forCollection(collection);
 		Metadata[] sortMetadatas = collectionExtensions.getSortMetadatas(taxonomy);
-		for (Metadata sortMetadata : sortMetadatas) {
-			query.sortAsc(sortMetadata);
+		if (sortMetadatas != null) {
+			for (Metadata sortMetadata : sortMetadatas) {
+				query.sortAsc(sortMetadata);
+			}
 		}
 
 		query.setName("TaxonomiesSearchServices.getRootConcepts(" + taxonomyCode + ")");
@@ -191,8 +193,10 @@ public class ConceptNodesTaxonomySearchServices {
 
 		ModelLayerCollectionExtensions collectionExtensions = extensions.forCollectionOf(record);
 		Metadata[] sortMetadatas = collectionExtensions.getSortMetadatas(taxonomy);
-		for (Metadata sortMetadata : sortMetadatas) {
-			query.sortAsc(sortMetadata);
+		if (sortMetadatas != null) {
+			for (Metadata sortMetadata : sortMetadatas) {
+				query.sortAsc(sortMetadata);
+			}
 		}
 		return query;
 	}

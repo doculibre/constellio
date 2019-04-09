@@ -76,7 +76,8 @@ public class ImageViewer extends CustomComponent {
 			if (recordVO != null) {
 				String version = contentVersionVO.getVersion();
 				String filename = contentVersionVO.getFileName();
-				if (Arrays.asList(NEED_CONVERSION_EXTENSIONS).contains(recordVO.getExtension())) {
+				if (Arrays.asList(NEED_CONVERSION_EXTENSIONS).contains(recordVO.getExtension()) ||
+					ConstellioResourceHandler.isContentOversized(recordVO.getId(), metadataCode, version)) {
 					if (ConstellioResourceHandler.hasContentJpegConversion(recordVO.getId(), metadataCode, version)) {
 						contentResource = ConstellioResourceHandler.createConvertedResource(recordVO.getId(), metadataCode, version, filename);
 					} else {
@@ -122,9 +123,14 @@ public class ImageViewer extends CustomComponent {
 				js.append("\n");
 				js.append("    var iv1 = $('#" + divId + "').iviewer({");
 				js.append("\n");
-				js.append("        src: '" + contentURL + "'");
+				js.append("        src: '" + contentURL + "',");
+				js.append("\n");
+				js.append("        zoom_min: '1'");
 				js.append("\n");
 				js.append("    });");
+				js.append("\n");
+				js.append("    $('#" + divId + "').bind('ivieweronfinishload', function(ev, src) { $('#" + divId + ">img').css('top', '0'); });");
+				// $('#viewer').bind('ivieweronfinishload', function(ev, src) { /* handle this */ })
 				js.append("\n");
 				js.append("});");
 				js.append("\n");

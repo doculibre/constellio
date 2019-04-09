@@ -5,6 +5,7 @@ import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.pages.base.VaadinSessionContext;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.data.utils.ImageUtils;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
@@ -244,6 +245,18 @@ public class ConstellioResourceHandler implements RequestHandler {
 			String hash = contentVersion.getHash();
 			return ConstellioFactories.getInstance().getModelLayerFactory().getContentManager()
 					.hasContentJpegConversion(hash);
+		}
+		return false;
+	}
+
+	public static boolean isContentOversized(String recordId, String metadataCode, String version) {
+		Content content = getContent(recordId, metadataCode);
+		if (content != null) {
+			ContentVersion contentVersion = content.getVersion(version);
+			String hash = contentVersion.getHash();
+			File file = ConstellioFactories.getInstance().getModelLayerFactory().getContentManager()
+					.getContentDao().getFileOf(hash);
+			return ImageUtils.isImageOversized(file);
 		}
 		return false;
 	}

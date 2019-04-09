@@ -11990,6 +11990,27 @@ div.v-layout.v-horizontal.v-widget {
 	overflow: hidden !important;
 }
 
+.constellio .v-treetable .v-table-cell-wrapper {
+	cursor: pointer;
+}
+
+.constellio .v-treetable .v-table-cell-wrapper .v-icon {
+	padding-right: 6px;
+}
+
+.constellio .v-treetable .v-table-cell-wrapper .v-horizontallayout .v-slot {
+	line-height: 0px;
+}
+
+.constellio .v-treetable .v-table-cell-wrapper .v-horizontallayout .v-slot .v-label {
+	line-height: initial;
+}
+
+.constellio .v-treetable .v-table-cell-wrapper:hover {
+	color: white;
+	background-color: #197de1;
+}
+
 .constellio .v-table-cell-content-file-icon-box {
 	background-image: url('images/icons/container/box.png');
 	background-repeat: no-repeat;
@@ -13558,6 +13579,10 @@ div.v-layout.v-horizontal.v-widget {
 	color: red;
 }
 
+.constellio .lookup-window-content .lookup-information-icon {
+	cursor: pointer;
+}
+
 .constellio .lookup-window-content, .constellio .document-window-content {
 	padding-top: 10px;
 	padding-left: 10px;
@@ -13565,6 +13590,11 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .lookup-window-content .v-panel .v-panel-content, .constellio .document-window-content .v-panel .v-panel-content {
 	overflow-y: auto;
+}
+
+.constellio .panel-no-scroll {
+	overflow-x: hidden;
+	overflow-y: hidden;
 }
 
 .constellio .viewable-record-window {
@@ -14291,8 +14321,17 @@ div.v-layout.v-horizontal.v-widget {
 	line-height: 100%;
 }
 
+.constellio .fixed-content-viewer {
+	position: fixed;
+	width: calc(100% - 500px);
+}
+
 .constellio .collapsible-horizontal-splitpanel {
 	padding-bottom: 2px;
+}
+
+.constellio .collapsible-horizontal-splitpanel .v-panel .v-scrollable {
+	overflow: auto;
 }
 
 .constellio .collapsible-horizontal-splitpanel .v-splitpanel-hsplitter-collapsible-horizontal-splitpanel {
@@ -14833,6 +14872,7 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .action-menu-bar {
+	z-index: 2000;
 	position: absolute;
 	top: -40px;
 	right: 30px;
@@ -15561,6 +15601,7 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .right-to-left .popupContent .action-menu-bar {
+	z-index: 2000;
 	position: absolute;
 	top: -40px;
 	right: 30px;

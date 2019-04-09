@@ -1,5 +1,16 @@
 package com.constellio.app.ui.framework.components.fields.list;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Locale;
+
+import org.vaadin.dialogs.ConfirmDialog;
+
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
@@ -30,15 +41,6 @@ import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.ColumnHeaderMode;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
-import org.vaadin.dialogs.ConfirmDialog;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Locale;
-
-import static com.constellio.app.ui.i18n.i18n.$;
 
 public abstract class ListAddRemoveField<T extends Serializable, F extends AbstractField<?>> extends CustomField<List<T>> {
 	public static final String STYLE_NAME = "list-add-remove";
@@ -186,9 +188,13 @@ public abstract class ListAddRemoveField<T extends Serializable, F extends Abstr
 		removeStyleName(ERROR_STYLE_NAME);
 	}
 
+	@SuppressWarnings("unchecked")
 	protected void addValue(T value) {
 		if (value != null) {
-			valuesAndButtonsContainer.addItem(value);
+			List<T> listValue = value instanceof List ? (List<T>) value : new ArrayList<>(Arrays.asList(value));
+			for (T listValueItem : listValue) {
+				valuesAndButtonsContainer.addItem(listValueItem);
+			}
 			addEditField.setValue(null);
 			notifyValueChange();
 		}

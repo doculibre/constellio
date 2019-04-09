@@ -7,10 +7,11 @@ dependencies {
     compile "org.libreoffice:jurt:5.2.0"
     compile "org.libreoffice:ridl:5.2.0"
     compile "org.libreoffice:unoil:5.2.0"
-    
-	compile files("../libs/jodconverter-core-4.0.0-201709.jar")
-	compile files("../libs/jodconverter-local-4.0.0-201709.jar")
-	compile files("../libs/jodconverter-online-4.0.0-201709.jar")
+
+    compile files("../libs/jodconverter-core-4.0.0-201709.jar")
+    compile files("../libs/jodconverter-local-4.0.0-201709.jar")
+    compile files("../libs/jodconverter-online-4.0.0-201709.jar")
+    compile "org.imgscalr:imgscalr-lib:4.2"
 }
 
 sourceSets {
@@ -35,9 +36,9 @@ jar {
 //create a single Jar with all dependencies
 task uberJar(type: Jar) {
     zip64 true
-	manifest {
+    manifest {
         attributes 'Implementation-Title': 'Constellio Data With Dependencies',
-        	'Implementation-Version': '1'
+                'Implementation-Version': '1'
     }
     baseName = project.name + '-all'
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }

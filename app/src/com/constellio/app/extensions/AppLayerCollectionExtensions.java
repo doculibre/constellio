@@ -1,5 +1,16 @@
 package com.constellio.app.extensions;
 
+import static com.constellio.app.api.extensions.GenericRecordPageExtension.OTHERS_TAB;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+
 import com.constellio.app.api.extensions.BatchProcessingExtension;
 import com.constellio.app.api.extensions.BatchProcessingExtension.AddCustomLabelsParams;
 import com.constellio.app.api.extensions.BatchProcessingExtension.IsMetadataDisplayedWhenModifiedParams;
@@ -16,6 +27,7 @@ import com.constellio.app.api.extensions.RecordDisplayFactoryExtension;
 import com.constellio.app.api.extensions.RecordExportExtension;
 import com.constellio.app.api.extensions.RecordFieldFactoryExtension;
 import com.constellio.app.api.extensions.SIPExtension;
+import com.constellio.app.api.extensions.RecordTextInputDataProviderExtension;
 import com.constellio.app.api.extensions.SchemaTypesPageExtension;
 import com.constellio.app.api.extensions.SearchCriterionExtension;
 import com.constellio.app.api.extensions.SearchPageExtension;
@@ -41,6 +53,8 @@ import com.constellio.app.api.extensions.params.ListSchemaExtraCommandReturnPara
 import com.constellio.app.api.extensions.params.OnWriteRecordParams;
 import com.constellio.app.api.extensions.params.PagesComponentsExtensionParams;
 import com.constellio.app.api.extensions.params.RecordFieldFactoryExtensionParams;
+import com.constellio.app.api.extensions.params.RecordFieldFactoryPostBuildExtensionParams;
+import com.constellio.app.api.extensions.params.RecordTextInputDataProviderSortMetadatasParam;
 import com.constellio.app.api.extensions.params.RecordFieldsExtensionParams;
 import com.constellio.app.api.extensions.params.SearchPageConditionParam;
 import com.constellio.app.api.extensions.params.TryRepairAutomaticValueParams;
@@ -107,17 +121,6 @@ import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Field;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-
-import static com.constellio.app.api.extensions.GenericRecordPageExtension.OTHERS_TAB;
-
 public class AppLayerCollectionExtensions {
 
 	//------------ Extension points -----------
@@ -174,6 +177,7 @@ public class AppLayerCollectionExtensions {
 
 	public VaultBehaviorsList<MetadataFieldExtension> workflowExecutionFieldExtensions = new VaultBehaviorsList<>();
 
+	public VaultBehaviorsList<RecordTextInputDataProviderExtension> recordTextInputDataProviderExtensions = new VaultBehaviorsList<>();
 
 	//Key : schema type code
 	//Values : record's code
@@ -377,6 +381,14 @@ public class AppLayerCollectionExtensions {
 			sortMetadataCode = extension.getSortMetadataCode(taxonomy);
 		}
 		return sortMetadataCode;
+	}
+
+	public Metadata[] getRecordTextInputDataProviderSortMetadatas(RecordTextInputDataProviderSortMetadatasParam param) {
+		Metadata[] sortMetadatas = null;
+		for (RecordTextInputDataProviderExtension extension : recordTextInputDataProviderExtensions) {
+			sortMetadatas = extension.getSearchSortMetadatas(param);
+		}
+		return sortMetadatas;
 	}
 
 	public boolean hasPageAccess(boolean defaultValue, final Class<? extends BasePresenter> presenterClass,
@@ -822,4 +834,10 @@ public class AppLayerCollectionExtensions {
 			}
 		});
 	}
+	public void postRecordFieldFactoryBuild(RecordFieldFactoryPostBuildExtensionParams params) {
+		for (RecordFieldFactoryExtension extension : recordFieldFactoryExtensions) {
+			extension.postBuild(params);
+		}
+	}
+
 }

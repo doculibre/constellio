@@ -112,12 +112,13 @@ public class BaseDisplay extends CustomComponent {
 				layout.addStyleName("base-display-tab-layout");
 				layout.setWidth("100%");
 				layout.setSpacing(true);
+
 				panel = new Panel(layout);
 				panel.addStyleName(ValoTheme.PANEL_BORDERLESS);
 				panel.addStyleName(ValoTheme.PANEL_SCROLL_INDICATOR);
 				panel.addStyleName("base-display-tab-panel");
 				panel.setWidth("100%");
-				panel.setHeight(Page.getCurrent().getBrowserWindowHeight() + "px");
+				panel.setHeight((Page.getCurrent().getBrowserWindowHeight() -250) + "px");
 				tabs.put(tabCaption, panel);
 				addTab(tabSheet, panel, tabCaption, tabIcon);
 			} else {

@@ -1,8 +1,20 @@
 package com.constellio.app.ui.framework.components.fields.lookup;
 
+import static com.constellio.app.services.factories.ConstellioFactories.getInstance;
+import static com.constellio.app.ui.application.ConstellioUI.getCurrentSessionContext;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
+
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.entities.UserVO;
+import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
+import com.constellio.app.ui.framework.components.RecordDisplay;
 import com.constellio.app.ui.framework.components.converters.TaxonomyCodeToCaptionConverter;
 import com.constellio.app.ui.framework.components.converters.TaxonomyRecordIdToContextCaptionConverter;
 import com.constellio.app.ui.framework.components.fields.autocomplete.BaseAutocompleteField;
@@ -16,18 +28,14 @@ import com.constellio.app.ui.framework.data.RecordLookupTreeDataProvider;
 import com.constellio.app.ui.framework.data.RecordTextInputDataProvider;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.Taxonomy;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.users.UserServices;
-import org.apache.commons.lang3.StringUtils;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.constellio.app.services.factories.ConstellioFactories.getInstance;
-import static com.constellio.app.ui.application.ConstellioUI.getCurrentSessionContext;
+import com.vaadin.ui.Component;
 
 public class LookupRecordField extends LookupField<String> {
 
@@ -188,8 +196,36 @@ public class LookupRecordField extends LookupField<String> {
 	}
 
 	@Override
-	protected LazyTree<String> newLazyTree(LookupTreeDataProvider<String> lookupTreeDataProvider, int treeBufferSize) {
-		return new RecordLazyTree(lookupTreeDataProvider, treeBufferSize);
+	protected Component initItemInformationContent(String item) {
+		SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
+		ConstellioFactories constellioFactories = ConstellioUI.getCurrent().getConstellioFactories();
+		RecordServices recordServices = constellioFactories.getModelLayerFactory().newRecordServices();
+		Record record = recordServices.getDocumentById(item);
+		RecordVO recordVO = new RecordToVOBuilder().build(record, VIEW_MODE.DISPLAY, sessionContext);
+		RecordDisplay recordDisplay = new RecordDisplay(recordVO);
+		return recordDisplay;
+	}
+
+	@Override
+	protected LazyTree<String> newLazyTree(final LookupTreeDataProvider<String> lookupTreeDataProvider, int treeBufferSize) {
+		return new RecordLazyTree(lookupTreeDataProvider, treeBufferSize) {
+			@Override
+			protected boolean isSelectable(String object) {
+				return lookupTreeDataProvider.isSelectable(object);
+			}
+
+			@Override
+			protected Component getItemCaptionComponent(String object) {
+				Component itemCaptionComponent;
+				Component superItemCaptionComponent = super.getItemCaptionComponent(object);
+				if (isItemInformation() && isSelectable(object)) {
+					itemCaptionComponent = newItemCaptionAndInfoLayout(object, superItemCaptionComponent);
+				} else {
+					itemCaptionComponent = superItemCaptionComponent;
+				}
+				return itemCaptionComponent;
+			}
+		};
 	}
 
 	@Override

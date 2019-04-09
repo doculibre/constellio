@@ -1,8 +1,13 @@
 package com.constellio.app.extensions;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import com.constellio.app.api.extensions.BaseWindowExtension;
 import com.constellio.app.api.extensions.EmailExtension;
 import com.constellio.app.api.extensions.PagesComponentsExtension;
 import com.constellio.app.api.extensions.UpdateModeExtension;
+import com.constellio.app.api.extensions.params.BaseWindowParams;
 import com.constellio.app.api.extensions.params.DecorateMainComponentAfterInitExtensionParams;
 import com.constellio.app.api.extensions.params.EmailMessageParams;
 import com.constellio.app.api.extensions.params.PagesComponentsExtensionParams;
@@ -12,9 +17,6 @@ import com.constellio.app.extensions.sequence.SystemSequenceExtension;
 import com.constellio.data.frameworks.extensions.VaultBehaviorsList;
 import com.constellio.model.services.emails.EmailServices.EmailMessage;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class AppLayerSystemExtensions {
 
 	public VaultBehaviorsList<PagesComponentsExtension> pagesComponentsExtensions = new VaultBehaviorsList<>();
@@ -22,6 +24,8 @@ public class AppLayerSystemExtensions {
 	public VaultBehaviorsList<SystemSequenceExtension> systemSequenceExtensions = new VaultBehaviorsList<>();
 
 	public VaultBehaviorsList<EmailExtension> emailExtensions = new VaultBehaviorsList<>();
+
+	public VaultBehaviorsList<BaseWindowExtension> windowExtensions = new VaultBehaviorsList<>();
 
 	public List<AvailableSequence> getAvailableSequences() {
 
@@ -76,6 +80,12 @@ public class AppLayerSystemExtensions {
 			}
 		}
 		return emailMessage;
+	}
+	
+	public void decorateWindow(BaseWindowParams params) {
+		for (BaseWindowExtension windowExtension : windowExtensions) {
+			windowExtension.decorateWindow(params);
+		}
 	}
 
 }

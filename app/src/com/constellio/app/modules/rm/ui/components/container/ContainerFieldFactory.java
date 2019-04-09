@@ -46,6 +46,8 @@ public class ContainerFieldFactory extends RMRecordFieldFactory {
 
 		if (field instanceof CustomFolderField) {
 			postBuild(field, recordVO, metadataVO);
+		} else {
+			callPostBuildExtensions(field, recordVO, metadataVO);
 		}
 
 		return field;

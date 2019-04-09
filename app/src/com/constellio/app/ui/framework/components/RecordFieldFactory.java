@@ -1,11 +1,15 @@
 package com.constellio.app.ui.framework.components;
 
+import java.io.Serializable;
+import java.util.Locale;
+
+import com.constellio.app.api.extensions.params.RecordFieldFactoryPostBuildExtensionParams;
+import com.constellio.app.extensions.AppLayerCollectionExtensions;
+import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.vaadin.ui.Field;
-
-import java.io.Serializable;
-import java.util.Locale;
 
 public class RecordFieldFactory implements Serializable {
 
@@ -21,9 +25,12 @@ public class RecordFieldFactory implements Serializable {
 		this.isViewOnly = isViewOnly;
 	}
 
-
 	public RecordFieldFactory(MetadataFieldFactory metadataFieldFactory) {
 		this.metadataFieldFactory = metadataFieldFactory;
+	}
+
+	public MetadataFieldFactory getMetadataFieldFactory() {
+		return metadataFieldFactory;
 	}
 
 	//Do not call as super when overwriting function with Locale
@@ -37,6 +44,15 @@ public class RecordFieldFactory implements Serializable {
 
 	protected void postBuild(Field<?> field, RecordVO recordVO, MetadataVO metadataVO) {
 		metadataFieldFactory.postBuild(field, metadataVO);
+		callPostBuildExtensions(field, recordVO, metadataVO);
+	}
+
+	protected void callPostBuildExtensions(Field<?> field, RecordVO recordVO, MetadataVO metadataVO) {
+		String collection = recordVO.getSchema().getCollection();
+		ConstellioFactories constellioFactories = ConstellioUI.getCurrent().getConstellioFactories();
+		RecordFieldFactoryPostBuildExtensionParams params = new RecordFieldFactoryPostBuildExtensionParams(metadataFieldFactory, field, recordVO, metadataVO);
+		AppLayerCollectionExtensions collectionExtensions = constellioFactories.getAppLayerFactory().getExtensions().forCollection(collection);
+		collectionExtensions.postRecordFieldFactoryBuild(params);
 	}
 
 }

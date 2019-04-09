@@ -44,6 +44,7 @@ import com.vaadin.ui.CustomComponent;
 import com.vaadin.ui.DateField;
 import com.vaadin.ui.Field;
 import com.vaadin.ui.Notification;
+import com.vaadin.ui.Panel;
 import com.vaadin.ui.Notification.Type;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.TabSheet.Tab;
@@ -105,7 +106,7 @@ public abstract class BaseForm<T> extends CustomComponent {
 
 	protected TabSheet tabSheet;
 
-	private Map<String, VerticalLayout> tabs = new LinkedHashMap<>();
+	private Map<String, Panel> tabs = new LinkedHashMap<>();
 
 	private boolean useTabSheet;
 
@@ -303,17 +304,26 @@ public abstract class BaseForm<T> extends CustomComponent {
 			String groupLabel = getTabCaption(field, propertyId);
 			String tabCaption = getTabCaption(groupLabel);
 			Resource tabIcon = getTabIcon(tabCaption);
-			fieldLayout = tabs.get(tabCaption);
-			if (fieldLayout == null) {
+			Panel panel = tabs.get(tabCaption);
+			if (panel == null) {
 				fieldLayout = new VerticalLayout();
+				fieldLayout.addStyleName("base-form-tab-layout");
 				fieldLayout.setWidth("100%");
-				tabs.put(tabCaption, fieldLayout);
 				fieldLayout.setSpacing(true);
+				
+				panel = new Panel(fieldLayout);
+				panel.addStyleName(ValoTheme.PANEL_BORDERLESS);
+				panel.addStyleName("base-form-tab-panel");
+				panel.setWidth("100%");
+				panel.setHeight((Page.getCurrent().getBrowserWindowHeight() - 250) + "px");
+				tabs.put(tabCaption, panel);
 				if (tabIcon != null) {
-					tabSheet.addTab(fieldLayout, tabCaption, tabIcon);
+					tabSheet.addTab(panel, tabCaption, tabIcon);
 				} else {
-					tabSheet.addTab(fieldLayout, tabCaption);
+					tabSheet.addTab(panel, tabCaption);
 				}
+			} else {
+				fieldLayout = (VerticalLayout) panel.getContent();
 			}
 		} else {
 			fieldLayout = formLayout;

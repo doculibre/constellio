@@ -514,7 +514,7 @@ public class DocumentMenuBarImpl extends BaseMenuBar implements DocumentMenuBar 
 	@Override
 	public void displayInWindow() {
 		DisplayDocumentViewImpl view = new DisplayDocumentViewImpl(recordVO, false);
-		
+
 		DocumentViewWindow window =  ComponentTreeUtils.findParent(this, DocumentViewWindow.class);
 		boolean newWindow;
 		if (window == null) {
@@ -531,7 +531,7 @@ public class DocumentMenuBarImpl extends BaseMenuBar implements DocumentMenuBar 
 
 	@Override
 	public void editInWindow() {
-		AddEditDocumentViewImpl view = new AddEditDocumentViewImpl(recordVO);
+		AddEditDocumentViewImpl view = new AddEditDocumentViewImpl(recordVO, true);
 		DocumentViewWindow window =  ComponentTreeUtils.findParent(this, DocumentViewWindow.class);
 		boolean newWindow;
 		if (window == null) {

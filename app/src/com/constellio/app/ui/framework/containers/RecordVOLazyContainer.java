@@ -112,8 +112,7 @@ public class RecordVOLazyContainer extends LazyQueryContainer implements Refresh
 		return dataProviderAndRecordIndex.dataProvider.getRecordVO(recordIndexForDataProvider);
 	}
 
-	public String getLastCallQTime() {
-
+	public double getLastCallQTime() {
 		int total = 0;
 		for (RecordVODataProvider dataProvider : dataProviders) {
 			total += dataProvider.getQTime();
@@ -126,7 +125,7 @@ public class RecordVOLazyContainer extends LazyQueryContainer implements Refresh
 			totalInSeconds = Math.round(total / 10.0) / 100.0;
 		}
 
-		return "" + totalInSeconds;
+		return totalInSeconds;
 	}
 
 	private static class RecordVODataProviderAndRecordIndex implements Serializable {

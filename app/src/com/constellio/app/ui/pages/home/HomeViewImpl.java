@@ -1,5 +1,17 @@
 package com.constellio.app.ui.pages.home;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.vaadin.peter.contextmenu.ContextMenu;
+import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableFooterEvent;
+import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableHeaderEvent;
+import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableRowEvent;
+
 import com.constellio.app.entities.navigation.PageItem;
 import com.constellio.app.entities.navigation.PageItem.CustomItem;
 import com.constellio.app.entities.navigation.PageItem.RecentItemTable;
@@ -331,11 +343,11 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 			menu = contextMenuDecorator.decorate(this, menu);
 		}
 		if (menu != null) {
-			menu.setAsTreeContextMenu(tree.getNestedTree());
+			menu.setAsTableContextMenu(tree.getNestedTreeTable());
 		}
 
-		tree.getNestedTree().setDragMode(TreeDragMode.NODE);
-		tree.getNestedTree().setDropHandler(new RMTreeDropHandlerImpl() {
+		tree.getNestedTreeTable().setDragMode(TableDragMode.NONE);
+		tree.getNestedTreeTable().setDropHandler(new RMTreeDropHandlerImpl() {
 			@Override
 			public void showErrorMessage(String errorMessage) {
 				HomeViewImpl.this.showErrorMessage(errorMessage);
@@ -435,12 +447,12 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 							// Ignore the exception
 							columnStyle = null;
 						}
-						
+
 						String id = recordVO.getId();
 						SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
 						if (sessionContext.isVisited(id)) {
 							String visitedStyleName = "v-table-cell-visited-link";
-							columnStyle = StringUtils.isNotBlank(columnStyle) ? columnStyle + " " + visitedStyleName : visitedStyleName; 
+							columnStyle = StringUtils.isNotBlank(columnStyle) ? columnStyle + " " + visitedStyleName : visitedStyleName;
 						}
 					} else {
 						columnStyle = null;

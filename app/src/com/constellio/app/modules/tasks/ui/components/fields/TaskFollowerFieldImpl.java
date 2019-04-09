@@ -125,7 +125,7 @@ public class TaskFollowerFieldImpl extends CustomField<TaskFollowerVO> implement
 	
 	protected boolean isInvalidFieldValue() {
 		boolean invalidFieldValue;
-		String followerIdValue = followerIdField.getValue();
+		String followerIdValue = (String) followerIdField.getValue();
 		Boolean followTaskStatusModifiedValue = (Boolean) followTaskStatusModifiedField.getValue();
 		Boolean followTaskAssigneeModifiedValue = followTaskAssigneeModifiedField.getValue();
 		Boolean followSubTasksModifiedValue = followSubTasksModifiedField.getValue();
