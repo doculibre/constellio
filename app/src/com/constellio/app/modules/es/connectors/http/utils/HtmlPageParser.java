@@ -190,10 +190,12 @@ public class HtmlPageParser {
 			while (nodesIt.hasNext()) {
 				DomNode node = nodesIt.next();
 				if (afterH1) {
-					String textContent = getShallowTextContent(node);
-					builder.append(textContent);
-					if (builder.length() > 200) {
-						break;
+					if (node.isDisplayed()) {
+						String textContent = getShallowTextContent(node);
+						builder.append(textContent + " ");
+						if (builder.length() > 200) {
+							break;
+						}
 					}
 				} else if (node.getNodeType() == DomNode.ELEMENT_NODE && StringUtils.equalsIgnoreCase("h1", ((DomElement) node).getTagName())) {
 					afterH1 = true;
