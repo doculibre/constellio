@@ -213,7 +213,7 @@ public class HtmlPageParser {
 				builder.append(child.getNodeValue());
 			}
 		}
-		return builder.toString();
+		return builder.toString().replace('\u0092','\'');
 	}
 
 	private byte[] getContent(HtmlPage page)
