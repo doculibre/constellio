@@ -6,6 +6,7 @@ import com.constellio.model.entities.calculators.evaluators.CalculatorEvaluatorP
 import com.constellio.model.entities.schemas.MetadataValueType;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.List;
 
 public interface MetadataValueCalculator<T> extends Serializable {
@@ -20,12 +21,20 @@ public interface MetadataValueCalculator<T> extends Serializable {
 
 	List<? extends Dependency> getDependencies();
 
-	List<? extends Dependency> getEvaluatorDependencies();
+	default List<? extends Dependency> getEvaluatorDependencies() {
+		return Collections.emptyList();
+	}
 
-	boolean isAutomaticallyFilled(CalculatorEvaluatorParameters parameters);
+	default boolean isAutomaticallyFilled(CalculatorEvaluatorParameters parameters) {
+		return true;
+	}
 
-	CalculatorEvaluator getCalculatorEvaluator();
+	default CalculatorEvaluator getCalculatorEvaluator() {
+		return null;
+	}
 
-	boolean hasEvaluator();
+	default boolean hasEvaluator() {
+		return false;
+	}
 
 }

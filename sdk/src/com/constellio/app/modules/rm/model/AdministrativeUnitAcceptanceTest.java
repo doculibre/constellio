@@ -17,9 +17,9 @@ import static com.constellio.app.modules.rm.services.UserFunctionChecker.ParentA
 import static com.constellio.app.modules.rm.services.UserFunctionChecker.ParentAdministrativeUnitFunctionsInclusion.ONLY_INCLUDE_PARENT_USER_FUNCTIONS_IF_NO_RESULTS;
 import static com.constellio.app.modules.rm.wrappers.AdministrativeUnit.FUNCTIONS;
 import static com.constellio.app.modules.rm.wrappers.AdministrativeUnit.FUNCTIONS_USERS;
-import static com.constellio.sdk.tests.TestUtils.asList;
 import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
 import static com.constellio.sdk.tests.TestUtils.assertThatRecords;
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class AdministrativeUnitAcceptanceTest extends ConstellioTest {

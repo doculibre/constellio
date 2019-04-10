@@ -1,9 +1,5 @@
 package com.constellio.app.modules.rm.ui.components.document.newFile;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.List;
-
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
@@ -25,6 +21,10 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.Layout;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
+
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class NewFileComponent extends CustomComponent {
 	protected VerticalLayout mainLayout;
@@ -66,7 +66,7 @@ public class NewFileComponent extends CustomComponent {
 		documentTypeField.addValueChangeListener(new ValueChangeListener() {
 			@Override
 			public void valueChange(ValueChangeEvent event) {
-				presenter.documentTypeIdSet(documentTypeField.getValue());
+				presenter.documentTypeIdSet((String) documentTypeField.getValue());
 			}
 		});
 

@@ -1,18 +1,8 @@
 package com.constellio.app.ui.framework.components;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataVO;
@@ -21,6 +11,7 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.fields.comment.RecordCommentsDisplayImpl;
 import com.constellio.app.ui.framework.components.fields.comment.RecordCommentsEditorImpl;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.app.ui.util.SchemaVOUtils;
 import com.constellio.model.entities.Language;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.vaadin.server.Resource;
@@ -29,6 +20,12 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.TabSheet.Tab;
 import com.vaadin.ui.VerticalLayout;
+
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 @SuppressWarnings("serial")
 public class RecordDisplay extends BaseDisplay {
@@ -57,7 +54,8 @@ public class RecordDisplay extends BaseDisplay {
 		this(recordVO, metadataDisplayFactory, styleName, false);
 	}
 
-	public RecordDisplay(RecordVO recordVO, MetadataDisplayFactory metadataDisplayFactory, String styleName, boolean useTabSheet) {
+	public RecordDisplay(RecordVO recordVO, MetadataDisplayFactory metadataDisplayFactory, String styleName,
+						 boolean useTabSheet) {
 		super(toCaptionsAndComponents(recordVO, metadataDisplayFactory), useTabSheet);
 		this.recordVO = recordVO;
 		this.metadataDisplayFactory = metadataDisplayFactory;
@@ -80,16 +78,17 @@ public class RecordDisplay extends BaseDisplay {
 					String caption = metadata.getLabel(locale);
 					Label captionLabel = new Label(caption);
 
-				String captionId = STYLE_CAPTION + "-" + metadata.getCode();
-				captionLabel.setId(captionId);
-				captionLabel.addStyleName(captionId);
-				captionLabel.setVisible(displayComponent.isVisible());
+					String captionId = STYLE_CAPTION + "-" + metadata.getCode();
+					captionLabel.setId(captionId);
+					captionLabel.addStyleName(captionId);
+					captionLabel.setVisible(displayComponent.isVisible());
 
-				String valueId = STYLE_VALUE + "-" + metadata.getCode();
-				displayComponent.setId(valueId);
-				displayComponent.addStyleName(valueId);
+					String valueId = STYLE_VALUE + "-" + metadata.getCode();
+					displayComponent.setId(valueId);
+					displayComponent.addStyleName(valueId);
 
-				captionsAndComponents.add(new CaptionAndComponent(captionLabel, displayComponent, tabCaption));
+					captionsAndComponents.add(new CaptionAndComponent(captionLabel, displayComponent, tabCaption));
+				}
 			}
 		}
 		return captionsAndComponents;
@@ -108,7 +107,8 @@ public class RecordDisplay extends BaseDisplay {
 	}
 
 	@Override
-	protected void addCaptionAndDisplayComponent(Label captionLabel, Component displayComponent, VerticalLayout layout) {
+	protected void addCaptionAndDisplayComponent(Label captionLabel, Component displayComponent,
+												 VerticalLayout layout) {
 		if ((displayComponent instanceof RecordCommentsEditorImpl) || (displayComponent instanceof RecordCommentsDisplayImpl)) {
 			VerticalLayout verticalLayout = new VerticalLayout(displayComponent);
 			verticalLayout.addStyleName("record-comments-layout");
@@ -136,7 +136,8 @@ public class RecordDisplay extends BaseDisplay {
 		List<String> usedTabCaptions = new ArrayList<>();
 		for (String orderedTabCaption : orderedTabCaptions) {
 			boolean usedTab = false;
-			usedTabsLoop: for (int i = 0; i < tabSheet.getComponentCount(); i++) {
+			usedTabsLoop:
+			for (int i = 0; i < tabSheet.getComponentCount(); i++) {
 				Tab tab = tabSheet.getTab(i);
 				String tabCaption = tab.getCaption();
 				if (tabCaption.equals(orderedTabCaption)) {

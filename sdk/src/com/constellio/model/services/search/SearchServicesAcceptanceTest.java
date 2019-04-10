@@ -10,7 +10,7 @@ import org.junit.Test;
 import java.util.List;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.sdk.tests.TestUtils.asList;
+import static org.apache.ignite.internal.util.lang.GridFunc.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class SearchServicesAcceptanceTest extends ConstellioTest {

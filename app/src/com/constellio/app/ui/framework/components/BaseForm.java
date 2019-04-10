@@ -1,36 +1,5 @@
 package com.constellio.app.ui.framework.components;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.handlers.OnEnterKeyHandler;
 import com.constellio.app.ui.util.MessageUtils;
@@ -46,6 +15,7 @@ import com.vaadin.data.fieldgroup.FieldGroup;
 import com.vaadin.data.fieldgroup.FieldGroup.CommitException;
 import com.vaadin.data.util.BeanItem;
 import com.vaadin.data.validator.AbstractValidator;
+import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.ui.AbstractField;
 import com.vaadin.ui.Button;
@@ -56,14 +26,26 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomComponent;
 import com.vaadin.ui.DateField;
 import com.vaadin.ui.Field;
-import com.vaadin.ui.Notification;
 import com.vaadin.ui.Panel;
-import com.vaadin.ui.Notification.Type;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.TabSheet.Tab;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 @SuppressWarnings("serial")
 public abstract class BaseForm<T> extends CustomComponent {
@@ -227,7 +209,8 @@ public abstract class BaseForm<T> extends CustomComponent {
 			for (String orderedTabGroupLabel : orderedTabGroupLabels) {
 				String orderedTabCaption = getTabCaption(orderedTabGroupLabel);
 				boolean usedTab = false;
-				usedTabsLoop: for (int i = 0; i < tabSheet.getComponentCount(); i++) {
+				usedTabsLoop:
+				for (int i = 0; i < tabSheet.getComponentCount(); i++) {
 					Tab tab = tabSheet.getTab(i);
 					String tabCaption = tab.getCaption();
 					if (tabCaption.equals(orderedTabCaption)) {
@@ -415,14 +398,15 @@ public abstract class BaseForm<T> extends CustomComponent {
 
 					if (isSpecialContainerTitleCase) {
 						ValidationErrors newValidationErrors = new ValidationErrors();
-						if (validationErrorsFromException != null) {for (Iterator<ValidationError> it = validationErrorsFromException.getValidationErrors().iterator(); it
-								.hasNext(); ) {
-							ValidationError validationError = it.next();
-							if (validationError.getValidatorErrorCode().equals(REQUIRED_VALUE_FOR_METADATA)
+						if (validationErrorsFromException != null) {
+							for (Iterator<ValidationError> it = validationErrorsFromException.getValidationErrors().iterator(); it
+									.hasNext(); ) {
+								ValidationError validationError = it.next();
+								if (validationError.getValidatorErrorCode().equals(REQUIRED_VALUE_FOR_METADATA)
 									&& validationError.getParameters().size() > 0
 									&& validationError.getParameters().get(METADATA_CODE)
-									.equals(CONTAINER_RECORD_DEFAULT_TITLE)) {
-								Map<String, Object> params = new HashMap<String, Object>();
+											.equals(CONTAINER_RECORD_DEFAULT_TITLE)) {
+									Map<String, Object> params = new HashMap<String, Object>();
 
 									ValidationError newValidationError = new ValidationError(validatorClass,
 											REQUIRED_VALUE_FOR_METADATA, params);
@@ -508,7 +492,6 @@ public abstract class BaseForm<T> extends CustomComponent {
 		}
 		return emptyValue;
 	}
-
 
 
 	protected void clearBackendValidators() {
