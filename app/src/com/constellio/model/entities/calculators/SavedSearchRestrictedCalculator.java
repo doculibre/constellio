@@ -10,7 +10,7 @@ import java.util.List;
 import static com.constellio.app.modules.restapi.core.util.ListUtils.nullToEmpty;
 import static java.util.Arrays.asList;
 
-public class SavedSearchRestrictedCalculator implements MetadataValueCalculator<Boolean> {
+public class SavedSearchRestrictedCalculator extends AbstractMetadataValueCalculator<Boolean> {
 
 	private LocalDependency<List<String>> shareGroupsParam = LocalDependency.toAStringList(SavedSearch.SHARED_GROUPS);
 	private LocalDependency<List<String>> shareUsersParam = LocalDependency.toAStringList(SavedSearch.SHARED_USERS);

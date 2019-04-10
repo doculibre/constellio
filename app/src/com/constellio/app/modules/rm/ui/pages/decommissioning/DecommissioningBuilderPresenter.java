@@ -358,6 +358,11 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 			condition = extension.addAdditionalSearchFilters(new AddAdditionalSearchFiltersParams(searchType, condition));
 		}
 
+		if(!((boolean) modelLayerFactory.getSystemConfigurationsManager().getValue(RMConfigs.SUB_FOLDER_DECOMMISSIONING))
+				&& getSchemaType() != null && getSchemaType().equals(Folder.SCHEMA_TYPE)) {
+			condition = condition.andWhere(rmRecordServices().folder.parentFolder()).isNull();
+		}
+
 		return condition;
 	}
 

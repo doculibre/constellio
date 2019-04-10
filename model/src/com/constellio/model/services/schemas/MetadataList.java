@@ -5,6 +5,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 
 import java.io.Serializable;
@@ -462,6 +463,18 @@ public class MetadataList implements List<Metadata>, Serializable {
 		List<Metadata> filteredMetadatasList = new ArrayList<>();
 		for (Metadata metadata : nestedList) {
 			if (metadata.getDataEntry().getType() == DataEntryType.MANUAL) {
+				filteredMetadatasList.add(metadata);
+			}
+		}
+		return new MetadataList(filteredMetadatasList).unModifiable();
+	}
+
+	public MetadataList onlyManualsAndCalculatedWithEvaluator() {
+		List<Metadata> filteredMetadatasList = new ArrayList<>();
+		for (Metadata metadata : nestedList) {
+			if (metadata.getDataEntry().getType() == DataEntryType.MANUAL ||
+				(metadata.getDataEntry().getType() == DataEntryType.CALCULATED &&
+				 ((CalculatedDataEntry) metadata.getDataEntry()).getCalculator().hasEvaluator())) {
 				filteredMetadatasList.add(metadata);
 			}
 		}

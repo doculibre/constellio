@@ -5,8 +5,8 @@ import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.model.enums.RetentionRuleScope;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
-import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.ConfigDependency;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
@@ -23,7 +23,7 @@ import static com.constellio.app.modules.rm.wrappers.Document.FOLDER_ACTUAL_TRAN
 import static com.constellio.app.modules.rm.wrappers.RetentionRule.SCOPE;
 import static java.util.Arrays.asList;
 
-public class DocumentArchivisticStatusCalculator implements MetadataValueCalculator<FolderStatus> {
+public class DocumentArchivisticStatusCalculator extends AbstractMetadataValueCalculator<FolderStatus> {
 
 	ConfigDependency<Boolean> documentRetentionRulesEnabledParam = RMConfigs.DOCUMENT_RETENTION_RULES.dependency();
 

@@ -6,10 +6,10 @@ import com.constellio.app.ui.util.DateFormatUtils;
 import com.constellio.data.utils.SimpleDateFormatSingleton;
 import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.Language;
+import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.DynamicDependencyValues;
 import com.constellio.model.entities.calculators.InitializedMetadataValueCalculator;
-import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.ConfigDependency;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.DynamicLocalDependency;
@@ -35,7 +35,7 @@ import java.util.Map;
 
 import static java.util.Arrays.asList;
 
-public class SummaryCalculator implements InitializedMetadataValueCalculator<String>, MetadataValueCalculator<String> {
+public class SummaryCalculator extends AbstractMetadataValueCalculator<String> implements InitializedMetadataValueCalculator<String> {
 	DynamicLocalDependency dynamicMetadatasDependency = new DynamicMetadatasDependency();
 	ConfigDependency<String> dateformat = ConstellioEIMConfigs.DATE_FORMAT.dependency();
 	ConfigDependency<String> dateTimeformat = ConstellioEIMConfigs.DATE_TIME_FORMAT.dependency();

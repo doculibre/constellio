@@ -1,8 +1,8 @@
 package com.constellio.app.modules.tasks.model.calculators;
 
 import com.constellio.app.modules.tasks.model.wrappers.Task;
+import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
-import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
 import com.constellio.model.entities.calculators.dependencies.SpecialDependencies;
@@ -16,7 +16,7 @@ import static java.util.Arrays.asList;
 /**
  * *** USED BY BETA_WORKFLOW BETA ***
  */
-public class WorkflowTaskSortCalculator implements MetadataValueCalculator<Double> {
+public class WorkflowTaskSortCalculator extends AbstractMetadataValueCalculator<Double> {
 	SpecialDependency<String> identifierParam = SpecialDependencies.IDENTIFIER;
 	ReferenceDependency<List<Double>> childrenIndexesParam = ReferenceDependency
 			.toANumber(Task.BETA_NEXT_TASKS, Task.BETA_WORKFLOW_TASK_SORT).whichIsMultivalue();

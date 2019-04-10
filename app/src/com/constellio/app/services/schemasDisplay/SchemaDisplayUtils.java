@@ -39,8 +39,8 @@ import static java.util.Arrays.asList;
 public class SchemaDisplayUtils {
 
 	public static MetadataList getRequiredMetadatasInSchemaForm(MetadataSchema schema) {
-		return getAvailableMetadatasInSchemaForm(schema).onlyEssentialMetadatasAndCodeTitle().onlyManuals()
-				.onlyNonSystemReserved();
+		return getAvailableMetadatasInSchemaForm(schema).onlyEssentialMetadatasAndCodeTitle()
+				.onlyManualsAndCalculatedWithEvaluator().onlyNonSystemReserved();
 	}
 
 	public static MetadataList getAvailableMetadatasInSchemaForm(MetadataSchema schema) {
@@ -65,7 +65,8 @@ public class SchemaDisplayUtils {
 			}
 		};
 
-		return schema.getMetadatas().onlyManuals().onlyEnabled().only(filter).sortedUsing(new FormMetadatasComparator());
+		return schema.getMetadatas().onlyManualsAndCalculatedWithEvaluator().onlyEnabled().only(filter)
+				.sortedUsing(new FormMetadatasComparator());
 	}
 
 	private static class FormMetadatasComparator implements Comparator<Metadata> {

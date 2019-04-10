@@ -3,8 +3,8 @@ package com.constellio.app.modules.rm.model.calculators.decommissioningList;
 import com.constellio.app.modules.rm.model.enums.DecomListStatus;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListValidation;
+import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
-import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.schemas.MetadataValueType;
@@ -13,7 +13,7 @@ import org.joda.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 
-public class DecomListStatusCalculator2 implements MetadataValueCalculator<DecomListStatus> {
+public class DecomListStatusCalculator2 extends AbstractMetadataValueCalculator<DecomListStatus> {
 	LocalDependency<LocalDate> processingDate = LocalDependency.toADate(DecommissioningList.PROCESSING_DATE);
 	LocalDependency<LocalDate> approvalDate = LocalDependency.toADate(DecommissioningList.APPROVAL_DATE);
 	LocalDependency<List<DecomListValidation>> validations = LocalDependency.toAStructure(DecommissioningList.VALIDATIONS)

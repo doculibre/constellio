@@ -151,6 +151,7 @@ import com.constellio.app.modules.rm.migrations.RMMigrationTo8_2_1_4;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo8_2_2_4;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo9_0;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo9_0_1;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo9_0;
 import com.constellio.app.modules.rm.migrations.records.RMContainerRecordMigrationTo7_3;
 import com.constellio.app.modules.rm.migrations.records.RMDocumentMigrationTo7_6_10;
 import com.constellio.app.modules.rm.migrations.records.RMDocumentMigrationTo8_0_1_2;

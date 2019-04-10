@@ -8,8 +8,8 @@ import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.dao.services.sequence.SequencesManager;
 import com.constellio.data.utils.Factory;
 import com.constellio.model.conf.PropertiesModelLayerConfiguration.InMemoryModelLayerConfiguration;
+import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
-import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.records.Record;
@@ -2408,7 +2408,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 		};
 	}
 
-	public static class RecordServicesAcceptanceTestCalculator implements MetadataValueCalculator<List<String>> {
+	public static class RecordServicesAcceptanceTestCalculator extends AbstractMetadataValueCalculator<List<String>> {
 
 		LocalDependency<String> aStringMetadataParam = LocalDependency.toAString("aStringMetadata");
 
@@ -2520,7 +2520,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 		return parameters;
 	}
 
-	public static final class TitleLengthCalculator implements MetadataValueCalculator<Double> {
+	public static final class TitleLengthCalculator extends AbstractMetadataValueCalculator<Double> {
 
 		LocalDependency<String> titleDependency = LocalDependency.toAString(Schemas.TITLE.getLocalCode());
 

@@ -2,8 +2,8 @@ package com.constellio.model.services.schemas;
 
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
+import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
-import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
@@ -120,7 +120,7 @@ public class ModificationImpactCalculatorAcceptSetup extends TestsSchemasSetup {
 
 	}
 
-	public static class CalculatorCopyingZeSchemaTitleLengthPlusTwo implements MetadataValueCalculator<Double> {
+	public static class CalculatorCopyingZeSchemaTitleLengthPlusTwo extends AbstractMetadataValueCalculator<Double> {
 
 		ReferenceDependency<Double> reference = ReferenceDependency
 				.toANumber("referenceFromAnotherSchemaToZeSchema", "titleLength").whichIsRequired();
@@ -153,7 +153,7 @@ public class ModificationImpactCalculatorAcceptSetup extends TestsSchemasSetup {
 
 	}
 
-	public static class CalculatorCopyingZeSchemaTitleLengths implements MetadataValueCalculator<List<Double>> {
+	public static class CalculatorCopyingZeSchemaTitleLengths extends AbstractMetadataValueCalculator<List<Double>> {
 
 		ReferenceDependency<List<Double>> reference = ReferenceDependency
 				.toANumber("referenceFromAnotherSchemaToZeSchema", "titleLength").whichIsRequired().whichIsMultivalue();
@@ -186,7 +186,7 @@ public class ModificationImpactCalculatorAcceptSetup extends TestsSchemasSetup {
 
 	}
 
-	public static class CalculatorUsingZeSchemaStringMetadata implements MetadataValueCalculator<Double> {
+	public static class CalculatorUsingZeSchemaStringMetadata extends AbstractMetadataValueCalculator<Double> {
 
 		ReferenceDependency<String> reference = ReferenceDependency
 				.toAString("reference1ToZeSchema", "stringMetadata");
@@ -333,7 +333,7 @@ public class ModificationImpactCalculatorAcceptSetup extends TestsSchemasSetup {
 
 	}
 
-	public static class ZeReferenceToZeSchemaCalculator implements MetadataValueCalculator<String> {
+	public static class ZeReferenceToZeSchemaCalculator extends AbstractMetadataValueCalculator<String> {
 
 		LocalDependency<String> aStringDependency = LocalDependency.toAString("aString").whichIsRequired();
 
@@ -364,7 +364,7 @@ public class ModificationImpactCalculatorAcceptSetup extends TestsSchemasSetup {
 		}
 	}
 
-	public static class MultivalueZeReferenceToZeSchemaCalculator implements MetadataValueCalculator<List<String>> {
+	public static class MultivalueZeReferenceToZeSchemaCalculator extends AbstractMetadataValueCalculator<List<String>> {
 
 		LocalDependency<List<String>> aStringDependency = LocalDependency.toAString("aString").whichIsRequired()
 				.whichIsMultivalue();
@@ -396,7 +396,7 @@ public class ModificationImpactCalculatorAcceptSetup extends TestsSchemasSetup {
 		}
 	}
 
-	public static class TitleLengthCalculator implements MetadataValueCalculator<Double> {
+	public static class TitleLengthCalculator extends AbstractMetadataValueCalculator<Double> {
 
 		LocalDependency<String> titleDependency = LocalDependency.toAString(Schemas.TITLE_CODE).whichIsRequired();
 

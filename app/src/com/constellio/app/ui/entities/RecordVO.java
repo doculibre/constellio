@@ -11,6 +11,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 @SuppressWarnings("serial")
 public class RecordVO implements Serializable {
@@ -30,7 +31,7 @@ public class RecordVO implements Serializable {
 	private boolean saved;
 
 	private List<String> excludedMetadataCodeList;
-
+	private Set<String> excludedFormMetadataCodes;
 
 	final List<MetadataValueVO> metadataValues;
 
@@ -60,8 +61,16 @@ public class RecordVO implements Serializable {
 		return excludedMetadataCodeList;
 	}
 
+	public Set<String> getExcludedFormMetadataCodes() {
+		return excludedFormMetadataCodes;
+	}
+
 	public void setExcludedMetadataCodeList(List<String> excludedMetadataCodeList) {
 		this.excludedMetadataCodeList = excludedMetadataCodeList;
+	}
+
+	public void setExcludedFormMetadataCodes(Set<String> excludedFormMetadataCodes) {
+		this.excludedFormMetadataCodes = excludedFormMetadataCodes;
 	}
 
 	public void setRecord(Record record) {
@@ -220,7 +229,14 @@ public class RecordVO implements Serializable {
 	}
 
 	public List<MetadataVO> getFormMetadatas() {
-		return getSchema().getFormMetadatas();
+		List<MetadataVO> formMetadatas = getSchema().getFormMetadatas();
+		List<MetadataVO> filteredFormMetadatas = new ArrayList<>();
+		for (MetadataVO formMetadata : formMetadatas) {
+			if (!excludedFormMetadataCodes.contains(formMetadata.code)) {
+				filteredFormMetadatas.add(formMetadata);
+			}
+		}
+		return filteredFormMetadatas;
 	}
 
 	public List<MetadataVO> getDisplayMetadatas() {

@@ -2,8 +2,8 @@ package com.constellio.app.modules.rm.model.calculators.document;
 
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
-import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
@@ -15,7 +15,7 @@ import java.util.List;
 import static com.constellio.data.utils.LangUtils.areNullableEqual;
 import static java.util.Arrays.asList;
 
-public class DocumentIsSameSemiActiveFateAsFolderCalculator implements MetadataValueCalculator<Boolean> {
+public class DocumentIsSameSemiActiveFateAsFolderCalculator extends AbstractMetadataValueCalculator<Boolean> {
 
 	LocalDependency<LocalDate> documentExpectedTransferDateParam =
 			LocalDependency.toADate(Document.FOLDER_EXPECTED_TRANSFER_DATE);

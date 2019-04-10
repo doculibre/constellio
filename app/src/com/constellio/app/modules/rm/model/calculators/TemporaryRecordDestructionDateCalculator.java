@@ -1,7 +1,7 @@
 package com.constellio.app.modules.rm.model.calculators;
 
+import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
-import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.records.wrappers.TemporaryRecord;
@@ -13,7 +13,7 @@ import java.util.List;
 
 import static java.util.Arrays.asList;
 
-public class TemporaryRecordDestructionDateCalculator implements MetadataValueCalculator<LocalDateTime> {
+public class TemporaryRecordDestructionDateCalculator extends AbstractMetadataValueCalculator<LocalDateTime> {
 	private static final double DEFAULT_NUMBER_OF_DAYS_BEFORE_DESTRUCTION = 7.0;
 	public LocalDependency<Double> numberOfDaysParams = LocalDependency.toANumber(TemporaryRecord.DAY_BEFORE_DESTRUCTION);
 	public LocalDependency<LocalDateTime> creationDate = LocalDependency.toADateTime(Schemas.CREATED_ON.getLocalCode());

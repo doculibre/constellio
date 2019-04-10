@@ -1,7 +1,7 @@
 package com.constellio.model.services.schemas.calculators;
 
+import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
-import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.schemas.MetadataValueType;
@@ -14,7 +14,7 @@ import java.util.List;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 
-public class UserTokensCalculator2 implements MetadataValueCalculator<List<String>> {
+public class UserTokensCalculator2 extends AbstractMetadataValueCalculator<List<String>> {
 
 	LocalDependency<List<String>> manualTokensParam = LocalDependency.toAStringList(CommonMetadataBuilder.MANUAL_TOKENS);
 
@@ -42,5 +42,4 @@ public class UserTokensCalculator2 implements MetadataValueCalculator<List<Strin
 	public List<? extends Dependency> getDependencies() {
 		return Arrays.asList(manualTokensParam);
 	}
-
 }

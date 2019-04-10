@@ -1,8 +1,8 @@
 package com.constellio.app.modules.rm.model.calculators.storageSpace;
 
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
+import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
-import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.schemas.MetadataValueType;
@@ -11,7 +11,7 @@ import java.util.List;
 
 import static java.util.Arrays.asList;
 
-public class StorageSpaceAvailableSizeCalculator implements MetadataValueCalculator<Double> {
+public class StorageSpaceAvailableSizeCalculator extends AbstractMetadataValueCalculator<Double> {
 
 	LocalDependency<Double> linearSizeParam = LocalDependency.toANumber(StorageSpace.LINEAR_SIZE);
 

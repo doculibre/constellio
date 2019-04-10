@@ -1,7 +1,7 @@
 package com.constellio.model.services.schemas.calculators;
 
+import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
-import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.schemas.MetadataValueType;
@@ -14,7 +14,7 @@ import java.util.Set;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 
-public class PathPartsCalculator implements MetadataValueCalculator<List<String>> {
+public class PathPartsCalculator extends AbstractMetadataValueCalculator<List<String>> {
 
 	LocalDependency<List<String>> pathDependency = LocalDependency.toAStringList("path");
 

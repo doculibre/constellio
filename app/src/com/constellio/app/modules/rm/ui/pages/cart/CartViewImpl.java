@@ -366,7 +366,9 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 
 			@Override
 			public void buttonClick(ClickEvent event) {
-				if (presenter.getCommonAdministrativeUnit(presenter.getCartFolders()) == null) {
+				if (!presenter.isSubFolderDecommissioningAllowed() && presenter.isAnyFolderASubFolder()) {
+					showErrorMessage($("CartView.cannotDecommissionSubFolder"));
+				} else if (presenter.getCommonAdministrativeUnit(presenter.getCartFolders()) == null) {
 					showErrorMessage($("CartView.foldersFromDifferentAdminUnits"));
 				} else if (presenter.getCommonDecommissioningListTypes(presenter.getCartFolders()).isEmpty()) {
 					showErrorMessage($("CartView.foldersShareNoCommonDecommisioningTypes"));

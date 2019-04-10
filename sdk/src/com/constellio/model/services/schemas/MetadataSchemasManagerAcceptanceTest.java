@@ -7,9 +7,9 @@ import com.constellio.data.utils.Delayed;
 import com.constellio.model.api.impl.schemas.validation.impl.CreationDateIsBeforeOrEqualToLastModificationDateValidator;
 import com.constellio.model.api.impl.schemas.validation.impl.Maximum50CharsRecordMetadataValidator;
 import com.constellio.model.entities.Language;
+import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.InitializedMetadataValueCalculator;
-import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.records.wrappers.TemporaryRecord;
@@ -1765,7 +1765,7 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 		return newTypes;
 	}
 
-	public static class TestInitializedMetadataValueCalculator implements InitializedMetadataValueCalculator<String> {
+	public static class TestInitializedMetadataValueCalculator extends AbstractMetadataValueCalculator<String> implements InitializedMetadataValueCalculator<String> {
 
 		int initializationCounter1 = 0;
 		int initializationCounter2 = 0;
@@ -1810,7 +1810,7 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 		}
 	}
 
-	public static class TestParametrizedMetadataValueCalculator implements Parametrized, MetadataValueCalculator<String> {
+	public static class TestParametrizedMetadataValueCalculator extends AbstractMetadataValueCalculator<String> implements Parametrized {
 
 		String parameter1;
 		int parameter2;

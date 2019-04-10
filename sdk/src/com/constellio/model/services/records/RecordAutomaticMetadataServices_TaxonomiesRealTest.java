@@ -2,8 +2,8 @@ package com.constellio.model.services.records;
 
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.model.entities.Taxonomy;
+import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
-import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.HierarchyDependencyValue;
 import com.constellio.model.entities.calculators.dependencies.SpecialDependencies;
@@ -305,7 +305,7 @@ public class RecordAutomaticMetadataServices_TaxonomiesRealTest extends Constell
 		assertThat(record.<List<String>>get(pathMetadata)).isEqualTo(paths);
 	}
 
-	public static class DummyCalculatorWithTaxonomyDependency implements MetadataValueCalculator<String> {
+	public static class DummyCalculatorWithTaxonomyDependency extends AbstractMetadataValueCalculator<String> {
 
 		SpecialDependency<HierarchyDependencyValue> taxonomies = SpecialDependencies.HIERARCHY;
 

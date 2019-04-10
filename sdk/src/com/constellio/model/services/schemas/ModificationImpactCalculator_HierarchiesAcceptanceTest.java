@@ -1,8 +1,8 @@
 package com.constellio.model.services.schemas;
 
 import com.constellio.model.entities.Taxonomy;
+import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
-import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.HierarchyDependencyValue;
 import com.constellio.model.entities.calculators.dependencies.SpecialDependencies;
@@ -320,7 +320,7 @@ public class ModificationImpactCalculator_HierarchiesAcceptanceTest extends Cons
 		return record;
 	}
 
-	public static class DummyCalculatorWithTaxonomyDependency implements MetadataValueCalculator<String> {
+	public static class DummyCalculatorWithTaxonomyDependency extends AbstractMetadataValueCalculator<String> {
 
 		SpecialDependency<HierarchyDependencyValue> taxonomies = SpecialDependencies.HIERARCHY;
 

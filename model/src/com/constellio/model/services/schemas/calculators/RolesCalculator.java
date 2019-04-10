@@ -1,7 +1,7 @@
 package com.constellio.model.services.schemas.calculators;
 
+import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
-import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class RolesCalculator implements MetadataValueCalculator<List<String>> {
+public class RolesCalculator extends AbstractMetadataValueCalculator<List<String>> {
 	LocalDependency<List<String>> userRolesParam = LocalDependency.toARequiredStringList("userroles");
 	ReferenceDependency<List<String>> groupsParam = ReferenceDependency.toAString("groups", "roles").whichIsMultivalue()
 			.whichIsRequired();

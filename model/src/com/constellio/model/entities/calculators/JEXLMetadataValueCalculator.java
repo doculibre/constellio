@@ -28,7 +28,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class JEXLMetadataValueCalculator implements InitializedMetadataValueCalculator<Object>, Parametrized {
+public class JEXLMetadataValueCalculator extends AbstractMetadataValueCalculator
+		implements InitializedMetadataValueCalculator<Object>, Parametrized {
 
 	MetadataValueType type;
 	String metadataCode;

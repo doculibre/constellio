@@ -3,8 +3,8 @@ package com.constellio.app.modules.rm.model.calculators;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
-import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.ConfigDependency;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
@@ -13,7 +13,7 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import java.util.Arrays;
 import java.util.List;
 
-public class FolderTreeVisibilityCalculator implements MetadataValueCalculator<Boolean> {
+public class FolderTreeVisibilityCalculator extends AbstractMetadataValueCalculator<Boolean> {
 	LocalDependency<FolderStatus> folderStatus = LocalDependency.toAnEnum(Folder.ARCHIVISTIC_STATUS);
 	ConfigDependency<Boolean> displaySemiActive = RMConfigs.DISPLAY_SEMI_ACTIVE_RECORDS_IN_TREES.dependency();
 	ConfigDependency<Boolean> displayDeposited = RMConfigs.DISPLAY_DEPOSITED_RECORDS_IN_TREES.dependency();

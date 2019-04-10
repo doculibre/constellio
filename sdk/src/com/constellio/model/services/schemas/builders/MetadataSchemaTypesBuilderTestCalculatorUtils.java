@@ -1,7 +1,7 @@
 package com.constellio.model.services.schemas.builders;
 
+import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
-import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
@@ -12,7 +12,7 @@ import java.util.List;
 
 public class MetadataSchemaTypesBuilderTestCalculatorUtils {
 
-	public static class CalculatorUsingM2 implements MetadataValueCalculator<String> {
+	public static class CalculatorUsingM2 extends AbstractMetadataValueCalculator<String> {
 
 		LocalDependency<String> dependency = LocalDependency.toAString("m2").whichIsRequired();
 
@@ -42,7 +42,7 @@ public class MetadataSchemaTypesBuilderTestCalculatorUtils {
 		}
 	}
 
-	public static class CalculatorUsingM1 implements MetadataValueCalculator<String> {
+	public static class CalculatorUsingM1 extends AbstractMetadataValueCalculator<String> {
 
 		LocalDependency<String> dependency = LocalDependency.toAString("m1").whichIsRequired();
 
@@ -72,7 +72,7 @@ public class MetadataSchemaTypesBuilderTestCalculatorUtils {
 		}
 	}
 
-	public static class DummyTextCalculator implements MetadataValueCalculator<String> {
+	public static class DummyTextCalculator extends AbstractMetadataValueCalculator<String> {
 
 		LocalDependency<String> dependency = LocalDependency.toAString("other");
 
@@ -102,7 +102,7 @@ public class MetadataSchemaTypesBuilderTestCalculatorUtils {
 		}
 	}
 
-	public static class DummyTextCalculatorUsingNumber implements MetadataValueCalculator<String> {
+	public static class DummyTextCalculatorUsingNumber extends AbstractMetadataValueCalculator<String> {
 
 		LocalDependency<Double> dependency = LocalDependency.toANumber("other");
 
@@ -132,7 +132,7 @@ public class MetadataSchemaTypesBuilderTestCalculatorUtils {
 		}
 	}
 
-	public static class DummyNumberCalculator implements MetadataValueCalculator<Number> {
+	public static class DummyNumberCalculator extends AbstractMetadataValueCalculator<Number> {
 
 		LocalDependency<Double> dependency = LocalDependency.toANumber("other");
 
@@ -162,7 +162,7 @@ public class MetadataSchemaTypesBuilderTestCalculatorUtils {
 		}
 	}
 
-	public static class DummyNumberCalculator2 implements MetadataValueCalculator<Number> {
+	public static class DummyNumberCalculator2 extends AbstractMetadataValueCalculator<Number> {
 
 		LocalDependency<Double> dependency1 = LocalDependency.toANumber("dependency1");
 		LocalDependency<Double> dependency2 = LocalDependency.toANumber("dependency2");
@@ -193,7 +193,7 @@ public class MetadataSchemaTypesBuilderTestCalculatorUtils {
 		}
 	}
 
-	public static class DummyReferenceNumberCalculator implements MetadataValueCalculator<Number> {
+	public static class DummyReferenceNumberCalculator extends AbstractMetadataValueCalculator<Number> {
 
 		ReferenceDependency<Double> dependencyParam = ReferenceDependency.toANumber("dependencyRef", "dependencyMeta");
 		LocalDependency<Double> localDependencyMeta = LocalDependency.toANumber("localDependencyMeta");
@@ -224,7 +224,7 @@ public class MetadataSchemaTypesBuilderTestCalculatorUtils {
 		}
 	}
 
-	public static class DummyNoDependenciesCalculator implements MetadataValueCalculator<String> {
+	public static class DummyNoDependenciesCalculator extends AbstractMetadataValueCalculator<String> {
 
 		@Override
 		public String calculate(CalculatorParameters parameters) {
@@ -252,7 +252,7 @@ public class MetadataSchemaTypesBuilderTestCalculatorUtils {
 		}
 	}
 
-	public static class DummyTextListCalculator implements MetadataValueCalculator<List<String>> {
+	public static class DummyTextListCalculator extends AbstractMetadataValueCalculator<List<String>> {
 
 		LocalDependency<List<String>> dependency = LocalDependency.toAStringList("other");
 

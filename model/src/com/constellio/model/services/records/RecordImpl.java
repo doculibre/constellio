@@ -22,6 +22,7 @@ import com.constellio.model.entities.schemas.MetadataTransiency;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.ModifiableStructure;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.services.records.RecordImplRuntimeException.CannotGetListForSingleValue;
 import com.constellio.model.services.records.RecordImplRuntimeException.RecordImplException_CannotBuildStructureValue;
@@ -50,6 +51,7 @@ import java.util.Set;
 
 import static com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval.PREFERRING;
 import static com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval.STRICT;
+import static com.constellio.model.entities.schemas.entries.DataEntryType.CALCULATED;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.SEQUENCE;
 import static com.constellio.model.services.records.RecordUtils.estimateRecordUpdateSize;
@@ -234,9 +236,20 @@ public class RecordImpl implements Record {
 		if (!code.startsWith(schemaCode) && !code.startsWith(schemaTypeCode + "_default")) {
 			throw new InvalidMetadata(code);
 		}
-		if (metadata.getDataEntry().getType() != MANUAL && metadata.getDataEntry().getType() != SEQUENCE) {
+
+		if (metadata.getDataEntry().getType() == CALCULATED &&
+			!((CalculatedDataEntry) metadata.getDataEntry()).getCalculator().hasEvaluator()) {
+			throw new RecordRuntimeException.CannotSetManualValueInAutomaticField(metadata);
+		} else if (metadata.getDataEntry().getType() != CALCULATED &&
+				   metadata.getDataEntry().getType() != MANUAL &&
+				   metadata.getDataEntry().getType() != SEQUENCE) {
 			throw new RecordRuntimeException.CannotSetManualValueInAutomaticField(metadata);
 		}
+
+		/*if (metadata.getDataEntry().getType() != MANUAL && metadata.getDataEntry().getType() != SEQUENCE) {
+			throw new RecordRuntimeException.CannotSetManualValueInAutomaticField(metadata);
+		}*/
+
 		if (metadata.getLocalCode().equals("id")) {
 			throw new RecordRuntimeException_CannotModifyId();
 		}

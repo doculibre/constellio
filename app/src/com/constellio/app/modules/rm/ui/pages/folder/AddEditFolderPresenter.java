@@ -110,6 +110,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 	private FolderToVOBuilder voBuilder = new FolderToVOBuilder();
 	private boolean addView;
 	private boolean folderHadAParent;
+	private boolean folderHasParent;
 	private String currentSchemaCode;
 	private FolderVO folderVO;
 	private Map<CustomFolderField<?>, Object> customContainerDependencyFields = new HashMap<>();
@@ -201,6 +202,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 
 		folderVO = voBuilder.build(record, VIEW_MODE.FORM, view.getSessionContext());
 		folderHadAParent = folderVO.getParentFolder() != null;
+		folderHasParent = folderHadAParent;
 		currentSchemaCode = folderVO.getSchema().getCode();
 		setSchemaCode(currentSchemaCode);
 
@@ -438,18 +440,21 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 			}
 		}
 
-		folderVO = voBuilder.build(folderRecord, VIEW_MODE.FORM, view.getSessionContext());
-
-		view.setRecord(folderVO);
 		reloadForm();
 	}
 
-	void reloadFormAfterFieldChanged() {
+	void reloadFormAfterParentFolderChanged() {
 		commitForm();
 		reloadForm();
 	}
 
 	void reloadForm() {
+		reloadForm(toRecord(folderVO));
+	}
+
+	private void reloadForm(Record folderRecord) {
+		folderVO = voBuilder.build(folderRecord, VIEW_MODE.FORM, view.getSessionContext());
+		view.setRecord(folderVO);
 		view.getForm().reload();
 	}
 
@@ -459,7 +464,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 
 	String getTypeFieldValue() {
 		CustomFolderField field = view.getForm().getCustomField(Folder.TYPE);
-		if(field == null) {
+		if (field == null) {
 			return "";
 		}
 		return (String) field.getFieldValue();
@@ -529,14 +534,18 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 	void adjustCustomFields(CustomFolderField<?> customField, boolean firstDraw) {
 		adjustTypeField();
 		boolean reload = isReloadRequiredAfterFolderTypeChange();
-		boolean wasParentRemoved = customField instanceof FolderParentFolderFieldImpl && customField.getFieldValue() == null;
+		boolean parentRemoved = customField instanceof FolderParentFolderFieldImpl && customField.getFieldValue() == null;
+		boolean parentAdded = customField instanceof FolderParentFolderFieldImpl && !folderHasParent &&
+							  customField.getFieldValue() != null;
 		if (reload) {
 			reloadFormAfterFolderTypeChange();
+		} else if (parentAdded || parentRemoved) {
+			reloadFormAfterParentFolderChanged();
 		}
 		adjustParentFolderField();
 		adjustAdministrativeUnitField();
-		adjustCategoryField(wasParentRemoved);
-		adjustUniformSubdivisionField(wasParentRemoved);
+		adjustCategoryField(parentRemoved);
+		adjustUniformSubdivisionField(parentRemoved);
 		adjustRetentionRuleField();
 		adjustStatusCopyEnteredField(firstDraw);
 		adjustCopyRetentionRuleField();
@@ -549,6 +558,11 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		adjustOpeningDateField();
 		adjustDisposalTypeField();
 		adjustCustomDynamicFields();
+
+		if (customField instanceof FolderParentFolderFieldImpl) {
+			folderHasParent = customField.getFieldValue() != null;
+		}
+		adjustClosingDateField();
 	}
 
 	void adjustTypeField() {
@@ -582,7 +596,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		FolderCategoryField categoryField = (FolderCategoryField) view.getForm().getCustomField(Folder.CATEGORY_ENTERED);
 		FolderParentFolderField parentFolderField = (FolderParentFolderField) view.getForm().getCustomField(Folder.PARENT_FOLDER);
 		if (categoryField != null && parentFolderField != null) {
-			if(wasParentRemoved) {
+			if (wasParentRemoved) {
 				folderVO.setCategory((String) null);
 				categoryField.setFieldValue(null);
 			}
@@ -627,7 +641,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 				Folder.UNIFORM_SUBDIVISION_ENTERED);
 		FolderParentFolderField parentFolderField = (FolderParentFolderField) view.getForm().getCustomField(Folder.PARENT_FOLDER);
 		if (uniformSubdivisionField != null) {
-			if(wasParentRemoved) {
+			if (wasParentRemoved) {
 				folderVO.setUniformSubdivision((String) null);
 				uniformSubdivisionField.setFieldValue(null);
 			}
@@ -708,7 +722,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 					retentionRuleField.setVisible(false);
 				}
 
-				if(uniformSubdivisionField != null) {
+				if (uniformSubdivisionField != null) {
 					uniformSubdivisionField.setRequired(false);
 				}
 			}
@@ -774,7 +788,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 			boolean validEnteredCopyRule = false;
 			for (CopyRetentionRule applicableCopyRule : applicableCopyRules) {
 				if (applicableCopyRule.getId().equals(folder.getMainCopyRule().getId())) {
-					if(StringUtils.isBlank(field.getFieldValue())) {
+					if (StringUtils.isBlank(field.getFieldValue())) {
 						field.setFieldValue(folder.getMainCopyRule().getId());
 					}
 					validEnteredCopyRule = true;
@@ -831,7 +845,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 															 CustomFolderField currentField) {
 		FolderContainerField containerField = (FolderContainerField) view.getForm().getCustomField(Folder.CONTAINER);
 
-		if(containerField == null) {
+		if (containerField == null) {
 			return;
 		}
 
@@ -938,6 +952,11 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 				setFieldReadonly(openingDateField, true);
 			}
 		}
+	}
+
+	void adjustClosingDateField() {
+		boolean visible = isSubfolderDecommissioningSeparatelyEnabled() || !folderHasParent;
+		view.getForm().setFieldVisible(Folder.ENTERED_CLOSING_DATE, visible);
 	}
 
 	void adjustDisposalTypeField() {
@@ -1099,5 +1118,9 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 			}
 		}
 		return record;
+	}
+
+	private boolean isSubfolderDecommissioningSeparatelyEnabled() {
+		return modelLayerFactory.getSystemConfigurationsManager().getValue(RMConfigs.SUB_FOLDER_DECOMMISSIONING);
 	}
 }

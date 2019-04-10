@@ -6,8 +6,8 @@ import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.RetentionRuleScope;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
+import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
-import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.ConfigDependency;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
@@ -17,7 +17,7 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import java.util.Arrays;
 import java.util.List;
 
-public class FolderCopyStatusCalculator3 implements MetadataValueCalculator<CopyType> {
+public class FolderCopyStatusCalculator3 extends AbstractMetadataValueCalculator<CopyType> {
 
 	LocalDependency<CopyType> folderCopyTypeManualParam = LocalDependency.toAnEnum(Folder.COPY_STATUS_ENTERED);
 

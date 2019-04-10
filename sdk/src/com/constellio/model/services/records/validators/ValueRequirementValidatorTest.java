@@ -4,6 +4,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.entries.ManualDataEntry;
 import com.constellio.model.frameworks.validation.ValidationErrors;
+import com.constellio.model.services.records.RecordAutomaticMetadataServices;
 import com.constellio.model.services.schemas.validators.ValueRequirementValidator;
 import com.constellio.sdk.tests.ConstellioTest;
 import org.junit.Before;
@@ -18,6 +19,7 @@ import static com.constellio.sdk.tests.TestUtils.asMap;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
 
 public class ValueRequirementValidatorTest extends ConstellioTest {
@@ -32,6 +34,8 @@ public class ValueRequirementValidatorTest extends ConstellioTest {
 	@Mock Metadata requiredMetadata2;
 
 	@Mock Record record;
+
+	@Mock RecordAutomaticMetadataServices recordAutomaticMetadataServices;
 
 	ValueRequirementValidator validator;
 
@@ -70,7 +74,10 @@ public class ValueRequirementValidatorTest extends ConstellioTest {
 		when(requiredMetadata1.getDataEntry()).thenReturn(new ManualDataEntry());
 		when(requiredMetadata2.getDataEntry()).thenReturn(new ManualDataEntry());
 
-		validator = new ValueRequirementValidator(metadatas, false);
+		when(recordAutomaticMetadataServices.isValueAutomaticallyFilled(any(Metadata.class), any(Record.class)))
+				.thenReturn(false);
+
+		validator = new ValueRequirementValidator(metadatas, false, recordAutomaticMetadataServices);
 
 		validationErrors = new ValidationErrors();
 	}

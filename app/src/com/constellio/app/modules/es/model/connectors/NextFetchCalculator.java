@@ -1,8 +1,8 @@
 package com.constellio.app.modules.es.model.connectors;
 
 import com.constellio.app.modules.es.model.connectors.http.enums.FetchFrequency;
+import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
-import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.schemas.MetadataValueType;
@@ -12,7 +12,7 @@ import java.util.List;
 
 import static java.util.Arrays.asList;
 
-public class NextFetchCalculator implements MetadataValueCalculator<LocalDateTime> {
+public class NextFetchCalculator extends AbstractMetadataValueCalculator<LocalDateTime> {
 
 	LocalDependency<LocalDateTime> fetchedDateTimeParam = LocalDependency.toADateTime(ConnectorDocument.FETCHED_DATETIME);
 	LocalDependency<Double> fetchDelayParam = LocalDependency.toANumber(ConnectorDocument.FETCH_DELAY);

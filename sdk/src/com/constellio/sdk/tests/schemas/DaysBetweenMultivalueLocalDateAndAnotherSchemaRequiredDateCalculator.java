@@ -1,7 +1,7 @@
 package com.constellio.sdk.tests.schemas;
 
+import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
-import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
@@ -13,7 +13,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class DaysBetweenMultivalueLocalDateAndAnotherSchemaRequiredDateCalculator implements MetadataValueCalculator<Double> {
+public class DaysBetweenMultivalueLocalDateAndAnotherSchemaRequiredDateCalculator extends AbstractMetadataValueCalculator<Double> {
 
 	public static AtomicInteger invokationCounter = new AtomicInteger();
 

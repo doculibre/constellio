@@ -6,9 +6,9 @@ import com.constellio.app.modules.rm.model.calculators.folder.FolderDecomDatesDy
 import com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.DynamicDependencyValues;
-import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.ConfigDependency;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
@@ -21,7 +21,7 @@ import java.util.List;
 import static com.constellio.app.modules.rm.model.calculators.CalculatorUtils.calculateExpectedTransferDate;
 import static com.constellio.app.modules.rm.model.calculators.CalculatorUtils.toNextEndOfYearDateIfNotAlready;
 
-public abstract class AbstractFolderCopyRulesExpectedDatesCalculator implements MetadataValueCalculator<List<LocalDate>> {
+public abstract class AbstractFolderCopyRulesExpectedDatesCalculator extends AbstractMetadataValueCalculator<List<LocalDate>> {
 	protected LocalDependency<List<CopyRetentionRule>> applicableCopyRulesParam = LocalDependency
 			.toAStructure(Folder.APPLICABLE_COPY_RULES).whichIsMultivalue();
 	protected LocalDependency<LocalDate> openingDateParam = LocalDependency.toADate(Folder.OPENING_DATE);

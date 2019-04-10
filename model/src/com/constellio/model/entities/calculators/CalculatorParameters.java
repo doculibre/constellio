@@ -68,6 +68,10 @@ public class CalculatorParameters {
 		return (T) values.get(dependency);
 	}
 
+	public Object get(Dependency dependency) {
+		return values.get(dependency);
+	}
+
 	public String getCollection() {
 		return collection;
 	}

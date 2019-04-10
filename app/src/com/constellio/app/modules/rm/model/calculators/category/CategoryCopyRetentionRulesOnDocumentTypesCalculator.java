@@ -5,8 +5,8 @@ import com.constellio.app.modules.rm.model.CopyRetentionRuleInRule;
 import com.constellio.app.modules.rm.model.enums.RetentionRuleScope;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
+import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
-import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
@@ -24,7 +24,7 @@ import java.util.SortedMap;
 import static java.util.Arrays.asList;
 
 public class CategoryCopyRetentionRulesOnDocumentTypesCalculator
-		implements MetadataValueCalculator<List<CopyRetentionRuleInRule>> {
+		extends AbstractMetadataValueCalculator<List<CopyRetentionRuleInRule>> {
 
 	SpecialDependency<String> idParam = SpecialDependencies.IDENTIFIER;
 	LocalDependency<Double> levelParam = LocalDependency.toANumber(Category.LEVEL);

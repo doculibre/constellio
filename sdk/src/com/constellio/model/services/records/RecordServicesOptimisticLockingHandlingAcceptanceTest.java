@@ -2,8 +2,8 @@ package com.constellio.model.services.records;
 
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.utils.ThreadList;
+import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
-import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
@@ -670,7 +670,7 @@ public class RecordServicesOptimisticLockingHandlingAcceptanceTest extends Const
 
 	}
 
-	public static class SumOfOtherMetadatas implements MetadataValueCalculator<Double> {
+	public static class SumOfOtherMetadatas extends AbstractMetadataValueCalculator<Double> {
 
 		LocalDependency<Double> number1Param = LocalDependency.toANumber("number1");
 		LocalDependency<Double> number2Param = LocalDependency.toANumber("number2");
@@ -706,7 +706,7 @@ public class RecordServicesOptimisticLockingHandlingAcceptanceTest extends Const
 	}
 
 	public static class RecordServicesOptimisticLockingHandlingAcceptanceTest_Calculator1
-			extends RecordServicesOptimisticLockingHandlingAcceptanceTest_Calculator implements MetadataValueCalculator<Double> {
+			extends RecordServicesOptimisticLockingHandlingAcceptanceTest_Calculator {
 
 		@Override
 		protected String getReferenceCode() {
@@ -715,7 +715,7 @@ public class RecordServicesOptimisticLockingHandlingAcceptanceTest extends Const
 	}
 
 	public static class RecordServicesOptimisticLockingHandlingAcceptanceTest_Calculator2
-			extends RecordServicesOptimisticLockingHandlingAcceptanceTest_Calculator implements MetadataValueCalculator<Double> {
+			extends RecordServicesOptimisticLockingHandlingAcceptanceTest_Calculator {
 
 		@Override
 		protected String getReferenceCode() {
@@ -724,7 +724,7 @@ public class RecordServicesOptimisticLockingHandlingAcceptanceTest extends Const
 	}
 
 	public static class RecordServicesOptimisticLockingHandlingAcceptanceTest_Calculator3
-			extends RecordServicesOptimisticLockingHandlingAcceptanceTest_Calculator implements MetadataValueCalculator<Double> {
+			extends RecordServicesOptimisticLockingHandlingAcceptanceTest_Calculator {
 
 		@Override
 		protected String getReferenceCode() {
@@ -733,7 +733,7 @@ public class RecordServicesOptimisticLockingHandlingAcceptanceTest extends Const
 	}
 
 	public static class RecordServicesOptimisticLockingHandlingAcceptanceTest_Calculator4
-			extends RecordServicesOptimisticLockingHandlingAcceptanceTest_Calculator implements MetadataValueCalculator<Double> {
+			extends RecordServicesOptimisticLockingHandlingAcceptanceTest_Calculator {
 
 		@Override
 		protected String getReferenceCode() {
@@ -742,7 +742,7 @@ public class RecordServicesOptimisticLockingHandlingAcceptanceTest extends Const
 	}
 
 	public static class RecordServicesOptimisticLockingHandlingAcceptanceTest_Calculator5
-			extends RecordServicesOptimisticLockingHandlingAcceptanceTest_Calculator implements MetadataValueCalculator<Double> {
+			extends RecordServicesOptimisticLockingHandlingAcceptanceTest_Calculator {
 
 		@Override
 		protected String getReferenceCode() {
@@ -751,7 +751,7 @@ public class RecordServicesOptimisticLockingHandlingAcceptanceTest extends Const
 	}
 
 	public static abstract class RecordServicesOptimisticLockingHandlingAcceptanceTest_Calculator
-			implements MetadataValueCalculator<Double> {
+			extends AbstractMetadataValueCalculator<Double> {
 
 		ReferenceDependency<Double> referenceDependency = ReferenceDependency.toANumber(getReferenceCode(), "number");
 

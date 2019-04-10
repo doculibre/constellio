@@ -14,6 +14,7 @@ import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
@@ -51,6 +52,10 @@ public class RecordValidationServicesTest extends ConstellioTest {
 	@Mock Transaction transaction;
 
 	@Mock RecordUpdateOptions recordUpdateOptions;
+
+	@Mock AuthorizationsServices authorizationsServices;
+
+	@Mock RecordAutomaticMetadataServices recordAutomaticMetadataServices;
 
 	Metadata firstMetadata = mockMetadata("zeSchema_default_first");
 	Metadata secondMetadata = mockMetadata("zeSchema_default_second");
@@ -105,7 +110,8 @@ public class RecordValidationServicesTest extends ConstellioTest {
 		when(copiedDataEntry.getType()).thenReturn(DataEntryType.COPIED);
 		when(calculatedDataEntry.getType()).thenReturn(DataEntryType.CALCULATED);
 		when(transaction.getRecordUpdateOptions()).thenReturn(recordUpdateOptions);
-		services = spy(new RecordValidationServices(configProvider, recordProvider, schemasManager, searchServices));
+		services = spy(new RecordValidationServices(configProvider, recordProvider, schemasManager, searchServices,
+				authorizationsServices, recordAutomaticMetadataServices));
 		doReturn(true).when(services).hasSecurityOnSchema(record);
 	}
 

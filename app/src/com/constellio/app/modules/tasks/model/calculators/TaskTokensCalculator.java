@@ -1,8 +1,8 @@
 package com.constellio.app.modules.tasks.model.calculators;
 
 import com.constellio.app.modules.tasks.model.wrappers.Task;
+import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
-import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
@@ -17,7 +17,7 @@ import java.util.List;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 
-public class TaskTokensCalculator implements MetadataValueCalculator<List<String>> {
+public class TaskTokensCalculator extends AbstractMetadataValueCalculator<List<String>> {
 
 	LocalDependency<List<String>> manualTokensParam = LocalDependency.toAStringList(CommonMetadataBuilder.MANUAL_TOKENS);
 	LocalDependency<String> assigneeParam = LocalDependency.toAReference(Task.ASSIGNEE);

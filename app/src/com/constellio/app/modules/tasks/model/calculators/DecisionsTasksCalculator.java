@@ -1,8 +1,8 @@
 package com.constellio.app.modules.tasks.model.calculators;
 
 import com.constellio.app.modules.tasks.model.wrappers.Task;
+import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
-import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.schemas.MetadataValueType;
@@ -13,7 +13,7 @@ import java.util.List;
 
 import static java.util.Arrays.asList;
 
-public class DecisionsTasksCalculator implements MetadataValueCalculator<List<String>> {
+public class DecisionsTasksCalculator extends AbstractMetadataValueCalculator<List<String>> {
 	LocalDependency<MapStringStringStructure> decisionsParams = LocalDependency.toAStructure(Task.BETA_NEXT_TASKS_DECISIONS);
 
 	@Override

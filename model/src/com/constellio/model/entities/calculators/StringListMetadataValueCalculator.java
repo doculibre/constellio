@@ -4,7 +4,7 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 
 import java.util.List;
 
-public abstract class StringListMetadataValueCalculator implements MetadataValueCalculator<List<String>> {
+public abstract class StringListMetadataValueCalculator extends AbstractMetadataValueCalculator<List<String>> {
 
 	@Override
 	public List<String> getDefaultValue() {

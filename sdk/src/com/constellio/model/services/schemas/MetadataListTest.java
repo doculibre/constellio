@@ -1,8 +1,18 @@
 package com.constellio.model.services.schemas;
 
+import com.constellio.app.services.schemas.bulkImport.DummyCalculator;
+import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
+import com.constellio.model.entities.calculators.CalculatorParameters;
+import com.constellio.model.entities.calculators.dependencies.Dependency;
+import com.constellio.model.entities.calculators.dependencies.LocalDependency;
+import com.constellio.model.entities.calculators.evaluators.CalculatorEvaluator;
+import com.constellio.model.entities.calculators.evaluators.CalculatorEvaluatorParameters;
 import com.constellio.model.entities.schemas.AllowedReferences;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
+import com.constellio.model.entities.schemas.entries.ManualDataEntry;
+import com.constellio.model.entities.schemas.entries.SequenceDataEntry;
 import com.constellio.sdk.tests.ConstellioTest;
 import org.junit.Before;
 import org.junit.Test;
@@ -10,6 +20,8 @@ import org.mockito.Mock;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 import static com.constellio.sdk.tests.TestUtils.mockMetadata;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -448,4 +460,51 @@ public class MetadataListTest extends ConstellioTest {
 
 		assertThat(metadataList.onlyUSR().toLocalCodesList()).containsOnly("USRmetadata4");
 	}
+
+	@Test
+	public void whenGetManualAndCalculatedWithEvaluatorMetadatasThenOK() {
+		when(metadata1.getDataEntry()).thenReturn(new ManualDataEntry());
+		when(metadata2.getDataEntry()).thenReturn(new CalculatedDataEntry(new DummyCalculatorWithEvaluator()));
+		when(metadata3.getDataEntry()).thenReturn(new CalculatedDataEntry(new DummyCalculator()));
+		when(USRmetadata4.getDataEntry()).thenReturn(new SequenceDataEntry(null, null));
+
+		metadataList.add(metadata1);
+		metadataList.add(metadata2);
+		metadataList.add(metadata3);
+
+		assertThat(metadataList.onlyManualsAndCalculatedWithEvaluator()).containsOnly(metadata1, metadata2);
+	}
+
+	private class DummyCalculatorWithEvaluator extends AbstractMetadataValueCalculator {
+
+		DummyCalculatorWithEvaluator() {
+			calculatorEvaluator = new CalculatorEvaluator() {
+				@Override
+				public List<? extends LocalDependency> getDependencies() {
+					return Collections.emptyList();
+				}
+
+				@Override
+				public boolean isAutomaticallyFilled(CalculatorEvaluatorParameters parameters) {
+					return false;
+				}
+			};
+		}
+
+		@Override
+		public Object calculate(CalculatorParameters parameters) {
+			return "test";
+		}
+
+		@Override
+		public MetadataValueType getReturnType() {
+			return MetadataValueType.STRING;
+		}
+
+		@Override
+		public List<? extends Dependency> getDependencies() {
+			return Collections.emptyList();
+		}
+	}
+
 }

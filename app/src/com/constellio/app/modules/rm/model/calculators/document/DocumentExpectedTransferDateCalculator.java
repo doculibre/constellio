@@ -7,9 +7,9 @@ import com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn;
 import com.constellio.app.modules.rm.model.enums.RetentionRuleScope;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.DynamicDependencyValues;
-import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.ConfigDependency;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
@@ -25,7 +25,7 @@ import static com.constellio.app.modules.rm.wrappers.RetentionRule.SCOPE;
 import static com.constellio.data.utils.LangUtils.max;
 import static java.util.Arrays.asList;
 
-public class DocumentExpectedTransferDateCalculator implements MetadataValueCalculator<LocalDate> {
+public class DocumentExpectedTransferDateCalculator extends AbstractMetadataValueCalculator<LocalDate> {
 
 	ReferenceDependency<LocalDate> expectedTransferDateParam = ReferenceDependency
 			.toADate(Document.FOLDER, Folder.EXPECTED_TRANSFER_DATE);

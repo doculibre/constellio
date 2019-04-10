@@ -15,8 +15,8 @@ import com.constellio.app.services.metadata.MetadataDeletionException.MetadataDe
 import com.constellio.app.services.metadata.MetadataDeletionException.MetadataDeletionException_PopulatedMetadata;
 import com.constellio.app.services.metadata.MetadataDeletionException.MetadataDeletionException_SystemMetadata;
 import com.constellio.data.utils.TimeProvider;
+import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
-import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
@@ -387,7 +387,7 @@ public class MetadataDeletionServiceAcceptanceTest extends ConstellioTest {
 		}
 	}
 
-	public static class TestCalculator implements MetadataValueCalculator<Boolean> {
+	public static class TestCalculator extends AbstractMetadataValueCalculator<Boolean> {
 
 		ReferenceDependency<Boolean> referenceDependency = ReferenceDependency
 				.toABoolean(Folder.ADMINISTRATIVE_UNIT, "USRCalculatedReferenceDependencyMetadata");

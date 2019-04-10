@@ -14,6 +14,7 @@ import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
 import com.constellio.model.entities.calculators.dependencies.SpecialDependencies;
 import com.constellio.model.entities.calculators.dependencies.SpecialDependency;
+import com.constellio.model.entities.calculators.evaluators.CalculatorEvaluatorParameters;
 import com.constellio.model.entities.enums.GroupAuthorizationsInheritance;
 import com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval;
 import com.constellio.model.entities.records.Record;
@@ -329,9 +330,29 @@ public class RecordAutomaticMetadataServices {
 		record.updateAutomaticValue(metadataWithCalculatedDataEntry, calculatedValue, locale);
 	}
 
+	public boolean isValueAutomaticallyFilled(Metadata metadataWithCalculatedDataEntry, Record record) {
+		MetadataValueCalculator<?> calculator = getCalculatorFrom(metadataWithCalculatedDataEntry);
+		Map<Dependency, Object> values = new HashMap<>();
+		addValuesFromEvaluatorDependencies(record, calculator, values);
+		return calculator.isAutomaticallyFilled(new CalculatorEvaluatorParameters(values));
+	}
+
 	MetadataValueCalculator<?> getCalculatorFrom(Metadata metadataWithCalculatedDataEntry) {
 		CalculatedDataEntry calculatedDataEntry = (CalculatedDataEntry) metadataWithCalculatedDataEntry.getDataEntry();
 		return calculatedDataEntry.getCalculator();
+	}
+
+	private void addValuesFromEvaluatorDependencies(Record record, MetadataValueCalculator<?> calculator,
+													Map<Dependency, Object> values) {
+		for (Dependency dependency : calculator.getEvaluatorDependencies()) {
+			if (dependency instanceof LocalDependency<?>) {
+				addValueForLocalDependency((RecordImpl) record, values, dependency, null, null);
+			} else if (dependency instanceof ConfigDependency<?>) {
+				addValueForConfigDependency(values, dependency);
+			} else {
+				throw new UnsupportedOperationException("Only Local and config dependencies are supported");
+			}
+		}
 	}
 
 	boolean addValuesFromDependencies(TransactionExecutionContext context, RecordImpl record, Metadata metadata,
@@ -357,15 +378,19 @@ public class RecordAutomaticMetadataServices {
 						recordProvider, transaction, locale, mode);
 
 			} else if (dependency instanceof ConfigDependency<?>) {
-				ConfigDependency<?> configDependency = (ConfigDependency<?>) dependency;
-				Object configValue = systemConfigurationsManager.getValue(configDependency.getConfiguration());
-				values.put(dependency, configValue);
+				addValueForConfigDependency(values, dependency);
 
 			} else if (dependency instanceof SpecialDependency<?>) {
 				addValuesFromSpecialDependencies(context, record, recordProvider, values, dependency);
 			}
 		}
 		return true;
+	}
+
+	private void addValueForConfigDependency(Map<Dependency, Object> values, Dependency dependency) {
+		ConfigDependency<?> configDependency = (ConfigDependency<?>) dependency;
+		Object configValue = systemConfigurationsManager.getValue(configDependency.getConfiguration());
+		values.put(configDependency, configValue);
 	}
 
 	private void addValueForDynamicLocalDependency(RecordImpl record, Metadata calculatedMetadata,
@@ -732,7 +757,7 @@ public class RecordAutomaticMetadataServices {
 	boolean addValueForLocalDependency(RecordImpl record, Map<Dependency, Object> values, Dependency dependency,
 									   Locale locale, LocalisedRecordMetadataRetrieval mode) {
 		Metadata metadata = getMetadataFromDependency(record, dependency);
-		Object dependencyValue = record.get(metadata, locale, mode);
+		Object dependencyValue = mode != null ? record.get(metadata, locale, mode) : record.get(metadata, locale);
 		if (dependency.isRequired() && dependencyValue == null) {
 			return false;
 		} else {

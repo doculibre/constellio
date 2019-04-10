@@ -1,8 +1,8 @@
 package com.constellio.app.services.schemas.bulkImport;
 
 import com.constellio.data.utils.TimeProvider;
+import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
-import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.schemas.MetadataValueType;
@@ -13,7 +13,7 @@ import java.util.List;
 
 import static java.util.Arrays.asList;
 
-public class DummyCalculator implements MetadataValueCalculator<LocalDate> {
+public class DummyCalculator extends AbstractMetadataValueCalculator<LocalDate> {
 	LocalDependency<String> titleDependency = LocalDependency.toAString(Schemas.TITLE.getLocalCode());
 
 	@Override

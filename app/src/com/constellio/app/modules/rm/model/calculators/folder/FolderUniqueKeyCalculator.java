@@ -1,8 +1,8 @@
 package com.constellio.app.modules.rm.model.calculators.folder;
 
+import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.DynamicDependencyValues;
-import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.DynamicLocalDependency;
 import com.constellio.model.entities.schemas.Metadata;
@@ -20,7 +20,7 @@ import java.util.Map;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static java.util.Arrays.asList;
 
-public class FolderUniqueKeyCalculator implements MetadataValueCalculator<String> {
+public class FolderUniqueKeyCalculator extends AbstractMetadataValueCalculator<String> {
 	public static final String METADATA_CODE = "metadataCode";
 	public static final String UNIQUE_KEY_CONFIG = "uniqueKeyConfig";
 

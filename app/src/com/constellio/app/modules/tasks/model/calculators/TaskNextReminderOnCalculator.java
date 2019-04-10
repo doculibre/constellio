@@ -2,8 +2,8 @@ package com.constellio.app.modules.tasks.model.calculators;
 
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskReminder;
+import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
-import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.schemas.MetadataValueType;
@@ -15,7 +15,7 @@ import java.util.List;
 
 import static java.util.Arrays.asList;
 
-public class TaskNextReminderOnCalculator implements MetadataValueCalculator<LocalDate> {
+public class TaskNextReminderOnCalculator extends AbstractMetadataValueCalculator<LocalDate> {
 	LocalDependency<List<TaskReminder>> remindersLocalDependency = LocalDependency.toAStructure(Task.REMINDERS)
 			.whichIsMultivalue().whichIsRequired();
 	LocalDependency<LocalDateTime> creationDateLocalDependency = LocalDependency.toADateTime(Schemas.CREATED_ON.getLocalCode());

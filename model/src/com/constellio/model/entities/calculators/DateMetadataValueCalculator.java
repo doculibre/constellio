@@ -3,7 +3,7 @@ package com.constellio.model.entities.calculators;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import org.joda.time.LocalDate;
 
-public abstract class DateMetadataValueCalculator implements MetadataValueCalculator<LocalDate> {
+public abstract class DateMetadataValueCalculator extends AbstractMetadataValueCalculator<LocalDate> {
 
 	@Override
 	public LocalDate getDefaultValue() {

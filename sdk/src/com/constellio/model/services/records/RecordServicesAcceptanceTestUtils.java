@@ -1,7 +1,7 @@
 package com.constellio.model.services.records;
 
+import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
-import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.schemas.MetadataValueType;
@@ -68,7 +68,7 @@ public class RecordServicesAcceptanceTestUtils {
 		};
 	}
 
-	public static class DummyTextCalculator implements MetadataValueCalculator<String> {
+	public static class DummyTextCalculator extends AbstractMetadataValueCalculator<String> {
 
 		LocalDependency<String> dependency = LocalDependency.toAString("other");
 
@@ -99,7 +99,7 @@ public class RecordServicesAcceptanceTestUtils {
 
 	}
 
-	public static class DummyTextListCalculator implements MetadataValueCalculator<List<String>> {
+	public static class DummyTextListCalculator extends AbstractMetadataValueCalculator<List<String>> {
 
 		LocalDependency<List<String>> dependency = LocalDependency.toAStringList("other");
 
@@ -130,7 +130,7 @@ public class RecordServicesAcceptanceTestUtils {
 	}
 
 	@SuppressWarnings("rawtypes")
-	public static class DummyCalculatorReturningInvalidType implements MetadataValueCalculator {
+	public static class DummyCalculatorReturningInvalidType extends AbstractMetadataValueCalculator {
 
 		LocalDependency dependency = LocalDependency.toANumber("other").whichIsRequired();
 
@@ -161,7 +161,7 @@ public class RecordServicesAcceptanceTestUtils {
 		}
 	}
 
-	public static class DummyCalculatorReturningReference implements MetadataValueCalculator<String> {
+	public static class DummyCalculatorReturningReference extends AbstractMetadataValueCalculator<String> {
 
 		LocalDependency<String> dependency = LocalDependency.toAReference("other");
 

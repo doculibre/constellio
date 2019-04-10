@@ -82,6 +82,8 @@ public class RMConfigs {
 			DECOMMISSIONING_LIST_WITH_SELECTED_FOLDERS,
 			ALLOW_SORTING_IN_FOLDER_LIST_OF_DECOMMISSIONING,
 			CREATE_MISSING_AUTHORIZATIONS_FOR_TASK;
+			DEPOSIT_AND_DESTRUCTION_DATES_BASED_ON_ACTUAL_TRANSFER_DATE,
+			SUB_FOLDER_DECOMMISSIONING;
 
 	// Category configs
 	public static final SystemConfiguration LINKABLE_CATEGORY_MUST_NOT_BE_ROOT, LINKABLE_CATEGORY_MUST_HAVE_APPROVED_RULES;
@@ -102,9 +104,11 @@ public class RMConfigs {
 
 		SystemConfigurationGroup decommissioning = new SystemConfigurationGroup(ID, decommissioningGroup);
 
+		add(SUB_FOLDER_DECOMMISSIONING = decommissioning.createBooleanTrueByDefault("subfolderSeparateDecommissioning")
+				.withReIndexionRequired());
+
 		// Allow to enter retention rules for documents
-		add(DOCUMENT_RETENTION_RULES = decommissioning.createBooleanFalseByDefault("documentRetentionRules")
-				.withReIndexionRequired().scriptedBy(RMDocumentRetentionRulesScript.class));
+		add(DOCUMENT_RETENTION_RULES = decommissioning.createBooleanFalseByDefault("documentRetentionRules"));
 
 		// Validation exception if a folder's rule and category are not linked
 		add(ENFORCE_CATEGORY_AND_RULE_RELATIONSHIP_IN_FOLDER = decommissioning

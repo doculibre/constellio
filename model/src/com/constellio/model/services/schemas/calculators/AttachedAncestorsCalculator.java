@@ -1,8 +1,8 @@
 package com.constellio.model.services.schemas.calculators;
 
+import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.DynamicDependencyValues;
-import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.HierarchyDependencyValue;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
@@ -21,7 +21,7 @@ import static com.constellio.model.entities.security.TransactionSecurityModel.ha
 import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.DETACHED_AUTHORIZATIONS;
 import static java.util.Arrays.asList;
 
-public class AttachedAncestorsCalculator implements MetadataValueCalculator<List<String>> {
+public class AttachedAncestorsCalculator extends AbstractMetadataValueCalculator<List<String>> {
 
 	SpecialDependency<HierarchyDependencyValue> taxonomiesParam = SpecialDependencies.HIERARCHY;
 	LocalDependency<Boolean> isDetachedAuthsParams = LocalDependency.toABoolean(DETACHED_AUTHORIZATIONS);

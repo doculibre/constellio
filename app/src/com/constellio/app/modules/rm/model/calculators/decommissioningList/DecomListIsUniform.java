@@ -3,8 +3,8 @@ package com.constellio.app.modules.rm.model.calculators.decommissioningList;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
+import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
-import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.schemas.MetadataValueType;
@@ -13,7 +13,7 @@ import java.util.List;
 
 import static java.util.Arrays.asList;
 
-public class DecomListIsUniform implements MetadataValueCalculator<Boolean> {
+public class DecomListIsUniform extends AbstractMetadataValueCalculator<Boolean> {
 
 	LocalDependency<CopyRetentionRule> uniformCopyRuleParam = LocalDependency.toAStructure(DecommissioningList.UNIFORM_COPY_RULE);
 	LocalDependency<CopyType> uniformCopyTypeParam = LocalDependency.toAnEnum(DecommissioningList.UNIFORM_COPY_TYPE);

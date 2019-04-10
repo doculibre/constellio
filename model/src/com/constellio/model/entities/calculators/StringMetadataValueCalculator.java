@@ -2,7 +2,7 @@ package com.constellio.model.entities.calculators;
 
 import com.constellio.model.entities.schemas.MetadataValueType;
 
-public abstract class StringMetadataValueCalculator implements MetadataValueCalculator<String> {
+public abstract class StringMetadataValueCalculator extends AbstractMetadataValueCalculator<String> {
 
 	@Override
 	public String getDefaultValue() {

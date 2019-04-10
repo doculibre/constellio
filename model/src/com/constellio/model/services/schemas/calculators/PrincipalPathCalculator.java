@@ -1,7 +1,7 @@
 package com.constellio.model.services.schemas.calculators;
 
+import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
-import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.dependencies.SpecialDependencies;
@@ -13,7 +13,7 @@ import java.util.List;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 
-public class PrincipalPathCalculator implements MetadataValueCalculator<String> {
+public class PrincipalPathCalculator extends AbstractMetadataValueCalculator<String> {
 
 	LocalDependency<List<String>> pathDependency = LocalDependency.toAStringList("path").whichIsRequired();
 	SpecialDependency<String> taxoPrincipaleDependency = SpecialDependencies.PRINCIPAL_TAXONOMY_CODE;

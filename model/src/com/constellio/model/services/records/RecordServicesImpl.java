@@ -1255,7 +1255,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 	public RecordValidationServices newRecordValidationServices(RecordProvider recordProvider) {
 		return new RecordValidationServices(newConfigProvider(), recordProvider, modelFactory.getMetadataSchemasManager(),
-				modelFactory.newSearchServices(), modelFactory.newAuthorizationsServices());
+				modelFactory.newSearchServices(), modelFactory.newAuthorizationsServices(), newAutomaticMetadataServices());
 	}
 
 	public ConfigProvider newConfigProvider() {
