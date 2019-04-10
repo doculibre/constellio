@@ -10,6 +10,7 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.SearchResultVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
+import com.constellio.app.ui.framework.components.layouts.I18NCssLayout;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.components.mouseover.NiceTitle;
 import com.constellio.app.ui.pages.base.SessionContext;
@@ -133,11 +134,12 @@ public class SearchResultDisplay extends VerticalLayout {
 	protected Component newTitleComponent(SearchResultVO searchResultVO) {
 		final RecordVO record = searchResultVO.getRecordVO();
 
-		CssLayout titleLayout = new CssLayout();
+		CssLayout titleLayout = new I18NCssLayout();
+		titleLayout.setWidth("100%");
 		Component titleLink = newTitleLink(searchResultVO);
 		titleLink.addStyleName(TITLE_STYLE);
-		
-		titleLink.setWidthUndefined();
+//		titleLink.setWidthUndefined();
+		titleLink.setWidth("80%");
 		titleLayout.addComponent(titleLink);
 
 		SessionContext currentSessionContext = ConstellioUI.getCurrentSessionContext();
@@ -186,14 +188,14 @@ public class SearchResultDisplay extends VerticalLayout {
 		}
 		return titleLayout;
 	}
-	
+
 	protected void addVisitedStyleNameIfNecessary(Component titleLink, String id) {
 		SessionContext sessionContext = getCurrent().getSessionContext();
 		if (sessionContext.isVisited(id)) {
 			titleLink.addStyleName("visited-link");
 		}
 	}
-	
+
 	protected Component newTitleLink(SearchResultVO searchResultVO) {
 		return new ReferenceDisplay(searchResultVO.getRecordVO(), true, extraParam);
 	}

@@ -3011,6 +3011,12 @@ $popup-view-z-index: 3;
 				.v-disabled {
 					text-align: right;
 				}
+			
+				.v-checkbox {
+					> label {
+						margin-right: 10px;
+					}
+				}
 			}
 		}
 
@@ -3053,6 +3059,10 @@ $popup-view-z-index: 3;
 			direction: rtl;
 		}
 
+		.v-radiobutton {
+    		margin-right: 25px;
+    	}
+
 		.v-radiobutton label {
     		margin-right: 13px;
     	}
@@ -3073,11 +3083,13 @@ $popup-view-z-index: 3;
 		}
 
 		.v-checkbox {
-			padding-left: 25px;
+			//padding-left: 25px;
+			padding-left: inherit;
 		}
 
 		.v-checkbox > label {
-			margin-right: 29px;
+			//margin-right: 29px;
+			margin-right: 25px;
 		}
 
 		.v-checkbox > input {
@@ -3087,6 +3099,11 @@ $popup-view-z-index: 3;
 		.v-checkbox > input ~ label:before, .v-checkbox > input ~ label:after {
 			left: inherit;
 			right: 0;
+		}
+			
+		.h1 {
+		    padding-left: 0px;
+		    padding-right: 10px;
 		}
 
 		.selection-table {
@@ -3193,6 +3210,29 @@ $popup-view-z-index: 3;
 				
 				.content-view-wrapper {
 					padding-right: 10px;
+
+					.main-component-wrapper {
+						.main-component {
+							.search-result-table {
+								.search-result-title {
+									text-align: right;
+								}
+							}
+						}
+					}
+				}
+			
+				.search-result-title {
+					.v-icon {
+						padding-left: 8px;
+						padding-right: 2px;
+					}
+				}
+			
+				.search-result-highlights {
+					em {
+						text-decoration: underline;
+					}
 				}
 				
 				.search-result-summary {
@@ -3310,8 +3350,50 @@ $popup-view-z-index: 3;
 		
 		.v-tree-node-caption {
 			direction: rtl;
+
+			span {
+				padding-right: inherit;
+			}
 		}
-    	
+
+		.v-treetable {
+			.v-table-cell-wrapper {
+				direction: rtl;
+
+				.v-menubar {
+					direction: ltr;
+				}
+
+				.v-treetable-treespacer {
+					margin-left: inherit;
+					margin-right: -14px;
+				}
+
+				.v-treetable-node-closed:before {
+					content: "\f0d9";
+				}
+			}
+		}
+
+		.v-treetable {
+			.v-table-cell-wrapper {
+				direction: rtl;
+
+				.v-menubar {
+					direction: ltr;
+				}
+
+				.v-treetable-treespacer {
+					margin-left: inherit;
+					margin-right: -14px;
+				}
+
+				.v-treetable-node-closed:before {
+					content: "\f0d9";
+				}
+			}
+		}
+
     	.v-slot-search-result-facets {
     		.facet-box {
     			direction: rtl;
@@ -3326,6 +3408,9 @@ $popup-view-z-index: 3;
 					direction: ltr;
 				}
 
+				.facet-value > label {
+					margin-right: 25px;
+				}
     		}
     	}
 		
@@ -3731,7 +3816,19 @@ $popup-view-z-index: 3;
 }
 
 .warningLabel {
-  color: #ff0000
+  color: #ff0000;
+}
+
+.autocomplete-suggestions-rtl {
+	.autocomplete-suggestion {
+		.autocomplete-suggestion-content {
+			.autocomplete-suggestion-text {
+				.autocomplete-suggestion-value {
+					text-align: right;
+				}
+			}
+		}
+	}
 }
 
 .v-slot-list-add-remove-comment {
