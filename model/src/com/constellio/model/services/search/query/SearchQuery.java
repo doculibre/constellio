@@ -2,13 +2,11 @@ package com.constellio.model.services.search.query;
 
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.DataStoreField;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery.UserFilter;
 
 import java.util.List;
 
 public interface SearchQuery {
-	String getQuery(String language, MetadataSchemaTypes types);
 
 	List<String> getFilterQueries();
 

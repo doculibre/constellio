@@ -1,5 +1,6 @@
 package com.constellio.model.services.search.query.logical.condition;
 
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.DataStoreField;
 import com.constellio.model.services.search.query.logical.LogicalOperator;
 import com.constellio.model.services.search.query.logical.LogicalSearchValueCondition;
@@ -10,8 +11,9 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Predicate;
 
-public abstract class LogicalSearchCondition {
+public abstract class LogicalSearchCondition implements Predicate<Record> {
 
 	protected final DataStoreFilters filters;
 
@@ -100,9 +102,10 @@ public abstract class LogicalSearchCondition {
 				this, LogicalOperator.AND);
 	}
 
-	public LogicalSearchCondition negated() {
+	public LogicalSearchCondition negate() {
 		return new NegatedLogicalSearchCondition(this);
 	}
+
 
 	@Override
 	public int hashCode() {
@@ -120,7 +123,7 @@ public abstract class LogicalSearchCondition {
 
 	public abstract LogicalSearchCondition withAndValueConditions(List<LogicalSearchValueCondition> conditions);
 
-	public abstract String getSolrQuery(SolrQueryBuilderParams params);
+	public abstract String getSolrQuery(SolrQueryBuilderContext params);
 
 	public DataStoreFilters getFilters() {
 		return filters;
@@ -146,4 +149,8 @@ public abstract class LogicalSearchCondition {
 		return filters != null ? filters.getCollection() : null;
 	}
 
+	@Override
+	public boolean test(Record record) {
+		return false;
+	}
 }

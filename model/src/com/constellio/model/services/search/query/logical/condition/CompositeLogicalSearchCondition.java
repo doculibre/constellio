@@ -69,7 +69,7 @@ public class CompositeLogicalSearchCondition extends LogicalSearchCondition {
 	}
 
 	@Override
-	public String getSolrQuery(SolrQueryBuilderParams params) {
+	public String getSolrQuery(SolrQueryBuilderContext params) {
 
 		if (nestedSearchConditions.isEmpty()) {
 			throw new IllegalStateException("No conditions");

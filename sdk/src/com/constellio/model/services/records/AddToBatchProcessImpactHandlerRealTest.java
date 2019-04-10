@@ -11,7 +11,7 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.CollectionFilters;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
-import com.constellio.model.services.search.query.logical.condition.SolrQueryBuilderParams;
+import com.constellio.model.services.search.query.logical.condition.SolrQueryBuilderContext;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
@@ -60,7 +60,7 @@ public class AddToBatchProcessImpactHandlerRealTest extends ConstellioTest {
 		//		condition = from(zeSchema.type()).where(Schemas.TITLE).isEqualTo("Ze title");
 
 		when(condition.getFilters()).thenReturn(new CollectionFilters(zeCollection, DataStore.RECORDS, false));
-		when(condition.getSolrQuery(any(SolrQueryBuilderParams.class))).thenReturn("zeQuery");
+		when(condition.getSolrQuery(any(SolrQueryBuilderContext.class))).thenReturn("zeQuery");
 		when(condition.getCollection()).thenReturn(zeCollection);
 
 		when(reindexedMetadata.getCollection()).thenReturn(zeCollection);

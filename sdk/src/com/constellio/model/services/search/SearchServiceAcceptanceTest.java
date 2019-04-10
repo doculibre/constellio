@@ -2778,7 +2778,7 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		recordServices.execute(transaction);
 
 		condition = from(zeSchema.instance()).where(zeSchema.stringMetadata()).isContainingText("Norris")
-				.and(asList(startingWithText("Chuck"))).negated();
+				.and(asList(startingWithText("Chuck"))).negate();
 		List<Record> records = findRecords(condition);
 
 		assertThat(records).hasSize(3).doesNotContain(unexpectedRecord);
@@ -2802,7 +2802,7 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 
 		condition = allConditions(
 				from(zeSchema.instance()).where(zeSchema.stringMetadata()).isContainingText("Chuck"),
-				from(zeSchema.instance()).where(zeSchema.metadata("title")).isEqualTo("Unwanted").negated());
+				from(zeSchema.instance()).where(zeSchema.metadata("title")).isEqualTo("Unwanted").negate());
 		List<Record> records = findRecords(condition);
 
 		assertThat(records).containsExactly(expected);
@@ -2832,7 +2832,7 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 				from(zeSchema.instance()).where(zeSchema.stringMetadata()).isContainingText("Chuck"),
 				anyConditions(
 						from(zeSchema.instance()).where(zeSchema.metadata("title")).isEqualTo("Unwanted"),
-						from(zeSchema.instance()).where(zeSchema.stringMetadata()).isContainingText("Lechat")).negated());
+						from(zeSchema.instance()).where(zeSchema.stringMetadata()).isContainingText("Lechat")).negate());
 		List<Record> records = findRecords(condition);
 
 		assertThat(records).containsExactly(expected);
@@ -2861,8 +2861,8 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		condition = allConditions(
 				from(zeSchema.instance()).where(zeSchema.stringMetadata()).isContainingText("Chuck"),
 				allConditions(
-						from(zeSchema.instance()).where(zeSchema.metadata("title")).isEqualTo("Unwanted").negated(),
-						from(zeSchema.instance()).where(zeSchema.stringMetadata()).isContainingText("Lechat").negated()));
+						from(zeSchema.instance()).where(zeSchema.metadata("title")).isEqualTo("Unwanted").negate(),
+						from(zeSchema.instance()).where(zeSchema.stringMetadata()).isContainingText("Lechat").negate()));
 		List<Record> records = findRecords(condition);
 
 		assertThat(records).containsExactly(expected);

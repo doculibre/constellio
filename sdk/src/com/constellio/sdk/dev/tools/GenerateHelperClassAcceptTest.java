@@ -64,6 +64,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.UserCredential;
+import com.constellio.model.services.records.cache.CacheConfig;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.MainTest;
@@ -290,6 +291,18 @@ public class GenerateHelperClassAcceptTest extends ConstellioTest {
 		appendWrapElementsHelperMethod(schema, wrapperName, withLocale, stringBuilder);
 		appendSearchByQueryElementsHelperMethod(schema, wrapperName, stringBuilder);
 		appendSearchByConditionElementsHelperMethod(schema, wrapperName, stringBuilder);
+
+		CacheConfig cacheConfig = getModelLayerFactory().getRecordsCaches().getCache(schema.getCollection())
+				.getCacheConfigOf(SchemaUtils.getSchemaTypeCode(schema.getCode()));
+		if (cacheConfig != null && cacheConfig.isPermanent()) {
+			appendIterateFromCacheHelperMethod(schema, wrapperName, stringBuilder);
+			appendStreamFromCacheHelperMethod(schema, wrapperName, stringBuilder);
+		} else {
+			appendIterateFromConditionHelperMethod(schema, wrapperName, stringBuilder);
+			appendStreamFromConditionHelperMethod(schema, wrapperName, stringBuilder);
+			appendIterateFromQueryHelperMethod(schema, wrapperName, stringBuilder);
+			appendStreamFromQueryHelperMethod(schema, wrapperName, stringBuilder);
+		}
 		appendGetByIdHelperMethod(schema, wrapperName, stringBuilder);
 		appendGetByIdsHelperMethod(schema, wrapperName, stringBuilder);
 
@@ -349,6 +362,56 @@ public class GenerateHelperClassAcceptTest extends ConstellioTest {
 
 		stringBuilder.append("\n\tpublic " + wrapperName + " get" + wrapperName + "WithLegacyId(String legacyId) {");
 		stringBuilder.append("\n\t\treturn wrap" + wrapperName + "(getByLegacyId(" + schemaTypeCall + ",  legacyId));");
+		stringBuilder.append("\n\t}\n");
+	}
+
+	private void appendStreamFromCacheHelperMethod(MetadataSchema schema, String wrapperName,
+												   StringBuilder stringBuilder) {
+		String schemaTypeCall = schemaTypeCallerFor(schema);
+		stringBuilder.append("\n\tpublic Stream<" + wrapperName + "> " + StringUtils.uncapitalize(wrapperName) + "Stream() {");
+		stringBuilder.append("\n\t\treturn streamFromCache(" + schemaTypeCall + ",this::wrap" + wrapperName + ");");
+		stringBuilder.append("\n\t}\n");
+	}
+
+	private void appendIterateFromCacheHelperMethod(MetadataSchema schema, String wrapperName,
+													StringBuilder stringBuilder) {
+		String schemaTypeCall = schemaTypeCallerFor(schema);
+		stringBuilder.append("\n\tpublic Iterator<" + wrapperName + "> " + StringUtils.uncapitalize(wrapperName) + "Iterator() {");
+		stringBuilder.append("\n\t\treturn iterateFromCache(" + schemaTypeCall + ",this::wrap" + wrapperName + ");");
+		stringBuilder.append("\n\t}\n");
+	}
+
+
+	private void appendIterateFromConditionHelperMethod(MetadataSchema schema, String wrapperName,
+														StringBuilder stringBuilder) {
+		String schemaTypeCall = schemaTypeCallerFor(schema);
+		stringBuilder.append("\n\tpublic Iterator<" + wrapperName + "> " + StringUtils.uncapitalize(wrapperName) + "Iterator(LogicalSearchCondition condition) {");
+		stringBuilder.append("\n\t\treturn searchIterator(from(" + schemaTypeCall + ").whereAllConditions(asList(condition)), this::wrap" + wrapperName + ");");
+		stringBuilder.append("\n\t}\n");
+	}
+
+
+	private void appendIterateFromQueryHelperMethod(MetadataSchema schema, String wrapperName,
+													StringBuilder stringBuilder) {
+		stringBuilder.append("\n\tpublic Iterator<" + wrapperName + "> " + StringUtils.uncapitalize(wrapperName) + "Iterator(LogicalSearchQuery query) {");
+		stringBuilder.append("\n\t\treturn searchIterator(query, this::wrap" + wrapperName + ");");
+		stringBuilder.append("\n\t}\n");
+	}
+
+
+	private void appendStreamFromConditionHelperMethod(MetadataSchema schema, String wrapperName,
+													   StringBuilder stringBuilder) {
+		String schemaTypeCall = schemaTypeCallerFor(schema);
+		stringBuilder.append("\n\tpublic Stream<" + wrapperName + "> " + StringUtils.uncapitalize(wrapperName) + "Stream(LogicalSearchCondition condition) {");
+		stringBuilder.append("\n\t\treturn searchIterator(from(" + schemaTypeCall + ").whereAllConditions(asList(condition)), this::wrap" + wrapperName + ").stream();");
+		stringBuilder.append("\n\t}\n");
+	}
+
+
+	private void appendStreamFromQueryHelperMethod(MetadataSchema schema, String wrapperName,
+												   StringBuilder stringBuilder) {
+		stringBuilder.append("\n\tpublic Stream<" + wrapperName + "> " + StringUtils.uncapitalize(wrapperName) + "Stream(LogicalSearchQuery query) {");
+		stringBuilder.append("\n\t\treturn searchIterator(query, this::wrap" + wrapperName + ").stream();");
 		stringBuilder.append("\n\t}\n");
 	}
 

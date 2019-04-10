@@ -30,8 +30,10 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.stream.Stream;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
@@ -47,6 +49,9 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 											ModelLayerFactory modelLayerFactory, Locale locale) {
 		super(collection, modelLayerFactory, locale);
 	}
+
+	/** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
+	// Auto-generated methods by GenerateHelperClassAcceptTest -- start
 
 	/** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
 	// Auto-generated methods by GenerateHelperClassAcceptTest -- start
@@ -77,6 +82,14 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 		MetadataSchemaType type = administrativeUnit.schemaType();
 		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
 		return wrapAdministrativeUnits(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public Iterator<AdministrativeUnit> administrativeUnitIterator() {
+		return iterateFromCache(administrativeUnit.schemaType(), this::wrapAdministrativeUnit);
+	}
+
+	public Stream<AdministrativeUnit> administrativeUnitStream() {
+		return streamFromCache(administrativeUnit.schemaType(), this::wrapAdministrativeUnit);
 	}
 
 	public AdministrativeUnit getAdministrativeUnit(String id) {
@@ -179,6 +192,14 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 		return wrapCarts(modelLayerFactory.newSearchServices().search(query));
 	}
 
+	public Iterator<Cart> cartIterator() {
+		return iterateFromCache(cart.schemaType(), this::wrapCart);
+	}
+
+	public Stream<Cart> cartStream() {
+		return streamFromCache(cart.schemaType(), this::wrapCart);
+	}
+
 	public Cart getCart(String id) {
 		return wrapCart(get(cart.schemaType(), id));
 	}
@@ -237,6 +258,14 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 		MetadataSchemaType type = category.schemaType();
 		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
 		return wrapCategorys(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public Iterator<Category> categoryIterator() {
+		return iterateFromCache(category.schemaType(), this::wrapCategory);
+	}
+
+	public Stream<Category> categoryStream() {
+		return streamFromCache(category.schemaType(), this::wrapCategory);
 	}
 
 	public Category getCategory(String id) {
@@ -329,6 +358,14 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 		MetadataSchemaType type = containerRecord.schemaType();
 		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
 		return wrapContainerRecords(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public Iterator<ContainerRecord> containerRecordIterator() {
+		return iterateFromCache(containerRecord.schemaType(), this::wrapContainerRecord);
+	}
+
+	public Stream<ContainerRecord> containerRecordStream() {
+		return streamFromCache(containerRecord.schemaType(), this::wrapContainerRecord);
 	}
 
 	public ContainerRecord getContainerRecord(String id) {
@@ -507,6 +544,14 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 		return wrapDocumentTypes(modelLayerFactory.newSearchServices().search(query));
 	}
 
+	public Iterator<DocumentType> documentTypeIterator() {
+		return iterateFromCache(ddvDocumentType.schemaType(), this::wrapDocumentType);
+	}
+
+	public Stream<DocumentType> documentTypeStream() {
+		return streamFromCache(ddvDocumentType.schemaType(), this::wrapDocumentType);
+	}
+
 	public DocumentType getDocumentType(String id) {
 		return wrapDocumentType(get(ddvDocumentType.schemaType(), id));
 	}
@@ -571,6 +616,14 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 		return wrapFolderTypes(modelLayerFactory.newSearchServices().search(query));
 	}
 
+	public Iterator<FolderType> folderTypeIterator() {
+		return iterateFromCache(ddvFolderType.schemaType(), this::wrapFolderType);
+	}
+
+	public Stream<FolderType> folderTypeStream() {
+		return streamFromCache(ddvFolderType.schemaType(), this::wrapFolderType);
+	}
+
 	public FolderType getFolderType(String id) {
 		return wrapFolderType(get(ddvFolderType.schemaType(), id));
 	}
@@ -629,6 +682,14 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 		MetadataSchemaType type = ddvStorageSpaceType.schemaType();
 		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
 		return wrapStorageSpaceTypes(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public Iterator<StorageSpaceType> storageSpaceTypeIterator() {
+		return iterateFromCache(ddvStorageSpaceType.schemaType(), this::wrapStorageSpaceType);
+	}
+
+	public Stream<StorageSpaceType> storageSpaceTypeStream() {
+		return streamFromCache(ddvStorageSpaceType.schemaType(), this::wrapStorageSpaceType);
 	}
 
 	public StorageSpaceType getStorageSpaceType(String id) {
@@ -747,6 +808,14 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 		return wrapYearTypes(modelLayerFactory.newSearchServices().search(query));
 	}
 
+	public Iterator<YearType> yearTypeIterator() {
+		return iterateFromCache(ddvYearType.schemaType(), this::wrapYearType);
+	}
+
+	public Stream<YearType> yearTypeStream() {
+		return streamFromCache(ddvYearType.schemaType(), this::wrapYearType);
+	}
+
 	public YearType getYearType(String id) {
 		return wrapYearType(get(ddvYearType.schemaType(), id));
 	}
@@ -805,6 +874,14 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 		MetadataSchemaType type = decommissioningList.schemaType();
 		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
 		return wrapDecommissioningLists(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public Iterator<DecommissioningList> decommissioningListIterator() {
+		return iterateFromCache(decommissioningList.schemaType(), this::wrapDecommissioningList);
+	}
+
+	public Stream<DecommissioningList> decommissioningListStream() {
+		return streamFromCache(decommissioningList.schemaType(), this::wrapDecommissioningList);
 	}
 
 	public DecommissioningList getDecommissioningList(String id) {
@@ -985,6 +1062,22 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 		MetadataSchemaType type = document.schemaType();
 		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
 		return wrapDocuments(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public Iterator<Document> documentIterator(LogicalSearchCondition condition) {
+		return searchIterator(from(document.schemaType()).whereAllConditions(asList(condition)), this::wrapDocument);
+	}
+
+	public Stream<Document> documentStream(LogicalSearchCondition condition) {
+		return searchIterator(from(document.schemaType()).whereAllConditions(asList(condition)), this::wrapDocument).stream();
+	}
+
+	public Iterator<Document> documentIterator(LogicalSearchQuery query) {
+		return searchIterator(query, this::wrapDocument);
+	}
+
+	public Stream<Document> documentStream(LogicalSearchQuery query) {
+		return searchIterator(query, this::wrapDocument).stream();
 	}
 
 	public Document getDocument(String id) {
@@ -1215,6 +1308,22 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 		return wrapEmails(modelLayerFactory.newSearchServices().search(query));
 	}
 
+	public Iterator<Email> emailIterator(LogicalSearchCondition condition) {
+		return searchIterator(from(document.schemaType()).whereAllConditions(asList(condition)), this::wrapEmail);
+	}
+
+	public Stream<Email> emailStream(LogicalSearchCondition condition) {
+		return searchIterator(from(document.schemaType()).whereAllConditions(asList(condition)), this::wrapEmail).stream();
+	}
+
+	public Iterator<Email> emailIterator(LogicalSearchQuery query) {
+		return searchIterator(query, this::wrapEmail);
+	}
+
+	public Stream<Email> emailStream(LogicalSearchQuery query) {
+		return searchIterator(query, this::wrapEmail).stream();
+	}
+
 	public Email getEmail(String id) {
 		return wrapEmail(get(document.schemaType(), id));
 	}
@@ -1309,6 +1418,22 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 		MetadataSchemaType type = folder.schemaType();
 		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
 		return wrapFolders(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public Iterator<Folder> folderIterator(LogicalSearchCondition condition) {
+		return searchIterator(from(folder.schemaType()).whereAllConditions(asList(condition)), this::wrapFolder);
+	}
+
+	public Stream<Folder> folderStream(LogicalSearchCondition condition) {
+		return searchIterator(from(folder.schemaType()).whereAllConditions(asList(condition)), this::wrapFolder).stream();
+	}
+
+	public Iterator<Folder> folderIterator(LogicalSearchQuery query) {
+		return searchIterator(query, this::wrapFolder);
+	}
+
+	public Stream<Folder> folderStream(LogicalSearchQuery query) {
+		return searchIterator(query, this::wrapFolder).stream();
 	}
 
 	public Folder getFolder(String id) {
@@ -1679,6 +1804,14 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 		return wrapPrintableLabels(modelLayerFactory.newSearchServices().search(query));
 	}
 
+	public Iterator<PrintableLabel> printableLabelIterator() {
+		return iterateFromCache(printable.schemaType(), this::wrapPrintableLabel);
+	}
+
+	public Stream<PrintableLabel> printableLabelStream() {
+		return streamFromCache(printable.schemaType(), this::wrapPrintableLabel);
+	}
+
 	public PrintableLabel getPrintableLabel(String id) {
 		return wrapPrintableLabel(get(printable.schemaType(), id));
 	}
@@ -1743,6 +1876,14 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 		return wrapPrintableReports(modelLayerFactory.newSearchServices().search(query));
 	}
 
+	public Iterator<PrintableReport> printableReportIterator() {
+		return iterateFromCache(printable.schemaType(), this::wrapPrintableReport);
+	}
+
+	public Stream<PrintableReport> printableReportStream() {
+		return streamFromCache(printable.schemaType(), this::wrapPrintableReport);
+	}
+
 	public PrintableReport getPrintableReport(String id) {
 		return wrapPrintableReport(get(printable.schemaType(), id));
 	}
@@ -1801,6 +1942,14 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 		MetadataSchemaType type = retentionRule.schemaType();
 		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
 		return wrapRetentionRules(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public Iterator<RetentionRule> retentionRuleIterator() {
+		return iterateFromCache(retentionRule.schemaType(), this::wrapRetentionRule);
+	}
+
+	public Stream<RetentionRule> retentionRuleStream() {
+		return streamFromCache(retentionRule.schemaType(), this::wrapRetentionRule);
 	}
 
 	public RetentionRule getRetentionRule(String id) {
@@ -1959,6 +2108,14 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 		return wrapStorageSpaces(modelLayerFactory.newSearchServices().search(query));
 	}
 
+	public Iterator<StorageSpace> storageSpaceIterator() {
+		return iterateFromCache(storageSpace.schemaType(), this::wrapStorageSpace);
+	}
+
+	public Stream<StorageSpace> storageSpaceStream() {
+		return streamFromCache(storageSpace.schemaType(), this::wrapStorageSpace);
+	}
+
 	public StorageSpace getStorageSpace(String id) {
 		return wrapStorageSpace(get(storageSpace.schemaType(), id));
 	}
@@ -2075,6 +2232,22 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 		return wrapSIParchives(modelLayerFactory.newSearchServices().search(query));
 	}
 
+	public Iterator<SIParchive> sIParchiveIterator(LogicalSearchCondition condition) {
+		return searchIterator(from(temporaryRecord.schemaType()).whereAllConditions(asList(condition)), this::wrapSIParchive);
+	}
+
+	public Stream<SIParchive> sIParchiveStream(LogicalSearchCondition condition) {
+		return searchIterator(from(temporaryRecord.schemaType()).whereAllConditions(asList(condition)), this::wrapSIParchive).stream();
+	}
+
+	public Iterator<SIParchive> sIParchiveIterator(LogicalSearchQuery query) {
+		return searchIterator(query, this::wrapSIParchive);
+	}
+
+	public Stream<SIParchive> sIParchiveStream(LogicalSearchQuery query) {
+		return searchIterator(query, this::wrapSIParchive).stream();
+	}
+
 	public SIParchive getSIParchive(String id) {
 		return wrapSIParchive(get(temporaryRecord.schemaType(), id));
 	}
@@ -2137,6 +2310,14 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 		MetadataSchemaType type = uniformSubdivision.schemaType();
 		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
 		return wrapUniformSubdivisions(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public Iterator<UniformSubdivision> uniformSubdivisionIterator() {
+		return iterateFromCache(uniformSubdivision.schemaType(), this::wrapUniformSubdivision);
+	}
+
+	public Stream<UniformSubdivision> uniformSubdivisionStream() {
+		return streamFromCache(uniformSubdivision.schemaType(), this::wrapUniformSubdivision);
 	}
 
 	public UniformSubdivision getUniformSubdivision(String id) {
@@ -2211,6 +2392,22 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 		return wrapRMUserFolders(modelLayerFactory.newSearchServices().search(query));
 	}
 
+	public Iterator<RMUserFolder> rMUserFolderIterator(LogicalSearchCondition condition) {
+		return searchIterator(from(userFolder.schemaType()).whereAllConditions(asList(condition)), this::wrapRMUserFolder);
+	}
+
+	public Stream<RMUserFolder> rMUserFolderStream(LogicalSearchCondition condition) {
+		return searchIterator(from(userFolder.schemaType()).whereAllConditions(asList(condition)), this::wrapRMUserFolder).stream();
+	}
+
+	public Iterator<RMUserFolder> rMUserFolderIterator(LogicalSearchQuery query) {
+		return searchIterator(query, this::wrapRMUserFolder);
+	}
+
+	public Stream<RMUserFolder> rMUserFolderStream(LogicalSearchQuery query) {
+		return searchIterator(query, this::wrapRMUserFolder).stream();
+	}
+
 	public RMUserFolder getRMUserFolder(String id) {
 		return wrapRMUserFolder(get(userFolder.schemaType(), id));
 	}
@@ -2277,6 +2474,22 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 		MetadataSchemaType type = userTask.schemaType();
 		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
 		return wrapRMTasks(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public Iterator<RMTask> rMTaskIterator(LogicalSearchCondition condition) {
+		return searchIterator(from(userTask.schemaType()).whereAllConditions(asList(condition)), this::wrapRMTask);
+	}
+
+	public Stream<RMTask> rMTaskStream(LogicalSearchCondition condition) {
+		return searchIterator(from(userTask.schemaType()).whereAllConditions(asList(condition)), this::wrapRMTask).stream();
+	}
+
+	public Iterator<RMTask> rMTaskIterator(LogicalSearchQuery query) {
+		return searchIterator(query, this::wrapRMTask);
+	}
+
+	public Stream<RMTask> rMTaskStream(LogicalSearchQuery query) {
+		return searchIterator(query, this::wrapRMTask).stream();
 	}
 
 	public RMTask getRMTask(String id) {

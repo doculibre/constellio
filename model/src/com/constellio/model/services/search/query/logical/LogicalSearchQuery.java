@@ -5,7 +5,6 @@ import com.constellio.data.utils.KeySetMap;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.DataStoreField;
 import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.search.StatusFilter;
@@ -16,7 +15,6 @@ import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.SearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.condition.SchemaFilters;
-import com.constellio.model.services.search.query.logical.condition.SolrQueryBuilderParams;
 import com.constellio.model.services.security.SecurityTokenManager;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -391,11 +389,6 @@ public class LogicalSearchQuery implements SearchQuery {
 
 	// The following methods are mainly used by the SPE itself
 
-	@Override
-	public String getQuery(String language, final MetadataSchemaTypes types) {
-		SolrQueryBuilderParams params = new SolrQueryBuilderParams(preferAnalyzedFields, language, types);
-		return condition.getSolrQuery(params);
-	}
 
 	@Override
 	public List<String> getFilterQueries() {
@@ -509,6 +502,7 @@ public class LogicalSearchQuery implements SearchQuery {
 
 	public interface UserFilter {
 		String buildFQ(SecurityTokenManager securityTokenManager);
+
 		User getUser();
 	}
 

@@ -51,7 +51,7 @@ public class ConditionAppender {
 				ArrayList<LogicalSearchCondition> result = new ArrayList<>();
 				result.add(pending.remove(0));
 				for (LogicalSearchCondition condition : pending) {
-					result.add(condition.negated());
+					result.add(condition.negate());
 				}
 				return from(schemaType).whereAllConditions(result);
 			default:
