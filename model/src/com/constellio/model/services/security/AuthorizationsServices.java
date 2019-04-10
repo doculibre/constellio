@@ -31,6 +31,7 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.AuthServices_RecordServicesException;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.CannotAddAuhtorizationInNonPrincipalTaxonomy;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.CannotAddUpdateWithoutPrincipalsAndOrTargetRecords;
@@ -399,15 +400,20 @@ public class AuthorizationsServices {
 
 		List<String> authId = asList(request.getAuthId());
 		Authorization auth = getAuthorization(request.getCollection(), request.getAuthId());
-		LogicalSearchQuery query = new LogicalSearchQuery(fromAllSchemasIn(request.getCollection())
-				//TODO Really necessary Authorizations ?
-				.where(REMOVED_AUTHORIZATIONS).isContaining(authId)
-				.orWhere(Schemas.ATTACHED_ANCESTORS).isEqualTo(auth.getTarget()));
-		List<Record> recordsWithRemovedAuth = searchServices.search(query);
+
+		LogicalSearchCondition condition = fromAllSchemasIn(request.getCollection())
+				.where(REMOVED_AUTHORIZATIONS).isContaining(authId);
+
+		Taxonomy principalTaxonomy = taxonomiesManager.getPrincipalTaxonomy(request.getCollection());
+
+		if (principalTaxonomy == null || !principalTaxonomy.getSchemaTypes().contains(auth.getTarget())) {
+			condition = condition.orWhere(Schemas.ATTACHED_ANCESTORS).isEqualTo(auth.getTarget());
+		}
+
+		List<Record> recordsWithRemovedAuth = searchServices.search(new LogicalSearchQuery(condition));
 
 		if (request.getExecutedBy() != null) {
 			try {
-
 				loggingServices.deletePermission(auth, request.getExecutedBy());
 			} catch (NoSuchAuthorizationWithId e) {
 				//No problemo
