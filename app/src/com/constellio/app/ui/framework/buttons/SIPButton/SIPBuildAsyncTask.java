@@ -171,7 +171,7 @@ public class SIPBuildAsyncTask implements AsyncTask {
 					fileName = sipFileName + ".zip";
 				}
 				UploadOptions uploadOptions = new UploadOptions(fileName);
-				uploadOptions.setParse(false);
+				uploadOptions.setParseOptions(null);
 
 				ContentVersionDataSummary summary;
 				InputStream inputStream = ioServices.newBufferedFileInputStreamWithoutExpectableFileNotFoundException(

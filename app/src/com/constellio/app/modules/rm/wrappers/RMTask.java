@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.wrappers;
 
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 
 import java.util.ArrayList;
@@ -71,8 +72,9 @@ public class RMTask extends Task {
 		return this;
 	}
 
-	public RMTask set(Metadata metadata, T value) {
-		return super.set(metadata, value);
+	public RMTask set(Metadata metadata, Object value) {
+		super.set(metadata, value);
+		return this;
 	}
 
 	public List<String> getCreatedAuthorizations() {

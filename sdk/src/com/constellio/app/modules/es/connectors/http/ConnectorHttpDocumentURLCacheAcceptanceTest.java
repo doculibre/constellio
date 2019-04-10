@@ -77,8 +77,8 @@ public class ConnectorHttpDocumentURLCacheAcceptanceTest extends ConstellioTest 
 				.setDigest("digest1"));
 
 		assertThat(cache.getEntry("http://www.perdu.com").getStatus()).isEqualTo(FETCHED);
-		assertThat(cache.getEntry("http://www.perdu.com").getMetadata("digest")).isEqualTo("digest1");
-		assertThat(cache.getEntry("http://www.perdu.com").getMetadata("copyOf")).isNull();
+		assertThat(cache.getEntry("http://www.perdu.com").<String>getMetadata("digest")).isEqualTo("digest1");
+		assertThat(cache.getEntry("http://www.perdu.com").<String>getMetadata("copyOf")).isNull();
 		assertThat(cache.getEntry("http://www.perdu.com").getFetchingStartTime()).isNull();
 
 		//digest url map is only constructed when reading and inserting manually
@@ -90,8 +90,8 @@ public class ConnectorHttpDocumentURLCacheAcceptanceTest extends ConstellioTest 
 		cache.onConnectorGetJobsCalled();
 
 		assertThat(cache.getEntry("http://www.perdu.com").getStatus()).isEqualTo(FETCHED);
-		assertThat(cache.getEntry("http://www.perdu.com").getMetadata("digest")).isEqualTo("digest1");
-		assertThat(cache.getEntry("http://www.perdu.com").getMetadata("copyOf")).isNull();
+		assertThat(cache.getEntry("http://www.perdu.com").<String>getMetadata("digest")).isEqualTo("digest1");
+		assertThat(cache.getEntry("http://www.perdu.com").<String>getMetadata("copyOf")).isNull();
 		assertThat(cache.getEntry("http://www.perdu.com").getFetchingStartTime()).isNull();
 
 		//digest url map is only constructed when reading and inserting manually

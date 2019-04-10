@@ -167,7 +167,6 @@ public class RecordServicesTest extends ConstellioTest {
 	@Mock SearchServices searchServices;
 
 	@Mock ModelLayerFactory modelFactory;
-	@Mock ConstellioEIMConfigs systemConfigs;
 
 	@Mock Metadata firstMetadataToReindex;
 	@Mock Metadata secondMetadataToReindex;
