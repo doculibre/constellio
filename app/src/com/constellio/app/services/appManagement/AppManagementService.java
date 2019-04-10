@@ -498,6 +498,7 @@ public class AppManagementService {
 		HttpURLConnection con = (HttpURLConnection) obj.openConnection();
 		con.setRequestMethod("POST");
 		con.setDoOutput(true);
+		con.setConnectTimeout(10000);
 
 		DataOutputStream wr = new DataOutputStream(con.getOutputStream());
 		wr.writeBytes(infoSent);

@@ -96,6 +96,11 @@ public abstract class ConnectorDocument<T extends ConnectorDocument> extends Rec
 	}
 
 	public T setURL(String url) {
+
+		if (url.equals("https://en.wikipedia.org/wiki/Main_Page")) {
+			System.out.println("here");
+		}
+
 		set(URL, url);
 		return (T) this;
 	}

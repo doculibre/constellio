@@ -1,5 +1,6 @@
 package com.constellio.app.ui.pages.collection;
 
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.ui.entities.GlobalGroupVO;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -294,5 +295,9 @@ public class ListCollectionUserPresenter extends SingleSchemaBasePresenter<ListC
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
 		return user.has(CorePermissions.MANAGE_SECURITY).globally();
+	}
+
+	public boolean isRMModuleEnabled() {
+		return this.isSchemaExisting(AdministrativeUnit.DEFAULT_SCHEMA);
 	}
 }

@@ -19,6 +19,9 @@
  */
 package com.constellio.model.services.thesaurus;
 
+import com.constellio.model.services.thesaurus.util.SkosUtil;
+
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -30,6 +33,8 @@ public class ThesaurusLabel {
 
 	private Map<Locale, String> values = new HashMap<Locale, String>();
 
+	private Map<Locale, String> parsedForSearchValues = new HashMap<Locale, String>();
+
 	public String getKey() {
 		return key;
 	}
@@ -39,11 +44,15 @@ public class ThesaurusLabel {
 	}
 
 	public Map<Locale, String> getValues() {
-		return values;
+		return Collections.unmodifiableMap(values);
 	}
 
 	public void setValues(Map<Locale, String> values) {
 		this.values = values;
+		this.parsedForSearchValues = new HashMap<>();
+		for (Map.Entry<Locale, String> entry : values.entrySet()) {
+			parsedForSearchValues.put(entry.getKey(), SkosUtil.parseForSearch(entry.getValue()));
+		}
 	}
 
 	public String getValue(Locale locale) {
@@ -52,6 +61,10 @@ public class ThesaurusLabel {
 
 	public void setValue(String value, Locale locale) {
 		values.put(locale, value);
+		parsedForSearchValues.put(locale, SkosUtil.parseForSearch(value));
 	}
 
+	public String getParsedForSearchValue(Locale locale) {
+		return parsedForSearchValues.get(locale);
+	}
 }

@@ -97,6 +97,8 @@ public class ConstellioEIMConfigs {
 
 	public static final SystemConfiguration REPLACE_SPACES_IN_SIMPLE_SEARCH_FOR_ANDS;
 
+	public static final SystemConfiguration UPDATE_SERVER_CONNECTION_ENABLED;
+
 	public static final String DEFAULT_CKEDITOR_TOOLBAR_CONFIG = "" +
 																 "   { name: 'document', items: [ 'Source', 'NewPage', 'Preview', 'Print' ] },\n" +
 																 "	{ name: 'clipboard', items: [ 'Cut', 'Copy', 'Paste', 'PasteText', 'PasteFromWord', '-', 'Undo', 'Redo' ] },\n" +
@@ -300,6 +302,8 @@ public class ConstellioEIMConfigs {
 		add(ENABLE_THUMBNAIL_GENERATION = others.createBooleanFalseByDefault("enableThumbnailGeneration")
 				.withReIndexionRequired());
 
+		add(UPDATE_SERVER_CONNECTION_ENABLED = advanced.createBooleanTrueByDefault("updateServerConnectionEnabled").whichIsHidden());
+
 		configurations = Collections.unmodifiableList(modifiableConfigs);
 	}
 
@@ -328,6 +332,7 @@ public class ConstellioEIMConfigs {
 	public String getUserTitlePattern() {
 		return manager.getValue(USER_TITLE_PATTERN);
 	}
+
 
 	public boolean seeUserRolesInAuthorizations() {
 		return manager.getValue(USER_ROLES_IN_AUTHORIZATIONS);
@@ -545,6 +550,10 @@ public class ConstellioEIMConfigs {
 
 	public int getBatchProcessMaximumHistorySize() {
 		return manager.getValue(BATCH_PROCESSES_MAXIMUM_HISTORY_SIZE);
+	}
+
+	public boolean isUpdateServerConnectionEnabled() {
+		return manager.getValue(UPDATE_SERVER_CONNECTION_ENABLED);
 	}
 
 	public boolean isThumbnailGenerationEnabled() { return manager.getValue(ENABLE_THUMBNAIL_GENERATION); }

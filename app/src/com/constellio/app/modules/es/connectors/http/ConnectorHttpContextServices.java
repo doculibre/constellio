@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -28,17 +29,13 @@ public class ConnectorHttpContextServices {
 
 	ESSchemasRecordsServices es;
 
-	public static final Set<String> dirtyContexts = new HashSet<>();
+	public static final Set<String> dirtyContexts = (Set) Collections.synchronizedSet(new HashSet<>());
 
 	public ConnectorHttpContextServices(ESSchemasRecordsServices es) {
 		this.es = es;
 	}
 
 	public void save(ConnectorHttpContext context) {
-		save(context, false);
-	}
-
-	private void save(ConnectorHttpContext context, boolean add) {
 
 		if (dirtyContexts.contains(context.connectorId)) {
 			dirtyContexts.remove(context.connectorId);
@@ -89,7 +86,7 @@ public class ConnectorHttpContextServices {
 
 		ConnectorHttpContext connectorHttpContext = new ConnectorHttpContext(connectorId);
 		ConnectorHttpContextServices.dirtyContexts.add(connectorId);
-		save(connectorHttpContext, true);
+		save(connectorHttpContext);
 		return connectorHttpContext;
 	}
 

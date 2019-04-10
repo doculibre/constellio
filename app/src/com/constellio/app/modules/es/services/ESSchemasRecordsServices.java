@@ -57,7 +57,6 @@ import static java.util.Arrays.asList;
 public class ESSchemasRecordsServices extends ESGeneratedSchemasRecordsServices implements ConnectorInstanciator {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ESSchemasRecordsServices.class);
-	private static final int sharepointDefaultRefreshDelay = 0;
 
 	protected transient AppLayerFactory appLayerFactory;
 	protected Factory<AppLayerFactory> appLayerFactoryFactory;
@@ -367,6 +366,7 @@ public class ESSchemasRecordsServices extends ESGeneratedSchemasRecordsServices 
 				.where(connectorDocument.connector()).isEqualTo(connectorId);
 	}
 
+
 	public LogicalSearchQuery connectorDocumentsToFetchQuery(ConnectorInstance<?> connectorInstance) {
 		LogicalSearchQuery query = connectorDocumentsToFetchQueryUnsorted(connectorInstance);
 		query.sortAsc(connectorDocument.fetched());
@@ -620,6 +620,7 @@ public class ESSchemasRecordsServices extends ESGeneratedSchemasRecordsServices 
 			}
 		};
 	}
+
 
 	public Iterator<ConnectorSmbFolder> iterateConnectorSmbFolders(LogicalSearchCondition condition) {
 		MetadataSchemaType type = connectorSmbDocument.schemaType();

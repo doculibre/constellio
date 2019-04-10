@@ -19,6 +19,7 @@
  */
 package com.constellio.model.services.thesaurus;
 
+import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.Language;
 import com.constellio.model.services.logging.SearchEventServices;
 import com.constellio.model.services.thesaurus.util.SkosUtil;
@@ -39,8 +40,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
-import static com.constellio.model.services.thesaurus.util.SkosUtil.containsWithParsing;
-import static com.constellio.model.services.thesaurus.util.SkosUtil.equalsWithParsing;
 import static com.constellio.model.services.thesaurus.util.SkosUtil.getToLowerCase;
 import static com.constellio.model.services.thesaurus.util.SkosUtil.parseForSearch;
 
@@ -51,7 +50,7 @@ public class ThesaurusService implements Serializable {
 	private static final int EXACT_PREF_RESULTS_NUMBER_FOR_NARROWING = 1;
 	private static final int SUFFICIENT_RESULTS_NUMBER = 2;
 	private static final int MAX_AUTOCOMPLETE_RESULTS = 5;
-	public static final String DESAMBIUGATIONS = "disambiguations";
+	public static final String DISAMBIGUATIONS = "disambiguations";
 	public static final String SUGGESTIONS = "suggestions";
 	public static final String DOMAINE_LABEL = "DOMAINE";
 
@@ -62,7 +61,6 @@ public class ThesaurusService implements Serializable {
 	private Date dcDate;
 	private Locale dcLanguage;
 
-	private SearchEventServices searchEventServices;
 	private Set<String> deniedTerms;
 	private Set<SkosConcept> topConcepts;
 	private Map<String, SkosConcept> allConcepts;
@@ -71,10 +69,6 @@ public class ThesaurusService implements Serializable {
 		deniedTerms = new HashSet<>();
 		topConcepts = new HashSet<>();
 		allConcepts = new ConcurrentHashMap<>();
-	}
-
-	public void setSearchEventServices(SearchEventServices searchEventServices) {
-		this.searchEventServices = searchEventServices;
 	}
 
 	public void setDeniedTerms(List<String> deniedTerms) {
@@ -183,8 +177,7 @@ public class ThesaurusService implements Serializable {
 				// for each label of given lang
 				for (ThesaurusLabel thesaurusLabel : thesaurusLabels) {
 
-					String parsedLabelValue = parseForSearch(thesaurusLabel.getValue(locale));
-
+					String parsedLabelValue = thesaurusLabel.getParsedForSearchValue(locale);
 					if (parsedLabelValue != null && (parsedInput.equals(parsedLabelValue) || p.matcher(parsedLabelValue)
 							.find())) {
 						skosConcepts.add(skosConcept);
@@ -198,6 +191,8 @@ public class ThesaurusService implements Serializable {
 
 	public Set<SkosConcept> getPrefLabelsThatContains(String input, Locale locale) {
 
+		String inputParsedForSearch = SkosUtil.parseForSearch(input);
+
 		Set<SkosConcept> skosConcepts = new HashSet<>();
 
 		if (StringUtils.isNotBlank(input)) {
@@ -209,9 +204,8 @@ public class ThesaurusService implements Serializable {
 				// for each label of given lang
 				for (ThesaurusLabel thesaurusLabel : thesaurusLabels) {
 
-					String labelValue = thesaurusLabel.getValue(locale);
-
-					if (containsWithParsing(labelValue, input)) {
+					String parsedLabelValue = thesaurusLabel.getParsedForSearchValue(locale);
+					if (parsedLabelValue != null && parsedLabelValue.contains(inputParsedForSearch)) {
 						skosConcepts.add(skosConcept);
 					}
 				}
@@ -222,19 +216,21 @@ public class ThesaurusService implements Serializable {
 	}
 
 	public Set<SkosConcept> getAltLabelsThatContains(String input, Locale locale) {
-
+		String inputParsedForSearch = SkosUtil.parseForSearch(input);
 		Set<SkosConcept> skosConcepts = new HashSet<>();
 
 		if (StringUtils.isNotBlank(input)) {
 			// for each concept
 			for (Map.Entry<String, SkosConcept> skosConceptEntry : allConcepts.entrySet()) {
 				SkosConcept skosConcept = skosConceptEntry.getValue();
-				Set<String> labelValues = skosConcept.getAltLabels(locale);
+				Set<String> labelValues = skosConcept.getAltLabelsParsedForSearch(locale);
 
-				// for each label of given lang
-				for (String labelValue : labelValues) {
-					if (containsWithParsing(labelValue, input)) {
-						skosConcepts.add(skosConcept);
+				if (labelValues != null) {
+					// for each label of given lang
+					for (String labelValue : labelValues) {
+						if (labelValue.contains(inputParsedForSearch)) {
+							skosConcepts.add(skosConcept);
+						}
 					}
 				}
 			}
@@ -245,18 +241,22 @@ public class ThesaurusService implements Serializable {
 
 	public Set<SkosConcept> getAltLabelsThatEquals(String input, Locale locale) {
 
+
 		Set<SkosConcept> skosConcepts = new HashSet<>();
 
 		if (StringUtils.isNotBlank(input)) {
+			String inputParsedForSearch = SkosUtil.parseForSearch(input);
 			// for each concept
 			for (Map.Entry<String, SkosConcept> skosConceptEntry : allConcepts.entrySet()) {
 				SkosConcept skosConcept = skosConceptEntry.getValue();
-				Set<String> labelValues = skosConcept.getAltLabels(locale);
+				Set<String> labelValues = skosConcept.getAltLabelsParsedForSearch(locale);
 
-				// for each label of given lang
-				for (String labelValue : labelValues) {
-					if (equalsWithParsing(input, labelValue)) {
-						skosConcepts.add(skosConcept);
+				if (labelValues != null) {
+					// for each label of given lang
+					for (String labelValue : labelValues) {
+						if (LangUtils.isEqual(inputParsedForSearch, labelValue)) {
+							skosConcepts.add(skosConcept);
+						}
 					}
 				}
 			}
@@ -368,6 +368,12 @@ public class ThesaurusService implements Serializable {
 	}
 
 	public SkosConcept getSkosConcept(String id) {
+
+		SkosConcept concept = allConcepts.get(id);
+		if (concept != null) {
+			return concept;
+		}
+
 		for (Map.Entry<String, SkosConcept> skosConceptEntry : allConcepts.entrySet()) {
 			SkosConcept skosConcept = skosConceptEntry.getValue();
 			String currentId = SkosUtil.getSkosConceptId(skosConcept.getRdfAbout());
@@ -567,7 +573,9 @@ public class ThesaurusService implements Serializable {
 		return !deniedTerms.contains(term.toLowerCase());
 	}
 
-	public List<String> suggestSimpleSearch(String input, Locale locale, int minInputLength, int maxResults) {
+	public List<String> suggestSimpleSearch(String input, Locale locale, int minInputLength, int maxResults,
+											boolean useMostPopularQueriesAutocomplete,
+											SearchEventServices searchEventServices) {
 
 		// ordered Set to prioritize results found first (since last results are often found as last resort)
 		List<String> suggestions = new ArrayList<>();
@@ -600,13 +608,15 @@ public class ThesaurusService implements Serializable {
 				}
 			}
 
-			List<String> autocompleteSuggestions = searchEventServices
-					.getMostPopularQueriesAutocomplete(parseForSearch(input), MAX_AUTOCOMPLETE_RESULTS,
-							deniedTerms.toArray(new String[deniedTerms.size()]));
+			if (useMostPopularQueriesAutocomplete) {
+				List<String> autocompleteSuggestions = searchEventServices
+						.getMostPopularQueriesAutocomplete(input, MAX_AUTOCOMPLETE_RESULTS,
+								deniedTerms.toArray(new String[deniedTerms.size()]));
 
-			for (String suggestion : autocompleteSuggestions) {
-				if (isValidAutocompleteSuggestion(input, suggestion)) {
-					addToSuggestions(suggestions, suggestion);
+				for (String suggestion : autocompleteSuggestions) {
+					if (isValidAutocompleteSuggestion(input, suggestion)) {
+						addToSuggestions(suggestions, suggestion);
+					}
 				}
 			}
 

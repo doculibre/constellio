@@ -36,6 +36,7 @@ import com.constellio.data.dao.services.idGenerator.UniqueIdGenerator;
 import com.constellio.data.dao.services.idGenerator.ZeroPaddedSequentialUniqueIdGenerator;
 import com.constellio.data.dao.services.leaderElection.IgniteLeaderElectionManager;
 import com.constellio.data.dao.services.leaderElection.LeaderElectionManager;
+import com.constellio.data.dao.services.leaderElection.ObservableLeaderElectionManager;
 import com.constellio.data.dao.services.leaderElection.StandaloneLeaderElectionManager;
 import com.constellio.data.dao.services.leaderElection.ZookeeperLeaderElectionManager;
 import com.constellio.data.dao.services.records.RecordDao;
@@ -108,7 +109,7 @@ public class DataLayerFactory extends LayerFactoryImpl {
 	private final ConversionManager conversionManager;
 	private final EventBusManager eventBusManager;
 	private static DataLayerFactory lastCreatedInstance;
-	private final LeaderElectionManager leaderElectionManager;
+	private final ObservableLeaderElectionManager leaderElectionManager;
 
 	private DataLayerBackgroundThreadsManager dataLayerBackgroundThreadsManager;
 
@@ -132,15 +133,17 @@ public class DataLayerFactory extends LayerFactoryImpl {
 
 		this.backgroundThreadsManager = add(new BackgroundThreadsManager(dataLayerConfiguration, this));
 
+		LeaderElectionManager leaderElectionManager;
 		if (dataLayerConfiguration.getElectionServiceType() == ZOOKEEPER) {
-			this.leaderElectionManager = add(new ZookeeperLeaderElectionManager(this));
+			leaderElectionManager = add(new ZookeeperLeaderElectionManager(this));
 
 		} else if (dataLayerConfiguration.getElectionServiceType() == IGNITE) {
-			this.leaderElectionManager = add(new IgniteLeaderElectionManager(this));
+			leaderElectionManager = add(new IgniteLeaderElectionManager(this));
 
 		} else {
-			this.leaderElectionManager = add(new StandaloneLeaderElectionManager());
+			leaderElectionManager = add(new StandaloneLeaderElectionManager());
 		}
+		this.leaderElectionManager = new ObservableLeaderElectionManager(leaderElectionManager);
 
 		EventBusSendingService eventBusSendingService = new StandaloneEventBusSendingService();
 		if (EventBusSendingServiceType.SOLR.equals(dataLayerConfiguration.getEventBusSendingServiceType())) {
@@ -262,7 +265,7 @@ public class DataLayerFactory extends LayerFactoryImpl {
 		this.constellioVersion = constellioVersion;
 	}
 
-	public LeaderElectionManager getLeaderElectionService() {
+	public ObservableLeaderElectionManager getLeaderElectionService() {
 		return leaderElectionManager;
 	}
 
@@ -459,5 +462,9 @@ public class DataLayerFactory extends LayerFactoryImpl {
 
 	public CuratorFramework getCuratorFramework() {
 		return ZooKeeperConfigManager.getInstance(dataLayerConfiguration.getSettingsZookeeperAddress());
+	}
+
+	public boolean isDistributed() {
+		return !(leaderElectionManager.getNestedLeaderElectionManager() instanceof StandaloneLeaderElectionManager);
 	}
 }

@@ -10,6 +10,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class RobotsTxtFactory {
@@ -18,11 +20,13 @@ public class RobotsTxtFactory {
 	private static final int HOURS = 24;
 	private final ConcurrentHashMap<String, RobotsTxt> robotsTxt = new ConcurrentHashMap<>();
 
+	private final Set<String> unavailableRobotTxts = new HashSet<>();
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(RobotsTxtFactory.class);
 
 	public synchronized RobotsTxt getRobotsTxt(String url) {
 		String baseUrl = getBaseUrl(url);
-		if (baseUrl != null) {
+		if (baseUrl != null && !unavailableRobotTxts.contains(baseUrl)) {
 			try {
 				RobotsTxt robotsTxt = this.robotsTxt.get(baseUrl);
 				if (robotsTxt == null || (robotsTxt.getFetchTime() != null && robotsTxt.getFetchTime().plusHours(HOURS)
@@ -41,6 +45,7 @@ public class RobotsTxtFactory {
 				return robotsTxt;
 			} catch (IOException e) {
 				LOGGER.error("Cannot retrieve robot txt file from url '" + baseUrl + "'", e);
+				unavailableRobotTxts.add(baseUrl);
 			}
 		}
 

@@ -249,11 +249,16 @@ public class DefaultConnectorEventObserver implements ConnectorEventObserver {
 	}
 
 	@Override
-	public void flush() {
+	public void flush() throws InterruptedException {
 		handler.pushCurrent();
-		handler.barrier();
-		es.getRecordServices().flush();
-		saveNewDeclaredFields();
+		try {
+			handler.barrier();
+		} finally {
+
+
+			es.getRecordServices().flush();
+			saveNewDeclaredFields();
+		}
 	}
 
 	@Override

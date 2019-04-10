@@ -4,7 +4,6 @@ import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.modules.es.ConstellioESModule;
 import com.constellio.app.modules.es.connectors.http.ConnectorHttpDocumentFetchException.ConnectorHttpDocumentFetchException_CannotDownloadDocument;
 import com.constellio.app.modules.es.connectors.http.ConnectorHttpDocumentFetchException.ConnectorHttpDocumentFetchException_CannotParseDocument;
-import com.constellio.app.modules.es.connectors.http.ConnectorHttpDocumentFetchException.ConnectorHttpDocumentFetchException_DocumentHasNoParsedContent;
 import com.constellio.app.modules.es.connectors.http.fetcher.ConnectorUrlAcceptor;
 import com.constellio.app.modules.es.connectors.http.fetcher.HttpURLFetchingService;
 import com.constellio.app.modules.es.connectors.http.fetcher.URLFetchingServiceRuntimeException;
@@ -58,7 +57,7 @@ class ConnectorHttpFetchJob extends ConnectorJob {
 	public static final String PROTOCOL_SEP = "//";
 	private final ConnectorHttp connectorHttp;
 
-	private final ConnectorHttpContext context;
+	private final ConnectorHttpDocumentURLCache cache;
 
 	private final List<ConnectorHttpDocument> documents;
 
@@ -77,10 +76,10 @@ class ConnectorHttpFetchJob extends ConnectorJob {
 
 	public ConnectorHttpFetchJob(ConnectorHttp connector, ConnectorHttpInstance instance,
 								 List<ConnectorHttpDocument> documents,
-								 ConnectorHttpContext context, ConnectorLogger connectorLogger) {
+								 ConnectorHttpDocumentURLCache cache, ConnectorLogger connectorLogger) {
 		super(connector, "fetch");
 		this.connectorHttp = connector;
-		this.context = context;
+		this.cache = cache;
 		this.documents = documents;
 		this.connectorLogger = connectorLogger;
 		this.es = connectorHttp.getEs();
@@ -190,33 +189,30 @@ class ConnectorHttpFetchJob extends ConnectorJob {
 					throw new ConnectorHttpDocumentFetchException_CannotDownloadDocument(httpDocument.getURL(), e);
 				}
 				ParsedContent parsedContent = fileParser.parse(inputStream, true);
-				if (parsedContent.getParsedContent().isEmpty()) {
-					//TODO Test!
-					throw new ConnectorHttpDocumentFetchException_DocumentHasNoParsedContent(httpDocument.getURL());
-				} else {
-					httpDocument.addStringProperty("lastModified", page.getWebResponse().getResponseHeaderValue("Last-Modified"));
-					httpDocument.addStringProperty("charset", page.getWebResponse().getContentCharset());
-					httpDocument.setLanguage(parsedContent.getLanguage());
-					httpDocument.setParsedContent(parsedContent.getParsedContent());
-					httpDocument.setDescription(parsedContent.getDescription());
 
-					String metadataTitle = parsedContent.getTitle();
-					if (StringUtils.isBlank(metadataTitle)) {
-						metadataTitle = extractFilename(httpDocument.getURL());
-					}
+				httpDocument.addStringProperty("lastModified", page.getWebResponse().getResponseHeaderValue("Last-Modified"));
+				httpDocument.addStringProperty("charset", page.getWebResponse().getContentCharset());
+				httpDocument.setLanguage(parsedContent.getLanguage());
+				httpDocument.setParsedContent(parsedContent.getParsedContent());
+				httpDocument.setDescription(parsedContent.getDescription());
 
-					httpDocument.setTitle(metadataTitle);
-					httpDocument.setDigest(hashingService.getHashFromString(parsedContent.getParsedContent()));
-					httpDocument.setMimetype(parsedContent.getMimetypeWithoutCharset());
-
-					AppLayerCollectionExtensions extentions = connectorHttp.getEs().getAppLayerFactory().getExtensions()
-							.forCollection(connectorHttp.getEs().collection.code().getCollection());
-					ESModuleExtensions esExtensions = extentions.forModule(ConstellioESModule.ID);
-
-					esExtensions.onHttpDocumentFetched(new OnHttpDocumentFetchedParams()
-							.setConnectorHttpDocument(httpDocument)
-							.setModelLayerFactory(this.es.getModelLayerFactory()));
+				String metadataTitle = parsedContent.getTitle();
+				if (StringUtils.isBlank(metadataTitle)) {
+					metadataTitle = extractFilename(httpDocument.getURL());
 				}
+
+				httpDocument.setTitle(metadataTitle);
+				httpDocument.setDigest(hashingService.getHashFromString(parsedContent.getParsedContent()));
+				httpDocument.setMimetype(parsedContent.getMimetypeWithoutCharset());
+
+				AppLayerCollectionExtensions extentions = connectorHttp.getEs().getAppLayerFactory().getExtensions()
+						.forCollection(connectorHttp.getEs().collection.code().getCollection());
+				ESModuleExtensions esExtensions = extentions.forModule(ConstellioESModule.ID);
+
+				esExtensions.onHttpDocumentFetched(new OnHttpDocumentFetchedParams()
+						.setConnectorHttpDocument(httpDocument)
+						.setModelLayerFactory(this.es.getModelLayerFactory()));
+
 			} catch (FileParserException e) {
 				//TODO Test!
 				throw new ConnectorHttpDocumentFetchException_CannotParseDocument(httpDocument.getURL(), e);
@@ -256,12 +252,13 @@ class ConnectorHttpFetchJob extends ConnectorJob {
 			int linksLevel = httpDocument.getLevel() + 1;
 			if (linksLevel <= maxLevel) {
 				for (String url : urls) {
-					if (context.isNewUrl(url)) {
-						context.markAsFetched(url);
+					if (!cache.exists(url)) {
 
-						ConnectorHttpDocument document = connectorHttp.newUnfetchedURLDocument(url, linksLevel);
-						document.setInlinks(Arrays.asList(httpDocument.getUrl()));
-						savedDocuments.add(document);
+						if (cache.tryLockingDocumentForFetching(url)) {
+							ConnectorHttpDocument document = connectorHttp.newUnfetchedURLDocument(url, linksLevel);
+							document.setInlinks(Arrays.asList(httpDocument.getUrl()));
+							savedDocuments.add(document);
+						}
 					}
 				}
 			}
@@ -321,17 +318,17 @@ class ConnectorHttpFetchJob extends ConnectorJob {
 			originalDigest = record.getCopyOfOriginalRecord().get(es.connectorHttpDocument.digest());
 		}
 		if (originalDigest != null && !originalDigest.equals(httpDocument.getDigest())) {
-			context.removeDocumentDigest(originalDigest, httpDocument.getURL());
+			cache.removeDocumentDigest(originalDigest, httpDocument.getURL());
 		}
 
 		if (httpDocument.getDigest() != null) {
-			String documentUrlWithDigest = context.getDocumentUrlWithDigest(httpDocument.getDigest());
+			String documentUrlWithDigest = cache.getDocumentUrlWithDigest(httpDocument.getDigest());
 			if (documentUrlWithDigest != null && !httpDocument.getURL().equals(documentUrlWithDigest)) {
 				httpDocument.setParsedContent(null);
 				httpDocument.setCopyOf(documentUrlWithDigest);
 				httpDocument.setSearchable(false);
 			} else {
-				context.addDocumentDigest(httpDocument.getDigest(), httpDocument.getURL());
+				cache.addDocumentDigest(httpDocument.getDigest(), httpDocument.getURL());
 			}
 		}
 	}

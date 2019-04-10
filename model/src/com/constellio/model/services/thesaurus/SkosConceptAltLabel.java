@@ -19,7 +19,10 @@
  */
 package com.constellio.model.services.thesaurus;
 
+import com.constellio.model.services.thesaurus.util.SkosUtil;
+
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
@@ -30,7 +33,9 @@ public class SkosConceptAltLabel implements Serializable {
 
 	private Locale locale;
 
-	private Set<String> values = new HashSet<String>();
+	private Set<String> values = new HashSet<>();
+
+	private Set<String> parsedForSearchValues = new HashSet<>();
 
 	public SkosConcept getSkosConcept() {
 		return skosConcept;
@@ -49,11 +54,20 @@ public class SkosConceptAltLabel implements Serializable {
 	}
 
 	public Set<String> getValues() {
-		return values;
+		return Collections.unmodifiableSet(values);
+	}
+
+	public Set<String> getValuesParsedForSearch() {
+		return Collections.unmodifiableSet(parsedForSearchValues);
 	}
 
 	public void setValues(Set<String> values) {
 		this.values = values;
+		this.parsedForSearchValues = SkosUtil.parseForSearch(values);
 	}
 
+	public void addValue(String value) {
+		this.values.add(value);
+		this.parsedForSearchValues.add(SkosUtil.parseForSearch(value));
+	}
 }

@@ -43,7 +43,7 @@ public class LanguageDetectionManager implements StatefulService {
 	}
 
 	public String tryDetectLanguage(String content) {
-		if (StringUtils.isNoneBlank(content)) {
+		if (StringUtils.isNoneBlank(content) && content.length() > 10) {
 			try {
 				return detectLanguage(content);
 			} catch (LanguageDetectionServicesRuntimeException e) {
@@ -59,10 +59,10 @@ public class LanguageDetectionManager implements StatefulService {
 		try {
 
 			Detector detector = DetectorFactory.create();
-			if (content.length() > 200) {
-				int firstSpaceAfter200Characters = content.indexOf(" ", 200);
-				if (firstSpaceAfter200Characters != -1) {
-					content = content.substring(0, firstSpaceAfter200Characters);
+			if (content.length() > 500) {
+				int firstSpaceAfter500Characters = content.indexOf(" ", 500);
+				if (firstSpaceAfter500Characters != -1) {
+					content = content.substring(0, firstSpaceAfter500Characters);
 				}
 			}
 			detector.append(content);

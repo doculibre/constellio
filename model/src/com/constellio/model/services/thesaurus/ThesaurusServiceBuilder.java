@@ -308,7 +308,7 @@ public class ThesaurusServiceBuilder {
 				Locale altLabelLocale = lang != null ? new Locale(lang) : Locale.ENGLISH;
 				String altLabel = altLabelElement.getValue();
 				altLabel = StringEscapeUtils.unescapeXml(altLabel);
-				skosConcept.getAltLabels(altLabelLocale).add(altLabel);
+				skosConcept.addAltLabel(altLabelLocale, altLabel);
 			}
 		}
 		addParsedConcepts(thesaurus, parsedConcepts);
