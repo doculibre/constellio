@@ -1,31 +1,37 @@
 package com.constellio.model.services.contents;
 
-import com.constellio.app.modules.rm.DemoTestRecords;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.contents.ContentManager.VaultScanResults;
 import com.constellio.model.services.records.RecordLogicalDeleteOptions;
 import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.InputStream;
-
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ContentManagerScanAcceptanceTest extends ConstellioTest {
 
 	RMTestRecords records = new RMTestRecords(zeCollection);
 	Users users = new Users();
 	ContentManager contentManager;
+	MetadataSchemasManager metadataSchemasManager;
+	RMSchemasRecordsServices rmSchemasRecordsServices;
+	RecordServices recordServices;
+
 
 	@Before
 	public void setUp() {
@@ -36,16 +42,16 @@ public class ContentManagerScanAcceptanceTest extends ConstellioTest {
 		);
 		users.setUp(getModelLayerFactory().newUserServices());
 		contentManager = getModelLayerFactory().getContentManager();
+		metadataSchemasManager = getModelLayerFactory().getMetadataSchemasManager();
+		rmSchemasRecordsServices = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		recordServices = getModelLayerFactory().newRecordServices();
 	}
 
 	@Test
 	public void givenContentManagement() throws RecordServicesException {
-		RecordServices recordServices = getModelLayerFactory().newRecordServices();
-
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
-		Document documentToBeDeleted = rm.newDocument().setTitle("documentToBeDeleted").setFolder(records.getFolder_A01())
+		Document documentToBeDeleted = rmSchemasRecordsServices.newDocument().setTitle("documentToBeDeleted").setFolder(records.getFolder_A01())
 				.setContent(createContent("documentToBeDeleted.txt"));
-		Document documentToBeKept = rm.newDocument().setTitle("documentToBeDeleted").setFolder(records.getFolder_A01())
+		Document documentToBeKept = rmSchemasRecordsServices.newDocument().setTitle("documentToBeDeleted").setFolder(records.getFolder_A01())
 				.setContent(createContent("documentToBeKept.txt"));
 
 		Transaction transaction = new Transaction(documentToBeDeleted, documentToBeKept);
@@ -59,6 +65,38 @@ public class ContentManagerScanAcceptanceTest extends ConstellioTest {
 		assertThat(vaultScanResults.getNumberOfDeletedContents()).isEqualTo(1);
 		assertThat(vaultScanResults.getReportMessage()).contains(documentToBeDeleted.getContent().getCurrentVersion().getHash());
 		assertThat(vaultScanResults.getReportMessage()).doesNotContain(documentToBeKept.getContent().getCurrentVersion().getHash());
+	}
+
+	@Test
+	public void givenTwoRecordReferencingSameContentThenDoNotDelete()
+			throws RecordServicesException {
+		metadataSchemasManager.modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchema(Folder.DEFAULT_SCHEMA).createUndeletable("content").setType(MetadataValueType.CONTENT);
+			}
+		});
+
+		Document documentToBeKept = rmSchemasRecordsServices.newDocument().setTitle("documentToBeDeleted").setFolder(records.getFolder_A01())
+				.setContent(createContent("documentToBeKept.txt"));
+
+		Folder folderWithContent = rmSchemasRecordsServices.getFolder(records.folder_A01);
+		folderWithContent.set("content", createContent("documentToBeKept.txt"));
+
+		Transaction transaction = new Transaction(documentToBeKept, folderWithContent);
+		recordServices.execute(transaction);
+
+		recordServices.physicallyDeleteNoMatterTheStatus(documentToBeKept.getWrappedRecord(),
+				User.GOD, new RecordPhysicalDeleteOptions());
+
+		VaultScanResults vaultScanResults = new VaultScanResults();
+		contentManager.scanVaultContentAndDeleteUnreferencedFiles(vaultScanResults);
+
+		Content contentOfFolder = folderWithContent.get("content");
+
+		assertThat(vaultScanResults.getNumberOfDeletedContents()).isEqualTo(0);
+		assertThat(vaultScanResults.getReportMessage()).doesNotContain(documentToBeKept.getContent().getCurrentVersion().getHash());
+		assertThat(vaultScanResults.getReportMessage()).doesNotContain(contentOfFolder.getCurrentVersion().getHash());
 	}
 
 	private Content createContent(String filename) {
