@@ -238,6 +238,7 @@ public class FolderDetailTableGenerator implements ColumnGenerator {
 			}
 		});
 		checkBoxMap.put(detail, checkBox);
+		checkBox.setValue(detail.isSelected());
 		return checkBox;
 	}
 
@@ -310,7 +311,7 @@ public class FolderDetailTableGenerator implements ColumnGenerator {
 				if (!(boolean) included.getValue()) {
 					presenter.removeFromContainer(detail);
 				}
-				presenter.setValidationStatus(detail, (boolean) included.getValue());
+				presenter.setValidationStatusAndRefreshView(detail, (boolean) included.getValue());
 			}
 		});
 		return included;
