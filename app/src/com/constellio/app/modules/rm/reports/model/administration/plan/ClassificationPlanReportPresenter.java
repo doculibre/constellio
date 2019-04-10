@@ -222,13 +222,17 @@ public class ClassificationPlanReportPresenter {
 							if (!isCategoryShown) {
 								List<ClassificationPlanReportModel_Category> categoryList = getCategoriesForRecord(childRecord);
 
-								if (categoryList != null && categoryList.size() > 0) {
+								if(categoryList != null && categoryList.size() > 0)  {
+									String description = StringUtils.defaultString(recordCategory.getDescription());
+									String code = StringUtils.defaultString(recordCategory.getCode());
+									String title = StringUtils.defaultString(recordCategory.getTitle());
+
 									ClassificationPlanReportModel_Category modelCategory = new ClassificationPlanReportModel_Category();
 									modelCategory.setCategories(categoryList);
-									modelCategory.setDescription(null);
+									modelCategory.setDescription(description);
 									modelCategory.setDeactivated(true);
-									modelCategory.setCode("");
-									modelCategory.setLabel(i18n.$("RMReportsViewImpl.deactivated"));
+									modelCategory.setCode(code);
+									modelCategory.setLabel(i18n.$("RMReportsViewImpl.deactivated", title));
 
 									modelCategories.add(modelCategory);
 								}

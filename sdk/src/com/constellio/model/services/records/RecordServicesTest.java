@@ -73,6 +73,7 @@ import org.mockito.Mock;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -129,6 +130,7 @@ public class RecordServicesTest extends ConstellioTest {
 	@Mock Factory<EncryptionServices> encryptionServiceFactory;
 	@Mock AuthorizationsServices authorizationServices;
 	@Mock RecordMigrationsManager recordMigrationsManager;
+	@Mock ConstellioEIMConfigs systemConfigs;
 	ModelLayerExtensions extensions = new ModelLayerExtensions();
 
 	long firstVersion = anInteger();
@@ -258,6 +260,8 @@ public class RecordServicesTest extends ConstellioTest {
 		when(modelFactory.getExtensions()).thenReturn(extensions);
 		when(modelFactory.getRecordMigrationsManager()).thenReturn(recordMigrationsManager);
 		when(modelFactory.getSystemConfigs()).thenReturn(systemConfigs);
+
+		when(systemConfigs.getFileExtensionsExcludedFromParsing()).thenReturn(new HashSet<String>());
 
 		when(recordMigrationsManager.getCurrentDataVersion(anyString(), anyString())).thenReturn(0L);
 		when(recordMigrationsManager.getRecordMigrationsFor(any(Record.class)))

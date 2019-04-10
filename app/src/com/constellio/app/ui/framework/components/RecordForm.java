@@ -52,19 +52,21 @@ public abstract class RecordForm extends BaseForm<RecordVO> {
 	}
 
 	private static List<FieldAndPropertyId> buildFields(RecordVO recordVO, RecordFieldFactory formFieldFactory) {
-		List<FieldAndPropertyId> fieldsAndPropertyIds = new ArrayList<FieldAndPropertyId>();
+		List<FieldAndPropertyId> fieldsAndPropertyIds = new ArrayList<>();
 		for (MetadataVO metadataVO : recordVO.getFormMetadatas()) {
-			Field<?> field = formFieldFactory.build(recordVO, metadataVO);
-			if (field != null) {
-				if (!isVisibleField(metadataVO, recordVO)) {
-					field.setVisible(false);
+			if (recordVO.getMetadataCodes().contains(metadataVO.getCode())) {
+				Field<?> field = formFieldFactory.build(recordVO, metadataVO);
+				if (field != null) {
+					if (!isVisibleField(metadataVO, recordVO)) {
+						field.setVisible(false);
+					}
+					if (metadataVO.isUnmodifiable() && recordVO.isSaved()) {
+						field.setReadOnly(true);
+					}
+					field.addStyleName(STYLE_FIELD);
+					field.addStyleName(STYLE_FIELD + "-" + metadataVO.getCode());
+					fieldsAndPropertyIds.add(new FieldAndPropertyId(field, metadataVO));
 				}
-				if (metadataVO.isUnmodifiable() && recordVO.isSaved()) {
-					field.setReadOnly(true);
-				}
-				field.addStyleName(STYLE_FIELD);
-				field.addStyleName(STYLE_FIELD + "-" + metadataVO.getCode());
-				fieldsAndPropertyIds.add(new FieldAndPropertyId(field, metadataVO));
 			}
 		}
 		return fieldsAndPropertyIds;
@@ -122,7 +124,7 @@ public abstract class RecordForm extends BaseForm<RecordVO> {
 	protected List<String> getOrderedTabCaptions(RecordVO recordVO) {
 		SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
 		Locale currentLocale = sessionContext.getCurrentLocale();
-		
+
 		MetadataSchemaVO schemaVO = recordVO.getSchema();
 		String collection = schemaVO.getCollection();
 		String schemaTypeCode = SchemaUtils.getSchemaTypeCode(schemaVO.getCode());

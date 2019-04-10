@@ -34,7 +34,13 @@ public class IsValueInRangeCriterion extends LogicalSearchValueCondition {
 
 	@Override
 	public String getSolrQuery(DataStoreField dataStoreField) {
-		if (beginValue instanceof Number && endValue instanceof Number) {
+		if(beginValue == null && endValue == null) {
+			return dataStoreField.getDataStoreCode() + ":*";
+		} else if(beginValue == null) {
+			return new IsLessOrEqualThanCriterion(endValue).getSolrQuery(dataStoreField);
+		} else if(endValue == null) {
+			return new IsGreaterOrEqualThanCriterion(beginValue).getSolrQuery(dataStoreField);
+		} else if (beginValue instanceof Number && endValue instanceof Number) {
 			return dataStoreField.getDataStoreCode() + ":[" + beginValue + " TO " + endValue + "]";
 		} else if (beginValue instanceof LocalDateTime && endValue instanceof LocalDateTime) {
 			return correctDate(dataStoreField);

@@ -32,6 +32,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 import com.constellio.model.services.search.SearchServices;
@@ -67,11 +68,14 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 	private IOServices ioServices;
 	public static final String STREAM_NAME = EventPresenter.class.getName() + "-stream";
 	public static final String TEMPORARY_FILE = EventPresenter.class.getName() + "-file";
+	private boolean removeTabAndNewLine;
 
 	public EventPresenter(EventView view) {
 		super(view, Event.DEFAULT_SCHEMA);
 		recordServices().flush();
 		ioServices = view.getConstellioFactories().getModelLayerFactory().getIOServicesFactory().newIOServices();
+		removeTabAndNewLine = modelLayerFactory.getSystemConfigurationsManager()
+				.getValue(ConstellioEIMConfigs.REMOVE_TAB_AND_NEW_LINE_ON_DELTA_FIELD_IN_EDIT_REPORT);
 	}
 
 	@Override
@@ -224,6 +228,10 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 					valueAsString = metadataValue.toString().trim();
 
 					if(metadataVO != null && metadataVO.getLocalCode().equals(Event.DELTA)) {
+						if (removeTabAndNewLine) {
+							valueAsString = valueAsString.replaceAll('\n' + "", " ");
+							valueAsString = valueAsString.replaceAll('\t' + "", " ");
+						}
 						valueAsString = valueAsString.replaceAll("\\[" + "", "");
 						valueAsString = valueAsString.replaceAll(']' + "", "");
 					}

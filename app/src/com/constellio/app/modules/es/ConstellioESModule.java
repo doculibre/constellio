@@ -20,28 +20,7 @@ import com.constellio.app.modules.es.extensions.ESSchemaExtension;
 import com.constellio.app.modules.es.extensions.ESSearchPageExtension;
 import com.constellio.app.modules.es.extensions.ESTaxonomyPageExtension;
 import com.constellio.app.modules.es.extensions.api.ESModuleExtensions;
-import com.constellio.app.modules.es.migrations.ESMigrationCombo;
-import com.constellio.app.modules.es.migrations.ESMigrationTo5_1_6;
-import com.constellio.app.modules.es.migrations.ESMigrationTo6_1;
-import com.constellio.app.modules.es.migrations.ESMigrationTo6_2;
-import com.constellio.app.modules.es.migrations.ESMigrationTo6_4;
-import com.constellio.app.modules.es.migrations.ESMigrationTo6_5_42;
-import com.constellio.app.modules.es.migrations.ESMigrationTo6_5_58;
-import com.constellio.app.modules.es.migrations.ESMigrationTo7_1_3;
-import com.constellio.app.modules.es.migrations.ESMigrationTo7_4_1;
-import com.constellio.app.modules.es.migrations.ESMigrationTo7_4_2;
-import com.constellio.app.modules.es.migrations.ESMigrationTo7_4_3;
-import com.constellio.app.modules.es.migrations.ESMigrationTo7_5;
-import com.constellio.app.modules.es.migrations.ESMigrationTo7_6_1;
-import com.constellio.app.modules.es.migrations.ESMigrationTo7_6_1_1;
-import com.constellio.app.modules.es.migrations.ESMigrationTo7_6_2;
-import com.constellio.app.modules.es.migrations.ESMigrationTo7_6_3;
-import com.constellio.app.modules.es.migrations.ESMigrationTo7_6_6;
-import com.constellio.app.modules.es.migrations.ESMigrationTo7_7;
-import com.constellio.app.modules.es.migrations.ESMigrationTo7_7_0_42;
-import com.constellio.app.modules.es.migrations.ESMigrationTo8_0;
-import com.constellio.app.modules.es.migrations.ESMigrationTo8_0_1;
-import com.constellio.app.modules.es.migrations.ESMigrationTo8_0_2;
+import com.constellio.app.modules.es.migrations.*;
 import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance;
 import com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPInstance;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
@@ -123,6 +102,7 @@ public class ConstellioESModule implements InstallableSystemModule, ModuleWithCo
 		scripts.add(new ESMigrationTo8_0());
 		scripts.add(new ESMigrationTo8_0_1());
 		scripts.add(new ESMigrationTo8_0_2());
+		scripts.add(new ESMigrationTo8_1_1());
 
 		return scripts;
 	}
