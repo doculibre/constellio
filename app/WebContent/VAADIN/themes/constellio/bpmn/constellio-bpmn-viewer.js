@@ -27,12 +27,17 @@ $(document).ready(function() {
                     var canvas = bpmnViewer.get('canvas');
                     // zoom to fit full viewport
                     canvas.zoom('fit-viewport');
+
+	        	     $.post(selectionCallbackURL, {
+                        'bpmnResourceKey': bpmnResourceKey,
+                        'ready':  true
+                    });
                 });
             }
 
             // load external diagram file via AJAX and import it
             $.get(bpmnDiagramURL, importXML, 'text');
-            
+
             var eventBus = bpmnViewer.get('eventBus');
 
 	         // you may hook into any of the following events
@@ -44,7 +49,7 @@ $(document).ready(function() {
 	           //'element.mousedown',
 	           //'element.mouseup'
 	         ];
-	
+
 	         bpmnEvents.forEach(function(event) {
 	             eventBus.on(event, function(e) {
 	                 // e.element = the model element
@@ -58,5 +63,5 @@ $(document).ready(function() {
 	         });
 
         })(window.BpmnJS, window.jQuery);
-    }, 500);
+    }, 1000);
 });

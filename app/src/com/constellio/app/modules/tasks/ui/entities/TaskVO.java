@@ -1,13 +1,6 @@
 package com.constellio.app.modules.tasks.ui.entities;
 
-import com.constellio.app.ui.entities.GlobalGroupVO;
-import com.constellio.app.ui.entities.MetadataValueVO;
-import com.constellio.app.ui.entities.RecordVO;
-import com.constellio.app.ui.entities.UserVO;
-import org.joda.time.LocalDate;
-
-import java.util.List;
-
+import static com.constellio.app.modules.rm.wrappers.Document.IS_MODEL;
 import static com.constellio.app.modules.tasks.model.wrappers.Task.ASSIGNEE;
 import static com.constellio.app.modules.tasks.model.wrappers.Task.ASSIGNEE_GROUPS_CANDIDATES;
 import static com.constellio.app.modules.tasks.model.wrappers.Task.ASSIGNEE_USERS_CANDIDATES;
@@ -18,6 +11,15 @@ import static com.constellio.app.modules.tasks.model.wrappers.Task.REMINDERS;
 import static com.constellio.app.modules.tasks.model.wrappers.Task.REMINDER_FREQUENCY;
 import static com.constellio.app.modules.tasks.model.wrappers.Task.STATUS;
 import static com.constellio.app.modules.tasks.model.wrappers.Task.TASK_FOLLOWERS;
+
+import java.util.List;
+
+import org.joda.time.LocalDate;
+
+import com.constellio.app.ui.entities.GlobalGroupVO;
+import com.constellio.app.ui.entities.MetadataValueVO;
+import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.entities.UserVO;
 
 public class TaskVO extends RecordVO {
 
@@ -55,6 +57,10 @@ public class TaskVO extends RecordVO {
 
 	public LocalDate getDueDate() {
 		return get(DUE_DATE);
+	}
+
+	public boolean isTaskModel() {
+		return get(IS_MODEL);
 	}
 
 	public void setDueDate(LocalDate dueDate) {

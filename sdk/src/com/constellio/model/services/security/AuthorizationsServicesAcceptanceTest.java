@@ -35,7 +35,6 @@ import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.assertj.core.api.Condition;
 import org.assertj.core.api.ListAssert;
-import org.joda.time.LocalDate;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -1771,6 +1770,97 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 
 	}
 
+
+	@Test
+	public void givenInheritedAuthorizationFromConceptsAndCollectionWhenCheckingPermissionsExcludingInheritanceThenExcluded()
+			throws Exception {
+
+		auth1 = add(authorizationForUser(alice).on(TAXO1_CATEGORY2).giving(ROLE1));
+		auth2 = add(authorizationForUser(bob).on(TAXO1_CATEGORY2_1).giving(ROLE2));
+		auth3 = add(authorizationForUser(charles).on(FOLDER3).giving(ROLE3));
+		recordServices.update(users.dakotaLIndienIn(zeCollection).setUserRoles(asList(ROLE1, ROLE2, ROLE3)));
+
+		/*****
+		 * Using default behavior (including, global and inherited)
+		 */
+
+
+		assertThat(users.aliceIn(zeCollection).has(PERMISSION_OF_ROLE1).on(records.taxo1_category2())).isTrue();
+		assertThat(users.aliceIn(zeCollection).has(PERMISSION_OF_ROLE1).on(records.taxo1_category2_1())).isTrue();
+		assertThat(users.aliceIn(zeCollection).has(PERMISSION_OF_ROLE1).on(records.folder3())).isTrue();
+		assertThat(users.aliceIn(zeCollection).has(PERMISSION_OF_ROLE1).onSomething()).isTrue();
+
+		assertThat(users.bobIn(zeCollection).has(PERMISSION_OF_ROLE2).on(records.taxo1_category2())).isFalse();
+		assertThat(users.bobIn(zeCollection).has(PERMISSION_OF_ROLE2).on(records.taxo1_category2_1())).isTrue();
+		assertThat(users.bobIn(zeCollection).has(PERMISSION_OF_ROLE2).on(records.folder3())).isTrue();
+		assertThat(users.bobIn(zeCollection).has(PERMISSION_OF_ROLE2).onSomething()).isTrue();
+
+		assertThat(users.charlesIn(zeCollection).has(PERMISSION_OF_ROLE3).on(records.taxo1_category2())).isFalse();
+		assertThat(users.charlesIn(zeCollection).has(PERMISSION_OF_ROLE3).on(records.taxo1_category2_1())).isFalse();
+		assertThat(users.charlesIn(zeCollection).has(PERMISSION_OF_ROLE3).on(records.folder3())).isTrue();
+		assertThat(users.charlesIn(zeCollection).has(PERMISSION_OF_ROLE3).onSomething()).isTrue();
+
+		for (String permission : asList(PERMISSION_OF_ROLE1, PERMISSION_OF_ROLE2, PERMISSION_OF_ROLE3)) {
+			assertThat(users.dakotaLIndienIn(zeCollection).has(permission).on(records.taxo1_category2())).isTrue();
+			assertThat(users.dakotaLIndienIn(zeCollection).has(permission).on(records.taxo1_category2_1())).isTrue();
+			assertThat(users.dakotaLIndienIn(zeCollection).has(permission).on(records.folder3())).isTrue();
+			assertThat(users.dakotaLIndienIn(zeCollection).has(permission).onSomething()).isTrue();
+		}
+
+		/*****
+		 * Excluding global
+		 */
+
+		assertThat(users.aliceIn(zeCollection).has(PERMISSION_OF_ROLE1).specificallyOn(records.taxo1_category2())).isTrue();
+		assertThat(users.aliceIn(zeCollection).has(PERMISSION_OF_ROLE1).specificallyOn(records.taxo1_category2_1())).isFalse();
+		assertThat(users.aliceIn(zeCollection).has(PERMISSION_OF_ROLE1).specificallyOn(records.folder3())).isFalse();
+		//assertThat(users.aliceIn(zeCollection).has(PERMISSION_OF_ROLE1).onSomething()).isTrue();
+
+		assertThat(users.bobIn(zeCollection).has(PERMISSION_OF_ROLE2).specificallyOn(records.taxo1_category2())).isFalse();
+		assertThat(users.bobIn(zeCollection).has(PERMISSION_OF_ROLE2).specificallyOn(records.taxo1_category2_1())).isTrue();
+		assertThat(users.bobIn(zeCollection).has(PERMISSION_OF_ROLE2).specificallyOn(records.folder3())).isFalse();
+		//assertThat(users.bobIn(zeCollection).has(PERMISSION_OF_ROLE2).setIncludeGlobalAccess(false).onSomething()).isTrue();
+
+		assertThat(users.charlesIn(zeCollection).has(PERMISSION_OF_ROLE3).specificallyOn(records.taxo1_category2())).isFalse();
+		assertThat(users.charlesIn(zeCollection).has(PERMISSION_OF_ROLE3).specificallyOn(records.taxo1_category2_1())).isFalse();
+		assertThat(users.charlesIn(zeCollection).has(PERMISSION_OF_ROLE3).specificallyOn(records.folder3())).isTrue();
+		//assertThat(users.charlesIn(zeCollection).has(PERMISSION_OF_ROLE3).setIncludeGlobalAccess(false).onSomething()).isTrue();
+
+		for (String permission : asList(PERMISSION_OF_ROLE1, PERMISSION_OF_ROLE2, PERMISSION_OF_ROLE3)) {
+			assertThat(users.dakotaLIndienIn(zeCollection).has(permission).specificallyOn(records.taxo1_category2())).isFalse();
+			assertThat(users.dakotaLIndienIn(zeCollection).has(permission).specificallyOn(records.taxo1_category2_1())).isFalse();
+			assertThat(users.dakotaLIndienIn(zeCollection).has(permission).specificallyOn(records.folder3())).isFalse();
+			//assertThat(users.dakotaLIndienIn(zeCollection).has(permission).specificallyOn().onSomething()).isTrue();
+		}
+
+		//		/*****
+		//		 * Excluding inherited
+		//		 */
+		//
+		//		assertThat(users.aliceIn(zeCollection).has(PERMISSION_OF_ROLE1).setIncludeAccessFromTargetInheritance(false).on(records.taxo1_category2())).isTrue();
+		//		assertThat(users.aliceIn(zeCollection).has(PERMISSION_OF_ROLE1).setIncludeAccessFromTargetInheritance(false).on(records.taxo1_category2_1())).isTrue();
+		//		assertThat(users.aliceIn(zeCollection).has(PERMISSION_OF_ROLE1).setIncludeAccessFromTargetInheritance(false).on(records.folder3())).isTrue();
+		//		assertThat(users.aliceIn(zeCollection).has(PERMISSION_OF_ROLE1).setIncludeAccessFromTargetInheritance(false).onSomething()).isTrue();
+		//
+		//		assertThat(users.bobIn(zeCollection).has(PERMISSION_OF_ROLE2).setIncludeAccessFromTargetInheritance(false).on(records.taxo1_category2())).isFalse();
+		//		assertThat(users.bobIn(zeCollection).has(PERMISSION_OF_ROLE2).setIncludeAccessFromTargetInheritance(false).on(records.taxo1_category2_1())).isTrue();
+		//		assertThat(users.bobIn(zeCollection).has(PERMISSION_OF_ROLE2).setIncludeAccessFromTargetInheritance(false).on(records.folder3())).isTrue();
+		//		assertThat(users.bobIn(zeCollection).has(PERMISSION_OF_ROLE2).setIncludeAccessFromTargetInheritance(false).onSomething()).isTrue();
+		//
+		//		assertThat(users.charlesIn(zeCollection).has(PERMISSION_OF_ROLE3).setIncludeAccessFromTargetInheritance(false).on(records.taxo1_category2())).isFalse();
+		//		assertThat(users.charlesIn(zeCollection).has(PERMISSION_OF_ROLE3).setIncludeAccessFromTargetInheritance(false).on(records.taxo1_category2_1())).isFalse();
+		//		assertThat(users.charlesIn(zeCollection).has(PERMISSION_OF_ROLE3).setIncludeAccessFromTargetInheritance(false).on(records.folder3())).isTrue();
+		//		assertThat(users.charlesIn(zeCollection).has(PERMISSION_OF_ROLE3).setIncludeAccessFromTargetInheritance(false).onSomething()).isTrue();
+		//
+		//		for (String permission : asList(PERMISSION_OF_ROLE1, PERMISSION_OF_ROLE2, PERMISSION_OF_ROLE3)) {
+		//			assertThat(users.dakotaLIndienIn(zeCollection).has(permission).setIncludeAccessFromTargetInheritance(false).on(records.taxo1_category2())).isTrue();
+		//			assertThat(users.dakotaLIndienIn(zeCollection).has(permission).setIncludeAccessFromTargetInheritance(false).on(records.taxo1_category2_1())).isTrue();
+		//			assertThat(users.dakotaLIndienIn(zeCollection).has(permission).setIncludeAccessFromTargetInheritance(false).on(records.folder3())).isTrue();
+		//			assertThat(users.dakotaLIndienIn(zeCollection).has(permission).setIncludeAccessFromTargetInheritance(false).onSomething()).isTrue();
+		//		}
+
+	}
+
 	@Test
 	public void whenGetUsersWithPermissionOnConceptExcludingInheritedAuthorizationsThenReturnTheGoodUsers()
 			throws Exception {
@@ -1946,17 +2036,6 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		verifyRecord(FOLDER4).usersWithReadAccess().containsOnly(chuck, bob);
 	}
 
-	public void givenTimeIs(LocalDate newDate) {
-		super.givenTimeIs(newDate);
-
-		getModelLayerFactory().getModelLayerBackgroundThreadsManager()
-				.getAuthorizationWithTimeRangeTokenUpdateBackgroundAction().run();
-		try {
-			waitForBatchProcess();
-		} catch (InterruptedException e) {
-			throw new RuntimeException(e);
-		}
-	}
 
 	@Test
 	public void whenDeleteAuthorizationThenDeletedFromEveryRecords()

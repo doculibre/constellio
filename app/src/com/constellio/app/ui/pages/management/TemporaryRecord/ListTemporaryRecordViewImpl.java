@@ -112,8 +112,8 @@ public class ListTemporaryRecordViewImpl extends BaseViewImpl implements ListTem
 
 		RecordVOTable importTable = new RecordVOTable("", buttonsContainer) {
 			@Override
-			protected Component buildMetadataComponent(final MetadataValueVO metadataValue, final RecordVO recordVO) {
-				final Component defaultComponent = super.buildMetadataComponent(metadataValue, recordVO);
+			protected Component buildMetadataComponent(Object itemId, final MetadataValueVO metadataValue, final RecordVO recordVO) {
+				final Component defaultComponent = super.buildMetadataComponent(itemId, metadataValue, recordVO);
 				if (metadataValue.getMetadata().getLocalCode().equals(ImportAudit.ERRORS) && metadataValue.getValue() != null && metadataValue.getValue() instanceof String) {
 					final String value = metadataValue.getValue();
 					if (!value.isEmpty()) {

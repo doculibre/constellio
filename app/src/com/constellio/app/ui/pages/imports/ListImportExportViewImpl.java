@@ -46,8 +46,8 @@ public class ListImportExportViewImpl extends BaseViewImpl implements ListImport
 	private BaseTable newImportTable() {
 		RecordVOTable importTable = new RecordVOTable(presenter.getImportDataProvider()) {
 			@Override
-			protected Component buildMetadataComponent(MetadataValueVO metadataValue, RecordVO recordVO) {
-				return super.buildMetadataComponent(metadataValue, recordVO);
+			protected Component buildMetadataComponent(Object itemId, MetadataValueVO metadataValue, RecordVO recordVO) {
+				return super.buildMetadataComponent(itemId, metadataValue, recordVO);
 			}
 		};
 		importTable.setWidth("98%");
@@ -59,13 +59,13 @@ public class ListImportExportViewImpl extends BaseViewImpl implements ListImport
 	private BaseTable newExportTable() {
 		RecordVOTable exportTable = new RecordVOTable(presenter.getExportDataProvider()) {
 			@Override
-			protected Component buildMetadataComponent(MetadataValueVO metadataValue, RecordVO recordVO) {
+			protected Component buildMetadataComponent(Object itemId, MetadataValueVO metadataValue, RecordVO recordVO) {
 				if (metadataValue.getMetadata().getLocalCode().equals(TemporaryRecord.CONTENT)
 					&& metadataValue.getValue() != null) {
 					ContentVersionVO content = (ContentVersionVO) metadataValue.getValue();
 					return new DownloadContentVersionLink(content, content.getFileName());
 				} else {
-					return super.buildMetadataComponent(metadataValue, recordVO);
+					return super.buildMetadataComponent(itemId, metadataValue, recordVO);
 				}
 			}
 		};

@@ -7,8 +7,6 @@ public interface HomeView extends BaseView, RecordsManagementViewGroup {
 
 	String TABS = "home.tabs";
 
-	void openURL(String url);
-
 	String getSelectedTabCode();
 
 }

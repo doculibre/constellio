@@ -785,7 +785,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		if (!(tasksComponent instanceof Table)) {
 			Table table = new RecordVOTable(tasksDataProvider) {
 				@Override
-				protected Component buildMetadataComponent(MetadataValueVO metadataValue, RecordVO recordVO) {
+				protected Component buildMetadataComponent(Object itemId, MetadataValueVO metadataValue, RecordVO recordVO) {
 					if (Task.STARRED_BY_USERS.equals(metadataValue.getMetadata().getLocalCode())) {
 						return new StarredFieldImpl(recordVO.getId(), (List<String>) metadataValue.getValue(),
 								getSessionContext().getCurrentUser().getId()) {
@@ -795,7 +795,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 							}
 						};
 					} else {
-						return super.buildMetadataComponent(metadataValue, recordVO);
+						return super.buildMetadataComponent(itemId, metadataValue, recordVO);
 					}
 				}
 

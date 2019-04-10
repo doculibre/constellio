@@ -64,6 +64,7 @@ public class Document extends RMObject {
 	public static final String MIME_TYPE = "mimetype";
 	public static final String FAVORITES = "favorites";
 	public static final String HAS_CONTENT = "hasContent";
+	public static final String IS_MODEL = "isModel";
 
 	public Document(Record record,
 					MetadataSchemaTypes types) {
@@ -339,6 +340,16 @@ public class Document extends RMObject {
 	public boolean isPublished() {
 		return BooleanUtils.isTrue((Boolean) get(PUBLISHED));
 	}
+
+	public Document setModel(boolean model) {
+		set(IS_MODEL, model ? true : null);
+		return this;
+	}
+
+	public boolean isModel() {
+		return getBooleanWithDefaultValue(IS_MODEL, false);
+	}
+
 
 	public boolean isConfidential() {
 		return BooleanUtils.isTrue((Boolean) get(CONFIDENTIAL));

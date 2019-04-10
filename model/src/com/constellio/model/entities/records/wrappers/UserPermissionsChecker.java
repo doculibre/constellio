@@ -18,6 +18,10 @@ public abstract class UserPermissionsChecker {
 
 	public abstract boolean onSomething();
 
+	public boolean specificallyOn(RecordWrapper recordWrapper) {
+		return specificallyOn(recordWrapper.getWrappedRecord());
+	}
+
 	public boolean on(RecordWrapper recordWrapper) {
 		return on(recordWrapper.getWrappedRecord());
 	}

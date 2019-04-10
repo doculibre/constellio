@@ -216,7 +216,7 @@ public class BatchProcessingPresenterService {
 													   Object defaultValue, String inputMask,
 													   Set<String> customAttributes, boolean isMultiLingual,
 													   Locale locale, Map<String, Object> customParameters,
-													   CollectionInfoVO collectionInfoVO) {
+													   CollectionInfoVO collectionInfoVO, boolean sortable) {
 						// Replace labels with customized labels
 						String customizedLabel = customizedLabels.get(metadataCode);
 						if (customizedLabel != null) {
@@ -234,7 +234,7 @@ public class BatchProcessingPresenterService {
 									   unmodifiable, labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType,
 									   metadataDisplayType,
 									   allowedReferences,
-									   enabled, structureFactory, metadataGroup, defaultValue, inputMask, customAttributes, isMultiLingual, locale, customParameters, collectionInfoVO) :
+									   enabled, structureFactory, metadataGroup, defaultValue, inputMask, customAttributes, isMultiLingual, locale, customParameters, collectionInfoVO, sortable) :
 							   null;
 					}
 				};
@@ -335,7 +335,7 @@ public class BatchProcessingPresenterService {
 													   Object defaultValue, String inputMask,
 													   Set<String> customAttributes, boolean isMultiLingual,
 													   Locale locale, Map<String, Object> customParameters,
-													   CollectionInfoVO collectionInfoVO) {
+													   CollectionInfoVO collectionInfoVO, boolean sortable) {
 						// Replace labels with customized labels
 						String customizedLabel = customizedLabels.get(metadataCode);
 						if (customizedLabel != null) {
@@ -367,7 +367,7 @@ public class BatchProcessingPresenterService {
 								unmodifiable, labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType,
 								metadataDisplayType,
 								allowedReferences,
-								enabled, structureFactory, metadataGroup, defaultValue, inputMask, customAttributes, isMultiLingual, locale, customParameters, collectionInfoVO);
+								enabled, structureFactory, metadataGroup, defaultValue, inputMask, customAttributes, isMultiLingual, locale, customParameters, collectionInfoVO, sortable);
 					}
 				};
 			}

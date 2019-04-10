@@ -1,5 +1,10 @@
 package com.constellio.app.ui.entities;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+
 import com.constellio.app.ui.entities.RecordVORuntimeException.RecordVORuntimeException_NoSuchMetadata;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval;
@@ -134,6 +139,9 @@ public class RecordVO implements Serializable {
 			formMetadataCodes = getMetadataCodes();
 		}
 		for (String formMetadataCode : formMetadataCodes) {
+			if (excludedMetadataCodeList.contains(formMetadataCode)) {
+				continue;
+			}
 			MetadataVO metadataVO = getMetadata(formMetadataCode);
 			MetadataValueVO metadataValueVO = getMetadataValue(metadataVO);
 			if (metadataValueVO != null) {
@@ -151,6 +159,10 @@ public class RecordVO implements Serializable {
 			displayMetadataCodes = getMetadataCodes();
 		}
 		for (String displayMetadataCode : displayMetadataCodes) {
+			if (excludedMetadataCodeList.contains(displayMetadataCode)) {
+				continue;
+			}
+
 			try {
 				MetadataVO metadataVO = getMetadata(displayMetadataCode);
 				MetadataValueVO metadataValueVO = getMetadataValue(metadataVO);
@@ -172,6 +184,10 @@ public class RecordVO implements Serializable {
 			tableMetadataCodes = getMetadataCodes();
 		}
 		for (String tableMetadataCode : tableMetadataCodes) {
+			if (excludedMetadataCodeList.contains(tableMetadataCode)) {
+				continue;
+			}
+
 			MetadataVO metadataVO = getMetadata(tableMetadataCode);
 			MetadataValueVO metadataValueVO = getMetadataValue(metadataVO);
 			if (metadataValueVO != null) {
@@ -189,6 +205,9 @@ public class RecordVO implements Serializable {
 			searchMetadataCodes = getMetadataCodes();
 		}
 		for (String tableMetadataCode : searchMetadataCodes) {
+			if (excludedMetadataCodeList.contains(tableMetadataCode)) {
+				continue;
+			}
 				MetadataVO metadataVO = getMetadataOrNull(tableMetadataCode);
 				if(metadataVO != null) {
 					MetadataValueVO metadataValueVO = getMetadataValue(metadataVO);

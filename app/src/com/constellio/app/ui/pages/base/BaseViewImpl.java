@@ -606,4 +606,9 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 		ConstellioUI.getCurrent().runAsync(runnable, pollInterval);
 	}
 
+	@Override
+	public void openURL(String url) {
+		Page.getCurrent().open(url, null);
+	}
+
 }

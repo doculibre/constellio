@@ -49,6 +49,7 @@ public class MetadataVO implements Serializable {
 	final Locale locale;
 	final Map<String, Object> customParameters;
 	final CollectionInfoVO collectionInfoVO;
+	final boolean sortable;
 
 	public MetadataVO(String code, String localCode, MetadataValueType type, String collection, MetadataSchemaVO schema,
 					  boolean required,
@@ -58,11 +59,11 @@ public class MetadataVO implements Serializable {
 					  MetadataDisplayType metadataDisplayType, AllowedReferences allowedReferences, boolean enabled,
 					  StructureFactory structureFactory,
 					  String metadataGroup, Object defaultValue, Set<String> customAttributes, boolean multiLingual,
-					  Locale locale, Map<String, Object> customParameters, CollectionInfoVO collectionInfoVO) {
+					  Locale locale, Map<String, Object> customParameters, CollectionInfoVO collectionInfoVO, boolean sortable) {
 		this(code, localCode, null, type, collection, schema, required, multivalue, readOnly, unmodifiable, labels, enumClass,
 				taxonomyCodes, schemaTypeCode, metadataInputType, metadataDisplayType, allowedReferences, enabled,
 				structureFactory, metadataGroup,
-				defaultValue, null, customAttributes, multiLingual, locale, customParameters, collectionInfoVO);
+				defaultValue, null, customAttributes, multiLingual, locale, customParameters, collectionInfoVO, sortable);
 	}
 
 
@@ -75,7 +76,7 @@ public class MetadataVO implements Serializable {
 					  AllowedReferences allowedReferences,
 					  boolean enabled, StructureFactory structureFactory, String metadataGroup, Object defaultValue,
 					  String inputMask, Set<String> customAttributes, boolean multiLingual, Locale locale,
-					  Map<String, Object> customParameters, CollectionInfoVO collectionInfoVO) {
+					  Map<String, Object> customParameters, CollectionInfoVO collectionInfoVO, boolean sortable) {
 		super();
 		this.code = code;
 		this.localCode = localCode;
@@ -104,6 +105,7 @@ public class MetadataVO implements Serializable {
 		this.locale = locale;
 		this.customParameters = customParameters;
 		this.collectionInfoVO = collectionInfoVO;
+		this.sortable = sortable;
 
 		if (schema != null && !schema.getMetadatas().contains(this)) {
 			schema.getMetadatas().add(this);
@@ -119,11 +121,11 @@ public class MetadataVO implements Serializable {
 					  AllowedReferences allowedReferences, String metadataGroup, Object defaultValue,
 					  boolean isWriteNullValues,
 					  Set<String> customAttributes, boolean multiLingual, Locale locale,
-					  Map<String, Object> customParameters, CollectionInfoVO collectionInfoVO) {
+					  Map<String, Object> customParameters, CollectionInfoVO collectionInfoVO, boolean sortable) {
 
 		this(code, localCode, type, collection, schema, required, multivalue, readOnly, false, labels, enumClass,
 				taxonomyCodes, schemaTypeCode, metadataInputType, metadataDisplayType, allowedReferences, true, null,
-				metadataGroup, defaultValue, customAttributes, multiLingual, locale, customParameters, collectionInfoVO);
+				metadataGroup, defaultValue, customAttributes, multiLingual, locale, customParameters, collectionInfoVO, sortable);
 	}
 
 	public MetadataVO() {
@@ -155,6 +157,7 @@ public class MetadataVO implements Serializable {
 		this.locale = null;
 		this.customParameters = new HashMap<>();
 		this.collectionInfoVO = null;
+		this.sortable = false;
 	}
 
 	public String getCode() {
@@ -403,6 +406,11 @@ public class MetadataVO implements Serializable {
 
 	public Locale getLocale() {
 		return locale;
+	}
+
+
+	public boolean isSortable() {
+		return sortable;
 	}
 
 }

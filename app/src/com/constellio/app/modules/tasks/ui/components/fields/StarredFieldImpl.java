@@ -33,8 +33,10 @@ public class StarredFieldImpl extends Button {
 	public void updateIcon() {
 		if (isStarred) {
 			setIcon(FontAwesome.STAR);
+			addStyleName("star-field-starred");
 		} else {
 			setIcon(FontAwesome.STAR_O);
+			removeStyleName("star-field-starred");
 		}
 	}
 

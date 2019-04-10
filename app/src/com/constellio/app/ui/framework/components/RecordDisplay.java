@@ -9,6 +9,10 @@ import java.util.Map;
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataVO;
@@ -28,7 +32,7 @@ import com.vaadin.ui.VerticalLayout;
 
 @SuppressWarnings("serial")
 public class RecordDisplay extends BaseDisplay {
-	
+
 	public static final String STYLE_NAME = "record-display";
 	private RecordVO recordVO;
 	private MetadataDisplayFactory metadataDisplayFactory;
@@ -39,7 +43,7 @@ public class RecordDisplay extends BaseDisplay {
 
 	public RecordDisplay(RecordVO recordVO, boolean useTabSheet) {
 		this(recordVO, new MetadataDisplayFactory(), STYLE_NAME, useTabSheet);
-	}	
+	}
 
 	public RecordDisplay(RecordVO recordVO, MetadataDisplayFactory metadataDisplayFactory) {
 		this(recordVO, metadataDisplayFactory, false);
@@ -66,13 +70,15 @@ public class RecordDisplay extends BaseDisplay {
 
 		Locale locale = ConstellioUI.getCurrentSessionContext().getCurrentLocale();
 		for (MetadataValueVO metadataValue : recordVO.getDisplayMetadataValues()) {
-			Component displayComponent = metadataDisplayFactory.build(recordVO, metadataValue);
-			if (displayComponent != null) {
-				MetadataVO metadataVO = metadataValue.getMetadata();
-				String tabCaption = getTabCaption(metadataVO);
-				MetadataVO metadata = metadataValue.getMetadata();
-				String caption = metadata.getLabel(locale);
-				Label captionLabel = new Label(caption);
+			if (SchemaVOUtils.isMetadataNotPresentInList(metadataValue.getMetadata(), recordVO.getExcludedMetadataCodeList())) {
+				Component displayComponent = metadataDisplayFactory.build(recordVO, metadataValue);
+				if (displayComponent != null) {
+					MetadataVO metadataVO = metadataValue.getMetadata();
+					String tabCaption = getTabCaption(metadataVO);
+
+					MetadataVO metadata = metadataValue.getMetadata();
+					String caption = metadata.getLabel(locale);
+					Label captionLabel = new Label(caption);
 
 				String captionId = STYLE_CAPTION + "-" + metadata.getCode();
 				captionLabel.setId(captionId);
@@ -88,7 +94,7 @@ public class RecordDisplay extends BaseDisplay {
 		}
 		return captionsAndComponents;
 	}
-	
+
 	private static String getTabCaption(MetadataVO metadataVO) {
 		return metadataVO.getMetadataGroup();
 	}
@@ -124,7 +130,7 @@ public class RecordDisplay extends BaseDisplay {
 	protected void addTab(TabSheet tabSheet, Component tabComponent, String caption, Resource icon) {
 		super.addTab(tabSheet, tabComponent, caption, icon);
 	}
-	
+
 	private void reorderTabs() {
 		List<String> orderedTabCaptions = getOrderedTabCaptions(recordVO);
 		List<String> usedTabCaptions = new ArrayList<>();
@@ -137,7 +143,7 @@ public class RecordDisplay extends BaseDisplay {
 					usedTab = true;
 					break usedTabsLoop;
 				}
-			}	
+			}
 			if (usedTab) {
 				usedTabCaptions.add(orderedTabCaption);
 			}
@@ -166,11 +172,11 @@ public class RecordDisplay extends BaseDisplay {
 		reorderTabs();
 		super.attach();
 	}
-	
+
 	private List<String> getOrderedTabCaptions(RecordVO recordVO) {
 		SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
 		Locale currentLocale = sessionContext.getCurrentLocale();
-		
+
 		MetadataSchemaVO schemaVO = recordVO.getSchema();
 		String collection = schemaVO.getCollection();
 		String schemaTypeCode = SchemaUtils.getSchemaTypeCode(schemaVO.getCode());

@@ -1,5 +1,9 @@
 package com.constellio.app.modules.rm.wrappers;
 
+import java.util.List;
+
+import org.apache.poi.ss.formula.functions.T;
+
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
@@ -9,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class RMTask extends Task {
+	public static final String SCHEMA_TYPE = Task.SCHEMA_TYPE;
 	public static final String ADMINISTRATIVE_UNIT = "administrativeUnit";
 	public static final String LINKED_FOLDERS = "linkedFolders";
 	public static final String LINKED_DOCUMENTS = "linkedDocuments";

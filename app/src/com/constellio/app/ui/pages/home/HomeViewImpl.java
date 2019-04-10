@@ -65,6 +65,8 @@ import com.vaadin.ui.TabSheet.Tab;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.TableDragMode;
 
+import com.vaadin.ui.Tree.TreeDragMode;
+
 public class HomeViewImpl extends BaseViewImpl implements HomeView {
 
 	private final HomePresenter presenter;
@@ -296,6 +298,7 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 				return buildRecordTree(recordTree, dataProvider);
 			}
 		};
+		subTabSheet.addStyleName("tabsheet-secondary");
 		subTabSheet.setSelectedTab(recordTree.getDefaultDataProvider());
 		return subTabSheet;
 	}
@@ -545,11 +548,6 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 				}
 			}
 		}
-	}
-
-	@Override
-	public void openURL(String url) {
-		Page.getCurrent().open(url, null);
 	}
 
 }

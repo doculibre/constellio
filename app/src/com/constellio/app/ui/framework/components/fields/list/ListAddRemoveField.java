@@ -11,6 +11,16 @@ import java.util.Locale;
 
 import org.vaadin.dialogs.ConfirmDialog;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Locale;
+
+import org.vaadin.dialogs.ConfirmDialog;
+
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
@@ -191,13 +201,19 @@ public abstract class ListAddRemoveField<T extends Serializable, F extends Abstr
 	@SuppressWarnings("unchecked")
 	protected void addValue(T value) {
 		if (value != null) {
-			List<T> listValue = value instanceof List ? (List<T>) value : new ArrayList<>(Arrays.asList(value));
-			for (T listValueItem : listValue) {
-				valuesAndButtonsContainer.addItem(listValueItem);
+			if (!isCancelAddValueAndSetValueToNull(value)) {
+				List<T> listValue = value instanceof List ? (List<T>) value : new ArrayList<>(Arrays.asList(value));
+				for (T listValueItem : listValue) {
+					valuesAndButtonsContainer.addItem(listValueItem);
+				}
 			}
 			addEditField.setValue(null);
 			notifyValueChange();
 		}
+	}
+
+	protected boolean isCancelAddValueAndSetValueToNull(T value) {
+		return false;
 	}
 
 	protected void removeValue(Object value) {

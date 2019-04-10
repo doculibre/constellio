@@ -13,8 +13,14 @@ import java.util.Objects;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.constellio.app.modules.rm.wrappers.RMTask;
+import com.constellio.app.modules.tasks.TaskModule;
+import com.constellio.app.modules.tasks.extensions.api.TaskModuleExtensions;
+import com.constellio.app.modules.tasks.extensions.api.params.TaskFormParams;
+import com.constellio.app.modules.tasks.extensions.api.params.TaskFormRetValue;
 import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflowTask;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.TaskStatusType;
@@ -83,6 +89,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 	private ListAddRemoveWorkflowInclusiveDecisionFieldImpl listAddRemoveWorkflowInclusiveDecision;
 	private TaskDecisionField field;
 	private TasksSchemasRecordsServices tasksSchemasRecordsServices;
+	private static Logger LOGGER = LoggerFactory.getLogger(AddEditTaskPresenter.class);
 	List<String> finishedOrClosedStatuses;
 
 	boolean inclusideDecision = false;
@@ -100,6 +107,10 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		tasksSchemasRecordsServices = new TasksSchemasRecordsServices(collection, appLayerFactory);
 		finishedOrClosedStatuses = getFinishedOrClosedStatuses();
 		tasksSchemasRecordsServices = new TasksSchemasRecordsServices(collection, appLayerFactory);
+	}
+
+	public AddEditTaskView getView() {
+		return view;
 	}
 
 	private List<String> getFinishedOrClosedStatuses() {
@@ -233,11 +244,19 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 				task.setDueDate(task.getAssignedOn().plusDays(task.getRelativeDueDate()));
 			}
 
-			if (task.isModel()) {
-				addOrUpdate(task.getWrappedRecord(), RecordUpdateOptions.userModificationsSafeOptions());
-			} else {
-				addOrUpdate(task.getWrappedRecord());
+			TaskModuleExtensions taskModuleExtensions = appLayerFactory.getExtensions().forCollection(collection)
+					.forModule(TaskModule.ID);
+
+			// No transaction because the extention return record to be save
+			if (taskModuleExtensions != null) {
+				TaskFormRetValue taskFormRetValue = taskModuleExtensions.taskFormExtentions(new TaskFormParams(this, task));
+				for (Record currentRecord : taskFormRetValue.getRecords()) {
+					saveRecord(task, currentRecord, taskFormRetValue.isSaveWithValidation(currentRecord));
+				}
 			}
+
+			saveRecord(task, task.getWrappedRecord(), true);
+
 
 			if (StringUtils.isNotBlank(workflowId)) {
 				view.navigateToWorkflow(workflowId);
@@ -250,6 +269,26 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 			view.showErrorMessage(e.getMessage());
 		}
 	}
+
+	private void saveRecord(Task task, Record record, boolean withRequiredValidation) {
+		RecordUpdateOptions recordUpdateOptions;
+
+		if (task.isModel()) {
+			recordUpdateOptions = RecordUpdateOptions.userModificationsSafeOptions();
+		} else {
+			recordUpdateOptions = null;
+		}
+
+		if (withRequiredValidation) {
+			addOrUpdate(record, recordUpdateOptions);
+		} else {
+			if (recordUpdateOptions == null) {
+				recordUpdateOptions = new RecordUpdateOptions();
+			}
+			addOrUpdate(record, recordUpdateOptions.setSkippingRequiredValuesValidation(true));
+		}
+	}
+
 
 	private Field getAssignerField() {
 		TaskForm form = view.getForm();

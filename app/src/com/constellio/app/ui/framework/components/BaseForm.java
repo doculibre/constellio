@@ -17,6 +17,20 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.handlers.OnEnterKeyHandler;
 import com.constellio.app.ui.util.MessageUtils;
@@ -32,7 +46,6 @@ import com.vaadin.data.fieldgroup.FieldGroup;
 import com.vaadin.data.fieldgroup.FieldGroup.CommitException;
 import com.vaadin.data.util.BeanItem;
 import com.vaadin.data.validator.AbstractValidator;
-import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.ui.AbstractField;
 import com.vaadin.ui.Button;
@@ -51,21 +64,6 @@ import com.vaadin.ui.TabSheet.Tab;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import static com.constellio.app.ui.i18n.i18n.$;
 
 @SuppressWarnings("serial")
 public abstract class BaseForm<T> extends CustomComponent {
@@ -219,6 +217,7 @@ public abstract class BaseForm<T> extends CustomComponent {
 		if (tabSheet.iterator().hasNext()) {
 			formLayout.addComponent(tabSheet);
 		}
+
 		formLayout.addComponent(buttonsLayout);
 		buttonsLayout.addComponents(saveButton, cancelButton);
 
@@ -310,7 +309,7 @@ public abstract class BaseForm<T> extends CustomComponent {
 				fieldLayout.addStyleName("base-form-tab-layout");
 				fieldLayout.setWidth("100%");
 				fieldLayout.setSpacing(true);
-				
+
 				panel = new Panel(fieldLayout);
 				panel.addStyleName(ValoTheme.PANEL_BORDERLESS);
 				panel.addStyleName("base-form-tab-panel");
@@ -385,6 +384,10 @@ public abstract class BaseForm<T> extends CustomComponent {
 		trySave();
 	}
 
+	public boolean validateFields() {
+		return true;
+	}
+
 	private void trySave() {
 		clearBackendValidators();
 		for (Field<?> field : fields) {
@@ -393,7 +396,7 @@ public abstract class BaseForm<T> extends CustomComponent {
 				abstractField.setValidationVisible(true);
 			}
 		}
-		if (fieldGroup.isValid()) {
+		if (!validateFields() || fieldGroup.isValid()) {
 			try {
 				fieldGroup.commit();
 				try {
@@ -477,6 +480,14 @@ public abstract class BaseForm<T> extends CustomComponent {
 		}
 	}
 
+	protected void showErrorMessage(String message) {
+		ErrorDisplayUtil.showErrorMessage(message);
+	}
+
+	protected void showBackendValidationException(ValidationErrors validationErrors) {
+		ErrorDisplayUtil.showBackendValidationException(validationErrors);
+	}
+
 	private void addErrorMessage(StringBuilder missingRequiredFields, String message) {
 		if (missingRequiredFields.length() != 0) {
 			missingRequiredFields.append("<br/>");
@@ -498,25 +509,7 @@ public abstract class BaseForm<T> extends CustomComponent {
 		return emptyValue;
 	}
 
-	protected void showBackendValidationException(ValidationErrors validationErrors) {
-		Set<String> globalErrorMessages = new HashSet<String>();
-		for (ValidationError validationError : validationErrors.getValidationErrors()) {
-			String errorMessage = $(validationError);
-			globalErrorMessages.add(errorMessage);
-		}
 
-		if (!globalErrorMessages.isEmpty()) {
-			StringBuffer globalErrorMessagesSB = new StringBuffer();
-			for (String globalErrorMessage : globalErrorMessages) {
-				globalErrorMessage = $(globalErrorMessage);
-				if (globalErrorMessagesSB.length() != 0) {
-					globalErrorMessagesSB.append("<br />");
-				}
-				globalErrorMessagesSB.append(globalErrorMessage);
-			}
-			showErrorMessage(globalErrorMessagesSB.toString());
-		}
-	}
 
 	protected void clearBackendValidators() {
 		for (Field<?> field : fields) {
@@ -526,12 +519,6 @@ public abstract class BaseForm<T> extends CustomComponent {
 				}
 			}
 		}
-	}
-
-	protected void showErrorMessage(String message) {
-		Notification notification = new Notification(message + "<br/><br/>" + $("clickToClose"), Type.WARNING_MESSAGE);
-		notification.setHtmlContentAllowed(true);
-		notification.show(Page.getCurrent());
 	}
 
 	protected abstract void saveButtonClick(T viewObject)
@@ -622,4 +609,7 @@ public abstract class BaseForm<T> extends CustomComponent {
 		return saveButton;
 	}
 
+	public VerticalLayout getFormLayout() {
+		return formLayout;
+	}
 }

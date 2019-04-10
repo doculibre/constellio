@@ -1,5 +1,14 @@
 package com.constellio.app.modules.tasks.model.wrappers;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.joda.time.LocalDate;
+
+import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollower;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskReminder;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskType;
@@ -7,13 +16,6 @@ import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.structures.MapStringStringStructure;
-import org.joda.time.LocalDate;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 public class BetaWorkflowTask extends Task {
 	public BetaWorkflowTask(Record record,
@@ -170,7 +172,7 @@ public class BetaWorkflowTask extends Task {
 	}
 
 	@Override
-	public BetaWorkflowTask setAssigneeUsersCandidates(List<String> users) {
+	public BetaWorkflowTask setAssigneeUsersCandidates(List<?> users) {
 		return (BetaWorkflowTask) super.setAssigneeUsersCandidates(users);
 	}
 
@@ -190,7 +192,7 @@ public class BetaWorkflowTask extends Task {
 	}
 
 	@Override
-	public BetaWorkflowTask setComments(String comments) {
+	public BetaWorkflowTask setComments(List<Comment> comments) {
 		return (BetaWorkflowTask) super.setComments(comments);
 	}
 

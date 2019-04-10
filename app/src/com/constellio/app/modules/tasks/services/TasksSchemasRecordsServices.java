@@ -57,6 +57,10 @@ public class TasksSchemasRecordsServices extends SchemasRecordsServices {
 		return record == null ? null : new TaskStatus(record, getTypes());
 	}
 
+	public AppLayerFactory getAppLayerFactory() {
+		return appLayerFactory;
+	}
+
 	public List<TaskStatus> wrapTaskStatuss(List<Record> records) {
 		List<TaskStatus> wrapped = new ArrayList<>();
 		for (Record record : records) {
@@ -310,6 +314,10 @@ public class TasksSchemasRecordsServices extends SchemasRecordsServices {
 
 		public Metadata readByUser() {
 			return metadata("readByUser");
+		}
+
+		public Metadata isLate() {
+			return metadata("isLate");
 		}
 	}
 

@@ -1,65 +1,62 @@
 package com.constellio.app.modules.tasks.ui.pages;
 
-import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
-import com.constellio.app.modules.tasks.model.wrappers.Task;
-import com.constellio.app.modules.tasks.ui.components.DemoFilterDecorator;
-import com.constellio.app.modules.tasks.ui.components.DemoFilterGenerator;
-import com.constellio.app.modules.tasks.ui.components.FilterTableAdapter;
 import com.constellio.app.modules.tasks.ui.components.TaskTable;
-import com.constellio.app.modules.tasks.ui.components.WorkflowTable;
-import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
-import com.constellio.app.ui.application.ConstellioUI;
-import com.constellio.app.ui.entities.MetadataSchemaVO;
-import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.buttons.AddButton;
-import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
-import com.constellio.app.ui.framework.components.table.RecordVOTable;
-import com.constellio.app.ui.framework.components.table.columns.RecordVOTableColumnsManager;
-import com.constellio.app.ui.framework.components.table.columns.TableColumnsManager;
+import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
+import com.constellio.app.ui.framework.components.tabs.IdTabSheet;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
-import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
-import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.wrappers.User;
 import com.vaadin.data.Property;
-import com.vaadin.event.ItemClickEvent;
-import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.navigator.ViewChangeListener;
-import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
+import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
-import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.TabSheet;
-import com.vaadin.ui.Table;
+import com.vaadin.ui.TabSheet.SelectedTabChangeListener;
 import com.vaadin.ui.VerticalLayout;
-import org.apache.commons.collections4.CollectionUtils;
+import com.vaadin.ui.themes.ValoTheme;
 import org.tepi.filtertable.FilterGenerator;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
-import static com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration.modalDialog;
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 import static java.util.Arrays.asList;
 
 public class TaskManagementViewImpl extends BaseViewImpl implements TaskManagementView {
+
 	private final TaskManagementPresenter presenter;
-	private TabSheet sheet;
-	private HorizontalLayout horizontalLayout;
+
+	//	private boolean workflowsTabsVisible;
+	//	private boolean startWorkflowButtonVisible;
+
+	private boolean tasksInSubTabSheet;
+
+	private I18NHorizontalLayout actionButtonsLayout;
+
+	private List<String> tasksTabs;
+	// Key: primary tab, value: sub tabs
+	private Map<String, List<String>> extraTabs = new HashMap<>();
+
+	private List<? extends Button> extraActionButtons = new ArrayList<>();
+
+	private IdTabSheet primaryTabSheet;
+	private IdTabSheet tasksTabSheet;
+
 	private ComboBox timestamp;
 	private String previousSelectedTab;
 	private FilterGenerator filterGenerator;
 
 	enum Timestamp {
 		ALL, TODAY, WEEK, MONTH
-	}
-
-	public void setHorizontalLayout(HorizontalLayout horizontalLayout) {
-		this.horizontalLayout = horizontalLayout;
 	}
 
 	public TaskManagementViewImpl() {
@@ -72,27 +69,30 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 	}
 
 	@Override
-	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
-		List<Button> buttons = super.buildActionMenuButtons(event);
-		buttons.add(new AddButton($("TasksManagementView.add")) {
-			@Override
-			protected void buttonClick(ClickEvent event) {
-				presenter.addTaskButtonClicked();
-			}
-		});
+	protected boolean isFullWidthIfActionMenuAbsent() {
+		return true;
+	}
 
-		if (presenter.areWorkflowsEnabled() && presenter.hasPermissionToStartWorkflow()) {
-			Button startWorkflowButton = new StartWorkflowButton();
-			startWorkflowButton.setVisible(presenter.hasPermissionToStartWorkflow());
-			buttons.add(startWorkflowButton);
-		}
-		return buttons;
+	@Override
+	public void setTasksTabs(List<String> tasksTabs) {
+		this.tasksTabs = tasksTabs;
+	}
+
+	public void setTasksInSubTabSheet(boolean tasksInSubTabSheet) {
+		this.tasksInSubTabSheet = tasksInSubTabSheet;
 	}
 
 	@Override
 	protected Component buildMainComponent(ViewChangeListener.ViewChangeEvent event) {
+		addStyleName("task-management-view");
+
+		actionButtonsLayout = new I18NHorizontalLayout();
+		actionButtonsLayout.setSpacing(true);
+		actionButtonsLayout.addStyleName("task-action-buttons");
+
 		VerticalLayout mainLayout = new VerticalLayout();
 		mainLayout.setSpacing(true);
+
 		timestamp = new BaseComboBox(presenter.getDueDateCaption(), asList(Timestamp.ALL, Timestamp.TODAY, Timestamp.WEEK, Timestamp.MONTH));
 		timestamp.setNullSelectionAllowed(false);
 		timestamp.setValue(Timestamp.ALL);
@@ -104,28 +104,44 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 		timestamp.addValueChangeListener(new Property.ValueChangeListener() {
 			@Override
 			public void valueChange(Property.ValueChangeEvent event) {
-				reloadCurrentTab();
+				// FIXME
+				presenter.tabSelected(primaryTabSheet.getSelectedTab().getId());
 			}
 		});
-		if (horizontalLayout == null) {
-			setHorizontalLayout(new HorizontalLayout());
+
+		primaryTabSheet = new IdTabSheet();
+		primaryTabSheet.setSizeFull();
+		primaryTabSheet.addTab(buildEmptyTab(TASKS_TAB));
+
+		if (tasksInSubTabSheet) {
+			tasksTabSheet = new IdTabSheet();
+			tasksTabSheet.addStyleName("tabsheet-secondary");
+			tasksTabSheet.addSelectedTabChangeListener(new TabSheet.SelectedTabChangeListener() {
+				@Override
+				public void selectedTabChange(TabSheet.SelectedTabChangeEvent event) {
+					presenter.tabSelected(tasksTabSheet.getSelectedTab().getId());
+				}
+			});
+
+			for (String tabId : tasksTabs) {
+				tasksTabSheet.addTab(buildEmptyTab(tabId));
+			}
+		} else {
+			for (String tabId : tasksTabs) {
+				primaryTabSheet.addTab(buildEmptyTab(tabId));
+			}
 		}
-		horizontalLayout.addComponent(timestamp, 0);
-		horizontalLayout.setSpacing(true);
-		sheet = new TabSheet();
-		sheet.setSizeFull();
-		sheet.addSelectedTabChangeListener(new TabSheet.SelectedTabChangeListener() {
+
+		primaryTabSheet.addSelectedTabChangeListener(new TabSheet.SelectedTabChangeListener() {
 			@Override
 			public void selectedTabChange(TabSheet.SelectedTabChangeEvent event) {
-				reloadCurrentTab();
+				presenter.tabSelected(primaryTabSheet.getSelectedTab().getId());
 			}
 		});
 
-		for (String tabId : presenter.getTabs()) {
-			sheet.addTab(buildEmptyTab(tabId));
-		}
-
-		mainLayout.addComponents(horizontalLayout, sheet);
+		mainLayout.addComponent(actionButtonsLayout);
+		mainLayout.setComponentAlignment(actionButtonsLayout, Alignment.TOP_RIGHT);
+		mainLayout.addComponents(primaryTabSheet);
 
 		previousSelectedTab = presenter.getPreviousSelectedTab();
 		backToPreviousSelectedTab();
@@ -135,15 +151,10 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 
 	public void backToPreviousSelectedTab() {
 		if (previousSelectedTab != null) {
-			Iterator<Component> iterator = sheet.iterator();
-			while (iterator.hasNext()) {
-				Component component = iterator.next();
-				if (previousSelectedTab.equals(component.getId())) {
-					sheet.setSelectedTab(component);
-					presenter.tabSelected(previousSelectedTab);
-					break;
-				}
-			}
+			IdTabSheet tabSheet = getTabSheet(previousSelectedTab);
+			Component tabComponent = tabSheet.getTabComponent(previousSelectedTab);
+			tabSheet.setSelectedTab(tabComponent);
+			presenter.tabSelected(previousSelectedTab);
 		}
 	}
 
@@ -151,14 +162,30 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 		return previousSelectedTab;
 	}
 
-	@Override
-	public void reloadCurrentTab() {
-		presenter.tabSelected(sheet.getSelectedTab().getId());
+	private IdTabSheet getTabSheet(String tabId) {
+		IdTabSheet tabSheet;
+		if (tabId.equals(TASKS_TAB) || extraTabs.containsKey(tabId)) {
+			tabSheet = primaryTabSheet;
+		} else if (presenter.isTaskTab(tabId)) {
+			tabSheet = tasksTabSheet;
+		} else {
+			tabSheet = (IdTabSheet) primaryTabSheet.getTabComponent(tabId);
+			if (tabSheet == null) {
+				for (String extraTab : extraTabs.keySet()) {
+					if (extraTabs.get(extraTab).contains(tabId)) {
+						tabSheet = (IdTabSheet) primaryTabSheet.getTabComponent(extraTab);
+						break;
+					}
+				}
+			}
+		}
+		return tabSheet;
 	}
 
 	@Override
-	public Component getSelectedTab() {
-		return sheet.getSelectedTab();
+	public Component getTabComponent(String tabId) {
+		IdTabSheet tabSheet = getTabSheet(tabId);
+		return tabSheet.getTabComponent(tabId);
 	}
 
 	@Override
@@ -168,88 +195,65 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 
 	@Override
 	public void displayTasks(RecordVODataProvider provider) {
-		VerticalLayout layout = getEmptiedSelectedTab();
-		TaskTable taskTable = new TaskTable(provider, presenter) {
-			@Override
-			protected TableColumnsManager newColumnsManager() {
-				return new RecordVOTableColumnsManager() {
-					@Override
-					protected List<String> getDefaultVisibleColumnIds(Table table) {
-						List<String> defaultVisibleColumnIds;
-						RecordVOTable recordVOTable = (RecordVOTable) table;
-						List<MetadataSchemaVO> schemaVOs = recordVOTable.getSchemas();
-						if (!schemaVOs.isEmpty()) {
-							defaultVisibleColumnIds = new ArrayList<>();
-							SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
-							String collection = sessionContext.getCurrentCollection();
-							AppLayerFactory appLayerFactory = constellioFactories.getAppLayerFactory();
-							SchemasDisplayManager schemasDisplayManager = appLayerFactory.getMetadataSchemasDisplayManager();
+		List<Button> newActionButtons = new ArrayList<>();
+		newActionButtons.add(new AddTaskButton());
+		newActionButtons.addAll(extraActionButtons);
+		setActionButtons(newActionButtons);
 
-							for (MetadataSchemaVO schemaVO : schemaVOs) {
-								if (CollectionUtils.isNotEmpty(schemaVO.getTableMetadataCodes())) {
-									defaultVisibleColumnIds.addAll(schemaVO.getTableMetadataCodes());
-								} else {
-									String schemaCode = schemaVO.getCode();
-									SchemaDisplayConfig schemaDisplayConfig = schemasDisplayManager.getSchema(collection, schemaCode);
-									defaultVisibleColumnIds.addAll(schemaDisplayConfig.getTableMetadataCodes());
-								}
-							}
+		TabSheet tabSheet;
+		if (tasksInSubTabSheet) {
+			VerticalLayout tasksTabLayout = getEmptiedSelectedTab(primaryTabSheet);
+			tasksTabLayout.addComponent(tasksTabSheet);
 
-							Object[] tableVisibleColumns = table.getVisibleColumns();
-							for (Object tableVisibleColumn : tableVisibleColumns) {
-								if (!(tableVisibleColumn instanceof MetadataVO)) {
-									String columnId = toColumnId(tableVisibleColumn);
-									defaultVisibleColumnIds.add(columnId);
-								}
-							}
-						} else {
-							defaultVisibleColumnIds = super.getDefaultVisibleColumnIds(table);
-						}
-						return defaultVisibleColumnIds;
-					}
-				};
-			}
-		};
-
-		FilterTableAdapter tableAdapter;
-		if (filterGenerator == null) {
-			tableAdapter = new FilterTableAdapter(taskTable, new DemoFilterDecorator(), new DemoFilterGenerator());
+			tabSheet = tasksTabSheet;
 		} else {
-			tableAdapter = new FilterTableAdapter(taskTable, new DemoFilterDecorator(), filterGenerator);
+			tabSheet = primaryTabSheet;
 		}
 
-		// cas uniquement pour l'exemple
-		tableAdapter.setFilterFieldVisible("menuBar", false);
-		tableAdapter.setFilterBarVisible(true);
+		VerticalLayout layout = getEmptiedSelectedTab(tabSheet);
+		TaskTable taskTable = new TaskTable(provider, presenter);
+		taskTable.setFilterGenerator(filterGenerator);
 
-		String starredByUserCode = Task.DEFAULT_SCHEMA + "_" + Task.STARRED_BY_USERS;
-		String workflouwExecutionCode = Task.DEFAULT_SCHEMA + "_" + "linkedWorkflowExecution";
-		String titleCode = Task.DEFAULT_SCHEMA + "_" + Task.TITLE;
-		for(Object visibleColumn : taskTable.getVisibleColumns()){
-			if (visibleColumn instanceof MetadataVO) {
-				if (starredByUserCode.equals(((MetadataVO) visibleColumn).getCode()) || workflouwExecutionCode.equals(((MetadataVO) visibleColumn).getCode())) {
-					tableAdapter.setColumnExpandRatio(visibleColumn, 1);
-				}
-				if(titleCode.equals(((MetadataVO)visibleColumn).getCode())){
-					tableAdapter.setColumnExpandRatio(visibleColumn, 0);
-				}
-			}
-		}
+		//		FilterTableAdapter tableAdapter = new FilterTableAdapter(taskTable.getTable(), new DemoFilterDecorator(), new DemoFilterGenerator());
+		//
+		//		// cas uniquement pour l'exemple
+		//		tableAdapter.setFilterFieldVisible("menuBar", false);
+		//		tableAdapter.setFilterBarVisible(true);
 
-		layout.addComponent(tableAdapter);
+
+//		String starredByUserCode = Task.DEFAULT_SCHEMA + "_" + Task.STARRED_BY_USERS;
+//		String workflouwExecutionCode = Task.DEFAULT_SCHEMA + "_" + "linkedWorkflowExecution";
+//		String titleCode = Task.DEFAULT_SCHEMA + "_" + Task.TITLE;
+//		for(Object visibleColumn : taskTable.getVisibleColumns()){
+//			if (visibleColumn instanceof MetadataVO) {
+//				if (starredByUserCode.equals(((MetadataVO) visibleColumn).getCode()) || workflouwExecutionCode.equals(((MetadataVO) visibleColumn).getCode())) {
+//					tableAdapter.setColumnExpandRatio(visibleColumn, 1);
+//				}
+//				if(titleCode.equals(((MetadataVO)visibleColumn).getCode())){
+//					tableAdapter.setColumnExpandRatio(visibleColumn, 0);
+//				}
+//			}
+//		}
+
+		layout.addComponent(taskTable);
 		//layout.addComponent(new BaseFilteringTable());
 	}
 
 	//	@Override
-	//	public void displayTasks(RecordVODataProvider provider, Object[] propertyId, boolean[] ascending) {
-	//		VerticalLayout layout = getEmptiedSelectedTab();
-	//		layout.addComponent(new TaskTable(provider, presenter).sort(propertyId, ascending));
+	//	public void displayWorkflows(RecordVODataProvider provider) {
+	//		addTaskButton.setVisible(false);
+	//		startWorkflowButton.setVisible(startWorkflowButtonVisible);
+	//
+	//		VerticalLayout workflowsTabLayout = getEmptiedSelectedTab(primaryTabSheet);
+	//		workflowsTabLayout.addComponent(workflowsTabSheet);
+	//
+	//		VerticalLayout layout = getEmptiedSelectedTab(workflowsTabSheet);
+	//		layout.addComponent(new WorkflowTable(provider, presenter));
 	//	}
 
 	@Override
-	public void displayWorkflows(RecordVODataProvider provider) {
-		VerticalLayout layout = getEmptiedSelectedTab();
-		layout.addComponent(new WorkflowTable(provider, presenter));
+	public void reloadCurrentTab() {
+		presenter.reloadCurrentTabRequested();
 	}
 
 	private VerticalLayout buildEmptyTab(String tabId) {
@@ -260,47 +264,130 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 		return tab;
 	}
 
-	private VerticalLayout getEmptiedSelectedTab() {
-		VerticalLayout tab = (VerticalLayout) sheet.getSelectedTab();
+	private VerticalLayout getEmptiedSelectedTab(TabSheet tabSheet) {
+		VerticalLayout tab = (VerticalLayout) tabSheet.getSelectedTab();
 		tab.removeAllComponents();
 		return tab;
 	}
 
-	public TabSheet getSheet() {
-		return sheet;
+	public TabSheet getPrimaryTabSheet() {
+		return primaryTabSheet;
 	}
 
-	public void setFilterGenerator(FilterGenerator filterGenerator) {
-		this.filterGenerator = filterGenerator;
-	}
-
-	private class StartWorkflowButton extends WindowButton {
-		public StartWorkflowButton() {
-			super($("TasksManagementView.startWorkflowBeta"), $("TasksManagementView.startWorkflow"), modalDialog("75%", "75%"));
-		}
-
-		@Override
-		protected Component buildWindowContent() {
-			RecordVOTable table = new RecordVOTable(presenter.getWorkflows());
-			table.setWidth("98%");
-			table.addItemClickListener(new ItemClickListener() {
-				@Override
-				public void itemClick(ItemClickEvent event) {
-					RecordVOItem item = (RecordVOItem) event.getItem();
-					presenter.workflowStartRequested(item.getRecord());
-					getWindow().close();
-				}
-			});
-			return table;
-		}
-	}
-
-	public User getCurrentUser() {
-		return presenter.getCurrentUser();
+	public TabSheet getTasksTabSheet() {
+		return tasksTabSheet;
 	}
 
 	@Override
 	public Timestamp getTimestamp() {
 		return (Timestamp) timestamp.getValue();
 	}
+
+	public void setFilterGenerator(FilterGenerator filterGenerator) {
+		this.filterGenerator = filterGenerator;
+	}
+
+	public User getCurrentUser() {
+		return presenter.getCurrentUser();
+	}
+
+	public Component getExtraPrimaryTab(String tabId) {
+		return primaryTabSheet.getTabComponent(tabId);
+	}
+
+	public void addExtraPrimaryTab(String tabId, Component component) {
+		extraTabs.put(tabId, new ArrayList<String>());
+		component.setId(tabId);
+		primaryTabSheet.addComponent(component);
+	}
+
+	public IdTabSheet getExtraTabSheet(String tabId) {
+		return (IdTabSheet) getExtraPrimaryTab(tabId);
+	}
+
+	public void addExtraTabSheet(String tabId, final TabSheet tabSheet) {
+		addExtraPrimaryTab(tabId, tabSheet);
+
+		tabSheet.addStyleName("tabsheet-secondary");
+		tabSheet.addSelectedTabChangeListener(new TabSheet.SelectedTabChangeListener() {
+			@Override
+			public void selectedTabChange(TabSheet.SelectedTabChangeEvent event) {
+				presenter.tabSelected(tabSheet.getSelectedTab().getId());
+			}
+		});
+	}
+
+	public Component getExtraSubTab(String tabId) {
+		IdTabSheet tabSheet = getTabSheet(tabId);
+		return tabSheet.getTabComponent(tabId);
+	}
+
+	public void addExtraSubTab(String tabId, Component component, String parentTabId) {
+		List<String> extraTabSubTabs = extraTabs.get(parentTabId);
+		if (extraTabSubTabs == null) {
+			throw new RuntimeException("Parent tab not added : " + parentTabId);
+		} else {
+			extraTabSubTabs.add(tabId);
+			IdTabSheet parentTabSheet = (IdTabSheet) primaryTabSheet.getTabComponent(parentTabId);
+			component.setId(tabId);
+
+			Collection<?> selectionTabChangeListeners = parentTabSheet.getListeners(TabSheet.SelectedTabChangeEvent.class);
+			for (Object listener : selectionTabChangeListeners) {
+				SelectedTabChangeListener selectedTabChangeListener = (TabSheet.SelectedTabChangeListener) listener;
+				parentTabSheet.removeSelectedTabChangeListener(selectedTabChangeListener);
+			}
+			parentTabSheet.addTab(component);
+			for (Object listener : selectionTabChangeListeners) {
+				SelectedTabChangeListener selectedTabChangeListener = (TabSheet.SelectedTabChangeListener) listener;
+				parentTabSheet.addSelectedTabChangeListener(selectedTabChangeListener);
+			}
+		}
+	}
+
+	public List<Button> getActionButtons() {
+		List<Button> actionButtons = new ArrayList<>();
+		for (Iterator<Component> it = actionButtonsLayout.iterator(); it.hasNext(); ) {
+			actionButtons.add((Button) it.next());
+		}
+		return actionButtons;
+	}
+
+	public void setActionButtons(List<? extends Button> actionButtons) {
+		actionButtonsLayout.removeAllComponents();
+		for (Button actionButton : actionButtons) {
+			actionButton.addStyleName(ValoTheme.BUTTON_LINK);
+			actionButtonsLayout.addComponent(actionButton);
+		}
+	}
+
+	public List<? extends Button> getExtraActionButtons() {
+		return extraActionButtons;
+	}
+
+	public void setExtraActionButtons(List<? extends Button> extraActionButtons) {
+		this.extraActionButtons = extraActionButtons;
+	}
+
+	@Override
+	public void setTabBadge(String tabId, String badge) {
+		IdTabSheet tabSheet = getTabSheet(tabId);
+		tabSheet.setBadge(tabId, badge);
+	}
+
+	public class AddTaskButton extends AddButton {
+
+		public AddTaskButton() {
+			super($("TasksManagementView.add"));
+			addStyleName("add-task-button");
+			addStyleName(ValoTheme.BUTTON_LINK);
+		}
+
+		@Override
+		protected void buttonClick(ClickEvent event) {
+			presenter.addTaskButtonClicked();
+		}
+	}
+
+	;
+
 }

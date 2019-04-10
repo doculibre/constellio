@@ -75,6 +75,266 @@ $popup-view-z-index: 3;
 
 @mixin constellio {
 
+	.v-tabsheet-tabitem {
+		.tab-badge {
+		    -webkit-transition: background-color 300ms;
+		    -moz-transition: background-color 300ms;
+		    transition: background-color 300ms;
+		    line-height: 1;
+		    padding: 4px 8px;
+		    min-width: 11px;
+		    text-align: center;
+		    top: 4px;
+		    border-radius: 28px;
+		    background-color: #fafafa;
+		    //background-image: -webkit-linear-gradient(top, #fafafa 2%, #efefef 98%);
+		    //background-image: linear-gradient(to bottom,#fafafa 2%, #efefef 98%);
+		    color: rgb(105, 105, 105);
+		    right: 12px;
+		    font-size: 12px;
+		    font-weight: 500;
+		    pointer-events: none;
+		}
+	}
+
+	.tabsheet-secondary {
+		.v-tabsheet-tabitemcell {
+			.v-caption {
+				font-size: 14px;
+			}
+		}
+	}
+
+	.user-display {
+		.user-display-icon img {
+			height: 28px;
+			width: 28px;
+			border-radius: 29px 29px 29px 29px;
+		}
+
+		.user-display-name {
+			padding-left: 4px;
+			padding-top: 6px;
+		}
+	}
+
+	.star-field-starred {
+		color: #f9ca4f;
+	}
+
+	.task-management-view {
+		.v-menubar .v-menubar-submenu-indicator  + .v-menubar-menuitem-caption:after {
+			display:none;
+		}
+
+		.v-menubar-popup {
+			border-radius: 0;
+
+			.v-menubar-menuitem {
+				border-radius: 0;
+				padding-left: 20px;
+				font-size: 12px;
+			}
+		}
+
+		.v-slot-task-action-buttons {
+			margin-top: -40px;
+			padding-right: 10px;
+			position: relative;
+			top: 94px;
+			z-index: 2;
+		}
+
+		.v-tabsheet-tabitem {
+			.v-caption {
+				z-index: 3;
+			}
+		}
+	}
+
+	.task-table-layout {
+
+		.v-slot-task-table-controls {
+		    border-bottom-color: #dfdfdf;
+			border-bottom-style: solid;
+			border-bottom-width: 1px;
+			border-bottom: collapse;
+			border-radius: 0px;
+
+			.task-table-controls {
+				font-size: 14px;
+			}
+
+			.task-table-filter {
+			    border-right-color: #dfdfdf;
+				border-right-style: solid;
+				border-right-width: 1px;
+				border-right: collapse;
+				padding-right: 12px;
+				border-radius: 0px;
+			}
+
+			.v-caption-task-table-sort {
+				position: relative;
+				top: -1px;
+				display: inline-block;
+				line-height: 39px;
+			}
+
+			.task-table-sort {
+				position: relative;
+				top: 1px;
+
+				.v-filterselect-button:before {
+					content: "\f078";
+				}
+			}
+
+			.task-table-sort-asc-button {
+				padding-right: 12px;
+			}
+		}
+
+		.v-caption-task-table {
+			display:none;
+		}
+
+		.task-table {
+		    border-bottom-color: #dfdfdf;
+			border-bottom-style: solid;
+			border-bottom-width: 1px;
+			border-bottom: collapse;
+			border-spacing: 0px 0px;
+
+			.v-table-cell-content {
+				vertical-align: top;
+
+				.v-table-cell-wrapper {
+					padding-top: 10px;
+				}
+			}
+
+			.task-details {
+				padding-bottom: 10px;
+				padding-left: 6px;
+				margin-top: 0px;
+
+				.user-display {
+					font-size: 14px;
+				}
+
+				.task-details-top {
+					height: 28px;
+				}
+
+				.task-details-contents-info {
+					font-size: 16px;
+				}
+
+				.task-details-created-on {
+					padding-top: 8px;
+					font-size: 12px;
+					color: rgb(156, 165, 175);
+				}
+
+				.v-captiontext, .task-details-due-date, .v-caption-task-details-assignee, .v-caption-task-details-comments, .v-caption-task-details-linked-folders, .v-caption-task-details-linked-documents, .v-caption-task-details-linked-containers {
+					font-size: 14px;
+					color: rgb(156, 165, 175);
+				}
+
+				.v-slot-task-details-assignee, .v-slot-task-details-description, .v-slot-task-details-linked-folders, .v-slot-task-details-contents, .v-slot-task-details-linked-documents, .v-slot-task-details-linked-containers, .v-slot-task-details-comments {
+					padding-top: 10px;
+				    border-top-color: #dfdfdf;
+					border-top-style: solid;
+					border-top-width: 1px;
+					border-top: collapse;
+					border-spacing: 0px 0px;
+					position: relative;
+					left: 20px;
+					padding-right: 20px;
+				}
+
+				.task-details-contents {
+					.v-link {
+						color: black;
+					}
+				}
+
+				.task-details-linked-documents {
+					.agent-action-link {
+						color: black;
+					}
+
+					.agent-action-link:hover {
+						text-decoration: none;
+					}
+				}
+
+				.v-slot-task-details-description {
+					padding-top: 0px;
+				}
+
+				.v-slot-task-details-add-comment-button {
+					position: relative;
+				    top: 53px;
+				    margin-top: -53px;
+				    z-index: 2;
+				}
+
+				.task-details-add-comment-button {
+				    font-weight: 100;
+				    font-size: 14px;
+				}
+
+				.task-details-comment-date-time {
+					font-size: 12px;
+					padding-top: 8px;
+					color: rgb(156, 165, 175);
+				}
+
+				.task-details-comment-message {
+					font-size: 14px;
+				    position: relative;
+				    top: -8px;
+				    padding-left: 32px;
+				}
+			}
+		}
+
+		.task-table [class*="-row"].v-selected {
+			outline: 1px solid rgb(25, 125, 225);
+    		outline-offset: -1px;
+
+    		background-color: inherit;
+    		background-image: inherit;
+    		background-origin: inherit;
+    		text-shadow: inherit;
+    		color: inherit;
+			//background-color: #197de1;
+			//background-image: -webkit-linear-gradient(top, #1b87e3 2%, #166ed5 98%);
+			//background-image: linear-gradient(to bottom,#1b87e3 2%, #166ed5 98%);
+			//background-origin: border-box;
+			//color: #ecf2f8;
+			//text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.05);
+		}
+
+		.clickable-row {
+	    	.v-table-body {
+	    		tr, .reference-display {
+	    			cursor: default;
+	    		}
+
+				&:hover {
+					border-color: #197de1;
+    				color: red;
+    				background-color: white;
+    				text-decoration: none;
+    			}
+	    	}
+		}
+	}
+
+
 	.v-Notification-caption {
 		z-index: 20003;
 	}
@@ -1642,7 +1902,12 @@ $popup-view-z-index: 3;
 		font-weight: bold;
 		color: red;
 	}
-	
+
+		.constellio-layout-with-border {
+    	    border: 1px solid lightgray;
+    	}
+
+
 	.v-slot-button-toggle-facets {
 		height: 100%;
 		line-height: 100%;
@@ -2729,6 +2994,14 @@ $popup-view-z-index: 3;
 
 	.right-to-left {
 
+
+		.user-display {
+			.user-display-name {
+				padding-left: inherit;
+				padding-right: 4px;
+			}
+		}
+
 		.v-table {
 	    	.v-table-body {
 	    		.v-button {
@@ -2755,6 +3028,12 @@ $popup-view-z-index: 3;
 		.v-table-cell-content-file-icon-folder.v-table-cell-content-file-icon {
 			.v-table-cell-wrapper {
 				right: 30px;
+			}
+		}
+
+		.v-slot-v-filterselect-suggestmenu {
+			.v-has-caption {
+				direction: rtl;
 			}
 		}
 
@@ -2846,7 +3125,66 @@ $popup-view-z-index: 3;
 		.icon-only {
 			text-align: center;
 		}
-		
+
+		.task-management-view {
+
+			.v-slot-task-action-buttons {
+				float: left;
+				padding-left: 10px;
+				direction: rtl;
+			}
+		}
+
+		.task-table-layout {
+			.task-table {
+				.task-details {
+					.v-slot-task-details-add-comment-button {
+						position: relative;
+						float: left;
+						top: 60px;
+					}
+
+					.task-details-add-comment-button {
+						.v-button-caption {
+							margin-right: 7px;
+						}
+					}
+				}
+			}
+
+			.task-table [class*="-row"].v-selected {
+				outline: 1px solid rgb(25, 125, 225);
+	    		outline-offset: -1px;
+
+	    		background-color: inherit;
+	    		background-image: inherit;
+	    		background-origin: inherit;
+	    		text-shadow: inherit;
+	    		color: inherit;
+				//background-color: #197de1;
+				//background-image: -webkit-linear-gradient(top, #1b87e3 2%, #166ed5 98%);
+				//background-image: linear-gradient(to bottom,#1b87e3 2%, #166ed5 98%);
+				//background-origin: border-box;
+				//color: #ecf2f8;
+				//text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.05);
+			}
+
+			.clickable-row {
+		    	.v-table-body {
+		    		tr, .reference-display {
+		    			cursor: default;
+		    		}
+
+					&:hover {
+						border-color: #197de1;
+	    				color: red;
+	    				background-color: white;
+	    				text-decoration: none;
+	    			}
+		    	}
+			}
+		}
+
 		.content-footer-wrapper {
 			direction: rtl;
 			

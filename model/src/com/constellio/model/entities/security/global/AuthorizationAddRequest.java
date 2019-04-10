@@ -1,10 +1,10 @@
 package com.constellio.model.entities.security.global;
 
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.records.RecordUtils;
 import org.joda.time.LocalDate;
@@ -195,6 +195,10 @@ public class AuthorizationAddRequest {
 		return new AuthorizationAddRequest(users[0].getCollection()).forUsers(users);
 	}
 
+	public static AuthorizationAddRequest authorizationForUsers(List<User> users) {
+		return new AuthorizationAddRequest(users.get(0).getCollection()).forUsers(users.toArray(new User[0]));
+	}
+
 	public static AuthorizationAddRequest authorizationInCollection(String collection) {
 		return new AuthorizationAddRequest(collection);
 	}
@@ -263,7 +267,7 @@ public class AuthorizationAddRequest {
 		return overridingInheritedAuths;
 	}
 
-    public boolean isNegative() {
+	public boolean isNegative() {
 		return negative;
-    }
+	}
 }

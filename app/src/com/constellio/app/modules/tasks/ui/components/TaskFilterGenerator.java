@@ -15,12 +15,12 @@ import org.tepi.filtertable.numberfilter.NumberFilterPopup;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-public class DemoFilterGenerator implements FilterGenerator {
+public class TaskFilterGenerator implements FilterGenerator {
 
 	@Override
 	public Container.Filter generateFilter(final Object propertyId, final Object value) {
 		if (propertyId instanceof MetadataVO) {
-			return new DemoRecordVOFilter((MetadataVO) propertyId, value);
+			return new TaskRecordVOFilter((MetadataVO) propertyId, value);
 		}
 
 		// For other properties, use the default filter
@@ -52,9 +52,9 @@ public class DemoFilterGenerator implements FilterGenerator {
 				cb.setHeight("24px");
 				customFilterComponent = cb;
 			} else if (LocalDate.class.isAssignableFrom(javaType)) {
-				customFilterComponent = new DateFilterPopup(new DemoFilterDecorator(), propertyId);
+				customFilterComponent = new DateFilterPopup(new TaskFilterDecorator(), propertyId);
 			} else if (Number.class.isAssignableFrom(javaType)) {
-				customFilterComponent = new NumberFilterPopup(new DemoFilterDecorator());
+				customFilterComponent = new NumberFilterPopup(new TaskFilterDecorator());
 			} else {
 				MetadataFieldFactory factory = new TaskFieldFactory(false);
 				final Field<?> field = factory.build(metadataVO);

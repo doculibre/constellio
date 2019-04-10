@@ -10,6 +10,13 @@ import java.util.Map;
 import java.util.Set;
 
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.ui.application.ConstellioUI;
@@ -57,7 +64,8 @@ public abstract class RecordForm extends BaseForm<RecordVO> {
 			if (recordVO.getMetadataCodes().contains(metadataVO.getCode())) {
 				Field<?> field = formFieldFactory.build(recordVO, metadataVO);
 				if (field != null) {
-					if (!isVisibleField(metadataVO, recordVO)) {
+					if (!isVisibleField(metadataVO, recordVO) || !SchemaVOUtils
+							.isMetadataNotPresentInList(metadataVO, recordVO.getExcludedMetadataCodeList())) {
 						field.setVisible(false);
 					}
 					if (metadataVO.isUnmodifiable() && recordVO.isSaved()) {
@@ -69,6 +77,7 @@ public abstract class RecordForm extends BaseForm<RecordVO> {
 				}
 			}
 		}
+
 		return fieldsAndPropertyIds;
 	}
 
@@ -185,5 +194,4 @@ public abstract class RecordForm extends BaseForm<RecordVO> {
 			firstFieldWithError.focus();
 		}
 	}
-
 }

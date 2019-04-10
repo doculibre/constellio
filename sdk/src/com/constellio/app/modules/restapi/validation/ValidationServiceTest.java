@@ -14,8 +14,8 @@ import com.constellio.app.modules.restapi.validation.exception.InvalidSignatureE
 import com.constellio.app.modules.restapi.validation.exception.UnauthenticatedUserException;
 import com.constellio.app.modules.restapi.validation.exception.UnauthorizedAccessException;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.AccessUserPermissionsChecker;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.records.wrappers.UserPermissionsChecker;
 import com.constellio.model.entities.schemas.Schemas;
 import org.assertj.core.util.Lists;
 import org.junit.Before;
@@ -42,7 +42,7 @@ public class ValidationServiceTest {
 
 	@Mock private User user;
 	@Mock private Record record;
-	@Mock private UserPermissionsChecker userPermissionsChecker;
+	@Mock private AccessUserPermissionsChecker userPermissionsChecker;
 
 	@InjectMocks private ValidationService validationService;
 
