@@ -125,7 +125,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	public static final String SDK_STREAM = StreamsTestFeatures.SDK_STREAM;
 
 	public static SDKPropertiesLoader sdkPropertiesLoader = new SDKPropertiesLoader();
-	private final static Logger log = LoggerFactory.getLogger(AbstractConstellioTest.class);
+	public final static Logger log = LoggerFactory.getLogger(AbstractConstellioTest.class);
 	//	private static boolean batchProcessControllerStarted = false;
 	private static String[] notUnitTestSuffix = new String[]{"AcceptanceTest", "IntegrationTest", "RealTest", "LoadTest",
 															 "StressTest", "PerformanceTest", "AcceptTest"};
