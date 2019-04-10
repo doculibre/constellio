@@ -1,5 +1,13 @@
 package com.constellio.app.ui.framework.components.table;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import com.constellio.app.ui.framework.buttons.SelectDeselectAllButton;
 import com.constellio.app.ui.framework.containers.ContainerAdapter;
 import com.vaadin.data.Container;

@@ -149,7 +149,7 @@ public class RMUserProfileFieldsExtension extends PagesComponentsExtension {
 		}
 	}
 
-	private class DefaultAdministrativeUnitAdditionalFieldImpl extends LookupRecordField implements AdditionnalRecordField<String> {
+	private class DefaultAdministrativeUnitAdditionalFieldImpl extends LookupRecordField implements AdditionnalRecordField<Object> {
 
 		public DefaultAdministrativeUnitAdditionalFieldImpl() {
 			super(AdministrativeUnit.SCHEMA_TYPE, true, false);
@@ -162,7 +162,7 @@ public class RMUserProfileFieldsExtension extends PagesComponentsExtension {
 		}
 
 		@Override
-		public String getCommittableValue() {
+		public Object getCommittableValue() {
 			return getValue();
 		}
 	}
