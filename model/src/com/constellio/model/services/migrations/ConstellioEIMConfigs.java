@@ -159,7 +159,6 @@ public class ConstellioEIMConfigs {
 
 	public static final SystemConfiguration IS_TRASH_THREAD_EXECUTING;
 
-
 	public static final SystemConfiguration ENABLE_THUMBNAIL_GENERATION;
 
 	static {
@@ -582,4 +581,5 @@ public class ConstellioEIMConfigs {
 		}
 		return extensionSet;
 	}
+
 }
