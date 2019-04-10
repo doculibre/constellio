@@ -72,6 +72,7 @@ import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.EmailToSend;
 import com.constellio.model.entities.records.wrappers.Facet;
@@ -1254,7 +1255,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			Folder folder = rmSchemasRecordsServices.wrapFolder(folderVO.getRecord());
 			folder.addFavorite(cart.getId());
 			try {
-				recordServices().update(folder);
+				recordServices().update(folder.getWrappedRecord(), RecordUpdateOptions.validationExceptionSafeOptions());
 				view.showMessage($("DisplayFolderView.addedToCart"));
 			} catch (RecordServicesException e) {
 				e.printStackTrace();
@@ -1312,7 +1313,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		try {
 			folder.addFavorite(cart.getId());
 			recordServices().execute(new Transaction(cart.getWrappedRecord()).setUser(getCurrentUser()));
-			recordServices().update(folder);
+			recordServices().update(folder.getWrappedRecord(), RecordUpdateOptions.validationExceptionSafeOptions());
 			view.showMessage($("DisplayFolderView.addedToCart"));
 		} catch (RecordServicesException e) {
 			e.printStackTrace();
@@ -1475,12 +1476,12 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			Folder folder = rmSchemasRecordsServices.wrapFolder(folderVO.getRecord());
 			folder.addFavorite(getCurrentUser().getId());
 			try {
-				recordServices.update(folder);
+				recordServices().update(folder.getWrappedRecord(), RecordUpdateOptions.validationExceptionSafeOptions());
+				view.showMessage($("DisplayFolderViewImpl.folderAddedToDefaultFavorites"));
 			} catch (RecordServicesException e) {
 				e.printStackTrace();
 				throw new RuntimeException(e);
 			}
-			view.showMessage($("DisplayFolderViewImpl.folderAddedToDefaultFavorites"));
 		}
 	}
 

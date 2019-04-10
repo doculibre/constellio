@@ -51,6 +51,7 @@ import com.constellio.model.entities.batchprocess.AsyncTask;
 import com.constellio.model.entities.batchprocess.AsyncTaskCreationRequest;
 import com.constellio.model.entities.enums.BatchProcessingMode;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Report;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
@@ -411,7 +412,9 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		}
 		try {
 			recordServices().add(cart);
-			recordServices().execute(new Transaction(records));
+			Transaction transaction = new Transaction(records);
+			transaction.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
+			recordServices().execute(transaction);
 			view.showMessage($("SearchView.addedToCart"));
 		} catch (RecordServicesException e) {
 			view.showErrorMessage($(e));
@@ -438,7 +441,9 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		}
 		try {
 			recordServices().execute(new Transaction(cart.getWrappedRecord()).setUser(getCurrentUser()));
-			recordServices().execute(new Transaction(records));
+			Transaction transaction = new Transaction(records);
+			transaction.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
+			recordServices().execute(transaction);
 			view.showMessage($("SearchView.addedToCart"));
 		} catch (RecordServicesException e) {
 			e.printStackTrace();
@@ -904,7 +909,9 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 			break;
 		}
 		try {
-			recordServices().execute(new Transaction(records));
+			Transaction transaction = new Transaction(records);
+			transaction.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
+			recordServices().execute(transaction);
 			view.showMessage($("SearchView.addedToDefaultFavorites"));
 		} catch (RecordServicesException e) {
 			view.showErrorMessage($(e));
