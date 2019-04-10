@@ -80,7 +80,8 @@ public class RMConfigs {
 			IS_DECOMMISSIONING_TYPE_REQUIRED_IN_CONTAINERS,
 			DEPOSIT_AND_DESTRUCTION_DATES_BASED_ON_ACTUAL_TRANSFER_DATE,
 			DECOMMISSIONING_LIST_WITH_SELECTED_FOLDERS,
-			ALLOW_SORTING_IN_FOLDER_LIST_OF_DECOMMISSIONING;
+			ALLOW_SORTING_IN_FOLDER_LIST_OF_DECOMMISSIONING,
+			CREATE_MISSING_AUTHORIZATIONS_FOR_TASK;
 
 	// Category configs
 	public static final SystemConfiguration LINKABLE_CATEGORY_MUST_NOT_BE_ROOT, LINKABLE_CATEGORY_MUST_HAVE_APPROVED_RULES;
@@ -311,6 +312,7 @@ public class RMConfigs {
 		add(DECOMMISSIONING_LIST_WITH_SELECTED_FOLDERS = decommissioning
 				.createBooleanFalseByDefault("decommissioningListWithSelectedFolders"));
 
+		add(CREATE_MISSING_AUTHORIZATIONS_FOR_TASK = others.createBooleanFalseByDefault("createMissingAuthorizationsForTask"));
 	}
 
 	static void add(SystemConfiguration configuration) {
@@ -581,6 +583,10 @@ public class RMConfigs {
 
 	public boolean isDecommissioningListWithSelectedFolders() {
 		return manager.getValue(DECOMMISSIONING_LIST_WITH_SELECTED_FOLDERS);
+	}
+
+	public boolean isCreateMissingAuthorizationsForTask() {
+		return manager.getValue(CREATE_MISSING_AUTHORIZATIONS_FOR_TASK);
 	}
 
 }

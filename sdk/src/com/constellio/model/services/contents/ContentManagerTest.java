@@ -25,6 +25,7 @@ import com.constellio.model.entities.records.ParsedContent;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
+import com.constellio.model.services.contents.ContentManager.ParseOptions;
 import com.constellio.model.services.contents.ContentManagerException.ContentManagerException_ContentNotParsed;
 import com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_CannotReadInputStream;
 import com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_NoSuchContent;
@@ -278,14 +279,14 @@ public class ContentManagerTest extends ConstellioTest {
 		ContentManager.ParsedContentResponse parsedContentResponse = contentManager
 				.buildParsedContentResponse(false, parsingResults);
 		doReturn(parsedContentResponse).when(contentManager).getPreviouslyParsedContentOrParseFromStream(aContentHash,
-				closeableStreamFactory);
+				closeableStreamFactory, new ParseOptions());
 		doNothing().when(contentManager).saveContent(anyString(), any(CopyInputStreamFactory.class));
 
 		ContentVersionDataSummary dataSummary = contentManager.upload(aContentNewVersionInputStream);
 
 		InOrder inOrder = inOrder(ioServices, contentManager, aContent);
 		inOrder.verify(ioServices).copyToReusableStreamFactory(aContentNewVersionInputStream, null);
-		inOrder.verify(contentManager).getPreviouslyParsedContentOrParseFromStream(aContentHash, closeableStreamFactory);
+		inOrder.verify(contentManager).getPreviouslyParsedContentOrParseFromStream(aContentHash, closeableStreamFactory, new ParseOptions());
 		inOrder.verify(contentManager).saveContent(anyString(), any(CopyInputStreamFactory.class));
 		inOrder.verify(ioServices).closeQuietly(closeableStreamFactory);
 
@@ -322,7 +323,7 @@ public class ContentManagerTest extends ConstellioTest {
 		doThrow(new FileParserException_CannotParse(mock(Exception.class), "zeMimetype")).when(fileParser)
 				.parse(eq(closeableStreamFactory), anyInt());
 
-		ParsedContent parsedContent = contentManager.tryToParse(closeableStreamFactory);
+		ParsedContent parsedContent = contentManager.tryToParse(closeableStreamFactory, new ParseOptions());
 
 		assertThat(parsedContent.getProperties()).isEmpty();
 		assertThat(parsedContent.getParsedContent()).isEmpty();
@@ -337,7 +338,7 @@ public class ContentManagerTest extends ConstellioTest {
 		doReturn(aContentHash).when(hashingService).getHashFromStream(closeableStreamFactory);
 		doReturn(parsingResults).when(fileParser).parse(eq(closeableStreamFactory), anyInt());
 
-		assertThat(contentManager.tryToParse(closeableStreamFactory)).isSameAs(parsingResults);
+		assertThat(contentManager.tryToParse(closeableStreamFactory, new ParseOptions())).isSameAs(parsingResults);
 
 	}
 
@@ -465,7 +466,7 @@ public class ContentManagerTest extends ConstellioTest {
 
 		assertThat(parsedContent).isSameAs(parsingResults);
 		verify(contentManager, never()).saveParsedContent(aContentHash, parsingResults);
-		verify(contentManager, never()).tryToParse(streamFactory);
+		verify(contentManager, never()).tryToParse(streamFactory, new ParseOptions());
 		verify(ioServices, never()).closeQuietly(firstCreatedStream);
 
 	}
@@ -475,14 +476,14 @@ public class ContentManagerTest extends ConstellioTest {
 			throws Exception {
 
 		doThrow(ContentManagerException_ContentNotParsed.class).when(contentManager).getParsedContent(aContentHash);
-		doReturn(parsingResults).when(contentManager).tryToParse(streamFactory);
+		doReturn(parsingResults).when(contentManager).tryToParse(streamFactory, new ParseOptions());
 
 		ParsedContent parsedContent = contentManager.getPreviouslyParsedContentOrParseFromStream(aContentHash, streamFactory)
 				.getParsedContent();
 
 		assertThat(parsedContent).isSameAs(parsingResults);
 		verify(contentManager).saveParsedContent(aContentHash, parsingResults);
-		verify(contentManager).tryToParse(streamFactory);
+		verify(contentManager).tryToParse(streamFactory, new ParseOptions());
 	}
 
 	private RecordDTO mockMarkerWithHash(String hash) {

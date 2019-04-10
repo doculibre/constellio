@@ -24,6 +24,7 @@ import com.constellio.model.services.contents.ContentImplRuntimeException.Conten
 import com.constellio.model.services.contents.ContentImplRuntimeException.ContentImplRuntimeException_InvalidArgument;
 import com.constellio.model.services.contents.ContentImplRuntimeException.ContentImplRuntimeException_UserHasNoDeleteVersionPermission;
 import com.constellio.model.services.contents.ContentImplRuntimeException.ContentImplRuntimeException_VersionMustBeHigherThanPreviousVersion;
+import com.constellio.model.services.contents.ContentManager.ParseOptions;
 import com.constellio.model.services.contents.ContentManager.UploadOptions;
 import com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_ContentHasNoPreview;
 import com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_ContentHasNoThumbnail;
@@ -374,7 +375,7 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 
 		givenConfig(ConstellioEIMConfigs.DEFAULT_PARSING_BEHAVIOR, ParsingBehavior.ASYNC_PARSING_FOR_ALL_CONTENTS);
 
-		UploadOptions options = new UploadOptions().setParse(true);
+		UploadOptions options = new UploadOptions().setParseOptions(new ParseOptions());
 		Content content = contentManager.createMinor(alice, "ZePdf1.pdf", uploadPdf1InputStream(options));
 
 		Record record = givenRecord().withSingleValueContent(content).isSaved();
@@ -2013,31 +2014,31 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 
 	private ContentVersionDataSummary uploadPdf1InputStreamWithoutParsing() {
 		return contentManager.upload(getTestResourceInputStream("pdf1.pdf"), new UploadOptions("pdf1.pdf")
-				.setHandleDeletionOfUnreferencedHashes(false).setParse(false))
+				.setHandleDeletionOfUnreferencedHashes(false))
 				.getContentVersionDataSummary();
 	}
 
 	private ContentVersionDataSummary uploadPdf2InputStreamWithoutParsing() {
 		return contentManager.upload(getTestResourceInputStream("pdf2.pdf"), new UploadOptions("pd2.docx.pdf")
-				.setHandleDeletionOfUnreferencedHashes(false).setParse(false))
+				.setHandleDeletionOfUnreferencedHashes(false))
 				.getContentVersionDataSummary();
 	}
 
 	private ContentVersionDataSummary uploadPdf3InputStreamWithoutParsing() {
 		return contentManager.upload(getTestResourceInputStream("pdf3.pdf"), new UploadOptions("pd3.pdf.pdf")
-				.setHandleDeletionOfUnreferencedHashes(false).setParse(false))
+				.setHandleDeletionOfUnreferencedHashes(false))
 				.getContentVersionDataSummary();
 	}
 
 	private ContentVersionDataSummary uploadDocx1InputStreamWithoutParsing() {
 		return contentManager.upload(getTestResourceInputStream("docx1.docx"), new UploadOptions("doc1.docx")
-				.setHandleDeletionOfUnreferencedHashes(false).setParse(false))
+				.setHandleDeletionOfUnreferencedHashes(false))
 				.getContentVersionDataSummary();
 	}
 
 	private ContentVersionDataSummary uploadDocx2InputStreamWithoutParsing() {
 		return contentManager.upload(getTestResourceInputStream("docx2.docx"), new UploadOptions("doc2.doc.docx")
-				.setHandleDeletionOfUnreferencedHashes(false).setParse(false))
+				.setHandleDeletionOfUnreferencedHashes(false))
 				.getContentVersionDataSummary();
 	}
 

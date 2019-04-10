@@ -82,6 +82,7 @@ public class TaskRecordExtensionAcceptanceTest extends ConstellioTest {
 	private TaskReminder processedReminderWithFixedDateAfterNewStartDate_3;
 	private TaskReminder processedReminderWithRelativeDateEqualsStartDate_2;
 	private TaskReminder processedReminderWithRelativeDateAfterEndDate_4;
+	private TaskReminder processedReminderWithRelativeDateAfterCreationDate_5;
 
 	@Before
 	public void setUp()
@@ -428,6 +429,10 @@ public class TaskRecordExtensionAcceptanceTest extends ConstellioTest {
 		assertThat(reminders.get(4).computeDate(newTask))
 				.isEqualTo(processedReminderWithRelativeDateAfterEndDate_4.computeDate(newTask));
 		assertThat(reminders.get(4).isProcessed()).isTrue();
+
+		assertThat(reminders.get(5).computeDate(newTask))
+				.isEqualTo(processedReminderWithRelativeDateAfterCreationDate_5.computeDate(newTask));
+		assertThat(reminders.get(5).isProcessed()).isTrue();
 	}
 
 	//start date
@@ -527,6 +532,10 @@ public class TaskRecordExtensionAcceptanceTest extends ConstellioTest {
 		processedReminderWithRelativeDateAfterEndDate_4 = new TaskReminder().setRelativeDateMetadataCode(Task.DUE_DATE)
 				.setBeforeRelativeDate(false).setNumberOfDaysToRelativeDate(1).setProcessed(true);
 		reminders.add(processedReminderWithRelativeDateAfterEndDate_4);
+
+		processedReminderWithRelativeDateAfterCreationDate_5 = new TaskReminder().setRelativeDateMetadataCode(Task.DUE_DATE)
+				.setBeforeRelativeDate(false).setNumberOfDaysToRelativeDate(1).setProcessed(true);
+		reminders.add(processedReminderWithRelativeDateAfterCreationDate_5);
 
 		return reminders;
 	}

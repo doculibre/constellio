@@ -31,6 +31,7 @@ import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
@@ -48,12 +49,17 @@ import static java.util.Arrays.asList;
 public class TaskManagementViewImpl extends BaseViewImpl implements TaskManagementView {
 	private final TaskManagementPresenter presenter;
 	private TabSheet sheet;
+	private HorizontalLayout horizontalLayout;
 	private ComboBox timestamp;
 	private String previousSelectedTab;
 	private FilterGenerator filterGenerator;
 
 	enum Timestamp {
 		ALL, TODAY, WEEK, MONTH
+	}
+
+	public void setHorizontalLayout(HorizontalLayout horizontalLayout) {
+		this.horizontalLayout = horizontalLayout;
 	}
 
 	public TaskManagementViewImpl() {
@@ -101,6 +107,11 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 				reloadCurrentTab();
 			}
 		});
+		if (horizontalLayout == null) {
+			setHorizontalLayout(new HorizontalLayout());
+		}
+		horizontalLayout.addComponent(timestamp, 0);
+		horizontalLayout.setSpacing(true);
 		sheet = new TabSheet();
 		sheet.setSizeFull();
 		sheet.addSelectedTabChangeListener(new TabSheet.SelectedTabChangeListener() {
@@ -114,7 +125,7 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 			sheet.addTab(buildEmptyTab(tabId));
 		}
 
-		mainLayout.addComponents(timestamp, sheet);
+		mainLayout.addComponents(horizontalLayout, sheet);
 
 		previousSelectedTab = presenter.getPreviousSelectedTab();
 		backToPreviousSelectedTab();
@@ -211,13 +222,12 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 		tableAdapter.setFilterFieldVisible("menuBar", false);
 		tableAdapter.setFilterBarVisible(true);
 
-
-		//TODO: Ajouter cela dans l'extension pour les workflows
-		String linkedWorkflowExecutionCode = Task.DEFAULT_SCHEMA + "_" + "linkedWorkflowExecution";
-		String titleCode = Task.DEFAULT_SCHEMA + "_" + "title";
+		String starredByUserCode = Task.DEFAULT_SCHEMA + "_" + Task.STARRED_BY_USERS;
+		String workflouwExecutionCode = Task.DEFAULT_SCHEMA + "_" + "linkedWorkflowExecution";
+		String titleCode = Task.DEFAULT_SCHEMA + "_" + Task.TITLE;
 		for(Object visibleColumn : taskTable.getVisibleColumns()){
 			if (visibleColumn instanceof MetadataVO) {
-				if(linkedWorkflowExecutionCode.equals(((MetadataVO)visibleColumn).getCode())){
+				if (starredByUserCode.equals(((MetadataVO) visibleColumn).getCode()) || workflouwExecutionCode.equals(((MetadataVO) visibleColumn).getCode())) {
 					tableAdapter.setColumnExpandRatio(visibleColumn, 1);
 				}
 				if(titleCode.equals(((MetadataVO)visibleColumn).getCode())){

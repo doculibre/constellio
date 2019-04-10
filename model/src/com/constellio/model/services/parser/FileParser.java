@@ -7,6 +7,7 @@ import com.constellio.data.io.streamFactories.impl.CopyInputStreamFactory;
 import com.constellio.data.utils.KeyListMap;
 import com.constellio.model.entities.records.ParsedContent;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
+import com.constellio.model.services.contents.ContentManager.ParseOptions;
 import com.constellio.model.services.parser.FileParserException.FileParserException_CannotExtractStyles;
 import com.constellio.model.services.parser.FileParserException.FileParserException_CannotParse;
 import com.constellio.model.services.parser.FileParserException.FileParserException_FileSizeExceedLimitForParsing;
@@ -112,6 +113,14 @@ public class FileParser {
 		this.forkParserEnabled = forkParserEnabled;
 		this.languageDetectionManager = languageDetectionManager;
 		this.systemConfigurationsManager = systemConfigurationsManager;
+	}
+
+	public ParsedContent parse(StreamFactory<InputStream> inputStreamStreamFactory, long length,
+							   ParseOptions options) throws FileParserException {
+		if (!options.isBeautify()) {
+			return parseWithoutBeautifying(inputStreamStreamFactory, length, options.isDetectLanguage(), options.isOcr());
+		}
+		return parse(inputStreamStreamFactory, length, options.isDetectLanguage(), options.isOcr());
 	}
 
 	public ParsedContent parse(StreamFactory<InputStream> inputStreamFactory, long length)
@@ -512,6 +521,14 @@ public class FileParser {
 	private ParseContext configureParseContext(Parser parser, boolean ocr) {
 		ParseContext parseContext = new ParseContext();
 		if (!ocr) {
+			TesseractOCRConfig tesseractOCRConfig = new TesseractOCRConfig();
+			// needed to disable tesseract when installed on drive
+			if (System.getProperty("os.name").startsWith("Windows")) {
+				tesseractOCRConfig.setTesseractPath("\\Device\\Null\\");
+			} else {
+				tesseractOCRConfig.setTesseractPath("/dev/null/");
+			}
+			parseContext.set(TesseractOCRConfig.class, tesseractOCRConfig);
 			return parseContext;
 		}
 
@@ -529,7 +546,7 @@ public class FileParser {
 		pdfConfig.setOcrDPI(300); // FIXME can be adjusted, 300 seems to be the best value overall
 		parseContext.set(PDFParserConfig.class, pdfConfig);
 
-		// need to add this to activate recursive parsing
+		// needed to activate recursive parsing
 		parseContext.set(Parser.class, parser);
 		return parseContext;
 	}
