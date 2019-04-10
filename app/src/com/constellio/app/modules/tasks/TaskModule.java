@@ -199,7 +199,7 @@ public class TaskModule implements InstallableSystemModule, ModuleWithComboMigra
 		appLayerFactory.getModelLayerFactory().getCachesManager().register(new UnreadTasksUserCache(appLayerFactory));
 		appLayerFactory.getModelLayerFactory().getCachesManager().register(new IncompleteTasksUserCache(appLayerFactory));
 	}
-
+	
 	@Override
 	public void stop(AppLayerFactory appLayerFactory) {
 
