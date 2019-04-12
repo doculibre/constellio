@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 import static java.util.Arrays.asList;
 
 public class TaskManagementViewImpl extends BaseViewImpl implements TaskManagementView {

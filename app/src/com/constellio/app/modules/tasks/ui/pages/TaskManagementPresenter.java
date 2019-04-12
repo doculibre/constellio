@@ -33,7 +33,6 @@ import com.constellio.app.modules.tasks.services.TaskPresenterServices;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.modules.tasks.services.TasksSearchServices;
 import com.constellio.app.modules.tasks.ui.builders.TaskToVOBuilder;
-import com.constellio.app.modules.tasks.ui.components.TaskTable.TaskPresenter;
 import com.constellio.app.modules.tasks.ui.components.WorkflowTable.WorkflowPresenter;
 import com.constellio.app.modules.tasks.ui.entities.TaskVO;
 import com.constellio.app.ui.application.ConstellioUI;
@@ -45,7 +44,6 @@ import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.buttons.report.ReportGeneratorButton;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.BaseView;
-import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.model.entities.Language;
@@ -62,8 +60,7 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQueryOper
 import com.constellio.model.services.search.query.logical.LogicalSearchQuerySort;
 import com.vaadin.ui.Component;
 
-public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManagementView>
-		implements TaskPresenter, WorkflowPresenter {
+public class TaskManagementPresenter extends AbstractTaskPresenter<TaskManagementView> implements WorkflowPresenter {
 
 	private TasksSchemasRecordsServices tasksSchemasRecordsServices;
 	private transient TasksSearchServices tasksSearchServices;
@@ -416,23 +413,6 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 		}
 	}
 
-	private RecordVODataProvider getWorkflowInstances(String tabId) {
-		MetadataSchemaVO schemaVO = new MetadataSchemaToVOBuilder()
-				.build(schema(BetaWorkflowInstance.DEFAULT_SCHEMA), VIEW_MODE.TABLE, view.getSessionContext());
-
-		switch (tabId) {
-			case TaskManagementView.WORKFLOWS_TAB:
-				return new RecordVODataProvider(schemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
-					@Override
-					protected LogicalSearchQuery getQuery() {
-						return workflowServices.getCurrentWorkflowInstancesQuery();
-					}
-				};
-			default:
-				throw new RuntimeException("BUG: Unknown tabId + " + tabId);
-		}
-	}
-
 	private List<String> getMetadataForTab(String tabId) {
 		switch (tabId) {
 			case TaskManagementView.TASKS_ASSIGNED_TO_CURRENT_USER:
@@ -443,17 +423,6 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 				return Arrays.asList(Task.DEFAULT_SCHEMA + "_" + STARRED_BY_USERS, Task.DEFAULT_SCHEMA + "_" + TITLE, Task.DEFAULT_SCHEMA + "_" + DUE_DATE, Task.DEFAULT_SCHEMA + "_" + STATUS);
 			default:
 				return Arrays.asList(Task.DEFAULT_SCHEMA + "_" + STARRED_BY_USERS, Task.DEFAULT_SCHEMA + "_" + TITLE, Task.DEFAULT_SCHEMA + "_" + ASSIGNER, Task.DEFAULT_SCHEMA + "_" + END_DATE);
-		}
-	}
-
-	public boolean isWorkflowTab(String tabId) {
-		switch (tabId) {
-			case TaskManagementView.WORKFLOWS_TAB:
-			case TaskManagementView.IN_PROGRESS_WORKFLOW_DEFINITIONS_TAB:
-			case TaskManagementView.COMPLETED_WORKFLOW_DEFINITIONS_TAB:
-				return true;
-			default:
-				return false;
 		}
 	}
 
@@ -560,4 +529,5 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 	public User getCurrentUser() {
 		return super.getCurrentUser();
 	}
+	
 }

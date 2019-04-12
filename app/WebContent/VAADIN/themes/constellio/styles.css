@@ -11898,12 +11898,12 @@ div.v-layout.v-horizontal.v-widget {
 	margin-top: -40px;
 	padding-right: 10px;
 	position: relative;
-	top: 90px;
-	z-index: 20000;
+	top: 94px;
+	z-index: 2;
 }
 
 .constellio .task-management-view .v-tabsheet-tabitem .v-caption {
-	z-index: 20001;
+	z-index: 3;
 }
 
 .constellio .task-table-layout .v-slot-task-table-controls {
@@ -11945,6 +11945,18 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .task-table-layout .v-slot-task-table-controls .task-table-sort-asc-button {
 	padding-right: 12px;
+}
+
+.constellio .task-table-layout .v-caption-task-table {
+	display: none;
+}
+
+.constellio .task-table-layout .task-table {
+	border-bottom-color: #dfdfdf;
+	border-bottom-style: solid;
+	border-bottom-width: 1px;
+	border-bottom: collapse;
+	border-spacing: 0px 0px;
 }
 
 .constellio .task-table-layout .task-table .v-table-cell-content {
@@ -11991,10 +12003,21 @@ div.v-layout.v-horizontal.v-widget {
 	border-top-width: 1px;
 	border-top: collapse;
 	border-spacing: 0px 0px;
+	position: relative;
+	left: 20px;
+	padding-right: 20px;
 }
 
 .constellio .task-table-layout .task-table .task-details .task-details-contents .v-link {
 	color: black;
+}
+
+.constellio .task-table-layout .task-table .task-details .task-details-linked-documents .agent-action-link {
+	color: black;
+}
+
+.constellio .task-table-layout .task-table .task-details .task-details-linked-documents .agent-action-link:hover {
+	text-decoration: none;
 }
 
 .constellio .task-table-layout .task-table .task-details .v-slot-task-details-description {
@@ -12005,6 +12028,7 @@ div.v-layout.v-horizontal.v-widget {
 	position: relative;
 	top: 53px;
 	margin-top: -53px;
+	z-index: 2;
 }
 
 .constellio .task-table-layout .task-table .task-details .task-details-add-comment-button {
@@ -12022,7 +12046,7 @@ div.v-layout.v-horizontal.v-widget {
 	font-size: 14px;
 	position: relative;
 	top: -8px;
-	left: 12px;
+	padding-left: 32px;
 }
 
 .constellio .task-table-layout .task-table [class*="-row"].v-selected {
@@ -15130,6 +15154,11 @@ div.v-layout.v-horizontal.v-widget {
 	direction: rtl;
 }
 
+.constellio .right-to-left .user-display .user-display-name {
+	padding-left: inherit;
+	padding-right: 4px;
+}
+
 .constellio .right-to-left .v-table .v-table-body .v-button {
 	direction: rtl;
 }
@@ -15150,6 +15179,10 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .right-to-left .v-table-cell-content-file-icon-folder.v-table-cell-content-file-icon .v-table-cell-wrapper {
 	right: 30px;
+}
+
+.constellio .right-to-left .v-slot-v-filterselect-suggestmenu .v-has-caption {
+	direction: rtl;
 }
 
 .constellio .right-to-left .v-filterselect-button {
@@ -15235,6 +15268,43 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .right-to-left .icon-only {
 	text-align: center;
+}
+
+.constellio .right-to-left .task-management-view .v-slot-task-action-buttons {
+	float: left;
+	padding-left: 10px;
+	direction: rtl;
+}
+
+.constellio .right-to-left .task-table-layout .task-table .task-details .v-slot-task-details-add-comment-button {
+	position: relative;
+	float: left;
+	top: 60px;
+}
+
+.constellio .right-to-left .task-table-layout .task-table .task-details .task-details-add-comment-button .v-button-caption {
+	margin-right: 7px;
+}
+
+.constellio .right-to-left .task-table-layout .task-table [class*="-row"].v-selected {
+	outline: 1px solid #197de1;
+	outline-offset: -1px;
+	background-color: inherit;
+	background-image: inherit;
+	background-origin: inherit;
+	text-shadow: inherit;
+	color: inherit;
+}
+
+.constellio .right-to-left .task-table-layout .clickable-row .v-table-body tr, .constellio .right-to-left .task-table-layout .clickable-row .v-table-body .reference-display {
+	cursor: default;
+}
+
+.constellio .right-to-left .task-table-layout .clickable-row .v-table-body:hover {
+	border-color: #197de1;
+	color: red;
+	background-color: white;
+	text-decoration: none;
 }
 
 .constellio .right-to-left .content-footer-wrapper {

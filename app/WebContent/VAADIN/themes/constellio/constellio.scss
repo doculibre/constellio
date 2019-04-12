@@ -140,13 +140,13 @@ $popup-view-z-index: 3;
 			margin-top: -40px;
 			padding-right: 10px;
 			position: relative;
-			top: 90px;
-			z-index: 20000;
+			top: 94px;
+			z-index: 2;
 		}
 	
 		.v-tabsheet-tabitem {
 			.v-caption {
-				z-index: 20001;
+				z-index: 3;
 			}
 		}
 	}
@@ -193,8 +193,18 @@ $popup-view-z-index: 3;
 				padding-right: 12px;
 			}
 		}
+					
+		.v-caption-task-table {
+			display:none;
+		}
 	
 		.task-table {
+		    border-bottom-color: #dfdfdf;
+			border-bottom-style: solid;
+			border-bottom-width: 1px;
+			border-bottom: collapse;
+			border-spacing: 0px 0px;
+			
 			.v-table-cell-content {
 				vertical-align: top;
 				
@@ -238,11 +248,24 @@ $popup-view-z-index: 3;
 					border-top-width: 1px;
 					border-top: collapse;
 					border-spacing: 0px 0px;
+					position: relative;
+					left: 20px;
+					padding-right: 20px;
 				}
 			
 				.task-details-contents {
 					.v-link {
 						color: black;
+					}
+				}
+			
+				.task-details-linked-documents {
+					.agent-action-link {
+						color: black;
+					}
+				
+					.agent-action-link:hover {
+						text-decoration: none;
 					}
 				}
 			
@@ -254,6 +277,7 @@ $popup-view-z-index: 3;
 					position: relative;
 				    top: 53px;
 				    margin-top: -53px;
+				    z-index: 2;
 				}
 			
 				.task-details-add-comment-button {
@@ -271,7 +295,7 @@ $popup-view-z-index: 3;
 					font-size: 14px;
 				    position: relative;
 				    top: -8px;
-				    left: 12px;
+				    padding-left: 32px;
 				}
 			}
 		}
@@ -2619,6 +2643,14 @@ $popup-view-z-index: 3;
 	}
 
 	.right-to-left {
+		
+
+		.user-display {
+			.user-display-name {
+				padding-left: inherit;
+				padding-right: 4px;
+			}
+		}
 
 		.v-table {
 	    	.v-table-body {
@@ -2646,6 +2678,12 @@ $popup-view-z-index: 3;
 		.v-table-cell-content-file-icon-folder.v-table-cell-content-file-icon {
 			.v-table-cell-wrapper {
 				right: 30px;
+			}
+		}
+
+		.v-slot-v-filterselect-suggestmenu {
+			.v-has-caption {
+				direction: rtl;
 			}
 		}
 
@@ -2736,6 +2774,65 @@ $popup-view-z-index: 3;
 
 		.icon-only {
 			text-align: center;
+		}
+
+		.task-management-view {
+	
+			.v-slot-task-action-buttons {
+				float: left;
+				padding-left: 10px;
+				direction: rtl;
+			}
+		}
+
+		.task-table-layout {
+			.task-table {
+				.task-details {
+					.v-slot-task-details-add-comment-button {
+						position: relative;
+						float: left;
+						top: 60px;
+					}
+				
+					.task-details-add-comment-button {
+						.v-button-caption {
+							margin-right: 7px;	
+						}
+					}
+				}
+			}
+		
+			.task-table [class*="-row"].v-selected {
+				outline: 1px solid rgb(25, 125, 225);
+	    		outline-offset: -1px;
+	    
+	    		background-color: inherit;
+	    		background-image: inherit;
+	    		background-origin: inherit;
+	    		text-shadow: inherit;
+	    		color: inherit;
+				//background-color: #197de1;
+				//background-image: -webkit-linear-gradient(top, #1b87e3 2%, #166ed5 98%);
+				//background-image: linear-gradient(to bottom,#1b87e3 2%, #166ed5 98%);
+				//background-origin: border-box;
+				//color: #ecf2f8;
+				//text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.05);
+			}
+	
+			.clickable-row {
+		    	.v-table-body {
+		    		tr, .reference-display {
+		    			cursor: default;
+		    		}
+	
+					&:hover {
+						border-color: #197de1;
+	    				color: red;
+	    				background-color: white;
+	    				text-decoration: none;
+	    			}
+		    	}
+			}
 		}
 		
 		.content-footer-wrapper {

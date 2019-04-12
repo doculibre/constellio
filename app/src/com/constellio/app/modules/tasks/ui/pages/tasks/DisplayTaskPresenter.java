@@ -1,5 +1,18 @@
 package com.constellio.app.modules.tasks.ui.pages.tasks;
 
+import static com.constellio.app.modules.tasks.model.wrappers.Task.ASSIGNEE;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.DUE_DATE;
+import static com.constellio.app.ui.entities.RecordVO.VIEW_MODE.FORM;
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.entities.records.wrappers.RecordWrapper.TITLE;
+import static java.util.Arrays.asList;
+
+import java.io.IOException;
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.events.RMEventsSearchServices;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
@@ -8,8 +21,8 @@ import com.constellio.app.modules.tasks.services.TaskPresenterServices;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.modules.tasks.services.TasksSearchServices;
 import com.constellio.app.modules.tasks.ui.builders.TaskToVOBuilder;
-import com.constellio.app.modules.tasks.ui.components.TaskTable.TaskPresenter;
 import com.constellio.app.modules.tasks.ui.entities.TaskVO;
+import com.constellio.app.modules.tasks.ui.pages.AbstractTaskPresenter;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
@@ -21,7 +34,6 @@ import com.constellio.app.ui.framework.buttons.report.ReportGeneratorButton;
 import com.constellio.app.ui.framework.components.RMSelectionPanelReportPresenter;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.BaseView;
-import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.model.entities.CorePermissions;
@@ -35,17 +47,10 @@ import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
-import java.io.IOException;
-import java.util.List;
+public class DisplayTaskPresenter extends AbstractTaskPresenter<DisplayTaskView> {
 
-import static com.constellio.app.modules.tasks.model.wrappers.Task.ASSIGNEE;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.DUE_DATE;
-import static com.constellio.app.ui.entities.RecordVO.VIEW_MODE.FORM;
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.entities.records.wrappers.RecordWrapper.TITLE;
-import static java.util.Arrays.asList;
-
-public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskView> implements TaskPresenter {
+	private static Logger LOGGER = LoggerFactory.getLogger(DisplayTaskPresenter.class);
+	
 	private static final String DISPLAY_TASK_PRESENTER_PREVIOUS_TAB = "DisplayTaskPresenterPreviousTab";
 
 	TaskVO taskVO;
@@ -456,4 +461,5 @@ public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskV
 	public AppLayerFactory getApplayerFactory() {
 		return appLayerFactory;
 	}
+	
 }

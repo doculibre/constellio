@@ -11,11 +11,6 @@ public interface TaskManagementView extends BaseView, TasksViewGroup {
 	String TASK_MANAGEMENT_PRESENTER_PREVIOUS_TAB = "TaskManagementPresenterPreviousTab";
 
 	String TASKS_TAB = "tasks";
-	String WORKFLOWS_TAB = "workflows";
-	String KPI_TAB = "kpi";
-	
-	String IN_PROGRESS_WORKFLOW_DEFINITIONS_TAB = "inProgressWorkflowDefinitions";
-	String COMPLETED_WORKFLOW_DEFINITIONS_TAB = "completedWorkflowDefinitions";
 	
 	String TASKS_ASSIGNED_BY_CURRENT_USER = "tasksAssignedByCurrentUser";
 	String TASKS_NOT_ASSIGNED = "nonAssignedTasks";
