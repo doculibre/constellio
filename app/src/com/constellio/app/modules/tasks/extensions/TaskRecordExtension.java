@@ -284,7 +284,7 @@ public class TaskRecordExtension extends RecordExtension {
 	}
 
 
-	private void taskInCreation(Task task, RecordInCreationBeforeValidationAndAutomaticValuesCalculationEvent event) {
+	public void taskInCreation(Task task, RecordInCreationBeforeValidationAndAutomaticValuesCalculationEvent event) {
 		sendEmailToAssignee(task);
 		TaskStatus currentStatus = (task.getStatus() == null) ? null : tasksSchema.getTaskStatus(task.getStatus());
 		updateEndDateAndStartDateIfNecessary(task, currentStatus);
@@ -517,7 +517,7 @@ public class TaskRecordExtension extends RecordExtension {
 		return reminders;
 	}
 
-	private void sendAssigneeModificationEvent(Task task, RecordModificationEvent event) {
+	public void sendAssigneeModificationEvent(Task task, RecordModificationEvent event) {
 		sendEmailToAssignee(task);
 		Set<String> followersIds = getTaskAssigneeModificationFollowers(task);
 		if (followersIds.isEmpty()) {
@@ -531,7 +531,7 @@ public class TaskRecordExtension extends RecordExtension {
 		saveEmailToSend(emailToSend, task);
 	}
 
-	private void sendEmailToAssignee(Task task) {
+	public void sendEmailToAssignee(Task task) {
 		Set<EmailAddress> assigneeEmails = getTaskAssigneesEmails(task);
 		if (!assigneeEmails.isEmpty()) {
 			EmailToSend emailToSend = tasksSchema.newEmailToSend().setTryingCount(0d);
