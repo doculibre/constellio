@@ -160,11 +160,10 @@ public class ContentVersionVO implements Serializable {
 		return this;
 	}
 
-	@Override
-	public String toString() {
+	public String toString(boolean includeVersion) {
 		StringBuffer sb = new StringBuffer();
 		sb.append(fileName);
-		if (StringUtils.isNotBlank(version)) {
+		if (includeVersion && StringUtils.isNotBlank(version)) {
 			sb.append(" [" + version + "]");
 		}
 		String lengthLabel = FileUtils.byteCountToDisplaySize(length);
@@ -173,6 +172,11 @@ public class ContentVersionVO implements Serializable {
 		}
 		sb.append(" (" + lengthLabel + ")");
 		return sb.toString();
+	}
+
+	@Override
+	public String toString() {
+		return toString(true);
 	}
 
 	@Override

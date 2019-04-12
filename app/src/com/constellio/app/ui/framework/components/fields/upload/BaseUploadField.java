@@ -74,32 +74,39 @@ public class BaseUploadField extends CustomField<Object> implements DropHandler 
 			@SuppressWarnings("unchecked")
 			@Override
 			protected void handleFile(File file, String fileName, String mimeType, long length) {
-				file.deleteOnExit();
-				TempFileUpload newTempFileUpload = new TempFileUpload(fileName, mimeType, length, file);
-				Object newConvertedValue;
-				Converter<Object, Object> converter = BaseUploadField.this.getConverter();
-				if (converter != null) {
-					newConvertedValue = converter.convertToModel(newTempFileUpload, Object.class, getLocale());
-				} else {
-					newConvertedValue = newTempFileUpload;
-				}
-				if (!isMultiValue()) {
-					if (!newConvertedValue.equals(getConvertedValue())) {
-						deleteTempFiles();
-						BaseUploadField.this.setValue(newConvertedValue);
-					} else if ( fireValueChangeWhenEqual()) {
-						fireValueChange(true);
+				try {
+					file.deleteOnExit();
+					TempFileUpload newTempFileUpload = new TempFileUpload(fileName, mimeType, length, file);
+					Object newConvertedValue;
+					Converter<Object, Object> converter = BaseUploadField.this.getConverter();
+					if (converter != null) {
+						newConvertedValue = converter.convertToModel(newTempFileUpload, Object.class, getLocale());
+					} else {
+						newConvertedValue = newTempFileUpload;
 					}
-				} else {
-					List<Object> previousListValue = (List<Object>) BaseUploadField.this.getValue();
-					List<Object> newListValue = new ArrayList<Object>();
-					if (previousListValue != null) {
-						newListValue.addAll(previousListValue);
+					if (!isMultiValue()) {
+						if (!newConvertedValue.equals(getConvertedValue())) {
+							deleteTempFiles();
+							BaseUploadField.this.setValue(newConvertedValue);
+						} else if (fireValueChangeWhenEqual()) {
+							fireValueChange(true);
+						}
+					} else {
+						List<Object> previousListValue = (List<Object>) BaseUploadField.this.getValue();
+						List<Object> newListValue = new ArrayList<Object>();
+						if (previousListValue != null) {
+							newListValue.addAll(previousListValue);
+						}
+						if (!newListValue.contains(newConvertedValue)) {
+							newListValue.add(newConvertedValue);
+						}
+						BaseUploadField.this.setValue(newListValue);
 					}
-					if (!newListValue.contains(newConvertedValue)) {
-						newListValue.add(newConvertedValue);
-					}
-					BaseUploadField.this.setValue(newListValue);
+
+				} catch (Throwable t) {
+					t.printStackTrace();
+
+					throw t;
 				}
 			}
 

@@ -18,6 +18,8 @@ import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.TabSheet.SelectedTabChangeListener;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.tepi.filtertable.FilterGenerator;
 
 import java.util.ArrayList;
@@ -28,10 +30,11 @@ import java.util.List;
 import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 import static java.util.Arrays.asList;
 
 public class TaskManagementViewImpl extends BaseViewImpl implements TaskManagementView {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(TaskManagementViewImpl.class);
 
 	private final TaskManagementPresenter presenter;
 
@@ -167,7 +170,11 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 		if (tabId.equals(TASKS_TAB) || extraTabs.containsKey(tabId)) {
 			tabSheet = primaryTabSheet;
 		} else if (presenter.isTaskTab(tabId)) {
-			tabSheet = tasksTabSheet;
+			if (tasksInSubTabSheet) {
+				tabSheet = tasksTabSheet;
+			} else {
+				tabSheet = primaryTabSheet;
+			}
 		} else {
 			tabSheet = (IdTabSheet) primaryTabSheet.getTabComponent(tabId);
 			if (tabSheet == null) {
@@ -178,7 +185,12 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 					}
 				}
 			}
+			if (tabSheet == null) {
+				LOGGER.warn("No tab with id '" + tabId + "'. Extra tabs : " + extraTabs.keySet());
+			}
 		}
+
+
 		return tabSheet;
 	}
 
@@ -221,19 +233,19 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 		//		tableAdapter.setFilterBarVisible(true);
 
 
-//		String starredByUserCode = Task.DEFAULT_SCHEMA + "_" + Task.STARRED_BY_USERS;
-//		String workflouwExecutionCode = Task.DEFAULT_SCHEMA + "_" + "linkedWorkflowExecution";
-//		String titleCode = Task.DEFAULT_SCHEMA + "_" + Task.TITLE;
-//		for(Object visibleColumn : taskTable.getVisibleColumns()){
-//			if (visibleColumn instanceof MetadataVO) {
-//				if (starredByUserCode.equals(((MetadataVO) visibleColumn).getCode()) || workflouwExecutionCode.equals(((MetadataVO) visibleColumn).getCode())) {
-//					tableAdapter.setColumnExpandRatio(visibleColumn, 1);
-//				}
-//				if(titleCode.equals(((MetadataVO)visibleColumn).getCode())){
-//					tableAdapter.setColumnExpandRatio(visibleColumn, 0);
-//				}
-//			}
-//		}
+		//		String starredByUserCode = Task.DEFAULT_SCHEMA + "_" + Task.STARRED_BY_USERS;
+		//		String workflouwExecutionCode = Task.DEFAULT_SCHEMA + "_" + "linkedWorkflowExecution";
+		//		String titleCode = Task.DEFAULT_SCHEMA + "_" + Task.TITLE;
+		//		for(Object visibleColumn : taskTable.getVisibleColumns()){
+		//			if (visibleColumn instanceof MetadataVO) {
+		//				if (starredByUserCode.equals(((MetadataVO) visibleColumn).getCode()) || workflouwExecutionCode.equals(((MetadataVO) visibleColumn).getCode())) {
+		//					tableAdapter.setColumnExpandRatio(visibleColumn, 1);
+		//				}
+		//				if(titleCode.equals(((MetadataVO)visibleColumn).getCode())){
+		//					tableAdapter.setColumnExpandRatio(visibleColumn, 0);
+		//				}
+		//			}
+		//		}
 
 		layout.addComponent(taskTable);
 		//layout.addComponent(new BaseFilteringTable());

@@ -3,12 +3,14 @@ package com.constellio.app.modules.rm.ui.components.document.fields;
 import com.constellio.app.modules.rm.ui.components.document.newFile.NewFileWindow;
 import com.constellio.app.modules.rm.ui.components.document.newFile.NewFileWindowImpl;
 import com.constellio.app.ui.entities.ContentVersionVO;
+import com.constellio.app.ui.framework.components.content.DownloadContentVersionLink;
 import com.constellio.app.ui.framework.components.fields.upload.ContentVersionUploadField;
 import com.vaadin.data.Property;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
+import com.vaadin.ui.Component;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -105,6 +107,18 @@ public class DocumentContentFieldImpl extends ContentVersionUploadField implemen
 	@Override
 	public void removeContentUploadedListener(ContentUploadedListener listener) {
 		contentUploadedListeners.remove(listener);
+	}
+
+	@Override
+	protected Component newItemCaption(Object itemId) {
+		ContentVersionVO contentVersionVO = (ContentVersionVO) itemId;
+		boolean majorVersionFieldVisible = isMajorVersionFieldVisible();
+		return new ContentVersionUploadField.ContentVersionCaption(contentVersionVO, majorVersionFieldVisible) {
+			@Override
+			protected Component newCaptionComponent(ContentVersionVO contentVersionVO) {
+				return new DownloadContentVersionLink(contentVersionVO, contentVersionVO.toString(false));
+			}
+		};
 	}
 
 }

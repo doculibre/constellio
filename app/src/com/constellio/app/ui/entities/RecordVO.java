@@ -1,10 +1,5 @@
 package com.constellio.app.ui.entities;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-
 import com.constellio.app.ui.entities.RecordVORuntimeException.RecordVORuntimeException_NoSuchMetadata;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval;
@@ -50,7 +45,7 @@ public class RecordVO implements Serializable {
 	}
 
 	public RecordVO(String id, List<MetadataValueVO> metadataValues, VIEW_MODE viewMode,
-			List<String> excludedMetadataCodeList) {
+					List<String> excludedMetadataCodeList) {
 		this.excludedMetadataCodeList = excludedMetadataCodeList;
 		this.id = id;
 		LangUtils.ensureNoNullItems(metadataValues);
@@ -208,13 +203,13 @@ public class RecordVO implements Serializable {
 			if (excludedMetadataCodeList.contains(tableMetadataCode)) {
 				continue;
 			}
-				MetadataVO metadataVO = getMetadataOrNull(tableMetadataCode);
-				if(metadataVO != null) {
-					MetadataValueVO metadataValueVO = getMetadataValue(metadataVO);
-					if (metadataValueVO != null) {
-						searchMetadataValues.add(metadataValueVO);
-					}
+			MetadataVO metadataVO = getMetadataOrNull(tableMetadataCode);
+			if (metadataVO != null) {
+				MetadataValueVO metadataValueVO = getMetadataValue(metadataVO);
+				if (metadataValueVO != null) {
+					searchMetadataValues.add(metadataValueVO);
 				}
+			}
 		}
 		return searchMetadataValues;
 	}
@@ -251,7 +246,7 @@ public class RecordVO implements Serializable {
 		List<MetadataVO> formMetadatas = getSchema().getFormMetadatas();
 		List<MetadataVO> filteredFormMetadatas = new ArrayList<>();
 		for (MetadataVO formMetadata : formMetadatas) {
-			if (!excludedFormMetadataCodes.contains(formMetadata.code)) {
+			if (excludedFormMetadataCodes == null || !excludedFormMetadataCodes.contains(formMetadata.code)) {
 				filteredFormMetadatas.add(formMetadata);
 			}
 		}
