@@ -1,5 +1,6 @@
 package com.constellio.app.modules.tasks.extensions;
 
+import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.tasks.caches.IncompleteTasksUserCache;
 import com.constellio.app.modules.tasks.caches.UnreadTasksUserCache;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
@@ -80,6 +81,7 @@ import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_USERS_CA
 public class TaskRecordExtension extends RecordExtension {
 	private static final Logger LOGGER = LogManager.getLogger(TaskRecordExtension.class);
 	private final TasksSchemasRecordsServices tasksSchema;
+	private final RMSchemasRecordsServices rm;
 	String collection;
 
 	ModelLayerFactory modelLayerFactory;
@@ -98,6 +100,7 @@ public class TaskRecordExtension extends RecordExtension {
 		eimConfigs = new ConstellioEIMConfigs(appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager());
 		unreadTasksUserCache = appLayerFactory.getModelLayerFactory().getCachesManager().getUserCache(UnreadTasksUserCache.NAME);
 		incompleteTasksUserCache = appLayerFactory.getModelLayerFactory().getCachesManager().getUserCache(IncompleteTasksUserCache.NAME);
+		rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 	}
 
 	@Override
@@ -549,12 +552,18 @@ public class TaskRecordExtension extends RecordExtension {
 		Set<EmailAddress> assigneeEmails = new HashSet<>();
 
 		if (task.getAssignee() != null) {
-			assigneeEmails.addAll(emailAddress(task.getAssignee()));
+			User assignee = rm.getUser(task.getAssignee());
+			if (!assignee.isAssignationEmailReceptionDisabled()) {
+				assigneeEmails.addAll(emailAddress(task.getAssignee()));
+			}
 		}
 
 		if (task.getAssigneeUsersCandidates() != null) {
 			for (String userId : task.getAssigneeUsersCandidates()) {
-				assigneeEmails.addAll(emailAddress(userId));
+				User assigneeCandidate = rm.getUser(userId);
+				if (!assigneeCandidate.isAssignationEmailReceptionDisabled()) {
+					assigneeEmails.addAll(emailAddress(userId));
+				}
 			}
 		}
 
