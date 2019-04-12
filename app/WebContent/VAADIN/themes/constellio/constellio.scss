@@ -1714,6 +1714,25 @@ $popup-view-z-index: 3;
 							.visited-link {
 								color: #551A8B;
 							}
+
+							.clickable-row {
+						    	.v-table-body {
+						    		tr, .reference-display {
+						    			cursor: pointer;
+										color: #696969;
+						
+										&:hover {
+						    				color: white;
+						    				background-color: #197de1;
+						    				text-decoration: none;
+						    		
+									   		.reference-display-link {
+									   			color: white;
+									   		}
+						    			}
+						    		}
+						    	}
+							}
 							
 							.agent-action-link {
             					white-space: normal;
