@@ -34,8 +34,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -277,13 +279,32 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 		return plugins;
 	}
 
+	public static List<InstallableModule> availablePluginsForTestOnly = new ArrayList<>();
+
 	@Override
 	public List<InstallableModule> getActivePluginModules() {
 		List<InstallableModule> returnList = new ArrayList<>();
 		List<String> activePluginModulesIds = pluginConfigManger.getActivePluginsIds();
-		for (InstallableModule pluginModule : validUploadedPlugins.values()) {
-			if (activePluginModulesIds.contains(pluginModule.getId())) {
-				returnList.add(pluginModule);
+		if (new FoldersLocator().getFoldersLocatorMode() == FoldersLocatorMode.PROJECT) {
+			Set<String> foundPlugins = new HashSet<>();
+			for (InstallableModule pluginModule : availablePluginsForTestOnly) {
+				if (activePluginModulesIds.contains(pluginModule.getId())) {
+					returnList.add(pluginModule);
+					foundPlugins.add(pluginModule.getId());
+				}
+			}
+			for (InstallableModule pluginModule : validUploadedPlugins.values()) {
+				if (activePluginModulesIds.contains(pluginModule.getId())
+					&& !foundPlugins.contains(pluginModule.getId())) {
+					returnList.add(pluginModule);
+				}
+			}
+
+		} else {
+			for (InstallableModule pluginModule : validUploadedPlugins.values()) {
+				if (activePluginModulesIds.contains(pluginModule.getId())) {
+					returnList.add(pluginModule);
+				}
 			}
 		}
 		return returnList;

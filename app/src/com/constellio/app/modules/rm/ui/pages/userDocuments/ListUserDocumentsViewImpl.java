@@ -95,13 +95,11 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 		mainLayout.setSpacing(true);
 
 		multiFileUpload = new BaseMultiFileUpload() {
-			@Override
 			protected void displayStreamingFailedMessage() {
 				navigate().to(RMViews.class).listUserDocuments();
 				showErrorMessage($("ListUserDocumentsView.spaceLimitReached"));
 			}
 
-			@Override
 			protected boolean isSpaceLimitReached(StreamVariable.StreamingStartEvent event) {
 				return presenter.isSpaceLimitReached(event.getContentLength());
 			}
@@ -143,7 +141,8 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 
 		userContentTable = new RecordVOTable() {
 			@Override
-			protected Component buildMetadataComponent(Object itemId, MetadataValueVO metadataValue, RecordVO recordVO) {
+			protected Component buildMetadataComponent(Object itemId, MetadataValueVO metadataValue,
+													   RecordVO recordVO) {
 				Component metadataComponent;
 				if (metadataValue.getMetadata().codeMatches(UserDocument.TITLE)) {
 					metadataComponent = newCaptionComponent(recordVO);

@@ -11,6 +11,7 @@ import com.constellio.app.modules.rm.DemoTestRecords;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.robots.ConstellioRobotsModule;
 import com.constellio.app.modules.tasks.TaskModule;
+import com.constellio.app.services.extensions.plugins.JSPFConstellioPluginManager;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.importExport.systemStateExport.SystemStateExportParams;
@@ -1522,6 +1523,19 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	public ModuleEnabler givenInstalledModule(Class<? extends InstallableModule> installableModuleClass) {
 		ensureNotUnitTest();
 		return ModuleEnabler.givenInstalledModule(getAppLayerFactory(), installableModuleClass);
+	}
+
+	public void givenAvailableModules(List<Class<? extends InstallableModule>> installableModuleClasses) {
+
+		for (Class<? extends InstallableModule> installableModuleClass : installableModuleClasses) {
+			try {
+				JSPFConstellioPluginManager.availablePluginsForTestOnly.add(installableModuleClass.newInstance());
+			} catch (InstantiationException e) {
+				throw new RuntimeException(e);
+			} catch (IllegalAccessException e) {
+				throw new RuntimeException(e);
+			}
+		}
 	}
 
 	public ToggleCondition onlyWhen(AvailableToggle toggle) {

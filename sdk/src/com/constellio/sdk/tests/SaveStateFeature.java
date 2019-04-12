@@ -94,6 +94,7 @@ public class SaveStateFeature {
 			FileUtils.copyDirectory(tempUnzipPluginsFolder, pluginsFolder);
 		}
 
+
 		if (tempUnzipTlogWorkFolder.exists()) {
 			FileUtils.copyDirectory(tempUnzipTlogWorkFolder, tlogWorkFolder);
 		}
