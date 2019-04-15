@@ -565,11 +565,7 @@ public abstract class Decommissioner {
 
 		try {
 			transaction.getRecordUpdateOptions().setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
-			if (transaction.getRecordCount() <= getMaxRecordsPerTransaction()) {
-				recordServices.execute(transaction);
-			} else {
-				recordServices.executeHandlingImpactsAsync(transaction);
-			}
+			recordServices.executeHandlingImpactsAsync(transaction);
 			for (Record record : recordsToDelete) {
 				recordServices.logicallyDelete(record, user);
 			}
