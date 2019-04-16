@@ -2,7 +2,6 @@ package com.constellio.model.services.taxonomies;
 
 import com.constellio.data.dao.services.records.DataStore;
 import com.constellio.data.utils.LangUtils;
-import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Authorization;
@@ -31,6 +30,7 @@ import com.constellio.model.services.security.SecurityTokenManager;
 import com.constellio.model.services.taxonomies.LinkableConceptFilter.LinkableConceptFilterParams;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions.HasChildrenFlagCalculated;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServicesRuntimeException.TaxonomiesSearchServicesRuntimeException_CannotFilterNonPrincipalConceptWithWriteOrDeleteAccess;
+import com.constellio.model.utils.Lazy;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -839,7 +839,8 @@ public class TaxonomiesSearchServicesBasedOnHierarchyTokensImpl implements Taxon
 	}
 
 	private LinkableTaxonomySearchResponse getLinkableConceptsForSelectionOfAPrincipalTaxonomyConceptBasedOnAuthorizations(
-			User user, Taxonomy usingTaxonomy, Record inRecord, TaxonomiesSearchOptions originalOptions) {
+			final User user, final Taxonomy usingTaxonomy, Record inRecord,
+			final TaxonomiesSearchOptions originalOptions) {
 
 		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions(originalOptions);
 		final Taxonomy taxonomy = taxonomiesManager.getEnabledTaxonomyWithCode(usingTaxonomy.getCollection(), usingTaxonomy.getCode());
@@ -848,7 +849,7 @@ public class TaxonomiesSearchServicesBasedOnHierarchyTokensImpl implements Taxon
 
 		GetChildrenContext ctx = new GetChildrenContext(user, inRecord, originalOptions, schemaType, taxonomy);
 
-		if (ctx.hasPermanentCache) {
+		if (!ctx.hasPermanentCache) {
 
 			String cacheMode = HasChildrenQueryHandler
 					.getCacheMode(usingTaxonomy.getSchemaTypes().get(0), originalOptions.getRequiredAccess(),
@@ -921,43 +922,33 @@ public class TaxonomiesSearchServicesBasedOnHierarchyTokensImpl implements Taxon
 			return new LinkableTaxonomySearchResponse(resultVisible.size(), resultVisible.subList(from, to));
 		} else {
 
-			List<Record> records = new ArrayList<>();
-			if (records.is)
-
-			if (inRecord == null) {
-				mainQueryResponse = conceptNodesTaxonomySearchServices.getRootConceptResponse(
-						usingTaxonomy.getCollection(), usingTaxonomy.getCode(), options);
-			} else {
-				mainQueryResponse = conceptNodesTaxonomySearchServices.getChildNodesResponse(inRecord, options);
-			}
-			List<Record> children = mainQueryResponse.getRecords();
-
-
-			LogicalSearchCondition condition = fromAllSchemasIn(taxonomy.getCollection())
-					.where(schemaTypeIsIn(taxonomy.getSchemaTypes()));
-			LogicalSearchQuery query = new LogicalSearchQuery(condition)
-					.filteredWithUser(user, options.getRequiredAccess())
-					.filteredByStatus(options.getIncludeStatus())
-					.sortAsc(Schemas.CODE).sortAsc(Schemas.TITLE)
-					.setReturnedMetadatas(
-							conceptNodesTaxonomySearchServices.returnedMetadatasForRecordsIn(usingTaxonomy.getCollection(), options));
-
-			HasChildrenQueryHandler hasChildrenQueryHandler = newHasChildrenQueryHandler(user, cacheMode, query);
-
-			for (Record child : children) {
-				hasChildrenQueryHandler.addRecordToCheck(child);
+			List<Record> children = new ArrayList<>();
+			for (Record record : caches.getCache(ctx.getCollection()).getAllValues(ctx.forSelectionOfSchemaType.getCode())) {
+				if (LangUtils.isEqual(record.getParentId(), inRecord == null ? null : inRecord.getId())) {
+					children.add(record);
+				}
 			}
 
-			SPEQueryResponse response = hasChildrenQueryHandler.query();
-			List<String> responseRecordIds = new RecordUtils().toIdList(response.getRecords());
+			Collections.sort(children, new RecordCodeComparator(taxonomy.getSchemaTypes()));
+
 			List<TaxonomySearchRecord> resultVisible = new ArrayList<>();
 			for (final Record child : children) {
 
-				boolean hasVisibleChildren = hasChildrenQueryHandler.hasChildren(child);
+				Lazy<Boolean> hasVisibleChildren = new Lazy<Boolean>() {
+					@Override
+					protected Boolean load() {
 
-				boolean readAuthorizationsOnConcept = responseRecordIds.contains(child.getId());
+						TaxonomiesSearchOptions options = new TaxonomiesSearchOptions(originalOptions);
+						options.setHasChildrenFlagCalculated(HasChildrenFlagCalculated.NEVER);
+						options.setRows(1);
+						options.setStartRow(0);
+						return getLinkableConceptsForSelectionOfAPrincipalTaxonomyConceptBasedOnAuthorizations(
+								user, usingTaxonomy, child, options).getNumFound() > 0;
+					}
+				};
+
+				boolean readAuthorizationsOnConcept = user.hasRequiredAccess(options.getRequiredAccess()).on(child);
 				boolean conceptIsLinkable = isTrueOrNull(child.get(Schemas.LINKABLE));
-
 
 				if (options.getFilter() != null && options.getFilter().getLinkableConceptsFilter() != null) {
 					conceptIsLinkable = options.getFilter().getLinkableConceptsFilter().isLinkable(new LinkableConceptFilterParams() {
@@ -973,9 +964,11 @@ public class TaxonomiesSearchServicesBasedOnHierarchyTokensImpl implements Taxon
 					});
 				}
 
-				if (hasVisibleChildren || (readAuthorizationsOnConcept && conceptIsLinkable)) {
+				if ((readAuthorizationsOnConcept && conceptIsLinkable) || hasVisibleChildren.get()) {
+					boolean returnedHasVisibleChildren = options.getHasChildrenFlagCalculated() == HasChildrenFlagCalculated.NEVER ? true : hasVisibleChildren.get();
+
 					resultVisible.add(new TaxonomySearchRecord(child, readAuthorizationsOnConcept && conceptIsLinkable,
-							hasVisibleChildren));
+							returnedHasVisibleChildren));
 				}
 			}
 
@@ -984,7 +977,6 @@ public class TaxonomiesSearchServicesBasedOnHierarchyTokensImpl implements Taxon
 			if (resultVisible.size() < to) {
 				to = resultVisible.size();
 			}
-
 			return new LinkableTaxonomySearchResponse(resultVisible.size(), resultVisible.subList(from, to));
 		}
 
@@ -1154,20 +1146,8 @@ public class TaxonomiesSearchServicesBasedOnHierarchyTokensImpl implements Taxon
 
 		LinkableTaxonomySearchResponse response;
 		if (principalTaxonomy.getSchemaTypes().contains(selectedType.getCode())) {
-			//selecting a record of the principal taxonomy
-
-			//FIXME
-			if (user == User.GOD || user.hasCollectionAccess(options.getRequiredAccess()) || (user
-																									  .has(CorePermissions.MANAGE_SECURITY).globally() && options.isShowAllIfHasAccessToManageSecurity())) {
-				//No security, the whole tree is visible
-				response = getLinkableConceptsForSelectionOfATaxonomyConcept(user, usingTaxonomy, selectedType, inRecord,
-						options);
-
-			} else {
-				//Security, only authorized concepts are visible (and their parents which are not selectable)
-				response = getLinkableConceptsForSelectionOfAPrincipalTaxonomyConceptBasedOnAuthorizations(
-						user, usingTaxonomy, inRecord, options);
-			}
+			response = getLinkableConceptsForSelectionOfAPrincipalTaxonomyConceptBasedOnAuthorizations(
+					user, usingTaxonomy, inRecord, options);
 		} else if (usingTaxonomy.getSchemaTypes().contains(selectedType.getCode())) {
 			//selecting a record of a non-principal taxonomy
 			if (Role.WRITE.equals(options.getRequiredAccess()) || Role.DELETE.equals(options.getRequiredAccess())) {
