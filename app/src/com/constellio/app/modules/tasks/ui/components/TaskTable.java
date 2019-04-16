@@ -150,6 +150,15 @@ public class TaskTable extends RecordVOTable {
 					});
 				}
 
+				if (presenter.isAutoAssignButtonEnabled(recordVO)) {
+					rootItem.addItem($("TaskTable.autoAssignTask"), FontAwesome.HAND_O_RIGHT, new Command() {
+						@Override
+						public void menuSelected(MenuItem selectedItem) {
+							presenter.autoAssignButtonClicked(recordVO);
+						}
+					});
+				}
+
 				if (presenter.isCloseButtonEnabled(recordVO)) {
 					rootItem.addItem($("TaskTable.close"), CLOSE_ICON, new Command() {
 						@Override
@@ -185,7 +194,6 @@ public class TaskTable extends RecordVOTable {
 						}
 					});
 				}
-
 				return menuBar;
 			}
 		});
