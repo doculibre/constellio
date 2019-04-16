@@ -54,6 +54,8 @@ import org.assertj.core.api.ObjectAssert;
 import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -94,6 +96,8 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 	AtomicInteger facetsCount = new AtomicInteger();
 	AtomicInteger returnedDocumentsCount = new AtomicInteger();
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(TaxonomiesSearchServices_CachedLinkableTreesAcceptTest.class);
+
 	@Before
 	public void setUp()
 			throws Exception {
@@ -124,6 +128,8 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				.add(new BigVaultServerExtension() {
 					@Override
 					public void afterQuery(AfterQueryParams params) {
+
+						LOGGER.warn("Query " + params.getSolrParams().toQueryString() + ":", new RuntimeException());
 
 						queriesCount.incrementAndGet();
 						String[] facetQuery = params.getSolrParams().getParams("facet.query");
@@ -862,14 +868,14 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 		UserServices userServices = getModelLayerFactory().newUserServices();
 		List<String> returnedTokens = new ArrayList<>();
 
-		for(String token : tokens) {
+		for (String token : tokens) {
 			String transformedToken = token;
 
-			for(User user : userServices.getAllUsersInCollection(zeCollection)) {
+			for (User user : userServices.getAllUsersInCollection(zeCollection)) {
 				transformedToken = transformedToken.replace(user.getId(), user.getUsername());
 			}
 
-			for(Group group : userServices.getAllGroupsInCollections(zeCollection)) {
+			for (Group group : userServices.getAllGroupsInCollections(zeCollection)) {
 				transformedToken = transformedToken.replace(group.getId(), group.getCode());
 			}
 			returnedTokens.add(transformedToken);
@@ -879,9 +885,9 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 	}
 
 	private void generateAsserts(String... ids) {
-		for(String id : ids) {
-			System.out.println("assertThat(tokensOf(\"" + id + "\")).containsOnly(" + toExpected(tokensOf(id)) + ");" );
-			System.out.println("assertThat(hierarchyTokensOf(\"" + id + "\")).containsOnly(" + toExpected(hierarchyTokensOf(id)) + ");" );
+		for (String id : ids) {
+			System.out.println("assertThat(tokensOf(\"" + id + "\")).containsOnly(" + toExpected(tokensOf(id)) + ");");
+			System.out.println("assertThat(hierarchyTokensOf(\"" + id + "\")).containsOnly(" + toExpected(hierarchyTokensOf(id)) + ");");
 		}
 
 	}
@@ -2428,33 +2434,21 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				return false;
 			}
 		});
+
 		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions();
 		options.setFilter(taxonomiesSearchFilter);
+
 		assertThatRootWhenSelectingAnAdministrativeUnitUsingUnitTaxonomy(options)
 				.has(numFoundAndListSize(0))
 				.has(solrQueryCounts(2, 3, 3))
 				.has(secondSolrQueryCounts(2, 3, 0));
-	}
 
-	// FIXME adjust query counts
-	@Test
-	public void whenGetListOfChildAdministrativeUnitsThenReturnOnlyLinkableTaxonomies() {
-		givenUserHasReadAccessTo(records.unitId_12);
-
-		TaxonomiesSearchFilter taxonomiesSearchFilter = new TaxonomiesSearchFilter();
-		taxonomiesSearchFilter.setLinkableConceptsFilter(new LinkableConceptFilter() {
-			@Override
-			public boolean isLinkable(LinkableConceptFilterParams params) {
-				return false;
-			}
-		});
-		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions();
-		options.setFilter(taxonomiesSearchFilter);
 		assertThatChildWhenSelectingAnAdministrativeUnitUsingUnitTaxonomy(records.unitId_10, options)
 				.has(numFoundAndListSize(0))
 				.has(solrQueryCounts(2, 3, 3))
 				.has(secondSolrQueryCounts(2, 3, 0));
 	}
+
 
 	private void assertThatIterationWithAndWithoutFastContinueGivesSameResults(String conceptId, int rows) {
 		RecordUtils utils = new RecordUtils();

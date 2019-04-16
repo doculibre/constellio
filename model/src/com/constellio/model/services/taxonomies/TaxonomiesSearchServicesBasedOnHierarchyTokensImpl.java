@@ -841,57 +841,152 @@ public class TaxonomiesSearchServicesBasedOnHierarchyTokensImpl implements Taxon
 	private LinkableTaxonomySearchResponse getLinkableConceptsForSelectionOfAPrincipalTaxonomyConceptBasedOnAuthorizations(
 			User user, Taxonomy usingTaxonomy, Record inRecord, TaxonomiesSearchOptions originalOptions) {
 
-		String cacheMode = HasChildrenQueryHandler
-				.getCacheMode(usingTaxonomy.getSchemaTypes().get(0), originalOptions.getRequiredAccess(),
-						originalOptions.isShowInvisibleRecordsInLinkingMode(),
-						originalOptions.isAlwaysReturnTaxonomyConceptsWithReadAccessOrLinkable());
-		SPEQueryResponse mainQueryResponse;
 		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions(originalOptions);
-		options.setRows(10000);
-		options.setStartRow(0);
-		if (inRecord == null) {
-			mainQueryResponse = conceptNodesTaxonomySearchServices.getRootConceptResponse(
-					usingTaxonomy.getCollection(), usingTaxonomy.getCode(), options);
-		} else {
-			mainQueryResponse = conceptNodesTaxonomySearchServices.getChildNodesResponse(inRecord, options);
-		}
-		List<Record> children = mainQueryResponse.getRecords();
+		final Taxonomy taxonomy = taxonomiesManager.getEnabledTaxonomyWithCode(usingTaxonomy.getCollection(), usingTaxonomy.getCode());
+		MetadataSchemaType schemaType = metadataSchemasManager.getSchemaTypes(taxonomy.getCollection())
+				.getSchemaType(usingTaxonomy.getSchemaTypes().get(0));
 
-		Taxonomy taxonomy = taxonomiesManager.getEnabledTaxonomyWithCode(usingTaxonomy.getCollection(), usingTaxonomy.getCode());
-		LogicalSearchCondition condition = fromAllSchemasIn(taxonomy.getCollection())
-				.where(schemaTypeIsIn(taxonomy.getSchemaTypes()));
-		LogicalSearchQuery query = new LogicalSearchQuery(condition)
-				.filteredWithUser(user, options.getRequiredAccess())
-				.filteredByStatus(options.getIncludeStatus())
-				.sortAsc(Schemas.CODE).sortAsc(Schemas.TITLE)
-				.setReturnedMetadatas(
-						conceptNodesTaxonomySearchServices.returnedMetadatasForRecordsIn(usingTaxonomy.getCollection(), options));
+		GetChildrenContext ctx = new GetChildrenContext(user, inRecord, originalOptions, schemaType, taxonomy);
 
-		HasChildrenQueryHandler hasChildrenQueryHandler = newHasChildrenQueryHandler(user, cacheMode, query);
+		if (ctx.hasPermanentCache) {
 
-		for (Record child : children) {
-			hasChildrenQueryHandler.addRecordToCheck(child);
-		}
-		SPEQueryResponse response = hasChildrenQueryHandler.query();
-		List<String> responseRecordIds = new RecordUtils().toIdList(response.getRecords());
-		List<TaxonomySearchRecord> resultVisible = new ArrayList<>();
-		for (Record child : children) {
-			boolean hasVisibleChildren = hasChildrenQueryHandler.hasChildren(child);
-			boolean readAuthorizationsOnConcept = responseRecordIds.contains(child.getId());
-			boolean conceptIsLinkable = isTrueOrNull(child.get(Schemas.LINKABLE));
-			if (hasVisibleChildren || (readAuthorizationsOnConcept && conceptIsLinkable)) {
-				resultVisible.add(new TaxonomySearchRecord(child, readAuthorizationsOnConcept && conceptIsLinkable,
-						hasVisibleChildren));
+			String cacheMode = HasChildrenQueryHandler
+					.getCacheMode(usingTaxonomy.getSchemaTypes().get(0), originalOptions.getRequiredAccess(),
+							originalOptions.isShowInvisibleRecordsInLinkingMode(),
+							originalOptions.isAlwaysReturnTaxonomyConceptsWithReadAccessOrLinkable());
+			SPEQueryResponse mainQueryResponse;
+			options.setRows(10000);
+			options.setStartRow(0);
+			if (inRecord == null) {
+				mainQueryResponse = conceptNodesTaxonomySearchServices.getRootConceptResponse(
+						usingTaxonomy.getCollection(), usingTaxonomy.getCode(), options);
+			} else {
+				mainQueryResponse = conceptNodesTaxonomySearchServices.getChildNodesResponse(inRecord, options);
 			}
-		}
+			List<Record> children = mainQueryResponse.getRecords();
 
-		int from = originalOptions.getStartRow();
-		int to = originalOptions.getEndRow();
-		if (resultVisible.size() < to) {
-			to = resultVisible.size();
-		}
 
-		return new LinkableTaxonomySearchResponse(resultVisible.size(), resultVisible.subList(from, to));
+			LogicalSearchCondition condition = fromAllSchemasIn(taxonomy.getCollection())
+					.where(schemaTypeIsIn(taxonomy.getSchemaTypes()));
+			LogicalSearchQuery query = new LogicalSearchQuery(condition)
+					.filteredWithUser(user, options.getRequiredAccess())
+					.filteredByStatus(options.getIncludeStatus())
+					.sortAsc(Schemas.CODE).sortAsc(Schemas.TITLE)
+					.setReturnedMetadatas(
+							conceptNodesTaxonomySearchServices.returnedMetadatasForRecordsIn(usingTaxonomy.getCollection(), options));
+
+			HasChildrenQueryHandler hasChildrenQueryHandler = newHasChildrenQueryHandler(user, cacheMode, query);
+
+			for (Record child : children) {
+				hasChildrenQueryHandler.addRecordToCheck(child);
+			}
+
+			SPEQueryResponse response = hasChildrenQueryHandler.query();
+			List<String> responseRecordIds = new RecordUtils().toIdList(response.getRecords());
+			List<TaxonomySearchRecord> resultVisible = new ArrayList<>();
+			for (final Record child : children) {
+
+				boolean hasVisibleChildren = hasChildrenQueryHandler.hasChildren(child);
+
+				boolean readAuthorizationsOnConcept = responseRecordIds.contains(child.getId());
+				boolean conceptIsLinkable = isTrueOrNull(child.get(Schemas.LINKABLE));
+
+
+				if (options.getFilter() != null && options.getFilter().getLinkableConceptsFilter() != null) {
+					conceptIsLinkable = options.getFilter().getLinkableConceptsFilter().isLinkable(new LinkableConceptFilterParams() {
+						@Override
+						public Record getRecord() {
+							return child;
+						}
+
+						@Override
+						public Taxonomy getTaxonomy() {
+							return taxonomy;
+						}
+					});
+				}
+
+				if (hasVisibleChildren || (readAuthorizationsOnConcept && conceptIsLinkable)) {
+					resultVisible.add(new TaxonomySearchRecord(child, readAuthorizationsOnConcept && conceptIsLinkable,
+							hasVisibleChildren));
+				}
+			}
+
+			int from = originalOptions.getStartRow();
+			int to = originalOptions.getEndRow();
+			if (resultVisible.size() < to) {
+				to = resultVisible.size();
+			}
+
+			return new LinkableTaxonomySearchResponse(resultVisible.size(), resultVisible.subList(from, to));
+		} else {
+
+			List<Record> records = new ArrayList<>();
+			if (records.is)
+
+			if (inRecord == null) {
+				mainQueryResponse = conceptNodesTaxonomySearchServices.getRootConceptResponse(
+						usingTaxonomy.getCollection(), usingTaxonomy.getCode(), options);
+			} else {
+				mainQueryResponse = conceptNodesTaxonomySearchServices.getChildNodesResponse(inRecord, options);
+			}
+			List<Record> children = mainQueryResponse.getRecords();
+
+
+			LogicalSearchCondition condition = fromAllSchemasIn(taxonomy.getCollection())
+					.where(schemaTypeIsIn(taxonomy.getSchemaTypes()));
+			LogicalSearchQuery query = new LogicalSearchQuery(condition)
+					.filteredWithUser(user, options.getRequiredAccess())
+					.filteredByStatus(options.getIncludeStatus())
+					.sortAsc(Schemas.CODE).sortAsc(Schemas.TITLE)
+					.setReturnedMetadatas(
+							conceptNodesTaxonomySearchServices.returnedMetadatasForRecordsIn(usingTaxonomy.getCollection(), options));
+
+			HasChildrenQueryHandler hasChildrenQueryHandler = newHasChildrenQueryHandler(user, cacheMode, query);
+
+			for (Record child : children) {
+				hasChildrenQueryHandler.addRecordToCheck(child);
+			}
+
+			SPEQueryResponse response = hasChildrenQueryHandler.query();
+			List<String> responseRecordIds = new RecordUtils().toIdList(response.getRecords());
+			List<TaxonomySearchRecord> resultVisible = new ArrayList<>();
+			for (final Record child : children) {
+
+				boolean hasVisibleChildren = hasChildrenQueryHandler.hasChildren(child);
+
+				boolean readAuthorizationsOnConcept = responseRecordIds.contains(child.getId());
+				boolean conceptIsLinkable = isTrueOrNull(child.get(Schemas.LINKABLE));
+
+
+				if (options.getFilter() != null && options.getFilter().getLinkableConceptsFilter() != null) {
+					conceptIsLinkable = options.getFilter().getLinkableConceptsFilter().isLinkable(new LinkableConceptFilterParams() {
+						@Override
+						public Record getRecord() {
+							return child;
+						}
+
+						@Override
+						public Taxonomy getTaxonomy() {
+							return taxonomy;
+						}
+					});
+				}
+
+				if (hasVisibleChildren || (readAuthorizationsOnConcept && conceptIsLinkable)) {
+					resultVisible.add(new TaxonomySearchRecord(child, readAuthorizationsOnConcept && conceptIsLinkable,
+							hasVisibleChildren));
+				}
+			}
+
+			int from = originalOptions.getStartRow();
+			int to = originalOptions.getEndRow();
+			if (resultVisible.size() < to) {
+				to = resultVisible.size();
+			}
+
+			return new LinkableTaxonomySearchResponse(resultVisible.size(), resultVisible.subList(from, to));
+		}
 
 	}
 

@@ -2864,28 +2864,15 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 				return false;
 			}
 		});
+
 		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions();
 		options.setFilter(taxonomiesSearchFilter);
+		
 		assertThatRootWhenSelectingAnAdministrativeUnitUsingUnitTaxonomy(options)
 				.has(numFoundAndListSize(0))
 				.has(solrQueryCounts(2, 3, 3))
 				.has(secondSolrQueryCounts(2, 3, 0));
-	}
 
-	// FIXME adjust query counts
-	@Test
-	public void whenGetListOfChildAdministrativeUnitsThenReturnOnlyLinkableTaxonomies() {
-		givenUserHasReadAccessTo(records.unitId_12);
-
-		TaxonomiesSearchFilter taxonomiesSearchFilter = new TaxonomiesSearchFilter();
-		taxonomiesSearchFilter.setLinkableConceptsFilter(new LinkableConceptFilter() {
-			@Override
-			public boolean isLinkable(LinkableConceptFilterParams params) {
-				return false;
-			}
-		});
-		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions();
-		options.setFilter(taxonomiesSearchFilter);
 		assertThatChildWhenSelectingAnAdministrativeUnitUsingUnitTaxonomy(records.unitId_10, options)
 				.has(numFoundAndListSize(0))
 				.has(solrQueryCounts(2, 3, 3))
