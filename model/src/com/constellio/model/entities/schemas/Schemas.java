@@ -88,6 +88,7 @@ Schemas {
 	public static final Metadata MARKED_FOR_REINDEXING = add(new Metadata("markedForReindexing_s", BOOLEAN, false));
 	public static final Metadata MARKED_FOR_PARSING = add(new Metadata("markedForParsing_s", BOOLEAN, false));
 	public static final Metadata SCHEMA_AUTOCOMPLETE_FIELD = add(new Metadata("autocomplete_ss", STRING, false));
+	public static final Metadata HIDDEN = add(new Metadata("hidden_s", BOOLEAN, false));
 
 
 	public static Metadata add(Metadata metadata) {
