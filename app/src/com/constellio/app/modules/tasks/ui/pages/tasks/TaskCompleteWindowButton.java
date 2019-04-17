@@ -168,12 +168,14 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 
 				if (errors.isEmpty()) {
 					updateUncompletedRequiredField(task, fields);
-					completeQuicklyButtonClicked(task,
+					boolean completed = completeQuicklyButtonClicked(task,
 							decisionMetadataAndField == null ? null : decisionMetadataAndField.getValue().getValue(),
 							decisionMetadataAndField == null ? null : decisionMetadataAndField.getKey().getLocalCode(),
 							acceptedField == null ? null : (Boolean) acceptedField.getValue(),
 							reasonField == null ? null : (String) reasonField.getValue());
-					getWindow().close();
+					if (completed) {
+						getWindow().close();
+					}
 				} else {
 					StringBuilder stringBuilder = new StringBuilder();
 					String prefix = "";
@@ -190,12 +192,15 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 		return saveButton;
 	}
 
-	private void completeQuicklyButtonClicked(Task task, Object decision, String decisionCode, Boolean accepted, String reason) {
+	private boolean completeQuicklyButtonClicked(Task task, Object decision, String decisionCode, Boolean accepted,
+			String reason) {
+		boolean validationException = false;
 		try {
 			quickCompleteTask(appLayerFactory, task, decision, decisionCode, accepted, reason,
 					view.getSessionContext().getCurrentUser().getId());
 		} catch (RecordServicesException.ValidationException e) {
 			ErrorDisplayUtil.showBackendValidationException(e.getErrors());
+			validationException = true;
 		} catch (Exception e) {
 			e.printStackTrace();
 			view.showErrorMessage(e.getMessage());
@@ -203,6 +208,7 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 		}
 		presenter.callAssignationExtension();
 		presenter.reloadTaskModified(task);
+		return !validationException;
 	}
 
 	static public void quickCompleteTask(AppLayerFactory appLayerFactory, Task task,
