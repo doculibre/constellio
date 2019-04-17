@@ -65,6 +65,7 @@ public class CommonMetadataBuilder {
 	public static final String CAPTION = "caption";
 	public static final String DATA_VERSION = "migrationDataVersion";
 	public static final String ESTIMATED_SIZE = "estimatedSize";
+	public static final String HIDDEN = "hidden";
 
 	private interface MetadataCreator {
 		void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types);
@@ -432,6 +433,16 @@ public class CommonMetadataBuilder {
 			@Override
 			public void define(MetadataSchemaBuilder builder, MetadataSchemaTypesBuilder types) {
 				MetadataBuilder metadataBuilder = builder.createSystemReserved(ESTIMATED_SIZE).setType(INTEGER);
+				for (Language language : types.getLanguages()) {
+					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
+				}
+			}
+		});
+
+		metadata.put(HIDDEN, new MetadataCreator() {
+			@Override
+			public void define(MetadataSchemaBuilder builder, MetadataSchemaTypesBuilder types) {
+				MetadataBuilder metadataBuilder = builder.createSystemReserved(HIDDEN).setType(BOOLEAN);
 				for (Language language : types.getLanguages()) {
 					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
 				}

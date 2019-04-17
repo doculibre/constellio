@@ -2852,6 +2852,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 				.has(secondSolrQueryCounts(4, 2, 1));
 	}
 
+
 	// -------
 
 	private ObjectAssert<LinkableTaxonomySearchResponseCaller> assertThatChildWhenSelectingFolderUsingAdminUnitsTaxonomy(

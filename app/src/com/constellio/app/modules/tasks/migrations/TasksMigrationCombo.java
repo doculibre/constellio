@@ -15,6 +15,7 @@ import com.constellio.model.services.emails.EmailTemplatesManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
+import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import org.apache.commons.io.IOUtils;
 
@@ -166,6 +167,7 @@ public class TasksMigrationCombo implements ComboMigrationScript {
 					"ddvTaskType_default_description", "ddvTaskType_default_title")) {
 				typesBuilder.getMetadata(metadata).setMultiLingual(true);
 			}
+			new CommonMetadataBuilder().addCommonMetadataToAllExistingSchemas(typesBuilder);
 		}
 
 	}
