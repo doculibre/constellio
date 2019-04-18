@@ -11,6 +11,7 @@ import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.ActionExecutorInBatch;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.User;
@@ -303,7 +304,7 @@ public class RecordDeleteServices {
 		physicallyDelete(record, user, new RecordPhysicalDeleteOptions());
 	}
 
-	public void physicallyDelete(final Record record, User user, RecordPhysicalDeleteOptions options) {
+	public void physicallyDelete(final Record record, User user, final RecordPhysicalDeleteOptions options) {
 		final Set<String> recordsWithUnremovableReferences = new HashSet<>();
 		final Set<String> recordsIdsTitlesWithUnremovableReferences = new HashSet<>();
 		if (!validatePhysicallyDeletable(record, user, options).getValidationErrors().isEmpty()) {
@@ -347,7 +348,9 @@ public class RecordDeleteServices {
 							public void doActionOnBatch(List<Record> recordsWithRef)
 									throws Exception {
 
-								Transaction transaction = new Transaction();
+								Transaction transaction = options.isSkipValidations() ?
+														  new Transaction(RecordUpdateOptions.validationExceptionSafeOptions()) :
+														  new Transaction();
 
 								for (Record recordWithRef : recordsWithRef) {
 									String recordWithRefType = new SchemaUtils().getSchemaTypeCode(recordWithRef.getSchemaCode());
@@ -371,7 +374,9 @@ public class RecordDeleteServices {
 									}
 
 									try {
-										recordServices.validateRecordInTransaction(recordWithRef, transaction);
+										if (!options.isSkipValidations()) {
+											recordServices.validateRecordInTransaction(recordWithRef, transaction);
+										}
 										transaction.add(recordWithRef);
 									} catch (ValidationException e) {
 										e.printStackTrace();
