@@ -398,7 +398,9 @@ public class RecordDeleteServices {
 				ids.addAll(new RecordsLinksResolver(types).findRecordsToReindexFromRecord(aRecord, true));
 			}
 
-			deleteContents(records);
+			if (!records.isEmpty()) {
+				deleteContents(records);
+			}
 			List<RecordDTO> recordsDTO = newRecordUtils().toRecordDTOList(records);
 
 			try {
