@@ -47,6 +47,7 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.StatusFilter;
+import com.constellio.model.services.search.VisibilityStatusFilter;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
@@ -638,6 +639,7 @@ public class RecordDeleteServices {
 
 		} else {
 			LogicalSearchQuery query = new LogicalSearchQuery();
+			query.filteredByVisibilityStatus(VisibilityStatusFilter.ALL);
 			List<String> paths = record.getList(Schemas.PATH);
 			query.setCondition(fromAllSchemasIn(record.getCollection())
 					.where(Schemas.PATH).isStartingWithText(paths.get(0) + "/")
@@ -657,6 +659,7 @@ public class RecordDeleteServices {
 
 		} else {
 			LogicalSearchQuery query = new LogicalSearchQuery();
+			query.filteredByVisibilityStatus(VisibilityStatusFilter.ALL);
 			List<String> paths = record.getList(Schemas.PATH);
 			List<MetadataSchemaType> taxonomySchemaTypes = metadataSchemasManager.getSchemaTypes(record.getCollection())
 					.getSchemaTypesWithCode(taxonomy.getSchemaTypes());
