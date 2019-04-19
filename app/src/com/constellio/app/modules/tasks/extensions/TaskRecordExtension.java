@@ -1,6 +1,7 @@
 package com.constellio.app.modules.tasks.extensions;
 
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.tasks.TaskModule;
 import com.constellio.app.modules.tasks.caches.IncompleteTasksUserCache;
 import com.constellio.app.modules.tasks.caches.UnreadTasksUserCache;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
@@ -85,6 +86,7 @@ public class TaskRecordExtension extends RecordExtension {
 	String collection;
 
 	ModelLayerFactory modelLayerFactory;
+	AppLayerFactory appLayerFactory;
 	RecordServices recordServices;
 	UserServices userServices;
 	ConstellioEIMConfigs eimConfigs;
@@ -93,6 +95,7 @@ public class TaskRecordExtension extends RecordExtension {
 
 	public TaskRecordExtension(String collection, AppLayerFactory appLayerFactory) {
 		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
+		this.appLayerFactory = appLayerFactory;
 		this.collection = collection;
 		tasksSchema = new TasksSchemasRecordsServices(collection, appLayerFactory);
 		recordServices = this.modelLayerFactory.newRecordServices();
@@ -394,6 +397,12 @@ public class TaskRecordExtension extends RecordExtension {
 						  + "/completeTask%253Dtrue%253Bid%253D" + task.getId());
 
 		newParameters.add(CONSTELLIO_URL + ":" + constellioURL);
+
+		TaskModuleExtensions taskModuleExtensions = appLayerFactory.getExtensions().forCollection(collection)
+				.forModule(TaskModule.ID);
+		if (taskModuleExtensions != null) {
+			newParameters.addAll(taskModuleExtensions.taskEmailParameters(task));
+		}
 
 		emailToSend.setParameters(newParameters);
 	}
