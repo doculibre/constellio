@@ -11843,6 +11843,16 @@ div.v-layout.v-horizontal.v-widget {
 	color: gray;
 }
 
+.constellio .djs-container .highlight .djs-outline {
+	stroke-width: 2px !important;
+	stroke: #08c !important;
+	fill: #4fd661 !important;
+}
+
+.constellio .djs-container .highlight .djs-visual > :nth-child(1) {
+	fill: #4fd661 !important;
+}
+
 .constellio .v-tabsheet-tabitem .tab-badge {
 	-webkit-transition: background-color 300ms;
 	-moz-transition: background-color 300ms;
@@ -12024,6 +12034,18 @@ div.v-layout.v-horizontal.v-widget {
 	padding-top: 0px;
 }
 
+.constellio .task-table-layout .task-table .task-details .v-slot-task-details-comment-workflow-layout {
+	position: relative;
+	top: -10px;
+	margin-top: -23px;
+	z-index: 2;
+}
+
+.constellio .task-table-layout .task-table .task-details .v-slot-task-details-comment-workflow-layout .v-checkbox {
+	top: 9px;
+	font-size: 14px;
+}
+
 .constellio .task-table-layout .task-table .task-details .v-slot-task-details-add-comment-button {
 	position: relative;
 	top: 53px;
@@ -12031,7 +12053,7 @@ div.v-layout.v-horizontal.v-widget {
 	z-index: 2;
 }
 
-.constellio .task-table-layout .task-table .task-details .task-details-add-comment-button {
+.constellio .task-table-layout .task-table .task-details .task-details-add-comment-button, .constellio .task-table-layout .task-table .task-details .task-details-add-documents-button {
 	font-weight: 100;
 	font-size: 14px;
 }

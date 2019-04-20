@@ -18,6 +18,7 @@ import org.tepi.filtertable.FilterGenerator;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import com.constellio.app.modules.rm.ui.components.content.ConstellioAgentLink;
+import com.constellio.app.modules.rm.ui.components.folder.fields.LookupFolderField;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
@@ -38,11 +39,13 @@ import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.BaseForm.FieldAndPropertyId;
 import com.constellio.app.ui.framework.components.BaseUpdatableContentVersionPresenter;
+import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.content.DownloadContentVersionLink;
 import com.constellio.app.ui.framework.components.converters.JodaDateTimeToStringConverter;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.components.fields.BaseTextArea;
+import com.constellio.app.ui.framework.components.fields.upload.ContentVersionUploadField;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.components.menuBar.BaseMenuBar;
 import com.constellio.app.ui.framework.components.menuBar.ConfirmDialogMenuBarItemCommand;
@@ -80,13 +83,16 @@ import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.Field;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Link;
+import com.vaadin.ui.Panel;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.CellStyleGenerator;
 import com.vaadin.ui.Table.ColumnGenerator;
 import com.vaadin.ui.Tree;
 import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
 
 public class TaskTable extends VerticalLayout {
@@ -113,6 +119,8 @@ public class TaskTable extends VerticalLayout {
 	private TaskRecordVOTable table;
 	
 	private FilterGenerator filterGenerator;
+	
+	private TaskDetailsComponentFactory taskDetailsComponentFactory;
 
 	private final TaskPresenter presenter;
 
@@ -302,11 +310,41 @@ public class TaskTable extends VerticalLayout {
 		} else {
 			table.select(itemId);
 		}
+		ensureHeight(itemId);
+	}
+	
+	private void ensureHeight(Object itemId) {
         int l = table.getPageLength();
         int index = table.indexOfId(itemId);
         int indexToSelectAbove = index - (l/2);
         if( indexToSelectAbove<0 ) indexToSelectAbove=0;
         table.setCurrentPageFirstItemIndex(indexToSelectAbove);
+	}
+
+	public void resort() {
+		table.sort();
+		table.resetPageBuffer();
+		table.enableContentRefreshing(true);
+		table.refreshRenderedCells();
+	}
+
+	protected String getTitleColumnStyle(RecordVO recordVO) {
+		return table.getInheritedTitleColumnStyle(recordVO);
+	}
+
+	protected TableColumnsManager newColumnsManager() {
+		return new RecordVOTableColumnsManager() {
+			@Override
+			protected String toColumnId(Object propertyId) {
+				if (propertyId instanceof MetadataVO) {
+					if (Task.STARRED_BY_USERS.equals(((MetadataVO) propertyId).getLocalCode())) {
+						table.setColumnHeader(propertyId, "");
+						table.setColumnWidth(propertyId, 60);
+					}
+				}
+				return super.toColumnId(propertyId);
+			}
+		};
 	}
 	
 	private class TaskExpandButton extends BaseButton {
@@ -439,32 +477,91 @@ public class TaskTable extends VerticalLayout {
 			}
 		}
 	}
+	
+	public TaskDetailsComponentFactory getTaskDetailsComponentFactory() {
+		return taskDetailsComponentFactory;
+	}
 
-	private class TaskDetailsComponent extends VerticalLayout {
+	public void setTaskDetailsComponentFactory(TaskDetailsComponentFactory taskDetailsComponentFactory) {
+		this.taskDetailsComponentFactory = taskDetailsComponentFactory;
+	}
+
+	public static interface TaskDetailsComponentFactory {
+		
+		Component newTaskDetailsComponent(TaskTable taskTable, Object itemId, RecordVO taskVO, boolean expanded);
+		
+	}
+	
+	public class TaskDetailsComponent extends VerticalLayout {
+		
+		private Object itemId;
+		
+		private RecordVO taskVO;
 		
 		private boolean expanded;
 		
+		private Component taskDetailsTopComponent;
+		
+		private Component titleComponent;
+		
+		private Component subTitleComponent;
+		
+		private Component assigneeComponent;
+		
 		private VerticalLayout expandLayout;
 		
-		private String dropFolderId;
+		private Component descriptionComponent;
 		
-		private TaskDetailsComponent(Object itemId, final RecordVO taskVO, boolean expanded) {
+		private Component linkedContentComponent;
+		
+		private Button addDocumentsButton;
+		
+		private Component contentsComponent;
+		
+		private Component linkedDocumentsComponent;
+		
+		private Component linkedFoldersComponent;
+		
+		private Component linkedContainersComponent;
+		
+		private VerticalLayout commentsLayout;
+		
+		public TaskDetailsComponent(Object itemId, final RecordVO taskVO, boolean expanded) {
+			this.itemId = itemId;
+			this.taskVO = taskVO;
 			this.expanded = expanded;
-			setSizeFull();
-			setSpacing(true);
-			addStyleName("task-details");
+			init();
+		}
+		
+		protected void reloadComments() {
+			expandLayout.removeComponent(commentsLayout);
+			commentsLayout = newCommentsLayout();
+			expandLayout.addComponent(commentsLayout);
+			ensureHeight(itemId);
+		}
+		
+		protected void reloadLinkedContents() {
+			int index = expandLayout.getComponentIndex(linkedContentComponent);
+			expandLayout.removeComponent(linkedContentComponent);
+			taskVO = presenter.reloadRequested(taskVO);
+			linkedContentComponent = newLinkedContentComponent();
+			expandLayout.addComponent(linkedContentComponent, index);
+			ensureHeight(itemId);
+		}
+		
+		protected Component newInvisibleComponent() {
+			Label label = new Label();
+			label.setVisible(false);
+			return label;
+		}
+		
+		protected Component newTaskDetailsTopComponent() {
+			List<String> linkedFolderIds = taskVO.get(Task.LINKED_FOLDERS);
+			List<String> linkedDocumentIds = taskVO.get(Task.LINKED_DOCUMENTS);
+			List<ContentVersionVO> contents = taskVO.get(Task.CONTENTS);
 			
 			String createdById = taskVO.get(Schemas.CREATED_BY);
 			LocalDateTime createdOnDate = taskVO.get(Schemas.CREATED_ON);
-			String title = taskVO.getTitle();
-			String description = taskVO.get(Task.DESCRIPTION);
-			LocalDate dueDate = taskVO.get(Task.DUE_DATE);
-			String assigneeId = taskVO.get(Task.ASSIGNEE);
-			List<Comment> comments = taskVO.get(Task.COMMENTS);
-			List<String> linkedFolderIds = taskVO.get(Task.LINKED_FOLDERS);
-			List<String> linkedDocumentIds = taskVO.get(Task.LINKED_DOCUMENTS);
-			List<String> linkedContainerIds = taskVO.get(Task.LINKED_CONTAINERS);
-			List<ContentVersionVO> contents = taskVO.get(Task.CONTENTS);
 			
 			Component createdByComponent = new UserDisplay(createdById);
 			createdByComponent.addStyleName("task-details-created-by");
@@ -480,62 +577,155 @@ public class TaskTable extends VerticalLayout {
 			I18NHorizontalLayout taskDetailsTopLayout = new I18NHorizontalLayout(createdByComponent, createdOnLabel, contentsImage);
 			taskDetailsTopLayout.addStyleName("task-details-top");
 			taskDetailsTopLayout.setSpacing(true);
-			addComponent(taskDetailsTopLayout);
-			
+			return taskDetailsTopLayout;
+		}
+		
+		protected Component newTitleComponent() {
+			String title = taskVO.getTitle();
 			Label titleLabel = new Label(title);
 			titleLabel.addStyleName("task-details-title");
-			addComponent(titleLabel);
-
+			return titleLabel;
+		}
+		
+		protected Component newSubTitleComponent() {
+			Component dueDateLabel;
+			LocalDate dueDate = taskVO.get(Task.DUE_DATE);
 			if (dueDate != null) {
-				Label dueDateLabel = new Label($("TaskTable.details.dueDate", taskVO.getMetadata(Task.DUE_DATE).getLabel(), dueDate.toString()));
+				dueDateLabel = new Label($("TaskTable.details.dueDate", taskVO.getMetadata(Task.DUE_DATE).getLabel(), dueDate.toString()));
 				dueDateLabel.addStyleName("task-details-due-date");
 				addComponent(dueDateLabel);
+			} else {
+				dueDateLabel = newInvisibleComponent();
 			}
-			
-			expandLayout = new VerticalLayout();
-			expandLayout.setSpacing(true);
-			expandLayout.setWidth("100%");
-			if (expanded) {
-				addComponent(expandLayout);
-			}
-			
+			return dueDateLabel;
+		}
+		
+		protected Component newAssigneeComponent() {
+			Component assigneeComponent;
+			String assigneeId = taskVO.get(Task.ASSIGNEE);
 			if (assigneeId != null) {
-				Component assigneeComponent = new UserDisplay(assigneeId);
+				assigneeComponent = new UserDisplay(assigneeId);
 				assigneeComponent.addStyleName("task-details-assignee");
 				assigneeComponent.setCaption(taskVO.getMetadata(Task.ASSIGNEE).getLabel());
-				expandLayout.addComponent(assigneeComponent);
+			} else {
+				assigneeComponent = newInvisibleComponent(); 
 			}
-			
+			return assigneeComponent;
+		}
+		
+		protected Component newDescriptionComponent() {
+			Component descriptionComponent;
+
+			String description = taskVO.get(Task.DESCRIPTION);
 			if (StringUtils.isNotBlank(description)) {
 				description = StringUtils.replace(description, "overflow:hidden", ""); // Ugly CSS Bugfix
-				Label descriptionLabel = new Label(description, ContentMode.HTML);
-				descriptionLabel.addStyleName("task-details-description");
-				descriptionLabel.setWidth("100%");
-				expandLayout.addComponent(descriptionLabel);
+				descriptionComponent = new Label(description, ContentMode.HTML);
+				descriptionComponent.addStyleName("task-details-description");
+				descriptionComponent.setWidth("100%");
+			} else {
+				descriptionComponent = newInvisibleComponent();
 			}
+			return descriptionComponent;
+		}
+		
+		protected Button newAddDocumentsButton() {
+			Button addDocumentsButton = new WindowButton($("TaskTable.details.addDocuments"), $("TaskTable.details.addDocuments"), WindowConfiguration.modalDialog("90%", "450px")) {
+				@Override
+				protected Component buildWindowContent() {
+					VerticalLayout formLayout = new VerticalLayout();
+					formLayout.addStyleName("no-scroll");
+					formLayout.setSpacing(true);
+					
+					final ContentVersionUploadField uploadField = new ContentVersionUploadField(true);
+					uploadField.setCaption($("TaskTable.details.addDocuments.files"));
+					uploadField.setMajorVersionFieldVisible(false);
+					
+					final LookupFolderField folderField = new LookupFolderField(true);
+					folderField.setCaption($("TaskTable.details.addDocuments.folder"));
+					folderField.setRequired(true);
+					folderField.focus();
+					folderField.setWindowZIndex(BaseWindow.OVER_ADVANCED_SEARCH_FORM_Z_INDEX + 1);
+					
+					formLayout.addComponents(uploadField, folderField);
+					
+					BaseButton saveButton = new BaseButton($("save")) {
+						@SuppressWarnings("unchecked")
+						@Override
+						protected void buttonClick(ClickEvent event) {
+							String folderId = folderField.getValue();
+							List<ContentVersionVO> contentVersionVOs = (List<ContentVersionVO>) uploadField.getValue();
+							if (StringUtils.isNotBlank(folderId) && contentVersionVOs != null && !contentVersionVOs.isEmpty()) {
+								try {
+									presenter.addDocumentsButtonClicked(taskVO, contentVersionVOs, folderId);
+									reloadLinkedContents();
+								} catch (Throwable e) {
+//                            LOGGER.warn("error when trying to modify folder parent to " + parentId, e);
+//                            showErrorMessage("DisplayFolderView.parentFolderException");
+									e.printStackTrace();
+								}
+								getWindow().close();
+							}
+						}
+					};
+					saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
+					
+					Button cancelButton = new BaseButton($("cancel")) {
+						@Override
+						protected void buttonClick(ClickEvent event) {
+							getWindow().close();
+						}
+					};
+					
+					I18NHorizontalLayout buttonsLayout = new I18NHorizontalLayout();
+					buttonsLayout.setSpacing(true);
+					buttonsLayout.addComponents(saveButton, cancelButton);
+					formLayout.addComponent(buttonsLayout);
+					formLayout.setComponentAlignment(buttonsLayout, Alignment.BOTTOM_CENTER);
+					
+					Panel panel = new Panel(formLayout);
+					panel.setSizeFull();
+					return panel;
+				}
+				
+			};
+			addDocumentsButton.addStyleName(ValoTheme.BUTTON_LINK);
+			addDocumentsButton.addStyleName("task-details-add-documents-button");
+			addDocumentsButton.setIcon(FontAwesome.PLUS);
+			return addDocumentsButton;
+		}
+		
+		protected Component newContentsComponent() {
+			Component contentsComponent;
 			
+			List<ContentVersionVO> contents = taskVO.get(Task.CONTENTS);
 			if (!contents.isEmpty()) {
 				VerticalLayout contentsLayout = new VerticalLayout();
 				contentsLayout.setCaption(taskVO.getMetadata(Task.CONTENTS).getLabel());
 				contentsLayout.setWidth("100%");
 				contentsLayout.setSpacing(true);
 				contentsLayout.addStyleName("task-details-contents");
-				expandLayout.addComponent(contentsLayout);
 				
 				for (ContentVersionVO contentVersionVO : contents) {
 					String filename = contentVersionVO.getFileName();
 					DownloadContentVersionLink downloadContentLink = new DownloadContentVersionLink(contentVersionVO, filename);
 					contentsLayout.addComponent(downloadContentLink);
 				}
+				contentsComponent = contentsLayout;
+			} else {
+				contentsComponent = newInvisibleComponent();
 			}
-			
+			return contentsComponent;
+		}
+		
+		protected Component newLinkedDocumentsComponent() {
+			Component linkedDocumentsComponent;
+			List<String> linkedDocumentIds = taskVO.get(Task.LINKED_DOCUMENTS);
 			if (!linkedDocumentIds.isEmpty()) {
 				VerticalLayout linkedDocumentsLayout = new VerticalLayout();
 				linkedDocumentsLayout.setCaption(taskVO.getMetadata(Task.LINKED_DOCUMENTS).getLabel());
 				linkedDocumentsLayout.setWidth("100%");
 				linkedDocumentsLayout.setSpacing(true);
 				linkedDocumentsLayout.addStyleName("task-details-linked-documents");
-				expandLayout.addComponent(linkedDocumentsLayout);
 				
 				for (String linkedDocumentId : linkedDocumentIds) {
 					RecordVO documentVO = presenter.getDocumentVO(linkedDocumentId);
@@ -550,8 +740,16 @@ public class TaskTable extends VerticalLayout {
 					}
 					linkedDocumentsLayout.addComponent(linkComponent);
 				}
+				linkedDocumentsComponent = linkedDocumentsLayout;
+			} else {
+				linkedDocumentsComponent = newInvisibleComponent();
 			}
-			
+			return linkedDocumentsComponent;
+		}
+		
+		protected Component newLinkedFoldersComponent() {
+			Component linkedFoldersComponent;
+			List<String> linkedFolderIds = taskVO.get(Task.LINKED_FOLDERS);
 			if (!linkedFolderIds.isEmpty()) {
 				final LazyTreeDataProvider<String> taskFoldersTreeDataProvider = presenter.getTaskFoldersTreeDataProvider(taskVO); 
 				final RecordLazyTree taskFoldersTree = new RecordLazyTree(taskFoldersTreeDataProvider);
@@ -576,83 +774,83 @@ public class TaskTable extends VerticalLayout {
 				taskFoldersTree.setCaption(taskVO.getMetadata(Task.LINKED_FOLDERS).getLabel());
 				taskFoldersTree.addStyleName("task-details-linked-folders");
 				
-				expandLayout.addComponent(taskFoldersTree);
+				linkedFoldersComponent = taskFoldersTree;
+			} else {
+				linkedFoldersComponent = newInvisibleComponent();
 			}
-			
+			return linkedFoldersComponent;
+		}
+		
+		protected Component newLinkedContainersComponent() {
+			Component linkedContainersComponent;
+
+			List<String> linkedContainerIds = taskVO.get(Task.LINKED_CONTAINERS);
 			if (!linkedContainerIds.isEmpty()) {
 				VerticalLayout linkedContainersLayout = new VerticalLayout();
 				linkedContainersLayout.setCaption(taskVO.getMetadata(Task.LINKED_CONTAINERS).getLabel());
 				linkedContainersLayout.setWidth("100%");
 				linkedContainersLayout.setSpacing(true);
 				linkedContainersLayout.addStyleName("task-details-linked-containers");
-				expandLayout.addComponent(linkedContainersLayout);
 				
 				for (String linkedContainerId : linkedContainerIds) {
 					ReferenceDisplay referenceDisplay = new ReferenceDisplay(linkedContainerId);
 					linkedContainersLayout.addComponent(referenceDisplay);
 				}
+				linkedContainersComponent = linkedContainersLayout;
+			} else {
+				linkedContainersComponent = newInvisibleComponent();
 			}
+			return linkedContainersComponent;
+		}
+		
+		protected VerticalLayout newLinkedContentComponent() {
+			VerticalLayout linkedContentLayout = new VerticalLayout();
+			linkedContentLayout.addStyleName("task-details-linked-content");
+			linkedContentLayout.setWidth("100%");
+			linkedContentLayout.setSpacing(true);
 			
-			final VerticalLayout commentsLayout = new VerticalLayout();
-			commentsLayout.setCaption(taskVO.getMetadata(Task.COMMENTS).getLabel());
-			commentsLayout.setWidth("100%");
-			commentsLayout.setSpacing(true);
-			commentsLayout.addStyleName("task-details-comments");
-			
-			final Label noCommentLabel = new Label($("TaskTable.details.noComment"));
-			noCommentLabel.addStyleName("task-details-no-comment");
-			if (comments.isEmpty()) {
-				commentsLayout.addComponent(noCommentLabel);
-			}
-			
-			WindowButton addCommentButton = new WindowButton($("TaskTable.details.addComment"), $("TaskTable.details.addComment"), WindowConfiguration.modalDialog("400px", "280px")) {
+			addDocumentsButton = newAddDocumentsButton();
+			contentsComponent = newContentsComponent();
+			linkedDocumentsComponent = newLinkedDocumentsComponent();
+			linkedFoldersComponent = newLinkedFoldersComponent();
+			linkedContainersComponent = newLinkedContainersComponent();
+					
+			linkedContentLayout.addComponent(addDocumentsButton);
+			linkedContentLayout.addComponent(contentsComponent);
+			linkedContentLayout.addComponent(linkedDocumentsComponent);
+			linkedContentLayout.addComponent(linkedFoldersComponent);
+			linkedContentLayout.addComponent(linkedContainersComponent);
+			linkedContentLayout.setComponentAlignment(addDocumentsButton, Alignment.TOP_RIGHT);
+			return linkedContentLayout;
+		}
+		
+		protected Component newCommentForm(final Comment newComment, final Window window, final VerticalLayout commentsLayout) {
+			BaseTextArea commentField = new BaseTextArea();
+			commentField.setWidth("100%");
+			FieldAndPropertyId commentFieldAndPropertyId = new FieldAndPropertyId(commentField, "message");
+			BaseForm<Comment> commentForm = new BaseForm<Comment>(newComment, Arrays.asList(commentFieldAndPropertyId)) {
 				@Override
-				protected Component buildWindowContent() {
-					Comment newComment = new Comment();
-					BaseTextArea commentField = new BaseTextArea();
-					commentField.setWidth("100%");
-					FieldAndPropertyId commentFieldAndPropertyId = new FieldAndPropertyId(commentField, "message"); 
-					BaseForm<Comment> commentForm = new BaseForm<Comment>(newComment, Arrays.asList(commentFieldAndPropertyId)) {
-						@Override
-						protected void saveButtonClick(Comment newComment) throws ValidationException {
-							if (presenter.taskCommentAdded(taskVO, newComment)) {
-								addComment(newComment, commentsLayout);
-							}
-							getWindow().close();
-						}
-
-						@Override
-						protected void cancelButtonClick(Comment newComment) {
-							getWindow().close();
-						}
-					};	
-					return commentForm;
+				protected void saveButtonClick(Comment newComment) throws ValidationException {
+					if (taskCommentAdded(taskVO, newComment)) {
+						addComment(newComment, commentsLayout);
+					}
+					window.close();
+					ensureHeight(itemId);
 				}
-			};
-			addCommentButton.setIcon(FontAwesome.PLUS);
-			addCommentButton.addStyleName(ValoTheme.BUTTON_LINK);
-			addCommentButton.addStyleName("task-details-add-comment-button");
-			expandLayout.addComponent(addCommentButton);
-			expandLayout.setComponentAlignment(addCommentButton, Alignment.TOP_RIGHT);
 
-			expandLayout.addComponent(commentsLayout);
-			
-			for (Comment comment : comments) {
-				addComment(comment, commentsLayout);
-			}
-			addSelectClickListener(this, itemId);
+				@Override
+				protected void cancelButtonClick(Comment newComment) {
+					window.close();
+				}
+			};	
+			return commentForm;
 		}
 		
-		private void setExpanded(boolean expanded) {
-			if (this.expanded && !expanded) {
-				removeComponent(expandLayout);
-			} else if (!this.expanded && expanded) {
-				addComponent(expandLayout);
-			}
-			this.expanded = expanded;
+		protected boolean taskCommentAdded(RecordVO taskVO, Comment newComment) {
+			return presenter.taskCommentAdded(taskVO, newComment);
 		}
 		
-		private void addComment(Comment comment, VerticalLayout commentsLayout) {
+		protected void addComment(Comment comment, VerticalLayout commentsLayout) {
 			String userId = comment.getUserId();
 			LocalDateTime commentDateTime = comment.getDateTime();
 			String commentDateTimeStr = dateTimeConverter.convertToPresentation(commentDateTime, String.class, getLocale());
@@ -672,6 +870,91 @@ public class TaskTable extends VerticalLayout {
 			
 			commentsLayout.addComponents(userTimeLayout, messageLabel);
 		}
+		
+		protected Component newAddCommentComponent(final VerticalLayout commentsLayout) {
+			WindowButton addCommentButton = new WindowButton($("TaskTable.details.addComment"), $("TaskTable.details.addComment"), WindowConfiguration.modalDialog("400px", "280px")) {
+				@Override
+				protected Component buildWindowContent() {
+					Comment newComment = new Comment();
+					return newCommentForm(newComment, getWindow(), commentsLayout);
+				}
+			};
+			addCommentButton.setIcon(FontAwesome.PLUS);
+			addCommentButton.addStyleName(ValoTheme.BUTTON_LINK);
+			addCommentButton.addStyleName("task-details-add-comment-button");
+			return addCommentButton;
+		}
+		
+		protected VerticalLayout newCommentsLayout() {
+			List<Comment> comments = taskVO.get(Task.COMMENTS);
+			
+			final VerticalLayout commentsLayout = new VerticalLayout();
+			commentsLayout.setCaption(taskVO.getMetadata(Task.COMMENTS).getLabel());
+			commentsLayout.setWidth("100%");
+			commentsLayout.setSpacing(true);
+			commentsLayout.addStyleName("task-details-comments");
+			
+			final Label noCommentLabel = new Label($("TaskTable.details.noComment"));
+			noCommentLabel.addStyleName("task-details-no-comment");
+			if (comments.isEmpty()) {
+				commentsLayout.addComponent(noCommentLabel);
+			}
+			
+			Component addCommentsComponent = newAddCommentComponent(commentsLayout);
+			commentsLayout.addComponent(addCommentsComponent);
+			commentsLayout.setComponentAlignment(addCommentsComponent, Alignment.TOP_RIGHT);
+
+			for (Comment comment : comments) {
+				addComment(comment, commentsLayout);
+			}
+			return commentsLayout;
+		}
+		
+		protected VerticalLayout newExpandLayout() {
+			VerticalLayout expandLayout = new VerticalLayout();
+			expandLayout.addStyleName("task-details-expanded");
+			expandLayout.setSpacing(true);
+			expandLayout.setWidth("100%");
+			
+			assigneeComponent = newAssigneeComponent(); 
+			descriptionComponent = newDescriptionComponent(); 
+			linkedContentComponent = newLinkedContentComponent();
+			commentsLayout = newCommentsLayout();
+			expandLayout.addComponent(assigneeComponent);
+			expandLayout.addComponent(descriptionComponent);
+			expandLayout.addComponent(linkedContentComponent);
+			expandLayout.addComponent(commentsLayout);
+			
+			return expandLayout;
+		}
+		
+		private void init() {
+			setSizeFull();
+			setSpacing(true);
+			addStyleName("task-details");
+			
+			taskDetailsTopComponent = newTaskDetailsTopComponent();
+			titleComponent = newTitleComponent();
+			subTitleComponent = newSubTitleComponent();
+			addComponent(taskDetailsTopComponent);
+			addComponent(titleComponent);
+			addComponent(subTitleComponent);
+			
+			expandLayout = newExpandLayout();
+			if (expanded) {
+				addComponent(expandLayout);
+			}
+			addSelectClickListener(this, itemId);
+		}
+		
+		private void setExpanded(boolean expanded) {
+			if (this.expanded && !expanded) {
+				removeComponent(expandLayout);
+			} else if (!this.expanded && expanded) {
+				addComponent(expandLayout);
+			}
+			this.expanded = expanded;
+		}
 	}
 	
 	private void addSelectClickListener(AbstractOrderedLayout layout, final Object itemId) {
@@ -679,7 +962,7 @@ public class TaskTable extends VerticalLayout {
 			@Override
 			public void layoutClick(LayoutClickEvent event) {
 				Component clickedComponent = event.getClickedComponent();
-				if (!(clickedComponent instanceof Button) && !(clickedComponent instanceof Link) && !(clickedComponent instanceof Tree) && !(clickedComponent instanceof ReferenceDisplay)) {
+				if (!(clickedComponent instanceof Button) && !(clickedComponent instanceof Link) && !(clickedComponent instanceof Tree) && !(clickedComponent instanceof ReferenceDisplay) && !(clickedComponent instanceof Field)) {
 					toggleSelection(itemId);
 				}
 			}
@@ -687,7 +970,12 @@ public class TaskTable extends VerticalLayout {
 	}
 
 	public interface TaskPresenter {
+		
+		RecordVO reloadRequested(RecordVO recordVO);
+		
 		boolean isSubTaskPresentAndHaveCertainStatus(RecordVO recordVO);
+
+		void addDocumentsButtonClicked(RecordVO taskVO, List<ContentVersionVO> contentVersionVOs, String parentId);
 
 		void displayButtonClicked(RecordVO record);
 
@@ -744,8 +1032,6 @@ public class TaskTable extends VerticalLayout {
 		boolean taskFolderOrDocumentClicked(RecordVO taskVO, String recordId);
 
 		BaseRecordTreeDataProvider getTaskFoldersTreeDataProvider(RecordVO taskVO);
-		
-		void contentVersionUploaded(ContentVersionVO uploadedContentVO, String folderId, LazyTreeDataProvider<String> treeDataProvider);
 	}
 
 	public class TaskStyleGenerator implements CellStyleGenerator {
@@ -795,32 +1081,6 @@ public class TaskTable extends VerticalLayout {
 			MetadataVO metadata = (MetadataVO) propertyId;
 			return Task.DUE_DATE.equals(MetadataVO.getCodeWithoutPrefix(metadata.getCode()));
 		}
-	}
-
-	public void resort() {
-		table.sort();
-		table.resetPageBuffer();
-		table.enableContentRefreshing(true);
-		table.refreshRenderedCells();
-	}
-
-	protected String getTitleColumnStyle(RecordVO recordVO) {
-		return table.getInheritedTitleColumnStyle(recordVO);
-	}
-
-	protected TableColumnsManager newColumnsManager() {
-		return new RecordVOTableColumnsManager() {
-			@Override
-			protected String toColumnId(Object propertyId) {
-				if (propertyId instanceof MetadataVO) {
-					if (Task.STARRED_BY_USERS.equals(((MetadataVO) propertyId).getLocalCode())) {
-						table.setColumnHeader(propertyId, "");
-						table.setColumnWidth(propertyId, 60);
-					}
-				}
-				return super.toColumnId(propertyId);
-			}
-		};
 	}
 
 	private class TaskRecordVOTable extends RecordVOTable {
@@ -874,7 +1134,7 @@ public class TaskTable extends VerticalLayout {
 				}
 			});
 		}
-		
+
 		@Override
 		public int indexOfId(Object itemId) {
 			return super.indexOfId(itemId);
@@ -938,7 +1198,8 @@ public class TaskTable extends VerticalLayout {
 			Component metadataComponent;
 			String metadataCode = metadataValue.getMetadata().getLocalCode();
 			if (Task.TITLE.equals(metadataCode)) {
-				metadataComponent = new TaskDetailsComponent(itemId, recordVO, isSelected(itemId));
+				boolean expanded = isSelected(itemId);
+				metadataComponent = taskDetailsComponentFactory != null ? taskDetailsComponentFactory.newTaskDetailsComponent(TaskTable.this, itemId, recordVO, expanded) : new TaskDetailsComponent(itemId, recordVO, expanded);
 			} else if (Task.STARRED_BY_USERS.equals(metadataCode)) {
 				metadataComponent = new StarredFieldImpl(recordVO.getId(), (List<String>) metadataValue.getValue(), presenter.getCurrentUserId()) {
 					@Override
@@ -972,7 +1233,9 @@ public class TaskTable extends VerticalLayout {
 			Object[] visibleColumns = getVisibleColumns();
 			List<Object> newVisibleColumns = new ArrayList<>();
 			for (Object visibleColumn : visibleColumns) {
-				if (!(visibleColumn instanceof MetadataVO) || !((MetadataVO) visibleColumn).codeMatches(Schemas.CODE.getLocalCode())) {
+				if ((visibleColumn instanceof MetadataVO) && ((MetadataVO) visibleColumn).codeMatches(Task.STARRED_BY_USERS)) {
+					newVisibleColumns.add(0, visibleColumn);
+				} else if (!(visibleColumn instanceof MetadataVO) || !((MetadataVO) visibleColumn).codeMatches(Schemas.CODE.getLocalCode())) {
 					newVisibleColumns.add(visibleColumn);
 				}
 			}

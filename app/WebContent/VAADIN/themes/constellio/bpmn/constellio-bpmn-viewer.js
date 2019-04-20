@@ -31,6 +31,24 @@ $(document).ready(function() {
 	        	     $.post(selectionCallbackURL, {
                         'bpmnResourceKey': bpmnResourceKey,
                         'ready':  true
+                    }).done(function (data) {
+                    	var dataJSON = JSON.parse(data);
+                    	
+                    	var deselectedIds = dataJSON['deselectedIds'];
+                    	if (deselectedIds) {
+                    		for (var i = 0; i < deselectedIds.length; i++) {
+                    			var deselectedId = selectedIds[i];
+                            	canvas.removeMarker(deselectedId);
+                    		}
+                    	}
+                    	
+                    	var selectedIds = dataJSON['selectedIds'];
+                    	if (selectedIds) {
+                    		for (var i = 0; i < selectedIds.length; i++) {
+                    			var selectedId = selectedIds[i];
+                            	canvas.addMarker(selectedId, 'highlight');
+                    		}
+                    	}
                     });
                 });
             }
@@ -57,7 +75,25 @@ $(document).ready(function() {
 	        	     $.post(selectionCallbackURL, {
                          'bpmnResourceKey': bpmnResourceKey,
                          'id':  e.element.id
-                     });
+                     }).done(function (data) {
+                    	var dataJSON = JSON.parse(data);
+                    	
+                    	var deselectedIds = dataJSON['deselectedIds'];
+                    	if (deselectedIds) {
+                    		for (var i = 0; i < deselectedIds.length; i++) {
+                    			var deselectedId = selectedIds[i];
+                            	canvas.removeMarker(deselectedId);
+                    		}
+                    	}
+                    	
+                    	var selectedIds = dataJSON['selectedIds'];
+                    	if (selectedIds) {
+                    		for (var i = 0; i < selectedIds.length; i++) {
+                    			var selectedId = selectedIds[i];
+                            	canvas.addMarker(selectedId, 'highlight');
+                    		}
+                    	}
+                    });
 	        	     // console.info(event + ":" + e.element.id);
 	           });
 	         });

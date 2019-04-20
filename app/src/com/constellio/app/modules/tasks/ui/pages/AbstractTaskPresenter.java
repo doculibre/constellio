@@ -26,6 +26,7 @@ import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.tasks.data.trees.TaskFoldersTreeNodesDataProvider;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
@@ -38,11 +39,11 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.data.BaseRecordTreeDataProvider;
-import com.constellio.app.ui.framework.data.LazyTreeDataProvider;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
+import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
@@ -79,6 +80,12 @@ public abstract class AbstractTaskPresenter<T extends BaseView> extends SingleSc
 	public AbstractTaskPresenter(T view, String schemaCode, ConstellioFactories constellioFactories,
 			SessionContext sessionContext) {
 		super(view, schemaCode, constellioFactories, sessionContext);
+	}
+	
+	@Override
+	public RecordVO reloadRequested(RecordVO taskVO) {
+		Record taskRecord = schemaPresenterUtils.getRecord(taskVO.getId());
+		return new RecordToVOBuilder().build(taskRecord, VIEW_MODE.DISPLAY, view.getSessionContext());
 	}
 	
 	@Override
@@ -212,7 +219,7 @@ public abstract class AbstractTaskPresenter<T extends BaseView> extends SingleSc
 		return searchServices.query(query).getNumFound() > 0;
 	}
 
-	public void contentVersionUploaded(ContentVersionVO uploadedContentVO, String folderId, LazyTreeDataProvider<String> treeDataProvider) {
+	public void contentVersionUploaded(RecordVO taskVO, ContentVersionVO uploadedContentVO, String folderId) {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		ModelLayerCollectionExtensions extensions = modelLayerFactory.getExtensions().forCollection(collection);
 		Folder folder = rm.getFolder(folderId);
@@ -255,7 +262,7 @@ public abstract class AbstractTaskPresenter<T extends BaseView> extends SingleSc
 				documentVO.setFolder(folderId);
 				documentVO.setTitle(fileName);
 				documentVO.setContent(uploadedContentVO);
-
+				
 				String schemaCode = newRecord.getSchemaCode();
 				ConstellioFactories constellioFactories = view.getConstellioFactories();
 				SessionContext sessionContext = view.getSessionContext();
@@ -264,8 +271,15 @@ public abstract class AbstractTaskPresenter<T extends BaseView> extends SingleSc
 				newRecord = documentPresenterUtils.toRecord(documentVO);
 
 				documentPresenterUtils.addOrUpdate(newRecord);
-				treeDataProvider.fireDataRefreshEvent();
 				//				view.selectFolderContentTab();
+
+			
+				Task task = (Task) getTask(taskVO);
+				Metadata linkedDocumentsMetadata = getMetadata(RMTask.LINKED_DOCUMENTS);
+				List<Object> linkedDocumentIds = new ArrayList<>(task.getWrappedRecord().getList(linkedDocumentsMetadata));
+				linkedDocumentIds.add(newRecord.getId());
+				task.set(linkedDocumentsMetadata, linkedDocumentIds);
+				addOrUpdate(task.getWrappedRecord(), RecordsFlushing.NOW);
 			} catch (final IcapException e) {
 				view.showErrorMessage(e.getMessage());
 			} catch (Exception e) {
@@ -280,6 +294,14 @@ public abstract class AbstractTaskPresenter<T extends BaseView> extends SingleSc
 		String displayURL = RMNavigationConfiguration.DISPLAY_DOCUMENT;
 		String url = constellioUrl + "#!" + displayURL + "/" + document.getId();
 		return "<a href=\"" + url + "\">" + url + "</a>";
+	}
+
+	@Override
+	public void addDocumentsButtonClicked(RecordVO taskVO, List<ContentVersionVO> contentVersionVOs, String folderId /*, LazyTreeDataProvider<String> treeDataProvider*/) {
+		for (ContentVersionVO contentVersionVO : contentVersionVOs) {
+			contentVersionUploaded(taskVO, contentVersionVO, folderId);
+		}
+//		treeDataProvider.fireDataRefreshEvent();
 	}
 
 }

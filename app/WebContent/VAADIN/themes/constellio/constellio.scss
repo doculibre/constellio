@@ -74,6 +74,18 @@ $popup-view-z-index: 3;
 
 @mixin constellio {
 	
+	.djs-container .highlight .djs-outline {
+   		stroke-width: 2px !important;
+   		stroke: #08c !important;
+   		//fill: #bce2f5 !important;
+   		fill: #4fd661 !important;
+	}
+
+	.djs-container .highlight .djs-visual>:nth-child(1) {
+   		//fill: #bce2f5 !important;
+   		fill: #4fd661 !important;
+	}
+	
 	.v-tabsheet-tabitem {
 		.tab-badge {
 		    -webkit-transition: background-color 300ms;
@@ -273,6 +285,18 @@ $popup-view-z-index: 3;
 					padding-top: 0px;
 				}	
 			
+				.v-slot-task-details-comment-workflow-layout {
+					position: relative;
+				    top: -10px;
+				    margin-top: -23px;
+				    z-index: 2;
+				    
+				    .v-checkbox {
+				    	top: 9px;
+				    	font-size: 14px;
+				    }
+				}
+			
 				.v-slot-task-details-add-comment-button {
 					position: relative;
 				    top: 53px;
@@ -280,7 +304,7 @@ $popup-view-z-index: 3;
 				    z-index: 2;
 				}
 			
-				.task-details-add-comment-button {
+				.task-details-add-comment-button, .task-details-add-documents-button {
 				    font-weight: 100;
 				    font-size: 14px;
 				}
