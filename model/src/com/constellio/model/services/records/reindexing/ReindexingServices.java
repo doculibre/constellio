@@ -47,6 +47,7 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.VisibilityStatusFilter;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
@@ -278,7 +279,8 @@ public class ReindexingServices {
 		}
 
 		LogicalSearchCondition condition = fromAllSchemasIn(collection).where(SCHEMA).isAny(conditions);
-		return modelLayerFactory.newSearchServices().getResultsCount(new LogicalSearchQuery(condition));
+		return modelLayerFactory.newSearchServices().getResultsCount(new LogicalSearchQuery(condition)
+				.filteredByVisibilityStatus(VisibilityStatusFilter.ALL));
 	}
 
 	private void reindexCollection(String collection, ReindexationParams params,
@@ -410,7 +412,8 @@ public class ReindexingServices {
 
 		LogicalSearchQuery query = new LogicalSearchQuery()
 				.setCondition(fromAllSchemasIn(collection).returnAll())
-				.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(Schemas.PATH));
+				.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(Schemas.PATH))
+				.filteredByVisibilityStatus(VisibilityStatusFilter.ALL);
 
 		Iterator<Record> idsIterator = modelLayerFactory.newSearchServices().recordsIterator(query, 50000);
 		recordDao.recreateZeroCounterIndexesIn(collection, new RecordDTOIterator(idsIterator));
@@ -422,7 +425,8 @@ public class ReindexingServices {
 									   ReindexationParams params) {
 
 		MetadataSchemaType type = recordsProvider.type;
-		long counter = searchServices.getResultsCount(new LogicalSearchQuery(from(type).returnAll()));
+		long counter = searchServices.getResultsCount(new LogicalSearchQuery(from(type).returnAll())
+				.filteredByVisibilityStatus(VisibilityStatusFilter.ALL));
 		List<Metadata> metadatas = type.getAllMetadatas().onlyParentReferences().onlyReferencesToType(type.getCode());
 		List<Metadata> metadatasMarkedForDeletion = type.getAllMetadatas().onlyMarkedForDeletion();
 
