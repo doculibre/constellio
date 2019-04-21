@@ -37,8 +37,8 @@ $(document).ready(function() {
                     	var deselectedIds = dataJSON['deselectedIds'];
                     	if (deselectedIds) {
                     		for (var i = 0; i < deselectedIds.length; i++) {
-                    			var deselectedId = selectedIds[i];
-                            	canvas.removeMarker(deselectedId);
+                    			var deselectedId = deselectedIds[i];
+                            	canvas.removeMarker(deselectedId, 'highlight');
                     		}
                     	}
                     	
@@ -70,31 +70,33 @@ $(document).ready(function() {
 
 	         bpmnEvents.forEach(function(event) {
 	             eventBus.on(event, function(e) {
-	                 // e.element = the model element
-	                 // e.gfx = the graphical element
-	        	     $.post(selectionCallbackURL, {
-                         'bpmnResourceKey': bpmnResourceKey,
-                         'id':  e.element.id
-                     }).done(function (data) {
-                    	var dataJSON = JSON.parse(data);
-                    	
-                    	var deselectedIds = dataJSON['deselectedIds'];
-                    	if (deselectedIds) {
-                    		for (var i = 0; i < deselectedIds.length; i++) {
-                    			var deselectedId = selectedIds[i];
-                            	canvas.removeMarker(deselectedId);
-                    		}
-                    	}
-                    	
-                    	var selectedIds = dataJSON['selectedIds'];
-                    	if (selectedIds) {
-                    		for (var i = 0; i < selectedIds.length; i++) {
-                    			var selectedId = selectedIds[i];
-                            	canvas.addMarker(selectedId, 'highlight');
-                    		}
-                    	}
-                    });
-	        	     // console.info(event + ":" + e.element.id);
+	            	 if (e.element.type == 'bpmn:Task') {
+		                 // e.element = the model element
+		                 // e.gfx = the graphical element
+		        	     $.post(selectionCallbackURL, {
+	                         'bpmnResourceKey': bpmnResourceKey,
+	                         'id':  e.element.id
+	                     }).done(function (data) {
+	                        var canvas = bpmnViewer.get('canvas');
+	                         
+	                    	var dataJSON = JSON.parse(data);
+	                    	var deselectedIds = dataJSON['deselectedIds'];
+	                    	if (deselectedIds) {
+	                    		for (var i = 0; i < deselectedIds.length; i++) {
+	                    			var deselectedId = deselectedIds[i];
+	                            	canvas.removeMarker(deselectedId, 'highlight');
+	                    		}
+	                    	}
+
+	                    	var selectedIds = dataJSON['selectedIds'];
+	                    	if (selectedIds) {
+	                    		for (var i = 0; i < selectedIds.length; i++) {
+	                    			var selectedId = selectedIds[i];
+	                            	canvas.addMarker(selectedId, 'highlight');
+	                    		}
+	                    	}
+	                    });
+	            	 }
 	           });
 	         });
 

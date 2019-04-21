@@ -628,6 +628,15 @@ public class TaskTable extends VerticalLayout {
 			return descriptionComponent;
 		}
 		
+		protected String getDefaultFolderId() {
+			String defaultFolderId = null;
+			List<String> linkedFolderIds = taskVO.get(Task.LINKED_FOLDERS);
+			if (!linkedFolderIds.isEmpty()) {
+				defaultFolderId = linkedFolderIds.get(0);
+			}
+			return defaultFolderId;
+		}
+		
 		protected Button newAddDocumentsButton() {
 			Button addDocumentsButton = new WindowButton($("TaskTable.details.addDocuments"), $("TaskTable.details.addDocuments"), WindowConfiguration.modalDialog("90%", "450px")) {
 				@Override
@@ -645,6 +654,7 @@ public class TaskTable extends VerticalLayout {
 					folderField.setRequired(true);
 					folderField.focus();
 					folderField.setWindowZIndex(BaseWindow.OVER_ADVANCED_SEARCH_FORM_Z_INDEX + 1);
+					folderField.setValue(getDefaultFolderId());
 					
 					formLayout.addComponents(uploadField, folderField);
 					

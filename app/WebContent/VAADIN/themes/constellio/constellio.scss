@@ -73,17 +73,14 @@ $popup-view-z-index: 3;
 }
 
 @mixin constellio {
-	
-	.djs-container .highlight .djs-outline {
-   		stroke-width: 2px !important;
-   		stroke: #08c !important;
-   		//fill: #bce2f5 !important;
-   		fill: #4fd661 !important;
-	}
 
+	.djs-container .highlight .djs-outline {
+	   stroke-width: 2px important;
+	   stroke: #08c !important;
+	   fill: rgba(79,214,97,0.35) !important;
+	}
 	.djs-container .highlight .djs-visual>:nth-child(1) {
-   		//fill: #bce2f5 !important;
-   		fill: #4fd661 !important;
+	   fill: rgba(79,214,97,0.35) !important;
 	}
 	
 	.v-tabsheet-tabitem {
@@ -271,9 +268,14 @@ $popup-view-z-index: 3;
 					}
 				}
 			
+				.task-details-contents {
+					font-size: 14px;
+				}
+			
 				.task-details-linked-documents {
 					.agent-action-link {
 						color: black;
+						font-size: 14px;
 					}
 				
 					.agent-action-link:hover {

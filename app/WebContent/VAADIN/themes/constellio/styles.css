@@ -11844,13 +11844,13 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .djs-container .highlight .djs-outline {
-	stroke-width: 2px !important;
+	stroke-width: 2px important;
 	stroke: #08c !important;
-	fill: #4fd661 !important;
+	fill: rgba(79, 214, 97, 0.35) !important;
 }
 
 .constellio .djs-container .highlight .djs-visual > :nth-child(1) {
-	fill: #4fd661 !important;
+	fill: rgba(79, 214, 97, 0.35) !important;
 }
 
 .constellio .v-tabsheet-tabitem .tab-badge {
@@ -12022,8 +12022,13 @@ div.v-layout.v-horizontal.v-widget {
 	color: black;
 }
 
+.constellio .task-table-layout .task-table .task-details .task-details-contents {
+	font-size: 14px;
+}
+
 .constellio .task-table-layout .task-table .task-details .task-details-linked-documents .agent-action-link {
 	color: black;
+	font-size: 14px;
 }
 
 .constellio .task-table-layout .task-table .task-details .task-details-linked-documents .agent-action-link:hover {
