@@ -77,10 +77,10 @@ $popup-view-z-index: 3;
 	.djs-container .highlight .djs-outline {
 	   stroke-width: 2px important;
 	   stroke: #08c !important;
-	   fill: rgba(79,214,97,0.35) !important;
 	}
+
 	.djs-container .highlight .djs-visual>:nth-child(1) {
-	   fill: rgba(79,214,97,0.35) !important;
+	   fill: rgba(255, 221, 0, 1.00) !important;
 	}
 	
 	.v-tabsheet-tabitem {
@@ -299,7 +299,7 @@ $popup-view-z-index: 3;
 				    }
 				}
 			
-				.v-slot-task-details-add-comment-button {
+				.v-slot-task-details-add-comment-button, .v-slot-task-details-add-documents-button {
 					position: relative;
 				    top: 53px;
 				    margin-top: -53px;

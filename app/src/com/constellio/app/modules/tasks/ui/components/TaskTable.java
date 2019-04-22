@@ -381,7 +381,7 @@ public class TaskTable extends VerticalLayout {
 	
 	private class TaskMenuBar extends BaseMenuBar {
 		
-		private TaskMenuBar(final RecordVO recordVO) {
+		private TaskMenuBar(final RecordVO taskVO) {
 			addStyleName(ValoTheme.MENUBAR_BORDERLESS);
 
 			MenuItem rootItem = addItem("", FontAwesome.ELLIPSIS_V, null);
@@ -389,45 +389,45 @@ public class TaskTable extends VerticalLayout {
 			rootItem.addItem($("display"), DisplayButton.ICON_RESOURCE, new Command() {
 				@Override
 				public void menuSelected(MenuItem selectedItem) {
-					displayTask(null, recordVO);
+					displayTask(null, taskVO);
 				}
 			});
 
-			if (presenter.isEditButtonEnabled(recordVO)) {
+			if (presenter.isEditButtonEnabled(taskVO)) {
 				rootItem.addItem($("edit"), EditButton.ICON_RESOURCE, new Command() {
 					@Override
 					public void menuSelected(MenuItem selectedItem) {
-						editTask(recordVO);
+						editTask(taskVO);
 					}
 				});
 			}
 
-			if (presenter.isReadByUser(recordVO)) {
+			if (presenter.isReadByUser(taskVO)) {
 				rootItem.addItem($("TaskTable.markAsUnread"), EditButton.ICON_RESOURCE, new Command() {
 					@Override
 					public void menuSelected(MenuItem selectedItem) {
-						presenter.setReadByUser(recordVO, false);
+						presenter.setReadByUser(taskVO, false);
 					}
 				});
 			} else {
 				rootItem.addItem($("TaskTable.markAsRead"), EditButton.ICON_RESOURCE, new Command() {
 					@Override
 					public void menuSelected(MenuItem selectedItem) {
-						presenter.setReadByUser(recordVO, true);
+						presenter.setReadByUser(taskVO, true);
 					}
 				});
 			}
 
-			if (presenter.isCompleteButtonEnabled(recordVO)) {
+			if (presenter.isCompleteButtonEnabled(taskVO)) {
 				rootItem.addItem($("TaskTable.complete"), COMPLETE_ICON, new Command() {
 					@Override
 					public void menuSelected(MenuItem selectedItem) {
-						TaskCompleteWindowButton completeTask = new TaskCompleteWindowButton(presenter.getTask(recordVO),
+						TaskCompleteWindowButton completeTaskButton = new TaskCompleteWindowButton(presenter.getTask(taskVO),
 								$("DisplayTaskView.completeTask"),
 								presenter.getView().getConstellioFactories().getAppLayerFactory(), presenter) {
 							@Override
 							protected String getConfirmDialogMessage() {
-								if (presenter.isSubTaskPresentAndHaveCertainStatus(recordVO)) {
+								if (presenter.isSubTaskPresentAndHaveCertainStatus(taskVO)) {
 									return $("DisplayTaskView.subTaskPresentComplete");
 								}
 
@@ -435,25 +435,25 @@ public class TaskTable extends VerticalLayout {
 							}
 						};
 
-						completeTask.click();
+						completeTaskButton.click();
 					}
 				});
 			}
 
-			if (presenter.isCloseButtonEnabled(recordVO)) {
+			if (presenter.isCloseButtonEnabled(taskVO)) {
 				rootItem.addItem($("TaskTable.close"), CLOSE_ICON, new Command() {
 					@Override
 					public void menuSelected(MenuItem selectedItem) {
-						presenter.closeButtonClicked(recordVO);
+						presenter.closeButtonClicked(taskVO);
 					}
 				});
 			}
 
-			if (presenter.isDeleteButtonVisible(recordVO)) {
+			if (presenter.isDeleteButtonVisible(taskVO)) {
 				rootItem.addItem($("delete"), DeleteButton.ICON_RESOURCE, new ConfirmDialogMenuBarItemCommand() {
 					@Override
 					protected String getConfirmDialogMessage() {
-						if (presenter.isSubTaskPresentAndHaveCertainStatus(recordVO)) {
+						if (presenter.isSubTaskPresentAndHaveCertainStatus(taskVO)) {
 							return $("DisplayTaskView.subTaskPresentWarning");
 						} else {
 							return $("ConfirmDialog.confirmDelete");
@@ -462,16 +462,16 @@ public class TaskTable extends VerticalLayout {
 
 					@Override
 					protected void confirmButtonClick(ConfirmDialog dialog) {
-						presenter.deleteButtonClicked(recordVO);
+						presenter.deleteButtonClicked(taskVO);
 					}
-				}).setEnabled(presenter.isDeleteButtonEnabled(recordVO));
+				}).setEnabled(presenter.isDeleteButtonEnabled(taskVO));
 			}
 
-			if (presenter.isMetadataReportAllowed(recordVO)) {
+			if (presenter.isMetadataReportAllowed(taskVO)) {
 				rootItem.addItem($("TaskTable.reportMetadata"), FontAwesome.LIST_ALT, new Command() {
 					@Override
 					public void menuSelected(MenuItem selectedItem) {
-						presenter.generateReportButtonClicked(recordVO);
+						presenter.generateReportButtonClicked(taskVO);
 					}
 				});
 			}
@@ -533,9 +533,13 @@ public class TaskTable extends VerticalLayout {
 			init();
 		}
 		
+		protected void reloadTask() {
+			taskVO = presenter.reloadRequested(taskVO);
+		}
+		
 		protected void reloadComments() {
 			expandLayout.removeComponent(commentsLayout);
-			taskVO = presenter.reloadRequested(taskVO);
+			reloadTask();
 			commentsLayout = newCommentsLayout();
 			expandLayout.addComponent(commentsLayout);
 			ensureHeight(itemId);
@@ -544,7 +548,7 @@ public class TaskTable extends VerticalLayout {
 		protected void reloadLinkedContents() {
 			int index = expandLayout.getComponentIndex(linkedContentComponent);
 			expandLayout.removeComponent(linkedContentComponent);
-			taskVO = presenter.reloadRequested(taskVO);
+			reloadTask();
 			linkedContentComponent = newLinkedContentComponent();
 			expandLayout.addComponent(linkedContentComponent, index);
 			ensureHeight(itemId);
@@ -638,6 +642,10 @@ public class TaskTable extends VerticalLayout {
 			return defaultFolderId;
 		}
 		
+		protected List<String> addDocumentsButtonClicked(RecordVO taskVO, List<ContentVersionVO> contentVersionVOs, String folderId) {
+			return presenter.addDocumentsButtonClicked(taskVO, contentVersionVOs, folderId);
+		}
+		
 		protected Button newAddDocumentsButton() {
 			Button addDocumentsButton = new WindowButton($("TaskTable.details.addDocuments"), $("TaskTable.details.addDocuments"), WindowConfiguration.modalDialog("90%", "450px")) {
 				@Override
@@ -666,7 +674,7 @@ public class TaskTable extends VerticalLayout {
 							List<ContentVersionVO> contentVersionVOs = (List<ContentVersionVO>) uploadField.getValue();
 							if (contentVersionVOs != null && !contentVersionVOs.isEmpty()) {
 								try {
-									presenter.addDocumentsButtonClicked(taskVO, contentVersionVOs, folderId);
+									addDocumentsButtonClicked(taskVO, contentVersionVOs, folderId);
 									reloadLinkedContents();
 								} catch (Throwable e) {
 //                            LOGGER.warn("error when trying to modify folder parent to " + parentId, e);
@@ -985,7 +993,7 @@ public class TaskTable extends VerticalLayout {
 		
 		boolean isSubTaskPresentAndHaveCertainStatus(RecordVO recordVO);
 
-		void addDocumentsButtonClicked(RecordVO taskVO, List<ContentVersionVO> contentVersionVOs, String parentId);
+		List<String> addDocumentsButtonClicked(RecordVO taskVO, List<ContentVersionVO> contentVersionVOs, String folderId);
 
 		void displayButtonClicked(RecordVO record);
 

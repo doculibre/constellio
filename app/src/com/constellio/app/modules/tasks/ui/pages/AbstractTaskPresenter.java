@@ -302,14 +302,14 @@ public abstract class AbstractTaskPresenter<T extends BaseView> extends SingleSc
 	}
 
 	@Override
-	public void addDocumentsButtonClicked(RecordVO taskVO, List<ContentVersionVO> contentVersionVOs, String folderId /*, LazyTreeDataProvider<String> treeDataProvider*/) {
-		List<Record> newDocumentRecords = new ArrayList<>();
+	public List<String> addDocumentsButtonClicked(RecordVO taskVO, List<ContentVersionVO> contentVersionVOs, String folderId /*, LazyTreeDataProvider<String> treeDataProvider*/) {
+		List<String> newDocumentRecordIds = new ArrayList<>();
 		List<Content> newContents = new ArrayList<>();
 		
 		for (ContentVersionVO contentVersionVO : contentVersionVOs) {
 			Object uploadResult = contentVersionUploaded(taskVO, contentVersionVO, folderId);
 			if (uploadResult instanceof Record) {
-				newDocumentRecords.add((Record) uploadResult);
+				newDocumentRecordIds.add(((Record) uploadResult).getId());
 			} else if (uploadResult instanceof Content) {
 				newContents.add((Content) uploadResult);
 			}
@@ -320,8 +320,8 @@ public abstract class AbstractTaskPresenter<T extends BaseView> extends SingleSc
 		Metadata contentsMetadata = getMetadata(RMTask.CONTENTS);
 		
 		List<Object> linkedDocumentIds = new ArrayList<>(task.getWrappedRecord().getList(linkedDocumentsMetadata));
-		for (Record newDocumentRecord : newDocumentRecords) {
-			linkedDocumentIds.add(newDocumentRecord.getId());
+		for (String newDocumentRecordId : newDocumentRecordIds) {
+			linkedDocumentIds.add(newDocumentRecordId);
 		}
 		List<Object> contents = new ArrayList<>(task.getWrappedRecord().getList(contentsMetadata));
 		contents.addAll(newContents);
@@ -330,6 +330,7 @@ public abstract class AbstractTaskPresenter<T extends BaseView> extends SingleSc
 		task.set(contentsMetadata, contents);
 		addOrUpdate(task.getWrappedRecord(), RecordsFlushing.NOW);
 //		treeDataProvider.fireDataRefreshEvent();
+		return newDocumentRecordIds;
 	}
 
 }

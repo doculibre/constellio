@@ -11846,11 +11846,10 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .djs-container .highlight .djs-outline {
 	stroke-width: 2px important;
 	stroke: #08c !important;
-	fill: rgba(79, 214, 97, 0.35) !important;
 }
 
 .constellio .djs-container .highlight .djs-visual > :nth-child(1) {
-	fill: rgba(79, 214, 97, 0.35) !important;
+	fill: #ffdd00 !important;
 }
 
 .constellio .v-tabsheet-tabitem .tab-badge {
@@ -12051,7 +12050,7 @@ div.v-layout.v-horizontal.v-widget {
 	font-size: 14px;
 }
 
-.constellio .task-table-layout .task-table .task-details .v-slot-task-details-add-comment-button {
+.constellio .task-table-layout .task-table .task-details .v-slot-task-details-add-comment-button, .constellio .task-table-layout .task-table .task-details .v-slot-task-details-add-documents-button {
 	position: relative;
 	top: 53px;
 	margin-top: -53px;

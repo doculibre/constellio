@@ -154,9 +154,11 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 	public void backToPreviousSelectedTab() {
 		if (previousSelectedTab != null) {
 			IdTabSheet tabSheet = getTabSheet(previousSelectedTab);
-			Component tabComponent = tabSheet.getTabComponent(previousSelectedTab);
-			tabSheet.setSelectedTab(tabComponent);
-			presenter.tabSelected(previousSelectedTab);
+			if (tabSheet != null) {
+				Component tabComponent = tabSheet.getTabComponent(previousSelectedTab);
+				tabSheet.setSelectedTab(tabComponent);
+				presenter.tabSelected(previousSelectedTab);
+			}
 		}
 	}
 
