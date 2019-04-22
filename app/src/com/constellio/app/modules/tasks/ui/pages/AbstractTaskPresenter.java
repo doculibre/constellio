@@ -44,6 +44,7 @@ import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
+import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
@@ -219,73 +220,77 @@ public abstract class AbstractTaskPresenter<T extends BaseView> extends SingleSc
 		return searchServices.query(query).getNumFound() > 0;
 	}
 
-	public void contentVersionUploaded(RecordVO taskVO, ContentVersionVO uploadedContentVO, String folderId) {
+	protected Object contentVersionUploaded(RecordVO taskVO, ContentVersionVO uploadedContentVO, String folderId) {
+		Object result;
+		
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		ModelLayerCollectionExtensions extensions = modelLayerFactory.getExtensions().forCollection(collection);
-		Folder folder = rm.getFolder(folderId);
-		String fileName = uploadedContentVO.getFileName();
-		if (!documentExists(fileName, folder) && !extensions.isModifyBlocked(folder.getWrappedRecord(), getCurrentUser())) {
-			try {
-				if (Boolean.TRUE.equals(uploadedContentVO.hasFoundDuplicate())) {
-					LogicalSearchQuery duplicateDocumentsQuery = new LogicalSearchQuery()
-							.setCondition(LogicalSearchQueryOperators.from(rm.documentSchemaType())
-									.where(rm.document.content()).is(ContentFactory.isHash(uploadedContentVO.getDuplicatedHash()))
-									.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()
-							)
-							.filteredWithUser(getCurrentUser());
-					List<Document> duplicateDocuments = rm.searchDocuments(duplicateDocumentsQuery);
-					if (duplicateDocuments.size() > 0) {
-						StringBuilder message = new StringBuilder(
-								$("ContentManager.hasFoundDuplicateWithConfirmation", StringUtils.defaultIfBlank(fileName, "")));
-						message.append("<br>");
-						for (Document document : duplicateDocuments) {
-							message.append("<br>-");
-							message.append(document.getTitle());
-							message.append(": ");
-							message.append(generateDisplayLink(document));
+		try {
+			if (folderId != null) {
+				Folder folder = rm.getFolder(folderId);
+				String fileName = uploadedContentVO.getFileName();
+				if (!documentExists(fileName, folder) && !extensions.isModifyBlocked(folder.getWrappedRecord(), getCurrentUser())) {
+					if (Boolean.TRUE.equals(uploadedContentVO.hasFoundDuplicate())) {
+						LogicalSearchQuery duplicateDocumentsQuery = new LogicalSearchQuery()
+								.setCondition(LogicalSearchQueryOperators.from(rm.documentSchemaType())
+										.where(rm.document.content()).is(ContentFactory.isHash(uploadedContentVO.getDuplicatedHash()))
+										.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()
+								)
+								.filteredWithUser(getCurrentUser());
+						List<Document> duplicateDocuments = rm.searchDocuments(duplicateDocumentsQuery);
+						if (duplicateDocuments.size() > 0) {
+							StringBuilder message = new StringBuilder(
+									$("ContentManager.hasFoundDuplicateWithConfirmation", StringUtils.defaultIfBlank(fileName, "")));
+							message.append("<br>");
+							for (Document document : duplicateDocuments) {
+								message.append("<br>-");
+								message.append(document.getTitle());
+								message.append(": ");
+								message.append(generateDisplayLink(document));
+							}
+							view.showClickableMessage(message.toString());
 						}
-						view.showClickableMessage(message.toString());
 					}
-				}
-				uploadedContentVO.setMajorVersion(true);
-				Record newRecord;
-				if (rm.isEmail(fileName)) {
-					InputStreamProvider inputStreamProvider = uploadedContentVO.getInputStreamProvider();
-					InputStream in = inputStreamProvider.getInputStream(DisplayFolderPresenter.class + ".contentVersionUploaded");
-					Document document = rm.newEmail(fileName, in);
-					newRecord = document.getWrappedRecord();
+					uploadedContentVO.setMajorVersion(true);
+					Record newRecord;
+					if (rm.isEmail(fileName)) {
+						InputStreamProvider inputStreamProvider = uploadedContentVO.getInputStreamProvider();
+						InputStream in = inputStreamProvider.getInputStream(DisplayFolderPresenter.class + ".contentVersionUploaded");
+						Document document = rm.newEmail(fileName, in);
+						newRecord = document.getWrappedRecord();
+					} else {
+						Document document = rm.newDocument();
+						newRecord = document.getWrappedRecord();
+					}
+					DocumentVO documentVO = new DocumentToVOBuilder(modelLayerFactory).build(newRecord, VIEW_MODE.FORM, view.getSessionContext());
+					documentVO.setFolder(folderId);
+					documentVO.setTitle(fileName);
+					documentVO.setContent(uploadedContentVO);
+					
+					String schemaCode = newRecord.getSchemaCode();
+					ConstellioFactories constellioFactories = view.getConstellioFactories();
+					SessionContext sessionContext = view.getSessionContext();
+					SchemaPresenterUtils documentPresenterUtils = new SchemaPresenterUtils(schemaCode, constellioFactories,
+							sessionContext);
+					newRecord = documentPresenterUtils.toRecord(documentVO);
+
+					documentPresenterUtils.addOrUpdate(newRecord);
+					//				view.selectFolderContentTab();
+					result = newRecord;
 				} else {
-					Document document = rm.newDocument();
-					newRecord = document.getWrappedRecord();
+					result = null;
 				}
-				DocumentVO documentVO = new DocumentToVOBuilder(modelLayerFactory).build(newRecord, VIEW_MODE.FORM, view.getSessionContext());
-				documentVO.setFolder(folderId);
-				documentVO.setTitle(fileName);
-				documentVO.setContent(uploadedContentVO);
-				
-				String schemaCode = newRecord.getSchemaCode();
-				ConstellioFactories constellioFactories = view.getConstellioFactories();
-				SessionContext sessionContext = view.getSessionContext();
-				SchemaPresenterUtils documentPresenterUtils = new SchemaPresenterUtils(schemaCode, constellioFactories,
-						sessionContext);
-				newRecord = documentPresenterUtils.toRecord(documentVO);
-
-				documentPresenterUtils.addOrUpdate(newRecord);
-				//				view.selectFolderContentTab();
-
-			
-				Task task = (Task) getTask(taskVO);
-				Metadata linkedDocumentsMetadata = getMetadata(RMTask.LINKED_DOCUMENTS);
-				List<Object> linkedDocumentIds = new ArrayList<>(task.getWrappedRecord().getList(linkedDocumentsMetadata));
-				linkedDocumentIds.add(newRecord.getId());
-				task.set(linkedDocumentsMetadata, linkedDocumentIds);
-				addOrUpdate(task.getWrappedRecord(), RecordsFlushing.NOW);
-			} catch (final IcapException e) {
-				view.showErrorMessage(e.getMessage());
-			} catch (Exception e) {
-				LOGGER.error(e.getMessage(), e);
+			} else {
+				result = toContent(null, null, uploadedContentVO);
 			}
+		} catch (final IcapException e) {
+			view.showErrorMessage(e.getMessage());
+			result = null;
+		} catch (Exception e) {
+			LOGGER.error(e.getMessage(), e);
+			result = null;
 		}
+		return result;
 	}
 
 	String generateDisplayLink(Document document) {
@@ -298,9 +303,32 @@ public abstract class AbstractTaskPresenter<T extends BaseView> extends SingleSc
 
 	@Override
 	public void addDocumentsButtonClicked(RecordVO taskVO, List<ContentVersionVO> contentVersionVOs, String folderId /*, LazyTreeDataProvider<String> treeDataProvider*/) {
+		List<Record> newDocumentRecords = new ArrayList<>();
+		List<Content> newContents = new ArrayList<>();
+		
 		for (ContentVersionVO contentVersionVO : contentVersionVOs) {
-			contentVersionUploaded(taskVO, contentVersionVO, folderId);
+			Object uploadResult = contentVersionUploaded(taskVO, contentVersionVO, folderId);
+			if (uploadResult instanceof Record) {
+				newDocumentRecords.add((Record) uploadResult);
+			} else if (uploadResult instanceof Content) {
+				newContents.add((Content) uploadResult);
+			}
 		}
+		
+		Task task = (Task) getTask(taskVO);
+		Metadata linkedDocumentsMetadata = getMetadata(RMTask.LINKED_DOCUMENTS);
+		Metadata contentsMetadata = getMetadata(RMTask.CONTENTS);
+		
+		List<Object> linkedDocumentIds = new ArrayList<>(task.getWrappedRecord().getList(linkedDocumentsMetadata));
+		for (Record newDocumentRecord : newDocumentRecords) {
+			linkedDocumentIds.add(newDocumentRecord.getId());
+		}
+		List<Object> contents = new ArrayList<>(task.getWrappedRecord().getList(contentsMetadata));
+		contents.addAll(newContents);
+		
+		task.set(linkedDocumentsMetadata, linkedDocumentIds);
+		task.set(contentsMetadata, contents);
+		addOrUpdate(task.getWrappedRecord(), RecordsFlushing.NOW);
 //		treeDataProvider.fireDataRefreshEvent();
 	}
 

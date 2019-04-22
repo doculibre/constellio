@@ -535,6 +535,7 @@ public class TaskTable extends VerticalLayout {
 		
 		protected void reloadComments() {
 			expandLayout.removeComponent(commentsLayout);
+			taskVO = presenter.reloadRequested(taskVO);
 			commentsLayout = newCommentsLayout();
 			expandLayout.addComponent(commentsLayout);
 			ensureHeight(itemId);
@@ -651,7 +652,6 @@ public class TaskTable extends VerticalLayout {
 					
 					final LookupFolderField folderField = new LookupFolderField(true);
 					folderField.setCaption($("TaskTable.details.addDocuments.folder"));
-					folderField.setRequired(true);
 					folderField.focus();
 					folderField.setWindowZIndex(BaseWindow.OVER_ADVANCED_SEARCH_FORM_Z_INDEX + 1);
 					folderField.setValue(getDefaultFolderId());
@@ -664,7 +664,7 @@ public class TaskTable extends VerticalLayout {
 						protected void buttonClick(ClickEvent event) {
 							String folderId = folderField.getValue();
 							List<ContentVersionVO> contentVersionVOs = (List<ContentVersionVO>) uploadField.getValue();
-							if (StringUtils.isNotBlank(folderId) && contentVersionVOs != null && !contentVersionVOs.isEmpty()) {
+							if (contentVersionVOs != null && !contentVersionVOs.isEmpty()) {
 								try {
 									presenter.addDocumentsButtonClicked(taskVO, contentVersionVOs, folderId);
 									reloadLinkedContents();
@@ -730,7 +730,7 @@ public class TaskTable extends VerticalLayout {
 		protected Component newLinkedDocumentsComponent() {
 			Component linkedDocumentsComponent;
 			List<String> linkedDocumentIds = taskVO.get(Task.LINKED_DOCUMENTS);
-			if (!linkedDocumentIds.isEmpty()) {
+//			if (!linkedDocumentIds.isEmpty()) {
 				VerticalLayout linkedDocumentsLayout = new VerticalLayout();
 				linkedDocumentsLayout.setCaption(taskVO.getMetadata(Task.LINKED_DOCUMENTS).getLabel());
 				linkedDocumentsLayout.setWidth("100%");
@@ -751,9 +751,9 @@ public class TaskTable extends VerticalLayout {
 					linkedDocumentsLayout.addComponent(linkComponent);
 				}
 				linkedDocumentsComponent = linkedDocumentsLayout;
-			} else {
-				linkedDocumentsComponent = newInvisibleComponent();
-			}
+//			} else {
+//				linkedDocumentsComponent = newInvisibleComponent();
+//			}
 			return linkedDocumentsComponent;
 		}
 		
@@ -842,7 +842,7 @@ public class TaskTable extends VerticalLayout {
 				@Override
 				protected void saveButtonClick(Comment newComment) throws ValidationException {
 					if (taskCommentAdded(taskVO, newComment)) {
-						addComment(newComment, commentsLayout);
+						reloadComments();
 					}
 					window.close();
 					ensureHeight(itemId);
@@ -904,15 +904,15 @@ public class TaskTable extends VerticalLayout {
 			commentsLayout.setSpacing(true);
 			commentsLayout.addStyleName("task-details-comments");
 			
+			Component addCommentsComponent = newAddCommentComponent(commentsLayout);
+			commentsLayout.addComponent(addCommentsComponent);
+			commentsLayout.setComponentAlignment(addCommentsComponent, Alignment.TOP_RIGHT);
+			
 			final Label noCommentLabel = new Label($("TaskTable.details.noComment"));
 			noCommentLabel.addStyleName("task-details-no-comment");
 			if (comments.isEmpty()) {
 				commentsLayout.addComponent(noCommentLabel);
 			}
-			
-			Component addCommentsComponent = newAddCommentComponent(commentsLayout);
-			commentsLayout.addComponent(addCommentsComponent);
-			commentsLayout.setComponentAlignment(addCommentsComponent, Alignment.TOP_RIGHT);
 
 			for (Comment comment : comments) {
 				addComment(comment, commentsLayout);
