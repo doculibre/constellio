@@ -1,20 +1,8 @@
 package com.constellio.app.modules.tasks.ui.pages.tasks;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.MapUtils;
-import org.joda.time.LocalDate;
-
+import com.constellio.app.modules.rm.ConstellioRMModule;
+import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
+import com.constellio.app.modules.tasks.extensions.param.PromptUserParam;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.request.RequestTask;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
@@ -46,6 +34,20 @@ import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
+import org.joda.time.LocalDate;
+
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public abstract class TaskCompleteWindowButton extends WindowButton {
 
@@ -55,6 +57,7 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 	private String collection;
 	private BaseView view;
 	private TaskTable.TaskPresenter presenter;
+	private RMModuleExtensions rmModuleExtensions;
 
 	public TaskCompleteWindowButton(Task task, String caption, AppLayerFactory appLayerFactory,
 			TaskTable.TaskPresenter presenter) {
@@ -66,12 +69,13 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 		this.view = presenter.getView();
 		this.sessionContext = view.getSessionContext();
 		this.collection = sessionContext.getCurrentCollection();
+		this.rmModuleExtensions = appLayerFactory.getExtensions().forCollection(collection).forModule(ConstellioRMModule.ID);
 	}
 
 	@Override
 	protected Component buildWindowContent() {
 		reloadTask();
-		
+
 		VerticalLayout verticalLayout = new VerticalLayout();
 		verticalLayout.setSpacing(true);
 		Label label = new Label(getConfirmDialogMessage());
@@ -194,8 +198,22 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 		return saveButton;
 	}
 
-	private boolean completeQuicklyButtonClicked(Object decision, String decisionCode, Boolean accepted,
-			String reason) {
+	private boolean completeQuicklyButtonClicked(final Object decision, final String decisionCode,
+												 final Boolean accepted,
+												 final String reason) {
+		boolean completed = true;
+
+		completed = quickCompleteTask(task, decision, decisionCode, accepted, reason);
+
+		if (completed) {
+			rmModuleExtensions.isPromptUser(new PromptUserParam(task));
+		}
+
+		return completed;
+	}
+
+	private boolean quickCompleteTask(Task task, Object decision, String decisionCode, Boolean accepted,
+									  String reason) {
 		boolean validationException = false;
 		try {
 			quickCompleteTask(appLayerFactory, task, decision, decisionCode, accepted, reason,
@@ -253,7 +271,7 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 	protected String getSlowCompleteCaption() {
 		return $("DisplayTaskView.slowComplete");
 	}
-	
+
 	private void reloadTask() {
 		TasksSchemasRecordsServices tasksSchemas = new TasksSchemasRecordsServices(collection, appLayerFactory);
 		task = tasksSchemas.getTask(task.getId());
@@ -353,7 +371,7 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 
 	private Map<MetadataVO, Field> buildUncompletedRequiredField(RecordVO recordVO, TaskFieldFactory fieldFactory,
 			VerticalLayout fieldLayout) {
-		
+
 		Map<MetadataVO, Field> fields = new HashMap<>();
 		List<MetadataValueVO> formMetadataValues = recordVO.getFormMetadataValues();
 		for (MetadataValueVO metadataValueVO : CollectionUtils.emptyIfNull(formMetadataValues)) {

@@ -10,6 +10,8 @@ import com.constellio.app.modules.rm.extensions.api.reports.RMReportBuilderFacto
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.tasks.extensions.TaskManagementPresenterExtension;
+import com.constellio.app.modules.tasks.extensions.TaskPreCompletionExtention;
+import com.constellio.app.modules.tasks.extensions.param.PromptUserParam;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
@@ -30,6 +32,7 @@ public class RMModuleExtensions implements ModuleExtensions {
 	private VaultBehaviorsList<AdvancedSearchPresenterExtension> advancedSearchPresenterExtensions;
 	private VaultBehaviorsList<DocumentFolderBreadCrumbExtention> documentBreadcrumExtentions;
 	private VaultBehaviorsList<NavigateToFromAPageImportExtension> navigateToFromAPageExtensions;
+	private VaultBehaviorsList<TaskPreCompletionExtention> taskPreCompletionExetention;
 
 	private ModelLayerExtensions modelLayerExtensions;
 
@@ -43,6 +46,7 @@ public class RMModuleExtensions implements ModuleExtensions {
 		advancedSearchPresenterExtensions = new VaultBehaviorsList<>();
 		this.documentBreadcrumExtentions = new VaultBehaviorsList<>();
 		this.navigateToFromAPageExtensions = new VaultBehaviorsList<>();
+		this.taskPreCompletionExetention = new VaultBehaviorsList<>();
 		this.modelLayerExtensions = appLayerFactory.getModelLayerFactory().getExtensions();
 	}
 
@@ -52,6 +56,10 @@ public class RMModuleExtensions implements ModuleExtensions {
 
 	public VaultBehaviorsList<DecommissioningBuilderPresenterExtension> getDecommissioningBuilderPresenterExtensions() {
 		return decommissioningBuilderPresenterExtensions;
+	}
+
+	public VaultBehaviorsList<TaskPreCompletionExtention> getTaskPreCompletionExetention() {
+		return taskPreCompletionExetention;
 	}
 
 	public DecommissioningListFolderTableExtension getDecommissioningListFolderTableExtension() {
@@ -106,6 +114,16 @@ public class RMModuleExtensions implements ModuleExtensions {
 			}
 		});
 	}
+
+	public boolean isPromptUser(PromptUserParam taskPreCompletionParam) {
+		for (TaskPreCompletionExtention taskPreCompletion : taskPreCompletionExetention) {
+			if (taskPreCompletion.isPromptUser(taskPreCompletionParam)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 
 	public boolean isMoveActionPossibleOnFolder(final Folder folder, final User user) {
 		return folderExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<FolderExtension>() {
