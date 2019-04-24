@@ -7,6 +7,7 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.VisibilityStatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,6 +65,7 @@ public class ReindexingSchemaTypeRecordsProvider {
 
 		} else {
 			LogicalSearchQuery query = new LogicalSearchQuery(from(type).returnAll());
+			query.filteredByVisibilityStatus(VisibilityStatusFilter.ALL);
 
 			if (dependencyLevel % 2 == 0) {
 				recordsIterator = searchServices.recordsIterator(query, mainThreadQueryRows);

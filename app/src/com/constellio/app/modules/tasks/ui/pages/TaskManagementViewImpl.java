@@ -1,6 +1,7 @@
 package com.constellio.app.modules.tasks.ui.pages;
 
 import com.constellio.app.modules.tasks.ui.components.TaskTable;
+import com.constellio.app.modules.tasks.ui.components.TaskTable.TaskDetailsComponentFactory;
 import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
@@ -54,6 +55,7 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 	private ComboBox timestamp;
 	private String previousSelectedTab;
 	private FilterGenerator filterGenerator;
+	private TaskDetailsComponentFactory taskDetailsComponentFactory;
 
 	enum Timestamp {
 		ALL, TODAY, WEEK, MONTH
@@ -152,9 +154,11 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 	public void backToPreviousSelectedTab() {
 		if (previousSelectedTab != null) {
 			IdTabSheet tabSheet = getTabSheet(previousSelectedTab);
-			Component tabComponent = tabSheet.getTabComponent(previousSelectedTab);
-			tabSheet.setSelectedTab(tabComponent);
-			presenter.tabSelected(previousSelectedTab);
+			if (tabSheet != null) {
+				Component tabComponent = tabSheet.getTabComponent(previousSelectedTab);
+				tabSheet.setSelectedTab(tabComponent);
+				presenter.tabSelected(previousSelectedTab);
+			}
 		}
 	}
 
@@ -213,6 +217,7 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 		VerticalLayout layout = getEmptiedSelectedTab(tabSheet);
 		TaskTable taskTable = new TaskTable(provider, presenter);
 		taskTable.setFilterGenerator(filterGenerator);
+		taskTable.setTaskDetailsComponentFactory(taskDetailsComponentFactory);
 
 		//		FilterTableAdapter tableAdapter = new FilterTableAdapter(taskTable.getTable(), new DemoFilterDecorator(), new DemoFilterGenerator());
 		//
@@ -271,6 +276,10 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 
 	public void setFilterGenerator(FilterGenerator filterGenerator) {
 		this.filterGenerator = filterGenerator;
+	}
+
+	public void setTaskDetailsComponentFactory(TaskDetailsComponentFactory taskDetailsComponentFactory) {
+		this.taskDetailsComponentFactory = taskDetailsComponentFactory;
 	}
 
 	public User getCurrentUser() {

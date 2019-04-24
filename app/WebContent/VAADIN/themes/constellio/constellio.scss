@@ -73,6 +73,15 @@ $popup-view-z-index: 3;
 }
 
 @mixin constellio {
+
+	.djs-container .highlight .djs-outline {
+	   stroke-width: 2px important;
+	   stroke: #08c !important;
+	}
+
+	.djs-container .highlight .djs-visual>:nth-child(1) {
+	   fill: rgba(255, 221, 0, 1.00) !important;
+	}
 	
 	.v-tabsheet-tabitem {
 		.tab-badge {
@@ -259,9 +268,14 @@ $popup-view-z-index: 3;
 					}
 				}
 			
+				.task-details-contents {
+					font-size: 14px;
+				}
+			
 				.task-details-linked-documents {
 					.agent-action-link {
 						color: black;
+						font-size: 14px;
 					}
 				
 					.agent-action-link:hover {
@@ -273,14 +287,26 @@ $popup-view-z-index: 3;
 					padding-top: 0px;
 				}	
 			
-				.v-slot-task-details-add-comment-button {
+				.v-slot-task-details-comment-workflow-layout {
+					position: relative;
+				    top: -10px;
+				    margin-top: -23px;
+				    z-index: 2;
+				    
+				    .v-checkbox {
+				    	top: 9px;
+				    	font-size: 14px;
+				    }
+				}
+			
+				.v-slot-task-details-add-comment-button, .v-slot-task-details-add-documents-button {
 					position: relative;
 				    top: 53px;
 				    margin-top: -53px;
 				    z-index: 2;
 				}
 			
-				.task-details-add-comment-button {
+				.task-details-add-comment-button, .task-details-add-documents-button {
 				    font-weight: 100;
 				    font-size: 14px;
 				}
@@ -2173,6 +2199,22 @@ $popup-view-z-index: 3;
 				    			background-color: #197de1;
 					    	}
 					    }
+
+						.display-folder-upload-field {
+							margin-bottom: -20px;
+						
+							.v-multifileupload-dropzone {
+								display: none;
+							}
+					
+							.v-button {
+								display: none;
+							}
+					
+							.base-upload-field-table {
+								display: none;
+							}
+						}
 
 					    .action-menu {
 						    width: 225px;
