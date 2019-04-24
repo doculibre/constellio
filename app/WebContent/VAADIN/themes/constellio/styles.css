@@ -14700,6 +14700,22 @@ div.v-layout.v-horizontal.v-widget {
 	background-color: #197de1;
 }
 
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .display-folder-upload-field {
+	margin-bottom: -20px;
+}
+
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .display-folder-upload-field .v-multifileupload-dropzone {
+	display: none;
+}
+
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .display-folder-upload-field .v-button {
+	display: none;
+}
+
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .display-folder-upload-field .base-upload-field-table {
+	display: none;
+}
+
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .action-menu {
 	width: 225px;
 	border: 1px solid #3a434d;

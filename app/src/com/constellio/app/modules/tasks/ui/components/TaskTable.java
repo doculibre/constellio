@@ -430,11 +430,9 @@ public class TaskTable extends VerticalLayout {
 								if (presenter.isSubTaskPresentAndHaveCertainStatus(taskVO)) {
 									return $("DisplayTaskView.subTaskPresentComplete");
 								}
-
 								return $("DisplayTaskView.completeTaskDialogMessage");
 							}
 						};
-
 						completeTaskButton.click();
 					}
 				});
