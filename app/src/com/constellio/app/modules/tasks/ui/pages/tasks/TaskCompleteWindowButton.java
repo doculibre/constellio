@@ -2,6 +2,7 @@ package com.constellio.app.modules.tasks.ui.pages.tasks;
 
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
+import com.constellio.app.modules.tasks.extensions.action.Action;
 import com.constellio.app.modules.tasks.extensions.param.PromptUserParam;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.request.RequestTask;
@@ -25,6 +26,7 @@ import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.structures.MapStringStringStructure;
+import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.records.RecordServicesException;
 import com.vaadin.data.Validator;
 import com.vaadin.ui.Button;
@@ -201,15 +203,27 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 	private boolean completeQuicklyButtonClicked(final Object decision, final String decisionCode,
 												 final Boolean accepted,
 												 final String reason) {
-		boolean completed = true;
+		boolean userPromted = false;
+		boolean exception = false;
 
-		completed = quickCompleteTask(task, decision, decisionCode, accepted, reason);
-
-		if (completed) {
-			rmModuleExtensions.isPromptUser(new PromptUserParam(task));
+		try {
+			userPromted = rmModuleExtensions.isPromptUser(new PromptUserParam(task, new Action() {
+				@Override
+				public void doAction() {
+					quickCompleteTask(task, decision, decisionCode, accepted, reason);
+				}
+			}));
+		} catch (ValidationException e) {
+			exception = true;
+			ErrorDisplayUtil.showBackendValidationException(e.getValidationErrors());
 		}
 
-		return completed;
+		if (!userPromted) {
+			quickCompleteTask(task, decision, decisionCode, accepted, reason);
+		}
+
+
+		return !exception;
 	}
 
 	private boolean quickCompleteTask(Task task, Object decision, String decisionCode, Boolean accepted,
