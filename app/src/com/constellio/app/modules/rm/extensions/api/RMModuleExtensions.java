@@ -18,6 +18,7 @@ import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.data.frameworks.extensions.ExtensionUtils;
 import com.constellio.data.frameworks.extensions.VaultBehaviorsList;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.extensions.ModelLayerExtensions;
 
 public class RMModuleExtensions implements ModuleExtensions {
@@ -115,7 +116,7 @@ public class RMModuleExtensions implements ModuleExtensions {
 		});
 	}
 
-	public boolean isPromptUser(PromptUserParam taskPreCompletionParam) {
+	public boolean isPromptUser(PromptUserParam taskPreCompletionParam) throws ValidationException {
 		for (TaskPreCompletionExtention taskPreCompletion : taskPreCompletionExetention) {
 			if (taskPreCompletion.isPromptUser(taskPreCompletionParam)) {
 				return true;

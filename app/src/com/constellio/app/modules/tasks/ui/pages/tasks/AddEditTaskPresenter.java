@@ -4,6 +4,7 @@ import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.modules.tasks.TaskModule;
+import com.constellio.app.modules.tasks.extensions.action.Action;
 import com.constellio.app.modules.tasks.extensions.api.TaskModuleExtensions;
 import com.constellio.app.modules.tasks.extensions.api.params.TaskFormParams;
 import com.constellio.app.modules.tasks.extensions.api.params.TaskFormRetValue;
@@ -38,6 +39,7 @@ import com.constellio.app.modules.tasks.ui.entities.TaskVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
+import com.constellio.app.ui.framework.components.ErrorDisplayUtil;
 import com.constellio.app.ui.framework.components.RecordForm;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveField;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveRecordLookupField;
@@ -46,14 +48,17 @@ import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
+import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
+import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.contents.icap.IcapException;
 import com.constellio.model.services.logging.LoggingServices;
+import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
 import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -179,7 +184,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		if (recordVO == null) {
 			return;
 		}
-		Task task = taskPresenterServices.toTask(new TaskVO(recordVO), toRecord(recordVO));
+		final Task task = taskPresenterServices.toTask(new TaskVO(recordVO), toRecord(recordVO));
 
 		try {
 
@@ -259,22 +264,44 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 					saveRecord(task, currentRecord, taskFormRetValue.isSaveWithValidation(currentRecord));
 				}
 			}
+			boolean isPromptUser = false;
 
-			saveRecord(task, task.getWrappedRecord(), true);
+			// this is in case of special validation that would only occur when saving the task.
+			Transaction transaction = new Transaction();
+			transaction.addUpdate(task.getWrappedRecord());
+			recordServices().prepareRecords(transaction);
 
-
-			if (StringUtils.isNotBlank(workflowId)) {
-				view.navigateToWorkflow(workflowId);
-			} else if (StringUtils.isNotBlank(parentId)) {
-				view.navigate().to(TaskViews.class).displayTask(parentId);
-			} else {
-				view.navigate().to(TaskViews.class).taskManagement();
-			}
 			if (!isCompletedOrClosedOnInitialization && isCompleted(recordVO)) {
-				rmModuleExtensions.isPromptUser(new PromptUserParam(task));
+				isPromptUser = rmModuleExtensions.isPromptUser(new PromptUserParam(task, new Action() {
+					@Override
+					public void doAction() {
+						saveAndNavigate(task);
+					}
+				}));
 			}
+			if (!isPromptUser) {
+				saveAndNavigate(task);
+			}
+
 		} catch (final IcapException e) {
 			view.showErrorMessage(e.getMessage());
+		} catch (ValidationException e) {
+			ErrorDisplayUtil.showBackendValidationException(e.getValidationErrors());
+		} catch (RecordServicesException.ValidationException e) {
+			ErrorDisplayUtil.showBackendValidationException(e.getErrors());
+		}
+	}
+
+	private void saveAndNavigate(Task task) {
+		saveRecord(task, task.getWrappedRecord(), true);
+
+
+		if (StringUtils.isNotBlank(workflowId)) {
+			view.navigateToWorkflow(workflowId);
+		} else if (StringUtils.isNotBlank(parentId)) {
+			view.navigate().to(TaskViews.class).displayTask(parentId);
+		} else {
+			view.navigate().to(TaskViews.class).taskManagement();
 		}
 	}
 
