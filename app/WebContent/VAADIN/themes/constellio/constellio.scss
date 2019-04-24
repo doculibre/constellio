@@ -2200,6 +2200,22 @@ $popup-view-z-index: 3;
 					    	}
 					    }
 
+						.display-folder-upload-field {
+							margin-bottom: -20px;
+						
+							.v-multifileupload-dropzone {
+								display: none;
+							}
+					
+							.v-button {
+								display: none;
+							}
+					
+							.base-upload-field-table {
+								display: none;
+							}
+						}
+
 					    .action-menu {
 						    width: 225px;
 						    border: 1px solid #3a434d;
