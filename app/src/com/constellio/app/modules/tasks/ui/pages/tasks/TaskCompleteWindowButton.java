@@ -212,7 +212,7 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 
 	private boolean completeQuicklyButtonClicked(final Object decision, final String decisionCode,
 												 final Boolean accepted,
-												 final String reason) {
+												 final String reason, final Comment comment) {
 		boolean userPromted = false;
 		boolean exception = false;
 
@@ -220,7 +220,7 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 			userPromted = rmModuleExtensions.isPromptUser(new PromptUserParam(task, new Action() {
 				@Override
 				public void doAction() {
-					quickCompleteTask(task, decision, decisionCode, accepted, reason);
+					quickCompleteTask(task, decision, decisionCode, accepted, reason, comment);
 				}
 			}));
 		} catch (ValidationException e) {
@@ -229,7 +229,7 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 		}
 
 		if (!userPromted) {
-			quickCompleteTask(task, decision, decisionCode, accepted, reason);
+			quickCompleteTask(task, decision, decisionCode, accepted, reason, comment);
 		}
 
 
