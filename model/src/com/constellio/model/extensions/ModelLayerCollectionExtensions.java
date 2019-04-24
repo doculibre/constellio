@@ -156,8 +156,10 @@ public class ModelLayerCollectionExtensions {
 									   RecordUpdateOptions options) {
 		if (options.isCatchExtensionsExceptions()) {
 			if (recordId == null) {
+				e.printStackTrace();
 				LOGGER.warn("Exception while calling extension of class '" + extensionClassname + "'", e);
 			} else {
+				e.printStackTrace();
 				LOGGER.warn("Exception while calling extension of class '" + extensionClassname + "' on record " + recordId, e);
 			}
 		} else {

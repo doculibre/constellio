@@ -288,7 +288,7 @@ public class Folder extends RMObject {
 	}
 
 	public List<String> getMediumTypes() {
-		return get(MEDIUM_TYPES);
+		return getList(MEDIUM_TYPES);
 	}
 
 	public Folder setMediumTypes(String... mediumTypes) {
