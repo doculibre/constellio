@@ -432,6 +432,11 @@ public class TaskTable extends VerticalLayout {
 								}
 								return $("DisplayTaskView.completeTaskDialogMessage");
 							}
+
+							@Override
+							protected void addCommentField(RecordVO taskVO, Field commentField, VerticalLayout fieldLayout) {
+								TaskTable.this.addCompleteWindowCommentField(taskVO, commentField, fieldLayout);
+							}
 						};
 						completeTaskButton.click();
 					}
@@ -480,11 +485,20 @@ public class TaskTable extends VerticalLayout {
 		return taskDetailsComponentFactory;
 	}
 
+	protected void addCompleteWindowCommentField(RecordVO taskVO, Field commentField, VerticalLayout fieldLayout) {
+		fieldLayout.addComponent(commentField);
+		if (taskDetailsComponentFactory != null) {
+			taskDetailsComponentFactory.decorateCompleteWindowCommentField(taskVO, commentField, fieldLayout);
+		}
+	}
+
 	public void setTaskDetailsComponentFactory(TaskDetailsComponentFactory taskDetailsComponentFactory) {
 		this.taskDetailsComponentFactory = taskDetailsComponentFactory;
 	}
 
 	public static interface TaskDetailsComponentFactory {
+		
+		void decorateCompleteWindowCommentField(RecordVO taskVO, Field commentField, VerticalLayout fieldLayout);
 		
 		Component newTaskDetailsComponent(TaskTable taskTable, Object itemId, RecordVO taskVO, boolean expanded);
 		
@@ -881,7 +895,8 @@ public class TaskTable extends VerticalLayout {
 			userTimeLayout.addStyleName("task-details-user-date-time");
 			userTimeLayout.setSpacing(true);
 			String message = comment.getMessage();
-			Label messageLabel = new Label(message);
+			message = StringUtils.replace(message, "\n", "<br/>");
+			Label messageLabel = new Label(message, ContentMode.HTML);
 			messageLabel.addStyleName("task-details-comment-message");
 			
 			commentsLayout.addComponents(userTimeLayout, messageLabel);

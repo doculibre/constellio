@@ -1,5 +1,17 @@
 package com.constellio.app.modules.rm;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.records.cache.VolatileCacheInvalidationMethod.FIFO;
+import static java.util.Arrays.asList;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.constellio.app.entities.modules.ComboMigrationScript;
 import com.constellio.app.entities.modules.InstallableSystemModule;
 import com.constellio.app.entities.modules.InstallableSystemModuleWithRecordMigrations;
@@ -42,6 +54,7 @@ import com.constellio.app.modules.rm.extensions.RemoveClickableNotificationsWhen
 import com.constellio.app.modules.rm.extensions.SessionContextRecordExtension;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.extensions.app.BatchProcessingRecordFactoryExtension;
+import com.constellio.app.modules.rm.extensions.app.RMAdministrativeUnitRecordFieldFactoryExtension;
 import com.constellio.app.modules.rm.extensions.app.RMBatchProcessingExtension;
 import com.constellio.app.modules.rm.extensions.app.RMBatchProcessingSpecialCaseExtension;
 import com.constellio.app.modules.rm.extensions.app.RMCmisExtension;
@@ -188,17 +201,6 @@ import com.constellio.model.services.records.cache.CacheConfig;
 import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.records.cache.ignite.RecordsCacheIgniteImpl;
 import com.constellio.model.services.security.GlobalSecuredTypeCondition;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.records.cache.VolatileCacheInvalidationMethod.FIFO;
-import static java.util.Arrays.asList;
 
 public class ConstellioRMModule implements InstallableSystemModule, ModuleWithComboMigration,
 		InstallableSystemModuleWithRecordMigrations {
@@ -448,6 +450,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		extensions.recordDisplayFactoryExtensions.add(new RMRecordDisplayFactoryExtension(appLayerFactory, collection));
 		extensions.listSchemaCommandExtensions.add(new RMListSchemaExtention());
 		extensions.pagesComponentsExtensions.add(new RMUserProfileFieldsExtension(collection, appLayerFactory));
+		extensions.recordFieldFactoryExtensions.add(new RMAdministrativeUnitRecordFieldFactoryExtension());
 
 		extensions.lockedRecords.add(RMTaskType.SCHEMA_TYPE, RMTaskType.BORROW_REQUEST);
 		extensions.lockedRecords.add(RMTaskType.SCHEMA_TYPE, RMTaskType.BORROW_EXTENSION_REQUEST);
