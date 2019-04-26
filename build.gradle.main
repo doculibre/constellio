@@ -89,4 +89,16 @@ allprojects {
     }
 
     project.ext.set("VERSION", projectVersion)
+
+	eclipse {
+	    classpath {
+		    file {
+		        //closure executed after .classpath content is loaded from existing file
+		        //and after gradle build information is merged
+		        whenMerged { classpath ->
+		      		classpath.entries.sort{ new File(it.path).exists() ? new File(it.path).getName() : it.path }
+		        }
+		    }
+		}
+	}
 }
