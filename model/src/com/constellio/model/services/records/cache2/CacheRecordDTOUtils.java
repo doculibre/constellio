@@ -27,6 +27,11 @@ import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
  * with the index of the next metadata
  * <p>
  * Integer values
+ * <p>
+ * Header size :
+ * <p>
+ * 3 => 14
+ * 4 => 18
  */
 public class CacheRecordDTOUtils {
 
@@ -111,17 +116,20 @@ public class CacheRecordDTOUtils {
 		 */
 		public void addSingleValueBooleanMetadata(Metadata metadata, Object value) {
 			//TODO
+			//			ByteArrayOutputStream os = null;
+			//			ObjectOutputStream oss = new ObjectOutputStream(os);
+			//			oss.writeByte(1);
+
 		}
 
 		/**
 		 * Value is usually integer, but can also be String or Null.
 		 * <p>
 		 * Integer value is stocked using 4 bytes (Integer)
-		 * Null value is stocked using a 4 bytes "zero value" (Integer)
 		 * String value is stocked using a 4 bytes negative value (Integer), where the value represent the size of bytes used to store the String value
 		 */
 		public void addSingleValueReferenceMetadata(Metadata metadata, Object value) {
-			//TODO
+
 		}
 
 		/**
@@ -147,6 +155,7 @@ public class CacheRecordDTOUtils {
 			System.arraycopy(workHeaderByteArray, 0, data, 0, headerByteArrayLength);
 			System.arraycopy(workDataByteArray, 0, data, headerByteArrayLength, dataByteArrayLength);
 			return data;
+
 
 		}
 
