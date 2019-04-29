@@ -116,8 +116,7 @@ sourceSets {
 
 eclipse {
     project {
-        name = 'app'
-        buildCommand 'compileJava'
+        name = 'Core App'
     }
 }
 
