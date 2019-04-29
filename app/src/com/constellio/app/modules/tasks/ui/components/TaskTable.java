@@ -1,22 +1,5 @@
 package com.constellio.app.modules.tasks.ui.components;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
-
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.tepi.filtertable.FilterGenerator;
-import org.vaadin.dialogs.ConfirmDialog;
-
 import com.constellio.app.modules.rm.ui.components.content.ConstellioAgentLink;
 import com.constellio.app.modules.rm.ui.components.folder.fields.LookupFolderField;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
@@ -94,6 +77,22 @@ import com.vaadin.ui.Tree;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.tepi.filtertable.FilterGenerator;
+import org.vaadin.dialogs.ConfirmDialog;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class TaskTable extends VerticalLayout {
 
@@ -316,8 +315,10 @@ public class TaskTable extends VerticalLayout {
 	private void ensureHeight(Object itemId) {
 		int l = table.getPageLength();
 		int index = table.indexOfId(itemId);
-		int indexToSelectAbove = index - (l/2);
-		if( indexToSelectAbove<0 ) indexToSelectAbove=0;
+		int indexToSelectAbove = index - (l / 2);
+		if (indexToSelectAbove < 0) {
+			indexToSelectAbove = 0;
+		}
 		table.setCurrentPageFirstItemIndex(indexToSelectAbove);
 	}
 
@@ -434,7 +435,8 @@ public class TaskTable extends VerticalLayout {
 							}
 
 							@Override
-							protected void addCommentField(RecordVO taskVO, Field commentField, VerticalLayout fieldLayout) {
+							protected void addCommentField(RecordVO taskVO, Field commentField,
+														   VerticalLayout fieldLayout) {
 								TaskTable.this.addCompleteWindowCommentField(taskVO, commentField, fieldLayout);
 							}
 						};
@@ -654,7 +656,8 @@ public class TaskTable extends VerticalLayout {
 			return defaultFolderId;
 		}
 
-		protected List<String> addDocumentsButtonClicked(RecordVO taskVO, List<ContentVersionVO> contentVersionVOs, String folderId) {
+		protected List<String> addDocumentsButtonClicked(RecordVO taskVO, List<ContentVersionVO> contentVersionVOs,
+														 String folderId) {
 			return presenter.addDocumentsButtonClicked(taskVO, contentVersionVOs, folderId);
 		}
 
@@ -682,7 +685,7 @@ public class TaskTable extends VerticalLayout {
 						@SuppressWarnings("unchecked")
 						@Override
 						protected void buttonClick(ClickEvent event) {
-							String folderId = folderField.getValue();
+							String folderId = (String) folderField.getValue();
 							List<ContentVersionVO> contentVersionVOs = (List<ContentVersionVO>) uploadField.getValue();
 							if (contentVersionVOs != null && !contentVersionVOs.isEmpty()) {
 								try {
@@ -854,7 +857,8 @@ public class TaskTable extends VerticalLayout {
 			return linkedContentLayout;
 		}
 
-		protected Component newCommentForm(final Comment newComment, final Window window, final VerticalLayout commentsLayout) {
+		protected Component newCommentForm(final Comment newComment, final Window window,
+										   final VerticalLayout commentsLayout) {
 			BaseTextArea commentField = new BaseTextArea();
 			commentField.setWidth("100%");
 			FieldAndPropertyId commentFieldAndPropertyId = new FieldAndPropertyId(commentField, "message");
@@ -1006,7 +1010,8 @@ public class TaskTable extends VerticalLayout {
 
 		boolean isSubTaskPresentAndHaveCertainStatus(RecordVO recordVO);
 
-		List<String> addDocumentsButtonClicked(RecordVO taskVO, List<ContentVersionVO> contentVersionVOs, String folderId);
+		List<String> addDocumentsButtonClicked(RecordVO taskVO, List<ContentVersionVO> contentVersionVOs,
+											   String folderId);
 
 		void displayButtonClicked(RecordVO record);
 
@@ -1054,7 +1059,9 @@ public class TaskTable extends VerticalLayout {
 
 		Task getTask(RecordVO recordVO);
 
-		void callAssignationExtension();
+		void afterCompletionActions();
+
+		void beforeCompletionActions(Task task);
 
 		RecordVO getDocumentVO(String linkedDocumentId);
 
@@ -1144,7 +1151,7 @@ public class TaskTable extends VerticalLayout {
 				@Override
 				public void valueChange(Property.ValueChangeEvent event) {
 					Set<Object> newValue = new HashSet<Object>((Set<?>) event.getProperty().getValue());
-					for (Iterator<Object> it = selectedIds.iterator(); it.hasNext();) {
+					for (Iterator<Object> it = selectedIds.iterator(); it.hasNext(); ) {
 						Object selectedId = it.next();
 						if (!newValue.contains(selectedId)) {
 							it.remove();

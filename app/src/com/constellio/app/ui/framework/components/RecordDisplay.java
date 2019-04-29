@@ -117,14 +117,14 @@ public class RecordDisplay extends BaseDisplay {
 			verticalLayout.setWidth("100%");
 			verticalLayout.setSpacing(true);
 			verticalLayout.addStyleName("record-comments-editor");
-			mainLayout.addComponent(commentsComponent = verticalLayout);
+			layout.addComponent(commentsComponent = verticalLayout);
 		} else {
 			if (commentsComponent != null) {
-				mainLayout.removeComponent(commentsComponent);
+				layout.removeComponent(commentsComponent);
 			}
-			super.addCaptionAndDisplayComponent(captionLabel, displayComponent);
+			super.addCaptionAndDisplayComponent(captionLabel, displayComponent, layout);
 			if (commentsComponent != null) {
-				mainLayout.addComponent(commentsComponent);
+				layout.addComponent(commentsComponent);
 			}
 		}
 	}

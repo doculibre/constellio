@@ -1,10 +1,9 @@
 package com.constellio.sdk.tests;
 
 import org.openqa.selenium.WebDriverException;
-import org.openqa.selenium.firefox.ClasspathExtension;
 import org.openqa.selenium.firefox.FirefoxBinary;
 import org.openqa.selenium.firefox.FirefoxProfile;
-import org.openqa.selenium.firefox.NotConnectedException;
+import org.openqa.selenium.firefox.internal.ClasspathExtension;
 import org.openqa.selenium.logging.LocalLogs;
 import org.openqa.selenium.logging.NeedsLocalLogs;
 import org.openqa.selenium.remote.Command;
@@ -92,8 +91,8 @@ public class ZeUltimateLocalhostFirefoxConnection implements /*ExtensionConnecti
 			}
 		} catch (WebDriverException e) {
 			throw new WebDriverException();
-					//String.format("Failed to connect to binary %s on port %d; process output follows: \n%s",
-					//		process.toString(), port, process.getConsoleOutput()), e);
+			//String.format("Failed to connect to binary %s on port %d; process output follows: \n%s",
+			//		process.toString(), port, process.getConsoleOutput()), e);
 		} catch (Exception e) {
 			throw new WebDriverException(e);
 		} finally {
