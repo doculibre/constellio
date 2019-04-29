@@ -336,7 +336,8 @@ public class SeleniumTestFeatures {
 		System.setProperty("phantomjs.binary.path", phantomJSBinaryDir);
 
 		try {
-			return new PhantomJSDriver(DesiredCapabilities.phantomjs());
+			return null;
+			//return new PhantomJSDriver(DesiredCapabilities.phantomjs());
 		} catch (Exception e) {
 			throw new RuntimeException("Could not start PhantomJS in directory '" + phantomJSBinaryDir + "'", e);
 		}
