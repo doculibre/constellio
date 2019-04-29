@@ -11,7 +11,6 @@ import com.constellio.app.modules.rm.ui.components.document.DocumentActionsPrese
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.util.RMNavigationUtils;
 import com.constellio.app.modules.rm.wrappers.Cart;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.modules.tasks.TasksPermissionsTo;
@@ -111,7 +110,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	}
 
 	public String getFavGroupId() {
-		if(params != null) {
+		if (params != null) {
 			return params.get(RMViews.FAV_GROUP_ID_KEY);
 		} else {
 			return null;
@@ -273,7 +272,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	}
 
 	public void viewAssembled() {
-//		presenterUtils.updateActionsComponent();
+		presenterUtils.updateActionsComponent();
 		view.setTasks(tasksDataProvider);
 		view.setEvents(eventsDataProvider);
 		view.setPublishButtons(presenterUtils.isDocumentPublished());

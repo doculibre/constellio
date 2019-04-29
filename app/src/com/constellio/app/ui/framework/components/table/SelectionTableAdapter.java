@@ -1,13 +1,5 @@
 package com.constellio.app.ui.framework.components.table;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.constellio.app.ui.framework.buttons.SelectDeselectAllButton;
 import com.constellio.app.ui.framework.containers.ContainerAdapter;
 import com.vaadin.data.Container;
@@ -19,6 +11,15 @@ import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public abstract class SelectionTableAdapter extends VerticalLayout {
 
@@ -77,7 +78,7 @@ public abstract class SelectionTableAdapter extends VerticalLayout {
 			if (table.size() == 0) {
 				toggleButton.setVisible(false);
 			}
-			
+
 			final boolean indexProperty = isIndexProperty();
 
 			Container tableDataSource = table.getContainerDataSource();
@@ -165,7 +166,7 @@ public abstract class SelectionTableAdapter extends VerticalLayout {
 			if (!oldVisibleColumns.contains(SELECT_PROPERTY_ID)) {
 				List<Object> newVisibleColumns = new ArrayList<>(oldVisibleColumns);
 				newVisibleColumns.add(0, SELECT_PROPERTY_ID);
-				if (indexProperty) {
+				if (indexProperty && !newVisibleColumns.contains(INDEX_PROPERTY_ID)) {
 					newVisibleColumns.add(1, INDEX_PROPERTY_ID);
 				}
 				table.setVisibleColumns(newVisibleColumns.toArray(new Object[0]));
@@ -242,7 +243,7 @@ public abstract class SelectionTableAdapter extends VerticalLayout {
 		}
 		return allItemsSelected;
 	}
-	
+
 	public List<Object> getSelectedItemIds() {
 		List<Object> selectedItemIds = new ArrayList<>();
 		if (table != null) {
@@ -253,7 +254,7 @@ public abstract class SelectionTableAdapter extends VerticalLayout {
 				}
 			}
 		}
-		
+
 		return selectedItemIds;
 	}
 
@@ -295,7 +296,7 @@ public abstract class SelectionTableAdapter extends VerticalLayout {
 			}
 		}
 	}
-	
+
 	protected boolean isIndexProperty() {
 		return false;
 	}
