@@ -79,6 +79,7 @@ import java.util.stream.StreamSupport;
 
 import static com.constellio.data.dao.services.cache.InsertionReason.WAS_OBTAINED;
 import static com.constellio.model.services.records.RecordUtils.splitByCollection;
+import static com.constellio.model.services.search.VisibilityStatusFilter.ALL;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
@@ -369,7 +370,7 @@ public class SearchServices {
 	}
 
 	public Record searchSingleResult(LogicalSearchCondition condition) {
-		SPEQueryResponse response = query(new LogicalSearchQuery(condition).setNumberOfRows(1));
+		SPEQueryResponse response = query(new LogicalSearchQuery(condition).filteredByVisibilityStatus(ALL).setNumberOfRows(1));
 		if (response.getNumFound() > 1) {
 			SolrQueryBuilderContext params = new SolrQueryBuilderContext(false, new ArrayList<>(), "?", null, null, null) {
 			};
@@ -388,11 +389,11 @@ public class SearchServices {
 	}
 
 	public SearchResponseIterator<Record> recordsIterator(LogicalSearchCondition condition) {
-		return recordsIterator(new LogicalSearchQuery(condition));
+		return recordsIterator(new LogicalSearchQuery(condition).filteredByVisibilityStatus(ALL));
 	}
 
 	public SearchResponseIterator<Record> recordsIterator(LogicalSearchCondition condition, int batchSize) {
-		return recordsIterator(new LogicalSearchQuery(condition), batchSize);
+		return recordsIterator(new LogicalSearchQuery(condition).filteredByVisibilityStatus(ALL), batchSize);
 	}
 
 	public SearchResponseIterator<Record> recordsIterator(LogicalSearchQuery query) {
@@ -421,11 +422,11 @@ public class SearchServices {
 	}
 
 	public SearchResponseIterator<Record> reverseRecordsIterator(LogicalSearchCondition condition) {
-		return reverseRecordsIterator(new LogicalSearchQuery(condition));
+		return reverseRecordsIterator(new LogicalSearchQuery(condition).filteredByVisibilityStatus(ALL));
 	}
 
 	public SearchResponseIterator<Record> reverseRecordsIterator(LogicalSearchCondition condition, int batchSize) {
-		return reverseRecordsIterator(new LogicalSearchQuery(condition), batchSize);
+		return reverseRecordsIterator(new LogicalSearchQuery(condition).filteredByVisibilityStatus(ALL), batchSize);
 	}
 
 	public SearchResponseIterator<Record> reverseRecordsIterator(LogicalSearchQuery query) {
@@ -526,7 +527,7 @@ public class SearchServices {
 	}
 
 	public long getResultsCount(LogicalSearchCondition condition) {
-		return getResultsCount(new LogicalSearchQuery(condition));
+		return getResultsCount(new LogicalSearchQuery(condition).filteredByVisibilityStatus(ALL));
 	}
 
 	public long getResultsCount(LogicalSearchQuery query) {
@@ -539,7 +540,7 @@ public class SearchServices {
 	}
 
 	public List<String> searchRecordIds(LogicalSearchCondition condition) {
-		LogicalSearchQuery query = new LogicalSearchQuery(condition);
+		LogicalSearchQuery query = new LogicalSearchQuery(condition).filteredByVisibilityStatus(ALL);
 		return searchRecordIds(query);
 	}
 

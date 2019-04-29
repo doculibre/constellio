@@ -10,9 +10,6 @@ import static java.util.Arrays.asList;
 import java.io.IOException;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.events.RMEventsSearchServices;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
@@ -49,8 +46,6 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
 public class DisplayTaskPresenter extends AbstractTaskPresenter<DisplayTaskView> {
 
-	private static Logger LOGGER = LoggerFactory.getLogger(DisplayTaskPresenter.class);
-	
 	private static final String DISPLAY_TASK_PRESENTER_PREVIOUS_TAB = "DisplayTaskPresenterPreviousTab";
 
 	TaskVO taskVO;

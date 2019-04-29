@@ -11,6 +11,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
 import java.util.ArrayList;
@@ -74,6 +75,7 @@ public class RobotsMigrationCombo implements ComboMigrationScript {
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			generatedComboMigration.applyGeneratedSchemaAlteration(typesBuilder);
 			typesBuilder.getDefaultSchema(Robot.SCHEMA_TYPE).get(Schemas.TITLE_CODE).setMultiLingual(true);
+			new CommonMetadataBuilder().addCommonMetadataToAllExistingSchemas(typesBuilder);
 		}
 
 	}

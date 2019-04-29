@@ -1,11 +1,13 @@
 package com.constellio.app.modules.rm.ui.components;
 
+import java.util.Locale;
+
+import com.constellio.app.modules.rm.ui.components.administrativeUnit.ListAddRemoveUserFunctionField;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.vaadin.ui.Field;
-
-import java.util.Locale;
 
 public class RMRecordFieldFactory extends RecordFieldFactory {
 
@@ -15,23 +17,18 @@ public class RMRecordFieldFactory extends RecordFieldFactory {
 
 	@Override
 	public Field<?> build(RecordVO recordVO, MetadataVO metadataVO, Locale locale) {
-		return super.build(recordVO, metadataVO, locale);
+		Field<?> field;
+		if (metadataVO.codeMatches(AdministrativeUnit.FUNCTIONS)) {
+			field = new ListAddRemoveUserFunctionField(recordVO);
+		} else if (metadataVO.codeMatches(AdministrativeUnit.FUNCTIONS_USERS)) {
+			field = null;
+		} else {
+			field = super.build(recordVO, metadataVO, locale);
+		}
+		if (field instanceof ListAddRemoveUserFunctionField) {
+			postBuild(field, recordVO, metadataVO);
+		}
+		return field;
 	}
-
-	//	@Override
-	//	public Field<?> build(RecordVO recordVO, MetadataVO metadataVO) {
-	//		Field<?> field;
-	//		String schemaTypeCode = metadataVO.getSchemaTypeCode();
-	//		MetadataInputType inputType = metadataVO.getMetadataInputType();
-	//		if (inputType == MetadataInputType.LOOKUP && schemaTypeCode.equals(Folder.SCHEMA_TYPE) && !metadataVO.isMultivalue()) {
-	//			field = new LookupFolderField();
-	//		} else {
-	//			field = super.build(recordVO, metadataVO);
-	//		}
-	//		if (field instanceof LookupFolderField) {
-	//			postBuild(field, recordVO, metadataVO);
-	//		}
-	//		return field;
-	//	}
 
 }

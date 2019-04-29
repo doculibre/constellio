@@ -67,6 +67,7 @@ public class BaseUploadField extends CustomField<Object> implements DropHandler 
 		setSizeFull();
 
 		mainLayout = new VerticalLayout();
+		mainLayout.addStyleName(STYLE_NAME + "-layout");
 		mainLayout.setSizeFull();
 		mainLayout.setSpacing(true);
 
@@ -122,6 +123,7 @@ public class BaseUploadField extends CustomField<Object> implements DropHandler 
 			}
 		};
 		multiFileUpload.setWidth("100%");
+		multiFileUpload.addStyleName(STYLE_NAME + "-multifileupload");
 
 		addValueChangeListener(new ValueChangeListener() {
 			@SuppressWarnings("unchecked")
@@ -191,6 +193,7 @@ public class BaseUploadField extends CustomField<Object> implements DropHandler 
 		fileUploadsTable.setWidth("100%");
 		fileUploadsTable.setColumnHeaderMode(ColumnHeaderMode.HIDDEN);
 		fileUploadsTable.setColumnWidth(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID, 47);
+		fileUploadsTable.addStyleName(STYLE_NAME + "-table");
 
 		multiFileUpload.setVisible(!isViewOnly);
 

@@ -106,6 +106,8 @@ public class RecordDisplay extends BaseDisplay {
 		this.recordVO = recordVO;
 	}
 
+	private Component commentsComponent;
+
 	@Override
 	protected void addCaptionAndDisplayComponent(Label captionLabel, Component displayComponent,
 												 VerticalLayout layout) {
@@ -115,9 +117,15 @@ public class RecordDisplay extends BaseDisplay {
 			verticalLayout.setWidth("100%");
 			verticalLayout.setSpacing(true);
 			verticalLayout.addStyleName("record-comments-editor");
-			layout.addComponent(verticalLayout);
+			mainLayout.addComponent(commentsComponent = verticalLayout);
 		} else {
-			super.addCaptionAndDisplayComponent(captionLabel, displayComponent, layout);
+			if (commentsComponent != null) {
+				mainLayout.removeComponent(commentsComponent);
+			}
+			super.addCaptionAndDisplayComponent(captionLabel, displayComponent);
+			if (commentsComponent != null) {
+				mainLayout.addComponent(commentsComponent);
+			}
 		}
 	}
 
