@@ -464,13 +464,13 @@ public class MetadataSchemaBuilderTest extends ConstellioTest {
 	}
 
 	private void build() {
-		defaultSchema = defaultSchemaBuilder.buildDefault(typesFactory, modelLayerFactory);
-		customSchema = customSchemaBuilder.buildCustom(defaultSchema, typesFactory, modelLayerFactory);
+		defaultSchema = defaultSchemaBuilder.buildDefault(typesFactory, metadataSchemaTypeBuilder, typesBuilder, modelLayerFactory);
+		customSchema = customSchemaBuilder.buildCustom(defaultSchema, metadataSchemaTypeBuilder, typesBuilder, typesFactory, modelLayerFactory);
 	}
 
 	private void buildAndModify() {
-		MetadataSchema defaultSchema = defaultSchemaBuilder.buildDefault(typesFactory, modelLayerFactory);
-		MetadataSchema customSchema = customSchemaBuilder.buildCustom(defaultSchema, typesFactory, modelLayerFactory);
+		MetadataSchema defaultSchema = defaultSchemaBuilder.buildDefault(typesFactory, metadataSchemaTypeBuilder, typesBuilder, modelLayerFactory);
+		MetadataSchema customSchema = customSchemaBuilder.buildCustom(defaultSchema, metadataSchemaTypeBuilder, typesBuilder, typesFactory, modelLayerFactory);
 		defaultSchemaBuilder = MetadataSchemaBuilder.modifyDefaultSchema(defaultSchema, metadataSchemaTypeBuilder);
 		customSchemaBuilder = MetadataSchemaBuilder.modifySchema(customSchema, metadataSchemaTypeBuilder);
 	}

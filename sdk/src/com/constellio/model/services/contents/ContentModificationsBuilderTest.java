@@ -1,6 +1,7 @@
 package com.constellio.model.services.contents;
 
 import com.constellio.data.dao.dto.records.RecordDTO;
+import com.constellio.data.dao.dto.records.SolrRecordDTO;
 import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
@@ -318,7 +319,7 @@ public class ContentModificationsBuilderTest extends ConstellioTest {
 		params.put(metadata.getDataStoreCode(), value);
 		params.put("schema_s", schemaCode);
 		params.put("collection_s", zeCollection);
-		RecordDTO recordDTO = new RecordDTO("zeId", 3L, null, params);
+		RecordDTO recordDTO = new SolrRecordDTO("zeId", 3L, null, params);
 
 		return new TestRecord(recordDTO, collectionInfo);
 	}

@@ -77,13 +77,13 @@ public class MetadataBuilderTest extends ConstellioTest {
 	}
 
 	protected void build() {
-		metadataWithoutInheritance = metadataWithoutInheritanceBuilder.buildWithoutInheritance(typesFactory, modelLayerFactory);
+		metadataWithoutInheritance = metadataWithoutInheritanceBuilder.buildWithoutInheritance(typesFactory, schemaTypeBuilder, modelLayerFactory);
 		inheritedMetadata = metadataWithoutInheritance;
 		metadataWithInheritance = metadataWithInheritanceBuilder.buildWithInheritance(inheritedMetadata);
 	}
 
 	protected void buildAndModify() {
-		Metadata inheritedMetadata = metadataWithoutInheritanceBuilder.buildWithoutInheritance(typesFactory, modelLayerFactory);
+		Metadata inheritedMetadata = metadataWithoutInheritanceBuilder.buildWithoutInheritance(typesFactory, schemaTypeBuilder, modelLayerFactory);
 		Metadata metadataWithInheritance = metadataWithInheritanceBuilder.buildWithInheritance(inheritedMetadata);
 		ClassProvider classProvider = new DefaultClassProvider();
 		metadataWithoutInheritanceBuilder = MetadataBuilder

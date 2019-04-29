@@ -23,6 +23,8 @@ public class MetadataSchema implements Serializable {
 
 	private static final String UNDERSCORE = "_";
 
+	private final short id;
+
 	private final String localCode;
 
 	private final String code;
@@ -49,11 +51,13 @@ public class MetadataSchema implements Serializable {
 
 	private final CollectionInfo collectionInfo;
 
-	public MetadataSchema(String localCode, String code, CollectionInfo collectionInfo, Map<Language, String> labels,
+	public MetadataSchema(short id, String localCode, String code, CollectionInfo collectionInfo,
+						  Map<Language, String> labels,
 						  List<Metadata> metadatas,
 						  Boolean undeletable, boolean inTransactionLog, Set<RecordValidator> schemaValidators,
 						  MetadataSchemaCalculatedInfos calculatedInfos, String dataStore, boolean active) {
 		super();
+		this.id = id;
 		this.localCode = localCode;
 		this.code = code;
 		this.labels = new HashMap<>(labels);
@@ -68,6 +72,10 @@ public class MetadataSchema implements Serializable {
 		this.active = active;
 		this.collectionInfo = collectionInfo;
 
+	}
+
+	public short getId() {
+		return id;
 	}
 
 	public String getLocalCode() {

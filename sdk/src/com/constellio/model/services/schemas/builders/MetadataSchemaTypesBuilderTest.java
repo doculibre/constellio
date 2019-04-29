@@ -684,7 +684,8 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 		givenZeDefaultSchemaMetadata("m1", STRING).defineDataEntry().asCalculated(CalculatorUsingM2.class);
 		givenZeDefaultSchemaMetadata("m2", STRING).defineDataEntry().asCopied(zeSchemaMetadataRef, anotherSchemaMetadata);
 
-		List<Metadata> metadatas = zeTypeDefaultSchema.buildDefault(typesFactory, modelLayerFactory).getAutomaticMetadatas();
+		List<Metadata> metadatas = zeTypeDefaultSchema.buildDefault(typesFactory, typesBuilder.getSchemaType(zeTypeDefaultSchema.getTypeCode())
+				, typesBuilder, modelLayerFactory).getAutomaticMetadatas();
 
 		assertThat(metadatas).extracting("localCode")
 				.isEqualTo(
@@ -706,7 +707,8 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 
 		zeSchemaMetadataRef.defineReferences().set(anotherType);
 
-		zeTypeDefaultSchema.buildDefault(typesFactory, modelLayerFactory).getAutomaticMetadatas();
+		zeTypeDefaultSchema.buildDefault(typesFactory, typesBuilder.getSchemaType(zeTypeDefaultSchema.getTypeCode())
+				, typesBuilder, modelLayerFactory).getAutomaticMetadatas();
 	}
 
 	@Test

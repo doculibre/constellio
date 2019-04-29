@@ -54,6 +54,7 @@ public class MetadataSchemaTypesBuilder {
 	private final CollectionInfo collectionInfo;
 	private ClassProvider classProvider;
 	private List<Language> languages = new ArrayList<>();
+	private SchemasIdSequence schemasIdSequence;
 
 	private MetadataSchemaTypesBuilder(CollectionInfo collectionInfo, int version, ClassProvider classProvider,
 									   List<Language> languages) {
@@ -86,7 +87,7 @@ public class MetadataSchemaTypesBuilder {
 
 		List<MetadataSchemaType> buildedSchemaTypes = new ArrayList<>();
 		for (MetadataSchemaTypeBuilder schemaType : schemaTypes) {
-			buildedSchemaTypes.add(schemaType.build(typesFactory, modelLayerFactory));
+			buildedSchemaTypes.add(schemaType.build(typesFactory, this, modelLayerFactory));
 		}
 
 		List<String> referenceDefaultValues = new ArrayList<>();
@@ -393,7 +394,7 @@ public class MetadataSchemaTypesBuilder {
 				List<? extends Dependency> dependencies = calculatedDataEntry.getCalculator().getDependencies();
 				boolean needToBeInitialized = calculatedDataEntry.getCalculator() instanceof InitializedMetadataValueCalculator;
 				if (!needToBeInitialized && (dependencies == null || dependencies.size() == 0)) {
-//					throw new MetadataSchemaTypesBuilderRuntimeException.NoDependenciesInCalculator(calculatedDataEntry
+					//					throw new MetadataSchemaTypesBuilderRuntimeException.NoDependenciesInCalculator(calculatedDataEntry
 					//							.getCalculator().getClass().getName());
 				}
 				if (metadataBuilder.getType() != valueTypeMetadataCalculated) {
@@ -544,4 +545,17 @@ public class MetadataSchemaTypesBuilder {
 		this.version = version;
 	}
 
+
+	short nextSchemaId() {
+		if (schemasIdSequence == null) {
+			schemasIdSequence = new SchemasIdSequence();
+			for (MetadataSchemaTypeBuilder schemaTypeBuilder : getTypes()) {
+				schemasIdSequence.markAsAssigned(schemaTypeBuilder.getId());
+				for (MetadataSchemaBuilder metadataSchemaBuilder : schemaTypeBuilder.getAllSchemas()) {
+					schemasIdSequence.markAsAssigned(metadataSchemaBuilder.getId());
+				}
+			}
+		}
+		return schemasIdSequence.getNewId();
+	}
 }

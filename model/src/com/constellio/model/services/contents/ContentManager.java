@@ -3,6 +3,7 @@ package com.constellio.model.services.contents;
 import com.constellio.data.conf.HashingEncoding;
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
+import com.constellio.data.dao.dto.records.SolrRecordDTO;
 import com.constellio.data.dao.dto.records.TransactionDTO;
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.services.bigVault.RecordDaoException.OptimisticLocking;
@@ -186,7 +187,7 @@ public class ContentManager implements StatefulService {
 				}
 			}
 		};
-Runnable scanVaultContentsInBackgroundRunnable = new Runnable() {
+		Runnable scanVaultContentsInBackgroundRunnable = new Runnable() {
 			@Override
 			public void run() {
 				boolean isInScanVaultContentsSchedule = new ConstellioEIMConfigs(modelLayerFactory).isInScanVaultContentsSchedule();
@@ -290,10 +291,10 @@ Runnable scanVaultContentsInBackgroundRunnable = new Runnable() {
 		Set<String> allReferencedHashes = getAllReferencedHashes();
 
 		ContentDao contentDao = getContentDao();
-		for(String fileId : vaultContentFileList) {
-			if(!allReferencedHashes.contains(fileId)) {
+		for (String fileId : vaultContentFileList) {
+			if (!allReferencedHashes.contains(fileId)) {
 				File file = contentDao.getFileOf(fileId);
-				if(file.exists()) {
+				if (file.exists()) {
 					try {
 						contentDao.delete(asList(fileId, fileId + "__parsed", fileId + ".preview"));
 						vaultScanResults.incrementNumberOfDeletedContents();
@@ -307,7 +308,8 @@ Runnable scanVaultContentsInBackgroundRunnable = new Runnable() {
 		}
 	}
 
-	public void getAllContentsFromVaultAndRemoveOrphan(String folderId,List<String> fileList, VaultScanResults vaultScanResults) {
+	public void getAllContentsFromVaultAndRemoveOrphan(String folderId, List<String> fileList,
+													   VaultScanResults vaultScanResults) {
 		ContentDao contentDao = getContentDao();
 		List<String> subFiles = contentDao.getFolderContents(folderId);
 		for (String fileId : subFiles) {
@@ -681,7 +683,7 @@ Runnable scanVaultContentsInBackgroundRunnable = new Runnable() {
 			fields.put("contentMarkerHash_s", hash);
 			fields.put("time_dt", TimeProvider.getLocalDateTime());
 
-			RecordDTO recordDTO = new RecordDTO(id, fields);
+			RecordDTO recordDTO = new SolrRecordDTO(id, fields);
 			try {
 				recordDao.execute(new TransactionDTO(RecordsFlushing.ADD_LATER()).withNewRecords(asList(recordDTO)));
 			} catch (OptimisticLocking e) {

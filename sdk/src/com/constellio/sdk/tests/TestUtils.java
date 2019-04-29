@@ -4,6 +4,7 @@ import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.data.dao.dto.records.RecordDTO;
+import com.constellio.data.dao.dto.records.SolrRecordDTO;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.events.EventBusManager;
 import com.constellio.data.events.SDKEventBusSendingService;
@@ -404,7 +405,7 @@ public class TestUtils {
 		fields.put("collection_s", schema.collection());
 		fields.put("schema_s", schema.code());
 
-		return new RecordDTO(id, anInteger(), null, fields);
+		return new SolrRecordDTO(id, anInteger(), null, fields);
 	}
 
 	public static Condition<? super List<String>> noDuplicates() {

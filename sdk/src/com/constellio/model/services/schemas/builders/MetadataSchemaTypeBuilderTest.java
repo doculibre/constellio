@@ -479,11 +479,11 @@ public class MetadataSchemaTypeBuilderTest extends ConstellioTest {
 	}
 
 	private void build() {
-		schemaType = schemaTypeBuilder.build(typesFactory, modelLayerFactory);
+		schemaType = schemaTypeBuilder.build(typesFactory, typesBuilder, modelLayerFactory);
 	}
 
 	private void buildAndModify() {
-		MetadataSchemaType schemaType = schemaTypeBuilder.build(typesFactory, modelLayerFactory);
+		MetadataSchemaType schemaType = schemaTypeBuilder.build(typesFactory, typesBuilder, modelLayerFactory);
 		schemaTypeBuilder = MetadataSchemaTypeBuilder.modifySchemaType(schemaType, new DefaultClassProvider());
 	}
 

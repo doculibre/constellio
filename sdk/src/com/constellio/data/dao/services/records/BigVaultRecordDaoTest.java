@@ -2,6 +2,7 @@ package com.constellio.data.dao.services.records;
 
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
+import com.constellio.data.dao.dto.records.SolrRecordDTO;
 import com.constellio.data.dao.dto.records.TransactionDTO;
 import com.constellio.data.dao.services.DataLayerLogger;
 import com.constellio.data.dao.services.DataStoreTypesFactory;
@@ -69,11 +70,11 @@ public class BigVaultRecordDaoTest extends ConstellioTest {
 
 		ArgumentCaptor<BigVaultServerTransaction> transactionCaptor = ArgumentCaptor.forClass(BigVaultServerTransaction.class);
 
-		RecordDTO child1 = new RecordDTO("child1",
+		RecordDTO child1 = new SolrRecordDTO("child1",
 				buildParamMapWith("zeCollection", "zeType_default").andWith("parentPId_s", "parent")
 						.andWith("otherRefId_s", "zeRef")
 						.build());
-		RecordDTO child2 = new RecordDTO("child2",
+		RecordDTO child2 = new SolrRecordDTO("child2",
 				buildParamMapWith("zeCollection", "zeType_default").andWith("parentPId_s", "parent")
 						.andWith("otherRefId_s", "zeRef")
 						.build());

@@ -169,7 +169,7 @@ public class SchemaUtils {
 		throw new SchemaUtilsRuntimeException_NoMetadataWithDatastoreCode(metadataDataStoreCode);
 	}
 
-	public String getLocalCodeFromDataStoreCode(String metadataDataStoreCode) {
+	public static String getLocalCodeFromDataStoreCode(String metadataDataStoreCode) {
 		int indexOfUnderscore = metadataDataStoreCode.indexOf("_");
 		String firstPart;
 		if (indexOfUnderscore == -1) {

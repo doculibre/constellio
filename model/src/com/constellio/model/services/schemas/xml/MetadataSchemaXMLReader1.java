@@ -63,7 +63,7 @@ public class MetadataSchemaXMLReader1 {
 		schemaTypeBuilder.setInTransactionLog(getBooleanFlagValueWithTrueAsDefaultValue(element, "inTransactionLog"));
 		parseDefaultSchema(element, schemaTypeBuilder);
 		parseCustomSchemas(element, schemaTypeBuilder);
-		return schemaTypeBuilder.build(typesFactory, modelLayerFactory);
+		return schemaTypeBuilder.build(typesFactory, typesBuilder, modelLayerFactory);
 	}
 
 	private void parseCustomSchemas(Element root, MetadataSchemaTypeBuilder schemaTypeBuilder) {
@@ -97,6 +97,7 @@ public class MetadataSchemaXMLReader1 {
 		} else {
 			metadataBuilder = schemaBuilder.create(codeValue);
 		}
+
 
 		metadataBuilder.addLabel(Language.French, getLabelValue(metadataElement));
 		if (!metadataBuilder.isSystemReserved()) {

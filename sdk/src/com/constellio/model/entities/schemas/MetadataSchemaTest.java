@@ -73,10 +73,10 @@ public class MetadataSchemaTest extends ConstellioTest {
 		List<Taxonomy> taxonomies = Arrays.asList(firstTaxonomy, secondTaxonomy);
 
 		CollectionInfo zeCollectionInfo = new CollectionInfo(zeCollection, "fr", Arrays.asList("fr"));
-		MetadataSchema schema = new MetadataSchema("default", "second_default", zeCollectionInfo, labels, metadatas, false,
+		MetadataSchema schema = new MetadataSchema((short) 0, "default", "second_default", zeCollectionInfo, labels, metadatas, false,
 				true, new HashSet<RecordValidator>(), null, DataStore.RECORDS, true);
 
-		MetadataSchemaType schemaType = new MetadataSchemaType("second", null, zeCollectionInfo, asMap(Language.French, "titre"),
+		MetadataSchemaType schemaType = new MetadataSchemaType((short) 0, "second", null, zeCollectionInfo, asMap(Language.French, "titre"),
 				new ArrayList<MetadataSchema>(), schema, true, true, true, false, "records");
 
 		List<Metadata> returnedMetadatas = schemaType.getTaxonomySchemasMetadataWithChildOfRelationship(taxonomies);
@@ -108,7 +108,7 @@ public class MetadataSchemaTest extends ConstellioTest {
 						textMetadata);
 
 		CollectionInfo zeCollectionInfo = new CollectionInfo(zeCollection, "fr", Arrays.asList("fr"));
-		MetadataSchema schema = new MetadataSchema("default", "zeType_default", zeCollectionInfo, labels, metadatas, false,
+		MetadataSchema schema = new MetadataSchema((short) 0, "default", "zeType_default", zeCollectionInfo, labels, metadatas, false,
 				true, new HashSet<RecordValidator>(), null, DataStore.RECORDS, true);
 
 		List<Metadata> returnedMetadatas = schema.getTaxonomyRelationshipReferences(taxonomies);
@@ -141,7 +141,7 @@ public class MetadataSchemaTest extends ConstellioTest {
 				.asList(relationToT4, taxonomyRelationToT4, relationToT3Custom, taxonomyRelationToT3Custom, relationToOtherSchema,
 						textMetadata, relationToT1, relationToT2);
 		CollectionInfo zeCollectionInfo = new CollectionInfo(zeCollection, "fr", Arrays.asList("fr"));
-		MetadataSchema schema = new MetadataSchema("default", "t2_default", zeCollectionInfo, labels, metadatas, false,
+		MetadataSchema schema = new MetadataSchema((short) 0, "default", "t2_default", zeCollectionInfo, labels, metadatas, false,
 				true, new HashSet<RecordValidator>(), null, DataStore.RECORDS, true);
 
 		List<Metadata> returnedMetadatas = schema.getTaxonomyRelationshipReferences(taxonomies);

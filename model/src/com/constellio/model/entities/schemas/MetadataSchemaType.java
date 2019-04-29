@@ -24,6 +24,8 @@ public class MetadataSchemaType implements Serializable {
 
 	public static final String DEFAULT = "default";
 
+	private final short id;
+
 	private final String code;
 
 	private final String smallCode;
@@ -50,13 +52,14 @@ public class MetadataSchemaType implements Serializable {
 
 	private final CollectionInfo collectionInfo;
 
-	public MetadataSchemaType(String code, String smallCode, CollectionInfo collectionInfo,
+	public MetadataSchemaType(short id, String code, String smallCode, CollectionInfo collectionInfo,
 							  Map<Language, String> labels,
 							  List<MetadataSchema> customSchemas,
 							  MetadataSchema defaultSchema, Boolean undeletable, boolean security,
 							  boolean inTransactionLog,
 							  boolean readOnlyLocked, String dataStore) {
 		super();
+		this.id = id;
 		this.code = code;
 		this.smallCode = smallCode;
 		this.labels = Collections.unmodifiableMap(labels);
@@ -101,6 +104,10 @@ public class MetadataSchemaType implements Serializable {
 
 	public CollectionInfo getCollectionInfo() {
 		return collectionInfo;
+	}
+
+	public short getId() {
+		return id;
 	}
 
 	public String getCode() {

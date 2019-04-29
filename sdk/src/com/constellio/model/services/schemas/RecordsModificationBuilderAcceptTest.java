@@ -1,6 +1,6 @@
 package com.constellio.model.services.schemas;
 
-import com.constellio.data.dao.dto.records.RecordDTO;
+import com.constellio.data.dao.dto.records.SolrRecordDTO;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.Metadata;
@@ -138,7 +138,7 @@ public class RecordsModificationBuilderAcceptTest extends ConstellioTest {
 		fields.put("schema_s", "zeSchema_default");
 
 		RecordImpl record = spy(new TestRecord(schema, "zeCollection", id));
-		record.refresh(1, new RecordDTO(id, 1, null, fields));
+		record.refresh(1, new SolrRecordDTO(id, 1, null, fields));
 
 		for (Metadata metadata : metadatas) {
 			record.set(metadata, "aNewValue");

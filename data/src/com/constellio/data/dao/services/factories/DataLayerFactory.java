@@ -10,6 +10,7 @@ import com.constellio.data.conf.SolrServerType;
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordDeltaDTO;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
+import com.constellio.data.dao.dto.records.SolrRecordDTO;
 import com.constellio.data.dao.dto.records.TransactionDTO;
 import com.constellio.data.dao.managers.StatefullServiceDecorator;
 import com.constellio.data.dao.managers.config.CachedConfigManager;
@@ -418,7 +419,7 @@ public class DataLayerFactory extends LayerFactoryImpl {
 		RecordDao recordDao = newRecordDao();
 		Map<String, Object> fields = new HashMap<>();
 		fields.put("value_s", solrKeyPart);
-		RecordDTO record = new RecordDTO("the_private_key", -1L, null, fields);
+		RecordDTO record = new SolrRecordDTO("the_private_key", -1L, null, fields);
 		try {
 			recordDao.execute(new TransactionDTO(UUID.randomUUID().toString(), RecordsFlushing.NOW, Arrays.asList(record),
 					new ArrayList<RecordDeltaDTO>()));

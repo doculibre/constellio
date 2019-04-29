@@ -5,6 +5,7 @@ import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordDeltaDTO;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
+import com.constellio.data.dao.dto.records.SolrRecordDTO;
 import com.constellio.data.dao.dto.records.TransactionDTO;
 import com.constellio.data.dao.dto.records.TransactionResponseDTO;
 import com.constellio.data.dao.services.DataStoreTypesFactory;
@@ -109,10 +110,10 @@ public class RecordServicesTest extends ConstellioTest {
 	long theNewVersion = 9L;
 
 	Map<String, Object> dtoValues = asMap("schema_string", (Object) "schematype_default", "collection_s", "zeCollection");
-	RecordDTO firstSearchResult = new RecordDTO("1", 1, null, dtoValues);
-	RecordDTO secondSearchResult = new RecordDTO("2", 1, null, dtoValues);
+	RecordDTO firstSearchResult = new SolrRecordDTO("1", 1, null, dtoValues);
+	RecordDTO secondSearchResult = new SolrRecordDTO("2", 1, null, dtoValues);
 	List<RecordDTO> theSearchResults = Arrays.asList(firstSearchResult, secondSearchResult);
-	RecordDTO recordDTO = new RecordDTO("3", 1, null, dtoValues);
+	RecordDTO recordDTO = new SolrRecordDTO("3", 1, null, dtoValues);
 	@Mock RecordDeltaDTO deltaDTO;
 	DataStoreTypesFactory typesFactory = new FakeDataStoreTypeFactory();
 	@Mock MetadataSchemasManager schemaManager;

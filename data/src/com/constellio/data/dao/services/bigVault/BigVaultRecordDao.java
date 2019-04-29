@@ -7,6 +7,7 @@ import com.constellio.data.dao.dto.records.QueryResponseDTO;
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordDeltaDTO;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
+import com.constellio.data.dao.dto.records.SolrRecordDTO;
 import com.constellio.data.dao.dto.records.TransactionDTO;
 import com.constellio.data.dao.dto.records.TransactionResponseDTO;
 import com.constellio.data.dao.services.DataLayerLogger;
@@ -839,7 +840,7 @@ public class BigVaultRecordDao implements RecordDao {
 				}
 			}
 		}
-		return new RecordDTO(id, version, fields, fieldValues);
+		return new SolrRecordDTO(id, version, fields, fieldValues);
 	}
 
 	private boolean containsTwoUnderscoresAndIsNotVersionField(String field) {

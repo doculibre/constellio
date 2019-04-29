@@ -34,7 +34,6 @@ import com.constellio.model.utils.ParametrizedInstanceUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jdom2.Document;
 import org.jdom2.Element;
-import org.jdom2.input.SAXBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,7 +46,6 @@ public class MetadataSchemaXMLWriter3 {
 
 	public static final String FORMAT_ATTRIBUTE = "format";
 	public static final String FORMAT_VERSION = MetadataSchemaXMLReader3.FORMAT_VERSION;
-	private SAXBuilder saxBuilder = new SAXBuilder();
 	private static final Logger LOGGER = LoggerFactory.getLogger(DataLayerLogger.class);
 	private final MetadataPopulatorPersistenceManager metadataPopulatorXMLSerializer = new DefaultMetadataPopulatorPersistenceManager();
 
@@ -70,6 +68,7 @@ public class MetadataSchemaXMLWriter3 {
 			Element schemaElement = toXMLElement(schema, collectionSchema, schemaType.getCollectionInfo());
 			customSchemasElement.addContent(schemaElement);
 		}
+
 		schemaTypeElement.addContent(customSchemasElement);
 	}
 
@@ -78,7 +77,7 @@ public class MetadataSchemaXMLWriter3 {
 		MetadataSchema defaultSchema = schemaType.getDefaultSchema();
 		Element defaultSchemaElement = new Element("defaultSchema");
 		defaultSchemaElement.setAttribute("code", "" + defaultSchema.getLocalCode());
-
+		defaultSchemaElement.setAttribute("id", writeShort(defaultSchema.getId()));
 		writeLabels(defaultSchemaElement, defaultSchema.getLabels(), schemaType.getCollectionInfo());
 		//		defaultSchemaElement.setAttribute("label", "" + defaultSchema.getLabel());
 		addAllMetadataToSchema(collectionSchema, defaultSchema, defaultSchemaElement, schemaType.getCollectionInfo());
@@ -145,6 +144,7 @@ public class MetadataSchemaXMLWriter3 {
 	private Element writeSchemaType(MetadataSchemaType schemaType, MetadataSchema collectionSchema) {
 		Element schemaTypeElement = new Element("type");
 		schemaTypeElement.setAttribute("code", schemaType.getCode());
+		schemaTypeElement.setAttribute("id", writeShort(schemaType.getId()));
 
 		writeLabels(schemaTypeElement, schemaType.getLabels(), schemaType.getCollectionInfo());
 		if (schemaType.hasSecurity()) {
@@ -168,9 +168,11 @@ public class MetadataSchemaXMLWriter3 {
 		return schemaTypeElement;
 	}
 
-	private Element toXMLElement(MetadataSchema schema, MetadataSchema collectionSchema, CollectionInfo collectionInfo) {
+	private Element toXMLElement(MetadataSchema schema, MetadataSchema collectionSchema,
+								 CollectionInfo collectionInfo) {
 		Element schemaElement = new Element("schema");
 		schemaElement.setAttribute("code", schema.getLocalCode());
+		schemaElement.setAttribute("id", writeShort(schema.getId()));
 		writeLabels(schemaElement, schema.getLabels(), schema.getCollectionInfo());
 		schemaElement.setAttribute("undeletable", writeBoolean(schema.isUndeletable()));
 		schemaElement.setAttribute("active", writeBoolean(schema.isActive()));
@@ -225,6 +227,9 @@ public class MetadataSchemaXMLWriter3 {
 												 boolean notUserDefinedMetadata, CollectionInfo collectionInfo) {
 		writeLabels(metadataElement, metadata.getLabels(), collectionInfo);
 
+		if (!metadata.isGlobal()) {
+			metadataElement.setAttribute("id", writeShort(metadata.getId()));
+		}
 		if (!metadata.isEnabled()) {
 			metadataElement.setAttribute("enabled", writeBoolean(metadata.isEnabled()));
 		}
@@ -336,7 +341,8 @@ public class MetadataSchemaXMLWriter3 {
 
 	private boolean writeGlobalMetadataWithoutInheritance(Metadata metadata, ParametrizedInstanceUtils utils,
 														  Element metadataElement, boolean notUserDefinedMetadata,
-														  Metadata globalMetadataInCollection, CollectionInfo collectionInfo) {
+														  Metadata globalMetadataInCollection,
+														  CollectionInfo collectionInfo) {
 
 		boolean different = false;
 		if (!globalMetadataInCollection.getLabels().equals(metadata.getLabels())) {
@@ -484,7 +490,8 @@ public class MetadataSchemaXMLWriter3 {
 		return different;
 	}
 
-	private boolean writeMetadataWithInheritance(Metadata metadata, Element metadataElement, CollectionInfo collectionInfo) {
+	private boolean writeMetadataWithInheritance(Metadata metadata, Element metadataElement,
+												 CollectionInfo collectionInfo) {
 		boolean differentFromInheritance = false;
 		if (metadata.getInheritance().isDefaultRequirement() != metadata.isDefaultRequirement()) {
 			metadataElement.setAttribute("defaultRequirement", writeBoolean(metadata.isDefaultRequirement()));
@@ -532,6 +539,10 @@ public class MetadataSchemaXMLWriter3 {
 
 	private String writeBoolean(boolean enabled) {
 		return enabled ? "t" : "f";
+	}
+
+	private String writeShort(short id) {
+		return "" + id;
 	}
 
 	private String writeEnum(EnumWithSmallCode value) {

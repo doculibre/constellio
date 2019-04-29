@@ -32,6 +32,7 @@ public class MetadataSchemaTypeBuilder {
 
 	private static final String UNDERSCORE = "_";
 	private final Set<MetadataSchemaBuilder> allSchemas = new HashSet<MetadataSchemaBuilder>();
+	private short id;
 	private String code;
 	private String smallCode;
 	private CollectionInfo collectionInfo;
@@ -45,6 +46,7 @@ public class MetadataSchemaTypeBuilder {
 	private ClassProvider classProvider;
 	private Set<String> flags = new HashSet<>();
 	private String dataStore;
+	private SchemasIdSequence metadatasIdSequence;
 
 	MetadataSchemaTypeBuilder() {
 	}
@@ -151,6 +153,11 @@ public class MetadataSchemaTypeBuilder {
 		this.undeletable = undeletable;
 	}
 
+	public short getId() {
+		return id;
+	}
+
+
 	public Set<MetadataSchemaBuilder> getAllSchemas() {
 		allSchemas.addAll(customSchemas);
 		allSchemas.add(defaultSchema);
@@ -206,19 +213,20 @@ public class MetadataSchemaTypeBuilder {
 		return customSchema;
 	}
 
-	public MetadataSchemaType build(DataStoreTypesFactory typesFactory, ModelLayerFactory modelLayerFactory) {
-		MetadataSchema defaultSchema = this.defaultSchema.buildDefault(typesFactory, modelLayerFactory);
+	public MetadataSchemaType build(DataStoreTypesFactory typesFactory, MetadataSchemaTypesBuilder typesBuilder,
+									ModelLayerFactory modelLayerFactory) {
+		MetadataSchema defaultSchema = this.defaultSchema.buildDefault(typesFactory, this, typesBuilder, modelLayerFactory);
 
 		List<MetadataSchema> schemas = new ArrayList<MetadataSchema>();
 		for (MetadataSchemaBuilder metadataSchemaBuilder : this.customSchemas) {
-			schemas.add(metadataSchemaBuilder.buildCustom(defaultSchema, typesFactory, modelLayerFactory));
+			schemas.add(metadataSchemaBuilder.buildCustom(defaultSchema, this, typesBuilder, typesFactory, modelLayerFactory));
 		}
 
 		if (labels == null || labels.isEmpty()) {
 			throw new MetadataSchemaTypeBuilderRuntimeException.LabelNotDefined(code);
 		} else {
 			for (Entry<Language, String> entry : labels.entrySet()) {
-				if(collectionInfo.getCollectionLocales().contains(entry.getKey().getLocale())) {
+				if (collectionInfo.getCollectionLocales().contains(entry.getKey().getLocale())) {
 					if (Strings.isNullOrEmpty(entry.getValue())) {
 						throw new MetadataSchemaTypeBuilderRuntimeException.LabelNotDefinedForLanguage(entry.getKey(), code);
 					}
@@ -226,8 +234,12 @@ public class MetadataSchemaTypeBuilder {
 			}
 		}
 
+		if (id == 0) {
+			id = typesBuilder.nextSchemaId();
+		}
+
 		Collections.sort(schemas, SchemaComparators.SCHEMA_COMPARATOR_BY_ASC_LOCAL_CODE);
-		return new MetadataSchemaType(code, smallCode, collectionInfo, labels, schemas, defaultSchema, undeletable, security,
+		return new MetadataSchemaType(id, code, smallCode, collectionInfo, labels, schemas, defaultSchema, undeletable, security,
 				inTransactionLog,
 				readOnlyLocked, dataStore);
 	}
@@ -308,6 +320,14 @@ public class MetadataSchemaTypeBuilder {
 		return this;
 	}
 
+	public MetadataSchemaTypeBuilder setId(short id) {
+		if (this.id != (short) 0) {
+			throw new IllegalStateException("Cannot set id of already created schema type");
+		}
+		this.id = id;
+		return this;
+	}
+
 	public boolean isReadOnlyLocked() {
 		return readOnlyLocked;
 	}
@@ -384,4 +404,17 @@ public class MetadataSchemaTypeBuilder {
 
 		return customSchema;
 	}
+
+	short nextMetadataId() {
+		if (metadatasIdSequence == null) {
+			metadatasIdSequence = new SchemasIdSequence();
+			for (MetadataSchemaBuilder schemaBuilder : allSchemas) {
+				for (MetadataBuilder metadataBuilder : schemaBuilder.getMetadatas()) {
+					metadatasIdSequence.markAsAssigned(metadataBuilder.getId());
+				}
+			}
+		}
+		return metadatasIdSequence.getNewId();
+	}
+
 }

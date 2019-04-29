@@ -34,7 +34,7 @@ public class MetadataSchemaTypeTest extends ConstellioTest {
 		when(customSchema1AutomaticMetadataWithInheritance.getInheritance()).thenReturn(defaultSchemaAutomaticMetadata);
 		when(customSchema2AutomaticMetadataWithInheritance.getInheritance()).thenReturn(defaultSchemaAutomaticMetadata);
 		CollectionInfo zeCollectionInfo = new CollectionInfo(zeCollection, "fr", Arrays.asList("fr"));
-		type = new MetadataSchemaType(aString(), null, zeCollectionInfo, asMap(Language.French, "label"),
+		type = new MetadataSchemaType((short)0, aString(), null, zeCollectionInfo, asMap(Language.French, "label"),
 				asList(customSchema1, customSchema2),
 				defaultSchema, false, true, true, false, "records");
 	}

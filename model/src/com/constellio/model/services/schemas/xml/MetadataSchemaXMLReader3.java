@@ -95,9 +95,15 @@ public class MetadataSchemaXMLReader3 {
 											   DataStoreTypesFactory typesFactory,
 											   ModelLayerFactory modelLayerFactory) {
 		String code = getCodeValue(element);
+		String id = element.getAttributeValue("id");
+
 		Map<Language, String> labels = readLabels(element);
 		MetadataSchemaTypeBuilder schemaTypeBuilder = typesBuilder.createNewSchemaType(code, false)
 				.setLabels(labels);
+
+		if (id != null) {
+			schemaTypeBuilder.setId(Short.valueOf(id));
+		}
 
 		MetadataSchemaBuilder collectionSchema = "collection".equals(code) ?
 												 null : typesBuilder.getSchema(Collection.DEFAULT_SCHEMA);
@@ -110,7 +116,7 @@ public class MetadataSchemaXMLReader3 {
 
 		parseDefaultSchema(element, schemaTypeBuilder, typesBuilder, collectionSchema);
 		parseCustomSchemas(element, schemaTypeBuilder, collectionSchema);
-		return schemaTypeBuilder.build(typesFactory, modelLayerFactory);
+		return schemaTypeBuilder.build(typesFactory, typesBuilder, modelLayerFactory);
 	}
 
 	private void parseCustomSchemas(Element root, MetadataSchemaTypeBuilder schemaTypeBuilder,
@@ -127,6 +133,12 @@ public class MetadataSchemaXMLReader3 {
 		schemaBuilder.setLabels(readLabels(schemaElement));
 		schemaBuilder.setUndeletable(getBooleanFlagValueWithTrueAsDefaultValue(schemaElement, "undeletable"));
 		schemaBuilder.setActive(getBooleanFlagValueWithTrueAsDefaultValue(schemaElement, "active"));
+
+		String id = schemaElement.getAttributeValue("id");
+		if (id != null) {
+			schemaBuilder.setId(Short.valueOf(id));
+		}
+
 		for (Element metadataElement : schemaElement.getChildren("m")) {
 			parseMetadata(schemaBuilder, metadataElement, collectionSchema);
 		}
@@ -231,6 +243,14 @@ public class MetadataSchemaXMLReader3 {
 			&& collectionSchema.hasMetadata(metadataBuilder.getLocalCode())) {
 			globalMetadataInCollectionSchema = collectionSchema.getMetadata(metadataBuilder.getLocalCode());
 			inheriteGlobalMetadata = true;
+		}
+
+		String idValue = metadataElement.getAttributeValue("id");
+		if (idValue != null) {
+			metadataBuilder.setId(Short.valueOf(idValue));
+
+		} else if (globalMetadataInCollectionSchema != null) {
+			metadataBuilder.setId(globalMetadataInCollectionSchema.getId());
 		}
 
 		Map<Language, String> xmlLabels = readLabels(metadataElement);
@@ -688,6 +708,11 @@ public class MetadataSchemaXMLReader3 {
 									MetadataSchemaTypesBuilder typesBuilder, MetadataSchemaBuilder collectionSchema) {
 		Element defaultSchemaElement = root.getChild("defaultSchema");
 		MetadataSchemaBuilder defaultSchemaBuilder = schemaTypeBuilder.getDefaultSchema();
+
+		String id = defaultSchemaElement.getAttributeValue("id");
+		if (id != null) {
+			defaultSchemaBuilder.setId(Short.valueOf(id));
+		}
 
 		defaultSchemaBuilder.setLabels(readLabels(defaultSchemaElement));
 		//	new CommonMetadataBuilder().addCommonMetadataToExistingSchema(defaultSchemaBuilder, typesBuilder);

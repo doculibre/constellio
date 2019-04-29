@@ -3,6 +3,7 @@ package com.constellio.data.dao.services.records;
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordDeltaDTO;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
+import com.constellio.data.dao.dto.records.SolrRecordDTO;
 import com.constellio.data.dao.dto.records.TransactionDTO;
 import com.constellio.data.dao.services.bigVault.RecordDaoException;
 import com.constellio.data.dao.services.bigVault.RecordDaoException.NoSuchRecordWithId;
@@ -76,7 +77,7 @@ public class BigVaultRecordDaoRealTest extends ConstellioTest {
 		Map<String, Object> fields = new HashMap<String, Object>();
 		fields.put("title_s", "test");
 
-		RecordDTO record = new RecordDTO("1", 1, null, fields);
+		RecordDTO record = new SolrRecordDTO("1", 1, null, fields);
 
 		add(record);
 	}
@@ -100,7 +101,7 @@ public class BigVaultRecordDaoRealTest extends ConstellioTest {
 		Map<String, Object> fields = new HashMap<String, Object>();
 		fields.put("title_s", title);
 		fields.put("schema_s", "zeSchemaType_default");
-		RecordDTO record = new RecordDTO(nextID(), -1, null, fields);
+		RecordDTO record = new SolrRecordDTO(nextID(), -1, null, fields);
 		return record;
 	}
 
@@ -110,7 +111,7 @@ public class BigVaultRecordDaoRealTest extends ConstellioTest {
 		fields.put(singleReferenceFieldCode, referencedId);
 		fields.put("schema_s", "zeSchemaType_default");
 
-		RecordDTO record = new RecordDTO(nextID(), -1, null, fields);
+		RecordDTO record = new SolrRecordDTO(nextID(), -1, null, fields);
 		return record;
 	}
 
@@ -120,7 +121,7 @@ public class BigVaultRecordDaoRealTest extends ConstellioTest {
 		fields.put(singleReferenceFieldCode, referencedId);
 		fields.put(parentReferenceFieldCode, parentId);
 		fields.put("schema_s", "zeSchemaType_default");
-		RecordDTO record = new RecordDTO(nextID(), -1, null, fields);
+		RecordDTO record = new SolrRecordDTO(nextID(), -1, null, fields);
 		return record;
 	}
 
@@ -129,7 +130,7 @@ public class BigVaultRecordDaoRealTest extends ConstellioTest {
 		Map<String, Object> fields = new HashMap<String, Object>();
 		fields.put(multipleReferencesFieldCode, referencedId);
 		fields.put("schema_s", "zeSchemaType_default");
-		RecordDTO record = new RecordDTO(nextID(), -1, null, fields);
+		RecordDTO record = new SolrRecordDTO(nextID(), -1, null, fields);
 		return record;
 	}
 
@@ -176,7 +177,7 @@ public class BigVaultRecordDaoRealTest extends ConstellioTest {
 		Map<String, Object> fields = new HashMap<String, Object>();
 		fields.put("path_ss", paths);
 		fields.put("schema_s", "zeSchemaType_default");
-		RecordDTO record = new RecordDTO(nextID(), -1, null, fields);
+		RecordDTO record = new SolrRecordDTO(nextID(), -1, null, fields);
 		return record;
 	}
 
@@ -186,7 +187,7 @@ public class BigVaultRecordDaoRealTest extends ConstellioTest {
 		Map<String, Object> fields = new HashMap<String, Object>();
 		fields.put("content_s", aContentId);
 
-		add(new RecordDTO("zeId", -1, null, fields));
+		add(new SolrRecordDTO("zeId", -1, null, fields));
 
 		RecordDTO savedRecord = recordDao.get("zeId");
 
@@ -200,7 +201,7 @@ public class BigVaultRecordDaoRealTest extends ConstellioTest {
 		Map<String, Object> fields = new HashMap<String, Object>();
 		fields.put("content_d", "thisIsNotANumber");
 
-		add(new RecordDTO(nextID(), -1, null, fields));
+		add(new SolrRecordDTO(nextID(), -1, null, fields));
 
 	}
 
@@ -666,7 +667,7 @@ public class BigVaultRecordDaoRealTest extends ConstellioTest {
 
 	private RecordDTO saveRecordWithFieldsAndLoadItFromStore(Map<String, Object> fields, String id)
 			throws OptimisticLocking {
-		RecordDTO recordToSave = new RecordDTO(id, -1, null, fields);
+		RecordDTO recordToSave = new SolrRecordDTO(id, -1, null, fields);
 		add(recordToSave);
 
 		try {
@@ -681,7 +682,7 @@ public class BigVaultRecordDaoRealTest extends ConstellioTest {
 		Map<String, Object> initialValues = new HashMap<>();
 		initialValues.put("collection_s", zeCollection);
 
-		RecordDTO recordToSave = new RecordDTO(nextID(), -1, null, initialValues);
+		RecordDTO recordToSave = new SolrRecordDTO(nextID(), -1, null, initialValues);
 		add(recordToSave);
 		try {
 			RecordDTO recordDTO = recordDao.get(recordToSave.getId());
@@ -820,7 +821,7 @@ public class BigVaultRecordDaoRealTest extends ConstellioTest {
 
 		String id = UUID.randomUUID().toString();
 
-		RecordDTO savedRecord = new RecordDTO(id, -1, null, fields);
+		RecordDTO savedRecord = new SolrRecordDTO(id, -1, null, fields);
 		add(savedRecord);
 		try {
 			return recordDao.get(id);
@@ -889,8 +890,8 @@ public class BigVaultRecordDaoRealTest extends ConstellioTest {
 		RecordDTO firstAlreadySavedRecord = givenSavedRecordWithInitialValueInSavedMetadataFieldName();
 		RecordDTO secondAlreadySavedRecord = givenSavedRecordWithInitialValueInSavedMetadataFieldName();
 		long initialDocumentsCount = recordDao.documentsCount();
-		RecordDTO firstAddedRecord = new RecordDTO(nextID(), asStringObjectMap(savedMetadataFieldName, "firstAdded"));
-		RecordDTO secondAddedRecord = new RecordDTO(nextID(), asStringObjectMap(savedMetadataFieldName, "secondAdded"));
+		RecordDTO firstAddedRecord = new SolrRecordDTO(nextID(), asStringObjectMap(savedMetadataFieldName, "firstAdded"));
+		RecordDTO secondAddedRecord = new SolrRecordDTO(nextID(), asStringObjectMap(savedMetadataFieldName, "secondAdded"));
 		RecordDeltaDTO firstUpdatedRecord = new RecordDeltaDTO(firstAlreadySavedRecord, asStringObjectMap(savedMetadataFieldName,
 				"firstModified"), firstAddedRecord.getFields());
 		RecordDeltaDTO secondUpdatedRecord = new RecordDeltaDTO(secondAlreadySavedRecord, asStringObjectMap(
@@ -975,8 +976,8 @@ public class BigVaultRecordDaoRealTest extends ConstellioTest {
 		printTimeElapsedSinceLastCall("1");
 		long initialDocumentsCount = recordDao.documentsCount();
 
-		RecordDTO firstAddedRecord = new RecordDTO(nextID(), asStringObjectMap(savedMetadataFieldName, "firstAdded"));
-		RecordDTO secondAddedRecord = new RecordDTO(nextID(), asStringObjectMap(savedMetadataFieldName, "secondAdded"));
+		RecordDTO firstAddedRecord = new SolrRecordDTO(nextID(), asStringObjectMap(savedMetadataFieldName, "firstAdded"));
+		RecordDTO secondAddedRecord = new SolrRecordDTO(nextID(), asStringObjectMap(savedMetadataFieldName, "secondAdded"));
 		RecordDeltaDTO firstUpdatedRecord = new RecordDeltaDTO(firstAlreadySavedRecord, asStringObjectMap(savedMetadataFieldName,
 				"firstModified"), firstAddedRecord.getFields());
 		RecordDeltaDTO secondUpdatedRecord = new RecordDeltaDTO(secondAlreadySavedRecord, asStringObjectMap(
@@ -1115,11 +1116,11 @@ public class BigVaultRecordDaoRealTest extends ConstellioTest {
 	@Test
 	public void whenAddingLaterThenAddedOnNextUpdateRequiringLockTransation()
 			throws Exception {
-		RecordDTO banana = new RecordDTO("banana", -1, null, asStringObjectMap("field_t_fr", "banana"));
-		RecordDTO apple = new RecordDTO("apple", -1, null, asStringObjectMap("field_t_fr", "apple"));
-		RecordDTO melon = new RecordDTO("melon", -1, null, asStringObjectMap("field_t_fr", "melon"));
-		RecordDTO orange = new RecordDTO("orange", -1, null, asStringObjectMap("field_t_fr", "orange"));
-		RecordDTO kiwi = new RecordDTO("kiwi", -1, null, asStringObjectMap("field_t_fr", "kiwi"));
+		RecordDTO banana = new SolrRecordDTO("banana", -1, null, asStringObjectMap("field_t_fr", "banana"));
+		RecordDTO apple = new SolrRecordDTO("apple", -1, null, asStringObjectMap("field_t_fr", "apple"));
+		RecordDTO melon = new SolrRecordDTO("melon", -1, null, asStringObjectMap("field_t_fr", "melon"));
+		RecordDTO orange = new SolrRecordDTO("orange", -1, null, asStringObjectMap("field_t_fr", "orange"));
+		RecordDTO kiwi = new SolrRecordDTO("kiwi", -1, null, asStringObjectMap("field_t_fr", "kiwi"));
 		recordDao.execute(new TransactionDTO(RecordsFlushing.ADD_LATER).withNewRecords(asList(banana, apple)));
 		recordDao.execute(new TransactionDTO(RecordsFlushing.ADD_LATER).withNewRecords(asList(melon)));
 
@@ -1161,9 +1162,9 @@ public class BigVaultRecordDaoRealTest extends ConstellioTest {
 	@Test
 	public void whenAddingLaterThenAddedWhenFlushing()
 			throws Exception {
-		RecordDTO banana = new RecordDTO("banana", -1, null, asStringObjectMap("field_t_fr", "banana"));
-		RecordDTO apple = new RecordDTO("apple", -1, null, asStringObjectMap("field_t_fr", "apple"));
-		RecordDTO melon = new RecordDTO("melon", -1, null, asStringObjectMap("field_t_fr", "melon"));
+		RecordDTO banana = new SolrRecordDTO("banana", -1, null, asStringObjectMap("field_t_fr", "banana"));
+		RecordDTO apple = new SolrRecordDTO("apple", -1, null, asStringObjectMap("field_t_fr", "apple"));
+		RecordDTO melon = new SolrRecordDTO("melon", -1, null, asStringObjectMap("field_t_fr", "melon"));
 		recordDao.execute(new TransactionDTO(RecordsFlushing.ADD_LATER).withNewRecords(asList(banana, apple)));
 		recordDao.execute(new TransactionDTO(RecordsFlushing.ADD_LATER).withNewRecords(asList(melon)));
 
@@ -1184,14 +1185,14 @@ public class BigVaultRecordDaoRealTest extends ConstellioTest {
 	@Test
 	public void whenAddingNewRecordsWithOneOfThemAlreadyExistingThenNothingChanged()
 			throws Exception {
-		add(new RecordDTO("record1", -1, null, asMap("title_s", (Object) "Title 1")));
+		add(new SolrRecordDTO("record1", -1, null, asMap("title_s", (Object) "Title 1")));
 		long versionAfterFirstTx = recordDao.get("record1").getVersion();
 
 		try {
 			recordDao.execute(new TransactionDTO(RecordsFlushing.NOW()).withNewRecords(asList(
-					new RecordDTO("record1", -1, null, asMap("title_s", (Object) "Title 1")),
-					new RecordDTO("record2", -1, null, asMap("title_s", (Object) "Title 2")),
-					new RecordDTO("record3", -1, null, asMap("title_s", (Object) "Title 3"))
+					new SolrRecordDTO("record1", -1, null, asMap("title_s", (Object) "Title 1")),
+					new SolrRecordDTO("record2", -1, null, asMap("title_s", (Object) "Title 2")),
+					new SolrRecordDTO("record3", -1, null, asMap("title_s", (Object) "Title 3"))
 			)));
 			fail("Exception expected");
 		} catch (RecordDaoException.OptimisticLocking e) {

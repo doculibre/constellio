@@ -65,6 +65,8 @@ import com.constellio.sdk.tests.schemas.TestsSchemasSetup.AnotherSchemaMetadatas
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ThirdSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeCustomSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
+import org.jdom2.output.Format;
+import org.jdom2.output.XMLOutputter;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
@@ -88,6 +90,7 @@ import static com.constellio.model.entities.schemas.entries.DataEntryType.CALCUL
 import static com.constellio.model.entities.schemas.entries.DataEntryType.COPIED;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.SEQUENCE;
+import static com.constellio.model.services.schemas.MetadataSchemasManager.SCHEMAS_CONFIG_PATH;
 import static com.constellio.model.services.schemas.builders.MetadataPopulateConfigsBuilder.create;
 import static com.constellio.sdk.tests.TestUtils.getElementsClasses;
 import static com.constellio.sdk.tests.TestUtils.onlyElementsOfClass;
@@ -169,7 +172,7 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenSchemasInMultipleCollectionsThenAllIndependent()
+	public void givenSchemasInMultipleCollectionsThenAllIndependentAndDifferentIdsSequence()
 			throws Exception {
 
 		givenCollection("collection1");
@@ -196,6 +199,53 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 		assertThat(typesCollection2.getCollection()).isEqualTo("collection2");
 		assertThat(typesCollection2.getSchemaTypes()).hasSize(sizeCollection2 + 1);
 		assertThat(typesCollection2.getSchemaType("b")).isNotNull();
+		assertThat(typesCollection2.getSchemaType("collection").getDefaultSchema().getId()).isEqualTo((short) 1);
+
+		assertThat(typesCollection1.getSchemaTypes()).extracting("id").contains((short) 2, (short) 4, (short) 6);
+		assertThat(typesCollection2.getSchemaTypes()).extracting("id").contains((short) 2, (short) 4, (short) 6);
+		assertThat(zeCollectionTypes.getSchemaTypes()).extracting("id").contains((short) 2, (short) 4, (short) 6);
+
+	}
+
+	@Test
+	public void whenSavingSchemaTypesAndMetadatasThenIdsPersisted()
+			throws Exception {
+		MetadataSchemaTypesBuilder collection1Builder = schemasManager.modify(zeCollection);
+
+		//setId should never be used, this test use it to proove that values are saved
+		MetadataSchemaTypeBuilder type = collection1Builder.createNewSchemaType("t").setId((short) 1111);
+		MetadataSchemaBuilder defaultSchema = type.getDefaultSchema().setId((short) 2222);
+		MetadataSchemaBuilder customSchema = type.createCustomSchema("custom").setId((short) 3333);
+		MetadataBuilder defaultSchemaMetadata = defaultSchema.create("m1").setType(STRING).setId((short) 4444);
+		MetadataBuilder customSchemaMetadata = customSchema.create("m2").setType(STRING).setId((short) -1001);
+
+		schemasManager.saveUpdateSchemaTypes(collection1Builder);
+
+
+		assertThat(xmlOfConfig(zeCollection + SCHEMAS_CONFIG_PATH))
+				.containsOnlyOnce("\"1111\"")
+				.containsOnlyOnce("\"2222\"")
+				.containsOnlyOnce("\"3333\"")
+				.containsOnlyOnce("\"4444\"")
+				.containsOnlyOnce("\"-1001\"")
+				.doesNotContain("\"-2\"")
+				.doesNotContain("\"-7\"");
+
+		MetadataSchemaTypes zeCollectionTypes = schemasManager.getSchemaTypes(zeCollection);
+		assertThat(zeCollectionTypes.getSchemaType("t").getId()).isEqualTo((short) 1111);
+		assertThat(zeCollectionTypes.getSchemaType("t").getDefaultSchema().getId()).isEqualTo((short) 2222);
+		assertThat(zeCollectionTypes.getSchemaType("t").getSchema("custom").getId()).isEqualTo((short) 3333);
+		assertThat(zeCollectionTypes.getSchemaType("t").getDefaultSchema().get("m1").getId()).isEqualTo((short) 4444);
+		assertThat(zeCollectionTypes.getSchemaType("t").getSchema("custom").get("m1").getId()).isEqualTo((short) 4444);
+		assertThat(zeCollectionTypes.getSchemaType("t").getSchema("custom").get("m2").getId()).isEqualTo((short) -1001);
+		assertThat(zeCollectionTypes.getSchemaType("t").getDefaultSchema().get("title").getId()).isEqualTo((short) -7);
+		assertThat(zeCollectionTypes.getSchemaType("t").getSchema("custom").get("title").getId()).isEqualTo((short) -7);
+
+	}
+
+	private String xmlOfConfig(String path) {
+		XMLOutputter xmlOutput = new XMLOutputter(Format.getPrettyFormat());
+		return xmlOutput.outputString(getDataLayerFactory().getConfigManager().getXML(path).getDocument());
 	}
 
 	@Test

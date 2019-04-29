@@ -2,6 +2,7 @@ package com.constellio.model.services.records;
 
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordDeltaDTO;
+import com.constellio.data.dao.dto.records.SolrRecordDTO;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.CollectionInfo;
@@ -729,7 +730,7 @@ public class RecordImpl implements Record {
 		fields.put("collection_s", collection);
 		fields.put("estimatedSize_i", RecordUtils.estimateRecordSize(fields, copyfields));
 
-		return lastCreatedRecordDTO = new RecordDTO(id, version, null, fields, copyfields);
+		return lastCreatedRecordDTO = new SolrRecordDTO(id, version, null, fields, copyfields);
 
 	}
 

@@ -13,14 +13,14 @@ public class LegacyGlobalMetadatas {
 
 	private static List<Metadata> allLegacyGlobalMetadatas = new ArrayList<>();
 
-	public static final Metadata AUTHORIZATIONS = add(new Metadata("authorizations_ss", STRING, true));
-	public static final Metadata INHERITED_AUTHORIZATIONS = add(new Metadata("inheritedauthorizations_ss", STRING, true));
-	public static final Metadata ALL_AUTHORIZATIONS = add(new Metadata("allauthorizations_ss", STRING, true));
-	public static final Metadata FOLLOWERS = add(new Metadata("followers_ss", STRING, true));
-	public static final Metadata SEARCHABLE = add(new Metadata("searchable_s", BOOLEAN, false));
-	public static final Metadata PARENT_PATH = add(new Metadata("parentpath_ss", STRING, true));
+	public static final Metadata AUTHORIZATIONS = add(new Metadata(0, "authorizations_ss", STRING, true));
+	public static final Metadata INHERITED_AUTHORIZATIONS = add(new Metadata(0, "inheritedauthorizations_ss", STRING, true));
+	public static final Metadata ALL_AUTHORIZATIONS = add(new Metadata(0, "allauthorizations_ss", STRING, true));
+	public static final Metadata FOLLOWERS = add(new Metadata(0, "followers_ss", STRING, true));
+	public static final Metadata SEARCHABLE = add(new Metadata(0, "searchable_s", BOOLEAN, false));
+	public static final Metadata PARENT_PATH = add(new Metadata(0, "parentpath_ss", STRING, true));
 	public static final Metadata NON_TAXONOMY_AUTHORIZATIONS = add(
-			new Metadata("nonTaxonomyAuthorizationsId_ss", REFERENCE, true));
+			new Metadata(0, "nonTaxonomyAuthorizationsId_ss", REFERENCE, true));
 
 	public static Metadata add(Metadata metadata) {
 		String localCode = metadata.getLocalCode();

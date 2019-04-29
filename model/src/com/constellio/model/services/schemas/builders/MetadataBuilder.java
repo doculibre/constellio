@@ -13,6 +13,7 @@ import com.constellio.model.entities.schemas.MetadataAccessRestriction;
 import com.constellio.model.entities.schemas.MetadataPopulateConfigs;
 import com.constellio.model.entities.schemas.MetadataTransiency;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.StructureFactory;
 import com.constellio.model.entities.schemas.entries.DataEntry;
 import com.constellio.model.entities.schemas.entries.ManualDataEntry;
@@ -90,7 +91,7 @@ public class MetadataBuilder {
 	private boolean dependencyOfAutomaticMetadata;
 	private Map<String, Object> customParameter;
 	private boolean fillEmptyLabelWithCode = true;
-
+	private short id;
 
 	MetadataBuilder(MetadataSchemaBuilder schemaBuilder) {
 		this.schemaBuilder = schemaBuilder;
@@ -335,6 +336,13 @@ public class MetadataBuilder {
 	private MetadataBuilder setLocalCode(String localCode) {
 		ensureCanModify("localCode");
 		this.localCode = localCode;
+		return this;
+	}
+
+
+	public MetadataBuilder setId(short id) {
+		ensureCanModify("id");
+		this.id = id;
 		return this;
 	}
 
@@ -769,7 +777,8 @@ public class MetadataBuilder {
 				this.recordMetadataValidators.build(), this.defaultValue, this.inputMask, populateConfigs, duplicable, customParameter);
 	}
 
-	Metadata buildWithoutInheritance(DataStoreTypesFactory typesFactory, final ModelLayerFactory modelLayerFactory) {
+	Metadata buildWithoutInheritance(DataStoreTypesFactory typesFactory, MetadataSchemaTypeBuilder typeBuilder,
+									 final ModelLayerFactory modelLayerFactory) {
 
 		AllowedReferences references = allowedReferencesBuilder == null ? null : allowedReferencesBuilder.build();
 		Set<RecordMetadataValidator<?>> validators = this.recordMetadataValidators.build();
@@ -811,8 +820,16 @@ public class MetadataBuilder {
 			duplicable = false;
 		}
 
+		if (Schemas.isGlobalMetadata(localCode)) {
+			id = Schemas.getGlobalMetadata(localCode).getId();
+		}
 
-		return new Metadata(localCode, this.getCode(), collection, this.getLabels(), this.getEnabled(), behaviors,
+		if (id == 0) {
+			id = typeBuilder.nextMetadataId();
+		}
+
+
+		return new Metadata(id, localCode, this.getCode(), collection, this.getLabels(), this.getEnabled(), behaviors,
 				this.type, references, this.getDefaultRequirement(), this.dataEntry, validators, dataStoreType,
 				accessRestriction, structureFactory, enumClass, defaultValue, inputMask, populateConfigsBuilder.build(),
 				encryptionServicesFactory, duplicable, customParameter);
@@ -867,9 +884,9 @@ public class MetadataBuilder {
 			case TEXT:
 				dataStoreType = typesFactory.forText(multivalue);
 				break;
-		case INTEGER:
-			dataStoreType = typesFactory.forInteger(multivalue);
-			break;
+			case INTEGER:
+				dataStoreType = typesFactory.forInteger(multivalue);
+				break;
 
 			default:
 				throw new ImpossibleRuntimeException("Unsupported type : " + type);
@@ -1116,6 +1133,11 @@ public class MetadataBuilder {
 	public boolean hasValidator(Class<?> validatorClass) {
 		return defineValidators().contains(validatorClass);
 	}
+
+	public short getId() {
+		return id;
+	}
+
 
 	private static class EncryptionServicesFactory implements Factory<EncryptionServices> {
 
