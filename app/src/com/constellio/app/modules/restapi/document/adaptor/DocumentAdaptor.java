@@ -15,6 +15,7 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.google.common.base.Strings;
 
 import javax.inject.Inject;
+import java.util.List;
 import java.util.Set;
 
 import static com.constellio.app.modules.restapi.document.enumeration.VersionType.MAJOR;
@@ -40,11 +41,11 @@ public class DocumentAdaptor extends ResourceAdaptor<DocumentDto> {
 
 		resource.setId(record.getId());
 		resource.setTitle(!filters.contains("title") ? record.getTitle() : null);
-		resource.setFolderId(!filters.contains("folderId") ? documentDao.getMetadataValue(record, Document.FOLDER) : null);
-		resource.setKeywords(!filters.contains("keywords") ? documentDao.getMetadataValue(record, Document.KEYWORDS) : null);
-		resource.setAuthor(!filters.contains("author") ? documentDao.getMetadataValue(record, Document.AUTHOR) : null);
-		resource.setOrganization(!filters.contains("organization") ? documentDao.getMetadataValue(record, Document.COMPANY) : null);
-		resource.setSubject(!filters.contains("subject") ? documentDao.getMetadataValue(record, Document.SUBJECT) : null);
+		resource.setFolderId(!filters.contains("folderId") ? documentDao.<String>getMetadataValue(record, Document.FOLDER) : null);
+		resource.setKeywords(!filters.contains("keywords") ? documentDao.<List<String>>getMetadataValue(record, Document.KEYWORDS) : null);
+		resource.setAuthor(!filters.contains("author") ? documentDao.<String>getMetadataValue(record, Document.AUTHOR) : null);
+		resource.setOrganization(!filters.contains("organization") ? documentDao.<String>getMetadataValue(record, Document.COMPANY) : null);
+		resource.setSubject(!filters.contains("subject") ? documentDao.<String>getMetadataValue(record, Document.SUBJECT) : null);
 
 		if (!filters.contains("type")) {
 			String documentTypeId = documentDao.getMetadataValue(record, Document.TYPE);

@@ -20,8 +20,8 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
+import javax.ws.rs.PATCH;
 import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
@@ -84,20 +84,20 @@ public class FolderRestfulService extends ResourceRestfulService {
 	}
 
 
-	@PUT
+	@PATCH
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response update(@QueryParam("id") String id,
-						   @QueryParam("serviceKey") String serviceKey,
-						   @QueryParam("method") String method,
-						   @QueryParam("date") String date,
-						   @QueryParam("expiration") Integer expiration,
-						   @QueryParam("signature") String signature,
-						   @Valid @FormDataParam("folder") FolderDto folder,
-						   @QueryParam("filter") Set<String> filters,
-						   @HeaderParam(HttpHeaders.IF_MATCH) String eTag,
-						   @DefaultValue("WITHIN_5_SECONDS") @HeaderParam(CustomHttpHeaders.FLUSH_MODE) String flush,
-						   @HeaderParam(HttpHeaders.HOST) String host) throws Exception {
+	public Response updatePartial(@QueryParam("id") String id,
+								  @QueryParam("serviceKey") String serviceKey,
+								  @QueryParam("method") String method,
+								  @QueryParam("date") String date,
+								  @QueryParam("expiration") Integer expiration,
+								  @QueryParam("signature") String signature,
+								  @Valid FolderDto folder,
+								  @QueryParam("filter") Set<String> filters,
+								  @HeaderParam(HttpHeaders.IF_MATCH) String eTag,
+								  @DefaultValue("WITHIN_5_SECONDS") @HeaderParam(CustomHttpHeaders.FLUSH_MODE) String flush,
+								  @HeaderParam(HttpHeaders.HOST) String host) throws Exception {
 		// TODO
 		return Response.noContent().build();
 	}

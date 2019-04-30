@@ -14,8 +14,10 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.security.global.AuthorizationAddRequest;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.CommitCounter;
@@ -94,15 +96,18 @@ public abstract class BaseRestfulServiceAcceptanceTest extends ConstellioTest {
 	protected <T> void addUsrMetadata(String id, final String schemaCode, final MetadataValueType type,
 									  T value1, T value2)
 			throws Exception {
-		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, types -> {
-			MetadataSchemaBuilder schemaBuilder = types.getSchema(schemaCode);
+		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				MetadataSchemaBuilder schemaBuilder = types.getSchema(schemaCode);
 
-			if (type == MetadataValueType.REFERENCE) {
-				schemaBuilder.create(fakeMetadata1).setType(type).defineReferencesTo(types.getSchemaType(User.SCHEMA_TYPE));
-				schemaBuilder.create(fakeMetadata2).setType(type).setMultivalue(true).defineReferencesTo(types.getSchemaType(User.SCHEMA_TYPE));
-			} else {
-				schemaBuilder.create(fakeMetadata1).setType(type);
-				schemaBuilder.create(fakeMetadata2).setType(type).setMultivalue(true);
+				if (type == MetadataValueType.REFERENCE) {
+					schemaBuilder.create(fakeMetadata1).setType(type).defineReferencesTo(types.getSchemaType(User.SCHEMA_TYPE));
+					schemaBuilder.create(fakeMetadata2).setType(type).setMultivalue(true).defineReferencesTo(types.getSchemaType(User.SCHEMA_TYPE));
+				} else {
+					schemaBuilder.create(fakeMetadata1).setType(type);
+					schemaBuilder.create(fakeMetadata2).setType(type).setMultivalue(true);
+				}
 			}
 		});
 

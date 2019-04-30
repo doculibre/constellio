@@ -14,8 +14,10 @@ import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.google.common.base.Strings;
+import org.joda.time.LocalDate;
 
 import javax.inject.Inject;
+import java.util.List;
 import java.util.Set;
 
 public class FolderAdaptor extends ResourceAdaptor<FolderDto> {
@@ -37,29 +39,29 @@ public class FolderAdaptor extends ResourceAdaptor<FolderDto> {
 		}
 
 		resource.setId(record.getId());
-		resource.setParentFolderId(!filters.contains("parentFolderId") ? getValue(record, Folder.PARENT_FOLDER) : null);
-		resource.setCategory(!filters.contains("category") ? getValue(record, Folder.CATEGORY_ENTERED, Folder.CATEGORY) : null);
+		resource.setParentFolderId(!filters.contains("parentFolderId") ? this.<String>getValue(record, Folder.PARENT_FOLDER) : null);
+		resource.setCategory(!filters.contains("category") ? this.<String>getValue(record, Folder.CATEGORY_ENTERED, Folder.CATEGORY) : null);
 		resource.setRetentionRule(!filters.contains("retentionRule") ?
-								  getValue(record, Folder.RETENTION_RULE_ENTERED, Folder.RETENTION_RULE) : null);
+								  this.<String>getValue(record, Folder.RETENTION_RULE_ENTERED, Folder.RETENTION_RULE) : null);
 		resource.setAdministrativeUnit(!filters.contains("administrativeUnit") ?
-									   getValue(record, Folder.ADMINISTRATIVE_UNIT_ENTERED, Folder.ADMINISTRATIVE_UNIT) :
+									   this.<String>getValue(record, Folder.ADMINISTRATIVE_UNIT_ENTERED, Folder.ADMINISTRATIVE_UNIT) :
 									   null);
 		resource.setMainCopyRule(!filters.contains("mainCopyRule") ? getMainCopyRuleId(record) : null);
 		resource.setCopyStatus(!filters.contains("copyStatus") ? getCopyStatus(record) : null);
-		resource.setMediumTypes(!filters.contains("mediumTypes") ? getValue(record, Folder.MEDIUM_TYPES) : null);
+		resource.setMediumTypes(!filters.contains("mediumTypes") ? this.<List<String>>getValue(record, Folder.MEDIUM_TYPES) : null);
 		resource.setMediaType(!filters.contains("mediaType") ? getFolderMediaType(record) : null);
-		resource.setContainer(!filters.contains("container") ? getValue(record, Folder.CONTAINER) : null);
+		resource.setContainer(!filters.contains("container") ? this.<String>getValue(record, Folder.CONTAINER) : null);
 		resource.setTitle(!filters.contains("title") ? record.getTitle() : null);
-		resource.setDescription(!filters.contains("description") ? getValue(record, Folder.DESCRIPTION) : null);
-		resource.setKeywords(!filters.contains("keywords") ? getValue(record, Folder.KEYWORDS) : null);
-		resource.setOpeningDate(!filters.contains("openingDate") ? getValue(record, Folder.OPENING_DATE) : null);
-		resource.setClosingDate(!filters.contains("closingDate") ? getValue(record, Folder.ENTERED_CLOSING_DATE, Folder.CLOSING_DATE) : null);
-		resource.setActualDepositDate(!filters.contains("actualDepositDate") ? getValue(record, Folder.ACTUAL_DEPOSIT_DATE) : null);
-		resource.setActualDestructionDate(!filters.contains("actualDestructionDate") ? getValue(record, Folder.ACTUAL_DESTRUCTION_DATE) : null);
-		resource.setActualTransferDate(!filters.contains("actualTransferDate") ? getValue(record, Folder.ACTUAL_TRANSFER_DATE) : null);
-		resource.setExpectedDepositDate(!filters.contains("expectedDepositDate") ? getValue(record, Folder.EXPECTED_DEPOSIT_DATE) : null);
-		resource.setExpectedDestructionDate(!filters.contains("expectedDestructionDate") ? getValue(record, Folder.EXPECTED_DESTRUCTION_DATE) : null);
-		resource.setExpectedTransferDate(!filters.contains("expectedTransferDate") ? getValue(record, Folder.EXPECTED_TRANSFER_DATE) : null);
+		resource.setDescription(!filters.contains("description") ? this.<String>getValue(record, Folder.DESCRIPTION) : null);
+		resource.setKeywords(!filters.contains("keywords") ? this.<List<String>>getValue(record, Folder.KEYWORDS) : null);
+		resource.setOpeningDate(!filters.contains("openingDate") ? this.<LocalDate>getValue(record, Folder.OPENING_DATE) : null);
+		resource.setClosingDate(!filters.contains("closingDate") ? this.<LocalDate>getValue(record, Folder.ENTERED_CLOSING_DATE, Folder.CLOSING_DATE) : null);
+		resource.setActualDepositDate(!filters.contains("actualDepositDate") ? this.<LocalDate>getValue(record, Folder.ACTUAL_DEPOSIT_DATE) : null);
+		resource.setActualDestructionDate(!filters.contains("actualDestructionDate") ? this.<LocalDate>getValue(record, Folder.ACTUAL_DESTRUCTION_DATE) : null);
+		resource.setActualTransferDate(!filters.contains("actualTransferDate") ? this.<LocalDate>getValue(record, Folder.ACTUAL_TRANSFER_DATE) : null);
+		resource.setExpectedDepositDate(!filters.contains("expectedDepositDate") ? this.<LocalDate>getValue(record, Folder.EXPECTED_DEPOSIT_DATE) : null);
+		resource.setExpectedDestructionDate(!filters.contains("expectedDestructionDate") ? this.<LocalDate>getValue(record, Folder.EXPECTED_DESTRUCTION_DATE) : null);
+		resource.setExpectedTransferDate(!filters.contains("expectedTransferDate") ? this.<LocalDate>getValue(record, Folder.EXPECTED_TRANSFER_DATE) : null);
 
 		if (!filters.contains("type")) {
 			String folderTypeId = getValue(record, Folder.TYPE);
@@ -69,7 +71,7 @@ public class FolderAdaptor extends ResourceAdaptor<FolderDto> {
 				resource.setType(folderTypeRecord == null ? null :
 								 FolderTypeDto.builder()
 										 .id(folderTypeRecord.getId())
-										 .code(getValue(folderTypeRecord, FolderType.CODE))
+										 .code(this.<String>getValue(folderTypeRecord, FolderType.CODE))
 										 .title(folderTypeRecord.getTitle())
 										 .build());
 			}
@@ -97,7 +99,7 @@ public class FolderAdaptor extends ResourceAdaptor<FolderDto> {
 
 	private <T> T getValue(Record record, String enteredMetadataCode, String metadataCode) {
 		T enteredValue = getValue(record, enteredMetadataCode);
-		return (enteredValue != null) ? enteredValue : getValue(record, metadataCode);
+		return (enteredValue != null) ? enteredValue : this.<T>getValue(record, metadataCode);
 	}
 
 	private <T> T getValue(Record record, String metadataCode) {
