@@ -177,8 +177,8 @@ public class DataEntryBuilder {
 	}
 
 	public MetadataBuilder asCalculated(MetadataValueCalculator<?> calculator) {
-		List<Class<?>> interfaces = asList(calculator.getClass().getInterfaces());
-		if (interfaces.contains(MetadataValueCalculator.class) || interfaces.contains(InitializedMetadataValueCalculator.class)) {
+		if (MetadataValueCalculator.class.isAssignableFrom(calculator.getClass()) ||
+			InitializedMetadataValueCalculator.class.isAssignableFrom(calculator.getClass())) {
 			metadata.dataEntry = new CalculatedDataEntry(calculator);
 			return metadata;
 		} else {

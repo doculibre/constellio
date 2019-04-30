@@ -18,7 +18,6 @@ import com.constellio.app.modules.tasks.extensions.TaskSchemaTypesPageExtension;
 import com.constellio.app.modules.tasks.extensions.TaskStatusSchemasExtension;
 import com.constellio.app.modules.tasks.extensions.TaskUserProfileFieldsExtension;
 import com.constellio.app.modules.tasks.extensions.WorkflowRecordExtension;
-import com.constellio.app.modules.tasks.extensions.api.TaskModuleExtensions;
 import com.constellio.app.modules.tasks.extensions.schema.TaskTrashSchemaExtension;
 import com.constellio.app.modules.tasks.migrations.TasksMigrationCombo;
 import com.constellio.app.modules.tasks.migrations.TasksMigrationTo5_0_7;
