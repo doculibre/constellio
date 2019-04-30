@@ -688,9 +688,12 @@ public class RecordImpl implements Record {
 
 		Map<String, Object> fields = new HashMap<String, Object>();
 
+		boolean summary = false;
 		if (recordDTO != null) {
 			fields.putAll(recordDTO.getFields());
+			summary = recordDTO.isSummary();
 		}
+
 
 		for (Map.Entry<String, Object> entry : modifiedValues.entrySet()) {
 			String metadataAtomicCode = new SchemaUtils().getLocalCodeFromDataStoreCode(entry.getKey());
@@ -730,7 +733,8 @@ public class RecordImpl implements Record {
 		fields.put("collection_s", collection);
 		fields.put("estimatedSize_i", RecordUtils.estimateRecordSize(fields, copyfields));
 
-		return lastCreatedRecordDTO = new SolrRecordDTO(id, version, null, fields, copyfields);
+
+		return lastCreatedRecordDTO = new SolrRecordDTO(id, version, null, fields, copyfields, summary);
 
 	}
 

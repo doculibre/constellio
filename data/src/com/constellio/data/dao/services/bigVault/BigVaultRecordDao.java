@@ -38,6 +38,7 @@ import org.apache.solr.client.solrj.response.SpellCheckResponse.Correction;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.SolrInputDocument;
+import org.apache.solr.common.params.CommonParams;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.common.params.MoreLikeThisParams;
 import org.apache.solr.common.params.SolrParams;
@@ -485,7 +486,7 @@ public class BigVaultRecordDao implements RecordDao {
 		if (solrDocument == null) {
 			throw new RecordDaoException.NoSuchRecordWithId(id, bigVaultServer.getName());
 		} else {
-			return toEntity(solrDocument);
+			return toEntity(solrDocument, false);
 		}
 	}
 
@@ -498,7 +499,7 @@ public class BigVaultRecordDao implements RecordDao {
 
 			for (SolrDocument solrDocument : bigVaultServer.realtimeGet(ids)) {
 				if (solrDocument != null) {
-					recordDTOS.add(toEntity(solrDocument));
+					recordDTOS.add(toEntity(solrDocument, false));
 				}
 			}
 		} catch (BigVaultException.CouldNotExecuteQuery e) {
@@ -531,23 +532,24 @@ public class BigVaultRecordDao implements RecordDao {
 		} catch (BigVaultException.CouldNotExecuteQuery e) {
 			throw new BigVaultRuntimeException.CannotQuerySingleDocument(e);
 		}
-
+		boolean partialFields = params.get(CommonParams.FL) != null;
 		SolrDocumentList documents = response.getResults();
 		if (documents.isEmpty()) {
 			return null;
 		} else {
-			return toEntity(documents.get(0));
+			return toEntity(documents.get(0), partialFields);
 		}
 	}
 
 	public QueryResponseDTO query(String queryName, SolrParams params) {
 		QueryResponse response = nativeQuery(queryName, params);
+		boolean partialFields = params.get(CommonParams.FL) != null;
 
 		List<RecordDTO> documents = new ArrayList<RecordDTO>();
 		SolrDocumentList solrDocuments = response.getResults();
 		if (solrDocuments != null) {
 			for (SolrDocument solrDocument : solrDocuments) {
-				documents.add(toEntity(solrDocument));
+				documents.add(toEntity(solrDocument, partialFields));
 			}
 		}
 		Map<String, Map<String, List<String>>> highlights = response.getHighlighting();
@@ -565,11 +567,12 @@ public class BigVaultRecordDao implements RecordDao {
 			spellcheckerSuggestions = spellcheckerSuggestions(spellCheckResponse);
 		}
 
+
 		List<MoreLikeThisDTO> resultWithMoreLikeThis = new ArrayList<>();
 		if (params.get(MoreLikeThisParams.MLT) != null
 			&& Boolean.parseBoolean(params.get(MoreLikeThisParams.MLT))) {
 			try {
-				resultWithMoreLikeThis = extractMoreLikeThis(response, params.get(MoreLikeThisParams.SIMILARITY_FIELDS));
+				resultWithMoreLikeThis = extractMoreLikeThis(response, params.get(MoreLikeThisParams.SIMILARITY_FIELDS), partialFields);
 			} catch (SolrServerException | IOException e) {
 				throw new BigVaultRuntimeException.CannotListDocuments(e);
 			}
@@ -600,7 +603,8 @@ public class BigVaultRecordDao implements RecordDao {
 		return fieldsStats;
 	}
 
-	private List<MoreLikeThisDTO> extractMoreLikeThis(QueryResponse response, String moreLikeThisFields)
+	private List<MoreLikeThisDTO> extractMoreLikeThis(QueryResponse response, String moreLikeThisFields,
+													  boolean partialFields)
 			throws SolrServerException, IOException {
 		List<MoreLikeThisDTO> moreLikeThisResults = new ArrayList<>();
 
@@ -613,7 +617,7 @@ public class BigVaultRecordDao implements RecordDao {
 			for (SolrDocument aSimilarDoc : sortedResults) {
 				Double score = (Double) aSimilarDoc.get(JaccardDocumentSorter.SIMILARITY_SCORE_FIELD);
 				aSimilarDoc.remove(JaccardDocumentSorter.SIMILARITY_SCORE_FIELD);
-				RecordDTO entity = toEntity(aSimilarDoc);
+				RecordDTO entity = toEntity(aSimilarDoc, partialFields);
 				moreLikeThisResults.add(new MoreLikeThisDTO(entity, score));
 			}
 
@@ -825,7 +829,7 @@ public class BigVaultRecordDao implements RecordDao {
 		return convertedFieldValue;
 	}
 
-	protected RecordDTO toEntity(SolrDocument solrDocument) {
+	protected RecordDTO toEntity(SolrDocument solrDocument, boolean partial) {
 		String id = (String) solrDocument.get(ID_FIELD);
 		long version = (Long) solrDocument.get(VERSION_FIELD);
 		List<String> fields = null;
@@ -840,7 +844,7 @@ public class BigVaultRecordDao implements RecordDao {
 				}
 			}
 		}
-		return new SolrRecordDTO(id, version, fields, fieldValues);
+		return new SolrRecordDTO(id, version, fields, fieldValues, partial);
 	}
 
 	private boolean containsTwoUnderscoresAndIsNotVersionField(String field) {

@@ -405,7 +405,7 @@ public class TestUtils {
 		fields.put("collection_s", schema.collection());
 		fields.put("schema_s", schema.code());
 
-		return new SolrRecordDTO(id, anInteger(), null, fields);
+		return new SolrRecordDTO(id, anInteger(), null, fields, false);
 	}
 
 	public static Condition<? super List<String>> noDuplicates() {

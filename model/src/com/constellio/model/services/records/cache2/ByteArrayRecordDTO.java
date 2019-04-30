@@ -23,12 +23,14 @@ public class ByteArrayRecordDTO implements RecordDTO, Map<String, Object> {
 	Object id;
 	long version;
 	byte[] data;
+	boolean summary;
 
 	public ByteArrayRecordDTO(Holder<MetadataSchema> schemaHolder, RecordDTO dto) {
 		this.schemaHolder = schemaHolder;
 		this.id = dto.getId();
 		this.version = dto.getVersion();
 		this.data = convertDTOToByteArray(dto, schemaHolder.get());
+		this.summary = dto.isSummary();
 	}
 
 	@Override
@@ -58,6 +60,11 @@ public class ByteArrayRecordDTO implements RecordDTO, Map<String, Object> {
 	@Override
 	public Map<String, Object> getCopyFields() {
 		return Collections.emptyMap();
+	}
+
+	@Override
+	public boolean isSummary() {
+		return summary;
 	}
 
 	@Override
