@@ -1,9 +1,9 @@
 package com.constellio.sdk.tests;
 
 import org.openqa.selenium.WebDriverException;
+import org.openqa.selenium.firefox.ClasspathExtension;
 import org.openqa.selenium.firefox.FirefoxBinary;
 import org.openqa.selenium.firefox.FirefoxProfile;
-import org.openqa.selenium.firefox.internal.ClasspathExtension;
 import org.openqa.selenium.logging.LocalLogs;
 import org.openqa.selenium.logging.NeedsLocalLogs;
 import org.openqa.selenium.remote.Command;
