@@ -5,6 +5,7 @@ import com.constellio.app.modules.restapi.core.exception.InvalidParameterCombina
 import com.constellio.app.modules.restapi.core.exception.InvalidParameterException;
 import com.constellio.app.modules.restapi.core.exception.ParametersMustMatchException;
 import com.constellio.app.modules.restapi.core.exception.RequiredParameterException;
+import com.constellio.app.modules.restapi.core.service.ResourceRestfulService;
 import com.constellio.app.modules.restapi.core.util.CustomHttpHeaders;
 import com.constellio.app.modules.restapi.core.util.HttpMethods;
 import com.constellio.app.modules.restapi.core.util.ListUtils;
@@ -43,16 +44,13 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.InputStream;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 @Path("documents")
 @Tag(name = "documents")
-public class DocumentRestfulService {
+public class DocumentRestfulService extends ResourceRestfulService {
 
 	@Inject
 	private DocumentService documentService;
-
-	private static Pattern FLUSH_WITHIN_PATTERN = Pattern.compile("^WITHIN_\\d+_SECONDS$");
 
 	@GET
 	@Path("content")
@@ -73,17 +71,9 @@ public class DocumentRestfulService {
 							   @Parameter(required = true, description = "Signature") @QueryParam("signature") String signature,
 							   @HeaderParam(HttpHeaders.HOST) String host) throws Exception {
 
-		validateRequiredParameters(serviceKey, method, date, expiration, signature);
-		if (id == null) {
-			throw new RequiredParameterException("id");
-		}
-		if (version == null) {
-			throw new RequiredParameterException("version");
-		}
-
-		if (!method.equals(HttpMethods.GET)) {
-			throw new InvalidParameterException("method", method);
-		}
+		validateRequiredParametersIncludingId(id, serviceKey, method, date, expiration, signature);
+		validateRequiredParameter(version, "version");
+		validateHttpMethod(method, HttpMethods.GET);
 
 		DocumentContentDto documentContentDto = documentService.getContent(host, id, serviceKey, method, date, expiration, version, signature);
 		return Response.ok(documentContentDto.getContent(), documentContentDto.getMimeType())
@@ -110,18 +100,11 @@ public class DocumentRestfulService {
 						@QueryParam("filter") Set<String> filters,
 						@HeaderParam(HttpHeaders.HOST) String host) throws Exception {
 
-		validateRequiredParameters(serviceKey, method, date, expiration, signature);
-		if (id == null) {
-			throw new RequiredParameterException("id");
-		}
-		validateFilterValues(filters);
-
-		if (!method.equals(HttpMethods.GET)) {
-			throw new InvalidParameterException("method", method);
-		}
+		validateRequiredParametersIncludingId(id, serviceKey, method, date, expiration, signature);
+		validateFilterValues(DocumentDto.class, filters);
+		validateHttpMethod(method, HttpMethods.GET);
 
 		DocumentDto document = documentService.get(host, id, serviceKey, method, date, expiration, signature, filters);
-
 		return Response.ok(document).tag(document.getETag()).build();
 	}
 
@@ -155,20 +138,11 @@ public class DocumentRestfulService {
 			@HeaderParam(CustomHttpHeaders.FLUSH_MODE) String flush,
 			@HeaderParam(HttpHeaders.HOST) String host) throws Exception {
 
-		validateRequiredParameters(serviceKey, method, date, expiration, signature);
-		if (folderId == null) {
-			throw new RequiredParameterException("folderId");
-		}
-		if (document == null) {
-			throw new RequiredParameterException("document");
-		}
-
+		validateRequiredParametersIncludingFolderId(folderId, serviceKey, method, date, expiration, signature);
+		validateRequiredParameter(document, "document");
 		validateFlushValue(flush);
-		validateFilterValues(filters);
-
-		if (!method.equals(HttpMethods.POST)) {
-			throw new InvalidParameterException("method", method);
-		}
+		validateFilterValues(DocumentDto.class, filters);
+		validateHttpMethod(method, HttpMethods.POST);
 
 		if (document.getFolderId() == null) {
 			throw new RequiredParameterException("document.folderId");
@@ -228,20 +202,11 @@ public class DocumentRestfulService {
 						   @HeaderParam(CustomHttpHeaders.FLUSH_MODE) String flush,
 						   @HeaderParam(HttpHeaders.HOST) String host) throws Exception {
 
-		validateRequiredParameters(serviceKey, method, date, expiration, signature);
-		if (id == null) {
-			throw new RequiredParameterException("id");
-		}
-		if (document == null) {
-			throw new RequiredParameterException("document");
-		}
-
+		validateRequiredParametersIncludingId(id, serviceKey, method, date, expiration, signature);
+		validateRequiredParameter(document, "document");
 		validateFlushValue(flush);
-		validateFilterValues(filters);
-
-		if (!method.equals(HttpMethods.PUT)) {
-			throw new InvalidParameterException("method", method);
-		}
+		validateFilterValues(DocumentDto.class, filters);
+		validateHttpMethod(method, HttpMethods.PUT);
 
 		if (!id.equals(document.getId())) {
 			throw new ParametersMustMatchException("id", "document.id");
@@ -301,20 +266,11 @@ public class DocumentRestfulService {
 								  @HeaderParam(CustomHttpHeaders.FLUSH_MODE) String flush,
 								  @HeaderParam(HttpHeaders.HOST) String host) throws Exception {
 
-		validateRequiredParameters(serviceKey, method, date, expiration, signature);
-		if (id == null) {
-			throw new RequiredParameterException("id");
-		}
-		if (document == null) {
-			throw new RequiredParameterException("document");
-		}
-
+		validateRequiredParametersIncludingId(id, serviceKey, method, date, expiration, signature);
+		validateRequiredParameter(document, "document");
 		validateFlushValue(flush);
-		validateFilterValues(filters);
-
-		if (!method.equals(HttpMethods.PATCH)) {
-			throw new InvalidParameterException("method", method);
-		}
+		validateFilterValues(DocumentDto.class, filters);
+		validateHttpMethod(method, HttpMethods.PATCH);
 
 		if (!id.equals(document.getId())) {
 			throw new ParametersMustMatchException("id", "document.id");
@@ -349,14 +305,8 @@ public class DocumentRestfulService {
 						   @Parameter(required = true, description = "Signature") @QueryParam("signature") String signature,
 						   @HeaderParam(HttpHeaders.HOST) String host) throws Exception {
 
-		validateRequiredParameters(serviceKey, method, date, expiration, signature);
-		if (id == null) {
-			throw new RequiredParameterException("id");
-		}
-
-		if (!method.equals(HttpMethods.DELETE)) {
-			throw new InvalidParameterException("method", method);
-		}
+		validateRequiredParametersIncludingId(id, serviceKey, method, date, expiration, signature);
+		validateHttpMethod(method, HttpMethods.DELETE);
 
 		if (physical != null && !physical.equals("true") && !physical.equals("false")) {
 			throw new InvalidParameterException("physical", physical);
@@ -366,25 +316,6 @@ public class DocumentRestfulService {
 		documentService.delete(host, id, serviceKey, method, date, expiration, physicalValue, signature);
 
 		return Response.noContent().build();
-	}
-
-	private void validateRequiredParameters(String serviceKey, String method, String date, Integer expiration,
-											String signature) {
-		if (serviceKey == null) {
-			throw new RequiredParameterException("serviceKey");
-		}
-		if (method == null) {
-			throw new RequiredParameterException("method");
-		}
-		if (expiration == null) {
-			throw new RequiredParameterException("expiration");
-		}
-		if (date == null) {
-			throw new RequiredParameterException("date");
-		}
-		if (signature == null) {
-			throw new RequiredParameterException("signature");
-		}
 	}
 
 	private void validateDocument(DocumentDto document, InputStream fileStream) {
@@ -410,31 +341,6 @@ public class DocumentRestfulService {
 				if (!Permissions.contains(permission)) {
 					throw new InvalidParameterException(String.format("directAces[%d].permissions", i), permission);
 				}
-			}
-		}
-	}
-
-	private void validateFlushValue(String value) {
-		if (value.equals("NOW") || value.equals("LATER")) {
-			return;
-		}
-
-		if (!FLUSH_WITHIN_PATTERN.matcher(value).matches()) {
-			throw new InvalidParameterException(CustomHttpHeaders.FLUSH_MODE, value);
-		}
-
-		String seconds = value.split("_")[1];
-		if (seconds.equals("0") || !StringUtils.isUnsignedInteger(seconds + "000")) {
-			throw new InvalidParameterException(CustomHttpHeaders.FLUSH_MODE, value);
-		}
-	}
-
-	private void validateFilterValues(Set<String> values) {
-		for (String value : values) {
-			try {
-				DocumentDto.class.getDeclaredField(value);
-			} catch (NoSuchFieldException e) {
-				throw new InvalidParameterException("filter", value);
 			}
 		}
 	}

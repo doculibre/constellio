@@ -25,7 +25,6 @@ import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.contents.ContentImplRuntimeException;
 import com.constellio.model.services.contents.ContentManager.ContentVersionDataSummaryResponse;
@@ -34,9 +33,6 @@ import com.constellio.model.services.contents.ContentManagerRuntimeException;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -125,26 +121,6 @@ public class DocumentDao extends BaseDao {
 				ContentManagerRuntimeException.ContentManagerRuntimeException_NoSuchContent e) {
 			throw new DocumentContentNotFoundException(documentRecord.getId(), version);
 		}
-	}
-
-	public List<ExtendedAttributeDto> getExtendedAttributes(MetadataSchema schema, Record record) {
-		List<ExtendedAttributeDto> extendedAttributes = Lists.newArrayList();
-
-		for (Metadata metadata : schema.getMetadatas().onlyUSR()) {
-			List<String> values = Lists.newArrayList();
-			for (Object value : record.getValues(metadata)) {
-				if (metadata.getType() == MetadataValueType.DATE) {
-					values.add(value != null ? DateUtils.format((LocalDate) value, getDateFormat()) : null);
-				} else if (metadata.getType() == MetadataValueType.DATE_TIME) {
-					values.add(value != null ? DateUtils.format((LocalDateTime) value, getDateTimeFormat()) : null);
-				} else {
-					values.add(value != null ? String.valueOf(value) : null);
-				}
-			}
-
-			extendedAttributes.add(ExtendedAttributeDto.builder().key(metadata.getLocalCode()).values(values).build());
-		}
-		return extendedAttributes;
 	}
 
 	public MetadataSchema getLinkedMetadataSchema(DocumentDto document, String collection) {
