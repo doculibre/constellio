@@ -445,14 +445,23 @@ public class TaskTable extends VerticalLayout {
 				});
 			}
 
-			if (presenter.isCloseButtonEnabled(taskVO)) {
-				rootItem.addItem($("TaskTable.close"), CLOSE_ICON, new Command() {
-					@Override
-					public void menuSelected(MenuItem selectedItem) {
-						presenter.closeButtonClicked(taskVO);
-					}
-				});
-			}
+				if (presenter.isAutoAssignButtonEnabled(taskVO)) {
+					rootItem.addItem($("TaskTable.autoAssignTask"), FontAwesome.HAND_O_RIGHT, new Command() {
+						@Override
+						public void menuSelected(MenuItem selectedItem) {
+							presenter.autoAssignButtonClicked(taskVO);
+						}
+					});
+				}
+
+				if (presenter.isCloseButtonEnabled(taskVO)) {
+					rootItem.addItem($("TaskTable.close"), CLOSE_ICON, new Command() {
+						@Override
+						public void menuSelected(MenuItem selectedItem) {
+							presenter.closeButtonClicked(taskVO);
+						}
+					});
+				}
 
 			if (presenter.isDeleteButtonVisible(taskVO)) {
 				rootItem.addItem($("delete"), DeleteButton.ICON_RESOURCE, new ConfirmDialogMenuBarItemCommand() {

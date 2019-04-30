@@ -10,6 +10,7 @@ import com.constellio.app.extensions.core.LockedRecordsExtension;
 import com.constellio.app.modules.rm.extensions.imports.TaskImportExtension;
 import com.constellio.app.modules.tasks.caches.IncompleteTasksUserCache;
 import com.constellio.app.modules.tasks.caches.UnreadTasksUserCache;
+import com.constellio.app.modules.tasks.extensions.TaskModuleExtensions;
 import com.constellio.app.modules.tasks.extensions.TaskRecordAppExtension;
 import com.constellio.app.modules.tasks.extensions.TaskRecordExtension;
 import com.constellio.app.modules.tasks.extensions.TaskRecordNavigationExtension;
@@ -205,7 +206,7 @@ public class TaskModule implements InstallableSystemModule, ModuleWithComboMigra
 		appLayerFactory.getModelLayerFactory().getCachesManager().register(new UnreadTasksUserCache(appLayerFactory));
 		appLayerFactory.getModelLayerFactory().getCachesManager().register(new IncompleteTasksUserCache(appLayerFactory));
 	}
-	
+
 	@Override
 	public void stop(AppLayerFactory appLayerFactory) {
 

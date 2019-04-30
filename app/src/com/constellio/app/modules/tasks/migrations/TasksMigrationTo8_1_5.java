@@ -11,6 +11,12 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
+import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
+
 public class TasksMigrationTo8_1_5 extends MigrationHelper implements MigrationScript {
 
 	@Override
@@ -36,6 +42,8 @@ public class TasksMigrationTo8_1_5 extends MigrationHelper implements MigrationS
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			MetadataSchemaBuilder task = typesBuilder.getSchema(Task.DEFAULT_SCHEMA);
 			task.get(Schemas.VISIBLE_IN_TREES).defineDataEntry().asCalculated(TaskVisibleInTreesCalculator.class);
+			typesBuilder.getDefaultSchema(User.SCHEMA_TYPE).createUndeletable(User.ASSIGNATION_EMAIL_RECEPTION_DISABLED)
+					.setType(BOOLEAN).setSystemReserved(true);
 		}
 	}
 }
