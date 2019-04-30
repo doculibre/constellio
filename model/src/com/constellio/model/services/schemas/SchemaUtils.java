@@ -213,6 +213,24 @@ public class SchemaUtils {
 		return index;
 	}
 
+
+	public Map<String, Metadata> buildIndexByDatastoreCode(List<Metadata> metadatas) {
+		Map<String, Metadata> index = new HashMap<>();
+		for (Metadata metadata : metadatas) {
+			index.put(metadata.getDataStoreCode(), metadata);
+		}
+		return index;
+	}
+
+
+	public Map<Short, Metadata> buildIndexById(List<Metadata> metadatas) {
+		Map<Short, Metadata> index = new HashMap<>();
+		for (Metadata metadata : metadatas) {
+			index.put(metadata.getId(), metadata);
+		}
+		return index;
+	}
+
 	public Map<String, Metadata> buildIndexByLocalCode(List<Metadata> metadatas) {
 		Map<String, Metadata> index = new HashMap<>();
 		for (Metadata metadata : metadatas) {

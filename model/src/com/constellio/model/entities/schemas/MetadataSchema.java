@@ -39,9 +39,13 @@ public class MetadataSchema implements Serializable {
 
 	private final Set<RecordValidator> schemaValidators;
 
+	private final Map<String, Metadata> indexByDataStoreCode;
+
 	private final Map<String, Metadata> indexByLocalCode;
 
 	private final Map<String, Metadata> indexByCode;
+
+	private final Map<Short, Metadata> indexById;
 
 	private MetadataSchemaCalculatedInfos calculatedInfos;
 
@@ -68,6 +72,8 @@ public class MetadataSchema implements Serializable {
 		this.calculatedInfos = calculatedInfos;
 		this.indexByLocalCode = Collections.unmodifiableMap(new SchemaUtils().buildIndexByLocalCode(metadatas));
 		this.indexByCode = Collections.unmodifiableMap(new SchemaUtils().buildIndexByCode(metadatas));
+		this.indexByDataStoreCode = Collections.unmodifiableMap(new SchemaUtils().buildIndexByDatastoreCode(metadatas));
+		this.indexById = Collections.unmodifiableMap(new SchemaUtils().buildIndexById(metadatas));
 		this.dataStore = dataStore;
 		this.active = active;
 		this.collectionInfo = collectionInfo;
@@ -121,7 +127,6 @@ public class MetadataSchema implements Serializable {
 	public boolean hasMetadataWithCode(String metadataCode) {
 		try {
 			String localCode = new SchemaUtils().getLocalCodeFromMetadataCode(metadataCode);
-
 			return indexByLocalCode.get(localCode) != null;
 		} catch (MetadataSchemasRuntimeException.CannotGetMetadatasOfAnotherSchemaType | MetadataSchemasRuntimeException.CannotGetMetadatasOfAnotherSchema e) {
 			return false;
@@ -131,6 +136,15 @@ public class MetadataSchema implements Serializable {
 	public Metadata get(String metadataCode) {
 		return getMetadata(metadataCode);
 	}
+
+	public Metadata getMetadataByDatastoreCode(String dataStoreCode) {
+		return indexByDataStoreCode.get(dataStoreCode);
+	}
+
+	public Metadata getMetadataById(Short id) {
+		return indexById.get(id);
+	}
+
 
 	public Metadata getMetadata(String metadataCode) {
 
