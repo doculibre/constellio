@@ -153,6 +153,10 @@ public class ConstellioEIMConfigs {
 
 	public static final SystemConfiguration ENABLE_THUMBNAIL_GENERATION;
 
+	public static final SystemConfiguration SHOW_RESULTS_NUMBERING_IN_LIST_VIEW;
+
+	public static final SystemConfiguration SHOW_PATH_TO_RESULT;
+
 	static {
 		SystemConfigurationGroup others = new SystemConfigurationGroup(null, "others");
 		add(DEFAULT_PARSING_BEHAVIOR = others.createEnum("defaultParsingBehavior", ParsingBehavior.class)
@@ -207,6 +211,8 @@ public class ConstellioEIMConfigs {
 		add(SEARCH_SORT_TYPE = search.createEnum("sortType", SearchSortType.class).withDefaultValue(SearchSortType.RELEVENCE));
 		add(REPLACE_SPACES_IN_SIMPLE_SEARCH_FOR_ANDS = search.createBooleanFalseByDefault("replaceSpacesInSimpleSearchForAnds"));
 		add(IS_RUNNING_WITH_SOLR_6 = search.createBooleanFalseByDefault("isRunningWithSolr6").whichIsHidden());
+		add(SHOW_RESULTS_NUMBERING_IN_LIST_VIEW = search.createBooleanFalseByDefault("showResultsNumberingInListView"));
+		add(SHOW_PATH_TO_RESULT = search.createBooleanFalseByDefault("showPathToResult"));
 
 		add(MAX_SELECTABLE_SEARCH_RESULTS = advanced.createInteger("maxSelectableSearchResults").withDefaultValue(500));
 		add(WRITE_ZZRECORDS_IN_TLOG = advanced.createBooleanFalseByDefault("writeZZRecordsInTlog")
@@ -383,6 +389,14 @@ public class ConstellioEIMConfigs {
 
 	public Boolean isLazyLoadedFacets() {
 		return manager.getValue(LAZY_LOADED_FACETS);
+	}
+
+	public boolean isShowPathToResult() {
+		return manager.getValue(SHOW_PATH_TO_RESULT);
+	}
+
+	public boolean isShowResultsNumberingInListView() {
+		return manager.getValue(SHOW_RESULTS_NUMBERING_IN_LIST_VIEW);
 	}
 
 	public ParsingBehavior getDefaultParsingBehavior() {

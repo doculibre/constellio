@@ -115,27 +115,31 @@ public class RMSearchPageExtension extends SearchPageExtension {
 	}
 
 	@Override
-	public List<Component> addComponentToSearchResult(AddComponentToSearchResultParams addComponentToSearchResultParams) {
-		String schemaTypeCode = addComponentToSearchResultParams.getSearchResultVO().getRecordVO().getSchema().getTypeCode();
-
-		if(!schemaTypeCode.equals(Folder.SCHEMA_TYPE) && !schemaTypeCode.equals(Document.SCHEMA_TYPE)) {
-			return null;
-		}
-
-		String captionTxt = addComponentToSearchResultParams.getSearchResultVO().getRecordVO().get(Schemas.CAPTION);
+	public List<Component> addComponentToSearchResult(
+			AddComponentToSearchResultParams addComponentToSearchResultParams) {
 		ArrayList<Component> componentListToReturn = new ArrayList();
 
-		captionTxt = STRING_REPLACER.replaceOn(captionTxt);
+		if (appLayerFactory.getModelLayerFactory().getSystemConfigs().isShowPathToResult()) {
+			String schemaTypeCode = addComponentToSearchResultParams.getSearchResultVO().getRecordVO().getSchema().getTypeCode();
 
-		Label value = new Label( "/ " + captionTxt, ContentMode.HTML);
+			if (!schemaTypeCode.equals(Folder.SCHEMA_TYPE) && !schemaTypeCode.equals(Document.SCHEMA_TYPE)) {
+				return null;
+			}
 
-		I18NHorizontalLayout item = new I18NHorizontalLayout(value);
-		item.setHeight("100%");
-		item.setSpacing(true);
-		item.addStyleName("metadata-caption-layout");
-		item.addStyleName(SearchResultDisplay.METADATA_STYLE);
-		componentListToReturn.add(item);
+			String captionTxt = addComponentToSearchResultParams.getSearchResultVO().getRecordVO().get(Schemas.CAPTION);
 
+
+			captionTxt = STRING_REPLACER.replaceOn(captionTxt);
+
+			Label value = new Label("/ " + captionTxt, ContentMode.HTML);
+
+			I18NHorizontalLayout item = new I18NHorizontalLayout(value);
+			item.setHeight("100%");
+			item.setSpacing(true);
+			item.addStyleName("metadata-caption-layout");
+			item.addStyleName(SearchResultDisplay.METADATA_STYLE);
+			componentListToReturn.add(item);
+		}
 		return componentListToReturn;
 	}
 }
