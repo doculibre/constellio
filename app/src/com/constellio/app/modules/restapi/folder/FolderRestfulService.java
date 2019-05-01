@@ -1,9 +1,14 @@
 package com.constellio.app.modules.restapi.folder;
 
-import com.constellio.app.modules.restapi.core.service.ResourceRestfulService;
+import com.constellio.app.modules.restapi.core.exception.AtLeastOneParameterRequiredException;
+import com.constellio.app.modules.restapi.core.exception.InvalidParameterCombinationException;
+import com.constellio.app.modules.restapi.core.exception.ParametersMustMatchException;
+import com.constellio.app.modules.restapi.core.exception.RequiredParameterException;
 import com.constellio.app.modules.restapi.core.util.CustomHttpHeaders;
 import com.constellio.app.modules.restapi.core.util.HttpMethods;
 import com.constellio.app.modules.restapi.folder.dto.FolderDto;
+import com.constellio.app.modules.restapi.resource.service.ResourceRestfulService;
+import com.google.common.base.Strings;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.headers.Header;
@@ -12,7 +17,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.glassfish.jersey.media.multipart.FormDataParam;
 
 import javax.inject.Inject;
 import javax.validation.Valid;
@@ -73,14 +77,44 @@ public class FolderRestfulService extends ResourceRestfulService {
 						   @QueryParam("date") String date,
 						   @QueryParam("expiration") Integer expiration,
 						   @QueryParam("signature") String signature,
-						   @Valid @FormDataParam("folder") FolderDto folder,
+						   @Valid FolderDto folder,
 						   @QueryParam("filter") Set<String> filters,
-						   @HeaderParam(CustomHttpHeaders.COPY_SOURCE) String copySource,
+						   @HeaderParam(CustomHttpHeaders.COPY_SOURCE) String copyFolderId,
 						   @DefaultValue("WITHIN_5_SECONDS") @HeaderParam(CustomHttpHeaders.FLUSH_MODE) String flush,
 						   @HeaderParam(HttpHeaders.HOST) String host) throws Exception {
-		// TODO
-		// if copySource not empty, copy the folder, otherwise create the FolderDto received
-		return Response.noContent().build();
+
+		validateRequiredParameters(serviceKey, method, date, expiration, signature);
+		validateFlushValue(flush);
+		validateFilterValues(FolderDto.class, filters);
+		validateHttpMethod(method, HttpMethods.POST);
+
+		if (copyFolderId != null) {
+			// FIXME if folder = null, do we copy all the metadatas as is?
+			// required fields for copy
+		} else {
+			if (Strings.isNullOrEmpty(folder.getTitle())) {
+				throw new RequiredParameterException("folder.title");
+			}
+			if (folder.getCategory() == null) {
+				throw new RequiredParameterException("folder.category");
+			}
+			if (folder.getAdministrativeUnit() == null) {
+				throw new RequiredParameterException("folder.administrativeUnit");
+			}
+			if (folder.getOpeningDate() == null) {
+				throw new RequiredParameterException("folder.openingDate");
+			}
+			if (folderId != null && !folder.getParentFolderId().equals(folderId)) {
+				throw new ParametersMustMatchException("folderId", "folder.parentFolderId");
+			}
+		}
+
+		validateFolder(folder);
+
+		FolderDto createdFolder = folderService.create(host, folderId, serviceKey, method, date, expiration,
+				signature, folder, copyFolderId, flush, filters);
+
+		return Response.status(Response.Status.CREATED).entity(createdFolder).tag(createdFolder.getETag()).build();
 	}
 
 
@@ -102,5 +136,21 @@ public class FolderRestfulService extends ResourceRestfulService {
 		return Response.noContent().build();
 	}
 
+	private void validateFolder(FolderDto folder) {
+		if (folder == null) {
+			return;
+		}
+
+		if (folder.getType() != null) {
+			if (Strings.isNullOrEmpty(folder.getType().getId()) && Strings.isNullOrEmpty(folder.getType().getCode())) {
+				throw new AtLeastOneParameterRequiredException("type.id", "type.code");
+			}
+			if (!Strings.isNullOrEmpty(folder.getType().getId()) && !Strings.isNullOrEmpty(folder.getType().getCode())) {
+				throw new InvalidParameterCombinationException("type.id", "type.code");
+			}
+		}
+
+		validateAces(folder.getDirectAces());
+	}
 
 }

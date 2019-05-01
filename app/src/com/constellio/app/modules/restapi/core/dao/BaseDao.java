@@ -1,8 +1,6 @@
 package com.constellio.app.modules.restapi.core.dao;
 
 import com.constellio.app.modules.restapi.RestApiConfigs;
-import com.constellio.app.modules.restapi.core.util.DateUtils;
-import com.constellio.app.modules.restapi.document.dto.ExtendedAttributeDto;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.model.entities.records.Record;
@@ -12,7 +10,6 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.contents.ContentManager;
@@ -24,9 +21,6 @@ import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.users.UserServices;
-import com.google.common.collect.Lists;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
 
 import javax.annotation.PostConstruct;
 import java.util.Collections;
@@ -121,26 +115,6 @@ public abstract class BaseDao {
 
 	public Record getGroupByCode(String groupCode, String collection) {
 		return recordServices.getRecordsCaches().getCache(collection).getByMetadata(schemas.group.code(), groupCode);
-	}
-
-	public List<ExtendedAttributeDto> getExtendedAttributes(MetadataSchema schema, Record record) {
-		List<ExtendedAttributeDto> extendedAttributes = Lists.newArrayList();
-
-		for (Metadata metadata : schema.getMetadatas().onlyUSR()) {
-			List<String> values = Lists.newArrayList();
-			for (Object value : record.getValues(metadata)) {
-				if (metadata.getType() == MetadataValueType.DATE) {
-					values.add(value != null ? DateUtils.format((LocalDate) value, getDateFormat()) : null);
-				} else if (metadata.getType() == MetadataValueType.DATE_TIME) {
-					values.add(value != null ? DateUtils.format((LocalDateTime) value, getDateTimeFormat()) : null);
-				} else {
-					values.add(value != null ? String.valueOf(value) : null);
-				}
-			}
-
-			extendedAttributes.add(ExtendedAttributeDto.builder().key(metadata.getLocalCode()).values(values).build());
-		}
-		return extendedAttributes;
 	}
 
 	protected Record getRecordByMetadata(Metadata metadata, String value) {

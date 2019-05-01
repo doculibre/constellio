@@ -5,15 +5,11 @@ import com.constellio.app.modules.restapi.core.exception.InvalidParameterCombina
 import com.constellio.app.modules.restapi.core.exception.InvalidParameterException;
 import com.constellio.app.modules.restapi.core.exception.ParametersMustMatchException;
 import com.constellio.app.modules.restapi.core.exception.RequiredParameterException;
-import com.constellio.app.modules.restapi.core.service.ResourceRestfulService;
 import com.constellio.app.modules.restapi.core.util.CustomHttpHeaders;
 import com.constellio.app.modules.restapi.core.util.HttpMethods;
-import com.constellio.app.modules.restapi.core.util.ListUtils;
-import com.constellio.app.modules.restapi.core.util.Permissions;
-import com.constellio.app.modules.restapi.core.util.StringUtils;
-import com.constellio.app.modules.restapi.document.dto.AceDto;
 import com.constellio.app.modules.restapi.document.dto.DocumentContentDto;
 import com.constellio.app.modules.restapi.document.dto.DocumentDto;
+import com.constellio.app.modules.restapi.resource.service.ResourceRestfulService;
 import com.google.common.base.Strings;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -220,9 +216,7 @@ public class DocumentRestfulService extends ResourceRestfulService {
 
 		validateDocument(document, fileStream);
 
-		if (eTag != null && !StringUtils.isUnsignedLong(eTag)) {
-			throw new InvalidParameterException("ETag", eTag);
-		}
+		validateETag(eTag);
 		document.setETag(eTag);
 
 		DocumentDto updatedDocument = documentService.update(host, id, serviceKey, method, date, expiration, signature,
@@ -278,9 +272,7 @@ public class DocumentRestfulService extends ResourceRestfulService {
 
 		validateDocument(document, fileStream);
 
-		if (eTag != null && !StringUtils.isUnsignedLong(eTag)) {
-			throw new InvalidParameterException("ETag", eTag);
-		}
+		validateETag(eTag);
 		document.setETag(eTag);
 
 		DocumentDto updatedDocument = documentService.update(host, id, serviceKey, method, date, expiration, signature,
@@ -335,14 +327,7 @@ public class DocumentRestfulService extends ResourceRestfulService {
 			}
 		}
 
-		for (int i = 0; i < ListUtils.nullToEmpty(document.getDirectAces()).size(); i++) {
-			AceDto ace = document.getDirectAces().get(i);
-			for (String permission : ace.getPermissions()) {
-				if (!Permissions.contains(permission)) {
-					throw new InvalidParameterException(String.format("directAces[%d].permissions", i), permission);
-				}
-			}
-		}
+		validateAces(document.getDirectAces());
 	}
 
 }

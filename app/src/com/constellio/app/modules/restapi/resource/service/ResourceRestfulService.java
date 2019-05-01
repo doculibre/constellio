@@ -1,10 +1,14 @@
-package com.constellio.app.modules.restapi.core.service;
+package com.constellio.app.modules.restapi.resource.service;
 
 import com.constellio.app.modules.restapi.core.exception.InvalidParameterException;
 import com.constellio.app.modules.restapi.core.exception.RequiredParameterException;
 import com.constellio.app.modules.restapi.core.util.CustomHttpHeaders;
+import com.constellio.app.modules.restapi.core.util.ListUtils;
+import com.constellio.app.modules.restapi.core.util.Permissions;
 import com.constellio.app.modules.restapi.core.util.StringUtils;
+import com.constellio.app.modules.restapi.document.dto.AceDto;
 
+import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -67,6 +71,23 @@ public abstract class ResourceRestfulService {
 	protected void validateRequiredParameter(Object parameter, String parameterName) {
 		if (parameter == null) {
 			throw new RequiredParameterException(parameterName);
+		}
+	}
+
+	protected void validateAces(List<AceDto> aces) {
+		for (int i = 0; i < ListUtils.nullToEmpty(aces).size(); i++) {
+			AceDto ace = aces.get(i);
+			for (String permission : ace.getPermissions()) {
+				if (!Permissions.contains(permission)) {
+					throw new InvalidParameterException(String.format("directAces[%d].permissions", i), permission);
+				}
+			}
+		}
+	}
+
+	protected void validateETag(String eTag) {
+		if (eTag != null && !StringUtils.isUnsignedLong(eTag)) {
+			throw new InvalidParameterException("ETag", eTag);
 		}
 	}
 

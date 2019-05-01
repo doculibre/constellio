@@ -21,7 +21,7 @@ import com.constellio.app.modules.restapi.document.dto.ContentDto;
 import com.constellio.app.modules.restapi.document.dto.DocumentDto;
 import com.constellio.app.modules.restapi.document.dto.DocumentTypeDto;
 import com.constellio.app.modules.restapi.document.dto.ExtendedAttributeDto;
-import com.constellio.app.modules.restapi.document.exception.DocumentTypeNotFoundException;
+import com.constellio.app.modules.restapi.resource.exception.ResourceTypeNotFoundException;
 import com.constellio.app.modules.restapi.validation.exception.ExpiredSignedUrlException;
 import com.constellio.app.modules.restapi.validation.exception.InvalidSignatureException;
 import com.constellio.app.modules.restapi.validation.exception.UnallowedHostException;
@@ -33,9 +33,9 @@ import com.constellio.app.ui.i18n.i18n;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -818,7 +818,7 @@ public class DocumentRestfulServicePATCHAcceptanceTest extends BaseDocumentRestf
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-				.isEqualTo(i18n.$(new DocumentTypeNotFoundException("id", "fake").getValidationError()));
+				.isEqualTo(i18n.$(new ResourceTypeNotFoundException("id", "fake").getValidationError()));
 	}
 
 	@Test
@@ -829,7 +829,7 @@ public class DocumentRestfulServicePATCHAcceptanceTest extends BaseDocumentRestf
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-				.isEqualTo(i18n.$(new DocumentTypeNotFoundException("code", "fake").getValidationError()));
+				.isEqualTo(i18n.$(new ResourceTypeNotFoundException("code", "fake").getValidationError()));
 	}
 
 	@Test

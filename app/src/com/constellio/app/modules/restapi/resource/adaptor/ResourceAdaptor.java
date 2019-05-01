@@ -1,4 +1,4 @@
-package com.constellio.app.modules.restapi.core.adaptor;
+package com.constellio.app.modules.restapi.resource.adaptor;
 
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchema;

@@ -1,12 +1,12 @@
 package com.constellio.app.modules.restapi.document.adaptor;
 
 import com.constellio.app.modules.restapi.ace.AceService;
-import com.constellio.app.modules.restapi.core.adaptor.ResourceAdaptor;
 import com.constellio.app.modules.restapi.document.dao.DocumentDao;
 import com.constellio.app.modules.restapi.document.dto.AceListDto;
 import com.constellio.app.modules.restapi.document.dto.ContentDto;
 import com.constellio.app.modules.restapi.document.dto.DocumentDto;
 import com.constellio.app.modules.restapi.document.dto.DocumentTypeDto;
+import com.constellio.app.modules.restapi.resource.adaptor.ResourceAdaptor;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.model.entities.records.Content;

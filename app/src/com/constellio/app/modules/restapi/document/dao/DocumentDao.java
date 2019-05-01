@@ -1,6 +1,5 @@
 package com.constellio.app.modules.restapi.document.dao;
 
-import com.constellio.app.modules.restapi.core.dao.BaseDao;
 import com.constellio.app.modules.restapi.core.exception.OptimisticLockException;
 import com.constellio.app.modules.restapi.core.exception.RecordLogicallyDeletedException;
 import com.constellio.app.modules.restapi.core.exception.RequiredParameterException;
@@ -11,12 +10,10 @@ import com.constellio.app.modules.restapi.core.util.ListUtils;
 import com.constellio.app.modules.restapi.document.dto.ContentDto;
 import com.constellio.app.modules.restapi.document.dto.DocumentContentDto;
 import com.constellio.app.modules.restapi.document.dto.DocumentDto;
-import com.constellio.app.modules.restapi.document.dto.DocumentTypeDto;
 import com.constellio.app.modules.restapi.document.dto.ExtendedAttributeDto;
 import com.constellio.app.modules.restapi.document.exception.DocumentContentNotFoundException;
-import com.constellio.app.modules.restapi.document.exception.DocumentTypeNotFoundException;
+import com.constellio.app.modules.restapi.resource.dao.ResourceDao;
 import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
@@ -32,7 +29,6 @@ import com.constellio.model.services.contents.ContentManager.UploadOptions;
 import com.constellio.model.services.contents.ContentManagerRuntimeException;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
-import com.google.common.base.Strings;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -40,7 +36,7 @@ import java.util.List;
 
 import static com.constellio.app.modules.restapi.document.enumeration.VersionType.MAJOR;
 
-public class DocumentDao extends BaseDao {
+public class DocumentDao extends ResourceDao {
 
 	private static final String LAST_VERSION = "last";
 
@@ -50,7 +46,7 @@ public class DocumentDao extends BaseDao {
 
 		Record documentRecord = recordServices.newRecordWithSchema(documentSchema);
 
-		Record documentTypeRecord = getDocumentTypeRecord(document.getType(), documentSchema.getCollection());
+		Record documentTypeRecord = getResourceTypeRecord(document.getType(), documentSchema.getCollection());
 
 		updateDocumentMetadataValues(documentRecord, documentTypeRecord, documentSchema, document, content, false);
 		updateDocumentCustomMetadataValues(documentRecord, documentSchema, document.getExtendedAttributes(), false);
@@ -82,7 +78,7 @@ public class DocumentDao extends BaseDao {
 			String documentTypeId = getMetadataValue(documentRecord, Document.TYPE);
 			documentTypeRecord = documentTypeId != null ? getRecordById(documentTypeId) : null;
 		} else {
-			documentTypeRecord = getDocumentTypeRecord(document.getType(), documentRecord.getCollection());
+			documentTypeRecord = getResourceTypeRecord(document.getType(), documentRecord.getCollection());
 		}
 
 		updateDocumentMetadataValues(documentRecord, documentTypeRecord, documentSchema, document, content, partial);
@@ -121,11 +117,6 @@ public class DocumentDao extends BaseDao {
 				ContentManagerRuntimeException.ContentManagerRuntimeException_NoSuchContent e) {
 			throw new DocumentContentNotFoundException(documentRecord.getId(), version);
 		}
-	}
-
-	public MetadataSchema getLinkedMetadataSchema(DocumentDto document, String collection) {
-		Record documentTypeRecord = getDocumentTypeRecord(document.getType(), collection);
-		return getDocumentMetadataSchema(documentTypeRecord, collection);
 	}
 
 	public void deleteContent(Content content) {
@@ -172,38 +163,6 @@ public class DocumentDao extends BaseDao {
 			return contentManager.createMajor(user, filename, contentResponse.getContentVersionDataSummary());
 		}
 		return contentManager.createMinor(user, filename, contentResponse.getContentVersionDataSummary());
-	}
-
-	private Record getDocumentTypeRecord(DocumentTypeDto type, String collection) {
-		if (type == null) {
-			return null;
-		}
-
-		Record record;
-		if (!Strings.isNullOrEmpty(type.getId())) {
-			record = getRecordById(type.getId());
-
-			if (record == null) {
-				throw new DocumentTypeNotFoundException("id", type.getId());
-			}
-		} else {
-			MetadataSchema schema = getMetadataSchema(collection, DocumentType.SCHEMA_TYPE);
-			Metadata metadata = getMetadata(schema, DocumentType.CODE);
-			record = getRecordByMetadata(metadata, type.getCode());
-
-			if (record == null) {
-				throw new DocumentTypeNotFoundException("code", type.getCode());
-			}
-		}
-		return record;
-	}
-
-	public MetadataSchema getDocumentMetadataSchema(Record documentTypeRecord, String collection) {
-		if (documentTypeRecord != null) {
-			String linkedSchemaCode = getMetadataValue(documentTypeRecord, DocumentType.LINKED_SCHEMA);
-			return getMetadataSchema(collection, Document.SCHEMA_TYPE, linkedSchemaCode);
-		}
-		return getMetadataSchema(collection, Document.SCHEMA_TYPE);
 	}
 
 	private void updateDocumentMetadataValues(Record documentRecord, Record documentTypeRecord, MetadataSchema schema,
@@ -273,4 +232,8 @@ public class DocumentDao extends BaseDao {
 		}
 	}
 
+	@Override
+	protected String getSchemaType() {
+		return Document.SCHEMA_TYPE;
+	}
 }

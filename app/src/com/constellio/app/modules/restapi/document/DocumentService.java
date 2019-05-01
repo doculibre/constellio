@@ -1,34 +1,22 @@
 package com.constellio.app.modules.restapi.document;
 
 import com.constellio.app.modules.restapi.ace.AceService;
-import com.constellio.app.modules.restapi.core.adaptor.ResourceAdaptor;
 import com.constellio.app.modules.restapi.core.dao.BaseDao;
-import com.constellio.app.modules.restapi.core.exception.InvalidMetadataValueException;
-import com.constellio.app.modules.restapi.core.exception.MetadataNotFoundException;
-import com.constellio.app.modules.restapi.core.exception.MetadataNotMultivalueException;
-import com.constellio.app.modules.restapi.core.exception.MetadataReferenceNotAllowedException;
-import com.constellio.app.modules.restapi.core.exception.UnsupportedMetadataTypeException;
-import com.constellio.app.modules.restapi.core.service.ResourceService;
-import com.constellio.app.modules.restapi.core.util.DateUtils;
-import com.constellio.app.modules.restapi.core.util.ListUtils;
 import com.constellio.app.modules.restapi.core.util.SchemaTypes;
-import com.constellio.app.modules.restapi.core.util.StringUtils;
 import com.constellio.app.modules.restapi.document.adaptor.DocumentAdaptor;
 import com.constellio.app.modules.restapi.document.dao.DocumentDao;
 import com.constellio.app.modules.restapi.document.dto.DocumentContentDto;
 import com.constellio.app.modules.restapi.document.dto.DocumentDto;
-import com.constellio.app.modules.restapi.document.dto.ExtendedAttributeDto;
+import com.constellio.app.modules.restapi.resource.adaptor.ResourceAdaptor;
+import com.constellio.app.modules.restapi.resource.service.ResourceService;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
 
 import javax.inject.Inject;
 import java.io.InputStream;
-import java.util.List;
 import java.util.Set;
 
 import static com.constellio.app.modules.restapi.core.util.ListUtils.isNullOrEmpty;
@@ -49,13 +37,14 @@ public class DocumentService extends ResourceService {
 		validateParameters(host, folderId, serviceKey, method, date, expiration, null, null, signature);
 
 		Record folder = getRecord(folderId, true);
-		User user = getUser(serviceKey, folder.getCollection());
-		validationService.validateUserAccess(user, folder, method);
+		String collection = folder.getCollection();
+		User user = getUser(serviceKey, collection);
+		validateUserAccess(user, folder, method);
 
-		MetadataSchema documentSchema = documentDao.getLinkedMetadataSchema(document, folder.getCollection());
+		MetadataSchema documentSchema = documentDao.getLinkedMetadataSchema(document.getType(), collection);
 		validateExtendedAttributes(document.getExtendedAttributes(), documentSchema);
 
-		validationService.validateAuthorizations(document.getDirectAces(), folder.getCollection());
+		validateAuthorizations(document.getDirectAces(), collection);
 
 		Content content = null;
 		if (document.getContent() != null) {
@@ -84,7 +73,7 @@ public class DocumentService extends ResourceService {
 
 		Record document = getRecord(id, false);
 		User user = getUser(serviceKey, document.getCollection());
-		validationService.validateUserAccess(user, document, method);
+		validateUserAccess(user, document, method);
 
 		documentDao.deleteDocument(user, document, Boolean.TRUE.equals(physical));
 	}
@@ -95,7 +84,7 @@ public class DocumentService extends ResourceService {
 
 		Record document = getRecord(id, false);
 		User user = getUser(serviceKey, document.getCollection());
-		validationService.validateUserAccess(user, document, method);
+		validateUserAccess(user, document, method);
 
 		return documentDao.getContent(document, version);
 	}
@@ -112,11 +101,11 @@ public class DocumentService extends ResourceService {
 
 		Record documentRecord = getRecord(id, true);
 		if (document.getETag() != null) {
-			validationService.validateETag(id, document.getETag(), documentRecord.getVersion());
+			validateETag(id, document.getETag(), documentRecord.getVersion());
 		}
 
 		User user = getUser(serviceKey, documentRecord.getCollection());
-		validationService.validateUserAccess(user, documentRecord, method);
+		validateUserAccess(user, documentRecord, method);
 
 		// make sure that folderId is valid
 		if (!partial || document.getFolderId() != null) {
@@ -127,13 +116,13 @@ public class DocumentService extends ResourceService {
 		if (partial && document.getType() == null) {
 			String documentTypeId = documentDao.getMetadataValue(documentRecord, Document.TYPE);
 			Record documentTypeRecord = documentTypeId != null ? getRecord(documentTypeId, true) : null;
-			documentSchema = documentDao.getDocumentMetadataSchema(documentTypeRecord, documentRecord.getCollection());
+			documentSchema = documentDao.getResourceMetadataSchema(documentTypeRecord, documentRecord.getCollection());
 		} else {
-			documentSchema = documentDao.getLinkedMetadataSchema(document, documentRecord.getCollection());
+			documentSchema = documentDao.getLinkedMetadataSchema(document.getType(), documentRecord.getCollection());
 		}
 
 		validateExtendedAttributes(document.getExtendedAttributes(), documentSchema);
-		validationService.validateAuthorizations(document.getDirectAces(), documentRecord.getCollection());
+		validateAuthorizations(document.getDirectAces(), documentRecord.getCollection());
 
 		Content content = null;
 		if (document.getContent() != null) {
@@ -156,68 +145,14 @@ public class DocumentService extends ResourceService {
 		}
 	}
 
-	private void validateExtendedAttributes(List<ExtendedAttributeDto> extendedAttributes, MetadataSchema schema) {
-		if (ListUtils.isNullOrEmpty(extendedAttributes)) {
-			return;
-		}
-
-		String dateFormat = documentDao.getDateFormat();
-		String dateTimeFormat = documentDao.getDateTimeFormat();
-
-		for (ExtendedAttributeDto attribute : extendedAttributes) {
-			Metadata metadata;
-			try {
-				metadata = schema.getMetadata(attribute.getKey());
-			} catch (MetadataSchemasRuntimeException.NoSuchMetadata e) {
-				throw new MetadataNotFoundException(attribute.getKey());
-			}
-
-			if (!metadata.isMultivalue() && attribute.getValues().size() != 1) {
-				throw new MetadataNotMultivalueException(attribute.getKey());
-			}
-
-			for (String value : attribute.getValues()) {
-				switch (metadata.getType()) {
-					case REFERENCE:
-						Record record = getRecord(value, true);
-						if (!metadata.getAllowedReferences().getAllowedSchemaType().equals(record.getTypeCode())) {
-							throw new MetadataReferenceNotAllowedException(record.getTypeCode(), attribute.getKey());
-						}
-						break;
-					case DATE:
-						DateUtils.validateLocalDate(value, dateFormat);
-						break;
-					case DATE_TIME:
-						DateUtils.validateLocalDateTime(value, dateTimeFormat);
-						break;
-					case NUMBER:
-						if (!StringUtils.isUnsignedDouble(value)) {
-							throw new InvalidMetadataValueException(metadata.getType().name(), value);
-						}
-						break;
-					case BOOLEAN:
-						if (!value.equals("true") && !value.equals("false")) {
-							throw new InvalidMetadataValueException(metadata.getType().name(), value);
-						}
-						break;
-					case STRING:
-					case TEXT:
-						break;
-					default:
-						throw new UnsupportedMetadataTypeException(metadata.getType().name());
-				}
-			}
-		}
-	}
-
 	@Override
 	protected BaseDao getDao() {
 		return documentDao;
 	}
 
 	@Override
-	protected String getSchemaType() {
-		return SchemaTypes.DOCUMENT.name();
+	protected SchemaTypes getSchemaType() {
+		return SchemaTypes.DOCUMENT;
 	}
 
 	@Override
