@@ -5,10 +5,14 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
 import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRUCTURE;
@@ -18,7 +22,7 @@ import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
  * This utility class handle the reading and writing of a byte array regrouping a Record DTO metadata values
  * <p>
  * <p>
- * | metadatasSize | metadata1Id | value1IndexInByteArray | metadataNId | valueNIndexInByteArray | allValues |
+ * | metadatasCount | metadata1Id | value1IndexInByteArray | metadataNId | valueNIndexInByteArray | allValues |
  * <p>
  * Metadatas size is stocked using 2 bytes (Short)
  * Metadata id are stocked using 2 bytes (Short)
@@ -57,6 +61,8 @@ public class CacheRecordDTOUtils {
 					if (value != null) {
 						if (metadata.getType() == REFERENCE) {
 							builder.addSingleValueReferenceMetadata(metadata, value);
+						} else if (metadata.getType() == BOOLEAN) {
+							builder.addSingleValueBooleanMetadata(metadata, value);
 						}
 					}
 				}
@@ -106,20 +112,44 @@ public class CacheRecordDTOUtils {
 
 	private static class CachedRecordDTOByteArrayBuilder {
 
-		byte[] workHeaderByteArray = new byte[1000];
-		byte[] workDataByteArray = new byte[2000];
-		int headerByteArrayLength;
-		int dataByteArrayLength;
+		private int headerByteArrayLength;
+		private int dataByteArrayLength;
+		private short metadatasSize;
+
+		private ByteArrayOutputStream headerOutput;
+		private ByteArrayOutputStream dataOutput;
+		private DataOutputStream headerWriter;
+		private DataOutputStream dataWriter;
+
+		public CachedRecordDTOByteArrayBuilder() {
+			this.headerByteArrayLength = 0;
+			this.dataByteArrayLength = 0;
+			this.metadatasSize = 0;
+
+			this.headerOutput = new ByteArrayOutputStream();
+			this.dataOutput = new ByteArrayOutputStream();
+			this.headerWriter = new DataOutputStream(headerOutput);
+			this.dataWriter = new DataOutputStream(dataOutput);
+		}
 
 		/**
 		 * Value is stored using 1 byte
 		 */
 		public void addSingleValueBooleanMetadata(Metadata metadata, Object value) {
-			//TODO
-			//			ByteArrayOutputStream os = null;
-			//			ObjectOutputStream oss = new ObjectOutputStream(os);
-			//			oss.writeByte(1);
+			//TODO : MANAGE NULL VALUE
+			short valueBytesSize = 1;
 
+			try {
+				dataWriter.writeByte(((boolean) value ? 1 : 0));
+
+				dataByteArrayLength += valueBytesSize;
+
+				writeHeader(metadata);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+
+			metadatasSize++;
 		}
 
 		/**
@@ -129,7 +159,25 @@ public class CacheRecordDTOUtils {
 		 * String value is stocked using a 4 bytes negative value (Integer), where the value represent the size of bytes used to store the String value
 		 */
 		public void addSingleValueReferenceMetadata(Metadata metadata, Object value) {
+			short valueBytesSize = 0;
 
+			try {
+				if (value instanceof Integer) {
+					valueBytesSize += 4;
+					dataWriter.writeInt((int) value);
+				} else if (value instanceof String) {
+					valueBytesSize += (short) value.toString().getBytes().length;
+					dataWriter.writeInt(valueBytesSize * -1);
+				}
+
+				dataByteArrayLength += valueBytesSize;
+
+				writeHeader(metadata);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+
+			metadatasSize++;
 		}
 
 		/**
@@ -144,20 +192,73 @@ public class CacheRecordDTOUtils {
 		 * Null value is stocked using a 4 bytes "zero value" (Integer)
 		 * String value is stocked using a 4 bytes negative value (Integer), where the value represent the size of bytes used to store the String value
 		 */
-		public void addMultivalueReferenceMetadata(Metadata metadata, List<String> metadatas) {
+		public void addMultivalueReferenceMetadata(Metadata metadata,
+												   List<Object> metadatas) { // TODO shouldn't it be List<Object> instead of List<String> ?
 			//TODO
+			short valueBytesSize = 0;
+			short listSize = (short) metadatas.size();
 
+			try {
+				valueBytesSize += 2;
+				dataWriter.writeShort(listSize);
+
+				for (Object value : metadatas) {
+					if (value instanceof Integer) {
+						valueBytesSize += 4;
+						dataWriter.writeInt((int) value);
+					} else if (value instanceof String) {
+						valueBytesSize += (short) value.toString().getBytes().length;
+						dataWriter.writeInt(valueBytesSize * -1);
+					} else {
+						valueBytesSize += 4;
+						dataWriter.writeInt(0);
+					}
+
+					dataByteArrayLength += valueBytesSize;
+				}
+
+				writeHeader(metadata);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+
+			metadatasSize++;
 		}
 
+		private void writeHeader(Metadata metadata) {
+			try {
+				headerWriter.writeShort(metadata.getId());
+				headerWriter.writeShort(dataByteArrayLength);
+				headerByteArrayLength += 4; // 2 bytes (short) * each header write (2)
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
 
 		public byte[] build() {
-			byte[] data = new byte[headerByteArrayLength + dataByteArrayLength];
-			System.arraycopy(workHeaderByteArray, 0, data, 0, headerByteArrayLength);
-			System.arraycopy(workDataByteArray, 0, data, headerByteArrayLength, dataByteArrayLength);
+			// index 0 & 1 are placeholders (short) for the number of data (metadatasSize/metadatasCount) in the final array
+			byte[] data = new byte[2 + headerByteArrayLength + dataByteArrayLength];
+			System.arraycopy(headerOutput.toByteArray(), 0, data, 2, headerByteArrayLength);
+			System.arraycopy(dataOutput.toByteArray(), 0, data, headerByteArrayLength + 2, dataByteArrayLength);
+
+			closeStreams();
+
+			// set the metadatasSize as 2 bytes, equivalent to DataOutputStream.writeShort() but faster because it's primitive
+			data[0] = (byte) (metadatasSize & 0xff);
+			data[1] = (byte) ((metadatasSize >> 8) & 0xff);
+
 			return data;
-
-
 		}
 
+		private void closeStreams() {
+			try {
+				this.headerOutput.close();
+				this.dataOutput.close();
+				this.headerWriter.close();
+				this.dataWriter.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 }
