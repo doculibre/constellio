@@ -14,17 +14,9 @@ import com.constellio.model.entities.enums.ParsingBehavior;
 import com.constellio.model.entities.enums.SearchSortType;
 import com.constellio.model.entities.enums.TitleMetadataPopulatePriority;
 import com.constellio.model.frameworks.validation.ValidationErrors;
+import com.constellio.model.services.configs.EnableThumbnailsScript;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static com.constellio.model.services.migrations.TimeScheduleConfigurationValidator.isCurrentlyInSchedule;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.ArrayList;
@@ -161,6 +153,10 @@ public class ConstellioEIMConfigs {
 
 	public static final SystemConfiguration ENABLE_THUMBNAIL_GENERATION;
 
+	public static final SystemConfiguration SHOW_RESULTS_NUMBERING_IN_LIST_VIEW;
+
+	public static final SystemConfiguration SHOW_PATH_TO_RESULT;
+
 	static {
 		SystemConfigurationGroup others = new SystemConfigurationGroup(null, "others");
 		add(DEFAULT_PARSING_BEHAVIOR = others.createEnum("defaultParsingBehavior", ParsingBehavior.class)
@@ -215,6 +211,8 @@ public class ConstellioEIMConfigs {
 		add(SEARCH_SORT_TYPE = search.createEnum("sortType", SearchSortType.class).withDefaultValue(SearchSortType.RELEVENCE));
 		add(REPLACE_SPACES_IN_SIMPLE_SEARCH_FOR_ANDS = search.createBooleanFalseByDefault("replaceSpacesInSimpleSearchForAnds"));
 		add(IS_RUNNING_WITH_SOLR_6 = search.createBooleanFalseByDefault("isRunningWithSolr6").whichIsHidden());
+		add(SHOW_RESULTS_NUMBERING_IN_LIST_VIEW = search.createBooleanFalseByDefault("showResultsNumberingInListView"));
+		add(SHOW_PATH_TO_RESULT = search.createBooleanFalseByDefault("showPathToResult"));
 
 		add(MAX_SELECTABLE_SEARCH_RESULTS = advanced.createInteger("maxSelectableSearchResults").withDefaultValue(500));
 		add(WRITE_ZZRECORDS_IN_TLOG = advanced.createBooleanFalseByDefault("writeZZRecordsInTlog")
@@ -299,7 +297,7 @@ public class ConstellioEIMConfigs {
 
 
 		add(ENABLE_THUMBNAIL_GENERATION = others.createBooleanFalseByDefault("enableThumbnailGeneration")
-				.withReIndexionRequired());
+				.scriptedBy(EnableThumbnailsScript.class));
 
 		add(UPDATE_SERVER_CONNECTION_ENABLED = advanced.createBooleanTrueByDefault("updateServerConnectionEnabled").whichIsHidden());
 
@@ -391,6 +389,14 @@ public class ConstellioEIMConfigs {
 
 	public Boolean isLazyLoadedFacets() {
 		return manager.getValue(LAZY_LOADED_FACETS);
+	}
+
+	public boolean isShowPathToResult() {
+		return manager.getValue(SHOW_PATH_TO_RESULT);
+	}
+
+	public boolean isShowResultsNumberingInListView() {
+		return manager.getValue(SHOW_RESULTS_NUMBERING_IN_LIST_VIEW);
 	}
 
 	public ParsingBehavior getDefaultParsingBehavior() {
@@ -555,7 +561,9 @@ public class ConstellioEIMConfigs {
 		return manager.getValue(UPDATE_SERVER_CONNECTION_ENABLED);
 	}
 
-	public boolean isThumbnailGenerationEnabled() { return manager.getValue(ENABLE_THUMBNAIL_GENERATION); }
+	public boolean isThumbnailGenerationEnabled() {
+		return manager.getValue(ENABLE_THUMBNAIL_GENERATION);
+	}
 
 	public boolean isAddingRecordIdInEmails() {
 		return manager.getValue(ADD_RECORD_ID_IN_EMAILS);
@@ -568,11 +576,11 @@ public class ConstellioEIMConfigs {
 	public Set<String> getFileExtensionsExcludedFromParsing() {
 		String extensionsAsString = manager.getValue(FILE_EXTENSIONS_EXCLUDED_FROM_PARSING);
 		Set<String> extensionSet = new HashSet<>();
-		if(!StringUtils.isBlank(extensionsAsString)) {
+		if (!StringUtils.isBlank(extensionsAsString)) {
 			String[] splittedExtensions = extensionsAsString.split(",");
-			for(String currentExtension: splittedExtensions) {
+			for (String currentExtension : splittedExtensions) {
 				String formattedExtension = currentExtension.trim().toLowerCase();
-				if(formattedExtension.startsWith(".")) {
+				if (formattedExtension.startsWith(".")) {
 					extensionSet.add(formattedExtension.substring(1));
 				} else {
 					extensionSet.add(formattedExtension);

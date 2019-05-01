@@ -19,6 +19,7 @@ import java.net.URL;
 
 import static org.openqa.selenium.firefox.FirefoxProfile.PORT_PREFERENCE;
 
+
 //Same as NewProfileExtensionConnection, except that "localhost" hostname is used instead of calling NetworkUtils which cause problems on some networks
 public class ZeUltimateLocalhostFirefoxConnection implements /*ExtensionConnection,*/ NeedsLocalLogs {
 	private final static int BUFFER_SIZE = 4096;

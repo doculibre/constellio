@@ -485,7 +485,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 
 	protected SearchResultTable buildDetailedResultsTable(SearchResultVODataProvider dataProvider) {
 		SearchResultContainer container = buildResultContainer(dataProvider);
-		SearchResultDetailedTable srTable = new SearchResultDetailedTable(container, presenter.isAllowDownloadZip()) {
+		SearchResultDetailedTable srTable = new SearchResultDetailedTable(container, presenter.isAllowDownloadZip(), presenter.isShowNumberingColumn()) {
 			@Override
 			protected void onPreviousPageButtonClicked() {
 				super.onPreviousPageButtonClicked();
