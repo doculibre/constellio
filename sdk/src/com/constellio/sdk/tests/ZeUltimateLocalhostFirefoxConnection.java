@@ -1,9 +1,9 @@
 package com.constellio.sdk.tests;
 
 import org.openqa.selenium.WebDriverException;
-import org.openqa.selenium.firefox.ClasspathExtension;
 import org.openqa.selenium.firefox.FirefoxBinary;
 import org.openqa.selenium.firefox.FirefoxProfile;
+import org.openqa.selenium.firefox.internal.ClasspathExtension;
 import org.openqa.selenium.logging.LocalLogs;
 import org.openqa.selenium.logging.NeedsLocalLogs;
 import org.openqa.selenium.remote.Command;
@@ -18,6 +18,7 @@ import java.net.Socket;
 import java.net.URL;
 
 import static org.openqa.selenium.firefox.FirefoxProfile.PORT_PREFERENCE;
+
 
 //Same as NewProfileExtensionConnection, except that "localhost" hostname is used instead of calling NetworkUtils which cause problems on some networks
 public class ZeUltimateLocalhostFirefoxConnection implements /*ExtensionConnection,*/ NeedsLocalLogs {

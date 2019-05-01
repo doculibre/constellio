@@ -14,17 +14,9 @@ import com.constellio.model.entities.enums.ParsingBehavior;
 import com.constellio.model.entities.enums.SearchSortType;
 import com.constellio.model.entities.enums.TitleMetadataPopulatePriority;
 import com.constellio.model.frameworks.validation.ValidationErrors;
+import com.constellio.model.services.configs.EnableThumbnailsScript;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static com.constellio.model.services.migrations.TimeScheduleConfigurationValidator.isCurrentlyInSchedule;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.ArrayList;
@@ -299,7 +291,7 @@ public class ConstellioEIMConfigs {
 
 
 		add(ENABLE_THUMBNAIL_GENERATION = others.createBooleanFalseByDefault("enableThumbnailGeneration")
-				.withReIndexionRequired());
+				.scriptedBy(EnableThumbnailsScript.class));
 
 		add(UPDATE_SERVER_CONNECTION_ENABLED = advanced.createBooleanTrueByDefault("updateServerConnectionEnabled").whichIsHidden());
 
@@ -555,7 +547,9 @@ public class ConstellioEIMConfigs {
 		return manager.getValue(UPDATE_SERVER_CONNECTION_ENABLED);
 	}
 
-	public boolean isThumbnailGenerationEnabled() { return manager.getValue(ENABLE_THUMBNAIL_GENERATION); }
+	public boolean isThumbnailGenerationEnabled() {
+		return manager.getValue(ENABLE_THUMBNAIL_GENERATION);
+	}
 
 	public boolean isAddingRecordIdInEmails() {
 		return manager.getValue(ADD_RECORD_ID_IN_EMAILS);
@@ -568,11 +562,11 @@ public class ConstellioEIMConfigs {
 	public Set<String> getFileExtensionsExcludedFromParsing() {
 		String extensionsAsString = manager.getValue(FILE_EXTENSIONS_EXCLUDED_FROM_PARSING);
 		Set<String> extensionSet = new HashSet<>();
-		if(!StringUtils.isBlank(extensionsAsString)) {
+		if (!StringUtils.isBlank(extensionsAsString)) {
 			String[] splittedExtensions = extensionsAsString.split(",");
-			for(String currentExtension: splittedExtensions) {
+			for (String currentExtension : splittedExtensions) {
 				String formattedExtension = currentExtension.trim().toLowerCase();
-				if(formattedExtension.startsWith(".")) {
+				if (formattedExtension.startsWith(".")) {
 					extensionSet.add(formattedExtension.substring(1));
 				} else {
 					extensionSet.add(formattedExtension);
