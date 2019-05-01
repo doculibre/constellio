@@ -159,18 +159,14 @@ public class CacheRecordDTOUtils {
 		 * String value is stocked using a 4 bytes negative value (Integer), where the value represent the size of bytes used to store the String value
 		 */
 		public void addSingleValueReferenceMetadata(Metadata metadata, Object value) {
-			short valueBytesSize = 0;
-
 			try {
 				if (value instanceof Integer) {
-					valueBytesSize += 4;
 					dataWriter.writeInt((int) value);
 				} else if (value instanceof String) {
-					valueBytesSize += (short) value.toString().getBytes().length;
-					dataWriter.writeInt(valueBytesSize * -1);
+					dataWriter.writeInt(value.toString().getBytes().length * -1);
 				}
 
-				dataByteArrayLength += valueBytesSize;
+				dataByteArrayLength += 4;
 
 				writeHeader(metadata);
 			} catch (IOException e) {
@@ -199,18 +195,17 @@ public class CacheRecordDTOUtils {
 			short listSize = (short) metadatas.size();
 
 			try {
-				valueBytesSize += 2;
 				dataWriter.writeShort(listSize);
+				valueBytesSize += 2;
 
 				for (Object value : metadatas) {
+					valueBytesSize += 4;
+
 					if (value instanceof Integer) {
-						valueBytesSize += 4;
 						dataWriter.writeInt((int) value);
 					} else if (value instanceof String) {
-						valueBytesSize += (short) value.toString().getBytes().length;
-						dataWriter.writeInt(valueBytesSize * -1);
+						dataWriter.writeInt(value.toString().getBytes().length * -1);
 					} else {
-						valueBytesSize += 4;
 						dataWriter.writeInt(0);
 					}
 
