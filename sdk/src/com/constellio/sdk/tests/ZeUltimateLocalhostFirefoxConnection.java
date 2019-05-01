@@ -3,7 +3,6 @@ package com.constellio.sdk.tests;
 import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.firefox.FirefoxBinary;
 import org.openqa.selenium.firefox.FirefoxProfile;
-import org.openqa.selenium.firefox.NotConnectedException;
 import org.openqa.selenium.firefox.internal.ClasspathExtension;
 import org.openqa.selenium.logging.LocalLogs;
 import org.openqa.selenium.logging.NeedsLocalLogs;
@@ -61,7 +60,7 @@ public class ZeUltimateLocalhostFirefoxConnection implements /*ExtensionConnecti
 
 			if (firefoxLogFile != null) {
 				if ("/dev/stdout".equals(firefoxLogFile)) {
-					process.setOutputWatcher(System.out);
+					//process.setOutputWatcher(System.out);
 				} else {
 					File logFile = new File(firefoxLogFile);
 					///process.setOutputWatcher(new CircularOutputStream(logFile, BUFFER_SIZE));
@@ -80,8 +79,8 @@ public class ZeUltimateLocalhostFirefoxConnection implements /*ExtensionConnecti
 			long waitUntil = System.currentTimeMillis() + connectTimeout;
 			while (!isConnected()) {
 				if (waitUntil < System.currentTimeMillis()) {
-					throw new NotConnectedException(
-							delegate.getAddressOfRemoteServer(), connectTimeout, process.getConsoleOutput());
+					//throw new NotConnectedException(
+					//		delegate.getAddressOfRemoteServer(), connectTimeout, process.getConsoleOutput());
 				}
 
 				try {
@@ -90,15 +89,10 @@ public class ZeUltimateLocalhostFirefoxConnection implements /*ExtensionConnecti
 					// Do nothing
 				}
 			}
-		} catch (IOException e) {
-			e.printStackTrace();
-			throw new WebDriverException(
-					String.format("Failed to connect to binary %s on port %d; process output follows: \n%s",
-							process.toString(), port, process.getConsoleOutput()), e);
 		} catch (WebDriverException e) {
-			throw new WebDriverException(
-					String.format("Failed to connect to binary %s on port %d; process output follows: \n%s",
-							process.toString(), port, process.getConsoleOutput()), e);
+			throw new WebDriverException();
+			//String.format("Failed to connect to binary %s on port %d; process output follows: \n%s",
+			//		process.toString(), port, process.getConsoleOutput()), e);
 		} catch (Exception e) {
 			throw new WebDriverException(e);
 		} finally {
@@ -151,7 +145,7 @@ public class ZeUltimateLocalhostFirefoxConnection implements /*ExtensionConnecti
 	public void quit() {
 		// This should only be called after the QUIT command has been sent,
 		// so go ahead and clean up our process and profile.
-		process.quit();
+		//process.quit();
 		if (profileDir != null) {
 			profile.clean(profileDir);
 		}

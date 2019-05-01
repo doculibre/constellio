@@ -24,6 +24,28 @@ public class Excel2003FileImportDataIteratorAcceptanceTest extends ImportDataIte
 	}
 
 	@Test
+	public void whenIteratingWithImportAsLegacyIdIsTrue()
+			throws Exception {
+
+		importDataIterator = excelImportDataProvider.newDataIterator("option-importAsLegacyId-true");
+		assertThat(excelImportDataProvider.size("option-importAsLegacyId-true")).isEqualTo(5);
+		assertThat(importDataIterator.getOptions().isImportAsLegacyId()).isTrue();
+
+		importDataIterator = excelImportDataProvider.newDataIterator("datas");
+		assertThat(importDataIterator.getOptions().isImportAsLegacyId()).isTrue();
+	}
+
+	@Test
+	public void whenIteratingWithImportAsLegacyIdIsFalse()
+			throws Exception {
+
+		importDataIterator = excelImportDataProvider.newDataIterator("option-importAsLegacyId-false");
+
+		assertThat(excelImportDataProvider.size("option-importAsLegacyId-false")).isEqualTo(4);
+		assertThat(importDataIterator.getOptions().isImportAsLegacyId()).isFalse();
+	}
+
+	@Test
 	public void whenIteratingThen()
 			throws Exception {
 

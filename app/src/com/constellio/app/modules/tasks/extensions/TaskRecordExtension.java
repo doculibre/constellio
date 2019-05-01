@@ -1,5 +1,7 @@
 package com.constellio.app.modules.tasks.extensions;
 
+import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.tasks.TaskModule;
 import com.constellio.app.modules.tasks.caches.IncompleteTasksUserCache;
 import com.constellio.app.modules.tasks.caches.UnreadTasksUserCache;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
@@ -80,9 +82,11 @@ import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_USERS_CA
 public class TaskRecordExtension extends RecordExtension {
 	private static final Logger LOGGER = LogManager.getLogger(TaskRecordExtension.class);
 	private final TasksSchemasRecordsServices tasksSchema;
+	private final RMSchemasRecordsServices rm;
 	String collection;
 
 	ModelLayerFactory modelLayerFactory;
+	AppLayerFactory appLayerFactory;
 	RecordServices recordServices;
 	UserServices userServices;
 	ConstellioEIMConfigs eimConfigs;
@@ -91,6 +95,7 @@ public class TaskRecordExtension extends RecordExtension {
 
 	public TaskRecordExtension(String collection, AppLayerFactory appLayerFactory) {
 		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
+		this.appLayerFactory = appLayerFactory;
 		this.collection = collection;
 		tasksSchema = new TasksSchemasRecordsServices(collection, appLayerFactory);
 		recordServices = this.modelLayerFactory.newRecordServices();
@@ -98,6 +103,7 @@ public class TaskRecordExtension extends RecordExtension {
 		eimConfigs = new ConstellioEIMConfigs(appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager());
 		unreadTasksUserCache = appLayerFactory.getModelLayerFactory().getCachesManager().getUserCache(UnreadTasksUserCache.NAME);
 		incompleteTasksUserCache = appLayerFactory.getModelLayerFactory().getCachesManager().getUserCache(IncompleteTasksUserCache.NAME);
+		rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 	}
 
 	@Override
@@ -284,7 +290,7 @@ public class TaskRecordExtension extends RecordExtension {
 	}
 
 
-	private void taskInCreation(Task task, RecordInCreationBeforeValidationAndAutomaticValuesCalculationEvent event) {
+	public void taskInCreation(Task task, RecordInCreationBeforeValidationAndAutomaticValuesCalculationEvent event) {
 		sendEmailToAssignee(task);
 		TaskStatus currentStatus = (task.getStatus() == null) ? null : tasksSchema.getTaskStatus(task.getStatus());
 		updateEndDateAndStartDateIfNecessary(task, currentStatus);
@@ -391,6 +397,12 @@ public class TaskRecordExtension extends RecordExtension {
 						  + "/completeTask%253Dtrue%253Bid%253D" + task.getId());
 
 		newParameters.add(CONSTELLIO_URL + ":" + constellioURL);
+
+		TaskModuleExtensions taskModuleExtensions = appLayerFactory.getExtensions().forCollection(collection)
+				.forModule(TaskModule.ID);
+		if (taskModuleExtensions != null) {
+			newParameters.addAll(taskModuleExtensions.taskEmailParameters(task));
+		}
 
 		emailToSend.setParameters(newParameters);
 	}
@@ -517,7 +529,7 @@ public class TaskRecordExtension extends RecordExtension {
 		return reminders;
 	}
 
-	private void sendAssigneeModificationEvent(Task task, RecordModificationEvent event) {
+	public void sendAssigneeModificationEvent(Task task, RecordModificationEvent event) {
 		sendEmailToAssignee(task);
 		Set<String> followersIds = getTaskAssigneeModificationFollowers(task);
 		if (followersIds.isEmpty()) {
@@ -531,7 +543,7 @@ public class TaskRecordExtension extends RecordExtension {
 		saveEmailToSend(emailToSend, task);
 	}
 
-	private void sendEmailToAssignee(Task task) {
+	public void sendEmailToAssignee(Task task) {
 		Set<EmailAddress> assigneeEmails = getTaskAssigneesEmails(task);
 		if (!assigneeEmails.isEmpty()) {
 			EmailToSend emailToSend = tasksSchema.newEmailToSend().setTryingCount(0d);
@@ -549,12 +561,18 @@ public class TaskRecordExtension extends RecordExtension {
 		Set<EmailAddress> assigneeEmails = new HashSet<>();
 
 		if (task.getAssignee() != null) {
-			assigneeEmails.addAll(emailAddress(task.getAssignee()));
+			User assignee = rm.getUser(task.getAssignee());
+			if (!assignee.isAssignationEmailReceptionDisabled()) {
+				assigneeEmails.addAll(emailAddress(task.getAssignee()));
+			}
 		}
 
 		if (task.getAssigneeUsersCandidates() != null) {
 			for (String userId : task.getAssigneeUsersCandidates()) {
-				assigneeEmails.addAll(emailAddress(userId));
+				User assigneeCandidate = rm.getUser(userId);
+				if (!assigneeCandidate.isAssignationEmailReceptionDisabled()) {
+					assigneeEmails.addAll(emailAddress(userId));
+				}
 			}
 		}
 

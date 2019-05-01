@@ -33,10 +33,13 @@ public class ExcelImportDataIterator extends LazyIterator<ImportData> implements
 	public static final String STRUCTURE = "structure";
 	public static final String ITEM = "item";
 	public static final String MULTILINE = "multiline";
+	public static final String LEGACY_ID = "importAsLegacyId";
 
 	private ExcelSheet sheet;
 	private int lineToParse = 1;
 	private List<ExcelDataType> types;
+
+	private ImportDataOptions options = new ImportDataOptions();
 
 	public ExcelImportDataIterator(ExcelSheet sheet) {
 		this.sheet = sheet;
@@ -58,7 +61,7 @@ public class ExcelImportDataIterator extends LazyIterator<ImportData> implements
 
 	@Override
 	public ImportDataOptions getOptions() {
-		return new ImportDataOptions();
+		return options;
 	}
 
 	@Override
@@ -98,7 +101,7 @@ public class ExcelImportDataIterator extends LazyIterator<ImportData> implements
 			for (int index = 1; index < metadatas.length; index++) {
 				String line = metadatas[index];
 				if (line.contains(DATE) || line.contains(PATTERN) || line.contains(SEPARATOR) || line.contains(STRUCTURE) || line
-						.contains(ITEM) || line.contains(MULTILINE)) {
+						.contains(ITEM) || line.contains(MULTILINE) || line.contains(LEGACY_ID)) {
 					if (line.contains(DATE)) {
 						String[] splitDatas = line.split("=", 2);
 						dataType.setDateType(splitDatas[splitDatas.length - 1]);
@@ -113,7 +116,11 @@ public class ExcelImportDataIterator extends LazyIterator<ImportData> implements
 						dataType.setItem(line.replace(ITEM + "=", ""));
 					} else if (line.contains(MULTILINE)) {
 						dataType.setMultiline(true);
+					} else if (line.contains(LEGACY_ID)) {
+						boolean isLegacyId = line.split("=", 2)[1].equalsIgnoreCase("true") ? true : false;
+						options.setImportAsLegacyId(isLegacyId);
 					}
+
 					if (line.contains(SEPARATOR)) {
 						String[] splitDatas = line.split("=", 2);
 						dataType.setSeparator(splitDatas[splitDatas.length - 1]);

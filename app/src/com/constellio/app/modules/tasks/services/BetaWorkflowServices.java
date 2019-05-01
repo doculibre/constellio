@@ -26,6 +26,7 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.StatusFilter;
+import com.constellio.model.services.search.VisibilityStatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import org.apache.commons.lang.StringUtils;
 
@@ -538,7 +539,8 @@ public class BetaWorkflowServices {
 		return new LogicalSearchQuery(from(tasks.userTask.schemaType())
 				.where(tasks.userTask.betaWorkflow()).isEqualTo(workflowId)
 				.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()
-				.andWhere(tasks.userTask.isModel()).isTrue()).sortDesc(tasks.userTask.betaWorkflowTaskSort());
+				.andWhere(tasks.userTask.isModel()).isTrue()).sortDesc(tasks.userTask.betaWorkflowTaskSort())
+				.filteredByVisibilityStatus(VisibilityStatusFilter.ALL);
 	}
 
 	public Task getCurrentWorkflowInstanceTask(BetaWorkflowInstance workflowInstance) {

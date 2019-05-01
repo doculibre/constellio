@@ -1,26 +1,14 @@
 package com.constellio.app.modules.tasks.ui.pages.tasks;
 
-import static com.constellio.app.modules.tasks.model.wrappers.Task.ASSIGNEE;
-import static com.constellio.app.ui.entities.RecordVO.VIEW_MODE.FORM;
-import static com.constellio.app.ui.i18n.i18n.$;
-import static java.util.Arrays.asList;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import com.constellio.app.modules.rm.ConstellioRMModule;
+import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.modules.tasks.TaskModule;
+import com.constellio.app.modules.tasks.extensions.action.Action;
 import com.constellio.app.modules.tasks.extensions.api.TaskModuleExtensions;
 import com.constellio.app.modules.tasks.extensions.api.params.TaskFormParams;
 import com.constellio.app.modules.tasks.extensions.api.params.TaskFormRetValue;
+import com.constellio.app.modules.tasks.extensions.param.PromptUserParam;
 import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflowTask;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.TaskStatusType;
@@ -51,6 +39,7 @@ import com.constellio.app.modules.tasks.ui.entities.TaskVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
+import com.constellio.app.ui.framework.components.ErrorDisplayUtil;
 import com.constellio.app.ui.framework.components.RecordForm;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveField;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveRecordLookupField;
@@ -59,20 +48,38 @@ import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
+import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
+import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.contents.icap.IcapException;
 import com.constellio.model.services.logging.LoggingServices;
+import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
 import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.jgoodies.common.base.Strings;
 import com.vaadin.ui.Field;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+
+import static com.constellio.app.modules.tasks.model.wrappers.Task.ASSIGNEE;
+import static com.constellio.app.ui.entities.RecordVO.VIEW_MODE.FORM;
+import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
 
 public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskView> {
 	public static final String ASSIGNATION_MODES = "assignationModes";
@@ -91,9 +98,11 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 	private TasksSchemasRecordsServices tasksSchemasRecordsServices;
 	private static Logger LOGGER = LoggerFactory.getLogger(AddEditTaskPresenter.class);
 	List<String> finishedOrClosedStatuses;
+	private RMModuleExtensions rmModuleExtensions;
 
 	boolean inclusideDecision = false;
 	boolean exclusiveDecision = false;
+	boolean isCompletedOrClosedOnInitialization = false;
 
 	String originalAssigner;
 	String originalAssignedTo;
@@ -107,6 +116,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		tasksSchemasRecordsServices = new TasksSchemasRecordsServices(collection, appLayerFactory);
 		finishedOrClosedStatuses = getFinishedOrClosedStatuses();
 		tasksSchemasRecordsServices = new TasksSchemasRecordsServices(collection, appLayerFactory);
+		this.rmModuleExtensions = appLayerFactory.getExtensions().forCollection(collection).forModule(ConstellioRMModule.ID);
 	}
 
 	public AddEditTaskView getView() {
@@ -174,7 +184,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		if (recordVO == null) {
 			return;
 		}
-		Task task = taskPresenterServices.toTask(new TaskVO(recordVO), toRecord(recordVO));
+		final Task task = taskPresenterServices.toTask(new TaskVO(recordVO), toRecord(recordVO));
 
 		try {
 
@@ -254,19 +264,44 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 					saveRecord(task, currentRecord, taskFormRetValue.isSaveWithValidation(currentRecord));
 				}
 			}
+			boolean isPromptUser = false;
 
-			saveRecord(task, task.getWrappedRecord(), true);
+			// this is in case of special validation that would only occur when saving the task.
+			Transaction transaction = new Transaction();
+			transaction.addUpdate(task.getWrappedRecord());
+			recordServices().prepareRecords(transaction);
 
-
-			if (StringUtils.isNotBlank(workflowId)) {
-				view.navigateToWorkflow(workflowId);
-			} else if (StringUtils.isNotBlank(parentId)) {
-				view.navigate().to(TaskViews.class).displayTask(parentId);
-			} else {
-				view.navigate().to(TaskViews.class).taskManagement();
+			if (!isCompletedOrClosedOnInitialization && isCompleted(recordVO)) {
+				isPromptUser = rmModuleExtensions.isPromptUser(new PromptUserParam(task, new Action() {
+					@Override
+					public void doAction() {
+						saveAndNavigate(task);
+					}
+				}));
 			}
+			if (!isPromptUser) {
+				saveAndNavigate(task);
+			}
+
 		} catch (final IcapException e) {
 			view.showErrorMessage(e.getMessage());
+		} catch (ValidationException e) {
+			ErrorDisplayUtil.showBackendValidationException(e.getValidationErrors());
+		} catch (RecordServicesException.ValidationException e) {
+			ErrorDisplayUtil.showBackendValidationException(e.getErrors());
+		}
+	}
+
+	private void saveAndNavigate(Task task) {
+		saveRecord(task, task.getWrappedRecord(), true);
+
+
+		if (StringUtils.isNotBlank(workflowId)) {
+			view.navigateToWorkflow(workflowId);
+		} else if (StringUtils.isNotBlank(parentId)) {
+			view.navigate().to(TaskViews.class).displayTask(parentId);
+		} else {
+			view.navigate().to(TaskViews.class).taskManagement();
 		}
 	}
 
@@ -337,7 +372,9 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 			}
 		}
 		workflowId = paramsMap.get("workflowId");
+
 		taskVO = new TaskVO(new TaskToVOBuilder().build(task.getWrappedRecord(), FORM, view.getSessionContext()));
+		isCompletedOrClosedOnInitialization = isCompletedOrClosedStatus(taskVO);
 		view.setRecord(taskVO);
 		if(taskVO.getMetadataCodes().contains(taskVO.getSchema().getCode() + "_" + ASSIGNEE)) {
 			originalAssignedTo = taskVO.getAssignee();
@@ -399,6 +436,16 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		}
 
 		return statusType.getStatusType().isFinishedOrClosed();
+	}
+
+	public boolean isCompleted(RecordVO recordVO) {
+		Task task = tasksSchemas.wrapTask(toRecord(recordVO));
+		TaskStatus statusType = tasksSchemasRecordsServices.getTaskStatus(task.getStatus());
+		if (statusType == null || statusType.getStatusType() == null) {
+			return false;
+		}
+
+		return statusType.getStatusType().isFinished();
 	}
 
 	public boolean isSubTaskPresentAndHaveCertainStatus(RecordVO recordVO) {

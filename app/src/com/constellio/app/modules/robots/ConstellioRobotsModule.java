@@ -21,6 +21,7 @@ import com.constellio.model.entities.configs.SystemConfiguration;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -94,7 +95,7 @@ public class ConstellioRobotsModule implements InstallableSystemModule, ModuleWi
 
 	@Override
 	public List<SystemConfiguration> getConfigurations() {
-		return new ArrayList<>();
+		return Collections.unmodifiableList(RobotsConfigs.configurations);
 	}
 
 	@Override

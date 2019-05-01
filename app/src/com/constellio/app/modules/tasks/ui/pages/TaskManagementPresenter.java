@@ -1,23 +1,5 @@
 package com.constellio.app.modules.tasks.ui.pages;
 
-import static com.constellio.app.modules.tasks.model.wrappers.Task.ASSIGNEE;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.ASSIGNER;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.DEFAULT_SCHEMA;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.DUE_DATE;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.END_DATE;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.SCHEMA_TYPE;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.STARRED_BY_USERS;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.STATUS;
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.entities.records.wrappers.RecordWrapper.TITLE;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import org.joda.time.LocalDate;
-
 import com.constellio.app.api.extensions.params.UpdateComponentExtensionParams;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.RMConfigs;
@@ -59,6 +41,23 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuerySort;
 import com.vaadin.ui.Component;
+import org.joda.time.LocalDate;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import static com.constellio.app.modules.tasks.model.wrappers.Task.ASSIGNEE;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.ASSIGNER;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.DEFAULT_SCHEMA;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.DUE_DATE;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.END_DATE;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.SCHEMA_TYPE;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.STARRED_BY_USERS;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.STATUS;
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.entities.records.wrappers.RecordWrapper.TITLE;
 
 public class TaskManagementPresenter extends AbstractTaskPresenter<TaskManagementView> implements WorkflowPresenter {
 
@@ -80,8 +79,8 @@ public class TaskManagementPresenter extends AbstractTaskPresenter<TaskManagemen
 		initTransientObjects();
 		tasksSchemasRecordsServices = new TasksSchemasRecordsServices(collection, appLayerFactory);
 
-//		workflowsTabsVisible = /*areWorkflowsEnabled() &&*/ getCurrentUser().has(TasksPermissionsTo.MANAGE_WORKFLOWS).globally();
-//		startWorkflowButtonVisible = workflowsTabsVisible && hasPermissionToStartWorkflow();
+		//		workflowsTabsVisible = /*areWorkflowsEnabled() &&*/ getCurrentUser().has(TasksPermissionsTo.MANAGE_WORKFLOWS).globally();
+		//		startWorkflowButtonVisible = workflowsTabsVisible && hasPermissionToStartWorkflow();
 
 		tasksTabs = new ArrayList<>();
 		tasksTabs.add(TaskManagementView.TASKS_ASSIGNED_TO_CURRENT_USER);
@@ -109,7 +108,7 @@ public class TaskManagementPresenter extends AbstractTaskPresenter<TaskManagemen
 		if (selectedTab != null) {
 			view.setTabBadge(selectedTab, "");
 		}
-		
+
 		if (TaskManagementView.TASKS_TAB.equals(tabId)) {
 			tabId = TaskManagementView.TASKS_ASSIGNED_TO_CURRENT_USER;
 		}
@@ -313,13 +312,13 @@ public class TaskManagementPresenter extends AbstractTaskPresenter<TaskManagemen
 		};
 	}
 
-//	public void workflowStartRequested(RecordVO record) {
-//		BetaWorkflow workflow = new TasksSchemasRecordsServices(view.getCollection(), appLayerFactory)
-//				.getBetaWorkflow(record.getId());
-//		Map<String, List<String>> parameters = new HashMap<>();
-//		workflowServices.start(workflow, getCurrentUser(), parameters);
-//		refreshCurrentTab();
-//	}
+	//	public void workflowStartRequested(RecordVO record) {
+	//		BetaWorkflow workflow = new TasksSchemasRecordsServices(view.getCollection(), appLayerFactory)
+	//				.getBetaWorkflow(record.getId());
+	//		Map<String, List<String>> parameters = new HashMap<>();
+	//		workflowServices.start(workflow, getCurrentUser(), parameters);
+	//		refreshCurrentTab();
+	//	}
 
 	private RecordVODataProvider getTasks(String tabId) {
 		MetadataSchemaVO schemaVO = new MetadataSchemaToVOBuilder()
@@ -538,5 +537,5 @@ public class TaskManagementPresenter extends AbstractTaskPresenter<TaskManagemen
 	public User getCurrentUser() {
 		return super.getCurrentUser();
 	}
-	
+
 }

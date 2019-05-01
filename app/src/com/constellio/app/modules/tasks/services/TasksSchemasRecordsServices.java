@@ -319,6 +319,15 @@ public class TasksSchemasRecordsServices extends SchemasRecordsServices {
 		public Metadata isLate() {
 			return metadata("isLate");
 		}
+
+		public Metadata workHours() {
+			return metadata("workHours");
+		}
+
+		public Metadata estimatedHours() {
+			return metadata("estimatedHours");
+		}
+
 	}
 
 	public BetaWorkflowTask wrapBetaWorkflowTask(Record record) {

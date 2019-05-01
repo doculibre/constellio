@@ -71,6 +71,9 @@ import static com.constellio.model.entities.schemas.MetadataTransiency.TRANSIENT
 import static com.constellio.model.entities.schemas.MetadataTransiency.TRANSIENT_LAZY;
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
 import static com.constellio.model.services.records.cache.CacheConfig.permanentCache;
+import static com.constellio.model.services.search.VisibilityStatusFilter.ALL;
+import static com.constellio.model.services.search.VisibilityStatusFilter.HIDDENS;
+import static com.constellio.model.services.search.VisibilityStatusFilter.VISIBLES;
 import static com.constellio.model.services.search.entities.SearchBoost.createRegexBoost;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.allConditions;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.anyConditions;
@@ -3123,6 +3126,31 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		assertThat(searchServices.getResultsCount(from(zeSchema.instance()).returnAll())).isEqualTo(2);
 		assertThat(searchServices.getResultsCount(from(anotherSchema.instance()).returnAll())).isEqualTo(3);
 
+	}
+
+	@Test
+	public void givenHiddenRecordsThenOnlyReturnedByQueriesIfShowHiddenEnable() throws Exception {
+		defineSchemasManager().using(schema);
+
+		Transaction tx = new Transaction();
+		tx.add(newRecordOfZeSchema("r1").set(Schemas.TITLE, "Apple").set(Schemas.HIDDEN, true));
+		tx.add(newRecordOfZeSchema("r2").set(Schemas.TITLE, "Banana"));
+		tx.add(newRecordOfZeSchema("r3").set(Schemas.TITLE, "Kiwi").set(Schemas.HIDDEN, true));
+		tx.add(newRecordOfZeSchema("r4").set(Schemas.TITLE, "Orange"));
+		tx.add(newRecordOfZeSchema("r5").set(Schemas.TITLE, "Melon").set(Schemas.HIDDEN, true));
+		recordServices.execute(tx);
+
+		LogicalSearchQuery query = new LogicalSearchQuery(from(schema.zeDefaultSchemaType()).returnAll());
+
+		assertThat(searchServices.searchRecordIds(query)).containsOnly("r2", "r4");
+		assertThat(searchServices.searchRecordIds(query.filteredByVisibilityStatus(ALL)))
+				.containsOnly("r1", "r2", "r3", "r4", "r5");
+		assertThat(searchServices.searchRecordIds(query.filteredByVisibilityStatus(HIDDENS)))
+				.containsOnly("r1", "r3", "r5");
+		assertThat(searchServices.searchRecordIds(query.filteredByVisibilityStatus(VISIBLES)))
+				.containsOnly("r2", "r4");
+
+		assertThat(recordServices.getDocumentById("r1")).isNotNull();
 	}
 
 	@Test

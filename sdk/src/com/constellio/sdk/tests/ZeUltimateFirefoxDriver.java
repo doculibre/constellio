@@ -162,7 +162,7 @@ public class ZeUltimateFirefoxDriver extends RemoteWebDriver implements TakesScr
 	}
 
 	public ZeUltimateFirefoxDriver(FirefoxBinary binary, ZeUltimateFirefoxProfile profile) {
-		this(binary, profile, DesiredCapabilities.firefox());
+		//this(binary, profile, DesiredCapabilities.firefox());
 	}
 
 	public ZeUltimateFirefoxDriver(FirefoxBinary binary, ZeUltimateFirefoxProfile profile, Capabilities capabilities) {
@@ -191,7 +191,7 @@ public class ZeUltimateFirefoxDriver extends RemoteWebDriver implements TakesScr
 	 * stopped responding, and you don't want to leak resources. Should not ordinarily be called.
 	 */
 	public void kill() {
-		binary.quit();
+		//binary.quit();
 	}
 
 	@Override
