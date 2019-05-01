@@ -1,5 +1,6 @@
 package com.constellio.app.ui.framework.components.resource;
 
+import com.constellio.app.api.extensions.params.RecordSecurityParam;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.pages.base.VaadinSessionContext;
@@ -70,6 +71,7 @@ public class ConstellioResourceHandler implements RequestHandler {
 				IOServices ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();
 				MetadataSchemasManager metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
 
+
 				if (hashParam != null) {
 					filename = filenameParam;
 					in = contentManager.getContentInputStream(hashParam, getClass().getSimpleName() + ".handleRequest");
@@ -78,10 +80,15 @@ public class ConstellioResourceHandler implements RequestHandler {
 					UserVO userVO = (UserVO) vaadinSession.getSession().getAttribute(VaadinSessionContext.CURRENT_USER_ATTRIBUTE);
 					String collection = (String) vaadinSession.getSession().getAttribute(VaadinSessionContext.CURRENT_COLLECTION_ATTRIBUTE);
 
+
 					MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(collection);
 					User user = userServices.getUserInCollection(userVO.getUsername(), collection);
 					Record record = recordServices.getDocumentById(recordId);
-					if (user.hasReadAccess().on(record)) {
+
+					boolean isException = constellioFactories.getAppLayerFactory().getExtensions()
+							.forCollection(collection).isRecordAvalibleToAllUsers(new RecordSecurityParam(record));
+
+					if (user.hasReadAccess().on(record) || isException) {
 						String schemaCode = record.getSchemaCode();
 						Metadata metadata = types.getMetadata(schemaCode + "_" + metadataCode);
 						Object metadataValue = record.get(metadata);
