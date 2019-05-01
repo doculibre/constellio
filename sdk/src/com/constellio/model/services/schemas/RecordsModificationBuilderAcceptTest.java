@@ -138,7 +138,7 @@ public class RecordsModificationBuilderAcceptTest extends ConstellioTest {
 		fields.put("schema_s", "zeSchema_default");
 
 		RecordImpl record = spy(new TestRecord(schema, "zeCollection", id));
-		record.refresh(1, new SolrRecordDTO(id, 1, null, fields));
+		record.refresh(1, new SolrRecordDTO(id, 1, null, fields, false));
 
 		for (Metadata metadata : metadatas) {
 			record.set(metadata, "aNewValue");

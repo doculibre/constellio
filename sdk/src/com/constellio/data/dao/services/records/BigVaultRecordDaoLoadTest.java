@@ -65,7 +65,7 @@ public class BigVaultRecordDaoLoadTest extends ConstellioTest {
 	private RecordDTO newRecordWithTitle(String title) {
 		Map<String, Object> fields = new HashMap<String, Object>();
 		fields.put("title_s", title);
-		RecordDTO record = new SolrRecordDTO(UUID.randomUUID().toString(), -1, null, fields);
+		RecordDTO record = new SolrRecordDTO(UUID.randomUUID().toString(), -1, null, fields, false);
 		return record;
 	}
 

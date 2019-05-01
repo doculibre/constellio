@@ -319,7 +319,7 @@ public class ContentModificationsBuilderTest extends ConstellioTest {
 		params.put(metadata.getDataStoreCode(), value);
 		params.put("schema_s", schemaCode);
 		params.put("collection_s", zeCollection);
-		RecordDTO recordDTO = new SolrRecordDTO("zeId", 3L, null, params);
+		RecordDTO recordDTO = new SolrRecordDTO("zeId", 3L, null, params, false);
 
 		return new TestRecord(recordDTO, collectionInfo);
 	}

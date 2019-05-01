@@ -24,16 +24,19 @@ public class SolrRecordDTO implements RecordDTO, RecordsOperationDTO, Serializab
 
 	private final Map<String, Object> copyfields;
 
-	public SolrRecordDTO(String id, Map<String, Object> fields) {
-		this(id, 0, null, fields, new HashMap<String, Object>());
-	}
+	private boolean summary;
 
-	public SolrRecordDTO(String id, long version, List<String> loadedFields, Map<String, Object> fields) {
-		this(id, version, loadedFields, fields, new HashMap<String, Object>());
+	public SolrRecordDTO(String id, Map<String, Object> fields, boolean summary) {
+		this(id, 0, null, fields, new HashMap<String, Object>(), summary);
 	}
 
 	public SolrRecordDTO(String id, long version, List<String> loadedFields, Map<String, Object> fields,
-						 Map<String, Object> copyfields) {
+						 boolean summary) {
+		this(id, version, loadedFields, fields, new HashMap<String, Object>(), summary);
+	}
+
+	public SolrRecordDTO(String id, long version, List<String> loadedFields, Map<String, Object> fields,
+						 Map<String, Object> copyfields, boolean summary) {
 		super();
 		if (id == null) {
 			throw new RecordDaoRuntimeException("DTO Cannot have a null id");
@@ -44,6 +47,7 @@ public class SolrRecordDTO implements RecordDTO, RecordsOperationDTO, Serializab
 		this.loadedFields = loadedFields == null ? null : Collections.unmodifiableList(loadedFields);
 		this.fields = fields == null ? null : Collections.unmodifiableMap(fields);
 		this.copyfields = copyfields == null ? null : Collections.unmodifiableMap(copyfields);
+		this.summary = summary;
 	}
 
 	public String getId() {
@@ -66,6 +70,11 @@ public class SolrRecordDTO implements RecordDTO, RecordsOperationDTO, Serializab
 		return copyfields;
 	}
 
+	@Override
+	public boolean isSummary() {
+		return summary;
+	}
+
 	public SolrRecordDTO createCopyWithDelta(RecordDeltaDTO recordDeltaDTO) {
 		Map<String, Object> newFields = new HashMap<>(fields);
 		newFields.putAll(recordDeltaDTO.getModifiedFields());
@@ -73,11 +82,11 @@ public class SolrRecordDTO implements RecordDTO, RecordsOperationDTO, Serializab
 		Map<String, Object> copyFields = new HashMap<>(copyfields);
 		copyFields.putAll(recordDeltaDTO.getCopyfields());
 
-		return new SolrRecordDTO(id, version, loadedFields, newFields, copyFields);
+		return new SolrRecordDTO(id, version, loadedFields, newFields, copyFields, summary);
 	}
 
 	public SolrRecordDTO withVersion(long version) {
-		return new SolrRecordDTO(id, version, loadedFields, fields, copyfields);
+		return new SolrRecordDTO(id, version, loadedFields, fields, copyfields, summary);
 	}
 
 	private static List<String> alwaysCopiedFields = asList("collection_s", "schema_s");
@@ -98,6 +107,6 @@ public class SolrRecordDTO implements RecordDTO, RecordsOperationDTO, Serializab
 			}
 		}
 
-		return new SolrRecordDTO(id, version, new ArrayList<>(metadatasDataStoreCodes), newFields, newCopyFields);
+		return new SolrRecordDTO(id, version, new ArrayList<>(metadatasDataStoreCodes), newFields, newCopyFields, summary);
 	}
 }

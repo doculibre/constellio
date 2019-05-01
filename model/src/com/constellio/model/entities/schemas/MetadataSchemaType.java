@@ -78,6 +78,28 @@ public class MetadataSchemaType implements Serializable {
 
 	}
 
+	public RecordCacheConfig getCacheConfig() {
+
+		//TODO Persist this!
+		if ("folder".equals(code)) {
+			return RecordCacheConfig.ALWAYS_SUMMARY_CACHED_WITH_FULL_VOLATILE(250);
+
+		} else if ("document".equals(code)) {
+			return RecordCacheConfig.ALWAYS_SUMMARY_CACHED_WITH_FULL_VOLATILE(250);
+
+		} else if ("userTask".equals(code)) {
+			return RecordCacheConfig.ALWAYS_SUMMARY_CACHED_WITH_FULL_VOLATILE(250);
+
+		} else if ("event".equals(code)) {
+			return RecordCacheConfig.NEVER_CACHED;
+
+		} else {
+			return RecordCacheConfig.ALWAYS_FULLY_CACHED;
+		}
+
+
+	}
+
 	private Map<String, MetadataSchema> buildCustomSchemasByCodeMap(List<MetadataSchema> customSchemas) {
 		Map<String, MetadataSchema> schemaMap = new HashMap<>();
 		for (MetadataSchema schema : customSchemas) {

@@ -73,11 +73,11 @@ public class BigVaultRecordDaoTest extends ConstellioTest {
 		RecordDTO child1 = new SolrRecordDTO("child1",
 				buildParamMapWith("zeCollection", "zeType_default").andWith("parentPId_s", "parent")
 						.andWith("otherRefId_s", "zeRef")
-						.build());
+						.build(), false);
 		RecordDTO child2 = new SolrRecordDTO("child2",
 				buildParamMapWith("zeCollection", "zeType_default").andWith("parentPId_s", "parent")
 						.andWith("otherRefId_s", "zeRef")
-						.build());
+						.build(), false);
 
 		TransactionDTO transactionDTO = new TransactionDTO(RecordsFlushing.NOW)
 				.withNewRecords(Arrays.asList(child1, child2));

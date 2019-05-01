@@ -683,7 +683,7 @@ public class ContentManager implements StatefulService {
 			fields.put("contentMarkerHash_s", hash);
 			fields.put("time_dt", TimeProvider.getLocalDateTime());
 
-			RecordDTO recordDTO = new SolrRecordDTO(id, fields);
+			RecordDTO recordDTO = new SolrRecordDTO(id, fields, false);
 			try {
 				recordDao.execute(new TransactionDTO(RecordsFlushing.ADD_LATER()).withNewRecords(asList(recordDTO)));
 			} catch (OptimisticLocking e) {

@@ -6,7 +6,7 @@ package com.constellio.model.services.records.cache2;
 public class RecordsCachesServices {
 
 
-	public void load(RecordsCaches2 caches) {
+	public void load(RecordsSummaryCache caches) {
 
 	}
 
