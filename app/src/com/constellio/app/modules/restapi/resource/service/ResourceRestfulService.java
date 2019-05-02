@@ -6,7 +6,7 @@ import com.constellio.app.modules.restapi.core.util.CustomHttpHeaders;
 import com.constellio.app.modules.restapi.core.util.ListUtils;
 import com.constellio.app.modules.restapi.core.util.Permissions;
 import com.constellio.app.modules.restapi.core.util.StringUtils;
-import com.constellio.app.modules.restapi.document.dto.AceDto;
+import com.constellio.app.modules.restapi.resource.dto.AceDto;
 
 import java.util.List;
 import java.util.Set;

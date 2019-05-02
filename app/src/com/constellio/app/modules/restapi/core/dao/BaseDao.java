@@ -1,6 +1,7 @@
 package com.constellio.app.modules.restapi.core.dao;
 
 import com.constellio.app.modules.restapi.RestApiConfigs;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.model.entities.records.Record;
@@ -28,6 +29,8 @@ import java.util.List;
 
 public abstract class BaseDao {
 
+	protected AppLayerFactory appLayerFactory;
+	protected ModelLayerFactory modelLayerFactory;
 	protected ContentManager contentManager;
 	protected MetadataSchemasManager metadataSchemasManager;
 	protected SystemConfigurationsManager systemConfigurationsManager;
@@ -40,7 +43,8 @@ public abstract class BaseDao {
 
 	@PostConstruct
 	protected void init() {
-		ModelLayerFactory modelLayerFactory = ConstellioFactories.getInstance().getModelLayerFactory();
+		appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
+		modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		contentManager = modelLayerFactory.getContentManager();
 		metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
 		systemConfigurationsManager = modelLayerFactory.getSystemConfigurationsManager();

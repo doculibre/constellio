@@ -5,10 +5,10 @@ import com.constellio.app.modules.restapi.core.exception.RecordNotFoundException
 import com.constellio.app.modules.restapi.core.util.DateUtils;
 import com.constellio.app.modules.restapi.core.util.HttpMethods;
 import com.constellio.app.modules.restapi.document.dao.DocumentDao;
-import com.constellio.app.modules.restapi.document.dto.AceDto;
-import com.constellio.app.modules.restapi.document.dto.AceListDto;
 import com.constellio.app.modules.restapi.document.dto.DocumentDto;
-import com.constellio.app.modules.restapi.document.dto.ExtendedAttributeDto;
+import com.constellio.app.modules.restapi.resource.dto.AceDto;
+import com.constellio.app.modules.restapi.resource.dto.AceListDto;
+import com.constellio.app.modules.restapi.resource.dto.ExtendedAttributeDto;
 import com.constellio.app.modules.restapi.validation.ValidationService;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;

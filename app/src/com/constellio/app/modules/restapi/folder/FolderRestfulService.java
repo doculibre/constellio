@@ -52,7 +52,7 @@ public class FolderRestfulService extends ResourceRestfulService {
 			@ApiResponse(responseCode = "404", description = "Not Found", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error")))})
 	public Response get(@Parameter(required = true, description = "Folder Id") @QueryParam("id") String id,
 						@Parameter(required = true, description = "Service Key") @QueryParam("serviceKey") String serviceKey,
-						@Parameter(required = true, description = "HTTP Method") @QueryParam("method") String method,
+						@Parameter(required = true, description = "HTTP Method", schema = @Schema(allowableValues = {"GET"})) @QueryParam("method") String method,
 						@Parameter(required = true, description = "Date") @QueryParam("date") String date,
 						@Parameter(required = true, description = "Expiration") @QueryParam("expiration") Integer expiration,
 						@Parameter(required = true, description = "Signature") @QueryParam("signature") String signature,
@@ -71,16 +71,29 @@ public class FolderRestfulService extends ResourceRestfulService {
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response create(@QueryParam("folderId") String folderId,
-						   @QueryParam("serviceKey") String serviceKey,
-						   @QueryParam("method") String method,
-						   @QueryParam("date") String date,
-						   @QueryParam("expiration") Integer expiration,
-						   @QueryParam("signature") String signature,
+	@Operation(summary = "Create folder", description = "Create a folder")
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "201", description = "Created", headers = @Header(name = "ETag", description = "Concurrency control version of the folder"),
+					content = @Content(mediaType = "application/json", schema = @Schema(ref = "Folder"))),
+			@ApiResponse(responseCode = "400", description = "Bad Request", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error"))),
+			@ApiResponse(responseCode = "403", description = "Forbidden", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error"))),
+			@ApiResponse(responseCode = "404", description = "Not Found", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error"))),
+			@ApiResponse(responseCode = "422", description = "Unprocessable Entity", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error")))})
+	public Response create(@Parameter(description = "Parent Folder Id") @QueryParam("folderId") String folderId,
+						   @Parameter(required = true, description = "Service Key") @QueryParam("serviceKey") String serviceKey,
+						   @Parameter(required = true, description = "HTTP Method", schema = @Schema(allowableValues = {"PUT"})) @QueryParam("method") String method,
+						   @Parameter(required = true, description = "Date") @QueryParam("date") String date,
+						   @Parameter(required = true, description = "Expiration") @QueryParam("expiration") Integer expiration,
+						   @Parameter(required = true, description = "Signature") @QueryParam("signature") String signature,
 						   @Valid FolderDto folder,
+						   @Parameter(description = "Fields to filter from the JSON response.", example = "[\"directAces\", \"inheritedAces\"]")
 						   @QueryParam("filter") Set<String> filters,
+						   @Parameter(description = "A folder id can be specified to activate the copy mode.<br>" +
+													"All contents of the source folder will be copied and values from the body will be applied on copied folder.")
 						   @HeaderParam(CustomHttpHeaders.COPY_SOURCE) String copyFolderId,
-						   @DefaultValue("WITHIN_5_SECONDS") @HeaderParam(CustomHttpHeaders.FLUSH_MODE) String flush,
+						   @Parameter(description = "The flushing mode indicates how the commits are executed in solr",
+								   schema = @Schema(allowableValues = {"NOW, LATER, WITHIN_{X}_SECONDS"})) @DefaultValue("WITHIN_5_SECONDS")
+						   @HeaderParam(CustomHttpHeaders.FLUSH_MODE) String flush,
 						   @HeaderParam(HttpHeaders.HOST) String host) throws Exception {
 
 		validateRequiredParameters(serviceKey, method, date, expiration, signature);
@@ -88,10 +101,11 @@ public class FolderRestfulService extends ResourceRestfulService {
 		validateFilterValues(FolderDto.class, filters);
 		validateHttpMethod(method, HttpMethods.POST);
 
-		if (copyFolderId != null) {
-			// FIXME if folder = null, do we copy all the metadatas as is?
-			// required fields for copy
-		} else {
+		if (folderId != null && !folder.getParentFolderId().equals(folderId)) {
+			throw new ParametersMustMatchException("folderId", "folder.parentFolderId");
+		}
+
+		if (copyFolderId == null) {
 			if (Strings.isNullOrEmpty(folder.getTitle())) {
 				throw new RequiredParameterException("folder.title");
 			}
@@ -104,15 +118,15 @@ public class FolderRestfulService extends ResourceRestfulService {
 			if (folder.getOpeningDate() == null) {
 				throw new RequiredParameterException("folder.openingDate");
 			}
-			if (folderId != null && !folder.getParentFolderId().equals(folderId)) {
-				throw new ParametersMustMatchException("folderId", "folder.parentFolderId");
-			}
 		}
 
 		validateFolder(folder);
 
-		FolderDto createdFolder = folderService.create(host, folderId, serviceKey, method, date, expiration,
-				signature, folder, copyFolderId, flush, filters);
+		FolderDto createdFolder = copyFolderId != null ?
+								  folderService.copy(host, folderId, copyFolderId, serviceKey, method, date, expiration,
+										  signature, folder, flush, filters) :
+								  folderService.create(host, folderId, serviceKey, method, date, expiration,
+										  signature, folder, flush, filters);
 
 		return Response.status(Response.Status.CREATED).entity(createdFolder).tag(createdFolder.getETag()).build();
 	}
@@ -121,16 +135,32 @@ public class FolderRestfulService extends ResourceRestfulService {
 	@PATCH
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response updatePartial(@QueryParam("id") String id,
-								  @QueryParam("serviceKey") String serviceKey,
-								  @QueryParam("method") String method,
-								  @QueryParam("date") String date,
-								  @QueryParam("expiration") Integer expiration,
-								  @QueryParam("signature") String signature,
+	@Operation(summary = "Patch document", description = "Update partially the metadata of a folder")
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "OK", headers = @Header(name = "ETag", description = "Concurrency control version of the folder"),
+					content = @Content(mediaType = "application/json", schema = @Schema(ref = "Folder"))),
+			@ApiResponse(responseCode = "400", description = "Bad Request", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error"))),
+			@ApiResponse(responseCode = "403", description = "Forbidden", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error"))),
+			@ApiResponse(responseCode = "404", description = "Not Found", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error"))),
+			@ApiResponse(responseCode = "409", description = "Conflict. When concurrency control mode (If-Matcher header) is inactive.",
+					content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error"))),
+			@ApiResponse(responseCode = "412", description = "Precondition Failed. When concurrency control mode (If-Matcher header) is active.",
+					content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error")))})
+	public Response updatePartial(@Parameter(required = true, description = "Folder Id") @QueryParam("id") String id,
+								  @Parameter(required = true, description = "Service Key") @QueryParam("serviceKey") String serviceKey,
+								  @Parameter(required = true, description = "HTTP Method", schema = @Schema(allowableValues = {"PATCH"})) @QueryParam("method") String method,
+								  @Parameter(required = true, description = "Date") @QueryParam("date") String date,
+								  @Parameter(required = true, description = "Expiration") @QueryParam("expiration") Integer expiration,
+								  @Parameter(required = true, description = "Signature") @QueryParam("signature") String signature,
 								  @Valid FolderDto folder,
+								  @Parameter(description = "Fields to filter from the JSON response.", example = "[\"directAces\", \"inheritedAces\"]")
 								  @QueryParam("filter") Set<String> filters,
+								  @Parameter(description = "An ETag value can be specified to activate the concurrency control mode.<br>" +
+														   "Using that mode, a request cannot be fulfilled if the ETag value is not the latest concurrency control version of the folder.")
 								  @HeaderParam(HttpHeaders.IF_MATCH) String eTag,
-								  @DefaultValue("WITHIN_5_SECONDS") @HeaderParam(CustomHttpHeaders.FLUSH_MODE) String flush,
+								  @Parameter(description = "The flushing mode indicates how the commits are executed in solr",
+										  schema = @Schema(allowableValues = {"NOW, LATER, WITHIN_{X}_SECONDS"})) @DefaultValue("WITHIN_5_SECONDS")
+								  @HeaderParam(CustomHttpHeaders.FLUSH_MODE) String flush,
 								  @HeaderParam(HttpHeaders.HOST) String host) throws Exception {
 		// TODO
 		return Response.noContent().build();

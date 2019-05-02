@@ -1,7 +1,7 @@
 package com.constellio.app.modules.restapi.folder.dto;
 
-import com.constellio.app.modules.restapi.document.dto.AceDto;
-import com.constellio.app.modules.restapi.document.dto.ExtendedAttributeDto;
+import com.constellio.app.modules.restapi.resource.dto.AceDto;
+import com.constellio.app.modules.restapi.resource.dto.ExtendedAttributeDto;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
@@ -28,6 +28,7 @@ public class FolderDto {
 	private String mainCopyRule;
 	private String copyStatus;
 	private List<String> mediumTypes;
+	@JsonProperty(access = READ_ONLY)
 	private String mediaType;
 	private String container;
 	private String title;
@@ -38,8 +39,11 @@ public class FolderDto {
 	private LocalDate actualTransferDate;
 	private LocalDate actualDepositDate;
 	private LocalDate actualDestructionDate;
+	@Valid @JsonProperty(access = READ_ONLY)
 	private LocalDate expectedTransferDate;
+	@Valid @JsonProperty(access = READ_ONLY)
 	private LocalDate expectedDepositDate;
+	@Valid @JsonProperty(access = READ_ONLY)
 	private LocalDate expectedDestructionDate;
 	@Valid
 	private List<AceDto> directAces;

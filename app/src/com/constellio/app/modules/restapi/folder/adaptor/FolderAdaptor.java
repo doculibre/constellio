@@ -1,11 +1,11 @@
 package com.constellio.app.modules.restapi.folder.adaptor;
 
 import com.constellio.app.modules.restapi.ace.AceService;
-import com.constellio.app.modules.restapi.document.dto.AceListDto;
 import com.constellio.app.modules.restapi.folder.dao.FolderDao;
 import com.constellio.app.modules.restapi.folder.dto.FolderDto;
 import com.constellio.app.modules.restapi.folder.dto.FolderTypeDto;
 import com.constellio.app.modules.restapi.resource.adaptor.ResourceAdaptor;
+import com.constellio.app.modules.restapi.resource.dto.AceListDto;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.FolderMediaType;

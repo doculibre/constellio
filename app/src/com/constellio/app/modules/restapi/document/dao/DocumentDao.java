@@ -4,13 +4,9 @@ import com.constellio.app.modules.restapi.core.exception.OptimisticLockException
 import com.constellio.app.modules.restapi.core.exception.RecordLogicallyDeletedException;
 import com.constellio.app.modules.restapi.core.exception.RequiredParameterException;
 import com.constellio.app.modules.restapi.core.exception.UnresolvableOptimisticLockException;
-import com.constellio.app.modules.restapi.core.exception.UnsupportedMetadataTypeException;
-import com.constellio.app.modules.restapi.core.util.DateUtils;
-import com.constellio.app.modules.restapi.core.util.ListUtils;
 import com.constellio.app.modules.restapi.document.dto.ContentDto;
 import com.constellio.app.modules.restapi.document.dto.DocumentContentDto;
 import com.constellio.app.modules.restapi.document.dto.DocumentDto;
-import com.constellio.app.modules.restapi.document.dto.ExtendedAttributeDto;
 import com.constellio.app.modules.restapi.document.exception.DocumentContentNotFoundException;
 import com.constellio.app.modules.restapi.resource.dao.ResourceDao;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -20,7 +16,6 @@ import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.contents.ContentImplRuntimeException;
@@ -31,8 +26,6 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
 
 import static com.constellio.app.modules.restapi.document.enumeration.VersionType.MAJOR;
 
@@ -49,7 +42,7 @@ public class DocumentDao extends ResourceDao {
 		Record documentTypeRecord = getResourceTypeRecord(document.getType(), documentSchema.getCollection());
 
 		updateDocumentMetadataValues(documentRecord, documentTypeRecord, documentSchema, document, content, false);
-		updateDocumentCustomMetadataValues(documentRecord, documentSchema, document.getExtendedAttributes(), false);
+		updateCustomMetadataValues(documentRecord, documentSchema, document.getExtendedAttributes(), false);
 
 		transaction.add(documentRecord);
 
@@ -82,7 +75,7 @@ public class DocumentDao extends ResourceDao {
 		}
 
 		updateDocumentMetadataValues(documentRecord, documentTypeRecord, documentSchema, document, content, partial);
-		updateDocumentCustomMetadataValues(documentRecord, documentSchema, document.getExtendedAttributes(), partial);
+		updateCustomMetadataValues(documentRecord, documentSchema, document.getExtendedAttributes(), partial);
 
 		transaction.add(documentRecord);
 
@@ -179,56 +172,6 @@ public class DocumentDao extends ResourceDao {
 
 		if (content != null) {
 			updateMetadataValue(documentRecord, schema, Document.CONTENT, content);
-		}
-	}
-
-	private <T> void updateDocumentMetadataValue(Record documentRecord, MetadataSchema schema, String metadataCode,
-												 T value) {
-		updateDocumentMetadataValue(documentRecord, schema, metadataCode, value, false);
-	}
-
-	private <T> void updateDocumentMetadataValue(Record documentRecord, MetadataSchema schema, String metadataCode,
-												 T value, boolean ignoreNull) {
-		if (ignoreNull && value == null) {
-			return;
-		}
-		updateMetadataValue(documentRecord, schema, metadataCode, value);
-	}
-
-	private void updateDocumentCustomMetadataValues(Record documentRecord, MetadataSchema schema,
-													List<ExtendedAttributeDto> attributes, boolean partial) {
-		if (!partial || attributes != null) {
-			clearCustomMetadataValues(documentRecord, schema);
-		}
-
-		for (ExtendedAttributeDto attribute : ListUtils.nullToEmpty(attributes)) {
-			Metadata metadata = schema.getMetadata(attribute.getKey());
-
-			List<Object> values = new ArrayList<>(attribute.getValues().size());
-			for (String value : attribute.getValues()) {
-				switch (metadata.getType()) {
-					case STRING:
-					case TEXT:
-					case REFERENCE:
-						values.add(value);
-						break;
-					case DATE:
-						values.add(DateUtils.parseLocalDate(value, getDateFormat()));
-						break;
-					case DATE_TIME:
-						values.add(DateUtils.parseLocalDateTime(value, getDateTimeFormat()));
-						break;
-					case NUMBER:
-						values.add(Double.valueOf(value));
-						break;
-					case BOOLEAN:
-						values.add(Boolean.valueOf(value));
-						break;
-					default:
-						throw new UnsupportedMetadataTypeException(metadata.getType().name());
-				}
-			}
-			documentRecord.set(metadata, metadata.isMultivalue() ? values : values.get(0));
 		}
 	}
 

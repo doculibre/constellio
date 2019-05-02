@@ -4,9 +4,9 @@ import com.constellio.app.modules.restapi.core.exception.InvalidParameterExcepti
 import com.constellio.app.modules.restapi.core.exception.RecordNotFoundException;
 import com.constellio.app.modules.restapi.core.exception.mapper.RestApiErrorResponse;
 import com.constellio.app.modules.restapi.core.util.DateUtils;
-import com.constellio.app.modules.restapi.document.dto.AceDto;
-import com.constellio.app.modules.restapi.document.dto.ExtendedAttributeDto;
 import com.constellio.app.modules.restapi.folder.dto.FolderDto;
+import com.constellio.app.modules.restapi.resource.dto.AceDto;
+import com.constellio.app.modules.restapi.resource.dto.ExtendedAttributeDto;
 import com.constellio.app.modules.restapi.validation.exception.ExpiredSignedUrlException;
 import com.constellio.app.modules.restapi.validation.exception.InvalidSignatureException;
 import com.constellio.app.modules.restapi.validation.exception.UnallowedHostException;

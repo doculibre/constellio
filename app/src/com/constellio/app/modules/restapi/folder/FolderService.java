@@ -32,20 +32,19 @@ public class FolderService extends ResourceService {
 	}
 
 	public FolderDto create(String host, String parentFolderId, String serviceKey, String method, String date,
-							int expiration, String signature, FolderDto folderDto, String sourceFolderId,
-							String flushMode, Set<String> filters) throws Exception {
+							int expiration, String signature, FolderDto folderDto, String flushMode,
+							Set<String> filters) throws Exception {
 		validateParameters(host, parentFolderId, serviceKey, method, date, expiration, null, null, signature);
 
-		Record folder = getRecord(parentFolderId != null ? parentFolderId : sourceFolderId, true);
-		String collection = folder.getCollection();
+		String id = parentFolderId != null ? parentFolderId : folderDto.getAdministrativeUnit();
+		Record record = getRecord(id, true);
+		String collection = record.getCollection();
 		User user = getUser(serviceKey, collection);
-		validateUserAccess(user, folder, method);
-
-		// TODO validate access on admin unit? category?
+		validateUserAccess(user, record, method);
 
 		MetadataSchema folderSchema = folderDao.getLinkedMetadataSchema(folderDto.getType(), collection);
 		validateExtendedAttributes(folderDto.getExtendedAttributes(), folderSchema);
-		validateAuthorizations(folderDto.getDirectAces(), folder.getCollection());
+		validateAuthorizations(folderDto.getDirectAces(), collection);
 
 		boolean acesModified = false;
 		Record createdFolderRecord = folderDao.createFolder(user, folderSchema, folderDto, flushMode);
@@ -54,6 +53,33 @@ public class FolderService extends ResourceService {
 			acesModified = true;
 		}
 		return getAdaptor().adapt(folderDto, createdFolderRecord, folderSchema, acesModified, filters);
+	}
+
+	public FolderDto copy(String host, String parentFolderId, String sourceFolderId, String serviceKey, String method,
+						  String date, int expiration, String signature, FolderDto folderDto, String flushMode,
+						  Set<String> filters) throws Exception {
+		validateParameters(host, parentFolderId, serviceKey, method, date, expiration, null, null, signature);
+
+		Record sourceFolder = getRecord(sourceFolderId, true);
+		String collection = sourceFolder.getCollection();
+		User user = getUser(serviceKey, collection);
+		validateUserAccess(user, sourceFolder, method);
+
+		if (parentFolderId == null) {
+			validateUserAccess(user, getRecord(parentFolderId, true), method);
+		}
+
+		MetadataSchema folderSchema = folderDao.getLinkedMetadataSchema(folderDto.getType(), collection);
+		validateExtendedAttributes(folderDto.getExtendedAttributes(), folderSchema);
+		validateAuthorizations(folderDto.getDirectAces(), collection);
+
+		boolean acesModified = false;
+		Record copiedFolderRecord = folderDao.copyFolder(user, folderSchema, sourceFolderId, folderDto, flushMode);
+		if (!isNullOrEmpty(folderDto.getDirectAces())) {
+			aceService.addAces(user, copiedFolderRecord, folderDto.getDirectAces());
+			acesModified = true;
+		}
+		return getAdaptor().adapt(folderDto, copiedFolderRecord, folderSchema, acesModified, filters);
 	}
 
 	@Override

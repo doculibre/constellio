@@ -11,7 +11,7 @@ import com.constellio.app.modules.restapi.core.service.BaseService;
 import com.constellio.app.modules.restapi.core.util.DateUtils;
 import com.constellio.app.modules.restapi.core.util.ListUtils;
 import com.constellio.app.modules.restapi.core.util.StringUtils;
-import com.constellio.app.modules.restapi.document.dto.AceDto;
+import com.constellio.app.modules.restapi.resource.dto.AceDto;
 import com.constellio.app.modules.restapi.signature.SignatureService;
 import com.constellio.app.modules.restapi.validation.dao.ValidationDao;
 import com.constellio.app.modules.restapi.validation.exception.ExpiredSignedUrlException;

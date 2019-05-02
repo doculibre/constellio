@@ -6,7 +6,7 @@ import com.constellio.app.modules.restapi.core.exception.RecordLogicallyDeletedE
 import com.constellio.app.modules.restapi.core.exception.RecordNotFoundException;
 import com.constellio.app.modules.restapi.core.exception.RequiredParameterException;
 import com.constellio.app.modules.restapi.core.util.SchemaTypes;
-import com.constellio.app.modules.restapi.document.dto.AceDto;
+import com.constellio.app.modules.restapi.resource.dto.AceDto;
 import com.constellio.app.modules.restapi.signature.SignatureService;
 import com.constellio.app.modules.restapi.validation.dao.ValidationDao;
 import com.constellio.app.modules.restapi.validation.exception.ExpiredSignedUrlException;

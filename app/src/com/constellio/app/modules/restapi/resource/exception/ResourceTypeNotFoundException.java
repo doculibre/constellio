@@ -8,8 +8,7 @@ import java.util.Map;
 
 public class ResourceTypeNotFoundException extends BaseRestApiException {
 
-	// FIXME change to generic code?
-	private static final String CODE = "documentTypeNotFound";
+	private static final String CODE = "typeNotFound";
 
 	public ResourceTypeNotFoundException(String field, String value) {
 		status = Response.Status.NOT_FOUND;

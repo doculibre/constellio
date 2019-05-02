@@ -77,15 +77,23 @@ public class UrlRestfulService {
 			throw new InvalidParameterException("method", method);
 		}
 
-		if (Strings.isNullOrEmpty(id) && Strings.isNullOrEmpty(folderId)) {
-			throw new AtLeastOneParameterRequiredException("id", "folderId");
-		}
 		if (!Strings.isNullOrEmpty(id) && !Strings.isNullOrEmpty(folderId)) {
 			throw new InvalidParameterCombinationException("id", "folderId");
 		}
-		if (Strings.isNullOrEmpty(folderId) && method.equals(POST)) {
-			throw new RequiredParameterException("folderId");
+
+		if (schemaType == SchemaTypes.DOCUMENT) {
+			if (Strings.isNullOrEmpty(id) && Strings.isNullOrEmpty(folderId)) {
+				throw new AtLeastOneParameterRequiredException("id", "folderId");
+			}
+			if (Strings.isNullOrEmpty(folderId) && method.equals(POST)) {
+				throw new RequiredParameterException("folderId");
+			}
+		} else if (schemaType == SchemaTypes.FOLDER) {
+			if (Strings.isNullOrEmpty(id) && Strings.isNullOrEmpty(folderId) && !method.equals(POST)) {
+				throw new AtLeastOneParameterRequiredException("id", "folderId");
+			}
 		}
+
 		if (!Strings.isNullOrEmpty(id) && method.equals(POST)) {
 			throw new InvalidParameterWithHttpMethodException("id", method);
 		}

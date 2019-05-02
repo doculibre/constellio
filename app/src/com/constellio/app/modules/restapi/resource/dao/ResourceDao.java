@@ -1,8 +1,10 @@
 package com.constellio.app.modules.restapi.resource.dao;
 
 import com.constellio.app.modules.restapi.core.dao.BaseDao;
+import com.constellio.app.modules.restapi.core.exception.UnsupportedMetadataTypeException;
 import com.constellio.app.modules.restapi.core.util.DateUtils;
-import com.constellio.app.modules.restapi.document.dto.ExtendedAttributeDto;
+import com.constellio.app.modules.restapi.core.util.ListUtils;
+import com.constellio.app.modules.restapi.resource.dto.ExtendedAttributeDto;
 import com.constellio.app.modules.restapi.resource.dto.ResourceTypeDto;
 import com.constellio.app.modules.restapi.resource.exception.ResourceTypeNotFoundException;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
@@ -15,9 +17,15 @@ import com.google.common.collect.Lists;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public abstract class ResourceDao extends BaseDao {
+
+	@Override
+	protected void init() {
+		super.init();
+	}
 
 	protected abstract String getSchemaType();
 
@@ -76,6 +84,51 @@ public abstract class ResourceDao extends BaseDao {
 			extendedAttributes.add(ExtendedAttributeDto.builder().key(metadata.getLocalCode()).values(values).build());
 		}
 		return extendedAttributes;
+	}
+
+	protected void updateCustomMetadataValues(Record resourceRecord, MetadataSchema schema,
+											  List<ExtendedAttributeDto> attributes, boolean partial) {
+		if (!partial || attributes != null) {
+			clearCustomMetadataValues(resourceRecord, schema);
+		}
+
+		for (ExtendedAttributeDto attribute : ListUtils.nullToEmpty(attributes)) {
+			Metadata metadata = schema.getMetadata(attribute.getKey());
+
+			List<Object> values = new ArrayList<>(attribute.getValues().size());
+			for (String value : attribute.getValues()) {
+				switch (metadata.getType()) {
+					case STRING:
+					case TEXT:
+					case REFERENCE:
+						values.add(value);
+						break;
+					case DATE:
+						values.add(DateUtils.parseLocalDate(value, getDateFormat()));
+						break;
+					case DATE_TIME:
+						values.add(DateUtils.parseLocalDateTime(value, getDateTimeFormat()));
+						break;
+					case NUMBER:
+						values.add(Double.valueOf(value));
+						break;
+					case BOOLEAN:
+						values.add(Boolean.valueOf(value));
+						break;
+					default:
+						throw new UnsupportedMetadataTypeException(metadata.getType().name());
+				}
+			}
+			resourceRecord.set(metadata, metadata.isMultivalue() ? values : values.get(0));
+		}
+	}
+
+	protected <T> void updateDocumentMetadataValue(Record resourceRecord, MetadataSchema schema, String metadataCode,
+												   T value, boolean ignoreNull) {
+		if (ignoreNull && value == null) {
+			return;
+		}
+		updateMetadataValue(resourceRecord, schema, metadataCode, value);
 	}
 
 }
