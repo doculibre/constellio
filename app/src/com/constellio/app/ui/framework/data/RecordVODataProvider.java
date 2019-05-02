@@ -147,7 +147,7 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 		return size;
 	}
 
-	private List<Record> doSearch() {
+	protected List<Record> doSearch() {
 		List<Record> recordList;
 		if (query == null) {
 			recordList = new ArrayList<>();

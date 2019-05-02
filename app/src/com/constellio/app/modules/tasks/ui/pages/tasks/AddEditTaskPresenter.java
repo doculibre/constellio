@@ -1,20 +1,7 @@
 package com.constellio.app.modules.tasks.ui.pages.tasks;
 
-import static com.constellio.app.modules.tasks.model.wrappers.Task.ASSIGNEE;
-import static com.constellio.app.ui.entities.RecordVO.VIEW_MODE.FORM;
-import static com.constellio.app.ui.i18n.i18n.$;
-import static java.util.Arrays.asList;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
-
 import com.constellio.app.modules.rm.wrappers.RMTask;
+import com.constellio.app.modules.tasks.TasksPermissionsTo;
 import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflowTask;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.TaskStatusType;
@@ -52,7 +39,6 @@ import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -67,6 +53,19 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.jgoodies.common.base.Strings;
 import com.vaadin.ui.Field;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+
+import static com.constellio.app.modules.tasks.model.wrappers.Task.ASSIGNEE;
+import static com.constellio.app.ui.entities.RecordVO.VIEW_MODE.FORM;
+import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
 
 public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskView> {
 	public static final String ASSIGNATION_MODES = "assignationModes";
@@ -113,8 +112,18 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 
 	@Override
 	protected boolean hasRestrictedRecordAccess(String params, User user, Record restrictedRecord) {
-		TaskStatusType statusType = new TasksSchemasRecordsServices(restrictedRecord.getCollection(), appLayerFactory).wrapTask(restrictedRecord).getStatusType();
-		return user.hasWriteAccess().on(restrictedRecord) && !(statusType != null && statusType.isFinishedOrClosed());
+		TasksSchemasRecordsServices tasksSchemasRecordsServices = new TasksSchemasRecordsServices(restrictedRecord.getCollection(), appLayerFactory);
+		TaskStatusType statusType = tasksSchemasRecordsServices.wrapTask(restrictedRecord).getStatusType();
+
+		boolean isModelTaskAndUserIsWorkflowManager = false;
+
+		if (restrictedRecord.getSchemaCode().startsWith(Task.SCHEMA_TYPE + "_")) {
+			Task task = tasksSchemasRecordsServices.wrapTask(restrictedRecord);
+			isModelTaskAndUserIsWorkflowManager = getCurrentUser().has(TasksPermissionsTo.MANAGE_WORKFLOWS).globally()
+												  && task.isModel();
+		}
+		tasksSchemasRecordsServices.wrapTask(restrictedRecord);
+		return user.hasWriteAccess().on(restrictedRecord) && !(statusType != null && statusType.isFinishedOrClosed()) || isModelTaskAndUserIsWorkflowManager;
 	}
 
 	@Override
@@ -234,7 +243,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 			}
 
 			if (task.isModel()) {
-				addOrUpdate(task.getWrappedRecord(), RecordUpdateOptions.userModificationsSafeOptions());
+				addOrUpdateWithoutUser(task.getWrappedRecord());
 			} else {
 				addOrUpdate(task.getWrappedRecord());
 			}
