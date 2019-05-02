@@ -7,6 +7,7 @@ import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -81,7 +82,7 @@ public class RecordCommentsEditorPresenter implements Serializable {
 			if (!newComments.equals(existingComments)) {
 				record.set(metadata, newComments);
 				if (presenterUtils.getCurrentUser().hasWriteAccess().on(record)) {
-					presenterUtils.addOrUpdate(record);
+					presenterUtils.addOrUpdate(record, new RecordUpdateOptions().setSkippingRequiredValuesValidation(true));
 				}
 			}
 		}
