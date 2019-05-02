@@ -49,6 +49,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
+import org.jodconverter.office.OfficeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -382,6 +383,11 @@ public abstract class Decommissioner {
 						content = createPDFa(content);
 						loggingServices.logPdfAGeneration(document, user);
 					} catch (NullPointerException e) {
+						e.printStackTrace();
+					} catch (RuntimeException e) {
+						if(e.getCause() != null && e.getCause() instanceof OfficeException) {
+							//TODO show error message
+						}
 						e.printStackTrace();
 					}
 				}
