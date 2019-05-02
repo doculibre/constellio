@@ -1,7 +1,5 @@
 package com.constellio.app.modules.rm.ui.pages.folder;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
 import com.constellio.app.modules.rm.ui.components.folder.FolderForm;
 import com.constellio.app.modules.rm.ui.components.folder.FolderFormImpl;
 import com.constellio.app.modules.rm.ui.components.folder.fields.CustomFolderField;
@@ -15,6 +13,8 @@ import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Field;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
 public class AddEditFolderViewImpl extends BaseViewImpl implements AddEditFolderView {
 
 	private RecordVO recordVO;
@@ -24,7 +24,19 @@ public class AddEditFolderViewImpl extends BaseViewImpl implements AddEditFolder
 	private AddEditFolderPresenter presenter;
 
 	public AddEditFolderViewImpl() {
-		presenter = new AddEditFolderPresenter(this);
+		this(null);
+	}
+
+	public AddEditFolderViewImpl(RecordVO folderVO) {
+		this(folderVO, false);
+	}
+
+	public AddEditFolderViewImpl(RecordVO folderVO, boolean popup) {
+		presenter = newPresenter(folderVO);
+	}
+
+	protected AddEditFolderPresenter newPresenter(RecordVO folderVO) {
+		return new AddEditFolderPresenter(this, folderVO);
 	}
 
 	public void setPresenter(AddEditFolderPresenter presenter) {

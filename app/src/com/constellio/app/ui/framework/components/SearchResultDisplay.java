@@ -10,7 +10,6 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.SearchResultVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
-import com.constellio.app.ui.framework.components.layouts.I18NCssLayout;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.components.mouseover.NiceTitle;
 import com.constellio.app.ui.pages.base.SessionContext;
@@ -30,7 +29,6 @@ import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
-import com.vaadin.ui.CssLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Layout;
 import com.vaadin.ui.VerticalLayout;
@@ -134,7 +132,7 @@ public class SearchResultDisplay extends VerticalLayout {
 	protected Component newTitleComponent(SearchResultVO searchResultVO) {
 		final RecordVO record = searchResultVO.getRecordVO();
 
-		CssLayout titleLayout = new I18NCssLayout();
+		VerticalLayout titleLayout = new VerticalLayout();
 		titleLayout.setWidth("100%");
 		Component titleLink = newTitleLink(searchResultVO);
 		titleLink.addStyleName(TITLE_STYLE);
@@ -154,25 +152,8 @@ public class SearchResultDisplay extends VerticalLayout {
 			String elevateText = isElevated ? $(CANCEL_ELEVATION) : $(ELEVATION);
 			String elevateNiceTitleText = isElevated ? $(CANCEL_ELEVATION + "NiceTitle") : $(ELEVATION + "NiceTitle");
 
-			excludeButton = new BaseButton($(EXCLUSION), FontAwesome.TIMES_CIRCLE_O, false) {
-				@Override
-				protected void buttonClick(ClickEvent event) {
-					// Real click listener in addExclusionClickListener()
-				}
-			};
-			excludeButton.addStyleName(EXCLUSION_BUTTON_STYLE);
-			excludeButton.addStyleName(ValoTheme.BUTTON_LINK);
-			excludeButton.addExtension(new NiceTitle(excludeButton, $(EXCLUSION + "NiceTitle")));
-
-			elevateButton = new BaseButton(elevateText, elevateIcon, false) {
-				@Override
-				protected void buttonClick(ClickEvent event) {
-					// Real click listener in addElevationClickListener()
-				}
-			};
-			elevateButton.addStyleName(ELEVATION_BUTTON_STYLE);
-			elevateButton.addStyleName(ValoTheme.BUTTON_LINK);
-			elevateButton.addExtension(new NiceTitle(elevateButton, elevateNiceTitleText));
+			excludeButton = new ExcludeButton();
+			elevateButton = new ElevateButton(elevateText, elevateIcon, elevateNiceTitleText);
 
 			I18NHorizontalLayout elevationLayout = new I18NHorizontalLayout();
 			elevationLayout.addStyleName("search-result-elevation-buttons");
@@ -182,7 +163,8 @@ public class SearchResultDisplay extends VerticalLayout {
 			elevationLayout.setComponentAlignment(excludeButton, Alignment.TOP_LEFT);
 			elevationLayout.setComponentAlignment(elevateButton, Alignment.TOP_LEFT);
 
-			titleLayout.addComponent(elevationLayout);
+			titleLayout.addComponent(elevationLayout, 0);
+			titleLayout.setComponentAlignment(elevationLayout, Alignment.TOP_RIGHT);
 			//			titleLayout.setExpandRatio(elevationLayout, 1);
 			//			titleLayout.setSpacing(true);
 		}
@@ -297,6 +279,38 @@ public class SearchResultDisplay extends VerticalLayout {
 
 	public Component getTitleComponent() {
 		return titleComponent;
+	}
+
+	public static class ElevationButton extends BaseButton {
+
+		public ElevationButton(String caption, Resource icon, String niceTitleText) {
+			super(caption, icon, true);
+			addStyleName(ELEVATION_BUTTON_STYLE);
+			addStyleName(ValoTheme.BUTTON_LINK);
+			addExtension(new NiceTitle(this, niceTitleText));
+		}
+
+		@Override
+		protected void buttonClick(ClickEvent event) {
+			// Real click listener in addElevationClickListener()
+		}
+
+	}
+
+	public static class ElevateButton extends ElevationButton {
+
+		public ElevateButton(String caption, Resource icon, String niceTitleText) {
+			super(caption, icon, niceTitleText);
+		}
+
+	}
+
+	public static class ExcludeButton extends ElevationButton {
+
+		public ExcludeButton() {
+			super($(EXCLUSION), FontAwesome.TIMES_CIRCLE_O, $(EXCLUSION + "NiceTitle"));
+		}
+
 	}
 
 }

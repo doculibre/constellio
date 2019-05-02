@@ -1,14 +1,5 @@
 package com.constellio.app.modules.rm.ui.components.menuBar;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-
-import org.apache.commons.lang3.StringUtils;
-import org.vaadin.dialogs.ConfirmDialog;
-
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.pages.document.AddEditDocumentViewImpl;
 import com.constellio.app.modules.rm.ui.pages.document.AddEditDocumentWindow;
@@ -51,6 +42,14 @@ import com.vaadin.ui.Notification;
 import com.vaadin.ui.Notification.Type;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Window;
+import org.apache.commons.lang3.StringUtils;
+import org.vaadin.dialogs.ConfirmDialog;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DocumentMenuBarImpl extends BaseMenuBar implements DocumentMenuBar {
 
@@ -59,6 +58,7 @@ public class DocumentMenuBarImpl extends BaseMenuBar implements DocumentMenuBar 
 	private ContentVersionVO contentVersionVO;
 	private UpdateContentVersionWindowImpl updateWindow;
 	private String borrowedMessage;
+	private boolean displayDocumentButtonVisible;
 	private boolean openDocumentButtonVisible;
 	private boolean downloadDocumentButtonVisible;
 	private boolean editDocumentButtonVisible;
@@ -106,20 +106,22 @@ public class DocumentMenuBarImpl extends BaseMenuBar implements DocumentMenuBar 
 	public void buildMenuItems() {
 		removeItems();
 
-		MenuItem rootItem = addItem("", FontAwesome.BARS, null);
+		MenuItem rootItem = addItem("", FontAwesome.ELLIPSIS_V, null);
 		rootItem.setIcon(FontAwesome.BARS);
 
 		if (StringUtils.isNotBlank(borrowedMessage)) {
 			rootItem.addItem(borrowedMessage, null);
 		}
 
-		MenuItem displayDocumentItem = rootItem.addItem($("DocumentContextMenu.displayDocument"), FontAwesome.FILE_O, null);
-		displayDocumentItem.setCommand(new Command() {
-			@Override
-			public void menuSelected(MenuItem selectedItem) {
-				presenter.displayDocumentButtonClicked();
-			}
-		});
+		if (displayDocumentButtonVisible) {
+			MenuItem displayDocumentItem = rootItem.addItem($("DocumentContextMenu.displayDocument"), FontAwesome.FILE_O, null);
+			displayDocumentItem.setCommand(new Command() {
+				@Override
+				public void menuSelected(MenuItem selectedItem) {
+					presenter.displayDocumentButtonClicked();
+				}
+			});
+		}
 
 		if (openDocumentButtonVisible) {
 			String fileName = contentVersionVO.getFileName();
@@ -481,13 +483,18 @@ public class DocumentMenuBarImpl extends BaseMenuBar implements DocumentMenuBar 
 	}
 
 	@Override
-	public void setOpenDocumentButtonVisible(boolean visible) {
-		this.openDocumentButtonVisible = visible;
+	public void setDisplayDocumentButtonState(ComponentState state) {
+		this.displayDocumentButtonVisible = state.isVisible() && state.isEnabled();
 	}
 
 	@Override
-	public void setDownloadDocumentButtonVisible(boolean visible) {
-		this.downloadDocumentButtonVisible = visible;
+	public void setOpenDocumentButtonState(ComponentState state) {
+		this.openDocumentButtonVisible = state.isVisible() && state.isEnabled();
+	}
+
+	@Override
+	public void setDownloadDocumentButtonState(ComponentState state) {
+		this.downloadDocumentButtonVisible = state.isVisible() && state.isEnabled();
 	}
 
 	@Override

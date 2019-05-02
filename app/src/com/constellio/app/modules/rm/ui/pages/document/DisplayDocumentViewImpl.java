@@ -1,41 +1,5 @@
 package com.constellio.app.modules.rm.ui.pages.document;
 
-import static com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration.modalDialog;
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.io.output.ByteArrayOutputStream;
-import org.apache.commons.lang3.StringUtils;
-import org.vaadin.dialogs.ConfirmDialog;
-
-import static com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration.modalDialog;
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.io.output.ByteArrayOutputStream;
-import org.apache.commons.lang3.StringUtils;
-import org.vaadin.dialogs.ConfirmDialog;
-
 import com.constellio.app.api.extensions.params.DocumentFolderBreadCrumbParams;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
@@ -62,6 +26,7 @@ import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.ConfirmDialogButton;
 import com.constellio.app.ui.framework.buttons.ConfirmDialogButton.DialogMode;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
+import com.constellio.app.ui.framework.buttons.DisplayButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.buttons.LinkButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
@@ -72,6 +37,7 @@ import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.RecordDisplay;
 import com.constellio.app.ui.framework.components.ReportTabButton;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
+import com.constellio.app.ui.framework.components.content.DownloadContentVersionButton;
 import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
 import com.constellio.app.ui.framework.components.diff.DiffPanel;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
@@ -88,7 +54,6 @@ import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.decorators.tabs.TabSheetDecorator;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
-import com.constellio.app.ui.util.ComponentTreeUtils;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.dev.Toggle;
@@ -108,8 +73,8 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomComponent;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
-import com.vaadin.ui.Panel;
 import com.vaadin.ui.Notification;
+import com.vaadin.ui.Panel;
 import com.vaadin.ui.PasswordField;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.Table;
@@ -121,6 +86,24 @@ import com.vaadin.ui.Upload.SucceededListener;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
+import org.apache.commons.io.output.ByteArrayOutputStream;
+import org.apache.commons.lang3.StringUtils;
+import org.vaadin.dialogs.ConfirmDialog;
+
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration.modalDialog;
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocumentView, DropHandler {
 
@@ -135,6 +118,9 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	private Component tasksComponent;
 	private Component eventsComponent;
 	private UpdateContentVersionWindowImpl uploadWindow;
+	private DisplayButton displayDocumentButton;
+	private LinkButton openDocumentButton;
+	private DownloadContentVersionButton downloadDocumentButton;
 	private EditButton editDocumentButton;
 	private DeleteButton deleteDocumentButton;
 	private Button copyContentButton;
@@ -154,15 +140,15 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 	private DisplayDocumentPresenter presenter;
 
-	private boolean popup;
+	private boolean nestedView;
 
 	public DisplayDocumentViewImpl() {
 		this(null, false);
 	}
 
-	public DisplayDocumentViewImpl(RecordVO recordVO, boolean popup) {
-		this.popup = popup;
-		presenter = new DisplayDocumentPresenter(this, recordVO, popup);
+	public DisplayDocumentViewImpl(RecordVO recordVO, boolean nestedView) {
+		this.nestedView = nestedView;
+		presenter = new DisplayDocumentPresenter(this, recordVO, nestedView);
 	}
 
 	public DisplayDocumentPresenter getDisplayDocumentPresenter() {
@@ -201,10 +187,6 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 	private ContentViewer newContentViewer() {
 		ContentViewer contentViewer = new ContentViewer(documentVO, Document.CONTENT, documentVO.getContent());
-		if (popup) {
-			// FIXME CSS bug when displayed in window, hiding for now.
-			contentViewer.setVisible(false);
-		}
 		return contentViewer;
 	}
 
@@ -295,6 +277,9 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 		recordDisplayPanel.addStyleName(ValoTheme.PANEL_BORDERLESS);
 		recordDisplayPanel.addStyleName(ValoTheme.PANEL_SCROLL_INDICATOR);
+		if (contentViewerInitiallyVisible && nestedView) {
+			tabSheet.addTab(contentViewer, $("DisplayDocumentView.tabs.contentViewer"));
+		}
 		tabSheet.addTab(recordDisplayPanel, $("DisplayDocumentView.tabs.metadata"));
 		tabSheet.addTab(buildVersionTab(), $("DisplayDocumentView.tabs.versions"));
 		tabSheet.addTab(tasksComponent, $("DisplayDocumentView.tabs.tasks", presenter.getTaskCount()));
@@ -317,7 +302,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		});
 
 		Component contentMetadataComponent;
-		if (contentViewerInitiallyVisible) {
+		if (contentViewerInitiallyVisible && !nestedView) {
 			CollapsibleHorizontalSplitPanel splitPanel = new CollapsibleHorizontalSplitPanel(DisplayDocumentViewImpl.class.getName());
 			splitPanel.setFirstComponent(contentViewer);
 			splitPanel.setSecondComponent(tabSheet);
@@ -565,6 +550,29 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	@Override
 	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
 		List<Button> actionMenuButtons = new ArrayList<>();
+
+		displayDocumentButton = new DisplayButton($("DisplayDocumentView.displayDocument")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				presenter.displayDocumentButtonClicked();
+			}
+		};
+		displayDocumentButton.addStyleName(ValoTheme.BUTTON_LINK);
+		actionMenuButtons.add(displayDocumentButton);
+
+		openDocumentButton = new LinkButton($("DisplayDocumentView.openDocument")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				presenter.openDocumentButtonClicked();
+			}
+		};
+		openDocumentButton.addStyleName(ValoTheme.BUTTON_LINK);
+		actionMenuButtons.add(openDocumentButton);
+
+		if (documentVO.getContent() != null) {
+			downloadDocumentButton = new DownloadContentVersionButton(documentVO.getContent());
+			actionMenuButtons.add(downloadDocumentButton);
+		}
 
 		editDocumentButton = new EditButton($("DisplayDocumentView.editDocument")) {
 			@Override
@@ -1039,7 +1047,6 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	public void setAddToOrRemoveFromSelectionButtonState(ComponentState state) {
 		addToOrRemoveFromSelectionButton.setVisible(state.isVisible());
 		addToOrRemoveFromSelectionButton.setEnabled(state.isEnabled());
-
 	}
 
 	@Override
@@ -1060,6 +1067,26 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	public void setFinalizeButtonState(ComponentState state) {
 		finalizeButton.setVisible(state.isVisible());
 		finalizeButton.setEnabled(state.isVisible());
+	}
+
+	@Override
+	public void setDisplayDocumentButtonState(ComponentState state) {
+		displayDocumentButton.setVisible(state.isVisible());
+		displayDocumentButton.setEnabled(state.isVisible());
+	}
+
+	@Override
+	public void setOpenDocumentButtonState(ComponentState state) {
+		openDocumentButton.setVisible(state.isVisible());
+		openDocumentButton.setEnabled(state.isVisible());
+	}
+
+	@Override
+	public void setDownloadDocumentButtonState(ComponentState state) {
+		if (downloadDocumentButton != null) {
+			downloadDocumentButton.setVisible(state.isVisible());
+			downloadDocumentButton.setEnabled(state.isVisible());
+		}
 	}
 
 	@Override
@@ -1174,16 +1201,20 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	}
 
 	@Override
+	protected boolean isBreadcrumbsVisible() {
+		return !nestedView;
+	}
+
+	@Override
 	protected boolean isFullWidthIfActionMenuAbsent() {
 		return Toggle.SEARCH_RESULTS_VIEWER.isEnabled();
 	}
 
 	@Override
 	public void editInWindow() {
-		Window window = ComponentTreeUtils.findParent(this, Window.class);
 		AddEditDocumentViewImpl editView = new AddEditDocumentViewImpl(documentVO, true);
-		editView.enter(null);
-		window.setContent(editView);
+		Window window = new AddEditDocumentWindow(editView);
+		getUI().addWindow(window);
 	}
 
 	private class StartWorkflowButton extends WindowButton {

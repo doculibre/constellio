@@ -30,6 +30,12 @@ public interface DocumentActionsComponent extends ViewComponent {
 
 	void openUploadWindow(boolean checkingIn);
 
+	void setDisplayDocumentButtonState(ComponentState state);
+
+	void setOpenDocumentButtonState(ComponentState state);
+
+	void setDownloadDocumentButtonState(ComponentState state);
+
 	void setCopyDocumentButtonState(ComponentState state);
 
 	void setStartWorkflowButtonState(ComponentState state);

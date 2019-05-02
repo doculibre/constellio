@@ -26,7 +26,11 @@ public class RecordLazyTree extends LazyTree<String> {
 	}
 
 	public RecordLazyTree(LazyTreeDataProvider<String> dataProvider, int bufferSize) {
-		super(dataProvider, bufferSize);
+		this(dataProvider, bufferSize, false);
+	}
+
+	public RecordLazyTree(LazyTreeDataProvider<String> dataProvider, int bufferSize, boolean multiValue) {
+		super(dataProvider, bufferSize, multiValue);
 		init();
 	}
 
@@ -58,7 +62,7 @@ public class RecordLazyTree extends LazyTree<String> {
 	@Override
 	protected CellKey getCellKey(Object itemId, Object propertyId) {
 		RecordVO recordVO;
-		Item item = getNestedTreeTable().getItem(itemId);
+		Item item = getItem(itemId);
 		if (item instanceof RecordVOItem) {
 			RecordVOItem recordVOItem = (RecordVOItem) item;
 			recordVO = recordVOItem.getRecord();

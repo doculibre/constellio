@@ -168,7 +168,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 	Boolean allItemsDeselected = false;
 
-	private boolean popup;
+	private boolean nestedView;
 
 	private Map<String, String> params = null;
 
@@ -177,9 +177,9 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	String sortCriterion;
 	SortOrder sortOrder;
 
-	public DisplayFolderPresenter(DisplayFolderView view, RecordVO recordVO, boolean popup) {
+	public DisplayFolderPresenter(DisplayFolderView view, RecordVO recordVO, boolean nestedView) {
 		super(view, Folder.DEFAULT_SCHEMA);
-		this.popup = popup;
+		this.nestedView = nestedView;
 		presenterUtilsForDocument = new SchemaPresenterUtils(Document.DEFAULT_SCHEMA, view.getConstellioFactories(), view.getSessionContext());
 		initTransientObjects();
 		if (recordVO != null) {
@@ -519,6 +519,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 			User user = getCurrentUser();
 			view.setLogicallyDeletable(getDeleteButtonState(user, folder));
+			view.setDisplayButtonState(getDisplayButtonState(user, folder));
 			view.setEditButtonState(getEditButtonState(user, folder));
 			view.setMoveInFolderState(getMoveInFolderButtonState(user, folder));
 			view.setAddSubFolderButtonState(getAddFolderButtonState(user, folder));
@@ -710,6 +711,10 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		return ComponentState.INVISIBLE;
 	}
 
+	ComponentState getDisplayButtonState(User user, Folder folder) {
+		return ComponentState.visibleIf(nestedView && user.hasReadAccess().on(folder));
+	}
+
 	ComponentState getEditButtonState(User user, Folder folder) {
 		if (isNotBlank(folder.getLegacyId()) && !user.has(RMPermissionsTo.MODIFY_IMPORTED_FOLDERS).on(folder)) {
 			return ComponentState.INVISIBLE;
@@ -717,7 +722,6 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		return ComponentState.visibleIf(user.hasWriteAccess().on(folder)
 										&& !extensions.isModifyBlocked(folder.getWrappedRecord(), user) && extensions
 												.isRecordModifiableBy(folder.getWrappedRecord(), user));
-
 	}
 
 	ComponentState getAddFolderButtonState(User user, Folder folder) {
@@ -831,6 +835,10 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		navigateToFolder(this.folderVO.getId());
 	}
 
+	public void displayFolderButtonClicked() {
+		navigateToSelf();
+	}
+
 	public void editFolderButtonClicked() {
 		RMNavigationUtils.navigateToEditFolder(folderVO.getId(), params, appLayerFactory, collection);
 	}
@@ -861,7 +869,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		if (isDuplicateFolderPossible(getCurrentUser(), folder)) {
 			navigateToDuplicateFolder(folder, false);
 		}
-		if (!popup) {
+		if (!nestedView) {
 			view.closeAllWindows();
 		}
 	}
@@ -891,7 +899,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 				view.showErrorMessage(e.getMessage());
 			}
 		}
-		if (!popup) {
+		if (!nestedView) {
 			view.closeAllWindows();
 		}
 	}
