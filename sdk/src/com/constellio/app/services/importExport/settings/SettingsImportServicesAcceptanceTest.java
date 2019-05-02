@@ -1779,19 +1779,22 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		defaultSchema.newMetadata("m8").setType(STRING);
 
 		defaultSchema.setFormMetadatas(asList(
-				"administrativeUnitEntered", "categoryEntered", "copyStatusEntered", "m2", "m1", "type", "title", "container"))
+				"administrativeUnitEntered", "categoryEntered", "copyStatusEntered", "m2", "m1", "type", "title", "container", "openingDate", "actualDepositDate", "actualDestructionDate", "actualTransferDate", "enteredClosingDate",
+				"mediumTypes", "parentFolder", "retentionRuleEntered", "uniformSubdivisionEntered"))
 				.setDisplayMetadatas(asList("m3"))
 				.setSearchMetadatas(asList("m4", "m5", "m1"))
 				.setTableMetadatas(asList("m3", "m5"));
 
 		customSchema1.setFormMetadatas(asList(
-				"m1", "type", "title", "container", "m2", "administrativeUnitEntered", "categoryEntered", "copyStatusEntered"))
+				"m1", "type", "title", "container", "m2", "administrativeUnitEntered", "categoryEntered", "copyStatusEntered", "openingDate", "actualDepositDate", "actualDestructionDate", "actualTransferDate", "enteredClosingDate",
+				"mediumTypes", "parentFolder", "retentionRuleEntered", "uniformSubdivisionEntered"))
 				.setDisplayMetadatas(asList("m3", "m2"))
 				.setSearchMetadatas(asList("m3", "m4"))
 				.setTableMetadatas(asList("m4", "m5"));
 
 		customSchema2.setFormMetadatas(asList(
-				"type", "title", "container", "m2", "administrativeUnitEntered", "categoryEntered", "copyStatusEntered", "m3"))
+				"type", "title", "container", "m2", "administrativeUnitEntered", "categoryEntered", "actualDepositDate", "copyStatusEntered", "m3", "openingDate", "actualDepositDate", "actualDestructionDate", "actualTransferDate", "enteredClosingDate",
+				"mediumTypes", "parentFolder", "retentionRuleEntered", "uniformSubdivisionEntered"))
 				.setDisplayMetadatas(asList("folder_custom2_m4", "folder_default_m5"))
 				.setSearchMetadatas(asList("m1", "m3", "m2"))
 				.setTableMetadatas(asList("m1", "folder_custom2_m4"));
@@ -1837,12 +1840,16 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		defaultSchema.newMetadata("m7").setType(STRING);
 		defaultSchema.newMetadata("m8").setType(STRING);
 
-		defaultSchema.setFormMetadatas(asList("m1", "m2"))
+		defaultSchema.setFormMetadatas(asList("m1", "m2", "openingDate", "title", "actualDepositDate", "actualDestructionDate", "actualTransferDate",
+				"administrativeUnitEntered", "categoryEntered", "container", "copyStatusEntered", "enteredClosingDate",
+				"mediumTypes", "parentFolder", "retentionRuleEntered", "type", "uniformSubdivisionEntered"))
 				.setDisplayMetadatas(asList("m5"))
 				.setSearchMetadatas(asList("m1", "m2", "m5"))
 				.setTableMetadatas(asList("m3", "m5"));
 
-		customSchema1.setFormMetadatas(asList("m2", "m1"))
+		customSchema1.setFormMetadatas(asList("m2", "m1", "openingDate", "title", "actualDepositDate", "actualDestructionDate", "actualTransferDate",
+				"administrativeUnitEntered", "categoryEntered", "container", "copyStatusEntered", "enteredClosingDate",
+				"mediumTypes", "parentFolder", "retentionRuleEntered", "type", "uniformSubdivisionEntered"))
 				.setDisplayMetadatas(asList("m2", "m3"))
 				.setSearchMetadatas(asList("m1"))
 				.setTableMetadatas(new ArrayList<String>());
