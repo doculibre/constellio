@@ -137,7 +137,6 @@ public class SearchResultDisplay extends VerticalLayout {
 		Component titleLink = newTitleLink(searchResultVO);
 		titleLink.addStyleName(TITLE_STYLE);
 //		titleLink.setWidthUndefined();
-		titleLink.setWidth("80%");
 		titleLayout.addComponent(titleLink);
 
 		SessionContext currentSessionContext = ConstellioUI.getCurrentSessionContext();
@@ -146,6 +145,8 @@ public class SearchResultDisplay extends VerticalLayout {
 
 		if (!Strings.isNullOrEmpty(query) && Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()
 			&& userHas.globalPermissionInAnyCollection(CorePermissions.EXCLUDE_AND_RAISE_SEARCH_RESULT)) {
+			titleLink.setWidth("80%");
+			
 			boolean isElevated = searchConfigurationsManager.isElevated(currentSessionContext.getCurrentCollection(), query, record.getId());
 
 			Resource elevateIcon = isElevated ? FontAwesome.ARROW_CIRCLE_O_DOWN : FontAwesome.ARROW_CIRCLE_O_UP;

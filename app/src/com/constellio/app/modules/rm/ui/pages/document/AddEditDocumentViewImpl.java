@@ -1,7 +1,5 @@
 package com.constellio.app.modules.rm.ui.pages.document;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
 import com.constellio.app.modules.rm.ui.components.document.DocumentForm;
 import com.constellio.app.modules.rm.ui.components.document.DocumentFormImpl;
 import com.constellio.app.modules.rm.ui.components.document.fields.CustomDocumentField;
@@ -20,8 +18,8 @@ import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.Page;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Field;
-import com.vaadin.ui.Panel;
-import com.vaadin.ui.themes.ValoTheme;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class AddEditDocumentViewImpl extends BaseViewImpl implements AddEditDocumentView {
 
@@ -93,6 +91,7 @@ public class AddEditDocumentViewImpl extends BaseViewImpl implements AddEditDocu
 			mainLayout.addComponents(contentViewer, recordForm);
 			
 			recordForm.setWidth("700px");
+			mainLayout.setExpandRatio(contentViewer, 1);
 		} else {
 			mainLayout.addComponent(recordForm);
 		}
@@ -151,6 +150,11 @@ public class AddEditDocumentViewImpl extends BaseViewImpl implements AddEditDocu
 	@Override
 	public void openAgentURL(String agentURL) {
 		Page.getCurrent().open(agentURL, null);
+	}
+
+	@Override
+	protected boolean isFullWidthIfActionMenuAbsent() {
+		return true;
 	}
 
 }

@@ -422,27 +422,6 @@ public class RMNavigationConfiguration implements Serializable {
 
 	private static void configureMainLayoutNavigation(NavigationConfig config) {
 		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION,
-				new NavigationItem.Active(ARCHIVES_MANAGEMENT, FontAwesome.ARCHIVE, ArchivesManagementViewGroup.class) {
-					@Override
-					public void activate(Navigation navigate) {
-						navigate.to(RMViews.class).archiveManagement();
-					}
-
-					@Override
-					public int getOrderValue() {
-						return 20;
-					}
-
-					@Override
-					public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
-						DecommissioningSecurityService service = new DecommissioningSecurityService(
-								user.getCollection(), appLayerFactory);
-						return visibleIf(service.hasAccessToDecommissioningMainPage(user) ||
-										 user.has(RMPermissionsTo.MANAGE_CONTAINERS).globally() ||
-										 user.has(RMPermissionsTo.MANAGE_REPORTS).onSomething());
-					}
-				});
-		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION,
 				new NavigationItem.Active(USER_DOCUMENTS, FontAwesome.SUITCASE, UserDocumentsViewGroup.class) {
 					@Override
 					public void activate(Navigation navigate) {
@@ -451,7 +430,7 @@ public class RMNavigationConfiguration implements Serializable {
 
 					@Override
 					public int getOrderValue() {
-						return 40;
+						return 30;
 					}
 
 					@Override
@@ -469,7 +448,7 @@ public class RMNavigationConfiguration implements Serializable {
 
 					@Override
 					public int getOrderValue() {
-						return 45;
+						return 35;
 					}
 
 					@Override
@@ -486,12 +465,33 @@ public class RMNavigationConfiguration implements Serializable {
 
 					@Override
 					public int getOrderValue() {
-						return 45;
+						return 35;
 					}
 
 					@Override
 					public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 						return visibleIf(user.has(RMPermissionsTo.USE_GROUP_CART).globally());
+					}
+				});
+		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION,
+				new NavigationItem.Active(ARCHIVES_MANAGEMENT, FontAwesome.ARCHIVE, ArchivesManagementViewGroup.class) {
+					@Override
+					public void activate(Navigation navigate) {
+						navigate.to(RMViews.class).archiveManagement();
+					}
+
+					@Override
+					public int getOrderValue() {
+						return 40;
+					}
+
+					@Override
+					public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
+						DecommissioningSecurityService service = new DecommissioningSecurityService(
+								user.getCollection(), appLayerFactory);
+						return visibleIf(service.hasAccessToDecommissioningMainPage(user) ||
+										 user.has(RMPermissionsTo.MANAGE_CONTAINERS).globally() ||
+										 user.has(RMPermissionsTo.MANAGE_REPORTS).onSomething());
 					}
 				});
 		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION, new NavigationItem.Active(LOGS, FontAwesome.BOOK, LogsViewGroup.class) {

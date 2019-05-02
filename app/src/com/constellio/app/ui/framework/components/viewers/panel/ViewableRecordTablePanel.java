@@ -16,6 +16,7 @@ import com.constellio.app.ui.framework.components.RecordDisplayFactory;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
+import com.constellio.app.ui.framework.components.table.SelectionTableAdapter;
 import com.constellio.app.ui.framework.containers.ContainerAdapter;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.containers.SearchResultContainer;
@@ -40,6 +41,8 @@ import com.vaadin.ui.Panel;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.CellStyleGenerator;
 import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.Window;
+import com.vaadin.ui.Window.CloseEvent;
 import com.vaadin.ui.themes.ValoTheme;
 import org.apache.commons.lang3.StringUtils;
 
@@ -144,22 +147,36 @@ public class ViewableRecordTablePanel extends I18NHorizontalLayout {
 		this.navigateOnItemClick = navigateOnItemClick;
 	}
 
+	//	private void ensureHeight(Object itemId) {
+	//		int l = table.getPageLength();
+	//		int index = table.indexOfId(itemId);
+	//		int indexToSelectAbove = index - (l / 2);
+	//		if (indexToSelectAbove < 0) {
+	//			indexToSelectAbove = 0;
+	//		}
+	//		table.setCurrentPageFirstItemIndex(indexToSelectAbove);
+	//	}
+
 	void adjustTableExpansion() {
 		if (isCompressionSupported()) {
 			String compressedStyleName = "viewable-record-table-compressed";
 			if (rowSelected != null) {
 				if (!closeButtonViewerMetadataLayout.isVisible()) {
+					int compressedWidth = computeCompressedWidth();
 					if (table != null) {
+						int searchResultPropertyWidth = compressedWidth - SelectionTableAdapter.SELECT_PROPERTY_WIDTH - SearchResultContainer.THUMBNAIL_WIDTH - 3;
+						table.setColumnWidth(SearchResultContainer.SEARCH_RESULT_PROPERTY, searchResultPropertyWidth);
 						table.addStyleName(compressedStyleName);
 					}
 					closeButtonViewerMetadataLayout.setVisible(true);
-					tableLayout.setWidth(computeCompressedWidth() + "px");
+					tableLayout.setWidth(compressedWidth + "px");
 					setExpandRatio(tableLayout, 0);
 					setExpandRatio(closeButtonViewerMetadataLayout, 1);
 				}
 			} else {
 				if (closeButtonViewerMetadataLayout.isVisible()) {
 					if (table != null) {
+						table.setColumnWidth(SearchResultContainer.SEARCH_RESULT_PROPERTY, -1);
 						table.removeStyleName(compressedStyleName);
 					}
 					closeButtonViewerMetadataLayout.setVisible(false);
@@ -224,7 +241,7 @@ public class ViewableRecordTablePanel extends I18NHorizontalLayout {
 	
 	void rowClicked(ItemClickEvent event) {
 		Object itemId = event.getItemId();
-		selectRecordVO(itemId, event);
+		selectRecordVO(itemId, event, false);
 		previousNextButtonsLayout.setVisible(itemId != null);
 	}
 
@@ -237,7 +254,7 @@ public class ViewableRecordTablePanel extends I18NHorizontalLayout {
 	}
 
 	@SuppressWarnings("rawtypes")
-	void selectRecordVO(Object itemId, ItemClickEvent event) {	
+	void selectRecordVO(Object itemId, ItemClickEvent event, boolean reload) {	
 		Integer newRowSelected = (Integer) itemId;
 		table.setValue(newRowSelected);
 		
@@ -247,8 +264,8 @@ public class ViewableRecordTablePanel extends I18NHorizontalLayout {
 		} else {
 			compressionChange = null;
 		}
-		
-		if (!newRowSelected.equals(this.rowSelected)) {
+
+		if (!newRowSelected.equals(this.rowSelected) || reload) {
 			rowSelected = newRowSelected;
 			
 			Container container = table.getContainerDataSource();
@@ -257,21 +274,33 @@ public class ViewableRecordTablePanel extends I18NHorizontalLayout {
 			}
 			if (container instanceof RecordVOLazyContainer) {
 				RecordVOLazyContainer recordVOLazyContainer = (RecordVOLazyContainer) container;
+				if (reload) {
+					recordVOLazyContainer.refresh();
+				}
 				selectedRecordVO = recordVOLazyContainer.getRecordVO(rowSelected);
 				previousItemId = recordVOLazyContainer.prevItemId(itemId);
 				nextItemId = recordVOLazyContainer.nextItemId(itemId);
 			} else if (container instanceof SearchResultContainer) {
 				SearchResultContainer searchResultContainer = (SearchResultContainer) container;
+				if (reload) {
+					searchResultContainer.refresh();
+				}
 				selectedRecordVO = searchResultContainer.getRecordVO(rowSelected);
 				previousItemId = searchResultContainer.prevItemId(itemId);
 				nextItemId = searchResultContainer.nextItemId(itemId);
 			} else if (container instanceof SearchResultVOLazyContainer) {
 				SearchResultVOLazyContainer searchResultContainer = (SearchResultVOLazyContainer) container;
+				if (reload) {
+					searchResultContainer.refresh();
+				}
 				selectedRecordVO = searchResultContainer.getRecordVO(rowSelected);
 				previousItemId = searchResultContainer.prevItemId(itemId);
 				nextItemId = searchResultContainer.nextItemId(itemId);
 			} else if (container instanceof ViewableRecordVOContainer) {
 				ViewableRecordVOContainer viewableRecordVOContainer = (ViewableRecordVOContainer) container;
+				if (reload) {
+					viewableRecordVOContainer.refresh();
+				}
 				selectedRecordVO = viewableRecordVOContainer.getRecordVO(rowSelected);
 				previousItemId = viewableRecordVOContainer.prevItemId(itemId);
 				nextItemId = viewableRecordVOContainer.nextItemId(itemId);
@@ -286,11 +315,17 @@ public class ViewableRecordTablePanel extends I18NHorizontalLayout {
 				}
 				if (nestedContainer instanceof RecordVOLazyContainer) {
 					RecordVOLazyContainer recordVOLazyContainer = (RecordVOLazyContainer) nestedContainer;
+					if (reload) {
+						recordVOLazyContainer.refresh();
+					}
 					selectedRecordVO = recordVOLazyContainer.getRecordVO(rowSelected);
 					previousItemId = recordVOLazyContainer.prevItemId(itemId);
 					nextItemId = recordVOLazyContainer.nextItemId(itemId);
 				} else if (nestedContainer instanceof SearchResultContainer) {
 					SearchResultContainer searchResultContainer = (SearchResultContainer) nestedContainer;
+					if (reload) {
+						searchResultContainer.refresh();
+					}
 					selectedRecordVO = searchResultContainer.getRecordVO(rowSelected);
 					previousItemId = searchResultContainer.prevItemId(itemId);
 					nextItemId = searchResultContainer.nextItemId(itemId);
@@ -354,7 +389,7 @@ public class ViewableRecordTablePanel extends I18NHorizontalLayout {
 			@Override
 			protected void buttonClick(ClickEvent event) {
 				if (previousItemId != null) {
-					selectRecordVO(previousItemId, null);
+					selectRecordVO(previousItemId, null, false);
 				}
 			}
 		};
@@ -366,7 +401,7 @@ public class ViewableRecordTablePanel extends I18NHorizontalLayout {
 			@Override
 			protected void buttonClick(ClickEvent event) {
 				if (nextItemId != null) {
-					selectRecordVO(nextItemId, null);
+					selectRecordVO(nextItemId, null, false);
 				}
 			}
 		};
@@ -387,7 +422,7 @@ public class ViewableRecordTablePanel extends I18NHorizontalLayout {
 		RecordServices recordServices = ConstellioUI.getCurrent().getConstellioFactories().getModelLayerFactory().newRecordServices();
 		Record selectedRecord = recordServices.getDocumentById(selectedRecordVO.getId());
 		selectedRecordVO = new RecordToVOBuilder().build(selectedRecord, VIEW_MODE.DISPLAY, ConstellioUI.getCurrentSessionContext());
-		viewerMetadataPanel.setRecordVO(selectedRecordVO);
+		selectRecordVO(rowSelected, null, true);
 	}
 	
 	public List<TableCompressListener> getTableCompressListeners() {
@@ -403,8 +438,8 @@ public class ViewableRecordTablePanel extends I18NHorizontalLayout {
 	public void removeTableCompressListener(TableCompressListener listener) {
 		tableCompressListeners.remove(listener);
 	}
-	
-	private static class ViewerMetadataPanel extends Panel {
+
+	private class ViewerMetadataPanel extends Panel {
 		
 		private VerticalLayout mainLayout;
 		
@@ -421,6 +456,12 @@ public class ViewableRecordTablePanel extends I18NHorizontalLayout {
 				if (Document.SCHEMA_TYPE.equals(schemaTypeCode)) {
 					DisplayDocumentViewImpl view = new DisplayDocumentViewImpl(recordVO, true);
 					view.enter(null);
+					view.addEditWindowCloseListener(new Window.CloseListener() {
+						@Override
+						public void windowClose(CloseEvent e) {
+							refreshMetadata();
+						}
+					});
 					panelContent = view;
 				} else if (Folder.SCHEMA_TYPE.equals(schemaTypeCode)) {
 					DisplayFolderViewImpl view = new DisplayFolderViewImpl(recordVO, true);

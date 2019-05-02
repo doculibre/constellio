@@ -88,4 +88,9 @@ public class BaseTable extends Table {
 		return super.getContainerProperty(itemId, propertyId);
 	}
 
+	@Override
+	public void refreshRenderedCells() {
+		super.refreshRenderedCells();
+	}
+
 }

@@ -1,5 +1,6 @@
 package com.constellio.app.ui.framework.containers;
 
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.entities.ContentVersionVO;
@@ -29,14 +30,14 @@ public class SearchResultContainer extends ContainerAdapter<SearchResultVOLazyCo
 	public final static String THUMBNAIL_PROPERTY = "thumbnail";
 
 	public final static String SEARCH_RESULT_PROPERTY = "searchResult";
-	public final static int THUMBNAIL_WIDTH = 90;
+	public final static int THUMBNAIL_WIDTH = 80;
 
 	private RecordDisplayFactory displayFactory;
 	String query;
 
 	public SearchResultContainer(SearchResultVOLazyContainer adapted, RecordDisplayFactory displayFactory,
-								 String query) {
-		super(adapted, true);
+								 String query, boolean indexProperty) {
+		super(adapted, indexProperty);
 		this.displayFactory = displayFactory;
 		this.query = query;
 	}
@@ -83,7 +84,6 @@ public class SearchResultContainer extends ContainerAdapter<SearchResultVOLazyCo
 	public static Image getThumbnail(RecordVO recordVO) {
 		Image image = new Image(null);
 		String schemaTypeCode = recordVO.getSchema().getTypeCode();
-		boolean thumbnail;
 		if (Document.SCHEMA_TYPE.equals(schemaTypeCode)) {
 			final ContentVersionVO contentVersionVO = recordVO.get(Document.CONTENT);
 			if (contentVersionVO != null) {
@@ -93,16 +93,13 @@ public class SearchResultContainer extends ContainerAdapter<SearchResultVOLazyCo
 				String version = contentVersionVO.getVersion();
 
 				if (ConstellioResourceHandler.hasContentThumbnail(recordId, metadataCode, version)) {
-					thumbnail = true;
 					Resource thumbnailResource = ConstellioResourceHandler.createThumbnailResource(recordId, metadataCode, version, filename);
 					image.setSource(thumbnailResource);
 				} else {
-					thumbnail = true;
 					Resource thumbnailResource = new ThemeResource("images/icons/64/document_64.png");
 					image.setSource(thumbnailResource);
 				}
 			} else {
-				thumbnail = true;
 				Resource thumbnailResource = new ThemeResource("images/icons/64/document_64.png");
 				image.setSource(thumbnailResource);
 			}
@@ -112,12 +109,15 @@ public class SearchResultContainer extends ContainerAdapter<SearchResultVOLazyCo
 			resourceId = resourceId.replace(".png", "_64.png");
 			Resource thumbnailResource = new ThemeResource(resourceId);
 			image.setSource(thumbnailResource);
-			thumbnail = true;
+		} else if (ContainerRecord.SCHEMA_TYPE.equals(schemaTypeCode)) {
+			Resource thumbnailResource = new ThemeResource("images/icons/64/box_64.png");
+			image.setSource(thumbnailResource);
+		} else if (schemaTypeCode.toLowerCase().contains("task")) {
+			Resource thumbnailResource = new ThemeResource("images/icons/64/task_64.png");
+			image.setSource(thumbnailResource);
 		} else {
-			thumbnail = false;
-		}
-		if (!thumbnail) {
-			image.setVisible(false);
+			Resource thumbnailResource = new ThemeResource("images/icons/64/default_64.png");
+			image.setSource(thumbnailResource);
 		}
 		return image;
 	}

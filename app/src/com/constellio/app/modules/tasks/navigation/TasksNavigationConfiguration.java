@@ -102,7 +102,7 @@ public class TasksNavigationConfiguration implements Serializable {
 
 			@Override
 			public int getOrderValue() {
-				return 30;
+				return 20;
 			}
 
 			@Override
