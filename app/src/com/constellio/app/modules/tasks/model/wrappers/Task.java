@@ -162,7 +162,7 @@ public class Task extends RecordWrapper {
 		return get(COMMENTS);
 	}
 
-	public Task setComments(String comments) {
+	public Task setComments(List<Comment> comments) {
 		set(COMMENTS, comments);
 		return this;
 	}

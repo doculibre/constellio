@@ -84,6 +84,7 @@ subprojects {
 		compile "com.j256.ormlite:ormlite-jdbc:5.1"
 		compile "mysql:mysql-connector-java:5.1.20"
         compile 'com.sun.mail:javax.mail:1.6.2'
+        //compile 'org.simplejavamail:simple-java-mail:5.1.6'
     }
 
     configurations {

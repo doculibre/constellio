@@ -1,5 +1,6 @@
 package com.constellio.app.modules.tasks.model.wrappers;
 
+import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollower;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskReminder;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskType;
@@ -190,7 +191,7 @@ public class BetaWorkflowTask extends Task {
 	}
 
 	@Override
-	public BetaWorkflowTask setComments(String comments) {
+	public BetaWorkflowTask setComments(List<Comment> comments) {
 		return (BetaWorkflowTask) super.setComments(comments);
 	}
 
