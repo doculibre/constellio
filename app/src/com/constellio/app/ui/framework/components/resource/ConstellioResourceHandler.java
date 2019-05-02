@@ -59,6 +59,7 @@ public class ConstellioResourceHandler implements RequestHandler {
 			String filePath = paramsMap.get("file");
 			String hashParam = paramsMap.get("hash");
 			String filenameParam = paramsMap.get("z-filename");
+			String collection = paramsMap.get("collection");
 
 			String filename;
 			InputStream in = null;
@@ -78,8 +79,10 @@ public class ConstellioResourceHandler implements RequestHandler {
 				} else {
 					VaadinSession vaadinSession = VaadinSession.getCurrent();
 					UserVO userVO = (UserVO) vaadinSession.getSession().getAttribute(VaadinSessionContext.CURRENT_USER_ATTRIBUTE);
-					String collection = (String) vaadinSession.getSession().getAttribute(VaadinSessionContext.CURRENT_COLLECTION_ATTRIBUTE);
 
+					if (collection == null) {
+						collection = (String) vaadinSession.getSession().getAttribute(VaadinSessionContext.CURRENT_COLLECTION_ATTRIBUTE);
+					}
 
 					MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(collection);
 					User user = userServices.getUserInCollection(userVO.getUsername(), collection);
@@ -147,23 +150,38 @@ public class ConstellioResourceHandler implements RequestHandler {
 		return false;
 	}
 
+	public static Resource createResource(String recordId, String metadataCode, String version, String filename,
+										  String collection) {
+		return createResource(recordId, metadataCode, version, filename, false, collection);
+	}
+
 	public static Resource createResource(String recordId, String metadataCode, String version, String filename) {
 		return createResource(recordId, metadataCode, version, filename, false);
 	}
 
 	public static Resource createResource(String recordId, String metadataCode, String version, String filename,
 										  boolean preview) {
-		return createResource(recordId, metadataCode, version, filename, preview, false);
+		return createResource(recordId, metadataCode, version, filename, preview, false, null);
 	}
 
 	public static Resource createResource(String recordId, String metadataCode, String version, String filename,
-										  boolean preview, boolean useBrowserCache) {
+										  boolean preview, String collection) {
+		return createResource(recordId, metadataCode, version, filename, preview, false, collection);
+	}
+
+	public static Resource createResource(String recordId, String metadataCode, String version, String filename,
+										  boolean preview, boolean useBrowserCache, String collection) {
 		Map<String, String> params = new LinkedHashMap<>();
 		params.put("recordId", recordId);
 		params.put("metadataCode", metadataCode);
 		params.put("preview", "" + preview);
 		params.put("version", version);
 		params.put("z-filename", filename);
+
+		if (collection != null) {
+			params.put("collection", collection);
+		}
+
 		if (!useBrowserCache) {
 			Random random = new Random();
 			params.put("cacheRandomizer", String.valueOf(random.nextLong()));
