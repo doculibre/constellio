@@ -87,7 +87,7 @@ public class ByteArrayRecordDTO implements RecordDTO, Map<String, Object> {
 	 */
 	@Override
 	public int size() {
-		return CacheRecordDTOUtils.metadatasSize(data, schemaHolder.get());
+		return CacheRecordDTOUtils.metadatasSize(data);
 	}
 
 	@Override
