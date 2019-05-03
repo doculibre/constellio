@@ -197,6 +197,8 @@ public class RecordServicesImpl extends BaseRecordServices {
 	public void execute(Transaction transaction, int attempt)
 			throws RecordServicesException {
 
+		transaction.setOnlyBeingPrepared(false);
+
 		validateNotTooMuchRecords(transaction);
 		if (transaction.getRecords().isEmpty()) {
 			if (!transaction.getIdsToReindex().isEmpty()) {
@@ -252,7 +254,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 	public void executeWithImpactHandler(Transaction transaction, RecordModificationImpactHandler handler, int attempt)
 			throws RecordServicesException {
-
+		transaction.setOnlyBeingPrepared(false);
 		validateNotTooMuchRecords(transaction);
 
 		prepareRecords(transaction);
@@ -642,7 +644,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 					MetadataList modifiedMetadatas = record.getModifiedMetadatas(types);
 					extensions.callRecordInModificationBeforeValidationAndAutomaticValuesCalculation(
 							new RecordInModificationBeforeValidationAndAutomaticValuesCalculationEvent(record,
-									modifiedMetadatas, transactionExtensionErrors), options);
+									modifiedMetadatas, transactionExtensionErrors, transaction.isOnlyBeingPrepared()), options);
 				} else {
 					extensions.callRecordInCreationBeforeValidationAndAutomaticValuesCalculation(
 							new RecordInCreationBeforeValidationAndAutomaticValuesCalculationEvent(

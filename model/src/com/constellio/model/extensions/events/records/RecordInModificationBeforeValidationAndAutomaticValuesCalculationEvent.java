@@ -15,12 +15,16 @@ public class RecordInModificationBeforeValidationAndAutomaticValuesCalculationEv
 
 	ValidationErrors validationErrors;
 
+	boolean isOnlyBeingPrepared;
+
 	public RecordInModificationBeforeValidationAndAutomaticValuesCalculationEvent(Record record,
 																				  MetadataList modifiedMetadatas,
-																				  ValidationErrors validationErrors) {
+																				  ValidationErrors validationErrors,
+																				  boolean isOnlyBeingPrepared) {
 		this.record = record;
 		this.modifiedMetadatas = modifiedMetadatas;
 		this.validationErrors = validationErrors;
+		this.isOnlyBeingPrepared = isOnlyBeingPrepared;
 	}
 
 	public Record getRecord() {
@@ -29,6 +33,14 @@ public class RecordInModificationBeforeValidationAndAutomaticValuesCalculationEv
 
 	public MetadataList getModifiedMetadatas() {
 		return modifiedMetadatas;
+	}
+
+	public boolean isOnlyBeingPrepared() {
+		return isOnlyBeingPrepared;
+	}
+
+	public void setOnlyBeingPrepared(boolean onlyBeingPrepared) {
+		isOnlyBeingPrepared = onlyBeingPrepared;
 	}
 
 	public <T> T getPreviousValue(String metadataLocalCode) {
