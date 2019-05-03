@@ -387,6 +387,15 @@ public class TestsSchemasSetup extends SchemasSetup {
 
 	};
 
+	public static MetadataBuilderConfigurator whichAllowsZeSchemaType = new MetadataBuilderConfigurator() {
+
+		@Override
+		public void configure(MetadataBuilder builder, MetadataSchemaTypesBuilder schemaTypes) {
+			builder.defineReferences().add(schemaTypes.getSchema("zeSchemaType_default"));
+		}
+
+	};
+
 	public static MetadataBuilderConfigurator whichIsCalculatedUsingPattern(final String pattern) {
 		return new MetadataBuilderConfigurator() {
 
