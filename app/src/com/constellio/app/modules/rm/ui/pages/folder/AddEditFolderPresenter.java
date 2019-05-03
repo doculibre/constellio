@@ -456,6 +456,10 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 			}
 		}
 
+		//TODO REMOVE DUPLICATION OF CODE WITH reloadForm
+		folderVO = voBuilder.build(folderRecord, VIEW_MODE.FORM, view.getSessionContext());
+		view.setRecord(folderVO);
+
 		reloadForm();
 	}
 
