@@ -173,7 +173,6 @@ public class RecordValidationServices {
 		if (transaction.getRecordUpdateOptions() == null || transaction.getRecordUpdateOptions().isUnicityValidationsEnabled()) {
 
 
-
 			new MetadataUniqueValidator(metadatas, schemaTypes, searchService).validate(record, validationErrors);
 		}
 		new MetadataChildOfValidator(metadatas, schemaTypes).validate(record, validationErrors);
@@ -260,7 +259,8 @@ public class RecordValidationServices {
 
 	public void validateAccess(Record record, Transaction transaction)
 			throws ValidationException {
-		if (hasSecurityOnSchema(record)) {
+		//Passe de l'ours temporaire!
+		if (hasSecurityOnSchema(record) && !"workflowExecution".equals(record.getTypeCode())) {
 			ValidationErrors validationErrors = validateUsingSecurityValidatorsReturningErrors(record, transaction);
 			if (!validationErrors.getValidationErrors().isEmpty()) {
 				throw new RecordServicesException.ValidationException(record, validationErrors);
