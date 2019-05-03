@@ -239,6 +239,11 @@ public class BasePagedTable<T extends Container> extends PagedTable {
 	}
 
 	@Override
+	public void refreshRenderedCells() {
+		super.refreshRenderedCells();
+	}
+
+	@Override
 	public final Property<?> getContainerProperty(Object itemId, Object propertyId) {
 		Property<?> containerProperty;
 		CellKey cellKey = getCellKey(itemId, propertyId);

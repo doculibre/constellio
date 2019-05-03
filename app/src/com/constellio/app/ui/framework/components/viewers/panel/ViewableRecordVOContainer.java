@@ -206,14 +206,22 @@ public abstract class ViewableRecordVOContainer extends IndexedContainer impleme
 	}
 
 	@Override
+	public void refresh() {
+		recordVOContainer.refresh();
+	}
+
+	@Override
 	public void fireItemSetChange() {
 		super.fireItemSetChange();
 		recordVOContainer.refresh();
 	}
 
 	@Override
-	public void refresh() {
-		recordVOContainer.refresh();
+	protected void fireItemSetChange(com.vaadin.data.Container.ItemSetChangeEvent event) {
+		super.fireItemSetChange(event);
+		for (ItemSetChangeListener listener : itemSetChangeListeners) {
+			listener.containerItemSetChange(event);
+		}
 	}
 
     // ItemSetChangeNotifier

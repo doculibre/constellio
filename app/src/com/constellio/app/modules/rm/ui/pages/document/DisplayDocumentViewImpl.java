@@ -37,7 +37,7 @@ import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.RecordDisplay;
 import com.constellio.app.ui.framework.components.ReportTabButton;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
-import com.constellio.app.ui.framework.components.content.DownloadContentVersionButton;
+import com.constellio.app.ui.framework.components.content.DownloadContentVersionLink;
 import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
 import com.constellio.app.ui.framework.components.diff.DiffPanel;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
@@ -68,6 +68,8 @@ import com.vaadin.server.FileDownloader;
 import com.vaadin.server.Page;
 import com.vaadin.server.StreamResource;
 import com.vaadin.server.StreamResource.StreamSource;
+import com.vaadin.server.ThemeResource;
+import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomComponent;
@@ -108,6 +110,8 @@ import static com.constellio.app.ui.i18n.i18n.$;
 public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocumentView, DropHandler {
 
 	private VerticalLayout mainLayout;
+	private I18NHorizontalLayout mainActionMenuButtonsLayout;
+	
 	private Label borrowedLabel;
 	private DocumentVO documentVO;
 	private String taxonomyCode;
@@ -120,7 +124,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	private UpdateContentVersionWindowImpl uploadWindow;
 	private DisplayButton displayDocumentButton;
 	private LinkButton openDocumentButton;
-	private DownloadContentVersionButton downloadDocumentButton;
+	private DownloadContentVersionLink downloadDocumentButton;
 	private EditButton editDocumentButton;
 	private DeleteButton deleteDocumentButton;
 	private Button copyContentButton;
@@ -141,6 +145,8 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	private DisplayDocumentPresenter presenter;
 
 	private boolean nestedView;
+
+	private List<Window.CloseListener> editWindowCloseListeners = new ArrayList<>();
 
 	public DisplayDocumentViewImpl() {
 		this(null, false);
@@ -213,6 +219,8 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 		mainLayout = new VerticalLayout();
 		mainLayout.setSizeFull();
+
+		buildMainActionMenuButtons();
 
 		borrowedLabel = new Label();
 		borrowedLabel.setVisible(false);
@@ -319,10 +327,11 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		} else {
 			contentMetadataComponent = tabSheet;
 		}
-		mainLayout.addComponents(borrowedLabel, contentMetadataComponent);
+		mainLayout.addComponents(mainActionMenuButtonsLayout, borrowedLabel, contentMetadataComponent);
 		for (TabSheetDecorator tabSheetDecorator : tabSheetDecorators) {
 			tabSheetDecorator.decorate(this, tabSheet);
 		}
+		mainLayout.setComponentAlignment(mainActionMenuButtonsLayout, Alignment.TOP_RIGHT);
 
 		return mainLayout;
 	}
@@ -332,12 +341,12 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		I18NHorizontalLayout buttonsLayout = new I18NHorizontalLayout();
 		buttonsLayout.setSpacing(true);
 
-		WindowButton diffButton = new WindowButton("≠ Differences", "Differences between versions", WindowConfiguration.modalDialog("90%", "90%")) {
+		WindowButton diffButton = new WindowButton($("DisplayDocumentView.differences"), $("DisplayDocumentView.differencesExplanation"), WindowConfiguration.modalDialog("90%", "90%")) {
 			@Override
 			public void buttonClick(ClickEvent event) {
 				HashSet<ContentVersionVO> selectedContentVersions = versionTable.getSelectedContentVersions();
 				if (selectedContentVersions.size() != 2) {
-					Notification.show("You need to select two versions");
+					Notification.show($("DisplayDocumentView.selectTwoVersions"));
 				} else {
 					super.buttonClick(event);
 				}
@@ -547,18 +556,20 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		eventsComponent = table;
 	}
 
-	@Override
-	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
-		List<Button> actionMenuButtons = new ArrayList<>();
+	private void buildMainActionMenuButtons() {
+		mainActionMenuButtonsLayout = new I18NHorizontalLayout();
+		mainActionMenuButtonsLayout.setSpacing(true);
+		mainActionMenuButtonsLayout.addStyleName("main-action-menu-buttons-layout");
 
-		displayDocumentButton = new DisplayButton($("DisplayDocumentView.displayDocument")) {
+		displayDocumentButton = new DisplayButton($("DisplayDocumentView.displayDocument"), false) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
 				presenter.displayDocumentButtonClicked();
 			}
 		};
 		displayDocumentButton.addStyleName(ValoTheme.BUTTON_LINK);
-		actionMenuButtons.add(displayDocumentButton);
+		displayDocumentButton.addStyleName("display-document-link");
+		mainActionMenuButtonsLayout.addComponent(displayDocumentButton);
 
 		openDocumentButton = new LinkButton($("DisplayDocumentView.openDocument")) {
 			@Override
@@ -567,12 +578,22 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 			}
 		};
 		openDocumentButton.addStyleName(ValoTheme.BUTTON_LINK);
-		actionMenuButtons.add(openDocumentButton);
+		openDocumentButton.addStyleName("open-document-link");
+		mainActionMenuButtonsLayout.addComponent(openDocumentButton);
 
 		if (documentVO.getContent() != null) {
-			downloadDocumentButton = new DownloadContentVersionButton(documentVO.getContent());
-			actionMenuButtons.add(downloadDocumentButton);
+			downloadDocumentButton = new DownloadContentVersionLink(documentVO.getContent(), $("DisplayDocumentView.downloadDocument"));
+			downloadDocumentButton.addStyleName("download-document-link");
+			mainActionMenuButtonsLayout.addComponent(downloadDocumentButton);
+
+			openDocumentButton.setIcon(downloadDocumentButton.getIcon());
+			downloadDocumentButton.setIcon(new ThemeResource("images/icons/actions/download.png"));
 		}
+	}
+
+	@Override
+	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
+		List<Button> actionMenuButtons = new ArrayList<>();
 
 		editDocumentButton = new EditButton($("DisplayDocumentView.editDocument")) {
 			@Override
@@ -1214,7 +1235,22 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	public void editInWindow() {
 		AddEditDocumentViewImpl editView = new AddEditDocumentViewImpl(documentVO, true);
 		Window window = new AddEditDocumentWindow(editView);
+		for (Window.CloseListener closeListener : editWindowCloseListeners) {
+			window.addCloseListener(closeListener);
+		}
 		getUI().addWindow(window);
+	}
+
+	public void addEditWindowCloseListener(Window.CloseListener closeListener) {
+		this.editWindowCloseListeners.add(closeListener);
+	}
+
+	public void removeEditWindowCloseListener(Window.CloseListener closeListener) {
+		this.editWindowCloseListeners.add(closeListener);
+	}
+
+	public List<Window.CloseListener> getEditWindowCloseListeners() {
+		return this.editWindowCloseListeners;
 	}
 
 	private class StartWorkflowButton extends WindowButton {

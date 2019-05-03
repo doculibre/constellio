@@ -119,11 +119,15 @@ public class RecordDisplay extends BaseDisplay {
 			verticalLayout.addStyleName("record-comments-editor");
 			layout.addComponent(commentsComponent = verticalLayout);
 		} else {
-			if (commentsComponent != null) {
+			boolean addCommentsComponent;
+			if (commentsComponent != null && layout.equals(commentsComponent.getParent())) {
+				addCommentsComponent = true;
 				layout.removeComponent(commentsComponent);
+			} else {
+				addCommentsComponent = false;
 			}
 			super.addCaptionAndDisplayComponent(captionLabel, displayComponent, layout);
-			if (commentsComponent != null) {
+			if (addCommentsComponent) {
 				layout.addComponent(commentsComponent);
 			}
 		}
