@@ -9,7 +9,11 @@ public class VersionsComparator implements Comparator<String> {
 	}
 
 	public static boolean isFirstVersionBeforeSecond(String firstVersion, String secondVersion) {
-		return new VersionsComparator().compare(firstVersion, secondVersion) == -1;
+		try {
+			return new VersionsComparator().compare(firstVersion, secondVersion) == -1;
+		} catch (Exception e) {
+			return false;
+		}
 	}
 
 	@Override

@@ -24,8 +24,7 @@ sourceSets {
 
 eclipse {
     project {
-        name = 'data'
-        buildCommand 'compileJava'
+        name = 'Core Data'
     }
 }
 

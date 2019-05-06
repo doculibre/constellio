@@ -1,18 +1,5 @@
 package com.constellio.app.modules.rm.navigation;
 
-import static com.constellio.app.ui.framework.components.ComponentState.enabledIf;
-import static com.constellio.app.ui.framework.components.ComponentState.visibleIf;
-
-import java.io.Serializable;
-import java.util.List;
-
-import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedListener.TableListener;
-import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedListener.TreeListener;
-import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableFooterEvent;
-import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableHeaderEvent;
-import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableRowEvent;
-import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTreeItemEvent;
-
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.entities.navigation.PageItem;
@@ -71,6 +58,7 @@ import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.contextmenu.BaseContextMenu;
 import com.constellio.app.ui.framework.data.RecordLazyTreeDataProvider;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
+import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.ConstellioHeader;
 import com.constellio.app.ui.pages.base.MainLayout;
 import com.constellio.app.ui.pages.base.SessionContext;
@@ -92,7 +80,11 @@ import com.vaadin.event.ItemClickEvent;
 import com.vaadin.navigator.View;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.ui.Component;
+import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedListener.TableListener;
 import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedListener.TreeListener;
+import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableFooterEvent;
+import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableHeaderEvent;
+import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableRowEvent;
 import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTreeItemEvent;
 
 import java.io.Serializable;
@@ -105,6 +97,7 @@ public class RMNavigationConfiguration implements Serializable {
 
 	public static final String NEW_DOCUMENT = "newDocument";
 	public static final String ADD_FOLDER = "addFolder";
+	public static final String ADD_SUB_FOLDER = "addSubFolder";
 	public static final String ADD_DOCUMENT = "addDocument";
 
 	public static final String LAST_VIEWED_FOLDERS = "lastViewedFolders";
@@ -221,6 +214,15 @@ public class RMNavigationConfiguration implements Serializable {
 			@Override
 			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				return enabledIf(user.has(RMPermissionsTo.CREATE_FOLDERS).onSomething());
+			}
+
+			@Override
+			public void viewChanged(BaseView oldView, BaseView newView) {
+				if (ADD_FOLDER.equals(getCode()) && newView instanceof DisplayFolderView) {
+					setCode(ADD_SUB_FOLDER);
+				} else if (!ADD_FOLDER.equals(getCode()) && !(newView instanceof DisplayFolderView)) {
+					setCode(ADD_FOLDER);
+				}
 			}
 		}, 0);
 		config.add(ConstellioHeader.ACTION_MENU, new NavigationItem.Active(NEW_DOCUMENT) {
@@ -420,27 +422,6 @@ public class RMNavigationConfiguration implements Serializable {
 
 	private static void configureMainLayoutNavigation(NavigationConfig config) {
 		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION,
-				new NavigationItem.Active(ARCHIVES_MANAGEMENT, FontAwesome.ARCHIVE, ArchivesManagementViewGroup.class) {
-					@Override
-					public void activate(Navigation navigate) {
-						navigate.to(RMViews.class).archiveManagement();
-					}
-
-					@Override
-					public int getOrderValue() {
-						return 20;
-					}
-
-					@Override
-					public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
-						DecommissioningSecurityService service = new DecommissioningSecurityService(
-								user.getCollection(), appLayerFactory);
-						return visibleIf(service.hasAccessToDecommissioningMainPage(user) ||
-										 user.has(RMPermissionsTo.MANAGE_CONTAINERS).globally() ||
-										 user.has(RMPermissionsTo.MANAGE_REPORTS).onSomething());
-					}
-				});
-		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION,
 				new NavigationItem.Active(USER_DOCUMENTS, FontAwesome.SUITCASE, UserDocumentsViewGroup.class) {
 					@Override
 					public void activate(Navigation navigate) {
@@ -449,7 +430,7 @@ public class RMNavigationConfiguration implements Serializable {
 
 					@Override
 					public int getOrderValue() {
-						return 40;
+						return 30;
 					}
 
 					@Override
@@ -467,7 +448,7 @@ public class RMNavigationConfiguration implements Serializable {
 
 					@Override
 					public int getOrderValue() {
-						return 45;
+						return 35;
 					}
 
 					@Override
@@ -484,12 +465,33 @@ public class RMNavigationConfiguration implements Serializable {
 
 					@Override
 					public int getOrderValue() {
-						return 45;
+						return 35;
 					}
 
 					@Override
 					public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 						return visibleIf(user.has(RMPermissionsTo.USE_GROUP_CART).globally());
+					}
+				});
+		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION,
+				new NavigationItem.Active(ARCHIVES_MANAGEMENT, FontAwesome.ARCHIVE, ArchivesManagementViewGroup.class) {
+					@Override
+					public void activate(Navigation navigate) {
+						navigate.to(RMViews.class).archiveManagement();
+					}
+
+					@Override
+					public int getOrderValue() {
+						return 40;
+					}
+
+					@Override
+					public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
+						DecommissioningSecurityService service = new DecommissioningSecurityService(
+								user.getCollection(), appLayerFactory);
+						return visibleIf(service.hasAccessToDecommissioningMainPage(user) ||
+										 user.has(RMPermissionsTo.MANAGE_CONTAINERS).globally() ||
+										 user.has(RMPermissionsTo.MANAGE_REPORTS).onSomething());
 					}
 				});
 		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION, new NavigationItem.Active(LOGS, FontAwesome.BOOK, LogsViewGroup.class) {

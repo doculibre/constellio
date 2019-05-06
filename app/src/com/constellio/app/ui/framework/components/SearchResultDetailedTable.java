@@ -3,6 +3,7 @@ package com.constellio.app.ui.framework.components;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.table.BasePagedTable;
 import com.constellio.app.ui.framework.components.table.TablePropertyCache.CellKey;
+import com.constellio.app.ui.framework.components.table.columns.TableColumnsManager;
 import com.constellio.app.ui.framework.containers.SearchResultContainer;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingButton;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingModifyingOneMetadataButton;
@@ -213,6 +214,15 @@ public class SearchResultDetailedTable extends BasePagedTable<SearchResultContai
 			}
 		}
 		return property;
+	}
+
+	@Override
+	protected TableColumnsManager newColumnsManager() {
+		List<Object> visibleColumns = new ArrayList<>(Arrays.asList(getVisibleColumns()));
+		visibleColumns.remove(CHECKBOX_PROPERTY);
+		visibleColumns.add(0, CHECKBOX_PROPERTY);
+		setVisibleColumns(visibleColumns.toArray(new Object[0]));
+		return super.newColumnsManager();
 	}
 
 	public List<String> getSelectedRecordIds() {

@@ -67,6 +67,7 @@ import com.jgoodies.common.base.Strings;
 import com.vaadin.ui.Field;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
+import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -205,6 +206,11 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 						return;
 					}
 				}
+			}
+
+			if (!isEditMode() && task.getCreatedBy() == null) {
+				task.setCreatedBy(getCurrentUser());
+				task.setCreatedOn(new LocalDateTime());
 			}
 
 			if (completeMode && tasksSchemas.isRequestTask(task)) {

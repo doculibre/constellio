@@ -4,6 +4,7 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.tasks.TaskModule;
 import com.constellio.app.modules.tasks.caches.IncompleteTasksUserCache;
 import com.constellio.app.modules.tasks.caches.UnreadTasksUserCache;
+import com.constellio.app.modules.tasks.extensions.api.TaskModuleExtensions;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollower;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskReminder;
@@ -339,9 +340,9 @@ public class TaskRecordExtension extends RecordExtension {
 		String assigneeFullName = getUserFullNameById(task.getAssignee());
 		StringBuilder assigneeUsersCandidatesAsString = new StringBuilder();
 		List<String> assigneeUsersCandidates = task.getAssigneeUsersCandidates();
-		if(assigneeUsersCandidates != null) {
+		if (assigneeUsersCandidates != null) {
 			String separator = "";
-			for(String userId: assigneeUsersCandidates) {
+			for (String userId : assigneeUsersCandidates) {
 				assigneeUsersCandidatesAsString.append(separator);
 				assigneeUsersCandidatesAsString.append(getUserFullNameById(userId));
 				separator = ", ";
@@ -349,9 +350,9 @@ public class TaskRecordExtension extends RecordExtension {
 		}
 		StringBuilder assigneeGroupsCandidatesAsString = new StringBuilder();
 		List<String> assigneeGroupsCandidates = task.getAssigneeGroupsCandidates();
-		if(assigneeGroupsCandidates != null) {
+		if (assigneeGroupsCandidates != null) {
 			String separator = "";
-			for(String groupId: assigneeGroupsCandidates) {
+			for (String groupId : assigneeGroupsCandidates) {
 				assigneeGroupsCandidatesAsString.append(separator);
 				assigneeGroupsCandidatesAsString.append(getGroupNameById(groupId));
 				separator = ", ";
@@ -366,7 +367,7 @@ public class TaskRecordExtension extends RecordExtension {
 		String status_en = tasksSchema.getTaskStatus(task.getStatus()).getTitle(Locale.ENGLISH);
 
 		boolean isAddingRecordIdInEmails = eimConfigs.isAddingRecordIdInEmails();
-		if(isAddingRecordIdInEmails) {
+		if (isAddingRecordIdInEmails) {
 			newParameters.add(TASK_TITLE_PARAMETER + ":" + formatToParameter(StringEscapeUtils.escapeHtml4(task.getTitle())) + " (" + task.getId() + ")");
 		} else {
 			newParameters.add(TASK_TITLE_PARAMETER + ":" + formatToParameter(StringEscapeUtils.escapeHtml4(task.getTitle())));

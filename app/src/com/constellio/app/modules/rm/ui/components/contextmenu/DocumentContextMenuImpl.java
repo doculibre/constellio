@@ -2,7 +2,6 @@ package com.constellio.app.modules.rm.ui.components.contextmenu;
 
 import com.constellio.app.modules.rm.ui.components.document.DocumentActionsPresenterUtils;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
-import com.constellio.app.modules.rm.ui.pages.document.DisplayDocumentView;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.services.factories.ConstellioFactories;
@@ -40,7 +39,6 @@ import com.vaadin.ui.Notification.Type;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Window;
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.Nullable;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.ArrayList;
@@ -56,6 +54,7 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 	private ContentVersionVO contentVersionVO;
 	private UpdateContentVersionWindowImpl updateWindow;
 	private String borrowedMessage;
+	private boolean displayDocumentButtonVisible;
 	private boolean openDocumentButtonVisible;
 	private boolean downloadDocumentButtonVisible;
 	private boolean editDocumentButtonVisible;
@@ -124,13 +123,15 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 			addItem(borrowedMessage);
 		}
 
-		ContextMenuItem displayDocumentItem = addItem($("DocumentContextMenu.displayDocument"), FontAwesome.FILE_O);
-		displayDocumentItem.addItemClickListener(new BaseContextMenuItemClickListener() {
-			@Override
-			public void contextMenuItemClicked(ContextMenuItemClickEvent event) {
-				presenter.displayDocumentButtonClicked();
-			}
-		});
+		if (displayDocumentButtonVisible) {
+			ContextMenuItem displayDocumentItem = addItem($("DocumentContextMenu.displayDocument"), FontAwesome.FILE_O);
+			displayDocumentItem.addItemClickListener(new BaseContextMenuItemClickListener() {
+				@Override
+				public void contextMenuItemClicked(ContextMenuItemClickEvent event) {
+					presenter.displayDocumentButtonClicked();
+				}
+			});
+		}
 
 		if (openDocumentButtonVisible) {
 			String fileName = contentVersionVO.getFileName();
@@ -479,13 +480,18 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 	}
 
 	@Override
-	public void setOpenDocumentButtonVisible(boolean visible) {
-		this.openDocumentButtonVisible = visible;
+	public void setDisplayDocumentButtonState(ComponentState state) {
+		this.displayDocumentButtonVisible = state.isVisible() && state.isEnabled();
 	}
 
 	@Override
-	public void setDownloadDocumentButtonVisible(boolean visible) {
-		this.downloadDocumentButtonVisible = visible;
+	public void setOpenDocumentButtonState(ComponentState state) {
+		this.openDocumentButtonVisible = state.isVisible() && state.isEnabled();
+	}
+
+	@Override
+	public void setDownloadDocumentButtonState(ComponentState state) {
+		this.downloadDocumentButtonVisible = state.isVisible() && state.isEnabled();
 	}
 
 	@Override

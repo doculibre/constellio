@@ -38,7 +38,7 @@ public class ApplicationStarter {
 
 	private static Server server;
 	private static WebAppContext handler;
-	private static Map<String, List<ServletHolder>> servletMappings = new HashMap<>();
+	private static Map<String, ServletHolder> servletMappings = new HashMap<>();
 	private static Map<String, List<FilterHolder>> filterMappings = new HashMap<>();
 
 	private ApplicationStarter() {
@@ -85,10 +85,8 @@ public class ApplicationStarter {
 			}
 
 			for (String pathSpec : servletMappings.keySet()) {
-				List<ServletHolder> servlets = servletMappings.get(pathSpec);
-				for (ServletHolder servlet : servlets) {
-					handler.addServlet(servlet, pathSpec);
-				}
+				ServletHolder servlet = servletMappings.get(pathSpec);
+				handler.addServlet(servlet, pathSpec);
 			}
 		} catch (Exception e) {
 			throw new ApplicationStarterRuntimeException(e);
@@ -185,13 +183,11 @@ public class ApplicationStarter {
 	}
 
 	public static void registerServlet(String pathRelativeToConstellioContext, ServletHolder servletHolder) {
-		if (handler == null) {
-			if (!servletMappings.containsKey(pathRelativeToConstellioContext)) {
-				servletMappings.put(pathRelativeToConstellioContext, new ArrayList<ServletHolder>());
+		if (!servletMappings.containsKey(pathRelativeToConstellioContext)) {
+			servletMappings.put(pathRelativeToConstellioContext, servletHolder);
+			if (handler != null) {
+				handler.addServlet(servletHolder, pathRelativeToConstellioContext);
 			}
-			servletMappings.get(pathRelativeToConstellioContext).add(servletHolder);
-		} else {
-			handler.addServlet(servletHolder, pathRelativeToConstellioContext);
 		}
 	}
 

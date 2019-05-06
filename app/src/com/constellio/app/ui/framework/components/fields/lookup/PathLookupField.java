@@ -60,8 +60,9 @@ public class PathLookupField extends LookupField<String> {
 	@Override
 	protected LazyTree<String> newLazyTree(
 			LookupTreeDataProvider<String> lookupTreeDataProvider,
-			int treeBufferSize) {
-		return new LazyTree<String>(lookupTreeDataProvider, treeBufferSize) {
+			int treeBufferSize,
+			boolean multiValue) {
+		return new LazyTree<String>(lookupTreeDataProvider, treeBufferSize, multiValue) {
 			@Override
 			public String getItemCaption(String itemId) {
 				return PathLookupField.this.getCaption(itemId);

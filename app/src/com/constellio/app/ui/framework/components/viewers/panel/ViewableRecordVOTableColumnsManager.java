@@ -1,12 +1,13 @@
 package com.constellio.app.ui.framework.components.viewers.panel;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.components.table.columns.RecordVOTableColumnsManager;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.ColumnHeaderMode;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ViewableRecordVOTableColumnsManager extends RecordVOTableColumnsManager {
 
@@ -14,6 +15,7 @@ public class ViewableRecordVOTableColumnsManager extends RecordVOTableColumnsMan
 	public void manage(Table table, String tableId) {
 		ViewableRecordVOTable viewableRecordVOTable = (ViewableRecordVOTable) table;
 		List<Object> visibleColumns = new ArrayList<>(table.getContainerPropertyIds());
+		visibleColumns.remove(RecordVOTable.MENUBAR_PROPERTY_ID);
 		if (viewableRecordVOTable.isCompressed()) {
 			if (visibleColumns.contains(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID)) {
 				visibleColumns.remove(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID);

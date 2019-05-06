@@ -1,17 +1,5 @@
 package com.constellio.app.ui.pages.base;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.app.ui.pages.management.labels.ListLabelViewImpl.TYPE_TABLE;
-
-import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.api.extensions.params.DecorateMainComponentAfterInitExtensionParams;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
@@ -25,7 +13,6 @@ import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrai
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.decorators.base.ActionMenuButtonsDecorator;
 import com.constellio.app.ui.pages.home.HomeViewImpl;
-import com.constellio.model.entities.records.wrappers.RecordWrapperRuntimeException;
 import com.constellio.app.ui.util.ComponentTreeUtils;
 import com.constellio.model.entities.records.wrappers.RecordWrapperRuntimeException;
 import com.vaadin.event.UIEvents.PollEvent;
@@ -41,7 +28,6 @@ import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CssLayout;
-import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.MenuBar;
 import com.vaadin.ui.MenuBar.Command;
@@ -53,13 +39,16 @@ import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.app.ui.pages.management.labels.ListLabelViewImpl.TYPE_TABLE;
@@ -88,6 +77,7 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 	private Component mainComponent;
 	private Component actionMenu;
 	private List<Button> actionMenuButtons;
+	private Map<Button, MenuItem> actionMenuButtonsAndItems = new HashMap<>();
 
 	private List<ViewEnterListener> viewEnterListeners = new ArrayList<>();
 
@@ -253,6 +243,7 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 			}
 
 			afterViewAssembled(event);
+			updateActionMenuItems();
 
 			//			StringBuffer js = new StringBuffer();
 			//			js.append("setTimeout(function() {setInterval(function() {\r\n");
@@ -397,11 +388,9 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
                 MenuBar menuBar = new MenuBar();
                 menuBar.addStyleName("action-menu-bar");
                 menuBar.setAutoOpen(false);
-                if (StringUtils.isNotBlank(menuBarCaption)) {
-                	menuBar.setIcon(null);
-                	menuBar.setCaption(menuBarCaption);
-                } else {
-                    menuBar.setIcon(FontAwesome.ELLIPSIS_H);
+				if (StringUtils.isBlank(menuBarCaption)) {
+					menuBar.addStyleName(ValoTheme.MENUBAR_BORDERLESS);
+					menuBar.addStyleName("no-caption-action-menu-bar");
                 }
                 result = menuBar;
 
@@ -410,18 +399,19 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
                 	rootItem.setIcon(null);
                 	rootItem.setText(menuBarCaption);
                 } else {
-                	rootItem.setIcon(FontAwesome.ELLIPSIS_H);
+					rootItem.setIcon(FontAwesome.ELLIPSIS_V);
                 }
 
                 for (final Button actionMenuButton : actionMenuButtons) {
                     Resource icon = actionMenuButton.getIcon();
                     String caption = actionMenuButton.getCaption();
-                    rootItem.addItem(caption, icon, new Command() {
+					MenuItem actionMenuItem = rootItem.addItem(caption, icon, new Command() {
                         @Override
                         public void menuSelected(MenuItem selectedItem) {
                             actionMenuButton.click();
                         }
                     });
+					actionMenuButtonsAndItems.put(actionMenuButton, actionMenuItem);
                 }
             } else {
                 VerticalLayout actionMenuLayout = new VerticalLayout();
@@ -451,6 +441,13 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
         }
         return result;
     }
+
+	protected void updateActionMenuItems() {
+		for (Button actionMenuButton : actionMenuButtonsAndItems.keySet()) {
+			MenuItem actionMenuItem = actionMenuButtonsAndItems.get(actionMenuButton);
+			actionMenuItem.setVisible(actionMenuButton.isVisible() && actionMenuButton.isEnabled());
+		}
+	}
 
 	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
 		List<Button> actionMenuButtons = new ArrayList<>();

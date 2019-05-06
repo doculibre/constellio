@@ -1225,11 +1225,6 @@ public class TaskTable extends VerticalLayout {
 		}
 
 		@Override
-		protected void refreshRenderedCells() {
-			super.refreshRenderedCells();
-		}
-
-		@Override
 		protected void enableContentRefreshing(boolean refreshContent) {
 			super.enableContentRefreshing(refreshContent);
 		}
