@@ -2,6 +2,7 @@ package com.constellio.app.api.cmis.builders.objectType;
 
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.schemas.SchemaUtils;
 import org.apache.chemistry.opencmis.commons.definitions.PropertyDefinition;
@@ -56,10 +57,17 @@ public class PropertyBuilderFactory {
 		} else {
 			datatype = PropertyType.STRING;
 		}
+
+		boolean updatable = false;
+		if (!metadata.isUnmodifiable() && metadata.getDataEntry().getType() == DataEntryType.MANUAL) {
+			updatable = true;
+		}
+		if (!metadata.isUnmodifiable() && metadata.getDataEntry().getType() == DataEntryType.CALCULATED) {
+			updatable = ((CalculatedDataEntry) metadata.getDataEntry()).getCalculator().hasEvaluator();
+		}
+
 		Cardinality cardinality = metadata.isMultivalue() ? Cardinality.MULTI : Cardinality.SINGLE;
-		Updatability updateability = (metadata.isUnmodifiable() || metadata.getDataEntry().getType() != DataEntryType.MANUAL) ?
-									 Updatability.READONLY :
-									 Updatability.READWRITE;
+		Updatability updateability = (updatable) ? Updatability.READWRITE : Updatability.READONLY;
 		boolean inherited = metadata.inheritDefaultSchema();
 		boolean required = metadata.isDefaultRequirement();
 
