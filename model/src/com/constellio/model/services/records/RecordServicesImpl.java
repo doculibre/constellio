@@ -109,9 +109,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import static com.constellio.data.dao.services.cache.InsertionReason.WAS_MODIFIED;
 import static com.constellio.data.dao.services.cache.InsertionReason.WAS_OBTAINED;
@@ -150,6 +154,42 @@ public class RecordServicesImpl extends BaseRecordServices {
 	public void executeWithImpactHandler(Transaction transaction, RecordModificationImpactHandler handler)
 			throws RecordServicesException {
 		executeWithImpactHandler(transaction, handler, 0);
+	}
+
+	@Override
+	public <T extends Supplier<Record>> void update(Stream<T> stream, Consumer<T> action)
+			throws RecordServicesException {
+		this.update(stream, action, RecordUpdateOptions.userModificationsSafeOptions());
+	}
+
+	@Override
+	public <T extends Supplier<Record>> void update(Stream<T> stream, Consumer<T> action, RecordUpdateOptions options)
+			throws RecordServicesException {
+		Transaction tx = new Transaction(options);
+
+		Iterator<T> recordsIterator = stream.iterator();
+
+		while (recordsIterator.hasNext()) {
+			T recordSupplier = recordsIterator.next();
+			action.accept(recordSupplier);
+
+			Record record = recordSupplier.get();
+			if (record.isDirty()) {
+				tx.add(record);
+
+				//TODO Use modification size and memory configs
+				if (tx.getRecordCount() > 100) {
+					execute(tx);
+					tx = new Transaction(options);
+				}
+
+			}
+		}
+
+		if (tx.getRecordCount() > 0) {
+			execute(tx);
+		}
+
 	}
 
 	public void executeWithoutImpactHandling(Transaction transaction)
@@ -862,19 +902,19 @@ public class RecordServicesImpl extends BaseRecordServices {
 	}
 
 
-	public void validateRecordInTransaction(Record record, Transaction transaction)
+	public void validateRecordInTransaction(Supplier<Record> record, Transaction transaction)
 			throws ValidationException {
 		if (transaction.getRecords().isEmpty()) {
 			validateRecord(record);
 		} else {
-			prepareRecords(transaction, record.getId());
+			prepareRecords(transaction, record.get().getId());
 		}
 	}
 
-	public void validateRecord(Record record)
+	public void validateRecord(Supplier<Record> record)
 			throws RecordServicesException.ValidationException {
 
-		Transaction transaction = new Transaction(record);
+		Transaction transaction = new Transaction(record.get());
 		prepareRecords(transaction);
 	}
 
@@ -1276,7 +1316,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 		return new AddToBatchProcessImpactHandler(modelFactory.getBatchProcessesManager(), modelFactory.newSearchServices());
 	}
 
-	public void refresh(List<?> records) {
+	public <T extends Supplier<Record>> void refresh(List<T> records) {
 		for (Object item : records) {
 			Record record;
 
@@ -1300,29 +1340,25 @@ public class RecordServicesImpl extends BaseRecordServices {
 	}
 
 	@Override
-	public void refreshUsingCache(List<?> records) {
-		for (Object item : records) {
-			Record record;
+	public <T extends Supplier<Record>> void refreshUsingCache(List<T> records) {
+		for (T item : records) {
+			if (item != null) {
+				Record record = item.get();
 
-			if (item instanceof Record) {
-				record = (Record) item;
-			} else {
-				record = ((RecordWrapper) item).getWrappedRecord();
-			}
+				if (record != null && record.isSaved()) {
 
-			if (record != null && record.isSaved()) {
+					try {
+						Record recordFromCache = recordsCaches.getRecord(record.getId());
 
-				try {
-					Record recordFromCache = recordsCaches.getRecord(record.getId());
-
-					if (recordFromCache == null) {
-						recordFromCache = getDocumentById(record.getId());
+						if (recordFromCache == null) {
+							recordFromCache = getDocumentById(record.getId());
+						}
+						RecordDTO recordDTO = ((RecordImpl) recordFromCache).getRecordDTO();
+						((RecordImpl) record).refresh(recordDTO.getVersion(), recordDTO);
+					} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+						LOGGER.debug("Deleted record is disconnected");
+						((RecordImpl) record).markAsDisconnected();
 					}
-					RecordDTO recordDTO = ((RecordImpl) recordFromCache).getRecordDTO();
-					((RecordImpl) record).refresh(recordDTO.getVersion(), recordDTO);
-				} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
-					LOGGER.debug("Deleted record is disconnected");
-					((RecordImpl) record).markAsDisconnected();
 				}
 			}
 		}
@@ -1390,106 +1426,108 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 	}
 
-	public boolean isRestorable(Record record, User user) {
+	public boolean isRestorable(Supplier<Record> record, User user) {
 		refreshUsingCache(record);
 		refreshUsingCache(user);
-		return newRecordDeleteServices().validateRestorable(record, user).isEmpty();
+		return newRecordDeleteServices().validateRestorable(record.get(), user).isEmpty();
 	}
 
-	public void restore(Record record, User user) {
+	public void restore(Supplier<Record> record, User user) {
 
 		refreshUsingCache(record);
 		refreshUsingCache(user);
-		newRecordDeleteServices().restore(record, user);
+		newRecordDeleteServices().restore(record.get(), user);
 	}
 
-	public ValidationErrors validatePhysicallyDeletable(Record record, User user) {
+	public ValidationErrors validatePhysicallyDeletable(Supplier<Record> record, User user) {
 		refreshUsingCache(record);
 		refreshUsingCache(user);
-		return newRecordDeleteServices().validatePhysicallyDeletable(record, user);
+		return newRecordDeleteServices().validatePhysicallyDeletable(record.get(), user);
 	}
 
-	public ValidationErrors validatePhysicallyDeletable(Record record, User user, RecordPhysicalDeleteOptions options) {
+	public ValidationErrors validatePhysicallyDeletable(Supplier<Record> record, User user,
+														RecordPhysicalDeleteOptions options) {
 		refreshUsingCache(record);
 		refreshUsingCache(user);
-		return newRecordDeleteServices().validatePhysicallyDeletable(record, user, options);
+		return newRecordDeleteServices().validatePhysicallyDeletable(record.get(), user, options);
 	}
 
-	public void physicallyDelete(Record record, User user) {
+	public void physicallyDelete(Supplier<Record> record, User user) {
 		refreshUsingCache(record);
 		refreshUsingCache(user);
-		newRecordDeleteServices().physicallyDelete(record, user);
+		newRecordDeleteServices().physicallyDelete(record.get(), user);
 	}
 
-	public void physicallyDeleteNoMatterTheStatus(Record record, User user, RecordPhysicalDeleteOptions options) {
+	public void physicallyDeleteNoMatterTheStatus(Supplier<Record> record, User user,
+												  RecordPhysicalDeleteOptions options) {
 		refreshUsingCache(record);
 		refreshUsingCache(user);
-		newRecordDeleteServices().physicallyDeleteNoMatterTheStatus(record, user, options);
+		newRecordDeleteServices().physicallyDeleteNoMatterTheStatus(record.get(), user, options);
 	}
 
-	public void physicallyDelete(Record record, User user, RecordPhysicalDeleteOptions options) {
+	public void physicallyDelete(Supplier<Record> record, User user, RecordPhysicalDeleteOptions options) {
 		refreshUsingCache(record);
 		refreshUsingCache(user);
-		newRecordDeleteServices().physicallyDelete(record, user, options);
+		newRecordDeleteServices().physicallyDelete(record.get(), user, options);
 	}
 
-	public ValidationErrors validateLogicallyDeletable(Record record, User user) {
+	public ValidationErrors validateLogicallyDeletable(Supplier<Record> record, User user) {
 		refreshUsingCache(record);
 		refreshUsingCache(user);
-		return newRecordDeleteServices().validateLogicallyDeletable(record, user);
+		return newRecordDeleteServices().validateLogicallyDeletable(record.get(), user);
 	}
 
 	@Override
-	public boolean isLogicallyDeletableAndIsSkipValidation(Record record, User user) {
-		return newRecordDeleteServices().isLogicallyDeletableAndIsSkipValidation(record, user, new RecordLogicalDeleteOptions());
+	public boolean isLogicallyDeletableAndIsSkipValidation(Supplier<Record> record, User user) {
+		return newRecordDeleteServices().isLogicallyDeletableAndIsSkipValidation(record.get(), user, new RecordLogicalDeleteOptions());
 	}
 
-	public ValidationErrors validateLogicallyThenPhysicallyDeletable(Record record, User user) {
+	public ValidationErrors validateLogicallyThenPhysicallyDeletable(Supplier<Record> record, User user) {
 		refreshUsingCache(record);
 		refreshUsingCache(user);
-		return newRecordDeleteServices().validateLogicallyThenPhysicallyDeletable(record, user);
+		return newRecordDeleteServices().validateLogicallyThenPhysicallyDeletable(record.get(), user);
 	}
 
-	public ValidationErrors validateLogicallyThenPhysicallyDeletable(Record record, User user,
+	public ValidationErrors validateLogicallyThenPhysicallyDeletable(Supplier<Record> record, User user,
 																	 RecordPhysicalDeleteOptions options) {
 		refreshUsingCache(record);
 		refreshUsingCache(user);
-		return newRecordDeleteServices().validateLogicallyThenPhysicallyDeletable(record, user, options);
+		return newRecordDeleteServices().validateLogicallyThenPhysicallyDeletable(record.get(), user, options);
 	}
 
-	public boolean isPrincipalConceptLogicallyDeletableExcludingContent(Record record, User user) {
+	public boolean isPrincipalConceptLogicallyDeletableExcludingContent(Supplier<Record> record, User user) {
 		refreshUsingCache(record);
 		refreshUsingCache(user);
-		return newRecordDeleteServices().isPrincipalConceptLogicallyDeletableExcludingContent(record, user);
+		return newRecordDeleteServices().isPrincipalConceptLogicallyDeletableExcludingContent(record.get(), user);
 	}
 
-	public void logicallyDelete(Record record, User user) {
+	public void logicallyDelete(Supplier<Record> record, User user) {
 		logicallyDelete(record, user, new RecordLogicalDeleteOptions());
 	}
 
-	public void logicallyDelete(Record record, User user, RecordLogicalDeleteOptions options) {
+	public void logicallyDelete(Supplier<Record> record, User user, RecordLogicalDeleteOptions options) {
 
 		if (!options.isSkipRefresh()) {
 			refreshUsingCache(record);
 			refreshUsingCache(user);
 		}
 
-		newRecordDeleteServices().logicallyDelete(record, user, options);
+		newRecordDeleteServices().logicallyDelete(record.get(), user, options);
 
 		refreshUsingCache(record);
 	}
 
-	public List<Record> getVisibleRecordsWithReferenceTo(Record record, User user) {
+	public List<Record> getVisibleRecordsWithReferenceTo(Supplier<Record> record, User user) {
 
 		refreshUsingCache(record);
 		refreshUsingCache(user);
-		return newRecordDeleteServices().getVisibleRecordsWithReferenceToRecordInHierarchy(record, user,
-				newRecordDeleteServices().loadRecordsHierarchyOf(record));
+		return newRecordDeleteServices().getVisibleRecordsWithReferenceToRecordInHierarchy(record.get(), user,
+				newRecordDeleteServices().loadRecordsHierarchyOf(record.get()));
 	}
 
-	public boolean isReferencedByOtherRecords(Record record) {
-		return newRecordDeleteServices().isReferencedByOtherRecords(record,
-				newRecordDeleteServices().loadRecordsHierarchyOf(record));
+	public boolean isReferencedByOtherRecords(Supplier<Record> record) {
+		return newRecordDeleteServices().isReferencedByOtherRecords(record.get(),
+				newRecordDeleteServices().loadRecordsHierarchyOf(record.get()));
 	}
 
 	private void validateNotTooMuchRecords(Transaction transaction) {
@@ -1530,27 +1568,23 @@ public class RecordServicesImpl extends BaseRecordServices {
 		recordDao.removeOldLocks();
 	}
 
-	public void recalculate(RecordWrapper recordWrapper) {
-		recalculate(recordWrapper.getWrappedRecord());
-	}
-
-	public void recalculate(Record record) {
+	public void recalculate(Supplier<Record> record) {
 		newAutomaticMetadataServices().updateAutomaticMetadatas(
-				(RecordImpl) record, newRecordProviderWithoutPreloadedRecords(), TransactionRecordsReindexation.ALL(),
+				(RecordImpl) record.get(), newRecordProviderWithoutPreloadedRecords(), TransactionRecordsReindexation.ALL(),
 				new Transaction(new RecordUpdateOptions()));
 	}
 
 	@Override
-	public void loadLazyTransientMetadatas(Record record) {
+	public void loadLazyTransientMetadatas(Supplier<Record> record) {
 		newAutomaticMetadataServices()
-				.loadTransientLazyMetadatas((RecordImpl) record, newRecordProviderWithoutPreloadedRecords(),
+				.loadTransientLazyMetadatas((RecordImpl) record.get(), newRecordProviderWithoutPreloadedRecords(),
 						new Transaction(new RecordUpdateOptions()));
 	}
 
 	@Override
-	public void reloadEagerTransientMetadatas(Record record) {
+	public void reloadEagerTransientMetadatas(Supplier<Record> record) {
 		newAutomaticMetadataServices()
-				.loadTransientEagerMetadatas((RecordImpl) record, newRecordProviderWithoutPreloadedRecords(),
+				.loadTransientEagerMetadatas((RecordImpl) record.get(), newRecordProviderWithoutPreloadedRecords(),
 						new Transaction(new RecordUpdateOptions()));
 	}
 
@@ -1558,4 +1592,11 @@ public class RecordServicesImpl extends BaseRecordServices {
 	public SecurityModel getSecurityModel(String collection) {
 		return newAutomaticMetadataServices().getSecurityModel(collection);
 	}
+
+	@Override
+	public boolean isValueAutomaticallyFilled(Metadata metadata, Supplier<Record> record) {
+		return newAutomaticMetadataServices().isValueAutomaticallyFilled(metadata, record.get());
+	}
+
+
 }

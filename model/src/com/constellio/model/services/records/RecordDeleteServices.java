@@ -307,8 +307,10 @@ public class RecordDeleteServices {
 	public void physicallyDelete(final Record record, User user, final RecordPhysicalDeleteOptions options) {
 		final Set<String> recordsWithUnremovableReferences = new HashSet<>();
 		final Set<String> recordsIdsTitlesWithUnremovableReferences = new HashSet<>();
-		if (!validatePhysicallyDeletable(record, user, options).getValidationErrors().isEmpty()) {
-			throw new RecordServicesRuntimeException_CannotPhysicallyDeleteRecord(validatePhysicallyDeletable(record, user, options).getValidationErrors().get(0).getCode());
+
+		ValidationErrors errors = validatePhysicallyDeletable(record, user, options);
+		if (!errors.getValidationErrors().isEmpty()) {
+			throw new RecordServicesRuntimeException_CannotPhysicallyDeleteRecord(errors.toMultilineErrorsSummaryString());
 		}
 
 		List<Record> records = getAllRecordsInHierarchyForPhysicalDeletion(record, options);
@@ -703,7 +705,7 @@ public class RecordDeleteServices {
 		if (taxonomy != null && !taxonomy.hasSameCode(principalTaxonomy)) {
 			List<MetadataSchemaType> taxonomySchemaTypes = metadataSchemasManager.getSchemaTypes(record.getCollection())
 					.getSchemaTypesWithCode(taxonomy.getSchemaTypes());
-			query.setCondition(from(taxonomySchemaTypes).where(Schemas.PATH).isContainingText(record.getId()));
+			query.setCondition(from(taxonomySchemaTypes).where(Schemas.PATH).isContainingText("/" + record.getId() + "/"));
 		} else {
 			query.setCondition(
 					fromAllSchemasIn(record.getCollection()).where(Schemas.PATH).isContainingText("/" + record.getId() + "/"));

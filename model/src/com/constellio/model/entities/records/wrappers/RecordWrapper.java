@@ -28,8 +28,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.function.Supplier;
 
-public class RecordWrapper implements Serializable, CollectionObject {
+public class RecordWrapper implements Serializable, CollectionObject, Supplier<Record> {
 
 	public static final String TITLE = Schemas.TITLE_CODE;
 
@@ -442,6 +443,11 @@ public class RecordWrapper implements Serializable, CollectionObject {
 		MetadataSchema wasSchema = getMetadataSchemaTypes().getSchema(wrappedRecord.getSchemaCode());
 		MetadataSchema newSchema = getMetadataSchemaTypes().getSchema(newSchemaCode);
 		wrappedRecord.changeSchema(wasSchema, newSchema);
+		return wrappedRecord;
+	}
+
+	@Override
+	public Record get() {
 		return wrappedRecord;
 	}
 }

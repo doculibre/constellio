@@ -1239,14 +1239,14 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		comment.setUser(records.getAdmin());
 		comment.setMessage(MESSAGE);
 
-		RMSchemasRecordsServices rmZeCollection = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 
 		RecordServices recordServices = getModelLayerFactory().newRecordServices();
 
 		Transaction transaction = new Transaction();
 
 		Category category = records.getCategory_X().setComments(asList(comment));
-		List<Category> childCategories = rmZeCollection
+		List<Category> childCategories = rm
 				.searchCategorys(where(Schemas.PATH_PARTS).isContainingText(records.categoryId_X));
 		transaction.update(category.getWrappedRecord());
 
@@ -1263,14 +1263,14 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 
 		importFromZip(file, zeCollection);
 
-		Category categoryFromAnOtherCollection = rmZeCollection.getCategory(records.categoryId_X);
+		Category categoryFromAnOtherCollection = rm.getCategory(records.categoryId_X);
 
 		assertThat(categoryFromAnOtherCollection.getComments().size()).isEqualTo(1);
 
 		Comment commentFromAnOtherCollection = categoryFromAnOtherCollection.getComments().get(0);
 		assertThat(commentFromAnOtherCollection.getMessage()).isEqualTo(MESSAGE);
 		assertThat(commentFromAnOtherCollection.getUsername()).isEqualTo(user.getUsername());
-		List<Category> childCategories2 = rmZeCollection
+		List<Category> childCategories2 = rm
 				.searchCategorys(where(Schemas.PATH_PARTS).isContainingText(records.categoryId_X));
 
 		for (Category categorie1 : childCategories) {

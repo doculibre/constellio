@@ -202,8 +202,7 @@ public class LogicalSearchQuery implements SearchQuery {
 	}
 
 	public LogicalSearchQuery filteredByStatus(StatusFilter status) {
-		status = status;
-		FilterUtils.statusFilter(status);
+		statusFilter = status;
 		return this;
 	}
 
