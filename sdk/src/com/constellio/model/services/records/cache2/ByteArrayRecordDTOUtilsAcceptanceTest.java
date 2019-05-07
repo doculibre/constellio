@@ -32,19 +32,19 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 
 		RecordImpl record1 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance(), "wasd")
 				.set(zeSchema.booleanMetadata(), true)
-				/*.set(zeSchema.parentReferenceFromZeSchemaToZeSchema(), null)*/;
+				.set(zeSchema.parentReferenceFromZeSchemaToZeSchema(), null);
 
 		RecordImpl record2 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance(), "qasd")
 				.set(zeSchema.booleanMetadata(), false)
-				//				.set(zeSchema.parentReferenceFromZeSchemaToZeSchema(), "asd")
+								.set(zeSchema.parentReferenceFromZeSchemaToZeSchema(), "wasd")
 //				.set(zeSchema.referenceMetadata(), asList(record1.getId()))
-				/*.set(zeSchema.parentReferenceFromZeSchemaToZeSchema(), record1.getId())*/;
+				.set(zeSchema.parentReferenceFromZeSchemaToZeSchema(), record1.getId());
 
 		RecordImpl record3 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance())
-//				.set(zeSchema.booleanMetadata(), null)
-				.set(zeSchema.referenceMetadata(), asList(record1.getId(), record2.getId()))
+				.set(zeSchema.booleanMetadata(), null)
+//				.set(zeSchema.referenceMetadata(), asList(record1.getId(), record2.getId()))
 				.set(zeSchema.referenceMetadata(), asList("wasd", "qasd"))
-				/*.set(zeSchema.parentReferenceFromZeSchemaToZeSchema(), record2.getId())*/;
+				.set(zeSchema.parentReferenceFromZeSchemaToZeSchema(), record2.getId());
 
 		recordServices.execute(new Transaction(record1, record2, record3));
 
@@ -55,15 +55,16 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 		ByteArrayRecordDTO dto3 = new ByteArrayRecordDTO(schemaHolder, record3.getRecordDTO());
 
 		assertThat(dto1.get(zeSchema.booleanMetadata().getDataStoreCode())).isEqualTo(true);
-//		assertThat(dto1.get(zeSchema.parentReferenceFromZeSchemaToZeSchema().getDataStoreCode())).isEqualTo(null);
+		assertThat(dto1.get(zeSchema.parentReferenceFromZeSchemaToZeSchema().getDataStoreCode())).isEqualTo(null);
 		assertThat(dto2.get(zeSchema.booleanMetadata().getDataStoreCode())).isEqualTo(false);
 //		assertThat(dto2.get(zeSchema.referenceMetadata().getDataStoreCode())).isEqualTo(asList(record1.getId()));
 //		assertThat(dto2.get(zeSchema.parentReferenceFromZeSchemaToZeSchema().getDataStoreCode())).isEqualTo(record1.getId());
-//		assertThat(dto2.get(zeSchema.parentReferenceFromZeSchemaToZeSchema().getDataStoreCode())).isEqualTo("asd");
-//		assertThat(dto3.get(zeSchema.booleanMetadata().getDataStoreCode())).isEqualTo(null);
+		assertThat(dto2.get(zeSchema.parentReferenceFromZeSchemaToZeSchema().getDataStoreCode())).isEqualTo("wasd");
+		assertThat(dto3.get(zeSchema.booleanMetadata().getDataStoreCode())).isEqualTo(null);
 //		assertThat(dto3.get(zeSchema.referenceMetadata().getDataStoreCode())).isEqualTo(asList(record1.getId(), record2.getId()));
 		assertThat(dto3.get(zeSchema.referenceMetadata().getDataStoreCode())).isEqualTo(asList("wasd", "qasd"));
 //		assertThat(dto3.get(zeSchema.parentReferenceFromZeSchemaToZeSchema().getDataStoreCode())).isEqualTo(record2.getId());
+		assertThat(dto3.get(zeSchema.parentReferenceFromZeSchemaToZeSchema().getDataStoreCode())).isEqualTo("qasd");
 
 //		assertThat(dto3.keySet()).isEqualTo(zeSchema.referenceMetadata().getDataStoreCode());
 	}

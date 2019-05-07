@@ -263,6 +263,8 @@ public class CacheRecordDTOUtils {
 	private static String parseSingleValueReferenceMetadata(byte[] byteArray, int metadataSearchIndex) {
 		int stringValue = parseIntFromBytesArray(byteArray, metadataSearchIndex);
 
+		// if the value is higher than 0 it's positive so it is a regular id
+		// else if it's negative it's a string containing letters most likely
 		if (stringValue > 0) {
 			return formatToId(stringValue);
 		} else {
@@ -282,15 +284,19 @@ public class CacheRecordDTOUtils {
 
 			while (numberOfMetadatas != numberOfMetadatasFound) {
 				// + i * 4 since we want to read the 4 bytes ahead every time
-				int tempValue = parseIntFromBytesArray(byteArray, currentIndex);
+				int stringValue= parseIntFromBytesArray(byteArray, currentIndex);
 
-				if (tempValue > 0) {
-					references.add(formatToId(tempValue));
+				// if the value is higher than 0 it's positive so it is a regular id
+				// else if it's negative it's a string containing letters most likely
+				if (stringValue > 0) {
+					references.add(formatToId(stringValue));
 					currentIndex += BYTES_TO_WRITE_INTEGER_VALUES_SIZE;
 				} else {
 					references.add(parseStringFromBytesArray(byteArray, currentIndex));
-					// in this case the tempValue represent the size of bytes taken by the string (1 each char)
-					currentIndex += (tempValue * -1) * tempValue;
+					// in this case the stringValue represent the size of bytes taken by the string (1 each char) or the bytes length if you prefer
+					// * -1 to get a positive value since the length of strings is stored as a negative
+					// + 4 for the bytes taken by the size value
+					currentIndex += stringValue * -1 + BYTES_TO_WRITE_INTEGER_VALUES_SIZE;
 				}
 
 				numberOfMetadatasFound++;
@@ -322,6 +328,7 @@ public class CacheRecordDTOUtils {
 		// to not confuse a string and a id when parsing
 		int stringBytesLength = -1 * parseIntFromBytesArray(byteArray, startingIndex);
 
+		// + 4 to skip the string length 4 bytes
 		int startingStringPosition = startingIndex + BYTES_TO_WRITE_INTEGER_VALUES_SIZE;
 		byte[] stringValueAsByte = Arrays.copyOfRange(byteArray, startingStringPosition, startingStringPosition + stringBytesLength);
 
@@ -354,7 +361,7 @@ public class CacheRecordDTOUtils {
 		 * Value is stored using 1 byte
 		 */
 		private void addSingleValueBooleanMetadata(Metadata metadata, Object value) throws IOException {
-			dataWriter.writeByte(((boolean) value ? 1 : (!(boolean) value) ? 0 : -1)); // TODO WHAT TODO WITH NULL
+			dataWriter.writeByte(((boolean) value ? 1 : 0));
 
 			writeHeader(metadata);
 
@@ -408,15 +415,15 @@ public class CacheRecordDTOUtils {
 			writeHeader(metadata);
 			dataByteArrayLength += BYTES_TO_WRITE_METADATA_VALUES_SIZE;
 
-			for (Object value : metadatas) {
+			for (String value : metadatas) {
 				int key = toIntKey(value);
 				int size = 0;
 
 				if (key != KEY_IS_NOT_AN_INT) {
 					dataWriter.writeInt(key);
 				} else { // TODO NULL SKIPPED BECAUSE OF FOREACH ?
-					size = value.toString().getBytes(StandardCharsets.UTF_8).length;
-					writeString((String) value, size);
+					size = value.getBytes(StandardCharsets.UTF_8).length;
+					writeString(value, size);
 				}
 
 				// + size if it's a string to represent each byte taken by a char
