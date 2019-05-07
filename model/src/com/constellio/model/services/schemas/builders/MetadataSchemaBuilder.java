@@ -33,7 +33,6 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaBuilderRunti
 import com.constellio.model.utils.ClassProvider;
 import com.constellio.model.utils.DependencyUtils;
 import com.constellio.model.utils.DependencyUtilsRuntimeException;
-import com.constellio.model.utils.Lazy;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -396,16 +395,6 @@ public class MetadataSchemaBuilder {
 
 	}
 
-	private Lazy<MetadataSchemaCalculatedInfos> lazyCalculateSchemaInfos(final MetadataList newMetadatas,
-																		 final Set<RecordValidator> recordValidators) {
-		return new Lazy<MetadataSchemaCalculatedInfos>() {
-			@Override
-			protected MetadataSchemaCalculatedInfos load() {
-				return calculateSchemaInfos(newMetadatas, recordValidators);
-			}
-		};
-	}
-
 	private MetadataSchemaCalculatedInfos calculateSchemaInfos(MetadataList newMetadatas,
 															   Set<RecordValidator> recordValidators) {
 
@@ -468,10 +457,10 @@ public class MetadataSchemaBuilder {
 
 		List<RecordPreparationStep> steps = new ArrayList<>();
 		steps.add(new UpdateCreationModificationUsersAndDateRecordPreparationStep());
-		steps.add(new ValidateMetadatasRecordPreparationStep(newMetadatas.onlyManuals().onlyNonSystemReserved()));
+		steps.add(new ValidateMetadatasRecordPreparationStep(newMetadatas.onlyManualsOrAutomaticWithEvaluator().onlyNonSystemReserved(), false));
 		steps.add(new CalculateMetadatasRecordPreparationStep(autoMetas));
 		steps.add(new ValidateCyclicReferencesRecordPreparationStep());
-		steps.add(new ValidateMetadatasRecordPreparationStep(autoMetas));
+		steps.add(new ValidateMetadatasRecordPreparationStep(autoMetas, true));
 		steps.add(new ValidateUsingSchemaValidatorsRecordPreparationStep(new ArrayList<>(recordValidators)));
 
 		if (!sequenceMetadatas.isEmpty()) {
@@ -480,7 +469,7 @@ public class MetadataSchemaBuilder {
 
 		if (!autoMetasBasedOnSequence.isEmpty()) {
 			steps.add(new CalculateMetadatasRecordPreparationStep(autoMetasBasedOnSequence));
-			steps.add(new ValidateMetadatasRecordPreparationStep(autoMetasBasedOnSequence));
+			steps.add(new ValidateMetadatasRecordPreparationStep(autoMetasBasedOnSequence, true));
 			if (!recordValidators.isEmpty()) {
 				steps.add(new ValidateUsingSchemaValidatorsRecordPreparationStep(new ArrayList<>(recordValidators)));
 			}

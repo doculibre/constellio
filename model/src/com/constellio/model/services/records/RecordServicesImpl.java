@@ -806,7 +806,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 					} else if (step instanceof ValidateMetadatasRecordPreparationStep) {
 						if (validations) {
-							validationServices.validateMetadatas(record, recordProvider, transaction, step.getMetadatas());
+							validationServices.validateMetadatas(record, recordProvider, transaction, step.getMetadatas(), ((ValidateMetadatasRecordPreparationStep) step).isAfterCalculate());
 						}
 
 					} else if (step instanceof ValidateUsingSchemaValidatorsRecordPreparationStep) {

@@ -333,7 +333,7 @@ public class RecordAutomaticMetadataServices {
 	public boolean isValueAutomaticallyFilled(Metadata metadataWithCalculatedDataEntry, Record record) {
 		MetadataValueCalculator<?> calculator = getCalculatorFrom(metadataWithCalculatedDataEntry);
 		if (!calculator.hasEvaluator()) {
-			return false;
+			return true;
 
 		} else {
 			Map<Dependency, Object> values = new HashMap<>();

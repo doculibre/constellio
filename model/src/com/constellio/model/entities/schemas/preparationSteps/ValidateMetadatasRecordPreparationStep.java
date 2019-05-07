@@ -9,12 +9,19 @@ public class ValidateMetadatasRecordPreparationStep implements RecordPreparation
 
 	private List<Metadata> metadatas;
 
-	public ValidateMetadatasRecordPreparationStep(List<Metadata> metadatas) {
+	private boolean afterCalculate;
+
+	public ValidateMetadatasRecordPreparationStep(List<Metadata> metadatas, boolean afterCalculate) {
 		this.metadatas = metadatas;
+		this.afterCalculate = afterCalculate;
 	}
 
 	public List<Metadata> getMetadatas() {
 		return metadatas;
+	}
+
+	public boolean isAfterCalculate() {
+		return afterCalculate;
 	}
 
 	public List<String> getMetadatasCodes() {
