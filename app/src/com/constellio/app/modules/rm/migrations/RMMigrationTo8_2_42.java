@@ -1,9 +1,5 @@
 package com.constellio.app.modules.rm.migrations;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
-
-import java.util.Map;
-
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
@@ -26,6 +22,10 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+
+import java.util.Map;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 
 public class RMMigrationTo8_2_42 implements MigrationScript {
 
@@ -66,15 +66,13 @@ public class RMMigrationTo8_2_42 implements MigrationScript {
 					.defineReferencesTo(builder.getSchemaType(User.SCHEMA_TYPE));
 
 			MetadataSchemaBuilder defaultFolderSchema = typesBuilder.getDefaultSchema(Folder.SCHEMA_TYPE);
-			defaultFolderSchema.createUndeletable(Folder.IS_MODEL).setType(MetadataValueType.BOOLEAN).setSystemReserved(true)
-					.setDefaultValue(false);
+			defaultFolderSchema.createUndeletable(Folder.IS_MODEL).setType(MetadataValueType.BOOLEAN).setSystemReserved(true);
 
 			MetadataSchemaBuilder defaultDocumentSchema = typesBuilder.getDefaultSchema(Document.SCHEMA_TYPE);
-			defaultDocumentSchema.createUndeletable(Document.IS_MODEL).setType(MetadataValueType.BOOLEAN).setSystemReserved(true)
-					.setDefaultValue(false);
+			defaultDocumentSchema.createUndeletable(Document.IS_MODEL).setType(MetadataValueType.BOOLEAN).setSystemReserved(true);
 			defaultFolderSchema.get(Schemas.HIDDEN.getLocalCode()).defineDataEntry().asCalculated(FolderHiddenStatusCalculator.class);
 			defaultDocumentSchema.get(Schemas.HIDDEN.getLocalCode()).defineDataEntry().asCalculated(DocumentHiddenStatusCalculator.class);
-			
+
 			SchemasDisplayManager displayManager = appLayerFactory.getMetadataSchemasDisplayManager();
 			displayManager.saveSchema(displayManager.getSchema(collection, AdministrativeUnit.DEFAULT_SCHEMA)
 					.withNewFormAndDisplayMetadatas(AdministrativeUnit.DEFAULT_SCHEMA + "_" + AdministrativeUnit.FUNCTIONS));

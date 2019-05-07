@@ -25,6 +25,7 @@ import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.services.zip.ZipServiceException;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.TimeProvider;
+import com.constellio.model.entities.enums.ParsingBehavior;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Event;
@@ -34,6 +35,7 @@ import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.contents.ContentImpl;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.event.EventTestUtil;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestUtils;
@@ -83,6 +85,7 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 				withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records),
 				withCollection("otherCollection").withConstellioRMModule().withAllTest(users));
 		this.rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		givenConfig(ConstellioEIMConfigs.DEFAULT_PARSING_BEHAVIOR, ParsingBehavior.SYNC_PARSING_FOR_ALL_CONTENTS);
 		givenTimeIs(new LocalDateTime(2018, 1, 2, 3, 4, 5));
 
 		Transaction tx = new Transaction();
@@ -143,9 +146,8 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 
 		File sipFile = buildSIPWithDocuments("theEmailId");
 		System.out.println(sipFile.getAbsolutePath());
-		//		unzipInDownloadFolder(sipFile, "testSIP");
 
-		assertThat(sipFile).is(zipFileWithSameContentExceptingFiles(getTestResourceFile("sip2.zip")));
+		assertThat(sipFile).is(zipFileWithSameContentExceptingFiles(getTestResourceFile("sip2.zip"), "bag-info.txt"));
 
 	}
 
