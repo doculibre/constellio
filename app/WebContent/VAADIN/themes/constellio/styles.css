@@ -999,7 +999,7 @@
  */
 
 .v-vaadin-version:after {
-	content: "7.6.1";
+	content: "7.7.5";
 }
 
 .v-widget {
@@ -3144,21 +3144,20 @@ div.v-layout.v-horizontal.v-widget {
 	-ms-backface-visibility: hidden;
 	backface-visibility: hidden;
 	padding: 4px 4px;
-	-webkit-box-sizing: border-box;
-	-moz-box-sizing: border-box;
-	box-sizing: border-box;
-	position: relative;
-	z-index: 1;
-}
-
-.constellio .v-filterselect-suggestpopup [class$="suggestmenu"][style*="height"] {
 	-webkit-box-sizing: content-box;
 	-moz-box-sizing: content-box;
 	box-sizing: content-box;
+	position: relative;
+	z-index: 1;
+	display: block;
 }
 
 .constellio .v-filterselect-suggestpopup table, .constellio .v-filterselect-suggestpopup tbody, .constellio .v-filterselect-suggestpopup tr, .constellio .v-filterselect-suggestpopup td {
 	display: block;
+	width: 100%;
+	overflow-y: hidden;
+	float: left;
+	clear: both;
 }
 
 .constellio .v-filterselect-suggestpopup .gwt-MenuItem {
@@ -3169,6 +3168,10 @@ div.v-layout.v-horizontal.v-widget {
 	font-weight: 400;
 	white-space: nowrap;
 	position: relative;
+	height: 27px;
+	box-sizing: border-box;
+	text-overflow: ellipsis;
+	overflow-x: hidden;
 }
 
 .constellio .v-filterselect-suggestpopup .gwt-MenuItem:active:before {
@@ -8426,6 +8429,11 @@ div.v-layout.v-horizontal.v-widget {
 	display: inline;
 }
 
+.constellio .v-on.v-disabled, .constellio .v-off.v-disabled {
+	opacity: 0.5;
+	filter: alpha(opacity=50) ;
+}
+
 .constellio .v-off:before {
 	visibility: hidden;
 }
@@ -9243,6 +9251,12 @@ div.v-layout.v-horizontal.v-widget {
 	margin-left: 9px;
 }
 
+.constellio .v-select-error .v-select-select {
+	border-color: #ed473b !important;
+	background: #fffbfb;
+	color: #6c2621;
+}
+
 .constellio .v-calendar-header-day {
 	font-weight: 400;
 	text-align: center;
@@ -9683,6 +9697,11 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 }
 
+.constellio .v-label.v-disabled {
+	opacity: 0.5;
+	filter: alpha(opacity=50) ;
+}
+
 .constellio .v-label-undef-w {
 	white-space: nowrap;
 }
@@ -9963,6 +9982,12 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .v-select-select  + .v-textfield  + .v-nativebutton {
 	margin-top: 9px;
 	margin-left: 9px;
+}
+
+.constellio .v-select-error .v-select-select {
+	border-color: #ed473b !important;
+	background: #fffbfb;
+	color: #6c2621;
 }
 
 .constellio .v-richtextarea {
@@ -11116,7 +11141,7 @@ div.v-layout.v-horizontal.v-widget {
 	transition: all 300ms;
 }
 
-.constellio .valo-menu-responsive[width-range~="0-800px"] .valo-menu-visible .valo-menuitems {
+.constellio .valo-menu-responsive[width-range~="0-800px"] .valo-menu-visible .valo-menuitems, .constellio .valo-menu-responsive[width-range~="0-800px"] .valo-menu-hover:hover .valo-menuitems {
 	-webkit-transform: translatex(0%);
 	-moz-transform: translatex(0%);
 	-ms-transform: translatex(0%);
