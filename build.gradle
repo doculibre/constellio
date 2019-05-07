@@ -189,7 +189,6 @@ dependencies {
 eclipse {
     project {
         name = 'Constellio'
-        buildCommand 'compileJava'
     }
 }
 
