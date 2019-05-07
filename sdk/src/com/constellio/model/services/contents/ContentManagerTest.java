@@ -278,15 +278,16 @@ public class ContentManagerTest extends ConstellioTest {
 		doReturn(aContentHash).when(hashingService).getHashFromStream(closeableStreamFactory);
 		ContentManager.ParsedContentResponse parsedContentResponse = contentManager
 				.buildParsedContentResponse(false, parsingResults);
-		doReturn(parsedContentResponse).when(contentManager).getPreviouslyParsedContentOrParseFromStream(aContentHash,
-				closeableStreamFactory, new ParseOptions());
+		doReturn(parsedContentResponse).when(contentManager).getPreviouslyParsedContentOrParseFromStream(
+				eq(aContentHash), eq(closeableStreamFactory), any(ContentManager.ParseOptions.class));
 		doNothing().when(contentManager).saveContent(anyString(), any(CopyInputStreamFactory.class));
 
 		ContentVersionDataSummary dataSummary = contentManager.upload(aContentNewVersionInputStream);
 
 		InOrder inOrder = inOrder(ioServices, contentManager, aContent);
 		inOrder.verify(ioServices).copyToReusableStreamFactory(aContentNewVersionInputStream, null);
-		inOrder.verify(contentManager).getPreviouslyParsedContentOrParseFromStream(aContentHash, closeableStreamFactory, new ParseOptions());
+		inOrder.verify(contentManager).getPreviouslyParsedContentOrParseFromStream(
+				eq(aContentHash), eq(closeableStreamFactory), any(ContentManager.ParseOptions.class));
 		inOrder.verify(contentManager).saveContent(anyString(), any(CopyInputStreamFactory.class));
 		inOrder.verify(ioServices).closeQuietly(closeableStreamFactory);
 
@@ -321,7 +322,7 @@ public class ContentManagerTest extends ConstellioTest {
 
 		doReturn(aContentHash).when(hashingService).getHashFromStream(closeableStreamFactory);
 		doThrow(new FileParserException_CannotParse(mock(Exception.class), "zeMimetype")).when(fileParser)
-				.parse(eq(closeableStreamFactory), anyInt());
+				.parse(eq(closeableStreamFactory), anyInt(), any(ContentManager.ParseOptions.class));
 
 		ParsedContent parsedContent = contentManager.tryToParse(closeableStreamFactory, new ParseOptions());
 
@@ -336,7 +337,7 @@ public class ContentManagerTest extends ConstellioTest {
 	public void whenTryToParseThenParsedContentWithEmptyTextAndUnknownLanguageAndCorrectMimetype()
 			throws Exception {
 		doReturn(aContentHash).when(hashingService).getHashFromStream(closeableStreamFactory);
-		doReturn(parsingResults).when(fileParser).parse(eq(closeableStreamFactory), anyInt());
+		doReturn(parsingResults).when(fileParser).parse(eq(closeableStreamFactory), anyInt(), any(ContentManager.ParseOptions.class));
 
 		assertThat(contentManager.tryToParse(closeableStreamFactory, new ParseOptions())).isSameAs(parsingResults);
 
@@ -350,8 +351,8 @@ public class ContentManagerTest extends ConstellioTest {
 		doReturn(aContentHash).when(hashingService).getHashFromStream(closeableStreamFactory);
 		ContentManager.ParsedContentResponse parsedContentResponse = contentManager
 				.buildParsedContentResponse(false, parsingResults);
-		doReturn(parsedContentResponse).when(contentManager).getPreviouslyParsedContentOrParseFromStream(aContentHash,
-				closeableStreamFactory);
+		doReturn(parsedContentResponse).when(contentManager).getPreviouslyParsedContentOrParseFromStream(
+				eq(aContentHash), eq(closeableStreamFactory), any(ContentManager.ParseOptions.class));
 		doThrow(ContentManagerRuntimeException.class).when(contentManager)
 				.saveContent(aContentHash, closeableStreamFactory);
 
@@ -376,7 +377,7 @@ public class ContentManagerTest extends ConstellioTest {
 		doReturn(parsedContentResponse).when(contentManager).getPreviouslyParsedContentOrParseFromStream(aContentHash,
 				closeableStreamFactory);
 		doThrow(IOException.class).when(contentManager)
-				.getPreviouslyParsedContentOrParseFromStream(aContentHash, closeableStreamFactory);
+				.getPreviouslyParsedContentOrParseFromStream(eq(aContentHash), eq(closeableStreamFactory), any(ContentManager.ParseOptions.class));
 
 		try {
 			contentManager.upload(aContentNewVersionInputStream);
@@ -435,21 +436,23 @@ public class ContentManagerTest extends ConstellioTest {
 		inOrder.verify(recordDao).execute(flushNow.withDeletedRecords(Arrays.asList(recordDTO1)));
 		inOrder.verify(contentManager).getNextPotentiallyUnreferencedContentMarkers();
 		inOrder.verify(contentManager).isReferenced("hash2");
-		inOrder.verify(contentManager).isReferenced("hash3");
 		inOrder.verify(contentDao).delete(Arrays.asList("hash2", "hash2__parsed", "hash2.preview", "hash2.thumbnail",
-				"hash3", "hash3__parsed", "hash3.preview", "hash3.thumbnail"));
+				"hash2.jpegConversion"));
+		inOrder.verify(contentManager).isReferenced("hash3");
+		inOrder.verify(contentDao).delete(Arrays.asList("hash3", "hash3__parsed", "hash3.preview", "hash3.thumbnail",
+				"hash3.jpegConversion"));
 		inOrder.verify(recordDao).execute(flushNow.withDeletedRecords(Arrays.asList(recordDTO2, recordDTO3)));
 		inOrder.verify(contentManager).getNextPotentiallyUnreferencedContentMarkers();
 		inOrder.verify(contentManager).isReferenced("hash5");
 		inOrder.verify(contentManager).isReferenced("hash6");
-		inOrder.verify(contentDao).delete(Arrays.asList("hash6", "hash6__parsed", "hash6.preview", "hash6.thumbnail"));
+		inOrder.verify(contentDao).delete(Arrays.asList("hash6", "hash6__parsed", "hash6.preview", "hash6.thumbnail", "hash6.jpegConversion"));
 		inOrder.verify(recordDao).execute(flushNow.withDeletedRecords(Arrays.asList(recordDTO5, recordDTO6)));
 		inOrder.verify(contentManager).getNextPotentiallyUnreferencedContentMarkers();
 		inOrder.verify(contentManager).isReferenced("hash7");
 		inOrder.verify(recordDao).execute(flushNow.withDeletedRecords(Arrays.asList(recordDTO7)));
 		inOrder.verify(contentManager).getNextPotentiallyUnreferencedContentMarkers();
 		inOrder.verify(contentManager).isReferenced("hash8");
-		inOrder.verify(contentDao).delete(Arrays.asList("hash8", "hash8__parsed", "hash8.preview", "hash8.thumbnail"));
+		inOrder.verify(contentDao).delete(Arrays.asList("hash8", "hash8__parsed", "hash8.preview", "hash8.thumbnail", "hash8.jpegConversion"));
 		inOrder.verify(recordDao).execute(flushNow.withDeletedRecords(Arrays.asList(recordDTO8)));
 		inOrder.verify(contentManager).getNextPotentiallyUnreferencedContentMarkers();
 
@@ -476,14 +479,14 @@ public class ContentManagerTest extends ConstellioTest {
 			throws Exception {
 
 		doThrow(ContentManagerException_ContentNotParsed.class).when(contentManager).getParsedContent(aContentHash);
-		doReturn(parsingResults).when(contentManager).tryToParse(streamFactory, new ParseOptions());
+		doReturn(parsingResults).when(contentManager).tryToParse(eq(streamFactory), any(ContentManager.ParseOptions.class));
 
 		ParsedContent parsedContent = contentManager.getPreviouslyParsedContentOrParseFromStream(aContentHash, streamFactory)
 				.getParsedContent();
 
 		assertThat(parsedContent).isSameAs(parsingResults);
 		verify(contentManager).saveParsedContent(aContentHash, parsingResults);
-		verify(contentManager).tryToParse(streamFactory, new ParseOptions());
+		verify(contentManager).tryToParse(eq(streamFactory), any(ContentManager.ParseOptions.class));
 	}
 
 	private RecordDTO mockMarkerWithHash(String hash) {

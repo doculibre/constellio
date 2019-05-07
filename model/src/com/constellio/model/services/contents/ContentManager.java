@@ -186,7 +186,7 @@ public class ContentManager implements StatefulService {
 				}
 			}
 		};
-Runnable scanVaultContentsInBackgroundRunnable = new Runnable() {
+		Runnable scanVaultContentsInBackgroundRunnable = new Runnable() {
 			@Override
 			public void run() {
 				boolean isInScanVaultContentsSchedule = new ConstellioEIMConfigs(modelLayerFactory).isInScanVaultContentsSchedule();
@@ -290,10 +290,10 @@ Runnable scanVaultContentsInBackgroundRunnable = new Runnable() {
 		Set<String> allReferencedHashes = getAllReferencedHashes();
 
 		ContentDao contentDao = getContentDao();
-		for(String fileId : vaultContentFileList) {
-			if(!allReferencedHashes.contains(fileId)) {
+		for (String fileId : vaultContentFileList) {
+			if (!allReferencedHashes.contains(fileId)) {
 				File file = contentDao.getFileOf(fileId);
-				if(file.exists()) {
+				if (file.exists()) {
 					try {
 						contentDao.delete(asList(fileId, fileId + "__parsed", fileId + ".preview"));
 						vaultScanResults.incrementNumberOfDeletedContents();
@@ -307,7 +307,8 @@ Runnable scanVaultContentsInBackgroundRunnable = new Runnable() {
 		}
 	}
 
-	public void getAllContentsFromVaultAndRemoveOrphan(String folderId,List<String> fileList, VaultScanResults vaultScanResults) {
+	public void getAllContentsFromVaultAndRemoveOrphan(String folderId, List<String> fileList,
+													   VaultScanResults vaultScanResults) {
 		ContentDao contentDao = getContentDao();
 		List<String> subFiles = contentDao.getFolderContents(folderId);
 		for (String fileId : subFiles) {
@@ -996,11 +997,12 @@ Runnable scanVaultContentsInBackgroundRunnable = new Runnable() {
 		List<RecordDTO> potentiallyDeletableContentMarkers;
 
 		while (!(potentiallyDeletableContentMarkers = getNextPotentiallyUnreferencedContentMarkers()).isEmpty()) {
-			List<String> hashToDelete = new ArrayList<>();
+
 			for (RecordDTO marker : potentiallyDeletableContentMarkers) {
 				if (closing.get()) {
 					return;
 				}
+				List<String> hashToDelete = new ArrayList<>();
 				String hash = marker.getFields().get("contentMarkerHash_s").toString();
 				if (!isReferenced(hash)) {
 					hashToDelete.add(hash);

@@ -38,7 +38,7 @@ public class Toggle {
 
 	public static AvailableToggle FOLDER_SUMMARY_CONFIG = newToggle(false);
 
-	public static AvailableToggle ADVANCED_SEARCH_CONFIGS = newToggle(true);
+	public static AvailableToggle ADVANCED_SEARCH_CONFIGS = newToggle(false);
 
 	public static AvailableToggle NEW_TAXONOMY_SERVICES = newToggle(false);
 
