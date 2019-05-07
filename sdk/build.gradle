@@ -13,7 +13,7 @@ dependencies {
     compile 'org.seleniumhq.selenium:selenium-firefox-driver:2.39.0'
     compile 'javax.servlet:javax.servlet-api:3.1.0'
     compile "com.carrotsearch:junit-benchmarks:0.7.2"
-    compile 'junit:junit:4.11'
+    compile 'junit:junit:4.12'
     compile 'org.assertj:assertj-core:1.6.0'
     compile 'com.github.detro.ghostdriver:phantomjsdriver:1.1.0'
     compile 'org.apache.chemistry.opencmis:chemistry-opencmis-client-impl:1.1.0'
