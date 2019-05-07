@@ -469,6 +469,21 @@ public class MetadataList implements List<Metadata>, Serializable {
 		return new MetadataList(filteredMetadatasList).unModifiable();
 	}
 
+	public MetadataList onlyManualsOrAutomaticWithEvaluator() {
+		List<Metadata> filteredMetadatasList = new ArrayList<>();
+		for (Metadata metadata : nestedList) {
+			if (metadata.getDataEntry().getType() == DataEntryType.MANUAL) {
+				filteredMetadatasList.add(metadata);
+			}
+
+			if (metadata.getDataEntry().getType() == DataEntryType.CALCULATED
+				&& ((CalculatedDataEntry) metadata.getDataEntry()).getCalculator().hasEvaluator()) {
+				filteredMetadatasList.add(metadata);
+			}
+		}
+		return new MetadataList(filteredMetadatasList).unModifiable();
+	}
+
 	public MetadataList onlyManualsAndCalculatedWithEvaluator() {
 		List<Metadata> filteredMetadatasList = new ArrayList<>();
 		for (Metadata metadata : nestedList) {
@@ -652,10 +667,10 @@ public class MetadataList implements List<Metadata>, Serializable {
 	public MetadataList onlyAccessibleGloballyBy(User user) {
 		List<Metadata> metadataList = new ArrayList<>();
 
-		for(Metadata metadataListItem : nestedList) {
-				if (user == null || user.hasGlobalAccessToMetadata(metadataListItem)) {
-					metadataList.add(metadataListItem);
-				}
+		for (Metadata metadataListItem : nestedList) {
+			if (user == null || user.hasGlobalAccessToMetadata(metadataListItem)) {
+				metadataList.add(metadataListItem);
+			}
 		}
 
 		return new MetadataList(metadataList).unModifiable();
@@ -676,8 +691,8 @@ public class MetadataList implements List<Metadata>, Serializable {
 	public MetadataList onlyAccessibleOnRecordBy(User user, Record record) {
 		List<Metadata> metadataList = new ArrayList<>();
 
-		for(Metadata metadataListItem : nestedList) {
-			if(user.hasAccessToMetadata(metadataListItem, record)) {
+		for (Metadata metadataListItem : nestedList) {
+			if (user.hasAccessToMetadata(metadataListItem, record)) {
 				metadataList.add(metadataListItem);
 			}
 		}
