@@ -2,6 +2,7 @@ package com.constellio.app.start;
 
 import com.constellio.model.conf.FoldersLocator;
 import org.eclipse.jetty.http.HttpVersion;
+import org.eclipse.jetty.server.AbstractConnector;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.server.HttpConnectionFactory;
@@ -112,8 +113,8 @@ public class ApplicationStarter {
 			http_config.setRequestHeaderSize(REQUEST_HEADER_SIZE);
 
 			ServerConnector http = new ServerConnector(server, new HttpConnectionFactory(http_config));
-			http.setPort(params.getPort());
-			http.setIdleTimeout(30000);
+			((AbstractConnector) http).setPort(params.getPort());
+			http.setMaxIdleTime(30000);
 
 			server.setConnectors(new Connector[]{http});
 			return server;
@@ -174,8 +175,9 @@ public class ApplicationStarter {
 		ServerConnector https = new ServerConnector(server,
 				new SslConnectionFactory(sslContextFactory, HttpVersion.HTTP_2.asString()),
 				new HttpConnectionFactory(https_config));
-		https.setPort(params.getPort());
-		https.setIdleTimeout(30000);
+		((AbstractConnector) https).setPort(params.getPort());
+		https.setMaxIdleTime(30000);
+
 
 		sslServer.setConnectors(new Connector[]{https});
 
