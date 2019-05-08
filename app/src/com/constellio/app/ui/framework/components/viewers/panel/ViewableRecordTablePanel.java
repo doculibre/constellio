@@ -54,33 +54,33 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 //@JavaScript({ "theme://jquery/jquery-2.1.4.min.js", "theme://scroll/fix-vertical-scroll.js" })
 public class ViewableRecordTablePanel extends I18NHorizontalLayout {
-	
+
 	private VerticalLayout tableLayout;
 
 	private VerticalLayout closeButtonViewerMetadataLayout;
-	
+
 	private Component tableComponent;
-	
+
 	private Table table;
-	
+
 	private ViewerMetadataPanel viewerMetadataPanel;
 
 	private I18NHorizontalLayout previousNextButtonsLayout;
-	
+
 	private BaseButton previousButton;
-	
+
 	private BaseButton nextButton;
-	
+
 	private BaseButton closeViewerButton;
-	
+
 	private Integer rowSelected;
-	
+
 	private RecordVO selectedRecordVO;
-	
+
 	private Object previousItemId;
-	
+
 	private Object nextItemId;
-	
+
 	private List<TableCompressListener> tableCompressListeners = new ArrayList<>();
 
 	private boolean navigateOnItemClick = false;
@@ -89,12 +89,12 @@ public class ViewableRecordTablePanel extends I18NHorizontalLayout {
 		this.tableComponent = resultsComponent;
 		buildUI();
 	}
-	
+
 	private void buildUI() {
 		setSizeFull();
 		setSpacing(true);
 		addStyleName("viewable-record-table-panel");
-		
+
 		buildResultsTable();
 		buildViewerMetadataPanel();
 		buildPreviousButton();
@@ -105,7 +105,7 @@ public class ViewableRecordTablePanel extends I18NHorizontalLayout {
 		previousNextButtonsLayout.addStyleName("previous-next-buttons-layout");
 		previousNextButtonsLayout.setSpacing(true);
 		previousNextButtonsLayout.setVisible(false);
-		
+
 		tableLayout = new VerticalLayout();
 		tableLayout.addComponent(previousNextButtonsLayout);
 		if (tableComponent != null) {
@@ -120,8 +120,8 @@ public class ViewableRecordTablePanel extends I18NHorizontalLayout {
 		closeButtonViewerMetadataLayout.setId("close-button-viewer-metadata-layout");
 		closeButtonViewerMetadataLayout.setHeight("100%");
 		closeButtonViewerMetadataLayout.setComponentAlignment(closeViewerButton, Alignment.TOP_RIGHT);
-//		closeButtonViewerMetadataLayout.setWidthUndefined();
-		
+		//		closeButtonViewerMetadataLayout.setWidthUndefined();
+
 		tableLayout.setHeight("100%");
 
 		addComponent(tableLayout);
@@ -238,7 +238,7 @@ public class ViewableRecordTablePanel extends I18NHorizontalLayout {
 			}
 		});
 	}
-	
+
 	void rowClicked(ItemClickEvent event) {
 		Object itemId = event.getItemId();
 		selectRecordVO(itemId, event, false);
@@ -254,10 +254,10 @@ public class ViewableRecordTablePanel extends I18NHorizontalLayout {
 	}
 
 	@SuppressWarnings("rawtypes")
-	void selectRecordVO(Object itemId, ItemClickEvent event, boolean reload) {	
+	void selectRecordVO(Object itemId, ItemClickEvent event, boolean reload) {
 		Integer newRowSelected = (Integer) itemId;
 		table.setValue(newRowSelected);
-		
+
 		Boolean compressionChange;
 		if (rowSelected == null && newRowSelected != null) {
 			compressionChange = true;
@@ -267,7 +267,7 @@ public class ViewableRecordTablePanel extends I18NHorizontalLayout {
 
 		if (!newRowSelected.equals(this.rowSelected) || reload) {
 			rowSelected = newRowSelected;
-			
+
 			Container container = table.getContainerDataSource();
 			while (container instanceof ContainerAdapter) {
 				container = ((ContainerAdapter) container).getNestedContainer();
@@ -333,7 +333,7 @@ public class ViewableRecordTablePanel extends I18NHorizontalLayout {
 					selectedRecordVO = null;
 					previousItemId = null;
 					nextItemId = null;
-				}	
+				}
 			} else {
 				selectedRecordVO = null;
 				previousItemId = null;
@@ -359,19 +359,19 @@ public class ViewableRecordTablePanel extends I18NHorizontalLayout {
 			}
 		}
 	}
-	
+
 	private void closeViewerButtonClicked() {
 		rowSelected = null;
-		
+
 		TableCompressEvent tableCompressEvent = new TableCompressEvent(null, false);
 		for (TableCompressListener tableCompressListener : tableCompressListeners) {
 			tableCompressListener.tableCompressChange(tableCompressEvent);
 		}
-		
+
 		adjustTableExpansion();
 		previousNextButtonsLayout.setVisible(false);
 	}
-	
+
 	private void buildResultsTable() {
 		if (tableComponent != null) {
 			tableComponent.setWidth("100%");
@@ -379,11 +379,11 @@ public class ViewableRecordTablePanel extends I18NHorizontalLayout {
 			table.setWidth("100%");
 		}
 	}
-	
+
 	private void buildViewerMetadataPanel() {
 		viewerMetadataPanel = new ViewerMetadataPanel();
 	}
-	
+
 	private void buildPreviousButton() {
 		previousButton = new IconButton(new ThemeResource("images/icons/actions/navigate_left.png"), $("ViewableRecordTablePanel.previous")) {
 			@Override
@@ -395,7 +395,7 @@ public class ViewableRecordTablePanel extends I18NHorizontalLayout {
 		};
 		previousButton.setWidth("24px");
 	}
-	
+
 	private void buildNextButton() {
 		nextButton = new IconButton(new ThemeResource("images/icons/actions/navigate_right.png"), $("ViewableRecordTablePanel.next")) {
 			@Override
@@ -407,9 +407,9 @@ public class ViewableRecordTablePanel extends I18NHorizontalLayout {
 		};
 		nextButton.setWidth("24px");
 	}
-	
+
 	private void buildCloseViewerButton() {
-		closeViewerButton = new IconButton(new ThemeResource("images/commun/supprimer.gif"), $("FilteredSearchResultsViewerTable.closeViewer")) {
+		closeViewerButton = new IconButton(new ThemeResource("images/commun/supprimer.gif"), "") {
 			@Override
 			protected void buttonClick(ClickEvent event) {
 				closeViewerButtonClicked();
@@ -424,32 +424,32 @@ public class ViewableRecordTablePanel extends I18NHorizontalLayout {
 		selectedRecordVO = new RecordToVOBuilder().build(selectedRecord, VIEW_MODE.DISPLAY, ConstellioUI.getCurrentSessionContext());
 		selectRecordVO(rowSelected, null, true);
 	}
-	
+
 	public List<TableCompressListener> getTableCompressListeners() {
 		return tableCompressListeners;
 	}
-	
+
 	public void addTableCompressListener(TableCompressListener listener) {
 		if (isCompressionSupported() && !tableCompressListeners.contains(listener)) {
 			tableCompressListeners.add(listener);
 		}
 	}
-	
+
 	public void removeTableCompressListener(TableCompressListener listener) {
 		tableCompressListeners.remove(listener);
 	}
 
 	private class ViewerMetadataPanel extends Panel {
-		
+
 		private VerticalLayout mainLayout;
-		
+
 		public ViewerMetadataPanel() {
 			buildUI();
 		}
-		
+
 		private void setRecordVO(RecordVO recordVO) {
 			mainLayout.removeAllComponents();
-			
+
 			if (recordVO != null) {
 				Component panelContent;
 				String schemaTypeCode = recordVO.getSchema().getTypeCode();
@@ -474,24 +474,24 @@ public class ViewableRecordTablePanel extends I18NHorizontalLayout {
 				mainLayout.addComponent(panelContent);
 			}
 		}
-		
+
 		private void buildUI() {
 			addStyleName(ValoTheme.PANEL_BORDERLESS);
 			addStyleName(ValoTheme.PANEL_SCROLL_INDICATOR);
 			addStyleName("viewer-metadata-panel");
 			setSizeFull();
-			
+
 			mainLayout = new VerticalLayout();
 			mainLayout.setSizeFull();
 			setContent(mainLayout);
 		}
-		
+
 	}
-	
+
 	public class TableCompressEvent implements Serializable {
-		
+
 		private final ItemClickEvent itemClickEvent;
-		
+
 		private final boolean compressed;
 
 		public TableCompressEvent(ItemClickEvent itemClickEvent, boolean compressed) {
@@ -506,13 +506,13 @@ public class ViewableRecordTablePanel extends I18NHorizontalLayout {
 		public boolean isCompressed() {
 			return compressed;
 		}
-		
+
 	}
-	
+
 	public interface TableCompressListener extends Serializable {
-		
+
 		void tableCompressChange(TableCompressEvent event);
-		
+
 	}
 
 }
