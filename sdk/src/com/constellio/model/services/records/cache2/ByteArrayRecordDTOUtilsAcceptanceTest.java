@@ -13,7 +13,6 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
-import com.mchange.v2.collection.MapEntry;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -53,7 +52,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 				.withAParentReferenceFromZeSchemaToZeSchema()
 				.withAReferenceFromAnotherSchemaToZeSchema());
 
-		schemasManager.modify(zeCollection, new MetadataSchemaTypesAlteration() {
+		setup.modify(new MetadataSchemaTypesAlteration() {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchema(anotherSchema.code())
@@ -115,8 +114,6 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 		ByteArrayRecordDTO dto8 = new ByteArrayRecordDTO(anotherSchemaHolder, record8.getRecordDTO());
 		ByteArrayRecordDTO dto9 = new ByteArrayRecordDTO(anotherSchemaHolder, record9.getRecordDTO());
 
-		reindexingServices.reindexCollections(RECALCULATE_AND_REWRITE);
-
 		assertThat(dto1.get(zeSchema.booleanMetadata().getDataStoreCode())).isEqualTo(true);
 		assertThat(dto1.get(zeSchema.parentReferenceFromZeSchemaToZeSchema().getDataStoreCode())).isEqualTo(null);
 		assertThat(dto2.get(zeSchema.booleanMetadata().getDataStoreCode())).isEqualTo(false);
@@ -129,11 +126,11 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 		assertThat(dto5.get(zeSchema.parentReferenceFromZeSchemaToZeSchema().getDataStoreCode())).isEqualTo("GrandSchtroumpfs");
 		assertThat(dto6.get(zeSchema.booleanMetadata().getDataStoreCode())).isEqualTo(false);
 		assertThat(dto6.get(zeSchema.parentReferenceFromZeSchemaToZeSchema().getDataStoreCode())).isEqualTo("Gargamel");
-//		assertThat(dto7.get(anotherSchemaType.getMetadata("booleanMetadata").getDataStoreCode())).isEqualTo(true);
+		assertThat(dto7.get(anotherSchemaType.getMetadata("booleanMetadata").getDataStoreCode())).isEqualTo(true);
 		assertThat(dto7.get(anotherSchema.referenceFromAnotherSchemaToZeSchema().getDataStoreCode())).isEqualTo(null);
-//		assertThat(dto8.get(anotherSchemaType.getMetadata("booleanMetadata").getDataStoreCode())).isEqualTo(false);
+		assertThat(dto8.get(anotherSchemaType.getMetadata("booleanMetadata").getDataStoreCode())).isEqualTo(false);
 		assertThat(dto8.get(anotherSchema.referenceFromAnotherSchemaToZeSchema().getDataStoreCode())).isEqualTo(record6.getId());
-//		assertThat(dto9.get(anotherSchemaType.getMetadata("booleanMetadata").getDataStoreCode())).isEqualTo(null);
+		assertThat(dto9.get(anotherSchemaType.getMetadata("booleanMetadata").getDataStoreCode())).isEqualTo(null);
 		assertThat(dto9.get(anotherSchema.referenceFromAnotherSchemaToZeSchema().getDataStoreCode())).isEqualTo(record1.getId());
 	}
 
@@ -208,6 +205,19 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 				.withAReferenceFromAnotherSchemaToZeSchema(whichIsMultivalue)
 				.withAParentReferenceFromZeSchemaToZeSchema());
 
+		setup.modify(new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchema(anotherSchema.code())
+						.create("stringMetadata")
+						.setType(MetadataValueType.STRING);
+
+				types.getSchema(anotherSchema.code())
+						.create("booleanMetadata")
+						.setType(MetadataValueType.BOOLEAN);
+			}
+		});
+
 		RecordImpl record1 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance())
 				.set(zeSchema.booleanMetadata(), true)
 				.set(zeSchema.stringMetadata(), "Howd'y Cowboy ?")
@@ -229,13 +239,21 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 				.set(zeSchema.referenceMetadata(), asList("LuckyLuke", record1.getId()))
 				.set(zeSchema.parentReferenceFromZeSchemaToZeSchema(), null);
 
+		MetadataSchemaTypes schemaTypes = schemasManager.getSchemaTypes(zeCollection);
+		MetadataSchema anotherSchemaType = schemaTypes.getSchema(anotherSchema.code());
+
 		RecordImpl record4 = (RecordImpl) recordServices.newRecordWithSchema(anotherSchema.instance(), "Rantanplan")
+				.set(anotherSchema.stringMetadata(), "Woof woof")
 				.set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), asList("JollyJumper", "LuckyLuke"));
 
 		RecordImpl record5 = (RecordImpl) recordServices.newRecordWithSchema(anotherSchema.instance(), "JoeDalton")
+				.set(anotherSchema.stringMetadata(), "Damn you Lucky Luke")
+				.set(anotherSchemaType.getMetadata("booleanMetadata"), false)
 				.set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), asList(null, null));
 
 		RecordImpl record6 = (RecordImpl) recordServices.newRecordWithSchema(anotherSchema.instance(), "JackDalton")
+				.set(anotherSchema.stringMetadata(), "Hey Joe !")
+				.set(anotherSchemaType.getMetadata("booleanMetadata"), true)
 				.set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), asList(null, "LuckyLuke"));
 
 		recordServices.execute(new Transaction(record1, record2, record3, record4, record5, record6));
@@ -253,10 +271,11 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 		assertThat(dto1.keySet()).containsOnly(zeSchema.booleanMetadata().getDataStoreCode());
 		assertThat(dto2.keySet()).containsOnly(zeSchema.booleanMetadata().getDataStoreCode(), zeSchema.parentReferenceFromZeSchemaToZeSchema().getDataStoreCode());
 		assertThat(dto3.keySet()).containsOnly(zeSchema.referenceMetadata().getDataStoreCode());
-
 		assertThat(dto4.keySet()).containsOnly(anotherSchema.referenceFromAnotherSchemaToZeSchema().getDataStoreCode());
-		assertThat(dto5.keySet()).containsOnly(anotherSchema.referenceFromAnotherSchemaToZeSchema().getDataStoreCode());
-		assertThat(dto6.keySet()).containsOnly(anotherSchema.referenceFromAnotherSchemaToZeSchema().getDataStoreCode());
+		assertThat(dto5.keySet()).containsOnly(anotherSchema.referenceFromAnotherSchemaToZeSchema().getDataStoreCode(), anotherSchemaType.getMetadata("booleanMetadata").getDataStoreCode());
+		assertThat(dto5.get(anotherSchemaType.getMetadata("booleanMetadata").getDataStoreCode())).isEqualTo(false);
+		assertThat(dto6.keySet()).containsOnly(anotherSchema.referenceFromAnotherSchemaToZeSchema().getDataStoreCode(), anotherSchemaType.getMetadata("booleanMetadata").getDataStoreCode());
+		assertThat(dto6.get(anotherSchemaType.getMetadata("booleanMetadata").getDataStoreCode())).isEqualTo(true);
 	}
 
 	@Test
@@ -268,6 +287,19 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 				.withAReferenceMetadata(whichAllowsZeSchemaType, whichIsMultivalue)
 				.withAReferenceFromAnotherSchemaToZeSchema(whichIsMultivalue)
 				.withAParentReferenceFromZeSchemaToZeSchema());
+
+		setup.modify(new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchema(anotherSchema.code())
+						.create("stringMetadata")
+						.setType(MetadataValueType.STRING);
+
+				types.getSchema(anotherSchema.code())
+						.create("booleanMetadata")
+						.setType(MetadataValueType.BOOLEAN);
+			}
+		});
 
 		RecordImpl record1 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance())
 				.set(zeSchema.booleanMetadata(), true)
@@ -290,13 +322,21 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 				.set(zeSchema.referenceMetadata(), asList("LuckyLuke", record1.getId()))
 				.set(zeSchema.parentReferenceFromZeSchemaToZeSchema(), null);
 
+		MetadataSchemaTypes schemaTypes = schemasManager.getSchemaTypes(zeCollection);
+		MetadataSchema anotherSchemaType = schemaTypes.getSchema(anotherSchema.code());
+
 		RecordImpl record4 = (RecordImpl) recordServices.newRecordWithSchema(anotherSchema.instance(), "Rantanplan")
+				.set(anotherSchema.stringMetadata(), "Woof woof")
 				.set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), asList("JollyJumper", "LuckyLuke"));
 
 		RecordImpl record5 = (RecordImpl) recordServices.newRecordWithSchema(anotherSchema.instance(), "JoeDalton")
+				.set(anotherSchema.stringMetadata(), "Damn you Lucky Luke")
+				.set(anotherSchemaType.getMetadata("booleanMetadata"), false)
 				.set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), asList(null, null));
 
 		RecordImpl record6 = (RecordImpl) recordServices.newRecordWithSchema(anotherSchema.instance(), "JackDalton")
+				.set(anotherSchema.stringMetadata(), "Hey Joe !")
+				.set(anotherSchemaType.getMetadata("booleanMetadata"), true)
 				.set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), asList(null, "LuckyLuke"));
 
 		recordServices.execute(new Transaction(record1, record2, record3, record4, record5, record6));
@@ -315,8 +355,8 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 		assertThat(dto2.values()).containsOnly(false, record1.getId());
 		assertThat(dto3.values()).containsOnly(asList("LuckyLuke", record1.getId()));
 		assertThat(dto4.values()).containsOnly(asList("JollyJumper", "LuckyLuke"));
-		assertThat(dto5.values()).containsOnly(asList(null, null));
-		assertThat(dto6.values()).containsOnly(asList(null, "LuckyLuke"));
+		assertThat(dto5.values()).containsOnly(asList(null, null), false);
+		assertThat(dto6.values()).containsOnly(asList(null, "LuckyLuke"), true);
 	}
 
 	@Test
@@ -328,6 +368,19 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 				.withAReferenceMetadata(whichAllowsZeSchemaType, whichIsMultivalue)
 				.withAReferenceFromAnotherSchemaToZeSchema(whichIsMultivalue)
 				.withAParentReferenceFromZeSchemaToZeSchema());
+
+		setup.modify(new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchema(anotherSchema.code())
+						.create("stringMetadata")
+						.setType(MetadataValueType.STRING);
+
+				types.getSchema(anotherSchema.code())
+						.create("booleanMetadata")
+						.setType(MetadataValueType.BOOLEAN);
+			}
+		});
 
 		RecordImpl record1 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance())
 				.set(zeSchema.booleanMetadata(), true)
@@ -350,13 +403,21 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 				.set(zeSchema.referenceMetadata(), asList("LuckyLuke", record1.getId()))
 				.set(zeSchema.parentReferenceFromZeSchemaToZeSchema(), null);
 
+		MetadataSchemaTypes schemaTypes = schemasManager.getSchemaTypes(zeCollection);
+		MetadataSchema anotherSchemaType = schemaTypes.getSchema(anotherSchema.code());
+
 		RecordImpl record4 = (RecordImpl) recordServices.newRecordWithSchema(anotherSchema.instance(), "Rantanplan")
+				.set(anotherSchema.stringMetadata(), "Woof woof")
 				.set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), asList("JollyJumper", "LuckyLuke"));
 
 		RecordImpl record5 = (RecordImpl) recordServices.newRecordWithSchema(anotherSchema.instance(), "JoeDalton")
+				.set(anotherSchema.stringMetadata(), "Damn you Lucky Luke")
+				.set(anotherSchemaType.getMetadata("booleanMetadata"), false)
 				.set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), asList(null, null));
 
 		RecordImpl record6 = (RecordImpl) recordServices.newRecordWithSchema(anotherSchema.instance(), "JackDalton")
+				.set(anotherSchema.stringMetadata(), "Hey Joe !")
+				.set(anotherSchemaType.getMetadata("booleanMetadata"), true)
 				.set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), asList(null, "LuckyLuke"));
 
 		recordServices.execute(new Transaction(record1, record2, record3, record4, record5, record6));
@@ -375,6 +436,11 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 		assertThat(toMap(dto2.entrySet())).containsOnly(entry(zeSchema.booleanMetadata().getDataStoreCode(), false),
 				entry(zeSchema.parentReferenceFromZeSchemaToZeSchema().getDataStoreCode(), record1.getId()));
 		assertThat(toMap(dto3.entrySet())).containsOnly(entry(zeSchema.referenceMetadata().getDataStoreCode(), asList("LuckyLuke", record1.getId())));
+		assertThat(toMap(dto4.entrySet())).containsOnly(entry(anotherSchema.referenceFromAnotherSchemaToZeSchema().getDataStoreCode(), asList("JollyJumper", "LuckyLuke")));
+		assertThat(toMap(dto5.entrySet())).containsOnly(entry(anotherSchemaType.getMetadata("booleanMetadata").getDataStoreCode(), false),
+				entry(anotherSchema.referenceFromAnotherSchemaToZeSchema().getDataStoreCode(), asList(null, null)));
+		assertThat(toMap(dto6.entrySet())).containsOnly(entry(anotherSchemaType.getMetadata("booleanMetadata").getDataStoreCode(), true),
+				entry(anotherSchema.referenceFromAnotherSchemaToZeSchema().getDataStoreCode(), asList(null, "LuckyLuke")));
 	}
 
 	private Map<String, Object> toMap(Set<Entry<String, Object>> dtoEntrySet) {

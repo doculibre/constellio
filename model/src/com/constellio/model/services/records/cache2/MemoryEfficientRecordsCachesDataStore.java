@@ -36,6 +36,7 @@ public class MemoryEfficientRecordsCachesDataStore {
 	private static final int SIZE_OF_LEVEL2_ARRAY = 125000;
 	private static final int KEY_IS_NOT_AN_INT = 0;
 	private static final long KEY_IS_NOT_A_LONG = 0L;
+	private static final int KEY_LENGTH = 11;
 
 	/**
 	 * Arrays take less bytes than map, and are faster for inserting and retrieving values (no hashCode, no synchronization),
@@ -62,7 +63,7 @@ public class MemoryEfficientRecordsCachesDataStore {
 	}
 
 	public void put(Object key, Object data) {
-		int intKey = toIntKey(key);
+		int intKey = CacheRecordDTOUtils.toIntKey(key);
 		if (intKey == KEY_IS_NOT_AN_INT) {
 			synchronized (otherKeyCacheData) {
 				otherKeyCacheData.put(key, data);
@@ -70,29 +71,6 @@ public class MemoryEfficientRecordsCachesDataStore {
 		} else {
 			setData(intKey, data);
 		}
-	}
-
-	private int toIntKey(Object key) {
-		if (key instanceof Integer) {
-			return ((Integer) key);
-		}
-
-		if (key instanceof Long) {
-			return KEY_IS_NOT_AN_INT;
-		}
-
-		if (key instanceof String) {
-			long value = LangUtils.tryParseLong((String) key, 0);
-
-			if (value < Integer.MAX_VALUE) {
-				return (int) value;
-			} else {
-				return KEY_IS_NOT_AN_INT;
-			}
-
-		}
-
-		throw new ImpossibleRuntimeException("Invalid key : " + key);
 	}
 
 	private int indexOfIntId(int intKey) {
@@ -157,7 +135,7 @@ public class MemoryEfficientRecordsCachesDataStore {
 	}
 
 	private RecordReferences getReferences(Object key) {
-		int intKey = toIntKey(key);
+		int intKey = CacheRecordDTOUtils.toIntKey(key);
 		if (intKey == KEY_IS_NOT_AN_INT) {
 			RecordReferences references = otherKeyReferencesTo.get(key);
 			if (references == null) {
@@ -205,7 +183,7 @@ public class MemoryEfficientRecordsCachesDataStore {
 
 
 	public void remove(Object key) {
-		int intKey = toIntKey(key);
+		int intKey = CacheRecordDTOUtils.toIntKey(key);
 		if (intKey == KEY_IS_NOT_AN_INT) {
 			synchronized (otherKeyCacheData) {
 				otherKeyCacheData.remove(key);
@@ -217,7 +195,7 @@ public class MemoryEfficientRecordsCachesDataStore {
 
 
 	public Object get(Object key) {
-		int intKey = toIntKey(key);
+		int intKey = CacheRecordDTOUtils.toIntKey(key);
 		if (intKey == KEY_IS_NOT_AN_INT) {
 			return otherKeyCacheData.get(key);
 		} else {

@@ -6,10 +6,7 @@ import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.services.schemas.MetadataList;
 import com.mchange.v2.collection.MapEntry;
-import org.antlr.v4.runtime.misc.Array2DHashSet;
-import org.apache.commons.collections4.set.ListOrderedSet;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
@@ -17,13 +14,10 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.TreeSet;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
 import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
