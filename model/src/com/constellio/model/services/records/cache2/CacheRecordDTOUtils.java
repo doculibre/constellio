@@ -19,8 +19,7 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
-import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
+import static com.constellio.model.entities.schemas.MetadataValueType.CONTENT;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRUCTURE;
 import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
@@ -50,6 +49,7 @@ public class CacheRecordDTOUtils {
 	private static final byte BYTES_TO_WRITE_METADATA_VALUES_SIZE = 2;
 	private static final byte BYTES_TO_WRITE_BOOLEAN_VALUES_SIZE = 1;
 	private static final byte BYTES_TO_WRITE_INTEGER_VALUES_SIZE = 4;
+	private static final byte BYTES_TO_WRITE_DOUBLE_VALUES_SIZE = 8;
 
 	private static final byte KEY_IS_NOT_AN_INT = 0;
 	private static final byte KEY_LENGTH = 11;
@@ -65,29 +65,83 @@ public class CacheRecordDTOUtils {
 				if (metadata.isMultivalue()) {
 					List<Object> values = (List<Object>) dto.getFields().get(metadata.getDataStoreCode());
 					if (values != null && !values.isEmpty()) {
-						if (metadata.getType() == REFERENCE) {
-							try {
-								builder.addMultivalueReferenceMetadata(metadata, (List) values);
-							} catch (IOException e) {
-								e.printStackTrace();
-							}
+						switch (metadata.getType()) {
+							case REFERENCE:
+								try {
+									builder.addMultivalueReferenceMetadata(metadata, (List) values);
+								} catch (IOException e) {
+									e.printStackTrace();
+								}
+								break;
+							case BOOLEAN:
+								try {
+									builder.addMultivalueBooleanMetadata(metadata, (List) values);
+								} catch (IOException e) {
+									e.printStackTrace();
+								}
+								break;
+							case STRING:
+								try {
+									builder.addMultivalueStringMetadata(metadata, (List) values);
+								} catch (IOException e) {
+									e.printStackTrace();
+								}
+								break;
+							case INTEGER:
+								try {
+									builder.addMultivalueIntegerMetadata(metadata, (List) values);
+								} catch (IOException e) {
+									e.printStackTrace();
+								}
+								break;
+							case NUMBER:
+								try {
+									builder.addMultivalueNumberMetadata(metadata, (List) values);
+								} catch (IOException e) {
+									e.printStackTrace();
+								}
+								break;
 						}
 					}
 				} else {
 					Object value = dto.getFields().get(metadata.getDataStoreCode());
 					if (value != null) {
-						if (metadata.getType() == REFERENCE) {
-							try {
-								builder.addSingleValueReferenceMetadata(metadata, value);
-							} catch (IOException e) {
-								e.printStackTrace();
-							}
-						} else if (metadata.getType() == BOOLEAN) {
-							try {
-								builder.addSingleValueBooleanMetadata(metadata, value);
-							} catch (IOException e) {
-								e.printStackTrace();
-							}
+						switch (metadata.getType()) {
+							case REFERENCE:
+								try {
+									builder.addSingleValueReferenceMetadata(metadata, value);
+								} catch (IOException e) {
+									e.printStackTrace();
+								}
+								break;
+							case BOOLEAN:
+								try {
+									builder.addSingleValueBooleanMetadata(metadata, value);
+								} catch (IOException e) {
+									e.printStackTrace();
+								}
+								break;
+							case STRING:
+								try {
+									builder.addSingleValueStringMetadata(metadata, value);
+								} catch (IOException e) {
+									e.printStackTrace();
+								}
+								break;
+							case INTEGER:
+								try {
+									builder.addSingleValueIntegerMetadata(metadata, value);
+								} catch (IOException e) {
+									e.printStackTrace();
+								}
+								break;
+							case NUMBER:
+								try {
+									builder.addSingleValueNumberMetadata(metadata, value);
+								} catch (IOException e) {
+									e.printStackTrace();
+								}
+								break;
 						}
 					}
 				}
@@ -95,11 +149,17 @@ public class CacheRecordDTOUtils {
 
 		}
 
-		return builder.build();
+		try {
+			return builder.build();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		return null;
 	}
 
 	private static boolean isCached(Metadata metadata) {
-		if (metadata.getType() == STRUCTURE || metadata.getType() == TEXT) {
+		if (metadata.getType() == STRUCTURE || metadata.getType() == TEXT || metadata.getType() == CONTENT) {
 			return false;
 		}
 
@@ -136,9 +196,11 @@ public class CacheRecordDTOUtils {
 		short metadatasSize = metadatasSize(byteArray);
 		Metadata metadataSearched = schema.getMetadataByDatastoreCode(metadataLocalCode);
 
-		short metadataSearchedIndex = getMetadataSearchedIndex(byteArray, metadataSearched, metadatasSize);
+		short[] indexes = getMetadataSearchedIndexAndNextMetadataIndex(byteArray, metadataSearched, metadatasSize);
+		short metadataSearchedIndex = indexes[0];
+		short nextMetadataIndex = indexes[1];
 
-		return parseValueMetadata(byteArray, metadataSearched, metadataSearchedIndex);
+		return parseValueMetadata(byteArray, metadataSearched, metadataSearchedIndex, nextMetadataIndex);
 	}
 
 	public static Set<String> getStoredMetadatas(byte[] byteArray, MetadataSchema schema) {
@@ -163,9 +225,12 @@ public class CacheRecordDTOUtils {
 			Metadata metadataSearched = schema.getMetadataById(parseShortFromBytesArray(byteArray, i));
 			// needed to know where to start and stop parsing the value
 			// + 2 * 2 because the index is the next to bytes in the array
-			short metadataIndex = (short) (headerBytesSize + parseShortFromBytesArray(byteArray, (short) (i + BYTES_TO_WRITE_METADATA_ID_AND_INDEX)));
+			short metadataSearchedIndex = (short) (headerBytesSize + parseShortFromBytesArray(byteArray, (short) (i + BYTES_TO_WRITE_METADATA_ID_AND_INDEX)));
+			// * 3 because we want to skip the index of the metadata we are searching since have it
+			// and we want to skip the id of the following metadata, we only need it's index
+			short nextMetadataIndex = (short) (headerBytesSize + parseShortFromBytesArray(byteArray, (short) (i + (BYTES_TO_WRITE_METADATA_ID_AND_INDEX * 3)))); // TODO CORRECT THIS
 
-			storedValues.add(parseValueMetadata(byteArray, metadataSearched, metadataIndex));
+			storedValues.add(parseValueMetadata(byteArray, metadataSearched, metadataSearchedIndex, nextMetadataIndex));
 		}
 
 		return storedValues;
@@ -183,9 +248,19 @@ public class CacheRecordDTOUtils {
 			Metadata metadataSearched = schema.getMetadataById(parseShortFromBytesArray(byteArray, i));
 			// needed to know where to start and stop parsing the value
 			// + 2 * 2 because the index is the next to bytes in the array
-			short metadataIndex = (short) (headerBytesSize + parseShortFromBytesArray(byteArray, (short) (i + BYTES_TO_WRITE_METADATA_ID_AND_INDEX)));
+			short metadataSearchedIndex = (short) (headerBytesSize + parseShortFromBytesArray(byteArray, (short) (i + BYTES_TO_WRITE_METADATA_ID_AND_INDEX)));
+			// * 3 because we want to skip the index of the metadata we are searching since have it
+			// and we want to skip the id of the following metadata, we only need it's index
+			short possibleNextMetadataIndex = (short) (i + (BYTES_TO_WRITE_METADATA_ID_AND_INDEX * 3));
+			short nextMetadataIndex;
+			// +1 to complete the 2 bytes taken by the short
+			if(!(possibleNextMetadataIndex + 1 > headerBytesSize)){
+				nextMetadataIndex = (short) (headerBytesSize + parseShortFromBytesArray(byteArray, possibleNextMetadataIndex));
+			} else {
+				nextMetadataIndex = (short) (byteArray.length + 1);
+			}
 
-			metadatasEntrySet.add(new MapEntry(metadataSearched.getDataStoreCode(), parseValueMetadata(byteArray, metadataSearched, metadataIndex)));
+			metadatasEntrySet.add(new MapEntry(metadataSearched.getDataStoreCode(), parseValueMetadata(byteArray, metadataSearched, metadataSearchedIndex, nextMetadataIndex)));
 		}
 
 		return metadatasEntrySet;
@@ -195,7 +270,8 @@ public class CacheRecordDTOUtils {
 		short metadatasSize = metadatasSize(data);
 		Metadata metadataSearched = schema.getMetadataByDatastoreCode(key);
 
-		return VALUE_IS_NOT_FOUND != getMetadataSearchedIndex(data, metadataSearched, metadatasSize);
+		// [0] because we want the searched index not the next one
+		return VALUE_IS_NOT_FOUND != getMetadataSearchedIndexAndNextMetadataIndex(data, metadataSearched, metadatasSize)[0];
 	}
 
 	public static short metadatasSize(byte[] data) {
@@ -203,12 +279,14 @@ public class CacheRecordDTOUtils {
 		return parseShortFromBytesArray(data, (short) 0);
 	}
 
-	private static short getMetadataSearchedIndex(byte[] byteArray, Metadata metadataSearched, short metadatasSize) {
+	private static short[] getMetadataSearchedIndexAndNextMetadataIndex(byte[] byteArray, Metadata metadataSearched, short metadatasSize) {
+		short[] indexes = new short[2];
+
 		short metadataSearchedId = metadataSearched.getId();
 
 		// *(2+2) for the bytes taken by the id and index of each metadata and +2 to skip the metadatasSize and the start of the array
 		short headerBytesSize = (short) ((metadatasSize * (BYTES_TO_WRITE_METADATA_ID_AND_INDEX + BYTES_TO_WRITE_METADATA_ID_AND_INDEX))
-												 + BYTES_TO_WRITE_METADATA_ID_AND_INDEX);
+										 + BYTES_TO_WRITE_METADATA_ID_AND_INDEX);
 
 		// skipping first two byte because it's the metadatasSize
 		// i+=2*2 because we are just looking for the metadataId not the metadataValue
@@ -217,11 +295,22 @@ public class CacheRecordDTOUtils {
 
 			if (id == metadataSearchedId) {
 				// Looking for next 2 bytes to get the index in the data part of the array
-				return headerBytesSize += parseShortFromBytesArray(byteArray, (short) (i + BYTES_TO_WRITE_METADATA_ID_AND_INDEX));
+				indexes[0] = (short) (headerBytesSize + parseShortFromBytesArray(byteArray, (short) (i + BYTES_TO_WRITE_METADATA_ID_AND_INDEX)));
+				short possibleNextMetadataIndex = (short) (i + (BYTES_TO_WRITE_METADATA_ID_AND_INDEX * 3));
+				// +1 to complete the 2 bytes taken by the short
+				if(!(possibleNextMetadataIndex + 1 > headerBytesSize)){
+					indexes[1] = (short) (headerBytesSize + parseShortFromBytesArray(byteArray, possibleNextMetadataIndex));
+				} else {
+					indexes[1] = (short) (byteArray.length + 1);
+				}
+
+				return indexes;
 			}
 		}
 
-		return VALUE_IS_NOT_FOUND;
+//		return VALUE_IS_NOT_FOUND;
+		indexes[0] = VALUE_IS_NOT_FOUND;
+		return indexes;
 	}
 
 	private static List<Short> getAllMetadatasId(byte[] byteArray, short metadatasSize) {
@@ -229,7 +318,7 @@ public class CacheRecordDTOUtils {
 
 		// *(2+2) for the bytes taken by the id and index of each metadata and +2 to skip the metadatasSize and the start of the array
 		short headerBytesSize = (short) ((metadatasSize * (BYTES_TO_WRITE_METADATA_ID_AND_INDEX + BYTES_TO_WRITE_METADATA_ID_AND_INDEX))
-												 + BYTES_TO_WRITE_METADATA_ID_AND_INDEX);
+										 + BYTES_TO_WRITE_METADATA_ID_AND_INDEX);
 
 		for (short i = BYTES_TO_WRITE_METADATA_ID_AND_INDEX; i < headerBytesSize; i += BYTES_TO_WRITE_METADATA_ID_AND_INDEX * 2) {
 			metadatasId.add(parseShortFromBytesArray(byteArray, i));
@@ -238,20 +327,34 @@ public class CacheRecordDTOUtils {
 		return metadatasId;
 	}
 
-	private static <T> T parseValueMetadata(byte[] byteArray, Metadata metadataSearched, short metadataSearchedIndex) {
+	private static <T> T parseValueMetadata(byte[] byteArray, Metadata metadataSearched, short metadataSearchedIndex, short nextMetadataIndex) {
 		if (isIndexValid(metadataSearchedIndex)) {
-			switch (metadataSearched.getType()) {
-				case BOOLEAN:
-					if (!metadataSearched.isMultivalue()) {
-						return (T) parseSingleValueBooleanMetadata(byteArray, metadataSearchedIndex);
-					}
-					break;
-				case REFERENCE:
-					if (metadataSearched.isMultivalue()) {
+			if (metadataSearched.isMultivalue()) {
+				switch (metadataSearched.getType()) {
+					case BOOLEAN:
+						return (T) parseMultivalueBooleanMetadata(byteArray, metadataSearchedIndex);
+					case REFERENCE:
 						return (T) parseMultivalueReferenceMetadata(byteArray, metadataSearchedIndex);
-					} else {
+					/*case STRING:
+						return (T) parseMultivalueStringMetadata(byteArray, metadataSearchedIndex);*/
+					case INTEGER:
+						return (T) parseMultivalueIntegerMetadata(byteArray, metadataSearchedIndex);
+					case NUMBER:
+						return (T) parseMultivalueNumberMetadata(byteArray, metadataSearchedIndex);
+				}
+			} else {
+				switch (metadataSearched.getType()) {
+					case BOOLEAN:
+						return (T) parseSingleValueBooleanMetadata(byteArray, metadataSearchedIndex);
+					case REFERENCE:
 						return (T) parseSingleValueReferenceMetadata(byteArray, metadataSearchedIndex);
-					}
+					case STRING:
+						return (T) parseSingleValueStringMetadata(byteArray, metadataSearchedIndex, nextMetadataIndex);
+					case INTEGER:
+						return (T) parseSingleValueIntegerMetadata(byteArray, metadataSearchedIndex);
+					case NUMBER:
+						return (T) parseSingleValueNumberMetadata(byteArray, metadataSearchedIndex);
+				}
 			}
 		}
 
@@ -266,31 +369,53 @@ public class CacheRecordDTOUtils {
 		}
 	}
 
-	private static Boolean parseSingleValueBooleanMetadata(byte[] byteArray, short metadataSearchIndex) {
-		return byteArray[metadataSearchIndex] == (byte) 1;
+	private static Boolean parseSingleValueBooleanMetadata(byte[] byteArray, short metadataSearchedIndex) {
+		return parseBooleanFromBytesArray(byteArray, metadataSearchedIndex);
 	}
 
-	private static String parseSingleValueReferenceMetadata(byte[] byteArray, short metadataSearchIndex) {
-		int stringValue = parseIntFromBytesArray(byteArray, metadataSearchIndex);
+	private static List<Boolean> parseMultivalueBooleanMetadata(byte[] byteArray, short metadataSearchedIndex) {
+		short numberOfMetadatas = parseShortFromBytesArray(byteArray, metadataSearchedIndex);
+
+		if (numberOfMetadatas > 0) {
+			List<Boolean> booleans = new ArrayList<>();
+
+			short numberOfMetadatasFound = 0;
+			// + 2 since we don't want to parse the size again
+			short currentIndex = (short) (metadataSearchedIndex + BYTES_TO_WRITE_METADATA_VALUES_SIZE);
+
+			while (numberOfMetadatas != numberOfMetadatasFound) {
+				booleans.add(parseBooleanFromBytesArray(byteArray, currentIndex));
+				currentIndex += BYTES_TO_WRITE_BOOLEAN_VALUES_SIZE;
+				numberOfMetadatasFound++;
+			}
+
+			return booleans;
+		}
+
+		return null;
+	}
+
+	private static String parseSingleValueReferenceMetadata(byte[] byteArray, short metadataSearchedIndex) {
+		int stringValue = parseIntFromBytesArray(byteArray, metadataSearchedIndex);
 
 		// if the value is higher than 0 it's positive so it is a regular id
 		// else if it's negative it's a string containing letters most likely
 		if (stringValue > 0) {
 			return formatToId(stringValue);
 		} else {
-			return parseStringFromBytesArray(byteArray, metadataSearchIndex);
+			return parseStringFromBytesArray(byteArray, metadataSearchedIndex);
 		}
 	}
 
-	private static List<String> parseMultivalueReferenceMetadata(byte[] byteArray, short metadataSearchIndex) {
-		short numberOfMetadatas = parseShortFromBytesArray(byteArray, metadataSearchIndex);
+	private static List<String> parseMultivalueReferenceMetadata(byte[] byteArray, short metadataSearchedIndex) {
+		short numberOfMetadatas = parseShortFromBytesArray(byteArray, metadataSearchedIndex);
 
 		if (numberOfMetadatas > 0) {
 			List<String> references = new ArrayList<>();
 
 			short numberOfMetadatasFound = 0;
 			// + 2 since we don't want to parse the size again
-			short currentIndex = (short) (metadataSearchIndex + 2);
+			short currentIndex = (short) (metadataSearchedIndex + BYTES_TO_WRITE_METADATA_VALUES_SIZE);
 
 			while (numberOfMetadatas != numberOfMetadatasFound) {
 				// + i * 4 since we want to read the 4 bytes ahead every time
@@ -322,8 +447,79 @@ public class CacheRecordDTOUtils {
 		return null;
 	}
 
+	private static Integer parseSingleValueIntegerMetadata(byte[] byteArray, short metadataSearchedIndex) {
+		return parseIntFromBytesArray(byteArray, metadataSearchedIndex);
+	}
+
+	private static List<Integer> parseMultivalueIntegerMetadata(byte[] byteArray, short metadataSearchedIndex) {
+		short numberOfMetadatas = parseShortFromBytesArray(byteArray, metadataSearchedIndex);
+
+		if (numberOfMetadatas > 0) {
+			List<Integer> integers = new ArrayList<>();
+
+			short numberOfMetadatasFound = 0;
+			// + 2 since we don't want to parse the size again
+			short currentIndex = (short) (metadataSearchedIndex + BYTES_TO_WRITE_METADATA_VALUES_SIZE);
+
+			while (numberOfMetadatas != numberOfMetadatasFound) {
+				integers.add(parseIntFromBytesArray(byteArray, currentIndex));
+				currentIndex += BYTES_TO_WRITE_INTEGER_VALUES_SIZE;
+
+				numberOfMetadatasFound++;
+			}
+
+			return integers;
+		}
+
+		return null;
+	}
+
+	private static Double parseSingleValueNumberMetadata(byte[] byteArray, short metadataSearchedIndex) {
+		return parseDoubleFromBytesArray(byteArray, metadataSearchedIndex);
+	}
+
+	private static List<Double> parseMultivalueNumberMetadata(byte[] byteArray, short metadataSearchedIndex) {
+		short numberOfMetadatas = parseShortFromBytesArray(byteArray, metadataSearchedIndex);
+
+		if (numberOfMetadatas > 0) {
+			List<Double> doubles = new ArrayList<>();
+
+			short numberOfMetadatasFound = 0;
+			// + 2 since we don't want to parse the size again
+			short currentIndex = (short) (metadataSearchedIndex + BYTES_TO_WRITE_METADATA_VALUES_SIZE);
+
+			while (numberOfMetadatas != numberOfMetadatasFound) {
+				doubles.add(parseDoubleFromBytesArray(byteArray, currentIndex));
+				currentIndex += BYTES_TO_WRITE_DOUBLE_VALUES_SIZE;
+
+				numberOfMetadatasFound++;
+			}
+
+			return doubles;
+		}
+
+		return null;
+	}
+
+	private static String parseSingleValueStringMetadata(byte[] byteArray, short metadataSearchedIndex, short nextMetadataIndex) {
+		byte[] stringValueAsByte = Arrays.copyOfRange(byteArray, metadataSearchedIndex, nextMetadataIndex);
+
+		return new String(stringValueAsByte, StandardCharsets.UTF_8);
+	}
+
+	// TODO
+	private static String parseMultivalueStringMetadata(byte[] byteArray, short metadataSearchedIndex, short nextMetadataIndex) {
+		byte[] stringValueAsByte = Arrays.copyOfRange(byteArray, metadataSearchedIndex, nextMetadataIndex);
+
+		return new String(stringValueAsByte);
+	}
+
 	private static String formatToId(int id) {
 		return String.format("%0" + KEY_LENGTH + "d", id);
+	}
+
+	private static boolean parseBooleanFromBytesArray(byte[] byteArray, short startingIndex) {
+		return byteArray[startingIndex] == (byte) 1;
 	}
 
 	private static short parseShortFromBytesArray(byte[] byteArray, short startingIndex) {
@@ -333,7 +529,7 @@ public class CacheRecordDTOUtils {
 
 	private static int parseIntFromBytesArray(byte[] byteArray, short startingIndex) {
 		// + 1, + 2, + 3 for to get the four bytes taken by the integer
-		return byteArray[startingIndex] << 24 | (byteArray[startingIndex + 1] & 0xFF) << 16 |
+		return byteArray[startingIndex] & 0xFF << 24 | (byteArray[startingIndex + 1] & 0xFF) << 16 |
 			   (byteArray[startingIndex + 2] & 0xFF) << 8 | (byteArray[startingIndex + 3] & 0xFF);
 	}
 
@@ -347,6 +543,17 @@ public class CacheRecordDTOUtils {
 		byte[] stringValueAsByte = Arrays.copyOfRange(byteArray, startingStringPosition, startingStringPosition + stringBytesLength);
 
 		return new String(stringValueAsByte);
+	}
+
+	private static double parseDoubleFromBytesArray(byte[] byteArray, short startingIndex) {
+		return Double.longBitsToDouble(parseLongFromBytesArray(byteArray, startingIndex)); // TODO FIX THIS SHIZZ
+	}
+
+	private static long parseLongFromBytesArray(byte[] byteArray, short startingIndex) {
+		return ((long) (byteArray[startingIndex] & 0xFF)) << 56 | ((long) (byteArray[startingIndex + 1] & 0xFF)) << 48 |
+			   ((long) (byteArray[startingIndex + 2] & 0xFF)) << 40 | ((long) (byteArray[startingIndex + 3] & 0xFF)) << 32 |
+			   ((long) (byteArray[startingIndex + 4] & 0xFF)) << 24 | ((long) (byteArray[startingIndex + 5] & 0xFF)) << 16 |
+			   ((long) (byteArray[startingIndex + 6] & 0xFF)) << 8 | ((long) (byteArray[startingIndex + 7] & 0xFF));
 	}
 
 	private static class CachedRecordDTOByteArrayBuilder {
@@ -383,6 +590,22 @@ public class CacheRecordDTOUtils {
 			metadatasSize++;
 		}
 
+		private void addMultivalueBooleanMetadata(Metadata metadata, List<Boolean> metadatas) throws IOException {
+			short listSize = (short) metadatas.size();
+
+			dataWriter.writeShort(listSize);
+			writeHeader(metadata);
+			dataByteArrayLength += BYTES_TO_WRITE_METADATA_VALUES_SIZE;
+
+			for (boolean value : metadatas) {
+				dataWriter.writeByte((value ? 1 : 0));
+
+				dataByteArrayLength += BYTES_TO_WRITE_BOOLEAN_VALUES_SIZE;
+			}
+
+			metadatasSize++;
+		}
+
 		/**
 		 * Value is usually integer, but can also be String or Null.
 		 * <p>
@@ -397,7 +620,7 @@ public class CacheRecordDTOUtils {
 				dataWriter.writeInt(key);
 			} else {
 				size = (short) value.toString().getBytes(StandardCharsets.UTF_8).length;
-				writeString((String) value, size);
+				writeStringReference((String) value, size);
 			}
 
 			writeHeader(metadata);
@@ -438,7 +661,7 @@ public class CacheRecordDTOUtils {
 						dataWriter.writeInt(key);
 					} else {
 						size = (short) value.getBytes(StandardCharsets.UTF_8).length;
-						writeString(value, size);
+						writeStringReference(value, size);
 					}
 				} else {
 					dataWriter.writeInt(0);
@@ -451,7 +674,91 @@ public class CacheRecordDTOUtils {
 			metadatasSize++;
 		}
 
-		private void writeString(String value, short size) throws IOException {
+		private void addSingleValueStringMetadata(Metadata metadata, Object value) throws IOException {
+			byte[] title = ((String) value).getBytes();
+
+			dataWriter.write(title);
+
+			writeHeader(metadata);
+
+			dataByteArrayLength += title.length;
+			metadatasSize++;
+		}
+
+		private void addMultivalueStringMetadata(Metadata metadata, List<String> metadatas) throws IOException {
+			short listSize = (short) metadatas.size();
+
+			dataWriter.writeShort(listSize);
+			writeHeader(metadata);
+			dataByteArrayLength += BYTES_TO_WRITE_METADATA_VALUES_SIZE;
+
+			for (String value : metadatas) {
+				short size = 0;
+				size = (short) value.getBytes(StandardCharsets.UTF_8).length;
+				writeStringReference(value, size);
+
+				dataByteArrayLength += value.getBytes(StandardCharsets.UTF_8).length;
+			}
+
+			metadatasSize++;
+		}
+
+		private void addSingleValueIntegerMetadata(Metadata metadata, Object value) throws IOException {
+			// TODO Find a better way
+			if (value instanceof Double) {
+				dataWriter.writeInt(((Double) value).intValue());
+			} else {
+				dataWriter.writeInt((int) value);
+			}
+
+			writeHeader(metadata);
+
+			dataByteArrayLength += BYTES_TO_WRITE_INTEGER_VALUES_SIZE;
+			metadatasSize++;
+		}
+
+		private void addMultivalueIntegerMetadata(Metadata metadata, List<Integer> metadatas) throws IOException {
+			short listSize = (short) metadatas.size();
+
+			dataWriter.writeShort(listSize);
+			writeHeader(metadata);
+			dataByteArrayLength += BYTES_TO_WRITE_METADATA_VALUES_SIZE;
+
+			for (int value : metadatas) {
+				dataWriter.writeInt(value);
+
+				dataByteArrayLength += BYTES_TO_WRITE_INTEGER_VALUES_SIZE;
+			}
+
+			metadatasSize++;
+		}
+
+		private void addSingleValueNumberMetadata(Metadata metadata, Object value) throws IOException {
+			dataWriter.writeDouble((double) value);
+
+			writeHeader(metadata);
+
+			dataByteArrayLength += BYTES_TO_WRITE_DOUBLE_VALUES_SIZE;
+			metadatasSize++;
+		}
+
+		private void addMultivalueNumberMetadata(Metadata metadata, List<Double> metadatas) throws IOException {
+			short listSize = (short) metadatas.size();
+
+			dataWriter.writeShort(listSize);
+			writeHeader(metadata);
+			dataByteArrayLength += BYTES_TO_WRITE_METADATA_VALUES_SIZE;
+
+			for (double value : metadatas) {
+				dataWriter.writeDouble(value);
+
+				dataByteArrayLength += BYTES_TO_WRITE_DOUBLE_VALUES_SIZE;
+			}
+
+			metadatasSize++;
+		}
+
+		private void writeStringReference(String value, short size) throws IOException {
 			dataWriter.writeInt(-size);
 			dataWriter.writeBytes(value);
 		}
@@ -462,17 +769,13 @@ public class CacheRecordDTOUtils {
 			headerByteArrayLength += BYTES_TO_WRITE_METADATA_ID_AND_INDEX + BYTES_TO_WRITE_METADATA_ID_AND_INDEX; // 2 bytes (short) * each header write (2)
 		}
 
-		public byte[] build() {
+		public byte[] build() throws IOException {
 			// index 0 & 1 are placeholders (short) for the number of data (metadatasSize/metadatasCount) in the final array
 			byte[] data = new byte[BYTES_TO_WRITE_METADATA_VALUES_SIZE + headerByteArrayLength + dataByteArrayLength];
 			System.arraycopy(headerOutput.toByteArray(), 0, data, BYTES_TO_WRITE_METADATA_VALUES_SIZE, headerByteArrayLength);
 			System.arraycopy(dataOutput.toByteArray(), 0, data, headerByteArrayLength + BYTES_TO_WRITE_METADATA_VALUES_SIZE, dataByteArrayLength);
 
-			try {
-				closeStreams();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+			closeStreams();
 			writeMetadatasSizeToHeader(data);
 
 			return data;
