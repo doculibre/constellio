@@ -20,6 +20,8 @@ public class ConnectorHttpDocumentURLCache extends ConnectorDocumentURLCache {
 	public ConnectorHttpDocumentURLCache(ConnectorInstance instance,
 										 AppLayerFactory appLayerFactory) {
 		super(instance, appLayerFactory, asList(ConnectorHttpDocument.SCHEMA_TYPE));
+		addCachedMetadata(ConnectorHttpDocument.DIGEST);
+		addCachedMetadata(ConnectorHttpDocument.COPY_OF);
 
 	}
 
@@ -27,6 +29,7 @@ public class ConnectorHttpDocumentURLCache extends ConnectorDocumentURLCache {
 	@Override
 	protected void insertInCache(String url, ConnectorDocumentURLCacheEntry entry, InsertionReason insertionReason) {
 		super.insertInCache(url, entry, insertionReason);
+
 
 		if (insertionReason == InsertionReason.WAS_OBTAINED) {
 			String digest = entry.getMetadata(ConnectorHttpDocument.DIGEST);

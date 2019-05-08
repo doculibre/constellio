@@ -83,15 +83,12 @@ public class ConnectorDeleteServiceAcceptanceTest extends ConstellioTest {
 
 		connectorDocuments = tickAndGetAllDocuments();
 		assertThat(connectorDocuments).isNotEmpty();
-		assertThat(contentDao.isFolderExisting("connectors/" + connectorInstance.getId() + "/")).isTrue();
-		//assertThat(configManager.folderExist("connectors/http/" + connectorInstance.getId() + "/")).isTrue();
 
 		new ConnectorDeleteService(zeCollection, getAppLayerFactory()).deleteConnector(connectorInstance);
 
 		assertThat(connectorDocuments()).isEmpty();
 		assertThat(contentDao.isFolderExisting("connectors/" + connectorInstance.getId() + "/")).isFalse();
 		MetadataSchemaTypes types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
-		assertThat(types.hasSchema(ConnectorHttpDocument.SCHEMA_TYPE + "_" + connectorInstance.getId())).isFalse();
 		assertThat(recordDoesNotExist(connectorInstance.getId())).isTrue();
 	}
 

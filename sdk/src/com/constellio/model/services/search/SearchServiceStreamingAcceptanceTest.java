@@ -178,7 +178,6 @@ public class SearchServiceStreamingAcceptanceTest extends ConstellioTest {
 		assertThat(searchServices.stream(query).allMatch(where(zeSchema.numberMetadata()).isGreaterThan(2.0))).isFalse();
 		assertThatLoadedRecordsCountIs(0);
 
-		assertThat(searchServices.stream(query).filter(record -> record.getId() != null).findAny()).isNotNull();
 
 	}
 
