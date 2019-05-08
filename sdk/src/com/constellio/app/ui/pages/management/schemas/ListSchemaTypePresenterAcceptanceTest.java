@@ -79,11 +79,11 @@ public class ListSchemaTypePresenterAcceptanceTest extends ConstellioTest {
 				List<String> preSaveData = excelSheetToListOfCellAsStringValue(presaveSheet);
 				List<String> generatedData = excelSheetToListOfCellAsStringValue(generatedSheet);
 
-				Assertions.assertThat(preSaveData).isEqualTo(generatedData);
+				Assertions.assertThat(generatedData).isEqualTo(preSaveData);
 			}
 
 		} finally {
-			if(inputStream != null) {
+			if (inputStream != null) {
 				inputStream.close();
 			}
 		}
@@ -95,14 +95,12 @@ public class ListSchemaTypePresenterAcceptanceTest extends ConstellioTest {
 		Iterator<Row> rowIterator = sheet.iterator();
 		ArrayList contentAsList = new ArrayList();
 
-		while (rowIterator.hasNext())
-		{
+		while (rowIterator.hasNext()) {
 			Row row = rowIterator.next();
 			//For each row, iterate through all the columns
 			Iterator<Cell> cellIterator = row.cellIterator();
 
-			while (cellIterator.hasNext())
-			{
+			while (cellIterator.hasNext()) {
 				Cell cell = cellIterator.next();
 				//Check the cell type and format accordingly
 				contentAsList.add(cell.getStringCellValue());

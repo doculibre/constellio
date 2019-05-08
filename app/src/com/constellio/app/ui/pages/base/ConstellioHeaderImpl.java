@@ -806,25 +806,28 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 			menuItems.put(navigationItem, menuItem);
 			updateMenuItem(navigationItem, menuItem);
 		}
-		ConstellioUI.getCurrent().getNavigator().addViewChangeListener(new ViewChangeListener() {
-			@Override
-			public boolean beforeViewChange(ViewChangeEvent event) {
-				return true;
-			}
+		ConstellioUI ui = ConstellioUI.getCurrent();
+		if (ui != null) {
+			ui.getNavigator().addViewChangeListener(new ViewChangeListener() {
+				@Override
+				public boolean beforeViewChange(ViewChangeEvent event) {
+					return true;
+				}
 
-			@Override
-			public void afterViewChange(ViewChangeEvent event) {
-				View oldView = event.getOldView();
-				View newView = event.getNewView();
-				if (oldView instanceof BaseView && newView instanceof BaseView) {
-					for (NavigationItem navigationItem : actionMenuItems) {
-						MenuItem menuItem = menuItems.get(navigationItem);
-						navigationItem.viewChanged((BaseView) oldView, (BaseView) newView);
-						updateMenuItem(navigationItem, menuItem);
+				@Override
+				public void afterViewChange(ViewChangeEvent event) {
+					View oldView = event.getOldView();
+					View newView = event.getNewView();
+					if (oldView instanceof BaseView && newView instanceof BaseView) {
+						for (NavigationItem navigationItem : actionMenuItems) {
+							MenuItem menuItem = menuItems.get(navigationItem);
+							navigationItem.viewChanged((BaseView) oldView, (BaseView) newView);
+							updateMenuItem(navigationItem, menuItem);
+						}
 					}
 				}
-			}
-		});
+			});
+		}
 		return headerMenu;
 	}
 
