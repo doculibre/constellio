@@ -93,6 +93,7 @@ public class FileParser {
 
 	private static final String MS_DOC_MIMETYPE = "application/msword";
 	private static final String MS_DOCX_MIMETYPE = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+	private static final boolean OCR_INLINE_IMAGES_ONLY_MODE = false;
 
 	static final String READ_STREAM_FOR_STYLES_EXTRACTION = "FileParser-ReadStreamForStylesExtraction";
 	static final String READ_STREAM_FOR_PARSING_WITH_TIKA = "FileParser-ReadStreamForParsingWithTika";
@@ -533,15 +534,19 @@ public class FileParser {
 		}
 
 		TesseractOCRConfig tesseractOCRConfig = new TesseractOCRConfig();
+		//tesseractOCRConfig.setEnableImageProcessing(1);
 		tesseractOCRConfig.setLanguage("fra+eng");
 		parseContext.set(TesseractOCRConfig.class, tesseractOCRConfig);
 
 		PDFParserConfig pdfConfig = new PDFParserConfig();
-		// mode 1
-		//pdfConfig.setExtractInlineImages(true);
-		//pdfConfig.setExtractUniqueInlineImagesOnly(false);
-		// mode 2
-		pdfConfig.setOcrStrategy(OCR_STRATEGY.OCR_AND_TEXT_EXTRACTION);
+		if (OCR_INLINE_IMAGES_ONLY_MODE) {
+			// mode 1
+			pdfConfig.setExtractInlineImages(true);
+			pdfConfig.setOcrStrategy(PDFParserConfig.OCR_STRATEGY.NO_OCR);
+		} else {
+			// mode 2
+			pdfConfig.setOcrStrategy(OCR_STRATEGY.OCR_AND_TEXT_EXTRACTION);
+		}
 		pdfConfig.setOcrImageType("rgb");
 		pdfConfig.setOcrDPI(300); // FIXME can be adjusted, 300 seems to be the best value overall
 		parseContext.set(PDFParserConfig.class, pdfConfig);

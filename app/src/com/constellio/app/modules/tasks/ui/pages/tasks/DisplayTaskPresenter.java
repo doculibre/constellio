@@ -1,7 +1,10 @@
 package com.constellio.app.modules.tasks.ui.pages.tasks;
 
+import com.constellio.app.modules.rm.ConstellioRMModule;
+import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.events.RMEventsSearchServices;
+import com.constellio.app.modules.tasks.extensions.TaskManagementPresenterExtension;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.navigation.TaskViews;
 import com.constellio.app.modules.tasks.services.TaskPresenterServices;
@@ -57,6 +60,8 @@ public class DisplayTaskPresenter extends AbstractTaskPresenter<DisplayTaskView>
 	transient Record currentRecord;
 	transient private LoggingServices loggingServices;
 
+	transient private RMModuleExtensions rmModuleExtensions;
+
 	public DisplayTaskPresenter(DisplayTaskView view) {
 		super(view, Task.DEFAULT_SCHEMA);
 		initTransientObjects();
@@ -88,6 +93,7 @@ public class DisplayTaskPresenter extends AbstractTaskPresenter<DisplayTaskView>
 		tasksSearchServices = new TasksSearchServices(tasksSchemas);
 		loggingServices = modelLayerFactory.newLoggingServices();
 		taskPresenterServices = new TaskPresenterServices(tasksSchemas, recordServices(), tasksSearchServices, loggingServices);
+		rmModuleExtensions = appCollectionExtentions.forModule(ConstellioRMModule.ID);
 	}
 
 	public String getPreviousSelectedTab() {
@@ -111,10 +117,19 @@ public class DisplayTaskPresenter extends AbstractTaskPresenter<DisplayTaskView>
 	}
 
 	public void afterCompletionActions() {
+		if (rmModuleExtensions != null) {
+			for (TaskManagementPresenterExtension extension : rmModuleExtensions.getTaskManagementPresenterExtensions()) {
+				extension.afterCompletionActions(getCurrentUser());
+			}
+		}
 	}
 
 	public void beforeCompletionActions(Task task) {
-
+		if (rmModuleExtensions != null) {
+			for (TaskManagementPresenterExtension extension : rmModuleExtensions.getTaskManagementPresenterExtensions()) {
+				extension.beforeCompletionActions(task);
+			}
+		}
 	}
 
 	public RecordVO getTaskVO() {
