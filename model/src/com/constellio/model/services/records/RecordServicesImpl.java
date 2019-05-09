@@ -644,7 +644,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 					MetadataList modifiedMetadatas = record.getModifiedMetadatas(types);
 					extensions.callRecordInModificationBeforeValidationAndAutomaticValuesCalculation(
 							new RecordInModificationBeforeValidationAndAutomaticValuesCalculationEvent(record,
-									modifiedMetadatas, transactionExtensionErrors, transaction.isOnlyBeingPrepared()), options);
+									modifiedMetadatas, transactionExtensionErrors, transaction.getUser(), transaction.isOnlyBeingPrepared()), options);
 				} else {
 					extensions.callRecordInCreationBeforeValidationAndAutomaticValuesCalculation(
 							new RecordInCreationBeforeValidationAndAutomaticValuesCalculationEvent(
@@ -1069,13 +1069,13 @@ public class RecordServicesImpl extends BaseRecordServices {
 				} else {
 					modifiedRecords.add(record);
 					MetadataList modifiedMetadatas = record.getModifiedMetadatas(types);
-					events.add(new RecordModificationEvent(record, modifiedMetadatas));
+					events.add(new RecordModificationEvent(record, modifiedMetadatas, transaction.getUser()));
 					modifiedMetadatasOfModifiedRecords.put(record.getId(), modifiedMetadatas);
 				}
 
 			} else {
 				newRecords.add(record);
-				events.add(new RecordCreationEvent(record));
+				events.add(new RecordCreationEvent(record, transaction.getUser()));
 			}
 		}
 
