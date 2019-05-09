@@ -36,6 +36,7 @@ import com.constellio.app.services.schemas.bulkImport.RecordsImportServices;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataProvider;
 import com.constellio.app.services.schemas.bulkImport.data.xml.XMLImportDataProvider;
 import com.constellio.app.ui.i18n.i18n;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
@@ -814,6 +815,8 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 						.withRMTest(records).withFoldersAndContainersOfEveryStatus(),
 				withCollection("anotherCollection").withConstellioRMModule().withAllTest(users));
 
+		Toggle.ALLOWS_CREATION_OF_RECORDS_WITH_NON_PADDED_ID.enable();
+
 		RMSchemasRecordsServices rmSchemasRecordsServices = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 
 		List<Folder> folderList = rmSchemasRecordsServices.searchFolders(returnAll());
@@ -1121,6 +1124,8 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 				withZeCollection().withConstellioRMModule().withConstellioRMModule().withAllTest(users)
 						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList());
 
+		Toggle.ALLOWS_CREATION_OF_RECORDS_WITH_NON_PADDED_ID.enable();
+
 		RMSchemasRecordsServices rmZeCollection = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 
 		List<DecommissioningList> exportedDecommissiongLists = rmZeCollection.searchDecommissioningLists(returnAll());
@@ -1232,6 +1237,9 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withConstellioRMModule().withAllTest(users).withRMTest(records),
 				withCollection("anotherCollection").withConstellioRMModule().withAllTest(users));
+
+		Toggle.ALLOWS_CREATION_OF_RECORDS_WITH_NON_PADDED_ID.enable();
+
 		final String MESSAGE = "Message";
 		final User user = records.getAdmin();
 

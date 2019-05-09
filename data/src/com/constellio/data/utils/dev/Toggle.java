@@ -67,6 +67,8 @@ public class Toggle {
 
 	public static AvailableToggle SEARCH_RESULTS_VIEWER = newToggle(true);
 
+	public static AvailableToggle ALLOWS_CREATION_OF_RECORDS_WITH_NON_PADDED_ID = newToggle(false);
+
 	// ------------------------------------------------
 
 	private static Map<String, AvailableToggle> toggleMap = new HashMap<>();
