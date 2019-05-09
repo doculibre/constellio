@@ -274,7 +274,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 				newTransaction.getRecordUpdateOptions().getTransactionRecordsReindexation()
 						.addReindexedMetadatas(impact.getMetadataToReindex());
 			}
-			execute(newTransaction);
+			execute(newTransaction, attempt);
 		}
 
 	}

@@ -52,6 +52,9 @@ public class TasksMigrationTo8_2_42 extends MigrationHelper implements Migration
 			task.createUndeletable(Task.WORK_HOURS).setType(MetadataValueType.NUMBER);
 			task.createUndeletable(Task.ESTIMATED_HOURS).setType(MetadataValueType.NUMBER);
 			task.get(Schemas.HIDDEN.getLocalCode()).defineDataEntry().asCalculated(TaskHiddenStatusCalculator.class);
+			if (task.hasMetadata("workflowTaskSort")) {
+				task.get("workflowTaskSort").setMarkedForDeletion(true);
+			}
 		}
 	}
 }

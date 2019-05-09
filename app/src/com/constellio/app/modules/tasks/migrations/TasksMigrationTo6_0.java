@@ -5,7 +5,6 @@ import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.modules.tasks.TasksPermissionsTo;
 import com.constellio.app.modules.tasks.model.calculators.DecisionsTasksCalculator;
-import com.constellio.app.modules.tasks.model.calculators.WorkflowTaskSortCalculator;
 import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflow;
 import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflowInstance;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
@@ -115,8 +114,6 @@ public class TasksMigrationTo6_0 implements MigrationScript {
 			taskSchema.create(Task.BETA_WORKFLOW_INSTANCE).defineReferencesTo(workflowInstanceSchemaType);
 			taskSchema.create(Task.IS_MODEL).setType(MetadataValueType.BOOLEAN);
 			taskSchema.create(Task.BETA_NEXT_TASK_CREATED).setType(MetadataValueType.BOOLEAN);
-			taskSchema.create(Task.BETA_WORKFLOW_TASK_SORT).setType(MetadataValueType.NUMBER)
-					.defineDataEntry().asCalculated(WorkflowTaskSortCalculator.class);
 			taskSchema.create(Task.BETA_NEXT_TASKS).setType(MetadataValueType.REFERENCE).setMultivalue(true)
 					.defineReferencesTo(taskSchemaType)
 					.defineDataEntry().asCalculated(DecisionsTasksCalculator.class);

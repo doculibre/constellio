@@ -1,10 +1,8 @@
 package com.constellio.app.modules.tasks.model.calculators;
 
-import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
-import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
 import com.constellio.model.entities.calculators.dependencies.SpecialDependencies;
 import com.constellio.model.entities.calculators.dependencies.SpecialDependency;
 import com.constellio.model.entities.schemas.MetadataValueType;
@@ -18,26 +16,11 @@ import static java.util.Arrays.asList;
  */
 public class WorkflowTaskSortCalculator extends AbstractMetadataValueCalculator<Double> {
 	SpecialDependency<String> identifierParam = SpecialDependencies.IDENTIFIER;
-	ReferenceDependency<List<Double>> childrenIndexesParam = ReferenceDependency
-			.toANumber(Task.BETA_NEXT_TASKS, Task.BETA_WORKFLOW_TASK_SORT).whichIsMultivalue();
 
 	@Override
 	public Double calculate(CalculatorParameters parameters) {
 		String identifier = parameters.get(identifierParam);
-		List<Double> childrenIndexes = parameters.get(childrenIndexesParam);
-
-		double max = 0;
-
-		if (childrenIndexes != null) {
-			for (Double value : childrenIndexes) {
-				if (value != null && max < value) {
-					max = value;
-				}
-			}
-		}
-
-		return max == 0 ? (double) identifier.hashCode() * 1000 : (max + 1);
-
+		return 0.0;
 	}
 
 	@Override
@@ -57,6 +40,6 @@ public class WorkflowTaskSortCalculator extends AbstractMetadataValueCalculator<
 
 	@Override
 	public List<? extends Dependency> getDependencies() {
-		return asList(identifierParam, childrenIndexesParam);
+		return asList(identifierParam);
 	}
 }
