@@ -957,7 +957,7 @@ public class TaxonomiesSearchServicesBasedOnHierarchyTokensImpl implements Taxon
 					}
 				};
 
-				boolean readAuthorizationsOnConcept = user.hasRequiredAccess(options.getRequiredAccess()).on(child);
+				boolean readAuthorizationsOnConcept = user == null || user.hasRequiredAccess(options.getRequiredAccess()).on(child);
 				boolean conceptIsLinkable = isTrueOrNull(child.get(Schemas.LINKABLE));
 
 				if (options.getFilter() != null && options.getFilter().getLinkableConceptsFilter() != null) {
