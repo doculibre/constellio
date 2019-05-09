@@ -1,7 +1,9 @@
 package com.constellio.model.services.records.cache2;
 
+import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.data.utils.Holder;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
@@ -12,8 +14,11 @@ import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.model.services.search.SearchServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -23,6 +28,8 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import static com.constellio.model.services.records.reindexing.ReindexationMode.RECALCULATE_AND_REWRITE;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.query;
+import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichAllowsZeSchemaType;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
 import static java.util.Arrays.asList;
@@ -139,17 +146,27 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 	public void whenStoringMultivalueMetadatasInAByteArrayRecordDTOThenStoredAndRetrieved() throws Exception {
 		defineSchemasManager().using(setup
 				.withABooleanMetadata()
-				.withATitle(whichIsMultivalue)
+				.withATitle()
+				.withAStringMetadata(/*whichIsMultivalue*/)
 				.withAnIntegerMetadata(whichIsMultivalue)
 				.withANumberMetadata(whichIsMultivalue)
+				.withADateMetadata(whichIsMultivalue)
+				.withADateTimeMetadata(whichIsMultivalue)
 				.withAReferenceMetadata(whichAllowsZeSchemaType, whichIsMultivalue)
+				.withAnEnumMetadata(CopyType.class)
 				.withAReferenceFromAnotherSchemaToZeSchema(whichIsMultivalue));
+
+		LocalDate date = new LocalDate();
+		LocalDateTime dateTime = new LocalDateTime();
 
 		RecordImpl record1 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance())
 				.set(zeSchema.booleanMetadata(), true)
 				.set(zeSchema.integerMetadata(), asList(1, 2, 3))
 				.set(zeSchema.numberMetadata(), asList(4d, 5d, 6d))
-				.set(Schemas.TITLE, asList("!", "2", "a"))
+				.set(zeSchema.enumMetadata(), CopyType.PRINCIPAL)
+				.set(zeSchema.stringMetadata(), "ALLO"/*asList("!", null, "a")*/)
+				.set(zeSchema.dateMetadata(), asList(date, date.plusDays(3), date.plusDays(-100)))
+				.set(zeSchema.dateTimeMetadata(), asList(dateTime, dateTime.plusHours(5), dateTime.minusYears(33)))
 				.set(zeSchema.referenceMetadata(), null);
 
 		RecordImpl record2 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance(), "Popeye")
@@ -190,9 +207,12 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 
 		assertThat(dto1.get(zeSchema.booleanMetadata().getDataStoreCode())).isEqualTo(true);
 		assertThat(dto1.get(zeSchema.referenceMetadata().getDataStoreCode())).isEqualTo(null);
-		assertThat(dto1.get(zeSchema.integerMetadata().getDataStoreCode())).isEqualTo(asList(1, null, 3));
+		assertThat(dto1.get(zeSchema.integerMetadata().getDataStoreCode())).isEqualTo(asList(1, 2, 3));
 		assertThat(dto1.get(zeSchema.numberMetadata().getDataStoreCode())).isEqualTo(asList(4d, 5d, 6d));
-		assertThat(dto1.get(Schemas.TITLE.getDataStoreCode())).isEqualTo(asList("!", "2", "a"));
+		assertThat(dto1.get(zeSchema.stringMetadata().getDataStoreCode())).isEqualTo("ALLO"/*asList("!", "2", "a")*/);
+		assertThat(dto1.get(zeSchema.dateMetadata().getDataStoreCode())).isEqualTo(asList(date, date.plusDays(3), date.plusDays(-100)));
+		assertThat(dto1.get(zeSchema.dateTimeMetadata().getDataStoreCode())).isEqualTo(asList(dateTime, dateTime.plusHours(5), dateTime.minusYears(33)));
+		assertThat(dto1.get(zeSchema.enumMetadata().getDataStoreCode())).isEqualTo(CopyType.PRINCIPAL);
 		assertThat(dto2.get(zeSchema.booleanMetadata().getDataStoreCode())).isEqualTo(null);
 		assertThat(dto2.get(zeSchema.referenceMetadata().getDataStoreCode())).isEqualTo(asList(record1.getId(), null));
 		assertThat(dto3.get(zeSchema.booleanMetadata().getDataStoreCode())).isEqualTo(null);
@@ -203,6 +223,9 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 		assertThat(dto6.get(anotherSchema.referenceFromAnotherSchemaToZeSchema().getDataStoreCode())).isEqualTo(asList(null, null));
 		assertThat(dto7.get(anotherSchema.referenceFromAnotherSchemaToZeSchema().getDataStoreCode())).isEqualTo(asList(null, "Popeye"));
 		assertThat(dto8.get(anotherSchema.referenceFromAnotherSchemaToZeSchema().getDataStoreCode())).isEqualTo(asList(record1.getId(), record1.getId()));
+
+		SearchServices searchServices = getModelLayerFactory().newSearchServices();
+//		assertThatRecord(recordServices.getDocumentById(record1.getId())).hasMetadataValue(zeSchema.stringMetadata(), asList("!", "2", "a"));
 	}
 
 	@Test
