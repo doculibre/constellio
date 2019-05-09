@@ -406,7 +406,7 @@ public class AuthorizationsServices {
 
 		Taxonomy principalTaxonomy = taxonomiesManager.getPrincipalTaxonomy(request.getCollection());
 
-		if (principalTaxonomy == null || !principalTaxonomy.getSchemaTypes().contains(auth.getTarget())) {
+		if (principalTaxonomy == null || !principalTaxonomy.getSchemaTypes().contains(auth.getTargetSchemaType())) {
 			condition = condition.orWhere(Schemas.ATTACHED_ANCESTORS).isEqualTo(auth.getTarget());
 		}
 
