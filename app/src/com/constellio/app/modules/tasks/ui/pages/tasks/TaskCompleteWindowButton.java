@@ -1,20 +1,5 @@
 package com.constellio.app.modules.tasks.ui.pages.tasks;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.MapUtils;
-import org.joda.time.LocalDate;
-
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
@@ -55,6 +40,20 @@ import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
+import org.joda.time.LocalDate;
+
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public abstract class TaskCompleteWindowButton extends WindowButton {
 
@@ -99,7 +98,7 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 
 		HorizontalLayout buttonsLayout = new HorizontalLayout();
 		buttonsLayout.setSpacing(true);
-		buttonsLayout.addComponents(buildCancelButton(), buildSlowCompleteButton(),
+		buttonsLayout.addComponents(buildCancelButton(),
 				buildQuickCompleteButton(mainLayout, decisionField, acceptedField, reasonField, commentField, uncompletedRequiredFields));
 
 		mainLayout.addComponent(buttonsLayout);
@@ -131,19 +130,6 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 			height += 150;
 		}
 		getWindow().setHeight(height + "px");
-	}
-
-	private Button buildSlowCompleteButton() {
-		Button slowCompleteBtn = new Button(getSlowCompleteCaption());
-		slowCompleteBtn.addClickListener(new ClickListener() {
-			@Override
-			public void buttonClick(ClickEvent event) {
-				getWindow().close();
-				view.navigate().to().editTask(task.getId());
-			}
-		});
-
-		return slowCompleteBtn;
 	}
 
 	private Button buildCancelButton() {
