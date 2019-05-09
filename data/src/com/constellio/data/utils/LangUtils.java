@@ -454,22 +454,21 @@ public class LangUtils {
 		return sb.toString();
 	}
 
-	public static Map<String, String> asMap(String key1, String value1) {
-		Map<String, String> parameters = new HashMap<>();
+	public static <K, V> Map<K, V> asMap(K key1, V value1) {
+		Map<K, V> parameters = new HashMap<>();
 		parameters.put(key1, value1);
 		return parameters;
 	}
 
-	public static Map<String, String> asMap(String key1, String value1, String key2, String value2) {
-		Map<String, String> parameters = new HashMap<>();
+	public static <K, V> Map<K, V> asMap(K key1, V value1, K key2, V value2) {
+		Map<K, V> parameters = new HashMap<>();
 		parameters.put(key1, value1);
 		parameters.put(key2, value2);
 		return parameters;
 	}
 
-	public static Map<String, String> asMap(String key1, String value1, String key2, String value2, String key3,
-											String value3) {
-		Map<String, String> parameters = new HashMap<>();
+	public static <K, V> Map<K, V> asMap(K key1, V value1, K key2, V value2, K key3, V value3) {
+		Map<K, V> parameters = new HashMap<>();
 		parameters.put(key1, value1);
 		parameters.put(key2, value2);
 		parameters.put(key3, value3);

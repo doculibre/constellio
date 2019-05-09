@@ -590,4 +590,8 @@ public class ConstellioEIMConfigs {
 		return extensionSet;
 	}
 
+	public boolean isAddingRecordIdInEmails() {
+		return manager.getValue(ADD_RECORD_ID_IN_EMAILS);
+	}
+
 }

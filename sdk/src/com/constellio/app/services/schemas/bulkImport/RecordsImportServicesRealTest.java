@@ -1891,6 +1891,64 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		);
 	}
 
+
+	@Test
+	public void whenImportingAsIdThenOnlyImportedIfIdRespectsConditions()
+			throws Exception {
+
+		defineSchemasManager().using(schemas.andCustomSchema().withAStringMetadata(whichHasDefaultRequirement)
+				.withAnotherSchemaStringMetadata().with(new MetadataSchemaTypesConfigurator() {
+					@Override
+					public void configure(MetadataSchemaTypesBuilder schemaTypes) {
+						schemaTypes.getSchemaType(thirdSchema.typeCode()).getDefaultSchema().create("refToZeSchema")
+								.defineReferencesTo(schemaTypes.getSchemaType(zeSchema.typeCode()));
+					}
+				}));
+
+		String unusedId = getModelLayerFactory().getDataLayerFactory().getUniqueIdGenerator().next();
+		String adminIdInSystemCollection = getModelLayerFactory().getUserCredentialsManager().getUserCredential("admin").getId();
+
+		recordServices
+				.add(new TestRecord(anotherSchema, "00000111111").set(TITLE, "v0"));
+		recordServices.add(new TestRecord(zeSchema, "00000222222").set(TITLE, "v0").set(zeSchema.stringMetadata(), "v1"));
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("00000111111").addField("title", "v1").addField("stringMetadata", "value"));
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("00000222222").addField("title", "v1"));
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("00000333333").addField("title", "v1").addField("stringMetadata", "value"));
+		zeSchemaTypeRecords.add(defaultSchemaData().setId(unusedId).addField("title", "v1").addField("stringMetadata", "value"));
+		zeSchemaTypeRecords.add(defaultSchemaData().setId(adminIdInSystemCollection).addField("title", "v1").addField("stringMetadata", "value"));
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("mouhahahaha").addField("title", "v1").addField("stringMetadata", "value"));
+
+		importDataProvider.dataOptionsMap
+				.put(zeSchema.typeCode(), new ImportDataOptions().setImportAsLegacyId(false));
+
+		try {
+			bulkImport(importDataProvider, progressionListener, admin, new BulkImportParams());
+
+		} catch (ValidationException e) {
+
+			assertThat(frenchMessages(e)).containsOnly(
+					"Ze type de schéma 00000333333 : L’identifiant «00000333333» est plus élevé que la table de séquence, ce qui pourrait éventuellement engendrer un conflit",
+					"Ze type de schéma 00000111111 : L’identifiant «00000111111» est déjà utilisé pour un autre type d’enregistrement",
+					"Ze type de schéma " + adminIdInSystemCollection + " : L’identifiant «" + adminIdInSystemCollection + "» est déjà utilisé dans une autre collection",
+					"Ze type de schéma mouhahahaha : L’identifiant «mouhahahaha» ne respecte pas le standard d'identifiant de Constellio, soit un nombre composé de 11 chiffres (préfixé au besoin par des zéros)"
+			);
+
+		}
+
+		assertThatRecords(searchServices.search(query(from(zeSchema.type()).returnAll())))
+				.extractingMetadatas("id", "title", "legacyIdentifier").containsOnly(
+				tuple("00000222222", "v1", "00000222222"),
+				tuple(unusedId, "v1", unusedId)
+		);
+
+		assertThatRecords(searchServices.search(query(from(anotherSchema.type()).returnAll())))
+				.extractingMetadatas("id", "title", "legacyIdentifier").containsOnly(
+				tuple("00000111111", "v0", null)
+		);
+
+	}
+
 	@Test
 	public void whenImportingRecordsWithInvalidContentThenImportRecordsAndReturnWarnings()
 			throws Exception {
