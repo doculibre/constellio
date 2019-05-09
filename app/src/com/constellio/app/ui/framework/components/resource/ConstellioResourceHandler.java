@@ -1,6 +1,5 @@
 package com.constellio.app.ui.framework.components.resource;
 
-import com.constellio.app.api.extensions.params.RecordSecurityParam;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.pages.base.VaadinSessionContext;
@@ -66,7 +65,6 @@ public class ConstellioResourceHandler implements RequestHandler {
 			String filePath = paramsMap.get("file");
 			String hashParam = paramsMap.get("hash");
 			String filenameParam = paramsMap.get("z-filename");
-			String collection = paramsMap.get("collection");
 
 			String filename;
 			InputStream in = null;
@@ -79,27 +77,18 @@ public class ConstellioResourceHandler implements RequestHandler {
 				IOServices ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();
 				MetadataSchemasManager metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
 
-
 				if (hashParam != null) {
 					filename = filenameParam;
 					in = contentManager.getContentInputStream(hashParam, getClass().getSimpleName() + ".handleRequest");
 				} else {
 					VaadinSession vaadinSession = VaadinSession.getCurrent();
 					UserVO userVO = (UserVO) vaadinSession.getSession().getAttribute(VaadinSessionContext.CURRENT_USER_ATTRIBUTE);
-
-					if (collection == null) {
-						collection = (String) vaadinSession.getSession().getAttribute(VaadinSessionContext.CURRENT_COLLECTION_ATTRIBUTE);
-					}
+					String collection = (String) vaadinSession.getSession().getAttribute(VaadinSessionContext.CURRENT_COLLECTION_ATTRIBUTE);
 
 					MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(collection);
 					User user = userServices.getUserInCollection(userVO.getUsername(), collection);
 					Record record = recordServices.getDocumentById(recordId);
-
-					boolean isException = constellioFactories.getAppLayerFactory().getExtensions()
-							.forCollection(collection).isRecordAvalibleToAllUsers(new RecordSecurityParam(record));
-
-
-					if ((!types.getSchemaType(record.getTypeCode()).hasSecurity() || "workflowModel".equals(record.getTypeCode()) || isException)
+					if ((!types.getSchemaType(record.getTypeCode()).hasSecurity() || "workflowModel".equals(record.getTypeCode()))
 						|| user.hasReadAccess().on(record)) {
 						String schemaCode = record.getSchemaCode();
 						Metadata metadata = types.getMetadata(schemaCode + "_" + metadataCode);
@@ -171,11 +160,6 @@ public class ConstellioResourceHandler implements RequestHandler {
 		return false;
 	}
 
-	public static Resource createResource(String recordId, String metadataCode, String version, String filename,
-										  String collection) {
-		return createResource(recordId, metadataCode, version, filename, false, collection);
-	}
-
 	public static Resource createResource(String recordId, String metadataCode, String version, String filename) {
 		return createResource(recordId, metadataCode, version, filename, ResourceType.NORMAL);
 	}
@@ -201,17 +185,7 @@ public class ConstellioResourceHandler implements RequestHandler {
 	}
 
 	public static Resource createResource(String recordId, String metadataCode, String version, String filename,
-										  boolean preview) {
-		return createResource(recordId, metadataCode, version, filename, preview, false, null);
-	}
-
-	public static Resource createResource(String recordId, String metadataCode, String version, String filename,
-										  boolean preview, String collection) {
-		return createResource(recordId, metadataCode, version, filename, preview, false, collection);
-	}
-
-	public static Resource createResource(String recordId, String metadataCode, String version, String filename,
-										  boolean preview, ResourceType resourceType, boolean useBrowserCache, String collection) {
+										  ResourceType resourceType, boolean useBrowserCache) {
 		Map<String, String> params = new LinkedHashMap<>();
 		params.put("recordId", recordId);
 		params.put("metadataCode", metadataCode);
@@ -220,11 +194,6 @@ public class ConstellioResourceHandler implements RequestHandler {
 		params.put("jpegConversion", "" + (resourceType == ResourceType.JPEG_CONVERSION));
 		params.put("version", version);
 		params.put("z-filename", filename);
-
-		if (collection != null) {
-			params.put("collection", collection);
-		}
-
 		if (!useBrowserCache) {
 			Random random = new Random();
 			params.put("cacheRandomizer", String.valueOf(random.nextLong()));
