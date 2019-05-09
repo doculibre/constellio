@@ -8,8 +8,6 @@ import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.BaseView;
 
-import java.util.List;
-
 public interface DisplayFolderView extends BaseView, RecordsManagementViewGroup {
 
 	RecordVO getRecord();
@@ -33,6 +31,8 @@ public interface DisplayFolderView extends BaseView, RecordsManagementViewGroup 
 	void hideAllActionMenuButtons();
 
 	void setLogicallyDeletable(ComponentState state);
+
+	void setDisplayButtonState(ComponentState state);
 
 	void setEditButtonState(ComponentState state);
 

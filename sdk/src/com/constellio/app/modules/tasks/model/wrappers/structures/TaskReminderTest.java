@@ -3,6 +3,7 @@ package com.constellio.app.modules.tasks.model.wrappers.structures;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.sdk.tests.ConstellioTest;
 import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -13,7 +14,7 @@ import static org.mockito.Mockito.when;
 public class TaskReminderTest extends ConstellioTest {
 	@Mock
 	Task zeTask;
-	private LocalDate startDate = LocalDate.now();
+	private LocalDateTime startDate = LocalDateTime.now();
 
 	@Before
 	public void setUp()
@@ -25,7 +26,7 @@ public class TaskReminderTest extends ConstellioTest {
 	@Test
 	public void givenReminderWithFixedDateWhenComputeDateThenReturnFixedDate()
 			throws Exception {
-		LocalDate startDatePlus1 = startDate.plusDays(1);
+		LocalDate startDatePlus1 = startDate.toLocalDate().plusDays(1);
 		TaskReminder taskReminder = new TaskReminder().setFixedDate(startDatePlus1);
 		assertThat(taskReminder.computeDate(zeTask)).isEqualTo(startDatePlus1);
 	}
@@ -35,7 +36,7 @@ public class TaskReminderTest extends ConstellioTest {
 			throws Exception {
 		TaskReminder taskReminder = new TaskReminder().setBeforeRelativeDate(true).setNumberOfDaysToRelativeDate(2)
 				.setRelativeDateMetadataCode(Task.START_DATE);
-		assertThat(taskReminder.computeDate(zeTask)).isEqualTo(startDate.minusDays(2));
+		assertThat(taskReminder.computeDate(zeTask)).isEqualTo(startDate.toLocalDate().minusDays(2));
 	}
 
 	@Test
@@ -43,7 +44,7 @@ public class TaskReminderTest extends ConstellioTest {
 			throws Exception {
 		TaskReminder taskReminder = new TaskReminder().setBeforeRelativeDate(true).setNumberOfDaysToRelativeDate(0)
 				.setRelativeDateMetadataCode(Task.START_DATE);
-		assertThat(taskReminder.computeDate(zeTask)).isEqualTo(startDate);
+		assertThat(taskReminder.computeDate(zeTask)).isEqualTo(startDate.toLocalDate());
 	}
 
 	@Test
@@ -51,7 +52,7 @@ public class TaskReminderTest extends ConstellioTest {
 			throws Exception {
 		TaskReminder taskReminder = new TaskReminder().setBeforeRelativeDate(false).setNumberOfDaysToRelativeDate(2)
 				.setRelativeDateMetadataCode(Task.START_DATE);
-		assertThat(taskReminder.computeDate(zeTask)).isEqualTo(startDate.plusDays(2));
+		assertThat(taskReminder.computeDate(zeTask)).isEqualTo(startDate.toLocalDate().plusDays(2));
 	}
 
 	@Test
@@ -59,7 +60,7 @@ public class TaskReminderTest extends ConstellioTest {
 			throws Exception {
 		TaskReminder taskReminder = new TaskReminder().setBeforeRelativeDate(false).setNumberOfDaysToRelativeDate(0)
 				.setRelativeDateMetadataCode(Task.START_DATE);
-		assertThat(taskReminder.computeDate(zeTask)).isEqualTo(startDate);
+		assertThat(taskReminder.computeDate(zeTask)).isEqualTo(startDate.toLocalDate());
 	}
 
 	@Test

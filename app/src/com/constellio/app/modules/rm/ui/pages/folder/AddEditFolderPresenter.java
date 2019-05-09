@@ -1,34 +1,5 @@
 package com.constellio.app.modules.rm.ui.pages.folder;
 
-import static com.constellio.app.modules.rm.wrappers.Folder.ADMINISTRATIVE_UNIT;
-import static com.constellio.app.modules.rm.wrappers.Folder.ADMINISTRATIVE_UNIT_ENTERED;
-import static com.constellio.app.modules.rm.wrappers.Folder.CATEGORY;
-import static com.constellio.app.modules.rm.wrappers.Folder.CATEGORY_ENTERED;
-import static com.constellio.app.modules.rm.wrappers.Folder.COPY_STATUS;
-import static com.constellio.app.modules.rm.wrappers.Folder.COPY_STATUS_ENTERED;
-import static com.constellio.app.modules.rm.wrappers.Folder.MAIN_COPY_RULE;
-import static com.constellio.app.modules.rm.wrappers.Folder.MAIN_COPY_RULE_ID_ENTERED;
-import static com.constellio.app.modules.rm.wrappers.Folder.RETENTION_RULE;
-import static com.constellio.app.modules.rm.wrappers.Folder.RETENTION_RULE_ENTERED;
-import static com.constellio.app.modules.rm.wrappers.Folder.UNIFORM_SUBDIVISION;
-import static com.constellio.app.modules.rm.wrappers.Folder.UNIFORM_SUBDIVISION_ENTERED;
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.extensions.records.params.GetDynamicFieldMetadatasParams;
 import com.constellio.app.modules.rm.ConstellioRMModule;
@@ -97,6 +68,34 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.StatusFilter;
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.modules.rm.wrappers.Folder.ADMINISTRATIVE_UNIT;
+import static com.constellio.app.modules.rm.wrappers.Folder.ADMINISTRATIVE_UNIT_ENTERED;
+import static com.constellio.app.modules.rm.wrappers.Folder.CATEGORY;
+import static com.constellio.app.modules.rm.wrappers.Folder.CATEGORY_ENTERED;
+import static com.constellio.app.modules.rm.wrappers.Folder.COPY_STATUS;
+import static com.constellio.app.modules.rm.wrappers.Folder.COPY_STATUS_ENTERED;
+import static com.constellio.app.modules.rm.wrappers.Folder.MAIN_COPY_RULE;
+import static com.constellio.app.modules.rm.wrappers.Folder.MAIN_COPY_RULE_ID_ENTERED;
+import static com.constellio.app.modules.rm.wrappers.Folder.RETENTION_RULE;
+import static com.constellio.app.modules.rm.wrappers.Folder.RETENTION_RULE_ENTERED;
+import static com.constellio.app.modules.rm.wrappers.Folder.UNIFORM_SUBDIVISION;
+import static com.constellio.app.modules.rm.wrappers.Folder.UNIFORM_SUBDIVISION_ENTERED;
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFolderView> {
 
@@ -126,12 +125,22 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 	private RMModuleExtensions rmModuleExtensions;
 	private transient MediumTypeService mediumTypeService;
 
-	public AddEditFolderPresenter(AddEditFolderView view) {
+	public AddEditFolderPresenter(AddEditFolderView view, RecordVO recordVO) {
 		super(view, Folder.DEFAULT_SCHEMA);
 		rmModuleExtensions = view.getConstellioFactories().getAppLayerFactory().getExtensions()
 				.forCollection(view.getCollection()).forModule(ConstellioRMModule.ID);
 
 		initTransientObjects();
+
+		if (recordVO != null) {
+			FolderVO folderVO;
+			if (recordVO instanceof FolderVO) {
+				folderVO = (FolderVO) recordVO;
+			} else {
+				folderVO = voBuilder.build(rmSchemasRecordsServices.getFolder(recordVO.getId()).getWrappedRecord(), VIEW_MODE.FORM, view.getSessionContext());
+			}
+			setFolderVO(folderVO);
+		}
 	}
 
 	private void readObject(java.io.ObjectInputStream stream)
@@ -160,54 +169,59 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 	}
 
 	public void forParams(String params) {
-		Map<String, String> paramsMap = ParamUtils.getParamsMap(params);
-		String id = paramsMap.get(ID);
-		String parentId = paramsMap.get(PARENT_ID);
-		userFolderId = paramsMap.get(USER_FOLDER_ID);
-		this.params = paramsMap;
+		if (params != null) {
+			Map<String, String> paramsMap = ParamUtils.getParamsMap(params);
+			String id = paramsMap.get(ID);
+			String parentId = paramsMap.get(PARENT_ID);
+			userFolderId = paramsMap.get(USER_FOLDER_ID);
+			this.params = paramsMap;
 
-		Record record;
-		if (StringUtils.isNotBlank(id)) {
-			record = getRecord(id);
-			addView = false;
+			Record record;
+			if (StringUtils.isNotBlank(id)) {
+				record = getRecord(id);
+				addView = false;
 
-		} else if (parentId == null) {
-			record = newRecord();
-			addView = true;
-			if (StringUtils.isNotBlank(userFolderId)) {
-				populateFromUserFolder(record);
-			}
-		} else {
-			Folder folder = new RMSchemasRecordsServices(collection, appLayerFactory).getFolder(parentId);
-			record = new DecommissioningService(collection, appLayerFactory).newSubFolderIn(folder).getWrappedRecord();
-			addView = true;
-		}
-
-		isDuplicateAction = paramsMap.containsKey(DUPLICATE);
-		isDuplicateStructureAction = isDuplicateAction && paramsMap.containsKey(STRUCTURE);
-		if (isDuplicateStructureAction) {
-			Folder folder = rmSchemas().wrapFolder(record);
-			try {
-				record = decommissioningService().duplicateStructure(folder, getCurrentUser(), false).getWrappedRecord();
-			} catch (RecordServicesException.ValidationException e) {
-				view.showErrorMessage($(e.getErrors()));
-				view.navigate().to().home();
-			} catch (Exception e) {
-				view.showErrorMessage(e.getMessage());
-				view.navigate().to().home();
+			} else if (parentId == null) {
+				record = newRecord();
+				addView = true;
+				if (StringUtils.isNotBlank(userFolderId)) {
+					populateFromUserFolder(record);
+				}
+			} else {
+				Folder folder = new RMSchemasRecordsServices(collection, appLayerFactory).getFolder(parentId);
+				record = new DecommissioningService(collection, appLayerFactory).newSubFolderIn(folder).getWrappedRecord();
+				addView = true;
 			}
 
-		} else if (isDuplicateAction) {
-			Folder folder = rmSchemas().wrapFolder(record);
-			record = decommissioningService().duplicate(folder, getCurrentUser(), false).getWrappedRecord();
-		}
+			isDuplicateAction = paramsMap.containsKey(DUPLICATE);
+			isDuplicateStructureAction = isDuplicateAction && paramsMap.containsKey(STRUCTURE);
+			if (isDuplicateStructureAction) {
+				Folder folder = rmSchemas().wrapFolder(record);
+				try {
+					record = decommissioningService().duplicateStructure(folder, getCurrentUser(), false).getWrappedRecord();
+				} catch (RecordServicesException.ValidationException e) {
+					view.showErrorMessage($(e.getErrors()));
+					view.navigate().to().home();
+				} catch (Exception e) {
+					view.showErrorMessage(e.getMessage());
+					view.navigate().to().home();
+				}
 
-		folderVO = voBuilder.build(record, VIEW_MODE.FORM, view.getSessionContext());
+			} else if (isDuplicateAction) {
+				Folder folder = rmSchemas().wrapFolder(record);
+				record = decommissioningService().duplicate(folder, getCurrentUser(), false).getWrappedRecord();
+			}
+			FolderVO folderVO = voBuilder.build(record, VIEW_MODE.FORM, view.getSessionContext());
+			setFolderVO(folderVO);
+		}
+	}
+
+	private void setFolderVO(FolderVO folderVO) {
+		this.folderVO = folderVO;
 		folderHadAParent = folderVO.getParentFolder() != null;
 		folderHasParent = folderHadAParent;
 		currentSchemaCode = folderVO.getSchema().getCode();
 		setSchemaCode(currentSchemaCode);
-
 		view.setRecord(folderVO);
 	}
 
@@ -441,6 +455,10 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 				// Ignore
 			}
 		}
+
+		//TODO REMOVE DUPLICATION OF CODE WITH reloadForm
+		folderVO = voBuilder.build(folderRecord, VIEW_MODE.FORM, view.getSessionContext());
+		view.setRecord(folderVO);
 
 		reloadForm();
 	}

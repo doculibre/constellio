@@ -76,6 +76,7 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.SchemasRecordsServices;
+import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.entities.SearchBoost;
 
@@ -302,7 +303,7 @@ public class CoreMigrationCombo implements ComboMigrationScript {
 				generatedFastCoreMigration.applyGeneratedSchemaAlteration(typesBuilder);
 
 			}
-
+			new CommonMetadataBuilder().addCommonMetadataToAllExistingSchemas(typesBuilder);
 			//
 			//
 			//			typesBuilder.getDefaultSchema(User.SCHEMA_TYPE).get(User.ADDRESS).addLabel(Language.French, "Adresse");

@@ -485,7 +485,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 
 	protected SearchResultTable buildDetailedResultsTable(SearchResultVODataProvider dataProvider) {
 		SearchResultContainer container = buildResultContainer(dataProvider);
-		SearchResultDetailedTable srTable = new SearchResultDetailedTable(container, presenter.isAllowDownloadZip()) {
+		SearchResultDetailedTable srTable = new SearchResultDetailedTable(container, presenter.isAllowDownloadZip(), presenter.isShowNumberingColumn()) {
 			@Override
 			protected void onPreviousPageButtonClicked() {
 				super.onPreviousPageButtonClicked();
@@ -558,7 +558,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		RecordDisplayFactory displayFactory = new RecordDisplayFactory(getSessionContext().getCurrentUser(), extraParameters);
 		SearchResultVOLazyContainer results = new SearchResultVOLazyContainer(dataProvider);
 		SearchResultContainer container = new SearchResultContainer(results, displayFactory,
-				presenter.getSearchQuery().getFreeTextQuery()) {
+				presenter.getSearchQuery().getFreeTextQuery(), presenter.isShowNumberingColumn()) {
 			@Override
 			protected ClickListener getClickListener(final SearchResultVO searchResultVO) {
 				return new ClickListener() {

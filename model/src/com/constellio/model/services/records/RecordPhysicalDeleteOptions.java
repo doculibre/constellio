@@ -2,7 +2,8 @@ package com.constellio.model.services.records;
 
 public class RecordPhysicalDeleteOptions {
 
-	boolean setMostReferencesToNull;
+	private boolean setMostReferencesToNull;
+	private boolean skipValidations;
 
 	PhysicalDeleteTaxonomyRecordsBehavior behaviorForRecordsAttachedToTaxonomy = PhysicalDeleteTaxonomyRecordsBehavior.KEEP_RECORDS;
 
@@ -22,6 +23,15 @@ public class RecordPhysicalDeleteOptions {
 
 	public RecordPhysicalDeleteOptions setMostReferencesToNull(boolean setMostReferencesToNull) {
 		this.setMostReferencesToNull = setMostReferencesToNull;
+		return this;
+	}
+
+	public boolean isSkipValidations() {
+		return skipValidations;
+	}
+
+	public RecordPhysicalDeleteOptions setSkipValidations(boolean skipValidations) {
+		this.skipValidations = skipValidations;
 		return this;
 	}
 

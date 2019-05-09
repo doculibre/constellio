@@ -1256,4 +1256,9 @@ public class RecordImpl implements Record {
 		values.remove(value);
 		set(metadata, values);
 	}
+
+	@Override
+	public Record get() {
+		return this;
+	}
 }

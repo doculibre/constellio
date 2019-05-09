@@ -40,8 +40,7 @@ sourceSets {
 
 eclipse {
     project {
-        name = 'model'
-        buildCommand 'compileJava'
+        name = 'Core Model'
     }
 }
 

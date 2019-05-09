@@ -42,6 +42,8 @@ public class Transaction {
 	private String collection;
 	private Map<String, ParsedContent> parsedContentCache = new HashMap<>();
 
+	boolean isOnlyBeingPrepared = true;
+
 	public Transaction() {
 	}
 
@@ -86,6 +88,14 @@ public class Transaction {
 
 	public boolean isContainingUpdatedRecord(Record record) {
 		return updatedRecordsMap.containsKey(record.getId());
+	}
+
+	public boolean isOnlyBeingPrepared() {
+		return isOnlyBeingPrepared;
+	}
+
+	public void setOnlyBeingPrepared(boolean onlyBeingPrepared) {
+		isOnlyBeingPrepared = onlyBeingPrepared;
 	}
 
 	public Transaction addRecordToReindex(String id) {

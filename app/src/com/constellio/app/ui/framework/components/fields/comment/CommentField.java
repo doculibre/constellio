@@ -20,6 +20,7 @@ public class CommentField extends CustomField<Comment> {
 		textArea.setConverter(converter);
 		textArea.setImmediate(false);
 		textArea.setWidth("100%");
+		textArea.setPropertyDataSource(this);
 	}
 
 	@Override

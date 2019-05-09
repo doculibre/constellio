@@ -10,8 +10,9 @@ import com.constellio.model.services.schemas.MetadataList;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Locale;
+import java.util.function.Supplier;
 
-public interface Record extends Serializable, CollectionObject {
+public interface Record extends Serializable, CollectionObject, Supplier<Record> {
 
 	String PUBLIC_TOKEN = "__public__";
 

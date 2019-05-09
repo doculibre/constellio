@@ -71,6 +71,7 @@ public class RMMigrationTo9_0 implements MigrationScript {
 			}
 		}
 
+
 		List<Role> roleList1 = rolesManager.getAllRoles(collection);
 
 		for (Role role : roleList1) {

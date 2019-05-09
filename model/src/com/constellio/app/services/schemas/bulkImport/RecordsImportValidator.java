@@ -14,6 +14,7 @@ import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.CannotGetMetadatasOfAnotherSchemaType;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.extensions.events.recordsImport.PrevalidationParams;
@@ -38,6 +39,7 @@ import static com.constellio.app.services.schemas.bulkImport.RecordsImportServic
 import static com.constellio.app.services.schemas.bulkImport.RecordsImportServicesExecutor.ALL_BOOLEAN_YES;
 import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.entities.schemas.entries.DataEntryType.CALCULATED;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.SEQUENCE;
 
@@ -363,6 +365,12 @@ public class RecordsImportValidator {
 			//return SYSTEM_RESERVED_METADATA_CODE;
 		} else if (!metadata.isEnabled()) {
 			//return DISABLED_METADATA_CODE;
+
+		} else if (metadata.getDataEntry().getType() == CALCULATED) {
+			if (!((CalculatedDataEntry) metadata.getDataEntry()).getCalculator().hasEvaluator()) {
+				errors.add(RecordsImportServices.class, AUTOMATIC_METADATA_CODE, toMetadataParameters(metadata));
+			}
+
 		} else if (metadata.getDataEntry().getType() != MANUAL && metadata.getDataEntry().getType() != SEQUENCE) {
 			errors.add(RecordsImportServices.class, AUTOMATIC_METADATA_CODE, toMetadataParameters(metadata));
 		}

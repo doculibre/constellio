@@ -1,7 +1,5 @@
 package com.constellio.app.modules.tasks.navigation;
 
-import java.io.Serializable;
-
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.modules.rm.RMConfigs;
@@ -32,6 +30,8 @@ import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.wrappers.User;
 import com.vaadin.navigator.View;
 import com.vaadin.server.FontAwesome;
+
+import java.io.Serializable;
 
 public class TasksNavigationConfiguration implements Serializable {
 	public static final String TASK_MANAGEMENT = "taskManagement";
@@ -102,7 +102,7 @@ public class TasksNavigationConfiguration implements Serializable {
 
 			@Override
 			public int getOrderValue() {
-				return 30;
+				return 20;
 			}
 
 			@Override
@@ -115,14 +115,11 @@ public class TasksNavigationConfiguration implements Serializable {
 				if (user != null) {
 					TasksSchemasRecordsServices tasksSchemasRecordsServices = new TasksSchemasRecordsServices(user.getCollection(), appLayerFactory);
 					TasksSearchServices tasksSearchServices = new TasksSearchServices(tasksSchemasRecordsServices);
-
 					if (Toggle.SHOW_UNREAD_TASKS.isEnabled()) {
 						long unreadCount = tasksSearchServices.getCountUnreadTasksToUserQuery(user);
 						return unreadCount > 0 ? "" + unreadCount : "";
-
 					}
 				}
-
 				return "";
 			}
 		});

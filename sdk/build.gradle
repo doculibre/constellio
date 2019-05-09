@@ -13,14 +13,29 @@ dependencies {
     compile 'org.seleniumhq.selenium:selenium-firefox-driver:2.39.0'
     compile 'javax.servlet:javax.servlet-api:3.1.0'
     compile "com.carrotsearch:junit-benchmarks:0.7.2"
-    compile 'junit:junit:4.11'
+    compile 'junit:junit:4.12'
     compile 'org.assertj:assertj-core:1.6.0'
     compile 'com.github.detro.ghostdriver:phantomjsdriver:1.1.0'
     compile 'org.apache.chemistry.opencmis:chemistry-opencmis-client-impl:1.1.0'
     compile "com.squareup:javapoet:1.7.0"
 }
 
-configurations {
+configurations.all {
+    resolutionStrategy {
+    	def seleniumVersion = '3.141.59'
+        force 'org.seleniumhq.selenium:selenium-api:' + seleniumVersion
+        force 'org.seleniumhq.selenium:selenium-chrome-driver:' + seleniumVersion
+        force 'org.seleniumhq.selenium:selenium-edge-driver:' + seleniumVersion
+        force 'org.seleniumhq.selenium:selenium-firefox-driver:' + seleniumVersion
+        force 'org.seleniumhq.selenium:selenium-firefox-xpi-driver:' + seleniumVersion
+        force 'org.seleniumhq.selenium:selenium-ie-driver:' + seleniumVersion
+        force 'org.seleniumhq.selenium:selenium-java:' + seleniumVersion
+        force 'org.seleniumhq.selenium:selenium-opera-driver:' + seleniumVersion
+        force 'org.seleniumhq.selenium:selenium-remote-driver:' + seleniumVersion
+        force 'org.seleniumhq.selenium:selenium-safari-driver:' + seleniumVersion
+        force 'org.seleniumhq.selenium:selenium-server:' + seleniumVersion
+        force 'org.seleniumhq.selenium:selenium-support:' + seleniumVersion
+    }
 }
 
 task printClasspath {
@@ -31,7 +46,7 @@ task printClasspath {
 
 eclipse {
     project {
-        name = 'sdk'
+        name = 'SDK'
         buildCommand 'compileJava'
     }
 }

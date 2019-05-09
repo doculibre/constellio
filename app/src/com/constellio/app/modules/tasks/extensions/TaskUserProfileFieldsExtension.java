@@ -2,10 +2,6 @@ package com.constellio.app.modules.tasks.extensions;
 
 import com.constellio.app.api.extensions.PagesComponentsExtension;
 import com.constellio.app.api.extensions.params.RecordFieldsExtensionParams;
-import com.constellio.app.extensions.records.RecordAppExtension;
-import com.constellio.app.extensions.records.params.BuildRecordVOParams;
-import com.constellio.app.extensions.records.params.GetIconPathParams;
-import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.TaskUser;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollower;
 import com.constellio.app.modules.tasks.ui.builders.TaskFollowerFromVOBuilder;
@@ -13,21 +9,15 @@ import com.constellio.app.modules.tasks.ui.builders.TaskToVOBuilder;
 import com.constellio.app.modules.tasks.ui.components.fields.TaskFollowerFieldImpl;
 import com.constellio.app.modules.tasks.ui.entities.TaskFollowerVO;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.fields.AdditionnalRecordField;
 import com.constellio.app.ui.pages.profile.ModifyProfileView;
 import com.constellio.model.entities.Language;
-import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.records.SchemasRecordsServices;
-import com.constellio.model.services.schemas.SchemaUtils;
 import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.Field;
 
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -52,8 +42,9 @@ public class TaskUserProfileFieldsExtension extends PagesComponentsExtension {
 		if(params.getMainComponent() instanceof ModifyProfileView) {
 			AdditionnalRecordField autoAssigningField = buildAutoAssigningField(params);
             AdditionnalRecordField taskFollowerField = buildTaskFollowerField(params);
+			AdditionnalRecordField taskAssignationEmailReceptionField = buildAssignationEmailReceptionField(params);
 
-			additionnalFields.addAll(asList(autoAssigningField, taskFollowerField));
+			additionnalFields.addAll(asList(autoAssigningField, taskFollowerField, taskAssignationEmailReceptionField));
 		}
 		return additionnalFields;
 	}
@@ -95,6 +86,19 @@ public class TaskUserProfileFieldsExtension extends PagesComponentsExtension {
 
         return autoAssigningField;
     }
+
+
+	private AdditionnalRecordField buildAssignationEmailReceptionField(RecordFieldsExtensionParams params) {
+		User user = new SchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory()).wrapUser(params.getRecord());
+		AssignationEmailReceptionField assignationEmailReceptionField = new AssignationEmailReceptionField();
+		if (Boolean.TRUE.equals(user.get(User.ASSIGNATION_EMAIL_RECEPTION_DISABLED))) {
+			assignationEmailReceptionField.setValue(true);
+		} else {
+			assignationEmailReceptionField.setValue(false);
+		}
+
+		return assignationEmailReceptionField;
+	}
 
 	private class TaskFollowerAdditionalFieldImpl extends TaskFollowerFieldImpl implements AdditionnalRecordField<TaskFollowerVO> {
 
@@ -142,4 +146,22 @@ public class TaskUserProfileFieldsExtension extends PagesComponentsExtension {
             return getValue();
         }
     }
+
+	private class AssignationEmailReceptionField extends CheckBox implements AdditionnalRecordField<Boolean> {
+
+		public AssignationEmailReceptionField() {
+			super($("TaskUserProfileFieldsExtension.disableEmailForTaskAssignee"));
+		}
+
+		@Override
+		public String getMetadataLocalCode() {
+			return User.ASSIGNATION_EMAIL_RECEPTION_DISABLED;
+		}
+
+		@Override
+		public Object getCommittableValue() {
+			return getValue();
+		}
+	}
+
 }

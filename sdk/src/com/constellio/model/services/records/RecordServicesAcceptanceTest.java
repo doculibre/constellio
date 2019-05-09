@@ -1042,7 +1042,8 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 
 		zeSchemaRecord.set(zeSchema.getCopiedMeta(), "b");
 
-		verify(recordServices, times(3)).execute(savedTransaction.capture());
+		verify(recordServices, times(1)).execute(transaction);
+		verify(recordServices, times(3)).execute(savedTransaction.capture(), anyInt());
 		Transaction firstNestedTransaction = savedTransaction.getAllValues().get(1);
 		Transaction secondNestedTransaction = savedTransaction.getAllValues().get(2);
 

@@ -1,13 +1,5 @@
 package com.constellio.app.ui.framework.components.fields.lookup;
 
-import static com.constellio.app.services.factories.ConstellioFactories.getInstance;
-import static com.constellio.app.ui.application.ConstellioUI.getCurrentSessionContext;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.RecordVO;
@@ -36,6 +28,13 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.users.UserServices;
 import com.vaadin.ui.Component;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.services.factories.ConstellioFactories.getInstance;
+import static com.constellio.app.ui.application.ConstellioUI.getCurrentSessionContext;
 
 public class LookupRecordField extends LookupField<String> {
 
@@ -207,8 +206,9 @@ public class LookupRecordField extends LookupField<String> {
 	}
 
 	@Override
-	protected LazyTree<String> newLazyTree(final LookupTreeDataProvider<String> lookupTreeDataProvider, int treeBufferSize) {
-		return new RecordLazyTree(lookupTreeDataProvider, treeBufferSize) {
+	protected LazyTree<String> newLazyTree(final LookupTreeDataProvider<String> lookupTreeDataProvider,
+										   int treeBufferSize, boolean multiValue) {
+		return new RecordLazyTree(lookupTreeDataProvider, treeBufferSize, multiValue) {
 			@Override
 			protected boolean isSelectable(String object) {
 				return lookupTreeDataProvider.isSelectable(object);

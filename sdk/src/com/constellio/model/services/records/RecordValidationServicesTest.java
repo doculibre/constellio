@@ -26,7 +26,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static com.constellio.sdk.tests.TestUtils.mockMetadata;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doReturn;
@@ -126,15 +125,4 @@ public class RecordValidationServicesTest extends ConstellioTest {
 		verify(validator3).validate(eq(thirdMetadata), eq(aStringValue), any(ConfigProvider.class), any(ValidationErrors.class));
 	}
 
-	@Test
-	public void whenValidatingManualMetadatasdThenAutomaticMetadatasNotValidated()
-			throws Exception {
-		when(firstMetadata.getDataEntry()).thenReturn(manualDataEntry);
-		when(secondMetadata.getDataEntry()).thenReturn(copiedDataEntry);
-		when(thirdMetadata.getDataEntry()).thenReturn(calculatedDataEntry);
-
-		services.validateManualMetadatas(record, recordProvider, transaction);
-
-		assertThat(services.getManualMetadatas(schema)).containsExactly(firstMetadata);
-	}
 }

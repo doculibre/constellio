@@ -13,12 +13,14 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.utils.EnumWithSmallCodeUtils;
 import com.constellio.sdk.dev.tools.CompareI18nKeys;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 
 import java.io.BufferedReader;
@@ -136,7 +138,7 @@ public class I18NAcceptationAcceptTest extends ConstellioTest {
 						"AdvancedSearchView.unclosedParentheses", "BatchProcessingEntryTable.index",
 						"DisplayDocumentWindow.sign.password", "ContainersByAdministrativeUnitsView.tableTitle",
 						"DocumentContextMenu.sign", "traversalCode", "Name", "ImportConfigsView.OnlyXmlAccepted",
-						"BatchProcessingEntryTable.type", "facerOrder", "BatchProcessingEntryTable.mapping", "id"));
+						"BatchProcessingEntryTable.type", "facerOrder", "BatchProcessingEntryTable.mapping", "id", "guide"));
 	}
 
 	private void scanJavaFileRetrievingKeys(Set<String> keys, File javaFile) {
@@ -380,7 +382,13 @@ public class I18NAcceptationAcceptTest extends ConstellioTest {
 
 	private void addIfNoValue(String title) {
 		if (title.startsWith("init.")) {
-			if (!missingKeys.contains(title)) {
+
+			if (Schemas.isGlobalMetadata(StringUtils.substringAfterLast(title, "."))) {
+				String allTypesKey = "init.allTypes.allSchemas." + StringUtils.substringAfterLast(title, ".");
+				if (!missingKeys.contains(allTypesKey)) {
+					missingKeys.add(allTypesKey);
+				}
+			} else if (!missingKeys.contains(title)) {
 				missingKeys.add(title);
 			}
 		}

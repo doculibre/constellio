@@ -1,6 +1,9 @@
 package com.constellio.app.ui.pages.management.taxonomy;
 
+import com.constellio.app.api.extensions.params.RecordFieldFactoryExtensionParams;
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.framework.components.RecordForm;
 import com.constellio.app.ui.framework.components.fields.upload.ContentVersionUploadField;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
@@ -35,9 +38,17 @@ public class AddEditTaxonomyConceptViewImpl extends BaseViewImpl implements AddE
 		return $("AddEditTaxonomyConceptView.viewTitle");
 	}
 
+	private RecordFieldFactory getRecordFieldFactory() {
+		RecordFieldFactoryExtensionParams params = new RecordFieldFactoryExtensionParams(getClass().getName(), null, recordVO);
+		String collection = ConstellioUI.getCurrentSessionContext().getCurrentCollection();
+		return ConstellioUI.getCurrent().getConstellioFactories().getAppLayerFactory().getExtensions().forCollection(collection).newRecordFieldFactory(params);
+	}
+
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
-		RecordForm recordForm = new RecordForm(recordVO) {
+
+		RecordFieldFactory formFieldFactory = getRecordFieldFactory();
+		RecordForm recordForm = new RecordForm(recordVO, formFieldFactory) {
 			@Override
 			protected void saveButtonClick(RecordVO recordVO)
 					throws ValidationException {

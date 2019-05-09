@@ -10,6 +10,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.SchemaUtils;
@@ -46,7 +47,15 @@ public class RecordBuilder {
 		MetadataSchema schema = modelLayerFactory.getMetadataSchemasManager()
 				.getSchemaTypes(collection).getSchema(record.getSchemaCode());
 		for (Metadata metadata : schema.getMetadatas()) {
+			boolean writeAllowed = false;
 			if (metadata.getDataEntry().getType() == DataEntryType.MANUAL) {
+				writeAllowed = true;
+			}
+			if (metadata.getDataEntry().getType() == DataEntryType.CALCULATED) {
+				writeAllowed = ((CalculatedDataEntry) metadata.getDataEntry()).getCalculator().hasEvaluator();
+			}
+
+			if (writeAllowed) {
 				setMetadataFromProperty(record, metadata);
 			}
 		}

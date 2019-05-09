@@ -71,7 +71,6 @@ public class Task extends RecordWrapper {
 
 	public static final String BETA_WORKFLOW = "workflow";
 	public static final String BETA_WORKFLOW_INSTANCE = "workflowInstance";
-	public static final String BETA_WORKFLOW_TASK_SORT = "workflowTaskSort";
 	public static final String BETA_NEXT_TASKS_DECISIONS = "nextTasksDecisions";
 	public static final String BETA_NEXT_TASKS = "nextTasks";
 	public static final String BETA_NEXT_TASK_CREATED = "nextTaskCreated";

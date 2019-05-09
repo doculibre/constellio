@@ -1,6 +1,7 @@
 package com.constellio.app.ui.pages.management.collections;
 
 import com.constellio.app.modules.rm.ConstellioRMModule;
+import com.constellio.app.modules.tasks.TaskModule;
 import com.constellio.app.services.collections.CollectionsManager;
 import com.constellio.app.ui.framework.data.CollectionVODataProvider.CollectionVO;
 import com.constellio.app.ui.pages.base.BasePresenter;
@@ -172,6 +173,7 @@ public class AddEditCollectionPresenter extends BasePresenter<AddEditCollectionV
 		Set<String> languages = entity.getSupportedLanguages();
 		Record record = collectionsManager
 				.createCollectionInCurrentVersion(collectionCode, collectionName, new ArrayList<>(languages));
+
 		Set<String> returnValue = updateCollectionModules(entity, record, collectionCode, modules);
 		runScriptsFromConfigs(collectionCode);
 
@@ -199,7 +201,15 @@ public class AddEditCollectionPresenter extends BasePresenter<AddEditCollectionV
 										Set<String> modules) {
 		List<String> roles = new ArrayList<>();
 		Set<String> invalidModules = new HashSet<>();
-		for (String currentModule : modules) {
+
+		List<String> sortedModules = new ArrayList<>(modules);
+
+		if (sortedModules.contains(ConstellioRMModule.ID)) {
+			sortedModules.remove(TaskModule.ID);
+			sortedModules.add(0, TaskModule.ID);
+		}
+
+		for (String currentModule : sortedModules) {
 			Module module = modulesManager.getInstalledModule(currentModule);
 			if (!modulesManager.isInstalled(module)) {
 				invalidModules.addAll(modulesManager.installValidModuleAndGetInvalidOnes(module, collectionsListManager));
@@ -208,7 +218,7 @@ public class AddEditCollectionPresenter extends BasePresenter<AddEditCollectionV
 			roles.addAll(PluginUtil.getRolesForCreator(module));
 		}
 
-		boolean isRMCollection = modules.contains(ConstellioRMModule.ID);
+		boolean isRMCollection = sortedModules.contains(ConstellioRMModule.ID);
 		String conservationCalendarNumber = isRMCollection ? entity.getConservationCalendarNumber() : null;
 		String organizationNumber = isRMCollection ? entity.getOrganizationNumber() : null;
 		try {

@@ -33,7 +33,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import static com.constellio.data.utils.AccentApostropheCleaner.cleanPonctuation;
+import static com.constellio.data.utils.AccentApostropheCleaner.cleanPonctuationExceptDot;
 import static com.constellio.data.utils.AccentApostropheCleaner.removeAccents;
 import static com.constellio.model.entities.schemas.MetadataValueType.CONTENT;
 import static org.apache.commons.io.FilenameUtils.getExtension;
@@ -226,7 +226,7 @@ public class RecordSIPWriter {
 			Map<String, byte[]> attachements = new EmailParser().parseEmailAttachements(content.getFilename(), in);
 			for (Entry<String, byte[]> entry : attachements.entrySet()) {
 
-				String attachmentFilename = cleanPonctuation(removeAccents(entry.getKey()));
+				String attachmentFilename = cleanPonctuationExceptDot(removeAccents(entry.getKey()));
 				if (StringUtils.isNotBlank(getExtension(attachmentFilename))) {
 					String attachmentFileId = fileId + "-" + attachmentFilename;
 					String attachmentPath = ctx.parentPath + "/" + attachmentFileId;

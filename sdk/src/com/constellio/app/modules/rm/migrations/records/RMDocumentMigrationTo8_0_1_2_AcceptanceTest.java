@@ -3,7 +3,9 @@ package com.constellio.app.modules.rm.migrations.records;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.data.dao.services.contents.ContentDao;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -19,41 +21,48 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class RMDocumentMigrationTo8_0_1_2_AcceptanceTest extends ConstellioTest {
 
-    private final static String STREAM_NAME = "RMDocumentMigrationTo8_0_1_2_AcceptanceTest";
+	private final static String STREAM_NAME = "RMDocumentMigrationTo8_0_1_2_AcceptanceTest";
 
-    @Test
-    public void givenSystemIn8_0_1_thenMigrated() throws Exception {
-        givenSystemIn8_0_1();
+	@Test
+	public void givenSystemIn8_0_1_thenMigrated() throws Exception {
+		givenSystemIn8_0_1();
 
-        RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
-        SearchServices searchServices = getModelLayerFactory().newSearchServices();
 
-        ContentManager contentManager = new ContentManager(getModelLayerFactory());
-        long count = searchServices.getResultsCount((new LogicalSearchQuery(from(rm.document.schemaType())
-                .where(rm.document.content()).isNotNull())));
-        for (int i = 0; i < count; i = i + 20) {
-            contentManager.convertPendingContentForPreview();
-            waitForBatchProcess();
-        }
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		SearchServices searchServices = getModelLayerFactory().newSearchServices();
 
-        List<Document> documentsWithContent = rm.wrapDocuments(searchServices
-                .search(new LogicalSearchQuery(from(rm.document.schemaType()).where(rm.document.content()).isNotNull())));
+		givenConfig(ConstellioEIMConfigs.ENABLE_THUMBNAIL_GENERATION, false);
+		givenConfig(ConstellioEIMConfigs.ENABLE_THUMBNAIL_GENERATION, true);
+		Thread.sleep(2000);
+		getModelLayerFactory().newRecordServices().flush();
 
-        ContentDao contentDao = getModelLayerFactory().getDataLayerFactory().getContentsDao();
-        for (Document document : documentsWithContent) {
-            String hash = document.getContent().getCurrentVersion().getHash();
-            try (InputStream inputStream = contentDao.getContentInputStream(hash + ".thumbnail", STREAM_NAME)) {
-                assertThat(inputStream).isNotNull();
-            }
-        }
-    }
+		ContentManager contentManager = new ContentManager(getModelLayerFactory());
+		LogicalSearchQuery query = new LogicalSearchQuery(from(rm.document.schemaType())
+				.where(Schemas.MARKED_FOR_PREVIEW_CONVERSION).isTrue());
+		while (searchServices.hasResults(query)) {
+			contentManager.convertPendingContentForPreview();
+			getModelLayerFactory().newRecordServices().flush();
+		}
 
-    private void givenSystemIn8_0_1() {
-        givenTransactionLogIsEnabled();
-        File statesFolder = new SDKFoldersLocator().getInitialStatesFolder();
-        File state = new File(statesFolder, "given_system_in_8_0_1_withThumbnailGenerationActivated.zip");
 
-        getCurrentTestSession().getFactoriesTestFeatures().givenSystemInState(state);
-    }
+		List<Document> documentsWithContent = rm.wrapDocuments(searchServices
+				.search(new LogicalSearchQuery(from(rm.document.schemaType()).where(rm.document.content()).isNotNull())));
+
+		ContentDao contentDao = getModelLayerFactory().getDataLayerFactory().getContentsDao();
+		for (Document document : documentsWithContent) {
+			String hash = document.getContent().getCurrentVersion().getHash();
+			try (InputStream inputStream = contentDao.getContentInputStream(hash + ".thumbnail", STREAM_NAME)) {
+				assertThat(inputStream).isNotNull();
+			}
+		}
+	}
+
+	private void givenSystemIn8_0_1() {
+		givenTransactionLogIsEnabled();
+		File statesFolder = new SDKFoldersLocator().getInitialStatesFolder();
+		File state = new File(statesFolder, "given_system_in_8_0_1_withThumbnailGenerationActivated.zip");
+
+		getCurrentTestSession().getFactoriesTestFeatures().givenSystemInState(state);
+	}
 
 }

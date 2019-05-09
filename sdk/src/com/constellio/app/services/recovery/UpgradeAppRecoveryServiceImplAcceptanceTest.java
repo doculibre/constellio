@@ -4,7 +4,6 @@ import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.data.dao.managers.config.values.TextConfiguration;
-import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
@@ -16,8 +15,6 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimisticLocking;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.SolrSDKToolsServices;
-import com.constellio.sdk.tests.SolrSDKToolsServices.VaultSnapshot;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Rule;
@@ -25,10 +22,6 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import static com.constellio.app.modules.rm.model.enums.CopyType.PRINCIPAL;
-import static com.constellio.app.services.recovery.UpdateRecoveryImpossibleCause.TOO_SHORT_MEMORY;
-import static com.constellio.app.services.recovery.UpdateRecoveryImpossibleCause.TOO_SHORT_SPACE;
-import static com.constellio.app.services.recovery.UpgradeAppRecoveryServiceImpl.REQUIRED_MEMORY_IN_MO;
-import static com.constellio.app.services.recovery.UpgradeAppRecoveryServiceImpl.REQUIRED_SPACE_IN_GIG;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
@@ -62,44 +55,6 @@ public class UpgradeAppRecoveryServiceImplAcceptanceTest extends ConstellioTest 
 	}
 
 	@Test
-	public void whenIsValidWarThenBehavesAsExpected()
-			throws Exception {
-		REQUIRED_MEMORY_IN_MO = 1;
-		REQUIRED_SPACE_IN_GIG = 1;
-		assertThat(upgradeAppRecoveryService.isUpdateWithRecoveryPossible()).isNull();
-
-		REQUIRED_MEMORY_IN_MO = 1000 * 1024;
-		assertThat(upgradeAppRecoveryService.isUpdateWithRecoveryPossible()).isEqualTo(TOO_SHORT_MEMORY);
-
-		REQUIRED_MEMORY_IN_MO = 1;
-		REQUIRED_SPACE_IN_GIG = 500 * 1024 * 1024;
-		assertThat(upgradeAppRecoveryService.isUpdateWithRecoveryPossible()).isEqualTo(TOO_SHORT_SPACE);
-	}
-
-	//@Test
-	public void givenRollBackStartedAndSomeModificationWhenRollbackThenSameStateAsBeforeStartingRollback()
-			throws Exception {
-		givenTimeIs(beforeStartRollBack);
-		initTestRecords();
-
-		RecordDao recordDao = getDataLayerFactory().newRecordDao();
-		SolrSDKToolsServices tools = new SolrSDKToolsServices(recordDao);
-
-		givenTimeIs(beforeStartRollBack.plusDays(1));
-		VaultSnapshot snapshotBeforeReplay = tools.snapshot();
-
-		upgradeAppRecoveryService.startRollbackMode();
-		someModification();
-		upgradeAppRecoveryService.rollback(null);
-
-		VaultSnapshot currentSnapShot = tools.snapshot();
-		tools.ensureSameSnapshots("", snapshotBeforeReplay, currentSnapShot);
-		TextConfiguration schemas = getDataLayerFactory().getConfigManager()
-				.getText(zeCollection + "/schemas.xml");
-		assertThat(schemas.getText().contains(addedSchemaTypeCode)).isFalse();
-	}
-
-	@Test
 	public void givenRollBackStartedAndSomeModificationWhenStopRollbackThenAllModificationsSaved()
 			throws Exception {
 		givenTimeIs(beforeStartRollBack);
@@ -115,12 +70,6 @@ public class UpgradeAppRecoveryServiceImplAcceptanceTest extends ConstellioTest 
 				.getText(zeCollection + "/schemas.xml");
 		assertThat(schemas.getText().contains(addedSchemaTypeCode)).isTrue();
 	}
-
-	//afterWarUpload
-	//prepareNextStartup
-	//deletePreviousWarCausingFailure
-	//afterWarUpload
-	//getTransactionLogFileSize
 
 	private void someModification()
 			throws RecordServicesException {

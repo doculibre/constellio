@@ -5,6 +5,7 @@ import com.constellio.data.dao.dto.records.RecordDeltaDTO;
 import com.constellio.data.dao.dto.records.SolrRecordDTO;
 import com.constellio.data.utils.Factory;
 import com.constellio.model.entities.CollectionInfo;
+import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordRuntimeException;
 import com.constellio.model.entities.records.RecordRuntimeException.CannotMerge;
@@ -80,6 +81,8 @@ public class RecordImplTest extends ConstellioTest {
 
 	@Mock Metadata textMetadata, numberMetadata, otherNumberMetadata, multipleTextMetadata, dateMetadata,
 			multipleBooleanMetadata, copyMetadata, calculatedMetadata, factoredMetadata, factoredListMetadata;
+
+	@Mock MetadataValueCalculator<String> calculator;
 
 	@Mock RecordDTO initialState, currentState;
 	@Mock MetadataSchema zeSchema;
@@ -167,7 +170,7 @@ public class RecordImplTest extends ConstellioTest {
 		when(calculatedMetadata.getCode()).thenReturn(theSchemaCode + "_" + calculatedMetadataCode);
 		when(calculatedMetadata.getDataStoreType()).thenReturn("s");
 		when(calculatedMetadata.getDataStoreCode()).thenReturn(calculatedMetadataCodeAndType);
-		when(calculatedMetadata.getDataEntry()).thenReturn(new CalculatedDataEntry(null));
+		when(calculatedMetadata.getDataEntry()).thenReturn(new CalculatedDataEntry(calculator));
 
 		when(zeSchema.getMetadata(factoredMetadataCode)).thenReturn(factoredMetadata);
 		when(factoredMetadata.getLocalCode()).thenReturn(factoredMetadataCode);

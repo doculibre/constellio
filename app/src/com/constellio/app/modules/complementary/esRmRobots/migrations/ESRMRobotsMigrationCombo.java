@@ -12,6 +12,7 @@ import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.security.roles.RolesManager;
 
@@ -106,6 +107,7 @@ public class ESRMRobotsMigrationCombo implements ComboMigrationScript {
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			generatedComboMigration.applyGeneratedSchemaAlteration(typesBuilder);
+			new CommonMetadataBuilder().addCommonMetadataToAllExistingSchemas(typesBuilder);
 		}
 
 	}

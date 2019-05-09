@@ -3,6 +3,7 @@ package com.constellio.app.ui.framework.components;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.table.BasePagedTable;
 import com.constellio.app.ui.framework.components.table.TablePropertyCache.CellKey;
+import com.constellio.app.ui.framework.components.table.columns.TableColumnsManager;
 import com.constellio.app.ui.framework.containers.SearchResultContainer;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingButton;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingModifyingOneMetadataButton;
@@ -54,11 +55,8 @@ public class SearchResultDetailedTable extends BasePagedTable<SearchResultContai
 	private Set<SelectionChangeListener> listeners;
 	private boolean withCheckBoxes;
 
-	public SearchResultDetailedTable(SearchResultContainer container) {
-		this(container, true);
-	}
 
-	public SearchResultDetailedTable(SearchResultContainer container, boolean withCheckBoxes) {
+	public SearchResultDetailedTable(SearchResultContainer container, boolean withCheckBoxes, boolean withIdColumn) {
 		super("SearchResultDetailedTable", container);
 
 		addStyleName(ValoTheme.TABLE_BORDERLESS);
@@ -111,27 +109,30 @@ public class SearchResultDetailedTable extends BasePagedTable<SearchResultContai
 
 		setContainerDataSource(container);
 		setColumnHeaderMode(ColumnHeaderMode.HIDDEN);
-		if (withCheckBoxes) {
-			if (Toggle.SEARCH_RESULTS_VIEWER.isEnabled()) {
-				setVisibleColumns(CHECKBOX_PROPERTY, SearchResultContainer.THUMBNAIL_PROPERTY, SearchResultContainer.INDEX_PROPERTY_ID, SearchResultContainer.SEARCH_RESULT_PROPERTY);
-			} else {
-				setVisibleColumns(CHECKBOX_PROPERTY, SearchResultContainer.INDEX_PROPERTY_ID, SearchResultContainer.SEARCH_RESULT_PROPERTY);
 
-			}
+		List<String> visibleColumns = new ArrayList<>();
+		if (withCheckBoxes) {
+			visibleColumns.add(CHECKBOX_PROPERTY);
 			setColumnWidth(CHECKBOX_PROPERTY, 44);
-		} else {
-			if (Toggle.SEARCH_RESULTS_VIEWER.isEnabled()) {
-				setVisibleColumns(SearchResultContainer.THUMBNAIL_PROPERTY, SearchResultContainer.INDEX_PROPERTY_ID, SearchResultContainer.SEARCH_RESULT_PROPERTY);
-			} else {
-				setVisibleColumns(SearchResultContainer.INDEX_PROPERTY_ID, SearchResultContainer.SEARCH_RESULT_PROPERTY);
-			}
 		}
-		setColumnWidth(SearchResultContainer.INDEX_PROPERTY_ID, 40);
+
 		if (Toggle.SEARCH_RESULTS_VIEWER.isEnabled()) {
+			visibleColumns.add(SearchResultContainer.THUMBNAIL_PROPERTY);
 			setColumnWidth(SearchResultContainer.THUMBNAIL_PROPERTY, SearchResultContainer.THUMBNAIL_WIDTH);
 		}
+
+		if (withIdColumn) {
+			visibleColumns.add(SearchResultContainer.INDEX_PROPERTY_ID);
+			setColumnWidth(SearchResultContainer.INDEX_PROPERTY_ID, 40);
+			setColumnAlignment(SearchResultContainer.INDEX_PROPERTY_ID, Align.LEFT);
+		}
+
+		visibleColumns.add(SearchResultContainer.SEARCH_RESULT_PROPERTY);
+		setVisibleColumns(visibleColumns.toArray());
+
+
 		setColumnExpandRatio(SearchResultContainer.SEARCH_RESULT_PROPERTY, 1);
-		setColumnAlignment(SearchResultContainer.INDEX_PROPERTY_ID, Align.LEFT);
+
 		setPageLength(Math.min(container.size(), DEFAULT_PAGE_LENGTH));
 	}
 
@@ -213,6 +214,15 @@ public class SearchResultDetailedTable extends BasePagedTable<SearchResultContai
 			}
 		}
 		return property;
+	}
+
+	@Override
+	protected TableColumnsManager newColumnsManager() {
+		List<Object> visibleColumns = new ArrayList<>(Arrays.asList(getVisibleColumns()));
+		visibleColumns.remove(CHECKBOX_PROPERTY);
+		visibleColumns.add(0, CHECKBOX_PROPERTY);
+		setVisibleColumns(visibleColumns.toArray(new Object[0]));
+		return super.newColumnsManager();
 	}
 
 	public List<String> getSelectedRecordIds() {

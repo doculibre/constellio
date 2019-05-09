@@ -187,6 +187,7 @@ public class ConnectorReportPresenter extends BasePresenter<ConnectorReportView>
 		final List<MetadataSchemaType> types = getMetadataSchemaTypes();
 
 		LogicalSearchCondition condition = from(types).where(es.connectorDocument.fetched()).isFalse();
+		condition = condition.andWhere(es.connectorDocument.connector()).isEqualTo(connectorId);
 		if (ConnectorReportView.ERRORS.equals(reportMode)) {
 			condition = condition.andWhere(es.connectorDocument.errorsCount()).isGreaterOrEqualThan(1);
 		}

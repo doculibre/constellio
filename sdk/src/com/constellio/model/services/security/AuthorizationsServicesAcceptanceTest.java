@@ -35,6 +35,7 @@ import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.assertj.core.api.Condition;
 import org.assertj.core.api.ListAssert;
+import org.joda.time.LocalDate;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -1279,7 +1280,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	public void givenAuthorizationsWithStartAndEndDateOnConceptThenOnlyActiveDuringSpecifiedTimerange()
 			throws Exception {
 
-		givenTimeIs(date(2016, 4, 4));
+		setTimeToCalling(date(2016, 4, 4));
 
 		//A daily authorizaiton
 		auth1 = add(authorizationForUser(aliceWonderland).on(TAXO1_FOND1_1)
@@ -1314,32 +1315,32 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 
 		services.refreshActivationForAllAuths(collectionsListManager.getCollections());
 
-		givenTimeIs(date(2016, 4, 4));
+		setTimeToCalling(date(2016, 4, 4));
 		for (RecordVerifier verifyRecord : $(TAXO1_FOND1_1, FOLDER2)) {
 			verifyRecord.usersWithWriteAccess().containsOnly(chuck, dakota, edouard, gandalf);
 		}
 
-		givenTimeIs(date(2016, 4, 5));
+		setTimeToCalling(date(2016, 4, 5));
 		for (RecordVerifier verifyRecord : $(TAXO1_FOND1_1, FOLDER2)) {
 			verifyRecord.usersWithWriteAccess().containsOnly(chuck, dakota, edouard, alice, bob, gandalf);
 		}
 
-		givenTimeIs(date(2016, 4, 6));
+		setTimeToCalling(date(2016, 4, 6));
 		for (RecordVerifier verifyRecord : $(TAXO1_FOND1_1, FOLDER2)) {
 			verifyRecord.usersWithWriteAccess().containsOnly(chuck, dakota, edouard, bob, gandalf);
 		}
 
-		givenTimeIs(date(2016, 4, 7));
+		setTimeToCalling(date(2016, 4, 7));
 		for (RecordVerifier verifyRecord : $(TAXO1_FOND1_1, FOLDER2)) {
 			verifyRecord.usersWithWriteAccess().containsOnly(chuck, edouard, bob, charles);
 		}
 
-		givenTimeIs(date(2016, 4, 8));
+		setTimeToCalling(date(2016, 4, 8));
 		for (RecordVerifier verifyRecord : $(TAXO1_FOND1_1, FOLDER2)) {
 			verifyRecord.usersWithWriteAccess().containsOnly(chuck, charles, edouard, bob);
 		}
 
-		givenTimeIs(date(2016, 4, 9));
+		setTimeToCalling(date(2016, 4, 9));
 		for (RecordVerifier verifyRecord : $(TAXO1_FOND1_1, FOLDER2)) {
 			verifyRecord.usersWithWriteAccess().containsOnly(chuck, charles, edouard);
 		}
@@ -1354,7 +1355,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	public void givenAuthorizationsWithStartAndEndDateOnNonConceptRecordThenOnlyActiveDuringSpecifiedTimerange()
 			throws Exception {
 
-		givenTimeIs(date(2016, 4, 4));
+		setTimeToCalling(date(2016, 4, 4));
 
 		//A daily authorizaiton
 		auth1 = add(authorizationForUser(aliceWonderland).on(FOLDER4)
@@ -1389,32 +1390,32 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 
 		services.refreshActivationForAllAuths(collectionsListManager.getCollections());
 
-		givenTimeIs(date(2016, 4, 4));
+		setTimeToCalling(date(2016, 4, 4));
 		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1_DOC1)) {
 			verifyRecord.usersWithWriteAccess().containsOnly(chuck, dakota, edouard, gandalf);
 		}
 
-		givenTimeIs(date(2016, 4, 5));
+		setTimeToCalling(date(2016, 4, 5));
 		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1_DOC1)) {
 			verifyRecord.usersWithWriteAccess().containsOnly(chuck, dakota, edouard, alice, bob, gandalf);
 		}
 
-		givenTimeIs(date(2016, 4, 6));
+		setTimeToCalling(date(2016, 4, 6));
 		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1_DOC1)) {
 			verifyRecord.usersWithWriteAccess().containsOnly(chuck, dakota, edouard, bob, gandalf);
 		}
 
-		givenTimeIs(date(2016, 4, 7));
+		setTimeToCalling(date(2016, 4, 7));
 		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1_DOC1)) {
 			verifyRecord.usersWithWriteAccess().containsOnly(chuck, edouard, bob, charles);
 		}
 
-		givenTimeIs(date(2016, 4, 8));
+		setTimeToCalling(date(2016, 4, 8));
 		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1_DOC1)) {
 			verifyRecord.usersWithWriteAccess().containsOnly(chuck, charles, edouard, bob);
 		}
 
-		givenTimeIs(date(2016, 4, 9));
+		setTimeToCalling(date(2016, 4, 9));
 		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1_DOC1)) {
 			verifyRecord.usersWithWriteAccess().containsOnly(chuck, charles, edouard);
 		}
@@ -1429,7 +1430,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	public void givenAuthorizationsWithStartAndEndDateOnFolderThenOnlyActiveDuringSpecifiedTimerange()
 			throws Exception {
 
-		givenTimeIs(date(2016, 4, 4));
+		setTimeToCalling(date(2016, 4, 4));
 
 		//A daily authorizaiton
 		auth1 = add(authorizationForUser(aliceWonderland).on(FOLDER4)
@@ -1464,32 +1465,32 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 
 		services.refreshActivationForAllAuths(collectionsListManager.getCollections());
 
-		givenTimeIs(date(2016, 4, 4));
+		setTimeToCalling(date(2016, 4, 4));
 		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_1_DOC1)) {
 			verifyRecord.usersWithWriteAccess().containsOnly(chuck, dakota, edouard, gandalf);
 		}
 
-		givenTimeIs(date(2016, 4, 5));
+		setTimeToCalling(date(2016, 4, 5));
 		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_1_DOC1)) {
 			verifyRecord.usersWithWriteAccess().containsOnly(chuck, dakota, edouard, alice, bob, gandalf);
 		}
 
-		givenTimeIs(date(2016, 4, 6));
+		setTimeToCalling(date(2016, 4, 6));
 		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_1_DOC1)) {
 			verifyRecord.usersWithWriteAccess().containsOnly(chuck, dakota, edouard, bob, gandalf);
 		}
 
-		givenTimeIs(date(2016, 4, 7));
+		setTimeToCalling(date(2016, 4, 7));
 		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_1_DOC1)) {
 			verifyRecord.usersWithWriteAccess().containsOnly(chuck, edouard, bob, charles);
 		}
 
-		givenTimeIs(date(2016, 4, 8));
+		setTimeToCalling(date(2016, 4, 8));
 		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_1_DOC1)) {
 			verifyRecord.usersWithWriteAccess().containsOnly(chuck, charles, edouard, bob);
 		}
 
-		givenTimeIs(date(2016, 4, 9));
+		setTimeToCalling(date(2016, 4, 9));
 		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_1_DOC1)) {
 			verifyRecord.usersWithWriteAccess().containsOnly(chuck, charles, edouard);
 		}
@@ -1983,7 +1984,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	public void whenModifyingMultipleFieldsAtOnceOnAnAuthorizationOfARecordThenAllApplied()
 			throws Exception {
 
-		givenTimeIs(date(2012, 10, 1));
+		setTimeToCalling(date(2012, 10, 1));
 		auth1 = add(authorizationForUser(sasquatch).on(TAXO1_CATEGORY2).givingReadWriteAccess());
 		assertThatAllAuthorizations().containsOnly(
 				authOnRecord(TAXO1_CATEGORY2).givingReadWrite().forPrincipals(sasquatch));
@@ -1998,7 +1999,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 				authOnRecord(TAXO1_CATEGORY2).givingReadWrite().forPrincipals(bob).startingOn(date(2012, 10, 2)));
 		verifyRecord(TAXO1_CATEGORY2).usersWithReadAccess().containsOnly(chuck);
 
-		givenTimeIs(date(2012, 10, 2));
+		setTimeToCalling(date(2012, 10, 2));
 		services.refreshActivationForAllAuths(collectionsListManager.getCollections());
 		waitForBatchProcess();
 
@@ -2010,7 +2011,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	public void whenModifyingMultipleFieldsAtOnceOnAnAuthorizationInheritedByARecordThenAllApplied()
 			throws Exception {
 
-		givenTimeIs(date(2012, 10, 1));
+		setTimeToCalling(date(2012, 10, 1));
 		auth1 = add(authorizationForUser(sasquatch).on(TAXO1_CATEGORY2).givingReadWriteAccess());
 		assertThatAllAuthorizations().containsOnly(
 				authOnRecord(TAXO1_CATEGORY2).givingReadWrite().forPrincipals(sasquatch));
@@ -2028,7 +2029,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		verifyRecord(TAXO1_CATEGORY2).usersWithReadAccess().containsOnly(chuck, sasquatch);
 		verifyRecord(FOLDER4).usersWithReadAccess().containsOnly(chuck);
 
-		givenTimeIs(date(2012, 10, 2));
+		setTimeToCalling(date(2012, 10, 2));
 		services.refreshActivationForAllAuths(collectionsListManager.getCollections());
 		waitForBatchProcess();
 
@@ -3629,7 +3630,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	public void givenARecordReceivingMetadataAuthsFromMetadataProvidingHasStartAndEndDateThenOnlyAppliedDuringInterval()
 			throws Exception {
 
-		givenTimeIs(date(2016, 4, 4));
+		setTimeToCalling(date(2016, 4, 4));
 
 		auth1 = add(authorizationForUser(alice).on(TAXO1_CATEGORY2).givingReadWriteAccess());
 		auth2 = add(authorizationForUser(bob).on(FOLDER4).givingReadWriteAccess());
@@ -3653,17 +3654,17 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, charles, dakota, chuck);
 		}
 
-		givenTimeIs(date(2016, 4, 5));
+		setTimeToCalling(date(2016, 4, 5));
 		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
 			verifyRecord.usersWithWriteAccess().containsOnly(bob, charles, dakota, edouard, chuck);
 		}
 
-		givenTimeIs(date(2016, 4, 6));
+		setTimeToCalling(date(2016, 4, 6));
 		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
 			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, charles, chuck);
 		}
 
-		givenTimeIs(date(2016, 4, 7));
+		setTimeToCalling(date(2016, 4, 7));
 		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
 			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, chuck);
 		}
@@ -4360,6 +4361,18 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 			}
 		};
 
+	}
+
+	public void setTimeToCalling(LocalDate newDate) {
+		givenTimeIs(newDate);
+
+		getModelLayerFactory().getModelLayerBackgroundThreadsManager()
+				.getAuthorizationWithTimeRangeTokenUpdateBackgroundAction().run();
+		try {
+			waitForBatchProcess();
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 }

@@ -62,6 +62,7 @@ public class User extends RecordWrapper {
 	public static final String DO_NOT_RECEIVE_EMAILS = "doNotReceiveEmails";
 	public static final String AUTOMATIC_TASK_ASSIGNATION = "automaticTaskAssignation";
 	public static final String AUTOMATIC_TASK_ASSIGNATION_WORKFLOWS = "automaticTaskAssignationWorkflows";
+	public static final String ASSIGNATION_EMAIL_RECEPTION_DISABLED = "assignationEmailReceptionDisabled";
 
 	private Logger LOGGER = LoggerFactory.getLogger(User.class);
 
@@ -610,6 +611,10 @@ public class User extends RecordWrapper {
 
 	public boolean isAutomaticTaskAssignation() {
 		return Boolean.TRUE.equals(get(AUTOMATIC_TASK_ASSIGNATION));
+	}
+
+	public boolean isAssignationEmailReceptionDisabled() {
+		return Boolean.TRUE.equals(get(ASSIGNATION_EMAIL_RECEPTION_DISABLED));
 	}
 
 	public List<String> getAutomaticTaskAssignationWorkflows() {

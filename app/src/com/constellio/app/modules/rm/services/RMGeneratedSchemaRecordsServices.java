@@ -1148,6 +1148,10 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("archivisticStatus");
 		}
 
+		public Metadata isModel() {
+			return (metadata("isModel"));
+		}
+
 		public Metadata author() {
 			return metadata("author");
 		}

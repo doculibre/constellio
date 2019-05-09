@@ -11,6 +11,7 @@ import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.ActionExecutorInBatch;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.User;
@@ -47,6 +48,7 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.StatusFilter;
+import com.constellio.model.services.search.VisibilityStatusFilter;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
@@ -302,11 +304,13 @@ public class RecordDeleteServices {
 		physicallyDelete(record, user, new RecordPhysicalDeleteOptions());
 	}
 
-	public void physicallyDelete(final Record record, User user, RecordPhysicalDeleteOptions options) {
+	public void physicallyDelete(final Record record, User user, final RecordPhysicalDeleteOptions options) {
 		final Set<String> recordsWithUnremovableReferences = new HashSet<>();
 		final Set<String> recordsIdsTitlesWithUnremovableReferences = new HashSet<>();
-		if (!validatePhysicallyDeletable(record, user, options).getValidationErrors().isEmpty()) {
-			throw new RecordServicesRuntimeException_CannotPhysicallyDeleteRecord(validatePhysicallyDeletable(record, user, options).getValidationErrors().get(0).getCode());
+
+		ValidationErrors errors = validatePhysicallyDeletable(record, user, options);
+		if (!errors.getValidationErrors().isEmpty()) {
+			throw new RecordServicesRuntimeException_CannotPhysicallyDeleteRecord(errors.toMultilineErrorsSummaryString());
 		}
 
 		List<Record> records = getAllRecordsInHierarchyForPhysicalDeletion(record, options);
@@ -346,7 +350,9 @@ public class RecordDeleteServices {
 							public void doActionOnBatch(List<Record> recordsWithRef)
 									throws Exception {
 
-								Transaction transaction = new Transaction();
+								Transaction transaction = options.isSkipValidations() ?
+														  new Transaction(RecordUpdateOptions.validationExceptionSafeOptions()) :
+														  new Transaction();
 
 								for (Record recordWithRef : recordsWithRef) {
 									String recordWithRefType = new SchemaUtils().getSchemaTypeCode(recordWithRef.getSchemaCode());
@@ -370,7 +376,9 @@ public class RecordDeleteServices {
 									}
 
 									try {
-										recordServices.validateRecordInTransaction(recordWithRef, transaction);
+										if (!options.isSkipValidations()) {
+											recordServices.validateRecordInTransaction(recordWithRef, transaction);
+										}
 										transaction.add(recordWithRef);
 									} catch (ValidationException e) {
 										e.printStackTrace();
@@ -397,7 +405,9 @@ public class RecordDeleteServices {
 				ids.addAll(new RecordsLinksResolver(types).findRecordsToReindexFromRecord(aRecord, true));
 			}
 
-			deleteContents(records);
+			if (!records.isEmpty()) {
+				deleteContents(records);
+			}
 			List<RecordDTO> recordsDTO = newRecordUtils().toRecordDTOList(records);
 
 			try {
@@ -638,6 +648,7 @@ public class RecordDeleteServices {
 
 		} else {
 			LogicalSearchQuery query = new LogicalSearchQuery();
+			query.filteredByVisibilityStatus(VisibilityStatusFilter.ALL);
 			List<String> paths = record.getList(Schemas.PATH);
 			query.setCondition(fromAllSchemasIn(record.getCollection())
 					.where(Schemas.PATH).isStartingWithText(paths.get(0) + "/")
@@ -657,6 +668,7 @@ public class RecordDeleteServices {
 
 		} else {
 			LogicalSearchQuery query = new LogicalSearchQuery();
+			query.filteredByVisibilityStatus(VisibilityStatusFilter.ALL);
 			List<String> paths = record.getList(Schemas.PATH);
 			List<MetadataSchemaType> taxonomySchemaTypes = metadataSchemasManager.getSchemaTypes(record.getCollection())
 					.getSchemaTypesWithCode(taxonomy.getSchemaTypes());
@@ -693,7 +705,7 @@ public class RecordDeleteServices {
 		if (taxonomy != null && !taxonomy.hasSameCode(principalTaxonomy)) {
 			List<MetadataSchemaType> taxonomySchemaTypes = metadataSchemasManager.getSchemaTypes(record.getCollection())
 					.getSchemaTypesWithCode(taxonomy.getSchemaTypes());
-			query.setCondition(from(taxonomySchemaTypes).where(Schemas.PATH).isContainingText(record.getId()));
+			query.setCondition(from(taxonomySchemaTypes).where(Schemas.PATH).isContainingText("/" + record.getId() + "/"));
 		} else {
 			query.setCondition(
 					fromAllSchemasIn(record.getCollection()).where(Schemas.PATH).isContainingText("/" + record.getId() + "/"));

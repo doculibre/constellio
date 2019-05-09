@@ -19,6 +19,7 @@ import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.services.zip.ZipService;
 import com.constellio.data.io.services.zip.ZipServiceException;
+import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
@@ -30,6 +31,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.StructureFactory;
+import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.structures.EmailAddress;
 import com.constellio.model.entities.structures.EmailAddressFactory;
 import com.constellio.model.entities.structures.MapStringListStringStructure;
@@ -55,6 +57,8 @@ import java.util.Set;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRUCTURE;
+import static com.constellio.model.entities.schemas.entries.DataEntryType.CALCULATED;
+import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
 import static java.util.Arrays.asList;
 
 public class RecordExportServices {
@@ -221,33 +225,54 @@ public class RecordExportServices {
 
 
 		MetadataSchemaTypes metadataSchemaTypes = metadataSchemasManager.getSchemaTypes(record);
+
+
+		for (Metadata metadata : metadataSchemaTypes.getSchema(record.getSchemaCode()).getMetadatas()) {
+
+			if (isMetadataExported(metadata, record, metadataSchemaTypes)) {
+				Object rawValue = record.get(metadata);
+				AppLayerCollectionExtensions collectionExtensions = appLayerFactory.getExtensions().forCollectionOf(record);
+				if (rawValue != null) {
+
+					if (metadata.getType() == STRUCTURE) {
+						convertStructureMetadataValue(record, modifiableImportRecord, metadata);
+
+					} else {
+						convertMetadata(modifiableImportRecord, options, metadataSchemaTypes, metadata, rawValue);
+					}
+				}
+
+				if (metadata.getType() == MetadataValueType.CONTENT) {
+					for (Content content : record.<Content>getValues(metadata)) {
+						writeContentPath(content, contentPaths);
+					}
+				}
+			}
+		}
+	}
+
+	private boolean isMetadataExported(Metadata metadata, Record record, MetadataSchemaTypes metadataSchemaTypes) {
+
 		List<String> allowedMetadatas = asList(Schemas.CREATED_ON.getLocalCode(), Schemas.CREATED_BY.getLocalCode(),
 				Schemas.MODIFIED_ON.getLocalCode(), Schemas.MODIFIED_BY.getLocalCode(),
 				Schemas.LOGICALLY_DELETED_STATUS.getLocalCode(), Schemas.LOGICALLY_DELETED_ON.getLocalCode(),
 				ContainerRecord.FIRST_TRANSFER_REPORT_DATE, ContainerRecord.FIRST_DEPOSIT_REPORT_DATE, ContainerRecord.DOCUMENT_RESPONSIBLE,
 				RMObject.FORM_CREATED_BY, RMObject.FORM_CREATED_ON, RMObject.FORM_MODIFIED_BY, RMObject.FORM_MODIFIED_ON);
 
-		for (Metadata metadata : metadataSchemaTypes.getSchema(record.getSchemaCode()).getMetadatas().onlyManuals()) {
-			Object rawValue = record.get(metadata);
-			AppLayerCollectionExtensions collectionExtensions = appLayerFactory.getExtensions().forCollectionOf(record);
 
-			if (rawValue != null && (!metadata.isSystemReserved() || allowedMetadatas.contains(metadata.getLocalCode()))) {
-
-				if (metadata.getType() == STRUCTURE) {
-					convertStructureMetadataValue(record, modifiableImportRecord, metadata);
-
-				} else {
-					convertMetadata(modifiableImportRecord, options, metadataSchemaTypes, metadata, rawValue);
-				}
-			}
-
-			if (metadata.getType() == MetadataValueType.CONTENT) {
-				for (Content content : record.<Content>getValues(metadata)) {
-					writeContentPath(content, contentPaths);
-				}
-			}
-
+		if (metadata.getDataEntry().getType() == MANUAL) {
+			return !metadata.isSystemReserved() || allowedMetadatas.contains(metadata.getLocalCode());
 		}
+
+		if (metadata.getDataEntry().getType() == CALCULATED) {
+			MetadataValueCalculator calculator = ((CalculatedDataEntry) metadata.getDataEntry()).getCalculator();
+			return calculator.hasEvaluator()
+				   && (!metadata.isSystemReserved() || allowedMetadatas.contains(metadata.getLocalCode()))
+				   && !recordServices.isValueAutomaticallyFilled(metadata, record);
+		}
+
+		return false;
+
 	}
 
 	private void convertMetadata(ModifiableImportRecord modifiableImportRecord, final RecordExportOptions options,

@@ -1,20 +1,10 @@
 package com.constellio.app.modules.tasks.ui.pages.tasks;
 
-import static com.constellio.app.modules.tasks.model.wrappers.Task.ASSIGNEE;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.DUE_DATE;
-import static com.constellio.app.ui.entities.RecordVO.VIEW_MODE.FORM;
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.entities.records.wrappers.RecordWrapper.TITLE;
-import static java.util.Arrays.asList;
-
-import java.io.IOException;
-import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import com.constellio.app.modules.rm.ConstellioRMModule;
+import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.events.RMEventsSearchServices;
+import com.constellio.app.modules.tasks.extensions.TaskManagementPresenterExtension;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.navigation.TaskViews;
 import com.constellio.app.modules.tasks.services.TaskPresenterServices;
@@ -47,10 +37,18 @@ import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
+import java.io.IOException;
+import java.util.List;
+
+import static com.constellio.app.modules.tasks.model.wrappers.Task.ASSIGNEE;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.DUE_DATE;
+import static com.constellio.app.ui.entities.RecordVO.VIEW_MODE.FORM;
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.entities.records.wrappers.RecordWrapper.TITLE;
+import static java.util.Arrays.asList;
+
 public class DisplayTaskPresenter extends AbstractTaskPresenter<DisplayTaskView> {
 
-	private static Logger LOGGER = LoggerFactory.getLogger(DisplayTaskPresenter.class);
-	
 	private static final String DISPLAY_TASK_PRESENTER_PREVIOUS_TAB = "DisplayTaskPresenterPreviousTab";
 
 	TaskVO taskVO;
@@ -61,6 +59,8 @@ public class DisplayTaskPresenter extends AbstractTaskPresenter<DisplayTaskView>
 	transient private TaskPresenterServices taskPresenterServices;
 	transient Record currentRecord;
 	transient private LoggingServices loggingServices;
+
+	transient private RMModuleExtensions rmModuleExtensions;
 
 	public DisplayTaskPresenter(DisplayTaskView view) {
 		super(view, Task.DEFAULT_SCHEMA);
@@ -93,6 +93,7 @@ public class DisplayTaskPresenter extends AbstractTaskPresenter<DisplayTaskView>
 		tasksSearchServices = new TasksSearchServices(tasksSchemas);
 		loggingServices = modelLayerFactory.newLoggingServices();
 		taskPresenterServices = new TaskPresenterServices(tasksSchemas, recordServices(), tasksSearchServices, loggingServices);
+		rmModuleExtensions = appCollectionExtentions.forModule(ConstellioRMModule.ID);
 	}
 
 	public String getPreviousSelectedTab() {
@@ -115,13 +116,20 @@ public class DisplayTaskPresenter extends AbstractTaskPresenter<DisplayTaskView>
 		return task;
 	}
 
-	@Override
 	public void afterCompletionActions() {
+		if (rmModuleExtensions != null) {
+			for (TaskManagementPresenterExtension extension : rmModuleExtensions.getTaskManagementPresenterExtensions()) {
+				extension.afterCompletionActions(getCurrentUser());
+			}
+		}
 	}
 
-	@Override
 	public void beforeCompletionActions(Task task) {
-
+		if (rmModuleExtensions != null) {
+			for (TaskManagementPresenterExtension extension : rmModuleExtensions.getTaskManagementPresenterExtensions()) {
+				extension.beforeCompletionActions(task);
+			}
+		}
 	}
 
 	public RecordVO getTaskVO() {
@@ -466,5 +474,5 @@ public class DisplayTaskPresenter extends AbstractTaskPresenter<DisplayTaskView>
 	public AppLayerFactory getApplayerFactory() {
 		return appLayerFactory;
 	}
-	
+
 }
