@@ -35,7 +35,9 @@ public class SystemCheckViewImpl extends BaseViewImpl implements SystemCheckView
 
 	private Button startSystemCheckAndRepairButton;
 
-	private Button optainsReferences;
+	private Button findReferences;
+
+	private Button findIncompatibleIdsButton;
 
 	private TextField idField;
 
@@ -79,8 +81,8 @@ public class SystemCheckViewImpl extends BaseViewImpl implements SystemCheckView
 		referenceLayout.setSpacing(true);
 		idField = new TextField();
 
-		optainsReferences = new Button($("SystemCheckView.optainsReferences"));
-		optainsReferences.addClickListener(new ClickListener() {
+		findReferences = new Button($("SystemCheckView.findReferencesToId"));
+		findReferences.addClickListener(new ClickListener() {
 			@Override
 			public void buttonClick(ClickEvent event) {
 				File report = presenter.getReferencesFor(idField.getValue());
@@ -88,7 +90,19 @@ public class SystemCheckViewImpl extends BaseViewImpl implements SystemCheckView
 				Page.getCurrent().open(resource, "download", false);
 			}
 		});
-		referenceLayout.addComponents(idField, optainsReferences);
+
+		findIncompatibleIdsButton = new Button($("SystemCheckView.findIncompatibleIds"));
+		findIncompatibleIdsButton.addClickListener(new ClickListener() {
+			@Override
+			public void buttonClick(ClickEvent event) {
+				File report = presenter.getIncompatibleIds();
+				Resource resource = DownloadLink.wrapForDownload(new FileResource(report));
+				Page.getCurrent().open(resource, "download", false);
+			}
+		});
+
+		referenceLayout.addComponents(idField, findReferences, findIncompatibleIdsButton);
+
 
 		mainLayout.addComponents(systemCheckInfoLabel, buttonsLayout, reportContentField, referenceLayout);
 		buttonsLayout.addComponents(startSystemCheckButton, startSystemCheckAndRepairButton);
