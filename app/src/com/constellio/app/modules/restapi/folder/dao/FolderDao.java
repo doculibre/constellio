@@ -8,17 +8,13 @@ import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 
 public class FolderDao extends ResourceDao {
-
-	@Override
-	protected String getSchemaType() {
-		return Folder.SCHEMA_TYPE;
-	}
 
 	public Record createFolder(User user, MetadataSchema folderSchema, FolderDto folderDto, String flush)
 			throws Exception {
@@ -89,4 +85,13 @@ public class FolderDao extends ResourceDao {
 		updateMetadataValue(folderRecord, schema, Folder.TYPE, folderTypeId);
 	}
 
+	@Override
+	protected String getResourceSchemaType() {
+		return Folder.SCHEMA_TYPE;
+	}
+
+	@Override
+	protected String getResourceTypeSchemaType() {
+		return FolderType.SCHEMA_TYPE;
+	}
 }

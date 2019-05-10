@@ -7,27 +7,30 @@ import com.constellio.app.modules.restapi.core.util.ListUtils;
 import com.constellio.app.modules.restapi.resource.dto.ExtendedAttributeDto;
 import com.constellio.app.modules.restapi.resource.dto.ResourceTypeDto;
 import com.constellio.app.modules.restapi.resource.exception.ResourceTypeNotFoundException;
-import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.Schemas;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 
+import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
 
 public abstract class ResourceDao extends BaseDao {
 
-	@Override
+	@PostConstruct
 	protected void init() {
 		super.init();
 	}
 
-	protected abstract String getSchemaType();
+	protected abstract String getResourceSchemaType();
+
+	protected abstract String getResourceTypeSchemaType();
 
 	protected Record getResourceTypeRecord(ResourceTypeDto resourceType, String collection) {
 		if (resourceType == null) {
@@ -42,8 +45,8 @@ public abstract class ResourceDao extends BaseDao {
 				throw new ResourceTypeNotFoundException("id", resourceType.getId());
 			}
 		} else {
-			MetadataSchema schema = getMetadataSchema(collection, getSchemaType());
-			Metadata metadata = getMetadata(schema, DocumentType.CODE);
+			MetadataSchema schema = getMetadataSchema(collection, getResourceTypeSchemaType());
+			Metadata metadata = getMetadata(schema, Schemas.CODE.getCode());
 			record = getRecordByMetadata(metadata, resourceType.getCode());
 
 			if (record == null) {
@@ -61,9 +64,9 @@ public abstract class ResourceDao extends BaseDao {
 	public MetadataSchema getResourceMetadataSchema(Record resourceTypeRecord, String collection) {
 		if (resourceTypeRecord != null) {
 			String linkedSchemaCode = getMetadataValue(resourceTypeRecord, "linkedSchema");
-			return getMetadataSchema(collection, getSchemaType(), linkedSchemaCode);
+			return getMetadataSchema(collection, getResourceSchemaType(), linkedSchemaCode);
 		}
-		return getMetadataSchema(collection, getSchemaType());
+		return getMetadataSchema(collection, getResourceSchemaType());
 	}
 
 	public List<ExtendedAttributeDto> getExtendedAttributes(MetadataSchema schema, Record record) {

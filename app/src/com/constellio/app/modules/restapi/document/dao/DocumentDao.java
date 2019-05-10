@@ -10,6 +10,7 @@ import com.constellio.app.modules.restapi.document.dto.DocumentDto;
 import com.constellio.app.modules.restapi.document.exception.DocumentContentNotFoundException;
 import com.constellio.app.modules.restapi.resource.dao.ResourceDao;
 import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
@@ -176,7 +177,12 @@ public class DocumentDao extends ResourceDao {
 	}
 
 	@Override
-	protected String getSchemaType() {
+	protected String getResourceSchemaType() {
 		return Document.SCHEMA_TYPE;
+	}
+
+	@Override
+	protected String getResourceTypeSchemaType() {
+		return DocumentType.SCHEMA_TYPE;
 	}
 }
