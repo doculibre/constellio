@@ -1,4 +1,3 @@
-
 allprojects {
     apply plugin: 'java'
     apply plugin: 'eclipse'
@@ -61,15 +60,30 @@ allprojects {
 */
 
     dependencies {
+        String gwtVersion = '2.7.0' // 2.7.0 or 2.8.2
         implementation('org.apache.hadoop:hadoop-common:3.0.3') {
             force = true
         }
         implementation('org.apache.httpcomponents:httpcore:4.4.9') {
             force = true
         }
+        implementation('com.google.gwt:gwt-elemental:' + gwtVersion) {
+            force = true
+        }
+        implementation('com.google.gwt:gwt-dev:' + gwtVersion) {
+            force = true
+        }
+        implementation('com.google.gwt:gwt-user:' + gwtVersion) {
+            force = true
+        }
     }
 
     configurations.all {
+        exclude group: 'com.google.gwt', module: 'gwt-dev'
+        exclude group: 'com.google.gwt', module: 'gwt-user'
+        exclude group: 'com.vaadin.external.gwt', module: 'gwt-elemental'
+        exclude group: 'com.vaadin.external.gwt', module: 'gwt-dev'
+
         resolutionStrategy {
             force 'org.apache.hadoop:hadoop-common:3.0.3'
             force 'org.apache.httpcomponents:httpcore:4.4.9'
@@ -90,15 +104,15 @@ allprojects {
 
     project.ext.set("VERSION", projectVersion)
 
-	eclipse {
-	    classpath {
-		    file {
-		        //closure executed after .classpath content is loaded from existing file
-		        //and after gradle build information is merged
-		        whenMerged { classpath ->
-		      		classpath.entries.sort{ new File(it.path).exists() ? new File(it.path).getName() : it.path }
-		        }
-		    }
-		}
-	}
+    eclipse {
+        classpath {
+            file {
+                //closure executed after .classpath content is loaded from existing file
+                //and after gradle build information is merged
+                whenMerged { classpath ->
+                    classpath.entries.sort { new File(it.path).exists() ? new File(it.path).getName() : it.path }
+                }
+            }
+        }
+    }
 }
