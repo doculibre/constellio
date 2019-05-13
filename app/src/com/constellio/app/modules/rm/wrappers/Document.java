@@ -61,6 +61,7 @@ public class Document extends RMObject {
 	public static final String ESSENTIAL = "essential";
 	public static final String CONFIDENTIAL = "confidential";
 	public static final String MIME_TYPE = "mimetype";
+	public static final String CONTENT_HASHES = "contentHashes";
 
 	public Document(Record record,
 					MetadataSchemaTypes types) {

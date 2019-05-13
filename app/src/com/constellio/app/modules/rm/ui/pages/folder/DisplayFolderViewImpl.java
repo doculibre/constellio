@@ -1127,4 +1127,16 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		closeAllWindows();
 		return navigation;
 	}
+
+	@Override
+	public boolean isBackgroundViewMonitor() {
+		return true;
+	}
+
+	@Override
+	protected void onBackgroundViewMonitor() {
+		if(presenter.shouldRefreshContentTable()) {
+			presenter.refreshDocuments();
+		}
+	}
 }
