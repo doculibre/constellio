@@ -6,7 +6,6 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.schemas.SchemaUtils;
-import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -84,18 +83,6 @@ public class RecordsCacheRequestImpl implements RecordsCache {
 		return statuses;
 	}
 
-	@Override
-	public void insertQueryResults(LogicalSearchQuery query, List<Record> records) {
-		for (Record record : records) {
-			insertInRequestcache(record);
-		}
-		nested.insertQueryResults(query, records);
-	}
-
-	@Override
-	public void insertQueryResultIds(LogicalSearchQuery query, List<String> recordIds) {
-		nested.insertQueryResultIds(query, recordIds);
-	}
 
 	@Override
 	public List<Record> getAllValues(String schemaType) {
@@ -107,15 +94,6 @@ public class RecordsCacheRequestImpl implements RecordsCache {
 		return nested.getAllValuesInUnmodifiableState(schemaType);
 	}
 
-	@Override
-	public List<Record> getQueryResults(LogicalSearchQuery query) {
-		return nested.getQueryResults(query);
-	}
-
-	@Override
-	public List<String> getQueryResultIds(LogicalSearchQuery query) {
-		return nested.getQueryResultIds(query);
-	}
 
 	@Override
 	public CacheInsertionStatus insert(Record record, InsertionReason insertionReason) {
@@ -289,15 +267,6 @@ public class RecordsCacheRequestImpl implements RecordsCache {
 		return cache.isEmpty() && nested.isEmpty();
 	}
 
-	@Override
-	public boolean isFullyLoaded(String schemaType) {
-		return nested.isFullyLoaded(schemaType);
-	}
-
-	@Override
-	public void markAsFullyLoaded(String schemaType) {
-		nested.markAsFullyLoaded(schemaType);
-	}
 
 	public void disconnect() {
 		disconnected = true;

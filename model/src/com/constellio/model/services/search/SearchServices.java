@@ -12,7 +12,6 @@ import com.constellio.data.dao.services.records.DataStore;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.utils.BatchBuilderIterator;
 import com.constellio.data.utils.BatchBuilderSearchResponseIterator;
-import com.constellio.data.utils.ThreadList;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
@@ -144,24 +143,14 @@ public class SearchServices {
 		return buildResponse(params, query);
 	}
 
+	@Deprecated
 	public List<Record> cachedSearch(LogicalSearchQuery query) {
-		RecordsCache recordsCache = getConnectedRecordsCache().getCache(query.getCondition().getCollection());
-		List<Record> records = recordsCache.getQueryResults(query);
-		if (records == null) {
-			records = search(query);
-			recordsCache.insertQueryResults(query, records);
-		}
-		return records;
+		return search(query);
 	}
 
+	@Deprecated
 	public List<String> cachedSearchRecordIds(LogicalSearchQuery query) {
-		RecordsCache recordsCache = getConnectedRecordsCache().getCache(query.getCondition().getCollection());
-		List<String> records = recordsCache.getQueryResultIds(query);
-		if (records == null) {
-			records = searchRecordIds(query);
-			recordsCache.insertQueryResultIds(query, records);
-		}
-		return records;
+		return searchRecordIds(query);
 	}
 
 	public List<MoreLikeThisRecord> searchWithMoreLikeThis(LogicalSearchQuery query) {
@@ -1150,122 +1139,33 @@ public class SearchServices {
 		}
 	}
 
-	//public Record getRecordWithId(MetadataSchemaType schemaType) {
-
 	public List<Record> getAllRecords(MetadataSchemaType schemaType) {
 
 		final RecordsCache cache = getConnectedRecordsCache().getCache(schemaType.getCollection());
-		if (Toggle.GET_ALL_VALUES_USING_NEW_CACHE_METHOD.isEnabled()) {
 
-			if (cache.isConfigured(schemaType)) {
-				if (cache.isFullyLoaded(schemaType.getCode())) {
-					return cache.getAllValues(schemaType.getCode());
-
-				} else {
-
-					List<Record> records = cachedSearch(new LogicalSearchQuery(from(schemaType).returnAll()));
-					if (!Toggle.PUTS_AFTER_SOLR_QUERY.isEnabled()) {
-
-						if (records.size() > 1000) {
-							loadUsingMultithreading(cache, records);
-
-						} else {
-							cache.insert(records, WAS_OBTAINED);
-						}
-					}
-					cache.markAsFullyLoaded(schemaType.getCode());
-
-					return records;
-				}
-			} else {
-				LOGGER.warn("getAllRecords should not be called on schema type '" + schemaType.getCode() + "'");
-				return search(new LogicalSearchQuery(from(schemaType).returnAll()));
-			}
+		if (cache.isConfigured(schemaType) && cache.getCacheConfigOf(schemaType.getCode()).isPermanent()) {
+			return cache.getAllValues(schemaType.getCode());
 
 		} else {
-			List<Record> records = cachedSearch(new LogicalSearchQuery(from(schemaType).returnAll()));
-			if (!Toggle.PUTS_AFTER_SOLR_QUERY.isEnabled()) {
-				cache.insert(records, WAS_OBTAINED);
-			}
-			return records;
+			LOGGER.error("getAllRecords should not be called on schema type '" + schemaType.getCode() + "'");
+			return search(new LogicalSearchQuery(from(schemaType).returnAll()));
 		}
+
 	}
 
 	public List<Record> getAllRecordsInUnmodifiableState(MetadataSchemaType schemaType) {
 
 		final RecordsCache cache = getConnectedRecordsCache().getCache(schemaType.getCollection());
-		if (Toggle.GET_ALL_VALUES_USING_NEW_CACHE_METHOD.isEnabled()) {
 
-			if (cache.isConfigured(schemaType)) {
-				if (cache.isFullyLoaded(schemaType.getCode())) {
-					return cache.getAllValuesInUnmodifiableState(schemaType.getCode());
-
-				} else {
-
-					List<Record> records = cachedSearch(new LogicalSearchQuery(from(schemaType).returnAll()));
-					if (!Toggle.PUTS_AFTER_SOLR_QUERY.isEnabled()) {
-
-						if (records.size() > 1000) {
-							loadUsingMultithreading(cache, records);
-
-						} else {
-							cache.insert(records, WAS_OBTAINED);
-						}
-					}
-					cache.markAsFullyLoaded(schemaType.getCode());
-
-					List<Record> unmodifiableRecords = new ArrayList<>();
-					for (Record record : records) {
-						unmodifiableRecords.add(record.getUnmodifiableCopyOfOriginalRecord());
-					}
-
-					return unmodifiableRecords;
-				}
-			} else {
-				LOGGER.warn("getAllRecords should not be called on schema type '" + schemaType.getCode() + "'");
-				return search(new LogicalSearchQuery(from(schemaType).returnAll()));
-			}
+		if (cache.isConfigured(schemaType) && cache.getCacheConfigOf(schemaType.getCode()).isPermanent()) {
+			return cache.getAllValuesInUnmodifiableState(schemaType.getCode());
 
 		} else {
-			List<Record> records = cachedSearch(new LogicalSearchQuery(from(schemaType).returnAll()));
-			if (!Toggle.PUTS_AFTER_SOLR_QUERY.isEnabled()) {
-				cache.insert(records, WAS_OBTAINED);
-			}
-			return records;
+			LOGGER.error("getAllRecords should not be called on schema type '" + schemaType.getCode() + "'");
+			return search(new LogicalSearchQuery(from(schemaType).returnAll()));
 		}
-	}
 
-	private void loadUsingMultithreading(final RecordsCache cache, List<Record> records) {
-		final Iterator<List<Record>> recordIterator = new BatchBuilderIterator<>(records.iterator(), 500);
 
-		ThreadList threadList = new ThreadList<>();
-		for (int i = 0; i < 5; i++) {
-			threadList.addAndStart(new Thread() {
-				@Override
-				public void run() {
-					boolean hasMoreRecords = true;
-
-					while (hasMoreRecords) {
-
-						List<Record> records;
-						synchronized (recordIterator) {
-							records = recordIterator.hasNext() ? recordIterator.next() : null;
-						}
-						if (records != null) {
-							cache.insert(records, WAS_OBTAINED);
-						} else {
-							hasMoreRecords = false;
-						}
-
-					}
-				}
-			});
-		}
-		try {
-			threadList.joinAll();
-		} catch (InterruptedException e) {
-			throw new RuntimeException(e);
-		}
 	}
 
 	RecordDao dataStoreDao(String dataStore) {

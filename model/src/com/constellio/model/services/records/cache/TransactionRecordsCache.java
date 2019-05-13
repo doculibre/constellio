@@ -5,7 +5,6 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
 import java.util.Collection;
 import java.util.List;
@@ -74,18 +73,6 @@ public class TransactionRecordsCache implements RecordsCache {
 	}
 
 	@Override
-	public void insertQueryResults(LogicalSearchQuery query,
-								   List<Record> records) {
-		recordsCache.insertQueryResults(query, records);
-	}
-
-	@Override
-	public void insertQueryResultIds(LogicalSearchQuery query,
-									 List<String> recordIds) {
-		recordsCache.insertQueryResultIds(query, recordIds);
-	}
-
-	@Override
 	public List<Record> getAllValues(String schemaType) {
 		return recordsCache.getAllValues(schemaType);
 	}
@@ -94,18 +81,6 @@ public class TransactionRecordsCache implements RecordsCache {
 	public List<Record> getAllValuesInUnmodifiableState(
 			String schemaType) {
 		return recordsCache.getAllValuesInUnmodifiableState(schemaType);
-	}
-
-	@Override
-	public List<Record> getQueryResults(
-			LogicalSearchQuery query) {
-		return recordsCache.getQueryResults(query);
-	}
-
-	@Override
-	public List<String> getQueryResultIds(
-			LogicalSearchQuery query) {
-		return recordsCache.getQueryResultIds(query);
 	}
 
 	@Override
@@ -191,13 +166,4 @@ public class TransactionRecordsCache implements RecordsCache {
 		return recordsCache.isEmpty();
 	}
 
-	@Override
-	public boolean isFullyLoaded(String schemaType) {
-		return recordsCache.isFullyLoaded(schemaType);
-	}
-
-	@Override
-	public void markAsFullyLoaded(String schemaType) {
-		recordsCache.markAsFullyLoaded(schemaType);
-	}
 }

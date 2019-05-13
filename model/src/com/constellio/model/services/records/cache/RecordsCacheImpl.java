@@ -14,7 +14,6 @@ import com.constellio.model.services.records.cache.RecordsCacheImplRuntimeExcept
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.constellio.model.services.search.query.logical.LogicalSearchQuerySignature;
 import com.constellio.model.services.search.query.logical.condition.DataStoreFilters;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.condition.SchemaFilters;
@@ -24,7 +23,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -34,7 +32,6 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.constellio.data.dao.services.cache.InsertionReason.WAS_MODIFIED;
-import static com.constellio.data.dao.services.cache.InsertionReason.WAS_OBTAINED;
 import static com.constellio.model.services.records.cache.CacheInsertionStatus.ACCEPTED;
 import static com.constellio.model.services.records.cache.CacheInsertionStatus.REFUSED_OLD_VERSION;
 import static com.constellio.model.services.records.cache.RecordsCachesUtils.evaluateCacheInsert;
@@ -168,16 +165,6 @@ public class RecordsCacheImpl implements RecordsCache {
 		return true;
 	}
 
-	@Override
-	public boolean isFullyLoaded(String schemaType) {
-		return fullyLoadedSchemaTypes.contains(schemaType);
-	}
-
-	@Override
-	public void markAsFullyLoaded(String schemaType) {
-		fullyLoadedSchemaTypes.add(schemaType);
-	}
-
 	public List<CacheInsertionStatus> insert(List<Record> records, InsertionReason insertionReason) {
 		List<CacheInsertionStatus> statuses = new ArrayList<>();
 		if (records != null) {
@@ -189,35 +176,6 @@ public class RecordsCacheImpl implements RecordsCache {
 		return statuses;
 	}
 
-	@Override
-	public void insertQueryResults(LogicalSearchQuery query, List<Record> records) {
-
-		PermanentCache cache = getCacheFor(query, false);
-		if (cache != null) {
-			LogicalSearchQuerySignature signature = LogicalSearchQuerySignature.signature(query);
-
-			List<String> recordIds = new ArrayList<>();
-			for (Record record : records) {
-				recordIds.add(record.getId());
-				insert(record, WAS_OBTAINED);
-			}
-
-			modelLayerFactory.getExtensions().getSystemWideExtensions().onPutQueryResultsInCache(signature, recordIds, 0);
-			cache.queryResults.put(signature.toStringSignature(), recordIds);
-		}
-	}
-
-	@Override
-	public void insertQueryResultIds(LogicalSearchQuery query, List<String> recordIds) {
-
-		PermanentCache cache = getCacheFor(query, true);
-		if (cache != null) {
-			LogicalSearchQuerySignature signature = LogicalSearchQuerySignature.signature(query);
-
-			modelLayerFactory.getExtensions().getSystemWideExtensions().onPutQueryResultsInCache(signature, recordIds, 0);
-			cache.queryResults.put(signature.toStringSignature(), recordIds);
-		}
-	}
 
 	@Override
 	public List<Record> getAllValues(String schemaType) {
@@ -301,63 +259,6 @@ public class RecordsCacheImpl implements RecordsCache {
 		return null;
 	}
 
-	@Override
-	public List<Record> getQueryResults(LogicalSearchQuery query) {
-
-		if (!enabled.get()) {
-			return null;
-		}
-
-		List<Record> cachedResults = null;
-		PermanentCache cache = getCacheFor(query, false);
-		if (cache != null) {
-			LogicalSearchQuerySignature signature = LogicalSearchQuerySignature.signature(query);
-
-			List<String> recordIds = getQueryResultIds(query);
-			if (recordIds != null) {
-				cachedResults = new ArrayList<>();
-
-				for (String recordId : recordIds) {
-					Record record = get(recordId);
-					//A record has been invalidated during the call
-					if (record == null) {
-						return null;
-					}
-
-					cachedResults.add(record);
-				}
-				cachedResults = Collections.unmodifiableList(cachedResults);
-			}
-		}
-
-		return cachedResults;
-	}
-
-	@Override
-	public List<String> getQueryResultIds(LogicalSearchQuery query) {
-
-		if (!enabled.get()) {
-			return null;
-		}
-
-		List<String> cachedResults = null;
-		PermanentCache cache = getCacheFor(query, true);
-		if (cache != null) {
-			LogicalSearchQuerySignature signature = LogicalSearchQuerySignature.signature(query);
-
-			List<String> recordIds = cache.queryResults.get(signature.toStringSignature());
-			if (recordIds != null) {
-				cachedResults = Collections.unmodifiableList(recordIds);
-				modelLayerFactory.getExtensions().getSystemWideExtensions().onQueryCacheHit(signature, 0);
-
-			} else {
-				modelLayerFactory.getExtensions().getSystemWideExtensions().onQueryCacheMiss(signature, 0);
-			}
-
-		}
-
-		return cachedResults;
-	}
 
 	@Override
 	public CacheInsertionStatus forceInsert(Record insertedRecord, InsertionReason insertionReason) {
