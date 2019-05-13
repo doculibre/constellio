@@ -39,7 +39,6 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 	TestsSchemasSetup.ZeSchemaMetadatas zeSchema = setup.new ZeSchemaMetadatas();
 	TestsSchemasSetup.AnotherSchemaMetadatas anotherSchema = setup.new AnotherSchemaMetadatas();
 
-	FileSystemRecordsValuesCacheDataStore dataStore;
 	MetadataSchemasManager schemasManager;
 	RecordServices recordServices;
 	ReindexingServices reindexingServices;
@@ -50,13 +49,13 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 		recordServices = getModelLayerFactory().newRecordServices();
 		reindexingServices = getModelLayerFactory().newReindexingServices();
 
-		dataStore = new FileSystemRecordsValuesCacheDataStore(new File(newTempFolder(), "test.db"));
+		SummaryCacheSingletons.dataStore = new FileSystemRecordsValuesCacheDataStore(new File(newTempFolder(), "test.db"));
 	}
 
 
 	@After
 	public void tearDown() throws Exception {
-		dataStore.close();
+		SummaryCacheSingletons.dataStore.close();
 	}
 
 	@Test
