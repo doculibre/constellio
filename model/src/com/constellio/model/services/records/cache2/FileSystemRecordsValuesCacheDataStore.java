@@ -34,6 +34,14 @@ public class FileSystemRecordsValuesCacheDataStore {
 		intKeyMap.put(id, bytes);
 	}
 
+	public void removeStringKey(String id) {
+		stringKeyMap.remove(id);
+	}
+
+	public void removeIntKey(int id) {
+		intKeyMap.remove(id);
+	}
+
 	public byte[] loadStringKey(String id) {
 		return stringKeyMap.get(id);
 	}

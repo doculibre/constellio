@@ -24,8 +24,8 @@ public abstract class ByteArrayRecordDTO implements RecordDTO, Map<String, Objec
 
 	Holder<MetadataSchema> schemaHolder;
 	long version;
-	byte[] data;
 	boolean summary;
+	byte[] data;
 
 	private ByteArrayRecordDTO(Holder<MetadataSchema> schemaHolder, long version, boolean summary,
 							   byte[] data) {
