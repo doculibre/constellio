@@ -3,9 +3,11 @@ package com.constellio.model.services.records.cache2;
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.LangUtils;
+import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.utils.EnumWithSmallCodeUtils;
 import com.mchange.v2.collection.MapEntry;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -57,7 +59,7 @@ public class CacheRecordDTOUtils {
 	private static final byte BYTES_TO_WRITE_INTEGER_VALUES_SIZE = 4;
 	private static final byte BYTES_TO_WRITE_DOUBLE_VALUES_SIZE = 8;
 	private static final byte BYTES_TO_WRITE_LONG_VALUES_SIZE = 8;
-	private static final byte BYTES_TO_WRITE_DATE_VALUES_SIZE = 3;
+	private static final byte BYTES_TO_WRITE_LOCAL_DATE_VALUES_SIZE = 3;
 
 	private static final byte KEY_IS_NOT_AN_INT = 0;
 	private static final byte KEY_LENGTH = 11;
@@ -388,7 +390,8 @@ public class CacheRecordDTOUtils {
 		return metadatasId;
 	}
 
-	private static short calculateNextMetadataIndex(byte[] byteArray, short headerBytesSize, short currentPositionInArray){
+	private static short calculateNextMetadataIndex(byte[] byteArray, short headerBytesSize,
+													short currentPositionInArray) {
 		short possibleNextMetadataIndex = (short) (currentPositionInArray + (BYTES_TO_WRITE_METADATA_ID_AND_INDEX * 3));
 		// +1 to complete the 2 bytes taken by the short
 		// if it's NOT greater than the size of the header then the next index is the result of the parsing
@@ -652,9 +655,15 @@ public class CacheRecordDTOUtils {
 			short currentIndex = (short) (metadataSearchedIndex + BYTES_TO_WRITE_METADATA_VALUES_SIZE);
 
 			while (numberOfMetadatas != numberOfMetadatasFound) {
-				dates.add(parseLocalDateFromByteArray(byteArray, currentIndex));
-				// + 3 for the bytes taken by LocalDate
-				currentIndex += BYTES_TO_WRITE_DATE_VALUES_SIZE;
+				Object isValueNull = parseBooleanFromByteArray(byteArray, currentIndex);
+				currentIndex += BYTES_TO_WRITE_BYTE_VALUES_SIZE;
+
+				if (null == isValueNull) {
+					dates.add(null);
+				} else {
+					dates.add(parseLocalDateFromByteArray(byteArray, currentIndex));
+					currentIndex += BYTES_TO_WRITE_LOCAL_DATE_VALUES_SIZE;
+				}
 
 				numberOfMetadatasFound++;
 			}
@@ -681,9 +690,16 @@ public class CacheRecordDTOUtils {
 			short currentIndex = (short) (metadataSearchedIndex + BYTES_TO_WRITE_METADATA_VALUES_SIZE);
 
 			while (numberOfMetadatas != numberOfMetadatasFound) {
-				dates.add(parseLocalDateTimeFromByteArray(byteArray, currentIndex));
-				// + 8 for the bytes taken by the epoch time of the LocalDateTime
-				currentIndex += BYTES_TO_WRITE_LONG_VALUES_SIZE;
+				Object isValueNull = parseBooleanFromByteArray(byteArray, currentIndex);
+				currentIndex += BYTES_TO_WRITE_BYTE_VALUES_SIZE;
+
+				if (null == isValueNull) {
+					dates.add(null);
+				} else {
+					dates.add(parseLocalDateTimeFromByteArray(byteArray, currentIndex));
+					// + 8 for the bytes taken by the epoch time of the LocalDateTime
+					currentIndex += BYTES_TO_WRITE_LONG_VALUES_SIZE;
+				}
 
 				numberOfMetadatasFound++;
 			}
@@ -694,17 +710,17 @@ public class CacheRecordDTOUtils {
 		return null;
 	}
 
-	private static Enum getSingleValueEnumMetadata(byte[] byteArray, short metadataSearchedIndex,
+	private static String getSingleValueEnumMetadata(byte[] byteArray, short metadataSearchedIndex,
 												   Metadata metadataSearched) {
 		return parseEnumFromByteArray(metadataSearched.getEnumClass(), byteArray[metadataSearchedIndex]);
 	}
 
-	private static List<Enum> getMultivalueEnumMetadata(byte[] byteArray, short metadataSearchedIndex,
+	private static List<String> getMultivalueEnumMetadata(byte[] byteArray, short metadataSearchedIndex,
 														Metadata metadataSearched) {
 		short numberOfMetadatas = parseShortFromByteArray(byteArray, metadataSearchedIndex);
 
 		if (numberOfMetadatas > 0) {
-			List<Enum> enums = new ArrayList<>();
+			List<String> enums = new ArrayList<>();
 
 			short numberOfMetadatasFound = 0;
 			// + 2 since we don't want to parse the size again
@@ -793,10 +809,10 @@ public class CacheRecordDTOUtils {
 		return new LocalDateTime(epochTimeInMillis);
 	}
 
-	private static <T extends Enum> T parseEnumFromByteArray(Class<? extends Enum> clazz, byte value) {
+	private static String parseEnumFromByteArray(Class<? extends Enum> clazz, byte value) {
 		try {
 			// - acts as a + since Byte.MIN_VALUE is -128
-			return (T) ((Object[]) clazz.getMethod("values").invoke(null))[((int) value - Byte.MIN_VALUE)];
+			return ((EnumWithSmallCode) ((Object[]) clazz.getMethod("values").invoke(null))[((int) value - Byte.MIN_VALUE)]).getCode();
 		} catch (IllegalAccessException e) {
 			throw new RuntimeException(e);
 		} catch (InvocationTargetException e) {
@@ -849,15 +865,10 @@ public class CacheRecordDTOUtils {
 			short listSize = (short) metadatas.size();
 			writeMultivalueSize(metadata, listSize);
 
-			/*for (boolean value : metadatas) {
-				dataWriter.writeByte((value ? 1 : 0));
-
-				dataByteArrayLength += BYTES_TO_WRITE_BOOLEAN_VALUES_SIZE;
-			}*/
-
 			for (Iterator i = metadatas.iterator(); i.hasNext(); ) {
 				// the index gets put in a object since a boolean cant be null and we need to keep the result
 				Object value = i.next();
+
 				// if the value of the boolean is null, write -1
 				// else if the value if true write 1 (true) else 0 (false)
 				dataWriter.writeByte(value == null ? -1 : (boolean) value ? 1 : 0);
@@ -1029,7 +1040,7 @@ public class CacheRecordDTOUtils {
 
 			writeHeader(metadata);
 
-			dataByteArrayLength += BYTES_TO_WRITE_DATE_VALUES_SIZE;
+			dataByteArrayLength += BYTES_TO_WRITE_LOCAL_DATE_VALUES_SIZE;
 			metadatasSize++;
 		}
 
@@ -1041,10 +1052,23 @@ public class CacheRecordDTOUtils {
 
 			writeMultivalueSize(metadata, (short) metadatas.size());
 
-			for (LocalDate date : metadatas) {
-				writeLocalDate(date);
+			for (Iterator i = metadatas.iterator(); i.hasNext(); ) {
+				// the index gets put in a object since it can be null and we need to keep the result
+				Object date = i.next();
 
-				dataByteArrayLength += BYTES_TO_WRITE_DATE_VALUES_SIZE;
+				// only for multivalue local date and localdate, a byte is added before the 3 bytes of the date to differentiate null values
+				// 1 = a NON null value
+				// -1 = a null value
+				if (null != date) {
+					dataWriter.writeByte(1);
+					writeLocalDate((LocalDate) date);
+
+					dataByteArrayLength += BYTES_TO_WRITE_LOCAL_DATE_VALUES_SIZE;
+				} else {
+					dataWriter.writeByte(-1);
+				}
+
+				dataByteArrayLength += BYTES_TO_WRITE_BYTE_VALUES_SIZE;
 			}
 
 			metadatasSize++;
@@ -1068,17 +1092,30 @@ public class CacheRecordDTOUtils {
 
 			writeMultivalueSize(metadata, (short) metadatas.size());
 
-			for (LocalDateTime dateTime : metadatas) {
-				writeLocalDateTime(dateTime);
+			for (Iterator i = metadatas.iterator(); i.hasNext(); ) {
+				// the index gets put in a object since it can be null and we need to keep the result
+				Object dateTime = i.next();
 
-				dataByteArrayLength += BYTES_TO_WRITE_LONG_VALUES_SIZE;
+				// only for multivalue local date and localdate, a byte is added before the 3 bytes of the date to differentiate null values
+				// 1 = a NON null value
+				// -1 = a null value
+				if (null != dateTime) {
+					dataWriter.writeByte(1);
+					writeLocalDateTime((LocalDateTime) dateTime);
+
+					dataByteArrayLength += BYTES_TO_WRITE_LOCAL_DATE_VALUES_SIZE;
+				} else {
+					dataWriter.writeByte(-1);
+				}
+
+				dataByteArrayLength += BYTES_TO_WRITE_BYTE_VALUES_SIZE;
 			}
 
 			metadatasSize++;
 		}
 
 		private void addSingleValueEnumMetadata(Metadata metadata, Object value) throws IOException {
-			writeEnum(((Enum) value));
+			writeEnum(metadata.getEnumClass(), (String) value);
 
 			writeHeader(metadata);
 
@@ -1089,8 +1126,8 @@ public class CacheRecordDTOUtils {
 		private void addMultivalueEnumMetadata(Metadata metadata, List<Enum> metadatas) throws IOException {
 			writeMultivalueSize(metadata, (short) metadatas.size());
 
-			for (Enum e : metadatas) {
-				writeEnum(e);
+			for (Object value : metadatas) {
+				writeEnum(metadata.getEnumClass(), (String) value);
 
 				dataByteArrayLength += BYTES_TO_WRITE_BYTE_VALUES_SIZE;
 			}
@@ -1121,7 +1158,7 @@ public class CacheRecordDTOUtils {
 		}
 
 		private void writeLocalDate(LocalDate date) throws IOException {
-			byte[] bytes = new byte[BYTES_TO_WRITE_DATE_VALUES_SIZE];
+			byte[] bytes = new byte[BYTES_TO_WRITE_LOCAL_DATE_VALUES_SIZE];
 
 			int year = date.getYear();
 			short month = (short) date.getMonthOfYear();
@@ -1146,10 +1183,11 @@ public class CacheRecordDTOUtils {
 			dataWriter.writeLong(dateTime.toDateTime().getMillis());
 		}
 
-		private void writeEnum(Enum e) throws IOException {
+		private void writeEnum(Class<? extends Enum> clazz, String smallCode) throws IOException {
 			// + acts as a minus since Byte.MIN_VALUE is -128
 			// -128 too get place for 255 enums which should be more than enough
-			dataWriter.writeByte((byte) (e.ordinal() + Byte.MIN_VALUE));
+			Enum e = EnumWithSmallCodeUtils.toEnum((Class)clazz, smallCode);
+			dataWriter.writeByte((byte) (e.ordinal() -128/*+ Byte.MIN_VALUE*/));
 		}
 
 		private void writeHeader(Metadata metadata) throws IOException {
