@@ -170,8 +170,8 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 				.set(zeSchema.numberMetadata(), asList(420.69d, -40d, 0.0d))
 				.set(Schemas.TITLE, "Johnny B Good")
 				.set(zeSchema.stringMetadata(), asList("!", "1", "a"))
+				.set(zeSchema.dateTimeMetadata(), asList(dateTime, dateTime.plusHours(5), dateTime.minusYears(33)))
 				.set(zeSchema.dateMetadata(), asList(date, date.plusDays(3), date.plusDays(-100)))
-				//				.set(zeSchema.dateTimeMetadata(), asList(dateTime, dateTime.plusHours(5), dateTime.minusYears(33)))
 				.set(zeSchema.referenceMetadata(), null)
 				.set(zeSchema.enumMetadata(), asList(CopyType.PRINCIPAL, CopyType.PRINCIPAL, CopyType.SECONDARY));
 
@@ -217,8 +217,8 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 		assertThat(dto1.get(zeSchema.numberMetadata().getDataStoreCode())).isEqualTo(asList(420.69d, -40d, 0.0d));
 		assertThat(dto1.get(zeSchema.stringMetadata().getDataStoreCode())).isEqualTo(asList("!", "1", "a"));
 		assertThat(dto1.get(Schemas.TITLE.getDataStoreCode())).isEqualTo("Johnny B Good");
+		assertThat(dto1.get(zeSchema.dateTimeMetadata().getDataStoreCode())).isEqualTo(asList(dateTime, dateTime.plusHours(5), dateTime.minusYears(33)));
 		assertThat(dto1.get(zeSchema.dateMetadata().getDataStoreCode())).isEqualTo(asList(date, date.plusDays(3), date.plusDays(-100)));
-		//		assertThat(dto1.get(zeSchema.dateTimeMetadata().getDataStoreCode())).isEqualTo(asList(dateTime, dateTime.plusHours(5), dateTime.minusYears(33)));
 		assertThat(dto1.get(zeSchema.enumMetadata().getDataStoreCode())).isEqualTo(asList(CopyType.PRINCIPAL.getCode(), CopyType.PRINCIPAL.getCode(), CopyType.SECONDARY.getCode()));
 		//		assertThat(dto2.get(zeSchema.booleanMetadata().getDataStoreCode())).isEqualTo(null);
 		//		assertThat(dto2.get(zeSchema.referenceMetadata().getDataStoreCode())).isEqualTo(asList(record1.getId(), null));

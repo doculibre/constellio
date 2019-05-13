@@ -218,7 +218,7 @@ public class CacheRecordDTOUtils {
 		}
 
 		if (metadata.getType() == STRING) {
-//			return Schemas.TITLE.isSameLocalCode(metadata); TODO RE-ENABLE
+//			return Schemas.TITLE.isSameLocalCode(metadata); // TODO RE-ENABLE
 			return true;
 		}
 
@@ -1127,7 +1127,8 @@ public class CacheRecordDTOUtils {
 					dataWriter.writeByte(1);
 					writeLocalDateTime((LocalDateTime) dateTime);
 
-					dataByteArrayLength += BYTES_TO_WRITE_LOCAL_DATE_VALUES_SIZE;
+					// +8 since the datetime is stored as Epoch Time
+					dataByteArrayLength += BYTES_TO_WRITE_LONG_VALUES_SIZE;
 				} else {
 					dataWriter.writeByte(-1);
 				}
