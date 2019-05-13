@@ -1,26 +1,24 @@
 package com.constellio.app.ui.framework.components.viewers.panel;
 
+import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
+import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
+import com.constellio.app.ui.framework.containers.RefreshableContainer;
+import com.constellio.app.ui.framework.containers.SearchResultContainer;
+import com.constellio.app.ui.util.ComponentTreeUtils;
+import com.vaadin.data.Container;
+import com.vaadin.data.Container.ItemSetChangeNotifier;
+import com.vaadin.data.Item;
+import com.vaadin.data.Property;
+import com.vaadin.data.util.AbstractProperty;
+import com.vaadin.data.util.IndexedContainer;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.Image;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.ui.entities.ContentVersionVO;
-import com.constellio.app.ui.entities.RecordVO;
-import com.constellio.app.ui.framework.components.resource.ConstellioResourceHandler;
-import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
-import com.constellio.app.ui.framework.containers.RefreshableContainer;
-import com.constellio.app.ui.framework.containers.SearchResultContainer;
-import com.vaadin.data.Container;
-import com.vaadin.data.Item;
-import com.vaadin.data.Property;
-import com.vaadin.data.Container.ItemSetChangeNotifier;
-import com.vaadin.data.util.AbstractProperty;
-import com.vaadin.data.util.IndexedContainer;
-import com.vaadin.server.Resource;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.Image;
 
 public abstract class ViewableRecordVOContainer extends IndexedContainer implements ItemSetChangeNotifier, RefreshableContainer {
 	
@@ -32,7 +30,8 @@ public abstract class ViewableRecordVOContainer extends IndexedContainer impleme
 
 	public ViewableRecordVOContainer(RecordVOLazyContainer recordVOContainer) {
 		this.recordVOContainer = recordVOContainer;
-		addRecordVOContainerProperties();
+		//		addRecordVOContainerProperties();
+		addCompressedProperties();
 	}
 	
 	public RecordVOLazyContainer getRecordVOContainer() {
@@ -48,15 +47,15 @@ public abstract class ViewableRecordVOContainer extends IndexedContainer impleme
 	}
 
 	public void setCompressed(boolean compressed) {
-		boolean compressedChanged = this.compressed != compressed;
+		//		boolean compressedChanged = this.compressed != compressed;
 		this.compressed = compressed;
-		if (compressedChanged) {
-			if (compressed) {
-				addCompressedProperties();
-			} else {
-				addRecordVOContainerProperties();
-			}
-		}
+		//		if (compressedChanged) {
+		//			if (compressed) {
+		//				addCompressedProperties();
+		//			} else {
+		//				addRecordVOContainerProperties();
+		//			}
+		//		}
 	}
 
 	private void addCompressedProperties() {
@@ -67,17 +66,17 @@ public abstract class ViewableRecordVOContainer extends IndexedContainer impleme
 		addContainerProperty(SearchResultContainer.THUMBNAIL_PROPERTY, Image.class, null);
 		addContainerProperty(SearchResultContainer.SEARCH_RESULT_PROPERTY, Component.class, null);
 	}
-	
-	private void addRecordVOContainerProperties() {
-		Collection<?> propertyIds = new ArrayList<>(getContainerPropertyIds());
-		for (Object propertyId : propertyIds) {
-			removeContainerProperty(propertyId);
-		}
-		addContainerProperty(SearchResultContainer.THUMBNAIL_PROPERTY, Image.class, null);
-		for (Object recordVOContainerPropertyId : recordVOContainer.getContainerPropertyIds()) {
-			addContainerProperty(recordVOContainerPropertyId, recordVOContainer.getType(recordVOContainerPropertyId), null);
-		}
-	}
+
+	//	private void addRecordVOContainerProperties() {
+	//		Collection<?> propertyIds = new ArrayList<>(getContainerPropertyIds());
+	//		for (Object propertyId : propertyIds) {
+	//			removeContainerProperty(propertyId);
+	//		}
+	//		addContainerProperty(SearchResultContainer.THUMBNAIL_PROPERTY, Image.class, null);
+	//		for (Object recordVOContainerPropertyId : recordVOContainer.getContainerPropertyIds()) {
+	//			addContainerProperty(recordVOContainerPropertyId, recordVOContainer.getType(recordVOContainerPropertyId), null);
+	//		}
+	//	}
 
 	@Override
 	public Property<?> getContainerProperty(Object itemId, Object propertyId) {
@@ -98,36 +97,9 @@ public abstract class ViewableRecordVOContainer extends IndexedContainer impleme
 		return new AbstractProperty<Image>() {
 			@Override
 			public Image getValue() {
-				Image image = new Image(null);
 				Integer index = (Integer) itemId;
 				RecordVO recordVO = getRecordVO(index);
-				String schemaTypeCode = recordVO.getSchema().getTypeCode();
-				boolean thumbnail;
-				if (Document.SCHEMA_TYPE.equals(schemaTypeCode)) {
-					final ContentVersionVO contentVersionVO = recordVO.get(Document.CONTENT);
-					if (contentVersionVO != null) {
-						String filename = contentVersionVO.getFileName();
-						String recordId = recordVO.getId();
-						String metadataCode = recordVO.getMetadata(Document.CONTENT).getLocalCode();
-						String version = contentVersionVO.getVersion();
-						
-						if (ConstellioResourceHandler.hasContentThumbnail(recordId, metadataCode, version)) {
-							thumbnail = true;
-							Resource thumnailResource = ConstellioResourceHandler.createThumbnailResource(recordId, metadataCode, version, filename);
-							image.setSource(thumnailResource);
-						} else {
-							thumbnail = false;
-						}
-					} else {
-						thumbnail = false;
-					}
-				} else {
-					thumbnail = false;
-				}
-				if (!thumbnail) {
-					image.setVisible(false);
-				}
-				return image;
+				return SearchResultContainer.getThumbnail(recordVO);
 			}
 
 			@Override
@@ -146,7 +118,12 @@ public abstract class ViewableRecordVOContainer extends IndexedContainer impleme
 		return new AbstractProperty<Component>() {
 			@Override
 			public Component getValue() {
-				return getRecordDisplay((int) itemId);
+				Component recordDisplay = getRecordDisplay((int) itemId);
+				ReferenceDisplay referenceDisplay = ComponentTreeUtils.getFirstChild(recordDisplay, ReferenceDisplay.class);
+				if (referenceDisplay != null) {
+					referenceDisplay.setIcon(null);
+				}
+				return recordDisplay;
 			}
 
 			@Override
@@ -229,14 +206,22 @@ public abstract class ViewableRecordVOContainer extends IndexedContainer impleme
 	}
 
 	@Override
+	public void refresh() {
+		recordVOContainer.refresh();
+	}
+
+	@Override
 	public void fireItemSetChange() {
 		super.fireItemSetChange();
 		recordVOContainer.refresh();
 	}
 
 	@Override
-	public void refresh() {
-		recordVOContainer.refresh();
+	protected void fireItemSetChange(com.vaadin.data.Container.ItemSetChangeEvent event) {
+		super.fireItemSetChange(event);
+		for (ItemSetChangeListener listener : itemSetChangeListeners) {
+			listener.containerItemSetChange(event);
+		}
 	}
 
     // ItemSetChangeNotifier

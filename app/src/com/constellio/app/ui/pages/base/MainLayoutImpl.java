@@ -38,7 +38,9 @@ import elemental.json.JsonArray;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -59,6 +61,7 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 	private SingleComponentContainer contentViewWrapper;
 	private DragAndDropWrapper dragAndDropWrapper;
 	private UserDocumentsWindow userDocumentsWindow;
+	private List<NavigationItem> navigationItems;
 
 	public MainLayoutImpl(AppLayerFactory appLayerFactory) {
 		this.presenter = new MainLayoutPresenter(this);
@@ -184,9 +187,32 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 	protected List<ConstellioMenuButton> buildMainMenuButtons() {
 		List<ConstellioMenuButton> mainMenuButtons = new ArrayList<>();
 
-		for (NavigationItem item : presenter.getNavigationItems()) {
-			mainMenuButtons.add(buildButton(item));
+		navigationItems = presenter.getNavigationItems();
+		final Map<NavigationItem, ConstellioMenuButton> menuButtons = new HashMap<>();
+		for (NavigationItem item : navigationItems) {
+			ConstellioMenuButton menuButton = buildButton(item);
+			mainMenuButtons.add(menuButton);
+			menuButtons.put(item, menuButton);
 		}
+		ConstellioUI.getCurrent().getNavigator().addViewChangeListener(new ViewChangeListener() {
+			@Override
+			public boolean beforeViewChange(ViewChangeEvent event) {
+				return true;
+			}
+
+			@Override
+			public void afterViewChange(ViewChangeEvent event) {
+				View oldView = event.getOldView();
+				View newView = event.getNewView();
+				if (oldView instanceof BaseView && newView instanceof BaseView) {
+					for (NavigationItem item : navigationItems) {
+						ConstellioMenuButton menuButton = menuButtons.get(item);
+						item.viewChanged((BaseView) oldView, (BaseView) newView);
+						updateMenuButton(item, menuButton);
+					}
+				}
+			}
+		});
 
 		return mainMenuButtons;
 	}
@@ -239,27 +265,33 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 		});
 	}
 
-	private ConstellioMenuButton buildButton(final NavigationItem item) {
-		ComponentState state = presenter.getStateFor(item);
-		Button button = new Button($("MainLayout." + item.getCode()));
-		button.setVisible(state.isVisible());
-		button.setEnabled(state.isEnabled());
-		button.addStyleName(item.getCode());
-		if (item.getFontAwesome() != null) {
-			button.setIcon(item.getFontAwesome());
+	private ConstellioMenuButton buildButton(final NavigationItem navigationItem) {
+		Button button = new Button();
+		if (navigationItem.getFontAwesome() != null) {
+			button.setIcon(navigationItem.getFontAwesome());
 		}
 		button.addClickListener(new ClickListener() {
 			@Override
 			public void buttonClick(ClickEvent event) {
-				item.activate(navigate());
+				navigationItem.activate(navigate());
 			}
 		});
-		return new ConstellioMenuButton(item.getViewGroup(), button) {
+		ConstellioMenuButton constellioMenuButton = new ConstellioMenuButton(navigationItem.getViewGroup(), button) {
 			@Override
 			public String getBadge() {
-				return presenter.getBadge(item);
+				return presenter.getBadge(navigationItem);
 			}
 		};
+		updateMenuButton(navigationItem, constellioMenuButton);
+		return constellioMenuButton;
+	}
+
+	private void updateMenuButton(NavigationItem navigationItem, ConstellioMenuButton constellioMenuButton) {
+		Button button = constellioMenuButton.getButton();
+		button.setCaption($("MainLayout." + navigationItem.getCode()));
+		ComponentState state = presenter.getStateFor(navigationItem);
+		button.setVisible(state.isVisible());
+		button.setEnabled(state.isEnabled());
 	}
 
 	@Override

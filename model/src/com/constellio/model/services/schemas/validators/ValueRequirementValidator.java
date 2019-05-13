@@ -25,12 +25,16 @@ public class ValueRequirementValidator implements Validator<Record> {
 
 	private boolean skipUSRMetadatas;
 
+	private boolean afterCalculate;
+
 	private RecordAutomaticMetadataServices recordAutomaticMetadataServices;
 
 	public ValueRequirementValidator(List<Metadata> metadatas, boolean skipUSRMetadatas,
-									 RecordAutomaticMetadataServices recordAutomaticMetadataServices) {
+									 RecordAutomaticMetadataServices recordAutomaticMetadataServices,
+									 boolean afterCalculate) {
 		this.metadatas = metadatas;
 		this.skipUSRMetadatas = skipUSRMetadatas;
+		this.afterCalculate = afterCalculate;
 		this.recordAutomaticMetadataServices = recordAutomaticMetadataServices;
 	}
 
@@ -41,13 +45,17 @@ public class ValueRequirementValidator implements Validator<Record> {
 			Object value = record.get(metadata);
 			if (metadata.isDefaultRequirement()
 				&& (!metadata.getLocalCode().startsWith("USR") || !skipUSRMetadatas)
-				&& (metadata.getDataEntry().getType() != CALCULATED ||
-					!recordAutomaticMetadataServices.isValueAutomaticallyFilled(metadata, record))
+				&& (metadata.getDataEntry().getType() != CALCULATED || isCalculatedMetadataValidated(metadata, record))
 				&& (value == null || (metadata.isMultivalue() && ((List) value).size() == 0))
 				&& metadata.isEnabled()) {
 				addValidationErrors(record.getId(), validationErrors, REQUIRED_VALUE_FOR_METADATA, metadata);
 			}
 		}
+	}
+
+	private boolean isCalculatedMetadataValidated(Metadata metadata, Record record) {
+		boolean automaticallyFilled = recordAutomaticMetadataServices.isValueAutomaticallyFilled(metadata, record);
+		return (automaticallyFilled && afterCalculate) || (!automaticallyFilled && !afterCalculate);
 	}
 
 	private void addValidationErrors(String recordId, ValidationErrors validationErrors, String errorCode,

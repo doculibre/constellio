@@ -332,9 +332,14 @@ public class RecordAutomaticMetadataServices {
 
 	public boolean isValueAutomaticallyFilled(Metadata metadataWithCalculatedDataEntry, Record record) {
 		MetadataValueCalculator<?> calculator = getCalculatorFrom(metadataWithCalculatedDataEntry);
-		Map<Dependency, Object> values = new HashMap<>();
-		addValuesFromEvaluatorDependencies(record, calculator, values);
-		return calculator.isAutomaticallyFilled(new CalculatorEvaluatorParameters(values));
+		if (!calculator.hasEvaluator()) {
+			return true;
+
+		} else {
+			Map<Dependency, Object> values = new HashMap<>();
+			addValuesFromEvaluatorDependencies(record, calculator, values);
+			return calculator.isAutomaticallyFilled(new CalculatorEvaluatorParameters(values));
+		}
 	}
 
 	MetadataValueCalculator<?> getCalculatorFrom(Metadata metadataWithCalculatedDataEntry) {

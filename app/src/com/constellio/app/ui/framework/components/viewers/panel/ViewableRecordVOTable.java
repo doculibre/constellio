@@ -1,8 +1,5 @@
 package com.constellio.app.ui.framework.components.viewers.panel;
 
-import java.util.Collection;
-import java.util.List;
-
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.components.table.columns.TableColumnsManager;
 import com.constellio.app.ui.framework.containers.ContainerAdapter;
@@ -25,6 +22,9 @@ import com.vaadin.ui.Button;
 import com.vaadin.ui.Image;
 import com.vaadin.ui.MenuBar;
 
+import java.util.Collection;
+import java.util.List;
+
 public class ViewableRecordVOTable extends RecordVOTable {
 	
 //	private int uncompressedPageLength;
@@ -32,12 +32,16 @@ public class ViewableRecordVOTable extends RecordVOTable {
 	private boolean compressed;
 
 	public ViewableRecordVOTable(ViewableRecordVOContainer dataSource) {
-		super(dataSource);
+		super();
+		removeMenuBarColumn();
+		setContainerDataSource(dataSource);
 		init();
 	}
 
 	public ViewableRecordVOTable(ContainerAdapter<ViewableRecordVOContainer> dataSource) {
 		super(dataSource);
+		removeMenuBarColumn();
+		setContainerDataSource(dataSource);
 		init();
 	}
 	

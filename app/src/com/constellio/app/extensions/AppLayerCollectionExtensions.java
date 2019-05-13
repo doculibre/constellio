@@ -28,6 +28,7 @@ import com.constellio.app.api.extensions.PagesComponentsExtension;
 import com.constellio.app.api.extensions.RecordDisplayFactoryExtension;
 import com.constellio.app.api.extensions.RecordExportExtension;
 import com.constellio.app.api.extensions.RecordFieldFactoryExtension;
+import com.constellio.app.api.extensions.RecordSecurityExtension;
 import com.constellio.app.api.extensions.SIPExtension;
 import com.constellio.app.api.extensions.RecordTextInputDataProviderExtension;
 import com.constellio.app.api.extensions.SchemaTypesPageExtension;
@@ -61,6 +62,7 @@ import com.constellio.app.api.extensions.params.RecordFieldFactoryExtensionParam
 import com.constellio.app.api.extensions.params.RecordFieldFactoryPostBuildExtensionParams;
 import com.constellio.app.api.extensions.params.RecordTextInputDataProviderSortMetadatasParam;
 import com.constellio.app.api.extensions.params.RecordFieldsExtensionParams;
+import com.constellio.app.api.extensions.params.RecordSecurityParam;
 import com.constellio.app.api.extensions.params.SearchPageConditionParam;
 import com.constellio.app.api.extensions.params.TryRepairAutomaticValueParams;
 import com.constellio.app.api.extensions.params.UpdateComponentExtensionParams;
@@ -188,6 +190,9 @@ public class AppLayerCollectionExtensions {
 	public VaultBehaviorsList<MetadataFieldExtension> workflowExecutionFieldExtensions = new VaultBehaviorsList<>();
 
 	public VaultBehaviorsList<RecordTextInputDataProviderExtension> recordTextInputDataProviderExtensions = new VaultBehaviorsList<>();
+
+	public VaultBehaviorsList<RecordSecurityExtension> recordSecurityExtensions = new VaultBehaviorsList<>();
+
 
 	//Key : schema type code
 	//Values : record's code
@@ -350,6 +355,16 @@ public class AppLayerCollectionExtensions {
 	//			extension.onDeleteContent(params);
 	//		}
 	//	}
+
+	public boolean isRecordAvalibleToAllUsers(RecordSecurityParam recordSecurityParam) {
+		for (RecordSecurityExtension recordSecurityExtension : recordSecurityExtensions) {
+			if (recordSecurityExtension.isRecordAvalibleToAllUsers(recordSecurityParam)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
 
 	public SearchResultDisplay getCustomResultDisplayFor(GetCustomResultDisplayParam params) {
 		for (SearchPageExtension extension : searchPageExtensions) {

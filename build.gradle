@@ -92,6 +92,7 @@ subprojects {
         annotationProcessor "org.projectlombok:lombok:1.18.2"
         compile name: 'mets-api'
         testCompile 'nl.jqno.equalsverifier:equalsverifier:1.4.1'
+        //compile 'org.simplejavamail:simple-java-mail:5.1.6'
     }
 
     configurations {
@@ -189,7 +190,6 @@ dependencies {
 eclipse {
     project {
         name = 'Constellio'
-        buildCommand 'compileJava'
     }
 }
 

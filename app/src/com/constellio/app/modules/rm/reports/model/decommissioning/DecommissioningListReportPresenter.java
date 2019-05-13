@@ -106,7 +106,7 @@ public class DecommissioningListReportPresenter {
 			if (folderDetailTableExtension != null) {
 				folderModel.setLegacyId(folderDetailTableExtension.getPreviousId(folder));
 				List<String> mediumTypesIds = folder.getMediumTypes();
-				if (mediumTypesIds != null) {
+				if (!mediumTypesIds.isEmpty()) {
 					List<MediumType> mediumTypes = rm.getMediumTypes(mediumTypesIds);
 					StringBuilder stringBuilder = new StringBuilder();
 					String prefix = "";

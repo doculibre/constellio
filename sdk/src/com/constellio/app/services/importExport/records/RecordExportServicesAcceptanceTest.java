@@ -36,6 +36,7 @@ import com.constellio.app.services.schemas.bulkImport.RecordsImportServices;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataProvider;
 import com.constellio.app.services.schemas.bulkImport.data.xml.XMLImportDataProvider;
 import com.constellio.app.ui.i18n.i18n;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
@@ -814,6 +815,8 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 						.withRMTest(records).withFoldersAndContainersOfEveryStatus(),
 				withCollection("anotherCollection").withConstellioRMModule().withAllTest(users));
 
+		Toggle.ALLOWS_CREATION_OF_RECORDS_WITH_NON_PADDED_ID.enable();
+
 		RMSchemasRecordsServices rmSchemasRecordsServices = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 
 		List<Folder> folderList = rmSchemasRecordsServices.searchFolders(returnAll());
@@ -1121,6 +1124,8 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 				withZeCollection().withConstellioRMModule().withConstellioRMModule().withAllTest(users)
 						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList());
 
+		Toggle.ALLOWS_CREATION_OF_RECORDS_WITH_NON_PADDED_ID.enable();
+
 		RMSchemasRecordsServices rmZeCollection = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 
 		List<DecommissioningList> exportedDecommissiongLists = rmZeCollection.searchDecommissioningLists(returnAll());
@@ -1232,6 +1237,9 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withConstellioRMModule().withAllTest(users).withRMTest(records),
 				withCollection("anotherCollection").withConstellioRMModule().withAllTest(users));
+
+		Toggle.ALLOWS_CREATION_OF_RECORDS_WITH_NON_PADDED_ID.enable();
+
 		final String MESSAGE = "Message";
 		final User user = records.getAdmin();
 
@@ -1239,14 +1247,14 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		comment.setUser(records.getAdmin());
 		comment.setMessage(MESSAGE);
 
-		RMSchemasRecordsServices rmZeCollection = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 
 		RecordServices recordServices = getModelLayerFactory().newRecordServices();
 
 		Transaction transaction = new Transaction();
 
 		Category category = records.getCategory_X().setComments(asList(comment));
-		List<Category> childCategories = rmZeCollection
+		List<Category> childCategories = rm
 				.searchCategorys(where(Schemas.PATH_PARTS).isContainingText(records.categoryId_X));
 		transaction.update(category.getWrappedRecord());
 
@@ -1263,14 +1271,14 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 
 		importFromZip(file, zeCollection);
 
-		Category categoryFromAnOtherCollection = rmZeCollection.getCategory(records.categoryId_X);
+		Category categoryFromAnOtherCollection = rm.getCategory(records.categoryId_X);
 
 		assertThat(categoryFromAnOtherCollection.getComments().size()).isEqualTo(1);
 
 		Comment commentFromAnOtherCollection = categoryFromAnOtherCollection.getComments().get(0);
 		assertThat(commentFromAnOtherCollection.getMessage()).isEqualTo(MESSAGE);
 		assertThat(commentFromAnOtherCollection.getUsername()).isEqualTo(user.getUsername());
-		List<Category> childCategories2 = rmZeCollection
+		List<Category> childCategories2 = rm
 				.searchCategorys(where(Schemas.PATH_PARTS).isContainingText(records.categoryId_X));
 
 		for (Category categorie1 : childCategories) {

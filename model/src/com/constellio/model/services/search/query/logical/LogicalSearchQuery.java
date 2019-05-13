@@ -8,6 +8,7 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.search.StatusFilter;
+import com.constellio.model.services.search.VisibilityStatusFilter;
 import com.constellio.model.services.search.entities.SearchBoost;
 import com.constellio.model.services.search.query.FilterUtils;
 import com.constellio.model.services.search.query.ResultsProjection;
@@ -25,6 +26,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import static com.constellio.model.services.search.VisibilityStatusFilter.VISIBLES;
 import static java.util.Arrays.asList;
 
 //TODO Remove inheritance, rename to LogicalQuery
@@ -40,7 +42,8 @@ public class LogicalSearchQuery implements SearchQuery {
 	private LogicalSearchQueryFacetFilters facetFilters = new LogicalSearchQueryFacetFilters();
 	private String freeTextQuery;
 	List<UserFilter> userFilters;
-	String filterStatus;
+	VisibilityStatusFilter visibilityStatusFilter = VISIBLES;
+	StatusFilter statusFilter = StatusFilter.ALL;
 
 	private int numberOfRows;
 	private int startRow;
@@ -90,7 +93,8 @@ public class LogicalSearchQuery implements SearchQuery {
 		facetFilters = new LogicalSearchQueryFacetFilters(query.facetFilters);
 		freeTextQuery = query.freeTextQuery;
 		userFilters = query.userFilters;
-		filterStatus = query.filterStatus;
+		visibilityStatusFilter = query.visibilityStatusFilter;
+		statusFilter = query.statusFilter;
 
 		numberOfRows = query.numberOfRows;
 		startRow = query.startRow;
@@ -198,7 +202,12 @@ public class LogicalSearchQuery implements SearchQuery {
 	}
 
 	public LogicalSearchQuery filteredByStatus(StatusFilter status) {
-		filterStatus = FilterUtils.statusFilter(status);
+		statusFilter = status;
+		return this;
+	}
+
+	public LogicalSearchQuery filteredByVisibilityStatus(VisibilityStatusFilter status) {
+		visibilityStatusFilter = status;
 		return this;
 	}
 
@@ -399,8 +408,12 @@ public class LogicalSearchQuery implements SearchQuery {
 				filterQueries.add(filterQuery);
 			}
 		}
-		if (filterStatus != null) {
-			filterQueries.add(filterStatus);
+		if (statusFilter != null && statusFilter != StatusFilter.ALL) {
+			filterQueries.add(FilterUtils.statusFilter(statusFilter));
+		}
+
+		if (visibilityStatusFilter != null && visibilityStatusFilter != VisibilityStatusFilter.ALL) {
+			filterQueries.add(FilterUtils.visibilityStatusFilter(visibilityStatusFilter));
 		}
 
 		filterQueries.addAll(facetFilters.toSolrFilterQueries());

@@ -913,7 +913,7 @@ public class RecordServicesTest extends ConstellioTest {
 		InOrder inOrder = inOrder(recordServices, transaction);
 		inOrder.verify(recordServices).execute(transaction);
 		inOrder.verify(transaction).sortRecords(schemaManager.getSchemaTypes(zeCollection));
-		inOrder.verify(recordServices).execute(nestedTransaction.capture());
+		inOrder.verify(recordServices).execute(nestedTransaction.capture(), anyInt());
 		inOrder.verify(recordServices).saveContentsAndRecords(eq(nestedTransaction.getValue()),
 				isNull(RecordModificationImpactHandler.class), anyInt());
 

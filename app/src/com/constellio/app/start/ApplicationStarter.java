@@ -2,6 +2,7 @@ package com.constellio.app.start;
 
 import com.constellio.model.conf.FoldersLocator;
 import org.eclipse.jetty.http.HttpVersion;
+import org.eclipse.jetty.server.AbstractConnector;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.server.HttpConnectionFactory;
@@ -38,7 +39,7 @@ public class ApplicationStarter {
 
 	private static Server server;
 	private static WebAppContext handler;
-	private static Map<String, List<ServletHolder>> servletMappings = new HashMap<>();
+	private static Map<String, ServletHolder> servletMappings = new HashMap<>();
 	private static Map<String, List<FilterHolder>> filterMappings = new HashMap<>();
 
 	private ApplicationStarter() {
@@ -85,10 +86,8 @@ public class ApplicationStarter {
 			}
 
 			for (String pathSpec : servletMappings.keySet()) {
-				List<ServletHolder> servlets = servletMappings.get(pathSpec);
-				for (ServletHolder servlet : servlets) {
-					handler.addServlet(servlet, pathSpec);
-				}
+				ServletHolder servlet = servletMappings.get(pathSpec);
+				handler.addServlet(servlet, pathSpec);
 			}
 		} catch (Exception e) {
 			throw new ApplicationStarterRuntimeException(e);
@@ -179,19 +178,18 @@ public class ApplicationStarter {
 		https.setPort(params.getPort());
 		https.setIdleTimeout(30000);
 
+
 		sslServer.setConnectors(new Connector[]{https});
 
 		return sslServer;
 	}
 
 	public static void registerServlet(String pathRelativeToConstellioContext, ServletHolder servletHolder) {
-		if (handler == null) {
-			if (!servletMappings.containsKey(pathRelativeToConstellioContext)) {
-				servletMappings.put(pathRelativeToConstellioContext, new ArrayList<ServletHolder>());
+		if (!servletMappings.containsKey(pathRelativeToConstellioContext)) {
+			servletMappings.put(pathRelativeToConstellioContext, servletHolder);
+			if (handler != null) {
+				handler.addServlet(servletHolder, pathRelativeToConstellioContext);
 			}
-			servletMappings.get(pathRelativeToConstellioContext).add(servletHolder);
-		} else {
-			handler.addServlet(servletHolder, pathRelativeToConstellioContext);
 		}
 	}
 

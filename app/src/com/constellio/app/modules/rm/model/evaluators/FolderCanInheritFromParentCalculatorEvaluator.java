@@ -24,7 +24,7 @@ public class FolderCanInheritFromParentCalculatorEvaluator implements Calculator
 
 	@Override
 	public boolean isAutomaticallyFilled(CalculatorEvaluatorParameters parameters) {
-		if (parameters.get(configSubFoldersDecommissionParam)) {
+		if ((boolean) parameters.get(configSubFoldersDecommissionParam)) {
 			return false;
 		}
 		String parentFolderId = parameters.get(parentFolderParam);

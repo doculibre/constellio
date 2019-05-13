@@ -23,6 +23,10 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 public abstract class SelectionTableAdapter extends VerticalLayout {
 
+	public static final int SELECT_PROPERTY_WIDTH = 44;
+
+	public static final int INDEX_PROPERTY_WIDTH = 44;
+
 	public static final String SELECT_PROPERTY_ID = "select";
 
 	public static final String INDEX_PROPERTY_ID = "index";
@@ -155,11 +159,11 @@ public abstract class SelectionTableAdapter extends VerticalLayout {
 			List<Object> oldVisibleColumns = Arrays.asList(table.getVisibleColumns());
 			table.setContainerDataSource(dataSourceAdapter);
 			table.setColumnHeader(SELECT_PROPERTY_ID, "");
-			table.setColumnWidth(SELECT_PROPERTY_ID, 44);
+			table.setColumnWidth(SELECT_PROPERTY_ID, SELECT_PROPERTY_WIDTH);
 			table.setColumnCollapsible(SELECT_PROPERTY_ID, false);
 			if (indexProperty) {
 				table.setColumnHeader(INDEX_PROPERTY_ID, "#");
-				table.setColumnWidth(INDEX_PROPERTY_ID, 40);
+				table.setColumnWidth(INDEX_PROPERTY_ID, INDEX_PROPERTY_WIDTH);
 				table.setColumnCollapsible(INDEX_PROPERTY_ID, false);
 			}
 

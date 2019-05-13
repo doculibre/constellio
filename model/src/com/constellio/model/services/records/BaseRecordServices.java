@@ -4,7 +4,6 @@ import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -13,6 +12,7 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Supplier;
 
 public abstract class BaseRecordServices implements RecordServices {
 
@@ -25,103 +25,70 @@ public abstract class BaseRecordServices implements RecordServices {
 		this.metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
 	}
 
-	public final void add(Record record)
+	public final void add(Supplier<Record> record)
 			throws RecordServicesException {
 		add(record, null);
 	}
 
-	public final void add(Record record, User user)
+	public final void add(Supplier<Record> record, User user)
 			throws RecordServicesException {
 		Transaction transaction = new Transaction().setUser(user);
-		transaction.addUpdate(record);
+		transaction.addUpdate(record.get());
 		execute(transaction);
 	}
 
-	public final void add(RecordWrapper wrapper)
-			throws RecordServicesException {
-		add(wrapper.getWrappedRecord(), null);
-	}
-
-	public final void add(RecordWrapper wrapper, User user)
-			throws RecordServicesException {
-		add(wrapper.getWrappedRecord(), user);
-	}
-
-	public final void update(RecordWrapper wrapper)
-			throws RecordServicesException {
-		update(wrapper, null);
-	}
-
 	//TODO Make this method final
-	public void update(Record record)
+	public void update(Supplier<Record> record)
 			throws RecordServicesException {
 		update(record, new RecordUpdateOptions(), null);
 	}
 
-	public final void update(Record record, RecordUpdateOptions options)
+	public final void update(Supplier<Record> record, RecordUpdateOptions options)
 			throws RecordServicesException {
 		update(record, options, null);
 	}
 
-	public final void update(RecordWrapper wrapper, User user)
-			throws RecordServicesException {
-		update(wrapper.getWrappedRecord(), user);
-	}
-
-	public final void update(Record record, User user)
+	public final void update(Supplier<Record> record, User user)
 			throws RecordServicesException {
 		update(record, new RecordUpdateOptions(), user);
 	}
 
-	public final void update(Record record, RecordUpdateOptions options, User user)
+	public final void update(Supplier<Record> record, RecordUpdateOptions options, User user)
 			throws RecordServicesException {
 		Transaction transaction = new Transaction();
 		transaction.setUser(user);
-		transaction.addUpdate(record);
+		transaction.addUpdate(record.get());
 		transaction.setOptions(options);
 		execute(transaction);
 	}
 
-	public final void update(List<Record> records, User user)
+	public final <T extends Supplier<Record>> void update(List<T> records, User user)
 			throws RecordServicesException {
-		Transaction transaction = new Transaction(records);
+		Transaction transaction = new Transaction();
+		for (Supplier<Record> record : records) {
+			transaction.add(record.get());
+		}
 		transaction.setUser(user);
 		execute(transaction);
 	}
 
-	public final void refresh(Record... records) {
+	public final void refresh(Supplier<Record>... records) {
 		refresh(Arrays.asList(records));
 	}
 
-	public final void refresh(RecordWrapper... recordWrappers) {
-		for (RecordWrapper wrapper : recordWrappers) {
-			if (wrapper != null && wrapper.getWrappedRecord() != null) {
-				refresh(wrapper.getWrappedRecord());
-			}
-		}
-	}
-
-	public final void refreshUsingCache(Record... records) {
+	public final void refreshUsingCache(Supplier<Record>... records) {
 		refreshUsingCache(Arrays.asList(records));
 	}
 
-	public final void refreshUsingCache(RecordWrapper... recordWrappers) {
-		for (RecordWrapper wrapper : recordWrappers) {
-			if (wrapper != null && wrapper.getWrappedRecord() != null) {
-				refreshUsingCache(wrapper.getWrappedRecord());
-			}
-		}
-	}
-
-	public final List<BatchProcess> updateAsync(Record record)
+	public final List<BatchProcess> updateAsync(Supplier<Record> record)
 			throws RecordServicesException {
 		return updateAsync(record, new RecordUpdateOptions());
 	}
 
-	public final List<BatchProcess> updateAsync(Record record, RecordUpdateOptions options)
+	public final List<BatchProcess> updateAsync(Supplier<Record> record, RecordUpdateOptions options)
 			throws RecordServicesException {
 		Transaction transaction = new Transaction();
-		transaction.update(record);
+		transaction.update(record.get());
 		transaction.setOptions(options);
 		return executeHandlingImpactsAsync(transaction);
 	}

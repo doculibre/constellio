@@ -9,6 +9,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import jxl.Workbook;
 import jxl.WorkbookSettings;
@@ -29,6 +30,7 @@ import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
 import static com.constellio.model.entities.schemas.Schemas.MODIFIED_BY;
 import static com.constellio.model.entities.schemas.Schemas.MODIFIED_ON;
 import static com.constellio.model.entities.schemas.Schemas.PATH;
+import static com.constellio.model.entities.schemas.entries.DataEntryType.CALCULATED;
 
 public class SchemaTypeExcelReportWriter extends BaseExcelReportWriter {
 	MetadataSchemaType metadataSchemaType;
@@ -85,7 +87,7 @@ public class SchemaTypeExcelReportWriter extends BaseExcelReportWriter {
 
 
 			for (Metadata metadata : currentMetadataSchema.getMetadatas().onlyAccessibleGloballyBy(user)) {
-				if(!isNotAHiddenSystemReserved(metadata)) {
+				if (!isNotAHiddenSystemReserved(metadata)) {
 					continue;
 				}
 				List<Object> returnList = new ArrayList<>();
@@ -94,7 +96,10 @@ public class SchemaTypeExcelReportWriter extends BaseExcelReportWriter {
 				returnList.add(getMetadataType(metadata));
 				returnList.add(i18n.$(MetadataValueType.getCaptionFor(metadata.getType())));
 				returnList.add(metadata.isMultivalue());
-				returnList.add(metadata.getDataEntry().getType() != DataEntryType.MANUAL);
+				boolean writable = metadata.getDataEntry().getType() == DataEntryType.MANUAL ||
+								   (metadata.getDataEntry().getType() == CALCULATED
+									&& ((CalculatedDataEntry) metadata.getDataEntry()).getCalculator().hasEvaluator());
+				returnList.add(!writable);
 				returnList.add(metadata.isDefaultRequirement());
 				returnList.add(metadata.isEnabled());
 
@@ -119,15 +124,15 @@ public class SchemaTypeExcelReportWriter extends BaseExcelReportWriter {
 	}
 
 	public String getMetadataType(Metadata metadata) {
-		if(metadata.getLocalCode().startsWith("USR")
-				&& !isDDVOrTaxonomy(metadata)) {
+		if (metadata.getLocalCode().startsWith("USR")
+			&& !isDDVOrTaxonomy(metadata)) {
 			return i18n.$("SchemaTypeExcelReportWriter.custom");
 		} else if (!metadata.getLocalCode().startsWith("USR")
-				&& !isDDVOrTaxonomy(metadata)) {
+				   && !isDDVOrTaxonomy(metadata)) {
 			return i18n.$("SchemaTypeExcelReportWriter.system");
 		} else if (isDDV(metadata)) {
 			return i18n.$("SchemaTypeExcelReportWriter.ddv");
-		} else if(isTaxonomy(metadata)) {
+		} else if (isTaxonomy(metadata)) {
 			return i18n.$("SchemaTypeExcelReportWriter.taxonomy");
 		} else {
 			return i18n.$("SchemaTypeExcelReportWriter.undefined");

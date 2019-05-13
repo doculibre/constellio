@@ -171,7 +171,7 @@ public class ConstellioCreateRecordServletAcceptTest extends ConstellioTest {
 		String message = callCreateFolders(bobServiceKey, bobToken, zeCollection, HttpMethod.GET,
 				missingArgumentsForFolderCreation);
 
-		assertThat(message).contains("Métadonnée «Date d'ouverture» requise", "Métadonnée «Titre» requise");
+		assertThat(message).contains("Métadonnée «Titre» requise");
 	}
 
 	@Test

@@ -9,6 +9,7 @@ import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
 import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentContainerBreadcrumbTrail;
 import com.constellio.app.modules.rm.ui.components.document.DocumentActionsPresenterUtils;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
+import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.modules.rm.util.RMNavigationUtils;
 import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -28,6 +29,7 @@ import com.constellio.app.ui.framework.builders.ContentVersionToVOBuilder;
 import com.constellio.app.ui.framework.builders.EventToVOBuilder;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
+import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.RMSelectionPanelReportPresenter;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
@@ -87,15 +89,35 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	private String lastKnownCheckoutUserId;
 	private Long lastKnownLength;
 	private Document document;
+	private DocumentVO documentVO;
 	private Map<String, String> params = null;
+	private boolean nestedView;
 
-	public DisplayDocumentPresenter(final DisplayDocumentView view, RecordVO recordVO, boolean popup) {
+	public DisplayDocumentPresenter(final DisplayDocumentView view, RecordVO recordVO, final boolean nestedView) {
 		super(view);
+		this.nestedView = nestedView;
 		initTransientObjects();
 		presenterUtils = new DocumentActionsPresenterUtils<DisplayDocumentView>(view) {
 			@Override
 			public void updateActionsComponent() {
 				super.updateActionsComponent();
+				if (nestedView) {
+					view.setDisplayDocumentButtonState(ComponentState.ENABLED);
+					Content content = getContent();
+					if (content != null) {
+						ContentVersionVO contentVersionVO = contentVersionVOBuilder.build(content);
+						view.setDownloadDocumentButtonState(ComponentState.ENABLED);
+						String agentURL = ConstellioAgentUtils.getAgentURL(documentVO, contentVersionVO);
+						view.setOpenDocumentButtonState(agentURL != null ? ComponentState.ENABLED : ComponentState.INVISIBLE);
+					} else {
+						view.setDownloadDocumentButtonState(ComponentState.INVISIBLE);
+						view.setOpenDocumentButtonState(ComponentState.INVISIBLE);
+					}
+				} else {
+					view.setDisplayDocumentButtonState(ComponentState.INVISIBLE);
+					view.setDownloadDocumentButtonState(ComponentState.INVISIBLE);
+					view.setOpenDocumentButtonState(ComponentState.INVISIBLE);
+				}
 				view.refreshMetadataDisplay();
 				updateContentVersions();
 			}
@@ -165,7 +187,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		document = rm.wrapDocument(record);
 		hasWriteAccess = getCurrentUser().hasWriteAccess().on(record);
 
-		final DocumentVO documentVO = voBuilder.build(record, VIEW_MODE.DISPLAY, view.getSessionContext());
+		documentVO = voBuilder.build(record, VIEW_MODE.DISPLAY, view.getSessionContext());
 		view.setDocumentVO(documentVO);
 		presenterUtils.setRecordVO(documentVO);
 		ModelLayerFactory modelLayerFactory = view.getConstellioFactories().getModelLayerFactory();
@@ -186,7 +208,6 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 				query.filteredWithUser(getCurrentUser());
 				addStarredSortToQuery(query);
 				query.sortDesc(Schemas.MODIFIED_ON);
-
 				return query;
 			}
 
@@ -335,8 +356,17 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		presenterUtils.deleteContentVersionButtonClicked(contentVersionVO);
 	}
 
+	public void displayDocumentButtonClicked() {
+		view.navigate().to(RMViews.class).displayDocument(documentVO.getId());
+	}
+
+	public void openDocumentButtonClicked() {
+		String agentURL = ConstellioAgentUtils.getAgentURL(documentVO, documentVO.getContent());
+		view.openAgentURL(agentURL);
+	}
+
 	public void editDocumentButtonClicked() {
-		if (view.isInWindow()) {
+		if (view.isInWindow() || nestedView) {
 			view.editInWindow();
 		} else {
 			presenterUtils.editDocumentButtonClicked(params);
@@ -618,4 +648,5 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	public MetadataSchemaVO getSchema() {
 		return new MetadataSchemaToVOBuilder().build(schema(Cart.DEFAULT_SCHEMA), RecordVO.VIEW_MODE.TABLE, view.getSessionContext());
 	}
+
 }

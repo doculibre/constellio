@@ -5,7 +5,6 @@ import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -20,19 +19,16 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 
 import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 public interface RecordServices {
 
-	void add(Record record)
+	void add(Supplier<Record> record)
 			throws RecordServicesException;
 
-	void add(Record record, User user)
-			throws RecordServicesException;
-
-	void add(RecordWrapper wrapper)
-			throws RecordServicesException;
-
-	void add(RecordWrapper wrapper, User user)
+	void add(Supplier<Record> record, User user)
 			throws RecordServicesException;
 
 	List<BatchProcess> executeHandlingImpactsAsync(Transaction transaction)
@@ -50,31 +46,31 @@ public interface RecordServices {
 	void executeWithImpactHandler(Transaction transaction, RecordModificationImpactHandler handler)
 			throws RecordServicesException;
 
+	<T extends Supplier<Record>> void update(Stream<T> stream, Consumer<T> action)
+			throws RecordServicesException;
+
+	<T extends Supplier<Record>> void update(Stream<T> stream, Consumer<T> action, RecordUpdateOptions options)
+			throws RecordServicesException;
+
 	Record toRecord(RecordDTO recordDTO, boolean fullyLoaded);
 
 	List<Record> toRecords(List<RecordDTO> recordDTOs, boolean fullyLoaded);
 
 	long documentsCount();
 
-	void update(RecordWrapper wrapper)
+	void update(Supplier<Record> record)
 			throws RecordServicesException;
 
-	void update(Record record)
+	void update(Supplier<Record> record, RecordUpdateOptions options)
 			throws RecordServicesException;
 
-	void update(Record record, RecordUpdateOptions options)
+	void update(Supplier<Record> record, User user)
 			throws RecordServicesException;
 
-	void update(RecordWrapper wrapper, User user)
+	void update(Supplier<Record> record, RecordUpdateOptions options, User user)
 			throws RecordServicesException;
 
-	void update(Record record, User user)
-			throws RecordServicesException;
-
-	void update(Record record, RecordUpdateOptions options, User user)
-			throws RecordServicesException;
-
-	void update(List<Record> records, User user)
+	<T extends Supplier<Record>> void update(List<T> records, User user)
 			throws RecordServicesException;
 
 	Record getRecordByMetadata(Metadata metadata, String value);
@@ -101,10 +97,10 @@ public interface RecordServices {
 	void validateTransaction(Transaction transaction)
 			throws ValidationException;
 
-	void validateRecordInTransaction(Record record, Transaction transaction)
+	void validateRecordInTransaction(Supplier<Record> record, Transaction transaction)
 			throws ValidationException;
 
-	void validateRecord(Record record)
+	void validateRecord(Supplier<Record> record)
 			throws RecordServicesException.ValidationException;
 
 	Record newRecordWithSchema(MetadataSchema schema, String id, boolean withDefaultValues);
@@ -115,22 +111,18 @@ public interface RecordServices {
 
 	Record newRecordWithSchema(MetadataSchema schema);
 
-	void refresh(Record... records);
+	void refresh(Supplier<Record>... records);
 
-	void refresh(RecordWrapper... recordWrappers);
+	<T extends Supplier<Record>> void refresh(List<T> records);
 
-	void refresh(List<?> records);
+	void refreshUsingCache(Supplier<Record>... records);
 
-	void refreshUsingCache(Record... records);
+	<T extends Supplier<Record>> void refreshUsingCache(List<T> records);
 
-	void refreshUsingCache(RecordWrapper... recordWrappers);
-
-	void refreshUsingCache(List<?> records);
-
-	List<BatchProcess> updateAsync(Record record)
+	List<BatchProcess> updateAsync(Supplier<Record> record)
 			throws RecordServicesException;
 
-	List<BatchProcess> updateAsync(Record record, RecordUpdateOptions options)
+	List<BatchProcess> updateAsync(Supplier<Record> record, RecordUpdateOptions options)
 			throws RecordServicesException;
 
 	ModificationImpactCalculatorResponse calculateImpactOfModification(Transaction transaction,
@@ -141,31 +133,31 @@ public interface RecordServices {
 
 	RecordsCaches getRecordsCaches();
 
-	boolean isRestorable(Record record, User user);
+	boolean isRestorable(Supplier<Record> record, User user);
 
-	void restore(Record record, User user);
+	void restore(Supplier<Record> record, User user);
 
-	ValidationErrors validatePhysicallyDeletable(Record record, User user);
+	ValidationErrors validatePhysicallyDeletable(Supplier<Record> record, User user);
 
-	void physicallyDelete(Record record, User user);
+	void physicallyDelete(Supplier<Record> record, User user);
 
-	void physicallyDelete(Record record, User user, RecordPhysicalDeleteOptions options);
+	void physicallyDelete(Supplier<Record> record, User user, RecordPhysicalDeleteOptions options);
 
-	void physicallyDeleteNoMatterTheStatus(Record record, User user, RecordPhysicalDeleteOptions options);
+	void physicallyDeleteNoMatterTheStatus(Supplier<Record> record, User user, RecordPhysicalDeleteOptions options);
 
-	ValidationErrors validateLogicallyDeletable(Record record, User user);
+	ValidationErrors validateLogicallyDeletable(Supplier<Record> record, User user);
 
-	boolean isLogicallyDeletableAndIsSkipValidation(Record record, User user);
+	boolean isLogicallyDeletableAndIsSkipValidation(Supplier<Record> record, User user);
 
-	ValidationErrors validateLogicallyThenPhysicallyDeletable(Record record, User user);
+	ValidationErrors validateLogicallyThenPhysicallyDeletable(Supplier<Record> record, User user);
 
-	void logicallyDelete(Record record, User user);
+	void logicallyDelete(Supplier<Record> record, User user);
 
-	void logicallyDelete(Record record, User user, RecordLogicalDeleteOptions options);
+	void logicallyDelete(Supplier<Record> record, User user, RecordLogicalDeleteOptions options);
 
-	List<Record> getVisibleRecordsWithReferenceTo(Record record, User user);
+	List<Record> getVisibleRecordsWithReferenceTo(Supplier<Record> record, User user);
 
-	boolean isReferencedByOtherRecords(Record record);
+	boolean isReferencedByOtherRecords(Supplier<Record> record);
 
 	void flush();
 
@@ -173,13 +165,14 @@ public interface RecordServices {
 
 	void removeOldLocks();
 
-	void recalculate(RecordWrapper recordWrapper);
+	void recalculate(Supplier<Record> record);
 
-	void recalculate(Record record);
+	void loadLazyTransientMetadatas(Supplier<Record> record);
 
-	void loadLazyTransientMetadatas(Record record);
-
-	void reloadEagerTransientMetadatas(Record record);
+	void reloadEagerTransientMetadatas(Supplier<Record> record);
 
 	SecurityModel getSecurityModel(String collection);
+
+	boolean isValueAutomaticallyFilled(Metadata metadata, Supplier<Record> record);
+
 }

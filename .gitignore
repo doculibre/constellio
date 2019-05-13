@@ -6,7 +6,7 @@
 *.jar
 *~.nib
 local.properties
-.settings/
+#.settings/
 .loadpath
 .externalToolBuilders/
 *.launch
@@ -19,8 +19,8 @@ local.properties
 *.war
 *.ear
 *.iml
-.project
-.classpath
+#.project
+#.classpath
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 sdk.properties

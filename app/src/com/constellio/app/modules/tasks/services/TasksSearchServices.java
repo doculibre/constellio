@@ -46,19 +46,15 @@ public class TasksSearchServices {
 	}
 
 	public LogicalSearchQuery getUnassignedTasksQuery(User user) {
-		LogicalSearchCondition condition = from(tasksSchemas.userTask.schemaType()).whereAllConditions(
-				where(tasksSchemas.userTask.assignee()).isNull(),
-				where(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull(),
-				where(tasksSchemas.userTask.status()).isNotEqual(getClosedStatus()),
-				where(tasksSchemas.userTask.statusType()).isNotEqual(TERMINATED_STATUS),
-				where(tasksSchemas.userTask.isModel()).isFalseOrNull(),
-				allConditions(
-						anyConditions(
-								where(tasksSchemas.userTask.assignee()).isNull(),
-								where(tasksSchemas.userTask.assigneeGroupsCandidates()).isIn(user.getUserGroups()),
-								where(tasksSchemas.userTask.assigneeUsersCandidates()).isEqualTo(user)
-						)));
-		return new LogicalSearchQuery(condition).filteredWithUser(user).sortDesc(tasksSchemas.userTask.dueDate()).sortDesc(tasksSchemas.userTask.modifiedOn());
+		return new LogicalSearchQuery(
+				from(tasksSchemas.userTask.schemaType()).where(tasksSchemas.userTask.assignee()).isNull()
+						.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()
+						.andWhere(tasksSchemas.userTask.assigneeGroupsCandidates()).isNull()
+						.andWhere(tasksSchemas.userTask.assigneeUsersCandidates()).isNull()
+						.andWhere(tasksSchemas.userTask.status()).isNotEqual(getClosedStatus())
+						.andWhere(tasksSchemas.userTask.statusType()).isNotEqual(TERMINATED_STATUS)
+						.andWhere(tasksSchemas.userTask.isModel()).isFalseOrNull())
+				.filteredWithUser(user).sortDesc(tasksSchemas.userTask.dueDate()).sortDesc(tasksSchemas.userTask.modifiedOn());
 	}
 
 	public LogicalSearchQuery getTasksAssignedToUserQuery(User user) {
@@ -67,7 +63,16 @@ public class TasksSearchServices {
 				where(tasksSchemas.userTask.status()).isNotEqual(getClosedStatus()),
 				where(tasksSchemas.userTask.statusType()).isNotEqual(TERMINATED_STATUS),
 				where(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull(),
-				where(tasksSchemas.userTask.assignee()).isEqualTo(user));
+				anyConditions(
+						where(tasksSchemas.userTask.assignee()).isEqualTo(user),
+						allConditions(
+								where(tasksSchemas.userTask.assignee()).isNull(),
+								anyConditions(
+										where(tasksSchemas.userTask.assigneeGroupsCandidates()).isIn(user.getUserGroups()),
+										where(tasksSchemas.userTask.assigneeUsersCandidates()).isEqualTo(user)
+								)
+						)
+				));
 		return new LogicalSearchQuery(condition).filteredWithUser(user).sortDesc(tasksSchemas.userTask.dueDate()).sortDesc(tasksSchemas.userTask.modifiedOn());
 	}
 

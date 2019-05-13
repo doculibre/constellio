@@ -6,6 +6,8 @@ import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.ParsedContent;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.services.contents.ContentManager.ParseOptions;
+import com.constellio.model.services.contents.ContentManager.UploadOptions;
 import com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_NoSuchContent;
 import com.constellio.model.services.contents.icap.IcapException;
 import com.constellio.model.services.contents.icap.IcapResponse;
@@ -219,12 +221,13 @@ public class ContentManagerAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		File textContentFile = modifyFileSystem().newTempFileWithContent(textContent);
 		contentStream = newFileInputStream(textContentFile);
-		String hash = contentManager.upload(contentStream).getHash();
-		verify(fileParser, times(1)).parse(any(StreamFactory.class), anyInt());
+		String hash = contentManager.upload(contentStream, new UploadOptions().setParseOptions(ParseOptions.PARSING_WITHOUT_OCR))
+				.getContentVersionDataSummary().getHash();
+		verify(fileParser, times(1)).parse(any(StreamFactory.class), anyInt(), eq(ParseOptions.PARSING_WITHOUT_OCR));
 
 		contentStream = newFileInputStream(textContentFile);
-		contentManager.upload(contentStream);
-		verify(fileParser, times(1)).parse(any(StreamFactory.class), anyInt());
+		contentManager.upload(contentStream, new UploadOptions().setParseOptions(ParseOptions.PARSING_WITHOUT_OCR));
+		verify(fileParser, times(1)).parse(any(StreamFactory.class), anyInt(), eq(ParseOptions.PARSING_WITHOUT_OCR));
 		contentManager.getParsedContent(hash);
 	}
 
@@ -253,12 +256,13 @@ public class ContentManagerAcceptanceTest extends ConstellioTest {
 
 		File contentFile = getTestResourceFile("passwordProtected.pdf");
 		contentStream = newFileInputStream(contentFile);
-		String hash = contentManager.upload(contentStream).getHash();
-		verify(fileParser, times(1)).parse(any(StreamFactory.class), anyInt());
+		String hash = contentManager.upload(contentStream, new UploadOptions().setParseOptions(ParseOptions.PARSING_WITHOUT_OCR))
+				.getContentVersionDataSummary().getHash();
+		verify(fileParser, times(1)).parse(any(StreamFactory.class), anyInt(), eq(ParseOptions.PARSING_WITHOUT_OCR));
 
 		contentStream = newFileInputStream(contentFile);
-		contentManager.upload(contentStream);
-		verify(fileParser, times(1)).parse(any(StreamFactory.class), anyInt());
+		contentManager.upload(contentStream, new UploadOptions().setParseOptions(ParseOptions.PARSING_WITHOUT_OCR));
+		verify(fileParser, times(1)).parse(any(StreamFactory.class), anyInt(), eq(ParseOptions.PARSING_WITHOUT_OCR));
 		contentManager.getParsedContent(hash);
 	}
 

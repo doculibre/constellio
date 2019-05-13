@@ -78,7 +78,7 @@ public class AddEditFolderFolderPresenterAcceptTest extends ConstellioTest {
 		navigator = new MockedNavigation();
 		when(view.navigate()).thenReturn(navigator);
 
-		presenter = spy(new AddEditFolderPresenter(view));
+		presenter = spy(new AddEditFolderPresenter(view, null));
 
 		doNothing().when(presenter).navigateToFolderDisplay(any(String.class));
 

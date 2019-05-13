@@ -469,17 +469,27 @@ public class DocumentCalculatorsAcceptTest extends ConstellioTest {
 
 		assertThat(principalFolder.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
 		assertThat(principalFolder.getApplicableCopyRules()).isEmpty();
+		assertThat(principalFolder.getMainCopyRule()).isNull();
 		assertThat(principalDocumentWithoutType.getApplicableCopyRules()).containsOnly(principal888_2_C.in(rule, category));
 		assertThat(principalDocumentWithType1.getApplicableCopyRules()).containsOnly(principal888_3_C.in(rule, category));
 		assertThat(principalDocumentWithType2.getApplicableCopyRules()).containsOnly(principal888_4_C.in(rule, category));
 		assertThat(principalDocumentWithType3.getApplicableCopyRules()).containsOnly(principal888_2_C.in(rule, category));
+		assertThat(principalDocumentWithoutType.getMainCopyRule()).isNotNull();
+		assertThat(principalDocumentWithType1.getMainCopyRule()).isNotNull();
+		assertThat(principalDocumentWithType2.getMainCopyRule()).isNotNull();
+		assertThat(principalDocumentWithType3.getMainCopyRule()).isNotNull();
 
 		assertThat(secondaryFolder.getCopyStatus()).isEqualTo(CopyType.SECONDARY);
 		assertThat(secondaryFolder.getApplicableCopyRules()).isEmpty();
+		assertThat(principalFolder.getMainCopyRule()).isNull();
 		assertThat(secondaryDocumentWithoutType.getApplicableCopyRules()).containsOnly(secondary888_1_C.in(rule, category));
 		assertThat(secondaryDocumentWithType1.getApplicableCopyRules()).containsOnly(secondary888_1_C.in(rule, category));
 		assertThat(secondaryDocumentWithType2.getApplicableCopyRules()).containsOnly(secondary888_1_C.in(rule, category));
 		assertThat(secondaryDocumentWithType3.getApplicableCopyRules()).containsOnly(secondary888_1_C.in(rule, category));
+		assertThat(secondaryDocumentWithoutType.getMainCopyRule()).isNotNull();
+		assertThat(secondaryDocumentWithType1.getMainCopyRule()).isNotNull();
+		assertThat(secondaryDocumentWithType2.getMainCopyRule()).isNotNull();
+		assertThat(secondaryDocumentWithType3.getMainCopyRule()).isNotNull();
 	}
 
 	//#Scenario #4

@@ -106,7 +106,7 @@ public class ConstellioCreateRecordServlet extends HttpServlet {
 
 		Record record = recordServices.newRecordWithSchema(metadataSchema);
 
-		for (Metadata metadata : metadataSchema.getMetadatas().onlyManuals()) {
+		for (Metadata metadata : metadataSchema.getMetadatas().onlyManualsOrAutomaticWithEvaluator()) {
 			String metadataValue = request.getParameter(metadata.getLocalCode());
 			setRecordMetadata(record, metadata, metadataValue, metadataSchemaTypes);
 		}
@@ -153,7 +153,7 @@ public class ConstellioCreateRecordServlet extends HttpServlet {
 				Record record = recordServices.newRecordWithSchema(metadataSchema);
 
 				NamedNodeMap recordNamedNodeMap = recordsNodeList.item(i).getAttributes();
-				for (Metadata metadata : metadataSchema.getMetadatas().onlyManuals()) {
+				for (Metadata metadata : metadataSchema.getMetadatas().onlyManualsOrAutomaticWithEvaluator()) {
 					Node recordMetadataValue = recordNamedNodeMap.getNamedItem(metadata.getLocalCode());
 					if (recordMetadataValue != null) {
 						setRecordMetadata(record, metadata, recordMetadataValue.getNodeValue(), metadataSchemaTypes);

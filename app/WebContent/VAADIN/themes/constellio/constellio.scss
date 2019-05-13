@@ -75,6 +75,15 @@ $popup-view-z-index: 3;
 
 @mixin constellio {
 
+	.djs-container .highlight .djs-outline {
+	   stroke-width: 2px important;
+	   stroke: #08c !important;
+	}
+
+	.djs-container .highlight .djs-visual>:nth-child(1) {
+	   fill: rgba(255, 221, 0, 1.00) !important;
+	}
+
 	.v-tabsheet-tabitem {
 		.tab-badge {
 		    -webkit-transition: background-color 300ms;
@@ -102,6 +111,10 @@ $popup-view-z-index: 3;
 			.v-caption {
 				font-size: 14px;
 			}
+		}
+		
+		.v-tabsheet-tabsheetpanel {
+			font-size: 14px;
 		}
 	}
 
@@ -260,9 +273,14 @@ $popup-view-z-index: 3;
 					}
 				}
 
+				.task-details-contents {
+					font-size: 14px;
+				}
+
 				.task-details-linked-documents {
 					.agent-action-link {
 						color: black;
+						font-size: 14px;
 					}
 
 					.agent-action-link:hover {
@@ -272,16 +290,42 @@ $popup-view-z-index: 3;
 
 				.v-slot-task-details-description {
 					padding-top: 0px;
+				}	
+			
+				.v-slot-task-details-comment-workflow-layout {
+					position: relative;
+				    top: -10px;
+				    margin-top: -23px;
+				    z-index: 2;
+
+				    .v-checkbox {
+				    	top: 9px;
+				    	font-size: 14px;
+				    }
+
+					.v-slot-task-details-add-comment-button {
+						position: relative;
+					    top: 53px;
+					    margin-top: -53px;
+					    z-index: 2;
+					}
 				}
 
 				.v-slot-task-details-add-comment-button {
+					position: relative;
+				    top: 0px;
+				    margin-top: -30px;
+				    z-index: 2;
+				}
+
+				.v-slot-task-details-add-documents-button {
 					position: relative;
 				    top: 53px;
 				    margin-top: -53px;
 				    z-index: 2;
 				}
-
-				.task-details-add-comment-button {
+			
+				.task-details-add-comment-button, .task-details-add-documents-button {
 				    font-weight: 100;
 				    font-size: 14px;
 				}
@@ -1062,10 +1106,12 @@ $popup-view-z-index: 3;
     		}
     	}
     }
+    
    .panel-no-scroll {
    		overflow-x: hidden;
    		overflow-y: hidden;
    	}
+   	
     .viewable-record-window {
    		width: 100%;
 
@@ -1380,6 +1426,10 @@ $popup-view-z-index: 3;
 		    	position: absolute;
 		    	top: -40px;
 		    	right: 30px;
+			}
+			
+			.no-caption-action-menu-bar .v-menubar-submenu-indicator + .v-menubar-menuitem-caption:after {
+				display:none;
 			}
 
 			.action-menu-wrapper {
@@ -1973,12 +2023,23 @@ $popup-view-z-index: 3;
 		}
 
 	    .viewable-record-table-panel {
-	  min-height: 2000px;
+	  		min-height: 2000px;
+	  		
+	  		.v-slot-previous-next-buttons-layout {
+	  			margin-bottom: -36px;
+	  		}
+	  		
 	  		.close-button-viewer-metadata-layout {
 			    position: absolute;
 	  		}
-
-	  		.folder-content-table.viewable-record-table-compressed {
+	  		
+	  		.close-viewer-button {
+	  			position: relative;
+	  			top: 16px;
+	  			z-index: 2;
+	  		}
+	  		
+	  		.viewable-record-table {
 
 	  			.v-table-body {
 	  				border: none;
@@ -2011,28 +2072,23 @@ $popup-view-z-index: 3;
 					}
 	  			}
 	  		}
+	  		
+			.viewable-record-table [class*="-row"].v-selected {
+				outline: 1px solid rgb(25, 125, 225);
+	    		outline-offset: -1px;
 
-	  		.folder-content-table.viewable-record-table-uncompressed {
-
-				.search-result-table {
-
-					.v-table-table {
-						// box-shadow: none;
-
-						.v-table-cell-content {
-							vertical-align: middle;
-
-							.v-checkbox {
-								margin-top: 13px;
-							}
-
-							.v-spacing {
-								height: 5px;
-							}
-						}
-					}
-				}
-	  		}
+	    		background-color: inherit;
+	    		background-image: inherit;
+	    		background-origin: inherit;
+	    		text-shadow: inherit;
+	    		color: inherit;
+				//background-color: #197de1;
+				//background-image: -webkit-linear-gradient(top, #1b87e3 2%, #166ed5 98%);
+				//background-image: linear-gradient(to bottom,#1b87e3 2%, #166ed5 98%);
+				//background-origin: border-box;
+				//color: #ecf2f8;
+				//text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.05);
+			}
 
 	    }
 	}
@@ -2336,13 +2392,20 @@ $popup-view-z-index: 3;
 									}
 								}
 								
+								.v-slot-search-result-elevation-buttons {
+									position: relative;
+									margin-bottom: -35px;
+								}
+								
 								.search-result-elevation-buttons {
-								    border: 1px solid rgb(25, 125, 225);
-								    border-radius: 4px;
-								    margin-left: 10px;
-								    margin-top: 3px;
 								    padding-left: 5px;
 								    padding-right: 5px;
+								    
+					  				border: none;
+
+					  				.v-button-caption {
+					  					display: none;
+					  				}
 								}
 								
 								.search-result-elevation, .search-result-exclusion {
@@ -2359,15 +2422,6 @@ $popup-view-z-index: 3;
 								.search-result-title {
 									width: 350px;
 								}
-
-					  			.search-result-elevation-buttons {
-					  				border: none;
-					  				margin-top: inherit;
-
-					  				.v-button-caption {
-					  					display: none;
-					  				}
-					  			}
 							}
 						   
 						   	.task-table {
@@ -2512,6 +2566,22 @@ $popup-view-z-index: 3;
 					    	}
 					    }
 
+						.display-folder-upload-field {
+							margin-bottom: -20px;
+
+							.v-multifileupload-dropzone {
+								display: none;
+							}
+
+							.v-button {
+								display: none;
+							}
+
+							.base-upload-field-table {
+								display: none;
+							}
+						}
+
 					    .action-menu-layout {
 						    width: 225px;
 						    border: 1px solid #3a434d;
@@ -2558,6 +2628,29 @@ $popup-view-z-index: 3;
 					    	position: absolute;
 					    	top: -40px;
 					    	right: 30px;
+						}
+			
+						.v-slot-main-action-menu-buttons-layout {
+							position: relative;
+							right: 64px;
+							margin-top: -17px;
+							
+							.download-document-link {
+								padding-top: 7px;
+							}
+						}
+			
+						.viewer-metadata-panel {
+							position: relative;
+							top: -12px;
+						
+							.action-menu-bar {
+								top: -75px;
+							}
+						}
+			
+						.no-caption-action-menu-bar .v-menubar-submenu-indicator + .v-menubar-menuitem-caption:after {
+							display:none;
 						}
 
 					}
@@ -3011,7 +3104,7 @@ $popup-view-z-index: 3;
 				.v-disabled {
 					text-align: right;
 				}
-			
+
 				.v-checkbox {
 					> label {
 						margin-right: 10px;
@@ -3100,7 +3193,7 @@ $popup-view-z-index: 3;
 			left: inherit;
 			right: 0;
 		}
-			
+
 		.h1 {
 		    padding-left: 0px;
 		    padding-right: 10px;
@@ -3221,14 +3314,14 @@ $popup-view-z-index: 3;
 						}
 					}
 				}
-			
+
 				.search-result-title {
 					.v-icon {
 						padding-left: 8px;
 						padding-right: 2px;
 					}
 				}
-			
+
 				.search-result-highlights {
 					em {
 						text-decoration: underline;

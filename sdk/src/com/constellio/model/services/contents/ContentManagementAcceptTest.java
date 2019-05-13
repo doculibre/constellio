@@ -181,6 +181,7 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 		givenConfig(ConstellioEIMConfigs.VIEWER_CONTENTS_CONVERSION_SCHEDULE, null);
 		givenConfig(ConstellioEIMConfigs.UNREFERENCED_CONTENTS_DELETE_SCHEDULE, null);
 		givenConfig(ConstellioEIMConfigs.UNREFERENCED_CONTENTS_DELETE_SCHEDULE, "00-24");
+		givenConfig(ConstellioEIMConfigs.DEFAULT_PARSING_BEHAVIOR, ParsingBehavior.SYNC_PARSING_FOR_ALL_CONTENTS);
 		givenTimeIs(smashOClock);
 
 		alice = getModelLayerFactory().newUserServices().getUserInCollection("alice", zeCollection);
@@ -472,6 +473,7 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 	public void givenHistoryVersionsAreNotParsedWhenRemovingCurrentVersionThenParseLastHistoryVersion()
 			throws Exception {
 
+
 		doReturn(true).when(userPermissionsChecker).globally();
 		doReturn(userPermissionsChecker).when(bob).has(CorePermissions.DELETE_CONTENT_VERSION);
 
@@ -511,7 +513,9 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 			throws Exception {
 
 		Content content = contentManager.createMinor(alice, "ZePdf.pdf", uploadPdf1InputStreamWithoutParsing());
+		assertThat(contentManager.isParsed(pdf2Hash)).isFalse();
 		content.updateContent(bob, uploadPdf2InputStreamWithoutParsing(), true);
+		assertThat(contentManager.isParsed(pdf2Hash)).isFalse();
 		content.updateContent(alice, uploadPdf3InputStream(), false);
 		content.updateContentWithName(alice, uploadDocx1InputStreamWithoutParsing(), false, "ZeDocx.docx");
 		content.updateContent(bob, uploadDocx2InputStream(), true);
@@ -1622,7 +1626,8 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenTheRequireConversionFlagIsActivatedAndThumbnailGenerationFlagIsDisabledThenNoThumbnail() throws Exception {
+	public void givenTheRequireConversionFlagIsActivatedAndThumbnailGenerationFlagIsDisabledThenNoThumbnail()
+			throws Exception {
 		givenConfig(ConstellioEIMConfigs.ENABLE_THUMBNAIL_GENERATION, false);
 
 		ContentVersionDataSummary zeContent = uploadDocx1InputStream();
@@ -2014,30 +2019,35 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 
 	private ContentVersionDataSummary uploadPdf1InputStreamWithoutParsing() {
 		return contentManager.upload(getTestResourceInputStream("pdf1.pdf"), new UploadOptions("pdf1.pdf")
+				.setParseOptions(ParseOptions.NO_PARSING)
 				.setHandleDeletionOfUnreferencedHashes(false))
 				.getContentVersionDataSummary();
 	}
 
 	private ContentVersionDataSummary uploadPdf2InputStreamWithoutParsing() {
 		return contentManager.upload(getTestResourceInputStream("pdf2.pdf"), new UploadOptions("pd2.docx.pdf")
+				.setParseOptions(ParseOptions.NO_PARSING)
 				.setHandleDeletionOfUnreferencedHashes(false))
 				.getContentVersionDataSummary();
 	}
 
 	private ContentVersionDataSummary uploadPdf3InputStreamWithoutParsing() {
 		return contentManager.upload(getTestResourceInputStream("pdf3.pdf"), new UploadOptions("pd3.pdf.pdf")
+				.setParseOptions(ParseOptions.NO_PARSING)
 				.setHandleDeletionOfUnreferencedHashes(false))
 				.getContentVersionDataSummary();
 	}
 
 	private ContentVersionDataSummary uploadDocx1InputStreamWithoutParsing() {
 		return contentManager.upload(getTestResourceInputStream("docx1.docx"), new UploadOptions("doc1.docx")
+				.setParseOptions(ParseOptions.NO_PARSING)
 				.setHandleDeletionOfUnreferencedHashes(false))
 				.getContentVersionDataSummary();
 	}
 
 	private ContentVersionDataSummary uploadDocx2InputStreamWithoutParsing() {
 		return contentManager.upload(getTestResourceInputStream("docx2.docx"), new UploadOptions("doc2.doc.docx")
+				.setParseOptions(ParseOptions.NO_PARSING)
 				.setHandleDeletionOfUnreferencedHashes(false))
 				.getContentVersionDataSummary();
 	}

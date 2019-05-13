@@ -323,7 +323,7 @@ public class DecommissioningService {
 			throws RecordServicesException {
 		List<String> parameters = new ArrayList<>();
 		boolean isAddingRecordIdInEmails = eimConfigs.isAddingRecordIdInEmails();
-		if(isAddingRecordIdInEmails) {
+		if (isAddingRecordIdInEmails) {
 			parameters.add("decomList" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(decommissioningList.getTitle()) + " (" + decommissioningList.getId() + ")");
 		} else {
 			parameters.add("decomList" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(decommissioningList.getTitle()));
@@ -414,7 +414,7 @@ public class DecommissioningService {
 		List<String> parameters = new ArrayList<>();
 		List<Comment> commentaires = new ArrayList<>();
 		boolean isAddingRecordIdInEmails = eimConfigs.isAddingRecordIdInEmails();
-		if(isAddingRecordIdInEmails) {
+		if (isAddingRecordIdInEmails) {
 			parameters.add("decomList" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(list.getTitle()) + " (" + list.getId() + ")");
 		} else {
 			parameters.add("decomList" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(list.getTitle()));
@@ -942,8 +942,8 @@ public class DecommissioningService {
 	public Document createDuplicateOfDocument(Document duplicatedDocument, User currentUser) {
 		Document newDocument = rm.newDocumentWithType(duplicatedDocument.getType());
 
-		for (Metadata metadata : duplicatedDocument.getSchema().getMetadatas().onlyNonSystemReserved().onlyManuals()
-				.onlyDuplicable()) {
+		for (Metadata metadata : duplicatedDocument.getSchema().getMetadatas().onlyNonSystemReserved()
+				.onlyManualsOrAutomaticWithEvaluator().onlyDuplicable()) {
 			newDocument.set(metadata, duplicatedDocument.get(metadata));
 		}
 		LocalDateTime now = LocalDateTime.now();
@@ -959,7 +959,8 @@ public class DecommissioningService {
 		Folder newFolder = rm.newFolderWithType(folder.getType());
 		MetadataSchema schema = newFolder.getSchema();
 
-		for (Metadata metadata : schema.getMetadatas().onlyEnabled().onlyNonSystemReserved().onlyManuals().onlyDuplicable()) {
+		for (Metadata metadata : schema.getMetadatas().onlyEnabled().onlyNonSystemReserved()
+				.onlyManualsOrAutomaticWithEvaluator().onlyDuplicable()) {
 			newFolder.getWrappedRecord().set(metadata, folder.getWrappedRecord().get(metadata));
 		}
 
@@ -1140,7 +1141,7 @@ public class DecommissioningService {
 		if (getRMConfigs().isPopulateBordereauxWithLesserDispositionDate()) {
 			for (Record record : records) {
 				LocalDate minDate = LangUtils.min(comparedDate, getMinimumLocalDateForRecord(record, false));
-				if(!minDate.equals(comparedDate)) {
+				if (!minDate.equals(comparedDate)) {
 					yearType = getYearType(rm.wrapFolder(record), minDate);
 				}
 				comparedDate = minDate;
@@ -1148,7 +1149,7 @@ public class DecommissioningService {
 		} else {
 			for (Record record : records) {
 				LocalDate maxDate = LangUtils.max(comparedDate, getMaximalLocalDateForRecord(record, false));
-				if(!Objects.equals(maxDate, comparedDate)) {
+				if (!Objects.equals(maxDate, comparedDate)) {
 					yearType = getYearType(rm.wrapFolder(record), maxDate);
 				}
 				comparedDate = maxDate;
@@ -1159,12 +1160,12 @@ public class DecommissioningService {
 	}
 
 	private YearType getYearType(Folder folder, LocalDate comparedDate) {
-		if(comparedDate == null) {
+		if (comparedDate == null) {
 			return null;
-		} else if(comparedDate.equals(folder.getExpectedTransferDate()) || comparedDate.equals(folder.getActualTransferDate())) {
-			return folder.getMainCopyRule().getSemiActiveYearTypeId() == null? null:rm.getYearType(folder.getMainCopyRule().getSemiActiveYearTypeId());
+		} else if (comparedDate.equals(folder.getExpectedTransferDate()) || comparedDate.equals(folder.getActualTransferDate())) {
+			return folder.getMainCopyRule().getSemiActiveYearTypeId() == null ? null : rm.getYearType(folder.getMainCopyRule().getSemiActiveYearTypeId());
 		} else {
-			return folder.getMainCopyRule().getInactiveYearTypeId() == null? null:rm.getYearType(folder.getMainCopyRule().getInactiveYearTypeId());
+			return folder.getMainCopyRule().getInactiveYearTypeId() == null ? null : rm.getYearType(folder.getMainCopyRule().getInactiveYearTypeId());
 		}
 	}
 
@@ -1402,7 +1403,7 @@ public class DecommissioningService {
 			parameters.add("subject" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(subject));
 			String recordTitle = record.getTitle();
 			boolean isAddingRecordIdInEmails = eimConfigs.isAddingRecordIdInEmails();
-			if(isAddingRecordIdInEmails) {
+			if (isAddingRecordIdInEmails) {
 				parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(recordTitle) + " (" + record.getId() + ")");
 			} else {
 				parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(recordTitle));

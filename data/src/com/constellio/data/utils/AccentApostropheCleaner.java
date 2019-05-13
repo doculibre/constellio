@@ -2201,6 +2201,54 @@ public class AccentApostropheCleaner {
 		return output.toString().trim();
 	}
 
+	public final static String cleanPonctuationExceptDot(String input) {
+		final StringBuffer output = new StringBuffer();
+		for (int i = 0; i < input.length(); i++) {
+			switch (input.charAt(i)) {
+				case '(':
+					output.append("");
+					break;
+				case ')':
+					output.append("");
+					break;
+				case '&':
+					output.append(" ");
+					break;
+				case '[':
+					output.append("");
+					break;
+				case ']':
+					output.append("");
+					break;
+				case ',':
+					output.append(" ");
+					break;
+				case ';':
+					output.append(" ");
+					break;
+				case ':':
+					output.append(" ");
+					break;
+				case '/':
+					output.append(" ");
+					break;
+				case '-':
+					output.append(" ");
+					break;
+				case '=':
+					output.append(" ");
+					break;
+				case '@':
+					output.append(" ");
+					break;
+				default:
+					output.append(input.charAt(i));
+					break;
+			}
+		}
+		return output.toString().trim();
+	}
+
 	public static String filter(String input) {
 		input = input.toLowerCase();
 		String[] words = input.split(" ");

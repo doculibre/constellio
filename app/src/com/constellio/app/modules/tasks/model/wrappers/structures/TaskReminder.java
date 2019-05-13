@@ -76,10 +76,20 @@ public class TaskReminder implements ModifiableStructure {
 		if (fixedDate != null) {
 			return fixedDate;
 		}
-		LocalDate relativeDate = task.get(relativeDateMetadataCode);
-		if (relativeDate == null) {
+
+		Object object = task.get(relativeDateMetadataCode);
+
+		if (object == null) {
 			return null;
 		}
+		LocalDate relativeDate;
+
+		if (object instanceof LocalDate) {
+			relativeDate = (LocalDate) object;
+		} else {
+			relativeDate = ((LocalDateTime) task.get(relativeDateMetadataCode)).toLocalDate();
+		}
+
 		if (beforeRelativeDate) {
 			return relativeDate.minusDays(numberOfDaysToRelativeDate);
 		} else {

@@ -38,7 +38,7 @@ public class Toggle {
 
 	public static AvailableToggle FOLDER_SUMMARY_CONFIG = newToggle(false);
 
-	public static AvailableToggle ADVANCED_SEARCH_CONFIGS = newToggle(true);
+	public static AvailableToggle ADVANCED_SEARCH_CONFIGS = newToggle(false);
 
 	public static AvailableToggle NEW_TAXONOMY_SERVICES = newToggle(false);
 
@@ -66,6 +66,8 @@ public class Toggle {
 	public static AvailableToggle RETURN_EMPTY_VALUE_WHEN_KEY_IS_MISSING = newToggle(false);
 
 	public static AvailableToggle SEARCH_RESULTS_VIEWER = newToggle(true);
+
+	public static AvailableToggle ALLOWS_CREATION_OF_RECORDS_WITH_NON_PADDED_ID = newToggle(false);
 
 	// ------------------------------------------------
 

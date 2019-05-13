@@ -998,11 +998,12 @@ public class ContentManager implements StatefulService {
 		List<RecordDTO> potentiallyDeletableContentMarkers;
 
 		while (!(potentiallyDeletableContentMarkers = getNextPotentiallyUnreferencedContentMarkers()).isEmpty()) {
-			List<String> hashToDelete = new ArrayList<>();
+
 			for (RecordDTO marker : potentiallyDeletableContentMarkers) {
 				if (closing.get()) {
 					return;
 				}
+				List<String> hashToDelete = new ArrayList<>();
 				String hash = marker.getFields().get("contentMarkerHash_s").toString();
 				if (!isReferenced(hash)) {
 					hashToDelete.add(hash);
@@ -1197,7 +1198,7 @@ public class ContentManager implements StatefulService {
 		}
 
 		public boolean isParse(boolean defaultBehavior) {
-			return parseOptions != null || defaultBehavior;
+			return parseOptions != null ? parseOptions.isParse() : defaultBehavior;
 		}
 
 		public boolean isThrowingException() {
@@ -1219,12 +1220,21 @@ public class ContentManager implements StatefulService {
 		private boolean beautify;
 		private boolean detectLanguage;
 		private boolean ocr;
+		private boolean parse;
 
 		public ParseOptions() {
 			beautify = true;
 			detectLanguage = true;
+			parse = true;
 			ocr = false;
 		}
+
+		public static ParseOptions NO_PARSING = new ParseOptions(false, false, false, false);
+
+		public static ParseOptions PARSING_WITHOUT_OCR = new ParseOptions(true, true, false, true);
+
+		public static ParseOptions PARSING_WITH_OCR = new ParseOptions(true, true, true, true);
+
 	}
 
 	public ParsedContentResponse buildParsedContentResponse(boolean hasFoundDuplicate, ParsedContent parsedContent) {

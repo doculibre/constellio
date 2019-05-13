@@ -1,5 +1,6 @@
 package com.constellio.app.modules.robots.services;
 
+import com.constellio.app.modules.robots.RobotsConfigs;
 import com.constellio.app.modules.robots.model.ActionExecutor;
 import com.constellio.app.modules.robots.model.DryRunRobotAction;
 import com.constellio.app.modules.robots.model.RegisteredAction;
@@ -49,6 +50,7 @@ public class RobotsManager implements StatefulService {
 	private BatchProcessesManager batchProcessesManager;
 	private String collection;
 	private RobotsService robotsService;
+	private RobotsConfigs robotsConfigs;
 
 	public RobotsManager(RobotSchemaRecordServices robotSchemas) {
 		this.collection = robotSchemas.getCollection();
@@ -56,6 +58,7 @@ public class RobotsManager implements StatefulService {
 		this.searchServices = robotSchemas.getModelLayerFactory().newSearchServices();
 		this.batchProcessesManager = robotSchemas.getModelLayerFactory().getBatchProcessesManager();
 		this.robotsService = new RobotsService(robotSchemas.getCollection(), robotSchemas.getAppLayerFactory());
+		this.robotsConfigs = new RobotsConfigs(robotSchemas.getModelLayerFactory());
 		startAutoExecutorThread();
 	}
 
@@ -69,7 +72,7 @@ public class RobotsManager implements StatefulService {
 				startAutoExecutingRobots();
 			}
 		}).handlingExceptionWith(BackgroundThreadExceptionHandling.CONTINUE)
-				.executedEvery(Duration.standardHours(24)));
+				.executedEvery(Duration.standardMinutes(robotsConfigs.getRobotsAutomaticExecutionDelay())));
 	}
 
 	public RegisteredAction registerAction(String code, String parametersSchemaLocalCode, Collection<String> types,

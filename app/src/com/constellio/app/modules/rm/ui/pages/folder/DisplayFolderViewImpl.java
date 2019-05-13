@@ -25,6 +25,7 @@ import com.constellio.app.ui.framework.buttons.AddToOrRemoveFromSelectionButton;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.DeleteWithJustificationButton;
+import com.constellio.app.ui.framework.buttons.DisplayButton;
 import com.constellio.app.ui.framework.buttons.DownloadLink;
 import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.buttons.LinkButton;
@@ -36,6 +37,7 @@ import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.RecordDisplay;
 import com.constellio.app.ui.framework.components.RecordDisplayFactory;
 import com.constellio.app.ui.framework.components.ReportTabButton;
+import com.constellio.app.ui.framework.components.SearchResultDisplay;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.content.ContentVersionVOResource;
 import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
@@ -114,7 +116,9 @@ import static com.constellio.app.ui.framework.buttons.WindowButton.WindowConfigu
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolderView, DropHandler {
+
 	private final static Logger LOGGER = LoggerFactory.getLogger(DisplayFolderViewImpl.class);
+
 	public static final String STYLE_NAME = "display-folder";
 	public static final String USER_LOOKUP = "user-lookup";
 	private RecordVO recordVO;
@@ -128,7 +132,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	private Component eventsComponent;
 	private DisplayFolderPresenter presenter;
 	private boolean dragNDropAllowed;
-	private Button deleteFolderButton, duplicateFolderButton, editFolderButton, addSubFolderButton, addDocumentButton,
+	private Button displayFolderButton, deleteFolderButton, duplicateFolderButton, editFolderButton, addSubFolderButton, addDocumentButton,
 			addAuthorizationButton, shareFolderButton, printLabelButton, linkToFolderButton, borrowButton, returnFolderButton,
 			reminderReturnFolderButton, alertWhenAvailableButton, addToCartButton, addToCartMyCartButton, addToOrRemoveFromSelectionButton, startWorkflowButton, reportGeneratorButton;
 	WindowButton moveInFolderButton;
@@ -144,12 +148,15 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 	private FacetsPanel facetsPanel;
 
+	private boolean nestedView;
+
 	public DisplayFolderViewImpl() {
 		this(null, false);
 	}
 
-	public DisplayFolderViewImpl(RecordVO recordVO, boolean popup) {
-		presenter = new DisplayFolderPresenter(this, recordVO, popup);
+	public DisplayFolderViewImpl(RecordVO recordVO, boolean nestedView) {
+		this.nestedView = nestedView;
+		presenter = new DisplayFolderPresenter(this, recordVO, nestedView);
 	}
 
 	@Override
@@ -195,9 +202,11 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				return true;
 			}
 		};
-		uploadField.setVisible(false);
+		uploadField.addStyleName("display-folder-upload-field");
+		//		uploadField.setVisible(false);
 		uploadField.setImmediate(true);
 		uploadField.setMultiValue(false);
+		uploadField.setMajorVersionFieldVisible(false);
 		uploadField.addValueChangeListener(new ValueChangeListener() {
 			@Override
 			public void valueChange(ValueChangeEvent event) {
@@ -315,6 +324,13 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				}
 			};
 
+			displayFolderButton = new DisplayButton($("DisplayFolderView.displayFolder")) {
+				@Override
+				protected void buttonClick(ClickEvent event) {
+					presenter.displayFolderButtonClicked();
+				}
+			};
+
 			editFolderButton = new EditButton($("DisplayFolderView.editFolder")) {
 				@Override
 				protected void buttonClick(ClickEvent event) {
@@ -348,7 +364,6 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 					}
 				};
 			}
-
 
 			duplicateFolderButton = new WindowButton($("DisplayFolderView.duplicateFolder"),
 					$("DisplayFolderView.duplicateFolderOnlyOrHierarchy")) {
@@ -475,6 +490,8 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 			boolean isAFolderAndDestroyed = (recordVO instanceof FolderVO
 											 && ((FolderVO) recordVO).getArchivisticStatus().isDestroyed());
+
+			actionMenuButtons.add(displayFolderButton);
 			actionMenuButtons.add(editFolderButton);
 
 			if (!isAFolderAndDestroyed) {
@@ -649,7 +666,9 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				protected Component getRecordDisplay(Integer index) {
 					RecordVO recordVO = getRecordVO(index);
 					SearchResultVO searchResultVO = new SearchResultVO(recordVO, new HashMap<String, List<String>>());
-					return displayFactory.build(searchResultVO, null, null, null, null);
+					SearchResultDisplay searchResultDisplay = displayFactory.build(searchResultVO, null, null, null, null);
+					searchResultDisplay.getTitleComponent().setIcon(null);
+					return searchResultDisplay;
 				}
 			};
 
@@ -674,6 +693,10 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				});
 			}
 			folderContentTable.addStyleName("folder-content-table");
+			folderContentTable.addStyleName(ValoTheme.TABLE_BORDERLESS);
+			folderContentTable.addStyleName(ValoTheme.TABLE_NO_HEADER);
+			folderContentTable.addStyleName(ValoTheme.TABLE_NO_HORIZONTAL_LINES);
+			folderContentTable.addStyleName(ValoTheme.TREETABLE_NO_VERTICAL_LINES);
 
 			RecordVOSelectionTableAdapter tableAdapter = new RecordVOSelectionTableAdapter(folderContentTable) {
 				@Override
@@ -698,14 +721,12 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 				@Override
 				public boolean isSelected(Object itemId) {
-
 					RecordVO recordVO = recordVOContainer.getRecordVO((int) itemId);
 					return presenter.isSelected(recordVO);
 				}
 
 				@Override
 				public void setSelected(Object itemId, boolean selected) {
-
 					RecordVO recordVO = recordVOContainer.getRecordVO((int) itemId);
 					presenter.recordSelectionChanged(recordVO, selected);
 					adjustSelectAllButton(selected);
@@ -768,7 +789,12 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			splitPanel.setSecondComponent(facetsPanel);
 			splitPanel.setSecondComponentWidth(250, Unit.PIXELS);
 
-			tabSheet.replaceComponent(folderContentComponent, splitPanel);
+			if (!nestedView) {
+				tabSheet.replaceComponent(folderContentComponent, splitPanel);
+			} else {
+				viewerPanel.setNavigateOnItemClick(true);
+				tabSheet.replaceComponent(folderContentComponent, viewerPanel);
+			}
 			folderContentComponent = splitPanel;
 		}
 		tabSheet.setSelectedTab(folderContentComponent);
@@ -847,7 +873,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 	@Override
 	protected String getActionMenuBarCaption() {
-		return $("DisplayFolderView.actionsMenuBar");
+		return !nestedView ? $("DisplayFolderView.actionsMenuBar") : null;
 	}
 
 	@Override
@@ -883,6 +909,12 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	public void setMoveInFolderState(ComponentState state) {
 		moveInFolderButton.setVisible(state.isVisible());
 		moveInFolderButton.setEnabled(state.isEnabled());
+	}
+
+	@Override
+	public void setDisplayButtonState(ComponentState state) {
+		displayFolderButton.setVisible(state.isVisible());
+		displayFolderButton.setEnabled(state.isEnabled());
 	}
 
 	@Override
@@ -1226,6 +1258,11 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	@Override
 	protected boolean isActionMenuBar() {
 		return Toggle.SEARCH_RESULTS_VIEWER.isEnabled();
+	}
+
+	@Override
+	protected boolean isBreadcrumbsVisible() {
+		return !nestedView;
 	}
 
 	@Override

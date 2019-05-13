@@ -57,6 +57,19 @@ public class RecordUtils {
 		}
 	}
 
+	public static boolean isZeroPaddingId(String id) {
+		if (id != null && id.length() == 11) {
+			try {
+				return Long.parseLong(id) > 0;
+			} catch (Exception e) {
+				return false;
+			}
+
+		} else {
+			return false;
+		}
+	}
+
 	public static int estimateRecordSize(Record record) {
 		if (!(record instanceof RecordImpl)) {
 			return 0;

@@ -1741,6 +1741,11 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 				}
 			}
 		}
+
+		@Override
+		public Record get() {
+			return this;
+		}
 	}
 
 	private MetadataSchemaType zeType() {

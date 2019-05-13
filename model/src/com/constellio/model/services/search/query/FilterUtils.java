@@ -11,6 +11,7 @@ import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.SecurityModel;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.search.StatusFilter;
+import com.constellio.model.services.search.VisibilityStatusFilter;
 import com.constellio.model.services.security.SecurityTokenManager;
 import com.constellio.model.services.security.SecurityTokenManager.UserTokens;
 import com.constellio.model.services.users.UserServices;
@@ -431,6 +432,17 @@ public class FilterUtils {
 			return "(*:* -deleted_s:__TRUE__)";
 		} else if (status == StatusFilter.DELETED) {
 			return "deleted_s:__TRUE__";
+		} else {
+			return null;
+		}
+	}
+
+
+	public static String visibilityStatusFilter(VisibilityStatusFilter status) {
+		if (status == VisibilityStatusFilter.VISIBLES) {
+			return "(*:* -hidden_s:__TRUE__)";
+		} else if (status == VisibilityStatusFilter.HIDDENS) {
+			return "hidden_s:__TRUE__";
 		} else {
 			return null;
 		}

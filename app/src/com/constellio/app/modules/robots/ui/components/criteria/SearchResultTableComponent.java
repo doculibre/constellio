@@ -60,7 +60,7 @@ public class SearchResultTableComponent extends CustomComponent {
 
 	private void buildResultTable() {
 		verticalLayoutTable.removeAllComponents();
-		SearchResultDetailedTable newTable = new SearchResultDetailedTable(buildResultContainer(), false) {
+		SearchResultDetailedTable newTable = new SearchResultDetailedTable(buildResultContainer(), false, false) {
 			@Override
 			protected void onPreviousPageButtonClicked() {
 				super.onPreviousPageButtonClicked();
@@ -85,7 +85,7 @@ public class SearchResultTableComponent extends CustomComponent {
 		SearchResultVOLazyContainer results = new SearchResultVOLazyContainer(
 				presenter.getSearchResults(component.getSearchCriteria()));
 
-		return new SearchResultContainer(results, displayFactory, "");
+		return new SearchResultContainer(results, displayFactory, "", false);
 	}
 
 }

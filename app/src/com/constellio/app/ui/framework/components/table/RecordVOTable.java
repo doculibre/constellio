@@ -55,6 +55,7 @@ public class RecordVOTable extends BaseTable {
 	private List<MetadataSchemaVO> schemaVOs = new ArrayList<>();
 	private MetadataDisplayFactory metadataDisplayFactory = new MetadataDisplayFactory();
 	private boolean menuBarColumnAdded = false;
+	private boolean menuBarColumnRemoved = false;
 
 	public RecordVOTable() {
 		super(null);
@@ -392,9 +393,21 @@ public class RecordVOTable extends BaseTable {
 		}
 	}
 
+	public boolean isMenuBarColumnRemoved() {
+		return menuBarColumnRemoved;
+	}
+
+	public void removeMenuBarColumn() {
+		menuBarColumnRemoved = true;
+		boolean menuBarColumnGenerated = getColumnGenerator(MENUBAR_PROPERTY_ID) != null;
+		if (menuBarColumnGenerated) {
+			removeGeneratedColumn(MENUBAR_PROPERTY_ID);
+		}
+	}
+
 	protected void addMenuBarColumn() {
 		boolean menuBarColumnGenerated = getColumnGenerator(MENUBAR_PROPERTY_ID) != null;
-		if (!menuBarColumnGenerated) {
+		if (!menuBarColumnGenerated && !menuBarColumnRemoved) {
 			boolean menuBarRequired = false;
 			for (MetadataSchemaVO schemaVO : schemaVOs) {
 				String schemaCode = schemaVO.getCode();

@@ -1,9 +1,5 @@
 package com.constellio.app.modules.tasks.ui.pages.tasks;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import org.vaadin.dialogs.ConfirmDialog;
-
 import com.constellio.app.api.extensions.params.FieldBindingExtentionParam;
 import com.constellio.app.modules.tasks.model.wrappers.request.BorrowRequest;
 import com.constellio.app.modules.tasks.navigation.TaskViews;
@@ -24,6 +20,9 @@ import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Field;
 import com.vaadin.ui.UI;
+import org.vaadin.dialogs.ConfirmDialog;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class AddEditTaskViewImpl extends BaseViewImpl implements AddEditTaskView {
 
@@ -164,5 +163,10 @@ public class AddEditTaskViewImpl extends BaseViewImpl implements AddEditTaskView
 	@Override
 	public Record getWorkflow(String workflowId) {
 		return presenter.getWorkflow(workflowId);
+	}
+
+	@Override
+	protected boolean isFullWidthIfActionMenuAbsent() {
+		return true;
 	}
 }

@@ -128,6 +128,8 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 	private HashMap<String, MenuItem> collectionButtons = new HashMap<>();
 	private Locale locale;
 
+	private List<NavigationItem> actionMenuItems;
+
 	public ConstellioHeaderImpl() {
 		presenter = new ConstellioHeaderPresenter(this);
 		Resource resource = presenter.getUserLogoResource();
@@ -792,23 +794,52 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 		headerMenu.setAutoOpen(true);
 		headerMenu.addStyleName("header-action-menu");
 		MenuItem headerMenuRoot = headerMenu.addItem($("ConstellioHeader.actions"), FontAwesome.BARS, null);
-		for (final NavigationItem item : presenter.getActionMenuItems()) {
-			ComponentState state = presenter.getStateFor(item);
-
-			MenuItem menuItem = headerMenuRoot.addItem($("ConstellioHeader." + item.getCode()), new MenuBar.Command() {
+		actionMenuItems = presenter.getActionMenuItems();
+		final Map<NavigationItem, MenuItem> menuItems = new HashMap<>();
+		for (final NavigationItem navigationItem : actionMenuItems) {
+			MenuItem menuItem = headerMenuRoot.addItem($("ConstellioHeader." + navigationItem.getCode()), new MenuBar.Command() {
 				@Override
 				public void menuSelected(MenuItem selectedItem) {
-					item.activate(navigate());
+					navigationItem.activate(navigate());
 				}
 			});
-			if (item.getFontAwesome() != null) {
-				menuItem.setIcon(item.getFontAwesome());
-			}
-			menuItem.setVisible(state.isVisible());
-			menuItem.setEnabled(state.isEnabled());
-			menuItem.setStyleName(item.getCode());
+			menuItems.put(navigationItem, menuItem);
+			updateMenuItem(navigationItem, menuItem);
+		}
+		ConstellioUI ui = ConstellioUI.getCurrent();
+		if (ui != null) {
+			ui.getNavigator().addViewChangeListener(new ViewChangeListener() {
+				@Override
+				public boolean beforeViewChange(ViewChangeEvent event) {
+					return true;
+				}
+
+				@Override
+				public void afterViewChange(ViewChangeEvent event) {
+					View oldView = event.getOldView();
+					View newView = event.getNewView();
+					if (oldView instanceof BaseView && newView instanceof BaseView) {
+						for (NavigationItem navigationItem : actionMenuItems) {
+							MenuItem menuItem = menuItems.get(navigationItem);
+							navigationItem.viewChanged((BaseView) oldView, (BaseView) newView);
+							updateMenuItem(navigationItem, menuItem);
+						}
+					}
+				}
+			});
 		}
 		return headerMenu;
+	}
+
+	protected void updateMenuItem(NavigationItem navigationItem, MenuItem menuItem) {
+		menuItem.setText($("ConstellioHeader." + navigationItem.getCode()));
+		ComponentState state = presenter.getStateFor(navigationItem);
+		if (navigationItem.getFontAwesome() != null) {
+			menuItem.setIcon(navigationItem.getFontAwesome());
+		}
+		menuItem.setVisible(state.isVisible());
+		menuItem.setEnabled(state.isEnabled());
+		menuItem.setStyleName(navigationItem.getCode());
 	}
 
 	public Navigation navigate() {

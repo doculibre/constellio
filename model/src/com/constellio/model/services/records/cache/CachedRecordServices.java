@@ -3,8 +3,8 @@ package com.constellio.model.services.records.cache;
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -27,6 +27,9 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 
 import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import static com.constellio.data.dao.services.cache.InsertionReason.WAS_OBTAINED;
 import static com.constellio.data.dao.services.records.DataStore.RECORDS;
@@ -156,21 +159,14 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 	}
 
 	@Override
-	public void refresh(List<?> records) {
+	public <T extends Supplier<Record>> void refresh(List<T> records) {
 		recordServices.refresh(records);
 	}
 
 	@Override
-	public void refreshUsingCache(List<?> records) {
-		for (Object item : records) {
-			Record record;
-
-			if (item instanceof Record) {
-				record = (Record) item;
-			} else {
-				record = ((RecordWrapper) item).getWrappedRecord();
-			}
-
+	public <T extends Supplier<Record>> void refreshUsingCache(List<T> records) {
+		for (Supplier<Record> item : records) {
+			Record record = item.get();
 			if (record != null && record.isSaved()) {
 
 				try {
@@ -218,6 +214,18 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 	}
 
 	@Override
+	public <T extends Supplier<Record>> void update(Stream<T> stream, Consumer<T> action)
+			throws RecordServicesException {
+		recordServices.update(stream, action);
+	}
+
+	@Override
+	public <T extends Supplier<Record>> void update(Stream<T> stream, Consumer<T> action, RecordUpdateOptions options)
+			throws RecordServicesException {
+		recordServices.update(stream, action);
+	}
+
+	@Override
 	public List<BatchProcess> executeHandlingImpactsAsync(Transaction transaction)
 			throws RecordServicesException {
 		return recordServices.executeHandlingImpactsAsync(transaction);
@@ -234,14 +242,14 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 	}
 
 	@Override
-	public void validateRecordInTransaction(Record record,
+	public void validateRecordInTransaction(Supplier<Record> record,
 											Transaction transaction)
 			throws ValidationException {
 		recordServices.validateRecordInTransaction(record, transaction);
 	}
 
 	@Override
-	public void validateRecord(Record record)
+	public void validateRecord(Supplier<Record> record)
 			throws ValidationException {
 		recordServices.validateRecord(record);
 	}
@@ -284,75 +292,76 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 	}
 
 	@Override
-	public boolean isRestorable(Record record,
+	public boolean isRestorable(Supplier<Record> record,
 								User user) {
 		return recordServices.isRestorable(record, user);
 	}
 
 	@Override
-	public void restore(Record record,
+	public void restore(Supplier<Record> record,
 						User user) {
 		recordServices.restore(record, user);
 	}
 
 	@Override
-	public ValidationErrors validatePhysicallyDeletable(Record record, User user) {
+	public ValidationErrors validatePhysicallyDeletable(Supplier<Record> record, User user) {
 		return recordServices.validatePhysicallyDeletable(record, user);
 	}
 
 	@Override
-	public void physicallyDelete(Record record,
+	public void physicallyDelete(Supplier<Record> record,
 								 User user) {
 		recordServices.physicallyDelete(record, user);
 	}
 
 	@Override
-	public void physicallyDelete(Record record,
+	public void physicallyDelete(Supplier<Record> record,
 								 User user, RecordPhysicalDeleteOptions options) {
 		recordServices.physicallyDelete(record, user, options);
 	}
 
 	@Override
-	public void physicallyDeleteNoMatterTheStatus(Record record, User user, RecordPhysicalDeleteOptions options) {
+	public void physicallyDeleteNoMatterTheStatus(Supplier<Record> record, User user,
+												  RecordPhysicalDeleteOptions options) {
 		recordServices.physicallyDeleteNoMatterTheStatus(record, user, options);
 	}
 
 	@Override
-	public ValidationErrors validateLogicallyDeletable(Record record,
+	public ValidationErrors validateLogicallyDeletable(Supplier<Record> record,
 													   User user) {
 		return recordServices.validateLogicallyDeletable(record, user);
 	}
 
 	@Override
-	public boolean isLogicallyDeletableAndIsSkipValidation(Record record, User user) {
+	public boolean isLogicallyDeletableAndIsSkipValidation(Supplier<Record> record, User user) {
 		return recordServices.isLogicallyDeletableAndIsSkipValidation(record, user);
 	}
 
 	@Override
-	public ValidationErrors validateLogicallyThenPhysicallyDeletable(Record record, User user) {
+	public ValidationErrors validateLogicallyThenPhysicallyDeletable(Supplier<Record> record, User user) {
 		return recordServices.validateLogicallyThenPhysicallyDeletable(record, user);
 	}
 
 	@Override
-	public void logicallyDelete(Record record,
+	public void logicallyDelete(Supplier<Record> record,
 								User user) {
 		recordServices.logicallyDelete(record, user);
 	}
 
 	@Override
-	public void logicallyDelete(Record record,
+	public void logicallyDelete(Supplier<Record> record,
 								User user, RecordLogicalDeleteOptions options) {
 		recordServices.logicallyDelete(record, user, options);
 	}
 
 	@Override
 	public List<Record> getVisibleRecordsWithReferenceTo(
-			Record record, User user) {
+			Supplier<Record> record, User user) {
 		return recordServices.getVisibleRecordsWithReferenceTo(record, user);
 	}
 
 	@Override
-	public boolean isReferencedByOtherRecords(Record record) {
+	public boolean isReferencedByOtherRecords(Supplier<Record> record) {
 		return recordServices.isReferencedByOtherRecords(record);
 	}
 
@@ -372,27 +381,27 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 	}
 
 	@Override
-	public void recalculate(RecordWrapper recordWrapper) {
-		recordServices.recalculate(recordWrapper);
-	}
-
-	@Override
-	public void recalculate(Record record) {
+	public void recalculate(Supplier<Record> record) {
 		recordServices.recalculate(record);
 	}
 
 	@Override
-	public void loadLazyTransientMetadatas(Record record) {
+	public void loadLazyTransientMetadatas(Supplier<Record> record) {
 		recordServices.loadLazyTransientMetadatas(record);
 	}
 
 	@Override
-	public void reloadEagerTransientMetadatas(Record record) {
+	public void reloadEagerTransientMetadatas(Supplier<Record> record) {
 		recordServices.reloadEagerTransientMetadatas(record);
 	}
 
 	@Override
 	public SecurityModel getSecurityModel(String collection) {
 		return recordServices.getSecurityModel(collection);
+	}
+
+	@Override
+	public boolean isValueAutomaticallyFilled(Metadata metadata, Supplier<Record> record) {
+		return recordServices.isValueAutomaticallyFilled(metadata, record);
 	}
 }
