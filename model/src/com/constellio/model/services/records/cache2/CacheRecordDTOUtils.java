@@ -216,7 +216,8 @@ public class CacheRecordDTOUtils {
 		}
 
 		if (metadata.getType() == STRING) {
-			return Schemas.TITLE.isSameLocalCode(metadata);
+//			return Schemas.TITLE.isSameLocalCode(metadata); TODO RE-ENABLE
+			return true;
 		}
 
 		return true;
@@ -272,11 +273,11 @@ public class CacheRecordDTOUtils {
 		short metadatasSize = metadatasSize(byteArray);
 		Metadata metadataSearched = schema.getMetadataByDatastoreCode(metadataLocalCode);
 
-		short[] indexes = getMetadataSearchedIndexAndNextMetadataIndex(byteArray, metadataSearched, metadatasSize);
-		short metadataSearchedIndex = indexes[0];
-		short nextMetadataIndex = indexes[1];
+		NeighboringMetadata neighboringMetadata = getMetadataSearchedIndexAndNextMetadataIndex(byteArray, metadataSearched, metadatasSize);
+		short searchedMetadataIndex = neighboringMetadata.searchedMetadataIndex;
+		short nextMetadataIndex = neighboringMetadata.nextMetadataIndex;
 
-		return parseValueMetadata(byteArray, metadataSearched, metadataSearchedIndex, nextMetadataIndex);
+		return parseValueMetadata(byteArray, metadataSearched, searchedMetadataIndex, nextMetadataIndex);
 	}
 
 	public static Set<String> getStoredMetadatas(byte[] byteArray, MetadataSchema schema) {
@@ -337,8 +338,7 @@ public class CacheRecordDTOUtils {
 		short metadatasSize = metadatasSize(data);
 		Metadata metadataSearched = schema.getMetadataByDatastoreCode(key);
 
-		// [0] because we want the searched index not the next one
-		return VALUE_IS_NOT_FOUND != getMetadataSearchedIndexAndNextMetadataIndex(data, metadataSearched, metadatasSize)[0];
+		return VALUE_IS_NOT_FOUND != getMetadataSearchedIndexAndNextMetadataIndex(data, metadataSearched, metadatasSize).searchedMetadataIndex;
 	}
 
 	public static short metadatasSize(byte[] data) {
@@ -346,12 +346,9 @@ public class CacheRecordDTOUtils {
 		return parseShortFromByteArray(data, (short) 0);
 	}
 
-	private static short[] getMetadataSearchedIndexAndNextMetadataIndex(byte[] byteArray, Metadata metadataSearched,
+	private static NeighboringMetadata getMetadataSearchedIndexAndNextMetadataIndex(byte[] byteArray, Metadata metadataSearched,
 																		short metadatasSize) {
-		// [0] - the index of the metadata searched
-		// [1] - the index of the next metadata to the right of the metadata searched
-		short[] indexes = new short[2];
-		indexes[0] = VALUE_IS_NOT_FOUND;
+		NeighboringMetadata neighboringMetadata = new NeighboringMetadata();
 
 		short metadataSearchedId = metadataSearched.getId();
 
@@ -366,14 +363,14 @@ public class CacheRecordDTOUtils {
 
 			if (id == metadataSearchedId) {
 				// Looking for next 2 bytes to get the index in the data part of the array
-				indexes[0] = (short) (headerBytesSize + parseShortFromByteArray(byteArray, (short) (i + BYTES_TO_WRITE_METADATA_ID_AND_INDEX)));
-				indexes[1] = calculateNextMetadataIndex(byteArray, headerBytesSize, i);
+				neighboringMetadata.searchedMetadataIndex = (short) (headerBytesSize + parseShortFromByteArray(byteArray, (short) (i + BYTES_TO_WRITE_METADATA_ID_AND_INDEX)));
+				neighboringMetadata.nextMetadataIndex = calculateNextMetadataIndex(byteArray, headerBytesSize, i);
 
-				return indexes;
+				return neighboringMetadata;
 			}
 		}
 
-		return indexes;
+		return neighboringMetadata;
 	}
 
 	private static List<Short> getAllMetadatasId(byte[] byteArray, short metadatasSize) {
@@ -392,6 +389,7 @@ public class CacheRecordDTOUtils {
 
 	private static short calculateNextMetadataIndex(byte[] byteArray, short headerBytesSize,
 													short currentPositionInArray) {
+		// 2 * 3 to get the next index in the header
 		short possibleNextMetadataIndex = (short) (currentPositionInArray + (BYTES_TO_WRITE_METADATA_ID_AND_INDEX * 3));
 		// +1 to complete the 2 bytes taken by the short
 		// if it's NOT greater than the size of the header then the next index is the result of the parsing
@@ -399,7 +397,10 @@ public class CacheRecordDTOUtils {
 		if (!(possibleNextMetadataIndex + 1 > headerBytesSize)) {
 			return (short) (headerBytesSize + parseShortFromByteArray(byteArray, possibleNextMetadataIndex));
 		} else {
-			return (short) (byteArray.length + 1);
+			// Not doing -1 even though we want the last index because when we use
+			// Arrays.copyRange the param "to" is exclusive and instead of doing a minus here
+			// and a plus further down we just keep the value as is.
+			return (short) byteArray.length;
 		}
 	}
 
@@ -596,8 +597,7 @@ public class CacheRecordDTOUtils {
 
 	private static String getSingleValueStringMetadata(byte[] byteArray, short metadataSearchedIndex,
 													   short nextMetadataIndex) {
-		// - 1 to not read the first byte of the next metadataIndex since "to" is inclusive
-		byte[] stringValueAsByte = Arrays.copyOfRange(byteArray, metadataSearchedIndex, nextMetadataIndex - 1);
+		byte[] stringValueAsByte = Arrays.copyOfRange(byteArray, metadataSearchedIndex, nextMetadataIndex);
 
 		return new String(stringValueAsByte);
 	}
@@ -770,6 +770,7 @@ public class CacheRecordDTOUtils {
 	}
 
 	private static String parseStringWithLengthFromByteArray(byte[] byteArray, short startingIndex) {
+		// 2 * 3 to get the next index in the header
 		int stringBytesLength = parseIntFromByteArray(byteArray, startingIndex);
 
 		// + 4 to skip the string length 4 bytes
@@ -819,6 +820,27 @@ public class CacheRecordDTOUtils {
 			throw new RuntimeException(e);
 		} catch (NoSuchMethodException e) {
 			throw new RuntimeException(e);
+		}
+	}
+
+	private static class NeighboringMetadata {
+		private short searchedMetadataIndex = VALUE_IS_NOT_FOUND;
+		private short nextMetadataIndex;
+
+		public short getSearchedMetadataIndex() {
+			return searchedMetadataIndex;
+		}
+
+		public void setSearchedMetadataIndex(short searchedMetadataIndex) {
+			this.searchedMetadataIndex = searchedMetadataIndex;
+		}
+
+		public short getNextMetadataIndex() {
+			return nextMetadataIndex;
+		}
+
+		public void setNextMetadataIndex(short nextMetadataIndex) {
+			this.nextMetadataIndex = nextMetadataIndex;
 		}
 	}
 
@@ -1187,7 +1209,7 @@ public class CacheRecordDTOUtils {
 			// + acts as a minus since Byte.MIN_VALUE is -128
 			// -128 too get place for 255 enums which should be more than enough
 			Enum e = EnumWithSmallCodeUtils.toEnum((Class)clazz, smallCode);
-			dataWriter.writeByte((byte) (e.ordinal() -128/*+ Byte.MIN_VALUE*/));
+			dataWriter.writeByte((byte) (e.ordinal() + Byte.MIN_VALUE));
 		}
 
 		private void writeHeader(Metadata metadata) throws IOException {
