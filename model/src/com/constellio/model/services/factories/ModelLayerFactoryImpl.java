@@ -86,6 +86,7 @@ import static com.constellio.data.conf.HashingEncoding.BASE64;
 
 public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLayerFactory {
 	private static final Logger LOGGER = LogManager.getLogger(ModelLayerFactoryImpl.class);
+
 	private final DataLayerFactory dataLayerFactory;
 	private final IOServicesFactory ioServicesFactory;
 	private final FoldersLocator foldersLocator;
@@ -136,9 +137,10 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 								 ModelLayerConfiguration modelLayerConfiguration,
 								 StatefullServiceDecorator statefullServiceDecorator,
 								 Delayed<ConstellioModulesManager> modulesManagerDelayed, String instanceName,
+								 short instanceId,
 								 Factory<ModelLayerFactory> modelLayerFactoryFactory) {
 
-		super(dataLayerFactory, statefullServiceDecorator, instanceName);
+		super(dataLayerFactory, statefullServiceDecorator, instanceName, instanceId);
 
 		dataLayerFactory.getEventBusManager().getEventDataSerializer().register(new RecordEventDataSerializerExtension(this));
 
@@ -480,4 +482,5 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 	public TaxonomiesSearchServicesCache getTaxonomiesSearchServicesCache() {
 		return taxonomiesSearchServicesCache;
 	}
+
 }

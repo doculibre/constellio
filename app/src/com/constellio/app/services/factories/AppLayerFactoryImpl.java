@@ -113,10 +113,11 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 
 	private boolean initializationFinished;
 
+
 	public AppLayerFactoryImpl(AppLayerConfiguration appLayerConfiguration, ModelLayerFactory modelLayerFactory,
 							   DataLayerFactory dataLayerFactory, StatefullServiceDecorator statefullServiceDecorator,
-							   String instanceName) {
-		super(modelLayerFactory, statefullServiceDecorator, instanceName);
+							   String instanceName, short instanceId) {
+		super(modelLayerFactory, statefullServiceDecorator, instanceName, instanceId);
 
 		this.appLayerExtensions = new AppLayerExtensions();
 		this.modelLayerFactory = modelLayerFactory;
@@ -169,6 +170,7 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 		correctorExcluderManager = add(new CorrectorExcluderManager(modelLayerFactory));
 
 		initializationFinished = false;
+
 	}
 
 	private void setDefaultLocale() {

@@ -75,7 +75,6 @@ public class MetadataSchemaType implements Serializable {
 		this.customSchemasByCode = buildCustomSchemasByCodeMap(customSchemas);
 		this.customSchemasByLocalCode = buildCustomSchemasByLocalCodeMap(customSchemas);
 		this.collectionInfo = collectionInfo;
-
 	}
 
 	public RecordCacheConfig getCacheConfig() {
@@ -96,7 +95,6 @@ public class MetadataSchemaType implements Serializable {
 		} else {
 			return RecordCacheConfig.ALWAYS_FULLY_CACHED;
 		}
-
 
 	}
 

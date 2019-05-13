@@ -8,6 +8,8 @@ import java.util.Locale;
 
 public class CollectionInfo implements Serializable {
 
+	short instanceId;
+
 	String code;
 
 	Locale mainSystemLocale;
@@ -23,6 +25,12 @@ public class CollectionInfo implements Serializable {
 	List<String> secondaryCollectionLanguageCodes = new ArrayList<>();
 
 	public CollectionInfo(String code, String mainSystemLanguageCode, List<String> collectionLanguesCodes) {
+		this((short)0, code, mainSystemLanguageCode,  collectionLanguesCodes);
+	}
+
+	public CollectionInfo(short instanceId, String code, String mainSystemLanguageCode,
+						  List<String> collectionLanguesCodes) {
+		this.instanceId = instanceId;
 		this.code = code;
 		this.mainSystemLocale = Language.withCode(mainSystemLanguageCode).locale;
 		this.mainSystemLanguage = Language.withLocale(mainSystemLocale);

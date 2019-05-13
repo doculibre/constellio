@@ -119,10 +119,10 @@ public class DataLayerFactory extends LayerFactoryImpl {
 
 
 	public DataLayerFactory(IOServicesFactory ioServicesFactory, DataLayerConfiguration dataLayerConfiguration,
-							StatefullServiceDecorator statefullServiceDecorator, String instanceName,
+							StatefullServiceDecorator statefullServiceDecorator, String instanceName, short instanceId,
 							String warVersion) {
 
-		super(statefullServiceDecorator, instanceName);
+		super(statefullServiceDecorator, instanceName, instanceId);
 
 		this.dataLayerExtensions = new DataLayerExtensions();
 		this.dataLayerConfiguration = dataLayerConfiguration;

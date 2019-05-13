@@ -42,7 +42,7 @@ public class AppLayerFactoryRealTest extends ConstellioTest {
 
 		factory = spy(
 				new AppLayerFactoryImpl(appLayerConfiguration, modelLayerFactory, dataLayerFactory, statefullServiceDecorator,
-						null) {
+						null, (short) 0) {
 					@Override
 					public MigrationServices newMigrationServices() {
 						return migrationServices;

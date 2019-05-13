@@ -11,6 +11,8 @@ public class LayerFactoryImpl implements LayerFactory {
 
 	private String instanceName;
 
+	private short instanceId;
+
 	private LayerFactory bottomLayerFactory;
 
 	private StatefullServiceDecorator statefullServiceDecorator;
@@ -21,20 +23,28 @@ public class LayerFactoryImpl implements LayerFactory {
 
 	private boolean initialized;
 
-	public LayerFactoryImpl(StatefullServiceDecorator statefullServiceDecorator, String instanceName) {
+	public LayerFactoryImpl(StatefullServiceDecorator statefullServiceDecorator, String instanceName,
+							short instanceId) {
 		this.statefullServiceDecorator = statefullServiceDecorator;
 		this.instanceName = instanceName;
+		this.instanceId = instanceId;
 	}
 
 	public LayerFactoryImpl(LayerFactory bottomLayerFactory, StatefullServiceDecorator statefullServiceDecorator,
-							String instanceName) {
+							String instanceName, short instanceId) {
 		this.bottomLayerFactory = bottomLayerFactory;
 		this.statefullServiceDecorator = statefullServiceDecorator;
 		this.instanceName = instanceName;
+		this.instanceId = instanceId;
 	}
 
 	public String getInstanceName() {
 		return instanceName;
+	}
+
+	@Override
+	public short getInstanceId() {
+		return instanceId;
 	}
 
 	public <T extends StatefulService> T add(T statefulService) {

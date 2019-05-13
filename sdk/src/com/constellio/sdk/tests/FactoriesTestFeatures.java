@@ -5,7 +5,6 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.data.conf.ConfigManagerType;
-import com.constellio.data.conf.ContentDaoType;
 import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.managers.StatefullServiceDecorator;
@@ -73,6 +72,7 @@ public class FactoriesTestFeatures {
 	private List<ModelLayerConfigurationAlteration> modelLayerConfigurationAlterations = new ArrayList<>();
 	private List<AppLayerConfigurationAlteration> appLayerConfigurationAlterations = new ArrayList<>();
 	private Map<String, String> configs = new HashMap<>();
+	private List<String> instanceNames = new ArrayList<>();
 	private String systemLanguage;
 
 	public FactoriesTestFeatures(FileSystemTestFeatures fileSystemTestFeatures, Map<String, String> sdkProperties,
@@ -428,7 +428,16 @@ public class FactoriesTestFeatures {
 		ConstellioFactories constellioFactories = instanceProvider.getInstance(new Factory<ConstellioFactories>() {
 			@Override
 			public ConstellioFactories get() {
-				ConstellioFactories instance = ConstellioFactories.buildFor(finalPropertyFile, finalDecorator, name);
+
+				short instanceId = 0;
+				if (name != null) {
+					if (!instanceNames.contains(name)) {
+						instanceNames.add(name);
+					}
+					instanceId = (short) instanceNames.indexOf(name);
+				}
+
+				ConstellioFactories instance = ConstellioFactories.buildFor(finalPropertyFile, finalDecorator, name, instanceId);
 				LeaderElectionManager electionService = instance.getDataLayerFactory().getLeaderElectionService().getNestedLeaderElectionManager();
 				if (electionService instanceof StandaloneLeaderElectionManager) {
 					((StandaloneLeaderElectionManager) electionService).setLeader(DEFAULT_NAME.equals(name));

@@ -61,13 +61,17 @@ public class CacheRecordDTOUtils {
 	private static final byte BYTES_TO_WRITE_LONG_VALUES_SIZE = 8;
 	private static final byte BYTES_TO_WRITE_LOCAL_DATE_VALUES_SIZE = 3;
 
-	private static final byte KEY_IS_NOT_AN_INT = 0;
+	public static final byte KEY_IS_NOT_AN_INT = 0;
 	private static final byte KEY_LENGTH = 11;
 
 	private static final byte VALUE_IS_NOT_FOUND = -1;
 
+	public static class CacheRecordDTOBytesArray {
+		byte[] bytesToKeepInMemory;
+		byte[] bytesToPersist;
+	}
 
-	public static byte[] convertDTOToByteArray(RecordDTO dto, MetadataSchema schema) {
+	public static CacheRecordDTOBytesArray convertDTOToByteArrays(RecordDTO dto, MetadataSchema schema) {
 		CachedRecordDTOByteArrayBuilder builder = new CachedRecordDTOByteArrayBuilder();
 
 		for (Metadata metadata : schema.getMetadatas()) {
@@ -76,6 +80,13 @@ public class CacheRecordDTOUtils {
 					List<Object> values = (List<Object>) dto.getFields().get(metadata.getDataStoreCode());
 					if (values != null && !values.isEmpty()) {
 						switch (metadata.getType()) {
+							case STRING:
+								try {
+									builder.addMultivalueStringMetadata(metadata, (List) values);
+								} catch (IOException e) {
+									e.printStackTrace();
+								}
+								break;
 							case REFERENCE:
 								try {
 									builder.addMultivalueReferenceMetadata(metadata, (List) values);
@@ -86,13 +97,6 @@ public class CacheRecordDTOUtils {
 							case BOOLEAN:
 								try {
 									builder.addMultivalueBooleanMetadata(metadata, (List) values);
-								} catch (IOException e) {
-									e.printStackTrace();
-								}
-								break;
-							case STRING:
-								try {
-									builder.addMultivalueStringMetadata(metadata, (List) values);
 								} catch (IOException e) {
 									e.printStackTrace();
 								}
@@ -204,10 +208,8 @@ public class CacheRecordDTOUtils {
 		try {
 			return builder.build();
 		} catch (IOException e) {
-			e.printStackTrace();
+			throw new RuntimeException(e);
 		}
-
-		return null;
 	}
 
 	private static boolean isCached(Metadata metadata) {
@@ -711,12 +713,12 @@ public class CacheRecordDTOUtils {
 	}
 
 	private static String getSingleValueEnumMetadata(byte[] byteArray, short metadataSearchedIndex,
-												   Metadata metadataSearched) {
+													 Metadata metadataSearched) {
 		return parseEnumFromByteArray(metadataSearched.getEnumClass(), byteArray[metadataSearchedIndex]);
 	}
 
 	private static List<String> getMultivalueEnumMetadata(byte[] byteArray, short metadataSearchedIndex,
-														Metadata metadataSearched) {
+														  Metadata metadataSearched) {
 		short numberOfMetadatas = parseShortFromByteArray(byteArray, metadataSearchedIndex);
 
 		if (numberOfMetadatas > 0) {
@@ -1219,7 +1221,7 @@ public class CacheRecordDTOUtils {
 			headerByteArrayLength += BYTES_TO_WRITE_METADATA_ID_AND_INDEX + BYTES_TO_WRITE_METADATA_ID_AND_INDEX;
 		}
 
-		public byte[] build() throws IOException {
+		public CacheRecordDTOBytesArray build() throws IOException {
 			byte[] data = new byte[BYTES_TO_WRITE_METADATA_VALUES_SIZE + headerByteArrayLength + dataByteArrayLength];
 			// BYTES_TO_WRITE_METADATA_VALUES_SIZE in destPos because index 0 & 1 are placeholders (short)
 			// for the number of metadata (metadatasSize) in the final array
@@ -1229,7 +1231,11 @@ public class CacheRecordDTOUtils {
 			closeStreams();
 			writeMetadatasSizeToHeader(data);
 
-			return data;
+			CacheRecordDTOBytesArray bytesArray = new CacheRecordDTOBytesArray();
+			bytesArray.bytesToKeepInMemory = data;
+			bytesArray.bytesToPersist = new byte[0];
+
+			return bytesArray;
 		}
 
 		private void writeMetadatasSizeToHeader(byte[] data) {

@@ -84,6 +84,11 @@ public class AppLayerFactoryWithRequestCacheImpl implements AppLayerFactory {
 		return appLayerFactory.getCollectionsManager();
 	}
 
+	@Override
+	public short getInstanceId() {
+		return appLayerFactory.getInstanceId();
+	}
+
 	public String getInstanceName() {
 		return appLayerFactory.getInstanceName();
 	}

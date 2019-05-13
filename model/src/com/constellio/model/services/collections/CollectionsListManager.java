@@ -38,8 +38,11 @@ public class CollectionsListManager implements StatefulService, ConfigUpdatedEve
 
 	ModelLayerConfiguration modelLayerConfiguration;
 
+	private short instanceId;
+
 	public CollectionsListManager(ModelLayerFactory modelLayerFactory) {
 		this.modelLayerConfiguration = modelLayerFactory.getConfiguration();
+		this.instanceId = modelLayerFactory.getInstanceId();
 		this.configManager = modelLayerFactory.getDataLayerFactory().getConfigManager();
 	}
 
@@ -174,7 +177,7 @@ public class CollectionsListManager implements StatefulService, ConfigUpdatedEve
 			String mainDataLanguage = modelLayerConfiguration.getMainDataLanguage();
 
 			if (Collection.SYSTEM_COLLECTION.equals(collectionCode)) {
-				cachedInfo = new CollectionInfo(collectionCode, mainDataLanguage, asList(mainDataLanguage));
+				cachedInfo = new CollectionInfo(instanceId, collectionCode, mainDataLanguage, asList(mainDataLanguage));
 
 			} else {
 
@@ -186,7 +189,7 @@ public class CollectionsListManager implements StatefulService, ConfigUpdatedEve
 					}
 				}
 
-				cachedInfo = new CollectionInfo(collectionCode, mainDataLanguage, collectionLanguages);
+				cachedInfo = new CollectionInfo(instanceId, collectionCode, mainDataLanguage, collectionLanguages);
 			}
 
 			synchronized (collectionInfoCache) {
@@ -199,7 +202,7 @@ public class CollectionsListManager implements StatefulService, ConfigUpdatedEve
 	}
 
 	public void registerPendingCollectionInfo(String code, String mainDataLanguage, List<String> languages) {
-		collectionInfoCache.put(code, new CollectionInfo(code, mainDataLanguage, languages));
+		collectionInfoCache.put(code, new CollectionInfo(instanceId, code, mainDataLanguage, languages));
 	}
 
 	public String getMainDataLanguage() {

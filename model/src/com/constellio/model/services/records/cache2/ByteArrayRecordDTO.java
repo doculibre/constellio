@@ -4,6 +4,8 @@ import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordDeltaDTO;
 import com.constellio.data.utils.Holder;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.cache2.CacheRecordDTOUtils.CacheRecordDTOBytesArray;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -14,33 +16,90 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Supplier;
 
-import static com.constellio.model.services.records.cache2.CacheRecordDTOUtils.convertDTOToByteArray;
+import static com.constellio.model.services.records.cache2.CacheRecordDTOUtils.convertDTOToByteArrays;
 
-public class ByteArrayRecordDTO implements RecordDTO, Map<String, Object> {
+public abstract class ByteArrayRecordDTO implements RecordDTO, Map<String, Object>, Supplier<byte[]> {
 
 	Holder<MetadataSchema> schemaHolder;
-	Object id;
 	long version;
 	byte[] data;
 	boolean summary;
 
-	public ByteArrayRecordDTO(Holder<MetadataSchema> schemaHolder, RecordDTO dto) {
+	private ByteArrayRecordDTO(Holder<MetadataSchema> schemaHolder, long version, boolean summary,
+							   byte[] data) {
 		this.schemaHolder = schemaHolder;
-		this.id = dto.getId();
-		this.version = dto.getVersion();
-		this.data = convertDTOToByteArray(dto, schemaHolder.get());
-		this.summary = dto.isSummary();
+		this.version = version;
+		this.data = data;
+		this.summary = summary;
+	}
+
+	public static ByteArrayRecordDTO create(ModelLayerFactory modelLayerFactory, RecordDTO dto) {
+		String collection = (String) dto.getFields().get("collection_s");
+		String schemaCode = (String) dto.getFields().get("schema_s");
+		MetadataSchema schema = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchema(schemaCode);
+
+		//TODO Handle Holder
+		Holder<MetadataSchema> schemaHolder = new Holder<>(schema);
+		CacheRecordDTOBytesArray bytesArray = convertDTOToByteArrays(dto, schema);
+
+		int intId = CacheRecordDTOUtils.toIntKey(dto.getId());
+
+		if (intId == CacheRecordDTOUtils.KEY_IS_NOT_AN_INT) {
+			SummaryCacheSingletons.dataStore.saveStringKey(dto.getId(), bytesArray.bytesToPersist);
+			return new ByteArrayRecordDTOWithStringId(dto.getId(), schemaHolder, dto.getVersion(), dto.isSummary(), bytesArray.bytesToKeepInMemory);
+		} else {
+			SummaryCacheSingletons.dataStore.saveIntKey(intId, bytesArray.bytesToPersist);
+			return new ByteArrayRecordDTOWithIntegerId(intId, schemaHolder, dto.getVersion(), dto.isSummary(), bytesArray.bytesToKeepInMemory);
+		}
+
+	}
+
+	private static class ByteArrayRecordDTOWithIntegerId extends ByteArrayRecordDTO {
+
+		int id;
+
+		public ByteArrayRecordDTOWithIntegerId(
+				int id, Holder<MetadataSchema> schemaHolder, long version, boolean summary, byte[] data) {
+			super(schemaHolder, version, summary, data);
+			this.id = id;
+		}
+
+		@Override
+		public String getId() {
+			return StringUtils.leftPad("" + id, 11, '0');
+		}
+
+		@Override
+		public byte[] get() {
+			return SummaryCacheSingletons.dataStore.loadIntKey(id);
+		}
+	}
+
+	private static class ByteArrayRecordDTOWithStringId extends ByteArrayRecordDTO {
+
+		String id;
+
+		public ByteArrayRecordDTOWithStringId(
+				String id, Holder<MetadataSchema> schemaHolder, long version, boolean summary, byte[] data) {
+			super(schemaHolder, version, summary, data);
+			this.id = id;
+		}
+
+		@Override
+		public String getId() {
+			return id;
+		}
+
+		@Override
+		public byte[] get() {
+			return SummaryCacheSingletons.dataStore.loadStringKey(id);
+		}
 	}
 
 	@Override
-	public String getId() {
-		if (id instanceof Integer) {
-			return StringUtils.leftPad("" + ((Integer) id).intValue(), 11, '0');
-		} else {
-			return (String) id;
-		}
-	}
+	public abstract String getId();
 
 	@Override
 	public long getVersion() {
@@ -148,4 +207,5 @@ public class ByteArrayRecordDTO implements RecordDTO, Map<String, Object> {
 	public Set<Entry<String, Object>> entrySet() {
 		return CacheRecordDTOUtils.toEntrySet(data, schemaHolder.get());
 	}
+
 }
