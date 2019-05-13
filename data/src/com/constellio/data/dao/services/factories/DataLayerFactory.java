@@ -160,13 +160,8 @@ public class DataLayerFactory extends LayerFactoryImpl {
 
 		constellioJobManager = add(new ConstellioJobManager(dataLayerConfiguration));
 
-		if (dataLayerConfiguration.getCacheType() == CacheType.IGNITE) {
 
-			localCacheManager = new ConstellioIgniteCacheManager(dataLayerConfiguration.getCacheUrl(), warVersion);
-			igniteClient = ((ConstellioIgniteCacheManager) localCacheManager).getClient();
-			distributedCacheManager = new ConstellioIgniteCacheManager(dataLayerConfiguration.getCacheUrl(), warVersion);
-
-		} else if (dataLayerConfiguration.getCacheType() == CacheType.MEMORY) {
+		if (dataLayerConfiguration.getCacheType() == CacheType.MEMORY) {
 
 			if (dataLayerConfiguration.getCacheUrl() != null) {
 				ConstellioIgniteCacheManager cacheManager = new ConstellioIgniteCacheManager(dataLayerConfiguration.getCacheUrl(),
@@ -204,11 +199,7 @@ public class DataLayerFactory extends LayerFactoryImpl {
 			throw new ImpossibleRuntimeException("Unsupported ConfigManagerType");
 		}
 
-		if (dataLayerConfiguration.getCacheType() == CacheType.IGNITE) {
-			configManager = new CachedConfigManager(configManagerWithoutCache, localCacheManager.getCache("configManager"));
-		} else {
-			configManager = new CachedConfigManager(configManagerWithoutCache, distributedCacheManager.getCache("configManager"));
-		}
+		configManager = new CachedConfigManager(configManagerWithoutCache, distributedCacheManager.getCache("configManager"));
 
 		if (dataLayerConfiguration.getIdGeneratorType() == IdGeneratorType.UUID_V1) {
 			this.idGenerator = new UUIDV1Generator();

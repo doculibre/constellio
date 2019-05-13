@@ -18,6 +18,7 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -38,6 +39,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 	TestsSchemasSetup.ZeSchemaMetadatas zeSchema = setup.new ZeSchemaMetadatas();
 	TestsSchemasSetup.AnotherSchemaMetadatas anotherSchema = setup.new AnotherSchemaMetadatas();
 
+	FileSystemRecordsValuesCacheDataStore dataStore;
 	MetadataSchemasManager schemasManager;
 	RecordServices recordServices;
 	ReindexingServices reindexingServices;
@@ -48,7 +50,13 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 		recordServices = getModelLayerFactory().newRecordServices();
 		reindexingServices = getModelLayerFactory().newReindexingServices();
 
-		SummaryCacheSingletons.dataStore = new FileSystemRecordsValuesCacheDataStore(new File(newTempFolder(), "persistedCache.db"));
+		dataStore = new FileSystemRecordsValuesCacheDataStore(new File(newTempFolder(), "test.db"));
+	}
+
+
+	@After
+	public void tearDown() throws Exception {
+		dataStore.close();
 	}
 
 	@Test

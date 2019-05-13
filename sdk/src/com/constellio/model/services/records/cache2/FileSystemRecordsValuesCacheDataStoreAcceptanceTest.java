@@ -1,6 +1,8 @@
 package com.constellio.model.services.records.cache2;
 
 import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
@@ -9,11 +11,20 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class FileSystemRecordsValuesCacheDataStoreAcceptanceTest extends ConstellioTest {
 
+	FileSystemRecordsValuesCacheDataStore dataStore;
+
+	@Before
+	public void setUp() throws Exception {
+		dataStore = new FileSystemRecordsValuesCacheDataStore(new File(newTempFolder(), "test.db"));
+	}
+
+	@After
+	public void tearDown() throws Exception {
+		dataStore.close();
+	}
+
 	@Test
 	public void whenAddingAndUpdatingDataToCacheThenKept() {
-
-		FileSystemRecordsValuesCacheDataStore dataStore = new FileSystemRecordsValuesCacheDataStore(
-				new File(newTempFolder(), "test.db"));
 
 
 		dataStore.saveIntKey(123, new byte[]{42, 34, 34, -1});
@@ -40,5 +51,6 @@ public class FileSystemRecordsValuesCacheDataStoreAcceptanceTest extends Constel
 		assertThat(dataStore.loadStringKey("bob")).isNull();
 
 	}
+
 
 }

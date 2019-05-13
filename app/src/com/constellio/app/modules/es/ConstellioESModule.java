@@ -63,7 +63,6 @@ import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.cache.CacheConfig;
 import com.constellio.model.services.records.cache.RecordsCache;
-import com.constellio.model.services.records.cache.ignite.RecordsCacheIgniteImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -82,7 +81,7 @@ public class ConstellioESModule implements InstallableSystemModule, ModuleWithCo
 	public static final String ID = "es";
 	public static final String NAME = "Constellio Enterprise Search (beta)";
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(RecordsCacheIgniteImpl.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(ConstellioESModule.class);
 
 	@Override
 	public String getName() {

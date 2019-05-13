@@ -9,12 +9,14 @@ import java.io.File;
 
 public class FileSystemRecordsValuesCacheDataStore {
 
+	private DB database;
+
 	private HTreeMap<Integer, byte[]> intKeyMap;
 
 	private HTreeMap<String, byte[]> stringKeyMap;
 
 	public FileSystemRecordsValuesCacheDataStore(File file) {
-		DB database = DBMaker.fileDB(file).make();
+		this.database = DBMaker.fileDB(file).make();
 		intKeyMap = database.hashMap("intKeysDataStore")
 				.keySerializer(Serializer.INTEGER)
 				.valueSerializer(Serializer.BYTE_ARRAY)
@@ -50,4 +52,10 @@ public class FileSystemRecordsValuesCacheDataStore {
 		return intKeyMap.get(id);
 	}
 
+	public void close() {
+		intKeyMap.close();
+		stringKeyMap.close();
+		database.close();
+
+	}
 }

@@ -1,6 +1,5 @@
 package com.constellio.model.services.factories;
 
-import com.constellio.data.conf.CacheType;
 import com.constellio.data.dao.managers.StatefullServiceDecorator;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.services.DataStoreTypesFactory;
@@ -44,7 +43,6 @@ import com.constellio.model.services.records.cache.CachedRecordServices;
 import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.records.cache.RecordsCachesMemoryImpl;
 import com.constellio.model.services.records.cache.eventBus.EventsBusRecordsCachesImpl;
-import com.constellio.model.services.records.cache.ignite.RecordsCachesIgniteImpl;
 import com.constellio.model.services.records.extractions.RecordPopulateServices;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -148,15 +146,11 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 
 		this.dataLayerFactory = dataLayerFactory;
 		this.modelLayerFactoryFactory = modelLayerFactoryFactory;
-		if (dataLayerFactory.getDataLayerConfiguration().getCacheType() == CacheType.IGNITE) {
-			this.recordsCaches = new RecordsCachesIgniteImpl(this);
-		} else {
 
-			if (Toggle.EVENT_BUS_RECORDS_CACHE.isEnabled()) {
-				this.recordsCaches = new EventsBusRecordsCachesImpl(this);
-			} else {
-				this.recordsCaches = new RecordsCachesMemoryImpl(this);
-			}
+		if (Toggle.EVENT_BUS_RECORDS_CACHE.isEnabled()) {
+			this.recordsCaches = new EventsBusRecordsCachesImpl(this);
+		} else {
+			this.recordsCaches = new RecordsCachesMemoryImpl(this);
 		}
 		this.modelLayerLogger = new ModelLayerLogger();
 		this.modelLayerExtensions = new ModelLayerExtensions();
