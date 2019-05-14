@@ -1,6 +1,7 @@
 package com.constellio.model.services.records.cache2;
 
 import com.constellio.app.modules.rm.model.enums.CopyType;
+import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.data.utils.Holder;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -13,7 +14,6 @@ import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
-import com.constellio.model.services.search.SearchServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import org.joda.time.LocalDate;
@@ -32,6 +32,7 @@ import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichAllowsZeSc
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.data.MapEntry.entry;
 
 public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 
@@ -52,7 +53,6 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 		SummaryCacheSingletons.dataStore = new FileSystemRecordsValuesCacheDataStore(new File(newTempFolder(), "test.db"));
 	}
 
-
 	@After
 	public void tearDown() throws Exception {
 		SummaryCacheSingletons.dataStore.close();
@@ -61,9 +61,15 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenStoringSingleValueMetadatasInAByteArrayRecordDTOThenStoredAndRetrieved() throws Exception {
 		defineSchemasManager().using(setup
+				.withATitle()
 				.withABooleanMetadata()
+				.withAnIntegerMetadata()
+				.withANumberMetadata()
+				.withAnEnumMetadata(FolderStatus.class)
 				.withAParentReferenceFromZeSchemaToZeSchema()
-				.withAReferenceFromAnotherSchemaToZeSchema());
+				.withAReferenceFromAnotherSchemaToZeSchema()
+				.withADateMetadata()
+				.withADateTimeMetadata());
 
 		setup.modify(new MetadataSchemaTypesAlteration() {
 			@Override
@@ -71,51 +77,112 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 				types.getSchema(anotherSchema.code())
 						.create("booleanMetadata")
 						.setType(MetadataValueType.BOOLEAN);
+				types.getSchema(anotherSchema.code())
+						.create("integerMetadata")
+						.setType(MetadataValueType.INTEGER);
+				types.getSchema(anotherSchema.code())
+						.create("numberMetadata")
+						.setType(MetadataValueType.NUMBER);
+				types.getSchema(anotherSchema.code())
+						.create("enumMetadata")
+						.setType(MetadataValueType.ENUM)
+						.defineAsEnum(CopyType.class);
+				types.getSchema(anotherSchema.code())
+						.create("dateMetadata")
+						.setType(MetadataValueType.DATE);
+				types.getSchema(anotherSchema.code())
+						.create("dateTimeMetadata")
+						.setType(MetadataValueType.DATE_TIME);
 			}
 		});
 
-		RecordImpl record1 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance())
-				.set(zeSchema.booleanMetadata(), true)
-				.set(zeSchema.parentReferenceFromZeSchemaToZeSchema(), null);
+		LocalDate date = new LocalDate();
+		LocalDateTime dateTime = new LocalDateTime();
 
-		RecordImpl record2 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance())
+		RecordImpl record1 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance())
+				.set(Schemas.TITLE, "Le village des Schtroumpfs")
+				.set(zeSchema.booleanMetadata(), true)
+				.set(zeSchema.integerMetadata(), 14)
+				.set(zeSchema.numberMetadata(), -70.4d)
+				.set(zeSchema.enumMetadata(), FolderStatus.ACTIVE)
+				.set(zeSchema.parentReferenceFromZeSchemaToZeSchema(), null)
+				.set(zeSchema.dateMetadata(), date)
+				.set(zeSchema.dateTimeMetadata(), dateTime);
+
+		RecordImpl record2 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance(), "recordMondial")
+				.set(Schemas.TITLE, "")
+				.set(zeSchema.integerMetadata(), 0)
+				.set(zeSchema.booleanMetadata(), false)
 				.set(zeSchema.parentReferenceFromZeSchemaToZeSchema(), record1.getId())
-				.set(zeSchema.booleanMetadata(), false);
+				.set(zeSchema.dateTimeMetadata(), dateTime.minusWeeks(13))
+				.set(zeSchema.numberMetadata(), 0d)
+				.set(zeSchema.dateMetadata(), date.plusMonths(2))
+				.set(zeSchema.enumMetadata(), FolderStatus.SEMI_ACTIVE);
 
 		RecordImpl record3 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance())
+				.set(zeSchema.parentReferenceFromZeSchemaToZeSchema(), "recordMondial")
 				.set(zeSchema.booleanMetadata(), null)
-				.set(zeSchema.parentReferenceFromZeSchemaToZeSchema(), record2.getId());
+				.set(zeSchema.integerMetadata(), -420)
+				.set(zeSchema.dateMetadata(), date.minusYears(60))
+				.set(zeSchema.numberMetadata(), 1337.12d)
+				.set(zeSchema.enumMetadata(), null)
+				.set(Schemas.TITLE, " Blue litte man ")
+				.set(zeSchema.dateTimeMetadata(), dateTime.plusDays(300));
 
 		RecordImpl record4 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance(), "Gargamel")
-				.set(zeSchema.booleanMetadata(), null)
-				.set(zeSchema.parentReferenceFromZeSchemaToZeSchema(), record3.getId());
-
-		RecordImpl record5 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance(), "Azrael")
+				.set(zeSchema.dateMetadata(), null)
 				.set(zeSchema.booleanMetadata(), true)
-				.set(zeSchema.parentReferenceFromZeSchemaToZeSchema(), "GrandSchtroumpfs");
-
-		RecordImpl record6 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance(), "GrandSchtroumpfs")
-				.set(zeSchema.parentReferenceFromZeSchemaToZeSchema(), "Gargamel")
-				.set(zeSchema.booleanMetadata(), false);
+				.set(zeSchema.integerMetadata(), null)
+				.set(zeSchema.numberMetadata(), null)
+				.set(zeSchema.parentReferenceFromZeSchemaToZeSchema(), record3.getId())
+				.set(Schemas.TITLE, "Maison Champignon ")
+				.set(zeSchema.enumMetadata(), FolderStatus.INACTIVE_DESTROYED)
+				.set(zeSchema.dateTimeMetadata(), null);
 
 		MetadataSchemaTypes schemaTypes = schemasManager.getSchemaTypes(zeCollection);
 		MetadataSchema anotherSchemaType = schemaTypes.getSchema(anotherSchema.code());
 
-		RecordImpl record7 = (RecordImpl) recordServices.newRecordWithSchema(anotherSchema.instance())
+		RecordImpl record5 = (RecordImpl) recordServices.newRecordWithSchema(anotherSchema.instance())
+				.set(Schemas.TITLE, "I'm blue da ba de da ba da")
+				.set(anotherSchemaType.getMetadata("enumMetadata"), null)
 				.set(anotherSchemaType.getMetadata("booleanMetadata"), true)
-				.set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), null);
+				.set(anotherSchemaType.getMetadata("dateMetadata"), date.plusYears(5).minusDays(2))
+				.set(anotherSchemaType.getMetadata("numberMetadata"), -100.2d)
+				.set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), record4.getId())
+				.set(anotherSchemaType.getMetadata("dateTimeMetadata"), null)
+				.set(anotherSchemaType.getMetadata("integerMetadata"), null);
 
-		RecordImpl record8 = (RecordImpl) recordServices.newRecordWithSchema(anotherSchema.instance(), "Albator")
-				.set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), record6.getId())
+		RecordImpl record6 = (RecordImpl) recordServices.newRecordWithSchema(anotherSchema.instance(), "Azrael")
+				.set(Schemas.TITLE, " Nom d'un Schtroumpfs!")
+				.set(anotherSchemaType.getMetadata("booleanMetadata"), null)
+				.set(anotherSchemaType.getMetadata("numberMetadata"), null)
+				.set(anotherSchemaType.getMetadata("enumMetadata"), CopyType.PRINCIPAL)
+				.set(anotherSchemaType.getMetadata("dateMetadata"), date)
+				.set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), null)
+				.set(anotherSchemaType.getMetadata("dateTimeMetadata"), dateTime)
+				.set(anotherSchemaType.getMetadata("integerMetadata"), 0);
+
+		RecordImpl record7 = (RecordImpl) recordServices.newRecordWithSchema(anotherSchema.instance(), "GrandSchtroumpfs")
+				.set(Schemas.TITLE, "")
+				.set(anotherSchemaType.getMetadata("integerMetadata"), -99)
+				.set(anotherSchemaType.getMetadata("numberMetadata"), 0d)
+				.set(anotherSchemaType.getMetadata("dateTimeMetadata"), dateTime.plusHours(600).minusWeeks(1))
+				.set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), "Gargamel")
+				.set(anotherSchemaType.getMetadata("enumMetadata"), CopyType.SECONDARY)
+				.set(anotherSchemaType.getMetadata("dateMetadata"), null)
 				.set(anotherSchemaType.getMetadata("booleanMetadata"), false);
 
-		RecordImpl record9 = (RecordImpl) recordServices.newRecordWithSchema(anotherSchema.instance(), "Goldorak")
-				.set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), record1.getId());
+		RecordImpl record8 = (RecordImpl) recordServices.newRecordWithSchema(anotherSchema.instance(), "SchtroumpfsGrognon")
+				.set(anotherSchemaType.getMetadata("integerMetadata"), 1234)
+				.set(anotherSchemaType.getMetadata("dateMetadata"), date.plusMonths(14))
+				.set(anotherSchemaType.getMetadata("numberMetadata"), 10.88d)
+				.set(anotherSchemaType.getMetadata("booleanMetadata"), true)
+				.set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), "Gargamel")
+				.set(anotherSchemaType.getMetadata("dateTimeMetadata"), dateTime.minusYears(21))
+				.set(anotherSchemaType.getMetadata("enumMetadata"), CopyType.SECONDARY)
+				.set(Schemas.TITLE, null);
 
-		recordServices.execute(new Transaction(record1, record2, record3, record4, record5, record6, record7, record8, record9));
-
-		Holder<MetadataSchema> zeschemaHolder = new Holder<>(setup.zeDefaultSchema());
-		Holder<MetadataSchema> anotherSchemaHolder = new Holder<>(setup.anotherDefaultSchema());
+		recordServices.execute(new Transaction(record1, record2, record3, record4, record5, record6, record7, record8));
 
 		ByteArrayRecordDTO dto1 = ByteArrayRecordDTO.create(getModelLayerFactory(), record1.getRecordDTO());
 		ByteArrayRecordDTO dto2 = ByteArrayRecordDTO.create(getModelLayerFactory(), record2.getRecordDTO());
@@ -125,34 +192,84 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 		ByteArrayRecordDTO dto6 = ByteArrayRecordDTO.create(getModelLayerFactory(), record6.getRecordDTO());
 		ByteArrayRecordDTO dto7 = ByteArrayRecordDTO.create(getModelLayerFactory(), record7.getRecordDTO());
 		ByteArrayRecordDTO dto8 = ByteArrayRecordDTO.create(getModelLayerFactory(), record8.getRecordDTO());
-		ByteArrayRecordDTO dto9 = ByteArrayRecordDTO.create(getModelLayerFactory(), record9.getRecordDTO());
 
+		assertThat(dto1.get(Schemas.TITLE.getDataStoreCode())).isEqualTo("Le village des Schtroumpfs");
 		assertThat(dto1.get(zeSchema.booleanMetadata().getDataStoreCode())).isEqualTo(true);
+		assertThat(dto1.get(zeSchema.integerMetadata().getDataStoreCode())).isEqualTo(14);
+		assertThat(dto1.get(zeSchema.numberMetadata().getDataStoreCode())).isEqualTo(-70.4d);
+		assertThat(dto1.get(zeSchema.enumMetadata().getDataStoreCode())).isEqualTo(FolderStatus.ACTIVE.getCode());
 		assertThat(dto1.get(zeSchema.parentReferenceFromZeSchemaToZeSchema().getDataStoreCode())).isEqualTo(null);
+		assertThat(dto1.get(zeSchema.dateMetadata().getDataStoreCode())).isEqualTo(date);
+		assertThat(dto1.get(zeSchema.dateTimeMetadata().getDataStoreCode())).isEqualTo(dateTime);
+
+		assertThat(dto2.get(Schemas.TITLE.getDataStoreCode())).isEqualTo(null);
 		assertThat(dto2.get(zeSchema.booleanMetadata().getDataStoreCode())).isEqualTo(false);
+		assertThat(dto2.get(zeSchema.integerMetadata().getDataStoreCode())).isEqualTo(0);
+		assertThat(dto2.get(zeSchema.numberMetadata().getDataStoreCode())).isEqualTo(0d);
+		assertThat(dto2.get(zeSchema.enumMetadata().getDataStoreCode())).isEqualTo(FolderStatus.SEMI_ACTIVE.getCode());
 		assertThat(dto2.get(zeSchema.parentReferenceFromZeSchemaToZeSchema().getDataStoreCode())).isEqualTo(record1.getId());
+		assertThat(dto2.get(zeSchema.dateMetadata().getDataStoreCode())).isEqualTo(date.plusMonths(2));
+		assertThat(dto2.get(zeSchema.dateTimeMetadata().getDataStoreCode())).isEqualTo(dateTime.minusWeeks(13));
+
+		assertThat(dto3.get(Schemas.TITLE.getDataStoreCode())).isEqualTo(" Blue litte man ");
 		assertThat(dto3.get(zeSchema.booleanMetadata().getDataStoreCode())).isEqualTo(null);
-		assertThat(dto3.get(zeSchema.parentReferenceFromZeSchemaToZeSchema().getDataStoreCode())).isEqualTo(record2.getId());
-		assertThat(dto4.get(zeSchema.booleanMetadata().getDataStoreCode())).isEqualTo(null);
+		assertThat(dto3.get(zeSchema.integerMetadata().getDataStoreCode())).isEqualTo(-420);
+		assertThat(dto3.get(zeSchema.numberMetadata().getDataStoreCode())).isEqualTo(1337.12d);
+		assertThat(dto3.get(zeSchema.enumMetadata().getDataStoreCode())).isEqualTo(null);
+		assertThat(dto3.get(zeSchema.parentReferenceFromZeSchemaToZeSchema().getDataStoreCode())).isEqualTo("recordMondial");
+		assertThat(dto3.get(zeSchema.dateMetadata().getDataStoreCode())).isEqualTo(date.minusYears(60));
+		assertThat(dto3.get(zeSchema.dateTimeMetadata().getDataStoreCode())).isEqualTo(dateTime.plusDays(300));
+
+		assertThat(dto4.get(Schemas.TITLE.getDataStoreCode())).isEqualTo("Maison Champignon ");
+		assertThat(dto4.get(zeSchema.booleanMetadata().getDataStoreCode())).isEqualTo(true);
+		assertThat(dto4.get(zeSchema.integerMetadata().getDataStoreCode())).isEqualTo(null);
+		assertThat(dto4.get(zeSchema.numberMetadata().getDataStoreCode())).isEqualTo(null);
+		assertThat(dto4.get(zeSchema.enumMetadata().getDataStoreCode())).isEqualTo(FolderStatus.INACTIVE_DESTROYED.getCode());
 		assertThat(dto4.get(zeSchema.parentReferenceFromZeSchemaToZeSchema().getDataStoreCode())).isEqualTo(record3.getId());
-		assertThat(dto5.get(zeSchema.booleanMetadata().getDataStoreCode())).isEqualTo(true);
-		assertThat(dto5.get(zeSchema.parentReferenceFromZeSchemaToZeSchema().getDataStoreCode())).isEqualTo("GrandSchtroumpfs");
-		assertThat(dto6.get(zeSchema.booleanMetadata().getDataStoreCode())).isEqualTo(false);
-		assertThat(dto6.get(zeSchema.parentReferenceFromZeSchemaToZeSchema().getDataStoreCode())).isEqualTo("Gargamel");
-		assertThat(dto7.get(anotherSchemaType.getMetadata("booleanMetadata").getDataStoreCode())).isEqualTo(true);
-		assertThat(dto7.get(anotherSchema.referenceFromAnotherSchemaToZeSchema().getDataStoreCode())).isEqualTo(null);
-		assertThat(dto8.get(anotherSchemaType.getMetadata("booleanMetadata").getDataStoreCode())).isEqualTo(false);
-		assertThat(dto8.get(anotherSchema.referenceFromAnotherSchemaToZeSchema().getDataStoreCode())).isEqualTo(record6.getId());
-		assertThat(dto9.get(anotherSchemaType.getMetadata("booleanMetadata").getDataStoreCode())).isEqualTo(null);
-		assertThat(dto9.get(anotherSchema.referenceFromAnotherSchemaToZeSchema().getDataStoreCode())).isEqualTo(record1.getId());
+		assertThat(dto4.get(zeSchema.dateMetadata().getDataStoreCode())).isEqualTo(null);
+		assertThat(dto4.get(zeSchema.dateTimeMetadata().getDataStoreCode())).isEqualTo(null);
+
+		assertThat(dto5.get(Schemas.TITLE.getDataStoreCode())).isEqualTo("I'm blue da ba de da ba da");
+		assertThat(dto5.get(anotherSchemaType.getMetadata("booleanMetadata").getDataStoreCode())).isEqualTo(true);
+		assertThat(dto5.get(anotherSchemaType.getMetadata("integerMetadata").getDataStoreCode())).isEqualTo(null);
+		assertThat(dto5.get(anotherSchemaType.getMetadata("numberMetadata").getDataStoreCode())).isEqualTo(-100.2d);
+		assertThat(dto5.get(anotherSchemaType.getMetadata("enumMetadata").getDataStoreCode())).isEqualTo(null);
+		assertThat(dto5.get(anotherSchema.referenceFromAnotherSchemaToZeSchema().getDataStoreCode())).isEqualTo(record4.getId());
+		assertThat(dto5.get(anotherSchemaType.getMetadata("dateMetadata").getDataStoreCode())).isEqualTo(date.plusYears(5).minusDays(2));
+		assertThat(dto5.get(anotherSchemaType.getMetadata("dateTimeMetadata").getDataStoreCode())).isEqualTo(null);
+
+		assertThat(dto6.get(Schemas.TITLE.getDataStoreCode())).isEqualTo(" Nom d'un Schtroumpfs!");
+		assertThat(dto6.get(anotherSchemaType.getMetadata("booleanMetadata").getDataStoreCode())).isEqualTo(null);
+		assertThat(dto6.get(anotherSchemaType.getMetadata("integerMetadata").getDataStoreCode())).isEqualTo(0);
+		assertThat(dto6.get(anotherSchemaType.getMetadata("numberMetadata").getDataStoreCode())).isEqualTo(null);
+		assertThat(dto6.get(anotherSchemaType.getMetadata("enumMetadata").getDataStoreCode())).isEqualTo(CopyType.PRINCIPAL.getCode());
+		assertThat(dto6.get(anotherSchema.referenceFromAnotherSchemaToZeSchema().getDataStoreCode())).isEqualTo(null);
+		assertThat(dto6.get(anotherSchemaType.getMetadata("dateMetadata").getDataStoreCode())).isEqualTo(date);
+		assertThat(dto6.get(anotherSchemaType.getMetadata("dateTimeMetadata").getDataStoreCode())).isEqualTo(dateTime);
+
+		assertThat(dto7.get(Schemas.TITLE.getDataStoreCode())).isEqualTo(null);
+		assertThat(dto7.get(anotherSchemaType.getMetadata("booleanMetadata").getDataStoreCode())).isEqualTo(false);
+		assertThat(dto7.get(anotherSchemaType.getMetadata("integerMetadata").getDataStoreCode())).isEqualTo(-99);
+		assertThat(dto7.get(anotherSchemaType.getMetadata("numberMetadata").getDataStoreCode())).isEqualTo(0d);
+		assertThat(dto7.get(anotherSchemaType.getMetadata("enumMetadata").getDataStoreCode())).isEqualTo(CopyType.SECONDARY.getCode());
+		assertThat(dto7.get(anotherSchema.referenceFromAnotherSchemaToZeSchema().getDataStoreCode())).isEqualTo("Gargamel");
+		assertThat(dto7.get(anotherSchemaType.getMetadata("dateMetadata").getDataStoreCode())).isEqualTo(null);
+		assertThat(dto7.get(anotherSchemaType.getMetadata("dateTimeMetadata").getDataStoreCode())).isEqualTo(dateTime.plusHours(600).minusWeeks(1));
+
+		assertThat(dto8.get(Schemas.TITLE.getDataStoreCode())).isEqualTo(null);
+		assertThat(dto8.get(anotherSchemaType.getMetadata("booleanMetadata").getDataStoreCode())).isEqualTo(true);
+		assertThat(dto8.get(anotherSchemaType.getMetadata("integerMetadata").getDataStoreCode())).isEqualTo(1234);
+		assertThat(dto8.get(anotherSchemaType.getMetadata("numberMetadata").getDataStoreCode())).isEqualTo(10.88d);
+		assertThat(dto8.get(anotherSchemaType.getMetadata("enumMetadata").getDataStoreCode())).isEqualTo(CopyType.SECONDARY.getCode());
+		assertThat(dto8.get(anotherSchema.referenceFromAnotherSchemaToZeSchema().getDataStoreCode())).isEqualTo("Gargamel");
+		assertThat(dto8.get(anotherSchemaType.getMetadata("dateMetadata").getDataStoreCode())).isEqualTo(date.plusMonths(14));
+		assertThat(dto8.get(anotherSchemaType.getMetadata("dateTimeMetadata").getDataStoreCode())).isEqualTo(dateTime.minusYears(21));
 	}
 
 	@Test
 	public void whenStoringMultivalueMetadatasInAByteArrayRecordDTOThenStoredAndRetrieved() throws Exception {
 		defineSchemasManager().using(setup
-				.withABooleanMetadata()
-				.withATitle()
-				.withAStringMetadata(whichIsMultivalue)
+				.withABooleanMetadata(whichIsMultivalue)
 				.withAnIntegerMetadata(whichIsMultivalue)
 				.withANumberMetadata(whichIsMultivalue)
 				.withADateMetadata(whichIsMultivalue)
@@ -161,145 +278,312 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 				.withAnEnumMetadata(CopyType.class, whichIsMultivalue)
 				.withAReferenceFromAnotherSchemaToZeSchema(whichIsMultivalue));
 
+		setup.modify(new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchema(anotherSchema.code())
+						.create("booleanMetadata")
+						.setType(MetadataValueType.BOOLEAN)
+						.setMultivalue(true);
+				types.getSchema(anotherSchema.code())
+						.create("integerMetadata")
+						.setType(MetadataValueType.INTEGER)
+						.setMultivalue(true);
+				types.getSchema(anotherSchema.code())
+						.create("numberMetadata")
+						.setType(MetadataValueType.NUMBER)
+						.setMultivalue(true);
+				types.getSchema(anotherSchema.code())
+						.create("enumMetadata")
+						.setType(MetadataValueType.ENUM)
+						.defineAsEnum(CopyType.class)
+						.setMultivalue(true);
+				types.getSchema(anotherSchema.code())
+						.create("dateMetadata")
+						.setType(MetadataValueType.DATE)
+						.setMultivalue(true);
+				types.getSchema(anotherSchema.code())
+						.create("dateTimeMetadata")
+						.setType(MetadataValueType.DATE_TIME)
+						.setMultivalue(true);
+			}
+		});
+
 		LocalDate date = new LocalDate();
 		LocalDateTime dateTime = new LocalDateTime();
 
 		RecordImpl record1 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance())
-				.set(zeSchema.booleanMetadata(), false)
-				.set(zeSchema.integerMetadata(), asList(619, 33, -244))
-				.set(zeSchema.numberMetadata(), asList(420.69d, -40d, 0.0d))
-				.set(Schemas.TITLE, "Johnny B Good")
-				.set(zeSchema.stringMetadata(), asList("!", "1", "a"))
-				.set(zeSchema.dateTimeMetadata(), asList(dateTime, dateTime.plusHours(5), dateTime.minusYears(33)))
-				.set(zeSchema.dateMetadata(), asList(date, date.plusDays(3), date.plusDays(-100)))
+				.set(zeSchema.integerMetadata(), asList(0, 13, -40))
+				.set(zeSchema.enumMetadata(), asList(CopyType.PRINCIPAL, CopyType.PRINCIPAL, CopyType.SECONDARY))
+				.set(zeSchema.dateTimeMetadata(), asList(null, null))
+				.set(zeSchema.numberMetadata(), asList(0d, -0d, 0.0d))
 				.set(zeSchema.referenceMetadata(), null)
-				.set(zeSchema.enumMetadata(), asList(CopyType.PRINCIPAL, CopyType.PRINCIPAL, CopyType.SECONDARY));
+				.set(zeSchema.booleanMetadata(), null)
+				.set(zeSchema.dateMetadata(), asList(date.minusYears(22).plusMonths(2).plusDays(10), null));
 
-		/*RecordImpl record2 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance(), "Popeye")
-				.set(zeSchema.referenceMetadata(), null*//*asList(record1.getId(), null)*//*);
+		RecordImpl record2 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance(), "StoneColdSteveAustin")
+				.set(zeSchema.integerMetadata(), asList(619, 33, -244))
+				.set(zeSchema.enumMetadata(), asList(CopyType.PRINCIPAL, CopyType.PRINCIPAL, CopyType.SECONDARY))
+				.set(zeSchema.numberMetadata(), null)
+				.set(zeSchema.referenceMetadata(), asList(null, record1.getId()))
+				.set(zeSchema.dateMetadata(), asList(date, date.plusDays(3), date.plusDays(-100)))
+				.set(zeSchema.dateTimeMetadata(), asList(null, dateTime.plusHours(5), dateTime.minusYears(33)))
+				.set(zeSchema.booleanMetadata(), asList(true, false, true));
 
-		RecordImpl record3 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance(), "Olive");
-//				.set(zeSchema.referenceMetadata(), asList("Popeye", record1.getId()));
+		RecordImpl record3 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance(), "Undertaker")
+				.set(zeSchema.numberMetadata(), asList(420.69d, -40d, 0.0d))
+				.set(zeSchema.integerMetadata(), asList(42, -13, 10))
+				.set(zeSchema.enumMetadata(), asList(CopyType.PRINCIPAL, CopyType.PRINCIPAL, CopyType.SECONDARY))
+				.set(zeSchema.dateMetadata(), null)
+				.set(zeSchema.referenceMetadata(), asList("StoneColdSteveAustin", record1.getId()))
+				.set(zeSchema.booleanMetadata(), asList(false, null, true))
+				.set(zeSchema.dateTimeMetadata(), asList(dateTime, dateTime.plusHours(22), dateTime.minusYears(100)));
 
-		RecordImpl record4 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance(), "Gontran")
-				.set(zeSchema.booleanMetadata(), false);
-//				.set(zeSchema.referenceMetadata(), asList("Olive", "Popeye"));
+		RecordImpl record4 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance())
+				.set(zeSchema.integerMetadata(), null)
+				.set(zeSchema.numberMetadata(), asList(1.337d, -6.19d, 3.1416d))
+				.set(zeSchema.booleanMetadata(), asList(null, null, null))
+				.set(zeSchema.dateMetadata(), asList(null, null, null))
+				.set(zeSchema.referenceMetadata(), asList("Undertaker", null))
+				.set(zeSchema.enumMetadata(), asList(CopyType.PRINCIPAL, CopyType.PRINCIPAL, CopyType.SECONDARY))
+				.set(zeSchema.dateTimeMetadata(), null);
+
+		MetadataSchemaTypes schemaTypes = schemasManager.getSchemaTypes(zeCollection);
+		MetadataSchema anotherSchemaType = schemaTypes.getSchema(anotherSchema.code());
 
 		RecordImpl record5 = (RecordImpl) recordServices.newRecordWithSchema(anotherSchema.instance(), "Tintin")
-				.set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), asList("Olive", "Gontran"));
+				.set(anotherSchemaType.getMetadata("dateMetadata"), asList(date.minusWeeks(7), date))
+				.set(anotherSchemaType.getMetadata("numberMetadata"), asList(0d))
+				.set(anotherSchemaType.getMetadata("dateTimeMetadata"), null)
+				.set(anotherSchemaType.getMetadata("enumMetadata"), asList(CopyType.SECONDARY, CopyType.SECONDARY, CopyType.SECONDARY))
+				.set(anotherSchemaType.getMetadata("booleanMetadata"), asList(true, false, true))
+				.set(anotherSchemaType.getMetadata("integerMetadata"), null)
+				.set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), asList(null, null, null, null));
 
 		RecordImpl record6 = (RecordImpl) recordServices.newRecordWithSchema(anotherSchema.instance(), "Milou")
-				.set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), asList(null, null));
+				.set(anotherSchemaType.getMetadata("booleanMetadata"), asList(null, true, false))
+				.set(anotherSchemaType.getMetadata("numberMetadata"), asList(4600d))
+				.set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), asList(record4.getId(), "Undertaker"))
+				.set(anotherSchemaType.getMetadata("enumMetadata"), null)
+				.set(anotherSchemaType.getMetadata("dateMetadata"), asList(null, null, null))
+				.set(anotherSchemaType.getMetadata("integerMetadata"), asList(1, 2, 3))
+				.set(anotherSchemaType.getMetadata("dateTimeMetadata"), asList(dateTime));
 
 		RecordImpl record7 = (RecordImpl) recordServices.newRecordWithSchema(anotherSchema.instance(), "CapitaineHaddock")
-				.set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), asList(null, "Popeye"));
+				.set(anotherSchemaType.getMetadata("integerMetadata"), asList(0, -700))
+				.set(anotherSchemaType.getMetadata("dateMetadata"), null)
+				.set(anotherSchemaType.getMetadata("numberMetadata"), asList(456d, -123d))
+				.set(anotherSchemaType.getMetadata("booleanMetadata"), asList(null, null))
+				.set(anotherSchemaType.getMetadata("dateTimeMetadata"), asList(null, dateTime, dateTime.plusHours(4)))
+				.set(anotherSchemaType.getMetadata("enumMetadata"), asList(CopyType.SECONDARY, CopyType.PRINCIPAL))
+				.set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), null);
 
 		RecordImpl record8 = (RecordImpl) recordServices.newRecordWithSchema(anotherSchema.instance(), "ProfesseurTournesol")
-				.set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), asList(record1.getId(), record1.getId()));*/
+				.set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), asList("StoneColdSteveAustin", record4.getId(), record1.getId(), "Undertaker"))
+				.set(anotherSchemaType.getMetadata("integerMetadata"), asList(6701))
+				.set(anotherSchemaType.getMetadata("booleanMetadata"), null)
+				.set(anotherSchemaType.getMetadata("enumMetadata"), asList(CopyType.SECONDARY))
+				.set(anotherSchemaType.getMetadata("dateMetadata"), asList(date, date.plusWeeks(52)))
+				.set(anotherSchemaType.getMetadata("dateTimeMetadata"), asList(null, null, null))
+				.set(anotherSchemaType.getMetadata("numberMetadata"), null);
 
-		recordServices.execute(new Transaction(record1/*, record2, record3, record4, record5, record6, record7, record8*/));
-
-		Holder<MetadataSchema> zeschemaHolder = new Holder<>(setup.zeDefaultSchema());
-		Holder<MetadataSchema> anotherSchemaHolder = new Holder<>(setup.anotherDefaultSchema());
+		recordServices.execute(new Transaction(record1, record2, record3, record4, record5, record6, record7, record8));
 
 		ByteArrayRecordDTO dto1 = ByteArrayRecordDTO.create(getModelLayerFactory(), record1.getRecordDTO());
-		/*ByteArrayRecordDTO dto2 = new ByteArrayRecordDTO(zeschemaHolder, record2.getRecordDTO());
-		ByteArrayRecordDTO dto3 = new ByteArrayRecordDTO(zeschemaHolder, record3.getRecordDTO());
-		ByteArrayRecordDTO dto4 = new ByteArrayRecordDTO(zeschemaHolder, record4.getRecordDTO());
-		ByteArrayRecordDTO dto5 = new ByteArrayRecordDTO(anotherSchemaHolder, record5.getRecordDTO());
-		ByteArrayRecordDTO dto6 = new ByteArrayRecordDTO(anotherSchemaHolder, record6.getRecordDTO());
-		ByteArrayRecordDTO dto7 = new ByteArrayRecordDTO(anotherSchemaHolder, record7.getRecordDTO());
-		ByteArrayRecordDTO dto8 = new ByteArrayRecordDTO(anotherSchemaHolder, record8.getRecordDTO());*/
+		ByteArrayRecordDTO dto2 = ByteArrayRecordDTO.create(getModelLayerFactory(), record2.getRecordDTO());
+		ByteArrayRecordDTO dto3 = ByteArrayRecordDTO.create(getModelLayerFactory(), record3.getRecordDTO());
+		ByteArrayRecordDTO dto4 = ByteArrayRecordDTO.create(getModelLayerFactory(), record4.getRecordDTO());
+		ByteArrayRecordDTO dto5 = ByteArrayRecordDTO.create(getModelLayerFactory(), record5.getRecordDTO());
+		ByteArrayRecordDTO dto6 = ByteArrayRecordDTO.create(getModelLayerFactory(), record6.getRecordDTO());
+		ByteArrayRecordDTO dto7 = ByteArrayRecordDTO.create(getModelLayerFactory(), record7.getRecordDTO());
+		ByteArrayRecordDTO dto8 = ByteArrayRecordDTO.create(getModelLayerFactory(), record8.getRecordDTO());
 
-		assertThat(dto1.get(zeSchema.booleanMetadata().getDataStoreCode())).isEqualTo(false);
+		assertThat(dto1.get(zeSchema.booleanMetadata().getDataStoreCode())).isEqualTo(asList());
+		assertThat(dto1.get(zeSchema.integerMetadata().getDataStoreCode())).isEqualTo(asList(0, 13, -40));
+		assertThat(dto1.get(zeSchema.numberMetadata().getDataStoreCode())).isEqualTo(asList(0d, -0d, 0.0d));
+		assertThat(dto1.get(zeSchema.dateMetadata().getDataStoreCode())).isEqualTo(asList(date.minusYears(22).plusMonths(2).plusDays(10), null));
+		assertThat(dto1.get(zeSchema.dateTimeMetadata().getDataStoreCode())).isEqualTo(asList());
 		assertThat(dto1.get(zeSchema.referenceMetadata().getDataStoreCode())).isEqualTo(asList());
-		assertThat(dto1.get(zeSchema.integerMetadata().getDataStoreCode())).isEqualTo(asList(619, 33, -244));
-		assertThat(dto1.get(zeSchema.numberMetadata().getDataStoreCode())).isEqualTo(asList(420.69d, -40d, 0.0d));
-		assertThat(dto1.get(zeSchema.stringMetadata().getDataStoreCode())).isEqualTo(asList("!", "1", "a"));
-		assertThat(dto1.get(Schemas.TITLE.getDataStoreCode())).isEqualTo("Johnny B Good");
-		assertThat(dto1.get(zeSchema.dateTimeMetadata().getDataStoreCode())).isEqualTo(asList(dateTime, dateTime.plusHours(5), dateTime.minusYears(33)));
-		assertThat(dto1.get(zeSchema.dateMetadata().getDataStoreCode())).isEqualTo(asList(date, date.plusDays(3), date.plusDays(-100)));
 		assertThat(dto1.get(zeSchema.enumMetadata().getDataStoreCode())).isEqualTo(asList(CopyType.PRINCIPAL.getCode(), CopyType.PRINCIPAL.getCode(), CopyType.SECONDARY.getCode()));
-		//		assertThat(dto2.get(zeSchema.booleanMetadata().getDataStoreCode())).isEqualTo(null);
-		//		assertThat(dto2.get(zeSchema.referenceMetadata().getDataStoreCode())).isEqualTo(asList(record1.getId(), null));
-		//		assertThat(dto3.get(zeSchema.booleanMetadata().getDataStoreCode())).isEqualTo(null);
-		//		assertThat(dto3.get(zeSchema.referenceMetadata().getDataStoreCode())).isEqualTo(asList("Popeye", record1.getId()));
-		//		assertThat(dto4.get(zeSchema.booleanMetadata().getDataStoreCode())).isEqualTo(false);
-		//		assertThat(dto4.get(zeSchema.referenceMetadata().getDataStoreCode())).isEqualTo(asList("Olive", "Popeye"));
-		//		assertThat(dto5.get(anotherSchema.referenceFromAnotherSchemaToZeSchema().getDataStoreCode())).isEqualTo(asList("Olive", "Gontran"));
-		//		assertThat(dto6.get(anotherSchema.referenceFromAnotherSchemaToZeSchema().getDataStoreCode())).isEqualTo(asList(null, null));
-		//		assertThat(dto7.get(anotherSchema.referenceFromAnotherSchemaToZeSchema().getDataStoreCode())).isEqualTo(asList(null, "Popeye"));
-		//		assertThat(dto8.get(anotherSchema.referenceFromAnotherSchemaToZeSchema().getDataStoreCode())).isEqualTo(asList(record1.getId(), record1.getId()));
 
-		SearchServices searchServices = getModelLayerFactory().newSearchServices();
-		//		assertThatRecord(recordServices.getDocumentById(record1.getId())).hasMetadataValue(zeSchema.stringMetadata(), asList("", "1", "a"));
+		assertThat(dto2.get(zeSchema.booleanMetadata().getDataStoreCode())).isEqualTo(asList(true, false, true));
+		assertThat(dto2.get(zeSchema.integerMetadata().getDataStoreCode())).isEqualTo(asList(619, 33, -244));
+		assertThat(dto2.get(zeSchema.numberMetadata().getDataStoreCode())).isEqualTo(asList());
+		assertThat(dto2.get(zeSchema.dateMetadata().getDataStoreCode())).isEqualTo(asList(date, date.plusDays(3), date.plusDays(-100)));
+		assertThat(dto2.get(zeSchema.dateTimeMetadata().getDataStoreCode())).isEqualTo(asList(null, dateTime.plusHours(5), dateTime.minusYears(33)));
+		assertThat(dto2.get(zeSchema.referenceMetadata().getDataStoreCode())).isEqualTo(asList(null, record1.getId()));
+		assertThat(dto2.get(zeSchema.enumMetadata().getDataStoreCode())).isEqualTo(asList(CopyType.PRINCIPAL.getCode(), CopyType.PRINCIPAL.getCode(), CopyType.SECONDARY.getCode()));
+
+		assertThat(dto3.get(zeSchema.booleanMetadata().getDataStoreCode())).isEqualTo(asList(false, null, true));
+		assertThat(dto3.get(zeSchema.integerMetadata().getDataStoreCode())).isEqualTo(asList(42, -13, 10));
+		assertThat(dto3.get(zeSchema.numberMetadata().getDataStoreCode())).isEqualTo(asList(420.69d, -40d, 0.0d));
+		assertThat(dto3.get(zeSchema.dateMetadata().getDataStoreCode())).isEqualTo(asList());
+		assertThat(dto3.get(zeSchema.dateTimeMetadata().getDataStoreCode())).isEqualTo(asList(dateTime, dateTime.plusHours(22), dateTime.minusYears(100)));
+		assertThat(dto3.get(zeSchema.referenceMetadata().getDataStoreCode())).isEqualTo(asList("StoneColdSteveAustin", record1.getId()));
+		assertThat(dto3.get(zeSchema.enumMetadata().getDataStoreCode())).isEqualTo(asList(CopyType.PRINCIPAL.getCode(), CopyType.PRINCIPAL.getCode(), CopyType.SECONDARY.getCode()));
+
+		assertThat(dto4.get(zeSchema.booleanMetadata().getDataStoreCode())).isEqualTo(asList());
+		assertThat(dto4.get(zeSchema.integerMetadata().getDataStoreCode())).isEqualTo(asList());
+		assertThat(dto4.get(zeSchema.numberMetadata().getDataStoreCode())).isEqualTo(asList(1.337d, -6.19d, 3.1416d));
+		assertThat(dto4.get(zeSchema.dateMetadata().getDataStoreCode())).isEqualTo(asList());
+		assertThat(dto4.get(zeSchema.dateTimeMetadata().getDataStoreCode())).isEqualTo(asList());
+		assertThat(dto4.get(zeSchema.referenceMetadata().getDataStoreCode())).isEqualTo(asList("Undertaker", null));
+		assertThat(dto4.get(zeSchema.enumMetadata().getDataStoreCode())).isEqualTo(asList(CopyType.PRINCIPAL.getCode(), CopyType.PRINCIPAL.getCode(), CopyType.SECONDARY.getCode()));
+
+		assertThat(dto5.get(anotherSchemaType.getMetadata("booleanMetadata").getDataStoreCode())).isEqualTo(asList(true, false, true));
+		assertThat(dto5.get(anotherSchemaType.getMetadata("integerMetadata").getDataStoreCode())).isEqualTo(asList());
+		assertThat(dto5.get(anotherSchemaType.getMetadata("numberMetadata").getDataStoreCode())).isEqualTo(asList(0d));
+		assertThat(dto5.get(anotherSchemaType.getMetadata("dateMetadata").getDataStoreCode())).isEqualTo(asList(date.minusWeeks(7), date));
+		assertThat(dto5.get(anotherSchemaType.getMetadata("dateTimeMetadata").getDataStoreCode())).isEqualTo(asList());
+		assertThat(dto5.get(anotherSchema.referenceFromAnotherSchemaToZeSchema().getDataStoreCode())).isEqualTo(asList(null, null, null, null));
+		assertThat(dto5.get(anotherSchemaType.getMetadata("enumMetadata").getDataStoreCode())).isEqualTo(asList(CopyType.SECONDARY.getCode(), CopyType.SECONDARY.getCode(), CopyType.SECONDARY.getCode()));
+
+		assertThat(dto6.get(anotherSchemaType.getMetadata("booleanMetadata").getDataStoreCode())).isEqualTo(asList(null, true, false));
+		assertThat(dto6.get(anotherSchemaType.getMetadata("integerMetadata").getDataStoreCode())).isEqualTo(asList(1, 2, 3));
+		assertThat(dto6.get(anotherSchemaType.getMetadata("numberMetadata").getDataStoreCode())).isEqualTo(asList(4600d));
+		assertThat(dto6.get(anotherSchemaType.getMetadata("dateMetadata").getDataStoreCode())).isEqualTo(asList());
+		assertThat(dto6.get(anotherSchemaType.getMetadata("dateTimeMetadata").getDataStoreCode())).isEqualTo(asList(dateTime));
+		assertThat(dto6.get(anotherSchema.referenceFromAnotherSchemaToZeSchema().getDataStoreCode())).isEqualTo(asList(record4.getId(), "Undertaker"));
+		assertThat(dto6.get(anotherSchemaType.getMetadata("enumMetadata").getDataStoreCode())).isEqualTo(asList());
+
+		assertThat(dto7.get(anotherSchemaType.getMetadata("booleanMetadata").getDataStoreCode())).isEqualTo(asList());
+		assertThat(dto7.get(anotherSchemaType.getMetadata("integerMetadata").getDataStoreCode())).isEqualTo(asList(0, -700));
+		assertThat(dto7.get(anotherSchemaType.getMetadata("numberMetadata").getDataStoreCode())).isEqualTo(asList(456d, -123d));
+		assertThat(dto7.get(anotherSchemaType.getMetadata("dateMetadata").getDataStoreCode())).isEqualTo(asList());
+		assertThat(dto7.get(anotherSchemaType.getMetadata("dateTimeMetadata").getDataStoreCode())).isEqualTo(asList(null, dateTime, dateTime.plusHours(4)));
+		assertThat(dto7.get(anotherSchema.referenceFromAnotherSchemaToZeSchema().getDataStoreCode())).isEqualTo(asList());
+		assertThat(dto7.get(anotherSchemaType.getMetadata("enumMetadata").getDataStoreCode())).isEqualTo(asList(CopyType.SECONDARY.getCode(), CopyType.PRINCIPAL.getCode()));
+
+		assertThat(dto8.get(anotherSchemaType.getMetadata("booleanMetadata").getDataStoreCode())).isEqualTo(asList());
+		assertThat(dto8.get(anotherSchemaType.getMetadata("integerMetadata").getDataStoreCode())).isEqualTo(asList(6701));
+		assertThat(dto8.get(anotherSchemaType.getMetadata("numberMetadata").getDataStoreCode())).isEqualTo(asList());
+		assertThat(dto8.get(anotherSchemaType.getMetadata("dateMetadata").getDataStoreCode())).isEqualTo(asList(date, date.plusWeeks(52)));
+		assertThat(dto8.get(anotherSchemaType.getMetadata("dateTimeMetadata").getDataStoreCode())).isEqualTo(asList());
+		assertThat(dto8.get(anotherSchema.referenceFromAnotherSchemaToZeSchema().getDataStoreCode())).isEqualTo(asList("StoneColdSteveAustin", record4.getId(), record1.getId(), "Undertaker"));
+		assertThat(dto8.get(anotherSchemaType.getMetadata("enumMetadata").getDataStoreCode())).isEqualTo(asList(CopyType.SECONDARY.getCode()));
 	}
 
 	@Test
 	public void whenStoringMetadatasInAByteArrayRecordDTOThenVerifyingTheStoreMetadatas() throws Exception {
 		defineSchemasManager().using(setup
+				.withATitle()
 				.withABooleanMetadata()
-				.withAStringMetadata()
+				.withAnIntegerMetadata()
 				.withANumberMetadata()
-				.withAReferenceMetadata(whichAllowsZeSchemaType, whichIsMultivalue)
-				.withAReferenceFromAnotherSchemaToZeSchema(whichIsMultivalue)
-				.withAParentReferenceFromZeSchemaToZeSchema());
+				.withAnEnumMetadata(FolderStatus.class)
+				.withAParentReferenceFromZeSchemaToZeSchema()
+				.withAReferenceFromAnotherSchemaToZeSchema()
+				.withADateMetadata()
+				.withADateTimeMetadata());
 
 		setup.modify(new MetadataSchemaTypesAlteration() {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchema(anotherSchema.code())
-						.create("stringMetadata")
-						.setType(MetadataValueType.STRING);
-
-				types.getSchema(anotherSchema.code())
 						.create("booleanMetadata")
 						.setType(MetadataValueType.BOOLEAN);
+				types.getSchema(anotherSchema.code())
+						.create("integerMetadata")
+						.setType(MetadataValueType.INTEGER);
+				types.getSchema(anotherSchema.code())
+						.create("numberMetadata")
+						.setType(MetadataValueType.NUMBER);
+				types.getSchema(anotherSchema.code())
+						.create("enumMetadata")
+						.setType(MetadataValueType.ENUM)
+						.defineAsEnum(CopyType.class);
+				types.getSchema(anotherSchema.code())
+						.create("dateMetadata")
+						.setType(MetadataValueType.DATE);
+				types.getSchema(anotherSchema.code())
+						.create("dateTimeMetadata")
+						.setType(MetadataValueType.DATE_TIME);
 			}
 		});
 
+		LocalDate date = new LocalDate();
+		LocalDateTime dateTime = new LocalDateTime();
+
 		RecordImpl record1 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance())
+				.set(Schemas.TITLE, "Le village des Schtroumpfs")
 				.set(zeSchema.booleanMetadata(), true)
-				.set(zeSchema.stringMetadata(), "Howd'y Cowboy ?")
-				.set(zeSchema.numberMetadata(), 777)
-				.set(zeSchema.referenceMetadata(), null)
-				.set(zeSchema.parentReferenceFromZeSchemaToZeSchema(), null);
+				.set(zeSchema.integerMetadata(), 14)
+				.set(zeSchema.numberMetadata(), -70.4d)
+				.set(zeSchema.enumMetadata(), FolderStatus.ACTIVE)
+				.set(zeSchema.parentReferenceFromZeSchemaToZeSchema(), null)
+				.set(zeSchema.dateMetadata(), date)
+				.set(zeSchema.dateTimeMetadata(), dateTime);
 
-		RecordImpl record2 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance(), "LuckyLuke")
+		RecordImpl record2 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance(), "recordMondial")
+				.set(Schemas.TITLE, "")
 				.set(zeSchema.booleanMetadata(), false)
-				.set(zeSchema.stringMetadata(), "Le moment est venu de nous dire au revoir, mon vieux Jolly Jumper.")
-				.set(zeSchema.numberMetadata(), 1)
-				.set(zeSchema.referenceMetadata(), null)
-				.set(zeSchema.parentReferenceFromZeSchemaToZeSchema(), record1.getId());
+				.set(zeSchema.parentReferenceFromZeSchemaToZeSchema(), record1.getId())
+				.set(zeSchema.dateTimeMetadata(), dateTime.minusWeeks(13))
+				.set(zeSchema.numberMetadata(), 0d)
+				.set(zeSchema.enumMetadata(), FolderStatus.SEMI_ACTIVE);
 
-		RecordImpl record3 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance(), "JollyJumper")
-				.set(zeSchema.booleanMetadata(), null)
-				.set(zeSchema.stringMetadata(), "Je n'aime pas le voir partir seul. Sans moi, il est démonté.")
-				.set(zeSchema.numberMetadata(), 8)
-				.set(zeSchema.referenceMetadata(), asList("LuckyLuke", record1.getId()))
-				.set(zeSchema.parentReferenceFromZeSchemaToZeSchema(), null);
+		RecordImpl record3 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance())
+				.set(zeSchema.parentReferenceFromZeSchemaToZeSchema(), "recordMondial")
+				.set(zeSchema.integerMetadata(), -420)
+				.set(zeSchema.dateMetadata(), date.minusYears(60))
+				.set(zeSchema.numberMetadata(), 1337.12d)
+				.set(zeSchema.enumMetadata(), null)
+				.set(zeSchema.dateTimeMetadata(), dateTime.plusDays(300));
+
+		RecordImpl record4 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance(), "Gargamel")
+				.set(zeSchema.dateMetadata(), null)
+				.set(zeSchema.booleanMetadata(), true)
+				.set(zeSchema.integerMetadata(), null)
+				.set(zeSchema.numberMetadata(), null)
+				.set(zeSchema.parentReferenceFromZeSchemaToZeSchema(), record3.getId())
+				.set(Schemas.TITLE, "Maison Champignon ")
+				.set(zeSchema.enumMetadata(), FolderStatus.INACTIVE_DESTROYED)
+				.set(zeSchema.dateTimeMetadata(), null);
 
 		MetadataSchemaTypes schemaTypes = schemasManager.getSchemaTypes(zeCollection);
 		MetadataSchema anotherSchemaType = schemaTypes.getSchema(anotherSchema.code());
 
-		RecordImpl record4 = (RecordImpl) recordServices.newRecordWithSchema(anotherSchema.instance(), "Rantanplan")
-				.set(anotherSchema.stringMetadata(), "Woof woof")
-				.set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), asList("JollyJumper", "LuckyLuke"));
-
-		RecordImpl record5 = (RecordImpl) recordServices.newRecordWithSchema(anotherSchema.instance(), "JoeDalton")
-				.set(anotherSchema.stringMetadata(), "Damn you Lucky Luke")
-				.set(anotherSchemaType.getMetadata("booleanMetadata"), false)
-				.set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), asList(null, null));
-
-		RecordImpl record6 = (RecordImpl) recordServices.newRecordWithSchema(anotherSchema.instance(), "JackDalton")
-				.set(anotherSchema.stringMetadata(), "Hey Joe !")
+		RecordImpl record5 = (RecordImpl) recordServices.newRecordWithSchema(anotherSchema.instance())
+				.set(Schemas.TITLE, "I'm blue da ba de da ba da")
+				.set(anotherSchemaType.getMetadata("enumMetadata"), null)
 				.set(anotherSchemaType.getMetadata("booleanMetadata"), true)
-				.set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), asList(null, "LuckyLuke"));
+				.set(anotherSchemaType.getMetadata("dateMetadata"), date.plusYears(5).minusDays(2))
+				.set(anotherSchemaType.getMetadata("numberMetadata"), -100.2d)
+				.set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), record4.getId())
+				.set(anotherSchemaType.getMetadata("dateTimeMetadata"), null)
+				.set(anotherSchemaType.getMetadata("integerMetadata"), null);
 
-		recordServices.execute(new Transaction(record1, record2, record3, record4, record5, record6));
+		RecordImpl record6 = (RecordImpl) recordServices.newRecordWithSchema(anotherSchema.instance(), "Azrael")
+				.set(Schemas.TITLE, " Nom d'un Schtroumpfs!")
+				.set(anotherSchemaType.getMetadata("booleanMetadata"), null)
+				.set(anotherSchemaType.getMetadata("numberMetadata"), null)
+				.set(anotherSchemaType.getMetadata("enumMetadata"), CopyType.PRINCIPAL)
+				.set(anotherSchemaType.getMetadata("dateMetadata"), date)
+				.set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), null)
+				.set(anotherSchemaType.getMetadata("dateTimeMetadata"), dateTime)
+				.set(anotherSchemaType.getMetadata("integerMetadata"), 0);
 
-		Holder<MetadataSchema> zeschemaHolder = new Holder<>(setup.zeDefaultSchema());
-		Holder<MetadataSchema> anotherSchemaHolder = new Holder<>(setup.anotherDefaultSchema());
+		RecordImpl record7 = (RecordImpl) recordServices.newRecordWithSchema(anotherSchema.instance(), "GrandSchtroumpfs")
+				.set(Schemas.TITLE, "")
+				.set(anotherSchemaType.getMetadata("integerMetadata"), -99)
+				.set(anotherSchemaType.getMetadata("numberMetadata"), 0d)
+				.set(anotherSchemaType.getMetadata("dateTimeMetadata"), dateTime.plusHours(600).minusWeeks(1))
+				.set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), "Gargamel")
+				.set(anotherSchemaType.getMetadata("enumMetadata"), CopyType.SECONDARY)
+				.set(anotherSchemaType.getMetadata("dateMetadata"), null)
+				.set(anotherSchemaType.getMetadata("booleanMetadata"), false);
+
+		RecordImpl record8 = (RecordImpl) recordServices.newRecordWithSchema(anotherSchema.instance(), "SchtroumpfsGrognon")
+				.set(anotherSchemaType.getMetadata("integerMetadata"), 1234)
+				.set(anotherSchemaType.getMetadata("dateMetadata"), date.plusMonths(14))
+				.set(anotherSchemaType.getMetadata("numberMetadata"), 10.88d)
+				.set(anotherSchemaType.getMetadata("booleanMetadata"), true)
+				.set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), "Gargamel")
+				.set(anotherSchemaType.getMetadata("dateTimeMetadata"), dateTime.minusYears(21))
+				.set(anotherSchemaType.getMetadata("enumMetadata"), CopyType.SECONDARY)
+				.set(Schemas.TITLE, null);
+
+		recordServices.execute(new Transaction(record1, record2, record3, record4, record5, record6, record7, record8));
 
 		ByteArrayRecordDTO dto1 = ByteArrayRecordDTO.create(getModelLayerFactory(), record1.getRecordDTO());
 		ByteArrayRecordDTO dto2 = ByteArrayRecordDTO.create(getModelLayerFactory(), record2.getRecordDTO());
@@ -307,82 +591,184 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 		ByteArrayRecordDTO dto4 = ByteArrayRecordDTO.create(getModelLayerFactory(), record4.getRecordDTO());
 		ByteArrayRecordDTO dto5 = ByteArrayRecordDTO.create(getModelLayerFactory(), record5.getRecordDTO());
 		ByteArrayRecordDTO dto6 = ByteArrayRecordDTO.create(getModelLayerFactory(), record6.getRecordDTO());
+		ByteArrayRecordDTO dto7 = ByteArrayRecordDTO.create(getModelLayerFactory(), record7.getRecordDTO());
+		ByteArrayRecordDTO dto8 = ByteArrayRecordDTO.create(getModelLayerFactory(), record8.getRecordDTO());
 
-		assertThat(dto1.keySet()).containsOnly(zeSchema.booleanMetadata().getDataStoreCode());
-		assertThat(dto2.keySet()).containsOnly(zeSchema.booleanMetadata().getDataStoreCode(), zeSchema.parentReferenceFromZeSchemaToZeSchema().getDataStoreCode());
-		assertThat(dto3.keySet()).containsOnly(zeSchema.referenceMetadata().getDataStoreCode());
-		assertThat(dto4.keySet()).containsOnly(anotherSchema.referenceFromAnotherSchemaToZeSchema().getDataStoreCode());
-		assertThat(dto5.keySet()).containsOnly(anotherSchema.referenceFromAnotherSchemaToZeSchema().getDataStoreCode(), anotherSchemaType.getMetadata("booleanMetadata").getDataStoreCode());
-		assertThat(dto5.get(anotherSchemaType.getMetadata("booleanMetadata").getDataStoreCode())).isEqualTo(false);
-		assertThat(dto6.keySet()).containsOnly(anotherSchema.referenceFromAnotherSchemaToZeSchema().getDataStoreCode(), anotherSchemaType.getMetadata("booleanMetadata").getDataStoreCode());
-		assertThat(dto6.get(anotherSchemaType.getMetadata("booleanMetadata").getDataStoreCode())).isEqualTo(true);
+		assertThat(dto1.keySet()).contains(Schemas.TITLE.getDataStoreCode(),
+				zeSchema.booleanMetadata().getDataStoreCode(),
+				zeSchema.integerMetadata().getDataStoreCode(),
+				zeSchema.numberMetadata().getDataStoreCode(),
+				zeSchema.enumMetadata().getDataStoreCode(),
+				zeSchema.dateMetadata().getDataStoreCode(),
+				zeSchema.dateTimeMetadata().getDataStoreCode());
+
+		assertThat(dto2.keySet()).contains(zeSchema.booleanMetadata().getDataStoreCode(),
+				zeSchema.numberMetadata().getDataStoreCode(),
+				zeSchema.enumMetadata().getDataStoreCode(),
+				zeSchema.parentReferenceFromZeSchemaToZeSchema().getDataStoreCode(),
+				zeSchema.dateTimeMetadata().getDataStoreCode());
+
+		assertThat(dto3.keySet()).contains(zeSchema.integerMetadata().getDataStoreCode(),
+				zeSchema.numberMetadata().getDataStoreCode(),
+				zeSchema.parentReferenceFromZeSchemaToZeSchema().getDataStoreCode(),
+				zeSchema.dateMetadata().getDataStoreCode(),
+				zeSchema.dateTimeMetadata().getDataStoreCode());
+
+		assertThat(dto4.keySet()).contains(Schemas.TITLE.getDataStoreCode(),
+				zeSchema.booleanMetadata().getDataStoreCode(),
+				zeSchema.enumMetadata().getDataStoreCode(),
+				zeSchema.parentReferenceFromZeSchemaToZeSchema().getDataStoreCode());
+
+		assertThat(dto5.keySet()).contains(Schemas.TITLE.getDataStoreCode(),
+				anotherSchemaType.getMetadata("booleanMetadata").getDataStoreCode(),
+				anotherSchemaType.getMetadata("numberMetadata").getDataStoreCode(),
+				anotherSchema.referenceFromAnotherSchemaToZeSchema().getDataStoreCode(),
+				anotherSchemaType.getMetadata("dateMetadata").getDataStoreCode());
+
+		assertThat(dto6.keySet()).contains(Schemas.TITLE.getDataStoreCode(),
+				anotherSchemaType.getMetadata("integerMetadata").getDataStoreCode(),
+				anotherSchemaType.getMetadata("enumMetadata").getDataStoreCode(),
+				anotherSchemaType.getMetadata("dateMetadata").getDataStoreCode(),
+				anotherSchemaType.getMetadata("dateTimeMetadata").getDataStoreCode());
+
+		assertThat(dto7.keySet()).contains(anotherSchemaType.getMetadata("booleanMetadata").getDataStoreCode(),
+				anotherSchemaType.getMetadata("integerMetadata").getDataStoreCode(),
+				anotherSchemaType.getMetadata("numberMetadata").getDataStoreCode(),
+				anotherSchemaType.getMetadata("enumMetadata").getDataStoreCode(),
+				anotherSchema.referenceFromAnotherSchemaToZeSchema().getDataStoreCode(),
+				anotherSchemaType.getMetadata("dateTimeMetadata").getDataStoreCode());
+
+		assertThat(dto8.keySet()).contains(anotherSchemaType.getMetadata("booleanMetadata").getDataStoreCode(),
+				anotherSchemaType.getMetadata("integerMetadata").getDataStoreCode(),
+				anotherSchemaType.getMetadata("numberMetadata").getDataStoreCode(),
+				anotherSchemaType.getMetadata("enumMetadata").getDataStoreCode(),
+				anotherSchema.referenceFromAnotherSchemaToZeSchema().getDataStoreCode(),
+				anotherSchemaType.getMetadata("dateMetadata").getDataStoreCode(),
+				anotherSchemaType.getMetadata("dateTimeMetadata").getDataStoreCode());
 	}
 
 	@Test
 	public void whenStoringMetadatasInAByteArrayRecordDTOThenVerifyingTheStoredValues() throws Exception {
 		defineSchemasManager().using(setup
-				.withABooleanMetadata()
-				.withAStringMetadata()
-				.withANumberMetadata()
+				.withABooleanMetadata(whichIsMultivalue)
+				.withAnIntegerMetadata(whichIsMultivalue)
+				.withANumberMetadata(whichIsMultivalue)
+				.withADateMetadata(whichIsMultivalue)
+				.withADateTimeMetadata(whichIsMultivalue)
 				.withAReferenceMetadata(whichAllowsZeSchemaType, whichIsMultivalue)
-				.withAReferenceFromAnotherSchemaToZeSchema(whichIsMultivalue)
-				.withAParentReferenceFromZeSchemaToZeSchema());
+				.withAnEnumMetadata(CopyType.class, whichIsMultivalue)
+				.withAReferenceFromAnotherSchemaToZeSchema(whichIsMultivalue));
 
 		setup.modify(new MetadataSchemaTypesAlteration() {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchema(anotherSchema.code())
-						.create("stringMetadata")
-						.setType(MetadataValueType.STRING);
-
-				types.getSchema(anotherSchema.code())
 						.create("booleanMetadata")
-						.setType(MetadataValueType.BOOLEAN);
+						.setType(MetadataValueType.BOOLEAN)
+						.setMultivalue(true);
+				types.getSchema(anotherSchema.code())
+						.create("integerMetadata")
+						.setType(MetadataValueType.INTEGER)
+						.setMultivalue(true);
+				types.getSchema(anotherSchema.code())
+						.create("numberMetadata")
+						.setType(MetadataValueType.NUMBER)
+						.setMultivalue(true);
+				types.getSchema(anotherSchema.code())
+						.create("enumMetadata")
+						.setType(MetadataValueType.ENUM)
+						.defineAsEnum(CopyType.class)
+						.setMultivalue(true);
+				types.getSchema(anotherSchema.code())
+						.create("dateMetadata")
+						.setType(MetadataValueType.DATE)
+						.setMultivalue(true);
+				types.getSchema(anotherSchema.code())
+						.create("dateTimeMetadata")
+						.setType(MetadataValueType.DATE_TIME)
+						.setMultivalue(true);
 			}
 		});
 
+		LocalDate date = new LocalDate();
+		LocalDateTime dateTime = new LocalDateTime();
+
 		RecordImpl record1 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance())
-				.set(zeSchema.booleanMetadata(), true)
-				.set(zeSchema.stringMetadata(), "Howd'y Cowboy ?")
-				.set(zeSchema.numberMetadata(), 777)
+				.set(zeSchema.integerMetadata(), asList(0, 13, -40))
+				.set(zeSchema.enumMetadata(), asList(CopyType.PRINCIPAL, CopyType.PRINCIPAL, CopyType.SECONDARY))
+				.set(zeSchema.dateTimeMetadata(), asList(null, null))
+				.set(zeSchema.numberMetadata(), asList(0d, -0d, 0.0d))
 				.set(zeSchema.referenceMetadata(), null)
-				.set(zeSchema.parentReferenceFromZeSchemaToZeSchema(), null);
-
-		RecordImpl record2 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance(), "LuckyLuke")
-				.set(zeSchema.booleanMetadata(), false)
-				.set(zeSchema.stringMetadata(), "Le moment est venu de nous dire au revoir, mon vieux Jolly Jumper.")
-				.set(zeSchema.numberMetadata(), 1)
-				.set(zeSchema.referenceMetadata(), null)
-				.set(zeSchema.parentReferenceFromZeSchemaToZeSchema(), record1.getId());
-
-		RecordImpl record3 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance(), "JollyJumper")
 				.set(zeSchema.booleanMetadata(), null)
-				.set(zeSchema.stringMetadata(), "Je n'aime pas le voir partir seul. Sans moi, il est démonté.")
-				.set(zeSchema.numberMetadata(), 8)
-				.set(zeSchema.referenceMetadata(), asList("LuckyLuke", record1.getId()))
-				.set(zeSchema.parentReferenceFromZeSchemaToZeSchema(), null);
+				.set(zeSchema.dateMetadata(), asList(date.minusYears(22).plusMonths(2).plusDays(10), null));
+
+		RecordImpl record2 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance(), "StoneColdSteveAustin")
+				.set(zeSchema.integerMetadata(), asList(619, 33, -244))
+				.set(zeSchema.enumMetadata(), asList(CopyType.PRINCIPAL, CopyType.PRINCIPAL, CopyType.SECONDARY))
+				.set(zeSchema.numberMetadata(), null)
+				.set(zeSchema.referenceMetadata(), asList(null, record1.getId()))
+				.set(zeSchema.dateMetadata(), asList(date, date.plusDays(3), date.plusDays(-100)))
+				.set(zeSchema.dateTimeMetadata(), asList(null, dateTime.plusHours(5), dateTime.minusYears(33)))
+				.set(zeSchema.booleanMetadata(), asList(true, false, true));
+
+		RecordImpl record3 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance(), "Undertaker")
+				.set(zeSchema.numberMetadata(), asList(420.69d, -40d, 0.0d))
+				.set(zeSchema.integerMetadata(), asList(42, -13, 10))
+				.set(zeSchema.enumMetadata(), asList(CopyType.PRINCIPAL, CopyType.PRINCIPAL, CopyType.SECONDARY))
+				.set(zeSchema.dateMetadata(), null)
+				.set(zeSchema.referenceMetadata(), asList("StoneColdSteveAustin", record1.getId()))
+				.set(zeSchema.booleanMetadata(), asList(false, null, true))
+				.set(zeSchema.dateTimeMetadata(), asList(dateTime, dateTime.plusHours(22), dateTime.minusYears(100)));
+
+		RecordImpl record4 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance())
+				.set(zeSchema.integerMetadata(), null)
+				.set(zeSchema.numberMetadata(), asList(1.337d, -6.19d, 3.1416d))
+				.set(zeSchema.booleanMetadata(), asList(null, null, null))
+				.set(zeSchema.dateMetadata(), asList(null, null, null))
+				.set(zeSchema.referenceMetadata(), asList("Undertaker", null))
+				.set(zeSchema.enumMetadata(), asList(CopyType.PRINCIPAL, CopyType.PRINCIPAL, CopyType.SECONDARY))
+				.set(zeSchema.dateTimeMetadata(), null);
 
 		MetadataSchemaTypes schemaTypes = schemasManager.getSchemaTypes(zeCollection);
 		MetadataSchema anotherSchemaType = schemaTypes.getSchema(anotherSchema.code());
 
-		RecordImpl record4 = (RecordImpl) recordServices.newRecordWithSchema(anotherSchema.instance(), "Rantanplan")
-				.set(anotherSchema.stringMetadata(), "Woof woof")
-				.set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), asList("JollyJumper", "LuckyLuke"));
+		RecordImpl record5 = (RecordImpl) recordServices.newRecordWithSchema(anotherSchema.instance(), "Tintin")
+				.set(anotherSchemaType.getMetadata("dateMetadata"), asList(date.minusWeeks(7), date))
+				.set(anotherSchemaType.getMetadata("numberMetadata"), asList(0d))
+				.set(anotherSchemaType.getMetadata("dateTimeMetadata"), null)
+				.set(anotherSchemaType.getMetadata("enumMetadata"), asList(CopyType.SECONDARY, CopyType.SECONDARY, CopyType.SECONDARY))
+				.set(anotherSchemaType.getMetadata("booleanMetadata"), asList(true, false, true))
+				.set(anotherSchemaType.getMetadata("integerMetadata"), null)
+				.set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), asList(null, null, null, null));
 
-		RecordImpl record5 = (RecordImpl) recordServices.newRecordWithSchema(anotherSchema.instance(), "JoeDalton")
-				.set(anotherSchema.stringMetadata(), "Damn you Lucky Luke")
-				.set(anotherSchemaType.getMetadata("booleanMetadata"), false)
-				.set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), asList(null, null));
+		RecordImpl record6 = (RecordImpl) recordServices.newRecordWithSchema(anotherSchema.instance(), "Milou")
+				.set(anotherSchemaType.getMetadata("booleanMetadata"), asList(null, true, false))
+				.set(anotherSchemaType.getMetadata("numberMetadata"), asList(4600d))
+				.set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), asList(record4.getId(), "Undertaker"))
+				.set(anotherSchemaType.getMetadata("enumMetadata"), null)
+				.set(anotherSchemaType.getMetadata("dateMetadata"), asList(null, null, null))
+				.set(anotherSchemaType.getMetadata("integerMetadata"), asList(1, 2, 3))
+				.set(anotherSchemaType.getMetadata("dateTimeMetadata"), asList(dateTime));
 
-		RecordImpl record6 = (RecordImpl) recordServices.newRecordWithSchema(anotherSchema.instance(), "JackDalton")
-				.set(anotherSchema.stringMetadata(), "Hey Joe !")
-				.set(anotherSchemaType.getMetadata("booleanMetadata"), true)
-				.set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), asList(null, "LuckyLuke"));
+		RecordImpl record7 = (RecordImpl) recordServices.newRecordWithSchema(anotherSchema.instance(), "CapitaineHaddock")
+				.set(anotherSchemaType.getMetadata("integerMetadata"), asList(0, -700))
+				.set(anotherSchemaType.getMetadata("dateMetadata"), null)
+				.set(anotherSchemaType.getMetadata("numberMetadata"), asList(456d, -123d))
+				.set(anotherSchemaType.getMetadata("booleanMetadata"), asList(null, null))
+				.set(anotherSchemaType.getMetadata("dateTimeMetadata"), asList(null, dateTime, dateTime.plusHours(4)))
+				.set(anotherSchemaType.getMetadata("enumMetadata"), asList(CopyType.SECONDARY, CopyType.PRINCIPAL))
+				.set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), null);
 
-		recordServices.execute(new Transaction(record1, record2, record3, record4, record5, record6));
+		RecordImpl record8 = (RecordImpl) recordServices.newRecordWithSchema(anotherSchema.instance(), "ProfesseurTournesol")
+				.set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), asList("StoneColdSteveAustin", record4.getId(), record1.getId(), "Undertaker"))
+				.set(anotherSchemaType.getMetadata("integerMetadata"), asList(6701))
+				.set(anotherSchemaType.getMetadata("booleanMetadata"), null)
+				.set(anotherSchemaType.getMetadata("enumMetadata"), asList(CopyType.SECONDARY))
+				.set(anotherSchemaType.getMetadata("dateMetadata"), asList(date, date.plusWeeks(52)))
+				.set(anotherSchemaType.getMetadata("dateTimeMetadata"), asList(null, null, null))
+				.set(anotherSchemaType.getMetadata("numberMetadata"), null);
 
-		Holder<MetadataSchema> zeschemaHolder = new Holder<>(setup.zeDefaultSchema());
-		Holder<MetadataSchema> anotherSchemaHolder = new Holder<>(setup.anotherDefaultSchema());
+		recordServices.execute(new Transaction(record1, record2, record3, record4, record5, record6, record7, record8));
 
 		ByteArrayRecordDTO dto1 = ByteArrayRecordDTO.create(getModelLayerFactory(), record1.getRecordDTO());
 		ByteArrayRecordDTO dto2 = ByteArrayRecordDTO.create(getModelLayerFactory(), record2.getRecordDTO());
@@ -390,13 +776,52 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 		ByteArrayRecordDTO dto4 = ByteArrayRecordDTO.create(getModelLayerFactory(), record4.getRecordDTO());
 		ByteArrayRecordDTO dto5 = ByteArrayRecordDTO.create(getModelLayerFactory(), record5.getRecordDTO());
 		ByteArrayRecordDTO dto6 = ByteArrayRecordDTO.create(getModelLayerFactory(), record6.getRecordDTO());
+		ByteArrayRecordDTO dto7 = ByteArrayRecordDTO.create(getModelLayerFactory(), record7.getRecordDTO());
+		ByteArrayRecordDTO dto8 = ByteArrayRecordDTO.create(getModelLayerFactory(), record8.getRecordDTO());
 
-		assertThat(dto1.values()).containsOnly(true);
-		assertThat(dto2.values()).containsOnly(false, record1.getId());
-		assertThat(dto3.values()).containsOnly(asList("LuckyLuke", record1.getId()));
-		assertThat(dto4.values()).containsOnly(asList("JollyJumper", "LuckyLuke"));
-		assertThat(dto5.values()).containsOnly(asList(null, null), false);
-		assertThat(dto6.values()).containsOnly(asList(null, "LuckyLuke"), true);
+		assertThat(dto1.values()).contains(asList(0, 13, -40),
+				asList(0d, -0d, 0.0d),
+				asList(date.minusYears(22).plusMonths(2).plusDays(10), null),
+				asList(CopyType.PRINCIPAL.getCode(), CopyType.PRINCIPAL.getCode(), CopyType.SECONDARY.getCode()));
+
+		assertThat(dto2.values()).contains(asList(true, false, true),
+				asList(619, 33, -244),
+				asList(date, date.plusDays(3), date.plusDays(-100)),
+				asList(null, dateTime.plusHours(5), dateTime.minusYears(33)),
+				asList(null, record1.getId()),
+				asList(CopyType.PRINCIPAL.getCode(), CopyType.PRINCIPAL.getCode(), CopyType.SECONDARY.getCode()));
+
+		assertThat(dto3.values()).contains(asList(false, null, true),
+				asList(42, -13, 10),
+				asList(420.69d, -40d, 0.0d),
+				asList(dateTime, dateTime.plusHours(22), dateTime.minusYears(100)),
+				asList("StoneColdSteveAustin", record1.getId()),
+				asList(CopyType.PRINCIPAL.getCode(), CopyType.PRINCIPAL.getCode(), CopyType.SECONDARY.getCode()));
+
+		assertThat(dto4.values()).contains(asList(1.337d, -6.19d, 3.1416d),
+				asList("Undertaker", null),
+				asList(CopyType.PRINCIPAL.getCode(), CopyType.PRINCIPAL.getCode(), CopyType.SECONDARY.getCode()));
+
+		assertThat(dto5.values()).contains(asList(true, false, true),
+				asList(0d),
+				asList(date.minusWeeks(7), date),
+				asList(null, null, null, null),
+				asList(CopyType.SECONDARY.getCode(), CopyType.SECONDARY.getCode(), CopyType.SECONDARY.getCode()));
+
+		assertThat(dto6.values()).contains(asList(null, true, false),
+				asList(1, 2, 3),
+				asList(4600d),
+				asList(record4.getId(), "Undertaker"));
+
+		assertThat(dto7.values()).contains(asList(0, -700),
+				asList(456d, -123d),
+				asList(null, dateTime, dateTime.plusHours(4)),
+				asList(CopyType.SECONDARY.getCode(), CopyType.PRINCIPAL.getCode()));
+
+		assertThat(dto8.values()).contains(asList(6701),
+				asList(date, date.plusWeeks(52)),
+				asList("StoneColdSteveAustin", record4.getId(), record1.getId(), "Undertaker"),
+				asList(CopyType.SECONDARY.getCode()));
 	}
 
 	@Test
@@ -451,57 +876,408 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 		MetadataSchema anotherSchemaType = schemaTypes.getSchema(anotherSchema.code());
 
 		RecordImpl record4 = (RecordImpl) recordServices.newRecordWithSchema(anotherSchema.instance(), "Rantanplan")
-				//				.set(anotherSchema.stringMetadata(), "Woof woof")
+				.set(anotherSchema.stringMetadata(), asList("Woof woof", "bark bark", "Grrrrr"))
+				.set(anotherSchemaType.getMetadata("booleanMetadata"), asList(true, true, true))
 				.set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), asList("JollyJumper", "LuckyLuke"));
 
 		RecordImpl record5 = (RecordImpl) recordServices.newRecordWithSchema(anotherSchema.instance(), "JoeDalton")
-				.set(anotherSchema.stringMetadata(), null/*"Damn you Lucky Luke"*/)
+				.set(anotherSchema.stringMetadata(), asList("Damn you Lucky Luke", "Hands up!", "PEW PEW PEW"))
 				.set(anotherSchemaType.getMetadata("booleanMetadata"), asList(null, null, false))
+				.set(Schemas.TITLE, " Lucky Luke in downtown Matane ")
 				.set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), asList(null, null));
 
 		RecordImpl record6 = (RecordImpl) recordServices.newRecordWithSchema(anotherSchema.instance(), "JackDalton")
-				//				.set(anotherSchema.stringMetadata(), "Hey Joe !")
-				//				.set(anotherSchemaType.getMetadata("booleanMetadata"), true)
+				.set(anotherSchema.stringMetadata(), asList("Hey Joe !", "Shut up it's your fault", ":'("))
+				.set(anotherSchemaType.getMetadata("booleanMetadata"), null)
 				.set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), asList(null, "LuckyLuke"));
 
 		recordServices.execute(new Transaction(record1, record2, record3, record4, record5, record6));
 
-		Holder<MetadataSchema> zeschemaHolder = new Holder<>(setup.zeDefaultSchema());
-		Holder<MetadataSchema> anotherSchemaHolder = new Holder<>(setup.anotherDefaultSchema());
-
 		ByteArrayRecordDTO dto1 = ByteArrayRecordDTO.create(getModelLayerFactory(), record1.getRecordDTO());
 		ByteArrayRecordDTO dto2 = ByteArrayRecordDTO.create(getModelLayerFactory(), record2.getRecordDTO());
 		ByteArrayRecordDTO dto3 = ByteArrayRecordDTO.create(getModelLayerFactory(), record3.getRecordDTO());
-		//		ByteArrayRecordDTO dto4 = new ByteArrayRecordDTO(anotherSchemaHolder, record4.getRecordDTO());
+		ByteArrayRecordDTO dto4 = ByteArrayRecordDTO.create(getModelLayerFactory(), record4.getRecordDTO());
 		ByteArrayRecordDTO dto5 = ByteArrayRecordDTO.create(getModelLayerFactory(), record5.getRecordDTO());
 		ByteArrayRecordDTO dto6 = ByteArrayRecordDTO.create(getModelLayerFactory(), record6.getRecordDTO());
 
-		// Not using containsOnly since it's contains basic metadatas like estimatedSize_i that cannot really be tested
-		// consistently
-		//		assertThat(toMap(dto1.entrySet())).contains(entry(zeSchema.booleanMetadata().getDataStoreCode(), true),
-		//				entry(zeSchema.numberMetadata().getDataStoreCode(), 777d),
-		//				entry(zeSchema.integerMetadata().getDataStoreCode(), 666));
-		//
-		//		assertThat(toMap(dto2.entrySet())).contains(entry(zeSchema.booleanMetadata().getDataStoreCode(), false),
-		//				entry(zeSchema.parentReferenceFromZeSchemaToZeSchema().getDataStoreCode(), record1.getId()),
-		//				entry(zeSchema.numberMetadata().getDataStoreCode(), 0d),
-		//				entry(Schemas.TITLE.getDataStoreCode(), "Les aventures de Lucky Luke"));
-		//
-		//		assertThat(toMap(dto3.entrySet())).contains(entry(zeSchema.referenceMetadata().getDataStoreCode(), asList("LuckyLuke", record1.getId())),
-		//				entry(zeSchema.numberMetadata().getDataStoreCode(), -8d));
+		assertThat(toMap(dto1.entrySet())).contains(entry(zeSchema.booleanMetadata().getDataStoreCode(), true),
+				entry(zeSchema.numberMetadata().getDataStoreCode(), 777d),
+				entry(zeSchema.integerMetadata().getDataStoreCode(), 666));
 
-		//		assertThat(toMap(dto4.entrySet())).contains(entry(anotherSchema.referenceFromAnotherSchemaToZeSchema().getDataStoreCode(), asList("JollyJumper", "LuckyLuke")));
+		assertThat(toMap(dto2.entrySet())).contains(entry(zeSchema.booleanMetadata().getDataStoreCode(), false),
+				entry(zeSchema.parentReferenceFromZeSchemaToZeSchema().getDataStoreCode(), record1.getId()),
+				entry(zeSchema.numberMetadata().getDataStoreCode(), 0d),
+				entry(Schemas.TITLE.getDataStoreCode(), "Les aventures de Lucky Luke"));
 
-		//		assertThat(toMap(dto5.entrySet())).contains(entry(anotherSchemaType.getMetadata("booleanMetadata").getDataStoreCode(), asList()),
-		//				entry(anotherSchema.referenceFromAnotherSchemaToZeSchema().getDataStoreCode(), asList(null, null)));
+		assertThat(toMap(dto3.entrySet())).contains(
+				entry(zeSchema.referenceMetadata().getDataStoreCode(), asList("LuckyLuke", record1.getId())),
+				entry(zeSchema.numberMetadata().getDataStoreCode(), -8d));
 
-		assertThat(dto5.get(anotherSchemaType.getMetadata("booleanMetadata").getDataStoreCode())).isEqualTo(asList(true, false, true));
+		assertThat(toMap(dto4.entrySet())).contains(entry(anotherSchemaType.getMetadata("booleanMetadata").getDataStoreCode(), asList(true, true, true)),
+				entry(anotherSchema.referenceFromAnotherSchemaToZeSchema().getDataStoreCode(), asList("JollyJumper", "LuckyLuke")));
 
-		//		assertThat(toMap(dto6.entrySet())).contains(entry(anotherSchemaType.getMetadata("booleanMetadata").getDataStoreCode(), true),
-		//				entry(anotherSchema.referenceFromAnotherSchemaToZeSchema().getDataStoreCode(), asList(null, "LuckyLuke")));
+		assertThat(toMap(dto5.entrySet())).contains(entry(anotherSchemaType.getMetadata("booleanMetadata").getDataStoreCode(), asList(null, null, false)),
+				entry(Schemas.TITLE.getDataStoreCode(), " Lucky Luke in downtown Matane "),
+				entry(anotherSchema.referenceFromAnotherSchemaToZeSchema().getDataStoreCode(), asList(null, null)));
 
-		SearchServices searchServices = getModelLayerFactory().newSearchServices();
-		//		assertThatRecord(recordServices.getDocumentById(record5.getId())).hasMetadataValue(anotherSchemaType.getMetadata("booleanMetadata"), null/*asList("!", "1", "a")*/);
+		assertThat(toMap(dto6.entrySet())).contains(
+				entry(anotherSchema.referenceFromAnotherSchemaToZeSchema().getDataStoreCode(), asList(null, "LuckyLuke")));
+	}
+
+	@Test
+	public void whenStoringSingleValueIntegerMetadataInAByteArrayRecordDTOThenStoredAndRetrievedBetweenExtremes()
+			throws Exception {
+		defineSchemasManager().using(setup
+				.withAnIntegerMetadata());
+
+		setup.modify(new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchema(anotherSchema.code())
+						.create("integerMetadata")
+						.setType(MetadataValueType.INTEGER);
+			}
+		});
+
+		MetadataSchemaTypes schemaTypes = schemasManager.getSchemaTypes(zeCollection);
+		MetadataSchema anotherSchemaType = schemaTypes.getSchema(anotherSchema.code());
+
+		for (int i = Integer.MIN_VALUE; i <= Integer.MAX_VALUE; i+= 20000000) {
+			RecordImpl recordInt1 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance())
+					.set(zeSchema.integerMetadata(), i);
+
+			RecordImpl recordInt2 = (RecordImpl) recordServices.newRecordWithSchema(anotherSchema.instance())
+					.set(anotherSchemaType.getMetadata("integerMetadata"), i);
+
+			recordServices.execute(new Transaction(recordInt1, recordInt2));
+
+			ByteArrayRecordDTO dtoInt1 = ByteArrayRecordDTO.create(getModelLayerFactory(), recordInt1.getRecordDTO());
+			ByteArrayRecordDTO dtoInt2 = ByteArrayRecordDTO.create(getModelLayerFactory(), recordInt2.getRecordDTO());
+
+			assertThat(dtoInt1.get(zeSchema.integerMetadata().getDataStoreCode())).isEqualTo(i);
+			assertThat(dtoInt2.get(anotherSchemaType.getMetadata("integerMetadata").getDataStoreCode())).isEqualTo(i);
+		}
+
+		RecordImpl recordInt1 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance())
+				.set(zeSchema.integerMetadata(), Integer.MAX_VALUE);
+
+		RecordImpl recordInt2 = (RecordImpl) recordServices.newRecordWithSchema(anotherSchema.instance())
+				.set(anotherSchemaType.getMetadata("integerMetadata"), Integer.MAX_VALUE);
+
+		recordServices.execute(new Transaction(recordInt1, recordInt2));
+
+		ByteArrayRecordDTO dtoInt1 = ByteArrayRecordDTO.create(getModelLayerFactory(), recordInt1.getRecordDTO());
+		ByteArrayRecordDTO dtoInt2 = ByteArrayRecordDTO.create(getModelLayerFactory(), recordInt2.getRecordDTO());
+
+		assertThat(dtoInt1.get(zeSchema.integerMetadata().getDataStoreCode())).isEqualTo(Integer.MAX_VALUE);
+		assertThat(dtoInt2.get(anotherSchemaType.getMetadata("integerMetadata").getDataStoreCode())).isEqualTo(Integer.MAX_VALUE);
+	}
+
+	@Test
+	public void whenStoringMultivalueIntegerMetadataInAByteArrayRecordDTOThenStoredAndRetrievedBetweenExtremes()
+			throws Exception {
+		defineSchemasManager().using(setup
+				.withAnIntegerMetadata(whichIsMultivalue));
+
+		setup.modify(new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchema(anotherSchema.code())
+						.create("integerMetadata")
+						.setType(MetadataValueType.INTEGER)
+						.setMultivalue(true);
+			}
+		});
+
+		MetadataSchemaTypes schemaTypes = schemasManager.getSchemaTypes(zeCollection);
+		MetadataSchema anotherSchemaType = schemaTypes.getSchema(anotherSchema.code());
+
+		for (int i = Integer.MIN_VALUE; i <= Integer.MAX_VALUE; i+= 20000000) {
+			RecordImpl recordInt1 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance())
+					.set(zeSchema.integerMetadata(), asList(i, i + 5000, i + 10000));
+
+			RecordImpl recordInt2 = (RecordImpl) recordServices.newRecordWithSchema(anotherSchema.instance())
+					.set(anotherSchemaType.getMetadata("integerMetadata"), asList(i, i + 5000, i + 10000));
+
+			recordServices.execute(new Transaction(recordInt1, recordInt2));
+
+			ByteArrayRecordDTO dtoInt1 = ByteArrayRecordDTO.create(getModelLayerFactory(), recordInt1.getRecordDTO());
+			ByteArrayRecordDTO dtoInt2 = ByteArrayRecordDTO.create(getModelLayerFactory(), recordInt2.getRecordDTO());
+
+			assertThat(dtoInt1.get(zeSchema.integerMetadata().getDataStoreCode())).isEqualTo(asList(i, i + 5000, i + 10000));
+			assertThat(dtoInt2.get(anotherSchemaType.getMetadata("integerMetadata").getDataStoreCode())).isEqualTo(asList(i, i + 5000, i + 10000));
+		}
+
+		RecordImpl recordInt1 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance())
+				.set(zeSchema.integerMetadata(), asList(Integer.MAX_VALUE -2, Integer.MAX_VALUE - 1, Integer.MAX_VALUE));
+
+		RecordImpl recordInt2 = (RecordImpl) recordServices.newRecordWithSchema(anotherSchema.instance())
+				.set(anotherSchemaType.getMetadata("integerMetadata"), asList(Integer.MAX_VALUE -2, Integer.MAX_VALUE - 1, Integer.MAX_VALUE));
+
+		recordServices.execute(new Transaction(recordInt1, recordInt2));
+
+		ByteArrayRecordDTO dtoInt1 = ByteArrayRecordDTO.create(getModelLayerFactory(), recordInt1.getRecordDTO());
+		ByteArrayRecordDTO dtoInt2 = ByteArrayRecordDTO.create(getModelLayerFactory(), recordInt2.getRecordDTO());
+
+		assertThat(dtoInt1.get(zeSchema.integerMetadata().getDataStoreCode())).isEqualTo(asList(Integer.MAX_VALUE -2, Integer.MAX_VALUE - 1, Integer.MAX_VALUE));
+		assertThat(dtoInt2.get(anotherSchemaType.getMetadata("integerMetadata").getDataStoreCode())).isEqualTo(asList(Integer.MAX_VALUE -2, Integer.MAX_VALUE - 1, Integer.MAX_VALUE));
+	}
+
+	@Test
+	public void whenStoringSingleValueNumberMetadataInAByteArrayRecordDTOThenStoredAndRetrievedBetweenExtremes()
+			throws Exception {
+		defineSchemasManager().using(setup
+				.withANumberMetadata());
+
+		setup.modify(new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchema(anotherSchema.code())
+						.create("numberMetadata")
+						.setType(MetadataValueType.NUMBER);
+			}
+		});
+
+		MetadataSchemaTypes schemaTypes = schemasManager.getSchemaTypes(zeCollection);
+		MetadataSchema anotherSchemaType = schemaTypes.getSchema(anotherSchema.code());
+
+		for (double i = Double.MIN_VALUE; i <= Double.MAX_VALUE; i+= 200000000) {
+			RecordImpl recordDouble1 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance())
+					.set(zeSchema.numberMetadata(), i);
+
+			RecordImpl recordDouble2 = (RecordImpl) recordServices.newRecordWithSchema(anotherSchema.instance())
+					.set(anotherSchemaType.getMetadata("numberMetadata"), i);
+
+			recordServices.execute(new Transaction(recordDouble1, recordDouble2));
+
+			ByteArrayRecordDTO dtoDouble1 = ByteArrayRecordDTO.create(getModelLayerFactory(), recordDouble1.getRecordDTO());
+			ByteArrayRecordDTO dtoDouble2 = ByteArrayRecordDTO.create(getModelLayerFactory(), recordDouble2.getRecordDTO());
+
+			assertThat(dtoDouble1.get(zeSchema.numberMetadata().getDataStoreCode())).isEqualTo(i);
+			assertThat(dtoDouble2.get(anotherSchemaType.getMetadata("numberMetadata").getDataStoreCode())).isEqualTo(i);
+		}
+
+		RecordImpl recordDouble1 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance())
+				.set(zeSchema.numberMetadata(), Double.MAX_VALUE);
+
+		RecordImpl recordDouble2 = (RecordImpl) recordServices.newRecordWithSchema(anotherSchema.instance())
+				.set(anotherSchemaType.getMetadata("numberMetadata"), Double.MAX_VALUE);
+
+		recordServices.execute(new Transaction(recordDouble1, recordDouble2));
+
+		ByteArrayRecordDTO dtoDouble1 = ByteArrayRecordDTO.create(getModelLayerFactory(), recordDouble1.getRecordDTO());
+		ByteArrayRecordDTO dtoDouble2 = ByteArrayRecordDTO.create(getModelLayerFactory(), recordDouble2.getRecordDTO());
+
+		assertThat(dtoDouble1.get(zeSchema.numberMetadata().getDataStoreCode())).isEqualTo(Double.MAX_VALUE);
+		assertThat(dtoDouble2.get(anotherSchemaType.getMetadata("numberMetadata").getDataStoreCode())).isEqualTo(Double.MAX_VALUE);
+	}
+
+	@Test
+	public void whenStoringMultivalueNumberMetadataInAByteArrayRecordDTOThenStoredAndRetrievedBetweenExtremes()
+			throws Exception {
+		defineSchemasManager().using(setup
+				.withANumberMetadata(whichIsMultivalue));
+
+		setup.modify(new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchema(anotherSchema.code())
+						.create("numberMetadata")
+						.setType(MetadataValueType.NUMBER)
+						.setMultivalue(true);
+			}
+		});
+
+		MetadataSchemaTypes schemaTypes = schemasManager.getSchemaTypes(zeCollection);
+		MetadataSchema anotherSchemaType = schemaTypes.getSchema(anotherSchema.code());
+
+		for (double i = Double.MIN_VALUE; i <= Double.MAX_VALUE; i += 200000000) {
+			RecordImpl recordDouble1 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance())
+					.set(zeSchema.numberMetadata(), asList(i, i + 11231, i + 221333));
+
+			RecordImpl recordDouble2 = (RecordImpl) recordServices.newRecordWithSchema(anotherSchema.instance())
+					.set(anotherSchemaType.getMetadata("numberMetadata"), asList(i, i + 11231, i + 221333));
+
+			recordServices.execute(new Transaction(recordDouble1, recordDouble2));
+
+			ByteArrayRecordDTO dtoDouble1 = ByteArrayRecordDTO.create(getModelLayerFactory(), recordDouble1.getRecordDTO());
+			ByteArrayRecordDTO dtoDouble2 = ByteArrayRecordDTO.create(getModelLayerFactory(), recordDouble2.getRecordDTO());
+
+			assertThat(dtoDouble1.get(zeSchema.numberMetadata().getDataStoreCode())).isEqualTo(asList(i, i + 11231, i + 221333));
+			assertThat(dtoDouble2.get(anotherSchemaType.getMetadata("numberMetadata").getDataStoreCode())).isEqualTo(asList(i, i + 11231, i + 221333));
+		}
+
+		RecordImpl recordDouble1 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance())
+				.set(zeSchema.numberMetadata(), asList(Double.MAX_VALUE - 2, Double.MAX_VALUE - 1, Double.MAX_VALUE));
+
+		RecordImpl recordDouble2 = (RecordImpl) recordServices.newRecordWithSchema(anotherSchema.instance())
+				.set(anotherSchemaType.getMetadata("numberMetadata"), asList(Double.MAX_VALUE - 2, Double.MAX_VALUE - 1, Double.MAX_VALUE));
+
+		recordServices.execute(new Transaction(recordDouble1, recordDouble2));
+
+		ByteArrayRecordDTO dtoDouble1 = ByteArrayRecordDTO.create(getModelLayerFactory(), recordDouble1.getRecordDTO());
+		ByteArrayRecordDTO dtoDouble2 = ByteArrayRecordDTO.create(getModelLayerFactory(), recordDouble2.getRecordDTO());
+
+		assertThat(dtoDouble1.get(zeSchema.numberMetadata().getDataStoreCode())).isEqualTo(asList(Double.MAX_VALUE - 2, Double.MAX_VALUE - 1, Double.MAX_VALUE));
+		assertThat(dtoDouble2.get(anotherSchemaType.getMetadata("numberMetadata").getDataStoreCode())).isEqualTo(asList(Double.MAX_VALUE - 2, Double.MAX_VALUE - 1, Double.MAX_VALUE));
+	}
+
+	@Test
+	public void whenStoringSingleValueDateMetadataInAByteArrayRecordDTOThenStoredAndRetrievedLargeRange()
+			throws Exception {
+		defineSchemasManager().using(setup
+				.withADateMetadata());
+
+		setup.modify(new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchema(anotherSchema.code())
+						.create("dateMetadata")
+						.setType(MetadataValueType.DATE);
+			}
+		});
+
+		LocalDate date = new LocalDate(-2000, 1, 1);
+
+		MetadataSchemaTypes schemaTypes = schemasManager.getSchemaTypes(zeCollection);
+		MetadataSchema anotherSchemaType = schemaTypes.getSchema(anotherSchema.code());
+
+		while (date.getYear() < 7000) {
+			RecordImpl recordDate1 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance())
+					.set(zeSchema.dateMetadata(), date);
+
+			RecordImpl recordDate2 = (RecordImpl) recordServices.newRecordWithSchema(anotherSchema.instance())
+					.set(anotherSchemaType.getMetadata("dateMetadata"), date);
+
+			recordServices.execute(new Transaction(recordDate1, recordDate2));
+
+			ByteArrayRecordDTO dtoDouble1 = ByteArrayRecordDTO.create(getModelLayerFactory(), recordDate1.getRecordDTO());
+			ByteArrayRecordDTO dtoDouble2 = ByteArrayRecordDTO.create(getModelLayerFactory(), recordDate2.getRecordDTO());
+
+			assertThat(dtoDouble1.get(zeSchema.dateMetadata().getDataStoreCode())).isEqualTo(date);
+			assertThat(dtoDouble2.get(anotherSchemaType.getMetadata("dateMetadata").getDataStoreCode())).isEqualTo(date);
+
+			date = date.plusYears(10);
+		}
+	}
+
+	@Test
+	public void whenStoringMultivalueDateMetadataInAByteArrayRecordDTOThenStoredAndRetrievedLargeRange()
+			throws Exception {
+		defineSchemasManager().using(setup
+				.withADateMetadata(whichIsMultivalue));
+
+		setup.modify(new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchema(anotherSchema.code())
+						.create("dateMetadata")
+						.setType(MetadataValueType.DATE)
+						.setMultivalue(true);
+			}
+		});
+
+		LocalDate date = new LocalDate(-2000, 1, 1);
+
+		MetadataSchemaTypes schemaTypes = schemasManager.getSchemaTypes(zeCollection);
+		MetadataSchema anotherSchemaType = schemaTypes.getSchema(anotherSchema.code());
+
+		while (date.getYear() < 7000) {
+			RecordImpl recordDate1 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance())
+					.set(zeSchema.dateMetadata(), asList(date.plusDays(1), date.plusDays(2), date.plusDays(3)));
+
+			RecordImpl recordDate2 = (RecordImpl) recordServices.newRecordWithSchema(anotherSchema.instance())
+					.set(anotherSchemaType.getMetadata("dateMetadata"), asList(date.plusDays(1), date.plusDays(2), date.plusDays(3)));
+
+			recordServices.execute(new Transaction(recordDate1, recordDate2));
+
+			ByteArrayRecordDTO dtoDate1 = ByteArrayRecordDTO.create(getModelLayerFactory(), recordDate1.getRecordDTO());
+			ByteArrayRecordDTO dtoDate2 = ByteArrayRecordDTO.create(getModelLayerFactory(), recordDate2.getRecordDTO());
+
+			assertThat(dtoDate1.get(zeSchema.dateMetadata().getDataStoreCode())).isEqualTo(asList(date.plusDays(1), date.plusDays(2), date.plusDays(3)));
+			assertThat(dtoDate2.get(anotherSchemaType.getMetadata("dateMetadata").getDataStoreCode())).isEqualTo(asList(date.plusDays(1), date.plusDays(2), date.plusDays(3)));
+
+			date = date.plusYears(10);
+		}
+	}
+
+	@Test
+	public void whenStoringSinglevalueDateTimeMetadataInAByteArrayRecordDTOThenStoredAndRetrievedLargeRange()
+			throws Exception {
+		defineSchemasManager().using(setup
+				.withADateTimeMetadata());
+
+		setup.modify(new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchema(anotherSchema.code())
+						.create("dateTimeMetadata")
+						.setType(MetadataValueType.DATE_TIME);
+			}
+		});
+
+		LocalDateTime dateTime = new LocalDateTime(-2000, 1, 1, 0, 0);
+
+		MetadataSchemaTypes schemaTypes = schemasManager.getSchemaTypes(zeCollection);
+		MetadataSchema anotherSchemaType = schemaTypes.getSchema(anotherSchema.code());
+
+		while (dateTime.getYear() < 7000) {
+			RecordImpl recordDateTime1 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance())
+					.set(zeSchema.dateTimeMetadata(), dateTime);
+
+			RecordImpl recordDateTime2 = (RecordImpl) recordServices.newRecordWithSchema(anotherSchema.instance())
+					.set(anotherSchemaType.getMetadata("dateTimeMetadata"), dateTime);
+
+			recordServices.execute(new Transaction(recordDateTime1, recordDateTime2));
+
+			ByteArrayRecordDTO dtoDateTime1 = ByteArrayRecordDTO.create(getModelLayerFactory(), recordDateTime1.getRecordDTO());
+			ByteArrayRecordDTO dtoDateTime2 = ByteArrayRecordDTO.create(getModelLayerFactory(), recordDateTime2.getRecordDTO());
+
+			assertThat(dtoDateTime1.get(zeSchema.dateTimeMetadata().getDataStoreCode())).isEqualTo(dateTime);
+			assertThat(dtoDateTime2.get(anotherSchemaType.getMetadata("dateTimeMetadata").getDataStoreCode())).isEqualTo(dateTime);
+
+			dateTime = dateTime.plusYears(10);
+		}
+	}
+
+	@Test
+	public void whenStoringMultivalueDateTimeMetadataInAByteArrayRecordDTOThenStoredAndRetrievedLargeRange()
+			throws Exception {
+		defineSchemasManager().using(setup
+				.withADateTimeMetadata(whichIsMultivalue));
+
+		setup.modify(new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchema(anotherSchema.code())
+						.create("dateTimeMetadata")
+						.setType(MetadataValueType.DATE_TIME)
+						.setMultivalue(true);
+			}
+		});
+
+		LocalDateTime dateTime = new LocalDateTime(-2000, 1, 1, 0, 0);
+
+		MetadataSchemaTypes schemaTypes = schemasManager.getSchemaTypes(zeCollection);
+		MetadataSchema anotherSchemaType = schemaTypes.getSchema(anotherSchema.code());
+
+		while (dateTime.getYear() < 7000) {
+			RecordImpl recordDateTime1 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance())
+					.set(zeSchema.dateTimeMetadata(), asList(dateTime, dateTime.plusDays(1), dateTime.plusDays(2)));
+
+			RecordImpl recordDateTime2 = (RecordImpl) recordServices.newRecordWithSchema(anotherSchema.instance())
+					.set(anotherSchemaType.getMetadata("dateTimeMetadata"), asList(dateTime, dateTime.plusDays(1), dateTime.plusDays(2)));
+
+			recordServices.execute(new Transaction(recordDateTime1, recordDateTime2));
+
+			ByteArrayRecordDTO dtoDateTime1 = ByteArrayRecordDTO.create(getModelLayerFactory(), recordDateTime1.getRecordDTO());
+			ByteArrayRecordDTO dtoDateTime2 = ByteArrayRecordDTO.create(getModelLayerFactory(), recordDateTime2.getRecordDTO());
+
+			assertThat(dtoDateTime1.get(zeSchema.dateTimeMetadata().getDataStoreCode())).isEqualTo(asList(dateTime, dateTime.plusDays(1), dateTime.plusDays(2)));
+			assertThat(dtoDateTime2.get(anotherSchemaType.getMetadata("dateTimeMetadata").getDataStoreCode())).isEqualTo(asList(dateTime, dateTime.plusDays(1), dateTime.plusDays(2)));
+
+			dateTime = dateTime.plusYears(10);
+		}
 	}
 
 	private Map<String, Object> toMap(Set<Entry<String, Object>> dtoEntrySet) {

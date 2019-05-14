@@ -218,7 +218,7 @@ public class CacheRecordDTOUtils {
 		}
 
 		if (metadata.getType() == STRING) {
-//			return Schemas.TITLE.isSameLocalCode(metadata); // TODO RE-ENABLE
+			//			return Schemas.TITLE.isSameLocalCode(metadata); // TODO RE-ENABLE
 			return true;
 		}
 
@@ -348,8 +348,9 @@ public class CacheRecordDTOUtils {
 		return parseShortFromByteArray(data, (short) 0);
 	}
 
-	private static NeighboringMetadata getMetadataSearchedIndexAndNextMetadataIndex(byte[] byteArray, Metadata metadataSearched,
-																		short metadatasSize) {
+	private static NeighboringMetadata getMetadataSearchedIndexAndNextMetadataIndex(byte[] byteArray,
+																					Metadata metadataSearched,
+																					short metadatasSize) {
 		NeighboringMetadata neighboringMetadata = new NeighboringMetadata();
 
 		short metadataSearchedId = metadataSearched.getId();
@@ -544,7 +545,7 @@ public class CacheRecordDTOUtils {
 	}
 
 	private static Integer getSingleValueIntegerMetadata(byte[] byteArray, short metadataSearchedIndex) {
-		return parseIntFromByteArray(byteArray, metadataSearchedIndex);
+				return parseIntFromByteArray(byteArray, metadataSearchedIndex);
 	}
 
 	private static List<Integer> getMultivalueIntegerMetadata(byte[] byteArray, short metadataSearchedIndex) {
@@ -755,8 +756,8 @@ public class CacheRecordDTOUtils {
 	}
 
 	private static int parseIntFromByteArray(byte[] byteArray, short startingIndex) {
-		return byteArray[startingIndex] & 0xFF << 24 | (byteArray[startingIndex + 1] & 0xFF) << 16 |
-			   (byteArray[startingIndex + 2] & 0xFF) << 8 | (byteArray[startingIndex + 3] & 0xFF);
+		return ((int) (byteArray[startingIndex] & 0xFF)) << 24 | ((int) (byteArray[startingIndex + 1] & 0xFF)) << 16 |
+			   ((int) (byteArray[startingIndex + 2] & 0xFF)) << 8 | ((int) (byteArray[startingIndex + 3] & 0xFF));
 	}
 
 	private static String parseStringReferenceFromByteArray(byte[] byteArray, short startingIndex) {
@@ -1211,7 +1212,7 @@ public class CacheRecordDTOUtils {
 		private void writeEnum(Class<? extends Enum> clazz, String smallCode) throws IOException {
 			// + acts as a minus since Byte.MIN_VALUE is -128
 			// -128 too get place for 255 enums which should be more than enough
-			Enum e = EnumWithSmallCodeUtils.toEnum((Class)clazz, smallCode);
+			Enum e = EnumWithSmallCodeUtils.toEnum((Class) clazz, smallCode);
 			dataWriter.writeByte((byte) (e.ordinal() + Byte.MIN_VALUE));
 		}
 
