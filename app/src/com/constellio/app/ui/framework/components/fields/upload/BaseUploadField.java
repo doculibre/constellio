@@ -67,6 +67,7 @@ public class BaseUploadField extends CustomField<Object> implements DropHandler 
 		setSizeFull();
 
 		mainLayout = new VerticalLayout();
+		mainLayout.addStyleName(STYLE_NAME + "-layout");
 		mainLayout.setSizeFull();
 		mainLayout.setSpacing(true);
 
@@ -74,30 +75,39 @@ public class BaseUploadField extends CustomField<Object> implements DropHandler 
 			@SuppressWarnings("unchecked")
 			@Override
 			protected void handleFile(File file, String fileName, String mimeType, long length) {
-				file.deleteOnExit();
-				TempFileUpload newTempFileUpload = new TempFileUpload(fileName, mimeType, length, file);
-				Object newConvertedValue;
-				Converter<Object, Object> converter = BaseUploadField.this.getConverter();
-				if (converter != null) {
-					newConvertedValue = converter.convertToModel(newTempFileUpload, Object.class, getLocale());
-				} else {
-					newConvertedValue = newTempFileUpload;
-				}
-				if (!isMultiValue()) {
-					if (!newConvertedValue.equals(getConvertedValue())) {
-						deleteTempFiles();
-						BaseUploadField.this.setValue(newConvertedValue);
+				try {
+					file.deleteOnExit();
+					TempFileUpload newTempFileUpload = new TempFileUpload(fileName, mimeType, length, file);
+					Object newConvertedValue;
+					Converter<Object, Object> converter = BaseUploadField.this.getConverter();
+					if (converter != null) {
+						newConvertedValue = converter.convertToModel(newTempFileUpload, Object.class, getLocale());
+					} else {
+						newConvertedValue = newTempFileUpload;
 					}
-				} else {
-					List<Object> previousListValue = (List<Object>) BaseUploadField.this.getValue();
-					List<Object> newListValue = new ArrayList<Object>();
-					if (previousListValue != null) {
-						newListValue.addAll(previousListValue);
+					if (!isMultiValue()) {
+						if (!newConvertedValue.equals(getConvertedValue())) {
+							deleteTempFiles();
+							BaseUploadField.this.setValue(newConvertedValue);
+						} else if (fireValueChangeWhenEqual()) {
+							fireValueChange(true);
+						}
+					} else {
+						List<Object> previousListValue = (List<Object>) BaseUploadField.this.getValue();
+						List<Object> newListValue = new ArrayList<Object>();
+						if (previousListValue != null) {
+							newListValue.addAll(previousListValue);
+						}
+						if (!newListValue.contains(newConvertedValue)) {
+							newListValue.add(newConvertedValue);
+						}
+						BaseUploadField.this.setValue(newListValue);
 					}
-					if (!newListValue.contains(newConvertedValue)) {
-						newListValue.add(newConvertedValue);
-					}
-					BaseUploadField.this.setValue(newListValue);
+
+				} catch (Throwable t) {
+					t.printStackTrace();
+
+					throw t;
 				}
 			}
 
@@ -113,6 +123,7 @@ public class BaseUploadField extends CustomField<Object> implements DropHandler 
 			}
 		};
 		multiFileUpload.setWidth("100%");
+		multiFileUpload.addStyleName(STYLE_NAME + "-multifileupload");
 
 		addValueChangeListener(new ValueChangeListener() {
 			@SuppressWarnings("unchecked")
@@ -177,12 +188,12 @@ public class BaseUploadField extends CustomField<Object> implements DropHandler 
 			});
 		}
 		fileUploadsTable = new BaseTable(getClass().getName());
-
 		fileUploadsTable.setContainerDataSource(fileUploadsContainer);
 		fileUploadsTable.setPageLength(0);
 		fileUploadsTable.setWidth("100%");
 		fileUploadsTable.setColumnHeaderMode(ColumnHeaderMode.HIDDEN);
 		fileUploadsTable.setColumnWidth(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID, 47);
+		fileUploadsTable.addStyleName(STYLE_NAME + "-table");
 
 		multiFileUpload.setVisible(!isViewOnly);
 
@@ -193,7 +204,7 @@ public class BaseUploadField extends CustomField<Object> implements DropHandler 
 	public void attach() {
 		super.attach();
 
-		if (viewChangeListener == null) {
+		if (UI.getCurrent().getNavigator() != null && viewChangeListener == null) {
 			viewChangeListener = new ViewChangeListener() {
 				@Override
 				public boolean beforeViewChange(ViewChangeEvent event) {
@@ -321,6 +332,10 @@ public class BaseUploadField extends CustomField<Object> implements DropHandler 
 
 	public final void setDropZoneCaption(String dropZoneCaption) {
 		multiFileUpload.setDropZoneCaption(dropZoneCaption);
+	}
+
+	public boolean fireValueChangeWhenEqual() {
+		return false;
 	}
 
 	@Override
