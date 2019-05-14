@@ -3,12 +3,8 @@ package com.constellio.app.modules.restapi.folder;
 import com.constellio.app.modules.restapi.BaseRestfulServiceAcceptanceTest;
 import com.constellio.app.modules.restapi.core.util.DateUtils;
 import com.constellio.app.modules.restapi.core.util.SchemaTypes;
-import com.constellio.app.modules.restapi.document.dto.ContentDto;
-import com.constellio.app.modules.restapi.document.dto.DocumentDto;
-import com.constellio.app.modules.restapi.document.dto.DocumentTypeDto;
-import com.constellio.app.modules.restapi.document.dto.MixinContentDto;
-import com.constellio.app.modules.restapi.document.dto.MixinDocumentDto;
-import com.constellio.app.modules.restapi.document.dto.MixinDocumentTypeDto;
+import com.constellio.app.modules.restapi.folder.dto.FolderDto;
+import com.constellio.app.modules.restapi.folder.dto.MixInFolderDto;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
@@ -41,9 +37,8 @@ public class BaseFolderRestfulServiceAcceptanceTest extends BaseRestfulServiceAc
 		createAuthorizations(fakeFolder.getWrappedRecord());
 		id = fakeFolder.getId();
 
-		ObjectMapper mapper = new ObjectMapper().addMixIn(ContentDto.class, MixinContentDto.class)
-				.addMixIn(DocumentDto.class, MixinDocumentDto.class)
-				.addMixIn(DocumentTypeDto.class, MixinDocumentTypeDto.class);
+		ObjectMapper mapper = new ObjectMapper()
+				.addMixIn(FolderDto.class, MixInFolderDto.class);
 		webTarget = newWebTarget("v1/folders", mapper);
 	}
 
