@@ -942,7 +942,16 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 		MetadataSchemaTypes schemaTypes = schemasManager.getSchemaTypes(zeCollection);
 		MetadataSchema anotherSchemaType = schemaTypes.getSchema(anotherSchema.code());
 
-		for (int i = Integer.MIN_VALUE; i <= Integer.MAX_VALUE; i+= 20000000) {
+		boolean firstPass = true;
+		for (int i = Integer.MIN_VALUE; i <= Integer.MAX_VALUE; i+= 5000000) {
+			if(!firstPass && i < 0){
+				break;
+			}
+
+			if(i > 0){
+				firstPass = false;
+			}
+
 			RecordImpl recordInt1 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance())
 					.set(zeSchema.integerMetadata(), i);
 
@@ -992,7 +1001,16 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 		MetadataSchemaTypes schemaTypes = schemasManager.getSchemaTypes(zeCollection);
 		MetadataSchema anotherSchemaType = schemaTypes.getSchema(anotherSchema.code());
 
+		boolean firstPass = true;
 		for (int i = Integer.MIN_VALUE; i <= Integer.MAX_VALUE; i+= 20000000) {
+			if(!firstPass && i < 0){
+				break;
+			}
+
+			if(i > 0){
+				firstPass = false;
+			}
+
 			RecordImpl recordInt1 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance())
 					.set(zeSchema.integerMetadata(), asList(i, i + 5000, i + 10000));
 
@@ -1041,7 +1059,16 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 		MetadataSchemaTypes schemaTypes = schemasManager.getSchemaTypes(zeCollection);
 		MetadataSchema anotherSchemaType = schemaTypes.getSchema(anotherSchema.code());
 
-		for (double i = Double.MIN_VALUE; i <= Double.MAX_VALUE; i+= 200000000) {
+		boolean firstPass = true;
+		for (double i = Double.MIN_VALUE; i <= Double.MAX_VALUE; i += 1E1 * i) {
+			if(!firstPass && i < 0){
+				break;
+			}
+
+			if(i > 0){
+				firstPass = false;
+			}
+
 			RecordImpl recordDouble1 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance())
 					.set(zeSchema.numberMetadata(), i);
 
@@ -1091,7 +1118,16 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 		MetadataSchemaTypes schemaTypes = schemasManager.getSchemaTypes(zeCollection);
 		MetadataSchema anotherSchemaType = schemaTypes.getSchema(anotherSchema.code());
 
-		for (double i = Double.MIN_VALUE; i <= Double.MAX_VALUE; i += 200000000) {
+		boolean firstPass = true;
+		for (double i = Double.MIN_VALUE; i <= Double.MAX_VALUE; i += 1E1 * i) {
+			if(!firstPass && i < 0){
+				break;
+			}
+
+			if(i > 0){
+				firstPass = false;
+			}
+
 			RecordImpl recordDouble1 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance())
 					.set(zeSchema.numberMetadata(), asList(i, i + 11231, i + 221333));
 

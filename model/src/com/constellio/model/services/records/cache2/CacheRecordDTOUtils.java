@@ -218,8 +218,7 @@ public class CacheRecordDTOUtils {
 		}
 
 		if (metadata.getType() == STRING) {
-			//			return Schemas.TITLE.isSameLocalCode(metadata); // TODO RE-ENABLE
-			return true;
+			return Schemas.TITLE.isSameLocalCode(metadata);
 		}
 
 		return true;
@@ -545,7 +544,7 @@ public class CacheRecordDTOUtils {
 	}
 
 	private static Integer getSingleValueIntegerMetadata(byte[] byteArray, short metadataSearchedIndex) {
-				return parseIntFromByteArray(byteArray, metadataSearchedIndex);
+		return parseIntFromByteArray(byteArray, metadataSearchedIndex);
 	}
 
 	private static List<Integer> getMultivalueIntegerMetadata(byte[] byteArray, short metadataSearchedIndex) {
