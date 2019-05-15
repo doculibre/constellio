@@ -44,7 +44,7 @@ public class RecordVOFilter implements Container.Filter {
 				if (getValue() instanceof String) {
 					String stringValue = (String) getValue();
 					if (StringUtils.isNotBlank(stringValue)) {
-						query.setCondition(query.getCondition().andWhere(metadata).isStartingWithText(stringValue));
+						query.setCondition(query.getCondition().andWhere(metadata).isStartingWithText(stringValue.toLowerCase()).orWhere(metadata).isStartingWithText(stringValue.toUpperCase()));
 					}
 				}
 				break;
