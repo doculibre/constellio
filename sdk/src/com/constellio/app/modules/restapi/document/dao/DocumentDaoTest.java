@@ -18,7 +18,7 @@ import com.constellio.model.services.contents.ContentManagerRuntimeException;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.model.utils.MimeTypes;
+import com.constellio.data.utils.MimeTypes;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;

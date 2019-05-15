@@ -18,7 +18,7 @@ import com.constellio.app.ui.i18n.i18n;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.utils.MimeTypes;
+import com.constellio.data.utils.MimeTypes;
 import org.apache.hadoop.io.Text;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;

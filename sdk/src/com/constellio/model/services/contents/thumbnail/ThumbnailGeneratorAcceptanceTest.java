@@ -1,6 +1,6 @@
 package com.constellio.model.services.contents.thumbnail;
 
-import com.constellio.model.utils.MimeTypes;
+import com.constellio.data.utils.MimeTypes;
 import com.constellio.sdk.tests.ConstellioTest;
 import org.junit.Before;
 import org.junit.Test;

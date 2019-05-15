@@ -1,6 +1,6 @@
 package com.constellio.model.services.contents.thumbnail;
 
-import com.constellio.model.utils.MimeTypes;
+import com.constellio.data.utils.MimeTypes;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.PDFRenderer;
 import org.imgscalr.Scalr;

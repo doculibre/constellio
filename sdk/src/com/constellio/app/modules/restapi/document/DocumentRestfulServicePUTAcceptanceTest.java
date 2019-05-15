@@ -39,7 +39,7 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.constellio.model.utils.MimeTypes;
+import com.constellio.data.utils.MimeTypes;
 import com.google.common.collect.Lists;
 import org.apache.commons.io.IOUtils;
 import org.joda.time.LocalDate;

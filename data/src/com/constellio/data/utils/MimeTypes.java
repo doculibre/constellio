@@ -1,4 +1,4 @@
-package com.constellio.model.utils;
+package com.constellio.data.utils;
 
 import java.util.HashMap;
 
