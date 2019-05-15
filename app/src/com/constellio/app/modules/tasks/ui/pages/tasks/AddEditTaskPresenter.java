@@ -1,7 +1,10 @@
 package com.constellio.app.modules.tasks.ui.pages.tasks;
 
+import com.constellio.app.modules.rm.ConstellioRMModule;
+import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.modules.tasks.TasksPermissionsTo;
+import com.constellio.app.modules.tasks.extensions.TaskAddEditTaskPresenterExtension;
 import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflowTask;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.TaskStatusType;
@@ -39,6 +42,7 @@ import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -92,6 +96,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 
 	public static final String IS_INCLUSIVE_DECISION = "isInclusiveDecision";
 	public static final String INCLUSIVE_DECISION = "inclusiveDecision";
+	private RMModuleExtensions rmModuleExtensions = appCollectionExtentions.forModule(ConstellioRMModule.ID);
 
 	public AddEditTaskPresenter(AddEditTaskView view) {
 		super(view, Task.DEFAULT_SCHEMA);
@@ -242,10 +247,17 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 				task.setDueDate(task.getAssignedOn().plusDays(task.getRelativeDueDate()));
 			}
 
+			RecordUpdateOptions options = null;
+			if (rmModuleExtensions != null) {
+				for (TaskAddEditTaskPresenterExtension extension : rmModuleExtensions.getTaskAddEditTaskPresenterExtension()) {
+					options = extension.getRecordUpdateOption();
+				}
+			}
+
 			if (task.isModel()) {
 				addOrUpdateWithoutUser(task.getWrappedRecord());
 			} else {
-				addOrUpdate(task.getWrappedRecord());
+				addOrUpdate(task.getWrappedRecord(), options);
 			}
 
 			if (StringUtils.isNotBlank(workflowId)) {
@@ -343,7 +355,13 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		try {
 			TaskVO taskVO = getTask();
 			Task task = taskPresenterServices.toTask(new TaskVO(taskVO), toRecord(taskVO));
-			if (task.isModel()) {
+			boolean adjustRequiredUSRMetadatasFields = false;
+			if (rmModuleExtensions != null) {
+				for (TaskAddEditTaskPresenterExtension extension : rmModuleExtensions.getTaskAddEditTaskPresenterExtension()) {
+					adjustRequiredUSRMetadatasFields = extension.adjustRequiredUSRMetadatasFields();
+				}
+			}
+			if (task.isModel() || adjustRequiredUSRMetadatasFields) {
 				TaskForm form = view.getForm();
 				if (form != null && form instanceof RecordForm) {
 					MetadataSchemasManager schemasManager = modelLayerFactory.getMetadataSchemasManager();
