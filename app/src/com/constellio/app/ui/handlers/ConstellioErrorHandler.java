@@ -8,12 +8,12 @@ import com.constellio.app.ui.pages.home.HomeView;
 import com.constellio.app.ui.util.ComponentTreeUtils;
 import com.vaadin.server.DefaultErrorHandler;
 import com.vaadin.server.ErrorEvent;
-import com.vaadin.server.Page;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Table.CacheUpdateException;
 import com.vaadin.ui.UI;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.eclipse.jetty.io.EofException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,7 +36,11 @@ public class ConstellioErrorHandler extends DefaultErrorHandler {
 				view.updateUI();
 				getCurrentView().showMessage(i18n.$("ConstellioErrorHandler.tableElement"));
 			} else if (ConstellioUI.getCurrent().isProductionMode()) {
-				view.navigateTo().home();
+				if (throwable instanceof EofException) {
+					LOGGER.error("Connection killed", throwable);
+				} else {
+					view.navigateTo().home();
+				}
 			} else {
 				view.removeAllComponents();
 
