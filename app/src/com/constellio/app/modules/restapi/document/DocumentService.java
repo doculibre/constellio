@@ -34,7 +34,7 @@ public class DocumentService extends ResourceService {
 	public DocumentDto create(String host, String folderId, String serviceKey, String method, String date,
 							  int expiration, String signature, DocumentDto document, InputStream contentInputStream,
 							  String flushMode, Set<String> filters) throws Exception {
-		validateParameters(host, folderId, serviceKey, method, date, expiration, null, null, signature);
+		validateParameters(host, folderId, serviceKey, method, date, expiration, null, null, null, signature);
 
 		Record folder = getRecord(folderId, true);
 		String collection = folder.getCollection();
@@ -69,7 +69,7 @@ public class DocumentService extends ResourceService {
 
 	public void delete(String host, String id, String serviceKey, String method, String date, int expiration,
 					   Boolean physical, String signature) throws Exception {
-		validateParameters(host, id, serviceKey, method, date, expiration, null, physical, signature);
+		validateParameters(host, id, serviceKey, method, date, expiration, null, physical, null, signature);
 
 		Record document = getRecord(id, false);
 		User user = getUser(serviceKey, document.getCollection());
@@ -80,7 +80,7 @@ public class DocumentService extends ResourceService {
 
 	public DocumentContentDto getContent(String host, String id, String serviceKey, String method, String date,
 										 int expiration, String version, String signature) throws Exception {
-		validateParameters(host, id, serviceKey, method, date, expiration, version, null, signature);
+		validateParameters(host, id, serviceKey, method, date, expiration, version, null, null, signature);
 
 		Record document = getRecord(id, false);
 		User user = getUser(serviceKey, document.getCollection());
@@ -97,7 +97,7 @@ public class DocumentService extends ResourceService {
 	public DocumentDto update(String host, String id, String serviceKey, String method, String date, int expiration,
 							  String signature, DocumentDto document, InputStream contentInputStream, boolean partial,
 							  String flushMode, Set<String> filters) throws Exception {
-		validateParameters(host, id, serviceKey, method, date, expiration, null, null, signature);
+		validateParameters(host, id, serviceKey, method, date, expiration, null, null, null, signature);
 
 		Record documentRecord = getRecord(id, true);
 		if (document.getETag() != null) {

@@ -21,29 +21,31 @@ public class UrlService {
 	private ValidationService validationService;
 
 	public String getSignedUrl(String host, String token, String serviceKey, SchemaTypes schemaType, String method,
-							   String id,
-							   String folderId, String expiration, String version, String physical) throws Exception {
+							   String id, String folderId, String expiration, String version, String physical,
+							   String copySourceId) throws Exception {
 		validationService.validateHost(host);
 		validationService.validateAuthentication(token, serviceKey);
 
 		String date = DateUtils.formatIsoNoMillis(TimeProvider.getLocalDateTime());
 
 		String data = host
-				.concat(!Strings.isNullOrEmpty(id) ? id : folderId)
+				.concat(!Strings.isNullOrEmpty(id) ? id : !Strings.isNullOrEmpty(folderId) ? folderId : "")
 				.concat(serviceKey)
 				.concat(schemaType.name())
 				.concat(method)
 				.concat(date)
 				.concat(expiration)
 				.concat(!Strings.isNullOrEmpty(version) ? version : "")
-				.concat(!Strings.isNullOrEmpty(physical) ? physical : "");
+				.concat(!Strings.isNullOrEmpty(physical) ? physical : "")
+				.concat(!Strings.isNullOrEmpty(copySourceId) ? copySourceId : "");
 
 		String signature = signatureService.sign(token, data);
 
 		return getResourcePath(host, schemaType)
 				.concat(!Strings.isNullOrEmpty(version) ? "/content" : "")
 				.concat("?")
-				.concat(!Strings.isNullOrEmpty(id) ? "id=" + id : "folderId=" + folderId)
+				.concat(!Strings.isNullOrEmpty(id) ? "id=" + id : "")
+				.concat(!Strings.isNullOrEmpty(folderId) ? "folderId=" + folderId : "")
 				.concat("&serviceKey=").concat(serviceKey)
 				.concat("&method=").concat(method)
 				.concat("&date=").concat(date)

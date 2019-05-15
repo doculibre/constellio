@@ -90,7 +90,7 @@ public class FolderRestfulService extends ResourceRestfulService {
 						   @QueryParam("filter") Set<String> filters,
 						   @Parameter(description = "A folder id can be specified to activate the copy mode.<br>" +
 													"All contents of the source folder will be copied and values from the body will be applied on copied folder.")
-						   @HeaderParam(CustomHttpHeaders.COPY_SOURCE) String copyFolderId,
+							   @HeaderParam(CustomHttpHeaders.COPY_SOURCE) String copySourceId,
 						   @Parameter(description = "The flushing mode indicates how the commits are executed in solr",
 								   schema = @Schema(allowableValues = {"NOW, LATER, WITHIN_{X}_SECONDS"})) @DefaultValue("WITHIN_5_SECONDS")
 						   @HeaderParam(CustomHttpHeaders.FLUSH_MODE) String flush,
@@ -105,7 +105,7 @@ public class FolderRestfulService extends ResourceRestfulService {
 			throw new ParametersMustMatchException("folderId", "folder.parentFolderId");
 		}
 
-		if (copyFolderId == null) {
+		if (copySourceId == null) {
 			if (Strings.isNullOrEmpty(folder.getTitle())) {
 				throw new RequiredParameterException("folder.title");
 			}
@@ -122,8 +122,8 @@ public class FolderRestfulService extends ResourceRestfulService {
 
 		validateFolder(folder);
 
-		FolderDto createdFolder = copyFolderId != null ?
-								  folderService.copy(host, folderId, copyFolderId, serviceKey, method, date, expiration,
+		FolderDto createdFolder = copySourceId != null ?
+								  folderService.copy(host, folderId, copySourceId, serviceKey, method, date, expiration,
 										  signature, folder, flush, filters) :
 								  folderService.create(host, folderId, serviceKey, method, date, expiration,
 										  signature, folder, flush, filters);

@@ -38,6 +38,7 @@ public class UrlServiceTest {
 	private String expiration = "3600";
 	private String version;
 	private String physical;
+	private String copySourceId;
 
 	private String expectedSignedUrl = "http://localhost/constellio/rest/v1/documents?" +
 									   "id=id&serviceKey=serviceKey&method=GET&date=&expiration=3600&signature=123456";
@@ -54,7 +55,8 @@ public class UrlServiceTest {
 
 	@Test
 	public void testGetSignedUrl() throws Exception {
-		signedUrl = urlService.getSignedUrl(host, token, serviceKey, schemaType, method, id, folderId, expiration, version, physical);
+		signedUrl = urlService.getSignedUrl(host, token, serviceKey, schemaType, method, id, folderId, expiration,
+				version, physical, copySourceId);
 		adjustExpectedSignedUrl();
 
 		assertThat(signedUrl).isEqualTo(expectedSignedUrl);
@@ -62,7 +64,8 @@ public class UrlServiceTest {
 
 	@Test
 	public void testGetSignedUrlWithSwappedParameters() throws Exception {
-		signedUrl = urlService.getSignedUrl(host, token, method, schemaType, serviceKey, id, folderId, expiration, version, physical);
+		signedUrl = urlService.getSignedUrl(host, token, method, schemaType, serviceKey, id, folderId, expiration,
+				version, physical, copySourceId);
 		adjustExpectedSignedUrl();
 
 		assertThat(signedUrl).isNotEqualTo(expectedSignedUrl);
@@ -75,7 +78,8 @@ public class UrlServiceTest {
 				.replace("/documents", "/documents/content")
 				.replace("&expiration=3600", "&expiration=3600&version=1.0");
 
-		signedUrl = urlService.getSignedUrl(host, token, serviceKey, schemaType, method, id, folderId, expiration, version, physical);
+		signedUrl = urlService.getSignedUrl(host, token, serviceKey, schemaType, method, id, folderId, expiration,
+				version, physical, copySourceId);
 		adjustExpectedSignedUrl();
 
 		assertThat(signedUrl).isEqualTo(expectedSignedUrl);
@@ -87,7 +91,8 @@ public class UrlServiceTest {
 		expectedSignedUrl = expectedSignedUrl
 				.replace("&expiration=3600", "&expiration=3600&physical=false");
 
-		signedUrl = urlService.getSignedUrl(host, token, serviceKey, schemaType, method, id, folderId, expiration, version, physical);
+		signedUrl = urlService.getSignedUrl(host, token, serviceKey, schemaType, method, id, folderId, expiration,
+				version, physical, copySourceId);
 		adjustExpectedSignedUrl();
 
 		assertThat(signedUrl).isEqualTo(expectedSignedUrl);

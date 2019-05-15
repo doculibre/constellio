@@ -34,7 +34,7 @@ public class FolderService extends ResourceService {
 	public FolderDto create(String host, String parentFolderId, String serviceKey, String method, String date,
 							int expiration, String signature, FolderDto folderDto, String flushMode,
 							Set<String> filters) throws Exception {
-		validateParameters(host, parentFolderId, serviceKey, method, date, expiration, null, null, signature);
+		validateParameters(host, parentFolderId, serviceKey, method, date, expiration, null, null, null, signature);
 
 		String id = parentFolderId != null ? parentFolderId : folderDto.getAdministrativeUnit();
 		Record record = getRecord(id, true);
@@ -55,27 +55,31 @@ public class FolderService extends ResourceService {
 		return getAdaptor().adapt(folderDto, createdFolderRecord, folderSchema, acesModified, filters);
 	}
 
-	public FolderDto copy(String host, String parentFolderId, String sourceFolderId, String serviceKey, String method,
+	public FolderDto copy(String host, String parentFolderId, String copySourceId, String serviceKey, String method,
 						  String date, int expiration, String signature, FolderDto folderDto, String flushMode,
 						  Set<String> filters) throws Exception {
-		validateParameters(host, parentFolderId, serviceKey, method, date, expiration, null, null, signature);
+		validateParameters(host, parentFolderId, serviceKey, method, date, expiration, null, null, copySourceId, signature);
 
-		Record sourceFolder = getRecord(sourceFolderId, true);
+		Record sourceFolder = getRecord(copySourceId, true);
 		String collection = sourceFolder.getCollection();
 		User user = getUser(serviceKey, collection);
 		validateUserAccess(user, sourceFolder, method);
 
-		if (parentFolderId == null) {
+		if (parentFolderId != null) {
 			validateUserAccess(user, getRecord(parentFolderId, true), method);
 		}
 
-		MetadataSchema folderSchema = folderDao.getLinkedMetadataSchema(folderDto.getType(), collection);
-		validateExtendedAttributes(folderDto.getExtendedAttributes(), folderSchema);
-		validateAuthorizations(folderDto.getDirectAces(), collection);
+		MetadataSchema folderSchema = folderDto != null && folderDto.getType() != null ?
+									  folderDao.getLinkedMetadataSchema(folderDto.getType(), collection) :
+									  folderDao.getMetadataSchema(sourceFolder);
+		if (folderDto != null) {
+			validateExtendedAttributes(folderDto.getExtendedAttributes(), folderSchema);
+			validateAuthorizations(folderDto.getDirectAces(), collection);
+		}
 
 		boolean acesModified = false;
-		Record copiedFolderRecord = folderDao.copyFolder(user, folderSchema, sourceFolderId, folderDto, flushMode);
-		if (!isNullOrEmpty(folderDto.getDirectAces())) {
+		Record copiedFolderRecord = folderDao.copyFolder(user, folderSchema, copySourceId, folderDto, flushMode);
+		if (folderDto != null && !isNullOrEmpty(folderDto.getDirectAces())) {
 			aceService.addAces(user, copiedFolderRecord, folderDto.getDirectAces());
 			acesModified = true;
 		}

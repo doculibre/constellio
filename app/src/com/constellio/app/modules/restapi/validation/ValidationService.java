@@ -45,10 +45,11 @@ public class ValidationService extends BaseService {
 	private ValidationDao validationDao;
 
 	public void validateSignature(String host, String id, String serviceKey, String schemaType, String method,
-								  String date, int expiration,
-								  String version, Boolean physical, String signature) throws Exception {
+								  String date, int expiration, String version, Boolean physical, String copySourceId,
+								  String signature) throws Exception {
 		String physicalValue = physical != null ? String.valueOf(physical) : null;
-		String data = StringUtils.concat(host, id, serviceKey, schemaType, method, date, String.valueOf(expiration), version, physicalValue);
+		String data = StringUtils.concat(host, id, serviceKey, schemaType, method, date, String.valueOf(expiration),
+				version, physicalValue, copySourceId);
 
 		Collection<String> tokens = validationDao.getUserTokens(serviceKey, true);
 		if (tokens.isEmpty()) {

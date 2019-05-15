@@ -52,8 +52,10 @@ public class FolderDao extends ResourceDao {
 
 		DecommissioningService decommissioningService = new DecommissioningService(collection, appLayerFactory);
 		Folder copyFolder = decommissioningService.duplicateStructureAndDocuments(sourceFolder, user, false);
-		updateFolderMetadataValues(copyFolder.getWrappedRecord(), null, folderSchema, folderDto, true);
-		updateCustomMetadataValues(copyFolder.getWrappedRecord(), folderSchema, folderDto.getExtendedAttributes(), true);
+		if (folderDto != null) {
+			updateFolderMetadataValues(copyFolder.getWrappedRecord(), null, folderSchema, folderDto, true);
+			updateCustomMetadataValues(copyFolder.getWrappedRecord(), folderSchema, folderDto.getExtendedAttributes(), true);
+		}
 
 		transaction.add(copyFolder);
 

@@ -36,7 +36,7 @@ public abstract class ResourceService extends BaseService {
 	@SuppressWarnings("unchecked")
 	public <T> T getResource(String host, String id, String serviceKey, String method, String date, int expiration,
 							 String signature, Set<String> filters) throws Exception {
-		validateParameters(host, id, serviceKey, method, date, expiration, null, null, signature);
+		validateParameters(host, id, serviceKey, method, date, expiration, null, null, null, signature);
 
 		Record record = getRecord(id, false);
 		User user = getUser(serviceKey, record.getCollection());
@@ -60,12 +60,12 @@ public abstract class ResourceService extends BaseService {
 	}
 
 	protected void validateParameters(String host, String id, String serviceKey, String method, String date,
-									  int expiration, String version, Boolean physical, String signature)
-			throws Exception {
+									  int expiration, String version, Boolean physical, String copySourceId,
+									  String signature) throws Exception {
 		validationService.validateHost(host);
 		validationService.validateUrl(date, expiration);
 		validationService.validateSignature(host, id, serviceKey, getSchemaType().name(), method, date,
-				expiration, version, physical, signature);
+				expiration, version, physical, copySourceId, signature);
 	}
 
 	protected void validateExtendedAttributes(List<ExtendedAttributeDto> extendedAttributes, MetadataSchema schema) {
