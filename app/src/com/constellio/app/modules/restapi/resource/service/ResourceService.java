@@ -44,7 +44,7 @@ public abstract class ResourceService extends BaseService {
 
 		MetadataSchema schema = getDao().getMetadataSchema(record);
 
-		return (T) getAdaptor().adapt(null, record, schema, false, filters);
+		return (T) getAdaptor().adapt(null, host, record, schema, false, filters);
 	}
 
 	protected void validateUserAccess(User user, Record resourceRecord, String method) {

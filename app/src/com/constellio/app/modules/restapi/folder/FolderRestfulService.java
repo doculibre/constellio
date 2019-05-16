@@ -65,6 +65,7 @@ public class FolderRestfulService extends ResourceRestfulService {
 		validateHttpMethod(method, HttpMethods.GET);
 
 		FolderDto folder = folderService.get(host, id, serviceKey, method, date, expiration, signature, filters);
+
 		return Response.ok(folder).tag(folder.getETag()).build();
 	}
 
@@ -162,8 +163,26 @@ public class FolderRestfulService extends ResourceRestfulService {
 										  schema = @Schema(allowableValues = {"NOW, LATER, WITHIN_{X}_SECONDS"})) @DefaultValue("WITHIN_5_SECONDS")
 								  @HeaderParam(CustomHttpHeaders.FLUSH_MODE) String flush,
 								  @HeaderParam(HttpHeaders.HOST) String host) throws Exception {
-		// TODO
-		return Response.noContent().build();
+
+
+		validateRequiredParametersIncludingId(id, serviceKey, method, date, expiration, signature);
+		validateRequiredParameter(folder, "folder");
+		validateFlushValue(flush);
+		validateFilterValues(FolderDto.class, filters);
+		validateHttpMethod(method, HttpMethods.PATCH);
+
+		if (!id.equals(folder.getId())) {
+			throw new ParametersMustMatchException("id", "document.id");
+		}
+
+		validateFolder(folder);
+
+		validateETag(eTag);
+		folder.setETag(eTag);
+
+		FolderDto folderDto = folderService.update(host, id, serviceKey, method, date, expiration, signature, folder, true, flush, filters);
+
+		return Response.ok(folderDto).tag(folderDto.getETag()).build();
 	}
 
 	private void validateFolder(FolderDto folder) {

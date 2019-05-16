@@ -8,6 +8,7 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.enums.ParsingBehavior;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataValueType;
@@ -18,17 +19,20 @@ import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.CommitCounter;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.QueryCounter;
 import com.constellio.sdk.tests.setups.Users;
+import com.google.common.collect.Lists;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 
 import javax.ws.rs.client.WebTarget;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -46,6 +50,10 @@ public abstract class BaseRestfulServiceAcceptanceTest extends ConstellioTest {
 	protected String dateFormat, dateTimeFormat;
 	protected String sasquatchServiceKey = "sasquatchKey", sasquatchToken = "sasquatchToken";
 	protected LocalDateTime fakeDate = new LocalDateTime();
+	protected LocalDateTime fakeDate2 = (new LocalDateTime()).minusDays(1);
+	protected LocalDateTime fakeDate3 = (new LocalDateTime()).minusDays(2);
+	protected LocalDateTime fakeDate4 = (new LocalDateTime()).plusDays(3);
+	protected LocalDateTime fakeDate5 = (new LocalDateTime()).plusDays(4);
 	protected String fakeMetadata1 = "USRMetadata1", fakeMetadata2 = "USRMetadata2";
 	protected AuthorizationAddRequest authorization1, authorization2;
 
@@ -55,10 +63,13 @@ public abstract class BaseRestfulServiceAcceptanceTest extends ConstellioTest {
 	protected RMTestRecords records = new RMTestRecords(zeCollection);
 	protected Users users = new Users();
 	protected MetadataSchemasManager metadataSchemasManager;
+	protected AuthorizationsServices authorizationsServices;
 
 	protected WebTarget webTarget;
 	protected CommitCounter commitCounter;
 	protected QueryCounter queryCounter;
+
+	protected SearchServices searchServices;
 
 	protected static final String NOT_NULL_MESSAGE = "javax.validation.constraints.NotNull.message";
 	protected static final String NOT_EMPTY_MESSAGE = "org.hibernate.validator.constraints.NotEmpty.message";
@@ -88,6 +99,10 @@ public abstract class BaseRestfulServiceAcceptanceTest extends ConstellioTest {
 				.addAccessToken(token, TimeProvider.getLocalDateTime().plusYears(1)));
 		userServices.addUpdateUserCredential(users.sasquatch().setServiceKey(sasquatchServiceKey)
 				.addAccessToken(sasquatchToken, TimeProvider.getLocalDateTime().plusYears(1)));
+
+		authorizationsServices = getModelLayerFactory().newAuthorizationsServices();
+
+		searchServices = getModelLayerFactory().newSearchServices();
 
 		commitCounter = new CommitCounter(getDataLayerFactory());
 		queryCounter = new QueryCounter(getDataLayerFactory(), ON_COLLECTION(SYSTEM_COLLECTION));
@@ -120,10 +135,25 @@ public abstract class BaseRestfulServiceAcceptanceTest extends ConstellioTest {
 		}
 	}
 
+	protected List<Authorization> filterInheritedAuthorizations(List<Authorization> authorizations, String recordId) {
+		List<Authorization> filteredAuthorizations = Lists.newArrayList();
+		for (Authorization authorization : authorizations) {
+			if (authorization.getTarget().equals(recordId)) {
+				filteredAuthorizations.add(authorization);
+			}
+		}
+		return filteredAuthorizations;
+	}
+
+	protected WebTarget buildQuery(WebTarget target, boolean calculateSignature, List<String> defaultParams,
+								   String... excludedParam) throws Exception {
+		return buildQuery(getClass(), target, calculateSignature, defaultParams, excludedParam);
+	}
+
 	protected WebTarget buildQuery(Class clazz, WebTarget target, boolean calculateSignature,
 								   List<String> defaultParams, String... excludedParam)
 			throws Exception {
-		List<String> excludedParams = asList(excludedParam);
+		List<String> excludedParams = excludedParam == null ? new ArrayList<String>() : asList(excludedParam);
 
 		for (String param : defaultParams) {
 			if (excludedParams.contains(param)) {
@@ -223,5 +253,18 @@ public abstract class BaseRestfulServiceAcceptanceTest extends ConstellioTest {
 	}
 
 	abstract protected SchemaTypes getSchemaType();
+
+
+	protected List<String> toPrincipalIds(Collection<String> principals) {
+		List<String> principalIds = new ArrayList<>(principals.size());
+		for (String principal : principals) {
+			Record record = recordServices.getRecordByMetadata(rm.user.username(), principal);
+			if (record == null) {
+				record = recordServices.getRecordByMetadata(rm.group.code(), principal);
+			}
+			principalIds.add(record.getId());
+		}
+		return principalIds;
+	}
 
 }

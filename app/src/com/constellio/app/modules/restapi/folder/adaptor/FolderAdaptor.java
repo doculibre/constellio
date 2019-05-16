@@ -28,7 +28,7 @@ public class FolderAdaptor extends ResourceAdaptor<FolderDto> {
 	private AceService aceService;
 
 	@Override
-	public FolderDto adapt(FolderDto resource, Record record, MetadataSchema schema, boolean modified,
+	public FolderDto adapt(FolderDto resource, String host, Record record, MetadataSchema schema, boolean modified,
 						   Set<String> filters) {
 		if (resource == null) {
 			resource = FolderDto.builder().build();
@@ -62,6 +62,8 @@ public class FolderAdaptor extends ResourceAdaptor<FolderDto> {
 		resource.setExpectedDepositDate(!filters.contains("expectedDepositDate") ? this.<LocalDate>getValue(record, Folder.EXPECTED_DEPOSIT_DATE) : null);
 		resource.setExpectedDestructionDate(!filters.contains("expectedDestructionDate") ? this.<LocalDate>getValue(record, Folder.EXPECTED_DESTRUCTION_DATE) : null);
 		resource.setExpectedTransferDate(!filters.contains("expectedTransferDate") ? this.<LocalDate>getValue(record, Folder.EXPECTED_TRANSFER_DATE) : null);
+		resource.setUrlToFolder(!filters.contains("urlToFolder") ? host + "/constellio/#!displayFolder/" + record.getId() : null);
+
 
 		if (!filters.contains("type")) {
 			String folderTypeId = getValue(record, Folder.TYPE);

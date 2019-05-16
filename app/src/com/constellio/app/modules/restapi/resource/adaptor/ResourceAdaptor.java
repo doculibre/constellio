@@ -7,6 +7,7 @@ import java.util.Set;
 
 public abstract class ResourceAdaptor<T> {
 
-	abstract public T adapt(T resource, Record record, MetadataSchema schema, boolean modified, Set<String> filters);
+	abstract public T adapt(T resource, String host, Record record, MetadataSchema schema, boolean modified,
+							Set<String> filters);
 
 }

@@ -29,7 +29,7 @@ public class DocumentAdaptor extends ResourceAdaptor<DocumentDto> {
 	private AceService aceService;
 
 	@Override
-	public DocumentDto adapt(DocumentDto resource, Record record, MetadataSchema schema, boolean modified,
+	public DocumentDto adapt(DocumentDto resource, String host, Record record, MetadataSchema schema, boolean modified,
 							 Set<String> filters) {
 		if (resource == null) {
 			resource = DocumentDto.builder().build();

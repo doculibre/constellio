@@ -58,7 +58,7 @@ public class DocumentService extends ResourceService {
 				aceService.addAces(user, createdDocumentRecord, document.getDirectAces());
 				acesModified = true;
 			}
-			return getAdaptor().adapt(document, createdDocumentRecord, documentSchema, acesModified, filters);
+			return getAdaptor().adapt(document, host, createdDocumentRecord, documentSchema, acesModified, filters);
 		} catch (Exception e) {
 			if (content != null) {
 				documentDao.deleteContent(content);
@@ -136,7 +136,7 @@ public class DocumentService extends ResourceService {
 				acesModified = aceService.updateAces(user, documentRecord, nullToEmpty(document.getDirectAces()));
 			}
 
-			return getAdaptor().adapt(document, documentRecord, documentSchema, acesModified, filters);
+			return getAdaptor().adapt(document, host, documentRecord, documentSchema, acesModified, filters);
 		} catch (Exception e) {
 			if (content != null) {
 				documentDao.deleteContent(content);

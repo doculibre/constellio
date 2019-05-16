@@ -39,6 +39,7 @@ public class FolderDto {
 	private LocalDate actualTransferDate;
 	private LocalDate actualDepositDate;
 	private LocalDate actualDestructionDate;
+	private String urlToFolder;
 	@Valid @JsonProperty(access = READ_ONLY)
 	private LocalDate expectedTransferDate;
 	@Valid @JsonProperty(access = READ_ONLY)

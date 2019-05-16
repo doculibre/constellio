@@ -246,6 +246,7 @@ public class DocumentRestfulServicePATCHAcceptanceTest extends BaseDocumentRestf
 				.containsExactly(tuple(fakeDocumentType.getId(), fakeDocumentType.getCode(), fakeDocumentType.getTitle()));
 		assertThat(singletonList(doc.getContent())).extracting("versionType", "filename", "hash", "version")
 				.containsExactly(tuple(MAJOR, fakeFilename, dataSummaryV2.getHash(), "2.0"));
+
 		assertThat(doc.getDirectAces()).extracting("principals", "permissions").contains(
 				tuple(Sets.newHashSet(docUpdate.getDirectAces().get(0).getPrincipals()), Sets.newHashSet(docUpdate.getDirectAces().get(0).getPermissions())));
 		assertThat(doc.getExtendedAttributes()).extracting("key", "values")

@@ -57,7 +57,7 @@ public class FolderRestfulServiceGETAcceptanceTest extends BaseFolderRestfulServ
 		assertThat(folderDto).isNotNull();
 		assertThat(folderDto.getId()).isEqualTo(fakeFolder.getId());
 		assertThat(folderDto.getParentFolderId()).isEqualTo(fakeFolder.getParentFolder());
-		assertThat(folderDto.getType()).isEqualTo(fakeFolder.getType());
+		assertThat(folderDto.getType().getId()).isEqualTo(fakeFolder.getType());
 		assertThat(folderDto.getRetentionRule()).isEqualTo(fakeFolder.getRetentionRule());
 		assertThat(folderDto.getAdministrativeUnit()).isEqualTo(fakeFolder.getAdministrativeUnitEntered());
 		assertThat(folderDto.getMainCopyRule()).isEqualTo(fakeFolder.getMainCopyRule().getId());
@@ -76,6 +76,7 @@ public class FolderRestfulServiceGETAcceptanceTest extends BaseFolderRestfulServ
 		assertThat(folderDto.getExpectedTransferDate()).isEqualTo(fakeFolder.getExpectedTransferDate());
 		assertThat(folderDto.getExpectedDepositDate()).isEqualTo(fakeFolder.getExpectedDepositDate());
 		assertThat(folderDto.getExpectedDestructionDate()).isEqualTo(fakeFolder.getExpectedDestructionDate());
+		assertThat(folderDto.getUrlToFolder()).endsWith("/constellio/#!displayFolder/" + fakeFolder.getId());
 
 		assertThat(folderDto.getDirectAces()).contains(
 				AceDto.builder().principals(toPrincipals(authorization1.getPrincipals())).permissions(newHashSet(authorization1.getRoles())).build(),
@@ -366,10 +367,6 @@ public class FolderRestfulServiceGETAcceptanceTest extends BaseFolderRestfulServ
 	//
 	// PRIVATE FUNCTIONS
 	//
-
-	private <T> void addUsrMetadata(final MetadataValueType type, T value1, T value2) throws Exception {
-		addUsrMetadata(fakeFolder.getId(), fakeFolder.getSchemaCode(), type, value1, value2);
-	}
 
 	private Response doFilteredGetQuery(Object... filters) throws Exception {
 		return buildGetQuery(true).queryParam("filter", filters)
