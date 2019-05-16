@@ -166,7 +166,7 @@ public abstract class ByteArrayRecordDTO implements RecordDTO, Map<String, Objec
 
 	@Override
 	public Object get(Object key) {
-		return CacheRecordDTOUtils.readMetadata(data, schemaHolder.get(), (String) key);
+		return CacheRecordDTOUtils.readMetadata(data, schemaHolder.get(), (String) key, this);
 	}
 
 	@Nullable
@@ -199,13 +199,13 @@ public abstract class ByteArrayRecordDTO implements RecordDTO, Map<String, Objec
 	@NotNull
 	@Override
 	public Collection<Object> values() {
-		return CacheRecordDTOUtils.getStoredValues(data, schemaHolder.get());
+		return CacheRecordDTOUtils.getStoredValues(data, schemaHolder.get(), this);
 	}
 
 	@NotNull
 	@Override
 	public Set<Entry<String, Object>> entrySet() {
-		return CacheRecordDTOUtils.toEntrySet(data, schemaHolder.get());
+		return CacheRecordDTOUtils.toEntrySet(data, schemaHolder.get(), this);
 	}
 
 }
