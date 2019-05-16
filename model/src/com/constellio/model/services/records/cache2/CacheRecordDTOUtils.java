@@ -76,130 +76,134 @@ public class CacheRecordDTOUtils {
 		CachedRecordDTOByteArrayBuilder builder = new CachedRecordDTOByteArrayBuilder();
 
 		for (Metadata metadata : schema.getMetadatas()) {
-			if (isCached(metadata)) {
-				if (metadata.isMultivalue()) {
-					List<Object> values = (List<Object>) dto.getFields().get(metadata.getDataStoreCode());
-					if (values != null && !values.isEmpty()) {
-						switch (metadata.getType()) {
-							case STRING:
-								try {
-									builder.addMultivalueStringMetadata(metadata, (List) values);
-								} catch (IOException e) {
-									e.printStackTrace();
-								}
-								break;
-							case REFERENCE:
-								try {
-									builder.addMultivalueReferenceMetadata(metadata, (List) values);
-								} catch (IOException e) {
-									e.printStackTrace();
-								}
-								break;
-							case BOOLEAN:
-								try {
-									builder.addMultivalueBooleanMetadata(metadata, (List) values);
-								} catch (IOException e) {
-									e.printStackTrace();
-								}
-								break;
-							case INTEGER:
-								try {
-									builder.addMultivalueIntegerMetadata(metadata, (List) values);
-								} catch (IOException e) {
-									e.printStackTrace();
-								}
-								break;
-							case NUMBER:
-								try {
-									builder.addMultivalueNumberMetadata(metadata, (List) values);
-								} catch (IOException e) {
-									e.printStackTrace();
-								}
-								break;
-							case DATE:
-								try {
-									builder.addMultivalueLocalDateMetadata(metadata, (List) values);
-								} catch (IOException e) {
-									e.printStackTrace();
-								}
-								break;
-							case DATE_TIME:
-								try {
-									builder.addMultivalueLocalDateTimeMetadata(metadata, (List) values);
-								} catch (IOException e) {
-									e.printStackTrace();
-								}
-								break;
-							case ENUM:
-								try {
-									builder.addMultivalueEnumMetadata(metadata, (List) values);
-								} catch (IOException e) {
-									e.printStackTrace();
-								}
-								break;
-						}
+			if (metadata.isMultivalue()) {
+				List<Object> values = (List<Object>) dto.getFields().get(metadata.getDataStoreCode());
+				if (values != null && !values.isEmpty()) {
+					switch (metadata.getType()) {
+						case STRING:
+						case STRUCTURE:
+						case TEXT:
+						case CONTENT:
+							try {
+								builder.addMultivalueStringMetadata(metadata, (List) values);
+							} catch (IOException e) {
+								e.printStackTrace();
+							}
+							break;
+						case REFERENCE:
+							try {
+								builder.addMultivalueReferenceMetadata(metadata, (List) values);
+							} catch (IOException e) {
+								e.printStackTrace();
+							}
+							break;
+						case BOOLEAN:
+							try {
+								builder.addMultivalueBooleanMetadata(metadata, (List) values);
+							} catch (IOException e) {
+								e.printStackTrace();
+							}
+							break;
+						case INTEGER:
+							try {
+								builder.addMultivalueIntegerMetadata(metadata, (List) values);
+							} catch (IOException e) {
+								e.printStackTrace();
+							}
+							break;
+						case NUMBER:
+							try {
+								builder.addMultivalueNumberMetadata(metadata, (List) values);
+							} catch (IOException e) {
+								e.printStackTrace();
+							}
+							break;
+						case DATE:
+							try {
+								builder.addMultivalueLocalDateMetadata(metadata, (List) values);
+							} catch (IOException e) {
+								e.printStackTrace();
+							}
+							break;
+						case DATE_TIME:
+							try {
+								builder.addMultivalueLocalDateTimeMetadata(metadata, (List) values);
+							} catch (IOException e) {
+								e.printStackTrace();
+							}
+							break;
+						case ENUM:
+							try {
+								builder.addMultivalueEnumMetadata(metadata, (List) values);
+							} catch (IOException e) {
+								e.printStackTrace();
+							}
+							break;
 					}
-				} else {
-					Object value = dto.getFields().get(metadata.getDataStoreCode());
-					if (value != null) {
-						switch (metadata.getType()) {
-							case REFERENCE:
-								try {
-									builder.addSingleValueReferenceMetadata(metadata, value);
-								} catch (IOException e) {
-									e.printStackTrace();
-								}
-								break;
-							case BOOLEAN:
-								try {
-									builder.addSingleValueBooleanMetadata(metadata, value);
-								} catch (IOException e) {
-									e.printStackTrace();
-								}
-								break;
-							case STRING:
-								try {
-									builder.addSingleValueStringMetadata(metadata, value);
-								} catch (IOException e) {
-									e.printStackTrace();
-								}
-								break;
-							case INTEGER:
-								try {
-									builder.addSingleValueIntegerMetadata(metadata, value);
-								} catch (IOException e) {
-									e.printStackTrace();
-								}
-								break;
-							case NUMBER:
-								try {
-									builder.addSingleValueNumberMetadata(metadata, value);
-								} catch (IOException e) {
-									e.printStackTrace();
-								}
-								break;
-							case DATE:
-								try {
-									builder.addSingleValueLocalDateMetadata(metadata, value);
-								} catch (IOException e) {
-									e.printStackTrace();
-								}
-								break;
-							case DATE_TIME:
-								try {
-									builder.addSingleValueLocalDateTimeMetadata(metadata, value);
-								} catch (IOException e) {
-									e.printStackTrace();
-								}
-								break;
-							case ENUM:
-								try {
-									builder.addSingleValueEnumMetadata(metadata, value);
-								} catch (IOException e) {
-									e.printStackTrace();
-								}
-								break;
-						}
+				}
+			} else {
+				Object value = dto.getFields().get(metadata.getDataStoreCode());
+				if (value != null) {
+					switch (metadata.getType()) {
+						case REFERENCE:
+							try {
+								builder.addSingleValueReferenceMetadata(metadata, value);
+							} catch (IOException e) {
+								e.printStackTrace();
+							}
+							break;
+						case BOOLEAN:
+							try {
+								builder.addSingleValueBooleanMetadata(metadata, value);
+							} catch (IOException e) {
+								e.printStackTrace();
+							}
+							break;
+						case STRING:
+						case STRUCTURE:
+						case TEXT:
+						case CONTENT:
+							try {
+								builder.addSingleValueStringMetadata(metadata, value);
+							} catch (IOException e) {
+								e.printStackTrace();
+							}
+							break;
+						case INTEGER:
+							try {
+								builder.addSingleValueIntegerMetadata(metadata, value);
+							} catch (IOException e) {
+								e.printStackTrace();
+							}
+							break;
+						case NUMBER:
+							try {
+								builder.addSingleValueNumberMetadata(metadata, value);
+							} catch (IOException e) {
+								e.printStackTrace();
+							}
+							break;
+						case DATE:
+							try {
+								builder.addSingleValueLocalDateMetadata(metadata, value);
+							} catch (IOException e) {
+								e.printStackTrace();
+							}
+							break;
+						case DATE_TIME:
+							try {
+								builder.addSingleValueLocalDateTimeMetadata(metadata, value);
+							} catch (IOException e) {
+								e.printStackTrace();
+							}
+							break;
+						case ENUM:
+							try {
+								builder.addSingleValueEnumMetadata(metadata, value);
+							} catch (IOException e) {
+								e.printStackTrace();
+							}
+							break;
 					}
 				}
 			}
@@ -212,21 +216,9 @@ public class CacheRecordDTOUtils {
 		}
 	}
 
-	private static boolean isCached(Metadata metadata) {
-		if (metadata.getType() == STRUCTURE || metadata.getType() == TEXT || metadata.getType() == CONTENT) {
-			return false;
-		}
-
-		if (metadata.getType() == STRING) {
-			//			return Schemas.TITLE.isSameLocalCode(metadata);
-			return true; // TODO CHANGE
-		}
-
-		return true;
-	}
-
 	private static boolean isMetatadataPersisted(Metadata metadata) {
-		if (/*metadata.getType() == STRUCTURE || metadata.getType() == TEXT || metadata.getType() == CONTENT || */metadata.getType() == STRING) {
+		if (metadata.getType() == STRUCTURE || metadata.getType() == TEXT ||
+			metadata.getType() == CONTENT || metadata.getType() == STRING) {
 			return true;
 		}
 
@@ -284,7 +276,7 @@ public class CacheRecordDTOUtils {
 		Metadata metadataSearched = schema.getMetadataByDatastoreCode(metadataLocalCode);
 
 		byte[] byteArrayToSearchIn;
-		if (metadataSearched.getType() == STRING) { // TODO USE FLAG INSTEAD ?
+		if (isMetatadataPersisted(metadataSearched)) {
 			byteArrayToSearchIn = persistedByteArraySupplier.get();
 		} else {
 			byteArrayToSearchIn = byteArray;
@@ -479,6 +471,9 @@ public class CacheRecordDTOUtils {
 					case REFERENCE:
 						return (T) getMultivalueReferenceMetadata(byteArray, metadataSearchedIndex);
 					case STRING:
+					case STRUCTURE:
+					case TEXT:
+					case CONTENT:
 						return (T) getMultivalueStringMetadata(byteArray, metadataSearchedIndex);
 					case INTEGER:
 						return (T) getMultivalueIntegerMetadata(byteArray, metadataSearchedIndex);
@@ -503,6 +498,9 @@ public class CacheRecordDTOUtils {
 					case REFERENCE:
 						return (T) getSingleValueReferenceMetadata(byteArray, metadataSearchedIndex);
 					case STRING:
+					case STRUCTURE:
+					case TEXT:
+					case CONTENT:
 						return (T) getSingleValueStringMetadata(byteArray, metadataSearchedIndex, nextMetadataIndex);
 					case INTEGER:
 						return (T) getSingleValueIntegerMetadata(byteArray, metadataSearchedIndex);
@@ -1251,7 +1249,7 @@ public class CacheRecordDTOUtils {
 		private void writeMultivalueSize(Metadata metadata, short listSize) throws IOException {
 			// the listSize tells us how many of those metadata types we should parse when reading the byte array
 			// stops us from parsing a short when parsing int metadata for example
-			if (metadata.getType() == STRING) { // TODO change for flag
+			if (isMetatadataPersisted(metadata)) {
 				dataWriterBytesToPersist.writeShort(listSize);
 				writeHeader(metadata);
 
@@ -1315,8 +1313,7 @@ public class CacheRecordDTOUtils {
 			// if it's a string it will be stored in the persisted cache, but we want to know what is in the cache from the entrySet function
 			headerWriterBytesToKeepInMemory.writeShort(id);
 
-			// TODO change with a flag
-			if (metadata.getType() == STRING) {
+			if (isMetatadataPersisted(metadata)) {
 				// TODO REMOVE TO SAVE A BYTE
 				headerWriterBytesToKeepInMemory.writeShort(-1);
 				// +2 bytes for id of the metadata and +2 for the index in the data array
