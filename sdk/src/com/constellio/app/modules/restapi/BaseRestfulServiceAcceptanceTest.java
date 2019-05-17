@@ -60,6 +60,8 @@ public abstract class BaseRestfulServiceAcceptanceTest extends ConstellioTest {
 	protected RMSchemasRecordsServices rm;
 	protected RecordServices recordServices;
 	protected UserServices userServices;
+	protected SearchServices searchServices;
+	protected AuthorizationsServices authorizationsServices;
 	protected RMTestRecords records = new RMTestRecords(zeCollection);
 	protected Users users = new Users();
 	protected MetadataSchemasManager metadataSchemasManager;
@@ -93,6 +95,8 @@ public abstract class BaseRestfulServiceAcceptanceTest extends ConstellioTest {
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
 		userServices = getModelLayerFactory().newUserServices();
+		searchServices = getModelLayerFactory().newSearchServices();
+		authorizationsServices = getModelLayerFactory().newAuthorizationsServices();
 		metadataSchemasManager = getModelLayerFactory().getMetadataSchemasManager();
 
 		userServices.addUpdateUserCredential(users.bob().setServiceKey(serviceKey)
@@ -126,7 +130,7 @@ public abstract class BaseRestfulServiceAcceptanceTest extends ConstellioTest {
 			}
 		});
 
-		if (value1 != null && value2 != null) {
+		if (id != null && value1 != null && value2 != null) {
 			Record record = recordServices.getDocumentById(id);
 			MetadataSchema schema = metadataSchemasManager.getSchemaOf(record);
 			record.set(schema.getMetadata(fakeMetadata1), value1);
@@ -250,6 +254,28 @@ public abstract class BaseRestfulServiceAcceptanceTest extends ConstellioTest {
 		authorization2 = authorizationInCollection(zeCollection).forUsers(users.aliceIn(zeCollection))
 				.on(record).givingReadWriteAccess();
 		authorizationsServices.add(authorization2, users.adminIn(zeCollection));
+	}
+
+	protected List<Authorization> filterInheritedAuthorizations(List<Authorization> authorizations, String recordId) {
+		List<Authorization> filteredAuthorizations = Lists.newArrayList();
+		for (Authorization authorization : authorizations) {
+			if (authorization.getTarget().equals(recordId)) {
+				filteredAuthorizations.add(authorization);
+			}
+		}
+		return filteredAuthorizations;
+	}
+
+	protected List<String> toPrincipalIds(Collection<String> principals) {
+		List<String> principalIds = new ArrayList<>(principals.size());
+		for (String principal : principals) {
+			Record record = recordServices.getRecordByMetadata(rm.user.username(), principal);
+			if (record == null) {
+				record = recordServices.getRecordByMetadata(rm.group.code(), principal);
+			}
+			principalIds.add(record.getId());
+		}
+		return principalIds;
 	}
 
 	abstract protected SchemaTypes getSchemaType();

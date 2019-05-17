@@ -16,8 +16,10 @@ import com.constellio.app.modules.restapi.folder.dto.MixinFolderDto;
 import com.constellio.app.modules.restapi.folder.dto.MixinFolderTypeDto;
 import com.constellio.app.modules.restapi.folder.dto.MixinRetetentionRuleDto;
 import com.constellio.app.modules.restapi.folder.dto.RetentionRuleDto;
+import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
@@ -36,6 +38,8 @@ import org.joda.time.LocalDate;
 import org.junit.Before;
 
 import javax.ws.rs.HttpMethod;
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.constellio.model.entities.records.wrappers.Collection.SYSTEM_COLLECTION;
 import static com.constellio.sdk.tests.QueryCounter.ON_COLLECTION;
@@ -45,7 +49,7 @@ import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 public class BaseFolderRestfulServiceAcceptanceTest extends BaseRestfulServiceAcceptanceTest {
 
 	protected String id, physical, signature;
-	protected String schemaType = SchemaTypes.FOLDER.name(), folderId = records.folder_A20,
+	protected String schemaType = SchemaTypes.FOLDER.name(), folderId = records.folder_A04,
 			method = HttpMethod.GET, expiration = "2147483647";
 	protected String date = DateUtils.formatIsoNoMillis(fakeDate);
 	protected Folder fakeFolder;
@@ -66,6 +70,7 @@ public class BaseFolderRestfulServiceAcceptanceTest extends BaseRestfulServiceAc
 		id = fakeFolder.getId();
 
 		ObjectMapper mapper = new ObjectMapper()
+				.addMixIn(FolderTypeDto.class, MixinFolderTypeDto.class)
 				.addMixIn(FolderDto.class, MixinFolderDto.class)
 				.addMixIn(FolderTypeDto.class, MixinFolderTypeDto.class)
 				.addMixIn(RetentionRuleDto.class, MixinRetetentionRuleDto.class)
@@ -110,6 +115,28 @@ public class BaseFolderRestfulServiceAcceptanceTest extends BaseRestfulServiceAc
 				.setCloseDateEntered(new LocalDate().plusYears(100));
 
 		recordServices.execute(transaction);
+	}
+
+	protected CopyType toCopyType(String copyStatus) {
+		for (CopyType copyType : CopyType.values()) {
+			if (copyType.getCode().equals(copyStatus)) {
+				return copyType;
+			}
+		}
+		return null;
+	}
+
+	protected List<String> toMediumTypeIds(List<String> mediumTypeCodes) {
+		List<String> ids = new ArrayList<>();
+		for (String mediumTypeCode : mediumTypeCodes) {
+			ids.add(rm.getMediumTypeByCode(mediumTypeCode).getId());
+		}
+		return ids;
+	}
+
+	protected CopyRetentionRule toMainCopyRule(String ruleId, String mainCopyRuleId) {
+		RetentionRule rule = rm.getRetentionRule(ruleId);
+		return rule.getCopyRetentionRuleWithId(mainCopyRuleId);
 	}
 
 	protected <T> void addUsrMetadata(final MetadataValueType type, T value1, T value2) throws Exception {
