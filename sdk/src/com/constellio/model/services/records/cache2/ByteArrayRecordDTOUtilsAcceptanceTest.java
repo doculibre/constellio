@@ -16,14 +16,12 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.setups.Users;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
@@ -48,18 +46,8 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 	RecordServices recordServices;
 	ReindexingServices reindexingServices;
 	ContentManager contentManager;
-	Users users;
 
-	@Before
-	public void setup() throws Exception {
-		users = new Users().setUp(getModelLayerFactory().newUserServices());
-
-		prepareSystem(
-				withZeCollection()
-						.withConstellioRMModule()
-						.withAllTest(users)
-		);
-
+	private void init() {
 		schemasManager = getModelLayerFactory().getMetadataSchemasManager();
 		recordServices = getModelLayerFactory().newRecordServices();
 		reindexingServices = getModelLayerFactory().newReindexingServices();
@@ -87,6 +75,8 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 				.withAContentMetadata()
 				.withALargeTextMetadata()
 				.withADateTimeMetadata());
+
+		init();
 
 		setup.modify((MetadataSchemaTypesAlteration) types -> {
 			types.getSchema(anotherSchema.code())
@@ -121,7 +111,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 
 		File file = newTempFileWithContent("content.txt", "This is what a content file of type content contains. Content ?");
 		ContentVersionDataSummary versionDataSummary = contentManager.upload(file);
-		Content content = contentManager.createMajor(users.gandalfLeblancIn(zeCollection), file.getName(), versionDataSummary);
+		Content content = contentManager.createSystemContent(file.getName(), versionDataSummary);
 
 		RecordImpl record1 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance())
 				.set(Schemas.TITLE, "Le village des Schtroumpfs")
@@ -358,6 +348,8 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 				.withAContentMetadata(whichIsMultivalue)
 				.withAReferenceFromAnotherSchemaToZeSchema(whichIsMultivalue));
 
+		init();
+
 		setup.modify((MetadataSchemaTypesAlteration) types -> {
 			types.getSchema(anotherSchema.code())
 					.create("booleanMetadata")
@@ -399,11 +391,11 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 
 		File file1 = newTempFileWithContent("content.txt", "This is what a content file of type content contains. Content ?");
 		ContentVersionDataSummary versionDataSummary1 = contentManager.upload(file1);
-		Content content = contentManager.createMajor(users.gandalfLeblancIn(zeCollection), file1.getName(), versionDataSummary1);
+		Content content = contentManager.createSystemContent(file1.getName(), versionDataSummary1);
 
 		File file2 = newTempFileWithContent("no-content.txt", "Nothing to see here, move along");
 		ContentVersionDataSummary versionDataSummary2 = contentManager.upload(file2);
-		Content noContent = contentManager.createMajor(users.gandalfLeblancIn(zeCollection), file1.getName(), versionDataSummary2);
+		Content noContent = contentManager.createSystemContent(file2.getName(), versionDataSummary2);
 
 		RecordImpl record1 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance())
 				.set(zeSchema.integerMetadata(), asList(0, 13, -40))
@@ -609,6 +601,8 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 				.withALargeTextMetadata()
 				.withADateTimeMetadata());
 
+		init();
+
 		setup.modify((MetadataSchemaTypesAlteration) types -> {
 			types.getSchema(anotherSchema.code())
 					.create("booleanMetadata")
@@ -642,7 +636,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 
 		File file = newTempFileWithContent("content.txt", "This is what a content file of type content contains. Content ?");
 		ContentVersionDataSummary versionDataSummary = contentManager.upload(file);
-		Content content = contentManager.createMajor(users.gandalfLeblancIn(zeCollection), file.getName(), versionDataSummary);
+		Content content = contentManager.createSystemContent(file.getName(), versionDataSummary);
 
 		RecordImpl record1 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance())
 				.set(Schemas.TITLE, "Le village des Schtroumpfs")
@@ -836,6 +830,8 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 				.withAContentMetadata(whichIsMultivalue)
 				.withAReferenceFromAnotherSchemaToZeSchema(whichIsMultivalue));
 
+		init();
+
 		setup.modify((MetadataSchemaTypesAlteration) types -> {
 			types.getSchema(anotherSchema.code())
 					.create("booleanMetadata")
@@ -877,11 +873,11 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 
 		File file1 = newTempFileWithContent("content.txt", "This is what a content file of type content contains. Content ?");
 		ContentVersionDataSummary versionDataSummary1 = contentManager.upload(file1);
-		Content content = contentManager.createMajor(users.gandalfLeblancIn(zeCollection), file1.getName(), versionDataSummary1);
+		Content content = contentManager.createSystemContent(file1.getName(), versionDataSummary1);
 
 		File file2 = newTempFileWithContent("no-content.txt", "Nothing to see here, move along");
 		ContentVersionDataSummary versionDataSummary2 = contentManager.upload(file2);
-		Content noContent = contentManager.createMajor(users.gandalfLeblancIn(zeCollection), file1.getName(), versionDataSummary2);
+		Content noContent = contentManager.createSystemContent(file2.getName(), versionDataSummary2);
 
 		RecordImpl record1 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance())
 				.set(zeSchema.integerMetadata(), asList(0, 13, -40))
@@ -1064,6 +1060,8 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 				.withAReferenceFromAnotherSchemaToZeSchema(whichIsMultivalue)
 				.withAParentReferenceFromZeSchemaToZeSchema());
 
+		init();
+
 		setup.modify((MetadataSchemaTypesAlteration) types -> {
 			types.getSchema(anotherSchema.code())
 					.create("stringMetadata").setMultivalue(true)
@@ -1080,7 +1078,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 
 		File file = newTempFileWithContent("content.txt", "This is what a content file of type content contains. Content ?");
 		ContentVersionDataSummary versionDataSummary = contentManager.upload(file);
-		Content content = contentManager.createMajor(users.gandalfLeblancIn(zeCollection), file.getName(), versionDataSummary);
+		Content content = contentManager.createSystemContent(file.getName(), versionDataSummary);
 
 		RecordImpl record1 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance())
 				.set(zeSchema.booleanMetadata(), true)
@@ -1185,6 +1183,8 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 				.withALargeTextMetadata()
 				.withADateTimeMetadata());
 
+		init();
+
 		setup.modify((MetadataSchemaTypesAlteration) types -> {
 			types.getSchema(anotherSchema.code())
 					.create("booleanMetadata")
@@ -1218,7 +1218,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 
 		File file = newTempFileWithContent("content.txt", "This is what a content file of type content contains. Content ?");
 		ContentVersionDataSummary versionDataSummary = contentManager.upload(file);
-		Content content = contentManager.createMajor(users.gandalfLeblancIn(zeCollection), file.getName(), versionDataSummary);
+		Content content = contentManager.createSystemContent(file.getName(), versionDataSummary);
 
 		RecordImpl record1 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance())
 				.set(Schemas.TITLE, "Le village des Schtroumpfs")
@@ -1431,14 +1431,11 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 		defineSchemasManager().using(setup
 				.withAnIntegerMetadata());
 
-		setup.modify(new MetadataSchemaTypesAlteration() {
-			@Override
-			public void alter(MetadataSchemaTypesBuilder types) {
-				types.getSchema(anotherSchema.code())
-						.create("integerMetadata")
-						.setType(MetadataValueType.INTEGER);
-			}
-		});
+		init();
+
+		setup.modify((MetadataSchemaTypesAlteration) types -> types.getSchema(anotherSchema.code())
+				.create("integerMetadata")
+				.setType(MetadataValueType.INTEGER));
 
 		MetadataSchemaTypes schemaTypes = schemasManager.getSchemaTypes(zeCollection);
 		MetadataSchema anotherSchemaType = schemaTypes.getSchema(anotherSchema.code());
@@ -1489,15 +1486,12 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 		defineSchemasManager().using(setup
 				.withAnIntegerMetadata(whichIsMultivalue));
 
-		setup.modify(new MetadataSchemaTypesAlteration() {
-			@Override
-			public void alter(MetadataSchemaTypesBuilder types) {
-				types.getSchema(anotherSchema.code())
-						.create("integerMetadata")
-						.setType(MetadataValueType.INTEGER)
-						.setMultivalue(true);
-			}
-		});
+		init();
+
+		setup.modify((MetadataSchemaTypesAlteration) types -> types.getSchema(anotherSchema.code())
+				.create("integerMetadata")
+				.setType(MetadataValueType.INTEGER)
+				.setMultivalue(true));
 
 		MetadataSchemaTypes schemaTypes = schemasManager.getSchemaTypes(zeCollection);
 		MetadataSchema anotherSchemaType = schemaTypes.getSchema(anotherSchema.code());
@@ -1548,14 +1542,11 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 		defineSchemasManager().using(setup
 				.withANumberMetadata());
 
-		setup.modify(new MetadataSchemaTypesAlteration() {
-			@Override
-			public void alter(MetadataSchemaTypesBuilder types) {
-				types.getSchema(anotherSchema.code())
-						.create("numberMetadata")
-						.setType(MetadataValueType.NUMBER);
-			}
-		});
+		init();
+
+		setup.modify((MetadataSchemaTypesAlteration) types -> types.getSchema(anotherSchema.code())
+				.create("numberMetadata")
+				.setType(MetadataValueType.NUMBER));
 
 		MetadataSchemaTypes schemaTypes = schemasManager.getSchemaTypes(zeCollection);
 		MetadataSchema anotherSchemaType = schemaTypes.getSchema(anotherSchema.code());
@@ -1606,15 +1597,12 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 		defineSchemasManager().using(setup
 				.withANumberMetadata(whichIsMultivalue));
 
-		setup.modify(new MetadataSchemaTypesAlteration() {
-			@Override
-			public void alter(MetadataSchemaTypesBuilder types) {
-				types.getSchema(anotherSchema.code())
-						.create("numberMetadata")
-						.setType(MetadataValueType.NUMBER)
-						.setMultivalue(true);
-			}
-		});
+		init();
+
+		setup.modify((MetadataSchemaTypesAlteration) types -> types.getSchema(anotherSchema.code())
+				.create("numberMetadata")
+				.setType(MetadataValueType.NUMBER)
+				.setMultivalue(true));
 
 		MetadataSchemaTypes schemaTypes = schemasManager.getSchemaTypes(zeCollection);
 		MetadataSchema anotherSchemaType = schemaTypes.getSchema(anotherSchema.code());
@@ -1665,14 +1653,11 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 		defineSchemasManager().using(setup
 				.withADateMetadata());
 
-		setup.modify(new MetadataSchemaTypesAlteration() {
-			@Override
-			public void alter(MetadataSchemaTypesBuilder types) {
-				types.getSchema(anotherSchema.code())
-						.create("dateMetadata")
-						.setType(MetadataValueType.DATE);
-			}
-		});
+		init();
+
+		setup.modify((MetadataSchemaTypesAlteration) types -> types.getSchema(anotherSchema.code())
+				.create("dateMetadata")
+				.setType(MetadataValueType.DATE));
 
 		LocalDate date = new LocalDate(-2000, 1, 1);
 
@@ -1704,15 +1689,12 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 		defineSchemasManager().using(setup
 				.withADateMetadata(whichIsMultivalue));
 
-		setup.modify(new MetadataSchemaTypesAlteration() {
-			@Override
-			public void alter(MetadataSchemaTypesBuilder types) {
-				types.getSchema(anotherSchema.code())
-						.create("dateMetadata")
-						.setType(MetadataValueType.DATE)
-						.setMultivalue(true);
-			}
-		});
+		init();
+
+		setup.modify((MetadataSchemaTypesAlteration) types -> types.getSchema(anotherSchema.code())
+				.create("dateMetadata")
+				.setType(MetadataValueType.DATE)
+				.setMultivalue(true));
 
 		LocalDate date = new LocalDate(-2000, 1, 1);
 
@@ -1744,14 +1726,11 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 		defineSchemasManager().using(setup
 				.withADateTimeMetadata());
 
-		setup.modify(new MetadataSchemaTypesAlteration() {
-			@Override
-			public void alter(MetadataSchemaTypesBuilder types) {
-				types.getSchema(anotherSchema.code())
-						.create("dateTimeMetadata")
-						.setType(MetadataValueType.DATE_TIME);
-			}
-		});
+		init();
+
+		setup.modify((MetadataSchemaTypesAlteration) types -> types.getSchema(anotherSchema.code())
+				.create("dateTimeMetadata")
+				.setType(MetadataValueType.DATE_TIME));
 
 		LocalDateTime dateTime = new LocalDateTime(-2000, 1, 1, 0, 0);
 
@@ -1783,15 +1762,12 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 		defineSchemasManager().using(setup
 				.withADateTimeMetadata(whichIsMultivalue));
 
-		setup.modify(new MetadataSchemaTypesAlteration() {
-			@Override
-			public void alter(MetadataSchemaTypesBuilder types) {
-				types.getSchema(anotherSchema.code())
-						.create("dateTimeMetadata")
-						.setType(MetadataValueType.DATE_TIME)
-						.setMultivalue(true);
-			}
-		});
+		init();
+
+		setup.modify((MetadataSchemaTypesAlteration) types -> types.getSchema(anotherSchema.code())
+				.create("dateTimeMetadata")
+				.setType(MetadataValueType.DATE_TIME)
+				.setMultivalue(true));
 
 		LocalDateTime dateTime = new LocalDateTime(-2000, 1, 1, 0, 0);
 
