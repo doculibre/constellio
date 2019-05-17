@@ -13,10 +13,12 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.Schemas;
 import com.google.common.base.Strings;
 import org.joda.time.LocalDate;
 
 import javax.inject.Inject;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -48,7 +50,7 @@ public class FolderAdaptor extends ResourceAdaptor<FolderDto> {
 									   null);
 		resource.setMainCopyRule(!filters.contains("mainCopyRule") ? getMainCopyRuleId(record) : null);
 		resource.setCopyStatus(!filters.contains("copyStatus") ? getCopyStatus(record) : null);
-		resource.setMediumTypes(!filters.contains("mediumTypes") ? this.<List<String>>getValue(record, Folder.MEDIUM_TYPES) : null);
+		resource.setMediumTypes(!filters.contains("mediumTypes") ? getMediumTypes(record) : null);
 		resource.setMediaType(!filters.contains("mediaType") ? getFolderMediaType(record) : null);
 		resource.setContainer(!filters.contains("container") ? this.<String>getValue(record, Folder.CONTAINER) : null);
 		resource.setTitle(!filters.contains("title") ? record.getTitle() : null);
@@ -127,6 +129,19 @@ public class FolderAdaptor extends ResourceAdaptor<FolderDto> {
 	private String getFolderMediaType(Record record) {
 		FolderMediaType folderMediaType = getValue(record, Folder.MEDIA_TYPE);
 		return folderMediaType != null ? folderMediaType.getCode() : null;
+	}
+
+	private List<String> getMediumTypes(Record record) {
+		List<String> mediumTypeIds = getValue(record, Folder.MEDIUM_TYPES);
+		if (mediumTypeIds != null) {
+			List<String> mediumTypeCodes = new ArrayList<>();
+			for (String mediumTypeId : mediumTypeIds) {
+				Record mediumType = folderDao.getRecordById(mediumTypeId);
+				mediumTypeCodes.add(mediumType.<String>get(Schemas.CODE));
+			}
+			return mediumTypeCodes;
+		}
+		return null;
 	}
 
 }

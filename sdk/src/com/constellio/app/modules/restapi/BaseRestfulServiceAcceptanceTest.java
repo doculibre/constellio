@@ -8,6 +8,7 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.enums.ParsingBehavior;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataValueType;
@@ -18,17 +19,20 @@ import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.CommitCounter;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.QueryCounter;
 import com.constellio.sdk.tests.setups.Users;
+import com.google.common.collect.Lists;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 
 import javax.ws.rs.client.WebTarget;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -52,6 +56,8 @@ public abstract class BaseRestfulServiceAcceptanceTest extends ConstellioTest {
 	protected RMSchemasRecordsServices rm;
 	protected RecordServices recordServices;
 	protected UserServices userServices;
+	protected SearchServices searchServices;
+	protected AuthorizationsServices authorizationsServices;
 	protected RMTestRecords records = new RMTestRecords(zeCollection);
 	protected Users users = new Users();
 	protected MetadataSchemasManager metadataSchemasManager;
@@ -82,6 +88,8 @@ public abstract class BaseRestfulServiceAcceptanceTest extends ConstellioTest {
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
 		userServices = getModelLayerFactory().newUserServices();
+		searchServices = getModelLayerFactory().newSearchServices();
+		authorizationsServices = getModelLayerFactory().newAuthorizationsServices();
 		metadataSchemasManager = getModelLayerFactory().getMetadataSchemasManager();
 
 		userServices.addUpdateUserCredential(users.bob().setServiceKey(serviceKey)
@@ -111,7 +119,7 @@ public abstract class BaseRestfulServiceAcceptanceTest extends ConstellioTest {
 			}
 		});
 
-		if (value1 != null && value2 != null) {
+		if (id != null && value1 != null && value2 != null) {
 			Record record = recordServices.getDocumentById(id);
 			MetadataSchema schema = metadataSchemasManager.getSchemaOf(record);
 			record.set(schema.getMetadata(fakeMetadata1), value1);
@@ -220,6 +228,28 @@ public abstract class BaseRestfulServiceAcceptanceTest extends ConstellioTest {
 		authorization2 = authorizationInCollection(zeCollection).forUsers(users.aliceIn(zeCollection))
 				.on(record).givingReadWriteAccess();
 		authorizationsServices.add(authorization2, users.adminIn(zeCollection));
+	}
+
+	protected List<Authorization> filterInheritedAuthorizations(List<Authorization> authorizations, String recordId) {
+		List<Authorization> filteredAuthorizations = Lists.newArrayList();
+		for (Authorization authorization : authorizations) {
+			if (authorization.getTarget().equals(recordId)) {
+				filteredAuthorizations.add(authorization);
+			}
+		}
+		return filteredAuthorizations;
+	}
+
+	protected List<String> toPrincipalIds(Collection<String> principals) {
+		List<String> principalIds = new ArrayList<>(principals.size());
+		for (String principal : principals) {
+			Record record = recordServices.getRecordByMetadata(rm.user.username(), principal);
+			if (record == null) {
+				record = recordServices.getRecordByMetadata(rm.group.code(), principal);
+			}
+			principalIds.add(record.getId());
+		}
+		return principalIds;
 	}
 
 	abstract protected SchemaTypes getSchemaType();

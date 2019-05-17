@@ -101,7 +101,7 @@ public class FolderRestfulService extends ResourceRestfulService {
 		validateFilterValues(FolderDto.class, filters);
 		validateHttpMethod(method, HttpMethods.POST);
 
-		if (folderId != null && !folder.getParentFolderId().equals(folderId)) {
+		if (folderId != null && (folder.getParentFolderId() == null || !folder.getParentFolderId().equals(folderId))) {
 			throw new ParametersMustMatchException("folderId", "folder.parentFolderId");
 		}
 
