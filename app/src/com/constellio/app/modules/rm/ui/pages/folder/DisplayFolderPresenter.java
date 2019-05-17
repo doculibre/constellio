@@ -52,6 +52,7 @@ import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
+import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Record;
@@ -67,6 +68,9 @@ import com.constellio.model.entities.structures.EmailAddress;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.contents.ContentFactory;
+import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.contents.ContentManager.UploadOptions;
+import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.contents.icap.IcapException;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
@@ -74,6 +78,7 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.StatusFilter;
+import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.FunctionLogicalSearchQuerySort;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
@@ -112,6 +117,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	private MetadataSchemaToVOBuilder schemaVOBuilder = new MetadataSchemaToVOBuilder();
 	private FolderToVOBuilder folderVOBuilder;
 	private DocumentToVOBuilder documentVOBuilder;
+	private List<String> documentsTitle;
 
 	private FolderVO folderVO;
 
@@ -123,6 +129,9 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	private transient ModelLayerCollectionExtensions extensions;
 	private transient RMModuleExtensions rmModuleExtensions;
 	private transient ConstellioEIMConfigs eimConfigs;
+	boolean hasNewContentBeenUploaded = false;
+	LocalDateTime lastUploadTime;
+	LocalDateTime lastDocumentTableRefresh;
 
 	Boolean allItemsSelected = false;
 
@@ -751,19 +760,28 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	private boolean documentExists(String fileName) {
-		Record record = getRecord(folderVO.getId());
+		List<String> allDocumentTitles = getAllDocumentTitles();
+		return allDocumentTitles.contains(fileName);
+	}
 
-		MetadataSchemaType documentsSchemaType = getDocumentsSchemaType();
-		MetadataSchema documentsSchema = getDocumentsSchema();
-		Metadata folderMetadata = documentsSchema.getMetadata(Document.FOLDER);
-		Metadata titleMetadata = documentsSchema.getMetadata(Schemas.TITLE.getCode());
-		LogicalSearchQuery query = new LogicalSearchQuery();
-		LogicalSearchCondition parentCondition = from(documentsSchemaType).where(folderMetadata).is(record)
-				.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull();
-		query.setCondition(parentCondition.andWhere(titleMetadata).is(fileName));
+	private List<String> getAllDocumentTitles() {
+		if(documentsTitle != null) {
+			return documentsTitle;
+		} else {
+			//TODO replace with SearchServices.stream in Constellio 9.0
+			documentsTitle = new ArrayList<>();
+			RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+			LogicalSearchQuery query = new LogicalSearchQuery()
+					.setCondition(from(rm.document.schemaType()).where(rm.document.folder()).is(folderVO.getId()))
+					.filteredByStatus(StatusFilter.ACTIVES)
+					.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(Schemas.TITLE));
 
-		SearchServices searchServices = modelLayerFactory.newSearchServices();
-		return searchServices.query(query).getNumFound() > 0;
+			List<Record> documents = modelLayerFactory.newSearchServices().search(query);
+			for(Record document: documents) {
+				documentsTitle.add(document.getId());
+			}
+			return documentsTitle;
+		}
 	}
 
 	private Record currentFolder() {
@@ -779,10 +797,10 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 					RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 					LogicalSearchQuery duplicateDocumentsQuery = new LogicalSearchQuery()
 							.setCondition(LogicalSearchQueryOperators.from(rm.documentSchemaType())
-									.where(rm.document.content()).is(ContentFactory.isHash(uploadedContentVO.getDuplicatedHash()))
-									.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()
-							)
-							.filteredWithUser(getCurrentUser());
+									.where(rm.document.contentHashes()).isEqualTo(uploadedContentVO.getDuplicatedHash())
+							).filteredByStatus(StatusFilter.ACTIVES)
+							.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(Schemas.IDENTIFIER, Schemas.TITLE))
+							.setNumberOfRows(100).filteredWithUser(getCurrentUser());
 					List<Document> duplicateDocuments = rm.searchDocuments(duplicateDocumentsQuery);
 					if (duplicateDocuments.size() > 0) {
 						StringBuilder message = new StringBuilder(
@@ -794,35 +812,39 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 							message.append(": ");
 							message.append(generateDisplayLink(document));
 						}
-						view.showClickableMessage(message.toString());
 					}
 				}
 				uploadedContentVO.setMajorVersion(true);
-				Record newRecord;
+				Document document;
 				if (rmSchemasRecordsServices().isEmail(fileName)) {
 					InputStreamProvider inputStreamProvider = uploadedContentVO.getInputStreamProvider();
 					InputStream in = inputStreamProvider.getInputStream(DisplayFolderPresenter.class + ".contentVersionUploaded");
-					Document document = rmSchemasRecordsServices.newEmail(fileName, in);
-					newRecord = document.getWrappedRecord();
+					document = rmSchemasRecordsServices.newEmail(fileName, in);
 				} else {
-					Document document = rmSchemasRecordsServices.newDocument();
-					newRecord = document.getWrappedRecord();
+					document = rmSchemasRecordsServices.newDocument();
 				}
-				DocumentVO documentVO = documentVOBuilder.build(newRecord, VIEW_MODE.FORM, view.getSessionContext());
-				documentVO.setFolder(folderVO);
-				documentVO.setTitle(fileName);
-				documentVO.setContent(uploadedContentVO);
+				document.setFolder(folderVO.getId());
+				document.setTitle(fileName);
+				InputStream inputStream = null;
+				ContentVersionDataSummary contentVersionDataSummary;
+				try {
+					inputStream = uploadedContentVO.getInputStreamProvider().getInputStream("SchemaPresenterUtils-VersionInputStream");
+					UploadOptions options = new UploadOptions().setFileName(fileName);
+					ContentManager.ContentVersionDataSummaryResponse uploadResponse = uploadContent(inputStream, options);
+					contentVersionDataSummary = uploadResponse.getContentVersionDataSummary();
+					document.setContent(appLayerFactory.getModelLayerFactory().getContentManager().createMajor(getCurrentUser(), fileName, contentVersionDataSummary));
+					Transaction transaction = new Transaction();
+					transaction.add(document);
+					transaction.setUser(getCurrentUser());
+					appLayerFactory.getModelLayerFactory().newRecordServices().executeWithoutImpactHandling(transaction);
+					documentsTitle.add(document.getTitle());
+				} finally {
+					IOServices ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();
+					ioServices.closeQuietly(inputStream);
+				}
 
-				String schemaCode = newRecord.getSchemaCode();
-				ConstellioFactories constellioFactories = view.getConstellioFactories();
-				SessionContext sessionContext = view.getSessionContext();
-				SchemaPresenterUtils documentPresenterUtils = new SchemaPresenterUtils(schemaCode, constellioFactories,
-						sessionContext);
-				newRecord = documentPresenterUtils.toRecord(documentVO);
-
-				documentPresenterUtils.addOrUpdate(newRecord);
-				documentsDataProvider.fireDataRefreshEvent();
-				view.refreshFolderContentTab();
+				hasNewContentBeenUploaded = true;
+				lastUploadTime = TimeProvider.getLocalDateTime();
 				//				view.selectFolderContentTab();
 			} catch (final IcapException e) {
 				view.showErrorMessage(e.getMessage());
@@ -1209,5 +1231,28 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 	public boolean isNeedingAReasonToDeleteFolder() {
 		return new RMConfigs(modelLayerFactory.getSystemConfigurationsManager()).isNeedingAReasonBeforeDeletingFolders();
+	}
+
+	public boolean shouldRefreshContentTable() {
+		if(hasNewContentBeenUploaded) {
+			lastUploadTime = lastUploadTime == null ? TimeProvider.getLocalDateTime() : lastUploadTime;
+			lastDocumentTableRefresh = lastDocumentTableRefresh == null ? TimeProvider.getLocalDateTime() : lastDocumentTableRefresh;
+			boolean hasBeenAlongTimeSinceLastUpload = ((TimeProvider.getLocalDateTime().getMillisOfDay() - lastUploadTime.getMillisOfDay()) >= 1000);
+			boolean hasBeenAlongTimeSinceLastDocumentTableRefresh = ((TimeProvider.getLocalDateTime().getMillisOfDay() - lastDocumentTableRefresh.getMillisOfDay()) >= 5000);
+			if(hasBeenAlongTimeSinceLastUpload || hasBeenAlongTimeSinceLastDocumentTableRefresh) {
+				return true;
+			} else {
+				//TODO show loading icon
+			}
+		}
+		return false;
+	}
+
+	public void refreshDocuments() {
+		documentsDataProvider.fireDataRefreshEvent();
+		view.refreshFolderContentTab();
+		hasNewContentBeenUploaded = false;
+		lastUploadTime = null;
+		lastDocumentTableRefresh = TimeProvider.getLocalDateTime();
 	}
 }
