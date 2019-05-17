@@ -793,6 +793,7 @@ public class ContentManager implements StatefulService {
 		String filename = content.getCurrentVersion().getFilename();
 		String mimeType = content.getCurrentVersion().getMimetype();
 		ContentDao contentDao = getContentDao();
+		boolean executedWithoutErrors = true;
 
 		if (!contentDao.isDocumentExisting(hash + ".preview")) {
 			try (InputStream inputStream = contentDao.getContentInputStream(hash, READ_CONTENT_FOR_PREVIEW_CONVERSION)) {
@@ -803,7 +804,7 @@ public class ContentManager implements StatefulService {
 				contentDao.moveFileToVault(pdfPreviewFile, hash + ".preview");
 			} catch (Throwable t) {
 				LOGGER.warn("Cannot generate preview for content '" + filename + "' with hash '" + hash + "'", t);
-				return false;
+				executedWithoutErrors = false;
 			}
 		}
 
@@ -818,7 +819,7 @@ public class ContentManager implements StatefulService {
 					LOGGER.info("Generated a JPEG conversion for content '" + filename + "' with hash '" + hash + "'");
 				} catch (Throwable t) {
 					LOGGER.warn("Cannot generate JPEG conversion for content '" + filename + "' with hash '" + hash + "'", t);
-					return false;
+					executedWithoutErrors = false;
 				}
 			}
 		}
@@ -830,10 +831,10 @@ public class ContentManager implements StatefulService {
 				LOGGER.info("Generated a thumbnail for content '" + filename + "' with hash '" + hash + "'");
 			} catch (Throwable t) {
 				LOGGER.warn("Cannot generate thumbnail for content '" + filename + "' with hash '" + hash + "'", t);
-				return false;
+				executedWithoutErrors = false;
 			}
 		}
-		return true;
+		return executedWithoutErrors;
 	}
 
 	private void generateThumbnail(ContentDao contentDao, String hash, String mimeType, String filename,

@@ -66,15 +66,15 @@ public class DocumentTypeTextInputDataProvider extends RecordTextInputDataProvid
 		List<String> newDocumentTypes = new ArrayList<>();
 		if (folderId != null) {
 			RetentionRule retentionRule = rm.getRetentionRule(rm.getFolder(folderId).getRetentionRule());
-			List<String> documentTypes = retentionRule.getDocumentTypes();
-			if (currentType != null && !documentTypes.contains(currentType)) {
+			List<String> ruleDocumentTypes = retentionRule.getDocumentTypes();
+			if (currentType != null && !ruleDocumentTypes.contains(currentType)) {
 				newDocumentTypes.add(currentType);
 			}
-			newDocumentTypes.addAll(documentTypes);
+			newDocumentTypes.addAll(ruleDocumentTypes);
 			if (rmConfigs.getDocumentsTypesChoice()
 				== DocumentsTypeChoice.FORCE_LIMIT_TO_SAME_DOCUMENTS_TYPES_OF_RETENTION_RULES
 				|| (rmConfigs.getDocumentsTypesChoice()
-					== DocumentsTypeChoice.LIMIT_TO_SAME_DOCUMENTS_TYPES_OF_RETENTION_RULES && !newDocumentTypes.isEmpty())) {
+					== DocumentsTypeChoice.LIMIT_TO_SAME_DOCUMENTS_TYPES_OF_RETENTION_RULES && !ruleDocumentTypes.isEmpty())) {
 				condition = condition.andWhere(Schemas.IDENTIFIER).isIn(newDocumentTypes);
 			}
 		}
