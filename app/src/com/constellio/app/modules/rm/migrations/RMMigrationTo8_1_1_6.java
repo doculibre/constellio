@@ -23,6 +23,7 @@ public class RMMigrationTo8_1_1_6 extends MigrationHelper implements MigrationSc
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
 						AppLayerFactory appLayerFactory) throws Exception {
 		new SchemaAlterationFor8_1_1_6(collection, migrationResourcesProvider, appLayerFactory).migrate();
+		appLayerFactory.getSystemGlobalConfigsManager().setReindexingRequired(true);
 	}
 
 	class SchemaAlterationFor8_1_1_6 extends MetadataSchemasAlterationHelper {
