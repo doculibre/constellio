@@ -2,13 +2,17 @@ package com.constellio.model.services.records.cache2;
 
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
-import com.constellio.data.utils.Holder;
+import com.constellio.app.modules.rm.wrappers.structures.Comment;
+import com.constellio.app.modules.rm.wrappers.structures.CommentFactory;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.security.global.UserCredential;
+import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.records.RecordImpl;
@@ -16,15 +20,16 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
-import com.constellio.sdk.tests.setups.Users;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.junit.After;
 import org.junit.Test;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -42,12 +47,21 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 	TestsSchemasSetup.ZeSchemaMetadatas zeSchema = setup.new ZeSchemaMetadatas();
 	TestsSchemasSetup.AnotherSchemaMetadatas anotherSchema = setup.new AnotherSchemaMetadatas();
 
+	User john;
+
 	MetadataSchemasManager schemasManager;
 	RecordServices recordServices;
 	ReindexingServices reindexingServices;
 	ContentManager contentManager;
 
 	private void init() {
+		UserServices userServices = getModelLayerFactory().newUserServices();
+		UserCredential adminCredential = userServices.createUserCredential("mrlabatt50", "John", "Labatt", "ti-joe@brewerie.com",
+				new ArrayList<String>(), asList(zeCollection), UserCredentialStatus.ACTIVE).setSystemAdminEnabled();
+		userServices.addUpdateUserCredential(adminCredential);
+		userServices.addUserToCollection(adminCredential, zeCollection);
+		john = userServices.getUserRecordInCollection("mrlabatt50", zeCollection);
+
 		schemasManager = getModelLayerFactory().getMetadataSchemasManager();
 		recordServices = getModelLayerFactory().newRecordServices();
 		reindexingServices = getModelLayerFactory().newReindexingServices();
@@ -74,6 +88,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 				.withADateMetadata()
 				.withAContentMetadata()
 				.withALargeTextMetadata()
+//				.withAStructureMetadata()
 				.withADateTimeMetadata());
 
 		init();
@@ -104,6 +119,15 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 			types.getSchema(anotherSchema.code())
 					.create("contentMetadata")
 					.setType(MetadataValueType.CONTENT);
+			types.getSchema(anotherSchema.code())
+					.create("structureMetadata")
+					.setType(MetadataValueType.STRUCTURE)
+					.defineStructureFactory(CommentFactory.class);
+
+			types.getSchema(zeSchema.code())
+					.create("structMetadata")
+					.setType(MetadataValueType.STRUCTURE)
+					.defineStructureFactory(CommentFactory.class);
 		});
 
 		LocalDate date = new LocalDate();
@@ -112,6 +136,13 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 		File file = newTempFileWithContent("content.txt", "This is what a content file of type content contains. Content ?");
 		ContentVersionDataSummary versionDataSummary = contentManager.upload(file);
 		Content content = contentManager.createSystemContent(file.getName(), versionDataSummary);
+
+		Comment comment = new Comment("Well hello there !", john, dateTime);
+		String commentToString = new CommentFactory().toString(comment);
+
+		MetadataSchemaTypes schemaTypes = schemasManager.getSchemaTypes(zeCollection);
+		MetadataSchema anotherSchemaType = schemaTypes.getSchema(anotherSchema.code());
+		MetadataSchema zeSchemaType = schemaTypes.getSchema(zeSchema.code());
 
 		RecordImpl record1 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance())
 				.set(Schemas.TITLE, "Le village des Schtroumpfs")
@@ -129,6 +160,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 												   "pariatur. Excepteur sint occaecat cupidatat non proident, sunt in " +
 												   "culpa qui officia deserunt mollit anim id est laborum.")
 				.set(zeSchema.contentMetadata(), content)
+				.set(zeSchemaType.getMetadata("structMetadata"), comment)
 				.set(zeSchema.dateTimeMetadata(), dateTime);
 
 		RecordImpl record2 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance(), "recordMondial")
@@ -140,6 +172,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 				.set(zeSchema.numberMetadata(), 0d)
 				.set(zeSchema.dateMetadata(), date.plusMonths(2))
 				.set(zeSchema.largeTextMetadata(), "")
+				.set(zeSchemaType.getMetadata("structMetadata"), comment)
 				.set(zeSchema.contentMetadata(), null)
 				.set(zeSchema.enumMetadata(), FolderStatus.SEMI_ACTIVE);
 
@@ -152,6 +185,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 				.set(zeSchema.enumMetadata(), null)
 				.set(Schemas.TITLE, " Blue litte man ")
 				.set(zeSchema.largeTextMetadata(), " ")
+				.set(zeSchemaType.getMetadata("structMetadata"), null)
 				.set(zeSchema.dateTimeMetadata(), dateTime.plusDays(300));
 
 		RecordImpl record4 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance(), "Gargamel")
@@ -161,13 +195,11 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 				.set(zeSchema.numberMetadata(), null)
 				.set(zeSchema.parentReferenceFromZeSchemaToZeSchema(), record3.getId())
 				.set(Schemas.TITLE, "Maison Champignon ")
+				.set(zeSchemaType.getMetadata("structMetadata"), null)
 				.set(zeSchema.enumMetadata(), FolderStatus.INACTIVE_DESTROYED)
 				.set(zeSchema.largeTextMetadata(), null)
 				.set(zeSchema.contentMetadata(), content)
 				.set(zeSchema.dateTimeMetadata(), null);
-
-		MetadataSchemaTypes schemaTypes = schemasManager.getSchemaTypes(zeCollection);
-		MetadataSchema anotherSchemaType = schemaTypes.getSchema(anotherSchema.code());
 
 		RecordImpl record5 = (RecordImpl) recordServices.newRecordWithSchema(anotherSchema.instance())
 				.set(Schemas.TITLE, "I'm blue da ba de da ba da")
@@ -179,6 +211,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 				.set(anotherSchemaType.getMetadata("dateTimeMetadata"), null)
 				.set(anotherSchemaType.getMetadata("textMetadata"), " ")
 				.set(anotherSchemaType.getMetadata("contentMetadata"), null)
+				.set(anotherSchemaType.getMetadata("structureMetadata"), comment)
 				.set(anotherSchemaType.getMetadata("integerMetadata"), null);
 
 		RecordImpl record6 = (RecordImpl) recordServices.newRecordWithSchema(anotherSchema.instance(), "Azrael")
@@ -191,6 +224,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 				.set(anotherSchemaType.getMetadata("dateTimeMetadata"), dateTime)
 				.set(anotherSchemaType.getMetadata("textMetadata"), "")
 				.set(anotherSchemaType.getMetadata("contentMetadata"), content)
+				.set(anotherSchemaType.getMetadata("structureMetadata"), null)
 				.set(anotherSchemaType.getMetadata("integerMetadata"), 0);
 
 		RecordImpl record7 = (RecordImpl) recordServices.newRecordWithSchema(anotherSchema.instance(), "GrandSchtroumpfs")
@@ -206,6 +240,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 																	"reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla " +
 																	"pariatur.")
 				.set(anotherSchemaType.getMetadata("contentMetadata"), content)
+				.set(anotherSchemaType.getMetadata("structureMetadata"), null)
 				.set(anotherSchemaType.getMetadata("booleanMetadata"), false);
 
 		RecordImpl record8 = (RecordImpl) recordServices.newRecordWithSchema(anotherSchema.instance(), "SchtroumpfsGrognon")
@@ -217,6 +252,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 				.set(anotherSchemaType.getMetadata("dateTimeMetadata"), dateTime.minusYears(21))
 				.set(anotherSchemaType.getMetadata("enumMetadata"), CopyType.SECONDARY)
 				.set(anotherSchemaType.getMetadata("textMetadata"), null)
+				.set(anotherSchemaType.getMetadata("structureMetadata"), comment)
 				.set(Schemas.TITLE, null);
 
 		recordServices.execute(new Transaction(record1, record2, record3, record4, record5, record6, record7, record8));
@@ -247,6 +283,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 		assertThat(dto1.get(zeSchema.dateTimeMetadata().getDataStoreCode())).isEqualTo(dateTime);
 		assertThat(dto1.get(zeSchema.contentMetadata().getDataStoreCode()))
 				.isEqualTo(record1.getRecordDTO().getFields().get(zeSchema.contentMetadata().getDataStoreCode()));
+		assertThat(dto1.get(zeSchemaType.getMetadata("structMetadata").getDataStoreCode())).isEqualTo(commentToString);
 
 		assertThat(dto2.get(Schemas.TITLE.getDataStoreCode())).isEqualTo(null);
 		assertThat(dto2.get(zeSchema.booleanMetadata().getDataStoreCode())).isEqualTo(false);
@@ -258,6 +295,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 		assertThat(dto2.get(zeSchema.dateTimeMetadata().getDataStoreCode())).isEqualTo(dateTime.minusWeeks(13));
 		assertThat(dto2.get(zeSchema.largeTextMetadata().getDataStoreCode())).isEqualTo(null);
 		assertThat(dto2.get(zeSchema.contentMetadata().getDataStoreCode())).isEqualTo(null);
+		assertThat(dto2.get(zeSchemaType.getMetadata("structMetadata").getDataStoreCode())).isEqualTo(commentToString);
 
 		assertThat(dto3.get(Schemas.TITLE.getDataStoreCode())).isEqualTo(" Blue litte man ");
 		assertThat(dto3.get(zeSchema.booleanMetadata().getDataStoreCode())).isEqualTo(null);
@@ -269,6 +307,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 		assertThat(dto3.get(zeSchema.dateTimeMetadata().getDataStoreCode())).isEqualTo(dateTime.plusDays(300));
 		assertThat(dto3.get(zeSchema.largeTextMetadata().getDataStoreCode())).isEqualTo(" ");
 		assertThat(dto3.get(zeSchema.contentMetadata().getDataStoreCode())).isEqualTo(null);
+		assertThat(dto3.get(zeSchemaType.getMetadata("structMetadata").getDataStoreCode())).isEqualTo(null);
 
 		assertThat(dto4.get(Schemas.TITLE.getDataStoreCode())).isEqualTo("Maison Champignon ");
 		assertThat(dto4.get(zeSchema.booleanMetadata().getDataStoreCode())).isEqualTo(true);
@@ -281,6 +320,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 		assertThat(dto4.get(zeSchema.largeTextMetadata().getDataStoreCode())).isEqualTo(null);
 		assertThat(dto4.get(zeSchema.contentMetadata().getDataStoreCode()))
 				.isEqualTo(record4.getRecordDTO().getFields().get(zeSchema.contentMetadata().getDataStoreCode()));
+		assertThat(dto4.get(zeSchemaType.getMetadata("structMetadata").getDataStoreCode())).isEqualTo(null);
 
 		assertThat(dto5.get(Schemas.TITLE.getDataStoreCode())).isEqualTo("I'm blue da ba de da ba da");
 		assertThat(dto5.get(anotherSchemaType.getMetadata("booleanMetadata").getDataStoreCode())).isEqualTo(true);
@@ -292,6 +332,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 		assertThat(dto5.get(anotherSchemaType.getMetadata("dateTimeMetadata").getDataStoreCode())).isEqualTo(null);
 		assertThat(dto5.get(anotherSchemaType.getMetadata("textMetadata").getDataStoreCode())).isEqualTo(" ");
 		assertThat(dto5.get(anotherSchemaType.getMetadata("contentMetadata").getDataStoreCode())).isEqualTo(null);
+		assertThat(dto5.get(anotherSchemaType.getMetadata("structureMetadata").getDataStoreCode())).isEqualTo(commentToString);
 
 		assertThat(dto6.get(Schemas.TITLE.getDataStoreCode())).isEqualTo(" Nom d'un Schtroumpfs!");
 		assertThat(dto6.get(anotherSchemaType.getMetadata("booleanMetadata").getDataStoreCode())).isEqualTo(null);
@@ -304,6 +345,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 		assertThat(dto6.get(anotherSchemaType.getMetadata("textMetadata").getDataStoreCode())).isEqualTo(null);
 		assertThat(dto6.get(anotherSchemaType.getMetadata("contentMetadata").getDataStoreCode()))
 				.isEqualTo(record6.getRecordDTO().getFields().get(anotherSchemaType.getMetadata("contentMetadata").getDataStoreCode()));
+		assertThat(dto6.get(anotherSchemaType.getMetadata("structureMetadata").getDataStoreCode())).isEqualTo(null);
 
 		// if the title is null and the content is not null the title is set to the file name of content
 		assertThat(dto7.get(Schemas.TITLE.getDataStoreCode())).isEqualTo(file.getName());
@@ -320,6 +362,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 																										 "pariatur.");
 		assertThat(dto7.get(anotherSchemaType.getMetadata("contentMetadata").getDataStoreCode()))
 				.isEqualTo(record7.getRecordDTO().getFields().get(anotherSchemaType.getMetadata("contentMetadata").getDataStoreCode()));
+		assertThat(dto7.get(anotherSchemaType.getMetadata("structureMetadata").getDataStoreCode())).isEqualTo(null);
 
 		assertThat(dto8.get(Schemas.TITLE.getDataStoreCode())).isEqualTo(null);
 		assertThat(dto8.get(anotherSchemaType.getMetadata("booleanMetadata").getDataStoreCode())).isEqualTo(true);
@@ -331,7 +374,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 		assertThat(dto8.get(anotherSchemaType.getMetadata("dateTimeMetadata").getDataStoreCode())).isEqualTo(dateTime.minusYears(21));
 		assertThat(dto8.get(anotherSchemaType.getMetadata("textMetadata").getDataStoreCode())).isEqualTo(null);
 		assertThat(dto8.get(anotherSchemaType.getMetadata("contentMetadata").getDataStoreCode())).isEqualTo(null);
-
+		assertThat(dto8.get(anotherSchemaType.getMetadata("structureMetadata").getDataStoreCode())).isEqualTo(commentToString);
 	}
 
 	@Test
@@ -384,6 +427,17 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 					.create("contentMetadata")
 					.setType(MetadataValueType.CONTENT)
 					.setMultivalue(true);
+			types.getSchema(anotherSchema.code())
+					.create("structureMetadata")
+					.setType(MetadataValueType.STRUCTURE)
+					.defineStructureFactory(CommentFactory.class)
+					.setMultivalue(true);
+
+			types.getSchema(zeSchema.code())
+					.create("structMetadata")
+					.setType(MetadataValueType.STRUCTURE)
+					.defineStructureFactory(CommentFactory.class)
+					.setMultivalue(true);
 		});
 
 		LocalDate date = new LocalDate();
@@ -392,10 +446,18 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 		File file1 = newTempFileWithContent("content.txt", "This is what a content file of type content contains. Content ?");
 		ContentVersionDataSummary versionDataSummary1 = contentManager.upload(file1);
 		Content content = contentManager.createSystemContent(file1.getName(), versionDataSummary1);
-
 		File file2 = newTempFileWithContent("no-content.txt", "Nothing to see here, move along");
 		ContentVersionDataSummary versionDataSummary2 = contentManager.upload(file2);
 		Content noContent = contentManager.createSystemContent(file2.getName(), versionDataSummary2);
+
+		Comment comment1 = new Comment("Hello there !", john, dateTime);
+		String comment1ToString = new CommentFactory().toString(comment1);
+		Comment comment2 = new Comment("General Kenobi !", john, dateTime.plusDays(23));
+		String comment2ToString = new CommentFactory().toString(comment2);
+
+		MetadataSchemaTypes schemaTypes = schemasManager.getSchemaTypes(zeCollection);
+		MetadataSchema anotherSchemaType = schemaTypes.getSchema(anotherSchema.code());
+		MetadataSchema zeSchemaType = schemaTypes.getSchema(zeSchema.code());
 
 		RecordImpl record1 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance())
 				.set(zeSchema.integerMetadata(), asList(0, 13, -40))
@@ -406,6 +468,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 				.set(zeSchema.booleanMetadata(), null)
 				.set(zeSchema.multivaluedLargeTextMetadata(), asList("Dance", "Play", "Pretend", "and I like to have fun, fun, fun"))
 				.set(zeSchema.contentMetadata(), asList(content, noContent))
+				.set(zeSchemaType.getMetadata("structMetadata"), asList(null, null))
 				.set(zeSchema.dateMetadata(), asList(date.minusYears(22).plusMonths(2).plusDays(10), null));
 
 		RecordImpl record2 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance(), "StoneColdSteveAustin")
@@ -415,6 +478,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 				.set(zeSchema.referenceMetadata(), asList(null, record1.getId()))
 				.set(zeSchema.dateMetadata(), asList(date, date.plusDays(3), date.plusDays(-100)))
 				.set(zeSchema.dateTimeMetadata(), asList(null, dateTime.plusHours(5), dateTime.minusYears(33)))
+				.set(zeSchemaType.getMetadata("structMetadata"), asList(comment2, comment1))
 				.set(zeSchema.multivaluedLargeTextMetadata(), asList("", "Luigi", null, "Waluigi", "Wario"))
 				.set(zeSchema.contentMetadata(), asList(noContent, content))
 				.set(zeSchema.booleanMetadata(), asList(true, false, true));
@@ -424,6 +488,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 				.set(zeSchema.integerMetadata(), asList(42, -13, 10))
 				.set(zeSchema.enumMetadata(), asList(CopyType.PRINCIPAL, CopyType.PRINCIPAL, CopyType.SECONDARY))
 				.set(zeSchema.dateMetadata(), null)
+				.set(zeSchemaType.getMetadata("structMetadata"), asList(comment1, comment2))
 				.set(zeSchema.referenceMetadata(), asList("StoneColdSteveAustin", record1.getId()))
 				.set(zeSchema.booleanMetadata(), asList(false, null, true))
 				.set(zeSchema.multivaluedLargeTextMetadata(), asList(null, null))
@@ -439,10 +504,8 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 				.set(zeSchema.enumMetadata(), asList(CopyType.PRINCIPAL, CopyType.PRINCIPAL, CopyType.SECONDARY))
 				.set(zeSchema.multivaluedLargeTextMetadata(), asList(" ", "Kawabonga", null, "Yiihi"))
 				.set(zeSchema.contentMetadata(), asList(content))
+				.set(zeSchemaType.getMetadata("structMetadata"), asList(null, comment1))
 				.set(zeSchema.dateTimeMetadata(), null);
-
-		MetadataSchemaTypes schemaTypes = schemasManager.getSchemaTypes(zeCollection);
-		MetadataSchema anotherSchemaType = schemaTypes.getSchema(anotherSchema.code());
 
 		RecordImpl record5 = (RecordImpl) recordServices.newRecordWithSchema(anotherSchema.instance(), "Tintin")
 				.set(anotherSchemaType.getMetadata("dateMetadata"), asList(date.minusWeeks(7), date))
@@ -453,6 +516,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 				.set(anotherSchemaType.getMetadata("integerMetadata"), null)
 				.set(anotherSchemaType.getMetadata("textMetadata"), null)
 				.set(anotherSchemaType.getMetadata("contentMetadata"), asList(content))
+				.set(anotherSchemaType.getMetadata("structureMetadata"), null)
 				.set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), asList(null, null, null, null));
 
 		RecordImpl record6 = (RecordImpl) recordServices.newRecordWithSchema(anotherSchema.instance(), "Milou")
@@ -461,6 +525,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 				.set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), asList(record4.getId(), "Undertaker"))
 				.set(anotherSchemaType.getMetadata("enumMetadata"), null)
 				.set(anotherSchemaType.getMetadata("dateMetadata"), asList(null, null, null))
+				.set(anotherSchemaType.getMetadata("structureMetadata"), asList(comment1, comment2))
 				.set(anotherSchemaType.getMetadata("integerMetadata"), asList(1, 2, 3))
 				.set(anotherSchemaType.getMetadata("textMetadata"), asList(null, null))
 				.set(anotherSchemaType.getMetadata("contentMetadata"), asList(noContent))
@@ -474,6 +539,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 				.set(anotherSchemaType.getMetadata("dateTimeMetadata"), asList(null, dateTime, dateTime.plusHours(4)))
 				.set(anotherSchemaType.getMetadata("enumMetadata"), asList(CopyType.SECONDARY, CopyType.PRINCIPAL))
 				.set(anotherSchemaType.getMetadata("textMetadata"), asList("A", "B", "C"))
+				.set(anotherSchemaType.getMetadata("structureMetadata"), asList(comment2))
 				.set(anotherSchemaType.getMetadata("contentMetadata"), asList(noContent, content))
 				.set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), null);
 
@@ -486,6 +552,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 				.set(anotherSchemaType.getMetadata("dateTimeMetadata"), asList(null, null, null))
 				.set(anotherSchemaType.getMetadata("textMetadata"), asList("", " ", " Batman "))
 				.set(anotherSchemaType.getMetadata("contentMetadata"), null)
+				.set(anotherSchemaType.getMetadata("structureMetadata"), null)
 				.set(anotherSchemaType.getMetadata("numberMetadata"), null);
 
 		recordServices.execute(new Transaction(record1, record2, record3, record4, record5, record6, record7, record8));
@@ -509,6 +576,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 		assertThat(dto1.get(zeSchema.multivaluedLargeTextMetadata().getDataStoreCode())).isEqualTo(asList("Dance", "Play", "Pretend", "and I like to have fun, fun, fun"));
 		assertThat(dto1.get(zeSchema.contentMetadata().getDataStoreCode()))
 				.isEqualTo(record1.getRecordDTO().getFields().get(zeSchema.contentMetadata().getDataStoreCode()));
+		assertThat(dto1.get(zeSchemaType.getMetadata("structMetadata").getDataStoreCode())).isEqualTo(asList());
 
 		assertThat(dto2.get(zeSchema.booleanMetadata().getDataStoreCode())).isEqualTo(asList(true, false, true));
 		assertThat(dto2.get(zeSchema.integerMetadata().getDataStoreCode())).isEqualTo(asList(619, 33, -244));
@@ -520,6 +588,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 		assertThat(dto2.get(zeSchema.multivaluedLargeTextMetadata().getDataStoreCode())).isEqualTo(asList("Luigi", null, "Waluigi", "Wario"));
 		assertThat(dto2.get(zeSchema.contentMetadata().getDataStoreCode()))
 				.isEqualTo(record2.getRecordDTO().getFields().get(zeSchema.contentMetadata().getDataStoreCode()));
+		assertThat(dto2.get(zeSchemaType.getMetadata("structMetadata").getDataStoreCode())).isEqualTo(asList(comment2ToString, comment1ToString));
 
 		assertThat(dto3.get(zeSchema.booleanMetadata().getDataStoreCode())).isEqualTo(asList(false, null, true));
 		assertThat(dto3.get(zeSchema.integerMetadata().getDataStoreCode())).isEqualTo(asList(42, -13, 10));
@@ -530,6 +599,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 		assertThat(dto3.get(zeSchema.enumMetadata().getDataStoreCode())).isEqualTo(asList(CopyType.PRINCIPAL.getCode(), CopyType.PRINCIPAL.getCode(), CopyType.SECONDARY.getCode()));
 		assertThat(dto3.get(zeSchema.multivaluedLargeTextMetadata().getDataStoreCode())).isEqualTo(asList());
 		assertThat(dto3.get(zeSchema.contentMetadata().getDataStoreCode())).isEqualTo(asList());
+		assertThat(dto3.get(zeSchemaType.getMetadata("structMetadata").getDataStoreCode())).isEqualTo(asList(comment1ToString, comment2ToString));
 
 		assertThat(dto4.get(zeSchema.booleanMetadata().getDataStoreCode())).isEqualTo(asList());
 		assertThat(dto4.get(zeSchema.integerMetadata().getDataStoreCode())).isEqualTo(asList());
@@ -541,6 +611,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 		assertThat(dto4.get(zeSchema.multivaluedLargeTextMetadata().getDataStoreCode())).isEqualTo(asList(" ", "Kawabonga", null, "Yiihi"));
 		assertThat(dto4.get(zeSchema.contentMetadata().getDataStoreCode()))
 				.isEqualTo(record4.getRecordDTO().getFields().get(zeSchema.contentMetadata().getDataStoreCode()));
+		assertThat(dto4.get(zeSchemaType.getMetadata("structMetadata").getDataStoreCode())).isEqualTo(asList(null, comment1ToString));
 
 		assertThat(dto5.get(anotherSchemaType.getMetadata("booleanMetadata").getDataStoreCode())).isEqualTo(asList(true, false, true));
 		assertThat(dto5.get(anotherSchemaType.getMetadata("integerMetadata").getDataStoreCode())).isEqualTo(asList());
@@ -552,6 +623,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 		assertThat(dto5.get(anotherSchemaType.getMetadata("textMetadata").getDataStoreCode())).isEqualTo(asList());
 		assertThat(dto5.get(anotherSchemaType.getMetadata("contentMetadata").getDataStoreCode()))
 				.isEqualTo(record5.getRecordDTO().getFields().get(anotherSchemaType.getMetadata("contentMetadata").getDataStoreCode()));
+		assertThat(dto5.get(anotherSchemaType.getMetadata("structureMetadata").getDataStoreCode())).isEqualTo(asList());
 
 		assertThat(dto6.get(anotherSchemaType.getMetadata("booleanMetadata").getDataStoreCode())).isEqualTo(asList(null, true, false));
 		assertThat(dto6.get(anotherSchemaType.getMetadata("integerMetadata").getDataStoreCode())).isEqualTo(asList(1, 2, 3));
@@ -563,6 +635,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 		assertThat(dto6.get(anotherSchemaType.getMetadata("textMetadata").getDataStoreCode())).isEqualTo(asList());
 		assertThat(dto6.get(anotherSchemaType.getMetadata("contentMetadata").getDataStoreCode()))
 				.isEqualTo(record6.getRecordDTO().getFields().get(anotherSchemaType.getMetadata("contentMetadata").getDataStoreCode()));
+		assertThat(dto6.get(anotherSchemaType.getMetadata("structureMetadata").getDataStoreCode())).isEqualTo(asList(comment1ToString, comment2ToString));
 
 		assertThat(dto7.get(anotherSchemaType.getMetadata("booleanMetadata").getDataStoreCode())).isEqualTo(asList());
 		assertThat(dto7.get(anotherSchemaType.getMetadata("integerMetadata").getDataStoreCode())).isEqualTo(asList(0, -700));
@@ -574,6 +647,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 		assertThat(dto7.get(anotherSchemaType.getMetadata("textMetadata").getDataStoreCode())).isEqualTo(asList("A", "B", "C"));
 		assertThat(dto7.get(anotherSchemaType.getMetadata("contentMetadata").getDataStoreCode()))
 				.isEqualTo(record7.getRecordDTO().getFields().get(anotherSchemaType.getMetadata("contentMetadata").getDataStoreCode()));
+		assertThat(dto7.get(anotherSchemaType.getMetadata("structureMetadata").getDataStoreCode())).isEqualTo(asList(comment2ToString));
 
 		assertThat(dto8.get(anotherSchemaType.getMetadata("booleanMetadata").getDataStoreCode())).isEqualTo(asList());
 		assertThat(dto8.get(anotherSchemaType.getMetadata("integerMetadata").getDataStoreCode())).isEqualTo(asList(6701));
@@ -584,6 +658,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 		assertThat(dto8.get(anotherSchemaType.getMetadata("enumMetadata").getDataStoreCode())).isEqualTo(asList(CopyType.SECONDARY.getCode()));
 		assertThat(dto8.get(anotherSchemaType.getMetadata("textMetadata").getDataStoreCode())).isEqualTo(asList(" ", " Batman "));
 		assertThat(dto8.get(anotherSchemaType.getMetadata("contentMetadata").getDataStoreCode())).isEqualTo(asList());
+		assertThat(dto8.get(anotherSchemaType.getMetadata("structureMetadata").getDataStoreCode())).isEqualTo(asList());
 	}
 
 	@Test
@@ -629,6 +704,15 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 			types.getSchema(anotherSchema.code())
 					.create("contentMetadata")
 					.setType(MetadataValueType.CONTENT);
+			types.getSchema(anotherSchema.code())
+					.create("structureMetadata")
+					.setType(MetadataValueType.STRUCTURE)
+					.defineStructureFactory(CommentFactory.class);
+
+			types.getSchema(zeSchema.code())
+					.create("structMetadata")
+					.setType(MetadataValueType.STRUCTURE)
+					.defineStructureFactory(CommentFactory.class);
 		});
 
 		LocalDate date = new LocalDate();
@@ -637,6 +721,12 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 		File file = newTempFileWithContent("content.txt", "This is what a content file of type content contains. Content ?");
 		ContentVersionDataSummary versionDataSummary = contentManager.upload(file);
 		Content content = contentManager.createSystemContent(file.getName(), versionDataSummary);
+
+		Comment comment = new Comment("Well hello there !", john, dateTime);
+
+		MetadataSchemaTypes schemaTypes = schemasManager.getSchemaTypes(zeCollection);
+		MetadataSchema anotherSchemaType = schemaTypes.getSchema(anotherSchema.code());
+		MetadataSchema zeSchemaType = schemaTypes.getSchema(zeSchema.code());
 
 		RecordImpl record1 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance())
 				.set(Schemas.TITLE, "Le village des Schtroumpfs")
@@ -654,6 +744,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 												   "pariatur. Excepteur sint occaecat cupidatat non proident, sunt in " +
 												   "culpa qui officia deserunt mollit anim id est laborum.")
 				.set(zeSchema.contentMetadata(), content)
+				.set(zeSchemaType.getMetadata("structMetadata"), comment)
 				.set(zeSchema.dateTimeMetadata(), dateTime);
 
 		RecordImpl record2 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance(), "recordMondial")
@@ -664,6 +755,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 				.set(zeSchema.dateTimeMetadata(), dateTime.minusWeeks(13))
 				.set(zeSchema.numberMetadata(), 0d)
 				.set(zeSchema.dateMetadata(), date.plusMonths(2))
+				.set(zeSchemaType.getMetadata("structMetadata"), comment)
 				.set(zeSchema.largeTextMetadata(), "")
 				.set(zeSchema.contentMetadata(), null)
 				.set(zeSchema.enumMetadata(), FolderStatus.SEMI_ACTIVE);
@@ -671,6 +763,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 		RecordImpl record3 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance())
 				.set(zeSchema.parentReferenceFromZeSchemaToZeSchema(), "recordMondial")
 				.set(zeSchema.booleanMetadata(), null)
+				.set(zeSchemaType.getMetadata("structMetadata"), null)
 				.set(zeSchema.integerMetadata(), -420)
 				.set(zeSchema.dateMetadata(), date.minusYears(60))
 				.set(zeSchema.numberMetadata(), 1337.12d)
@@ -681,6 +774,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 
 		RecordImpl record4 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance(), "Gargamel")
 				.set(zeSchema.dateMetadata(), null)
+				.set(zeSchemaType.getMetadata("structMetadata"), null)
 				.set(zeSchema.booleanMetadata(), true)
 				.set(zeSchema.integerMetadata(), null)
 				.set(zeSchema.numberMetadata(), null)
@@ -690,9 +784,6 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 				.set(zeSchema.largeTextMetadata(), null)
 				.set(zeSchema.contentMetadata(), content)
 				.set(zeSchema.dateTimeMetadata(), null);
-
-		MetadataSchemaTypes schemaTypes = schemasManager.getSchemaTypes(zeCollection);
-		MetadataSchema anotherSchemaType = schemaTypes.getSchema(anotherSchema.code());
 
 		RecordImpl record5 = (RecordImpl) recordServices.newRecordWithSchema(anotherSchema.instance())
 				.set(Schemas.TITLE, "I'm blue da ba de da ba da")
@@ -704,6 +795,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 				.set(anotherSchemaType.getMetadata("dateTimeMetadata"), null)
 				.set(anotherSchemaType.getMetadata("textMetadata"), " ")
 				.set(anotherSchemaType.getMetadata("contentMetadata"), null)
+				.set(anotherSchemaType.getMetadata("structureMetadata"), comment)
 				.set(anotherSchemaType.getMetadata("integerMetadata"), null);
 
 		RecordImpl record6 = (RecordImpl) recordServices.newRecordWithSchema(anotherSchema.instance(), "Azrael")
@@ -715,6 +807,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 				.set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), null)
 				.set(anotherSchemaType.getMetadata("dateTimeMetadata"), dateTime)
 				.set(anotherSchemaType.getMetadata("textMetadata"), "")
+				.set(anotherSchemaType.getMetadata("structureMetadata"), null)
 				.set(anotherSchemaType.getMetadata("contentMetadata"), content)
 				.set(anotherSchemaType.getMetadata("integerMetadata"), 0);
 
@@ -726,6 +819,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 				.set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), "Gargamel")
 				.set(anotherSchemaType.getMetadata("enumMetadata"), CopyType.SECONDARY)
 				.set(anotherSchemaType.getMetadata("dateMetadata"), null)
+				.set(anotherSchemaType.getMetadata("structureMetadata"), null)
 				.set(anotherSchemaType.getMetadata("textMetadata"), "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris " +
 																	"nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in " +
 																	"reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla " +
@@ -742,6 +836,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 				.set(anotherSchemaType.getMetadata("dateTimeMetadata"), dateTime.minusYears(21))
 				.set(anotherSchemaType.getMetadata("enumMetadata"), CopyType.SECONDARY)
 				.set(anotherSchemaType.getMetadata("textMetadata"), null)
+				.set(anotherSchemaType.getMetadata("structureMetadata"), comment)
 				.set(Schemas.TITLE, null);
 
 		recordServices.execute(new Transaction(record1, record2, record3, record4, record5, record6, record7, record8));
@@ -763,12 +858,14 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 				zeSchema.enumMetadata().getDataStoreCode(),
 				zeSchema.dateMetadata().getDataStoreCode(),
 				zeSchema.largeTextMetadata().getDataStoreCode(),
+				zeSchemaType.get("structMetadata").getDataStoreCode(),
 				zeSchema.dateTimeMetadata().getDataStoreCode());
 
 		assertThat(dto2.keySet()).contains(zeSchema.booleanMetadata().getDataStoreCode(),
 				zeSchema.numberMetadata().getDataStoreCode(),
 				zeSchema.enumMetadata().getDataStoreCode(),
 				zeSchema.parentReferenceFromZeSchemaToZeSchema().getDataStoreCode(),
+				zeSchemaType.get("structMetadata").getDataStoreCode(),
 				zeSchema.dateTimeMetadata().getDataStoreCode());
 
 		assertThat(dto3.keySet()).contains(zeSchema.integerMetadata().getDataStoreCode(),
@@ -789,6 +886,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 				anotherSchemaType.getMetadata("numberMetadata").getDataStoreCode(),
 				anotherSchema.referenceFromAnotherSchemaToZeSchema().getDataStoreCode(),
 				anotherSchemaType.getMetadata("textMetadata").getDataStoreCode(),
+				anotherSchemaType.getMetadata("structureMetadata").getDataStoreCode(),
 				anotherSchemaType.getMetadata("dateMetadata").getDataStoreCode());
 
 		assertThat(dto6.keySet()).contains(Schemas.TITLE.getDataStoreCode(),
@@ -813,6 +911,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 				anotherSchemaType.getMetadata("enumMetadata").getDataStoreCode(),
 				anotherSchema.referenceFromAnotherSchemaToZeSchema().getDataStoreCode(),
 				anotherSchemaType.getMetadata("dateMetadata").getDataStoreCode(),
+				anotherSchemaType.getMetadata("structureMetadata").getDataStoreCode(),
 				anotherSchemaType.getMetadata("dateTimeMetadata").getDataStoreCode());
 	}
 
@@ -866,6 +965,17 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 					.create("contentMetadata")
 					.setType(MetadataValueType.CONTENT)
 					.setMultivalue(true);
+			types.getSchema(anotherSchema.code())
+					.create("structureMetadata")
+					.setType(MetadataValueType.STRUCTURE)
+					.defineStructureFactory(CommentFactory.class)
+					.setMultivalue(true);
+
+			types.getSchema(zeSchema.code())
+					.create("structMetadata")
+					.setType(MetadataValueType.STRUCTURE)
+					.defineStructureFactory(CommentFactory.class)
+					.setMultivalue(true);
 		});
 
 		LocalDate date = new LocalDate();
@@ -874,10 +984,18 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 		File file1 = newTempFileWithContent("content.txt", "This is what a content file of type content contains. Content ?");
 		ContentVersionDataSummary versionDataSummary1 = contentManager.upload(file1);
 		Content content = contentManager.createSystemContent(file1.getName(), versionDataSummary1);
-
 		File file2 = newTempFileWithContent("no-content.txt", "Nothing to see here, move along");
 		ContentVersionDataSummary versionDataSummary2 = contentManager.upload(file2);
 		Content noContent = contentManager.createSystemContent(file2.getName(), versionDataSummary2);
+
+		Comment comment1 = new Comment("Hello there !", john, dateTime);
+		String comment1ToString = new CommentFactory().toString(comment1);
+		Comment comment2 = new Comment("General Kenobi !", john, dateTime.plusDays(23));
+		String comment2ToString = new CommentFactory().toString(comment2);
+
+		MetadataSchemaTypes schemaTypes = schemasManager.getSchemaTypes(zeCollection);
+		MetadataSchema anotherSchemaType = schemaTypes.getSchema(anotherSchema.code());
+		MetadataSchema zeSchemaType = schemaTypes.getSchema(zeSchema.code());
 
 		RecordImpl record1 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance())
 				.set(zeSchema.integerMetadata(), asList(0, 13, -40))
@@ -888,6 +1006,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 				.set(zeSchema.booleanMetadata(), null)
 				.set(zeSchema.multivaluedLargeTextMetadata(), asList("Dance", "Play", "Pretend", "and I like to have fun, fun, fun"))
 				.set(zeSchema.contentMetadata(), asList(content, noContent))
+				.set(zeSchemaType.getMetadata("structMetadata"), asList(null, null))
 				.set(zeSchema.dateMetadata(), asList(date.minusYears(22).plusMonths(2).plusDays(10), null));
 
 		RecordImpl record2 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance(), "StoneColdSteveAustin")
@@ -895,6 +1014,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 				.set(zeSchema.integerMetadata(), asList(619, 33, -244))
 				.set(zeSchema.enumMetadata(), asList(CopyType.PRINCIPAL, CopyType.PRINCIPAL, CopyType.SECONDARY))
 				.set(zeSchema.numberMetadata(), null)
+				.set(zeSchemaType.getMetadata("structMetadata"), asList(comment2, comment1))
 				.set(zeSchema.referenceMetadata(), asList(null, record1.getId()))
 				.set(zeSchema.dateMetadata(), asList(date, date.plusDays(3), date.plusDays(-100)))
 				.set(zeSchema.dateTimeMetadata(), asList(null, dateTime.plusHours(5), dateTime.minusYears(33)))
@@ -907,6 +1027,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 				.set(zeSchema.numberMetadata(), asList(420.69d, -40d, 0.0d))
 				.set(zeSchema.integerMetadata(), asList(42, -13, 10))
 				.set(zeSchema.enumMetadata(), asList(CopyType.PRINCIPAL, CopyType.PRINCIPAL, CopyType.SECONDARY))
+				.set(zeSchemaType.getMetadata("structMetadata"), asList(comment1, comment2))
 				.set(zeSchema.dateMetadata(), null)
 				.set(zeSchema.referenceMetadata(), asList("StoneColdSteveAustin", record1.getId()))
 				.set(zeSchema.booleanMetadata(), asList(false, null, true))
@@ -924,10 +1045,8 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 				.set(zeSchema.enumMetadata(), asList(CopyType.PRINCIPAL, CopyType.PRINCIPAL, CopyType.SECONDARY))
 				.set(zeSchema.multivaluedLargeTextMetadata(), asList(" ", "Kawabonga", null, "Yiihi"))
 				.set(zeSchema.contentMetadata(), asList(content))
+				.set(zeSchemaType.getMetadata("structMetadata"), asList(null, comment1))
 				.set(zeSchema.dateTimeMetadata(), null);
-
-		MetadataSchemaTypes schemaTypes = schemasManager.getSchemaTypes(zeCollection);
-		MetadataSchema anotherSchemaType = schemaTypes.getSchema(anotherSchema.code());
 
 		RecordImpl record5 = (RecordImpl) recordServices.newRecordWithSchema(anotherSchema.instance(), "Tintin")
 				.set(Schemas.TITLE, "JELLO")
@@ -937,6 +1056,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 				.set(anotherSchemaType.getMetadata("enumMetadata"), asList(CopyType.SECONDARY, CopyType.SECONDARY, CopyType.SECONDARY))
 				.set(anotherSchemaType.getMetadata("booleanMetadata"), asList(true, false, true))
 				.set(anotherSchemaType.getMetadata("integerMetadata"), null)
+				.set(anotherSchemaType.getMetadata("structureMetadata"), asList(comment1, comment2))
 				.set(anotherSchemaType.getMetadata("textMetadata"), null)
 				.set(anotherSchemaType.getMetadata("contentMetadata"), asList(content))
 				.set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), asList(null, null, null, null));
@@ -950,6 +1070,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 				.set(anotherSchemaType.getMetadata("dateMetadata"), asList(null, null, null))
 				.set(anotherSchemaType.getMetadata("integerMetadata"), asList(1, 2, 3))
 				.set(anotherSchemaType.getMetadata("textMetadata"), asList(null, null))
+				.set(anotherSchemaType.getMetadata("structureMetadata"), asList(comment1, comment2))
 				.set(anotherSchemaType.getMetadata("contentMetadata"), asList(noContent))
 				.set(anotherSchemaType.getMetadata("dateTimeMetadata"), asList(dateTime));
 
@@ -959,6 +1080,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 				.set(anotherSchemaType.getMetadata("numberMetadata"), asList(456d, -123d))
 				.set(anotherSchemaType.getMetadata("booleanMetadata"), asList(null, null))
 				.set(anotherSchemaType.getMetadata("dateTimeMetadata"), asList(null, dateTime, dateTime.plusHours(4)))
+				.set(anotherSchemaType.getMetadata("structureMetadata"), asList(comment2))
 				.set(anotherSchemaType.getMetadata("enumMetadata"), asList(CopyType.SECONDARY, CopyType.PRINCIPAL))
 				.set(anotherSchemaType.getMetadata("textMetadata"), asList("A", "B", "C"))
 				.set(anotherSchemaType.getMetadata("contentMetadata"), asList(noContent, content))
@@ -969,6 +1091,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 				.set(anotherSchemaType.getMetadata("integerMetadata"), asList(6701))
 				.set(anotherSchemaType.getMetadata("booleanMetadata"), null)
 				.set(anotherSchemaType.getMetadata("enumMetadata"), asList(CopyType.SECONDARY))
+				.set(anotherSchemaType.getMetadata("structureMetadata"), null)
 				.set(anotherSchemaType.getMetadata("dateMetadata"), asList(date, date.plusWeeks(52)))
 				.set(anotherSchemaType.getMetadata("dateTimeMetadata"), asList(null, null, null))
 				.set(anotherSchemaType.getMetadata("textMetadata"), asList("", " ", " Batman "))
@@ -1000,12 +1123,14 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 				asList(date, date.plusDays(3), date.plusDays(-100)),
 				asList(null, dateTime.plusHours(5), dateTime.minusYears(33)),
 				asList(null, record1.getId()),
+				asList(comment2ToString, comment1ToString),
 				asList("Luigi", null, "Waluigi", "Wario"),
 				asList(CopyType.PRINCIPAL.getCode(), CopyType.PRINCIPAL.getCode(), CopyType.SECONDARY.getCode()));
 
 		assertThat(dto3.values()).contains(asList(false, null, true),
 				"The cream of the crop",
 				asList(42, -13, 10),
+				asList(comment1ToString, comment2ToString),
 				asList(420.69d, -40d, 0.0d),
 				asList(dateTime, dateTime.plusHours(22), dateTime.minusYears(100)),
 				asList("StoneColdSteveAustin", record1.getId()),
@@ -1016,6 +1141,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 				" ",
 				asList("Undertaker", null),
 				asList(" ", "Kawabonga", null, "Yiihi"),
+				asList(null, comment1ToString),
 				asList(CopyType.PRINCIPAL.getCode(), CopyType.PRINCIPAL.getCode(), CopyType.SECONDARY.getCode()));
 
 		assertThat(dto5.values()).contains(asList(true, false, true),
@@ -1030,6 +1156,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 				record6.getRecordDTO().getFields().get(anotherSchemaType.getMetadata("contentMetadata").getDataStoreCode()),
 				" Bee yourself zzzZZZ ",
 				asList(1, 2, 3),
+				asList(comment1ToString, comment2ToString),
 				asList(4600d),
 				asList(record4.getId(), "Undertaker"));
 
@@ -1038,6 +1165,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 				asList(456d, -123d),
 				asList(null, dateTime, dateTime.plusHours(4)),
 				asList("A", "B", "C"),
+				asList(comment2ToString),
 				asList(CopyType.SECONDARY.getCode(), CopyType.PRINCIPAL.getCode()));
 
 		assertThat(dto8.values()).contains(asList(6701),
@@ -1211,6 +1339,15 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 			types.getSchema(anotherSchema.code())
 					.create("contentMetadata")
 					.setType(MetadataValueType.CONTENT);
+			types.getSchema(anotherSchema.code())
+					.create("structureMetadata")
+					.setType(MetadataValueType.STRUCTURE)
+					.defineStructureFactory(CommentFactory.class);
+
+			types.getSchema(zeSchema.code())
+					.create("structMetadata")
+					.setType(MetadataValueType.STRUCTURE)
+					.defineStructureFactory(CommentFactory.class);
 		});
 
 		LocalDate date = new LocalDate();
@@ -1219,6 +1356,13 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 		File file = newTempFileWithContent("content.txt", "This is what a content file of type content contains. Content ?");
 		ContentVersionDataSummary versionDataSummary = contentManager.upload(file);
 		Content content = contentManager.createSystemContent(file.getName(), versionDataSummary);
+
+		Comment comment = new Comment("Well hello there !", john, dateTime);
+		String commentToString = new CommentFactory().toString(comment);
+
+		MetadataSchemaTypes schemaTypes = schemasManager.getSchemaTypes(zeCollection);
+		MetadataSchema anotherSchemaType = schemaTypes.getSchema(anotherSchema.code());
+		MetadataSchema zeSchemaType = schemaTypes.getSchema(zeSchema.code());
 
 		RecordImpl record1 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance())
 				.set(Schemas.TITLE, "Le village des Schtroumpfs")
@@ -1236,6 +1380,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 												   "pariatur. Excepteur sint occaecat cupidatat non proident, sunt in " +
 												   "culpa qui officia deserunt mollit anim id est laborum.")
 				.set(zeSchema.contentMetadata(), content)
+				.set(zeSchemaType.getMetadata("structMetadata"), comment)
 				.set(zeSchema.dateTimeMetadata(), dateTime);
 
 		RecordImpl record2 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance(), "recordMondial")
@@ -1248,6 +1393,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 				.set(zeSchema.dateMetadata(), date.plusMonths(2))
 				.set(zeSchema.largeTextMetadata(), "")
 				.set(zeSchema.contentMetadata(), null)
+				.set(zeSchemaType.getMetadata("structMetadata"), comment)
 				.set(zeSchema.enumMetadata(), FolderStatus.SEMI_ACTIVE);
 
 		RecordImpl record3 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance())
@@ -1255,6 +1401,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 				.set(zeSchema.booleanMetadata(), null)
 				.set(zeSchema.integerMetadata(), -420)
 				.set(zeSchema.dateMetadata(), date.minusYears(60))
+				.set(zeSchemaType.getMetadata("structMetadata"), null)
 				.set(zeSchema.numberMetadata(), 1337.12d)
 				.set(zeSchema.enumMetadata(), null)
 				.set(Schemas.TITLE, " Blue litte man ")
@@ -1264,6 +1411,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 		RecordImpl record4 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance(), "Gargamel")
 				.set(zeSchema.dateMetadata(), null)
 				.set(zeSchema.booleanMetadata(), true)
+				.set(zeSchemaType.getMetadata("structMetadata"), null)
 				.set(zeSchema.integerMetadata(), null)
 				.set(zeSchema.numberMetadata(), null)
 				.set(zeSchema.parentReferenceFromZeSchemaToZeSchema(), record3.getId())
@@ -1272,9 +1420,6 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 				.set(zeSchema.largeTextMetadata(), null)
 				.set(zeSchema.contentMetadata(), content)
 				.set(zeSchema.dateTimeMetadata(), null);
-
-		MetadataSchemaTypes schemaTypes = schemasManager.getSchemaTypes(zeCollection);
-		MetadataSchema anotherSchemaType = schemaTypes.getSchema(anotherSchema.code());
 
 		RecordImpl record5 = (RecordImpl) recordServices.newRecordWithSchema(anotherSchema.instance())
 				.set(Schemas.TITLE, "I'm blue da ba de da ba da")
@@ -1286,11 +1431,13 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 				.set(anotherSchemaType.getMetadata("dateTimeMetadata"), null)
 				.set(anotherSchemaType.getMetadata("textMetadata"), " ")
 				.set(anotherSchemaType.getMetadata("contentMetadata"), null)
+				.set(anotherSchemaType.getMetadata("structureMetadata"), comment)
 				.set(anotherSchemaType.getMetadata("integerMetadata"), null);
 
 		RecordImpl record6 = (RecordImpl) recordServices.newRecordWithSchema(anotherSchema.instance(), "Azrael")
 				.set(Schemas.TITLE, " Nom d'un Schtroumpfs!")
 				.set(anotherSchemaType.getMetadata("booleanMetadata"), null)
+				.set(anotherSchemaType.getMetadata("structureMetadata"), null)
 				.set(anotherSchemaType.getMetadata("numberMetadata"), null)
 				.set(anotherSchemaType.getMetadata("enumMetadata"), CopyType.PRINCIPAL)
 				.set(anotherSchemaType.getMetadata("dateMetadata"), date)
@@ -1304,6 +1451,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 				.set(Schemas.TITLE, "")
 				.set(anotherSchemaType.getMetadata("integerMetadata"), -99)
 				.set(anotherSchemaType.getMetadata("numberMetadata"), 0d)
+				.set(anotherSchemaType.getMetadata("structureMetadata"), null)
 				.set(anotherSchemaType.getMetadata("dateTimeMetadata"), dateTime.plusHours(600).minusWeeks(1))
 				.set(anotherSchema.referenceFromAnotherSchemaToZeSchema(), "Gargamel")
 				.set(anotherSchemaType.getMetadata("enumMetadata"), CopyType.SECONDARY)
@@ -1317,6 +1465,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 
 		RecordImpl record8 = (RecordImpl) recordServices.newRecordWithSchema(anotherSchema.instance(), "SchtroumpfsGrognon")
 				.set(anotherSchemaType.getMetadata("integerMetadata"), 1234)
+				.set(anotherSchemaType.getMetadata("structureMetadata"), comment)
 				.set(anotherSchemaType.getMetadata("dateMetadata"), date.plusMonths(14))
 				.set(anotherSchemaType.getMetadata("numberMetadata"), 10.88d)
 				.set(anotherSchemaType.getMetadata("booleanMetadata"), true)
@@ -1346,6 +1495,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 		assertThat(dto1.containsKey(zeSchema.largeTextMetadata().getDataStoreCode())).isTrue();
 		assertThat(dto1.containsKey(zeSchema.dateMetadata().getDataStoreCode())).isTrue();
 		assertThat(dto1.containsKey(zeSchema.contentMetadata().getDataStoreCode())).isTrue();
+		assertThat(dto1.containsKey(zeSchemaType.getMetadata("structMetadata").getDataStoreCode())).isTrue();
 
 		assertThat(dto2.containsKey(zeSchema.booleanMetadata().getDataStoreCode())).isTrue();
 		assertThat(dto2.containsKey(zeSchema.integerMetadata().getDataStoreCode())).isTrue();
@@ -1356,6 +1506,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 		assertThat(dto2.containsKey(zeSchema.dateMetadata().getDataStoreCode())).isTrue();
 		assertThat(dto2.containsKey(zeSchema.dateTimeMetadata().getDataStoreCode())).isTrue();
 		assertThat(dto2.containsKey(zeSchema.contentMetadata().getDataStoreCode())).isFalse();
+		assertThat(dto2.containsKey(zeSchemaType.getMetadata("structMetadata").getDataStoreCode())).isTrue();
 
 		assertThat(dto3.containsKey(zeSchema.booleanMetadata().getDataStoreCode())).isFalse();
 		assertThat(dto3.containsKey(zeSchema.numberMetadata().getDataStoreCode())).isTrue();
@@ -1367,6 +1518,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 		assertThat(dto3.containsKey(Schemas.TITLE.getDataStoreCode())).isTrue();
 		assertThat(dto3.containsKey(zeSchema.parentReferenceFromZeSchemaToZeSchema().getDataStoreCode())).isTrue();
 		assertThat(dto3.containsKey(zeSchema.contentMetadata().getDataStoreCode())).isFalse();
+		assertThat(dto3.containsKey(zeSchemaType.getMetadata("structMetadata").getDataStoreCode())).isFalse();
 
 		assertThat(dto4.containsKey(zeSchema.booleanMetadata().getDataStoreCode())).isTrue();
 		assertThat(dto4.containsKey(zeSchema.numberMetadata().getDataStoreCode())).isFalse();
@@ -1378,6 +1530,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 		assertThat(dto4.containsKey(Schemas.TITLE.getDataStoreCode())).isTrue();
 		assertThat(dto4.containsKey(zeSchema.parentReferenceFromZeSchemaToZeSchema().getDataStoreCode())).isTrue();
 		assertThat(dto4.containsKey(zeSchema.contentMetadata().getDataStoreCode())).isTrue();
+		assertThat(dto4.containsKey(zeSchemaType.getMetadata("structMetadata").getDataStoreCode())).isFalse();
 
 		assertThat(dto5.containsKey(Schemas.TITLE.getDataStoreCode())).isTrue();
 		assertThat(dto5.containsKey(anotherSchema.referenceFromAnotherSchemaToZeSchema().getDataStoreCode())).isTrue();
@@ -1389,6 +1542,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 		assertThat(dto5.containsKey(anotherSchemaType.getMetadata("textMetadata").getDataStoreCode())).isTrue();
 		assertThat(dto5.containsKey(anotherSchemaType.getMetadata("integerMetadata").getDataStoreCode())).isFalse();
 		assertThat(dto5.containsKey(anotherSchemaType.getMetadata("contentMetadata").getDataStoreCode())).isFalse();
+		assertThat(dto5.containsKey(anotherSchemaType.getMetadata("structureMetadata").getDataStoreCode())).isTrue();
 
 		assertThat(dto6.containsKey(Schemas.TITLE.getDataStoreCode())).isTrue();
 		assertThat(dto6.containsKey(anotherSchema.referenceFromAnotherSchemaToZeSchema().getDataStoreCode())).isFalse();
@@ -1400,6 +1554,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 		assertThat(dto6.containsKey(anotherSchemaType.getMetadata("textMetadata").getDataStoreCode())).isFalse();
 		assertThat(dto6.containsKey(anotherSchemaType.getMetadata("integerMetadata").getDataStoreCode())).isTrue();
 		assertThat(dto6.containsKey(anotherSchemaType.getMetadata("contentMetadata").getDataStoreCode())).isTrue();
+		assertThat(dto6.containsKey(anotherSchemaType.getMetadata("structureMetadata").getDataStoreCode())).isFalse();
 
 		// if the title is null and the content is not null the title is set to the file name of content
 		assertThat(dto7.containsKey(Schemas.TITLE.getDataStoreCode())).isTrue();
@@ -1412,6 +1567,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 		assertThat(dto7.containsKey(anotherSchemaType.getMetadata("textMetadata").getDataStoreCode())).isTrue();
 		assertThat(dto7.containsKey(anotherSchemaType.getMetadata("integerMetadata").getDataStoreCode())).isTrue();
 		assertThat(dto7.containsKey(anotherSchemaType.getMetadata("contentMetadata").getDataStoreCode())).isTrue();
+		assertThat(dto7.containsKey(anotherSchemaType.getMetadata("structureMetadata").getDataStoreCode())).isFalse();
 
 		assertThat(dto8.containsKey(Schemas.TITLE.getDataStoreCode())).isFalse();
 		assertThat(dto8.containsKey(anotherSchema.referenceFromAnotherSchemaToZeSchema().getDataStoreCode())).isTrue();
@@ -1423,6 +1579,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 		assertThat(dto8.containsKey(anotherSchemaType.getMetadata("textMetadata").getDataStoreCode())).isFalse();
 		assertThat(dto8.containsKey(anotherSchemaType.getMetadata("integerMetadata").getDataStoreCode())).isTrue();
 		assertThat(dto8.containsKey(anotherSchemaType.getMetadata("contentMetadata").getDataStoreCode())).isFalse();
+		assertThat(dto8.containsKey(anotherSchemaType.getMetadata("structureMetadata").getDataStoreCode())).isTrue();
 	}
 
 	@Test
