@@ -4,10 +4,18 @@ import com.constellio.app.modules.restapi.BaseRestfulServiceAcceptanceTest;
 import com.constellio.app.modules.restapi.RestApiConfigs;
 import com.constellio.app.modules.restapi.core.util.DateUtils;
 import com.constellio.app.modules.restapi.core.util.SchemaTypes;
+import com.constellio.app.modules.restapi.folder.dto.AdministrativeUnitDto;
+import com.constellio.app.modules.restapi.folder.dto.CategoryDto;
+import com.constellio.app.modules.restapi.folder.dto.ContainerDto;
 import com.constellio.app.modules.restapi.folder.dto.FolderDto;
 import com.constellio.app.modules.restapi.folder.dto.FolderTypeDto;
+import com.constellio.app.modules.restapi.folder.dto.MixinAdministrativeUnitDto;
+import com.constellio.app.modules.restapi.folder.dto.MixinCategoryDto;
+import com.constellio.app.modules.restapi.folder.dto.MixinContainerDto;
 import com.constellio.app.modules.restapi.folder.dto.MixinFolderDto;
 import com.constellio.app.modules.restapi.folder.dto.MixinFolderTypeDto;
+import com.constellio.app.modules.restapi.folder.dto.MixinRetetentionRuleDto;
+import com.constellio.app.modules.restapi.folder.dto.RetentionRuleDto;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
@@ -59,7 +67,12 @@ public class BaseFolderRestfulServiceAcceptanceTest extends BaseRestfulServiceAc
 
 		ObjectMapper mapper = new ObjectMapper()
 				.addMixIn(FolderDto.class, MixinFolderDto.class)
-				.addMixIn(FolderTypeDto.class, MixinFolderTypeDto.class);
+				.addMixIn(FolderTypeDto.class, MixinFolderTypeDto.class)
+				.addMixIn(RetentionRuleDto.class, MixinRetetentionRuleDto.class)
+				.addMixIn(CategoryDto.class, MixinCategoryDto.class)
+				.addMixIn(AdministrativeUnitDto.class, MixinAdministrativeUnitDto.class)
+				.addMixIn(ContainerDto.class, MixinContainerDto.class);
+
 		webTarget = newWebTarget("v1/folders", mapper);
 
 		givenConfig(RestApiConfigs.REST_API_URLS, "localhost:7070; localhost2");

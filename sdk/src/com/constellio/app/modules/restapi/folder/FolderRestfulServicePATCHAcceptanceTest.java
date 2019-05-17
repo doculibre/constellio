@@ -16,8 +16,12 @@ import com.constellio.app.modules.restapi.core.exception.mapper.RestApiErrorResp
 import com.constellio.app.modules.restapi.core.util.CustomHttpHeaders;
 import com.constellio.app.modules.restapi.core.util.DateUtils;
 import com.constellio.app.modules.restapi.core.util.HttpMethods;
+import com.constellio.app.modules.restapi.folder.dto.AdministrativeUnitDto;
+import com.constellio.app.modules.restapi.folder.dto.CategoryDto;
+import com.constellio.app.modules.restapi.folder.dto.ContainerDto;
 import com.constellio.app.modules.restapi.folder.dto.FolderDto;
 import com.constellio.app.modules.restapi.folder.dto.FolderTypeDto;
+import com.constellio.app.modules.restapi.folder.dto.RetentionRuleDto;
 import com.constellio.app.modules.restapi.resource.dto.AceDto;
 import com.constellio.app.modules.restapi.resource.dto.ExtendedAttributeDto;
 import com.constellio.app.modules.restapi.resource.exception.ResourceTypeNotFoundException;
@@ -27,8 +31,12 @@ import com.constellio.app.modules.restapi.validation.exception.UnallowedHostExce
 import com.constellio.app.modules.restapi.validation.exception.UnauthenticatedUserException;
 import com.constellio.app.modules.restapi.validation.exception.UnauthorizedAccessException;
 import com.constellio.app.modules.rm.model.enums.CopyType;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
+import com.constellio.app.modules.rm.wrappers.Category;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.data.utils.TimeProvider;
@@ -153,10 +161,10 @@ public class FolderRestfulServicePATCHAcceptanceTest extends BaseFolderRestfulSe
 
 		LocalDate localDate = new LocalDate(2000, 1, 1);
 
-		FolderDto folderUpdate = FolderDto.builder().id(id).title("aNewTitle").description("description").category(records.categoryId_X120)
-				.retentionRule(records.ruleId_4).administrativeUnit(records.unitId_10a)
+		FolderDto folderUpdate = FolderDto.builder().id(id).title("aNewTitle").description("description").category(CategoryDto.builder().id(records.categoryId_X120).build())
+				.retentionRule(RetentionRuleDto.builder().id(records.ruleId_4).build()).administrativeUnit(AdministrativeUnitDto.builder().id(records.unitId_10a).build())
 				.copyStatus(CopyType.PRINCIPAL.getCode()).mediumTypes(asList(rm.PA(), rm.DM())).keywords(asList("keyword1", "keyword2"))
-				.container(records.containerId_bac01).closingDate(fakeDate2.toLocalDate())
+				.container(ContainerDto.builder().id(records.containerId_bac01).build()).closingDate(fakeDate2.toLocalDate())
 				.openingDate(localDate).build();
 
 		Response response = doPatchQuery(folderUpdate);
@@ -318,11 +326,19 @@ public class FolderRestfulServicePATCHAcceptanceTest extends BaseFolderRestfulSe
 
 		FolderDto folderDto = response.readEntity(FolderDto.class);
 		assertThat(folderDto.getId()).isNotNull();
-		assertThat(singletonList(folderDto)).extracting("parentFolderId", "category",
-				"retentionRule", "administrativeUnit", "mainCopyRule", "copyStatus", "mediumTypes", "mediaType", "container",
+		assertThat(singletonList(folderDto)).extracting("parentFolderId", "retentionRule",
+				"mainCopyRule", "copyStatus", "mediumTypes", "mediaType", "container",
 				"title", "description", "keywords", "openingDate", "closingDate", "actualDepositDate", "actualDestructionDate", "actualTransferDate",
 				"expectedDepositDate", "expectedDestructionDate", "expectedTransferDate")
-				.containsOnly(tuple(null, fakeFolder.getCategory(), null, fakeFolder.getAdministrativeUnit(), null, null, null, null, null, null, fakeFolder.getDescription(), null, null, null, null, null, null, null, null, null));
+				.containsOnly(tuple(null, null, null, null, null, null, null, null, fakeFolder.getDescription(), null, null, null, null, null, null, null, null, null));
+
+		assertThat(folderDto.getCategory().getId()).isEqualTo(fakeFolder.getCategory());
+
+		Category category = rm.getCategory(fakeFolder.getCategory());
+		assertThat(folderDto.getCategory().getTitle()).isEqualTo(category.getTitle());
+		assertThat(folderDto.getAdministrativeUnit().getId()).isEqualTo(fakeFolder.getAdministrativeUnit());
+		AdministrativeUnit administrativeUnit = rm.getAdministrativeUnit(fakeFolder.getAdministrativeUnit());
+		assertThat(folderDto.getAdministrativeUnit().getTitle()).isEqualTo(administrativeUnit.getTitle());
 	}
 
 	@Test
@@ -1047,19 +1063,31 @@ public class FolderRestfulServicePATCHAcceptanceTest extends BaseFolderRestfulSe
 	private void assertFolderMetadata(FolderDto folder, Folder folderToExtract) {
 		assertThat(singletonList(folderToExtract)).extracting("id", "parentFolder", "title", "description", "category", "retentionRule", "administrativeUnit",
 				"keywords", "mediumTypes", "container", "closeDate", "openingDate")
-				.containsExactly(tuple(folder.getId(), folder.getParentFolderId(), folder.getTitle(), folder.getDescription(), folder.getCategory(), folder.getRetentionRule(),
-						folder.getAdministrativeUnit(), folder.getKeywords(), folder.getMediumTypes(), folder.getContainer(),
+				.containsExactly(tuple(folder.getId(), folder.getParentFolderId(), folder.getTitle(), folder.getDescription(), folder.getCategory().getId(), folder.getRetentionRule().getId(),
+						folder.getAdministrativeUnit().getId(), folder.getKeywords(), folder.getMediumTypes(), folder.getContainer().getId(),
 						folder.getClosingDate(), folder.getOpeningDate()));
 
 		assertThat(folder.getCopyStatus()).isEqualTo(folderToExtract.getCopyStatus().getCode());
 	}
 
 	private void assertFolderMetadata(FolderDto folderUpdate, FolderDto folderToExtract) {
-		assertThat(singletonList(folderToExtract)).extracting("id", "title", "description", "category", "retentionRule", "administrativeUnit",
-				"copyStatus", "keywords", "mediumTypes", "container", "closingDate", "openingDate")
-				.containsExactly(tuple(folderUpdate.getId(), folderUpdate.getTitle(), folderUpdate.getDescription(), folderUpdate.getCategory(), folderUpdate.getRetentionRule(),
-						folderUpdate.getAdministrativeUnit(), folderUpdate.getCopyStatus(), folderUpdate.getKeywords(), folderUpdate.getMediumTypes(), folderUpdate.getContainer(),
+		assertThat(singletonList(folderToExtract)).extracting("id", "title", "description", "category.id", "retentionRule.id", "administrativeUnit.id",
+				"copyStatus", "keywords", "mediumTypes", "container.id", "closingDate", "openingDate")
+				.containsExactly(tuple(folderUpdate.getId(), folderUpdate.getTitle(), folderUpdate.getDescription(), folderUpdate.getCategory().getId(), folderUpdate.getRetentionRule().getId(),
+						folderUpdate.getAdministrativeUnit().getId(), folderUpdate.getCopyStatus(), folderUpdate.getKeywords(), folderUpdate.getMediumTypes(), folderUpdate.getContainer().getId(),
 						folderUpdate.getClosingDate(), folderUpdate.getOpeningDate()));
+
+		Category category = rm.getCategory(folderUpdate.getCategory().getId());
+		AdministrativeUnit administrativeUnit = rm.getAdministrativeUnit(folderUpdate.getAdministrativeUnit().getId());
+		RetentionRule retentionRule = rm.getRetentionRule(folderUpdate.getRetentionRule().getId());
+		ContainerRecord container = rm.getContainerRecord(folderUpdate.getContainer().getId());
+
+		assertThat(category.getTitle()).isEqualTo(folderToExtract.getCategory().getTitle());
+		assertThat(administrativeUnit.getTitle()).isEqualTo(folderToExtract.getAdministrativeUnit().getTitle());
+		assertThat(administrativeUnit.getCode()).isEqualTo(folderToExtract.getAdministrativeUnit().getCode());
+		assertThat(retentionRule.getTitle()).isEqualTo(folderToExtract.getRetentionRule().getTitle());
+		assertThat(retentionRule.getCode()).isEqualTo(folderToExtract.getRetentionRule().getCode());
+		assertThat(container.getTitle()).isEqualTo(folderToExtract.getContainer().getTitle());
 	}
 
 	private Response doPatchQuery(FolderDto folderDto, String... excludedParam) throws Exception {

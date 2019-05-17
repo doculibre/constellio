@@ -22,15 +22,15 @@ public class FolderDto {
 	private String id;
 	private String parentFolderId;
 	private FolderTypeDto type;
-	private String category;
-	private String retentionRule;
-	private String administrativeUnit;
+	private CategoryDto category;
+	private RetentionRuleDto retentionRule;
+	private AdministrativeUnitDto administrativeUnit;
 	private String mainCopyRule;
 	private String copyStatus;
 	private List<String> mediumTypes;
 	@JsonProperty(access = READ_ONLY)
 	private String mediaType;
-	private String container;
+	private ContainerDto container;
 	private String title;
 	private String description;
 	private List<String> keywords;

@@ -76,8 +76,9 @@ public class FolderService extends ResourceService {
 							Set<String> filters) throws Exception {
 		validateParameters(host, parentFolderId, serviceKey, method, date, expiration, null, null, null, signature);
 
-		String id = parentFolderId != null ? parentFolderId : folderDto.getAdministrativeUnit();
+		String id = parentFolderId != null ? parentFolderId : folderDto.getAdministrativeUnit().getId();
 		Record record = getRecord(id, true);
+
 		String collection = record.getCollection();
 		User user = getUser(serviceKey, collection);
 		validateUserAccess(user, record, method);
