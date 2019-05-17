@@ -1127,4 +1127,5 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		closeAllWindows();
 		return navigation;
 	}
+	
 }

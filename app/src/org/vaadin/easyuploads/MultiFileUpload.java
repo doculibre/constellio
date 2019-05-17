@@ -17,6 +17,10 @@ import com.vaadin.ui.DragAndDropWrapper.WrapperTransferable;
 import com.vaadin.ui.Html5File;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.ProgressIndicator;
+import com.vaadin.ui.UI;
+import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.Window;
+
 import org.vaadin.easyuploads.MultiUpload.FileDetail;
 import org.vaadin.easyuploads.UploadField.FieldType;
 
@@ -56,12 +60,26 @@ public abstract class MultiFileUpload extends CssLayout implements DropHandler {
 	private CssLayout progressBars = new CssLayout();
 	private CssLayout uploads = new CssLayout();
 	private String uploadButtonCaption = "...";
+	
+	private Window uploadWindow;
+	
+	private VerticalLayout uploadWindowContent;
 
 	public MultiFileUpload() {
+		uploadWindowContent = new VerticalLayout(progressBars, uploads);
+		if (progressBars != null) {
+			uploadWindowContent.addComponents(progressBars);
+		}
+		uploadWindowContent.setWidth("100%");
+		
+		uploadWindow = new Window();
+		uploadWindow.setVisible(false);
+		uploadWindow.setContent(uploadWindowContent);
+		
 		setWidth("200px");
-		addComponent(progressBars);
+		uploadWindowContent.addComponent(progressBars);
 		uploads.setStyleName("v-multifileupload-uploads");
-		addComponent(uploads);
+		uploadWindowContent.addComponent(uploads);
 		prepareUpload();
 	}
 
@@ -73,11 +91,19 @@ public abstract class MultiFileUpload extends CssLayout implements DropHandler {
 			private LinkedList<ProgressIndicator> indicators;
 
 			public void streamingStarted(StreamingStartEvent event) {
+				if (!uploadWindow.isVisible()) {
+					uploadWindow.setVisible(true);
+					UI.getCurrent().addWindow(uploadWindow);
+				}
 			}
 
 			public void streamingFinished(StreamingEndEvent event) {
 				if (!indicators.isEmpty()) {
 					progressBars.removeComponent(indicators.remove(0));
+				}
+				if (indicators.isEmpty() && uploadWindow.isVisible()) {
+					uploadWindow.setVisible(false);
+					UI.getCurrent().removeWindow(uploadWindow);
 				}
 				File file = receiver.getFile();
 				handleFile(file, event.getFileName(), event.getMimeType(),
@@ -93,6 +119,10 @@ public abstract class MultiFileUpload extends CssLayout implements DropHandler {
 					progressBars.removeComponent(progressIndicator);
 				}
 
+				if (!progressBars.iterator().hasNext() && uploadWindow.isVisible()) {
+					uploadWindow.setVisible(false);
+					UI.getCurrent().removeWindow(uploadWindow);
+				}
 			}
 
 			public void onProgress(StreamingProgressEvent event) {
@@ -131,7 +161,6 @@ public abstract class MultiFileUpload extends CssLayout implements DropHandler {
 		upload.setHandler(handler);
 		upload.setButtonCaption(getUploadButtonCaption());
 		uploads.addComponent(upload);
-
 	}
 
 	private ProgressIndicator createProgressIndicator() {
@@ -206,7 +235,8 @@ public abstract class MultiFileUpload extends CssLayout implements DropHandler {
 			dropZone = new DragAndDropWrapper(label);
 			dropZone.setStyleName("v-multifileupload-dropzone");
 			dropZone.setSizeUndefined();
-			addComponent(dropZone, 1);
+			//addComponent(dropZone, 1);
+			addComponent(dropZone);
 			dropZone.setDropHandler(this);
 			addStyleName("no-horizontal-drag-hints");
 			addStyleName("no-vertical-drag-hints");

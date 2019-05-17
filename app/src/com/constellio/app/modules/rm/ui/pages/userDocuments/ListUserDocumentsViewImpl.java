@@ -1,5 +1,13 @@
 package com.constellio.app.modules.rm.ui.pages.userDocuments;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.vaadin.dialogs.ConfirmDialog;
+
 import com.constellio.app.modules.rm.ui.components.userDocument.DeclareUserContentContainerButton;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
@@ -32,14 +40,6 @@ import com.vaadin.ui.DragAndDropWrapper;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
-import org.vaadin.dialogs.ConfirmDialog;
-import org.vaadin.easyuploads.MultiFileUpload;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserDocumentsView, DropHandler {
 
@@ -51,7 +51,7 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 
 	private DragAndDropWrapper dragAndDropWrapper;
 	private VerticalLayout mainLayout;
-	private MultiFileUpload multiFileUpload;
+	private BaseMultiFileUpload multiFileUpload;
 	private RecordVOLazyContainer userContentContainer;
 	private ButtonsContainer<RecordVOLazyContainer> buttonsContainer;
 	private SelectionTableAdapter userContentSelectTableAdapter;
@@ -60,10 +60,17 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 	private Builder<ContainerButton> classifyButtonFactory;
 
 	private RecordIdToCaptionConverter recordIdToCaptionConverter = new RecordIdToCaptionConverter();
+	
+	private boolean inWindow;
 
 	private ListUserDocumentsPresenter presenter;
 
 	public ListUserDocumentsViewImpl() {
+		this(false);
+	}
+
+	public ListUserDocumentsViewImpl(boolean inWindow) {
+		this.inWindow = inWindow;
 		presenter = new ListUserDocumentsPresenter(this);
 	}
 
@@ -94,6 +101,11 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 			@Override
 			protected void handleFile(File file, String fileName, String mimeType, long length) {
 				presenter.handleFile(file, fileName, mimeType, length);
+			}
+
+			@Override
+			protected boolean isUploadWindow() {
+				return !inWindow;
 			}
 		};
 		multiFileUpload.setWidth("100%");
@@ -289,5 +301,17 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 	@Override
 	protected void onBackgroundViewMonitor() {
 		presenter.backgroundViewMonitor();
+	}
+
+	@Override
+	public void showUploadMessage(String message) {
+//		multiFileUpload.notifyMessage(message);
+		showClickableMessage(message);
+	}
+
+	@Override
+	public void showUploadErrorMessage(String message) {
+//		multiFileUpload.notifyMessage(message);
+		showErrorMessage(message);
 	}
 }
