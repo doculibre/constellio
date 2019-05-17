@@ -6,6 +6,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.vaadin.ui.Window.CloseEvent;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import com.constellio.app.modules.rm.ui.components.userDocument.DeclareUserContentContainerButton;
@@ -106,6 +107,11 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 			@Override
 			protected boolean isUploadWindow() {
 				return !inWindow;
+			}
+
+			@Override
+			protected void onUploadWindowClosed(CloseEvent e) {
+				presenter.refreshDocuments();
 			}
 		};
 		multiFileUpload.setWidth("100%");
@@ -313,5 +319,10 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 	public void showUploadErrorMessage(String message) {
 //		multiFileUpload.notifyMessage(message);
 		showErrorMessage(message);
+	}
+
+	@Override
+	public boolean isInAWindow() {
+		return inWindow;
 	}
 }

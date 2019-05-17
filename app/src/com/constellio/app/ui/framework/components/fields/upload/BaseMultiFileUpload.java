@@ -128,6 +128,7 @@ public abstract class BaseMultiFileUpload extends CssLayout implements DropHandl
 				public void windowClose(CloseEvent e) {
 					infoLabel.setValue("");
 					uploadWindow.setVisible(false);
+					onUploadWindowClosed(e);
 				}
 			});
 
@@ -182,6 +183,10 @@ public abstract class BaseMultiFileUpload extends CssLayout implements DropHandl
 		} else {
 			progressBars.removeComponent(progressIndicator);
 		}
+	}
+
+	protected void onUploadWindowClosed(CloseEvent e) {
+
 	}
 
 	private void prepareUpload() {

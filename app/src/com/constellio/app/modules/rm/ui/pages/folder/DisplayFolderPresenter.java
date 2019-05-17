@@ -129,9 +129,6 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	private transient ModelLayerCollectionExtensions extensions;
 	private transient RMModuleExtensions rmModuleExtensions;
 	private transient ConstellioEIMConfigs eimConfigs;
-	boolean hasNewContentBeenUploaded = false;
-	LocalDateTime lastUploadTime;
-	LocalDateTime lastDocumentTableRefresh;
 
 	Boolean allItemsSelected = false;
 
@@ -812,6 +809,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 							message.append(": ");
 							message.append(generateDisplayLink(document));
 						}
+						view.showClickableMessage(message.toString());
 					}
 				}
 				uploadedContentVO.setMajorVersion(true);
@@ -842,10 +840,6 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 					IOServices ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();
 					ioServices.closeQuietly(inputStream);
 				}
-
-				hasNewContentBeenUploaded = true;
-				lastUploadTime = TimeProvider.getLocalDateTime();
-				//				view.selectFolderContentTab();
 			} catch (final IcapException e) {
 				view.showErrorMessage(e.getMessage());
 			} catch (Exception e) {
@@ -1233,26 +1227,8 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		return new RMConfigs(modelLayerFactory.getSystemConfigurationsManager()).isNeedingAReasonBeforeDeletingFolders();
 	}
 
-	public boolean shouldRefreshContentTable() {
-		if(hasNewContentBeenUploaded) {
-			lastUploadTime = lastUploadTime == null ? TimeProvider.getLocalDateTime() : lastUploadTime;
-			lastDocumentTableRefresh = lastDocumentTableRefresh == null ? TimeProvider.getLocalDateTime() : lastDocumentTableRefresh;
-			boolean hasBeenAlongTimeSinceLastUpload = ((TimeProvider.getLocalDateTime().getMillisOfDay() - lastUploadTime.getMillisOfDay()) >= 1000);
-			boolean hasBeenAlongTimeSinceLastDocumentTableRefresh = ((TimeProvider.getLocalDateTime().getMillisOfDay() - lastDocumentTableRefresh.getMillisOfDay()) >= 5000);
-			if(hasBeenAlongTimeSinceLastUpload || hasBeenAlongTimeSinceLastDocumentTableRefresh) {
-				return true;
-			} else {
-				//TODO show loading icon
-			}
-		}
-		return false;
-	}
-
 	public void refreshDocuments() {
 		documentsDataProvider.fireDataRefreshEvent();
 		view.refreshFolderContentTab();
-		hasNewContentBeenUploaded = false;
-		lastUploadTime = null;
-		lastDocumentTableRefresh = TimeProvider.getLocalDateTime();
 	}
 }

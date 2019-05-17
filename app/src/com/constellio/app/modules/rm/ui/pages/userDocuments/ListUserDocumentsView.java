@@ -19,5 +19,6 @@ public interface ListUserDocumentsView extends BaseView, UserDocumentsViewGroup 
 	void showUploadMessage(String message);
 	
 	void showUploadErrorMessage(String message);
-	
+
+	boolean isInAWindow();
 }

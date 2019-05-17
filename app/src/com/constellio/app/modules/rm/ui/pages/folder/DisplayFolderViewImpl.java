@@ -86,6 +86,7 @@ import com.vaadin.ui.Table;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
+import com.vaadin.ui.Window.CloseEvent;
 import com.vaadin.ui.themes.ValoTheme;
 import org.joda.time.LocalDate;
 import org.slf4j.Logger;
@@ -170,7 +171,12 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		mainLayout.setSizeFull();
 		mainLayout.setSpacing(true);
 
-		uploadField = new ContentVersionUploadField();
+		uploadField = new ContentVersionUploadField() {
+			@Override
+			protected void onUploadWindowClosed(CloseEvent e) {
+				presenter.refreshDocuments();
+			}
+		};
 		uploadField.setVisible(false);
 		uploadField.setImmediate(true);
 		uploadField.setMultiValue(false);
@@ -1127,17 +1133,4 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		closeAllWindows();
 		return navigation;
 	}
-
-	@Override
-	public boolean isBackgroundViewMonitor() {
-		return true;
-	}
-
-	@Override
-	protected void onBackgroundViewMonitor() {
-		if(presenter.shouldRefreshContentTable()) {
-			presenter.refreshDocuments();
-		}
-	}
-
 }
