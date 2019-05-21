@@ -57,6 +57,7 @@ import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -163,7 +164,7 @@ public class FolderRestfulServicePATCHAcceptanceTest extends BaseFolderRestfulSe
 
 		FolderDto folderUpdate = FolderDto.builder().id(id).title("aNewTitle").description("description").category(CategoryDto.builder().id(records.categoryId_X120).build())
 				.retentionRule(RetentionRuleDto.builder().id(records.ruleId_4).build()).administrativeUnit(AdministrativeUnitDto.builder().id(records.unitId_10a).build())
-				.copyStatus(CopyType.PRINCIPAL.getCode()).mediumTypes(asList(rm.PA(), rm.DM())).keywords(asList("keyword1", "keyword2"))
+				.copyStatus(CopyType.PRINCIPAL.getCode()).mediumTypes(getMediumTypesCode(asList(rm.PA(), rm.DM()))).keywords(asList("keyword1", "keyword2"))
 				.container(ContainerDto.builder().id(records.containerId_bac01).build()).closingDate(fakeDate2.toLocalDate())
 				.openingDate(localDate).build();
 
@@ -1064,10 +1065,25 @@ public class FolderRestfulServicePATCHAcceptanceTest extends BaseFolderRestfulSe
 		assertThat(singletonList(folderToExtract)).extracting("id", "parentFolder", "title", "description", "category", "retentionRule", "administrativeUnit",
 				"keywords", "mediumTypes", "container", "closeDate", "openingDate")
 				.containsExactly(tuple(folder.getId(), folder.getParentFolderId(), folder.getTitle(), folder.getDescription(), folder.getCategory().getId(), folder.getRetentionRule().getId(),
-						folder.getAdministrativeUnit().getId(), folder.getKeywords(), folder.getMediumTypes(), folder.getContainer().getId(),
+						folder.getAdministrativeUnit().getId(), folder.getKeywords(), getIdOfMediumType(folder.getMediumTypes()), folder.getContainer().getId(),
 						folder.getClosingDate(), folder.getOpeningDate()));
 
 		assertThat(folder.getCopyStatus()).isEqualTo(folderToExtract.getCopyStatus().getCode());
+	}
+
+	private List<String> getIdOfMediumType(List<String> codeList) {
+
+		if (codeList == null) {
+			return codeList;
+		}
+
+		List<String> idList = new ArrayList<>();
+
+		for (String currentCode : codeList) {
+			idList.add(rm.getMediumTypeByCode(currentCode).getId());
+		}
+
+		return idList;
 	}
 
 	private void assertFolderMetadata(FolderDto folderUpdate, FolderDto folderToExtract) {

@@ -61,7 +61,6 @@ public abstract class BaseRestfulServiceAcceptanceTest extends ConstellioTest {
 	protected RecordServices recordServices;
 	protected UserServices userServices;
 	protected SearchServices searchServices;
-	protected AuthorizationsServices authorizationsServices;
 	protected RMTestRecords records = new RMTestRecords(zeCollection);
 	protected Users users = new Users();
 	protected MetadataSchemasManager metadataSchemasManager;
@@ -71,7 +70,6 @@ public abstract class BaseRestfulServiceAcceptanceTest extends ConstellioTest {
 	protected CommitCounter commitCounter;
 	protected QueryCounter queryCounter;
 
-	protected SearchServices searchServices;
 
 	protected static final String NOT_NULL_MESSAGE = "javax.validation.constraints.NotNull.message";
 	protected static final String NOT_EMPTY_MESSAGE = "org.hibernate.validator.constraints.NotEmpty.message";
@@ -137,16 +135,6 @@ public abstract class BaseRestfulServiceAcceptanceTest extends ConstellioTest {
 			record.set(schema.getMetadata(fakeMetadata2), value2);
 			recordServices.update(record);
 		}
-	}
-
-	protected List<Authorization> filterInheritedAuthorizations(List<Authorization> authorizations, String recordId) {
-		List<Authorization> filteredAuthorizations = Lists.newArrayList();
-		for (Authorization authorization : authorizations) {
-			if (authorization.getTarget().equals(recordId)) {
-				filteredAuthorizations.add(authorization);
-			}
-		}
-		return filteredAuthorizations;
 	}
 
 	protected WebTarget buildQuery(WebTarget target, boolean calculateSignature, List<String> defaultParams,
@@ -264,18 +252,6 @@ public abstract class BaseRestfulServiceAcceptanceTest extends ConstellioTest {
 			}
 		}
 		return filteredAuthorizations;
-	}
-
-	protected List<String> toPrincipalIds(Collection<String> principals) {
-		List<String> principalIds = new ArrayList<>(principals.size());
-		for (String principal : principals) {
-			Record record = recordServices.getRecordByMetadata(rm.user.username(), principal);
-			if (record == null) {
-				record = recordServices.getRecordByMetadata(rm.group.code(), principal);
-			}
-			principalIds.add(record.getId());
-		}
-		return principalIds;
 	}
 
 	abstract protected SchemaTypes getSchemaType();

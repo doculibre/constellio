@@ -86,7 +86,7 @@ public class FolderRestfulServiceGETAcceptanceTest extends BaseFolderRestfulServ
 
 		assertThat(folderDto.getMainCopyRule()).isEqualTo(fakeFolder.getMainCopyRule().getId());
 		assertThat(folderDto.getCopyStatus()).isEqualTo(fakeFolder.getCopyStatusEntered().getCode());
-		assertThat(folderDto.getMediumTypes()).isEqualTo(fakeFolder.getMediumTypes());
+		assertThat(folderDto.getMediumTypes()).isEqualTo(getMediumTypes(fakeFolder.getWrappedRecord()));
 		assertThat(folderDto.getMediaType()).isEqualTo(fakeFolder.getMediaType().getCode());
 		assertThat(folderDto.getTitle()).isEqualTo(fakeFolder.getTitle());
 		assertThat(folderDto.getDescription()).isEqualTo(fakeFolder.getDescription());
@@ -109,6 +109,7 @@ public class FolderRestfulServiceGETAcceptanceTest extends BaseFolderRestfulServ
 				ExtendedAttributeDto.builder().key(fakeMetadata1).values(singletonList(value1)).build(),
 				ExtendedAttributeDto.builder().key(fakeMetadata2).values(value2).build());
 	}
+
 
 	@Test
 	public void testGetFolderAllFilters() throws Exception {

@@ -25,15 +25,13 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.sdk.tests.CommitCounter;
 import com.constellio.sdk.tests.QueryCounter;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.glassfish.jersey.media.multipart.FormDataBodyPart;
-import org.glassfish.jersey.media.multipart.FormDataMultiPart;
-import org.glassfish.jersey.media.multipart.MultiPart;
 import org.joda.time.LocalDate;
 import org.junit.Before;
 
@@ -44,7 +42,6 @@ import java.util.List;
 import static com.constellio.model.entities.records.wrappers.Collection.SYSTEM_COLLECTION;
 import static com.constellio.sdk.tests.QueryCounter.ON_COLLECTION;
 import static java.util.Arrays.asList;
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 
 public class BaseFolderRestfulServiceAcceptanceTest extends BaseRestfulServiceAcceptanceTest {
 
@@ -69,6 +66,7 @@ public class BaseFolderRestfulServiceAcceptanceTest extends BaseRestfulServiceAc
 		createAuthorizations(fakeFolder.getWrappedRecord());
 		id = fakeFolder.getId();
 
+
 		ObjectMapper mapper = new ObjectMapper()
 				.addMixIn(FolderTypeDto.class, MixinFolderTypeDto.class)
 				.addMixIn(FolderDto.class, MixinFolderDto.class)
@@ -83,8 +81,37 @@ public class BaseFolderRestfulServiceAcceptanceTest extends BaseRestfulServiceAc
 		givenConfig(RestApiConfigs.REST_API_URLS, "localhost:7070; localhost2");
 		givenTimeIs(fakeDate);
 
+
 		commitCounter = new CommitCounter(getDataLayerFactory());
 		queryCounter = new QueryCounter(getDataLayerFactory(), ON_COLLECTION(SYSTEM_COLLECTION));
+	}
+
+	protected List<String> getMediumTypesCode(List<String> mediumTypeIds) {
+
+		if (mediumTypeIds != null) {
+			List<String> mediumTypeCodes = new ArrayList<>();
+			for (String mediumTypeId : mediumTypeIds) {
+				Record mediumType = recordServices.getDocumentById(mediumTypeId);
+				mediumTypeCodes.add(mediumType.<String>get(Schemas.CODE));
+			}
+			return mediumTypeCodes;
+		}
+		return null;
+	}
+
+	protected List<String> getMediumTypes(Record record) {
+		Folder folder = rm.wrapFolder(record);
+
+		List<String> mediumTypeIds = folder.getMediumTypes();
+		if (mediumTypeIds != null) {
+			List<String> mediumTypeCodes = new ArrayList<>();
+			for (String mediumTypeId : mediumTypeIds) {
+				Record mediumType = recordServices.getDocumentById(mediumTypeId);
+				mediumTypeCodes.add(mediumType.<String>get(Schemas.CODE));
+			}
+			return mediumTypeCodes;
+		}
+		return null;
 	}
 
 	protected void switchToCustomSchema(String id) throws Exception {
@@ -116,6 +143,7 @@ public class BaseFolderRestfulServiceAcceptanceTest extends BaseRestfulServiceAc
 
 		recordServices.execute(transaction);
 	}
+
 
 	protected CopyType toCopyType(String copyStatus) {
 		for (CopyType copyType : CopyType.values()) {
@@ -167,14 +195,6 @@ public class BaseFolderRestfulServiceAcceptanceTest extends BaseRestfulServiceAc
 			folder.set(fakeMetadata2, value2);
 			recordServices.update(folder);
 		}
-	}
-
-
-	protected MultiPart buildMultiPart(FolderDto folder) {
-		FormDataMultiPart multiPart = new FormDataMultiPart();
-		multiPart.bodyPart(new FormDataBodyPart("folder", folder, APPLICATION_JSON_TYPE));
-
-		return multiPart;
 	}
 
 }
