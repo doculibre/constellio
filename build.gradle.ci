@@ -110,11 +110,7 @@ war {
         manifest {
             attributes("Implementation-Title": project.name,
                     "Implementation-Version": project.VERSION,
-                    "Implementation-Timestamp": new Date(),
-                    "Implementation-Revision-Constellio": revisionConstellio,
-                    "Implementation-Revision-Plugins": revisionPlugins,
-                    "Implementation-Branch-Constellio": branchConstellio,
-                    "Implementation-Branch-Plugins": branchPlugins)
+                    "Implementation-Timestamp": new Date())
         }
     }
 
