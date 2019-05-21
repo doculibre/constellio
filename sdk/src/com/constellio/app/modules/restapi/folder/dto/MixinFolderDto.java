@@ -9,7 +9,7 @@ import java.util.List;
 
 import static com.fasterxml.jackson.annotation.JsonProperty.Access.READ_WRITE;
 
-public class MixinFolderDto2 {
+public class MixinFolderDto {
 	@JsonProperty(access = READ_WRITE)
 	private String mediaType;
 
