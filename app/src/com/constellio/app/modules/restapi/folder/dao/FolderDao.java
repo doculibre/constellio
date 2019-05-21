@@ -96,6 +96,10 @@ public class FolderDao extends ResourceDao {
 	}
 
 	private CopyType toCopyType(String copyStatus) {
+		if (copyStatus == null) {
+			return null;
+		}
+
 		for (CopyType copyType : CopyType.values()) {
 			if (copyType.getCode().equals(copyStatus)) {
 				return copyType;

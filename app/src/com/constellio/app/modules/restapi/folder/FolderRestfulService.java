@@ -77,8 +77,7 @@ public class FolderRestfulService extends ResourceRestfulService {
 					content = @Content(mediaType = "application/json", schema = @Schema(ref = "Folder"))),
 			@ApiResponse(responseCode = "400", description = "Bad Request", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error"))),
 			@ApiResponse(responseCode = "403", description = "Forbidden", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error"))),
-			@ApiResponse(responseCode = "404", description = "Not Found", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error"))),
-			@ApiResponse(responseCode = "422", description = "Unprocessable Entity", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error")))})
+			@ApiResponse(responseCode = "404", description = "Not Found", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error")))})
 	public Response create(@Parameter(description = "Parent Folder Id") @QueryParam("folderId") String folderId,
 						   @Parameter(required = true, description = "Service Key") @QueryParam("serviceKey") String serviceKey,
 						   @Parameter(required = true, description = "HTTP Method", schema = @Schema(allowableValues = {"PUT"})) @QueryParam("method") String method,
@@ -101,11 +100,15 @@ public class FolderRestfulService extends ResourceRestfulService {
 		validateFilterValues(FolderDto.class, filters);
 		validateHttpMethod(method, HttpMethods.POST);
 
-		if (folderId != null && (folder.getParentFolderId() == null || !folder.getParentFolderId().equals(folderId))) {
+		if (folderId != null && folder != null &&
+			(folder.getParentFolderId() == null || !folder.getParentFolderId().equals(folderId))) {
 			throw new ParametersMustMatchException("folderId", "folder.parentFolderId");
 		}
 
 		if (copySourceId == null) {
+			if (folder == null) {
+				throw new RequiredParameterException("folder");
+			}
 			if (Strings.isNullOrEmpty(folder.getTitle())) {
 				throw new RequiredParameterException("folder.title");
 			}
