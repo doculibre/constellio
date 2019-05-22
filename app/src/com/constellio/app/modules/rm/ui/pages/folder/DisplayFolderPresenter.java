@@ -1278,8 +1278,13 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		view.selectEventsTab();
 	}
 
-	public boolean hasCurrentUserPermissionToUseCart() {
-		return getCurrentUser().has(RMPermissionsTo.USE_CART).globally();
+	public boolean hasCurrentUserPermissionToUseCartGroup() {
+		return getCurrentUser().has(RMPermissionsTo.USE_GROUP_CART).globally();
+	}
+
+
+	public boolean hasCurrentUserPermissionToUseMyCart() {
+		return getCurrentUser().has(RMPermissionsTo.USE_MY_CART).globally();
 	}
 
 	public boolean hasPermissionToStartWorkflow() {

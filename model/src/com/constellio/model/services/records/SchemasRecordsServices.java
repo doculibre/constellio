@@ -3,6 +3,7 @@ package com.constellio.model.services.records;
 import com.constellio.data.utils.Factory;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.BatchProcessReport;
 import com.constellio.model.entities.records.wrappers.Capsule;
 import com.constellio.model.entities.records.wrappers.Collection;
@@ -13,7 +14,6 @@ import com.constellio.model.entities.records.wrappers.Facet;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.ImportAudit;
 import com.constellio.model.entities.records.wrappers.Report;
-import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.TemporaryRecord;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.ValueListItem;
@@ -24,7 +24,6 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -459,8 +458,20 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 				getModelLayerFactory().newSearchServices().getAllRecordsInUnmodifiableState(authorizationDetails.schemaType()));
 	}
 
+	public List<UserCredential> getAllUserCredentials() {
+		return modelLayerFactory.newUserServices().getAllUserCredentials();
+	}
+
+	public List<GlobalGroup> getAllGlobalGroups() {
+		return modelLayerFactory.newUserServices().getAllGlobalGroups();
+	}
+
 	public List<User> getAllUsers() {
 		return wrapUsers(getModelLayerFactory().newSearchServices().getAllRecordsInUnmodifiableState(user.schemaType()));
+	}
+
+	public List<Facet> getAllFacets() {
+		return wrapFacets(getModelLayerFactory().newSearchServices().getAllRecordsInUnmodifiableState(facet.schemaType()));
 	}
 
 	public List<User> getAllUsersInUnmodifiableState() {

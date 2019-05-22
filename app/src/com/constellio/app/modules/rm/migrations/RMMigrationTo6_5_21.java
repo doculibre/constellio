@@ -35,7 +35,7 @@ public class RMMigrationTo6_5_21 implements MigrationScript {
 
 		List<Role> roleList = rolesManager.getAllRoles(collection);
 		for (Role role : roleList) {
-			Role editedRole = role.withNewPermissions(asList(RMPermissionsTo.USE_CART));
+			Role editedRole = role.withNewPermissions(asList(RMPermissionsTo.USE_MY_CART));
 			if (editedRole.getCode().equals(RMRoles.RGD)) {
 				editedRole = editedRole.withNewPermissions(asList(CorePermissions.USE_EXTERNAL_APIS_FOR_COLLECTION));
 			}

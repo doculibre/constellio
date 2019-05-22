@@ -18,7 +18,6 @@ import java.io.IOException;
 import java.util.Map;
 
 import static com.constellio.app.services.recovery.UpdateRecoveryImpossibleCause.TOO_SHORT_MEMORY;
-import static com.constellio.app.services.recovery.UpdateRecoveryImpossibleCause.TOO_SHORT_SPACE;
 
 public class UpgradeAppRecoveryServiceImpl implements UpgradeAppRecoveryService {
 	private final static Logger LOGGER = LoggerFactory.getLogger(UpgradeAppRecoveryServiceImpl.class);
@@ -101,10 +100,6 @@ public class UpgradeAppRecoveryServiceImpl implements UpgradeAppRecoveryService 
 
 	@Override
 	public UpdateRecoveryImpossibleCause isUpdateWithRecoveryPossible() {
-		if (this.systemPropertiesServices
-				.isFreeSpaceInTempFolderLowerThan(getTransactionLogFileSizeInGig() + REQUIRED_SPACE_IN_GIG)) {
-			return TOO_SHORT_SPACE;
-		}
 		if (this.systemPropertiesServices.isAvailableMemoryLowerThan(REQUIRED_MEMORY_IN_MO)) {
 			return TOO_SHORT_MEMORY;
 		}

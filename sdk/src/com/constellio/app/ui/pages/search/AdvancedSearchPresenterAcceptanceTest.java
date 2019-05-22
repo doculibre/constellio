@@ -110,7 +110,7 @@ public class AdvancedSearchPresenterAcceptanceTest extends ConstellioTest {
 		connectWithAlice();
 		assertThat(presenter.hasCurrentUserPermissionToUseCart()).isFalse();
 
-		Role editedRole2 = editedRole.withPermissions(asList(RMPermissionsTo.USE_CART));
+		Role editedRole2 = editedRole.withPermissions(asList(RMPermissionsTo.USE_MY_CART));
 		rolesManager.updateRole(editedRole2);
 
 		connectWithAlice();

@@ -118,7 +118,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	private boolean dragNDropAllowed;
 	private Button deleteFolderButton, duplicateFolderButton, editFolderButton, addSubFolderButton, addDocumentButton,
 			addAuthorizationButton, shareFolderButton, printLabelButton, linkToFolderButton, borrowButton, returnFolderButton,
-			reminderReturnFolderButton, alertWhenAvailableButton, addToCartButton, addToOrRemoveFromSelectionButton, startWorkflowButton, reportGeneratorButton;
+			reminderReturnFolderButton, alertWhenAvailableButton, addToCartButton, addToCartMyCartButton, addToOrRemoveFromSelectionButton, startWorkflowButton, reportGeneratorButton;
 	WindowButton moveInFolderButton;
 	private Label borrowedLabel;
 
@@ -399,6 +399,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			};
 
 			addToCartButton = buildAddToCartButton();
+			addToCartMyCartButton = buildAddToMyCartButton();
 
 			addToOrRemoveFromSelectionButton = new AddToOrRemoveFromSelectionButton(recordVO,
 					getSessionContext().getSelectedRecordIds().contains(recordVO.getId()));
@@ -469,8 +470,10 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				actionMenuButtons.add(linkToFolderButton);
 				actionMenuButtons.add(addAuthorizationButton);
 				actionMenuButtons.add(shareFolderButton);
-				if (presenter.hasCurrentUserPermissionToUseCart()) {
+				if (presenter.hasCurrentUserPermissionToUseCartGroup()) {
 					actionMenuButtons.add(addToCartButton);
+				} else if (presenter.hasCurrentUserPermissionToUseMyCart()) {
+					actionMenuButtons.add(addToCartMyCartButton);
 				}
 				actionMenuButtons.add(addToOrRemoveFromSelectionButton);
 			}
@@ -505,6 +508,17 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				button.setEnabled(false);
 			}
 		}
+	}
+
+	private Button buildAddToMyCartButton(){
+		Button button = new BaseButton($("DisplayFolderView.addToCart")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				presenter.addToDefaultFavorite();
+			}
+		};
+
+		return button;
 	}
 
 	private WindowButton buildAddToCartButton() {
@@ -561,7 +575,9 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 	private DefaultFavoritesTable buildOwnedFavoritesTable(final Window window) {
 		List<DefaultFavoritesTable.CartItem> cartItems = new ArrayList<>();
-		cartItems.add(new DefaultFavoritesTable.CartItem($("CartView.defaultFavorites")));
+		if(presenter.hasCurrentUserPermissionToUseMyCart()) {
+			cartItems.add(new DefaultFavoritesTable.CartItem($("CartView.defaultFavorites")));
+		}
 		for (Cart cart : presenter.getOwnedCarts()) {
 			cartItems.add(new DefaultFavoritesTable.CartItem(cart, cart.getTitle()));
 		}

@@ -260,26 +260,30 @@ public class DocumentMenuBarImpl extends BaseMenuBar implements DocumentMenuBar 
 			});
 		}
 
-		if (presenter.documentInDefaultFavorites()) {
-			MenuItem addToDefaultCartItem = rootItem.addItem($("DocumentContextMenu.removeFromDefaultCart"), FontAwesome.STAR, null);
-			addToDefaultCartItem.setCommand(new Command() {
-				@Override
-				public void menuSelected(MenuItem selectedItem) {
-					presenter.removeDocumentFromDefaultFavorites();
-					refreshParent();
-					showMessage($("DisplayDocumentView.documentRemovedFromDefaultFavorites"));
-				}
-			});
-		} else {
-			MenuItem addToDefaultCartItem = rootItem.addItem($("DocumentContextMenu.addToDefaultCart"), FontAwesome.STAR_O, null);
-			addToDefaultCartItem.setCommand(new Command() {
-				@Override
-				public void menuSelected(MenuItem selectedItem) {
-					presenter.addDocumentToDefaultFavorite();
-					refreshParent();
-					showMessage($("DisplayDocumentView.documentAddedToDefaultFavorites"));
-				}
-			});
+		if(presenter.hasPermissionToUserCart()) {
+			if (presenter.documentInDefaultFavorites()) {
+				MenuItem addToDefaultCartItem = rootItem
+						.addItem($("DocumentContextMenu.removeFromDefaultCart"), FontAwesome.STAR, null);
+				addToDefaultCartItem.setCommand(new Command() {
+					@Override
+					public void menuSelected(MenuItem selectedItem) {
+						presenter.removeDocumentFromDefaultFavorites();
+						refreshParent();
+						showMessage($("DisplayDocumentView.documentRemovedFromDefaultFavorites"));
+					}
+				});
+			} else {
+				MenuItem addToDefaultCartItem = rootItem
+						.addItem($("DocumentContextMenu.addToDefaultCart"), FontAwesome.STAR_O, null);
+				addToDefaultCartItem.setCommand(new Command() {
+					@Override
+					public void menuSelected(MenuItem selectedItem) {
+						presenter.addDocumentToDefaultFavorite();
+						refreshParent();
+						showMessage($("DisplayDocumentView.documentAddedToDefaultFavorites"));
+					}
+				});
+			}
 		}
 
 		if (presenter.hasMetadataReport()) {

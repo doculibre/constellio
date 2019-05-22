@@ -13,13 +13,6 @@ import com.constellio.model.entities.enums.MetadataPopulatePriority;
 import com.constellio.model.entities.enums.ParsingBehavior;
 import com.constellio.model.entities.enums.SearchSortType;
 import com.constellio.model.entities.enums.TitleMetadataPopulatePriority;
-import com.constellio.model.entities.enums.BatchProcessingMode;
-import com.constellio.model.entities.enums.GroupAuthorizationsInheritance;
-import com.constellio.model.entities.enums.MemoryConsumptionLevel;
-import com.constellio.model.entities.enums.MetadataPopulatePriority;
-import com.constellio.model.entities.enums.ParsingBehavior;
-import com.constellio.model.entities.enums.SearchSortType;
-import com.constellio.model.entities.enums.TitleMetadataPopulatePriority;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -33,7 +26,6 @@ import java.util.Map;
 
 import static com.constellio.model.services.migrations.TimeScheduleConfigurationValidator.isCurrentlyInSchedule;
 import org.apache.commons.lang.StringUtils;
-import org.joda.time.LocalDate;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -163,6 +155,8 @@ public class ConstellioEIMConfigs {
 
 	public static final SystemConfiguration GENERATED_EMAIL_FORMAT;
 
+	public static final SystemConfiguration IS_TRASH_THREAD_EXECUTING;
+
 
 	static {
 		SystemConfigurationGroup others = new SystemConfigurationGroup(null, "others");
@@ -254,6 +248,8 @@ public class ConstellioEIMConfigs {
 		add(LAST_BACKUP_DAY = others.createString("lastBackupDay").whichIsHidden());
 
 		add(KEEP_EVENTS_FOR_X_MONTH = others.createInteger("eventKeptPeriod").withDefaultValue(99999).whichIsHidden());
+
+		add(IS_TRASH_THREAD_EXECUTING = others.createBooleanTrueByDefault("eventKeptPeriod").whichIsHidden());
 
 		SystemConfigurationGroup trees = new SystemConfigurationGroup(null, "trees");
 

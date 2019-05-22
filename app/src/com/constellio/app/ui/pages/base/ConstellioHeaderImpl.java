@@ -652,7 +652,7 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 			@Override
 			public boolean isVisible() {
 				AvailableActionsParam param = presenter.buildAvailableActionsParam(actionMenuLayout);
-				return presenter.getCurrentUser().has(RMPermissionsTo.USE_CART).globally() && containsOnly(
+				return presenter.getCurrentUser().has(RMPermissionsTo.USE_MY_CART).globally() && containsOnly(
 						param.getSchemaTypeCodes(),
 						asList(Folder.SCHEMA_TYPE, Document.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE));
 			}
@@ -665,7 +665,7 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 		SelectionPanelExtension.setStyles(windowButton);
 		AvailableActionsParam param = presenter.buildAvailableActionsParam(actionMenuLayout);
 		windowButton.setEnabled(
-				presenter.getCurrentUser().has(RMPermissionsTo.USE_CART).globally() && containsOnly(param.getSchemaTypeCodes(),
+				presenter.getCurrentUser().has(RMPermissionsTo.USE_MY_CART).globally() && containsOnly(param.getSchemaTypeCodes(),
 						asList(Folder.SCHEMA_TYPE, Document.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE)));
 		windowButton.setVisible(isEnabled());
 		return windowButton;

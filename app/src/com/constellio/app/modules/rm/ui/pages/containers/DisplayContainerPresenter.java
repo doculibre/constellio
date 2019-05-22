@@ -23,7 +23,6 @@ import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.NewReportPresenter;
-import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import com.constellio.app.ui.framework.reports.ReportWithCaptionVO;
@@ -269,6 +268,16 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 	public List<LabelTemplate> getDefaultTemplates() {
 		return appLayerFactory.getLabelTemplateManager().listTemplates(ContainerRecord.SCHEMA_TYPE);
 	}
+
+	public boolean hasCurrentUserPermissionToUseCartGroup() {
+		return getCurrentUser().has(RMPermissionsTo.USE_GROUP_CART).globally();
+	}
+
+
+	public boolean hasCurrentUserPermissionToUseMyCart() {
+		return getCurrentUser().has(RMPermissionsTo.USE_MY_CART).globally();
+	}
+
 
 	public Double getFillRatio(RecordVO container)
 			throws ContainerWithoutCapacityException, RecordInContainerWithoutLinearMeasure {

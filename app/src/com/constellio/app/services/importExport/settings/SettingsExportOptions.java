@@ -10,12 +10,23 @@ public class SettingsExportOptions {
 
 	private boolean isExportingAsCurrentCollection = false;
 
+	private boolean exportingSequences;
+
 	public boolean isOnlyUSR() {
 		return isOnlyUSR;
 	}
 
 	public SettingsExportOptions setOnlyUSR(boolean onlyUSR) {
 		isOnlyUSR = onlyUSR;
+		return this;
+	}
+
+	public boolean isExportingSequences() {
+		return exportingSequences;
+	}
+
+	public SettingsExportOptions setExportingSequences(boolean exportingSequences) {
+		this.exportingSequences = exportingSequences;
 		return this;
 	}
 

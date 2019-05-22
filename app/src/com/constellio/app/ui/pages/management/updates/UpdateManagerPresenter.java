@@ -8,8 +8,8 @@ import com.constellio.app.services.appManagement.AppManagementServiceException;
 import com.constellio.app.services.appManagement.AppManagementServiceRuntimeException.CannotConnectToServer;
 import com.constellio.app.services.recovery.UpdateRecoveryImpossibleCause;
 import com.constellio.app.services.recovery.UpgradeAppRecoveryService;
-import com.constellio.app.services.systemInformations.SystemInformationsService;
 import com.constellio.app.services.recovery.UpgradeAppRecoveryServiceImpl;
+import com.constellio.app.services.systemInformations.SystemInformationsService;
 import com.constellio.app.servlet.ConstellioMonitoringServlet;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.data.utils.TimeProvider;
@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 import static com.constellio.app.services.migrations.VersionsComparator.isFirstVersionBeforeSecond;
+import static com.constellio.app.services.recovery.UpdateRecoveryImpossibleCause.TOO_SHORT_SPACE;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.app.ui.pages.management.updates.UpdateNotRecommendedReason.BATCH_PROCESS_IN_PROGRESS;
 import static java.util.Arrays.asList;
@@ -311,7 +312,7 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 	}
 
 	public boolean isRestartWithReindexButtonEnabled() {
-		if(appLayerFactory.getModelLayerFactory().getDataLayerFactory().getDataLayerConfiguration().isSystemDistributed()) {
+		if (appLayerFactory.getModelLayerFactory().getDataLayerFactory().getDataLayerConfiguration().isSystemDistributed()) {
 			return !UpgradeAppRecoveryServiceImpl.HAS_UPLOADED_A_WAR_SINCE_REBOOTING;
 		} else {
 			return !recoveryModeEnabled();
@@ -323,13 +324,15 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 	}
 
 	public boolean isUpdateEnabled() {
-		UpdateRecoveryImpossibleCause updatePossible = isUpdateWithRecoveryPossible();
-		return updatePossible == null || updatePossible == UpdateRecoveryImpossibleCause.TOO_SHORT_MEMORY;
+		//Warning are prefered to feature disability
+		return true;
 	}
 
 	public UpdateRecoveryImpossibleCause isUpdateWithRecoveryPossible() {
-		return appLayerFactory.newUpgradeAppRecoveryService()
-				.isUpdateWithRecoveryPossible();
+		if (!isDiskUsageProblematic(getDiskUsage("/opt")) && !isDiskUsageProblematic(getDiskUsage("/var/solr"))) {
+			return TOO_SHORT_SPACE;
+		}
+		return appLayerFactory.newUpgradeAppRecoveryService().isUpdateWithRecoveryPossible();
 	}
 
 	public String getExceptionDuringLastUpdate() {

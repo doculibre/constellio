@@ -15,6 +15,7 @@ import com.constellio.data.utils.AccentApostropheCleaner;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.SimpleDateFormatSingleton;
 import com.constellio.model.entities.EnumWithSmallCode;
+import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -23,6 +24,7 @@ import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.ModifiableStructure;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.contents.ContentFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataList;
@@ -295,6 +297,28 @@ public abstract class AbstractXmlGenerator {
 		return listOfMetadataTags;
 	}
 
+	/**
+	 * Method that returns the value of metadata enum,
+	 * use the i18n to get correct label for current user language.
+	 *
+	 * @param metadata
+	 * @param recordElement
+	 * @param namespace
+	 * @return
+	 */
+	public static List<Element> createMetadataTagFromMetadataOfTypeContent(Metadata metadata, Record recordElement,
+																		   Namespace namespace, Locale locale) {
+		if (!hasMetadata(recordElement, metadata)) {
+			return Collections.emptyList();
+		}
+		List<Element> listOfMetadataTags = new ArrayList<>();
+
+		for (Content content : recordElement.<Content>getValues(metadata)) {
+			listOfMetadataTags.add(new Element(escapeForXmlTag(getLabelOfMetadata(metadata)), namespace).setText(new ContentFactory().toString(content)));
+		}
+		return listOfMetadataTags;
+	}
+
 	public static List<Element> createMetadataTagFromMetadataOfTypeReference(Metadata metadata, Record recordElement,
 																			 String collection,
 																			 AppLayerFactory factory) {
@@ -439,6 +463,7 @@ public abstract class AbstractXmlGenerator {
 			} catch (ParseException e) {
 				return data;
 			}
+
 		} else if (metadata.getType().equals(MetadataValueType.TEXT)) {
 			finalData = Jsoup.parse(data).text();
 		}

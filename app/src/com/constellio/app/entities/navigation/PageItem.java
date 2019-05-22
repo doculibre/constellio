@@ -3,10 +3,12 @@ package com.constellio.app.entities.navigation;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.contextmenu.BaseContextMenu;
 import com.constellio.app.ui.framework.data.RecordLazyTreeDataProvider;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.ui.Component;
@@ -123,5 +125,9 @@ public abstract class PageItem implements CodedItem, Serializable {
 
 		public abstract Component buildCustomComponent(ConstellioFactories factories, SessionContext context,
 													   ItemClickEvent.ItemClickListener itemClickListener);
+
+		public ComponentState getStateFor(User user, AppLayerFactory modelLayerFactory) {
+			return ComponentState.visibleIf(true);
+		}
 	}
 }

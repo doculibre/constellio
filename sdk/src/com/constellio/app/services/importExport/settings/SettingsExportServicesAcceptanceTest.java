@@ -378,6 +378,39 @@ public class SettingsExportServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	public void givenSequencesTablesWhenExportingThenKeyAndValuesExported()
+			throws ValidationException, IOException {
+
+		services.sequencesManager.set("sequence1", 42);
+		services.sequencesManager.set("sequence2", 666);
+
+
+		ImportedSettings settings = services.exportSettings(asList(zeCollection), options);
+		assertThat(settings.getSequences()).isEmpty();
+
+		options.setExportingSequences(true);
+		settings = writeAndReadXML(services.exportSettings(asList(zeCollection), options));
+		assertThat(settings.getSequences()).extracting("key", "value")
+				.containsOnly(tuple("sequence1", "42"), tuple("sequence2", "666"));
+
+	}
+
+	private ImportedSettings writeAndReadXML(ImportedSettings exportSettings) throws IOException {
+
+		String outputFilePath = "settings-export-output.xml";
+		File outputFile = new File(newTempFolder(), outputFilePath);
+
+		Document document = new SettingsXMLFileWriter().writeSettings(exportSettings);
+
+		XMLOutputter xmlOutputter = new XMLOutputter(Format.getPrettyFormat());
+		try (FileOutputStream fileOutputStream = new FileOutputStream(outputFile)) {
+			xmlOutputter.output(document, fileOutputStream);
+		}
+
+		return new SettingsXMLFileReader(document, null, getModelLayerFactory()).read();
+	}
+
+	@Test
 	public void givenAccessRestrictionOnMetadataOFFolderDefaultSchemaWhenExportingThenAccessRestrictionAreOK()
 			throws ValidationException, IOException, ParserConfigurationException, SAXException {
 
@@ -438,8 +471,8 @@ public class SettingsExportServicesAcceptanceTest extends ConstellioTest {
 
 		boolean typeFound = false;
 
-		for(ImportedType importedType : importedTypesList) {
-			if(importedType.getCode().equals(Folder.SCHEMA_TYPE))  {
+		for (ImportedType importedType : importedTypesList) {
+			if (importedType.getCode().equals(Folder.SCHEMA_TYPE)) {
 				typeFound = true;
 				ImportedMetadata importedMetadata = importedType.getDefaultSchema().getMetadata("custommetadata");
 				assertThat(importedMetadata.getRequiredReadRoles().get(0)).isEqualTo("RGI");

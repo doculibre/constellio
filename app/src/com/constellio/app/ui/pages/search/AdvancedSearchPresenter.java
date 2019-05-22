@@ -682,7 +682,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	}
 
 	public boolean hasCurrentUserPermissionToUseCart() {
-		return getCurrentUser().has(RMPermissionsTo.USE_CART).globally();
+		return getCurrentUser().has(RMPermissionsTo.USE_MY_CART).globally();
 	}
 
 	public LogicalSearchQuery buildReportLogicalSearchQuery() {

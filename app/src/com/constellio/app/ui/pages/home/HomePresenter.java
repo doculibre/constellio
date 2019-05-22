@@ -1,6 +1,7 @@
 package com.constellio.app.ui.pages.home;
 
 import com.constellio.app.entities.navigation.PageItem;
+import com.constellio.app.entities.navigation.PageItem.CustomItem;
 import com.constellio.app.entities.navigation.PageItem.RecordTree;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
 import com.constellio.app.modules.rm.RMConfigs;
@@ -142,6 +143,10 @@ public class HomePresenter extends BasePresenter<HomeView> {
 
 	public List<PageItem> getTabs() {
 		return tabItems;
+	}
+
+	public boolean isCustomItemVisible(CustomItem customItem) {
+		return customItem.getStateFor(getCurrentUser(), appLayerFactory).isVisible();
 	}
 
 	public String getDefaultTab() {

@@ -7,7 +7,6 @@ import com.constellio.app.entities.navigation.PageItem.RecentItemTable.RecentIte
 import com.constellio.app.entities.navigation.PageItem.RecordTable;
 import com.constellio.app.entities.navigation.PageItem.RecordTree;
 import com.constellio.app.modules.rm.ui.components.tree.RMTreeDropHandlerImpl;
-import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataVO;
@@ -52,7 +51,6 @@ import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.TabSheet.Tab;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Tree.TreeDragMode;
-
 import org.apache.commons.lang3.StringUtils;
 import org.vaadin.peter.contextmenu.ContextMenu;
 import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableFooterEvent;
@@ -101,6 +99,7 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 		Map<String, Tab> tabsByCode = new HashMap<>();
 		for (PageItem item : tabs) {
 			Tab tab = tabSheet.addTab(new PlaceHolder(), $("HomeView.tab." + item.getCode()));
+			tab.setVisible(isTabVisible(tab));
 			tabsByCode.put(item.getCode(), tab);
 		}
 
@@ -115,6 +114,17 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 		selectTab(tabsByCode.get(presenter.getCurrentTab()));
 
 		return tabSheet;
+	}
+
+	public boolean isTabVisible(Tab tab) {
+		int indexOfSelectedTab = tabSheet.getTabPosition(tab);
+		PageItem tabSource = tabs.get(indexOfSelectedTab);
+
+		if(tabSource instanceof CustomItem) {
+			return presenter.isCustomItemVisible((CustomItem) tabSource);
+		} else {
+			return true;
+		}
 	}
 
 	@Override

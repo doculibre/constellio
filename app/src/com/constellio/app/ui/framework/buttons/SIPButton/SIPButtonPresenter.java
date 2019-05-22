@@ -128,7 +128,7 @@ public class SIPButtonPresenter {
 
 			String sipFolderName = (viewObject.getArchiveTitle() != null ?
 									viewObject.getArchiveTitle() :
-									"archive-" + new SimpleDateFormat("yyyy-MM-dd").format(new Date())) + ".zip";
+									"archive-" + new SimpleDateFormat("yyyy-MM-dd").format(new Date()));
 			List<String> packageInfoLines = new ArrayList<>();
 			for (MetadataVO metadatavo : viewObject.getFormMetadatas()) {
 				Object value = viewObject.get(metadatavo);

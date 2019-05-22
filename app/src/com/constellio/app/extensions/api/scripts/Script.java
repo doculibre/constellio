@@ -64,6 +64,10 @@ public abstract class Script {
 		return appLayerFactory.getCollectionsManager().getCollectionCodesExcludingSystem();
 	}
 
+	public List<String> getCollectionCodesIncludingSystem() {
+		return appLayerFactory.getCollectionsManager().getCollectionCodes();
+	}
+
 	public List<String> getUserManageableSchemaTypeCodes() {
 		List<String> userManageableSchemaTypeCode = new ArrayList<>();
 
