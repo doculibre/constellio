@@ -315,7 +315,7 @@ public class ContentManager implements StatefulService {
 	}
 
 	private boolean shouldFileBeScannedForDeletion(File file) {
-		boolean isMainFile = !(file.getName().endsWith("__parsed") || file.getName().endsWith(".preview"));
+		boolean isMainFile = !(file.getName().endsWith("__parsed") || file.getName().endsWith(".preview") || file.getName().endsWith(".jpegConversion") || file.getName().endsWith(".thumbnail"));
 		List<String> restrictedFiles = asList("tlogs", "tlogs_bck");
 		return isMainFile && !restrictedFiles.contains(file.getName());
 	}
@@ -780,8 +780,7 @@ public class ContentManager implements StatefulService {
 			if (!contentMetadata.isMultivalue()) {
 				Content content = record.get(contentMetadata);
 				if (content != null) {
-					isConversionSuccessful = isConversionSuccessful &&
-											 tryConvertContentForPreview(content, tempFolder);
+					isConversionSuccessful = tryConvertContentForPreview(content, tempFolder) && isConversionSuccessful;
 				}
 			}
 		}
