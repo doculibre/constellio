@@ -8,6 +8,7 @@ import com.constellio.app.ui.framework.components.BaseForm.FieldAndPropertyId;
 import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.fields.upload.ContentVersionUploadField;
 import com.constellio.model.frameworks.validation.ValidationException;
+import com.jgoodies.common.base.Strings;
 import com.vaadin.data.Item;
 import com.vaadin.data.Property;
 import com.vaadin.data.Validator;
@@ -173,6 +174,10 @@ public class UpdateContentVersionWindowImpl extends BaseWindow implements Update
 
 		uploadForm.setSizeFull();
 
+		if(Strings.isNotBlank(getDocumentTitle())) {
+			mainLayout.addComponent(new Label(getDocumentTitle()));
+		}
+
 		mainLayout.addComponents(errorLabel, uploadForm);
 
 		DragAndDropWrapper dragAndDropWrapper = new DragAndDropWrapper(mainLayout);
@@ -181,6 +186,10 @@ public class UpdateContentVersionWindowImpl extends BaseWindow implements Update
 		dragAndDropWrapper.setDropHandler(uploadField);
 
 		presenter = new UpdateContentVersionPresenter(this, records);
+	}
+
+	public String getDocumentTitle() {
+		return null;
 	}
 
 	@Override

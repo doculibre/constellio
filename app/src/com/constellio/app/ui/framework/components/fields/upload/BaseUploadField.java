@@ -87,6 +87,8 @@ public class BaseUploadField extends CustomField<Object> implements DropHandler 
 					if (!newConvertedValue.equals(getConvertedValue())) {
 						deleteTempFiles();
 						BaseUploadField.this.setValue(newConvertedValue);
+					} else if ( fireValueChangeWhenEqual()) {
+						fireValueChange(true);
 					}
 				} else {
 					List<Object> previousListValue = (List<Object>) BaseUploadField.this.getValue();
@@ -320,6 +322,10 @@ public class BaseUploadField extends CustomField<Object> implements DropHandler 
 
 	public final void setDropZoneCaption(String dropZoneCaption) {
 		multiFileUpload.setDropZoneCaption(dropZoneCaption);
+	}
+
+	public boolean fireValueChangeWhenEqual() {
+		return false;
 	}
 
 	@Override

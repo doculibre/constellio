@@ -60,8 +60,11 @@ import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.app.ui.util.MessageUtils;
+import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.CorePermissions;
+import com.constellio.model.entities.records.Content;
+import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.EmailToSend;
@@ -106,6 +109,7 @@ import java.util.Map;
 
 import static com.constellio.app.modules.tasks.model.wrappers.Task.STARRED_BY_USERS;
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.contents.ContentFactory.isFilename;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
@@ -135,6 +139,10 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	private transient ConstellioEIMConfigs eimConfigs;
 	private String taxonomyCode;
 	private User user;
+	private SchemaPresenterUtils presenterUtilsForDocument;
+
+	protected RecordToVOBuilder voBuilder = new RecordToVOBuilder();
+
 
 	Boolean allItemsSelected = false;
 
@@ -147,6 +155,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	public DisplayFolderPresenter(DisplayFolderView view, RecordVO recordVO, boolean popup) {
 		super(view, Folder.DEFAULT_SCHEMA);
 		this.popup = popup;
+		presenterUtilsForDocument = new SchemaPresenterUtils(Document.DEFAULT_SCHEMA, view.getConstellioFactories(), view.getSessionContext());
 		initTransientObjects();
 		if (recordVO != null) {
 			this.taxonomyCode = recordVO.getId();
@@ -855,20 +864,23 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		return new RMSchemasRecordsServices(getCurrentUser().getCollection(), appLayerFactory);
 	}
 
-	private boolean documentExists(String fileName) {
+	private SearchResponseIterator<Record> getExistingDocumentInCurrentFolder(String fileName) {
 		Record record = getRecord(folderVO.getId());
 
 		MetadataSchemaType documentsSchemaType = getDocumentsSchemaType();
 		MetadataSchema documentsSchema = getDocumentsSchema();
+
 		Metadata folderMetadata = documentsSchema.getMetadata(Document.FOLDER);
-		Metadata titleMetadata = documentsSchema.getMetadata(Schemas.TITLE.getCode());
 		LogicalSearchQuery query = new LogicalSearchQuery();
-		LogicalSearchCondition parentCondition = from(documentsSchemaType).where(folderMetadata).is(record)
-				.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull();
-		query.setCondition(parentCondition.andWhere(titleMetadata).is(fileName));
+		LogicalSearchCondition queryCondition = from(documentsSchemaType).where(folderMetadata).is(record)
+				.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull().andWhere(rmSchemasRecordsServices.documentContent()).is(isFilename(fileName));
+		query.setCondition(queryCondition);
 
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
-		return searchServices.query(query).getNumFound() > 0;
+
+		SearchResponseIterator<Record> speQueryResponse = searchServices.recordsIterator(query, 100);
+
+		return speQueryResponse;
 	}
 
 	private Record currentFolder() {
@@ -878,7 +890,8 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	public void contentVersionUploaded(ContentVersionVO uploadedContentVO) {
 		view.selectFolderContentTab();
 		String fileName = uploadedContentVO.getFileName();
-		if (!documentExists(fileName) && !extensions.isModifyBlocked(currentFolder(), getCurrentUser())) {
+		SearchResponseIterator<Record> existingDocument = getExistingDocumentInCurrentFolder(fileName);
+		if (existingDocument.getNumFound() == 0 && !extensions.isModifyBlocked(currentFolder(), getCurrentUser())) {
 			try {
 				if (Boolean.TRUE.equals(uploadedContentVO.hasFoundDuplicate())) {
 					RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
@@ -936,6 +949,51 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			} finally {
 				view.clearUploadField();
 			}
+		} else if (existingDocument.getNumFound() > 0) {
+			StringBuilder message = new StringBuilder();
+			boolean refreshDocument = false;
+
+			while(existingDocument.hasNext()) {
+				Record currentRecord = existingDocument.next();
+				Content content = currentRecord.get(rmSchemasRecordsServices.document.content());
+				ContentVersion contentVersion = content.getCurrentVersion();
+				if(contentVersion.getHash() != null && !uploadedContentVO.getHash().equals(contentVersion.getHash())) {
+					refreshDocument = true;
+					if (!hasWritePermission(currentRecord)){
+						message.append($("displayFolderView.noWritePermission", currentRecord) + "</br>");
+					} else if(isCheckedOutByOtherUser(currentRecord)) {
+						message.append($("displayFolderView.checkoutByAnOtherUser", currentRecord) + "</br>");
+					} else {
+						view.showVersionUpdateWindow(voBuilder.build(currentRecord,
+								VIEW_MODE.DISPLAY, view.getSessionContext()), uploadedContentVO);
+					}
+				} else {
+					message.append($("displayfolderview.unchangeFile", currentRecord.getTitle()) + "</br>");
+				}
+			}
+			if(message.length() > 0) {
+				view.showErrorMessage(message.toString());
+			}
+
+			if(refreshDocument) {
+				documentsDataProvider.fireDataRefreshEvent();
+			}
+		}
+	}
+
+	private boolean hasWritePermission(Record record) {
+		User currentUser = presenterUtilsForDocument.getCurrentUser();
+		return currentUser.hasWriteAccess().on(record);
+	}
+
+	private boolean isCheckedOutByOtherUser(Record recordVO) {
+		Content content = recordVO.get(rmSchemasRecordsServices.document.content());
+		if(recordVO.getTypeCode().equals(Document.SCHEMA_TYPE) && content != null) {
+			User currentUser = presenterUtilsForDocument.getCurrentUser();
+			String checkOutUserId = content.getCheckoutUserId();
+			return checkOutUserId != null && !checkOutUserId.equals(currentUser.getId());
+		} else {
+			return false;
 		}
 	}
 
