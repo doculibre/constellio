@@ -4,6 +4,7 @@ import com.constellio.app.api.extensions.params.DocumentFolderBreadCrumbParams;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
+import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.decommissioning.SearchType;
 import com.constellio.app.modules.rm.ui.components.RMMetadataDisplayFactory;
 import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentContainerBreadcrumbTrail;
@@ -134,6 +135,10 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	public DisplayDocumentViewImpl(RecordVO recordVO, boolean popup) {
 		this.popup = popup;
 		presenter = new DisplayDocumentPresenter(this, recordVO, popup);
+	}
+
+	public DisplayDocumentPresenter getDisplayDocumentPresenter() {
+		return presenter;
 	}
 
 	@Override
@@ -309,15 +314,22 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 		String saveSearchDecommissioningId = null;
 		String searchTypeAsString = null;
+		String favGroupIdKey = null;
 
-		if (presenter.getParams() != null && presenter.getParams().get("decommissioningSearchId") != null) {
-			saveSearchDecommissioningId = presenter.getParams().get("decommissioningSearchId");
+		if(presenter.getParams() != null) {
+			if (presenter.getParams().get("decommissioningSearchId") != null) {
+				saveSearchDecommissioningId = presenter.getParams().get("decommissioningSearchId");
 
+			}
+
+			if (presenter.getParams().get("decommissioningType") != null) {
+				searchTypeAsString = presenter.getParams().get("decommissioningType");
+			}
+
+			favGroupIdKey = presenter.getParams().get(RMViews.FAV_GROUP_ID_KEY);
 		}
 
-		if (presenter.getParams() != null && presenter.getParams().get("decommissioningType") != null) {
-			searchTypeAsString = presenter.getParams().get("decommissioningType");
-		}
+
 
 		SearchType searchType = null;
 		if (searchTypeAsString != null) {
@@ -331,9 +343,10 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		breadcrumbTrail = rmModuleExtensions.getBreadCrumbtrail(
 				new DocumentFolderBreadCrumbParams(presenter.getDocument().getId(), presenter.getParams(), this));
 
-
 		if (breadcrumbTrail != null) {
 			return breadcrumbTrail;
+		}else if(favGroupIdKey != null) {
+			return new FolderDocumentContainerBreadcrumbTrail(documentVO.getId(), null, null, favGroupIdKey, this);
 		} else if (saveSearchDecommissioningId != null && searchType != null) {
 			return new DecommissionBreadcrumbTrail($("DecommissioningBuilderView.viewTitle." + searchType.name()), searchType,
 					saveSearchDecommissioningId, presenter.getRecord().getId(), this);
@@ -736,6 +749,11 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		actionMenuButtons.addAll(presenter.getButtonsFromExtension());
 
 		return actionMenuButtons;
+	}
+
+
+	public void navigateToSelf() {
+		presenter.navigateToSelf();
 	}
 
 	private WindowButton buildAddToCartButton() {

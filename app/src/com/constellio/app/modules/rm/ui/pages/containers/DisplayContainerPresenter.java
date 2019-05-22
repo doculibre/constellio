@@ -28,6 +28,7 @@ import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import com.constellio.app.ui.framework.reports.ReportWithCaptionVO;
 import com.constellio.app.ui.pages.base.BasePresenter;
+import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
@@ -60,6 +61,7 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 	private String containerId;
 	private String tabName;
 	private String administrativeUnitId;
+	private Map<String, String> params = null;
 
 	public DisplayContainerPresenter(DisplayContainerView view) {
 		this(view, null, false);
@@ -146,8 +148,20 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 				.build(recordServices().getDocumentById(containerId), VIEW_MODE.DISPLAY, view.getSessionContext());
 	}
 
+	public String getFavoriteGroupId() {
+		if(params != null) {
+			return params.get(RMViews.FAV_GROUP_ID_KEY);
+		} else {
+			return null;
+		}
+	}
+
 	public void editContainer() {
-		view.navigate().to(RMViews.class).editContainer(containerId);
+		if(getFavoriteGroupId()  != null) {
+			view.navigate().to(RMViews.class).editContainerFromFavorites(containerId, getFavoriteGroupId());
+		} else {
+			view.navigate().to(RMViews.class).editContainer(containerId);
+		}
 	}
 
 	public ComponentState getEmptyButtonState() {
@@ -175,8 +189,15 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 	}
 
 	public void displayFolderButtonClicked(RecordVO folder) {
-		view.navigate().to(RMViews.class).displayFolder(folder.getId());
-	}
+		if(params != null && params.get(RMViews.FAV_GROUP_ID_KEY) != null) {
+			view.navigate().to(RMViews.class).displayFolderFromFavorites(folder.getId(), params.get(RMViews.FAV_GROUP_ID_KEY));
+		} else if(view.getUIContext().getAttribute(BaseBreadcrumbTrail.SEARCH_ID) != null && containerId != null) {
+			view.navigate().to(RMViews.class).displayFolderFromContainer(folder.getId(), containerId);
+		} else {
+			view.navigate().to(RMViews.class).displayFolder(folder.getId());
+		}
+
+		}
 
 	@Override
 	public List<ReportWithCaptionVO> getSupportedReports() {
@@ -210,15 +231,23 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 	}
 
 	public void forParams(String containerId) {
-		String[] parts = containerId.split("/");
-
-		if(parts.length == 1) {
-			this.containerId = containerId;
+		if(containerId.contains(RMViews.FAV_GROUP_ID_KEY)) {
+			this.params = ParamUtils.getParamsMap(containerId);
+			this.containerId = params.get(RMViews.ID_KEY);
 		} else {
-			this.containerId = parts[0];
-			this.tabName = parts[1];
-			this.administrativeUnitId = parts[2];
+			String[] parts = containerId.split("/");
+			if (parts.length == 1) {
+				this.containerId = containerId;
+			} else {
+				this.containerId = parts[0];
+				this.tabName = parts[1];
+				this.administrativeUnitId = parts[2];
+			}
 		}
+	}
+
+	public Map<String, String> getParams() {
+		return params;
 	}
 
 	public String getTabName() {

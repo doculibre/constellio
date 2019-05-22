@@ -84,6 +84,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 	private boolean newFileAtStart;
 	ConstellioEIMConfigs eimConfigs;
 	private Map<String, String> params;
+	private Document documentOriginalCopy = null;
 
 	public AddEditDocumentPresenter(AddEditDocumentView view) {
 		super(view, Document.DEFAULT_SCHEMA);
@@ -156,6 +157,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 
 	private void populateFromExistingDocument(String existingDocumentId) {
 		Document document = rmSchemasRecordsServices.getDocument(existingDocumentId);
+		documentOriginalCopy = document;
 		DecommissioningService decommissioningService = new DecommissioningService(collection, appLayerFactory);
 		Document duplicatedDocument = decommissioningService.createDuplicateOfDocument(document, getCurrentUser());
 
@@ -290,6 +292,8 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 	public void cancelButtonClicked() {
 		if (userDocumentId != null) {
 			view.navigate().to(RMViews.class).listUserDocuments();
+		} else if (addViewWithCopy){
+			navigateToDocumentDisplay(documentOriginalCopy.getId());
 		} else if (addView) {
 			String parentId = documentVO.getFolder();
 			if (parentId != null) {

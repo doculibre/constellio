@@ -6,6 +6,8 @@ import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentBrea
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.components.breadcrumb.BreadcrumbItem;
 import com.constellio.app.ui.framework.components.breadcrumb.CollectionBreadcrumbItem;
+import com.constellio.app.ui.framework.components.breadcrumb.FavoritesBreadcrumbItem;
+import com.constellio.app.ui.framework.components.breadcrumb.GroupFavoritesBreadcrumbItem;
 import com.constellio.app.ui.framework.components.breadcrumb.IntermediateBreadCrumbTailItem;
 import com.constellio.app.ui.framework.components.breadcrumb.SearchResultsBreadcrumbItem;
 import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
@@ -25,9 +27,13 @@ public class FolderDocumentContainerBreadcrumbTrail extends TitleBreadcrumbTrail
 		this(recordId, taxonomyCode, null, view);
 	}
 
-	public FolderDocumentContainerBreadcrumbTrail(String recordId, String taxonomyCode, String containerId, BaseView view) {
+	public FolderDocumentContainerBreadcrumbTrail(String recordId, String taxonomyCode, String containerId, String favoritesId, BaseView view) {
 		super(view, null, false);
-		this.presenter = new FolderDocumentBreadcrumbTrailPresenter(recordId, taxonomyCode, this, containerId);
+		this.presenter = new FolderDocumentBreadcrumbTrailPresenter(recordId, taxonomyCode, this, containerId, favoritesId);
+	}
+
+	public FolderDocumentContainerBreadcrumbTrail(String recordId, String taxonomyCode, String containerId, BaseView view) {
+		this(recordId, taxonomyCode, containerId, null, view);
 	}
 
 	@Override
@@ -51,6 +57,10 @@ public class FolderDocumentContainerBreadcrumbTrail extends TitleBreadcrumbTrail
 		} else if (item instanceof ViewGroupBreadcrumbItem) {
 			recordId = null;
 		} else if (item instanceof IntermediateBreadCrumbTailItem) {
+			recordId = null;
+		} else if (item instanceof GroupFavoritesBreadcrumbItem) {
+			recordId = ((GroupFavoritesBreadcrumbItem)item).getFavoriteGroupId();
+		} else if (item instanceof FavoritesBreadcrumbItem){
 			recordId = null;
 		} else {
 			throw new RuntimeException("Unrecognized breadcrumb item type : " + item.getClass());

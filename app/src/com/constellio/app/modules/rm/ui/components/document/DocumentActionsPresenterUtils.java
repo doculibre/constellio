@@ -227,6 +227,8 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 			if (areSearchTypeAndSearchIdPresent) {
 				actionsComponent.navigate().to(RMViews.class)
 						.addDocumentWithContentFromDecommission(documentVO.getId(), DecommissionNavUtil.getSearchId(params), DecommissionNavUtil.getSearchType(params));
+			} else if(params.get(RMViews.FAV_GROUP_ID_KEY) != null) {
+				actionsComponent.navigate().to(RMViews.class).addDocumentWithContentFromFavorites(documentVO.getId(), params.get(RMViews.FAV_GROUP_ID_KEY));
 			} else if (rmModuleExtensions
 					.navigateToAddDocumentWhileKeepingTraceOfPreviousView(new NavigateToFromAPageParams(params, documentVO.getId()))) {
 			} else {

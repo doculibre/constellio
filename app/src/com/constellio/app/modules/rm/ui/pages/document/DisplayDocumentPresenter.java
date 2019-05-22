@@ -9,6 +9,7 @@ import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
 import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentContainerBreadcrumbTrail;
 import com.constellio.app.modules.rm.ui.components.document.DocumentActionsPresenterUtils;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
+import com.constellio.app.modules.rm.util.RMNavigationUtils;
 import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.RMTask;
@@ -104,6 +105,14 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		if (recordVO != null && params == null) {
 			forParams(recordVO.getId());
+		}
+	}
+
+	public String getFavGroupId() {
+		if(params != null) {
+			return params.get(RMViews.FAV_GROUP_ID_KEY);
+		} else {
+			return null;
 		}
 	}
 
@@ -457,7 +466,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	private void updateAndRefresh(Document document) {
 		if (document != null) {
 			addOrUpdate(document.getWrappedRecord());
-			view.navigate().to(RMViews.class).displayDocument(document.getId());
+			RMNavigationUtils.navigateToDisplayDocument(document.getId(), params, appLayerFactory, collection);
 		}
 	}
 
@@ -545,6 +554,10 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	public List<Button> getButtonsFromExtension() {
 		return appLayerFactory.getExtensions().forCollection(collection)
 				.getDocumentViewButtonExtension(this.record, getCurrentUser());
+	}
+
+	public void navigateToSelf() {
+		RMNavigationUtils.navigateToDisplayDocument(this.record.getId(), params, appLayerFactory, collection);
 	}
 
 	private void addStarredSortToQuery(LogicalSearchQuery query) {

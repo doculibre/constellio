@@ -11,6 +11,8 @@ import java.util.Map;
 import static com.constellio.app.ui.params.ParamUtils.addParams;
 
 public class RMViews extends CoreViews {
+	public static final String FAV_GROUP_ID_KEY = "favGroupId";
+	public static final String ID_KEY = "id";
 	public RMViews(Navigator navigator) {
 		super(navigator);
 	}
@@ -24,8 +26,17 @@ public class RMViews extends CoreViews {
 		navigator.navigateTo(addParams(RMNavigationConfiguration.DISPLAY_FOLDER, params));
 	}
 
+
 	public void displayFolder(String id) {
 		navigator.navigateTo(RMNavigationConfiguration.DISPLAY_FOLDER + "/" + id);
+	}
+
+	public void displayFolderFromFavorites(String id, String favoritesId) {
+		Map<String, String> params = new HashMap<>();
+		params.put("id", id);
+		params.put(FAV_GROUP_ID_KEY, favoritesId);
+
+		navigator.navigateTo(addParams(RMNavigationConfiguration.DISPLAY_FOLDER, params));
 	}
 
 	public void displayFolder(String id, String homePageUrl, boolean isToOpenInNewTab) {
@@ -64,6 +75,13 @@ public class RMViews extends CoreViews {
 	public void editFolder(String id) {
 		Map<String, String> params = new HashMap<>();
 		params.put("id", id);
+		navigator.navigateTo(addParams(RMNavigationConfiguration.EDIT_FOLDER, params));
+	}
+
+	public void editFolderFromFavorites(String id, String fav) {
+		Map<String, String> params = new HashMap<>();
+		params.put("id", id);
+		params.put(RMViews.FAV_GROUP_ID_KEY, fav);
 		navigator.navigateTo(addParams(RMNavigationConfiguration.EDIT_FOLDER, params));
 	}
 
@@ -106,6 +124,13 @@ public class RMViews extends CoreViews {
 
 	public void displayDocument(String id) {
 		navigator.navigateTo(RMNavigationConfiguration.DISPLAY_DOCUMENT + "/" + id);
+	}
+
+	public void displayDocumentFromFavorites(String id, String favGroup) {
+		Map<String, String> params = new HashMap<>();
+		params.put("id", id);
+		params.put(FAV_GROUP_ID_KEY, favGroup);
+		navigator.navigateTo(addParams(RMNavigationConfiguration.DISPLAY_DOCUMENT, params));
 	}
 
 	public void displayDocumentFromContainer(String id, String containerId) {
@@ -172,6 +197,13 @@ public class RMViews extends CoreViews {
 		navigator.navigateTo(addParams(RMNavigationConfiguration.ADD_DOCUMENT, params));
 	}
 
+	public void addDocumentWithContentFromFavorites(String id, String favGroupId) {
+		Map<String, String> params = new HashMap<>();
+		params.put("idCopy", id);
+		params.put(RMViews.FAV_GROUP_ID_KEY, favGroupId);
+		navigator.navigateTo(addParams(RMNavigationConfiguration.ADD_DOCUMENT, params));
+	}
+
 	public void addDocumentWithContentFromDecommission(String id, String decommissioningSearchId, String decommissioningType) {
 		Map<String, String> params = new HashMap<>();
 		params.put("idCopy", id);
@@ -191,6 +223,15 @@ public class RMViews extends CoreViews {
 		Map<String, String> params = new HashMap<>();
 		params.put("id", id);
 		params.put("userDocumentId", userDocumentId);
+		navigator.navigateTo(addParams(RMNavigationConfiguration.EDIT_DOCUMENT, params));
+	}
+
+	public void editDocumentFromFavorites(String id, String favGroup) {
+		Map<String, String> params = new HashMap<>();
+
+		params.put("id", id);
+		params.put(FAV_GROUP_ID_KEY, favGroup);
+
 		navigator.navigateTo(addParams(RMNavigationConfiguration.EDIT_DOCUMENT, params));
 	}
 
@@ -311,6 +352,14 @@ public class RMViews extends CoreViews {
 		navigator.navigateTo(RMNavigationConfiguration.EDIT_CONTAINER + "/" + containerId);
 	}
 
+	public void editContainerFromFavorites(String containerId, String fav) {
+		Map<String, String> params = new HashMap<>();
+
+		params.put("id", containerId);
+		params.put(FAV_GROUP_ID_KEY, fav);
+		navigator.navigateTo(addParams(RMNavigationConfiguration.EDIT_CONTAINER, params));
+	}
+
 	public void editContainerFromContainerByAdminsitrativeUnit(String containerId, String tabName,
 			String fromAdministrativeUnit) {
 		navigator.navigateTo(RMNavigationConfiguration.EDIT_CONTAINER + "/" + "edit" + "/" + containerId + "/" + tabName + "/"
@@ -349,6 +398,15 @@ public class RMViews extends CoreViews {
 
 	public void displayContainer(String containerId) {
 		navigator.navigateTo(RMNavigationConfiguration.DISPLAY_CONTAINER + "/" + containerId);
+	}
+
+
+	public void displayContainerFromFavorites(String containerId, String favGroupId) {
+		Map<String, String> params = new HashMap<>();
+		params.put("id", containerId);
+		params.put(FAV_GROUP_ID_KEY, favGroupId);
+
+		navigator.navigateTo(addParams(RMNavigationConfiguration.DISPLAY_CONTAINER, params));
 	}
 
 	//DECOMMISSIONING

@@ -32,7 +32,6 @@ import com.constellio.app.modules.rm.ui.components.folder.fields.FolderDisposalT
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderLinearSizeField;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderOpeningDateField;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderParentFolderField;
-
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderParentFolderFieldImpl;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderPreviewReturnDateField;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderRetentionRuleField;
@@ -147,6 +146,14 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
 		return true;
+	}
+
+	public String getFavGroup() {
+		if(params != null) {
+			return params.get(RMViews.FAV_GROUP_ID_KEY);
+		} else {
+			return null;
+		}
 	}
 
 	public void forParams(String params) {

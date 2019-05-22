@@ -704,13 +704,13 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	public void displayRecordRequested(RecordVO recordVO) {
 		switch (recordVO.getSchema().getTypeCode()) {
 			case Folder.SCHEMA_TYPE:
-				view.navigate().to(RMViews.class).displayFolder(recordVO.getId());
+				view.navigate().to(RMViews.class).displayFolderFromFavorites(recordVO.getId(), cartId);
 				break;
 			case Document.SCHEMA_TYPE:
-				view.navigate().to(RMViews.class).displayDocument(recordVO.getId());
+				view.navigate().to(RMViews.class).displayDocumentFromFavorites(recordVO.getId(), cartId);
 				break;
 			case ContainerRecord.SCHEMA_TYPE:
-				view.navigate().to(RMViews.class).displayContainer(recordVO.getId());
+				view.navigate().to(RMViews.class).displayContainerFromFavorites(recordVO.getId(), cartId);
 				break;
 		}
 	}

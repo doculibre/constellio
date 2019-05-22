@@ -10,6 +10,8 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.breadcrumb.BreadcrumbItem;
+import com.constellio.app.ui.framework.components.breadcrumb.FavoritesBreadcrumbItem;
+import com.constellio.app.ui.framework.components.breadcrumb.GroupFavoritesBreadcrumbItem;
 import com.constellio.app.ui.framework.components.breadcrumb.SearchResultsBreadcrumbItem;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
@@ -48,6 +50,8 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 
 	private String containerId;
 
+	private String favoritesId;
+
 	private FolderDocumentContainerBreadcrumbTrail breadcrumbTrail;
 
 	private transient TaxonomiesManager taxonomiesManager;
@@ -57,11 +61,17 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 	private transient RMSchemasRecordsServices rmSchemasRecordsServices;
 
 	public FolderDocumentBreadcrumbTrailPresenter(String recordId, String taxonomyCode,
-												  FolderDocumentContainerBreadcrumbTrail breadcrumbTrail, String containerId) {
+			FolderDocumentContainerBreadcrumbTrail breadcrumbTrail, String containerId) {
+		this(recordId, taxonomyCode, breadcrumbTrail, containerId, null);
+	}
+
+	public FolderDocumentBreadcrumbTrailPresenter(String recordId, String taxonomyCode,
+												  FolderDocumentContainerBreadcrumbTrail breadcrumbTrail, String containerId, String favoritesId) {
 		this.recordId = recordId;
 		this.taxonomyCode = taxonomyCode;
 		this.breadcrumbTrail = breadcrumbTrail;
 		this.containerId = containerId;
+		this.favoritesId = favoritesId;
 		initTransientObjects();
 		addBreadcrumbItems();
 	}
@@ -174,7 +184,11 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 			if (selectedTaxonomy != null) {
 				breadcrumbItems.add(0, new TaxonomyBreadcrumbItem(taxonomyCode, selectedTaxonomy.getTitle(Language.withCode(breadcrumbTrail.getSessionContext().getCurrentLocale().getLanguage()))));
 			}
-		} else if (searchId != null) {
+		} else if (favoritesId != null) {
+			breadcrumbItems.add(0, new FavoritesBreadcrumbItem());
+			breadcrumbItems.add(1, new GroupFavoritesBreadcrumbItem(favoritesId));
+		}
+		else if (searchId != null) {
 			breadcrumbItems.add(0, new SearchResultsBreadcrumbItem(searchId, advancedSearch));
 		}
 
@@ -219,11 +233,19 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 		if (item instanceof FolderBreadCrumbItem) {
 			handled = true;
 			String folderId = ((FolderBreadCrumbItem) item).getFolderId();
-			breadcrumbTrail.navigate().to(RMViews.class).displayFolder(folderId);
+			if(favoritesId != null) {
+				breadcrumbTrail.navigate().to(RMViews.class).displayFolderFromFavorites(folderId, favoritesId);
+			} else {
+				breadcrumbTrail.navigate().to(RMViews.class).displayFolder(folderId);
+			}
 		} else if (item instanceof DocumentBreadCrumbItem) {
 			handled = true;
 			String documentId = ((DocumentBreadCrumbItem) item).getDocumentId();
-			breadcrumbTrail.navigate().to(RMViews.class).displayDocument(documentId);
+			if(favoritesId != null) {
+				breadcrumbTrail.navigate().to(RMViews.class).displayDocumentFromFavorites(documentId, favoritesId);
+			} else {
+				breadcrumbTrail.navigate().to(RMViews.class).displayDocument(documentId);
+			}
 		} else if (item instanceof TaxonomyElementBreadcrumbItem) {
 			handled = true;
 			TaxonomyElementBreadcrumbItem taxonomyElementBreadcrumbItem = (TaxonomyElementBreadcrumbItem) item;
@@ -245,7 +267,19 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 		} else if (item instanceof ContainerBreadcrumbItem) {
 			handled = true;
 			ContainerBreadcrumbItem containerBreadcrumbItem = (ContainerBreadcrumbItem) item;
-			breadcrumbTrail.navigate().to(RMViews.class).displayContainer(containerBreadcrumbItem.getContainerId());
+			if(favoritesId != null) {
+				breadcrumbTrail.navigate().to(RMViews.class).displayDocumentFromFavorites(containerBreadcrumbItem.getContainerId(),
+						favoritesId);
+			} else {
+				breadcrumbTrail.navigate().to(RMViews.class).displayContainer(containerBreadcrumbItem.getContainerId());
+			}
+		} else if (item instanceof GroupFavoritesBreadcrumbItem) {
+			handled = true;
+			GroupFavoritesBreadcrumbItem groupFavoritesBreadcrumbItem = (GroupFavoritesBreadcrumbItem) item;
+			breadcrumbTrail.navigate().to(RMViews.class).cart(groupFavoritesBreadcrumbItem.getFavoriteGroupId());
+		} else if (item instanceof FavoritesBreadcrumbItem) {
+			handled = true;
+			breadcrumbTrail.navigate().to(RMViews.class).listCarts();
 		} else {
 			handled = false;
 		}

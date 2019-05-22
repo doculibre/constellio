@@ -1,16 +1,16 @@
 package com.constellio.app.ui.pages.management.authorizations;
 
-import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.ui.application.CoreViews;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
@@ -52,10 +52,8 @@ public class ListContentAccessAuthorizationsPresenter extends ListAuthorizations
 
 	@Override
 	public void backButtonClicked(String schemaCode) {
-		if (schemaCode.startsWith(Folder.SCHEMA_TYPE)) {
-			view.navigate().to(RMViews.class).displayFolder(recordId);
-		} else if (schemaCode.startsWith(Document.SCHEMA_TYPE)) {
-			view.navigate().to(RMViews.class).displayDocument(recordId);
+		if (schemaCode.startsWith(Folder.SCHEMA_TYPE) || schemaCode.startsWith(Document.SCHEMA_TYPE)) {
+			view.navigate().to(CoreViews.class).previousView();
 		} else {
 			Taxonomy taxonomy = modelLayerFactory.getTaxonomiesManager().getPrincipalTaxonomy(view.getCollection());
 			view.navigate().to().taxonomyManagement(taxonomy.getCode(), recordId);

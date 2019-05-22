@@ -19,23 +19,23 @@
         <set-property name="vaadin.profiler" value="true" />
         <source path="client" />
         <source path="shared" />
-        <stylesheet src="ckeditor/plugins/colordialog/dialogs/colordialog.css" />
-        <stylesheet src="ckeditor/plugins/wsc/skins/moono-lisa/wsc.css" />
-        <stylesheet src="ckeditor/plugins/wsc/dialogs/wsc.css" />
-        <stylesheet src="ckeditor/plugins/templates/dialogs/templates.css" />
-        <stylesheet src="ckeditor/plugins/copyformatting/styles/copyformatting.css" />
-        <stylesheet src="ckeditor/plugins/scayt/skins/moono-lisa/scayt.css" />
-        <stylesheet src="ckeditor/plugins/scayt/dialogs/toolbar.css" />
-        <stylesheet src="ckeditor/contents.css" />
-        <stylesheet src="ckeditor/skins/moono-lisa/editor_iequirks.css" />
-        <stylesheet src="ckeditor/skins/moono-lisa/editor.css" />
-        <stylesheet src="ckeditor/skins/moono-lisa/editor_ie.css" />
-        <stylesheet src="ckeditor/skins/moono-lisa/editor_ie8.css" />
-        <stylesheet src="ckeditor/skins/moono-lisa/dialog_iequirks.css" />
-        <stylesheet src="ckeditor/skins/moono-lisa/editor_gecko.css" />
-        <stylesheet src="ckeditor/skins/moono-lisa/dialog_ie.css" />
-        <stylesheet src="ckeditor/skins/moono-lisa/dialog.css" />
-        <stylesheet src="ckeditor/skins/moono-lisa/dialog_ie8.css" />
+        <stylesheet src="ckeditor\contents.css" />
+        <stylesheet src="ckeditor\plugins\colordialog\dialogs\colordialog.css" />
+        <stylesheet src="ckeditor\plugins\copyformatting\styles\copyformatting.css" />
+        <stylesheet src="ckeditor\plugins\scayt\dialogs\toolbar.css" />
+        <stylesheet src="ckeditor\plugins\scayt\skins\moono-lisa\scayt.css" />
+        <stylesheet src="ckeditor\plugins\templates\dialogs\templates.css" />
+        <stylesheet src="ckeditor\plugins\wsc\dialogs\wsc.css" />
+        <stylesheet src="ckeditor\plugins\wsc\skins\moono-lisa\wsc.css" />
+        <stylesheet src="ckeditor\skins\moono-lisa\dialog.css" />
+        <stylesheet src="ckeditor\skins\moono-lisa\dialog_ie.css" />
+        <stylesheet src="ckeditor\skins\moono-lisa\dialog_ie8.css" />
+        <stylesheet src="ckeditor\skins\moono-lisa\dialog_iequirks.css" />
+        <stylesheet src="ckeditor\skins\moono-lisa\editor.css" />
+        <stylesheet src="ckeditor\skins\moono-lisa\editor_gecko.css" />
+        <stylesheet src="ckeditor\skins\moono-lisa\editor_ie.css" />
+        <stylesheet src="ckeditor\skins\moono-lisa\editor_ie8.css" />
+        <stylesheet src="ckeditor\skins\moono-lisa\editor_iequirks.css" />
         <collapse-all-properties />
         <set-property name="compiler.useSymbolMaps" value="true" />
 </module>
