@@ -45,6 +45,7 @@ import com.constellio.app.ui.pages.search.criteria.ConditionException.ConditionE
 import com.constellio.app.ui.pages.search.criteria.ConditionException.ConditionException_UnclosedParentheses;
 import com.constellio.data.dao.services.bigVault.solr.SolrUtils;
 import com.constellio.data.frameworks.extensions.VaultBehaviorsList;
+import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.batchprocess.AsyncTask;
 import com.constellio.model.entities.batchprocess.AsyncTaskCreationRequest;
@@ -119,7 +120,9 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		batchProcessingExtensions = appLayerFactory.getExtensions().forCollection(view.getCollection()).batchProcessingExtensions;
 	}
 
-
+	public boolean hasBatchProcessPermission(){
+		return getCurrentUser().has(CorePermissions.BATCH_PROCESS).globally();
+	}
 
 	public void setSchemaType(String schemaType) {
 		this.schemaTypeCode = schemaType;

@@ -88,7 +88,7 @@ public class DecommissioningMainViewImpl extends BaseViewImpl implements Decommi
 
 		Label foldersWithoutDateCaption = new Label($("DecommissioningMainView.create.foldersWithoutDate"));
 		foldersWithoutDateCaption.addStyleName(ValoTheme.LABEL_H2);
-		foldersWithoutDateCaption.setVisible(presenter.getUser().has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).onSomething());
+		foldersWithoutDateCaption.setVisible(presenter.getUser().has(RMPermissionsTo.CREATE_DECOMMISSIONING_LIST).onSomething());
 
 		VerticalLayout foldersWithoutDate = new VerticalLayout(foldersWithoutDateCaption);
 		for (final SearchType type : presenter.getCriteriaForFoldersWithoutPlanifiedDate()) {
@@ -102,7 +102,7 @@ public class DecommissioningMainViewImpl extends BaseViewImpl implements Decommi
 				}
 			});
 			foldersWithoutDate.addComponent(button);
-			button.setEnabled(presenter.getUser().has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).onSomething());
+			button.setEnabled(presenter.getUser().has(RMPermissionsTo.CREATE_DECOMMISSIONING_LIST).onSomething());
 			button.setVisible(button.isEnabled());
 		}
 
@@ -123,10 +123,10 @@ public class DecommissioningMainViewImpl extends BaseViewImpl implements Decommi
 			foldersWithDate.addComponent(button);
 			if (SearchType.transfer.equals(type)) {
 				button.setEnabled(presenter.getUser().has(RMPermissionsTo.CREATE_TRANSFER_DECOMMISSIONING_LIST).globally() ||
-								  presenter.getUser().has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).onSomething());
+								  presenter.getUser().has(RMPermissionsTo.CREATE_DECOMMISSIONING_LIST).onSomething());
 				button.setVisible(button.isEnabled());
 			} else {
-				button.setEnabled(presenter.getUser().has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).onSomething());
+				button.setEnabled(presenter.getUser().has(RMPermissionsTo.CREATE_DECOMMISSIONING_LIST).onSomething());
 				button.setVisible(button.isEnabled());
 			}
 		}
@@ -149,12 +149,12 @@ public class DecommissioningMainViewImpl extends BaseViewImpl implements Decommi
 					}
 				});
 				documents.addComponent(button);
-				button.setEnabled(presenter.getUser().has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).onSomething());
+				button.setEnabled(presenter.getUser().has(RMPermissionsTo.CREATE_DECOMMISSIONING_LIST).onSomething());
 				button.setVisible(button.isEnabled());
 			}
 
 			layout.addComponent(documents);
-			documentsCaption.setVisible(presenter.getUser().has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).onSomething());
+			documentsCaption.setVisible(presenter.getUser().has(RMPermissionsTo.CREATE_DECOMMISSIONING_LIST).onSomething());
 		}
 	}
 
@@ -173,6 +173,7 @@ public class DecommissioningMainViewImpl extends BaseViewImpl implements Decommi
 				};
 			}
 		});
+
 		container.addButton(new ContainerButton() {
 			@Override
 			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
@@ -181,6 +182,12 @@ public class DecommissioningMainViewImpl extends BaseViewImpl implements Decommi
 					protected void buttonClick(ClickEvent event) {
 						RecordVO entity = dataProvider.getRecordVO((int) itemId);
 						presenter.editButtonClicked(entity);
+					}
+
+					@Override
+					public boolean isVisible() {
+						RecordVO decommissionningList = dataProvider.getRecordVO((int) itemId);
+						return presenter.isEditable(decommissionningList);
 					}
 				};
 			}
@@ -199,6 +206,12 @@ public class DecommissioningMainViewImpl extends BaseViewImpl implements Decommi
 					protected String getConfirmDialogMessage() {
 						RecordVO entity = dataProvider.getRecordVO((int) itemId);
 						return presenter.getDeleteConfirmMessage(entity);
+					}
+
+					@Override
+					public boolean isVisible() {
+						RecordVO decommissionningList = dataProvider.getRecordVO((int) itemId);
+						return presenter.isDeletable(decommissionningList);
 					}
 				};
 			}

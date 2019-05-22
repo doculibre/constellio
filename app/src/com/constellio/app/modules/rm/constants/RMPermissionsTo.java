@@ -95,7 +95,6 @@ public class RMPermissionsTo {
 
 	public static final String MODIFY_FOLDER_DECOMMISSIONING_DATES = permission(DECOMMISSIONING, "modifyFolderDecomDate");
 	public static final String EDIT_DECOMMISSIONING_LIST = permission(DECOMMISSIONING, "editDecommissioningList");
-	public static final String PROCESS_DECOMMISSIONING_LIST = permission(DECOMMISSIONING, "processDecommissioningList");
 
 	public static final String MANAGE_REPORTS = permission("management", "manageReports");
 	public static final String APPROVE_DECOMMISSIONING_LIST = permission(DECOMMISSIONING, "decommissioning");
@@ -113,6 +112,9 @@ public class RMPermissionsTo {
 	//BagInfo
 	public static final String MANAGE_BAG_INFO = permission(DECOMMISSIONING, "manageBagInfo");
 
+	public static final String CREATE_DECOMMISSIONING_LIST = permission(DECOMMISSIONING, "createDecommissioningList");
+	public static final String PROCESS_DECOMMISSIONING_LIST = permission(DECOMMISSIONING, "processDecommissioningList");
+
 	// Cart
 	private static final String CART_GROUP = "carts";
 
@@ -122,9 +124,13 @@ public class RMPermissionsTo {
 	private static final String RM_MANAGEMENT = "rmManagement";
 
 	public static final String MANAGE_UNIFORMSUBDIVISIONS = permission(RM_MANAGEMENT, "manageUniformSubdivisions");
-	public static final String MANAGE_RETENTIONRULE = permission(RM_MANAGEMENT, "manageRetentionRule");
-	public static final String MANAGE_CLASSIFICATION_PLAN = permission(RM_MANAGEMENT, "manageClassificationPlan");
 	public static final String MANAGE_STORAGE_SPACES = permission(RM_MANAGEMENT, "manageStorageSpaces");
+
+	public static final String MANAGE_CLASSIFICATION_PLAN = permission(RM_MANAGEMENT, "manageClassificationPlan");
+	public static final String CONSULT_CLASSIFICATION_PLAN = permission(RM_MANAGEMENT, "consultClassificationPlan");
+
+	public static final String CONSULT_RETENTIONRULE = permission(RM_MANAGEMENT, "consultRetentionRule");
+	public static final String MANAGE_RETENTIONRULE = permission(RM_MANAGEMENT, "manageRetentionRule");
 
 
 	public static final List<String> RM_COLLECTION_MANAGEMENT_PERMISSIONS = PERMISSIONS.getGroup(RM_MANAGEMENT);

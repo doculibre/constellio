@@ -721,8 +721,16 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		return decommissioningService().isValidationPossible(decommissioningList(), getCurrentUser());
 	}
 
-	public boolean canSendValidationRequest() {
+	public boolean canUserSendValidationRequest() {
 		return decommissioningService().isValidationRequestPossible(decommissioningList(), getCurrentUser());
+	}
+
+	public boolean hasProcessPermissionOnList() {
+		return securityService().hasProcessPermissionOnList(getCurrentUser(), decommissioningList());
+	}
+
+	public boolean hasCreatePermissionOnList() {
+		return securityService().hasCreatePermissionOnList(getCurrentUser(), decommissioningList());
 	}
 
 	public boolean canApprove() {

@@ -105,7 +105,7 @@ public class ListBatchProcessesPresenter extends BasePresenter<ListBatchProcesse
 
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
-		return true;
+		return user.has(CorePermissions.BATCH_PROCESS).onSomething();
 	}
 
 	private boolean areSystemBatchProcessesVisible(User user) {

@@ -123,7 +123,8 @@ public class TaxonomyBreadcrumbTrailPresenter implements Serializable {
 				enabled = false;
 			} else {
 				User user = taxonomyPresenterUtils.getCurrentUser();
-				enabled = taxonomyPresentersService.canManage(taxonomyCode, user);
+				enabled = taxonomyPresentersService.canManage(taxonomyCode, user) ||
+					taxonomyPresentersService.canConsult(taxonomyCode, user);
 			}
 			return enabled;
 		}

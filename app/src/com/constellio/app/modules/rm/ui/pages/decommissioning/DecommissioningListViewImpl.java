@@ -216,19 +216,26 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 	@Override
 	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
 		List<Button> buttons = super.buildActionMenuButtons(event);
+
 		buttons.add(buildEditButton());
 		buttons.add(buildDeleteButton());
+
 		buttons.add(buildValidationRequestButton());
+
 		buttons.add(buildValidationButton());
-		buttons.add(buildProcessButton());
+		if(presenter.hasProcessPermissionOnList()) {
+			buttons.add(buildProcessButton());
+		}
 		buttons.add(buildApprovalRequestButton());
 		buttons.add(buildApprovalButton());
 		buttons.add(buildDenyApprovalButton());
 		buttons.add(buildPrintButton());
 		buttons.add(buildDocumentsCertificateButton());
 		buttons.add(buildFoldersCertificateButton());
-		buttons.add(buildAddFoldersButton());
-		buttons.add(buildRemoveFoldersButton());
+		if(presenter.hasCreatePermissionOnList()) {
+			buttons.add(buildAddFoldersButton());
+			buttons.add(buildRemoveFoldersButton());
+		}
 		buttons.add(buildCreateSIPARchivesButton());
 		return buttons;
 	}
@@ -361,7 +368,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 
 	private Button buildValidationRequestButton() {
 		validationRequest = new DecomValidationRequestWindowButton(presenter);
-		validationRequest.setEnabled(presenter.canSendValidationRequest());
+		validationRequest.setEnabled(presenter.canUserSendValidationRequest());
 		validationRequest.addStyleName(VALIDATION_REQUEST_BUTTON);
 		return validationRequest;
 	}

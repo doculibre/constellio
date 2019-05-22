@@ -28,6 +28,10 @@ public class TaxonomyPageExtension implements Serializable {
 		return Collections.emptyList();
 	}
 
+	public ExtensionBooleanResult canConsultTaxonomy(User user, Taxonomy taxonomy) {
+		return ExtensionBooleanResult.NOT_APPLICABLE;
+	}
+
 	public ExtensionBooleanResult displayTaxonomy(User user, Taxonomy taxonomy) {
 		return ExtensionBooleanResult.NOT_APPLICABLE;
 	}

@@ -27,6 +27,7 @@ public class CorePermissions {
 	public static final String VIEW_EVENTS = permission(SYSTEM, "viewEvents");
 	public static final String MODIFY_PUBLIC_SAVED_SEARCH = permission(SYSTEM, "modifyPublicSavedSearch");
 	public static final String DELETE_PUBLIC_SAVED_SEARCH = permission(SYSTEM, "deletePublicSavedSearch");
+	public static final String BATCH_PROCESS = permission(SYSTEM, "batchProcess");
 
 	// Collection management
 	public static final String COLLECTION_MANAGEMENT = "management.collection";

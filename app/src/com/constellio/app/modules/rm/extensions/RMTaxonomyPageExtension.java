@@ -64,6 +64,14 @@ public class RMTaxonomyPageExtension extends TaxonomyPageExtension {
 		}
 	}
 
+	public ExtensionBooleanResult canConsultTaxonomy(User user, Taxonomy taxonomy) {
+		if(taxonomy.getCode().equals(RMTaxonomies.CLASSIFICATION_PLAN)) {
+			return ExtensionBooleanResult.forceTrueIf(user.has(RMPermissionsTo.CONSULT_CLASSIFICATION_PLAN).globally());
+		} else {
+			return ExtensionBooleanResult.NOT_APPLICABLE;
+		}
+	}
+
 	@Override
 	public List<TaxonomyManagementClassifiedType> getClassifiedTypesFor(
 			GetTaxonomyManagementClassifiedTypesParams params) {

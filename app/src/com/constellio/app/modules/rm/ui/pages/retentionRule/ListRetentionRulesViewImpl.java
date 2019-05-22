@@ -78,6 +78,7 @@ public class ListRetentionRulesViewImpl extends BaseViewImpl implements ListRete
 				presenter.addButtonClicked();
 			}
 		};
+		add.setVisible(presenter.userHaveManageRetentionRulePermission());
 
 		exportRetentionRulesLink = new ExportRetentionRulesLink($("ListRetentionRulesView.exportRetentionRules"), true);
 		exportAllRetentionRulesLink = new ExportRetentionRulesLink($("ListRetentionRulesView.exportAllRetentionRules"), false);
@@ -132,31 +133,35 @@ public class ListRetentionRulesViewImpl extends BaseViewImpl implements ListRete
 				};
 			}
 		});
-		rules.addButton(new ContainerButton() {
-			@Override
-			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
-				return new EditButton() {
-					@Override
-					protected void buttonClick(ClickEvent event) {
-						RecordVO recordVO = rules.getNestedContainer().getRecordVO((int) itemId);
-						presenter.editButtonClicked(recordVO);
-					}
-				};
-			}
-		});
-		rules.addButton(new ContainerButton() {
-			@Override
-			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
-				DeleteButton deleteButton = new DeleteButton() {
-					@Override
-					protected void confirmButtonClick(ConfirmDialog dialog) {
-						RecordVO recordVO = rules.getNestedContainer().getRecordVO((int) itemId);
-						presenter.deleteButtonClicked(recordVO);
-					}
-				};
-				return deleteButton;
-			}
-		});
+
+		if(presenter.userHaveManageRetentionRulePermission()) {
+			rules.addButton(new ContainerButton() {
+				@Override
+				protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
+					return new EditButton() {
+						@Override
+						protected void buttonClick(ClickEvent event) {
+							RecordVO recordVO = rules.getNestedContainer().getRecordVO((int) itemId);
+							presenter.editButtonClicked(recordVO);
+						}
+					};
+				}
+			});
+			rules.addButton(new ContainerButton() {
+				@Override
+				protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
+					DeleteButton deleteButton = new DeleteButton() {
+						@Override
+						protected void confirmButtonClick(ConfirmDialog dialog) {
+							RecordVO recordVO = rules.getNestedContainer().getRecordVO((int) itemId);
+							presenter.deleteButtonClicked(recordVO);
+						}
+					};
+					return deleteButton;
+				}
+			});
+		}
+
 		return rules;
 	}
 

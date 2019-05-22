@@ -5,6 +5,7 @@ import com.constellio.app.modules.rm.services.reports.AbstractXmlGenerator;
 import com.constellio.app.modules.rm.services.reports.parameters.XmlReportGeneratorParameters;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.model.entities.records.Record;
@@ -12,11 +13,14 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.apache.commons.lang3.StringUtils;
+import org.jdom2.Attribute;
 import org.jdom2.CDATA;
 import org.jdom2.Document;
 import org.jdom2.Element;
@@ -38,6 +42,8 @@ public class PrintableReportXmlGenerator extends AbstractXmlGenerator {
 
 	static final public String EMPTY_METADATA_VALUE_TAG = "This will not appear on the final report";
 	private User user;
+
+	public static final String XML_LINKED_FOLDER_PREFIX = "linkedFolders_";
 
 	public PrintableReportXmlGenerator(AppLayerFactory appLayerFactory, String collection,
 									   XmlReportGeneratorParameters xmlGeneratorParameters, Locale locale, UserVO user) {
@@ -106,6 +112,53 @@ public class PrintableReportXmlGenerator extends AbstractXmlGenerator {
 		return (XmlReportGeneratorParameters) this.xmlGeneratorParameters;
 	}
 
+	public List<Element> createMetadataTagFromLinkedFoldersMetadata(Metadata metadata, Record recordElement,
+			String collection,
+			AppLayerFactory factory) {
+
+		List<String> folderIdList = recordElement.get(metadata);
+
+		RecordServices recordServices = factory.getModelLayerFactory().newRecordServices();
+		List<Record> listOfRecordReferencedByMetadata = filterListWithUserReadAccess(
+				recordServices.getRecordsById(collection, folderIdList));
+		List<Element> listOfMetadataTags = new ArrayList<>();
+
+		for (int i = 0; i < listOfRecordReferencedByMetadata.size(); i++) {
+			Record currentRecord = listOfRecordReferencedByMetadata.get(i);
+			MetadataList listOfMetadataOfTheCurrentElement = getListOfMetadataForElement(currentRecord)
+					.onlyAccessibleOnRecordBy(user, currentRecord);
+
+			for (Metadata currentMetadata : listOfMetadataOfTheCurrentElement) {
+				List<Element> metadataTags = createMetadataTagsFromMetadata(currentMetadata, currentRecord);
+
+				for (Element currentElement : metadataTags) {
+					currentElement.setName(XML_LINKED_FOLDER_PREFIX + i + "_" + currentElement.getName());
+					Attribute code = currentElement.getAttribute("code");
+
+					if (code != null && StringUtils.isNotBlank(code.getValue())) {
+						code.setValue(XML_LINKED_FOLDER_PREFIX + i + "_" + code.getValue());
+					}
+				}
+
+				listOfMetadataTags.addAll(metadataTags);
+			}
+		}
+
+		return listOfMetadataTags;
+	}
+
+	public List<Record> filterListWithUserReadAccess(List<Record> recordListToFilter) {
+		List<Record> recordList = new ArrayList<>();
+
+		for (Record currentRecord : recordListToFilter) {
+			if (user.hasReadAccess().on(currentRecord)) {
+				recordList.add(currentRecord);
+			}
+		}
+
+		return recordList;
+	}
+
 	/**
 	 * Method that create Element(s) for a particular metadata and record element
 	 *
@@ -114,6 +167,11 @@ public class PrintableReportXmlGenerator extends AbstractXmlGenerator {
 	 * @return list of element to add
 	 */
 	public List<Element> createMetadataTagsFromMetadata(Metadata metadata, Record recordElement) {
+
+		if (recordElement.getTypeCode().equals(RMTask.SCHEMA_TYPE) && metadata.getLocalCode().equals(RMTask.LINKED_FOLDERS)) {
+			return createMetadataTagFromLinkedFoldersMetadata(metadata, recordElement, getCollection(), getFactory());
+		}
+
 		if (metadata.getType().equals(MetadataValueType.REFERENCE)) {
 			return createMetadataTagFromMetadataOfTypeReference(metadata, recordElement, getCollection(), getFactory());
 		}

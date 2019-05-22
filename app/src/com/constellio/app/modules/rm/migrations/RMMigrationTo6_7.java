@@ -166,7 +166,7 @@ public class RMMigrationTo6_7 implements MigrationScript {
 		RolesManager roleManager = appLayerFactory.getModelLayerFactory().getRolesManager();
 		List<Role> allRoles = roleManager.getAllRoles(collection);
 		for (Role role : allRoles) {
-			if (roleManager.hasPermission(collection, role.getCode(), RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST)) {
+			if (roleManager.hasPermission(collection, role.getCode(), RMPermissionsTo.CREATE_DECOMMISSIONING_LIST)) {
 				roleManager.updateRole(role.withNewPermissions(asList(RMPermissionsTo.CREATE_TRANSFER_DECOMMISSIONING_LIST,
 						RMPermissionsTo.EDIT_TRANSFER_DECOMMISSIONING_LIST)));
 			}

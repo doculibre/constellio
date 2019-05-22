@@ -597,7 +597,7 @@ public class RMMigrationTo5_0_1 extends MigrationHelper implements MigrationScri
 		List<String> managerPermissions = new ArrayList<>();
 		managerPermissions.addAll(userPermissions);
 		managerPermissions.add(RMPermissionsTo.EDIT_DECOMMISSIONING_LIST);
-		managerPermissions.add(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST);
+		managerPermissions.add(RMPermissionsTo.CREATE_DECOMMISSIONING_LIST);
 		managerPermissions.add(RMPermissionsTo.MANAGE_FOLDER_AUTHORIZATIONS);
 		managerPermissions.add(RMPermissionsTo.MANAGE_DOCUMENT_AUTHORIZATIONS);
 		managerPermissions.add(RMPermissionsTo.MANAGE_CONTAINERS);

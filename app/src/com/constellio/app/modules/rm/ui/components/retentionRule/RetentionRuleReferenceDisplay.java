@@ -9,26 +9,32 @@ import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.users.UserServices;
 
 public class RetentionRuleReferenceDisplay extends ReferenceDisplay {
 
 	public RetentionRuleReferenceDisplay(RecordVO recordVO) {
-		super(recordVO, hasDisplayRetentionRulePageAccess());
+		super(recordVO, hasDisplayRetentionRulePageAccess(recordVO == null ? null : recordVO.getId()));
 	}
 
 	public RetentionRuleReferenceDisplay(String recordId) {
-		super(recordId, hasDisplayRetentionRulePageAccess());
+		super(recordId, hasDisplayRetentionRulePageAccess(recordId));
 	}
 
-	private static boolean hasDisplayRetentionRulePageAccess() {
+	private static boolean hasDisplayRetentionRulePageAccess(String recordId) {
 		ConstellioFactories constellioFactories = ConstellioUI.getCurrent().getConstellioFactories();
 		SessionContext sessionContext = ConstellioUI.getCurrent().getSessionContext();
 		String username = sessionContext.getCurrentUser().getUsername();
 		String collection = sessionContext.getCurrentCollection();
+		RecordServices recordServices = constellioFactories.getModelLayerFactory().newRecordServices();
+		Record record;
+
+
 		UserServices userServices = constellioFactories.getModelLayerFactory().newUserServices();
 		User user = userServices.getUserInCollection(username, collection);
-		return user.has(RMPermissionsTo.MANAGE_RETENTIONRULE).globally();
+
+		return user.hasAny(RMPermissionsTo.MANAGE_RETENTIONRULE).globally() || user.has(RMPermissionsTo.CONSULT_RETENTIONRULE).globally();
 	}
 
 	@Override

@@ -167,6 +167,16 @@ public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagemen
 		return dataProvider;
 	}
 
+	public boolean canOnlyConsultTaxonomy() {
+		TaxonomyPresentersService presentersService = new TaxonomyPresentersService(appLayerFactory);
+
+		if(presentersService.canManage(taxonomyCode, getCurrentUser())) {
+			return false;
+		}
+
+		return presentersService.canConsult(taxonomyCode, getCurrentUser());
+	}
+
 	public LogicalSearchQuery getLogicalSearchQueryForSchema(MetadataSchema schema, LogicalSearchQuery query) {
 		return new LogicalSearchQuery(query.getCondition().withFilters(new SchemaFilters(schema)));
 	}
@@ -268,7 +278,8 @@ public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagemen
 	protected boolean hasPageAccess(String parameters, final User user) {
 		Map<String, String> params = ParamUtils.getParamsMap(parameters);
 		String taxonomyCode = params.get(TAXONOMY_CODE);
-		return new TaxonomyPresentersService(appLayerFactory).canManage(taxonomyCode, user);
+		return new TaxonomyPresentersService(appLayerFactory).canManage(taxonomyCode, user) ||
+				new TaxonomyPresentersService(appLayerFactory).canConsult(taxonomyCode, user);
 	}
 
 	public void tabElementClicked(RecordVO recordVO) {

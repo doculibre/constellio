@@ -147,6 +147,8 @@ public class ReferenceDisplay extends Button {
 
 	}
 
+
+
 	protected String getNiceTitle(Record record, MetadataSchemaTypes types) {
 		MetadataSchema schema = types.getSchema(record.getSchemaCode());
 		String description = null;

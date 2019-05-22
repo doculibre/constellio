@@ -621,11 +621,6 @@ public class DecommissioningService {
 		return ids;
 	}
 
-	public List<String> getAdministrativeUnitsForUser(User user) {
-		return modelLayerFactory.newAuthorizationsServices()
-				.getConceptsForWhichUserHasPermission(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST, user);
-	}
-
 	public List<String> getRetentionRulesForCategory(String categoryId, String uniformSubdivisionId) {
 		return getRetentionRulesForCategory(categoryId, uniformSubdivisionId, StatusFilter.ALL);
 	}
