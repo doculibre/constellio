@@ -21,6 +21,7 @@ import com.constellio.app.api.extensions.SearchPageExtension;
 import com.constellio.app.api.extensions.SelectionPanelExtension;
 import com.constellio.app.api.extensions.SystemCheckExtension;
 import com.constellio.app.api.extensions.TaxonomyPageExtension;
+import com.constellio.app.api.extensions.params.AddComponentToSearchResultParams;
 import com.constellio.app.api.extensions.params.AddFieldsInLabelXMLParams;
 import com.constellio.app.api.extensions.params.AvailableActionsParam;
 import com.constellio.app.api.extensions.params.CollectionSystemCheckParams;
@@ -723,6 +724,19 @@ public class AppLayerCollectionExtensions {
 			condition = extension.adjustSearchPageCondition(new SearchPageConditionParam(param.getMainComponent(), condition, param.getUser()));
 		}
 		return condition;
+	}
+
+	public List<Component> addComponentToSearchResult(AddComponentToSearchResultParams addComponentToSearchResultParams) {
+		List<Component> allComponentFound = new ArrayList();
+		for(SearchPageExtension searchPageExtension : searchPageExtensions) {
+			List<Component> componentFromSingleExtentionCall = searchPageExtension.addComponentToSearchResult(
+					addComponentToSearchResultParams);
+
+			if(componentFromSingleExtentionCall != null && componentFromSingleExtentionCall.size() > 0 ) {
+				allComponentFound.addAll(componentFromSingleExtentionCall);
+			}
+		}
+		return allComponentFound;
 	}
 
 	public Resource getIconFromContent(GetIconPathParams params) {
