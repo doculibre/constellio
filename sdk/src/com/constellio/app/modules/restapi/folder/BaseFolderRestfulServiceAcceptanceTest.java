@@ -62,7 +62,6 @@ public class BaseFolderRestfulServiceAcceptanceTest extends BaseRestfulServiceAc
 		createAuthorizations(fakeFolder.getWrappedRecord());
 		id = fakeFolder.getId();
 
-
 		ObjectMapper mapper = new ObjectMapper()
 				.addMixIn(FolderTypeDto.class, MixinFolderTypeDto.class)
 				.addMixIn(FolderDto.class, MixinFolderDto.class)
@@ -76,7 +75,6 @@ public class BaseFolderRestfulServiceAcceptanceTest extends BaseRestfulServiceAc
 
 		givenConfig(RestApiConfigs.REST_API_URLS, "localhost:7070; localhost2");
 		givenTimeIs(fakeDate);
-
 
 		commitCounter = new CommitCounter(getDataLayerFactory());
 		queryCounter = new QueryCounter(getDataLayerFactory(), ON_COLLECTION(SYSTEM_COLLECTION));
