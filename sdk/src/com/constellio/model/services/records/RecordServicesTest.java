@@ -325,7 +325,7 @@ public class RecordServicesTest extends ConstellioTest {
 		when(metadataSchema.getMetadata(anyString())).thenReturn(mock(Metadata.class));
 
 		when(recordsCaches.getCache(anyString())).thenReturn(recordsCache);
-		when(collectionsListManager.getCollectionInfo(zeCollection)).thenReturn(new CollectionInfo(zeCollection, "fr", asList("fr")));
+		when(collectionsListManager.getCollectionInfo(zeCollection)).thenReturn(new CollectionInfo((byte) 0, zeCollection, "fr", asList("fr")));
 	}
 
 	@Test

@@ -220,7 +220,6 @@ public class BigVaultRecordDao implements RecordDao {
 								  Map<String, Double> recordsOutOfTransactionRefCounts,
 								  KeyListMap<String, String> recordsAncestors,
 								  Map<Object, SolrInputDocument> activeReferencesCheck, RecordDTO newRecord) {
-		Object collection = getCollection(newRecord);
 
 		SolrInputDocument solrInputDocument = buildSolrDocument(newRecord);
 		if (transaction.isFullRewrite()) {
@@ -832,7 +831,6 @@ public class BigVaultRecordDao implements RecordDao {
 	protected RecordDTO toEntity(SolrDocument solrDocument, boolean partial) {
 		String id = (String) solrDocument.get(ID_FIELD);
 		long version = (Long) solrDocument.get(VERSION_FIELD);
-		List<String> fields = null;
 
 		Map<String, Object> fieldValues = new HashMap<String, Object>();
 
@@ -844,7 +842,7 @@ public class BigVaultRecordDao implements RecordDao {
 				}
 			}
 		}
-		return new SolrRecordDTO(id, version, fields, fieldValues, partial);
+		return new SolrRecordDTO(id, version, fieldValues, partial);
 	}
 
 	private boolean containsTwoUnderscoresAndIsNotVersionField(String field) {

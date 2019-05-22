@@ -50,7 +50,7 @@ public class TestRecord extends RecordImpl {
 		MetadataSchema schema = Mockito.mock(MetadataSchema.class);
 		when(schema.getCode()).thenReturn(schemaCode);
 		when(schema.getCollection()).thenReturn(collection);
-		when(schema.getCollectionInfo()).thenReturn(new CollectionInfo(collection, "fr", asList("fr")));
+		when(schema.getCollectionInfo()).thenReturn(new CollectionInfo((byte) 0, collection, "fr", asList("fr")));
 		return schema;
 	}
 

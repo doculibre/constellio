@@ -44,10 +44,6 @@ public class DefaultRecordsCacheAdapter implements RecordsCache {
 		return nestedRecordsCache.insert(record, reason);
 	}
 
-	public CacheInsertionStatus forceInsert(Record record, InsertionReason reason) {
-		return nestedRecordsCache.forceInsert(record, reason);
-	}
-
 	public void invalidateRecordsOfType(String recordType) {
 		nestedRecordsCache.invalidateRecordsOfType(recordType);
 	}
@@ -98,17 +94,6 @@ public class DefaultRecordsCacheAdapter implements RecordsCache {
 		return nestedRecordsCache.isConfigured(typeCode);
 	}
 
-	public int getCacheObjectsCount() {
-		return nestedRecordsCache.getCacheObjectsCount();
-	}
-
-	public int getCacheObjectsCount(String typeCode) {
-		return nestedRecordsCache.getCacheObjectsCount(typeCode);
-	}
-
-	public long getCacheObjectsSize(String typeCode) {
-		return nestedRecordsCache.getCacheObjectsSize(typeCode);
-	}
 
 	public boolean isEmpty() {
 		return nestedRecordsCache.isEmpty();

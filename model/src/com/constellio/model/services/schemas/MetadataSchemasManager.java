@@ -54,7 +54,7 @@ import java.util.Set;
 import static com.constellio.model.services.schemas.xml.MetadataSchemaXMLWriter3.FORMAT_ATTRIBUTE;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
-public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerCollectionManagerListener<MetadataSchemaTypes> {
+public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerCollectionManagerListener<MetadataSchemaTypes>, MetadataSchemaProvider {
 
 	public static final String SCHEMAS_CONFIG_PATH = "/schemas.xml";
 	private final DataStoreTypesFactory typesFactory;
@@ -195,6 +195,11 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 
 	public MetadataSchemaTypes getSchemaTypes(CollectionObject collectionObject) {
 		return getSchemaTypes(collectionObject.getCollection());
+	}
+
+	public MetadataSchemaTypes getSchemaTypes(byte collectionId) {
+		String collectionCode = collectionsListManager.getCollectionCode(collectionId);
+		return getSchemaTypes(collectionCode);
 	}
 
 	public MetadataSchemaTypes getSchemaTypes(String collection) {
@@ -363,4 +368,14 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 	}
 
 
+	@Override
+	public MetadataSchema get(byte collectionId, short typeId, short schemaId) {
+		return getSchemaTypes(collectionId).getSchemaType(typeId).getSchema(schemaId);
+	}
+
+
+	@Override
+	public MetadataSchemaType get(byte collectionId, short typeId) {
+		return getSchemaTypes(collectionId).getSchemaType(typeId);
+	}
 }

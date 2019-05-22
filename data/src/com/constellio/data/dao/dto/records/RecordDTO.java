@@ -1,7 +1,6 @@
 package com.constellio.data.dao.dto.records;
 
 import java.io.Serializable;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -9,9 +8,11 @@ public interface RecordDTO extends RecordsOperationDTO, Serializable {
 
 	String getId();
 
-	long getVersion();
+	default short getTenantId() {
+		return 0;
+	}
 
-	List<String> getLoadedFields();
+	long getVersion();
 
 	Map<String, Object> getFields();
 
@@ -24,4 +25,13 @@ public interface RecordDTO extends RecordsOperationDTO, Serializable {
 	RecordDTO withVersion(long version);
 
 	RecordDTO createCopyOnlyKeeping(Set<String> metadatasDataStoreCodes);
+
+	default String getCollection() {
+		return (String) getFields().get("collection_s");
+	}
+
+	default String getSchemaCode() {
+		return (String) getFields().get("schema_s");
+	}
+
 }

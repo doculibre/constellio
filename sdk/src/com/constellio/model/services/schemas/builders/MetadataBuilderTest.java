@@ -24,7 +24,7 @@ import static org.mockito.Mockito.when;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class MetadataBuilderTest extends ConstellioTest {
 
-	static final CollectionInfo COLLECTION = new CollectionInfo("zeUltimateCollection", "fr", asList("fr"));
+	static final CollectionInfo COLLECTION = new CollectionInfo((byte) 0, "zeUltimateCollection", "fr", asList("fr"));
 	static final String CODE_DEFAULT_METADATA = "codeMetadata";
 	static final String DEFAULT_SCHEMA_CODE = "codeSchema_default";
 	static final String CUSTOM_SCHEMA_CODE = "codeSchema_codeSchema";

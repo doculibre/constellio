@@ -14,11 +14,16 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
+
+import static com.constellio.model.entities.schemas.MetadataSchemaTypes.LIMIT_OF_SCHEMAS__IN_TYPE;
 
 public class MetadataSchemaType implements Serializable {
 
@@ -31,6 +36,8 @@ public class MetadataSchemaType implements Serializable {
 	private final String smallCode;
 
 	private final Map<Language, String> labels;
+
+	private final List<MetadataSchema> schemasById;
 
 	private final MetadataSchema defaultSchema;
 
@@ -52,10 +59,15 @@ public class MetadataSchemaType implements Serializable {
 
 	private final CollectionInfo collectionInfo;
 
+	private Set<String> summaryMetadatasDataStoreCodes;
+
+	private RecordCacheType recordCacheType;
+
 	public MetadataSchemaType(short id, String code, String smallCode, CollectionInfo collectionInfo,
 							  Map<Language, String> labels,
 							  List<MetadataSchema> customSchemas,
 							  MetadataSchema defaultSchema, Boolean undeletable, boolean security,
+							  RecordCacheType recordCacheType,
 							  boolean inTransactionLog,
 							  boolean readOnlyLocked, String dataStore) {
 		super();
@@ -75,27 +87,47 @@ public class MetadataSchemaType implements Serializable {
 		this.customSchemasByCode = buildCustomSchemasByCodeMap(customSchemas);
 		this.customSchemasByLocalCode = buildCustomSchemasByLocalCodeMap(customSchemas);
 		this.collectionInfo = collectionInfo;
+		this.summaryMetadatasDataStoreCodes = computeSummaryMetadatasDataStoreCodes(defaultSchema, customSchemas);
+		this.schemasById = computeSchemasById(defaultSchema, customSchemas);
+		this.recordCacheType = recordCacheType;
 	}
 
-	public RecordCacheConfig getCacheConfig() {
+	private List<MetadataSchema> computeSchemasById(MetadataSchema defaultSchema, List<MetadataSchema> customSchemas) {
+		MetadataSchema[] schemas = new MetadataSchema[LIMIT_OF_SCHEMAS__IN_TYPE];
 
-		//TODO Persist this!
-		if ("folder".equals(code)) {
-			return RecordCacheConfig.ALWAYS_SUMMARY_CACHED_WITH_FULL_VOLATILE(250);
+		schemas[defaultSchema.getId()] = defaultSchema;
 
-		} else if ("document".equals(code)) {
-			return RecordCacheConfig.ALWAYS_SUMMARY_CACHED_WITH_FULL_VOLATILE(250);
-
-		} else if ("userTask".equals(code)) {
-			return RecordCacheConfig.ALWAYS_SUMMARY_CACHED_WITH_FULL_VOLATILE(250);
-
-		} else if ("event".equals(code)) {
-			return RecordCacheConfig.NEVER_CACHED;
-
-		} else {
-			return RecordCacheConfig.ALWAYS_FULLY_CACHED;
+		for (MetadataSchema schema : customSchemas) {
+			schemas[schema.getId()] = schema;
 		}
 
+		return Collections.unmodifiableList(Arrays.asList(schemas));
+	}
+
+	private Set<String> computeSummaryMetadatasDataStoreCodes(MetadataSchema defaultSchema,
+															  List<MetadataSchema> customSchemas) {
+
+		Set<String> summaryMetadatasDataStoreCodes = new TreeSet<>();
+
+		for (Metadata metadata : defaultSchema.getSummaryMetadatas()) {
+			summaryMetadatasDataStoreCodes.add(metadata.getDataStoreCode());
+		}
+
+		for (MetadataSchema customSchema : customSchemas) {
+			for (Metadata metadata : customSchema.getSummaryMetadatas()) {
+				summaryMetadatasDataStoreCodes.add(metadata.getDataStoreCode());
+			}
+		}
+
+		return Collections.unmodifiableSet(summaryMetadatasDataStoreCodes);
+	}
+
+	public Set<String> getSummaryMetadatasDataStoreCodes() {
+		return summaryMetadatasDataStoreCodes;
+	}
+
+	public RecordCacheType getCacheType() {
+		return recordCacheType;
 	}
 
 	private Map<String, MetadataSchema> buildCustomSchemasByCodeMap(List<MetadataSchema> customSchemas) {
@@ -319,6 +351,15 @@ public class MetadataSchemaType implements Serializable {
 		return schema;
 	}
 
+	public MetadataSchema getSchema(short schemaId) {
+		MetadataSchema schema = schemasById.get(schemaId);
+		if (schema == null) {
+			throw new MetadataSchemasRuntimeException.NoSuchSchema(schemaId);
+		} else {
+			return schema;
+		}
+	}
+
 	public MetadataSchema getSchema(String codeOrCode) {
 		MetadataSchema schema = getNullableSchema(codeOrCode);
 		if (schema == null) {
@@ -467,4 +508,5 @@ public class MetadataSchemaType implements Serializable {
 
 		return multilingual;
 	}
+
 }

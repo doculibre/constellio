@@ -90,12 +90,6 @@ public class TransactionRecordsCache implements RecordsCache {
 	}
 
 	@Override
-	public CacheInsertionStatus forceInsert(Record record,
-											InsertionReason insertionReason) {
-		return recordsCache.forceInsert(record, insertionReason);
-	}
-
-	@Override
 	public void invalidateRecordsOfType(String recordType) {
 		recordsCache.invalidateRecordsOfType(recordType);
 	}
@@ -144,21 +138,6 @@ public class TransactionRecordsCache implements RecordsCache {
 	@Override
 	public boolean isConfigured(String typeCode) {
 		return recordsCache.isConfigured(typeCode);
-	}
-
-	@Override
-	public int getCacheObjectsCount() {
-		return recordsCache.getCacheObjectsCount();
-	}
-
-	@Override
-	public int getCacheObjectsCount(String typeCode) {
-		return recordsCache.getCacheObjectsCount(typeCode);
-	}
-
-	@Override
-	public long getCacheObjectsSize(String typeCode) {
-		return recordsCache.getCacheObjectsSize(typeCode);
 	}
 
 	@Override

@@ -72,12 +72,12 @@ public class MetadataSchemaTest extends ConstellioTest {
 				secondTypeParentRelationToThirdType, secondTypeRelationToSecondType);
 		List<Taxonomy> taxonomies = Arrays.asList(firstTaxonomy, secondTaxonomy);
 
-		CollectionInfo zeCollectionInfo = new CollectionInfo(zeCollection, "fr", Arrays.asList("fr"));
+		CollectionInfo zeCollectionInfo = new CollectionInfo((byte) 0, zeCollection, "fr", Arrays.asList("fr"));
 		MetadataSchema schema = new MetadataSchema((short) 0, "default", "second_default", zeCollectionInfo, labels, metadatas, false,
 				true, new HashSet<RecordValidator>(), null, DataStore.RECORDS, true);
 
 		MetadataSchemaType schemaType = new MetadataSchemaType((short) 0, "second", null, zeCollectionInfo, asMap(Language.French, "titre"),
-				new ArrayList<MetadataSchema>(), schema, true, true, true, false, "records");
+				new ArrayList<MetadataSchema>(), schema, true, true, RecordCacheType.NOT_CACHED, true, false, "records");
 
 		List<Metadata> returnedMetadatas = schemaType.getTaxonomySchemasMetadataWithChildOfRelationship(taxonomies);
 
@@ -107,7 +107,7 @@ public class MetadataSchemaTest extends ConstellioTest {
 				.asList(relationToT4, taxonomyRelationToT4, relationToT3Custom, taxonomyRelationToT3Custom, relationToOtherSchema,
 						textMetadata);
 
-		CollectionInfo zeCollectionInfo = new CollectionInfo(zeCollection, "fr", Arrays.asList("fr"));
+		CollectionInfo zeCollectionInfo = new CollectionInfo((byte) 0, zeCollection, "fr", Arrays.asList("fr"));
 		MetadataSchema schema = new MetadataSchema((short) 0, "default", "zeType_default", zeCollectionInfo, labels, metadatas, false,
 				true, new HashSet<RecordValidator>(), null, DataStore.RECORDS, true);
 
@@ -140,7 +140,7 @@ public class MetadataSchemaTest extends ConstellioTest {
 		List<Metadata> metadatas = Arrays
 				.asList(relationToT4, taxonomyRelationToT4, relationToT3Custom, taxonomyRelationToT3Custom, relationToOtherSchema,
 						textMetadata, relationToT1, relationToT2);
-		CollectionInfo zeCollectionInfo = new CollectionInfo(zeCollection, "fr", Arrays.asList("fr"));
+		CollectionInfo zeCollectionInfo = new CollectionInfo((byte) 0, zeCollection, "fr", Arrays.asList("fr"));
 		MetadataSchema schema = new MetadataSchema((short) 0, "default", "t2_default", zeCollectionInfo, labels, metadatas, false,
 				true, new HashSet<RecordValidator>(), null, DataStore.RECORDS, true);
 

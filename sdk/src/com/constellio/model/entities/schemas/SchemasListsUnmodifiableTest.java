@@ -38,8 +38,8 @@ public class SchemasListsUnmodifiableTest extends ConstellioTest {
 	public void whenClearingMetadatasListInSchemaThenExceptionThrown() {
 		List<Metadata> metadatas = Arrays.asList(metadata1, metadata2);
 		Set<RecordValidator> validators = new HashSet<RecordValidator>();
-		CollectionInfo zeCollectionInfo = new CollectionInfo(zeCollection, "fr", Arrays.asList("fr"));
-		MetadataSchema schema = new MetadataSchema((short)0,"aCode", "aCode", zeCollectionInfo, labels, metadatas, false, true, validators,
+		CollectionInfo zeCollectionInfo = new CollectionInfo((byte) 0, zeCollection, "fr", Arrays.asList("fr"));
+		MetadataSchema schema = new MetadataSchema((short) 0, "aCode", "aCode", zeCollectionInfo, labels, metadatas, false, true, validators,
 				null, DataStore.RECORDS, true);
 
 		schema.getMetadatas().clear();
@@ -48,9 +48,9 @@ public class SchemasListsUnmodifiableTest extends ConstellioTest {
 	@Test(expected = UnsupportedOperationException.class)
 	public void whenClearingSchemasListInSchemaTypeThenExceptionThrown() {
 		List<MetadataSchema> schemas = Arrays.asList(schema1, schema2);
-		CollectionInfo zeCollectionInfo = new CollectionInfo(zeCollection, "fr", Arrays.asList("fr"));
-		MetadataSchemaType schemaType = new MetadataSchemaType((short)0,"aCode", null, zeCollectionInfo, labels, schemas,
-				defaultSchema, false, true, true, false, "records");
+		CollectionInfo zeCollectionInfo = new CollectionInfo((byte) 0, zeCollection, "fr", Arrays.asList("fr"));
+		MetadataSchemaType schemaType = new MetadataSchemaType((short) 0, "aCode", null, zeCollectionInfo, labels, schemas,
+				defaultSchema, false, true, RecordCacheType.NOT_CACHED, true, false, "records");
 
 		schemaType.getCustomSchemas().clear();
 	}

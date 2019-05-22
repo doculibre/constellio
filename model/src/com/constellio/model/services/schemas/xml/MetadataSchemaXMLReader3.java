@@ -9,6 +9,7 @@ import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataTransiency;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.RecordCacheType;
 import com.constellio.model.entities.schemas.RegexConfig;
 import com.constellio.model.entities.schemas.RegexConfig.RegexConfigType;
 import com.constellio.model.entities.schemas.StructureFactory;
@@ -113,6 +114,39 @@ public class MetadataSchemaXMLReader3 {
 		schemaTypeBuilder.setInTransactionLog(getBooleanFlagValueWithTrueAsDefaultValue(element, "inTransactionLog"));
 		schemaTypeBuilder.setSmallCode(element.getAttributeValue("smallCode"));
 		schemaTypeBuilder.setDataStore(element.getAttributeValue("dataStore"));
+
+		String cacheTypeStrValue = element.getAttributeValue("cache");
+		RecordCacheType cacheType;
+		if (cacheTypeStrValue == null) {
+			if ("folder".equals(code)) {
+				cacheType = RecordCacheType.SUMMARY_CACHED_WITH_VOLATILE;
+
+			} else if ("document".equals(code)) {
+				cacheType = RecordCacheType.SUMMARY_CACHED_WITH_VOLATILE;
+
+			} else if ("userTask".equals(code)) {
+				cacheType = RecordCacheType.SUMMARY_CACHED_WITH_VOLATILE;
+
+			} else if ("connectorSmbDocument".equals(code)) {
+				cacheType = RecordCacheType.SUMMARY_CACHED_WITH_VOLATILE;
+
+			} else if ("connectorHttpDocument".equals(code)) {
+				cacheType = RecordCacheType.SUMMARY_CACHED_WITH_VOLATILE;
+
+			} else if ("event".equals(code)) {
+				cacheType = RecordCacheType.NOT_CACHED;
+
+			} else if ("savedSearch".equals(code)) {
+				cacheType = RecordCacheType.HOOK;
+
+			} else {
+				cacheType = RecordCacheType.FULLY_CACHED;
+			}
+		} else {
+			cacheType = (RecordCacheType) EnumWithSmallCodeUtils.toEnumWithSmallCode(RecordCacheType.class, cacheTypeStrValue);
+		}
+		schemaTypeBuilder.setRecordCacheType(cacheType);
+
 
 		parseDefaultSchema(element, schemaTypeBuilder, typesBuilder, collectionSchema);
 		parseCustomSchemas(element, schemaTypeBuilder, collectionSchema);

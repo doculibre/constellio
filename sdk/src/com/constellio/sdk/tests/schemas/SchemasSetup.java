@@ -46,6 +46,7 @@ public abstract class SchemasSetup {
 
 	public static void prepareSetups(MetadataSchemasManager manager, CollectionsManager collectionsManager) {
 		SchemasSetup.manager = manager;
+		int collectionId = 0;
 		for (SchemasSetup setup : setups) {
 
 			if (collectionsManager != null && !collectionsManager.getCollectionCodes().contains(setup.collection)) {
@@ -56,7 +57,7 @@ public abstract class SchemasSetup {
 
 				CollectionInfo collectionInfo;
 				if (collectionsManager == null) {
-					collectionInfo = new CollectionInfo(setup.collection, "fr", asList("fr"));
+					collectionInfo = new CollectionInfo((byte) collectionId++, setup.collection, "fr", asList("fr"));
 				} else {
 					collectionInfo = collectionsManager.getCollectionInfo(setup.collection);
 				}
@@ -118,6 +119,7 @@ public abstract class SchemasSetup {
 			builderConfigurator.configure(metadataSchemaTypeBuilder, typesBuilder);
 		}
 	}
+
 
 	public MetadataSchemaTypes getTypes() {
 		return types;

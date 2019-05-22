@@ -55,6 +55,8 @@ public class MetadataSchema implements Serializable {
 
 	private final CollectionInfo collectionInfo;
 
+	private List<Metadata> summaryMetadatas;
+
 	public MetadataSchema(short id, String localCode, String code, CollectionInfo collectionInfo,
 						  Map<Language, String> labels,
 						  List<Metadata> metadatas,
@@ -77,8 +79,14 @@ public class MetadataSchema implements Serializable {
 		this.dataStore = dataStore;
 		this.active = active;
 		this.collectionInfo = collectionInfo;
+		this.summaryMetadatas = new SchemaUtils().buildListOfSummaryMetadatas(metadatas);
 
 	}
+
+	public List<Metadata> getSummaryMetadatas() {
+		return summaryMetadatas;
+	}
+
 
 	public short getId() {
 		return id;

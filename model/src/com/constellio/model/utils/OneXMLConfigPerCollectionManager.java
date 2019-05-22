@@ -87,6 +87,7 @@ public class OneXMLConfigPerCollectionManager<T> implements ConfigUpdatedEventLi
 		}
 	}
 
+
 	Object getFromCache(String key) {
 		return cache.get(key);
 	}

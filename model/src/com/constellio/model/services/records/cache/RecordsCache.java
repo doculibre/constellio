@@ -5,6 +5,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -14,17 +15,11 @@ public interface RecordsCache {
 
 	Record getSummary(String id);
 
-	boolean isCached(String id);
-
-	List<CacheInsertionStatus> insert(List<Record> record, InsertionReason insertionReason);
-
 	List<Record> getAllValues(String schemaType);
 
 	List<Record> getAllValuesInUnmodifiableState(String schemaType);
 
 	CacheInsertionStatus insert(Record record, InsertionReason insertionReason);
-
-	CacheInsertionStatus forceInsert(Record record, InsertionReason insertionReason);
 
 	void invalidateRecordsOfType(String recordType);
 
@@ -50,12 +45,20 @@ public interface RecordsCache {
 
 	boolean isConfigured(String typeCode);
 
-	int getCacheObjectsCount();
-
-	int getCacheObjectsCount(String typeCode);
-
-	long getCacheObjectsSize(String typeCode);
-
 	boolean isEmpty();
 
+	@Deprecated
+	default boolean isCached(String id) {
+		return getSummary(id) != null;
+	}
+
+	default List<CacheInsertionStatus> insert(List<Record> records, InsertionReason insertionReason) {
+		List<CacheInsertionStatus> statuses = new ArrayList<>(records.size());
+
+		for (Record record : records) {
+			statuses.add(insert(record, insertionReason));
+		}
+
+		return statuses;
+	}
 }

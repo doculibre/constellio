@@ -30,7 +30,12 @@ public interface Record extends Serializable, CollectionObject, Supplier<Record>
 
 	boolean isDirty();
 
-	boolean isFullyLoaded();
+	@Deprecated
+	default boolean isFullyLoaded() {
+		return !isSummary();
+	}
+
+	boolean isSummary();
 
 	boolean isModified(Metadata metadata);
 

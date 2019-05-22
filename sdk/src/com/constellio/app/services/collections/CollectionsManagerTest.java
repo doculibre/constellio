@@ -15,6 +15,7 @@ import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.utils.Delayed;
 import com.constellio.model.conf.ModelLayerConfiguration;
+import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.services.collections.CollectionsListManager;
@@ -39,6 +40,7 @@ import org.mockito.Mock;
 
 import java.util.Arrays;
 
+import static java.util.Arrays.asList;
 import static junit.framework.TestCase.fail;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.anyString;
@@ -53,6 +55,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class CollectionsManagerTest extends ConstellioTest {
+
+	protected CollectionInfo zeCollectionInfo = new CollectionInfo((byte) 0, "zeCollection", "fr", asList("fr"));
 
 	@Mock RecordsCaches caches;
 	@Mock ConstellioPluginManager pluginManager;

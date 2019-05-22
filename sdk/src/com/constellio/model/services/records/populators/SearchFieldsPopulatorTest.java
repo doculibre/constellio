@@ -73,7 +73,7 @@ public class SearchFieldsPopulatorTest extends ConstellioTest {
 	@Mock ConstellioEIMConfigs configs;
 	@Mock ModelLayerExtensions extensions;
 
-	CollectionInfo collectionInfo = new CollectionInfo(zeCollection, "klingon", collectionLanguages);
+	CollectionInfo collectionInfo = new CollectionInfo((byte) 0, zeCollection, "klingon", collectionLanguages);
 
 	@Before
 	public void setUp()
@@ -117,7 +117,7 @@ public class SearchFieldsPopulatorTest extends ConstellioTest {
 
 		when(configs.getDateFormat()).thenReturn("yyyy-MM-dd");
 
-		when(types.getCollectionInfo()).thenReturn(new CollectionInfo(zeCollection, "klingon", asList("klingon", "elvish")));
+		when(types.getCollectionInfo()).thenReturn(new CollectionInfo((byte) 0, zeCollection, "klingon", asList("klingon", "elvish")));
 	}
 
 	@Test

@@ -384,14 +384,6 @@ public class CollectionsManager implements StatefulService {
 	}
 
 	public CollectionInfo getCollectionInfo(String collectionCode) {
-		try {
-			return collectionsListManager.getCollectionInfo(collectionCode);
-
-		} catch (CollectionsManagerRuntimeException_CollectionNotFound e) {
-			String mainDataLanguage = modelLayerFactory.getConfiguration().getMainDataLanguage();
-			LOGGER.debug("Collection '" + collectionCode + "' not found.", e);
-			return new CollectionInfo(appLayerFactory.getInstanceId(), collectionCode, mainDataLanguage, new ArrayList<>());
-		}
-
+		return collectionsListManager.getCollectionInfo(collectionCode);
 	}
 }

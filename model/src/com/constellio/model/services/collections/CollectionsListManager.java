@@ -4,6 +4,7 @@ import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.DocumentAlteration;
 import com.constellio.data.dao.managers.config.events.ConfigUpdatedEventListener;
+import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.records.wrappers.Collection;
@@ -39,6 +40,8 @@ public class CollectionsListManager implements StatefulService, ConfigUpdatedEve
 	ModelLayerConfiguration modelLayerConfiguration;
 
 	private short instanceId;
+
+	private String[] collectionKeys = new String[256];
 
 	public CollectionsListManager(ModelLayerFactory modelLayerFactory) {
 		this.modelLayerConfiguration = modelLayerFactory.getConfiguration();
@@ -170,14 +173,43 @@ public class CollectionsListManager implements StatefulService, ConfigUpdatedEve
 		throw new CollectionsListManagerRuntimeException_NoSuchCollection(collection);
 	}
 
+	public byte getCollectionId(String collectionCode) {
+		int firstNullPosition = -1;
+		for (int i = 0; i < collectionKeys.length; i++) {
+			String collectionKey = collectionKeys[i];
+			if (collectionKey == null && firstNullPosition == -1) {
+				firstNullPosition = i;
+			}
+			if (collectionCode.equals(collectionKey)) {
+				return (byte) (i + Byte.MIN_VALUE);
+			}
+		}
+
+		if (firstNullPosition == -1) {
+			throw new ImpossibleRuntimeException("Collection limit reached");
+
+		} else {
+			collectionKeys[firstNullPosition] = collectionCode;
+			return (byte) (firstNullPosition + Byte.MIN_VALUE);
+		}
+
+	}
+
+	public String getCollectionCode(byte collectionId) {
+		int collectionIndex = ((int) collectionId) - Byte.MIN_VALUE;
+		return collectionKeys[collectionIndex];
+	}
+
 	public CollectionInfo getCollectionInfo(String collectionCode) {
 		CollectionInfo cachedInfo = collectionInfoCache.get(collectionCode);
 
 		if (cachedInfo == null) {
 			String mainDataLanguage = modelLayerConfiguration.getMainDataLanguage();
 
+			byte collectionId = getCollectionId(collectionCode);
 			if (Collection.SYSTEM_COLLECTION.equals(collectionCode)) {
-				cachedInfo = new CollectionInfo(instanceId, collectionCode, mainDataLanguage, asList(mainDataLanguage));
+
+				cachedInfo = new CollectionInfo(collectionId, collectionCode, mainDataLanguage, asList(mainDataLanguage));
 
 			} else {
 
@@ -189,7 +221,7 @@ public class CollectionsListManager implements StatefulService, ConfigUpdatedEve
 					}
 				}
 
-				cachedInfo = new CollectionInfo(instanceId, collectionCode, mainDataLanguage, collectionLanguages);
+				cachedInfo = new CollectionInfo(collectionId, collectionCode, mainDataLanguage, collectionLanguages);
 			}
 
 			synchronized (collectionInfoCache) {
@@ -201,12 +233,15 @@ public class CollectionsListManager implements StatefulService, ConfigUpdatedEve
 
 	}
 
-	public void registerPendingCollectionInfo(String code, String mainDataLanguage, List<String> languages) {
-		collectionInfoCache.put(code, new CollectionInfo(instanceId, code, mainDataLanguage, languages));
+	public void registerPendingCollectionInfo(String code, String mainDataLanguage,
+											  List<String> languages) {
+		byte collectionId = getCollectionId(code);
+		collectionInfoCache.put(code, new CollectionInfo(collectionId, code, mainDataLanguage, languages));
 	}
 
 	public String getMainDataLanguage() {
 		return getCollectionInfo(Collection.SYSTEM_COLLECTION).getMainSystemLanguage().getCode();
 
 	}
+
 }

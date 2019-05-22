@@ -391,12 +391,12 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 		ByteArrayRecordDTO dto5 = ByteArrayRecordDTO.create(getModelLayerFactory(), record5.getRecordDTO());
 		ByteArrayRecordDTO dto6 = ByteArrayRecordDTO.create(getModelLayerFactory(), record6.getRecordDTO());
 
-		assertThat(dto1.values()).containsOnly(true);
-		assertThat(dto2.values()).containsOnly(false, record1.getId());
-		assertThat(dto3.values()).containsOnly(asList("LuckyLuke", record1.getId()));
-		assertThat(dto4.values()).containsOnly(asList("JollyJumper", "LuckyLuke"));
-		assertThat(dto5.values()).containsOnly(asList(null, null), false);
-		assertThat(dto6.values()).containsOnly(asList(null, "LuckyLuke"), true);
+		assertThat(dto1.getFields().values()).containsOnly(true);
+		assertThat(dto2.getFields().values()).containsOnly(false, record1.getId());
+		assertThat(dto3.getFields().values()).containsOnly(asList("LuckyLuke", record1.getId()));
+		assertThat(dto4.getFields().values()).containsOnly(asList("JollyJumper", "LuckyLuke"));
+		assertThat(dto5.getFields().values()).containsOnly(asList(null, null), false);
+		assertThat(dto6.getFields().values()).containsOnly(asList(null, "LuckyLuke"), true);
 	}
 
 	@Test

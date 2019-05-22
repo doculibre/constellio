@@ -58,7 +58,7 @@ public class ContentModificationsBuilderTest extends ConstellioTest {
 	String fourthHash = "fourthHash";
 	String fifthHash = "fifthHash";
 
-	CollectionInfo collectionInfo = new CollectionInfo(zeCollection, "fr", asList("fr"));
+	CollectionInfo collectionInfo = new CollectionInfo((byte) 0, zeCollection, "fr", asList("fr"));
 
 	@Before
 	public void setUp()

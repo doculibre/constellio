@@ -100,7 +100,7 @@ public class RecordImplTest extends ConstellioTest {
 
 	@Mock Factory<EncryptionServices> encryptionServicesFactory;
 
-	CollectionInfo collectionInfo = new CollectionInfo(zeCollection, "fr", asList("fr"));
+	CollectionInfo collectionInfo = new CollectionInfo((byte) 0, zeCollection, "fr", asList("fr"));
 
 	@Before
 	public void setUp()
@@ -275,7 +275,6 @@ public class RecordImplTest extends ConstellioTest {
 		RecordDTO recordDTO = record
 				.toNewDocumentDTO(zeSchema, asList(copyfieldsPopulator, copyfieldsPopulator2));
 		assertThat(recordDTO.getId()).isNotNull();
-		assertThat(recordDTO.getLoadedFields()).isNull();
 		assertThat(recordDTO.getVersion()).isEqualTo(-1L);
 		assertThat(recordDTO.getFields()).containsOnly(
 				entry(multipleTextMetadataCodeAndType, asList("firstValue")),
@@ -856,7 +855,7 @@ public class RecordImplTest extends ConstellioTest {
 		fieldValues.put(dateMetadata.getDataStoreCode(), date);
 		fieldValues.put("schema_s", theSchemaCode);
 		fieldValues.put("collection_s", "zeCollection");
-		RecordDTO recordDTO = new SolrRecordDTO("id", 4, loadedFields, fieldValues, false);
+		RecordDTO recordDTO = new SolrRecordDTO("id", 4, fieldValues, false);
 		RecordImpl record = new TestRecord(recordDTO, collectionInfo);
 
 		record.set(multipleTextMetadata, asList("value4", "value5", "value6"));
@@ -873,7 +872,6 @@ public class RecordImplTest extends ConstellioTest {
 		assertThat(record.<Double>get(numberMetadata)).isEqualTo(456.0);
 		assertThat(record.<LocalDate>get(dateMetadata)).isEqualTo(date);
 		assertThat(record.getModifiedValues()).isEmpty();
-		assertThat(record.getRecordDTO().getLoadedFields()).isEqualTo(loadedFields);
 	}
 
 	@Test
@@ -1094,7 +1092,7 @@ public class RecordImplTest extends ConstellioTest {
 	@Test
 	public void givenSavedRecordWithoutParentThenReturnNullParentId()
 			throws Exception {
-		RecordDTO recordDTO = new SolrRecordDTO("id", 4, new ArrayList<String>(),
+		RecordDTO recordDTO = new SolrRecordDTO("id", 4,
 				asMap("refId_s", (Object) 123, "collection_s", "zeCollection"), false);
 		RecordImpl record = new RecordImpl(recordDTO, collectionInfo);
 		assertThat(record.getParentId()).isNull();
@@ -1103,7 +1101,7 @@ public class RecordImplTest extends ConstellioTest {
 	@Test
 	public void givenSavedRecordWithParentThenReturnParentId()
 			throws Exception {
-		RecordDTO recordDTO = new SolrRecordDTO("id", 4, new ArrayList<String>(),
+		RecordDTO recordDTO = new SolrRecordDTO("id", 4,
 				asMap("refId_s", (Object) 123, "collection_s", "zeCollection", "zeParentPId_s", "initialParentId"), false);
 		RecordImpl record = new RecordImpl(recordDTO, collectionInfo);
 		assertThat(record.getParentId()).isEqualTo("initialParentId");
@@ -1112,7 +1110,7 @@ public class RecordImplTest extends ConstellioTest {
 	@Test
 	public void givenSavedRecordWithModifiedParentThenReturnModifiedParentId()
 			throws Exception {
-		RecordDTO recordDTO = new SolrRecordDTO("id", 4, new ArrayList<String>(),
+		RecordDTO recordDTO = new SolrRecordDTO("id", 4,
 				asMap("refId_s", (Object) 123, "collection_s", "zeCollection", "zeParentPId_s", "initialParentId"), false);
 		RecordImpl record = new RecordImpl(recordDTO, collectionInfo);
 		record.modifiedValues.put("zeParentPId_s", "modifiedParentId");
@@ -1122,7 +1120,7 @@ public class RecordImplTest extends ConstellioTest {
 	@Test
 	public void givenModifiedRecordWhenGetCopyOfOriginalRecordThenHasValuesFetchedFromServerAndNoModifications()
 			throws Exception {
-		RecordDTO recordDTO = new SolrRecordDTO("id", 4, new ArrayList<String>(),
+		RecordDTO recordDTO = new SolrRecordDTO("id", 4,
 				asMap("refId_s", (Object) 123, "collection_s", "zeCollection", "zeParentPId_s", "initialParentId"), false);
 		RecordImpl record = new RecordImpl(recordDTO, collectionInfo);
 		record.modifiedValues.put("zeParentPId_s", "modifiedParentId");
@@ -1168,7 +1166,7 @@ public class RecordImplTest extends ConstellioTest {
 		fields.put("key2", "value2");
 		Map<String, Object> copyFields = asMap("key3", (Object) "value3", "key4", "value4");
 
-		RecordDTO recordDTO = new SolrRecordDTO("id42", 42, loadedFields, fields, copyFields, false);
+		RecordDTO recordDTO = new SolrRecordDTO("id42", 42, fields, copyFields, false);
 		RecordImpl record = new RecordImpl(recordDTO, collectionInfo);
 		record.set(Schemas.TITLE, "zeTitle");
 		record.set(Schemas.MODIFIED_BY, shishOClock);
@@ -1184,7 +1182,6 @@ public class RecordImplTest extends ConstellioTest {
 		assertThat(unserializedRecord.getVersion()).isEqualTo(42);
 		assertThat(unserializedRecord.getRecordDTO().getId()).isEqualTo("id42");
 		assertThat(unserializedRecord.getRecordDTO().getVersion()).isEqualTo(42);
-		assertThat(unserializedRecord.getRecordDTO().getLoadedFields()).isEqualTo(loadedFields);
 		assertThat(unserializedRecord.getRecordDTO().getFields()).isEqualTo(fields);
 		assertThat(unserializedRecord.getRecordDTO().getCopyFields()).isEqualTo(copyFields);
 		assertThat(unserializedRecord.getLoadedStructuredValues()).isNull();

@@ -171,7 +171,7 @@ public class SummaryRecordsCacheAcceptanceTest extends ConstellioTest {
 		assertThat(recordsCache.getSummary("3")).isNull();
 
 		for (Record record : records) {
-			recordsCaches.forceInsert(record, WAS_OBTAINED);
+			recordsCaches.insert(record, WAS_OBTAINED);
 		}
 
 		assertThatTheThreeRecordsAreInCache();

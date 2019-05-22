@@ -121,34 +121,6 @@ public class RecordsCacheImpl implements RecordsCache {
 	}
 
 	@Override
-	public int getCacheObjectsCount(String typeCode) {
-		CacheConfig cacheConfig = getCacheConfigOf(typeCode);
-		if (cacheConfig != null && cacheConfig.isVolatile()) {
-			VolatileCache cache = volatileCaches.get(cacheConfig.getSchemaType());
-			return cache.getCacheObjectsCount();
-		} else if (cacheConfig != null && cacheConfig.isPermanent()) {
-			PermanentCache cache = permanentCaches.get(cacheConfig.getSchemaType());
-			return cache.getCacheObjectsCount();
-		} else {
-			return 0;
-		}
-	}
-
-	@Override
-	public long getCacheObjectsSize(String typeCode) {
-		CacheConfig cacheConfig = getCacheConfigOf(typeCode);
-		if (cacheConfig != null && cacheConfig.isVolatile()) {
-			VolatileCache cache = volatileCaches.get(cacheConfig.getSchemaType());
-			return cache.getCacheObjectsSize();
-		} else if (cacheConfig != null && cacheConfig.isPermanent()) {
-			PermanentCache cache = permanentCaches.get(cacheConfig.getSchemaType());
-			return cache.getCacheObjectsSize();
-		} else {
-			return 0;
-		}
-	}
-
-	@Override
 	public boolean isEmpty() {
 		for (VolatileCache cache : volatileCaches.values()) {
 			if (cache.recordsInCache > 0) {
@@ -260,8 +232,7 @@ public class RecordsCacheImpl implements RecordsCache {
 	}
 
 
-	@Override
-	public CacheInsertionStatus forceInsert(Record insertedRecord, InsertionReason insertionReason) {
+	private CacheInsertionStatus executeInsert(Record insertedRecord, InsertionReason insertionReason) {
 
 		if (Toggle.LOG_REQUEST_CACHE.isEnabled()) {
 			if (!insertedRecord.getSchemaCode().startsWith("event")
@@ -320,23 +291,28 @@ public class RecordsCacheImpl implements RecordsCache {
 			return CacheInsertionStatus.REFUSED_NULL;
 		}
 
-		CacheConfig cacheConfig = getCacheConfigOf(insertedRecord.getTypeCode());
-		CacheInsertionStatus status = evaluateCacheInsert(insertedRecord, cacheConfig);
-		if (cacheConfig != null) {
-			synchronized (cacheConfig) {
-
-				if (status == CacheInsertionStatus.REFUSED_NOT_FULLY_LOADED) {
-					invalidate(insertedRecord.getId());
-				}
-
-				if (status == ACCEPTED) {
-					return forceInsert(insertedRecord, insertionReason);
-				} else {
-					return status;
-				}
-			}
+		if ("savedSearch".equals(insertedRecord.getTypeCode())) {
+			return executeInsert(insertedRecord, insertionReason);
 		} else {
-			return status;
+
+			CacheConfig cacheConfig = getCacheConfigOf(insertedRecord.getTypeCode());
+			CacheInsertionStatus status = evaluateCacheInsert(insertedRecord, cacheConfig);
+			if (cacheConfig != null) {
+				synchronized (cacheConfig) {
+
+					if (status == CacheInsertionStatus.REFUSED_NOT_FULLY_LOADED) {
+						invalidate(insertedRecord.getId());
+					}
+
+					if (status == ACCEPTED) {
+						return executeInsert(insertedRecord, insertionReason);
+					} else {
+						return status;
+					}
+				}
+			} else {
+				return status;
+			}
 		}
 	}
 
@@ -529,32 +505,6 @@ public class RecordsCacheImpl implements RecordsCache {
 
 	public boolean isConfigured(String typeCode) {
 		return cachedTypes.containsKey(typeCode);
-	}
-
-	@Override
-	public int getCacheObjectsCount() {
-		int cacheTotalSize = 0;
-
-		cacheTotalSize += cacheById.size();
-
-		for (RecordByMetadataCache aRecordByMetadataCache : recordByMetadataCache.values()) {
-			cacheTotalSize += 1;
-			cacheTotalSize += aRecordByMetadataCache.getCacheObjectsCount();
-		}
-
-		for (VolatileCache aVolatileCache : volatileCaches.values()) {
-			cacheTotalSize += 1 + aVolatileCache.holders.size();
-		}
-
-		for (PermanentCache aPermanentCache : permanentCaches.values()) {
-			cacheTotalSize += 1 + aPermanentCache.getCacheObjectsCount();
-		}
-
-		for (CacheConfig aCacheConfig : cachedTypes.values()) {
-			cacheTotalSize += 1 + aCacheConfig.getIndexes().size();
-		}
-
-		return cacheTotalSize;
 	}
 
 	static class VolatileCache {

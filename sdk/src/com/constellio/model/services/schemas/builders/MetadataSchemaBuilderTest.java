@@ -55,7 +55,7 @@ public class MetadataSchemaBuilderTest extends ConstellioTest {
 		when(typesBuilder.getSchemaType(anyString())).thenThrow(NoSuchSchemaType.class);
 		when(typesBuilder.getLanguages()).thenReturn(Arrays.asList(Language.French));
 		when(typesBuilder.getClassProvider()).thenReturn(new DefaultClassProvider());
-		CollectionInfo zeCollectionInfo = new CollectionInfo("zeUltimateCollection", "fr", Arrays.asList("fr"));
+		CollectionInfo zeCollectionInfo = new CollectionInfo((byte) 0, "zeUltimateCollection", "fr", Arrays.asList("fr"));
 		metadataSchemaTypeBuilder = MetadataSchemaTypeBuilder
 				.createNewSchemaType(zeCollectionInfo, "aSchemaType", typesBuilder);
 		defaultSchemaBuilder = spy(metadataSchemaTypeBuilder.getDefaultSchema());

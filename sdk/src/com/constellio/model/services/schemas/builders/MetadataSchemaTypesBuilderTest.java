@@ -53,7 +53,7 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 		when(modelLayerFactory.getTaxonomiesManager()).thenReturn(taxonomiesManager);
 		typesFactory = new FakeDataStoreTypeFactory();
 
-		CollectionInfo zeCollectionInfo = new CollectionInfo("zeUltimateCollection", "fr", Arrays.asList("fr"));
+		CollectionInfo zeCollectionInfo = new CollectionInfo((byte) 0, "zeUltimateCollection", "fr", Arrays.asList("fr"));
 		typesBuilder = MetadataSchemaTypesBuilder.createWithVersion(zeCollectionInfo, 0, new DefaultClassProvider(),
 				Arrays.asList(Language.French));
 

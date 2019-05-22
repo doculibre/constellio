@@ -162,6 +162,10 @@ public class MetadataSchemaXMLWriter3 {
 			schemaTypeElement.setAttribute("dataStore", schemaType.getDataStore());
 		}
 
+		if (schemaType.getCacheType() != null) {
+			schemaTypeElement.setAttribute("cache", schemaType.getCacheType().getCode());
+		}
+
 		schemaTypeElement.setAttribute("inTransactionLog", writeBoolean(schemaType.isInTransactionLog()));
 		writeDefaultSchema(schemaType, schemaTypeElement, collectionSchema);
 		writeCustomSchemas(schemaType, schemaTypeElement, collectionSchema);

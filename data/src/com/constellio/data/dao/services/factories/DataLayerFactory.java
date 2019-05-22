@@ -410,7 +410,7 @@ public class DataLayerFactory extends LayerFactoryImpl {
 		RecordDao recordDao = newRecordDao();
 		Map<String, Object> fields = new HashMap<>();
 		fields.put("value_s", solrKeyPart);
-		RecordDTO record = new SolrRecordDTO("the_private_key", -1L, null, fields, false);
+		RecordDTO record = new SolrRecordDTO("the_private_key", -1L, fields, false);
 		try {
 			recordDao.execute(new TransactionDTO(UUID.randomUUID().toString(), RecordsFlushing.NOW, Arrays.asList(record),
 					new ArrayList<RecordDeltaDTO>()));

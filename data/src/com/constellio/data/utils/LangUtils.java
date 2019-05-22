@@ -19,8 +19,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.Spliterators;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import static com.constellio.data.utils.AccentApostropheCleaner.removeAccents;
 
@@ -34,6 +37,9 @@ public class LangUtils {
 		return o == null ? null : o.toString();
 	}
 
+	public static <E> Stream<E> stream(Iterator<E> iterator) {
+		return StreamSupport.stream(Spliterators.<E>spliteratorUnknownSize(iterator, 0), false);
+	}
 
 	public static Comparator<Entry<String, String>> mapStringStringEntryValueComparator() {
 		return new Comparator<Entry<String, String>>() {

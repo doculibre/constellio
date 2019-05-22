@@ -1,398 +1,636 @@
 package com.constellio.model.services.records.cache2;
 
-import com.constellio.data.utils.ImpossibleRuntimeException;
-import com.constellio.data.utils.LangUtils;
+import com.constellio.data.dao.dto.records.RecordDTO;
+import com.constellio.data.dao.dto.records.SolrRecordDTO;
 import com.constellio.data.utils.LazyIterator;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.RecordCacheType;
+import com.constellio.model.services.collections.CollectionsListManager;
+import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.cache2.ByteArrayRecordDTO.ByteArrayRecordDTOWithIntegerId;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
+import org.mapdb.DB;
+import org.mapdb.DBMaker;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.Objects;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
+
+import static com.constellio.model.entities.schemas.MetadataSchemaTypes.LIMIT_OF_TYPES_IN_COLLECTION;
+import static com.constellio.model.services.schemas.SchemaUtils.getSchemaTypeCode;
+import static java.util.Spliterator.DISTINCT;
+import static java.util.Spliterator.IMMUTABLE;
+import static java.util.Spliterator.NONNULL;
+import static java.util.Spliterators.spliteratorUnknownSize;
 
 /**
  * Memory and read/write efficient datastore
  */
 public class MemoryEfficientRecordsCachesDataStore {
 
-	//int : taking 4bytes
-	//long : taking 8bytes
-
-	//object reference : taking 12bytes
-
-	//Integer : taking 16bytes
-	//Long : taking 24bytes
-
-	//Zero-padded integer in a 11 character string : 64bytes
-	//String : (bytes) = 8 * (int) ((((no chars) * 2) + 45) / 8)
-
-	//Size of a 50 int in an array : (12 + 50*8) 412 bytes, ==> 412mb / million of records
-	//Size of a 50 int in an array : (12 + 50*4) 212 bytes, ==> 212mb / million of records
-
-	//Size of a 50 int in an array : (12 + 50*4) 212 bytes, ==> 212mb / million of records
-
-	//Size of 20 value slots per record for 1 000 000 records : (12 + 12*20) 252 bytes ==> 252mb / million of records
-
-	private static final int SIZE_OF_LEVEL2_ARRAY = 125000;
-	private static final int KEY_IS_NOT_AN_INT = 0;
-	private static final long KEY_IS_NOT_A_LONG = 0L;
-	private static final int KEY_LENGTH = 11;
-
-	/**
-	 * Arrays take less bytes than map, and are faster for inserting and retrieving values (no hashCode, no synchronization),
-	 * but it is only possible for int keys. Since most keys are zero-padded int values stored in a String format,
-	 * they are compatible with this structure of data.
-	 */
-	private int nextIndex = 1;
-	private int[][] zeroPaddedLongKeyIndex;
-	private RecordReferences[][] zeroPaddedLongKeyReferencesTo;
-	private Object[][] zeroPaddedLongKeyCacheData;
-
-	/**
-	 * Rarely, a key may be a non-padded value (from a data migration), a padded value over 2,147,483,647 (currently not supported) or string id
-	 * which isn't a number. These structures are used in these cases
-	 */
-	private Map<Object, RecordReferences> otherKeyReferencesTo;
-	private Map<Object, Object> otherKeyCacheData = new HashMap<>();
+	//Memory structure of records with int id
+	//Level 0 : Collection id (max 256 values)
+	//Level 1 : Type id (max 1000 values)
+	OffHeapIntList[][] ids = new OffHeapIntList[256][];
+	OffHeapLongList[][] versions = new OffHeapLongList[256][];
+	OffHeapShortList[][] schema = new OffHeapShortList[256][];
+	boolean[][] isSummaryCache = new boolean[256][];
+	OffHeapByteArrayList[][] summaryCachedData = new OffHeapByteArrayList[256][];
+	List<RecordDTO>[][] fullyCachedData = new List[256][];
 
 
-	public MemoryEfficientRecordsCachesDataStore() {
-		this.zeroPaddedLongKeyIndex = new int[Integer.MAX_VALUE / SIZE_OF_LEVEL2_ARRAY][];
-		this.zeroPaddedLongKeyReferencesTo = new RecordReferences[Integer.MAX_VALUE / SIZE_OF_LEVEL2_ARRAY][];
-		this.zeroPaddedLongKeyCacheData = new Object[Integer.MAX_VALUE / SIZE_OF_LEVEL2_ARRAY][];
+	//Memory structure of records with string id
+	private Map<String, RecordDTO> stringIdCacheData = new HashMap<>();
+	private ModelLayerFactory modelLayerFactory;
+	private CollectionsListManager collectionsListManager;
+	private MetadataSchemasManager schemasManager;
+
+	private DB onMemoryDatabase;
+
+	public MemoryEfficientRecordsCachesDataStore(ModelLayerFactory modelLayerFactory) {
+		this.modelLayerFactory = modelLayerFactory;
+		this.collectionsListManager = modelLayerFactory.getCollectionsListManager();
+		this.schemasManager = modelLayerFactory.getMetadataSchemasManager();
+		this.onMemoryDatabase = DBMaker.memoryDirectDB().make();
 	}
 
-	public void put(Object key, Object data) {
-		int intKey = CacheRecordDTOUtils.toIntKey(key);
-		if (intKey == KEY_IS_NOT_AN_INT) {
-			synchronized (otherKeyCacheData) {
-				otherKeyCacheData.put(key, data);
+	private byte collectionId(String collectionCode) {
+		return collectionsListManager.getCollectionInfo(collectionCode).getCollectionId();
+	}
+
+	private short typeId(String collectionCode, String typeCode) {
+		return schemasManager.getSchemaTypes(collectionCode).getSchemaType(typeCode).getId();
+	}
+
+	private short schemaId(String collectionCode, String schemaCode) {
+		return schemasManager.getSchemaTypes(collectionCode).getSchema(schemaCode).getId();
+	}
+
+	public void set(String id, RecordDTO dto) {
+		int intId = CacheRecordDTOUtils.toIntKey(id);
+
+		if (intId == CacheRecordDTOUtils.KEY_IS_NOT_AN_INT) {
+			synchronized (this) {
+				stringIdCacheData.put(id, dto);
 			}
+
 		} else {
-			setData(intKey, data);
+			set(intId, dto, true);
 		}
+
 	}
 
-	private int indexOfIntId(int intKey) {
-		int indexArrayLevel1 = intKey / SIZE_OF_LEVEL2_ARRAY;
-		int indexArrayLevel2 = intKey % SIZE_OF_LEVEL2_ARRAY;
-
-		int[] level2Array = zeroPaddedLongKeyIndex[indexArrayLevel1];
-		if (level2Array == null) {
-			synchronized (this) {
-				level2Array = zeroPaddedLongKeyIndex[indexArrayLevel1];
-				if (level2Array == null) {
-					level2Array = new int[SIZE_OF_LEVEL2_ARRAY];
-					zeroPaddedLongKeyIndex[indexArrayLevel1] = level2Array;
-				}
-			}
-		}
-
-		int index = level2Array[indexArrayLevel2];
-
-		if (index == 0) {
-			synchronized (this) {
-				index = level2Array[indexArrayLevel2];
-				if (index == 0) {
-					index = nextIndex++;
-					level2Array[indexArrayLevel2] = index;
-				}
-			}
-		}
-
-		return index - 1;
+	public void set(int id, RecordDTO dto, boolean holdSpaceForPreviousIds) {
+		set(id, dto, holdSpaceForPreviousIds, false);
 	}
 
-	private RecordReferences getReferencesTo(int intKey) {
-		int index = indexOfIntId(intKey);
-		int arrayLevel1 = index / SIZE_OF_LEVEL2_ARRAY;
-		int arrayLevel2 = index % SIZE_OF_LEVEL2_ARRAY;
+	public void remove(RecordDTO dto) {
+		int intId = CacheRecordDTOUtils.toIntKey(dto.getId());
 
-		RecordReferences[] level2Array = zeroPaddedLongKeyReferencesTo[arrayLevel1];
-		if (level2Array == null) {
+		if (intId == CacheRecordDTOUtils.KEY_IS_NOT_AN_INT) {
 			synchronized (this) {
-				level2Array = zeroPaddedLongKeyReferencesTo[arrayLevel1];
-				if (level2Array == null) {
-					level2Array = new RecordReferences[SIZE_OF_LEVEL2_ARRAY];
-					zeroPaddedLongKeyReferencesTo[arrayLevel1] = level2Array;
-				}
+				stringIdCacheData.remove(dto.getId(), dto);
 			}
+
+		} else {
+			remove(intId, dto);
 		}
 
-		RecordReferences references = level2Array[arrayLevel2];
-
-		if (references == null) {
-			synchronized (this) {
-				references = level2Array[arrayLevel2];
-				if (references == null) {
-					references = new RecordReferences();
-					level2Array[arrayLevel2] = references;
-				}
-			}
-		}
-
-		return references;
 	}
 
-	private RecordReferences getReferences(Object key) {
-		int intKey = CacheRecordDTOUtils.toIntKey(key);
-		if (intKey == KEY_IS_NOT_AN_INT) {
-			RecordReferences references = otherKeyReferencesTo.get(key);
-			if (references == null) {
-				synchronized (this) {
-					references = otherKeyReferencesTo.get(key);
-					if (references == null) {
-						references = new RecordReferences();
-						otherKeyReferencesTo.put(key, references);
+
+	public void remove(int id, RecordDTO dto) {
+
+		byte collectionId = 0;
+		short typeId = 0;
+
+		if (dto instanceof ByteArrayRecordDTO) {
+			collectionId = ((ByteArrayRecordDTO) dto).getCollectionId();
+			typeId = ((ByteArrayRecordDTO) dto).getTypeId();
+		} else {
+			String collectionCode = dto.getCollection();
+			String schemaCode = dto.getSchemaCode();
+			collectionId = collectionId(collectionCode);
+			typeId = typeId(collectionCode, getSchemaTypeCode(schemaCode));
+		}
+
+		int collectionIndex = ((int) collectionId) - Byte.MIN_VALUE;
+
+		synchronized (this) {
+			OffHeapIntList[] collectionTypesRecordsIds = ids[collectionIndex];
+			if (collectionTypesRecordsIds == null) {
+				return;
+			}
+
+			OffHeapIntList typeRecordsId = collectionTypesRecordsIds[typeId];
+			if (typeRecordsId == null) {
+				return;
+			}
+
+			int index = typeRecordsId.binarySearch(id);
+			if (index >= 0) {
+				OffHeapLongList typeRecordsVersion = versions[collectionIndex][typeId];
+				OffHeapShortList typeRecordsSchema = schema[collectionIndex][typeId];
+
+
+				typeRecordsVersion.set(index, 0L);
+				typeRecordsSchema.set(index, (short) 0);
+				if (dto instanceof ByteArrayRecordDTO) {
+					OffHeapByteArrayList typeRecordsData = summaryCachedData[collectionIndex][typeId];
+					typeRecordsData.set(index, null);
+				} else {
+					List<RecordDTO> typeRecordsData = fullyCachedData[collectionIndex][typeId];
+					typeRecordsData.set(index, null);
+				}
+
+			}
+		}
+
+	}
+
+	private void set(int id, RecordDTO dto, boolean holdSpaceForPreviousIds, boolean currentlySynchronized) {
+		byte collectionId = 0;
+		short typeId = 0;
+		short schemaId = 0;
+
+		if (dto instanceof ByteArrayRecordDTO) {
+			collectionId = ((ByteArrayRecordDTO) dto).getCollectionId();
+			typeId = ((ByteArrayRecordDTO) dto).getTypeId();
+			schemaId = ((ByteArrayRecordDTO) dto).getSchemaId();
+		} else {
+			String collectionCode = dto.getCollection();
+			String schemaCode = dto.getSchemaCode();
+			collectionId = collectionId(collectionCode);
+			typeId = typeId(collectionCode, getSchemaTypeCode(schemaCode));
+			schemaId = schemaId(collectionCode, schemaCode);
+		}
+
+		int collectionIndex = ((int) collectionId) - Byte.MIN_VALUE;
+
+
+		OffHeapIntList[] collectionTypesRecordsIds = ids[collectionIndex];
+		if (collectionTypesRecordsIds == null) {
+			synchronized (this) {
+				if (ids[collectionIndex] == null) {
+					collectionTypesRecordsIds = ids[collectionIndex] = new OffHeapIntList[LIMIT_OF_TYPES_IN_COLLECTION];
+					versions[collectionIndex] = new OffHeapLongList[LIMIT_OF_TYPES_IN_COLLECTION];
+					schema[collectionIndex] = new OffHeapShortList[LIMIT_OF_TYPES_IN_COLLECTION];
+					fullyCachedData[collectionIndex] = new List[LIMIT_OF_TYPES_IN_COLLECTION];
+					summaryCachedData[collectionIndex] = new OffHeapByteArrayList[LIMIT_OF_TYPES_IN_COLLECTION];
+					isSummaryCache[collectionIndex] = new boolean[LIMIT_OF_TYPES_IN_COLLECTION];
+				}
+			}
+		}
+
+		OffHeapIntList typeRecordsId = collectionTypesRecordsIds[typeId];
+		if (typeRecordsId == null) {
+			synchronized (this) {
+				if (ids[collectionIndex][typeId] == null) {
+					typeRecordsId = ids[collectionIndex][typeId] = new OffHeapIntList();
+					versions[collectionIndex][typeId] = new OffHeapLongList();
+					schema[collectionIndex][typeId] = new OffHeapShortList();
+
+
+					MetadataSchemaType schemaType = schemasManager.get(collectionId, typeId);
+					if (schemaType.getCacheType().isSummaryCache()) {
+						isSummaryCache[collectionIndex][typeId] = true;
+						summaryCachedData[collectionIndex][typeId] = new OffHeapByteArrayList();
 					}
-				}
-			}
-			return references;
-		} else {
-			return getReferences(intKey);
-		}
-	}
 
-	private Object getData(int intKey) {
-		int index = indexOfIntId(intKey);
-		int arrayLevel1 = index / SIZE_OF_LEVEL2_ARRAY;
-		int arrayLevel2 = index % SIZE_OF_LEVEL2_ARRAY;
-
-		Object[] level2Array = zeroPaddedLongKeyCacheData[arrayLevel1];
-		return level2Array == null ? null : level2Array[arrayLevel2];
-	}
-
-	private void setData(int intKey, Object data) {
-		int index = indexOfIntId(intKey);
-		int arrayLevel1 = index / SIZE_OF_LEVEL2_ARRAY;
-		int arrayLevel2 = index % SIZE_OF_LEVEL2_ARRAY;
-
-		Object[] level2Array = zeroPaddedLongKeyCacheData[arrayLevel1];
-		if (level2Array == null) {
-			synchronized (this) {
-				level2Array = zeroPaddedLongKeyCacheData[arrayLevel1];
-				if (level2Array == null) {
-					level2Array = new Object[SIZE_OF_LEVEL2_ARRAY];
-					zeroPaddedLongKeyCacheData[arrayLevel1] = level2Array;
-				}
-			}
-		}
-
-		level2Array[arrayLevel2] = data;
-	}
-
-
-	public void remove(Object key) {
-		int intKey = CacheRecordDTOUtils.toIntKey(key);
-		if (intKey == KEY_IS_NOT_AN_INT) {
-			synchronized (otherKeyCacheData) {
-				otherKeyCacheData.remove(key);
-			}
-		} else {
-			setData(intKey, null);
-		}
-	}
-
-
-	public Object get(Object key) {
-		int intKey = CacheRecordDTOUtils.toIntKey(key);
-		if (intKey == KEY_IS_NOT_AN_INT) {
-			return otherKeyCacheData.get(key);
-		} else {
-			return getData(intKey);
-		}
-	}
-
-	public void addReference(Object fromKey, Object toKey) {
-		getReferences(toKey).add(fromKey);
-	}
-
-	public void removeReference(Object fromKey, Object toKey) {
-		getReferences(toKey).remove(fromKey);
-	}
-
-	public static class RecordReferences {
-
-		private static final int ARRAYS_SIZE = 20;
-
-		int intKeysArray = 0;
-		int longKeysArray = 0;
-
-		/**
-		 * This list of keys can contain :
-		 * - arrays of int keys
-		 * - arrays of long keys
-		 * String keys (not in an array)
-		 */
-		List<Object> keys = null;
-
-		boolean contains(Object reference) {
-			if ((reference instanceof Integer)) {
-				return contains(((Integer) reference).intValue());
-			}
-
-			if ((reference instanceof Long)) {
-				return contains(((Long) reference).longValue());
-			}
-
-			return keys.contains(reference);
-
-		}
-
-		boolean contains(int intReference) {
-			for (Object entry : keys) {
-				if (entry instanceof int[]) {
-					for (int item : ((int[]) entry)) {
-						if (intReference == item) {
-							return true;
-						}
+					if (schemaType.getCacheType() == RecordCacheType.FULLY_CACHED) {
+						isSummaryCache[collectionIndex][typeId] = false;
+						fullyCachedData[collectionIndex][typeId] = new ArrayList<>();
 					}
-				}
-			}
 
-			return false;
+				}
+
+			}
 		}
 
-		boolean contains(long longReference) {
-			for (Object entry : keys) {
-				if (entry instanceof long[]) {
-					for (long item : ((long[]) entry)) {
-						if (longReference == item) {
-							return true;
-						}
-					}
-				}
-			}
-
-			return false;
-		}
-
-		boolean add(Object reference) {
-
-			if (contains(reference)) {
-				return false;
-			}
-
-			if (reference instanceof Integer) {
-				addIntReference((Integer) reference);
-
-			} else if (reference instanceof Long) {
-				addLongReference((Long) reference);
+		int index = typeRecordsId.binarySearch(id);
+		if (index < 0) {
+			if (currentlySynchronized) {
+				ajustArraysForNewId(id, dto, holdSpaceForPreviousIds, typeId, schemaId, collectionIndex, typeRecordsId);
 
 			} else {
-				keys.add(reference);
+				synchronized (this) {
+					set(id, dto, holdSpaceForPreviousIds, true);
+				}
+
 			}
-			return true;
+		} else {
+			OffHeapLongList typeRecordsVersion = versions[collectionIndex][typeId];
+			OffHeapShortList typeRecordsSchema = schema[collectionIndex][typeId];
+
+
+			typeRecordsVersion.set(index, dto.getVersion());
+			typeRecordsSchema.set(index, schemaId);
+			if (dto instanceof ByteArrayRecordDTO) {
+				OffHeapByteArrayList typeRecordsData = summaryCachedData[collectionIndex][typeId];
+				typeRecordsData.set(index, ((ByteArrayRecordDTO) dto).data);
+			} else {
+				List<RecordDTO> typeRecordsData = fullyCachedData[collectionIndex][typeId];
+				typeRecordsData.set(index, dto);
+			}
+
+		}
+	}
+
+	private void ajustArraysForNewId(int id, RecordDTO dto, boolean holdSpaceForPreviousIds, short typeId,
+									 short schemaId, int collectionIndex, OffHeapIntList typeRecordsId) {
+		OffHeapLongList typeRecordsVersion = versions[collectionIndex][typeId];
+		OffHeapShortList typeRecordsSchema = schema[collectionIndex][typeId];
+		OffHeapByteArrayList typeRecordsSummaryData = null;
+		List<RecordDTO> typeRecordsData = null;
+
+		if (dto instanceof SolrRecordDTO) {
+			typeRecordsData = fullyCachedData[collectionIndex][typeId];
+		} else {
+			typeRecordsSummaryData = summaryCachedData[collectionIndex][typeId];
 		}
 
-		private void addIntReference(int reference) {
-			boolean added = false;
 
-			iteratingKeys:
-			for (int i = intKeysArray; i < keys.size(); i++) {
-				Object entry = keys.get(i);
-				if (entry instanceof int[]) {
-					int[] array = (int[]) entry;
-					intKeysArray = i;
-					for (int j = 0; j < array.length; j++) {
-						if (array[j] == 0) {
-							array[j] = reference;
-							added = true;
-							break iteratingKeys;
+		if (typeRecordsId.isEmpty() || typeRecordsId.getLast() < id) {
+			if (holdSpaceForPreviousIds) {
+
+				int last = typeRecordsId.isEmpty() ? 0 : typeRecordsId.getLast();
+				while (last < id) {
+					int index = typeRecordsId.size();
+					last++;
+					typeRecordsId.set(index, last);
+					if (last == id) {
+						typeRecordsVersion.set(index, dto.getVersion());
+						typeRecordsSchema.set(index, schemaId);
+						if (typeRecordsSummaryData != null) {
+							typeRecordsSummaryData.set(index, ((ByteArrayRecordDTO) dto).data);
+						} else {
+							typeRecordsData.add(index, dto);
+						}
+
+
+					} else {
+						typeRecordsVersion.set(index, (short) 0);
+						typeRecordsSchema.set(index, (short) 0);
+						if (typeRecordsSummaryData != null) {
+							typeRecordsSummaryData.set(index, null);
+						} else {
+							typeRecordsData.add(index, null);
+						}
+
+					}
+
+				}
+
+			} else {
+				int index = typeRecordsId.size();
+				typeRecordsId.set(index, id);
+				typeRecordsVersion.set(index, dto.getVersion());
+				typeRecordsSchema.set(index, schemaId);
+				if (typeRecordsSummaryData != null) {
+					typeRecordsSummaryData.set(index, ((ByteArrayRecordDTO) dto).data);
+				} else {
+					typeRecordsData.add(index, dto);
+				}
+			}
+		} else {
+
+			int insertAtIndex = -1;
+			for (int i = 0; i < typeRecordsId.size(); i++) {
+				if (typeRecordsId.get(i) < id) {
+					insertAtIndex = i;
+				} else {
+					break;
+				}
+			}
+			insertAtIndex++;
+
+			typeRecordsId.insertValueShiftingAllFollowingValues(insertAtIndex, id);
+			typeRecordsVersion.insertValueShiftingAllFollowingValues(insertAtIndex, dto.getVersion());
+			typeRecordsSchema.insertValueShiftingAllFollowingValues(insertAtIndex, schemaId);
+
+			if (typeRecordsSummaryData != null) {
+				typeRecordsSummaryData.insertValueShiftingAllFollowingValues(insertAtIndex, ((ByteArrayRecordDTO) dto).data);
+			} else {
+				typeRecordsData.add(insertAtIndex, dto);
+			}
+
+			//typeRecordsData.addAtIndex(insertAtIndex, ((ByteArrayRecordDTO) dto).data);
+
+
+			//TODO UNSUPPORTED
+			//typeRecordsId.addAtIndex(insertAtIndex, id);
+			//typeRecordsVersion.addAtIndex(insertAtIndex, dto.getVersion());
+			//typeRecordsSchema.addAtIndex(insertAtIndex, schemaId);
+			//typeRecordsData.addAtIndex(insertAtIndex, ((ByteArrayRecordDTO) dto).data);
+		}
+	}
+
+
+	public RecordDTO get(String id) {
+		int intId = CacheRecordDTOUtils.toIntKey(id);
+
+		if (intId == CacheRecordDTOUtils.KEY_IS_NOT_AN_INT) {
+			return stringIdCacheData.get(id);
+
+		} else {
+			return get(intId);
+		}
+	}
+
+	public RecordDTO get(byte collectionId, String id) {
+		int intId = CacheRecordDTOUtils.toIntKey(id);
+
+		if (intId == CacheRecordDTOUtils.KEY_IS_NOT_AN_INT) {
+			return stringIdCacheData.get(id);
+
+		} else {
+			return get(collectionId, intId);
+		}
+	}
+
+	public RecordDTO get(byte collectionId, short typeId, String id) {
+		int intId = CacheRecordDTOUtils.toIntKey(id);
+
+		if (intId == CacheRecordDTOUtils.KEY_IS_NOT_AN_INT) {
+			return stringIdCacheData.get(id);
+
+		} else {
+			return get(collectionId, typeId, intId);
+		}
+	}
+
+	public RecordDTO get(int id) {
+
+		for (int collectionIndex = 0; collectionIndex < ids.length; collectionIndex++) {
+			OffHeapIntList[] typesIds = ids[collectionIndex];
+			if (typesIds != null) {
+				for (int typeIndex = 0; typeIndex < ids.length; typeIndex++) {
+					OffHeapIntList typeIds = typesIds[typeIndex];
+
+					if (typeIds != null) {
+						int index = typeIds.binarySearch(id);
+
+						if (index != -1) {
+							return getIntIdAtLocation(id, collectionIndex, typeIndex, index);
 						}
 					}
 				}
 			}
-
-			if (!added) {
-				int[] newArray = new int[ARRAYS_SIZE];
-				newArray[0] = reference;
-				intKeysArray = keys.size();
-				keys.add(newArray);
-			}
 		}
 
-		private void addLongReference(long reference) {
-			boolean added = false;
-			iteratingKeys:
-			for (int i = longKeysArray; i < keys.size(); i++) {
-				Object entry = keys.get(i);
-				if (entry instanceof long[]) {
-					long[] array = (long[]) entry;
-					longKeysArray = i;
-					for (int j = 0; j < array.length; j++) {
-						if (array[j] == 0) {
-							array[j] = reference;
-							added = true;
-							break iteratingKeys;
-						}
+		return null;
+	}
+
+	public RecordDTO get(byte collectionId, int id) {
+
+		int collectionIndex = ((int) collectionId) - Byte.MIN_VALUE;
+		OffHeapIntList[] typesIds = ids[collectionIndex];
+		if (typesIds != null) {
+			for (int typeIndex = 0; typeIndex < ids.length; typeIndex++) {
+				OffHeapIntList typeIds = typesIds[typeIndex];
+
+				if (typeIds != null) {
+					int index = typeIds.binarySearch(id);
+
+					if (index != -1) {
+						return getIntIdAtLocation(id, collectionIndex, typeIndex, index);
 					}
 				}
 			}
+		}
 
-			if (!added) {
-				long[] newArray = new long[ARRAYS_SIZE];
-				newArray[0] = reference;
-				longKeysArray = keys.size();
-				keys.add(newArray);
+		return null;
+	}
+
+	public RecordDTO get(byte collectionId, short typeId, int id) {
+
+		int collectionIndex = ((int) collectionId) - Byte.MIN_VALUE;
+		int typeIndex = (int) typeId;
+		OffHeapIntList[] typesIds = ids[collectionIndex];
+		if (typesIds != null) {
+			OffHeapIntList typeIds = typesIds[typeIndex];
+
+			if (typeIds != null) {
+				int index = typeIds.binarySearch(id);
+
+				if (index != -1) {
+					return getIntIdAtLocation(id, collectionIndex, typeIndex, index);
+				}
 			}
 		}
 
-		void remove(Object reference) {
+		return null;
+	}
 
+	public Stream<RecordDTO> stream() {
+		return StreamSupport.stream(spliteratorUnknownSize(iterator(), DISTINCT + NONNULL + IMMUTABLE), false);
+	}
+
+	public Stream<RecordDTO> stream(byte collection) {
+		return StreamSupport.stream(spliteratorUnknownSize(iterator(collection), DISTINCT + NONNULL + IMMUTABLE), false);
+	}
+
+	public Stream<RecordDTO> stream(byte collection, short schemaType) {
+		return StreamSupport.stream(spliteratorUnknownSize(iterator(collection, schemaType), DISTINCT + NONNULL + IMMUTABLE), false);
+	}
+
+	public Stream<RecordDTO> stream(byte collectionId, List<String> ids) {
+		return ids.stream().map((id) -> get(collectionId, id)).filter(Objects::nonNull);
+	}
+
+	public synchronized void invalidate(Predicate<RecordDTO> predicate) {
+		stream().filter(predicate).forEachOrdered(this::remove);
+	}
+
+	public synchronized void invalidate(byte collection, Predicate<RecordDTO> predicate) {
+		stream(collection).filter(predicate).forEachOrdered(this::remove);
+	}
+
+	public synchronized void invalidate(byte collection, short schemaType, Predicate<RecordDTO> predicate) {
+		stream(collection, schemaType).filter(predicate).forEachOrdered(this::remove);
+	}
+
+
+	private RecordDTO getIntIdAtLocation(int collectionIndex, int typeIndex, int listIndex) {
+		int id = ids[collectionIndex][typeIndex].get(listIndex);
+		return getIntIdAtLocation(id, collectionIndex, typeIndex, listIndex);
+	}
+
+
+	private RecordDTO getIntIdAtLocation(int id, int collectionIndex, int typeIndex, int listIndex) {
+
+
+		long version = versions[collectionIndex][typeIndex].get(listIndex);
+		short typeId = (short) typeIndex;
+		byte collectionId = (byte) (collectionIndex + Byte.MIN_VALUE);
+		short schemaId = schema[collectionIndex][typeIndex].get(listIndex);
+		if (schemaId == 0) {
+			return null;
 		}
+		MetadataSchemaType type = schemasManager.getSchemaTypes(collectionId).getSchemaType(typeId);
+		MetadataSchema schema = type.getSchema(schemaId);
 
-		Iterator<Object> iterateReferences() {
+		if (isSummaryCache[collectionIndex][typeId]) {
+			OffHeapByteArrayList byteArrays = summaryCachedData[collectionIndex][typeIndex];//.get(listIndex);
+			return new ByteArrayRecordDTOWithIntegerId(id, modelLayerFactory.getMetadataSchemasManager(), version, true,
+					schema.getCollection(), collectionId, type.getCode(), typeId, schema.getCode(), schemaId,
+					byteArrays.get(listIndex).toArray());
 
-			AtomicInteger index = new AtomicInteger();
-			AtomicInteger arrayIndex = new AtomicInteger();
-			return new LazyIterator<Object>() {
-				@Override
-				protected Object getNextOrNull() {
+		} else {
+			List<RecordDTO> dtos = fullyCachedData[collectionIndex][typeIndex];
+			return dtos.get(listIndex);
+		}
+		//					} else {
+		//						return (RecordDTO) dtoOrByteArray;
+		//					}
 
-					while (true) {
-						if (index.get() < keys.size()) {
-							Object key = keys.get(index.get());
+		//		}
+	}
 
-							if (key instanceof int[]) {
-								int[] intKeys = ((int[]) key);
-								int ref = intKeys[arrayIndex.get()];
+	public Iterator<RecordDTO> iterator() {
 
+		Iterator<RecordDTO> otherIdsDtoIterator = stringIdCacheData.values().iterator();
 
-								if (arrayIndex.incrementAndGet() >= intKeys.length) {
-									arrayIndex.set(0);
-									index.incrementAndGet();
-								}
+		return new LazyIterator<RecordDTO>() {
 
-								if (ref != 0) {
-									return ref;
-								}
+			int collection = 0;
+			int schemaType = 0;
+			int index = 0;
 
-							} else if (key instanceof long[]) {
-								long[] longKeys = ((long[]) key);
-								long ref = longKeys[arrayIndex.get()];
+			@Override
+			protected RecordDTO getNextOrNull() {
 
-								if (arrayIndex.incrementAndGet() >= longKeys.length) {
-									arrayIndex.set(0);
-									index.incrementAndGet();
-								}
-
-								if (ref != 0L) {
-									return ref;
-								}
-
-							} else {
-								index.incrementAndGet();
-								return key;
+				while (collection < ids.length) {
+					if (ids[collection] == null) {
+						collection++;
+					} else {
+						if (ids[collection][schemaType] == null || ids[collection][schemaType].size() <= index) {
+							schemaType++;
+							if (schemaType >= LIMIT_OF_TYPES_IN_COLLECTION) {
+								schemaType = 0;
+								index = 0;
+								collection++;
 							}
+						} else {
+							RecordDTO dto = getIntIdAtLocation(collection, schemaType, index++);
+							if (dto != null) {
+								return dto;
+							}
+						}
+
+
+					}
+
+				}
+
+				while (otherIdsDtoIterator.hasNext()) {
+					RecordDTO next = (RecordDTO) otherIdsDtoIterator.next();
+					if (next != null) {
+						return next;
+					}
+
+				}
+
+				return null;
+
+			}
+		};
+	}
+
+
+	public Iterator<RecordDTO> iterator(byte collectionId) {
+
+		Iterator<RecordDTO> otherIdsDtoIterator = stringIdCacheData.values().iterator();
+
+		int collectionIndex = collectionId - Byte.MIN_VALUE;
+
+		return new LazyIterator<RecordDTO>() {
+
+			int schemaTypeIndex = 0;
+			int index = 0;
+
+			@Override
+			protected RecordDTO getNextOrNull() {
+
+				if (ids[collectionIndex] != null) {
+					while (schemaTypeIndex < LIMIT_OF_TYPES_IN_COLLECTION) {
+						if (ids[collectionIndex][schemaTypeIndex] == null || ids[collectionIndex][schemaTypeIndex].size() <= index) {
+							schemaTypeIndex++;
 
 						} else {
-							return null;
+							RecordDTO dto = getIntIdAtLocation(collectionIndex, schemaTypeIndex, index++);
+							if (dto != null) {
+								return dto;
+							}
+						}
+
+					}
+				}
+
+				while (otherIdsDtoIterator.hasNext()) {
+					RecordDTO next = otherIdsDtoIterator.next();
+					if (next != null && collectionsListManager.getCollectionInfo(next.getCollection()).getCollectionId() == collectionId) {
+						return next;
+					}
+
+				}
+
+				return null;
+
+			}
+		};
+	}
+
+
+	public Iterator<RecordDTO> iterator(byte collectionId, short typeId) {
+
+		Iterator<RecordDTO> otherIdsDtoIterator = stringIdCacheData.values().iterator();
+
+		int collectionIndex = collectionId - Byte.MIN_VALUE;
+		int typeIndex = (int) typeId;
+
+		return new LazyIterator<RecordDTO>() {
+
+			int index = 0;
+
+			@Override
+			protected RecordDTO getNextOrNull() {
+
+				if (ids[collectionIndex] == null || ids[collectionIndex][typeIndex] == null) {
+					return null;
+				}
+
+				while (index < ids[collectionIndex][typeIndex].size()) {
+					RecordDTO dto = getIntIdAtLocation(collectionIndex, typeIndex, index++);
+					if (dto != null) {
+						return dto;
+					}
+
+				}
+
+				while (otherIdsDtoIterator.hasNext()) {
+					RecordDTO next = otherIdsDtoIterator.next();
+					if (next != null) {
+						String collection = next.getCollection();
+						String schemaType = getSchemaTypeCode(next.getSchemaCode());
+						if (collectionsListManager.getCollectionInfo(collection).getCollectionId() == collectionId
+							&& schemasManager.getSchemaTypes(collection).getSchemaType(schemaType).getId() == typeId) {
+							return next;
 						}
 					}
 				}
-			};
-		}
 
+				return null;
+
+			}
+		};
 	}
+
 }

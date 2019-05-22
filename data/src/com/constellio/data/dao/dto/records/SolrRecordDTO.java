@@ -3,11 +3,11 @@ package com.constellio.data.dao.dto.records;
 import com.constellio.data.dao.services.bigVault.RecordDaoRuntimeException;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import static java.util.Arrays.asList;
@@ -18,8 +18,6 @@ public class SolrRecordDTO implements RecordDTO, RecordsOperationDTO, Serializab
 
 	private final long version;
 
-	private final List<String> loadedFields;
-
 	private final Map<String, Object> fields;
 
 	private final Map<String, Object> copyfields;
@@ -27,15 +25,15 @@ public class SolrRecordDTO implements RecordDTO, RecordsOperationDTO, Serializab
 	private boolean summary;
 
 	public SolrRecordDTO(String id, Map<String, Object> fields, boolean summary) {
-		this(id, 0, null, fields, new HashMap<String, Object>(), summary);
+		this(id, 0, fields, new HashMap<String, Object>(), summary);
 	}
 
-	public SolrRecordDTO(String id, long version, List<String> loadedFields, Map<String, Object> fields,
+	public SolrRecordDTO(String id, long version, Map<String, Object> fields,
 						 boolean summary) {
-		this(id, version, loadedFields, fields, new HashMap<String, Object>(), summary);
+		this(id, version, fields, new HashMap<String, Object>(), summary);
 	}
 
-	public SolrRecordDTO(String id, long version, List<String> loadedFields, Map<String, Object> fields,
+	public SolrRecordDTO(String id, long version, Map<String, Object> fields,
 						 Map<String, Object> copyfields, boolean summary) {
 		super();
 		if (id == null) {
@@ -44,9 +42,13 @@ public class SolrRecordDTO implements RecordDTO, RecordsOperationDTO, Serializab
 
 		this.id = id;
 		this.version = version;
-		this.loadedFields = loadedFields == null ? null : Collections.unmodifiableList(loadedFields);
-		this.fields = fields == null ? null : Collections.unmodifiableMap(fields);
-		this.copyfields = copyfields == null ? null : Collections.unmodifiableMap(copyfields);
+		if (fields == null && copyfields != null) {
+			this.fields = copyfields;
+			this.copyfields = null;
+		} else {
+			this.fields = fields == null ? null : Collections.unmodifiableMap(fields);
+			this.copyfields = copyfields == null ? null : Collections.unmodifiableMap(copyfields);
+		}
 		this.summary = summary;
 	}
 
@@ -56,10 +58,6 @@ public class SolrRecordDTO implements RecordDTO, RecordsOperationDTO, Serializab
 
 	public long getVersion() {
 		return version;
-	}
-
-	public List<String> getLoadedFields() {
-		return loadedFields;
 	}
 
 	public Map<String, Object> getFields() {
@@ -82,15 +80,16 @@ public class SolrRecordDTO implements RecordDTO, RecordsOperationDTO, Serializab
 		Map<String, Object> copyFields = new HashMap<>(copyfields);
 		copyFields.putAll(recordDeltaDTO.getCopyfields());
 
-		return new SolrRecordDTO(id, version, loadedFields, newFields, copyFields, summary);
+		return new SolrRecordDTO(id, version, newFields, copyFields, summary);
 	}
 
 	public SolrRecordDTO withVersion(long version) {
-		return new SolrRecordDTO(id, version, loadedFields, fields, copyfields, summary);
+		return new SolrRecordDTO(id, version, fields, copyfields, summary);
 	}
 
 	private static List<String> alwaysCopiedFields = asList("collection_s", "schema_s");
 
+	@Deprecated
 	public SolrRecordDTO createCopyOnlyKeeping(Set<String> metadatasDataStoreCodes) {
 
 		Map<String, Object> newFields = new HashMap<>();
@@ -107,6 +106,35 @@ public class SolrRecordDTO implements RecordDTO, RecordsOperationDTO, Serializab
 			}
 		}
 
-		return new SolrRecordDTO(id, version, new ArrayList<>(metadatasDataStoreCodes), newFields, newCopyFields, summary);
+		return new SolrRecordDTO(id, version, newFields, newCopyFields, summary);
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (!(o instanceof SolrRecordDTO)) {
+			return false;
+		}
+		SolrRecordDTO dto = (SolrRecordDTO) o;
+		return version == dto.version &&
+			   summary == dto.summary &&
+			   Objects.equals(id, dto.id) &&
+			   Objects.equals(fields, dto.fields) &&
+			   Objects.equals(copyfields, dto.copyfields);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(id, version, fields, copyfields, summary);
+	}
+
+	@Override
+	public String toString() {
+		return "SolrRecordDTO{" +
+			   "id='" + id + '\'' +
+			   ", version=" + version +
+			   '}';
 	}
 }

@@ -33,10 +33,10 @@ public class MetadataSchemaTypeTest extends ConstellioTest {
 			throws Exception {
 		when(customSchema1AutomaticMetadataWithInheritance.getInheritance()).thenReturn(defaultSchemaAutomaticMetadata);
 		when(customSchema2AutomaticMetadataWithInheritance.getInheritance()).thenReturn(defaultSchemaAutomaticMetadata);
-		CollectionInfo zeCollectionInfo = new CollectionInfo(zeCollection, "fr", Arrays.asList("fr"));
-		type = new MetadataSchemaType((short)0, aString(), null, zeCollectionInfo, asMap(Language.French, "label"),
+		CollectionInfo zeCollectionInfo = new CollectionInfo((byte) 0, zeCollection, "fr", Arrays.asList("fr"));
+		type = new MetadataSchemaType((short) 0, aString(), null, zeCollectionInfo, asMap(Language.French, "label"),
 				asList(customSchema1, customSchema2),
-				defaultSchema, false, true, true, false, "records");
+				defaultSchema, false, true, RecordCacheType.NOT_CACHED, true, false, "records");
 	}
 
 	@Test

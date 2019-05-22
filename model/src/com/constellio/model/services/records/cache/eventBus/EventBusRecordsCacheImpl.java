@@ -102,13 +102,6 @@ public class EventBusRecordsCacheImpl extends DefaultRecordsCacheAdapter impleme
 	}
 
 	@Override
-	public CacheInsertionStatus forceInsert(Record insertedRecord, InsertionReason insertionReason) {
-		CacheInsertionStatus status = nestedRecordsCache.forceInsert(insertedRecord, insertionReason);
-		handleRemotely(asList(insertedRecord), insertionReason);
-		return status;
-	}
-
-	@Override
 	public void invalidateRecordsOfType(String recordType) {
 		nestedRecordsCache.invalidateRecordsOfType(recordType);
 		eventBus.send(INVALIDATE_SCHEMA_TYPE_EVENT_TYPE, recordType);
@@ -137,7 +130,7 @@ public class EventBusRecordsCacheImpl extends DefaultRecordsCacheAdapter impleme
 			case INSERT_RECORDS_EVENT_TYPE:
 				InsertionReason insertionReason = event.getData("reason");
 				for (Record record : event.<List<Record>>getData("records")) {
-					nestedRecordsCache.forceInsert(record, insertionReason);
+					nestedRecordsCache.insert(record, insertionReason);
 				}
 				break;
 

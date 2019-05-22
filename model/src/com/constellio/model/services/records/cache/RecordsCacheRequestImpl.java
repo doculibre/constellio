@@ -136,12 +136,6 @@ public class RecordsCacheRequestImpl implements RecordsCache {
 	}
 
 	@Override
-	public CacheInsertionStatus forceInsert(Record record, InsertionReason insertionReason) {
-		forceInsertInRequestcache(record);
-		return nested.forceInsert(record, insertionReason);
-	}
-
-	@Override
 	public void invalidateRecordsOfType(String recordType) {
 		for (Map.Entry<String, Record> entry : new ArrayList<>(cache.entrySet())) {
 			if (entry.getValue().getTypeCode().equals(recordType)) {
@@ -245,21 +239,6 @@ public class RecordsCacheRequestImpl implements RecordsCache {
 	@Override
 	public boolean isConfigured(String typeCode) {
 		return nested.isConfigured(typeCode);
-	}
-
-	@Override
-	public int getCacheObjectsCount() {
-		return nested.getCacheObjectsCount();
-	}
-
-	@Override
-	public int getCacheObjectsCount(String typeCode) {
-		return this.cache.size();
-	}
-
-	@Override
-	public long getCacheObjectsSize(String typeCode) {
-		return 0;
 	}
 
 	@Override

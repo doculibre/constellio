@@ -84,6 +84,10 @@ import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
 import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
+import static com.constellio.model.entities.schemas.RecordCacheType.FULLY_CACHED;
+import static com.constellio.model.entities.schemas.RecordCacheType.NOT_CACHED;
+import static com.constellio.model.entities.schemas.RecordCacheType.SUMMARY_CACHED_WITHOUT_VOLATILE;
+import static com.constellio.model.entities.schemas.RecordCacheType.SUMMARY_CACHED_WITH_VOLATILE;
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.AGGREGATED;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.CALCULATED;
@@ -246,6 +250,26 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 	private String xmlOfConfig(String path) {
 		XMLOutputter xmlOutput = new XMLOutputter(Format.getPrettyFormat());
 		return xmlOutput.outputString(getDataLayerFactory().getConfigManager().getXML(path).getDocument());
+	}
+
+	@Test
+	public void whenSavingSchemaTypeThenSaveCacheType()
+			throws Exception {
+
+		MetadataSchemaTypesBuilder collection1Builder = schemasManager.modify(zeCollection);
+		collection1Builder.createNewSchemaType("a").setRecordCacheType(FULLY_CACHED);
+		collection1Builder.createNewSchemaType("b").setRecordCacheType(NOT_CACHED);
+		collection1Builder.createNewSchemaType("c").setRecordCacheType(SUMMARY_CACHED_WITH_VOLATILE);
+		collection1Builder.createNewSchemaType("d").setRecordCacheType(SUMMARY_CACHED_WITHOUT_VOLATILE);
+
+		schemasManager.saveUpdateSchemaTypes(collection1Builder);
+
+		MetadataSchemaTypes zeCollectionTypes = schemasManager.getSchemaTypes(zeCollection);
+
+		assertThat(zeCollectionTypes.getSchemaType("a").getCacheType()).isEqualTo(FULLY_CACHED);
+		assertThat(zeCollectionTypes.getSchemaType("b").getCacheType()).isEqualTo(NOT_CACHED);
+		assertThat(zeCollectionTypes.getSchemaType("c").getCacheType()).isEqualTo(SUMMARY_CACHED_WITH_VOLATILE);
+		assertThat(zeCollectionTypes.getSchemaType("d").getCacheType()).isEqualTo(SUMMARY_CACHED_WITHOUT_VOLATILE);
 	}
 
 	@Test

@@ -88,6 +88,7 @@ subprojects {
         compile 'com.microsoft.azure:adal4j:1.6.3'
         compile 'com.nimbusds:oauth2-oidc-sdk:4.5'
         compile group: 'org.mapdb', name: 'mapdb', version: '3.0.7'
+        compile group: 'com.carrotsearch', name: 'hppc', version: '0.8.1'
 
         compileOnly "org.projectlombok:lombok:1.18.2"
         annotationProcessor "org.projectlombok:lombok:1.18.2"

@@ -77,9 +77,9 @@ public class RecordsCachesMemoryImpl implements RecordsCaches {
 		return cache.insert(record, reason);
 	}
 
-	public CacheInsertionStatus forceInsert(Record record, InsertionReason reason) {
-		RecordsCache cache = getCache(record.getCollection());
-		return cache.forceInsert(record, reason);
+	@Override
+	public Record getRecordSummary(String id) {
+		return null;
 	}
 
 	public Record getRecord(String id) {
@@ -127,18 +127,5 @@ public class RecordsCachesMemoryImpl implements RecordsCaches {
 		collectionsCache.remove(collection);
 	}
 
-	public int getCacheObjectsCount() {
-		int cacheTotalSize = 0;
 
-		for (RecordsCache cache : collectionsCache.values()) {
-			cacheTotalSize += cache.getCacheObjectsCount();
-		}
-
-		return cacheTotalSize;
-	}
-
-	@Override
-	public void setEnabled(boolean enabled) {
-		this.enabled.set(enabled);
-	}
 }

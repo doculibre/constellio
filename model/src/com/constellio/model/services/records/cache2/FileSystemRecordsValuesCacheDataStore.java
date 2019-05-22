@@ -9,53 +9,84 @@ import java.io.File;
 
 public class FileSystemRecordsValuesCacheDataStore {
 
-	private DB database;
+	private DB onDiskDatabase;
 
 	private HTreeMap<Integer, byte[]> intKeyMap;
 
+	private HTreeMap<Integer, byte[]> intKeyMapMemoryBuffer;
+
 	private HTreeMap<String, byte[]> stringKeyMap;
 
+	private HTreeMap<String, byte[]> stringKeyMapMemoryBuffer;
+
 	public FileSystemRecordsValuesCacheDataStore(File file) {
-		this.database = DBMaker.fileDB(file).make();
-		intKeyMap = database.hashMap("intKeysDataStore")
+		this.onDiskDatabase = DBMaker.fileDB(file).fileLockDisable().make();
+
+
+		intKeyMap = onDiskDatabase.hashMap("intKeysDataStore")
 				.keySerializer(Serializer.INTEGER)
 				.valueSerializer(Serializer.BYTE_ARRAY)
 				.create();
 
-		stringKeyMap = database.hashMap("stringKeysDataStore")
+		stringKeyMap = onDiskDatabase.hashMap("stringKeysDataStore")
 				.keySerializer(Serializer.STRING)
 				.valueSerializer(Serializer.BYTE_ARRAY)
 				.create();
+
+		DB onMEmoryDatabase = DBMaker.memoryDB().make();
+
+
+		intKeyMapMemoryBuffer = onMEmoryDatabase.hashMap("intKeysDataStoreBuffer")
+				.keySerializer(Serializer.INTEGER)
+				.valueSerializer(Serializer.BYTE_ARRAY)
+				.expireMaxSize(10000)
+				.expireOverflow(intKeyMap)
+				.create();
+
+		stringKeyMap = onMEmoryDatabase.hashMap("stringKeysDataStoreBuffer")
+				.keySerializer(Serializer.STRING)
+				.valueSerializer(Serializer.BYTE_ARRAY)
+				.expireMaxSize(25)
+				.expireOverflow(stringKeyMap)
+				.create();
+
+
 	}
 
 	public void saveStringKey(String id, byte[] bytes) {
-		stringKeyMap.put(id, bytes);
+		stringKeyMapMemoryBuffer.put(id, bytes);
 	}
 
 	public void saveIntKey(int id, byte[] bytes) {
-		intKeyMap.put(id, bytes);
+		intKeyMapMemoryBuffer.put(id, bytes);
 	}
 
 	public void removeStringKey(String id) {
-		stringKeyMap.remove(id);
+		stringKeyMapMemoryBuffer.remove(id);
 	}
 
 	public void removeIntKey(int id) {
-		intKeyMap.remove(id);
+		intKeyMapMemoryBuffer.remove(id);
 	}
 
 	public byte[] loadStringKey(String id) {
-		return stringKeyMap.get(id);
+		return stringKeyMapMemoryBuffer.get(id);
 	}
 
 	public byte[] loadIntKey(int id) {
-		return intKeyMap.get(id);
+		return intKeyMapMemoryBuffer.get(id);
 	}
 
 	public void close() {
 		intKeyMap.close();
 		stringKeyMap.close();
-		database.close();
+		onDiskDatabase.close();
+	}
 
+	public void clearAll() {
+		intKeyMap.clear();
+		stringKeyMap.clear();
+		intKeyMapMemoryBuffer.clear();
+		stringKeyMapMemoryBuffer.clear();
 	}
 }

@@ -3,19 +3,16 @@ package com.constellio.model.services.records.cache;
 import com.constellio.data.dao.services.cache.InsertionReason;
 import com.constellio.model.entities.records.Record;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public interface RecordsCaches {
 
 	RecordsCache getCache(String collection);
 
-	boolean isCached(String id);
-
-	List<CacheInsertionStatus> insert(String collection, List<Record> records, InsertionReason insertionReason);
-
 	CacheInsertionStatus insert(Record record, InsertionReason insertionReason);
 
-	CacheInsertionStatus forceInsert(Record record, InsertionReason insertionReason);
+	Record getRecordSummary(String id);
 
 	Record getRecord(String id);
 
@@ -23,8 +20,18 @@ public interface RecordsCaches {
 
 	void invalidate(String collection);
 
-	int getCacheObjectsCount();
+	default boolean isCached(String id) {
+		return getRecord(id) != null;
+	}
 
-	void setEnabled(boolean enabled);
+	default List<CacheInsertionStatus> insert(String collection, List<Record> records,
+											  InsertionReason insertionReason) {
+		List<CacheInsertionStatus> statuses = new ArrayList<>(records.size());
 
+		for (Record record : records) {
+			statuses.add(insert(record, insertionReason));
+		}
+
+		return statuses;
+	}
 }

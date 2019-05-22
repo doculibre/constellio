@@ -31,6 +31,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static com.constellio.model.entities.schemas.Schemas.TITLE;
+
 public class SchemaUtils {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(SchemaUtils.class);
@@ -237,6 +239,49 @@ public class SchemaUtils {
 			index.put(metadata.getLocalCode(), metadata);
 		}
 		return index;
+	}
+
+	public List<Metadata> buildListOfSummaryMetadatas(List<Metadata> metadatas) {
+
+		List<Metadata> summaryMetadatas = new ArrayList<>();
+
+		for (Metadata metadata : metadatas) {
+			boolean summary;
+			switch (metadata.getType()) {
+				case DATE:
+				case DATE_TIME:
+				case STRING:
+					summary = metadata.isEssentialInSummary() || metadata.isUniqueValue() || TITLE.isSameLocalCode(metadata);
+					break;
+
+				case STRUCTURE:
+				case CONTENT:
+					//TODO Based on summary flag, support these typestype
+					summary = false;
+					break;
+
+				case TEXT:
+					summary = false;
+					break;
+
+				case INTEGER:
+				case NUMBER:
+				case BOOLEAN:
+				case REFERENCE:
+				case ENUM:
+					summary = true;
+					break;
+				default:
+					throw new ImpossibleRuntimeException("Unsupported type : " + metadata.getType());
+
+			}
+
+			if (summary) {
+				summaryMetadatas.add(metadata);
+			}
+		}
+
+		return summaryMetadatas;
 	}
 
 	public String getLocalCodeFromMetadataCode(String metadataCode) {

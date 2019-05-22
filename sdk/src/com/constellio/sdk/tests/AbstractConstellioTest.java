@@ -41,7 +41,6 @@ import com.constellio.data.utils.TimeProvider;
 import com.constellio.data.utils.TimeProvider.DefaultTimeProvider;
 import com.constellio.data.utils.dev.Toggle.AvailableToggle;
 import com.constellio.model.conf.FoldersLocator;
-import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Group;
@@ -141,7 +140,6 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 
 	protected Map<String, String> sdkProperties = new HashMap<>();
 
-	protected CollectionInfo zeCollectionInfo = new CollectionInfo("zeCollection", "fr", asList("fr"));
 	protected String zeCollection = "zeCollection";
 	protected String businessCollection = "LaCollectionDeRida";
 	protected String admin = "admin";

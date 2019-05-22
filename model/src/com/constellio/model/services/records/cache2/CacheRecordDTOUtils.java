@@ -6,9 +6,7 @@ import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.utils.EnumWithSmallCodeUtils;
-import com.mchange.v2.collection.MapEntry;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 
@@ -17,6 +15,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.StandardCharsets;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -25,11 +24,6 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static com.constellio.model.entities.schemas.MetadataValueType.CONTENT;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRUCTURE;
-import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
 
 /**
  * This utility class handle the reading and writing of a byte array regrouping a Record DTO metadata values
@@ -74,131 +68,129 @@ public class CacheRecordDTOUtils {
 	public static CacheRecordDTOBytesArray convertDTOToByteArrays(RecordDTO dto, MetadataSchema schema) {
 		CachedRecordDTOByteArrayBuilder builder = new CachedRecordDTOByteArrayBuilder();
 
-		for (Metadata metadata : schema.getMetadatas()) {
-			if (isCached(metadata)) {
-				if (metadata.isMultivalue()) {
-					List<Object> values = (List<Object>) dto.getFields().get(metadata.getDataStoreCode());
-					if (values != null && !values.isEmpty()) {
-						switch (metadata.getType()) {
-							case STRING:
-								try {
-									builder.addMultivalueStringMetadata(metadata, (List) values);
-								} catch (IOException e) {
-									e.printStackTrace();
-								}
-								break;
-							case REFERENCE:
-								try {
-									builder.addMultivalueReferenceMetadata(metadata, (List) values);
-								} catch (IOException e) {
-									e.printStackTrace();
-								}
-								break;
-							case BOOLEAN:
-								try {
-									builder.addMultivalueBooleanMetadata(metadata, (List) values);
-								} catch (IOException e) {
-									e.printStackTrace();
-								}
-								break;
-							case INTEGER:
-								try {
-									builder.addMultivalueIntegerMetadata(metadata, (List) values);
-								} catch (IOException e) {
-									e.printStackTrace();
-								}
-								break;
-							case NUMBER:
-								try {
-									builder.addMultivalueNumberMetadata(metadata, (List) values);
-								} catch (IOException e) {
-									e.printStackTrace();
-								}
-								break;
-							case DATE:
-								try {
-									builder.addMultivalueLocalDateMetadata(metadata, (List) values);
-								} catch (IOException e) {
-									e.printStackTrace();
-								}
-								break;
-							case DATE_TIME:
-								try {
-									builder.addMultivalueLocalDateTimeMetadata(metadata, (List) values);
-								} catch (IOException e) {
-									e.printStackTrace();
-								}
-								break;
-							case ENUM:
-								try {
-									builder.addMultivalueEnumMetadata(metadata, (List) values);
-								} catch (IOException e) {
-									e.printStackTrace();
-								}
-								break;
-						}
+		for (Metadata metadata : schema.getSummaryMetadatas()) {
+			if (metadata.isMultivalue()) {
+				List<Object> values = (List<Object>) dto.getFields().get(metadata.getDataStoreCode());
+				if (values != null && !values.isEmpty()) {
+					switch (metadata.getType()) {
+						case STRING:
+							try {
+								builder.addMultivalueStringMetadata(metadata, (List) values);
+							} catch (IOException e) {
+								e.printStackTrace();
+							}
+							break;
+						case REFERENCE:
+							try {
+								builder.addMultivalueReferenceMetadata(metadata, (List) values);
+							} catch (IOException e) {
+								e.printStackTrace();
+							}
+							break;
+						case BOOLEAN:
+							try {
+								builder.addMultivalueBooleanMetadata(metadata, (List) values);
+							} catch (IOException e) {
+								e.printStackTrace();
+							}
+							break;
+						case INTEGER:
+							try {
+								builder.addMultivalueIntegerMetadata(metadata, (List) values);
+							} catch (IOException e) {
+								e.printStackTrace();
+							}
+							break;
+						case NUMBER:
+							try {
+								builder.addMultivalueNumberMetadata(metadata, (List) values);
+							} catch (IOException e) {
+								e.printStackTrace();
+							}
+							break;
+						case DATE:
+							try {
+								builder.addMultivalueLocalDateMetadata(metadata, (List) values);
+							} catch (IOException e) {
+								e.printStackTrace();
+							}
+							break;
+						case DATE_TIME:
+							try {
+								builder.addMultivalueLocalDateTimeMetadata(metadata, (List) values);
+							} catch (IOException e) {
+								e.printStackTrace();
+							}
+							break;
+						case ENUM:
+							try {
+								builder.addMultivalueEnumMetadata(metadata, (List) values);
+							} catch (IOException e) {
+								e.printStackTrace();
+							}
+							break;
 					}
-				} else {
-					Object value = dto.getFields().get(metadata.getDataStoreCode());
-					if (value != null) {
-						switch (metadata.getType()) {
-							case REFERENCE:
-								try {
-									builder.addSingleValueReferenceMetadata(metadata, value);
-								} catch (IOException e) {
-									e.printStackTrace();
-								}
-								break;
-							case BOOLEAN:
-								try {
-									builder.addSingleValueBooleanMetadata(metadata, value);
-								} catch (IOException e) {
-									e.printStackTrace();
-								}
-								break;
-							case STRING:
-								try {
-									builder.addSingleValueStringMetadata(metadata, value);
-								} catch (IOException e) {
-									e.printStackTrace();
-								}
-								break;
-							case INTEGER:
-								try {
-									builder.addSingleValueIntegerMetadata(metadata, value);
-								} catch (IOException e) {
-									e.printStackTrace();
-								}
-								break;
-							case NUMBER:
-								try {
-									builder.addSingleValueNumberMetadata(metadata, value);
-								} catch (IOException e) {
-									e.printStackTrace();
-								}
-								break;
-							case DATE:
-								try {
-									builder.addSingleValueLocalDateMetadata(metadata, value);
-								} catch (IOException e) {
-									e.printStackTrace();
-								}
-								break;
-							case DATE_TIME:
-								try {
-									builder.addSingleValueLocalDateTimeMetadata(metadata, value);
-								} catch (IOException e) {
-									e.printStackTrace();
-								}
-								break;
-							case ENUM:
-								try {
-									builder.addSingleValueEnumMetadata(metadata, value);
-								} catch (IOException e) {
-									e.printStackTrace();
-								}
-								break;
-						}
+				}
+			} else {
+				Object value = dto.getFields().get(metadata.getDataStoreCode());
+				if (value != null) {
+					switch (metadata.getType()) {
+						case REFERENCE:
+							try {
+								builder.addSingleValueReferenceMetadata(metadata, value);
+							} catch (IOException e) {
+								e.printStackTrace();
+							}
+							break;
+						case BOOLEAN:
+							try {
+								builder.addSingleValueBooleanMetadata(metadata, value);
+							} catch (IOException e) {
+								e.printStackTrace();
+							}
+							break;
+						case STRING:
+							try {
+								builder.addSingleValueStringMetadata(metadata, value);
+							} catch (IOException e) {
+								e.printStackTrace();
+							}
+							break;
+						case INTEGER:
+							try {
+								builder.addSingleValueIntegerMetadata(metadata, value);
+							} catch (IOException e) {
+								e.printStackTrace();
+							}
+							break;
+						case NUMBER:
+							try {
+								builder.addSingleValueNumberMetadata(metadata, value);
+							} catch (IOException e) {
+								e.printStackTrace();
+							}
+							break;
+						case DATE:
+							try {
+								builder.addSingleValueLocalDateMetadata(metadata, value);
+							} catch (IOException e) {
+								e.printStackTrace();
+							}
+							break;
+						case DATE_TIME:
+							try {
+								builder.addSingleValueLocalDateTimeMetadata(metadata, value);
+							} catch (IOException e) {
+								e.printStackTrace();
+							}
+							break;
+						case ENUM:
+							try {
+								builder.addSingleValueEnumMetadata(metadata, value);
+							} catch (IOException e) {
+								e.printStackTrace();
+							}
+							break;
 					}
 				}
 			}
@@ -212,18 +204,6 @@ public class CacheRecordDTOUtils {
 		}
 	}
 
-	private static boolean isCached(Metadata metadata) {
-		if (metadata.getType() == STRUCTURE || metadata.getType() == TEXT || metadata.getType() == CONTENT) {
-			return false;
-		}
-
-		if (metadata.getType() == STRING) {
-//			return Schemas.TITLE.isSameLocalCode(metadata); TODO RE-ENABLE
-			return true;
-		}
-
-		return true;
-	}
 
 	public static int toIntKey(Object key) {
 		if (key instanceof Integer) {
@@ -330,7 +310,7 @@ public class CacheRecordDTOUtils {
 			short metadataSearchedIndex = (short) (headerBytesSize + parseShortFromByteArray(byteArray, (short) (i + BYTES_TO_WRITE_METADATA_ID_AND_INDEX)));
 			short nextMetadataIndex = calculateNextMetadataIndex(byteArray, headerBytesSize, i);
 
-			metadatasEntrySet.add(new MapEntry(metadataSearched.getDataStoreCode(), parseValueMetadata(byteArray, metadataSearched, metadataSearchedIndex, nextMetadataIndex)));
+			metadatasEntrySet.add(new SimpleEntry(metadataSearched.getDataStoreCode(), parseValueMetadata(byteArray, metadataSearched, metadataSearchedIndex, nextMetadataIndex)));
 		}
 
 		return metadatasEntrySet;
@@ -348,8 +328,9 @@ public class CacheRecordDTOUtils {
 		return parseShortFromByteArray(data, (short) 0);
 	}
 
-	private static NeighboringMetadata getMetadataSearchedIndexAndNextMetadataIndex(byte[] byteArray, Metadata metadataSearched,
-																		short metadatasSize) {
+	private static NeighboringMetadata getMetadataSearchedIndexAndNextMetadataIndex(byte[] byteArray,
+																					Metadata metadataSearched,
+																					short metadatasSize) {
 		NeighboringMetadata neighboringMetadata = new NeighboringMetadata();
 
 		short metadataSearchedId = metadataSearched.getId();
@@ -1210,7 +1191,7 @@ public class CacheRecordDTOUtils {
 		private void writeEnum(Class<? extends Enum> clazz, String smallCode) throws IOException {
 			// + acts as a minus since Byte.MIN_VALUE is -128
 			// -128 too get place for 255 enums which should be more than enough
-			Enum e = EnumWithSmallCodeUtils.toEnum((Class)clazz, smallCode);
+			Enum e = EnumWithSmallCodeUtils.toEnum((Class) clazz, smallCode);
 			dataWriter.writeByte((byte) (e.ordinal() + Byte.MIN_VALUE));
 		}
 
@@ -1223,6 +1204,7 @@ public class CacheRecordDTOUtils {
 
 		public CacheRecordDTOBytesArray build() throws IOException {
 			byte[] data = new byte[BYTES_TO_WRITE_METADATA_VALUES_SIZE + headerByteArrayLength + dataByteArrayLength];
+
 			// BYTES_TO_WRITE_METADATA_VALUES_SIZE in destPos because index 0 & 1 are placeholders (short)
 			// for the number of metadata (metadatasSize) in the final array
 			System.arraycopy(headerOutput.toByteArray(), 0, data, BYTES_TO_WRITE_METADATA_VALUES_SIZE, headerByteArrayLength);

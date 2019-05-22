@@ -7,6 +7,7 @@ import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.CannotGetMetadatasOfAnotherSchemaType;
+import com.constellio.model.entities.schemas.RecordCacheType;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.SchemaComparators;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilderRuntimeException.CannotDeleteSchema;
@@ -47,6 +48,7 @@ public class MetadataSchemaTypeBuilder {
 	private Set<String> flags = new HashSet<>();
 	private String dataStore;
 	private SchemasIdSequence metadatasIdSequence;
+	private RecordCacheType recordCacheType;
 
 	MetadataSchemaTypeBuilder() {
 	}
@@ -65,6 +67,7 @@ public class MetadataSchemaTypeBuilder {
 		builder.setLabels(configureLabels(code, typesBuilder));
 		builder.customSchemas = new HashSet<>();
 		builder.dataStore = "records";
+		builder.recordCacheType = RecordCacheType.FULLY_CACHED;
 		builder.defaultSchema = MetadataSchemaBuilder.createDefaultSchema(builder, typesBuilder, initialize);
 
 		return builder;
@@ -93,6 +96,7 @@ public class MetadataSchemaTypeBuilder {
 		builder.inTransactionLog = schemaType.isInTransactionLog();
 		builder.customSchemas = new HashSet<>();
 		builder.dataStore = schemaType.getDataStore();
+		builder.recordCacheType = schemaType.getCacheType();
 		for (MetadataSchema schema : schemaType.getCustomSchemas()) {
 			builder.customSchemas.add(MetadataSchemaBuilder.modifySchema(schema, builder));
 		}
@@ -240,8 +244,18 @@ public class MetadataSchemaTypeBuilder {
 
 		Collections.sort(schemas, SchemaComparators.SCHEMA_COMPARATOR_BY_ASC_LOCAL_CODE);
 		return new MetadataSchemaType(id, code, smallCode, collectionInfo, labels, schemas, defaultSchema, undeletable, security,
-				inTransactionLog,
+				recordCacheType, inTransactionLog,
 				readOnlyLocked, dataStore);
+	}
+
+	public RecordCacheType getRecordCacheType() {
+		return recordCacheType;
+	}
+
+	public MetadataSchemaTypeBuilder setRecordCacheType(
+			RecordCacheType recordCacheType) {
+		this.recordCacheType = recordCacheType;
+		return this;
 	}
 
 	public MetadataBuilder getMetadata(String metadataCode) {

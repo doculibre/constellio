@@ -77,8 +77,10 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import static com.constellio.data.dao.services.cache.InsertionReason.WAS_OBTAINED;
+import static com.constellio.model.entities.schemas.Schemas.ESTIMATED_SIZE;
 import static com.constellio.model.services.records.RecordUtils.splitByCollection;
 import static com.constellio.model.services.search.VisibilityStatusFilter.ALL;
+import static com.constellio.model.services.search.query.ReturnedMetadatasFilter.onlyFields;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
@@ -157,7 +159,74 @@ public class SearchServices {
 		return query(query).getMoreLikeThisRecords();
 	}
 
+	public Stream<Record> stream(MetadataSchemaType schemaType, boolean summary) {
+		return streamFromSolr(schemaType, summary);
+	}
+
+	public int getIdealBatchSize(MetadataSchemaType schemaType) {
+
+		LogicalSearchQuery maxSizeQuery = new LogicalSearchQuery(from(schemaType).returnAll());
+		maxSizeQuery.sortDesc(ESTIMATED_SIZE);
+		maxSizeQuery.setNumberOfRows(1);
+		maxSizeQuery.filteredByVisibilityStatus(ALL);
+		maxSizeQuery.filteredByStatus(StatusFilter.ALL);
+		maxSizeQuery.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(ESTIMATED_SIZE));
+
+		List<Record> records = search(maxSizeQuery);
+		if (records.isEmpty()) {
+			return 100;
+		} else {
+			int maxRecordSize = records.get(0).get(ESTIMATED_SIZE);
+			return 100_000_000 / maxRecordSize;
+
+		}
+	}
+
+	public Stream<Record> streamFromSolr(MetadataSchemaType schemaType, boolean summary) {
+
+		LogicalSearchQuery maxSizeQuery = new LogicalSearchQuery(from(schemaType).returnAll());
+		maxSizeQuery.sortDesc(ESTIMATED_SIZE);
+		maxSizeQuery.setNumberOfRows(1);
+		maxSizeQuery.filteredByVisibilityStatus(ALL);
+		maxSizeQuery.filteredByStatus(StatusFilter.ALL);
+		maxSizeQuery.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(ESTIMATED_SIZE));
+		//maxSizeQuery.computeStatsOnField(ESTIMATED_SIZE);
+
+		List<Record> records = search(maxSizeQuery);
+		if (records.isEmpty()) {
+			return Stream.empty();
+		}
+
+		int maxRecordSize = records.get(0).get(ESTIMATED_SIZE);
+		int batchSize = 100_000_1000 / maxRecordSize;
+		LOGGER.info("Streaming schema type '" + schemaType.getCode() + "' with batches of " + batchSize + ". Max record size is " + maxRecordSize);
+
+		LogicalSearchQuery query = new LogicalSearchQuery();
+		query.setCondition(from(schemaType).returnAll());
+		query.filteredByVisibilityStatus(ALL);
+		query.filteredByStatus(StatusFilter.ALL);
+
+		if (summary) {
+			query.setReturnedMetadatas(onlyFields(schemaType.getSummaryMetadatasDataStoreCodes()));
+		}
+
+		return stream(query, batchSize);
+
+	}
+
 	public Stream<Record> stream(LogicalSearchQuery query) {
+		return stream(query, 1000);
+	}
+
+	public Stream<Record> stream(LogicalSearchQuery query, int batchSize) {
+		return streamFromSolr(query, batchSize);
+	}
+
+	public Stream<Record> streamFromSolr(LogicalSearchQuery query) {
+		return streamFromSolr(query, 1000);
+	}
+
+	public Stream<Record> streamFromSolr(LogicalSearchQuery query, int batchSize) {
 
 		final LogicalSearchQuery clonedQuery = new LogicalSearchQuery(query);
 		//return search(query).stream();
@@ -166,7 +235,7 @@ public class SearchServices {
 			@Override
 			public Spliterator<Record> get() {
 				if (clonedQuery.getNumberOfRows() == 0) {
-					SearchResponseIterator<Record> iterator = recordsIteratorKeepingOrder(clonedQuery, 1000);
+					SearchResponseIterator<Record> iterator = recordsIteratorKeepingOrder(clonedQuery, batchSize);
 					return Spliterators.spliterator(iterator, iterator.getNumFound(), 0);
 
 				} else {
@@ -261,7 +330,8 @@ public class SearchServices {
 			}
 
 			@Override
-			public <U> U reduce(U identity, BiFunction<U, ? super Record, U> accumulator, BinaryOperator<U> combiner) {
+			public <U> U reduce(U identity, BiFunction<U, ? super Record, U> accumulator,
+								BinaryOperator<U> combiner) {
 				throw new UnsupportedOperationException("Unsupported operation");
 			}
 
