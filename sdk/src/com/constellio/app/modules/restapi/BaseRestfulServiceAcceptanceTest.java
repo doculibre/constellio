@@ -51,9 +51,6 @@ public abstract class BaseRestfulServiceAcceptanceTest extends ConstellioTest {
 	protected String sasquatchServiceKey = "sasquatchKey", sasquatchToken = "sasquatchToken";
 	protected LocalDateTime fakeDate = new LocalDateTime();
 	protected LocalDateTime fakeDate2 = (new LocalDateTime()).minusDays(1);
-	protected LocalDateTime fakeDate3 = (new LocalDateTime()).minusDays(2);
-	protected LocalDateTime fakeDate4 = (new LocalDateTime()).plusDays(3);
-	protected LocalDateTime fakeDate5 = (new LocalDateTime()).plusDays(4);
 	protected String fakeMetadata1 = "USRMetadata1", fakeMetadata2 = "USRMetadata2";
 	protected AuthorizationAddRequest authorization1, authorization2;
 
@@ -110,6 +107,7 @@ public abstract class BaseRestfulServiceAcceptanceTest extends ConstellioTest {
 		queryCounter = new QueryCounter(getDataLayerFactory(), ON_COLLECTION(SYSTEM_COLLECTION));
 	}
 
+
 	protected <T> void addUsrMetadata(String id, final String schemaCode, final MetadataValueType type,
 									  T value1, T value2)
 			throws Exception {
@@ -145,7 +143,7 @@ public abstract class BaseRestfulServiceAcceptanceTest extends ConstellioTest {
 	protected WebTarget buildQuery(Class clazz, WebTarget target, boolean calculateSignature,
 								   List<String> defaultParams, String... excludedParam)
 			throws Exception {
-		List<String> excludedParams = excludedParam == null ? new ArrayList<String>() : asList(excludedParam);
+		List<String> excludedParams = asList(excludedParam);
 
 		for (String param : defaultParams) {
 			if (excludedParams.contains(param)) {

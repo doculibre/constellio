@@ -58,17 +58,13 @@ public class FolderService extends ResourceService {
 		validateExtendedAttributes(folder.getExtendedAttributes(), folderSchema);
 		validateAuthorizations(folder.getDirectAces(), folderRecord.getCollection());
 
-		try {
-			boolean acesModified = false;
-			folderRecord = folderDao.updateFolder(user, folderRecord, folderSchema, folder, partial, flushMode);
-			if (!partial || folder.getDirectAces() != null) {
-				acesModified = aceService.updateAces(user, folderRecord, nullToEmpty(folder.getDirectAces()));
-			}
-
-			return getAdaptor().adapt(folder, host, folderRecord, folderSchema, acesModified, filters);
-		} catch (Exception e) {
-			throw e;
+		boolean acesModified = false;
+		folderRecord = folderDao.updateFolder(user, folderRecord, folderSchema, folder, partial, flushMode);
+		if (!partial || folder.getDirectAces() != null) {
+			acesModified = aceService.updateAces(user, folderRecord, nullToEmpty(folder.getDirectAces()));
 		}
+
+		return getAdaptor().adapt(folder, folderRecord, folderSchema, acesModified, filters);
 	}
 
 	public FolderDto create(String host, String parentFolderId, String serviceKey, String method, String date,
@@ -93,7 +89,7 @@ public class FolderService extends ResourceService {
 			aceService.addAces(user, createdFolderRecord, folderDto.getDirectAces());
 			acesModified = true;
 		}
-		return getAdaptor().adapt(folderDto, host, createdFolderRecord, folderSchema, acesModified, filters);
+		return getAdaptor().adapt(folderDto, createdFolderRecord, folderSchema, acesModified, filters);
 	}
 
 	public FolderDto copy(String host, String parentFolderId, String copySourceId, String serviceKey, String method,
@@ -124,7 +120,7 @@ public class FolderService extends ResourceService {
 			aceService.addAces(user, copiedFolderRecord, folderDto.getDirectAces());
 			acesModified = true;
 		}
-		return getAdaptor().adapt(folderDto, host, copiedFolderRecord, folderSchema, acesModified, filters);
+		return getAdaptor().adapt(folderDto, copiedFolderRecord, folderSchema, acesModified, filters);
 	}
 
 	@Override

@@ -7,7 +7,6 @@ import com.constellio.app.modules.restapi.core.exception.RequiredParameterExcept
 import com.constellio.app.modules.restapi.core.util.CustomHttpHeaders;
 import com.constellio.app.modules.restapi.core.util.HttpMethods;
 import com.constellio.app.modules.restapi.folder.dto.FolderDto;
-import com.constellio.app.modules.restapi.resource.dto.BaseReferenceDto;
 import com.constellio.app.modules.restapi.resource.service.ResourceRestfulService;
 import com.google.common.base.Strings;
 import io.swagger.v3.oas.annotations.Operation;
@@ -173,7 +172,7 @@ public class FolderRestfulService extends ResourceRestfulService {
 		validateHttpMethod(method, HttpMethods.PATCH);
 
 		if (!id.equals(folder.getId())) {
-			throw new ParametersMustMatchException("id", "document.id");
+			throw new ParametersMustMatchException("id", "folder.id");
 		}
 
 		validateFolder(folder);
@@ -200,29 +199,6 @@ public class FolderRestfulService extends ResourceRestfulService {
 			}
 		}
 
-		if (folder.getAdministrativeUnit() != null) {
-			validateBaseReferenceDto(folder.getAdministrativeUnit(), "administrativeUnit");
-		}
-
-		if (folder.getContainer() != null) {
-			validateBaseReferenceDto(folder.getContainer(), "container");
-		}
-
-		if (folder.getCategory() != null) {
-			validateBaseReferenceDto(folder.getCategory(), "category");
-		}
-
-		if (folder.getRetentionRule() != null) {
-			validateBaseReferenceDto(folder.getRetentionRule(), "retentionRule");
-		}
-
 		validateAces(folder.getDirectAces());
-	}
-
-
-	private void validateBaseReferenceDto(BaseReferenceDto baseReferenceDto, String identifier) {
-		if (Strings.isNullOrEmpty(baseReferenceDto.getId())) {
-			throw new RequiredParameterException(identifier + ".id");
-		}
 	}
 }

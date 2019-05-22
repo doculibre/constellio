@@ -34,7 +34,6 @@ import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
@@ -81,8 +80,6 @@ import static org.assertj.core.api.Assertions.tuple;
 public class FolderRestfulServicePATCHAcceptanceTest extends BaseFolderRestfulServiceAcceptanceTest {
 	private FolderDto folderToPatialUpdate;
 
-	protected String fakeMetadata1 = "USRMetadata1", fakeMetadata2 = "USRMetadata2";
-
 
 	@Before
 	public void setUp() throws Exception {
@@ -113,14 +110,11 @@ public class FolderRestfulServicePATCHAcceptanceTest extends BaseFolderRestfulSe
 		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
 
 		FolderDto folder = response.readEntity(FolderDto.class);
-		//response.readEntity(RestApiErrorResponse.class);
 
 		assertThat(singletonList(folder)).extracting("id", "title", "parentFolderId", "description", "openingDate")
 				.containsExactly(tuple(folderUpdate.getId(), folderUpdate.getTitle(), folderUpdate.getParentFolderId(), folderUpdate.getDescription(), folderUpdate.getOpeningDate()));
 
-
 		assertFolderType(folder);
-
 
 		assertThat(folder.getDirectAces()).extracting("principals", "permissions").contains(
 				tuple(toPrincipals(authorization1.getPrincipals()), Sets.newHashSet(authorization1.getRoles())),
@@ -129,7 +123,6 @@ public class FolderRestfulServicePATCHAcceptanceTest extends BaseFolderRestfulSe
 
 		assertThat(folder.getExtendedAttributes()).extracting("key", "values")
 				.containsOnly(tuple(fakeMetadata1, singletonList(value1)), tuple(fakeMetadata2, value2));
-
 
 		Record record = recordServices.getDocumentById(folderUpdate.getId());
 		assertThatRecord(record).extracting(Folder.TITLE, Folder.PARENT_FOLDER, Folder.KEYWORDS, Folder.TYPE)
@@ -176,7 +169,6 @@ public class FolderRestfulServicePATCHAcceptanceTest extends BaseFolderRestfulSe
 		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
 
 		FolderDto folder = response.readEntity(FolderDto.class);
-		//response.readEntity(RestApiErrorResponse.class);
 
 		assertFolderMetadata(folderUpdate, folder);
 		assertFolderType(folder);
@@ -195,7 +187,7 @@ public class FolderRestfulServicePATCHAcceptanceTest extends BaseFolderRestfulSe
 				.directAces(singletonList(AceDto.builder().principals(singleton(chuckNorris)).permissions(singleton(READ)).build()))
 				.build();
 
-		Response response = doPatchQuery(folderUpdate, null);
+		Response response = doPatchQuery(folderUpdate);
 		assertThat(response.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
 		assertThat(response.getMediaType()).isEqualTo(APPLICATION_JSON_TYPE);
 		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
@@ -215,21 +207,13 @@ public class FolderRestfulServicePATCHAcceptanceTest extends BaseFolderRestfulSe
 
 		assertFolderMetadata(folder, folderFromSolr);
 
-		assertThat(folder.getDirectAces()).extracting("principals", "permissions").contains(
-				tuple(Sets.newHashSet(folderUpdate.getDirectAces().get(0).getPrincipals()), Sets.newHashSet(folderUpdate.getDirectAces().get(0).getPermissions())));
-		assertThat(folder.getExtendedAttributes()).extracting("key", "values")
-				.containsOnly(tuple(fakeMetadata1, singletonList(value1)), tuple(fakeMetadata2, value2));
 
-		Record record = recordServices.getDocumentById(folderUpdate.getId());
-
-		assertFolderMetadata(folder, rm.wrapFolder(record));
-
-		assertThatRecord(record).extracting(fakeMetadata1).isEqualTo(folder.getExtendedAttributes().get(0).getValues());
-		assertThatRecord(record).extracting(fakeMetadata2).containsExactly(folder.getExtendedAttributes().get(1).getValues());
+		assertThatRecord(folderFromSolr.getWrappedRecord()).extracting(fakeMetadata1).isEqualTo(folder.getExtendedAttributes().get(0).getValues());
+		assertThatRecord(folderFromSolr.getWrappedRecord()).extracting(fakeMetadata2).containsExactly(folder.getExtendedAttributes().get(1).getValues());
 
 		assertThat(response.getHeaderString("ETag")).isNull();
 
-		List<Authorization> authorizations = filterInheritedAuthorizations(authorizationsServices.getRecordAuthorizations(record), record.getId());
+		List<Authorization> authorizations = filterInheritedAuthorizations(authorizationsServices.getRecordAuthorizations(folderFromSolr.getWrappedRecord()), folderFromSolr.getId());
 		assertThat(authorizations).extracting("principals").usingElementComparator(comparingListAnyOrder).containsOnly(
 				toPrincipalIds(folderUpdate.getDirectAces().get(0).getPrincipals()));
 		assertThat(authorizations).extracting("roles").usingElementComparator(comparingListAnyOrder).containsOnly(
@@ -240,13 +224,13 @@ public class FolderRestfulServicePATCHAcceptanceTest extends BaseFolderRestfulSe
 	}
 
 	@Test
-	public void testPartialUpdateDocumentExtendedAttributesOnly() throws Exception {
+	public void testPartialUpdateFolderExtendedAttributesOnly() throws Exception {
 		addUsrMetadata(MetadataValueType.STRING, "value1", asList("value2a", "value2b"));
 
 		List<String> newValue = singletonList("value3");
 		FolderDto folderUpdate = FolderDto.builder().id(id).extendedAttributes(
 				singletonList(ExtendedAttributeDto.builder().key(fakeMetadata2).values(newValue).build())).build();
-		Response response = doPatchQuery(folderUpdate, null);
+		Response response = doPatchQuery(folderUpdate);
 		assertThat(response.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
 		assertThat(response.getMediaType()).isEqualTo(APPLICATION_JSON_TYPE);
 
@@ -275,7 +259,7 @@ public class FolderRestfulServicePATCHAcceptanceTest extends BaseFolderRestfulSe
 	}
 
 	@Test
-	public void testPartialUpdateDocumentAllFilters() throws Exception {
+	public void testPartialUpdateFolderAllFilters() throws Exception {
 		addUsrMetadata(MetadataValueType.STRING, null, null);
 
 		folderToPatialUpdate.setTitle("title2");
@@ -322,7 +306,7 @@ public class FolderRestfulServicePATCHAcceptanceTest extends BaseFolderRestfulSe
 				"retentionRule", "mainCopyRule", "copyStatus", "mediumTypes", "mediaType", "container",
 				"title", "keywords", "openingDate", "closingDate", "actualDepositDate", "actualDestructionDate", "actualTransferDate",
 				"expectedDepositDate", "expectedDestructionDate", "expectedTransferDate");
-		Response response = doPatchQuery(filters, folderToPatialUpdate, null);
+		Response response = doPatchQuery(filters, folderToPatialUpdate);
 		assertThat(response.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
 
 		FolderDto folderDto = response.readEntity(FolderDto.class);
@@ -344,7 +328,7 @@ public class FolderRestfulServicePATCHAcceptanceTest extends BaseFolderRestfulSe
 
 	@Test
 	public void testPartialUpdateFolderInvalidFilter() throws Exception {
-		Response response = doPatchQuery(singleton("invalid"), folderToPatialUpdate, null);
+		Response response = doPatchQuery(singleton("invalid"), folderToPatialUpdate);
 		assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -360,7 +344,7 @@ public class FolderRestfulServicePATCHAcceptanceTest extends BaseFolderRestfulSe
 		folderToPatialUpdate.setExtendedAttributes(asList(
 				ExtendedAttributeDto.builder().key(fakeMetadata1).values(value1).build(),
 				ExtendedAttributeDto.builder().key(fakeMetadata2).values(value2).build()));
-		Response response = doPatchQuery(folderToPatialUpdate, null);
+		Response response = doPatchQuery(folderToPatialUpdate);
 		assertThat(response.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
 		assertThat(response.getMediaType()).isEqualTo(APPLICATION_JSON_TYPE);
 
@@ -379,7 +363,7 @@ public class FolderRestfulServicePATCHAcceptanceTest extends BaseFolderRestfulSe
 		addUsrMetadata(MetadataValueType.DATE, null, null);
 
 		folderToPatialUpdate.setExtendedAttributes(singletonList(ExtendedAttributeDto.builder().key(fakeMetadata1).values(value1).build()));
-		Response response = doPatchQuery(folderToPatialUpdate, null);
+		Response response = doPatchQuery(folderToPatialUpdate);
 		assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -396,7 +380,7 @@ public class FolderRestfulServicePATCHAcceptanceTest extends BaseFolderRestfulSe
 		folderToPatialUpdate.setExtendedAttributes(asList(
 				ExtendedAttributeDto.builder().key(fakeMetadata1).values(value1).build(),
 				ExtendedAttributeDto.builder().key(fakeMetadata2).values(value2).build()));
-		Response response = doPatchQuery(folderToPatialUpdate, null);
+		Response response = doPatchQuery(folderToPatialUpdate);
 		assertThat(response.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
 		assertThat(response.getMediaType()).isEqualTo(APPLICATION_JSON_TYPE);
 
@@ -415,7 +399,7 @@ public class FolderRestfulServicePATCHAcceptanceTest extends BaseFolderRestfulSe
 		addUsrMetadata(MetadataValueType.DATE_TIME, null, null);
 
 		folderToPatialUpdate.setExtendedAttributes(singletonList(ExtendedAttributeDto.builder().key(fakeMetadata1).values(value1).build()));
-		Response response = doPatchQuery(folderToPatialUpdate, null);
+		Response response = doPatchQuery(folderToPatialUpdate);
 		assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -431,7 +415,7 @@ public class FolderRestfulServicePATCHAcceptanceTest extends BaseFolderRestfulSe
 		folderToPatialUpdate.setExtendedAttributes(asList(
 				ExtendedAttributeDto.builder().key(fakeMetadata1).values(value1).build(),
 				ExtendedAttributeDto.builder().key(fakeMetadata2).values(value2).build()));
-		Response response = doPatchQuery(folderToPatialUpdate, null);
+		Response response = doPatchQuery(folderToPatialUpdate);
 		assertThat(response.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
 		assertThat(response.getMediaType()).isEqualTo(APPLICATION_JSON_TYPE);
 
@@ -451,7 +435,7 @@ public class FolderRestfulServicePATCHAcceptanceTest extends BaseFolderRestfulSe
 		addUsrMetadata(MetadataValueType.NUMBER, null, null);
 
 		folderToPatialUpdate.setExtendedAttributes(singletonList(ExtendedAttributeDto.builder().key(fakeMetadata1).values(value1).build()));
-		Response response = doPatchQuery(folderToPatialUpdate, null);
+		Response response = doPatchQuery(folderToPatialUpdate);
 		assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -467,7 +451,7 @@ public class FolderRestfulServicePATCHAcceptanceTest extends BaseFolderRestfulSe
 		folderToPatialUpdate.setExtendedAttributes(asList(
 				ExtendedAttributeDto.builder().key(fakeMetadata1).values(value1).build(),
 				ExtendedAttributeDto.builder().key(fakeMetadata2).values(value2).build()));
-		Response response = doPatchQuery(folderToPatialUpdate, null);
+		Response response = doPatchQuery(folderToPatialUpdate);
 		assertThat(response.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
 		assertThat(response.getMediaType()).isEqualTo(APPLICATION_JSON_TYPE);
 
@@ -486,7 +470,7 @@ public class FolderRestfulServicePATCHAcceptanceTest extends BaseFolderRestfulSe
 		addUsrMetadata(MetadataValueType.BOOLEAN, null, null);
 
 		folderToPatialUpdate.setExtendedAttributes(singletonList(ExtendedAttributeDto.builder().key(fakeMetadata1).values(value1).build()));
-		Response response = doPatchQuery(folderToPatialUpdate, null);
+		Response response = doPatchQuery(folderToPatialUpdate);
 		assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -502,7 +486,7 @@ public class FolderRestfulServicePATCHAcceptanceTest extends BaseFolderRestfulSe
 		folderToPatialUpdate.setExtendedAttributes(asList(
 				ExtendedAttributeDto.builder().key(fakeMetadata1).values(value1).build(),
 				ExtendedAttributeDto.builder().key(fakeMetadata2).values(value2).build()));
-		Response response = doPatchQuery(folderToPatialUpdate, null);
+		Response response = doPatchQuery(folderToPatialUpdate);
 		assertThat(response.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
 		assertThat(response.getMediaType()).isEqualTo(APPLICATION_JSON_TYPE);
 
@@ -523,7 +507,7 @@ public class FolderRestfulServicePATCHAcceptanceTest extends BaseFolderRestfulSe
 		folderToPatialUpdate.setExtendedAttributes(asList(
 				ExtendedAttributeDto.builder().key(fakeMetadata1).values(value1).build(),
 				ExtendedAttributeDto.builder().key(fakeMetadata2).values(value2).build()));
-		Response response = doPatchQuery(folderToPatialUpdate, null);
+		Response response = doPatchQuery(folderToPatialUpdate);
 		assertThat(response.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
 		assertThat(response.getMediaType()).isEqualTo(APPLICATION_JSON_TYPE);
 
@@ -541,7 +525,7 @@ public class FolderRestfulServicePATCHAcceptanceTest extends BaseFolderRestfulSe
 		addUsrMetadata(MetadataValueType.REFERENCE, null, null);
 
 		folderToPatialUpdate.setExtendedAttributes(singletonList(ExtendedAttributeDto.builder().key(fakeMetadata1).values(value1).build()));
-		Response response = doPatchQuery(folderToPatialUpdate, null);
+		Response response = doPatchQuery(folderToPatialUpdate);
 		assertThat(response.getStatus()).isEqualTo(Response.Status.NOT_FOUND.getStatusCode());
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -555,7 +539,7 @@ public class FolderRestfulServicePATCHAcceptanceTest extends BaseFolderRestfulSe
 		addUsrMetadata(MetadataValueType.REFERENCE, null, null);
 
 		folderToPatialUpdate.setExtendedAttributes(singletonList(ExtendedAttributeDto.builder().key(fakeMetadata1).values(value1).build()));
-		Response response = doPatchQuery(folderToPatialUpdate, null);
+		Response response = doPatchQuery(folderToPatialUpdate);
 		assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -568,7 +552,7 @@ public class FolderRestfulServicePATCHAcceptanceTest extends BaseFolderRestfulSe
 		FolderType folderType = records.folderTypeEmploye();
 		folderToPatialUpdate.setType(FolderTypeDto.builder().code(folderType.<String>get(Schemas.CODE)).build());
 
-		Response response = doPatchQuery(folderToPatialUpdate, null);
+		Response response = doPatchQuery(folderToPatialUpdate);
 		assertThat(response.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
 		assertThat(response.getMediaType()).isEqualTo(APPLICATION_JSON_TYPE);
 
@@ -576,11 +560,11 @@ public class FolderRestfulServicePATCHAcceptanceTest extends BaseFolderRestfulSe
 		assertThat(folder.getId()).isEqualTo(folderToPatialUpdate.getId());
 		assertThat(folder.getType().getId()).isEqualTo(folderType.getId());
 		assertThat(folder.getType().getCode()).isEqualTo(folderType.<String>get(Schemas.CODE));
-		assertThat(folder.getType().getTitle()).isEqualTo(folderType.get(rm.ddvDocumentType.title()));
+		assertThat(folder.getType().getTitle()).isEqualTo(folderType.get(rm.ddvFolderType.title()));
 
-		Record documentRecord = recordServices.getDocumentById(folder.getId());
-		assertThat(documentRecord.getId()).isEqualTo(folder.getId());
-		assertThatRecord(documentRecord).extracting(Document.TYPE).isEqualTo(singletonList(folderType.getId()));
+		Record folderRecord = recordServices.getDocumentById(folder.getId());
+		assertThat(folderRecord.getId()).isEqualTo(folder.getId());
+		assertThatRecord(folderRecord).extracting(Folder.TYPE).isEqualTo(singletonList(folderType.getId()));
 	}
 
 	@Test
@@ -589,13 +573,13 @@ public class FolderRestfulServicePATCHAcceptanceTest extends BaseFolderRestfulSe
 
 		FolderType folderType = records.folderTypeEmploye();
 
-		addUsrMetadata(MetadataValueType.STRING, records.documentTypeForm().getLinkedSchema(), null, null);
+		addUsrMetadata(id, records.documentTypeForm().getLinkedSchema(), MetadataValueType.STRING, null, null);
 
 		folderToPatialUpdate.setType(FolderTypeDto.builder().id(folderType.getId()).build());
 		folderToPatialUpdate.setExtendedAttributes(singletonList(
 				ExtendedAttributeDto.builder().key(fakeMetadata1).values(singletonList("value1b")).build()));
 
-		Response response = doPatchQuery(folderToPatialUpdate, null);
+		Response response = doPatchQuery(folderToPatialUpdate);
 		assertThat(response.getStatus()).isEqualTo(Response.Status.NOT_FOUND.getStatusCode());
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -605,7 +589,7 @@ public class FolderRestfulServicePATCHAcceptanceTest extends BaseFolderRestfulSe
 
 	@Test
 	public void testPartialUpdateFolderWithMissingId() throws Exception {
-		Response response = doPatchQuery(folderToPatialUpdate, null, "id");
+		Response response = doPatchQuery(folderToPatialUpdate, "id");
 		assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -616,7 +600,7 @@ public class FolderRestfulServicePATCHAcceptanceTest extends BaseFolderRestfulSe
 	public void testPartialUpdateFolderWithInvalidId() throws Exception {
 		id = "fakeId";
 		folderToPatialUpdate.setId(id);
-		Response response = doPatchQuery(folderToPatialUpdate, null);
+		Response response = doPatchQuery(folderToPatialUpdate);
 		assertThat(response.getStatus()).isEqualTo(Response.Status.NOT_FOUND.getStatusCode());
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -626,7 +610,7 @@ public class FolderRestfulServicePATCHAcceptanceTest extends BaseFolderRestfulSe
 
 	@Test
 	public void testPartialUpdateFolderWithMissingMethod() throws Exception {
-		Response response = doPatchQuery(folderToPatialUpdate, null, "method");
+		Response response = doPatchQuery(folderToPatialUpdate, "method");
 		assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -636,7 +620,7 @@ public class FolderRestfulServicePATCHAcceptanceTest extends BaseFolderRestfulSe
 	@Test
 	public void testPartialUpdateFolderWithInvalidMethod() throws Exception {
 		method = "fakeMethod";
-		Response response = doPatchQuery(folderToPatialUpdate, null);
+		Response response = doPatchQuery(folderToPatialUpdate);
 		assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -646,7 +630,7 @@ public class FolderRestfulServicePATCHAcceptanceTest extends BaseFolderRestfulSe
 
 	@Test
 	public void testPartialUpdateFolderWithMissingDate() throws Exception {
-		Response response = doPatchQuery(folderToPatialUpdate, null, "date");
+		Response response = doPatchQuery(folderToPatialUpdate, "date");
 		assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -655,7 +639,7 @@ public class FolderRestfulServicePATCHAcceptanceTest extends BaseFolderRestfulSe
 
 	@Test
 	public void testPartialUpdateFolderWithMissingServiceKey() throws Exception {
-		Response response = doPatchQuery(folderToPatialUpdate, null, "serviceKey");
+		Response response = doPatchQuery(folderToPatialUpdate, "serviceKey");
 		assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -665,7 +649,7 @@ public class FolderRestfulServicePATCHAcceptanceTest extends BaseFolderRestfulSe
 	@Test
 	public void testPartialUpdateFolderWithInvalidServiceKey() throws Exception {
 		serviceKey = "fakeServiceKey";
-		Response response = doPatchQuery(folderToPatialUpdate, null);
+		Response response = doPatchQuery(folderToPatialUpdate);
 		assertThat(response.getStatus()).isEqualTo(Response.Status.FORBIDDEN.getStatusCode());
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -676,7 +660,7 @@ public class FolderRestfulServicePATCHAcceptanceTest extends BaseFolderRestfulSe
 	@Test
 	public void testPartialUpdateFolderWithInvalidDate() throws Exception {
 		date = "fakeDate";
-		Response response = doPatchQuery(folderToPatialUpdate, null);
+		Response response = doPatchQuery(folderToPatialUpdate);
 		assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -685,8 +669,8 @@ public class FolderRestfulServicePATCHAcceptanceTest extends BaseFolderRestfulSe
 	}
 
 	@Test
-	public void testPartialUpdateDocumentWithMissingExpiration() throws Exception {
-		Response response = doPatchQuery(folderToPatialUpdate, null, "expiration");
+	public void testPartialUpdateFolderWithMissingExpiration() throws Exception {
+		Response response = doPatchQuery(folderToPatialUpdate, "expiration");
 		assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -694,9 +678,9 @@ public class FolderRestfulServicePATCHAcceptanceTest extends BaseFolderRestfulSe
 	}
 
 	@Test
-	public void testPartialUpdateDocumentWithInvalidExpiration() throws Exception {
+	public void testPartialUpdateFolderWithInvalidExpiration() throws Exception {
 		expiration = "fakeExpiration";
-		Response response = doPatchQuery(folderToPatialUpdate, null);
+		Response response = doPatchQuery(folderToPatialUpdate);
 		assertThat(response.getStatus()).isEqualTo(Response.Status.NOT_FOUND.getStatusCode());
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -705,10 +689,10 @@ public class FolderRestfulServicePATCHAcceptanceTest extends BaseFolderRestfulSe
 
 
 	@Test
-	public void testPartialUpdateDocumentWithInvalidDateAndExpiration() throws Exception {
+	public void testPartialUpdateFolderWithInvalidDateAndExpiration() throws Exception {
 		date = DateUtils.formatIsoNoMillis(TimeProvider.getLocalDateTime().minusDays(365));
 		expiration = "1";
-		Response response = doPatchQuery(folderToPatialUpdate, null);
+		Response response = doPatchQuery(folderToPatialUpdate);
 		assertThat(response.getStatus()).isEqualTo(Response.Status.FORBIDDEN.getStatusCode());
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -717,8 +701,8 @@ public class FolderRestfulServicePATCHAcceptanceTest extends BaseFolderRestfulSe
 	}
 
 	@Test
-	public void testPartialUpdateDocumentWithMissingSignature() throws Exception {
-		Response response = doPatchQuery(folderToPatialUpdate, null, "signature");
+	public void testPartialUpdateFolderWithMissingSignature() throws Exception {
+		Response response = doPatchQuery(folderToPatialUpdate, "signature");
 		assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -726,9 +710,9 @@ public class FolderRestfulServicePATCHAcceptanceTest extends BaseFolderRestfulSe
 	}
 
 	@Test
-	public void testPartialUpdateDocumentWithInvalidSignature() throws Exception {
+	public void testPartialUpdateFolderWithInvalidSignature() throws Exception {
 		signature = "fakeSignature";
-		Response response = doPatchQuery(folderToPatialUpdate, false, null);
+		Response response = doPatchQuery(folderToPatialUpdate, false);
 		assertThat(response.getStatus()).isEqualTo(Response.Status.FORBIDDEN.getStatusCode());
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -737,10 +721,10 @@ public class FolderRestfulServicePATCHAcceptanceTest extends BaseFolderRestfulSe
 	}
 
 	@Test
-	public void testPartialUpdateDocumentWithUserWithoutPermissions() throws Exception {
+	public void testPartialUpdateFolderWithUserWithoutPermissions() throws Exception {
 		serviceKey = sasquatchServiceKey;
 		token = sasquatchToken;
-		Response response = doPatchQuery(folderToPatialUpdate, null);
+		Response response = doPatchQuery(folderToPatialUpdate);
 		assertThat(response.getStatus()).isEqualTo(Response.Status.FORBIDDEN.getStatusCode());
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -749,31 +733,31 @@ public class FolderRestfulServicePATCHAcceptanceTest extends BaseFolderRestfulSe
 	}
 
 	@Test
-	public void testPartialUpdateDocumentWithMissingDocumentId() throws Exception {
+	public void testPartialUpdateFolderWithMissingFolderId() throws Exception {
 		folderToPatialUpdate.setId(null);
-		Response response = doPatchQuery(folderToPatialUpdate, null);
+		Response response = doPatchQuery(folderToPatialUpdate);
 		assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-				.isEqualTo(i18n.$(new ParametersMustMatchException("id", "document.id").getValidationError()));
+				.isEqualTo(i18n.$(new ParametersMustMatchException("id", "folder.id").getValidationError()));
 	}
 
 	@Test
-	public void testPartialUpdateDocumentWithInvalidDocumentId() throws Exception {
-		folderToPatialUpdate.setId(records.document_B33);
-		Response response = doPatchQuery(folderToPatialUpdate, null);
+	public void testPartialUpdateFolderWithInvalidFolderId() throws Exception {
+		folderToPatialUpdate.setId(records.folder_A01);
+		Response response = doPatchQuery(folderToPatialUpdate);
 		assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-				.isEqualTo(i18n.$(new ParametersMustMatchException("id", "document.id").getValidationError()));
+				.isEqualTo(i18n.$(new ParametersMustMatchException("id", "folder.id").getValidationError()));
 	}
 
 	@Test
-	public void testPartialUpdateDocumentWithInvalidTypeId() throws Exception {
+	public void testPartialUpdateFolderWithInvalidTypeId() throws Exception {
 		folderToPatialUpdate.setType(FolderTypeDto.builder().id("fake").build());
-		Response response = doPatchQuery(folderToPatialUpdate, null);
+		Response response = doPatchQuery(folderToPatialUpdate);
 		assertThat(response.getStatus()).isEqualTo(Response.Status.NOT_FOUND.getStatusCode());
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -782,9 +766,9 @@ public class FolderRestfulServicePATCHAcceptanceTest extends BaseFolderRestfulSe
 	}
 
 	@Test
-	public void testPartialUpdateDocumentWithInvalidTypeCode() throws Exception {
+	public void testPartialUpdateFolderWithInvalidTypeCode() throws Exception {
 		folderToPatialUpdate.setType(FolderTypeDto.builder().code("fake").build());
-		Response response = doPatchQuery(folderToPatialUpdate, null);
+		Response response = doPatchQuery(folderToPatialUpdate);
 		assertThat(response.getStatus()).isEqualTo(Response.Status.NOT_FOUND.getStatusCode());
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -793,9 +777,9 @@ public class FolderRestfulServicePATCHAcceptanceTest extends BaseFolderRestfulSe
 	}
 
 	@Test
-	public void testPartialUpdateDocumentWithTypeIdAndTypeCode() throws Exception {
+	public void testPartialUpdateFolderWithTypeIdAndTypeCode() throws Exception {
 		folderToPatialUpdate.setType(FolderTypeDto.builder().id("id").code("code").build());
-		Response response = doPatchQuery(folderToPatialUpdate, null);
+		Response response = doPatchQuery(folderToPatialUpdate);
 		assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -804,9 +788,9 @@ public class FolderRestfulServicePATCHAcceptanceTest extends BaseFolderRestfulSe
 	}
 
 	@Test
-	public void testPartialUpdateDocumentWithInvalidAcePrincipal() throws Exception {
+	public void testPartialUpdateFolderWithInvalidAcePrincipal() throws Exception {
 		folderToPatialUpdate.setDirectAces(singletonList(AceDto.builder().principals(singleton("fake")).permissions(singleton(READ)).build()));
-		Response response = doPatchQuery(folderToPatialUpdate, null);
+		Response response = doPatchQuery(folderToPatialUpdate);
 		assertThat(response.getStatus()).isEqualTo(Response.Status.NOT_FOUND.getStatusCode());
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -815,10 +799,10 @@ public class FolderRestfulServicePATCHAcceptanceTest extends BaseFolderRestfulSe
 	}
 
 	@Test
-	public void testPartialUpdateDocumentWithInvalidAcePermissions() throws Exception {
+	public void testPartialUpdateFolderWithInvalidAcePermissions() throws Exception {
 		folderToPatialUpdate.setDirectAces(singletonList(AceDto.builder()
 				.principals(singleton(records.getAlice().getId())).permissions(singleton("fake")).build()));
-		Response response = doPatchQuery(folderToPatialUpdate, null);
+		Response response = doPatchQuery(folderToPatialUpdate);
 		assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -827,12 +811,12 @@ public class FolderRestfulServicePATCHAcceptanceTest extends BaseFolderRestfulSe
 	}
 
 	@Test
-	public void testPartialUpdateDocumentWithStartDateGreaterThanEndDate() throws Exception {
+	public void testPartialUpdateFolderWithStartDateGreaterThanEndDate() throws Exception {
 		String start = toDateString(new LocalDate().plusDays(365));
 		String end = toDateString(new LocalDate());
 		folderToPatialUpdate.setDirectAces(singletonList(AceDto.builder().principals(singleton(alice))
 				.permissions(singleton(READ)).startDate(start).endDate(end).build()));
-		Response response = doPatchQuery(folderToPatialUpdate, null);
+		Response response = doPatchQuery(folderToPatialUpdate);
 		assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -840,10 +824,10 @@ public class FolderRestfulServicePATCHAcceptanceTest extends BaseFolderRestfulSe
 	}
 
 	@Test
-	public void testPartialUpdateDocumentWithStartDateOnly() throws Exception {
+	public void testPartialUpdateFolderWithStartDateOnly() throws Exception {
 		folderToPatialUpdate.setDirectAces(singletonList(AceDto.builder().principals(singleton(alice))
 				.permissions(singleton(READ)).startDate(toDateString(new LocalDate())).build()));
-		Response response = doPatchQuery(folderToPatialUpdate, null);
+		Response response = doPatchQuery(folderToPatialUpdate);
 		assertThat(response.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
 
 		FolderDto doc = response.readEntity(FolderDto.class);
@@ -857,10 +841,10 @@ public class FolderRestfulServicePATCHAcceptanceTest extends BaseFolderRestfulSe
 	}
 
 	@Test
-	public void testPartialUpdateDocumentWithEndDateOnly() throws Exception {
+	public void testPartialUpdateFolderWithEndDateOnly() throws Exception {
 		folderToPatialUpdate.setDirectAces(singletonList(AceDto.builder().principals(singleton(alice))
 				.permissions(singleton(READ)).endDate(toDateString(new LocalDate())).build()));
-		Response response = doPatchQuery(folderToPatialUpdate, null);
+		Response response = doPatchQuery(folderToPatialUpdate);
 		assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -868,9 +852,9 @@ public class FolderRestfulServicePATCHAcceptanceTest extends BaseFolderRestfulSe
 	}
 
 	@Test
-	public void testPartialUpdateDocumentWithInvalidExtAttributeKey() throws Exception {
+	public void testPartialUpdateFolderWithInvalidExtAttributeKey() throws Exception {
 		folderToPatialUpdate.setExtendedAttributes(singletonList(ExtendedAttributeDto.builder().key("fake").values(singletonList("123")).build()));
-		Response response = doPatchQuery(folderToPatialUpdate, null);
+		Response response = doPatchQuery(folderToPatialUpdate);
 		assertThat(response.getStatus()).isEqualTo(Response.Status.NOT_FOUND.getStatusCode());
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -879,11 +863,11 @@ public class FolderRestfulServicePATCHAcceptanceTest extends BaseFolderRestfulSe
 	}
 
 	@Test
-	public void testPartialUpdateDocumentWithInvalidExtAttributeMultiValue() throws Exception {
+	public void testPartialUpdateFolderWithInvalidExtAttributeMultiValue() throws Exception {
 		addUsrMetadata(MetadataValueType.STRING, null, null);
 
 		folderToPatialUpdate.setExtendedAttributes(singletonList(ExtendedAttributeDto.builder().key(fakeMetadata1).values(asList("ab", "cd")).build()));
-		Response response = doPatchQuery(folderToPatialUpdate, null);
+		Response response = doPatchQuery(folderToPatialUpdate);
 		assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -892,10 +876,10 @@ public class FolderRestfulServicePATCHAcceptanceTest extends BaseFolderRestfulSe
 	}
 
 	@Test
-	public void testPartialUpdateDocumentWithEmptyExtAttributeValues() throws Exception {
+	public void testPartialUpdateFolderWithEmptyExtAttributeValues() throws Exception {
 		folderToPatialUpdate.setExtendedAttributes(singletonList(
 				ExtendedAttributeDto.builder().key(fakeMetadata1).values(Collections.<String>emptyList()).build()));
-		Response response = doPatchQuery(folderToPatialUpdate, null);
+		Response response = doPatchQuery(folderToPatialUpdate);
 		assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -904,9 +888,9 @@ public class FolderRestfulServicePATCHAcceptanceTest extends BaseFolderRestfulSe
 	}
 
 	@Test
-	public void testPartialUpdateDocumentWithCustomSchema() throws Exception {
+	public void testPartialUpdateFolderWithCustomSchema() throws Exception {
 		switchToCustomSchema(fakeFolder.getId());
-		addUsrMetadata(MetadataValueType.STRING, records.folderTypeEmploye().getLinkedSchema(), null, null);
+		addUsrMetadata(id, records.folderTypeEmploye().getLinkedSchema(), MetadataValueType.STRING, null, null);
 
 		List<String> value1 = singletonList("value11"), value2 = asList("value21", "value22");
 		folderToPatialUpdate.setType(FolderTypeDto.builder().id(records.folderTypeEmploye().getId()).build());
@@ -914,7 +898,7 @@ public class FolderRestfulServicePATCHAcceptanceTest extends BaseFolderRestfulSe
 				ExtendedAttributeDto.builder().key(fakeMetadata1).values(value1).build(),
 				ExtendedAttributeDto.builder().key(fakeMetadata2).values(value2).build()));
 
-		Response response = doPatchQuery(folderToPatialUpdate, null);
+		Response response = doPatchQuery(folderToPatialUpdate);
 		assertThat(response.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
 		assertThat(response.getMediaType()).isEqualTo(MediaType.APPLICATION_JSON_TYPE);
 
@@ -929,70 +913,70 @@ public class FolderRestfulServicePATCHAcceptanceTest extends BaseFolderRestfulSe
 	@Test
 	public void testPartialUpdateDefaultFlushMode() throws Exception {
 		folderToPatialUpdate.setTitle("title2");
-		Response response = doPatchQuery(folderToPatialUpdate, null);
+		Response response = doPatchQuery(folderToPatialUpdate);
 		assertThat(response.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
 		assertThat(commitCounter.newCommitsCall()).isEmpty();
 
-		List<Record> documents = searchServices.search(new LogicalSearchQuery(
+		List<Record> Folders = searchServices.search(new LogicalSearchQuery(
 				from(rm.folder.schemaType()).where(Schemas.IDENTIFIER).isEqualTo(id)));
-		assertThat(documents.get(0).getTitle()).isNotEqualTo(folderToPatialUpdate.getTitle());
+		assertThat(Folders.get(0).getTitle()).isNotEqualTo(folderToPatialUpdate.getTitle());
 
-		Record document = recordServices.realtimeGetRecordById(folderToPatialUpdate.getId());
-		assertThat(document.getTitle()).isEqualTo(folderToPatialUpdate.getTitle());
+		Record Folder = recordServices.realtimeGetRecordById(folderToPatialUpdate.getId());
+		assertThat(Folder.getTitle()).isEqualTo(folderToPatialUpdate.getTitle());
 
-		assertThat(response.getHeaderString("ETag")).isEqualTo("\"" + document.getVersion() + "\"");
+		assertThat(response.getHeaderString("ETag")).isEqualTo("\"" + Folder.getVersion() + "\"");
 
 		TimeUnit.MILLISECONDS.sleep(5250);
 
-		documents = searchServices.search(new LogicalSearchQuery(
+		Folders = searchServices.search(new LogicalSearchQuery(
 				from(rm.folder.schemaType()).where(Schemas.IDENTIFIER).isEqualTo(id)));
-		assertThat(documents.get(0).getTitle()).isEqualTo(folderToPatialUpdate.getTitle());
+		assertThat(Folders.get(0).getTitle()).isEqualTo(folderToPatialUpdate.getTitle());
 
-		assertThat(response.getHeaderString("ETag")).isEqualTo("\"" + documents.get(0).getVersion() + "\"");
+		assertThat(response.getHeaderString("ETag")).isEqualTo("\"" + Folders.get(0).getVersion() + "\"");
 	}
 
 	@Test
 	public void testPartialUpdateNowFlushMode() throws Exception {
 		folderToPatialUpdate.setTitle("title2");
-		Response response = doPatchQuery("NOW", folderToPatialUpdate, null);
+		Response response = doPatchQuery("NOW", folderToPatialUpdate);
 		assertThat(response.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
 		assertThat(commitCounter.newCommitsCall()).isNotEmpty();
 
-		List<Record> documents = searchServices.search(new LogicalSearchQuery(
+		List<Record> Folders = searchServices.search(new LogicalSearchQuery(
 				from(rm.folder.schemaType()).where(Schemas.IDENTIFIER).isEqualTo(id)));
-		assertThat(documents.get(0).getTitle()).isEqualTo(folderToPatialUpdate.getTitle());
+		assertThat(Folders.get(0).getTitle()).isEqualTo(folderToPatialUpdate.getTitle());
 
-		assertThat(response.getHeaderString("ETag")).isEqualTo("\"" + documents.get(0).getVersion() + "\"");
+		assertThat(response.getHeaderString("ETag")).isEqualTo("\"" + Folders.get(0).getVersion() + "\"");
 	}
 
 	@Test
 	public void testPartialUpdateLaterFlushMode() throws Exception {
 		folderToPatialUpdate.setTitle("title2");
-		Response response = doPatchQuery("LATER", folderToPatialUpdate, null);
+		Response response = doPatchQuery("LATER", folderToPatialUpdate);
 		assertThat(response.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
 		assertThat(commitCounter.newCommitsCall()).isEmpty();
 
-		Record document = recordServices.getDocumentById(folderToPatialUpdate.getId());
-		assertThat(response.getHeaderString("ETag")).isEqualTo("\"" + document.getVersion() + "\"");
+		Record Folder = recordServices.getDocumentById(folderToPatialUpdate.getId());
+		assertThat(response.getHeaderString("ETag")).isEqualTo("\"" + Folder.getVersion() + "\"");
 
 		folderToPatialUpdate.setTitle(null);
 		folderToPatialUpdate.setDescription("an other fake description");
-		response = doPatchQuery("NOW", folderToPatialUpdate, null);
+		response = doPatchQuery("NOW", folderToPatialUpdate);
 		assertThat(response.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
 		assertThat(commitCounter.newCommitsCall()).hasSize(1);
 
-		List<Record> documents = searchServices.search(new LogicalSearchQuery(
+		List<Record> Folders = searchServices.search(new LogicalSearchQuery(
 				from(rm.folder.schemaType()).where(Schemas.IDENTIFIER).isEqualTo(id)));
-		assertThat(documents.get(0).getTitle()).isEqualTo("title2");
-		assertThat(documents.get(0).get(rm.folder.description())).isEqualTo("an other fake description");
+		assertThat(Folders.get(0).getTitle()).isEqualTo("title2");
+		assertThat(Folders.get(0).get(rm.folder.description())).isEqualTo("an other fake description");
 
-		assertThat(response.getHeaderString("ETag")).isEqualTo("\"" + documents.get(0).getVersion() + "\"");
+		assertThat(response.getHeaderString("ETag")).isEqualTo("\"" + Folders.get(0).getVersion() + "\"");
 	}
 
 	@Test
 	public void testPartialUpdateWithEtag() throws Exception {
-		Record document = recordServices.getDocumentById(folderToPatialUpdate.getId());
-		String eTag = String.valueOf(document.getVersion());
+		Record Folder = recordServices.getDocumentById(folderToPatialUpdate.getId());
+		String eTag = String.valueOf(Folder.getVersion());
 
 		folderToPatialUpdate.setTitle("aNewTitle");
 		Response response = buildPatchQuery().request().header("host", host).header(HttpHeaders.IF_MATCH, eTag)
@@ -1005,8 +989,8 @@ public class FolderRestfulServicePATCHAcceptanceTest extends BaseFolderRestfulSe
 
 	@Test
 	public void testPartialUpdateWithOldEtag() throws Exception {
-		Record document = recordServices.getDocumentById(folderToPatialUpdate.getId());
-		String eTag = String.valueOf(document.getVersion());
+		Record Folder = recordServices.getDocumentById(folderToPatialUpdate.getId());
+		String eTag = String.valueOf(Folder.getVersion());
 
 		folderToPatialUpdate.setTitle("aNewTitle");
 		Response response = buildPatchQuery().request().header("host", host).header(HttpHeaders.IF_MATCH, eTag)
@@ -1038,7 +1022,7 @@ public class FolderRestfulServicePATCHAcceptanceTest extends BaseFolderRestfulSe
 	@Test
 	public void testPartialUpdateWithUnallowedHostHeader() throws Exception {
 		host = "fakedns.com";
-		Response response = doPatchQuery(folderToPatialUpdate, null);
+		Response response = doPatchQuery(folderToPatialUpdate);
 		assertThat(response.getStatus()).isEqualTo(Response.Status.FORBIDDEN.getStatusCode());
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
@@ -1049,7 +1033,7 @@ public class FolderRestfulServicePATCHAcceptanceTest extends BaseFolderRestfulSe
 	@Test
 	public void testPartialUpdateWithAllowedHost() throws Exception {
 		host = "localhost2";
-		Response response = doPatchQuery(folderToPatialUpdate, null);
+		Response response = doPatchQuery(folderToPatialUpdate);
 		assertThat(response.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
 	}
 

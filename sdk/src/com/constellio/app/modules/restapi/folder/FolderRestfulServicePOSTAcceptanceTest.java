@@ -900,10 +900,6 @@ public class FolderRestfulServicePOSTAcceptanceTest extends BaseFolderRestfulSer
 	// PRIVATE FUNCTIONS
 	//
 
-	protected <T> void addUsrMetadata(final MetadataValueType type, T value1, T value2) throws Exception {
-		addUsrMetadata(null, Folder.DEFAULT_SCHEMA, type, value1, value2);
-	}
-
 	private Response doPostQuery(FolderDto folder, String... excludedParam) throws Exception {
 		return doPostQuery(null, true, folder, excludedParam);
 	}

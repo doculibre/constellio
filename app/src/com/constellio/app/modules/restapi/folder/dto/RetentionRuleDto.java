@@ -1,6 +1,7 @@
 package com.constellio.app.modules.restapi.folder.dto;
 
 import com.constellio.app.modules.restapi.resource.dto.BaseReferenceDto;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,6 +13,7 @@ import lombok.EqualsAndHashCode;
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = false)
 public class RetentionRuleDto extends BaseReferenceDto {
+	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	String code;
 
 	@Builder

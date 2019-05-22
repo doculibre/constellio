@@ -23,12 +23,8 @@ import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
-import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
-import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.sdk.tests.CommitCounter;
 import com.constellio.sdk.tests.QueryCounter;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -168,33 +164,7 @@ public class BaseFolderRestfulServiceAcceptanceTest extends BaseRestfulServiceAc
 	}
 
 	protected <T> void addUsrMetadata(final MetadataValueType type, T value1, T value2) throws Exception {
-		addUsrMetadata(type, null, value1, value2);
-	}
-
-	protected <T> void addUsrMetadata(final MetadataValueType type, final String schemaCode, T value1, T value2)
-			throws Exception {
-		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
-			@Override
-			public void alter(MetadataSchemaTypesBuilder types) {
-				MetadataSchemaBuilder schemaBuilder = schemaCode != null ?
-													  types.getSchema(schemaCode) : types.getSchemaType(Folder.SCHEMA_TYPE).getDefaultSchema();
-
-				if (type == MetadataValueType.REFERENCE) {
-					schemaBuilder.create(fakeMetadata1).setType(type).defineReferencesTo(types.getSchemaType(User.SCHEMA_TYPE));
-					schemaBuilder.create(fakeMetadata2).setType(type).setMultivalue(true).defineReferencesTo(types.getSchemaType(User.SCHEMA_TYPE));
-				} else {
-					schemaBuilder.create(fakeMetadata1).setType(type);
-					schemaBuilder.create(fakeMetadata2).setType(type).setMultivalue(true);
-				}
-			}
-		});
-
-		if (value1 != null && value2 != null) {
-			Folder folder = rm.getFolder(id);
-			folder.set(fakeMetadata1, value1);
-			folder.set(fakeMetadata2, value2);
-			recordServices.update(folder);
-		}
+		addUsrMetadata(id, Folder.DEFAULT_SCHEMA, type, value1, value2);
 	}
 
 }

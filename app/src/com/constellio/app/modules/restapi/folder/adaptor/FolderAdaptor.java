@@ -36,7 +36,7 @@ public class FolderAdaptor extends ResourceAdaptor<FolderDto> {
 	private AceService aceService;
 
 	@Override
-	public FolderDto adapt(FolderDto resource, String host, Record record, MetadataSchema schema, boolean modified,
+	public FolderDto adapt(FolderDto resource, Record record, MetadataSchema schema, boolean modified,
 						   Set<String> filters) {
 		if (resource == null) {
 			resource = FolderDto.builder().build();
@@ -64,8 +64,13 @@ public class FolderAdaptor extends ResourceAdaptor<FolderDto> {
 		resource.setExpectedDepositDate(!filters.contains("expectedDepositDate") ? this.<LocalDate>getValue(record, Folder.EXPECTED_DEPOSIT_DATE) : null);
 		resource.setExpectedDestructionDate(!filters.contains("expectedDestructionDate") ? this.<LocalDate>getValue(record, Folder.EXPECTED_DESTRUCTION_DATE) : null);
 		resource.setExpectedTransferDate(!filters.contains("expectedTransferDate") ? this.<LocalDate>getValue(record, Folder.EXPECTED_TRANSFER_DATE) : null);
-		resource.setUrlToFolder(!filters.contains("urlToFolder") ? host + "/constellio/#!displayFolder/" + record.getId() : null);
 
+		String serverPath = folderDao.getServerPath();
+		if (!serverPath.endsWith("/")) {
+			serverPath += "/";
+		}
+
+		resource.setUrlToFolder(!filters.contains("urlToFolder") ? serverPath + "constellio/#!displayFolder/" + record.getId() : null);
 
 		if (!filters.contains("container")) {
 			String containerId = getValue(record, Folder.CONTAINER);
@@ -73,7 +78,6 @@ public class FolderAdaptor extends ResourceAdaptor<FolderDto> {
 				Record containerRecord = folderDao.getRecordById(containerId);
 
 				resource.setContainer(ContainerDto.builder().id(containerId).title(containerRecord.getTitle()).build());
-
 			}
 		} else {
 			resource.setContainer(null);
@@ -83,13 +87,11 @@ public class FolderAdaptor extends ResourceAdaptor<FolderDto> {
 			String categoryId = getValue(record, Folder.CATEGORY_ENTERED, Folder.CATEGORY);
 			if (!Strings.isNullOrEmpty(categoryId)) {
 				Record categoryRecord = folderDao.getRecordById(categoryId);
-
 				resource.setCategory(CategoryDto.builder().id(categoryRecord.getId()).title(categoryRecord.getTitle()).build());
 			}
 		} else {
 			resource.setCategory(null);
 		}
-
 
 		if (!filters.contains("retentionRule")) {
 			String retentionRuleId = getValue(record, Folder.RETENTION_RULE_ENTERED, Folder.RETENTION_RULE);
@@ -118,7 +120,6 @@ public class FolderAdaptor extends ResourceAdaptor<FolderDto> {
 		} else {
 			resource.setAdministrativeUnit(null);
 		}
-
 
 		if (!filters.contains("type")) {
 			String folderTypeId = getValue(record, Folder.TYPE);
