@@ -5,8 +5,8 @@ import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.Metadata.MetadataCacheInfo;
 import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.utils.EnumWithSmallCodeUtils;
 import com.mchange.v2.collection.MapEntry;
 import org.joda.time.LocalDate;
@@ -36,7 +36,7 @@ import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
  * This utility class handle the reading and writing of a byte array regrouping a Record DTO metadata values
  * <p>
  * <p>
- * | metadatasSizeBytesToKeepInMemory | metadata1Id | value1IndexInByteArray | metadataNId | valueNIndexInByteArray | allValues |
+ * | metadatasSizeToKeepInMemory | metadata1Id | value1IndexInByteArray | metadataNId | valueNIndexInByteArray | allValues |
  * <p>
  * Metadatas size is stocked using 2 bytes (Short)
  * Metadata id are stocked using 2 bytes (Short)
@@ -73,7 +73,8 @@ public class CacheRecordDTOUtils {
 	}
 
 	public static CacheRecordDTOBytesArray convertDTOToByteArrays(RecordDTO dto, MetadataSchema schema) {
-		CachedRecordDTOByteArrayBuilder builder = new CachedRecordDTOByteArrayBuilder();
+		CachedRecordDTOByteArrayBuilder builder = new CachedRecordDTOByteArrayBuilder(schema);
+		boolean isFixed = false;
 
 		for (Metadata metadata : schema.getMetadatas()) {
 			if (metadata.isMultivalue()) {
@@ -144,17 +145,22 @@ public class CacheRecordDTOUtils {
 			} else {
 				Object value = dto.getFields().get(metadata.getDataStoreCode());
 				if (value != null) {
+					// fixed means the metadata will always take the same space in the array
+					// but it also need to be set as to be fixed,
+					// not all metadata that always take the same number of bytes is necessarily gonna be fixed
+					isFixed = isFixedMetadata(schema, metadata);
+
 					switch (metadata.getType()) {
 						case REFERENCE:
 							try {
-								builder.addSingleValueReferenceMetadata(metadata, value);
+								builder.addSingleValueReferenceMetadata(metadata, value, isFixed);
 							} catch (IOException e) {
 								e.printStackTrace();
 							}
 							break;
 						case BOOLEAN:
 							try {
-								builder.addSingleValueBooleanMetadata(metadata, value);
+								builder.addSingleValueBooleanMetadata(metadata, value, isFixed);
 							} catch (IOException e) {
 								e.printStackTrace();
 							}
@@ -171,35 +177,35 @@ public class CacheRecordDTOUtils {
 							break;
 						case INTEGER:
 							try {
-								builder.addSingleValueIntegerMetadata(metadata, value);
+								builder.addSingleValueIntegerMetadata(metadata, value, isFixed);
 							} catch (IOException e) {
 								e.printStackTrace();
 							}
 							break;
 						case NUMBER:
 							try {
-								builder.addSingleValueNumberMetadata(metadata, value);
+								builder.addSingleValueNumberMetadata(metadata, value, isFixed);
 							} catch (IOException e) {
 								e.printStackTrace();
 							}
 							break;
 						case DATE:
 							try {
-								builder.addSingleValueLocalDateMetadata(metadata, value);
+								builder.addSingleValueLocalDateMetadata(metadata, value, isFixed);
 							} catch (IOException e) {
 								e.printStackTrace();
 							}
 							break;
 						case DATE_TIME:
 							try {
-								builder.addSingleValueLocalDateTimeMetadata(metadata, value);
+								builder.addSingleValueLocalDateTimeMetadata(metadata, value, isFixed);
 							} catch (IOException e) {
 								e.printStackTrace();
 							}
 							break;
 						case ENUM:
 							try {
-								builder.addSingleValueEnumMetadata(metadata, value);
+								builder.addSingleValueEnumMetadata(metadata, value, isFixed);
 							} catch (IOException e) {
 								e.printStackTrace();
 							}
@@ -276,15 +282,28 @@ public class CacheRecordDTOUtils {
 		Metadata metadataSearched = schema.getMetadataByDatastoreCode(metadataLocalCode);
 
 		byte[] byteArrayToSearchIn;
+		boolean metadataIsPersisted = false;
 		if (isMetatadataPersisted(metadataSearched)) {
 			byteArrayToSearchIn = persistedByteArraySupplier.get();
+			metadataIsPersisted = true;
 		} else {
 			byteArrayToSearchIn = byteArray;
 		}
 
-		NeighboringMetadata neighboringMetadata = getNeighboringMetadataSearchedIndexesInMemoryCache(byteArrayToSearchIn, metadataSearched.getId());
-		short searchedMetadataIndex = neighboringMetadata.searchedMetadataIndex;
-		short nextMetadataIndex = neighboringMetadata.nextMetadataIndex;
+		short searchedMetadataIndex;
+		short nextMetadataIndex;
+		// if the metadatas are set as fixed in the schema they wont have an id and an index in the header
+		// in face they will be before the header part of the array but after metadatasSize (index 2 and up in the array)
+		// if the metadata is persisted we know it won't be a fixed metadata since only strings are persisted and strings aren't fixed in size
+		if (!metadataIsPersisted && isFixedMetadata(schema, metadataSearched)) {
+			MetadataCacheInfo cacheInfo = metadataSearched.getCacheInfo();
+			searchedMetadataIndex = (short) (BYTES_TO_WRITE_METADATA_ID_AND_INDEX + cacheInfo.getOffset());
+			nextMetadataIndex = -1; // -1 because nextMetadataIndex is only use when parsing string and there is no string in fixed metadatas
+		} else {
+			NeighboringMetadata neighboringMetadata = getNeighboringMetadataSearchedIndexesInMemoryCache(byteArrayToSearchIn, metadataSearched.getId());
+			searchedMetadataIndex = neighboringMetadata.searchedMetadataIndex;
+			nextMetadataIndex = neighboringMetadata.nextMetadataIndex;
+		}
 
 		return parseValueMetadata(byteArrayToSearchIn, metadataSearched, searchedMetadataIndex, nextMetadataIndex);
 	}
@@ -293,7 +312,7 @@ public class CacheRecordDTOUtils {
 		short metadatasSize = metadatasSize(byteArrayToKeepInMemory);
 		Set<String> storedMetadatas = new HashSet<>();
 
-		// skipping first two byte because it's the metadatasSizeBytesToKeepInMemory
+		// skipping first two byte because it's the metadatasSizeToKeepInMemory
 		// i+=2*2 because we are just looking for the metadataId not the metadataValue
 		short headerBytesSize = (short) ((metadatasSize * (BYTES_TO_WRITE_METADATA_ID_AND_INDEX + BYTES_TO_WRITE_METADATA_ID_AND_INDEX))
 										 + BYTES_TO_WRITE_METADATA_ID_AND_INDEX);
@@ -313,7 +332,7 @@ public class CacheRecordDTOUtils {
 		short metadatasSize = metadatasSize(byteArray);
 		Set<Object> storedValues = new HashSet<>();
 
-		// *(2+2) for the bytes taken by the id and index of each metadata and +2 to skip the metadatasSizeBytesToKeepInMemory and the start of the array
+		// *(2+2) for the bytes taken by the id and index of each metadata and +2 to skip the metadatasSizeToKeepInMemory and the start of the array
 		short headerBytesSize = (short) (metadatasSize * (BYTES_TO_WRITE_METADATA_ID_AND_INDEX + BYTES_TO_WRITE_METADATA_ID_AND_INDEX) + BYTES_TO_WRITE_METADATA_ID_AND_INDEX);
 
 		for (short i = BYTES_TO_WRITE_METADATA_ID_AND_INDEX; i < headerBytesSize; i += (BYTES_TO_WRITE_METADATA_ID_AND_INDEX + BYTES_TO_WRITE_METADATA_ID_AND_INDEX)) {
@@ -344,7 +363,7 @@ public class CacheRecordDTOUtils {
 
 		short metadatasSize = metadatasSize(byteArray);
 
-		// *(2+2) for the bytes taken by the id and index of each metadata and +2 to skip the metadatasSizeBytesToKeepInMemory and the start of the array
+		// *(2+2) for the bytes taken by the id and index of each metadata and +2 to skip the metadatasSizeToKeepInMemory and the start of the array
 		short headerBytesSize = (short) (metadatasSize * (BYTES_TO_WRITE_METADATA_ID_AND_INDEX + BYTES_TO_WRITE_METADATA_ID_AND_INDEX) + BYTES_TO_WRITE_METADATA_ID_AND_INDEX);
 
 		for (short i = BYTES_TO_WRITE_METADATA_ID_AND_INDEX; i < headerBytesSize; i += (BYTES_TO_WRITE_METADATA_ID_AND_INDEX + BYTES_TO_WRITE_METADATA_ID_AND_INDEX)) {
@@ -376,7 +395,7 @@ public class CacheRecordDTOUtils {
 
 		short metadataSearchedId = metadataSearched.getId();
 
-		// skipping first two byte because it's the metadatasSizeBytesToKeepInMemory
+		// skipping first two byte because it's the metadatasSizeToKeepInMemory
 		// i+=2*2 because we are just looking for the metadataId not the metadataValue
 		short headerBytesSize = (short) ((metadatasSize * (BYTES_TO_WRITE_METADATA_ID_AND_INDEX + BYTES_TO_WRITE_METADATA_ID_AND_INDEX))
 										 + BYTES_TO_WRITE_METADATA_ID_AND_INDEX);
@@ -394,7 +413,7 @@ public class CacheRecordDTOUtils {
 	}
 
 	public static short metadatasSize(byte[] data) {
-		// returns the first 2 bytes converted as a short because its where the metadatasSizeBytesToKeepInMemory is stored
+		// returns the first 2 bytes converted as a short because its where the metadatasSizeToKeepInMemory is stored
 		return parseShortFromByteArray(data, (short) 0);
 	}
 
@@ -404,11 +423,11 @@ public class CacheRecordDTOUtils {
 
 		NeighboringMetadata neighboringMetadata = new NeighboringMetadata();
 
-		// *(2+2) for the bytes taken by the id and index of each metadata and +2 to skip the metadatasSizeBytesToKeepInMemory and the start of the array
+		// *(2+2) for the bytes taken by the id and index of each metadata and +2 to skip the metadatasSizeToKeepInMemory and the start of the array
 		short headerBytesSize = (short) ((metadatasSize * (BYTES_TO_WRITE_METADATA_ID_AND_INDEX + BYTES_TO_WRITE_METADATA_ID_AND_INDEX))
 										 + BYTES_TO_WRITE_METADATA_ID_AND_INDEX);
 
-		// skipping first two byte because it's the metadatasSizeBytesToKeepInMemory
+		// skipping first two byte because it's the metadatasSizeToKeepInMemory
 		// i+=2*2 because we are just looking for the metadataId not the metadataValue
 		for (short i = BYTES_TO_WRITE_METADATA_ID_AND_INDEX; i < headerBytesSize; i += BYTES_TO_WRITE_METADATA_ID_AND_INDEX * 2) {
 			short id = parseShortFromByteArray(byteArray, i);
@@ -525,6 +544,10 @@ public class CacheRecordDTOUtils {
 		} else {
 			return true;
 		}
+	}
+
+	private static boolean isFixedMetadata(MetadataSchema schema, Metadata metadataTested) {
+		return schema.getFixedMetadatas().stream().anyMatch(m -> m.getLocalCode().equals(metadataTested.getLocalCode()));
 	}
 
 	private static Boolean getSingleValueBooleanMetadata(byte[] byteArray, short metadataSearchedIndex) {
@@ -889,58 +912,44 @@ public class CacheRecordDTOUtils {
 	private static class NeighboringMetadata {
 		private short searchedMetadataIndex = VALUE_IS_NOT_FOUND;
 		private short nextMetadataIndex;
-
-		public short getSearchedMetadataIndex() {
-			return searchedMetadataIndex;
-		}
-
-		public void setSearchedMetadataIndex(short searchedMetadataIndex) {
-			this.searchedMetadataIndex = searchedMetadataIndex;
-		}
-
-		public short getNextMetadataIndex() {
-			return nextMetadataIndex;
-		}
-
-		public void setNextMetadataIndex(short nextMetadataIndex) {
-			this.nextMetadataIndex = nextMetadataIndex;
-		}
 	}
 
 	private static class CachedRecordDTOByteArrayBuilder {
+		private byte[] fixedDataByteArrayToKeepInMemory;
+		private short fixedDataByteArrayLengthToKeepInMemory;
 
 		private int headerByteArrayLengthBytesToKeepInMemory;
 		private int dataByteArrayLengthBytesToKeepInMemory;
-		private short metadatasSizeBytesToKeepInMemory;
-
-		private int headerByteArrayLengthBytesToPersist;
-		private int dataByteArrayLengthBytesToPersist;
-		private short metadatasSizeBytesToPersist;
-
+		private short metadatasSizeToKeepInMemory;
 		private ByteArrayOutputStream headerOutputBytesToKeepInMemory;
 		private ByteArrayOutputStream dataOutputBytesToKeepInMemory;
 		private DataOutputStream headerWriterBytesToKeepInMemory;
 		private DataOutputStream dataWriterBytesToKeepInMemory;
 
+		private int headerByteArrayLengthBytesToPersist;
+		private int dataByteArrayLengthBytesToPersist;
+		private short metadatasSizeToPersist;
 		private ByteArrayOutputStream headerOutputBytesToPersist;
 		private ByteArrayOutputStream dataOutputBytesToPersist;
 		private DataOutputStream headerWriterBytesToPersist;
 		private DataOutputStream dataWriterBytesToPersist;
 
-		public CachedRecordDTOByteArrayBuilder() {
+
+		public CachedRecordDTOByteArrayBuilder(MetadataSchema schema) {
+			this.fixedDataByteArrayToKeepInMemory = new byte[schema.getFixedMetadataSpaceTaken()];
+			this.fixedDataByteArrayLengthToKeepInMemory = 0;
+
 			this.headerByteArrayLengthBytesToKeepInMemory = 0;
 			this.dataByteArrayLengthBytesToKeepInMemory = 0;
-			this.metadatasSizeBytesToKeepInMemory = 0;
-
-			this.headerByteArrayLengthBytesToPersist = 0;
-			this.dataByteArrayLengthBytesToPersist = 0;
-			this.metadatasSizeBytesToPersist = 0;
-
+			this.metadatasSizeToKeepInMemory = 0;
 			this.headerOutputBytesToKeepInMemory = new ByteArrayOutputStream();
 			this.dataOutputBytesToKeepInMemory = new ByteArrayOutputStream();
 			this.headerWriterBytesToKeepInMemory = new DataOutputStream(headerOutputBytesToKeepInMemory);
 			this.dataWriterBytesToKeepInMemory = new DataOutputStream(dataOutputBytesToKeepInMemory);
 
+			this.headerByteArrayLengthBytesToPersist = 0;
+			this.dataByteArrayLengthBytesToPersist = 0;
+			this.metadatasSizeToPersist = 0;
 			this.headerOutputBytesToPersist = new ByteArrayOutputStream();
 			this.dataOutputBytesToPersist = new ByteArrayOutputStream();
 			this.headerWriterBytesToPersist = new DataOutputStream(headerOutputBytesToPersist);
@@ -950,13 +959,23 @@ public class CacheRecordDTOUtils {
 		/**
 		 * Value is stored using 1 byte
 		 */
-		private void addSingleValueBooleanMetadata(Metadata metadata, Object value) throws IOException {
-			dataWriterBytesToKeepInMemory.writeByte(((boolean) value ? 1 : 0));
+		private void addSingleValueBooleanMetadata(Metadata metadata, Object value, boolean isFixedMetadata)
+				throws IOException {
+			// TODO Find a better way
+			// if metadata is set to fixed (size never change and set as fixed in the schema), no id or index is kept in the header
+			// and the value is kept before the header instead of after in the data part in a order specified by the Metadata
+			// the MetadataSchema tells us which metadata is fixed
+			if (isFixedMetadata) {
+				fixedDataByteArrayToKeepInMemory[metadata.getCacheInfo().getOffset()] = (byte) ((boolean) value ? 1 : 0);
+				fixedDataByteArrayLengthToKeepInMemory += BYTES_TO_WRITE_BOOLEAN_VALUES_SIZE;
+			} else {
+				dataWriterBytesToKeepInMemory.writeByte(((boolean) value ? 1 : 0));
 
-			writeHeader(metadata);
+				writeHeader(metadata);
 
-			dataByteArrayLengthBytesToKeepInMemory += BYTES_TO_WRITE_BOOLEAN_VALUES_SIZE;
-			metadatasSizeBytesToKeepInMemory++;
+				dataByteArrayLengthBytesToKeepInMemory += BYTES_TO_WRITE_BOOLEAN_VALUES_SIZE;
+				metadatasSizeToKeepInMemory++;
+			}
 		}
 
 		private void addMultivalueBooleanMetadata(Metadata metadata, List<Boolean> metadatas) throws IOException {
@@ -978,7 +997,7 @@ public class CacheRecordDTOUtils {
 				dataByteArrayLengthBytesToKeepInMemory += BYTES_TO_WRITE_BOOLEAN_VALUES_SIZE;
 			}
 
-			metadatasSizeBytesToKeepInMemory++;
+			metadatasSizeToKeepInMemory++;
 		}
 
 		/**
@@ -987,26 +1006,37 @@ public class CacheRecordDTOUtils {
 		 * Integer value is stocked using 4 bytes (Integer)
 		 * String value is stocked using a 4 bytes negative value (Integer), where the value represent the size of bytes used to store the String value the characters are stored as bytes
 		 */
-		private void addSingleValueReferenceMetadata(Metadata metadata, Object value) throws IOException {
-			// the key is the result of a parsing of the string
-			// 0 means the value in the string is not a number
-			int key = toIntKey(value);
-			short size = 0;
+		private void addSingleValueReferenceMetadata(Metadata metadata, Object value, boolean isFixedMetadata) throws IOException {
+			// TODO Find a better way
+			// if metadata is set to fixed, no id or index is kept in the header
+			// and the value is kept before the header instead of after in the data part in a order specified by the Metadata
+			// the MetadataSchema tells us which metadata is fixed
+			if (isFixedMetadata) {
+				int key = toIntKey(value);
 
-			if (key != KEY_IS_NOT_AN_INT) {
-				dataWriterBytesToKeepInMemory.writeInt(key);
+				writeFixedMetadataInteger(key, metadata.getCacheInfo().getOffset());
+				fixedDataByteArrayLengthToKeepInMemory += BYTES_TO_WRITE_INTEGER_VALUES_SIZE;
 			} else {
-				size = (short) value.toString().getBytes(StandardCharsets.UTF_8).length;
-				writeStringReference((String) value, size);
+				// the key is the result of a parsing of the string
+				// 0 means the value in the string is not a number
+				int key = toIntKey(value);
+				short size = 0;
+
+				if (key != KEY_IS_NOT_AN_INT) {
+					dataWriterBytesToKeepInMemory.writeInt(key);
+				} else {
+					size = (short) value.toString().getBytes(StandardCharsets.UTF_8).length;
+					writeStringReference((String) value, size);
+				}
+
+				writeHeader(metadata);
+
+				// + size if it's a string to represent each byte taken by a char
+				// else 0 to not take unused space
+				dataByteArrayLengthBytesToKeepInMemory += BYTES_TO_WRITE_INTEGER_VALUES_SIZE + size;
+
+				metadatasSizeToKeepInMemory++;
 			}
-
-			writeHeader(metadata);
-
-			// + size if it's a string to represent each byte taken by a char
-			// else 0 to not take unused space
-			dataByteArrayLengthBytesToKeepInMemory += BYTES_TO_WRITE_INTEGER_VALUES_SIZE + size;
-
-			metadatasSizeBytesToKeepInMemory++;
 		}
 
 		/**
@@ -1044,24 +1074,25 @@ public class CacheRecordDTOUtils {
 				dataByteArrayLengthBytesToKeepInMemory += BYTES_TO_WRITE_INTEGER_VALUES_SIZE + size;
 			}
 
-			metadatasSizeBytesToKeepInMemory++;
+			metadatasSizeToKeepInMemory++;
 		}
 
 		private void addSingleValueStringMetadata(Metadata metadata, Object value) throws IOException {
 			byte[] string = ((String) value).getBytes();
+			int stringLength = string.length;
 
 			// if empty string not worth writing
-			if (0 < string.length) {
+			if (0 < stringLength) {
 				// Strings are kept in the persisted cache
 				dataWriterBytesToPersist.write(string);
 
 				writeHeader(metadata);
 
-				dataByteArrayLengthBytesToPersist += string.length;
-				metadatasSizeBytesToPersist++;
+				dataByteArrayLengthBytesToPersist += stringLength;
+				metadatasSizeToPersist++;
 				// +1 in the memory too since we need it to know the size and furthermore the contains of the byte array
 				// even though there's no value associated to it in this byte array, just the id is present
-				metadatasSizeBytesToKeepInMemory++;
+				metadatasSizeToKeepInMemory++;
 			}
 		}
 
@@ -1091,25 +1122,40 @@ public class CacheRecordDTOUtils {
 				dataByteArrayLengthBytesToPersist += BYTES_TO_WRITE_INTEGER_VALUES_SIZE + size;
 			}
 
-			metadatasSizeBytesToPersist++;
+			metadatasSizeToPersist++;
 			// +1 in the memory too since we need it to know the size and furthermore the contains of the byte array
 			// even though there's no value associated to it in this byte array, just the id is present
-			metadatasSizeBytesToKeepInMemory++;
+			metadatasSizeToKeepInMemory++;
 		}
 
-		private void addSingleValueIntegerMetadata(Metadata metadata, Object value) throws IOException {
+		private void addSingleValueIntegerMetadata(Metadata metadata, Object value, boolean isFixedMetadata)
+				throws IOException {
 			// TODO Find a better way
-			// This exist only because the value sometimes comes as a Double and other time as int
-			if (value instanceof Double) {
-				dataWriterBytesToKeepInMemory.writeInt(((Double) value).intValue());
+			// if metadata is set to fixed, no id or index is kept in the header
+			// and the value is kept before the header instead of after in the data part in a order specified by the Metadata
+			// the MetadataSchema tells us which metadata is fixed
+			if (isFixedMetadata) {
+				// This exist only because the value sometimes comes as a Double and other time as int
+				if (value instanceof Double) { // TODO Find a better way
+					writeFixedMetadataInteger(((Double) value).intValue(), metadata.getCacheInfo().getOffset());
+				} else {
+					writeFixedMetadataInteger((int) value, metadata.getCacheInfo().getOffset());
+				}
+
+				fixedDataByteArrayLengthToKeepInMemory += BYTES_TO_WRITE_INTEGER_VALUES_SIZE;
 			} else {
-				dataWriterBytesToKeepInMemory.writeInt((int) value);
+				// This exist only because the value sometimes comes as a Double and other time as int
+				if (value instanceof Double) {
+					dataWriterBytesToKeepInMemory.writeInt(((Double) value).intValue());
+				} else {
+					dataWriterBytesToKeepInMemory.writeInt((int) value);
+				}
+
+				writeHeader(metadata);
+
+				dataByteArrayLengthBytesToKeepInMemory += BYTES_TO_WRITE_INTEGER_VALUES_SIZE;
+				metadatasSizeToKeepInMemory++;
 			}
-
-			writeHeader(metadata);
-
-			dataByteArrayLengthBytesToKeepInMemory += BYTES_TO_WRITE_INTEGER_VALUES_SIZE;
-			metadatasSizeBytesToKeepInMemory++;
 		}
 
 		private void addMultivalueIntegerMetadata(Metadata metadata, List<Integer> metadatas) throws IOException {
@@ -1121,16 +1167,27 @@ public class CacheRecordDTOUtils {
 				dataByteArrayLengthBytesToKeepInMemory += BYTES_TO_WRITE_INTEGER_VALUES_SIZE;
 			}
 
-			metadatasSizeBytesToKeepInMemory++;
+			metadatasSizeToKeepInMemory++;
 		}
 
-		private void addSingleValueNumberMetadata(Metadata metadata, Object value) throws IOException {
-			dataWriterBytesToKeepInMemory.writeDouble((double) value);
+		private void addSingleValueNumberMetadata(Metadata metadata, Object value, boolean isFixedMetadata)
+				throws IOException {
+			// TODO Find a better way
+			// if metadata is set to fixed, no id or index is kept in the header
+			// and the value is kept before the header instead of after in the data part in a order specified by the Metadata
+			// the MetadataSchema tells us which metadata is fixed
+			if (isFixedMetadata) {
+				writeFixedMetadataLong(Double.doubleToLongBits((double) value), metadata.getCacheInfo().getOffset());
 
-			writeHeader(metadata);
+				fixedDataByteArrayLengthToKeepInMemory += BYTES_TO_WRITE_DOUBLE_VALUES_SIZE;
+			} else {
+				dataWriterBytesToKeepInMemory.writeDouble((double) value);
 
-			dataByteArrayLengthBytesToKeepInMemory += BYTES_TO_WRITE_DOUBLE_VALUES_SIZE;
-			metadatasSizeBytesToKeepInMemory++;
+				writeHeader(metadata);
+
+				dataByteArrayLengthBytesToKeepInMemory += BYTES_TO_WRITE_DOUBLE_VALUES_SIZE;
+				metadatasSizeToKeepInMemory++;
+			}
 		}
 
 		private void addMultivalueNumberMetadata(Metadata metadata, List<Double> metadatas) throws IOException {
@@ -1142,16 +1199,27 @@ public class CacheRecordDTOUtils {
 				dataByteArrayLengthBytesToKeepInMemory += BYTES_TO_WRITE_DOUBLE_VALUES_SIZE;
 			}
 
-			metadatasSizeBytesToKeepInMemory++;
+			metadatasSizeToKeepInMemory++;
 		}
 
-		private void addSingleValueLocalDateMetadata(Metadata metadata, Object value) throws IOException {
-			writeLocalDate((LocalDate) value);
+		private void addSingleValueLocalDateMetadata(Metadata metadata, Object value, boolean isFixedMetadata)
+				throws IOException {
+			// TODO Find a better way
+			// if metadata is set to fixed, no id or index is kept in the header
+			// and the value is kept before the header instead of after in the data part in a order specified by the Metadata
+			// the MetadataSchema tells us which metadata is fixed
+			if (isFixedMetadata) {
+				writeFixedMetadataLocalDate((LocalDate) value, metadata.getCacheInfo().getOffset());
 
-			writeHeader(metadata);
+				fixedDataByteArrayLengthToKeepInMemory += BYTES_TO_WRITE_LOCAL_DATE_VALUES_SIZE;
+			} else {
+				writeLocalDate((LocalDate) value);
 
-			dataByteArrayLengthBytesToKeepInMemory += BYTES_TO_WRITE_LOCAL_DATE_VALUES_SIZE;
-			metadatasSizeBytesToKeepInMemory++;
+				writeHeader(metadata);
+
+				dataByteArrayLengthBytesToKeepInMemory += BYTES_TO_WRITE_LOCAL_DATE_VALUES_SIZE;
+				metadatasSizeToKeepInMemory++;
+			}
 		}
 
 		private void addMultivalueLocalDateMetadata(Metadata metadata, List<LocalDate> metadatas) throws IOException {
@@ -1181,16 +1249,27 @@ public class CacheRecordDTOUtils {
 				dataByteArrayLengthBytesToKeepInMemory += BYTES_TO_WRITE_BYTE_VALUES_SIZE;
 			}
 
-			metadatasSizeBytesToKeepInMemory++;
+			metadatasSizeToKeepInMemory++;
 		}
 
-		private void addSingleValueLocalDateTimeMetadata(Metadata metadata, Object value) throws IOException {
-			writeLocalDateTime((LocalDateTime) value);
+		private void addSingleValueLocalDateTimeMetadata(Metadata metadata, Object value, boolean isFixedMetadata)
+				throws IOException {
+			// TODO Find a better way
+			// if metadata is set to fixed, no id or index is kept in the header
+			// and the value is kept before the header instead of after in the data part in a order specified by the Metadata
+			// the MetadataSchema tells us which metadata is fixed
+			if (isFixedMetadata) {
+				writeFixedMetadataLocalDateTime((LocalDateTime) value, metadata.getCacheInfo().getOffset());
 
-			writeHeader(metadata);
+				fixedDataByteArrayLengthToKeepInMemory += BYTES_TO_WRITE_LONG_VALUES_SIZE;
+			} else {
+				writeLocalDateTime((LocalDateTime) value);
 
-			dataByteArrayLengthBytesToKeepInMemory += BYTES_TO_WRITE_LONG_VALUES_SIZE;
-			metadatasSizeBytesToKeepInMemory++;
+				writeHeader(metadata);
+
+				dataByteArrayLengthBytesToKeepInMemory += BYTES_TO_WRITE_LONG_VALUES_SIZE;
+				metadatasSizeToKeepInMemory++;
+			}
 		}
 
 		private void addMultivalueLocalDateTimeMetadata(Metadata metadata, List<LocalDateTime> metadatas)
@@ -1222,16 +1301,27 @@ public class CacheRecordDTOUtils {
 				dataByteArrayLengthBytesToKeepInMemory += BYTES_TO_WRITE_BYTE_VALUES_SIZE;
 			}
 
-			metadatasSizeBytesToKeepInMemory++;
+			metadatasSizeToKeepInMemory++;
 		}
 
-		private void addSingleValueEnumMetadata(Metadata metadata, Object value) throws IOException {
-			writeEnum(metadata.getEnumClass(), (String) value);
+		private void addSingleValueEnumMetadata(Metadata metadata, Object value, boolean isFixedMetadata)
+				throws IOException {
+			// TODO Find a better way
+			// if metadata is set to fixed, no id or index is kept in the header
+			// and the value is kept before the header instead of after in the data part in a order specified by the Metadata
+			// the MetadataSchema tells us which metadata is fixed
+			if (isFixedMetadata) {
+				writeFixedMetadataEnum(metadata.getEnumClass(), (String) value, metadata.getCacheInfo().getOffset());
 
-			writeHeader(metadata);
+				fixedDataByteArrayLengthToKeepInMemory += BYTES_TO_WRITE_BYTE_VALUES_SIZE;
+			} else {
+				writeEnum(metadata.getEnumClass(), (String) value);
 
-			dataByteArrayLengthBytesToKeepInMemory += BYTES_TO_WRITE_BYTE_VALUES_SIZE;
-			metadatasSizeBytesToKeepInMemory++;
+				writeHeader(metadata);
+
+				dataByteArrayLengthBytesToKeepInMemory += BYTES_TO_WRITE_BYTE_VALUES_SIZE;
+				metadatasSizeToKeepInMemory++;
+			}
 		}
 
 		private void addMultivalueEnumMetadata(Metadata metadata, List<Enum> metadatas) throws IOException {
@@ -1243,7 +1333,7 @@ public class CacheRecordDTOUtils {
 				dataByteArrayLengthBytesToKeepInMemory += BYTES_TO_WRITE_BYTE_VALUES_SIZE;
 			}
 
-			metadatasSizeBytesToKeepInMemory++;
+			metadatasSizeToKeepInMemory++;
 		}
 
 		private void writeMultivalueSize(Metadata metadata, short listSize) throws IOException {
@@ -1269,10 +1359,50 @@ public class CacheRecordDTOUtils {
 			dataWriterBytesToKeepInMemory.writeBytes(value);
 		}
 
-		// TODO better way of passing an indicator of which bytes arary to write to
 		private void writeStringWithLength(String value, short size) throws IOException {
 			dataWriterBytesToPersist.writeInt(size);
 			dataWriterBytesToPersist.writeBytes(value);
+		}
+
+		private void writeFixedMetadataInteger(int value, short offset) {
+			fixedDataByteArrayToKeepInMemory[offset] = (byte) ((value >> 24) & 0xff);
+			fixedDataByteArrayToKeepInMemory[offset + 1] = (byte) ((value >> 16) & 0xff);
+			fixedDataByteArrayToKeepInMemory[offset + 2] = (byte) ((value >> 8) & 0xff);
+			fixedDataByteArrayToKeepInMemory[offset + 3] = (byte) (value & 0xff);
+		}
+
+		private void writeFixedMetadataLong(long value, short offset) {
+			fixedDataByteArrayToKeepInMemory[offset] = (byte) (((long) value >> 56) & 0xff);
+			fixedDataByteArrayToKeepInMemory[offset + 1] = (byte) (((long) value >> 48) & 0xff);
+			fixedDataByteArrayToKeepInMemory[offset + 2] = (byte) (((long) value >> 40) & 0xff);
+			fixedDataByteArrayToKeepInMemory[offset + 3] = (byte) (((long) value >> 32) & 0xff);
+			fixedDataByteArrayToKeepInMemory[offset + 4] = (byte) (((long) value >> 24) & 0xff);
+			fixedDataByteArrayToKeepInMemory[offset + 5] = (byte) (((long) value >> 16) & 0xff);
+			fixedDataByteArrayToKeepInMemory[offset + 6] = (byte) (((long) value >> 8) & 0xff);
+			fixedDataByteArrayToKeepInMemory[offset + 7] = (byte) ((long) value & 0xff);
+		}
+
+		private void writeFixedMetadataLocalDate(LocalDate date, short offset) {
+			byte[] bytes = new byte[BYTES_TO_WRITE_LOCAL_DATE_VALUES_SIZE];
+
+			int year = date.getYear();
+			short month = (short) date.getMonthOfYear();
+			short day = (short) date.getDayOfMonth();
+
+			int dayMonth = ((month - 1) * 31 + (day - 1));
+			int deltaYear = (year - 1900);
+
+			int dateValue;
+			if (deltaYear < 0) {
+				dateValue = deltaYear * 400 + dayMonth * -1;
+			} else {
+				dateValue = deltaYear * 400 + dayMonth;
+			}
+
+			intTo3ByteArray(dateValue, bytes);
+			fixedDataByteArrayToKeepInMemory[offset] = bytes[0];
+			fixedDataByteArrayToKeepInMemory[offset + 1] = bytes[1];
+			fixedDataByteArrayToKeepInMemory[offset + 2] = bytes[2];
 		}
 
 		private void writeLocalDate(LocalDate date) throws IOException {
@@ -1296,9 +1426,21 @@ public class CacheRecordDTOUtils {
 			dataWriterBytesToKeepInMemory.write(bytes);
 		}
 
+		private void writeFixedMetadataLocalDateTime(LocalDateTime dateTime, short offset) {
+			long epochMillis = dateTime.toDateTime().getMillis();
+			writeFixedMetadataLong(epochMillis, offset);
+		}
+
 		private void writeLocalDateTime(LocalDateTime dateTime) throws IOException {
 			// long because it's the date in epoch millis (millis since 1 jan 1970)
 			dataWriterBytesToKeepInMemory.writeLong(dateTime.toDateTime().getMillis());
+		}
+
+		private void writeFixedMetadataEnum(Class<? extends Enum> clazz, String smallCode, short offset) {
+			// + acts as a minus since Byte.MIN_VALUE is -128
+			// -128 too get place for 255 enums which should be more than enough
+			Enum e = EnumWithSmallCodeUtils.toEnum((Class) clazz, smallCode);
+			fixedDataByteArrayToKeepInMemory[offset] = (byte) (e.ordinal() + Byte.MIN_VALUE);
 		}
 
 		private void writeEnum(Class<? extends Enum> clazz, String smallCode) throws IOException {
@@ -1334,21 +1476,26 @@ public class CacheRecordDTOUtils {
 		}
 
 		public CacheRecordDTOBytesArray build() throws IOException {
-			byte[] dataToKeepInMemory = new byte[BYTES_TO_WRITE_METADATA_VALUES_SIZE + headerByteArrayLengthBytesToKeepInMemory + dataByteArrayLengthBytesToKeepInMemory];
+			fixedDataByteArrayLengthToKeepInMemory += BYTES_TO_WRITE_INTEGER_VALUES_SIZE;
+
+			byte[] dataToKeepInMemory = new byte[BYTES_TO_WRITE_METADATA_VALUES_SIZE + fixedDataByteArrayLengthToKeepInMemory + headerByteArrayLengthBytesToKeepInMemory + dataByteArrayLengthBytesToKeepInMemory];
 			// BYTES_TO_WRITE_METADATA_VALUES_SIZE in destPos because index 0 & 1 are placeholders (short)
-			// for the number of metadata (metadatasSizeBytesToKeepInMemory) in the final array
-			System.arraycopy(headerOutputBytesToKeepInMemory.toByteArray(), 0, dataToKeepInMemory, BYTES_TO_WRITE_METADATA_VALUES_SIZE, headerByteArrayLengthBytesToKeepInMemory);
+			// for the number of metadata (metadatasSizeToKeepInMemory) in the final array
+			// we write the fixedDataByteArrayToKeepInMemory after the bytes for the metadatasSize but before the header since there's no information but the value in the array
+			// we know what is where from the MetadataSchema who tells us want metadata is fixed and from Metadata who tells us the position and length of the value.
+			System.arraycopy(fixedDataByteArrayToKeepInMemory, 0, dataToKeepInMemory, BYTES_TO_WRITE_METADATA_VALUES_SIZE, fixedDataByteArrayLengthToKeepInMemory);
+			System.arraycopy(headerOutputBytesToKeepInMemory.toByteArray(), 0, dataToKeepInMemory, BYTES_TO_WRITE_METADATA_VALUES_SIZE + fixedDataByteArrayLengthToKeepInMemory, headerByteArrayLengthBytesToKeepInMemory);
 			System.arraycopy(dataOutputBytesToKeepInMemory.toByteArray(), 0, dataToKeepInMemory, headerByteArrayLengthBytesToKeepInMemory + BYTES_TO_WRITE_METADATA_VALUES_SIZE, dataByteArrayLengthBytesToKeepInMemory);
 
 			byte[] dataToPersist = new byte[BYTES_TO_WRITE_METADATA_VALUES_SIZE + headerByteArrayLengthBytesToPersist + dataByteArrayLengthBytesToPersist];
 			// BYTES_TO_WRITE_METADATA_VALUES_SIZE in destPos because index 0 & 1 are placeholders (short)
-			// for the number of metadata (metadatasSizeBytesToKeepInMemory) in the final array
+			// for the number of metadata (metadatasSizeToKeepInMemory) in the final array
 			System.arraycopy(headerOutputBytesToPersist.toByteArray(), 0, dataToPersist, BYTES_TO_WRITE_METADATA_VALUES_SIZE, headerByteArrayLengthBytesToPersist);
 			System.arraycopy(dataOutputBytesToPersist.toByteArray(), 0, dataToPersist, headerByteArrayLengthBytesToPersist + BYTES_TO_WRITE_METADATA_VALUES_SIZE, dataByteArrayLengthBytesToPersist);
 
 			closeStreams();
-			writeMetadatasSizeToHeader(dataToKeepInMemory, metadatasSizeBytesToKeepInMemory);
-			writeMetadatasSizeToHeader(dataToPersist, metadatasSizeBytesToPersist);
+			writeMetadatasSizeToHeader(dataToKeepInMemory, metadatasSizeToKeepInMemory);
+			writeMetadatasSizeToHeader(dataToPersist, metadatasSizeToPersist);
 
 			CacheRecordDTOBytesArray bytesArray = new CacheRecordDTOBytesArray();
 			bytesArray.bytesToKeepInMemory = dataToKeepInMemory;
@@ -1363,6 +1510,8 @@ public class CacheRecordDTOUtils {
 		}
 
 		private void closeStreams() throws IOException {
+			this.fixedDataByteArrayToKeepInMemory = null;
+
 			this.headerOutputBytesToKeepInMemory.close();
 			this.dataOutputBytesToKeepInMemory.close();
 			this.headerWriterBytesToKeepInMemory.close();

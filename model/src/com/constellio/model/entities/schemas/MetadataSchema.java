@@ -19,6 +19,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
+import static com.constellio.model.entities.schemas.MetadataValueType.DATE;
+import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
+import static com.constellio.model.entities.schemas.MetadataValueType.ENUM;
+import static com.constellio.model.entities.schemas.MetadataValueType.INTEGER;
+import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
+import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+
 public class MetadataSchema implements Serializable {
 
 	private static final String UNDERSCORE = "_";
@@ -78,6 +87,44 @@ public class MetadataSchema implements Serializable {
 		this.active = active;
 		this.collectionInfo = collectionInfo;
 
+	}
+
+	// WARNING TEMPORAY FOR TEST
+	public class SchemaCacheInfo {
+		private int fixedMetadataLength;
+
+		public SchemaCacheInfo(int fixedMetadataLength) {
+			this.fixedMetadataLength = fixedMetadataLength;
+		}
+
+		public int getFixedMetadataLength() {
+			return fixedMetadataLength;
+		}
+	}
+
+	// WARNING TEMPORAY FOR TEST
+	public int getFixedMetadataSpaceTaken(){
+		int size = fixedCacheMetadatas.stream().mapToInt(m -> m.getCacheInfo().getLength()).sum();
+
+		return size;
+	}
+
+	// WARNING TEMPORAY FOR TEST
+	private List<Metadata> fixedCacheMetadatas = new ArrayList<Metadata>(){
+		{
+			add(new Metadata(9, "withAnEnumMetadata", ENUM, false));
+			add(new Metadata(8, "parentReferenceFromZeSchema", REFERENCE, false));
+			add(new Metadata(2, "booleanMetadata", BOOLEAN, false));
+			add(new Metadata(7, "numberMetadata", NUMBER, false));
+			add(new Metadata(5, "integerMetadata", INTEGER, false));
+			add(new Metadata(3, "dateMetadata", DATE, false));
+			add(new Metadata(4, "dateTimeMetadata", DATE_TIME, false));
+		}
+	};
+
+	// WARNING TEMPORAY FOR TEST
+	public List<Metadata> getFixedMetadatas(){
+		return fixedCacheMetadatas;
 	}
 
 	public short getId() {

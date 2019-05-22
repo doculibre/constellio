@@ -76,6 +76,61 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	public void optimisation() throws Exception {
+		defineSchemasManager().using(setup
+				.withATitle()
+				.withABooleanMetadata()
+				.withAnIntegerMetadata()
+				.withANumberMetadata()
+				.withAnEnumMetadata(FolderStatus.class)
+				.withAParentReferenceFromZeSchemaToZeSchema()
+				.withADateMetadata()
+				.withADateTimeMetadata());
+
+		init();
+
+		LocalDate date = new LocalDate();
+		LocalDateTime dateTime = new LocalDateTime();
+
+		RecordImpl record1 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance())
+				.set(Schemas.TITLE, "Le village des Schtroumpfs")
+				.set(zeSchema.booleanMetadata(), true)
+				.set(zeSchema.integerMetadata(), 14)
+				.set(zeSchema.numberMetadata(), -70.4d)
+				.set(zeSchema.enumMetadata(), FolderStatus.ACTIVE)
+				.set(zeSchema.parentReferenceFromZeSchemaToZeSchema(), null)
+				.set(zeSchema.dateMetadata(), date)
+				.set(zeSchema.dateTimeMetadata(), dateTime);
+
+		RecordImpl record2 = (RecordImpl) recordServices.newRecordWithSchema(zeSchema.instance())
+				.set(Schemas.TITLE, "GoT 8 hate")
+				.set(zeSchema.booleanMetadata(), true)
+				.set(zeSchema.integerMetadata(), 0)
+				.set(zeSchema.parentReferenceFromZeSchemaToZeSchema(), record1.getId())
+				.set(zeSchema.dateTimeMetadata(), dateTime);
+
+		recordServices.execute(new Transaction(record1, record2));
+
+		ByteArrayRecordDTO dto1 = ByteArrayRecordDTO.create(getModelLayerFactory(), record1.getRecordDTO());
+		ByteArrayRecordDTO dto2 = ByteArrayRecordDTO.create(getModelLayerFactory(), record2.getRecordDTO());
+
+		assertThat(dto1.get(Schemas.TITLE.getDataStoreCode())).isEqualTo("Le village des Schtroumpfs");
+		assertThat(dto1.get(zeSchema.booleanMetadata().getDataStoreCode())).isEqualTo(true);
+		assertThat(dto1.get(zeSchema.integerMetadata().getDataStoreCode())).isEqualTo(14);
+		assertThat(dto1.get(zeSchema.numberMetadata().getDataStoreCode())).isEqualTo(-70.4d);
+		assertThat(dto1.get(zeSchema.enumMetadata().getDataStoreCode())).isEqualTo(FolderStatus.ACTIVE.getCode());
+//		assertThat(dto1.get(zeSchema.parentReferenceFromZeSchemaToZeSchema().getDataStoreCode())).isEqualTo(null);
+		assertThat(dto1.get(zeSchema.dateMetadata().getDataStoreCode())).isEqualTo(date);
+		assertThat(dto1.get(zeSchema.dateTimeMetadata().getDataStoreCode())).isEqualTo(dateTime);
+
+		assertThat(dto2.get(Schemas.TITLE.getDataStoreCode())).isEqualTo("GoT 8 hate");
+		assertThat(dto2.get(zeSchema.booleanMetadata().getDataStoreCode())).isEqualTo(true);
+		assertThat(dto2.get(zeSchema.integerMetadata().getDataStoreCode())).isEqualTo(0);
+		assertThat(dto2.get(zeSchema.parentReferenceFromZeSchemaToZeSchema().getDataStoreCode())).isEqualTo(record1.getId());
+		assertThat(dto2.get(zeSchema.dateTimeMetadata().getDataStoreCode())).isEqualTo(dateTime);
+	}
+
+	@Test
 	public void whenStoringSingleValueMetadatasInAByteArrayRecordDTOThenStoredAndRetrieved() throws Exception {
 		defineSchemasManager().using(setup
 				.withATitle()
@@ -88,7 +143,7 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 				.withADateMetadata()
 				.withAContentMetadata()
 				.withALargeTextMetadata()
-//				.withAStructureMetadata()
+				//				.withAStructureMetadata()
 				.withADateTimeMetadata());
 
 		init();

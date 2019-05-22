@@ -256,6 +256,66 @@ public class Metadata implements DataStoreField {
 		this.customParameter = Collections.unmodifiableMap(customParameter);
 	}
 
+	// WARNING TEMPORAY FOR TEST
+	public class MetadataCacheInfo {
+		private short offset;
+		private short length;
+
+		public MetadataCacheInfo(short offset, short length) {
+			this.offset = offset;
+			this.length = length;
+		}
+
+		public short getOffset() {
+			return offset;
+		}
+
+		public short getLength() {
+			return length;
+		}
+	}
+
+	// WARNING TEMPORAY FOR TEST
+	public MetadataCacheInfo getCacheInfo() {
+		short offset = -1;
+		short length = -1;
+
+		if(!isMultivalue()) {
+			switch (type) {
+				case ENUM:
+					offset = 0;
+					length = 1;
+					break;
+				case REFERENCE:
+					offset = 1;
+					length = 4;
+					break;
+				case BOOLEAN:
+					offset = 5;
+					length = 1;
+					break;
+				case NUMBER:
+					offset = 6;
+					length = 8;
+					break;
+				case INTEGER:
+					offset = 14;
+					length = 4;
+					break;
+				case DATE:
+					offset = 18;
+					length = 3;
+					break;
+				case DATE_TIME:
+					offset = 21;
+					length = 8;
+					break;
+			}
+		}
+
+		return ((offset != -1) && (length != -1)) ? new MetadataCacheInfo(offset, length) : null;
+	}
+
 	public Map<String, Object> getCustomParameter() {
 		return customParameter;
 	}
