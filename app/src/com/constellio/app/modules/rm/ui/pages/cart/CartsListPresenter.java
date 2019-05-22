@@ -8,13 +8,16 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
+import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.jgoodies.common.base.Strings;
 
 import java.util.Arrays;
 import java.util.List;
@@ -26,11 +29,13 @@ public class CartsListPresenter extends SingleSchemaBasePresenter<CartsListView>
 	private RecordToVOBuilder recordToVOBuilder = new RecordToVOBuilder();
 	private final MetadataSchemaVO schemaVO;
 	private RMSchemasRecordsServices rm;
+	private RecordServices recordServices;
 
 	public CartsListPresenter(CartsListView view) {
 		super(view, Cart.DEFAULT_SCHEMA);
 		schemaVO = new MetadataSchemaToVOBuilder().build(defaultSchema(), RecordVO.VIEW_MODE.TABLE, view.getSessionContext());
 		rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+		recordServices = modelLayerFactory.newRecordServices();
 	}
 
 	@Override
@@ -40,6 +45,23 @@ public class CartsListPresenter extends SingleSchemaBasePresenter<CartsListView>
 
 	public void displayButtonClicked(RecordVO recordVO) {
 		view.navigate().to(RMViews.class).cart(recordVO.getId());
+	}
+
+	public boolean reNameFavoritesGroup(Cart cart, String name) {
+
+		if (Strings.isNotBlank(name)) {
+			try {
+				cart.setTitle(name);
+				recordServices.update(cart.getWrappedRecord());
+			} catch (RecordServicesException e) {
+				throw new RuntimeException("Unexpected error when updating cart");
+			}
+		} else {
+			view.showErrorMessage(i18n.$("requiredFieldWithName", i18n.$("title")));
+			return false;
+		}
+
+		return true;
 	}
 
 	public void deleteButtonClicked(RecordVO recordVO) {

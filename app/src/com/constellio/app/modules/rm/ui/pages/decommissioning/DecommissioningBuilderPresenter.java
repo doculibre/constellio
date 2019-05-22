@@ -258,9 +258,11 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 
 				if (decommissioningList.getDecommissioningListType().isFolderList()) {
 					if (isDecommissioningListWithSelectedFolders()) {
-						decommissioningList.addFolderDetailsFor(FolderDetailStatus.SELECTED, rmRecordServices.getFolders(selected).toArray(new Folder[0]));
+						decommissioningList.addFolderDetailsFor(FolderDetailStatus.SELECTED,
+								rmRecordServices.getFolders(selected).toArray(new Folder[0]));
 					} else {
-						decommissioningList.addFolderDetailsFor(FolderDetailStatus.INCLUDED, rmRecordServices.getFolders(selected).toArray(new Folder[0]));
+						decommissioningList.addFolderDetailsFor(FolderDetailStatus.INCLUDED,
+								rmRecordServices.getFolders(selected).toArray(new Folder[0]));
 					}
 					decommissioningList
 							.addContainerDetailsFromFolders(rmRecordServices.getFolders(selected).toArray(new Folder[0]));

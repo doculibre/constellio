@@ -8,7 +8,6 @@ import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.SecurityModel;
 import com.constellio.model.entities.security.SingletonSecurityModel;
@@ -2672,7 +2671,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		auth2 = add(authorizationForGroup(legends).on(FOLDER4).givingReadAccess());
 		auth3 = add(authorizationForGroup(legends).on(FOLDER3).givingReadDeleteAccess());
 
-		LogicalSearchQuery query = new LogicalSearchQuery(from(setup.folderSchema.instance()).where(Schemas.IDENTIFIER).isEqualTo("folder4"));
+		LogicalSearchQuery query = new LogicalSearchQuery(from(setup.folderSchema.instance()).where(IDENTIFIER).isEqualTo("folder4"));
 		query.filteredWithUser(users.aliceIn(zeCollection));
 
 		assertThat(searchServices.hasResults(query)).isTrue();
@@ -3026,13 +3025,13 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		User bob = users.bobIn(zeCollection);
 		SearchServices searchServices = getModelLayerFactory().newSearchServices();
 		LogicalSearchQuery queryWithAccessOnly = new LogicalSearchQuery()
-				.setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isEqualTo(FOLDER1))
+				.setCondition(fromAllSchemasIn(zeCollection).where(IDENTIFIER).isEqualTo(FOLDER1))
 				.filteredWithUser(bob);
 		LogicalSearchQuery queryWithPermissionOnly = new LogicalSearchQuery()
-				.setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isEqualTo(FOLDER1))
+				.setCondition(fromAllSchemasIn(zeCollection).where(IDENTIFIER).isEqualTo(FOLDER1))
 				.filteredWithUser(bob, PERMISSION_OF_ROLE1);
 		LogicalSearchQuery queryWithMultipleFilters = new LogicalSearchQuery()
-				.setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isEqualTo(FOLDER1))
+				.setCondition(fromAllSchemasIn(zeCollection).where(IDENTIFIER).isEqualTo(FOLDER1))
 				.filteredWithUser(bob, asList(Role.READ, PERMISSION_OF_ROLE1));
 
 		assertThat(searchServices.getResultsCount(queryWithAccessOnly)).isEqualTo(1);
@@ -3061,13 +3060,13 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		User bob = users.bobIn(zeCollection);
 		SearchServices searchServices = getModelLayerFactory().newSearchServices();
 		LogicalSearchQuery queryWithAccessOnly = new LogicalSearchQuery()
-				.setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isEqualTo(FOLDER1))
+				.setCondition(fromAllSchemasIn(zeCollection).where(IDENTIFIER).isEqualTo(FOLDER1))
 				.filteredWithUser(bob);
 		LogicalSearchQuery queryWithPermissionOnly = new LogicalSearchQuery()
-				.setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isEqualTo(FOLDER1))
+				.setCondition(fromAllSchemasIn(zeCollection).where(IDENTIFIER).isEqualTo(FOLDER1))
 				.filteredWithUser(bob, PERMISSION_OF_ROLE1);
 		LogicalSearchQuery queryWithMultipleFilters = new LogicalSearchQuery()
-				.setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isEqualTo(FOLDER1))
+				.setCondition(fromAllSchemasIn(zeCollection).where(IDENTIFIER).isEqualTo(FOLDER1))
 				.filteredWithUser(bob, asList(Role.READ, PERMISSION_OF_ROLE1));
 
 		assertThat(searchServices.getResultsCount(queryWithAccessOnly)).isEqualTo(1);
@@ -3879,6 +3878,82 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		assertThatAllFoldersVisibleBy(gandalf).containsOnly(
 				"folder4", "folder4_1", "folder4_2", "anotherCollection_folder2", "anotherCollection_folder2_2", "anotherCollection_folder2_1");
 
+	}
+
+	@Test
+	public void givenUserWithCollectionAccessAndPermissionAuthOnAConceptThenSecurisedRecordsReturnedByPermissionFilter()
+			throws RecordServicesException {
+		recordServices.update(users.aliceIn(zeCollection).setCollectionAllAccess(true));
+		add(authorizationForUsers(alice, bob, charles).on(FOLDER1).giving(ROLE1));
+		add(authorizationForUser(bob).on(FOLDER1).givingReadWriteAccess());
+		add(authorizationForUser(charles).on(TAXO1_CATEGORY1).givingReadWriteAccess());
+
+		for (RecordVerifier verifyRecord : $(FOLDER1, FOLDER1_DOC1)) {
+			LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(
+					fromAllSchemasIn(zeCollection).where(IDENTIFIER).is(verifyRecord.recordId));
+			assertThat(searchServices.query(logicalSearchQuery).getNumFound()).isEqualTo(1);
+
+			//Alice
+			logicalSearchQuery.filteredWithUser(users.aliceIn(zeCollection), PERMISSION_OF_ROLE1);
+			assertThat(searchServices.query(logicalSearchQuery).getNumFound()).isEqualTo(1);
+
+			logicalSearchQuery.filteredWithUser(users.aliceIn(zeCollection), PERMISSION_OF_ROLE2);
+			assertThat(searchServices.query(logicalSearchQuery).getNumFound()).isEqualTo(0);
+
+			//Bob
+			logicalSearchQuery.filteredWithUser(users.bobIn(zeCollection), PERMISSION_OF_ROLE1);
+			assertThat(searchServices.query(logicalSearchQuery).getNumFound()).isEqualTo(1);
+
+			logicalSearchQuery.filteredWithUser(users.bobIn(zeCollection), PERMISSION_OF_ROLE2);
+			assertThat(searchServices.query(logicalSearchQuery).getNumFound()).isEqualTo(0);
+
+			//Charles
+			logicalSearchQuery.filteredWithUser(users.charlesIn(zeCollection), PERMISSION_OF_ROLE1);
+			assertThat(searchServices.query(logicalSearchQuery).getNumFound()).isEqualTo(1);
+
+			logicalSearchQuery.filteredWithUser(users.charlesIn(zeCollection), PERMISSION_OF_ROLE2);
+			assertThat(searchServices.query(logicalSearchQuery).getNumFound()).isEqualTo(0);
+		}
+	}
+
+
+	@Test
+	public void givenUserWithCollectionAccessAndPermissionAuthOnASecurisedRecordThenRecordsAndItsChildrenReturnedByPermissionFilter()
+			throws RecordServicesException {
+		recordServices.update(users.aliceIn(zeCollection).setCollectionAllAccess(true));
+		add(authorizationForUsers(alice, bob, charles).on(FOLDER1).giving(ROLE1));
+		add(authorizationForUser(bob).on(FOLDER1).givingReadWriteAccess());
+		add(authorizationForUser(charles).on(TAXO1_CATEGORY1).givingReadWriteAccess());
+
+
+		for (RecordVerifier verifyRecord : $(FOLDER1, FOLDER1_DOC1)) {
+
+			LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(
+					fromAllSchemasIn(zeCollection).where(IDENTIFIER).is(verifyRecord.recordId));
+			assertThat(searchServices.query(logicalSearchQuery).getNumFound()).isEqualTo(1);
+
+			//Alice
+			logicalSearchQuery.filteredWithUser(users.aliceIn(zeCollection), PERMISSION_OF_ROLE1);
+			assertThat(searchServices.query(logicalSearchQuery).getNumFound()).isEqualTo(1);
+
+			logicalSearchQuery.filteredWithUser(users.aliceIn(zeCollection), PERMISSION_OF_ROLE2);
+			assertThat(searchServices.query(logicalSearchQuery).getNumFound()).isEqualTo(0);
+
+
+			//Bob
+			logicalSearchQuery.filteredWithUser(users.bobIn(zeCollection), PERMISSION_OF_ROLE1);
+			assertThat(searchServices.query(logicalSearchQuery).getNumFound()).isEqualTo(1);
+
+			logicalSearchQuery.filteredWithUser(users.bobIn(zeCollection), PERMISSION_OF_ROLE2);
+			assertThat(searchServices.query(logicalSearchQuery).getNumFound()).isEqualTo(0);
+
+			//Charles
+			logicalSearchQuery.filteredWithUser(users.charlesIn(zeCollection), PERMISSION_OF_ROLE1);
+			assertThat(searchServices.query(logicalSearchQuery).getNumFound()).isEqualTo(1);
+
+			logicalSearchQuery.filteredWithUser(users.charlesIn(zeCollection), PERMISSION_OF_ROLE2);
+			assertThat(searchServices.query(logicalSearchQuery).getNumFound()).isEqualTo(0);
+		}
 	}
 
 

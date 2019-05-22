@@ -148,7 +148,7 @@ public class ClassificationPlanReportPresenter {
 
 								List<ClassificationPlanReportModel_Category> categoryList = getCategoriesForRecord(record);
 
-								if(categoryList != null && categoryList.size() > 0)  {
+								if (categoryList != null && categoryList.size() > 0) {
 									ClassificationPlanReportModel_Category modelCategory = new ClassificationPlanReportModel_Category();
 
 									String description = StringUtils.defaultString(recordCategory.getDescription());
@@ -188,7 +188,6 @@ public class ClassificationPlanReportPresenter {
 		return model;
 	}
 
-
 	private boolean isCategoryShown(Category category) {
 		Boolean deactivated = category.get(Category.DEACTIVATE);
 
@@ -220,7 +219,7 @@ public class ClassificationPlanReportPresenter {
 
 							boolean isCategoryShown = isCategoryShown(recordCategory);
 
-							if(!isCategoryShown) {
+							if (!isCategoryShown) {
 								List<ClassificationPlanReportModel_Category> categoryList = getCategoriesForRecord(childRecord);
 
 								if(categoryList != null && categoryList.size() > 0)  {

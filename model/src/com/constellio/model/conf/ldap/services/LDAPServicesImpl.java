@@ -152,7 +152,9 @@ public class LDAPServicesImpl implements LDAPServices {
 
 		// Construct disjunction groups filter
 		if (userFilterGroups != null && !userFilterGroups.isEmpty()) {
-			final String userMembershipAttribute = LDAPDirectoryType.ACTIVE_DIRECTORY.equals(directoryType) ? ADUserBuilder.MEMBER_OF : EdirectoryUserBuilder.MEMBER_OF;
+			final String userMembershipAttribute = LDAPDirectoryType.ACTIVE_DIRECTORY.equals(directoryType) ?
+					ADUserBuilder.MEMBER_OF :
+					EdirectoryUserBuilder.MEMBER_OF;
 
 			filter.append("(").append("|").append(
 					Joiner.on("").join(
@@ -161,7 +163,8 @@ public class LDAPServicesImpl implements LDAPServices {
 									new Transformer() {
 										@Override
 										public Object transform(Object groupDn) {
-											return new StringBuilder("(").append(userMembershipAttribute).append("=").append(groupDn).append(")");
+											return new StringBuilder("(").append(userMembershipAttribute).append("=")
+													.append(groupDn).append(")");
 										}
 									}
 							)
@@ -283,7 +286,7 @@ public class LDAPServicesImpl implements LDAPServices {
 
 	public LdapContext connectToLDAP(List<String> domains, String url, String user, String password,
 									 Boolean followReferences,
-									 boolean activeDirectory) {
+			boolean activeDirectory) {
 		LDAPFastBind ldapFastBind = new LDAPFastBind(url, followReferences, activeDirectory);
 		boolean authenticated = ldapFastBind.authenticate(user, password);
 		if (!authenticated) {
@@ -303,7 +306,7 @@ public class LDAPServicesImpl implements LDAPServices {
 	}
 
 	public LdapContext connectToLDAP(List<String> domains, List<String> urls, String user, String password,
-									 Boolean followReferences, boolean activeDirectory) {
+			Boolean followReferences, boolean activeDirectory) {
 		for (String url : urls) {
 			LdapContext ctx;
 			try {
@@ -449,17 +452,17 @@ public class LDAPServicesImpl implements LDAPServices {
 	}
 
 	private void closeQuietly(List<NamingEnumeration> closables) {
-		if(closables == null) {
+		if (closables == null) {
 			return;
 		}
 
-		for(NamingEnumeration namingEnumeration: closables) {
+		for (NamingEnumeration namingEnumeration : closables) {
 			closeQuietly(namingEnumeration);
 		}
 	}
 
 	private void closeQuietly(NamingEnumeration namingEnumeration) {
-		if(namingEnumeration != null) {
+		if (namingEnumeration != null) {
 			try {
 				namingEnumeration.close();
 			} catch (NamingException e) {
@@ -518,7 +521,7 @@ public class LDAPServicesImpl implements LDAPServices {
 
 	@Override
 	public List<String> getTestSynchronisationGroups(LDAPServerConfiguration ldapServerConfiguration,
-													 LDAPUserSyncConfiguration ldapUserSyncConfiguration) {
+			LDAPUserSyncConfiguration ldapUserSyncConfiguration) {
 		Set<String> returnGroups = new HashSet<>();
 
 		boolean activeDirectory = ldapServerConfiguration.getDirectoryType().equals(LDAPDirectoryType.ACTIVE_DIRECTORY);
@@ -552,7 +555,7 @@ public class LDAPServicesImpl implements LDAPServices {
 
 	@Override
 	public LDAPUsersAndGroups importUsersAndGroups(LDAPServerConfiguration serverConfiguration,
-												   LDAPUserSyncConfiguration userSyncConfiguration, String url) {
+			LDAPUserSyncConfiguration userSyncConfiguration, String url) {
 
 		boolean activeDirectory = serverConfiguration.getDirectoryType().equals(LDAPDirectoryType.ACTIVE_DIRECTORY);
 		LdapContext ldapContext = null;
@@ -586,11 +589,11 @@ public class LDAPServicesImpl implements LDAPServices {
 				ldapGroups.addAll(getGroupsFromUser(acceptedUsersDerivedFromAcceptedGroups));
 			}
 
-			return new LDAPUsersAndGroups( ldapUsers, ldapGroups);
+			return new LDAPUsersAndGroups(ldapUsers, ldapGroups);
 
 		} finally {
 			try {
-				if(ldapContext != null) {
+				if (ldapContext != null) {
 					ldapContext.setRequestControls(null);
 					ldapContext.close();
 				}
@@ -602,7 +605,7 @@ public class LDAPServicesImpl implements LDAPServices {
 
 	@Override
 	public List<String> getTestSynchronisationUsersNames(LDAPServerConfiguration ldapServerConfiguration,
-														 LDAPUserSyncConfiguration ldapUserSyncConfiguration) {
+			LDAPUserSyncConfiguration ldapUserSyncConfiguration) {
 		Set<String> returnUsers = new HashSet<>();
 
 		boolean activeDirectory = ldapServerConfiguration.getDirectoryType().equals(LDAPDirectoryType.ACTIVE_DIRECTORY);
@@ -613,7 +616,8 @@ public class LDAPServicesImpl implements LDAPServices {
 					ldapServerConfiguration.getFollowReferences(), activeDirectory);
 			if (ctx != null) {
 				Set<String> users = getUsersUsingFilter(ldapServerConfiguration.getDirectoryType(), ctx,
-						ldapUserSyncConfiguration.getUsersWithoutGroupsBaseContextList(), ldapUserSyncConfiguration.getUserFilter(), ldapUserSyncConfiguration.getUserGroups());
+						ldapUserSyncConfiguration.getUsersWithoutGroupsBaseContextList(),
+						ldapUserSyncConfiguration.getUserFilter(), ldapUserSyncConfiguration.getUserGroups());
 
 				returnUsers.addAll(users);
 			}

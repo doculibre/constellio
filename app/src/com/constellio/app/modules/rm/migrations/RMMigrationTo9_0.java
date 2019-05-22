@@ -12,7 +12,7 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 
 import static java.util.Arrays.asList;
 
-public class RMMigrationTo_9_0 implements MigrationScript {
+public class RMMigrationTo9_0 implements MigrationScript {
 	@Override
 	public String getVersion() {
 		return "9.0";
@@ -26,9 +26,11 @@ public class RMMigrationTo_9_0 implements MigrationScript {
 		Role rgbRole = modelLayerFactory.getRolesManager().getRole(collection, RMRoles.RGD);
 		Role admRole = modelLayerFactory.getRolesManager().getRole(collection, CoreRoles.ADMINISTRATOR);
 		modelLayerFactory.getRolesManager().updateRole(rgbRole.withNewPermissions(asList(CorePermissions.BATCH_PROCESS,
-				RMPermissionsTo.CONSULT_RETENTIONRULE, RMPermissionsTo.CONSULT_CLASSIFICATION_PLAN, RMPermissionsTo.CREATE_DECOMMISSIONING_LIST)));
+				RMPermissionsTo.CONSULT_RETENTIONRULE, RMPermissionsTo.CONSULT_CLASSIFICATION_PLAN,
+				RMPermissionsTo.CREATE_DECOMMISSIONING_LIST, RMPermissionsTo.CART_BATCH_DELETE)));
 
 		modelLayerFactory.getRolesManager().updateRole(admRole.withNewPermissions(asList(
-				RMPermissionsTo.CONSULT_RETENTIONRULE, RMPermissionsTo.CONSULT_CLASSIFICATION_PLAN, RMPermissionsTo.CREATE_DECOMMISSIONING_LIST)));
+				RMPermissionsTo.CONSULT_RETENTIONRULE, RMPermissionsTo.CONSULT_CLASSIFICATION_PLAN,
+				RMPermissionsTo.CREATE_DECOMMISSIONING_LIST, RMPermissionsTo.CART_BATCH_DELETE)));
 	}
 }

@@ -180,13 +180,15 @@ public class RMRecordAppExtension extends RecordAppExtension {
 	private String getFolderExtension(RecordVO recordVO, boolean expanded) {
 		FolderStatus archivisticStatus = recordVO.getMetadataValue(recordVO.getMetadata(Folder.ARCHIVISTIC_STATUS)).getValue();
 		FolderMediaType folderMediaType = recordVO.getMetadataValue(recordVO.getMetadata(Folder.MEDIA_TYPE)).getValue();
-		return getArchivisticStatusFilename(archivisticStatus) + "_" + getSupportType(archivisticStatus, folderMediaType) + "_folder_" + getIsOpenOrClose(expanded);
+		return getArchivisticStatusFilename(archivisticStatus) + "_" + getSupportType(archivisticStatus, folderMediaType)
+				+ "_folder_" + getIsOpenOrClose(expanded);
 	}
 
 	private String getFolderExtension(Folder folder, boolean expanded) {
 		FolderStatus archivisticStatus = folder.getArchivisticStatus();
 		FolderMediaType folderMediaType = folder.getMediaType();
-		return getArchivisticStatusFilename(archivisticStatus) + "_" + getSupportType(archivisticStatus, folderMediaType) + "_folder_" + getIsOpenOrClose(expanded);
+		return getArchivisticStatusFilename(archivisticStatus) + "_" + getSupportType(archivisticStatus, folderMediaType)
+				+ "_folder_" + getIsOpenOrClose(expanded);
 	}
 
 	public static String getIsOpenOrClose(boolean expanded) {
@@ -198,7 +200,7 @@ public class RMRecordAppExtension extends RecordAppExtension {
 	}
 
 	public static String getSupportType(FolderStatus archivisticStatus, FolderMediaType folderMediaType) {
-		if(folderMediaType == null || archivisticStatus != null && archivisticStatus.isDestroyed()) {
+		if (folderMediaType == null || archivisticStatus != null && archivisticStatus.isDestroyed()) {
 			return "empty";
 		}
 

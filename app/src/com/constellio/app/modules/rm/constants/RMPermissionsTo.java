@@ -117,8 +117,8 @@ public class RMPermissionsTo {
 
 	// Cart
 	private static final String CART_GROUP = "carts";
-
 	public static final String USE_CART = permission(CART_GROUP, "useCart");
+	public static final String CART_BATCH_DELETE = permission(CART_GROUP, "cartBatchDelete");
 
 	// RM Module management
 	private static final String RM_MANAGEMENT = "rmManagement";

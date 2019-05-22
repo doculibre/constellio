@@ -756,7 +756,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 					.notifyFolderDeletion(new FolderDeletionEvent(rmSchemasRecordsServices.wrapFolder(record)));
 
 			boolean isDeleteSuccessful = delete(record, reason, false, WAIT_ONE_SECOND);
-			if(isDeleteSuccessful) {
+			if (isDeleteSuccessful) {
 				if (parentId != null) {
 					navigateToFolder(parentId);
 				} else {
@@ -1079,7 +1079,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			} else {
 				borrower = rmSchemasRecordsServices.getUser(folderVO.getBorrowUserId());
 			}
-			
+
 			EmailAddress borrowerAddress = new EmailAddress(borrower.getTitle(), borrower.getEmail());
 			emailToSend.setTo(Arrays.asList(borrowerAddress));
 			emailToSend.setSendOn(TimeProvider.getLocalDateTime());

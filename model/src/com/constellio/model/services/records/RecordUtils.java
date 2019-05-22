@@ -95,8 +95,8 @@ public class RecordUtils {
 			Schemas.MIGRATION_DATA_VERSION.getLocalCode(), Schemas.IDENTIFIER.getLocalCode());
 
 	public static int estimateRecordUpdateSize(Map<String, Object> modifiedFields, Map<String, Object> fields,
-											   Map<String, Object> modifiedCopyFields,
-											   Map<String, Object> copyFields) {
+			Map<String, Object> modifiedCopyFields,
+			Map<String, Object> copyFields) {
 
 		int size = 0;
 
@@ -126,7 +126,6 @@ public class RecordUtils {
 		}
 		return size;
 	}
-
 
 	/**
 	 * This method is far, very far from being complete!

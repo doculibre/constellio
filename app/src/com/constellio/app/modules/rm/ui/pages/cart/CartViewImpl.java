@@ -3,6 +3,7 @@ package com.constellio.app.modules.rm.ui.pages.cart;
 import com.constellio.app.api.extensions.params.AvailableActionsParam;
 import com.constellio.app.modules.rm.model.enums.DecommissioningListType;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
+import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.entities.FolderVO;
 import com.constellio.app.modules.rm.ui.pages.pdf.ConsolidatedPdfButton;
@@ -112,6 +113,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 	@Override
 	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
 		List<Button> buttons = super.buildActionMenuButtons(event);
+		buttons.add(buildRenameButton());
 		buttons.add(buildPrepareEmailButton());
 		buttons.add(buildBatchDuplicateButton());
 		buttons.add(buildDocumentsBatchProcessingButton());
@@ -130,6 +132,28 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		buttons.add(buildCreateSIPArchivesButton());
 		buttons.add(buildConsolidatedPdfButton());
 		return buttons;
+	}
+
+	private Button buildRenameButton() {
+		RenameDialog button = new RenameDialog(null,
+				$("CartView.reNameCartGroup"),
+				$("CartView.reNameCartGroup"), false) {
+			@Override
+			public void save(String newTitle) {
+				if (presenter.reNameFavoritesGroup(newTitle)) {
+					getWindow().close();
+					navigate().to(RMViews.class).cart(presenter.cart().getId());
+				}
+			}
+		};
+
+		if (!presenter.isDefaultCart()) {
+			button.setOriginalValue(presenter.cart().getTitle());
+		}
+
+		button.setEnabled(presenter.canRenameFavoriteGroup());
+		button.setVisible(presenter.canRenameFavoriteGroup());
+		return button;
 	}
 
 	private Button buildFoldersLabelsButton() {
@@ -194,6 +218,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		} else {
 			throw new RuntimeException("Unsupported mode " + mode);
 		}
+
 		button.setEnabled(presenter.isBatchProcessingButtonVisible(schemaType));
 		button.setVisible(presenter.isBatchProcessingButtonVisible(schemaType));
 		return button;
@@ -569,7 +594,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 	}
 
 	private Button buildBatchDeleteButton() {
-		Button button = new Button();
+		Button button;
 		if(!presenter.isNeedingAReasonToDeleteRecords()) {
 			button = new DeleteButton(false) {
 				@Override

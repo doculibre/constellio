@@ -102,6 +102,10 @@ public class BatchProcessingModifyingOneMetadataButton extends WindowButton {
 	}
 
 	private Component buildBatchProcessingForm() {
+		if (!presenter.validateUserHaveBatchProcessPermissionOnAllRecords(view.getSchemaType())) {
+			return new Label($("BatchProcess.batchProcessPermissionMissing"));
+		}
+
 		Label label = new Label($("AdvancedSearchView.batchProcessValue"));
 		value = null;
 

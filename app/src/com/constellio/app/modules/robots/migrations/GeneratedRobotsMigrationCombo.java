@@ -1,22 +1,13 @@
 package com.constellio.app.modules.robots.migrations;
 
-import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
-import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
-import com.constellio.model.entities.schemas.MetadataTransiency;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import com.constellio.model.services.security.roles.RolesManager;
-import java.util.ArrayList;
-import static com.constellio.data.utils.HashMapBuilder.stringObjectMap;
-import static java.util.Arrays.asList;
-
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
+import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.ui.pages.search.criteria.CriterionFactory;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
@@ -32,7 +23,10 @@ import com.constellio.model.services.schemas.calculators.PrincipalPathCalculator
 import com.constellio.model.services.schemas.calculators.TokensCalculator4;
 import com.constellio.model.services.schemas.validators.ManualTokenValidator;
 import com.constellio.model.services.security.roles.RolesManager;
-import java.lang.String;
+
+import java.util.ArrayList;
+
+import static java.util.Arrays.asList;
 
 public final class GeneratedRobotsMigrationCombo {
   String collection;
@@ -240,10 +234,10 @@ public final class GeneratedRobotsMigrationCombo {
     robot_errorOnPhysicalDeletion.setSystemReserved(true);
     robot_errorOnPhysicalDeletion.setUndeletable(true);
     robot_errorOnPhysicalDeletion.setMultiLingual(false);
-    MetadataBuilder robot_estimatedSize = robotSchema.create("estimatedSize").setType(MetadataValueType.INTEGER);
-    robot_estimatedSize.setSystemReserved(true);
-    robot_estimatedSize.setUndeletable(true);
-    robot_estimatedSize.setMultiLingual(false);
+	  MetadataBuilder robot_estimatedSize = robotSchema.create("estimatedSize").setType(MetadataValueType.INTEGER);
+	  robot_estimatedSize.setSystemReserved(true);
+	  robot_estimatedSize.setUndeletable(true);
+	  robot_estimatedSize.setMultiLingual(false);
     MetadataBuilder robot_excludeProcessedByChildren = robotSchema.create("excludeProcessedByChildren").setType(MetadataValueType.BOOLEAN);
     robot_excludeProcessedByChildren.setDefaultRequirement(true);
     robot_excludeProcessedByChildren.setUndeletable(true);
@@ -432,10 +426,11 @@ public final class GeneratedRobotsMigrationCombo {
     actionParameters_errorOnPhysicalDeletion.setSystemReserved(true);
     actionParameters_errorOnPhysicalDeletion.setUndeletable(true);
     actionParameters_errorOnPhysicalDeletion.setMultiLingual(false);
-    MetadataBuilder actionParameters_estimatedSize = actionParametersSchema.create("estimatedSize").setType(MetadataValueType.INTEGER);
-    actionParameters_estimatedSize.setSystemReserved(true);
-    actionParameters_estimatedSize.setUndeletable(true);
-    actionParameters_estimatedSize.setMultiLingual(false);
+	  MetadataBuilder actionParameters_estimatedSize = actionParametersSchema.create("estimatedSize")
+			  .setType(MetadataValueType.INTEGER);
+	  actionParameters_estimatedSize.setSystemReserved(true);
+	  actionParameters_estimatedSize.setUndeletable(true);
+	  actionParameters_estimatedSize.setMultiLingual(false);
     MetadataBuilder actionParameters_id = actionParametersSchema.create("id").setType(MetadataValueType.STRING);
     actionParameters_id.setDefaultRequirement(true);
     actionParameters_id.setSystemReserved(true);
@@ -567,7 +562,7 @@ public final class GeneratedRobotsMigrationCombo {
     MetadataBuilder task_approval_detachedauthorizations = task_approvalSchema.get("detachedauthorizations");
     MetadataBuilder task_approval_dueDate = task_approvalSchema.get("dueDate");
     MetadataBuilder task_approval_errorOnPhysicalDeletion = task_approvalSchema.get("errorOnPhysicalDeletion");
-    MetadataBuilder task_approval_estimatedSize = task_approvalSchema.get("estimatedSize");
+	  MetadataBuilder task_approval_estimatedSize = task_approvalSchema.get("estimatedSize");
     MetadataBuilder task_approval_finishedBy = task_approvalSchema.get("finishedBy");
     MetadataBuilder task_approval_finishedOn = task_approvalSchema.get("finishedOn");
     MetadataBuilder task_approval_id = task_approvalSchema.get("id");
@@ -669,10 +664,10 @@ public final class GeneratedRobotsMigrationCombo {
     robotLog_errorOnPhysicalDeletion.setSystemReserved(true);
     robotLog_errorOnPhysicalDeletion.setUndeletable(true);
     robotLog_errorOnPhysicalDeletion.setMultiLingual(false);
-    MetadataBuilder robotLog_estimatedSize = robotLogSchema.create("estimatedSize").setType(MetadataValueType.INTEGER);
-    robotLog_estimatedSize.setSystemReserved(true);
-    robotLog_estimatedSize.setUndeletable(true);
-    robotLog_estimatedSize.setMultiLingual(false);
+	  MetadataBuilder robotLog_estimatedSize = robotLogSchema.create("estimatedSize").setType(MetadataValueType.INTEGER);
+	  robotLog_estimatedSize.setSystemReserved(true);
+	  robotLog_estimatedSize.setUndeletable(true);
+	  robotLog_estimatedSize.setMultiLingual(false);
     MetadataBuilder robotLog_id = robotLogSchema.create("id").setType(MetadataValueType.STRING);
     robotLog_id.setDefaultRequirement(true);
     robotLog_id.setSystemReserved(true);
@@ -807,7 +802,8 @@ public final class GeneratedRobotsMigrationCombo {
     MetadataBuilder temporaryRecord_batchProcessReport_destructionDate = temporaryRecord_batchProcessReportSchema.get("destructionDate");
     MetadataBuilder temporaryRecord_batchProcessReport_detachedauthorizations = temporaryRecord_batchProcessReportSchema.get("detachedauthorizations");
     MetadataBuilder temporaryRecord_batchProcessReport_errorOnPhysicalDeletion = temporaryRecord_batchProcessReportSchema.get("errorOnPhysicalDeletion");
-    MetadataBuilder temporaryRecord_batchProcessReport_estimatedSize = temporaryRecord_batchProcessReportSchema.get("estimatedSize");
+	  MetadataBuilder temporaryRecord_batchProcessReport_estimatedSize = temporaryRecord_batchProcessReportSchema
+			  .get("estimatedSize");
     MetadataBuilder temporaryRecord_batchProcessReport_id = temporaryRecord_batchProcessReportSchema.get("id");
     MetadataBuilder temporaryRecord_batchProcessReport_legacyIdentifier = temporaryRecord_batchProcessReportSchema.get("legacyIdentifier");
     MetadataBuilder temporaryRecord_batchProcessReport_logicallyDeletedOn = temporaryRecord_batchProcessReportSchema.get("logicallyDeletedOn");
@@ -843,7 +839,7 @@ public final class GeneratedRobotsMigrationCombo {
     MetadataBuilder temporaryRecord_exportAudit_destructionDate = temporaryRecord_exportAuditSchema.get("destructionDate");
     MetadataBuilder temporaryRecord_exportAudit_detachedauthorizations = temporaryRecord_exportAuditSchema.get("detachedauthorizations");
     MetadataBuilder temporaryRecord_exportAudit_errorOnPhysicalDeletion = temporaryRecord_exportAuditSchema.get("errorOnPhysicalDeletion");
-    MetadataBuilder temporaryRecord_exportAudit_estimatedSize = temporaryRecord_exportAuditSchema.get("estimatedSize");
+	  MetadataBuilder temporaryRecord_exportAudit_estimatedSize = temporaryRecord_exportAuditSchema.get("estimatedSize");
     MetadataBuilder temporaryRecord_exportAudit_id = temporaryRecord_exportAuditSchema.get("id");
     MetadataBuilder temporaryRecord_exportAudit_legacyIdentifier = temporaryRecord_exportAuditSchema.get("legacyIdentifier");
     MetadataBuilder temporaryRecord_exportAudit_logicallyDeletedOn = temporaryRecord_exportAuditSchema.get("logicallyDeletedOn");
@@ -879,7 +875,7 @@ public final class GeneratedRobotsMigrationCombo {
     MetadataBuilder temporaryRecord_importAudit_destructionDate = temporaryRecord_importAuditSchema.get("destructionDate");
     MetadataBuilder temporaryRecord_importAudit_detachedauthorizations = temporaryRecord_importAuditSchema.get("detachedauthorizations");
     MetadataBuilder temporaryRecord_importAudit_errorOnPhysicalDeletion = temporaryRecord_importAuditSchema.get("errorOnPhysicalDeletion");
-    MetadataBuilder temporaryRecord_importAudit_estimatedSize = temporaryRecord_importAuditSchema.get("estimatedSize");
+	  MetadataBuilder temporaryRecord_importAudit_estimatedSize = temporaryRecord_importAuditSchema.get("estimatedSize");
     MetadataBuilder temporaryRecord_importAudit_id = temporaryRecord_importAuditSchema.get("id");
     MetadataBuilder temporaryRecord_importAudit_legacyIdentifier = temporaryRecord_importAuditSchema.get("legacyIdentifier");
     MetadataBuilder temporaryRecord_importAudit_logicallyDeletedOn = temporaryRecord_importAuditSchema.get("logicallyDeletedOn");
@@ -915,7 +911,7 @@ public final class GeneratedRobotsMigrationCombo {
     MetadataBuilder temporaryRecord_scriptReport_destructionDate = temporaryRecord_scriptReportSchema.get("destructionDate");
     MetadataBuilder temporaryRecord_scriptReport_detachedauthorizations = temporaryRecord_scriptReportSchema.get("detachedauthorizations");
     MetadataBuilder temporaryRecord_scriptReport_errorOnPhysicalDeletion = temporaryRecord_scriptReportSchema.get("errorOnPhysicalDeletion");
-    MetadataBuilder temporaryRecord_scriptReport_estimatedSize = temporaryRecord_scriptReportSchema.get("estimatedSize");
+	  MetadataBuilder temporaryRecord_scriptReport_estimatedSize = temporaryRecord_scriptReportSchema.get("estimatedSize");
     MetadataBuilder temporaryRecord_scriptReport_id = temporaryRecord_scriptReportSchema.get("id");
     MetadataBuilder temporaryRecord_scriptReport_legacyIdentifier = temporaryRecord_scriptReportSchema.get("legacyIdentifier");
     MetadataBuilder temporaryRecord_scriptReport_logicallyDeletedOn = temporaryRecord_scriptReportSchema.get("logicallyDeletedOn");
@@ -951,7 +947,7 @@ public final class GeneratedRobotsMigrationCombo {
     MetadataBuilder temporaryRecord_vaultScanReport_destructionDate = temporaryRecord_vaultScanReportSchema.get("destructionDate");
     MetadataBuilder temporaryRecord_vaultScanReport_detachedauthorizations = temporaryRecord_vaultScanReportSchema.get("detachedauthorizations");
     MetadataBuilder temporaryRecord_vaultScanReport_errorOnPhysicalDeletion = temporaryRecord_vaultScanReportSchema.get("errorOnPhysicalDeletion");
-    MetadataBuilder temporaryRecord_vaultScanReport_estimatedSize = temporaryRecord_vaultScanReportSchema.get("estimatedSize");
+	  MetadataBuilder temporaryRecord_vaultScanReport_estimatedSize = temporaryRecord_vaultScanReportSchema.get("estimatedSize");
     MetadataBuilder temporaryRecord_vaultScanReport_id = temporaryRecord_vaultScanReportSchema.get("id");
     MetadataBuilder temporaryRecord_vaultScanReport_legacyIdentifier = temporaryRecord_vaultScanReportSchema.get("legacyIdentifier");
     MetadataBuilder temporaryRecord_vaultScanReport_logicallyDeletedOn = temporaryRecord_vaultScanReportSchema.get("logicallyDeletedOn");
@@ -992,7 +988,7 @@ public final class GeneratedRobotsMigrationCombo {
     MetadataBuilder facet_field_detachedauthorizations = facet_fieldSchema.get("detachedauthorizations");
     MetadataBuilder facet_field_elementPerPage = facet_fieldSchema.get("elementPerPage");
     MetadataBuilder facet_field_errorOnPhysicalDeletion = facet_fieldSchema.get("errorOnPhysicalDeletion");
-    MetadataBuilder facet_field_estimatedSize = facet_fieldSchema.get("estimatedSize");
+	  MetadataBuilder facet_field_estimatedSize = facet_fieldSchema.get("estimatedSize");
     MetadataBuilder facet_field_facetType = facet_fieldSchema.get("facetType");
     MetadataBuilder facet_field_fieldDatastoreCode = facet_fieldSchema.get("fieldDatastoreCode");
     MetadataBuilder facet_field_id = facet_fieldSchema.get("id");
@@ -1034,7 +1030,7 @@ public final class GeneratedRobotsMigrationCombo {
     MetadataBuilder facet_query_detachedauthorizations = facet_querySchema.get("detachedauthorizations");
     MetadataBuilder facet_query_elementPerPage = facet_querySchema.get("elementPerPage");
     MetadataBuilder facet_query_errorOnPhysicalDeletion = facet_querySchema.get("errorOnPhysicalDeletion");
-    MetadataBuilder facet_query_estimatedSize = facet_querySchema.get("estimatedSize");
+	  MetadataBuilder facet_query_estimatedSize = facet_querySchema.get("estimatedSize");
     MetadataBuilder facet_query_facetType = facet_querySchema.get("facetType");
     MetadataBuilder facet_query_fieldDatastoreCode = facet_querySchema.get("fieldDatastoreCode");
     MetadataBuilder facet_query_id = facet_querySchema.get("id");

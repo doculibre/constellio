@@ -679,7 +679,7 @@ public class ContentManager implements StatefulService {
 
 		SearchResponseIterator<Record> recordsIterator =
 				searchServices.recordsIterator(new LogicalSearchQuery(condition)
-				.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(contentMetadatas)));
+						.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(contentMetadatas)));
 		while (recordsIterator.hasNext()) {
 			Record record = recordsIterator.next();
 			for (Metadata metadata : contentMetadatas) {

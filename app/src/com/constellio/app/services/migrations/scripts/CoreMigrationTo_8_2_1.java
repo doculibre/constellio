@@ -26,7 +26,7 @@ public class CoreMigrationTo_8_2_1 implements MigrationScript {
 
 	@Override
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
-						AppLayerFactory appLayerFactory)
+			AppLayerFactory appLayerFactory)
 			throws Exception {
 		appLayerFactory.getSystemGlobalConfigsManager().setReindexingRequired(true);
 		new CoreSchemaAlterationFor_8_2_1(collection, migrationResourcesProvider, appLayerFactory).migrate();
@@ -35,8 +35,8 @@ public class CoreMigrationTo_8_2_1 implements MigrationScript {
 	class CoreSchemaAlterationFor_8_2_1 extends MetadataSchemasAlterationHelper {
 
 		protected CoreSchemaAlterationFor_8_2_1(String collection,
-											  MigrationResourcesProvider migrationResourcesProvider,
-											  AppLayerFactory appLayerFactory) {
+				MigrationResourcesProvider migrationResourcesProvider,
+				AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 
@@ -48,7 +48,7 @@ public class CoreMigrationTo_8_2_1 implements MigrationScript {
 			typesBuilder.getDefaultSchema(User.SCHEMA_TYPE).createUndeletable(User.DO_NOT_RECEIVE_EMAILS)
 					.setType(BOOLEAN);
 
-			if(Collection.SYSTEM_COLLECTION.equals(typesBuilder.getCollection())) {
+			if (Collection.SYSTEM_COLLECTION.equals(typesBuilder.getCollection())) {
 				typesBuilder.getDefaultSchema(UserCredential.SCHEMA_TYPE).createUndeletable(UserCredential.DO_NOT_RECEIVE_EMAILS)
 						.setType(BOOLEAN);
 			}
@@ -57,19 +57,19 @@ public class CoreMigrationTo_8_2_1 implements MigrationScript {
 			Set<MetadataBuilder> numberMetadatas = typesBuilder.getAllMetadatasOfType(NUMBER);
 			Set<MetadataBuilder> integerMetadatas = typesBuilder.getAllMetadatasOfType(INTEGER);
 
-			for(MetadataBuilder metadata: booleanMetadatas) {
+			for (MetadataBuilder metadata : booleanMetadatas) {
 				if (metadata.getInheritance() == null) {
 					metadata.setSearchable(false).setSchemaAutocomplete(false);
 				}
 			}
 
-			for(MetadataBuilder metadata: numberMetadatas) {
+			for (MetadataBuilder metadata : numberMetadatas) {
 				if (metadata.getInheritance() == null) {
 					metadata.setSearchable(false).setSchemaAutocomplete(false);
 				}
 			}
 
-			for(MetadataBuilder metadata: integerMetadatas) {
+			for (MetadataBuilder metadata : integerMetadatas) {
 				if (metadata.getInheritance() == null) {
 					metadata.setSearchable(false).setSchemaAutocomplete(false);
 				}

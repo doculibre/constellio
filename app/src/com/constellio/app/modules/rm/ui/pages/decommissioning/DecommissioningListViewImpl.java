@@ -796,7 +796,8 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 			}
 		};
 		container.setItemSorter(buildItemSorter());
-		BaseTable table = new BaseTable("DecommissioningListView.folderTable", $("DecommissioningListView.folderDetails", container.size()), container);
+		BaseTable table = new BaseTable("DecommissioningListView.folderTable",
+				$("DecommissioningListView.folderDetails", container.size()), container);
 		table.setPageLength(container.size());
 		table.setWidth("100%");
 
@@ -885,7 +886,8 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 					} else if (FolderDetailTableGenerator.FOLDER.equals(propertyId)) {
 						FolderDetailVO vo1 = ((BeanItem<FolderDetailVO>) item1).getBean();
 						FolderDetailVO vo2 = ((BeanItem<FolderDetailVO>) item2).getBean();
-						int returnedValue = SchemaCaptionUtils.getCaptionForRecordId(vo1.getFolderId()).compareTo(SchemaCaptionUtils.getCaptionForRecordId(vo2.getFolderId()));
+						int returnedValue = SchemaCaptionUtils.getCaptionForRecordId(vo1.getFolderId())
+								.compareTo(SchemaCaptionUtils.getCaptionForRecordId(vo2.getFolderId()));
 						if (!sortDirection) {
 							returnedValue = -returnedValue;
 						}
@@ -902,7 +904,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 						}
 					} else if (value2 == null) {
 						return -returnedValue;
-					} 
+					}
 
 					return returnedValue;
 				}
@@ -916,7 +918,8 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 					if (FolderDetailTableGenerator.FOLDER.equals(propertyId)) {
 						FolderDetailVO vo1 = ((BeanItem<FolderDetailVO>) item1).getBean();
 						FolderDetailVO vo2 = ((BeanItem<FolderDetailVO>) item2).getBean();
-						int returnedValue = SchemaCaptionUtils.getCaptionForRecordId(vo1.getFolderId()).compareTo(SchemaCaptionUtils.getCaptionForRecordId(vo2.getFolderId()));
+						int returnedValue = SchemaCaptionUtils.getCaptionForRecordId(vo1.getFolderId())
+								.compareTo(SchemaCaptionUtils.getCaptionForRecordId(vo2.getFolderId()));
 						if (!sortDirection) {
 							returnedValue = -returnedValue;
 						}
@@ -937,7 +940,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 							}
 						} else if (value2 == null) {
 							return -returnedValue;
-						} 
+						}
 						return returnedValue;
 					}
 				}

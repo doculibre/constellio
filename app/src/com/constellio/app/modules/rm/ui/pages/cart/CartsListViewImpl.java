@@ -1,10 +1,13 @@
 package com.constellio.app.modules.rm.ui.pages.cart;
 
+import com.constellio.app.modules.rm.navigation.RMViews;
+import com.constellio.app.modules.rm.ui.pages.cart.DefaultFavoritesTable.CartItem;
 import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.DisplayButton;
+import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
@@ -127,6 +130,33 @@ public class CartsListViewImpl extends BaseViewImpl implements CartsListView {
 				};
 			}
 		});
+
+		buttonsContainer.addButton(new ButtonsContainer.ContainerButton() {
+			@Override
+			protected Button newButtonInstance(final Object item, ButtonsContainer<?> container) {
+				final Cart cart = buttonsContainer.getNestedContainer().getCart((DefaultFavoritesTable.CartItem) item);
+				final RenameDialog renameDialog = new RenameDialog(EditButton.ICON_RESOURCE, $("CartsListView.reNameCartGroup"),
+						$("CartsListView.reNameCartGroup"), true) {
+					@Override
+					public void save(String string) {
+						if (presenter.reNameFavoritesGroup(cart, string)) {
+							getWindow().close();
+							navigate().to(RMViews.class).listCarts();
+						}
+					}
+				};
+				boolean isVisibleAndEnabled = ((CartItem) item).getCart() != null;
+				if (isVisibleAndEnabled) {
+					renameDialog.setOriginalValue(cart.getTitle());
+				}
+
+				renameDialog.setEnabled(isVisibleAndEnabled);
+				renameDialog.setVisible(isVisibleAndEnabled);
+
+				return renameDialog;
+			}
+		});
+
 		buttonsContainer.addButton(new ButtonsContainer.ContainerButton() {
 			@Override
 			protected Button newButtonInstance(final Object item, ButtonsContainer<?> container) {
@@ -141,6 +171,7 @@ public class CartsListViewImpl extends BaseViewImpl implements CartsListView {
 				return deleteButton;
 			}
 		});
+
 		return new DefaultFavoritesTable("favoritesTable", buttonsContainer, presenter.getSchema());
 	}
 

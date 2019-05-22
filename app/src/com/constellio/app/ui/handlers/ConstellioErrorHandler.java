@@ -8,7 +8,6 @@ import com.constellio.app.ui.pages.home.HomeView;
 import com.constellio.app.ui.util.ComponentTreeUtils;
 import com.vaadin.server.DefaultErrorHandler;
 import com.vaadin.server.ErrorEvent;
-import com.vaadin.server.Page;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Table.CacheUpdateException;
@@ -29,7 +28,7 @@ public class ConstellioErrorHandler extends DefaultErrorHandler {
 
 		BaseViewImpl view = getCurrentView();
 		if (view != null) {
-			if((!(view instanceof HomeView)) && (throwable instanceof CacheUpdateException)
+			if ((!(view instanceof HomeView)) && (throwable instanceof CacheUpdateException)
 					&& throwable.getCause() != null
 					&& throwable.getCause() instanceof ContainerException_ItemListChanged) {
 

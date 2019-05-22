@@ -22,13 +22,13 @@ public class EmailRecipientServices {
 	}
 
 	public static void filterUsersWhoDoNotWantEmails(List<User> users) {
-		if(users == null) {
+		if (users == null) {
 			return;
 		}
 		Iterator<User> userIterator = users.iterator();
 		while (userIterator.hasNext()) {
 			User user = userIterator.next();
-			if(user.isNotReceivingEmails()) {
+			if (user.isNotReceivingEmails()) {
 				userIterator.remove();
 			}
 		}
