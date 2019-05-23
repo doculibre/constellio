@@ -503,7 +503,7 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 	public void beforeCompletionActions(Task task) {
 		if (rmModuleExtensions != null) {
 			for (TaskManagementPresenterExtension extension : rmModuleExtensions.getTaskManagementPresenterExtensions()) {
-				//extension.beforeCompletionActions(task);
+				extension.beforeCompletionActions(task);
 			}
 		}
 	}
