@@ -72,7 +72,8 @@ public class FolderRestfulService extends ResourceRestfulService {
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	@Operation(summary = "Create folder", description = "Create a folder")
+	@Operation(summary = "Create folder", description = "Create a folder<br><br>" +
+														"To copy a folder, use " + CustomHttpHeaders.COPY_SOURCE + " header.")
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "201", description = "Created", headers = @Header(name = "ETag", description = "Concurrency control version of the folder"),
 					content = @Content(mediaType = "application/json", schema = @Schema(ref = "Folder"))),
@@ -89,7 +90,7 @@ public class FolderRestfulService extends ResourceRestfulService {
 						   @Parameter(description = "Fields to filter from the JSON response.", example = "[\"directAces\", \"inheritedAces\"]")
 						   @QueryParam("filter") Set<String> filters,
 						   @Parameter(description = "A folder id can be specified to activate the copy mode.<br>" +
-													"All contents of the source folder will be copied and values from the body will be applied on copied folder.")
+													"The folder structure and all files will be copied. Any values specified in the body will be applied on the copied folder.")
 							   @HeaderParam(CustomHttpHeaders.COPY_SOURCE) String copySourceId,
 						   @Parameter(description = "The flushing mode indicates how the commits are executed in solr",
 								   schema = @Schema(allowableValues = {"NOW, LATER, WITHIN_{X}_SECONDS"})) @DefaultValue("WITHIN_5_SECONDS")
@@ -139,7 +140,7 @@ public class FolderRestfulService extends ResourceRestfulService {
 	@PATCH
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	@Operation(summary = "Patch document", description = "Update partially the metadata of a folder")
+	@Operation(summary = "Patch folder", description = "Update a folder partially (metadata only)")
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "200", description = "OK", headers = @Header(name = "ETag", description = "Concurrency control version of the folder"),
 					content = @Content(mediaType = "application/json", schema = @Schema(ref = "Folder"))),
