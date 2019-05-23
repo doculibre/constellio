@@ -278,7 +278,7 @@ public class DocumentRestfulService extends ResourceRestfulService {
 		DocumentDto updatedDocument = documentService.update(host, id, serviceKey, method, date, expiration, signature,
 				document, fileStream, true, flush, filters);
 
-		return Response.ok(updatedDocument).tag(document.getETag()).build();
+		return Response.ok(updatedDocument).tag(updatedDocument.getETag()).build();
 	}
 
 	@DELETE
