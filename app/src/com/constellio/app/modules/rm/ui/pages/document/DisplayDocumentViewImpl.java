@@ -400,7 +400,6 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 						if (propertyId instanceof MetadataVO) {
 							if (Task.STARRED_BY_USERS.equals(((MetadataVO) propertyId).getLocalCode())) {
 								setColumnHeader(propertyId, ((MetadataVO) propertyId).getLabel(getSessionContext().getCurrentLocale()));
-								setColumnWidth(propertyId, 60);
 							}
 						}
 						return super.toColumnId(propertyId);
