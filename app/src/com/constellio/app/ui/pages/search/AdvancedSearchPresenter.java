@@ -23,6 +23,7 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.PrintableReport;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
+import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -76,6 +77,7 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 import com.vaadin.ui.Component;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.common.params.ModifiableSolrParams;
+import org.joda.time.LocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -220,13 +222,11 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	}
 
 	public boolean batchEditRequested(String code, Object value, String schemaType) {
-		Map<String, Object> changes = new HashMap<>();
-		changes.put(code, value);
-
 		LogicalSearchQuery query = buildBatchProcessLogicalSearchQuery();
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
 		ModifiableSolrParams params = searchServices.addSolrModifiableParams(query);
 
+		Map<String, Object> changes = getChanges(code, value);
 		AsyncTask asyncTask = new ChangeValueOfMetadataBatchAsyncTask(changes, SolrUtils.toSingleQueryString(params),
 				null, searchServices().getResultsCount(query));
 
@@ -237,6 +237,16 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		BatchProcessesManager manager = modelLayerFactory.getBatchProcessesManager();
 		manager.addAsyncTask(asyncTaskRequest);
 		return true;
+	}
+
+	private Map<String, Object> getChanges(String code, Object value) {
+		Map<String, Object> changes = new HashMap<>();
+		changes.put(code, value);
+		if ((Task.DEFAULT_SCHEMA + "_" + Task.ASSIGNEE).equals(code)) {
+			changes.put((Task.DEFAULT_SCHEMA + "_" + Task.ASSIGNED_ON), LocalDate.now());
+			changes.put((Task.DEFAULT_SCHEMA + "_" + Task.ASSIGNER), getCurrentUser().getId());
+		}
+		return changes;
 	}
 
 	@Override
