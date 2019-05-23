@@ -16,8 +16,12 @@ import com.constellio.app.modules.restapi.core.exception.mapper.RestApiErrorResp
 import com.constellio.app.modules.restapi.core.util.CustomHttpHeaders;
 import com.constellio.app.modules.restapi.core.util.DateUtils;
 import com.constellio.app.modules.restapi.core.util.HttpMethods;
+import com.constellio.app.modules.restapi.folder.dto.AdministrativeUnitDto;
+import com.constellio.app.modules.restapi.folder.dto.CategoryDto;
+import com.constellio.app.modules.restapi.folder.dto.ContainerDto;
 import com.constellio.app.modules.restapi.folder.dto.FolderDto;
 import com.constellio.app.modules.restapi.folder.dto.FolderTypeDto;
+import com.constellio.app.modules.restapi.folder.dto.RetentionRuleDto;
 import com.constellio.app.modules.restapi.resource.dto.AceDto;
 import com.constellio.app.modules.restapi.resource.dto.ExtendedAttributeDto;
 import com.constellio.app.modules.restapi.resource.exception.ResourceTypeNotFoundException;
@@ -77,14 +81,14 @@ public class FolderRestfulServicePOSTAcceptanceTest extends BaseFolderRestfulSer
 	public void setUp() throws Exception {
 		super.setUp();
 
-		minFolderToAdd = FolderDto.builder().administrativeUnit(records.unitId_10a).category(records.categoryId_X110)
-				.title("folder").retentionRule(records.ruleId_1).copyStatus(CopyType.PRINCIPAL.getCode())
+		minFolderToAdd = FolderDto.builder().administrativeUnit(AdministrativeUnitDto.builder().id(records.unitId_10a).build()).category(CategoryDto.builder().id(records.categoryId_X110).build())
+				.title("folder").retentionRule(RetentionRuleDto.builder().id(records.ruleId_1).build()).copyStatus(CopyType.PRINCIPAL.getCode())
 				.openingDate(new LocalDate(2019, 4, 4))
 				.parentFolderId(records.folder_A04).build();
-		fullFolderToAdd = FolderDto.builder().parentFolderId(records.folder_A04).category(records.categoryId_X110)
-				.retentionRule(records.ruleId_1).administrativeUnit(records.unitId_10a)
+		fullFolderToAdd = FolderDto.builder().parentFolderId(records.folder_A04).category(CategoryDto.builder().id(records.categoryId_X110).build())
+				.retentionRule(RetentionRuleDto.builder().id(records.ruleId_1).build()).administrativeUnit(AdministrativeUnitDto.builder().id(records.unitId_10a).build())
 				.mainCopyRule(records.principal42_5_CId).copyStatus(CopyType.PRINCIPAL.getCode())
-				.mediumTypes(singletonList("PA")).container(records.containerId_bac01)
+				.mediumTypes(singletonList("PA")).container(ContainerDto.builder().id(records.containerId_bac01).build())
 				.title("title").description("description").keywords(singletonList("folder"))
 				.openingDate(new LocalDate(2019, 4, 4))
 				.closingDate(new LocalDate(2019, 4, 4))
@@ -210,7 +214,7 @@ public class FolderRestfulServicePOSTAcceptanceTest extends BaseFolderRestfulSer
 				Folder.ADMINISTRATIVE_UNIT, Folder.MAIN_COPY_RULE, Folder.COPY_STATUS, Folder.MEDIUM_TYPES, Folder.CONTAINER, Folder.DESCRIPTION,
 				Folder.OPENING_DATE, Folder.CLOSING_DATE, Folder.ACTUAL_TRANSFER_DATE, Folder.ACTUAL_DEPOSIT_DATE, Folder.ACTUAL_DESTRUCTION_DATE)
 				.containsExactly(folder.getTitle(), folder.getParentFolderId(), folder.getKeywords(), folder.getType().getId(),
-						folder.getRetentionRule(), folder.getAdministrativeUnit(), toMainCopyRule(folder.getRetentionRule(), folder.getMainCopyRule()),
+						folder.getRetentionRule(), folder.getAdministrativeUnit(), toMainCopyRule(folder.getRetentionRule().getId(), folder.getMainCopyRule()),
 						toCopyType(folder.getCopyStatus()), toMediumTypeIds(folder.getMediumTypes()),
 						folder.getContainer(), folder.getDescription(), folder.getOpeningDate(), folder.getClosingDate(),
 						folder.getActualTransferDate(), folder.getActualDepositDate(), folder.getActualDestructionDate());
@@ -1093,10 +1097,6 @@ public class FolderRestfulServicePOSTAcceptanceTest extends BaseFolderRestfulSer
 	//
 	// PRIVATE FUNCTIONS
 	//
-
-	private <T> void addUsrMetadata(final MetadataValueType type, T value1, T value2) throws Exception {
-		addUsrMetadata(null, Folder.DEFAULT_SCHEMA, type, value1, value2);
-	}
 
 	private Response doPostQuery(FolderDto folder, String... excludedParam) throws Exception {
 		return doPostQuery(null, true, folder, excludedParam);

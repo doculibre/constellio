@@ -12,6 +12,8 @@ import com.constellio.app.modules.restapi.validation.exception.InvalidSignatureE
 import com.constellio.app.modules.restapi.validation.exception.UnallowedHostException;
 import com.constellio.app.modules.restapi.validation.exception.UnauthenticatedUserException;
 import com.constellio.app.modules.restapi.validation.exception.UnauthorizedAccessException;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
+import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
@@ -54,17 +56,38 @@ public class FolderRestfulServiceGETAcceptanceTest extends BaseFolderRestfulServ
 
 		FolderDto folderDto = response.readEntity(FolderDto.class);
 
+		RetentionRule retentionRule = rm.getRetentionRule(fakeFolder.getRetentionRule());
+		String categoryTitle = recordServices.getDocumentById(fakeFolder.getCategory()).getTitle();
+
+		String containerTitle = recordServices.getDocumentById(fakeFolder.getContainer()).getTitle();
+		AdministrativeUnit administrativeUnit = rm.getAdministrativeUnit(fakeFolder.getAdministrativeUnit());
+		String administrativeUnitTitle = administrativeUnit.getTitle();
+		String administrativeUnitCode = administrativeUnit.getCode();
+		String retentionRuleTitle = recordServices.getDocumentById(fakeFolder.getRetentionRule()).getTitle();
+
 		assertThat(folderDto).isNotNull();
 		assertThat(folderDto.getId()).isEqualTo(fakeFolder.getId());
 		assertThat(folderDto.getParentFolderId()).isEqualTo(fakeFolder.getParentFolder());
-		assertThat(folderDto.getType()).isEqualTo(fakeFolder.getType());
-		assertThat(folderDto.getRetentionRule()).isEqualTo(fakeFolder.getRetentionRule());
-		assertThat(folderDto.getAdministrativeUnit()).isEqualTo(fakeFolder.getAdministrativeUnitEntered());
+		assertThat(folderDto.getType().getId()).isEqualTo(fakeFolder.getType());
+
+		assertThat(folderDto.getRetentionRule().getId()).isEqualTo(fakeFolder.getRetentionRule());
+		assertThat(folderDto.getRetentionRule().getTitle()).isEqualTo(retentionRuleTitle);
+		assertThat(folderDto.getRetentionRule().getCode()).isEqualTo(retentionRule.getCode());
+
+		assertThat(folderDto.getAdministrativeUnit().getId()).isEqualTo(fakeFolder.getAdministrativeUnitEntered());
+		assertThat(folderDto.getAdministrativeUnit().getTitle()).isEqualTo(administrativeUnitTitle);
+		assertThat(folderDto.getAdministrativeUnit().getCode()).isEqualTo(administrativeUnitCode);
+
+		assertThat(folderDto.getCategory().getId()).isEqualTo(fakeFolder.getCategory());
+		assertThat(folderDto.getCategory().getTitle()).isEqualTo(categoryTitle);
+
+		assertThat(folderDto.getContainer().getId()).isEqualTo(fakeFolder.getContainer());
+		assertThat(folderDto.getContainer().getTitle()).isEqualTo(containerTitle);
+
 		assertThat(folderDto.getMainCopyRule()).isEqualTo(fakeFolder.getMainCopyRule().getId());
 		assertThat(folderDto.getCopyStatus()).isEqualTo(fakeFolder.getCopyStatusEntered().getCode());
-		assertThat(folderDto.getMediumTypes()).isEqualTo(fakeFolder.getMediumTypes());
+		assertThat(folderDto.getMediumTypes()).isEqualTo(getMediumTypes(fakeFolder.getWrappedRecord()));
 		assertThat(folderDto.getMediaType()).isEqualTo(fakeFolder.getMediaType().getCode());
-		assertThat(folderDto.getContainer()).isEqualTo(fakeFolder.getContainer());
 		assertThat(folderDto.getTitle()).isEqualTo(fakeFolder.getTitle());
 		assertThat(folderDto.getDescription()).isEqualTo(fakeFolder.getDescription());
 		assertThat(folderDto.getKeywords()).isEqualTo(fakeFolder.getKeywords());
@@ -76,6 +99,7 @@ public class FolderRestfulServiceGETAcceptanceTest extends BaseFolderRestfulServ
 		assertThat(folderDto.getExpectedTransferDate()).isEqualTo(fakeFolder.getExpectedTransferDate());
 		assertThat(folderDto.getExpectedDepositDate()).isEqualTo(fakeFolder.getExpectedDepositDate());
 		assertThat(folderDto.getExpectedDestructionDate()).isEqualTo(fakeFolder.getExpectedDestructionDate());
+		assertThat(folderDto.getUrlToFolder()).endsWith("/constellio/#!displayFolder/" + fakeFolder.getId());
 
 		assertThat(folderDto.getDirectAces()).contains(
 				AceDto.builder().principals(toPrincipals(authorization1.getPrincipals())).permissions(newHashSet(authorization1.getRoles())).build(),
@@ -85,6 +109,7 @@ public class FolderRestfulServiceGETAcceptanceTest extends BaseFolderRestfulServ
 				ExtendedAttributeDto.builder().key(fakeMetadata1).values(singletonList(value1)).build(),
 				ExtendedAttributeDto.builder().key(fakeMetadata2).values(value2).build());
 	}
+
 
 	@Test
 	public void testGetFolderAllFilters() throws Exception {
@@ -116,8 +141,8 @@ public class FolderRestfulServiceGETAcceptanceTest extends BaseFolderRestfulServ
 
 		FolderDto folderDto = response.readEntity(FolderDto.class);
 		assertThat(singletonList(folderDto)).extracting("id",
-				"parentFolderId", "type", "category", "retentionRule",
-				"administrativeUnit", "mainCopyRule", "copyStatus", "mediumTypes", "mediaType", "container",
+				"parentFolderId", "type", "category.id", "retentionRule.id",
+				"administrativeUnit.id", "mainCopyRule", "copyStatus", "mediumTypes", "mediaType", "container.id",
 				"title", "description", "keywords", "openingDate", "closingDate", "actualTransferDate",
 				"actualDepositDate", "actualDestructionDate", "expectedTransferDate", "expectedDepositDate",
 				"expectedDestructionDate")
@@ -366,10 +391,6 @@ public class FolderRestfulServiceGETAcceptanceTest extends BaseFolderRestfulServ
 	//
 	// PRIVATE FUNCTIONS
 	//
-
-	private <T> void addUsrMetadata(final MetadataValueType type, T value1, T value2) throws Exception {
-		addUsrMetadata(fakeFolder.getId(), fakeFolder.getSchemaCode(), type, value1, value2);
-	}
 
 	private Response doFilteredGetQuery(Object... filters) throws Exception {
 		return buildGetQuery(true).queryParam("filter", filters)

@@ -1,9 +1,12 @@
 package com.constellio.app.modules.restapi.folder.dao;
 
 import com.constellio.app.modules.restapi.core.exception.InvalidParameterException;
+import com.constellio.app.modules.restapi.core.exception.OptimisticLockException;
 import com.constellio.app.modules.restapi.core.exception.RecordCopyNotPermittedException;
+import com.constellio.app.modules.restapi.core.exception.UnresolvableOptimisticLockException;
 import com.constellio.app.modules.restapi.folder.dto.FolderDto;
 import com.constellio.app.modules.restapi.resource.dao.ResourceDao;
+import com.constellio.app.modules.restapi.resource.dto.BaseReferenceDto;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.model.enums.CopyType;
@@ -12,10 +15,12 @@ import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSer
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.app.modules.rm.wrappers.type.MediumType;
+import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.services.records.RecordServicesException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -70,18 +75,56 @@ public class FolderDao extends ResourceDao {
 		return copyFolder.getWrappedRecord();
 	}
 
+	public Record updateFolder(User user, Record folderRecord, MetadataSchema folderSchema, FolderDto folder,
+							   boolean partial, String flushMode) throws Exception {
+		Transaction transaction = buildTransaction(flushMode, user);
+
+		if (folder.getETag() != null) {
+			transaction.setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
+		}
+
+		if (!partial || folder.getType() != null) {
+			MetadataSchema oldFolderSchema = getMetadataSchema(folderRecord);
+			if (!folderSchema.getCode().equals(oldFolderSchema.getCode())) {
+				folderRecord.changeSchema(oldFolderSchema, folderSchema);
+			}
+		}
+		Record folderTypeRecord;
+		if (partial && folder.getType() == null) {
+			String folderTypeId = getMetadataValue(folderRecord, Folder.TYPE);
+			folderTypeRecord = folderTypeId != null ? getRecordById(folderTypeId) : null;
+		} else {
+			folderTypeRecord = getResourceTypeRecord(folder.getType(), folderRecord.getCollection());
+		}
+
+		updateFolderMetadataValues(folderRecord, folderTypeRecord, folderSchema, folder, partial);
+		updateCustomMetadataValues(folderRecord, folderSchema, folder.getExtendedAttributes(), partial);
+
+		transaction.add(folderRecord);
+
+		try {
+			recordServices.execute(transaction);
+		} catch (RecordServicesException.UnresolvableOptimisticLockingConflict e) {
+			throw new UnresolvableOptimisticLockException(folder.getId());
+		} catch (RecordServicesException.OptimisticLocking e) {
+			throw new OptimisticLockException(folder.getId(), folder.getETag(), e.getVersion());
+		}
+
+		return folderRecord;
+	}
+
 	private void updateFolderMetadataValues(Record folderRecord, Record folderTypeRecord, MetadataSchema schema,
 											FolderDto folderDto, boolean partial) {
 		String collection = folderRecord.getCollection();
 
 		updateDocumentMetadataValue(folderRecord, schema, Folder.PARENT_FOLDER, folderDto.getParentFolderId(), partial);
-		updateDocumentMetadataValue(folderRecord, schema, Folder.CATEGORY_ENTERED, folderDto.getCategory(), partial);
-		updateDocumentMetadataValue(folderRecord, schema, Folder.RETENTION_RULE_ENTERED, folderDto.getRetentionRule(), partial);
-		updateDocumentMetadataValue(folderRecord, schema, Folder.ADMINISTRATIVE_UNIT_ENTERED, folderDto.getAdministrativeUnit(), partial);
+		updateDocumentMetadataValue(folderRecord, schema, Folder.CATEGORY_ENTERED, getIdOrNull(folderDto.getCategory()), partial);
+		updateDocumentMetadataValue(folderRecord, schema, Folder.RETENTION_RULE_ENTERED, getIdOrNull(folderDto.getRetentionRule()), partial);
+		updateDocumentMetadataValue(folderRecord, schema, Folder.ADMINISTRATIVE_UNIT_ENTERED, getIdOrNull(folderDto.getAdministrativeUnit()), partial);
 		updateDocumentMetadataValue(folderRecord, schema, Folder.MAIN_COPY_RULE_ID_ENTERED, folderDto.getMainCopyRule(), partial);
 		updateDocumentMetadataValue(folderRecord, schema, Folder.COPY_STATUS_ENTERED, toCopyType(folderDto.getCopyStatus()), partial);
 		updateDocumentMetadataValue(folderRecord, schema, Folder.MEDIUM_TYPES, toMediumTypeIds(collection, folderDto.getMediumTypes()), partial);
-		updateDocumentMetadataValue(folderRecord, schema, Folder.CONTAINER, folderDto.getContainer(), partial);
+		updateDocumentMetadataValue(folderRecord, schema, Folder.CONTAINER, getIdOrNull(folderDto.getContainer()), partial);
 		updateDocumentMetadataValue(folderRecord, schema, Folder.TITLE, folderDto.getTitle(), partial);
 		updateDocumentMetadataValue(folderRecord, schema, Folder.DESCRIPTION, folderDto.getDescription(), partial);
 		updateDocumentMetadataValue(folderRecord, schema, Folder.KEYWORDS, folderDto.getKeywords(), partial);
@@ -124,6 +167,14 @@ public class FolderDao extends ResourceDao {
 			ids.add(mediumType.getId());
 		}
 		return ids;
+	}
+
+	private static String getIdOrNull(BaseReferenceDto baseReferenceDto) {
+		if (baseReferenceDto == null) {
+			return null;
+		}
+
+		return baseReferenceDto.getId();
 	}
 
 	@Override

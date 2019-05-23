@@ -2,14 +2,20 @@ package com.constellio.app.modules.restapi.folder.adaptor;
 
 import com.constellio.app.modules.restapi.ace.AceService;
 import com.constellio.app.modules.restapi.folder.dao.FolderDao;
+import com.constellio.app.modules.restapi.folder.dto.AdministrativeUnitDto;
+import com.constellio.app.modules.restapi.folder.dto.CategoryDto;
+import com.constellio.app.modules.restapi.folder.dto.ContainerDto;
 import com.constellio.app.modules.restapi.folder.dto.FolderDto;
 import com.constellio.app.modules.restapi.folder.dto.FolderTypeDto;
+import com.constellio.app.modules.restapi.folder.dto.RetentionRuleDto;
 import com.constellio.app.modules.restapi.resource.adaptor.ResourceAdaptor;
 import com.constellio.app.modules.restapi.resource.dto.AceListDto;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.FolderMediaType;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -42,17 +48,11 @@ public class FolderAdaptor extends ResourceAdaptor<FolderDto> {
 
 		resource.setId(record.getId());
 		resource.setParentFolderId(!filters.contains("parentFolderId") ? this.<String>getValue(record, Folder.PARENT_FOLDER) : null);
-		resource.setCategory(!filters.contains("category") ? this.<String>getValue(record, Folder.CATEGORY_ENTERED, Folder.CATEGORY) : null);
-		resource.setRetentionRule(!filters.contains("retentionRule") ?
-								  this.<String>getValue(record, Folder.RETENTION_RULE_ENTERED, Folder.RETENTION_RULE) : null);
-		resource.setAdministrativeUnit(!filters.contains("administrativeUnit") ?
-									   this.<String>getValue(record, Folder.ADMINISTRATIVE_UNIT_ENTERED, Folder.ADMINISTRATIVE_UNIT) :
-									   null);
 		resource.setMainCopyRule(!filters.contains("mainCopyRule") ? getMainCopyRuleId(record) : null);
 		resource.setCopyStatus(!filters.contains("copyStatus") ? getCopyStatus(record) : null);
 		resource.setMediumTypes(!filters.contains("mediumTypes") ? getMediumTypes(record) : null);
 		resource.setMediaType(!filters.contains("mediaType") ? getFolderMediaType(record) : null);
-		resource.setContainer(!filters.contains("container") ? this.<String>getValue(record, Folder.CONTAINER) : null);
+
 		resource.setTitle(!filters.contains("title") ? record.getTitle() : null);
 		resource.setDescription(!filters.contains("description") ? this.<String>getValue(record, Folder.DESCRIPTION) : null);
 		resource.setKeywords(!filters.contains("keywords") ? this.<List<String>>getValue(record, Folder.KEYWORDS) : null);
@@ -64,6 +64,62 @@ public class FolderAdaptor extends ResourceAdaptor<FolderDto> {
 		resource.setExpectedDepositDate(!filters.contains("expectedDepositDate") ? this.<LocalDate>getValue(record, Folder.EXPECTED_DEPOSIT_DATE) : null);
 		resource.setExpectedDestructionDate(!filters.contains("expectedDestructionDate") ? this.<LocalDate>getValue(record, Folder.EXPECTED_DESTRUCTION_DATE) : null);
 		resource.setExpectedTransferDate(!filters.contains("expectedTransferDate") ? this.<LocalDate>getValue(record, Folder.EXPECTED_TRANSFER_DATE) : null);
+
+		String serverPath = folderDao.getServerPath();
+		if (!serverPath.endsWith("/")) {
+			serverPath += "/";
+		}
+
+		resource.setUrlToFolder(!filters.contains("urlToFolder") ? serverPath + "constellio/#!displayFolder/" + record.getId() : null);
+
+		if (!filters.contains("container")) {
+			String containerId = getValue(record, Folder.CONTAINER);
+			if (!Strings.isNullOrEmpty(containerId)) {
+				Record containerRecord = folderDao.getRecordById(containerId);
+
+				resource.setContainer(ContainerDto.builder().id(containerId).title(containerRecord.getTitle()).build());
+			}
+		} else {
+			resource.setContainer(null);
+		}
+
+		if (!filters.contains("category")) {
+			String categoryId = getValue(record, Folder.CATEGORY_ENTERED, Folder.CATEGORY);
+			if (!Strings.isNullOrEmpty(categoryId)) {
+				Record categoryRecord = folderDao.getRecordById(categoryId);
+				resource.setCategory(CategoryDto.builder().id(categoryRecord.getId()).title(categoryRecord.getTitle()).build());
+			}
+		} else {
+			resource.setCategory(null);
+		}
+
+		if (!filters.contains("retentionRule")) {
+			String retentionRuleId = getValue(record, Folder.RETENTION_RULE_ENTERED, Folder.RETENTION_RULE);
+			if (!Strings.isNullOrEmpty(retentionRuleId)) {
+				Record retentionRuleRecord = folderDao.getRecordById(retentionRuleId);
+
+
+				String code = getValue(retentionRuleRecord, RetentionRule.CODE);
+				resource.setRetentionRule(RetentionRuleDto.builder().id(retentionRuleRecord.getId())
+						.title(retentionRuleRecord.getTitle()).code(code).build());
+			}
+		} else {
+			resource.setRetentionRule(null);
+		}
+
+		if (!filters.contains("administrativeUnit")) {
+			String administrativeUnitId = getValue(record, Folder.ADMINISTRATIVE_UNIT_ENTERED, Folder.ADMINISTRATIVE_UNIT);
+
+			if (!Strings.isNullOrEmpty(administrativeUnitId)) {
+				Record administrativeUnitRecord = folderDao.getRecordById(administrativeUnitId);
+
+				String code = getValue(administrativeUnitRecord, AdministrativeUnit.CODE);
+				resource.setAdministrativeUnit(AdministrativeUnitDto.builder().id(administrativeUnitId)
+						.title(administrativeUnitRecord.getTitle()).code(code).build());
+			}
+		} else {
+			resource.setAdministrativeUnit(null);
+		}
 
 		if (!filters.contains("type")) {
 			String folderTypeId = getValue(record, Folder.TYPE);
