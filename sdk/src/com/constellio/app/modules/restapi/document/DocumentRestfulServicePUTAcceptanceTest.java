@@ -566,7 +566,7 @@ public class DocumentRestfulServicePUTAcceptanceTest extends BaseDocumentRestful
 	@Test
 	public void testUpdateDocumentWithSchemaChangeAndInvalidMetadataKey() throws Exception {
 		switchToCustomSchema(fakeDocument.getId());
-		addUsrMetadata(MetadataValueType.STRING, records.documentTypeForm().getLinkedSchema(), null, null);
+		addUsrMetadata(id, records.documentTypeForm().getLinkedSchema(), MetadataValueType.STRING, null, null);
 
 		minDocumentToUpdate.setType(DocumentTypeDto.builder().id(records.documentTypeId_1).build());
 		minDocumentToUpdate.setExtendedAttributes(singletonList(
@@ -959,7 +959,7 @@ public class DocumentRestfulServicePUTAcceptanceTest extends BaseDocumentRestful
 	@Test
 	public void testUpdateDocumentWithCustomSchema() throws Exception {
 		switchToCustomSchema(fakeDocument.getId());
-		addUsrMetadata(MetadataValueType.STRING, records.documentTypeForm().getLinkedSchema(), null, null);
+		addUsrMetadata(id, records.documentTypeForm().getLinkedSchema(), MetadataValueType.STRING, null, null);
 
 		List<String> value1 = singletonList("value1b"), value2 = asList("value2c", "value2d");
 		minDocumentToUpdate.setType(DocumentTypeDto.builder().id(records.documentTypeForm().getId()).build());

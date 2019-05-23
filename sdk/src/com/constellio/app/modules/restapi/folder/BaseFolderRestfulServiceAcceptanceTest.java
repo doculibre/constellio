@@ -41,7 +41,7 @@ import static java.util.Arrays.asList;
 
 public class BaseFolderRestfulServiceAcceptanceTest extends BaseRestfulServiceAcceptanceTest {
 
-	protected String id, physical, signature;
+	protected String id, signature;
 	protected String schemaType = SchemaTypes.FOLDER.name(), folderId = records.folder_A04,
 			method = HttpMethod.GET, expiration = "2147483647";
 	protected String date = DateUtils.formatIsoNoMillis(fakeDate);

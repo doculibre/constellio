@@ -27,10 +27,14 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.QueryCounter;
 import com.constellio.sdk.tests.setups.Users;
 import com.google.common.collect.Lists;
+import org.apache.commons.io.IOUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 
 import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.Response;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -74,6 +78,8 @@ public abstract class BaseRestfulServiceAcceptanceTest extends ConstellioTest {
 	protected static final String OPEN_BRACE = "{";
 	protected static final String CLOSE_BRACE = "}";
 
+	abstract protected SchemaTypes getSchemaType();
+
 	protected void setUpTest() {
 		prepareSystem(withZeCollection().withConstellioRMModule().withConstellioRestApiModule().withAllTest(users)
 				.withRMTest(records).withFoldersAndContainersOfEveryStatus());
@@ -84,7 +90,7 @@ public abstract class BaseRestfulServiceAcceptanceTest extends ConstellioTest {
 
 		host = "localhost:7070";
 
-		givenConfig(RestApiConfigs.REST_API_URLS, "localhost:7070; localhost2");
+		givenConfig(RestApiConfigs.REST_API_URLS, "localhost:7070;localhost2");
 		givenTimeIs(fakeDate);
 
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
@@ -106,7 +112,6 @@ public abstract class BaseRestfulServiceAcceptanceTest extends ConstellioTest {
 		commitCounter = new CommitCounter(getDataLayerFactory());
 		queryCounter = new QueryCounter(getDataLayerFactory(), ON_COLLECTION(SYSTEM_COLLECTION));
 	}
-
 
 	protected <T> void addUsrMetadata(String id, final String schemaCode, final MetadataValueType type,
 									  T value1, T value2)
@@ -167,37 +172,6 @@ public abstract class BaseRestfulServiceAcceptanceTest extends ConstellioTest {
 		return target;
 	}
 
-	private String calculateSignature(Class clazz, String... params)
-			throws Exception {
-		String data = host;
-		for (String param : params) {
-			if (param.equals("signature")) {
-				continue;
-			}
-			if (param.equals("method")) {
-				data = data.concat(getSchemaType().name());
-			}
-			Field field = getField(clazz, param);
-			field.setAccessible(true);
-			String value = String.valueOf(field.get(this));
-			data = !value.equals("null") ? data.concat(value) : data;
-		}
-		return HashingUtils.hmacSha256Base64UrlEncoded(token, data);
-	}
-
-	private static Field getField(Class clazz, String fieldName) throws Exception {
-		try {
-			return clazz.getDeclaredField(fieldName);
-		} catch (NoSuchFieldException e) {
-			Class superClass = clazz.getSuperclass();
-			if (superClass == null) {
-				throw e;
-			} else {
-				return getField(superClass, fieldName);
-			}
-		}
-	}
-
 	protected LocalDate toLocalDate(String date) {
 		return date != null ? DateUtils.parseLocalDate(date, dateFormat) : null;
 	}
@@ -252,9 +226,6 @@ public abstract class BaseRestfulServiceAcceptanceTest extends ConstellioTest {
 		return filteredAuthorizations;
 	}
 
-	abstract protected SchemaTypes getSchemaType();
-
-
 	protected List<String> toPrincipalIds(Collection<String> principals) {
 		List<String> principalIds = new ArrayList<>(principals.size());
 		for (String principal : principals) {
@@ -267,4 +238,41 @@ public abstract class BaseRestfulServiceAcceptanceTest extends ConstellioTest {
 		return principalIds;
 	}
 
+	protected byte[] readStreamEntity(Response response) throws Exception {
+		InputStream inputStream = (InputStream) response.getEntity();
+		ByteArrayOutputStream byteArray = new ByteArrayOutputStream();
+		IOUtils.copy(inputStream, byteArray);
+		return byteArray.toByteArray();
+	}
+
+	protected String calculateSignature(Class clazz, String... params)
+			throws Exception {
+		String data = host;
+		for (String param : params) {
+			if (param.equals("signature")) {
+				continue;
+			}
+			if (param.equals("method")) {
+				data = data.concat(getSchemaType().name());
+			}
+			Field field = getField(clazz, param);
+			field.setAccessible(true);
+			String value = String.valueOf(field.get(this));
+			data = !value.equals("null") ? data.concat(value) : data;
+		}
+		return HashingUtils.hmacSha256Base64UrlEncoded(token, data);
+	}
+
+	private static Field getField(Class clazz, String fieldName) throws Exception {
+		try {
+			return clazz.getDeclaredField(fieldName);
+		} catch (NoSuchFieldException e) {
+			Class superClass = clazz.getSuperclass();
+			if (superClass == null) {
+				throw e;
+			} else {
+				return getField(superClass, fieldName);
+			}
+		}
+	}
 }

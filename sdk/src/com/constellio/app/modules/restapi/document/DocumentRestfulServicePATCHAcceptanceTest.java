@@ -631,7 +631,7 @@ public class DocumentRestfulServicePATCHAcceptanceTest extends BaseDocumentRestf
 	@Test
 	public void testPartialUpdateDocumentWithSchemaChangeAndInvalidMetadataKey() throws Exception {
 		switchToCustomSchema(fakeDocument.getId());
-		addUsrMetadata(MetadataValueType.STRING, records.documentTypeForm().getLinkedSchema(), null, null);
+		addUsrMetadata(id, records.documentTypeForm().getLinkedSchema(), MetadataValueType.STRING, null, null);
 
 		documentToPartialUpdate.setType(DocumentTypeDto.builder().id(records.documentTypeId_9).build());
 		documentToPartialUpdate.setExtendedAttributes(singletonList(
@@ -993,7 +993,7 @@ public class DocumentRestfulServicePATCHAcceptanceTest extends BaseDocumentRestf
 	@Test
 	public void testPartialUpdateDocumentWithCustomSchema() throws Exception {
 		switchToCustomSchema(fakeDocument.getId());
-		addUsrMetadata(MetadataValueType.STRING, records.documentTypeForm().getLinkedSchema(), null, null);
+		addUsrMetadata(id, records.documentTypeForm().getLinkedSchema(), MetadataValueType.STRING, null, null);
 
 		List<String> value1 = singletonList("value11"), value2 = asList("value21", "value22");
 		documentToPartialUpdate.setType(DocumentTypeDto.builder().id(records.documentTypeForm().getId()).build());

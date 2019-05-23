@@ -97,7 +97,8 @@ public class FolderRestfulServicePOSTAcceptanceTest extends BaseFolderRestfulSer
 				.category(CategoryDto.builder().id(records.categoryId_X110).build())
 				.retentionRule(RetentionRuleDto.builder().id(records.ruleId_1).build())
 				.administrativeUnit(AdministrativeUnitDto.builder().id(records.unitId_10a).build())
-				.mainCopyRule(records.principal42_5_CId).copyStatus(CopyType.PRINCIPAL.getCode())
+				.mainCopyRule(records.getRule1().getPrincipalCopies().get(0).getId())
+				.copyStatus(CopyType.PRINCIPAL.getCode())
 				.mediumTypes(singletonList("PA")).container(ContainerDto.builder().id(records.containerId_bac01).build())
 				.title("title").description("description").keywords(singletonList("folder"))
 				.openingDate(new LocalDate(2019, 4, 4))
@@ -245,7 +246,6 @@ public class FolderRestfulServicePOSTAcceptanceTest extends BaseFolderRestfulSer
 
 		Record record = recordServices.getDocumentById(folder.getId());
 		assertThat(record).isNotNull();
-		String collection = record.getCollection();
 		assertThatRecord(record).extracting(Folder.TITLE, Folder.PARENT_FOLDER, Folder.KEYWORDS, Folder.TYPE, Folder.RETENTION_RULE,
 				Folder.CATEGORY, Folder.ADMINISTRATIVE_UNIT, Folder.MAIN_COPY_RULE, Folder.COPY_STATUS, Folder.MEDIUM_TYPES, Folder.CONTAINER, Folder.DESCRIPTION,
 				Folder.OPENING_DATE, Folder.CLOSING_DATE, Folder.ACTUAL_TRANSFER_DATE, Folder.ACTUAL_DEPOSIT_DATE, Folder.ACTUAL_DESTRUCTION_DATE)

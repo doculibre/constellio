@@ -85,7 +85,6 @@ public class FolderRestfulServicePATCHAcceptanceTest extends BaseFolderRestfulSe
 	public void setUp() throws Exception {
 		super.setUp();
 
-
 		folderToPatialUpdate = FolderDto.builder().id(id).build();
 	}
 
