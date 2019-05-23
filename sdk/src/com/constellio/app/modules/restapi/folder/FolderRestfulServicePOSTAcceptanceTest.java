@@ -34,7 +34,11 @@ import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.extensions.api.FolderExtension;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.model.enums.CopyType;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
+import com.constellio.app.modules.rm.wrappers.Category;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.data.utils.TimeProvider;
@@ -81,12 +85,18 @@ public class FolderRestfulServicePOSTAcceptanceTest extends BaseFolderRestfulSer
 	public void setUp() throws Exception {
 		super.setUp();
 
-		minFolderToAdd = FolderDto.builder().administrativeUnit(AdministrativeUnitDto.builder().id(records.unitId_10a).build()).category(CategoryDto.builder().id(records.categoryId_X110).build())
-				.title("folder").retentionRule(RetentionRuleDto.builder().id(records.ruleId_1).build()).copyStatus(CopyType.PRINCIPAL.getCode())
+		minFolderToAdd = FolderDto.builder()
+				.administrativeUnit(AdministrativeUnitDto.builder().id(records.unitId_10a).build())
+				.category(CategoryDto.builder().id(records.categoryId_X110).build())
+				.retentionRule(RetentionRuleDto.builder().id(records.ruleId_1).build())
+				.title("folder")
+				.copyStatus(CopyType.PRINCIPAL.getCode())
 				.openingDate(new LocalDate(2019, 4, 4))
 				.parentFolderId(records.folder_A04).build();
-		fullFolderToAdd = FolderDto.builder().parentFolderId(records.folder_A04).category(CategoryDto.builder().id(records.categoryId_X110).build())
-				.retentionRule(RetentionRuleDto.builder().id(records.ruleId_1).build()).administrativeUnit(AdministrativeUnitDto.builder().id(records.unitId_10a).build())
+		fullFolderToAdd = FolderDto.builder().parentFolderId(records.folder_A04)
+				.category(CategoryDto.builder().id(records.categoryId_X110).build())
+				.retentionRule(RetentionRuleDto.builder().id(records.ruleId_1).build())
+				.administrativeUnit(AdministrativeUnitDto.builder().id(records.unitId_10a).build())
 				.mainCopyRule(records.principal42_5_CId).copyStatus(CopyType.PRINCIPAL.getCode())
 				.mediumTypes(singletonList("PA")).container(ContainerDto.builder().id(records.containerId_bac01).build())
 				.title("title").description("description").keywords(singletonList("folder"))
@@ -122,10 +132,15 @@ public class FolderRestfulServicePOSTAcceptanceTest extends BaseFolderRestfulSer
 		FolderDto folderDto = response.readEntity(FolderDto.class);
 		assertThat(folderDto.getId()).isNotNull().isNotEmpty();
 		assertThat(folderDto.getTitle()).isEqualTo(minFolderToAdd.getTitle());
-		assertThat(folderDto.getAdministrativeUnit()).isEqualTo(minFolderToAdd.getAdministrativeUnit());
 		assertThat(folderDto.getParentFolderId()).isEqualTo(minFolderToAdd.getParentFolderId());
-		assertThat(folderDto.getCategory()).isEqualTo(minFolderToAdd.getCategory());
-		assertThat(folderDto.getRetentionRule()).isEqualTo(minFolderToAdd.getRetentionRule());
+		assertThat(folderDto.getAdministrativeUnit().getId()).isEqualTo(minFolderToAdd.getAdministrativeUnit().getId());
+		assertThat(folderDto.getAdministrativeUnit().getCode()).isNotNull();
+		assertThat(folderDto.getAdministrativeUnit().getTitle()).isNotNull();
+		assertThat(folderDto.getCategory().getId()).isEqualTo(minFolderToAdd.getCategory().getId());
+		assertThat(folderDto.getCategory().getTitle()).isNotNull();
+		assertThat(folderDto.getRetentionRule().getId()).isEqualTo(minFolderToAdd.getRetentionRule().getId());
+		assertThat(folderDto.getRetentionRule().getCode()).isNotNull();
+		assertThat(folderDto.getRetentionRule().getTitle()).isNotNull();
 		assertThat(folderDto.getCopyStatus()).isEqualTo(minFolderToAdd.getCopyStatus());
 		assertThat(folderDto.getOpeningDate()).isEqualTo(minFolderToAdd.getOpeningDate());
 
@@ -133,8 +148,8 @@ public class FolderRestfulServicePOSTAcceptanceTest extends BaseFolderRestfulSer
 		assertThat(record).isNotNull();
 		assertThatRecord(record).extracting(Folder.TITLE, Folder.ADMINISTRATIVE_UNIT, Folder.CATEGORY,
 				Folder.RETENTION_RULE, Folder.COPY_STATUS, Folder.OPENING_DATE)
-				.containsExactly(folderDto.getTitle(), folderDto.getAdministrativeUnit(), folderDto.getCategory(),
-						folderDto.getRetentionRule(), toCopyType(folderDto.getCopyStatus()), folderDto.getOpeningDate());
+				.containsExactly(folderDto.getTitle(), folderDto.getAdministrativeUnit().getId(), folderDto.getCategory().getId(),
+						folderDto.getRetentionRule().getId(), toCopyType(folderDto.getCopyStatus()), folderDto.getOpeningDate());
 
 		assertThat(response.getHeaderString("ETag")).isEqualTo("\"" + record.getVersion() + "\"");
 	}
@@ -153,10 +168,15 @@ public class FolderRestfulServicePOSTAcceptanceTest extends BaseFolderRestfulSer
 		FolderDto folderDto = response.readEntity(FolderDto.class);
 		assertThat(folderDto.getId()).isNotNull().isNotEmpty();
 		assertThat(folderDto.getTitle()).isEqualTo(minFolderToAdd.getTitle());
-		assertThat(folderDto.getAdministrativeUnit()).isEqualTo(minFolderToAdd.getAdministrativeUnit());
 		assertThat(folderDto.getParentFolderId()).isNull();
-		assertThat(folderDto.getCategory()).isEqualTo(minFolderToAdd.getCategory());
-		assertThat(folderDto.getRetentionRule()).isEqualTo(minFolderToAdd.getRetentionRule());
+		assertThat(folderDto.getAdministrativeUnit().getId()).isEqualTo(minFolderToAdd.getAdministrativeUnit().getId());
+		assertThat(folderDto.getAdministrativeUnit().getCode()).isNotNull();
+		assertThat(folderDto.getAdministrativeUnit().getTitle()).isNotNull();
+		assertThat(folderDto.getCategory().getId()).isEqualTo(minFolderToAdd.getCategory().getId());
+		assertThat(folderDto.getCategory().getTitle()).isNotNull();
+		assertThat(folderDto.getRetentionRule().getId()).isEqualTo(minFolderToAdd.getRetentionRule().getId());
+		assertThat(folderDto.getRetentionRule().getCode()).isNotNull();
+		assertThat(folderDto.getRetentionRule().getTitle()).isNotNull();
 		assertThat(folderDto.getCopyStatus()).isEqualTo(minFolderToAdd.getCopyStatus());
 		assertThat(folderDto.getOpeningDate()).isEqualTo(minFolderToAdd.getOpeningDate());
 
@@ -164,8 +184,8 @@ public class FolderRestfulServicePOSTAcceptanceTest extends BaseFolderRestfulSer
 		assertThat(record).isNotNull();
 		assertThatRecord(record).extracting(Folder.TITLE, Folder.ADMINISTRATIVE_UNIT, Folder.CATEGORY,
 				Folder.RETENTION_RULE, Folder.COPY_STATUS, Folder.OPENING_DATE)
-				.containsExactly(folderDto.getTitle(), folderDto.getAdministrativeUnit(), folderDto.getCategory(),
-						folderDto.getRetentionRule(), toCopyType(folderDto.getCopyStatus()), folderDto.getOpeningDate());
+				.containsExactly(folderDto.getTitle(), folderDto.getAdministrativeUnit().getId(), folderDto.getCategory().getId(),
+						folderDto.getRetentionRule().getId(), toCopyType(folderDto.getCopyStatus()), folderDto.getOpeningDate());
 
 		assertThat(response.getHeaderString("ETag")).isEqualTo("\"" + record.getVersion() + "\"");
 	}
@@ -190,13 +210,29 @@ public class FolderRestfulServicePOSTAcceptanceTest extends BaseFolderRestfulSer
 		assertThat(folder.getType().getId()).isEqualTo(fullFolderToAdd.getType().getId());
 		assertThat(folder.getType().getCode()).isNotNull().isNotEmpty();
 		assertThat(folder.getType().getTitle()).isNotNull().isNotEmpty();
-		assertThat(folder.getRetentionRule()).isEqualTo(fullFolderToAdd.getRetentionRule());
-		assertThat(folder.getAdministrativeUnit()).isEqualTo(fullFolderToAdd.getAdministrativeUnit());
+
+		Category category = rm.getCategory(fullFolderToAdd.getCategory().getId());
+		assertThat(folder.getCategory().getId()).isEqualTo(fullFolderToAdd.getCategory().getId());
+		assertThat(folder.getCategory().getTitle()).isEqualTo(category.getTitle());
+
+		RetentionRule rule = rm.getRetentionRule(fullFolderToAdd.getRetentionRule().getId());
+		assertThat(folder.getRetentionRule().getId()).isEqualTo(fullFolderToAdd.getRetentionRule().getId());
+		assertThat(folder.getRetentionRule().getCode()).isEqualTo(rule.getCode());
+		assertThat(folder.getRetentionRule().getTitle()).isEqualTo(rule.getTitle());
+
+		AdministrativeUnit adminUnit = rm.getAdministrativeUnit(fullFolderToAdd.getAdministrativeUnit().getId());
+		assertThat(folder.getAdministrativeUnit().getId()).isEqualTo(fullFolderToAdd.getAdministrativeUnit().getId());
+		assertThat(folder.getAdministrativeUnit().getCode()).isEqualTo(adminUnit.getCode());
+		assertThat(folder.getAdministrativeUnit().getTitle()).isEqualTo(adminUnit.getTitle());
+
+		ContainerRecord container = rm.getContainerRecord(fullFolderToAdd.getContainer().getId());
+		assertThat(folder.getContainer().getId()).isEqualTo(fullFolderToAdd.getContainer().getId());
+		assertThat(folder.getContainer().getTitle()).isEqualTo(container.getTitle());
+
 		assertThat(folder.getMainCopyRule()).isEqualTo(fullFolderToAdd.getMainCopyRule());
 		assertThat(folder.getCopyStatus()).isEqualTo(fullFolderToAdd.getCopyStatus());
 		assertThat(folder.getMediumTypes()).isEqualTo(fullFolderToAdd.getMediumTypes());
 		assertThat(folder.getMediaType()).isNotNull();
-		assertThat(folder.getContainer()).isEqualTo(fullFolderToAdd.getContainer());
 		assertThat(folder.getDescription()).isEqualTo(fullFolderToAdd.getDescription());
 		assertThat(folder.getOpeningDate()).isEqualTo(fullFolderToAdd.getOpeningDate());
 		assertThat(folder.getClosingDate()).isEqualTo(fullFolderToAdd.getClosingDate());
@@ -211,12 +247,13 @@ public class FolderRestfulServicePOSTAcceptanceTest extends BaseFolderRestfulSer
 		assertThat(record).isNotNull();
 		String collection = record.getCollection();
 		assertThatRecord(record).extracting(Folder.TITLE, Folder.PARENT_FOLDER, Folder.KEYWORDS, Folder.TYPE, Folder.RETENTION_RULE,
-				Folder.ADMINISTRATIVE_UNIT, Folder.MAIN_COPY_RULE, Folder.COPY_STATUS, Folder.MEDIUM_TYPES, Folder.CONTAINER, Folder.DESCRIPTION,
+				Folder.CATEGORY, Folder.ADMINISTRATIVE_UNIT, Folder.MAIN_COPY_RULE, Folder.COPY_STATUS, Folder.MEDIUM_TYPES, Folder.CONTAINER, Folder.DESCRIPTION,
 				Folder.OPENING_DATE, Folder.CLOSING_DATE, Folder.ACTUAL_TRANSFER_DATE, Folder.ACTUAL_DEPOSIT_DATE, Folder.ACTUAL_DESTRUCTION_DATE)
 				.containsExactly(folder.getTitle(), folder.getParentFolderId(), folder.getKeywords(), folder.getType().getId(),
-						folder.getRetentionRule(), folder.getAdministrativeUnit(), toMainCopyRule(folder.getRetentionRule().getId(), folder.getMainCopyRule()),
+						folder.getRetentionRule().getId(), folder.getCategory().getId(), folder.getAdministrativeUnit().getId(),
+						toMainCopyRule(folder.getRetentionRule().getId(), folder.getMainCopyRule()),
 						toCopyType(folder.getCopyStatus()), toMediumTypeIds(folder.getMediumTypes()),
-						folder.getContainer(), folder.getDescription(), folder.getOpeningDate(), folder.getClosingDate(),
+						folder.getContainer().getId(), folder.getDescription(), folder.getOpeningDate(), folder.getClosingDate(),
 						folder.getActualTransferDate(), folder.getActualDepositDate(), folder.getActualDestructionDate());
 		assertThatRecord(record).extracting(fakeMetadata1).isEqualTo(folder.getExtendedAttributes().get(0).getValues());
 		assertThatRecord(record).extracting(fakeMetadata2).containsExactly(folder.getExtendedAttributes().get(1).getValues());
@@ -844,6 +881,50 @@ public class FolderRestfulServicePOSTAcceptanceTest extends BaseFolderRestfulSer
 	}
 
 	@Test
+	public void testCreateFolderWithMissingAdministrativeUnitId() throws Exception {
+		minFolderToAdd.setAdministrativeUnit(AdministrativeUnitDto.builder().build());
+		Response response = doPostQuery(minFolderToAdd);
+		assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
+
+		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
+		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE)
+				.doesNotContain(CLOSE_BRACE).isEqualTo(i18n.$(NOT_NULL_MESSAGE, "administrativeUnit.id"));
+	}
+
+	@Test
+	public void testCreateFolderWithMissingCategoryId() throws Exception {
+		minFolderToAdd.setCategory(CategoryDto.builder().build());
+		Response response = doPostQuery(minFolderToAdd);
+		assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
+
+		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
+		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE)
+				.doesNotContain(CLOSE_BRACE).isEqualTo(i18n.$(NOT_NULL_MESSAGE, "category.id"));
+	}
+
+	@Test
+	public void testCreateFolderWithMissingContainerId() throws Exception {
+		minFolderToAdd.setContainer(ContainerDto.builder().build());
+		Response response = doPostQuery(minFolderToAdd);
+		assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
+
+		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
+		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE)
+				.doesNotContain(CLOSE_BRACE).isEqualTo(i18n.$(NOT_NULL_MESSAGE, "container.id"));
+	}
+
+	@Test
+	public void testCreateFolderWithMissingRetentionRuleId() throws Exception {
+		minFolderToAdd.setRetentionRule(RetentionRuleDto.builder().build());
+		Response response = doPostQuery(minFolderToAdd);
+		assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
+
+		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
+		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE)
+				.doesNotContain(CLOSE_BRACE).isEqualTo(i18n.$(NOT_NULL_MESSAGE, "retentionRule.id"));
+	}
+
+	@Test
 	public void testCreateFolderWithCustomSchema() throws Exception {
 		minFolderToAdd.setType(FolderTypeDto.builder().id(records.folderTypeMeeting().getId()).build());
 		Response response = doPostQuery(minFolderToAdd);
@@ -953,10 +1034,15 @@ public class FolderRestfulServicePOSTAcceptanceTest extends BaseFolderRestfulSer
 		FolderDto folderDto = response.readEntity(FolderDto.class);
 		assertThat(folderDto.getId()).isNotNull().isNotEmpty();
 		assertThat(folderDto.getTitle().startsWith(sourceFolder.getTitle())).isTrue();
-		assertThat(folderDto.getAdministrativeUnit()).isEqualTo(sourceFolder.getAdministrativeUnit());
+		assertThat(folderDto.getAdministrativeUnit().getId()).isEqualTo(sourceFolder.getAdministrativeUnit());
+		assertThat(folderDto.getAdministrativeUnit().getCode()).isNotNull();
+		assertThat(folderDto.getAdministrativeUnit().getTitle()).isNotNull();
 		assertThat(folderDto.getParentFolderId()).isEqualTo(sourceFolder.getParentFolder());
-		assertThat(folderDto.getCategory()).isEqualTo(sourceFolder.getCategory());
-		assertThat(folderDto.getRetentionRule()).isEqualTo(sourceFolder.getRetentionRule());
+		assertThat(folderDto.getCategory().getId()).isEqualTo(sourceFolder.getCategory());
+		assertThat(folderDto.getCategory().getTitle()).isNotNull();
+		assertThat(folderDto.getRetentionRule().getId()).isEqualTo(sourceFolder.getRetentionRule());
+		assertThat(folderDto.getRetentionRule().getCode()).isNotNull();
+		assertThat(folderDto.getRetentionRule().getTitle()).isNotNull();
 		assertThat(folderDto.getCopyStatus()).isEqualTo(sourceFolder.getCopyStatus().getCode());
 		assertThat(folderDto.getOpeningDate()).isEqualTo(sourceFolder.getOpeningDate());
 
@@ -964,8 +1050,8 @@ public class FolderRestfulServicePOSTAcceptanceTest extends BaseFolderRestfulSer
 		assertThat(record).isNotNull();
 		assertThatRecord(record).extracting(Folder.TITLE, Folder.ADMINISTRATIVE_UNIT, Folder.CATEGORY,
 				Folder.RETENTION_RULE, Folder.COPY_STATUS, Folder.OPENING_DATE)
-				.containsExactly(folderDto.getTitle(), folderDto.getAdministrativeUnit(), folderDto.getCategory(),
-						folderDto.getRetentionRule(), toCopyType(folderDto.getCopyStatus()), folderDto.getOpeningDate());
+				.containsExactly(folderDto.getTitle(), folderDto.getAdministrativeUnit().getId(), folderDto.getCategory().getId(),
+						folderDto.getRetentionRule().getId(), toCopyType(folderDto.getCopyStatus()), folderDto.getOpeningDate());
 
 		long count = searchServices.getResultsCount(from(rm.document.schema())
 				.where(rm.document.folder()).is(copySource));
@@ -991,18 +1077,23 @@ public class FolderRestfulServicePOSTAcceptanceTest extends BaseFolderRestfulSer
 		FolderDto folderDto = response.readEntity(FolderDto.class);
 		assertThat(folderDto.getId()).isNotNull().isNotEmpty();
 		assertThat(folderDto.getTitle()).isEqualTo(minFolderToCopy.getTitle());
-		assertThat(folderDto.getCategory()).isEqualTo(minFolderToAdd.getCategory());
-		assertThat(folderDto.getAdministrativeUnit()).isEqualTo(minFolderToAdd.getAdministrativeUnit());
 		assertThat(folderDto.getParentFolderId()).isEqualTo(minFolderToAdd.getParentFolderId());
-		assertThat(folderDto.getRetentionRule()).isEqualTo(minFolderToAdd.getRetentionRule());
+		assertThat(folderDto.getAdministrativeUnit().getId()).isEqualTo(minFolderToAdd.getAdministrativeUnit().getId());
+		assertThat(folderDto.getAdministrativeUnit().getCode()).isNotNull();
+		assertThat(folderDto.getAdministrativeUnit().getTitle()).isNotNull();
+		assertThat(folderDto.getCategory().getId()).isEqualTo(minFolderToAdd.getCategory().getId());
+		assertThat(folderDto.getCategory().getTitle()).isNotNull();
+		assertThat(folderDto.getRetentionRule().getId()).isEqualTo(minFolderToAdd.getRetentionRule().getId());
+		assertThat(folderDto.getRetentionRule().getCode()).isNotNull();
+		assertThat(folderDto.getRetentionRule().getTitle()).isNotNull();
 		assertThat(folderDto.getCopyStatus()).isEqualTo(minFolderToAdd.getCopyStatus());
 
 		Record record = recordServices.getDocumentById(folderDto.getId());
 		assertThat(record).isNotNull();
 		assertThatRecord(record).extracting(Folder.TITLE, Folder.ADMINISTRATIVE_UNIT, Folder.CATEGORY,
 				Folder.RETENTION_RULE, Folder.COPY_STATUS, Folder.OPENING_DATE)
-				.containsExactly(folderDto.getTitle(), folderDto.getAdministrativeUnit(), folderDto.getCategory(),
-						folderDto.getRetentionRule(), toCopyType(folderDto.getCopyStatus()), folderDto.getOpeningDate());
+				.containsExactly(folderDto.getTitle(), folderDto.getAdministrativeUnit().getId(), folderDto.getCategory().getId(),
+						folderDto.getRetentionRule().getId(), toCopyType(folderDto.getCopyStatus()), folderDto.getOpeningDate());
 
 		long count = searchServices.getResultsCount(from(rm.document.schema())
 				.where(rm.document.folder()).is(copySource));
@@ -1029,17 +1120,22 @@ public class FolderRestfulServicePOSTAcceptanceTest extends BaseFolderRestfulSer
 		assertThat(folderDto.getId()).isNotNull().isNotEmpty();
 		assertThat(folderDto.getTitle()).isEqualTo(minFolderToAdd.getTitle());
 		assertThat(folderDto.getCategory()).isEqualTo(minFolderToAdd.getCategory());
-		assertThat(folderDto.getAdministrativeUnit()).isEqualTo(minFolderToAdd.getAdministrativeUnit());
+		assertThat(folderDto.getAdministrativeUnit().getId()).isEqualTo(minFolderToAdd.getAdministrativeUnit().getId());
+		assertThat(folderDto.getAdministrativeUnit().getCode()).isNotNull();
+		assertThat(folderDto.getAdministrativeUnit().getTitle()).isNotNull();
 		assertThat(folderDto.getParentFolderId()).isEqualTo(minFolderToAdd.getParentFolderId());
-		assertThat(folderDto.getRetentionRule()).isEqualTo(minFolderToAdd.getRetentionRule());
+		assertThat(folderDto.getRetentionRule().getId()).isEqualTo(minFolderToAdd.getRetentionRule().getId());
+		assertThat(folderDto.getRetentionRule().getCode()).isNotNull();
+		assertThat(folderDto.getRetentionRule().getTitle()).isNotNull();
 		assertThat(folderDto.getCopyStatus()).isEqualTo(minFolderToAdd.getCopyStatus());
 
 		Record record = recordServices.getDocumentById(folderDto.getId());
 		assertThat(record).isNotNull();
 		assertThatRecord(record).extracting(Folder.TITLE, Folder.ADMINISTRATIVE_UNIT, Folder.CATEGORY,
 				Folder.RETENTION_RULE, Folder.COPY_STATUS, Folder.OPENING_DATE)
-				.containsExactly(folderDto.getTitle(), folderDto.getAdministrativeUnit(), folderDto.getCategory(),
-						folderDto.getRetentionRule(), toCopyType(folderDto.getCopyStatus()), folderDto.getOpeningDate());
+				.containsExactly(folderDto.getTitle(), folderDto.getAdministrativeUnit().getId(),
+						folderDto.getCategory().getId(), folderDto.getRetentionRule().getId(),
+						toCopyType(folderDto.getCopyStatus()), folderDto.getOpeningDate());
 
 		long count = searchServices.getResultsCount(from(rm.document.schema())
 				.where(rm.document.folder()).is(copySource));

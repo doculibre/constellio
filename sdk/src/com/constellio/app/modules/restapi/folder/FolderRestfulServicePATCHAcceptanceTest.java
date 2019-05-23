@@ -888,6 +888,50 @@ public class FolderRestfulServicePATCHAcceptanceTest extends BaseFolderRestfulSe
 	}
 
 	@Test
+	public void testPartialUpdateFolderWithMissingAdministrativeUnitId() throws Exception {
+		folderToPatialUpdate.setAdministrativeUnit(AdministrativeUnitDto.builder().build());
+		Response response = doPatchQuery(folderToPatialUpdate);
+		assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
+
+		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
+		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE)
+				.doesNotContain(CLOSE_BRACE).isEqualTo(i18n.$(NOT_NULL_MESSAGE, "administrativeUnit.id"));
+	}
+
+	@Test
+	public void testPartialUpdateFolderWithMissingCategoryId() throws Exception {
+		folderToPatialUpdate.setCategory(CategoryDto.builder().build());
+		Response response = doPatchQuery(folderToPatialUpdate);
+		assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
+
+		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
+		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE)
+				.doesNotContain(CLOSE_BRACE).isEqualTo(i18n.$(NOT_NULL_MESSAGE, "category.id"));
+	}
+
+	@Test
+	public void testPartialUpdateFolderWithMissingContainerId() throws Exception {
+		folderToPatialUpdate.setContainer(ContainerDto.builder().build());
+		Response response = doPatchQuery(folderToPatialUpdate);
+		assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
+
+		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
+		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE)
+				.doesNotContain(CLOSE_BRACE).isEqualTo(i18n.$(NOT_NULL_MESSAGE, "container.id"));
+	}
+
+	@Test
+	public void testPartialUpdateFolderWithMissingRetentionRuleId() throws Exception {
+		folderToPatialUpdate.setRetentionRule(RetentionRuleDto.builder().build());
+		Response response = doPatchQuery(folderToPatialUpdate);
+		assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
+
+		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
+		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE)
+				.doesNotContain(CLOSE_BRACE).isEqualTo(i18n.$(NOT_NULL_MESSAGE, "retentionRule.id"));
+	}
+
+	@Test
 	public void testPartialUpdateFolderWithCustomSchema() throws Exception {
 		switchToCustomSchema(fakeFolder.getId());
 		addUsrMetadata(id, records.folderTypeEmploye().getLinkedSchema(), MetadataValueType.STRING, null, null);
