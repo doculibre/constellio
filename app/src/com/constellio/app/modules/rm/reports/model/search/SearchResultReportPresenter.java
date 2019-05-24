@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -125,7 +126,9 @@ public class SearchResultReportPresenter extends BaseExcelReportPresenter {
 		for (Metadata metadata : orderedEnabledReportedMetadataList) {
 			Object metadataValue = record.get(metadata, locale);
 
-			if (metadataValue == null || !userInCollection.hasAccessToMetadata(metadata, record)) {
+			if (metadataValue == null ||
+				metadataValue instanceof Collection && ((Collection) metadataValue).isEmpty() ||
+				!userInCollection.hasAccessToMetadata(metadata, record)) {
 				returnList.add(null);
 			} else {
 				Metadata metadataOfRecordSchema = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager()
