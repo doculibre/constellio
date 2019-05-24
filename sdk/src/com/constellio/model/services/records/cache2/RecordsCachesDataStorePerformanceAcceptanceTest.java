@@ -28,7 +28,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class RecordsCachesDataStorePerformanceAcceptanceTest extends ConstellioTest {
 
-	MemoryEfficientRecordsCachesDataStore dataStore;
+	RecordsCachesDataStore dataStore;
 
 	@Before
 	public void setUp() throws Exception {
@@ -69,7 +69,7 @@ public class RecordsCachesDataStorePerformanceAcceptanceTest extends ConstellioT
 
 
 		ModelLayerFactory modelLayerFactory = getModelLayerFactory();
-		dataStore = new MemoryEfficientRecordsCachesDataStore(modelLayerFactory);
+		dataStore = new RecordsCachesDataStore(modelLayerFactory);
 		int id = 1;
 
 		long dataBytes = 0;
@@ -101,7 +101,7 @@ public class RecordsCachesDataStorePerformanceAcceptanceTest extends ConstellioT
 			structureBytes += 2; //schema id
 			structureBytes += 4; //id
 			dataBytes += byteArrayRecordDTO.data.length;
-			dataStore.set(id, byteArrayRecordDTO, false);
+			dataStore.insertWithoutReservingSpaceForPreviousIds(byteArrayRecordDTO);
 
 		}
 
@@ -135,7 +135,7 @@ public class RecordsCachesDataStorePerformanceAcceptanceTest extends ConstellioT
 
 
 		ModelLayerFactory modelLayerFactory = getModelLayerFactory();
-		dataStore = new MemoryEfficientRecordsCachesDataStore(modelLayerFactory);
+		dataStore = new RecordsCachesDataStore(modelLayerFactory);
 		int id = 1;
 
 		long dataBytes = 0;
@@ -168,7 +168,7 @@ public class RecordsCachesDataStorePerformanceAcceptanceTest extends ConstellioT
 			structureBytes += 2; //schema id
 			structureBytes += 4; //id
 			dataBytes += byteArrayRecordDTO.data.length;
-			dataStore.set(id, byteArrayRecordDTO, false);
+			dataStore.insertWithoutReservingSpaceForPreviousIds(byteArrayRecordDTO);
 			ids.add(strId);
 
 		}
@@ -209,9 +209,10 @@ public class RecordsCachesDataStorePerformanceAcceptanceTest extends ConstellioT
 
 		double getByIdBySecondSupplyingCollection = ids.size() * calculateOpsPerSecondsOver(() -> {
 			for (int i = 0; i < ids.size(); i++) {
-				int intKey = toIntKey(ids.get(i));
+				String strId = ids.get(i);
+				int intKey = toIntKey(strId);
 				byte collectionId = collectionIds[intKey % collections.length];
-				dataStore.get(collectionId, intKey);
+				dataStore.get(collectionId, strId);
 			}
 		}, 5000);
 		System.out.println("getById/sec when supplying collection : " + (int) getByIdBySecondSupplyingCollection);
@@ -269,7 +270,7 @@ public class RecordsCachesDataStorePerformanceAcceptanceTest extends ConstellioT
 
 
 		ModelLayerFactory modelLayerFactory = getModelLayerFactory();
-		dataStore = new MemoryEfficientRecordsCachesDataStore(modelLayerFactory);
+		dataStore = new RecordsCachesDataStore(modelLayerFactory);
 		int id = 1;
 
 		long dataBytes = 0;
@@ -296,7 +297,7 @@ public class RecordsCachesDataStorePerformanceAcceptanceTest extends ConstellioT
 			structureBytes += 2; //schema id
 			structureBytes += 4; //id
 			dataBytes += byteArrayRecordDTO.data.length;
-			dataStore.set(id, byteArrayRecordDTO, false);
+			dataStore.insertWithoutReservingSpaceForPreviousIds(byteArrayRecordDTO);
 			ids.add(strId);
 
 		}
@@ -338,9 +339,10 @@ public class RecordsCachesDataStorePerformanceAcceptanceTest extends ConstellioT
 
 		double getByIdBySecondSupplyingCollection = ids.size() * calculateOpsPerSecondsOver(() -> {
 			for (int i = 0; i < ids.size(); i++) {
-				int intKey = toIntKey(ids.get(i));
+				String strId = ids.get(i);
+				int intKey = toIntKey(strId);
 				byte collectionId = collectionIds[intKey % collections.length];
-				dataStore.get(collectionId, intKey);
+				dataStore.get(collectionId, strId);
 			}
 		}, 5000);
 		System.out.println("getById/sec when supplying collection : " + (int) getByIdBySecondSupplyingCollection);
@@ -356,6 +358,17 @@ public class RecordsCachesDataStorePerformanceAcceptanceTest extends ConstellioT
 		}, 5000);
 
 		System.out.println("Streams/sec when supplying collection : " + (int) streamsBySecondSupplyingCollection);
+
+
+		short typeId = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collectionIds[0])
+				.getSchemaType("schemaType01").getId();
+		assertThat(dataStore.stream(collectionIds[0], typeId).filter(onlyTrue).count()).isEqualTo(333L);
+
+		double streamsBySecondSupplyingType = calculateOpsPerSecondsOver(() -> {
+			dataStore.stream(collectionIds[0], typeId).filter(onlyTrue).count();
+		}, 50000);
+
+		System.out.println("Streams/sec when supplying type : " + (int) streamsBySecondSupplyingType);
 
 	}
 

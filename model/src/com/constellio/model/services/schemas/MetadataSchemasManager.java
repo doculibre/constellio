@@ -68,6 +68,7 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 	private ModelLayerFactory modelLayerFactory;
 	private Delayed<ConstellioModulesManager> modulesManagerDelayed;
 	private ConstellioCacheManager cacheManager;
+	private MetadataSchemaTypes[] typesByCollectionId = new MetadataSchemaTypes[256];
 
 	public MetadataSchemasManager(ModelLayerFactory modelLayerFactory,
 								  Delayed<ConstellioModulesManager> modulesManagerDelayed) {
@@ -198,8 +199,17 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 	}
 
 	public MetadataSchemaTypes getSchemaTypes(byte collectionId) {
-		String collectionCode = collectionsListManager.getCollectionCode(collectionId);
-		return getSchemaTypes(collectionCode);
+		int collectionIndex = collectionId - Byte.MIN_VALUE;
+		MetadataSchemaTypes types = typesByCollectionId[collectionIndex];
+
+		if (types == null) {
+			String collectionCode = collectionsListManager.getCollectionCode(collectionId);
+			return getSchemaTypes(collectionCode);
+		} else {
+			return types;
+		}
+
+
 	}
 
 	public MetadataSchemaTypes getSchemaTypes(String collection) {
@@ -357,9 +367,14 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 	public void onValueModified(String collection, MetadataSchemaTypes newValue) {
 		xmlConfigReader();
 
+		int collectionIndex = collectionsListManager.getCollectionInfo(collection).getCollectionId() - Byte.MIN_VALUE;
+		typesByCollectionId[collectionIndex] = newValue;
+
 		for (MetadataSchemasManagerListener listener : listeners) {
 			listener.onCollectionSchemasModified(collection);
 		}
+
+
 	}
 
 	@Override

@@ -47,13 +47,13 @@ public class RecordsCaches2Impl implements RecordsCaches {
 	private MetadataSchemasManager metadataSchemasManager;
 
 	private FileSystemRecordsValuesCacheDataStore fileSystemDataStore;
-	private MemoryEfficientRecordsCachesDataStore memoryDataStore;
+	private RecordsCachesDataStore memoryDataStore;
 	private DB memoryDiskDatabase;
 	private HTreeMap<String, RecordDTO> volatileCache;
 
 	public RecordsCaches2Impl(ModelLayerFactory modelLayerFactory,
 							  FileSystemRecordsValuesCacheDataStore fileSystemDataStore,
-							  MemoryEfficientRecordsCachesDataStore memoryDataStore) {
+							  RecordsCachesDataStore memoryDataStore) {
 		this.modelLayerFactory = modelLayerFactory;
 		this.metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
 		this.fileSystemDataStore = fileSystemDataStore;
@@ -137,7 +137,7 @@ public class RecordsCaches2Impl implements RecordsCaches {
 				return CacheInsertionStatus.REFUSED_NOT_FULLY_LOADED;
 			}
 
-			memoryDataStore.set(record.getId(), ((RecordImpl) record).getRecordDTO());
+			memoryDataStore.insert(((RecordImpl) record).getRecordDTO());
 			return CacheInsertionStatus.ACCEPTED;
 
 
@@ -150,7 +150,7 @@ public class RecordsCaches2Impl implements RecordsCaches {
 				dto = toPersistedSummaryRecordDTO(record);
 			}
 
-			memoryDataStore.set(dto.getId(), dto);
+			memoryDataStore.insert(dto);
 			return CacheInsertionStatus.ACCEPTED;
 
 		} else {
@@ -217,7 +217,7 @@ public class RecordsCaches2Impl implements RecordsCaches {
 			memoryDataStore.remove(recordDTO);
 			fileSystemDataStore.removeStringKey(recordDTO.getId());
 		} else {
-			memoryDataStore.remove(intId, recordDTO);
+			memoryDataStore.remove(recordDTO);
 			fileSystemDataStore.removeIntKey(intId);
 
 		}
@@ -243,7 +243,7 @@ public class RecordsCaches2Impl implements RecordsCaches {
 
 	public static RecordsCaches2Impl createAndInitialize(ModelLayerFactory modelLayerFactory,
 														 FileSystemRecordsValuesCacheDataStore fileSystemDataStore,
-														 MemoryEfficientRecordsCachesDataStore memoryDataStore) {
+														 RecordsCachesDataStore memoryDataStore) {
 
 		RecordsCaches2Impl caches = new RecordsCaches2Impl(modelLayerFactory, fileSystemDataStore, memoryDataStore);
 

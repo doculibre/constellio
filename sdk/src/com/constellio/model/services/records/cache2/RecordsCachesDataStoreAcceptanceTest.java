@@ -1,6 +1,8 @@
 package com.constellio.model.services.records.cache2;
 
+import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.SolrRecordDTO;
+import com.constellio.data.utils.ThreadList;
 import com.constellio.model.entities.schemas.RecordCacheType;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.records.RecordServices;
@@ -16,17 +18,26 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Random;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEssentialInSummary;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.IntStream.range;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 
-	MemoryEfficientRecordsCachesDataStore dataStore;
+	RecordsCachesDataStore dataStore;
 
 	TestsSchemasSetup setup = new TestsSchemasSetup(zeCollection);
 	TestsSchemasSetup.ZeSchemaMetadatas zeSchema = setup.new ZeSchemaMetadatas();
@@ -77,7 +88,7 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 		zeCollectionType2Id = metadataSchemasManager.getSchemaTypes(zeCollectionId).getSchemaType(anotherSchema.typeCode()).getId();
 		zeCollectionIndex = zeCollectionId - Byte.MIN_VALUE;
 		anotherCollectionIndex = anotherCollectionId - Byte.MIN_VALUE;
-		dataStore = new MemoryEfficientRecordsCachesDataStore(getModelLayerFactory());
+		dataStore = new RecordsCachesDataStore(getModelLayerFactory());
 		zeSchemaDefaultId = zeSchema.instance().getId();
 	}
 
@@ -99,18 +110,18 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 		dto6 = create(new SolrRecordDTO(zeroPadded(6), 34L, fields("zeCollection", zeSchema.code()), true));
 		dto8 = create(new SolrRecordDTO(zeroPadded(8), 45L, fields("zeCollection", zeSchema.code()), true));
 
-		dataStore.set(1, dto1, false);
-		dataStore.set(3, dto3, false);
-		dataStore.set(6, dto6, false);
-		dataStore.set(8, dto8, true);
+		dataStore.insertWithoutReservingSpaceForPreviousIds(dto1);
+		dataStore.insertWithoutReservingSpaceForPreviousIds(dto3);
+		dataStore.insertWithoutReservingSpaceForPreviousIds(dto6);
+		dataStore.insert(dto8);
 
-		assertThat(dataStore.ids[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
+		assertThat(dataStore.intIdsDataStore.ids[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
 				.containsExactly(1, 3, 6, 7, 8);
 
-		assertThat(dataStore.versions[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
+		assertThat(dataStore.intIdsDataStore.versions[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
 				.containsExactly(12L, 23L, 34L, 0L, 45L);
 
-		assertThat(dataStore.schema[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
+		assertThat(dataStore.intIdsDataStore.schema[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
 				.containsExactly(zeSchemaDefaultId, zeSchemaDefaultId, zeSchemaDefaultId, (short) 0, zeSchemaDefaultId);
 
 		assertThat(dataStore.stream(zeCollectionId, zeCollectionType1Id).collect(Collectors.toList()))
@@ -142,47 +153,47 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 		dto10 = create(new SolrRecordDTO(zeroPadded(10), 111L, fields("zeCollection", zeSchema.code()), true));
 		dto12 = create(new SolrRecordDTO(zeroPadded(12), 222L, fields("zeCollection", zeSchema.code()), true));
 
-		dataStore.set(1, dto1, false);
-		dataStore.set(3, dto3, false);
-		dataStore.set(6, dto6, false);
-		dataStore.set(8, dto8, true);
-		dataStore.set(7, dto7, true);
+		dataStore.insertWithoutReservingSpaceForPreviousIds(dto1);
+		dataStore.insertWithoutReservingSpaceForPreviousIds(dto3);
+		dataStore.insertWithoutReservingSpaceForPreviousIds(dto6);
+		dataStore.insert(dto8);
+		dataStore.insert(dto7);
 
-		assertThat(dataStore.ids[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
+		assertThat(dataStore.intIdsDataStore.ids[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
 				.containsExactly(1, 3, 6, 7, 8);
 
-		assertThat(dataStore.versions[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
+		assertThat(dataStore.intIdsDataStore.versions[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
 				.containsExactly(12L, 23L, 34L, 56L, 67L);
 
-		assertThat(dataStore.schema[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
+		assertThat(dataStore.intIdsDataStore.schema[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
 				.containsExactly(zeSchemaDefaultId, zeSchemaDefaultId, zeSchemaDefaultId, zeSchemaDefaultId, zeSchemaDefaultId);
 
 		assertThat(dataStore.stream(zeCollectionId, zeCollectionType1Id).collect(Collectors.toList()))
 				.containsExactly(dto1, dto3, dto6, dto7, dto8);
 
-		dataStore.set(10, dto10, true);
+		dataStore.insert(dto10);
 
-		assertThat(dataStore.ids[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
+		assertThat(dataStore.intIdsDataStore.ids[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
 				.containsExactly(1, 3, 6, 7, 8, 9, 10);
 
-		assertThat(dataStore.versions[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
+		assertThat(dataStore.intIdsDataStore.versions[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
 				.containsExactly(12L, 23L, 34L, 56L, 67L, 0L, 111L);
 
-		assertThat(dataStore.schema[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
+		assertThat(dataStore.intIdsDataStore.schema[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
 				.containsExactly(zeSchemaDefaultId, zeSchemaDefaultId, zeSchemaDefaultId, zeSchemaDefaultId, zeSchemaDefaultId, (short) 0, zeSchemaDefaultId);
 
 		assertThat(dataStore.stream(zeCollectionId, zeCollectionType1Id).collect(Collectors.toList()))
 				.containsExactly(dto1, dto3, dto6, dto7, dto8, dto10);
 
-		dataStore.set(12, dto12, false);
+		dataStore.insertWithoutReservingSpaceForPreviousIds(dto12);
 
-		assertThat(dataStore.ids[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
+		assertThat(dataStore.intIdsDataStore.ids[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
 				.containsExactly(1, 3, 6, 7, 8, 9, 10, 12);
 
-		assertThat(dataStore.versions[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
+		assertThat(dataStore.intIdsDataStore.versions[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
 				.containsExactly(12L, 23L, 34L, 56L, 67L, 0L, 111L, 222L);
 
-		assertThat(dataStore.schema[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
+		assertThat(dataStore.intIdsDataStore.schema[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
 				.containsExactly(zeSchemaDefaultId, zeSchemaDefaultId, zeSchemaDefaultId, zeSchemaDefaultId, zeSchemaDefaultId, (short) 0, zeSchemaDefaultId, zeSchemaDefaultId);
 
 		assertThat(dataStore.stream(zeCollectionId, zeCollectionType1Id).collect(Collectors.toList()))
@@ -214,47 +225,47 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 		dto12 = new SolrRecordDTO(zeroPadded(12), 111L, fields("zeCollection", zeSchema.code()), false);
 		dto14 = new SolrRecordDTO(zeroPadded(14), 222L, fields("zeCollection", zeSchema.code()), false);
 
-		dataStore.set(1, dto1, false);
-		dataStore.set(3, dto3, false);
-		dataStore.set(6, dto6, false);
-		dataStore.set(9, dto9, true);
-		dataStore.set(7, dto7, true);
+		dataStore.insertWithoutReservingSpaceForPreviousIds(dto1);
+		dataStore.insertWithoutReservingSpaceForPreviousIds(dto3);
+		dataStore.insertWithoutReservingSpaceForPreviousIds(dto6);
+		dataStore.insert(dto9);
+		dataStore.insert(dto7);
 
-		assertThat(dataStore.ids[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
+		assertThat(dataStore.intIdsDataStore.ids[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
 				.containsExactly(1, 3, 6, 7, 8, 9);
 
-		assertThat(dataStore.versions[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
+		assertThat(dataStore.intIdsDataStore.versions[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
 				.containsExactly(12L, 23L, 34L, 56L, 0L, 45L);
 
-		assertThat(dataStore.schema[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
+		assertThat(dataStore.intIdsDataStore.schema[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
 				.containsExactly(zeSchemaDefaultId, zeSchemaDefaultId, zeSchemaDefaultId, zeSchemaDefaultId, (short) 0, zeSchemaDefaultId);
 
 		assertThat(dataStore.stream(zeCollectionId, zeCollectionType1Id).collect(Collectors.toList()))
 				.containsExactly(dto1, dto3, dto6, dto7, dto9);
 
-		dataStore.set(8, dto8, true);
+		dataStore.insert(dto8);
 
 		assertThat(dataStore.stream(zeCollectionId, zeCollectionType1Id).collect(Collectors.toList()))
 				.containsExactly(dto1, dto3, dto6, dto7, dto8, dto9);
 
-		dataStore.set(12, dto12, true);
+		dataStore.insert(dto12);
 
-		assertThat(dataStore.ids[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
+		assertThat(dataStore.intIdsDataStore.ids[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
 				.containsExactly(1, 3, 6, 7, 8, 9, 10, 11, 12);
 
-		assertThat(dataStore.versions[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
+		assertThat(dataStore.intIdsDataStore.versions[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
 				.containsExactly(12L, 23L, 34L, 56L, 67L, 45L, 0L, 0L, 111L);
 
 		assertThat(dataStore.stream(zeCollectionId, zeCollectionType1Id).collect(Collectors.toList()))
 				.containsExactly(dto1, dto3, dto6, dto7, dto8, dto9, dto12);
 
 
-		dataStore.set(14, dto14, false);
+		dataStore.insertWithoutReservingSpaceForPreviousIds(dto14);
 
-		assertThat(dataStore.ids[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
+		assertThat(dataStore.intIdsDataStore.ids[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
 				.containsExactly(1, 3, 6, 7, 8, 9, 10, 11, 12, 14);
 
-		assertThat(dataStore.versions[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
+		assertThat(dataStore.intIdsDataStore.versions[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
 				.containsExactly(12L, 23L, 34L, 56L, 67L, 45L, 0L, 0L, 111L, 222L);
 
 		assertThat(dataStore.stream(zeCollectionId, zeCollectionType1Id).collect(Collectors.toList()))
@@ -283,50 +294,50 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 		dto7 = new SolrRecordDTO(zeroPadded(7), 11L, fields("zeCollection", zeSchema.code()), false);
 		dto8 = new SolrRecordDTO(zeroPadded(8), 67L, fields("zeCollection", zeSchema.code()), false);
 
-		dataStore.set(1, dto1, false);
-		dataStore.set(3, dto3, false);
-		dataStore.set(6, dto6, false);
+		dataStore.insertWithoutReservingSpaceForPreviousIds(dto1);
+		dataStore.insertWithoutReservingSpaceForPreviousIds(dto3);
+		dataStore.insertWithoutReservingSpaceForPreviousIds(dto6);
 
-		assertThat(dataStore.ids[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
+		assertThat(dataStore.intIdsDataStore.ids[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
 				.containsExactly(1, 3, 6);
-		dataStore.set(8, dto8, false);
+		dataStore.insertWithoutReservingSpaceForPreviousIds(dto8);
 
 		//There is no space for record 2, which is a normal case
-		assertThat(dataStore.ids[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
+		assertThat(dataStore.intIdsDataStore.ids[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
 				.containsExactly(1, 3, 6, 8);
 
-		assertThat(dataStore.versions[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
+		assertThat(dataStore.intIdsDataStore.versions[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
 				.containsExactly(12L, 23L, 34L, 67L);
 
-		assertThat(dataStore.schema[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
+		assertThat(dataStore.intIdsDataStore.schema[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
 				.containsExactly(zeSchemaDefaultId, zeSchemaDefaultId, zeSchemaDefaultId, zeSchemaDefaultId);
 
 		assertThat(dataStore.stream(zeCollectionId, zeCollectionType1Id).collect(Collectors.toList()))
 				.containsExactly(dto1, dto3, dto6, dto8);
 
-		dataStore.set(2, dto2, false);
+		dataStore.insertWithoutReservingSpaceForPreviousIds(dto2);
 
-		assertThat(dataStore.ids[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
+		assertThat(dataStore.intIdsDataStore.ids[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
 				.containsExactly(1, 2, 3, 6, 8);
 
-		assertThat(dataStore.versions[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
+		assertThat(dataStore.intIdsDataStore.versions[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
 				.containsExactly(12L, 89L, 23L, 34L, 67L);
 
-		assertThat(dataStore.schema[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
+		assertThat(dataStore.intIdsDataStore.schema[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
 				.containsExactly(zeSchemaDefaultId, zeSchemaDefaultId, zeSchemaDefaultId, zeSchemaDefaultId, zeSchemaDefaultId);
 
 		assertThat(dataStore.stream(zeCollectionId, zeCollectionType1Id).collect(Collectors.toList()))
 				.containsExactly(dto1, dto2, dto3, dto6, dto8);
 
-		dataStore.set(7, dto7, false);
+		dataStore.insertWithoutReservingSpaceForPreviousIds(dto7);
 
-		assertThat(dataStore.ids[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
+		assertThat(dataStore.intIdsDataStore.ids[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
 				.containsExactly(1, 2, 3, 6, 7, 8);
 
-		assertThat(dataStore.versions[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
+		assertThat(dataStore.intIdsDataStore.versions[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
 				.containsExactly(12L, 89L, 23L, 34L, 11L, 67L);
 
-		assertThat(dataStore.schema[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
+		assertThat(dataStore.intIdsDataStore.schema[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
 				.containsExactly(zeSchemaDefaultId, zeSchemaDefaultId, zeSchemaDefaultId, zeSchemaDefaultId, zeSchemaDefaultId, zeSchemaDefaultId);
 
 		assertThat(dataStore.stream(zeCollectionId, zeCollectionType1Id).collect(Collectors.toList()))
@@ -355,26 +366,26 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 		dto6 = create(new SolrRecordDTO(zeroPadded(6), 34L, fields("zeCollection", zeSchema.code()), true));
 		dto8 = create(new SolrRecordDTO(zeroPadded(8), 45L, fields("zeCollection", zeSchema.code()), true));
 
-		dataStore.set(1, dto1, false);
-		dataStore.set(3, dto3, false);
-		dataStore.set(6, dto6, false);
-		dataStore.set(8, dto8, true);
+		dataStore.insertWithoutReservingSpaceForPreviousIds(dto1);
+		dataStore.insertWithoutReservingSpaceForPreviousIds(dto3);
+		dataStore.insertWithoutReservingSpaceForPreviousIds(dto6);
+		dataStore.insert(dto8);
 
 		//There is no space for record 2, which is a normal case
-		assertThat(dataStore.ids[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
+		assertThat(dataStore.intIdsDataStore.ids[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
 				.containsExactly(1, 3, 6, 7, 8);
 
 		//No space was reserved for id 2, recreating all arrays with a space for 2
 		dto2 = create(new SolrRecordDTO(zeroPadded(2), 56L, fields("zeCollection", zeSchema.code(), "booleanMetadata_s", false), true));
-		dataStore.set(2, dto2, false);
+		dataStore.insertWithoutReservingSpaceForPreviousIds(dto2);
 
-		assertThat(dataStore.ids[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
+		assertThat(dataStore.intIdsDataStore.ids[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
 				.containsExactly(1, 2, 3, 6, 7, 8);
 
-		assertThat(dataStore.versions[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
+		assertThat(dataStore.intIdsDataStore.versions[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
 				.containsExactly(12L, 56L, 23L, 34L, 0L, 45L);
 
-		assertThat(dataStore.schema[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
+		assertThat(dataStore.intIdsDataStore.schema[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
 				.containsExactly(zeSchemaDefaultId, zeSchemaDefaultId, zeSchemaDefaultId, zeSchemaDefaultId, (short) 0, zeSchemaDefaultId);
 
 		assertThat(dataStore.stream(zeCollectionId, zeCollectionType1Id).collect(Collectors.toList()))
@@ -403,13 +414,13 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 		dto6 = create(new SolrRecordDTO(zeroPadded(6), 34L, fields("zeCollection", zeSchema.code()), true));
 		dto8 = create(new SolrRecordDTO(zeroPadded(8), 45L, fields("zeCollection", zeSchema.code()), true));
 
-		dataStore.set(1, dto1, false);
-		dataStore.set(2, dto2, false);
-		dataStore.set(3, dto3, false);
-		dataStore.set(6, dto6, false);
-		dataStore.set(8, dto8, true);
+		dataStore.insertWithoutReservingSpaceForPreviousIds(dto1);
+		dataStore.insertWithoutReservingSpaceForPreviousIds(dto2);
+		dataStore.insertWithoutReservingSpaceForPreviousIds(dto3);
+		dataStore.insertWithoutReservingSpaceForPreviousIds(dto6);
+		dataStore.insert(dto8);
 
-		assertThat(dataStore.ids[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
+		assertThat(dataStore.intIdsDataStore.ids[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
 				.containsExactly(1, 2, 3, 6, 7, 8);
 		assertThat(dataStore.stream(zeCollectionId, zeCollectionType1Id).collect(Collectors.toList()))
 				.containsExactly(dto1, dto2, dto3, dto6, dto8);
@@ -424,13 +435,13 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 
 		dataStore.invalidate(zeCollectionId, zeCollectionType1Id, (r) -> r.getVersion() % 2 == 0);
 
-		assertThat(dataStore.ids[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
+		assertThat(dataStore.intIdsDataStore.ids[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
 				.containsExactly(1, 2, 3, 6, 7, 8);
 
-		assertThat(dataStore.versions[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
+		assertThat(dataStore.intIdsDataStore.versions[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
 				.containsExactly(0L, 0L, 23L, 0L, 0L, 45L);
 
-		assertThat(dataStore.schema[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
+		assertThat(dataStore.intIdsDataStore.schema[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
 				.containsExactly((short) 0, (short) 0, zeSchemaDefaultId, (short) 0, (short) 0, zeSchemaDefaultId);
 
 		assertThat(dataStore.stream(zeCollectionId, zeCollectionType1Id).collect(Collectors.toList()))
@@ -460,13 +471,13 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 		dto6 = create(new SolrRecordDTO(zeroPadded(6), 34L, fields("zeCollection", zeSchema.code()), true));
 		dto8 = create(new SolrRecordDTO(zeroPadded(8), 45L, fields("zeCollection", zeSchema.code()), true));
 
-		dataStore.set(1, dto1, false);
-		dataStore.set(2, dto2, false);
-		dataStore.set(3, dto3, false);
-		dataStore.set(6, dto6, false);
-		dataStore.set(8, dto8, true);
+		dataStore.insertWithoutReservingSpaceForPreviousIds(dto1);
+		dataStore.insertWithoutReservingSpaceForPreviousIds(dto2);
+		dataStore.insertWithoutReservingSpaceForPreviousIds(dto3);
+		dataStore.insertWithoutReservingSpaceForPreviousIds(dto6);
+		dataStore.insert(dto8);
 
-		assertThat(dataStore.ids[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
+		assertThat(dataStore.intIdsDataStore.ids[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
 				.containsExactly(1, 2, 3, 6, 7, 8);
 		assertThat(dataStore.stream(zeCollectionId, zeCollectionType1Id).collect(Collectors.toList()))
 				.containsExactly(dto1, dto2, dto3, dto6, dto8);
@@ -480,13 +491,13 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 
 		dataStore.invalidate(zeCollectionId, (r) -> r.getVersion() % 2 == 0);
 
-		assertThat(dataStore.ids[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
+		assertThat(dataStore.intIdsDataStore.ids[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
 				.containsExactly(1, 2, 3, 6, 7, 8);
 
-		assertThat(dataStore.versions[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
+		assertThat(dataStore.intIdsDataStore.versions[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
 				.containsExactly(0L, 0L, 23L, 0L, 0L, 45L);
 
-		assertThat(dataStore.schema[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
+		assertThat(dataStore.intIdsDataStore.schema[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
 				.containsExactly((short) 0, (short) 0, zeSchemaDefaultId, (short) 0, (short) 0, zeSchemaDefaultId);
 
 		assertThat(dataStore.stream(zeCollectionId, zeCollectionType1Id).collect(Collectors.toList()))
@@ -516,13 +527,13 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 		dto6 = create(new SolrRecordDTO(zeroPadded(6), 34L, fields("zeCollection", zeSchema.code()), true));
 		dto8 = create(new SolrRecordDTO(zeroPadded(8), 45L, fields("zeCollection", zeSchema.code()), true));
 
-		dataStore.set(1, dto1, false);
-		dataStore.set(2, dto2, false);
-		dataStore.set(3, dto3, false);
-		dataStore.set(6, dto6, false);
-		dataStore.set(8, dto8, true);
+		dataStore.insertWithoutReservingSpaceForPreviousIds(dto1);
+		dataStore.insertWithoutReservingSpaceForPreviousIds(dto2);
+		dataStore.insertWithoutReservingSpaceForPreviousIds(dto3);
+		dataStore.insertWithoutReservingSpaceForPreviousIds(dto6);
+		dataStore.insert(dto8);
 
-		assertThat(dataStore.ids[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
+		assertThat(dataStore.intIdsDataStore.ids[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
 				.containsExactly(1, 2, 3, 6, 7, 8);
 		assertThat(dataStore.stream(zeCollectionId, zeCollectionType1Id).collect(Collectors.toList()))
 				.containsExactly(dto1, dto2, dto3, dto6, dto8);
@@ -530,20 +541,254 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 
 		dataStore.invalidate((r) -> r.getVersion() % 2 == 0);
 
-		assertThat(dataStore.ids[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
+		assertThat(dataStore.intIdsDataStore.ids[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
 				.containsExactly(1, 2, 3, 6, 7, 8);
 
-		assertThat(dataStore.versions[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
+		assertThat(dataStore.intIdsDataStore.versions[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
 				.containsExactly(0L, 0L, 23L, 0L, 0L, 45L);
 
-		assertThat(dataStore.schema[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
+		assertThat(dataStore.intIdsDataStore.schema[zeCollectionIndex][zeCollectionType1Id].stream().collect(toList()))
 				.containsExactly((short) 0, (short) 0, zeSchemaDefaultId, (short) 0, (short) 0, zeSchemaDefaultId);
 
 		assertThat(dataStore.stream(zeCollectionId, zeCollectionType1Id).collect(Collectors.toList()))
 				.containsExactly(dto3, dto8);
 
+
 	}
 
+	@Test
+	public void givenRecordsInMultipleCollectionsSchemaTypesAndDifferentIdPatternsThenAllSavedAndRetrievableWithStreams()
+			throws Exception {
+
+		givenCollection("collection1");
+		givenCollection("collection2");
+
+		getModelLayerFactory().getMetadataSchemasManager().modify("collection1", new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.createNewSchemaType("type1").setRecordCacheType(RecordCacheType.SUMMARY_CACHED_WITHOUT_VOLATILE);
+				types.createNewSchemaType("type2").setRecordCacheType(RecordCacheType.SUMMARY_CACHED_WITHOUT_VOLATILE);
+			}
+		});
+
+		getModelLayerFactory().getMetadataSchemasManager().modify("collection2", new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.createNewSchemaType("type1").setRecordCacheType(RecordCacheType.SUMMARY_CACHED_WITHOUT_VOLATILE);
+				types.createNewSchemaType("type2").setRecordCacheType(RecordCacheType.SUMMARY_CACHED_WITHOUT_VOLATILE);
+			}
+		});
+
+		CollectionsListManager collectionsListManager = getModelLayerFactory().getCollectionsListManager();
+		MetadataSchemasManager schemasManager = getModelLayerFactory().getMetadataSchemasManager();
+		dataStore = new RecordsCachesDataStore(getModelLayerFactory());
+
+		byte collection1Id = collectionsListManager.getCollectionId("collection1");
+		byte collection2Id = collectionsListManager.getCollectionId("collection2");
+		short collection1Type1 = schemasManager.getSchemaTypes(collection1Id).getSchemaType("type1").getId();
+		short collection1Type2 = schemasManager.getSchemaTypes(collection1Id).getSchemaType("type2").getId();
+		short collection2Type1 = schemasManager.getSchemaTypes(collection2Id).getSchemaType("type1").getId();
+		short collection2Type2 = schemasManager.getSchemaTypes(collection2Id).getSchemaType("type2").getId();
+
+		List<RecordDTO> collection1Type1Records = new ArrayList<>();
+		List<RecordDTO> collection1Type2Records = new ArrayList<>();
+		List<RecordDTO> collection2Type1Records = new ArrayList<>();
+		List<RecordDTO> collection2Type2Records = new ArrayList<>();
+
+		BiFunction<String, String, RecordDTO> dtoCreator = new BiFunction<String, String, RecordDTO>() {
+			int id = 1000;
+
+			@Override
+			public RecordDTO apply(String collection, String schema) {
+				long version = id + 10000;
+
+				String strId;
+				if (id % 7 == 0) {
+					strId = "mouhahahaha" + id;
+				} else {
+					strId = zeroPadded(id);
+				}
+				id++;
+
+				RecordDTO dto = create(new SolrRecordDTO(strId, version, fields(collection, schema), true));
+				dataStore.insert(dto);
+				return dto;
+			}
+		};
+
+		range(0, 1000).forEach((i -> collection1Type1Records.add(dtoCreator.apply("collection1", "type1_default"))));
+		range(0, 1000).forEach((i -> collection1Type2Records.add(dtoCreator.apply("collection1", "type2_default"))));
+		range(0, 1000).forEach((i -> collection2Type1Records.add(dtoCreator.apply("collection2", "type1_default"))));
+		range(0, 1000).forEach((i -> collection2Type2Records.add(dtoCreator.apply("collection2", "type2_default"))));
+
+
+		assertThat(dataStore.stream().collect(toList()))
+				.containsAll(collection1Type1Records)
+				.containsAll(collection1Type2Records)
+				.containsAll(collection2Type1Records)
+				.containsAll(collection2Type2Records)
+				.hasSize(4000);
+
+		assertThat(dataStore.stream(collection1Id).collect(toList()))
+				.containsAll(collection1Type1Records)
+				.containsAll(collection1Type2Records)
+				.hasSize(2000);
+
+		assertThat(dataStore.stream(collection2Id).collect(toList()))
+				.containsAll(collection2Type1Records)
+				.containsAll(collection2Type2Records)
+				.hasSize(2000);
+
+		assertThat(dataStore.stream(collection1Id, collection1Type1).collect(toList()))
+				.containsAll(collection1Type1Records)
+				.hasSize(1000);
+
+		assertThat(dataStore.stream(collection1Id, collection1Type2).collect(toList()))
+				.containsAll(collection1Type2Records)
+				.hasSize(1000);
+
+		assertThat(dataStore.stream(collection2Id, collection2Type1).collect(toList()))
+				.containsAll(collection2Type1Records)
+				.hasSize(1000);
+
+		assertThat(dataStore.stream(collection2Id, collection2Type2).collect(toList()))
+				.containsAll(collection2Type2Records)
+				.hasSize(1000);
+
+		for (List<RecordDTO> list : Arrays.asList(collection1Type1Records, collection1Type2Records,
+				collection2Type1Records, collection2Type2Records)) {
+			for (RecordDTO recordDTO : list) {
+				assertThat(dataStore.get(recordDTO.getId())).isEqualTo(recordDTO);
+			}
+		}
+
+	}
+
+
+	//@Test
+	public void givenHighCacheConcurrencyThenNoExceptionAndStreamsNeverReturnNulls()
+			throws Exception {
+
+		givenCollection("collection1");
+
+		getModelLayerFactory().getMetadataSchemasManager().modify("collection1", new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.createNewSchemaType("type1").setRecordCacheType(RecordCacheType.SUMMARY_CACHED_WITHOUT_VOLATILE);
+			}
+		});
+
+		CollectionsListManager collectionsListManager = getModelLayerFactory().getCollectionsListManager();
+		MetadataSchemasManager schemasManager = getModelLayerFactory().getMetadataSchemasManager();
+		dataStore = new RecordsCachesDataStore(getModelLayerFactory());
+
+		byte collection1Id = collectionsListManager.getCollectionId("collection1");
+		short collection1Type1 = schemasManager.getSchemaTypes(collection1Id).getSchemaType("type1").getId();
+
+		Random random = new Random();
+		List<String> ids = new ArrayList<>();
+
+		notAUnitItest = true;
+		Function<Boolean, RecordDTO> dtoCreator = new Function<Boolean, RecordDTO>() {
+			int id = 1000;
+
+			@Override
+			public RecordDTO apply(Boolean remove) {
+				long version = id + 10000;
+
+				String strId;
+				if (id % 7 == 0) {
+					strId = "mouhahahaha" + id;
+				} else {
+					strId = zeroPadded(id);
+				}
+				id++;
+
+
+				RecordDTO dto = create(new SolrRecordDTO(strId, version, fields("collection1", "type1_default"), true));
+				dataStore.insert(dto);
+
+				synchronized (ids) {
+					ids.add(strId);
+
+					if (remove) {
+						String idToRemove = ids.remove(random.nextInt(ids.size() - 20));
+						dataStore.remove(dto);
+					}
+				}
+
+
+				return dto;
+			}
+		};
+
+		//Adding 1000 records
+		range(0, 1000).forEach((i -> ids.add(dtoCreator.apply(false).getId())));
+
+		AtomicBoolean running = new AtomicBoolean(true);
+		AtomicInteger finishedWithoutErrors = new AtomicInteger(0);
+
+
+		ThreadList threadList = new ThreadList();
+
+		int creatingThreads = 5;
+		int creatingDeletingThreads = 0;
+		int streamingThreads = 100;
+
+		for (int i = 0; i < creatingThreads; i++) {
+			threadList.add(new Thread(() -> {
+				while (running.get()) {
+					dtoCreator.apply(false);
+				}
+				finishedWithoutErrors.incrementAndGet();
+			}));
+		}
+
+		for (int i = 0; i < creatingDeletingThreads; i++) {
+			threadList.add(new Thread(() -> {
+				while (running.get()) {
+					dtoCreator.apply(true);
+				}
+				finishedWithoutErrors.incrementAndGet();
+			}));
+		}
+
+		for (int i = 0; i < streamingThreads; i++) {
+			threadList.add(new Thread(() -> {
+				while (running.get()) {
+					int returnedCount = 0;
+					int minimumExpected = 0;
+					synchronized (ids) {
+						minimumExpected = ids.size();
+					}
+					for (RecordDTO recordDTO : dataStore.stream().collect(toList())) {
+						if (recordDTO == null) {
+							throw new RuntimeException("Null returned when streaming");
+						}
+						returnedCount++;
+					}
+
+					if (returnedCount < minimumExpected) {
+						throw new RuntimeException("Streaming skipped records");
+					}
+				}
+				finishedWithoutErrors.incrementAndGet();
+			}));
+		}
+
+		threadList.startAll();
+
+		while (ids.size() < 1_000_000) {
+			System.out.println(ids.size());
+			Thread.sleep(10);
+		}
+		running.set(false);
+		threadList.joinAll();
+
+		System.out.println("Datastore size : " + ids.size());
+		assertThat(finishedWithoutErrors.get()).isEqualTo(creatingThreads + creatingDeletingThreads + streamingThreads);
+
+	}
 
 	private ByteArrayRecordDTO create(SolrRecordDTO solrRecordDTO) {
 		return ByteArrayRecordDTO.create(getModelLayerFactory(), solrRecordDTO);

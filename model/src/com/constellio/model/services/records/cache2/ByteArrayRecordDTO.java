@@ -24,7 +24,7 @@ import java.util.function.Supplier;
 
 import static com.constellio.model.services.records.cache2.CacheRecordDTOUtils.convertDTOToByteArrays;
 
-public abstract class ByteArrayRecordDTO implements RecordDTO, Supplier<byte[]> {
+public abstract class ByteArrayRecordDTO implements Map<String, Object>, RecordDTO, Supplier<byte[]> {
 
 	MetadataSchemaProvider schemaProvider;
 	long version;
@@ -36,7 +36,7 @@ public abstract class ByteArrayRecordDTO implements RecordDTO, Supplier<byte[]> 
 	short typeId;
 	String typeCode;
 	byte[] data;
-	private Map<String, Object> map;
+	//private Map<String, Object> map;
 
 	private ByteArrayRecordDTO(MetadataSchemaProvider schemaProvider, long version, boolean summary,
 							   String collectionCode, byte collectionId, String typeCode, short typeId,
@@ -51,7 +51,7 @@ public abstract class ByteArrayRecordDTO implements RecordDTO, Supplier<byte[]> 
 		this.schemaCode = schemacode;
 		this.schemaId = schemaId;
 		this.summary = summary;
-		this.map = this.new ByteArrayRecordDTOMap();
+		//this.map = this.new ByteArrayRecordDTOMap();
 	}
 
 	public byte getCollectionId() {
@@ -66,13 +66,6 @@ public abstract class ByteArrayRecordDTO implements RecordDTO, Supplier<byte[]> 
 		return schemaId;
 	}
 
-	public Object get(String field) {
-		return map.get(field);
-	}
-
-	public Set<String> keySet() {
-		return map.keySet();
-	}
 
 	public static ByteArrayRecordDTO create(ModelLayerFactory modelLayerFactory, RecordDTO dto) {
 		String collection = (String) dto.getFields().get("collection_s");
@@ -111,6 +104,7 @@ public abstract class ByteArrayRecordDTO implements RecordDTO, Supplier<byte[]> 
 		}
 
 	}
+
 
 	public static class ByteArrayRecordDTOWithIntegerId extends ByteArrayRecordDTO {
 
@@ -160,6 +154,10 @@ public abstract class ByteArrayRecordDTO implements RecordDTO, Supplier<byte[]> 
 
 			return sb.toString();
 		}
+
+		public int getIntId() {
+			return id;
+		}
 	}
 
 	public static class ByteArrayRecordDTOWithStringId extends ByteArrayRecordDTO {
@@ -196,7 +194,7 @@ public abstract class ByteArrayRecordDTO implements RecordDTO, Supplier<byte[]> 
 
 	@Override
 	public Map<String, Object> getFields() {
-		return map;
+		return this;
 	}
 
 	@Override
@@ -224,109 +222,117 @@ public abstract class ByteArrayRecordDTO implements RecordDTO, Supplier<byte[]> 
 		throw new UnsupportedOperationException("createCopyOnlyKeeping is not supported on summary record cache");
 	}
 
-	private class ByteArrayRecordDTOMap implements Map<String, Object> {
+	//	public Object get(String field) {
+	//		return map.get(field);
+	//	}
+	//
+	//	public Set<String> keySet() {
+	//		return map.keySet();
+	//	}
+	//
+	//	private class ByteArrayRecordDTOMap implements Map<String, Object> {
 
-		/**
-		 * @return
-		 */
-		@Override
-		public int size() {
-			return CacheRecordDTOUtils.metadatasSize(data);
+	/**
+	 * @return
+	 */
+	@Override
+	public int size() {
+		return CacheRecordDTOUtils.metadatasSize(data);
+	}
+
+	@Override
+	public boolean isEmpty() {
+		return false;
+	}
+
+	@Override
+	public boolean containsKey(Object key) {
+		MetadataSchema schema = schemaProvider.get(collectionId, typeId, schemaId);
+		return CacheRecordDTOUtils.containsMetadata(data, schema, (String) key);
+	}
+
+	@Override
+	public boolean containsValue(Object value) {
+		throw new UnsupportedOperationException("containsValue is not supported on summary record cache");
+	}
+
+	@Override
+	public Object get(Object key) {
+		if ("collection_s".equals(key)) {
+			return collectionCode;
 		}
 
-		@Override
-		public boolean isEmpty() {
-			return false;
+		if ("schema_s".equals(key)) {
+			return schemaCode;
 		}
 
-		@Override
-		public boolean containsKey(Object key) {
-			MetadataSchema schema = schemaProvider.get(collectionId, typeId, schemaId);
-			return CacheRecordDTOUtils.containsMetadata(data, schema, (String) key);
-		}
+		MetadataSchema schema = schemaProvider.get(collectionId, typeId, schemaId);
+		return CacheRecordDTOUtils.readMetadata(data, schema, (String) key);
+	}
 
-		@Override
-		public boolean containsValue(Object value) {
-			throw new UnsupportedOperationException("containsValue is not supported on summary record cache");
-		}
+	@Nullable
+	@Override
+	public Object put(String key, Object value) {
+		throw new UnsupportedOperationException("put is not supported on summary record cache");
+	}
 
-		@Override
-		public Object get(Object key) {
-			if ("collection_s".equals(key)) {
-				return collectionCode;
-			}
+	@Override
+	public Object remove(Object key) {
+		throw new UnsupportedOperationException("remove is not supported on summary record cache");
+	}
 
-			if ("schema_s".equals(key)) {
-				return schemaCode;
-			}
+	@Override
+	public void putAll(@NotNull Map<? extends String, ?> m) {
+		throw new UnsupportedOperationException("putAll is not supported on summary record cache");
+	}
 
-			MetadataSchema schema = schemaProvider.get(collectionId, typeId, schemaId);
-			return CacheRecordDTOUtils.readMetadata(data, schema, (String) key);
-		}
+	@Override
+	public void clear() {
+		throw new UnsupportedOperationException("clear is not supported on summary record cache");
+	}
 
-		@Nullable
-		@Override
-		public Object put(String key, Object value) {
-			throw new UnsupportedOperationException("put is not supported on summary record cache");
-		}
+	@NotNull
+	@Override
+	public Set<String> keySet() {
+		MetadataSchema schema = schemaProvider.get(collectionId, typeId, schemaId);
+		Set<String> keys = CacheRecordDTOUtils.getStoredMetadatas(data, schema);
+		keys.add("collection_s");
+		keys.add("schema_s");
+		return keys;
+	}
 
-		@Override
-		public Object remove(Object key) {
-			throw new UnsupportedOperationException("remove is not supported on summary record cache");
-		}
+	@NotNull
+	@Override
+	public Collection<Object> values() {
+		MetadataSchema schema = schemaProvider.get(collectionId, typeId, schemaId);
+		Set<Object> values = CacheRecordDTOUtils.getStoredValues(data, schema);
+		values.add(getCollection());
+		values.add(getSchemaCode());
+		return values;
+	}
 
-		@Override
-		public void putAll(@NotNull Map<? extends String, ?> m) {
-			throw new UnsupportedOperationException("putAll is not supported on summary record cache");
-		}
+	@NotNull
+	@Override
+	public Set<Entry<String, Object>> entrySet() {
 
-		@Override
-		public void clear() {
-			throw new UnsupportedOperationException("clear is not supported on summary record cache");
-		}
+		MetadataSchema schema = schemaProvider.get(collectionId, typeId, schemaId);
+		Set<Entry<String, Object>> entries = CacheRecordDTOUtils.toEntrySet(data, schema);
 
-		@NotNull
-		@Override
-		public Set<String> keySet() {
-			MetadataSchema schema = schemaProvider.get(collectionId, typeId, schemaId);
-			Set<String> keys = CacheRecordDTOUtils.getStoredMetadatas(data, schema);
-			keys.add("collection_s");
-			keys.add("schema_s");
-			return keys;
-		}
+		entries.add(new SimpleEntry("collection_s", getCollection()));
+		entries.add(new SimpleEntry("schema_s", getSchemaCode()));
 
-		@NotNull
-		@Override
-		public Collection<Object> values() {
-			MetadataSchema schema = schemaProvider.get(collectionId, typeId, schemaId);
-			Set<Object> values = CacheRecordDTOUtils.getStoredValues(data, schema);
-			values.add(getCollection());
-			values.add(getSchemaCode());
-			return values;
-		}
-
-		@NotNull
-		@Override
-		public Set<Entry<String, Object>> entrySet() {
-
-			MetadataSchema schema = schemaProvider.get(collectionId, typeId, schemaId);
-			Set<Entry<String, Object>> entries = CacheRecordDTOUtils.toEntrySet(data, schema);
-
-			entries.add(new SimpleEntry("collection_s", getCollection()));
-			entries.add(new SimpleEntry("schema_s", getSchemaCode()));
-
-			try {
+		try {
 
 
-				System.out.println("Size : " + entries.size());
-				return entries;
+			System.out.println("Size : " + entries.size());
+			return entries;
 
-			} catch (Throwable t) {
-				t.printStackTrace();
-				throw t;
-			}
+		} catch (Throwable t) {
+			t.printStackTrace();
+			throw t;
 		}
 	}
+	//	}
 
 	public byte[] getData() {
 		return data;

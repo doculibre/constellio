@@ -37,7 +37,9 @@ class OffHeapByteArrayList {
 
 		} finally {
 			if (previousAddress != 0 && previousAddress != -1) {
-				OffHeapMemoryAllocator.freeMemory(previousAddress, previousLength);
+				synchronized (this) {
+					OffHeapMemoryAllocator.freeMemory(previousAddress, previousLength);
+				}
 			}
 		}
 

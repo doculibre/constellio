@@ -38,7 +38,7 @@ public class RecordsCache2Impl implements RecordsCache {
 	private ModelLayerFactory modelLayerFactory;
 	private MetadataSchemasManager metadataSchemasManager;
 	private FileSystemRecordsValuesCacheDataStore fileSystemDataStore;
-	private MemoryEfficientRecordsCachesDataStore memoryDataStore;
+	private RecordsCachesDataStore memoryDataStore;
 	private HTreeMap<String, RecordDTO> volatileCache;
 
 
@@ -46,7 +46,7 @@ public class RecordsCache2Impl implements RecordsCache {
 							 byte collectionId,
 							 ModelLayerFactory modelLayerFactory,
 							 FileSystemRecordsValuesCacheDataStore fileSystemDataStore,
-							 MemoryEfficientRecordsCachesDataStore memoryDataStore,
+							 RecordsCachesDataStore memoryDataStore,
 							 HTreeMap<String, RecordDTO> volatileCache) {
 		this.collection = collection;
 		this.memoryDataStore = memoryDataStore;
@@ -125,15 +125,7 @@ public class RecordsCache2Impl implements RecordsCache {
 	}
 
 	private void remove(RecordDTO recordDTO) {
-		int intId = CacheRecordDTOUtils.toIntKey(recordDTO.getId());
-		if (intId == CacheRecordDTOUtils.KEY_IS_NOT_AN_INT) {
-			memoryDataStore.remove(recordDTO);
-			fileSystemDataStore.removeStringKey(recordDTO.getId());
-		} else {
-			memoryDataStore.remove(intId, recordDTO);
-			fileSystemDataStore.removeIntKey(intId);
-
-		}
+		memoryDataStore.remove(recordDTO);
 	}
 
 	@Override
