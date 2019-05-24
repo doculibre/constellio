@@ -34,7 +34,7 @@ public class UrlServiceTest {
 	private SchemaTypes schemaType = SchemaTypes.DOCUMENT;
 	private String method = HttpMethod.GET;
 	private String id = "id";
-	private String folderId = "folderId";
+	private String folderId = "A01";
 	private String expiration = "3600";
 	private String version;
 	private String physical;
@@ -55,6 +55,7 @@ public class UrlServiceTest {
 
 	@Test
 	public void testGetSignedUrl() throws Exception {
+		folderId = null;
 		signedUrl = urlService.getSignedUrl(host, token, serviceKey, schemaType, method, id, folderId, expiration,
 				version, physical, copySourceId);
 		adjustExpectedSignedUrl();
@@ -64,6 +65,7 @@ public class UrlServiceTest {
 
 	@Test
 	public void testGetSignedUrlWithSwappedParameters() throws Exception {
+		folderId = null;
 		signedUrl = urlService.getSignedUrl(host, token, method, schemaType, serviceKey, id, folderId, expiration,
 				version, physical, copySourceId);
 		adjustExpectedSignedUrl();
@@ -73,6 +75,7 @@ public class UrlServiceTest {
 
 	@Test
 	public void testGetSignedUrlWithContentPath() throws Exception {
+		folderId = null;
 		version = "1.0";
 		expectedSignedUrl = expectedSignedUrl
 				.replace("/documents", "/documents/content")

@@ -198,6 +198,84 @@ public class UrlRestfulServiceAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	public void testGetFolder() throws Exception {
+		schemaType = SchemaTypes.FOLDER.name();
+		method = HttpMethods.GET;
+		id = "A01";
+		String expectedUrl = trimPort(webTarget.getUri().toString().replace("/urls", "/" + SchemaTypes.FOLDER.getResource())
+				.concat(String.format("?id=%s&serviceKey=%s&method=%s&date=%s&expiration=%s&signature=%s",
+						id, serviceKey, method, date, expiration, calculateSignature(id))));
+
+		Response response = buildRequest("folderId").get();
+
+		assertThat(response.getStatus()).isEqualTo(Status.OK.getStatusCode());
+		assertThat(response.getMediaType()).isEqualTo(MediaType.TEXT_PLAIN_TYPE);
+
+		String url = response.readEntity(String.class);
+
+		assertThat(url).isNotEmpty();
+		assertThat(trimPort(url)).isEqualTo(expectedUrl);
+	}
+
+	@Test
+	public void testPatchFolder() throws Exception {
+		schemaType = SchemaTypes.FOLDER.name();
+		method = HttpMethods.PATCH;
+		id = "A01";
+		String expectedUrl = trimPort(webTarget.getUri().toString().replace("/urls", "/" + SchemaTypes.FOLDER.getResource())
+				.concat(String.format("?id=%s&serviceKey=%s&method=%s&date=%s&expiration=%s&signature=%s",
+						id, serviceKey, method, date, expiration, calculateSignature(id))));
+
+		Response response = buildRequest("folderId").get();
+
+		assertThat(response.getStatus()).isEqualTo(Status.OK.getStatusCode());
+		assertThat(response.getMediaType()).isEqualTo(MediaType.TEXT_PLAIN_TYPE);
+
+		String url = response.readEntity(String.class);
+
+		assertThat(url).isNotEmpty();
+		assertThat(trimPort(url)).isEqualTo(expectedUrl);
+	}
+
+	@Test
+	public void testPostFolder() throws Exception {
+		schemaType = SchemaTypes.FOLDER.name();
+		method = HttpMethods.POST;
+		String expectedUrl = trimPort(webTarget.getUri().toString().replace("/urls", "/" + SchemaTypes.FOLDER.getResource())
+				.concat(String.format("?folderId=%s&serviceKey=%s&method=%s&date=%s&expiration=%s&signature=%s",
+						folderId, serviceKey, method, date, expiration, calculateSignature(folderId))));
+
+		Response response = buildRequest("id").get();
+
+		assertThat(response.getStatus()).isEqualTo(Status.OK.getStatusCode());
+		assertThat(response.getMediaType()).isEqualTo(MediaType.TEXT_PLAIN_TYPE);
+
+		String url = response.readEntity(String.class);
+
+		assertThat(url).isNotEmpty();
+		assertThat(trimPort(url)).isEqualTo(expectedUrl);
+	}
+
+	@Test
+	public void testPostFolderWithoutFolderId() throws Exception {
+		schemaType = SchemaTypes.FOLDER.name();
+		method = HttpMethods.POST;
+		String expectedUrl = trimPort(webTarget.getUri().toString().replace("/urls", "/" + SchemaTypes.FOLDER.getResource())
+				.concat(String.format("?serviceKey=%s&method=%s&date=%s&expiration=%s&signature=%s",
+						serviceKey, method, date, expiration, calculateSignature(null))));
+
+		Response response = buildRequest("id", "folderId").get();
+
+		assertThat(response.getStatus()).isEqualTo(Status.OK.getStatusCode());
+		assertThat(response.getMediaType()).isEqualTo(MediaType.TEXT_PLAIN_TYPE);
+
+		String url = response.readEntity(String.class);
+
+		assertThat(url).isNotEmpty();
+		assertThat(trimPort(url)).isEqualTo(expectedUrl);
+	}
+
+	@Test
 	public void testGetUrlWithInvalidMethodAndVersionParameters() throws Exception {
 		version = "1.0";
 		Response response = buildRequest("id").get();
