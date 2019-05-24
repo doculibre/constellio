@@ -15,4 +15,10 @@ public interface ListUserDocumentsView extends BaseView, UserDocumentsViewGroup 
 	void setClassifyButtonFactory(Builder<ContainerButton> classifyButtonFactory);
 
 	void refresh();
+	
+	void showUploadMessage(String message);
+	
+	void showUploadErrorMessage(String message);
+
+	boolean isInAWindow();
 }
