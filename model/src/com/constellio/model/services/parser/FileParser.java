@@ -93,7 +93,7 @@ public class FileParser {
 
 	private static final String MS_DOC_MIMETYPE = "application/msword";
 	private static final String MS_DOCX_MIMETYPE = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
-	private static final boolean OCR_INLINE_IMAGES_ONLY_MODE = true;
+	private static final boolean OCR_INLINE_IMAGES_ONLY_MODE = false;
 
 	static final String READ_STREAM_FOR_STYLES_EXTRACTION = "FileParser-ReadStreamForStylesExtraction";
 	static final String READ_STREAM_FOR_PARSING_WITH_TIKA = "FileParser-ReadStreamForParsingWithTika";

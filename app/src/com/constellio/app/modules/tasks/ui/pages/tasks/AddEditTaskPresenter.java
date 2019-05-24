@@ -255,7 +255,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 			}
 
 			if (task.isModel()) {
-				addOrUpdateWithoutUser(task.getWrappedRecord());
+				addOrUpdate(task.getWrappedRecord(), RecordUpdateOptions.userModificationsSafeOptions());
 			} else {
 				addOrUpdate(task.getWrappedRecord(), options);
 			}
