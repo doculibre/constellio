@@ -1,6 +1,7 @@
 package com.constellio.model.extensions.events.records;
 
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.records.RecordImpl;
@@ -15,16 +16,24 @@ public class RecordInModificationBeforeValidationAndAutomaticValuesCalculationEv
 
 	ValidationErrors validationErrors;
 
+	User transactionUser;
+
 	boolean isOnlyBeingPrepared;
 
 	public RecordInModificationBeforeValidationAndAutomaticValuesCalculationEvent(Record record,
 																				  MetadataList modifiedMetadatas,
 																				  ValidationErrors validationErrors,
+																				  User transactionUser,
 																				  boolean isOnlyBeingPrepared) {
 		this.record = record;
 		this.modifiedMetadatas = modifiedMetadatas;
 		this.validationErrors = validationErrors;
 		this.isOnlyBeingPrepared = isOnlyBeingPrepared;
+		this.transactionUser = transactionUser;
+	}
+
+	public User getTransactionUser() {
+		return transactionUser;
 	}
 
 	public Record getRecord() {
