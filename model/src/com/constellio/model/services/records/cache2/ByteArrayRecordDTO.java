@@ -324,7 +324,6 @@ public abstract class ByteArrayRecordDTO implements Map<String, Object>, RecordD
 		try {
 
 
-			System.out.println("Size : " + entries.size());
 			return entries;
 
 		} catch (Throwable t) {

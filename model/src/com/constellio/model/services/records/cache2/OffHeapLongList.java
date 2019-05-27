@@ -35,9 +35,10 @@ public class OffHeapLongList {
 	}
 
 	public void set(int index, long value) {
-		lastIndex = Math.max(index, lastIndex);
+
 		long address = getAdressOfIndex(index);
 		OffHeapMemoryAllocator.getUnsafe().putLong(address, value);
+		lastIndex = Math.max(index, lastIndex);
 	}
 
 
@@ -56,9 +57,9 @@ public class OffHeapLongList {
 			OffHeapMemoryAllocator.getUnsafe().putLong(newAddress, v);
 		}
 
-		lastIndex++;
 		adressesOfBatches = newAddressesOfBatches;
 		set(index, value);
+		lastIndex++;
 	}
 
 	public long get(int index) {

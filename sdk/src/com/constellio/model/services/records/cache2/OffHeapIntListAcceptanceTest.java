@@ -1,14 +1,29 @@
 package com.constellio.model.services.records.cache2;
 
+import com.constellio.data.utils.ThreadList;
 import com.constellio.sdk.tests.ConstellioTest;
 import org.junit.Test;
 
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 
 public class OffHeapIntListAcceptanceTest extends ConstellioTest {
+
+	@Test
+	public void whenGettingAnUnsetIndexThenOutOfBoundException() {
+		OffHeapIntList intList = new OffHeapIntList();
+		intList.set(0, 42);
+		intList.set(1, 46);
+		intList.set(2, 48);
+
+		intList.get(4);
+
+		intList.get(100005);
+	}
 
 	@Test
 	public void whenSavingValuesThenRetrievable() {
@@ -38,7 +53,53 @@ public class OffHeapIntListAcceptanceTest extends ConstellioTest {
 			}
 		}
 
+	}
 
+	@Test
+	public void whenOneThreadIsInsertingAndMultipleAreBinarySearchingThenNoProblems() throws Exception {
+
+		OffHeapIntList list = new OffHeapIntList();
+
+		AtomicInteger addedValues = new AtomicInteger();
+
+		list.set(addedValues.get(), addedValues.getAndIncrement());
+		list.set(addedValues.get(), addedValues.getAndIncrement());
+		list.set(addedValues.get(), addedValues.getAndIncrement());
+
+		Random random = new Random();
+
+		AtomicBoolean finished = new AtomicBoolean();
+		ThreadList threadList = new ThreadList();
+		for (int i = 0; i < 200; i++) {
+			threadList.add(new Thread() {
+				@Override
+				public void run() {
+
+					while (!finished.get()) {
+						int randomSearchedIndex = random.nextInt(addedValues.get() - 1);
+
+						int index = list.binarySearch(randomSearchedIndex);
+
+						if (randomSearchedIndex != index) {
+							throw new RuntimeException("Binary search failed");
+						}
+					}
+				}
+			});
+		}
+
+		threadList.startAll();
+
+		for (int i = 0; i < 1_000_000; i++) {
+			if (i % 1000 == 0) {
+				System.out.println("Adding " + i);
+			}
+
+			list.set(addedValues.get(), addedValues.getAndIncrement());
+		}
+
+		finished.set(true);
+		threadList.joinAll();
 	}
 
 	@Test

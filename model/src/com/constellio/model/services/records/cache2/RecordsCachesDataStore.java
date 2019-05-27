@@ -45,7 +45,7 @@ public class RecordsCachesDataStore {
 		if (intId == CacheRecordDTOUtils.KEY_IS_NOT_AN_INT) {
 			stringIdsDataStore.insert(dto);
 		} else {
-			intIdsDataStore.insert(intId, dto, false, false);
+			intIdsDataStore.insert(intId, dto, false);
 		}
 	}
 
@@ -61,7 +61,7 @@ public class RecordsCachesDataStore {
 		if (intId == CacheRecordDTOUtils.KEY_IS_NOT_AN_INT) {
 			stringIdsDataStore.insert(dto);
 		} else {
-			intIdsDataStore.insert(intId, dto, true, false);
+			intIdsDataStore.insert(intId, dto, true);
 		}
 	}
 
@@ -85,7 +85,7 @@ public class RecordsCachesDataStore {
 			return stringIdsDataStore.get(id);
 
 		} else {
-			return intIdsDataStore.get(intId);
+			return intIdsDataStore.__get(intId);
 		}
 	}
 
@@ -96,20 +96,10 @@ public class RecordsCachesDataStore {
 			return stringIdsDataStore.get(id);
 
 		} else {
-			return intIdsDataStore.get(collectionId, intId);
+			return intIdsDataStore.__get(collectionId, intId);
 		}
 	}
 
-	public RecordDTO get(byte collectionId, short typeId, String id) {
-		int intId = CacheRecordDTOUtils.toIntKey(id);
-
-		if (intId == CacheRecordDTOUtils.KEY_IS_NOT_AN_INT) {
-			return stringIdsDataStore.get(id);
-
-		} else {
-			return intIdsDataStore.get(collectionId, typeId, intId);
-		}
-	}
 
 	public Stream<RecordDTO> stream() {
 		return StreamSupport.stream(spliteratorUnknownSize(iterator(), DISTINCT + NONNULL + IMMUTABLE), false);

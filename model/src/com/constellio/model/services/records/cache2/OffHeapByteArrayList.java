@@ -9,7 +9,6 @@ class OffHeapByteArrayList {
 
 
 	public void set(int index, byte[] value) {
-
 		long previousAddress = byteArrayMemoryAdresses.get(index);
 		long previousLength = byteArraySizes.get(index);
 
@@ -106,6 +105,10 @@ class OffHeapByteArrayList {
 		};
 
 
+	}
+
+	public int size() {
+		return byteArrayMemoryAdresses.size();
 	}
 
 }
