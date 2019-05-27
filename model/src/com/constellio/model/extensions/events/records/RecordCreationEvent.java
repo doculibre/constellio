@@ -12,9 +12,10 @@ public class RecordCreationEvent implements RecordEvent {
 
 	MetadataSchema schema;
 
-	public RecordCreationEvent(Record record, MetadataSchema schema) {
+	public RecordCreationEvent(Record record, MetadataSchema schema, User transactionalUser) {
 		this.record = record;
 		this.schema = schema;
+		this.transactionalUser = transactionalUser;
 	}
 
 	public void setRecord(Record record) {

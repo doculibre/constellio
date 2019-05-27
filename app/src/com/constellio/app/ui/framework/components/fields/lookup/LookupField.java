@@ -376,7 +376,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<Ob
 	@Override
 	public void commit() throws SourceException, InvalidValueException {
 		super.commit();
-		if (multiValue) {
+		if (multiValue && autoCompleteField != null) {
 			autoCompleteField.removeValueChangeListener(autoCompleteChangeListener);
 			autoCompleteField.setValue(null);
 			autoCompleteField.addValueChangeListener(autoCompleteChangeListener);
