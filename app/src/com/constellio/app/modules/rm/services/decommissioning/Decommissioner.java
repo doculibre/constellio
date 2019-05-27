@@ -62,6 +62,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.data.utils.LangUtils.getAllCauses;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public abstract class Decommissioner {
@@ -391,14 +392,20 @@ public abstract class Decommissioner {
 					try {
 						content = createPDFa(content);
 						loggingServices.logPdfAGeneration(document, user);
+						throw new RuntimeException(new OfficeException("Could not convert"));
 					} catch (NullPointerException e) {
 						e.printStackTrace();
 					} catch (RuntimeException e) {
-						if(e.getCause() != null && e.getCause() instanceof OfficeException) {
-							HashMap<String, Object> errorParameters = new HashMap<>();
-							errorParameters.put("documentId", document.getId());
-							errorParameters.put("hash", content.getId());
-							validationErrors.add(Decommissioner.class, COULD_NOT_GENERATE_PDFA_ERROR, errorParameters);
+						List<Throwable> allCauses = getAllCauses(e);
+						for(Throwable cause: allCauses) {
+							if(cause != null && cause instanceof OfficeException) {
+								HashMap<String, Object> errorParameters = new HashMap<>();
+								errorParameters.put("documentId", document.getId());
+								errorParameters.put("documentTitle", document.getTitle());
+								errorParameters.put("hash", content.getId());
+								validationErrors.add(Decommissioner.class, COULD_NOT_GENERATE_PDFA_ERROR, errorParameters);
+								break;
+							}
 						}
 						e.printStackTrace();
 					}
