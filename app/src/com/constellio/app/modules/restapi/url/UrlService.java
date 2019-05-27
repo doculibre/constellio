@@ -41,18 +41,23 @@ public class UrlService {
 
 		String signature = signatureService.sign(token, data);
 
-		return getResourcePath(host, schemaType)
-				.concat(!Strings.isNullOrEmpty(version) ? "/content" : "")
-				.concat("?")
-				.concat(!Strings.isNullOrEmpty(id) ? "id=" + id : "")
-				.concat(!Strings.isNullOrEmpty(folderId) ? "folderId=" + folderId : "")
-				.concat("&serviceKey=").concat(serviceKey)
+		String url = getResourcePath(host, schemaType)
+				.concat(!Strings.isNullOrEmpty(version) ? "/content" : "");
+		if (id != null) {
+			url = url.concat("?id=" + id);
+		} else if (folderId != null) {
+			url = url.concat("?folderId=" + folderId);
+		} else {
+			url = url.concat("?serviceKey=" + serviceKey);
+		}
+		url = url.concat(!url.contains("?serviceKey=") ? "&serviceKey=" .concat(serviceKey) : "")
 				.concat("&method=").concat(method)
 				.concat("&date=").concat(date)
 				.concat("&expiration=").concat(expiration)
 				.concat(!Strings.isNullOrEmpty(version) ? "&version=" + version : "")
 				.concat(!Strings.isNullOrEmpty(physical) ? "&physical=" + physical : "")
 				.concat("&signature=").concat(signature);
+		return url;
 	}
 
 	private String getResourcePath(String host, SchemaTypes schemaType) {

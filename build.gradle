@@ -75,7 +75,7 @@ subprojects {
         compile "org.glassfish.jersey.media:jersey-media-multipart:2.26"
         compile "com.fasterxml.jackson.datatype:jackson-datatype-joda:2.9.5"
 
-        compile "io.swagger.core.v3:swagger-jaxrs2:2.0.1"
+        compile "io.swagger.core.v3:swagger-jaxrs2:2.0.8"
 
         compileOnly "org.projectlombok:lombok:1.16.18"
 

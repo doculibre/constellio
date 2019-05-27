@@ -65,20 +65,21 @@ public class FolderRestfulService extends ResourceRestfulService {
 		validateHttpMethod(method, HttpMethods.GET);
 
 		FolderDto folder = folderService.get(host, id, serviceKey, method, date, expiration, signature, filters);
+
 		return Response.ok(folder).tag(folder.getETag()).build();
 	}
 
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	@Operation(summary = "Create folder", description = "Create a folder")
+	@Operation(summary = "Create folder", description = "Create a folder<br><br>" +
+														"To copy a folder, use " + CustomHttpHeaders.COPY_SOURCE + " header.")
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "201", description = "Created", headers = @Header(name = "ETag", description = "Concurrency control version of the folder"),
 					content = @Content(mediaType = "application/json", schema = @Schema(ref = "Folder"))),
 			@ApiResponse(responseCode = "400", description = "Bad Request", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error"))),
 			@ApiResponse(responseCode = "403", description = "Forbidden", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error"))),
-			@ApiResponse(responseCode = "404", description = "Not Found", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error"))),
-			@ApiResponse(responseCode = "422", description = "Unprocessable Entity", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error")))})
+			@ApiResponse(responseCode = "404", description = "Not Found", content = @Content(mediaType = "application/json", schema = @Schema(ref = "Error")))})
 	public Response create(@Parameter(description = "Parent Folder Id") @QueryParam("folderId") String folderId,
 						   @Parameter(required = true, description = "Service Key") @QueryParam("serviceKey") String serviceKey,
 						   @Parameter(required = true, description = "HTTP Method", schema = @Schema(allowableValues = {"PUT"})) @QueryParam("method") String method,
@@ -89,7 +90,7 @@ public class FolderRestfulService extends ResourceRestfulService {
 						   @Parameter(description = "Fields to filter from the JSON response.", example = "[\"directAces\", \"inheritedAces\"]")
 						   @QueryParam("filter") Set<String> filters,
 						   @Parameter(description = "A folder id can be specified to activate the copy mode.<br>" +
-													"All contents of the source folder will be copied and values from the body will be applied on copied folder.")
+													"The folder structure and all files will be copied. Any values specified in the body will be applied on the copied folder.")
 							   @HeaderParam(CustomHttpHeaders.COPY_SOURCE) String copySourceId,
 						   @Parameter(description = "The flushing mode indicates how the commits are executed in solr",
 								   schema = @Schema(allowableValues = {"NOW, LATER, WITHIN_{X}_SECONDS"})) @DefaultValue("WITHIN_5_SECONDS")
@@ -101,11 +102,15 @@ public class FolderRestfulService extends ResourceRestfulService {
 		validateFilterValues(FolderDto.class, filters);
 		validateHttpMethod(method, HttpMethods.POST);
 
-		if (folderId != null && !folder.getParentFolderId().equals(folderId)) {
+		if (folderId != null && folder != null &&
+			(folder.getParentFolderId() == null || !folder.getParentFolderId().equals(folderId))) {
 			throw new ParametersMustMatchException("folderId", "folder.parentFolderId");
 		}
 
 		if (copySourceId == null) {
+			if (folder == null) {
+				throw new RequiredParameterException("folder");
+			}
 			if (Strings.isNullOrEmpty(folder.getTitle())) {
 				throw new RequiredParameterException("folder.title");
 			}
@@ -135,7 +140,7 @@ public class FolderRestfulService extends ResourceRestfulService {
 	@PATCH
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	@Operation(summary = "Patch document", description = "Update partially the metadata of a folder")
+	@Operation(summary = "Patch folder", description = "Update a folder partially (metadata only)")
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "200", description = "OK", headers = @Header(name = "ETag", description = "Concurrency control version of the folder"),
 					content = @Content(mediaType = "application/json", schema = @Schema(ref = "Folder"))),
@@ -162,8 +167,26 @@ public class FolderRestfulService extends ResourceRestfulService {
 										  schema = @Schema(allowableValues = {"NOW, LATER, WITHIN_{X}_SECONDS"})) @DefaultValue("WITHIN_5_SECONDS")
 								  @HeaderParam(CustomHttpHeaders.FLUSH_MODE) String flush,
 								  @HeaderParam(HttpHeaders.HOST) String host) throws Exception {
-		// TODO
-		return Response.noContent().build();
+
+
+		validateRequiredParametersIncludingId(id, serviceKey, method, date, expiration, signature);
+		validateRequiredParameter(folder, "folder");
+		validateFlushValue(flush);
+		validateFilterValues(FolderDto.class, filters);
+		validateHttpMethod(method, HttpMethods.PATCH);
+
+		if (!id.equals(folder.getId())) {
+			throw new ParametersMustMatchException("id", "folder.id");
+		}
+
+		validateFolder(folder);
+
+		validateETag(eTag);
+		folder.setETag(eTag);
+
+		FolderDto folderDto = folderService.update(host, id, serviceKey, method, date, expiration, signature, folder, true, flush, filters);
+
+		return Response.ok(folderDto).tag(folderDto.getETag()).build();
 	}
 
 	private void validateFolder(FolderDto folder) {
@@ -182,5 +205,4 @@ public class FolderRestfulService extends ResourceRestfulService {
 
 		validateAces(folder.getDirectAces());
 	}
-
 }
