@@ -9,7 +9,7 @@ port=7070
 # === DATASTORE CONFIGURATION ===
 # *** WARNING : collections will be deleted ***3
 dao.records.type=http
-dao.records.http.url=http://192.168.1.168:8983/solr/
+dao.records.http.url=http://192.168.1.99:8983/solr/
 dao.contents.type=filesystem
 dao.settings.type=filesystem
 
