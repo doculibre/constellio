@@ -15,7 +15,7 @@ public class EnumWithSmallCodeComboBox<E extends EnumWithSmallCode> extends Base
 
 	private Class<E> enumWithSmallCodeClass;
 
-	private EnumWithSmallCodeFieldPresenter presenter;
+	protected EnumWithSmallCodeFieldPresenter presenter;
 
 	private boolean codeAsCaption;
 

@@ -46,7 +46,7 @@ public class ListContentAccessAuthorizationsPresenter extends ListAuthorizations
 		if (taxonomy != null && taxonomy.hasSameCode(taxonomiesManager.getPrincipalTaxonomy(user.getCollection()))) {
 			return user.has(CorePermissions.MANAGE_SECURITY).globally();
 		} else {
-			return user.hasReadAccess().on(restrictedRecord);
+			return user.hasWriteAndDeleteAccess().on(restrictedRecord);
 		}
 	}
 

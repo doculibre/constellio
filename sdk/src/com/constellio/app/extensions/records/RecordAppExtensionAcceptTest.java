@@ -158,8 +158,8 @@ public class RecordAppExtensionAcceptTest extends ConstellioTest {
 		String iconPath = getAppLayerFactory().getExtensions().forCollection(zeCollection)
 				.getIconForRecord(new GetIconPathParams(records.getFolder_A80().getWrappedRecord(), false));
 
-		assertThat(recordVO.getResourceKey()).isEqualTo("images/icons/folder2/grey_hybrid_folder_closed.png").isEqualTo(iconPath);
-		assertThat(recordVO.getExtension()).isEqualTo("grey_hybrid_folder_closed");
+		assertThat(recordVO.getResourceKey()).isEqualTo("images/icons/folder2/grey_empty_folder_closed.png").isEqualTo(iconPath);
+		assertThat(recordVO.getExtension()).isEqualTo("grey_empty_folder_closed");
 	}
 
 	@Test

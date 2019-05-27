@@ -4,7 +4,6 @@ import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.items.RecordVOItem;
-import com.constellio.app.ui.util.SchemaVOUtils;
 import com.constellio.model.frameworks.validation.ValidationError;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.vaadin.data.Item;
@@ -46,13 +45,13 @@ public abstract class RecordForm extends BaseForm<RecordVO> {
 
 
 	private static List<FieldAndPropertyId> buildFields(RecordVO recordVO, RecordFieldFactory formFieldFactory) {
-		List<FieldAndPropertyId> fieldsAndPropertyIds = new ArrayList<FieldAndPropertyId>();
+		List<FieldAndPropertyId> fieldsAndPropertyIds = new ArrayList<>();
 		for (MetadataVO metadataVO : recordVO.getFormMetadatas()) {
 			if(recordVO.getMetadataCodes().contains(metadataVO.getCode())) {
 
 				Field<?> field = formFieldFactory.build(recordVO, metadataVO);
 				if (field != null) {
-					if (!isVisibleField(metadataVO, recordVO) || !SchemaVOUtils.isMetadataPresentInList(metadataVO, recordVO.getExcludedMetadataCodeList())) {
+					if (!isVisibleField(metadataVO, recordVO)) {
 						field.setVisible(false);
 					}
 					if (metadataVO.isUnmodifiable() && recordVO.isSaved()) {

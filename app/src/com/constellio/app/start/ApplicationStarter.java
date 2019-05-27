@@ -32,7 +32,7 @@ import java.util.Map;
 
 public class ApplicationStarter {
 
-	private static int REQUEST_HEADER_SIZE = 32 * 1024;
+	private static int REQUEST_HEADER_SIZE = 128 * 1024;
 
 	private static Server server;
 	private static WebAppContext handler;

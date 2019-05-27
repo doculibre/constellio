@@ -3,6 +3,8 @@ package com.constellio.app.ui.pages.management.updates;
 import com.constellio.app.api.admin.services.SystemAnalysisUtils;
 import com.constellio.app.api.extensions.UpdateModeExtension.UpdateModeHandler;
 import com.constellio.app.entities.modules.ProgressInfo;
+import com.constellio.app.entities.system.SystemMemory;
+import com.constellio.app.entities.system.SystemMemory.MemoryDetails;
 import com.constellio.app.services.appManagement.AppManagementService.LicenseInfo;
 import com.constellio.app.services.recovery.UpdateRecoveryImpossibleCause;
 import com.constellio.app.ui.framework.buttons.ConfirmDialogButton;
@@ -44,6 +46,7 @@ import org.vaadin.dialogs.ConfirmDialog;
 import java.io.OutputStream;
 import java.util.List;
 
+import static com.constellio.app.entities.system.SystemMemory.fetchSystemMemoryInfo;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManagerView, DropHandler {
@@ -151,7 +154,7 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 		showStandardUpdatePanel();
 		layout.addComponents(buildInfoItem($("UpdateManagerViewImpl.currentVersionofConstellio"), presenter.getCurrentVersion()));
 
-		final String allocatedMemoryForConstellio = SystemAnalysisUtils.getAllocatedMemoryForConstellio();
+		MemoryDetails allocatedMemoryForConstellio = SystemAnalysisUtils.getAllocatedMemoryForConstellio();
 		if (allocatedMemoryForConstellio != null) {
 			layout.addComponents(buildInfoItem($("UpdateManagerViewImpl.allocatedMemoryForConstellio"), allocatedMemoryForConstellio));
 		} else {
@@ -247,11 +250,12 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 	}
 
 	private WindowButton buildAllocatedMemoryButton() {
-		final String totalSystemMemory = SystemAnalysisUtils.getTotalSystemMemory();
-		final String allocatedMemoryForConstellio = SystemAnalysisUtils.getAllocatedMemoryForConstellio();
-		final String allocatedMemoryForSolr = SystemAnalysisUtils.getAllocatedMemoryForSolr();
+		SystemMemory systemMemory = fetchSystemMemoryInfo();
+		final MemoryDetails totalSystemMemory = systemMemory.getTotalSystemMemory();
+		final MemoryDetails allocatedMemoryForConstellio = systemMemory.getConstellioAllocatedMemory();
+		final MemoryDetails allocatedMemoryForSolr = systemMemory.getSolrAllocatedMemory();
 
-		Double percentageOfAllocatedMemory = SystemAnalysisUtils.getPercentageOfAllocatedMemory(totalSystemMemory, allocatedMemoryForConstellio, allocatedMemoryForSolr);
+		Double percentageOfAllocatedMemory = systemMemory.getPercentageOfAllocatedMemory();
 
 		WindowButton allocatedMemoryButton = new WindowButton("", $("UpdateManagerViewImpl.allocatedMemoryButtonCaption")) {
 			@Override

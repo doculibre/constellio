@@ -154,7 +154,7 @@ public class BorrowingServices {
 			t.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
 			for (String folderId : task.getLinkedFolders()) {
 				if (isAccepted) {
-					returnFolder(folderId, applicant, returnDate, false);
+					returnFolder(folderId, respondant, returnDate, false);
 				}
 				loggingServices
 						.completeReturnRequestTask(recordServices.getDocumentById(folderId), task.getId(), isAccepted, applicant,

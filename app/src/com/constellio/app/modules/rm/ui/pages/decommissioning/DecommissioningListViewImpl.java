@@ -780,7 +780,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 	}
 
 	private BaseTable buildFolderTable(List<FolderDetailVO> folders, boolean containerizable) {
-		BeanItemContainer<FolderDetailVO> container = new BeanItemContainer<FolderDetailVO>(FolderDetailVO.class, folders) {
+		RefreshableBeanItemContainer<FolderDetailVO> container = new RefreshableBeanItemContainer<FolderDetailVO>(FolderDetailVO.class, folders) {
 			@Override
 			protected Collection<?> getSortablePropertyIds() {
 				List<Object> sortablePropertyIds = new ArrayList<>(super.getSortablePropertyIds());
@@ -831,22 +831,28 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 	private void deselectAllFolders(BaseTable foldersTable) {
 		Collection<?> itemIds = foldersTable.getItemIds();
 		for (Object itemId : itemIds) {
-			FolderDetailTableGenerator folderDetailTableGenerator = (FolderDetailTableGenerator) foldersTable.getColumnGenerator(CHECKBOX);
-			Component checkBoxProperty = folderDetailTableGenerator.getCheckBox((FolderDetailVO) itemId);
-			if (checkBoxProperty != null) {
-				(((CheckBox) checkBoxProperty)).setValue(false);
-			}
+			((FolderDetailVO) itemId).setSelected(true);
+		}
+
+		Container container = foldersTable.getContainerDataSource();
+		if(container instanceof RefreshableBeanItemContainer) {
+			((RefreshableBeanItemContainer) container).fireContainerPropertySetChange();
+		} else {
+			foldersTable.refreshRowCache();
 		}
 	}
 
 	private void selectAllFolders(BaseTable foldersTable) {
 		Collection<?> itemIds = foldersTable.getItemIds();
 		for (Object itemId : itemIds) {
-			FolderDetailTableGenerator folderDetailTableGenerator = (FolderDetailTableGenerator) foldersTable.getColumnGenerator(CHECKBOX);
-			Component checkBoxProperty = folderDetailTableGenerator.getCheckBox((FolderDetailVO) itemId);
-			if (checkBoxProperty != null) {
-				(((CheckBox) checkBoxProperty)).setValue(true);
-			}
+			((FolderDetailVO) itemId).setSelected(true);
+		}
+
+		Container container = foldersTable.getContainerDataSource();
+		if(container instanceof RefreshableBeanItemContainer) {
+			((RefreshableBeanItemContainer) container).fireContainerPropertySetChange();
+		} else {
+			foldersTable.refreshRowCache();
 		}
 	}
 
@@ -979,11 +985,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 		Button excludeButton = new LinkButton($("DecommissioningListView.excludeButton")) {
 			@Override
 			public void buttonClick(ClickEvent event) {
-				for (FolderDetailVO folder : folders) {
-					if (folder.isSelected()) {
-						presenter.setValidationStatus(folder, false);
-					}
-				}
+				presenter.setValidationStatusForSelectedFoldersAndRefreshView(folders, false);
 			}
 		};
 		return excludeButton;
@@ -993,12 +995,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 		Button includeButton = new LinkButton($("DecommissioningListView.includeButton")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
-				for (FolderDetailVO folder : folders) {
-					if (folder.isSelected()) {
-						presenter.removeFromContainer(folder);
-						presenter.setValidationStatus(folder, true);
-					}
-				}
+				presenter.setValidationStatusForSelectedFoldersAndRefreshView(folders, true);
 			}
 
 		};
@@ -1136,5 +1133,25 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 	@Override
 	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
 		return new DecommissionBreadcrumbTrail(getTitle(), null, null, null, this);
+	}
+
+	public class RefreshableBeanItemContainer<BEANTYPE> extends BeanItemContainer {
+
+		public RefreshableBeanItemContainer(Class type) throws IllegalArgumentException {
+			super(type);
+		}
+
+		public RefreshableBeanItemContainer(Collection collection) throws IllegalArgumentException {
+			super(collection);
+		}
+
+		public RefreshableBeanItemContainer(Class type, Collection collection) throws IllegalArgumentException {
+			super(type, collection);
+		}
+
+		@Override
+		public void fireContainerPropertySetChange() {
+			super.fireContainerPropertySetChange();
+		}
 	}
 }

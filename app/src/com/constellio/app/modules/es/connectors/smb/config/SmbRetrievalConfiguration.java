@@ -7,13 +7,15 @@ public class SmbRetrievalConfiguration {
 	private List<String> inclusions;
 	private List<String> exclusions;
 	private boolean skipSharePermissions;
+	private boolean skipContentAndAcl;
 
 	public SmbRetrievalConfiguration(List<String> seeds, List<String> inclusions, List<String> exclusions,
-									 boolean skipSharePermissions) {
+									 boolean skipSharePermissions, boolean skipContentAndACL) {
 		this.seeds = seeds;
 		this.inclusions = inclusions;
 		this.exclusions = exclusions;
 		this.skipSharePermissions = skipSharePermissions;
+		this.skipContentAndAcl = skipContentAndACL;
 	}
 
 	public List<String> getSeeds() {
@@ -47,8 +49,7 @@ public class SmbRetrievalConfiguration {
 		return skipSharePermissions;
 	}
 
-	public SmbRetrievalConfiguration setSkipSharePermissions(boolean skipSharePermissions) {
-		this.skipSharePermissions = skipSharePermissions;
-		return this;
+	public boolean isSkipContentAndAcl() {
+		return skipContentAndAcl;
 	}
 }
