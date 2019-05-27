@@ -147,7 +147,7 @@ import com.constellio.app.modules.rm.migrations.RMMigrationTo8_1_2;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo8_1_4;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo8_2;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo8_2_1_4;
-import com.constellio.app.modules.rm.migrations.RMMigrationTo9_0;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo8_3;
 import com.constellio.app.modules.rm.migrations.records.RMContainerRecordMigrationTo7_3;
 import com.constellio.app.modules.rm.migrations.records.RMDocumentMigrationTo7_6_10;
 import com.constellio.app.modules.rm.migrations.records.RMEmailMigrationTo7_7_1;
@@ -318,8 +318,8 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		scripts.add(new RMMigrationTo8_1_2());
 		scripts.add(new RMMigrationTo8_1_4());
 		scripts.add(new RMMigrationTo8_2());
-		scripts.add(new RMMigrationTo9_0());
 		scripts.add(new RMMigrationTo8_2_1_4());
+		scripts.add(new RMMigrationTo8_3());
 
 		return scripts;
 	}

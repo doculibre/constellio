@@ -10,11 +10,11 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 
 import static java.util.Arrays.asList;
 
-public class CoreMigrationTo_9_0 implements MigrationScript {
+public class CoreMigrationTo_8_3 implements MigrationScript {
 
 	@Override
 	public String getVersion() {
-		return "9.0";
+		return "8.3";
 	}
 
 	@Override
