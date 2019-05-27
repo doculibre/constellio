@@ -33,6 +33,9 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.structures.EmailAddress;
+import com.constellio.model.frameworks.validation.ValidationError;
+import com.constellio.model.frameworks.validation.ValidationErrors;
+import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.contents.ContentConversionManager;
 import com.constellio.model.services.contents.ContentImpl;
 import com.constellio.model.services.contents.ContentManager;
@@ -79,10 +82,12 @@ public abstract class Decommissioner {
 	private List<Record> recordsToDeletePhysically;
 	private LocalDate processingDate;
 	private User user;
+	private ValidationErrors validationErrors;
 
 	private final static int MAX_RECORDS_PER_TRANSACTION_MEMORY = 100;
 	private final static int MAX_RECORDS_PER_TRANSACTION_NORMAL = 500;
 	private final static int MAX_RECORDS_PER_TRANSACTION_PERFORMANCE = 1000;
+	private final static String COULD_NOT_GENERATE_PDFA_ERROR = "couldNotGeneratePDFAError";
 
 	public static Decommissioner forList(DecommissioningList decommissioningList,
 										 DecommissioningService decommissioningService,
@@ -116,10 +121,11 @@ public abstract class Decommissioner {
 		searchServices = modelLayerFactory.newSearchServices();
 		contentManager = modelLayerFactory.getContentManager();
 		loggingServices = new DecommissioningLoggingService(modelLayerFactory);
+		validationErrors = new ValidationErrors();
 	}
 
-	public void process(DecommissioningList decommissioningList, User user, LocalDate processingDate)
-			throws RecordServicesException.OptimisticLocking {
+	public ValidationErrors process(DecommissioningList decommissioningList, User user, LocalDate processingDate)
+			throws RecordServicesException.OptimisticLocking, ValidationException {
 		prepare(decommissioningList, user, processingDate);
 		validate();
 		saveCertificates(decommissioningList);
@@ -133,7 +139,10 @@ public abstract class Decommissioner {
 			}
 		}
 		markProcessed();
+
+		validationErrors.throwIfNonEmpty();
 		execute(true);
+		return validationErrors;
 	}
 
 	public void approve(DecommissioningList decommissioningList, User user, LocalDate processingDate)
@@ -386,7 +395,10 @@ public abstract class Decommissioner {
 						e.printStackTrace();
 					} catch (RuntimeException e) {
 						if(e.getCause() != null && e.getCause() instanceof OfficeException) {
-							//TODO show error message
+							HashMap<String, Object> errorParameters = new HashMap<>();
+							errorParameters.put("documentId", document.getId());
+							errorParameters.put("hash", content.getId());
+							validationErrors.add(Decommissioner.class, COULD_NOT_GENERATE_PDFA_ERROR, errorParameters);
 						}
 						e.printStackTrace();
 					}

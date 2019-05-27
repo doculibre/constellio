@@ -103,13 +103,11 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 		mainLayout.setSpacing(true);
 
 		multiFileUpload = new BaseMultiFileUpload() {
-			@Override
 			protected void displayStreamingFailedMessage() {
 				navigate().to(RMViews.class).listUserDocuments();
 				showErrorMessage($("ListUserDocumentsView.spaceLimitReached"));
 			}
 
-			@Override
 			protected boolean isSpaceLimitReached(StreamVariable.StreamingStartEvent event) {
 				return presenter.isSpaceLimitReached(event.getContentLength());
 			}
