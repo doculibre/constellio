@@ -5,6 +5,7 @@ import com.constellio.app.entities.batchProcess.ChangeValueOfMetadataBatchAsyncT
 import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.extensions.app.BatchProcessingRecordFactoryExtension;
 import com.constellio.app.modules.rm.reports.builders.BatchProssessing.BatchProcessingResultModel;
 import com.constellio.app.modules.rm.reports.builders.BatchProssessing.BatchProcessingResultXLSReportWriter;
@@ -42,6 +43,7 @@ import com.constellio.model.entities.batchprocess.BatchProcessAction;
 import com.constellio.model.entities.enums.BatchProcessingMode;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.AllowedReferences;
@@ -400,8 +402,11 @@ public class BatchProcessingPresenterService {
 		//		System.out.println("ACTION : ");
 		//		System.out.println(action);
 		List<Transaction> transactionList = prepareTransactionWithQuery(request, true);
-
+		RMConfigs rmConfigs = new RMConfigs(modelLayerFactory.getSystemConfigurationsManager());
 		for (Transaction transaction : transactionList) {
+			if (rmConfigs.isIgnoreValidationsInBatchProcessing()) {
+				transaction.setOptions(RecordUpdateOptions.userModificationsSafeOptions());
+			}
 			recordServices.validateTransaction(transaction);
 		}
 
