@@ -25,6 +25,7 @@ import com.constellio.data.extensions.DataLayerSystemExtensions;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.services.zip.ZipService;
 import com.constellio.data.io.services.zip.ZipServiceException;
+import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.modules.Module;
 import com.constellio.model.entities.modules.PluginUtil;
 import com.constellio.model.entities.records.Record;
@@ -32,6 +33,7 @@ import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
+import com.constellio.model.services.collections.exceptions.NoMoreCollectionAvalibleException;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.extensions.ConstellioModulesManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -153,8 +155,13 @@ public class ConstellioSetupPresenter extends BasePresenter<ConstellioSetupView>
 				ConstellioFactories factories = view.getConstellioFactories();
 
 				setSystemLanguage(setupLocaleCode);
-				Record collectionRecord = factories.getAppLayerFactory().getCollectionsManager().createCollectionInCurrentVersion(
-						collectionCode, languages);
+				Record collectionRecord = null;
+				try {
+					collectionRecord = factories.getAppLayerFactory().getCollectionsManager().createCollectionInCurrentVersion(
+							collectionCode, languages);
+				} catch (NoMoreCollectionAvalibleException noMoreCollectionAvalible) {
+					throw new ImpossibleRuntimeException("To many collection. Should not happen here");
+				}
 				Collection collection = new Collection(collectionRecord,
 						modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collectionCode));
 				String effectiveCollectionTitle;

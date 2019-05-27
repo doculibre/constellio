@@ -31,5 +31,7 @@ public class CoreMigrationTo_9_0 implements MigrationScript {
 		for(Role role : roleList){
 			rolesManager.updateRole(role.withNewPermissions(asList(CorePermissions.MODIFY_RECORDS_USING_BATCH_PROCESS)));
 		}
+
+		modelLayerFactory.getCollectionsListManager().giveCollectionIdToCollectionThatDontHaveOne();
 	}
 }

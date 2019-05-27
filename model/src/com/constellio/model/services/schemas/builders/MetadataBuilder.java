@@ -253,6 +253,7 @@ public class MetadataBuilder {
 		builder.increasedDependencyLevel = metadata.isIncreasedDependencyLevel();
 		builder.customAttributes = new HashSet<>(metadata.getCustomAttributes());
 		builder.customParameter = new HashMap<>(metadata.getCustomParameter());
+		builder.id = metadata.getId();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -288,6 +289,7 @@ public class MetadataBuilder {
 		builder.multiLingual = metadata.isMultiLingual();
 		builder.customAttributes = inheritanceMetadata.customAttributes;
 		builder.increasedDependencyLevel = metadata.isIncreasedDependencyLevel();
+		builder.id = metadata.getId();
 
 		for (String validatorClassName : inheritanceMetadata.recordMetadataValidators.implementationsClassname) {
 			builder.recordMetadataValidators.remove(validatorClassName);

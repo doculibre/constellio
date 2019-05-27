@@ -176,6 +176,51 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	public void whenCreatingSchemaAndThenReadingSchemaSettingOnDiskThenIdAreWritten() {
+
+		schemasManager.modify(zeCollection, (MetadataSchemaTypesAlteration) types -> {
+			MetadataSchemaTypeBuilder temporaryFolderSchemaType = types.getSchemaType(TemporaryRecord.SCHEMA_TYPE);
+			temporaryFolderSchemaType.createCustomSchema("employe");
+		});
+
+		int idOfSchemaCreated1 = schemasManager.getSchemaTypes(zeCollection).getSchema(TemporaryRecord.SCHEMA_TYPE + "_" + "employe").getId();
+
+
+		assertThat(xmlOfConfig(zeCollection + SCHEMAS_CONFIG_PATH))
+				.containsOnlyOnce("schema code=\"employe\" id=\"" + idOfSchemaCreated1 + "\"");
+	}
+
+	@Test
+	public void whenCreatingSchemaTypeAndThenReadingSchemaTypeSettingOnDiskThenIdAreWritten() {
+
+		schemasManager.modify(zeCollection, (MetadataSchemaTypesAlteration) types -> {
+			MetadataSchemaTypeBuilder newSchemaTypeToTest = types.createNewSchemaType("newSchemaTypeToTest");
+		});
+
+		int idOfSchemaTypeCreated1 = schemasManager.getSchemaTypes(zeCollection).getSchemaType("newSchemaTypeToTest").getId();
+
+
+		assertThat(xmlOfConfig(zeCollection + SCHEMAS_CONFIG_PATH))
+				.containsOnlyOnce("type code=\"newSchemaTypeToTest\" id=\"" + idOfSchemaTypeCreated1 + "\"");
+	}
+
+	@Test
+	public void whenCreatingMetadataAndThenReadingSettingOnDiskThenIdAreWritten() {
+
+		schemasManager.modify(zeCollection, (MetadataSchemaTypesAlteration) types -> {
+			MetadataSchemaBuilder metadataSchemaBuilder = types.getSchema(TemporaryRecord.DEFAULT_SCHEMA);
+			metadataSchemaBuilder.createUndeletable("metadataName").setType(STRING);
+		});
+
+		int idOfMetadataCreated1 = schemasManager.getSchemaTypes(zeCollection).getSchema(TemporaryRecord.DEFAULT_SCHEMA)
+				.getMetadata("metadataName").getId();
+
+		assertThat(xmlOfConfig(zeCollection + SCHEMAS_CONFIG_PATH))
+				.containsOnlyOnce("code=\"metadataName\" label_en=\"metadataName\" label_fr=\"metadataName\" id=\"" + idOfMetadataCreated1 + "\"");
+	}
+
+
+	@Test
 	public void givenSchemasInMultipleCollectionsThenAllIndependentAndDifferentIdsSequence()
 			throws Exception {
 

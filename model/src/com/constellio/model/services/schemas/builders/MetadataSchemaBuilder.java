@@ -387,7 +387,7 @@ public class MetadataSchemaBuilder {
 		Set<RecordValidator> recordValidators = this.schemaValidators.build();
 
 		if (id == 0) {
-			id = typesBuilder.nextSchemaId();
+			id = typeBuilder.nextSchemaId();
 		}
 
 		MetadataSchema metadataSchema = new MetadataSchema(id, this.getLocalCode(), this.getCode(), collectionInfo, newLabels, newMetadatas,
@@ -589,7 +589,7 @@ public class MetadataSchemaBuilder {
 		final Set<RecordValidator> recordValidators = this.schemaValidators.build(defaultSchema.getValidators());
 
 		if (id == 0) {
-			id = typesBuilder.nextSchemaId();
+			id = typeBuilder.nextSchemaId();
 		}
 
 		boolean inTransactionLog = schemaTypeBuilder.isInTransactionLog();

@@ -14,6 +14,7 @@ import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.utils.DefaultClassProvider;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.schemas.FakeDataStoreTypeFactory;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -22,10 +23,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
-import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
-import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.entities.schemas.MetadataValueType.*;
 import static com.constellio.sdk.tests.TestUtils.asSet;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -54,8 +52,7 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 		typesFactory = new FakeDataStoreTypeFactory();
 
 		CollectionInfo zeCollectionInfo = new CollectionInfo((byte) 0, "zeUltimateCollection", "fr", Arrays.asList("fr"));
-		typesBuilder = MetadataSchemaTypesBuilder.createWithVersion(zeCollectionInfo, 0, new DefaultClassProvider(),
-				Arrays.asList(Language.French));
+		typesBuilder = getMetadataSchemaTypesBuilder(zeCollectionInfo);
 
 		zeType = typesBuilder.createNewSchemaType("zeType");
 		zeTypeDefaultSchema = zeType.getDefaultSchema();
@@ -68,6 +65,12 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 		aThirdType = typesBuilder.createNewSchemaType("aThirdType");
 		aThirdTypeDefaultSchema = aThirdType.getDefaultSchema();
 		aThirdTypeCustomSchema = aThirdType.createCustomSchema("custom");
+	}
+
+	@NotNull
+	private MetadataSchemaTypesBuilder getMetadataSchemaTypesBuilder(CollectionInfo zeCollectionInfo) {
+		return MetadataSchemaTypesBuilder.createWithVersion(zeCollectionInfo, 0, new DefaultClassProvider(),
+				Arrays.asList(Language.French));
 	}
 
 	@Test
@@ -132,6 +135,19 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 		}
 
 		assertThat(numberOfMetadatas).isEqualTo(6);
+	}
+
+	@Test
+	public void givenNewSchemaTypeAndMetadata() throws Exception {
+		MetadataSchemaTypeBuilder type1 = typesBuilder.createNewSchemaType("type1");
+		modelLayerFactory.getMetadataSchemasManager().saveUpdateSchemaTypes(typesBuilder);
+
+		modelLayerFactory.getMetadataSchemasManager().getSchemaTypes("type1");
+
+		MetadataSchemaTypeBuilder type2 = typesBuilder.createNewSchemaType("type2");
+		modelLayerFactory.getMetadataSchemasManager().saveUpdateSchemaTypes(typesBuilder);
+
+		short id2 = typesBuilder.getSchemaType(type2.getCode()).getId();
 	}
 
 	// Copied metadata validation tests
