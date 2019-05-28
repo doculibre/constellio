@@ -159,9 +159,9 @@ public class ConstellioEIMConfigs {
 
 	public static final SystemConfiguration BATCH_PROCESSES_MAXIMUM_HISTORY_SIZE;
 
-	public static final SystemConfiguration ADD_RECORD_ID_IN_EMAILS;
-
 	public static final SystemConfiguration GENERATED_EMAIL_FORMAT;
+
+	public static final SystemConfiguration ADD_RECORD_ID_IN_EMAILS;
 
 
 	static {
@@ -295,9 +295,9 @@ public class ConstellioEIMConfigs {
 
 		add(SPACE_QUOTA_FOR_USER_DOCUMENTS = others.createInteger("spaceQuotaForUserDocuments").withDefaultValue(-1));
 
-		add(ADD_RECORD_ID_IN_EMAILS = others.createBooleanFalseByDefault("addRecordIdInEmails"));
 		add(GENERATED_EMAIL_FORMAT = others.createEnum("generatedEmailFormat", EmailTextFormat.class).withDefaultValue(EmailTextFormat.PLAIN_TEXT));
 
+		add(ADD_RECORD_ID_IN_EMAILS = others.createBooleanFalseByDefault("addRecordIdInEmails"));
 
 		configurations = Collections.unmodifiableList(modifiableConfigs);
 	}
@@ -546,10 +546,6 @@ public class ConstellioEIMConfigs {
 		return manager.getValue(BATCH_PROCESSES_MAXIMUM_HISTORY_SIZE);
 	}
 
-	public boolean isAddingRecordIdInEmails() {
-		return manager.getValue(ADD_RECORD_ID_IN_EMAILS);
-	}
-
 	public EmailTextFormat getGeneratedEmailFormat() {
 		return manager.getValue(GENERATED_EMAIL_FORMAT);
 	}
@@ -570,4 +566,9 @@ public class ConstellioEIMConfigs {
 		}
 		return extensionSet;
 	}
+
+	public boolean isAddingRecordIdInEmails() {
+		return manager.getValue(ADD_RECORD_ID_IN_EMAILS);
+	}
+
 }

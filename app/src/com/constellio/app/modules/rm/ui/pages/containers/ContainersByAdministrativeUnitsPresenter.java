@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.ui.pages.containers;
 
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.navigation.RMViews;
+import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSecurityService;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.ui.pages.containers.ContainersByAdministrativeUnitsView.ContainersViewTab;
@@ -64,6 +65,7 @@ public class ContainersByAdministrativeUnitsPresenter extends BasePresenter<Cont
 	}
 
 	RecordVODataProvider getDataProvider() {
+		final RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 
 		List<String> metadataCodes = new ArrayList<String>();
 		metadataCodes.add(AdministrativeUnit.DEFAULT_SCHEMA + "_id");
@@ -80,13 +82,13 @@ public class ContainersByAdministrativeUnitsPresenter extends BasePresenter<Cont
 				User user = getCurrentUser();
 				if (!user.hasAny(RMPermissionsTo.DISPLAY_CONTAINERS, RMPermissionsTo.MANAGE_CONTAINERS).globally()) {
 					List<String> adminUnitIds = getConceptsWithPermissionsForCurrentUser(RMPermissionsTo.DISPLAY_CONTAINERS, RMPermissionsTo.MANAGE_CONTAINERS);
-					return new LogicalSearchQuery(from(schema(AdministrativeUnit.DEFAULT_SCHEMA))
+					return new LogicalSearchQuery(from(rm.administrativeUnit.schemaType())
 							.where(Schemas.IDENTIFIER).isIn(adminUnitIds)
 							.andWhere(
 									Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull());
 				} else {
-					return new LogicalSearchQuery(from(schema(AdministrativeUnit.DEFAULT_SCHEMA))
-							.where(schema(AdministrativeUnit.DEFAULT_SCHEMA).getMetadata(AdministrativeUnit.PARENT)).isNull()
+					return new LogicalSearchQuery(from(rm.administrativeUnit.schemaType())
+							.where(rm.administrativeUnit.parent()).isNull()
 							.andWhere(
 									Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull());
 				}

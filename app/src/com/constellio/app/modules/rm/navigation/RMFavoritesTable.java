@@ -25,6 +25,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.vaadin.event.ItemClickEvent;
@@ -150,7 +151,7 @@ public class RMFavoritesTable implements Serializable {
 		RecordVODataProvider folderVODataProvider = new RecordVODataProvider(folderSchema, new RecordToVOBuilder(), appLayerFactory.getModelLayerFactory(), sessionContext) {
 			@Override
 			protected LogicalSearchQuery getQuery() {
-				return new LogicalSearchQuery(from(folderSchemaType).where(rm.folder.favorites()).isContaining(asList(user.getId())));
+				return new LogicalSearchQuery(from(folderSchemaType).where(rm.folder.favorites()).isContaining(asList(user.getId()))).filteredByStatus(StatusFilter.ACTIVES);
 			}
 		};
 
@@ -160,7 +161,7 @@ public class RMFavoritesTable implements Serializable {
 			@Override
 			protected LogicalSearchQuery getQuery() {
 				final Metadata documentFavoritesList = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(sessionContext.getCurrentCollection()).getMetadata(Document.DEFAULT_SCHEMA + "_" + Document.FAVORITES);
-				return new LogicalSearchQuery(from(documentSchemaType).where(documentFavoritesList).isContaining(asList(user.getId())));
+				return new LogicalSearchQuery(from(documentSchemaType).where(documentFavoritesList).isContaining(asList(user.getId()))).filteredByStatus(StatusFilter.ACTIVES);
 			}
 		};
 
@@ -170,7 +171,7 @@ public class RMFavoritesTable implements Serializable {
 			@Override
 			protected LogicalSearchQuery getQuery() {
 				final Metadata containerFavoritesList = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(sessionContext.getCurrentCollection()).getMetadata(ContainerRecord.DEFAULT_SCHEMA + "_" + ContainerRecord.FAVORITES);
-				return new LogicalSearchQuery(from(containerSchemaType).where(containerFavoritesList).isContaining(asList(user.getId())));
+				return new LogicalSearchQuery(from(containerSchemaType).where(containerFavoritesList).isContaining(asList(user.getId()))).filteredByStatus(StatusFilter.ACTIVES);
 			}
 		};
 
