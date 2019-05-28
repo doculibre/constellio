@@ -46,8 +46,9 @@ public class RMMigrationTo9_0 implements MigrationScript {
 		rolesManager.updateRole(rgbRole.withNewPermissions(asList(
 				RMPermissionsTo.DISPLAY_RETENTIONRULE, RMPermissionsTo.DISPLAY_CLASSIFICATION_PLAN)));
 
-		rolesManager.updateRole(admRole.withNewPermissions(asList(
-				RMPermissionsTo.DISPLAY_RETENTIONRULE, RMPermissionsTo.DISPLAY_CLASSIFICATION_PLAN)));
+		modelLayerFactory.getRolesManager().updateRole(admRole.withNewPermissions(asList(
+				RMPermissionsTo.CONSULT_RETENTIONRULE, RMPermissionsTo.CONSULT_CLASSIFICATION_PLAN,
+				RMPermissionsTo.CREATE_DECOMMISSIONING_LIST, RMPermissionsTo.CART_BATCH_DELETE)));
 
 
 		List<Role> roleList = rolesManager.getAllRoles(collection);
@@ -106,5 +107,6 @@ public class RMMigrationTo9_0 implements MigrationScript {
 			defaultFolderSchema.get(Folder.ACTUAL_DESTRUCTION_DATE).defineDataEntry()
 					.asCalculated(FolderActualDestructionDateCalculator.class);
 		}
+
 	}
 }

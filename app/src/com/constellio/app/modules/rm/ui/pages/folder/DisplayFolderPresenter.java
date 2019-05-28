@@ -226,10 +226,10 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 	public void forParams(String params) {
 		String id;
-		Map<String, String> paramsMap = ParamUtils.getParamsMap(params);
 
-		if (paramsMap.get("id") != null) {
-			this.params = paramsMap;
+		Map<String, String> lParamsAsMap = ParamUtils.getParamsMap(params);
+		if (lParamsAsMap.size() > 0) {
+			this.params = ParamUtils.getParamsMap(params);
 			id = this.params.get("id");
 		} else {
 			id = params;
