@@ -40,7 +40,7 @@ public class RecordsCachesDataStorePerformanceAcceptanceTest extends ConstellioT
 		SummaryCacheSingletons.dataStore.close();
 	}
 
-	@Test
+	//@Test
 	public void given150MRecordsSplittedOn10CollectionsAnd30TypesThenLookupByCollectionsAndTypesVeryFast()
 			throws Exception {
 
@@ -77,6 +77,7 @@ public class RecordsCachesDataStorePerformanceAcceptanceTest extends ConstellioT
 		long structureBytes = 0;
 
 		Map<String, Object> fields = new HashMap<>();
+		List<String> ids = null;
 
 		for (int createdRecord = 0; createdRecord < 300_000_000; createdRecord++) {
 
@@ -105,13 +106,12 @@ public class RecordsCachesDataStorePerformanceAcceptanceTest extends ConstellioT
 
 		}
 
-		Thread.sleep(1_000_000_000);
-
+		//runBenchmark(ids, collections, "schemaType01");
 	}
 
 
 	@Test
-	public void given10MRecordsSplittedOn10CollectionsAnd30TypesThenLookupByCollectionsAndTypesVeryFast()
+	public void given4MRecordsSplittedOn10CollectionsAnd30TypesThenLookupByCollectionsAndTypesVeryFast()
 			throws Exception {
 
 		prepareSystem(withZeCollection(), withCollection("collection2"), withCollection("collection3"), withCollection("collection4"));
@@ -200,49 +200,8 @@ public class RecordsCachesDataStorePerformanceAcceptanceTest extends ConstellioT
 		assertThat(dataStore.stream(collectionIds[3]).filter(onlyTrue).count()).isEqualTo(333_333);
 		assertThat(dataStore.stream(collectionIds[3]).filter(onlyFalse).count()).isEqualTo(666_667);
 
-		double getByIdBySecond = ids.size() * calculateOpsPerSecondsOver(() -> {
-			for (int i = 0; i < ids.size(); i++) {
-				dataStore.get(ids.get(i));
-			}
-		}, 5000);
-		System.out.println("getById/sec : " + (int) getByIdBySecond);
+		runBenchmark(ids, collections, "schemaType01");
 
-		double getByIdBySecondSupplyingCollection = ids.size() * calculateOpsPerSecondsOver(() -> {
-			for (int i = 0; i < ids.size(); i++) {
-				String strId = ids.get(i);
-				int intKey = toIntKey(strId);
-				byte collectionId = collectionIds[intKey % collections.length];
-				dataStore.get(collectionId, strId);
-			}
-		}, 5000);
-		System.out.println("getById/sec when supplying collection : " + (int) getByIdBySecondSupplyingCollection);
-
-		double streamsBySecond = calculateOpsPerSecondsOver(() -> {
-			dataStore.stream().filter(onlyTrue).count();
-		}, 5000);
-
-		System.out.println("Streams/sec : " + (int) streamsBySecond);
-
-		double streamsBySecondSupplyingCollection = calculateOpsPerSecondsOver(() -> {
-			dataStore.stream(collectionIds[3]).filter(onlyTrue).count();
-		}, 5000);
-
-		System.out.println("Streams/min when supplying collection : " + (int) streamsBySecondSupplyingCollection);
-
-	}
-
-	private double calculateOpsPerSecondsOver(Runnable op, int msToBench) {
-		double loopCount = 0;
-		long start = new Date().getTime();
-		long end = start;
-		while ((start + msToBench > end)) {
-			op.run();
-			loopCount++;
-			end = new Date().getTime();
-		}
-
-		double elapsedMs = end - start;
-		return loopCount / (1000.0 / elapsedMs);
 	}
 
 	@Test
@@ -330,11 +289,30 @@ public class RecordsCachesDataStorePerformanceAcceptanceTest extends ConstellioT
 		assertThat(dataStore.stream(collectionIds[3]).filter(onlyFalse).count()).isEqualTo(667);
 
 
+		runBenchmark(ids, collections, "schemaType01");
+
+
+	}
+
+
+	private void runBenchmark(List<String> ids, String[] collections, String schemaTypeCode) {
+
+		Predicate<RecordDTO> onlyTrue = (r) -> Boolean.TRUE.equals(r.getFields().get("boolean1_s"));
+
+		byte[] collectionIds = new byte[collections.length];
+
+		System.out.println("\nRunning benchmarks... (30sec/benchmark)\n");
+
+		CollectionsListManager collectionsListManager = getModelLayerFactory().getCollectionsListManager();
+		for (int i = 0; i < collections.length; i++) {
+			collectionIds[i] = collectionsListManager.getCollectionId(collections[i]);
+		}
+
 		double getByIdBySecond = ids.size() * calculateOpsPerSecondsOver(() -> {
 			for (int i = 0; i < ids.size(); i++) {
 				dataStore.get(ids.get(i));
 			}
-		}, 5000);
+		}, 20000);
 		System.out.println("getById/sec : " + (int) getByIdBySecond);
 
 		double getByIdBySecondSupplyingCollection = ids.size() * calculateOpsPerSecondsOver(() -> {
@@ -344,32 +322,50 @@ public class RecordsCachesDataStorePerformanceAcceptanceTest extends ConstellioT
 				byte collectionId = collectionIds[intKey % collections.length];
 				dataStore.get(collectionId, strId);
 			}
-		}, 5000);
+		}, 20000);
 		System.out.println("getById/sec when supplying collection : " + (int) getByIdBySecondSupplyingCollection);
 
 		double streamsBySecond = calculateOpsPerSecondsOver(() -> {
 			dataStore.stream().filter(onlyTrue).count();
-		}, 5000);
+		}, 20000);
 
 		System.out.println("Streams/sec : " + (int) streamsBySecond);
 
+		double streamsBySecondWithoutAutoClose = calculateOpsPerSecondsOver(() -> {
+			dataStore.stream(false).filter(onlyTrue).count();
+		}, 20000);
+
+		System.out.println("Streams/sec without autoclose : " + (int) streamsBySecondWithoutAutoClose);
+
 		double streamsBySecondSupplyingCollection = calculateOpsPerSecondsOver(() -> {
-			dataStore.stream(collectionIds[3]).filter(onlyTrue).count();
-		}, 5000);
+			dataStore.stream(collectionIds[collectionIds.length - 1]).filter(onlyTrue).count();
+		}, 20000);
 
 		System.out.println("Streams/sec when supplying collection : " + (int) streamsBySecondSupplyingCollection);
 
 
 		short typeId = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collectionIds[0])
-				.getSchemaType("schemaType01").getId();
-		assertThat(dataStore.stream(collectionIds[0], typeId).filter(onlyTrue).count()).isEqualTo(333L);
+				.getSchemaType(schemaTypeCode).getId();
 
 		double streamsBySecondSupplyingType = calculateOpsPerSecondsOver(() -> {
 			dataStore.stream(collectionIds[0], typeId).filter(onlyTrue).count();
-		}, 50000);
+		}, 20000);
 
 		System.out.println("Streams/sec when supplying type : " + (int) streamsBySecondSupplyingType);
+	}
 
+	private double calculateOpsPerSecondsOver(Runnable op, int msToBench) {
+		long loopCount = 0;
+		long start = new Date().getTime();
+		long end = start;
+		while ((start + msToBench > end)) {
+			op.run();
+			loopCount++;
+			end = new Date().getTime();
+		}
+
+		long elapsedMs = end - start;
+		return ((double) (1000 * loopCount)) / elapsedMs;
 	}
 
 }

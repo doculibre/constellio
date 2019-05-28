@@ -102,15 +102,28 @@ public class RecordsCachesDataStore {
 
 
 	public Stream<RecordDTO> stream() {
-		return StreamSupport.stream(spliteratorUnknownSize(iterator(), DISTINCT + NONNULL + IMMUTABLE), false);
+		return stream(true);
 	}
 
 	public Stream<RecordDTO> stream(byte collection) {
-		return StreamSupport.stream(spliteratorUnknownSize(iterator(collection), DISTINCT + NONNULL + IMMUTABLE), false);
+		return stream(true, collection);
 	}
 
 	public Stream<RecordDTO> stream(byte collection, short schemaType) {
-		return StreamSupport.stream(spliteratorUnknownSize(iterator(collection, schemaType), DISTINCT + NONNULL + IMMUTABLE), false);
+		return stream(true, collection, schemaType);
+	}
+
+
+	public Stream<RecordDTO> stream(boolean autoClosedStream) {
+		return StreamSupport.stream(spliteratorUnknownSize(iterator(autoClosedStream), DISTINCT + NONNULL + IMMUTABLE), false);
+	}
+
+	public Stream<RecordDTO> stream(boolean autoClosedStream, byte collection) {
+		return StreamSupport.stream(spliteratorUnknownSize(iterator(autoClosedStream, collection), DISTINCT + NONNULL + IMMUTABLE), false);
+	}
+
+	public Stream<RecordDTO> stream(boolean autoClosedStream, byte collection, short schemaType) {
+		return StreamSupport.stream(spliteratorUnknownSize(iterator(autoClosedStream, collection, schemaType), DISTINCT + NONNULL + IMMUTABLE), false);
 	}
 
 	public Stream<RecordDTO> stream(byte collectionId, List<String> ids) {
@@ -118,35 +131,38 @@ public class RecordsCachesDataStore {
 	}
 
 	public synchronized void invalidate(Predicate<RecordDTO> predicate) {
-		stream().filter(predicate).forEachOrdered(this::remove);
+		stringIdsDataStore.invalidate(predicate);
+		intIdsDataStore.invalidate(predicate);
 	}
 
 	public synchronized void invalidate(byte collection, Predicate<RecordDTO> predicate) {
-		stream(collection).filter(predicate).forEachOrdered(this::remove);
+		stringIdsDataStore.invalidate(collection, predicate);
+		intIdsDataStore.invalidate(collection, predicate);
 	}
 
 	public synchronized void invalidate(byte collection, short schemaType, Predicate<RecordDTO> predicate) {
-		stream(collection, schemaType).filter(predicate).forEachOrdered(this::remove);
+		stringIdsDataStore.invalidate(collection, schemaType, predicate);
+		intIdsDataStore.invalidate(collection, schemaType, predicate);
 	}
 
-	public Iterator<RecordDTO> iterator() {
+	public Iterator<RecordDTO> iterator(boolean autoClosedIterator) {
 		return new LazyMergingIterator<>(
-				intIdsDataStore.iterator(),
+				intIdsDataStore.iterator(autoClosedIterator),
 				stringIdsDataStore.iterator());
 
 	}
 
 
-	public Iterator<RecordDTO> iterator(byte collectionId) {
+	public Iterator<RecordDTO> iterator(boolean autoClosedIterator, byte collectionId) {
 		return new LazyMergingIterator<>(
-				intIdsDataStore.iterator(collectionId),
+				intIdsDataStore.iterator(autoClosedIterator, collectionId),
 				stringIdsDataStore.iterator(collectionId));
 	}
 
 
-	public Iterator<RecordDTO> iterator(byte collectionId, short typeId) {
+	public Iterator<RecordDTO> iterator(boolean autoClosedIterator, byte collectionId, short typeId) {
 		return new LazyMergingIterator<>(
-				intIdsDataStore.iterator(collectionId, typeId),
+				intIdsDataStore.iterator(autoClosedIterator, collectionId, typeId),
 				stringIdsDataStore.iterator(collectionId, typeId));
 	}
 

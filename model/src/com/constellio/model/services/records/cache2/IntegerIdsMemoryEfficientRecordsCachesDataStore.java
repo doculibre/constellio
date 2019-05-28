@@ -12,9 +12,11 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import org.eclipse.collections.impl.list.mutable.primitive.IntArrayList;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Predicate;
 
 import static com.constellio.model.entities.schemas.MetadataSchemaTypes.LIMIT_OF_TYPES_IN_COLLECTION;
 import static com.constellio.model.services.schemas.SchemaUtils.getSchemaTypeCode;
@@ -57,7 +59,7 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 	}
 
 
-	private void obtainReadingPermission() {
+	void obtainReadingPermission() {
 		//System.out.println("Asking reading permission...");
 		boolean obtained = false;
 
@@ -87,12 +89,12 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 		//	System.out.println("Asking reading permission... obtained");
 	}
 
-	private void finishedReading() {
+	void finishedReading() {
 		readingThreads.decrementAndGet();
 		//System.out.println("Finished reading");
 	}
 
-	private void obtainWritingPermit() {
+	void obtainWritingPermit() {
 		//System.out.println("Asking writing permission...");
 		canRead1 = false;
 		canRead2 = false;
@@ -109,7 +111,7 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 		//System.out.println("Asking writing permission... obtained");
 	}
 
-	private void finishedWriting() {
+	void finishedWriting() {
 		canRead2 = true;
 		canRead1 = true;
 
@@ -153,7 +155,6 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 
 	synchronized void remove(int id, RecordDTO dto) {
 
-
 		byte collectionId = 0;
 		short typeId = 0;
 
@@ -166,32 +167,36 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 			collectionId = collectionId(collectionCode);
 			typeId = typeId(collectionCode, getSchemaTypeCode(schemaCode));
 		}
-		int collectionIndex = collectionId - Byte.MIN_VALUE;
 		int index = ids.binarySearch(id);
-
+		boolean summary = dto instanceof ByteArrayRecordDTO;
 		obtainWritingPermit();
 		try {
 			if (index >= 0) {
-				//Important to set the schema first, since it is the first read
-				schema.set(index, (short) 0);
-				versions.set(index, 0L);
-				collection.set(index, (byte) 0);
-				type.set(index, (short) 0);
 
-				if (dto instanceof ByteArrayRecordDTO) {
-					summaryCachedData.set(index, null);
-				} else {
-					fullyCachedData.set(index, null);
-				}
-
-				IntArrayList typeIndexes = typesIndexes[collectionIndex][typeId];
-				typeIndexes.remove(index);
-
+				removeAtIndex(collectionId, typeId, index, summary);
 			}
 
 		} finally {
 			finishedWriting();
 		}
+	}
+
+	private void removeAtIndex(byte collectionId, short typeId, int index, boolean summary) {
+		//Important to set the schema first, since it is the first read
+		schema.set(index, (short) 0);
+		versions.set(index, 0L);
+		collection.set(index, (byte) 0);
+		type.set(index, (short) 0);
+		int collectionIndex = ((int) collectionId) - Byte.MIN_VALUE;
+
+		if (summary) {
+			summaryCachedData.set(index, null);
+		} else {
+			fullyCachedData.set(index, null);
+		}
+
+		IntArrayList typeIndexes = typesIndexes[collectionIndex][typeId];
+		typeIndexes.remove(index);
 	}
 
 
@@ -345,6 +350,21 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 				fullyCachedData.add(insertAtIndex, null);
 			}
 
+			for (int i = 0; i < 256; i++) {
+				if (typesIndexes[i] != null) {
+					for (int j = 0; j < LIMIT_OF_TYPES_IN_COLLECTION; j++) {
+						if (typesIndexes[i][j] != null) {
+							for (int k = 0; k < typesIndexes[i][j].size(); k++) {
+								int index = typesIndexes[i][j].get(k);
+								if (index >= insertAtIndex) {
+									typesIndexes[i][j].set(k, index + 1);
+								}
+							}
+						}
+					}
+				}
+			}
+
 			indexToWrite = insertAtIndex;
 		}
 
@@ -411,8 +431,15 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 
 	}
 
-	private RecordDTO getUnknownIdAtIndex(byte collectionId, short typeId, short schemaId, int listIndex) {
+	private RecordDTO getUnknownIdAtIndex(int index) {
+		byte collectionId = collection.get(index);
+		short typeId = type.get(index);
+		return getUnknownIdAtIndex(collectionId, typeId, index);
+	}
+
+	private RecordDTO getUnknownIdAtIndex(byte collectionId, short typeId, int listIndex) {
 		int id = ids.get(listIndex);
+		short schemaId = schema.get(listIndex);
 		return get(id, collectionId, typeId, schemaId, listIndex);
 	}
 
@@ -428,10 +455,6 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 
 
 	private RecordDTO get(int id, byte collectionId, short typeId, short schemaId, int listIndex) {
-
-		collectionId = collection.get(listIndex);
-		typeId = type.get(listIndex);
-		schemaId = schema.get(listIndex);
 
 		if (schemaId == 0) {
 			return null;
@@ -454,7 +477,76 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 	}
 
 
-	public Iterator<RecordDTO> iterator() {
+	public synchronized void invalidate(Predicate<RecordDTO> predicate) {
+		obtainWritingPermit();
+		try {
+
+			for (int i = 0; i < ids.size(); i++) {
+				RecordDTO dto = getUnknownIdAtIndex(i);
+				if (dto != null && predicate.test(dto)) {
+					byte collectionId = getCollectionIdOf(dto);
+					short typeId = getTypeId(dto);
+					boolean summary = dto instanceof ByteArrayRecordDTO;
+					removeAtIndex(collectionId, typeId, i, summary);
+				}
+			}
+
+		} finally {
+			finishedWriting();
+		}
+	}
+
+	public synchronized void invalidate(byte predicateCollectionId, Predicate<RecordDTO> predicate) {
+		obtainWritingPermit();
+		try {
+
+			for (int i = 0; i < ids.size(); i++) {
+				RecordDTO dto = getUnknownIdAtIndex(i);
+				if (dto != null && predicate.test(dto)) {
+					byte collectionId = getCollectionIdOf(dto);
+					if (collectionId != predicateCollectionId) {
+						continue;
+					}
+					short typeId = getTypeId(dto);
+					boolean summary = dto instanceof ByteArrayRecordDTO;
+					removeAtIndex(collectionId, typeId, i, summary);
+				}
+			}
+
+		} finally {
+			finishedWriting();
+		}
+	}
+
+	public synchronized void invalidate(byte predicateCollectionId, short predicateTypeId,
+										Predicate<RecordDTO> predicate) {
+		obtainWritingPermit();
+		try {
+
+			for (int i = 0; i < ids.size(); i++) {
+				RecordDTO dto = getUnknownIdAtIndex(i);
+				if (dto != null && predicate.test(dto)) {
+					byte collectionId = getCollectionIdOf(dto);
+					if (collectionId != predicateCollectionId) {
+						continue;
+					}
+					short typeId = getTypeId(dto);
+					if (typeId != predicateTypeId) {
+						continue;
+					}
+
+					boolean summary = dto instanceof ByteArrayRecordDTO;
+					removeAtIndex(collectionId, typeId, i, summary);
+				}
+			}
+
+		} finally {
+			finishedWriting();
+		}
+	}
+
+
+	public Iterator<RecordDTO> iterator(boolean autoClosedIterator) {
 
 		return new LazyIterator<RecordDTO>() {
 
@@ -462,7 +554,9 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 
 			@Override
 			protected RecordDTO getNextOrNull() {
-				obtainReadingPermission();
+				if (autoClosedIterator) {
+					obtainReadingPermission();
+				}
 				try {
 					while (index < ids.size()) {
 						int id = ids.get(index);
@@ -476,174 +570,207 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 
 					return null;
 				} finally {
-					finishedReading();
-				}
-			}
-		};
-	}
-
-	public Iterator<RecordDTO> iterator(byte collectionId) {
-
-
-		return new LazyIterator<RecordDTO>() {
-
-			int index = 0;
-
-			@Override
-			protected RecordDTO getNextOrNull() {
-
-				obtainReadingPermission();
-				try {
-					while (index < ids.size()) {
-						int seekedIndex = index++;
-						int id = ids.get(seekedIndex);
-						short schemaId = schema.get(seekedIndex);
-						if (schemaId == 0) {
-							continue;
-						}
-
-						byte aCollectionId = collection.get(seekedIndex);
-						if (aCollectionId != collectionId) {
-							continue;
-						}
-						short typeId = type.get(seekedIndex);
-						RecordDTO dto = get(id, collectionId, typeId, schemaId, seekedIndex);
-						if (dto != null) {
-							return dto;
-						}
-
+					if (autoClosedIterator) {
+						finishedReading();
 					}
-
-					return null;
-				} finally {
-					finishedReading();
 				}
 			}
 		};
 	}
-
-
-	public Iterator<RecordDTO> iterator(byte collectionId, short typeId) {
-
-		return new LazyIterator<RecordDTO>() {
-
-			int index = 0;
-
-			@Override
-			protected RecordDTO getNextOrNull() {
-
-				obtainReadingPermission();
-
-				try {
-					while (index < ids.size()) {
-						int seekedIndex = index++;
-						int id = ids.get(seekedIndex);
-
-						short schemaId = schema.get(seekedIndex);
-						if (schemaId == 0) {
-							continue;
-						}
-
-						byte aCollectionId = collection.get(seekedIndex);
-						if (aCollectionId != collectionId) {
-							continue;
-						}
-						short aTypeId = type.get(seekedIndex);
-						if (aTypeId != typeId) {
-							continue;
-						}
-						RecordDTO dto = get(id, collectionId, typeId, schemaId, seekedIndex);
-						if (dto != null) {
-							return dto;
-						}
-
-					}
-
-					return null;
-				} finally {
-					finishedReading();
-				}
-			}
-		};
-	}
-
-
-	//	public Iterator<RecordDTO> iterator(byte collectionId) {
 	//
-	//		int collectionIndex = collectionId - Byte.MIN_VALUE;
+	//	public Iterator<RecordDTO> iterator(boolean autoClosedIterator, byte collectionId) {
 	//
-	//		if (typesIndexes[collectionIndex] == null) {
-	//			return Collections.emptyIterator();
-	//		}
 	//
 	//		return new LazyIterator<RecordDTO>() {
 	//
-	//			short schemaTypeIndex = 0;
-	//			int typeIndex = 0;
+	//			int index = 0;
 	//
 	//			@Override
 	//			protected RecordDTO getNextOrNull() {
 	//
-	//				while (schemaTypeIndex < LIMIT_OF_TYPES_IN_COLLECTION) {
-	//					IntArrayList typeIndexes = typesIndexes[collectionIndex][schemaTypeIndex];
-	//					if (typeIndexes == null || typeIndexes.size() <= typeIndex) {
-	//						schemaTypeIndex++;
-	//						typeIndex = 0;
-	//
-	//					} else {
-	//						int index = typeIndexes.get(typeIndex++);
-	//						if (index != -1) {
-	//							RecordDTO dto = getUnknownIdAtIndex(collectionId, schemaTypeIndex, index);
-	//							if (dto != null) {
-	//								return dto;
-	//							}
-	//						}
-	//					}
-	//
+	//				if (autoClosedIterator) {
+	//					obtainReadingPermission();
 	//				}
+	//				try {
+	//					while (index < ids.size()) {
+	//						int seekedIndex = index++;
+	//						int id = ids.get(seekedIndex);
+	//						short schemaId = schema.get(seekedIndex);
+	//						if (schemaId == 0) {
+	//							continue;
+	//						}
 	//
-	//				return null;
-	//
-	//			}
-	//		};
-	//	}
-	//
-	//
-	//	public Iterator<RecordDTO> iterator(byte collectionId, short typeId) {
-	//
-	//		int collectionIndex = collectionId - Byte.MIN_VALUE;
-	//
-	//		if (typesIndexes[collectionIndex] == null) {
-	//			return Collections.emptyIterator();
-	//		}
-	//
-	//		IntArrayList typeIndexes = typesIndexes[collectionIndex][typeId];
-	//
-	//		if (typeIndexes == null) {
-	//			return Collections.emptyIterator();
-	//		}
-	//
-	//		return new LazyIterator<RecordDTO>() {
-	//
-	//			int typeIndex = 0;
-	//
-	//			@Override
-	//			protected RecordDTO getNextOrNull() {
-	//
-	//				while (typeIndex < typeIndexes.size()) {
-	//
-	//					int index = typeIndexes.get(typeIndex++);
-	//					if (index != -1) {
-	//						RecordDTO dto = getUnknownIdAtIndex(collectionId, typeId, index);
+	//						byte aCollectionId = collection.get(seekedIndex);
+	//						if (aCollectionId != collectionId) {
+	//							continue;
+	//						}
+	//						short typeId = type.get(seekedIndex);
+	//						RecordDTO dto = get(id, collectionId, typeId, schemaId, seekedIndex);
 	//						if (dto != null) {
 	//							return dto;
 	//						}
+	//
+	//					}
+	//
+	//					return null;
+	//				} finally {
+	//					if (autoClosedIterator) {
+	//						finishedReading();
 	//					}
 	//				}
-	//
-	//				return null;
-	//
 	//			}
 	//		};
 	//	}
+	//
+	//
+	//	public Iterator<RecordDTO> iterator(boolean autoClosedIterator, byte collectionId, short typeId) {
+	//
+	//		return new LazyIterator<RecordDTO>() {
+	//
+	//			int index = 0;
+	//
+	//			@Override
+	//			protected RecordDTO getNextOrNull() {
+	//
+	//				if (autoClosedIterator) {
+	//					obtainReadingPermission();
+	//				}
+	//
+	//				try {
+	//					while (index < ids.size()) {
+	//						int seekedIndex = index++;
+	//						int id = ids.get(seekedIndex);
+	//
+	//						short schemaId = schema.get(seekedIndex);
+	//						if (schemaId == 0) {
+	//							continue;
+	//						}
+	//
+	//						byte aCollectionId = collection.get(seekedIndex);
+	//						if (aCollectionId != collectionId) {
+	//							continue;
+	//						}
+	//						short aTypeId = type.get(seekedIndex);
+	//						if (aTypeId != typeId) {
+	//							continue;
+	//						}
+	//						RecordDTO dto = get(id, collectionId, typeId, schemaId, seekedIndex);
+	//						if (dto != null) {
+	//							return dto;
+	//						}
+	//
+	//					}
+	//
+	//					return null;
+	//				} finally {
+	//					if (autoClosedIterator) {
+	//						finishedReading();
+	//					}
+	//				}
+	//			}
+	//		};
+	//	}
+
+
+	public Iterator<RecordDTO> iterator(boolean autoClosedIterator, byte collectionId) {
+
+		int collectionIndex = collectionId - Byte.MIN_VALUE;
+
+		if (typesIndexes[collectionIndex] == null) {
+			return Collections.emptyIterator();
+		}
+
+
+		return new LazyIterator<RecordDTO>() {
+
+			short schemaTypeIndex = 0;
+			int typeIndex = 0;
+
+			@Override
+			protected RecordDTO getNextOrNull() {
+
+				if (autoClosedIterator) {
+					obtainReadingPermission();
+				}
+
+				try {
+					while (schemaTypeIndex < LIMIT_OF_TYPES_IN_COLLECTION) {
+						IntArrayList typeIndexes = typesIndexes[collectionIndex][schemaTypeIndex];
+						if (typeIndexes == null || typeIndexes.size() <= typeIndex) {
+							schemaTypeIndex++;
+							typeIndex = 0;
+
+						} else {
+							int index = typeIndexes.get(typeIndex++);
+							if (index != -1) {
+								RecordDTO dto = getUnknownIdAtIndex(collectionId, schemaTypeIndex, index);
+								if (dto != null) {
+									return dto;
+								}
+							}
+						}
+
+					}
+
+				} finally {
+					if (autoClosedIterator) {
+						finishedReading();
+					}
+				}
+				return null;
+
+			}
+		};
+	}
+
+
+	public Iterator<RecordDTO> iterator(boolean autoClosedIterator, byte collectionId, short typeId) {
+
+		int collectionIndex = collectionId - Byte.MIN_VALUE;
+
+		if (typesIndexes[collectionIndex] == null) {
+			return Collections.emptyIterator();
+		}
+
+		IntArrayList typeIndexes = typesIndexes[collectionIndex][typeId];
+
+		if (typeIndexes == null) {
+			return Collections.emptyIterator();
+		}
+
+		return new LazyIterator<RecordDTO>() {
+
+			int typeIndex = 0;
+
+			@Override
+			protected RecordDTO getNextOrNull() {
+
+				if (autoClosedIterator) {
+					obtainReadingPermission();
+				}
+
+				try {
+					while (typeIndex < typeIndexes.size()) {
+
+						int index = typeIndexes.get(typeIndex++);
+						if (index != -1) {
+							RecordDTO dto = getUnknownIdAtIndex(collectionId, typeId, index);
+							if (dto != null) {
+								return dto;
+							}
+						}
+					}
+
+				} finally {
+					if (autoClosedIterator) {
+						finishedReading();
+					}
+				}
+
+
+				return null;
+
+			}
+		};
+	}
 }

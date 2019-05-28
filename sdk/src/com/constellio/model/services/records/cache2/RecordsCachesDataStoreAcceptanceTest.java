@@ -13,6 +13,7 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.collections.impl.list.mutable.primitive.IntArrayList;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -28,7 +29,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEssentialInSummary;
 import static java.util.stream.Collectors.toList;
@@ -124,7 +124,7 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 		assertThat(dataStore.intIdsDataStore.schema.stream().collect(toList()))
 				.containsExactly(zeSchemaDefaultId, zeSchemaDefaultId, zeSchemaDefaultId, (short) 0, zeSchemaDefaultId);
 
-		assertThat(dataStore.stream(zeCollectionId, zeCollectionType1Id).collect(Collectors.toList()))
+		assertThat(dataStore.stream(zeCollectionId, zeCollectionType1Id).collect(toList()))
 				.containsExactly(dto1, dto3, dto6, dto8);
 
 
@@ -193,7 +193,7 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 
 		//short zeCollectionIndex = (short) (zeCollectionId - Byte.MIN_VALUE);
 		//assertThat(dataStore.intIdsDataStore.typesIndexes[zeCollectionIndex][zeCollectionType1Id].size()).isEqualTo(5);
-		assertThat(dataStore.stream(zeCollectionId, zeCollectionType1Id).collect(Collectors.toList()))
+		assertThat(dataStore.stream(zeCollectionId, zeCollectionType1Id).collect(toList()))
 				.containsOnly(dto1, dto3, dto6, dto7, dto8);
 
 		dataStore.insert(dto10);
@@ -207,7 +207,7 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 		assertThat(dataStore.intIdsDataStore.schema.stream().collect(toList()))
 				.containsExactly(zeSchemaDefaultId, zeSchemaDefaultId, zeSchemaDefaultId, zeSchemaDefaultId, zeSchemaDefaultId, (short) 0, zeSchemaDefaultId);
 
-		assertThat(dataStore.stream(zeCollectionId, zeCollectionType1Id).collect(Collectors.toList()))
+		assertThat(dataStore.stream(zeCollectionId, zeCollectionType1Id).collect(toList()))
 				.containsOnly(dto1, dto3, dto6, dto7, dto8, dto10);
 
 		dataStore.insertWithoutReservingSpaceForPreviousIds(dto12);
@@ -221,7 +221,7 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 		assertThat(dataStore.intIdsDataStore.schema.stream().collect(toList()))
 				.containsExactly(zeSchemaDefaultId, zeSchemaDefaultId, zeSchemaDefaultId, zeSchemaDefaultId, zeSchemaDefaultId, (short) 0, zeSchemaDefaultId, zeSchemaDefaultId);
 
-		assertThat(dataStore.stream(zeCollectionId, zeCollectionType1Id).collect(Collectors.toList()))
+		assertThat(dataStore.stream(zeCollectionId, zeCollectionType1Id).collect(toList()))
 				.containsOnly(dto1, dto3, dto6, dto7, dto8, dto10, dto12);
 
 	}
@@ -265,15 +265,15 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 		assertThat(dataStore.intIdsDataStore.schema.stream().collect(toList()))
 				.containsExactly(zeSchemaDefaultId, zeSchemaDefaultId, zeSchemaDefaultId, zeSchemaDefaultId, (short) 0, zeSchemaDefaultId);
 
-		assertThat(dataStore.stream().collect(Collectors.toList()))
+		assertThat(dataStore.stream().collect(toList()))
 				.containsOnly(dto1, dto3, dto6, dto7, dto9);
 
-		assertThat(dataStore.stream(zeCollectionId, zeCollectionType1Id).collect(Collectors.toList()))
+		assertThat(dataStore.stream(zeCollectionId, zeCollectionType1Id).collect(toList()))
 				.containsOnly(dto1, dto3, dto6, dto7, dto9);
 
 		dataStore.insert(dto8);
 
-		assertThat(dataStore.stream(zeCollectionId, zeCollectionType1Id).collect(Collectors.toList()))
+		assertThat(dataStore.stream(zeCollectionId, zeCollectionType1Id).collect(toList()))
 				.containsOnly(dto1, dto3, dto6, dto7, dto8, dto9);
 
 		dataStore.insert(dto12);
@@ -284,7 +284,7 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 		assertThat(dataStore.intIdsDataStore.versions.stream().collect(toList()))
 				.containsExactly(12L, 23L, 34L, 56L, 67L, 45L, 0L, 0L, 111L);
 
-		assertThat(dataStore.stream(zeCollectionId, zeCollectionType1Id).collect(Collectors.toList()))
+		assertThat(dataStore.stream(zeCollectionId, zeCollectionType1Id).collect(toList()))
 				.containsOnly(dto1, dto3, dto6, dto7, dto8, dto9, dto12);
 
 
@@ -296,7 +296,7 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 		assertThat(dataStore.intIdsDataStore.versions.stream().collect(toList()))
 				.containsExactly(12L, 23L, 34L, 56L, 67L, 45L, 0L, 0L, 111L, 222L);
 
-		assertThat(dataStore.stream(zeCollectionId, zeCollectionType1Id).collect(Collectors.toList()))
+		assertThat(dataStore.stream(zeCollectionId, zeCollectionType1Id).collect(toList()))
 				.containsOnly(dto1, dto3, dto6, dto7, dto8, dto9, dto12, dto14);
 	}
 
@@ -340,7 +340,7 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 		assertThat(dataStore.intIdsDataStore.schema.stream().collect(toList()))
 				.containsExactly(zeSchemaDefaultId, zeSchemaDefaultId, zeSchemaDefaultId, zeSchemaDefaultId);
 
-		assertThat(dataStore.stream(zeCollectionId, zeCollectionType1Id).collect(Collectors.toList()))
+		assertThat(dataStore.stream(zeCollectionId, zeCollectionType1Id).collect(toList()))
 				.containsOnly(dto1, dto3, dto6, dto8);
 
 		dataStore.insertWithoutReservingSpaceForPreviousIds(dto2);
@@ -354,7 +354,7 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 		assertThat(dataStore.intIdsDataStore.schema.stream().collect(toList()))
 				.containsExactly(zeSchemaDefaultId, zeSchemaDefaultId, zeSchemaDefaultId, zeSchemaDefaultId, zeSchemaDefaultId);
 
-		assertThat(dataStore.stream(zeCollectionId, zeCollectionType1Id).collect(Collectors.toList()))
+		assertThat(dataStore.stream(zeCollectionId, zeCollectionType1Id).collect(toList()))
 				.containsOnly(dto1, dto2, dto3, dto6, dto8);
 
 		dataStore.insertWithoutReservingSpaceForPreviousIds(dto7);
@@ -368,7 +368,7 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 		assertThat(dataStore.intIdsDataStore.schema.stream().collect(toList()))
 				.containsExactly(zeSchemaDefaultId, zeSchemaDefaultId, zeSchemaDefaultId, zeSchemaDefaultId, zeSchemaDefaultId, zeSchemaDefaultId);
 
-		assertThat(dataStore.stream(zeCollectionId, zeCollectionType1Id).collect(Collectors.toList()))
+		assertThat(dataStore.stream(zeCollectionId, zeCollectionType1Id).collect(toList()))
 				.containsOnly(dto1, dto2, dto3, dto6, dto7, dto8);
 	}
 
@@ -416,7 +416,7 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 		assertThat(dataStore.intIdsDataStore.schema.stream().collect(toList()))
 				.containsExactly(zeSchemaDefaultId, zeSchemaDefaultId, zeSchemaDefaultId, zeSchemaDefaultId, (short) 0, zeSchemaDefaultId);
 
-		assertThat(dataStore.stream(zeCollectionId, zeCollectionType1Id).collect(Collectors.toList()))
+		assertThat(dataStore.stream(zeCollectionId, zeCollectionType1Id).collect(toList()))
 				.containsOnly(dto1, dto2, dto3, dto6, dto8);
 
 	}
@@ -450,14 +450,22 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 
 		assertThat(dataStore.intIdsDataStore.ids.stream().collect(toList()))
 				.containsExactly(1, 2, 3, 6, 7, 8);
-		assertThat(dataStore.stream(zeCollectionId, zeCollectionType1Id).collect(Collectors.toList()))
+		assertThat(dataStore.stream(zeCollectionId, zeCollectionType1Id).collect(toList()))
 				.containsExactly(dto1, dto2, dto3, dto6, dto8);
+
+		assertThat(intArrayToList(dataStore.intIdsDataStore.typesIndexes[zeCollectionIndex][zeCollectionType1Id]))
+				.containsExactly(0, 1, 2, 3, 5);
 
 		//Invalidating other collection and types : Nothing happens
 		dataStore.invalidate(anotherCollectionId, zeCollectionType1Id, (r) -> r.getVersion() % 2 == 0);
-		dataStore.invalidate(zeCollectionId, zeCollectionType2Id, (r) -> r.getVersion() % 2 == 0);
+		assertThat(intArrayToList(dataStore.intIdsDataStore.typesIndexes[zeCollectionIndex][zeCollectionType1Id]))
+				.containsExactly(0, 1, 2, 3, 5);
 
-		assertThat(dataStore.stream(zeCollectionId, zeCollectionType1Id).collect(Collectors.toList()))
+		dataStore.invalidate(zeCollectionId, zeCollectionType2Id, (r) -> r.getVersion() % 2 == 0);
+		assertThat(intArrayToList(dataStore.intIdsDataStore.typesIndexes[zeCollectionIndex][zeCollectionType1Id]))
+				.containsExactly(0, 1, 2, 3, 5);
+
+		assertThat(dataStore.stream(zeCollectionId, zeCollectionType1Id).collect(toList()))
 				.containsExactly(dto1, dto2, dto3, dto6, dto8);
 
 
@@ -466,15 +474,24 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 		assertThat(dataStore.intIdsDataStore.ids.stream().collect(toList()))
 				.containsExactly(1, 2, 3, 6, 7, 8);
 
+		assertThat(intArrayToList(dataStore.intIdsDataStore.typesIndexes[zeCollectionIndex][zeCollectionType1Id]))
+				.containsExactly(2, 5);
+
 		assertThat(dataStore.intIdsDataStore.versions.stream().collect(toList()))
 				.containsExactly(0L, 0L, 23L, 0L, 0L, 45L);
 
 		assertThat(dataStore.intIdsDataStore.schema.stream().collect(toList()))
 				.containsExactly((short) 0, (short) 0, zeSchemaDefaultId, (short) 0, (short) 0, zeSchemaDefaultId);
 
-		assertThat(dataStore.stream(zeCollectionId, zeCollectionType1Id).collect(Collectors.toList()))
+		assertThat(dataStore.stream(zeCollectionId, zeCollectionType1Id).collect(toList()))
 				.containsExactly(dto3, dto8);
 
+	}
+
+	private List<Integer> intArrayToList(IntArrayList intArrayList) {
+		List<Integer> list = new ArrayList<>();
+		intArrayList.forEach((v) -> list.add(v));
+		return list;
 	}
 
 
@@ -507,13 +524,13 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 
 		assertThat(dataStore.intIdsDataStore.ids.stream().collect(toList()))
 				.containsExactly(1, 2, 3, 6, 7, 8);
-		assertThat(dataStore.stream(zeCollectionId, zeCollectionType1Id).collect(Collectors.toList()))
+		assertThat(dataStore.stream(zeCollectionId, zeCollectionType1Id).collect(toList()))
 				.containsExactly(dto1, dto2, dto3, dto6, dto8);
 
 		//Invalidating other collection and types : Nothing happens
 		dataStore.invalidate(anotherCollectionId, (r) -> r.getVersion() % 2 == 0);
 
-		assertThat(dataStore.stream(zeCollectionId, zeCollectionType1Id).collect(Collectors.toList()))
+		assertThat(dataStore.stream(zeCollectionId, zeCollectionType1Id).collect(toList()))
 				.containsExactly(dto1, dto2, dto3, dto6, dto8);
 
 
@@ -528,7 +545,7 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 		assertThat(dataStore.intIdsDataStore.schema.stream().collect(toList()))
 				.containsExactly((short) 0, (short) 0, zeSchemaDefaultId, (short) 0, (short) 0, zeSchemaDefaultId);
 
-		assertThat(dataStore.stream(zeCollectionId, zeCollectionType1Id).collect(Collectors.toList()))
+		assertThat(dataStore.stream(zeCollectionId, zeCollectionType1Id).collect(toList()))
 				.containsExactly(dto3, dto8);
 
 	}
@@ -564,21 +581,21 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 		assertThat(dataStore.intIdsDataStore.ids.stream().collect(toList()))
 				.containsExactly(1, 2, 3, 6, 7, 8);
 
-		assertThat(dataStore.stream().collect(Collectors.toList()))
+		assertThat(dataStore.stream().collect(toList()))
 				.extracting("id")
 				.containsOnly(zeroPadded(1), zeroPadded(2), zeroPadded(3), zeroPadded(6), zeroPadded(8));
 
 
-		assertThat(dataStore.stream(zeCollectionId, zeCollectionType1Id).collect(Collectors.toList()))
+		assertThat(dataStore.stream(zeCollectionId, zeCollectionType1Id).collect(toList()))
 				.extracting("id")
 				.containsOnly(zeroPadded(1), zeroPadded(2), zeroPadded(3), zeroPadded(6), zeroPadded(8));
 
-		assertThat(dataStore.stream(zeCollectionId).collect(Collectors.toList()))
+		assertThat(dataStore.stream(zeCollectionId).collect(toList()))
 				.extracting("id")
 				.containsOnly(zeroPadded(1), zeroPadded(2), zeroPadded(3), zeroPadded(6), zeroPadded(8));
 
 
-		assertThat(dataStore.stream(zeCollectionId, zeCollectionType1Id).collect(Collectors.toList()))
+		assertThat(dataStore.stream(zeCollectionId, zeCollectionType1Id).collect(toList()))
 				.containsExactly(dto1, dto2, dto3, dto6, dto8);
 
 
@@ -593,7 +610,7 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 		assertThat(dataStore.intIdsDataStore.schema.stream().collect(toList()))
 				.containsExactly((short) 0, (short) 0, zeSchemaDefaultId, (short) 0, (short) 0, zeSchemaDefaultId);
 
-		assertThat(dataStore.stream(zeCollectionId, zeCollectionType1Id).collect(Collectors.toList()))
+		assertThat(dataStore.stream(zeCollectionId, zeCollectionType1Id).collect(toList()))
 				.containsExactly(dto3, dto8);
 
 

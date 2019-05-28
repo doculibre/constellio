@@ -13,9 +13,16 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import static com.constellio.model.entities.schemas.MetadataSchemaTypes.LIMIT_OF_TYPES_IN_COLLECTION;
 import static com.constellio.model.services.schemas.SchemaUtils.getSchemaTypeCode;
+import static java.util.Spliterator.DISTINCT;
+import static java.util.Spliterator.IMMUTABLE;
+import static java.util.Spliterator.NONNULL;
+import static java.util.Spliterators.spliteratorUnknownSize;
 
 public class StringIdsRecordsCachesDataStore {
 
@@ -284,4 +291,34 @@ public class StringIdsRecordsCachesDataStore {
 		};
 	}
 
+	public Stream<RecordDTO> stream() {
+		return StreamSupport.stream(spliteratorUnknownSize(iterator(), DISTINCT + NONNULL + IMMUTABLE), false);
+	}
+
+	public Stream<RecordDTO> stream(byte collection) {
+		return StreamSupport.stream(spliteratorUnknownSize(iterator(collection), DISTINCT + NONNULL + IMMUTABLE), false);
+	}
+
+	public Stream<RecordDTO> stream(byte collection, short schemaType) {
+		return StreamSupport.stream(spliteratorUnknownSize(iterator(collection, schemaType), DISTINCT + NONNULL + IMMUTABLE), false);
+	}
+
+	public synchronized void invalidate(Predicate<RecordDTO> predicate) {
+		List<String> idsToDelete = new ArrayList<>();
+		stream().filter(predicate).forEach((dto) -> idsToDelete.add(dto.getId()));
+		idsToDelete.stream().forEach((id -> this.allRecordsWithStringKey.remove(id)));
+
+	}
+
+	public synchronized void invalidate(byte collection, Predicate<RecordDTO> predicate) {
+		List<String> idsToDelete = new ArrayList<>();
+		stream(collection).filter(predicate).forEach((dto) -> idsToDelete.add(dto.getId()));
+		idsToDelete.stream().forEach((id -> this.allRecordsWithStringKey.remove(id)));
+	}
+
+	public synchronized void invalidate(byte collection, short schemaType, Predicate<RecordDTO> predicate) {
+		List<String> idsToDelete = new ArrayList<>();
+		stream(collection, schemaType).filter(predicate).forEach((dto) -> idsToDelete.add(dto.getId()));
+		idsToDelete.stream().forEach((id -> this.allRecordsWithStringKey.remove(id)));
+	}
 }
