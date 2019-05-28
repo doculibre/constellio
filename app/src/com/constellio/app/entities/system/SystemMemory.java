@@ -14,13 +14,13 @@ public class SystemMemory {
 	MemoryDetails totalSystemMemory;
 	MemoryDetails constellioAllocatedMemory;
 	MemoryDetails solrAllocatedMemory;
-	MemoryDetails nonAllocatedMemory;
+	MemoryDetails unallocatedMemory;
 
 	private SystemMemory(MemoryDetails totalSystemMemory, MemoryDetails constellioAllocatedMemory, MemoryDetails solrAllocatedMemory) {
 		this.totalSystemMemory = totalSystemMemory;
 		this.constellioAllocatedMemory = constellioAllocatedMemory;
 		this.solrAllocatedMemory = solrAllocatedMemory;
-		this.nonAllocatedMemory = calculateNonAllocatedMemory();
+		this.unallocatedMemory = calculateNonAllocatedMemory();
 	}
 
 	public static SystemMemory fetchSystemMemoryInfo() {
@@ -57,8 +57,8 @@ public class SystemMemory {
 		}
 	}
 
-	public MemoryDetails getNonAllocatedMemory() {
-		return nonAllocatedMemory;
+	public MemoryDetails getUnallocatedMemory() {
+		return unallocatedMemory;
 	}
 
 	private static double roundToTwoDecimals(double value) {

@@ -10,6 +10,7 @@ import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.menuBar.BaseMenuBar;
 import com.constellio.app.ui.pages.viewGroups.MenuViewGroup;
 import com.constellio.app.ui.pages.viewGroups.MenuViewGroup.DisabledMenuViewGroup;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.FontAwesome;
@@ -233,16 +234,13 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 
 	private void refreshSystemStateButton() {
 		systemStateButton.setVisible(true);
-		SystemState state = SystemInfo.build(getConstellioFactories().getAppLayerFactory()).getSystemState();
-		switch (state) {
-			case OK:
-				systemStateButton.setIcon(new ThemeResource("images/commun/lancement.png"));
-				break;
-			case WARNING:
-				systemStateButton.setIcon(new ThemeResource("images/commun/warning.png"));
-				break;
-			default:
-				systemStateButton.setIcon(new ThemeResource("images/commun/error.gif"));
+		ValidationErrors validationErrors = SystemInfo.build(getConstellioFactories().getAppLayerFactory()).getValidationErrors();
+		if(!validationErrors.isEmpty()) {
+			systemStateButton.setIcon(new ThemeResource("images/commun/error.gif"));
+		} else if (!validationErrors.isEmptyErrorAndWarnings()) {
+			systemStateButton.setIcon(new ThemeResource("images/commun/warning.png"));
+		} else {
+			systemStateButton.setIcon(new ThemeResource("images/commun/lancement.png"));
 		}
 	}
 

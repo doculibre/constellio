@@ -8,13 +8,27 @@ import com.constellio.app.services.systemInformations.SystemInformationsService;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.conf.FoldersLocatorMode;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 
 public class SystemInfo {
+
+	private static final String MISSING_INFORMATION_ON_MEMORY = "missingInformationOnMemory";
+	private static final String INVALID_LICENSE = "invalidLicense";
+	private static final String LICENSE_EXPIRED = "licenseExpired";
+	private static final String OPT_DISK_USAGE = "optDiskUsage";
+	private static final String OPT_DISK_USAGE_MISSING_INFO = "optDiskUsageMissingInfo";
+	private static final String SOLR_DISK_USAGE = "solrDiskUsage";
+	private static final String SOLR_DISK_USAGE_MISSING_INFO = "solrDiskUsageMissingInfo";
+	private static final String CONSTELLIO_MEMORY_CONSUMPTION = "memoryConsumption";
+	private static final String CONSTELLIO_MEMORY_CONSUMPTION_MISSING_INFO = "memoryConsumptionMissingInfo";
+	private static final String PRIVATE_REPOSITORY_IS_NOT_INSTALLED = "privateRepositoryIsNotInstalled";
+	private static final String LOW_UNALLOCATED_MEMORY = "lowUnallocatedMemory";
 
 	SystemMemory systemMemory;
 	LicenseInfo licenseInfo;
@@ -28,7 +42,7 @@ public class SystemInfo {
 	String userRunningConstellio;
 	String optDiskUsage;
 	String solrDiskUsage;
-	SystemState systemState;
+	ValidationErrors validationErrors;
 
 	boolean isPrivateRepositoryInstalled;
 
@@ -44,6 +58,7 @@ public class SystemInfo {
 		systemMemory = SystemMemory.fetchSystemMemoryInfo();
 		licenseInfo = fetchLicenseInfo(appLayerFactory);
 		constellioVersion = fetchConstellioVersion(appLayerFactory);
+		validationErrors = new ValidationErrors();
 
 		FoldersLocator locator = new FoldersLocator();
 
@@ -59,7 +74,7 @@ public class SystemInfo {
 			solrDiskUsage = systemInformationsService.getDiskUsage("/var/solr");
 		}
 
-		calculateSystemState();
+		analyzeSystemAndFindValidationErrors();
 	}
 
 	private static String fetchConstellioVersion(AppLayerFactory appLayerFactory) {
@@ -131,34 +146,35 @@ public class SystemInfo {
 		return isPrivateRepositoryInstalled;
 	}
 
-	public SystemState getSystemState() {
-		return systemState;
+	public ValidationErrors getValidationErrors() {
+		return validationErrors;
 	}
 
-	private void calculateSystemState() {
-		int currentConstellioMemoryConsumption = (int) ((Runtime.getRuntime().freeMemory() * 100d) / Runtime.getRuntime().totalMemory());
-//		String currentSolrMemoryConsumption = "60%";
+	private void analyzeSystemAndFindValidationErrors() {
+		validationErrors.clearAll();
 
 		if(anyInfoIsMissing(optDiskUsage, solrDiskUsage) || systemMemory.getConstellioAllocatedMemory().getAmount() == null || systemMemory.getSolrAllocatedMemory().getAmount() == null) {
-			systemState = SystemState.WARNING;
+			validationErrors.addWarning(SystemInfo.class, MISSING_INFORMATION_ON_MEMORY, new HashMap<String, Object>());
 		}
 
-		if(licenseInfo == null || licenseInfo.getExpirationDate() == null || TimeProvider.getLocalDate().isAfter(licenseInfo.getExpirationDate())) {
-			systemState = SystemState.getHighestUrgency(systemState, SystemState.WARNING);
+		if(licenseInfo == null || licenseInfo.getExpirationDate() == null) {
+			validationErrors.addWarning(SystemInfo.class, INVALID_LICENSE, new HashMap<String, Object>());
+		} else if(TimeProvider.getLocalDate().isAfter(licenseInfo.getExpirationDate())) {
+			validationErrors.addWarning(SystemInfo.class, LICENSE_EXPIRED, new HashMap<String, Object>());
 		}
 
 		if(StringUtils.isNotBlank(optDiskUsage) && optDiskUsage.endsWith("%")) {
 			try {
 				int consumptionPercentage = Integer.parseInt(optDiskUsage.replace("%", ""));
 				if(isInRange(consumptionPercentage, 0, 75)) {
-					systemState = SystemState.getHighestUrgency(systemState, SystemState.OK);
+					validationErrors.addLog(SystemInfo.class, OPT_DISK_USAGE, new HashMap<String, Object>());
 				} else if(isInRange(consumptionPercentage, 75, 90)) {
-					systemState = SystemState.getHighestUrgency(systemState, SystemState.WARNING);
+					validationErrors.addWarning(SystemInfo.class, OPT_DISK_USAGE, new HashMap<String, Object>());
 				} else {
-					systemState = SystemState.getHighestUrgency(systemState, SystemState.CRITIC);
+					validationErrors.add(SystemInfo.class, OPT_DISK_USAGE, new HashMap<String, Object>());
 				}
 			} catch (Exception e) {
-				systemState = SystemState.getHighestUrgency(systemState, SystemState.WARNING);
+				validationErrors.addWarning(SystemInfo.class, OPT_DISK_USAGE_MISSING_INFO, new HashMap<String, Object>());
 			}
 		}
 
@@ -166,30 +182,32 @@ public class SystemInfo {
 			try {
 				int consumptionPercentage = Integer.parseInt(solrDiskUsage.replace("%", ""));
 				if(isInRange(consumptionPercentage, 0, 75)) {
-					systemState = SystemState.getHighestUrgency(systemState, SystemState.OK);
+					validationErrors.addLog(SystemInfo.class, SOLR_DISK_USAGE, new HashMap<String, Object>());
 				} else if(isInRange(consumptionPercentage, 75, 90)) {
-					systemState = SystemState.getHighestUrgency(systemState, SystemState.WARNING);
+					validationErrors.addWarning(SystemInfo.class, SOLR_DISK_USAGE, new HashMap<String, Object>());
 				} else {
-					systemState = SystemState.getHighestUrgency(systemState, SystemState.CRITIC);
+					validationErrors.add(SystemInfo.class, SOLR_DISK_USAGE, new HashMap<String, Object>());
 				}
 			} catch (Exception e) {
-				systemState = SystemState.getHighestUrgency(systemState, SystemState.WARNING);
+				validationErrors.addWarning(SystemInfo.class, SOLR_DISK_USAGE_MISSING_INFO, new HashMap<String, Object>());
 			}
 		}
 
+		int currentConstellioMemoryConsumption = (int) ((Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) * 100d / Runtime.getRuntime().totalMemory());
 		try {
 			if(isInRange(currentConstellioMemoryConsumption, 0, 75)) {
-				systemState = SystemState.getHighestUrgency(systemState, SystemState.OK);
+				validationErrors.addLog(SystemInfo.class, CONSTELLIO_MEMORY_CONSUMPTION, new HashMap<String, Object>());
 			} else if(isInRange(currentConstellioMemoryConsumption, 75, 90)) {
-				systemState = SystemState.getHighestUrgency(systemState, SystemState.WARNING);
+				validationErrors.addWarning(SystemInfo.class, CONSTELLIO_MEMORY_CONSUMPTION, new HashMap<String, Object>());
 			} else {
-				systemState = SystemState.getHighestUrgency(systemState, SystemState.CRITIC);
+				validationErrors.add(SystemInfo.class, CONSTELLIO_MEMORY_CONSUMPTION, new HashMap<String, Object>());
 			}
 		} catch (Exception e) {
-			systemState = SystemState.getHighestUrgency(systemState, SystemState.WARNING);
+			validationErrors.addWarning(SystemInfo.class, CONSTELLIO_MEMORY_CONSUMPTION_MISSING_INFO, new HashMap<String, Object>());
 		}
 
-//		if(StringUtils.isNotBlank(currentSolrMemoryConsumption) && currentSolrMemoryConsumption.endsWith("%")) {
+		//		String currentSolrMemoryConsumption = "60%";
+		//		if(StringUtils.isNotBlank(currentSolrMemoryConsumption) && currentSolrMemoryConsumption.endsWith("%")) {
 //			try {
 //				int consumptionPercentage = Integer.parseInt(currentSolrMemoryConsumption.replace("%", ""));
 //				if(isInRange(consumptionPercentage, 0, 75)) {
@@ -205,11 +223,11 @@ public class SystemInfo {
 //		}
 
 		if(!isPrivateRepositoryInstalled) {
-			systemState = SystemState.getHighestUrgency(systemState, SystemState.WARNING);
+			validationErrors.addWarning(SystemInfo.class, PRIVATE_REPOSITORY_IS_NOT_INSTALLED, new HashMap<String, Object>());
 		}
 
-		if(systemMemory.getNonAllocatedMemory().isLessThan(new MemoryDetails(2d, MemoryUnit.GB))) {
-			systemState = SystemState.getHighestUrgency(systemState, SystemState.WARNING);
+		if(systemMemory.getUnallocatedMemory().isLessThan(new MemoryDetails(2d, MemoryUnit.GB))) {
+			validationErrors.addWarning(SystemInfo.class, LOW_UNALLOCATED_MEMORY, new HashMap<String, Object>());
 		}
 	}
 
