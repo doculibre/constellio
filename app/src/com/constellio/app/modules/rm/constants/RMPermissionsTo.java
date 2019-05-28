@@ -130,9 +130,9 @@ public class RMPermissionsTo {
 	public static final String MANAGE_STORAGE_SPACES = permission(RM_MANAGEMENT, "manageStorageSpaces");
 
 	public static final String MANAGE_CLASSIFICATION_PLAN = permission(RM_MANAGEMENT, "manageClassificationPlan");
-	public static final String DISPLAY_CLASSIFICATION_PLAN = permission(RM_MANAGEMENT, "consultClassificationPlan");
+	public static final String CONSULT_CLASSIFICATION_PLAN = permission(RM_MANAGEMENT, "consultClassificationPlan");
 
-	public static final String DISPLAY_RETENTIONRULE = permission(RM_MANAGEMENT, "consultRetentionRule");
+	public static final String CONSULT_RETENTIONRULE = permission(RM_MANAGEMENT, "consultRetentionRule");
 	public static final String MANAGE_RETENTIONRULE = permission(RM_MANAGEMENT, "manageRetentionRule");
 
 
