@@ -16,6 +16,7 @@ import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.CollectionObject;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -386,6 +387,11 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 	@Override
 	public MetadataSchema get(byte collectionId, short typeId, short schemaId) {
 		return getSchemaTypes(collectionId).getSchemaType(typeId).getSchema(schemaId);
+	}
+
+	@Override
+	public Metadata getMetadata(byte collectionId, short typeId, short metadataId) {
+		return getSchemaTypes(collectionId).getSchemaType(typeId).getMetadata(metadataId);
 	}
 
 

@@ -12,6 +12,7 @@ import com.constellio.data.dao.services.records.DataStore;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.utils.BatchBuilderIterator;
 import com.constellio.data.utils.BatchBuilderSearchResponseIterator;
+import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
@@ -53,6 +54,7 @@ import org.apache.solr.common.params.MoreLikeThisParams;
 import org.apache.solr.common.params.ShardParams;
 import org.apache.solr.common.params.StatsParams;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -73,6 +75,7 @@ import java.util.function.BiFunction;
 import java.util.function.BinaryOperator;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -110,6 +113,7 @@ public class SearchServices {
 	String mainDataLanguage;
 	ConstellioEIMConfigs systemConfigs;
 	ModelLayerFactory modelLayerFactory;
+	LogicalSearchQueryExecutorInCache logicalSearchQueryExecutorInCache;
 
 	public SearchServices(RecordDao recordDao, ModelLayerFactory modelLayerFactory) {
 		this(recordDao, modelLayerFactory, modelLayerFactory.getRecordsCaches());
@@ -129,6 +133,7 @@ public class SearchServices {
 		this.systemConfigs = modelLayerFactory.getSystemConfigs();
 		this.disconnectableRecordsCaches = recordsCaches;
 		this.modelLayerFactory = modelLayerFactory;
+		this.logicalSearchQueryExecutorInCache = new LogicalSearchQueryExecutorInCache(this, recordsCaches, metadataSchemasManager);
 	}
 
 	public RecordsCaches getConnectedRecordsCache() {
@@ -147,7 +152,11 @@ public class SearchServices {
 
 	@Deprecated
 	public List<Record> cachedSearch(LogicalSearchQuery query) {
-		return search(query);
+		if (logicalSearchQueryExecutorInCache.isQueryExecutableInCache(query)) {
+			return logicalSearchQueryExecutorInCache.stream(query).collect(Collectors.toList());
+		} else {
+			return search(query);
+		}
 	}
 
 	@Deprecated
@@ -219,7 +228,12 @@ public class SearchServices {
 	}
 
 	public Stream<Record> stream(LogicalSearchQuery query, int batchSize) {
-		return streamFromSolr(query, batchSize);
+
+		if (logicalSearchQueryExecutorInCache.isQueryExecutableInCache(query)) {
+			return logicalSearchQueryExecutorInCache.stream(query);
+		} else {
+			return streamFromSolr(query, batchSize);
+		}
 	}
 
 	public Stream<Record> streamFromSolr(LogicalSearchQuery query) {
@@ -428,7 +442,34 @@ public class SearchServices {
 		return query(query).getRecords();
 	}
 
+
 	public Record searchSingleResult(LogicalSearchCondition condition) {
+		if (logicalSearchQueryExecutorInCache.isConditionExecutableInCache(condition)) {
+			Record record = searchSingleResultUsingCache(condition);
+
+			if (Toggle.VALIDATE_CACHE_EXECUTION_SERVICE_USING_SOLR.isEnabled()) {
+				Record recordFromSolr = searchSingleResultUsingCache(condition);
+
+				String recordId = record == null ? null : record.getId();
+				String recordFromSolrId = recordFromSolr == null ? null : recordFromSolr.getId();
+
+				if (!LangUtils.isEqual(recordId, recordFromSolrId)) {
+					throw new RuntimeException("Cached query execution problem");
+				}
+
+
+			}
+
+			return record;
+
+		} else {
+
+			return searchSingleResultUsingSolr(condition);
+		}
+	}
+
+	@Nullable
+	private Record searchSingleResultUsingSolr(LogicalSearchCondition condition) {
 		SPEQueryResponse response = query(new LogicalSearchQuery(condition).filteredByVisibilityStatus(ALL).setNumberOfRows(1));
 		if (response.getNumFound() > 1) {
 			SolrQueryBuilderContext params = new SolrQueryBuilderContext(false, new ArrayList<>(), "?", null, null, null) {
@@ -436,6 +477,17 @@ public class SearchServices {
 			throw new SearchServicesRuntimeException.TooManyRecordsInSingleSearchResult(condition.getSolrQuery(params));
 		}
 		return response.getNumFound() == 1 ? response.getRecords().get(0) : null;
+	}
+
+	@Nullable
+	private Record searchSingleResultUsingCache(LogicalSearchCondition condition) {
+		List<Record> records = logicalSearchQueryExecutorInCache.stream(condition).limit(2).collect(Collectors.toList());
+		if (records.size() > 1) {
+			SolrQueryBuilderContext params = new SolrQueryBuilderContext(false, new ArrayList<>(), "?", null, null, null) {
+			};
+			throw new SearchServicesRuntimeException.TooManyRecordsInSingleSearchResult(condition.getSolrQuery(params));
+		}
+		return records.size() == 1 ? records.get(0) : null;
 	}
 
 	public Iterator<List<Record>> recordsBatchIterator(int batch, LogicalSearchQuery query) {

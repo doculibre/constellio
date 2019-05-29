@@ -205,7 +205,7 @@ public class RecordsCachesDataStorePerformanceAcceptanceTest extends ConstellioT
 	}
 
 	@Test
-	public void given1KRecordsSplittedOn10CollectionsAnd30TypesThenLookupByCollectionsAndTypesVeryFast()
+	public void given4KRecordsSplittedOn10CollectionsAnd30TypesThenLookupByCollectionsAndTypesVeryFast()
 			throws Exception {
 
 		prepareSystem(withZeCollection(), withCollection("collection2"), withCollection("collection3"), withCollection("collection4"));

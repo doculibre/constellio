@@ -109,8 +109,11 @@ public class RecordsCache2Impl implements RecordsCache {
 	}
 
 	@Override
+	@Deprecated
 	public List<Record> getAllValuesInUnmodifiableState(String schemaType) {
-		return null;
+		CollectionInfo collectionInfo = collectionsListManager.getCollectionInfo(collection);
+		short typeId = metadataSchemasManager.getSchemaTypes(collectionId).getSchemaType(schemaType).getId();
+		return memoryDataStore.stream(collectionId, typeId).map(dto -> new RecordImpl(dto, collectionInfo)).collect(Collectors.toList());
 	}
 
 	@Override
@@ -220,7 +223,7 @@ public class RecordsCache2Impl implements RecordsCache {
 
 	@Override
 	public void removeCache(String schemaType) {
-		throw new UnsupportedOperationException("Unsupported");
+		//throw new UnsupportedOperationException("Unsupported");
 	}
 
 	@Override

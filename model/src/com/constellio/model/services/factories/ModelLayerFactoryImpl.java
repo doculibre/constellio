@@ -43,6 +43,7 @@ import com.constellio.model.services.records.cache.CachedRecordServices;
 import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.records.cache.RecordsCachesMemoryImpl;
 import com.constellio.model.services.records.cache.eventBus.EventsBusRecordsCachesImpl;
+import com.constellio.model.services.records.cache2.FileSystemRecordsValuesCacheDataStore;
 import com.constellio.model.services.records.extractions.RecordPopulateServices;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -72,15 +73,18 @@ import com.constellio.model.services.users.SolrUserCredentialsManager;
 import com.constellio.model.services.users.UserPhotosServices;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.model.services.users.sync.LDAPUserSyncManager;
+import org.apache.commons.io.FileUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
+import java.io.File;
 import java.io.IOException;
 import java.security.Key;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 
 import static com.constellio.data.conf.HashingEncoding.BASE64;
+import static com.constellio.model.services.records.cache2.RecordsCaches2Impl.createAndInitialize;
 
 public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLayerFactory {
 	private static final Logger LOGGER = LogManager.getLogger(ModelLayerFactoryImpl.class);
@@ -146,15 +150,28 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 
 		this.dataLayerFactory = dataLayerFactory;
 		this.modelLayerFactoryFactory = modelLayerFactoryFactory;
-
-		if (Toggle.EVENT_BUS_RECORDS_CACHE.isEnabled()) {
-			this.recordsCaches = new EventsBusRecordsCachesImpl(this);
-		} else {
-			this.recordsCaches = new RecordsCachesMemoryImpl(this);
-		}
 		this.modelLayerLogger = new ModelLayerLogger();
 		this.modelLayerExtensions = new ModelLayerExtensions();
 		this.modelLayerConfiguration = modelLayerConfiguration;
+		this.collectionsListManager = add(new CollectionsListManager(this));
+
+		if (Toggle.EVENT_BUS_RECORDS_CACHE.isEnabled() && !Toggle.USE_NEW_CACHE.isEnabled()) {
+			this.recordsCaches = new EventsBusRecordsCachesImpl(this);
+		} else {
+			if (Toggle.USE_NEW_CACHE.isEnabled()) {
+				File workFolder = new FoldersLocator().getWorkFolder();
+				workFolder.mkdirs();
+				File fileSystemCacheFolder = new File(new FoldersLocator().getWorkFolder(), "cache.db");
+				FileUtils.deleteQuietly(fileSystemCacheFolder);
+				FileSystemRecordsValuesCacheDataStore fileSystemRecordsValuesCacheDataStore
+						= new FileSystemRecordsValuesCacheDataStore(fileSystemCacheFolder);
+				this.recordsCaches = createAndInitialize(this, fileSystemRecordsValuesCacheDataStore);
+
+			} else {
+				this.recordsCaches = new RecordsCachesMemoryImpl(this);
+			}
+		}
+
 
 		this.foldersLocator = foldersLocator;
 
@@ -169,7 +186,7 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 		this.ioServicesFactory = dataLayerFactory.getIOServicesFactory();
 
 		this.forkParsers = add(new ForkParsers(modelLayerConfiguration.getForkParsersPoolSize()));
-		this.collectionsListManager = add(new CollectionsListManager(this));
+
 
 		this.batchProcessesManager = add(new BatchProcessesManager(this));
 		this.taxonomiesManager = add(

@@ -46,6 +46,7 @@ public class MetadataSchemaType implements Serializable {
 	private final List<MetadataSchema> customSchemas;
 
 	private final Map<String, Metadata> metadatasByAtomicCode;
+	private final Map<Short, Metadata> metadatasById;
 
 	private final boolean security;
 
@@ -88,6 +89,7 @@ public class MetadataSchemaType implements Serializable {
 		this.customSchemasByLocalCode = buildCustomSchemasByLocalCodeMap(customSchemas);
 		this.collectionInfo = collectionInfo;
 		this.summaryMetadatasDataStoreCodes = computeSummaryMetadatasDataStoreCodes(defaultSchema, customSchemas);
+		this.metadatasById = computeMetadatasById(defaultSchema, customSchemas);
 		this.schemasById = computeSchemasById(defaultSchema, customSchemas);
 		this.recordCacheType = recordCacheType;
 	}
@@ -103,6 +105,26 @@ public class MetadataSchemaType implements Serializable {
 
 		return Collections.unmodifiableList(Arrays.asList(schemas));
 	}
+
+	private Map<Short, Metadata> computeMetadatasById(MetadataSchema defaultSchema,
+													  List<MetadataSchema> customSchemas) {
+		Map<Short, Metadata> map = new HashMap<>();
+
+		for (Metadata metadata : defaultSchema.getMetadatas()) {
+			map.put(metadata.getId(), metadata);
+		}
+
+		for (MetadataSchema schema : customSchemas) {
+			for (Metadata metadata : schema.getMetadatas()) {
+				if (metadata.getInheritance() == null) {
+					map.put(metadata.getId(), metadata);
+				}
+			}
+		}
+
+		return map;
+	}
+
 
 	private Set<String> computeSummaryMetadatasDataStoreCodes(MetadataSchema defaultSchema,
 															  List<MetadataSchema> customSchemas) {
@@ -212,6 +234,10 @@ public class MetadataSchemaType implements Serializable {
 		} else {
 			return schema;
 		}
+	}
+
+	public Metadata getMetadata(short metadataId) {
+		return metadatasById.get(metadataId);
 	}
 
 	public Metadata getMetadata(String metadataCode) {

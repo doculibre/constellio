@@ -2,12 +2,14 @@ package com.constellio.model.services.records.cache;
 
 import com.constellio.data.dao.services.cache.InsertionReason;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.factories.ModelLayerFactory;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Stream;
 
 public class RecordsCachesMemoryImpl implements RecordsCaches {
 
@@ -70,6 +72,11 @@ public class RecordsCachesMemoryImpl implements RecordsCaches {
 	public List<CacheInsertionStatus> insert(String collection, List<Record> records, InsertionReason reason) {
 		RecordsCache cache = getCache(collection);
 		return cache.insert(records, reason);
+	}
+
+	@Override
+	public Stream<Record> stream(MetadataSchemaType type) {
+		return getCache(type.getCollection()).getAllValuesInUnmodifiableState(type.getCode()).stream();
 	}
 
 	public CacheInsertionStatus insert(Record record, InsertionReason reason) {

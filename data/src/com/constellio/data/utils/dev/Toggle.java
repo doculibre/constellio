@@ -68,6 +68,12 @@ public class Toggle {
 
 	public static AvailableToggle ALLOWS_CREATION_OF_RECORDS_WITH_NON_PADDED_ID = newToggle(false);
 
+	public static AvailableToggle USE_NEW_CACHE = newToggle(true);
+
+	public static AvailableToggle USE_CACHE_FOR_QUERY_EXECUTION = newToggle(false);
+
+	public static AvailableToggle VALIDATE_CACHE_EXECUTION_SERVICE_USING_SOLR = newToggle(true);
+
 	// ------------------------------------------------
 
 	private static Map<String, AvailableToggle> toggleMap = new HashMap<>();

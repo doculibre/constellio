@@ -31,6 +31,8 @@ import org.slf4j.LoggerFactory;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Stream;
 
 import static com.constellio.data.dao.services.cache.InsertionReason.WAS_OBTAINED;
 import static com.constellio.model.entities.schemas.Schemas.COLLECTION;
@@ -211,6 +213,11 @@ public class RecordsCaches2Impl implements RecordsCaches {
 		memoryDataStore.stream(collectionId).filter((record) -> Boolean.TRUE).forEach(this::remove);
 	}
 
+	@Override
+	public Stream<Record> stream(MetadataSchemaType type) {
+		return memoryDataStore.stream(type.getCollectionInfo().getCollectionId(), type.getId()).map(dto -> new RecordImpl(dto, type.getCollectionInfo()));
+	}
+
 	private void remove(RecordDTO recordDTO) {
 		int intId = CacheRecordDTOUtils.toIntKey(recordDTO.getId());
 		if (intId == CacheRecordDTOUtils.KEY_IS_NOT_AN_INT) {
@@ -230,8 +237,12 @@ public class RecordsCaches2Impl implements RecordsCaches {
 			SearchServices searchServices = modelLayerFactory.newSearchServices();
 
 			if (type.getCacheType().hasPermanentCache()) {
+				AtomicInteger added = new AtomicInteger();
+
+				long count = searchServices.streamFromSolr(type, type.getCacheType().isSummaryCache()).count();
 				searchServices.streamFromSolr(type, type.getCacheType().isSummaryCache()).forEach((record) -> {
 					CacheInsertionStatus status = (insert(record, WAS_OBTAINED));
+					LOGGER.info("Adding records " + record.getTypeCode() + " : " + added.incrementAndGet() + "/" + count);
 					if (status != CacheInsertionStatus.ACCEPTED) {
 						LOGGER.warn("Could not load record '" + record.getId() + "' in cache : " + status);
 					}
@@ -242,9 +253,9 @@ public class RecordsCaches2Impl implements RecordsCaches {
 
 
 	public static RecordsCaches2Impl createAndInitialize(ModelLayerFactory modelLayerFactory,
-														 FileSystemRecordsValuesCacheDataStore fileSystemDataStore,
-														 RecordsCachesDataStore memoryDataStore) {
+														 FileSystemRecordsValuesCacheDataStore fileSystemDataStore) {
 
+		RecordsCachesDataStore memoryDataStore = new RecordsCachesDataStore(modelLayerFactory);
 		RecordsCaches2Impl caches = new RecordsCaches2Impl(modelLayerFactory, fileSystemDataStore, memoryDataStore);
 
 		for (String collection : modelLayerFactory.getCollectionsListManager().getCollections()) {

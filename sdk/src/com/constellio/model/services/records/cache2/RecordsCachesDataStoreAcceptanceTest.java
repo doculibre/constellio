@@ -790,9 +790,9 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 
 		ThreadList threadList = new ThreadList();
 
-		int creatingThreads = 5;
-		int creatingDeletingThreads = 0;
-		int streamingThreads = 1;
+		int creatingThreads = 50;
+		int creatingDeletingThreads = 10;
+		int streamingThreads = 100;
 
 		for (int i = 0; i < creatingThreads; i++) {
 			threadList.add(new Thread(() -> {
@@ -844,6 +844,10 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 		System.out.println("Datastore size : " + ids.size());
 		assertThat(finishedWithoutErrors.get()).isEqualTo(creatingThreads + creatingDeletingThreads + streamingThreads);
 
+	}
+
+	@Test
+	public void whenInsertingRecordsWithIndexedMetadataValuesThenRecordsFindableUsingMetadata() {
 	}
 
 	private ByteArrayRecordDTO create(SolrRecordDTO solrRecordDTO) {

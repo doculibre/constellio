@@ -43,7 +43,7 @@ public class FileSystemRecordsValuesCacheDataStore {
 				.expireOverflow(intKeyMap)
 				.create();
 
-		stringKeyMap = onMEmoryDatabase.hashMap("stringKeysDataStoreBuffer")
+		stringKeyMapMemoryBuffer = onMEmoryDatabase.hashMap("stringKeysDataStoreBuffer")
 				.keySerializer(Serializer.STRING)
 				.valueSerializer(Serializer.BYTE_ARRAY)
 				.expireMaxSize(25)
