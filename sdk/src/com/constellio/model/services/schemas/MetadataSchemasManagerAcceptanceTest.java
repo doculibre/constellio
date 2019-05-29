@@ -219,6 +219,53 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 				.containsOnlyOnce("code=\"metadataName\" label_en=\"metadataName\" label_fr=\"metadataName\" id=\"" + idOfMetadataCreated1 + "\"");
 	}
 
+	@Test
+	public void whenCreatingMetadataWithInvertedIndexTrueAndThenReadingSettingOnDiskThenInvertedIdWrittenAreWritten() {
+
+		schemasManager.modify(zeCollection, (MetadataSchemaTypesAlteration) types -> {
+			MetadataSchemaBuilder metadataSchemaBuilder = types.getSchema(TemporaryRecord.DEFAULT_SCHEMA);
+			metadataSchemaBuilder.createUndeletable("metadataName").setType(STRING).setInvertedIndex(true);
+		});
+
+		boolean isInvertedIndex = schemasManager.getSchemaTypes(zeCollection).getSchema(TemporaryRecord.DEFAULT_SCHEMA)
+				.getMetadata("metadataName").isInvertedIndex();
+
+
+		assertThat(isInvertedIndex).isTrue();
+		assertThat(xmlOfConfig(zeCollection + SCHEMAS_CONFIG_PATH))
+				.containsOnlyOnce("invertedIndex=\"t\"");
+	}
+
+	@Test
+	public void whenCreatingMetadataWithInvertedIndexFalseAndThenReadingSettingOnDiskThenInvertedIdIsNotWritten() {
+
+		schemasManager.modify(zeCollection, (MetadataSchemaTypesAlteration) types -> {
+			MetadataSchemaBuilder metadataSchemaBuilder = types.getSchema(TemporaryRecord.DEFAULT_SCHEMA);
+			metadataSchemaBuilder.createUndeletable("metadataName").setType(STRING).setInvertedIndex(false);
+		});
+
+		boolean isInvertedIndex = schemasManager.getSchemaTypes(zeCollection).getSchema(TemporaryRecord.DEFAULT_SCHEMA)
+				.getMetadata("metadataName").isInvertedIndex();
+
+
+		assertThat(isInvertedIndex).isFalse();
+		assertThat(xmlOfConfig(zeCollection + SCHEMAS_CONFIG_PATH))
+				.doesNotContain("invertedIndex=");
+	}
+
+	@Test
+	public void whenCreatingMetadataWithNoInvertedIndexThenEqualFalse() {
+
+		schemasManager.modify(zeCollection, (MetadataSchemaTypesAlteration) types -> {
+			MetadataSchemaBuilder metadataSchemaBuilder = types.getSchema(TemporaryRecord.DEFAULT_SCHEMA);
+			metadataSchemaBuilder.createUndeletable("metadataName").setType(STRING);
+		});
+
+		boolean isInvertedIndex = schemasManager.getSchemaTypes(zeCollection).getSchema(TemporaryRecord.DEFAULT_SCHEMA)
+				.getMetadata("metadataName").isInvertedIndex();
+
+		assertThat(isInvertedIndex).isFalse();
+	}
 
 	@Test
 	public void givenSchemasInMultipleCollectionsThenAllIndependentAndDifferentIdsSequence()

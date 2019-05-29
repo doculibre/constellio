@@ -234,6 +234,11 @@ public class MetadataSchemaXMLWriter3 {
 		if (!metadata.isGlobal()) {
 			metadataElement.setAttribute("id", writeShort(metadata.getId()));
 		}
+
+		if(metadata.isInvertedIndex()) {
+			metadataElement.setAttribute("invertedIndex", writeBoolean(metadata.isInvertedIndex()));
+		}
+
 		if (!metadata.isEnabled()) {
 			metadataElement.setAttribute("enabled", writeBoolean(metadata.isEnabled()));
 		}

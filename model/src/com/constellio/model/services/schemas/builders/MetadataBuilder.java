@@ -50,6 +50,7 @@ public class MetadataBuilder {
 	private static final String UNDERSCORE = "_";
 	AllowedReferencesBuilder allowedReferencesBuilder;
 	DataEntry dataEntry;
+	private boolean invertedIndex;
 	private MetadataBuilder inheritance;
 	private String localCode;
 	private String collection;
@@ -210,6 +211,7 @@ public class MetadataBuilder {
 
 	@SuppressWarnings("unchecked")
 	private static void setBuilderPropertiesOfMetadataWithoutInheritance(Metadata metadata, MetadataBuilder builder) {
+		builder.invertedIndex = metadata.isInvertedIndex();
 		builder.setLocalCode(metadata.getLocalCode());
 		builder.setCollection(metadata.getCollection());
 		builder.setCode(metadata.getCode());
@@ -260,6 +262,7 @@ public class MetadataBuilder {
 	private static void setBuilderPropertiesOfMetadataWithInheritance(Metadata metadata,
 																	  MetadataBuilder inheritanceMetadata,
 																	  MetadataBuilder builder) {
+		builder.invertedIndex = false;
 		builder.classProvider = inheritanceMetadata.classProvider;
 		builder.originalMetadata = metadata;
 		builder.localCode = metadata.getLocalCode();
@@ -325,6 +328,14 @@ public class MetadataBuilder {
 
 		builder.customParameter = metadata.getCustomParameter();
 
+	}
+
+	public boolean isInvertedIndex() {
+		return invertedIndex;
+	}
+
+	public void setInvertedIndex(boolean invertedIndex) {
+		this.invertedIndex = invertedIndex;
 	}
 
 	public MetadataBuilder getInheritance() {
@@ -831,7 +842,7 @@ public class MetadataBuilder {
 		}
 
 
-		return new Metadata(id, localCode, this.getCode(), collection, this.getLabels(), this.getEnabled(), behaviors,
+		return new Metadata(id, localCode, this.getCode(), collection, this.getLabels(), this.getEnabled(), this.isInvertedIndex(), behaviors,
 				this.type, references, this.getDefaultRequirement(), this.dataEntry, validators, dataStoreType,
 				accessRestriction, structureFactory, enumClass, defaultValue, inputMask, populateConfigsBuilder.build(),
 				encryptionServicesFactory, duplicable, customParameter);

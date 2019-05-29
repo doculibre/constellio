@@ -80,6 +80,8 @@ public class Metadata implements DataStoreField {
 
 	final Map<String, Object> customParameter;
 
+	final boolean invertedIndex;
+
 	Metadata(int id, String localCode, MetadataValueType type, boolean multivalue) {
 		this(id, "global_default", localCode, type, multivalue, false);
 	}
@@ -88,10 +90,25 @@ public class Metadata implements DataStoreField {
 		this(id, "global_default", localCode, type, multivalue, multiLingual);
 	}
 
+	Metadata(int id, String localCode, MetadataValueType type, boolean multivalue, boolean multiLingual, boolean invertedIndex) {
+		this(id, "global_default", localCode, type, multivalue, multiLingual, invertedIndex);
+	}
+
 	Metadata(int id, String schemaCode, String datastoreCode, MetadataValueType type, boolean multivalue,
 			 boolean multiLingual) {
+		this(id, schemaCode, datastoreCode, type, multivalue, multiLingual,false);
+	}
+
+	Metadata(int id, String schemaCode, String datastoreCode, MetadataValueType type, boolean multivalue,
+			 boolean multiLingual, boolean invertedIndex) {
 		this.id = (short) id;
 		this.inheritance = null;
+
+		if(inheritance == null)  {
+			this.invertedIndex = invertedIndex;
+		} else {
+			this.invertedIndex = false;
+		}
 
 		this.enabled = false;
 		this.collection = null;
@@ -183,7 +200,7 @@ public class Metadata implements DataStoreField {
 	}
 
 	public Metadata(short id, String localCode, String code, String collection, Map<Language, String> labels,
-					Boolean enabled,
+					Boolean enabled, boolean invertedIndex,
 					InheritedMetadataBehaviors inheritedMetadataBehaviors, MetadataValueType type,
 					AllowedReferences allowedReferences, Boolean defaultRequirement, DataEntry dataEntry,
 					Set<RecordMetadataValidator<?>> recordMetadataValidators, String dataStoreType,
@@ -195,6 +212,7 @@ public class Metadata implements DataStoreField {
 		super();
 		this.id = id;
 		this.inheritance = null;
+		this.invertedIndex = invertedIndex;
 		this.localCode = localCode;
 		this.code = code;
 		this.collection = collection;
@@ -230,6 +248,7 @@ public class Metadata implements DataStoreField {
 
 		this.id = inheritance.getId();
 		this.localCode = inheritance.getLocalCode();
+		this.invertedIndex = false;
 		this.code = code;
 		this.collection = inheritance.collection;
 		this.inheritance = inheritance;
@@ -254,6 +273,10 @@ public class Metadata implements DataStoreField {
 		this.inheritanceCode = computeInheritanceCode();
 		this.global = computeIsGlobal();
 		this.customParameter = Collections.unmodifiableMap(customParameter);
+	}
+
+	public boolean isInvertedIndex() {
+		return invertedIndex;
 	}
 
 	public Map<String, Object> getCustomParameter() {

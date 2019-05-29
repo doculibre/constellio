@@ -249,6 +249,13 @@ public class MetadataSchemaXMLReader3 {
 			String enabledStringValue = metadataElement.getAttributeValue("enabled");
 			String defaultRequirementStringValue = metadataElement.getAttributeValue("defaultRequirement");
 			String duplicableStringValue = metadataElement.getAttributeValue("duplicable");
+			String invertedIndex = metadataElement.getAttributeValue("invertedIndex");
+
+			if(invertedIndex == null) {
+				metadataBuilder.setInvertedIndex(false);
+			} else {
+				metadataBuilder.setInvertedIndex(readBoolean(invertedIndex));
+			}
 
 			if (enabledStringValue == null) {
 				metadataBuilder.setEnabled(true);
