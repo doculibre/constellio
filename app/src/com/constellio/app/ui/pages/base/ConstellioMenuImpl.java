@@ -1,7 +1,6 @@
 package com.constellio.app.ui.pages.base;
 
 import com.constellio.app.entities.system.SystemInfo;
-import com.constellio.app.entities.system.SystemState;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.application.CoreViews;
@@ -178,14 +177,21 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 			@Override
 			protected Component buildWindowContent() {
 				VerticalLayout mainLayout = new VerticalLayout();
-				mainLayout.setSpacing(true);
-				ValidationErrors validationErrors = SystemInfo.getInstance().getValidationErrors();
+				mainLayout.setSpacing(false);
+				SystemInfo systemInfo = SystemInfo.getInstance();
+				Label updateTimeComponent = new Label($("SystemInfo.lastTimeUpdated", systemInfo.getLastTimeUpdated().toString("HH:mm:ss")));
+				updateTimeComponent.addStyleName(ValoTheme.LABEL_TINY);
+				mainLayout.addComponent(updateTimeComponent);
+
+				ValidationErrors validationErrors = systemInfo.getValidationErrors();
 				List<ValidationError> errors = validationErrors.getValidationErrors();
 				if(!errors.isEmpty()) {
 					StringBuilder errorsText = new StringBuilder();
+					errorsText.append("<ul>");
 					for(ValidationError error: errors) {
-						errorsText.append("<p style=\"color:red\">" + $(error) + "</p>");
+						errorsText.append("<li style=\"color:red\">" + $(error) + "</li>");
 					}
+					errorsText.append("</ul>");
 					Label errorsTitle = new Label($("SystemInfo.errors"));
 					errorsTitle.addStyleName(ValoTheme.LABEL_LARGE);
 					mainLayout.addComponent(errorsTitle);
@@ -195,9 +201,11 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 				List<ValidationError> warnings = validationErrors.getValidationWarnings();
 				if(!warnings.isEmpty()) {
 					StringBuilder warningsText = new StringBuilder();
+					warningsText.append("<ul>");
 					for(ValidationError warning: warnings) {
-						warningsText.append("<p style=\"color:orange\">" + $(warning) + "</p>");
+						warningsText.append("<li style=\"color:orange\">" + $(warning) + "</li>");
 					}
+					warningsText.append("</ul>");
 					Label warningsTitle = new Label($("SystemInfo.warnings"));
 					warningsTitle.addStyleName(ValoTheme.LABEL_LARGE);
 					mainLayout.addComponent(warningsTitle);
@@ -207,9 +215,11 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 				List<ValidationError> logs = validationErrors.getValidationLogs();
 				if(!logs.isEmpty()) {
 					StringBuilder logsText = new StringBuilder();
+					logsText.append("<ul>");
 					for(ValidationError log: logs) {
-						logsText.append("<p style=\"color:green\">" + $(log) + "</p>");
+						logsText.append("<li style=\"color:green\">" + $(log) + "</li>");
 					}
+					logsText.append("<ul>");
 					Label logsTitle = new Label($("SystemInfo.logs"));
 					logsTitle.addStyleName(ValoTheme.LABEL_LARGE);
 					mainLayout.addComponent(logsTitle);

@@ -10,6 +10,7 @@ import com.constellio.model.conf.FoldersLocatorMode;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
+import org.joda.time.LocalDateTime;
 
 import java.io.File;
 import java.io.IOException;
@@ -29,6 +30,8 @@ public class SystemInfo {
 	private static final String LOW_UNALLOCATED_MEMORY = "lowUnallocatedMemory";
 
 	private static SystemInfo instance;
+
+	LocalDateTime lastTimeUpdated;
 
 	SystemMemory systemMemory;
 	LicenseInfo licenseInfo;
@@ -61,6 +64,7 @@ public class SystemInfo {
 		//TODO merge SystemInformationsService with SystemAnalysisUtils
 		AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
 		SystemInformationsService systemInformationsService = new SystemInformationsService();
+		this.lastTimeUpdated = TimeProvider.getLocalDateTime();
 		systemMemory = SystemMemory.fetchSystemMemoryInfo();
 		licenseInfo = fetchLicenseInfo(appLayerFactory);
 		constellioVersion = fetchConstellioVersion(appLayerFactory);
@@ -150,6 +154,10 @@ public class SystemInfo {
 
 	public boolean isPrivateRepositoryInstalled() {
 		return isPrivateRepositoryInstalled;
+	}
+
+	public LocalDateTime getLastTimeUpdated() {
+		return lastTimeUpdated;
 	}
 
 	public ValidationErrors getValidationErrors() {
