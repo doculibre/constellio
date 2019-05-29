@@ -1,9 +1,8 @@
 package com.constellio.app.entities.system;
 
-import com.constellio.app.entities.system.SystemMemory.MemoryDetails;
-import com.constellio.app.entities.system.SystemMemory.MemoryUnit;
 import com.constellio.app.services.appManagement.AppManagementService.LicenseInfo;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.systemInformations.SystemInformationsService;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.conf.FoldersLocator;
@@ -18,7 +17,7 @@ import java.util.HashMap;
 
 public class SystemInfo {
 
-	private static final String MISSING_INFORMATION_ON_MEMORY = "missingInformationOnMemory";
+	private static final String MISSING_INFORMATION_ON_MEMORY_CONFIGURATION = "missingInformationOnMemoryConfiguration";
 	private static final String INVALID_LICENSE = "invalidLicense";
 	private static final String LICENSE_EXPIRED = "licenseExpired";
 	private static final String OPT_DISK_USAGE = "optDiskUsage";
@@ -26,9 +25,10 @@ public class SystemInfo {
 	private static final String SOLR_DISK_USAGE = "solrDiskUsage";
 	private static final String SOLR_DISK_USAGE_MISSING_INFO = "solrDiskUsageMissingInfo";
 	private static final String CONSTELLIO_MEMORY_CONSUMPTION = "memoryConsumption";
-	private static final String CONSTELLIO_MEMORY_CONSUMPTION_MISSING_INFO = "memoryConsumptionMissingInfo";
 	private static final String PRIVATE_REPOSITORY_IS_NOT_INSTALLED = "privateRepositoryIsNotInstalled";
 	private static final String LOW_UNALLOCATED_MEMORY = "lowUnallocatedMemory";
+
+	private static SystemInfo instance;
 
 	SystemMemory systemMemory;
 	LicenseInfo licenseInfo;
@@ -46,14 +46,20 @@ public class SystemInfo {
 
 	boolean isPrivateRepositoryInstalled;
 
-	public static SystemInfo build(AppLayerFactory appLayerFactory) {
-		SystemInfo systemInfo = new SystemInfo();
-		systemInfo.init(appLayerFactory);
-		return systemInfo;
+	private SystemInfo() {
+		recalculate();
 	}
 
-	private void init(AppLayerFactory appLayerFactory) {
+	public static SystemInfo getInstance() {
+		if(instance == null) {
+			instance = new SystemInfo();
+		}
+		return instance;
+	}
+
+	synchronized public void recalculate() {
 		//TODO merge SystemInformationsService with SystemAnalysisUtils
+		AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
 		SystemInformationsService systemInformationsService = new SystemInformationsService();
 		systemMemory = SystemMemory.fetchSystemMemoryInfo();
 		licenseInfo = fetchLicenseInfo(appLayerFactory);
@@ -153,57 +159,83 @@ public class SystemInfo {
 	private void analyzeSystemAndFindValidationErrors() {
 		validationErrors.clearAll();
 
-		if(anyInfoIsMissing(optDiskUsage, solrDiskUsage) || systemMemory.getConstellioAllocatedMemory().getAmount() == null || systemMemory.getSolrAllocatedMemory().getAmount() == null) {
-			validationErrors.addWarning(SystemInfo.class, MISSING_INFORMATION_ON_MEMORY, new HashMap<String, Object>());
-		}
+//		if(systemMemory.getConstellioAllocatedMemory().getAmount() == null || systemMemory.getSolrAllocatedMemory().getAmount() == null) {
+//			HashMap<String, Object> parameters = new HashMap<>();
+//			validationErrors.addWarning(SystemInfo.class, MISSING_INFORMATION_ON_MEMORY_CONFIGURATION, parameters);
+//		} else {
+//			HashMap<String, Object> unallocatedMemoryParameters = new HashMap<>();
+//			unallocatedMemoryParameters.put("unallocatedMemory", systemMemory.getUnallocatedMemory().toNumberOfGigaBytes() + " GB");
+//			if(systemMemory.getUnallocatedMemory().isLessThan(new MemoryDetails(2d, MemoryUnit.GB))) {
+//				validationErrors.addWarning(SystemInfo.class, LOW_UNALLOCATED_MEMORY, unallocatedMemoryParameters);
+//			} else {
+//				validationErrors.addLog(SystemInfo.class, LOW_UNALLOCATED_MEMORY, unallocatedMemoryParameters);
+//			}
+//		}
+		HashMap<String, Object> objectObjectHashMap = new HashMap<>();
+		objectObjectHashMap.put("unallocatedMemory", "0.5 GB");
+		validationErrors.add(SystemInfo.class, LOW_UNALLOCATED_MEMORY, objectObjectHashMap);
 
 		if(licenseInfo == null || licenseInfo.getExpirationDate() == null) {
-			validationErrors.addWarning(SystemInfo.class, INVALID_LICENSE, new HashMap<String, Object>());
+			validationErrors.addWarning(SystemInfo.class, INVALID_LICENSE);
 		} else if(TimeProvider.getLocalDate().isAfter(licenseInfo.getExpirationDate())) {
-			validationErrors.addWarning(SystemInfo.class, LICENSE_EXPIRED, new HashMap<String, Object>());
+			HashMap<String, Object> parameters = new HashMap<>();
+			parameters.put("expirationDate", licenseInfo.getExpirationDate().toString("yyyy-MM-dd"));
+			validationErrors.addWarning(SystemInfo.class, LICENSE_EXPIRED, parameters);
 		}
 
 		if(StringUtils.isNotBlank(optDiskUsage) && optDiskUsage.endsWith("%")) {
 			try {
 				int consumptionPercentage = Integer.parseInt(optDiskUsage.replace("%", ""));
 				if(isInRange(consumptionPercentage, 0, 75)) {
-					validationErrors.addLog(SystemInfo.class, OPT_DISK_USAGE, new HashMap<String, Object>());
+					HashMap<String, Object> parameters = new HashMap<>();
+					validationErrors.addLog(SystemInfo.class, OPT_DISK_USAGE, parameters);
 				} else if(isInRange(consumptionPercentage, 75, 90)) {
-					validationErrors.addWarning(SystemInfo.class, OPT_DISK_USAGE, new HashMap<String, Object>());
+					HashMap<String, Object> parameters = new HashMap<>();
+					validationErrors.addWarning(SystemInfo.class, OPT_DISK_USAGE, parameters);
 				} else {
-					validationErrors.add(SystemInfo.class, OPT_DISK_USAGE, new HashMap<String, Object>());
+					HashMap<String, Object> parameters = new HashMap<>();
+					validationErrors.add(SystemInfo.class, OPT_DISK_USAGE, parameters);
 				}
 			} catch (Exception e) {
-				validationErrors.addWarning(SystemInfo.class, OPT_DISK_USAGE_MISSING_INFO, new HashMap<String, Object>());
+				HashMap<String, Object> parameters = new HashMap<>();
+				validationErrors.addWarning(SystemInfo.class, OPT_DISK_USAGE_MISSING_INFO, parameters);
 			}
+		} else {
+			HashMap<String, Object> parameters = new HashMap<>();
+			validationErrors.addWarning(SystemInfo.class, OPT_DISK_USAGE_MISSING_INFO, parameters);
 		}
 
-		if(StringUtils.isNotBlank(optDiskUsage) && solrDiskUsage.endsWith("%")) {
+		if(StringUtils.isNotBlank(solrDiskUsage) && solrDiskUsage.endsWith("%")) {
 			try {
 				int consumptionPercentage = Integer.parseInt(solrDiskUsage.replace("%", ""));
 				if(isInRange(consumptionPercentage, 0, 75)) {
-					validationErrors.addLog(SystemInfo.class, SOLR_DISK_USAGE, new HashMap<String, Object>());
+					HashMap<String, Object> parameters = new HashMap<>();
+					validationErrors.addLog(SystemInfo.class, SOLR_DISK_USAGE, parameters);
 				} else if(isInRange(consumptionPercentage, 75, 90)) {
-					validationErrors.addWarning(SystemInfo.class, SOLR_DISK_USAGE, new HashMap<String, Object>());
+					HashMap<String, Object> parameters = new HashMap<>();
+					validationErrors.addWarning(SystemInfo.class, SOLR_DISK_USAGE, parameters);
 				} else {
-					validationErrors.add(SystemInfo.class, SOLR_DISK_USAGE, new HashMap<String, Object>());
+					HashMap<String, Object> parameters = new HashMap<>();
+					validationErrors.add(SystemInfo.class, SOLR_DISK_USAGE, parameters);
 				}
 			} catch (Exception e) {
-				validationErrors.addWarning(SystemInfo.class, SOLR_DISK_USAGE_MISSING_INFO, new HashMap<String, Object>());
+				HashMap<String, Object> parameters = new HashMap<>();
+				validationErrors.addWarning(SystemInfo.class, SOLR_DISK_USAGE_MISSING_INFO, parameters);
 			}
+		} else {
+			HashMap<String, Object> parameters = new HashMap<>();
+			validationErrors.addWarning(SystemInfo.class, SOLR_DISK_USAGE_MISSING_INFO, parameters);
 		}
 
 		int currentConstellioMemoryConsumption = (int) ((Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) * 100d / Runtime.getRuntime().totalMemory());
-		try {
-			if(isInRange(currentConstellioMemoryConsumption, 0, 75)) {
-				validationErrors.addLog(SystemInfo.class, CONSTELLIO_MEMORY_CONSUMPTION, new HashMap<String, Object>());
-			} else if(isInRange(currentConstellioMemoryConsumption, 75, 90)) {
-				validationErrors.addWarning(SystemInfo.class, CONSTELLIO_MEMORY_CONSUMPTION, new HashMap<String, Object>());
-			} else {
-				validationErrors.add(SystemInfo.class, CONSTELLIO_MEMORY_CONSUMPTION, new HashMap<String, Object>());
-			}
-		} catch (Exception e) {
-			validationErrors.addWarning(SystemInfo.class, CONSTELLIO_MEMORY_CONSUMPTION_MISSING_INFO, new HashMap<String, Object>());
+		HashMap<String, Object> constellioMemoryConsumptionParameters = new HashMap<>();
+		constellioMemoryConsumptionParameters.put("consumptionPercentage", currentConstellioMemoryConsumption + "%");
+		if(isInRange(currentConstellioMemoryConsumption, 0, 75)) {
+			validationErrors.addLog(SystemInfo.class, CONSTELLIO_MEMORY_CONSUMPTION, constellioMemoryConsumptionParameters);
+		} else if(isInRange(currentConstellioMemoryConsumption, 75, 90)) {
+			validationErrors.addWarning(SystemInfo.class, CONSTELLIO_MEMORY_CONSUMPTION, constellioMemoryConsumptionParameters);
+		} else {
+			validationErrors.add(SystemInfo.class, CONSTELLIO_MEMORY_CONSUMPTION, constellioMemoryConsumptionParameters);
 		}
 
 		//		String currentSolrMemoryConsumption = "60%";
@@ -223,24 +255,11 @@ public class SystemInfo {
 //		}
 
 		if(!isPrivateRepositoryInstalled) {
-			validationErrors.addWarning(SystemInfo.class, PRIVATE_REPOSITORY_IS_NOT_INSTALLED, new HashMap<String, Object>());
-		}
-
-		if(systemMemory.getUnallocatedMemory().isLessThan(new MemoryDetails(2d, MemoryUnit.GB))) {
-			validationErrors.addWarning(SystemInfo.class, LOW_UNALLOCATED_MEMORY, new HashMap<String, Object>());
+			validationErrors.addWarning(SystemInfo.class, PRIVATE_REPOSITORY_IS_NOT_INSTALLED);
 		}
 	}
 
 	private boolean isInRange(int percentage, int includedLowestPercentage, int excludedHighestPercentage) {
 		return includedLowestPercentage <= percentage && excludedHighestPercentage > percentage;
-	}
-
-	private boolean anyInfoIsMissing(String... infos) {
-		for(String info: infos) {
-			if(StringUtils.isBlank(info)) {
-				return true;
-			}
-		}
-		return false;
 	}
 }

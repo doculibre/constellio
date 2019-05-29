@@ -7,9 +7,11 @@ import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.buttons.WindowButton;
+import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.components.menuBar.BaseMenuBar;
 import com.constellio.app.ui.pages.viewGroups.MenuViewGroup;
 import com.constellio.app.ui.pages.viewGroups.MenuViewGroup.DisabledMenuViewGroup;
+import com.constellio.model.frameworks.validation.ValidationError;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
@@ -18,6 +20,7 @@ import com.vaadin.server.Page;
 import com.vaadin.server.StreamResource;
 import com.vaadin.server.StreamResource.StreamSource;
 import com.vaadin.server.ThemeResource;
+import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
@@ -29,6 +32,7 @@ import com.vaadin.ui.MenuBar;
 import com.vaadin.ui.MenuBar.Command;
 import com.vaadin.ui.MenuBar.MenuItem;
 import com.vaadin.ui.UI;
+import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import org.apache.commons.lang3.StringUtils;
 
@@ -170,10 +174,49 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 			menuItemsLayout.addComponent(mainMenuItemComponent);
 		}
 
-		systemStateButton = new WindowButton($("System"), $("ConstellioMenu.systemState")) {
+		systemStateButton = new WindowButton($("SystemInfo.systemStateButtonTitle"), $("SystemInfo.systemStateWindowTitle"), WindowConfiguration.modalDialog("75%", "75%")) {
 			@Override
 			protected Component buildWindowContent() {
-				return null;
+				VerticalLayout mainLayout = new VerticalLayout();
+				mainLayout.setSpacing(true);
+				ValidationErrors validationErrors = SystemInfo.getInstance().getValidationErrors();
+				List<ValidationError> errors = validationErrors.getValidationErrors();
+				if(!errors.isEmpty()) {
+					StringBuilder errorsText = new StringBuilder();
+					for(ValidationError error: errors) {
+						errorsText.append("<p style=\"color:red\">" + $(error) + "</p>");
+					}
+					Label errorsTitle = new Label($("SystemInfo.errors"));
+					errorsTitle.addStyleName(ValoTheme.LABEL_LARGE);
+					mainLayout.addComponent(errorsTitle);
+					mainLayout.addComponent(new Label(errorsText.toString(), ContentMode.HTML));
+				}
+
+				List<ValidationError> warnings = validationErrors.getValidationWarnings();
+				if(!warnings.isEmpty()) {
+					StringBuilder warningsText = new StringBuilder();
+					for(ValidationError warning: warnings) {
+						warningsText.append("<p style=\"color:orange\">" + $(warning) + "</p>");
+					}
+					Label warningsTitle = new Label($("SystemInfo.warnings"));
+					warningsTitle.addStyleName(ValoTheme.LABEL_LARGE);
+					mainLayout.addComponent(warningsTitle);
+					mainLayout.addComponent(new Label(warningsText.toString(), ContentMode.HTML));
+				}
+
+				List<ValidationError> logs = validationErrors.getValidationLogs();
+				if(!logs.isEmpty()) {
+					StringBuilder logsText = new StringBuilder();
+					for(ValidationError log: logs) {
+						logsText.append("<p style=\"color:green\">" + $(log) + "</p>");
+					}
+					Label logsTitle = new Label($("SystemInfo.logs"));
+					logsTitle.addStyleName(ValoTheme.LABEL_LARGE);
+					mainLayout.addComponent(logsTitle);
+					mainLayout.addComponent(new Label(logsText.toString(), ContentMode.HTML));
+				}
+
+				return mainLayout;
 			}
 		};
 		refreshSystemStateButton();
@@ -234,7 +277,7 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 
 	private void refreshSystemStateButton() {
 		systemStateButton.setVisible(true);
-		ValidationErrors validationErrors = SystemInfo.build(getConstellioFactories().getAppLayerFactory()).getValidationErrors();
+		ValidationErrors validationErrors = SystemInfo.getInstance().getValidationErrors();
 		if(!validationErrors.isEmpty()) {
 			systemStateButton.setIcon(new ThemeResource("images/commun/error.gif"));
 		} else if (!validationErrors.isEmptyErrorAndWarnings()) {
