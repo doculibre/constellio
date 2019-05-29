@@ -54,7 +54,7 @@ public class MetadataSchemaTypesBuilder {
 	private final CollectionInfo collectionInfo;
 	private ClassProvider classProvider;
 	private List<Language> languages = new ArrayList<>();
-	private SchemasIdSequence schemasIdSequence;
+	private SchemasIdSequence schemasTypeIdSequence;
 
 	private MetadataSchemaTypesBuilder(CollectionInfo collectionInfo, int version, ClassProvider classProvider,
 									   List<Language> languages) {
@@ -546,16 +546,13 @@ public class MetadataSchemaTypesBuilder {
 	}
 
 
-	short nextSchemaId() {
-		if (schemasIdSequence == null) {
-			schemasIdSequence = new SchemasIdSequence();
+	short nextSchemaTypeId() {
+		if (schemasTypeIdSequence == null) {
+			schemasTypeIdSequence = new SchemasIdSequence();
 			for (MetadataSchemaTypeBuilder schemaTypeBuilder : getTypes()) {
-				schemasIdSequence.markAsAssigned(schemaTypeBuilder.getId());
-				for (MetadataSchemaBuilder metadataSchemaBuilder : schemaTypeBuilder.getAllSchemas()) {
-					schemasIdSequence.markAsAssigned(metadataSchemaBuilder.getId());
-				}
+				schemasTypeIdSequence.markAsAssigned(schemaTypeBuilder.getId());
 			}
 		}
-		return schemasIdSequence.getNewId();
+		return schemasTypeIdSequence.getNewId();
 	}
 }

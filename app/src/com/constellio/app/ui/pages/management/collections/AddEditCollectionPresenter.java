@@ -19,6 +19,7 @@ import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.collections.CollectionsListManager;
+import com.constellio.model.services.collections.exceptions.NoMoreCollectionAvalibleException;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.extensions.ConstellioModulesManager;
 import com.constellio.model.services.records.RecordServicesException;
@@ -102,7 +103,7 @@ public class AddEditCollectionPresenter extends BasePresenter<AddEditCollectionV
 	}
 
 	public void saveButtonClicked(CollectionVO entity)
-			throws AddEditCollectionPresenterException {
+			throws AddEditCollectionPresenterException, NoMoreCollectionAvalibleException {
 		String code = entity.getCode();
 		validateCode(code);
 		validateModules(entity.getModules());
@@ -163,7 +164,7 @@ public class AddEditCollectionPresenter extends BasePresenter<AddEditCollectionV
 	}
 
 	Set<String> createCollection(CollectionVO entity)
-			throws AddEditCollectionPresenterException {
+			throws AddEditCollectionPresenterException, NoMoreCollectionAvalibleException {
 		Set<String> modules = entity.getModules();
 		String collectionCode = entity.getCode();
 		String collectionName = entity.getName();

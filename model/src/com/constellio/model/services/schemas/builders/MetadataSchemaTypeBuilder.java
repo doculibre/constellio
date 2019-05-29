@@ -49,6 +49,7 @@ public class MetadataSchemaTypeBuilder {
 	private String dataStore;
 	private SchemasIdSequence metadatasIdSequence;
 	private RecordCacheType recordCacheType;
+	private SchemasIdSequence schemasIdSequence;
 
 	MetadataSchemaTypeBuilder() {
 	}
@@ -97,6 +98,7 @@ public class MetadataSchemaTypeBuilder {
 		builder.customSchemas = new HashSet<>();
 		builder.dataStore = schemaType.getDataStore();
 		builder.recordCacheType = schemaType.getCacheType();
+		builder.id = schemaType.getId();
 		for (MetadataSchema schema : schemaType.getCustomSchemas()) {
 			builder.customSchemas.add(MetadataSchemaBuilder.modifySchema(schema, builder));
 		}
@@ -239,7 +241,7 @@ public class MetadataSchemaTypeBuilder {
 		}
 
 		if (id == 0) {
-			id = typesBuilder.nextSchemaId();
+			id = typesBuilder.nextSchemaTypeId();
 		}
 
 		Collections.sort(schemas, SchemaComparators.SCHEMA_COMPARATOR_BY_ASC_LOCAL_CODE);
@@ -431,4 +433,13 @@ public class MetadataSchemaTypeBuilder {
 		return metadatasIdSequence.getNewId();
 	}
 
+	public short nextSchemaId() {
+		if (schemasIdSequence == null) {
+			schemasIdSequence = new SchemasIdSequence();
+			for (MetadataSchemaBuilder metadataSchemaBuilder : allSchemas) {
+					schemasIdSequence.markAsAssigned(metadataSchemaBuilder.getId());
+			}
+		}
+		return schemasIdSequence.getNewId();
+	}
 }
