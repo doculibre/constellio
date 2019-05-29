@@ -155,23 +155,6 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 		this.modelLayerConfiguration = modelLayerConfiguration;
 		this.collectionsListManager = add(new CollectionsListManager(this));
 
-		if (Toggle.EVENT_BUS_RECORDS_CACHE.isEnabled() && !Toggle.USE_NEW_CACHE.isEnabled()) {
-			this.recordsCaches = new EventsBusRecordsCachesImpl(this);
-		} else {
-			if (Toggle.USE_NEW_CACHE.isEnabled()) {
-				File workFolder = new FoldersLocator().getWorkFolder();
-				workFolder.mkdirs();
-				File fileSystemCacheFolder = new File(new FoldersLocator().getWorkFolder(), "cache.db");
-				FileUtils.deleteQuietly(fileSystemCacheFolder);
-				FileSystemRecordsValuesCacheDataStore fileSystemRecordsValuesCacheDataStore
-						= new FileSystemRecordsValuesCacheDataStore(fileSystemCacheFolder);
-				this.recordsCaches = createAndInitialize(this, fileSystemRecordsValuesCacheDataStore);
-
-			} else {
-				this.recordsCaches = new RecordsCachesMemoryImpl(this);
-			}
-		}
-
 
 		this.foldersLocator = foldersLocator;
 
@@ -189,11 +172,30 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 
 
 		this.batchProcessesManager = add(new BatchProcessesManager(this));
+
+		this.schemasManager = add(new MetadataSchemasManager(this, modulesManagerDelayed));
+
+		if (Toggle.EVENT_BUS_RECORDS_CACHE.isEnabled() && !Toggle.USE_NEW_CACHE.isEnabled()) {
+			this.recordsCaches = new EventsBusRecordsCachesImpl(this);
+		} else {
+			if (Toggle.USE_NEW_CACHE.isEnabled()) {
+				File workFolder = new FoldersLocator().getWorkFolder();
+				workFolder.mkdirs();
+				File fileSystemCacheFolder = new File(new FoldersLocator().getWorkFolder(), "cache.db");
+				FileUtils.deleteQuietly(fileSystemCacheFolder);
+				FileSystemRecordsValuesCacheDataStore fileSystemRecordsValuesCacheDataStore
+						= new FileSystemRecordsValuesCacheDataStore(fileSystemCacheFolder);
+				this.recordsCaches = createAndInitialize(this, fileSystemRecordsValuesCacheDataStore);
+
+			} else {
+				this.recordsCaches = new RecordsCachesMemoryImpl(this);
+			}
+		}
+
 		this.taxonomiesManager = add(
 				new TaxonomiesManager(configManager, newSearchServices(), batchProcessesManager, collectionsListManager,
 						recordsCaches, cacheManager, getSystemConfigs()));
 
-		this.schemasManager = add(new MetadataSchemasManager(this, modulesManagerDelayed));
 		this.recordMigrationsManager = add(new RecordMigrationsManager(this));
 		this.batchProcessesController = add(
 				new BatchProcessController(this, modelLayerConfiguration.getNumberOfRecordsPerTask()));

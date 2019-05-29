@@ -6,11 +6,14 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.RecordCacheType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordImplRuntimeException;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesImpl;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
+import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -98,6 +101,14 @@ public class RecordsCacheAcceptanceTest extends ConstellioTest {
 		collection1Cache.configureCache(volatileCache(zeCollectionSchemaWithVolatileCache.type(), 4));
 		collection1Cache.configureCache(permanentCache(zeCollectionSchemaWithPermanentCache.type()));
 		collection2Cache.configureCache(volatileCache(anotherCollectionSchemaWithVolatileCache.type(), 3));
+
+		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchemaType(zeCollectionSchemaWithVolatileCache.type().getCode()).setRecordCacheType(RecordCacheType.SUMMARY_CACHED_WITH_VOLATILE);
+				types.getSchemaType(zeCollectionSchemaWithPermanentCache.type().getCode()).setRecordCacheType(RecordCacheType.FULLY_CACHED);
+			}
+		});
 
 		DataLayerSystemExtensions extensions = getDataLayerFactory().getExtensions().getSystemWideExtensions();
 		queriesListener = new StatsBigVaultServerExtension();
@@ -187,6 +198,7 @@ public class RecordsCacheAcceptanceTest extends ConstellioTest {
 
 		record.set(Schemas.TITLE, "modified title");
 		record.set(Schemas.TITLE, "modified title");
+		assertThat(recordsCaches.getCache(record.getCollection()).get(record.getId())).isNotNull();
 		recordsCaches.getCache(record.getCollection()).get(record.getId()).set(Schemas.TITLE, "modified title");
 
 		assertThat(recordsCaches.getRecord(record.getId()).<String>get(Schemas.TITLE)).isEqualTo("original title");

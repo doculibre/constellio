@@ -85,7 +85,7 @@ public class RecordsCaches2Impl implements RecordsCaches {
 				if (cache == null) {
 					byte collectionId = (byte) (nextCollectionId++ + Byte.MIN_VALUE);
 					cache = new RecordsCache2Impl(collection, collectionId, modelLayerFactory, fileSystemDataStore,
-							memoryDataStore, volatileCache);
+							memoryDataStore, volatileCache, this);
 					collectionCaches.put(collection, cache);
 				}
 			}
@@ -107,7 +107,7 @@ public class RecordsCaches2Impl implements RecordsCaches {
 				return CacheInsertionStatus.REFUSED_UNSAVED;
 			}
 
-			if (!record.isDirty()) {
+			if (record.isDirty()) {
 				return CacheInsertionStatus.REFUSED_DIRTY;
 			}
 		}
@@ -117,7 +117,7 @@ public class RecordsCaches2Impl implements RecordsCaches {
 		MetadataSchemaType schemaType = metadataSchemasManager.getSchemaTypeOf(record);
 
 		RecordDTO current = memoryDataStore.get(record.getId());
-		if (current.getVersion() > record.getVersion()) {
+		if (current != null && current.getVersion() > record.getVersion()) {
 			return CacheInsertionStatus.REFUSED_OLD_VERSION;
 		}
 
@@ -127,7 +127,7 @@ public class RecordsCaches2Impl implements RecordsCaches {
 			} else {
 				RecordDTO cachedDto = volatileCache.get(record.getId());
 				if (cachedDto == null || cachedDto.getVersion() < current.getVersion()) {
-					volatileCache.put(current.getId(), current);
+					volatileCache.put(record.getId(), ((RecordImpl)record).getRecordDTO());
 				}
 
 			}

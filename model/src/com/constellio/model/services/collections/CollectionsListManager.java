@@ -76,16 +76,18 @@ public class CollectionsListManager implements StatefulService, ConfigUpdatedEve
 		return listeners;
 	}
 
-	public void addCollection(String collection, List<String> languages) throws NoMoreCollectionAvalibleException {
-		configManager.updateXML(CONFIG_FILE_PATH, addCollectionDocumentAlteration(collection, languages, getNextCollectionIdAndReserve(collection)));
+
+
+	public void addCollection(String collection, List<String> languages, byte collectionId) {
+		configManager.updateXML(CONFIG_FILE_PATH, addCollectionDocumentAlteration(collection, languages, collectionId));
 		collectionInfoCache.remove(collection);
 	}
 
 	public void giveCollectionIdToCollectionThatDontHaveOne() throws NoMoreCollectionAvalibleException {
-		for(String currentCollection : getCollections()) {
+		for (String currentCollection : getCollections()) {
 			Byte collectionId = getCollectionIdFromCollectionKeysArray(currentCollection);
 
-			if(collectionId == null) {
+			if (collectionId == null) {
 				configManager.updateXML(CONFIG_FILE_PATH, addNewCollectionIdAlteration(currentCollection,
 						getNextCollectionIdAndReserve(currentCollection)));
 			}
@@ -95,7 +97,7 @@ public class CollectionsListManager implements StatefulService, ConfigUpdatedEve
 	public Byte getCollectionIdFromCollectionKeysArray(String collectionCode) {
 		for (int i = 0; i < collectionKeys.length; i++) {
 			String currentCollectionCode = collectionKeys[i];
-			if(Strings.isNotBlank(currentCollectionCode) && currentCollectionCode.equals(collectionCode)) {
+			if (Strings.isNotBlank(currentCollectionCode) && currentCollectionCode.equals(collectionCode)) {
 				return (byte) (i + Byte.MIN_VALUE);
 			}
 		}
@@ -258,7 +260,7 @@ public class CollectionsListManager implements StatefulService, ConfigUpdatedEve
 
 				String idAsString = collectionElement.getAttributeValue("byteId");
 
-				if(Strings.isNotBlank(idAsString)) {
+				if (Strings.isNotBlank(idAsString)) {
 					byteId = Byte.parseByte(idAsString);
 				}
 
@@ -271,7 +273,7 @@ public class CollectionsListManager implements StatefulService, ConfigUpdatedEve
 				collectionLanguages = Arrays.asList(collectionElement.getAttributeValue("languages").split(","));
 				String idAsString = collectionElement.getAttributeValue("byteId");
 
-				if(Strings.isNotBlank(idAsString)) {
+				if (Strings.isNotBlank(idAsString)) {
 					byteId = Byte.parseByte(idAsString);
 				}
 
@@ -298,15 +300,16 @@ public class CollectionsListManager implements StatefulService, ConfigUpdatedEve
 		return null;
 	}
 
-	public void registerPendingCollectionInfo(String code, String mainDataLanguage,
-											  List<String> languages) {
-		byte collectionId = Byte.MIN_VALUE;
+	public byte registerPendingCollectionInfo(String code, String mainDataLanguage,
+											   List<String> languages) throws NoMoreCollectionAvalibleException {
+		byte collectionId;
 		try {
 			collectionId = getCollectionId(code);
 		} catch (CollectionIdNotSetRuntimeException e) {
-
+			collectionId = getNextCollectionIdAndReserve(code);
 		}
 		collectionInfoCache.put(code, new CollectionInfo(collectionId, code, mainDataLanguage, languages));
+		return collectionId;
 	}
 
 	public String getMainDataLanguage() {

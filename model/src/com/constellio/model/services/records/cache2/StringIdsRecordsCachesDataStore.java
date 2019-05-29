@@ -2,6 +2,7 @@ package com.constellio.model.services.records.cache2;
 
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.utils.Holder;
+import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.LazyIterator;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -280,6 +281,40 @@ public class StringIdsRecordsCachesDataStore {
 					if (recordDTOHolder != null) {
 						RecordDTO recordDTO = recordDTOHolder.get();
 						if (recordDTO != null) {
+							return recordDTO;
+						}
+					}
+				}
+
+				return null;
+
+			}
+		};
+	}
+
+
+	public Iterator<RecordDTO> iterator(byte collectionId, short typeId, short metadataId, Object value) {
+
+		List<Holder<RecordDTO>> collectionHoldersOfRecordsWithStringKey
+				= getStringKeyListForType(collectionId, typeId, false, false);
+
+		int collectionIndex = collectionId - Byte.MIN_VALUE;
+		int typeIndex = (int) typeId;
+
+		String metadataDataStoreCode = schemasManager.getMetadata(collectionId, typeId, metadataId).getDataStoreCode();
+
+		return new LazyIterator<RecordDTO>() {
+
+			int index = 0;
+
+			@Override
+			protected RecordDTO getNextOrNull() {
+
+				while (index < collectionHoldersOfRecordsWithStringKey.size()) {
+					Holder<RecordDTO> recordDTOHolder = collectionHoldersOfRecordsWithStringKey.get(index++);
+					if (recordDTOHolder != null) {
+						RecordDTO recordDTO = recordDTOHolder.get();
+						if (recordDTO != null && LangUtils.isEqual(recordDTO.getFields().get(metadataDataStoreCode), value)) {
 							return recordDTO;
 						}
 					}

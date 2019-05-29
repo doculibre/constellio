@@ -41,13 +41,15 @@ public class RecordsCache2Impl implements RecordsCache {
 	private RecordsCachesDataStore memoryDataStore;
 	private HTreeMap<String, RecordDTO> volatileCache;
 
+	private RecordsCaches2Impl recordsCaches2;
 
 	public RecordsCache2Impl(String collection,
 							 byte collectionId,
 							 ModelLayerFactory modelLayerFactory,
 							 FileSystemRecordsValuesCacheDataStore fileSystemDataStore,
 							 RecordsCachesDataStore memoryDataStore,
-							 HTreeMap<String, RecordDTO> volatileCache) {
+							 HTreeMap<String, RecordDTO> volatileCache,
+							 RecordsCaches2Impl recordsCaches2) {
 		this.collection = collection;
 		this.memoryDataStore = memoryDataStore;
 		this.collectionId = collectionId;
@@ -56,6 +58,7 @@ public class RecordsCache2Impl implements RecordsCache {
 		this.metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
 		this.fileSystemDataStore = fileSystemDataStore;
 		this.volatileCache = volatileCache;
+		this.recordsCaches2 = recordsCaches2;
 	}
 
 	@Override
@@ -118,7 +121,7 @@ public class RecordsCache2Impl implements RecordsCache {
 
 	@Override
 	public CacheInsertionStatus insert(Record record, InsertionReason insertionReason) {
-		return null;
+		return recordsCaches2.insert(record, insertionReason);
 	}
 
 	@Override

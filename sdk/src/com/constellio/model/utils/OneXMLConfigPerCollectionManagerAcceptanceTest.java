@@ -88,8 +88,8 @@ public class OneXMLConfigPerCollectionManagerAcceptanceTest extends ConstellioTe
 
 		createCollectionFile("collection1");
 		createCollectionFile("collection2");
-		collectionsListManager.addCollection("collection1", languages);
-		collectionsListManager.addCollection("collection2", languages);
+		collectionsListManager.addCollection("collection1", languages, (byte) 42);
+		collectionsListManager.addCollection("collection2", languages, (byte) 68);
 
 		assertThat(manager.get("collection1")).isEqualTo("A");
 		assertThat(manager.get("collection2")).isEqualTo("A");
@@ -101,8 +101,8 @@ public class OneXMLConfigPerCollectionManagerAcceptanceTest extends ConstellioTe
 
 		createCollectionFile("collection1");
 		createCollectionFile("collection2");
-		collectionsListManager.addCollection("collection1", languages);
-		collectionsListManager.addCollection("collection2", languages);
+		collectionsListManager.addCollection("collection1", languages, (byte) 42);
+		collectionsListManager.addCollection("collection2", languages, (byte) 68);
 
 		manager = newManager(managerListener);
 		assertThat(manager.get("collection1")).isEqualTo("A");
@@ -115,8 +115,8 @@ public class OneXMLConfigPerCollectionManagerAcceptanceTest extends ConstellioTe
 
 		createCollectionFile("collection1");
 		createCollectionFile("collection2");
-		collectionsListManager.addCollection("collection1", languages);
-		collectionsListManager.addCollection("collection2", languages);
+		collectionsListManager.addCollection("collection1", languages, (byte) 42);
+		collectionsListManager.addCollection("collection2", languages, (byte) 68);
 
 		updateCollectionValue("collection1", "B");
 		updateCollectionValue("collection2", "C");
@@ -131,8 +131,8 @@ public class OneXMLConfigPerCollectionManagerAcceptanceTest extends ConstellioTe
 
 		createCollectionFile("collection1");
 		createCollectionFile("collection2");
-		collectionsListManager.addCollection("collection1", languages);
-		collectionsListManager.addCollection("collection2", languages);
+		collectionsListManager.addCollection("collection1", languages, (byte) 42);
+		collectionsListManager.addCollection("collection2", languages, (byte) 68);
 
 		updateCollectionValue("collection1", "B");
 		updateCollectionValue("collection2", "C");
@@ -149,8 +149,8 @@ public class OneXMLConfigPerCollectionManagerAcceptanceTest extends ConstellioTe
 		OneXMLConfigPerCollectionManager<String> otherManager = newManager(otherManagerListener);
 		createCollectionFile("collection1");
 		createCollectionFile("collection2");
-		collectionsListManager.addCollection("collection1", languages);
-		collectionsListManager.addCollection("collection2", languages);
+		collectionsListManager.addCollection("collection1", languages, (byte) 42);
+		collectionsListManager.addCollection("collection2", languages, (byte) 68);
 
 		assertThat(otherManager.get("collection1")).isEqualTo("A");
 		assertThat(otherManager.get("collection2")).isEqualTo("A");
@@ -163,8 +163,8 @@ public class OneXMLConfigPerCollectionManagerAcceptanceTest extends ConstellioTe
 		OneXMLConfigPerCollectionManager<String> otherManager = newManager(otherManagerListener);
 		createCollectionFile("collection1");
 		createCollectionFile("collection2");
-		collectionsListManager.addCollection("collection1", languages);
-		collectionsListManager.addCollection("collection2", languages);
+		collectionsListManager.addCollection("collection1", languages, (byte) 42);
+		collectionsListManager.addCollection("collection2", languages, (byte) 68);
 
 		updateCollectionValue("collection1", "B");
 		updateCollectionValue("collection2", "C");
@@ -185,8 +185,8 @@ public class OneXMLConfigPerCollectionManagerAcceptanceTest extends ConstellioTe
 
 		createCollectionFile("collection1");
 		createCollectionFile("collection2");
-		collectionsListManager.addCollection("collection1", languages);
-		collectionsListManager.addCollection("collection2", languages);
+		collectionsListManager.addCollection("collection1", languages, (byte) 42);
+		collectionsListManager.addCollection("collection2", languages, (byte) 68);
 
 		updateCollectionValue("collection1", "B");
 		updateCollectionValue("collection2", "C");

@@ -1,14 +1,18 @@
 package com.constellio.model.services.records.cache2;
 
+import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.SolrRecordDTO;
 import com.constellio.data.utils.ThreadList;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.RecordCacheType;
 import com.constellio.model.services.collections.CollectionsListManager;
+import com.constellio.model.services.collections.exceptions.CollectionIdNotSetRuntimeException;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
@@ -20,7 +24,6 @@ import org.junit.Test;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,7 +33,16 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
+import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
+import static com.constellio.model.entities.schemas.MetadataValueType.ENUM;
+import static com.constellio.model.entities.schemas.MetadataValueType.INTEGER;
+import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
+import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.entities.schemas.RecordCacheType.FULLY_CACHED;
+import static com.constellio.model.entities.schemas.RecordCacheType.SUMMARY_CACHED_WITHOUT_VOLATILE;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEssentialInSummary;
+import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.IntStream.range;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -79,17 +91,30 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 
 	private void initTestVariables() {
 		collectionsListManager = getModelLayerFactory().getCollectionsListManager();
-		zeCollectionId = collectionsListManager.getCollectionId(collections[0]);
-		anotherCollectionId = collectionsListManager.getCollectionId(collections[1]);
+		try {
+			zeCollectionId = collectionsListManager.getCollectionId(collections[0]);
+			zeCollectionIndex = zeCollectionId - Byte.MIN_VALUE;
+			try {
+				zeCollectionType1Id = metadataSchemasManager.getSchemaTypes(zeCollectionId).getSchemaType(zeSchema.typeCode()).getId();
+				zeCollectionType2Id = metadataSchemasManager.getSchemaTypes(zeCollectionId).getSchemaType(anotherSchema.typeCode()).getId();
+				zeSchemaDefaultId = zeSchema.instance().getId();
+			} catch (Throwable t) {
+
+			}
+
+		} catch (CollectionIdNotSetRuntimeException e) {
+			//Collection may not exist
+		}
+		try {
+			anotherCollectionId = collectionsListManager.getCollectionId(collections[1]);
+			anotherCollectionIndex = anotherCollectionId - Byte.MIN_VALUE;
+		} catch (CollectionIdNotSetRuntimeException e) {
+			//Collection may not exist
+		}
 
 		metadataSchemasManager = getModelLayerFactory().getMetadataSchemasManager();
-
-		zeCollectionType1Id = metadataSchemasManager.getSchemaTypes(zeCollectionId).getSchemaType(zeSchema.typeCode()).getId();
-		zeCollectionType2Id = metadataSchemasManager.getSchemaTypes(zeCollectionId).getSchemaType(anotherSchema.typeCode()).getId();
-		zeCollectionIndex = zeCollectionId - Byte.MIN_VALUE;
-		anotherCollectionIndex = anotherCollectionId - Byte.MIN_VALUE;
 		dataStore = new RecordsCachesDataStore(getModelLayerFactory());
-		zeSchemaDefaultId = zeSchema.instance().getId();
+
 	}
 
 	@Test
@@ -235,7 +260,7 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
-				types.getSchemaType(zeSchema.typeCode()).setRecordCacheType(RecordCacheType.FULLY_CACHED);
+				types.getSchemaType(zeSchema.typeCode()).setRecordCacheType(FULLY_CACHED);
 			}
 		});
 		initTestVariables();
@@ -309,7 +334,7 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
-				types.getSchemaType(zeSchema.typeCode()).setRecordCacheType(RecordCacheType.FULLY_CACHED);
+				types.getSchemaType(zeSchema.typeCode()).setRecordCacheType(FULLY_CACHED);
 			}
 		});
 		initTestVariables();
@@ -715,7 +740,7 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 				.containsAll(collection2Type2Records)
 				.hasSize(1000);
 
-		for (List<RecordDTO> list : Arrays.asList(collection1Type1Records, collection1Type2Records,
+		for (List<RecordDTO> list : asList(collection1Type1Records, collection1Type2Records,
 				collection2Type1Records, collection2Type2Records)) {
 			for (RecordDTO recordDTO : list) {
 				assertThat(dataStore.get(recordDTO.getId())).isEqualTo(recordDTO);
@@ -847,7 +872,159 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void whenInsertingRecordsWithIndexedMetadataValuesThenRecordsFindableUsingMetadata() {
+	public void whenInsertingFullyCachedZeroPaddedRecordsWithIndexedMetadataValuesThenRecordsFindableUsingMetadata() {
+		whenInsertingCachedRecordsWithIndexedMetadataValuesThenRecordsFindableUsingMetadata(true, true);
+	}
+
+
+	@Test
+	public void whenInsertingSummaryCachedZeroPaddedRecordsWithIndexedMetadataValuesThenRecordsFindableUsingMetadata() {
+		whenInsertingCachedRecordsWithIndexedMetadataValuesThenRecordsFindableUsingMetadata(false, true);
+	}
+
+	@Test
+	public void whenInsertingFullyCachedNonZeroPaddedRecordsWithIndexedMetadataValuesThenRecordsFindableUsingMetadata() {
+		whenInsertingCachedRecordsWithIndexedMetadataValuesThenRecordsFindableUsingMetadata(true, false);
+	}
+
+
+	@Test
+	public void whenInsertingSummaryCachedNonZeroPaddedRecordsWithIndexedMetadataValuesThenRecordsFindableUsingMetadata() {
+		whenInsertingCachedRecordsWithIndexedMetadataValuesThenRecordsFindableUsingMetadata(false, false);
+	}
+
+
+	private void whenInsertingCachedRecordsWithIndexedMetadataValuesThenRecordsFindableUsingMetadata(
+			boolean fullyCached, boolean zeroPaddedId) {
+		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+
+				MetadataSchemaBuilder typeSchema1 = types.createNewSchemaType("type1")
+						.setRecordCacheType(fullyCached ? FULLY_CACHED : SUMMARY_CACHED_WITHOUT_VOLATILE).getDefaultSchema();
+
+				MetadataSchemaBuilder typeSchema2 = types.createNewSchemaType("type2")
+						.setRecordCacheType(fullyCached ? FULLY_CACHED : SUMMARY_CACHED_WITHOUT_VOLATILE).getDefaultSchema();
+
+
+				typeSchema1.create("uniqueIntegerMetadata").setType(INTEGER).setUniqueValue(true);
+				typeSchema1.create("uniqueStringMetadata").setType(STRING).setUniqueValue(true);
+
+				typeSchema2.create("uniqueIntegerMetadata").setType(INTEGER).setUniqueValue(true);
+				typeSchema2.create("uniqueStringMetadata").setType(STRING).setUniqueValue(true);
+
+				typeSchema1.create("integersMetadata").setType(INTEGER).setMultivalue(true);
+				typeSchema1.create("numbersMetadata").setType(NUMBER).setMultivalue(true);
+				typeSchema1.create("booleanMetadata").setType(BOOLEAN);
+				typeSchema1.create("stringsMetadata").setType(STRING).setMultivalue(true);
+				typeSchema1.create("enumsMetadata").setType(ENUM).setMultivalue(true).defineAsEnum(FolderStatus.class);
+				typeSchema1.create("referencesMetadata").setType(REFERENCE).setMultivalue(true)
+						.defineReferencesTo(types.getSchemaType("type2"));
+
+
+			}
+		});
+
+		MetadataSchemaType type1 = metadataSchemasManager.getSchemaTypes(zeCollection).getSchemaType("type1");
+		MetadataSchemaType type2 = metadataSchemasManager.getSchemaTypes(zeCollection).getSchemaType("type1");
+		String uniqueIntegerMetadata = type1.getDefaultSchema().get("uniqueIntegerMetadata").getDataStoreCode();
+		String uniqueStringMetadata = type1.getDefaultSchema().get("uniqueStringMetadata").getDataStoreCode();
+		String integersMetadata = type1.getDefaultSchema().get("integersMetadata").getDataStoreCode();
+		String numbersMetadata = type1.getDefaultSchema().get("numbersMetadata").getDataStoreCode();
+		String booleanMetadata = type1.getDefaultSchema().get("booleanMetadata").getDataStoreCode();
+		String stringsMetadata = type1.getDefaultSchema().get("stringsMetadata").getDataStoreCode();
+		String enumsMetadata = type1.getDefaultSchema().get("enumsMetadata").getDataStoreCode();
+		String referencesMetadata = type1.getDefaultSchema().get("referencesMetadata").getDataStoreCode();
+
+		initTestVariables();
+		short collection1Type1 = schemasManager.getSchemaTypes(zeCollectionId).getSchemaType("type1").getId();
+		short collection1Type2 = schemasManager.getSchemaTypes(zeCollectionId).getSchemaType("type2").getId();
+
+		String id1 = zeroPaddedId ? zeroPadded(1) : "1";
+		String id2 = zeroPaddedId ? zeroPadded(2) : "2";
+		String id3 = zeroPaddedId ? zeroPadded(3) : "3";
+		String id4 = zeroPaddedId ? zeroPadded(4) : "4";
+		String id5 = zeroPaddedId ? zeroPadded(5) : "5";
+		String id6 = zeroPaddedId ? zeroPadded(6) : "6";
+
+		List<SolrRecordDTO> dtosToInsert = new ArrayList<>();
+
+		dtosToInsert.add(new SolrRecordDTO(id1, 11L, fields(zeCollection, "type2_default",
+				uniqueIntegerMetadata, 1,
+				uniqueStringMetadata, "A"
+		), true));
+		dtosToInsert.add(new SolrRecordDTO(id2, 22L, fields(zeCollection, "type2_default",
+				uniqueIntegerMetadata, 2,
+				uniqueStringMetadata, "B"
+		), true));
+
+		dtosToInsert.add(new SolrRecordDTO(id3, 33L, fields(zeCollection, "type2_default",
+				uniqueIntegerMetadata, 3,
+				uniqueStringMetadata, "C"
+		), true));
+
+
+		dtosToInsert.add(new SolrRecordDTO(id4, 44L, fields(zeCollection, "type1_default",
+				uniqueIntegerMetadata, 1,
+				uniqueStringMetadata, "A",
+				integersMetadata, asList(42, 56),
+				numbersMetadata, asList(12.3, 45.6),
+				booleanMetadata, true,
+				stringsMetadata, "abc", "def",
+				enumsMetadata, FolderStatus.SEMI_ACTIVE,
+				referencesMetadata, asList(zeroPadded(1))
+		), true));
+
+		dtosToInsert.add(new SolrRecordDTO(zeroPadded(5), 44L, fields(zeCollection, "type1_default",
+				uniqueIntegerMetadata, 2,
+				uniqueStringMetadata, "B",
+				integersMetadata, asList(42, 56),
+				numbersMetadata, asList(12.3, 45.6),
+				booleanMetadata, true,
+				stringsMetadata, "abc", "def",
+				enumsMetadata, FolderStatus.SEMI_ACTIVE,
+				referencesMetadata, asList(zeroPadded(1), zeroPadded(2))
+		), true));
+
+		dtosToInsert.add(new SolrRecordDTO(zeroPadded(6), 44L, fields(zeCollection, "type1_default",
+				uniqueIntegerMetadata, 3,
+				uniqueStringMetadata, "C",
+				integersMetadata, asList(42, 56),
+				numbersMetadata, asList(12.3, 45.6),
+				booleanMetadata, true,
+				stringsMetadata, "abc", "def",
+				enumsMetadata, FolderStatus.SEMI_ACTIVE,
+				referencesMetadata, asList(zeroPadded(2), zeroPadded(3))
+		), true));
+
+		for (SolrRecordDTO dtoToInsert : dtosToInsert) {
+			if (fullyCached) {
+				dataStore.insert(dtoToInsert);
+			} else {
+				dataStore.insert(create(dtoToInsert));
+			}
+		}
+
+		assertThat(dataStore.stream(zeCollectionId, collection1Type1)
+				.filter(dto -> (int) dto.getFields().get("numberMetadata_s") == 1).map(RecordDTO::getId).collect(toList()))
+				.containsOnly(zeroPadded(1));
+
+		assertThat(dataStore.stream(zeCollectionId, collection1Type1)
+				.filter(dto -> (int) dto.getFields().get("numberMetadata_s") == 2).map(RecordDTO::getId).collect(toList()))
+				.containsOnly(zeroPadded(2));
+
+		assertThat(dataStore.stream(zeCollectionId, collection1Type2)
+				.filter(dto -> (int) dto.getFields().get("numberMetadata_s") == 1).map(RecordDTO::getId).collect(toList()))
+				.containsOnly(zeroPadded(3));
+
+		assertThat(dataStore.stream(zeCollectionId, collection1Type2)
+				.filter(dto -> (int) dto.getFields().get("numberMetadata_s") == 2).map(RecordDTO::getId).collect(toList()))
+				.containsOnly(zeroPadded(6));
+
+		assertThat(dataStore.stream(zeCollectionId, collection1Type2)
+				.filter(dto -> (int) dto.getFields().get("numberMetadata_s") == 3).map(RecordDTO::getId).collect(toList()))
+				.isEmpty();
+
 	}
 
 	private ByteArrayRecordDTO create(SolrRecordDTO solrRecordDTO) {

@@ -113,6 +113,10 @@ public class RecordsCachesDataStore {
 		return stream(true, collection, schemaType);
 	}
 
+	public Stream<RecordDTO> stream(byte collection, short schemaType, short metadataId, Object value) {
+		return StreamSupport.stream(spliteratorUnknownSize(iterator(true, collection, schemaType, metadataId, value), DISTINCT + NONNULL + IMMUTABLE), false);
+	}
+
 
 	public Stream<RecordDTO> stream(boolean autoClosedStream) {
 		return StreamSupport.stream(spliteratorUnknownSize(iterator(autoClosedStream), DISTINCT + NONNULL + IMMUTABLE), false);
@@ -164,6 +168,13 @@ public class RecordsCachesDataStore {
 		return new LazyMergingIterator<>(
 				intIdsDataStore.iterator(autoClosedIterator, collectionId, typeId),
 				stringIdsDataStore.iterator(collectionId, typeId));
+	}
+
+	public Iterator<RecordDTO> iterator(boolean autoClosedIterator, byte collectionId, short typeId, short metadataId,
+										Object value) {
+		return new LazyMergingIterator<>(
+				intIdsDataStore.iterator(autoClosedIterator, collectionId, typeId, metadataId, value),
+				stringIdsDataStore.iterator(collectionId, typeId, metadataId, value));
 	}
 
 }

@@ -320,9 +320,9 @@ public class CollectionsManager implements StatefulService {
 			}
 		}
 
-		collectionsListManager.registerPendingCollectionInfo(code, mainDataLanguage, languages);
+		byte collectionId = collectionsListManager.registerPendingCollectionInfo(code, mainDataLanguage, languages);
 		createCollectionConfigs(code);
-		collectionsListManager.addCollection(code, languages);
+		collectionsListManager.addCollection(code, languages, collectionId);
 		Set<String> returnList = new HashSet<>();
 		try {
 			returnList.addAll(migrationServicesDelayed.get().migrate(code, version, true));

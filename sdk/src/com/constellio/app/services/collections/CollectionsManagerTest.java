@@ -43,6 +43,7 @@ import java.util.Arrays;
 import static java.util.Arrays.asList;
 import static junit.framework.TestCase.fail;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.anyByte;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doNothing;
@@ -127,7 +128,7 @@ public class CollectionsManagerTest extends ConstellioTest {
 		collectionsManager.createCollectionInCurrentVersion("zeCollection", Arrays.asList("fr"));
 
 		verify(collectionsManager).createCollectionConfigs("zeCollection");
-		verify(collectionsListManager).addCollection("zeCollection", Arrays.asList("fr"));
+		verify(collectionsListManager).addCollection(eq("zeCollection"), eq(Arrays.asList("fr")), anyByte());
 		verify(migrationServices).migrate("zeCollection", null, true);
 		verify(userServices).addGlobalGroupsInCollection("zeCollection");
 		verify(collectionsManager).initializeCollection("zeCollection");
@@ -146,7 +147,7 @@ public class CollectionsManagerTest extends ConstellioTest {
 			// OK
 		}
 		verify(collectionsManager, never()).createCollectionConfigs("zeCollection");
-		verify(collectionsListManager, never()).addCollection("zeCollection", Arrays.asList("fr"));
+		verify(collectionsListManager, never()).addCollection(eq("zeCollection"), eq(Arrays.asList("fr")), anyByte());
 	}
 
 	@Test
@@ -161,7 +162,7 @@ public class CollectionsManagerTest extends ConstellioTest {
 		} catch (Exception thrown) {
 			assertThat(thrown).isSameAs(otherManagerException);
 		}
-		verify(collectionsListManager, never()).addCollection(anyString(), eq(Arrays.asList("fr")));
+		verify(collectionsListManager, never()).addCollection(anyString(), eq(Arrays.asList("fr")), anyByte());
 
 	}
 

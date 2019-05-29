@@ -669,7 +669,7 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 		};
 	}
 
-	Iterator<RecordDTO> iterator(byte collectionId, short typeId, short metadataId, Object value) {
+	Iterator<RecordDTO> iterator(boolean autoClosedIterator, byte collectionId, short typeId, short metadataId, Object value) {
 		//TODO : Replace streaming with proper indexes
 		String metadataDataStoreCode = schemasManager.getMetadata(collectionId, typeId, metadataId).getDataStoreCode();
 

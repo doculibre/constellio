@@ -1,7 +1,6 @@
 package com.constellio.model.services.collections;
 
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
-import com.constellio.model.entities.Language;
 import com.constellio.model.services.collections.exceptions.NoMoreCollectionAvalibleException;
 import com.constellio.sdk.tests.ConstellioTest;
 import org.junit.Before;
@@ -32,30 +31,37 @@ public class CollectionsListManagerAcceptanceTest extends ConstellioTest {
 
 	@Test(expected = NoMoreCollectionAvalibleException.class)
 	public void whenAdd256CollectionThenThrow() throws NoMoreCollectionAvalibleException {
-		for(int i=0;i <256;i++) {
-			collectionsListManager.addCollection("collection" + i, asList(Language.French.getCode()));
+		for (int i = 0; i < 256; i++) {
+			String code = "collection" + i;
+			byte collectionId = collectionsListManager.registerPendingCollectionInfo(code, "fr", asList("fr"));
+			collectionsListManager.addCollection(code, asList("fr"), collectionId);
 		}
 	}
 
 	@Test()
-	public void whenAdd255CollectionRemoveOneAndAddAgainThenNextCollectionTakeRemovedCollectionId() throws NoMoreCollectionAvalibleException {
-		for(int i=0;i <255;i++) {
-			collectionsListManager.addCollection("collection" + i, asList(Language.French.getCode()));
+	public void whenAdd255CollectionRemoveOneAndAddAgainThenNextCollectionTakeRemovedCollectionId()
+			throws NoMoreCollectionAvalibleException {
+		for (int i = 0; i < 255; i++) {
+			String code = "collection" + i;
+			byte collectionId = collectionsListManager.registerPendingCollectionInfo(code, "fr", asList("fr"));
+			collectionsListManager.addCollection(code, asList("fr"), collectionId);
 		}
 
 		try {
-			collectionsListManager.addCollection("collectionShouldNotBeAdded", asList(Language.French.getCode()));
+
+			byte collectionId = collectionsListManager.registerPendingCollectionInfo("collectionShouldNotBeAdded", "fr", asList("fr"));
 			fail("This add should fail since there is not more space for an other collection.");
-		} catch(NoMoreCollectionAvalibleException e) {
+		} catch (NoMoreCollectionAvalibleException e) {
 			// Ok
 		}
 
 		// Remove the first collection after _system_
-		collectionsListManager.remove("collection" + 0);
+		collectionsListManager.remove("collection" + 42);
 
-		collectionsListManager.addCollection(RE_ADDED_COLLECTION_NAME, asList(Language.French.getCode()));
+		byte collectionId = collectionsListManager.registerPendingCollectionInfo(RE_ADDED_COLLECTION_NAME, "fr", asList("fr"));
+		collectionsListManager.addCollection(RE_ADDED_COLLECTION_NAME, asList("fr"), collectionId);
 
-		assertThat(collectionsListManager.getCollectionId(RE_ADDED_COLLECTION_NAME) - Byte.MIN_VALUE).isEqualTo(1);
+		assertThat(collectionsListManager.getCollectionId(RE_ADDED_COLLECTION_NAME)).isEqualTo(collectionId);
 	}
 
 	@Test
