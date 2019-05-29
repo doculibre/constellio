@@ -931,7 +931,7 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 		});
 		initTestVariables();
 		MetadataSchemaType type1 = metadataSchemasManager.getSchemaTypes(zeCollection).getSchemaType("type1");
-		MetadataSchemaType type2 = metadataSchemasManager.getSchemaTypes(zeCollection).getSchemaType("type1");
+		MetadataSchemaType type2 = metadataSchemasManager.getSchemaTypes(zeCollection).getSchemaType("type2");
 		String uniqueIntegerMetadata = type1.getDefaultSchema().get("uniqueIntegerMetadata").getDataStoreCode();
 		String uniqueStringMetadata = type1.getDefaultSchema().get("uniqueStringMetadata").getDataStoreCode();
 		String integersMetadata = type1.getDefaultSchema().get("integersMetadata").getDataStoreCode();
@@ -951,6 +951,8 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 		String id4 = zeroPaddedId ? zeroPadded(4) : "4";
 		String id5 = zeroPaddedId ? zeroPadded(5) : "5";
 		String id6 = zeroPaddedId ? zeroPadded(6) : "6";
+		String id7 = zeroPaddedId ? zeroPadded(7) : "7";
+		String id8 = zeroPaddedId ? zeroPadded(8) : "8";
 
 		List<SolrRecordDTO> dtosToInsert = new ArrayList<>();
 
@@ -1002,6 +1004,28 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 				referencesMetadata, asList(zeroPadded(2), zeroPadded(3))
 		), true));
 
+		dtosToInsert.add(new SolrRecordDTO(zeroPadded(7), 77L, fields(zeCollection, "type1_default",
+				uniqueIntegerMetadata, 4,
+				uniqueStringMetadata, "E",
+				integersMetadata, asList(460, 461),
+				numbersMetadata, asList(1300.0001, 21000.0002),
+				booleanMetadata, false,
+				stringsMetadata, asList("pfpfp", "asdas"),
+				enumsMetadata, FolderStatus.INACTIVE_DEPOSITED.getCode(),
+				referencesMetadata, asList(zeroPadded(5), zeroPadded(6))
+		), true));
+
+		dtosToInsert.add(new SolrRecordDTO(zeroPadded(8), 88L, fields(zeCollection, "type1_default",
+				uniqueIntegerMetadata, 5,
+				uniqueStringMetadata, "F",
+				integersMetadata, asList(460, 461),
+				numbersMetadata, asList(1300.0001, 21000.0002),
+				booleanMetadata, false,
+				stringsMetadata, asList("pfpfp", "asdas"),
+				enumsMetadata, FolderStatus.INACTIVE_DEPOSITED.getCode(),
+				referencesMetadata, asList(zeroPadded(5), zeroPadded(6))
+		), true));
+
 		dtosToInsert.forEach((dto -> {
 			if (fullyCached) {
 				dataStore.insert(dto);
@@ -1014,32 +1038,65 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 
 		assertThatRecordsWithValue(collection1Type2, uniqueIntegerMetadata, 1).containsOnly(id1);
 
-		assertThat(dataStore.stream(zeCollectionId, collection1Type2)
-				.filter(dto -> (int) dto.getFields().get(uniqueIntegerMetadata) == 2).map(RecordDTO::getId).collect(toList()))
-				.containsOnly(id2);
+		assertThatRecordsWithValue(collection1Type2, uniqueIntegerMetadata, 2).containsOnly(id2);
 
-		assertThat(dataStore.stream(zeCollectionId, collection1Type2)
-				.filter(dto -> (int) dto.getFields().get(uniqueIntegerMetadata) == 3).map(RecordDTO::getId).collect(toList()))
-				.containsOnly(id3);
+		assertThatRecordsWithValue(collection1Type2, uniqueIntegerMetadata, 3).containsOnly(id3);
 
+		assertThatRecordsWithValue(collection1Type1, uniqueIntegerMetadata, 1).containsOnly(id4);
 
-		assertThat(dataStore.stream(zeCollectionId, collection1Type1)
-				.filter(dto -> (int) dto.getFields().get(uniqueIntegerMetadata) == 1).map(RecordDTO::getId).collect(toList()))
-				.containsOnly(id4);
+		assertThatRecordsWithValue(collection1Type1, uniqueIntegerMetadata, 2).containsOnly(id5);
 
-		assertThat(dataStore.stream(zeCollectionId, collection1Type1)
-				.filter(dto -> (int) dto.getFields().get(uniqueIntegerMetadata) == 2).map(RecordDTO::getId).collect(toList()))
-				.containsOnly(id5);
+		assertThatRecordsWithValue(collection1Type1, uniqueIntegerMetadata, 3).containsOnly(id6);
 
-		assertThat(dataStore.stream(zeCollectionId, collection1Type1)
-				.filter(dto -> (int) dto.getFields().get(uniqueIntegerMetadata) == 3).map(RecordDTO::getId).collect(toList()))
-				.containsOnly(id6);
+		assertThatRecordsWithValue(collection1Type1, uniqueIntegerMetadata, 42).isEmpty();
 
-		assertThat(dataStore.stream(zeCollectionId, collection1Type1)
-				.filter(dto -> (int) dto.getFields().get(uniqueIntegerMetadata) == 42).map(RecordDTO::getId).collect(toList()))
-				.isEmpty();
+		assertThatRecordsWithValue(collection1Type2, uniqueStringMetadata, "A").containsOnly(id1);
 
+		assertThatRecordsWithValue(collection1Type2, uniqueStringMetadata, "B").containsOnly(id2);
 
+		assertThatRecordsWithValue(collection1Type2, uniqueStringMetadata, "C").containsOnly(id3);
+
+		assertThatRecordsWithValue(collection1Type1, uniqueStringMetadata, "A").containsOnly(id4);
+
+		assertThatRecordsWithValue(collection1Type1, uniqueStringMetadata, "B").containsOnly(id5);
+
+		assertThatRecordsWithValue(collection1Type1, uniqueStringMetadata, "C").containsOnly(id6);
+
+		assertThatRecordsWithValue(collection1Type1, integersMetadata, asList(42, 56)).containsOnly(id4);
+
+		assertThatRecordsWithValue(collection1Type1, integersMetadata, asList(123, 456)).containsOnly(id5);
+
+		assertThatRecordsWithValue(collection1Type1, integersMetadata, asList(444, 555)).containsOnly(id6);
+
+		assertThatRecordsWithValue(collection1Type1, integersMetadata, asList(460, 461)).containsOnly(id7, id8);
+
+		assertThatRecordsWithValue(collection1Type1, numbersMetadata, asList(12.3, 45.6)).containsOnly(id4);
+
+		assertThatRecordsWithValue(collection1Type1, numbersMetadata, asList(11.1, 45.6)).containsOnly(id5);
+
+		assertThatRecordsWithValue(collection1Type1, numbersMetadata, asList(1000.0001, 2000.0002)).containsOnly(id6);
+
+		assertThatRecordsWithValue(collection1Type1, numbersMetadata, asList(1300.0001, 21000.0002)).containsOnly(id7, id8);
+
+		assertThatRecordsWithValue(collection1Type1, booleanMetadata, true).containsOnly(id4);
+
+		assertThatRecordsWithValue(collection1Type1, booleanMetadata, false).containsOnly(id5, id6, id7, id8);
+
+		assertThatRecordsWithValue(collection1Type1, stringsMetadata, asList("abc", "def")).containsOnly(id4);
+
+		assertThatRecordsWithValue(collection1Type1, stringsMetadata, asList("gh", "ij")).containsOnly(id5);
+
+		assertThatRecordsWithValue(collection1Type1, stringsMetadata, asList("yyyy", "zzzz")).containsOnly(id6);
+
+		assertThatRecordsWithValue(collection1Type1, stringsMetadata, asList("pfpfp", "asdas")).containsOnly(id7, id8);
+
+		assertThatRecordsWithValue(collection1Type1, enumsMetadata, FolderStatus.SEMI_ACTIVE.getCode()).containsOnly(id4);
+
+		assertThatRecordsWithValue(collection1Type1, enumsMetadata, FolderStatus.INACTIVE_DEPOSITED.getCode()).containsOnly(id6, id7, id8);
+
+		assertThatRecordsWithValue(collection1Type1, referencesMetadata, asList(zeroPadded(1), zeroPadded(2))).containsOnly(id5);
+
+		assertThatRecordsWithValue(collection1Type1, referencesMetadata, asList(zeroPadded(5), zeroPadded(6))).containsOnly(id7, id8);
 	}
 
 	private ListAssert<String> assertThatRecordsWithValue(short typeId, String metadataDataStoreCode, Object value) {
