@@ -1097,6 +1097,11 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 		assertThatRecordsWithValue(collection1Type1, referencesMetadata, asList(zeroPadded(1), zeroPadded(2))).containsOnly(id5);
 
 		assertThatRecordsWithValue(collection1Type1, referencesMetadata, asList(zeroPadded(5), zeroPadded(6))).containsOnly(id7, id8);
+
+		dataStore.remove(dtosToInsert.get(3));
+
+		assertThatRecordsWithValue(collection1Type1, uniqueIntegerMetadata, 1).isEmpty();
+		assertThatRecordsWithValue(collection1Type1, uniqueStringMetadata, "A").isEmpty();
 	}
 
 	private ListAssert<String> assertThatRecordsWithValue(short typeId, String metadataDataStoreCode, Object value) {
