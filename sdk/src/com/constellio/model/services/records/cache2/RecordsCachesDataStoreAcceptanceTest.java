@@ -3,6 +3,7 @@ package com.constellio.model.services.records.cache2;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.SolrRecordDTO;
+import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.ThreadList;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.RecordCacheType;
@@ -17,6 +18,7 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import org.apache.commons.lang3.StringUtils;
+import org.assertj.core.api.ListAssert;
 import org.eclipse.collections.impl.list.mutable.primitive.IntArrayList;
 import org.junit.After;
 import org.junit.Before;
@@ -1010,10 +1012,7 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 
 		//TODO Jonathan
 
-
-		assertThat(dataStore.stream(zeCollectionId, collection1Type2)
-				.filter(dto -> (int) dto.getFields().get(uniqueIntegerMetadata) == 1).map(RecordDTO::getId).collect(toList()))
-				.containsOnly(id1);
+		assertThatRecordsWithValue(collection1Type2, uniqueIntegerMetadata, 1).containsOnly(id1);
 
 		assertThat(dataStore.stream(zeCollectionId, collection1Type2)
 				.filter(dto -> (int) dto.getFields().get(uniqueIntegerMetadata) == 2).map(RecordDTO::getId).collect(toList()))
@@ -1040,6 +1039,12 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 				.filter(dto -> (int) dto.getFields().get(uniqueIntegerMetadata) == 42).map(RecordDTO::getId).collect(toList()))
 				.isEmpty();
 
+
+	}
+
+	private ListAssert<String> assertThatRecordsWithValue(short typeId, String metadataDataStoreCode, Object value) {
+		return assertThat(dataStore.stream(zeCollectionId, typeId)
+				.filter(dto -> LangUtils.isEqual(dto.getFields().get(metadataDataStoreCode), value)).map(RecordDTO::getId).collect(toList()));
 
 	}
 
