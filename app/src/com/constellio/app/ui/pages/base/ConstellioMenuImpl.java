@@ -20,6 +20,7 @@ import com.vaadin.server.StreamResource;
 import com.vaadin.server.StreamResource.StreamSource;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.shared.ui.label.ContentMode;
+import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
@@ -45,6 +46,8 @@ import java.util.List;
 import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.vaadin.ui.themes.ValoTheme.BUTTON_SMALL;
+import static com.vaadin.ui.themes.ValoTheme.BUTTON_TINY;
 
 /**
  * A responsive menu component providing user information and the controls for
@@ -181,8 +184,9 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 				VerticalLayout mainLayout = new VerticalLayout();
 				SystemInfo systemInfo = SystemInfo.getInstance();
 				Label updateTimeComponent = new Label($("SystemInfo.lastTimeUpdated", systemInfo.getLastTimeUpdated().toString("HH:mm:ss")));
-				updateTimeComponent.addStyleName(ValoTheme.LABEL_TINY);
+				updateTimeComponent.addStyleName(ValoTheme.LABEL_SMALL);
 				mainLayout.addComponent(updateTimeComponent);
+				mainLayout.setComponentAlignment(updateTimeComponent, Alignment.TOP_LEFT);
 
 				ValidationErrors validationErrors = systemInfo.getValidationErrors();
 
@@ -235,6 +239,7 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 				return mainLayout;
 			}
 		};
+		systemStateButton.addStyleName(BUTTON_TINY);
 		refreshSystemStateButton();
 		systemStateButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
 

@@ -40,7 +40,7 @@ public class AppLayerBackgroundThreadsManager implements StatefulService {
 	public void initialize() {
 		updateSystemInfoBackgroundAction = new UpdateSystemInfoBackgroundAction();
 		backgroundThreadsManager.configure(repeatingAction("updateSystemInfo", updateSystemInfoBackgroundAction)
-				.executedEvery(standardMinutes(5)).handlingExceptionWith(CONTINUE).runningOnAllInstances());
+				.executedEvery(standardMinutes(1)).handlingExceptionWith(CONTINUE).runningOnAllInstances());
 	}
 
 	@Override

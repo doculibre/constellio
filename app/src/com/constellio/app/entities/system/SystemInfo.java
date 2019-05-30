@@ -16,26 +16,37 @@ import org.joda.time.LocalDateTime;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class SystemInfo {
 
-	private static final String MISSING_INFORMATION_ON_MEMORY_CONFIGURATION = "missingInformationOnMemoryConfiguration";
+	private static final String MISSING_INFORMATION_ON_CONSTELLIO_MEMORY_CONFIGURATION = "missingInformationOnConstellioMemoryConfiguration";
+	private static final String MISSING_INFORMATION_ON_SOLR_MEMORY_CONFIGURATION = "missingInformationOnSolrMemoryConfiguration";
+	private static final String MISSING_INFORMATION_ON_SERVER_TOTAL_MEMORY = "missingInformationOnServerTotalMemory";
+	private static final String CONSTELLIO_ALLOCATED_MEMORY = "constellioAllocatedMemory";
+	private static final String SOLR_ALLOCATED_MEMORY = "solrAllocatedMemory";
+	private static final String TOTAL_SERVER_MEMORY = "totalServerMemory";
+	private static final String UNALLOCATED_MEMORY = "unallocatedMemory";
 	private static final String INVALID_LICENSE = "invalidLicense";
 	private static final String LICENSE_EXPIRED = "licenseExpired";
 	private static final String OPT_DISK_USAGE = "optDiskUsage";
 	private static final String OPT_DISK_USAGE_MISSING_INFO = "optDiskUsageMissingInfo";
 	private static final String SOLR_DISK_USAGE = "solrDiskUsage";
 	private static final String SOLR_DISK_USAGE_MISSING_INFO = "solrDiskUsageMissingInfo";
-	private static final String CONSTELLIO_MEMORY_CONSUMPTION = "memoryConsumption";
+	private static final String CONSTELLIO_MEMORY_CONSUMPTION_HIGH = "constellioMemoryConsumptionHigh";
+	private static final String CONSTELLIO_MEMORY_CONSUMPTION_LOW = "constellioMemoryConsumptionLow";
 	private static final String PRIVATE_REPOSITORY_IS_NOT_INSTALLED = "privateRepositoryIsNotInstalled";
-	private static final String LOW_UNALLOCATED_MEMORY = "lowUnallocatedMemory";
 
 	private static SystemInfo instance;
 
 	LocalDateTime lastTimeUpdated;
 
 	SystemMemory systemMemory;
+	List<MemoryDetails> constellioFreeMemory = new ArrayList<>();
+	List<MemoryDetails> solrFreeMemory = new ArrayList<>();
+
 	LicenseInfo licenseInfo;
 
 	String constellioVersion;
@@ -87,6 +98,20 @@ public class SystemInfo {
 		}
 
 		analyzeSystemAndFindValidationErrors();
+	}
+
+	synchronized public void appendConstellioFreeMemory() {
+		constellioFreeMemory.add(new MemoryDetails((double) ((Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) * 100 / Runtime.getRuntime().totalMemory()), MemoryUnit.B));
+		while (constellioFreeMemory.size() > 5) {
+			constellioFreeMemory.remove(0);
+		}
+	}
+
+	synchronized public void appendSolrFreeMemory() {
+//		constellioFreeMemory.add(new MemoryDetails((double) ((Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) * 100 / Runtime.getRuntime().totalMemory()), MemoryUnit.B));
+//		while (constellioFreeMemory.size() > 5) {
+//			constellioFreeMemory.remove(0);
+//		}
 	}
 
 	private static String fetchConstellioVersion(AppLayerFactory appLayerFactory) {
@@ -171,41 +196,84 @@ public class SystemInfo {
 
 //		FOR TEST PURPOSE
 //		HashMap<String, Object> objectObjectHashMap = new HashMap<>();
-//		objectObjectHashMap.put("unallocatedMemory", "0.5 GB");
-//		validationErrors.add(SystemInfo.class, LOW_UNALLOCATED_MEMORY, objectObjectHashMap);
+//		objectObjectHashMap.put("memory", "0.5 GB");
+//		validationErrors.add(SystemInfo.class, UNALLOCATED_MEMORY, objectObjectHashMap);
 
 		validateLicense();
 		validateMemoryAllocation();
 		validateMemoryConsumption();
 		validateDiskUsage();
-		validateRepository();
+//		validateRepository();
 	}
 
 	private void validateMemoryAllocation() {
-		if(systemMemory.getConstellioAllocatedMemory().getAmount() == null || systemMemory.getSolrAllocatedMemory().getAmount() == null) {
-			HashMap<String, Object> parameters = new HashMap<>();
-			validationErrors.addWarning(SystemInfo.class, MISSING_INFORMATION_ON_MEMORY_CONFIGURATION, parameters);
-		} else {
-			HashMap<String, Object> unallocatedMemoryParameters = new HashMap<>();
-			unallocatedMemoryParameters.put("unallocatedMemory", systemMemory.getUnallocatedMemory().toNumberOfGigaBytes() + " GB");
-			if(systemMemory.getUnallocatedMemory().isLessThan(new MemoryDetails(2d, MemoryUnit.GB))) {
-				validationErrors.addWarning(SystemInfo.class, LOW_UNALLOCATED_MEMORY, unallocatedMemoryParameters);
+		String parameterKey = "memory";
+		HashMap<String, Object> constellioMemoryParameters = buildSingleValueParameters(parameterKey, systemMemory.getConstellioAllocatedMemory().toString());
+		HashMap<String, Object> solrMemoryParameters = buildSingleValueParameters(parameterKey, systemMemory.getSolrAllocatedMemory().toString());
+		HashMap<String, Object> totalServerMemoryParameters = buildSingleValueParameters(parameterKey, systemMemory.getTotalSystemMemory().toString());
+		HashMap<String, Object> unallocatedMemoryParameters = buildSingleValueParameters(parameterKey, systemMemory.getUnallocatedMemory().toString());
+
+		if(systemMemory.getConstellioAllocatedMemory().getAmount() != null && systemMemory.getSolrAllocatedMemory().getAmount() != null && systemMemory.getTotalSystemMemory().getAmount() != null) {
+
+			double constellioMemoryPercentage = systemMemory.getConstellioAllocatedMemory().toNumberOfBytes() * 100 / systemMemory.getTotalSystemMemory().toNumberOfBytes();
+			double solrMemoryPercentage = systemMemory.getSolrAllocatedMemory().toNumberOfBytes() * 100 / systemMemory.getTotalSystemMemory().toNumberOfBytes();
+			double unallocatedMemoryPercentage = systemMemory.getUnallocatedMemory().toNumberOfBytes() * 100 / systemMemory.getTotalSystemMemory().toNumberOfBytes();
+
+			validationErrors.addLog(SystemInfo.class, TOTAL_SERVER_MEMORY, totalServerMemoryParameters);
+
+			if(constellioMemoryPercentage < 40) {
+				validationErrors.addWarning(SystemInfo.class, CONSTELLIO_ALLOCATED_MEMORY, constellioMemoryParameters);
 			} else {
-				validationErrors.addLog(SystemInfo.class, LOW_UNALLOCATED_MEMORY, unallocatedMemoryParameters);
+				validationErrors.addLog(SystemInfo.class, CONSTELLIO_ALLOCATED_MEMORY, constellioMemoryParameters);
+			}
+
+			if(solrMemoryPercentage < 40) {
+				validationErrors.addWarning(SystemInfo.class, SOLR_ALLOCATED_MEMORY, solrMemoryParameters);
+			} else {
+				validationErrors.addLog(SystemInfo.class, SOLR_ALLOCATED_MEMORY, solrMemoryParameters);
+			}
+
+			if(unallocatedMemoryPercentage < 20 && systemMemory.getUnallocatedMemory().isLessThan(new MemoryDetails(2d, MemoryUnit.GB))) {
+				validationErrors.addWarning(SystemInfo.class, UNALLOCATED_MEMORY, unallocatedMemoryParameters);
+			} else {
+				validationErrors.addLog(SystemInfo.class, UNALLOCATED_MEMORY, unallocatedMemoryParameters);
+			}
+		} else {
+			if(systemMemory.getConstellioAllocatedMemory().getAmount() == null) {
+				validationErrors.addWarning(SystemInfo.class, MISSING_INFORMATION_ON_CONSTELLIO_MEMORY_CONFIGURATION, constellioMemoryParameters);
+			} else {
+				validationErrors.addLog(SystemInfo.class, CONSTELLIO_ALLOCATED_MEMORY, constellioMemoryParameters);
+			}
+
+			if(systemMemory.getSolrAllocatedMemory().getAmount() == null) {
+				validationErrors.addWarning(SystemInfo.class, MISSING_INFORMATION_ON_SOLR_MEMORY_CONFIGURATION, solrMemoryParameters);
+			} else {
+				validationErrors.addLog(SystemInfo.class, SOLR_ALLOCATED_MEMORY, solrMemoryParameters);
+			}
+
+			if(systemMemory.getTotalSystemMemory().getAmount() == null) {
+				validationErrors.addWarning(SystemInfo.class, MISSING_INFORMATION_ON_SERVER_TOTAL_MEMORY, totalServerMemoryParameters);
+			} else {
+				validationErrors.addLog(SystemInfo.class, TOTAL_SERVER_MEMORY, totalServerMemoryParameters);
 			}
 		}
 	}
 
 	private void validateMemoryConsumption() {
-		int currentConstellioMemoryConsumption = (int) ((Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) * 100d / Runtime.getRuntime().totalMemory());
-		HashMap<String, Object> constellioMemoryConsumptionParameters = new HashMap<>();
-		constellioMemoryConsumptionParameters.put("consumptionPercentage", currentConstellioMemoryConsumption + "%");
-		if(isInRange(currentConstellioMemoryConsumption, 0, 75)) {
-			validationErrors.addLog(SystemInfo.class, CONSTELLIO_MEMORY_CONSUMPTION, constellioMemoryConsumptionParameters);
-		} else if(isInRange(currentConstellioMemoryConsumption, 75, 90)) {
-			validationErrors.addWarning(SystemInfo.class, CONSTELLIO_MEMORY_CONSUMPTION, constellioMemoryConsumptionParameters);
-		} else {
-			validationErrors.add(SystemInfo.class, CONSTELLIO_MEMORY_CONSUMPTION, constellioMemoryConsumptionParameters);
+		if(constellioFreeMemory.size() >= 5) {
+			boolean hadEnoughMemoryRemaining = false;
+			for(MemoryDetails freeMemory: constellioFreeMemory) {
+				if(freeMemory.isGreaterThan(new MemoryDetails(1d, MemoryUnit.GB))) {
+					hadEnoughMemoryRemaining = true;
+					break;
+				}
+			}
+
+			if(hadEnoughMemoryRemaining) {
+				validationErrors.addLog(SystemInfo.class, CONSTELLIO_MEMORY_CONSUMPTION_LOW, new HashMap<String, Object>());
+			} else {
+				validationErrors.addWarning(SystemInfo.class, CONSTELLIO_MEMORY_CONSUMPTION_HIGH, new HashMap<String, Object>());
+			}
 		}
 
 		//		String currentSolrMemoryConsumption = "60%";
@@ -289,5 +357,11 @@ public class SystemInfo {
 
 	private boolean isInRange(int percentage, int includedLowestPercentage, int excludedHighestPercentage) {
 		return includedLowestPercentage <= percentage && excludedHighestPercentage > percentage;
+	}
+
+	private HashMap<String, Object> buildSingleValueParameters(String key, Object value) {
+		HashMap<String, Object> parameters = new HashMap<>();
+		parameters.put(key, value);
+		return parameters;
 	}
 }

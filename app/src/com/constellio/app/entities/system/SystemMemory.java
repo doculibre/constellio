@@ -155,16 +155,28 @@ public class SystemMemory {
 
 		@Override
 		public String toString() {
-			if(amount == null|| unit == null) {
+			if(amount == null || unit == null) {
 				return $("UpdateManagerViewImpl.statut");
 			}
-			return amount + " " + unit.getCode();
+			return amount.intValue() + " " + unit.getCode();
+		}
+
+		public String toString(MemoryUnit unit) {
+			if(amount == null || unit == null) {
+				return $("UpdateManagerViewImpl.statut");
+			}
+			return convertToUnit(unit) + " " + unit.getCode();
 		}
 
 		public static MemoryDetails buildUnrecognizableMemoryAmount(final String unrecognizableAmount) {
 			return new MemoryDetails(null, null) {
 				@Override
 				public String toString() {
+					return unrecognizableAmount;
+				}
+
+				@Override
+				public String toString(MemoryUnit unit) {
 					return unrecognizableAmount;
 				}
 			};
@@ -188,7 +200,7 @@ public class SystemMemory {
 
 		@Override
 		public String getCode() {
-			return null;
+			return code;
 		}
 
 		public int getAmountOfByte() {
@@ -220,8 +232,8 @@ public class SystemMemory {
 	public static void main(String[] args) {
 		SystemMemory systemInfo = new SystemMemory(MemoryDetails.build("15728640", "k"), MemoryDetails.build("5120mb", null), MemoryDetails.build("5 G", null));
 		System.out.println(systemInfo.getPercentageOfAllocatedMemory() * 100 + " %");
-		System.out.println(systemInfo.getTotalSystemMemory().toNumberOfGigaBytes() + " GB");
-		System.out.println(systemInfo.getConstellioAllocatedMemory().toNumberOfGigaBytes() + " GB");
-		System.out.println(systemInfo.getSolrAllocatedMemory().toNumberOfGigaBytes() + " GB");
+		System.out.println(systemInfo.getTotalSystemMemory().toString());
+		System.out.println(systemInfo.getConstellioAllocatedMemory().toString());
+		System.out.println(systemInfo.getSolrAllocatedMemory().toString());
 	}
 }
