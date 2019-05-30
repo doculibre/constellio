@@ -101,7 +101,7 @@ public class SystemInfo {
 	}
 
 	synchronized public void appendConstellioFreeMemory() {
-		constellioFreeMemory.add(new MemoryDetails((double) ((Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) * 100 / Runtime.getRuntime().totalMemory()), MemoryUnit.B));
+		constellioFreeMemory.add(new MemoryDetails((double) Runtime.getRuntime().freeMemory(), MemoryUnit.B));
 		while (constellioFreeMemory.size() > 5) {
 			constellioFreeMemory.remove(0);
 		}
@@ -297,55 +297,47 @@ public class SystemInfo {
 		if(licenseInfo == null || licenseInfo.getExpirationDate() == null) {
 			validationErrors.addWarning(SystemInfo.class, INVALID_LICENSE);
 		} else if(TimeProvider.getLocalDate().isAfter(licenseInfo.getExpirationDate())) {
-			HashMap<String, Object> parameters = new HashMap<>();
-			parameters.put("expirationDate", licenseInfo.getExpirationDate().toString("yyyy-MM-dd"));
-			validationErrors.addWarning(SystemInfo.class, LICENSE_EXPIRED, parameters);
+			validationErrors.addWarning(SystemInfo.class, LICENSE_EXPIRED, buildSingleValueParameters("expirationDate", licenseInfo.getExpirationDate().toString("yyyy-MM-dd")));
 		}
 	}
 
 	private void validateDiskUsage() {
+		String parameterKey = "consumptionPercentage";
+
 		if(StringUtils.isNotBlank(optDiskUsage) && optDiskUsage.endsWith("%")) {
 			try {
 				int consumptionPercentage = Integer.parseInt(optDiskUsage.replace("%", ""));
+				HashMap<String, Object> parameters = buildSingleValueParameters(parameterKey, consumptionPercentage);
 				if(isInRange(consumptionPercentage, 0, 75)) {
-					HashMap<String, Object> parameters = new HashMap<>();
 					validationErrors.addLog(SystemInfo.class, OPT_DISK_USAGE, parameters);
 				} else if(isInRange(consumptionPercentage, 75, 90)) {
-					HashMap<String, Object> parameters = new HashMap<>();
 					validationErrors.addWarning(SystemInfo.class, OPT_DISK_USAGE, parameters);
 				} else {
-					HashMap<String, Object> parameters = new HashMap<>();
 					validationErrors.add(SystemInfo.class, OPT_DISK_USAGE, parameters);
 				}
 			} catch (Exception e) {
-				HashMap<String, Object> parameters = new HashMap<>();
-				validationErrors.addWarning(SystemInfo.class, OPT_DISK_USAGE_MISSING_INFO, parameters);
+				validationErrors.addWarning(SystemInfo.class, OPT_DISK_USAGE_MISSING_INFO, new HashMap<String, Object>());
 			}
 		} else {
-			HashMap<String, Object> parameters = new HashMap<>();
-			validationErrors.addWarning(SystemInfo.class, OPT_DISK_USAGE_MISSING_INFO, parameters);
+			validationErrors.addWarning(SystemInfo.class, OPT_DISK_USAGE_MISSING_INFO, new HashMap<String, Object>());
 		}
 
 		if(StringUtils.isNotBlank(solrDiskUsage) && solrDiskUsage.endsWith("%")) {
 			try {
 				int consumptionPercentage = Integer.parseInt(solrDiskUsage.replace("%", ""));
+				HashMap<String, Object> parameters = buildSingleValueParameters(parameterKey, consumptionPercentage);
 				if(isInRange(consumptionPercentage, 0, 75)) {
-					HashMap<String, Object> parameters = new HashMap<>();
 					validationErrors.addLog(SystemInfo.class, SOLR_DISK_USAGE, parameters);
 				} else if(isInRange(consumptionPercentage, 75, 90)) {
-					HashMap<String, Object> parameters = new HashMap<>();
 					validationErrors.addWarning(SystemInfo.class, SOLR_DISK_USAGE, parameters);
 				} else {
-					HashMap<String, Object> parameters = new HashMap<>();
 					validationErrors.add(SystemInfo.class, SOLR_DISK_USAGE, parameters);
 				}
 			} catch (Exception e) {
-				HashMap<String, Object> parameters = new HashMap<>();
-				validationErrors.addWarning(SystemInfo.class, SOLR_DISK_USAGE_MISSING_INFO, parameters);
+				validationErrors.addWarning(SystemInfo.class, SOLR_DISK_USAGE_MISSING_INFO, new HashMap<String, Object>());
 			}
 		} else {
-			HashMap<String, Object> parameters = new HashMap<>();
-			validationErrors.addWarning(SystemInfo.class, SOLR_DISK_USAGE_MISSING_INFO, parameters);
+			validationErrors.addWarning(SystemInfo.class, SOLR_DISK_USAGE_MISSING_INFO, new HashMap<String, Object>());
 		}
 	}
 
