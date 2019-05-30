@@ -26,12 +26,14 @@ import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CssLayout;
 import com.vaadin.ui.CustomComponent;
+import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.MenuBar;
 import com.vaadin.ui.MenuBar.Command;
 import com.vaadin.ui.MenuBar.MenuItem;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.VerticalSplitPanel;
 import com.vaadin.ui.themes.ValoTheme;
 import org.apache.commons.lang3.StringUtils;
 
@@ -177,61 +179,64 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 			@Override
 			protected Component buildWindowContent() {
 				VerticalLayout mainLayout = new VerticalLayout();
-				mainLayout.setSpacing(false);
 				SystemInfo systemInfo = SystemInfo.getInstance();
 				Label updateTimeComponent = new Label($("SystemInfo.lastTimeUpdated", systemInfo.getLastTimeUpdated().toString("HH:mm:ss")));
 				updateTimeComponent.addStyleName(ValoTheme.LABEL_TINY);
 				mainLayout.addComponent(updateTimeComponent);
 
 				ValidationErrors validationErrors = systemInfo.getValidationErrors();
-				List<ValidationError> errors = validationErrors.getValidationErrors();
-				if(!errors.isEmpty()) {
-					StringBuilder errorsText = new StringBuilder();
-					errorsText.append("<ul>");
-					for(ValidationError error: errors) {
-						errorsText.append("<li style=\"color:red\">" + $(error) + "</li>");
-					}
-					errorsText.append("</ul>");
-					Label errorsTitle = new Label($("SystemInfo.errors"));
-					errorsTitle.addStyleName(ValoTheme.LABEL_LARGE);
-					mainLayout.addComponent(errorsTitle);
-					mainLayout.addComponent(new Label(errorsText.toString(), ContentMode.HTML));
+
+				if(!validationErrors.getValidationErrors().isEmpty()) {
+					mainLayout.addComponent(buildStatesComponent("errors", validationErrors.getValidationErrors()));
 				}
 
-				List<ValidationError> warnings = validationErrors.getValidationWarnings();
-				if(!warnings.isEmpty()) {
-					StringBuilder warningsText = new StringBuilder();
-					warningsText.append("<ul>");
-					for(ValidationError warning: warnings) {
-						warningsText.append("<li style=\"color:orange\">" + $(warning) + "</li>");
-					}
-					warningsText.append("</ul>");
-					Label warningsTitle = new Label($("SystemInfo.warnings"));
-					warningsTitle.addStyleName(ValoTheme.LABEL_LARGE);
-					mainLayout.addComponent(warningsTitle);
-					mainLayout.addComponent(new Label(warningsText.toString(), ContentMode.HTML));
+				if(!validationErrors.getValidationWarnings().isEmpty()) {
+					mainLayout.addComponent(buildStatesComponent("warnings", validationErrors.getValidationWarnings()));
 				}
 
-				List<ValidationError> logs = validationErrors.getValidationLogs();
-				if(!logs.isEmpty()) {
-					StringBuilder logsText = new StringBuilder();
-					logsText.append("<ul>");
-					for(ValidationError log: logs) {
-						logsText.append("<li style=\"color:green\">" + $(log) + "</li>");
-					}
-					logsText.append("<ul>");
-					Label logsTitle = new Label($("SystemInfo.logs"));
-					logsTitle.addStyleName(ValoTheme.LABEL_LARGE);
-					mainLayout.addComponent(logsTitle);
-					mainLayout.addComponent(new Label(logsText.toString(), ContentMode.HTML));
+				if(!validationErrors.getValidationLogs().isEmpty()) {
+					mainLayout.addComponent(buildStatesComponent("logs", validationErrors.getValidationLogs()));
 				}
 
+				return mainLayout;
+			}
+
+			private Component buildStatesComponent(String criticity, List<ValidationError> validationErrors) {
+				VerticalLayout mainLayout = new VerticalLayout();
+				String backgroundColor = "yellowgreen";
+				switch (criticity) {
+					case "errors":
+						backgroundColor = "lightsalmon";
+						break;
+					case "warnings":
+						backgroundColor = "gold";
+						break;
+					case "logs":
+						backgroundColor = "yellowgreen";
+						break;
+				}
+
+				StringBuilder statesText = new StringBuilder();
+				StringBuilder colorIndicator = new StringBuilder();
+				statesText.append("<ul>");
+				for(ValidationError error: validationErrors) {
+					statesText.append("<li>" + $(error) + "</li>");
+					colorIndicator.append("&nbsp;<br>");
+				}
+				statesText.append("</ul>");
+				Label contentComponent = new Label(statesText.toString(), ContentMode.HTML);
+
+				HorizontalLayout contentLayout = new HorizontalLayout();
+				contentLayout.addComponents(new Label("<p style=\"background-color:" + backgroundColor + "\">" + colorIndicator.toString() + "</p>", ContentMode.HTML), contentComponent);
+
+				Label mainLayoutTitle = new Label($("SystemInfo." + criticity));
+				mainLayoutTitle.addStyleName(ValoTheme.LABEL_LARGE);
+				mainLayout.addComponents(mainLayoutTitle, contentLayout);
 				return mainLayout;
 			}
 		};
 		refreshSystemStateButton();
 		systemStateButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
-//		systemStateButton.addStyleName(ValoTheme.BUTTON_LINK);
 
 		UI.getCurrent().getNavigator().addViewChangeListener(new ViewChangeListener() {
 			@Override
