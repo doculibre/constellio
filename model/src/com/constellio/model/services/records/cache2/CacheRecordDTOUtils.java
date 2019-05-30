@@ -26,6 +26,11 @@ import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import static com.constellio.model.entities.schemas.MetadataValueType.CONTENT;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRUCTURE;
+import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
+
 /**
  * This utility class handle the reading and writing of a byte array regrouping a Record DTO metadata values
  * <p>
@@ -357,7 +362,7 @@ public class CacheRecordDTOUtils {
 			}
 
 			// searchedMetadataIndex & nextMetadataIndex are needed to know where to start and stop parsing the value
-			metadatasEntrySet.add(new MapEntry(metadataSearched.getDataStoreCode(),
+			metadatasEntrySet.add(new SimpleEntry(metadataSearched.getDataStoreCode(),
 					parseValueMetadata(byteArrayToUse, metadataSearched, neighboringMetadata.searchedMetadataIndex, neighboringMetadata.nextMetadataIndex)));
 		}
 

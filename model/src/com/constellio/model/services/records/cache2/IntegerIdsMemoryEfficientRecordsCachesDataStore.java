@@ -184,6 +184,7 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 		type.set(index, (short) 0);
 		int collectionIndex = ((int) collectionId) - Byte.MIN_VALUE;
 
+
 		if (summary) {
 			summaryCachedData.set(index, null);
 		} else {
@@ -313,7 +314,6 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 			}
 			insertAtIndex++;
 
-			System.out.println("Reshifting the universe");
 			ids.insertValueShiftingAllFollowingValues(insertAtIndex, id);
 			versions.insertValueShiftingAllFollowingValues(insertAtIndex, 0);
 			schema.insertValueShiftingAllFollowingValues(insertAtIndex, (short) 0);
@@ -669,7 +669,8 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 		};
 	}
 
-	Iterator<RecordDTO> iterator(boolean autoClosedIterator, byte collectionId, short typeId, short metadataId, Object value) {
+	Iterator<RecordDTO> iterator(boolean autoClosedIterator, byte collectionId, short typeId, short metadataId,
+								 Object value) {
 		//TODO : Replace streaming with proper indexes
 		String metadataDataStoreCode = schemasManager.getMetadata(collectionId, typeId, metadataId).getDataStoreCode();
 

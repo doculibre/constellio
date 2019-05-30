@@ -919,7 +919,7 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 				typeSchema1.create("numbersMetadata").setType(NUMBER).setMultivalue(true);
 				typeSchema1.create("booleanMetadata").setType(BOOLEAN);
 				typeSchema1.create("stringsMetadata").setType(STRING).setMultivalue(true);
-				typeSchema1.create("enumsMetadata").setType(ENUM).setMultivalue(true).defineAsEnum(FolderStatus.class);
+				typeSchema1.create("enumsMetadata").setType(ENUM).defineAsEnum(FolderStatus.class);
 				typeSchema1.create("referencesMetadata").setType(REFERENCE).setMultivalue(true)
 						.defineReferencesTo(types.getSchemaType("type2"));
 
@@ -1097,7 +1097,7 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 		//
 		//		assertThatRecordsWithValue(collection1Type1, referencesMetadata, asList(id5, id6)).containsOnly(id7, id8);
 
-		dataStore.remove(dtosToInsert.get(3));
+		dataStore.remove(dataStore.get(id4));
 
 		assertThatRecordsWithValue(collection1Type1, uniqueIntegerMetadata, 1).isEmpty();
 		assertThatRecordsWithValue(collection1Type1, uniqueStringMetadata, "A").isEmpty();
