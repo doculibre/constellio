@@ -267,7 +267,7 @@ public abstract class ByteArrayRecordDTO implements Map<String, Object>, RecordD
 		}
 
 		MetadataSchema schema = schemaProvider.get(collectionId, typeId, schemaId);
-		return CacheRecordDTOUtils.readMetadata(data, schema, (String) key);
+		return CacheRecordDTOUtils.readMetadata(data, schema, (String) key, this);
 	}
 
 	@Nullable
