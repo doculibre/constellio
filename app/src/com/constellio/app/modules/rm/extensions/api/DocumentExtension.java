@@ -10,6 +10,22 @@ import com.vaadin.server.Resource;
 
 public abstract class DocumentExtension {
 
+	public ExtensionBooleanResult isDisplayActionPossible(DocumentExtensionActionPossibleParams params) {
+		return ExtensionBooleanResult.NOT_APPLICABLE;
+	}
+
+	public ExtensionBooleanResult isOpenActionPossible(DocumentExtensionActionPossibleParams params) {
+		return ExtensionBooleanResult.NOT_APPLICABLE;
+	}
+
+	public ExtensionBooleanResult isEditActionPossible(DocumentExtensionActionPossibleParams params) {
+		return ExtensionBooleanResult.NOT_APPLICABLE;
+	}
+
+	public ExtensionBooleanResult isDownloadActionPossible(DocumentExtensionActionPossibleParams params) {
+		return ExtensionBooleanResult.NOT_APPLICABLE;
+	}
+
 	public ExtensionBooleanResult isCopyActionPossible(DocumentExtensionActionPossibleParams params) {
 		return ExtensionBooleanResult.NOT_APPLICABLE;
 	}

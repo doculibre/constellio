@@ -34,6 +34,7 @@ public class RMModuleExtensions implements ModuleExtensions {
 	private VaultBehaviorsList<DocumentFolderBreadCrumbExtention> documentBreadcrumExtentions;
 	private VaultBehaviorsList<NavigateToFromAPageImportExtension> navigateToFromAPageExtensions;
 	private VaultBehaviorsList<TaskPreCompletionExtention> taskPreCompletionExetention;
+	private VaultBehaviorsList<MenuItemActionExtension> menuItemActionExtensions;
 
 	private ModelLayerExtensions modelLayerExtensions;
 
@@ -45,6 +46,7 @@ public class RMModuleExtensions implements ModuleExtensions {
 		documentExtensions = new VaultBehaviorsList<>();
 		folderExtensions = new VaultBehaviorsList<>();
 		advancedSearchPresenterExtensions = new VaultBehaviorsList<>();
+		menuItemActionExtensions = new VaultBehaviorsList<>();
 		this.documentBreadcrumExtentions = new VaultBehaviorsList<>();
 		this.navigateToFromAPageExtensions = new VaultBehaviorsList<>();
 		this.taskPreCompletionExetention = new VaultBehaviorsList<>();
@@ -104,6 +106,10 @@ public class RMModuleExtensions implements ModuleExtensions {
 
 	public VaultBehaviorsList<DocumentFolderBreadCrumbExtention> getDocumentBreadcrumExtentions() {
 		return documentBreadcrumExtentions;
+	}
+
+	public VaultBehaviorsList<MenuItemActionExtension> getMenuItemActionExtensions() {
+		return menuItemActionExtensions;
 	}
 
 	public boolean isCopyActionPossibleOnFolder(final Folder folder, final User user) {
@@ -167,6 +173,32 @@ public class RMModuleExtensions implements ModuleExtensions {
 			}
 		});
 	}
+
+	public boolean isDisplayActionPossibleOnDocument(final Document document, final User user) {
+		return documentExtensions.getBooleanValue(true,
+				(behavior) -> behavior.isDisplayActionPossible(
+						new DocumentExtension.DocumentExtensionActionPossibleParams(document, user)));
+	}
+
+	public boolean isOpenActionPossibleOnDocument(final Document document, final User user) {
+		return documentExtensions.getBooleanValue(true,
+				(behavior) -> behavior.isOpenActionPossible(
+						new DocumentExtension.DocumentExtensionActionPossibleParams(document, user)));
+	}
+
+	public boolean isEditActionPossibleOnDocument(final Document document, final User user) {
+		return documentExtensions.getBooleanValue(true,
+				(behavior) -> behavior.isEditActionPossible(
+						new DocumentExtension.DocumentExtensionActionPossibleParams(document, user)));
+	}
+
+	public boolean isDownloadActionPossibleOnDocument(final Document document, final User user) {
+		return documentExtensions.getBooleanValue(true,
+				(behavior) -> behavior.isDownloadActionPossible(
+						new DocumentExtension.DocumentExtensionActionPossibleParams(document, user)));
+	}
+
+	// TODO adapt methods below to use a lambda
 
 	public boolean isCopyActionPossibleOnDocument(final Document document, final User user) {
 		return documentExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<DocumentExtension>() {
@@ -242,7 +274,8 @@ public class RMModuleExtensions implements ModuleExtensions {
 		return breadcrumbTrail;
 	}
 
-	public boolean navigateToDisplayDocumentWhileKeepingTraceOfPreviousView(NavigateToFromAPageParams navigateToFromAPageParams) {
+	public boolean navigateToDisplayDocumentWhileKeepingTraceOfPreviousView(
+			NavigateToFromAPageParams navigateToFromAPageParams) {
 		for (NavigateToFromAPageImportExtension navigateToFromAPageImportExtension : getNavigateToFromAPageExtensions()) {
 			if (navigateToFromAPageImportExtension.navigateToDisplayDocumentWhileKeepingTraceOfPreviousView(navigateToFromAPageParams)) {
 				return true;
@@ -252,7 +285,8 @@ public class RMModuleExtensions implements ModuleExtensions {
 		return false;
 	}
 
-	public boolean navigateToDisplayFolderWhileKeepingTraceOfPreviousView(NavigateToFromAPageParams navigateToFromAPageParams) {
+	public boolean navigateToDisplayFolderWhileKeepingTraceOfPreviousView(
+			NavigateToFromAPageParams navigateToFromAPageParams) {
 		for (NavigateToFromAPageImportExtension navigateToFromAPageImportExtension : getNavigateToFromAPageExtensions()) {
 			if (navigateToFromAPageImportExtension.navigateToDisplayFolderWhileKeepingTraceOfPreviousView(navigateToFromAPageParams)) {
 				return true;
@@ -262,7 +296,8 @@ public class RMModuleExtensions implements ModuleExtensions {
 		return false;
 	}
 
-	public boolean navigateToEditFolderWhileKeepingTraceOfPreviousView(NavigateToFromAPageParams navigateToFromAPageParams) {
+	public boolean navigateToEditFolderWhileKeepingTraceOfPreviousView(
+			NavigateToFromAPageParams navigateToFromAPageParams) {
 		for (NavigateToFromAPageImportExtension navigateToFromAPageImportExtension : getNavigateToFromAPageExtensions()) {
 			if (navigateToFromAPageImportExtension.navigateToEditFolderWhileKeepingTraceOfPreviousView(navigateToFromAPageParams)) {
 				return true;
@@ -272,7 +307,8 @@ public class RMModuleExtensions implements ModuleExtensions {
 		return false;
 	}
 
-	public boolean navigateToDuplicateFolderWhileKeepingTraceOfPreviousView(NavigateToFromAPageParams navigateToFromAPageParams) {
+	public boolean navigateToDuplicateFolderWhileKeepingTraceOfPreviousView(
+			NavigateToFromAPageParams navigateToFromAPageParams) {
 		for (NavigateToFromAPageImportExtension navigateToFromAPageImportExtension : getNavigateToFromAPageExtensions()) {
 			if (navigateToFromAPageImportExtension.navigateToDuplicateFolderWhileKeepingTraceOfPreviousView(navigateToFromAPageParams)) {
 				return true;
@@ -282,7 +318,8 @@ public class RMModuleExtensions implements ModuleExtensions {
 		return false;
 	}
 
-	public boolean navigateToEditDocumentWhileKeepingTraceOfPreviousView(NavigateToFromAPageParams navigateToFromAPageParams) {
+	public boolean navigateToEditDocumentWhileKeepingTraceOfPreviousView(
+			NavigateToFromAPageParams navigateToFromAPageParams) {
 		for (NavigateToFromAPageImportExtension navigateToFromAPageImportExtension : getNavigateToFromAPageExtensions()) {
 			if (navigateToFromAPageImportExtension.navigateToEditDocumentWhileKeepingTraceOfPreviousView(navigateToFromAPageParams)) {
 				return true;
@@ -292,7 +329,8 @@ public class RMModuleExtensions implements ModuleExtensions {
 		return false;
 	}
 
-	public boolean navigateToAddDocumentWhileKeepingTraceOfPreviousView(NavigateToFromAPageParams navigateToFromAPageParams) {
+	public boolean navigateToAddDocumentWhileKeepingTraceOfPreviousView(
+			NavigateToFromAPageParams navigateToFromAPageParams) {
 		for (NavigateToFromAPageImportExtension navigateToFromAPageImportExtension : getNavigateToFromAPageExtensions()) {
 			if (navigateToFromAPageImportExtension.navigateToAddDocumentWhileKeepingTraceOfPreviousView(navigateToFromAPageParams)) {
 				return true;
