@@ -94,6 +94,7 @@ public class HashingServiceTest extends ConstellioTest {
 			throws Exception {
 		assertThat(md5HashingService.getHashFromBytes(bytesContent)).isEqualTo(expectedMD5Hash);
 		assertThat(sha1HashingService.getHashFromBytes(bytesContent)).isEqualTo(expectedSHA1Hash);
+		assertThat(sha1HashingService.getHashFromString("")).isEqualTo("2jmj7l5rSw0yVb/vlWAYkK/YBwk=");
 	}
 
 	@Test

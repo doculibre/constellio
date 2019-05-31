@@ -14,6 +14,8 @@ public class ConnectorHttpContext implements Serializable {
 
 	Map<String, String> documentUrlsClassifiedByDigests = new HashMap<>();
 
+	long version = 0L;
+
 	public boolean isNewUrl(String url) {
 		return !fetchedUrls.contains(url);
 	}
@@ -21,11 +23,13 @@ public class ConnectorHttpContext implements Serializable {
 	public synchronized void markAsFetched(String url) {
 		ConnectorHttpContextServices.dirtyContexts.add(connectorId);
 		fetchedUrls.add(url);
+		version++;
 	}
 
 	public synchronized void markAsNoMoreFetched(String url) {
 		ConnectorHttpContextServices.dirtyContexts.add(connectorId);
 		fetchedUrls.remove(url);
+		version++;
 	}
 
 	public String getDocumentUrlWithDigest(String digest) {
@@ -36,12 +40,14 @@ public class ConnectorHttpContext implements Serializable {
 		if (url.equals(documentUrlsClassifiedByDigests.get(digest))) {
 			ConnectorHttpContextServices.dirtyContexts.add(connectorId);
 			documentUrlsClassifiedByDigests.remove(digest);
+			version++;
 		}
 	}
 
 	public synchronized void addDocumentDigest(String digest, String url) {
 		ConnectorHttpContextServices.dirtyContexts.add(connectorId);
 		documentUrlsClassifiedByDigests.put(digest, url);
+		version++;
 	}
 
 	ConnectorHttpContext(String connectorId) {
@@ -52,4 +58,5 @@ public class ConnectorHttpContext implements Serializable {
 		return connectorId;
 	}
 
+	public long getVersion() { return version; }
 }

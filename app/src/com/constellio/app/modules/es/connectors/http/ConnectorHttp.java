@@ -11,13 +11,20 @@ import com.constellio.app.modules.es.services.mapping.ConnectorField;
 import com.constellio.app.modules.es.ui.pages.ConnectorReportView;
 import com.constellio.data.utils.BatchBuilderIterator;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.schemas.MetadataListFilter;
+import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.gargoylesoftware.htmlunit.DefaultCredentialsProvider;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.auth.AuthScope;
 import org.jetbrains.annotations.NotNull;
+import org.apache.solr.client.solrj.SolrServerException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -29,17 +36,26 @@ import static java.util.Arrays.asList;
 
 public class ConnectorHttp extends Connector {
 
-	private ConnectorHttpContext context;
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(ConnectorHttp.class);
+
+	private ConnectorHttpDocumentURLCache cache;
+
+	//private ConnectorHttpContext context;
+
+	private long lastVersion = -1;
 
 	String connectorId;
 
-	ConnectorHttpContextServices contextServices;
+	//ConnectorHttpContextServices contextServices;
 
 
 	@Override
 	public void initialize(Record instanceRecord) {
 		this.connectorId = instanceRecord.getId();
-		this.contextServices = new ConnectorHttpContextServices(es);
+		cache = new ConnectorHttpDocumentURLCache(es.wrapConnectorInstance(instanceRecord), es.getAppLayerFactory());
+		es.getModelLayerFactory().getCachesManager().register(instanceRecord.getCollection(), connectorId, cache);
+
 	}
 
 	public HttpURLFetchingService newFetchingService() {
@@ -89,18 +105,22 @@ public class ConnectorHttp extends Connector {
 	}
 
 	public void start() {
-		context = contextServices.createContext(connectorId);
+		//context = contextServices.createContext(connectorId);
+		cache.onConnectorStart();
 
 		ConnectorHttpInstance connectorInstance = getConnectorInstance();
 		List<ConnectorDocument> documents = new ArrayList<>();
 		Set<String> urls = new HashSet<>();
 		urls.addAll(connectorInstance.getSeedsList());
 		urls.removeAll(connectorInstance.getOnDemandsList());
+
 		for (String url : urls) {
-			ConnectorHttpDocument httpDocument = newUnfetchedURLDocument(url, 0);
-			httpDocument.setInlinks(Arrays.asList(url));
-			documents.add(httpDocument);
-			context.markAsFetched(url);
+			if (!cache.exists(url)) {
+				ConnectorHttpDocument httpDocument = newUnfetchedURLDocument(url, 0);
+				httpDocument.setInlinks(Arrays.asList(url));
+				documents.add(httpDocument);
+				//context.markAsFetched(url);
+			}
 
 		}
 		eventObserver.addUpdateEvents(documents);
@@ -116,11 +136,12 @@ public class ConnectorHttp extends Connector {
 
 		List<ConnectorHttpDocument> documents = new ArrayList<>();
 		for (String url : getConnectorInstance().getOnDemandsList()) {
-			if (context.isNewUrl(url)) {
-				ConnectorHttpDocument httpDocument = newUnfetchedURLDocument(url, 0);
-				httpDocument.setInlinks(Arrays.asList(url));
-				documents.add(httpDocument);
-				context.markAsFetched(url);
+			if (!cache.exists(url)) {
+				if (cache.tryLockingDocumentForFetching(url)) {
+					ConnectorHttpDocument httpDocument = newUnfetchedURLDocument(url, 0);
+					httpDocument.setInlinks(Arrays.asList(url));
+					documents.add(httpDocument);
+				}
 			} else {
 				documents.add(es.getConnectorHttpDocumentByUrl(url));
 			}
@@ -142,16 +163,18 @@ public class ConnectorHttp extends Connector {
 
 	@Override
 	public void stop() {
-
+		LOGGER.info("Stopping connector on instance '" + connectorId + "'");
+		cache.onConnectorStop();
 	}
 
 	@Override
 	public void afterJobs(List<ConnectorJob> jobs) {
-		contextServices.save(context);
 	}
 
 	public void resume() {
-		context = contextServices.loadContext(connectorId);
+		LOGGER.info("Resuming connector on instance '" + connectorId + "'");
+		cache.onConnectorResume();
+
 	}
 
 	@Override
@@ -173,14 +196,23 @@ public class ConnectorHttp extends Connector {
 
 	@Override
 	public void onAllDocumentsDeleted() {
-		contextServices.deleteContext(connectorId);
+		cache.onAllDocumentsDeleted();
 	}
 
 	@Override
 	public synchronized List<ConnectorJob> getJobs() {
+		try {
+			es.getModelLayerFactory().getDataLayerFactory().getRecordsVaultServer().flush();
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		} catch (SolrServerException e) {
+			throw new RuntimeException(e);
+		}
+		cache.onConnectorGetJobsCalled();
 		ConnectorHttpInstance connectorInstance = getConnectorInstance();
 		for (String url : connectorInstance.getSeedsList()) {
-			if (context.isNewUrl(url)) {
+
+			if (!cache.exists(url) && cache.tryLockingDocumentForFetching(url)) {
 				try {
 					ConnectorHttpDocument connectorHttpDocument = newUnfetchedURLDocument(url, 0);
 					connectorHttpDocument.setInlinks(Arrays.asList(url));
@@ -189,7 +221,6 @@ public class ConnectorHttp extends Connector {
 				} catch (RecordServicesException e) {
 					throw new RuntimeException(e);
 				}
-				context.markAsFetched(url);
 			}
 		}
 
@@ -197,6 +228,16 @@ public class ConnectorHttp extends Connector {
 		List<ConnectorHttpDocument> onDemands = getOnDemandDocuments();
 
 		LogicalSearchQuery query = es.connectorDocumentsToFetchQuery(connectorInstance);
+
+		List<Metadata> metadatas = es.connectorHttpDocument.schema().getMetadatas().only(new MetadataListFilter() {
+			@Override
+			public boolean isReturned(Metadata metadata) {
+				return !metadata.getLocalCode().equals(ConnectorHttpDocument.PARSED_CONTENT)
+					   && !metadata.getLocalCode().equals(ConnectorHttpDocument.DESCRIPTION)
+					   && !metadata.getLocalCode().equals(ConnectorHttpDocument.THESAURUS_MATCH);
+			}
+		});
+		query.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(metadatas));
 
 		query.clearSort();
 		query.sortAsc(es.connectorHttpDocument.fetched());
@@ -211,7 +252,7 @@ public class ConnectorHttp extends Connector {
 				connectorInstance.getDocumentsPerJobs());
 
 		while (documentBatchsIterator.hasNext()) {
-			jobs.add(new ConnectorHttpFetchJob(this, connectorInstance, documentBatchsIterator.next(), context, logger));
+			jobs.add(new ConnectorHttpFetchJob(this, connectorInstance, documentBatchsIterator.next(), cache, logger));
 		}
 
 		if (!onDemands.isEmpty()) {

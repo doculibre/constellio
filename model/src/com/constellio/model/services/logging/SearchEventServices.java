@@ -220,7 +220,8 @@ public class SearchEventServices {
 	}
 
 	public List<String> getMostPopularQueriesAutocomplete(String input, int maxResults, String[] excludedRequests) {
-		String escapedInput = ClientUtils.escapeQueryChars(input).toLowerCase();
+
+		String escapedInput = ClientUtils.escapeQueryChars(StringUtils.stripAccents(input.trim())).toLowerCase();
 		String query = "query_s:" + escapedInput + "*";
 		if (excludedRequests.length > 0) {
 			query += " AND NOT query_s:(" + StringUtils.join(excludedRequests, " OR ") + ")";

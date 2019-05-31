@@ -14,13 +14,10 @@ import java.util.concurrent.TimeUnit;
 
 public class MultithreadConnectorJobCrawler implements ConnectorJobCrawler {
 
-	private final BlockingQueue<Runnable> queue;
-	private final ThreadPoolExecutor executor;
+	private static final BlockingQueue<Runnable> queue = new LinkedBlockingQueue<>();
+	private static final ThreadPoolExecutor executor = new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors(), Runtime.getRuntime().availableProcessors() * 2, 60, TimeUnit.SECONDS, queue, new ThreadPoolExecutor.CallerRunsPolicy());;
 
 	public MultithreadConnectorJobCrawler() {
-		queue = new LinkedBlockingQueue<>();
-		int cores = Runtime.getRuntime().availableProcessors();
-		executor = new ThreadPoolExecutor(cores, cores * 2, 10, TimeUnit.SECONDS, queue, new ThreadPoolExecutor.CallerRunsPolicy());
 	}
 
 	/* (non-Javadoc)
@@ -43,10 +40,5 @@ public class MultithreadConnectorJobCrawler implements ConnectorJobCrawler {
 				throw new RuntimeException(e);
 			}
 		}
-
-	}
-
-	public void shutdown() {
-		executor.shutdown();
 	}
 }

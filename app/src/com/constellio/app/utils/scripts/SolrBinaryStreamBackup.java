@@ -37,7 +37,7 @@ import java.util.zip.GZIPOutputStream;
 public class SolrBinaryStreamBackup {
 
 	private static final String[] COLLECTIONS = new String[] { "records", "events", "notifications" };
-	private static final int THREADS = Runtime.getRuntime().availableProcessors() * 8;
+	private static final int THREADS = 1;
 	private static final int BATCH_SIZE = 1000;
 
 	public static void main(String[] argv)

@@ -218,8 +218,55 @@ public class SkosConcept implements Serializable {
 		return match.getValues();
 	}
 
+	public Set<String> getAltLabelsParsedForSearch(Locale locale) {
+		SkosConceptAltLabel match = null;
+		for (SkosConceptAltLabel altLabel : altLabels) {
+			if (altLabel.getLocale().equals(locale)) {
+				match = altLabel;
+				break;
+			}
+		}
+		if (match == null) {
+			match = new SkosConceptAltLabel();
+			match.setLocale(locale);
+			match.setSkosConcept(this);
+			altLabels.add(match);
+		}
+		return match.getValuesParsedForSearch();
+	}
+
+	public Set<String> getParsedForSearchAltLabels(Locale locale) {
+		SkosConceptAltLabel match = null;
+		for (SkosConceptAltLabel altLabel : altLabels) {
+			if (altLabel.getLocale().equals(locale)) {
+				match = altLabel;
+				break;
+			}
+		}
+		if (match == null) {
+			match = new SkosConceptAltLabel();
+			match.setLocale(locale);
+			match.setSkosConcept(this);
+			altLabels.add(match);
+		}
+		return match.getValuesParsedForSearch();
+	}
+
 	public void addAltLabel(Locale locale, String value) {
-		getAltLabels(locale).add(value);
+		SkosConceptAltLabel match = null;
+		for (SkosConceptAltLabel altLabel : altLabels) {
+			if (altLabel.getLocale().equals(locale)) {
+				match = altLabel;
+				break;
+			}
+		}
+		if (match == null) {
+			match = new SkosConceptAltLabel();
+			match.setLocale(locale);
+			match.setSkosConcept(this);
+			altLabels.add(match);
+		}
+		match.addValue(value);
 	}
 
 	// @Override

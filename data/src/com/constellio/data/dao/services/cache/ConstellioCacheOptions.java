@@ -1,7 +1,6 @@
 package com.constellio.data.dao.services.cache;
 
-public class
-ConstellioCacheOptions {
+public class ConstellioCacheOptions {
 
 	boolean invalidateRemotelyWhenPutting;
 

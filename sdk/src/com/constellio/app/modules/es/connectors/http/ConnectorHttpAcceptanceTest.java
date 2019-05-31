@@ -723,8 +723,11 @@ public class ConnectorHttpAcceptanceTest extends ConstellioTest {
 
 		fullyFetchWebsite();
 		verifyWebsiteInVersion1IsCorrectlyFetched();
-		ConnectorHttpContext context = loadContext();
-		assertThat(context.fetchedUrls).containsOnly(
+
+		ConnectorHttpDocumentURLCache cache = (ConnectorHttpDocumentURLCache)
+				getModelLayerFactory().getCachesManager().getCollectionCache(zeCollection, connectorInstance.getId());
+
+		assertThat(cache.getCache().keySet()).containsOnly(
 				WEBSITE + "index.html",
 				WEBSITE + "singes.html",
 				WEBSITE + "girafe.html",
@@ -734,7 +737,8 @@ public class ConnectorHttpAcceptanceTest extends ConstellioTest {
 				WEBSITE + "singes/macaque.html"
 		);
 
-		assertThat(context.documentUrlsClassifiedByDigests).containsOnly(
+
+		assertThat(cache.documentUrlsClassifiedByDigests).containsOnly(
 				entry(INDEX_DIGEST, WEBSITE + "index.html"),
 				entry(SINGES_DIGEST, WEBSITE + "singes.html"),
 				entry(GIRAFE_DIGEST, WEBSITE + "girafe.html"),
@@ -751,8 +755,7 @@ public class ConnectorHttpAcceptanceTest extends ConstellioTest {
 		givenTestWebsiteInState3WithDuplucates();
 		fullyFetchWebsite();
 
-		context = loadContext();
-		assertThat(context.fetchedUrls).containsOnly(
+		assertThat(cache.getCache().keySet()).containsOnly(
 				WEBSITE + "index.html",
 				WEBSITE + "singes.html",
 				WEBSITE + "singes.txt",
@@ -777,7 +780,7 @@ public class ConnectorHttpAcceptanceTest extends ConstellioTest {
 		);
 
 		//
-		assertThat(context.documentUrlsClassifiedByDigests).containsOnly(
+		assertThat(cache.documentUrlsClassifiedByDigests).containsOnly(
 				entry(INDEX_DIGEST_V3, WEBSITE + "index.html"),
 				entry(INDEX_COPY_DIGEST_V3, WEBSITE + "copy/index.html"),
 				entry(SINGES_DIGEST_V3, WEBSITE + "singes.html"),
@@ -876,8 +879,7 @@ public class ConnectorHttpAcceptanceTest extends ConstellioTest {
 		givenTestWebsiteInState4WithDuplicatesModified();
 		fullyFetchWebsite();
 
-		context = loadContext();
-		assertThat(context.fetchedUrls).containsOnly(
+		assertThat(cache.getCache().keySet()).containsOnly(
 				WEBSITE + "index.html",
 				WEBSITE + "singes.html",
 				WEBSITE + "singes.txt",
@@ -901,7 +903,7 @@ public class ConnectorHttpAcceptanceTest extends ConstellioTest {
 				WEBSITE + "copy/singes/macaque.html"
 		);
 
-		assertThat(context.documentUrlsClassifiedByDigests).containsOnly(
+		assertThat(cache.documentUrlsClassifiedByDigests).containsOnly(
 				entry(INDEX_DIGEST_V3, WEBSITE + "index.html"),
 				entry(INDEX_COPY_DIGEST_V3, WEBSITE + "copy/index.html"),
 				entry(SINGES_DIGEST_V3, WEBSITE + "singes.html"),
@@ -1024,6 +1026,7 @@ public class ConnectorHttpAcceptanceTest extends ConstellioTest {
 		givenDataSet1Connector();
 
 		recordServices.update(connectorInstance.setMaxLevel(1));
+		String cacheName = "ConnectorDocumentURLCache-" + zeCollection + "-" + connectorInstance.getId();
 
 		// *
 		// * ----------------- Fetch phase 1 --------------
@@ -1067,8 +1070,7 @@ public class ConnectorHttpAcceptanceTest extends ConstellioTest {
 				tuple(WEBSITE + "girafe.html", true, ONE_MINUTE_AFTER_TIME1, true, 1),
 				tuple(WEBSITE + "elephant.html", true, ONE_MINUTE_AFTER_TIME1, true, 1)
 		);
-		ConnectorHttpContext context = loadContext();
-		assertThat(context.fetchedUrls).containsOnly(
+		assertThat(getDataLayerFactory().getLocalCacheManager().getCache(cacheName).keySet()).containsOnly(
 				WEBSITE + "index.html",
 				WEBSITE + "singes.html",
 				WEBSITE + "elephant.html",
@@ -1088,8 +1090,8 @@ public class ConnectorHttpAcceptanceTest extends ConstellioTest {
 				tuple(WEBSITE + "singes/gorille.html", true, true, 2),
 				tuple(WEBSITE + "singes/macaque.html", true, true, 2)
 		);
-		context = loadContext();
-		assertThat(context.fetchedUrls).containsOnly(
+
+		assertThat(getDataLayerFactory().getLocalCacheManager().getCache(cacheName).keySet()).containsOnly(
 				WEBSITE + "index.html",
 				WEBSITE + "singes.html",
 				WEBSITE + "elephant.html",

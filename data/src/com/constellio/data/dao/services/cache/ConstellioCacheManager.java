@@ -14,5 +14,4 @@ public interface ConstellioCacheManager extends StatefulService {
 	ConstellioCache createCache(String name, ConstellioCacheOptions options);
 
 	void clearAll();
-
 }
