@@ -24,13 +24,14 @@ public class SystemInfo {
 
 	private static final String MISSING_INFORMATION_ON_CONSTELLIO_MEMORY_CONFIGURATION = "missingInformationOnConstellioMemoryConfiguration";
 	private static final String MISSING_INFORMATION_ON_SOLR_MEMORY_CONFIGURATION = "missingInformationOnSolrMemoryConfiguration";
-	private static final String MISSING_INFORMATION_ON_SERVER_TOTAL_MEMORY = "missingInformationOnServerTotalMemory";
+	private static final String MISSING_INFORMATION_ON_TOTAL_SERVER_MEMORY = "missingInformationOnTotalServerMemory";
 	private static final String CONSTELLIO_ALLOCATED_MEMORY = "constellioAllocatedMemory";
 	private static final String SOLR_ALLOCATED_MEMORY = "solrAllocatedMemory";
 	private static final String TOTAL_SERVER_MEMORY = "totalServerMemory";
 	private static final String UNALLOCATED_MEMORY = "unallocatedMemory";
 	private static final String INVALID_LICENSE = "invalidLicense";
 	private static final String LICENSE_EXPIRED = "licenseExpired";
+	private static final String VALID_LICENSE = "validLicense";
 	private static final String OPT_DISK_USAGE = "optDiskUsage";
 	private static final String OPT_DISK_USAGE_MISSING_INFO = "optDiskUsageMissingInfo";
 	private static final String SOLR_DISK_USAGE = "solrDiskUsage";
@@ -208,10 +209,10 @@ public class SystemInfo {
 
 	private void validateMemoryAllocation() {
 		String parameterKey = "memory";
-		HashMap<String, Object> constellioMemoryParameters = buildSingleValueParameters(parameterKey, systemMemory.getConstellioAllocatedMemory().toString());
-		HashMap<String, Object> solrMemoryParameters = buildSingleValueParameters(parameterKey, systemMemory.getSolrAllocatedMemory().toString());
-		HashMap<String, Object> totalServerMemoryParameters = buildSingleValueParameters(parameterKey, systemMemory.getTotalSystemMemory().toString());
-		HashMap<String, Object> unallocatedMemoryParameters = buildSingleValueParameters(parameterKey, systemMemory.getUnallocatedMemory().toString());
+		HashMap<String, Object> constellioMemoryParameters = buildSingleValueParameters(parameterKey, systemMemory.getConstellioAllocatedMemory().toString(MemoryUnit.GB));
+		HashMap<String, Object> solrMemoryParameters = buildSingleValueParameters(parameterKey, systemMemory.getSolrAllocatedMemory().toString(MemoryUnit.GB));
+		HashMap<String, Object> totalServerMemoryParameters = buildSingleValueParameters(parameterKey, systemMemory.getTotalSystemMemory().toString(MemoryUnit.GB));
+		HashMap<String, Object> unallocatedMemoryParameters = buildSingleValueParameters(parameterKey, systemMemory.getUnallocatedMemory().toString(MemoryUnit.GB));
 
 		if(systemMemory.getConstellioAllocatedMemory().getAmount() != null && systemMemory.getSolrAllocatedMemory().getAmount() != null && systemMemory.getTotalSystemMemory().getAmount() != null) {
 
@@ -252,7 +253,7 @@ public class SystemInfo {
 			}
 
 			if(systemMemory.getTotalSystemMemory().getAmount() == null) {
-				validationErrors.addWarning(SystemInfo.class, MISSING_INFORMATION_ON_SERVER_TOTAL_MEMORY, totalServerMemoryParameters);
+				validationErrors.addWarning(SystemInfo.class, MISSING_INFORMATION_ON_TOTAL_SERVER_MEMORY, totalServerMemoryParameters);
 			} else {
 				validationErrors.addLog(SystemInfo.class, TOTAL_SERVER_MEMORY, totalServerMemoryParameters);
 			}
@@ -298,6 +299,8 @@ public class SystemInfo {
 			validationErrors.addWarning(SystemInfo.class, INVALID_LICENSE);
 		} else if(TimeProvider.getLocalDate().isAfter(licenseInfo.getExpirationDate())) {
 			validationErrors.addWarning(SystemInfo.class, LICENSE_EXPIRED, buildSingleValueParameters("expirationDate", licenseInfo.getExpirationDate().toString("yyyy-MM-dd")));
+		} else {
+			validationErrors.addLog(SystemInfo.class, VALID_LICENSE, buildSingleValueParameters("expirationDate", licenseInfo.getExpirationDate().toString("yyyy-MM-dd")));
 		}
 	}
 
@@ -307,7 +310,7 @@ public class SystemInfo {
 		if(StringUtils.isNotBlank(optDiskUsage) && optDiskUsage.endsWith("%")) {
 			try {
 				int consumptionPercentage = Integer.parseInt(optDiskUsage.replace("%", ""));
-				HashMap<String, Object> parameters = buildSingleValueParameters(parameterKey, consumptionPercentage);
+				HashMap<String, Object> parameters = buildSingleValueParameters(parameterKey, consumptionPercentage + "%");
 				if(isInRange(consumptionPercentage, 0, 75)) {
 					validationErrors.addLog(SystemInfo.class, OPT_DISK_USAGE, parameters);
 				} else if(isInRange(consumptionPercentage, 75, 90)) {
@@ -325,7 +328,7 @@ public class SystemInfo {
 		if(StringUtils.isNotBlank(solrDiskUsage) && solrDiskUsage.endsWith("%")) {
 			try {
 				int consumptionPercentage = Integer.parseInt(solrDiskUsage.replace("%", ""));
-				HashMap<String, Object> parameters = buildSingleValueParameters(parameterKey, consumptionPercentage);
+				HashMap<String, Object> parameters = buildSingleValueParameters(parameterKey, consumptionPercentage + "%");
 				if(isInRange(consumptionPercentage, 0, 75)) {
 					validationErrors.addLog(SystemInfo.class, SOLR_DISK_USAGE, parameters);
 				} else if(isInRange(consumptionPercentage, 75, 90)) {

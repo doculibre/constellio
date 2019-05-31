@@ -303,7 +303,7 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 		} else if (!validationErrors.isEmptyErrorAndWarnings()) {
 			systemStateButton.setIcon(new ThemeResource("images/commun/warning.png"));
 		} else {
-			systemStateButton.setIcon(new ThemeResource("images/commun/lancement.png"));
+			systemStateButton.setIcon(new ThemeResource("images/commun/greenCircle.png"));
 		}
 	}
 

@@ -162,10 +162,14 @@ public class SystemMemory {
 		}
 
 		public String toString(MemoryUnit unit) {
+			return toString(unit, 0);
+		}
+
+		public String toString(MemoryUnit unit, int numberOfDecimals) {
 			if(amount == null || unit == null) {
 				return $("UpdateManagerViewImpl.statut");
 			}
-			return convertToUnit(unit) + " " + unit.getCode();
+			return String.format("%." + numberOfDecimals + "f", convertToUnit(unit)) + " " + unit.getCode();
 		}
 
 		public static MemoryDetails buildUnrecognizableMemoryAmount(final String unrecognizableAmount) {
@@ -235,5 +239,6 @@ public class SystemMemory {
 		System.out.println(systemInfo.getTotalSystemMemory().toString());
 		System.out.println(systemInfo.getConstellioAllocatedMemory().toString());
 		System.out.println(systemInfo.getSolrAllocatedMemory().toString());
+		System.out.println(new MemoryDetails(2652897.28, MemoryUnit.KB).toString(MemoryUnit.GB, 1));
 	}
 }
