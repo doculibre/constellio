@@ -79,6 +79,11 @@ public class RecordsCachesMemoryImpl implements RecordsCaches {
 		return getCache(type.getCollection()).getAllValuesInUnmodifiableState(type.getCode()).stream();
 	}
 
+	@Override
+	public Stream<Record> stream(String colletion) {
+		throw new UnsupportedOperationException();
+	}
+
 	public CacheInsertionStatus insert(Record record, InsertionReason reason) {
 		RecordsCache cache = getCache(record.getCollection());
 		return cache.insert(record, reason);

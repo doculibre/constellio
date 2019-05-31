@@ -15,8 +15,6 @@ import com.constellio.model.services.records.RecordServicesRuntimeException.NoSu
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
-import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
-import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
@@ -34,13 +32,12 @@ import java.util.List;
 import static com.constellio.data.dao.services.cache.InsertionReason.WAS_MODIFIED;
 import static com.constellio.model.services.records.cache.CacheConfig.permanentCache;
 import static com.constellio.model.services.records.cache.CacheConfig.volatileCache;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsUnique;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 
-public class RecordsCacheAcceptanceTest extends ConstellioTest {
+public class PermanentRecordsCacheAcceptanceTest extends ConstellioTest {
 
 	Transaction transaction;
 	User adminInZeCollection, adminInAnotherCollection;
@@ -114,34 +111,6 @@ public class RecordsCacheAcceptanceTest extends ConstellioTest {
 		queriesListener = new StatsBigVaultServerExtension();
 		extensions.getBigVaultServerExtension().add(queriesListener);
 
-	}
-
-	@Test
-	public void givenRecordsAreNotFullyLoadedThenNotInsertedInCache()
-			throws Exception {
-
-		givenTestRecords();
-		recordsCaches.invalidateAll();
-
-		List<Record> records = searchServices.search(new LogicalSearchQuery().setCondition(
-				fromAllSchemasIn(zeCollection).returnAll())
-				.setReturnedMetadatas(ReturnedMetadatasFilter.idVersionSchemaTitlePath()));
-
-		for (Record record : records) {
-			assertThat(record.isFullyLoaded()).isFalse();
-			recordsCaches.insert(record, WAS_MODIFIED);
-		}
-
-		assertThatRecords("1", "2", "3", "18", "42").areNotInCache();
-
-		records = searchServices.search(new LogicalSearchQuery().setCondition(
-				fromAllSchemasIn(zeCollection).returnAll()));
-		for (Record record : records) {
-			assertThat(record.isFullyLoaded()).isTrue();
-			recordsCaches.insert(record, WAS_MODIFIED);
-		}
-
-		assertThatRecords("2", "3", "18", "42").areInCache();
 	}
 
 	@Test
@@ -339,12 +308,12 @@ public class RecordsCacheAcceptanceTest extends ConstellioTest {
 		assertThat(recordServices.getRecordByMetadata(stringMetadata, "code3").getId()).isEqualTo("3");
 		assertThat(recordServices.getRecordByMetadata(stringMetadata, "code18").getId()).isEqualTo("18");
 		assertThat(recordServices.getRecordByMetadata(stringMetadata, "code42").getId()).isEqualTo("42");
-		assertThat(queriesListener.queries).hasSize(3);
+		assertThat(queriesListener.queries).hasSize(0);
 
 		assertThat(recordServices.getRecordByMetadata(stringMetadata, "code3").getId()).isEqualTo("3");
 		assertThat(recordServices.getRecordByMetadata(stringMetadata, "code18").getId()).isEqualTo("18");
 		assertThat(recordServices.getRecordByMetadata(stringMetadata, "code42").getId()).isEqualTo("42");
-		assertThat(queriesListener.queries).hasSize(3);
+		assertThat(queriesListener.queries).hasSize(0);
 	}
 
 	@Test

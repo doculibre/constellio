@@ -448,7 +448,7 @@ public class SearchServices {
 			Record record = searchSingleResultUsingCache(condition);
 
 			if (Toggle.VALIDATE_CACHE_EXECUTION_SERVICE_USING_SOLR.isEnabled()) {
-				Record recordFromSolr = searchSingleResultUsingCache(condition);
+				Record recordFromSolr = searchSingleResultUsingSolr(condition);
 
 				String recordId = record == null ? null : record.getId();
 				String recordFromSolrId = recordFromSolr == null ? null : recordFromSolr.getId();

@@ -127,7 +127,7 @@ public class RecordsCaches2Impl implements RecordsCaches {
 			} else {
 				RecordDTO cachedDto = volatileCache.get(record.getId());
 				if (cachedDto == null || cachedDto.getVersion() < current.getVersion()) {
-					volatileCache.put(record.getId(), ((RecordImpl)record).getRecordDTO());
+					volatileCache.put(record.getId(), ((RecordImpl) record).getRecordDTO());
 				}
 
 			}
@@ -170,6 +170,9 @@ public class RecordsCaches2Impl implements RecordsCaches {
 			String summaryMetadataDataStoreCode = summaryMetadata.getDataStoreCode();
 			fields.put(summaryMetadataDataStoreCode, dto.getFields().get(summaryMetadataDataStoreCode));
 		}
+
+		fields.put("collection_s", dto.getFields().get("collection_s"));
+		fields.put("schema_s", dto.getFields().get("schema_s"));
 
 		return new SolrRecordDTO(dto.getId(), dto.getVersion(), Collections.unmodifiableMap(fields), dto.isSummary());
 
@@ -217,6 +220,14 @@ public class RecordsCaches2Impl implements RecordsCaches {
 	public Stream<Record> stream(MetadataSchemaType type) {
 		return memoryDataStore.stream(type.getCollectionInfo().getCollectionId(), type.getId()).map(dto -> new RecordImpl(dto, type.getCollectionInfo()));
 	}
+
+
+	@Override
+	public Stream<Record> stream(String collection) {
+		CollectionInfo collectionInfo = this.metadataSchemasManager.getSchemaTypes(collection).getCollectionInfo();
+		return memoryDataStore.stream(collectionInfo.getCollectionId()).map(dto -> new RecordImpl(dto, collectionInfo));
+	}
+
 
 	private void remove(RecordDTO recordDTO) {
 		int intId = CacheRecordDTOUtils.toIntKey(recordDTO.getId());

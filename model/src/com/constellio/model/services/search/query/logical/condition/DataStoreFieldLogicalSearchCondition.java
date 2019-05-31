@@ -1,6 +1,8 @@
 package com.constellio.model.services.search.query.logical.condition;
 
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.DataStoreField;
+import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.services.search.query.logical.LogicalOperator;
 import com.constellio.model.services.search.query.logical.LogicalSearchConditionRuntimeException;
 import com.constellio.model.services.search.query.logical.LogicalSearchValueCondition;
@@ -11,6 +13,8 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import static com.constellio.model.services.search.query.logical.LogicalOperator.AND;
 
 public class DataStoreFieldLogicalSearchCondition extends LogicalSearchCondition {
 
@@ -77,7 +81,7 @@ public class DataStoreFieldLogicalSearchCondition extends LogicalSearchCondition
 		zeConditions.add(valueCondition);
 		zeConditions.addAll(conditions);
 
-		LogicalSearchValueCondition newValueCondition = new CompositeLogicalSearchValueOperator(LogicalOperator.AND,
+		LogicalSearchValueCondition newValueCondition = new CompositeLogicalSearchValueOperator(AND,
 				zeConditions);
 		return new DataStoreFieldLogicalSearchCondition(filters, dataStoreFields,
 				metadataLogicalOperator, newValueCondition);
@@ -176,5 +180,26 @@ public class DataStoreFieldLogicalSearchCondition extends LogicalSearchCondition
 			LogicalSearchValueCondition newValueCondition) {
 		return new DataStoreFieldLogicalSearchCondition(filters, dataStoreFields, metadataLogicalOperator,
 				newValueCondition);
+	}
+
+	@Override
+	public boolean test(Record record) {
+
+		boolean returnedValue = this.metadataLogicalOperator == AND;
+
+		for (DataStoreField queriedField : dataStoreFields) {
+			if (this.metadataLogicalOperator == AND) {
+				returnedValue &= valueCondition.testConditionOnField((Metadata) queriedField, record);
+			} else {
+				returnedValue |= valueCondition.testConditionOnField((Metadata) queriedField, record);
+			}
+		}
+
+		return returnedValue;
+	}
+
+	@Override
+	public boolean isSupportingMemoryExecution() {
+		return valueCondition.isSupportingMemoryExecution();
 	}
 }

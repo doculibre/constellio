@@ -66,7 +66,7 @@ public class LogicalSearchQueryExecutorInCache {
 
 		MetadataSchemaType schemaType = getQueriedSchemaType(condition);
 		return schemaType != null && schemaType.getCacheType().hasPermanentCache()
-			   && Toggle.USE_CACHE_FOR_QUERY_EXECUTION.isEnabled();
+			   && Toggle.USE_CACHE_FOR_QUERY_EXECUTION.isEnabled() && condition.isSupportingMemoryExecution();
 
 	}
 

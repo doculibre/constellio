@@ -31,7 +31,6 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import static com.constellio.data.dao.services.cache.InsertionReason.WAS_OBTAINED;
 import static com.constellio.data.dao.services.records.DataStore.RECORDS;
 
 public class CachedRecordServices extends BaseRecordServices implements RecordServices {
@@ -115,9 +114,6 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 
 		if (foundRecord == null) {
 			foundRecord = recordServices.getRecordByMetadata(metadata, value);
-			if (foundRecord != null) {
-				getConnectedRecordsCache().insert(foundRecord, WAS_OBTAINED);
-			}
 		}
 
 		return foundRecord;
