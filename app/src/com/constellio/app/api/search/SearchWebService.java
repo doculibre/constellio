@@ -147,7 +147,7 @@ public class SearchWebService extends AbstractSearchServlet {
 				disambiguationsNL.add(locale.getLanguage(), localeDisambiguationsNL);
 			}
 
-			skosConceptsNL.add(ThesaurusService.DESAMBIUGATIONS, disambiguationsNL);
+			skosConceptsNL.add(ThesaurusService.DISAMBIGUATIONS, disambiguationsNL);
 		}
 
 		writeResponse(resp, solrParams, queryResponse, skosConceptsNL, null, null, null, null);

@@ -532,7 +532,11 @@ public class ReindexingServices {
 
 			}
 
-			bulkTransactionHandler.barrier();
+			try {
+				bulkTransactionHandler.barrier();
+			} catch (InterruptedException e) {
+				throw new RuntimeException(e);
+			}
 			modelLayerFactory.newRecordServices().flush();
 			recordsProvider.markIterationAsFinished();
 			logger.onEndOfIteration(recordsProvider.getSkippedRecordsCount(), recordsProvider.getCurrentIteration());

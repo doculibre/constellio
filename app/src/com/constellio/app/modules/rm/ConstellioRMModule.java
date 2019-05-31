@@ -173,6 +173,7 @@ import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.RecordMigrationScript;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.Capsule;
 import com.constellio.model.entities.records.wrappers.Report;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.ThesaurusConfig;
@@ -521,6 +522,10 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 
 		if (!cache.isConfigured(ThesaurusConfig.SCHEMA_TYPE)) {
 			cache.configureCache(CacheConfig.permanentCache(rm.thesaurusConfig.schemaType()));
+		}
+
+		if (!cache.isConfigured(Capsule.SCHEMA_TYPE)) {
+			cache.configureCache(CacheConfig.permanentCache(rm.capsule.schemaType()));
 		}
 
 		cache.configureCache(CacheConfig.permanentCache(rm.category.schemaType()));

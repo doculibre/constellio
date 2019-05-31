@@ -1055,7 +1055,9 @@ public class RecordServicesImpl extends BaseRecordServices {
 		List<Record> newRecords = new ArrayList<>();
 		List<Record> modifiedRecords = new ArrayList<>();
 		Map<String, MetadataList> modifiedMetadatasOfModifiedRecords = new HashMap<>();
+
 		for (Record record : modifiedOrUnsavedRecords) {
+			MetadataSchema schema = types.getSchema(record.getSchemaCode());
 			if (record.isSaved()) {
 
 				if (record.isModified(Schemas.LOGICALLY_DELETED_STATUS)) {
@@ -1067,13 +1069,13 @@ public class RecordServicesImpl extends BaseRecordServices {
 				} else {
 					modifiedRecords.add(record);
 					MetadataList modifiedMetadatas = record.getModifiedMetadatas(types);
-					events.add(new RecordModificationEvent(record, modifiedMetadatas));
+					events.add(new RecordModificationEvent(record, modifiedMetadatas, schema));
 					modifiedMetadatasOfModifiedRecords.put(record.getId(), modifiedMetadatas);
 				}
 
 			} else {
 				newRecords.add(record);
-				events.add(new RecordCreationEvent(record));
+				events.add(new RecordCreationEvent(record, schema));
 			}
 		}
 

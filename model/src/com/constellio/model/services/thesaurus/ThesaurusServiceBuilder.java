@@ -24,6 +24,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class ThesaurusServiceBuilder {
@@ -97,15 +98,8 @@ public class ThesaurusServiceBuilder {
 			LOGGER.finest("Third pass of skos:Concept tags (validating relationships)");
 			processSKOSConceptsRelationships(parsedConcepts, namespaceContext, skosConceptElements);
 
-		} catch (JDOMException e) {
-
-			throw new ThesaurusInvalidFileFormat(e);
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		} catch (JaxenException e) {
-			throw new RuntimeException(e);
-		} catch (ParseException e) {
-			throw new RuntimeException(e);
+		} catch (Exception e) {
+			LOGGER.log(Level.WARNING, "Failed to create mew thesaurus service", e);
 		} finally {
 			IOUtils.closeQuietly(skosFileStream);
 		}
@@ -308,7 +302,7 @@ public class ThesaurusServiceBuilder {
 				Locale altLabelLocale = lang != null ? new Locale(lang) : Locale.ENGLISH;
 				String altLabel = altLabelElement.getValue();
 				altLabel = StringEscapeUtils.unescapeXml(altLabel);
-				skosConcept.getAltLabels(altLabelLocale).add(altLabel);
+				skosConcept.addAltLabel(altLabelLocale, altLabel);
 			}
 		}
 		addParsedConcepts(thesaurus, parsedConcepts);

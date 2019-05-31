@@ -107,7 +107,7 @@ public class SystemInformationsService {
 				return true;
 			}
 
-			String[] version1 = version.split("\\.");
+			String[] version1 = version.split("\\.|_");
 			String[] version2 = requiredVersion.split("\\.");
 
 			for (int i = 0; i < version1.length; i++) {

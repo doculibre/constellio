@@ -294,7 +294,7 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 	}
 
 	private void vaultRecoveryFileDelete(File recoveryFile) {
-		if (!recoveryFile.delete()) {
+		if (recoveryFile.exists() && !recoveryFile.delete()) {
 			throw new FileSystemContentDaoRuntimeException.FileSystemContentDaoRuntimeException_ErrorWhileDeletingVaultRecoveryFile();
 		}
 	}
