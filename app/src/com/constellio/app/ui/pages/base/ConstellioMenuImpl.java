@@ -238,6 +238,11 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 				mainLayout.addComponents(mainLayoutTitle, contentLayout);
 				return mainLayout;
 			}
+
+			@Override
+			public boolean isVisible() {
+				return presenter.hasUserRightToViewSystemState();
+			}
 		};
 		systemStateButton.addStyleName(BUTTON_TINY);
 		refreshSystemStateButton();
@@ -296,7 +301,6 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 	}
 
 	private void refreshSystemStateButton() {
-		systemStateButton.setVisible(true);
 		ValidationErrors validationErrors = SystemInfo.getInstance().getValidationErrors();
 		if(!validationErrors.isEmpty()) {
 			systemStateButton.setIcon(new ThemeResource("images/commun/error.gif"));

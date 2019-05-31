@@ -10,6 +10,7 @@ import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.conf.FoldersLocatorMode;
 import com.constellio.model.frameworks.validation.ValidationErrors;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.LocalDateTime;
@@ -77,6 +78,7 @@ public class SystemInfo {
 	synchronized public void recalculate() {
 		//TODO merge SystemInformationsService with SystemAnalysisUtils
 		AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
+		ConstellioEIMConfigs configs = new ConstellioEIMConfigs(appLayerFactory.getModelLayerFactory());
 		SystemInformationsService systemInformationsService = new SystemInformationsService();
 		this.lastTimeUpdated = TimeProvider.getLocalDateTime();
 		systemMemory = SystemMemory.fetchSystemMemoryInfo();
@@ -98,7 +100,7 @@ public class SystemInfo {
 			solrDiskUsage = systemInformationsService.getDiskUsage("/var/solr");
 		}
 
-		analyzeSystemAndFindValidationErrors();
+		analyzeSystemAndFindValidationErrors(configs);
 	}
 
 	synchronized public void appendConstellioFreeMemory() {
@@ -192,7 +194,8 @@ public class SystemInfo {
 		return validationErrors;
 	}
 
-	private void analyzeSystemAndFindValidationErrors() {
+	private void analyzeSystemAndFindValidationErrors(
+			ConstellioEIMConfigs configs) {
 		validationErrors.clearAll();
 
 //		FOR TEST PURPOSE
@@ -200,10 +203,18 @@ public class SystemInfo {
 //		objectObjectHashMap.put("memory", "0.5 GB");
 //		validationErrors.add(SystemInfo.class, UNALLOCATED_MEMORY, objectObjectHashMap);
 
-		validateLicense();
-		validateMemoryAllocation();
-		validateMemoryConsumption();
-		validateDiskUsage();
+		if(configs.isSystemStateLicenseValidationEnabled()) {
+			validateLicense();
+		}
+
+		if (configs.isSystemStateMemoryAllocationValidationEnabled()) {
+			validateMemoryAllocation();
+		}
+
+		validateDiskUsage(configs);
+
+
+//		validateMemoryConsumption();
 //		validateRepository();
 	}
 
@@ -308,43 +319,47 @@ public class SystemInfo {
 		}
 	}
 
-	private void validateDiskUsage() {
+	private void validateDiskUsage(ConstellioEIMConfigs configs) {
 		String parameterKey = "consumptionPercentage";
 
-		if(StringUtils.isNotBlank(optDiskUsage) && optDiskUsage.endsWith("%")) {
-			try {
-				int consumptionPercentage = Integer.parseInt(optDiskUsage.replace("%", ""));
-				HashMap<String, Object> parameters = buildSingleValueParameters(parameterKey, consumptionPercentage + "%");
-				if(isInRange(consumptionPercentage, 0, 75)) {
-					validationErrors.addLog(SystemInfo.class, OPT_DISK_USAGE, parameters);
-				} else if(isInRange(consumptionPercentage, 75, 90)) {
-					validationErrors.addWarning(SystemInfo.class, OPT_DISK_USAGE, parameters);
-				} else {
-					validationErrors.add(SystemInfo.class, OPT_DISK_USAGE, parameters);
+		if(configs.isSystemStateOptDiskUsageValidationEnabled()) {
+			if(StringUtils.isNotBlank(optDiskUsage) && optDiskUsage.endsWith("%")) {
+				try {
+					int consumptionPercentage = Integer.parseInt(optDiskUsage.replace("%", ""));
+					HashMap<String, Object> parameters = buildSingleValueParameters(parameterKey, consumptionPercentage + "%");
+					if(isInRange(consumptionPercentage, 0, 75)) {
+						validationErrors.addLog(SystemInfo.class, OPT_DISK_USAGE, parameters);
+					} else if(isInRange(consumptionPercentage, 75, 90)) {
+						validationErrors.addWarning(SystemInfo.class, OPT_DISK_USAGE, parameters);
+					} else {
+						validationErrors.add(SystemInfo.class, OPT_DISK_USAGE, parameters);
+					}
+				} catch (Exception e) {
+					validationErrors.addWarning(SystemInfo.class, OPT_DISK_USAGE_MISSING_INFO, new HashMap<String, Object>());
 				}
-			} catch (Exception e) {
+			} else {
 				validationErrors.addWarning(SystemInfo.class, OPT_DISK_USAGE_MISSING_INFO, new HashMap<String, Object>());
 			}
-		} else {
-			validationErrors.addWarning(SystemInfo.class, OPT_DISK_USAGE_MISSING_INFO, new HashMap<String, Object>());
 		}
 
-		if(StringUtils.isNotBlank(solrDiskUsage) && solrDiskUsage.endsWith("%")) {
-			try {
-				int consumptionPercentage = Integer.parseInt(solrDiskUsage.replace("%", ""));
-				HashMap<String, Object> parameters = buildSingleValueParameters(parameterKey, consumptionPercentage + "%");
-				if(isInRange(consumptionPercentage, 0, 75)) {
-					validationErrors.addLog(SystemInfo.class, SOLR_DISK_USAGE, parameters);
-				} else if(isInRange(consumptionPercentage, 75, 90)) {
-					validationErrors.addWarning(SystemInfo.class, SOLR_DISK_USAGE, parameters);
-				} else {
-					validationErrors.add(SystemInfo.class, SOLR_DISK_USAGE, parameters);
+		if(configs.isSystemStateSolrDiskUsageValidationEnabled()) {
+			if(StringUtils.isNotBlank(solrDiskUsage) && solrDiskUsage.endsWith("%")) {
+				try {
+					int consumptionPercentage = Integer.parseInt(solrDiskUsage.replace("%", ""));
+					HashMap<String, Object> parameters = buildSingleValueParameters(parameterKey, consumptionPercentage + "%");
+					if(isInRange(consumptionPercentage, 0, 75)) {
+						validationErrors.addLog(SystemInfo.class, SOLR_DISK_USAGE, parameters);
+					} else if(isInRange(consumptionPercentage, 75, 90)) {
+						validationErrors.addWarning(SystemInfo.class, SOLR_DISK_USAGE, parameters);
+					} else {
+						validationErrors.add(SystemInfo.class, SOLR_DISK_USAGE, parameters);
+					}
+				} catch (Exception e) {
+					validationErrors.addWarning(SystemInfo.class, SOLR_DISK_USAGE_MISSING_INFO, new HashMap<String, Object>());
 				}
-			} catch (Exception e) {
+			} else {
 				validationErrors.addWarning(SystemInfo.class, SOLR_DISK_USAGE_MISSING_INFO, new HashMap<String, Object>());
 			}
-		} else {
-			validationErrors.addWarning(SystemInfo.class, SOLR_DISK_USAGE_MISSING_INFO, new HashMap<String, Object>());
 		}
 	}
 

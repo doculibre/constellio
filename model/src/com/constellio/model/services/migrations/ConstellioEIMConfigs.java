@@ -163,6 +163,10 @@ public class ConstellioEIMConfigs {
 
 	public static final SystemConfiguration ADD_RECORD_ID_IN_EMAILS;
 
+	public static final SystemConfiguration ENABLE_SYSTEM_STATE_MEMORY_ALLOCATION;
+	public static final SystemConfiguration ENABLE_SYSTEM_STATE_OPT_DISK_USAGE;
+	public static final SystemConfiguration ENABLE_SYSTEM_STATE_SOLR_DISK_USAGE;
+	public static final SystemConfiguration ENABLE_SYSTEM_STATE_LICENSE;
 
 	static {
 		SystemConfigurationGroup others = new SystemConfigurationGroup(null, "others");
@@ -300,6 +304,12 @@ public class ConstellioEIMConfigs {
 		add(ADD_RECORD_ID_IN_EMAILS = others.createBooleanFalseByDefault("addRecordIdInEmails"));
 
 		configurations = Collections.unmodifiableList(modifiableConfigs);
+
+		SystemConfigurationGroup systemState = new SystemConfigurationGroup(null, "systemState");
+		add(ENABLE_SYSTEM_STATE_LICENSE = systemState.createBooleanTrueByDefault("enableSystemStateLicense"));
+		add(ENABLE_SYSTEM_STATE_MEMORY_ALLOCATION = systemState.createBooleanTrueByDefault("enableSystemStateMemoryAllocation"));
+		add(ENABLE_SYSTEM_STATE_OPT_DISK_USAGE = systemState.createBooleanTrueByDefault("enableSystemStateOptDiskUsage"));
+		add(ENABLE_SYSTEM_STATE_SOLR_DISK_USAGE = systemState.createBooleanTrueByDefault("enableSystemStateSolrDiskUsage"));
 	}
 
 	static void add(SystemConfiguration configuration) {
@@ -571,4 +581,19 @@ public class ConstellioEIMConfigs {
 		return manager.getValue(ADD_RECORD_ID_IN_EMAILS);
 	}
 
+	public boolean isSystemStateLicenseValidationEnabled() {
+		return manager.getValue(ENABLE_SYSTEM_STATE_LICENSE);
+	}
+
+	public boolean isSystemStateMemoryAllocationValidationEnabled() {
+		return manager.getValue(ENABLE_SYSTEM_STATE_MEMORY_ALLOCATION);
+	}
+
+	public boolean isSystemStateOptDiskUsageValidationEnabled() {
+		return manager.getValue(ENABLE_SYSTEM_STATE_OPT_DISK_USAGE);
+	}
+
+	public boolean isSystemStateSolrDiskUsageValidationEnabled() {
+		return manager.getValue(ENABLE_SYSTEM_STATE_SOLR_DISK_USAGE);
+	}
 }
