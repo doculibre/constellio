@@ -507,9 +507,10 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 	}
 
 	private Button buildPrintButton() {
-		ReportButton button = new ReportButton(new ReportWithCaptionVO("Reports.DecommissioningList", $("Reports.DecommissioningList")), presenter);
-//		ReportButton button = new ReportButton(new ReportWithCaptionVO("Reports.DecommissioningListExcelFormat", $("Reports.DecommissioningListExcelFormat")), presenter);
-		button.setCaption($("DecommissioningListView.print"));
+        DecommissioningListReportButton button = new DecommissioningListReportButton(presenter,
+                new ReportWithCaptionVO("Reports.DecommissioningList", $("Reports.DecommissioningList")),
+                new ReportWithCaptionVO("Reports.DecommissioningListExcelFormat", $("Reports.DecommissioningListExcelFormat")));
+        button.setCaption($("DecommissioningListView.print"));
 		button.addStyleName(ValoTheme.BUTTON_LINK);
 		return button;
 	}

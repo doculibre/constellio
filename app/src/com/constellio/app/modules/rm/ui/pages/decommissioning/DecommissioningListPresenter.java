@@ -41,6 +41,7 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.RecordServicesWrapperRuntimeException;
 import com.constellio.model.services.records.SchemasRecordsServices;
+import com.constellio.model.services.reports.ReportServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
@@ -749,7 +750,15 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 
     @Override
     public List<ReportWithCaptionVO> getSupportedReports() {
-        return asList(new ReportWithCaptionVO("Reports.DecommissioningList", $("Reports.DecommissioningList")));
+        List<ReportWithCaptionVO> supportedReports = new ArrayList<>();
+        ReportServices reportServices = new ReportServices(modelLayerFactory, collection);
+        List<String> userReports = reportServices.getUserReportTitles(getCurrentUser(), Folder.SCHEMA_TYPE);
+        if (userReports != null) {
+            for (String reportTitle : userReports) {
+                supportedReports.add(new ReportWithCaptionVO(reportTitle, reportTitle));
+            }
+        }
+        return supportedReports;
     }
 
     @Override
@@ -757,10 +766,8 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 
         if (report.equals("Reports.DecommissioningList")) {
             return getRmReportBuilderFactories().decommissioningListBuilderFactory.getValue();
-        } else if (report.equals("Reports.DecommissioningListExcelFormat")) {
+        } else {
             return getRmReportBuilderFactories().decommissioningListExcelBuilderFactory.getValue();
-        } else {//Reports.documentsCertificate //Reports.foldersCertificate
-            throw new RuntimeException("BUG: Unknown report: " + report);
         }
     }
 
@@ -768,10 +775,9 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
     public Object getReportParameters(String report) {
         if (report.equals("Reports.DecommissioningList")) {
             return new DecommissioningListReportParameters(decommissioningList.getId());
-        } else if (report.equals("Reports.DecommissioningListExcelFormat")) {
-            return new DecommissioningListExcelReportParameters(decommissioningList.getId());
         } else {
-            throw new RuntimeException("BUG: Unknown report: " + report);
+            return new DecommissioningListExcelReportParameters(decommissioningList.getId(),
+                    Folder.SCHEMA_TYPE, collection, report, getCurrentUser());
         }
     }
 

@@ -1,28 +1,22 @@
 package com.constellio.app.modules.rm.reports.model.decommissioning;
 
 import com.constellio.app.ui.i18n.i18n;
+import org.apache.commons.collections.CollectionUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class DecommissioningListExcelReportModel {
     private final List<String> columnsTitles = new ArrayList<>();
-    private Map<String, List<List<Object>>> resultBySheet = new HashMap<>();
+    private List<List<Object>> results = new ArrayList<>();
     public static final String SINGLE_SHEET_CAPTION_KEY = "Report.sheetName";
 
-    public List<List<Object>> getResults(String sheet) {
-        if (resultBySheet.keySet().size() > 0) {
-            return resultBySheet.get(sheet);
-        } else {
-            return Collections.emptyList();
-        }
+    public List<List<Object>> getResults() {
+        return new ArrayList<>(CollectionUtils.unmodifiableCollection(results));
     }
 
-    public List<String> getSheetNames() {
-        if (resultBySheet.keySet().size() > 0) {
-            return new ArrayList<>(resultBySheet.keySet());
-        } else {
-            return Arrays.asList(i18n.$(SINGLE_SHEET_CAPTION_KEY));
-        }
+    public String getSheetName() {
+        return i18n.$(SINGLE_SHEET_CAPTION_KEY);
     }
 
     public List<String> getColumnsTitles() {
@@ -33,11 +27,7 @@ public class DecommissioningListExcelReportModel {
         columnsTitles.add(title);
     }
 
-    public void addLine(String sheet, List<Object> recordLine) {
-        if (resultBySheet.get(sheet) == null) {
-            resultBySheet.put(sheet, new ArrayList<List<Object>>());
-        }
-
-        resultBySheet.get(sheet).add(recordLine);
+    public void addLine(List<Object> recordLine) {
+        results.add(recordLine);
     }
 }
