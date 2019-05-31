@@ -976,11 +976,11 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 				uniqueIntegerMetadata, 1,
 				uniqueStringMetadata, "A",
 				integersMetadata, asList(42, 56),
-				numbersMetadata, asList(12.3, 45.6),
+				numbersMetadata, asList(12.3, 45.90),
 				booleanMetadata, true,
 				stringsMetadata, asList("abc", "def"),
 				enumsMetadata, FolderStatus.SEMI_ACTIVE.getCode(),
-				referencesMetadata, asList(id1)
+				referencesMetadata, asList(id2)
 		), true));
 
 		dtosToInsert.add(new SolrRecordDTO(id5, 55L, fields(zeCollection, "type1_default",
@@ -991,7 +991,7 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 				booleanMetadata, false,
 				stringsMetadata, asList("gh", "ij"),
 				enumsMetadata, FolderStatus.ACTIVE.getCode(),
-				referencesMetadata, asList(id1, id2)
+				referencesMetadata, asList(id1)
 		), true));
 
 		dtosToInsert.add(new SolrRecordDTO(id6, 66L, fields(zeCollection, "type1_default",
@@ -1002,7 +1002,7 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 				booleanMetadata, false,
 				stringsMetadata, asList("yyyy", "zzzz"),
 				enumsMetadata, FolderStatus.INACTIVE_DEPOSITED.getCode(),
-				referencesMetadata, asList(id2, id3)
+				referencesMetadata, asList(id3)
 		), true));
 
 		dtosToInsert.add(new SolrRecordDTO(id7, 77L, fields(zeCollection, "type1_default",
@@ -1024,7 +1024,7 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 				booleanMetadata, false,
 				stringsMetadata, asList("pfpfp", "asdas"),
 				enumsMetadata, FolderStatus.INACTIVE_DEPOSITED.getCode(),
-				referencesMetadata, asList(id5, id6)
+				referencesMetadata, asList(id4, id6)
 		), true));
 
 		dtosToInsert.forEach((dto -> {
@@ -1061,46 +1061,77 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 
 		assertThatRecordsWithValue(collection1Type1, uniqueStringMetadata, "C").containsOnly(id6);
 
-		//		assertThatRecordsWithValue(collection1Type1, integersMetadata, asList(42, 56)).containsOnly(id4);
-		//
-		//		assertThatRecordsWithValue(collection1Type1, integersMetadata, asList(123, 456)).containsOnly(id5);
-		//
-		//		assertThatRecordsWithValue(collection1Type1, integersMetadata, asList(444, 555)).containsOnly(id6);
-		//
-		//		assertThatRecordsWithValue(collection1Type1, integersMetadata, asList(460, 461)).containsOnly(id7, id8);
-		//
-		//		assertThatRecordsWithValue(collection1Type1, numbersMetadata, asList(12.3, 45.6)).containsOnly(id4);
-		//
-		//		assertThatRecordsWithValue(collection1Type1, numbersMetadata, asList(11.1, 45.6)).containsOnly(id5);
-		//
-		//		assertThatRecordsWithValue(collection1Type1, numbersMetadata, asList(1000.0001, 2000.0002)).containsOnly(id6);
-		//
-		//		assertThatRecordsWithValue(collection1Type1, numbersMetadata, asList(1300.0001, 21000.0002)).containsOnly(id7, id8);
+		assertThatRecordsWithValue(collection1Type1, integersMetadata, 42).containsOnly(id4);
+
+		assertThatRecordsWithValue(collection1Type1, integersMetadata, 456).containsOnly(id5);
+
+		assertThatRecordsWithValue(collection1Type1, integersMetadata, 555).containsOnly(id6);
+
+		assertThatRecordsWithValue(collection1Type1, integersMetadata, 460).containsOnly(id7, id8);
+
+		assertThatRecordsWithValue(collection1Type1, numbersMetadata, 12.3).containsOnly(id4);
+
+		assertThatRecordsWithValue(collection1Type1, numbersMetadata, 45.6).containsOnly(id5);
+
+		assertThatRecordsWithValue(collection1Type1, numbersMetadata, 1000.0001).containsOnly(id6);
+
+		assertThatRecordsWithValue(collection1Type1, numbersMetadata, 21000.0002).containsOnly(id7, id8);
 
 		assertThatRecordsWithValue(collection1Type1, booleanMetadata, true).containsOnly(id4);
 
 		assertThatRecordsWithValue(collection1Type1, booleanMetadata, false).containsOnly(id5, id6, id7, id8);
 
-		//		assertThatRecordsWithValue(collection1Type1, stringsMetadata, asList("abc", "def")).containsOnly(id4);
-		//
-		//		assertThatRecordsWithValue(collection1Type1, stringsMetadata, asList("gh", "ij")).containsOnly(id5);
-		//
-		//		assertThatRecordsWithValue(collection1Type1, stringsMetadata, asList("yyyy", "zzzz")).containsOnly(id6);
-		//
-		//		assertThatRecordsWithValue(collection1Type1, stringsMetadata, asList("pfpfp", "asdas")).containsOnly(id7, id8);
+		assertThatRecordsWithValue(collection1Type1, stringsMetadata, "abc").containsOnly(id4);
+
+		assertThatRecordsWithValue(collection1Type1, stringsMetadata, "gh").containsOnly(id5);
+
+		assertThatRecordsWithValue(collection1Type1, stringsMetadata, "yyyy").containsOnly(id6);
+
+		assertThatRecordsWithValue(collection1Type1, stringsMetadata, "pfpfp").containsOnly(id7, id8);
 
 		assertThatRecordsWithValue(collection1Type1, enumsMetadata, FolderStatus.SEMI_ACTIVE.getCode()).containsOnly(id4);
 
 		assertThatRecordsWithValue(collection1Type1, enumsMetadata, FolderStatus.INACTIVE_DEPOSITED.getCode()).containsOnly(id6, id7, id8);
 
-		//		assertThatRecordsWithValue(collection1Type1, referencesMetadata, asList(id1, id2)).containsOnly(id5);
-		//
-		//		assertThatRecordsWithValue(collection1Type1, referencesMetadata, asList(id5, id6)).containsOnly(id7, id8);
+		assertThatRecordsWithValue(collection1Type1, referencesMetadata, id1).containsOnly(id5);
+
+		assertThatRecordsWithValue(collection1Type1, referencesMetadata, id6).containsOnly(id7, id8);
 
 		dataStore.remove(dataStore.get(id4));
 
 		assertThatRecordsWithValue(collection1Type1, uniqueIntegerMetadata, 1).isEmpty();
 		assertThatRecordsWithValue(collection1Type1, uniqueStringMetadata, "A").isEmpty();
+
+		SolrRecordDTO solrRecordDTO = new SolrRecordDTO(id4, 44L, fields(zeCollection, "type1_default",
+				uniqueIntegerMetadata, 14,
+				uniqueStringMetadata, "W",
+				integersMetadata, asList(4212, 564),
+				numbersMetadata, asList(12.332, 45.9023),
+				booleanMetadata, false,
+				stringsMetadata, asList("lalala", "def"),
+				enumsMetadata, FolderStatus.ACTIVE.getCode(),
+				referencesMetadata, asList(id3)
+		), true);
+
+		dataStore.insert(solrRecordDTO);
+
+		assertThatRecordsWithValue(collection1Type1, uniqueIntegerMetadata, 1).isEmpty();
+		assertThatRecordsWithValue(collection1Type1, uniqueStringMetadata, "A").isEmpty();
+		assertThatRecordsWithValue(collection1Type1, integersMetadata, 42).isEmpty();
+		assertThatRecordsWithValue(collection1Type1, numbersMetadata, 12.3).isEmpty();
+		assertThatRecordsWithValue(collection1Type1, booleanMetadata, true).isEmpty();
+		assertThatRecordsWithValue(collection1Type1, stringsMetadata, "abc").isEmpty();
+		assertThatRecordsWithValue(collection1Type1, enumsMetadata, FolderStatus.SEMI_ACTIVE.getCode()).doesNotContain(id4);
+		assertThatRecordsWithValue(collection1Type1, referencesMetadata, id2).doesNotContain(id4);
+
+		assertThatRecordsWithValue(collection1Type1, uniqueIntegerMetadata, 14).containsOnly(id4);
+		assertThatRecordsWithValue(collection1Type1, uniqueStringMetadata, "W").containsOnly(id4);
+		assertThatRecordsWithValue(collection1Type1, integersMetadata, 4212).containsOnly(id4);
+		assertThatRecordsWithValue(collection1Type1, numbersMetadata, 12.332).containsOnly(id4);
+		assertThatRecordsWithValue(collection1Type1, booleanMetadata, false).containsOnly(id4, id5, id6, id7, id8);
+		assertThatRecordsWithValue(collection1Type1, stringsMetadata, "lalala").containsOnly(id4);
+		assertThatRecordsWithValue(collection1Type1, enumsMetadata, FolderStatus.ACTIVE.getCode()).containsOnly(id5, id4);
+		assertThatRecordsWithValue(collection1Type1, referencesMetadata, id3).containsOnly(id6, id4);
 	}
 
 	private ListAssert<String> assertThatRecordsWithValue(short typeId, String metadataDataStoreCode,
