@@ -222,7 +222,7 @@ public class SystemInfo {
 
 			validationErrors.addLog(SystemInfo.class, TOTAL_SERVER_MEMORY, totalServerMemoryParameters);
 
-			if(constellioMemoryPercentage < 20) {
+			if(constellioMemoryPercentage <= 20) {
 				validationErrors.add(SystemInfo.class, CONSTELLIO_ALLOCATED_MEMORY, constellioMemoryParameters);
 			} else if(constellioMemoryPercentage < 40) {
 				validationErrors.addWarning(SystemInfo.class, CONSTELLIO_ALLOCATED_MEMORY, constellioMemoryParameters);
@@ -230,7 +230,7 @@ public class SystemInfo {
 				validationErrors.addLog(SystemInfo.class, CONSTELLIO_ALLOCATED_MEMORY, constellioMemoryParameters);
 			}
 
-			if(solrMemoryPercentage < 20) {
+			if(solrMemoryPercentage <= 20) {
 				validationErrors.add(SystemInfo.class, SOLR_ALLOCATED_MEMORY, solrMemoryParameters);
 			} else if(solrMemoryPercentage < 40) {
 				validationErrors.addWarning(SystemInfo.class, SOLR_ALLOCATED_MEMORY, solrMemoryParameters);
