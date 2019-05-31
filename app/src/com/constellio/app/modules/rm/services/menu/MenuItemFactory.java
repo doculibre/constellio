@@ -32,16 +32,18 @@ public class MenuItemFactory {
 				menuItem.addItemClickListener((event) -> {
 					menuItemAction.getCommand().run();
 				});
-			} else {
+			} else if (menuItemAction.getButton() != null) {
 				menuItem.addItemClickListener((event) -> {
-					// TODO construct button
+					// TODO
 				});
 			}
 		}
 	}
 
-	public MenuBar buildMenuBar(List<MenuItemAction> menuItemActions) {
-		return null;
+	public void buildMenuBar(MenuBar rootMenu, List<MenuItemAction> menuItemActions) {
+		for (MenuItemAction menuItemAction : menuItemActions) {
+			rootMenu.addItem($(menuItemAction.getCaption()), menuItemAction.getIcon(),
+					(selectedItem) -> menuItemAction.getCommand().run());
+		}
 	}
-
 }

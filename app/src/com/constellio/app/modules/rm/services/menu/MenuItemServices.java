@@ -6,7 +6,9 @@ import com.constellio.app.modules.rm.extensions.api.MenuItemActionExtension.Menu
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.actions.DocumentRecordActionsServices;
+import com.constellio.app.modules.rm.services.actions.FolderRecordActionsServices;
 import com.constellio.app.modules.rm.services.actions.behaviors.DocumentRecordActionBehaviors;
+import com.constellio.app.modules.rm.services.actions.behaviors.FolderRecordActionBehaviors;
 import com.constellio.app.modules.rm.services.actions.behaviors.RecordActionBehaviorParams;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -27,6 +29,7 @@ public class MenuItemServices {
 	private String collection;
 	private AppLayerFactory appLayerFactory;
 	private DocumentRecordActionsServices documentRecordActionsServices;
+	private FolderRecordActionsServices folderRecordActionsServices;
 	private RMModuleExtensions rmModuleExtensions;
 	private RMSchemasRecordsServices rm;
 
@@ -34,6 +37,7 @@ public class MenuItemServices {
 		this.collection = collection;
 		this.appLayerFactory = appLayerFactory;
 		documentRecordActionsServices = new DocumentRecordActionsServices(collection, appLayerFactory);
+		folderRecordActionsServices = new FolderRecordActionsServices(collection, appLayerFactory);
 		rmModuleExtensions = appLayerFactory.getExtensions().forCollection(collection).forModule(ConstellioRMModule.ID);
 		rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 	}
@@ -95,7 +99,51 @@ public class MenuItemServices {
 			}
 
 		} else if (record.isOfSchemaType(Folder.SCHEMA_TYPE)) {
-			// TODO
+			if (!filteredActionTypes.contains(MenuItemActionType.FOLDER_ADD_DOCUMENT.name())) {
+				boolean isAddDocumentActionPossible = folderRecordActionsServices.isAddDocumentActionPossible(record, user);
+				menuItemActions.add(buildMenuItemAction(MenuItemActionType.FOLDER_ADD_DOCUMENT, isAddDocumentActionPossible,
+						"DisplayFolderView.addDocument", null, -1, 100,
+						() -> new FolderRecordActionBehaviors(collection, appLayerFactory).addToDocument(params)));
+			}
+
+			if (!filteredActionTypes.contains(MenuItemActionType.FOLDER_MOVE.name())) {
+				boolean isMoveActionPossible = folderRecordActionsServices.isMoveActionPossible(record, user);
+				menuItemActions.add(buildMenuItemAction(MenuItemActionType.FOLDER_MOVE, isMoveActionPossible,
+						"DisplayFolderView.parentFolder", null, -1, 200,
+						() -> new FolderRecordActionBehaviors(collection, appLayerFactory).move(params)));
+			}
+
+			if (!filteredActionTypes.contains(MenuItemActionType.FOLDER_ADD_SUBFOLDER.name())) {
+				boolean isAddSubFolderActionPossible = folderRecordActionsServices.isAddSubFolderActionPossible(record, user);
+				menuItemActions.add(buildMenuItemAction(MenuItemActionType.FOLDER_ADD_SUBFOLDER, isAddSubFolderActionPossible,
+						"DisplayFolderView.addSubFolder", null, -1, 300,
+						() -> new FolderRecordActionBehaviors(collection, appLayerFactory).addSubFolder(params)));
+			}
+
+			if (!filteredActionTypes.contains(MenuItemActionType.FOLDER_DISPLAY.name())) {
+				boolean isDisplayActionPossible = folderRecordActionsServices.isDisplayActionPossible(record, user);
+				menuItemActions.add(buildMenuItemAction(MenuItemActionType.FOLDER_DISPLAY, isDisplayActionPossible,
+						"DisplayFolderView.displayFolder", null, -1, 400,
+						() -> new FolderRecordActionBehaviors(collection, appLayerFactory).display(params)));
+			}
+
+			if (!filteredActionTypes.contains(MenuItemActionType.FOLDER_EDIT.name())) {
+				boolean isEditActionPossible = folderRecordActionsServices.isEditActionPossible(record, user);
+				menuItemActions.add(buildMenuItemAction(MenuItemActionType.FOLDER_EDIT, isEditActionPossible,
+						"DisplayFolderView.editFolder", null, -1, 400,
+						() -> new FolderRecordActionBehaviors(collection, appLayerFactory).edit(params)));
+			}
+
+			if (!filteredActionTypes.contains(MenuItemActionType.FOLDER_DELETE.name())) {
+				boolean isDeletePossible = folderRecordActionsServices.isDeleteActionPossible(record, user);
+				menuItemActions.add(buildMenuItemAction(MenuItemActionType.FOLDER_DELETE, isDeletePossible,
+						"DisplayFolderView.deleteFolder", null, -1, 400,
+						() -> new FolderRecordActionBehaviors(collection, appLayerFactory).delete(params)));
+			}
+
+			// FIXME une autre possibilité est d'avoir MenuItemAction.button et faire en sorte que le runnable fasse un button.click?
+			// Ça éviterait de reconstruire le bouton à chaque fois
+
 		} else {
 			// TODO
 			return Collections.emptyList();
@@ -127,12 +175,18 @@ public class MenuItemServices {
 	}
 
 	private MenuItemAction buildMenuItemAction(MenuItemActionType type, boolean possible, String caption,
+											   Resource icon, int group, int priority, Class buttonClass) {
+		return buildMenuItemAction(type, possible, null, caption, icon, group, priority, buttonClass, null);
+	}
+
+	private MenuItemAction buildMenuItemAction(MenuItemActionType type, boolean possible, String caption,
 											   Resource icon, int group, int priority, Runnable command) {
-		return buildMenuItemAction(type, possible, null, caption, icon, group, priority, command);
+		return buildMenuItemAction(type, possible, null, caption, icon, group, priority, null, command);
 	}
 
 	private MenuItemAction buildMenuItemAction(MenuItemActionType type, boolean possible, String reason, String caption,
-											   Resource icon, int group, int priority, Runnable command) {
+											   Resource icon, int group, int priority, Class buttonClass,
+											   Runnable command) {
 		return MenuItemAction.builder()
 				.type(type.name())
 				.state(toState(possible, reason))
@@ -142,6 +196,7 @@ public class MenuItemServices {
 				.group(group)
 				.priority(priority)
 				.command(command)
+				.button(buttonClass)
 				.build();
 	}
 

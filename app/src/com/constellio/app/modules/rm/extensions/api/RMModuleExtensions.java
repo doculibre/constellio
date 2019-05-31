@@ -6,6 +6,7 @@ import com.constellio.app.api.extensions.params.DocumentFolderBreadCrumbParams;
 import com.constellio.app.api.extensions.params.NavigateToFromAPageParams;
 import com.constellio.app.extensions.ModuleExtensions;
 import com.constellio.app.modules.rm.extensions.api.DocumentExtension.DocumentExtensionAddMenuItemParams;
+import com.constellio.app.modules.rm.extensions.api.FolderExtension.FolderExtensionActionPossibleParams;
 import com.constellio.app.modules.rm.extensions.api.reports.RMReportBuilderFactories;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -131,15 +132,34 @@ public class RMModuleExtensions implements ModuleExtensions {
 		return false;
 	}
 
+	public boolean isAddDocumentActionPossibleOnFolder(final Folder folder, final User user) {
+		return folderExtensions.getBooleanValue(true,
+				(behavior) -> behavior.isAddDocumentActionPossible(new FolderExtensionActionPossibleParams(folder, user)));
+	}
 
 	public boolean isMoveActionPossibleOnFolder(final Folder folder, final User user) {
-		return folderExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<FolderExtension>() {
-			@Override
-			public ExtensionBooleanResult call(FolderExtension behavior) {
-				return behavior.isMoveActionPossible(
-						new FolderExtension.FolderExtensionActionPossibleParams(folder, user));
-			}
-		});
+		return folderExtensions.getBooleanValue(true,
+				(behavior) -> behavior.isMoveActionPossible(new FolderExtensionActionPossibleParams(folder, user)));
+	}
+
+	public boolean isAddSubFolderActionPossibleOnFolder(final Folder folder, final User user) {
+		return folderExtensions.getBooleanValue(true,
+				(behavior) -> behavior.isAddSubFolderActionPossible(new FolderExtensionActionPossibleParams(folder, user)));
+	}
+
+	public boolean isDisplayActionPossibleOnFolder(final Folder folder, final User user) {
+		return folderExtensions.getBooleanValue(true,
+				(behavior) -> behavior.isDisplayActionPossible(new FolderExtensionActionPossibleParams(folder, user)));
+	}
+
+	public boolean isEditActionPossibleOnFolder(final Folder folder, final User user) {
+		return folderExtensions.getBooleanValue(true,
+				(behavior) -> behavior.isEditActionPossible(new FolderExtensionActionPossibleParams(folder, user)));
+	}
+
+	public boolean isDeleteActionPossibleOnFolder(final Folder folder, final User user) {
+		return folderExtensions.getBooleanValue(true,
+				(behavior) -> behavior.isDeleteActionPossible(new FolderExtensionActionPossibleParams(folder, user)));
 	}
 
 	public boolean isShareActionPossibleOnFolder(final Folder folder, final User user) {
