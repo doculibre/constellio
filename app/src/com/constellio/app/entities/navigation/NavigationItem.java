@@ -3,6 +3,7 @@ package com.constellio.app.entities.navigation;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.framework.components.ComponentState;
+import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.viewGroups.MenuViewGroup;
 import com.constellio.model.entities.records.wrappers.User;
 import com.vaadin.server.FontAwesome;
@@ -13,9 +14,15 @@ public interface NavigationItem extends CodedItem, Serializable, Comparable<Navi
 
 	FontAwesome getFontAwesome();
 
+	void setFontAwesome(FontAwesome fontAwesome);
+
 	String getCode();
 
+	void setCode(String code);
+
 	String getIcon();
+
+	void setIcon(String icon);
 
 	int getOrderValue();
 
@@ -27,7 +34,64 @@ public interface NavigationItem extends CodedItem, Serializable, Comparable<Navi
 
 	ComponentState getStateFor(User user, AppLayerFactory appLayerFactory);
 
+	void viewChanged(BaseView oldView, BaseView newView);
+
 	abstract class BaseNavigationItem implements NavigationItem {
+
+		private FontAwesome fontAwesome;
+
+		private String code;
+
+		private String icon;
+
+		private Class<? extends MenuViewGroup> viewGroup;
+
+		public BaseNavigationItem() {
+		}
+
+		public BaseNavigationItem(String code, String icon, FontAwesome fontAwesome,
+								  Class<? extends MenuViewGroup> viewGroup) {
+			this.code = code;
+			this.icon = icon;
+			this.fontAwesome = fontAwesome;
+			this.viewGroup = viewGroup;
+		}
+
+		@Override
+		public FontAwesome getFontAwesome() {
+			return fontAwesome;
+		}
+
+		@Override
+		public void setFontAwesome(FontAwesome fontAwesome) {
+			this.fontAwesome = fontAwesome;
+		}
+
+		@Override
+		public String getCode() {
+			return code;
+		}
+
+		@Override
+		public void setCode(String code) {
+			this.code = code;
+		}
+
+		@Override
+		public String getIcon() {
+			return icon;
+		}
+
+		@Override
+		public void setIcon(String icon) {
+			this.icon = icon;
+		}
+
+		@Override
+		public Class<? extends MenuViewGroup> getViewGroup() {
+			return viewGroup;
+		}
+
 		@Override
 		public int compareTo(NavigationItem o) {
 			return new Integer(getOrderValue()).compareTo(o.getOrderValue());
@@ -42,19 +106,16 @@ public interface NavigationItem extends CodedItem, Serializable, Comparable<Navi
 		public String getBadge(User user, AppLayerFactory appLayerFactory) {
 			return null;
 		}
+
+		@Override
+		public void viewChanged(BaseView oldView, BaseView newView) {
+		}
 	}
 
 	abstract class Active extends BaseNavigationItem implements NavigationItem {
-		private final String code;
-		private final String icon;
-		private final FontAwesome fontAwesome;
-		private final Class<? extends MenuViewGroup> viewGroup;
 
 		public Active(String code, String icon, FontAwesome fontAwesome, Class<? extends MenuViewGroup> viewGroup) {
-			this.code = code;
-			this.icon = icon;
-			this.fontAwesome = fontAwesome;
-			this.viewGroup = viewGroup;
+			super(code, icon, fontAwesome, viewGroup);
 		}
 
 		public Active(String code, FontAwesome fontAwesome, Class<? extends MenuViewGroup> viewGroup) {
@@ -75,23 +136,6 @@ public interface NavigationItem extends CodedItem, Serializable, Comparable<Navi
 
 		public Active(String code) {
 			this(code, null, null, null);
-		}
-
-		@Override
-		public String getCode() {
-			return code;
-		}
-
-		public String getIcon() {
-			return icon;
-		}
-
-		public FontAwesome getFontAwesome() {
-			return fontAwesome;
-		}
-
-		public Class<? extends MenuViewGroup> getViewGroup() {
-			return viewGroup;
 		}
 	}
 
@@ -118,6 +162,21 @@ public interface NavigationItem extends CodedItem, Serializable, Comparable<Navi
 		}
 
 		@Override
+		public void setFontAwesome(FontAwesome fontAwesome) {
+			item.setFontAwesome(fontAwesome);
+		}
+
+		@Override
+		public void setCode(String code) {
+			item.setCode(code);
+		}
+
+		@Override
+		public void setIcon(String icon) {
+			item.setIcon(icon);
+		}
+
+		@Override
 		public int getOrderValue() {
 			return item.getOrderValue();
 		}
@@ -130,6 +189,26 @@ public interface NavigationItem extends CodedItem, Serializable, Comparable<Navi
 		@Override
 		public void activate(Navigation navigate) {
 			item.activate(navigate);
+		}
+
+		@Override
+		public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
+			return item.getStateFor(user, appLayerFactory);
+		}
+
+		@Override
+		public int compareTo(NavigationItem o) {
+			return item.compareTo(o);
+		}
+
+		@Override
+		public String getBadge(User user, AppLayerFactory appLayerFactory) {
+			return item.getBadge(user, appLayerFactory);
+		}
+
+		@Override
+		public void viewChanged(BaseView oldView, BaseView newView) {
+			item.viewChanged(oldView, newView);
 		}
 	}
 
