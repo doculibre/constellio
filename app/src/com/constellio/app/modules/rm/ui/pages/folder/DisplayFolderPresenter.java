@@ -163,12 +163,15 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 	protected RecordToVOBuilder voBuilder = new RecordToVOBuilder();
 
+	private Set<String> selectedRecordIds = new HashSet<>();
 
 	Boolean allItemsSelected = false;
 
 	Boolean allItemsDeselected = false;
 
 	private boolean nestedView;
+
+	private boolean inWindow;
 
 	private Map<String, String> params = null;
 
@@ -177,16 +180,16 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	String sortCriterion;
 	SortOrder sortOrder;
 
-	public DisplayFolderPresenter(DisplayFolderView view, RecordVO recordVO, boolean nestedView) {
+	public DisplayFolderPresenter(DisplayFolderView view, RecordVO recordVO, boolean nestedView, boolean inWindow) {
 		super(view, Folder.DEFAULT_SCHEMA);
 		this.nestedView = nestedView;
+		this.inWindow = inWindow;
 		presenterUtilsForDocument = new SchemaPresenterUtils(Document.DEFAULT_SCHEMA, view.getConstellioFactories(), view.getSessionContext());
 		initTransientObjects();
 		if (recordVO != null) {
 			this.taxonomyCode = recordVO.getId();
 			forParams(recordVO.getId());
 		}
-
 	}
 
 	private void readObject(java.io.ObjectInputStream stream)
@@ -290,8 +293,6 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 		eventsDataProvider = getEventsDataProvider();
 		view.setEvents(eventsDataProvider);
-
-		computeAllItemsSelected();
 	}
 
 	public Map<String, String> getParams() {
@@ -712,7 +713,11 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	ComponentState getDisplayButtonState(User user, Folder folder) {
-		return ComponentState.visibleIf(nestedView && user.hasReadAccess().on(folder));
+		if (view.isInWindow()) {
+			return ComponentState.INVISIBLE;
+		} else {
+			return ComponentState.visibleIf(nestedView && user.hasReadAccess().on(folder));
+		}
 	}
 
 	ComponentState getEditButtonState(User user, Folder folder) {
@@ -1375,46 +1380,16 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	public boolean isSelected(RecordVO recordVO) {
-		String recordId = recordVO.getId();
-		SessionContext sessionContext = view.getSessionContext();
-		return sessionContext.getSelectedRecordIds().contains(recordId);
+		return allItemsSelected || selectedRecordIds.contains(recordVO.getId());
 	}
 
 	public void recordSelectionChanged(RecordVO recordVO, Boolean selected) {
 		String recordId = recordVO.getId();
-		SessionContext sessionContext = view.getSessionContext();
 		if (selected) {
-			sessionContext.addSelectedRecordId(recordId, recordVO.getSchema().getTypeCode());
+			selectedRecordIds.add(recordId);
 		} else {
-			sessionContext.removeSelectedRecordId(recordId, recordVO.getSchema().getTypeCode());
+			selectedRecordIds.remove(recordId);
 		}
-	}
-
-	void computeAllItemsSelected() {
-		SessionContext sessionContext = view.getSessionContext();
-		List<String> selectedRecordIds = sessionContext.getSelectedRecordIds();
-		SearchServices searchServices = modelLayerFactory.newSearchServices();
-
-		if (selectedRecordIds.isEmpty()) {
-			allItemsSelected = false;
-			return;
-		}
-
-		List<String> subFolderIds = searchServices.searchRecordIds(getSubFoldersQuery());
-		for (String subFolderId : subFolderIds) {
-			if (!selectedRecordIds.contains(subFolderId)) {
-				allItemsSelected = false;
-				return;
-			}
-		}
-		List<String> documentIds = searchServices.searchRecordIds(getDocumentsQuery());
-		for (String documentId : documentIds) {
-			if (!selectedRecordIds.contains(documentId)) {
-				allItemsSelected = false;
-				return;
-			}
-		}
-		allItemsSelected = !subFolderIds.isEmpty() || !documentIds.isEmpty();
 	}
 
 	boolean isAllItemsSelected() {
@@ -1428,33 +1403,13 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	void selectAllClicked() {
 		allItemsSelected = true;
 		allItemsDeselected = false;
-
-		SessionContext sessionContext = view.getSessionContext();
-		SearchServices searchServices = modelLayerFactory.newSearchServices();
-		List<String> subFolderIds = searchServices.searchRecordIds(getSubFoldersQuery());
-		for (String subFolderId : subFolderIds) {
-			sessionContext.addSelectedRecordId(subFolderId, Folder.SCHEMA_TYPE);
-		}
-		List<String> documentIds = searchServices.searchRecordIds(getDocumentsQuery());
-		for (String documentId : documentIds) {
-			sessionContext.addSelectedRecordId(documentId, Document.SCHEMA_TYPE);
-		}
+		selectedRecordIds.clear();
 	}
 
 	void deselectAllClicked() {
 		allItemsSelected = false;
 		allItemsDeselected = true;
-
-		SessionContext sessionContext = view.getSessionContext();
-		SearchServices searchServices = modelLayerFactory.newSearchServices();
-		List<String> subFolderIds = searchServices.searchRecordIds(getSubFoldersQuery());
-		for (String subFolderId : subFolderIds) {
-			sessionContext.removeSelectedRecordId(subFolderId, Folder.SCHEMA_TYPE);
-		}
-		List<String> documentIds = searchServices.searchRecordIds(getDocumentsQuery());
-		for (String documentId : documentIds) {
-			sessionContext.removeSelectedRecordId(documentId, Document.SCHEMA_TYPE);
-		}
+		selectedRecordIds.clear();
 	}
 
 	String generateDisplayLink(Document document) {

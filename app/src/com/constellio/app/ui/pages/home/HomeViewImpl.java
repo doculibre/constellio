@@ -8,32 +8,33 @@ import com.constellio.app.entities.navigation.PageItem.RecordTable;
 import com.constellio.app.entities.navigation.PageItem.RecordTree;
 import com.constellio.app.modules.rm.ui.components.tree.RMTreeDropHandlerImpl;
 import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
-import com.constellio.app.ui.framework.components.contextmenu.BaseContextMenuTableListener;
-import com.constellio.app.ui.framework.components.contextmenu.RecordContextMenu;
-import com.constellio.app.ui.framework.components.contextmenu.RecordContextMenuHandler;
+import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
+import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.components.converters.JodaDateTimeToStringConverter;
-import com.constellio.app.ui.framework.components.menuBar.RecordMenuBarHandler;
-import com.constellio.app.ui.framework.components.table.BaseTable;
+import com.constellio.app.ui.framework.components.table.BaseTable.SelectionChangeEvent;
+import com.constellio.app.ui.framework.components.table.BaseTable.SelectionManager;
+import com.constellio.app.ui.framework.components.table.BaseTable.ValueSelectionManager;
 import com.constellio.app.ui.framework.components.table.RecordVOSelectionTableAdapter;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
-import com.constellio.app.ui.framework.components.table.TablePropertyCache.CellKey;
 import com.constellio.app.ui.framework.components.tree.RecordLazyTree;
 import com.constellio.app.ui.framework.components.tree.RecordLazyTreeTabSheet;
 import com.constellio.app.ui.framework.components.tree.TreeItemClickListener;
+import com.constellio.app.ui.framework.components.viewers.panel.ViewableRecordVOTablePanel;
+import com.constellio.app.ui.framework.containers.RecordVOContainer;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.RecordLazyTreeDataProvider;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.decorators.contextmenu.ContextMenuDecorator;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
-import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.params.ParamUtils;
-import com.constellio.app.ui.util.FileIconUtils;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.vaadin.data.Item;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.BeanItem;
 import com.vaadin.data.util.BeanItemContainer;
@@ -44,19 +45,14 @@ import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.shared.MouseEventDetails.MouseButton;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomComponent;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.MenuBar;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.TabSheet.Tab;
-import com.vaadin.ui.Table;
 import com.vaadin.ui.Tree.TreeDragMode;
-import org.apache.commons.lang3.StringUtils;
 import org.vaadin.peter.contextmenu.ContextMenu;
-import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableFooterEvent;
-import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableHeaderEvent;
-import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableRowEvent;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -167,48 +163,11 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 		}
 	}
 
-	private Component buildRecentItemTable(RecentItemTable recentItems) {
-		String tableId = "HomeView." + recentItems.getCode();
-		final RecentTable recentTable = new RecentTable(tableId,
-				recentItems.getItems(getConstellioFactories().getAppLayerFactory(), getSessionContext()));
-		recentTable.setSizeFull();
-		recentTable.addStyleName("record-table");
-		return new RecordVOSelectionTableAdapter(recentTable) {
-			@Override
-			public void selectAll() {
-				selectAllByItemId();
-			}
-
-			@Override
-			public void deselectAll() {
-				deselectAllByItemId();
-			}
-
-			@Override
-			public boolean isAllItemsSelected() {
-				return isAllItemsSelectedByItemId();
-			}
-
-			@Override
-			public boolean isAllItemsDeselected() {
-				return isAllItemsDeselectedByItemId();
-			}
-
-			@Override
-			public void setSelected(Object itemId, boolean selected) {
-				RecordVO recordVO = recentTable.getRecordVO(itemId);
-				String recordId = recordVO.getId();
-				presenter.selectionChanged(recordId, selected);
-				adjustSelectAllButton(selected);
-			}
-
-			@Override
-			public boolean isSelected(Object itemId) {
-				RecordVO recordVO = recentTable.getRecordVO(itemId);
-				String recordId = recordVO.getId();
-				return presenter.isSelected(recordId);
-			}
-		};
+	private Component buildRecentItemTable(RecentItemTable tabSource) {
+		String tableId = "HomeView." + tabSource.getCode();
+		String schemaTypeCode = tabSource.getSchemaType();
+		List<RecentItem> recentItems = tabSource.getItems(getConstellioFactories().getAppLayerFactory(), getSessionContext());
+		return new ViewableRecentItemTablePanel(schemaTypeCode, tableId, recentItems);
 	}
 
 	private Component buildRecordTable(final RecordTable recordTable) {
@@ -390,23 +349,79 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 		}
 	}
 
-	private class RecentTable extends BaseTable {
+	private class RecentItemContainer extends BeanItemContainer<RecentItem> implements RecordVOContainer {
 
-		private static final String MENUBAR_PROPERTY_ID = "menuBar";
+		private MetadataSchemaVO schemaVO;
 
-		@SuppressWarnings({"rawtypes", "unchecked"})
-		public RecentTable(String tableId, List<RecentItem> recentItems) {
-			super(tableId);
+		public RecentItemContainer(String schemaTypeCode, String tableId, List<RecentItem> recentItems)
+				throws IllegalArgumentException {
+			super(RecentItem.class, recentItems);
+			String collection = getSessionContext().getCurrentCollection();
+			MetadataSchemaType schemaType = getConstellioFactories().getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection).getSchemaType(schemaTypeCode);
+			schemaVO = new MetadataSchemaToVOBuilder().build(schemaType.getDefaultSchema(), VIEW_MODE.TABLE, getSessionContext());
+		}
 
-			BeanItemContainer container = new BeanItemContainer<>(RecentItem.class, recentItems);
-			setContainerDataSource(container);
+		@Override
+		public Collection<String> getContainerPropertyIds() {
+			return Arrays.asList(Schemas.TITLE_CODE, RecentItem.LAST_ACCESS);
+		}
 
-			addStyleName(RecordVOTable.CLICKABLE_ROW_STYLE_NAME);
+		@Override
+		public Class<?> getType(Object propertyId) {
+			if (RecentItem.LAST_ACCESS.equals(propertyId)) {
+				return String.class;
+			} else if (Schemas.TITLE_CODE.equals(propertyId) || (propertyId instanceof MetadataVO && ((MetadataVO) propertyId).codeMatches(Schemas.TITLE_CODE))) {
+				return String.class;
+			}
+			return super.getType(propertyId);
+		}
 
-			setVisibleColumns(RecentItem.CAPTION, RecentItem.LAST_ACCESS);
-			setColumnHeader(RecentItem.CAPTION, $("HomeView.recentItem.caption"));
+		@Override
+		public Property<?> getContainerProperty(Object itemId, Object propertyId) {
+			if (RecentItem.LAST_ACCESS.equals(propertyId)) {
+				RecentItem recentItem = (RecentItem) itemId;
+				String value = new JodaDateTimeToStringConverter()
+						.convertToPresentation(recentItem.getLastAccess(), String.class, getSessionContext().getCurrentLocale());
+				return new ObjectProperty<>(value);
+			} else if (Schemas.TITLE_CODE.equals(propertyId) || (propertyId instanceof MetadataVO && ((MetadataVO) propertyId).codeMatches(Schemas.TITLE_CODE))) {
+				RecentItem recentItem = (RecentItem) itemId;
+				String value = recentItem.getCaption();
+				return new ObjectProperty<>(value);
+			}
+			return super.getContainerProperty(itemId, propertyId);
+		}
+
+		@Override
+		public void refresh() {
+		}
+
+		@Override
+		public RecordVO getRecordVO(Object itemId) {
+			BeanItem<RecentItem> recordVOItem = (BeanItem<RecentItem>) getItem(itemId);
+			return recordVOItem.getBean().getRecord();
+		}
+
+		@Override
+		public List<MetadataSchemaVO> getSchemas() {
+			return Arrays.asList(schemaVO);
+		}
+
+	}
+
+	private class ViewableRecentItemTablePanel extends ViewableRecordVOTablePanel {
+
+		public ViewableRecentItemTablePanel(String schemaTypeCode, String tableId, List<RecentItem> recentItems) {
+			super(new RecentItemContainer(schemaTypeCode, tableId, recentItems));
+
+			//			MetadataSchemaVO schemaVO = getSchemas().get(0);
+			//			MetadataVO titleMetadata = schemaVO.getMetadata(Schemas.TITLE_CODE);
+
+			//			addStyleName(RecordVOTable.CLICKABLE_ROW_STYLE_NAME);
+			//
+			//			setVisibleColumns(titleMetadata, RecentItem.LAST_ACCESS);
+			setColumnHeader(Schemas.TITLE_CODE, $("HomeView.recentItem.caption"));
 			setColumnHeader(RecentItem.LAST_ACCESS, $("HomeView.recentItem.lastAccess"));
-			setColumnExpandRatio(RecentItem.CAPTION, 1);
+			setColumnExpandRatio(Schemas.TITLE_CODE, 1);
 
 			addItemClickListener(new ItemClickListener() {
 				@Override
@@ -417,133 +432,82 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 					}
 				}
 			});
+		}
 
-			setCellStyleGenerator(new CellStyleGenerator() {
+		@Override
+		protected boolean isSelectColumn() {
+			return true;
+		}
+
+		@Override
+		protected SelectionManager newSelectionManager() {
+			return new ValueSelectionManager() {
 				@Override
-				public String getStyle(Table source, Object itemId, Object propertyId) {
-					String columnStyle;
-					if (RecentItem.CAPTION.equals(propertyId)) {
-						RecordVO recordVO = getRecordVO(itemId);
-						try {
-							String extension = FileIconUtils.getExtension(recordVO);
-							if (extension != null) {
-								columnStyle = "file-icon v-table-cell-content-file-icon-" + extension.toLowerCase();
-							} else {
-								columnStyle = null;
+				public void selectionChanged(SelectionChangeEvent event) {
+					Object selectedItemId = event.getSelectedItemId();
+					Object deselectedItemId = event.getDeselectedItemId();
+					boolean allItemsSelected = event.isAllItemsSelected();
+					boolean allItemsDeselected = event.isAllItemsDeselected();
+					if (selectedItemId != null) {
+						RecordVO recordVO = getRecordVO(selectedItemId);
+						String recordId = recordVO.getId();
+						presenter.selectionChanged(recordId, true);
+					} else if (deselectedItemId != null) {
+						RecordVO recordVO = getRecordVO(deselectedItemId);
+						String recordId = recordVO.getId();
+						presenter.selectionChanged(recordId, false);
+					} else if (allItemsSelected) {
+						// FIXME
+						for (Object itemId : getItemIds()) {
+							if (!isSelected(itemId)) {
+								RecordVO recordVO = getRecordVO(itemId);
+								String recordId = recordVO.getId();
+								presenter.selectionChanged(recordId, true);
 							}
-						} catch (Exception e) {
-							// Ignore the exception
-							columnStyle = null;
 						}
-
-						String id = recordVO.getId();
-						SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
-						if (sessionContext.isVisited(id)) {
-							String visitedStyleName = "v-table-cell-visited-link";
-							columnStyle = StringUtils.isNotBlank(columnStyle) ? columnStyle + " " + visitedStyleName : visitedStyleName;
+					} else if (allItemsDeselected) {
+						// FIXME
+						for (Object itemId : getItemIds()) {
+							if (isSelected(itemId)) {
+								RecordVO recordVO = getRecordVO(itemId);
+								String recordId = recordVO.getId();
+								presenter.selectionChanged(recordId, false);
+							}
 						}
-					} else {
-						columnStyle = null;
 					}
-					return columnStyle;
 				}
-			});
 
-			addContextMenuAndMenuBarColumn(recentItems);
-		}
+				@Override
+				public boolean isSelected(Object itemId) {
+					RecordVO recordVO = getRecordVO(itemId);
+					String recordId = recordVO.getId();
+					return presenter.isSelected(recordId);
+				}
 
-		@Override
-		protected CellKey getCellKey(Object itemId, Object propertyId) {
-			RecentItem recentItem = (RecentItem) itemId;
-			return new CellKey(recentItem.getId(), propertyId);
-		}
+				@Override
+				protected Object getValue() {
+					return getActualTable().getValue();
+				}
 
-		@Override
-		public Property<?> loadContainerProperty(Object itemId, Object propertyId) {
-			if (RecentItem.LAST_ACCESS.equals(propertyId)) {
-				RecentItem recentItem = (RecentItem) itemId;
-				String value = new JodaDateTimeToStringConverter()
-						.convertToPresentation(recentItem.getLastAccess(), String.class, getSessionContext().getCurrentLocale());
-				return new ObjectProperty<>(value);
-			}
-			return super.loadContainerProperty(itemId, propertyId);
+				@Override
+				protected void setValue(Object newValue) {
+					getActualTable().setValue(newValue);
+				}
+
+				@Override
+				protected Collection<?> getItemIds() {
+					return getActualTable().getItemIds();
+				}
+			};
 		}
 
 		@SuppressWarnings("unchecked")
-		private RecordVO getRecordVO(Object itemId) {
-			BeanItem<RecentItem> recordVOItem = (BeanItem<RecentItem>) getItem(itemId);
-			RecordVO recordVO = recordVOItem.getBean().getRecord();
-			return recordVO;
+		@Override
+		protected RecordVO getRecordVOForTitleColumn(Item item) {
+			BeanItem<RecentItem> recordVOItem = (BeanItem<RecentItem>) item;
+			return recordVOItem.getBean().getRecord();
 		}
-
-		protected void addContextMenuAndMenuBarColumn(List<RecentItem> recentItems) {
-			boolean menuBarColumnGenerated = getColumnGenerator(MENUBAR_PROPERTY_ID) != null;
-			if (!menuBarColumnGenerated) {
-				boolean menuBarRequired = false;
-				String schemaCode = null;
-				for (RecentItem recentItem : recentItems) {
-					schemaCode = recentItem.getRecord().getSchema().getCode();
-					List<RecordMenuBarHandler> recordMenuBarHandlers = ConstellioUI.getCurrent().getRecordMenuBarHandlers();
-					for (RecordMenuBarHandler recordMenuBarHandler : recordMenuBarHandlers) {
-						if (recordMenuBarHandler.isMenuBarForSchemaCode(schemaCode)) {
-							menuBarRequired = true;
-							break;
-						}
-					}
-				}
-				if (menuBarRequired) {
-					RecordContextMenu contextMenu = null;
-					List<RecordContextMenuHandler> recordContextMenuHandlers = ConstellioUI.getCurrent()
-							.getRecordContextMenuHandlers();
-					for (RecordContextMenuHandler recordContextMenuHandler : recordContextMenuHandlers) {
-						if (recordContextMenuHandler.isContextMenuForSchemaCode(schemaCode)) {
-							contextMenu = recordContextMenuHandler.getForSchemaCode(schemaCode);
-							break;
-						}
-					}
-					if (contextMenu != null) {
-						contextMenu.setAsContextMenuOf(this);
-						final RecordContextMenu finalContextMenu = contextMenu;
-						BaseContextMenuTableListener contextMenuTableListener = new BaseContextMenuTableListener() {
-							@Override
-							public void onContextMenuOpenFromFooter(ContextMenuOpenedOnTableFooterEvent event) {
-							}
-
-							@Override
-							public void onContextMenuOpenFromHeader(ContextMenuOpenedOnTableHeaderEvent event) {
-							}
-
-							@Override
-							public void onContextMenuOpenFromRow(ContextMenuOpenedOnTableRowEvent event) {
-								Object itemId = event.getItemId();
-								RecordVO recordVO = getRecordVO(itemId);
-								finalContextMenu.openFor(recordVO);
-							}
-						};
-						contextMenu.addContextMenuTableListener(contextMenuTableListener);
-					}
-
-					addGeneratedColumn(MENUBAR_PROPERTY_ID, new ColumnGenerator() {
-						@Override
-						public Object generateCell(Table source, Object itemId, Object columnId) {
-							RecordVO recordVO = getRecordVO(itemId);
-
-							MenuBar menuBar = null;
-							List<RecordMenuBarHandler> recordMenuBarHandlers = ConstellioUI.getCurrent()
-									.getRecordMenuBarHandlers();
-							for (RecordMenuBarHandler recordMenuBarHandler : recordMenuBarHandlers) {
-								menuBar = recordMenuBarHandler.get(recordVO);
-								if (menuBar != null) {
-									break;
-								}
-							}
-							return menuBar != null ? menuBar : new Label("");
-						}
-					});
-					setColumnHeader(MENUBAR_PROPERTY_ID, "");
-				}
-			}
-		}
+			
 	}
 
 }

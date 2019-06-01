@@ -105,7 +105,7 @@ public class RMRequestTaskButtonExtensionAcceptanceTest extends ConstellioTest {
 		when(containerView.navigate()).thenReturn(navigator);
 		when(containerView.getUIContext()).thenReturn(uiContext);
 
-		folderPresenter = new DisplayFolderPresenter(folderView, null, false);
+		folderPresenter = new DisplayFolderPresenter(folderView, null, false, false);
 		containerPresenter = new DisplayContainerPresenter(containerView);
 		when(containerView.getPresenter()).thenReturn(containerPresenter);
 	}

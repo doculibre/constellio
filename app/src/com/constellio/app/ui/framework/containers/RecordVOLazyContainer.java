@@ -32,7 +32,7 @@ import java.util.Comparator;
 import java.util.List;
 
 @SuppressWarnings("serial")
-public class RecordVOLazyContainer extends LazyQueryContainer implements RefreshableContainer {
+public class RecordVOLazyContainer extends LazyQueryContainer implements RecordVOContainer {
 
 	private List<RecordVODataProvider> dataProviders;
 
@@ -73,7 +73,7 @@ public class RecordVOLazyContainer extends LazyQueryContainer implements Refresh
 		return dataProviders;
 	}
 
-	private static boolean isOnlyTableMetadatasShown() {
+	public static boolean isOnlyTableMetadatasShown() {
 		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
 		ConstellioEIMConfigs configs = new ConstellioEIMConfigs(
 				constellioFactories.getModelLayerFactory().getSystemConfigurationsManager());
@@ -105,10 +105,11 @@ public class RecordVOLazyContainer extends LazyQueryContainer implements Refresh
 		return result;
 	}
 
-	public RecordVO getRecordVO(int index) {
+	@Override
+	public RecordVO getRecordVO(Object itemId) {
+		Integer index = (Integer) itemId;
 		RecordVODataProviderAndRecordIndex dataProviderAndRecordIndex = forRecordIndex(dataProviders, index);
 		int recordIndexForDataProvider = dataProviderAndRecordIndex.recordIndex;
-
 		return dataProviderAndRecordIndex.dataProvider.getRecordVO(recordIndexForDataProvider);
 	}
 
@@ -180,22 +181,22 @@ public class RecordVOLazyContainer extends LazyQueryContainer implements Refresh
 							sessionContext.getCurrentCollection());
 				}
 
-				List<MetadataSchemaVO> schemas = new ArrayList<>();
-				MetadataSchemaVO defaultSchema = dataProvider.getSchema();
-				schemas.add(defaultSchema);
-				schemas.addAll(dataProvider.getExtraSchemas());
+				List<MetadataSchemaVO> dataProviderSchemaVOs = new ArrayList<>();
+				MetadataSchemaVO dataProviderDefaultSchema = dataProvider.getSchema();
+				dataProviderSchemaVOs.add(dataProviderDefaultSchema);
+				dataProviderSchemaVOs.addAll(dataProvider.getExtraSchemas());
 
-				for (MetadataSchemaVO schema : schemas) {
-					List<MetadataVO> dataProviderTableMetadataVOs = schema.getTableMetadatas();
+				for (MetadataSchemaVO schemaVO : dataProviderSchemaVOs) {
+					List<MetadataVO> schemaVOTableMetadataVOs = schemaVO.getTableMetadatas();
 
-					for (MetadataVO metadataVO : dataProviderTableMetadataVOs) {
+					for (MetadataVO metadataVO : schemaVOTableMetadataVOs) {
 						tablePropertyMetadataVOs.add(metadataVO);
 					}
 
-					List<MetadataVO> dataProviderQueryMetadataVOs = new ArrayList<>(dataProviderTableMetadataVOs);
+					List<MetadataVO> dataProviderQueryMetadataVOs = new ArrayList<>(schemaVOTableMetadataVOs);
 					if (!tableMetadatasOnly) {
 
-						List<MetadataVO> dataProviderDisplayMetadataVOs = schema.getDisplayMetadatas();
+						List<MetadataVO> dataProviderDisplayMetadataVOs = schemaVO.getDisplayMetadatas();
 						for (MetadataVO metadataVO : dataProviderDisplayMetadataVOs) {
 							if (!dataProviderQueryMetadataVOs.contains(metadataVO)) {
 								dataProviderQueryMetadataVOs.add(metadataVO);
@@ -204,7 +205,7 @@ public class RecordVOLazyContainer extends LazyQueryContainer implements Refresh
 					}
 					for (MetadataVO metadataVO : dataProviderQueryMetadataVOs) {
 						if (!queryMetadataVOs.contains(metadataVO)) {
-							if (dataProviderTableMetadataVOs.contains(metadataVO)) {
+							if (schemaVOTableMetadataVOs.contains(metadataVO)) {
 								tablePropertyMetadataVOs.add(metadataVO);
 							} else {
 								extraPropertyMetadataVOs.add(metadataVO);
@@ -227,11 +228,12 @@ public class RecordVOLazyContainer extends LazyQueryContainer implements Refresh
 			propertyMetadataVOs.addAll(extraPropertyMetadataVOs);
 
 			for (MetadataVO metadataVO : propertyMetadataVOs) {
-				if(user.hasGlobalAccessToMetadata(metadataTypes.getMetadata(metadataVO.getCode()))) {
+				if (user.hasGlobalAccessToMetadata(metadataTypes.getMetadata(metadataVO.getCode()))) {
 					super.addProperty(metadataVO, metadataVO.getJavaType(), null, true, true);
 				}
 			}
 		}
+
 	}
 
 	public static class RecordVOLazyQueryFactory implements QueryFactory, Serializable {

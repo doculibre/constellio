@@ -1,8 +1,5 @@
 package com.constellio.app.ui.pages.management.schemaRecords;
 
-import com.constellio.app.modules.rm.navigation.RMViews;
-import com.constellio.app.ui.application.CoreViews;
-import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
@@ -56,8 +53,15 @@ public class DisplaySchemaRecordViewImpl extends BaseViewImpl implements Display
 
 	private RecordVOTable subRecordsTable;
 
+	private boolean nestedView;
+
 	public DisplaySchemaRecordViewImpl() {
-		this.presenter = new DisplaySchemaRecordPresenter(this);
+		this(null, false, false);
+	}
+
+	public DisplaySchemaRecordViewImpl(RecordVO recordVO, boolean nestedView, boolean inWindow) {
+		this.presenter = new DisplaySchemaRecordPresenter(this, recordVO, nestedView, inWindow);
+		this.nestedView = nestedView;
 	}
 
 	@Override
@@ -155,6 +159,21 @@ public class DisplaySchemaRecordViewImpl extends BaseViewImpl implements Display
 		}
 
 		return mainLayout;
+	}
+
+	@Override
+	protected boolean isActionMenuBar() {
+		return true;
+	}
+
+	@Override
+	protected boolean isBreadcrumbsVisible() {
+		return !nestedView;
+	}
+
+	@Override
+	protected boolean isFullWidthIfActionMenuAbsent() {
+		return true;
 	}
 
 	@Override

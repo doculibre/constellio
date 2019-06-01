@@ -119,7 +119,7 @@ public class DeclareUserContentContainerButton extends ContainerButton {
 				}
 			}
 		};
-		button.addExtension(new NiceTitle(button, $("ListUserDocumentsView.declareDocument"), false));
+		button.addExtension(new NiceTitle($("ListUserDocumentsView.declareDocument"), false));
 		return button;
 	}
 
@@ -134,7 +134,7 @@ public class DeclareUserContentContainerButton extends ContainerButton {
 				}
 			}
 		};
-		button.addExtension(new NiceTitle(button, $("ListUserDocumentsView.declareFolder"), false));
+		button.addExtension(new NiceTitle($("ListUserDocumentsView.declareFolder"), false));
 		return button;
 	}
 

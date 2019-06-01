@@ -49,6 +49,7 @@ public class BasePagedTable<T extends Container> extends PagedTable {
 	}
 
 	private void init() {
+		setContainerDataSource(container);
 		itemsPerPageField = new BaseComboBox();
 		addAttachListener(new AttachListener() {
 			@Override
@@ -72,6 +73,8 @@ public class BasePagedTable<T extends Container> extends PagedTable {
 
 	@Override
 	public HorizontalLayout createControls() {
+		int totalAmountOfPages = getTotalAmountOfPages();
+		
 		Label itemsPerPageLabel = new Label($("SearchResultTable.itemsPerPage"));
 		itemsPerPageField.addItem(DEFAULT_PAGE_LENGTH);
 		if (container.size() >= 10) {
@@ -108,7 +111,7 @@ public class BasePagedTable<T extends Container> extends PagedTable {
 		currentPage.setConvertedValue(getCurrentPage());
 		currentPage.setWidth("45px");
 		currentPage.addValidator(
-				new IntegerRangeValidator("Wrong page number", 1, getTotalAmountOfPages()));
+				new IntegerRangeValidator("Wrong page number", 1, totalAmountOfPages));
 		currentPage.addValueChangeListener(new ValueChangeListener() {
 			@Override
 			public void valueChange(Property.ValueChangeEvent event) {
@@ -117,10 +120,10 @@ public class BasePagedTable<T extends Container> extends PagedTable {
 				}
 			}
 		});
-		currentPage.setEnabled(getTotalAmountOfPages() > 1);
+		currentPage.setEnabled(totalAmountOfPages > 1);
 
 		Label separator = new Label($("SearchResultTable.of"));
-		final Label totalPages = new Label(String.valueOf(getTotalAmountOfPages()));
+		final Label totalPages = new Label(String.valueOf(totalAmountOfPages));
 
 		final Button first = new Button("\uF100", new ClickListener() {
 			public void buttonClick(ClickEvent event) {

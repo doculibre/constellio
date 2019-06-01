@@ -9,6 +9,7 @@ import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
 
 import java.util.Date;
+import java.util.Map;
 
 public class BaseDateField extends DateField {
 
@@ -44,6 +45,18 @@ public class BaseDateField extends DateField {
 
 	private void init() {
 		setDateFormat(DateFormatUtils.getDateFormat());
+	}
+
+	@Override
+	public void changeVariables(Object source, Map<String, Object> variables) {
+		Integer year = (Integer) variables.get("year");
+		if (year != null && ("" + year).length() != 4) {
+			variables.remove("year");
+			variables.remove("month");
+			variables.remove("day");
+			variables.put("dateString", "[INVALID]");
+		}
+		super.changeVariables(source, variables);
 	}
 
 	@Override

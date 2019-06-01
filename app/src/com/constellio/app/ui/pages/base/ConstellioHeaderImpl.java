@@ -82,6 +82,7 @@ import com.vaadin.ui.Window;
 import com.vaadin.ui.Window.CloseEvent;
 import com.vaadin.ui.Window.CloseListener;
 import com.vaadin.ui.themes.ValoTheme;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -752,6 +753,23 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 		ConstellioUI.getCurrent().updateContent();
 	}
 
+	private void setCollectionSubMenuCaption() {
+		String caption;
+		SessionContext sessionContext = getSessionContext();
+		String currentCollection = sessionContext.getCurrentCollection();
+		if (currentCollection != null) {
+			caption = collectionCodeToLabelConverter.getCollectionCaption(currentCollection);
+			int maxWidth = 50;
+			if (caption.length() > maxWidth) {
+				caption = StringUtils.truncate(caption, maxWidth);
+			}
+		} else {
+			caption = "";
+		}
+		collectionSubMenu.setText(caption);
+
+	}
+
 	protected MenuBar buildCollectionMenu() {
 		MenuBar collectionMenu = new BaseMenuBar();
 		if (!collections.isEmpty()) {
@@ -764,6 +782,7 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 			Page.getCurrent().setTitle(collectionLabel);
 
 			collectionSubMenu = collectionMenu.addItem("", FontAwesome.DATABASE, null);
+			setCollectionSubMenuCaption();
 			for (final String collection : collections) {
 				if (!Collection.SYSTEM_COLLECTION.equals(collection)) {
 					String collectionCaption = collectionCodeToLabelConverter.getCollectionCaption(collection);
@@ -776,6 +795,7 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 								menuItem.setChecked(false);
 							}
 							selectedItem.setChecked(true);
+							setCollectionSubMenuCaption();
 						}
 					});
 					collectionMenuItem.setCheckable(true);

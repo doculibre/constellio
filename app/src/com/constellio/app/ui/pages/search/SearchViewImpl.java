@@ -14,6 +14,7 @@ import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.components.RecordDisplayFactory;
 import com.constellio.app.ui.framework.components.ReportViewer.DownloadStreamResource;
 import com.constellio.app.ui.framework.components.SearchResultDetailedTable;
+import com.constellio.app.ui.framework.components.SearchResultDisplay;
 import com.constellio.app.ui.framework.components.SearchResultSimpleTable;
 import com.constellio.app.ui.framework.components.SearchResultTable;
 import com.constellio.app.ui.framework.components.capsule.CapsuleComponent;
@@ -22,10 +23,9 @@ import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveRecordLookupField;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.components.search.FacetsPanel;
-import com.constellio.app.ui.framework.components.splitpanel.CollapsibleHorizontalSplitPanel;
+import com.constellio.app.ui.framework.components.search.ViewableRecordVOSearchResultTable;
 import com.constellio.app.ui.framework.components.table.BaseTable;
-import com.constellio.app.ui.framework.components.table.SelectionTableAdapter;
-import com.constellio.app.ui.framework.components.viewers.panel.ViewableRecordTablePanel;
+import com.constellio.app.ui.framework.components.viewers.panel.ViewableRecordVOTablePanel;
 import com.constellio.app.ui.framework.containers.SearchResultContainer;
 import com.constellio.app.ui.framework.containers.SearchResultVOLazyContainer;
 import com.constellio.app.ui.framework.data.SearchResultVODataProvider;
@@ -102,7 +102,6 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	private FacetsPanel facetsArea;
 	private VerticalLayout capsuleArea;
 
-	private ViewableRecordTablePanel viewableSearchResultsPanel;
 	private SearchResultTable resultsTable;
 	private SelectDeselectAllButton selectDeselectAllButton;
 	private Button addToSelectionButton;
@@ -281,22 +280,10 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		summary.removeAllComponents();
 		summary.addComponent(buildSummary(resultsTable));
 
-		if (Toggle.SEARCH_RESULTS_VIEWER.isEnabled()) {
-			Table table;
-			if (resultsTable instanceof Table) {
-				table = (Table) resultsTable;
-			} else {
-				SelectionTableAdapter selectionTableAdapter = (SelectionTableAdapter) resultsTable;
-				table = selectionTableAdapter.getTable();
-			}
-			viewableSearchResultsPanel.setTable(table);
-		}
-
-
 		if (isDetailedView()) {
 			resultsArea.removeAllComponents();
-			resultsArea.addComponents(resultsTable, ((SearchResultDetailedTable) resultsTable).createControls());
-			((SearchResultDetailedTable) resultsTable).setItemsPerPageValue(presenter.getSelectedPageLength());
+			resultsArea.addComponent(resultsTable);
+			((ViewableRecordVOSearchResultTable) resultsTable).setItemsPerPageValue(presenter.getSelectedPageLength());
 		} else {
 			resultsArea.removeAllComponents();
 			resultsArea.addComponent(resultsTable);
@@ -399,17 +386,17 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		facetsArea.setWidth("250px");
 		facetsArea.setSpacing(true);
 
-		if (Toggle.SEARCH_RESULTS_VIEWER.isEnabled()) {
-			viewableSearchResultsPanel = new ViewableRecordTablePanel(resultsArea);
-
-			CollapsibleHorizontalSplitPanel body = new CollapsibleHorizontalSplitPanel("search-result-and-facets-container");
-			body.addStyleName("search-result-and-facets-container");
-			body.setSecondComponentWidth(250, Unit.PIXELS);
-			body.setFirstComponent(viewableSearchResultsPanel);
-			body.setSecondComponent(facetsArea);
-
-			resultsAndFacetsPanel = body;
-		} else {
+		//		if (Toggle.SEARCH_RESULTS_VIEWER.isEnabled()) {
+		//			viewableSearchResultsPanel = new ViewableRecordTablePanel(resultsArea);
+		//
+		//			CollapsibleHorizontalSplitPanel body = new CollapsibleHorizontalSplitPanel("search-result-and-facets-container");
+		//			body.addStyleName("search-result-and-facets-container");
+		//			body.setSecondComponentWidth(250, Unit.PIXELS);
+		//			body.setFirstComponent(viewableSearchResultsPanel);
+		//			body.setSecondComponent(facetsArea);
+		//
+		//			resultsAndFacetsPanel = body;
+		//		} else {
 			I18NHorizontalLayout body = new I18NHorizontalLayout(resultsArea, facetsArea);
 			body.addStyleName("search-result-and-facets-container");
 			body.setWidth("100%");
@@ -417,7 +404,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			body.setSpacing(true);
 
 			resultsAndFacetsPanel = body;
-		}
+		//		}
 
 		refreshCapsule();
 
@@ -459,11 +446,75 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	}
 
 	protected SearchResultTable buildResultTable(SearchResultVODataProvider dataProvider) {
-		if (presenter.getResultsViewMode().equals(SearchResultsViewMode.TABLE)) {
-			return buildSimpleResultsTable(dataProvider);
+		//		final SearchResultContainer container = buildResultContainer(dataProvider);
+		final SearchResultVOLazyContainer container = new SearchResultVOLazyContainer(dataProvider);
+		//        final RecordVOLazyContainer container = new RecordVOLazyContainer(presenter.getSearchResultsAsRecordVOs());
+		container.addItemSetChangeListener(new ItemSetChangeListener() {
+			@Override
+			public void containerItemSetChange(ItemSetChangeEvent event) {
+				presenter.searchNavigationButtonClicked();
+			}
+		});
+
+		RecordDisplayFactory displayFactory = new RecordDisplayFactory(getSessionContext().getCurrentUser(), extraParameters);
+
+		final boolean indexColumn = presenter.isShowNumberingColumn();
+		ViewableRecordVOSearchResultTable.TableMode tableMode;
+		if (this.resultsTable != null) {
+			tableMode = ((ViewableRecordVOSearchResultTable) this.resultsTable).getTableMode();
 		} else {
-			return buildDetailedResultsTable(dataProvider);
+			tableMode = null;
 		}
+		return new ViewableRecordVOSearchResultTable(container, tableMode, presenter) {
+			@Override
+			protected boolean isIndexColumn() {
+				return indexColumn;
+			}
+
+			@Override
+			protected boolean isPagedInListMode() {
+				return true;
+			}
+
+			@Override
+			protected Component newSearchResultComponent(Object itemId) {
+				String query = presenter.getSearchQuery().getFreeTextQuery();
+				SearchResultVO searchResultVO = container.getSearchResultVO((int) itemId);
+				ClickListener clickListener = getClickListener(searchResultVO);
+				ClickListener elevationClickListener = getElevationClickListener(searchResultVO);
+				ClickListener exclusionClickListener = getExclusionClickListener(searchResultVO);
+				SearchResultDisplay searchResultDisplay = displayFactory.build(searchResultVO, query, clickListener, elevationClickListener, exclusionClickListener);
+				searchResultDisplay.getTitleComponent().setIcon(null);
+				return searchResultDisplay;
+			}
+
+			protected ClickListener getClickListener(final SearchResultVO searchResultVO) {
+				return new ClickListener() {
+					@Override
+					public void buttonClick(ClickEvent event) {
+						presenter.searchResultClicked(searchResultVO.getRecordVO());
+					}
+				};
+			}
+
+			protected ClickListener getElevationClickListener(final SearchResultVO searchResultVO) {
+				return new ClickListener() {
+					@Override
+					public void buttonClick(ClickEvent event) {
+						((SearchPresenter<?>) presenter).searchResultElevationClicked(searchResultVO.getRecordVO());
+					}
+				};
+			}
+
+			protected ClickListener getExclusionClickListener(final SearchResultVO searchResultVO) {
+				return new ClickListener() {
+					@Override
+					public void buttonClick(ClickEvent event) {
+						((SearchPresenter<?>) presenter).searchResultExclusionClicked(searchResultVO.getRecordVO());
+					}
+				};
+			}
+		};
 	}
 
 	protected SearchResultTable buildSimpleResultsTable(SearchResultVODataProvider dataProvider) {
@@ -821,20 +872,12 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		selectDeselectAllButton = new SelectDeselectAllButton(selectAllCaption, deselectAllCaption) {
 			@Override
 			protected void onSelectAll(ClickEvent event) {
-				if (isDetailedView()) {
-					((SearchResultDetailedTable) resultsTable).selectCurrentPage();
-				} else {
-					((SearchResultSimpleTable) resultsTable).askSelectionRange();
-				}
+				((ViewableRecordVOTablePanel) resultsTable).selectCurrentPage();
 			}
 
 			@Override
 			protected void onDeselectAll(ClickEvent event) {
-				if (isDetailedView()) {
-					((SearchResultDetailedTable) resultsTable).deselectCurrentPage();
-				} else {
-					((SearchResultSimpleTable) resultsTable).askSelectionRange();
-				}
+				((ViewableRecordVOTablePanel) resultsTable).deselectCurrentPage();
 			}
 
 			@Override

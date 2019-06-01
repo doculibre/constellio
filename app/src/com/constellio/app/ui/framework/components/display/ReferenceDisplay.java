@@ -115,7 +115,7 @@ public class ReferenceDisplay extends Button {
 
 		String niceTitle = recordVO.getNiceTitle();
 		if (niceTitle != null) {
-			addExtension(new NiceTitle(this, niceTitle));
+			addExtension(new NiceTitle(niceTitle));
 		}
 	}
 
@@ -138,15 +138,13 @@ public class ReferenceDisplay extends Button {
 
 			try {
 				String niceTitle = getNiceTitle(recordServices.getDocumentById(recordId), types);
-				addExtension(new NiceTitle(this, niceTitle));
+				addExtension(new NiceTitle(niceTitle));
 			} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
 				e.printStackTrace();
 			}
 		}
 
 	}
-
-
 
 	protected String getNiceTitle(Record record, MetadataSchemaTypes types) {
 		MetadataSchema schema = types.getSchema(record.getSchemaCode());

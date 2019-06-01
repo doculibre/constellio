@@ -392,7 +392,6 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 					menuBar.addStyleName(ValoTheme.MENUBAR_BORDERLESS);
 					menuBar.addStyleName("no-caption-action-menu-bar");
                 }
-                result = menuBar;
 
                 MenuItem rootItem = menuBar.addItem("", FontAwesome.BARS, null);
                 if (StringUtils.isNotBlank(menuBarCaption)) {
@@ -413,6 +412,7 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
                     });
 					actionMenuButtonsAndItems.put(actionMenuButton, actionMenuItem);
                 }
+				result = menuBar;
             } else {
                 VerticalLayout actionMenuLayout = new VerticalLayout();
                 actionMenuLayout.addStyleName("action-menu-layout");

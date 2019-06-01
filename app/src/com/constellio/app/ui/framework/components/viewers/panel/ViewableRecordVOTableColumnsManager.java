@@ -15,8 +15,8 @@ public class ViewableRecordVOTableColumnsManager extends RecordVOTableColumnsMan
 	public void manage(Table table, String tableId) {
 		ViewableRecordVOTable viewableRecordVOTable = (ViewableRecordVOTable) table;
 		List<Object> visibleColumns = new ArrayList<>(table.getContainerPropertyIds());
-		visibleColumns.remove(RecordVOTable.MENUBAR_PROPERTY_ID);
 		if (viewableRecordVOTable.isCompressed()) {
+			visibleColumns.remove(RecordVOTable.MENUBAR_PROPERTY_ID);
 			if (visibleColumns.contains(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID)) {
 				visibleColumns.remove(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID);
 			}
@@ -24,6 +24,7 @@ public class ViewableRecordVOTableColumnsManager extends RecordVOTableColumnsMan
 			table.setColumnHeaderMode(ColumnHeaderMode.HIDDEN);
 			viewableRecordVOTable.setTitleColumnWidth(366);
 		} else {
+			visibleColumns.add(RecordVOTable.MENUBAR_PROPERTY_ID);
 			super.manage(table, tableId);
 //			if (visibleColumns.contains(SearchResultContainer.THUMBNAIL_PROPERTY)) {
 //				table.setColumnCollapsed(SearchResultContainer.THUMBNAIL_PROPERTY, false);

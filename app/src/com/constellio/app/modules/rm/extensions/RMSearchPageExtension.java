@@ -72,11 +72,11 @@ public class RMSearchPageExtension extends SearchPageExtension {
 		//TODO add event
 		if (typeCode.equals(Document.SCHEMA_TYPE)) {
 			//			result = new RecordDisplay(recordVO, new RMMetadataDisplayFactory());
-			DisplayDocumentViewImpl view = new DisplayDocumentViewImpl(recordVO, true);
+			DisplayDocumentViewImpl view = new DisplayDocumentViewImpl(recordVO, true, true);
 			view.enter(null);
 			result = view;
 		} else if (typeCode.equals(Folder.SCHEMA_TYPE)) {
-			DisplayFolderViewImpl view = new DisplayFolderViewImpl(recordVO, true);
+			DisplayFolderViewImpl view = new DisplayFolderViewImpl(recordVO, true, true);
 			view.enter(null);
 			result = view;
 		} else {

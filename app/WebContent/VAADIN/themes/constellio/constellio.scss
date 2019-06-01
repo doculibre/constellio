@@ -134,6 +134,10 @@ $popup-view-z-index: 3;
 	.star-field-starred {
 		color: #f9ca4f;
 	}
+	
+	.compact-menubar .v-menubar-submenu-indicator  + .v-menubar-menuitem-caption:after {
+		display:none;
+	}
 
 	.task-management-view {
 		.v-menubar .v-menubar-submenu-indicator  + .v-menubar-menuitem-caption:after {
@@ -1953,9 +1957,9 @@ $popup-view-z-index: 3;
 		color: red;
 	}
 
-		.constellio-layout-with-border {
-    	    border: 1px solid lightgray;
-    	}
+	.constellio-layout-with-border {
+	    border: 1px solid lightgray;
+	}
 
 
 	.v-slot-button-toggle-facets {
@@ -1967,10 +1971,93 @@ $popup-view-z-index: 3;
 			line-height: 100%;
 		}
 	}
+	
 	.fixed-content-viewer {
 		position: fixed;
 		width: calc(100% - 500px);
 	}
+	
+	.base-table {
+		.v-table-cell-content {
+			vertical-align: middle;
+		}
+	}
+
+    .viewable-record-table-panel {
+  		min-height: 2000px;
+  		
+  		.v-slot-previous-next-buttons-layout {
+  			margin-bottom: -36px;
+  			
+  			color: #197de1;
+  			font-size: 20px;
+  		}
+  		
+  		.close-button-viewer-metadata-layout {
+		    position: absolute;
+  		}
+  		
+  		.close-viewer-button {
+  			position: relative;
+  			top: 16px;
+  			z-index: 2;
+  			color: #197de1;
+  			font-size: 24px;
+  		}
+  		
+  		.viewable-record-table {
+
+  			.v-table-body {
+  				border: none;
+
+	  			.v-table-cell-content {
+	  				border: none;
+	  			}
+  			}
+
+  			.search-result-record {
+  				// padding-right: 45px;
+
+				.search-result-title {
+					padding-top: 8px;
+					// font-size: 18px;
+					text-align: left;
+					font-weight: bold;
+				}
+
+				.document-search-result-title {
+					padding-top: 10px;
+				}
+
+				.search-result-metadata {
+					font-size: 14px;
+
+					.metadata-caption {
+						font-weight: bold;
+					}
+				}
+  			}
+  		}
+  		
+		.viewable-record-table [class*="-row"].v-selected {
+			outline: 1px solid rgb(25, 125, 225);
+    		outline-offset: -1px;
+
+    		background-color: inherit;
+    		background-image: inherit;
+    		background-origin: inherit;
+    		text-shadow: inherit;
+    		color: inherit;
+			//background-color: #197de1;
+			//background-image: -webkit-linear-gradient(top, #1b87e3 2%, #166ed5 98%);
+			//background-image: linear-gradient(to bottom,#1b87e3 2%, #166ed5 98%);
+			//background-origin: border-box;
+			//color: #ecf2f8;
+			//text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.05);
+		}
+
+    }
+	
 	.collapsible-horizontal-splitpanel {
 		padding-bottom: 2px;
 		.v-panel {
@@ -2021,76 +2108,6 @@ $popup-view-z-index: 3;
 		.v-splitpanel-hsplitter-collapsible-horizontal-splitpanel-second-hidden:before {
 		    content: "\f100";
 		}
-
-	    .viewable-record-table-panel {
-	  		min-height: 2000px;
-	  		
-	  		.v-slot-previous-next-buttons-layout {
-	  			margin-bottom: -36px;
-	  		}
-	  		
-	  		.close-button-viewer-metadata-layout {
-			    position: absolute;
-	  		}
-	  		
-	  		.close-viewer-button {
-	  			position: relative;
-	  			top: 16px;
-	  			z-index: 2;
-	  		}
-	  		
-	  		.viewable-record-table {
-
-	  			.v-table-body {
-	  				border: none;
-
-		  			.v-table-cell-content {
-		  				border: none;
-		  			}
-	  			}
-
-	  			.search-result-record {
-	  				// padding-right: 45px;
-
-					.search-result-title {
-						padding-top: 8px;
-						// font-size: 18px;
-						text-align: left;
-						font-weight: bold;
-					}
-
-					.document-search-result-title {
-						padding-top: 10px;
-					}
-
-					.search-result-metadata {
-						font-size: 14px;
-
-						.metadata-caption {
-							font-weight: bold;
-						}
-					}
-	  			}
-	  		}
-	  		
-			.viewable-record-table [class*="-row"].v-selected {
-				outline: 1px solid rgb(25, 125, 225);
-	    		outline-offset: -1px;
-
-	    		background-color: inherit;
-	    		background-image: inherit;
-	    		background-origin: inherit;
-	    		text-shadow: inherit;
-	    		color: inherit;
-				//background-color: #197de1;
-				//background-image: -webkit-linear-gradient(top, #1b87e3 2%, #166ed5 98%);
-				//background-image: linear-gradient(to bottom,#1b87e3 2%, #166ed5 98%);
-				//background-origin: border-box;
-				//color: #ecf2f8;
-				//text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.05);
-			}
-
-	    }
 	}
 
 	.collapsible-horizontal-splitpanel-second-visible2 {
@@ -2198,13 +2215,13 @@ $popup-view-z-index: 3;
 			
 			.header-selection-button {
 				position: fixed;
-				right: 150px;
+				right: 80px;
 				margin-top: 15px;
 			}
 			
 			.header-collection-menu {
 				position: fixed;
-				right: 80px;
+				right: 150px;
 				margin-top: 15px;
 			}
 			
@@ -2402,6 +2419,11 @@ $popup-view-z-index: 3;
 								    padding-right: 5px;
 								    
 					  				border: none;
+					  				
+					  				.search-result-exclusion {
+					  					position: relative;
+					  					right: 8px;
+					  				}
 
 					  				.v-button-caption {
 					  					display: none;
@@ -2714,6 +2736,10 @@ $popup-view-z-index: 3;
     }
 
     .v-ui[width-range~="1101px-"] {
+    	.user-menu {
+    		bottom: 40px;
+    	}
+    
 	    .valo-menu-part {
 	        @include valo-menu-large-icons-style($valo-menu-background-color);
 	    }
@@ -2835,6 +2861,9 @@ $popup-view-z-index: 3;
     }
 
     .v-ui[width-range~="801-1100px"] {
+    	.user-menu {
+    		bottom: 40px;
+    	}
     
     	.sidebar {
     		overflow-y: auto;
@@ -2931,14 +2960,14 @@ $popup-view-z-index: 3;
 			
 			.header-selection-button {
 				top: 0px;
-				right: 290px;
+				right: 220px;
 			    z-index: 1000;
 			    margin: 0;
 			}
 			
 			.header-collection-menu {
 				top: 0px;
-				right: 220px;
+				right: 290px;
 			    z-index: 1000;
 			    margin: 0;
 			}
@@ -3530,12 +3559,12 @@ $popup-view-z-index: 3;
 			
 			.header-selection-button {
 				right: inherit;
-				left: 150px;
+				left: 80px;
 			}
 			
 			.header-collection-menu {
 				right: inherit;
-				left: 80px;
+				left: 150px;
 			}
 			
 			.header-action-menu {
@@ -3757,12 +3786,12 @@ $popup-view-z-index: 3;
     	.header {
 			.header-selection-button {
 				right: inherit;
-				left: 290px;
+				left: 220px;
 			}
 			
 			.header-collection-menu {
 				right: inherit;
-				left: 220px;
+				left: 290px;
 			}
 			
 			.header-action-menu {

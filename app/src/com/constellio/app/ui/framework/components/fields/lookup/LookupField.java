@@ -1035,7 +1035,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<Ob
 
 				String tooltip = getNiceTitle(item);
 				if (tooltip != null) {
-					NiceTitle niceTitle = new NiceTitle(selectButton, tooltip);
+					NiceTitle niceTitle = new NiceTitle(tooltip);
 					selectButton.addExtension(niceTitle);
 				}
 				selectButton.addClickListener(new ClickListener() {

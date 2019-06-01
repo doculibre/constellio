@@ -149,12 +149,12 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	private List<Window.CloseListener> editWindowCloseListeners = new ArrayList<>();
 
 	public DisplayDocumentViewImpl() {
-		this(null, false);
+		this(null, false, false);
 	}
 
-	public DisplayDocumentViewImpl(RecordVO recordVO, boolean nestedView) {
+	public DisplayDocumentViewImpl(RecordVO recordVO, boolean nestedView, boolean inWindow) {
 		this.nestedView = nestedView;
-		presenter = new DisplayDocumentPresenter(this, recordVO, nestedView);
+		presenter = new DisplayDocumentPresenter(this, recordVO, nestedView, inWindow);
 	}
 
 	public DisplayDocumentPresenter getDisplayDocumentPresenter() {
@@ -332,6 +332,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 			tabSheetDecorator.decorate(this, tabSheet);
 		}
 		mainLayout.setComponentAlignment(mainActionMenuButtonsLayout, Alignment.TOP_RIGHT);
+		mainLayout.setExpandRatio(contentMetadataComponent, 1);
 
 		return mainLayout;
 	}
@@ -1218,7 +1219,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 	@Override
 	protected boolean isActionMenuBar() {
-		return Toggle.SEARCH_RESULTS_VIEWER.isEnabled();
+		return true;
 	}
 
 	@Override
@@ -1228,7 +1229,14 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 	@Override
 	protected boolean isFullWidthIfActionMenuAbsent() {
-		return Toggle.SEARCH_RESULTS_VIEWER.isEnabled();
+		return true;
+	}
+
+	@Override
+	public void openInWindow() {
+		DisplayDocumentViewImpl displayView = new DisplayDocumentViewImpl(documentVO, true, true);
+		Window window = new DisplayDocumentWindow(displayView);
+		getUI().addWindow(window);
 	}
 
 	@Override

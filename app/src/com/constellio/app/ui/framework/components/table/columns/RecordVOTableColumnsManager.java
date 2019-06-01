@@ -28,19 +28,18 @@ public class RecordVOTableColumnsManager extends TableColumnsManager {
 	protected void decorateVisibleColumns(List<String> visibleColumnForUser, String tableId) {
 		List<String> toRemove = new ArrayList<>();
 
-		for(String id : visibleColumnForUser) {
+		for (String id : visibleColumnForUser) {
 			String[] parsedCode = SchemaUtils.underscoreSplitWithCache(id);
 			if (parsedCode.length == 3 && metadataSchemaTypes.hasMetadata(id) && !currentUser.hasGlobalAccessToMetadata(metadataSchemaTypes.getMetadata(id))) {
 				toRemove.add(id);
 			}
 		}
 
-
-		for(String itemToRemove : toRemove) {
+		for (String itemToRemove : toRemove) {
 			visibleColumnForUser.remove(itemToRemove);
 		}
 
-		if(toRemove.size() > 0) {
+		if (toRemove.size() > 0) {
 			currentUser.setVisibleTableColumns(tableId, visibleColumnForUser);
 		}
 	}

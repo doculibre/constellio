@@ -368,7 +368,7 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 			}
 
 			titleLabel.addStyleName(ValoTheme.BUTTON_LINK);
-			titleLabel.addExtension(new NiceTitle(titleLabel, niceTitle.toString()));
+			titleLabel.addExtension(new NiceTitle(niceTitle.toString()));
 			mediumTypesLabel.setConverter(mediumTypeIdListToCodesConverter);
 			//			inactiveDisposalTypeLabel.setConverter(disposalTypeConverter);
 
@@ -687,7 +687,7 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 				niceTitleContent.append(copyRetentionRule.getDescription());
 			}
 			if (niceTitleContent.length() > 0) {
-				addExtension(new NiceTitle(windowButton, niceTitleContent.toString()));
+				addExtension(new NiceTitle(niceTitleContent.toString()));
 			}
 		}
 

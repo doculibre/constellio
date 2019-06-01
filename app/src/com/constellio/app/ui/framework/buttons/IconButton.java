@@ -28,7 +28,7 @@ public abstract class IconButton extends BaseButton {
 			addStyleName(ValoTheme.BUTTON_ICON_ONLY);
 			if (StringUtils.isNotBlank(caption)) {
 				setIconAlternateText(caption);
-				addExtension(new NiceTitle(this, caption));
+				addExtension(new NiceTitle(caption));
 			}
 		}
 	}

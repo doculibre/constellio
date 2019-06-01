@@ -16,6 +16,10 @@ public abstract class BaseButton extends Button {
 
 	private boolean badgeVisibleWhenZero = true;
 
+	public BaseButton() {
+		this(null, null);
+	}
+
 	public BaseButton(String caption) {
 		this(caption, null);
 	}

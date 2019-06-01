@@ -311,14 +311,14 @@ public class RMNavigationConfiguration implements Serializable {
 			config.replace(HomeView.TABS, taxonomyTree);
 		}
 
-		config.add(HomeView.TABS, new RecentItemTable(LAST_VIEWED_FOLDERS) {
+		config.add(HomeView.TABS, new RecentItemTable(LAST_VIEWED_FOLDERS, Folder.SCHEMA_TYPE) {
 			@Override
 			public List<RecentItem> getItems(AppLayerFactory appLayerFactory, SessionContext sessionContext) {
 				return new RecentItemProvider(appLayerFactory.getModelLayerFactory(), sessionContext, Folder.SCHEMA_TYPE)
 						.getItems();
 			}
 		});
-		config.add(HomeView.TABS, new RecentItemTable(LAST_VIEWED_DOCUMENTS) {
+		config.add(HomeView.TABS, new RecentItemTable(LAST_VIEWED_DOCUMENTS, Document.SCHEMA_TYPE) {
 			@Override
 			public List<RecentItem> getItems(AppLayerFactory appLayerFactory, SessionContext sessionContext) {
 				return new RecentItemProvider(appLayerFactory.getModelLayerFactory(), sessionContext, Document.SCHEMA_TYPE)

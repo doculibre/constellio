@@ -125,7 +125,7 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 	}
 
 	private DisplayFolderPresenter displayFolderPresenterCreation(DisplayFolderView displayFolderView, RecordVO recordVO, boolean popup) {
-		presenter = spy(new DisplayFolderPresenter(displayFolderView, recordVO, popup));//spy(
+		presenter = spy(new DisplayFolderPresenter(displayFolderView, recordVO, popup, false));//spy(
 		doNothing().when(presenter).navigateToFolder(any(String.class));
 		doNothing().when(presenter).navigateToDocument(any(RecordVO.class));
 

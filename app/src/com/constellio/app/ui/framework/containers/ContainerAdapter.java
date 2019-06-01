@@ -1,10 +1,5 @@
 package com.constellio.app.ui.framework.containers;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-
 import com.vaadin.data.Container;
 import com.vaadin.data.Container.Filterable;
 import com.vaadin.data.Container.Indexed;
@@ -19,6 +14,11 @@ import com.vaadin.data.util.AbstractContainer;
 import com.vaadin.data.util.ObjectProperty;
 import com.vaadin.data.util.filter.UnsupportedFilterException;
 import com.vaadin.ui.Label;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 @SuppressWarnings("serial")
 public class ContainerAdapter<T extends Container & Indexed & Sortable> extends AbstractContainer
@@ -42,6 +42,15 @@ public class ContainerAdapter<T extends Container & Indexed & Sortable> extends 
 
 	public T getNestedContainer() {
 		return adapted;
+	}
+
+	@SuppressWarnings("unchecked")
+	public T getNestedContainerRecursive() {
+		T result = adapted;
+		while (result instanceof ContainerAdapter) {
+			result = ((ContainerAdapter<T>) result).getNestedContainer();
+		}
+		return result;
 	}
 
 	@Override

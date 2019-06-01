@@ -178,7 +178,7 @@ public class FolderCopyRuleFieldImpl extends CustomField<String> implements Fold
 			}
 
 			titleLabel.addStyleName(ValoTheme.BUTTON_LINK);
-			titleLabel.addExtension(new NiceTitle(titleLabel, niceTitle.toString()));
+			titleLabel.addExtension(new NiceTitle(niceTitle.toString()));
 			return titleLabel;
 		}
 

@@ -16,7 +16,11 @@ public class AddEditSchemaRecordViewImpl extends BaseViewImpl implements AddEdit
 	RecordVO recordVO;
 
 	public AddEditSchemaRecordViewImpl() {
-		this.presenter = new AddEditSchemaRecordPresenter(this);
+		this(null);
+	}
+
+	public AddEditSchemaRecordViewImpl(RecordVO recordVO) {
+		this.presenter = new AddEditSchemaRecordPresenter(this, recordVO);
 	}
 
 	@Override
