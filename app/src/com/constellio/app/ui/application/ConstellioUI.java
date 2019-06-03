@@ -330,7 +330,9 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 				navigator.navigateTo(navigator.getState());
 			} else {
 				Navigator navigator = getNavigator();
-				navigator.removeViewChangeListener(viewableRecordVOViewChangeListener);
+				if (navigator != null) {
+					navigator.removeViewChangeListener(viewableRecordVOViewChangeListener);
+				}
 				
 				removeStyleName("setupview");
 				LoginViewImpl loginView = new LoginViewImpl();
