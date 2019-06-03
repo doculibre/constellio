@@ -1,6 +1,7 @@
 package com.constellio.model.extensions.events.records;
 
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.services.schemas.MetadataList;
@@ -16,11 +17,14 @@ public class RecordModificationEvent implements RecordEvent {
 
 	Record originalRecord;
 
-	public RecordModificationEvent(Record record, MetadataList modifiedMetadatas, MetadataSchema schema) {
+	User transactionalUser;
+
+	public RecordModificationEvent(Record record, MetadataList modifiedMetadatas,  MetadataSchema schema, User transactionalUser) {
 		this.record = record;
 		this.schema = schema;
 		this.modifiedMetadatas = modifiedMetadatas;
 		this.originalRecord = record.getCopyOfOriginalRecord();
+		this.transactionalUser = transactionalUser;
 	}
 
 	public <T> T getPreviousValue(String metadataLocalCode) {
@@ -30,6 +34,10 @@ public class RecordModificationEvent implements RecordEvent {
 		}
 
 		return originalRecord.get(metadata);
+	}
+
+	public User getTransactionalUser() {
+		return transactionalUser;
 	}
 
 	public Record getRecord() {

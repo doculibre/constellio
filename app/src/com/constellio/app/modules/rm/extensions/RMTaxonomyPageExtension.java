@@ -70,7 +70,7 @@ public class RMTaxonomyPageExtension extends TaxonomyPageExtension {
 
 	public ExtensionBooleanResult canConsultTaxonomy(CanConsultTaxonomyParams canConsultTaxonomyParams) {
 		if(canConsultTaxonomyParams.getTaxonomy().getCode().equals(RMTaxonomies.CLASSIFICATION_PLAN)) {
-			return ExtensionBooleanResult.forceTrueIf(canConsultTaxonomyParams.getUser().has(RMPermissionsTo.DISPLAY_CLASSIFICATION_PLAN).globally());
+			return ExtensionBooleanResult.forceTrueIf(canConsultTaxonomyParams.getUser().has(RMPermissionsTo.CONSULT_CLASSIFICATION_PLAN).globally());
 		} else {
 			return ExtensionBooleanResult.NOT_APPLICABLE;
 		}

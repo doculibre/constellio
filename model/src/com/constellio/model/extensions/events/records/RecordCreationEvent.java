@@ -1,18 +1,38 @@
 package com.constellio.model.extensions.events.records;
 
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.services.schemas.SchemaUtils;
 
 public class RecordCreationEvent implements RecordEvent {
 
 	Record record;
+	User transactionalUser;
 
 	MetadataSchema schema;
 
-	public RecordCreationEvent(Record record, MetadataSchema schema) {
+	public RecordCreationEvent(Record record, MetadataSchema schema, User transactionalUser) {
 		this.record = record;
 		this.schema = schema;
+		this.transactionalUser = transactionalUser;
+	}
+
+	public void setRecord(Record record) {
+		this.record = record;
+	}
+
+	public User getTransactionalUser() {
+		return transactionalUser;
+	}
+
+	public void setTransactionalUser(User transactionalUser) {
+		this.transactionalUser = transactionalUser;
+	}
+
+	public RecordCreationEvent(Record record, User transactionalUser) {
+		this.record = record;
+		this.transactionalUser = transactionalUser;
 	}
 
 	public Record getRecord() {

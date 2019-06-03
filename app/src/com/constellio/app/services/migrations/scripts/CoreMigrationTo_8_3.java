@@ -12,16 +12,15 @@ import java.util.List;
 
 import static java.util.Arrays.asList;
 
-public class CoreMigrationTo_9_0 implements MigrationScript {
-
+public class CoreMigrationTo_8_3 implements MigrationScript  {
 	@Override
 	public String getVersion() {
-		return "9.0";
+		return "8_3";
 	}
 
 	@Override
-	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
-			throws Exception {
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+						AppLayerFactory appLayerFactory) throws Exception {
 		ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
 
 

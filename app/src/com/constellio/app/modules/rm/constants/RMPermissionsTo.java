@@ -117,7 +117,9 @@ public class RMPermissionsTo {
 
 	// Cart
 	private static final String CART_GROUP = "carts";
+	public static final String USE_CART = permission(CART_GROUP, "useCart");
 	public static final String CART_BATCH_DELETE = permission(CART_GROUP, "cartBatchDelete");
+
 	public static final String USE_MY_CART = permission(CART_GROUP, "useMyCart");
 	public static final String USE_GROUP_CART = permission(CART_GROUP, "useGroupCart");
 
@@ -128,9 +130,9 @@ public class RMPermissionsTo {
 	public static final String MANAGE_STORAGE_SPACES = permission(RM_MANAGEMENT, "manageStorageSpaces");
 
 	public static final String MANAGE_CLASSIFICATION_PLAN = permission(RM_MANAGEMENT, "manageClassificationPlan");
-	public static final String DISPLAY_CLASSIFICATION_PLAN = permission(RM_MANAGEMENT, "consultClassificationPlan");
+	public static final String CONSULT_CLASSIFICATION_PLAN = permission(RM_MANAGEMENT, "consultClassificationPlan");
 
-	public static final String DISPLAY_RETENTIONRULE = permission(RM_MANAGEMENT, "consultRetentionRule");
+	public static final String CONSULT_RETENTIONRULE = permission(RM_MANAGEMENT, "consultRetentionRule");
 	public static final String MANAGE_RETENTIONRULE = permission(RM_MANAGEMENT, "manageRetentionRule");
 
 
