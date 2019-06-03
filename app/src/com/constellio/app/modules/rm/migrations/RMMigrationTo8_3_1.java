@@ -16,21 +16,21 @@ import java.util.List;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.CONTENT;
 
-public class RMMigrationTo9_0_1 implements MigrationScript {
+public class RMMigrationTo8_3_1 implements MigrationScript {
 
 	@Override
 	public String getVersion() {
-		return "9.0.1";
+		return "8.3.1";
 	}
 
 	@Override
 	public void migrate(String collection, MigrationResourcesProvider provider, AppLayerFactory appLayerFactory)
 			throws Exception {
-		new RMMigrationTo9_0_1.SchemaAlterationFor9_0_1(collection, provider, appLayerFactory).migrate();
+		new RMMigrationTo8_3_1.SchemaAlterationFor8_3_1(collection, provider, appLayerFactory).migrate();
 	}
 
-	private class SchemaAlterationFor9_0_1 extends MetadataSchemasAlterationHelper {
-		public SchemaAlterationFor9_0_1(String collection, MigrationResourcesProvider migrationResourcesProvider,
+	private class SchemaAlterationFor8_3_1 extends MetadataSchemasAlterationHelper {
+		public SchemaAlterationFor8_3_1(String collection, MigrationResourcesProvider migrationResourcesProvider,
 										AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
@@ -47,12 +47,6 @@ public class RMMigrationTo9_0_1 implements MigrationScript {
 			formMetadataCodes.addAll(schemaDisplayConfig.getFormMetadataCodes());
 			formMetadataCodes.add(DecommissioningList.DEFAULT_SCHEMA + "_" + DecommissioningList.CONTENTS);
 			schemaDisplayConfig = schemaDisplayConfig.withFormMetadataCodes(formMetadataCodes);
-			manager.saveSchema(schemaDisplayConfig);
-
-			List<String> displayMetadataCodes = new ArrayList<>();
-			displayMetadataCodes.addAll(schemaDisplayConfig.getDisplayMetadataCodes());
-			displayMetadataCodes.add(DecommissioningList.DEFAULT_SCHEMA + "_" + DecommissioningList.CONTENTS);
-			schemaDisplayConfig = schemaDisplayConfig.withDisplayMetadataCodes(displayMetadataCodes);
 			manager.saveSchema(schemaDisplayConfig);
 		}
 	}

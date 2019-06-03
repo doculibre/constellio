@@ -15,6 +15,7 @@ import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetail;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListValidation;
 import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.BaseButton;
@@ -27,6 +28,8 @@ import com.constellio.app.ui.framework.buttons.ReportButton;
 import com.constellio.app.ui.framework.buttons.SIPButton.SIPButtonImpl;
 import com.constellio.app.ui.framework.buttons.SelectDeselectAllButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
+import com.constellio.app.ui.framework.components.BaseUpdatableContentVersionPresenter;
+import com.constellio.app.ui.framework.components.ContentVersionDisplay;
 import com.constellio.app.ui.framework.components.RecordDisplay;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
@@ -53,16 +56,18 @@ import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
+import com.vaadin.ui.Table;
+import com.vaadin.ui.Table.ColumnHeaderMode;
 import com.vaadin.ui.TextArea;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import org.apache.commons.lang3.StringUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -77,6 +82,9 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 	public static final String VALIDATION_REQUEST_BUTTON = "sendValidationRequest";
 	public static final String REMOVE_FOLDERS_BUTTON = "removeFolders";
 	public static final String ADD_FOLDERS_BUTTON = "addFolders";
+	public static final String DOWNLOAD_LINK = "downloadLink";
+	public static final String USER_PROPERTY = "user";
+	public static final String DATE_PROPERTY = "uploadDate";
 
 	private Label missingFolderLabel;
 
@@ -204,9 +212,10 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 		missingFolderLabel.addStyleName(ValoTheme.LABEL_COLORED);
 		missingFolderLabel.addStyleName(ValoTheme.LABEL_BOLD);
 
+		Component files = getContentTable(decommissioningList);
 		VerticalLayout layout = new VerticalLayout(missingFolderLabel, display, selectedFoldersComponent, validationComponent,
 				packageableFolderComponent,
-				processableFolderComponent, foldersToValidateComponent, excludedFolderComponent, containerComponent, comments);
+				processableFolderComponent, foldersToValidateComponent, excludedFolderComponent, containerComponent, comments, files);
 		layout.setSpacing(true);
 		layout.setWidth("100%");
 
@@ -1140,6 +1149,37 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 				foldersToValidateComponentExcludeButton.setEnabled(enabled);
 				break;
 		}
+	}
+
+	VerticalLayout getContentTable(RecordVO recordVO) {
+		Table valuesTable = new BaseTable(getClass().getName());
+		valuesTable.addContainerProperty($(DOWNLOAD_LINK), ContentVersionDisplay.class, null);
+		valuesTable.addContainerProperty($(USER_PROPERTY), Label.class, null);
+		valuesTable.addContainerProperty($(DATE_PROPERTY), Label.class, null);
+
+		Component downloadLink;
+		ArrayList<ContentVersionVO> contents = recordVO.get(DecommissioningList.CONTENTS);
+		if (!contents.isEmpty()) {
+			int itemId = 0;
+			for (ContentVersionVO contentVersionVO : contents) {
+				if (contentVersionVO != null) {
+					String filename = contentVersionVO.getFileName();
+					downloadLink = new ContentVersionDisplay(recordVO, contentVersionVO, filename, new BaseUpdatableContentVersionPresenter());
+					valuesTable.addItem(new Component[]{downloadLink, new Label(presenter.getUsername(contentVersionVO.getLastModifiedBy()))
+							, new Label(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(contentVersionVO.getLastModificationDateTime()))}, itemId);
+					itemId++;
+				}
+			}
+
+		}
+
+		valuesTable.setWidth("100%");
+		valuesTable.setHeight("100%");
+		valuesTable.setPageLength(valuesTable.size());
+		valuesTable.setColumnHeaderMode(ColumnHeaderMode.HIDDEN);
+		VerticalLayout verticalLayout = new VerticalLayout();
+		verticalLayout.addComponents(new Label($("DecommissioningListView.contents")), valuesTable);
+		return verticalLayout;
 	}
 
 
