@@ -148,6 +148,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 	private CorrectorExcluderManager correctorExcluderManager;
 
+	private RecordVO returnRecordVO;
 	private Integer returnIndex;
 
 	public int getSelectedPageLength() {
@@ -973,6 +974,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	}
 
 	public void searchResultClicked(RecordVO recordVO, Integer index) {
+		this.returnRecordVO = recordVO;
 		this.returnIndex = index;
 		if (Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()) {
 			ConstellioUI.getCurrent().setAttribute(SEARCH_EVENT_DWELL_TIME, System.currentTimeMillis());
@@ -1096,6 +1098,10 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 	public Integer getReturnIndex() {
 		return returnIndex;
+	}
+
+	public RecordVO getReturnRecordVO() {
+		return returnRecordVO;
 	}
 
 }

@@ -1247,16 +1247,24 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	}
 
 	@Override
-	public void scrollIntoView(Integer contentIndex) {
+	public boolean scrollIntoView(Integer contentIndex, String recordId) {
+		boolean scrolledIntoView;
 		if (viewerPanel != null) {
-			viewerPanel.scrollIntoView(contentIndex);
-			viewerPanel.selectIndex(contentIndex);
+			scrolledIntoView = viewerPanel.scrollIntoView(contentIndex, recordId);
+		} else {
+			scrolledIntoView = false;
 		}
+		return scrolledIntoView;
 	}
 
 	@Override
 	public Integer getReturnIndex() {
 		return presenter.getReturnIndex();
+	}
+
+	@Override
+	public RecordVO getReturnRecordVO() {
+		return presenter.getReturnRecordVO();
 	}
 
 }

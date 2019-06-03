@@ -1010,14 +1010,24 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	}
 
 	@Override
-	public void scrollIntoView(Integer resultIndex) {
-		((ViewableRecordVOTablePanel) resultsTable).scrollIntoView(resultIndex);
-		((ViewableRecordVOTablePanel) resultsTable).selectIndex(resultIndex);
+	public boolean scrollIntoView(Integer contentIndex, String recordId) {
+		boolean scrolledIntoView;
+		if (resultsTable != null) {
+			scrolledIntoView = ((ViewableRecordVOTablePanel) resultsTable).scrollIntoView(contentIndex, recordId);
+		} else {
+			scrolledIntoView = false;
+		}
+		return scrolledIntoView;
 	}
 
 	@Override
 	public Integer getReturnIndex() {
 		return presenter.getReturnIndex();
+	}
+
+	@Override
+	public RecordVO getReturnRecordVO() {
+		return presenter.getReturnRecordVO();
 	}
 
 }

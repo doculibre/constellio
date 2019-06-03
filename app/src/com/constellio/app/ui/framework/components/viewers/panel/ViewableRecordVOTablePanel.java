@@ -216,7 +216,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
 	}
 
 	boolean isCompressionSupported() {
-		return ResponsiveUtils.isDesktop() && !isNested();
+		return ResponsiveUtils.isDesktop() && !isNested() && tableMode == TableMode.LIST;
 	}
 
 	protected boolean isNested() {
@@ -490,7 +490,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
 	
 	void rowClicked(ItemClickEvent event) {
 		Object itemId = event.getItemId();
-		if (!isNested() && tableMode == TableMode.LIST) {
+		if (isCompressionSupported()) {
 			selectRecordVO(itemId, event, false);
 			previousButton.setVisible(itemId != null);
 			nextButton.setVisible(itemId != null);
@@ -969,16 +969,29 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
 
 	}
 
-	public void scrollIntoView(Integer itemIndex) {
-		table.setCurrentPageFirstItemIndex(itemIndex);
-	}
-
-	public void selectIndex(Integer resultIndex) {
-		List<?> itemIds = recordVOContainer.getItemIds(resultIndex, 1);
-		if (!itemIds.isEmpty()) {
-			Object itemId = itemIds.get(0);
-			selectRecordVO(itemId, null, false);
+	public boolean scrollIntoView(Integer itemIndex, String recordId) {
+		boolean scrolledIntoView;
+		if (itemIndex < recordVOContainer.size()) {
+			List<?> itemIds = recordVOContainer.getItemIds(itemIndex, 1);
+			if (!itemIds.isEmpty()) {
+				Object itemId = itemIds.get(0);
+				RecordVO recordVO = recordVOContainer.getRecordVO(itemIndex);
+				if (recordVO != null && recordVO.getId().equals(recordId)) {
+					table.setCurrentPageFirstItemIndex(itemIndex);
+					if (isCompressionSupported()) {
+						selectRecordVO(itemId, null, false);
+					}
+					scrolledIntoView = true;
+				} else {
+					scrolledIntoView = false;
+				}
+			} else {
+				scrolledIntoView = false;
+			}
+		} else {
+			scrolledIntoView = false;
 		}
+		return scrolledIntoView;
 	}
 
 }
