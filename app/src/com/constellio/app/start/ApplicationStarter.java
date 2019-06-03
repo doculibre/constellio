@@ -111,6 +111,7 @@ public class ApplicationStarter {
 			connector.setRequestHeaderSize(REQUEST_HEADER_SIZE);
 
 			Server server = new Server();
+			server.setSendServerVersion(false);
 			server.setConnectors(new Connector[]{connector});
 			return server;
 		}

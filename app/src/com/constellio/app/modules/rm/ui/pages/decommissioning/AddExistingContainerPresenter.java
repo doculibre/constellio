@@ -25,12 +25,9 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.records.RecordImpl;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.ongoing.OngoingLogicalSearchCondition;
-import com.constellio.model.services.security.roles.Roles;
-import com.constellio.model.services.security.roles.RolesManager;
 import com.vaadin.ui.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -250,13 +247,13 @@ public class AddExistingContainerPresenter extends SearchPresenter<AddExistingCo
 	private LogicalSearchCondition selectByDecommissioningListProperties() {
 		LogicalSearchCondition condition = null;
 		OngoingLogicalSearchCondition fromContainers = from(rmRecordServices().containerRecord.schemaType());
-		if (rmConfigs().isDecommissioningTypeRequiredInContainers()) {
+		if (!rmConfigs().areMixedContainersAllowed() || rmConfigs().isDecommissioningTypeRequiredInContainers()) {
 			condition = fromContainers.where(rmRecordServices().containerRecord.decommissioningType()).isEqualTo(decommissioningType);
 		}
 
-		if (rmConfigs().areMixedContainersAllowed() && condition != null) {
+		if (!rmConfigs().areMixedContainersAllowed() && condition != null) {
 			condition = condition.andWhere(rmRecordServices().containerRecord.administrativeUnits()).isContaining(asList(adminUnitId));
-		} else if (rmConfigs().areMixedContainersAllowed()) {
+		} else if (!rmConfigs().areMixedContainersAllowed()) {
 			condition = fromContainers.where(rmRecordServices().containerRecord.administrativeUnits()).isContaining(asList(adminUnitId));
 		}
 
@@ -270,7 +267,7 @@ public class AddExistingContainerPresenter extends SearchPresenter<AddExistingCo
 		LogicalSearchCondition condition = null;
 		OngoingLogicalSearchCondition fromContainers = from(rmRecordServices().containerRecord.schemaType());
 
-		if(!getCurrentUser().has(RMPermissionsTo.MANAGE_CONTAINERS).globally()) {
+		if (!getCurrentUser().has(RMPermissionsTo.MANAGE_CONTAINERS).globally()) {
 			List<String> unitsWithPermissionToManageContainers = modelLayerFactory.newAuthorizationsServices()
 					.getConceptsForWhichUserHasPermission(RMPermissionsTo.MANAGE_CONTAINERS, getCurrentUser());
 			condition = fromContainers.where(rmRecordServices.containerRecord.administrativeUnits()).isContaining(unitsWithPermissionToManageContainers);
