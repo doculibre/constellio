@@ -68,7 +68,7 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 
 	public TaskCompleteWindowButton(Task task, String caption, AppLayerFactory appLayerFactory,
 									TaskTable.TaskPresenter presenter) {
-		super(caption, caption, WindowConfiguration.modalDialog("600px", "600px"));
+		super(caption, caption, WindowConfiguration.modalDialog("1000px", "800px"));
 
 		this.task = task;
 		this.appLayerFactory = appLayerFactory;
@@ -128,7 +128,7 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 			height += 150;
 		}
 		if (commentField != null) {
-			height += 150;
+			height += 200;
 		}
 		getWindow().setHeight(height + "px");
 	}

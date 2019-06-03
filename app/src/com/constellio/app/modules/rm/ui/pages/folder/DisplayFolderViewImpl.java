@@ -324,7 +324,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				}
 			};
 
-			displayFolderButton = new DisplayButton($("DisplayFolderView.displayFolder")) {
+			displayFolderButton = new BaseButton($("DisplayFolderView.displayFolder")) {
 				@Override
 				protected void buttonClick(ClickEvent event) {
 					presenter.displayFolderButtonClicked();
