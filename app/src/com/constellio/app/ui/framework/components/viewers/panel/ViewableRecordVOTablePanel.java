@@ -196,18 +196,15 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
 
 		addComponent(tableLayout);
 		addComponent(closeButtonViewerMetadataLayout);
-		if (isCompressionSupported()) {
-			addTableCompressListener(new TableCompressListener() {
-				@Override
-				public void tableCompressChange(TableCompressEvent event) {
-					if (table instanceof ViewableRecordVOTable) {
-						((ViewableRecordVOTable) table).setCompressed(event.isCompressed());
-					}
+		addTableCompressListener(new TableCompressListener() {
+			@Override
+			public void tableCompressChange(TableCompressEvent event) {
+				if (isCompressionSupported()) {
+					((ViewableRecordVOTable) table).setCompressed(event.isCompressed());
 				}
-			});
-		} else {
-			closeButtonViewerMetadataLayout.setVisible(false);
-		}
+			}
+		});
+		closeButtonViewerMetadataLayout.setVisible(isCompressionSupported());
 		adjustTableExpansion();
 	}
 
@@ -580,22 +577,20 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
 			previousItemId = recordVOContainer.prevItemId(itemId);
 			nextItemId = recordVOContainer.nextItemId(itemId);
 
-			if ((isNested() || !ResponsiveUtils.isDesktop()) && selectedRecordVO != null) {
+			if (!isCompressionSupported() && selectedRecordVO != null) {
 				displayInWindowOrNavigate(selectedRecordVO);
 			} else {
 				previousButton.setEnabled(previousItemId != null);
 				nextButton.setEnabled(nextItemId != null);
 
-				if (tableMode == TableMode.LIST && isCompressionSupported()) {
-					viewerMetadataPanel.setRecordVO(selectedRecordVO);
-					if (compressionChange != null && event != null) {
-						TableCompressEvent tableCompressEvent = new TableCompressEvent(event, compressionChange);
-						for (TableCompressListener tableCompressListener : tableCompressListeners) {
-							tableCompressListener.tableCompressChange(tableCompressEvent);
-						}
+				viewerMetadataPanel.setRecordVO(selectedRecordVO);
+				if (compressionChange != null) {
+					TableCompressEvent tableCompressEvent = new TableCompressEvent(event, compressionChange);
+					for (TableCompressListener tableCompressListener : tableCompressListeners) {
+						tableCompressListener.tableCompressChange(tableCompressEvent);
 					}
-					adjustTableExpansion();
 				}
+				adjustTableExpansion();
 			}
 		}
 	}
