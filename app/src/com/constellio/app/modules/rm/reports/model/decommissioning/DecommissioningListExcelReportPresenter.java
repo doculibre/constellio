@@ -87,8 +87,8 @@ public class DecommissioningListExcelReportPresenter extends BaseExcelReportPres
 
         List<Folder> folders = new ArrayList<>(rmSchemasRecordsServices.getFolders(decommissioningListFoldersIds));
         for (Folder folder : folders) {
-            final FolderDetailWithType folderDetailWithType = folderDetails.get(folder.getId());
-            final DecomListFolderDetail detail = folderDetailWithType.getDetail();
+            FolderDetailWithType folderDetailWithType = folderDetails.get(folder.getId());
+            DecomListFolderDetail detail = folderDetailWithType.getDetail();
 
             folder.setLinearSize(detail.getFolderLinearSize());
             folder.setContainer(detail.getContainerRecordId());
