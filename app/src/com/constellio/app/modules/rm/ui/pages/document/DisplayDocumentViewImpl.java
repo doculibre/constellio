@@ -277,11 +277,6 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		recordDisplayPanel.addStyleName(ValoTheme.PANEL_BORDERLESS);
 		recordDisplayPanel.addStyleName("panel-no-scroll");
 		recordDisplayPanel.setSizeFull();
-		//int otherElementsHeight = 0;
-		//recordDisplay.setHeight(Page.getCurrent().getBrowserWindowHeight() - otherElementsHeight - 1, Unit.PIXELS);
-		//recordDisplayPanel.setWidth("100%");
-		//int recordDisplayHeight = Page.getCurrent().getBrowserWindowHeight() /*- otherElementsHeight */;
-		//recordDisplayPanel.setHeight(recordDisplayHeight, Unit.PIXELS);
 
 		recordDisplayPanel.addStyleName(ValoTheme.PANEL_BORDERLESS);
 		recordDisplayPanel.addStyleName(ValoTheme.PANEL_SCROLL_INDICATOR);
@@ -316,17 +311,10 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 			splitPanel.setSecondComponent(tabSheet);
 			splitPanel.setSecondComponentWidth(700, Unit.PIXELS);
 			contentMetadataComponent = splitPanel;
-
-//			tabSheet.setWidth("700px");
-//			I18NHorizontalLayout contentMetadataLayout = new I18NHorizontalLayout();
-//			contentMetadataLayout.setSizeFull();
-//			contentMetadataLayout.setSpacing(true);
-//			contentMetadataLayout.addComponents(tabSheet);
-//			contentMetadataLayout.addComponents( contentViewer, tabSheet);
-		//			contentMetadataLayout.setExpandRatio(contentViewer, 1);
 		} else {
 			contentMetadataComponent = tabSheet;
 		}
+		mainActionMenuButtonsLayout.setVisible(false);
 		mainLayout.addComponents(mainActionMenuButtonsLayout, borrowedLabel, contentMetadataComponent);
 		for (TabSheetDecorator tabSheetDecorator : tabSheetDecorators) {
 			tabSheetDecorator.decorate(this, tabSheet);

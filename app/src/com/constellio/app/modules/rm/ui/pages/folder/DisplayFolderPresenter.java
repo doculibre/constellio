@@ -180,6 +180,8 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	String sortCriterion;
 	SortOrder sortOrder;
 
+	private Integer returnIndex;
+
 	public DisplayFolderPresenter(DisplayFolderView view, RecordVO recordVO, boolean nestedView, boolean inWindow) {
 		super(view, Folder.DEFAULT_SCHEMA);
 		this.nestedView = nestedView;
@@ -1597,4 +1599,13 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	public MetadataSchemaVO getSchema() {
 		return new MetadataSchemaToVOBuilder().build(schema(Cart.DEFAULT_SCHEMA), RecordVO.VIEW_MODE.TABLE, view.getSessionContext());
 	}
+
+	public Integer getReturnIndex() {
+		return returnIndex;
+	}
+
+	public void itemClicked(RecordVO recordVO, Integer index) {
+		this.returnIndex = index;
+	}
+	
 }

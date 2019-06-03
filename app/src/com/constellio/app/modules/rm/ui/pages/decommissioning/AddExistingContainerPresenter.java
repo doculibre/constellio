@@ -25,12 +25,9 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.records.RecordImpl;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.ongoing.OngoingLogicalSearchCondition;
-import com.constellio.model.services.security.roles.Roles;
-import com.constellio.model.services.security.roles.RolesManager;
 import com.vaadin.ui.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,6 +55,8 @@ public class AddExistingContainerPresenter extends SearchPresenter<AddExistingCo
 	boolean displayResults;
 	DecommissioningType decommissioningType;
 
+	private String searchID;
+
 	public AddExistingContainerPresenter(AddExistingContainerView view) {
 		super(view);
 	}
@@ -78,7 +77,8 @@ public class AddExistingContainerPresenter extends SearchPresenter<AddExistingCo
 		view.setCriteriaSchemaType(ContainerRecord.SCHEMA_TYPE);
 
 		if (parts.length > 1) {
-			SavedSearch search = getSavedSearch(parts[2]);
+			searchID = parts[2];
+			SavedSearch search = getSavedSearch(searchID);
 			setSavedSearch(search);
 			this.displayResults = true;
 		} else {
@@ -354,4 +354,10 @@ public class AddExistingContainerPresenter extends SearchPresenter<AddExistingCo
 		AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions().forCollection(view.getCollection());
 		return extensions.getComponentForCriterion(criterion);
 	}
+
+	@Override
+	public String getSavedSearchId() {
+		return searchID;
+	}
+	
 }

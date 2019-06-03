@@ -508,7 +508,7 @@ public class DocumentMenuBarImpl extends BaseMenuBar implements DocumentMenuBar 
 		if (parent instanceof Table) {
 			Container container = ((Table) parent).getContainerDataSource();
 			if (container instanceof RefreshableContainer) {
-				((RefreshableContainer) container).refresh();
+				((RefreshableContainer) container).forceRefresh();
 			}
 		}
 	}

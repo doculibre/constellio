@@ -71,6 +71,11 @@ public class SearchEventVOLazyContainer extends LazyQueryContainer implements Re
 		super(queryDefinition, queryFactory);
 	}
 
+	@Override
+	public void forceRefresh() {
+		refresh();
+	}
+
 	public static List<String> getProperties(MetadataSchemaVO schema) {
 		return getDeclaredProperties(schema, PROPERTIES);
 	}

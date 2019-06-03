@@ -35,10 +35,11 @@ public class SearchResultContainer extends ContainerAdapter<SearchResultVOLazyCo
 		return new AbstractProperty<Component>() {
 			@Override
 			public Component getValue() {
-				SearchResultVO searchResultVO = getSearchResultVO((int) itemId);
-				ClickListener clickListener = getClickListener(searchResultVO);
-				ClickListener elevationClickListener = getElevationClickListener(searchResultVO);
-				ClickListener exclusionClickListener = getExclusionClickListener(searchResultVO);
+				Integer index = (Integer) itemId;
+				SearchResultVO searchResultVO = getSearchResultVO(index);
+				ClickListener clickListener = getClickListener(searchResultVO, index);
+				ClickListener elevationClickListener = getElevationClickListener(searchResultVO, index);
+				ClickListener exclusionClickListener = getExclusionClickListener(searchResultVO, index);
 				SearchResultDisplay searchResultDisplay = displayFactory.build(searchResultVO, query, clickListener, elevationClickListener, exclusionClickListener);
 				ReferenceDisplay referenceDisplay = ComponentTreeUtils.getFirstChild(searchResultDisplay, ReferenceDisplay.class);
 				if (referenceDisplay != null) {
@@ -60,15 +61,15 @@ public class SearchResultContainer extends ContainerAdapter<SearchResultVOLazyCo
 		};
 	}
 
-	protected ClickListener getClickListener(SearchResultVO searchResultVO) {
+	protected ClickListener getClickListener(SearchResultVO searchResultVO, Integer index) {
 		return null;
 	}
 
-	protected ClickListener getElevationClickListener(SearchResultVO searchResultVO) {
+	protected ClickListener getElevationClickListener(SearchResultVO searchResultVO, Integer index) {
 		return null;
 	}
 
-	protected ClickListener getExclusionClickListener(SearchResultVO searchResultVO) {
+	protected ClickListener getExclusionClickListener(SearchResultVO searchResultVO, Integer index) {
 		return null;
 	}
 

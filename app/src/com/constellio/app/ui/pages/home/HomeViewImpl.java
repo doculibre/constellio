@@ -392,7 +392,7 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 		}
 
 		@Override
-		public void refresh() {
+		public void forceRefresh() {
 		}
 
 		@Override

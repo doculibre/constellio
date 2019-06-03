@@ -117,6 +117,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	private TabSheet tabSheet;
 	private RecordDisplay recordDisplay;
 	private Component folderContentComponent;
+	private ViewableRecordVOTablePanel viewerPanel;
 	private Component tasksComponent;
 	private Component eventsComponent;
 	private DisplayFolderPresenter presenter;
@@ -185,6 +186,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
 		mainLayout = new VerticalLayout();
+		mainLayout.addStyleName("display-folder-view");
 		mainLayout.setSizeFull();
 		mainLayout.setSpacing(true);
 
@@ -682,7 +684,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			CollapsibleHorizontalSplitPanel splitPanel = new CollapsibleHorizontalSplitPanel("FolderContent");
 			splitPanel.setSizeFull();
 
-			ViewableRecordVOTablePanel viewerPanel = new ViewableRecordVOTablePanel(recordVOContainer) {
+			viewerPanel = new ViewableRecordVOTablePanel(recordVOContainer) {
 				@Override
 				protected boolean isSelectColumn() {
 					return !nestedView;
@@ -729,6 +731,15 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 					};
 				}
 			};
+			viewerPanel.addItemClickListener(new ItemClickListener() {
+				@Override
+				public void itemClick(ItemClickEvent event) {
+					Object itemId = event.getItemId();
+					Integer index = (Integer) itemId;
+					RecordVO recordVO = recordVOContainer.getRecordVO(itemId);
+					presenter.itemClicked(recordVO, index);
+				}
+			});
 			viewerPanel.addStyleName("folder-content-table");
 			//			viewerPanel.addStyleName("search-result-title");
 			
@@ -1233,6 +1244,19 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		String sortCriterionValue = presenter.getSortCriterionValueAmong(sortableMetadata);
 		SortOrder sortOrder = presenter.getSortOrder();
 		facetsPanel.refresh(facets, facetSelections, sortableMetadata, sortCriterionValue, sortOrder);
+	}
+
+	@Override
+	public void scrollIntoView(Integer contentIndex) {
+		if (viewerPanel != null) {
+			viewerPanel.scrollIntoView(contentIndex);
+			viewerPanel.selectIndex(contentIndex);
+		}
+	}
+
+	@Override
+	public Integer getReturnIndex() {
+		return presenter.getReturnIndex();
 	}
 
 }

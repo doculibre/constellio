@@ -13962,6 +13962,8 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .xbreadcrumbs {
 	background-color: #FFFFFF;
 	height: auto;
+	font-size: 32px;
+	padding-right: 220px;
 }
 
 .constellio .xbreadcrumbs .v-link a span, .constellio .xbreadcrumbs .xbreadcrumbbutton .v-button-caption {
@@ -13969,13 +13971,13 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .xbreadcrumbs li {
-	height: auto;
+	height: 60px;
 }
 
 .constellio .xbreadcrumbs .xbreadcrumbbutton {
 	height: auto;
 	white-space: normal;
-	opacity: 0.5;
+	opacity: 1;
 }
 
 .constellio .information-capsule {
@@ -14615,10 +14617,6 @@ div.v-layout.v-horizontal.v-widget {
 	vertical-align: middle;
 }
 
-.constellio .viewable-record-table-panel {
-	min-height: 2000px;
-}
-
 .constellio .viewable-record-table-panel .v-slot-previous-next-buttons-layout {
 	margin-bottom: -36px;
 	color: #197de1;
@@ -14631,7 +14629,7 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .viewable-record-table-panel .close-viewer-button {
 	position: relative;
-	top: 16px;
+	top: -2px;
 	z-index: 2;
 	color: #197de1;
 	font-size: 24px;
@@ -14721,14 +14719,6 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .collapsible-horizontal-splitpanel .v-splitpanel-hsplitter-collapsible-horizontal-splitpanel-second-hidden:before {
 	content: "\f100";
-}
-
-.constellio .collapsible-horizontal-splitpanel-second-visible2 .viewable-search-results-panel .close-button-viewer-metadata-layout {
-	width: calc(100% - 960px);
-}
-
-.constellio .collapsible-horizontal-splitpanel-second-hidden2 .viewable-search-results-panel .close-button-viewer-metadata-layout {
-	width: calc(100% - 660px);
 }
 
 .constellio .constellio-layout .sidebar {
@@ -15212,11 +15202,16 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .viewer-metadata-panel {
 	position: relative;
-	top: -12px;
+	top: -48px;
 }
 
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .viewer-metadata-panel .action-menu-bar {
-	top: -75px;
+	top: -58px;
+	right: 28px;
+}
+
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .viewer-metadata-panel .v-tabsheet-scroller {
+	width: 110px;
 }
 
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .no-caption-action-menu-bar .v-menubar-submenu-indicator + .v-menubar-menuitem-caption:after {
@@ -15273,6 +15268,11 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .constellio-layout .user-management .v-button .v-button-wrap {
 	white-space: normal;
+}
+
+.constellio .constellio-layout .v-tabsheet-display-folder {
+	position: relative;
+	top: -38px;
 }
 
 .constellio .v-ui[width-range~="1101px-"] .user-menu {

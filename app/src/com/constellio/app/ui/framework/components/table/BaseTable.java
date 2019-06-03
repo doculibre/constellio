@@ -186,6 +186,9 @@ public class BaseTable extends Table {
 	public void setCurrentPageFirstItemId(Object currentPageFirstItemId) {
 		if (isPaged()) {
 			pagingCurrentPageFirstItemId = currentPageFirstItemId;
+			if (isAttached()) {
+				scrollToFirstPagingItem();
+			}
 		} else {
 			super.setCurrentPageFirstItemId(currentPageFirstItemId);
 		}
@@ -195,6 +198,9 @@ public class BaseTable extends Table {
 	public void setCurrentPageFirstItemIndex(int newIndex) {
 		if (isPaged()) {
 			pagingCurrentPageFirstItemIndex = newIndex;
+			if (isAttached()) {
+				scrollToFirstPagingItem();
+			}
 		} else {
 			super.setCurrentPageFirstItemIndex(newIndex);
 		}
@@ -523,7 +529,7 @@ public class BaseTable extends Table {
 				throw new IllegalArgumentException(
 						"PagedTable can only use containers that implement Container.Indexed");
 			}
-			PagedTableContainer pagedTableContainer = new PagedTableContainer(
+			PagedTableContainer pagedTableContainer = new PagedBaseTableContainer(
 					(Container.Indexed) newDataSource);
 			pagedTableContainer.setPageLength(getPageLength());
 			super.setContainerDataSource(pagedTableContainer);
@@ -671,6 +677,36 @@ public class BaseTable extends Table {
 
 	protected void onSetPageButtonClicked(int page) {
 		setCurrentPage(page);
+	}
+
+	private static class PagedBaseTableContainer extends PagedTableContainer implements ItemSetChangeNotifier {
+
+		public PagedBaseTableContainer(Indexed container) {
+			super(container);
+		}
+
+		@Override
+		public void addItemSetChangeListener(ItemSetChangeListener listener) {
+			((ItemSetChangeNotifier) getContainer()).addItemSetChangeListener(listener);
+		}
+
+		@SuppressWarnings("deprecation")
+		@Override
+		public void addListener(ItemSetChangeListener listener) {
+			((ItemSetChangeNotifier) getContainer()).addListener(listener);
+		}
+
+		@Override
+		public void removeItemSetChangeListener(ItemSetChangeListener listener) {
+			((ItemSetChangeNotifier) getContainer()).removeItemSetChangeListener(listener);
+		}
+
+		@SuppressWarnings("deprecation")
+		@Override
+		public void removeListener(ItemSetChangeListener listener) {
+			((ItemSetChangeNotifier) getContainer()).removeListener(listener);
+		}
+
 	}
 
 	private class SelectionCheckBox extends CheckBox {

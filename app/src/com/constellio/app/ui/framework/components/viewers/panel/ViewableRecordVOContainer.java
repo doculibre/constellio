@@ -48,7 +48,6 @@ public class ViewableRecordVOContainer extends IndexedContainer implements ItemS
 
 	public ViewableRecordVOContainer(RecordVOContainer recordVOContainer) {
 		this.recordVOContainer = recordVOContainer;
-		//		addRecordVOContainerProperties();
 		addCompressedProperties();
 	}
 
@@ -65,15 +64,7 @@ public class ViewableRecordVOContainer extends IndexedContainer implements ItemS
 	}
 
 	public void setCompressed(boolean compressed) {
-		//		boolean compressedChanged = this.compressed != compressed;
 		this.compressed = compressed;
-		//		if (compressedChanged) {
-		//			if (compressed) {
-		//				addCompressedProperties();
-		//			} else {
-		//				addRecordVOContainerProperties();
-		//			}
-		//		}
 	}
 
 	private void addCompressedProperties() {
@@ -84,17 +75,6 @@ public class ViewableRecordVOContainer extends IndexedContainer implements ItemS
 		addContainerProperty(THUMBNAIL_PROPERTY, Image.class, null);
 		addContainerProperty(SEARCH_RESULT_PROPERTY, Component.class, null);
 	}
-
-	//	private void addRecordVOContainerProperties() {
-	//		Collection<?> propertyIds = new ArrayList<>(getContainerPropertyIds());
-	//		for (Object propertyId : propertyIds) {
-	//			removeContainerProperty(propertyId);
-	//		}
-	//		addContainerProperty(THUMBNAIL_PROPERTY, Image.class, null);
-	//		for (Object recordVOContainerPropertyId : recordVOContainer.getContainerPropertyIds()) {
-	//			addContainerProperty(recordVOContainerPropertyId, recordVOContainer.getType(recordVOContainerPropertyId), null);
-	//		}
-	//	}
 
 	@Override
 	public Property<?> getContainerProperty(Object itemId, Object propertyId) {
@@ -264,14 +244,14 @@ public class ViewableRecordVOContainer extends IndexedContainer implements ItemS
 	}
 
 	@Override
-	public void refresh() {
-		recordVOContainer.refresh();
+	public void forceRefresh() {
+		recordVOContainer.forceRefresh();
 	}
 
 	@Override
 	public void fireItemSetChange() {
 		super.fireItemSetChange();
-		recordVOContainer.refresh();
+		recordVOContainer.forceRefresh();
 	}
 
 	@Override

@@ -8,7 +8,6 @@ import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.pages.base.SessionContext;
-import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.User;
@@ -43,6 +42,11 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 
 	public SimpleSearchPresenter(SimpleSearchView view) {
 		super(view);
+	}
+
+	@Override
+	public String getSavedSearchId() {
+		return searchID;
 	}
 
 	@Override

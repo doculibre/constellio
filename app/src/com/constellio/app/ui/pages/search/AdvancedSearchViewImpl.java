@@ -387,7 +387,7 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 				Object itemId = event.getItemId();
 				RecordVOItem item = (RecordVOItem) container.getItem(itemId);
 				RecordVO recordVO = item.getRecord();
-				((AdvancedSearchPresenter) presenter).searchResultClicked(recordVO);
+				((AdvancedSearchPresenter) presenter).searchResultClicked(recordVO, (Integer) itemId);
 			}});
     	} else {
     		table = super.buildSimpleResultsTable(dataProvider);

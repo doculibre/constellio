@@ -32,6 +32,11 @@ public class FacetsLazyContainer extends LazyQueryContainer implements Refreshab
 		super(queryDefinition, queryFactory);
 	}
 
+	@Override
+	public void forceRefresh() {
+		refresh();
+	}
+
 	public static class FacetsLazyQueryDefinition extends LazyQueryDefinition {
 		public FacetsLazyQueryDefinition(List<String> properties) {
 			super(true, 100, null);

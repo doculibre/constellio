@@ -42,6 +42,11 @@ public class SearchResultVOLazyContainer extends LazyQueryContainer implements R
 		});
 	}
 
+	@Override
+	public void forceRefresh() {
+		dataProvider.fireDataRefreshEvent();
+	}
+
 	public SearchResultVODataProvider getDataProvider() {
 		return dataProvider;
 	}

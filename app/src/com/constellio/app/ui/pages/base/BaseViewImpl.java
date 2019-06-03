@@ -213,8 +213,11 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 				addComponent(breadcrumbTrailLayout);
 			}
 
+			if (actionMenu != null && isActionMenuBar()) {
+				addComponent(actionMenu);
+			}
 			addComponent(mainComponent);
-			if (actionMenu != null) {
+			if (actionMenu != null && !isActionMenuBar()) {
 				addComponent(actionMenu);
 			}
 

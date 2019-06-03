@@ -56,8 +56,9 @@ public class NiceTitle extends AbstractExtension {
 			StringBuilder js = new StringBuilder();
 			String getById = "document.getElementById(\"" + componentId + "\")";
 			js.append("if (" + getById + ") {");
-			if (visibleWhenDisabled) {
-				js.append(getById + ".className = " + getById + ".className.replace(\"v-disabled\", \"" + DISABLED_STYLE + "\")");
+			if (visibleWhenDisabled && !component.isEnabled()) {
+				component.addStyleName(DISABLED_STYLE);
+				js.append(getById + ".className = " + getById + ".className.replace(\"v-disabled\", \"\")");
 				js.append(";");
 			}
 			String titleEscaped = StringEscapeUtils.escapeJavaScript(title);

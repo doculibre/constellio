@@ -394,7 +394,7 @@ public class ContainerAdapter<T extends Container & Indexed & Sortable> extends 
 		if (adapted instanceof ContainerAdapter) {
 			((ContainerAdapter<T>) adapted).fireItemSetChange();
 		} else if (adapted instanceof RefreshableContainer) {
-			((RefreshableContainer) adapted).refresh();
+			((RefreshableContainer) adapted).forceRefresh();
 		}
 	}
 
@@ -407,9 +407,9 @@ public class ContainerAdapter<T extends Container & Indexed & Sortable> extends 
 	}
 
 	@Override
-	public void refresh() {
+	public void forceRefresh() {
 		if (adapted instanceof RefreshableContainer) {
-			((RefreshableContainer) adapted).refresh();
+			((RefreshableContainer) adapted).forceRefresh();
 		}
 	}
 

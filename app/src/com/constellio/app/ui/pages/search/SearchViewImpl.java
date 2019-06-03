@@ -465,7 +465,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		} else {
 			tableMode = null;
 		}
-		return new ViewableRecordVOSearchResultTable(container, tableMode, presenter) {
+		ViewableRecordVOSearchResultTable viewerPanel = new ViewableRecordVOSearchResultTable(container, tableMode, presenter) {
 			@Override
 			protected boolean isIndexColumn() {
 				return indexColumn;
@@ -478,26 +478,17 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 
 			@Override
 			protected Component newSearchResultComponent(Object itemId) {
+				Integer index = (Integer) itemId;
 				String query = presenter.getSearchQuery().getFreeTextQuery();
-				SearchResultVO searchResultVO = container.getSearchResultVO((int) itemId);
-				ClickListener clickListener = getClickListener(searchResultVO);
-				ClickListener elevationClickListener = getElevationClickListener(searchResultVO);
-				ClickListener exclusionClickListener = getExclusionClickListener(searchResultVO);
-				SearchResultDisplay searchResultDisplay = displayFactory.build(searchResultVO, query, clickListener, elevationClickListener, exclusionClickListener);
+				SearchResultVO searchResultVO = container.getSearchResultVO(index);
+				ClickListener elevationClickListener = getElevationClickListener(searchResultVO, index);
+				ClickListener exclusionClickListener = getExclusionClickListener(searchResultVO, index);
+				SearchResultDisplay searchResultDisplay = displayFactory.build(searchResultVO, query, null, elevationClickListener, exclusionClickListener);
 				searchResultDisplay.getTitleComponent().setIcon(null);
 				return searchResultDisplay;
 			}
 
-			protected ClickListener getClickListener(final SearchResultVO searchResultVO) {
-				return new ClickListener() {
-					@Override
-					public void buttonClick(ClickEvent event) {
-						presenter.searchResultClicked(searchResultVO.getRecordVO());
-					}
-				};
-			}
-
-			protected ClickListener getElevationClickListener(final SearchResultVO searchResultVO) {
+			protected ClickListener getElevationClickListener(final SearchResultVO searchResultVO, Integer index) {
 				return new ClickListener() {
 					@Override
 					public void buttonClick(ClickEvent event) {
@@ -506,7 +497,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 				};
 			}
 
-			protected ClickListener getExclusionClickListener(final SearchResultVO searchResultVO) {
+			protected ClickListener getExclusionClickListener(final SearchResultVO searchResultVO, Integer index) {
 				return new ClickListener() {
 					@Override
 					public void buttonClick(ClickEvent event) {
@@ -515,6 +506,16 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 				};
 			}
 		};
+		viewerPanel.addItemClickListener(new ItemClickListener() {
+			@Override
+			public void itemClick(ItemClickEvent event) {
+				Object itemId = event.getItemId();
+				Integer index = (Integer) itemId;
+				SearchResultVO searchResultVO = container.getSearchResultVO(index);
+				presenter.searchResultClicked(searchResultVO.getRecordVO(), index);
+			}
+		});
+		return viewerPanel;
 	}
 
 	protected SearchResultTable buildSimpleResultsTable(SearchResultVODataProvider dataProvider) {
@@ -528,7 +529,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			public void itemClick(ItemClickEvent event) {
 				Object itemId = event.getItemId();
 				RecordVO recordVO = container.getRecordVO((int) itemId);
-				((SearchPresenter) presenter).searchResultClicked(recordVO);
+				((SearchPresenter) presenter).searchResultClicked(recordVO, (Integer) itemId);
 			}
 		});
 		return table;
@@ -611,17 +612,17 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		SearchResultContainer container = new SearchResultContainer(results, displayFactory,
 				presenter.getSearchQuery().getFreeTextQuery(), presenter.isShowNumberingColumn()) {
 			@Override
-			protected ClickListener getClickListener(final SearchResultVO searchResultVO) {
+			protected ClickListener getClickListener(final SearchResultVO searchResultVO, final Integer index) {
 				return new ClickListener() {
 					@Override
 					public void buttonClick(ClickEvent event) {
-						presenter.searchResultClicked(searchResultVO.getRecordVO());
+						presenter.searchResultClicked(searchResultVO.getRecordVO(), index);
 					}
 				};
 			}
 
 			@Override
-			protected ClickListener getElevationClickListener(final SearchResultVO searchResultVO) {
+			protected ClickListener getElevationClickListener(final SearchResultVO searchResultVO, Integer index) {
 				return new ClickListener() {
 					@Override
 					public void buttonClick(ClickEvent event) {
@@ -631,7 +632,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			}
 
 			@Override
-			protected ClickListener getExclusionClickListener(final SearchResultVO searchResultVO) {
+			protected ClickListener getExclusionClickListener(final SearchResultVO searchResultVO, Integer index) {
 				return new ClickListener() {
 					@Override
 					public void buttonClick(ClickEvent event) {
@@ -1001,6 +1002,22 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 
 	@Override
 	public void fireNoRecordSelected() {
+	}
+
+	@Override
+	public String getSavedSearchId() {
+		return presenter.getSavedSearchId();
+	}
+
+	@Override
+	public void scrollIntoView(Integer resultIndex) {
+		((ViewableRecordVOTablePanel) resultsTable).scrollIntoView(resultIndex);
+		((ViewableRecordVOTablePanel) resultsTable).selectIndex(resultIndex);
+	}
+
+	@Override
+	public Integer getReturnIndex() {
+		return presenter.getReturnIndex();
 	}
 
 }

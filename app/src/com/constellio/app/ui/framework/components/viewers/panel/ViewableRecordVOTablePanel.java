@@ -10,14 +10,12 @@ import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
-import com.constellio.app.ui.entities.SearchResultVO;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.IconButton;
 import com.constellio.app.ui.framework.buttons.SelectDeselectAllButton;
 import com.constellio.app.ui.framework.components.RecordDisplayFactory;
-import com.constellio.app.ui.framework.components.SearchResultDisplay;
 import com.constellio.app.ui.framework.components.ViewWindow;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
@@ -226,13 +224,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
 	}
 
 	protected Component newSearchResultComponent(Object itemId) {
-		UserVO currentUser = ConstellioUI.getCurrentSessionContext().getCurrentUser();
-		RecordDisplayFactory displayFactory = new RecordDisplayFactory(currentUser);
-		RecordVO recordVO = recordVOContainer.getRecordVO(itemId);
-		SearchResultVO searchResultVO = new SearchResultVO(recordVO, new HashMap<String, List<String>>());
-		SearchResultDisplay searchResultDisplay = displayFactory.build(searchResultVO, null, null, null, null);
-		searchResultDisplay.getTitleComponent().setIcon(null);
-		return searchResultDisplay;
+		return null;
 	}
 
 	//	private void ensureHeight(Object itemId) {
@@ -290,7 +282,11 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
 			ViewableRecordVOContainer viewableRecordVOContainer = new ViewableRecordVOContainer(recordVOContainer) {
 				@Override
 				protected Component getRecordDisplay(Object itemId) {
-					return ViewableRecordVOTablePanel.this.newSearchResultComponent(itemId);
+					Component recordDisplay = ViewableRecordVOTablePanel.this.newSearchResultComponent(itemId);
+					if (recordDisplay == null) {
+						recordDisplay = super.getRecordDisplay(itemId);
+					}
+					return recordDisplay;
 				}
 			};
 
@@ -531,7 +527,11 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
 		viewWindow.addCloseListener(new Window.CloseListener() {
 			@Override
 			public void windowClose(CloseEvent e) {
-				refreshMetadata();
+				if (selectedRecordVO != null && getTableMode() == TableMode.LIST) {
+					refreshMetadata();
+				} else {
+					recordVOContainer.forceRefresh();
+				}
 			}
 		});
 		ConstellioUI.getCurrent().addWindow(viewWindow);
@@ -561,20 +561,20 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
 	}
 
 	void selectRecordVO(Object itemId, ItemClickEvent event, boolean reload) {
-		Object newRowSelected = itemId;
-		table.setValue(newRowSelected);
+		Object newSelectedItemId = itemId;
+		table.setValue(newSelectedItemId);
 
 		Boolean compressionChange;
-		if (selectedItemId == null && newRowSelected != null) {
+		if (selectedItemId == null && newSelectedItemId != null) {
 			compressionChange = true;
 		} else {
 			compressionChange = null;
 		}
 
-		if (!newRowSelected.equals(this.selectedItemId) || reload) {
-			selectedItemId = newRowSelected;
+		if (!newSelectedItemId.equals(this.selectedItemId) || reload) {
+			selectedItemId = newSelectedItemId;
 			if (reload) {
-				recordVOContainer.refresh();
+				recordVOContainer.forceRefresh();
 			}
 			selectedRecordVO = getRecordVO(selectedItemId);
 			previousItemId = recordVOContainer.prevItemId(itemId);
@@ -649,7 +649,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
 		};
 		previousButton.addStyleName("previous-button");
 		previousButton.setWidth("24px");
-		previousButton.addExtension(new NiceTitle(caption));
+		previousButton.addExtension(new NiceTitle(caption, false));
 		previousButton.setVisible(false);
 		return previousButton;
 	}
@@ -666,7 +666,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
 		};
 		nextButton.addStyleName("next-button");
 		nextButton.setWidth("24px");
-		nextButton.addExtension(new NiceTitle(caption));
+		nextButton.addExtension(new NiceTitle(caption, false));
 		nextButton.setVisible(false);
 		return nextButton;
 	}
@@ -683,14 +683,10 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
 	}
 
 	private void refreshMetadata() {
-		if (selectedRecordVO != null) {
-			RecordServices recordServices = ConstellioUI.getCurrent().getConstellioFactories().getModelLayerFactory().newRecordServices();
-			Record selectedRecord = recordServices.getDocumentById(selectedRecordVO.getId());
-			selectedRecordVO = new RecordToVOBuilder().build(selectedRecord, VIEW_MODE.DISPLAY, ConstellioUI.getCurrentSessionContext());
-			selectRecordVO(selectedItemId, null, true);
-			table.resetPageBuffer();
-			table.refreshRenderedCells();
-		}
+		RecordServices recordServices = ConstellioUI.getCurrent().getConstellioFactories().getModelLayerFactory().newRecordServices();
+		Record selectedRecord = recordServices.getDocumentById(selectedRecordVO.getId());
+		selectedRecordVO = new RecordToVOBuilder().build(selectedRecord, VIEW_MODE.DISPLAY, ConstellioUI.getCurrentSessionContext());
+		selectRecordVO(selectedItemId, null, true);
 	}
 	
 	public List<TableCompressListener> getTableCompressListeners() {
@@ -971,6 +967,18 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
 			}
 		}
 
+	}
+
+	public void scrollIntoView(Integer itemIndex) {
+		table.setCurrentPageFirstItemIndex(itemIndex);
+	}
+
+	public void selectIndex(Integer resultIndex) {
+		List<?> itemIds = recordVOContainer.getItemIds(resultIndex, 1);
+		if (!itemIds.isEmpty()) {
+			Object itemId = itemIds.get(0);
+			selectRecordVO(itemId, null, false);
+		}
 	}
 
 }

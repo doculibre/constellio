@@ -7,6 +7,8 @@ import java.util.List;
 
 public interface SearchView extends BaseView {
 
+	String getSavedSearchId();
+
 	void refreshSearchResultsAndFacets();
 
 	SearchResultVODataProvider refreshSearchResults(boolean temporarySave, boolean includeFacets);
@@ -24,5 +26,9 @@ public interface SearchView extends BaseView {
     void fireSomeRecordsSelected();
 
 	void fireNoRecordSelected();
+
+	void scrollIntoView(Integer itemIndex);
+
+	Integer getReturnIndex();
 	
 }

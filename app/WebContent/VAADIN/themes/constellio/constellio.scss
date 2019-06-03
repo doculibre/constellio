@@ -1219,19 +1219,22 @@ $popup-view-z-index: 3;
 	.xbreadcrumbs {
 		background-color: #FFFFFF;
 		height: auto;
+		font-size: 32px;
+		padding-right: 220px;
 
 		.v-link a span,.xbreadcrumbbutton .v-button-caption {
 			font-size: 0.9em;
 		}
 
 		li {
-			height: auto;
+			//height: auto;
+			height: 60px;
 		}
 
 		.xbreadcrumbbutton {
 		    height: auto;
 		    white-space: normal;
-		    opacity: 0.5;
+		    opacity: 1.0;
 		}
 	}
 	
@@ -1984,7 +1987,7 @@ $popup-view-z-index: 3;
 	}
 
     .viewable-record-table-panel {
-  		min-height: 2000px;
+  		//min-height: 2000px;
   		
   		.v-slot-previous-next-buttons-layout {
   			margin-bottom: -36px;
@@ -1999,7 +2002,7 @@ $popup-view-z-index: 3;
   		
   		.close-viewer-button {
   			position: relative;
-  			top: 16px;
+  			top: -2px;
   			z-index: 2;
   			color: #197de1;
   			font-size: 24px;
@@ -2108,28 +2111,6 @@ $popup-view-z-index: 3;
 		.v-splitpanel-hsplitter-collapsible-horizontal-splitpanel-second-hidden:before {
 		    content: "\f100";
 		}
-	}
-
-	.collapsible-horizontal-splitpanel-second-visible2 {
-	    .viewable-search-results-panel {
-	  		.close-button-viewer-metadata-layout {
-			    width: calc(100% - 960px);
-
-			    .viewer-metadata-panel {
-			    }
-	  		}
-	    }
-	}
-
-	.collapsible-horizontal-splitpanel-second-hidden2 {
-	    .viewable-search-results-panel {
-	  		.close-button-viewer-metadata-layout {
-			    width: calc(100% - 660px);
-
-			    .viewer-metadata-panel {
-			    }
-	  		}
-	    }
 	}
 
     .constellio-layout {
@@ -2664,10 +2645,15 @@ $popup-view-z-index: 3;
 			
 						.viewer-metadata-panel {
 							position: relative;
-							top: -12px;
+							top: -48px;
 						
 							.action-menu-bar {
-								top: -75px;
+								top: -58px;
+								right: 28px;
+							}
+							
+							.v-tabsheet-scroller {
+								width: 110px;
 							}
 						}
 			
@@ -2731,6 +2717,11 @@ $popup-view-z-index: 3;
 	    			white-space: normal;
 	    		}
 	    	}
+	    }
+	    
+	    .v-tabsheet-display-folder {
+			position: relative;
+			top: -38px;
 	    }
 
     }

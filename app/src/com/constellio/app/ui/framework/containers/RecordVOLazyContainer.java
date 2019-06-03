@@ -69,6 +69,13 @@ public class RecordVOLazyContainer extends LazyQueryContainer implements RecordV
 		}
 	}
 
+	@Override
+	public void forceRefresh() {
+		for (RecordVODataProvider dataProvider : dataProviders) {
+			dataProvider.fireDataRefreshEvent();
+		}
+	}
+
 	public List<RecordVODataProvider> getDataProviders() {
 		return dataProviders;
 	}
