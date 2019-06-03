@@ -424,6 +424,7 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 			setColumnExpandRatio(Schemas.TITLE_CODE, 1);
 
 			addItemClickListener(new ItemClickListener() {
+				@SuppressWarnings("unchecked")
 				@Override
 				public void itemClick(ItemClickEvent event) {
 					if (event.getButton() == MouseButton.LEFT) {

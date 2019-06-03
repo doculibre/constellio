@@ -132,13 +132,13 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
 		VerticalLayout layout = new VerticalLayout();
+		layout.addStyleName("search-main-container");
 		Component searchUIComponent = buildSearchUI();
 		if (searchUIComponent != null) {
 			layout.addComponent(searchUIComponent);
 		}
 		layout.addComponent(buildResultsUI());
 		layout.addComponent(buildThesaurusSemanticNetwork());
-		layout.addStyleName("search-main-container");
 		layout.setSpacing(true);
 		if (presenter.mustDisplayResults()) {
 			refreshSearchResultsAndFacets(false);

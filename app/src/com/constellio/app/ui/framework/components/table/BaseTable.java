@@ -436,7 +436,12 @@ public class BaseTable extends Table {
 	}
 
 	public SelectDeselectAllButton newSelectDeselectAllToggleButton() {
-		final SelectDeselectAllButton toggleButton = new SelectDeselectAllButton($("selectAll"), $("deselectAll"), !selectionManager.isAllItemsSelected()) {
+		return newSelectDeselectAllToggleButton($("selectAll"), $("deselectAll"));
+	}
+
+	public SelectDeselectAllButton newSelectDeselectAllToggleButton(String selectAllCaption,
+																	String deselectAllCaption) {
+		final SelectDeselectAllButton toggleButton = new SelectDeselectAllButton(selectAllCaption, deselectAllCaption, !selectionManager.isAllItemsSelected()) {
 			@Override
 			protected void onSelectAll(ClickEvent event) {
 				SelectionChangeEvent selectionChangeEvent = new SelectionChangeEvent();

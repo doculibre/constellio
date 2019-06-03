@@ -130,7 +130,7 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 
 	@Override
 	protected Component buildSearchUI() {
-		return new VerticalLayout();
+		return null;
 	}
 
 	@Override

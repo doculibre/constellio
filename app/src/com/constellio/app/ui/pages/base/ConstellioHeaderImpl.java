@@ -772,6 +772,7 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 
 	protected MenuBar buildCollectionMenu() {
 		MenuBar collectionMenu = new BaseMenuBar();
+		collectionMenu.addStyleName(ValoTheme.MENUBAR_BORDERLESS);
 		if (!collections.isEmpty()) {
 			collectionMenu.setAutoOpen(true);
 			collectionMenu.addStyleName("header-collection-menu");

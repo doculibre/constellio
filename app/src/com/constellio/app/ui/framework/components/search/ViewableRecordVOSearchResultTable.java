@@ -30,7 +30,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ViewableRecordVOSearchResultTable extends ViewableRecordVOTablePanel implements SearchResultTable {
 
-	public static final String TABLE_STYLE = "search-result-table";
+	public static final String TABLE_STYLE = "viewable-record-search-result-table-panel";
 
 	private static final int MAX_SELECTION_RANGE = 100;
 
@@ -146,6 +146,7 @@ public class ViewableRecordVOSearchResultTable extends ViewableRecordVOTablePane
 		totalCount.addStyleName(ValoTheme.LABEL_BOLD);
 
 		HorizontalLayout count = new HorizontalLayout(totalCount);
+		count.addStyleName("viewable-search-result-table-count");
 		count.setComponentAlignment(totalCount, Alignment.MIDDLE_LEFT);
 		count.setSizeUndefined();
 		count.setSpacing(true);
@@ -156,6 +157,7 @@ public class ViewableRecordVOSearchResultTable extends ViewableRecordVOTablePane
 		}
 
 		final HorizontalLayout selection = new HorizontalLayout();
+		selection.addStyleName("viewable-search-result-table-selection");
 		selection.setSizeUndefined();
 		selection.setSpacing(true);
 		for (Component component : extra) {
@@ -169,6 +171,7 @@ public class ViewableRecordVOSearchResultTable extends ViewableRecordVOTablePane
 		}
 
 		VerticalLayout summaryBar = new VerticalLayout(count, selection);
+		summaryBar.addStyleName("viewable-search-result-table-summary-bar");
 		summaryBar.setWidth("100%");
 
 		addSelectionChangeListener(new BaseTable.SelectionChangeListener() {

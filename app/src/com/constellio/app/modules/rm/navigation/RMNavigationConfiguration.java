@@ -2,7 +2,6 @@ package com.constellio.app.modules.rm.navigation;
 
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.entities.navigation.NavigationItem;
-import com.constellio.app.entities.navigation.PageItem;
 import com.constellio.app.entities.navigation.PageItem.RecentItemTable;
 import com.constellio.app.entities.navigation.PageItem.RecordTable;
 import com.constellio.app.entities.navigation.PageItem.RecordTree;
@@ -49,7 +48,6 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.migrations.CoreNavigationConfiguration;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.application.Navigation;
@@ -76,10 +74,8 @@ import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.users.UserServices;
-import com.vaadin.event.ItemClickEvent;
 import com.vaadin.navigator.View;
 import com.vaadin.server.FontAwesome;
-import com.vaadin.ui.Component;
 import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedListener.TableListener;
 import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedListener.TreeListener;
 import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableFooterEvent;
@@ -330,20 +326,6 @@ public class RMNavigationConfiguration implements Serializable {
 			public RecordVODataProvider getDataProvider(AppLayerFactory appLayerFactory,
 														SessionContext sessionContext) {
 				return new CheckedOutDocumentsTable(appLayerFactory, sessionContext).getDataProvider();
-			}
-		});
-
-
-		config.add(HomeView.TABS, new PageItem.CustomItem("defaultFavorites") {
-			@Override
-			public Component buildCustomComponent(ConstellioFactories factories, SessionContext context,
-												  ItemClickEvent.ItemClickListener itemClickListener) {
-				return new RMFavoritesTable(factories.getAppLayerFactory(), context).builtCustomSheet(itemClickListener);
-			}
-
-			@Override
-			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
-				return visibleIf(user.has(RMPermissionsTo.USE_MY_CART).globally());
 			}
 		});
 	}

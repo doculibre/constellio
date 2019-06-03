@@ -91,6 +91,8 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
 
 	private BaseButton nextButton;
 
+	private ListModeButton listModeButton;
+
 	private TableModeButton tableModeButton;
 
 	private SelectDeselectAllButton selectDeselectAllToggleButton;
@@ -144,11 +146,12 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
 
 		table = buildResultsTable();
 		if (isSelectColumn()) {
-			selectDeselectAllToggleButton = table.newSelectDeselectAllToggleButton();
+			selectDeselectAllToggleButton = newSelectDeselectAllToggleButton();
 			selectDeselectAllToggleButton.addStyleName(ValoTheme.BUTTON_LINK);
 		}
 
 		viewerMetadataPanel = buildViewerMetadataPanel();
+		listModeButton = buildListModeButton();
 		tableModeButton = buildTableModeButton();
 		previousButton = buildPreviousButton();
 		nextButton = buildNextButton();
@@ -173,7 +176,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
 		if (isSelectColumn()) {
 			tableActionButtonsLayout.addComponent(selectDeselectAllToggleButton);
 		}
-		tableActionButtonsLayout.addComponent(tableModeButton);
+		tableActionButtonsLayout.addComponents(listModeButton, tableModeButton);
 
 		previousNextButtonsLayout.addComponents(previousButton, nextButton);
 		tableButtonsLayout.addComponents(tableActionButtonsLayout, previousNextButtonsLayout);
@@ -473,10 +476,14 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
 		}
 	}
 
+	private SelectDeselectAllButton newSelectDeselectAllToggleButton() {
+		return table.newSelectDeselectAllToggleButton("", "");
+	}
+
 	private void updateTableButtonsAfterTableModeChange(BaseTable tableBefore) {
 		if (isSelectColumn()) {
 			SelectDeselectAllButton selectDeselectAllToggleButtonBefore = selectDeselectAllToggleButton;
-			selectDeselectAllToggleButton = table.newSelectDeselectAllToggleButton();
+			selectDeselectAllToggleButton = newSelectDeselectAllToggleButton();
 			selectDeselectAllToggleButton.addStyleName(ValoTheme.BUTTON_LINK);
 			if (selectDeselectAllToggleButtonBefore != null && selectDeselectAllToggleButtonBefore.isSelectAllMode() != selectDeselectAllToggleButton.isSelectAllMode()) {
 				selectDeselectAllToggleButton.setSelectAllMode(selectDeselectAllToggleButtonBefore.isSelectAllMode());
@@ -626,6 +633,10 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
 
 	private ViewerMetadataPanel buildViewerMetadataPanel() {
 		return new ViewerMetadataPanel();
+	}
+
+	private ListModeButton buildListModeButton() {
+		return new ListModeButton();
 	}
 
 	private TableModeButton buildTableModeButton() {
@@ -925,41 +936,54 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
 
 	}
 
-	private class TableModeButton extends BaseButton {
+	private class ListModeButton extends IconButton {
 
-		private final String MODE_LIST_CAPTION = $("ViewableRecordVOTablePanel.tableMode.list");
-		private final String MODE_TABLE_CAPTION = $("ViewableRecordVOTablePanel.tableMode.table");
-
-		public TableModeButton() {
-			super();
+		public ListModeButton() {
+			super(FontAwesome.ALIGN_JUSTIFY, $("ViewableRecordVOTablePanel.tableMode.list"));
 			addStyleName(ValoTheme.BUTTON_LINK);
-			addStyleName("table-mode-button");
-			updateCaption();
+			addStyleName("list-mode-button");
+			updateState();
 			addTableModeChangeListener(new TableModeChangeListener() {
 				@Override
 				public void tableModeChanged(TableModeChangeEvent event) {
-					updateCaption();
+					updateState();
 				}
 			});
 		}
 
-		private void updateCaption() {
-			String caption;
-			if (tableMode == TableMode.LIST) {
-				caption = MODE_TABLE_CAPTION;
-			} else {
-				caption = MODE_LIST_CAPTION;
-			}
-			setCaption(caption);
+		private void updateState() {
+			setEnabled(tableMode == TableMode.TABLE);
 		}
 
 		@Override
 		protected void buttonClick(ClickEvent event) {
-			if (tableMode == TableMode.LIST) {
-				setTableMode(TableMode.TABLE);
-			} else {
-				setTableMode(TableMode.LIST);
-			}
+			setTableMode(TableMode.LIST);
+		}
+
+	}
+
+	private class TableModeButton extends IconButton {
+
+		public TableModeButton() {
+			super(FontAwesome.TH, $("ViewableRecordVOTablePanel.tableMode.table"));
+			addStyleName(ValoTheme.BUTTON_LINK);
+			addStyleName("table-mode-button");
+			updateState();
+			addTableModeChangeListener(new TableModeChangeListener() {
+				@Override
+				public void tableModeChanged(TableModeChangeEvent event) {
+					updateState();
+				}
+			});
+		}
+
+		private void updateState() {
+			setEnabled(tableMode == TableMode.LIST);
+		}
+
+		@Override
+		protected void buttonClick(ClickEvent event) {
+			setTableMode(TableMode.TABLE);
 		}
 
 	}
