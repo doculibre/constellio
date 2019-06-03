@@ -12,6 +12,7 @@ import com.constellio.app.modules.rm.model.calculators.folder.FolderOpeningDateC
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.migrations.CoreRoles;
+import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
@@ -24,7 +25,7 @@ import java.util.List;
 import static java.util.Arrays.asList;
 
 public class RMMigrationTo9_0 implements MigrationScript {
-	public static final String USE_CART_OLD_PERMISSION = "rm.useCart";
+
 
 	@Override
 	public String getVersion() {
@@ -41,35 +42,6 @@ public class RMMigrationTo9_0 implements MigrationScript {
 		ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
 
 		RolesManager rolesManager = modelLayerFactory.getRolesManager();
-		Role rgbRole = rolesManager.getRole(collection, RMRoles.RGD);
-		Role admRole = rolesManager.getRole(collection, CoreRoles.ADMINISTRATOR);
-		rolesManager.updateRole(rgbRole.withNewPermissions(asList(
-				RMPermissionsTo.DISPLAY_RETENTIONRULE, RMPermissionsTo.DISPLAY_CLASSIFICATION_PLAN)));
-
-		rolesManager.updateRole(admRole.withNewPermissions(asList(
-				RMPermissionsTo.DISPLAY_RETENTIONRULE, RMPermissionsTo.DISPLAY_CLASSIFICATION_PLAN)));
-
-
-		List<Role> roleList = rolesManager.getAllRoles(collection);
-
-		for (Role role : roleList) {
-			boolean oldPermission = role.hasOperationPermission(USE_CART_OLD_PERMISSION);
-			if (role.hasOperationPermission(RMPermissionsTo.USE_MY_CART) || oldPermission) {
-				rolesManager.updateRole(role.withNewPermissions(asList(RMPermissionsTo.USE_GROUP_CART)));
-
-				if (oldPermission) {
-					Role newRole = rolesManager.getRole(collection, role.getCode());
-					List<String> permissions = new ArrayList<>(newRole.getOperationPermissions());
-
-					if (!role.hasOperationPermission(RMPermissionsTo.USE_MY_CART)) {
-						permissions.add(RMPermissionsTo.USE_MY_CART);
-					}
-
-					permissions.remove(USE_CART_OLD_PERMISSION);
-					rolesManager.updateRole(newRole.withPermissions(permissions));
-				}
-			}
-		}
 
 
 		List<Role> roleList1 = rolesManager.getAllRoles(collection);
@@ -106,5 +78,6 @@ public class RMMigrationTo9_0 implements MigrationScript {
 			defaultFolderSchema.get(Folder.ACTUAL_DESTRUCTION_DATE).defineDataEntry()
 					.asCalculated(FolderActualDestructionDateCalculator.class);
 		}
+
 	}
 }

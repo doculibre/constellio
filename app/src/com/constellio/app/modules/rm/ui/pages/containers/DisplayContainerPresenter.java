@@ -196,6 +196,7 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 		} else {
 			view.navigate().to(RMViews.class).displayFolder(folder.getId());
 		}
+
 	}
 
 	@Override

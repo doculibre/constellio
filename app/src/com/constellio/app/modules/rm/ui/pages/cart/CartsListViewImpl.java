@@ -225,4 +225,8 @@ public class CartsListViewImpl extends BaseViewImpl implements CartsListView {
 		return tabLayout;
 	}
 
+	@Override
+	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
+		return new TitleBreadcrumbTrail(this, getTitle(), false);
+	}
 }
