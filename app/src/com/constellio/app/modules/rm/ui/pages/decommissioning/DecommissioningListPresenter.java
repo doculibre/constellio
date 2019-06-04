@@ -1065,4 +1065,9 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 			return modelLayerFactory.newAuthorizationsServices().getUsersIdsWithGlobalReadRightInCollection(collection);
 		}
 	}
+
+	public String getUsername(String userId) {
+		Record record = recordServices().getDocumentById(userId);
+		return rmRecordsServices.wrapUser(record).getUsername();
+	}
 }

@@ -235,6 +235,9 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 		if (!recordSchemaCode.equals(schemaCode)) {
 			record.changeSchema(currentSchema, targetSchema);
 		}
+
+		boolean newRecord = !record.isSaved();
+
 		for (MetadataValueVO metadataValueVO : recordVO.getMetadataValues()) {
 			MetadataVO metadataVO = metadataValueVO.getMetadata();
 			String metadataCode = metadataVO.getCode();
@@ -261,11 +264,17 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 				} else if (metadataVOValue instanceof ContentVersionVO) {
 					ContentVersionVO contentVersionVO = (ContentVersionVO) metadataVOValue;
 					Content content = toContent(recordVO, metadataVO, contentVersionVO, newMinorEmpty);
-					if (content != null) {
-						metadataVOValue = content;
+					if (!newRecord) {
+						Content recordContent = (Content) metadataValue;
+						String recordContentVersionHash = recordContent.getCurrentVersion().getHash();
+						if (recordContentVersionHash.equals(contentVersionVO.getHash())) {
+							// No change to content
+							metadataVOValue = recordContent;
+						} else {
+							metadataVOValue = content;
+						}
 					} else {
-						// Same value
-						metadataVOValue = metadataValue;
+						metadataVOValue = content;
 					}
 				} else if (metadataVOValue instanceof Collection) {
 					List<Object> replacementValue = new ArrayList<Object>();
@@ -353,51 +362,43 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 		Boolean majorVersion = contentVersionVO.isMajorVersion();
 		InputStreamProvider inputStreamProvider = contentVersionVO.getInputStreamProvider();
 
-		boolean newContent = hash == null;
-
-		if (newContent) {
-			InputStream inputStream = null;
-			ContentVersionDataSummary contentVersionDataSummary;
-			try {
-				inputStream = inputStreamProvider.getInputStream(VERSION_INPUT_STREAM_NAME);
-				UploadOptions options = new UploadOptions().setFileName(fileName);
-				ContentManager.ContentVersionDataSummaryResponse uploadResponse = uploadContent(inputStream, options);
-				contentVersionDataSummary = uploadResponse.getContentVersionDataSummary();
-				contentVersionVO.setHasFoundDuplicate(uploadResponse.hasFoundDuplicate())
-						.setDuplicatedHash(contentVersionDataSummary.getHash());
-			} finally {
-				IOServices ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();
-				ioServices.closeQuietly(inputStream);
-			}
-			if (majorVersion == null) {
-				boolean versioning;
-				if (metadataVO != null) {
-					MetadataInputType inputType = metadataVO.getMetadataInputType();
-					versioning = inputType == MetadataInputType.CONTENT_CHECK_IN_CHECK_OUT;
-				} else {
-					versioning = false;
-				}
-				if (versioning) {
-					// TODO Use the right kind of exception
-					throw new RuntimeException("Must specify if the version is minor or major");
-				} else {
-					content = contentManager.createMajor(currentUser, fileName, contentVersionDataSummary);
-				}
-			} else if (majorVersion) {
-				content = contentManager.createMajor(currentUser, fileName, contentVersionDataSummary);
-			} else if (newMinorEmpty && rmConfigs.isMajorVersionForNewFile()) {
-				content = contentManager.createEmptyMajor(currentUser, fileName, contentVersionDataSummary);
-			} else if (newMinorEmpty) {
-				content = contentManager.createEmptyMinor(currentUser, fileName, contentVersionDataSummary);
+		InputStream inputStream = null;
+		ContentVersionDataSummary contentVersionDataSummary;
+		try {
+			inputStream = inputStreamProvider.getInputStream(VERSION_INPUT_STREAM_NAME);
+			UploadOptions options = new UploadOptions().setFileName(fileName);
+			ContentManager.ContentVersionDataSummaryResponse uploadResponse = uploadContent(inputStream, options);
+			contentVersionDataSummary = uploadResponse.getContentVersionDataSummary();
+			contentVersionVO.setHasFoundDuplicate(uploadResponse.hasFoundDuplicate())
+					.setDuplicatedHash(contentVersionDataSummary.getHash());
+		} finally {
+			IOServices ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();
+			ioServices.closeQuietly(inputStream);
+		}
+		if (majorVersion == null) {
+			boolean versioning;
+			if (metadataVO != null) {
+				MetadataInputType inputType = metadataVO.getMetadataInputType();
+				versioning = inputType == MetadataInputType.CONTENT_CHECK_IN_CHECK_OUT;
 			} else {
-				content = contentManager.createMinor(currentUser, fileName, contentVersionDataSummary);
+				versioning = false;
 			}
+			if (versioning) {
+				// TODO Use the right kind of exception
+				throw new RuntimeException("Must specify if the version is minor or major");
+			} else {
+				content = contentManager.createMajor(currentUser, fileName, contentVersionDataSummary);
+			}
+		} else if (majorVersion) {
+			content = contentManager.createMajor(currentUser, fileName, contentVersionDataSummary);
+		} else if (newMinorEmpty && rmConfigs.isMajorVersionForNewFile()) {
+			content = contentManager.createEmptyMajor(currentUser, fileName, contentVersionDataSummary);
+		} else if (newMinorEmpty) {
+			content = contentManager.createEmptyMinor(currentUser, fileName, contentVersionDataSummary);
 		} else {
-			content = null;
+			content = contentManager.createMinor(currentUser, fileName, contentVersionDataSummary);
 		}
-		if (content != null) {
-			contentVersionVO.setContentId(content.getId());
-		}
+		contentVersionVO.setContentId(content.getId());
 		return content;
 	}
 
