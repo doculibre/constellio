@@ -597,6 +597,9 @@ public class AppLayerCollectionExtensions {
 				break;
 			}
 		}
+		if(recordFieldFactory == null) {
+			return new RecordFieldFactoryExtension().newRecordFieldFactory(params);
+		}
 		return recordFieldFactory;
 	}
 
