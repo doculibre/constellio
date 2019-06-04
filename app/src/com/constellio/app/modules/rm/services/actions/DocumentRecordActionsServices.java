@@ -1,20 +1,29 @@
 package com.constellio.app.modules.rm.services.actions;
 
 import com.constellio.app.modules.rm.ConstellioRMModule;
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
+import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.ui.framework.components.ComponentState;
+import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 
 public class DocumentRecordActionsServices {
 
 	private RMSchemasRecordsServices rm;
 	private RMModuleExtensions rmModuleExtensions;
+	private transient ModelLayerCollectionExtensions modelLayerCollectionExtensions;
 
 	public DocumentRecordActionsServices(String collection, AppLayerFactory appLayerFactory) {
 		rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+		modelLayerCollectionExtensions = appLayerFactory.getModelLayerFactory().getExtensions().forCollection(collection);
 		rmModuleExtensions = appLayerFactory.getExtensions().forCollection(collection).forModule(ConstellioRMModule.ID);
 	}
 
@@ -54,31 +63,128 @@ public class DocumentRecordActionsServices {
 	}
 
 	public boolean isPublishActionPossible(Record record, User user) {
-		return false;
+		return user.has(RMPermissionsTo.PUBLISH_AND_UNPUBLISH_DOCUMENTS)
+				.on(record) && rmModuleExtensions.isPublishActionPossibleOnDocument(rm.wrapDocument(record), user);
 	}
 
 	public boolean isPrintLabelActionPossible(Record record, User user) {
+
 		return false;
 	}
 
 	public boolean isDeleteActionPossible(Record record, User user) {
+		Document document = rm.wrapDocument(record);
+
+		if (user.hasDeleteAccess().on(record) &&
+			rmModuleExtensions.isDeleteActionPossbileOnDocument(rm.wrapDocument(record), user)) {
+			if (document.isPublished() && !user.has(RMPermissionsTo.DELETE_PUBLISHED_DOCUMENT)
+					.on(record)) {
+				return false;
+			}
+
+			if (getCurrentBorrowerOf(document) != null && !user.has(RMPermissionsTo.DELETE_BORROWED_DOCUMENT)
+					.on(record)) {
+				return false;
+			}
+			FolderStatus archivisticStatus = document.getArchivisticStatus();
+			if (archivisticStatus != null && archivisticStatus.isInactive()) {
+				Folder parentFolder = rm.getFolder(document.getFolder());
+				if (parentFolder.getBorrowed() != null && parentFolder.getBorrowed()) {
+					return user.has(RMPermissionsTo.MODIFY_INACTIVE_BORROWED_FOLDER).on(parentFolder)
+									   && user.has(RMPermissionsTo.DELETE_INACTIVE_DOCUMENT).on(record);
+				}
+				return user.has(RMPermissionsTo.DELETE_INACTIVE_DOCUMENT).on(record);
+			}
+			if (archivisticStatus != null && archivisticStatus.isInactive()) {
+				Folder parentFolder = rm.getFolder(document.getFolder());
+				if (parentFolder.getBorrowed() != null && parentFolder.getBorrowed()) {
+					return user.has(RMPermissionsTo.MODIFY_SEMIACTIVE_BORROWED_FOLDER).on(parentFolder)
+									   && user.has(RMPermissionsTo.DELETE_SEMIACTIVE_DOCUMENT).on(record);
+				}
+				return user.has(RMPermissionsTo.DELETE_SEMIACTIVE_DOCUMENT).on(record);
+			}
+			return true;
+		}
 		return false;
 	}
 
 	public boolean isCreatePdfActionPossible(Record record, User user) {
-		return false;
+		Document document = rm.getDocument(record.getId());
+
+		if (!isCheckOutPossible(document) ||
+			document.getContent() == null || !isEditActionPossible(record, user)) {
+			return false;
+		}
+
+		return rmModuleExtensions.isCreatePDFAActionPossibleOnDocument(rm.wrapDocument(record), user);
 	}
 
 	public boolean isAddCartActionPossible(Record record, User user) {
-		return false;
+		return user.hasReadAccess().on(record) && user.has(RMPermissionsTo.USE_GROUP_CART).globally()
+				&& user.hasReadAccess().on(record)
+				&& rmModuleExtensions.isAddCartActionPossibleOnDocument(rm.wrapDocument(record), user);
 	}
 
-	public boolean isAddSelectionActionPossible(Record record, User user) {
-		return false;
+	public boolean isAddToMyCartActionPossible(Record record, User user) {
+		return user.hasReadAccess().on(record) && user.has(RMPermissionsTo.USE_MY_CART).globally()
+			   && user.hasReadAccess().on(record)
+			   && rmModuleExtensions.isAddCartActionPossibleOnDocument(rm.wrapDocument(record), user);
+	}
+
+	public boolean isAddToSelectionActionPossible(Record record, User user, SessionContext sessionContext) {
+		return  hasUserReadAccess(record, user)
+				&& rmModuleExtensions.isAddRemoveToSelectionActionPossibleOnDocument(rm.wrapDocument(record), user)
+				&& sessionContext.getSelectedRecordIds()== null || !sessionContext.getSelectedRecordIds().contains(record.getId());
+	}
+
+	public boolean isRemoveToSelectionActionPossible(Record record, User user, SessionContext sessionContext) {
+		return  hasUserReadAccess(record, user)
+				&& rmModuleExtensions.isAddRemoveToSelectionActionPossibleOnDocument(rm.wrapDocument(record), user)
+				&& sessionContext.getSelectedRecordIds()!= null && sessionContext.getSelectedRecordIds().contains(record.getId());
+	}
+
+	protected boolean isUploadPossible(Document document, User user) {
+		boolean email = isEmail(document);
+		boolean checkedOut = isContentCheckedOut(document);
+		boolean borrower = isCurrentUserBorrower(user, document.getContent());
+		return !email && (!checkedOut || borrower);
+	}
+
+	protected boolean isCurrentUserBorrower(User currentUser, Content content) {
+		return content != null && currentUser.getId().equals(content.getCheckoutUserId());
 	}
 
 	public boolean isUploadActionPossible(Record record, User user) {
-		return false;
+		Document document = rm.wrapDocument(record);
+
+		if(!rmModuleExtensions.isUploadActionPossibleOnDocument(rm.wrapDocument(record), user)
+		   || !isEditActionPossible(record, user)) {
+			return false;
+		}
+
+			FolderStatus archivisticStatus = document.getArchivisticStatus();
+			if (archivisticStatus != null && isUploadPossible(document, user) && user.hasWriteAccess().on(record)
+				&& modelLayerCollectionExtensions.isRecordModifiableBy(record, user)
+				&& !modelLayerCollectionExtensions.isModifyBlocked(record, user)) {
+				if (archivisticStatus.isInactive()) {
+					Folder parentFolder = rm.getFolder(document.getFolder());
+					if (parentFolder.getBorrowed() != null && parentFolder.getBorrowed()) {
+						return user.has(RMPermissionsTo.MODIFY_INACTIVE_BORROWED_FOLDER).on(parentFolder)
+										   && user.has(RMPermissionsTo.UPLOAD_INACTIVE_DOCUMENT).on(record);
+					}
+					return (user.has(RMPermissionsTo.UPLOAD_INACTIVE_DOCUMENT).on(record));
+				}
+				if (archivisticStatus.isSemiActive()) {
+					Folder parentFolder = rm.getFolder(document.getFolder());
+					if (parentFolder.getBorrowed() != null && parentFolder.getBorrowed()) {
+						return user.has(RMPermissionsTo.MODIFY_SEMIACTIVE_BORROWED_FOLDER).on(parentFolder)
+										   && user.has(RMPermissionsTo.UPLOAD_SEMIACTIVE_DOCUMENT).on(record);
+					}
+					return user.has(RMPermissionsTo.UPLOAD_SEMIACTIVE_DOCUMENT).on(record);
+				}
+				return true;
+			}
+			return false;
 	}
 
 	public boolean isCheckInActionPossible(Record record, User user) {
@@ -102,7 +208,45 @@ public class DocumentRecordActionsServices {
 	}
 
 	public boolean isFinalizeActionPossible(Record record, User user) {
-		return false;
+		Document document = rm.wrapDocument(record);
+
+		boolean borrowed = isContentCheckedOut(document.getContent());
+		boolean minorVersion;
+		Content content = document.getContent();
+		minorVersion = content != null && content.getCurrentVersion().getMinor() != 0;
+		if (borrowed || !minorVersion || !hasUserWriteAccess(record, user)) {
+			return false;
+		}
+
+		return rmModuleExtensions.isFinalizeActionPossibleOnDocument(document, user) && isEditActionPossible(record, user);
+	}
+
+	protected boolean isContentCheckedOut(Content content) {
+		return content != null && content.getCheckoutUserId() != null;
+	}
+
+	protected boolean isCheckOutPossible(Document document) {
+		boolean email = isEmail(document);
+		return !email && (document != null && !isContentCheckedOut(document.getContent()));
+	}
+
+	protected boolean isContentCheckedOut(Document document) {
+		Content content = document.getContent();
+		return content != null && content.getCheckoutUserId() != null;
+	}
+
+	private String getCurrentBorrowerOf(Document document) {
+		return document.getContent() == null ? null : document.getContent().getCheckoutUserId();
+	}
+
+	private boolean isEmail(Document document) {
+		boolean email;
+		if (document.getContent() != null && document.getContent().getCurrentVersion() != null) {
+			email = rm.isEmail(document.getContent().getCurrentVersion().getFilename());
+		} else {
+			email = false;
+		}
+		return email;
 	}
 
 	public boolean isStartWorkflowActionPossible(Record record, User user) {

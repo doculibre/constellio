@@ -86,9 +86,13 @@ public class MenuItemServices {
 
 			if (!filteredActionTypes.contains(MenuItemActionType.DOCUMENT_DELETE.name())) {
 				boolean isDeletePossible = documentRecordActionsServices.isDeleteActionPossible(record, user);
-				menuItemActions.add(buildMenuItemAction(MenuItemActionType.DOCUMENT_DELETE, isDeletePossible,
+				MenuItemAction menuItemAction = buildMenuItemAction(MenuItemActionType.DOCUMENT_DELETE, isDeletePossible,
 						"DocumentContextMenu.deleteDocument", FontAwesome.TRASH_O, -1, 500,
-						() -> new DocumentRecordActionBehaviors(collection, appLayerFactory).delete(params)));
+						() -> new DocumentRecordActionBehaviors(collection, appLayerFactory).delete(params));
+
+				menuItemAction.setConfirmMessage("ConfirmDialog.confirmDelete");
+
+				menuItemActions.add(menuItemAction);
 			}
 
 			if (!filteredActionTypes.contains(MenuItemActionType.DOCUMENT_COPY.name())) {
@@ -96,6 +100,96 @@ public class MenuItemServices {
 				menuItemActions.add(buildMenuItemAction(MenuItemActionType.DOCUMENT_COPY, isCopyActionPossible,
 						"DocumentContextMenu.copyContent", FontAwesome.COPY, -1, 600,
 						() -> new DocumentRecordActionBehaviors(collection, appLayerFactory).edit(params)));
+			}
+
+			if(!filteredActionTypes.contains(MenuItemActionType.DOCUMENT_FINALIZE.name())) {
+				boolean isFinalisationPossible = documentRecordActionsServices.isFinalizeActionPossible(record, user);
+				MenuItemAction menuItemAction = buildMenuItemAction(MenuItemActionType.DOCUMENT_FINALIZE, isFinalisationPossible,
+						"DocumentContextMenu.finalize", FontAwesome.LEVEL_UP, -1, 700,
+						() -> new DocumentRecordActionBehaviors(collection, appLayerFactory).finalize(params));
+
+				menuItemAction.setConfirmMessage("DocumentActionsComponent.finalize.confirm");
+				menuItemActions.add(menuItemAction);
+			}
+
+			if(!filteredActionTypes.contains(MenuItemActionType.DOCUMENT_PUBLISH.name())) {
+				boolean isPublishPossible = documentRecordActionsServices.isPublishActionPossible(record, user);
+				MenuItemAction menuItemAction;
+				Document document = rm.wrapDocument(record);
+				if(!document.isPublished()) {
+					menuItemAction = buildMenuItemAction(MenuItemActionType.DOCUMENT_PUBLISH, isPublishPossible,
+							"DocumentContextMenu.publish", null, -1, 800,
+							() -> new DocumentRecordActionBehaviors(collection, appLayerFactory).publish(params));
+				} else {
+					menuItemAction = buildMenuItemAction(MenuItemActionType.DOCUMENT_PUBLISH, isPublishPossible,
+							"DocumentContextMenu.unpublish", null,-1 ,800,
+							() -> new DocumentRecordActionBehaviors(collection, appLayerFactory).unPublish(params));
+				}
+
+				menuItemActions.add(menuItemAction);
+			}
+
+			if(!filteredActionTypes.contains(MenuItemActionType.DOCUMENT_CREATE_PDF.name())) {
+				boolean isCreatePdfActionPossible = documentRecordActionsServices.isCreatePdfActionPossible(record, user);
+
+				MenuItemAction menuItemAction = buildMenuItemAction(MenuItemActionType.DOCUMENT_CREATE_PDF, isCreatePdfActionPossible,
+						"DocumentContextMenu.createPDFA", null, -1, 900,
+						() -> new DocumentRecordActionBehaviors(collection, appLayerFactory).createPdf(params));
+				menuItemAction.setConfirmMessage("ConfirmDialog.confirmCreatePDFA");
+
+				menuItemActions.add(menuItemAction);
+			}
+
+			if(!filteredActionTypes.contains(MenuItemActionType.DOCUMENT_ADD_TO_SELECTION.name())) {
+				boolean isAddToSelectionPossible = documentRecordActionsServices.isAddToSelectionActionPossible(record, user,
+						params.getView().getSessionContext());
+
+				MenuItemAction menuItemAction = buildMenuItemAction(MenuItemActionType.DOCUMENT_ADD_TO_SELECTION,
+						isAddToSelectionPossible, "addToOrRemoveFromSelection.add", null, -1, 1000,
+						() -> new DocumentRecordActionBehaviors(collection, appLayerFactory).addToSelection(params));
+
+				menuItemActions.add(menuItemAction);
+			}
+
+			if(!filteredActionTypes.contains(MenuItemActionType.DOCUMENT_REMOVE_TO_SELECTION.name())) {
+				boolean isAddToSelectionPossible = documentRecordActionsServices.isRemoveToSelectionActionPossible(record, user,
+						params.getView().getSessionContext());
+
+				MenuItemAction menuItemAction = buildMenuItemAction(MenuItemActionType.DOCUMENT_ADD_TO_SELECTION,
+						isAddToSelectionPossible, "addToOrRemoveFromSelection.remove", null, -1, 1100,
+						() -> new DocumentRecordActionBehaviors(collection, appLayerFactory).removeToSelection(params));
+
+				menuItemActions.add(menuItemAction);
+			}
+
+			if(!filteredActionTypes.contains(MenuItemActionType.DOCUMENT_ADD_TO_CART.name())) {
+				boolean isAddCartActionPossible = documentRecordActionsServices.isAddCartActionPossible(record, user);
+
+				MenuItemAction menuItemAction = buildMenuItemAction(MenuItemActionType.DOCUMENT_ADD_TO_CART,
+						isAddCartActionPossible, "DisplayFolderView.addToCart", null, -1, 1200,
+						() -> new DocumentRecordActionBehaviors(collection, appLayerFactory).addToCart(params));
+
+				menuItemActions.add(menuItemAction);
+			}
+
+			if(!filteredActionTypes.contains(MenuItemActionType.DOCUMENT_ADD_TO_MY_CART.name())) {
+				boolean isAddToMyDefaultCartActionPossible = documentRecordActionsServices.isAddToMyCartActionPossible(record, user);
+
+				MenuItemAction menuItemAction = buildMenuItemAction(MenuItemActionType.DOCUMENT_ADD_TO_MY_CART,
+						isAddToMyDefaultCartActionPossible, "DisplayFolderView.addToMyCart", null, -1, 1200,
+						() -> new DocumentRecordActionBehaviors(collection, appLayerFactory).addToDefaultCart(params));
+
+				menuItemActions.add(menuItemAction);
+			}
+
+			if(!filteredActionTypes.contains(MenuItemActionType.DOCUMENT_UPLOAD.name())) {
+				boolean isAddCartActionPossible = documentRecordActionsServices.isUploadActionPossible(record, user);
+
+				MenuItemAction menuItemAction = buildMenuItemAction(MenuItemActionType.DOCUMENT_UPLOAD,
+						isAddCartActionPossible, "DisplayFolderView.addToMyCart", null, -1, 1200,
+						() -> new DocumentRecordActionBehaviors(collection, appLayerFactory).upload(params));
+
+				menuItemActions.add(menuItemAction);
 			}
 
 		} else if (record.isOfSchemaType(Folder.SCHEMA_TYPE)) {

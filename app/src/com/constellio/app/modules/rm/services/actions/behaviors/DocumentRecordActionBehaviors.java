@@ -2,41 +2,81 @@ package com.constellio.app.modules.rm.services.actions.behaviors;
 
 import com.constellio.app.api.extensions.params.NavigateToFromAPageParams;
 import com.constellio.app.modules.rm.ConstellioRMModule;
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.services.logging.DecommissioningLoggingService;
 import com.constellio.app.modules.rm.ui.components.document.DocumentActionsPresenterUtils;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
+import com.constellio.app.modules.rm.ui.pages.cart.DefaultFavoritesTable;
+import com.constellio.app.modules.rm.ui.pages.cart.DefaultFavoritesTable.CartItem;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.modules.rm.util.DecommissionNavUtil;
 import com.constellio.app.modules.rm.util.RMNavigationUtils;
+import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.entities.MetadataSchemaVO;
+import com.constellio.app.ui.entities.MetadataVO;
+import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.entities.RecordVORuntimeException.RecordVORuntimeException_NoSuchMetadata;
+import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
+import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
+import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.DownloadLink;
+import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.content.ContentVersionVOResource;
+import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
+import com.constellio.app.ui.framework.components.fields.BaseTextField;
+import com.constellio.app.ui.framework.components.table.RecordVOTable;
+import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
+import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
+import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.util.MessageUtils;
+import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.dev.Toggle;
+import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.RecordUpdateOptions;
+import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.SearchEvent;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.frameworks.validation.ValidationErrors;
+import com.constellio.model.services.contents.ContentConversionManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.logging.SearchEventServices;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.vaadin.event.ItemClickEvent;
+import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
+import com.vaadin.ui.*;
+import com.vaadin.ui.themes.ValoTheme;
+import org.apache.commons.io.FilenameUtils;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.app.ui.pages.search.SearchPresenter.CURRENT_SEARCH_EVENT;
 import static com.constellio.app.ui.pages.search.SearchPresenter.SEARCH_EVENT_DWELL_TIME;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
 import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 
 public class DocumentRecordActionBehaviors {
@@ -49,16 +89,22 @@ public class DocumentRecordActionBehaviors {
 	private RecordServices recordServices;
 	private RMSchemasRecordsServices rm;
 	private LoggingServices loggingServices;
+	private DecommissioningLoggingService decommissioningLoggingService;
+	private SearchServices searchServices;
+	private MetadataSchemasManager metadataSchemasManager;
 
 	public DocumentRecordActionBehaviors(String collection, AppLayerFactory appLayerFactory) {
 		this.collection = collection;
 		this.appLayerFactory = appLayerFactory;
 		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
+		this.searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
 		rmModuleExtensions = appLayerFactory.getExtensions().forCollection(collection).forModule(ConstellioRMModule.ID);
 		recordServices = modelLayerFactory.newRecordServices();
 		rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		loggingServices = modelLayerFactory.newLoggingServices();
+		decommissioningLoggingService = new DecommissioningLoggingService(appLayerFactory.getModelLayerFactory());
 		extensions = modelLayerFactory.getExtensions().forCollection(collection);
+		metadataSchemasManager = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager();
 	}
 
 	public void display(RecordActionBehaviorParams params) {
@@ -131,6 +177,269 @@ public class DocumentRecordActionBehaviors {
 		}
 	}
 
+	public void finalize(RecordActionBehaviorParams params) {
+		Document document = rm.getDocument(params.getRecordVO().getId());
+		Content content = document.getContent();
+		content.finalizeVersion();
+		try {
+			recordServices.update(document.getWrappedRecord());
+
+			String newMajorVersion = content.getCurrentVersion().getVersion();
+			loggingServices.finalizeDocument(document.getWrappedRecord(), params.getUser());
+			params.getView().showMessage($("DocumentActionsComponent.finalizedVersion", newMajorVersion));
+			Page.getCurrent().reload();
+		} catch (RecordServicesException e) {
+			params.getView().showErrorMessage(MessageUtils.toMessage(e));
+		}
+	}
+
+	public void publish(RecordActionBehaviorParams params) {
+		Document documentFromParam =  rm.getDocument(params.getRecordVO().getId());
+		documentFromParam.setPublished(true);
+		try {
+			recordServices.update(documentFromParam);
+		} catch (RecordServicesException e) {
+			params.getView().showErrorMessage(MessageUtils.toMessage(e));
+		}
+	}
+
+	public void createPdf(RecordActionBehaviorParams params) {
+		Document document = rm.getDocument(params.getRecordVO().getId());
+		String extention = FilenameUtils.getExtension(document.getContent().getCurrentVersion().getFilename());
+
+		if (!extention.toUpperCase().equals("PDF") && !extention.equals("PDFA")) {
+			Content content = document.getContent();
+			ContentConversionManager conversionManager = new ContentConversionManager(modelLayerFactory);
+			if (content != null) {
+				try {
+					conversionManager = new ContentConversionManager(modelLayerFactory);
+					conversionManager.convertContentToPDFA(params.getUser(), content);
+					recordServices.update(document.getWrappedRecord());
+
+					decommissioningLoggingService.logPdfAGeneration(document, params.getUser());
+
+					navigateToDisplayDocument(document.getId(), params.getFormParams());
+
+					params.getView().showMessage($("DocumentActionsComponent.createPDFASuccess"));
+				} catch (Exception e) {
+					params.getView().showErrorMessage(
+							$("DocumentActionsComponent.createPDFAFailure") + " : " + MessageUtils.toMessage(e));
+				} finally {
+					conversionManager.close();
+				}
+			}
+		} else {
+			params.getView().showMessage($("DocumentActionsComponent.documentAllreadyPDFA"));
+		}
+	}
+
+
+	public void unPublish(RecordActionBehaviorParams params) {
+		Document documentFromParam =  rm.getDocument(params.getRecordVO().getId());
+		documentFromParam.setPublished(false);
+		try {
+			recordServices.update(documentFromParam);
+		} catch (RecordServicesException e) {
+			params.getView().showErrorMessage(MessageUtils.toMessage(e));
+		}
+	}
+
+	public void addToSelection(RecordActionBehaviorParams params) {
+		params.getView().getSessionContext().addSelectedRecordId(params.getRecordVO().getId(),
+				params.getRecordVO().getSchema().getTypeCode());
+	}
+
+	public void removeToSelection(RecordActionBehaviorParams params) {
+		params.getView().getSessionContext().removeSelectedRecordId(params.getRecordVO().getId(),
+				params.getRecordVO().getSchema().getTypeCode());
+	}
+
+	public void addToCart(RecordActionBehaviorParams params) {
+		final Document document = rm.getDocument(params.getRecordVO().getId());
+
+		WindowButton windowButton = new WindowButton($("DisplayFolderView.addToCart"), $("DisplayFolderView.selectCart")) {
+			@Override
+			protected Component buildWindowContent() {
+				VerticalLayout layout = new VerticalLayout();
+				layout.setSizeFull();
+
+				HorizontalLayout newCartLayout = new HorizontalLayout();
+				newCartLayout.setSpacing(true);
+				newCartLayout.addComponent(new Label($("CartView.newCart")));
+				final BaseTextField newCartTitleField;
+				newCartLayout.addComponent(newCartTitleField = new BaseTextField());
+				newCartTitleField.setRequired(true);
+				BaseButton saveButton;
+				newCartLayout.addComponent(saveButton = new BaseButton($("save")) {
+					@Override
+					protected void buttonClick(ClickEvent event) {
+						try {
+							createNewCartAndAddToItRequested(newCartTitleField.getValue(), document, params);
+							getWindow().close();
+						} catch (Exception e) {
+							params.getView().showErrorMessage(MessageUtils.toMessage(e));
+						}
+					}
+				});
+				saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
+
+				TabSheet tabSheet = new TabSheet();
+				Table ownedCartsTable = buildOwnedFavoritesTable(getWindow(), params, document);
+
+				final RecordVOLazyContainer sharedCartsContainer = new RecordVOLazyContainer(getSharedCartsDataProvider(params));
+				RecordVOTable sharedCartsTable = new RecordVOTable($("CartView.sharedCarts"), sharedCartsContainer);
+				sharedCartsTable.addItemClickListener((ItemClickListener) event -> {
+					addToCartRequested(sharedCartsContainer.getRecordVO((int) event.getItemId()), params.getView(), document);
+					getWindow().close();
+				});
+
+				sharedCartsTable.setPageLength(Math.min(15, sharedCartsContainer.size()));
+				sharedCartsTable.setWidth("100%");
+				tabSheet.addTab(ownedCartsTable);
+				tabSheet.addTab(sharedCartsTable);
+				layout.addComponents(newCartLayout, tabSheet);
+				layout.setExpandRatio(tabSheet, 1);
+				return layout;
+			}
+		};
+
+		windowButton.click();
+	}
+
+	private void addToCartRequested(RecordVO recordVO, BaseView baseView, Document document) {
+		Cart cart = rm.getCart(recordVO.getId());
+		addToCartRequested(cart, baseView, document);
+	}
+
+	private DefaultFavoritesTable buildOwnedFavoritesTable(final Window window, RecordActionBehaviorParams params, Document document) {
+		List<CartItem> cartItems = new ArrayList<>();
+		if(hasCurrentUserPermissionToUseMyCart(params.getUser())) {
+			cartItems.add(new DefaultFavoritesTable.CartItem($("CartView.defaultFavorites")));
+		}
+		for (Cart cart : getOwnedCarts(params.getUser())) {
+			cartItems.add(new DefaultFavoritesTable.CartItem(cart, cart.getTitle()));
+		}
+		final DefaultFavoritesTable.FavoritesContainer container = new DefaultFavoritesTable.FavoritesContainer(DefaultFavoritesTable.CartItem.class, cartItems);
+		DefaultFavoritesTable defaultFavoritesTable = new DefaultFavoritesTable("favoritesTable", container, getCartMetadataSchemaVO(params.getView().getSessionContext()));
+		defaultFavoritesTable.setCaption($("CartView.ownedCarts"));
+		defaultFavoritesTable.addItemClickListener(new ItemClickListener() {
+			@Override
+			public void itemClick(ItemClickEvent event) {
+				Cart cart = container.getCart((DefaultFavoritesTable.CartItem) event.getItemId());
+				if (cart == null) {
+					addToDefaultCart(params, document);
+				} else {
+					addToCartRequested(cart, params.getView(), document);
+				}
+				window.close();
+			}
+		});
+		defaultFavoritesTable.setPageLength(Math.min(15, container.size()));
+		container.removeContainerProperty(DefaultFavoritesTable.CartItem.DISPLAY_BUTTON);
+		defaultFavoritesTable.setWidth("100%");
+		return defaultFavoritesTable;
+	}
+
+	private void addToCartRequested(Cart cart, BaseView baseView) {
+		if (rm.numberOfDocumentsInFavoritesReachesLimit(cart.getId(), 1)) {
+			baseView.showMessage($("DisplayDocumentView.cartCannotContainMoreThanAThousandDocuments"));
+		} else {
+			addToCartRequested(cart, baseView);
+		}
+	}
+
+	private MetadataSchemaVO getCartMetadataSchemaVO(SessionContext sessionContext) {
+		return new MetadataSchemaToVOBuilder().build(metadataSchemasManager.getSchemaTypes(sessionContext.getCurrentCollection())
+				.getDefaultSchema(Cart.SCHEMA_TYPE), RecordVO.VIEW_MODE.TABLE, sessionContext);
+	}
+
+	private void addToCartRequested(Cart cart, BaseView baseView,  Document document) {
+		if (rm.numberOfDocumentsInFavoritesReachesLimit(cart.getId(), 1)) {
+			baseView.showMessage($("DisplayDocumentView.cartCannotContainMoreThanAThousandDocuments"));
+		} else {
+			document.addFavorite(cart.getId());
+			Transaction transaction = new Transaction(RecordUpdateOptions.validationExceptionSafeOptions());
+			transaction.addUpdate(document.getWrappedRecord());
+			try {
+				recordServices.execute(transaction);
+				baseView.showMessage($("DocumentActionsComponent.addedToCart"));
+			} catch (RecordServicesException e) {
+				throw new ImpossibleRuntimeException(e);
+			}
+		}
+	}
+
+	private List<Cart> getOwnedCarts(User user) {
+		return rm.wrapCarts(searchServices.search(new LogicalSearchQuery(from(rm.cartSchema()).where(rm.cart.owner())
+				.isEqualTo(user.getId())).sortAsc(Schemas.TITLE)));
+	}
+
+	private boolean hasCurrentUserPermissionToUseMyCart(User user) {
+		return user.has(RMPermissionsTo.USE_MY_CART).globally();
+	}
+
+	private void addToDefaultCart(RecordActionBehaviorParams params, Document document) {
+		if (rm.numberOfDocumentsInFavoritesReachesLimit(params.getUser().getId(), 1)) {
+			params.getView().showMessage($("DisplayDocumentView.cartCannotContainMoreThanAThousandDocuments"));
+		} else {
+			document.addFavorite(params.getUser().getId());
+			try {
+				recordServices.update(document.getWrappedRecord(), RecordUpdateOptions.validationExceptionSafeOptions());
+			} catch (RecordServicesException e) {
+				e.printStackTrace();
+				throw new RuntimeException(e);
+			}
+			params.getView().showMessage($("DisplayDocumentView.documentAddedToDefaultFavorites"));
+		}
+	}
+
+	public void addToDefaultCart(RecordActionBehaviorParams params) {
+		Document document = rm.getDocument(params.getRecordVO().getId());
+
+		addToDefaultCart(params, document);
+	}
+
+	public void upload(RecordActionBehaviorParams params) {
+		final Map<RecordVO, MetadataVO> recordMap = new HashMap<>();
+		recordMap.put(params.getRecordVO(), params.getRecordVO().getMetadata(Document.CONTENT));
+
+		UpdateContentVersionWindowImpl uploadWindow = new UpdateContentVersionWindowImpl(recordMap) {
+			@Override
+			public void close() {
+				super.close();
+				params.getView().updateUI();
+			}
+		};
+
+		uploadWindow.open(false);
+	}
+
+	private void createNewCartAndAddToItRequested(String title, Document document, RecordActionBehaviorParams params) {
+		Cart cart = rm.newCart();
+		cart.setTitle(title);
+		cart.setOwner(params.getUser());
+		document.addFavorite(cart.getId());
+		try {
+			recordServices.execute(new Transaction(cart.getWrappedRecord()).setUser(params.getUser()));
+			recordServices.update(document.getWrappedRecord(), RecordUpdateOptions.validationExceptionSafeOptions());
+			params.getView().showMessage($("DocumentActionsComponent.addedToCart"));
+		} catch (RecordServicesException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private RecordVODataProvider getSharedCartsDataProvider(RecordActionBehaviorParams params) {
+		MetadataSchemaToVOBuilder schemaVOBuilder = new MetadataSchemaToVOBuilder();
+		final MetadataSchemaVO cartSchemaVO = schemaVOBuilder.build(rm.cartSchema(), VIEW_MODE.TABLE, params.getView().getSessionContext());
+		return new RecordVODataProvider(cartSchemaVO, new RecordToVOBuilder(), modelLayerFactory, params.getView().getSessionContext()) {
+			@Override
+			protected LogicalSearchQuery getQuery() {
+				return new LogicalSearchQuery(from(rm.cartSchema()).where(rm.cartSharedWithUsers())
+						.isContaining(asList(params.getUser().getId()))).sortAsc(Schemas.TITLE);
+			}
+		};
+	}
+
 	private void updateSearchResultClicked(DocumentVO documentVO) {
 		if (Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()) {
 			ConstellioUI.getCurrent().setAttribute(SEARCH_EVENT_DWELL_TIME, System.currentTimeMillis());
@@ -152,6 +461,7 @@ public class DocumentRecordActionBehaviors {
 		}
 	}
 
+
 	private ValidationErrors validateDeleteDocumentPossibleExtensively(Record record, User user) {
 		ValidationErrors validationErrors = new ValidationErrors();
 		validationErrors.addAll(validateDeleteDocumentPossible(record, user).getValidationErrors());
@@ -168,6 +478,10 @@ public class DocumentRecordActionBehaviors {
 			validationErrors = extensions.validateDeleteAuthorized(record, user);
 		}
 		return validationErrors;
+	}
+
+	private void navigateToDisplayDocument(String documentId, Map<String, String> params) {
+		RMNavigationUtils.navigateToDisplayDocument(documentId, params, appLayerFactory, collection);
 	}
 
 	private void navigateToDisplayFolder(String folderId, Map<String, String> params) {

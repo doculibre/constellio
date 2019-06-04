@@ -5,6 +5,7 @@ import com.constellio.app.api.extensions.NavigateToFromAPageImportExtension;
 import com.constellio.app.api.extensions.params.DocumentFolderBreadCrumbParams;
 import com.constellio.app.api.extensions.params.NavigateToFromAPageParams;
 import com.constellio.app.extensions.ModuleExtensions;
+import com.constellio.app.modules.rm.extensions.api.DocumentExtension.DocumentExtensionActionPossibleParams;
 import com.constellio.app.modules.rm.extensions.api.DocumentExtension.DocumentExtensionAddMenuItemParams;
 import com.constellio.app.modules.rm.extensions.api.FolderExtension.FolderExtensionActionPossibleParams;
 import com.constellio.app.modules.rm.extensions.api.reports.RMReportBuilderFactories;
@@ -17,6 +18,7 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.data.frameworks.extensions.ExtensionUtils;
+import com.constellio.data.frameworks.extensions.ExtensionUtils.BooleanCaller;
 import com.constellio.data.frameworks.extensions.VaultBehaviorsList;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.frameworks.validation.ValidationException;
@@ -240,6 +242,33 @@ public class RMModuleExtensions implements ModuleExtensions {
 		});
 	}
 
+	public boolean isAddCartActionPossibleOnDocument(final Document document, final User user) {
+		return documentExtensions.getBooleanValue(true, new BooleanCaller<DocumentExtension>() {
+			@Override
+			public ExtensionBooleanResult call(DocumentExtension behavior) {
+				return behavior.isAddSelectionActionPossible(new DocumentExtensionActionPossibleParams(document, user));
+			}
+		});
+	}
+
+	public boolean isAddRemoveToSelectionActionPossibleOnDocument(final Document document, final User user) {
+		return documentExtensions.getBooleanValue(true, new BooleanCaller<DocumentExtension>() {
+			@Override
+			public ExtensionBooleanResult call(DocumentExtension behavior) {
+				return behavior.isAddSelectionActionPossible(new DocumentExtensionActionPossibleParams(document, user));
+			}
+		});
+	}
+
+	public boolean isUploadActionPossibleOnDocument(final Document document, final User user) {
+		return documentExtensions.getBooleanValue(true, new BooleanCaller<DocumentExtension>() {
+			@Override
+			public ExtensionBooleanResult call(DocumentExtension behavior) {
+				return behavior.isUploadActionPossible(new DocumentExtensionActionPossibleParams(document, user));
+			}
+		});
+	}
+
 	public boolean isFinalizeActionPossibleOnDocument(final Document document, final User user) {
 		return documentExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<DocumentExtension>() {
 			@Override
@@ -265,6 +294,16 @@ public class RMModuleExtensions implements ModuleExtensions {
 			@Override
 			public ExtensionBooleanResult call(DocumentExtension behavior) {
 				return behavior.isPublishActionPossible(
+						new DocumentExtension.DocumentExtensionActionPossibleParams(document, user));
+			}
+		});
+	}
+
+	public boolean isDeleteActionPossbileOnDocument(final Document document, final User user) {
+		return documentExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<DocumentExtension>() {
+			@Override
+			public ExtensionBooleanResult call(DocumentExtension behavior) {
+				return behavior.isDeleteActionPossible(
 						new DocumentExtension.DocumentExtensionActionPossibleParams(document, user));
 			}
 		});
