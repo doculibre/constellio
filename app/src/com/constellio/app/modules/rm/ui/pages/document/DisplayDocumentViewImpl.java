@@ -46,8 +46,8 @@ import com.constellio.app.ui.framework.components.splitpanel.CollapsibleHorizont
 import com.constellio.app.ui.framework.components.table.ContentVersionVOTable;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.components.table.columns.EventVOTableColumnsManager;
-import com.constellio.app.ui.framework.components.table.columns.RecordVOTableColumnsManager;
 import com.constellio.app.ui.framework.components.table.columns.TableColumnsManager;
+import com.constellio.app.ui.framework.components.table.columns.TaskVOTableColumnsManager;
 import com.constellio.app.ui.framework.components.viewers.ContentViewer;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
@@ -481,7 +481,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 			@Override
 			protected TableColumnsManager newColumnsManager() {
-				return new RecordVOTableColumnsManager() {
+				return new TaskVOTableColumnsManager() {
 					@Override
 					protected String toColumnId(Object propertyId) {
 						if (propertyId instanceof MetadataVO) {

@@ -1,7 +1,7 @@
 package com.constellio.app.ui.framework.components.table.columns;
 
+import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
-import com.constellio.model.entities.records.wrappers.Event;
 import com.vaadin.ui.Table;
 
 import java.util.ArrayList;
@@ -10,13 +10,13 @@ import java.util.List;
 /**
  * Created by Constellio on 2016-12-13.
  */
-public class EventVOTableColumnsManager extends RecordVOTableColumnsManager {
+public class TaskVOTableColumnsManager extends RecordVOTableColumnsManager {
 
-	public EventVOTableColumnsManager() {
+	public TaskVOTableColumnsManager() {
 		super();
 	}
 
-	public EventVOTableColumnsManager(RecordVOTable table, String tableId) {
+	public TaskVOTableColumnsManager(RecordVOTable table, String tableId) {
 		super(table, tableId);
 	}
 
@@ -24,9 +24,9 @@ public class EventVOTableColumnsManager extends RecordVOTableColumnsManager {
 	protected List<String> getDefaultVisibleColumnIds(Table table) {
 		ArrayList<String> defaultVisibleColumns = new ArrayList<>();
 
-		defaultVisibleColumns = addColumnIfNotAlreadyIn(defaultVisibleColumns, Event.TYPE);
-		defaultVisibleColumns = addColumnIfNotAlreadyIn(defaultVisibleColumns, Event.USERNAME);
-		defaultVisibleColumns = addColumnIfNotAlreadyIn(defaultVisibleColumns, "createdOn");
+		defaultVisibleColumns = addColumnIfNotAlreadyIn(defaultVisibleColumns, Task.TITLE);
+		defaultVisibleColumns = addColumnIfNotAlreadyIn(defaultVisibleColumns, Task.ASSIGNEE);
+		defaultVisibleColumns = addColumnIfNotAlreadyIn(defaultVisibleColumns, Task.END_DATE);
 
 		return defaultVisibleColumns;
 	}
@@ -35,12 +35,13 @@ public class EventVOTableColumnsManager extends RecordVOTableColumnsManager {
 														String metadataLocalCode) {
 
 		ArrayList<String> allVisibleColumns = new ArrayList<>(defaultVisibleColumnIds);
-		if (!defaultVisibleColumnIds.contains(com.constellio.model.entities.records.wrappers.Event.DEFAULT_SCHEMA + "_" +
+		if (!defaultVisibleColumnIds.contains(Task.DEFAULT_SCHEMA + "_" +
 											  metadataLocalCode)) {
 
-			allVisibleColumns.add(com.constellio.model.entities.records.wrappers.Event.DEFAULT_SCHEMA
+			allVisibleColumns.add(Task.DEFAULT_SCHEMA
 								  + "_" + metadataLocalCode);
 		}
 		return allVisibleColumns;
 	}
+
 }
