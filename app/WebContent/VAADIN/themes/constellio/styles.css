@@ -13984,10 +13984,18 @@ div.v-layout.v-horizontal.v-widget {
 	top: -3px;
 }
 
+.constellio .xbreadcrumbs .current .v-button-caption {
+	color: black;
+}
+
 .constellio .xbreadcrumbs .xbreadcrumbbutton {
 	height: auto;
 	white-space: normal;
 	opacity: 1;
+}
+
+.constellio .xbreadcrumbs .xbreadcrumbbutton .v-button-caption {
+	color: #197de1;
 }
 
 .constellio .information-capsule {
@@ -14732,6 +14740,10 @@ div.v-layout.v-horizontal.v-widget {
 	background-origin: inherit;
 	text-shadow: inherit;
 	color: inherit;
+}
+
+.constellio .viewable-record-table-panel .viewable-record-table-table-mode .v-table-cell-content {
+	vertical-align: middle;
 }
 
 .constellio .collapsible-horizontal-splitpanel {

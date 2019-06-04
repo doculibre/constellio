@@ -350,7 +350,7 @@ $popup-view-z-index: 3;
 		}
 
 		.task-table [class*="-row"].v-selected {
-			outline: 1px solid rgb(25, 125, 225);
+			outline: 1px solid #197de1;
     		outline-offset: -1px;
 
     		background-color: inherit;
@@ -1239,13 +1239,22 @@ $popup-view-z-index: 3;
 			font-size: 24px;
 			position: relative;
 			top: -3px;
+		    
+		     .v-button-caption {
+				color: black;
+		     }
 		}
 
 		.xbreadcrumbbutton {
 		    height: auto;
 		    white-space: normal;
 		    opacity: 1.0;
+		    
+		     .v-button-caption {
+		     	color: #197de1;
+		     }
 		}
+		
 	}
 	
 	.information-capsule {
@@ -1455,7 +1464,7 @@ $popup-view-z-index: 3;
 	
 				.v-button {
 					padding-left: inherit;
-			    	color: rgb(25, 125, 225);
+			    	color: #197de1;
 			    	font-weight: inherit;
 					text-decoration: inherit;
 					font-size: inherit;
@@ -1470,7 +1479,7 @@ $popup-view-z-index: 3;
 				}
 	
 			    .v-button:hover {
-			    	color: rgb(25, 125, 225);
+			    	color: #197de1;
 				    background-color: inherit;
 				    text-decoration: underline;
 			    }
@@ -2108,7 +2117,7 @@ $popup-view-z-index: 3;
   		}
   		
 		.viewable-record-table [class*="-row"].v-selected {
-			outline: 1px solid rgb(25, 125, 225);
+			outline: 1px solid #197de1;
     		outline-offset: -1px;
 
     		background-color: inherit;
@@ -2122,6 +2131,13 @@ $popup-view-z-index: 3;
 			//background-origin: border-box;
 			//color: #ecf2f8;
 			//text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.05);
+		}
+		
+		.viewable-record-table-table-mode {
+			//.constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .search-result-table .v-table-table .v-table-cell-content
+			.v-table-cell-content {
+				vertical-align: middle;
+			}
 		}
 
     }
@@ -2330,7 +2346,7 @@ $popup-view-z-index: 3;
 							}
 
 						   	.reference-display-link {
-						   		color: rgb(25, 125, 225);
+						   		color: #197de1;
 						   	}
 
 							.visited-link {
@@ -2431,7 +2447,7 @@ $popup-view-z-index: 3;
 									padding-top: 16px;
 									//font-size: 18px;
 									text-align: left;
-									color: rgb(25, 125, 225);
+									color: #197de1;
 									font-weight: bold;
 								}
 								
@@ -3395,7 +3411,7 @@ $popup-view-z-index: 3;
 			}
 
 			.task-table [class*="-row"].v-selected {
-				outline: 1px solid rgb(25, 125, 225);
+				outline: 1px solid #197de1;
 	    		outline-offset: -1px;
 
 	    		background-color: inherit;

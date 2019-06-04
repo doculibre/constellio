@@ -1,6 +1,14 @@
 package com.constellio.app.modules.rm.ui.pages.userDocuments;
 
 import com.constellio.app.modules.rm.navigation.RMViews;
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.vaadin.dialogs.ConfirmDialog;
+
 import com.constellio.app.modules.rm.ui.components.userDocument.DeclareUserContentContainerButton;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
@@ -35,14 +43,6 @@ import com.vaadin.ui.DragAndDropWrapper;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
-import org.vaadin.dialogs.ConfirmDialog;
-import org.vaadin.easyuploads.MultiFileUpload;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserDocumentsView, DropHandler {
 
@@ -54,7 +54,7 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 
 	private DragAndDropWrapper dragAndDropWrapper;
 	private VerticalLayout mainLayout;
-	private MultiFileUpload multiFileUpload;
+	private BaseMultiFileUpload multiFileUpload;
 	private RecordVOLazyContainer userContentContainer;
 	private ButtonsContainer<RecordVOLazyContainer> buttonsContainer;
 	private SelectionTableAdapter userContentSelectTableAdapter;
@@ -64,10 +64,17 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 
 	private RecordIdToCaptionConverter recordIdToCaptionConverter = new RecordIdToCaptionConverter();
 
+	private boolean inWindow;
+
 	private ListUserDocumentsPresenter presenter;
 	private Component quotaSpaceInfo;
 
 	public ListUserDocumentsViewImpl() {
+		this(false);
+	}
+
+	public ListUserDocumentsViewImpl(boolean inWindow) {
+		this.inWindow = inWindow;
 		presenter = new ListUserDocumentsPresenter(this);
 	}
 
@@ -117,6 +124,11 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 				} else {
 					super.drop(event);
 				}
+			}
+
+			@Override
+			protected boolean isUploadWindow() {
+				return !inWindow;
 			}
 		};
 		multiFileUpload.setWidth("100%");
@@ -332,4 +344,16 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 		}
 	}
 
+
+	@Override
+	public void showUploadMessage(String message) {
+//		multiFileUpload.notifyMessage(message);
+		showClickableMessage(message);
+	}
+
+	@Override
+	public void showUploadErrorMessage(String message) {
+//		multiFileUpload.notifyMessage(message);
+		showErrorMessage(message);
+	}
 }

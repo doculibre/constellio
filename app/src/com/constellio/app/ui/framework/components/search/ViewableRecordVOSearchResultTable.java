@@ -45,7 +45,17 @@ public class ViewableRecordVOSearchResultTable extends ViewableRecordVOTablePane
 		super(container, tableMode);
 		this.presenter = presenter;
 		addStyleName(TABLE_STYLE);
-		addStyleName("search-result-table");
+		addStyleName(SEARCH_RESULT_TABLE_STYLE);
+	}
+
+	@Override
+	public void setTableMode(TableMode tableMode) {
+		super.setTableMode(tableMode);
+		if (tableMode == TableMode.TABLE) {
+			removeStyleName(SEARCH_RESULT_TABLE_STYLE);
+		} else {
+			addStyleName(SEARCH_RESULT_TABLE_STYLE);
+		}
 	}
 
 	@Override

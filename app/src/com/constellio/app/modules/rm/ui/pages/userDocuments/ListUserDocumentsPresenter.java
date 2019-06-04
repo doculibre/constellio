@@ -236,19 +236,19 @@ public class ListUserDocumentsPresenter extends SingleSchemaBasePresenter<ListUs
 						message.append(": ");
 						message.append(generateDisplayLink(userDocument));
 					}
-					view.showClickableMessage(message.toString());
+					view.showUploadMessage(message.toString());
 				}
 			}
 			userDocumentsDataProvider.fireDataRefreshEvent();
 		} catch (final IcapException e) {
-			view.showErrorMessage(e.getMessage());
+			view.showUploadErrorMessage(e.getMessage());
 		} catch (Exception e) {
 			LOGGER.error(e.getMessage(), e);
 			Throwable cause = e.getCause();
 			if (cause != null && StringUtils.isNotBlank(cause.getMessage()) && cause instanceof ValidationException) {
-				view.showErrorMessage(cause.getMessage());
+				view.showUploadErrorMessage(cause.getMessage());
 			} else {
-				view.showErrorMessage(MessageUtils.toMessage(e));
+				view.showUploadErrorMessage(MessageUtils.toMessage(e));
 			}
 		}
 	}

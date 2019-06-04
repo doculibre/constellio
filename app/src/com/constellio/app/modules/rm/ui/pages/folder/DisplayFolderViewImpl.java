@@ -773,7 +773,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			});
 			viewerPanel.addStyleName("folder-content-table");
 			//			viewerPanel.addStyleName("search-result-title");
-			
+
 			splitPanel.setFirstComponent(viewerPanel);
 			splitPanel.setSecondComponent(facetsPanel);
 			splitPanel.setSecondComponentWidth(250, Unit.PIXELS);

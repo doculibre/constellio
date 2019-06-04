@@ -45,7 +45,6 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 public class SearchResultSimpleTable extends SelectionTableAdapter implements SearchResultTable {
 
-	public static final String TABLE_STYLE = "search-result-table";
 	public static final String CHECKBOX_PROPERTY = "checkbox";
 
 	private static final int MAX_SELECTION_RANGE = 100;
@@ -66,7 +65,7 @@ public class SearchResultSimpleTable extends SelectionTableAdapter implements Se
 
 		adaptee = new RecordVOTable(container);
 		adaptee.setWidth("100%");
-		adaptee.addStyleName("search-result-table");
+		adaptee.addStyleName(SEARCH_RESULT_TABLE_STYLE);
 		adaptee.setColumnCollapsingAllowed(true);
 		adaptee.setColumnReorderingAllowed(true);
 
