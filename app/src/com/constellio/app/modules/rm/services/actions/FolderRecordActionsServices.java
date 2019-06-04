@@ -1,8 +1,10 @@
 package com.constellio.app.modules.rm.services.actions;
 
 import com.constellio.app.modules.rm.ConstellioRMModule;
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
@@ -18,17 +20,17 @@ public class FolderRecordActionsServices {
 	}
 
 	public boolean isAddDocumentActionPossible(Record record, User user) {
-		return hasUserWriteAccess(record, user) &&
+		return hasUserWriteAccess(record, user) && isEditActionPossible(record, user) &&
 			   rmModuleExtensions.isAddDocumentActionPossibleOnFolder(rm.wrapFolder(record), user);
 	}
 
 	public boolean isMoveActionPossible(Record record, User user) {
-		return hasUserWriteAccess(record, user) &&
+		return hasUserWriteAccess(record, user) && isEditActionPossible(record, user) &&
 			   rmModuleExtensions.isMoveActionPossibleOnFolder(rm.wrapFolder(record), user);
 	}
 
 	public boolean isAddSubFolderActionPossible(Record record, User user) {
-		return hasUserWriteAccess(record, user) &&
+		return hasUserWriteAccess(record, user) && isEditActionPossible(record, user) &&
 			   rmModuleExtensions.isAddSubFolderActionPossibleOnFolder(rm.wrapFolder(record), user);
 	}
 
@@ -47,51 +49,57 @@ public class FolderRecordActionsServices {
 			   rmModuleExtensions.isDeleteActionPossibleOnFolder(rm.wrapFolder(record), user);
 	}
 
-	// TODO rendu ici
-
 	public boolean isDuplicateActionPossible(Record record, User user) {
-		return hasUserWriteAccess(record, user) &&
-			   rmModuleExtensions.isEditActionPossibleOnFolder(rm.wrapFolder(record), user);
+		Folder folder = rm.wrapFolder(record);
+		if (!hasUserReadAccess(record, user) ||
+			(folder.getPermissionStatus().isInactive() && !user.has(RMPermissionsTo.DUPLICATE_INACTIVE_FOLDER).on(folder)) ||
+			(folder.getPermissionStatus().isSemiActive() && !user.has(RMPermissionsTo.DUPLICATE_SEMIACTIVE_FOLDER).on(folder))) {
+			return false;
+		}
+		return rmModuleExtensions.isCopyActionPossibleOnFolder(rm.wrapFolder(record), user);
 	}
 
 	// linkTo
 
 	public boolean isAddAuthorizationActionPossible(Record record, User user) {
-		return hasUserWriteAccess(record, user) &&
-			   rmModuleExtensions.isEditActionPossibleOnFolder(rm.wrapFolder(record), user);
+		return hasUserWriteAccess(record, user) && isEditActionPossible(record, user) &&
+			   rmModuleExtensions.isAddAuthorizationActionPossibleOnFolder(rm.wrapFolder(record), user);
 	}
 
 	public boolean isShareActionPossible(Record record, User user) {
 		return hasUserWriteAccess(record, user) &&
-			   rmModuleExtensions.isEditActionPossibleOnFolder(rm.wrapFolder(record), user);
+			   rmModuleExtensions.isShareActionPossibleOnFolder(rm.wrapFolder(record), user);
 	}
 
 	public boolean isAddToCartActionPossible(Record record, User user) {
-		return hasUserWriteAccess(record, user) &&
-			   rmModuleExtensions.isEditActionPossibleOnFolder(rm.wrapFolder(record), user);
+		return hasUserReadAccess(record, user) &&
+			   (hasUserPermissionToUseCart(user) || hasUserPermissionToUseMyCart(user)) &&
+			   rmModuleExtensions.isAddToCartActionPossibleOnFolder(rm.wrapFolder(record), user);
 	}
 
+	// TODO
+	/*
 	public boolean isAddToOrRemoveFromSelectionActionPossible(Record record, User user) {
 		return hasUserWriteAccess(record, user) &&
 			   rmModuleExtensions.isEditActionPossibleOnFolder(rm.wrapFolder(record), user);
 	}
+	*/
+
+	public boolean isBorrowActionPossible(Record record, User user) {
+		Folder folder = rm.wrapFolder(record);
+		return hasUserWriteAccess(record, user) && isEditActionPossible(record, user) && !folder.getBorrowed() &&
+			   rmModuleExtensions.isBorrowingActionPossibleOnFolder(folder, user);
+	}
+
+	public boolean isReturnActionPossible(Record record, User user) {
+		Folder folder = rm.wrapFolder(record);
+		return hasUserWriteAccess(record, user) && isEditActionPossible(record, user) && folder.getBorrowed() &&
+			   rmModuleExtensions.isReturnActionPossibleOnFolder(rm.wrapFolder(record), user);
+	}
+
+	// TODO rendu ici
 
 	public boolean isPrintLabelActionPossible(Record record, User user) {
-		return hasUserWriteAccess(record, user) &&
-			   rmModuleExtensions.isEditActionPossibleOnFolder(rm.wrapFolder(record), user);
-	}
-
-	public boolean isCheckInActionPossible(Record record, User user) {
-		return hasUserWriteAccess(record, user) &&
-			   rmModuleExtensions.isEditActionPossibleOnFolder(rm.wrapFolder(record), user);
-	}
-
-	public boolean isCheckOutActionPossible(Record record, User user) {
-		return hasUserWriteAccess(record, user) &&
-			   rmModuleExtensions.isEditActionPossibleOnFolder(rm.wrapFolder(record), user);
-	}
-
-	public boolean isAlertWhenAvailableActionPossible(Record record, User user) {
 		return hasUserWriteAccess(record, user) &&
 			   rmModuleExtensions.isEditActionPossibleOnFolder(rm.wrapFolder(record), user);
 	}
@@ -322,6 +330,14 @@ public class FolderRecordActionsServices {
 
 	private boolean hasUserReadAccess(Record record, User user) {
 		return user.hasReadAccess().on(record);
+	}
+
+	private boolean hasUserPermissionToUseCart(User user) {
+		return user.has(RMPermissionsTo.USE_GROUP_CART).globally();
+	}
+
+	public boolean hasUserPermissionToUseMyCart(User user) {
+		return user.has(RMPermissionsTo.USE_MY_CART).globally();
 	}
 
 }

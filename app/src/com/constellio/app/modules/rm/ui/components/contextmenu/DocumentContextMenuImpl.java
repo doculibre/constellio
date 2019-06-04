@@ -154,6 +154,11 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 					public boolean isContextualMenu() {
 						return true;
 					}
+
+					@Override
+					public boolean isNestedView() {
+						return false;
+					}
 				});
 		new MenuItemFactory().buildContextMenu(this, menuItemActions);
 	}

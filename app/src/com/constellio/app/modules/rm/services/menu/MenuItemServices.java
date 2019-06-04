@@ -224,15 +224,82 @@ public class MenuItemServices {
 			if (!filteredActionTypes.contains(MenuItemActionType.FOLDER_EDIT.name())) {
 				boolean isEditActionPossible = folderRecordActionsServices.isEditActionPossible(record, user);
 				menuItemActions.add(buildMenuItemAction(MenuItemActionType.FOLDER_EDIT, isEditActionPossible,
-						"DisplayFolderView.editFolder", null, -1, 400,
+						"DisplayFolderView.editFolder", null, -1, 500,
 						() -> new FolderRecordActionBehaviors(collection, appLayerFactory).edit(params)));
 			}
 
 			if (!filteredActionTypes.contains(MenuItemActionType.FOLDER_DELETE.name())) {
 				boolean isDeletePossible = folderRecordActionsServices.isDeleteActionPossible(record, user);
 				menuItemActions.add(buildMenuItemAction(MenuItemActionType.FOLDER_DELETE, isDeletePossible,
-						"DisplayFolderView.deleteFolder", null, -1, 400,
+						"DisplayFolderView.deleteFolder", null, -1, 600,
 						() -> new FolderRecordActionBehaviors(collection, appLayerFactory).delete(params)));
+			}
+
+			if (!filteredActionTypes.contains(MenuItemActionType.FOLDER_COPY.name())) {
+				boolean isDuplicatePossible = folderRecordActionsServices.isDuplicateActionPossible(record, user);
+				menuItemActions.add(buildMenuItemAction(MenuItemActionType.FOLDER_COPY, isDuplicatePossible,
+						"DisplayFolderView.duplicateFolder", null, -1, 700,
+						() -> new FolderRecordActionBehaviors(collection, appLayerFactory).copy(params)));
+			}
+
+			if (!filteredActionTypes.contains(MenuItemActionType.FOLDER_ADD_AUTHORIZATION.name())) {
+				boolean isAddAuthorizationPossible = folderRecordActionsServices.isAddAuthorizationActionPossible(record, user);
+				menuItemActions.add(buildMenuItemAction(MenuItemActionType.FOLDER_ADD_AUTHORIZATION, isAddAuthorizationPossible,
+						"DisplayFolderView.addAuthorization", null, -1, 800,
+						() -> new FolderRecordActionBehaviors(collection, appLayerFactory).addAuthorization(params)));
+			}
+
+			if (!filteredActionTypes.contains(MenuItemActionType.FOLDER_SHARE.name())) {
+				boolean isSharePossible = folderRecordActionsServices.isShareActionPossible(record, user);
+				menuItemActions.add(buildMenuItemAction(MenuItemActionType.FOLDER_SHARE, isSharePossible,
+						"DisplayFolderView.shareFolder", null, -1, 900,
+						() -> new FolderRecordActionBehaviors(collection, appLayerFactory).share(params)));
+			}
+
+			if (!filteredActionTypes.contains(MenuItemActionType.FOLDER_ADD_TO_CART.name())) {
+				boolean isAddToCartPossible = folderRecordActionsServices.isAddToCartActionPossible(record, user);
+				menuItemActions.add(buildMenuItemAction(MenuItemActionType.FOLDER_ADD_TO_CART, isAddToCartPossible,
+						"DisplayFolderView.addToCart", null, -1, 1000,
+						() -> new FolderRecordActionBehaviors(collection, appLayerFactory).share(params)));
+			}
+
+			if (!filteredActionTypes.contains(MenuItemActionType.FOLDER_BORROW.name())) {
+				boolean isBorrowPossible = folderRecordActionsServices.isBorrowActionPossible(record, user);
+				menuItemActions.add(buildMenuItemAction(MenuItemActionType.FOLDER_BORROW, isBorrowPossible,
+						"DisplayFolderView.borrow", null, -1, 1100,
+						() -> new FolderRecordActionBehaviors(collection, appLayerFactory).borrow(params)));
+			}
+
+			if (!filteredActionTypes.contains(MenuItemActionType.FOLDER_RETURN.name())) {
+				boolean isReturnPossible = folderRecordActionsServices.isReturnActionPossible(record, user);
+				menuItemActions.add(buildMenuItemAction(MenuItemActionType.FOLDER_BORROW, isReturnPossible,
+						"DisplayFolderView.returnFolder", null, -1, 1200,
+						() -> new FolderRecordActionBehaviors(collection, appLayerFactory).returnFolder(params)));
+			}
+
+			if (!filteredActionTypes.contains(MenuItemActionType.FOLDER_RETURN.name())) {
+				boolean isReturnPossible = folderRecordActionsServices.isReturnActionPossible(record, user);
+				menuItemActions.add(buildMenuItemAction(MenuItemActionType.FOLDER_RETURN, isReturnPossible,
+						"DisplayFolderView.returnFolder", null, -1, 1200,
+						() -> new FolderRecordActionBehaviors(collection, appLayerFactory).returnFolder(params)));
+			}
+
+			if (!filteredActionTypes.contains(MenuItemActionType.FOLDER_RETURN_REMAINDER.name())) {
+				Folder folder = rm.wrapFolder(record);
+				boolean borrowedByOtherUser = folder.getBorrowed() &&
+											  !user.getId().equals(folder.getBorrowUserEntered());
+				menuItemActions.add(buildMenuItemAction(MenuItemActionType.FOLDER_RETURN_REMAINDER, borrowedByOtherUser,
+						"DisplayFolderView.reminderReturnFolder", null, -1, 1300,
+						() -> new FolderRecordActionBehaviors(collection, appLayerFactory).sendReturnRemainder(params)));
+			}
+
+			if (!filteredActionTypes.contains(MenuItemActionType.FOLDER_AVAILABLE_ALERT.name())) {
+				Folder folder = rm.wrapFolder(record);
+				boolean borrowedByOtherUser = folder.getBorrowed() &&
+											  !user.getId().equals(folder.getBorrowUserEntered());
+				menuItemActions.add(buildMenuItemAction(MenuItemActionType.FOLDER_AVAILABLE_ALERT, borrowedByOtherUser,
+						"DisplayFolderView.alertWhenAvailable", null, -1, 1400,
+						() -> new FolderRecordActionBehaviors(collection, appLayerFactory).sendAvailableAlert(params)));
 			}
 
 			// FIXME une autre possibilité est d'avoir MenuItemAction.button et faire en sorte que le runnable fasse un button.click?

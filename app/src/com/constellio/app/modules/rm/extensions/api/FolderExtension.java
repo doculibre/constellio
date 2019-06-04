@@ -31,6 +31,10 @@ public abstract class FolderExtension {
 		return ExtensionBooleanResult.NOT_APPLICABLE;
 	}
 
+	public ExtensionBooleanResult isReturnActionPossible(FolderExtensionActionPossibleParams params) {
+		return ExtensionBooleanResult.NOT_APPLICABLE;
+	}
+
 	public ExtensionBooleanResult isAddSubFolderActionPossible(FolderExtensionActionPossibleParams params) {
 		return ExtensionBooleanResult.NOT_APPLICABLE;
 	}
@@ -44,6 +48,14 @@ public abstract class FolderExtension {
 	}
 
 	public ExtensionBooleanResult isDeleteActionPossible(FolderExtensionActionPossibleParams params) {
+		return ExtensionBooleanResult.NOT_APPLICABLE;
+	}
+
+	public ExtensionBooleanResult isAddAuthorizationActionPossible(FolderExtensionActionPossibleParams params) {
+		return ExtensionBooleanResult.NOT_APPLICABLE;
+	}
+
+	public ExtensionBooleanResult isAddToCartActionPossible(FolderExtensionActionPossibleParams params) {
 		return ExtensionBooleanResult.NOT_APPLICABLE;
 	}
 

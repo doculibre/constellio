@@ -120,7 +120,7 @@ public class RMModuleExtensions implements ModuleExtensions {
 			@Override
 			public ExtensionBooleanResult call(FolderExtension behavior) {
 				return behavior.isCopyActionPossible(
-						new FolderExtension.FolderExtensionActionPossibleParams(folder, user));
+						new FolderExtensionActionPossibleParams(folder, user));
 			}
 		});
 	}
@@ -164,14 +164,21 @@ public class RMModuleExtensions implements ModuleExtensions {
 				(behavior) -> behavior.isDeleteActionPossible(new FolderExtensionActionPossibleParams(folder, user)));
 	}
 
+	public boolean isAddAuthorizationActionPossibleOnFolder(final Folder folder, final User user) {
+		return folderExtensions.getBooleanValue(true,
+				(behavior) -> behavior.isAddAuthorizationActionPossible(new FolderExtensionActionPossibleParams(folder, user)));
+	}
+
+	// TODO adapt to use lambda
+
 	public boolean isShareActionPossibleOnFolder(final Folder folder, final User user) {
-		return folderExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<FolderExtension>() {
-			@Override
-			public ExtensionBooleanResult call(FolderExtension behavior) {
-				return behavior.isShareActionPossible(
-						new FolderExtension.FolderExtensionActionPossibleParams(folder, user));
-			}
-		});
+		return folderExtensions.getBooleanValue(true,
+				(behavior) -> behavior.isShareActionPossible(new FolderExtensionActionPossibleParams(folder, user)));
+	}
+
+	public boolean isAddToCartActionPossibleOnFolder(final Folder folder, final User user) {
+		return folderExtensions.getBooleanValue(true,
+				(behavior) -> behavior.isAddToCartActionPossible(new FolderExtensionActionPossibleParams(folder, user)));
 	}
 
 	public boolean isDecommissioningActionPossibleOnFolder(final Folder folder, final User user) {
@@ -179,21 +186,19 @@ public class RMModuleExtensions implements ModuleExtensions {
 			@Override
 			public ExtensionBooleanResult call(FolderExtension behavior) {
 				return behavior.isDecommissioningActionPossible(
-						new FolderExtension.FolderExtensionActionPossibleParams(folder, user));
+						new FolderExtensionActionPossibleParams(folder, user));
 			}
 		});
 	}
 
 	public boolean isBorrowingActionPossibleOnFolder(final Folder folder, final User user) {
-		boolean defaultValue = !modelLayerExtensions.forCollection(folder.getCollection())
-				.isModifyBlocked(folder.getWrappedRecord(), user);
-		return folderExtensions.getBooleanValue(defaultValue, new ExtensionUtils.BooleanCaller<FolderExtension>() {
-			@Override
-			public ExtensionBooleanResult call(FolderExtension behavior) {
-				return behavior.isBorrowingActionPossible(
-						new FolderExtension.FolderExtensionActionPossibleParams(folder, user));
-			}
-		});
+		return folderExtensions.getBooleanValue(true,
+				(behavior) -> behavior.isBorrowingActionPossible(new FolderExtensionActionPossibleParams(folder, user)));
+	}
+
+	public boolean isReturnActionPossibleOnFolder(final Folder folder, final User user) {
+		return folderExtensions.getBooleanValue(true,
+				(behavior) -> behavior.isReturnActionPossible(new FolderExtensionActionPossibleParams(folder, user)));
 	}
 
 	public boolean isDisplayActionPossibleOnDocument(final Document document, final User user) {
@@ -220,17 +225,13 @@ public class RMModuleExtensions implements ModuleExtensions {
 						new DocumentExtension.DocumentExtensionActionPossibleParams(document, user)));
 	}
 
-	// TODO adapt methods below to use a lambda
-
 	public boolean isCopyActionPossibleOnDocument(final Document document, final User user) {
-		return documentExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<DocumentExtension>() {
-			@Override
-			public ExtensionBooleanResult call(DocumentExtension behavior) {
-				return behavior.isCopyActionPossible(
-						new DocumentExtension.DocumentExtensionActionPossibleParams(document, user));
-			}
-		});
+		return documentExtensions.getBooleanValue(true,
+				(behavior) -> behavior.isCopyActionPossible(
+						new DocumentExtension.DocumentExtensionActionPossibleParams(document, user)));
 	}
+
+	// TODO adapt methods below to use a lambda
 
 	public boolean isCreatePDFAActionPossibleOnDocument(final Document document, final User user) {
 		return documentExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<DocumentExtension>() {

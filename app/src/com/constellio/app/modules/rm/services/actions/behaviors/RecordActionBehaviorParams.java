@@ -21,4 +21,6 @@ public abstract class RecordActionBehaviorParams {
 
 	public abstract boolean isContextualMenu();
 
+	public abstract boolean isNestedView();
+
 }
