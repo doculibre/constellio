@@ -1,4 +1,4 @@
-package com.constellio.app.modules.rm.services.actions.behaviors;
+package com.constellio.app.modules.rm.services.menu.behaviors;
 
 import com.constellio.app.api.extensions.params.NavigateToFromAPageParams;
 import com.constellio.app.modules.rm.ConstellioRMModule;
@@ -63,7 +63,13 @@ import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.TabSheet;
+import com.vaadin.ui.Table;
+import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
 import org.apache.commons.io.FilenameUtils;
 
@@ -79,7 +85,7 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import static java.util.Arrays.asList;
 import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 
-public class DocumentRecordActionBehaviors {
+public class DocumentMenuItemActionBehaviors {
 
 	private RMModuleExtensions rmModuleExtensions;
 	private ModelLayerCollectionExtensions extensions;
@@ -93,7 +99,7 @@ public class DocumentRecordActionBehaviors {
 	private SearchServices searchServices;
 	private MetadataSchemasManager metadataSchemasManager;
 
-	public DocumentRecordActionBehaviors(String collection, AppLayerFactory appLayerFactory) {
+	public DocumentMenuItemActionBehaviors(String collection, AppLayerFactory appLayerFactory) {
 		this.collection = collection;
 		this.appLayerFactory = appLayerFactory;
 		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
@@ -107,7 +113,7 @@ public class DocumentRecordActionBehaviors {
 		metadataSchemasManager = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager();
 	}
 
-	public void display(RecordActionBehaviorParams params) {
+	public void display(MenuItemActionBehaviorParams params) {
 		Map<String, String> formParams = params.getFormParams();
 		String documentId = params.getRecordVO().getId();
 
@@ -115,13 +121,13 @@ public class DocumentRecordActionBehaviors {
 		updateSearchResultClicked((DocumentVO) params.getRecordVO());
 	}
 
-	public void open(RecordActionBehaviorParams params) {
+	public void open(MenuItemActionBehaviorParams params) {
 		String agentURL = ConstellioAgentUtils.getAgentURL(params.getRecordVO(), params.getContentVersionVO());
 		Page.getCurrent().open(agentURL, params.isContextualMenu() ? "_top" : null);
 		loggingServices.openDocument(recordServices.getDocumentById(params.getRecordVO().getId()), params.getUser());
 	}
 
-	public void copy(RecordActionBehaviorParams params) {
+	public void copy(MenuItemActionBehaviorParams params) {
 		BaseView view = params.getView();
 		Map<String, String> formParams = params.getFormParams();
 		String documentId = params.getRecordVO().getId();
@@ -141,19 +147,19 @@ public class DocumentRecordActionBehaviors {
 		}
 	}
 
-	public void edit(RecordActionBehaviorParams params) {
+	public void edit(MenuItemActionBehaviorParams params) {
 		params.getView().navigate().to(RMViews.class).editDocument(params.getRecordVO().getId());
 		updateSearchResultClicked((DocumentVO) params.getRecordVO());
 	}
 
-	public void download(RecordActionBehaviorParams params) {
+	public void download(MenuItemActionBehaviorParams params) {
 		ContentVersionVOResource contentVersionResource = new ContentVersionVOResource(params.getContentVersionVO());
 		Resource downloadedResource = DownloadLink.wrapForDownload(contentVersionResource);
 		Page.getCurrent().open(downloadedResource, null, false);
 		loggingServices.downloadDocument(recordServices.getDocumentById(params.getRecordVO().getId()), params.getUser());
 	}
 
-	public void delete(RecordActionBehaviorParams params) {
+	public void delete(MenuItemActionBehaviorParams params) {
 		Document document = rm.getDocument(params.getRecordVO().getId());
 
 		if (validateDeleteDocumentPossibleExtensively(document.getWrappedRecord(), params.getUser()).isEmpty()) {
@@ -177,7 +183,7 @@ public class DocumentRecordActionBehaviors {
 		}
 	}
 
-	public void finalize(RecordActionBehaviorParams params) {
+	public void finalize(MenuItemActionBehaviorParams params) {
 		Document document = rm.getDocument(params.getRecordVO().getId());
 		Content content = document.getContent();
 		content.finalizeVersion();
@@ -193,7 +199,7 @@ public class DocumentRecordActionBehaviors {
 		}
 	}
 
-	public void publish(RecordActionBehaviorParams params) {
+	public void publish(MenuItemActionBehaviorParams params) {
 		Document documentFromParam =  rm.getDocument(params.getRecordVO().getId());
 		documentFromParam.setPublished(true);
 		try {
@@ -203,7 +209,7 @@ public class DocumentRecordActionBehaviors {
 		}
 	}
 
-	public void createPdf(RecordActionBehaviorParams params) {
+	public void createPdf(MenuItemActionBehaviorParams params) {
 		Document document = rm.getDocument(params.getRecordVO().getId());
 		String extention = FilenameUtils.getExtension(document.getContent().getCurrentVersion().getFilename());
 
@@ -234,7 +240,7 @@ public class DocumentRecordActionBehaviors {
 	}
 
 
-	public void unPublish(RecordActionBehaviorParams params) {
+	public void unPublish(MenuItemActionBehaviorParams params) {
 		Document documentFromParam =  rm.getDocument(params.getRecordVO().getId());
 		documentFromParam.setPublished(false);
 		try {
@@ -244,17 +250,17 @@ public class DocumentRecordActionBehaviors {
 		}
 	}
 
-	public void addToSelection(RecordActionBehaviorParams params) {
+	public void addToSelection(MenuItemActionBehaviorParams params) {
 		params.getView().getSessionContext().addSelectedRecordId(params.getRecordVO().getId(),
 				params.getRecordVO().getSchema().getTypeCode());
 	}
 
-	public void removeToSelection(RecordActionBehaviorParams params) {
+	public void removeToSelection(MenuItemActionBehaviorParams params) {
 		params.getView().getSessionContext().removeSelectedRecordId(params.getRecordVO().getId(),
 				params.getRecordVO().getSchema().getTypeCode());
 	}
 
-	public void addToCart(RecordActionBehaviorParams params) {
+	public void addToCart(MenuItemActionBehaviorParams params) {
 		final Document document = rm.getDocument(params.getRecordVO().getId());
 
 		WindowButton windowButton = new WindowButton($("DisplayFolderView.addToCart"), $("DisplayFolderView.selectCart")) {
@@ -311,7 +317,8 @@ public class DocumentRecordActionBehaviors {
 		addToCartRequested(cart, baseView, document);
 	}
 
-	private DefaultFavoritesTable buildOwnedFavoritesTable(final Window window, RecordActionBehaviorParams params, Document document) {
+	private DefaultFavoritesTable buildOwnedFavoritesTable(final Window window, MenuItemActionBehaviorParams params,
+														   Document document) {
 		List<CartItem> cartItems = new ArrayList<>();
 		if(hasCurrentUserPermissionToUseMyCart(params.getUser())) {
 			cartItems.add(new DefaultFavoritesTable.CartItem($("CartView.defaultFavorites")));
@@ -378,7 +385,7 @@ public class DocumentRecordActionBehaviors {
 		return user.has(RMPermissionsTo.USE_MY_CART).globally();
 	}
 
-	private void addToDefaultCart(RecordActionBehaviorParams params, Document document) {
+	private void addToDefaultCart(MenuItemActionBehaviorParams params, Document document) {
 		if (rm.numberOfDocumentsInFavoritesReachesLimit(params.getUser().getId(), 1)) {
 			params.getView().showMessage($("DisplayDocumentView.cartCannotContainMoreThanAThousandDocuments"));
 		} else {
@@ -393,13 +400,13 @@ public class DocumentRecordActionBehaviors {
 		}
 	}
 
-	public void addToDefaultCart(RecordActionBehaviorParams params) {
+	public void addToDefaultCart(MenuItemActionBehaviorParams params) {
 		Document document = rm.getDocument(params.getRecordVO().getId());
 
 		addToDefaultCart(params, document);
 	}
 
-	public void upload(RecordActionBehaviorParams params) {
+	public void upload(MenuItemActionBehaviorParams params) {
 		final Map<RecordVO, MetadataVO> recordMap = new HashMap<>();
 		recordMap.put(params.getRecordVO(), params.getRecordVO().getMetadata(Document.CONTENT));
 
@@ -414,7 +421,8 @@ public class DocumentRecordActionBehaviors {
 		uploadWindow.open(false);
 	}
 
-	private void createNewCartAndAddToItRequested(String title, Document document, RecordActionBehaviorParams params) {
+	private void createNewCartAndAddToItRequested(String title, Document document,
+												  MenuItemActionBehaviorParams params) {
 		Cart cart = rm.newCart();
 		cart.setTitle(title);
 		cart.setOwner(params.getUser());
@@ -428,7 +436,7 @@ public class DocumentRecordActionBehaviors {
 		}
 	}
 
-	private RecordVODataProvider getSharedCartsDataProvider(RecordActionBehaviorParams params) {
+	private RecordVODataProvider getSharedCartsDataProvider(MenuItemActionBehaviorParams params) {
 		MetadataSchemaToVOBuilder schemaVOBuilder = new MetadataSchemaToVOBuilder();
 		final MetadataSchemaVO cartSchemaVO = schemaVOBuilder.build(rm.cartSchema(), VIEW_MODE.TABLE, params.getView().getSessionContext());
 		return new RecordVODataProvider(cartSchemaVO, new RecordToVOBuilder(), modelLayerFactory, params.getView().getSessionContext()) {

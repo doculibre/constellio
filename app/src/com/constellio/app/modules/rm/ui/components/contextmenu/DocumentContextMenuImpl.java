@@ -1,9 +1,9 @@
 package com.constellio.app.modules.rm.ui.components.contextmenu;
 
-import com.constellio.app.modules.rm.services.actions.behaviors.RecordActionBehaviorParams;
 import com.constellio.app.modules.rm.services.menu.MenuItemAction;
 import com.constellio.app.modules.rm.services.menu.MenuItemFactory;
 import com.constellio.app.modules.rm.services.menu.MenuItemServices;
+import com.constellio.app.modules.rm.services.menu.behaviors.MenuItemActionBehaviorParams;
 import com.constellio.app.modules.rm.ui.components.document.DocumentActionsPresenterUtils;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -124,7 +124,7 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 		Record record = recordServices.getDocumentById(recordVO.getId());
 
 		List<MenuItemAction> menuItemActions = new MenuItemServices(record.getCollection(), getConstellioFactories().getAppLayerFactory())
-				.getActionsForRecord(record, new RecordActionBehaviorParams() {
+				.getActionsForRecord(record, new MenuItemActionBehaviorParams() {
 					@Override
 					public BaseView getView() {
 						return (BaseView) ConstellioUI.getCurrent().getCurrentView();

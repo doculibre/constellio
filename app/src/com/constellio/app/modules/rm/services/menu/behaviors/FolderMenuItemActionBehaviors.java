@@ -1,4 +1,4 @@
-package com.constellio.app.modules.rm.services.actions.behaviors;
+package com.constellio.app.modules.rm.services.menu.behaviors;
 
 import com.constellio.app.api.extensions.params.NavigateToFromAPageParams;
 import com.constellio.app.api.extensions.taxonomies.FolderDeletionEvent;
@@ -102,7 +102,7 @@ import static java.util.Arrays.asList;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
 
 @Slf4j
-public class FolderRecordActionBehaviors {
+public class FolderMenuItemActionBehaviors {
 
 	private String collection;
 	private AppLayerFactory appLayerFactory;
@@ -121,7 +121,7 @@ public class FolderRecordActionBehaviors {
 
 	public static final String USER_LOOKUP = "user-lookup";
 
-	public FolderRecordActionBehaviors(String collection, AppLayerFactory appLayerFactory) {
+	public FolderMenuItemActionBehaviors(String collection, AppLayerFactory appLayerFactory) {
 		this.collection = collection;
 		this.appLayerFactory = appLayerFactory;
 		modelLayerFactory = appLayerFactory.getModelLayerFactory();
@@ -138,7 +138,7 @@ public class FolderRecordActionBehaviors {
 		schemaTypes = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
 	}
 
-	public void addToDocument(RecordActionBehaviorParams params) {
+	public void addToDocument(MenuItemActionBehaviorParams params) {
 		Button addDocumentButton = new AddButton($("DisplayFolderView.addDocument")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
@@ -148,7 +148,7 @@ public class FolderRecordActionBehaviors {
 		addDocumentButton.click();
 	}
 
-	public void move(RecordActionBehaviorParams params) {
+	public void move(MenuItemActionBehaviorParams params) {
 		Button moveInFolderButton = new WindowButton($("DisplayFolderView.parentFolder"),
 				$("DisplayFolderView.parentFolder"), WindowButton.WindowConfiguration.modalDialog("50%", "20%")) {
 			@Override
@@ -192,7 +192,7 @@ public class FolderRecordActionBehaviors {
 		moveInFolderButton.click();
 	}
 
-	public void addSubFolder(RecordActionBehaviorParams params) {
+	public void addSubFolder(MenuItemActionBehaviorParams params) {
 		Button addSubFolderButton = new AddButton($("DisplayFolderView.addSubFolder")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
@@ -202,7 +202,7 @@ public class FolderRecordActionBehaviors {
 		addSubFolderButton.click();
 	}
 
-	public void display(RecordActionBehaviorParams params) {
+	public void display(MenuItemActionBehaviorParams params) {
 		Button displayFolderButton = new DisplayButton($("DisplayFolderView.displayFolder")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
@@ -213,7 +213,7 @@ public class FolderRecordActionBehaviors {
 		displayFolderButton.click();
 	}
 
-	public void edit(RecordActionBehaviorParams params) {
+	public void edit(MenuItemActionBehaviorParams params) {
 		Button editFolderButton = new EditButton($("DisplayFolderView.editFolder")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
@@ -224,7 +224,7 @@ public class FolderRecordActionBehaviors {
 		editFolderButton.click();
 	}
 
-	public void delete(RecordActionBehaviorParams params) {
+	public void delete(MenuItemActionBehaviorParams params) {
 		boolean needAReasonToDeleteFolder = new RMConfigs(modelLayerFactory.getSystemConfigurationsManager())
 				.isNeedingAReasonBeforeDeletingFolders();
 
@@ -257,7 +257,7 @@ public class FolderRecordActionBehaviors {
 		deleteFolderButton.click();
 	}
 
-	public void copy(RecordActionBehaviorParams params) {
+	public void copy(MenuItemActionBehaviorParams params) {
 		Button duplicateFolderButton = new WindowButton($("DisplayFolderView.duplicateFolder"),
 				$("DisplayFolderView.duplicateFolderOnlyOrHierarchy")) {
 			@Override
@@ -321,7 +321,7 @@ public class FolderRecordActionBehaviors {
 		duplicateFolderButton.click();
 	}
 
-	public void addAuthorization(RecordActionBehaviorParams params) {
+	public void addAuthorization(MenuItemActionBehaviorParams params) {
 		Button addAuthorizationButton = new LinkButton($("DisplayFolderView.addAuthorization")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
@@ -331,7 +331,7 @@ public class FolderRecordActionBehaviors {
 		addAuthorizationButton.click();
 	}
 
-	public void share(RecordActionBehaviorParams params) {
+	public void share(MenuItemActionBehaviorParams params) {
 		Button shareFolderButton = new LinkButton($("DisplayFolderView.shareFolder")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
@@ -345,7 +345,7 @@ public class FolderRecordActionBehaviors {
 		shareFolderButton.click();
 	}
 
-	public void addToCart(RecordActionBehaviorParams params) {
+	public void addToCart(MenuItemActionBehaviorParams params) {
 		if (params.getUser().has(RMPermissionsTo.USE_GROUP_CART).globally()) {
 			addToCartButton(params);
 		} else if (params.getUser().has(RMPermissionsTo.USE_MY_CART).globally()) {
@@ -353,7 +353,7 @@ public class FolderRecordActionBehaviors {
 		}
 	}
 
-	public void borrow(RecordActionBehaviorParams params) {
+	public void borrow(MenuItemActionBehaviorParams params) {
 		Button borrowButton = new WindowButton($("DisplayFolderView.borrow"),
 				$("DisplayFolderView.borrow"), new WindowConfiguration(true, true, "50%", "500px")) {
 			@Override
@@ -464,7 +464,7 @@ public class FolderRecordActionBehaviors {
 		borrowButton.click();
 	}
 
-	public void returnFolder(RecordActionBehaviorParams params) {
+	public void returnFolder(MenuItemActionBehaviorParams params) {
 		Button returnButton = new WindowButton($("DisplayFolderView.returnFolder"),
 				$("DisplayFolderView.returnFolder")) {
 			@Override
@@ -514,7 +514,7 @@ public class FolderRecordActionBehaviors {
 		returnButton.click();
 	}
 
-	public void sendReturnRemainder(RecordActionBehaviorParams params) {
+	public void sendReturnRemainder(MenuItemActionBehaviorParams params) {
 		Button reminderReturnFolderButton = new BaseButton($("DisplayFolderView.reminderReturnFolder")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
@@ -566,7 +566,7 @@ public class FolderRecordActionBehaviors {
 		reminderReturnFolderButton.click();
 	}
 
-	public void sendAvailableAlert(RecordActionBehaviorParams params) {
+	public void sendAvailableAlert(MenuItemActionBehaviorParams params) {
 		Button alertWhenAvailableButton = new BaseButton($("RMObject.alertWhenAvailable")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
@@ -593,7 +593,7 @@ public class FolderRecordActionBehaviors {
 		alertWhenAvailableButton.click();
 	}
 
-	private void addToCartButton(RecordActionBehaviorParams params) {
+	private void addToCartButton(MenuItemActionBehaviorParams params) {
 		WindowConfiguration configuration = new WindowConfiguration(true, true, "50%", "750px");
 		Button addToCartButton = new WindowButton($("DisplayFolderView.addToCart"), $("DisplayFolderView.selectCart"), configuration) {
 			@Override
@@ -659,7 +659,7 @@ public class FolderRecordActionBehaviors {
 		addToCartButton.click();
 	}
 
-	private void addToMyCartButton(RecordActionBehaviorParams params) {
+	private void addToMyCartButton(MenuItemActionBehaviorParams params) {
 		Button button = new BaseButton($("DisplayFolderView.addToCart")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
@@ -681,7 +681,7 @@ public class FolderRecordActionBehaviors {
 		button.click();
 	}
 
-	private void createNewCartAndAddToItRequested(String title, RecordActionBehaviorParams params) {
+	private void createNewCartAndAddToItRequested(String title, MenuItemActionBehaviorParams params) {
 		Cart cart = rm.newCart();
 		Folder folder = rm.wrapFolder(params.getRecordVO().getRecord());
 		cart.setTitle(title);
@@ -697,7 +697,7 @@ public class FolderRecordActionBehaviors {
 		}
 	}
 
-	private Table buildOwnedFavoritesTable(Window window, RecordActionBehaviorParams params) {
+	private Table buildOwnedFavoritesTable(Window window, MenuItemActionBehaviorParams params) {
 		List<CartItem> cartItems = new ArrayList<>();
 		if (params.getUser().has(RMPermissionsTo.USE_MY_CART).globally()) {
 			cartItems.add(new DefaultFavoritesTable.CartItem($("CartView.defaultFavorites")));
@@ -731,7 +731,7 @@ public class FolderRecordActionBehaviors {
 		return defaultFavoritesTable;
 	}
 
-	private void addToDefaultFavorite(RecordActionBehaviorParams params) {
+	private void addToDefaultFavorite(MenuItemActionBehaviorParams params) {
 		if (rm.numberOfFoldersInFavoritesReachesLimit(params.getRecordVO().getId(), 1)) {
 			params.getView().showMessage($("DisplayFolderViewImpl.cartCannotContainMoreThanAThousandFolders"));
 		} else {
@@ -747,7 +747,7 @@ public class FolderRecordActionBehaviors {
 		}
 	}
 
-	private void addToCartRequested(Cart cart, RecordActionBehaviorParams params) {
+	private void addToCartRequested(Cart cart, MenuItemActionBehaviorParams params) {
 		if (rm.numberOfFoldersInFavoritesReachesLimit(cart.getId(), 1)) {
 			params.getView().showMessage($("DisplayFolderViewImpl.cartCannotContainMoreThanAThousandFolders"));
 		} else {
@@ -763,7 +763,7 @@ public class FolderRecordActionBehaviors {
 		}
 	}
 
-	private void deleteFolder(String reason, RecordActionBehaviorParams params) {
+	private void deleteFolder(String reason, MenuItemActionBehaviorParams params) {
 		String parentId = params.getRecordVO().get(Folder.PARENT_FOLDER);
 		SchemaPresenterUtils presenterUtils = new SchemaPresenterUtils(Folder.DEFAULT_SCHEMA,
 				params.getView().getConstellioFactories(), params.getView().getSessionContext());
@@ -801,7 +801,7 @@ public class FolderRecordActionBehaviors {
 		return isDeletetionSuccessful;
 	}
 
-	private void navigateToDuplicateFolder(Folder folder, boolean isStructure, RecordActionBehaviorParams params) {
+	private void navigateToDuplicateFolder(Folder folder, boolean isStructure, MenuItemActionBehaviorParams params) {
 		boolean areTypeAndSearchIdPresent = DecommissionNavUtil.areTypeAndSearchIdPresent(params.getFormParams());
 
 		if (areTypeAndSearchIdPresent) {
@@ -815,7 +815,7 @@ public class FolderRecordActionBehaviors {
 		}
 	}
 
-	private RecordVODataProvider getSharedCartsDataProvider(RecordActionBehaviorParams params) {
+	private RecordVODataProvider getSharedCartsDataProvider(MenuItemActionBehaviorParams params) {
 		final MetadataSchemaVO cartSchemaVO = schemaVOBuilder
 				.build(rm.cartSchema(), VIEW_MODE.TABLE, params.getView().getSessionContext());
 		return new RecordVODataProvider(cartSchemaVO, new RecordToVOBuilder(), modelLayerFactory, params.getView().getSessionContext()) {
@@ -843,7 +843,8 @@ public class FolderRecordActionBehaviors {
 	}
 
 	private boolean borrowFolder(LocalDate borrowingDate, LocalDate previewReturnDate, String userId,
-								 BorrowingType borrowingType, LocalDate returnDate, RecordActionBehaviorParams params) {
+								 BorrowingType borrowingType, LocalDate returnDate,
+								 MenuItemActionBehaviorParams params) {
 		boolean borrowed;
 		String errorMessage = borrowingServices
 				.validateBorrowingInfos(userId, borrowingDate, previewReturnDate, borrowingType, returnDate);
@@ -871,7 +872,7 @@ public class FolderRecordActionBehaviors {
 		return borrowed;
 	}
 
-	private boolean returnFolder(LocalDate returnDate, LocalDate borrowingDate, RecordActionBehaviorParams params) {
+	private boolean returnFolder(LocalDate returnDate, LocalDate borrowingDate, MenuItemActionBehaviorParams params) {
 		String errorMessage = borrowingServices.validateReturnDate(returnDate, borrowingDate);
 		if (errorMessage != null) {
 			params.getView().showErrorMessage($(errorMessage));
@@ -888,7 +889,7 @@ public class FolderRecordActionBehaviors {
 		}
 	}
 
-	public boolean returnFolder(LocalDate returnDate, RecordActionBehaviorParams params) {
+	public boolean returnFolder(LocalDate returnDate, MenuItemActionBehaviorParams params) {
 		LocalDateTime borrowDateTime = rm.wrapFolder(params.getRecordVO().getRecord()).getBorrowDate();
 		LocalDate borrowDate = borrowDateTime != null ? borrowDateTime.toLocalDate() : null;
 		return returnFolder(returnDate, borrowDate, params);

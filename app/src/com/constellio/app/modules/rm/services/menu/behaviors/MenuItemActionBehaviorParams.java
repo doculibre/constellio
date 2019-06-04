@@ -1,4 +1,4 @@
-package com.constellio.app.modules.rm.services.actions.behaviors;
+package com.constellio.app.modules.rm.services.menu.behaviors;
 
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -7,7 +7,7 @@ import com.constellio.model.entities.records.wrappers.User;
 
 import java.util.Map;
 
-public abstract class RecordActionBehaviorParams {
+public abstract class MenuItemActionBehaviorParams {
 
 	public abstract BaseView getView();
 

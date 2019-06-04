@@ -7,9 +7,9 @@ import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.actions.DocumentRecordActionsServices;
 import com.constellio.app.modules.rm.services.actions.FolderRecordActionsServices;
-import com.constellio.app.modules.rm.services.actions.behaviors.DocumentRecordActionBehaviors;
-import com.constellio.app.modules.rm.services.actions.behaviors.FolderRecordActionBehaviors;
-import com.constellio.app.modules.rm.services.actions.behaviors.RecordActionBehaviorParams;
+import com.constellio.app.modules.rm.services.menu.behaviors.DocumentMenuItemActionBehaviors;
+import com.constellio.app.modules.rm.services.menu.behaviors.FolderMenuItemActionBehaviors;
+import com.constellio.app.modules.rm.services.menu.behaviors.MenuItemActionBehaviorParams;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -42,12 +42,12 @@ public class MenuItemServices {
 		rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 	}
 
-	public List<MenuItemAction> getActionsForRecord(Record record, RecordActionBehaviorParams params) {
+	public List<MenuItemAction> getActionsForRecord(Record record, MenuItemActionBehaviorParams params) {
 		return getActionsForRecord(record, Collections.emptyList(), params);
 	}
 
 	public List<MenuItemAction> getActionsForRecord(Record record, List<String> filteredActionTypes,
-													RecordActionBehaviorParams params) {
+													MenuItemActionBehaviorParams params) {
 		User user = params.getUser();
 
 		List<MenuItemAction> menuItemActions = new ArrayList<>();
@@ -56,7 +56,7 @@ public class MenuItemServices {
 				boolean isDisplayActionPossible = documentRecordActionsServices.isDisplayActionPossible(record, user);
 				menuItemActions.add(buildMenuItemAction(MenuItemActionType.DOCUMENT_DISPLAY, isDisplayActionPossible,
 						"DisplayDocumentView.displayDocument", FontAwesome.FILE_O, -1, 100,
-						() -> new DocumentRecordActionBehaviors(collection, appLayerFactory).display(params)));
+						() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).display(params)));
 			}
 
 			if (!filteredActionTypes.contains(MenuItemActionType.DOCUMENT_OPEN.name())) {
@@ -67,28 +67,28 @@ public class MenuItemServices {
 													  document.getContent().getCurrentVersion().getFilename() : "");
 				menuItemActions.add(buildMenuItemAction(MenuItemActionType.DOCUMENT_OPEN, isOpenActionPossible,
 						"DisplayDocumentView.openDocument", icon, -1, 200,
-						() -> new DocumentRecordActionBehaviors(collection, appLayerFactory).open(params)));
+						() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).open(params)));
 			}
 
 			if (!filteredActionTypes.contains(MenuItemActionType.DOCUMENT_EDIT.name())) {
 				boolean isEditActionPossible = documentRecordActionsServices.isEditActionPossible(record, user);
 				menuItemActions.add(buildMenuItemAction(MenuItemActionType.DOCUMENT_EDIT, isEditActionPossible,
 						"DisplayDocumentView.editDocument", FontAwesome.EDIT, -1, 300,
-						() -> new DocumentRecordActionBehaviors(collection, appLayerFactory).copy(params)));
+						() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).copy(params)));
 			}
 
 			if (!filteredActionTypes.contains(MenuItemActionType.DOCUMENT_DOWNLOAD.name())) {
 				boolean isDownloadPossible = documentRecordActionsServices.isDownloadActionPossible(record, user);
 				menuItemActions.add(buildMenuItemAction(MenuItemActionType.DOCUMENT_DOWNLOAD, isDownloadPossible,
 						"DocumentContextMenu.downloadDocument", FontAwesome.DOWNLOAD, -1, 400,
-						() -> new DocumentRecordActionBehaviors(collection, appLayerFactory).download(params)));
+						() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).download(params)));
 			}
 
 			if (!filteredActionTypes.contains(MenuItemActionType.DOCUMENT_DELETE.name())) {
 				boolean isDeletePossible = documentRecordActionsServices.isDeleteActionPossible(record, user);
 				MenuItemAction menuItemAction = buildMenuItemAction(MenuItemActionType.DOCUMENT_DELETE, isDeletePossible,
 						"DocumentContextMenu.deleteDocument", FontAwesome.TRASH_O, -1, 500,
-						() -> new DocumentRecordActionBehaviors(collection, appLayerFactory).delete(params));
+						() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).delete(params));
 
 				menuItemAction.setConfirmMessage("ConfirmDialog.confirmDelete");
 
@@ -99,14 +99,14 @@ public class MenuItemServices {
 				boolean isCopyActionPossible = documentRecordActionsServices.isCopyActionPossible(record, user);
 				menuItemActions.add(buildMenuItemAction(MenuItemActionType.DOCUMENT_COPY, isCopyActionPossible,
 						"DocumentContextMenu.copyContent", FontAwesome.COPY, -1, 600,
-						() -> new DocumentRecordActionBehaviors(collection, appLayerFactory).edit(params)));
+						() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).edit(params)));
 			}
 
 			if(!filteredActionTypes.contains(MenuItemActionType.DOCUMENT_FINALIZE.name())) {
 				boolean isFinalisationPossible = documentRecordActionsServices.isFinalizeActionPossible(record, user);
 				MenuItemAction menuItemAction = buildMenuItemAction(MenuItemActionType.DOCUMENT_FINALIZE, isFinalisationPossible,
 						"DocumentContextMenu.finalize", FontAwesome.LEVEL_UP, -1, 700,
-						() -> new DocumentRecordActionBehaviors(collection, appLayerFactory).finalize(params));
+						() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).finalize(params));
 
 				menuItemAction.setConfirmMessage("DocumentActionsComponent.finalize.confirm");
 				menuItemActions.add(menuItemAction);
@@ -119,11 +119,11 @@ public class MenuItemServices {
 				if(!document.isPublished()) {
 					menuItemAction = buildMenuItemAction(MenuItemActionType.DOCUMENT_PUBLISH, isPublishPossible,
 							"DocumentContextMenu.publish", null, -1, 800,
-							() -> new DocumentRecordActionBehaviors(collection, appLayerFactory).publish(params));
+							() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).publish(params));
 				} else {
 					menuItemAction = buildMenuItemAction(MenuItemActionType.DOCUMENT_PUBLISH, isPublishPossible,
 							"DocumentContextMenu.unpublish", null,-1 ,800,
-							() -> new DocumentRecordActionBehaviors(collection, appLayerFactory).unPublish(params));
+							() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).unPublish(params));
 				}
 
 				menuItemActions.add(menuItemAction);
@@ -134,7 +134,7 @@ public class MenuItemServices {
 
 				MenuItemAction menuItemAction = buildMenuItemAction(MenuItemActionType.DOCUMENT_CREATE_PDF, isCreatePdfActionPossible,
 						"DocumentContextMenu.createPDFA", null, -1, 900,
-						() -> new DocumentRecordActionBehaviors(collection, appLayerFactory).createPdf(params));
+						() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).createPdf(params));
 				menuItemAction.setConfirmMessage("ConfirmDialog.confirmCreatePDFA");
 
 				menuItemActions.add(menuItemAction);
@@ -146,7 +146,7 @@ public class MenuItemServices {
 
 				MenuItemAction menuItemAction = buildMenuItemAction(MenuItemActionType.DOCUMENT_ADD_TO_SELECTION,
 						isAddToSelectionPossible, "addToOrRemoveFromSelection.add", null, -1, 1000,
-						() -> new DocumentRecordActionBehaviors(collection, appLayerFactory).addToSelection(params));
+						() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).addToSelection(params));
 
 				menuItemActions.add(menuItemAction);
 			}
@@ -157,7 +157,7 @@ public class MenuItemServices {
 
 				MenuItemAction menuItemAction = buildMenuItemAction(MenuItemActionType.DOCUMENT_ADD_TO_SELECTION,
 						isAddToSelectionPossible, "addToOrRemoveFromSelection.remove", null, -1, 1100,
-						() -> new DocumentRecordActionBehaviors(collection, appLayerFactory).removeToSelection(params));
+						() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).removeToSelection(params));
 
 				menuItemActions.add(menuItemAction);
 			}
@@ -167,7 +167,7 @@ public class MenuItemServices {
 
 				MenuItemAction menuItemAction = buildMenuItemAction(MenuItemActionType.DOCUMENT_ADD_TO_CART,
 						isAddCartActionPossible, "DisplayFolderView.addToCart", null, -1, 1200,
-						() -> new DocumentRecordActionBehaviors(collection, appLayerFactory).addToCart(params));
+						() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).addToCart(params));
 
 				menuItemActions.add(menuItemAction);
 			}
@@ -177,7 +177,7 @@ public class MenuItemServices {
 
 				MenuItemAction menuItemAction = buildMenuItemAction(MenuItemActionType.DOCUMENT_ADD_TO_MY_CART,
 						isAddToMyDefaultCartActionPossible, "DisplayFolderView.addToMyCart", null, -1, 1200,
-						() -> new DocumentRecordActionBehaviors(collection, appLayerFactory).addToDefaultCart(params));
+						() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).addToDefaultCart(params));
 
 				menuItemActions.add(menuItemAction);
 			}
@@ -187,7 +187,7 @@ public class MenuItemServices {
 
 				MenuItemAction menuItemAction = buildMenuItemAction(MenuItemActionType.DOCUMENT_UPLOAD,
 						isAddCartActionPossible, "DisplayFolderView.addToMyCart", null, -1, 1200,
-						() -> new DocumentRecordActionBehaviors(collection, appLayerFactory).upload(params));
+						() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).upload(params));
 
 				menuItemActions.add(menuItemAction);
 			}
@@ -197,91 +197,91 @@ public class MenuItemServices {
 				boolean isAddDocumentActionPossible = folderRecordActionsServices.isAddDocumentActionPossible(record, user);
 				menuItemActions.add(buildMenuItemAction(MenuItemActionType.FOLDER_ADD_DOCUMENT, isAddDocumentActionPossible,
 						"DisplayFolderView.addDocument", null, -1, 100,
-						() -> new FolderRecordActionBehaviors(collection, appLayerFactory).addToDocument(params)));
+						() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).addToDocument(params)));
 			}
 
 			if (!filteredActionTypes.contains(MenuItemActionType.FOLDER_MOVE.name())) {
 				boolean isMoveActionPossible = folderRecordActionsServices.isMoveActionPossible(record, user);
 				menuItemActions.add(buildMenuItemAction(MenuItemActionType.FOLDER_MOVE, isMoveActionPossible,
 						"DisplayFolderView.parentFolder", null, -1, 200,
-						() -> new FolderRecordActionBehaviors(collection, appLayerFactory).move(params)));
+						() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).move(params)));
 			}
 
 			if (!filteredActionTypes.contains(MenuItemActionType.FOLDER_ADD_SUBFOLDER.name())) {
 				boolean isAddSubFolderActionPossible = folderRecordActionsServices.isAddSubFolderActionPossible(record, user);
 				menuItemActions.add(buildMenuItemAction(MenuItemActionType.FOLDER_ADD_SUBFOLDER, isAddSubFolderActionPossible,
 						"DisplayFolderView.addSubFolder", null, -1, 300,
-						() -> new FolderRecordActionBehaviors(collection, appLayerFactory).addSubFolder(params)));
+						() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).addSubFolder(params)));
 			}
 
 			if (!filteredActionTypes.contains(MenuItemActionType.FOLDER_DISPLAY.name())) {
 				boolean isDisplayActionPossible = folderRecordActionsServices.isDisplayActionPossible(record, user);
 				menuItemActions.add(buildMenuItemAction(MenuItemActionType.FOLDER_DISPLAY, isDisplayActionPossible,
 						"DisplayFolderView.displayFolder", null, -1, 400,
-						() -> new FolderRecordActionBehaviors(collection, appLayerFactory).display(params)));
+						() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).display(params)));
 			}
 
 			if (!filteredActionTypes.contains(MenuItemActionType.FOLDER_EDIT.name())) {
 				boolean isEditActionPossible = folderRecordActionsServices.isEditActionPossible(record, user);
 				menuItemActions.add(buildMenuItemAction(MenuItemActionType.FOLDER_EDIT, isEditActionPossible,
 						"DisplayFolderView.editFolder", null, -1, 500,
-						() -> new FolderRecordActionBehaviors(collection, appLayerFactory).edit(params)));
+						() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).edit(params)));
 			}
 
 			if (!filteredActionTypes.contains(MenuItemActionType.FOLDER_DELETE.name())) {
 				boolean isDeletePossible = folderRecordActionsServices.isDeleteActionPossible(record, user);
 				menuItemActions.add(buildMenuItemAction(MenuItemActionType.FOLDER_DELETE, isDeletePossible,
 						"DisplayFolderView.deleteFolder", null, -1, 600,
-						() -> new FolderRecordActionBehaviors(collection, appLayerFactory).delete(params)));
+						() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).delete(params)));
 			}
 
 			if (!filteredActionTypes.contains(MenuItemActionType.FOLDER_COPY.name())) {
 				boolean isDuplicatePossible = folderRecordActionsServices.isDuplicateActionPossible(record, user);
 				menuItemActions.add(buildMenuItemAction(MenuItemActionType.FOLDER_COPY, isDuplicatePossible,
 						"DisplayFolderView.duplicateFolder", null, -1, 700,
-						() -> new FolderRecordActionBehaviors(collection, appLayerFactory).copy(params)));
+						() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).copy(params)));
 			}
 
 			if (!filteredActionTypes.contains(MenuItemActionType.FOLDER_ADD_AUTHORIZATION.name())) {
 				boolean isAddAuthorizationPossible = folderRecordActionsServices.isAddAuthorizationActionPossible(record, user);
 				menuItemActions.add(buildMenuItemAction(MenuItemActionType.FOLDER_ADD_AUTHORIZATION, isAddAuthorizationPossible,
 						"DisplayFolderView.addAuthorization", null, -1, 800,
-						() -> new FolderRecordActionBehaviors(collection, appLayerFactory).addAuthorization(params)));
+						() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).addAuthorization(params)));
 			}
 
 			if (!filteredActionTypes.contains(MenuItemActionType.FOLDER_SHARE.name())) {
 				boolean isSharePossible = folderRecordActionsServices.isShareActionPossible(record, user);
 				menuItemActions.add(buildMenuItemAction(MenuItemActionType.FOLDER_SHARE, isSharePossible,
 						"DisplayFolderView.shareFolder", null, -1, 900,
-						() -> new FolderRecordActionBehaviors(collection, appLayerFactory).share(params)));
+						() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).share(params)));
 			}
 
 			if (!filteredActionTypes.contains(MenuItemActionType.FOLDER_ADD_TO_CART.name())) {
 				boolean isAddToCartPossible = folderRecordActionsServices.isAddToCartActionPossible(record, user);
 				menuItemActions.add(buildMenuItemAction(MenuItemActionType.FOLDER_ADD_TO_CART, isAddToCartPossible,
 						"DisplayFolderView.addToCart", null, -1, 1000,
-						() -> new FolderRecordActionBehaviors(collection, appLayerFactory).share(params)));
+						() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).share(params)));
 			}
 
 			if (!filteredActionTypes.contains(MenuItemActionType.FOLDER_BORROW.name())) {
 				boolean isBorrowPossible = folderRecordActionsServices.isBorrowActionPossible(record, user);
 				menuItemActions.add(buildMenuItemAction(MenuItemActionType.FOLDER_BORROW, isBorrowPossible,
 						"DisplayFolderView.borrow", null, -1, 1100,
-						() -> new FolderRecordActionBehaviors(collection, appLayerFactory).borrow(params)));
+						() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).borrow(params)));
 			}
 
 			if (!filteredActionTypes.contains(MenuItemActionType.FOLDER_RETURN.name())) {
 				boolean isReturnPossible = folderRecordActionsServices.isReturnActionPossible(record, user);
 				menuItemActions.add(buildMenuItemAction(MenuItemActionType.FOLDER_BORROW, isReturnPossible,
 						"DisplayFolderView.returnFolder", null, -1, 1200,
-						() -> new FolderRecordActionBehaviors(collection, appLayerFactory).returnFolder(params)));
+						() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).returnFolder(params)));
 			}
 
 			if (!filteredActionTypes.contains(MenuItemActionType.FOLDER_RETURN.name())) {
 				boolean isReturnPossible = folderRecordActionsServices.isReturnActionPossible(record, user);
 				menuItemActions.add(buildMenuItemAction(MenuItemActionType.FOLDER_RETURN, isReturnPossible,
 						"DisplayFolderView.returnFolder", null, -1, 1200,
-						() -> new FolderRecordActionBehaviors(collection, appLayerFactory).returnFolder(params)));
+						() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).returnFolder(params)));
 			}
 
 			if (!filteredActionTypes.contains(MenuItemActionType.FOLDER_RETURN_REMAINDER.name())) {
@@ -290,7 +290,7 @@ public class MenuItemServices {
 											  !user.getId().equals(folder.getBorrowUserEntered());
 				menuItemActions.add(buildMenuItemAction(MenuItemActionType.FOLDER_RETURN_REMAINDER, borrowedByOtherUser,
 						"DisplayFolderView.reminderReturnFolder", null, -1, 1300,
-						() -> new FolderRecordActionBehaviors(collection, appLayerFactory).sendReturnRemainder(params)));
+						() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).sendReturnRemainder(params)));
 			}
 
 			if (!filteredActionTypes.contains(MenuItemActionType.FOLDER_AVAILABLE_ALERT.name())) {
@@ -299,7 +299,7 @@ public class MenuItemServices {
 											  !user.getId().equals(folder.getBorrowUserEntered());
 				menuItemActions.add(buildMenuItemAction(MenuItemActionType.FOLDER_AVAILABLE_ALERT, borrowedByOtherUser,
 						"DisplayFolderView.alertWhenAvailable", null, -1, 1400,
-						() -> new FolderRecordActionBehaviors(collection, appLayerFactory).sendAvailableAlert(params)));
+						() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).sendAvailableAlert(params)));
 			}
 
 			// FIXME une autre possibilité est d'avoir MenuItemAction.button et faire en sorte que le runnable fasse un button.click?
