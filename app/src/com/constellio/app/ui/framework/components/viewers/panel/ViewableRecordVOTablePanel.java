@@ -361,6 +361,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
 					if (StringUtils.isNotBlank(baseStyle)) {
 						baseStyle += " ";
 					}
+					baseStyle += "viewer-results-table-" + propertyId + " ";
 					return baseStyle + "viewer-results-table-row-" + itemId;
 				}
 			});

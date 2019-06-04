@@ -195,7 +195,7 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 				if (event.getButton() == MouseButton.LEFT) {
 					RecordVOItem recordItem = (RecordVOItem) event.getItem();
 					RecordVO recordVO = recordItem.getRecord();
-					presenter.recordClicked(recordVO.getId(), null);
+					presenter.recordClicked(recordVO.getId(), null, false);
 				}
 			}
 		});
@@ -279,7 +279,7 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 			public void itemClick(ItemClickEvent event) {
 				if (event.getButton() == MouseButton.LEFT) {
 					String recordId = (String) event.getItemId();
-					clickNavigating = presenter.recordClicked(recordId, provider.getTaxonomyCode());
+					clickNavigating = presenter.recordClicked(recordId, provider.getTaxonomyCode(), false);
 				} else {
 					clickNavigating = true;
 				}
@@ -313,7 +313,7 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 				if (event.getButton() == MouseButton.LEFT) {
 					RecordVOItem recordItem = (RecordVOItem) event.getItem();
 					RecordVO recordVO = recordItem.getRecord();
-					presenter.recordClicked(recordVO.getId(), null);
+					presenter.recordClicked(recordVO.getId(), null, false);
 				}
 			}
 		};
@@ -429,7 +429,7 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 				public void itemClick(ItemClickEvent event) {
 					if (event.getButton() == MouseButton.LEFT) {
 						BeanItem<RecentItem> item = (BeanItem<RecentItem>) event.getItem();
-						presenter.recordClicked(item.getBean().getId(), null);
+						presenter.recordClicked(item.getBean().getId(), null, true);
 					}
 				}
 			});

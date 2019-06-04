@@ -11990,7 +11990,7 @@ div.v-layout.v-horizontal.v-widget {
 	margin-top: -40px;
 	padding-right: 10px;
 	position: relative;
-	top: 94px;
+	top: 82px;
 	z-index: 2;
 }
 
@@ -14180,7 +14180,7 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .v-window .popupContent .action-menu-bar-layout .v-button {
 	padding-left: inherit;
-	color: inherit;
+	color: #197de1;
 	font-weight: inherit;
 	text-decoration: inherit;
 	font-size: inherit;
@@ -14193,8 +14193,9 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .v-window .popupContent .action-menu-bar-layout .v-button:hover {
-	color: inherit;
+	color: #197de1;
 	background-color: inherit;
+	text-decoration: underline;
 }
 
 .constellio .v-window .popupContent .action-menu-bar-layout .v-button:after {
@@ -14699,6 +14700,10 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .viewable-record-table-panel .viewable-record-table .v-table-body .v-table-cell-content {
 	border: none;
+}
+
+.constellio .viewable-record-table-panel .viewable-record-table .v-table-body .v-table-cell-content-nullviewer-results-table-searchResult {
+	vertical-align: top;
 }
 
 .constellio .viewable-record-table-panel .viewable-record-table .search-result-record .search-result-title {

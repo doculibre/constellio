@@ -163,7 +163,7 @@ public class DisplaySchemaRecordViewImpl extends BaseViewImpl implements Display
 
 	@Override
 	protected boolean isActionMenuBar() {
-		return true;
+		return nestedView;
 	}
 
 	@Override
@@ -186,7 +186,9 @@ public class DisplaySchemaRecordViewImpl extends BaseViewImpl implements Display
 					presenter.editButtonClicked();
 				}
 			};
-			actionMenuButtons.add(editButton);
+			if (!nestedView) {
+				actionMenuButtons.add(editButton);
+			}
 		}
 		if (presenter.isDeleteButtonVisible()) {
 			deleteButton = new DeleteButton(false) {
@@ -203,6 +205,16 @@ public class DisplaySchemaRecordViewImpl extends BaseViewImpl implements Display
 		return actionMenuButtons;
 	}
 
+	@Override
+	protected List<Button> getQuickActionMenuButtons() {
+		List<Button> quickActionMenuButtons = new ArrayList<>();
+		if (nestedView) {
+			if (presenter.isEditButtonVisible()) {
+				quickActionMenuButtons.add(editButton);
+			}
+		}
+		return quickActionMenuButtons;
+	}
 
 	@Override
 	protected ClickListener getBackButtonClickListener() {

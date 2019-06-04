@@ -149,7 +149,7 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 			batchProcessingButton.setVisible(presenter.getUser().has(RMPermissionsTo.MANAGE_STORAGE_SPACES).globally());
 		}
 
-		if(!presenter.hasBatchProcessPermission()) {
+		if (!presenter.hasBatchProcessPermission()) {
 			batchProcessingButton.setVisible(false);
 		}
 

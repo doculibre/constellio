@@ -15,6 +15,7 @@ import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
+import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.data.RecordLazyTreeDataProvider;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.pages.base.SessionContext;
@@ -164,7 +165,7 @@ public class HomePresenter extends BasePresenter<HomeView> {
 		currentTab = tabCode;
 	}
 
-	public boolean recordClicked(String id, String taxonomyCode) {
+	public boolean recordClicked(String id, String taxonomyCode, boolean recentItems) {
 		boolean navigating = false;
 		if (id != null && !id.startsWith("dummy")) {
 			try {
@@ -176,15 +177,21 @@ public class HomePresenter extends BasePresenter<HomeView> {
 				String schemaCode = record.getSchemaCode();
 				String schemaTypeCode = SchemaUtils.getSchemaTypeCode(schemaCode);
 				if (Folder.SCHEMA_TYPE.equals(schemaTypeCode)) {
-					//					view.getUIContext().setAttribute(BaseBreadcrumbTrail.TAXONOMY_CODE, taxonomyCode);
-					//					view.navigate().to(RMViews.class).displayFolder(id);
-					//					navigating = true;
-					navigating = false;
+					if (!recentItems) {
+						view.getUIContext().setAttribute(BaseBreadcrumbTrail.TAXONOMY_CODE, taxonomyCode);
+						view.navigate().to(RMViews.class).displayFolder(id);
+						navigating = true;
+					} else {
+						navigating = false;
+					}
 				} else if (Document.SCHEMA_TYPE.equals(schemaTypeCode)) {
-					//					view.getUIContext().setAttribute(BaseBreadcrumbTrail.TAXONOMY_CODE, taxonomyCode);
-					//					view.navigate().to(RMViews.class).displayDocument(id);
-					//					navigating = true;
-					navigating = false;
+					if (!recentItems) {
+						view.getUIContext().setAttribute(BaseBreadcrumbTrail.TAXONOMY_CODE, taxonomyCode);
+						view.navigate().to(RMViews.class).displayDocument(id);
+						navigating = true;
+					} else {
+						navigating = false;
+					}
 				} else if (ContainerRecord.SCHEMA_TYPE.equals(schemaTypeCode)) {
 					view.navigate().to(RMViews.class).displayContainer(id);
 					navigating = true;

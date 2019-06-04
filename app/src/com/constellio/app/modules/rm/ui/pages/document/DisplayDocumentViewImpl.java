@@ -1008,54 +1008,63 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	public void setCopyDocumentButtonState(ComponentState state) {
 		copyContentButton.setVisible(state.isVisible());
 		copyContentButton.setEnabled(state.isEnabled());
+		actionButtonStateChanged(copyContentButton);
 	}
 
 	@Override
 	public void setStartWorkflowButtonState(ComponentState state) {
 		startWorkflowButton.setVisible(state.isVisible());
 		startWorkflowButton.setEnabled(state.isEnabled());
+		actionButtonStateChanged(startWorkflowButton);
 	}
 
 	@Override
 	public void setUploadButtonState(ComponentState state) {
 		uploadButton.setVisible(state.isVisible());
 		uploadButton.setEnabled(state.isEnabled());
+		actionButtonStateChanged(uploadButton);
 	}
 
 	@Override
 	public void setCheckInButtonState(ComponentState state) {
 		checkInButton.setVisible(state.isVisible());
 		checkInButton.setEnabled(state.isEnabled());
+		actionButtonStateChanged(checkInButton);
 	}
 
 	@Override
 	public void setAlertWhenAvailableButtonState(ComponentState state) {
 		alertWhenAvailableButton.setVisible(state.isVisible());
 		alertWhenAvailableButton.setEnabled(state.isEnabled());
+		actionButtonStateChanged(alertWhenAvailableButton);
 	}
 
 	@Override
 	public void setCheckOutButtonState(ComponentState state) {
 		checkOutButton.setVisible(state.isVisible());
 		checkOutButton.setEnabled(state.isEnabled());
+		actionButtonStateChanged(checkOutButton);
 	}
 
 	@Override
 	public void setCartButtonState(ComponentState state) {
 		addToCartButton.setVisible(state.isVisible());
 		addToCartButton.setEnabled(state.isEnabled());
+		actionButtonStateChanged(addToCartButton);
 	}
 
 	@Override
 	public void setAddToOrRemoveFromSelectionButtonState(ComponentState state) {
 		addToOrRemoveFromSelectionButton.setVisible(state.isVisible());
 		addToOrRemoveFromSelectionButton.setEnabled(state.isEnabled());
+		actionButtonStateChanged(addToOrRemoveFromSelectionButton);
 	}
 
 	@Override
 	public void setGenerateMetadataButtonState(ComponentState state) {
 		reportGeneratorButton.setVisible(state.isVisible());
 		reportGeneratorButton.setEnabled(state.isEnabled());
+		actionButtonStateChanged(reportGeneratorButton);
 	}
 
 	@Override
@@ -1063,6 +1072,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		if (publishButton != null) {
 			publishButton.setEnabled(state.isEnabled());
 			publishButton.setVisible(state.isVisible());
+			actionButtonStateChanged(publishButton);
 		}
 	}
 
@@ -1070,18 +1080,21 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	public void setFinalizeButtonState(ComponentState state) {
 		finalizeButton.setVisible(state.isVisible());
 		finalizeButton.setEnabled(state.isVisible());
+		actionButtonStateChanged(finalizeButton);
 	}
 
 	@Override
 	public void setDisplayDocumentButtonState(ComponentState state) {
 		displayDocumentButton.setVisible(state.isVisible());
 		displayDocumentButton.setEnabled(state.isVisible());
+		actionButtonStateChanged(displayDocumentButton);
 	}
 
 	@Override
 	public void setOpenDocumentButtonState(ComponentState state) {
 		openDocumentButton.setVisible(state.isVisible());
 		openDocumentButton.setEnabled(state.isVisible());
+		actionButtonStateChanged(openDocumentButton);
 	}
 
 	@Override
@@ -1096,9 +1109,11 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	public void setEditDocumentButtonState(ComponentState state) {
 		editDocumentButton.setVisible(state.isVisible());
 		editDocumentButton.setEnabled(state.isEnabled());
+		actionButtonStateChanged(editDocumentButton);
 		if (renameContentButton != null) {
 			renameContentButton.setVisible(state.isVisible());
 			renameContentButton.setEnabled(state.isEnabled());
+			actionButtonStateChanged(renameContentButton);
 		}
 	}
 
@@ -1108,6 +1123,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		if (copyContentButton != null) {
 			copyContentButton.setVisible(state.isVisible());
 			copyContentButton.setEnabled(state.isEnabled());
+			actionButtonStateChanged(copyContentButton);
 		}
 	}
 
@@ -1115,24 +1131,28 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	public void setDeleteDocumentButtonState(ComponentState state) {
 		deleteDocumentButton.setVisible(state.isVisible());
 		deleteDocumentButton.setEnabled(state.isEnabled());
+		actionButtonStateChanged(deleteDocumentButton);
 	}
 
 	@Override
 	public void setAddAuthorizationButtonState(ComponentState state) {
 		addAuthorizationButton.setVisible(state.isVisible());
 		addAuthorizationButton.setEnabled(state.isEnabled());
+		actionButtonStateChanged(addAuthorizationButton);
 	}
 
 	@Override
 	public void setShareDocumentButtonState(ComponentState state) {
 		shareDocumentButton.setVisible(state.isVisible());
 		shareDocumentButton.setEnabled(state.isEnabled());
+		actionButtonStateChanged(shareDocumentButton);
 	}
 
 	@Override
 	public void setCreatePDFAButtonState(ComponentState state) {
 		createPDFAButton.setVisible(state.isVisible());
 		createPDFAButton.setEnabled(state.isEnabled());
+		actionButtonStateChanged(createPDFAButton);
 	}
 
 	@Override
@@ -1157,6 +1177,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		if (publicLinkButton != null) {
 			publicLinkButton.setVisible(published);
 		}
+		actionButtonStateChanged(publicLinkButton);
 	}
 
 	@Override

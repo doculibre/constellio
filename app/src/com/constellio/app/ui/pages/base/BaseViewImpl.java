@@ -463,6 +463,15 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
         return result;
     }
 
+	protected void actionButtonStateChanged(Button actionMenuButton) {
+		if (isActionMenuBar()) {
+			MenuItem actionMenuItem = actionMenuButtonsAndItems.get(actionMenuButton);
+			if (actionMenuItem != null) {
+				actionMenuItem.setVisible(actionMenuButton.isVisible() && actionMenuButton.isEnabled());
+			}
+		}
+	}
+
 	protected void updateActionMenuItems() {
 		for (Button actionMenuButton : actionMenuButtonsAndItems.keySet()) {
 			MenuItem actionMenuItem = actionMenuButtonsAndItems.get(actionMenuButton);
