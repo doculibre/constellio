@@ -1369,6 +1369,10 @@ $popup-view-z-index: 3;
 		}
 	
 	}
+	
+	.action-menu {
+		z-index: 2;
+	}
 
 	.v-window {
 	
@@ -1443,6 +1447,47 @@ $popup-view-z-index: 3;
 		    	position: absolute;
 		    	top: -40px;
 		    	right: 30px;
+			}
+			
+			.action-menu-bar-layout {
+				top: -42px;
+				right: 30px;
+	
+				.v-button {
+					padding-left: inherit;
+			    	color: inherit;
+			    	font-weight: inherit;
+					text-decoration: inherit;
+					font-size: inherit;
+					width: inherit;
+					border-radius: inherit;
+					text-align: inherit;
+					border: inherit;
+	
+				    background-color: inherit;
+					//background-image: -webkit-linear-gradient(right, #38414a 0%, #414B56 9px);
+					background-image: inherit;
+				}
+	
+			    .v-button:hover {
+			    	color: inherit;
+				    background-color: inherit;
+			    }
+	
+			    .v-button:after {
+					box-shadow: inherit;
+					border: inherit;
+			    }
+	
+			    .v-disabled:hover {
+			    	color: inherit;
+				    background-color: inherit;
+			    }
+			    
+			    .action-menu-bar {
+			    	top: 0px;
+			    	right: -24px;
+			    }
 			}
 			
 			.no-caption-action-menu-bar .v-menubar-submenu-indicator + .v-menubar-menuitem-caption:after {
@@ -2859,8 +2904,26 @@ $popup-view-z-index: 3;
 	    .action-menu {
 	        position: fixed;
 	        top: $header-height;
-	        right: 20px;
+	        right: 30px;
 	        margin-top: 70px;
+	    }
+	    
+	    .action-menu-bar-layout {
+			position: absolute;
+			top: 0px;
+			right: 20px;
+	    }
+  		
+  		.viewable-record-table-panel {
+	  		.action-menu-bar-layout {
+	  			top: -60px;
+	  			right: 50px;
+	  		}
+  		}
+	    
+	    .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .action-menu-bar-layout .action-menu-bar {
+			top: inherit;
+			right: -22px;
 	    }
 
     	.v-slot-suggestions-summary-results {
@@ -2948,6 +3011,24 @@ $popup-view-z-index: 3;
 	        top: $header-height;
 	        right: 20px;
 	        margin-top: 70px;
+	    }
+	    
+	    .action-menu-bar-layout {
+			position: absolute;
+			top: 0px;
+			right: 20px;
+	    }
+  		
+  		.viewable-record-table-panel {
+	  		.action-menu-bar-layout {
+	  			top: -60px;
+	  			right: 50px;
+	  		}
+  		}
+	    
+	    .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .action-menu-bar-layout .action-menu-bar {
+			top: inherit;
+			right: -22px;
 	    }
 
     	.v-slot-suggestions-summary-results {

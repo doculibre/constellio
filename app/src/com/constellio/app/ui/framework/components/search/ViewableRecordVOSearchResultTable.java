@@ -45,6 +45,7 @@ public class ViewableRecordVOSearchResultTable extends ViewableRecordVOTablePane
 		super(container, tableMode);
 		this.presenter = presenter;
 		addStyleName(TABLE_STYLE);
+		addStyleName("search-result-table");
 	}
 
 	@Override

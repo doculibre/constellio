@@ -69,7 +69,6 @@ import com.vaadin.server.Page;
 import com.vaadin.server.StreamResource;
 import com.vaadin.server.StreamResource.StreamSource;
 import com.vaadin.server.ThemeResource;
-import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomComponent;
@@ -110,7 +109,6 @@ import static com.constellio.app.ui.i18n.i18n.$;
 public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocumentView, DropHandler {
 
 	private VerticalLayout mainLayout;
-	private I18NHorizontalLayout mainActionMenuButtonsLayout;
 	
 	private Label borrowedLabel;
 	private DocumentVO documentVO;
@@ -220,8 +218,6 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		mainLayout = new VerticalLayout();
 		mainLayout.setSizeFull();
 
-		buildMainActionMenuButtons();
-
 		borrowedLabel = new Label();
 		borrowedLabel.setVisible(false);
 		borrowedLabel.addStyleName(ValoTheme.LABEL_COLORED);
@@ -314,12 +310,10 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		} else {
 			contentMetadataComponent = tabSheet;
 		}
-		mainActionMenuButtonsLayout.setVisible(false);
-		mainLayout.addComponents(mainActionMenuButtonsLayout, borrowedLabel, contentMetadataComponent);
+		mainLayout.addComponents(borrowedLabel, contentMetadataComponent);
 		for (TabSheetDecorator tabSheetDecorator : tabSheetDecorators) {
 			tabSheetDecorator.decorate(this, tabSheet);
 		}
-		mainLayout.setComponentAlignment(mainActionMenuButtonsLayout, Alignment.TOP_RIGHT);
 		mainLayout.setExpandRatio(contentMetadataComponent, 1);
 
 		return mainLayout;
@@ -394,7 +388,6 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 	@Override
 	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
-
 		String saveSearchDecommissioningId = null;
 		String searchTypeAsString = null;
 		String favGroupIdKey = null;
@@ -411,8 +404,6 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 			favGroupIdKey = presenter.getParams().get(RMViews.FAV_GROUP_ID_KEY);
 		}
-
-
 
 		SearchType searchType = null;
 		if (searchTypeAsString != null) {
@@ -545,10 +536,20 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		eventsComponent = table;
 	}
 
-	private void buildMainActionMenuButtons() {
-		mainActionMenuButtonsLayout = new I18NHorizontalLayout();
-		mainActionMenuButtonsLayout.setSpacing(true);
-		mainActionMenuButtonsLayout.addStyleName("main-action-menu-buttons-layout");
+	@Override
+	protected List<Button> getQuickActionMenuButtons() {
+		List<Button> quickActionMenuButtons = new ArrayList<>();
+		if (nestedView) {
+			quickActionMenuButtons.add(displayDocumentButton);
+		}
+		quickActionMenuButtons.add(openDocumentButton);
+		quickActionMenuButtons.add(editDocumentButton);
+		return quickActionMenuButtons;
+	}
+
+	@Override
+	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
+		List<Button> actionMenuButtons = new ArrayList<>();
 
 		displayDocumentButton = new DisplayButton($("DisplayDocumentView.displayDocument"), false) {
 			@Override
@@ -558,7 +559,6 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		};
 		displayDocumentButton.addStyleName(ValoTheme.BUTTON_LINK);
 		displayDocumentButton.addStyleName("display-document-link");
-		mainActionMenuButtonsLayout.addComponent(displayDocumentButton);
 
 		openDocumentButton = new LinkButton($("DisplayDocumentView.openDocument")) {
 			@Override
@@ -568,21 +568,14 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		};
 		openDocumentButton.addStyleName(ValoTheme.BUTTON_LINK);
 		openDocumentButton.addStyleName("open-document-link");
-		mainActionMenuButtonsLayout.addComponent(openDocumentButton);
 
 		if (documentVO.getContent() != null) {
 			downloadDocumentButton = new DownloadContentVersionLink(documentVO.getContent(), $("DisplayDocumentView.downloadDocument"));
 			downloadDocumentButton.addStyleName("download-document-link");
-			mainActionMenuButtonsLayout.addComponent(downloadDocumentButton);
 
 			openDocumentButton.setIcon(downloadDocumentButton.getIcon());
 			downloadDocumentButton.setIcon(new ThemeResource("images/icons/actions/download.png"));
 		}
-	}
-
-	@Override
-	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
-		List<Button> actionMenuButtons = new ArrayList<>();
 
 		editDocumentButton = new EditButton($("DisplayDocumentView.editDocument")) {
 			@Override
@@ -698,7 +691,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		};
 		finalizeButton.addStyleName(ValoTheme.BUTTON_LINK);
 
-		actionMenuButtons.add(editDocumentButton);
+		//		actionMenuButtons.add(editDocumentButton);
 
 		copyContentButton = new LinkButton($("DocumentContextMenu.copyContent")) {
 			@Override

@@ -46,6 +46,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -349,56 +350,90 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 		return null;
 	}
 
+	protected MenuBar newActionMenuBar() {
+		String menuBarCaption = getActionMenuBarCaption();
+		if (menuBarCaption == null) {
+			menuBarCaption = "";
+		}
+
+		MenuBar menuBar = new MenuBar();
+		menuBar.addStyleName("action-menu-bar");
+		menuBar.setAutoOpen(false);
+		menuBar.addStyleName(ValoTheme.MENUBAR_BORDERLESS);
+		if (StringUtils.isBlank(menuBarCaption)) {
+			menuBar.addStyleName("no-caption-action-menu-bar");
+		}
+
+		MenuItem rootItem = menuBar.addItem("", FontAwesome.BARS, null);
+		if (StringUtils.isNotBlank(menuBarCaption)) {
+			rootItem.setIcon(null);
+			rootItem.setText(menuBarCaption);
+		} else {
+			rootItem.setIcon(FontAwesome.ELLIPSIS_V);
+		}
+
+		for (final Button actionMenuButton : actionMenuButtons) {
+			Resource icon = actionMenuButton.getIcon();
+			String caption = actionMenuButton.getCaption();
+			MenuItem actionMenuItem = rootItem.addItem(caption, icon, new Command() {
+				@Override
+				public void menuSelected(MenuItem selectedItem) {
+					actionMenuButton.click();
+				}
+			});
+			actionMenuButtonsAndItems.put(actionMenuButton, actionMenuItem);
+		}
+		return menuBar;
+	}
+
+	protected List<Button> getQuickActionMenuButtons() {
+		return Collections.emptyList();
+	}
+
 	/**
 	 * Adapted from https://vaadin.com/forum#!/thread/8150555/8171634
 	 *
 	 * @param event
 	 * @return
 	 */
-    protected Component buildActionMenu(ViewChangeEvent event) {
-        Component result;
-        actionMenuButtons = buildActionMenuButtons(event);
-        for (ActionMenuButtonsDecorator actionMenuButtonsDecorator : actionMenuButtonsDecorators) {
-            actionMenuButtonsDecorator.decorate(this, actionMenuButtons);
-        }
+	protected Component buildActionMenu(ViewChangeEvent event) {
+		Component result;
+		actionMenuButtons = buildActionMenuButtons(event);
+		for (ActionMenuButtonsDecorator actionMenuButtonsDecorator : actionMenuButtonsDecorators) {
+			actionMenuButtonsDecorator.decorate(this, actionMenuButtons);
+		}
 
-        if (actionMenuButtons == null || actionMenuButtons.isEmpty()) {
-            result = null;
-        } else {
-            if (isActionMenuBar()) {
-            	String menuBarCaption = getActionMenuBarCaption();
-            	if (menuBarCaption == null) {
-            		menuBarCaption = "";
-            	}
+		if (actionMenuButtons == null || actionMenuButtons.isEmpty()) {
+			result = null;
+		} else {
+			if (isActionMenuBar()) {
+				MenuBar menuBar = newActionMenuBar();
+				List<Button> quickActionButtons = getQuickActionMenuButtons();
+				if (quickActionButtons != null && !quickActionButtons.isEmpty()) {
+					I18NHorizontalLayout actionMenuBarLayout = new I18NHorizontalLayout();
+					actionMenuBarLayout.addStyleName("action-menu-bar-layout");
+					actionMenuBarLayout.setSpacing(true);
 
-                MenuBar menuBar = new MenuBar();
-                menuBar.addStyleName("action-menu-bar");
-                menuBar.setAutoOpen(false);
-				if (StringUtils.isBlank(menuBarCaption)) {
-					menuBar.addStyleName(ValoTheme.MENUBAR_BORDERLESS);
-					menuBar.addStyleName("no-caption-action-menu-bar");
-                }
+					int visibleButtons = 0;
+					for (Button quickActionButton : quickActionButtons) {
+						if (quickActionButton.isVisible()) {
+							quickActionButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
+							quickActionButton.addStyleName(ValoTheme.BUTTON_LINK);
+							quickActionButton.addStyleName("action-menu-bar-button");
+							actionMenuBarLayout.addComponent(quickActionButton);
+							visibleButtons++;
+						}
+					}
 
-                MenuItem rootItem = menuBar.addItem("", FontAwesome.BARS, null);
-                if (StringUtils.isNotBlank(menuBarCaption)) {
-                	rootItem.setIcon(null);
-                	rootItem.setText(menuBarCaption);
-                } else {
-					rootItem.setIcon(FontAwesome.ELLIPSIS_V);
-                }
-
-                for (final Button actionMenuButton : actionMenuButtons) {
-                    Resource icon = actionMenuButton.getIcon();
-                    String caption = actionMenuButton.getCaption();
-					MenuItem actionMenuItem = rootItem.addItem(caption, icon, new Command() {
-                        @Override
-                        public void menuSelected(MenuItem selectedItem) {
-                            actionMenuButton.click();
-                        }
-                    });
-					actionMenuButtonsAndItems.put(actionMenuButton, actionMenuItem);
-                }
-				result = menuBar;
+					if (visibleButtons == 0) {
+						result = menuBar;
+					} else {
+						actionMenuBarLayout.addComponent(menuBar);
+						result = actionMenuBarLayout;
+					}
+				} else {
+					result = menuBar;
+				}
             } else {
                 VerticalLayout actionMenuLayout = new VerticalLayout();
                 actionMenuLayout.addStyleName("action-menu-layout");

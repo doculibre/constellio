@@ -61,7 +61,6 @@ import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.KeySetMap;
 import com.constellio.data.utils.TimeProvider;
-import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.wrappers.User;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
@@ -268,10 +267,38 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		presenter.navigateToSelf();
 	}
 
-	@Override
-	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
-		List<Button> actionMenuButtons = new ArrayList<Button>();
+	private Button newDisplayFolderButton() {
+		Button displayFolderButton;
+		if (!presenter.isLogicallyDeleted()) {
+			displayFolderButton = new DisplayButton($("DisplayFolderView.displayFolder"), false) {
+				@Override
+				protected void buttonClick(ClickEvent event) {
+					presenter.displayFolderButtonClicked();
+				}
+			};
+		} else {
+			displayFolderButton = null;
+		}
+		return displayFolderButton;
+	}
 
+	private Button newEditFolderButton() {
+		Button editFolderButton;
+		if (!presenter.isLogicallyDeleted()) {
+			editFolderButton = new EditButton($("DisplayFolderView.editFolder")) {
+				@Override
+				protected void buttonClick(ClickEvent event) {
+					presenter.editFolderButtonClicked();
+				}
+			};
+		} else {
+			editFolderButton = null;
+		}
+		return editFolderButton;
+	}
+
+	private Button newAddDocumentButton() {
+		Button addDocumentButton;
 		if (!presenter.isLogicallyDeleted()) {
 			addDocumentButton = new AddButton($("DisplayFolderView.addDocument")) {
 				@Override
@@ -279,6 +306,18 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 					presenter.addDocumentButtonClicked();
 				}
 			};
+		} else {
+			addDocumentButton = null;
+		}
+		return addDocumentButton;
+	}
+
+	@Override
+	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
+		List<Button> actionMenuButtons = new ArrayList<Button>();
+
+		if (!presenter.isLogicallyDeleted()) {
+			addDocumentButton = newAddDocumentButton();
 
 			moveInFolderButton = new WindowButton($("DisplayFolderView.parentFolder"), $("DisplayFolderView.parentFolder")
 					, WindowButton.WindowConfiguration.modalDialog("50%", "20%")) {
@@ -318,19 +357,8 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				}
 			};
 
-			displayFolderButton = new DisplayButton($("DisplayFolderView.displayFolder")) {
-				@Override
-				protected void buttonClick(ClickEvent event) {
-					presenter.displayFolderButtonClicked();
-				}
-			};
-
-			editFolderButton = new EditButton($("DisplayFolderView.editFolder")) {
-				@Override
-				protected void buttonClick(ClickEvent event) {
-					presenter.editFolderButtonClicked();
-				}
-			};
+			displayFolderButton = newDisplayFolderButton();
+			editFolderButton = newEditFolderButton();
 
 			deleteFolderButton = new Button();
 			if (!presenter.isNeedingAReasonToDeleteFolder()) {
@@ -479,14 +507,17 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			startWorkflowButton = new StartWorkflowButton();
 			startWorkflowButton.setVisible(presenter.hasPermissionToStartWorkflow());
 
-			//		actionMenuButtons.add(addDocumentButton);
-			//		actionMenuButtons.add(addSubFolderButton);
+			if (nestedView) {
+				actionMenuButtons.add(addDocumentButton);
+			}
+			actionMenuButtons.add(addSubFolderButton);
 
 			boolean isAFolderAndDestroyed = (recordVO instanceof FolderVO
 											 && ((FolderVO) recordVO).getArchivisticStatus().isDestroyed());
 
-			actionMenuButtons.add(displayFolderButton);
-			actionMenuButtons.add(editFolderButton);
+			if (!nestedView) {
+				actionMenuButtons.add(editFolderButton);
+			}
 
 			if (!isAFolderAndDestroyed) {
 				actionMenuButtons.add(moveInFolderButton);
@@ -829,8 +860,15 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	}
 
 	@Override
-	protected String getActionMenuBarCaption() {
-		return !nestedView ? $("DisplayFolderView.actionsMenuBar") : null;
+	protected List<Button> getQuickActionMenuButtons() {
+		List<Button> quickActionMenuButtons = new ArrayList<>();
+		if (!nestedView) {
+			quickActionMenuButtons.add(editFolderButton);
+			quickActionMenuButtons.add(addDocumentButton);
+		} else {
+			quickActionMenuButtons.add(displayFolderButton);
+		}
+		return quickActionMenuButtons;
 	}
 
 	@Override
@@ -1214,7 +1252,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 	@Override
 	protected boolean isActionMenuBar() {
-		return Toggle.SEARCH_RESULTS_VIEWER.isEnabled();
+		return true;
 	}
 
 	@Override
@@ -1224,7 +1262,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 	@Override
 	protected boolean isFullWidthIfActionMenuAbsent() {
-		return Toggle.SEARCH_RESULTS_VIEWER.isEnabled();
+		return true;
 	}
 
 	@Override
