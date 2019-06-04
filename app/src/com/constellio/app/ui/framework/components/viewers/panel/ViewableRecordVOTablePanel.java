@@ -411,6 +411,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
 				}
 			};
 			resultsTable.setWidth("100%");
+			resultsTable.addStyleName("viewable-record-table-table-mode");
 
 			if (!tableModeVisibleColumns.isEmpty()) {
 				resultsTable.setVisibleColumns(tableModeVisibleColumns.toArray(new Object[0]));
