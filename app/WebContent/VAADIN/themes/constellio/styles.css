@@ -15132,6 +15132,7 @@ div.v-layout.v-horizontal.v-widget {
 	display: inline-block;
 	color: #197de1;
 	font-size: 0.8em;
+	padding-right: 10px;
 }
 
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .facet-box .v-checkbox > label:hover {
