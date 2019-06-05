@@ -12,6 +12,7 @@ import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.contextmenu.RecordContextMenuHandler;
 import com.constellio.app.ui.framework.components.menuBar.RecordMenuBarHandler;
 import com.constellio.app.ui.framework.components.resource.ConstellioResourceHandler;
+import com.constellio.app.ui.framework.components.viewers.panel.ViewableRecordVOViewChangeListener;
 import com.constellio.app.ui.handlers.ConstellioErrorHandler;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
@@ -88,6 +89,8 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 	private View currentView;
 
 	private ViewChangeEvent viewChangeEvent;
+
+	private ViewableRecordVOViewChangeListener viewableRecordVOViewChangeListener = new ViewableRecordVOViewChangeListener();
 
 	static {
 		try {
@@ -321,8 +324,16 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 				removeStyleName("setupview");
 				removeStyleName("loginview");
 				//				removeStyleName("right-to-left");
+
+				navigator.addViewChangeListener(viewableRecordVOViewChangeListener);
+				
 				navigator.navigateTo(navigator.getState());
 			} else {
+				Navigator navigator = getNavigator();
+				if (navigator != null) {
+					navigator.removeViewChangeListener(viewableRecordVOViewChangeListener);
+				}
+				
 				removeStyleName("setupview");
 				LoginViewImpl loginView = new LoginViewImpl();
 				setContent(loginView);

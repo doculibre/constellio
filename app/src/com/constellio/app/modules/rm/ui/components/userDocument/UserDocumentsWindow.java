@@ -21,7 +21,7 @@ public class UserDocumentsWindow extends BaseWindow implements DropHandler {
 
 	@Override
 	public void drop(DragAndDropEvent event) {
-		view = new ListUserDocumentsViewImpl();
+		view = new ListUserDocumentsViewImpl(true);
 		view.enter(null);
 		setContent(view);
 

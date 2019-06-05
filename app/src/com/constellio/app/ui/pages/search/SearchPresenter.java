@@ -148,6 +148,9 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 	private CorrectorExcluderManager correctorExcluderManager;
 
+	private RecordVO returnRecordVO;
+	private Integer returnIndex;
+
 	public int getSelectedPageLength() {
 		if (selectedPageLength == 0) {
 			selectedPageLength = getDefaultPageLength();
@@ -970,7 +973,9 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		return getCurrentUser().has(CorePermissions.DELETE_CORRECTION_SUGGESTION).globally();
 	}
 
-	public void searchResultClicked(RecordVO recordVO) {
+	public void searchResultClicked(RecordVO recordVO, Integer index) {
+		this.returnRecordVO = recordVO;
+		this.returnIndex = index;
 		if (Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()) {
 			ConstellioUI.getCurrent().setAttribute(SEARCH_EVENT_DWELL_TIME, System.currentTimeMillis());
 
@@ -1087,6 +1092,16 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		modelLayerFactory.newLoggingServices().logRecordView(record, user);
 		setChanged();
 		notifyObservers(recordVO);
+	}
+
+	public abstract String getSavedSearchId();
+
+	public Integer getReturnIndex() {
+		return returnIndex;
+	}
+
+	public RecordVO getReturnRecordVO() {
+		return returnRecordVO;
 	}
 
 }

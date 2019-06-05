@@ -370,7 +370,7 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 		if (parent instanceof Table) {
 			Container container = ((Table) parent).getContainerDataSource();
 			if (container instanceof RefreshableContainer) {
-				((RefreshableContainer) container).refresh();
+				((RefreshableContainer) container).forceRefresh();
 			}
 		}
 	}

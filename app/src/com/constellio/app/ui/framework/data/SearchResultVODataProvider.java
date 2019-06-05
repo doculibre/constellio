@@ -13,14 +13,19 @@ import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.cache.SerializableSearchCache;
 import com.constellio.model.services.search.cache.SerializedCacheSearchService;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.condition.DataStoreFilters;
+import com.constellio.model.services.search.query.logical.condition.SchemaFilters;
+import com.constellio.model.services.search.query.logical.condition.SchemaTypesFilters;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -49,7 +54,6 @@ public abstract class SearchResultVODataProvider implements DataProvider {
 		//				.getUserCredential(username);
 
 		this.resultsPerPage = resultsPerPage;
-
 		init(appLayerFactory, sessionContext);
 	}
 
@@ -149,26 +153,45 @@ public abstract class SearchResultVODataProvider implements DataProvider {
 	public void sort(MetadataVO[] propertyId, boolean[] ascending) {
 		query.clearSort();
 
-		for (int i = 0; i < propertyId.length; i++) {
-			Metadata metadata;
-			MetadataSchema schema = query.getSchemaCondition();
-			MetadataVO metadataVO = propertyId[i];
-			metadata = schema.getMetadata(metadataVO.getCode());
+		List<MetadataSchema> schemas = getSchemas();
+		MetadataSchema schema = !schemas.isEmpty() ? schemas.get(0) : null;
+		if (schema != null) {
+			for (int i = 0; i < propertyId.length; i++) {
+				Metadata metadata;
+				MetadataVO metadataVO = propertyId[i];
+				metadata = schema.getMetadata(metadataVO.getCode());
 
-			if (ascending[i]) {
-				query = query.sortAsc(metadata);
-			} else {
-				query = query.sortDesc(metadata);
+				if (ascending[i]) {
+					query = query.sortAsc(metadata);
+				} else {
+					query = query.sortDesc(metadata);
+				}
 			}
 		}
 
 	}
 
 	public int getQTime() {
-
 		int qtime = queryCache.getTotalQTime();
 		queryCache.resetTotalQTime();
 		return qtime;
+	}
+
+	public List<MetadataSchema> getSchemas() {
+		List<MetadataSchema> schemas;
+		DataStoreFilters filters = query.getCondition().getFilters();
+		if (filters instanceof SchemaFilters) {
+			MetadataSchema schema = ((SchemaFilters) query.getCondition().getFilters()).getSchema();
+			schemas = Arrays.asList(schema);
+		} else {
+			schemas = new ArrayList<>();
+			List<MetadataSchemaType> schemaTypes = ((SchemaTypesFilters) query.getCondition().getFilters()).getSchemaTypes();
+			for (MetadataSchemaType schemaType : schemaTypes) {
+				MetadataSchema schema = schemaType.getDefaultSchema();
+				schemas.add(schema);
+			}
+		}
+		return schemas;
 	}
 
 	public abstract LogicalSearchQuery getQuery();

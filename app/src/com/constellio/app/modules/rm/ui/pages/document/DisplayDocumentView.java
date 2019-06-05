@@ -10,6 +10,8 @@ import com.constellio.app.ui.pages.base.BaseView;
 import java.util.List;
 
 public interface DisplayDocumentView extends BaseView, RecordsManagementViewGroup, DocumentActionsComponent {
+
+	void openInWindow();
 	
 	void editInWindow();
 

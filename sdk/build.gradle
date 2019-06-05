@@ -47,7 +47,6 @@ task printClasspath {
 eclipse {
     project {
         name = 'SDK'
-        buildCommand 'compileJava'
     }
 }
 

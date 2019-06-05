@@ -23,7 +23,7 @@ import com.constellio.app.ui.framework.components.content.ContentVersionVOResour
 import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
 import com.constellio.app.ui.framework.components.menuBar.BaseMenuBar;
 import com.constellio.app.ui.framework.components.menuBar.ConfirmDialogMenuBarItemCommand;
-import com.constellio.app.ui.framework.components.viewers.panel.ViewableRecordTablePanel;
+import com.constellio.app.ui.framework.components.viewers.panel.ViewableRecordVOTablePanel;
 import com.constellio.app.ui.framework.containers.RefreshableContainer;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
@@ -80,6 +80,7 @@ public class DocumentMenuBarImpl extends BaseMenuBar implements DocumentMenuBar 
 	protected DocumentMenuBarPresenter presenter;
 
 	public DocumentMenuBarImpl(DocumentVO documentVO) {
+		super(true);
 		presenter = newPresenter();
 		setDocumentVO(documentVO);
 		if (documentVO != null) {
@@ -107,7 +108,6 @@ public class DocumentMenuBarImpl extends BaseMenuBar implements DocumentMenuBar 
 		removeItems();
 
 		MenuItem rootItem = addItem("", FontAwesome.ELLIPSIS_V, null);
-		rootItem.setIcon(FontAwesome.BARS);
 
 		if (StringUtils.isNotBlank(borrowedMessage)) {
 			rootItem.addItem(borrowedMessage, null);
@@ -508,19 +508,19 @@ public class DocumentMenuBarImpl extends BaseMenuBar implements DocumentMenuBar 
 		if (parent instanceof Table) {
 			Container container = ((Table) parent).getContainerDataSource();
 			if (container instanceof RefreshableContainer) {
-				((RefreshableContainer) container).refresh();
+				((RefreshableContainer) container).forceRefresh();
 			}
 		}
 	}
 
 	@Override
 	public boolean isInViewer() {
-		return ComponentTreeUtils.findParent(this, ViewableRecordTablePanel.class) != null;
+		return ComponentTreeUtils.findParent(this, ViewableRecordVOTablePanel.class) != null;
 	}
 
 	@Override
 	public void displayInWindow() {
-		DisplayDocumentViewImpl view = new DisplayDocumentViewImpl(recordVO, false);
+		DisplayDocumentViewImpl view = new DisplayDocumentViewImpl(recordVO, false, true);
 
 		DocumentViewWindow window =  ComponentTreeUtils.findParent(this, DocumentViewWindow.class);
 		boolean newWindow;

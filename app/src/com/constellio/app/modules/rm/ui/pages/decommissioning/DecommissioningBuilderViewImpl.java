@@ -179,6 +179,7 @@ public class DecommissioningBuilderViewImpl extends SearchViewImpl<Decommissioni
 		});
 
 		VerticalLayout searchUI = new VerticalLayout(top, criteria, searchButton);
+		searchUI.addStyleName("decommisioning-list-search-ui");
 		searchUI.setSpacing(true);
 
 		searchButton.setEnabled(adminUnit.getValue() != null);

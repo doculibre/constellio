@@ -46,6 +46,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -71,8 +72,6 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 	private Label titleLabel;
 
 	private BackButton backButton;
-
-	private I18NHorizontalLayout titleBackButtonLayout;
 
 	private Component mainComponent;
 	private Component actionMenu;
@@ -154,20 +153,15 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 				breadcrumbTrail = buildBreadcrumbTrail();
 			}
 
-			titleBackButtonLayout = new I18NHorizontalLayout();
-			titleBackButtonLayout.setWidth("100%");
-
 			String title = getTitle();
-			if (isBreadcrumbsVisible()) {
-				if (breadcrumbTrail == null && title != null) {
-					breadcrumbTrail = new TitleBreadcrumbTrail(this, title);
-				} else if (title != null) {
-					titleLabel = new Label(title);
-					titleLabel.addStyleName(ValoTheme.LABEL_H1);
-				}
+			if (isBreadcrumbsVisible() && breadcrumbTrail == null && title != null) {
+				breadcrumbTrail = new TitleBreadcrumbTrail(this, title);
+			} else if (!isBreadcrumbsVisible() && title != null) {
+				titleLabel = new Label(title);
+				titleLabel.addStyleName(ValoTheme.LABEL_H1);
 			}
 
-			if(getGuideUrl() != null) {
+			if (getGuideUrl() != null) {
 				guideButton = new BaseMouseOverIcon(new ThemeResource("images/icons/audit-icon.png"), $("guide")) {
 					@Override
 					protected void buttonClick(ClickEvent event) {
@@ -175,7 +169,6 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 					}
 				};
 			}
-
 
 			backButton = new BackButton();
 			ClickListener backButtonClickListener = getBackButtonClickListener();
@@ -195,42 +188,36 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 			mainComponent = buildMainComponent(event);
 			mainComponent.addStyleName("main-component");
 
-			addComponent(titleBackButtonLayout);
-
 			if (breadcrumbTrail != null) {
 				breadcrumbTrail.setWidth(null);
 				breadcrumbTrailLayout.addComponent(breadcrumbTrail);
 				breadcrumbTrailLayout.setComponentAlignment(breadcrumbTrail, Alignment.MIDDLE_LEFT);
 			}
 
-			if(guideButton != null) {
+			if (guideButton != null) {
 				breadcrumbTrailLayout.addComponent(guideButton);
 				breadcrumbTrailLayout.setComponentAlignment(guideButton, Alignment.MIDDLE_LEFT);
 				breadcrumbTrailLayout.setExpandRatio(guideButton, 1.0f);
 			}
 
-			if(breadcrumbTrailLayout.getComponentCount() != 0) {
+			if (breadcrumbTrailLayout.getComponentCount() != 0) {
 				addComponent(breadcrumbTrailLayout);
 			}
 
+			if (titleLabel != null) {
+				addComponents(titleLabel);
+			}
+			addComponent(backButton);
+
+			if (actionMenu != null && isActionMenuBar()) {
+				addComponent(actionMenu);
+			}
 			addComponent(mainComponent);
-			if (actionMenu != null) {
+			if (actionMenu != null && !isActionMenuBar()) {
 				addComponent(actionMenu);
 			}
 
-			if (titleLabel != null || backButton.isVisible()) {
-				if (titleLabel != null) {
-					titleBackButtonLayout.addComponents(titleLabel);
-				}
-				titleBackButtonLayout.addComponents(backButton);
-			} else {
-				titleBackButtonLayout.setVisible(false);
-			}
-
 			setExpandRatio(mainComponent, 1f);
-			if (titleLabel != null) {
-				titleBackButtonLayout.setExpandRatio(titleLabel, 1);
-			}
 
 			if (isBackgroundViewMonitor()) {
 				addBackgroundViewMonitor();
@@ -363,56 +350,90 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 		return null;
 	}
 
+	protected MenuBar newActionMenuBar() {
+		String menuBarCaption = getActionMenuBarCaption();
+		if (menuBarCaption == null) {
+			menuBarCaption = "";
+		}
+
+		MenuBar menuBar = new MenuBar();
+		menuBar.addStyleName("action-menu-bar");
+		menuBar.setAutoOpen(false);
+		menuBar.addStyleName(ValoTheme.MENUBAR_BORDERLESS);
+		if (StringUtils.isBlank(menuBarCaption)) {
+			menuBar.addStyleName("no-caption-action-menu-bar");
+		}
+
+		MenuItem rootItem = menuBar.addItem("", FontAwesome.BARS, null);
+		if (StringUtils.isNotBlank(menuBarCaption)) {
+			rootItem.setIcon(null);
+			rootItem.setText(menuBarCaption);
+		} else {
+			rootItem.setIcon(FontAwesome.ELLIPSIS_V);
+		}
+
+		for (final Button actionMenuButton : actionMenuButtons) {
+			Resource icon = actionMenuButton.getIcon();
+			String caption = actionMenuButton.getCaption();
+			MenuItem actionMenuItem = rootItem.addItem(caption, icon, new Command() {
+				@Override
+				public void menuSelected(MenuItem selectedItem) {
+					actionMenuButton.click();
+				}
+			});
+			actionMenuButtonsAndItems.put(actionMenuButton, actionMenuItem);
+		}
+		return menuBar;
+	}
+
+	protected List<Button> getQuickActionMenuButtons() {
+		return Collections.emptyList();
+	}
+
 	/**
 	 * Adapted from https://vaadin.com/forum#!/thread/8150555/8171634
 	 *
 	 * @param event
 	 * @return
 	 */
-    protected Component buildActionMenu(ViewChangeEvent event) {
-        Component result;
-        actionMenuButtons = buildActionMenuButtons(event);
-        for (ActionMenuButtonsDecorator actionMenuButtonsDecorator : actionMenuButtonsDecorators) {
-            actionMenuButtonsDecorator.decorate(this, actionMenuButtons);
-        }
+	protected Component buildActionMenu(ViewChangeEvent event) {
+		Component result;
+		actionMenuButtons = buildActionMenuButtons(event);
+		for (ActionMenuButtonsDecorator actionMenuButtonsDecorator : actionMenuButtonsDecorators) {
+			actionMenuButtonsDecorator.decorate(this, actionMenuButtons);
+		}
 
-        if (actionMenuButtons == null || actionMenuButtons.isEmpty()) {
-            result = null;
-        } else {
-            if (isActionMenuBar()) {
-            	String menuBarCaption = getActionMenuBarCaption();
-            	if (menuBarCaption == null) {
-            		menuBarCaption = "";
-            	}
+		if (actionMenuButtons == null || actionMenuButtons.isEmpty()) {
+			result = null;
+		} else {
+			if (isActionMenuBar()) {
+				MenuBar menuBar = newActionMenuBar();
+				List<Button> quickActionButtons = getQuickActionMenuButtons();
+				if (quickActionButtons != null && !quickActionButtons.isEmpty()) {
+					I18NHorizontalLayout actionMenuBarLayout = new I18NHorizontalLayout();
+					actionMenuBarLayout.addStyleName("action-menu-bar-layout");
+					actionMenuBarLayout.setSpacing(true);
 
-                MenuBar menuBar = new MenuBar();
-                menuBar.addStyleName("action-menu-bar");
-                menuBar.setAutoOpen(false);
-				if (StringUtils.isBlank(menuBarCaption)) {
-					menuBar.addStyleName(ValoTheme.MENUBAR_BORDERLESS);
-					menuBar.addStyleName("no-caption-action-menu-bar");
-                }
-                result = menuBar;
+					int visibleButtons = 0;
+					for (Button quickActionButton : quickActionButtons) {
+						if (quickActionButton.isVisible()) {
+							quickActionButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
+							quickActionButton.addStyleName(ValoTheme.BUTTON_LINK);
+							quickActionButton.addStyleName("action-menu-bar-button");
+							actionMenuBarLayout.addComponent(quickActionButton);
+							visibleButtons++;
+						}
+					}
 
-                MenuItem rootItem = menuBar.addItem("", FontAwesome.BARS, null);
-                if (StringUtils.isNotBlank(menuBarCaption)) {
-                	rootItem.setIcon(null);
-                	rootItem.setText(menuBarCaption);
-                } else {
-					rootItem.setIcon(FontAwesome.ELLIPSIS_V);
-                }
-
-                for (final Button actionMenuButton : actionMenuButtons) {
-                    Resource icon = actionMenuButton.getIcon();
-                    String caption = actionMenuButton.getCaption();
-					MenuItem actionMenuItem = rootItem.addItem(caption, icon, new Command() {
-                        @Override
-                        public void menuSelected(MenuItem selectedItem) {
-                            actionMenuButton.click();
-                        }
-                    });
-					actionMenuButtonsAndItems.put(actionMenuButton, actionMenuItem);
-                }
+					if (visibleButtons == 0) {
+						result = menuBar;
+					} else {
+						actionMenuBarLayout.addComponent(menuBar);
+						result = actionMenuBarLayout;
+					}
+				} else {
+					result = menuBar;
+				}
             } else {
                 VerticalLayout actionMenuLayout = new VerticalLayout();
                 actionMenuLayout.addStyleName("action-menu-layout");
@@ -441,6 +462,15 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
         }
         return result;
     }
+
+	protected void actionButtonStateChanged(Button actionMenuButton) {
+		if (isActionMenuBar()) {
+			MenuItem actionMenuItem = actionMenuButtonsAndItems.get(actionMenuButton);
+			if (actionMenuItem != null) {
+				actionMenuItem.setVisible(actionMenuButton.isVisible() && actionMenuButton.isEnabled());
+			}
+		}
+	}
 
 	protected void updateActionMenuItems() {
 		for (Button actionMenuButton : actionMenuButtonsAndItems.keySet()) {

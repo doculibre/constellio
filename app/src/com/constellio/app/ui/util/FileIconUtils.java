@@ -30,7 +30,7 @@ public class FileIconUtils implements Serializable {
 	private static final String ICON_EXTENSION = ".gif";
 	private static final String IMAGES_DIR = "images";
 	private static final String ICONS_DIR = IMAGES_DIR + "/icons/ext/mantis/";
-	private static final String DEFAULT_VALUE = "document";
+	public static final String DEFAULT_VALUE = "document";
 
 	private static final String DEFAULT_ICON_PATH = ICONS_DIR + DEFAULT_VALUE + ".gif";
 
@@ -43,6 +43,10 @@ public class FileIconUtils implements Serializable {
 			String iconPath = getIconPath(fileName);
 			return new ThemeResource(iconPath);
 		}
+	}
+	
+	public static boolean isDefaultIconPath(String iconPath) {
+		return DEFAULT_ICON_PATH.equals(iconPath);
 	}
 
 	public static String getIconPath(String fileName) {

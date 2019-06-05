@@ -9,7 +9,6 @@ import com.constellio.app.ui.pages.viewGroups.MenuViewGroup;
 import com.constellio.app.ui.pages.viewGroups.MenuViewGroup.DisabledMenuViewGroup;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
-import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Page;
 import com.vaadin.server.StreamResource;
 import com.vaadin.server.StreamResource.StreamSource;
@@ -55,8 +54,6 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 	private CssLayout menuContent;
 
 	private MenuBar userMenu;
-
-	private Button valoMenuToggleButton;
 
 	private CssLayout menuItemsLayout;
 
@@ -105,9 +102,8 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 		menuContent.setWidth(null);
 		menuContent.setHeight("100%");
 
-		menuContent.addComponent(buildUserMenu());
-		menuContent.addComponent(buildToggleButton());
 		menuContent.addComponent(buildMainMenu());
+		menuContent.addComponent(buildUserMenu());
 
 		return menuContent;
 	}
@@ -117,20 +113,6 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 		userMenu.addStyleName("user-menu");
 		buildUserMenuItems(userMenu);
 		return userMenu;
-	}
-
-	protected Component buildToggleButton() {
-		valoMenuToggleButton = new Button("Menu", new ClickListener() {
-			@Override
-			public void buttonClick(final ClickEvent event) {
-				toggleMenuVisibility();
-			}
-		});
-		valoMenuToggleButton.setIcon(FontAwesome.LIST);
-		valoMenuToggleButton.addStyleName("valo-menu-toggle");
-		valoMenuToggleButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
-		valoMenuToggleButton.addStyleName(ValoTheme.BUTTON_SMALL);
-		return valoMenuToggleButton;
 	}
 
 	private Component buildMainMenu() {

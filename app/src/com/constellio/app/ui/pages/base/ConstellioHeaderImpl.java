@@ -82,6 +82,7 @@ import com.vaadin.ui.Window;
 import com.vaadin.ui.Window.CloseEvent;
 import com.vaadin.ui.Window.CloseListener;
 import com.vaadin.ui.themes.ValoTheme;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -98,6 +99,7 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 	private static final String POPUP_ID = "header-popup";
 	private static final String SHOW_ADVANCED_SEARCH_POPUP_HIDDEN_STYLE_NAME = "header-show-advanced-search-button-popup-hidden";
 	private static final String SHOW_ADVANCED_SEARCH_POPUP_VISIBLE_STYLE_NAME = "header-show-advanced-search-button-popup-visible";
+	public static final Resource SELECTION_ICON_RESOURCE = new ThemeResource("images/icons/clipboard_12x16.png");
 
 	private List<String> collections = new ArrayList<>();
 
@@ -752,8 +754,26 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 		ConstellioUI.getCurrent().updateContent();
 	}
 
+	private void setCollectionSubMenuCaption() {
+		String caption;
+		SessionContext sessionContext = getSessionContext();
+		String currentCollection = sessionContext.getCurrentCollection();
+		if (currentCollection != null) {
+			caption = collectionCodeToLabelConverter.getCollectionCaption(currentCollection);
+			int maxWidth = 50;
+			if (caption.length() > maxWidth) {
+				caption = StringUtils.truncate(caption, maxWidth);
+			}
+		} else {
+			caption = "";
+		}
+		collectionSubMenu.setText(caption);
+
+	}
+
 	protected MenuBar buildCollectionMenu() {
 		MenuBar collectionMenu = new BaseMenuBar();
+		collectionMenu.addStyleName(ValoTheme.MENUBAR_BORDERLESS);
 		if (!collections.isEmpty()) {
 			collectionMenu.setAutoOpen(true);
 			collectionMenu.addStyleName("header-collection-menu");
@@ -764,6 +784,7 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 			Page.getCurrent().setTitle(collectionLabel);
 
 			collectionSubMenu = collectionMenu.addItem("", FontAwesome.DATABASE, null);
+			setCollectionSubMenuCaption();
 			for (final String collection : collections) {
 				if (!Collection.SYSTEM_COLLECTION.equals(collection)) {
 					String collectionCaption = collectionCodeToLabelConverter.getCollectionCaption(collection);
@@ -776,6 +797,7 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 								menuItem.setChecked(false);
 							}
 							selectedItem.setChecked(true);
+							setCollectionSubMenuCaption();
 						}
 					});
 					collectionMenuItem.setCheckable(true);
@@ -864,12 +886,12 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 
 	private void setSelectionButtonIcon() {
 		Resource icon;
-		if (selectionButton.isEnabled()) {
-			icon = FontAwesome.CHECK_SQUARE_O;
-		} else {
-			icon = FontAwesome.SQUARE_O;
-		}
-		selectionButton.setIcon(icon);
+//		if (selectionButton.isEnabled()) {
+//			icon = FontAwesome.CHECK_SQUARE_O;
+//		} else {
+//			icon = FontAwesome.SQUARE_O;
+//		}
+		selectionButton.setIcon(SELECTION_ICON_RESOURCE);
 	}
 
 	@Override

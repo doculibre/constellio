@@ -96,7 +96,6 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 		actionButtonsLayout.addStyleName("task-action-buttons");
 
 		VerticalLayout mainLayout = new VerticalLayout();
-		mainLayout.setSpacing(true);
 
 		timestamp = new BaseComboBox(presenter.getDueDateCaption(), asList(Timestamp.ALL, Timestamp.TODAY, Timestamp.WEEK, Timestamp.MONTH));
 		timestamp.setNullSelectionAllowed(false);

@@ -92,17 +92,24 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	private DocumentVO documentVO;
 	private Map<String, String> params = null;
 	private boolean nestedView;
+	private boolean inWindow;
 
-	public DisplayDocumentPresenter(final DisplayDocumentView view, RecordVO recordVO, final boolean nestedView) {
+	public DisplayDocumentPresenter(final DisplayDocumentView view, RecordVO recordVO, final boolean nestedView,
+									final boolean inWindow) {
 		super(view);
 		this.nestedView = nestedView;
+		this.inWindow = inWindow;
 		initTransientObjects();
 		presenterUtils = new DocumentActionsPresenterUtils<DisplayDocumentView>(view) {
 			@Override
 			public void updateActionsComponent() {
 				super.updateActionsComponent();
 				if (nestedView) {
-					view.setDisplayDocumentButtonState(ComponentState.ENABLED);
+					if (inWindow) {
+						view.setDisplayDocumentButtonState(ComponentState.INVISIBLE);
+					} else {
+						view.setDisplayDocumentButtonState(ComponentState.ENABLED);
+					}
 					Content content = getContent();
 					if (content != null) {
 						ContentVersionVO contentVersionVO = contentVersionVOBuilder.build(content);
@@ -357,7 +364,11 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	}
 
 	public void displayDocumentButtonClicked() {
-		view.navigate().to(RMViews.class).displayDocument(documentVO.getId());
+		if (view.isInWindow() || nestedView) {
+			view.openInWindow();
+		} else {
+			view.navigate().to(RMViews.class).displayDocument(documentVO.getId());
+		}
 	}
 
 	public void openDocumentButtonClicked() {

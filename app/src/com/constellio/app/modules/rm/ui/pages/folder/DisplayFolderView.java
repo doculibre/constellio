@@ -82,4 +82,10 @@ public interface DisplayFolderView extends BaseView, RecordsManagementViewGroup 
 
 	void showVersionUpdateWindow(RecordVO recordVO, ContentVersionVO dragAndDropEvent);
 
+	boolean scrollIntoView(Integer contentIndex, String recordId);
+
+	Integer getReturnIndex();
+
+	RecordVO getReturnRecordVO();
+
 }

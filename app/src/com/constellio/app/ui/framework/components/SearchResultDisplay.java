@@ -106,7 +106,7 @@ public class SearchResultDisplay extends VerticalLayout {
 
 		addComponent(titleComponent);
 		addComponent(newHighlightsLabel(searchResultVO));
-		if(addtionalComponent != null && addtionalComponent.size() > 0) {
+		if (addtionalComponent != null && addtionalComponent.size() > 0) {
 			addComponent(multipleComponentIntoVerticalLayout(addtionalComponent));
 		}
 		addComponent(newMetadataComponent(searchResultVO, componentFactory));
@@ -158,7 +158,6 @@ public class SearchResultDisplay extends VerticalLayout {
 
 			I18NHorizontalLayout elevationLayout = new I18NHorizontalLayout();
 			elevationLayout.addStyleName("search-result-elevation-buttons");
-			elevationLayout.setSpacing(true);
 			elevationLayout.addComponent(excludeButton);
 			elevationLayout.addComponent(elevateButton);
 			elevationLayout.setComponentAlignment(excludeButton, Alignment.TOP_LEFT);
@@ -232,11 +231,9 @@ public class SearchResultDisplay extends VerticalLayout {
 		VerticalLayout layout = new VerticalLayout();
 		layout.setSpacing(true);
 		for (MetadataValueVO metadataValue : recordVO.getSearchMetadataValues()) {
-			if(recordVO.getMetadataCodes().contains(metadataValue.getMetadata().getCode())) {
-
+			if (recordVO.getMetadataCodes().contains(metadataValue.getMetadata().getCode())) {
 				MetadataVO metadataVO = metadataValue.getMetadata();
 				if (!metadataVO.codeMatches(CommonMetadataBuilder.TITLE)) {
-
 					Component value = componentFactory.build(recordVO, metadataValue);
 					if (value != null) {
 						Label caption = new Label(metadataVO.getLabel() + ":");
@@ -286,9 +283,8 @@ public class SearchResultDisplay extends VerticalLayout {
 
 		public ElevationButton(String caption, Resource icon, String niceTitleText) {
 			super(caption, icon, true);
-			addStyleName(ELEVATION_BUTTON_STYLE);
 			addStyleName(ValoTheme.BUTTON_LINK);
-			addExtension(new NiceTitle(this, niceTitleText));
+			addExtension(new NiceTitle(niceTitleText));
 		}
 
 		@Override
@@ -302,6 +298,7 @@ public class SearchResultDisplay extends VerticalLayout {
 
 		public ElevateButton(String caption, Resource icon, String niceTitleText) {
 			super(caption, icon, niceTitleText);
+			addStyleName(ELEVATION_BUTTON_STYLE);
 		}
 
 	}
@@ -310,6 +307,7 @@ public class SearchResultDisplay extends VerticalLayout {
 
 		public ExcludeButton() {
 			super($(EXCLUSION), FontAwesome.TIMES_CIRCLE_O, $(EXCLUSION + "NiceTitle"));
+			addStyleName(EXCLUSION_BUTTON_STYLE);
 		}
 
 	}

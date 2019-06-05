@@ -42,6 +42,7 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.users.UserServices;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
+import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.server.StreamResource;
@@ -130,7 +131,7 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 
 	@Override
 	protected Component buildSearchUI() {
-		return new VerticalLayout();
+		return null;
 	}
 
 	@Override
@@ -149,7 +150,7 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 			batchProcessingButton.setVisible(presenter.getUser().has(RMPermissionsTo.MANAGE_STORAGE_SPACES).globally());
 		}
 
-		if(!presenter.hasBatchProcessPermission()) {
+		if (!presenter.hasBatchProcessPermission()) {
 			batchProcessingButton.setVisible(false);
 		}
 
@@ -190,6 +191,7 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 		if (Document.SCHEMA_TYPE.equals(schemaType)) {
 			Component zipButton = new Link($("ReportViewer.download", "(zip)"),
 					new DownloadStreamResource(presenter.getZippedContents(), presenter.getZippedContentsFilename()));
+			zipButton.setIcon(FontAwesome.FILE_ARCHIVE_O);
 			zipButton.addStyleName(ValoTheme.BUTTON_LINK);
 			selectionActions.add(zipButton);
 
@@ -387,7 +389,7 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 				Object itemId = event.getItemId();
 				RecordVOItem item = (RecordVOItem) container.getItem(itemId);
 				RecordVO recordVO = item.getRecord();
-				((AdvancedSearchPresenter) presenter).searchResultClicked(recordVO);
+				((AdvancedSearchPresenter) presenter).searchResultClicked(recordVO, (Integer) itemId);
 			}});
     	} else {
     		table = super.buildSimpleResultsTable(dataProvider);

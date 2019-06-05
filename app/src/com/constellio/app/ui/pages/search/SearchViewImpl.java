@@ -14,6 +14,7 @@ import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.components.RecordDisplayFactory;
 import com.constellio.app.ui.framework.components.ReportViewer.DownloadStreamResource;
 import com.constellio.app.ui.framework.components.SearchResultDetailedTable;
+import com.constellio.app.ui.framework.components.SearchResultDisplay;
 import com.constellio.app.ui.framework.components.SearchResultSimpleTable;
 import com.constellio.app.ui.framework.components.SearchResultTable;
 import com.constellio.app.ui.framework.components.capsule.CapsuleComponent;
@@ -22,10 +23,9 @@ import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveRecordLookupField;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.components.search.FacetsPanel;
-import com.constellio.app.ui.framework.components.splitpanel.CollapsibleHorizontalSplitPanel;
+import com.constellio.app.ui.framework.components.search.ViewableRecordVOSearchResultTable;
 import com.constellio.app.ui.framework.components.table.BaseTable;
-import com.constellio.app.ui.framework.components.table.SelectionTableAdapter;
-import com.constellio.app.ui.framework.components.viewers.panel.ViewableRecordTablePanel;
+import com.constellio.app.ui.framework.components.viewers.panel.ViewableRecordVOTablePanel;
 import com.constellio.app.ui.framework.containers.SearchResultContainer;
 import com.constellio.app.ui.framework.containers.SearchResultVOLazyContainer;
 import com.constellio.app.ui.framework.data.SearchResultVODataProvider;
@@ -47,6 +47,8 @@ import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.FontAwesome;
+import com.vaadin.server.Resource;
+import com.vaadin.server.ThemeResource;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
 import com.vaadin.ui.Alignment;
@@ -88,6 +90,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	public static final String SORT_BOX_STYLE = "sort-box";
 	public static final String SORT_TITLE_STYLE = "sort-title";
 	public static final String SAVE_SEARCH = "save-search";
+	public static final Resource SELECTION_ICON_RESOURCE = new ThemeResource("images/icons/clipboard_12x16_blue.png");
 
 	private enum ShareType {
 		NONE, ALL, RESTRICTED
@@ -102,7 +105,6 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	private FacetsPanel facetsArea;
 	private VerticalLayout capsuleArea;
 
-	private ViewableRecordTablePanel viewableSearchResultsPanel;
 	private SearchResultTable resultsTable;
 	private SelectDeselectAllButton selectDeselectAllButton;
 	private Button addToSelectionButton;
@@ -133,13 +135,13 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
 		VerticalLayout layout = new VerticalLayout();
+		layout.addStyleName("search-main-container");
 		Component searchUIComponent = buildSearchUI();
 		if (searchUIComponent != null) {
 			layout.addComponent(searchUIComponent);
 		}
 		layout.addComponent(buildResultsUI());
 		layout.addComponent(buildThesaurusSemanticNetwork());
-		layout.addStyleName("search-main-container");
 		layout.setSpacing(true);
 		if (presenter.mustDisplayResults()) {
 			refreshSearchResultsAndFacets(false);
@@ -279,24 +281,18 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		buildSpellCheckerSuggestions(dataProvider, disambiguationSuggestions);
 
 		summary.removeAllComponents();
-		summary.addComponent(buildSummary(resultsTable));
-
-		if (Toggle.SEARCH_RESULTS_VIEWER.isEnabled()) {
-			Table table;
-			if (resultsTable instanceof Table) {
-				table = (Table) resultsTable;
-			} else {
-				SelectionTableAdapter selectionTableAdapter = (SelectionTableAdapter) resultsTable;
-				table = selectionTableAdapter.getTable();
-			}
-			viewableSearchResultsPanel.setTable(table);
+		Component summaryComponent = buildSummary(resultsTable);
+		if (summaryComponent != null) {
+			summary.setVisible(true);
+			summary.addComponent(summaryComponent);
+		} else {
+			summary.setVisible(false);
 		}
-
 
 		if (isDetailedView()) {
 			resultsArea.removeAllComponents();
-			resultsArea.addComponents(resultsTable, ((SearchResultDetailedTable) resultsTable).createControls());
-			((SearchResultDetailedTable) resultsTable).setItemsPerPageValue(presenter.getSelectedPageLength());
+			resultsArea.addComponent(resultsTable);
+			((ViewableRecordVOSearchResultTable) resultsTable).setItemsPerPageValue(presenter.getSelectedPageLength());
 		} else {
 			resultsArea.removeAllComponents();
 			resultsArea.addComponent(resultsTable);
@@ -339,6 +335,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 				(Component) buildSelectAllButton(), buildAddToSelectionButton(), buildSavedSearchButton());
 		Component zipButton = new Link($("ReportViewer.download", "(zip)"),
 				new DownloadStreamResource(presenter.getZippedContents(), presenter.getZippedContentsFilename()));
+		zipButton.setIcon(FontAwesome.FILE_ARCHIVE_O);
 		zipButton.addStyleName(ValoTheme.BUTTON_LINK);
 		zipButton.setVisible(presenter.isAllowDownloadZip());
 		return results.createSummary(actions, zipButton);
@@ -399,17 +396,17 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		facetsArea.setWidth("250px");
 		facetsArea.setSpacing(true);
 
-		if (Toggle.SEARCH_RESULTS_VIEWER.isEnabled()) {
-			viewableSearchResultsPanel = new ViewableRecordTablePanel(resultsArea);
-
-			CollapsibleHorizontalSplitPanel body = new CollapsibleHorizontalSplitPanel("search-result-and-facets-container");
-			body.addStyleName("search-result-and-facets-container");
-			body.setSecondComponentWidth(250, Unit.PIXELS);
-			body.setFirstComponent(viewableSearchResultsPanel);
-			body.setSecondComponent(facetsArea);
-
-			resultsAndFacetsPanel = body;
-		} else {
+		//		if (Toggle.SEARCH_RESULTS_VIEWER.isEnabled()) {
+		//			viewableSearchResultsPanel = new ViewableRecordTablePanel(resultsArea);
+		//
+		//			CollapsibleHorizontalSplitPanel body = new CollapsibleHorizontalSplitPanel("search-result-and-facets-container");
+		//			body.addStyleName("search-result-and-facets-container");
+		//			body.setSecondComponentWidth(250, Unit.PIXELS);
+		//			body.setFirstComponent(viewableSearchResultsPanel);
+		//			body.setSecondComponent(facetsArea);
+		//
+		//			resultsAndFacetsPanel = body;
+		//		} else {
 			I18NHorizontalLayout body = new I18NHorizontalLayout(resultsArea, facetsArea);
 			body.addStyleName("search-result-and-facets-container");
 			body.setWidth("100%");
@@ -417,7 +414,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			body.setSpacing(true);
 
 			resultsAndFacetsPanel = body;
-		}
+		//		}
 
 		refreshCapsule();
 
@@ -459,11 +456,76 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	}
 
 	protected SearchResultTable buildResultTable(SearchResultVODataProvider dataProvider) {
-		if (presenter.getResultsViewMode().equals(SearchResultsViewMode.TABLE)) {
-			return buildSimpleResultsTable(dataProvider);
+		//		final SearchResultContainer container = buildResultContainer(dataProvider);
+		final SearchResultVOLazyContainer container = new SearchResultVOLazyContainer(dataProvider);
+		//        final RecordVOLazyContainer container = new RecordVOLazyContainer(presenter.getSearchResultsAsRecordVOs());
+		container.addItemSetChangeListener(new ItemSetChangeListener() {
+			@Override
+			public void containerItemSetChange(ItemSetChangeEvent event) {
+				presenter.searchNavigationButtonClicked();
+			}
+		});
+
+		RecordDisplayFactory displayFactory = new RecordDisplayFactory(getSessionContext().getCurrentUser(), extraParameters);
+
+		final boolean indexColumn = presenter.isShowNumberingColumn();
+		ViewableRecordVOSearchResultTable.TableMode tableMode;
+		if (this.resultsTable != null) {
+			tableMode = ((ViewableRecordVOSearchResultTable) this.resultsTable).getTableMode();
 		} else {
-			return buildDetailedResultsTable(dataProvider);
+			tableMode = null;
 		}
+		ViewableRecordVOSearchResultTable viewerPanel = new ViewableRecordVOSearchResultTable(container, tableMode, presenter) {
+			@Override
+			protected boolean isIndexColumn() {
+				return indexColumn;
+			}
+
+			@Override
+			protected boolean isPagedInListMode() {
+				return true;
+			}
+
+			@Override
+			protected Component newSearchResultComponent(Object itemId) {
+				Integer index = (Integer) itemId;
+				String query = presenter.getSearchQuery().getFreeTextQuery();
+				SearchResultVO searchResultVO = container.getSearchResultVO(index);
+				ClickListener elevationClickListener = getElevationClickListener(searchResultVO, index);
+				ClickListener exclusionClickListener = getExclusionClickListener(searchResultVO, index);
+				SearchResultDisplay searchResultDisplay = displayFactory.build(searchResultVO, query, null, elevationClickListener, exclusionClickListener);
+				searchResultDisplay.getTitleComponent().setIcon(null);
+				return searchResultDisplay;
+			}
+
+			protected ClickListener getElevationClickListener(final SearchResultVO searchResultVO, Integer index) {
+				return new ClickListener() {
+					@Override
+					public void buttonClick(ClickEvent event) {
+						((SearchPresenter<?>) presenter).searchResultElevationClicked(searchResultVO.getRecordVO());
+					}
+				};
+			}
+
+			protected ClickListener getExclusionClickListener(final SearchResultVO searchResultVO, Integer index) {
+				return new ClickListener() {
+					@Override
+					public void buttonClick(ClickEvent event) {
+						((SearchPresenter<?>) presenter).searchResultExclusionClicked(searchResultVO.getRecordVO());
+					}
+				};
+			}
+		};
+		viewerPanel.addItemClickListener(new ItemClickListener() {
+			@Override
+			public void itemClick(ItemClickEvent event) {
+				Object itemId = event.getItemId();
+				Integer index = (Integer) itemId;
+				SearchResultVO searchResultVO = container.getSearchResultVO(index);
+				presenter.searchResultClicked(searchResultVO.getRecordVO(), index);
+			}
+		});
+		return viewerPanel;
 	}
 
 	protected SearchResultTable buildSimpleResultsTable(SearchResultVODataProvider dataProvider) {
@@ -477,7 +539,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			public void itemClick(ItemClickEvent event) {
 				Object itemId = event.getItemId();
 				RecordVO recordVO = container.getRecordVO((int) itemId);
-				((SearchPresenter) presenter).searchResultClicked(recordVO);
+				((SearchPresenter) presenter).searchResultClicked(recordVO, (Integer) itemId);
 			}
 		});
 		return table;
@@ -560,17 +622,17 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		SearchResultContainer container = new SearchResultContainer(results, displayFactory,
 				presenter.getSearchQuery().getFreeTextQuery(), presenter.isShowNumberingColumn()) {
 			@Override
-			protected ClickListener getClickListener(final SearchResultVO searchResultVO) {
+			protected ClickListener getClickListener(final SearchResultVO searchResultVO, final Integer index) {
 				return new ClickListener() {
 					@Override
 					public void buttonClick(ClickEvent event) {
-						presenter.searchResultClicked(searchResultVO.getRecordVO());
+						presenter.searchResultClicked(searchResultVO.getRecordVO(), index);
 					}
 				};
 			}
 
 			@Override
-			protected ClickListener getElevationClickListener(final SearchResultVO searchResultVO) {
+			protected ClickListener getElevationClickListener(final SearchResultVO searchResultVO, Integer index) {
 				return new ClickListener() {
 					@Override
 					public void buttonClick(ClickEvent event) {
@@ -580,7 +642,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			}
 
 			@Override
-			protected ClickListener getExclusionClickListener(final SearchResultVO searchResultVO) {
+			protected ClickListener getExclusionClickListener(final SearchResultVO searchResultVO, Integer index) {
 				return new ClickListener() {
 					@Override
 					public void buttonClick(ClickEvent event) {
@@ -821,20 +883,12 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		selectDeselectAllButton = new SelectDeselectAllButton(selectAllCaption, deselectAllCaption) {
 			@Override
 			protected void onSelectAll(ClickEvent event) {
-				if (isDetailedView()) {
-					((SearchResultDetailedTable) resultsTable).selectCurrentPage();
-				} else {
-					((SearchResultSimpleTable) resultsTable).askSelectionRange();
-				}
+				((ViewableRecordVOTablePanel) resultsTable).selectCurrentPage();
 			}
 
 			@Override
 			protected void onDeselectAll(ClickEvent event) {
-				if (isDetailedView()) {
-					((SearchResultDetailedTable) resultsTable).deselectCurrentPage();
-				} else {
-					((SearchResultSimpleTable) resultsTable).askSelectionRange();
-				}
+				((ViewableRecordVOTablePanel) resultsTable).deselectCurrentPage();
 			}
 
 			@Override
@@ -849,7 +903,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	}
 
 	protected Button buildAddToSelectionButton() {
-		addToSelectionButton = new BaseButton($("SearchView.addToSelection")) {
+		addToSelectionButton = new BaseButton($("SearchView.addToSelection"), SELECTION_ICON_RESOURCE) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
 				presenter.addToSelectionButtonClicked();
@@ -958,6 +1012,32 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 
 	@Override
 	public void fireNoRecordSelected() {
+	}
+
+	@Override
+	public String getSavedSearchId() {
+		return presenter.getSavedSearchId();
+	}
+
+	@Override
+	public boolean scrollIntoView(Integer contentIndex, String recordId) {
+		boolean scrolledIntoView;
+		if (resultsTable != null) {
+			scrolledIntoView = ((ViewableRecordVOTablePanel) resultsTable).scrollIntoView(contentIndex, recordId);
+		} else {
+			scrolledIntoView = false;
+		}
+		return scrolledIntoView;
+	}
+
+	@Override
+	public Integer getReturnIndex() {
+		return presenter.getReturnIndex();
+	}
+
+	@Override
+	public RecordVO getReturnRecordVO() {
+		return presenter.getReturnRecordVO();
 	}
 
 }

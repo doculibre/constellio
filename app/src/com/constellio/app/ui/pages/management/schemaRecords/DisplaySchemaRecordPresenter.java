@@ -36,10 +36,18 @@ public class DisplaySchemaRecordPresenter extends SingleSchemaBasePresenter<Disp
 
 	private RecordVO recordVO;
 
+	private boolean nestedView;
+
+	private boolean inWindow;
+
 	private RecordToVOBuilder voBuilder = new RecordToVOBuilder();
 
-	public DisplaySchemaRecordPresenter(DisplaySchemaRecordView view) {
+	public DisplaySchemaRecordPresenter(DisplaySchemaRecordView view, RecordVO recordVO, boolean nestedView,
+										boolean inWindow) {
 		super(view);
+		this.recordVO = recordVO;
+		this.nestedView = nestedView;
+		this.inWindow = inWindow;
 		initTransientObjects();
 	}
 
@@ -59,8 +67,10 @@ public class DisplaySchemaRecordPresenter extends SingleSchemaBasePresenter<Disp
 	}
 
 	public void forParams(String params) {
-		String id = params;
-		recordVO = presenterService().getRecordVO(id, VIEW_MODE.DISPLAY, view.getSessionContext());
+		if (recordVO == null) {
+			String id = params;
+			recordVO = presenterService().getRecordVO(id, VIEW_MODE.DISPLAY, view.getSessionContext());
+		}
 		schemaCode = recordVO.getSchema().getCode();
 		setSchemaCode(schemaCode);
 		view.setRecordVO(recordVO);

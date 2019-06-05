@@ -1,5 +1,6 @@
 package com.constellio.app.ui.framework.buttons;
 
+import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Resource;
 import com.vaadin.server.ThemeResource;
 
@@ -13,18 +14,28 @@ public abstract class DisplayButton extends IconButton {
 	public static final String BUTTON_STYLE = "display-button";
 
 	public DisplayButton() {
-		super(ICON_RESOURCE, $("display"), true);
+		super(getIcon(true), $("display"), true);
 		init();
 	}
 
 	public DisplayButton(String caption, boolean iconOnly) {
-		super(ICON_RESOURCE, caption, iconOnly);
+		super(getIcon(iconOnly), caption, iconOnly);
 		init();
 	}
 
 	public DisplayButton(String caption) {
-		super(ICON_RESOURCE, caption);
+		super(getIcon(false), caption);
 		init();
+	}
+
+	private static Resource getIcon(boolean iconOnly) {
+		Resource icon;
+		if (iconOnly) {
+			icon = ICON_RESOURCE;
+		} else {
+			icon = FontAwesome.SEARCH;
+		}
+		return icon;
 	}
 
 	private void init() {

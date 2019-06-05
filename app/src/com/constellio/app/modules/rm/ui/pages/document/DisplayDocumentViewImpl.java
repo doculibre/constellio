@@ -46,8 +46,8 @@ import com.constellio.app.ui.framework.components.splitpanel.CollapsibleHorizont
 import com.constellio.app.ui.framework.components.table.ContentVersionVOTable;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.components.table.columns.EventVOTableColumnsManager;
-import com.constellio.app.ui.framework.components.table.columns.RecordVOTableColumnsManager;
 import com.constellio.app.ui.framework.components.table.columns.TableColumnsManager;
+import com.constellio.app.ui.framework.components.table.columns.TaskVOTableColumnsManager;
 import com.constellio.app.ui.framework.components.viewers.ContentViewer;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
@@ -69,7 +69,6 @@ import com.vaadin.server.Page;
 import com.vaadin.server.StreamResource;
 import com.vaadin.server.StreamResource.StreamSource;
 import com.vaadin.server.ThemeResource;
-import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomComponent;
@@ -110,7 +109,6 @@ import static com.constellio.app.ui.i18n.i18n.$;
 public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocumentView, DropHandler {
 
 	private VerticalLayout mainLayout;
-	private I18NHorizontalLayout mainActionMenuButtonsLayout;
 	
 	private Label borrowedLabel;
 	private DocumentVO documentVO;
@@ -149,12 +147,12 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	private List<Window.CloseListener> editWindowCloseListeners = new ArrayList<>();
 
 	public DisplayDocumentViewImpl() {
-		this(null, false);
+		this(null, false, false);
 	}
 
-	public DisplayDocumentViewImpl(RecordVO recordVO, boolean nestedView) {
+	public DisplayDocumentViewImpl(RecordVO recordVO, boolean nestedView, boolean inWindow) {
 		this.nestedView = nestedView;
-		presenter = new DisplayDocumentPresenter(this, recordVO, nestedView);
+		presenter = new DisplayDocumentPresenter(this, recordVO, nestedView, inWindow);
 	}
 
 	public DisplayDocumentPresenter getDisplayDocumentPresenter() {
@@ -220,8 +218,6 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		mainLayout = new VerticalLayout();
 		mainLayout.setSizeFull();
 
-		buildMainActionMenuButtons();
-
 		borrowedLabel = new Label();
 		borrowedLabel.setVisible(false);
 		borrowedLabel.addStyleName(ValoTheme.LABEL_COLORED);
@@ -277,11 +273,6 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		recordDisplayPanel.addStyleName(ValoTheme.PANEL_BORDERLESS);
 		recordDisplayPanel.addStyleName("panel-no-scroll");
 		recordDisplayPanel.setSizeFull();
-		//int otherElementsHeight = 0;
-		//recordDisplay.setHeight(Page.getCurrent().getBrowserWindowHeight() - otherElementsHeight - 1, Unit.PIXELS);
-		//recordDisplayPanel.setWidth("100%");
-		//int recordDisplayHeight = Page.getCurrent().getBrowserWindowHeight() /*- otherElementsHeight */;
-		//recordDisplayPanel.setHeight(recordDisplayHeight, Unit.PIXELS);
 
 		recordDisplayPanel.addStyleName(ValoTheme.PANEL_BORDERLESS);
 		recordDisplayPanel.addStyleName(ValoTheme.PANEL_SCROLL_INDICATOR);
@@ -316,22 +307,14 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 			splitPanel.setSecondComponent(tabSheet);
 			splitPanel.setSecondComponentWidth(700, Unit.PIXELS);
 			contentMetadataComponent = splitPanel;
-
-//			tabSheet.setWidth("700px");
-//			I18NHorizontalLayout contentMetadataLayout = new I18NHorizontalLayout();
-//			contentMetadataLayout.setSizeFull();
-//			contentMetadataLayout.setSpacing(true);
-//			contentMetadataLayout.addComponents(tabSheet);
-//			contentMetadataLayout.addComponents( contentViewer, tabSheet);
-		//			contentMetadataLayout.setExpandRatio(contentViewer, 1);
 		} else {
 			contentMetadataComponent = tabSheet;
 		}
-		mainLayout.addComponents(mainActionMenuButtonsLayout, borrowedLabel, contentMetadataComponent);
+		mainLayout.addComponents(borrowedLabel, contentMetadataComponent);
 		for (TabSheetDecorator tabSheetDecorator : tabSheetDecorators) {
 			tabSheetDecorator.decorate(this, tabSheet);
 		}
-		mainLayout.setComponentAlignment(mainActionMenuButtonsLayout, Alignment.TOP_RIGHT);
+		mainLayout.setExpandRatio(contentMetadataComponent, 1);
 
 		return mainLayout;
 	}
@@ -405,7 +388,6 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 	@Override
 	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
-
 		String saveSearchDecommissioningId = null;
 		String searchTypeAsString = null;
 		String favGroupIdKey = null;
@@ -422,8 +404,6 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 			favGroupIdKey = presenter.getParams().get(RMViews.FAV_GROUP_ID_KEY);
 		}
-
-
 
 		SearchType searchType = null;
 		if (searchTypeAsString != null) {
@@ -501,7 +481,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 			@Override
 			protected TableColumnsManager newColumnsManager() {
-				return new RecordVOTableColumnsManager() {
+				return new TaskVOTableColumnsManager() {
 					@Override
 					protected String toColumnId(Object propertyId) {
 						if (propertyId instanceof MetadataVO) {
@@ -556,10 +536,20 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		eventsComponent = table;
 	}
 
-	private void buildMainActionMenuButtons() {
-		mainActionMenuButtonsLayout = new I18NHorizontalLayout();
-		mainActionMenuButtonsLayout.setSpacing(true);
-		mainActionMenuButtonsLayout.addStyleName("main-action-menu-buttons-layout");
+	@Override
+	protected List<Button> getQuickActionMenuButtons() {
+		List<Button> quickActionMenuButtons = new ArrayList<>();
+		if (nestedView) {
+			quickActionMenuButtons.add(displayDocumentButton);
+		}
+		quickActionMenuButtons.add(openDocumentButton);
+		quickActionMenuButtons.add(editDocumentButton);
+		return quickActionMenuButtons;
+	}
+
+	@Override
+	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
+		List<Button> actionMenuButtons = new ArrayList<>();
 
 		displayDocumentButton = new DisplayButton($("DisplayDocumentView.displayDocument"), false) {
 			@Override
@@ -569,7 +559,6 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		};
 		displayDocumentButton.addStyleName(ValoTheme.BUTTON_LINK);
 		displayDocumentButton.addStyleName("display-document-link");
-		mainActionMenuButtonsLayout.addComponent(displayDocumentButton);
 
 		openDocumentButton = new LinkButton($("DisplayDocumentView.openDocument")) {
 			@Override
@@ -579,21 +568,14 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		};
 		openDocumentButton.addStyleName(ValoTheme.BUTTON_LINK);
 		openDocumentButton.addStyleName("open-document-link");
-		mainActionMenuButtonsLayout.addComponent(openDocumentButton);
 
 		if (documentVO.getContent() != null) {
 			downloadDocumentButton = new DownloadContentVersionLink(documentVO.getContent(), $("DisplayDocumentView.downloadDocument"));
 			downloadDocumentButton.addStyleName("download-document-link");
-			mainActionMenuButtonsLayout.addComponent(downloadDocumentButton);
 
 			openDocumentButton.setIcon(downloadDocumentButton.getIcon());
 			downloadDocumentButton.setIcon(new ThemeResource("images/icons/actions/download.png"));
 		}
-	}
-
-	@Override
-	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
-		List<Button> actionMenuButtons = new ArrayList<>();
 
 		editDocumentButton = new EditButton($("DisplayDocumentView.editDocument")) {
 			@Override
@@ -709,7 +691,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		};
 		finalizeButton.addStyleName(ValoTheme.BUTTON_LINK);
 
-		actionMenuButtons.add(editDocumentButton);
+		//		actionMenuButtons.add(editDocumentButton);
 
 		copyContentButton = new LinkButton($("DocumentContextMenu.copyContent")) {
 			@Override
@@ -1026,54 +1008,63 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	public void setCopyDocumentButtonState(ComponentState state) {
 		copyContentButton.setVisible(state.isVisible());
 		copyContentButton.setEnabled(state.isEnabled());
+		actionButtonStateChanged(copyContentButton);
 	}
 
 	@Override
 	public void setStartWorkflowButtonState(ComponentState state) {
 		startWorkflowButton.setVisible(state.isVisible());
 		startWorkflowButton.setEnabled(state.isEnabled());
+		actionButtonStateChanged(startWorkflowButton);
 	}
 
 	@Override
 	public void setUploadButtonState(ComponentState state) {
 		uploadButton.setVisible(state.isVisible());
 		uploadButton.setEnabled(state.isEnabled());
+		actionButtonStateChanged(uploadButton);
 	}
 
 	@Override
 	public void setCheckInButtonState(ComponentState state) {
 		checkInButton.setVisible(state.isVisible());
 		checkInButton.setEnabled(state.isEnabled());
+		actionButtonStateChanged(checkInButton);
 	}
 
 	@Override
 	public void setAlertWhenAvailableButtonState(ComponentState state) {
 		alertWhenAvailableButton.setVisible(state.isVisible());
 		alertWhenAvailableButton.setEnabled(state.isEnabled());
+		actionButtonStateChanged(alertWhenAvailableButton);
 	}
 
 	@Override
 	public void setCheckOutButtonState(ComponentState state) {
 		checkOutButton.setVisible(state.isVisible());
 		checkOutButton.setEnabled(state.isEnabled());
+		actionButtonStateChanged(checkOutButton);
 	}
 
 	@Override
 	public void setCartButtonState(ComponentState state) {
 		addToCartButton.setVisible(state.isVisible());
 		addToCartButton.setEnabled(state.isEnabled());
+		actionButtonStateChanged(addToCartButton);
 	}
 
 	@Override
 	public void setAddToOrRemoveFromSelectionButtonState(ComponentState state) {
 		addToOrRemoveFromSelectionButton.setVisible(state.isVisible());
 		addToOrRemoveFromSelectionButton.setEnabled(state.isEnabled());
+		actionButtonStateChanged(addToOrRemoveFromSelectionButton);
 	}
 
 	@Override
 	public void setGenerateMetadataButtonState(ComponentState state) {
 		reportGeneratorButton.setVisible(state.isVisible());
 		reportGeneratorButton.setEnabled(state.isEnabled());
+		actionButtonStateChanged(reportGeneratorButton);
 	}
 
 	@Override
@@ -1081,6 +1072,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		if (publishButton != null) {
 			publishButton.setEnabled(state.isEnabled());
 			publishButton.setVisible(state.isVisible());
+			actionButtonStateChanged(publishButton);
 		}
 	}
 
@@ -1088,18 +1080,21 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	public void setFinalizeButtonState(ComponentState state) {
 		finalizeButton.setVisible(state.isVisible());
 		finalizeButton.setEnabled(state.isVisible());
+		actionButtonStateChanged(finalizeButton);
 	}
 
 	@Override
 	public void setDisplayDocumentButtonState(ComponentState state) {
 		displayDocumentButton.setVisible(state.isVisible());
 		displayDocumentButton.setEnabled(state.isVisible());
+		actionButtonStateChanged(displayDocumentButton);
 	}
 
 	@Override
 	public void setOpenDocumentButtonState(ComponentState state) {
 		openDocumentButton.setVisible(state.isVisible());
 		openDocumentButton.setEnabled(state.isVisible());
+		actionButtonStateChanged(openDocumentButton);
 	}
 
 	@Override
@@ -1114,9 +1109,11 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	public void setEditDocumentButtonState(ComponentState state) {
 		editDocumentButton.setVisible(state.isVisible());
 		editDocumentButton.setEnabled(state.isEnabled());
+		actionButtonStateChanged(editDocumentButton);
 		if (renameContentButton != null) {
 			renameContentButton.setVisible(state.isVisible());
 			renameContentButton.setEnabled(state.isEnabled());
+			actionButtonStateChanged(renameContentButton);
 		}
 	}
 
@@ -1126,6 +1123,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		if (copyContentButton != null) {
 			copyContentButton.setVisible(state.isVisible());
 			copyContentButton.setEnabled(state.isEnabled());
+			actionButtonStateChanged(copyContentButton);
 		}
 	}
 
@@ -1133,24 +1131,28 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	public void setDeleteDocumentButtonState(ComponentState state) {
 		deleteDocumentButton.setVisible(state.isVisible());
 		deleteDocumentButton.setEnabled(state.isEnabled());
+		actionButtonStateChanged(deleteDocumentButton);
 	}
 
 	@Override
 	public void setAddAuthorizationButtonState(ComponentState state) {
 		addAuthorizationButton.setVisible(state.isVisible());
 		addAuthorizationButton.setEnabled(state.isEnabled());
+		actionButtonStateChanged(addAuthorizationButton);
 	}
 
 	@Override
 	public void setShareDocumentButtonState(ComponentState state) {
 		shareDocumentButton.setVisible(state.isVisible());
 		shareDocumentButton.setEnabled(state.isEnabled());
+		actionButtonStateChanged(shareDocumentButton);
 	}
 
 	@Override
 	public void setCreatePDFAButtonState(ComponentState state) {
 		createPDFAButton.setVisible(state.isVisible());
 		createPDFAButton.setEnabled(state.isEnabled());
+		actionButtonStateChanged(createPDFAButton);
 	}
 
 	@Override
@@ -1175,6 +1177,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		if (publicLinkButton != null) {
 			publicLinkButton.setVisible(published);
 		}
+		actionButtonStateChanged(publicLinkButton);
 	}
 
 	@Override
@@ -1218,7 +1221,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 	@Override
 	protected boolean isActionMenuBar() {
-		return Toggle.SEARCH_RESULTS_VIEWER.isEnabled();
+		return true;
 	}
 
 	@Override
@@ -1228,7 +1231,14 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 	@Override
 	protected boolean isFullWidthIfActionMenuAbsent() {
-		return Toggle.SEARCH_RESULTS_VIEWER.isEnabled();
+		return true;
+	}
+
+	@Override
+	public void openInWindow() {
+		DisplayDocumentViewImpl displayView = new DisplayDocumentViewImpl(documentVO, true, true);
+		Window window = new DisplayDocumentWindow(displayView);
+		getUI().addWindow(window);
 	}
 
 	@Override

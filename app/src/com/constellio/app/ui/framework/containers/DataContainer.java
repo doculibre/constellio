@@ -13,17 +13,17 @@ public abstract class DataContainer<T extends DataProvider> extends ContainerAda
 		super(new IndexedContainer());
 		this.dataProvider = dataProvider;
 
-		refresh();
+		forceRefresh();
 		dataProvider.addDataRefreshListener(new DataRefreshListener() {
 			@Override
 			public void dataRefresh() {
-				DataContainer.this.refresh();
+				DataContainer.this.forceRefresh();
 			}
 		});
 	}
 
 	@Override
-	public void refresh() {
+	public void forceRefresh() {
 		removeAllItems();
 		populateFromData(dataProvider);
 	}

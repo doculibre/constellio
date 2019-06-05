@@ -145,4 +145,9 @@ public class DefaultFavoritesTable extends BaseTable {
 		this.schemas = schemas;
 	}
 
+	@Override
+	public boolean isSelectColumn() {
+		return true;
+	}
+
 }

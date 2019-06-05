@@ -95,7 +95,6 @@ public class TableColumnsManager implements Serializable {
 			ArrayUtils.reverse(visibleColumns);
 			table.setVisibleColumns(visibleColumns);
 
-
 			for (Object propertyId : table.getContainerPropertyIds()) {
 				Align alignment = adjustAlignment(table.getColumnAlignment(propertyId));
 				table.setColumnAlignment(propertyId, alignment);

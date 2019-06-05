@@ -121,6 +121,11 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		batchProcessingExtensions = appLayerFactory.getExtensions().forCollection(view.getCollection()).batchProcessingExtensions;
 	}
 
+	@Override
+	public String getSavedSearchId() {
+		return searchID;
+	}
+
 	public boolean hasBatchProcessPermission(){
 		return getCurrentUser().has(CorePermissions.MODIFY_RECORDS_USING_BATCH_PROCESS).onSomething();
 	}
@@ -147,12 +152,11 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	@Override
 	public AdvancedSearchPresenter forRequestParameters(String params) {
 		if (StringUtils.isNotBlank(params)) {
-			String[] parts = params.split("/", 2);
+			String[] parts = params.split("/", 3);
 			searchID = parts[1];
 			SavedSearch search = getSavedSearch(searchID);
 			setSavedSearch(search);
 			updateUIContext(search);
-
 		} else {
 			searchExpression = StringUtils.stripToNull(view.getSearchExpression());
 			resetFacetSelection();

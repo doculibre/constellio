@@ -7,12 +7,14 @@ import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.CollectionInfoVO;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
+import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.Schemas;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -155,6 +157,16 @@ public class MetadataSchemaToVOBuilder implements Serializable {
 
 	protected MetadataToVOBuilder newMetadataToVOBuilder() {
 		return new MetadataToVOBuilder();
+	}
+
+	public MetadataSchemaVO buildCommon(VIEW_MODE viewMode, SessionContext sessionContext) {
+		MetadataSchemaVO schemaVO = new MetadataSchemaVO("null", sessionContext.getCurrentCollection(), new HashMap<>(), null);
+		MetadataToVOBuilder metadataToVOBuilder = newMetadataToVOBuilder();
+		MetadataVO titleMetadataVO = metadataToVOBuilder.build(Schemas.TITLE, sessionContext);
+		MetadataVO modifiedOnMetadataVO = metadataToVOBuilder.build(Schemas.MODIFIED_ON, sessionContext);
+		schemaVO.getMetadatas().add(titleMetadataVO);
+		schemaVO.getMetadatas().add(modifiedOnMetadataVO);
+		return schemaVO;
 	}
 
 }
