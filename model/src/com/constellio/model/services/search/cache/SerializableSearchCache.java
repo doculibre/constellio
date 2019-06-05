@@ -69,6 +69,8 @@ public class SerializableSearchCache implements Serializable {
 	public void clear() {
 		resultIds = new ArrayList<>();
 		highlights.clear();
+		//TODO FRANCIS VALIDATE FACET RECOMPUTING
+		facetsComputed = false;
 		size = -1;
 	}
 
