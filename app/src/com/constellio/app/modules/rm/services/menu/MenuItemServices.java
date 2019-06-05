@@ -13,6 +13,7 @@ import com.constellio.app.modules.rm.services.menu.behaviors.MenuItemActionBehav
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.util.FileIconUtils;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
@@ -70,11 +71,19 @@ public class MenuItemServices {
 						() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).open(params)));
 			}
 
-			if (!filteredActionTypes.contains(MenuItemActionType.DOCUMENT_EDIT.name())) {
+			if(!filteredActionTypes.contains(MenuItemActionType.DOCUMENT_EDIT.name())) {
 				boolean isEditActionPossible = documentRecordActionsServices.isEditActionPossible(record, user);
+
 				menuItemActions.add(buildMenuItemAction(MenuItemActionType.DOCUMENT_EDIT, isEditActionPossible,
-						"DisplayDocumentView.editDocument", FontAwesome.EDIT, -1, 300,
-						() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).copy(params)));
+						"DisplayDocumentView.editDocument", FontAwesome.EDIT, -1, 250,
+						() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).edit(params)));
+			}
+
+			if (!filteredActionTypes.contains(MenuItemActionType.DOCUMENT_EDIT.name())) {
+				boolean isCopyActionPossible = documentRecordActionsServices.isCopyActionPossible(record, user);
+				menuItemActions.add(buildMenuItemAction(MenuItemActionType.DOCUMENT_EDIT, isCopyActionPossible,
+						"DocumentContextMenu.copyContent", FontAwesome.EDIT, -1, 600,
+						() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).edit(params)));
 			}
 
 			if (!filteredActionTypes.contains(MenuItemActionType.DOCUMENT_DOWNLOAD.name())) {
@@ -96,10 +105,10 @@ public class MenuItemServices {
 			}
 
 			if (!filteredActionTypes.contains(MenuItemActionType.DOCUMENT_COPY.name())) {
-				boolean isCopyActionPossible = documentRecordActionsServices.isCopyActionPossible(record, user);
-				menuItemActions.add(buildMenuItemAction(MenuItemActionType.DOCUMENT_COPY, isCopyActionPossible,
-						"DocumentContextMenu.copyContent", FontAwesome.COPY, -1, 600,
-						() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).edit(params)));
+				boolean isEditActionPossible = documentRecordActionsServices.isEditActionPossible(record, user);
+				menuItemActions.add(buildMenuItemAction(MenuItemActionType.DOCUMENT_COPY, isEditActionPossible,
+						"DocumentContextMenu.copyContent", FontAwesome.COPY, -1, 300,
+						() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).copy(params)));
 			}
 
 			if(!filteredActionTypes.contains(MenuItemActionType.DOCUMENT_FINALIZE.name())) {
@@ -114,20 +123,23 @@ public class MenuItemServices {
 
 			if(!filteredActionTypes.contains(MenuItemActionType.DOCUMENT_PUBLISH.name())) {
 				boolean isPublishPossible = documentRecordActionsServices.isPublishActionPossible(record, user);
-				MenuItemAction menuItemAction;
-				Document document = rm.wrapDocument(record);
-				if(!document.isPublished()) {
-					menuItemAction = buildMenuItemAction(MenuItemActionType.DOCUMENT_PUBLISH, isPublishPossible,
+				MenuItemAction menuItemAction = buildMenuItemAction(MenuItemActionType.DOCUMENT_PUBLISH, isPublishPossible,
 							"DocumentContextMenu.publish", null, -1, 800,
 							() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).publish(params));
-				} else {
-					menuItemAction = buildMenuItemAction(MenuItemActionType.DOCUMENT_PUBLISH, isPublishPossible,
-							"DocumentContextMenu.unpublish", null,-1 ,800,
-							() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).unPublish(params));
-				}
 
 				menuItemActions.add(menuItemAction);
 			}
+
+			if(!filteredActionTypes.contains(MenuItemActionType.DOCUMENT_UNPUBLISH.name())) {
+				boolean isUnPublishActionPossible = documentRecordActionsServices.isUnPublishActionPossible(record, user);
+
+				MenuItemAction menuItemAction = buildMenuItemAction(MenuItemActionType.DOCUMENT_UNPUBLISH, isUnPublishActionPossible,
+						"DocumentContextMenu.unpublish", null,-1 ,800,
+						() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).unPublish(params));
+
+				menuItemActions.add(menuItemAction);
+			}
+
 
 			if(!filteredActionTypes.contains(MenuItemActionType.DOCUMENT_CREATE_PDF.name())) {
 				boolean isCreatePdfActionPossible = documentRecordActionsServices.isCreatePdfActionPossible(record, user);
@@ -141,8 +153,12 @@ public class MenuItemServices {
 			}
 
 			if(!filteredActionTypes.contains(MenuItemActionType.DOCUMENT_ADD_TO_SELECTION.name())) {
+				SessionContext sessionContext = params.getView().getSessionContext();
+
 				boolean isAddToSelectionPossible = documentRecordActionsServices.isAddToSelectionActionPossible(record, user,
-						params.getView().getSessionContext());
+						params.getView().getSessionContext())
+						&& (sessionContext.getSelectedRecordIds() == null
+							|| !sessionContext.getSelectedRecordIds().contains(record.getId()));
 
 				MenuItemAction menuItemAction = buildMenuItemAction(MenuItemActionType.DOCUMENT_ADD_TO_SELECTION,
 						isAddToSelectionPossible, "addToOrRemoveFromSelection.add", null, -1, 1000,
@@ -151,12 +167,15 @@ public class MenuItemServices {
 				menuItemActions.add(menuItemAction);
 			}
 
+
 			if(!filteredActionTypes.contains(MenuItemActionType.DOCUMENT_REMOVE_TO_SELECTION.name())) {
-				boolean isAddToSelectionPossible = documentRecordActionsServices.isRemoveToSelectionActionPossible(record, user,
-						params.getView().getSessionContext());
+				SessionContext sessionContext = params.getView().getSessionContext();
+				boolean isRemoveToSelectionPossible = documentRecordActionsServices.isRemoveToSelectionActionPossible(record, user)
+													  && sessionContext.getSelectedRecordIds()!= null
+													  && sessionContext.getSelectedRecordIds().contains(record.getId());
 
 				MenuItemAction menuItemAction = buildMenuItemAction(MenuItemActionType.DOCUMENT_ADD_TO_SELECTION,
-						isAddToSelectionPossible, "addToOrRemoveFromSelection.remove", null, -1, 1100,
+						isRemoveToSelectionPossible, "addToOrRemoveFromSelection.remove", null, -1, 1100,
 						() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).removeToSelection(params));
 
 				menuItemActions.add(menuItemAction);
@@ -186,10 +205,36 @@ public class MenuItemServices {
 				boolean isAddCartActionPossible = documentRecordActionsServices.isUploadActionPossible(record, user);
 
 				MenuItemAction menuItemAction = buildMenuItemAction(MenuItemActionType.DOCUMENT_UPLOAD,
-						isAddCartActionPossible, "DisplayFolderView.addToMyCart", null, -1, 1200,
+						isAddCartActionPossible, "DocumentContextMenu.upload", null, -1, 1200,
 						() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).upload(params));
 
 				menuItemActions.add(menuItemAction);
+			}
+
+			if(!filteredActionTypes.contains(MenuItemActionType.DOCUMENT_PRINT_LABEL.name())) {
+				boolean isPrintLabelPossible = documentRecordActionsServices.isPrintLabelActionPossible(record, user);
+
+				MenuItemAction menuItemAction = buildMenuItemAction(MenuItemActionType.DOCUMENT_PRINT_LABEL,
+						isPrintLabelPossible, "DisplayFolderView.printLabel", null, -1, 1300,
+						() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).printLabel(params));
+
+				menuItemActions.add(menuItemAction);
+			}
+
+			if(!filteredActionTypes.contains(MenuItemActionType.DOCUMENT_CHECK_IN.name())) {
+				boolean isCheckInActionPossible = documentRecordActionsServices.isCheckInActionPossible(record, user);
+
+				MenuItemAction menuItemAction = buildMenuItemAction(MenuItemActionType.DOCUMENT_CHECK_IN,
+						isCheckInActionPossible, "DocumentContextMenu.checkIn", null, -1, 1400,
+						() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).checkIn(params));
+			}
+
+			if(!filteredActionTypes.contains(MenuItemActionType.DOCUMENT_CHECK_OUT.name())) {
+				boolean isCheckInActionPossible = documentRecordActionsServices.isCheckOutActionPossible(record, user);
+
+				MenuItemAction menuItemAction = buildMenuItemAction(MenuItemActionType.DOCUMENT_CHECK_OUT,
+						isCheckInActionPossible, "DocumentContextMenu.checkOut", null, -1, 1400,
+						() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).checkOut(params));
 			}
 
 		} else if (record.isOfSchemaType(Folder.SCHEMA_TYPE)) {

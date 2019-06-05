@@ -300,6 +300,26 @@ public class RMModuleExtensions implements ModuleExtensions {
 		});
 	}
 
+	public boolean isUnPublishActionPossibleOnDocument(final Document document, final User user) {
+		return documentExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<DocumentExtension>() {
+			@Override
+			public ExtensionBooleanResult call(DocumentExtension behavior) {
+				return behavior.isUnPublishActionPossible(
+						new DocumentExtension.DocumentExtensionActionPossibleParams(document, user));
+			}
+		});
+	}
+
+	public boolean isPrintLabelActionPossibleOnDocument(final Document document, final User user) {
+		return documentExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<DocumentExtension>() {
+			@Override
+			public ExtensionBooleanResult call(DocumentExtension behavior) {
+				return behavior.isPublishActionPossible(
+						new DocumentExtension.DocumentExtensionActionPossibleParams(document, user));
+			}
+		});
+	}
+
 	public boolean isPublishActionPossibleOnDocument(final Document document, final User user) {
 		return documentExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<DocumentExtension>() {
 			@Override
