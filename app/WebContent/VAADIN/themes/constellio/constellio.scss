@@ -2066,6 +2066,26 @@ $popup-view-z-index: 3;
   			.select-deselect-all-button {
   				left: 16px;
   			}
+  			
+  			.count-label {
+			    position: relative;
+			    top: 6px;
+			    left: 20px;
+			    color: #197de1;
+			    font-weight: 500;
+  			}
+  			
+  			.previous-button {
+  				padding-left: 20px;
+  			}
+  		}
+  		
+  		.selection-action-menu-bar {
+  			.v-menubar-submenu-indicator + .v-menubar-menuitem-caption:after {
+				content:url('images/icons/font-awesome/16x16/ellipsis-v-blue2.png'); 
+			    position: relative;
+			    top: 5px;
+			}
   		}
   		
   		.close-button-viewer-metadata-layout {
@@ -2093,7 +2113,7 @@ $popup-view-z-index: 3;
 	  				border: none;
 	  			}
 	  			
-	  			.v-table-cell-content-nullviewer-results-table-searchResult, .v-table-cell-content-nullviewer-results-table-listMode {
+	  			.v-table-cell-content-nullviewer-results-table-listMode-searchResult {
 	  				vertical-align: top;
 	  			}
   			}

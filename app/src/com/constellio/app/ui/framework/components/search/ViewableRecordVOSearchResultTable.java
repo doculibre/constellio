@@ -13,12 +13,8 @@ import com.constellio.app.ui.pages.search.SearchPresenter;
 import com.constellio.app.ui.pages.search.SearchView;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingButton;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingModifyingOneMetadataButton;
-import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Component;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Label;
 import com.vaadin.ui.VerticalLayout;
-import com.vaadin.ui.themes.ValoTheme;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -153,37 +149,22 @@ public class ViewableRecordVOSearchResultTable extends ViewableRecordVOTablePane
 
 		int size = recordVOContainer.size();
 		String key = size <= 1 ? "SearchResultTable.count1" : "SearchResultTable.counts";
-		Label totalCount = new Label($(key, size, qtime));
-		totalCount.addStyleName(ValoTheme.LABEL_BOLD);
+		String totalCount = $(key, size, qtime);
+		setCountCaption(totalCount);
 
-		HorizontalLayout count = new HorizontalLayout(totalCount);
-		count.addStyleName("viewable-search-result-table-count");
-		count.setComponentAlignment(totalCount, Alignment.MIDDLE_LEFT);
-		count.setSizeUndefined();
-		count.setSpacing(true);
-
+		List<Component> selectionActionButtons = new ArrayList<>();
 		for (Component component : alwaysActive) {
-			count.addComponent(component);
-			count.setComponentAlignment(component, Alignment.MIDDLE_LEFT);
+			selectionActionButtons.add(component);
 		}
-
-		final HorizontalLayout selection = new HorizontalLayout();
-		selection.addStyleName("viewable-search-result-table-selection");
-		selection.setSizeUndefined();
-		selection.setSpacing(true);
 		for (Component component : extra) {
 			if (component instanceof BatchProcessingButton || component instanceof BatchProcessingModifyingOneMetadataButton) {
 				component.setEnabled(recordVOContainer != null && recordVOContainer.size() > 0);
 			} else {
 				component.setEnabled(selectedItemIds.size() > 0);
 			}
-			selection.addComponent(component);
-			selection.setComponentAlignment(component, Alignment.MIDDLE_LEFT);
+			selectionActionButtons.add(component);
 		}
-
-		VerticalLayout summaryBar = new VerticalLayout(count, selection);
-		summaryBar.addStyleName("viewable-search-result-table-summary-bar");
-		summaryBar.setWidth("100%");
+		setSelectionActionButtons(selectionActionButtons);
 
 		addSelectionChangeListener(new BaseTable.SelectionChangeListener() {
 			@Override
@@ -197,10 +178,11 @@ public class ViewableRecordVOSearchResultTable extends ViewableRecordVOTablePane
 						component.setEnabled(somethingSelected);
 					}
 				}
+				setSelectionActionButtons(selectionActionButtons);
 			}
 		});
 
-		return summaryBar;
+		return null;
 	}
 
 	private double getLastCallQTime() {

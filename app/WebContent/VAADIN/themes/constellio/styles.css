@@ -14691,6 +14691,24 @@ div.v-layout.v-horizontal.v-widget {
 	left: 16px;
 }
 
+.constellio .viewable-record-table-panel .v-slot-selection-buttons-layout .count-label {
+	position: relative;
+	top: 6px;
+	left: 20px;
+	color: #197de1;
+	font-weight: 500;
+}
+
+.constellio .viewable-record-table-panel .v-slot-selection-buttons-layout .previous-button {
+	padding-left: 20px;
+}
+
+.constellio .viewable-record-table-panel .selection-action-menu-bar .v-menubar-submenu-indicator + .v-menubar-menuitem-caption:after {
+	content: url('images/icons/font-awesome/16x16/ellipsis-v-blue2.png');
+	position: relative;
+	top: 5px;
+}
+
 .constellio .viewable-record-table-panel .close-button-viewer-metadata-layout {
 	position: absolute;
 }
@@ -14715,7 +14733,7 @@ div.v-layout.v-horizontal.v-widget {
 	border: none;
 }
 
-.constellio .viewable-record-table-panel .viewable-record-table .v-table-body .v-table-cell-content-nullviewer-results-table-searchResult, .constellio .viewable-record-table-panel .viewable-record-table .v-table-body .v-table-cell-content-nullviewer-results-table-listMode {
+.constellio .viewable-record-table-panel .viewable-record-table .v-table-body .v-table-cell-content-nullviewer-results-table-listMode-searchResult {
 	vertical-align: top;
 }
 
