@@ -42,6 +42,7 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.users.UserServices;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
+import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.server.StreamResource;
@@ -190,6 +191,7 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 		if (Document.SCHEMA_TYPE.equals(schemaType)) {
 			Component zipButton = new Link($("ReportViewer.download", "(zip)"),
 					new DownloadStreamResource(presenter.getZippedContents(), presenter.getZippedContentsFilename()));
+			zipButton.setIcon(FontAwesome.FILE_ARCHIVE_O);
 			zipButton.addStyleName(ValoTheme.BUTTON_LINK);
 			selectionActions.add(zipButton);
 

@@ -329,6 +329,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 				(Component) buildSelectAllButton(), buildAddToSelectionButton(), buildSavedSearchButton());
 		Component zipButton = new Link($("ReportViewer.download", "(zip)"),
 				new DownloadStreamResource(presenter.getZippedContents(), presenter.getZippedContentsFilename()));
+		zipButton.setIcon(FontAwesome.FILE_ARCHIVE_O);
 		zipButton.addStyleName(ValoTheme.BUTTON_LINK);
 		zipButton.setVisible(presenter.isAllowDownloadZip());
 		return results.createSummary(actions, zipButton);
