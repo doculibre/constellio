@@ -4,10 +4,13 @@ import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+
+import static org.apache.commons.lang.StringUtils.isNotBlank;
 
 public class FolderRecordActionsServices {
 
@@ -20,8 +23,27 @@ public class FolderRecordActionsServices {
 	}
 
 	public boolean isAddDocumentActionPossible(Record record, User user) {
-		return hasUserWriteAccess(record, user) && isEditActionPossible(record, user) &&
-			   rmModuleExtensions.isAddDocumentActionPossibleOnFolder(rm.wrapFolder(record), user);
+		Folder folder = rm.wrapFolder(record);
+		if (user.hasWriteAccess().on(folder) && isEditActionPossible(record, user) &&
+			rmModuleExtensions.isAddDocumentActionPossibleOnFolder(rm.wrapFolder(record), user) &&
+			user.has(RMPermissionsTo.CREATE_DOCUMENTS).on(folder)) {
+			if (folder.getPermissionStatus().isInactive()) {
+				if (folder.getBorrowed() != null && folder.getBorrowed()) {
+					return user.has(RMPermissionsTo.MODIFY_INACTIVE_BORROWED_FOLDER).on(folder) &&
+						   user.has(RMPermissionsTo.CREATE_INACTIVE_DOCUMENT).on(folder);
+				}
+				return user.has(RMPermissionsTo.CREATE_INACTIVE_DOCUMENT).on(folder);
+			}
+			if (folder.getPermissionStatus().isSemiActive()) {
+				if (folder.getBorrowed() != null && folder.getBorrowed()) {
+					return user.has(RMPermissionsTo.MODIFY_SEMIACTIVE_BORROWED_FOLDER).on(folder) &&
+						   user.has(RMPermissionsTo.CREATE_SEMIACTIVE_DOCUMENT).on(folder);
+				}
+				return user.has(RMPermissionsTo.CREATE_SEMIACTIVE_DOCUMENT).on(folder);
+			}
+			return true;
+		}
+		return false;
 	}
 
 	public boolean isMoveActionPossible(Record record, User user) {
@@ -30,8 +52,27 @@ public class FolderRecordActionsServices {
 	}
 
 	public boolean isAddSubFolderActionPossible(Record record, User user) {
-		return hasUserWriteAccess(record, user) && isEditActionPossible(record, user) &&
-			   rmModuleExtensions.isAddSubFolderActionPossibleOnFolder(rm.wrapFolder(record), user);
+		Folder folder = rm.wrapFolder(record);
+		if (user.hasWriteAccess().on(folder) && isEditActionPossible(record, user) &&
+			rmModuleExtensions.isAddSubFolderActionPossibleOnFolder(rm.wrapFolder(record), user) &&
+			user.hasAll(RMPermissionsTo.CREATE_SUB_FOLDERS, RMPermissionsTo.CREATE_FOLDERS).on(folder)) {
+			if (folder.getPermissionStatus().isInactive()) {
+				if (folder.getBorrowed() != null && folder.getBorrowed()) {
+					return user.has(RMPermissionsTo.MODIFY_INACTIVE_BORROWED_FOLDER).on(folder) && user
+							.has(RMPermissionsTo.CREATE_SUB_FOLDERS_IN_INACTIVE_FOLDERS).on(folder);
+				}
+				return user.has(RMPermissionsTo.CREATE_SUB_FOLDERS_IN_INACTIVE_FOLDERS).on(folder);
+			}
+			if (folder.getPermissionStatus().isSemiActive()) {
+				if (folder.getBorrowed() != null && folder.getBorrowed()) {
+					return user.has(RMPermissionsTo.MODIFY_SEMIACTIVE_BORROWED_FOLDER).on(folder) && user
+							.has(RMPermissionsTo.CREATE_SUB_FOLDERS_IN_SEMIACTIVE_FOLDERS).on(folder);
+				}
+				return user.has(RMPermissionsTo.CREATE_SUB_FOLDERS_IN_SEMIACTIVE_FOLDERS).on(folder);
+			}
+			return true;
+		}
+		return false;
 	}
 
 	public boolean isDisplayActionPossible(Record record, User user) {
@@ -40,13 +81,34 @@ public class FolderRecordActionsServices {
 	}
 
 	public boolean isEditActionPossible(Record record, User user) {
+		Folder folder = rm.wrapFolder(record);
+		if (isNotBlank(folder.getLegacyId()) && !user.has(RMPermissionsTo.MODIFY_IMPORTED_FOLDERS).on(folder)) {
+			return false;
+		}
 		return hasUserWriteAccess(record, user) &&
-			   rmModuleExtensions.isEditActionPossibleOnFolder(rm.wrapFolder(record), user);
+			   rmModuleExtensions.isEditActionPossibleOnFolder(folder, user);
 	}
 
 	public boolean isDeleteActionPossible(Record record, User user) {
-		return user.hasDeleteAccess().on(record) &&
-			   rmModuleExtensions.isDeleteActionPossibleOnFolder(rm.wrapFolder(record), user);
+		Folder folder = rm.wrapFolder(record);
+		if (user.hasDeleteAccess().on(record) && rmModuleExtensions.isDeleteActionPossibleOnFolder(folder, user)) {
+			if (folder.getPermissionStatus().isInactive()) {
+				if (folder.getBorrowed() != null && folder.getBorrowed()) {
+					return user.has(RMPermissionsTo.MODIFY_INACTIVE_BORROWED_FOLDER).on(folder) && user
+							.has(RMPermissionsTo.DELETE_INACTIVE_FOLDERS).on(folder);
+				}
+				return user.has(RMPermissionsTo.DELETE_INACTIVE_FOLDERS).on(folder);
+			}
+			if (folder.getPermissionStatus().isSemiActive()) {
+				if (folder.getBorrowed() != null && folder.getBorrowed()) {
+					return user.has(RMPermissionsTo.MODIFY_SEMIACTIVE_BORROWED_FOLDER).on(folder) && user
+							.has(RMPermissionsTo.DELETE_SEMIACTIVE_FOLDERS).on(folder);
+				}
+				return user.has(RMPermissionsTo.DELETE_SEMIACTIVE_FOLDERS).on(folder);
+			}
+			return true;
+		}
+		return false;
 	}
 
 	public boolean isDuplicateActionPossible(Record record, User user) {
@@ -62,13 +124,21 @@ public class FolderRecordActionsServices {
 	// linkTo
 
 	public boolean isAddAuthorizationActionPossible(Record record, User user) {
-		return hasUserWriteAccess(record, user) && isEditActionPossible(record, user) &&
+		return isEditActionPossible(record, user) &&
+			   user.has(RMPermissionsTo.MANAGE_FOLDER_AUTHORIZATIONS).on(record) &&
+			   user.hasWriteAndDeleteAccess().on(record) &&
 			   rmModuleExtensions.isAddAuthorizationActionPossibleOnFolder(rm.wrapFolder(record), user);
 	}
 
 	public boolean isShareActionPossible(Record record, User user) {
-		return hasUserWriteAccess(record, user) &&
-			   rmModuleExtensions.isShareActionPossibleOnFolder(rm.wrapFolder(record), user);
+		Folder folder = rm.wrapFolder(record);
+		if (!hasUserWriteAccess(record, user) || !user.has(RMPermissionsTo.SHARE_FOLDER).on(folder) ||
+			(folder.getPermissionStatus().isInactive() && !user.has(RMPermissionsTo.SHARE_A_INACTIVE_FOLDER).on(folder)) ||
+			(folder.getPermissionStatus().isSemiActive() && !user.has(RMPermissionsTo.SHARE_A_SEMIACTIVE_FOLDER).on(folder)) ||
+			(isNotBlank(folder.getLegacyId()) && !user.has(RMPermissionsTo.SHARE_A_IMPORTED_FOLDER).on(folder))) {
+			return false;
+		}
+		return rmModuleExtensions.isShareActionPossibleOnFolder(rm.wrapFolder(record), user);
 	}
 
 	public boolean isAddToCartActionPossible(Record record, User user) {
@@ -83,166 +153,72 @@ public class FolderRecordActionsServices {
 		return hasUserWriteAccess(record, user) &&
 			   rmModuleExtensions.isEditActionPossibleOnFolder(rm.wrapFolder(record), user);
 	}
-	*/
-
-	public boolean isBorrowActionPossible(Record record, User user) {
-		Folder folder = rm.wrapFolder(record);
-		return hasUserWriteAccess(record, user) && isEditActionPossible(record, user) && !folder.getBorrowed() &&
-			   rmModuleExtensions.isBorrowingActionPossibleOnFolder(folder, user);
-	}
-
-	public boolean isReturnActionPossible(Record record, User user) {
-		Folder folder = rm.wrapFolder(record);
-		return hasUserWriteAccess(record, user) && isEditActionPossible(record, user) && folder.getBorrowed() &&
-			   rmModuleExtensions.isReturnActionPossibleOnFolder(rm.wrapFolder(record), user);
-	}
-
-	// TODO rendu ici
-
-	public boolean isPrintLabelActionPossible(Record record, User user) {
-		return hasUserWriteAccess(record, user) &&
-			   rmModuleExtensions.isEditActionPossibleOnFolder(rm.wrapFolder(record), user);
-	}
-
-	public boolean isGenerateReportActionPossible(Record record, User user) {
-		return hasUserWriteAccess(record, user) &&
-			   rmModuleExtensions.isEditActionPossibleOnFolder(rm.wrapFolder(record), user);
-	}
 
 	public boolean isStartWorkflowActionPossible(Record record, User user) {
 		return hasUserWriteAccess(record, user) &&
 			   rmModuleExtensions.isEditActionPossibleOnFolder(rm.wrapFolder(record), user);
 	}
+	*/
+
+	public boolean isBorrowActionPossible(Record record, User user) {
+		Folder folder = rm.wrapFolder(record);
+		if (!hasUserReadAccess(record, user) ||
+			(folder.getBorrowed() != null && folder.getBorrowed())) {
+			return false;
+		} else if (folder.getContainer() != null) {
+			ContainerRecord containerRecord = rm.getContainerRecord(folder.getContainer());
+			if (containerRecord.getBorrowed() != null && containerRecord.getBorrowed()) {
+				return false;
+			}
+		}
+		return user.hasAll(RMPermissionsTo.BORROW_FOLDER, RMPermissionsTo.BORROWING_FOLDER_DIRECTLY).on(folder) &&
+			   rmModuleExtensions.isBorrowingActionPossibleOnFolder(folder, user);
+	}
+
+	public boolean isReturnActionPossible(Record record, User user) {
+		Folder folder = rm.wrapFolder(record);
+		boolean hasPermissionToReturnOtherUsersFolder = user.has(RMPermissionsTo.RETURN_OTHER_USERS_FOLDERS).on(folder);
+		boolean hasPermissionToReturnOwnFolderDirectly = user.has(RMPermissionsTo.BORROW_FOLDER).on(folder) &&
+														 user.has(RMPermissionsTo.BORROWING_FOLDER_DIRECTLY).on(folder);
+		if (!user.hasReadAccess().on(folder) ||
+			(folder.getBorrowed() != null && !folder.getBorrowed())) {
+			return false;
+		} else if (!hasPermissionToReturnOtherUsersFolder && !user.getId().equals(folder.getBorrowUserEntered())) {
+			return false;
+		} else if (!hasPermissionToReturnOwnFolderDirectly && user.getId().equals(folder.getBorrowUserEntered())) {
+			return false;
+		}
+		return rmModuleExtensions.isReturnActionPossibleOnFolder(rm.wrapFolder(record), user);
+	}
+
+	public boolean isPrintLabelActionPossible(Record record, User user) {
+		Folder folder = rm.wrapFolder(record);
+		if (hasUserReadAccess(record, user) && rmModuleExtensions.isPrintLabelActionPossibleOnFolder(folder, user)) {
+			if (folder.getPermissionStatus().isInactive()) {
+				if (folder.getBorrowed() != null && folder.getBorrowed()) {
+					return user.has(RMPermissionsTo.MODIFY_INACTIVE_BORROWED_FOLDER).on(folder) &&
+						   user.has(RMPermissionsTo.MODIFY_INACTIVE_FOLDERS).on(folder);
+				}
+				return user.has(RMPermissionsTo.MODIFY_INACTIVE_FOLDERS).on(folder);
+			}
+			if (folder.getPermissionStatus().isSemiActive()) {
+				if (folder.getBorrowed() != null && folder.getBorrowed()) {
+					return user.has(RMPermissionsTo.MODIFY_SEMIACTIVE_BORROWED_FOLDER).on(folder) &&
+						   user.has(RMPermissionsTo.MODIFY_SEMIACTIVE_FOLDERS).on(folder);
+				}
+				return user.has(RMPermissionsTo.MODIFY_SEMIACTIVE_FOLDERS).on(folder);
+			}
+			return true;
+		}
+		return false;
+	}
+
+	public boolean isGenerateReportActionPossible(Record record, User user) {
+		return hasUserWriteAccess(record, user) &&
+			   rmModuleExtensions.isGenerateReportActionPossibleOnFolder(rm.wrapFolder(record), user);
+	}
 
 	/*
-
-			addDocumentButton = new AddButton($("DisplayFolderView.addDocument")) {
-				@Override
-				protected void buttonClick(ClickEvent event) {
-					presenter.addDocumentButtonClicked();
-				}
-			};
-
-			moveInFolderButton = new WindowButton($("DisplayFolderView.parentFolder"), $("DisplayFolderView.parentFolder")
-					, WindowButton.WindowConfiguration.modalDialog("50%", "20%")) {
-				@Override
-				protected Component buildWindowContent() {
-					VerticalLayout verticalLayout = new VerticalLayout();
-					verticalLayout.setSpacing(true);
-					final LookupFolderField field = new LookupFolderField();
-					verticalLayout.addComponent(field);
-					BaseButton saveButton = new BaseButton($("save")) {
-						@Override
-						protected void buttonClick(ClickEvent event) {
-							String parentId = (String) field.getValue();
-							try {
-								presenter.parentFolderButtonClicked(parentId);
-							} catch (Throwable e) {
-								LOGGER.warn("error when trying to modify folder parent to " + parentId, e);
-								showErrorMessage("DisplayFolderView.parentFolderException");
-							}
-							moveInFolderButton.getWindow().close();
-						}
-					};
-					saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
-					HorizontalLayout hLayout = new HorizontalLayout();
-					hLayout.setSizeFull();
-					hLayout.addComponent(saveButton);
-					hLayout.setComponentAlignment(saveButton, Alignment.BOTTOM_RIGHT);
-					verticalLayout.addComponent(hLayout);
-					return verticalLayout;
-				}
-			};
-
-			addSubFolderButton = new AddButton($("DisplayFolderView.addSubFolder")) {
-				@Override
-				protected void buttonClick(ClickEvent event) {
-					presenter.addSubFolderButtonClicked();
-				}
-			};
-
-			displayFolderButton = new DisplayButton($("DisplayFolderView.displayFolder")) {
-				@Override
-				protected void buttonClick(ClickEvent event) {
-					presenter.displayFolderButtonClicked();
-				}
-			};
-
-			editFolderButton = new EditButton($("DisplayFolderView.editFolder")) {
-				@Override
-				protected void buttonClick(ClickEvent event) {
-					presenter.editFolderButtonClicked();
-				}
-			};
-
-			deleteFolderButton = new Button();
-			if (!presenter.isNeedingAReasonToDeleteFolder()) {
-				deleteFolderButton = new DeleteButton($("DisplayFolderView.deleteFolder"), false) {
-					@Override
-					protected void confirmButtonClick(ConfirmDialog dialog) {
-						presenter.deleteFolderButtonClicked(null);
-					}
-
-					@Override
-					protected String getConfirmDialogMessage() {
-						return $("ConfirmDialog.confirmDeleteWithRecord", recordVO.getTitle());
-					}
-				};
-			} else {
-				deleteFolderButton = new DeleteWithJustificationButton($("DisplayFolderView.deleteFolder"), false) {
-					@Override
-					protected void deletionConfirmed(String reason) {
-						presenter.deleteFolderButtonClicked(reason);
-					}
-
-					@Override
-					public Component getRecordCaption() {
-						return new ReferenceDisplay(recordVO);
-					}
-				};
-			}
-
-			duplicateFolderButton = new WindowButton($("DisplayFolderView.duplicateFolder"),
-					$("DisplayFolderView.duplicateFolderOnlyOrHierarchy")) {
-				@Override
-				protected Component buildWindowContent() {
-					BaseButton folder = new BaseButton($("DisplayFolderView.folderOnly")) {
-						@Override
-						protected void buttonClick(ClickEvent event) {
-							presenter.duplicateFolderButtonClicked();
-						}
-					};
-
-					BaseButton structure = new BaseButton($("DisplayFolderView.hierarchy")) {
-						@Override
-						protected void buttonClick(ClickEvent event) {
-							presenter.duplicateStructureButtonClicked();
-						}
-					};
-
-					BaseButton cancel = new BaseButton($("cancel")) {
-						@Override
-						protected void buttonClick(ClickEvent event) {
-							getWindow().close();
-						}
-					};
-					cancel.addStyleName(ValoTheme.BUTTON_LINK);
-
-					HorizontalLayout layout = new HorizontalLayout(folder, structure, cancel);
-					layout.setComponentAlignment(folder, Alignment.TOP_LEFT);
-					layout.setComponentAlignment(structure, Alignment.TOP_LEFT);
-					layout.setComponentAlignment(cancel, Alignment.TOP_RIGHT);
-					layout.setExpandRatio(cancel, 1);
-
-					layout.setWidth("95%");
-					layout.setSpacing(true);
-
-					VerticalLayout wrapper = new VerticalLayout(layout);
-					wrapper.setSizeFull();
-
-					return wrapper;
-				}
-			};
 
 			linkToFolderButton = new LinkButton($("DisplayFolderView.linkToFolder")) {
 				@Override
@@ -252,76 +228,8 @@ public class FolderRecordActionsServices {
 			};
 			linkToFolderButton.setVisible(false);
 
-			addAuthorizationButton = new LinkButton($("DisplayFolderView.addAuthorization")) {
-				@Override
-				protected void buttonClick(ClickEvent event) {
-					presenter.addAuthorizationButtonClicked();
-				}
-			};
-
-			shareFolderButton = new LinkButton($("DisplayFolderView.shareFolder")) {
-				@Override
-				protected void buttonClick(ClickEvent event) {
-					presenter.shareFolderButtonClicked();
-				}
-			};
-
-			addToCartButton = buildAddToCartButton();
-			addToCartMyCartButton = buildAddToMyCartButton();
-
 			addToOrRemoveFromSelectionButton = new AddToOrRemoveFromSelectionButton(recordVO,
 					getSessionContext().getSelectedRecordIds().contains(recordVO.getId()));
-
-			Factory<List<LabelTemplate>> customLabelTemplatesFactory = new Factory<List<LabelTemplate>>() {
-				@Override
-				public List<LabelTemplate> get() {
-					return presenter.getCustomTemplates();
-				}
-			};
-			Factory<List<LabelTemplate>> defaultLabelTemplatesFactory = new Factory<List<LabelTemplate>>() {
-				@Override
-				public List<LabelTemplate> get() {
-					return presenter.getDefaultTemplates();
-				}
-			};
-			try {
-				printLabelButton = new LabelButtonV2($("DisplayFolderView.printLabel"),
-						$("DisplayFolderView.printLabel"), customLabelTemplatesFactory, defaultLabelTemplatesFactory,
-						getConstellioFactories().getAppLayerFactory(), getSessionContext().getCurrentCollection(), getSessionContext().getCurrentUser(), recordVO);
-			} catch (Exception e) {
-				showErrorMessage(e.getMessage());
-			}
-
-			borrowButton = buildBorrowButton();
-
-			returnFolderButton = buildReturnFolderButton();
-
-			reminderReturnFolderButton = new BaseButton($("DisplayFolderView.reminderReturnFolder")) {
-				@Override
-				protected void buttonClick(ClickEvent event) {
-					presenter.reminderReturnFolder();
-				}
-			};
-
-			alertWhenAvailableButton = new BaseButton($("RMObject.alertWhenAvailable")) {
-				@Override
-				protected void buttonClick(ClickEvent event) {
-					presenter.alertWhenAvailable();
-				}
-			};
-
-			reportGeneratorButton = new ReportTabButton($("SearchView.metadataReportTitle"), $("SearchView.metadataReportTitle"), presenter.getApplayerFactory(),
-					getCollection(), false, false, presenter.buildReportPresenter(), getSessionContext()) {
-				@Override
-				public void buttonClick(ClickEvent event) {
-					setRecordVoList(recordVO);
-					super.buttonClick(event);
-				}
-			};
-
-			startWorkflowButton = new StartWorkflowButton();
-			startWorkflowButton.setVisible(presenter.hasPermissionToStartWorkflow());
-
 	 */
 
 	private boolean hasUserWriteAccess(Record record, User user) {
@@ -336,7 +244,7 @@ public class FolderRecordActionsServices {
 		return user.has(RMPermissionsTo.USE_GROUP_CART).globally();
 	}
 
-	public boolean hasUserPermissionToUseMyCart(User user) {
+	private boolean hasUserPermissionToUseMyCart(User user) {
 		return user.has(RMPermissionsTo.USE_MY_CART).globally();
 	}
 

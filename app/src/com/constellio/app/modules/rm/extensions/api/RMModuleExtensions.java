@@ -201,6 +201,16 @@ public class RMModuleExtensions implements ModuleExtensions {
 				(behavior) -> behavior.isReturnActionPossible(new FolderExtensionActionPossibleParams(folder, user)));
 	}
 
+	public boolean isPrintLabelActionPossibleOnFolder(final Folder folder, final User user) {
+		return folderExtensions.getBooleanValue(true,
+				(behavior) -> behavior.isPrintLabelActionPossible(new FolderExtensionActionPossibleParams(folder, user)));
+	}
+
+	public boolean isGenerateReportActionPossibleOnFolder(final Folder folder, final User user) {
+		return folderExtensions.getBooleanValue(true,
+				(behavior) -> behavior.isGenerateReportActionPossible(new FolderExtensionActionPossibleParams(folder, user)));
+	}
+
 	public boolean isDisplayActionPossibleOnDocument(final Document document, final User user) {
 		return documentExtensions.getBooleanValue(true,
 				(behavior) -> behavior.isDisplayActionPossible(

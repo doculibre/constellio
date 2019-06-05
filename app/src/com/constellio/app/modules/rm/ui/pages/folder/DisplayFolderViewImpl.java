@@ -112,7 +112,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import static com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration.modalDialog;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolderView, DropHandler {
@@ -482,8 +481,8 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				}
 			};
 
-			startWorkflowButton = new StartWorkflowButton();
-			startWorkflowButton.setVisible(presenter.hasPermissionToStartWorkflow());
+			//startWorkflowButton = new StartWorkflowButton();
+			//startWorkflowButton.setVisible(presenter.hasPermissionToStartWorkflow());
 
 			//		actionMenuButtons.add(addDocumentButton);
 			//		actionMenuButtons.add(addSubFolderButton);
@@ -1219,28 +1218,6 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	@Override
 	public void setTaxonomyCode(String taxonomyCode) {
 		this.taxonomyCode = taxonomyCode;
-	}
-
-	private class StartWorkflowButton extends WindowButton {
-		public StartWorkflowButton() {
-			super($("TasksManagementView.startWorkflowBeta"), $("TasksManagementView.startWorkflow"), modalDialog("75%", "75%"));
-		}
-
-		@Override
-		protected Component buildWindowContent() {
-			RecordVOTable table = new RecordVOTable(presenter.getWorkflows());
-			table.setWidth("98%");
-			table.addItemClickListener(new ItemClickListener() {
-				@Override
-				public void itemClick(ItemClickEvent event) {
-					RecordVOItem item = (RecordVOItem) event.getItem();
-					presenter.workflowStartRequested(item.getRecord());
-					getWindow().close();
-				}
-			});
-			return table;
-		}
-
 	}
 
 	@Override

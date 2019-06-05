@@ -35,6 +35,14 @@ public abstract class FolderExtension {
 		return ExtensionBooleanResult.NOT_APPLICABLE;
 	}
 
+	public ExtensionBooleanResult isPrintLabelActionPossible(FolderExtensionActionPossibleParams params) {
+		return ExtensionBooleanResult.NOT_APPLICABLE;
+	}
+
+	public ExtensionBooleanResult isGenerateReportActionPossible(FolderExtensionActionPossibleParams params) {
+		return ExtensionBooleanResult.NOT_APPLICABLE;
+	}
+
 	public ExtensionBooleanResult isAddSubFolderActionPossible(FolderExtensionActionPossibleParams params) {
 		return ExtensionBooleanResult.NOT_APPLICABLE;
 	}

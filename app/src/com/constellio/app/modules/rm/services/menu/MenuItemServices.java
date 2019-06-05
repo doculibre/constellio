@@ -280,7 +280,7 @@ public class MenuItemServices {
 			if (!filteredActionTypes.contains(MenuItemActionType.FOLDER_RETURN.name())) {
 				boolean isReturnPossible = folderRecordActionsServices.isReturnActionPossible(record, user);
 				menuItemActions.add(buildMenuItemAction(MenuItemActionType.FOLDER_RETURN, isReturnPossible,
-						"DisplayFolderView.returnFolder", null, -1, 1200,
+						"DisplayFolderView.returnFolder", null, -1, 1300,
 						() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).returnFolder(params)));
 			}
 
@@ -289,7 +289,7 @@ public class MenuItemServices {
 				boolean borrowedByOtherUser = folder.getBorrowed() &&
 											  !user.getId().equals(folder.getBorrowUserEntered());
 				menuItemActions.add(buildMenuItemAction(MenuItemActionType.FOLDER_RETURN_REMAINDER, borrowedByOtherUser,
-						"DisplayFolderView.reminderReturnFolder", null, -1, 1300,
+						"DisplayFolderView.reminderReturnFolder", null, -1, 1400,
 						() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).sendReturnRemainder(params)));
 			}
 
@@ -298,8 +298,22 @@ public class MenuItemServices {
 				boolean borrowedByOtherUser = folder.getBorrowed() &&
 											  !user.getId().equals(folder.getBorrowUserEntered());
 				menuItemActions.add(buildMenuItemAction(MenuItemActionType.FOLDER_AVAILABLE_ALERT, borrowedByOtherUser,
-						"DisplayFolderView.alertWhenAvailable", null, -1, 1400,
+						"DisplayFolderView.alertWhenAvailable", null, -1, 1500,
 						() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).sendAvailableAlert(params)));
+			}
+
+			if (!filteredActionTypes.contains(MenuItemActionType.FOLDER_PRINT_LABEL.name())) {
+				boolean isPrintPossible = folderRecordActionsServices.isPrintLabelActionPossible(record, user);
+				menuItemActions.add(buildMenuItemAction(MenuItemActionType.FOLDER_PRINT_LABEL, isPrintPossible,
+						"DisplayFolderView.printLabel", null, -1, 1600,
+						() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).printLabel(params)));
+			}
+
+			if (!filteredActionTypes.contains(MenuItemActionType.FOLDER_GENERATE_REPORT.name())) {
+				boolean isGenerateReportPossible = folderRecordActionsServices.isGenerateReportActionPossible(record, user);
+				menuItemActions.add(buildMenuItemAction(MenuItemActionType.FOLDER_GENERATE_REPORT, isGenerateReportPossible,
+						"DisplayFolderView.metadataReportTitle", null, -1, 1700,
+						() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).printLabel(params)));
 			}
 
 			// FIXME une autre possibilité est d'avoir MenuItemAction.button et faire en sorte que le runnable fasse un button.click?
