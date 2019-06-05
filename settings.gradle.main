@@ -9,7 +9,7 @@ if (new File(rootDir, "./constellio-plugins").exists()) {
     include "constellio-plugins"
 
     def subFolders = new File(rootDir, "./constellio-plugins").eachDir {
-        if (it.name != 'build' && it.name != 'template' && !it.name.startsWith(".")) {
+        if (it.name != 'build' && it.name != 'template' && !it.name.startsWith(".") && !it.name.startsWith("plugin026")) {
             include "constellio-plugins:" + it.name
         }
     }
