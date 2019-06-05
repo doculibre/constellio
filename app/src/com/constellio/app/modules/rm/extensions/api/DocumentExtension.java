@@ -77,6 +77,16 @@ public abstract class DocumentExtension {
 	public void addMenuItems(DocumentExtensionAddMenuItemParams params) {
 	}
 
+	public ExtensionBooleanResult isAddAuthorizationActionPossible(
+			DocumentExtensionActionPossibleParams documentExtensionActionPossibleParams) {
+		return ExtensionBooleanResult.NOT_APPLICABLE;
+	}
+
+	public ExtensionBooleanResult isGenerateReportActionPossible(
+			DocumentExtensionActionPossibleParams documentExtensionActionPossibleParams) {
+		return ExtensionBooleanResult.NOT_APPLICABLE;
+	}
+
 	public static abstract class DocumentExtensionAddMenuItemParams {
 		public abstract Document getDocument();
 

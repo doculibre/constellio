@@ -217,6 +217,16 @@ public class RMModuleExtensions implements ModuleExtensions {
 						new DocumentExtension.DocumentExtensionActionPossibleParams(document, user)));
 	}
 
+	public boolean isAddAuthorizationActionPossibleOnDocument(final Document document, final User user) {
+		return documentExtensions.getBooleanValue(true,
+				(behavior) -> behavior.isAddAuthorizationActionPossible(new DocumentExtensionActionPossibleParams(document, user)));
+	}
+
+	public boolean isGenerateReportActionPossibleOnDocument(final Document document, final User user) {
+		return documentExtensions.getBooleanValue(true,
+				(behavior) -> behavior.isGenerateReportActionPossible(new DocumentExtensionActionPossibleParams(document, user)));
+	}
+
 	public boolean isOpenActionPossibleOnDocument(final Document document, final User user) {
 		return documentExtensions.getBooleanValue(true,
 				(behavior) -> behavior.isOpenActionPossible(

@@ -32,6 +32,8 @@ import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.DownloadLink;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
+import com.constellio.app.ui.framework.components.RMSelectionPanelReportPresenter;
+import com.constellio.app.ui.framework.components.ReportTabButton;
 import com.constellio.app.ui.framework.components.content.ContentVersionVOResource;
 import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
@@ -121,7 +123,7 @@ public class DocumentMenuItemActionBehaviors {
 		String documentId = params.getRecordVO().getId();
 
 		RMNavigationUtils.navigateToDisplayDocument(documentId, formParams, appLayerFactory, collection);
-		updateSearchResultClicked((DocumentVO) params.getRecordVO());
+		updateSearchResultClicked(params.getRecordVO());
 	}
 
 	public void open(MenuItemActionBehaviorParams params) {
@@ -152,7 +154,7 @@ public class DocumentMenuItemActionBehaviors {
 
 	public void edit(MenuItemActionBehaviorParams params) {
 		params.getView().navigate().to(RMViews.class).editDocument(params.getRecordVO().getId());
-		updateSearchResultClicked((DocumentVO) params.getRecordVO());
+		updateSearchResultClicked(params.getRecordVO());
 	}
 
 	public void download(MenuItemActionBehaviorParams params) {
@@ -361,14 +363,13 @@ public class DocumentMenuItemActionBehaviors {
 						.build(content, params.getView().getSessionContext());
 				documentVO.setContent(currentVersionVO);
 
-//				actionsComponent.refreshParent();
-//				actionsComponent.showMessage($("DocumentActionsComponent.canceledCheckOut"));
+				params.getView().updateUI();
+				params.getView().showMessage($("DocumentActionsComponent.canceledCheckOut"));
 			} catch (RecordServicesException e) {
-				//actionsComponent.showErrorMessage(MessageUtils.toMessage(e));
+				params.getView().showErrorMessage(MessageUtils.toMessage(e));
 			}
 		}
 	}
-
 
 	public void checkOut(MenuItemActionBehaviorParams params) {
 		Document document = rm.getDocument(params.getRecordVO().getId());
@@ -394,6 +395,35 @@ public class DocumentMenuItemActionBehaviors {
 				params.getView().showErrorMessage(MessageUtils.toMessage(e));
 			}
 		}
+	}
+
+	public void addAuthorization(MenuItemActionBehaviorParams params) {
+		params.getView().navigate().to().listObjectAccessAndRoleAuthorizations(params.getRecordVO().getId());
+		updateSearchResultClicked(params.getRecordVO());
+	}
+
+	public void reportGeneratorButton(MenuItemActionBehaviorParams params) {
+		RMSelectionPanelReportPresenter rmSelectionPanelReportPresenter = new RMSelectionPanelReportPresenter(appLayerFactory, collection, params.getUser()) {
+			@Override
+			public String getSelectedSchemaType() {
+				return Document.SCHEMA_TYPE;
+			}
+
+			@Override
+			public List<String> getSelectedRecordIds() {
+				return asList(params.getRecordVO().getId());
+			}
+		};
+
+		ReportTabButton reportGeneratorButton = new ReportTabButton($("SearchView.metadataReportTitle"),
+				$("SearchView.metadataReportTitle"),
+				appLayerFactory, collection, false, false,
+				rmSelectionPanelReportPresenter, params.getView().getSessionContext()) {
+
+		};
+
+		reportGeneratorButton.setRecordVoList(params.getRecordVO());
+		reportGeneratorButton.click();
 	}
 
 	private DocumentVO getDocumentVO(MenuItemActionBehaviorParams params, Document document) {
@@ -434,14 +464,6 @@ public class DocumentMenuItemActionBehaviors {
 		container.removeContainerProperty(DefaultFavoritesTable.CartItem.DISPLAY_BUTTON);
 		defaultFavoritesTable.setWidth("100%");
 		return defaultFavoritesTable;
-	}
-
-	private void addToCartRequested(Cart cart, BaseView baseView) {
-		if (rm.numberOfDocumentsInFavoritesReachesLimit(cart.getId(), 1)) {
-			baseView.showMessage($("DisplayDocumentView.cartCannotContainMoreThanAThousandDocuments"));
-		} else {
-			addToCartRequested(cart, baseView);
-		}
 	}
 
 	private MetadataSchemaVO getCartMetadataSchemaVO(SessionContext sessionContext) {
@@ -542,7 +564,7 @@ public class DocumentMenuItemActionBehaviors {
 		};
 	}
 
-	private void updateSearchResultClicked(DocumentVO documentVO) {
+	private void updateSearchResultClicked(RecordVO recordVO) {
 		if (Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()) {
 			ConstellioUI.getCurrent().setAttribute(SEARCH_EVENT_DWELL_TIME, System.currentTimeMillis());
 
@@ -554,10 +576,10 @@ public class DocumentMenuItemActionBehaviors {
 
 				String url = null;
 				try {
-					url = documentVO.get("url");
+					url = recordVO.get("url");
 				} catch (RecordVORuntimeException_NoSuchMetadata ignored) {
 				}
-				String clicks = defaultIfBlank(url, documentVO.getId());
+				String clicks = defaultIfBlank(url, recordVO.getId());
 				searchEventServices.updateClicks(searchEvent, clicks);
 			}
 		}

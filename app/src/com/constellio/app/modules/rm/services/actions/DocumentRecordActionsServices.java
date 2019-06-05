@@ -8,7 +8,6 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
@@ -224,21 +223,14 @@ public class DocumentRecordActionsServices {
 		return false;
 	}
 
-
-	public boolean isCancelCheckInActionPossible(Record record, User user) {
-		return false;
-	}
-
-	public boolean isCheckoutActionPossible(Record record, User user) {
-		return false;
-	}
-
 	public boolean isGenerateReportActionPossible(Record record, User user) {
-		return false;
+		return user.hasReadAccess().on(record)
+			   && rmModuleExtensions.isGenerateReportActionPossibleOnDocument(rm.wrapDocument(record), user);
 	}
 
 	public boolean isAddAuthorizationActionPossible(Record record, User user) {
-		return false;
+		return user.has(RMPermissionsTo.MANAGE_DOCUMENT_AUTHORIZATIONS).on(record)
+			   && rmModuleExtensions.isAddAuthorizationActionPossibleOnDocument(rm.wrapDocument(record), user);
 	}
 
 	public boolean isFinalizeActionPossible(Record record, User user) {
@@ -285,10 +277,6 @@ public class DocumentRecordActionsServices {
 			email = false;
 		}
 		return email;
-	}
-
-	public boolean isStartWorkflowActionPossible(Record record, User user) {
-		return false;
 	}
 
 	/*

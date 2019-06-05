@@ -1,6 +1,7 @@
 package com.constellio.app.modules.rm.extensions.api;
 
 import com.constellio.app.modules.rm.services.menu.MenuItemAction;
+import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import lombok.AllArgsConstructor;
@@ -18,6 +19,7 @@ public class MenuItemActionExtension {
 	public static class MenuItemActionExtensionAddMenuItemActionsParams {
 		private Record record;
 		private User user;
+		private BaseView view;
 		private List<MenuItemAction> menuItemActions;
 	}
 

@@ -13,6 +13,7 @@ import com.constellio.app.modules.rm.services.menu.behaviors.MenuItemActionBehav
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.util.FileIconUtils;
 import com.constellio.model.entities.records.Record;
@@ -82,7 +83,7 @@ public class MenuItemServices {
 			if (!filteredActionTypes.contains(MenuItemActionType.DOCUMENT_EDIT.name())) {
 				boolean isCopyActionPossible = documentRecordActionsServices.isCopyActionPossible(record, user);
 				menuItemActions.add(buildMenuItemAction(MenuItemActionType.DOCUMENT_EDIT, isCopyActionPossible,
-						"DocumentContextMenu.copyContent", FontAwesome.EDIT, -1, 600,
+						"DocumentContextMenu.editDocument", FontAwesome.EDIT, -1, 600,
 						() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).edit(params)));
 			}
 
@@ -227,6 +228,8 @@ public class MenuItemServices {
 				MenuItemAction menuItemAction = buildMenuItemAction(MenuItemActionType.DOCUMENT_CHECK_IN,
 						isCheckInActionPossible, "DocumentContextMenu.checkIn", null, -1, 1400,
 						() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).checkIn(params));
+
+				menuItemActions.add(menuItemAction);
 			}
 
 			if(!filteredActionTypes.contains(MenuItemActionType.DOCUMENT_CHECK_OUT.name())) {
@@ -235,6 +238,28 @@ public class MenuItemServices {
 				MenuItemAction menuItemAction = buildMenuItemAction(MenuItemActionType.DOCUMENT_CHECK_OUT,
 						isCheckInActionPossible, "DocumentContextMenu.checkOut", null, -1, 1400,
 						() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).checkOut(params));
+
+				menuItemActions.add(menuItemAction);
+			}
+
+			if (filteredActionTypes.contains(MenuItemActionType.DOCUMENT_ADD_AUTHORIZATION.name())) {
+				boolean isAddAuthorizationPossible = documentRecordActionsServices.isAddAuthorizationActionPossible(record, user);
+
+				MenuItemAction menuItemAction = buildMenuItemAction(MenuItemActionType.DOCUMENT_ADD_AUTHORIZATION,
+						isAddAuthorizationPossible, "DocumentContextMenu.addAuthorization", null, -1, 1500,
+						() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).addAuthorization(params));
+
+				menuItemActions.add(menuItemAction);
+			}
+
+			if (filteredActionTypes.contains(MenuItemActionType.DOCUMENT_GENERATE_REPORT.name())) {
+				boolean isGenerateReportPossible = documentRecordActionsServices.isGenerateReportActionPossible(record, user);
+
+				MenuItemAction menuItemAction = buildMenuItemAction(MenuItemActionType.DOCUMENT_ADD_AUTHORIZATION,
+						isGenerateReportPossible, "DocumentContextMenu.ReportGeneratorButton", null, -1, 1600,
+						() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).reportGeneratorButton(params));
+
+				menuItemActions.add(menuItemAction);
 			}
 
 		} else if (record.isOfSchemaType(Folder.SCHEMA_TYPE)) {
@@ -369,7 +394,7 @@ public class MenuItemServices {
 			return Collections.emptyList();
 		}
 
-		addMenuItemActionsFromExtensions(record, user, menuItemActions);
+		addMenuItemActionsFromExtensions(record, user, params.getView(), menuItemActions);
 
 		return menuItemActions;
 	}
@@ -425,13 +450,12 @@ public class MenuItemServices {
 			   (reason != null ? MenuItemActionState.DISABLED : MenuItemActionState.HIDDEN);
 	}
 
-	private void addMenuItemActionsFromExtensions(Record record, User user, List<MenuItemAction> menuItemActions) {
+	private void addMenuItemActionsFromExtensions(Record record, User user, BaseView baseView,
+												  List<MenuItemAction> menuItemActions) {
 		for (MenuItemActionExtension menuItemActionExtension : rmModuleExtensions.getMenuItemActionExtensions()) {
 			menuItemActionExtension.addMenuItemActions(
-					new MenuItemActionExtensionAddMenuItemActionsParams(record, user, menuItemActions));
+					new MenuItemActionExtensionAddMenuItemActionsParams(record, user, baseView, menuItemActions));
 		}
-
-
 	}
 
 }
