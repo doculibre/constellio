@@ -554,6 +554,11 @@ public class TaskTable extends VerticalLayout {
 			this.taskVO = taskVO;
 			this.expanded = expanded;
 			init();
+			postInit();
+		}
+
+		protected void postInit() {
+
 		}
 
 		protected void reloadTask() {
