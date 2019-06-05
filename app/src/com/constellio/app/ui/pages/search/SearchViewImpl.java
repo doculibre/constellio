@@ -281,7 +281,13 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		buildSpellCheckerSuggestions(dataProvider, disambiguationSuggestions);
 
 		summary.removeAllComponents();
-		summary.addComponent(buildSummary(resultsTable));
+		Component summaryComponent = buildSummary(resultsTable);
+		if (summaryComponent != null) {
+			summary.setVisible(true);
+			summary.addComponent(summaryComponent);
+		} else {
+			summary.setVisible(false);
+		}
 
 		if (isDetailedView()) {
 			resultsArea.removeAllComponents();

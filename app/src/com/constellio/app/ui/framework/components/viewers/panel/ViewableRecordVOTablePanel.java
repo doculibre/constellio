@@ -1,11 +1,15 @@
 package com.constellio.app.ui.framework.components.viewers.panel;
 
+import com.constellio.app.api.extensions.params.AvailableActionsParam;
+import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.modules.rm.ui.components.content.ConstellioAgentLink;
 import com.constellio.app.modules.rm.ui.pages.document.DisplayDocumentViewImpl;
 import com.constellio.app.modules.rm.ui.pages.document.DisplayDocumentWindow;
 import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderViewImpl;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -22,15 +26,20 @@ import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.components.mouseover.NiceTitle;
 import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.components.table.BaseTable.PagingControls;
+import com.constellio.app.ui.framework.components.table.BaseTable.SelectionChangeEvent;
 import com.constellio.app.ui.framework.components.table.BaseTable.SelectionChangeListener;
 import com.constellio.app.ui.framework.components.table.BaseTable.SelectionManager;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.ContainerAdapter;
 import com.constellio.app.ui.framework.containers.RecordVOContainer;
+import com.constellio.app.ui.pages.base.BasePresenterUtils;
+import com.constellio.app.ui.pages.base.ConstellioHeader;
+import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.management.schemaRecords.DisplaySchemaRecordWindow;
 import com.constellio.app.ui.util.ComponentTreeUtils;
 import com.constellio.app.ui.util.ResponsiveUtils;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.records.RecordServices;
 import com.vaadin.data.Item;
 import com.vaadin.data.Property;
@@ -39,11 +48,18 @@ import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Page;
+import com.vaadin.server.Resource;
 import com.vaadin.ui.Alignment;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.Link;
+import com.vaadin.ui.MenuBar;
+import com.vaadin.ui.MenuBar.Command;
+import com.vaadin.ui.MenuBar.MenuItem;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.CellStyleGenerator;
@@ -96,6 +112,8 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
 	private TableModeButton tableModeButton;
 
 	private SelectDeselectAllButton selectDeselectAllToggleButton;
+
+	private Label countLabel;
 	
 	private BaseButton closeViewerButton;
 
@@ -125,6 +143,12 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
 
 	private Map<Object, Integer> tableModeColumnExpandRatios = new HashMap<>();
 
+	private BaseButton quickActionButton;
+
+	private MenuBar selectionActionsMenuBar;
+
+	private boolean defaultSelectionListenerAdded = false;
+
 	public ViewableRecordVOTablePanel(RecordVOContainer container) {
 		this(container, TableMode.LIST);
 	}
@@ -149,6 +173,10 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
 			selectDeselectAllToggleButton = newSelectDeselectAllToggleButton();
 			selectDeselectAllToggleButton.addStyleName(ValoTheme.BUTTON_LINK);
 		}
+
+		countLabel = new Label();
+		countLabel.addStyleName("count-label");
+		countLabel.setVisible(false);
 
 		viewerMetadataPanel = buildViewerMetadataPanel();
 		listModeButton = buildListModeButton();
@@ -176,6 +204,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
 		if (isSelectColumn()) {
 			selectionButtonsLayout.addComponent(selectDeselectAllToggleButton);
 		}
+		selectionButtonsLayout.addComponent(countLabel);
 		selectionButtonsLayout.addComponents(previousButton, nextButton);
 
 		actionAndModeButtonsLayout.addComponents(listModeButton, tableModeButton);
@@ -210,6 +239,114 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
 		});
 		closeButtonViewerMetadataLayout.setVisible(isCompressionSupported());
 		adjustTableExpansion();
+	}
+
+	public void setCountCaption(String caption) {
+		countLabel.setValue(caption);
+		countLabel.setVisible(StringUtils.isNotBlank(caption));
+	}
+
+	public void setQuickActionButton(BaseButton button) {
+		this.quickActionButton = button;
+		quickActionButton.addStyleName(ValoTheme.BUTTON_LINK);
+		quickActionButton.addStyleName("quick-action-button");
+		actionAndModeButtonsLayout.addComponent(quickActionButton, 0);
+		actionAndModeButtonsLayout.setComponentAlignment(quickActionButton, Alignment.TOP_LEFT);
+	}
+
+	@SuppressWarnings("unchecked")
+	public void setDefaultSelectionActionButtons() {
+		if (isSelectColumn()) {
+			final List<Component> selectionActionButtons = new ArrayList<>();
+			ConstellioFactories constellioFactories = ConstellioUI.getCurrent().getConstellioFactories();
+			SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
+			String collection = sessionContext.getCurrentCollection();
+			AppLayerFactory appLayerFactory = constellioFactories.getAppLayerFactory();
+
+			BasePresenterUtils presenterUtils = new BasePresenterUtils(constellioFactories, sessionContext);
+			List<String> ids = new ArrayList<>();
+			List<String> schemaTypeCodes = new ArrayList<>();
+			User user = presenterUtils.getCurrentUser();
+			VerticalLayout collectorLayout = new VerticalLayout();
+			collectorLayout.addComponentAttachListener(new ComponentAttachListener() {
+				@Override
+				public void componentAttachedToContainer(ComponentAttachEvent event) {
+					selectionActionButtons.add(event.getAttachedComponent());
+				}
+			});
+			ConstellioHeader header = ConstellioUI.getCurrent().getMainLayout().getHeader();
+
+			SelectionManager selectionManager = table.getSelectionManager();
+			List<Object> selectedItemIds;
+			if (selectionManager.isAllItemsSelected()) {
+				selectedItemIds = new ArrayList<>(recordVOContainer.getItemIds());
+			} else if (table.getValue() instanceof List) {
+				selectedItemIds = (List<Object>) table.getValue();
+				if (selectedItemIds == null) {
+					selectedItemIds = Collections.emptyList();
+				}
+			} else {
+				selectedItemIds = Collections.emptyList();
+			}
+			for (Object selectedItemId : selectedItemIds) {
+				RecordVO recordVO = recordVOContainer.getRecordVO(selectedItemId);
+				String schemaTypeCode = recordVO.getSchema().getTypeCode();
+				ids.add(recordVO.getId());
+				if (!schemaTypeCodes.contains(schemaTypeCode)) {
+					schemaTypeCodes.add(schemaTypeCode);
+				}
+			}
+
+			//			if (!selectedItemIds.isEmpty()) {
+			AvailableActionsParam param = new AvailableActionsParam(ids, schemaTypeCodes, user, collectorLayout, header);
+			AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions().forCollection(collection);
+			extensions.addAvailableActions(param);
+			//			}
+			setSelectionActionButtons(selectionActionButtons);
+
+			if (!defaultSelectionListenerAdded) {
+				defaultSelectionListenerAdded = true;
+				table.addSelectionChangeListener(new SelectionChangeListener() {
+					@Override
+					public void selectionChanged(SelectionChangeEvent event) {
+						setDefaultSelectionActionButtons();
+					}
+				});
+			}
+		}
+	}
+
+	public void setSelectionActionButtons(List<Component> selectionActionButtons) {
+		if (isSelectColumn()) {
+			if (selectionActionsMenuBar != null) {
+				actionAndModeButtonsLayout.removeComponent(selectionActionsMenuBar);
+			}
+
+			selectionActionsMenuBar = new MenuBar();
+			selectionActionsMenuBar.addStyleName("selection-action-menu-bar");
+			selectionActionsMenuBar.setAutoOpen(false);
+			selectionActionsMenuBar.addStyleName(ValoTheme.MENUBAR_BORDERLESS);
+
+			MenuItem rootItem = selectionActionsMenuBar.addItem($("ViewableRecordVOTablePanel.selectionActions"), null, null);
+			for (final Component selectionActionMenuButton : selectionActionButtons) {
+				Resource icon = selectionActionMenuButton.getIcon();
+				String caption = selectionActionMenuButton.getCaption();
+				rootItem.addItem(caption, icon, new Command() {
+					@Override
+					public void menuSelected(MenuItem selectedItem) {
+						if (selectionActionMenuButton instanceof Button) {
+							((Button) selectionActionMenuButton).click();
+						} else if (selectionActionMenuButton instanceof Link) {
+							//							((Link) selectionActionMenuButton).click();
+						}
+					}
+				});
+			}
+			if (rootItem.hasChildren()) {
+				actionAndModeButtonsLayout.addComponent(selectionActionsMenuBar, 0);
+				actionAndModeButtonsLayout.setComponentAlignment(selectionActionsMenuBar, Alignment.TOP_RIGHT);
+			}
+		}
 	}
 
 	int computeCompressedWidth() {
@@ -423,6 +560,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
 				String tableModeName = tableMode == TableMode.LIST ? "listMode" : "tableMode";
 				baseStyle += "viewer-results-table-" + tableModeName + " ";
 				baseStyle += "viewer-results-table-" + propertyId + " ";
+				baseStyle += "viewer-results-table-" + tableModeName + "-" + propertyId + " ";
 				return baseStyle + "viewer-results-table-row-" + itemId;
 			}
 		});
@@ -683,7 +821,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
 	}
 
 	private BaseButton buildCloseViewerButton() {
-		BaseButton closeViewerButton = new IconButton(FontAwesome.TIMES, $("FilteredSearchResultsViewerTable.closeViewer")) {
+		BaseButton closeViewerButton = new IconButton(FontAwesome.TIMES, $("ViewableRecordVOTablePanel.closeViewer")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
 				closeViewer();
