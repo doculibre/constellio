@@ -47,6 +47,8 @@ import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.FontAwesome;
+import com.vaadin.server.Resource;
+import com.vaadin.server.ThemeResource;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
 import com.vaadin.ui.Alignment;
@@ -88,6 +90,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	public static final String SORT_BOX_STYLE = "sort-box";
 	public static final String SORT_TITLE_STYLE = "sort-title";
 	public static final String SAVE_SEARCH = "save-search";
+	public static final Resource SELECTION_ICON_RESOURCE = new ThemeResource("images/icons/clipboard_12x16_blue.png");
 
 	private enum ShareType {
 		NONE, ALL, RESTRICTED
@@ -893,7 +896,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	}
 
 	protected Button buildAddToSelectionButton() {
-		addToSelectionButton = new BaseButton($("SearchView.addToSelection")) {
+		addToSelectionButton = new BaseButton($("SearchView.addToSelection"), SELECTION_ICON_RESOURCE) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
 				presenter.addToSelectionButtonClicked();

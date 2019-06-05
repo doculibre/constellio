@@ -45,10 +45,6 @@ public class CartsListViewImpl extends BaseViewImpl implements CartsListView {
 
 	@Override
 	protected String getTitle() {
-		return "";
-	}
-
-	private String getBreadCrumbTitle() {
 		return $(TITLE);
 	}
 
@@ -223,10 +219,5 @@ public class CartsListViewImpl extends BaseViewImpl implements CartsListView {
 		tabLayout.addComponent(table);
 		tabLayout.setExpandRatio(table, 1);
 		return tabLayout;
-	}
-
-	@Override
-	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
-		return new TitleBreadcrumbTrail(this, getTitle(), false);
 	}
 }
