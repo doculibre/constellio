@@ -76,7 +76,18 @@ public class NiceTitle extends AbstractExtension {
 	public void detach() {
 		try {
 			JavaScript javascript = JavaScript.getCurrent();
-			javascript.execute("hideNiceTitle()");
+
+			StringBuilder js = new StringBuilder();
+			js.append("hideNiceTitle();");
+
+			if (visibleWhenDisabled && !component.isEnabled()) {
+				String componentId = component.getId();
+				component.removeStyleName(DISABLED_STYLE);
+				String getById = "document.getElementById(\"" + componentId + "\")";
+				js.append(getById + ".removeAttribute(\"nicetitle\")");
+				js.append(getById + ".classList.add(\"v-disabled\");");
+			}
+			javascript.execute("");
 		} finally {
 			super.detach();
 		}

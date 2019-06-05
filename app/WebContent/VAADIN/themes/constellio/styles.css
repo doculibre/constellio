@@ -12203,11 +12203,14 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .nicetitle-link-disabled {
 	text-decoration: none;
-	color: #474747;
+	opacity: 0.5;
+	filter: alpha(opacity=50);
+	cursor: default;
 }
 
 .constellio .nicetitle-link-disabled:hover {
-	color: #474747;
+	opacity: 0.5;
+	cursor: default;
 }
 
 .constellio .auto-scroll {
@@ -14680,10 +14683,12 @@ div.v-layout.v-horizontal.v-widget {
 	vertical-align: middle;
 }
 
-.constellio .viewable-record-table-panel .v-slot-previous-next-buttons-layout {
+.constellio .viewable-record-table-panel .v-slot-selection-buttons-layout {
 	margin-bottom: -36px;
-	color: #197de1;
-	font-size: 20px;
+}
+
+.constellio .viewable-record-table-panel .v-slot-selection-buttons-layout .select-deselect-all-button {
+	left: 16px;
 }
 
 .constellio .viewable-record-table-panel .close-button-viewer-metadata-layout {
@@ -14710,7 +14715,7 @@ div.v-layout.v-horizontal.v-widget {
 	border: none;
 }
 
-.constellio .viewable-record-table-panel .viewable-record-table .v-table-body .v-table-cell-content-nullviewer-results-table-searchResult {
+.constellio .viewable-record-table-panel .viewable-record-table .v-table-body .v-table-cell-content-nullviewer-results-table-searchResult, .constellio .viewable-record-table-panel .viewable-record-table .v-table-body .v-table-cell-content-nullviewer-results-table-listMode {
 	vertical-align: top;
 }
 
@@ -15011,14 +15016,14 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .search-result-table .search-result-title {
-	padding-top: 16px;
+	padding-top: 6px;
 	text-align: left;
 	color: #197de1;
 	font-weight: bold;
 }
 
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .search-result-table .document-search-result-title {
-	padding-top: 10px;
+	padding-top: 0px;
 }
 
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .search-result-table .search-result-highlights {
@@ -15152,6 +15157,7 @@ div.v-layout.v-horizontal.v-widget {
 	display: inline-block;
 	color: #197de1;
 	font-size: 0.8em;
+	padding-right: 10px;
 }
 
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .facet-box-viewer .v-checkbox > label:hover {

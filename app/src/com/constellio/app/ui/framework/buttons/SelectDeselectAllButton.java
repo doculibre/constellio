@@ -23,6 +23,7 @@ public abstract class SelectDeselectAllButton extends BaseButton {
 		this.selectAllCaption = selectAllCaption;
 		this.deselectAllCaption = deselectAllCaption;
 		this.selectAllMode = selectAllMode;
+		addStyleName("select-deselect-all-button");
 	}
 
 	public boolean isSelectAllMode() {

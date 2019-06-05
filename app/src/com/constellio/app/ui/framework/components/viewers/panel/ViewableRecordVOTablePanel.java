@@ -75,9 +75,9 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
 
 	private I18NHorizontalLayout tableButtonsLayout;
 
-	private I18NHorizontalLayout previousNextButtonsLayout;
+	private I18NHorizontalLayout selectionButtonsLayout;
 
-	private I18NHorizontalLayout tableActionButtonsLayout;
+	private I18NHorizontalLayout actionAndModeButtonsLayout;
 
 	private VerticalLayout closeButtonViewerMetadataLayout;
 
@@ -165,24 +165,25 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
 		tableButtonsLayout.setWidth("100%");
 		tableButtonsLayout.setSpacing(true);
 
-		tableActionButtonsLayout = new I18NHorizontalLayout();
-		tableActionButtonsLayout.addStyleName("table-action-buttons-layout");
-		tableActionButtonsLayout.setSpacing(true);
+		selectionButtonsLayout = new I18NHorizontalLayout();
+		selectionButtonsLayout.addStyleName("selection-buttons-layout");
+		selectionButtonsLayout.setSpacing(true);
 
-		previousNextButtonsLayout = new I18NHorizontalLayout();
-		previousNextButtonsLayout.addStyleName("previous-next-buttons-layout");
-		previousNextButtonsLayout.setSpacing(true);
+		actionAndModeButtonsLayout = new I18NHorizontalLayout();
+		actionAndModeButtonsLayout.addStyleName("action-mode-buttons-layout");
+		actionAndModeButtonsLayout.setSpacing(true);
 
 		if (isSelectColumn()) {
-			tableActionButtonsLayout.addComponent(selectDeselectAllToggleButton);
+			selectionButtonsLayout.addComponent(selectDeselectAllToggleButton);
 		}
-		tableActionButtonsLayout.addComponents(listModeButton, tableModeButton);
+		selectionButtonsLayout.addComponents(previousButton, nextButton);
 
-		previousNextButtonsLayout.addComponents(previousButton, nextButton);
-		tableButtonsLayout.addComponents(tableActionButtonsLayout, previousNextButtonsLayout);
+		actionAndModeButtonsLayout.addComponents(listModeButton, tableModeButton);
 
-		tableButtonsLayout.setComponentAlignment(tableActionButtonsLayout, Alignment.TOP_LEFT);
-		tableButtonsLayout.setComponentAlignment(previousNextButtonsLayout, Alignment.TOP_RIGHT);
+		tableButtonsLayout.addComponents(selectionButtonsLayout, actionAndModeButtonsLayout);
+
+		tableButtonsLayout.setComponentAlignment(selectionButtonsLayout, Alignment.TOP_LEFT);
+		tableButtonsLayout.setComponentAlignment(actionAndModeButtonsLayout, Alignment.TOP_RIGHT);
 
 		tableLayout.addComponent(tableButtonsLayout);
 		tableLayout.addComponent(table);
@@ -352,19 +353,6 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
 
 			resultsTable.setSelectable(true);
 			resultsTable.setMultiSelect(false);
-
-			final CellStyleGenerator cellStyleGenerator = resultsTable.getCellStyleGenerator();
-			resultsTable.setCellStyleGenerator(new CellStyleGenerator() {
-				@Override
-				public String getStyle(Table source, Object itemId, Object propertyId) {
-					String baseStyle = cellStyleGenerator != null ? cellStyleGenerator.getStyle(source, itemId, propertyId) : "";
-					if (StringUtils.isNotBlank(baseStyle)) {
-						baseStyle += " ";
-					}
-					baseStyle += "viewer-results-table-" + propertyId + " ";
-					return baseStyle + "viewer-results-table-row-" + itemId;
-				}
-			});
 		} else {
 			resultsTable = new RecordVOTable(recordVOContainer) {
 				@Override
@@ -423,6 +411,21 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
 				resultsTable.setColumnExpandRatio(propertyId, tableModeColumnExpandRatios.get(propertyId));
 			}
 		}
+
+		final CellStyleGenerator cellStyleGenerator = resultsTable.getCellStyleGenerator();
+		resultsTable.setCellStyleGenerator(new CellStyleGenerator() {
+			@Override
+			public String getStyle(Table source, Object itemId, Object propertyId) {
+				String baseStyle = cellStyleGenerator != null ? cellStyleGenerator.getStyle(source, itemId, propertyId) : "";
+				if (StringUtils.isNotBlank(baseStyle)) {
+					baseStyle += " ";
+				}
+				String tableModeName = tableMode == TableMode.LIST ? "listMode" : "tableMode";
+				baseStyle += "viewer-results-table-" + tableModeName + " ";
+				baseStyle += "viewer-results-table-" + propertyId + " ";
+				return baseStyle + "viewer-results-table-row-" + itemId;
+			}
+		});
 
 		resultsTable.addItemClickListener(new ItemClickListener() {
 			@Override
@@ -490,7 +493,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
 			if (selectDeselectAllToggleButtonBefore != null && selectDeselectAllToggleButtonBefore.isSelectAllMode() != selectDeselectAllToggleButton.isSelectAllMode()) {
 				selectDeselectAllToggleButton.setSelectAllMode(selectDeselectAllToggleButtonBefore.isSelectAllMode());
 			}
-			tableActionButtonsLayout.replaceComponent(selectDeselectAllToggleButtonBefore, selectDeselectAllToggleButton);
+			selectionButtonsLayout.replaceComponent(selectDeselectAllToggleButtonBefore, selectDeselectAllToggleButton);
 		}
 	}
 	
