@@ -5,10 +5,9 @@ import com.vaadin.server.ConnectorResource;
 import com.vaadin.server.DownloadStream;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
-import com.vaadin.ui.Link;
 import com.vaadin.ui.themes.ValoTheme;
 
-public class DownloadLink extends Link {
+public class DownloadLink extends BaseLink {
 
 	public static final String STYLE_NAME = "download-link";
 

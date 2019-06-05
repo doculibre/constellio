@@ -155,7 +155,7 @@ $popup-view-z-index: 3;
 		}
 
 		.v-slot-task-action-buttons {
-			margin-top: -40px;
+			margin-top: -36px;
 			padding-right: 10px;
 			position: relative;
 			top: 82px;
@@ -258,7 +258,14 @@ $popup-view-z-index: 3;
 					font-size: 14px;
 					color: rgb(156, 165, 175);
 				}
-
+				
+				.v-slot-task-details-workflow-title {
+					font-size: 14px;
+					position: relative;
+					left: 20px;
+					padding-right: 20px;
+				}
+				
 				.v-slot-task-details-assignee, .v-slot-task-details-description, .v-slot-task-details-linked-folders, .v-slot-task-details-contents, .v-slot-task-details-linked-documents, .v-slot-task-details-linked-containers, .v-slot-task-details-comments {
 					padding-top: 10px;
 				    border-top-color: #dfdfdf;
@@ -1703,7 +1710,7 @@ $popup-view-z-index: 3;
 			    border: 1px solid #3a434d;
 			    border-radius: 4px;
 	
-				.v-button {
+				.v-button, .link, v-link {
 					padding-left: 8px;
 			    	color: white;
 			    	font-weight: normal;
@@ -1717,6 +1724,10 @@ $popup-view-z-index: 3;
 				    background-color: #414B56;
 					//background-image: -webkit-linear-gradient(right, #38414a 0%, #414B56 9px);
 					background-image: linear-gradient(to left,#38414a 0%, #414B56 9px);
+					
+					a {
+						color: white;
+					}
 				}
 	
 			    .v-button:hover {
@@ -2056,12 +2067,19 @@ $popup-view-z-index: 3;
 			vertical-align: middle;
 		}
 	}
-
+	
     .viewable-record-table-panel {
   		//min-height: 2000px;
   		
+  		.v-slot-viewable-record-table-panel-view-action-menu-layout {
+		    position: absolute;
+		    top: -40px;
+		    right: -250px;
+  		}
+  		
   		.v-slot-selection-buttons-layout {
   			margin-bottom: -36px;
+			color: #197de1;
   			
   			.select-deselect-all-button {
   				left: 16px;
@@ -2082,9 +2100,10 @@ $popup-view-z-index: 3;
   		
   		.selection-action-menu-bar {
   			.v-menubar-submenu-indicator + .v-menubar-menuitem-caption:after {
-				content:url('images/icons/font-awesome/16x16/ellipsis-v-blue2.png'); 
+				content:url('images/icons/font-awesome/16x16/ellipsis-v-blue.png'); 
 			    position: relative;
 			    top: 5px;
+			    opacity: 1;
 			}
   		}
   		
@@ -2102,6 +2121,12 @@ $popup-view-z-index: 3;
   		
   		.table-buttons-layout {
             border-bottom: 1px solid rgb(213, 213, 213);
+  		}
+  		
+  		.viewable-record-table-table-mode {
+  			.v-table-row-nullviewer-results-table-tableMode {
+  				cursor: pointer;
+  			}
   		}
   		
   		.viewable-record-table {
@@ -3413,6 +3438,8 @@ $popup-view-z-index: 3;
 		}
 
 		.task-management-view {
+			position: relative;
+			top: -10px; 
 
 			.v-slot-task-action-buttons {
 				float: left;

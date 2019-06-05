@@ -65,6 +65,7 @@ public class ViewableRecordVOSearchResultTable extends ViewableRecordVOTablePane
 			@Override
 			public void selectionChanged(
 					com.constellio.app.ui.framework.components.table.BaseTable.SelectionChangeEvent event) {
+				RecordVOContainer recordVOContainer = getRecordVOContainer();
 				if (event.getSelectedItemId() != null) {
 					Object selectedItemId = event.getSelectedItemId();
 					selectedItemIds.add(selectedItemId);
@@ -81,7 +82,7 @@ public class ViewableRecordVOSearchResultTable extends ViewableRecordVOTablePane
 					}
 				} else if (event.isAllItemsSelected()) {
 					allItemsSelected = true;
-					selectedItemIds.clear();
+					selectedItemIds.addAll(recordVOContainer.getItemIds());
 					deselectedItemIds.clear();
 					presenter.fireSomeRecordsSelected();
 				} else if (event.isAllItemsDeselected()) {
@@ -94,12 +95,12 @@ public class ViewableRecordVOSearchResultTable extends ViewableRecordVOTablePane
 
 			@Override
 			public boolean isAllItemsSelected() {
-				return ViewableRecordVOSearchResultTable.this.isSelectAll();
+				return allItemsSelected;
 			}
 
 			@Override
 			public boolean isAllItemsDeselected() {
-				return !ViewableRecordVOSearchResultTable.this.isSelectAll() && ViewableRecordVOSearchResultTable.this.getSelectedRecordIds().isEmpty();
+				return !allItemsSelected && selectedItemIds.isEmpty();
 			}
 
 			@Override
@@ -152,10 +153,12 @@ public class ViewableRecordVOSearchResultTable extends ViewableRecordVOTablePane
 		String totalCount = $(key, size, qtime);
 		setCountCaption(totalCount);
 
+		setViewActionButtonsLayoutComponents(alwaysActive);
+
 		List<Component> selectionActionButtons = new ArrayList<>();
-		for (Component component : alwaysActive) {
-			selectionActionButtons.add(component);
-		}
+		//		for (Component component : alwaysActive) {
+		//			selectionActionButtons.add(component);
+		//		}
 		for (Component component : extra) {
 			if (component instanceof BatchProcessingButton || component instanceof BatchProcessingModifyingOneMetadataButton) {
 				component.setEnabled(recordVOContainer != null && recordVOContainer.size() > 0);

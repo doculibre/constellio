@@ -1,19 +1,5 @@
 package com.constellio.app.ui.framework.components;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.Serializable;
-import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
-
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-
 import com.constellio.app.api.extensions.params.MetadataDisplayCustomValueExtentionParams;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -26,6 +12,7 @@ import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.UserVO;
+import com.constellio.app.ui.framework.buttons.BaseLink;
 import com.constellio.app.ui.framework.components.converters.BaseStringToDateConverter;
 import com.constellio.app.ui.framework.components.converters.BaseStringToDateTimeConverter;
 import com.constellio.app.ui.framework.components.converters.JodaDateTimeToStringConverter;
@@ -49,6 +36,19 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Link;
 import com.vaadin.ui.VerticalLayout;
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+
+import java.io.Serializable;
+import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 @SuppressWarnings("serial")
 public class MetadataDisplayFactory implements Serializable {
@@ -199,7 +199,7 @@ public class MetadataDisplayFactory implements Serializable {
 						if (!url.startsWith("http://") && !url.startsWith("https://")) {
 							url = "http://" + url;
 						}
-						Link link = new Link(url, new ExternalResource(url));
+						Link link = new BaseLink(url, new ExternalResource(url));
 						link.setTargetName("_blank");
 						displayComponent = link;
 					} else {

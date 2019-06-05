@@ -564,6 +564,7 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 		return actionMenuButtons;
 	}
 
+
 	protected Button createLink(String caption, final Button.ClickListener listener, String iconName) {
 		Button returnLink = new Button(caption, new ThemeResource("images/icons/" + iconName + ".png"));
 		returnLink.addStyleName(ValoTheme.BUTTON_ICON_ALIGN_TOP);
