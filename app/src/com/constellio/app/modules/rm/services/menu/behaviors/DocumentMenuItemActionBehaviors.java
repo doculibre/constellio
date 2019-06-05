@@ -4,9 +4,13 @@ import com.constellio.app.api.extensions.params.NavigateToFromAPageParams;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
+import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.services.actions.DocumentRecordActionsServices;
 import com.constellio.app.modules.rm.services.logging.DecommissioningLoggingService;
+import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
+import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
 import com.constellio.app.modules.rm.ui.components.document.DocumentActionsPresenterUtils;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.pages.cart.DefaultFavoritesTable;
@@ -18,16 +22,16 @@ import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.application.ConstellioUI;
-import com.constellio.app.ui.entities.MetadataSchemaVO;
-import com.constellio.app.ui.entities.MetadataVO;
-import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.entities.*;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.entities.RecordVORuntimeException.RecordVORuntimeException_NoSuchMetadata;
+import com.constellio.app.ui.framework.builders.ContentVersionToVOBuilder;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.DownloadLink;
 import com.constellio.app.ui.framework.buttons.WindowButton;
+import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
 import com.constellio.app.ui.framework.components.content.ContentVersionVOResource;
 import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
@@ -38,7 +42,9 @@ import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.util.MessageUtils;
+import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.data.utils.TimeProvider;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
@@ -63,15 +69,10 @@ import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.TabSheet;
-import com.vaadin.ui.Table;
-import com.vaadin.ui.VerticalLayout;
-import com.vaadin.ui.Window;
+import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import org.apache.commons.io.FilenameUtils;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -98,6 +99,7 @@ public class DocumentMenuItemActionBehaviors {
 	private DecommissioningLoggingService decommissioningLoggingService;
 	private SearchServices searchServices;
 	private MetadataSchemasManager metadataSchemasManager;
+	private DocumentRecordActionsServices documentRecordActionsServices;
 
 	public DocumentMenuItemActionBehaviors(String collection, AppLayerFactory appLayerFactory) {
 		this.collection = collection;
@@ -111,6 +113,7 @@ public class DocumentMenuItemActionBehaviors {
 		decommissioningLoggingService = new DecommissioningLoggingService(appLayerFactory.getModelLayerFactory());
 		extensions = modelLayerFactory.getExtensions().forCollection(collection);
 		metadataSchemasManager = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager();
+		documentRecordActionsServices = new DocumentRecordActionsServices(collection, appLayerFactory);
 	}
 
 	public void display(MenuItemActionBehaviorParams params) {
@@ -137,7 +140,7 @@ public class DocumentMenuItemActionBehaviors {
 		if (areSearchTypeAndSearchIdPresent) {
 			view.navigate().to(RMViews.class).addDocumentWithContentFromDecommission(documentId,
 					DecommissionNavUtil.getSearchId(formParams), DecommissionNavUtil.getSearchType(formParams));
-		} else if (formParams.get(RMViews.FAV_GROUP_ID_KEY) != null) {
+		} else if (formParams != null && formParams.get(RMViews.FAV_GROUP_ID_KEY) != null) {
 			view.navigate().to(RMViews.class)
 					.addDocumentWithContentFromFavorites(documentId, formParams.get(RMViews.FAV_GROUP_ID_KEY));
 		} else if (rmModuleExtensions.navigateToAddDocumentWhileKeepingTraceOfPreviousView(
@@ -312,6 +315,92 @@ public class DocumentMenuItemActionBehaviors {
 		windowButton.click();
 	}
 
+	public void printLabel(MenuItemActionBehaviorParams params) {
+
+		Factory<List<LabelTemplate>> customLabelTemplatesFactory = new Factory<List<LabelTemplate>>() {
+			@Override
+			public List<LabelTemplate> get() {
+				return appLayerFactory.getLabelTemplateManager().listExtensionTemplates(Document.SCHEMA_TYPE);
+			}
+		};
+
+		Factory<List<LabelTemplate>> defaultLabelTemplatesFactory = new Factory<List<LabelTemplate>>() {
+			@Override
+			public List<LabelTemplate> get() {
+				return appLayerFactory.getLabelTemplateManager().listTemplates(Document.SCHEMA_TYPE);
+			}
+		};
+		SessionContext sessionContext = params.getView().getSessionContext();
+		UserToVOBuilder userToVOBuilder = new UserToVOBuilder();
+		UserVO userVO = userToVOBuilder.build(params.getUser().getWrappedRecord(),
+				VIEW_MODE.DISPLAY, sessionContext);
+
+		Button labels = new LabelButtonV2($("DisplayFolderView.printLabel"),
+				$("DisplayFolderView.printLabel"), customLabelTemplatesFactory,
+				defaultLabelTemplatesFactory, appLayerFactory,
+				sessionContext.getCurrentCollection(), userVO
+				, params.getRecordVO());
+
+		labels.click();
+	}
+
+	public void checkIn(MenuItemActionBehaviorParams params) {
+		Document document = rm.getDocument(params.getRecordVO().getId());
+
+		if (documentRecordActionsServices.isCheckInActionPossible(document.getWrappedRecord(), params.getUser())) {
+			UpdateContentVersionWindowImpl uploadWindow = createUpdateContentVersionWindow(params);
+			uploadWindow.open(false);
+		} else if (documentRecordActionsServices.isCancelCheckOutPossible(document)) {
+			Content content = document.getContent();
+			content.checkIn();
+			modelLayerFactory.newLoggingServices().returnRecord(document.getWrappedRecord(), params.getUser());
+			try {
+				recordServices.update(document, new RecordUpdateOptions().setOverwriteModificationDateAndUser(false));
+				DocumentVO documentVO = getDocumentVO(params, document);
+				ContentVersionVO currentVersionVO = new ContentVersionToVOBuilder(modelLayerFactory)
+						.build(content, params.getView().getSessionContext());
+				documentVO.setContent(currentVersionVO);
+
+//				actionsComponent.refreshParent();
+//				actionsComponent.showMessage($("DocumentActionsComponent.canceledCheckOut"));
+			} catch (RecordServicesException e) {
+				//actionsComponent.showErrorMessage(MessageUtils.toMessage(e));
+			}
+		}
+	}
+
+
+	public void checkOut(MenuItemActionBehaviorParams params) {
+		Document document = rm.getDocument(params.getRecordVO().getId());
+
+		if (documentRecordActionsServices.isCheckOutActionPossible(document.getWrappedRecord(), params.getUser())) {
+			updateSearchResultClicked(getDocumentVO(params, document));
+			Content content = document.getContent();
+			content.checkOut(params.getUser());
+			modelLayerFactory.newLoggingServices().borrowRecord(document.getWrappedRecord(), params.getUser(), TimeProvider.getLocalDateTime());
+			try {
+				recordServices.update(document.getWrappedRecord(), new RecordUpdateOptions().setOverwriteModificationDateAndUser(false));
+
+				DocumentVO documentVO = getDocumentVO(params, document);
+
+				String checkedOutVersion = content.getCurrentVersion().getVersion();
+				params.getView().showMessage($("DocumentActionsComponent.checkedOut", checkedOutVersion));
+				String agentURL = ConstellioAgentUtils.getAgentURL(documentVO, documentVO.getContent(), params.getView().getSessionContext());
+				if (agentURL != null) {
+					Page.getCurrent().open(agentURL, null);
+					loggingServices.openDocument(document.getWrappedRecord(), params.getUser());
+				}
+			} catch (RecordServicesException e) {
+				params.getView().showErrorMessage(MessageUtils.toMessage(e));
+			}
+		}
+	}
+
+	private DocumentVO getDocumentVO(MenuItemActionBehaviorParams params, Document document) {
+		return new DocumentToVOBuilder(modelLayerFactory).build(document.getWrappedRecord(),
+				VIEW_MODE.DISPLAY, params.getView().getSessionContext());
+	}
+
 	private void addToCartRequested(RecordVO recordVO, BaseView baseView, Document document) {
 		Cart cart = rm.getCart(recordVO.getId());
 		addToCartRequested(cart, baseView, document);
@@ -407,18 +496,23 @@ public class DocumentMenuItemActionBehaviors {
 	}
 
 	public void upload(MenuItemActionBehaviorParams params) {
+		UpdateContentVersionWindowImpl uploadWindow = createUpdateContentVersionWindow(params);
+
+		uploadWindow.open(false);
+	}
+
+	@NotNull
+	private UpdateContentVersionWindowImpl createUpdateContentVersionWindow(MenuItemActionBehaviorParams params) {
 		final Map<RecordVO, MetadataVO> recordMap = new HashMap<>();
 		recordMap.put(params.getRecordVO(), params.getRecordVO().getMetadata(Document.CONTENT));
 
-		UpdateContentVersionWindowImpl uploadWindow = new UpdateContentVersionWindowImpl(recordMap) {
+		return new UpdateContentVersionWindowImpl(recordMap) {
 			@Override
 			public void close() {
 				super.close();
 				params.getView().updateUI();
 			}
 		};
-
-		uploadWindow.open(false);
 	}
 
 	private void createNewCartAndAddToItRequested(String title, Document document,

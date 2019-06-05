@@ -62,14 +62,24 @@ public class DocumentRecordActionsServices {
 		return rmModuleExtensions.isCopyActionPossibleOnDocument(rm.wrapDocument(record), user);
 	}
 
-	public boolean isPublishActionPossible(Record record, User user) {
+	public boolean isUnPublishActionPossible(Record record, User user) {
+		Document document = rm.wrapDocument(record);
 		return user.has(RMPermissionsTo.PUBLISH_AND_UNPUBLISH_DOCUMENTS)
-				.on(record) && rmModuleExtensions.isPublishActionPossibleOnDocument(rm.wrapDocument(record), user);
+					   .on(record) && rmModuleExtensions.isUnPublishActionPossibleOnDocument(document, user)
+			   && document.isPublished();
+	}
+
+	public boolean isPublishActionPossible(Record record, User user) {
+		Document document = rm.wrapDocument(record);
+		return user.has(RMPermissionsTo.PUBLISH_AND_UNPUBLISH_DOCUMENTS)
+				.on(record) && rmModuleExtensions.isPublishActionPossibleOnDocument(document, user)
+				&& !document.isPublished();
 	}
 
 	public boolean isPrintLabelActionPossible(Record record, User user) {
-
-		return false;
+		Document document = rm.wrapDocument(record);
+		return user.hasReadAccess().on(record)
+				&& rmModuleExtensions.isPrintLabelActionPossibleOnDocument(document, user);
 	}
 
 	public boolean isDeleteActionPossible(Record record, User user) {
@@ -133,14 +143,12 @@ public class DocumentRecordActionsServices {
 
 	public boolean isAddToSelectionActionPossible(Record record, User user, SessionContext sessionContext) {
 		return  hasUserReadAccess(record, user)
-				&& rmModuleExtensions.isAddRemoveToSelectionActionPossibleOnDocument(rm.wrapDocument(record), user)
-				&& sessionContext.getSelectedRecordIds()== null || !sessionContext.getSelectedRecordIds().contains(record.getId());
+				&& rmModuleExtensions.isAddRemoveToSelectionActionPossibleOnDocument(rm.wrapDocument(record), user);
 	}
 
-	public boolean isRemoveToSelectionActionPossible(Record record, User user, SessionContext sessionContext) {
+	public boolean isRemoveToSelectionActionPossible(Record record, User user) {
 		return  hasUserReadAccess(record, user)
-				&& rmModuleExtensions.isAddRemoveToSelectionActionPossibleOnDocument(rm.wrapDocument(record), user)
-				&& sessionContext.getSelectedRecordIds()!= null && sessionContext.getSelectedRecordIds().contains(record.getId());
+				&& rmModuleExtensions.isAddRemoveToSelectionActionPossibleOnDocument(rm.wrapDocument(record), user);
 	}
 
 	protected boolean isUploadPossible(Document document, User user) {
@@ -188,8 +196,34 @@ public class DocumentRecordActionsServices {
 	}
 
 	public boolean isCheckInActionPossible(Record record, User user) {
+		if (user.hasWriteAccess().on(record)) {
+			boolean permissionToReturnOtherUsersDocuments = user.has(RMPermissionsTo.RETURN_OTHER_USERS_DOCUMENTS)
+					.on(record);
+			Document document = rm.wrapDocument(record);
+			if (isCheckInPossible(user, document) || (permissionToReturnOtherUsersDocuments && isContentCheckedOut(document))) {
+				return true;
+			}
+		}
 		return false;
 	}
+
+	private boolean isCheckInPossible(User user, Document document) {
+		boolean email = isEmail(document);
+		return !email && (document.getContent() != null && isCurrentUserBorrower(user, document.getContent()));
+	}
+
+	public boolean isCheckOutActionPossible(Record record, User user) {
+		Document document = rm.wrapDocument(record);
+
+		if (user.hasWriteAccess().on(record)) {
+			if (isCheckOutPossible(document) && modelLayerCollectionExtensions.isRecordModifiableBy(record, user) && !modelLayerCollectionExtensions
+					.isModifyBlocked(record, user)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 
 	public boolean isCancelCheckInActionPossible(Record record, User user) {
 		return false;
@@ -231,12 +265,16 @@ public class DocumentRecordActionsServices {
 	}
 
 	protected boolean isContentCheckedOut(Document document) {
-		Content content = document.getContent();
-		return content != null && content.getCheckoutUserId() != null;
+		return isContentCheckedOut(document.getContent());
 	}
 
 	private String getCurrentBorrowerOf(Document document) {
 		return document.getContent() == null ? null : document.getContent().getCheckoutUserId();
+	}
+
+	public boolean isCancelCheckOutPossible(Document document) {
+		boolean email = isEmail(document);
+		return !email && (document.getContent() != null && isContentCheckedOut(document));
 	}
 
 	private boolean isEmail(Document document) {
