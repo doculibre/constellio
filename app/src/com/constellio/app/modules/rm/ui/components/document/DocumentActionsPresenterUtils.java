@@ -318,16 +318,16 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		actionsComponent.showMessage("Clipboard integration TODO!");
 	}
 
-	protected boolean isAddAuthorizationPossible() {
-		return getCurrentUser().has(RMPermissionsTo.MANAGE_DOCUMENT_AUTHORIZATIONS).on(currentDocument());
+	protected boolean isViewAuthorizationPossible() {
+		return getCurrentUser().hasAny(RMPermissionsTo.MANAGE_DOCUMENT_AUTHORIZATIONS, RMPermissionsTo.VIEW_DOCUMENT_AUTHORIZATIONS).on(currentDocument());
 	}
 
 	protected boolean isCreateDocumentPossible() {
 		return getCurrentUser().has(RMPermissionsTo.CREATE_DOCUMENTS).on(currentDocument());
 	}
 
-	private ComponentState getAddAuthorizationState() {
-		return ComponentState.visibleIf(isAddAuthorizationPossible());
+	private ComponentState getViewAuthorizationState() {
+		return ComponentState.visibleIf(isViewAuthorizationPossible());
 	}
 
 	private ComponentState getCreateDocumentState() {
@@ -394,7 +394,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	}
 
 	public void addAuthorizationButtonClicked() {
-		if (isAddAuthorizationPossible()) {
+		if (isViewAuthorizationPossible()) {
 			actionsComponent.navigate().to().listObjectAccessAndRoleAuthorizations(documentVO.getId());
 			updateSearchResultClicked();
 		}
@@ -754,7 +754,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 			actionsComponent.setEditDocumentButtonState(ComponentState.INVISIBLE);
 			actionsComponent.setAddDocumentButtonState(ComponentState.INVISIBLE);
 			actionsComponent.setDeleteDocumentButtonState(ComponentState.INVISIBLE);
-			actionsComponent.setAddAuthorizationButtonState(ComponentState.INVISIBLE);
+			actionsComponent.setViewAuthorizationButtonState(ComponentState.INVISIBLE);
 			actionsComponent.setCreatePDFAButtonState(ComponentState.INVISIBLE);
 			actionsComponent.setShareDocumentButtonState(ComponentState.INVISIBLE);
 			actionsComponent.setUploadButtonState(ComponentState.INVISIBLE);
@@ -775,7 +775,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		// OH MY GOD WHY ARE WE YELLING LIKE THAT ?
 		actionsComponent.setAddDocumentButtonState(getCreateDocumentState());
 		actionsComponent.setDeleteDocumentButtonState(getDeleteButtonState());
-		actionsComponent.setAddAuthorizationButtonState(getAddAuthorizationState());
+		actionsComponent.setViewAuthorizationButtonState(getViewAuthorizationState());
 		actionsComponent.setCreatePDFAButtonState(getCreatePDFAState());
 		actionsComponent.setShareDocumentButtonState(getShareDocumentState());
 		actionsComponent.setUploadButtonState(getUploadButtonState());

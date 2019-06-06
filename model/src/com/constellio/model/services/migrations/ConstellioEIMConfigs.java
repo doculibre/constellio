@@ -188,7 +188,7 @@ public class ConstellioEIMConfigs {
 		add(INCLUDE_FROM_FIELD_WHEN_GENERATING_EMAILS = others.createBooleanTrueByDefault("includeFromFieldWhenGeneratingEmails"));
 
 		add(DATE_FORMAT = others.createString("dateFormat").withDefaultValue("yyyy-MM-dd"));
-		add(DATE_TIME_FORMAT = others.createString("dateTimeFormat").withDefaultValue("yyyy-MM-dd HH:mm:ss"));
+		add(DATE_TIME_FORMAT = others.createString("dateTimeFormat").withDefaultValue("yyyy-MM-dd HH:mm:ss").whichHasHiddenValue());
 
 		SystemConfigurationGroup advanced = new SystemConfigurationGroup(null, "advanced");
 		add(PARSED_CONTENT_MAX_LENGTH_IN_KILOOCTETS = advanced.createInteger("parsedContentMaxLengthInKilooctets")

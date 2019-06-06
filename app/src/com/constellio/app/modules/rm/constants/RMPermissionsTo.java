@@ -18,7 +18,7 @@ public class RMPermissionsTo {
 	private static final String FOLDER_GROUP = "folders";
 
 	public static final String MANAGE_FOLDER_AUTHORIZATIONS = permission(FOLDER_GROUP, "manageFolderAuthorizations");
-	public static final String DISPLAY_FOLDER_AUTHORIZATIONS = permission(FOLDER_GROUP, "displayFolderAuthorizations");
+	public static final String VIEW_FOLDER_AUTHORIZATIONS = permission(FOLDER_GROUP, "viewFolderAuthorizations");
 
 	public static final String SHARE_FOLDER = permission(FOLDER_GROUP, "shareFolders");
 	public static final String SHARE_A_SEMIACTIVE_FOLDER = permission(FOLDER_GROUP, "shareSemiActiveFolders");
@@ -64,6 +64,7 @@ public class RMPermissionsTo {
 	private static final String DOCUMENT_GROUP = "documents";
 
 	public static final String MANAGE_DOCUMENT_AUTHORIZATIONS = permission(DOCUMENT_GROUP, "manageDocumentAuthorizations");
+	public static final String VIEW_DOCUMENT_AUTHORIZATIONS = permission(DOCUMENT_GROUP, "viewDocumentAuthorizations");
 	public static final String SHARE_DOCUMENT = permission(DOCUMENT_GROUP, "shareDocuments");
 	public static final String SHARE_A_SEMIACTIVE_DOCUMENT = permission(DOCUMENT_GROUP, "shareSemiActiveDocuments");
 	public static final String SHARE_A_INACTIVE_DOCUMENT = permission(DOCUMENT_GROUP, "shareInactiveDocuments");

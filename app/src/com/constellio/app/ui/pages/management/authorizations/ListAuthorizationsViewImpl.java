@@ -20,6 +20,7 @@ import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Role;
@@ -69,6 +70,7 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 	private Table authorizations;
 	private Table authorizationsReceivedFromMetadatas;
 	private Button detach;
+	private boolean isViewReadOnly;
 
 	@Override
 	protected void initBeforeCreateComponents(ViewChangeEvent event) {
@@ -93,7 +95,7 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 	}
 
 	private Button buildDetachButton() {
-		if (presenter.seeAccessField()/* && user.canManageAutorisationForFolder*/) {
+		if (presenter.seeAccessField()) {
 			detach = new ConfirmDialogButton($("ListContentAccessAuthorizationsView.detach")) {
 				@Override
 				protected String getConfirmDialogMessage() {
@@ -104,9 +106,14 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 				protected void confirmButtonClick(ConfirmDialog dialog) {
 					presenter.detachRequested();
 				}
+
+				@Override
+				public boolean isVisible() {
+					return super.isVisible() && !isViewReadOnly();
+				}
 			};
 		}
-		if (presenter.seeRolesField()/* && user.canManageAutorisationForFolder*/) {
+		if (presenter.seeRolesField()) {
 			detach = new ConfirmDialogButton($("ListContentRoleAuthorizationsView.detach")) {
 				@Override
 				protected String getConfirmDialogMessage() {
@@ -116,6 +123,11 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 				@Override
 				protected void confirmButtonClick(ConfirmDialog dialog) {
 					presenter.detachRequested();
+				}
+
+				@Override
+				public boolean isVisible() {
+					return super.isVisible() && !isViewReadOnly();
 				}
 			};
 		}
@@ -258,12 +270,17 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 
 	private Container addButtons(BeanItemContainer<AuthorizationVO> authorizations, final boolean inherited) {
 		ButtonsContainer container = new ButtonsContainer<>(authorizations, Authorizations.BUTTONS);
-		if (canEditAuthorizations()) {
+		if (canEditAuthorizations() && !isViewReadOnly()) {
 			container.addButton(new ContainerButton() {
 				@Override
 				protected Button newButtonInstance(Object itemId, ButtonsContainer<?> container) {
-					AuthorizationVO authorization = (AuthorizationVO) itemId;
-					EditAuthorizationButton button = new EditAuthorizationButton(authorization);
+					final AuthorizationVO authorization = (AuthorizationVO) itemId;
+					EditAuthorizationButton button = new EditAuthorizationButton(authorization) {
+						@Override
+						public boolean isVisible() {
+							return super.isVisible() && !isViewReadOnly();
+						}
+					};
 					button.setVisible(inherited || !authorization.isSynched());
 					return button;
 				}
@@ -277,6 +294,11 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 					@Override
 					protected void confirmButtonClick(ConfirmDialog dialog) {
 						presenter.deleteButtonClicked(authorization);
+					}
+
+					@Override
+					public boolean isVisible() {
+						return super.isVisible() && !isViewReadOnly();
 					}
 				};
 				deleteButton.setVisible(inherited || !authorization.isSynched());
@@ -411,7 +433,7 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 		}
 	}
 
-	public static class Authorizations implements ColumnGenerator {
+	public class Authorizations implements ColumnGenerator {
 		public static final String PRINCIPALS = "principal";
 		public static final String CONTENT = "content";
 		public static final String ACCESS = "access";
@@ -492,7 +514,7 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 			table.addGeneratedColumn(END_DATE, this);
 			table.setColumnHeader(END_DATE, $("AuthorizationsView.endDate"));
 
-			if (source == AuthorizationSource.OWN) {
+			if (source == AuthorizationSource.OWN && !isViewReadOnly()) {
 				table.setColumnHeader(BUTTONS, "");
 				table.setColumnWidth(BUTTONS, 80);
 				columnIds.add(BUTTONS);
@@ -581,5 +603,20 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 
 	protected boolean canEditAuthorizations() {
 		return true;
+	}
+
+	@Override
+	public void setViewReadOnly(boolean isViewReadOnly) {
+		this.isViewReadOnly = isViewReadOnly;
+	}
+
+	@Override
+	public boolean isViewReadOnly() {
+		return isViewReadOnly;
+	}
+
+	@Override
+	public Record getAutorizationTarget() {
+		return record == null? null:record.getRecord();
 	}
 }
