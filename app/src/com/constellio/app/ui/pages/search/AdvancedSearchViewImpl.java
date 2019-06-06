@@ -14,6 +14,7 @@ import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
+import com.constellio.app.ui.framework.buttons.BaseLink;
 import com.constellio.app.ui.framework.buttons.SIPButton.SIPButtonImpl;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
@@ -50,7 +51,6 @@ import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
-import com.vaadin.ui.Link;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.Table;
@@ -140,6 +140,8 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 
 		final String schemaType = getSchemaType();
 		List<Component> selectionActions = new ArrayList<>();
+		selectionActions.add(buildAddToSelectionButton());
+		selectionActions.add(buildZipButton());
 
 		batchProcessingButton = newBatchProcessingButton();
 		batchProcessingButton.addStyleName(ValoTheme.BUTTON_LINK);
@@ -189,7 +191,7 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 		}
 
 		if (Document.SCHEMA_TYPE.equals(schemaType)) {
-			Component zipButton = new Link($("ReportViewer.download", "(zip)"),
+			Component zipButton = new BaseLink($("ReportViewer.download", "(zip)"),
 					new DownloadStreamResource(presenter.getZippedContents(), presenter.getZippedContentsFilename()));
 			zipButton.setIcon(FontAwesome.FILE_ARCHIVE_O);
 			zipButton.addStyleName(ValoTheme.BUTTON_LINK);
@@ -343,7 +345,7 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 		//		List<Component> actions = Arrays.asList(
 		//				buildSelectAllButton(), buildSavedSearchButton(), (Component) new ReportSelector(presenter));
 		List<Component> actions = Arrays.asList(
-				buildSelectAllButton(), buildAddToSelectionButton(), buildSavedSearchButton(), (Component) switchViewMode);
+				/*buildSelectAllButton(), buildAddToSelectionButton(),*/ buildSavedSearchButton()/*, (Component) switchViewMode*/);
 
 		return results.createSummary(actions, selectionActions);
 	}

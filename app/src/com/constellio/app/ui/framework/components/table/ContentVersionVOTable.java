@@ -96,6 +96,7 @@ public class ContentVersionVOTable extends BaseTable {
 		}
 
 		setColumnExpandRatio(FILE_NAME, 1);
+		setColumnCollapsingAllowed(true);
 		setContentVersions(contentVersions);
 
 		if (isDeleteColumn()) {
@@ -209,6 +210,8 @@ public class ContentVersionVOTable extends BaseTable {
 				item.getItemProperty(SYSTEM_FILE_NAME).setValue(systemFileName);
 			}
 		}
+		setColumnCollapsed(COMMENT, true);
+		setColumnCollapsed(SYSTEM_FILE_NAME, true);
 	}
 
 	public void removeAllSelection() {

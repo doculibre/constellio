@@ -7,6 +7,7 @@ import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.SearchResultVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
+import com.constellio.app.ui.framework.buttons.BaseLink;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.SelectDeselectAllButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
@@ -62,7 +63,6 @@ import com.vaadin.ui.ComponentContainer;
 import com.vaadin.ui.CssLayout;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
-import com.vaadin.ui.Link;
 import com.vaadin.ui.OptionGroup;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.ColumnHeaderMode;
@@ -90,7 +90,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	public static final String SORT_BOX_STYLE = "sort-box";
 	public static final String SORT_TITLE_STYLE = "sort-title";
 	public static final String SAVE_SEARCH = "save-search";
-	public static final Resource SELECTION_ICON_RESOURCE = new ThemeResource("images/icons/clipboard_12x16_blue.png");
+	public static final Resource SELECTION_ICON_RESOURCE = new ThemeResource("images/icons/clipboard_12x16.png");
 
 	private enum ShareType {
 		NONE, ALL, RESTRICTED
@@ -331,14 +331,9 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	protected abstract Component buildSearchUI();
 
 	protected Component buildSummary(SearchResultTable results) {
-		List<Component> actions = Arrays.asList(
-				(Component) buildSelectAllButton(), buildAddToSelectionButton(), buildSavedSearchButton());
-		Component zipButton = new Link($("ReportViewer.download", "(zip)"),
-				new DownloadStreamResource(presenter.getZippedContents(), presenter.getZippedContentsFilename()));
-		zipButton.setIcon(FontAwesome.FILE_ARCHIVE_O);
-		zipButton.addStyleName(ValoTheme.BUTTON_LINK);
-		zipButton.setVisible(presenter.isAllowDownloadZip());
-		return results.createSummary(actions, zipButton);
+		List<Component> actions = Arrays.asList(/*
+				(Component) buildSelectAllButton(), buildAddToSelectionButton(),*/ buildSavedSearchButton());
+		return results.createSummary(actions, buildAddToSelectionButton(), buildZipButton());
 	}
 
 	private Component buildResultsUI() {
@@ -910,8 +905,20 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			}
 		};
 		addToSelectionButton.addStyleName(ValoTheme.BUTTON_LINK);
-		addToSelectionButton.setVisible(presenter.isAllowDownloadZip());
+		// FIXME
+		addToSelectionButton.setEnabled(!getSelectedRecordIds().isEmpty());
+		addToSelectionButton.setVisible(!getSelectedRecordIds().isEmpty());
+		//		addToSelectionButton.setVisible(presenter.isAllowDownloadZip());
 		return addToSelectionButton;
+	}
+
+	protected Component buildZipButton() {
+		Component zipButton = new BaseLink($("ReportViewer.download", "(zip)"),
+				new DownloadStreamResource(presenter.getZippedContents(), presenter.getZippedContentsFilename()));
+		zipButton.setIcon(FontAwesome.FILE_ARCHIVE_O);
+		zipButton.addStyleName(ValoTheme.BUTTON_LINK);
+		zipButton.setVisible(presenter.isAllowDownloadZip());
+		return zipButton;
 	}
 
 	protected Button buildSavedSearchButton() {

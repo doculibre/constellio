@@ -11987,7 +11987,7 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .task-management-view .v-slot-task-action-buttons {
-	margin-top: -40px;
+	margin-top: -36px;
 	padding-right: 10px;
 	position: relative;
 	top: 82px;
@@ -12086,6 +12086,13 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .task-table-layout .task-table .task-details .v-captiontext, .constellio .task-table-layout .task-table .task-details .task-details-due-date, .constellio .task-table-layout .task-table .task-details .v-caption-task-details-assignee, .constellio .task-table-layout .task-table .task-details .v-caption-task-details-comments, .constellio .task-table-layout .task-table .task-details .v-caption-task-details-linked-folders, .constellio .task-table-layout .task-table .task-details .v-caption-task-details-linked-documents, .constellio .task-table-layout .task-table .task-details .v-caption-task-details-linked-containers {
 	font-size: 14px;
 	color: #9ca5af;
+}
+
+.constellio .task-table-layout .task-table .task-details .v-slot-task-details-workflow-title {
+	font-size: 14px;
+	position: relative;
+	left: 20px;
+	padding-right: 20px;
 }
 
 .constellio .task-table-layout .task-table .task-details .v-slot-task-details-assignee, .constellio .task-table-layout .task-table .task-details .v-slot-task-details-description, .constellio .task-table-layout .task-table .task-details .v-slot-task-details-linked-folders, .constellio .task-table-layout .task-table .task-details .v-slot-task-details-contents, .constellio .task-table-layout .task-table .task-details .v-slot-task-details-linked-documents, .constellio .task-table-layout .task-table .task-details .v-slot-task-details-linked-containers, .constellio .task-table-layout .task-table .task-details .v-slot-task-details-comments {
@@ -14386,7 +14393,7 @@ div.v-layout.v-horizontal.v-widget {
 	border-radius: 4px;
 }
 
-.constellio .header-selection-panel .header-selection-panel-layout .header-selection-panel-actions .v-button {
+.constellio .header-selection-panel .header-selection-panel-layout .header-selection-panel-actions .v-button, .constellio .header-selection-panel .header-selection-panel-layout .header-selection-panel-actions .link, .constellio .header-selection-panel .header-selection-panel-layout .header-selection-panel-actions v-link {
 	padding-left: 8px;
 	color: white;
 	font-weight: normal;
@@ -14398,6 +14405,10 @@ div.v-layout.v-horizontal.v-widget {
 	border: none;
 	background-color: #414B56;
 	background-image: linear, to left, #38414a 0%, #414B56 9px;
+}
+
+.constellio .header-selection-panel .header-selection-panel-layout .header-selection-panel-actions .v-button a, .constellio .header-selection-panel .header-selection-panel-layout .header-selection-panel-actions .link a, .constellio .header-selection-panel .header-selection-panel-layout .header-selection-panel-actions v-link a {
+	color: white;
 }
 
 .constellio .header-selection-panel .header-selection-panel-layout .header-selection-panel-actions .v-button:hover {
@@ -14683,8 +14694,15 @@ div.v-layout.v-horizontal.v-widget {
 	vertical-align: middle;
 }
 
+.constellio .viewable-record-table-panel .v-slot-viewable-record-table-panel-view-action-menu-layout {
+	position: absolute;
+	top: -40px;
+	right: -250px;
+}
+
 .constellio .viewable-record-table-panel .v-slot-selection-buttons-layout {
 	margin-bottom: -36px;
+	color: #197de1;
 }
 
 .constellio .viewable-record-table-panel .v-slot-selection-buttons-layout .select-deselect-all-button {
@@ -14704,9 +14722,10 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .viewable-record-table-panel .selection-action-menu-bar .v-menubar-submenu-indicator + .v-menubar-menuitem-caption:after {
-	content: url('images/icons/font-awesome/16x16/ellipsis-v-blue2.png');
+	content: url('images/icons/font-awesome/16x16/ellipsis-v-blue.png');
 	position: relative;
 	top: 5px;
+	opacity: 1;
 }
 
 .constellio .viewable-record-table-panel .close-button-viewer-metadata-layout {
@@ -14723,6 +14742,10 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .viewable-record-table-panel .table-buttons-layout {
 	border-bottom: 1px solid #d5d5d5;
+}
+
+.constellio .viewable-record-table-panel .viewable-record-table-table-mode .v-table-row-nullviewer-results-table-tableMode {
+	cursor: pointer;
 }
 
 .constellio .viewable-record-table-panel .viewable-record-table .v-table-body {
@@ -15942,6 +15965,11 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .right-to-left .icon-only {
 	text-align: center;
+}
+
+.constellio .right-to-left .task-management-view {
+	position: relative;
+	top: -10px;
 }
 
 .constellio .right-to-left .task-management-view .v-slot-task-action-buttons {

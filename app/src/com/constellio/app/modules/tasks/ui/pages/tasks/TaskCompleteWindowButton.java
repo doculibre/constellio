@@ -102,14 +102,17 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 				buildQuickCompleteButton(mainLayout, decisionField, acceptedField, reasonField, commentField, uncompletedRequiredFields));
 
 		mainLayout.addComponent(buttonsLayout);
-		mainLayout.setComponentAlignment(buttonsLayout, Alignment.BOTTOM_CENTER);
+		mainLayout.setExpandRatio(buttonsLayout, 1);
+		mainLayout.setComponentAlignment(buttonsLayout, Alignment.MIDDLE_CENTER);
 
-		setWindowHeight(decisionField, acceptedField, reasonField, commentField, uncompletedRequiredFields);
+
+		setWindowHeight(mainLayout, decisionField, acceptedField, reasonField, commentField, uncompletedRequiredFields);
+		setWindowWidth(mainLayout, decisionField, acceptedField, reasonField, commentField, uncompletedRequiredFields);
 
 		return mainLayout;
 	}
 
-	private void setWindowHeight(Entry<MetadataVO, Field> decisionField, Field acceptedField, Field reasonField,
+	private void setWindowHeight(VerticalLayout mainLayout, Entry<MetadataVO, Field> decisionField, Field acceptedField, Field reasonField,
 								 Field commentField, Map<MetadataVO, Field> uncompletedRequiredFields) {
 		double height = 200;
 
@@ -127,9 +130,17 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 			height += 150;
 		}
 		if (commentField != null) {
-			height += 150;
+			height += 210;
 		}
+		mainLayout.setHeight(height + "px");
 		getWindow().setHeight(height + "px");
+	}
+
+	private void setWindowWidth(VerticalLayout mainLayout, Entry<MetadataVO, Field> decisionField, Field acceptedField, Field reasonField, Field commentField, Map<MetadataVO, Field> uncompletedRequiredFields) {
+		if(commentField != null) {
+			mainLayout.setWidth(1000 + "px");
+			getWindow().setWidth(1000 + "px");
+		}
 	}
 
 	private Button buildCancelButton() {

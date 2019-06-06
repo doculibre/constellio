@@ -378,6 +378,7 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 			actionButton.addStyleName(ValoTheme.BUTTON_LINK);
 			actionButtonsLayout.addComponent(actionButton);
 		}
+		actionButtonsLayout.setVisible(actionButtonsLayout.getComponentCount() > 0);
 	}
 
 	public List<? extends Button> getExtraActionButtons() {
