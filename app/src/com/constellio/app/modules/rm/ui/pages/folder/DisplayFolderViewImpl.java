@@ -982,11 +982,11 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		alertWhenAvailableButton.setEnabled(state.isEnabled());
 	}
 
-	@Override
-	public void setStartWorkflowButtonState(ComponentState state) {
+	//@Override
+	//public void setStartWorkflowButtonState(ComponentState state) {
 		//startWorkflowButton.setVisible(state.isVisible());
 		//startWorkflowButton.setEnabled(state.isEnabled());
-	}
+	//}
 
 	@Override
 	public void drop(DragAndDropEvent event) {
