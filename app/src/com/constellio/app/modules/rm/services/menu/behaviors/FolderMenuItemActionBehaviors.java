@@ -23,10 +23,6 @@ import com.constellio.app.modules.rm.util.DecommissionNavUtil;
 import com.constellio.app.modules.rm.util.RMNavigationUtils;
 import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.RMTask;
-import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflow;
-import com.constellio.app.modules.tasks.services.BetaWorkflowServices;
-import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -53,7 +49,6 @@ import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordFiel
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
-import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
@@ -103,11 +98,8 @@ import org.vaadin.dialogs.ConfirmDialog;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-import static com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration.modalDialog;
 import static com.constellio.app.ui.framework.components.ErrorDisplayUtil.showErrorMessage;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -655,25 +647,14 @@ public class FolderMenuItemActionBehaviors {
 		reportGeneratorButton.click();
 	}
 
-	public void startWorkflow(MenuItemActionBehaviorParams params) {
-		Button startWorkflowButton = new WindowButton($("TasksManagementView.startWorkflowBeta"),
-				$("TasksManagementView.startWorkflow"), modalDialog("75%", "75%")) {
-			@Override
-			protected Component buildWindowContent() {
-				RecordVOTable table = new RecordVOTable(getWorkflows(params));
-				table.setWidth("98%");
-				table.addItemClickListener(new ItemClickListener() {
-					@Override
-					public void itemClick(ItemClickEvent event) {
-						RecordVOItem item = (RecordVOItem) event.getItem();
-						workflowStartRequested(item.getRecord(), params);
-						getWindow().close();
-					}
-				});
-				return table;
-			}
-		};
-		startWorkflowButton.click();
+	public void addToSelection(MenuItemActionBehaviorParams params) {
+		params.getView().getSessionContext().addSelectedRecordId(params.getRecordVO().getId(),
+				params.getRecordVO().getSchema().getTypeCode());
+	}
+
+	public void removeToSelection(MenuItemActionBehaviorParams params) {
+		params.getView().getSessionContext().removeSelectedRecordId(params.getRecordVO().getId(),
+				params.getRecordVO().getSchema().getTypeCode());
 	}
 
 	private void addToCartButton(MenuItemActionBehaviorParams params) {
@@ -990,25 +971,5 @@ public class FolderMenuItemActionBehaviors {
 		MetadataSchema schema = schemaTypes.getSchemaType(EmailToSend.SCHEMA_TYPE).getDefaultSchema();
 		Record emailToSendRecord = recordServices.newRecordWithSchema(schema);
 		return new EmailToSend(emailToSendRecord, schemaTypes);
-	}
-
-	public RecordVODataProvider getWorkflows(MenuItemActionBehaviorParams params) {
-		MetadataSchemaVO schemaVO = new MetadataSchemaToVOBuilder().build(
-				schemaTypes.getSchema(BetaWorkflow.DEFAULT_SCHEMA), VIEW_MODE.TABLE, params.getView().getSessionContext());
-
-		return new RecordVODataProvider(schemaVO, new RecordToVOBuilder(), modelLayerFactory, params.getView().getSessionContext()) {
-			@Override
-			protected LogicalSearchQuery getQuery() {
-				return new BetaWorkflowServices(params.getView().getCollection(), appLayerFactory).getWorkflowsQuery();
-			}
-		};
-	}
-
-	public void workflowStartRequested(RecordVO record, MenuItemActionBehaviorParams params) {
-		Map<String, List<String>> parameters = new HashMap<>();
-		parameters.put(RMTask.LINKED_FOLDERS, asList(params.getRecordVO().getId()));
-		BetaWorkflow workflow = new TasksSchemasRecordsServices(collection, appLayerFactory)
-				.getBetaWorkflow(record.getId());
-		new BetaWorkflowServices(collection, appLayerFactory).start(workflow, params.getUser(), parameters);
 	}
 }

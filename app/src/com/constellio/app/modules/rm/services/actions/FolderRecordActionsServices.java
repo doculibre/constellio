@@ -147,19 +147,6 @@ public class FolderRecordActionsServices {
 			   rmModuleExtensions.isAddToCartActionPossibleOnFolder(rm.wrapFolder(record), user);
 	}
 
-	// TODO
-	/*
-	public boolean isAddToOrRemoveFromSelectionActionPossible(Record record, User user) {
-		return hasUserWriteAccess(record, user) &&
-			   rmModuleExtensions.isEditActionPossibleOnFolder(rm.wrapFolder(record), user);
-	}
-
-	public boolean isStartWorkflowActionPossible(Record record, User user) {
-		return hasUserWriteAccess(record, user) &&
-			   rmModuleExtensions.isEditActionPossibleOnFolder(rm.wrapFolder(record), user);
-	}
-	*/
-
 	public boolean isBorrowActionPossible(Record record, User user) {
 		Folder folder = rm.wrapFolder(record);
 		if (!hasUserReadAccess(record, user) ||
@@ -181,7 +168,7 @@ public class FolderRecordActionsServices {
 		boolean hasPermissionToReturnOwnFolderDirectly = user.has(RMPermissionsTo.BORROW_FOLDER).on(folder) &&
 														 user.has(RMPermissionsTo.BORROWING_FOLDER_DIRECTLY).on(folder);
 		if (!user.hasReadAccess().on(folder) ||
-			(folder.getBorrowed() != null && !folder.getBorrowed())) {
+			(folder.getBorrowed() == null || !folder.getBorrowed())) {
 			return false;
 		} else if (!hasPermissionToReturnOtherUsersFolder && !user.getId().equals(folder.getBorrowUserEntered())) {
 			return false;
@@ -219,7 +206,6 @@ public class FolderRecordActionsServices {
 	}
 
 	/*
-
 			linkToFolderButton = new LinkButton($("DisplayFolderView.linkToFolder")) {
 				@Override
 				protected void buttonClick(ClickEvent event) {
@@ -227,9 +213,6 @@ public class FolderRecordActionsServices {
 				}
 			};
 			linkToFolderButton.setVisible(false);
-
-			addToOrRemoveFromSelectionButton = new AddToOrRemoveFromSelectionButton(recordVO,
-					getSessionContext().getSelectedRecordIds().contains(recordVO.getId()));
 	 */
 
 	private boolean hasUserWriteAccess(Record record, User user) {

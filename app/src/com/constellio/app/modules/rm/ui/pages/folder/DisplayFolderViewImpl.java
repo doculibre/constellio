@@ -35,6 +35,7 @@ import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.RecordDisplay;
 import com.constellio.app.ui.framework.components.ReportTabButton;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
+import com.constellio.app.ui.framework.components.buttons.RecordVOActionButtonFactory;
 import com.constellio.app.ui.framework.components.content.ContentVersionVOResource;
 import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
@@ -122,7 +123,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	private boolean dragNDropAllowed;
 	private Button displayFolderButton, deleteFolderButton, duplicateFolderButton, editFolderButton, addSubFolderButton, addDocumentButton,
 			addAuthorizationButton, shareFolderButton, printLabelButton, linkToFolderButton, borrowButton, returnFolderButton,
-			reminderReturnFolderButton, alertWhenAvailableButton, addToCartButton, addToCartMyCartButton, addToOrRemoveFromSelectionButton, startWorkflowButton, reportGeneratorButton;
+			reminderReturnFolderButton, alertWhenAvailableButton, addToCartButton, addToCartMyCartButton, addToOrRemoveFromSelectionButton, reportGeneratorButton;
 	WindowButton moveInFolderButton;
 	private Label borrowedLabel;
 
@@ -546,14 +547,14 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				actionMenuButtons.add(alertWhenAvailableButton);
 			}
 
-			if (presenter.hasPermissionToStartWorkflow() && !isAFolderAndDestroyed) {
+			/*if (presenter.hasPermissionToStartWorkflow() && !isAFolderAndDestroyed) {
 				actionMenuButtons.add(startWorkflowButton);
-			}
+			}*/
 
 			actionMenuButtons.add(reportGeneratorButton);
 		}
 
-		return actionMenuButtons;
+		return new RecordVOActionButtonFactory(recordVO).build();
 	}
 
 	@Override
@@ -983,8 +984,8 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 	@Override
 	public void setStartWorkflowButtonState(ComponentState state) {
-		startWorkflowButton.setVisible(state.isVisible());
-		startWorkflowButton.setEnabled(state.isEnabled());
+		//startWorkflowButton.setVisible(state.isVisible());
+		//startWorkflowButton.setEnabled(state.isEnabled());
 	}
 
 	@Override
