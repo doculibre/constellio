@@ -5,11 +5,13 @@ import com.constellio.app.modules.rm.extensions.api.MenuItemActionExtension;
 import com.constellio.app.modules.rm.extensions.api.MenuItemActionExtension.MenuItemActionExtensionAddMenuItemActionsParams;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.services.actions.ContainerRecordActionsServices;
 import com.constellio.app.modules.rm.services.actions.DocumentRecordActionsServices;
 import com.constellio.app.modules.rm.services.actions.FolderRecordActionsServices;
 import com.constellio.app.modules.rm.services.menu.behaviors.DocumentMenuItemActionBehaviors;
 import com.constellio.app.modules.rm.services.menu.behaviors.FolderMenuItemActionBehaviors;
 import com.constellio.app.modules.rm.services.menu.behaviors.MenuItemActionBehaviorParams;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -33,6 +35,7 @@ public class MenuItemServices {
 	private AppLayerFactory appLayerFactory;
 	private DocumentRecordActionsServices documentRecordActionsServices;
 	private FolderRecordActionsServices folderRecordActionsServices;
+	private ContainerRecordActionsServices containerRecordActionsServices;
 	private RMModuleExtensions rmModuleExtensions;
 	private RMSchemasRecordsServices rm;
 
@@ -41,6 +44,7 @@ public class MenuItemServices {
 		this.appLayerFactory = appLayerFactory;
 		documentRecordActionsServices = new DocumentRecordActionsServices(collection, appLayerFactory);
 		folderRecordActionsServices = new FolderRecordActionsServices(collection, appLayerFactory);
+		containerRecordActionsServices = new ContainerRecordActionsServices(collection, appLayerFactory);
 		rmModuleExtensions = appLayerFactory.getExtensions().forCollection(collection).forModule(ConstellioRMModule.ID);
 		rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 	}
@@ -184,7 +188,7 @@ public class MenuItemServices {
 			}
 
 			if(!filteredActionTypes.contains(MenuItemActionType.DOCUMENT_ADD_TO_CART.name())) {
-				boolean isAddCartActionPossible = documentRecordActionsServices.isAddCartActionPossible(record, user);
+				boolean isAddCartActionPossible = documentRecordActionsServices.isAddToCartActionPossible(record, user);
 
 				MenuItemAction menuItemAction = buildMenuItemAction(MenuItemActionType.DOCUMENT_ADD_TO_CART,
 						isAddCartActionPossible, "DisplayFolderView.addToCart", null, -1, 1200,
@@ -193,21 +197,11 @@ public class MenuItemServices {
 				menuItemActions.add(menuItemAction);
 			}
 
-			if(!filteredActionTypes.contains(MenuItemActionType.DOCUMENT_ADD_TO_MY_CART.name())) {
-				boolean isAddToMyDefaultCartActionPossible = documentRecordActionsServices.isAddToMyCartActionPossible(record, user);
-
-				MenuItemAction menuItemAction = buildMenuItemAction(MenuItemActionType.DOCUMENT_ADD_TO_MY_CART,
-						isAddToMyDefaultCartActionPossible, "DisplayFolderView.addToMyCart", null, -1, 1200,
-						() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).addToDefaultCart(params));
-
-				menuItemActions.add(menuItemAction);
-			}
-
 			if(!filteredActionTypes.contains(MenuItemActionType.DOCUMENT_UPLOAD.name())) {
 				boolean isAddCartActionPossible = documentRecordActionsServices.isUploadActionPossible(record, user);
 
 				MenuItemAction menuItemAction = buildMenuItemAction(MenuItemActionType.DOCUMENT_UPLOAD,
-						isAddCartActionPossible, "DocumentContextMenu.upload", null, -1, 1200,
+						isAddCartActionPossible, "DocumentContextMenu.upload", null, -1, 1250,
 						() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).upload(params));
 
 				menuItemActions.add(menuItemAction);
@@ -331,7 +325,7 @@ public class MenuItemServices {
 				boolean isAddToCartPossible = folderRecordActionsServices.isAddToCartActionPossible(record, user);
 				menuItemActions.add(buildMenuItemAction(MenuItemActionType.FOLDER_ADD_TO_CART, isAddToCartPossible,
 						"DisplayFolderView.addToCart", null, -1, 1000,
-						() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).share(params)));
+						() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).addToCart(params)));
 			}
 
 			if (!filteredActionTypes.contains(MenuItemActionType.FOLDER_BORROW.name())) {
@@ -390,6 +384,10 @@ public class MenuItemServices {
 			// FIXME une autre possibilité est d'avoir MenuItemAction.button et faire en sorte que le runnable fasse un button.click?
 			// Ça éviterait de reconstruire le bouton à chaque fois
 
+		} else if (record.isOfSchemaType(ContainerRecord.SCHEMA_TYPE)) {
+			if (!filteredActionTypes.contains(MenuItemActionType.CONTAINER_EDIT.name())) {
+				boolean isEditPossible = containerRecordActionsServices.isEditActionPossible(record, user);
+			}
 		} else {
 			// TODO
 			return Collections.emptyList();

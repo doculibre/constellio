@@ -266,6 +266,14 @@ public class DocumentMenuItemActionBehaviors {
 	}
 
 	public void addToCart(MenuItemActionBehaviorParams params) {
+		if (params.getUser().has(RMPermissionsTo.USE_GROUP_CART).globally()) {
+			addToCartWindow(params);
+		} else if (params.getUser().has(RMPermissionsTo.USE_MY_CART).globally()) {
+			addToDefaultCart(params);
+		}
+	}
+
+	private void addToCartWindow(MenuItemActionBehaviorParams params) {
 		final Document document = rm.getDocument(params.getRecordVO().getId());
 
 		WindowButton windowButton = new WindowButton($("DisplayFolderView.addToCart"), $("DisplayFolderView.selectCart")) {

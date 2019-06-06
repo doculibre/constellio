@@ -5,10 +5,12 @@ import com.constellio.app.api.extensions.NavigateToFromAPageImportExtension;
 import com.constellio.app.api.extensions.params.DocumentFolderBreadCrumbParams;
 import com.constellio.app.api.extensions.params.NavigateToFromAPageParams;
 import com.constellio.app.extensions.ModuleExtensions;
+import com.constellio.app.modules.rm.extensions.api.ContainerRecordExtension.ContainerRecordExtensionActionPossibleParams;
 import com.constellio.app.modules.rm.extensions.api.DocumentExtension.DocumentExtensionActionPossibleParams;
 import com.constellio.app.modules.rm.extensions.api.DocumentExtension.DocumentExtensionAddMenuItemParams;
 import com.constellio.app.modules.rm.extensions.api.FolderExtension.FolderExtensionActionPossibleParams;
 import com.constellio.app.modules.rm.extensions.api.reports.RMReportBuilderFactories;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.tasks.extensions.TaskManagementPresenterExtension;
@@ -33,6 +35,7 @@ public class RMModuleExtensions implements ModuleExtensions {
 	private VaultBehaviorsList<TaskManagementPresenterExtension> taskManagementPresenterExtensions;
 	private VaultBehaviorsList<DocumentExtension> documentExtensions;
 	private VaultBehaviorsList<FolderExtension> folderExtensions;
+	private VaultBehaviorsList<ContainerRecordExtension> containerRecordExtensions;
 	private VaultBehaviorsList<AdvancedSearchPresenterExtension> advancedSearchPresenterExtensions;
 	private VaultBehaviorsList<DocumentFolderBreadCrumbExtention> documentBreadcrumExtentions;
 	private VaultBehaviorsList<NavigateToFromAPageImportExtension> navigateToFromAPageExtensions;
@@ -46,8 +49,9 @@ public class RMModuleExtensions implements ModuleExtensions {
 		decommissioningBuilderPresenterExtensions = new VaultBehaviorsList<>();
 		decommissioningListPresenterExtensions = new VaultBehaviorsList<>();
 		taskManagementPresenterExtensions = new VaultBehaviorsList<>();
-		documentExtensions = new VaultBehaviorsList<>();
-		folderExtensions = new VaultBehaviorsList<>();
+		this.documentExtensions = new VaultBehaviorsList<>();
+		this.folderExtensions = new VaultBehaviorsList<>();
+		this.containerRecordExtensions = new VaultBehaviorsList<>();
 		advancedSearchPresenterExtensions = new VaultBehaviorsList<>();
 		menuItemActionExtensions = new VaultBehaviorsList<>();
 		this.documentBreadcrumExtentions = new VaultBehaviorsList<>();
@@ -263,7 +267,7 @@ public class RMModuleExtensions implements ModuleExtensions {
 		});
 	}
 
-	public boolean isAddCartActionPossibleOnDocument(final Document document, final User user) {
+	public boolean isAddToCartActionPossibleOnDocument(final Document document, final User user) {
 		return documentExtensions.getBooleanValue(true, new BooleanCaller<DocumentExtension>() {
 			@Override
 			public ExtensionBooleanResult call(DocumentExtension behavior) {
@@ -358,6 +362,36 @@ public class RMModuleExtensions implements ModuleExtensions {
 						new DocumentExtension.DocumentExtensionActionPossibleParams(document, user));
 			}
 		});
+	}
+
+	public boolean isAddToCartActionPossibleOnContainerRecord(final ContainerRecord containerRecord, final User user) {
+		return containerRecordExtensions.getBooleanValue(true,
+				(behavior) -> behavior.isAddToCartActionPossible(new ContainerRecordExtensionActionPossibleParams(containerRecord, user)));
+	}
+
+	public boolean isEditActionPossibleOnContainerRecord(final ContainerRecord containerRecord, final User user) {
+		return containerRecordExtensions.getBooleanValue(true,
+				(behavior -> behavior.isEditActionPossible(new ContainerRecordExtensionActionPossibleParams(containerRecord, user))));
+	}
+
+	public boolean isSlipActionPossibleOnContainerRecord(final ContainerRecord containerRecord, final User user) {
+		return containerRecordExtensions.getBooleanValue(true,
+				(behavior -> behavior.isSlipActionPossible(new ContainerRecordExtensionActionPossibleParams(containerRecord, user))));
+	}
+
+	public boolean isLabelsActionPossible(final ContainerRecord containerRecord, final User user) {
+		return containerRecordExtensions.getBooleanValue(true,
+				(behavior -> behavior.isLabelActionPossible(new ContainerRecordExtensionActionPossibleParams(containerRecord, user))));
+	}
+
+	public boolean isDeleteActionPossible(final ContainerRecord containerRecord, final User user) {
+		return containerRecordExtensions.getBooleanValue(true,
+				(behavior -> behavior.isDeleteActionPossible(new ContainerRecordExtensionActionPossibleParams(containerRecord, user))));
+	}
+
+	public boolean isEmptyTheBoxActionPossible(final ContainerRecord containerRecord, final User user) {
+		return containerRecordExtensions.getBooleanValue(true,
+				(behavior -> behavior.isEmptyTheBoxActionPossible(new ContainerRecordExtensionActionPossibleParams(containerRecord, user))));
 	}
 
 	public BaseBreadcrumbTrail getBreadCrumbtrail(DocumentFolderBreadCrumbParams documentBreadcrumParams) {

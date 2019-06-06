@@ -128,16 +128,18 @@ public class DocumentRecordActionsServices {
 		return rmModuleExtensions.isCreatePDFAActionPossibleOnDocument(rm.wrapDocument(record), user);
 	}
 
-	public boolean isAddCartActionPossible(Record record, User user) {
-		return user.hasReadAccess().on(record) && user.has(RMPermissionsTo.USE_GROUP_CART).globally()
-				&& user.hasReadAccess().on(record)
-				&& rmModuleExtensions.isAddCartActionPossibleOnDocument(rm.wrapDocument(record), user);
+	public boolean isAddToCartActionPossible(Record record, User user) {
+		return user.hasReadAccess().on(record) &&
+			   (hasUserPermissionToUseCart(user) || hasUserPermissionToUseMyCart(user)) &&
+			   rmModuleExtensions.isAddToCartActionPossibleOnDocument(rm.wrapDocument(record), user);
 	}
 
-	public boolean isAddToMyCartActionPossible(Record record, User user) {
-		return user.hasReadAccess().on(record) && user.has(RMPermissionsTo.USE_MY_CART).globally()
-			   && user.hasReadAccess().on(record)
-			   && rmModuleExtensions.isAddCartActionPossibleOnDocument(rm.wrapDocument(record), user);
+	private boolean hasUserPermissionToUseCart(User user) {
+		return user.has(RMPermissionsTo.USE_GROUP_CART).globally();
+	}
+
+	private boolean hasUserPermissionToUseMyCart(User user) {
+		return user.has(RMPermissionsTo.USE_MY_CART).globally();
 	}
 
 	public boolean isAddToSelectionActionPossible(Record record, User user, SessionContext sessionContext) {
@@ -150,7 +152,7 @@ public class DocumentRecordActionsServices {
 				&& rmModuleExtensions.isAddRemoveToSelectionActionPossibleOnDocument(rm.wrapDocument(record), user);
 	}
 
-	protected boolean isUploadPossible(Document document, User user) {
+	private boolean isUploadPossible(Document document, User user) {
 		boolean email = isEmail(document);
 		boolean checkedOut = isContentCheckedOut(document);
 		boolean borrower = isCurrentUserBorrower(user, document.getContent());
