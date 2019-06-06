@@ -13,6 +13,7 @@ import com.constellio.app.modules.rm.services.menu.behaviors.MenuItemActionBehav
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.util.FileIconUtils;
@@ -100,7 +101,7 @@ public class MenuItemServices {
 						"DocumentContextMenu.deleteDocument", FontAwesome.TRASH_O, -1, 500,
 						() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).delete(params));
 
-				menuItemAction.setConfirmMessage("ConfirmDialog.confirmDelete");
+				menuItemAction.setConfirmMessage(i18n.$("ConfirmDialog.confirmDelete"));
 
 				menuItemActions.add(menuItemAction);
 			}
@@ -118,7 +119,7 @@ public class MenuItemServices {
 						"DocumentContextMenu.finalize", FontAwesome.LEVEL_UP, -1, 700,
 						() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).finalize(params));
 
-				menuItemAction.setConfirmMessage("DocumentActionsComponent.finalize.confirm");
+				menuItemAction.setConfirmMessage(i18n.$("DocumentActionsComponent.finalize.confirm"));
 				menuItemActions.add(menuItemAction);
 			}
 
@@ -148,7 +149,7 @@ public class MenuItemServices {
 				MenuItemAction menuItemAction = buildMenuItemAction(MenuItemActionType.DOCUMENT_CREATE_PDF, isCreatePdfActionPossible,
 						"DocumentContextMenu.createPDFA", null, -1, 900,
 						() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).createPdf(params));
-				menuItemAction.setConfirmMessage("ConfirmDialog.confirmCreatePDFA");
+				menuItemAction.setConfirmMessage(i18n.$("ConfirmDialog.confirmCreatePDFA"));
 
 				menuItemActions.add(menuItemAction);
 			}

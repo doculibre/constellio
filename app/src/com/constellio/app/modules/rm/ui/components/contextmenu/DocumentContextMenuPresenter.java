@@ -44,6 +44,7 @@ public class DocumentContextMenuPresenter extends DocumentActionsPresenterUtils<
 			String agentURL = ConstellioAgentUtils.getAgentURL(documentVO, contentVersionVO);
 			contextMenu.setOpenDocumentButtonState(agentURL != null ? ComponentState.ENABLED : ComponentState.INVISIBLE);
 		} else {
+			contextMenu.setContentVersionVO(null);
 			contextMenu.setDownloadDocumentButtonState(ComponentState.INVISIBLE);
 			contextMenu.setOpenDocumentButtonState(ComponentState.INVISIBLE);
 		}
