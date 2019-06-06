@@ -13,31 +13,11 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.ui.components.fields.StarredFieldImpl;
 import com.constellio.app.ui.application.Navigation;
-import com.constellio.app.ui.entities.ContentVersionVO;
-import com.constellio.app.ui.entities.FacetVO;
-import com.constellio.app.ui.entities.MetadataVO;
-import com.constellio.app.ui.entities.MetadataValueVO;
-import com.constellio.app.ui.entities.RecordVO;
-import com.constellio.app.ui.entities.SearchResultVO;
-import com.constellio.app.ui.entities.UserVO;
-import com.constellio.app.ui.framework.buttons.AddButton;
-import com.constellio.app.ui.framework.buttons.AddToOrRemoveFromSelectionButton;
-import com.constellio.app.ui.framework.buttons.BaseButton;
-import com.constellio.app.ui.framework.buttons.DeleteButton;
-import com.constellio.app.ui.framework.buttons.DeleteWithJustificationButton;
-import com.constellio.app.ui.framework.buttons.DisplayButton;
-import com.constellio.app.ui.framework.buttons.DownloadLink;
-import com.constellio.app.ui.framework.buttons.EditButton;
-import com.constellio.app.ui.framework.buttons.LinkButton;
-import com.constellio.app.ui.framework.buttons.WindowButton;
+import com.constellio.app.ui.entities.*;
+import com.constellio.app.ui.framework.buttons.*;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
-import com.constellio.app.ui.framework.components.BaseWindow;
-import com.constellio.app.ui.framework.components.ComponentState;
-import com.constellio.app.ui.framework.components.RecordDisplay;
-import com.constellio.app.ui.framework.components.RecordDisplayFactory;
-import com.constellio.app.ui.framework.components.ReportTabButton;
-import com.constellio.app.ui.framework.components.SearchResultDisplay;
+import com.constellio.app.ui.framework.components.*;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.content.ContentVersionVOResource;
 import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
@@ -84,33 +64,16 @@ import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.shared.MouseEventDetails.MouseButton;
-import com.vaadin.ui.Alignment;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.ComboBox;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.CustomComponent;
-import com.vaadin.ui.Field;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.TabSheet;
+import com.vaadin.ui.*;
 import com.vaadin.ui.TabSheet.Tab;
-import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.ColumnHeaderMode;
-import com.vaadin.ui.UI;
-import com.vaadin.ui.VerticalLayout;
-import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
 import org.joda.time.LocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vaadin.dialogs.ConfirmDialog;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -521,9 +484,9 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				actionMenuButtons.add(alertWhenAvailableButton);
 			}
 
-			if (presenter.hasPermissionToStartWorkflow() && !isAFolderAndDestroyed) {
-				actionMenuButtons.add(startWorkflowButton);
-			}
+			//			if (presenter.hasPermissionToStartWorkflow() && !isAFolderAndDestroyed) {
+			//				actionMenuButtons.add(startWorkflowButton);
+			//			}
 
 			actionMenuButtons.add(reportGeneratorButton);
 		}
@@ -985,11 +948,11 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		alertWhenAvailableButton.setEnabled(state.isEnabled());
 	}
 
-	@Override
-	public void setStartWorkflowButtonState(ComponentState state) {
-		startWorkflowButton.setVisible(state.isVisible());
-		startWorkflowButton.setEnabled(state.isEnabled());
-	}
+	//	@Override
+	//	public void setStartWorkflowButtonState(ComponentState state) {
+	//		startWorkflowButton.setVisible(state.isVisible());
+	//		startWorkflowButton.setEnabled(state.isEnabled());
+	//	}
 
 	@Override
 	public void drop(DragAndDropEvent event) {
