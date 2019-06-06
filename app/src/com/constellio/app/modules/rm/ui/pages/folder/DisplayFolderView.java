@@ -58,7 +58,7 @@ public interface DisplayFolderView extends BaseView, RecordsManagementViewGroup 
 
 	void setAlertWhenAvailableButtonState(ComponentState state);
 
-	void setStartWorkflowButtonState(ComponentState state);
+	//	void setStartWorkflowButtonState(ComponentState state);
 
 	void setBorrowedMessage(String borrowedMessage);
 

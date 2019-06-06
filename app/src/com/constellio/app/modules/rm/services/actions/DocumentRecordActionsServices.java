@@ -8,7 +8,6 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
@@ -129,16 +128,18 @@ public class DocumentRecordActionsServices {
 		return rmModuleExtensions.isCreatePDFAActionPossibleOnDocument(rm.wrapDocument(record), user);
 	}
 
-	public boolean isAddCartActionPossible(Record record, User user) {
-		return user.hasReadAccess().on(record) && user.has(RMPermissionsTo.USE_GROUP_CART).globally()
-				&& user.hasReadAccess().on(record)
-				&& rmModuleExtensions.isAddCartActionPossibleOnDocument(rm.wrapDocument(record), user);
+	public boolean isAddToCartActionPossible(Record record, User user) {
+		return user.hasReadAccess().on(record) &&
+			   (hasUserPermissionToUseCart(user) || hasUserPermissionToUseMyCart(user)) &&
+			   rmModuleExtensions.isAddToCartActionPossibleOnDocument(rm.wrapDocument(record), user);
 	}
 
-	public boolean isAddToMyCartActionPossible(Record record, User user) {
-		return user.hasReadAccess().on(record) && user.has(RMPermissionsTo.USE_MY_CART).globally()
-			   && user.hasReadAccess().on(record)
-			   && rmModuleExtensions.isAddCartActionPossibleOnDocument(rm.wrapDocument(record), user);
+	private boolean hasUserPermissionToUseCart(User user) {
+		return user.has(RMPermissionsTo.USE_GROUP_CART).globally();
+	}
+
+	private boolean hasUserPermissionToUseMyCart(User user) {
+		return user.has(RMPermissionsTo.USE_MY_CART).globally();
 	}
 
 	public boolean isAddToSelectionActionPossible(Record record, User user, SessionContext sessionContext) {
@@ -151,7 +152,7 @@ public class DocumentRecordActionsServices {
 				&& rmModuleExtensions.isAddRemoveToSelectionActionPossibleOnDocument(rm.wrapDocument(record), user);
 	}
 
-	protected boolean isUploadPossible(Document document, User user) {
+	private boolean isUploadPossible(Document document, User user) {
 		boolean email = isEmail(document);
 		boolean checkedOut = isContentCheckedOut(document);
 		boolean borrower = isCurrentUserBorrower(user, document.getContent());
@@ -224,21 +225,14 @@ public class DocumentRecordActionsServices {
 		return false;
 	}
 
-
-	public boolean isCancelCheckInActionPossible(Record record, User user) {
-		return false;
-	}
-
-	public boolean isCheckoutActionPossible(Record record, User user) {
-		return false;
-	}
-
 	public boolean isGenerateReportActionPossible(Record record, User user) {
-		return false;
+		return user.hasReadAccess().on(record)
+			   && rmModuleExtensions.isGenerateReportActionPossibleOnDocument(rm.wrapDocument(record), user);
 	}
 
 	public boolean isAddAuthorizationActionPossible(Record record, User user) {
-		return false;
+		return user.has(RMPermissionsTo.MANAGE_DOCUMENT_AUTHORIZATIONS).on(record)
+			   && rmModuleExtensions.isAddAuthorizationActionPossibleOnDocument(rm.wrapDocument(record), user);
 	}
 
 	public boolean isFinalizeActionPossible(Record record, User user) {
@@ -285,10 +279,6 @@ public class DocumentRecordActionsServices {
 			email = false;
 		}
 		return email;
-	}
-
-	public boolean isStartWorkflowActionPossible(Record record, User user) {
-		return false;
 	}
 
 	/*

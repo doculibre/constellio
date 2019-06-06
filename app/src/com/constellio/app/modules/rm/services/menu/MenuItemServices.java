@@ -5,14 +5,18 @@ import com.constellio.app.modules.rm.extensions.api.MenuItemActionExtension;
 import com.constellio.app.modules.rm.extensions.api.MenuItemActionExtension.MenuItemActionExtensionAddMenuItemActionsParams;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.services.actions.ContainerRecordActionsServices;
 import com.constellio.app.modules.rm.services.actions.DocumentRecordActionsServices;
 import com.constellio.app.modules.rm.services.actions.FolderRecordActionsServices;
 import com.constellio.app.modules.rm.services.menu.behaviors.DocumentMenuItemActionBehaviors;
 import com.constellio.app.modules.rm.services.menu.behaviors.FolderMenuItemActionBehaviors;
 import com.constellio.app.modules.rm.services.menu.behaviors.MenuItemActionBehaviorParams;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.ui.i18n.i18n;
+import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.util.FileIconUtils;
 import com.constellio.model.entities.records.Record;
@@ -31,6 +35,7 @@ public class MenuItemServices {
 	private AppLayerFactory appLayerFactory;
 	private DocumentRecordActionsServices documentRecordActionsServices;
 	private FolderRecordActionsServices folderRecordActionsServices;
+	private ContainerRecordActionsServices containerRecordActionsServices;
 	private RMModuleExtensions rmModuleExtensions;
 	private RMSchemasRecordsServices rm;
 
@@ -39,6 +44,7 @@ public class MenuItemServices {
 		this.appLayerFactory = appLayerFactory;
 		documentRecordActionsServices = new DocumentRecordActionsServices(collection, appLayerFactory);
 		folderRecordActionsServices = new FolderRecordActionsServices(collection, appLayerFactory);
+		containerRecordActionsServices = new ContainerRecordActionsServices(collection, appLayerFactory);
 		rmModuleExtensions = appLayerFactory.getExtensions().forCollection(collection).forModule(ConstellioRMModule.ID);
 		rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 	}
@@ -86,7 +92,7 @@ public class MenuItemServices {
 			if (!filteredActionTypes.contains(MenuItemActionType.DOCUMENT_EDIT.name())) {
 				boolean isCopyActionPossible = documentRecordActionsServices.isCopyActionPossible(record, user);
 				menuItemActions.add(buildMenuItemAction(MenuItemActionType.DOCUMENT_EDIT, isCopyActionPossible,
-						"DocumentContextMenu.copyContent", FontAwesome.EDIT, -1, 600,
+						"DocumentContextMenu.editDocument", FontAwesome.EDIT, -1, 600,
 						() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).edit(params)));
 			}
 
@@ -103,7 +109,7 @@ public class MenuItemServices {
 						"DocumentContextMenu.deleteDocument", FontAwesome.TRASH_O, -1, 500,
 						() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).delete(params));
 
-				menuItemAction.setConfirmMessage("ConfirmDialog.confirmDelete");
+				menuItemAction.setConfirmMessage(i18n.$("ConfirmDialog.confirmDelete"));
 
 				menuItemActions.add(menuItemAction);
 			}
@@ -121,7 +127,7 @@ public class MenuItemServices {
 						"DocumentContextMenu.finalize", FontAwesome.LEVEL_UP, -1, 700,
 						() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).finalize(params));
 
-				menuItemAction.setConfirmMessage("DocumentActionsComponent.finalize.confirm");
+				menuItemAction.setConfirmMessage(i18n.$("DocumentActionsComponent.finalize.confirm"));
 				menuItemActions.add(menuItemAction);
 			}
 
@@ -151,7 +157,7 @@ public class MenuItemServices {
 				MenuItemAction menuItemAction = buildMenuItemAction(MenuItemActionType.DOCUMENT_CREATE_PDF, isCreatePdfActionPossible,
 						"DocumentContextMenu.createPDFA", null, -1, 900,
 						() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).createPdf(params));
-				menuItemAction.setConfirmMessage("ConfirmDialog.confirmCreatePDFA");
+				menuItemAction.setConfirmMessage(i18n.$("ConfirmDialog.confirmCreatePDFA"));
 
 				menuItemActions.add(menuItemAction);
 			}
@@ -185,8 +191,8 @@ public class MenuItemServices {
 				menuItemActions.add(menuItemAction);
 			}
 
-			if (!filteredActionTypes.contains(MenuItemActionType.DOCUMENT_ADD_TO_CART.name())) {
-				boolean isAddCartActionPossible = documentRecordActionsServices.isAddCartActionPossible(record, user);
+			if(!filteredActionTypes.contains(MenuItemActionType.DOCUMENT_ADD_TO_CART.name())) {
+				boolean isAddCartActionPossible = documentRecordActionsServices.isAddToCartActionPossible(record, user);
 
 				MenuItemAction menuItemAction = buildMenuItemAction(MenuItemActionType.DOCUMENT_ADD_TO_CART,
 						isAddCartActionPossible, "DisplayFolderView.addToCart", null, -1, 1200,
@@ -195,21 +201,11 @@ public class MenuItemServices {
 				menuItemActions.add(menuItemAction);
 			}
 
-			if (!filteredActionTypes.contains(MenuItemActionType.DOCUMENT_ADD_TO_MY_CART.name())) {
-				boolean isAddToMyDefaultCartActionPossible = documentRecordActionsServices.isAddToMyCartActionPossible(record, user);
-
-				MenuItemAction menuItemAction = buildMenuItemAction(MenuItemActionType.DOCUMENT_ADD_TO_MY_CART,
-						isAddToMyDefaultCartActionPossible, "DisplayFolderView.addToMyCart", null, -1, 1200,
-						() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).addToDefaultCart(params));
-
-				menuItemActions.add(menuItemAction);
-			}
-
 			if (!filteredActionTypes.contains(MenuItemActionType.DOCUMENT_UPLOAD.name())) {
 				boolean isAddCartActionPossible = documentRecordActionsServices.isUploadActionPossible(record, user);
 
 				MenuItemAction menuItemAction = buildMenuItemAction(MenuItemActionType.DOCUMENT_UPLOAD,
-						isAddCartActionPossible, "DocumentContextMenu.upload", null, -1, 1200,
+						isAddCartActionPossible, "DocumentContextMenu.upload", null, -1, 1250,
 						() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).upload(params));
 
 				menuItemActions.add(menuItemAction);
@@ -231,6 +227,8 @@ public class MenuItemServices {
 				MenuItemAction menuItemAction = buildMenuItemAction(MenuItemActionType.DOCUMENT_CHECK_IN,
 						isCheckInActionPossible, "DocumentContextMenu.checkIn", null, -1, 1400,
 						() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).checkIn(params));
+
+				menuItemActions.add(menuItemAction);
 			}
 
 			if (!filteredActionTypes.contains(MenuItemActionType.DOCUMENT_CHECK_OUT.name())) {
@@ -239,6 +237,28 @@ public class MenuItemServices {
 				MenuItemAction menuItemAction = buildMenuItemAction(MenuItemActionType.DOCUMENT_CHECK_OUT,
 						isCheckInActionPossible, "DocumentContextMenu.checkOut", null, -1, 1400,
 						() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).checkOut(params));
+
+				menuItemActions.add(menuItemAction);
+			}
+
+			if (filteredActionTypes.contains(MenuItemActionType.DOCUMENT_ADD_AUTHORIZATION.name())) {
+				boolean isAddAuthorizationPossible = documentRecordActionsServices.isAddAuthorizationActionPossible(record, user);
+
+				MenuItemAction menuItemAction = buildMenuItemAction(MenuItemActionType.DOCUMENT_ADD_AUTHORIZATION,
+						isAddAuthorizationPossible, "DocumentContextMenu.addAuthorization", null, -1, 1500,
+						() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).addAuthorization(params));
+
+				menuItemActions.add(menuItemAction);
+			}
+
+			if (filteredActionTypes.contains(MenuItemActionType.DOCUMENT_GENERATE_REPORT.name())) {
+				boolean isGenerateReportPossible = documentRecordActionsServices.isGenerateReportActionPossible(record, user);
+
+				MenuItemAction menuItemAction = buildMenuItemAction(MenuItemActionType.DOCUMENT_ADD_AUTHORIZATION,
+						isGenerateReportPossible, "DocumentContextMenu.ReportGeneratorButton", null, -1, 1600,
+						() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).reportGeneratorButton(params));
+
+				menuItemActions.add(menuItemAction);
 			}
 
 		} else if (record.isOfSchemaType(Folder.SCHEMA_TYPE)) {
@@ -309,7 +329,7 @@ public class MenuItemServices {
 				boolean isAddToCartPossible = folderRecordActionsServices.isAddToCartActionPossible(record, user);
 				menuItemActions.add(buildMenuItemAction(MenuItemActionType.FOLDER_ADD_TO_CART, isAddToCartPossible,
 						"DisplayFolderView.addToCart", null, -1, 1000,
-						() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).share(params)));
+						() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).addToCart(params)));
 			}
 
 			if (!filteredActionTypes.contains(MenuItemActionType.FOLDER_BORROW.name())) {
@@ -383,12 +403,16 @@ public class MenuItemServices {
 			// FIXME une autre possibilité est d'avoir MenuItemAction.button et faire en sorte que le runnable fasse un button.click?
 			// Ça éviterait de reconstruire le bouton à chaque fois
 
+		} else if (record.isOfSchemaType(ContainerRecord.SCHEMA_TYPE)) {
+			if (!filteredActionTypes.contains(MenuItemActionType.CONTAINER_EDIT.name())) {
+				boolean isEditPossible = containerRecordActionsServices.isEditActionPossible(record, user);
+			}
 		} else {
 			// TODO
 			return Collections.emptyList();
 		}
 
-		addMenuItemActionsFromExtensions(record, user, menuItemActions);
+		addMenuItemActionsFromExtensions(record, user, params.getView(), menuItemActions);
 
 		return menuItemActions;
 	}
@@ -444,10 +468,11 @@ public class MenuItemServices {
 			   (reason != null ? MenuItemActionState.DISABLED : MenuItemActionState.HIDDEN);
 	}
 
-	private void addMenuItemActionsFromExtensions(Record record, User user, List<MenuItemAction> menuItemActions) {
+	private void addMenuItemActionsFromExtensions(Record record, User user, BaseView baseView,
+												  List<MenuItemAction> menuItemActions) {
 		for (MenuItemActionExtension menuItemActionExtension : rmModuleExtensions.getMenuItemActionExtensions()) {
 			menuItemActionExtension.addMenuItemActions(
-					new MenuItemActionExtensionAddMenuItemActionsParams(record, user, menuItemActions));
+					new MenuItemActionExtensionAddMenuItemActionsParams(record, user, baseView, menuItemActions));
 		}
 	}
 
