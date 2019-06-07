@@ -22,7 +22,7 @@ public abstract class RMTreeDropHandlerImpl implements DropHandler, RMTreeDropHa
 
 	@Override
 	public void drop(DragAndDropEvent dragEvent) {
-		if(PlatformDetectionUtils.isMobile()) {
+		if(!PlatformDetectionUtils.isDesktop()) {
 			return;
 		}
 
