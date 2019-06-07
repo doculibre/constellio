@@ -84,6 +84,8 @@ import com.vaadin.ui.Window.CloseListener;
 import com.vaadin.ui.themes.ValoTheme;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -755,6 +757,13 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 	protected MenuBar buildCollectionMenu() {
 		MenuBar collectionMenu = new BaseMenuBar();
 		if (!collections.isEmpty()) {
+			ArrayList<String> sortedCollections = new ArrayList<>(collections);
+			Collections.sort(sortedCollections, new Comparator<String>() {
+				@Override
+				public int compare(String o1, String o2) {
+					return collectionCodeToLabelConverter.getCollectionCaption(o1).compareTo(collectionCodeToLabelConverter.getCollectionCaption(o2));
+				}
+			});
 			collectionMenu.setAutoOpen(true);
 			collectionMenu.addStyleName("header-collection-menu");
 
@@ -764,7 +773,7 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 			Page.getCurrent().setTitle(collectionLabel);
 
 			collectionSubMenu = collectionMenu.addItem("", FontAwesome.DATABASE, null);
-			for (final String collection : collections) {
+			for (final String collection : sortedCollections) {
 				if (!Collection.SYSTEM_COLLECTION.equals(collection)) {
 					String collectionCaption = collectionCodeToLabelConverter.getCollectionCaption(collection);
 					MenuItem collectionMenuItem = collectionSubMenu.addItem(collectionCaption, new Command() {

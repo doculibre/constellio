@@ -64,6 +64,7 @@ public class Document extends RMObject {
 	public static final String MIME_TYPE = "mimetype";
 	public static final String FAVORITES = "favorites";
 	public static final String HAS_CONTENT = "hasContent";
+	public static final String CONTENT_HASHES = "contentHashes";
 
 	public Document(Record record,
 					MetadataSchemaTypes types) {

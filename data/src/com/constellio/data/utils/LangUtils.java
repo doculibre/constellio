@@ -1,8 +1,10 @@
 package com.constellio.data.utils;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.collections4.list.UnmodifiableList;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 
@@ -454,22 +456,21 @@ public class LangUtils {
 		return sb.toString();
 	}
 
-	public static Map<String, String> asMap(String key1, String value1) {
-		Map<String, String> parameters = new HashMap<>();
+	public static <K, V> Map<K, V> asMap(K key1, V value1) {
+		Map<K, V> parameters = new HashMap<>();
 		parameters.put(key1, value1);
 		return parameters;
 	}
 
-	public static Map<String, String> asMap(String key1, String value1, String key2, String value2) {
-		Map<String, String> parameters = new HashMap<>();
+	public static <K, V> Map<K, V> asMap(K key1, V value1, K key2, V value2) {
+		Map<K, V> parameters = new HashMap<>();
 		parameters.put(key1, value1);
 		parameters.put(key2, value2);
 		return parameters;
 	}
 
-	public static Map<String, String> asMap(String key1, String value1, String key2, String value2, String key3,
-											String value3) {
-		Map<String, String> parameters = new HashMap<>();
+	public static <K, V> Map<K, V> asMap(K key1, V value1, K key2, V value2, K key3, V value3) {
+		Map<K, V> parameters = new HashMap<>();
 		parameters.put(key1, value1);
 		parameters.put(key2, value2);
 		parameters.put(key3, value3);
@@ -514,5 +515,18 @@ public class LangUtils {
 
 		}
 		return notEmptyValue;
+	}
+
+	public static List<Throwable> getAllCauses(Throwable throwable) {
+		return new UnmodifiableList<>(getAllCausesRecursively(throwable));
+	}
+
+	private static List<Throwable> getAllCausesRecursively(Throwable throwable) {
+		List<Throwable> throwableList = new ArrayList<>();
+		while (throwable != null && !throwableList.contains(throwable)) {
+			throwableList.addAll(getAllCausesRecursively(throwable.getCause()));
+			throwableList.add(throwable);
+		}
+		return throwableList;
 	}
 }

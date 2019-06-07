@@ -17,6 +17,7 @@ import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.data.utils.BatchBuilderIterator;
 import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.LangUtils.StringReplacer;
 import com.constellio.data.utils.ThreadUtils.IteratorElementTask;
 import com.constellio.model.entities.Language;
@@ -62,6 +63,8 @@ import com.constellio.model.services.records.ImportContent;
 import com.constellio.model.services.records.RecordCachesServices;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
+import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.records.SimpleImportContent;
 import com.constellio.model.services.records.StructureImportContent;
@@ -125,6 +128,12 @@ public class RecordsImportServicesExecutor {
 	private static final String RECORD_PREPARATION_ERROR = "recordPreparationError";
 	private static final String UNRESOLVED_DEPENDENCY_DURING_SECOND_PHASE = "unresolvedDependencyDuringSecondPhase";
 
+
+	private static final String ID_MUST_RESPECT_PATTERN = "idMustRespectPattern";
+	private static final String ID_MUST_BE_LOWER_THAN_SEQUENCE_TABLE = "idMustBeLowerThanSequenceTable";
+	private static final String ID_ALREADY_USED_BY_RECORD_OF_OTHER_TYPE = "idAlreadyUsedByRecordsOfOtherType";
+	private static final String ID_ALREADY_USED_BY_RECORD_OF_OTHER_COLLECTION = "idAlreadyUsedByRecordsOfOtherCollection";
+
 	public static final String RECORD_SERVICE_EXEPTION = "recordServiceException";
 
 	public static final String COMMENT_MESSAGE = "message";
@@ -158,6 +167,7 @@ public class RecordsImportServicesExecutor {
 	ResolverCache resolverCache;
 	SchemasRecordsServices schemasRecordsServices;
 	RecordsCache recordsCache;
+	String nextSequenceId;
 
 	private static class TypeImportContext {
 		List<String> uniqueMetadatas;
@@ -556,38 +566,44 @@ public class RecordsImportServicesExecutor {
 			try {
 				Record record = buildRecord(typeImportContext, typeBatchImportContext, toImport, errors);
 
-				typeBatchImportContext.transaction.add(record);
+				if (record != null) {
+					typeBatchImportContext.transaction.add(record);
+				}
 				typeImportContext.addUpdateCount.incrementAndGet();
 
-				try {
-					recordServices.validateRecordInTransaction(record, typeBatchImportContext.transaction);
+				if (record != null) {
+					try {
+						recordServices.validateRecordInTransaction(record, typeBatchImportContext.transaction);
 
-				} catch (ContentManagerRuntimeException_NoSuchContent e) {
-					e.printStackTrace();
-					Map<String, Object> params = new HashMap<>();
-					params.put("hash", e.getId());
-					errors.add(RecordsImportServices.class, HASH_NOT_FOUND_IN_VAULT, params);
-				} catch (RecordServicesException.ValidationException e) {
-					for (ValidationError error : e.getErrors().getValidationErrors()) {
-						errors.add(error, error.getParameters());
+					} catch (ContentManagerRuntimeException_NoSuchContent e) {
+						e.printStackTrace();
+						Map<String, Object> params = new HashMap<>();
+						params.put("hash", e.getId());
+						errors.add(RecordsImportServices.class, HASH_NOT_FOUND_IN_VAULT, params);
+					} catch (RecordServicesException.ValidationException e) {
+						for (ValidationError error : e.getErrors().getValidationErrors()) {
+							errors.add(error, error.getParameters());
+						}
+
+					} catch (Throwable t) {
+						String stack = ExceptionUtils.getStackTrace(t);
+						Map<String, Object> params = new HashMap<>();
+						params.put("message", t.getMessage());
+						params.put("stacktrace", stack);
+						errors.add(RecordsImportServices.class, RECORD_PREPARATION_ERROR, params);
+
 					}
-
-				} catch (Throwable t) {
-					String stack = ExceptionUtils.getStackTrace(t);
-					Map<String, Object> params = new HashMap<>();
-					params.put("message", t.getMessage());
-					params.put("stacktrace", stack);
-					errors.add(RecordsImportServices.class, RECORD_PREPARATION_ERROR, params);
-
 				}
 
-				if (errors.hasDecoratedErrors()) {
+				if (errors.hasDecoratedErrors() || record == null) {
 					if (params.getImportErrorsBehavior() == ImportErrorsBehavior.STOP_ON_FIRST_ERROR) {
 						throw new ValidationException(errors);
 
 					} else {
 						skippedRecordsImport.markAsSkippedBecauseOfFailure(typeImportContext.schemaType, legacyId);
-						typeBatchImportContext.transaction.remove(record);
+						if (record != null) {
+							typeBatchImportContext.transaction.remove(record);
+						}
 					}
 
 				} else {
@@ -607,6 +623,7 @@ public class RecordsImportServicesExecutor {
 
 					findHigherSequenceValues(typeImportContext, typeBatchImportContext, record);
 				}
+
 
 			} catch (SkippedBecauseOfFailedDependency e) {
 				skippedRecordsImport.markAsSkippedBecauseOfDependencyFailure(typeImportContext.schemaType, legacyId);
@@ -724,14 +741,46 @@ public class RecordsImportServicesExecutor {
 				if (importAsLegacyId) {
 					record = recordServices.newRecordWithSchema(newSchema);
 				} else {
+
 					try {
 						record = recordServices.getDocumentById(legacyId);
-						if (!record.isOfSchemaType(schemaType.getCode())) {
-							record = recordServices.newRecordWithSchema(newSchema, legacyId);
+
+						if (!record.getCollection().equals(schemaType.getCollection())) {
+							Map<String, Object> params = LangUtils.<String, Object>asMap("id", legacyId);
+							errors.add(RecordsImportServices.class, ID_ALREADY_USED_BY_RECORD_OF_OTHER_COLLECTION, params);
+							return null;
 						}
-					} catch (Exception e) {
+
+						if (!record.isOfSchemaType(schemaType.getCode())) {
+							Map<String, Object> params = LangUtils.<String, Object>asMap("id", legacyId);
+							errors.add(RecordsImportServices.class, ID_ALREADY_USED_BY_RECORD_OF_OTHER_TYPE, params);
+							return null;
+						}
+
+
+					} catch (NoSuchRecordWithId e) {
+
+						if (!RecordUtils.isZeroPaddingId(legacyId)) {
+							Map<String, Object> params = LangUtils.<String, Object>asMap("id", legacyId);
+							errors.add(RecordsImportServices.class, ID_MUST_RESPECT_PATTERN, params);
+							return null;
+						}
+
+						if (nextSequenceId == null) {
+							nextSequenceId = modelLayerFactory.getDataLayerFactory().getUniqueIdGenerator().next();
+						}
+
+						if (legacyId.compareTo(nextSequenceId) >= 0) {
+							Map<String, Object> params = LangUtils.<String, Object>asMap("id", legacyId);
+							errors.add(RecordsImportServices.class, ID_MUST_BE_LOWER_THAN_SEQUENCE_TABLE, params);
+							return null;
+						}
+
 						record = recordServices.newRecordWithSchema(newSchema, legacyId);
+
+
 					}
+
 				}
 			}
 		}

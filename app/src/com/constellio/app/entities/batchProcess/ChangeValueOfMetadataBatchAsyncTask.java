@@ -143,7 +143,7 @@ public class ChangeValueOfMetadataBatchAsyncTask implements AsyncTask {
 				}
 			}
 
-			csvInputStream = new FileInputStream(csvReport);
+			csvInputStream = new FileInputStream(createOrGetTempFile(params));
 			ContentVersionDataSummary contentVersion = contentManager.upload(csvInputStream, csvReport.getName()).getContentVersionDataSummary();
 			Content content = contentManager.createMajor(batchUser, csvReport.getName(), contentVersion);
 			report.setContent(content);

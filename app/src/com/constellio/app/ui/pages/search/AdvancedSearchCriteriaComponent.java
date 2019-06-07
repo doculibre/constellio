@@ -243,7 +243,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 			Set<String> allowedSchemas = references.getAllowedSchemas();
 			String firstAllowedSchema = !allowedSchemas.isEmpty() ? allowedSchemas.iterator().next() : null;
 
-			final LookupRecordField field = new LookupRecordField(allowedSchemaType, firstAllowedSchema);
+			final LookupRecordField field = new LookupRecordField(allowedSchemaType, firstAllowedSchema, true, true, true);
 			field.setWindowZIndex(BaseWindow.OVER_ADVANCED_SEARCH_FORM_Z_INDEX);
 			field.setWidth("100%");
 			field.setValue((String) criterion.getValue());

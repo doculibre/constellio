@@ -33,6 +33,9 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.structures.EmailAddress;
+import com.constellio.model.frameworks.validation.ValidationError;
+import com.constellio.model.frameworks.validation.ValidationErrors;
+import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.contents.ContentConversionManager;
 import com.constellio.model.services.contents.ContentImpl;
 import com.constellio.model.services.contents.ContentManager;
@@ -49,6 +52,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
+import org.jodconverter.office.OfficeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,6 +62,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.data.utils.LangUtils.getAllCauses;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public abstract class Decommissioner {
@@ -78,10 +83,12 @@ public abstract class Decommissioner {
 	private List<Record> recordsToDeletePhysically;
 	private LocalDate processingDate;
 	private User user;
+	private ValidationErrors validationErrors;
 
 	private final static int MAX_RECORDS_PER_TRANSACTION_MEMORY = 100;
 	private final static int MAX_RECORDS_PER_TRANSACTION_NORMAL = 500;
 	private final static int MAX_RECORDS_PER_TRANSACTION_PERFORMANCE = 1000;
+	private final static String COULD_NOT_GENERATE_PDFA_ERROR = "couldNotGeneratePDFAError";
 
 	public static Decommissioner forList(DecommissioningList decommissioningList,
 										 DecommissioningService decommissioningService,
@@ -115,10 +122,11 @@ public abstract class Decommissioner {
 		searchServices = modelLayerFactory.newSearchServices();
 		contentManager = modelLayerFactory.getContentManager();
 		loggingServices = new DecommissioningLoggingService(modelLayerFactory);
+		validationErrors = new ValidationErrors();
 	}
 
-	public void process(DecommissioningList decommissioningList, User user, LocalDate processingDate)
-			throws RecordServicesException.OptimisticLocking {
+	public ValidationErrors process(DecommissioningList decommissioningList, User user, LocalDate processingDate)
+			throws RecordServicesException.OptimisticLocking, ValidationException {
 		prepare(decommissioningList, user, processingDate);
 		validate();
 		saveCertificates(decommissioningList);
@@ -132,7 +140,10 @@ public abstract class Decommissioner {
 			}
 		}
 		markProcessed();
+
+		validationErrors.throwIfNonEmpty();
 		execute(true);
+		return validationErrors;
 	}
 
 	public void approve(DecommissioningList decommissioningList, User user, LocalDate processingDate)
@@ -381,7 +392,21 @@ public abstract class Decommissioner {
 					try {
 						content = createPDFa(content);
 						loggingServices.logPdfAGeneration(document, user);
+						throw new RuntimeException(new OfficeException("Could not convert"));
 					} catch (NullPointerException e) {
+						e.printStackTrace();
+					} catch (RuntimeException e) {
+						List<Throwable> allCauses = getAllCauses(e);
+						for(Throwable cause: allCauses) {
+							if(cause != null && cause instanceof OfficeException) {
+								HashMap<String, Object> errorParameters = new HashMap<>();
+								errorParameters.put("documentId", document.getId());
+								errorParameters.put("documentTitle", document.getTitle());
+								errorParameters.put("hash", content.getId());
+								validationErrors.add(Decommissioner.class, COULD_NOT_GENERATE_PDFA_ERROR, errorParameters);
+								break;
+							}
+						}
 						e.printStackTrace();
 					}
 				}
@@ -565,11 +590,7 @@ public abstract class Decommissioner {
 
 		try {
 			transaction.getRecordUpdateOptions().setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
-			if (transaction.getRecordCount() <= getMaxRecordsPerTransaction()) {
-				recordServices.execute(transaction);
-			} else {
-				recordServices.executeHandlingImpactsAsync(transaction);
-			}
+			recordServices.executeHandlingImpactsAsync(transaction);
 			for (Record record : recordsToDelete) {
 				recordServices.logicallyDelete(record, user);
 			}

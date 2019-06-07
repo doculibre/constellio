@@ -126,8 +126,8 @@ public class SolrEventBusSendingService extends EventBusSendingService {
 		List<EventReadyToSend> sending = getNewEventsToSend();
 		if (sending.size() > 0 || received.size() > 0) {
 			sendNewEvents(sending, received);
-		} else {
-			commit();
+			//		} else {
+			//			commit();
 		}
 
 		return sending.size() < SENDING_BATCH_LIMIT && received.size() < RECEIVING_BATCH_LIMIT;
@@ -226,7 +226,7 @@ public class SolrEventBusSendingService extends EventBusSendingService {
 
 	void commit() {
 		try {
-			client.commit(true, true, true);
+			client.commit(true, false, true);
 		} catch (SolrServerException e) {
 			throw new RuntimeException(e);
 		} catch (IOException e) {

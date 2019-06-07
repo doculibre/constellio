@@ -50,6 +50,7 @@ import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.enums.SearchSortType;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.User;
@@ -360,7 +361,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 				}
 			} else {
 				for (Metadata metadata : schemaType.getAllMetadatas()) {
-						metadataCodes.add(metadata.getCode());
+					metadataCodes.add(metadata.getCode());
 				}
 			}
 		}
@@ -372,7 +373,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		MetadataList allMetadatas = schemaType.getAllMetadatas();
 		for (Metadata metadata : allMetadatas) {
 			if (!schemaType.hasSecurity() || (metadataCodes.contains(metadata.getCode()))) {
-				if(!getCurrentUser().hasGlobalAccessToMetadata(metadata)) {
+				if (!getCurrentUser().hasGlobalAccessToMetadata(metadata)) {
 					continue;
 				}
 
@@ -735,7 +736,9 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 
 		try {
 			modelLayerFactory.newRecordServices().execute(new Transaction(cart.getWrappedRecord()).setUser(getCurrentUser()));
-			modelLayerFactory.newRecordServices().execute(new Transaction(records));
+			Transaction recordsTransaction = new Transaction(records);
+			recordsTransaction.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
+			modelLayerFactory.newRecordServices().execute(recordsTransaction);
 			showMessage($("ConstellioHeader.selection.actions.actionCompleted", recordIds.size()));
 			//			view.showMessage($("SearchView.addedToCart"));
 		} catch (RecordServicesException e) {
@@ -802,7 +805,9 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		List<Record> records = getRecords(recordIds);
 		addRecordsToCart(records, getCurrentUser().getId());
 		try {
-			modelLayerFactory.newRecordServices().execute(new Transaction(records));
+			Transaction recordsTransaction = new Transaction(records);
+			recordsTransaction.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
+			modelLayerFactory.newRecordServices().execute(recordsTransaction);
 			showMessage($("ConstellioHeader.selection.actions.actionCompleted", recordIds.size()));
 		} catch (RecordServicesException e) {
 			showMessage($(e));
@@ -814,7 +819,9 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		addRecordsToCart(records, cart.getId());
 		try {
 			modelLayerFactory.newRecordServices().add(cart);
-			modelLayerFactory.newRecordServices().execute(new Transaction(records));
+			Transaction recordsTransaction = new Transaction(records);
+			recordsTransaction.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
+			modelLayerFactory.newRecordServices().execute(recordsTransaction);
 			showMessage($("ConstellioHeader.selection.actions.actionCompleted", recordIds.size()));
 		} catch (RecordServicesException e) {
 			showMessage($(e));
@@ -935,7 +942,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 				int thesaurusMaxResults = maxResults - statsSuggestions.size();
 				List<String> thesaurusSuggestions = thesaurusService
 						.suggestSimpleSearch(text, header.getSessionContext().getCurrentLocale(), minInputLength,
-								thesaurusMaxResults);
+								thesaurusMaxResults, true, searchEventServices);
 				suggestions.addAll(thesaurusSuggestions);
 			}
 		}

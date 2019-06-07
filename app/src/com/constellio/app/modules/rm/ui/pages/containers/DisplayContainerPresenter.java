@@ -31,6 +31,7 @@ import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
@@ -408,7 +409,7 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 			ContainerRecord container = rmRecordServices().getContainerRecord(containerId);
 			container.addFavorite(getCurrentUser().getId());
 			try {
-				recordServices().update(container);
+				recordServices().update(container.getWrappedRecord(), RecordUpdateOptions.validationExceptionSafeOptions());
 			} catch (RecordServicesException e) {
 				e.printStackTrace();
 				throw new RuntimeException(e);
@@ -425,7 +426,7 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 		try {
 			container.addFavorite(cart.getId());
 			recordServices().execute(new Transaction(cart.getWrappedRecord()).setUser(getCurrentUser()));
-			recordServices().update(container);
+			recordServices().update(container.getWrappedRecord(), RecordUpdateOptions.validationExceptionSafeOptions());
 			view.showMessage($("DisplayContainerView.addedToCart"));
 		} catch (RecordServicesException e) {
 			e.printStackTrace();
@@ -458,7 +459,7 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 			ContainerRecord container = rmRecordServices().wrapContainerRecord(getContainer().getRecord());
 			container.addFavorite(cart.getId());
 			try {
-				recordServices().update(container);
+				recordServices().update(container.getWrappedRecord(), RecordUpdateOptions.validationExceptionSafeOptions());
 				view.showMessage($("DisplayContainerViewImpl.addedToCart"));
 			} catch (RecordServicesException e) {
 				e.printStackTrace();

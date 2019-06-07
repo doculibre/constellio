@@ -59,6 +59,10 @@ public class ConnectorCrawler {
 		this.recordServices = es.getModelLayerFactory().newRecordServices();
 	}
 
+	public List<CrawledConnector> getCrawledConnectors() {
+		return crawledConnectors;
+	}
+
 	public Connector createConnectorFor(ConnectorInstance instance) {
 
 		Connector connector = es.getConnectorManager().instanciate(instance);
@@ -94,7 +98,27 @@ public class ConnectorCrawler {
 			Map<CrawledConnector, List<ConnectorJob>> connectorJobsMap = new HashMap<>();
 			List<ConnectorJob> allJobs = new ArrayList<>();
 
+
+			List<CrawledConnector> connectorsWithOldLastTraversal = new ArrayList<>();
 			for (CrawledConnector crawledConnector : crawledConnectors) {
+				ConnectorInstance instance = es.getConnectorInstance(crawledConnector.connectorInstance.getId());
+
+				if (instance.getLastTraversalOn() == null
+					|| instance.getLastTraversalOn().isBefore(LocalDateTime.now().minusHours(3))) {
+					connectorsWithOldLastTraversal.add(crawledConnector);
+				}
+			}
+
+			List<CrawledConnector> connectorsCrawledInCurrentBatch;
+			if (!connectorsWithOldLastTraversal.isEmpty()) {
+				connectorsCrawledInCurrentBatch = connectorsWithOldLastTraversal;
+			} else {
+				connectorsCrawledInCurrentBatch = crawledConnectors;
+			}
+
+
+			List<CrawledConnector> connectorsWithJobs = new ArrayList<>();
+			for (CrawledConnector crawledConnector : connectorsCrawledInCurrentBatch) {
 
 				ConnectorInstance instance = es.getConnectorInstance(crawledConnector.connectorInstance.getId());
 				if (instance.isCurrentlyRunning()) {
@@ -104,6 +128,7 @@ public class ConnectorCrawler {
 					//									+ " job(s) " + "' **** ");
 
 					if (!connectorJobs.isEmpty()) {
+						connectorsWithJobs.add(crawledConnector);
 						connectorJobsMap.put(crawledConnector, connectorJobs);
 						allJobs.addAll(connectorJobs);
 					} else {
@@ -127,7 +152,7 @@ public class ConnectorCrawler {
 
 				eventObserver.flush();
 
-				for (CrawledConnector crawledConnector : crawledConnectors) {
+				for (CrawledConnector crawledConnector : connectorsWithJobs) {
 					try {
 						crawledConnector.connector.afterJobs(connectorJobsMap.get(crawledConnector));
 					} catch (Exception e) {
@@ -140,6 +165,9 @@ public class ConnectorCrawler {
 
 		} catch (MetadataSchemasManagerRuntimeException_NoSuchCollection e) {
 			// Ignore
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+
 		} finally {
 			eventObserver.cleanup();
 		}
@@ -231,6 +259,12 @@ public class ConnectorCrawler {
 
 	public void shutdown() {
 		eventObserver.close();
+
+		for (CrawledConnector crawledConnector : crawledConnectors) {
+			crawledConnector.connector.stop();
+		}
+
+		this.crawledConnectors.clear();
 	}
 
 	public synchronized ConnectorCrawler stopCrawlingConnector(ConnectorInstance instance) {
@@ -273,7 +307,6 @@ public class ConnectorCrawler {
 		List<MetadataSchemaType> types = es.getTypes().getSchemaTypesWithCode(asList(schemaTypeCodes));
 
 		LocalDateTime timeoutTime = new LocalDateTime().plus(duration);
-		boolean recordsFound = true;
 
 		LocalDateTime lastModification = null;
 		while (new LocalDateTime().isBefore(timeoutTime) && !getLastModificationDate(types).equals(lastModification)) {
@@ -307,15 +340,8 @@ public class ConnectorCrawler {
 
 	public void crawlUntil(Factory<Boolean> condition) {
 		while (!condition.get()) {
-			//			try {
-			//if (COLLECTIONS_CRAWLING_SEMAPHORE.tryAcquire(10, TimeUnit.SECONDS)) {
-			boolean hasCrawledSomething;
-			//					try {
-			hasCrawledSomething = crawlAllConnectors();
+			boolean hasCrawledSomething = crawlAllConnectors();
 
-			//					} finally {
-			//						COLLECTIONS_CRAWLING_SEMAPHORE.release();
-			//					}
 			if (!hasCrawledSomething) {
 				waitSinceNoJobs();
 			}
@@ -326,19 +352,16 @@ public class ConnectorCrawler {
 					throw new RuntimeException(e);
 				}
 			}
-			//}
-			//			} catch (InterruptedException e) {
-			//				e.printStackTrace();
-			//			}
 		}
 	}
+
 
 	public ConnectorCrawler withoutSleeps() {
 		timeWaitedWhenNoJobs = 0;
 		return this;
 	}
 
-	private static class CrawledConnector {
+	public static class CrawledConnector {
 
 		Connector connector;
 
@@ -347,6 +370,14 @@ public class ConnectorCrawler {
 		private CrawledConnector(Connector connector, Record connectorInstance) {
 			this.connector = connector;
 			this.connectorInstance = connectorInstance;
+		}
+
+		public Connector getConnector() {
+			return connector;
+		}
+
+		public Record getConnectorInstance() {
+			return connectorInstance;
 		}
 	}
 

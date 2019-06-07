@@ -75,16 +75,16 @@ public class BaseExcelReportPresenter {
 			}
 		} else if (metadata.getType() == MetadataValueType.BOOLEAN) {
 			return metadataValue.equals(true) ? $("yes") : $("no");
-		} else if (metadata.getType() == MetadataValueType.TEXT) {
+		} else if (metadata.getType() == MetadataValueType.TEXT || metadata.getType() == MetadataValueType.STRING) {
 			SchemasDisplayManager schemasManager = appLayerFactory.getMetadataSchemasDisplayManager();
 			MetadataDisplayConfig config = schemasManager.getMetadata(collection, metadata.getCode());
+			String result = metadataValue.toString().replaceAll("<br>", "\n");
+			result = result.replace("&nbsp;", "");
+			result = result.replaceAll("<li>", "\n");
 			if (config.getInputType().equals(MetadataInputType.RICHTEXT)) {
-				String result = metadataValue.toString().replaceAll("<br>", "\n");
-				result = result.replace("&nbsp;", "");
-				result = result.replaceAll("<li>", "\n");
 				result = result.replaceAll("\\<[^>]*>", "");
-				return result;
 			}
+			return result;
 		} else if (metadata.getType() == MetadataValueType.ENUM) {
 			EnumWithSmallCodeToCaptionConverter captionConverter =
 					new EnumWithSmallCodeToCaptionConverter((Class<? extends EnumWithSmallCode>) metadataValue.getClass());

@@ -25,6 +25,7 @@ import com.constellio.app.modules.rm.model.calculators.FolderInactiveDisposalTyp
 import com.constellio.app.modules.rm.model.calculators.FolderSemiActiveRetentionTypeCalculator;
 import com.constellio.app.modules.rm.model.calculators.FolderTokensOfHierarchyCalculator;
 import com.constellio.app.modules.rm.model.calculators.FolderTreeVisibilityCalculator;
+import com.constellio.app.modules.rm.model.calculators.UserDocumentContentHashesCalculator;
 import com.constellio.app.modules.rm.model.calculators.category.CategoryCopyRetentionRulesOnDocumentTypesCalculator;
 import com.constellio.app.modules.rm.model.calculators.category.CategoryLevelCalculator;
 import com.constellio.app.modules.rm.model.calculators.container.ContainerRecordAvailableSizeCalculator;
@@ -48,8 +49,9 @@ import com.constellio.app.modules.rm.model.calculators.document.DocumentApplicab
 import com.constellio.app.modules.rm.model.calculators.document.DocumentArchivisticStatusCalculator;
 import com.constellio.app.modules.rm.model.calculators.document.DocumentAutocompleteFieldCalculator;
 import com.constellio.app.modules.rm.model.calculators.document.DocumentCaptionCalculator;
-import com.constellio.app.modules.rm.model.calculators.document.DocumentCheckedOutUserCalculator;
+import com.constellio.app.modules.rm.model.calculators.document.DocumentCheckedOutUserCalculator2;
 import com.constellio.app.modules.rm.model.calculators.document.DocumentConfidentialCalculator;
+import com.constellio.app.modules.rm.model.calculators.document.DocumentContentHashesCalculator;
 import com.constellio.app.modules.rm.model.calculators.document.DocumentEssentialCalculator;
 import com.constellio.app.modules.rm.model.calculators.document.DocumentExpectedDepositDateCalculator;
 import com.constellio.app.modules.rm.model.calculators.document.DocumentExpectedDestructionDateCalculator;
@@ -455,7 +457,8 @@ public final class GeneratedRMMigrationCombo {
     documentSchema.get("categoryCode").defineDataEntry().asCopied(documentSchema.get("folder"), typesBuilder.getMetadata("folder_default_categoryCode"));
     documentSchema.get("closingDate").defineDataEntry().asCopied(documentSchema.get("folder"), typesBuilder.getMetadata("folder_default_closingDate"));
     documentSchema.get("confidential").defineDataEntry().asCalculated(DocumentConfidentialCalculator.class);
-    documentSchema.get("contentCheckedOutBy").defineDataEntry().asCalculated(DocumentCheckedOutUserCalculator.class);
+    documentSchema.get("contentCheckedOutBy").defineDataEntry().asCalculated(DocumentCheckedOutUserCalculator2.class);
+    documentSchema.get("contentHashes").defineDataEntry().asCalculated(DocumentContentHashesCalculator.class);
     documentSchema.get("copyStatus").defineDataEntry().asCopied(documentSchema.get("folder"), typesBuilder.getMetadata("folder_default_copyStatus"));
     documentSchema.get("documentType").defineDataEntry().asCopied(documentSchema.get("type"), typesBuilder.getMetadata("ddvDocumentType_default_title"));
     documentSchema.get("essential").defineDataEntry().asCalculated(DocumentEssentialCalculator.class);
@@ -574,6 +577,7 @@ public final class GeneratedRMMigrationCombo {
     uniformSubdivisionSchema.get("principalpath").defineDataEntry().asCalculated(PrincipalPathCalculator.class);
     uniformSubdivisionSchema.get("tokens").defineDataEntry().asCalculated(TokensCalculator4.class);
     uniformSubdivisionSchema.get("tokensHierarchy").defineDataEntry().asCalculated(DefaultTokensOfHierarchyCalculator.class);
+    userDocumentSchema.get("contentHashes").defineDataEntry().asCalculated(UserDocumentContentHashesCalculator.class);
   }
 
   private void createCapsuleSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder capsuleSchemaType, MetadataSchemaBuilder capsuleSchema) {
@@ -724,7 +728,12 @@ public final class GeneratedRMMigrationCombo {
     document_content.setSearchable(true);
     document_content.setDuplicable(true);
     document_content.defineStructureFactory(ContentFactory.class);
-    MetadataBuilder document_contentCheckedOutBy = documentSchema.create("contentCheckedOutBy").setType(MetadataValueType.STRING);
+    MetadataBuilder document_contentCheckedOutBy = documentSchema.create("contentCheckedOutBy").setType(MetadataValueType.REFERENCE);
+    document_contentCheckedOutBy.setUndeletable(true);
+    document_contentCheckedOutBy.defineReferencesTo(types.getSchemaType("user"));
+    MetadataBuilder document_contentHashes = documentSchema.create("contentHashes").setType(MetadataValueType.STRING);
+    document_contentHashes.setMultivalue(true);
+    document_contentHashes.setUndeletable(true);
     MetadataBuilder document_copyStatus = documentSchema.create("copyStatus").setType(MetadataValueType.ENUM);
     document_copyStatus.defineAsEnum(CopyType.class);
     MetadataBuilder document_createdBy = documentSchema.create("createdBy").setType(MetadataValueType.REFERENCE);
@@ -1015,6 +1024,7 @@ public final class GeneratedRMMigrationCombo {
     MetadataBuilder document_email_confidential = document_emailSchema.get("confidential");
     MetadataBuilder document_email_content = document_emailSchema.get("content");
     MetadataBuilder document_email_contentCheckedOutBy = document_emailSchema.get("contentCheckedOutBy");
+    MetadataBuilder document_email_contentHashes = document_emailSchema.get("contentHashes");
     MetadataBuilder document_email_copyStatus = document_emailSchema.get("copyStatus");
     MetadataBuilder document_email_createdBy = document_emailSchema.get("createdBy");
     MetadataBuilder document_email_createdOn = document_emailSchema.get("createdOn");
@@ -1829,6 +1839,9 @@ public final class GeneratedRMMigrationCombo {
   }
 
   private void createUserDocumentSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder userDocumentSchemaType, MetadataSchemaBuilder userDocumentSchema) {
+    MetadataBuilder userDocument_contentHashes = userDocumentSchema.create("contentHashes").setType(MetadataValueType.STRING);
+    userDocument_contentHashes.setMultivalue(true);
+    userDocument_contentHashes.setUndeletable(true);
     MetadataBuilder userDocument_folder = userDocumentSchema.create("folder").setType(MetadataValueType.REFERENCE);
     userDocument_folder.defineReferencesTo(types.getSchemaType("folder"));
   }
@@ -5140,14 +5153,12 @@ public final class GeneratedRMMigrationCombo {
     containerRecord_availableSize.setUndeletable(true);
     MetadataBuilder containerRecord_borrowDate = containerRecordSchema.create("borrowDate").setType(MetadataValueType.DATE);
     containerRecord_borrowDate.setUndeletable(true);
-    containerRecord_borrowDate.setEssential(true);
     MetadataBuilder containerRecord_borrowReturnDate = containerRecordSchema.create("borrowReturnDate").setType(MetadataValueType.DATE_TIME);
     containerRecord_borrowReturnDate.setUndeletable(true);
     MetadataBuilder containerRecord_borrowed = containerRecordSchema.create("borrowed").setType(MetadataValueType.BOOLEAN);
     containerRecord_borrowed.setUndeletable(true);
     MetadataBuilder containerRecord_borrower = containerRecordSchema.create("borrower").setType(MetadataValueType.REFERENCE);
     containerRecord_borrower.setUndeletable(true);
-    containerRecord_borrower.setEssential(true);
     containerRecord_borrower.defineReferencesTo(types.getSchemaType("user"));
     MetadataBuilder containerRecord_capacity = containerRecordSchema.create("capacity").setType(MetadataValueType.NUMBER);
     containerRecord_capacity.setUndeletable(true);
@@ -5163,7 +5174,6 @@ public final class GeneratedRMMigrationCombo {
     containerRecord_comments.defineStructureFactory(CommentFactory.class);
     MetadataBuilder containerRecord_completionDate = containerRecordSchema.create("completionDate").setType(MetadataValueType.DATE);
     containerRecord_completionDate.setUndeletable(true);
-    containerRecord_completionDate.setEssential(true);
     MetadataBuilder containerRecord_createdBy = containerRecordSchema.create("createdBy").setType(MetadataValueType.REFERENCE);
     containerRecord_createdBy.setSystemReserved(true);
     containerRecord_createdBy.setUndeletable(true);
@@ -5224,7 +5234,6 @@ public final class GeneratedRMMigrationCombo {
     containerRecord_favorites.setUndeletable(true);
     MetadataBuilder containerRecord_filingSpace = containerRecordSchema.create("filingSpace").setType(MetadataValueType.REFERENCE);
     containerRecord_filingSpace.setUndeletable(true);
-    containerRecord_filingSpace.setEssential(true);
     containerRecord_filingSpace.defineReferencesTo(types.getSchemaType("filingSpace"));
     MetadataBuilder containerRecord_fillRatioEntered = containerRecordSchema.create("fillRatioEntered").setType(MetadataValueType.NUMBER);
     containerRecord_fillRatioEntered.setUndeletable(true);
@@ -5326,7 +5335,6 @@ public final class GeneratedRMMigrationCombo {
     containerRecord_pathParts.setMultiLingual(false);
     MetadataBuilder containerRecord_planifiedReturnDate = containerRecordSchema.create("planifiedReturnDate").setType(MetadataValueType.DATE);
     containerRecord_planifiedReturnDate.setUndeletable(true);
-    containerRecord_planifiedReturnDate.setEssential(true);
     MetadataBuilder containerRecord_position = containerRecordSchema.create("position").setType(MetadataValueType.STRING);
     containerRecord_position.setUndeletable(true);
     containerRecord_position.setSearchable(true);
@@ -5337,13 +5345,10 @@ public final class GeneratedRMMigrationCombo {
     containerRecord_principalpath.setMultiLingual(false);
     MetadataBuilder containerRecord_realDepositDate = containerRecordSchema.create("realDepositDate").setType(MetadataValueType.DATE);
     containerRecord_realDepositDate.setUndeletable(true);
-    containerRecord_realDepositDate.setEssential(true);
     MetadataBuilder containerRecord_realReturnDate = containerRecordSchema.create("realReturnDate").setType(MetadataValueType.DATE);
     containerRecord_realReturnDate.setUndeletable(true);
-    containerRecord_realReturnDate.setEssential(true);
     MetadataBuilder containerRecord_realTransferDate = containerRecordSchema.create("realTransferDate").setType(MetadataValueType.DATE);
     containerRecord_realTransferDate.setUndeletable(true);
-    containerRecord_realTransferDate.setEssential(true);
     MetadataBuilder containerRecord_removedauthorizations = containerRecordSchema.create("removedauthorizations").setType(MetadataValueType.STRING);
     containerRecord_removedauthorizations.setMultivalue(true);
     containerRecord_removedauthorizations.setSystemReserved(true);
@@ -5376,7 +5381,6 @@ public final class GeneratedRMMigrationCombo {
     containerRecord_storageSpace.defineTaxonomyRelationshipToType(types.getSchemaType("storageSpace"));
     MetadataBuilder containerRecord_temporaryIdentifier = containerRecordSchema.create("temporaryIdentifier").setType(MetadataValueType.STRING);
     containerRecord_temporaryIdentifier.setUndeletable(true);
-    containerRecord_temporaryIdentifier.setEssential(true);
     containerRecord_temporaryIdentifier.setSearchable(true);
     MetadataBuilder containerRecord_title = containerRecordSchema.create("title").setType(MetadataValueType.STRING);
     containerRecord_title.setDefaultRequirement(true);
@@ -6334,7 +6338,7 @@ public final class GeneratedRMMigrationCombo {
     transaction.add(manager.getMetadata(collection, "category_default_title").withMetadataGroup("").withInputType(MetadataInputType.FIELD).withHighlightStatus(true).withVisibleInAdvancedSearchStatus(false));
     transaction.add(manager.getType(collection, "collection").withSimpleSearchStatus(false).withAdvancedSearchStatus(false).withManageableStatus(false).withMetadataGroup(resourcesProvider.getLanguageMap(asList("default:defaultGroupLabel"))));
     transaction.add(manager.getType(collection, "containerRecord").withSimpleSearchStatus(true).withAdvancedSearchStatus(true).withManageableStatus(false).withMetadataGroup(resourcesProvider.getLanguageMap(asList("default:defaultGroupLabel"))));
-    transaction.add(manager.getSchema(collection, "containerRecord_default").withFormMetadataCodes(asList("containerRecord_default_type", "containerRecord_default_temporaryIdentifier", "containerRecord_default_identifier", "containerRecord_default_decommissioningType", "containerRecord_default_storageSpace", "containerRecord_default_full", "containerRecord_default_description", "containerRecord_default_position", "containerRecord_default_borrower", "containerRecord_default_filingSpace", "containerRecord_default_borrowDate", "containerRecord_default_completionDate", "containerRecord_default_planifiedReturnDate", "containerRecord_default_realDepositDate", "containerRecord_default_realReturnDate", "containerRecord_default_realTransferDate", "containerRecord_default_capacity", "containerRecord_default_administrativeUnits")).withDisplayMetadataCodes(asList("containerRecord_default_type", "containerRecord_default_temporaryIdentifier", "containerRecord_default_identifier", "containerRecord_default_full", "containerRecord_default_description", "containerRecord_default_administrativeUnits", "containerRecord_default_storageSpace", "containerRecord_default_capacity")).withSearchResultsMetadataCodes(asList("containerRecord_default_title", "containerRecord_default_modifiedOn")).withTableMetadataCodes(asList("containerRecord_default_title", "containerRecord_default_modifiedOn")));
+    transaction.add(manager.getSchema(collection, "containerRecord_default").withFormMetadataCodes(asList("containerRecord_default_type", "containerRecord_default_temporaryIdentifier", "containerRecord_default_identifier", "containerRecord_default_decommissioningType", "containerRecord_default_storageSpace", "containerRecord_default_full", "containerRecord_default_description", "containerRecord_default_position", "containerRecord_default_capacity", "containerRecord_default_administrativeUnits")).withDisplayMetadataCodes(asList("containerRecord_default_type", "containerRecord_default_temporaryIdentifier", "containerRecord_default_identifier", "containerRecord_default_full", "containerRecord_default_description", "containerRecord_default_administrativeUnits", "containerRecord_default_storageSpace", "containerRecord_default_capacity")).withSearchResultsMetadataCodes(asList("containerRecord_default_title", "containerRecord_default_modifiedOn")).withTableMetadataCodes(asList("containerRecord_default_title", "containerRecord_default_modifiedOn")));
     transaction.add(manager.getMetadata(collection, "containerRecord_default_administrativeUnits").withMetadataGroup("").withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
     transaction.add(manager.getMetadata(collection, "containerRecord_default_availableSize").withMetadataGroup("").withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
     transaction.add(manager.getMetadata(collection, "containerRecord_default_borrowDate").withMetadataGroup("").withInputType(MetadataInputType.HIDDEN).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
