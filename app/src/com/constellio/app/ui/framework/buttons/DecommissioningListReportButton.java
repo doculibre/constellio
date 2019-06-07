@@ -1,12 +1,12 @@
 package com.constellio.app.ui.framework.buttons;
 
 import com.constellio.app.modules.rm.reports.builders.administration.plan.ConservationRulesReportParameters;
+import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningListPresenter;
 import com.constellio.app.modules.rm.ui.pages.reports.RMNewReportsPresenter;
 import com.constellio.app.ui.framework.components.NewReportPresenter;
 import com.constellio.app.ui.framework.components.ReportSelector;
 import com.constellio.app.ui.framework.components.ReportViewer;
 import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
-import com.constellio.app.ui.framework.reports.ReportWithCaptionVO;
 import com.constellio.app.ui.framework.reports.ReportWriter;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.Component;
@@ -15,26 +15,24 @@ import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
+import java.util.List;
+
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DecommissioningListReportButton extends WindowButton {
-    private final String[] reports;
+    private List<String> reports;
     private final NewReportPresenter newPresenter;
     private Object params;
 
-    public DecommissioningListReportButton(NewReportPresenter presenter, ReportWithCaptionVO... reports) {
-        super($(reports[0].getCaption()), reports[0].getCaption(),
+    public DecommissioningListReportButton(DecommissioningListPresenter presenter) {
+        super($("DecommissioningReportButton.DecommissioningList"), $("DecommissioningReportButton.DecommissioningList"),
                 new WindowConfiguration(true, true, "75%", "90%"));
 
-        this.reports = new String[reports.length];
-        for (int i = 0; i < this.reports.length; i++) {
-            this.reports[i] = reports[i].getTitle();
-        }
+        this.reports = presenter.getReports();
 
         this.newPresenter = presenter;
 
-        // TODO is the index important ?
-        String iconPathKey = reports[0].getTitle() + ".icon";
+        String iconPathKey = "Reports.DecommissioningList.icon";
         String iconPath = $(iconPathKey);
         if (!iconPathKey.equals(iconPath)) {
             setIcon(new ThemeResource(iconPath));
@@ -56,9 +54,9 @@ public class DecommissioningListReportButton extends WindowButton {
 
         for (String report : reports) {
             if (report.equals("Reports.DecommissioningList")) {
-                tabSheet.addTab(createPDFTab(report), $("ReportViewer.printAsPdf"));
+                tabSheet.addTab(createPDFTab(report), $("ReportTabButton.PDFReport"));
             } else if (report.equals("Reports.DecommissioningListExcelFormat")) {
-                tabSheet.addTab(createExcelTab(), $("ReportViewer.printAsExcel"));
+                tabSheet.addTab(createExcelTab(), $("ReportTabButton.ExcelReport"));
             } else {
                 throw new RuntimeException("BUG: Unknown report: " + report);
             }
@@ -90,11 +88,18 @@ public class DecommissioningListReportButton extends WindowButton {
     }
 
     private Component createExcelTab() {
+        VerticalLayout verticalLayout = new VerticalLayout();
+
         if (newPresenter.getSupportedReports().isEmpty()) {
-            return createErrorTab();
+            verticalLayout.addComponent(createErrorTab());
         } else {
-            return new ReportSelector(newPresenter);
+            Label label = new Label($("ReportTabButton.selectTemplate"));
+            label.addStyleName(ValoTheme.LABEL_BOLD);
+            verticalLayout.addComponent(label);
+            verticalLayout.addComponent(new ReportSelector(newPresenter, false));
         }
+
+        return verticalLayout;
     }
 
     private VerticalLayout createErrorTab() {

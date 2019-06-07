@@ -19,7 +19,6 @@ import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.components.fields.comment.RecordCommentsEditorImpl;
 import com.constellio.app.ui.framework.components.table.BaseTable;
-import com.constellio.app.ui.framework.reports.ReportWithCaptionVO;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.util.SchemaCaptionUtils;
 import com.vaadin.data.Container;
@@ -507,9 +506,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 	}
 
 	private Button buildPrintButton() {
-        DecommissioningListReportButton button = new DecommissioningListReportButton(presenter,
-                new ReportWithCaptionVO("Reports.DecommissioningList", $("Reports.DecommissioningList")),
-                new ReportWithCaptionVO("Reports.DecommissioningListExcelFormat", $("Reports.DecommissioningListExcelFormat")));
+		DecommissioningListReportButton button = new DecommissioningListReportButton(presenter);
         button.setCaption($("DecommissioningListView.print"));
 		button.addStyleName(ValoTheme.BUTTON_LINK);
 		return button;

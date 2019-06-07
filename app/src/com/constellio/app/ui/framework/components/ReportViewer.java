@@ -72,7 +72,7 @@ public class ReportViewer extends VerticalLayout {
 		};
 	}
 
-	private StreamSource buildSource(final ReportWriter reportWriter) {
+	static StreamSource buildSource(final ReportWriter reportWriter) {
 		return new StreamSource() {
 			@Override
 			public InputStream getStream() {
