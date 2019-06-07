@@ -154,7 +154,7 @@ public class CoreMigrationCombo implements ComboMigrationScript {
 		scripts.add(new CoreMigrationTo_8_1_3());
 		scripts.add(new CoreMigrationTo_8_2());
 		scripts.add(new CoreMigrationTo_8_2_0());
-		scripts.add(new CoreMigrationTo_8_2_1());
+//		scripts.add(new CoreMigrationTo_8_2_1());
 
 		return scripts;
 	}
