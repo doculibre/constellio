@@ -8,6 +8,7 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.actions.ContainerRecordActionsServices;
 import com.constellio.app.modules.rm.services.actions.DocumentRecordActionsServices;
 import com.constellio.app.modules.rm.services.actions.FolderRecordActionsServices;
+import com.constellio.app.modules.rm.services.menu.behaviors.ContainerRecordMenuItemActionBehaviors;
 import com.constellio.app.modules.rm.services.menu.behaviors.DocumentMenuItemActionBehaviors;
 import com.constellio.app.modules.rm.services.menu.behaviors.FolderMenuItemActionBehaviors;
 import com.constellio.app.modules.rm.services.menu.behaviors.MenuItemActionBehaviorParams;
@@ -28,6 +29,8 @@ import com.vaadin.server.Resource;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class MenuItemServices {
 
@@ -405,8 +408,53 @@ public class MenuItemServices {
 
 		} else if (record.isOfSchemaType(ContainerRecord.SCHEMA_TYPE)) {
 			if (!filteredActionTypes.contains(MenuItemActionType.CONTAINER_EDIT.name())) {
-				boolean isEditPossible = containerRecordActionsServices.isEditActionPossible(record, user);
+				boolean isEditActionPossible = containerRecordActionsServices.isEditActionPossible(record, user);
+
+				MenuItemAction menuItemAction = buildMenuItemAction(MenuItemActionType.CONTAINER_EDIT,
+						isEditActionPossible, "DisplayContainerView.edit", null, -1, 100,
+						() -> new ContainerRecordMenuItemActionBehaviors(collection, appLayerFactory).edit(params));
+				menuItemActions.add(menuItemAction);
 			}
+
+			if (!filteredActionTypes.contains(MenuItemActionType.CONTAINER_SLIP.name())) {
+				boolean isReportActionPossible = containerRecordActionsServices.isSlipActionPossible(record, user);
+
+				MenuItemAction menuItemAction = buildMenuItemAction(MenuItemActionType.CONTAINER_SLIP,
+						isReportActionPossible, "DisplayContainerView.slip", null, -1, 200,
+						() -> new ContainerRecordMenuItemActionBehaviors(collection, appLayerFactory).report(params));
+				menuItemActions.add(menuItemAction);
+			}
+
+
+			if (filteredActionTypes.contains(MenuItemActionType.CONTAINER_LABELS.name())) {
+				boolean isLabelsActionPossible = containerRecordActionsServices.isLabelsActionPossible(record, user);
+
+				MenuItemAction menuItemAction = buildMenuItemAction(MenuItemActionType.CONTAINER_SLIP,
+						isLabelsActionPossible, "DisplayContainerView.slip", null, -1, 300,
+						() -> new ContainerRecordMenuItemActionBehaviors(collection, appLayerFactory).printLabel(params));
+				menuItemActions.add(menuItemAction);
+			}
+
+			if (filteredActionTypes.contains(MenuItemActionType.CONTAINER_ADD_TO_CART.name())) {
+				boolean isAddToCartActionPossible = containerRecordActionsServices.isAddToCartActionPossible(record, user);
+
+				MenuItemAction menuItemAction = buildMenuItemAction(MenuItemActionType.CONTAINER_SLIP,
+						isAddToCartActionPossible, "DisplayContainerView.slip", null, -1, 400,
+						() -> new ContainerRecordMenuItemActionBehaviors(collection, appLayerFactory).addToCart(params));
+				menuItemActions.add(menuItemAction);
+			}
+
+			if (filteredActionTypes.contains(MenuItemActionType.CONTAINER_DELETE.name())) {
+				boolean isContainerDeleteActionPossible = containerRecordActionsServices.isDeleteActionPossible(record, user);
+			}
+
+			if (filteredActionTypes.contains(MenuItemActionType.CONTAINER_EMPTY_THE_BOX.name())) {
+				boolean isEmptyTheBoxActionPossible = containerRecordActionsServices.isEmptyTheBoxActionPossible(record, user);
+
+				// confirm message
+				$("DisplayContainerView.confirmEmpty");
+			}
+
 		} else {
 			// TODO
 			return Collections.emptyList();

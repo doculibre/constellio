@@ -1,24 +1,55 @@
 package com.constellio.app.modules.rm.services.actions;
 
 import com.constellio.app.modules.rm.ConstellioRMModule;
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
+import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.StatusFilter;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.constellio.model.services.security.AuthorizationsServices;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class ContainerRecordActionsServices {
 
 	private RMSchemasRecordsServices rm;
 	private RMModuleExtensions rmModuleExtensions;
+	private AppLayerFactory appLayerFactory;
+	private ModelLayerFactory modelLayerFactory;
+	private RecordServices recordServices;
 	private transient ModelLayerCollectionExtensions modelLayerCollectionExtensions;
+	private MetadataSchemasManager metadataSchemasManager;
+	private String collection;
+	private SearchServices searchServices;
 
 	public ContainerRecordActionsServices(String collection, AppLayerFactory appLayerFactory) {
-		rm = new RMSchemasRecordsServices(collection, appLayerFactory);
-		modelLayerCollectionExtensions = appLayerFactory.getModelLayerFactory().getExtensions().forCollection(collection);
-		rmModuleExtensions = appLayerFactory.getExtensions().forCollection(collection).forModule(ConstellioRMModule.ID);
+		this.rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+		this.collection = collection;
+		this.appLayerFactory = appLayerFactory;
+		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
+		this.metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
+		this.modelLayerCollectionExtensions = appLayerFactory.getModelLayerFactory().getExtensions().forCollection(collection);
+		this.rmModuleExtensions = appLayerFactory.getExtensions().forCollection(collection).forModule(ConstellioRMModule.ID);
+		this.recordServices = modelLayerFactory.newRecordServices();
+		this.searchServices = modelLayerFactory.newSearchServices();
 	}
 
 	public boolean isEditActionPossible(Record record, User user) {
@@ -27,8 +58,24 @@ public class ContainerRecordActionsServices {
 	}
 
 	public boolean isSlipActionPossible(Record record, User user) {
+		return user.hasReadAccess().on(record)
+			   && rmModuleExtensions.isSlipActionPossibleOnContainerRecord(rm.wrapContainerRecord(record), user) && canPrintReports();
+	}
 
-		return false;
+	public boolean canPrintReports() {
+		try {
+			getReportWriterFactory();
+		} catch (RuntimeException e) {
+			e.printStackTrace();
+			return false;
+		}
+		return true;
+	}
+
+
+	public NewReportWriterFactory getReportWriterFactory() {
+		RMModuleExtensions rmModuleExtensions = appLayerFactory.getExtensions().forCollection(collection).forModule(ConstellioRMModule.ID);
+		return rmModuleExtensions.getReportBuilderFactories().transferContainerRecordBuilderFactory.getValue();
 	}
 
 	public boolean isAddToCartActionPossible(Record record, User user) {
@@ -46,14 +93,82 @@ public class ContainerRecordActionsServices {
 	}
 
 	public boolean isLabelsActionPossible(Record record, User user) {
-		return false;
+		return user.hasReadAccess().on(record)
+			   && rmModuleExtensions.isLabelsActionPossible(rm.wrapContainerRecord(record), user)
+			   && canPrintReports();
 	}
 
 	public boolean isDeleteActionPossible(Record record, User user) {
-		return false;
+		ContainerRecord containerRecord = rm.wrapContainerRecord(record);
+		List<String> adminUnitIdsWithPermissions = getConceptsWithPermissionsForCurrentUser(user, RMPermissionsTo.DELETE_CONTAINERS);
+		List<String> adminUnitIds = new ArrayList<>(containerRecord.getAdministrativeUnits());
+		if (adminUnitIds.isEmpty() && containerRecord.getAdministrativeUnit() != null) {
+			adminUnitIds.add(containerRecord.getAdministrativeUnit());
+		}
+
+		if (adminUnitIdsWithPermissions.isEmpty()) {
+			return false;
+		}
+
+		for (String adminUnitId : adminUnitIds) {
+			if (!adminUnitIdsWithPermissions.contains(adminUnitId)) {
+				return false;
+			}
+		}
+		if (containerRecord.isLogicallyDeletedStatus()) {
+			return false;
+		}
+
+
+		return user.hasDeleteAccess().on(record)
+			   && rmModuleExtensions.isDeleteActionPossible(rm.wrapContainerRecord(record), user);
+	}
+
+	public List<String> getConceptsWithPermissionsForCurrentUser(User user, String... permissions) {
+		Set<String> recordIds = new HashSet<>();
+		AuthorizationsServices authorizationsServices = modelLayerFactory.newAuthorizationsServices();
+		for (String permission : permissions) {
+			recordIds.addAll(authorizationsServices.getConceptsForWhichUserHasPermission(permission, user));
+		}
+		return new ArrayList<>(recordIds);
 	}
 
 	public boolean isEmptyTheBoxActionPossible(Record record, User user) {
-		return false;
+
+		if (!(user.hasWriteAccess().on(record) && isContainerRecyclingAllowed()
+			  && rmModuleExtensions.isEmptyTheBoxActionPossible(rm.wrapContainerRecord(record), user))) {
+			return false;
+		}
+
+		boolean approveDecommissioningListPermission = false;
+		if (user.has(RMPermissionsTo.APPROVE_DECOMMISSIONING_LIST).globally()) {
+			approveDecommissioningListPermission = true;
+		} else {
+			ContainerRecord containerRecord = rm.wrapContainerRecord(record);
+			List<String> adminUnitIdsWithPermissions = getConceptsWithPermissionsForCurrentUser(user, RMPermissionsTo.APPROVE_DECOMMISSIONING_LIST);
+			List<String> adminUnitIds = new ArrayList<>(containerRecord.getAdministrativeUnits());
+			if (adminUnitIds.isEmpty() && containerRecord.getAdministrativeUnit() != null) {
+				adminUnitIds.add(containerRecord.getAdministrativeUnit());
+			}
+			for (String adminUnitId : adminUnitIds) {
+				if (adminUnitIdsWithPermissions.contains(adminUnitId)) {
+					approveDecommissioningListPermission = true;
+					break;
+				}
+			}
+		}
+
+		return approveDecommissioningListPermission && searchServices.hasResults(getFoldersQuery(user, record.getId()));
+	}
+
+	private LogicalSearchQuery getFoldersQuery(User user, String containerId) {
+		LogicalSearchCondition condition = from(rm.folder.schemaType())
+				.where(rm.folder.container()).isEqualTo(containerId)
+				.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull();
+		return new LogicalSearchQuery(condition).filteredWithUser(user).filteredByStatus(StatusFilter.ACTIVES);
+	}
+
+	private boolean isContainerRecyclingAllowed() {
+		return new RMConfigs(modelLayerFactory.getSystemConfigurationsManager()).isContainerRecyclingAllowed();
 	}
 }

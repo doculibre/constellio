@@ -2,7 +2,6 @@ package com.constellio.app.modules.rm.services.menu.behaviors;
 
 import com.constellio.app.api.extensions.params.NavigateToFromAPageParams;
 import com.constellio.app.modules.rm.ConstellioRMModule;
-import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.navigation.RMViews;
@@ -13,48 +12,37 @@ import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
 import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
 import com.constellio.app.modules.rm.ui.components.document.DocumentActionsPresenterUtils;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
-import com.constellio.app.modules.rm.ui.pages.cart.DefaultFavoritesTable;
-import com.constellio.app.modules.rm.ui.pages.cart.DefaultFavoritesTable.CartItem;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.modules.rm.util.DecommissionNavUtil;
 import com.constellio.app.modules.rm.util.RMNavigationUtils;
-import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.application.ConstellioUI;
-import com.constellio.app.ui.entities.*;
+import com.constellio.app.ui.entities.ContentVersionVO;
+import com.constellio.app.ui.entities.MetadataVO;
+import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.entities.RecordVORuntimeException.RecordVORuntimeException_NoSuchMetadata;
+import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.builders.ContentVersionToVOBuilder;
-import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
-import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
-import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.DownloadLink;
-import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
 import com.constellio.app.ui.framework.components.RMSelectionPanelReportPresenter;
 import com.constellio.app.ui.framework.components.ReportTabButton;
 import com.constellio.app.ui.framework.components.content.ContentVersionVOResource;
 import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
-import com.constellio.app.ui.framework.components.fields.BaseTextField;
-import com.constellio.app.ui.framework.components.table.RecordVOTable;
-import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
-import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.utils.Factory;
-import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
-import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.SearchEvent;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.contents.ContentConversionManager;
@@ -66,17 +54,12 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
-import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.vaadin.event.ItemClickEvent;
-import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
-import com.vaadin.ui.*;
-import com.vaadin.ui.themes.ValoTheme;
+import com.vaadin.ui.Button;
 import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -84,7 +67,6 @@ import java.util.Map;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.app.ui.pages.search.SearchPresenter.CURRENT_SEARCH_EVENT;
 import static com.constellio.app.ui.pages.search.SearchPresenter.SEARCH_EVENT_DWELL_TIME;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 
@@ -266,80 +248,16 @@ public class DocumentMenuItemActionBehaviors {
 	}
 
 	public void addToCart(MenuItemActionBehaviorParams params) {
-		if (params.getUser().has(RMPermissionsTo.USE_GROUP_CART).globally()) {
-			addToCartWindow(params);
-		} else if (params.getUser().has(RMPermissionsTo.USE_MY_CART).globally()) {
-			addToDefaultCart(params);
-		}
-	}
-
-	private void addToCartWindow(MenuItemActionBehaviorParams params) {
-		final Document document = rm.getDocument(params.getRecordVO().getId());
-
-		WindowButton windowButton = new WindowButton($("DisplayFolderView.addToCart"), $("DisplayFolderView.selectCart")) {
-			@Override
-			protected Component buildWindowContent() {
-				VerticalLayout layout = new VerticalLayout();
-				layout.setSizeFull();
-
-				HorizontalLayout newCartLayout = new HorizontalLayout();
-				newCartLayout.setSpacing(true);
-				newCartLayout.addComponent(new Label($("CartView.newCart")));
-				final BaseTextField newCartTitleField;
-				newCartLayout.addComponent(newCartTitleField = new BaseTextField());
-				newCartTitleField.setRequired(true);
-				BaseButton saveButton;
-				newCartLayout.addComponent(saveButton = new BaseButton($("save")) {
-					@Override
-					protected void buttonClick(ClickEvent event) {
-						try {
-							createNewCartAndAddToItRequested(newCartTitleField.getValue(), document, params);
-							getWindow().close();
-						} catch (Exception e) {
-							params.getView().showErrorMessage(MessageUtils.toMessage(e));
-						}
-					}
-				});
-				saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
-
-				TabSheet tabSheet = new TabSheet();
-				Table ownedCartsTable = buildOwnedFavoritesTable(getWindow(), params, document);
-
-				final RecordVOLazyContainer sharedCartsContainer = new RecordVOLazyContainer(getSharedCartsDataProvider(params));
-				RecordVOTable sharedCartsTable = new RecordVOTable($("CartView.sharedCarts"), sharedCartsContainer);
-				sharedCartsTable.addItemClickListener((ItemClickListener) event -> {
-					addToCartRequested(sharedCartsContainer.getRecordVO((int) event.getItemId()), params.getView(), document);
-					getWindow().close();
-				});
-
-				sharedCartsTable.setPageLength(Math.min(15, sharedCartsContainer.size()));
-				sharedCartsTable.setWidth("100%");
-				tabSheet.addTab(ownedCartsTable);
-				tabSheet.addTab(sharedCartsTable);
-				layout.addComponents(newCartLayout, tabSheet);
-				layout.setExpandRatio(tabSheet, 1);
-				return layout;
-			}
-		};
-
-		windowButton.click();
+		CartWindowButton cartWindowButton = new CartWindowButton(params);
+		cartWindowButton.addToCart();
 	}
 
 	public void printLabel(MenuItemActionBehaviorParams params) {
 
-		Factory<List<LabelTemplate>> customLabelTemplatesFactory = new Factory<List<LabelTemplate>>() {
-			@Override
-			public List<LabelTemplate> get() {
-				return appLayerFactory.getLabelTemplateManager().listExtensionTemplates(Document.SCHEMA_TYPE);
-			}
-		};
+		Factory<List<LabelTemplate>> customLabelTemplatesFactory = (Factory<List<LabelTemplate>>) () -> appLayerFactory.getLabelTemplateManager().listExtensionTemplates(Document.SCHEMA_TYPE);
 
-		Factory<List<LabelTemplate>> defaultLabelTemplatesFactory = new Factory<List<LabelTemplate>>() {
-			@Override
-			public List<LabelTemplate> get() {
-				return appLayerFactory.getLabelTemplateManager().listTemplates(Document.SCHEMA_TYPE);
-			}
-		};
+		Factory<List<LabelTemplate>> defaultLabelTemplatesFactory = (Factory<List<LabelTemplate>>) () -> appLayerFactory.getLabelTemplateManager().listTemplates(Document.SCHEMA_TYPE);
+
 		SessionContext sessionContext = params.getView().getSessionContext();
 		UserToVOBuilder userToVOBuilder = new UserToVOBuilder();
 		UserVO userVO = userToVOBuilder.build(params.getUser().getWrappedRecord(),
@@ -439,92 +357,6 @@ public class DocumentMenuItemActionBehaviors {
 				VIEW_MODE.DISPLAY, params.getView().getSessionContext());
 	}
 
-	private void addToCartRequested(RecordVO recordVO, BaseView baseView, Document document) {
-		Cart cart = rm.getCart(recordVO.getId());
-		addToCartRequested(cart, baseView, document);
-	}
-
-	private DefaultFavoritesTable buildOwnedFavoritesTable(final Window window, MenuItemActionBehaviorParams params,
-														   Document document) {
-		List<CartItem> cartItems = new ArrayList<>();
-		if(hasCurrentUserPermissionToUseMyCart(params.getUser())) {
-			cartItems.add(new DefaultFavoritesTable.CartItem($("CartView.defaultFavorites")));
-		}
-		for (Cart cart : getOwnedCarts(params.getUser())) {
-			cartItems.add(new DefaultFavoritesTable.CartItem(cart, cart.getTitle()));
-		}
-		final DefaultFavoritesTable.FavoritesContainer container = new DefaultFavoritesTable.FavoritesContainer(DefaultFavoritesTable.CartItem.class, cartItems);
-		DefaultFavoritesTable defaultFavoritesTable = new DefaultFavoritesTable("favoritesTable", container, getCartMetadataSchemaVO(params.getView().getSessionContext()));
-		defaultFavoritesTable.setCaption($("CartView.ownedCarts"));
-		defaultFavoritesTable.addItemClickListener(new ItemClickListener() {
-			@Override
-			public void itemClick(ItemClickEvent event) {
-				Cart cart = container.getCart((DefaultFavoritesTable.CartItem) event.getItemId());
-				if (cart == null) {
-					addToDefaultCart(params, document);
-				} else {
-					addToCartRequested(cart, params.getView(), document);
-				}
-				window.close();
-			}
-		});
-		defaultFavoritesTable.setPageLength(Math.min(15, container.size()));
-		container.removeContainerProperty(DefaultFavoritesTable.CartItem.DISPLAY_BUTTON);
-		defaultFavoritesTable.setWidth("100%");
-		return defaultFavoritesTable;
-	}
-
-	private MetadataSchemaVO getCartMetadataSchemaVO(SessionContext sessionContext) {
-		return new MetadataSchemaToVOBuilder().build(metadataSchemasManager.getSchemaTypes(sessionContext.getCurrentCollection())
-				.getDefaultSchema(Cart.SCHEMA_TYPE), RecordVO.VIEW_MODE.TABLE, sessionContext);
-	}
-
-	private void addToCartRequested(Cart cart, BaseView baseView,  Document document) {
-		if (rm.numberOfDocumentsInFavoritesReachesLimit(cart.getId(), 1)) {
-			baseView.showMessage($("DisplayDocumentView.cartCannotContainMoreThanAThousandDocuments"));
-		} else {
-			document.addFavorite(cart.getId());
-			Transaction transaction = new Transaction(RecordUpdateOptions.validationExceptionSafeOptions());
-			transaction.addUpdate(document.getWrappedRecord());
-			try {
-				recordServices.execute(transaction);
-				baseView.showMessage($("DocumentActionsComponent.addedToCart"));
-			} catch (RecordServicesException e) {
-				throw new ImpossibleRuntimeException(e);
-			}
-		}
-	}
-
-	private List<Cart> getOwnedCarts(User user) {
-		return rm.wrapCarts(searchServices.search(new LogicalSearchQuery(from(rm.cartSchema()).where(rm.cart.owner())
-				.isEqualTo(user.getId())).sortAsc(Schemas.TITLE)));
-	}
-
-	private boolean hasCurrentUserPermissionToUseMyCart(User user) {
-		return user.has(RMPermissionsTo.USE_MY_CART).globally();
-	}
-
-	private void addToDefaultCart(MenuItemActionBehaviorParams params, Document document) {
-		if (rm.numberOfDocumentsInFavoritesReachesLimit(params.getUser().getId(), 1)) {
-			params.getView().showMessage($("DisplayDocumentView.cartCannotContainMoreThanAThousandDocuments"));
-		} else {
-			document.addFavorite(params.getUser().getId());
-			try {
-				recordServices.update(document.getWrappedRecord(), RecordUpdateOptions.validationExceptionSafeOptions());
-			} catch (RecordServicesException e) {
-				e.printStackTrace();
-				throw new RuntimeException(e);
-			}
-			params.getView().showMessage($("DisplayDocumentView.documentAddedToDefaultFavorites"));
-		}
-	}
-
-	public void addToDefaultCart(MenuItemActionBehaviorParams params) {
-		Document document = rm.getDocument(params.getRecordVO().getId());
-
-		addToDefaultCart(params, document);
-	}
-
 	public void upload(MenuItemActionBehaviorParams params) {
 		UpdateContentVersionWindowImpl uploadWindow = createUpdateContentVersionWindow(params);
 
@@ -541,33 +373,6 @@ public class DocumentMenuItemActionBehaviors {
 			public void close() {
 				super.close();
 				params.getView().updateUI();
-			}
-		};
-	}
-
-	private void createNewCartAndAddToItRequested(String title, Document document,
-												  MenuItemActionBehaviorParams params) {
-		Cart cart = rm.newCart();
-		cart.setTitle(title);
-		cart.setOwner(params.getUser());
-		document.addFavorite(cart.getId());
-		try {
-			recordServices.execute(new Transaction(cart.getWrappedRecord()).setUser(params.getUser()));
-			recordServices.update(document.getWrappedRecord(), RecordUpdateOptions.validationExceptionSafeOptions());
-			params.getView().showMessage($("DocumentActionsComponent.addedToCart"));
-		} catch (RecordServicesException e) {
-			e.printStackTrace();
-		}
-	}
-
-	private RecordVODataProvider getSharedCartsDataProvider(MenuItemActionBehaviorParams params) {
-		MetadataSchemaToVOBuilder schemaVOBuilder = new MetadataSchemaToVOBuilder();
-		final MetadataSchemaVO cartSchemaVO = schemaVOBuilder.build(rm.cartSchema(), VIEW_MODE.TABLE, params.getView().getSessionContext());
-		return new RecordVODataProvider(cartSchemaVO, new RecordToVOBuilder(), modelLayerFactory, params.getView().getSessionContext()) {
-			@Override
-			protected LogicalSearchQuery getQuery() {
-				return new LogicalSearchQuery(from(rm.cartSchema()).where(rm.cartSharedWithUsers())
-						.isContaining(asList(params.getUser().getId()))).sortAsc(Schemas.TITLE);
 			}
 		};
 	}
