@@ -149,8 +149,6 @@ public class ConstellioEIMConfigs {
 
 	public static final SystemConfiguration ADD_RECORD_ID_IN_EMAILS;
 
-	public static final SystemConfiguration GENERATED_EMAIL_FORMAT;
-
 	public static final SystemConfiguration IS_TRASH_THREAD_EXECUTING;
 
 
