@@ -431,7 +431,7 @@ public class MenuItemServices {
 			if (filteredActionTypes.contains(MenuItemActionType.CONTAINER_ADD_TO_CART.name())) {
 				boolean isAddToCartActionPossible = containerRecordActionsServices.isAddToCartActionPossible(record, user);
 
-				MenuItemAction menuItemAction = buildMenuItemAction(MenuItemActionType.CONTAINER_SLIP,
+				MenuItemAction menuItemAction = buildMenuItemAction(MenuItemActionType.CONTAINER_ADD_TO_CART,
 						isAddToCartActionPossible, "DisplayContainerView.slip", null, -1, 400,
 						() -> new ContainerRecordMenuItemActionBehaviors(collection, appLayerFactory).addToCart(params));
 				menuItemActions.add(menuItemAction);
@@ -439,13 +439,27 @@ public class MenuItemServices {
 
 			if (filteredActionTypes.contains(MenuItemActionType.CONTAINER_DELETE.name())) {
 				boolean isContainerDeleteActionPossible = containerRecordActionsServices.isDeleteActionPossible(record, user);
+
+				MenuItemAction menuItemAction = buildMenuItemAction(MenuItemActionType.CONTAINER_DELETE,
+						isContainerDeleteActionPossible, "DisplayContainerView.delete", null, -1, 500,
+						() -> new ContainerRecordMenuItemActionBehaviors(collection, appLayerFactory).delete(params));
+
+				menuItemAction.setConfirmMessage($("ConfirmDialog.confirmDelete"));
+
+				menuItemActions.add(menuItemAction);
 			}
 
 			if (filteredActionTypes.contains(MenuItemActionType.CONTAINER_EMPTY_THE_BOX.name())) {
 				boolean isEmptyTheBoxActionPossible = containerRecordActionsServices.isEmptyTheBoxActionPossible(record, user);
 
 				// confirm message
-				$("DisplayContainerView.confirmEmpty");
+				MenuItemAction menuItemAction = buildMenuItemAction(MenuItemActionType.CONTAINER_DELETE,
+						isEmptyTheBoxActionPossible, "DisplayContainerView.empty", null, -1, 600,
+						() -> new ContainerRecordMenuItemActionBehaviors(collection, appLayerFactory).empty(params));
+
+				menuItemAction.setConfirmMessage($("DisplayContainerView.confirmEmpty"));
+
+				menuItemActions.add(menuItemAction);
 			}
 
 		} else {

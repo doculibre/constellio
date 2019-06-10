@@ -6,20 +6,24 @@ import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.reports.builders.decommissioning.ContainerRecordReportParameters;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.framework.buttons.ReportButton;
 import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
 import com.constellio.app.ui.framework.components.NewReportPresenter;
 import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import com.constellio.app.ui.framework.reports.ReportWithCaptionVO;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.utils.Factory;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.search.SearchServices;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
@@ -40,6 +44,7 @@ public class ContainerRecordMenuItemActionBehaviors {
 	private RMSchemasRecordsServices rm;
 	private LoggingServices loggingServices;
 	private SearchServices searchServices;
+	private DecommissioningService decommissioningService;
 
 
 	public ContainerRecordMenuItemActionBehaviors(String collection, AppLayerFactory appLayerFactory) {
@@ -52,6 +57,7 @@ public class ContainerRecordMenuItemActionBehaviors {
 		this.rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		this.loggingServices = modelLayerFactory.newLoggingServices();
 		this.extensions = modelLayerFactory.getExtensions().forCollection(collection);
+		this.decommissioningService = new DecommissioningService(collection, appLayerFactory);
 	}
 
 	public void edit(MenuItemActionBehaviorParams params) {
@@ -146,5 +152,25 @@ public class ContainerRecordMenuItemActionBehaviors {
 		} else {
 			return null;
 		}
+	}
+
+	public void delete(MenuItemActionBehaviorParams params) {
+		try {
+			ContainerRecord container = rm.getContainerRecord(params.getRecordVO().getId());
+			recordServices.logicallyDelete(container.getWrappedRecord(), params.getUser());
+			params.getView().navigate().to(CoreViews.class).home();
+		} catch (RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord e) {
+			params.getView().showErrorMessage(MessageUtils.toMessage(e));
+		}
+	}
+
+	public void empty(MenuItemActionBehaviorParams params) {
+		ContainerRecord container = rm.getContainerRecord(params.getRecordVO().getId());
+		try {
+			decommissioningService.recycleContainer(container, params.getUser());
+		} catch (Exception e) {
+			params.getView().showErrorMessage(MessageUtils.toMessage(e));
+		}
+		params.getView().navigate().to(RMViews.class).displayContainer(container.getId());
 	}
 }
