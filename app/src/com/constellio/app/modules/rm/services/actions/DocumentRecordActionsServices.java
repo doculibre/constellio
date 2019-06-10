@@ -32,8 +32,10 @@ public class DocumentRecordActionsServices {
 	}
 
 	public boolean isOpenActionPossible(Record record, User user) {
-		return hasUserReadAccess(record, user) &&
-			   rmModuleExtensions.isOpenActionPossibleOnDocument(rm.wrapDocument(record), user);
+		Document document = rm.wrapDocument(record);
+
+		return hasUserReadAccess(record, user) && document.getContent() != null
+			   && rmModuleExtensions.isOpenActionPossibleOnDocument(rm.wrapDocument(record), user);
 	}
 
 	public boolean isEditActionPossible(Record record, User user) {

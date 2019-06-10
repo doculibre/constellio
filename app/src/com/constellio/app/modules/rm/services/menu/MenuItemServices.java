@@ -92,13 +92,6 @@ public class MenuItemServices {
 						() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).edit(params)));
 			}
 
-			if (!filteredActionTypes.contains(MenuItemActionType.DOCUMENT_EDIT.name())) {
-				boolean isCopyActionPossible = documentRecordActionsServices.isCopyActionPossible(record, user);
-				menuItemActions.add(buildMenuItemAction(MenuItemActionType.DOCUMENT_EDIT, isCopyActionPossible,
-						"DocumentContextMenu.editDocument", FontAwesome.EDIT, -1, 600,
-						() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).edit(params)));
-			}
-
 			if (!filteredActionTypes.contains(MenuItemActionType.DOCUMENT_DOWNLOAD.name())) {
 				boolean isDownloadPossible = documentRecordActionsServices.isDownloadActionPossible(record, user);
 				menuItemActions.add(buildMenuItemAction(MenuItemActionType.DOCUMENT_DOWNLOAD, isDownloadPossible,
@@ -120,7 +113,7 @@ public class MenuItemServices {
 			if (!filteredActionTypes.contains(MenuItemActionType.DOCUMENT_COPY.name())) {
 				boolean isEditActionPossible = documentRecordActionsServices.isEditActionPossible(record, user);
 				menuItemActions.add(buildMenuItemAction(MenuItemActionType.DOCUMENT_COPY, isEditActionPossible,
-						"DocumentContextMenu.copyContent", FontAwesome.COPY, -1, 300,
+						"DocumentContextMenu.copyContent", null, -1, 600,
 						() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).copy(params)));
 			}
 
@@ -174,7 +167,7 @@ public class MenuItemServices {
 													   || !sessionContext.getSelectedRecordIds().contains(record.getId()));
 
 				MenuItemAction menuItemAction = buildMenuItemAction(MenuItemActionType.DOCUMENT_ADD_TO_SELECTION,
-						isAddToSelectionPossible, "addToOrRemoveFromSelection.add", null, -1, 1000,
+						isAddToSelectionPossible, "DocumentContextMenu.addToSelection", null, -1, 1000,
 						() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).addToSelection(params));
 
 				menuItemActions.add(menuItemAction);
@@ -188,7 +181,7 @@ public class MenuItemServices {
 													  && sessionContext.getSelectedRecordIds().contains(record.getId());
 
 				MenuItemAction menuItemAction = buildMenuItemAction(MenuItemActionType.DOCUMENT_ADD_TO_SELECTION,
-						isRemoveToSelectionPossible, "addToOrRemoveFromSelection.remove", null, -1, 1100,
+						isRemoveToSelectionPossible, "DocumentContextMenu.removeToSelection", null, -1, 1100,
 						() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).removeToSelection(params));
 
 				menuItemActions.add(menuItemAction);
@@ -244,7 +237,7 @@ public class MenuItemServices {
 				menuItemActions.add(menuItemAction);
 			}
 
-			if (filteredActionTypes.contains(MenuItemActionType.DOCUMENT_ADD_AUTHORIZATION.name())) {
+			if (!filteredActionTypes.contains(MenuItemActionType.DOCUMENT_ADD_AUTHORIZATION.name())) {
 				boolean isAddAuthorizationPossible = documentRecordActionsServices.isAddAuthorizationActionPossible(record, user);
 
 				MenuItemAction menuItemAction = buildMenuItemAction(MenuItemActionType.DOCUMENT_ADD_AUTHORIZATION,
@@ -254,7 +247,7 @@ public class MenuItemServices {
 				menuItemActions.add(menuItemAction);
 			}
 
-			if (filteredActionTypes.contains(MenuItemActionType.DOCUMENT_GENERATE_REPORT.name())) {
+			if (!filteredActionTypes.contains(MenuItemActionType.DOCUMENT_GENERATE_REPORT.name())) {
 				boolean isGenerateReportPossible = documentRecordActionsServices.isGenerateReportActionPossible(record, user);
 
 				MenuItemAction menuItemAction = buildMenuItemAction(MenuItemActionType.DOCUMENT_ADD_AUTHORIZATION,
