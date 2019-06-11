@@ -1,8 +1,10 @@
 package com.constellio.app.services.menu;
 
 import com.constellio.app.extensions.menu.MenuItemActionsExtension;
-import com.constellio.app.extensions.menu.MenuItemActionsExtension.MenuItemActionExtensionAddMenuItemActionsParams;
-import com.constellio.app.extensions.menu.MenuItemActionsExtension.MenuItemActionExtensionGetStateForActionParams;
+import com.constellio.app.extensions.menu.MenuItemActionsExtension.MenuItemActionExtensionAddMenuItemActionsForRecordParams;
+import com.constellio.app.extensions.menu.MenuItemActionsExtension.MenuItemActionExtensionAddMenuItemActionsForRecordsParams;
+import com.constellio.app.extensions.menu.MenuItemActionsExtension.MenuItemActionExtensionGetActionStateForRecordParams;
+import com.constellio.app.extensions.menu.MenuItemActionsExtension.MenuItemActionExtensionGetActionStateForRecordsParams;
 import com.constellio.app.modules.rm.services.menu.RecordListMenuItemServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
@@ -61,8 +63,7 @@ public class MenuItemServices {
 		menuItemActions.addAll(recordListMenuItemServices.getActionsForRecords(records, params.getUser(),
 				filteredActionTypes, params));
 
-		// TODO extensions
-		//addMenuItemActionsFromExtensions(record, user, params.getView(), menuItemActions);
+		addMenuItemActionsFromExtensions(records, filteredActionTypes, params, menuItemActions);
 
 		return menuItemActions;
 	}
@@ -87,8 +88,14 @@ public class MenuItemServices {
 
 	public MenuItemActionState getStateForAction(MenuItemAction action, List<Record> records,
 												 MenuItemActionBehaviorParams params) {
-		return recordListMenuItemServices.getMenuItemActionState(MenuItemActionType.valueOf(action.getType()),
-				records, params.getUser(), params);
+		// FIXME move to rm extensions
+		MenuItemActionState state = recordListMenuItemServices.getMenuItemActionState(
+				MenuItemActionType.valueOf(action.getType()), records, params.getUser(), params);
+		if (state != null) {
+			return state;
+		}
+
+		return geStateForActionFromExtensions(action, records, params);
 	}
 
 	public MenuItemActionState getStateForAction(MenuItemAction action, LogicalSearchQuery query,
@@ -101,8 +108,18 @@ public class MenuItemServices {
 												  MenuItemActionBehaviorParams params,
 												  List<MenuItemAction> menuItemActions) {
 		for (MenuItemActionsExtension menuItemActionsExtension : menuItemActionsExtensions) {
-			menuItemActionsExtension.addMenuItemActions(
-					new MenuItemActionExtensionAddMenuItemActionsParams(record, menuItemActions,
+			menuItemActionsExtension.addMenuItemActionsForRecord(
+					new MenuItemActionExtensionAddMenuItemActionsForRecordParams(record, menuItemActions,
+							filteredActionTypes, params));
+		}
+	}
+
+	private void addMenuItemActionsFromExtensions(List<Record> records, List<String> filteredActionTypes,
+												  MenuItemActionBehaviorParams params,
+												  List<MenuItemAction> menuItemActions) {
+		for (MenuItemActionsExtension menuItemActionsExtension : menuItemActionsExtensions) {
+			menuItemActionsExtension.addMenuItemActionsForRecords(
+					new MenuItemActionExtensionAddMenuItemActionsForRecordsParams(records, menuItemActions,
 							filteredActionTypes, params));
 		}
 	}
@@ -111,8 +128,21 @@ public class MenuItemServices {
 															   MenuItemActionBehaviorParams behaviorParams) {
 		MenuItemActionState state;
 		for (MenuItemActionsExtension menuItemActionsExtension : menuItemActionsExtensions) {
-			state = menuItemActionsExtension.getStateForAction(
-					new MenuItemActionExtensionGetStateForActionParams(record, action, behaviorParams));
+			state = menuItemActionsExtension.getActionStateForRecord(
+					new MenuItemActionExtensionGetActionStateForRecordParams(record, action, behaviorParams));
+			if (state != null) {
+				return state;
+			}
+		}
+		return MenuItemActionState.HIDDEN;
+	}
+
+	private MenuItemActionState geStateForActionFromExtensions(MenuItemAction action, List<Record> records,
+															   MenuItemActionBehaviorParams behaviorParams) {
+		MenuItemActionState state;
+		for (MenuItemActionsExtension menuItemActionsExtension : menuItemActionsExtensions) {
+			state = menuItemActionsExtension.getActionStateForRecords(
+					new MenuItemActionExtensionGetActionStateForRecordsParams(records, action, behaviorParams));
 			if (state != null) {
 				return state;
 			}

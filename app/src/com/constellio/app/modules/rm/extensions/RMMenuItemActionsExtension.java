@@ -34,7 +34,7 @@ public class RMMenuItemActionsExtension extends MenuItemActionsExtension {
 	}
 
 	@Override
-	public void addMenuItemActions(MenuItemActionExtensionAddMenuItemActionsParams params) {
+	public void addMenuItemActionsForRecord(MenuItemActionExtensionAddMenuItemActionsForRecordParams params) {
 		Record record = params.getRecord();
 		User user = params.getBehaviorParams().getUser();
 		List<MenuItemAction> menuItemActions = params.getMenuItemActions();
@@ -54,7 +54,7 @@ public class RMMenuItemActionsExtension extends MenuItemActionsExtension {
 	}
 
 	@Override
-	public MenuItemActionState getStateForAction(MenuItemActionExtensionGetStateForActionParams params) {
+	public MenuItemActionState getActionStateForRecord(MenuItemActionExtensionGetActionStateForRecordParams params) {
 		Record record = params.getRecord();
 		User user = params.getBehaviorParams().getUser();
 		MenuItemAction action = params.getMenuItemAction();

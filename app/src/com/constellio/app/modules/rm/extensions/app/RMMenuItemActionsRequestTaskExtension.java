@@ -90,14 +90,13 @@ public class RMMenuItemActionsRequestTaskExtension extends MenuItemActionsExtens
 	}
 
 	@Override
-	public void addMenuItemActions(MenuItemActionExtensionAddMenuItemActionsParams params) {
+	public void addMenuItemActionsForRecord(MenuItemActionExtensionAddMenuItemActionsForRecordParams params) {
 		Record record = params.getRecord();
 		User user = params.getBehaviorParams().getUser();
 
 		if (params.getRecord().isOfSchemaType(ContainerRecord.SCHEMA_TYPE)) {
 
 			Folder folder = getFolderOrNull(record);
-
 
 			if (folder == null || folder.getArchivisticStatus() != FolderStatus.INACTIVE_DESTROYED) {
 				boolean isBorrowRequestActionPossible = isBorrowRequestActionPossible(record, user);
@@ -146,7 +145,7 @@ public class RMMenuItemActionsRequestTaskExtension extends MenuItemActionsExtens
 	}
 
 	@Override
-	public MenuItemActionState getStateForAction(MenuItemActionExtensionGetStateForActionParams params) {
+	public MenuItemActionState getActionStateForRecord(MenuItemActionExtensionGetActionStateForRecordParams params) {
 		MenuItemAction action = params.getMenuItemAction();
 		Record record = params.getRecord();
 		User user = params.getBehaviorParams().getUser();
@@ -164,7 +163,7 @@ public class RMMenuItemActionsRequestTaskExtension extends MenuItemActionsExtens
 		return null;
 	}
 
-	public void reactivationRequested(MenuItemActionExtensionAddMenuItemActionsParams params) {
+	public void reactivationRequested(MenuItemActionExtensionAddMenuItemActionsForRecordParams params) {
 		WindowButton reactivationRequestButton = new WindowButton($("RMRequestTaskButtonExtension.reactivationRequest"),
 				$("RMRequestTaskButtonExtension.reactivationRequest")) {
 			@PropertyId("value")
@@ -208,7 +207,7 @@ public class RMMenuItemActionsRequestTaskExtension extends MenuItemActionsExtens
 		reactivationRequestButton.click();
 	}
 
-	private void reactivationRequested(MenuItemActionExtensionAddMenuItemActionsParams params, Request req) {
+	private void reactivationRequested(MenuItemActionExtensionAddMenuItemActionsForRecordParams params, Request req) {
 		Folder folder = getFolderOrNull(params.getRecord());
 		ContainerRecord container = getContainerRecordOrNull(params.getRecord(), folder);
 		User currentUser = params.getBehaviorParams().getUser();
@@ -244,7 +243,7 @@ public class RMMenuItemActionsRequestTaskExtension extends MenuItemActionsExtens
 		}
 	}
 
-	public void borrowExtensionRequested(MenuItemActionExtensionAddMenuItemActionsParams params) {
+	public void borrowExtensionRequested(MenuItemActionExtensionAddMenuItemActionsForRecordParams params) {
 		WindowButton borrowExtensionRequestButton = new WindowButton($("RMRequestTaskButtonExtension.borrowExtensionRequest"),
 				$("RMRequestTaskButtonExtension.borrowExtensionRequestTitle")) {
 			@PropertyId("value")
@@ -288,7 +287,7 @@ public class RMMenuItemActionsRequestTaskExtension extends MenuItemActionsExtens
 		borrowExtensionRequestButton.click();
 	}
 
-	public void borrowExtensionRequested(MenuItemActionExtensionAddMenuItemActionsParams params, Request req) {
+	public void borrowExtensionRequested(MenuItemActionExtensionAddMenuItemActionsForRecordParams params, Request req) {
 		Folder folder = getFolderOrNull(params.getRecord());
 		ContainerRecord container = getContainerRecordOrNull(params.getRecord(), folder);
 		User currentUser = params.getBehaviorParams().getUser();
@@ -360,7 +359,7 @@ public class RMMenuItemActionsRequestTaskExtension extends MenuItemActionsExtens
 		}
 	}
 
-	public void returnRequest(MenuItemActionExtensionAddMenuItemActionsParams params) {
+	public void returnRequest(MenuItemActionExtensionAddMenuItemActionsForRecordParams params) {
 		Folder folder = getFolderOrNull(params.getRecord());
 		ContainerRecord container = getContainerRecordOrNull(params.getRecord(), folder);
 		User currentUser = params.getBehaviorParams().getUser();
@@ -412,7 +411,7 @@ public class RMMenuItemActionsRequestTaskExtension extends MenuItemActionsExtens
 		}
 	}
 
-	public void borrowRequest(MenuItemActionExtensionAddMenuItemActionsParams params) {
+	public void borrowRequest(MenuItemActionExtensionAddMenuItemActionsForRecordParams params) {
 		WindowButton borrowRequestButton = new WindowButton($("RMRequestTaskButtonExtension.borrowRequest"),
 				$("RMRequestTaskButtonExtension.requestBorrowButtonTitle")) {
 			@Override
@@ -490,7 +489,7 @@ public class RMMenuItemActionsRequestTaskExtension extends MenuItemActionsExtens
 		borrowRequestButton.click();
 	}
 
-	public void borrowRequest(MenuItemActionExtensionAddMenuItemActionsParams params, boolean isContainer,
+	public void borrowRequest(MenuItemActionExtensionAddMenuItemActionsForRecordParams params, boolean isContainer,
 							  String inputForNumberOfDays) {
 		Folder folder = getFolderOrNull(params.getRecord());
 		ContainerRecord container = getContainerRecordOrNull(params.getRecord(), folder);

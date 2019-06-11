@@ -11,13 +11,23 @@ import java.util.List;
 
 public abstract class MenuItemActionsExtension {
 
-	public abstract void addMenuItemActions(MenuItemActionExtensionAddMenuItemActionsParams params);
+	public void addMenuItemActionsForRecord(MenuItemActionExtensionAddMenuItemActionsForRecordParams params) {
+	}
 
-	public abstract MenuItemActionState getStateForAction(MenuItemActionExtensionGetStateForActionParams params);
+	public void addMenuItemActionsForRecords(MenuItemActionExtensionAddMenuItemActionsForRecordsParams params) {
+	}
+
+	public MenuItemActionState getActionStateForRecord(MenuItemActionExtensionGetActionStateForRecordParams params) {
+		return null;
+	}
+
+	public MenuItemActionState getActionStateForRecords(MenuItemActionExtensionGetActionStateForRecordsParams params) {
+		return null;
+	}
 
 	@AllArgsConstructor
 	@Getter
-	public static class MenuItemActionExtensionAddMenuItemActionsParams {
+	public static class MenuItemActionExtensionAddMenuItemActionsForRecordParams {
 		private Record record;
 		private List<MenuItemAction> menuItemActions;
 		private List<String> filteredActionTypes;
@@ -26,8 +36,25 @@ public abstract class MenuItemActionsExtension {
 
 	@AllArgsConstructor
 	@Getter
-	public static class MenuItemActionExtensionGetStateForActionParams {
+	public static class MenuItemActionExtensionAddMenuItemActionsForRecordsParams {
+		private List<Record> records;
+		private List<MenuItemAction> menuItemActions;
+		private List<String> filteredActionTypes;
+		private MenuItemActionBehaviorParams behaviorParams;
+	}
+
+	@AllArgsConstructor
+	@Getter
+	public static class MenuItemActionExtensionGetActionStateForRecordParams {
 		private Record record;
+		private MenuItemAction menuItemAction;
+		private MenuItemActionBehaviorParams behaviorParams;
+	}
+
+	@AllArgsConstructor
+	@Getter
+	public static class MenuItemActionExtensionGetActionStateForRecordsParams {
+		private List<Record> records;
 		private MenuItemAction menuItemAction;
 		private MenuItemActionBehaviorParams behaviorParams;
 	}
