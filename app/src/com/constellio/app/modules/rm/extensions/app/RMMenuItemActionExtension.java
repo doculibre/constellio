@@ -174,6 +174,7 @@ public class RMMenuItemActionExtension extends MenuItemActionExtension {
 			}
 		};
 		reactivationRequestButton.setId(ReactivationRequest.SCHEMA_NAME);
+		reactivationRequestButton.click();
 	}
 
 	private void reactivationRequested(MenuItemActionExtensionAddMenuItemActionsParams params, Request req) {
