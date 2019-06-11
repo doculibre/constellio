@@ -9,6 +9,7 @@ import com.constellio.app.services.menu.MenuItemActionState;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Resource;
 
 import java.util.ArrayList;
@@ -43,7 +44,7 @@ public class ContainerMenuItemServices {
 		if (!filteredActionTypes.contains(CONTAINER_EDIT.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(CONTAINER_EDIT.name(),
 					isMenuItemActionPossible(CONTAINER_EDIT.name(), container, user, params),
-					"DisplayContainerView.edit", null, -1, 100,
+					"DisplayContainerView.edit", FontAwesome.EDIT, -1, 100,
 					() -> new ContainerRecordMenuItemActionBehaviors(collection, appLayerFactory).edit(params));
 			menuItemActions.add(menuItemAction);
 		}
@@ -57,26 +58,26 @@ public class ContainerMenuItemServices {
 		}
 
 
-		if (filteredActionTypes.contains(CONTAINER_LABELS.name())) {
+		if (!filteredActionTypes.contains(CONTAINER_LABELS.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(CONTAINER_LABELS.name(),
 					isMenuItemActionPossible(CONTAINER_LABELS.name(), container, user, params),
-					"DisplayContainerView.slip", null, -1, 300,
+					"SearchView.labels", null, -1, 300,
 					() -> new ContainerRecordMenuItemActionBehaviors(collection, appLayerFactory).printLabel(params));
 			menuItemActions.add(menuItemAction);
 		}
 
-		if (filteredActionTypes.contains(CONTAINER_ADD_TO_CART.name())) {
+		if (!filteredActionTypes.contains(CONTAINER_ADD_TO_CART.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(CONTAINER_ADD_TO_CART.name(),
 					isMenuItemActionPossible(CONTAINER_ADD_TO_CART.name(), container, user, params),
-					"DisplayContainerView.slip", null, -1, 400,
+					"DisplayContainerView.addToCart", null, -1, 400,
 					() -> new ContainerRecordMenuItemActionBehaviors(collection, appLayerFactory).addToCart(params));
 			menuItemActions.add(menuItemAction);
 		}
 
-		if (filteredActionTypes.contains(CONTAINER_DELETE.name())) {
+		if (!filteredActionTypes.contains(CONTAINER_DELETE.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(CONTAINER_DELETE.name(),
 					isMenuItemActionPossible(CONTAINER_DELETE.name(), container, user, params),
-					"DisplayContainerView.delete", null, -1, 500,
+					"DisplayContainerView.delete", FontAwesome.TRASH_O, -1, 500,
 					() -> new ContainerRecordMenuItemActionBehaviors(collection, appLayerFactory).delete(params));
 
 			menuItemAction.setConfirmMessage($("ConfirmDialog.confirmDelete"));
@@ -84,7 +85,7 @@ public class ContainerMenuItemServices {
 			menuItemActions.add(menuItemAction);
 		}
 
-		if (filteredActionTypes.contains(CONTAINER_EMPTY_THE_BOX.name())) {
+		if (!filteredActionTypes.contains(CONTAINER_EMPTY_THE_BOX.name())) {
 			// confirm message
 			MenuItemAction menuItemAction = buildMenuItemAction(CONTAINER_EMPTY_THE_BOX.name(),
 					isMenuItemActionPossible(CONTAINER_EMPTY_THE_BOX.name(), container, user, params),

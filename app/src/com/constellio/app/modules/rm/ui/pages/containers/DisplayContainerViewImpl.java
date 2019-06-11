@@ -25,6 +25,7 @@ import com.constellio.app.ui.framework.components.MetadataDisplayFactory;
 import com.constellio.app.ui.framework.components.RecordDisplay;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.breadcrumb.IntermediateBreadCrumbTailItem;
+import com.constellio.app.ui.framework.components.buttons.RecordVOActionButtonFactory;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
@@ -256,7 +257,7 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 		delete.setEnabled(presenter.canDelete());
 		actionMenuButtons.add(delete);
 
-		return actionMenuButtons;
+		return new RecordVOActionButtonFactory(presenter.getContainer()).build();
 	}
 
 	private Button buildAddToMyCartButton(){

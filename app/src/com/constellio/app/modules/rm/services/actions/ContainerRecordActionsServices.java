@@ -115,10 +115,10 @@ public class ContainerRecordActionsServices {
 				return false;
 			}
 		}
+
 		if (containerRecord.isLogicallyDeletedStatus()) {
 			return false;
 		}
-
 
 		return user.hasDeleteAccess().on(record)
 			   && rmModuleExtensions.isDeleteActionPossible(rm.wrapContainerRecord(record), user);

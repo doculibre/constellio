@@ -205,6 +205,7 @@ public class RMMenuItemActionsRequestTaskExtension extends MenuItemActionsExtens
 			}
 		};
 		reactivationRequestButton.setId(ReactivationRequest.SCHEMA_NAME);
+		reactivationRequestButton.click();
 	}
 
 	private void reactivationRequested(MenuItemActionExtensionAddMenuItemActionsParams params, Request req) {
