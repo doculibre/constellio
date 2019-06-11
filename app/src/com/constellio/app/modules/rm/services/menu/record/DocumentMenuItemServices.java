@@ -92,14 +92,16 @@ public class DocumentMenuItemServices {
 					isMenuItemActionPossible(DOCUMENT_DELETE, document, user, params),
 					"DocumentContextMenu.deleteDocument", FontAwesome.TRASH_O, -1, 500,
 					() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).delete(params));
+
 			menuItemAction.setConfirmMessage(i18n.$("ConfirmDialog.confirmDelete"));
+
 			menuItemActions.add(menuItemAction);
 		}
 
 		if (!filteredActionTypes.contains(DOCUMENT_COPY.name())) {
 			menuItemActions.add(buildMenuItemAction(DOCUMENT_COPY,
 					isMenuItemActionPossible(DOCUMENT_COPY, document, user, params),
-					"DocumentContextMenu.copyContent", FontAwesome.COPY, -1, 300,
+					"DocumentContextMenu.copyContent", null, -1, 600,
 					() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).copy(params)));
 		}
 
@@ -118,6 +120,7 @@ public class DocumentMenuItemServices {
 					isMenuItemActionPossible(DOCUMENT_PUBLISH, document, user, params),
 					"DocumentContextMenu.publish", null, -1, 800,
 					() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).publish(params));
+
 			menuItemActions.add(menuItemAction);
 		}
 
@@ -126,6 +129,7 @@ public class DocumentMenuItemServices {
 					isMenuItemActionPossible(DOCUMENT_UNPUBLISH, document, user, params),
 					"DocumentContextMenu.unpublish", null, -1, 800,
 					() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).unPublish(params));
+
 			menuItemActions.add(menuItemAction);
 		}
 
@@ -136,14 +140,16 @@ public class DocumentMenuItemServices {
 					"DocumentContextMenu.createPDFA", null, -1, 900,
 					() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).createPdf(params));
 			menuItemAction.setConfirmMessage(i18n.$("ConfirmDialog.confirmCreatePDFA"));
+
 			menuItemActions.add(menuItemAction);
 		}
 
 		if (!filteredActionTypes.contains(DOCUMENT_ADD_TO_SELECTION.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(DOCUMENT_ADD_TO_SELECTION,
 					isMenuItemActionPossible(DOCUMENT_ADD_TO_SELECTION, document, user, params),
-					"addToOrRemoveFromSelection.add", null, -1, 1000,
+					"DocumentContextMenu.addToSelection", null, -1, 1000,
 					() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).addToSelection(params));
+
 			menuItemActions.add(menuItemAction);
 		}
 
@@ -151,64 +157,75 @@ public class DocumentMenuItemServices {
 		if (!filteredActionTypes.contains(DOCUMENT_REMOVE_TO_SELECTION.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(DOCUMENT_REMOVE_TO_SELECTION,
 					isMenuItemActionPossible(DOCUMENT_REMOVE_TO_SELECTION, document, user, params),
-					"addToOrRemoveFromSelection.remove", null, -1, 1100,
+					"DocumentContextMenu.removeToSelection", null, -1, 1100,
 					() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).removeToSelection(params));
+
 			menuItemActions.add(menuItemAction);
 		}
 
 		if (!filteredActionTypes.contains(DOCUMENT_ADD_TO_CART.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(DOCUMENT_ADD_TO_CART,
-					isMenuItemActionPossible(DOCUMENT_DISPLAY, document, user, params),
+					isMenuItemActionPossible(DOCUMENT_ADD_TO_CART, document, user, params),
 					"DisplayFolderView.addToCart", null, -1, 1200,
 					() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).addToCart(params));
+
 			menuItemActions.add(menuItemAction);
 		}
 
 		if (!filteredActionTypes.contains(DOCUMENT_UPLOAD.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(DOCUMENT_UPLOAD,
-					isMenuItemActionPossible(DOCUMENT_DISPLAY, document, user, params),
+					isMenuItemActionPossible(DOCUMENT_UPLOAD, document, user, params),
 					"DocumentContextMenu.upload", null, -1, 1250,
 					() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).upload(params));
+
 			menuItemActions.add(menuItemAction);
 		}
 
 		if (!filteredActionTypes.contains(DOCUMENT_PRINT_LABEL.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(DOCUMENT_PRINT_LABEL,
-					isMenuItemActionPossible(DOCUMENT_DISPLAY, document, user, params),
+					isMenuItemActionPossible(DOCUMENT_PRINT_LABEL, document, user, params),
 					"DisplayFolderView.printLabel", null, -1, 1300,
 					() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).printLabel(params));
+
 			menuItemActions.add(menuItemAction);
 		}
 
 		if (!filteredActionTypes.contains(DOCUMENT_CHECK_IN.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(DOCUMENT_CHECK_IN,
-					isMenuItemActionPossible(DOCUMENT_DISPLAY, document, user, params),
+					isMenuItemActionPossible(DOCUMENT_CHECK_IN, document, user, params),
 					"DocumentContextMenu.checkIn", null, -1, 1400,
 					() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).checkIn(params));
+
 			menuItemActions.add(menuItemAction);
 		}
 
 		if (!filteredActionTypes.contains(DOCUMENT_CHECK_OUT.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(DOCUMENT_CHECK_OUT,
-					isMenuItemActionPossible(DOCUMENT_DISPLAY, document, user, params),
+
+					isMenuItemActionPossible(DOCUMENT_CHECK_OUT, document, user, params),
 					"DocumentContextMenu.checkOut", null, -1, 1400,
 					() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).checkOut(params));
+
 			menuItemActions.add(menuItemAction);
 		}
 
-		if (filteredActionTypes.contains(DOCUMENT_ADD_AUTHORIZATION.name())) {
+		if (!filteredActionTypes.contains(DOCUMENT_ADD_AUTHORIZATION.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(DOCUMENT_ADD_AUTHORIZATION,
-					isMenuItemActionPossible(DOCUMENT_DISPLAY, document, user, params),
+
+					isMenuItemActionPossible(DOCUMENT_ADD_AUTHORIZATION, document, user, params),
 					"DocumentContextMenu.addAuthorization", null, -1, 1500,
 					() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).addAuthorization(params));
+
 			menuItemActions.add(menuItemAction);
 		}
 
-		if (filteredActionTypes.contains(DOCUMENT_GENERATE_REPORT.name())) {
+		if (!filteredActionTypes.contains(DOCUMENT_GENERATE_REPORT.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(DOCUMENT_ADD_AUTHORIZATION,
-					isMenuItemActionPossible(DOCUMENT_DISPLAY, document, user, params),
+
+					isMenuItemActionPossible(DOCUMENT_GENERATE_REPORT, document, user, params),
 					"DocumentContextMenu.ReportGeneratorButton", null, -1, 1600,
 					() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).reportGeneratorButton(params));
+
 			menuItemActions.add(menuItemAction);
 		}
 

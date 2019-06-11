@@ -351,11 +351,8 @@ public class FolderMenuItemActionBehaviors {
 	}
 
 	public void addToCart(MenuItemActionBehaviorParams params) {
-		if (params.getUser().has(RMPermissionsTo.USE_GROUP_CART).globally()) {
-			addToCartButton(params);
-		} else if (params.getUser().has(RMPermissionsTo.USE_MY_CART).globally()) {
-			addToMyCartButton(params);
-		}
+		CartWindowButton cartWindowButton = new CartWindowButton(params);
+		cartWindowButton.addToCart();
 	}
 
 	public void borrow(MenuItemActionBehaviorParams params) {

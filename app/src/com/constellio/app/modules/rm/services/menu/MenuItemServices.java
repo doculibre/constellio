@@ -5,9 +5,8 @@ import com.constellio.app.modules.rm.extensions.api.MenuItemActionExtension;
 import com.constellio.app.modules.rm.extensions.api.MenuItemActionExtension.MenuItemActionExtensionAddMenuItemActionsParams;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.services.actions.ContainerRecordActionsServices;
-import com.constellio.app.modules.rm.services.actions.DocumentRecordActionsServices;
 import com.constellio.app.modules.rm.services.menu.behaviors.MenuItemActionBehaviorParams;
+import com.constellio.app.modules.rm.services.menu.record.ContainerMenuItemServices;
 import com.constellio.app.modules.rm.services.menu.record.DocumentMenuItemServices;
 import com.constellio.app.modules.rm.services.menu.record.FolderMenuItemServices;
 import com.constellio.app.modules.rm.services.menu.record.RecordListMenuItemServices;
@@ -30,25 +29,23 @@ public class MenuItemServices {
 
 	private String collection;
 	private AppLayerFactory appLayerFactory;
-	private DocumentRecordActionsServices documentRecordActionsServices;
-	private ContainerRecordActionsServices containerRecordActionsServices;
 	private RMModuleExtensions rmModuleExtensions;
 	private RMSchemasRecordsServices rm;
 
 	private DocumentMenuItemServices documentMenuItemServices;
 	private FolderMenuItemServices folderMenuItemServices;
+	private ContainerMenuItemServices containerMenuItemServices;
 	private RecordListMenuItemServices recordListMenuItemServices;
 
 	public MenuItemServices(String collection, AppLayerFactory appLayerFactory) {
 		this.collection = collection;
 		this.appLayerFactory = appLayerFactory;
-		documentRecordActionsServices = new DocumentRecordActionsServices(collection, appLayerFactory);
-		containerRecordActionsServices = new ContainerRecordActionsServices(collection, appLayerFactory);
 		rmModuleExtensions = appLayerFactory.getExtensions().forCollection(collection).forModule(ConstellioRMModule.ID);
 		rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 
 		documentMenuItemServices = new DocumentMenuItemServices(collection, appLayerFactory);
 		folderMenuItemServices = new FolderMenuItemServices(collection, appLayerFactory);
+		containerMenuItemServices = new ContainerMenuItemServices(collection, appLayerFactory);
 		recordListMenuItemServices = new RecordListMenuItemServices(collection, appLayerFactory);
 	}
 
@@ -71,9 +68,8 @@ public class MenuItemServices {
 			menuItemActions.addAll(folderMenuItemServices.getActionsForRecord(rm.wrapFolder(record), user,
 					filteredActionTypes, params));
 		} else if (record.isOfSchemaType(ContainerRecord.SCHEMA_TYPE)) {
-			if (!filteredActionTypes.contains(MenuItemActionType.CONTAINER_EDIT.name())) {
-				boolean isEditPossible = containerRecordActionsServices.isEditActionPossible(record, user);
-			}
+			menuItemActions.addAll(containerMenuItemServices.getActionsForRecord(rm.wrapContainerRecord(record), user,
+					filteredActionTypes, params));
 		} else if (record.isOfSchemaType(User.SCHEMA_TYPE)) {
 			// TODO
 		} else if (record.isOfSchemaType(Group.SCHEMA_TYPE)) {
