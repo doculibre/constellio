@@ -652,7 +652,7 @@ public class FolderMenuItemActionBehaviors {
 				params.getRecordVO().getSchema().getTypeCode());
 	}
 
-	public void removeToSelection(MenuItemActionBehaviorParams params) {
+	public void removeFromSelection(MenuItemActionBehaviorParams params) {
 		params.getView().getSessionContext().removeSelectedRecordId(params.getRecordVO().getId(),
 				params.getRecordVO().getSchema().getTypeCode());
 	}
