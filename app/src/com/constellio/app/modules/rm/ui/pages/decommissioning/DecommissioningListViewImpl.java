@@ -32,6 +32,7 @@ import com.constellio.app.ui.framework.components.BaseUpdatableContentVersionPre
 import com.constellio.app.ui.framework.components.ContentVersionDisplay;
 import com.constellio.app.ui.framework.components.RecordDisplay;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
+import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.components.fields.comment.RecordCommentsEditorImpl;
 import com.constellio.app.ui.framework.components.table.BaseTable;
@@ -57,6 +58,7 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Table;
+import com.vaadin.ui.Table.ColumnGenerator;
 import com.vaadin.ui.Table.ColumnHeaderMode;
 import com.vaadin.ui.TextArea;
 import com.vaadin.ui.VerticalLayout;
@@ -82,9 +84,6 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 	public static final String VALIDATION_REQUEST_BUTTON = "sendValidationRequest";
 	public static final String REMOVE_FOLDERS_BUTTON = "removeFolders";
 	public static final String ADD_FOLDERS_BUTTON = "addFolders";
-	public static final String DOWNLOAD_LINK = "downloadLink";
-	public static final String USER_PROPERTY = "user";
-	public static final String DATE_PROPERTY = "uploadDate";
 
 	private Label missingFolderLabel;
 
@@ -1152,33 +1151,21 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 	}
 
 	VerticalLayout getContentTable(RecordVO recordVO) {
-		Table valuesTable = new BaseTable(getClass().getName());
-		valuesTable.addContainerProperty($(DOWNLOAD_LINK), ContentVersionDisplay.class, null);
-		valuesTable.addContainerProperty($(USER_PROPERTY), Label.class, null);
-		valuesTable.addContainerProperty($(DATE_PROPERTY), Label.class, null);
+		Table contentsTable = new BaseTable(getClass().getName());
+		new ContentsTableGenerator().attachedTo(contentsTable);
 
-		Component downloadLink;
 		ArrayList<ContentVersionVO> contents = recordVO.get(DecommissioningList.CONTENTS);
 		if (!contents.isEmpty()) {
-			int itemId = 0;
 			for (ContentVersionVO contentVersionVO : contents) {
-				if (contentVersionVO != null) {
-					String filename = contentVersionVO.getFileName();
-					downloadLink = new ContentVersionDisplay(recordVO, contentVersionVO, filename, new BaseUpdatableContentVersionPresenter());
-					valuesTable.addItem(new Component[]{downloadLink, new Label(presenter.getUsername(contentVersionVO.getLastModifiedBy()))
-							, new Label(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(contentVersionVO.getLastModificationDateTime()))}, itemId);
-					itemId++;
-				}
+				contentsTable.addItem(contentVersionVO);
 			}
-
 		}
-
-		valuesTable.setWidth("100%");
-		valuesTable.setHeight("100%");
-		valuesTable.setPageLength(valuesTable.size());
-		valuesTable.setColumnHeaderMode(ColumnHeaderMode.HIDDEN);
+		contentsTable.setWidth("100%");
+		contentsTable.setHeight("100%");
+		contentsTable.setPageLength(contentsTable.size());
+		contentsTable.setColumnHeaderMode(ColumnHeaderMode.HIDDEN);
 		VerticalLayout verticalLayout = new VerticalLayout();
-		verticalLayout.addComponents(new Label($("DecommissioningListView.contents")), valuesTable);
+		verticalLayout.addComponents(new Label($("DecommissioningListView.contents")), contentsTable);
 		return verticalLayout;
 	}
 
@@ -1186,5 +1173,55 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 	@Override
 	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
 		return new DecommissionBreadcrumbTrail(getTitle(), null, null, null, this);
+	}
+
+	private class ContentsTableGenerator implements ColumnGenerator {
+		public static final String DOWNLOAD_LINK = "downloadLink";
+		public static final String USER = "user";
+		public static final String DATE = "uploadDate";
+
+		public Table attachedTo(Table table) {
+			table.addGeneratedColumn(DOWNLOAD_LINK, this);
+			table.setColumnHeader(DOWNLOAD_LINK, $(DOWNLOAD_LINK));
+
+			table.addGeneratedColumn(USER, this);
+			table.setColumnHeader(USER, $(USER));
+
+			table.addGeneratedColumn(DATE, this);
+			table.setColumnHeader(DATE, $(DATE));
+
+			return table;
+		}
+
+		@Override
+		public Object generateCell(Table source, Object itemId, Object columnId) {
+			if (columnId == null) {
+				return null;
+			}
+			ContentVersionVO contentVersionVO = (ContentVersionVO) itemId;
+			switch ((String) columnId) {
+				case DOWNLOAD_LINK:
+					return generateDownloadLinkCell(contentVersionVO);
+				case USER:
+					return generateUserCell(contentVersionVO);
+				case DATE:
+					return generateDateCell(contentVersionVO);
+			}
+			return null;
+		}
+
+		private Object generateDownloadLinkCell(ContentVersionVO contentVersionVO) {
+			String filename = contentVersionVO.getFileName();
+			return new ContentVersionDisplay(decommissioningList, contentVersionVO, filename, new BaseUpdatableContentVersionPresenter());
+		}
+
+		private Object generateUserCell(ContentVersionVO contentVersionVO) {
+			return new ReferenceDisplay(contentVersionVO.getLastModifiedBy());
+		}
+
+		private Object generateDateCell(ContentVersionVO contentVersionVO) {
+			return new Label(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(contentVersionVO.getLastModificationDateTime()));
+		}
+
 	}
 }
