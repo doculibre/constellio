@@ -1,4 +1,4 @@
-package com.constellio.app.modules.rm.services.menu.behaviors;
+package com.constellio.app.services.menu.behavior;
 
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;

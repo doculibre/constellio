@@ -1,4 +1,4 @@
-package com.constellio.app.modules.rm.services.menu;
+package com.constellio.app.services.menu;
 
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -19,52 +19,8 @@ import static java.util.Collections.singletonList;
 @Getter
 @AllArgsConstructor
 public enum MenuItemActionType {
-	DOCUMENT_DISPLAY(MenuItemActionCategory.DOCUMENT, emptyList()),
-	DOCUMENT_OPEN(MenuItemActionCategory.DOCUMENT, emptyList()),
-	DOCUMENT_EDIT(MenuItemActionCategory.DOCUMENT, emptyList()),
-	DOCUMENT_DOWNLOAD(MenuItemActionCategory.DOCUMENT, emptyList()),
-	DOCUMENT_DELETE(MenuItemActionCategory.DOCUMENT, emptyList()),
-	DOCUMENT_COPY(MenuItemActionCategory.DOCUMENT, emptyList()),
-	DOCUMENT_FINALIZE(MenuItemActionCategory.DOCUMENT, emptyList()),
-	DOCUMENT_PUBLISH(MenuItemActionCategory.DOCUMENT, emptyList()),
-	DOCUMENT_UNPUBLISH(MenuItemActionCategory.DOCUMENT, emptyList()),
-	DOCUMENT_CREATE_PDF(MenuItemActionCategory.DOCUMENT, emptyList()),
-	DOCUMENT_ADD_TO_SELECTION(MenuItemActionCategory.DOCUMENT, emptyList()),
-	DOCUMENT_REMOVE_TO_SELECTION(MenuItemActionCategory.DOCUMENT, emptyList()),
-	DOCUMENT_ADD_TO_CART(MenuItemActionCategory.DOCUMENT, emptyList()),
-	DOCUMENT_UPLOAD(MenuItemActionCategory.DOCUMENT, emptyList()),
-	DOCUMENT_PRINT_LABEL(MenuItemActionCategory.DOCUMENT, emptyList()),
-	DOCUMENT_CHECK_OUT(MenuItemActionCategory.DOCUMENT, emptyList()),
-	DOCUMENT_CHECK_IN(MenuItemActionCategory.DOCUMENT, emptyList()),
-	DOCUMENT_ADD_AUTHORIZATION(MenuItemActionCategory.DOCUMENT, emptyList()),
-	DOCUMENT_GENERATE_REPORT(MenuItemActionCategory.DOCUMENT, emptyList()),
-	//
-	FOLDER_DISPLAY(MenuItemActionCategory.FOLDER, emptyList()),
-	FOLDER_ADD_DOCUMENT(MenuItemActionCategory.FOLDER, emptyList()),
-	FOLDER_MOVE(MenuItemActionCategory.FOLDER, emptyList()),
-	FOLDER_ADD_SUBFOLDER(MenuItemActionCategory.FOLDER, emptyList()),
-	FOLDER_EDIT(MenuItemActionCategory.FOLDER, emptyList()),
-	FOLDER_DELETE(MenuItemActionCategory.FOLDER, emptyList()),
-	FOLDER_COPY(MenuItemActionCategory.FOLDER, emptyList()),
-	FOLDER_ADD_AUTHORIZATION(MenuItemActionCategory.FOLDER, emptyList()),
-	FOLDER_SHARE(MenuItemActionCategory.FOLDER, emptyList()),
-	FOLDER_ADD_TO_CART(MenuItemActionCategory.FOLDER, emptyList()),
-	FOLDER_BORROW(MenuItemActionCategory.FOLDER, emptyList()),
-	FOLDER_RETURN(MenuItemActionCategory.FOLDER, emptyList()),
-	FOLDER_RETURN_REMAINDER(MenuItemActionCategory.FOLDER, emptyList()),
-	FOLDER_AVAILABLE_ALERT(MenuItemActionCategory.FOLDER, emptyList()),
-	FOLDER_PRINT_LABEL(MenuItemActionCategory.FOLDER, emptyList()),
-	FOLDER_GENERATE_REPORT(MenuItemActionCategory.FOLDER, emptyList()),
-	FOLDER_ADD_TO_SELECTION(MenuItemActionCategory.FOLDER, emptyList()),
-	FOLDER_REMOVE_FROM_SELECTION(MenuItemActionCategory.FOLDER, emptyList()),
-	//
-	CONTAINER_EDIT(MenuItemActionCategory.CONTAINER, emptyList()),
-	CONTAINER_SLIP(MenuItemActionCategory.CONTAINER, emptyList()),
-	CONTAINER_LABELS(MenuItemActionCategory.CONTAINER, emptyList()),
-	CONTAINER_ADD_TO_CART(MenuItemActionCategory.CONTAINER, emptyList()),
-	CONTAINER_DELETE(MenuItemActionCategory.CONTAINER, emptyList()),
-	CONTAINER_EMPTY_THE_BOX(MenuItemActionCategory.CONTAINER, emptyList()),
-	//
+
+	// TODO move cart types to rm
 	CART_BATCH_DOCUMENT(MenuItemActionCategory.CART, emptyList()),
 	CART_BATCH_FOLDER(MenuItemActionCategory.CART, emptyList()),
 	CART_BATCH_CONTAINER(MenuItemActionCategory.CART, emptyList()),

@@ -1,13 +1,13 @@
 package com.constellio.app.modules.rm.ui.components.contextmenu;
 
-import com.constellio.app.modules.rm.services.menu.MenuItemAction;
-import com.constellio.app.modules.rm.services.menu.MenuItemFactory;
-import com.constellio.app.modules.rm.services.menu.MenuItemServices;
-import com.constellio.app.modules.rm.services.menu.behaviors.MenuItemActionBehaviorParams;
 import com.constellio.app.modules.rm.ui.components.document.DocumentActionsPresenterUtils;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.services.menu.MenuItemAction;
+import com.constellio.app.services.menu.MenuItemFactory;
+import com.constellio.app.services.menu.MenuItemServices;
+import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.application.Navigation;

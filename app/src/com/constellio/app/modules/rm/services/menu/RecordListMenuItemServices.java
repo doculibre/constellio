@@ -1,11 +1,11 @@
-package com.constellio.app.modules.rm.services.menu.record;
+package com.constellio.app.modules.rm.services.menu;
 
-import com.constellio.app.modules.rm.services.menu.MenuItemAction;
-import com.constellio.app.modules.rm.services.menu.MenuItemActionState;
-import com.constellio.app.modules.rm.services.menu.MenuItemActionType;
 import com.constellio.app.modules.rm.services.menu.behaviors.DocumentMenuItemActionBehaviors;
-import com.constellio.app.modules.rm.services.menu.behaviors.MenuItemActionBehaviorParams;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.menu.MenuItemAction;
+import com.constellio.app.services.menu.MenuItemActionState;
+import com.constellio.app.services.menu.MenuItemActionType;
+import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.constellio.app.modules.rm.services.menu.MenuItemActionType.MULTIPLE_ADD_CART;
+import static com.constellio.app.services.menu.MenuItemActionType.MULTIPLE_ADD_CART;
 
 public class RecordListMenuItemServices {
 

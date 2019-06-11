@@ -1,16 +1,14 @@
 package com.constellio.app.modules.rm.extensions.app;
 
+import com.constellio.app.extensions.menu.MenuItemActionsExtension;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
-import com.constellio.app.modules.rm.extensions.api.MenuItemActionExtension;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
-import com.constellio.app.modules.rm.services.menu.MenuItemAction;
-import com.constellio.app.modules.rm.services.menu.MenuItemActionState;
 import com.constellio.app.modules.rm.ui.pages.containers.DisplayContainerViewImpl;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -23,10 +21,13 @@ import com.constellio.app.modules.tasks.model.wrappers.request.RequestTask;
 import com.constellio.app.modules.tasks.model.wrappers.request.ReturnRequest;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.menu.MenuItemAction;
+import com.constellio.app.services.menu.MenuItemActionState;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.fields.number.BaseIntegerField;
+import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
@@ -54,12 +55,20 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
+import static com.constellio.app.modules.rm.extensions.app.RMMenuItemActionsRequestTaskExtension.RequestTypeMenuItem.REACTIVATION_BUTTON;
+import static com.constellio.app.modules.rm.extensions.app.RMMenuItemActionsRequestTaskExtension.RequestTypeMenuItem.REQUEST_BORROW_BUTTON;
+import static com.constellio.app.modules.rm.extensions.app.RMMenuItemActionsRequestTaskExtension.RequestTypeMenuItem.REQUEST_BORROW_EXTENSION_BUTTON;
+import static com.constellio.app.modules.rm.extensions.app.RMMenuItemActionsRequestTaskExtension.RequestTypeMenuItem.RETURN_REQUEST_BUTTON;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
-public class RMMenuItemActionExtension extends MenuItemActionExtension {
+public class RMMenuItemActionsRequestTaskExtension extends MenuItemActionsExtension {
 	enum RequestType {
 		EXTENSION, BORROW, REACTIVATION
+	}
+
+	enum RequestTypeMenuItem {
+		REQUEST_BORROW_BUTTON, REQUEST_BORROW_EXTENSION_BUTTON, REACTIVATION_BUTTON, RETURN_REQUEST_BUTTON
 	}
 
 	private RMSchemasRecordsServices rm;
@@ -70,7 +79,7 @@ public class RMMenuItemActionExtension extends MenuItemActionExtension {
 	private DecommissioningService decommissioningService;
 	private TasksSchemasRecordsServices task;
 
-	public RMMenuItemActionExtension(String collection, AppLayerFactory appLayerFactory) {
+	public RMMenuItemActionsRequestTaskExtension(String collection, AppLayerFactory appLayerFactory) {
 		this.rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		this.collection = collection;
 		this.appLayerFactory = appLayerFactory;
@@ -82,55 +91,77 @@ public class RMMenuItemActionExtension extends MenuItemActionExtension {
 
 	@Override
 	public void addMenuItemActions(MenuItemActionExtensionAddMenuItemActionsParams params) {
+		Record record = params.getRecord();
+		User user = params.getBehaviorParams().getUser();
 
 		if (params.getRecord().isOfSchemaType(ContainerRecord.SCHEMA_TYPE)) {
 
-			Folder folder = getFolderOrNull(params.getRecord());
+			Folder folder = getFolderOrNull(record);
 
 
 			if (folder == null || folder.getArchivisticStatus() != FolderStatus.INACTIVE_DESTROYED) {
-				boolean isBorrowRequestActionPossible = isBorrowRequestActionPossible(params);
+				boolean isBorrowRequestActionPossible = isBorrowRequestActionPossible(record, user);
 
 				params.getMenuItemActions().add(MenuItemAction.builder()
-						.type("REQUEST_BORROW_BUTTON")
+						.type(REQUEST_BORROW_BUTTON.name())
 						.state(isBorrowRequestActionPossible ? MenuItemActionState.VISIBLE : MenuItemActionState.HIDDEN)
 						.caption("RMRequestTaskButtonExtension.borrowRequest")
 						.command(() -> borrowRequest(params))
 						.build());
 
-				boolean isRequestBorrowExtensionActionPossible = isExtensionRequestActionPossible(params);
+				boolean isRequestBorrowExtensionActionPossible = isExtensionRequestActionPossible(record, user);
 
 				params.getMenuItemActions().add(MenuItemAction.builder()
-						.type("REQUEST_BORROW_EXTENSION_BUTTON")
+						.type(REQUEST_BORROW_EXTENSION_BUTTON.name())
 						.state(isRequestBorrowExtensionActionPossible ? MenuItemActionState.VISIBLE : MenuItemActionState.HIDDEN)
 						.caption("RMRequestTaskButtonExtension.borrowExtensionRequest")
 						.command(() -> borrowExtensionRequested(params))
 						.build());
 
-				boolean isReactivationActionPossible = isReactivationRequestActionPossible(params);
+				boolean isReactivationActionPossible = isReactivationRequestActionPossible(record, user);
 
 				params.getMenuItemActions().add(MenuItemAction.builder()
-						.type("REACTIVATION_BUTTON")
+						.type(REACTIVATION_BUTTON.name())
 						.state(isReactivationActionPossible ? MenuItemActionState.VISIBLE : MenuItemActionState.HIDDEN)
 						.caption("RMRequestTaskButtonExtension.reactivationRequest")
 						.command(() -> reactivationRequested(params))
 						.build());
 			}
 
-			String returnConfirmMessage = params.getView() instanceof DisplayContainerViewImpl ?
+			String returnConfirmMessage = params.getBehaviorParams().getView() instanceof DisplayContainerViewImpl ?
 										  $("DisplayFolderView.confirmReturnContainerMessage") :
 										  $("DisplayFolderView.confirmReturnMessage");
 
-			boolean isReturnRequestActionPossible = isReturnRequestActionPossible(params);
+			boolean isReturnRequestActionPossible =
+					isReturnRequestActionPossible(record, user);
 
 			params.getMenuItemActions().add(MenuItemAction.builder()
-					.type("RETURN_REQUEST_BUTTON")
+					.type(RETURN_REQUEST_BUTTON.name())
 					.state(isReturnRequestActionPossible ? MenuItemActionState.VISIBLE : MenuItemActionState.HIDDEN)
 					.caption("RMRequestTaskButtonExtension.returnRequest")
 					.confirmMessage(returnConfirmMessage)
 					.command(() -> returnRequest(params))
 					.build());
 		}
+	}
+
+	@Override
+	public MenuItemActionState getStateForAction(MenuItemActionExtensionGetStateForActionParams params) {
+		MenuItemAction action = params.getMenuItemAction();
+		Record record = params.getRecord();
+		User user = params.getBehaviorParams().getUser();
+
+		if (action.getType().equals(REQUEST_BORROW_BUTTON.name())) {
+			return isBorrowRequestActionPossible(record, user) ? MenuItemActionState.VISIBLE : MenuItemActionState.HIDDEN;
+		} else if (action.getType().equals(REQUEST_BORROW_EXTENSION_BUTTON.name())) {
+			return isExtensionRequestActionPossible(record, user) ? MenuItemActionState.VISIBLE : MenuItemActionState.HIDDEN;
+		} else if (action.getType().equals(REACTIVATION_BUTTON.name())) {
+			return isReactivationRequestActionPossible(record, user) ? MenuItemActionState.VISIBLE : MenuItemActionState.HIDDEN;
+		} else if (action.getType().equals(RETURN_REQUEST_BUTTON.name())) {
+			return isReactivationRequestActionPossible(record, user) ? MenuItemActionState.VISIBLE : MenuItemActionState.HIDDEN;
+		}
+
+		return null;
 	}
 
 	public void reactivationRequested(MenuItemActionExtensionAddMenuItemActionsParams params) {
@@ -179,13 +210,15 @@ public class RMMenuItemActionExtension extends MenuItemActionExtension {
 	private void reactivationRequested(MenuItemActionExtensionAddMenuItemActionsParams params, Request req) {
 		Folder folder = getFolderOrNull(params.getRecord());
 		ContainerRecord container = getContainerRecordOrNull(params.getRecord(), folder);
-		User currentUser = params.getUser();
+		User currentUser = params.getBehaviorParams().getUser();
+		BaseView view = params.getBehaviorParams().getView();
 		LocalDate localDate = new LocalDate(req.getValue());
+
 		try {
 			long recordResult = getNumberOfRequestFromUser(ReactivationRequest.FULL_SCHEMA_NAME, currentUser, folder, container);
 
 			if (recordResult > 0) {
-				params.getView().showErrorMessage($("RMRequestTaskButtonExtension.taskAlreadyCreated"));
+				view.showErrorMessage($("RMRequestTaskButtonExtension.taskAlreadyCreated"));
 			} else {
 				if (folder != null) {
 					String folderId = folder.getId();
@@ -200,13 +233,13 @@ public class RMMenuItemActionExtension extends MenuItemActionExtension {
 									container.getTitle(), localDate);
 					addRecordWithUserSafeOption(reactivationRequest);
 				} else {
-					params.getView().showErrorMessage($("RMRequestTaskButtonExtension.errorWhileCreatingTask"));
+					view.showErrorMessage($("RMRequestTaskButtonExtension.errorWhileCreatingTask"));
 				}
-				params.getView().showMessage($("RMRequestTaskButtonExtension.reactivationSuccess"));
+				view.showMessage($("RMRequestTaskButtonExtension.reactivationSuccess"));
 			}
 		} catch (RecordServicesException e) {
 			e.printStackTrace();
-			params.getView().showErrorMessage($("RMRequestTaskButtonExtension.errorWhileCreatingTask"));
+			view.showErrorMessage($("RMRequestTaskButtonExtension.errorWhileCreatingTask"));
 		}
 	}
 
@@ -257,12 +290,14 @@ public class RMMenuItemActionExtension extends MenuItemActionExtension {
 	public void borrowExtensionRequested(MenuItemActionExtensionAddMenuItemActionsParams params, Request req) {
 		Folder folder = getFolderOrNull(params.getRecord());
 		ContainerRecord container = getContainerRecordOrNull(params.getRecord(), folder);
-		User currentUser = params.getUser();
+		User currentUser = params.getBehaviorParams().getUser();
+		BaseView view = params.getBehaviorParams().getView();
+
 		try {
 			long recordResult = getNumberOfRequestFromUser(ExtensionRequest.FULL_SCHEMA_NAME, currentUser, folder, container);
 
 			if (recordResult > 0) {
-				params.getView().showErrorMessage($("RMRequestTaskButtonExtension.taskAlreadyCreated"));
+				view.showErrorMessage($("RMRequestTaskButtonExtension.taskAlreadyCreated"));
 			} else {
 				if (folder != null) {
 					String folderId = folder.getId();
@@ -277,13 +312,13 @@ public class RMMenuItemActionExtension extends MenuItemActionExtension {
 									container.getTitle(), new LocalDate(req.getValue()));
 					addRecordWithUserSafeOption(borrowExtensionRequest);
 				} else {
-					params.getView().showErrorMessage($("RMRequestTaskButtonExtension.errorWhileCreatingTask"));
+					view.showErrorMessage($("RMRequestTaskButtonExtension.errorWhileCreatingTask"));
 				}
-				params.getView().showMessage($("RMRequestTaskButtonExtension.borrowExtensionSuccess"));
+				view.showMessage($("RMRequestTaskButtonExtension.borrowExtensionSuccess"));
 			}
 		} catch (RecordServicesException e) {
 			e.printStackTrace();
-			params.getView().showErrorMessage($("RMRequestTaskButtonExtension.errorWhileCreatingTask"));
+			view.showErrorMessage($("RMRequestTaskButtonExtension.errorWhileCreatingTask"));
 		}
 	}
 
@@ -327,39 +362,39 @@ public class RMMenuItemActionExtension extends MenuItemActionExtension {
 	public void returnRequest(MenuItemActionExtensionAddMenuItemActionsParams params) {
 		Folder folder = getFolderOrNull(params.getRecord());
 		ContainerRecord container = getContainerRecordOrNull(params.getRecord(), folder);
-		User currentUser = params.getUser();
+		User currentUser = params.getBehaviorParams().getUser();
+		BaseView view = params.getBehaviorParams().getView();
 
 		try {
 
 			long recordResult = getNumberOfRequestFromUser(ReturnRequest.FULL_SCHEMA_NAME, currentUser, folder, container);
 
 			if (recordResult > 0) {
-				params.getView().showErrorMessage($("RMRequestTaskButtonExtension.taskAlreadyCreated"));
+				view.showErrorMessage($("RMRequestTaskButtonExtension.taskAlreadyCreated"));
 			} else if (folder != null) {
 				String folderId = folder.getId();
 				Task returnRequest = task
 						.newReturnFolderRequestTask(currentUser.getId(), getAssigneesForFolder(folderId), folderId, folder.getTitle());
 				addRecordWithUserSafeOption(returnRequest);
-				params.getView().showMessage($("RMRequestTaskButtonExtension.returnSuccess"));
+				view.showMessage($("RMRequestTaskButtonExtension.returnSuccess"));
 			} else if (container != null) {
 				String containerId = container.getId();
 				Task returnRequest = task
 						.newReturnContainerRequestTask(currentUser.getId(), getAssigneesForContainer(containerId), containerId,
 								container.getTitle());
 				addRecordWithUserSafeOption(returnRequest);
-				params.getView().showMessage($("RMRequestTaskButtonExtension.returnSuccess"));
+				view.showMessage($("RMRequestTaskButtonExtension.returnSuccess"));
 			} else {
-				params.getView().showErrorMessage($("RMRequestTaskButtonExtension.errorWhileCreatingTask"));
+				view.showErrorMessage($("RMRequestTaskButtonExtension.errorWhileCreatingTask"));
 			}
 
 		} catch (RecordServicesException e) {
 			e.printStackTrace();
-			params.getView().showErrorMessage($("RMRequestTaskButtonExtension.errorWhileCreatingTask"));
+			view.showErrorMessage($("RMRequestTaskButtonExtension.errorWhileCreatingTask"));
 		}
 	}
 
-	public boolean isBorrowRequestActionPossible(MenuItemActionExtensionAddMenuItemActionsParams params) {
-		Record record = params.getRecord();
+	public boolean isBorrowRequestActionPossible(Record record, User user) {
 		Folder folder = getFolderOrNull(record);
 
 		if (folder != null) {
@@ -368,11 +403,11 @@ public class RMMenuItemActionExtension extends MenuItemActionExtension {
 				containerRecord = rm.getContainerRecord(folder.getContainer());
 			}
 
-			return isFolderBorrowable(folder, containerRecord, params.getUser(), collection);
+			return isFolderBorrowable(folder, containerRecord, user, collection);
 		} else {
 			ContainerRecord containerRecord = rm.wrapContainerRecord(record);
 
-			return isContainerBorrowable(containerRecord, params.getUser());
+			return isContainerBorrowable(containerRecord, user);
 		}
 	}
 
@@ -384,7 +419,7 @@ public class RMMenuItemActionExtension extends MenuItemActionExtension {
 				getWindow().setHeight("250px");
 				Folder folder = getFolderOrNull(params.getRecord());
 				ContainerRecord container = getContainerRecordOrNull(params.getRecord(), folder);
-				User currentUser = params.getUser();
+				User currentUser = params.getBehaviorParams().getUser();
 				VerticalLayout mainLayout = new VerticalLayout();
 				final BaseIntegerField borrowDurationField = new BaseIntegerField(
 						$("RMRequestTaskButtonExtension.borrowDuration"));
@@ -402,7 +437,7 @@ public class RMMenuItemActionExtension extends MenuItemActionExtension {
 
 					@Override
 					public boolean isVisible() {
-						return isFolderBorrowable(folder, container, currentUser, params.getView().getCollection());
+						return isFolderBorrowable(folder, container, currentUser, params.getBehaviorParams().getView().getCollection());
 					}
 				};
 				borrowFolderButton.setStyleName(ValoTheme.BUTTON_PRIMARY);
@@ -458,25 +493,26 @@ public class RMMenuItemActionExtension extends MenuItemActionExtension {
 							  String inputForNumberOfDays) {
 		Folder folder = getFolderOrNull(params.getRecord());
 		ContainerRecord container = getContainerRecordOrNull(params.getRecord(), folder);
-		User currentUser = params.getUser();
+		User currentUser = params.getBehaviorParams().getUser();
+		BaseView view = params.getBehaviorParams().getView();
 
 		int numberOfDays = 1;
 		if (inputForNumberOfDays != null && inputForNumberOfDays.matches("^-?\\d+$")) {
 			numberOfDays = Integer.parseInt(inputForNumberOfDays);
 
 			if (numberOfDays <= 0) {
-				params.getView().showErrorMessage($("RMRequestTaskButtonExtension.invalidBorrowDuration"));
+				params.getBehaviorParams().getView().showErrorMessage($("RMRequestTaskButtonExtension.invalidBorrowDuration"));
 				return;
 			}
 		} else {
-			params.getView().showErrorMessage($("RMRequestTaskButtonExtension.invalidBorrowDuration"));
+			view.showErrorMessage($("RMRequestTaskButtonExtension.invalidBorrowDuration"));
 			return;
 		}
 		try {
 			long recordResult = getNumberOfRequestFromUser(BorrowRequest.FULL_SCHEMA_NAME, currentUser, folder, container);
 
 			if (recordResult > 0) {
-				params.getView().showErrorMessage($("RMRequestTaskButtonExtension.taskAlreadyCreated"));
+				view.showErrorMessage($("RMRequestTaskButtonExtension.taskAlreadyCreated"));
 			} else {
 				Task borrowRequest;
 				if (isContainer) {
@@ -491,12 +527,12 @@ public class RMMenuItemActionExtension extends MenuItemActionExtension {
 									folder.getTitle());
 				}
 				addRecordWithUserSafeOption(borrowRequest);
-				params.getView().showMessage($("RMRequestTaskButtonExtension.borrowSuccess"));
+				view.showMessage($("RMRequestTaskButtonExtension.borrowSuccess"));
 			}
 
 		} catch (RecordServicesException e) {
 			e.printStackTrace();
-			params.getView().showErrorMessage($("RMRequestTaskButtonExtension.errorWhileCreatingTask"));
+			view.showErrorMessage($("RMRequestTaskButtonExtension.errorWhileCreatingTask"));
 		}
 	}
 
@@ -591,9 +627,9 @@ public class RMMenuItemActionExtension extends MenuItemActionExtension {
 				.hasAll(RMPermissionsTo.BORROW_CONTAINER, RMPermissionsTo.BORROWING_REQUEST_ON_CONTAINER).on(container);
 	}
 
-	public boolean isReturnRequestActionPossible(MenuItemActionExtensionAddMenuItemActionsParams params) {
-		Folder folderOrNull = getFolderOrNull(params.getRecord());
-		return isPrincipalRecordReturnable(folderOrNull, getContainerRecordOrNull(params.getRecord(), folderOrNull), params.getUser());
+	public boolean isReturnRequestActionPossible(Record record, User user) {
+		Folder folderOrNull = getFolderOrNull(record);
+		return isPrincipalRecordReturnable(folderOrNull, getContainerRecordOrNull(record, folderOrNull), user);
 	}
 
 	private boolean isPrincipalRecordReturnable(Folder folder, ContainerRecord container, User currentUser) {
@@ -606,13 +642,13 @@ public class RMMenuItemActionExtension extends MenuItemActionExtension {
 		}
 	}
 
-	public boolean isReactivationRequestActionPossible(MenuItemActionExtensionAddMenuItemActionsParams params) {
-		Folder folder = getFolderOrNull(params.getRecord());
+	public boolean isReactivationRequestActionPossible(Record record, User user) {
+		Folder folder = getFolderOrNull(record);
 
 		if (folder != null) {
-			return isFolderReactivable(folder, params.getUser());
+			return isFolderReactivable(folder, user);
 		} else {
-			return isContainerReactivable(getContainerRecordOrNull(params.getRecord(), folder), params.getUser());
+			return isContainerReactivable(getContainerRecordOrNull(record, folder), user);
 		}
 	}
 
@@ -634,7 +670,7 @@ public class RMMenuItemActionExtension extends MenuItemActionExtension {
 		return false;
 	}
 
-	public boolean isExtensionRequestActionPossible(MenuItemActionExtensionAddMenuItemActionsParams params) {
-		return isReturnRequestActionPossible(params);
+	public boolean isExtensionRequestActionPossible(Record record, User user) {
+		return isReturnRequestActionPossible(record, user);
 	}
 }

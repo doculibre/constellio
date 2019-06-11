@@ -1,4 +1,4 @@
-package com.constellio.app.modules.rm.services.menu;
+package com.constellio.app.services.menu;
 
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.components.contextmenu.ConfirmDialogContextMenuItemClickListener;

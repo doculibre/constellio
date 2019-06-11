@@ -1,13 +1,12 @@
-package com.constellio.app.modules.rm.services.menu.record;
+package com.constellio.app.modules.rm.services.menu;
 
 import com.constellio.app.modules.rm.services.actions.ContainerRecordActionsServices;
-import com.constellio.app.modules.rm.services.menu.MenuItemAction;
-import com.constellio.app.modules.rm.services.menu.MenuItemActionState;
-import com.constellio.app.modules.rm.services.menu.MenuItemActionType;
 import com.constellio.app.modules.rm.services.menu.behaviors.ContainerRecordMenuItemActionBehaviors;
-import com.constellio.app.modules.rm.services.menu.behaviors.MenuItemActionBehaviorParams;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.menu.MenuItemAction;
+import com.constellio.app.services.menu.MenuItemActionState;
+import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.vaadin.server.Resource;
@@ -15,12 +14,12 @@ import com.vaadin.server.Resource;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.constellio.app.modules.rm.services.menu.MenuItemActionType.CONTAINER_ADD_TO_CART;
-import static com.constellio.app.modules.rm.services.menu.MenuItemActionType.CONTAINER_DELETE;
-import static com.constellio.app.modules.rm.services.menu.MenuItemActionType.CONTAINER_EDIT;
-import static com.constellio.app.modules.rm.services.menu.MenuItemActionType.CONTAINER_EMPTY_THE_BOX;
-import static com.constellio.app.modules.rm.services.menu.MenuItemActionType.CONTAINER_LABELS;
-import static com.constellio.app.modules.rm.services.menu.MenuItemActionType.CONTAINER_SLIP;
+import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerMenuItemActionType.CONTAINER_ADD_TO_CART;
+import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerMenuItemActionType.CONTAINER_DELETE;
+import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerMenuItemActionType.CONTAINER_EDIT;
+import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerMenuItemActionType.CONTAINER_EMPTY_THE_BOX;
+import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerMenuItemActionType.CONTAINER_LABELS;
+import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerMenuItemActionType.CONTAINER_SLIP;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ContainerMenuItemServices {
@@ -42,16 +41,16 @@ public class ContainerMenuItemServices {
 		List<MenuItemAction> menuItemActions = new ArrayList<>();
 
 		if (!filteredActionTypes.contains(CONTAINER_EDIT.name())) {
-			MenuItemAction menuItemAction = buildMenuItemAction(CONTAINER_EDIT,
-					isMenuItemActionPossible(CONTAINER_EDIT, container, user, params),
+			MenuItemAction menuItemAction = buildMenuItemAction(CONTAINER_EDIT.name(),
+					isMenuItemActionPossible(CONTAINER_EDIT.name(), container, user, params),
 					"DisplayContainerView.edit", null, -1, 100,
 					() -> new ContainerRecordMenuItemActionBehaviors(collection, appLayerFactory).edit(params));
 			menuItemActions.add(menuItemAction);
 		}
 
 		if (!filteredActionTypes.contains(CONTAINER_SLIP.name())) {
-			MenuItemAction menuItemAction = buildMenuItemAction(CONTAINER_SLIP,
-					isMenuItemActionPossible(CONTAINER_SLIP, container, user, params),
+			MenuItemAction menuItemAction = buildMenuItemAction(CONTAINER_SLIP.name(),
+					isMenuItemActionPossible(CONTAINER_SLIP.name(), container, user, params),
 					"DisplayContainerView.slip", null, -1, 200,
 					() -> new ContainerRecordMenuItemActionBehaviors(collection, appLayerFactory).report(params));
 			menuItemActions.add(menuItemAction);
@@ -59,24 +58,24 @@ public class ContainerMenuItemServices {
 
 
 		if (filteredActionTypes.contains(CONTAINER_LABELS.name())) {
-			MenuItemAction menuItemAction = buildMenuItemAction(CONTAINER_LABELS,
-					isMenuItemActionPossible(CONTAINER_LABELS, container, user, params),
+			MenuItemAction menuItemAction = buildMenuItemAction(CONTAINER_LABELS.name(),
+					isMenuItemActionPossible(CONTAINER_LABELS.name(), container, user, params),
 					"DisplayContainerView.slip", null, -1, 300,
 					() -> new ContainerRecordMenuItemActionBehaviors(collection, appLayerFactory).printLabel(params));
 			menuItemActions.add(menuItemAction);
 		}
 
 		if (filteredActionTypes.contains(CONTAINER_ADD_TO_CART.name())) {
-			MenuItemAction menuItemAction = buildMenuItemAction(CONTAINER_ADD_TO_CART,
-					isMenuItemActionPossible(CONTAINER_ADD_TO_CART, container, user, params),
+			MenuItemAction menuItemAction = buildMenuItemAction(CONTAINER_ADD_TO_CART.name(),
+					isMenuItemActionPossible(CONTAINER_ADD_TO_CART.name(), container, user, params),
 					"DisplayContainerView.slip", null, -1, 400,
 					() -> new ContainerRecordMenuItemActionBehaviors(collection, appLayerFactory).addToCart(params));
 			menuItemActions.add(menuItemAction);
 		}
 
 		if (filteredActionTypes.contains(CONTAINER_DELETE.name())) {
-			MenuItemAction menuItemAction = buildMenuItemAction(CONTAINER_DELETE,
-					isMenuItemActionPossible(CONTAINER_DELETE, container, user, params),
+			MenuItemAction menuItemAction = buildMenuItemAction(CONTAINER_DELETE.name(),
+					isMenuItemActionPossible(CONTAINER_DELETE.name(), container, user, params),
 					"DisplayContainerView.delete", null, -1, 500,
 					() -> new ContainerRecordMenuItemActionBehaviors(collection, appLayerFactory).delete(params));
 
@@ -87,8 +86,8 @@ public class ContainerMenuItemServices {
 
 		if (filteredActionTypes.contains(CONTAINER_EMPTY_THE_BOX.name())) {
 			// confirm message
-			MenuItemAction menuItemAction = buildMenuItemAction(CONTAINER_EMPTY_THE_BOX,
-					isMenuItemActionPossible(CONTAINER_EMPTY_THE_BOX, container, user, params),
+			MenuItemAction menuItemAction = buildMenuItemAction(CONTAINER_EMPTY_THE_BOX.name(),
+					isMenuItemActionPossible(CONTAINER_EMPTY_THE_BOX.name(), container, user, params),
 					"DisplayContainerView.empty", null, -1, 600,
 					() -> new ContainerRecordMenuItemActionBehaviors(collection, appLayerFactory).empty(params));
 
@@ -100,11 +99,11 @@ public class ContainerMenuItemServices {
 		return menuItemActions;
 	}
 
-	public boolean isMenuItemActionPossible(MenuItemActionType menuItemActionType, ContainerRecord container, User user,
+	public boolean isMenuItemActionPossible(String menuItemActionType, ContainerRecord container, User user,
 											MenuItemActionBehaviorParams params) {
 		Record record = container.getWrappedRecord();
 
-		switch (menuItemActionType) {
+		switch (ContainerMenuItemActionType.valueOf(menuItemActionType)) {
 			case CONTAINER_EDIT:
 				return containerRecordActionsServices.isEditActionPossible(record, user);
 			case CONTAINER_SLIP:
@@ -122,10 +121,10 @@ public class ContainerMenuItemServices {
 		}
 	}
 
-	private MenuItemAction buildMenuItemAction(MenuItemActionType type, boolean possible, String caption,
-											   Resource icon, int group, int priority, Runnable command) {
+	private MenuItemAction buildMenuItemAction(String type, boolean possible, String caption, Resource icon,
+											   int group, int priority, Runnable command) {
 		return MenuItemAction.builder()
-				.type(type.name())
+				.type(type)
 				.state(possible ? MenuItemActionState.VISIBLE : MenuItemActionState.HIDDEN)
 				.caption(caption)
 				.icon(icon)
@@ -133,6 +132,15 @@ public class ContainerMenuItemServices {
 				.priority(priority)
 				.command(command)
 				.build();
+	}
+
+	enum ContainerMenuItemActionType {
+		CONTAINER_EDIT,
+		CONTAINER_SLIP,
+		CONTAINER_LABELS,
+		CONTAINER_ADD_TO_CART,
+		CONTAINER_DELETE,
+		CONTAINER_EMPTY_THE_BOX;
 	}
 
 }

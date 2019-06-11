@@ -1,13 +1,12 @@
-package com.constellio.app.modules.rm.services.menu.record;
+package com.constellio.app.modules.rm.services.menu;
 
 import com.constellio.app.modules.rm.services.actions.FolderRecordActionsServices;
-import com.constellio.app.modules.rm.services.menu.MenuItemAction;
-import com.constellio.app.modules.rm.services.menu.MenuItemActionState;
-import com.constellio.app.modules.rm.services.menu.MenuItemActionType;
 import com.constellio.app.modules.rm.services.menu.behaviors.FolderMenuItemActionBehaviors;
-import com.constellio.app.modules.rm.services.menu.behaviors.MenuItemActionBehaviorParams;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.menu.MenuItemAction;
+import com.constellio.app.services.menu.MenuItemActionState;
+import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.vaadin.server.Resource;
@@ -15,24 +14,24 @@ import com.vaadin.server.Resource;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.constellio.app.modules.rm.services.menu.MenuItemActionType.FOLDER_ADD_AUTHORIZATION;
-import static com.constellio.app.modules.rm.services.menu.MenuItemActionType.FOLDER_ADD_DOCUMENT;
-import static com.constellio.app.modules.rm.services.menu.MenuItemActionType.FOLDER_ADD_SUBFOLDER;
-import static com.constellio.app.modules.rm.services.menu.MenuItemActionType.FOLDER_ADD_TO_CART;
-import static com.constellio.app.modules.rm.services.menu.MenuItemActionType.FOLDER_ADD_TO_SELECTION;
-import static com.constellio.app.modules.rm.services.menu.MenuItemActionType.FOLDER_AVAILABLE_ALERT;
-import static com.constellio.app.modules.rm.services.menu.MenuItemActionType.FOLDER_BORROW;
-import static com.constellio.app.modules.rm.services.menu.MenuItemActionType.FOLDER_COPY;
-import static com.constellio.app.modules.rm.services.menu.MenuItemActionType.FOLDER_DELETE;
-import static com.constellio.app.modules.rm.services.menu.MenuItemActionType.FOLDER_DISPLAY;
-import static com.constellio.app.modules.rm.services.menu.MenuItemActionType.FOLDER_EDIT;
-import static com.constellio.app.modules.rm.services.menu.MenuItemActionType.FOLDER_GENERATE_REPORT;
-import static com.constellio.app.modules.rm.services.menu.MenuItemActionType.FOLDER_MOVE;
-import static com.constellio.app.modules.rm.services.menu.MenuItemActionType.FOLDER_PRINT_LABEL;
-import static com.constellio.app.modules.rm.services.menu.MenuItemActionType.FOLDER_REMOVE_FROM_SELECTION;
-import static com.constellio.app.modules.rm.services.menu.MenuItemActionType.FOLDER_RETURN;
-import static com.constellio.app.modules.rm.services.menu.MenuItemActionType.FOLDER_RETURN_REMAINDER;
-import static com.constellio.app.modules.rm.services.menu.MenuItemActionType.FOLDER_SHARE;
+import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_ADD_AUTHORIZATION;
+import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_ADD_DOCUMENT;
+import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_ADD_SUBFOLDER;
+import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_ADD_TO_CART;
+import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_ADD_TO_SELECTION;
+import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_AVAILABLE_ALERT;
+import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_BORROW;
+import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_COPY;
+import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_DELETE;
+import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_DISPLAY;
+import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_EDIT;
+import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_GENERATE_REPORT;
+import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_MOVE;
+import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_PRINT_LABEL;
+import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_REMOVE_FROM_SELECTION;
+import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_RETURN;
+import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_RETURN_REMAINDER;
+import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_SHARE;
 
 public class FolderMenuItemServices {
 
@@ -52,127 +51,127 @@ public class FolderMenuItemServices {
 		List<MenuItemAction> menuItemActions = new ArrayList<>();
 
 		if (!filteredActionTypes.contains(FOLDER_ADD_DOCUMENT.name())) {
-			menuItemActions.add(buildMenuItemAction(FOLDER_ADD_DOCUMENT,
-					isMenuItemActionPossible(FOLDER_ADD_DOCUMENT, folder, user, params),
+			menuItemActions.add(buildMenuItemAction(FOLDER_ADD_DOCUMENT.name(),
+					isMenuItemActionPossible(FOLDER_ADD_DOCUMENT.name(), folder, user, params),
 					"DisplayFolderView.addDocument", null, -1, 100,
 					() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).addToDocument(params)));
 		}
 
 		if (!filteredActionTypes.contains(FOLDER_MOVE.name())) {
-			menuItemActions.add(buildMenuItemAction(FOLDER_MOVE,
-					isMenuItemActionPossible(FOLDER_MOVE, folder, user, params),
+			menuItemActions.add(buildMenuItemAction(FOLDER_MOVE.name(),
+					isMenuItemActionPossible(FOLDER_MOVE.name(), folder, user, params),
 					"DisplayFolderView.parentFolder", null, -1, 200,
 					() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).move(params)));
 		}
 
 		if (!filteredActionTypes.contains(FOLDER_ADD_SUBFOLDER.name())) {
-			menuItemActions.add(buildMenuItemAction(FOLDER_ADD_SUBFOLDER,
-					isMenuItemActionPossible(FOLDER_ADD_SUBFOLDER, folder, user, params),
+			menuItemActions.add(buildMenuItemAction(FOLDER_ADD_SUBFOLDER.name(),
+					isMenuItemActionPossible(FOLDER_ADD_SUBFOLDER.name(), folder, user, params),
 					"DisplayFolderView.addSubFolder", null, -1, 300,
 					() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).addSubFolder(params)));
 		}
 
 		if (!filteredActionTypes.contains(FOLDER_DISPLAY.name())) {
-			menuItemActions.add(buildMenuItemAction(FOLDER_DISPLAY,
-					isMenuItemActionPossible(FOLDER_DISPLAY, folder, user, params),
+			menuItemActions.add(buildMenuItemAction(FOLDER_DISPLAY.name(),
+					isMenuItemActionPossible(FOLDER_DISPLAY.name(), folder, user, params),
 					"DisplayFolderView.displayFolder", null, -1, 400,
 					() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).display(params)));
 		}
 
 		if (!filteredActionTypes.contains(FOLDER_EDIT.name())) {
-			menuItemActions.add(buildMenuItemAction(FOLDER_EDIT,
-					isMenuItemActionPossible(FOLDER_EDIT, folder, user, params),
+			menuItemActions.add(buildMenuItemAction(FOLDER_EDIT.name(),
+					isMenuItemActionPossible(FOLDER_EDIT.name(), folder, user, params),
 					"DisplayFolderView.editFolder", null, -1, 500,
 					() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).edit(params)));
 		}
 
 		if (!filteredActionTypes.contains(FOLDER_DELETE.name())) {
-			menuItemActions.add(buildMenuItemAction(FOLDER_DELETE,
-					isMenuItemActionPossible(FOLDER_DELETE, folder, user, params),
+			menuItemActions.add(buildMenuItemAction(FOLDER_DELETE.name(),
+					isMenuItemActionPossible(FOLDER_DELETE.name(), folder, user, params),
 					"DisplayFolderView.deleteFolder", null, -1, 600,
 					() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).delete(params)));
 		}
 
 		if (!filteredActionTypes.contains(FOLDER_COPY.name())) {
-			menuItemActions.add(buildMenuItemAction(FOLDER_COPY,
-					isMenuItemActionPossible(FOLDER_COPY, folder, user, params),
+			menuItemActions.add(buildMenuItemAction(FOLDER_COPY.name(),
+					isMenuItemActionPossible(FOLDER_COPY.name(), folder, user, params),
 					"DisplayFolderView.duplicateFolder", null, -1, 700,
 					() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).copy(params)));
 		}
 
 		if (!filteredActionTypes.contains(FOLDER_ADD_AUTHORIZATION.name())) {
-			menuItemActions.add(buildMenuItemAction(FOLDER_ADD_AUTHORIZATION,
-					isMenuItemActionPossible(FOLDER_ADD_AUTHORIZATION, folder, user, params),
+			menuItemActions.add(buildMenuItemAction(FOLDER_ADD_AUTHORIZATION.name(),
+					isMenuItemActionPossible(FOLDER_ADD_AUTHORIZATION.name(), folder, user, params),
 					"DisplayFolderView.addAuthorization", null, -1, 800,
 					() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).addAuthorization(params)));
 		}
 
 		if (!filteredActionTypes.contains(FOLDER_SHARE.name())) {
-			menuItemActions.add(buildMenuItemAction(FOLDER_SHARE,
-					isMenuItemActionPossible(FOLDER_SHARE, folder, user, params),
+			menuItemActions.add(buildMenuItemAction(FOLDER_SHARE.name(),
+					isMenuItemActionPossible(FOLDER_SHARE.name(), folder, user, params),
 					"DisplayFolderView.shareFolder", null, -1, 900,
 					() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).share(params)));
 		}
 
 		if (!filteredActionTypes.contains(FOLDER_ADD_TO_CART.name())) {
-			menuItemActions.add(buildMenuItemAction(FOLDER_ADD_TO_CART,
-					isMenuItemActionPossible(FOLDER_ADD_TO_CART, folder, user, params),
+			menuItemActions.add(buildMenuItemAction(FOLDER_ADD_TO_CART.name(),
+					isMenuItemActionPossible(FOLDER_ADD_TO_CART.name(), folder, user, params),
 					"DisplayFolderView.addToCart", null, -1, 1000,
 					() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).addToCart(params)));
 		}
 
 		if (!filteredActionTypes.contains(FOLDER_BORROW.name())) {
-			menuItemActions.add(buildMenuItemAction(FOLDER_BORROW,
-					isMenuItemActionPossible(FOLDER_BORROW, folder, user, params),
+			menuItemActions.add(buildMenuItemAction(FOLDER_BORROW.name(),
+					isMenuItemActionPossible(FOLDER_BORROW.name(), folder, user, params),
 					"DisplayFolderView.borrow", null, -1, 1100,
 					() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).borrow(params)));
 		}
 
 		if (!filteredActionTypes.contains(FOLDER_RETURN.name())) {
-			menuItemActions.add(buildMenuItemAction(FOLDER_RETURN,
-					isMenuItemActionPossible(FOLDER_RETURN, folder, user, params),
+			menuItemActions.add(buildMenuItemAction(FOLDER_RETURN.name(),
+					isMenuItemActionPossible(FOLDER_RETURN.name(), folder, user, params),
 					"DisplayFolderView.returnFolder", null, -1, 1200,
 					() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).returnFolder(params)));
 		}
 
 		if (!filteredActionTypes.contains(FOLDER_RETURN_REMAINDER.name())) {
-			menuItemActions.add(buildMenuItemAction(FOLDER_RETURN_REMAINDER,
-					isMenuItemActionPossible(FOLDER_RETURN_REMAINDER, folder, user, params),
+			menuItemActions.add(buildMenuItemAction(FOLDER_RETURN_REMAINDER.name(),
+					isMenuItemActionPossible(FOLDER_RETURN_REMAINDER.name(), folder, user, params),
 					"DisplayFolderView.reminderReturnFolder", null, -1, 1300,
 					() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).sendReturnRemainder(params)));
 		}
 
 		if (!filteredActionTypes.contains(FOLDER_AVAILABLE_ALERT.name())) {
-			menuItemActions.add(buildMenuItemAction(FOLDER_AVAILABLE_ALERT,
-					isMenuItemActionPossible(FOLDER_AVAILABLE_ALERT, folder, user, params),
+			menuItemActions.add(buildMenuItemAction(FOLDER_AVAILABLE_ALERT.name(),
+					isMenuItemActionPossible(FOLDER_AVAILABLE_ALERT.name(), folder, user, params),
 					"RMObject.alertWhenAvailable", null, -1, 1400,
 					() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).sendAvailableAlert(params)));
 		}
 
 		if (!filteredActionTypes.contains(FOLDER_PRINT_LABEL.name())) {
-			menuItemActions.add(buildMenuItemAction(FOLDER_PRINT_LABEL,
-					isMenuItemActionPossible(FOLDER_PRINT_LABEL, folder, user, params),
+			menuItemActions.add(buildMenuItemAction(FOLDER_PRINT_LABEL.name(),
+					isMenuItemActionPossible(FOLDER_PRINT_LABEL.name(), folder, user, params),
 					"DisplayFolderView.printLabel", null, -1, 1500,
 					() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).printLabel(params)));
 		}
 
 		if (!filteredActionTypes.contains(FOLDER_GENERATE_REPORT.name())) {
-			menuItemActions.add(buildMenuItemAction(FOLDER_GENERATE_REPORT,
-					isMenuItemActionPossible(FOLDER_GENERATE_REPORT, folder, user, params),
+			menuItemActions.add(buildMenuItemAction(FOLDER_GENERATE_REPORT.name(),
+					isMenuItemActionPossible(FOLDER_GENERATE_REPORT.name(), folder, user, params),
 					"SearchView.metadataReportTitle", null, -1, 1600,
 					() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).generateReport(params)));
 		}
 
 		if (!filteredActionTypes.contains(FOLDER_ADD_TO_SELECTION.name())) {
-			menuItemActions.add(buildMenuItemAction(FOLDER_ADD_TO_SELECTION,
-					isMenuItemActionPossible(FOLDER_ADD_TO_SELECTION, folder, user, params),
+			menuItemActions.add(buildMenuItemAction(FOLDER_ADD_TO_SELECTION.name(),
+					isMenuItemActionPossible(FOLDER_ADD_TO_SELECTION.name(), folder, user, params),
 					"addToOrRemoveFromSelection.add", null, -1, 1700,
 					() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).addToSelection(params)));
 		}
 
 		if (!filteredActionTypes.contains(FOLDER_REMOVE_FROM_SELECTION.name())) {
-			menuItemActions.add(buildMenuItemAction(FOLDER_REMOVE_FROM_SELECTION,
-					isMenuItemActionPossible(FOLDER_REMOVE_FROM_SELECTION, folder, user, params),
+			menuItemActions.add(buildMenuItemAction(FOLDER_REMOVE_FROM_SELECTION.name(),
+					isMenuItemActionPossible(FOLDER_REMOVE_FROM_SELECTION.name(), folder, user, params),
 					"addToOrRemoveFromSelection.remove", null, -1, 1800,
 					() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).removeFromSelection(params)));
 		}
@@ -180,11 +179,11 @@ public class FolderMenuItemServices {
 		return menuItemActions;
 	}
 
-	public boolean isMenuItemActionPossible(MenuItemActionType menuItemActionType, Folder folder, User user,
+	public boolean isMenuItemActionPossible(String menuItemActionType, Folder folder, User user,
 											MenuItemActionBehaviorParams params) {
 		Record record = folder.getWrappedRecord();
 
-		switch (menuItemActionType) {
+		switch (FolderMenuItemActionType.valueOf(menuItemActionType)) {
 			case FOLDER_DISPLAY:
 				return folderRecordActionsServices.isDisplayActionPossible(record, user);
 			case FOLDER_ADD_DOCUMENT:
@@ -232,10 +231,10 @@ public class FolderMenuItemServices {
 		}
 	}
 
-	private MenuItemAction buildMenuItemAction(MenuItemActionType type, boolean possible, String caption,
+	private MenuItemAction buildMenuItemAction(String type, boolean possible, String caption,
 											   Resource icon, int group, int priority, Runnable command) {
 		return MenuItemAction.builder()
-				.type(type.name())
+				.type(type)
 				.state(possible ? MenuItemActionState.VISIBLE : MenuItemActionState.HIDDEN)
 				.caption(caption)
 				.icon(icon)
@@ -243,6 +242,27 @@ public class FolderMenuItemServices {
 				.priority(priority)
 				.command(command)
 				.build();
+	}
+
+	enum FolderMenuItemActionType {
+		FOLDER_DISPLAY,
+		FOLDER_ADD_DOCUMENT,
+		FOLDER_MOVE,
+		FOLDER_ADD_SUBFOLDER,
+		FOLDER_EDIT,
+		FOLDER_DELETE,
+		FOLDER_COPY,
+		FOLDER_ADD_AUTHORIZATION,
+		FOLDER_SHARE,
+		FOLDER_ADD_TO_CART,
+		FOLDER_BORROW,
+		FOLDER_RETURN,
+		FOLDER_RETURN_REMAINDER,
+		FOLDER_AVAILABLE_ALERT,
+		FOLDER_PRINT_LABEL,
+		FOLDER_GENERATE_REPORT,
+		FOLDER_ADD_TO_SELECTION,
+		FOLDER_REMOVE_FROM_SELECTION;
 	}
 
 }

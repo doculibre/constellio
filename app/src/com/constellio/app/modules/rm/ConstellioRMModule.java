@@ -22,6 +22,7 @@ import com.constellio.app.modules.rm.extensions.RMFolderExtension;
 import com.constellio.app.modules.rm.extensions.RMGenericRecordPageExtension;
 import com.constellio.app.modules.rm.extensions.RMListSchemaTypeExtension;
 import com.constellio.app.modules.rm.extensions.RMMediumTypeRecordExtension;
+import com.constellio.app.modules.rm.extensions.RMMenuItemActionsExtension;
 import com.constellio.app.modules.rm.extensions.RMModulePageExtension;
 import com.constellio.app.modules.rm.extensions.RMOldSchemasBlockageRecordExtension;
 import com.constellio.app.modules.rm.extensions.RMRecordAppExtension;
@@ -47,7 +48,7 @@ import com.constellio.app.modules.rm.extensions.app.RMBatchProcessingExtension;
 import com.constellio.app.modules.rm.extensions.app.RMBatchProcessingSpecialCaseExtension;
 import com.constellio.app.modules.rm.extensions.app.RMCmisExtension;
 import com.constellio.app.modules.rm.extensions.app.RMListSchemaExtention;
-import com.constellio.app.modules.rm.extensions.app.RMMenuItemActionExtension;
+import com.constellio.app.modules.rm.extensions.app.RMMenuItemActionsRequestTaskExtension;
 import com.constellio.app.modules.rm.extensions.app.RMRecordDisplayFactoryExtension;
 import com.constellio.app.modules.rm.extensions.app.RMRecordExportExtension;
 import com.constellio.app.modules.rm.extensions.app.RMSIPExtension;
@@ -470,8 +471,9 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		extensions.lockedRecords.add(TaskStatus.SCHEMA_TYPE, TaskStatus.STANDBY_CODE);
 		extensions.lockedRecords.add(DocumentType.SCHEMA_TYPE, DocumentType.EMAIL_DOCUMENT_TYPE);
 
-		RMModuleExtensions rmModuleExtensions = extensions.forModule(ConstellioRMModule.ID);
-		rmModuleExtensions.getMenuItemActionExtensions().add(new RMMenuItemActionExtension(collection, appLayerFactory));
+		extensions.menuItemActionsExtensions.add(new RMMenuItemActionsExtension(collection, appLayerFactory));
+		// FIXME should be merged with RMMenuItemActionsExtensions
+		extensions.menuItemActionsExtensions.add(new RMMenuItemActionsRequestTaskExtension(collection, appLayerFactory));
 	}
 
 	private void setupModelLayerExtensions(String collection, AppLayerFactory appLayerFactory) {

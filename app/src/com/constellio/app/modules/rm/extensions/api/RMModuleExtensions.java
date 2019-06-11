@@ -40,7 +40,6 @@ public class RMModuleExtensions implements ModuleExtensions {
 	private VaultBehaviorsList<DocumentFolderBreadCrumbExtention> documentBreadcrumExtentions;
 	private VaultBehaviorsList<NavigateToFromAPageImportExtension> navigateToFromAPageExtensions;
 	private VaultBehaviorsList<TaskPreCompletionExtention> taskPreCompletionExetention;
-	private VaultBehaviorsList<MenuItemActionExtension> menuItemActionExtensions;
 
 	private ModelLayerExtensions modelLayerExtensions;
 
@@ -53,7 +52,6 @@ public class RMModuleExtensions implements ModuleExtensions {
 		this.folderExtensions = new VaultBehaviorsList<>();
 		this.containerRecordExtensions = new VaultBehaviorsList<>();
 		advancedSearchPresenterExtensions = new VaultBehaviorsList<>();
-		menuItemActionExtensions = new VaultBehaviorsList<>();
 		this.documentBreadcrumExtentions = new VaultBehaviorsList<>();
 		this.navigateToFromAPageExtensions = new VaultBehaviorsList<>();
 		this.taskPreCompletionExetention = new VaultBehaviorsList<>();
@@ -113,10 +111,6 @@ public class RMModuleExtensions implements ModuleExtensions {
 
 	public VaultBehaviorsList<DocumentFolderBreadCrumbExtention> getDocumentBreadcrumExtentions() {
 		return documentBreadcrumExtentions;
-	}
-
-	public VaultBehaviorsList<MenuItemActionExtension> getMenuItemActionExtensions() {
-		return menuItemActionExtensions;
 	}
 
 	public boolean isCopyActionPossibleOnFolder(final Folder folder, final User user) {

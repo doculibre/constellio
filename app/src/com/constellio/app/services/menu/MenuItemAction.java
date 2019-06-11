@@ -1,4 +1,4 @@
-package com.constellio.app.modules.rm.services.menu;
+package com.constellio.app.services.menu;
 
 import com.constellio.app.ui.framework.buttons.ConfirmDialogButton.DialogMode;
 import com.vaadin.server.Resource;
