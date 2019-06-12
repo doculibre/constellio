@@ -5,7 +5,6 @@ import com.constellio.app.extensions.menu.MenuItemActionsExtension.MenuItemActio
 import com.constellio.app.extensions.menu.MenuItemActionsExtension.MenuItemActionExtensionAddMenuItemActionsForRecordsParams;
 import com.constellio.app.extensions.menu.MenuItemActionsExtension.MenuItemActionExtensionGetActionStateForRecordParams;
 import com.constellio.app.extensions.menu.MenuItemActionsExtension.MenuItemActionExtensionGetActionStateForRecordsParams;
-import com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
 import com.constellio.model.entities.records.Record;
@@ -20,8 +19,6 @@ import java.util.List;
 public class MenuItemServices {
 
 	private List<MenuItemActionsExtension> menuItemActionsExtensions;
-
-	private RMRecordsMenuItemServices recordListMenuItemServices;
 
 	public MenuItemServices(String collection, AppLayerFactory appLayerFactory) {
 		menuItemActionsExtensions = appLayerFactory.getExtensions()
