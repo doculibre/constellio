@@ -5,6 +5,7 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices;
 import com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices;
 import com.constellio.app.modules.rm.services.menu.FolderMenuItemServices;
+import com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -24,6 +25,7 @@ public class RMMenuItemActionsExtension extends MenuItemActionsExtension {
 	private DocumentMenuItemServices documentMenuItemServices;
 	private FolderMenuItemServices folderMenuItemServices;
 	private ContainerMenuItemServices containerMenuItemServices;
+	private RMRecordsMenuItemServices rmRecordsMenuItemServices;
 
 	public RMMenuItemActionsExtension(String collection, AppLayerFactory appLayerFactory) {
 		rm = new RMSchemasRecordsServices(collection, appLayerFactory);
@@ -31,6 +33,7 @@ public class RMMenuItemActionsExtension extends MenuItemActionsExtension {
 		documentMenuItemServices = new DocumentMenuItemServices(collection, appLayerFactory);
 		folderMenuItemServices = new FolderMenuItemServices(collection, appLayerFactory);
 		containerMenuItemServices = new ContainerMenuItemServices(collection, appLayerFactory);
+		rmRecordsMenuItemServices = new RMRecordsMenuItemServices(collection, appLayerFactory);
 	}
 
 	@Override
@@ -49,6 +52,22 @@ public class RMMenuItemActionsExtension extends MenuItemActionsExtension {
 					filteredActionTypes, behaviorParams));
 		} else if (record.isOfSchemaType(ContainerRecord.SCHEMA_TYPE)) {
 			menuItemActions.addAll(containerMenuItemServices.getActionsForRecord(rm.wrapContainerRecord(record), user,
+					filteredActionTypes, behaviorParams));
+		}
+	}
+
+	@Override
+	public void addMenuItemActionsForRecords(MenuItemActionExtensionAddMenuItemActionsForRecordsParams params) {
+		List<Record> records = params.getRecords();
+		User user = params.getBehaviorParams().getUser();
+		List<MenuItemAction> menuItemActions = params.getMenuItemActions();
+		List<String> filteredActionTypes = params.getFilteredActionTypes();
+		MenuItemActionBehaviorParams behaviorParams = params.getBehaviorParams();
+
+		if (records.stream().anyMatch(
+				r -> r.isOfSchemaType(Document.SCHEMA_TYPE) || r.isOfSchemaType(Folder.SCHEMA_TYPE) ||
+					 r.isOfSchemaType(ContainerRecord.SCHEMA_TYPE))) {
+			menuItemActions.addAll(rmRecordsMenuItemServices.getActionsForRecords(records, user,
 					filteredActionTypes, behaviorParams));
 		}
 	}

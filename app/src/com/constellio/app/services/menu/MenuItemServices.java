@@ -5,7 +5,7 @@ import com.constellio.app.extensions.menu.MenuItemActionsExtension.MenuItemActio
 import com.constellio.app.extensions.menu.MenuItemActionsExtension.MenuItemActionExtensionAddMenuItemActionsForRecordsParams;
 import com.constellio.app.extensions.menu.MenuItemActionsExtension.MenuItemActionExtensionGetActionStateForRecordParams;
 import com.constellio.app.extensions.menu.MenuItemActionsExtension.MenuItemActionExtensionGetActionStateForRecordsParams;
-import com.constellio.app.modules.rm.services.menu.RecordListMenuItemServices;
+import com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
 import com.constellio.model.entities.records.Record;
@@ -21,13 +21,11 @@ public class MenuItemServices {
 
 	private List<MenuItemActionsExtension> menuItemActionsExtensions;
 
-	private RecordListMenuItemServices recordListMenuItemServices;
+	private RMRecordsMenuItemServices recordListMenuItemServices;
 
 	public MenuItemServices(String collection, AppLayerFactory appLayerFactory) {
 		menuItemActionsExtensions = appLayerFactory.getExtensions()
 				.forCollection(collection).menuItemActionsExtensions.getExtensions();
-
-		recordListMenuItemServices = new RecordListMenuItemServices(collection, appLayerFactory);
 	}
 
 	public List<MenuItemAction> getActionsForRecord(Record record, MenuItemActionBehaviorParams params) {
@@ -60,8 +58,7 @@ public class MenuItemServices {
 													 MenuItemActionBehaviorParams params) {
 		List<MenuItemAction> menuItemActions = new ArrayList<>();
 
-		menuItemActions.addAll(recordListMenuItemServices.getActionsForRecords(records, params.getUser(),
-				filteredActionTypes, params));
+		// TODO
 
 		addMenuItemActionsFromExtensions(records, filteredActionTypes, params, menuItemActions);
 
@@ -88,13 +85,7 @@ public class MenuItemServices {
 
 	public MenuItemActionState getStateForAction(MenuItemAction action, List<Record> records,
 												 MenuItemActionBehaviorParams params) {
-		// FIXME move to rm extensions
-		MenuItemActionState state = recordListMenuItemServices.getMenuItemActionState(
-				MenuItemActionType.valueOf(action.getType()), records, params.getUser(), params);
-		if (state != null) {
-			return state;
-		}
-
+		// TODO
 		return geStateForActionFromExtensions(action, records, params);
 	}
 

@@ -1,4 +1,4 @@
-package com.constellio.app.modules.rm.services.menu.behaviors;
+package com.constellio.app.modules.rm.ui.buttons;
 
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
