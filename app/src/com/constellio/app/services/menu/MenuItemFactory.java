@@ -31,13 +31,9 @@ public class MenuItemFactory {
 						menuItemAction.getCommand().run();
 					}
 				});
-			} else if (menuItemAction.getCommand() != null) {
+			} else {
 				menuItem.addItemClickListener((event) -> {
 					menuItemAction.getCommand().run();
-				});
-			} else if (menuItemAction.getButton() != null) {
-				menuItem.addItemClickListener((event) -> {
-					// TODO
 				});
 			}
 			menuItem.setEnabled(menuItemAction.getState() == MenuItemActionState.VISIBLE);

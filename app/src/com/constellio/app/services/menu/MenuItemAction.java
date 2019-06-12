@@ -13,7 +13,6 @@ public class MenuItemAction {
 	private String reason;
 	private String caption;
 	private Resource icon;
-	private Class button;
 	private Runnable command;
 	private int group;
 	private int priority;
