@@ -35,12 +35,16 @@ import com.vaadin.ui.Notification;
 import com.vaadin.ui.Notification.Type;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Window;
+import com.vaadin.ui.JavaScript;
+import com.vaadin.ui.MenuBar.MenuItem;
+
 import org.apache.commons.lang3.StringUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -68,15 +72,30 @@ public class DocumentMenuBarImpl extends BaseMenuBar implements DocumentMenuBar 
 	private boolean addToOrRemoveFromSelectionButtonVisible;
 	private boolean addToCartButtonVisible;
 	private boolean publishButtonVisible;
-
+	
+	private MenuItem rootItem;
+	
 	protected DocumentMenuBarPresenter presenter;
 
-	public DocumentMenuBarImpl(DocumentVO documentVO) {
+	public DocumentMenuBarImpl(RecordVO documentVO) {
+		super(true);
+		
 		presenter = newPresenter();
-		setDocumentVO(documentVO);
+		setRecordVO(documentVO);
 		if (documentVO != null) {
 			presenter.setRecordVO(documentVO);
 		}
+
+		rootItem = addItem("", FontAwesome.BARS, new Command() {
+			@Override
+			public void menuSelected(MenuItem selectedItem) {
+			}
+		});
+	}
+
+	@Override
+	protected void lazyLoadChildren(MenuItem rootItem) {
+		presenter.lazyLoadingChildren();
 	}
 
 	protected DocumentMenuBarPresenter newPresenter() {
@@ -96,10 +115,7 @@ public class DocumentMenuBarImpl extends BaseMenuBar implements DocumentMenuBar 
 
 	@Override
 	public void buildMenuItems() {
-		removeItems();
-
-		MenuItem rootItem = addItem("", FontAwesome.BARS, null);
-		rootItem.setIcon(FontAwesome.BARS);
+		rootItem.removeChildren();
 
 		if (StringUtils.isNotBlank(borrowedMessage)) {
 			rootItem.addItem(borrowedMessage, null);
@@ -296,7 +312,7 @@ public class DocumentMenuBarImpl extends BaseMenuBar implements DocumentMenuBar 
 					View parentView = ConstellioUI.getCurrent().getCurrentView();
 					ReportTabButton button = new ReportTabButton($("DocumentActionsComponent.printMetadataReport"),
 							$("DocumentActionsComponent.printMetadataReport"), (BaseView) parentView, true);
-					button.setRecordVoList(presenter.getDocumentVO());
+					button.setRecordVoList(presenter.getRecordVO());
 					button.click();
 				}
 			});
@@ -346,8 +362,8 @@ public class DocumentMenuBarImpl extends BaseMenuBar implements DocumentMenuBar 
 	}
 
 	@Override
-	public void setDocumentVO(DocumentVO documentVO) {
-		this.recordVO = documentVO;
+	public void setRecordVO(RecordVO recordVO) {
+		this.recordVO = recordVO;
 	}
 
 	private void initUploadWindow() {

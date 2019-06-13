@@ -14,6 +14,7 @@ import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.Align;
 import com.vaadin.ui.Table.ColumnCollapseEvent;
 import com.vaadin.ui.Table.ColumnCollapseListener;
+import com.vaadin.ui.Table.ColumnHeaderMode;
 import com.vaadin.ui.Table.ColumnReorderEvent;
 import com.vaadin.ui.Table.ColumnReorderListener;
 import org.apache.commons.lang3.ArrayUtils;
@@ -87,77 +88,79 @@ public class TableColumnsManager implements Serializable {
 	}
 
 	public void manage(final Table table, final String tableId) {
-		table.setColumnCollapsingAllowed(true);
-		table.setColumnReorderingAllowed(true);
+		if (table.getColumnHeaderMode() != ColumnHeaderMode.HIDDEN) {
+			table.setColumnCollapsingAllowed(true);
+			table.setColumnReorderingAllowed(true);
 
-		Object[] visibleColumns = table.getVisibleColumns();
-		if (isRightToLeft()) {
-			ArrayUtils.reverse(visibleColumns);
-			table.setVisibleColumns(visibleColumns);
+			Object[] visibleColumns = table.getVisibleColumns();
+			if (isRightToLeft()) {
+				ArrayUtils.reverse(visibleColumns);
+				table.setVisibleColumns(visibleColumns);
 
 
-			for (Object propertyId : table.getContainerPropertyIds()) {
-				Align alignment = adjustAlignment(table.getColumnAlignment(propertyId));
-				table.setColumnAlignment(propertyId, alignment);
+				for (Object propertyId : table.getContainerPropertyIds()) {
+					Align alignment = adjustAlignment(table.getColumnAlignment(propertyId));
+					table.setColumnAlignment(propertyId, alignment);
+				}
 			}
-		}
 
-		List<String> visibleColumnIdsForUser = getVisibleColumnIdsForCurrentUser(table, tableId);
-		Collection<?> propertyIds = table.getContainerPropertyIds();
-		decorateVisibleColumns(visibleColumnIdsForUser, tableId);
+			List<String> visibleColumnIdsForUser = getVisibleColumnIdsForCurrentUser(table, tableId);
+			Collection<?> propertyIds = table.getContainerPropertyIds();
+			decorateVisibleColumns(visibleColumnIdsForUser, tableId);
 
-		for (Object propertyId : propertyIds) {
-			String columnId = toColumnId(propertyId);
-
-			boolean collapsed = !visibleColumnIdsForUser.contains(columnId);
-			if (!collapsed || table.isColumnCollapsible(columnId)) {
-				table.setColumnCollapsed(propertyId, collapsed);
-			}
-		}
-
-		table.addColumnCollapseListener(new ColumnCollapseListener() {
-			@Override
-			public void columnCollapseStateChange(ColumnCollapseEvent event) {
-				Object propertyId = event.getPropertyId();
+			for (Object propertyId : propertyIds) {
 				String columnId = toColumnId(propertyId);
-				boolean collapsed = table.isColumnCollapsed(propertyId);
-				List<String> visibleColumnIdsForUser = getVisibleColumnIdsForCurrentUser(table, tableId);
-				if (collapsed) {
-					visibleColumnIdsForUser.remove(columnId);
-				} else if (!visibleColumnIdsForUser.contains(columnId)) {
-					visibleColumnIdsForUser.add(columnId);
-				}
-				currentUser.setVisibleTableColumns(tableId, visibleColumnIdsForUser);
-				try {
-					recordServices.update(currentUser);
-				} catch (RecordServicesException e) {
-					notifyException(e);
+
+				boolean collapsed = !visibleColumnIdsForUser.contains(columnId);
+				if (!collapsed || table.isColumnCollapsible(columnId)) {
+					table.setColumnCollapsed(propertyId, collapsed);
 				}
 			}
-		});
 
-		table.addColumnReorderListener(new ColumnReorderListener() {
-			@Override
-			public void columnReorder(ColumnReorderEvent event) {
-				if (currentUser == null) {
-					return;
-				}
-				Object[] visibleColumnIds = table.getVisibleColumns();
-				List<String> visibleColumnIdsForUser = new ArrayList<>();
-				for (Object visiblePropertyId : visibleColumnIds) {
-					String columnId = toColumnId(visiblePropertyId);
-					if (!table.isColumnCollapsed(visiblePropertyId)) {
+			table.addColumnCollapseListener(new ColumnCollapseListener() {
+				@Override
+				public void columnCollapseStateChange(ColumnCollapseEvent event) {
+					Object propertyId = event.getPropertyId();
+					String columnId = toColumnId(propertyId);
+					boolean collapsed = table.isColumnCollapsed(propertyId);
+					List<String> visibleColumnIdsForUser = getVisibleColumnIdsForCurrentUser(table, tableId);
+					if (collapsed) {
+						visibleColumnIdsForUser.remove(columnId);
+					} else if (!visibleColumnIdsForUser.contains(columnId)) {
 						visibleColumnIdsForUser.add(columnId);
 					}
+					currentUser.setVisibleTableColumns(tableId, visibleColumnIdsForUser);
+					try {
+						recordServices.update(currentUser);
+					} catch (RecordServicesException e) {
+						notifyException(e);
+					}
 				}
-				currentUser.setVisibleTableColumns(tableId, visibleColumnIdsForUser);
-				try {
-					recordServices.update(currentUser);
-				} catch (RecordServicesException e) {
-					notifyException(e);
+			});
+
+			table.addColumnReorderListener(new ColumnReorderListener() {
+				@Override
+				public void columnReorder(ColumnReorderEvent event) {
+					if (currentUser == null) {
+						return;
+					}
+					Object[] visibleColumnIds = table.getVisibleColumns();
+					List<String> visibleColumnIdsForUser = new ArrayList<>();
+					for (Object visiblePropertyId : visibleColumnIds) {
+						String columnId = toColumnId(visiblePropertyId);
+						if (!table.isColumnCollapsed(visiblePropertyId)) {
+							visibleColumnIdsForUser.add(columnId);
+						}
+					}
+					currentUser.setVisibleTableColumns(tableId, visibleColumnIdsForUser);
+					try {
+						recordServices.update(currentUser);
+					} catch (RecordServicesException e) {
+						notifyException(e);
+					}
 				}
-			}
-		});
+			});
+		}
 	}
 
 	protected void notifyException(Exception e) {

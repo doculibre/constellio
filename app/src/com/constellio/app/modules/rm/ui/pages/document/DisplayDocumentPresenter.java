@@ -165,7 +165,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		hasWriteAccess = getCurrentUser().hasWriteAccess().on(record);
 
 		final DocumentVO documentVO = voBuilder.build(record, VIEW_MODE.DISPLAY, view.getSessionContext());
-		view.setDocumentVO(documentVO);
+		view.setRecordVO(documentVO);
 		presenterUtils.setRecordVO(documentVO);
 		ModelLayerFactory modelLayerFactory = view.getConstellioFactories().getModelLayerFactory();
 		User user = getCurrentUser();
@@ -222,7 +222,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 
 	public void backgroundViewMonitor() {
 		clearRequestCache();
-		DocumentVO documentVO = presenterUtils.getDocumentVO();
+		DocumentVO documentVO = presenterUtils.getRecordVO();
 		try {
 			ContentVersionVO contentVersionVO = documentVO.getContent();
 			Record currentRecord = getRecord(documentVO.getId());
@@ -237,7 +237,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 				|| ObjectUtils.notEqual(lastKnownCheckoutUserId, currentCheckoutUserId)
 				|| ObjectUtils.notEqual(lastKnownLength, currentLength)) {
 				documentVO = voBuilder.build(currentRecord, VIEW_MODE.DISPLAY, view.getSessionContext());
-				view.setDocumentVO(documentVO);
+				view.setRecordVO(documentVO);
 				presenterUtils.setRecordVO(documentVO);
 				presenterUtils.updateActionsComponent();
 				if ((lastKnownCheckoutUserId != null && currentCheckoutUserId == null)
@@ -266,7 +266,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 
 	@Override
 	protected List<String> getRestrictedRecordIds(String params) {
-		DocumentVO documentVO = presenterUtils.getDocumentVO();
+		DocumentVO documentVO = presenterUtils.getRecordVO();
 		return Arrays.asList(documentVO == null ? extractIdFromParams(params) : documentVO.getId());
 	}
 
@@ -291,7 +291,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 
 	public void workflowStartRequested(RecordVO record) {
 		Map<String, List<String>> parameters = new HashMap<>();
-		parameters.put(RMTask.LINKED_DOCUMENTS, asList(presenterUtils.getDocumentVO().getId()));
+		parameters.put(RMTask.LINKED_DOCUMENTS, asList(presenterUtils.getRecordVO().getId()));
 		BetaWorkflow workflow = new TasksSchemasRecordsServices(view.getCollection(), appLayerFactory)
 				.getBetaWorkflow(record.getId());
 		new BetaWorkflowServices(view.getCollection(), appLayerFactory).start(workflow, getCurrentUser(), parameters);
@@ -299,7 +299,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 
 	public void updateContentVersions() {
 		List<ContentVersionVO> contentVersionVOs = new ArrayList<ContentVersionVO>();
-		DocumentVO documentVO = presenterUtils.getDocumentVO();
+		DocumentVO documentVO = presenterUtils.getRecordVO();
 		Record record = getRecord(documentVO.getId());
 		Document document = new Document(record, types());
 
@@ -355,7 +355,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	}
 
 	public void createPDFAButtonClicked() {
-		if (!presenterUtils.getDocumentVO().getExtension().toUpperCase().equals("PDF") && !presenterUtils.getDocumentVO()
+		if (!presenterUtils.getRecordVO().getExtension().toUpperCase().equals("PDF") && !presenterUtils.getRecordVO()
 				.getExtension().toUpperCase().equals("PDFA")) {
 			presenterUtils.createPDFA(params);
 		} else {
@@ -388,7 +388,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	}
 
 	public String getDocumentTitle() {
-		DocumentVO documentVO = presenterUtils.getDocumentVO();
+		DocumentVO documentVO = presenterUtils.getRecordVO();
 		return documentVO.getTitle();
 	}
 
@@ -442,7 +442,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 
 	public InputStream getSignatureInputStream(String certificate, String password) {
 		// TODO: Sign the file
-		ContentVersionVO content = presenterUtils.getDocumentVO().getContent();
+		ContentVersionVO content = presenterUtils.getRecordVO().getContent();
 		return modelLayerFactory.getContentManager().getContentInputStream(content.getHash(), content.getFileName());
 	}
 
@@ -460,7 +460,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 
 	public String getPublicLink() {
 		String url = modelLayerFactory.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.CONSTELLIO_URL);
-		return url + "dl?id=" + presenterUtils.getDocumentVO().getId();
+		return url + "dl?id=" + presenterUtils.getRecordVO().getId();
 	}
 
 	private void updateAndRefresh(Document document) {
@@ -490,7 +490,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 
 	public boolean hasCurrentUserPermissionToPublishOnCurrentDocument() {
 		return getCurrentUser().has(RMPermissionsTo.PUBLISH_AND_UNPUBLISH_DOCUMENTS)
-				.on(getRecord(presenterUtils.getDocumentVO().getId()));
+				.on(getRecord(presenterUtils.getRecordVO().getId()));
 	}
 
 	public boolean hasCurrentUserPermissionToUseCartGroup() {
@@ -511,7 +511,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 			protected LogicalSearchQuery getQuery() {
 				RMEventsSearchServices rmEventsSearchServices = new RMEventsSearchServices(modelLayerFactory, collection);
 				LogicalSearchQuery query = rmEventsSearchServices
-						.newFindEventByRecordIDQuery(getCurrentUser(), presenterUtils.getDocumentVO().getId());
+						.newFindEventByRecordIDQuery(getCurrentUser(), presenterUtils.getRecordVO().getId());
 				return query == null ? null : rmEventsSearchServices.exceptEventTypes(query,
 						asList(EventType.OPEN_DOCUMENT, EventType.DOWNLOAD_DOCUMENT, EventType.UPLOAD_DOCUMENT,
 								EventType.SHARE_DOCUMENT, EventType.FINALIZE_DOCUMENT));
@@ -520,7 +520,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	}
 
 	protected boolean hasCurrentUserPermissionToViewEvents() {
-		return getCurrentUser().has(CorePermissions.VIEW_EVENTS).on(getRecord(presenterUtils.getDocumentVO().getId()));
+		return getCurrentUser().has(CorePermissions.VIEW_EVENTS).on(getRecord(presenterUtils.getRecordVO().getId()));
 	}
 
 	protected boolean hasCurrentUserPermissionToViewFileSystemName() {
@@ -596,7 +596,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 
 			@Override
 			public List<String> getSelectedRecordIds() {
-				return asList(presenterUtils.getDocumentVO().getId());
+				return asList(presenterUtils.getRecordVO().getId());
 			}
 		};
 	}

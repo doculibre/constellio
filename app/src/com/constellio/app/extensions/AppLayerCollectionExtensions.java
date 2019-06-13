@@ -744,11 +744,10 @@ public class AppLayerCollectionExtensions {
 
 	public List<Component> addComponentToSearchResult(AddComponentToSearchResultParams addComponentToSearchResultParams) {
 		List<Component> allComponentFound = new ArrayList();
-		for(SearchPageExtension searchPageExtension : searchPageExtensions) {
-			List<Component> componentFromSingleExtentionCall = searchPageExtension.addComponentToSearchResult(
+		for (SearchPageExtension searchPageExtension : searchPageExtensions) {
+			List<? extends Component> componentFromSingleExtentionCall = searchPageExtension.addComponentToSearchResult(
 					addComponentToSearchResultParams);
-
-			if(componentFromSingleExtentionCall != null && componentFromSingleExtentionCall.size() > 0 ) {
+			if (componentFromSingleExtentionCall != null && componentFromSingleExtentionCall.size() > 0 ) {
 				allComponentFound.addAll(componentFromSingleExtentionCall);
 			}
 		}

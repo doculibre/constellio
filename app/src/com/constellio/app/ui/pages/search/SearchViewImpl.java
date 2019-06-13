@@ -379,6 +379,9 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 
 		if (capsuleComponent != null) {
 			capsuleArea.addComponent(capsuleComponent);
+			capsuleArea.setVisible(true);
+		} else {
+			capsuleArea.setVisible(false);
 		}
 	}
 
