@@ -56,7 +56,7 @@ public class CollectionInfosSIPWriterAcceptanceTest extends ConstellioTest {
 	}
 
 	private void unzipInDownloadFolder(File sipFile, String name) {
-		File folder = new File("/Users/francisbaril/Downloads/" + name);
+		File folder = newTempFolder();
 		try {
 			FileUtils.deleteDirectory(folder);
 		} catch (IOException e) {
