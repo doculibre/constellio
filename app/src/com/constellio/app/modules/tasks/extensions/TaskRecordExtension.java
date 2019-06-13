@@ -583,7 +583,10 @@ public class TaskRecordExtension extends RecordExtension {
 					Group group = tasksSchema.getGroup(groupId);
 					List<UserCredential> groupUsers = userServices.getGlobalGroupActifUsers(group.getCode());
 					for (UserCredential user : groupUsers) {
-						assigneeEmails.addAll(buildEmailAddressList(user.getTitle(), user.getEmail(), user.getPersonalEmails()));
+						User assigneeCandidate = rm.getUser(user.getId());
+						if (!assigneeCandidate.isAssignationEmailReceptionDisabled()) {
+							assigneeEmails.addAll(buildEmailAddressList(user.getTitle(), user.getEmail(), user.getPersonalEmails()));
+						}
 					}
 				} catch (UserServicesRuntimeException_NoSuchGroup e) {
 					LOGGER.warn("Group assigned in task " + task.getTitle() + " does not exist " + groupId);
