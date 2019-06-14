@@ -27,16 +27,8 @@ import java.util.Map;
 import static com.constellio.model.services.migrations.TimeScheduleConfigurationValidator.isCurrentlyInSchedule;
 import org.apache.commons.lang.StringUtils;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
-
-import static com.constellio.model.services.migrations.TimeScheduleConfigurationValidator.isCurrentlyInSchedule;
 
 public class ConstellioEIMConfigs {
 
@@ -97,6 +89,8 @@ public class ConstellioEIMConfigs {
 
 	public static final SystemConfiguration REPLACE_SPACES_IN_SIMPLE_SEARCH_FOR_ANDS;
 
+	public static final SystemConfiguration UPDATE_SERVER_CONNECTION_ENABLED;
+
 	public static final String DEFAULT_CKEDITOR_TOOLBAR_CONFIG = "" +
 																 "   { name: 'document', items: [ 'Source', 'NewPage', 'Preview', 'Print' ] },\n" +
 																 "	{ name: 'clipboard', items: [ 'Cut', 'Copy', 'Paste', 'PasteText', 'PasteFromWord', '-', 'Undo', 'Redo' ] },\n" +
@@ -151,9 +145,9 @@ public class ConstellioEIMConfigs {
 
 	public static final SystemConfiguration BATCH_PROCESSES_MAXIMUM_HISTORY_SIZE;
 
-	public static final SystemConfiguration ADD_RECORD_ID_IN_EMAILS;
-
 	public static final SystemConfiguration GENERATED_EMAIL_FORMAT;
+
+	public static final SystemConfiguration ADD_RECORD_ID_IN_EMAILS;
 
 	public static final SystemConfiguration IS_TRASH_THREAD_EXECUTING;
 
@@ -189,7 +183,7 @@ public class ConstellioEIMConfigs {
 				.withDefaultValue(3000));
 		add(CONTENT_MAX_LENGTH_FOR_PARSING_IN_MEGAOCTETS = advanced.createInteger("contentMaxLengthForParsingInMegaoctets")
 				.withDefaultValue(30));
-		add(FILE_EXTENSIONS_EXCLUDED_FROM_PARSING = advanced.createString("fileExtensionsExcludedFromParsing").withReIndexionRequired());
+		add(FILE_EXTENSIONS_EXCLUDED_FROM_PARSING = advanced.createString("fileExtensionsExcludedFromParsing").withReIndexationRequired());
 
 		add(CLEAN_DURING_INSTALL = advanced.createBooleanFalseByDefault("cleanDuringInstall"));
 
@@ -291,9 +285,11 @@ public class ConstellioEIMConfigs {
 
 		add(SPACE_QUOTA_FOR_USER_DOCUMENTS = others.createInteger("spaceQuotaForUserDocuments").withDefaultValue(-1));
 
-		add(ADD_RECORD_ID_IN_EMAILS = others.createBooleanFalseByDefault("addRecordIdInEmails"));
 		add(GENERATED_EMAIL_FORMAT = others.createEnum("generatedEmailFormat", EmailTextFormat.class).withDefaultValue(EmailTextFormat.PLAIN_TEXT));
 
+		add(ADD_RECORD_ID_IN_EMAILS = others.createBooleanFalseByDefault("addRecordIdInEmails"));
+
+		add(UPDATE_SERVER_CONNECTION_ENABLED = advanced.createBooleanTrueByDefault("updateServerConnectionEnabled").whichIsHidden());
 
 		configurations = Collections.unmodifiableList(modifiableConfigs);
 	}
@@ -323,6 +319,7 @@ public class ConstellioEIMConfigs {
 	public String getUserTitlePattern() {
 		return manager.getValue(USER_TITLE_PATTERN);
 	}
+
 
 	public boolean seeUserRolesInAuthorizations() {
 		return manager.getValue(USER_ROLES_IN_AUTHORIZATIONS);
@@ -542,10 +539,6 @@ public class ConstellioEIMConfigs {
 		return manager.getValue(BATCH_PROCESSES_MAXIMUM_HISTORY_SIZE);
 	}
 
-	public boolean isAddingRecordIdInEmails() {
-		return manager.getValue(ADD_RECORD_ID_IN_EMAILS);
-	}
-
 	public EmailTextFormat getGeneratedEmailFormat() {
 		return manager.getValue(GENERATED_EMAIL_FORMAT);
 	}
@@ -565,5 +558,13 @@ public class ConstellioEIMConfigs {
 			}
 		}
 		return extensionSet;
+	}
+
+	public boolean isAddingRecordIdInEmails() {
+		return manager.getValue(ADD_RECORD_ID_IN_EMAILS);
+	}
+
+	public boolean isUpdateServerConnectionEnabled() {
+		return manager.getValue(UPDATE_SERVER_CONNECTION_ENABLED);
 	}
 }

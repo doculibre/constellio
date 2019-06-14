@@ -27,16 +27,6 @@ public class SkosUtil {
 		return s1 != null && s2 != null ? parseForSearch(s1).equals(parseForSearch(s2)) : false;
 	}
 
-	/**
-	 * Check if string contains another after parsing.
-	 *
-	 * @param container
-	 * @param content
-	 * @return true if parsed strings are equal
-	 */
-	public static boolean containsWithParsing(String container, String content) {
-		return container != null && content != null ? parseForSearch(container).contains(parseForSearch(content)) : false;
-	}
 
 	/**
 	 * Remove accents, trim whitespaces and standardize case.
@@ -46,6 +36,21 @@ public class SkosUtil {
 	 */
 	public static String parseForSearch(String input) {
 		return input != null ? AccentApostropheCleaner.removeAccents(input.trim().toLowerCase()) : null;
+	}
+
+	public static Set<String> parseForSearch(Set<String> values) {
+
+		Set<String> parsedForSearchValues = new HashSet<>();
+
+		if (values != null) {
+			for (String value : values) {
+				if (value != null) {
+					parsedForSearchValues.add(parseForSearch(value));
+				}
+			}
+		}
+
+		return parsedForSearchValues;
 	}
 
 	/**

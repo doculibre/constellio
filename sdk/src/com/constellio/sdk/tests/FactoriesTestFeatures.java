@@ -464,7 +464,7 @@ public class FactoriesTestFeatures {
 			@Override
 			public ConstellioFactories get() {
 				ConstellioFactories instance = ConstellioFactories.buildFor(finalPropertyFile, finalDecorator, name);
-				LeaderElectionManager electionService = instance.getDataLayerFactory().getLeaderElectionService();
+				LeaderElectionManager electionService = instance.getDataLayerFactory().getLeaderElectionService().getNestedLeaderElectionManager();
 				if (electionService instanceof StandaloneLeaderElectionManager) {
 					((StandaloneLeaderElectionManager) electionService).setLeader(DEFAULT_NAME.equals(name));
 				}

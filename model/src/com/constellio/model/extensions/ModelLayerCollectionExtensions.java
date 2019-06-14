@@ -256,7 +256,7 @@ public class ModelLayerCollectionExtensions {
 		for (RecordExtension extension : recordExtensions.getExtensions()) {
 			ValidationErrors validationErrors = extension.validateLogicallyDeletable(event);
 			if (validationErrors != null && !validationErrors.isEmpty()) {
-				return extension.validateLogicallyDeletable(event);
+				return validationErrors;
 			}
 		}
 		return new ValidationErrors();

@@ -60,7 +60,7 @@ public class DefaultConnectorEventObserver implements ConnectorEventObserver {
 		ESConfigs esConfigs = new ESConfigs(es.getModelLayerFactory());
 		BulkRecordTransactionHandlerOptions options = new BulkRecordTransactionHandlerOptions()
 				.showProgressionInConsole(false)
-				.withRecordsPerBatch(esConfigs.getConnectorNumberOfRecordsPerBatch()).withNumberOfThreads(esConfigs.getConnectorNumberOfThreads());
+				.withRecordsPerBatch(esConfigs.getConnectorNumberOfRecordsPerBatch()).withNumberOfThreads(esConfigs.getConnectorNumberOfThreads()).setContinueOnExceptions(true);
 		options.getTransactionOptions().setUnicityValidationsEnabled(false);
 		this.handler = new BulkRecordTransactionHandler(es.getRecordServices(), resourceName, options);
 		this.mappingService = new ConnectorMappingService(es);
@@ -249,11 +249,16 @@ public class DefaultConnectorEventObserver implements ConnectorEventObserver {
 	}
 
 	@Override
-	public void flush() {
+	public void flush() throws InterruptedException {
 		handler.pushCurrent();
-		handler.barrier();
-		es.getRecordServices().flush();
-		saveNewDeclaredFields();
+		try {
+			handler.barrier();
+		} finally {
+
+
+			es.getRecordServices().flush();
+			saveNewDeclaredFields();
+		}
 	}
 
 	@Override

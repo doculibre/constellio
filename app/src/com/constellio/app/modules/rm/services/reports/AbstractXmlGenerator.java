@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.services.reports;
 
+import com.constellio.app.api.extensions.params.ExtraMetadataToGenerateOnReferenceParams;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleInRule;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -41,8 +42,10 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static java.util.Arrays.asList;
@@ -352,6 +355,7 @@ public abstract class AbstractXmlGenerator {
 		List<Element> listOfMetadataTags = new ArrayList<>();
 		Metadata metadataInSchema = recordSchema.getMetadata(metadata.getLocalCode());
 		String inheritedMetadataCode = metadataInSchema.getCode();
+		Map<String, String> valueByMetadata = new HashMap<>();
 		if (metadataInSchema.inheritDefaultSchema()) {
 			inheritedMetadataCode = metadataInSchema.getInheritance().getCode();
 		}
@@ -367,6 +371,7 @@ public abstract class AbstractXmlGenerator {
 			StringBuilder codeBuilder = new StringBuilder();
 			StringBuilder titleParentBuilder = new StringBuilder();
 			StringBuilder codeParentBuilder = new StringBuilder();
+
 			for (Record recordReferenced : listOfRecordReferencedByMetadata) {
 				if (titleBuilder.length() > 0) {
 					titleBuilder.append(", ");
@@ -399,7 +404,12 @@ public abstract class AbstractXmlGenerator {
 
 					}
 				}
+
+				// The return value is pass as a parameter (ref_out) valueByMetadata.
+				factory.getExtensions().forCollection(collection)
+						.getExtraMetadataToGenerateOnAReference(new ExtraMetadataToGenerateOnReferenceParams(recordReferenced, valueByMetadata));
 			}
+
 
 			String elementNamePrefix = REFERENCE_PREFIX + inheritedMetadataCode.replace("_default_", "_");
 			listOfMetadataTags.addAll(asList(
@@ -408,6 +418,15 @@ public abstract class AbstractXmlGenerator {
 					new Element(elementNamePrefix + "_title", namespace).setText(titleBuilder.toString())
 							.setAttribute("label", elementNamePrefix + "_title")
 			));
+
+			if (valueByMetadata.keySet().size() > 0) {
+				for (String metadataLocalCode : valueByMetadata.keySet()) {
+					if (StringUtils.isNotBlank(valueByMetadata.get(metadataLocalCode))) {
+						listOfMetadataTags.add(new Element(elementNamePrefix + "_" + metadataLocalCode, namespace).setText(valueByMetadata.get(metadataLocalCode)));
+					}
+				}
+			}
+
 			if (codeParentBuilder.length() > 0 && titleParentBuilder.length() > 0) {
 				listOfMetadataTags.addAll(asList(
 						new Element(elementNamePrefix + PARENT_SUFFIX + "_code", namespace).setText(codeParentBuilder.toString()),

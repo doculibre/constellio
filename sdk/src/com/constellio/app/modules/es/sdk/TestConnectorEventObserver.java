@@ -121,7 +121,11 @@ public class TestConnectorEventObserver implements ConnectorEventObserver {
 
 	@Override
 	public void flush() {
-		nestedObserver.flush();
+		try {
+			nestedObserver.flush();
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	public List<TestConnectorEvent> newEvents() {

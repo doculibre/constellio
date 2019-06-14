@@ -1,11 +1,7 @@
 package com.constellio.app.modules.rm.ui.pages.decommissioning;
 
 import com.constellio.app.modules.rm.navigation.RMViews;
-import com.constellio.app.modules.rm.ui.components.decommissioning.ContainerDetailTableGenerator;
-import com.constellio.app.modules.rm.ui.components.decommissioning.DecomApprobationRequestWindowButton;
-import com.constellio.app.modules.rm.ui.components.decommissioning.DecomValidationRequestWindowButton;
-import com.constellio.app.modules.rm.ui.components.decommissioning.FolderDetailTableGenerator;
-import com.constellio.app.modules.rm.ui.components.decommissioning.ValidationsGenerator;
+import com.constellio.app.modules.rm.ui.components.decommissioning.*;
 import com.constellio.app.modules.rm.ui.entities.ContainerVO;
 import com.constellio.app.modules.rm.ui.entities.FolderDetailVO;
 import com.constellio.app.modules.rm.ui.entities.FolderVO;
@@ -17,14 +13,7 @@ import com.constellio.app.modules.rm.wrappers.structures.DecomListValidation;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
-import com.constellio.app.ui.framework.buttons.AddButton;
-import com.constellio.app.ui.framework.buttons.BaseButton;
-import com.constellio.app.ui.framework.buttons.ConfirmDialogButton;
-import com.constellio.app.ui.framework.buttons.ContentButton;
-import com.constellio.app.ui.framework.buttons.DeleteButton;
-import com.constellio.app.ui.framework.buttons.EditButton;
-import com.constellio.app.ui.framework.buttons.LinkButton;
-import com.constellio.app.ui.framework.buttons.ReportButton;
+import com.constellio.app.ui.framework.buttons.*;
 import com.constellio.app.ui.framework.buttons.SIPButton.SIPButtonImpl;
 import com.constellio.app.ui.framework.buttons.SelectDeselectAllButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
@@ -36,7 +25,6 @@ import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.components.fields.comment.RecordCommentsEditorImpl;
 import com.constellio.app.ui.framework.components.table.BaseTable;
-import com.constellio.app.ui.framework.reports.ReportWithCaptionVO;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.util.SchemaCaptionUtils;
 import com.vaadin.data.Container;
@@ -48,8 +36,7 @@ import com.vaadin.data.util.BeanItem;
 import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.data.util.DefaultItemSorter;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
-import com.vaadin.ui.Alignment;
-import com.vaadin.ui.Button;
+import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.CheckBox;
@@ -72,6 +59,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.*;
 
 import static com.constellio.app.modules.rm.ui.components.decommissioning.FolderDetailTableGenerator.CHECKBOX;
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -541,8 +529,8 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 	}
 
 	private Button buildPrintButton() {
-		ReportButton button = new ReportButton(new ReportWithCaptionVO("Reports.DecommissioningList", $("Reports.DecommissioningList")), presenter);
-		button.setCaption($("DecommissioningListView.print"));
+		DecommissioningListReportButton button = new DecommissioningListReportButton(presenter);
+        button.setCaption($("DecommissioningListView.print"));
 		button.addStyleName(ValoTheme.BUTTON_LINK);
 		return button;
 	}
@@ -795,7 +783,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 	}
 
 	private BaseTable buildFolderTable(List<FolderDetailVO> folders, boolean containerizable) {
-		BeanItemContainer<FolderDetailVO> container = new BeanItemContainer<FolderDetailVO>(FolderDetailVO.class, folders) {
+		RefreshableBeanItemContainer<FolderDetailVO> container = new RefreshableBeanItemContainer<FolderDetailVO>(FolderDetailVO.class, folders) {
 			@Override
 			protected Collection<?> getSortablePropertyIds() {
 				List<Object> sortablePropertyIds = new ArrayList<>(super.getSortablePropertyIds());
@@ -847,22 +835,28 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 	private void deselectAllFolders(BaseTable foldersTable) {
 		Collection<?> itemIds = foldersTable.getItemIds();
 		for (Object itemId : itemIds) {
-			FolderDetailTableGenerator folderDetailTableGenerator = (FolderDetailTableGenerator) foldersTable.getColumnGenerator(CHECKBOX);
-			Component checkBoxProperty = folderDetailTableGenerator.getCheckBox((FolderDetailVO) itemId);
-			if (checkBoxProperty != null) {
-				(((CheckBox) checkBoxProperty)).setValue(false);
-			}
+			((FolderDetailVO) itemId).setSelected(true);
+		}
+
+		Container container = foldersTable.getContainerDataSource();
+		if(container instanceof RefreshableBeanItemContainer) {
+			((RefreshableBeanItemContainer) container).fireContainerPropertySetChange();
+		} else {
+			foldersTable.refreshRowCache();
 		}
 	}
 
 	private void selectAllFolders(BaseTable foldersTable) {
 		Collection<?> itemIds = foldersTable.getItemIds();
 		for (Object itemId : itemIds) {
-			FolderDetailTableGenerator folderDetailTableGenerator = (FolderDetailTableGenerator) foldersTable.getColumnGenerator(CHECKBOX);
-			Component checkBoxProperty = folderDetailTableGenerator.getCheckBox((FolderDetailVO) itemId);
-			if (checkBoxProperty != null) {
-				(((CheckBox) checkBoxProperty)).setValue(true);
-			}
+			((FolderDetailVO) itemId).setSelected(true);
+		}
+
+		Container container = foldersTable.getContainerDataSource();
+		if(container instanceof RefreshableBeanItemContainer) {
+			((RefreshableBeanItemContainer) container).fireContainerPropertySetChange();
+		} else {
+			foldersTable.refreshRowCache();
 		}
 	}
 
@@ -997,11 +991,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 		Button excludeButton = new LinkButton($("DecommissioningListView.excludeButton")) {
 			@Override
 			public void buttonClick(ClickEvent event) {
-				for (FolderDetailVO folder : folders) {
-					if (folder.isSelected()) {
-						presenter.setValidationStatus(folder, false);
-					}
-				}
+				presenter.setValidationStatusForSelectedFoldersAndRefreshView(folders, false);
 			}
 		};
 		return excludeButton;
@@ -1011,12 +1001,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 		Button includeButton = new LinkButton($("DecommissioningListView.includeButton")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
-				for (FolderDetailVO folder : folders) {
-					if (folder.isSelected()) {
-						presenter.removeFromContainer(folder);
-						presenter.setValidationStatus(folder, true);
-					}
-				}
+				presenter.setValidationStatusForSelectedFoldersAndRefreshView(folders, true);
 			}
 
 		};
@@ -1223,5 +1208,25 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 			return new Label(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(contentVersionVO.getLastModificationDateTime()));
 		}
 
+	}
+
+	public class RefreshableBeanItemContainer<BEANTYPE> extends BeanItemContainer {
+
+		public RefreshableBeanItemContainer(Class type) throws IllegalArgumentException {
+			super(type);
+		}
+
+		public RefreshableBeanItemContainer(Collection collection) throws IllegalArgumentException {
+			super(collection);
+		}
+
+		public RefreshableBeanItemContainer(Class type, Collection collection) throws IllegalArgumentException {
+			super(type, collection);
+		}
+
+		@Override
+		public void fireContainerPropertySetChange() {
+			super.fireContainerPropertySetChange();
+		}
 	}
 }

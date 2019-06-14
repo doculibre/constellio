@@ -61,11 +61,13 @@ import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
+import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.EmailToSend;
 import com.constellio.model.entities.records.wrappers.User;
@@ -79,6 +81,9 @@ import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.contents.ContentFactory;
+import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.contents.ContentManager.UploadOptions;
+import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.contents.icap.IcapException;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
@@ -86,6 +91,7 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.StatusFilter;
+import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.FunctionLogicalSearchQuerySort;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
@@ -126,6 +132,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	private MetadataSchemaToVOBuilder schemaVOBuilder = new MetadataSchemaToVOBuilder();
 	private FolderToVOBuilder folderVOBuilder;
 	private DocumentToVOBuilder documentVOBuilder;
+	private List<String> documentsTitle;
 
 	private FolderVO folderVO;
 
@@ -569,7 +576,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	private ComponentState getAuthorizationButtonState(User user, Folder folder) {
-		return ComponentState.visibleIf(user.has(RMPermissionsTo.MANAGE_FOLDER_AUTHORIZATIONS).on(folder));
+		return ComponentState.visibleIf(user.has(RMPermissionsTo.MANAGE_FOLDER_AUTHORIZATIONS).on(folder) && user.hasWriteAndDeleteAccess().on(folder));
 	}
 
 	ComponentState getShareButtonState(User user, Folder folder) {
@@ -876,6 +883,31 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		return new RMSchemasRecordsServices(getCurrentUser().getCollection(), appLayerFactory);
 	}
 
+	private boolean documentExists(String fileName) {
+		List<String> allDocumentTitles = getAllDocumentTitles();
+		return allDocumentTitles.contains(fileName);
+	}
+
+	private List<String> getAllDocumentTitles() {
+		if(documentsTitle != null) {
+			return documentsTitle;
+		} else {
+			//TODO replace with SearchServices.stream in Constellio 9.0
+			documentsTitle = new ArrayList<>();
+			RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+			LogicalSearchQuery query = new LogicalSearchQuery()
+					.setCondition(from(rm.document.schemaType()).where(rm.document.folder()).is(folderVO.getId()))
+					.filteredByStatus(StatusFilter.ACTIVES)
+					.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(Schemas.TITLE));
+
+			List<Record> documents = modelLayerFactory.newSearchServices().search(query);
+			for(Record document: documents) {
+				documentsTitle.add(document.getId());
+			}
+			return documentsTitle;
+		}
+	}
+
 	private SearchResponseIterator<Record> getExistingDocumentInCurrentFolder(String fileName) {
 		Record record = getRecord(folderVO.getId());
 
@@ -909,10 +941,10 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 					RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 					LogicalSearchQuery duplicateDocumentsQuery = new LogicalSearchQuery()
 							.setCondition(LogicalSearchQueryOperators.from(rm.documentSchemaType())
-									.where(rm.document.content()).is(ContentFactory.isHash(uploadedContentVO.getDuplicatedHash()))
-									.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()
-							)
-							.filteredWithUser(getCurrentUser());
+									.where(rm.document.contentHashes()).isEqualTo(uploadedContentVO.getDuplicatedHash())
+							).filteredByStatus(StatusFilter.ACTIVES)
+							.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(Schemas.IDENTIFIER, Schemas.TITLE))
+							.setNumberOfRows(100).filteredWithUser(getCurrentUser());
 					List<Document> duplicateDocuments = rm.searchDocuments(duplicateDocumentsQuery);
 					if (duplicateDocuments.size() > 0) {
 						StringBuilder message = new StringBuilder(
@@ -928,32 +960,33 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 					}
 				}
 				uploadedContentVO.setMajorVersion(true);
-				Record newRecord;
+				Document document;
 				if (rmSchemasRecordsServices().isEmail(fileName)) {
 					InputStreamProvider inputStreamProvider = uploadedContentVO.getInputStreamProvider();
 					InputStream in = inputStreamProvider.getInputStream(DisplayFolderPresenter.class + ".contentVersionUploaded");
-					Document document = rmSchemasRecordsServices.newEmail(fileName, in);
-					newRecord = document.getWrappedRecord();
+					document = rmSchemasRecordsServices.newEmail(fileName, in);
 				} else {
-					Document document = rmSchemasRecordsServices.newDocument();
-					newRecord = document.getWrappedRecord();
+					document = rmSchemasRecordsServices.newDocument();
 				}
-				DocumentVO documentVO = documentVOBuilder.build(newRecord, VIEW_MODE.FORM, view.getSessionContext());
-				documentVO.setFolder(folderVO);
-				documentVO.setTitle(fileName);
-				documentVO.setContent(uploadedContentVO);
-
-				String schemaCode = newRecord.getSchemaCode();
-				ConstellioFactories constellioFactories = view.getConstellioFactories();
-				SessionContext sessionContext = view.getSessionContext();
-				SchemaPresenterUtils documentPresenterUtils = new SchemaPresenterUtils(schemaCode, constellioFactories,
-						sessionContext);
-				newRecord = documentPresenterUtils.toRecord(documentVO);
-
-				documentPresenterUtils.addOrUpdate(newRecord);
-				documentsDataProvider.fireDataRefreshEvent();
-				view.refreshFolderContentTab();
-				//				view.selectFolderContentTab();
+				document.setFolder(folderVO.getId());
+				document.setTitle(fileName);
+				InputStream inputStream = null;
+				ContentVersionDataSummary contentVersionDataSummary;
+				try {
+					inputStream = uploadedContentVO.getInputStreamProvider().getInputStream("SchemaPresenterUtils-VersionInputStream");
+					UploadOptions options = new UploadOptions().setFileName(fileName);
+					ContentManager.ContentVersionDataSummaryResponse uploadResponse = uploadContent(inputStream, options);
+					contentVersionDataSummary = uploadResponse.getContentVersionDataSummary();
+					document.setContent(appLayerFactory.getModelLayerFactory().getContentManager().createMajor(getCurrentUser(), fileName, contentVersionDataSummary));
+					Transaction transaction = new Transaction();
+					transaction.add(document);
+					transaction.setUser(getCurrentUser());
+					appLayerFactory.getModelLayerFactory().newRecordServices().executeWithoutImpactHandling(transaction);
+					documentsTitle.add(document.getTitle());
+				} finally {
+					IOServices ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();
+					ioServices.closeQuietly(inputStream);
+				}
 			} catch (final IcapException e) {
 				view.showErrorMessage(e.getMessage());
 			} catch (Exception e) {
@@ -1180,7 +1213,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			Folder folder = rmSchemasRecordsServices.wrapFolder(folderVO.getRecord());
 			folder.addFavorite(cart.getId());
 			try {
-				recordServices().update(folder);
+				recordServices().update(folder.getWrappedRecord(), RecordUpdateOptions.validationExceptionSafeOptions());
 				view.showMessage($("DisplayFolderView.addedToCart"));
 			} catch (RecordServicesException e) {
 				e.printStackTrace();
@@ -1238,7 +1271,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		try {
 			folder.addFavorite(cart.getId());
 			recordServices().execute(new Transaction(cart.getWrappedRecord()).setUser(getCurrentUser()));
-			recordServices().update(folder);
+			recordServices().update(folder.getWrappedRecord(), RecordUpdateOptions.validationExceptionSafeOptions());
 			view.showMessage($("DisplayFolderView.addedToCart"));
 		} catch (RecordServicesException e) {
 			e.printStackTrace();
@@ -1401,12 +1434,12 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			Folder folder = rmSchemasRecordsServices.wrapFolder(folderVO.getRecord());
 			folder.addFavorite(getCurrentUser().getId());
 			try {
-				recordServices.update(folder);
+				recordServices().update(folder.getWrappedRecord(), RecordUpdateOptions.validationExceptionSafeOptions());
+				view.showMessage($("DisplayFolderViewImpl.folderAddedToDefaultFavorites"));
 			} catch (RecordServicesException e) {
 				e.printStackTrace();
 				throw new RuntimeException(e);
 			}
-			view.showMessage($("DisplayFolderViewImpl.folderAddedToDefaultFavorites"));
 		}
 	}
 
@@ -1435,6 +1468,11 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 	public boolean isNeedingAReasonToDeleteFolder() {
 		return new RMConfigs(modelLayerFactory.getSystemConfigurationsManager()).isNeedingAReasonBeforeDeletingFolders();
+	}
+
+	public void refreshDocuments() {
+		documentsDataProvider.fireDataRefreshEvent();
+		view.refreshFolderContentTab();
 	}
 
 	public List<Cart> getOwnedCarts() {

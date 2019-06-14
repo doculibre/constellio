@@ -9,6 +9,10 @@ public enum MetadataValueType {
 		return this == TEXT || this == STRING;
 	}
 
+	public boolean isDateOrDateTime() {
+		return this == DATE || this == DATE_TIME;
+	}
+
 	public boolean isStructureOrContent() {
 		return this == STRUCTURE || this == CONTENT;
 	}

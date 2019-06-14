@@ -1,6 +1,7 @@
 package com.constellio.data.threads;
 
 import com.constellio.data.dao.services.factories.DataLayerFactory;
+import com.constellio.data.dao.services.leaderElection.ObservableLeaderElectionManager;
 import com.constellio.data.dao.services.leaderElection.StandaloneLeaderElectionManager;
 import com.constellio.sdk.tests.ConstellioTest;
 import org.joda.time.Duration;
@@ -43,7 +44,8 @@ public class BackgroundThreadCommandUnitTest extends ConstellioTest {
 		configuration = spy(
 				BackgroundThreadConfiguration.repeatingAction(zeId, nestedCommand).executedEvery(Duration.standardSeconds(42)));
 
-		when(dataLayerFactory.getLeaderElectionService()).thenReturn(new StandaloneLeaderElectionManager());
+		ObservableLeaderElectionManager leaderElectionManager = new ObservableLeaderElectionManager(new StandaloneLeaderElectionManager());
+		when(dataLayerFactory.getLeaderElectionService()).thenReturn(leaderElectionManager);
 
 		command = spy(
 				new BackgroundThreadCommand(configuration, systemStarted, stopRequested, new Semaphore(10), dataLayerFactory));

@@ -11,7 +11,6 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.ThesaurusConfig;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.logging.SearchEventServices;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
@@ -23,9 +22,13 @@ import org.apache.tika.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.xml.bind.DatatypeConverter;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.DigestInputStream;
+import java.security.MessageDigest;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,7 +41,8 @@ public class ThesaurusManager implements StatefulService, EventBusListener {
 	private SearchServices searchServices;
 	private RecordServices recordServices;
 
-	private Map<String, ThesaurusService> cache;
+	private Map<String, ThesaurusService> thesaurusServiceByChecksumCache;
+	private Map<String, ThesaurusService> thesaurusServiceByCollectionCache;
 	private EventBus eventBus;
 	private ModelLayerFactory modelLayerFactory;
 	private static final Logger LOGGER = LoggerFactory.getLogger(ThesaurusManager.class);
@@ -52,7 +56,8 @@ public class ThesaurusManager implements StatefulService, EventBusListener {
 		this.eventBus.register(this);
 
 		ConstellioCacheManager recordsCacheManager = this.modelLayerFactory.getDataLayerFactory().getDistributedCacheManager();
-		cache = new HashMap<>();
+		thesaurusServiceByCollectionCache = new HashMap<>();
+		thesaurusServiceByChecksumCache = new HashMap<>();
 
 		collectionsListManager = this.modelLayerFactory.getCollectionsListManager();
 		searchServices = this.modelLayerFactory.newSearchServices();
@@ -66,7 +71,7 @@ public class ThesaurusManager implements StatefulService, EventBusListener {
 	 * @return
 	 */
 	public  ThesaurusService get(String collection) {
-		return cache.get(collection);
+		return thesaurusServiceByCollectionCache.get(collection);
 	}
 
 	/**
@@ -118,8 +123,7 @@ public class ThesaurusManager implements StatefulService, EventBusListener {
 					if (thesaurusService != null) {
 						LOGGER.info("ThesaurusService initialized for collection : " + collection);
 						thesaurusService.setDeniedTerms(thesaurusConfig.getDenidedWords());
-						thesaurusService.setSearchEventServices(new SearchEventServices(collection, modelLayerFactory));
-						cache.put(collection, thesaurusService);
+						thesaurusServiceByCollectionCache.put(collection, thesaurusService);
 					}
 				}
 			}
@@ -130,21 +134,12 @@ public class ThesaurusManager implements StatefulService, EventBusListener {
 
 		InputStream thesaurusFile = null;
 
-		// getting Thesaurus file
-
 		try {
 			thesaurusFile = modelLayerFactory.getContentManager().getContentDao()
 					.getContentInputStream(thesaurusConfig.getContent().getCurrentVersion().getHash(), FILE_INPUT_STREAM_NAME);
-		} catch (NullPointerException | ContentDaoException.ContentDaoException_NoSuchContent contentDaoException_noSuchContent) {
-			// La voute ne contient pas le fichier.
+		} catch (NullPointerException | ContentDaoException.ContentDaoException_NoSuchContent e) {
+			LOGGER.error("Failed to get thesaurus service", e);
 			thesaurusFile = IOUtils.toInputStream("");
-			thesaurusConfig.setContent(null);
-			try {
-				recordServices.update(thesaurusConfig);
-				new RuntimeException("Error while updating thesaurus config. Id:" + thesaurusConfig.getId());
-			} catch (RecordServicesException e) {
-			}
-			new RuntimeException("Invalid Thesaurus file content in DAO.");
 		}
 
 		return thesaurusFile;
@@ -166,13 +161,27 @@ public class ThesaurusManager implements StatefulService, EventBusListener {
 
 	private ThesaurusService getThesaurusService(InputStream thesaurusFile) {
 		ThesaurusService thesaurusService = null;
-
 		try {
-			thesaurusService = ThesaurusServiceBuilder.getThesaurus(thesaurusFile);
-		} catch (ThesaurusInvalidFileFormat thesaurusInvalidFileFormat) {
-			new RuntimeException("Invalid Thesaurus file format.");
-		}
+			DigestInputStream dis = new DigestInputStream(thesaurusFile, MessageDigest.getInstance("SHA-1"));
+			ByteArrayOutputStream bos = new ByteArrayOutputStream();
+			IOUtils.copy(dis, bos);
 
+			String hash = DatatypeConverter.printBase64Binary(dis.getMessageDigest().digest());
+			dis.close();
+
+			if (thesaurusServiceByChecksumCache.containsKey(hash)) {
+				return thesaurusServiceByChecksumCache.get(hash);
+			}
+
+			thesaurusService =
+					ThesaurusServiceBuilder.getThesaurus(new ByteArrayInputStream(bos.toByteArray()));
+
+			thesaurusServiceByChecksumCache.put(hash, thesaurusService);
+
+			return thesaurusService;
+		} catch (Exception e) {
+			LOGGER.error("Failed to get thesaurus service", e);
+		}
 		return thesaurusService;
 	}
 
@@ -190,8 +199,7 @@ public class ThesaurusManager implements StatefulService, EventBusListener {
 				byte[] thesaurusBytes = event.getData("bytes");
 
 				ThesaurusService thesaurusService = getThesaurusService(new ByteArrayInputStream(thesaurusBytes));
-				thesaurusService.setSearchEventServices(new SearchEventServices(collection, modelLayerFactory));
-				cache.put(collection, thesaurusService);
+				thesaurusServiceByCollectionCache.put(collection, thesaurusService);
 				break;
 		}
 	}

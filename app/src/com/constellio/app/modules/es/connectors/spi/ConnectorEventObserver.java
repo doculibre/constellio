@@ -29,7 +29,7 @@ public interface ConnectorEventObserver {
 
 	public void close();
 
-	public void flush();
+	public void flush() throws InterruptedException;
 
 	public void cleanup();
 

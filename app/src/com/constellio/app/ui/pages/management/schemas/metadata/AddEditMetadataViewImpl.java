@@ -627,11 +627,6 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 					formMetadataVO.setReadAccessRoles(new ArrayList<String>());
 				}
 
-				if(presenter.isAccessRoleAndRequired(formMetadataVO)) {
-					showErrorMessage($("AddEditMetadataView.requiredMetadataCannotBeSecureByRole"));
-					return;
-				}
-
 				try {
 					labelsField.validateFields();
 				} catch (InvalidValueException e) {

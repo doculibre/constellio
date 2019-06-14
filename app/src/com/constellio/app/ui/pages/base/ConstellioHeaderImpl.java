@@ -51,43 +51,22 @@ import com.vaadin.event.MouseEvents;
 import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
-import com.vaadin.server.FontAwesome;
-import com.vaadin.server.Page;
-import com.vaadin.server.Resource;
-import com.vaadin.server.Responsive;
-import com.vaadin.server.ThemeResource;
+import com.vaadin.server.*;
 import com.vaadin.shared.MouseEventDetails.MouseButton;
 import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
-import com.vaadin.ui.Alignment;
-import com.vaadin.ui.Button;
+import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.ComboBox;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Image;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.MenuBar;
 import com.vaadin.ui.MenuBar.Command;
 import com.vaadin.ui.MenuBar.MenuItem;
-import com.vaadin.ui.Panel;
 import com.vaadin.ui.PopupView.PopupVisibilityEvent;
 import com.vaadin.ui.PopupView.PopupVisibilityListener;
-import com.vaadin.ui.TabSheet;
-import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.ColumnHeaderMode;
-import com.vaadin.ui.UI;
-import com.vaadin.ui.VerticalLayout;
-import com.vaadin.ui.Window;
 import com.vaadin.ui.Window.CloseEvent;
 import com.vaadin.ui.Window.CloseListener;
 import com.vaadin.ui.themes.ValoTheme;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static java.util.Arrays.asList;
@@ -734,7 +713,7 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 	}
 
 	public Navigator getNavigator() {
-		return UI.getCurrent().getNavigator();
+		return ConstellioUI.getCurrent().getNavigator();
 	}
 
 	@Override
@@ -755,6 +734,13 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 	protected MenuBar buildCollectionMenu() {
 		MenuBar collectionMenu = new BaseMenuBar();
 		if (!collections.isEmpty()) {
+			ArrayList<String> sortedCollections = new ArrayList<>(collections);
+			Collections.sort(sortedCollections, new Comparator<String>() {
+				@Override
+				public int compare(String o1, String o2) {
+					return collectionCodeToLabelConverter.getCollectionCaption(o1).compareTo(collectionCodeToLabelConverter.getCollectionCaption(o2));
+				}
+			});
 			collectionMenu.setAutoOpen(true);
 			collectionMenu.addStyleName("header-collection-menu");
 
@@ -764,7 +750,7 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 			Page.getCurrent().setTitle(collectionLabel);
 
 			collectionSubMenu = collectionMenu.addItem("", FontAwesome.DATABASE, null);
-			for (final String collection : collections) {
+			for (final String collection : sortedCollections) {
 				if (!Collection.SYSTEM_COLLECTION.equals(collection)) {
 					String collectionCaption = collectionCodeToLabelConverter.getCollectionCaption(collection);
 					MenuItem collectionMenuItem = collectionSubMenu.addItem(collectionCaption, new Command() {
@@ -806,7 +792,7 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 			menuItems.put(navigationItem, menuItem);
 			updateMenuItem(navigationItem, menuItem);
 		}
-		ConstellioUI.getCurrent().getNavigator().addViewChangeListener(new ViewChangeListener() {
+		getNavigator().addViewChangeListener(new ViewChangeListener() {
 			@Override
 			public boolean beforeViewChange(ViewChangeEvent event) {
 				return true;
