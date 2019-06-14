@@ -86,7 +86,7 @@ public class ListFacetConfigurationPresenter extends BasePresenter<ListFacetConf
 				VIEW_MODE.TABLE, metadatas, view.getSessionContext());
 		return new RecordVODataProvider(facetDefaultVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				SchemasRecordsServices schemasRecords = new SchemasRecordsServices(collection, modelLayerFactory);
 				LogicalSearchQuery query = new LogicalSearchQuery();
 				query.setCondition(from(schemasRecords.facetSchemaType()).returnAll())

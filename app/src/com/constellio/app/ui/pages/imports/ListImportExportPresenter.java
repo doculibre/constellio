@@ -34,7 +34,7 @@ public class ListImportExportPresenter extends BasePresenter<ListImportExportVie
 		RecordVODataProvider dataProvider = new RecordVODataProvider(
 				schemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 
 				return new LogicalSearchQuery().setCondition(from(temporaryRecordSchemaType.getSchema(ImportAudit.SCHEMA))
 						.returnAll())
@@ -51,7 +51,7 @@ public class ListImportExportPresenter extends BasePresenter<ListImportExportVie
 		RecordVODataProvider dataProvider = new RecordVODataProvider(
 				schemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 
 				return new LogicalSearchQuery().setCondition(from(temporaryRecordSchemaType.getSchema(ExportAudit.SCHEMA))
 						.returnAll())

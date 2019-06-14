@@ -29,7 +29,11 @@ import com.constellio.app.modules.rm.ui.pages.decommissioning.breadcrumb.Decommi
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.modules.rm.util.DecommissionNavUtil;
 import com.constellio.app.modules.rm.util.RMNavigationUtils;
-import com.constellio.app.modules.rm.wrappers.*;
+import com.constellio.app.modules.rm.wrappers.Cart;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.modules.tasks.TasksPermissionsTo;
 import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflow;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
@@ -39,8 +43,12 @@ import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.Navigation;
-import com.constellio.app.ui.entities.*;
+import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.ContentVersionVO.InputStreamProvider;
+import com.constellio.app.ui.entities.FacetVO;
+import com.constellio.app.ui.entities.MetadataSchemaVO;
+import com.constellio.app.ui.entities.MetadataVO;
+import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.EventToVOBuilder;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
@@ -61,12 +69,20 @@ import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
 import com.constellio.data.utils.KeySetMap;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.CorePermissions;
-import com.constellio.model.entities.records.*;
+import com.constellio.model.entities.records.Content;
+import com.constellio.model.entities.records.ContentVersion;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.RecordUpdateOptions;
+import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.EmailToSend;
 import com.constellio.model.entities.records.wrappers.Facet;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.structure.FacetType;
-import com.constellio.model.entities.schemas.*;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.structures.EmailAddress;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.frameworks.validation.ValidationErrors;
@@ -82,7 +98,12 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.StatusFilter;
-import com.constellio.model.services.search.query.logical.*;
+import com.constellio.model.services.search.query.logical.FunctionLogicalSearchQuerySort;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryFacetFilters;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuerySort;
+import com.constellio.model.services.search.query.logical.ScoreLogicalSearchQuerySort;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.security.AuthorizationsServices;
 import org.apache.commons.lang3.StringUtils;
@@ -93,8 +114,15 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import static com.constellio.app.modules.tasks.model.wrappers.Task.STARRED_BY_USERS;
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -233,7 +261,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		voBuilders.put(documentsSchemaVO.getCode(), documentVOBuilder);
 		folderContentDataProvider = new RecordVODataProvider(Arrays.asList(foldersSchemaVO, documentsSchemaVO), voBuilders, modelLayerFactory, view.getSessionContext()) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				return getFolderContentQuery();
 			}
 		};
@@ -249,7 +277,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		tasksDataProvider = new RecordVODataProvider(
 				tasksSchemaVO, folderVOBuilder, modelLayerFactory, view.getSessionContext()) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				LogicalSearchQuery query = getTasksQuery();
 				addStarredSortToQuery(query);
 				query.sortDesc(Schemas.MODIFIED_ON);
@@ -465,7 +493,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 		return new RecordVODataProvider(schemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				return new BetaWorkflowServices(view.getCollection(), appLayerFactory).getWorkflowsQuery();
 			}
 		};
@@ -1257,7 +1285,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 				.build(rmSchemasRecordsServices.cartSchema(), VIEW_MODE.TABLE, view.getSessionContext());
 		return new RecordVODataProvider(cartSchemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				return new LogicalSearchQuery(
 						from(rmSchemasRecordsServices.cartSchema()).where(rmSchemasRecordsServices.cartOwner())
 								.isEqualTo(getCurrentUser().getId())).sortAsc(Schemas.TITLE);
@@ -1270,7 +1298,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 				.build(rmSchemasRecordsServices.cartSchema(), VIEW_MODE.TABLE, view.getSessionContext());
 		return new RecordVODataProvider(cartSchemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				return new LogicalSearchQuery(
 						from(rmSchemasRecordsServices.cartSchema()).where(rmSchemasRecordsServices.cartSharedWithUsers())
 								.isContaining(asList(getCurrentUser().getId()))).sortAsc(Schemas.TITLE);
@@ -1314,7 +1342,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 				.build(rmSchemasRecordsServices.eventSchema(), VIEW_MODE.TABLE, view.getSessionContext());
 		return new RecordVODataProvider(eventSchemaVO, new EventToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				RMEventsSearchServices rmEventsSearchServices = new RMEventsSearchServices(modelLayerFactory, collection);
 				return rmEventsSearchServices.newFindEventByRecordIDQuery(getCurrentUser(), folderVO.getId());
 			}

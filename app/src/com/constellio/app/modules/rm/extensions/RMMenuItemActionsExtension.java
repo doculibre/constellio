@@ -6,15 +6,18 @@ import com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices;
 import com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices;
 import com.constellio.app.modules.rm.services.menu.FolderMenuItemServices;
 import com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices;
+import com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.menu.MenuItemAction;
 import com.constellio.app.services.menu.MenuItemActionState;
+import com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
 import java.util.List;
 
@@ -64,36 +67,71 @@ public class RMMenuItemActionsExtension extends MenuItemActionsExtension {
 		List<String> filteredActionTypes = params.getFilteredActionTypes();
 		MenuItemActionBehaviorParams behaviorParams = params.getBehaviorParams();
 
-		if (records.stream().anyMatch(
-				r -> r.isOfSchemaType(Document.SCHEMA_TYPE) || r.isOfSchemaType(Folder.SCHEMA_TYPE) ||
-					 r.isOfSchemaType(ContainerRecord.SCHEMA_TYPE))) {
-			menuItemActions.addAll(rmRecordsMenuItemServices.getActionsForRecords(records, user,
-					filteredActionTypes, behaviorParams));
-		}
+		menuItemActions.addAll(rmRecordsMenuItemServices.getActionsForRecords(records, user,
+				filteredActionTypes, behaviorParams));
+	}
+
+	@Override
+	public void addMenuItemActionsForQuery(MenuItemActionExtensionAddMenuItemActionsForQueryParams params) {
+		LogicalSearchQuery query = params.getQuery();
+		User user = params.getBehaviorParams().getUser();
+		List<MenuItemAction> menuItemActions = params.getMenuItemActions();
+		List<String> filteredActionTypes = params.getFilteredActionTypes();
+		MenuItemActionBehaviorParams behaviorParams = params.getBehaviorParams();
+
+		menuItemActions.addAll(
+				rmRecordsMenuItemServices.getActionsForQuery(query, user, filteredActionTypes, behaviorParams));
 	}
 
 	@Override
 	public MenuItemActionState getActionStateForRecord(MenuItemActionExtensionGetActionStateForRecordParams params) {
 		Record record = params.getRecord();
 		User user = params.getBehaviorParams().getUser();
-		MenuItemAction action = params.getMenuItemAction();
+		String actionType = params.getMenuItemActionType();
 		MenuItemActionBehaviorParams behaviorParams = params.getBehaviorParams();
 
 		if (record.isOfSchemaType(Folder.SCHEMA_TYPE)) {
-			return toState(folderMenuItemServices.isMenuItemActionPossible(action.getType(), rm.wrapFolder(record),
-					user, behaviorParams), null);
+			return toState(folderMenuItemServices.isMenuItemActionPossible(actionType, rm.wrapFolder(record),
+					user, behaviorParams));
 		} else if (record.isOfSchemaType(Document.SCHEMA_TYPE)) {
-			return toState(documentMenuItemServices.isMenuItemActionPossible(action.getType(), rm.wrapDocument(record),
-					user, behaviorParams), null);
+			return toState(documentMenuItemServices.isMenuItemActionPossible(actionType, rm.wrapDocument(record),
+					user, behaviorParams));
 		} else if (record.isOfSchemaType(ContainerRecord.SCHEMA_TYPE)) {
-			return toState(containerMenuItemServices.isMenuItemActionPossible(action.getType(),
-					rm.wrapContainerRecord(record), user, behaviorParams), null);
+			return toState(containerMenuItemServices.isMenuItemActionPossible(actionType,
+					rm.wrapContainerRecord(record), user, behaviorParams));
 		}
 		return null;
 	}
 
-	private MenuItemActionState toState(boolean possible, String reason) {
-		return possible ? MenuItemActionState.VISIBLE :
-			   (reason != null ? MenuItemActionState.DISABLED : MenuItemActionState.HIDDEN);
+	@Override
+	public MenuItemActionState getActionStateForRecords(MenuItemActionExtensionGetActionStateForRecordsParams params) {
+		List<Record> records = params.getRecords();
+		User user = params.getBehaviorParams().getUser();
+		String actionType = params.getMenuItemActionType();
+		MenuItemActionBehaviorParams behaviorParams = params.getBehaviorParams();
+
+		if (RMRecordsMenuItemActionType.contains(actionType)) {
+			return rmRecordsMenuItemServices.getMenuItemActionStateForRecords(
+					RMRecordsMenuItemActionType.valueOf(actionType), records, user, behaviorParams);
+		}
+		return null;
+	}
+
+	@Override
+	public MenuItemActionState getActionStateForQuery(MenuItemActionExtensionGetActionStateForQueryParams params) {
+		LogicalSearchQuery query = params.getQuery();
+		User user = params.getBehaviorParams().getUser();
+		String actionType = params.getMenuItemActionType();
+		MenuItemActionBehaviorParams behaviorParams = params.getBehaviorParams();
+
+		if (RMRecordsMenuItemActionType.contains(actionType)) {
+			return rmRecordsMenuItemServices.getMenuItemActionStateForQuery(
+					RMRecordsMenuItemActionType.valueOf(actionType), query, user, behaviorParams);
+		}
+		return null;
+	}
+
+	private MenuItemActionState toState(boolean possible) {
+		return new MenuItemActionState(possible ? MenuItemActionStateStatus.VISIBLE : MenuItemActionStateStatus.HIDDEN);
 	}
 }

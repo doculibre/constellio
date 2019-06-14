@@ -281,7 +281,7 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 		query.clearSort();
 	}
 
-	protected abstract LogicalSearchQuery getQuery();
+	public abstract LogicalSearchQuery getQuery();
 
 	public void setBatchSize(int batchSize) {
 		this.batchSize = batchSize;

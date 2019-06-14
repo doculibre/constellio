@@ -37,7 +37,7 @@ public class ContainersInFilingSpacePresenter extends BasePresenter<ContainersIn
 				.build(schema(ContainerRecord.DEFAULT_SCHEMA), VIEW_MODE.TABLE);
 		RecordVODataProvider dataProvider = new RecordVODataProvider(schemaVO, new RecordToVOBuilder(), modelLayerFactory) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				DecommissioningSearchConditionFactory conditionFactory = new DecommissioningSearchConditionFactory(
 						view.getCollection(), appLayerFactory);
 				ContainerSearchParameters parameters = new ContainerSearchParameters();

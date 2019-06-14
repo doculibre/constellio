@@ -78,7 +78,7 @@ public class AddEditLabelPresenter extends SingleSchemaBasePresenter<AddEditLabe
 					.build(modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchema(PrintableLabel.DEFAULT_SCHEMA), RecordVO.VIEW_MODE.TABLE, view.getSessionContext());
 			folderDataProvider = new RecordVODataProvider(labelSchemaVo, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 				@Override
-				protected LogicalSearchQuery getQuery() {
+				public LogicalSearchQuery getQuery() {
 					MetadataSchema schema = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchema(PrintableLabel.SCHEMA_NAME);
 					return new LogicalSearchQuery(
 							from(modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchema(PrintableLabel.SCHEMA_NAME))
@@ -95,7 +95,7 @@ public class AddEditLabelPresenter extends SingleSchemaBasePresenter<AddEditLabe
 					.build(modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchema(PrintableLabel.DEFAULT_SCHEMA), RecordVO.VIEW_MODE.TABLE, view.getSessionContext());
 			documentDataProvider = new RecordVODataProvider(labelSchemaVo, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 				@Override
-				protected LogicalSearchQuery getQuery() {
+				public LogicalSearchQuery getQuery() {
 					MetadataSchema schema = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchema(PrintableLabel.SCHEMA_NAME);
 					return new LogicalSearchQuery(
 							from(modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchema(PrintableLabel.SCHEMA_NAME))
@@ -112,7 +112,7 @@ public class AddEditLabelPresenter extends SingleSchemaBasePresenter<AddEditLabe
 					.build(modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchema(PrintableLabel.DEFAULT_SCHEMA), RecordVO.VIEW_MODE.TABLE, view.getSessionContext());
 			containerDataProvider = new RecordVODataProvider(labelSchemaVo, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 				@Override
-				protected LogicalSearchQuery getQuery() {
+				public LogicalSearchQuery getQuery() {
 					MetadataSchema schema = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchema(PrintableLabel.SCHEMA_NAME);
 					return new LogicalSearchQuery(
 							from(modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchema(PrintableLabel.SCHEMA_NAME))

@@ -184,7 +184,7 @@ public class AddEditFacetConfigurationPresenter extends BasePresenter<AddEditFac
 		dataProvider = new RecordVODataProvider(facetDefaultVO, new RecordToVOBuilder(), modelLayerFactory,
 				view.getSessionContext()) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				LogicalSearchQuery query = new LogicalSearchQuery();
 				OngoingLogicalSearchConditionWithDataStoreFields condition = from(schema(Facet.FIELD_SCHEMA))
 						.where(defaultSchema.get(Facet.FACET_TYPE));

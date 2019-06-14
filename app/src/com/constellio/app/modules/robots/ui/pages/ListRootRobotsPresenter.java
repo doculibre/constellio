@@ -26,7 +26,7 @@ public class ListRootRobotsPresenter extends BaseRobotPresenter<ListRootRobotsVi
 	public RecordVODataProvider getRootRobotsDataProvider() {
 		return new RecordVODataProvider(schemaVO, recordToVOBuilder, modelLayerFactory, view.getSessionContext()) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				return new LogicalSearchQuery(from(defaultSchema()).where(getMetadata(Robot.PARENT)).isNull())
 						.filteredByStatus(StatusFilter.ACTIVES).sortAsc(Schemas.TITLE);
 			}

@@ -311,7 +311,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 				schemaType(schemaTypeCode).getDefaultSchema(), RecordVO.VIEW_MODE.SEARCH, view.getSessionContext());
 		return new RecordVODataProvider(schemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				LogicalSearchQuery query = getSearchQuery().setHighlighting(highlighter).setOverridedQueryParams(extraSolrParams);
 				if (sortCriterion == null) {
 					if (StringUtils.isNotBlank(getUserSearchExpression())) {
@@ -496,7 +496,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 				.build(rm.cartSchema(), RecordVO.VIEW_MODE.TABLE, view.getSessionContext());
 		return new RecordVODataProvider(cartSchemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				return new LogicalSearchQuery(from(rm.cartSchema()).where(rm.cartOwner())
 						.isEqualTo(getCurrentUser().getId())).sortAsc(Schemas.TITLE);
 			}
@@ -510,7 +510,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 				.build(rm.cartSchema(), RecordVO.VIEW_MODE.TABLE, view.getSessionContext());
 		return new RecordVODataProvider(cartSchemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				return new LogicalSearchQuery(from(rm.cartSchema()).where(rm.cartSharedWithUsers())
 						.isContaining(Arrays.asList(getCurrentUser().getId()))).sortAsc(Schemas.TITLE);
 			}

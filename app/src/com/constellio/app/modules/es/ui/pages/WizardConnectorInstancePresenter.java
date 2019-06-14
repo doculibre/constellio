@@ -49,7 +49,7 @@ public class WizardConnectorInstancePresenter extends AddEditConnectorInstancePr
 				.build(schema(ConnectorType.DEFAULT_SCHEMA), VIEW_MODE.TABLE, metadataCodes, sessionContext);
 		return new RecordVODataProvider(schemaVO, voBuilder, modelLayerFactory, sessionContext) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				LogicalSearchCondition condition = from(schemaType(ConnectorType.SCHEMA_TYPE)).returnAll();
 				return new LogicalSearchQuery().setCondition(condition).sortAsc(Schemas.SCHEMA);
 			}

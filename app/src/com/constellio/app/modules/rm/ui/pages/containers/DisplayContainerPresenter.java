@@ -137,7 +137,7 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 				.build(schema(Folder.DEFAULT_SCHEMA), VIEW_MODE.TABLE, view.getSessionContext());
 		return new RecordVODataProvider(schemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				return getFoldersQuery();
 			}
 		};
@@ -438,7 +438,7 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 				.build(rmRecordServices().cartSchema(), VIEW_MODE.TABLE, view.getSessionContext());
 		return new RecordVODataProvider(cartSchemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				return new LogicalSearchQuery(
 						from(rmRecordServices().cartSchema()).where(rmRecordServices().cartSharedWithUsers())
 								.isContaining(asList(getCurrentUser().getId()))).sortAsc(Schemas.TITLE);

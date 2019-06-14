@@ -21,6 +21,8 @@ import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServi
 import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerMenuItemActionType.CONTAINER_EMPTY_THE_BOX;
 import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerMenuItemActionType.CONTAINER_LABELS;
 import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerMenuItemActionType.CONTAINER_SLIP;
+import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus.HIDDEN;
+import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus.VISIBLE;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ContainerMenuItemServices {
@@ -126,7 +128,7 @@ public class ContainerMenuItemServices {
 											   int group, int priority, Runnable command) {
 		return MenuItemAction.builder()
 				.type(type)
-				.state(possible ? MenuItemActionState.VISIBLE : MenuItemActionState.HIDDEN)
+				.state(new MenuItemActionState(possible ? VISIBLE : HIDDEN))
 				.caption(caption)
 				.icon(icon)
 				.group(group)

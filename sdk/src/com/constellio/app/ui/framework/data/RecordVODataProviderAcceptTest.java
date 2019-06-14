@@ -103,7 +103,7 @@ public class RecordVODataProviderAcceptTest extends ConstellioTest {
 		return new RecordVODataProvider(folderSchemaVO(), new RecordToVOBuilder(), getModelLayerFactory(),
 				sessionContext) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				return zeQuery;
 			}
 		};

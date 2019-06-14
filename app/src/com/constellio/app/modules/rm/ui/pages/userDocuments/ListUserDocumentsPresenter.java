@@ -91,7 +91,7 @@ public class ListUserDocumentsPresenter extends SingleSchemaBasePresenter<ListUs
 		userFoldersDataProvider = new RecordVODataProvider(userFolderSchemaVO, userFolderVOBuilder, modelLayerFactory,
 				view.getSessionContext()) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				return getUserFoldersQuery();
 			}
 		};
@@ -101,7 +101,7 @@ public class ListUserDocumentsPresenter extends SingleSchemaBasePresenter<ListUs
 		userDocumentsDataProvider = new RecordVODataProvider(userDocumentSchemaVO, userDocumentVOBuilder, modelLayerFactory,
 				view.getSessionContext()) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				return getUserDocumentsQuery();
 			}
 		};

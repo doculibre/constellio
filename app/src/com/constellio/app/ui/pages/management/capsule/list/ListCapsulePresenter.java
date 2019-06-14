@@ -35,7 +35,7 @@ public class ListCapsulePresenter extends BasePresenter<ListCapsuleView> {
 		return new RecordVODataProvider(
 				schemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				OngoingLogicalSearchCondition FromCondition = from(CapsuleSchemaType.getSchema(Capsule.DEFAULT_SCHEMA));
 				LogicalSearchCondition condition = FromCondition.where(returnAll());
 				return new LogicalSearchQuery().setCondition(condition);

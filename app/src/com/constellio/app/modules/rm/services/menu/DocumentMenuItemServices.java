@@ -37,6 +37,8 @@ import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServic
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_REMOVE_TO_SELECTION;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_UNPUBLISH;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_UPLOAD;
+import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus.HIDDEN;
+import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus.VISIBLE;
 
 public class DocumentMenuItemServices {
 
@@ -285,7 +287,7 @@ public class DocumentMenuItemServices {
 											   int group, int priority, Runnable command) {
 		return MenuItemAction.builder()
 				.type(type)
-				.state(possible ? MenuItemActionState.VISIBLE : MenuItemActionState.HIDDEN)
+				.state(new MenuItemActionState(possible ? VISIBLE : HIDDEN))
 				.caption(caption)
 				.icon(icon)
 				.group(group)

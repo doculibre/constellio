@@ -111,7 +111,7 @@ public class SearchResultVOLazyContainer extends LazyQueryContainer implements R
 			for (MetadataSchemaVO schemaVO : schemaVOs) {
 				RecordVODataProvider recordVODataProvider = new RecordVODataProvider(schemaVO, voBuilder, ConstellioUI.getCurrent()) {
 					@Override
-					protected LogicalSearchQuery getQuery() {
+					public LogicalSearchQuery getQuery() {
 						return dataProvider.getQuery();
 					}
 				};

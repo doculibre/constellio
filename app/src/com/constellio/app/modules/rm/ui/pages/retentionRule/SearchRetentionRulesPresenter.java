@@ -41,7 +41,7 @@ public class SearchRetentionRulesPresenter extends SingleSchemaBasePresenter<Sea
 	public void viewAssembled() {
 		dataProvider = new RecordVODataProvider(schemaVO, voBuilder, modelLayerFactory, view.getSessionContext()) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				MetadataSchema schema = defaultSchema();
 				return new LogicalSearchQuery(from(schema).returnAll())
 						.filteredByStatus(StatusFilter.ACTIVES)

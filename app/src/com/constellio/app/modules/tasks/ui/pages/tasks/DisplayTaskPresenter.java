@@ -266,7 +266,7 @@ public class DisplayTaskPresenter extends AbstractTaskPresenter<DisplayTaskView>
 		subTaskDataProvider = new RecordVODataProvider(schemaVO, new TaskToVOBuilder(), modelLayerFactory,
 				view.getSessionContext()) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				return tasksSearchServices.getDirectSubTasks(taskId, getCurrentUser());
 			}
 		};
@@ -422,7 +422,7 @@ public class DisplayTaskPresenter extends AbstractTaskPresenter<DisplayTaskView>
 				.build(rm.eventSchema(), VIEW_MODE.TABLE, view.getSessionContext());
 		return new RecordVODataProvider(eventSchemaVO, new EventToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				RMEventsSearchServices rmEventsSearchServices = new RMEventsSearchServices(modelLayerFactory, collection);
 				return rmEventsSearchServices.newFindEventByRecordIDQuery(getCurrentUser(), taskVO.getId());
 			}

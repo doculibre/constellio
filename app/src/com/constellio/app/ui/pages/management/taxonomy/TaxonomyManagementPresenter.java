@@ -1,13 +1,5 @@
 package com.constellio.app.ui.pages.management.taxonomy;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.records.RecordUtils.parentPaths;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
 import com.constellio.app.api.extensions.taxonomies.GetTaxonomyExtraFieldsParam;
 import com.constellio.app.api.extensions.taxonomies.GetTaxonomyManagementClassifiedTypesParams;
 import com.constellio.app.api.extensions.taxonomies.TaxonomyExtraField;
@@ -47,6 +39,13 @@ import com.constellio.model.services.search.query.logical.condition.SchemaFilter
 import com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.model.services.records.RecordUtils.parentPaths;
 
 public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagementView> {
 
@@ -161,7 +160,7 @@ public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagemen
 		RecordVODataProvider dataProvider = new RecordVODataProvider(schemaVO, voBuilder, modelLayerFactory,
 				view.getSessionContext()) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				return queryFactory.get();
 			}
 		};

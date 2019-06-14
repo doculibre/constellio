@@ -883,7 +883,7 @@ public class FolderMenuItemActionBehaviors {
 				.build(rm.cartSchema(), VIEW_MODE.TABLE, params.getView().getSessionContext());
 		return new RecordVODataProvider(cartSchemaVO, new RecordToVOBuilder(), modelLayerFactory, params.getView().getSessionContext()) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				return new LogicalSearchQuery(from(rm.cartSchema()).where(rm.cartSharedWithUsers())
 						.isContaining(asList(params.getUser().getId()))).sortAsc(Schemas.TITLE);
 			}
