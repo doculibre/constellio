@@ -18,6 +18,8 @@ import java.util.List;
 import static com.constellio.app.services.menu.GlobalGroupMenuItemServices.GlobalGroupMenuItemActionType.GROUP_ADD_SUB_GROUP;
 import static com.constellio.app.services.menu.GlobalGroupMenuItemServices.GlobalGroupMenuItemActionType.GROUP_DELETE;
 import static com.constellio.app.services.menu.GlobalGroupMenuItemServices.GlobalGroupMenuItemActionType.GROUP_EDIT;
+import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus.HIDDEN;
+import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus.VISIBLE;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 
@@ -92,7 +94,7 @@ public class GlobalGroupMenuItemServices {
 											   int group, int priority, Runnable command) {
 		return MenuItemAction.builder()
 				.type(type)
-				.state(possible ? MenuItemActionState.VISIBLE : MenuItemActionState.HIDDEN)
+				.state(possible ? new MenuItemActionState(VISIBLE) : new MenuItemActionState(HIDDEN))
 				.caption(caption)
 				.icon(icon)
 				.group(group)
