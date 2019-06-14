@@ -109,7 +109,7 @@ public class TaxonomyManagementSearchPresenter extends BasePresenter<TaxonomyMan
 		RecordVODataProvider dataProvider = new RecordVODataProvider(schemaVO, voBuilder, modelLayerFactory,
 				view.getSessionContext()) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				return queryFactory.get();
 			}
 		};

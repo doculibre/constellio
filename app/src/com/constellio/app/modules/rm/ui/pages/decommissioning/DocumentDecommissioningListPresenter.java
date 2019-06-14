@@ -55,7 +55,7 @@ public class DocumentDecommissioningListPresenter extends SingleSchemaBasePresen
 				schema(Document.DEFAULT_SCHEMA), VIEW_MODE.TABLE, view.getSessionContext());
 		return new RecordVODataProvider(schema, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				LogicalSearchCondition condition = from(rmRecordsServices().documentSchemaType())
 						.where(Schemas.IDENTIFIER).isIn(decommissioningList().getDocuments());
 				return new LogicalSearchQuery(condition);

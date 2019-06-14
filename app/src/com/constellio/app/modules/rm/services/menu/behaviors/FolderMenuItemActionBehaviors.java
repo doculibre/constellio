@@ -15,6 +15,7 @@ import com.constellio.app.modules.rm.services.actions.FolderRecordActionsService
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
+import com.constellio.app.modules.rm.ui.buttons.CartWindowButton;
 import com.constellio.app.modules.rm.ui.components.folder.fields.LookupFolderField;
 import com.constellio.app.modules.rm.ui.entities.FolderVO;
 import com.constellio.app.modules.rm.ui.pages.cart.DefaultFavoritesTable;
@@ -882,7 +883,7 @@ public class FolderMenuItemActionBehaviors {
 				.build(rm.cartSchema(), VIEW_MODE.TABLE, params.getView().getSessionContext());
 		return new RecordVODataProvider(cartSchemaVO, new RecordToVOBuilder(), modelLayerFactory, params.getView().getSessionContext()) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				return new LogicalSearchQuery(from(rm.cartSchema()).where(rm.cartSharedWithUsers())
 						.isContaining(asList(params.getUser().getId()))).sortAsc(Schemas.TITLE);
 			}

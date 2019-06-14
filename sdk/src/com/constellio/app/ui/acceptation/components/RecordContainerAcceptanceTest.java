@@ -454,7 +454,7 @@ public class RecordContainerAcceptanceTest extends ConstellioTest {
 			RecordToVOBuilder voBuilder = new RecordToVOBuilder();
 			return new RecordVODataProvider(schemaVO, voBuilder, modelLayerFactory) {
 				@Override
-				protected LogicalSearchQuery getQuery() {
+				public LogicalSearchQuery getQuery() {
 					String collection = schemaVO.getCollection();
 					String schemaCode = schemaVO.getCode();
 					MetadataSchemasManager metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();

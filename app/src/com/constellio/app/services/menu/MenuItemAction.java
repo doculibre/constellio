@@ -10,7 +10,6 @@ import lombok.Data;
 public class MenuItemAction {
 	private String type;
 	private MenuItemActionState state;
-	private String reason;
 	private String caption;
 	private Resource icon;
 	private Runnable command;

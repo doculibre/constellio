@@ -138,7 +138,7 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 		RecordVODataProvider eventsDataProvider = new RecordVODataProvider(schemaVO, voBuilder, modelLayerFactory,
 				view.getSessionContext()) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				return buildQueryFromParameters();
 			}
 		};

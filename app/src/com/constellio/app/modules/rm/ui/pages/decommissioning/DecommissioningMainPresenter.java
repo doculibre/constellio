@@ -179,7 +179,7 @@ public class DecommissioningMainPresenter extends SingleSchemaBasePresenter<Deco
 		MetadataSchemaVO schemaVO = new MetadataSchemaToVOBuilder().build(schema, VIEW_MODE.TABLE, view.getSessionContext());
 		return new RecordVODataProvider(schemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				return getQueryForTab(tabId);
 			}
 		};

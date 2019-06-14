@@ -40,7 +40,7 @@ public class RobotLogsPresenter extends BaseRobotPresenter<RobotLogsView> {
 		final List<String> tree = robotsService().loadIdTreeOf(robotId);
 		return new RecordVODataProvider(schema, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				LogicalSearchCondition condition = from(robotSchemas().robotLog.schemaType())
 						.where(robotSchemas().robotLog.robot()).isIn(tree);
 				return new LogicalSearchQuery(condition).sortDesc(Schemas.CREATED_ON);

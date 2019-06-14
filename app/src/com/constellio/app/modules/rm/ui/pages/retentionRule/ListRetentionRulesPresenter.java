@@ -34,7 +34,7 @@ public class ListRetentionRulesPresenter extends SingleSchemaBasePresenter<ListR
 	public void viewAssembled() {
 		view.setDataProvider(new RecordVODataProvider(schemaVO, voBuilder, modelLayerFactory, view.getSessionContext()) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				MetadataSchema schema = defaultSchema();
 				return new LogicalSearchQuery(from(schema).returnAll())
 						.filteredByStatus(StatusFilter.ACTIVES)

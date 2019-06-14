@@ -32,6 +32,8 @@ import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices
 import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_RETURN;
 import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_RETURN_REMAINDER;
 import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_SHARE;
+import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus.HIDDEN;
+import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus.VISIBLE;
 
 public class FolderMenuItemServices {
 
@@ -235,7 +237,7 @@ public class FolderMenuItemServices {
 											   Resource icon, int group, int priority, Runnable command) {
 		return MenuItemAction.builder()
 				.type(type)
-				.state(possible ? MenuItemActionState.VISIBLE : MenuItemActionState.HIDDEN)
+				.state(new MenuItemActionState(possible ? VISIBLE : HIDDEN))
 				.caption(caption)
 				.icon(icon)
 				.group(group)

@@ -780,7 +780,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 				.build(rm.cartSchema(), RecordVO.VIEW_MODE.TABLE, header.getSessionContext());
 		return new RecordVODataProvider(cartSchemaVO, new RecordToVOBuilder(), modelLayerFactory, header.getSessionContext()) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				return new LogicalSearchQuery(from(rm.cartSchema()).where(rm.cartOwner())
 						.isEqualTo(getCurrentUser().getId())).sortAsc(Schemas.TITLE);
 			}
@@ -794,7 +794,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 				.build(rm.cartSchema(), RecordVO.VIEW_MODE.TABLE, header.getSessionContext());
 		return new RecordVODataProvider(cartSchemaVO, new RecordToVOBuilder(), modelLayerFactory, header.getSessionContext()) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				return new LogicalSearchQuery(from(rm.cartSchema()).where(rm.cartSharedWithUsers())
 						.isContaining(asList(getCurrentUser().getId()))).sortAsc(Schemas.TITLE);
 			}

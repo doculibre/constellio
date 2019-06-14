@@ -37,7 +37,7 @@ public class CheckedOutDocumentsTable implements Serializable {
 				rm.documentSchemaType().getDefaultSchema(), VIEW_MODE.TABLE, sessionContext);
 		return new RecordVODataProvider(schema, new RecordToVOBuilder(), appLayerFactory.getModelLayerFactory(), sessionContext) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				MetadataSchemaType document = rm.documentSchemaType();
 				return new LogicalSearchQuery(from(document).where(rm.documentContent()).is(isCheckedOutBy(user)))
 						.sortDesc(Schemas.MODIFIED_ON);

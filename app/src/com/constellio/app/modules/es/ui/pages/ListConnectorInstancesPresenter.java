@@ -70,7 +70,7 @@ public class ListConnectorInstancesPresenter extends BasePresenter<ListConnector
 		RecordVODataProvider dataProvider = new RecordVODataProvider(schemaVO, voBuilder, modelLayerFactory,
 				view.getSessionContext()) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				MetadataSchemaType connectorInstanceSchemaType = modelLayerFactory.getMetadataSchemasManager()
 						.getSchemaTypes(collection)
 						.getSchemaType(ConnectorInstance.SCHEMA_TYPE);

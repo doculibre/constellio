@@ -206,7 +206,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		tasksDataProvider = new RecordVODataProvider(
 				tasksSchemaVO, voBuilder, modelLayerFactory, view.getSessionContext()) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				TasksSchemasRecordsServices tasks = new TasksSchemasRecordsServices(collection, appLayerFactory);
 				Metadata taskDocumentMetadata = tasks.userTask.schema().getMetadata(RMTask.LINKED_DOCUMENTS);
 				LogicalSearchQuery query = new LogicalSearchQuery();
@@ -312,7 +312,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 
 		return new RecordVODataProvider(schemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				return new BetaWorkflowServices(view.getCollection(), appLayerFactory).getWorkflowsQuery();
 			}
 		};
@@ -458,7 +458,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		final MetadataSchemaVO cartSchemaVO = schemaVOBuilder.build(rm.cartSchema(), VIEW_MODE.TABLE, view.getSessionContext());
 		return new RecordVODataProvider(cartSchemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				return new LogicalSearchQuery(from(rm.cartSchema()).where(rm.cartSharedWithUsers())
 						.isContaining(asList(getCurrentUser().getId()))).sortAsc(Schemas.TITLE);
 			}
@@ -554,7 +554,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 				.build(rm.eventSchema(), VIEW_MODE.TABLE, view.getSessionContext());
 		return new RecordVODataProvider(eventSchemaVO, new EventToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				RMEventsSearchServices rmEventsSearchServices = new RMEventsSearchServices(modelLayerFactory, collection);
 				LogicalSearchQuery query = rmEventsSearchServices
 						.newFindEventByRecordIDQuery(getCurrentUser(), presenterUtils.getDocumentVO().getId());

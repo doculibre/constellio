@@ -79,7 +79,7 @@ public class ListExcelReportPresenter extends BasePresenter<ListExcelReportView>
 					view.getSessionContext());
 			this.recordVODataProviderMap.put(schemaType, new RecordVODataProvider(reportVo, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 				@Override
-				protected LogicalSearchQuery getQuery() {
+				public LogicalSearchQuery getQuery() {
 					Metadata schemaMetadata = reportSchema.getMetadata(Report.SCHEMA_TYPE_CODE);
 					LogicalSearchQuery query = new LogicalSearchQuery();
 					query.setCondition(from(reportSchema)

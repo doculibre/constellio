@@ -257,7 +257,7 @@ public class RMTaxonomyPageExtension extends TaxonomyPageExtension {
 		MetadataSchemaVO rulesSchemaVO = schemaVOBuilder.build(rm.retentionRule.schema(), VIEW_MODE.TABLE, sessionContext);
 		return new RecordVODataProvider(rulesSchemaVO, voBuilder, sessionContextProvider) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				return logicalSearchQueryFactory.get();
 			}
 		};
@@ -273,7 +273,7 @@ public class RMTaxonomyPageExtension extends TaxonomyPageExtension {
 		MetadataSchemaVO foldersSchemaVO = schemaVOBuilder.build(rm.folder.schema(), VIEW_MODE.TABLE, sessionContext);
 		return new RecordVODataProvider(foldersSchemaVO, voBuilder, sessionContextProvider) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				return logicalSearchQueryFactory.get();
 			}
 		};

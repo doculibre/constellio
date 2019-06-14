@@ -79,7 +79,7 @@ public class ListTemporaryRecordPresenter extends BasePresenter<ListTemporaryRec
 			provider.put(schema, new RecordVODataProvider(
 					schemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 				@Override
-				protected LogicalSearchQuery getQuery() {
+				public LogicalSearchQuery getQuery() {
 					//TODO Gabriel move condition to an extension
 					if (schema.equals(BatchProcessReport.FULL_SCHEMA)) {
 						return LogicalSearchQuery.returningNoResults();

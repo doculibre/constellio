@@ -1,4 +1,4 @@
-package com.constellio.app.modules.rm.services.menu.behaviors;
+package com.constellio.app.modules.rm.ui.buttons;
 
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -133,7 +133,7 @@ public class CartWindowButton extends WindowButton {
 		final MetadataSchemaVO cartSchemaVO = schemaVOBuilder.build(rm.cartSchema(), VIEW_MODE.TABLE, params.getView().getSessionContext());
 		return new RecordVODataProvider(cartSchemaVO, new RecordToVOBuilder(), appLayerFactory.getModelLayerFactory(), params.getView().getSessionContext()) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				return new LogicalSearchQuery(from(rm.cartSchema()).where(rm.cartSharedWithUsers())
 						.isContaining(asList(params.getUser().getId()))).sortAsc(Schemas.TITLE);
 			}

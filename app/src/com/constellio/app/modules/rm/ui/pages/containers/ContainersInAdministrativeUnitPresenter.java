@@ -47,7 +47,7 @@ public class ContainersInAdministrativeUnitPresenter extends BasePresenter<Conta
 		RecordVODataProvider dataProvider = new RecordVODataProvider(schemaVO, new RecordToVOBuilder(), modelLayerFactory,
 				view.getSessionContext()) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				User user = presenterService().getCurrentUser(view.getSessionContext());
 				DecommissioningService service = new DecommissioningService(
 						view.getCollection(), appLayerFactory);
@@ -73,7 +73,7 @@ public class ContainersInAdministrativeUnitPresenter extends BasePresenter<Conta
 		RecordVODataProvider dataProvider = new RecordVODataProvider(schemaVO, new RecordToVOBuilder(), modelLayerFactory,
 				view.getSessionContext()) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				DecommissioningSearchConditionFactory conditionFactory = new DecommissioningSearchConditionFactory(
 						view.getCollection(), appLayerFactory);
 				ContainerSearchParameters parameters = new ContainerSearchParameters();

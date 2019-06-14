@@ -79,7 +79,7 @@ public class DisplaySchemaRecordPresenter extends SingleSchemaBasePresenter<Disp
 		if (isHierarchical()) {
 			view.setSubRecords(new RecordVODataProvider(recordVO.getSchema(), voBuilder, view) {
 				@Override
-				protected LogicalSearchQuery getQuery() {
+				public LogicalSearchQuery getQuery() {
 					Metadata parentMetadata = schema.getMetadata(HierarchicalValueListItem.PARENT);
 					LogicalSearchQuery query = new LogicalSearchQuery();
 					query.setCondition(from(schema).where(parentMetadata).is(recordVO.getRecord()));

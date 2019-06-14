@@ -12,6 +12,8 @@ import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuItem;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus.HIDDEN;
+import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus.VISIBLE;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class MenuItemFactory {
@@ -36,7 +38,7 @@ public class MenuItemFactory {
 					menuItemAction.getCommand().run();
 				});
 			}
-			menuItem.setEnabled(menuItemAction.getState() == MenuItemActionState.VISIBLE);
+			menuItem.setEnabled(menuItemAction.getState().getStatus() == VISIBLE);
 		}
 	}
 
@@ -44,8 +46,8 @@ public class MenuItemFactory {
 		for (MenuItemAction menuItemAction : menuItemActions) {
 			MenuItem menuItem = rootItem.addItem($(menuItemAction.getCaption()), menuItemAction.getIcon(),
 					(selectedItem) -> menuItemAction.getCommand().run());
-			menuItem.setEnabled(menuItemAction.getState() == MenuItemActionState.VISIBLE);
-			menuItem.setVisible(menuItemAction.getState() != MenuItemActionState.HIDDEN);
+			menuItem.setEnabled(menuItemAction.getState().getStatus() == VISIBLE);
+			menuItem.setVisible(menuItemAction.getState().getStatus() != HIDDEN);
 		}
 	}
 
@@ -58,8 +60,8 @@ public class MenuItemFactory {
 					menuItemAction.getCommand().run();
 				}
 			};
-			actionButton.setEnabled(menuItemAction.getState() == MenuItemActionState.VISIBLE);
-			actionButton.setVisible(menuItemAction.getState() != MenuItemActionState.HIDDEN);
+			actionButton.setEnabled(menuItemAction.getState().getStatus() == VISIBLE);
+			actionButton.setVisible(menuItemAction.getState().getStatus() != HIDDEN);
 			actionButtons.add(actionButton);
 		}
 		return actionButtons;

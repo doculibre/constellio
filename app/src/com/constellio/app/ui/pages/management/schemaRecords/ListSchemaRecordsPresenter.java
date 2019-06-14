@@ -42,7 +42,7 @@ public class ListSchemaRecordsPresenter extends SingleSchemaBasePresenter<ListSc
 		RecordVODataProvider dataProvider = new RecordVODataProvider(
 				schemaVO, voBuilder, modelLayerFactory, view.getSessionContext()) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				MetadataSchema schema = defaultSchema();
 				LogicalSearchCondition condition = from(schema).returnAll();
 				if (isHierarchical()) {

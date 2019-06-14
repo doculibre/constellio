@@ -40,7 +40,7 @@ public class SavedSearchPresenter extends SingleSchemaBasePresenter<SavedSearchV
 				view.getSessionContext()) {
 
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				MetadataSchema schema = schema(SavedSearch.DEFAULT_SCHEMA);
 				return new LogicalSearchQuery(from(schema)
 						.where(schema.getMetadata(SavedSearch.USER)).isEqualTo(getCurrentUser())
@@ -56,7 +56,7 @@ public class SavedSearchPresenter extends SingleSchemaBasePresenter<SavedSearchV
 				view.getSessionContext()) {
 
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				MetadataSchema schema = schema(SavedSearch.DEFAULT_SCHEMA);
 
 				User currentUser = getCurrentUser();

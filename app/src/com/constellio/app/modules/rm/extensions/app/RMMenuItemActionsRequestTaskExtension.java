@@ -59,6 +59,8 @@ import static com.constellio.app.modules.rm.extensions.app.RMMenuItemActionsRequ
 import static com.constellio.app.modules.rm.extensions.app.RMMenuItemActionsRequestTaskExtension.RequestTypeMenuItem.REQUEST_BORROW_BUTTON;
 import static com.constellio.app.modules.rm.extensions.app.RMMenuItemActionsRequestTaskExtension.RequestTypeMenuItem.REQUEST_BORROW_EXTENSION_BUTTON;
 import static com.constellio.app.modules.rm.extensions.app.RMMenuItemActionsRequestTaskExtension.RequestTypeMenuItem.RETURN_REQUEST_BUTTON;
+import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus.HIDDEN;
+import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus.VISIBLE;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
@@ -103,7 +105,7 @@ public class RMMenuItemActionsRequestTaskExtension extends MenuItemActionsExtens
 
 				params.getMenuItemActions().add(MenuItemAction.builder()
 						.type(REQUEST_BORROW_BUTTON.name())
-						.state(isBorrowRequestActionPossible ? MenuItemActionState.VISIBLE : MenuItemActionState.HIDDEN)
+						.state(toState(isBorrowRequestActionPossible))
 						.caption("RMRequestTaskButtonExtension.borrowRequest")
 						.command(() -> borrowRequest(params))
 						.build());
@@ -112,7 +114,7 @@ public class RMMenuItemActionsRequestTaskExtension extends MenuItemActionsExtens
 
 				params.getMenuItemActions().add(MenuItemAction.builder()
 						.type(REQUEST_BORROW_EXTENSION_BUTTON.name())
-						.state(isRequestBorrowExtensionActionPossible ? MenuItemActionState.VISIBLE : MenuItemActionState.HIDDEN)
+						.state(toState(isRequestBorrowExtensionActionPossible))
 						.caption("RMRequestTaskButtonExtension.borrowExtensionRequest")
 						.command(() -> borrowExtensionRequested(params))
 						.build());
@@ -121,7 +123,7 @@ public class RMMenuItemActionsRequestTaskExtension extends MenuItemActionsExtens
 
 				params.getMenuItemActions().add(MenuItemAction.builder()
 						.type(REACTIVATION_BUTTON.name())
-						.state(isReactivationActionPossible ? MenuItemActionState.VISIBLE : MenuItemActionState.HIDDEN)
+						.state(toState(isReactivationActionPossible))
 						.caption("RMRequestTaskButtonExtension.reactivationRequest")
 						.command(() -> reactivationRequested(params))
 						.build());
@@ -136,7 +138,7 @@ public class RMMenuItemActionsRequestTaskExtension extends MenuItemActionsExtens
 
 			params.getMenuItemActions().add(MenuItemAction.builder()
 					.type(RETURN_REQUEST_BUTTON.name())
-					.state(isReturnRequestActionPossible ? MenuItemActionState.VISIBLE : MenuItemActionState.HIDDEN)
+					.state(toState(isReturnRequestActionPossible))
 					.caption("RMRequestTaskButtonExtension.returnRequest")
 					.confirmMessage(returnConfirmMessage)
 					.command(() -> returnRequest(params))
@@ -146,18 +148,18 @@ public class RMMenuItemActionsRequestTaskExtension extends MenuItemActionsExtens
 
 	@Override
 	public MenuItemActionState getActionStateForRecord(MenuItemActionExtensionGetActionStateForRecordParams params) {
-		MenuItemAction action = params.getMenuItemAction();
+		String actionType = params.getMenuItemActionType();
 		Record record = params.getRecord();
 		User user = params.getBehaviorParams().getUser();
 
-		if (action.getType().equals(REQUEST_BORROW_BUTTON.name())) {
-			return isBorrowRequestActionPossible(record, user) ? MenuItemActionState.VISIBLE : MenuItemActionState.HIDDEN;
-		} else if (action.getType().equals(REQUEST_BORROW_EXTENSION_BUTTON.name())) {
-			return isExtensionRequestActionPossible(record, user) ? MenuItemActionState.VISIBLE : MenuItemActionState.HIDDEN;
-		} else if (action.getType().equals(REACTIVATION_BUTTON.name())) {
-			return isReactivationRequestActionPossible(record, user) ? MenuItemActionState.VISIBLE : MenuItemActionState.HIDDEN;
-		} else if (action.getType().equals(RETURN_REQUEST_BUTTON.name())) {
-			return isReactivationRequestActionPossible(record, user) ? MenuItemActionState.VISIBLE : MenuItemActionState.HIDDEN;
+		if (actionType.equals(REQUEST_BORROW_BUTTON.name())) {
+			return toState(isBorrowRequestActionPossible(record, user));
+		} else if (actionType.equals(REQUEST_BORROW_EXTENSION_BUTTON.name())) {
+			return toState(isExtensionRequestActionPossible(record, user));
+		} else if (actionType.equals(REACTIVATION_BUTTON.name())) {
+			return toState(isReactivationRequestActionPossible(record, user));
+		} else if (actionType.equals(RETURN_REQUEST_BUTTON.name())) {
+			return toState(isReactivationRequestActionPossible(record, user));
 		}
 
 		return null;
@@ -672,5 +674,9 @@ public class RMMenuItemActionsRequestTaskExtension extends MenuItemActionsExtens
 
 	public boolean isExtensionRequestActionPossible(Record record, User user) {
 		return isReturnRequestActionPossible(record, user);
+	}
+
+	private MenuItemActionState toState(boolean actionPossible) {
+		return new MenuItemActionState(actionPossible ? VISIBLE : HIDDEN);
 	}
 }

@@ -82,7 +82,7 @@ public class CartsListPresenter extends SingleSchemaBasePresenter<CartsListView>
 	public RecordVODataProvider getOwnedCartsDataProvider() {
 		return new RecordVODataProvider(schemaVO, recordToVOBuilder, modelLayerFactory, view.getSessionContext()) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				return new LogicalSearchQuery(from(defaultSchema()).where(getMetadata(Cart.OWNER))
 						.isEqualTo(getCurrentUser().getId())).sortAsc(Schemas.TITLE);
 			}
@@ -96,7 +96,7 @@ public class CartsListPresenter extends SingleSchemaBasePresenter<CartsListView>
 	public RecordVODataProvider getSharedCartsDataProvider() {
 		return new RecordVODataProvider(schemaVO, recordToVOBuilder, modelLayerFactory, view.getSessionContext()) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				return new LogicalSearchQuery(from(defaultSchema()).where(getMetadata(Cart.SHARED_WITH_USERS))
 						.isContaining(Arrays.asList(getCurrentUser().getId()))).sortAsc(Schemas.TITLE);
 			}
