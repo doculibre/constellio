@@ -48,6 +48,7 @@ import com.constellio.app.modules.rm.extensions.app.RMListSchemaExtention;
 import com.constellio.app.modules.rm.extensions.app.RMRecordDisplayFactoryExtension;
 import com.constellio.app.modules.rm.extensions.app.RMRecordExportExtension;
 import com.constellio.app.modules.rm.extensions.app.RMSIPExtension;
+import com.constellio.app.modules.rm.extensions.app.RMXmlGeneratorExtension;
 import com.constellio.app.modules.rm.extensions.imports.DecommissioningListImportExtension;
 import com.constellio.app.modules.rm.extensions.imports.DocumentRuleImportExtension;
 import com.constellio.app.modules.rm.extensions.imports.EventImportExtension;
@@ -453,6 +454,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		extensions.listSchemaCommandExtensions.add(new RMListSchemaExtention());
 		extensions.pagesComponentsExtensions.add(new RMUserProfileFieldsExtension(collection, appLayerFactory));
 		extensions.sipExtensions.add(new RMSIPExtension(collection, appLayerFactory));
+		extensions.xmlGeneratorExtensions.add(new RMXmlGeneratorExtension(collection, appLayerFactory));
 
 		extensions.lockedRecords.add(RMTaskType.SCHEMA_TYPE, RMTaskType.BORROW_REQUEST);
 		extensions.lockedRecords.add(RMTaskType.SCHEMA_TYPE, RMTaskType.BORROW_EXTENSION_REQUEST);

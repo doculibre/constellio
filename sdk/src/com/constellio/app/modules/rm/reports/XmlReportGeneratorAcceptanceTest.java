@@ -26,7 +26,6 @@ import com.constellio.sdk.tests.FakeSessionContext;
 import org.assertj.core.groups.Tuple;
 import org.jdom2.Document;
 import org.jdom2.Element;
-import org.jdom2.JDOMException;
 import org.jdom2.input.SAXBuilder;
 import org.jetbrains.annotations.NotNull;
 import org.joda.time.LocalDate;
@@ -35,7 +34,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -270,11 +268,11 @@ public class XmlReportGeneratorAcceptanceTest extends ConstellioTest {
 
 	@Test
 	public void testGenerateXmlWithAttachedFolderInTask()
-			throws JDOMException, IOException {
+			throws Exception {
 		Task zeTask = createOneTask();
 
+		recordServices.update(rm.getFolder(records.folder_A01).setContainer(records.containerId_bac01));
 		zeTask.setLinkedFolders(Arrays.asList(records.folder_A01, records.folder_A04));
-
 
 		XmlReportGeneratorParameters xmlReportGeneratorParameters = new XmlReportGeneratorParameters(1);
 		xmlReportGeneratorParameters
@@ -317,11 +315,12 @@ public class XmlReportGeneratorAcceptanceTest extends ConstellioTest {
 		}
 
 		assertThat(listOfMetadataInFolder.size()).isGreaterThanOrEqualTo(310);
-		assertThat(tagNameTextMap.get("linkedFolders_0_title")).isEqualTo("Abeille");
-		assertThat(tagNameTextMap.get("linkedFolders_0_id")).isEqualTo("A01");
-		assertThat(tagNameTextMap.get("linkedFolders_1_title")).isEqualTo("Baleine");
-		assertThat(tagNameTextMap.get("linkedFolders_1_id")).isEqualTo("A04");
-
+		assertThat(tagNameTextMap.get("linkedFolders_1_title")).isEqualTo("Abeille");
+		assertThat(tagNameTextMap.get("linkedFolders_1_id")).isEqualTo("A01");
+		assertThat(tagNameTextMap.get("linkedFolders_0_title")).isEqualTo("Baleine");
+		assertThat(tagNameTextMap.get("linkedFolders_0_id")).isEqualTo("A04");
+		assertThat(tagNameTextMap.get("linkedFolders_1_ref_folder_container_localization")).isEqualTo("Tablette 2-30_C_01");
+		assertThat(tagNameTextMap.get("linkedFolders_0_ref_folder_container_localization")).isNull();
 		assertThat(xmlRecordValues).contains(listOfMetadataInFolder.toArray(new Tuple[0]));
 	}
 
