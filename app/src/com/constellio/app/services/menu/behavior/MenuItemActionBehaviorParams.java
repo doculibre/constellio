@@ -23,4 +23,8 @@ public abstract class MenuItemActionBehaviorParams {
 
 	public abstract boolean isNestedView();
 
+	public Object getObjectRecordVO() {
+		return null;
+	}
+
 }

@@ -14,6 +14,7 @@ import com.constellio.app.ui.entities.UserDocumentVO;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.params.ParamUtils;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.users.UserServices;
 import com.vaadin.ui.Button;
@@ -31,11 +32,15 @@ public class RecordVOActionButtonFactory {
 	private MenuItemServices menuItemServices;
 	private MenuItemFactory menuItemFactory;
 	private UserServices userServices;
+	private Object objectRecordVO = null;
 
 	public RecordVOActionButtonFactory(RecordVO recordVO) {
 		super();
 		this.recordVO = recordVO;
+		initialize();
+	}
 
+	private void initialize() {
 		sessionContext = ConstellioUI.getCurrentSessionContext();
 		collection = sessionContext.getCurrentCollection();
 
@@ -45,8 +50,19 @@ public class RecordVOActionButtonFactory {
 		menuItemFactory = new MenuItemFactory();
 	}
 
+	public RecordVOActionButtonFactory(Object objectRecordVO) {
+		this.objectRecordVO = objectRecordVO;
+		initialize();
+	}
+
 	public List<Button> build() {
-		List<MenuItemAction> menuItemActions = menuItemServices.getActionsForRecord(recordVO.getRecord(),
+		Record record = null;
+
+		if (recordVO != null) {
+			record = recordVO.getRecord();
+		}
+
+		List<MenuItemAction> menuItemActions = menuItemServices.getActionsForRecord(record,
 				new MenuItemActionBehaviorParams() {
 					@Override
 					public BaseView getView() {
@@ -89,6 +105,11 @@ public class RecordVOActionButtonFactory {
 					public boolean isNestedView() {
 						// FIXME how do we determine this?
 						return false;
+					}
+
+					@Override
+					public Object getObjectRecordVO() {
+						return objectRecordVO;
 					}
 				});
 

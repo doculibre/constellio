@@ -1,8 +1,5 @@
 package com.constellio.app.extensions;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.api.extensions.BaseWindowExtension;
 import com.constellio.app.api.extensions.EmailExtension;
 import com.constellio.app.api.extensions.PagesComponentsExtension;
@@ -11,11 +8,21 @@ import com.constellio.app.api.extensions.params.BaseWindowParams;
 import com.constellio.app.api.extensions.params.DecorateMainComponentAfterInitExtensionParams;
 import com.constellio.app.api.extensions.params.EmailMessageParams;
 import com.constellio.app.api.extensions.params.PagesComponentsExtensionParams;
+import com.constellio.app.extensions.api.GlobalGroupExtension;
+import com.constellio.app.extensions.api.GlobalGroupExtension.GlobalGroupExtensionActionPossibleParams;
+import com.constellio.app.extensions.api.UserCredentialGroupExtension;
+import com.constellio.app.extensions.api.UserCredentialGroupExtension.UserCredentialExtensionActionPossibleParams;
 import com.constellio.app.extensions.sequence.AvailableSequence;
 import com.constellio.app.extensions.sequence.AvailableSequenceForSystemParams;
 import com.constellio.app.extensions.sequence.SystemSequenceExtension;
 import com.constellio.data.frameworks.extensions.VaultBehaviorsList;
+import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.security.global.GlobalGroup;
+import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.emails.EmailServices.EmailMessage;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class AppLayerSystemExtensions {
 
@@ -26,6 +33,10 @@ public class AppLayerSystemExtensions {
 	public VaultBehaviorsList<EmailExtension> emailExtensions = new VaultBehaviorsList<>();
 
 	public VaultBehaviorsList<BaseWindowExtension> windowExtensions = new VaultBehaviorsList<>();
+
+	public VaultBehaviorsList<GlobalGroupExtension> globalGroupExtensions = new VaultBehaviorsList<>();
+
+	public VaultBehaviorsList<UserCredentialGroupExtension> userCredentialGroupExtensions = new VaultBehaviorsList<>();
 
 	public List<AvailableSequence> getAvailableSequences() {
 
@@ -88,4 +99,33 @@ public class AppLayerSystemExtensions {
 		}
 	}
 
+	public boolean isAddSubGroupActionPossibleOnGlobalGroup(final GlobalGroup globalGroup, final User user) {
+		return globalGroupExtensions.getBooleanValue(true,
+				(behavior) -> behavior.isAddSubGroupActionPossible(
+						new GlobalGroupExtensionActionPossibleParams(globalGroup, user)));
+	}
+
+	public boolean isEditActionPossibleOnGlobalGroup(final GlobalGroup globalGroup, final User user) {
+		return globalGroupExtensions.getBooleanValue(true,
+				(behavior) -> behavior.isEditActionPossible(
+						new GlobalGroupExtensionActionPossibleParams(globalGroup, user)));
+	}
+
+	public boolean isDeleteActionPossibleOnGlobalGroup(final GlobalGroup globalGroup, final User user) {
+		return globalGroupExtensions.getBooleanValue(true,
+				(behavior) -> behavior.isDeleteActionPossible(
+						new GlobalGroupExtensionActionPossibleParams(globalGroup, user)));
+	}
+
+	public boolean isEditActionPossibleOnUserCredential(final UserCredential userCredential, final User user) {
+		return userCredentialGroupExtensions.getBooleanValue(true,
+				(behavior) -> behavior.isEditActionPossible(
+						new UserCredentialExtensionActionPossibleParams(userCredential, user)));
+	}
+
+	public boolean isGenerateTokenActionPossibleOnUserCredential(final UserCredential userCredential, final User user) {
+		return userCredentialGroupExtensions.getBooleanValue(true,
+				(behavior) -> behavior.isGenerateTokenActionPossible(
+						new UserCredentialExtensionActionPossibleParams(userCredential, user)));
+	}
 }

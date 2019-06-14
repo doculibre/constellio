@@ -6,4 +6,8 @@ import com.constellio.app.ui.pages.viewGroups.AdminViewGroup;
 public interface DisplayGlobalGroupView extends BaseView, AdminViewGroup {
 
 	void refreshTable();
+
+	DisplayGlobalGroupPresenter getPresenter();
+
+	String getBreadCrumb();
 }

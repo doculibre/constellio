@@ -8,6 +8,8 @@ import com.constellio.app.extensions.menu.MenuItemActionsExtension.MenuItemActio
 import com.constellio.app.modules.rm.services.menu.RecordListMenuItemServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
+import com.constellio.app.ui.entities.GlobalGroupVO;
+import com.constellio.app.ui.entities.UserCredentialVO;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
@@ -22,12 +24,16 @@ public class MenuItemServices {
 	private List<MenuItemActionsExtension> menuItemActionsExtensions;
 
 	private RecordListMenuItemServices recordListMenuItemServices;
+	private UserCredentialMenuItemServices userCredentialMenuItemServices;
+	private GlobalGroupMenuItemServices globalGroupMenuItemServices;
 
 	public MenuItemServices(String collection, AppLayerFactory appLayerFactory) {
 		menuItemActionsExtensions = appLayerFactory.getExtensions()
 				.forCollection(collection).menuItemActionsExtensions.getExtensions();
 
-		recordListMenuItemServices = new RecordListMenuItemServices(collection, appLayerFactory);
+		this.recordListMenuItemServices = new RecordListMenuItemServices(collection, appLayerFactory);
+		this.userCredentialMenuItemServices = new UserCredentialMenuItemServices(appLayerFactory);
+		this.globalGroupMenuItemServices = new GlobalGroupMenuItemServices(appLayerFactory);
 	}
 
 	public List<MenuItemAction> getActionsForRecord(Record record, MenuItemActionBehaviorParams params) {
@@ -41,13 +47,21 @@ public class MenuItemServices {
 		}
 
 		List<MenuItemAction> menuItemActions = new ArrayList<>();
-		if (record.isOfSchemaType(User.SCHEMA_TYPE)) {
-			// TODO
-		} else if (record.isOfSchemaType(Group.SCHEMA_TYPE)) {
-			// TODO
+		Object objectRecordVO = params.getObjectRecordVO();
+		if (objectRecordVO != null) {
+			if (objectRecordVO instanceof UserCredentialVO) {
+				menuItemActions.addAll(userCredentialMenuItemServices.getActionsForRecord(userCredentialMenuItemServices
+								.getUserCredential((UserCredentialVO) objectRecordVO), params.getUser(),
+						new ArrayList<>(), params));
+			} else if (objectRecordVO instanceof GlobalGroupVO) {
+				menuItemActions.addAll(globalGroupMenuItemServices.getActionsForRecord(globalGroupMenuItemServices
+								.getGlobalGroup((GlobalGroupVO) objectRecordVO), params.getUser(),
+						new ArrayList<>(), params));
+			}
 		}
-
-		addMenuItemActionsFromExtensions(record, filteredActionTypes, params, menuItemActions);
+		if (record != null) {
+			addMenuItemActionsFromExtensions(record, filteredActionTypes, params, menuItemActions);
+		}
 
 		return menuItemActions;
 	}

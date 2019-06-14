@@ -71,7 +71,7 @@ public class DisplayGlobalGroupPresenter extends BasePresenter<DisplayGlobalGrou
 		navigateToBackPage();
 	}
 
-	void cleanInvalidBackPages() {
+	public void cleanInvalidBackPages() {
 		if (paramsMap.containsKey("globalGroupCode")) {
 			paramsMap.remove("globalGroupCode");
 		}
@@ -136,13 +136,17 @@ public class DisplayGlobalGroupPresenter extends BasePresenter<DisplayGlobalGrou
 		this.breadCrumb = breadCrumb;
 	}
 
+	public String getBreadCrumb() {
+		return this.breadCrumb;
+	}
+
 	private String getParameters() {
 		Map<String, Object> newParamsMap = new HashMap<>();
 		newParamsMap.putAll(paramsMap);
 		return ParamUtils.addParams(breadCrumb + "/" + NavigatorConfigurationService.GROUP_DISPLAY, newParamsMap);
 	}
 
-	private void navigateToBackPage() {
+	public void navigateToBackPage() {
 		String viewNames[] = breadCrumb.split("/");
 		String backPage = viewNames[viewNames.length - 1];
 		breadCrumb = breadCrumb.replace(backPage, "");

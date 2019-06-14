@@ -11,6 +11,7 @@ import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.BaseDisplay;
 import com.constellio.app.ui.framework.components.BaseDisplay.CaptionAndComponent;
 import com.constellio.app.ui.framework.components.TableStringFilter;
+import com.constellio.app.ui.framework.components.buttons.RecordVOActionButtonFactory;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
@@ -345,8 +346,11 @@ public class DisplayUserCredentialViewImpl extends BaseViewImpl implements Displ
 
 		Button serviceKeyTokenButton = buildServiceKeyAndTokenButton();
 		actionMenuButtons.add(serviceKeyTokenButton);
+		//
 
-		return actionMenuButtons;
+
+		//		return actionMenuButtons;
+		return new RecordVOActionButtonFactory(userCredentialVO).build();
 	}
 
 	@Override
@@ -485,5 +489,13 @@ public class DisplayUserCredentialViewImpl extends BaseViewImpl implements Displ
 			}
 		}
 		generateTokenButton.setEnabled(enable);
+	}
+
+	public DisplayUserCredentialPresenter getPresenter() {
+		return presenter;
+	}
+
+	public String getBreadCrumb() {
+		return presenter.getBreadCrumb();
 	}
 }

@@ -142,7 +142,7 @@ public class DisplayUserCredentialPresenter extends BasePresenter<DisplayUserCre
 		return parameters;
 	}
 
-	private String cleanParameters(String parameters) {
+	public String cleanParameters(String parameters) {
 		while (parameters.contains("//")) {
 			parameters = parameters.replace("//", "/");
 		}
@@ -183,5 +183,13 @@ public class DisplayUserCredentialPresenter extends BasePresenter<DisplayUserCre
 
 	public String getConstellioUrl() {
 		return new ConstellioEIMConfigs(modelLayerFactory.getSystemConfigurationsManager()).getConstellioUrl();
+	}
+
+	public String getBreadCrumb() {
+		return breadCrumb;
+	}
+
+	public UserCredential getUserCredential(String userName) {
+		return userServices.getUserCredential(userName);
 	}
 }
