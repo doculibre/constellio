@@ -3,10 +3,7 @@ package com.constellio.model.services.records;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.schemas.ConfigProvider;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.entities.schemas.entries.DataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.entities.schemas.validation.RecordMetadataValidator;
@@ -28,10 +25,7 @@ import static com.constellio.sdk.tests.TestUtils.mockMetadata;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class RecordValidationServicesTest extends ConstellioTest {
@@ -98,8 +92,11 @@ public class RecordValidationServicesTest extends ConstellioTest {
 
 		when(record.getSchemaCode()).thenReturn("aSchemaCode");
 		when(record.get(firstMetadata)).thenReturn(aStringValue);
+		when(firstMetadata.getType()).thenReturn(MetadataValueType.STRING);
 		when(record.get(secondMetadata)).thenReturn(aStringValue);
+		when(secondMetadata.getType()).thenReturn(MetadataValueType.STRING);
 		when(record.get(thirdMetadata)).thenReturn(aStringValue);
+		when(thirdMetadata.getType()).thenReturn(MetadataValueType.STRING);
 
 		when(manualDataEntry.getType()).thenReturn(DataEntryType.MANUAL);
 		when(copiedDataEntry.getType()).thenReturn(DataEntryType.COPIED);

@@ -21,11 +21,7 @@ import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.io.services.facades.FileService;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.TimeProvider;
-import com.constellio.model.entities.records.Content;
-import com.constellio.model.entities.records.ContentVersion;
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.RecordUpdateOptions;
-import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.*;
 import com.constellio.model.entities.records.wrappers.EmailToSend;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
@@ -33,7 +29,6 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.structures.EmailAddress;
-import com.constellio.model.frameworks.validation.ValidationError;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.contents.ContentConversionManager;
@@ -49,7 +44,6 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.jodconverter.office.OfficeException;
@@ -392,7 +386,6 @@ public abstract class Decommissioner {
 					try {
 						content = createPDFa(content);
 						loggingServices.logPdfAGeneration(document, user);
-						throw new RuntimeException(new OfficeException("Could not convert"));
 					} catch (NullPointerException e) {
 						e.printStackTrace();
 					} catch (RuntimeException e) {
