@@ -46,13 +46,11 @@ import com.constellio.model.services.reports.ReportServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
-import com.vaadin.data.util.BeanItemContainer;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -63,7 +61,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.*;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
@@ -71,8 +68,8 @@ import static java.util.Arrays.asList;
 
 public class DecommissioningListPresenter extends SingleSchemaBasePresenter<DecommissioningListView>
 		implements NewReportPresenter {
-	private final String pdfReport = "Reports.DecommissioningList";
-	private final String excelReport = "Reports.DecommissioningListExcelFormat";
+	private final String PDF_REPORT = "Reports.DecommissioningList";
+	private final String EXCEL_REPORT = "Reports.DecommissioningListExcelFormat";
 
 	private transient RMSchemasRecordsServices rmRecordsServices;
 	private transient DecommissioningService decommissioningService;
@@ -98,7 +95,7 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 	}
 
 	public List<String> getReports() {
-		return asList(excelReport, pdfReport);
+		return asList(EXCEL_REPORT, PDF_REPORT);
 	}
 
 	@Override
@@ -798,7 +795,7 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 	@Override
 	public NewReportWriterFactory getReport(String report) {
 
-		if (report.equals(pdfReport)) {
+		if (report.equals(PDF_REPORT)) {
 			return getRmReportBuilderFactories().decommissioningListBuilderFactory.getValue();
 		} else {
 			return getRmReportBuilderFactories().decommissioningListExcelBuilderFactory.getValue();
@@ -807,7 +804,7 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 
 	@Override
 	public Object getReportParameters(String report) {
-		if (report.equals(pdfReport)) {
+		if (report.equals(PDF_REPORT)) {
 			return new DecommissioningListReportParameters(decommissioningList.getId());
 		} else {
 			return new DecommissioningListExcelReportParameters(decommissioningList.getId(),
