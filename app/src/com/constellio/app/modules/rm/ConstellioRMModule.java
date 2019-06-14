@@ -21,6 +21,7 @@ import com.constellio.app.modules.rm.extensions.RMEventRecordExtension;
 import com.constellio.app.modules.rm.extensions.RMFolderExtension;
 import com.constellio.app.modules.rm.extensions.RMGenericRecordPageExtension;
 import com.constellio.app.modules.rm.extensions.RMListSchemaTypeExtension;
+import com.constellio.app.modules.rm.extensions.RMManageAuthorizationsPageExtension;
 import com.constellio.app.modules.rm.extensions.RMMediumTypeRecordExtension;
 import com.constellio.app.modules.rm.extensions.RMModulePageExtension;
 import com.constellio.app.modules.rm.extensions.RMOldSchemasBlockageRecordExtension;
@@ -149,6 +150,7 @@ import com.constellio.app.modules.rm.migrations.RMMigrationTo8_2;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo8_2_1_4;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo8_2_2_4;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo8_2_2_5;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo8_2_3;
 import com.constellio.app.modules.rm.migrations.records.RMContainerRecordMigrationTo7_3;
 import com.constellio.app.modules.rm.migrations.records.RMDocumentMigrationTo7_6_10;
 import com.constellio.app.modules.rm.migrations.records.RMEmailMigrationTo7_7_1;
@@ -324,6 +326,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		scripts.add(new RMMigrationTo8_2_1_4());
 		scripts.add(new RMMigrationTo8_2_2_4());
 		scripts.add(new RMMigrationTo8_2_2_5());
+		scripts.add(new RMMigrationTo8_2_3());
 
 		return scripts;
 	}
@@ -447,6 +450,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		extensions.recordDisplayFactoryExtensions.add(new RMRecordDisplayFactoryExtension(appLayerFactory, collection));
 		extensions.listSchemaCommandExtensions.add(new RMListSchemaExtention());
 		extensions.pagesComponentsExtensions.add(new RMUserProfileFieldsExtension(collection, appLayerFactory));
+		extensions.pagesComponentsExtensions.add(new RMManageAuthorizationsPageExtension(collection, appLayerFactory));
 
 		extensions.lockedRecords.add(RMTaskType.SCHEMA_TYPE, RMTaskType.BORROW_REQUEST);
 		extensions.lockedRecords.add(RMTaskType.SCHEMA_TYPE, RMTaskType.BORROW_EXTENSION_REQUEST);

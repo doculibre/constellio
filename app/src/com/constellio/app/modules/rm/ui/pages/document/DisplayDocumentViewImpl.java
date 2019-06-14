@@ -956,7 +956,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	}
 
 	@Override
-	public void setAddAuthorizationButtonState(ComponentState state) {
+	public void setViewAuthorizationButtonState(ComponentState state) {
 		addAuthorizationButton.setVisible(state.isVisible());
 		addAuthorizationButton.setEnabled(state.isEnabled());
 	}
