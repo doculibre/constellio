@@ -1,11 +1,12 @@
 package com.constellio.app.services.menu;
 
 import com.constellio.app.extensions.menu.MenuItemActionsExtension;
+import com.constellio.app.extensions.menu.MenuItemActionsExtension.MenuItemActionExtensionAddMenuItemActionsForQueryParams;
 import com.constellio.app.extensions.menu.MenuItemActionsExtension.MenuItemActionExtensionAddMenuItemActionsForRecordParams;
 import com.constellio.app.extensions.menu.MenuItemActionsExtension.MenuItemActionExtensionAddMenuItemActionsForRecordsParams;
+import com.constellio.app.extensions.menu.MenuItemActionsExtension.MenuItemActionExtensionGetActionStateForQueryParams;
 import com.constellio.app.extensions.menu.MenuItemActionsExtension.MenuItemActionExtensionGetActionStateForRecordParams;
 import com.constellio.app.extensions.menu.MenuItemActionsExtension.MenuItemActionExtensionGetActionStateForRecordsParams;
-import com.constellio.app.modules.rm.services.menu.RecordListMenuItemServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
 import com.constellio.app.ui.entities.GlobalGroupVO;
@@ -23,7 +24,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.constellio.app.services.menu.MenuItemActionState.HIDDEN;
+import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus.DISABLED;
+import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus.HIDDEN;
 
 
 public class MenuItemServices {
@@ -31,7 +33,6 @@ public class MenuItemServices {
 	private SearchServices searchServices;
 	private List<MenuItemActionsExtension> menuItemActionsExtensions;
 
-	private RecordListMenuItemServices recordListMenuItemServices;
 	private UserCredentialMenuItemServices userCredentialMenuItemServices;
 	private GlobalGroupMenuItemServices globalGroupMenuItemServices;
 
@@ -41,7 +42,6 @@ public class MenuItemServices {
 		menuItemActionsExtensions = appLayerFactory.getExtensions()
 				.forCollection(collection).menuItemActionsExtensions.getExtensions();
 
-		this.recordListMenuItemServices = new RecordListMenuItemServices(collection, appLayerFactory);
 		this.userCredentialMenuItemServices = new UserCredentialMenuItemServices(appLayerFactory);
 		this.globalGroupMenuItemServices = new GlobalGroupMenuItemServices(appLayerFactory);
 	}
