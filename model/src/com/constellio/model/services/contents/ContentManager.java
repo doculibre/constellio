@@ -181,11 +181,13 @@ public class ContentManager implements StatefulService {
 		Runnable scanVaultContentsInBackgroundRunnable = new Runnable() {
 			@Override
 			public void run() {
+				boolean isDeleteUnusedContentEnabled = modelLayerFactory.getConfiguration().isDeleteUnusedContentEnabled();
 				boolean isInScanVaultContentsSchedule = new ConstellioEIMConfigs(modelLayerFactory).isInScanVaultContentsSchedule();
 				if (serviceThreadEnabled && ReindexingServices.getReindexingInfos() == null
 					&& isInScanVaultContentsSchedule
 					&& isEncodingSafeForScan()
-					&& !doesContentScanLockFileExist()) {
+					&& !doesContentScanLockFileExist()
+						&& isDeleteUnusedContentEnabled) {
 					try {
 						createContentScanLockFile();
 						VaultScanResults vaultScanResults = new VaultScanResults();
