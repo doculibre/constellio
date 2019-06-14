@@ -2,6 +2,7 @@ package com.constellio.app.services.menu;
 
 import com.constellio.app.services.action.UserCredentialActionsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
 import com.constellio.app.services.menu.behavior.UserCredentialMenuItemActionBehaviors;
 import com.constellio.app.ui.entities.UserCredentialVO;
@@ -75,7 +76,7 @@ public class UserCredentialMenuItemServices {
 											   int group, int priority, Runnable command) {
 		return MenuItemAction.builder()
 				.type(type)
-				.state(possible ? MenuItemActionState.VISIBLE : MenuItemActionState.HIDDEN)
+				.state(possible ? new MenuItemActionState(MenuItemActionStateStatus.VISIBLE) : new MenuItemActionState(MenuItemActionStateStatus.HIDDEN))
 				.caption(caption)
 				.icon(icon)
 				.group(group)
