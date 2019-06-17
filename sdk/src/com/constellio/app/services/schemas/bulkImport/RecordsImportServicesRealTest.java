@@ -1896,7 +1896,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 	public void whenImportingAsIdThenOnlyImportedIfIdRespectsConditions()
 			throws Exception {
 
-		defineSchemasManager().using(schemas.andCustomSchema().withAStringMetadata(whichIsUnique)
+		defineSchemasManager().using(schemas.andCustomSchema().withAStringMetadata(whichHasDefaultRequirement)
 				.withAnotherSchemaStringMetadata().with(new MetadataSchemaTypesConfigurator() {
 					@Override
 					public void configure(MetadataSchemaTypesBuilder schemaTypes) {
@@ -1910,15 +1910,14 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 
 		recordServices
 				.add(new TestRecord(anotherSchema, "00000111111").set(TITLE, "v0"));
-		recordServices.add(new TestRecord(zeSchema, "00000222222").set(TITLE, "v0"));
+		recordServices.add(new TestRecord(zeSchema, "00000222222").set(TITLE, "v0").set(zeSchema.stringMetadata(), "v1"));
 
-		zeSchemaTypeRecords.add(defaultSchemaData().setId("00000111111").addField("title", "v1"));
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("00000111111").addField("title", "v1").addField("stringMetadata", "value"));
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("00000222222").addField("title", "v1"));
-		zeSchemaTypeRecords.add(defaultSchemaData().setId("00000333333").addField("title", "v1"));
-		zeSchemaTypeRecords.add(defaultSchemaData().setId(unusedId).addField("title", "v1"));
-		zeSchemaTypeRecords.add(defaultSchemaData().setId(adminIdInSystemCollection).addField("title", "v1"));
-
-		zeSchemaTypeRecords.add(defaultSchemaData().setId("mouhahahaha").addField("title", "v1"));
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("00000333333").addField("title", "v1").addField("stringMetadata", "value"));
+		zeSchemaTypeRecords.add(defaultSchemaData().setId(unusedId).addField("title", "v1").addField("stringMetadata", "value"));
+		zeSchemaTypeRecords.add(defaultSchemaData().setId(adminIdInSystemCollection).addField("title", "v1").addField("stringMetadata", "value"));
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("mouhahahaha").addField("title", "v1").addField("stringMetadata", "value"));
 
 		importDataProvider.dataOptionsMap
 				.put(zeSchema.typeCode(), new ImportDataOptions().setImportAsLegacyId(false));
