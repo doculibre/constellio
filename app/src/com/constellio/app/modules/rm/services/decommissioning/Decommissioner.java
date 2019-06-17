@@ -392,7 +392,6 @@ public abstract class Decommissioner {
 					try {
 						content = createPDFa(content);
 						loggingServices.logPdfAGeneration(document, user);
-						throw new RuntimeException(new OfficeException("Could not convert"));
 					} catch (NullPointerException e) {
 						e.printStackTrace();
 					} catch (RuntimeException e) {
