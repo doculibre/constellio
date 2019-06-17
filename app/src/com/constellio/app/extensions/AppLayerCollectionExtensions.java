@@ -814,4 +814,10 @@ public class AppLayerCollectionExtensions {
 			}
 		});
 	}
+
+	public void orderListOfElements(Record[] recordElements) {
+		for (LabelTemplateExtension extension : labelTemplateExtensions) {
+			extension.orderListOfElements(recordElements);
+		}
+	}
 }

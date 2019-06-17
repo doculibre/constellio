@@ -143,8 +143,9 @@ public class LabelXmlGenerator extends AbstractXmlGenerator {
 			Element xmlRoot = new Element(this.type);
 			xmlDocument.setRootElement(xmlRoot);
 			xmlRoot.addContent(this.skipAmountOfElementNeededForStartingPosition());
-			for (int i = 0; i < this.numberOfCopies; i++) {
-				for (Record recordElement : this.recordElements) {
+			factory.getExtensions().forCollection(collection).orderListOfElements(recordElements);
+			for (Record recordElement : recordElements) {
+				for (int i = 0; i < this.numberOfCopies; i++) {
 					//the xml tag singular ( folder / container )
 					Element xmlSingularElement = new Element(getTypeSingular());
 
