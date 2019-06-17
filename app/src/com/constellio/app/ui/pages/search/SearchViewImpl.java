@@ -1,5 +1,19 @@
 package com.constellio.app.ui.pages.search;
 
+import static com.constellio.app.ui.framework.components.BaseForm.BUTTONS_LAYOUT;
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.jetbrains.annotations.Nullable;
+import org.vaadin.dialogs.ConfirmDialog;
+
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.FacetVO;
 import com.constellio.app.ui.entities.FacetValueVO;
@@ -38,6 +52,7 @@ import com.vaadin.data.Container.ItemSetChangeListener;
 import com.vaadin.data.Property;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
+import com.vaadin.lazyloadwrapper.LazyLoadWrapper;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.shared.ui.label.ContentMode;
@@ -60,19 +75,6 @@ import com.vaadin.ui.Table.ColumnHeaderMode;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
-import org.jetbrains.annotations.Nullable;
-import org.vaadin.dialogs.ConfirmDialog;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import static com.constellio.app.ui.framework.components.BaseForm.BUTTONS_LAYOUT;
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 
 public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchView>> extends BaseViewImpl implements SearchView {
 
@@ -260,25 +262,23 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			}
 		}
 
-		SearchResultVODataProvider dataProvider = presenter.getSearchResults(includeFacets);
+		final SearchResultVODataProvider dataProvider = presenter.getSearchResults(includeFacets);
+		summary.removeAllComponents();
+		resultsArea.removeAllComponents();
 		spellCheckerSuggestions.removeAllComponents();
-		results = buildResultTable(dataProvider);
 
+		results = buildResultTable(dataProvider);
 
 		List<String> disambiguationSuggestions = presenter.getDisambiguationSuggestions();
 		buildThesaurusDisambiguation(disambiguationSuggestions);
 		buildSpellCheckerSuggestions(dataProvider, disambiguationSuggestions);
 
-		summary.removeAllComponents();
 		summary.addComponent(buildSummary(results));
 
+		resultsArea.addComponent(new LazyLoadWrapper(results));
 		if (isDetailedView()) {
-			resultsArea.removeAllComponents();
-			resultsArea.addComponents(results, ((SearchResultDetailedTable) results).createControls());
+			resultsArea.addComponent(((SearchResultDetailedTable) results).createControls());
 			((SearchResultDetailedTable) results).setItemsPerPageValue(presenter.getSelectedPageLength());
-		} else {
-			resultsArea.removeAllComponents();
-			resultsArea.addComponent(results);
 		}
 
 		refreshCapsule();

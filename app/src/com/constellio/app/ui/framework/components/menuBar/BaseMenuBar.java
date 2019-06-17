@@ -3,6 +3,8 @@ package com.constellio.app.ui.framework.components.menuBar;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import com.constellio.app.ui.application.ConstellioUI;
@@ -48,25 +50,32 @@ public class BaseMenuBar extends MenuBar {
 						loadingNotification.setHtmlContentAllowed(true);
 						loadingNotification.setDelayMsec(100000);
 						loadingNotification.show(Page.getCurrent());
-						
+
+						final List<MenuItem> childrenBeforeLazyLoad = new ArrayList<>(selectedItem.getChildren());
+						lazyLoadChildren(selectedItem);
 						ConstellioUI.getCurrent().runAsync(new Runnable() {
 							@Override
 							public void run() {
-								selectedItem.removeChildren();
-								selectedItem.setCommand(null);
-								
-								lazyLoadChildren(selectedItem);
-								
-								StringBuilder js = new StringBuilder();
-								js.append("setTimeout(function(){");
-								js.append("document.getElementById('" + getId() + "').firstChild.click();");
-								String findVNotificationJS = "document.getElementById('" + loadingNotificationId + "').parentNode.parentNode.parentNode.parentNode";
-								js.append(findVNotificationJS + ".parentNode.removeChild(" + findVNotificationJS + ");");
-								js.append(" }, 10);");
-								JavaScript.eval(js.toString());
+								ConstellioUI.getCurrent().access(new Runnable() {
+									@Override
+									public void run() {
+										for (MenuItem childBeforeLazyLoad : childrenBeforeLazyLoad) {
+											selectedItem.removeChild(childBeforeLazyLoad);
+										}
+										selectedItem.setCommand(null);
+										
+										StringBuilder js = new StringBuilder();
+										js.append("setTimeout(function(){");
+										js.append("document.getElementById('" + getId() + "').firstChild.click();");
+										String findVNotificationJS = "document.getElementById('" + loadingNotificationId + "').parentNode.parentNode.parentNode.parentNode";
+										js.append(findVNotificationJS + ".parentNode.removeChild(" + findVNotificationJS + ");");
+										js.append(" }, 10);");
+										JavaScript.eval(js.toString());
+									}
+								});
 							}
 							
-						}, 100);
+						}, 100, BaseMenuBar.this);
 					}
 				}
 			});

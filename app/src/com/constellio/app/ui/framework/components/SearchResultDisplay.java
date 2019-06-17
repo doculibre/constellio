@@ -226,19 +226,28 @@ public class SearchResultDisplay extends CssLayout {
 	}
 
 	private void buildMetadataComponent(RecordVO recordVO, MetadataDisplayFactory componentFactory) {
+		StringBuilder sb = new StringBuilder();
 		for (MetadataValueVO metadataValue : recordVO.getSearchMetadataValues()) {
 			if (recordVO.getMetadataCodes().contains(metadataValue.getMetadata().getCode())) {
 				MetadataVO metadataVO = metadataValue.getMetadata();
 				if (!metadataVO.codeMatches(CommonMetadataBuilder.TITLE)) {
-					Component value = componentFactory.build(recordVO, metadataValue);
-					if (value != null) {
-						value.addStyleName(METADATA_VALUE_STYLE);
-						Label caption = new Label(metadataVO.getLabel() + ":");
-						caption.addStyleName(METADATA_CAPTION_STYLE);
-						addComponents(caption, value);
-					}
+					sb.append("<div class=\"metadata-label\">");
+					sb.append(metadataVO.getLabel());
+					sb.append(":</div><div class=\"metadata-value\">");
+					sb.append(metadataValue.getValue() != null ? metadataValue.getValue().toString() : "");
+					sb.append("</div>");
+//					Component value = componentFactory.build(recordVO, metadataValue);
+//					if (value != null) {
+//						value.addStyleName(METADATA_VALUE_STYLE);
+//						Label caption = new Label(metadataVO.getLabel() + ":");
+//						caption.addStyleName(METADATA_CAPTION_STYLE);
+//						addComponents(caption, value);
+//					}
 				}
 			}
+		}
+		if (sb.length() > 0) {
+			addComponent(new Label(sb.toString(), ContentMode.HTML));
 		}
 	}
 

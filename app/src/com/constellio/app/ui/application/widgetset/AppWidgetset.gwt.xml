@@ -14,11 +14,13 @@
         <inherits name="org.tepi.filtertable.gwt.FilterTableWidgetset" />
         <inherits name="org.vaadin.activelink.ActivelinkWidgetset" />
         <inherits name="org.vaadin.hene.popupbutton.widgetset.PopupbuttonWidgetset" />
+        <inherits name="com.vaadin.lazyloadwrapper.widgetset.LazyLoadWrapperWidgetset" />
         <set-configuration-property name="devModeRedirectEnabled" value="true" />
         <set-property name="user.agent" value="ie8,ie9,gecko1_8,safari,ie10" />
         <set-property name="vaadin.profiler" value="true" />
         <source path="client" />
         <source path="shared" />
+<!--        
         <stylesheet src="ckeditor\contents.css" />
         <stylesheet src="ckeditor\plugins\colordialog\dialogs\colordialog.css" />
         <stylesheet src="ckeditor\plugins\copyformatting\styles\copyformatting.css" />
@@ -36,6 +38,7 @@
         <stylesheet src="ckeditor\skins\moono-lisa\editor_ie.css" />
         <stylesheet src="ckeditor\skins\moono-lisa\editor_ie8.css" />
         <stylesheet src="ckeditor\skins\moono-lisa\editor_iequirks.css" />
+-->
         <collapse-all-properties />
         <set-property name="compiler.useSymbolMaps" value="true" />
 </module>
