@@ -125,7 +125,7 @@ public class StringIdsRecordsCachesDataStore {
 	}
 
 	void insert(RecordDTO dto) {
-		Holder<RecordDTO> recordDTOHolder = allRecordsWithStringKey.get(dto);
+		Holder<RecordDTO> recordDTOHolder = allRecordsWithStringKey.get(dto.getId());
 
 		byte collectionId = getCollectionIdOf(dto);
 		short typeId = getTypeId(dto);

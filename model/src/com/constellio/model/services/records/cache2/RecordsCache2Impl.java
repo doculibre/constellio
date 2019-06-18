@@ -2,11 +2,13 @@ package com.constellio.model.services.records.cache2;
 
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.services.cache.InsertionReason;
+import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.RecordCacheType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.collections.CollectionsListManager;
@@ -68,8 +70,24 @@ public class RecordsCache2Impl implements RecordsCache {
 			String collectionCode = (String) recordDTO.getFields().get(COLLECTION.getDataStoreCode());
 			String schemaCode = (String) recordDTO.getFields().get(SCHEMA.getDataStoreCode());
 
-			if (collectionCode.equals(collection) && !recordDTO.isSummary()) {
-				MetadataSchema schema = metadataSchemasManager.getSchemaTypes(collection).getSchema(schemaCode);
+			//The record is in an other collection, so null is returned
+			if (!collectionCode.equals(collection)) {
+				return null;
+			}
+
+			MetadataSchemaTypes schemaTypes = metadataSchemasManager.getSchemaTypes(collectionCode);
+			MetadataSchema schema = schemaTypes.getSchema(schemaCode);
+			MetadataSchemaType schemaType = schemaTypes.getSchemaType(SchemaUtils.getSchemaTypeCode(schemaCode));
+			if (schemaType.getCacheType().isSummaryCache()) {
+				if (schemaType.getCacheType().hasVolatileCache()) {
+					recordDTO = volatileCache.get(id);
+					return recordDTO == null ? null : new RecordImpl(schema, recordDTO);
+
+				} else {
+					return null;
+				}
+
+			} else {
 				return new RecordImpl(schema, recordDTO);
 			}
 		}
@@ -201,7 +219,7 @@ public class RecordsCache2Impl implements RecordsCache {
 			return stream(metadata.getSchemaTypeCode())
 					.filter(record -> isEqual(value, record.get(metadata))).findFirst().orElse(null);
 		} else {
-			return null;
+			throw new ImpossibleRuntimeException("getByMetadata cannot be used for schema type which are not fully cached. If the schema type has a summary cache, try using getSummaryByMetadata instead");
 		}
 
 	}

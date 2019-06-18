@@ -18,7 +18,7 @@ public interface RecordDTO extends RecordsOperationDTO, Serializable {
 
 	Map<String, Object> getCopyFields();
 
-	boolean isSummary();
+	RecordDTOMode getLoadingMode();
 
 	RecordDTO createCopyWithDelta(RecordDeltaDTO recordDeltaDTO);
 

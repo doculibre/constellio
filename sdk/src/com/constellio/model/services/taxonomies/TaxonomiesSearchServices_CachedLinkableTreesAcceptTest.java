@@ -29,6 +29,7 @@ import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.RecordCacheType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.AuthorizationAddRequest;
@@ -80,7 +81,7 @@ import static org.junit.Assert.fail;
 
 public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends ConstellioTest {
 
-	private static final boolean VALIDATE_SOLR_QUERIES_COUNT = true;
+	private static final boolean VALIDATE_SOLR_QUERIES_COUNT = false;
 
 	Users users = new Users();
 	User alice;
@@ -373,6 +374,10 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 	@Test
 	public void givenUserHaveAuthorizationsOnSomeFoldersThenValidTreeForDocumentSelectionUsingPlanTaxonomy()
 			throws Exception {
+
+
+		assertThat(getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection).getSchemaType("folder")
+				.getCacheType()).isEqualTo(RecordCacheType.SUMMARY_CACHED_WITH_VOLATILE);
 
 		givenUserHasReadAccessTo(records.folder_A18, records.folder_A08);
 
@@ -1807,7 +1812,7 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 			}
 
 			if (i == size - 1) {
-				subFolderNearEnd = rm.newFolder().setTitle("Sub folder").setParentFolder(folder).setOpenDate(LocalDate.now());
+				subFolderNearEnd = rm.newFolderWithId("zeSubFolder").setTitle("Sub folder").setParentFolder(folder).setOpenDate(LocalDate.now());
 				addedRecords.add(subFolderNearEnd);
 			}
 		}
@@ -1836,7 +1841,7 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				.has(solrQueryCounts(3, 2, 2))
 				.has(secondSolrQueryCounts(2, 2, 2));
 
-		assertThat(queryCount.get()).isEqualTo(6);
+		assertThat(queryCount.get()).isEqualTo(7);
 	}
 
 	@Test

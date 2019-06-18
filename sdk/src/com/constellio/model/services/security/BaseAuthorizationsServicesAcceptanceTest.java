@@ -790,8 +790,8 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 	protected ListAssert<VerifiedAuthorization> assertThatAuthorizationsOn(String recordId) {
 		Record record = recordServices.getDocumentById(recordId);
 
-		recordServices.getRecordsCaches().invalidateAll();
-		recordServices.refresh(record);
+		//		recordServices.getRecordsCaches().invalidateAll();
+		//		recordServices.refresh(record);
 
 		List<VerifiedAuthorization> authorizations = new ArrayList<>();
 		for (Authorization authorization : services.getRecordAuthorizations(record)) {

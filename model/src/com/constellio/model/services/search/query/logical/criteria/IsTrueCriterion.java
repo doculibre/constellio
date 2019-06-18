@@ -1,6 +1,8 @@
 package com.constellio.model.services.search.query.logical.criteria;
 
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.DataStoreField;
+import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.search.query.logical.LogicalSearchValueCondition;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -31,5 +33,15 @@ public class IsTrueCriterion extends LogicalSearchValueCondition {
 	@Override
 	public String toString() {
 		return getClass().getSimpleName();
+	}
+
+	@Override
+	public boolean testConditionOnField(Metadata metadata, Record record) {
+		return Boolean.TRUE.equals(record.get(metadata));
+	}
+
+	@Override
+	public boolean isSupportingMemoryExecution() {
+		return true;
 	}
 }

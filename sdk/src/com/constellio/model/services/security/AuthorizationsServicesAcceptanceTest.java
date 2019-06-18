@@ -1222,8 +1222,12 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		auth2 = add(authorizationForPrincipals(heroes, dakota).on(FOLDER2).givingReadWriteAccess());
 		auth3 = add(authorizationForUser(dakota).on(TAXO1_CATEGORY1).givingReadAccess());
 
+		List<Record> records = recordServices.getRecordsCaches().getCache(zeCollection).getAllValues(Authorization.SCHEMA_TYPE);
+		assertThat(records)
+				.hasSize(3);
+
 		assertThatAuthorizationsOn(FOLDER2).containsOnly(
-				authOnRecord(FOLDER2).givingReadWrite().forPrincipals(heroes, dakota),
+				authOnRecord(FOLDER2).givingReadWrite().forPrincipals(dakota, heroes),
 				authOnRecord(TAXO1_CATEGORY1).givingRead().forPrincipals(dakota));
 
 		assertThatAuthorizationsOn(FOLDER4).containsOnly(

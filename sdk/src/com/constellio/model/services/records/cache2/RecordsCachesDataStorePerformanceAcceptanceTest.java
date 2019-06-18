@@ -1,6 +1,7 @@
 package com.constellio.model.services.records.cache2;
 
 import com.constellio.data.dao.dto.records.RecordDTO;
+import com.constellio.data.dao.dto.records.RecordDTOMode;
 import com.constellio.data.dao.dto.records.SolrRecordDTO;
 import com.constellio.model.entities.schemas.RecordCacheType;
 import com.constellio.model.services.collections.CollectionsListManager;
@@ -93,7 +94,7 @@ public class RecordsCachesDataStorePerformanceAcceptanceTest extends ConstellioT
 			fields.put("schema_s", types[id % types.length] + "_default");
 			fields.put("boolean1_s", createdRecord % 3 == 0);
 
-			SolrRecordDTO dto = new SolrRecordDTO(strId, fields, true);
+			SolrRecordDTO dto = new SolrRecordDTO(strId, fields, RecordDTOMode.SUMMARY);
 			ByteArrayRecordDTO byteArrayRecordDTO = ByteArrayRecordDTO.create(modelLayerFactory, dto);
 			structureBytes += 8;
 			structureBytes += 8; //version
@@ -159,7 +160,7 @@ public class RecordsCachesDataStorePerformanceAcceptanceTest extends ConstellioT
 			fields.put("schema_s", types[id % types.length] + "_default");
 			fields.put("boolean1_s", createdRecord % 3 == 0);
 
-			SolrRecordDTO dto = new SolrRecordDTO(strId, fields, true);
+			SolrRecordDTO dto = new SolrRecordDTO(strId, fields, RecordDTOMode.SUMMARY);
 			ByteArrayRecordDTO byteArrayRecordDTO = ByteArrayRecordDTO.create(modelLayerFactory, dto);
 			structureBytes += 8;
 			structureBytes += 8; //version
@@ -247,7 +248,7 @@ public class RecordsCachesDataStorePerformanceAcceptanceTest extends ConstellioT
 			fields.put("schema_s", types[id % types.length] + "_default");
 			fields.put("boolean1_s", createdRecord % 3 == 0);
 
-			SolrRecordDTO dto = new SolrRecordDTO(strId, fields, true);
+			SolrRecordDTO dto = new SolrRecordDTO(strId, fields, RecordDTOMode.SUMMARY);
 			ByteArrayRecordDTO byteArrayRecordDTO = ByteArrayRecordDTO.create(modelLayerFactory, dto);
 			structureBytes += 8;
 			structureBytes += 8; //version

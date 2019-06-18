@@ -1,6 +1,8 @@
 package com.constellio.model.services.search.query.logical.criteria;
 
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.DataStoreField;
+import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.search.SearchServicesRuntimeException.TooManyElementsInCriterion;
 import com.constellio.model.services.search.query.logical.LogicalSearchValueCondition;
@@ -65,5 +67,22 @@ public class IsInCriterion extends LogicalSearchValueCondition {
 	@Override
 	public String toString() {
 		return getClass().getSimpleName() + ":" + values;
+	}
+
+
+	@Override
+	public boolean testConditionOnField(Metadata metadata, Record record) {
+		for (Object value : record.getValues(metadata)) {
+			if (values.contains(value)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	@Override
+	public boolean isSupportingMemoryExecution() {
+		return true;
 	}
 }

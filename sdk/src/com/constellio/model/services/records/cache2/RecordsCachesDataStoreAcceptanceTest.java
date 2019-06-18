@@ -35,6 +35,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
+import static com.constellio.data.dao.dto.records.RecordDTOMode.FULLY_LOADED;
+import static com.constellio.data.dao.dto.records.RecordDTOMode.SUMMARY;
 import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
 import static com.constellio.model.entities.schemas.MetadataValueType.ENUM;
 import static com.constellio.model.entities.schemas.MetadataValueType.INTEGER;
@@ -133,10 +135,10 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 		initTestVariables();
 
 		ByteArrayRecordDTO dto1, dto2, dto3, dto6, dto7, dto8;
-		dto1 = create(new SolrRecordDTO(zeroPadded(1), 12L, fields("zeCollection", zeSchema.code()), true));
-		dto3 = create(new SolrRecordDTO(zeroPadded(3), 23L, fields("zeCollection", zeSchema.code()), true));
-		dto6 = create(new SolrRecordDTO(zeroPadded(6), 34L, fields("zeCollection", zeSchema.code()), true));
-		dto8 = create(new SolrRecordDTO(zeroPadded(8), 45L, fields("zeCollection", zeSchema.code()), true));
+		dto1 = create(new SolrRecordDTO(zeroPadded(1), 12L, fields("zeCollection", zeSchema.code()), SUMMARY));
+		dto3 = create(new SolrRecordDTO(zeroPadded(3), 23L, fields("zeCollection", zeSchema.code()), SUMMARY));
+		dto6 = create(new SolrRecordDTO(zeroPadded(6), 34L, fields("zeCollection", zeSchema.code()), SUMMARY));
+		dto8 = create(new SolrRecordDTO(zeroPadded(8), 45L, fields("zeCollection", zeSchema.code()), SUMMARY));
 
 		dataStore.insertWithoutReservingSpaceForPreviousIds(dto1);
 		dataStore.insertWithoutReservingSpaceForPreviousIds(dto3);
@@ -173,13 +175,13 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 		initTestVariables();
 
 		ByteArrayRecordDTO dto1, dto2, dto3, dto6, dto7, dto8, dto10, dto12;
-		dto1 = create(new SolrRecordDTO(zeroPadded(1), 12L, fields("zeCollection", zeSchema.code()), true));
-		dto3 = create(new SolrRecordDTO(zeroPadded(3), 23L, fields("zeCollection", zeSchema.code()), true));
-		dto6 = create(new SolrRecordDTO(zeroPadded(6), 34L, fields("zeCollection", zeSchema.code()), true));
-		dto7 = create(new SolrRecordDTO(zeroPadded(7), 56L, fields("zeCollection", zeSchema.code()), true));
-		dto8 = create(new SolrRecordDTO(zeroPadded(8), 67L, fields("zeCollection", zeSchema.code()), true));
-		dto10 = create(new SolrRecordDTO(zeroPadded(10), 111L, fields("zeCollection", zeSchema.code()), true));
-		dto12 = create(new SolrRecordDTO(zeroPadded(12), 222L, fields("zeCollection", zeSchema.code()), true));
+		dto1 = create(new SolrRecordDTO(zeroPadded(1), 12L, fields("zeCollection", zeSchema.code()), SUMMARY));
+		dto3 = create(new SolrRecordDTO(zeroPadded(3), 23L, fields("zeCollection", zeSchema.code()), SUMMARY));
+		dto6 = create(new SolrRecordDTO(zeroPadded(6), 34L, fields("zeCollection", zeSchema.code()), SUMMARY));
+		dto7 = create(new SolrRecordDTO(zeroPadded(7), 56L, fields("zeCollection", zeSchema.code()), SUMMARY));
+		dto8 = create(new SolrRecordDTO(zeroPadded(8), 67L, fields("zeCollection", zeSchema.code()), SUMMARY));
+		dto10 = create(new SolrRecordDTO(zeroPadded(10), 111L, fields("zeCollection", zeSchema.code()), SUMMARY));
+		dto12 = create(new SolrRecordDTO(zeroPadded(12), 222L, fields("zeCollection", zeSchema.code()), SUMMARY));
 
 		dataStore.insertWithoutReservingSpaceForPreviousIds(dto1);
 		//assertThat(dataStore.intIdsDataStore.typesIndexes[zeCollectionIndex][zeCollectionType1Id].size()).isEqualTo(1);
@@ -269,14 +271,14 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 		initTestVariables();
 
 		SolrRecordDTO dto1, dto3, dto6, dto7, dto8, dto9, dto12, dto14;
-		dto1 = new SolrRecordDTO(zeroPadded(1), 12L, fields("zeCollection", zeSchema.code()), false);
-		dto3 = new SolrRecordDTO(zeroPadded(3), 23L, fields("zeCollection", zeSchema.code()), false);
-		dto6 = new SolrRecordDTO(zeroPadded(6), 34L, fields("zeCollection", zeSchema.code()), false);
-		dto7 = new SolrRecordDTO(zeroPadded(7), 56L, fields("zeCollection", zeSchema.code()), false);
-		dto8 = new SolrRecordDTO(zeroPadded(8), 67L, fields("zeCollection", zeSchema.code()), false);
-		dto9 = new SolrRecordDTO(zeroPadded(9), 45L, fields("zeCollection", zeSchema.code()), false);
-		dto12 = new SolrRecordDTO(zeroPadded(12), 111L, fields("zeCollection", zeSchema.code()), false);
-		dto14 = new SolrRecordDTO(zeroPadded(14), 222L, fields("zeCollection", zeSchema.code()), false);
+		dto1 = new SolrRecordDTO(zeroPadded(1), 12L, fields("zeCollection", zeSchema.code()), FULLY_LOADED);
+		dto3 = new SolrRecordDTO(zeroPadded(3), 23L, fields("zeCollection", zeSchema.code()), FULLY_LOADED);
+		dto6 = new SolrRecordDTO(zeroPadded(6), 34L, fields("zeCollection", zeSchema.code()), FULLY_LOADED);
+		dto7 = new SolrRecordDTO(zeroPadded(7), 56L, fields("zeCollection", zeSchema.code()), FULLY_LOADED);
+		dto8 = new SolrRecordDTO(zeroPadded(8), 67L, fields("zeCollection", zeSchema.code()), FULLY_LOADED);
+		dto9 = new SolrRecordDTO(zeroPadded(9), 45L, fields("zeCollection", zeSchema.code()), FULLY_LOADED);
+		dto12 = new SolrRecordDTO(zeroPadded(12), 111L, fields("zeCollection", zeSchema.code()), FULLY_LOADED);
+		dto14 = new SolrRecordDTO(zeroPadded(14), 222L, fields("zeCollection", zeSchema.code()), FULLY_LOADED);
 
 		dataStore.insertWithoutReservingSpaceForPreviousIds(dto1);
 		dataStore.insertWithoutReservingSpaceForPreviousIds(dto3);
@@ -343,12 +345,12 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 		initTestVariables();
 
 		SolrRecordDTO dto1, dto2, dto3, dto6, dto7, dto8;
-		dto1 = new SolrRecordDTO(zeroPadded(1), 12L, fields("zeCollection", zeSchema.code()), false);
-		dto2 = new SolrRecordDTO(zeroPadded(2), 89L, fields("zeCollection", zeSchema.code()), false);
-		dto3 = new SolrRecordDTO(zeroPadded(3), 23L, fields("zeCollection", zeSchema.code()), false);
-		dto6 = new SolrRecordDTO(zeroPadded(6), 34L, fields("zeCollection", zeSchema.code()), false);
-		dto7 = new SolrRecordDTO(zeroPadded(7), 11L, fields("zeCollection", zeSchema.code()), false);
-		dto8 = new SolrRecordDTO(zeroPadded(8), 67L, fields("zeCollection", zeSchema.code()), false);
+		dto1 = new SolrRecordDTO(zeroPadded(1), 12L, fields("zeCollection", zeSchema.code()), FULLY_LOADED);
+		dto2 = new SolrRecordDTO(zeroPadded(2), 89L, fields("zeCollection", zeSchema.code()), FULLY_LOADED);
+		dto3 = new SolrRecordDTO(zeroPadded(3), 23L, fields("zeCollection", zeSchema.code()), FULLY_LOADED);
+		dto6 = new SolrRecordDTO(zeroPadded(6), 34L, fields("zeCollection", zeSchema.code()), FULLY_LOADED);
+		dto7 = new SolrRecordDTO(zeroPadded(7), 11L, fields("zeCollection", zeSchema.code()), FULLY_LOADED);
+		dto8 = new SolrRecordDTO(zeroPadded(8), 67L, fields("zeCollection", zeSchema.code()), FULLY_LOADED);
 
 		dataStore.insertWithoutReservingSpaceForPreviousIds(dto1);
 		dataStore.insertWithoutReservingSpaceForPreviousIds(dto3);
@@ -417,10 +419,10 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 		initTestVariables();
 
 		ByteArrayRecordDTO dto1, dto2, dto3, dto6, dto8;
-		dto1 = create(new SolrRecordDTO(zeroPadded(1), 12L, fields("zeCollection", zeSchema.code()), true));
-		dto3 = create(new SolrRecordDTO(zeroPadded(3), 23L, fields("zeCollection", zeSchema.code()), true));
-		dto6 = create(new SolrRecordDTO(zeroPadded(6), 34L, fields("zeCollection", zeSchema.code()), true));
-		dto8 = create(new SolrRecordDTO(zeroPadded(8), 45L, fields("zeCollection", zeSchema.code()), true));
+		dto1 = create(new SolrRecordDTO(zeroPadded(1), 12L, fields("zeCollection", zeSchema.code()), SUMMARY));
+		dto3 = create(new SolrRecordDTO(zeroPadded(3), 23L, fields("zeCollection", zeSchema.code()), SUMMARY));
+		dto6 = create(new SolrRecordDTO(zeroPadded(6), 34L, fields("zeCollection", zeSchema.code()), SUMMARY));
+		dto8 = create(new SolrRecordDTO(zeroPadded(8), 45L, fields("zeCollection", zeSchema.code()), SUMMARY));
 
 		dataStore.insertWithoutReservingSpaceForPreviousIds(dto1);
 		dataStore.insertWithoutReservingSpaceForPreviousIds(dto3);
@@ -432,7 +434,7 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 				.containsExactly(1, 3, 6, 7, 8);
 
 		//No space was reserved for id 2, recreating all arrays with a space for 2
-		dto2 = create(new SolrRecordDTO(zeroPadded(2), 56L, fields("zeCollection", zeSchema.code(), "booleanMetadata_s", false), true));
+		dto2 = create(new SolrRecordDTO(zeroPadded(2), 56L, fields("zeCollection", zeSchema.code(), "booleanMetadata_s", false), SUMMARY));
 		dataStore.insertWithoutReservingSpaceForPreviousIds(dto2);
 
 		assertThat(dataStore.intIdsDataStore.ids.stream().collect(toList()))
@@ -464,11 +466,11 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 		initTestVariables();
 
 		ByteArrayRecordDTO dto1, dto2, dto3, dto6, dto8;
-		dto1 = create(new SolrRecordDTO(zeroPadded(1), 12L, fields("zeCollection", zeSchema.code()), true));
-		dto2 = create(new SolrRecordDTO(zeroPadded(2), 56L, fields("zeCollection", zeSchema.code()), true));
-		dto3 = create(new SolrRecordDTO(zeroPadded(3), 23L, fields("zeCollection", zeSchema.code()), true));
-		dto6 = create(new SolrRecordDTO(zeroPadded(6), 34L, fields("zeCollection", zeSchema.code()), true));
-		dto8 = create(new SolrRecordDTO(zeroPadded(8), 45L, fields("zeCollection", zeSchema.code()), true));
+		dto1 = create(new SolrRecordDTO(zeroPadded(1), 12L, fields("zeCollection", zeSchema.code()), SUMMARY));
+		dto2 = create(new SolrRecordDTO(zeroPadded(2), 56L, fields("zeCollection", zeSchema.code()), SUMMARY));
+		dto3 = create(new SolrRecordDTO(zeroPadded(3), 23L, fields("zeCollection", zeSchema.code()), SUMMARY));
+		dto6 = create(new SolrRecordDTO(zeroPadded(6), 34L, fields("zeCollection", zeSchema.code()), SUMMARY));
+		dto8 = create(new SolrRecordDTO(zeroPadded(8), 45L, fields("zeCollection", zeSchema.code()), SUMMARY));
 
 		dataStore.insertWithoutReservingSpaceForPreviousIds(dto1);
 		dataStore.insertWithoutReservingSpaceForPreviousIds(dto2);
@@ -538,11 +540,11 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 		initTestVariables();
 
 		ByteArrayRecordDTO dto1, dto2, dto3, dto6, dto8;
-		dto1 = create(new SolrRecordDTO(zeroPadded(1), 12L, fields("zeCollection", zeSchema.code()), true));
-		dto2 = create(new SolrRecordDTO(zeroPadded(2), 56L, fields("zeCollection", zeSchema.code()), true));
-		dto3 = create(new SolrRecordDTO(zeroPadded(3), 23L, fields("zeCollection", zeSchema.code()), true));
-		dto6 = create(new SolrRecordDTO(zeroPadded(6), 34L, fields("zeCollection", zeSchema.code()), true));
-		dto8 = create(new SolrRecordDTO(zeroPadded(8), 45L, fields("zeCollection", zeSchema.code()), true));
+		dto1 = create(new SolrRecordDTO(zeroPadded(1), 12L, fields("zeCollection", zeSchema.code()), SUMMARY));
+		dto2 = create(new SolrRecordDTO(zeroPadded(2), 56L, fields("zeCollection", zeSchema.code()), SUMMARY));
+		dto3 = create(new SolrRecordDTO(zeroPadded(3), 23L, fields("zeCollection", zeSchema.code()), SUMMARY));
+		dto6 = create(new SolrRecordDTO(zeroPadded(6), 34L, fields("zeCollection", zeSchema.code()), SUMMARY));
+		dto8 = create(new SolrRecordDTO(zeroPadded(8), 45L, fields("zeCollection", zeSchema.code()), SUMMARY));
 
 		dataStore.insertWithoutReservingSpaceForPreviousIds(dto1);
 		dataStore.insertWithoutReservingSpaceForPreviousIds(dto2);
@@ -594,11 +596,11 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 		initTestVariables();
 
 		ByteArrayRecordDTO dto1, dto2, dto3, dto6, dto8;
-		dto1 = create(new SolrRecordDTO(zeroPadded(1), 12L, fields("zeCollection", zeSchema.code()), true));
-		dto2 = create(new SolrRecordDTO(zeroPadded(2), 56L, fields("zeCollection", zeSchema.code()), true));
-		dto3 = create(new SolrRecordDTO(zeroPadded(3), 23L, fields("zeCollection", zeSchema.code()), true));
-		dto6 = create(new SolrRecordDTO(zeroPadded(6), 34L, fields("zeCollection", zeSchema.code()), true));
-		dto8 = create(new SolrRecordDTO(zeroPadded(8), 45L, fields("zeCollection", zeSchema.code()), true));
+		dto1 = create(new SolrRecordDTO(zeroPadded(1), 12L, fields("zeCollection", zeSchema.code()), SUMMARY));
+		dto2 = create(new SolrRecordDTO(zeroPadded(2), 56L, fields("zeCollection", zeSchema.code()), SUMMARY));
+		dto3 = create(new SolrRecordDTO(zeroPadded(3), 23L, fields("zeCollection", zeSchema.code()), SUMMARY));
+		dto6 = create(new SolrRecordDTO(zeroPadded(6), 34L, fields("zeCollection", zeSchema.code()), SUMMARY));
+		dto8 = create(new SolrRecordDTO(zeroPadded(8), 45L, fields("zeCollection", zeSchema.code()), SUMMARY));
 
 		dataStore.insertWithoutReservingSpaceForPreviousIds(dto1);
 		dataStore.insertWithoutReservingSpaceForPreviousIds(dto2);
@@ -698,7 +700,7 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 				}
 				id++;
 
-				RecordDTO dto = create(new SolrRecordDTO(strId, version, fields(collection, schema), true));
+				RecordDTO dto = create(new SolrRecordDTO(strId, version, fields(collection, schema), SUMMARY));
 				dataStore.insert(dto);
 				return dto;
 			}
@@ -793,7 +795,7 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 				id++;
 
 
-				RecordDTO dto = create(new SolrRecordDTO(strId, version, fields("collection1", "type1_default"), true));
+				RecordDTO dto = create(new SolrRecordDTO(strId, version, fields("collection1", "type1_default"), SUMMARY));
 				dataStore.insert(dto);
 
 				synchronized (ids) {
@@ -873,6 +875,26 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 		assertThat(finishedWithoutErrors.get()).isEqualTo(creatingThreads + creatingDeletingThreads + streamingThreads);
 
 	}
+
+	//	@Test
+	//	public void whenInsertingInSummaryCacheWithFullVolatileCacheThenBothCacheAreUpdated() {
+	//		givenCollection("collection1");
+	//
+	//		getModelLayerFactory().getMetadataSchemasManager().modify("collection1", new MetadataSchemaTypesAlteration() {
+	//			@Override
+	//			public void alter(MetadataSchemaTypesBuilder types) {
+	//				types.createNewSchemaType("type1").setRecordCacheType(RecordCacheType.SUMMARY_CACHED_WITH_VOLATILE);
+	//			}
+	//		});
+	//
+	//		CollectionsListManager collectionsListManager = getModelLayerFactory().getCollectionsListManager();
+	//		MetadataSchemasManager schemasManager = getModelLayerFactory().getMetadataSchemasManager();
+	//		dataStore = new RecordsCachesDataStore(getModelLayerFactory());
+	//
+	//		byte collection1Id = collectionsListManager.getCollectionId("collection1");
+	//		short collection1Type1 = schemasManager.getSchemaTypes(collection1Id).getSchemaType("type1").getId();
+	//
+	//	}
 
 	@Test
 	public void whenInsertingFullyCachedZeroPaddedRecordsWithIndexedMetadataValuesThenRecordsFindableUsingMetadata() {
@@ -960,16 +982,16 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 		dtosToInsert.add(new SolrRecordDTO(id1, 11L, fields(zeCollection, "type2_default",
 				uniqueIntegerMetadata, 1,
 				uniqueStringMetadata, "A"
-		), true));
+		), SUMMARY));
 		dtosToInsert.add(new SolrRecordDTO(id2, 22L, fields(zeCollection, "type2_default",
 				uniqueIntegerMetadata, 2,
 				uniqueStringMetadata, "B"
-		), true));
+		), SUMMARY));
 
 		dtosToInsert.add(new SolrRecordDTO(id3, 33L, fields(zeCollection, "type2_default",
 				uniqueIntegerMetadata, 3,
 				uniqueStringMetadata, "C"
-		), true));
+		), SUMMARY));
 
 
 		dtosToInsert.add(new SolrRecordDTO(id4, 44L, fields(zeCollection, "type1_default",
@@ -981,7 +1003,7 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 				stringsMetadata, asList("abc", "def"),
 				enumsMetadata, FolderStatus.SEMI_ACTIVE.getCode(),
 				referencesMetadata, asList(id2)
-		), true));
+		), SUMMARY));
 
 		dtosToInsert.add(new SolrRecordDTO(id5, 55L, fields(zeCollection, "type1_default",
 				uniqueIntegerMetadata, 2,
@@ -992,7 +1014,7 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 				stringsMetadata, asList("gh", "ij"),
 				enumsMetadata, FolderStatus.ACTIVE.getCode(),
 				referencesMetadata, asList(id1)
-		), true));
+		), SUMMARY));
 
 		dtosToInsert.add(new SolrRecordDTO(id6, 66L, fields(zeCollection, "type1_default",
 				uniqueIntegerMetadata, 3,
@@ -1003,7 +1025,7 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 				stringsMetadata, asList("yyyy", "zzzz"),
 				enumsMetadata, FolderStatus.INACTIVE_DEPOSITED.getCode(),
 				referencesMetadata, asList(id3)
-		), true));
+		), SUMMARY));
 
 		dtosToInsert.add(new SolrRecordDTO(id7, 77L, fields(zeCollection, "type1_default",
 				uniqueIntegerMetadata, 4,
@@ -1014,7 +1036,7 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 				stringsMetadata, asList("pfpfp", "asdas"),
 				enumsMetadata, FolderStatus.INACTIVE_DEPOSITED.getCode(),
 				referencesMetadata, asList(id5, id6)
-		), true));
+		), SUMMARY));
 
 		dtosToInsert.add(new SolrRecordDTO(id8, 88L, fields(zeCollection, "type1_default",
 				uniqueIntegerMetadata, 5,
@@ -1025,7 +1047,7 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 				stringsMetadata, asList("pfpfp", "asdas"),
 				enumsMetadata, FolderStatus.INACTIVE_DEPOSITED.getCode(),
 				referencesMetadata, asList(id4, id6)
-		), true));
+		), SUMMARY));
 
 		dtosToInsert.forEach((dto -> {
 			if (fullyCached) {
@@ -1111,7 +1133,7 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 				stringsMetadata, asList("lalala", "def"),
 				enumsMetadata, FolderStatus.ACTIVE.getCode(),
 				referencesMetadata, asList(id3)
-		), true);
+		), SUMMARY);
 
 		dataStore.insert(solrRecordDTO);
 

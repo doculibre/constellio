@@ -33,12 +33,11 @@ import static com.constellio.data.dao.services.cache.InsertionReason.WAS_MODIFIE
 import static com.constellio.data.dao.services.cache.InsertionReason.WAS_OBTAINED;
 import static com.constellio.model.entities.schemas.RecordCacheType.FULLY_CACHED;
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
-import static com.constellio.model.services.records.cache.CacheInsertionStatus.ACCEPTED;
-import static com.constellio.model.services.records.cache.CacheInsertionStatus.REFUSED_OLD_VERSION;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static com.constellio.sdk.tests.QueryCounter.ON_SCHEMA_TYPES;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsUnique;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 
 @RunWith(Parameterized.class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
@@ -109,7 +108,7 @@ public class NewPermanentRecordCacheAcceptanceTest extends ConstellioTest {
 
 
 	@Test
-	public void whenInsertingNotFullyLoadedRecordInPermanentCacheThenUpdatedUsingSolrIfVersionIsNewer()
+	public void whenInsertingNotFullyLoadedRecordInPermanentCacheThenExceptionThrown()
 			throws Exception {
 
 		Record record = newZeCollectionType1Record(1234).set(TITLE, "val1")
@@ -117,24 +116,38 @@ public class NewPermanentRecordCacheAcceptanceTest extends ConstellioTest {
 				.set(zeCollectionSchemaType1.anotherStringMetadata(), "val3");
 		recordServices.add(record);
 
-		long version = recordsCaches.getRecord(id(1234)).getVersion();
-
 		Record partiallyLoadedRecord = ((RecordImpl) getPartiallyLoaded(1234).set(TITLE, "val4"));
-		partiallyLoadedRecord.markAsSaved(version - 1000, zeCollectionSchemaType1.instance());
+		partiallyLoadedRecord.markAsSaved(partiallyLoadedRecord.getVersion() - 1000, zeCollectionSchemaType1.instance());
 
-		assertThat(recordsCaches.insert(partiallyLoadedRecord, WAS_OBTAINED)).isEqualTo(REFUSED_OLD_VERSION);
-		assertThat(recordsCaches.insert(partiallyLoadedRecord, WAS_MODIFIED)).isEqualTo(REFUSED_OLD_VERSION);
+		try {
+			recordsCaches.insert(partiallyLoadedRecord, WAS_OBTAINED);
+			fail("Exception expected");
+		} catch (IllegalStateException e) {
+			//OK
+		}
+
+		try {
+			recordsCaches.insert(partiallyLoadedRecord, WAS_MODIFIED);
+			fail("Exception expected");
+		} catch (IllegalStateException e) {
+			//OK
+		}
 
 		partiallyLoadedRecord = ((RecordImpl) getPartiallyLoaded(1234).set(TITLE, "val5"));
-		partiallyLoadedRecord.markAsSaved(version + 1000, zeCollectionSchemaType1.instance());
-		assertThat(partiallyLoadedRecord.<String>get(zeCollectionSchemaType1.stringMetadata())).isNull();
+		partiallyLoadedRecord.markAsSaved(partiallyLoadedRecord.getVersion() + 1000, zeCollectionSchemaType1.instance());
 
+		try {
+			recordsCaches.insert(partiallyLoadedRecord, WAS_OBTAINED);
 
-		assertThat(recordsCaches.insert(partiallyLoadedRecord, WAS_OBTAINED)).isEqualTo(ACCEPTED);
-		Record recordFromCache = recordsCaches.getRecord(id(1234));
-		assertThat(recordFromCache.<String>get(TITLE)).isEqualTo("val4");
-		assertThat(recordFromCache.<String>get(zeCollectionSchemaType1.stringMetadata())).isEqualTo("val2");
-		assertThat(recordFromCache.<String>get(zeCollectionSchemaType1.anotherStringMetadata())).isEqualTo("val3");
+			fail("Exception expected");
+		} catch (IllegalStateException e) {
+			//OK
+		}
+
+		//		Record recordFromCache = recordsCaches.getRecord(id(1234));
+		//		assertThat(recordFromCache.<String>get(TITLE)).isEqualTo("val4");
+		//		assertThat(recordFromCache.<String>get(zeCollectionSchemaType1.stringMetadata())).isEqualTo("val2");
+		//		assertThat(recordFromCache.<String>get(zeCollectionSchemaType1.anotherStringMetadata())).isEqualTo("val3");
 
 	}
 

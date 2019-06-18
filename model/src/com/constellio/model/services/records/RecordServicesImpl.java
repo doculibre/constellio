@@ -2,6 +2,7 @@ package com.constellio.model.services.records;
 
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.dao.dto.records.RecordDTO;
+import com.constellio.data.dao.dto.records.RecordDTOMode;
 import com.constellio.data.dao.dto.records.RecordDeltaDTO;
 import com.constellio.data.dao.dto.records.TransactionDTO;
 import com.constellio.data.dao.dto.records.TransactionResponseDTO;
@@ -240,6 +241,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 		transaction.setOnlyBeingPrepared(false);
 
 		validateNotTooMuchRecords(transaction);
+		validateAllFullyLoadedRecords(transaction);
 		if (transaction.getRecords().isEmpty()) {
 			if (!transaction.getIdsToReindex().isEmpty()) {
 				throw new CannotSetIdsToReindexInEmptyTransaction();
@@ -1540,6 +1542,19 @@ public class RecordServicesImpl extends BaseRecordServices {
 			RecordUpdateOptions recordUpdateOptions = transaction.getRecordUpdateOptions();
 			if (recordUpdateOptions.getOptimisticLockingResolution() == OptimisticLockingResolution.TRY_MERGE) {
 				throw new RecordServicesRuntimeException_TransactionWithMoreThan1000RecordsCannotHaveTryMergeOptimisticLockingResolution();
+			}
+		}
+
+	}
+
+	private void validateAllFullyLoadedRecords(Transaction transaction) {
+		//Currently, execution of transaction containing records that are not fully loaded cause unwanted behaviors,
+		// such as losing metadatas that are not kept in summary
+
+		for (Record record : transaction.getRecords()) {
+			RecordDTO recordDTO = ((RecordImpl) record).getRecordDTO();
+			if (recordDTO != null && ((RecordImpl) record).getRecordDTO().getLoadingMode() != RecordDTOMode.FULLY_LOADED) {
+				throw new ImpossibleRuntimeException("Cannot execute transaction using records that are not fully loaded");
 			}
 		}
 

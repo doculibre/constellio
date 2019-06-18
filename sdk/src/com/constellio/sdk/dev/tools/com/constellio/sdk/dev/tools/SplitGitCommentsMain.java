@@ -1,11 +1,5 @@
 package com.constellio.sdk.dev.tools.com.constellio.sdk.dev.tools;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-
 import org.apache.commons.io.FileUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -15,7 +9,8 @@ import org.joda.time.format.DateTimeFormatter;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 public class SplitGitCommentsMain {
@@ -135,11 +130,21 @@ public class SplitGitCommentsMain {
 			author = "Gabriel Lefrançois";
 		}
 
+		if ("rabab.moubine@doculibre.com".equals(author) || "rabab".equals(author)) {
+			author = "Rabab Moubine";
+		}
+
+
+		if ("ericgiguere".equals(author) || "EricG".equals(author)) {
+			author = "Éric Giguère";
+		}
+
 		if ("dakota.indien".equals(author) || "dakota-indien".equals(author) || "stopping1".equals(author) || "Martin"
 				.equals(author)
-				|| "Rodrigue Mouadeu".equals(author) || "PatrickPontbriand".equals(author) || "Nabil Benyas".equals(author)
-				|| "bnouha1".equals(author) || "Nabil Benyas".equals(author) || "bennab".equals(author)
-				|| "julbaril".equals(author) || "Majid Laali".equals(author)) {
+			|| "Rodrigue Mouadeu".equals(author) || "PatrickPontbriand".equals(author) || "Nabil Benyas".equals(author)
+			|| "bnouha1".equals(author) || "Nabil Benyas".equals(author) || "bennab".equals(author)
+			|| "julbaril".equals(author) || "Majid Laali".equals(author) || "fatima92".equals(author)
+			|| "Fatima".equals(author)) {
 			author = "Autres";
 		}
 

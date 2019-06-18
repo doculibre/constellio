@@ -1,9 +1,14 @@
 package com.constellio.model.services.search.query.logical.criteria;
 
+import com.constellio.data.utils.LangUtils;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.DataStoreField;
+import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.services.search.query.logical.LogicalSearchValueCondition;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+
+import java.util.List;
 
 public class IsNotEqualCriterion extends LogicalSearchValueCondition {
 
@@ -47,5 +52,23 @@ public class IsNotEqualCriterion extends LogicalSearchValueCondition {
 	@Override
 	public String toString() {
 		return getClass().getSimpleName() + ":" + value;
+	}
+
+	@Override
+	public boolean testConditionOnField(Metadata metadata, Record record) {
+
+		Object recordValue = record.get(metadata);
+
+		if (recordValue instanceof List) {
+			return !((List) recordValue).contains(value);
+		} else {
+			return !LangUtils.isEqual(recordValue, value);
+		}
+
+	}
+
+	@Override
+	public boolean isSupportingMemoryExecution() {
+		return true;
 	}
 }

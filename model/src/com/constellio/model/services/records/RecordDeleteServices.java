@@ -207,7 +207,7 @@ public class RecordDeleteServices {
 		String typeCode = new SchemaUtils().getSchemaTypeCode(record.getSchemaCode());
 		MetadataSchemaType schemaType = metadataSchemasManager.getSchemaTypes(record.getCollection()).getSchemaType(typeCode);
 
-		boolean correctStatus = TRUE == record.get(Schemas.LOGICALLY_DELETED_STATUS);
+		boolean correctStatus = TRUE.equals(record.get(Schemas.LOGICALLY_DELETED_STATUS));
 		List<Record> activeRecords = getActiveRecords(record);
 		boolean hasPermissions =
 				!schemaType.hasSecurity() || authorizationsServices

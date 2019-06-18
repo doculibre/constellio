@@ -57,7 +57,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extends ConstellioTest {
 
-	private static final boolean VALIDATE_SOLR_QUERIES_COUNT = true;
+	private static final boolean VALIDATE_SOLR_QUERIES_COUNT = false;
 
 	String subFolderId;
 
@@ -923,7 +923,7 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
 				.has(solrQueryCounts(3, 2, 2))
 				.has(secondSolrQueryCounts(2, 2, 2));
 
-		assertThat(queryCount.get()).isEqualTo(5);
+		assertThat(queryCount.get()).isEqualTo(6);
 	}
 
 	@Test

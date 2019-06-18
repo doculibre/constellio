@@ -84,7 +84,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 
 import static com.constellio.data.conf.HashingEncoding.BASE64;
-import static com.constellio.model.services.records.cache2.RecordsCaches2Impl.createAndInitialize;
+import static com.constellio.model.services.records.cache2.RecordsCaches2Impl.create;
 
 public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLayerFactory {
 	private static final Logger LOGGER = LogManager.getLogger(ModelLayerFactoryImpl.class);
@@ -162,6 +162,7 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 
 		ConfigManager configManager = dataLayerFactory.getConfigManager();
 		ConstellioCacheManager cacheManager = dataLayerFactory.getLocalCacheManager();
+		this.searchConfigurationsManager = add(new SearchConfigurationsManager(configManager, collectionsListManager, cacheManager));
 		this.securityTokenManager = add(new SecurityTokenManager(this));
 		this.systemConfigurationsManager = add(
 				new SystemConfigurationsManager(this, configManager, modulesManagerDelayed,
@@ -172,6 +173,10 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 
 
 		this.batchProcessesManager = add(new BatchProcessesManager(this));
+
+		this.taxonomiesManager = add(
+				new TaxonomiesManager(configManager, newSearchServices(), batchProcessesManager, collectionsListManager,
+						cacheManager, getSystemConfigs()));
 
 		this.schemasManager = add(new MetadataSchemasManager(this, modulesManagerDelayed));
 
@@ -185,16 +190,13 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 				FileUtils.deleteQuietly(fileSystemCacheFolder);
 				FileSystemRecordsValuesCacheDataStore fileSystemRecordsValuesCacheDataStore
 						= new FileSystemRecordsValuesCacheDataStore(fileSystemCacheFolder);
-				this.recordsCaches = createAndInitialize(this, fileSystemRecordsValuesCacheDataStore);
+				this.recordsCaches = add(create(this, fileSystemRecordsValuesCacheDataStore));
 
 			} else {
 				this.recordsCaches = new RecordsCachesMemoryImpl(this);
 			}
 		}
 
-		this.taxonomiesManager = add(
-				new TaxonomiesManager(configManager, newSearchServices(), batchProcessesManager, collectionsListManager,
-						recordsCaches, cacheManager, getSystemConfigs()));
 
 		this.recordMigrationsManager = add(new RecordMigrationsManager(this));
 		this.batchProcessesController = add(
@@ -231,7 +233,7 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 
 		taxonomiesSearchServicesCache = new EventBusTaxonomiesSearchServicesCache(new MemoryTaxonomiesSearchServicesCache(),
 				dataLayerFactory.getEventBusManager());
-		this.searchConfigurationsManager = add(new SearchConfigurationsManager(configManager, collectionsListManager, cacheManager));
+
 		this.synonymsConfigurationsManager = add(new SynonymsConfigurationsManager(configManager, collectionsListManager, cacheManager));
 
 	}

@@ -1,5 +1,6 @@
 package com.constellio.model.entities.records;
 
+import com.constellio.data.dao.dto.records.RecordDTOMode;
 import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.CollectionObject;
 import com.constellio.model.entities.schemas.Metadata;
@@ -98,5 +99,7 @@ public interface Record extends Serializable, CollectionObject, Supplier<Record>
 	boolean isOfSchemaType(String type);
 
 	void markAsSaved(long version, MetadataSchema schema);
+
+	RecordDTOMode getRecordDTOMode();
 
 }

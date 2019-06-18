@@ -63,6 +63,12 @@ public class CollectionsListManager implements StatefulService, ConfigUpdatedEve
 			setCollections(new ArrayList<String>());
 		}
 
+		for (String collection : collections) {
+			byte collectionId = getCollectionInfo(collection).getCollectionId();
+			int collectionIndex = collectionId - Byte.MIN_VALUE;
+			collectionKeys[collectionIndex] = collection;
+
+		}
 	}
 
 	private void setCollections(List<String> collections) {
@@ -70,12 +76,12 @@ public class CollectionsListManager implements StatefulService, ConfigUpdatedEve
 		this.collectionsExcludingSystem = new ArrayList<>(collections);
 		this.collectionsExcludingSystem.remove(Collection.SYSTEM_COLLECTION);
 		this.collectionsExcludingSystem = Collections.unmodifiableList(collectionsExcludingSystem);
+
 	}
 
 	public List<CollectionsListManagerListener> getListeners() {
 		return listeners;
 	}
-
 
 
 	public void addCollection(String collection, List<String> languages, byte collectionId) {
@@ -301,7 +307,7 @@ public class CollectionsListManager implements StatefulService, ConfigUpdatedEve
 	}
 
 	public byte registerPendingCollectionInfo(String code, String mainDataLanguage,
-											   List<String> languages) throws NoMoreCollectionAvalibleException {
+											  List<String> languages) throws NoMoreCollectionAvalibleException {
 		byte collectionId;
 		try {
 			collectionId = getCollectionId(code);

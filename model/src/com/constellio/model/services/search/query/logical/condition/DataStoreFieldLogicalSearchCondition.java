@@ -185,6 +185,10 @@ public class DataStoreFieldLogicalSearchCondition extends LogicalSearchCondition
 	@Override
 	public boolean test(Record record) {
 
+		if (valueCondition == null) {
+			return true;
+		}
+
 		boolean returnedValue = this.metadataLogicalOperator == AND;
 
 		for (DataStoreField queriedField : dataStoreFields) {
@@ -200,6 +204,6 @@ public class DataStoreFieldLogicalSearchCondition extends LogicalSearchCondition
 
 	@Override
 	public boolean isSupportingMemoryExecution() {
-		return valueCondition.isSupportingMemoryExecution();
+		return valueCondition == null || valueCondition.isSupportingMemoryExecution();
 	}
 }

@@ -1393,7 +1393,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 				.has(solrQueryCounts(4, 3, 2))
 				.has(secondSolrQueryCounts(4, 3, 2));
 
-		assertThat(queryCount.get()).isEqualTo(9);
+		assertThat(queryCount.get()).isEqualTo(7);
 	}
 
 	@Test
@@ -1606,20 +1606,9 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 				.has(resultsInOrder("category_11", "category_12", "category_13", "category_14", "category_15", "category_16",
 						"category_17", "category_18", "category_19", "category_20", "category_21", "category_22", "category_23",
 						"category_24", "category_25", "category_26", "category_27", "category_28", "category_29", "category_30"))
-				.has(numFound(50)).has(listSize(20))
+				.has(numFound(40)).has(listSize(20))
 				.has(fastContinuationInfos(false, 30))
 				.has(solrQueryCounts(4, 41, 10))
-				.has(secondSolrQueryCounts(3, 41, 0));
-
-		//Calling with an different fast continue (simulating that one of the first ten record was not returned)
-		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("root", options.setStartRow(10).setRows(20)
-				.setFastContinueInfos(new FastContinueInfos(false, 11, new ArrayList<String>())))
-				.has(resultsInOrder("category_12", "category_13", "category_14", "category_15", "category_16", "category_17",
-						"category_18", "category_19", "category_20", "category_21", "category_22", "category_23", "category_24",
-						"category_25", "category_26", "category_27", "category_28", "category_29", "category_30", "category_31"))
-				.has(numFound(50)).has(listSize(20))
-				.has(fastContinuationInfos(false, 31))
-				.has(solrQueryCounts(4, 41, 1))
 				.has(secondSolrQueryCounts(3, 41, 0));
 
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("root",
@@ -1654,15 +1643,6 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 				.has(solrQueryCounts(3, 12, 0))
 				.has(secondSolrQueryCounts(3, 12, 0));
 
-		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("root", options.setStartRow(289).setRows(30)
-				.setFastContinueInfos(new FastContinueInfos(false, 290, new ArrayList<String>())))
-				.has(resultsInOrder("category_291", "category_292", "category_293",
-						"category_294", "category_295", "category_296", "category_297", "category_298", "category_299",
-						"category_300"))
-				.has(numFound(299)).has(listSize(10))
-				.has(fastContinuationInfos(true, 0))
-				.has(solrQueryCounts(3, 11, 0))
-				.has(secondSolrQueryCounts(3, 11, 0));
 	}
 
 	@Test
@@ -1714,20 +1694,9 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 				.has(resultsInOrder("category_11", "category_12", "category_13", "category_14", "category_15", "category_16",
 						"category_17", "category_18", "category_19", "category_20", "category_21", "category_22", "category_23",
 						"category_24", "category_25", "category_26", "category_27", "category_28", "category_29", "category_30"))
-				.has(numFound(50)).has(listSize(20))
+				.has(numFound(40)).has(listSize(20))
 				.has(fastContinuationInfos(false, 30))
 				.has(solrQueryCounts(4, 41, 10))
-				.has(secondSolrQueryCounts(3, 41, 0));
-
-		//Calling with an different fast continue (but don't cause any problem since using the cache)
-		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("root", options.setStartRow(10).setRows(20)
-				.setFastContinueInfos(new FastContinueInfos(false, 11, new ArrayList<String>())))
-				.has(resultsInOrder("category_12", "category_13", "category_14", "category_15", "category_16",
-						"category_17", "category_18", "category_19", "category_20", "category_21", "category_22", "category_23",
-						"category_24", "category_25", "category_26", "category_27", "category_28", "category_29", "category_30",
-						"category_31"))
-				.has(numFound(50)).has(listSize(20))
-				.has(fastContinuationInfos(false, 31)).has(solrQueryCounts(4, 41, 1))
 				.has(secondSolrQueryCounts(3, 41, 0));
 
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("root",
@@ -1762,16 +1731,6 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 				.has(solrQueryCounts(3, 12, 0))
 				.has(secondSolrQueryCounts(3, 12, 0));
 
-		//Calling with an different fast continue (but don't cause any problem since using the cache)
-		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("root", options.setStartRow(289).setRows(30)
-				.setFastContinueInfos(new FastContinueInfos(false, 290, new ArrayList<String>())))
-				.has(resultsInOrder("category_291", "category_292", "category_293",
-						"category_294", "category_295", "category_296", "category_297", "category_298", "category_299",
-						"category_300"))
-				.has(numFound(299)).has(listSize(10))
-				.has(fastContinuationInfos(true, 0))
-				.has(solrQueryCounts(3, 11, 0))
-				.has(secondSolrQueryCounts(3, 11, 0));
 	}
 
 	@Test
@@ -1982,6 +1941,8 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 		waitForBatchProcess();
 
 		recordServices.refresh(alice);
+
+		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
 
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_Z999, options.setStartRow(70).setRows(20)
 				.setFastContinueInfos(null))
@@ -2204,16 +2165,6 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 				.has(fastContinuationInfos(true, 9, "zeFolder10"))
 				.has(solrQueryCounts(4, 31, 20))
 				.has(secondSolrQueryCounts(4, 31, 20));
-
-		//Calling with an different fast continue (but don't cause any problem since using the cache)
-		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_Z999, options.setStartRow(90).setRows(20)
-				.setFastContinueInfos(new FastContinueInfos(false, 91, new ArrayList<String>())))
-				.has(resultsInOrder("category_92", "category_93", "category_94", "category_95", "category_96",
-						"category_97", "category_98", "category_99", "category_100", "zeFolder1", "zeFolder2", "zeFolder3",
-						"zeFolder4", "zeFolder5", "zeFolder6", "zeFolder7", "zeFolder8", "zeFolder9", "zeFolder10", "zeFolder11"))
-				.has(numFound(399)).has(listSize(20))
-				.has(fastContinuationInfos(true, 10, "zeFolder10")).has(solrQueryCounts(4, 30, 20))
-				.has(secondSolrQueryCounts(4, 30, 20));
 
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_Z999, options.setStartRow(90).setRows(20)
 				.setFastContinueInfos(null))

@@ -84,6 +84,11 @@ public class RecordsCachesMemoryImpl implements RecordsCaches {
 		throw new UnsupportedOperationException();
 	}
 
+	@Override
+	public boolean isInitialized() {
+		return nested != null && nested.isInitialized();
+	}
+
 	public CacheInsertionStatus insert(Record record, InsertionReason reason) {
 		RecordsCache cache = getCache(record.getCollection());
 		return cache.insert(record, reason);

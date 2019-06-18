@@ -616,6 +616,11 @@ public class RecordAutomaticMetadataServices {
 		List<String> removedAuthorizations = new ArrayList<>();
 		List<String> attachedAncestors = new ArrayList<>();
 		MetadataSchema recordSchema = schemasManager.getSchemaTypes(record.getCollection()).getSchema(record.getSchemaCode());
+
+		if (record.getId().equals("zeSubFolder")) {
+			System.out.println("!!");
+		}
+
 		List<Metadata> parentReferences = recordSchema.getParentReferences();
 		for (Metadata metadata : parentReferences) {
 			String referenceValue = record.get(metadata);

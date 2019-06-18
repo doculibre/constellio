@@ -40,4 +40,6 @@ public interface RecordsCaches {
 	Stream<Record> stream(MetadataSchemaType type);
 
 	Stream<Record> stream(String colletion);
+
+	boolean isInitialized();
 }

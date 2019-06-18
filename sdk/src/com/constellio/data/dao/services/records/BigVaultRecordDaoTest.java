@@ -1,6 +1,7 @@
 package com.constellio.data.dao.services.records;
 
 import com.constellio.data.dao.dto.records.RecordDTO;
+import com.constellio.data.dao.dto.records.RecordDTOMode;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.dao.dto.records.SolrRecordDTO;
 import com.constellio.data.dao.dto.records.TransactionDTO;
@@ -73,11 +74,11 @@ public class BigVaultRecordDaoTest extends ConstellioTest {
 		RecordDTO child1 = new SolrRecordDTO("child1",
 				buildParamMapWith("zeCollection", "zeType_default").andWith("parentPId_s", "parent")
 						.andWith("otherRefId_s", "zeRef")
-						.build(), false);
+						.build(), RecordDTOMode.FULLY_LOADED);
 		RecordDTO child2 = new SolrRecordDTO("child2",
 				buildParamMapWith("zeCollection", "zeType_default").andWith("parentPId_s", "parent")
 						.andWith("otherRefId_s", "zeRef")
-						.build(), false);
+						.build(), RecordDTOMode.FULLY_LOADED);
 
 		TransactionDTO transactionDTO = new TransactionDTO(RecordsFlushing.NOW)
 				.withNewRecords(Arrays.asList(child1, child2));

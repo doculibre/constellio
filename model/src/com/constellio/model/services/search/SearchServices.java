@@ -511,16 +511,54 @@ public class SearchServices {
 		return recordsIterator(query, 100);
 	}
 
-	public SearchResponseIterator<Record> recordsIterator(LogicalSearchQuery query, int batchSize) {
-		ModifiableSolrParams params = addSolrModifiableParams(query);
-		final boolean fullyLoaded = query.getReturnedMetadatas().isFullyLoaded();
-		return new LazyResultsIterator<Record>(dataStoreDao(query.getDataStore()), params, batchSize, true) {
+	private SearchResponseIterator<Record> streamToSearchResponseIterator(Stream<Record> recordStream, int batchSize) {
+		List<Record> records = recordStream.collect(Collectors.toList());
+		Iterator<Record> recordsIterator = records.iterator();
+		return new SearchResponseIterator<Record>() {
+			@Override
+			public long getNumFound() {
+				return records.size();
+			}
 
 			@Override
-			public Record convert(RecordDTO recordDTO) {
-				return recordServices.toRecord(recordDTO, fullyLoaded);
+			public SearchResponseIterator<List<Record>> inBatches() {
+				return new BatchBuilderSearchResponseIterator(recordsIterator, batchSize) {
+					@Override
+					public long getNumFound() {
+						return records.size();
+					}
+				};
+			}
+
+			@Override
+			public boolean hasNext() {
+				return recordsIterator.hasNext();
+			}
+
+			@Override
+			public Record next() {
+				return recordsIterator.next();
 			}
 		};
+
+	}
+
+	public SearchResponseIterator<Record> recordsIterator(LogicalSearchQuery query, int batchSize) {
+
+		if (logicalSearchQueryExecutorInCache.isQueryExecutableInCache(query)) {
+			return streamToSearchResponseIterator(stream(query), batchSize);
+
+		} else {
+			ModifiableSolrParams params = addSolrModifiableParams(query);
+			final boolean fullyLoaded = query.getReturnedMetadatas().isFullyLoaded();
+			return new LazyResultsIterator<Record>(dataStoreDao(query.getDataStore()), params, batchSize, true) {
+
+				@Override
+				public Record convert(RecordDTO recordDTO) {
+					return recordServices.toRecord(recordDTO, fullyLoaded);
+				}
+			};
+		}
 	}
 
 	public Iterator<List<Record>> reverseRecordsBatchIterator(int batch, LogicalSearchQuery query) {
@@ -557,15 +595,20 @@ public class SearchServices {
 	}
 
 	public SearchResponseIterator<Record> recordsIteratorKeepingOrder(LogicalSearchQuery query, int batchSize) {
-		ModifiableSolrParams params = addSolrModifiableParams(query);
-		final boolean fullyLoaded = query.getReturnedMetadatas().isFullyLoaded();
-		return new LazyResultsKeepingOrderIterator<Record>(dataStoreDao(query.getDataStore()), params, batchSize) {
+		if (logicalSearchQueryExecutorInCache.isQueryExecutableInCache(query)) {
+			return streamToSearchResponseIterator(stream(query), batchSize);
 
-			@Override
-			public Record convert(RecordDTO recordDTO) {
-				return recordServices.toRecord(recordDTO, fullyLoaded);
-			}
-		};
+		} else {
+			ModifiableSolrParams params = addSolrModifiableParams(query);
+			final boolean fullyLoaded = query.getReturnedMetadatas().isFullyLoaded();
+			return new LazyResultsKeepingOrderIterator<Record>(dataStoreDao(query.getDataStore()), params, batchSize) {
+
+				@Override
+				public Record convert(RecordDTO recordDTO) {
+					return recordServices.toRecord(recordDTO, fullyLoaded);
+				}
+			};
+		}
 	}
 
 	public SearchResponseIterator<Record> recordsIteratorKeepingOrder(LogicalSearchQuery query, int batchSize,
@@ -600,7 +643,7 @@ public class SearchServices {
 			@Override
 			public SearchResponseIterator<List<Record>> inBatches() {
 				final SearchResponseIterator iterator = this;
-				return new BatchBuilderSearchResponseIterator<Record>(iterator, batchSize) {
+				return new BatchBuilderSearchResponseIterator<Record>(records.iterator(), batchSize) {
 
 					@Override
 					public long getNumFound() {
@@ -642,6 +685,27 @@ public class SearchServices {
 	}
 
 	public long getResultsCount(LogicalSearchQuery query) {
+		if (logicalSearchQueryExecutorInCache.isQueryExecutableInCache(query)) {
+			long count = logicalSearchQueryExecutorInCache.stream(query).count();
+
+			if (Toggle.VALIDATE_CACHE_EXECUTION_SERVICE_USING_SOLR.isEnabled()) {
+				long countFromSolr = getResultCountUsingSolr(query);
+
+				if (count != countFromSolr) {
+					throw new RuntimeException("Cached query execution problem");
+				}
+
+
+			}
+
+			return count;
+
+		} else {
+			return getResultCountUsingSolr(query);
+		}
+	}
+
+	private long getResultCountUsingSolr(LogicalSearchQuery query) {
 		int oldNumberOfRows = query.getNumberOfRows();
 		query.setNumberOfRows(0);
 		ModifiableSolrParams params = addSolrModifiableParams(query);
@@ -656,17 +720,36 @@ public class SearchServices {
 	}
 
 	public List<String> searchRecordIds(LogicalSearchQuery query) {
-		query.setReturnedMetadatas(ReturnedMetadatasFilter.idVersionSchema());
-		ModifiableSolrParams params = addSolrModifiableParams(query);
+		if (logicalSearchQueryExecutorInCache.isQueryExecutableInCache(query)) {
+			return stream(query).map(Record::getId).collect(Collectors.toList());
 
-		List<String> ids = new ArrayList<>();
-		for (Record record : buildResponse(params, query).getRecords()) {
-			ids.add(record.getId());
+		} else {
+
+			query.setReturnedMetadatas(ReturnedMetadatasFilter.idVersionSchema());
+			ModifiableSolrParams params = addSolrModifiableParams(query);
+
+			List<String> ids = new ArrayList<>();
+			for (Record record : buildResponse(params, query).getRecords()) {
+				ids.add(record.getId());
+			}
+			return ids;
+
 		}
-		return ids;
 	}
 
 	public Iterator<String> recordsIdsIterator(LogicalSearchQuery query) {
+
+		if (logicalSearchQueryExecutorInCache.isQueryExecutableInCache(query)) {
+			return stream(query).map(Record::getId).iterator();
+
+		} else {
+			return recordsIdsIteratorUsingSolr(query);
+		}
+
+	}
+
+	@NotNull
+	private Iterator<String> recordsIdsIteratorUsingSolr(LogicalSearchQuery query) {
 		ModifiableSolrParams params = addSolrModifiableParams(query);
 		return new LazyResultsIterator<String>(dataStoreDao(query.getDataStore()), params, 10000, true) {
 

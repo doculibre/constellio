@@ -1,6 +1,7 @@
 package com.constellio.model.services.records;
 
 import com.constellio.data.dao.dto.records.RecordDTO;
+import com.constellio.data.dao.dto.records.RecordDTOMode;
 import com.constellio.data.dao.dto.records.RecordDeltaDTO;
 import com.constellio.data.dao.dto.records.SolrRecordDTO;
 import com.constellio.data.utils.ImpossibleRuntimeException;
@@ -129,7 +130,7 @@ public class RecordImpl implements Record {
 	}
 
 	public boolean isSummary() {
-		return recordDTO.isSummary();
+		return recordDTO.getLoadingMode() == RecordDTOMode.SUMMARY;
 	}
 
 	public Record updateAutomaticValue(Metadata metadata, Object value) {
@@ -676,10 +677,10 @@ public class RecordImpl implements Record {
 
 		Map<String, Object> fields = new HashMap<String, Object>();
 
-		boolean summary = false;
+		RecordDTOMode mode = RecordDTOMode.FULLY_LOADED;
 		if (recordDTO != null) {
 			fields.putAll(recordDTO.getFields());
-			summary = recordDTO.isSummary();
+			mode = recordDTO.getLoadingMode();
 		}
 
 
@@ -721,7 +722,7 @@ public class RecordImpl implements Record {
 		fields.put("collection_s", collection);
 		fields.put("estimatedSize_i", RecordUtils.estimateRecordSize(fields, copyfields));
 
-		return lastCreatedRecordDTO = new SolrRecordDTO(id, version, fields, copyfields, summary);
+		return lastCreatedRecordDTO = new SolrRecordDTO(id, version, fields, copyfields, mode);
 
 	}
 
@@ -983,6 +984,11 @@ public class RecordImpl implements Record {
 		lastCreatedRecordDTO = null;
 		lastCreatedDeltaDTO = null;
 
+	}
+
+	@Override
+	public RecordDTOMode getRecordDTOMode() {
+		return recordDTO == null ? RecordDTOMode.FULLY_LOADED : recordDTO.getLoadingMode();
 	}
 
 	@Override

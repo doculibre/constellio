@@ -2,6 +2,7 @@ package com.constellio.model.services.contents;
 
 import com.constellio.data.conf.HashingEncoding;
 import com.constellio.data.dao.dto.records.RecordDTO;
+import com.constellio.data.dao.dto.records.RecordDTOMode;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.dao.dto.records.SolrRecordDTO;
 import com.constellio.data.dao.dto.records.TransactionDTO;
@@ -683,7 +684,7 @@ public class ContentManager implements StatefulService {
 			fields.put("contentMarkerHash_s", hash);
 			fields.put("time_dt", TimeProvider.getLocalDateTime());
 
-			RecordDTO recordDTO = new SolrRecordDTO(id, fields, false);
+			RecordDTO recordDTO = new SolrRecordDTO(id, fields, RecordDTOMode.FULLY_LOADED);
 			try {
 				recordDao.execute(new TransactionDTO(RecordsFlushing.ADD_LATER()).withNewRecords(asList(recordDTO)));
 			} catch (OptimisticLocking e) {

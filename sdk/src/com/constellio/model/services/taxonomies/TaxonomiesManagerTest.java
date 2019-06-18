@@ -35,8 +35,6 @@ import java.util.Map;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.spy;
@@ -83,7 +81,7 @@ public class TaxonomiesManagerTest extends ConstellioTest {
 		when(cacheManager.getCache(anyString())).thenReturn(zeCache);
 		when(collectionsListManager.getCollections()).thenReturn(Arrays.asList(zeCollection));
 		taxonomiesManager = spy(
-				new TaxonomiesManager(configManager, searchServices, batchProcessesManager, collectionsListManager, caches,
+				new TaxonomiesManager(configManager, searchServices, batchProcessesManager, collectionsListManager,
 						cacheManager, eimConfigs));
 		doReturn(oneXMLConfigPerCollectionManager).when(taxonomiesManager).newOneXMLConfigPerCollectionManager();
 		taxonomiesManager.initialize();
@@ -104,8 +102,6 @@ public class TaxonomiesManagerTest extends ConstellioTest {
 		when(type1.getDefaultSchema()).thenReturn(schema);
 		when(schema.getCollection()).thenReturn(zeCollection);
 		inOrder = inOrder(configManager, taxonomiesManager, reader, writer, oneXMLConfigPerCollectionManager);
-		doNothing().when(taxonomiesManager)
-				.createCacheForTaxonomyTypes(any(Taxonomy.class), eq(schemasManager), eq(zeCollection));
 
 		labelTitle = new HashMap<>();
 		labelTitle.put(Language.French, "1");

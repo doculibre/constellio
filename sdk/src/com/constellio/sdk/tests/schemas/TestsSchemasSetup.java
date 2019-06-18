@@ -171,6 +171,7 @@ public class TestsSchemasSetup extends SchemasSetup {
 
 	};
 
+
 	public static MetadataBuilderConfigurator whichIsEncrypted = new MetadataBuilderConfigurator() {
 
 		@Override

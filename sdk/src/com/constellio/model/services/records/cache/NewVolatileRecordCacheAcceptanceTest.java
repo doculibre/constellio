@@ -1,5 +1,7 @@
 package com.constellio.model.services.records.cache;
 
+import com.constellio.data.dao.dto.records.RecordDTOMode;
+import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
@@ -31,14 +33,15 @@ import java.util.Collection;
 
 import static com.constellio.data.dao.services.cache.InsertionReason.WAS_MODIFIED;
 import static com.constellio.data.dao.services.cache.InsertionReason.WAS_OBTAINED;
-import static com.constellio.model.entities.schemas.RecordCacheType.FULLY_CACHED;
+import static com.constellio.model.entities.schemas.RecordCacheType.SUMMARY_CACHED_WITH_VOLATILE;
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
 import static com.constellio.model.services.records.cache.CacheInsertionStatus.ACCEPTED;
 import static com.constellio.model.services.records.cache.CacheInsertionStatus.REFUSED_OLD_VERSION;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static com.constellio.sdk.tests.QueryCounter.ON_SCHEMA_TYPES;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsUnique;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEssentialInSummary;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 
 @RunWith(Parameterized.class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
@@ -85,7 +88,7 @@ public class NewVolatileRecordCacheAcceptanceTest extends ConstellioTest {
 				withZeCollection().withAllTestUsers(),
 				withCollection(anotherCollection).withAllTestUsers()
 		);
-		defineSchemasManager().using(zeCollectionSchemas.withAStringMetadata(whichIsUnique).withAnotherStringMetadata());
+		defineSchemasManager().using(zeCollectionSchemas.withAStringMetadata(whichIsEssentialInSummary).withAnotherStringMetadata());
 		defineSchemasManager().using(anotherCollectionSchemas);
 
 		recordServices = getModelLayerFactory().newRecordServices();
@@ -97,9 +100,9 @@ public class NewVolatileRecordCacheAcceptanceTest extends ConstellioTest {
 		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
-				types.getSchemaType(zeCollectionSchemaType1.typeCode()).setRecordCacheType(FULLY_CACHED);
-				types.getSchemaType(zeCollectionSchemaType2.typeCode()).setRecordCacheType(FULLY_CACHED);
-				types.getSchemaType(anotherCollectionSchemaType1.typeCode()).setRecordCacheType(FULLY_CACHED);
+				types.getSchemaType(zeCollectionSchemaType1.typeCode()).setRecordCacheType(SUMMARY_CACHED_WITH_VOLATILE);
+				types.getSchemaType(zeCollectionSchemaType2.typeCode()).setRecordCacheType(SUMMARY_CACHED_WITH_VOLATILE);
+				types.getSchemaType(anotherCollectionSchemaType1.typeCode()).setRecordCacheType(SUMMARY_CACHED_WITH_VOLATILE);
 			}
 		});
 
@@ -109,7 +112,119 @@ public class NewVolatileRecordCacheAcceptanceTest extends ConstellioTest {
 
 
 	@Test
-	public void whenInsertingNotFullyLoadedRecordInPermanentCacheThenUpdatedUsingSolrIfVersionIsNewer()
+	public void whenInsertingSummaryLoadedRecordThenPermanentSummaryUpdatedVolatileInvalidated()
+			throws Exception {
+
+		Record record = newZeCollectionType1Record(1234).set(TITLE, "val1")
+				.set(zeCollectionSchemaType1.stringMetadata(), "val2")
+				.set(zeCollectionSchemaType1.anotherStringMetadata(), "val3");
+		recordServices.add(record);
+
+		//Record is found in volatile cache in it's full state
+		Record fullRecordFromCache = recordsCaches.getRecord(id(1234));
+		assertThat(fullRecordFromCache.<String>get(TITLE)).isEqualTo("val1");
+		assertThat(fullRecordFromCache.<String>get(zeCollectionSchemaType1.stringMetadata())).isEqualTo("val2");
+		assertThat(fullRecordFromCache.<String>get(zeCollectionSchemaType1.anotherStringMetadata())).isEqualTo("val3");
+		assertThat(fullRecordFromCache.isSummary()).isFalse();
+
+		Record summaryRecordFromCache = recordsCaches.getRecordSummary(id(1234));
+		assertThat(summaryRecordFromCache.<String>get(TITLE)).isEqualTo("val1");
+		assertThat(summaryRecordFromCache.<String>get(zeCollectionSchemaType1.stringMetadata())).isEqualTo("val2");
+		assertThat(summaryRecordFromCache.<String>get(zeCollectionSchemaType1.anotherStringMetadata())).isNull();
+		assertThat(summaryRecordFromCache.isSummary()).isTrue();
+
+		long version = recordsCaches.getRecord(id(1234)).getVersion();
+
+		Record partiallyLoadedRecord = recordsCaches.getRecordSummary(id(1234));
+		partiallyLoadedRecord.markAsSaved(version - 1000, zeCollectionSchemaType1.instance());
+
+		assertThat(recordsCaches.insert(partiallyLoadedRecord, WAS_OBTAINED)).isEqualTo(REFUSED_OLD_VERSION);
+		assertThat(recordsCaches.insert(partiallyLoadedRecord, WAS_MODIFIED)).isEqualTo(REFUSED_OLD_VERSION);
+
+		//Record is found in volatile cache in it's full state
+		fullRecordFromCache = recordsCaches.getRecord(id(1234));
+		assertThat(fullRecordFromCache.<String>get(TITLE)).isEqualTo("val1");
+		assertThat(fullRecordFromCache.<String>get(zeCollectionSchemaType1.stringMetadata())).isEqualTo("val2");
+		assertThat(fullRecordFromCache.<String>get(zeCollectionSchemaType1.anotherStringMetadata())).isEqualTo("val3");
+		assertThat(fullRecordFromCache.isSummary()).isFalse();
+
+		summaryRecordFromCache = recordsCaches.getRecordSummary(id(1234));
+		assertThat(summaryRecordFromCache.<String>get(TITLE)).isEqualTo("val1");
+		assertThat(summaryRecordFromCache.<String>get(zeCollectionSchemaType1.stringMetadata())).isEqualTo("val2");
+		assertThat(summaryRecordFromCache.<String>get(zeCollectionSchemaType1.anotherStringMetadata())).isNull();
+		assertThat(summaryRecordFromCache.isSummary()).isTrue();
+
+		//Updating the record using a fully loaded record, both volatile and summary permanent are updated
+		recordServices.update(fullRecordFromCache.set(zeCollectionSchemaType1.stringMetadata(), "val4"));
+		fullRecordFromCache = recordsCaches.getRecord(id(1234));
+		assertThat(fullRecordFromCache.<String>get(TITLE)).isEqualTo("val1");
+		assertThat(fullRecordFromCache.<String>get(zeCollectionSchemaType1.stringMetadata())).isEqualTo("val4");
+		assertThat(fullRecordFromCache.<String>get(zeCollectionSchemaType1.anotherStringMetadata())).isEqualTo("val3");
+		assertThat(fullRecordFromCache.isSummary()).isFalse();
+
+		summaryRecordFromCache = recordsCaches.getRecordSummary(id(1234));
+		assertThat(summaryRecordFromCache.<String>get(TITLE)).isEqualTo("val1");
+		assertThat(summaryRecordFromCache.<String>get(zeCollectionSchemaType1.stringMetadata())).isEqualTo("val4");
+		assertThat(summaryRecordFromCache.<String>get(zeCollectionSchemaType1.anotherStringMetadata())).isNull();
+		assertThat(summaryRecordFromCache.isSummary()).isTrue();
+
+		//Currently, it is not possible to execute transaction using records that are not fully loaded
+
+		try {
+			recordServices.update(summaryRecordFromCache.set(zeCollectionSchemaType1.stringMetadata(), "val5"));
+			fail("Exception expected");
+		} catch (ImpossibleRuntimeException e) {
+			//OK
+		}
+
+		//Inserting a new state of the record using a summary record, summary permanent is updated, remove from volatile
+
+		summaryRecordFromCache.set(zeCollectionSchemaType1.stringMetadata(), "val6");
+		summaryRecordFromCache.markAsSaved(summaryRecordFromCache.getVersion() + 1000, zeCollectionSchemaType1.instance());
+		assertThat(recordsCaches.insert(summaryRecordFromCache, WAS_MODIFIED)).isEqualTo(ACCEPTED);
+		fullRecordFromCache = recordsCaches.getRecord(id(1234));
+		assertThat(fullRecordFromCache).isNull();
+
+		summaryRecordFromCache = recordsCaches.getRecordSummary(id(1234));
+		assertThat(summaryRecordFromCache.<String>get(TITLE)).isEqualTo("val1");
+		assertThat(summaryRecordFromCache.<String>get(zeCollectionSchemaType1.stringMetadata())).isEqualTo("val6");
+		assertThat(summaryRecordFromCache.<String>get(zeCollectionSchemaType1.anotherStringMetadata())).isNull();
+		assertThat(summaryRecordFromCache.isSummary()).isTrue();
+
+		//
+		//		partiallyLoadedRecord = ((RecordImpl) recordsCaches.getRecordSummary(id(1234)).set(TITLE, "val5"));
+		//		partiallyLoadedRecord.markAsSaved(version + 1000, zeCollectionSchemaType1.instance());
+		//		assertThat(recordsCaches.insert(partiallyLoadedRecord, WAS_OBTAINED)).isEqualTo(ACCEPTED);
+		//
+		//		fullRecordFromCache = recordsCaches.getRecord(id(1234));
+		//		assertThat(fullRecordFromCache).isNull();
+		//
+		//		summaryRecordFromCache = recordsCaches.getRecordSummary(id(1234));
+		//		assertThat(summaryRecordFromCache.<String>get(TITLE)).isEqualTo("val5");
+		//		assertThat(summaryRecordFromCache.<String>get(zeCollectionSchemaType1.stringMetadata())).isEqualTo("val2");
+		//		assertThat(summaryRecordFromCache.<String>get(zeCollectionSchemaType1.anotherStringMetadata())).isNull();
+		//
+		//		//Load a record with less metadata than summary
+		//
+		//		partiallyLoadedRecord = ((RecordImpl) getPartiallyLoaded(1234).set(TITLE, "val5"));
+		//		partiallyLoadedRecord.markAsSaved(version + 1000, zeCollectionSchemaType1.instance());
+		//		assertThat(partiallyLoadedRecord.<String>get(zeCollectionSchemaType1.stringMetadata())).isNull();
+		//
+		//
+		//		assertThat(recordsCaches.insert(partiallyLoadedRecord, WAS_OBTAINED)).isEqualTo(ACCEPTED);
+		//
+		//		fullRecordFromCache = recordsCaches.getRecord(id(1234));
+		//		assertThat(fullRecordFromCache).isNull();
+		//
+		//		summaryRecordFromCache = recordsCaches.getRecordSummary(id(1234));
+		//		assertThat(summaryRecordFromCache.<String>get(TITLE)).isEqualTo("val5");
+		//		assertThat(summaryRecordFromCache.<String>get(zeCollectionSchemaType1.stringMetadata())).isEqualTo("val2");
+		//		assertThat(summaryRecordFromCache.<String>get(zeCollectionSchemaType1.anotherStringMetadata())).isNull();
+
+	}
+
+	@Test
+	public void whenInsertingCustomlyLoadedRecordThenException()
 			throws Exception {
 
 		Record record = newZeCollectionType1Record(1234).set(TITLE, "val1")
@@ -120,22 +235,34 @@ public class NewVolatileRecordCacheAcceptanceTest extends ConstellioTest {
 		long version = recordsCaches.getRecord(id(1234)).getVersion();
 
 		Record partiallyLoadedRecord = ((RecordImpl) getPartiallyLoaded(1234).set(TITLE, "val4"));
-		partiallyLoadedRecord.markAsSaved(version - 1000, zeCollectionSchemaType1.instance());
+		try {
+			partiallyLoadedRecord.markAsSaved(version - 1000, zeCollectionSchemaType1.instance());
+			assertThat(recordsCaches.insert(partiallyLoadedRecord, WAS_OBTAINED)).isEqualTo(REFUSED_OLD_VERSION);
+			fail("Exception expected");
 
-		assertThat(recordsCaches.insert(partiallyLoadedRecord, WAS_OBTAINED)).isEqualTo(REFUSED_OLD_VERSION);
-		assertThat(recordsCaches.insert(partiallyLoadedRecord, WAS_MODIFIED)).isEqualTo(REFUSED_OLD_VERSION);
+		} catch (IllegalStateException e) {
+			//OK
+		}
+		try {
+			assertThat(recordsCaches.insert(partiallyLoadedRecord, WAS_MODIFIED)).isEqualTo(REFUSED_OLD_VERSION);
+			fail("Exception expected");
+
+		} catch (IllegalStateException e) {
+			//OK
+		}
 
 		partiallyLoadedRecord = ((RecordImpl) getPartiallyLoaded(1234).set(TITLE, "val5"));
 		partiallyLoadedRecord.markAsSaved(version + 1000, zeCollectionSchemaType1.instance());
 		assertThat(partiallyLoadedRecord.<String>get(zeCollectionSchemaType1.stringMetadata())).isNull();
 
 
-		assertThat(recordsCaches.insert(partiallyLoadedRecord, WAS_OBTAINED)).isEqualTo(ACCEPTED);
-		Record recordFromCache = recordsCaches.getRecord(id(1234));
-		assertThat(recordFromCache.<String>get(TITLE)).isEqualTo("val4");
-		assertThat(recordFromCache.<String>get(zeCollectionSchemaType1.stringMetadata())).isEqualTo("val2");
-		assertThat(recordFromCache.<String>get(zeCollectionSchemaType1.anotherStringMetadata())).isEqualTo("val3");
+		try {
+			assertThat(recordsCaches.insert(partiallyLoadedRecord, WAS_OBTAINED)).isEqualTo(ACCEPTED);
+			fail("Exception expected");
 
+		} catch (IllegalStateException e) {
+			//OK
+		}
 	}
 
 
@@ -160,12 +287,14 @@ public class NewVolatileRecordCacheAcceptanceTest extends ConstellioTest {
 		assertThat(recordFromCache.<String>get(TITLE)).isEqualTo("val1");
 		assertThat(recordFromCache.<String>get(zeCollectionSchemaType1.stringMetadata())).isEqualTo("val2");
 		assertThat(recordFromCache.<String>get(zeCollectionSchemaType1.anotherStringMetadata())).isEqualTo("val3");
+		assertThat(recordFromCache.isSummary()).isFalse();
 
 		recordFromCache = recordsCaches.getRecordSummary(id(1234));
-		assertThat(recordFromCache.isSummary()).isFalse();
+		assertThat(recordFromCache.isSummary()).isTrue();
 		assertThat(recordFromCache.<String>get(TITLE)).isEqualTo("val1");
 		assertThat(recordFromCache.<String>get(zeCollectionSchemaType1.stringMetadata())).isEqualTo("val2");
-		assertThat(recordFromCache.<String>get(zeCollectionSchemaType1.anotherStringMetadata())).isEqualTo("val3");
+		assertThat(recordFromCache.<String>get(zeCollectionSchemaType1.anotherStringMetadata())).isNull();
+		assertThat(recordFromCache.isSummary()).isTrue();
 
 
 		recordFromCache = recordsCaches.getCache(zeCollection).get(id(1234));
@@ -173,39 +302,34 @@ public class NewVolatileRecordCacheAcceptanceTest extends ConstellioTest {
 		assertThat(recordFromCache.<String>get(TITLE)).isEqualTo("val1");
 		assertThat(recordFromCache.<String>get(zeCollectionSchemaType1.stringMetadata())).isEqualTo("val2");
 		assertThat(recordFromCache.<String>get(zeCollectionSchemaType1.anotherStringMetadata())).isEqualTo("val3");
+		assertThat(recordFromCache.isSummary()).isFalse();
 
 		recordFromCache = recordsCaches.getCache(zeCollection).getSummary(id(1234));
-		assertThat(recordFromCache.isSummary()).isFalse();
+		assertThat(recordFromCache.isSummary()).isTrue();
 		assertThat(recordFromCache.<String>get(TITLE)).isEqualTo("val1");
 		assertThat(recordFromCache.<String>get(zeCollectionSchemaType1.stringMetadata())).isEqualTo("val2");
-		assertThat(recordFromCache.<String>get(zeCollectionSchemaType1.anotherStringMetadata())).isEqualTo("val3");
-
+		assertThat(recordFromCache.<String>get(zeCollectionSchemaType1.anotherStringMetadata())).isNull();
 
 		// Get by metadata
-		recordFromCache = recordsCaches.getCache(zeCollection).getByMetadata(zeCollectionSchemaType1.stringMetadata(), "val2");
-		assertThat(recordFromCache.isSummary()).isFalse();
-		assertThat(recordFromCache.<String>get(TITLE)).isEqualTo("val1");
-		assertThat(recordFromCache.<String>get(zeCollectionSchemaType1.stringMetadata())).isEqualTo("val2");
-		assertThat(recordFromCache.<String>get(zeCollectionSchemaType1.anotherStringMetadata())).isEqualTo("val3");
-
+		try {
+			recordFromCache = recordsCaches.getCache(zeCollection).getByMetadata(zeCollectionSchemaType1.stringMetadata(), "val2");
+			fail("Exception expected");
+		} catch (ImpossibleRuntimeException e) {
+			//OK
+		}
 		recordFromCache = recordsCaches.getCache(zeCollection).getSummaryByMetadata(zeCollectionSchemaType1.stringMetadata(), "val2");
-		assertThat(recordFromCache.isSummary()).isFalse();
+		assertThat(recordFromCache.isSummary()).isTrue();
 		assertThat(recordFromCache.<String>get(TITLE)).isEqualTo("val1");
 		assertThat(recordFromCache.<String>get(zeCollectionSchemaType1.stringMetadata())).isEqualTo("val2");
-		assertThat(recordFromCache.<String>get(zeCollectionSchemaType1.anotherStringMetadata())).isEqualTo("val3");
-
-
-		recordFromCache = recordsCaches.getCache(zeCollection).getByMetadata(zeCollectionSchemaType1.stringMetadata(), "valAA");
-		assertThat(recordFromCache.isSummary()).isFalse();
-		assertThat(recordFromCache.<String>get(TITLE)).isEqualTo("valA");
-		assertThat(recordFromCache.<String>get(zeCollectionSchemaType1.stringMetadata())).isEqualTo("valAA");
-		assertThat(recordFromCache.<String>get(zeCollectionSchemaType1.anotherStringMetadata())).isEqualTo("valAAA");
+		assertThat(recordFromCache.<String>get(zeCollectionSchemaType1.anotherStringMetadata())).isNull();
+		assertThat(recordFromCache.isSummary()).isTrue();
 
 		recordFromCache = recordsCaches.getCache(zeCollection).getSummaryByMetadata(zeCollectionSchemaType1.stringMetadata(), "valAA");
-		assertThat(recordFromCache.isSummary()).isFalse();
+		assertThat(recordFromCache.isSummary()).isTrue();
 		assertThat(recordFromCache.<String>get(TITLE)).isEqualTo("valA");
 		assertThat(recordFromCache.<String>get(zeCollectionSchemaType1.stringMetadata())).isEqualTo("valAA");
-		assertThat(recordFromCache.<String>get(zeCollectionSchemaType1.anotherStringMetadata())).isEqualTo("valAAA");
+		assertThat(recordFromCache.<String>get(zeCollectionSchemaType1.anotherStringMetadata())).isNull();
+		assertThat(recordFromCache.isSummary()).isTrue();
 
 		assertThat(recordsCaches.getCache(zeCollection).getAllValues(zeCollectionSchemaType1.typeCode())).hasSize(2);
 		assertThat(recordsCaches.getCache(zeCollection).
@@ -230,25 +354,29 @@ public class NewVolatileRecordCacheAcceptanceTest extends ConstellioTest {
 		assertThat(recordFromCache.<String>get(TITLE)).isEqualTo("val1");
 		assertThat(recordFromCache.<String>get(zeCollectionSchemaType1.stringMetadata())).isEqualTo("val2");
 		assertThat(recordFromCache.<String>get(zeCollectionSchemaType1.anotherStringMetadata())).isEqualTo("val3");
+		assertThat(recordFromCache.isSummary()).isFalse();
 
 		record.set(TITLE, "val4")
 				.set(zeCollectionSchemaType1.stringMetadata(), "val5")
 				.set(zeCollectionSchemaType1.anotherStringMetadata(), "val6");
 		recordServices.add(record);
+		assertThat(((RecordImpl) record).getRecordDTO().getLoadingMode()).isEqualTo(RecordDTOMode.FULLY_LOADED);
 
 		recordFromCache = recordsCaches.getRecord(id(1234));
 		assertThat(recordFromCache.isSummary()).isFalse();
 		assertThat(recordFromCache.<String>get(TITLE)).isEqualTo("val4");
 		assertThat(recordFromCache.<String>get(zeCollectionSchemaType1.stringMetadata())).isEqualTo("val5");
 		assertThat(recordFromCache.<String>get(zeCollectionSchemaType1.anotherStringMetadata())).isEqualTo("val6");
+		assertThat(recordFromCache.isSummary()).isFalse();
 
 		recordServices.logicallyDelete(record, User.GOD);
 
-		recordFromCache = recordsCaches.getRecord(id(1234));
-		assertThat(recordFromCache.isSummary()).isFalse();
-		assertThat(recordFromCache.<String>get(TITLE)).isEqualTo("val4");
-		assertThat(recordFromCache.<String>get(zeCollectionSchemaType1.stringMetadata())).isEqualTo("val5");
-		assertThat(recordFromCache.<String>get(zeCollectionSchemaType1.anotherStringMetadata())).isEqualTo("val6");
+		record = recordsCaches.getRecord(id(1234));
+		assertThat(record.isSummary()).isFalse();
+		assertThat(record.<String>get(TITLE)).isEqualTo("val4");
+		assertThat(record.<String>get(zeCollectionSchemaType1.stringMetadata())).isEqualTo("val5");
+		assertThat(record.<String>get(zeCollectionSchemaType1.anotherStringMetadata())).isEqualTo("val6");
+		assertThat(record.isSummary()).isFalse();
 
 		recordServices.physicallyDelete(record, User.GOD);
 

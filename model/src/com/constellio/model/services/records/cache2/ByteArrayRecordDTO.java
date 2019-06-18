@@ -1,6 +1,7 @@
 package com.constellio.model.services.records.cache2;
 
 import com.constellio.data.dao.dto.records.RecordDTO;
+import com.constellio.data.dao.dto.records.RecordDTOMode;
 import com.constellio.data.dao.dto.records.RecordDeltaDTO;
 import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -22,6 +23,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Supplier;
 
+import static com.constellio.data.dao.dto.records.RecordDTOMode.SUMMARY;
 import static com.constellio.model.services.records.cache2.CacheRecordDTOUtils.convertDTOToByteArrays;
 
 public abstract class ByteArrayRecordDTO implements Map<String, Object>, RecordDTO, Supplier<byte[]> {
@@ -68,6 +70,11 @@ public abstract class ByteArrayRecordDTO implements Map<String, Object>, RecordD
 
 
 	public static ByteArrayRecordDTO create(ModelLayerFactory modelLayerFactory, RecordDTO dto) {
+
+		if (dto.getLoadingMode() == RecordDTOMode.CUSTOM) {
+			throw new IllegalStateException("Cannot create ByteArrayRecordDTO from a customly loaded RecordDTO");
+		}
+
 		String collection = (String) dto.getFields().get("collection_s");
 		String schemaCode = (String) dto.getFields().get("schema_s");
 		MetadataSchemaType type = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection)
@@ -89,7 +96,7 @@ public abstract class ByteArrayRecordDTO implements Map<String, Object>, RecordD
 			} else {
 				//SummaryCacheSingletons.dataStore.removeStringKey(dto.getId());
 			}
-			return new ByteArrayRecordDTOWithStringId(dto.getId(), schemaProvider, dto.getVersion(), dto.isSummary(),
+			return new ByteArrayRecordDTOWithStringId(dto.getId(), schemaProvider, dto.getVersion(), dto.getLoadingMode() == SUMMARY,
 					collectionInfo.getCode(), collectionInfo.getCollectionId(), type.getCode(), type.getId(),
 					schema.getCode(), schema.getId(), bytesArray.bytesToKeepInMemory);
 		} else {
@@ -98,7 +105,7 @@ public abstract class ByteArrayRecordDTO implements Map<String, Object>, RecordD
 			} else {
 				//SummaryCacheSingletons.dataStore.removeIntKey(intId);
 			}
-			return new ByteArrayRecordDTOWithIntegerId(intId, schemaProvider, dto.getVersion(), dto.isSummary(),
+			return new ByteArrayRecordDTOWithIntegerId(intId, schemaProvider, dto.getVersion(), dto.getLoadingMode() == SUMMARY,
 					collectionInfo.getCode(), collectionInfo.getCollectionId(), type.getCode(), type.getId(),
 					schema.getCode(), schema.getId(), bytesArray.bytesToKeepInMemory);
 		}
@@ -203,8 +210,8 @@ public abstract class ByteArrayRecordDTO implements Map<String, Object>, RecordD
 	}
 
 	@Override
-	public boolean isSummary() {
-		return summary;
+	public RecordDTOMode getLoadingMode() {
+		return summary ? SUMMARY : RecordDTOMode.FULLY_LOADED;
 	}
 
 	@Override
