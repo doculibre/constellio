@@ -3,6 +3,7 @@ package com.constellio.app.modules.rm.ui.components.document;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.modules.rm.DemoTestRecords;
 import com.constellio.app.modules.rm.RMTestRecords;
+import com.constellio.app.modules.rm.constants.RMRoles;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
@@ -13,16 +14,19 @@ import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
@@ -34,16 +38,16 @@ import org.mockito.Mock;
 
 import java.io.File;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 
+import static com.constellio.data.utils.LangUtils.withoutDuplicates;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /**
  * Created by Constellio on 2016-12-08.
@@ -65,6 +69,7 @@ public class DocumentActionsPresenterUtilsAcceptanceTest extends ConstellioTest 
 	private ContentManager contentManager;
 	RMTestRecords records = new RMTestRecords(zeCollection);
 	RMSchemasRecordsServices rm;
+	RolesManager rolesManager;
 
 	Content content1_title1, content1_title2, content2_title1, content2_title2;
 	File content1File, content2File;
@@ -91,6 +96,7 @@ public class DocumentActionsPresenterUtilsAcceptanceTest extends ConstellioTest 
 		contentManager = getModelLayerFactory().getContentManager();
 		ioServices = getDataLayerFactory().getIOServicesFactory().newIOServices();
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		rolesManager = getAppLayerFactory().getModelLayerFactory().getRolesManager();
 
 		initTestData();
 	}
@@ -120,6 +126,93 @@ public class DocumentActionsPresenterUtilsAcceptanceTest extends ConstellioTest 
 		List<Record> recordList = searchServices.search(new LogicalSearchQuery().setCondition(from(rm.eventSchemaType()).returnAll()));
 		assertThat(recordList).hasSize(1);
 		assertThat(rm.wrapEvent(recordList.get(0)).getRecordVersion()).isEqualTo(content1_title1.getCurrentVersion().getVersion());
+	}
+
+	@Test
+	public void whenDeleteVersionPossibleWithRolePermissionAndDeleteAccess() throws RecordServicesException {
+		Role role = rolesManager.getRole(zeCollection, RMRoles.MANAGER);
+		List<String> permissions = new ArrayList<>(role.getOperationPermissions());
+		if (!permissions.contains(CorePermissions.DELETE_CONTENT_VERSION)) {
+			permissions.add(CorePermissions.DELETE_CONTENT_VERSION);
+		}
+		rolesManager.updateRole(role.withPermissions(withoutDuplicates(permissions)));
+		Role manager = rolesManager.getRole(zeCollection, RMRoles.MANAGER);
+
+		User sasquatch = users.sasquatchIn(zeCollection);
+		sasquatch.setCollectionDeleteAccess(true);
+		recordServices.update(sasquatch.setUserRoles(manager.getCode()));
+
+
+		Transaction transaction = new Transaction();
+		transaction.add(document21WithContent2HavingTitle1.setContent(content2_title1).setTitle("21"));
+		recordServices.execute(transaction);
+
+
+		DocumentVO documentVo = new DocumentToVOBuilder(getModelLayerFactory()).build(document21WithContent2HavingTitle1.getWrappedRecord(),
+				RecordVO.VIEW_MODE.FORM, FakeSessionContext.gandalfInCollection(zeCollection));
+
+		DocumentActionsPresenterUtils presenterUtils = spy(new DocumentActionsPresenterUtils(view));
+		doReturn(sasquatch).when(presenterUtils).getCurrentUser();
+		presenterUtils.setRecordVO(documentVo);
+		assertThat(presenterUtils.isDeleteContentVersionPossible()).isTrue();
+	}
+
+	@Test
+	public void whenDeleteContentVersionImpossibleWithoutRolePermission() throws RecordServicesException {
+		Role role = rolesManager.getRole(zeCollection, RMRoles.MANAGER);
+		List<String> permissions = new ArrayList<>(role.getOperationPermissions());
+		if (permissions.contains(CorePermissions.DELETE_CONTENT_VERSION)) {
+			permissions.remove(CorePermissions.DELETE_CONTENT_VERSION);
+		}
+		rolesManager.updateRole(role.withPermissions(withoutDuplicates(permissions)));
+		Role manager = rolesManager.getRole(zeCollection, RMRoles.MANAGER);
+
+		User sasquatch = users.sasquatchIn(zeCollection);
+		sasquatch.setCollectionDeleteAccess(true);
+		recordServices.update(sasquatch.setUserRoles(manager.getCode()));
+
+
+		Transaction transaction = new Transaction();
+		transaction.add(document21WithContent2HavingTitle1.setContent(content2_title1).setTitle("21"));
+		recordServices.execute(transaction);
+
+
+		DocumentVO documentVo = new DocumentToVOBuilder(getModelLayerFactory()).build(document21WithContent2HavingTitle1.getWrappedRecord(),
+				RecordVO.VIEW_MODE.FORM, FakeSessionContext.gandalfInCollection(zeCollection));
+
+		DocumentActionsPresenterUtils presenterUtils = spy(new DocumentActionsPresenterUtils(view));
+		doReturn(sasquatch).when(presenterUtils).getCurrentUser();
+		presenterUtils.setRecordVO(documentVo);
+		assertThat(presenterUtils.isDeleteContentVersionPossible()).isFalse();
+	}
+
+	@Test
+	public void whenDeleteContentVersionImpossibleWithoutNoDeleteAccess() throws RecordServicesException {
+		Role role = rolesManager.getRole(zeCollection, RMRoles.MANAGER);
+		List<String> permissions = new ArrayList<>(role.getOperationPermissions());
+		if (!permissions.contains(CorePermissions.DELETE_CONTENT_VERSION)) {
+			permissions.add(CorePermissions.DELETE_CONTENT_VERSION);
+		}
+		rolesManager.updateRole(role.withPermissions(withoutDuplicates(permissions)));
+		Role manager = rolesManager.getRole(zeCollection, RMRoles.MANAGER);
+
+		User sasquatch = users.sasquatchIn(zeCollection);
+		sasquatch.setCollectionDeleteAccess(false);
+		recordServices.update(sasquatch.setUserRoles(manager.getCode()));
+
+
+		Transaction transaction = new Transaction();
+		transaction.add(document21WithContent2HavingTitle1.setContent(content2_title1).setTitle("21"));
+		recordServices.execute(transaction);
+
+
+		DocumentVO documentVo = new DocumentToVOBuilder(getModelLayerFactory()).build(document21WithContent2HavingTitle1.getWrappedRecord(),
+				RecordVO.VIEW_MODE.FORM, FakeSessionContext.gandalfInCollection(zeCollection));
+
+		DocumentActionsPresenterUtils presenterUtils = spy(new DocumentActionsPresenterUtils(view));
+		doReturn(sasquatch).when(presenterUtils).getCurrentUser();
+		presenterUtils.setRecordVO(documentVo);
+		assertThat(presenterUtils.isDeleteContentVersionPossible()).isFalse();
 	}
 
 	private void initTestData()

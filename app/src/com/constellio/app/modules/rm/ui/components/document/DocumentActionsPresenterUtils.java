@@ -227,7 +227,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 			if (areSearchTypeAndSearchIdPresent) {
 				actionsComponent.navigate().to(RMViews.class)
 						.addDocumentWithContentFromDecommission(documentVO.getId(), DecommissionNavUtil.getSearchId(params), DecommissionNavUtil.getSearchType(params));
-			} else if(params.get(RMViews.FAV_GROUP_ID_KEY) != null) {
+			} else if (params.get(RMViews.FAV_GROUP_ID_KEY) != null) {
 				actionsComponent.navigate().to(RMViews.class).addDocumentWithContentFromFavorites(documentVO.getId(), params.get(RMViews.FAV_GROUP_ID_KEY));
 			} else if (rmModuleExtensions
 					.navigateToAddDocumentWhileKeepingTraceOfPreviousView(new NavigateToFromAPageParams(params, documentVO.getId()))) {
@@ -421,7 +421,8 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 
 	public boolean isDeleteContentVersionPossible() {
 		return presenterUtils.getCurrentUser().has(CorePermissions.DELETE_CONTENT_VERSION).on(currentDocument()) &&
-			   !extensions.isModifyBlocked(currentDocument(), getCurrentUser());
+			   !extensions.isModifyBlocked(currentDocument(), getCurrentUser()) &&
+			   getCurrentUser().hasDeleteAccess().on(currentDocument());
 	}
 
 	public boolean isDeleteContentVersionPossible(ContentVersionVO contentVersionVO) {
