@@ -130,13 +130,13 @@ public class DocumentActionsPresenterUtilsAcceptanceTest extends ConstellioTest 
 
 	@Test
 	public void whenDeleteVersionPossibleWithRolePermissionAndDeleteAccess() throws RecordServicesException {
-		Role role = rolesManager.getRole(zeCollection, RMRoles.MANAGER);
-		List<String> permissions = new ArrayList<>(role.getOperationPermissions());
+		Role manager = rolesManager.getRole(zeCollection, RMRoles.MANAGER);
+		List<String> permissions = new ArrayList<>(manager.getOperationPermissions());
 		if (!permissions.contains(CorePermissions.DELETE_CONTENT_VERSION)) {
 			permissions.add(CorePermissions.DELETE_CONTENT_VERSION);
 		}
-		rolesManager.updateRole(role.withPermissions(withoutDuplicates(permissions)));
-		Role manager = rolesManager.getRole(zeCollection, RMRoles.MANAGER);
+		rolesManager.updateRole(manager.withPermissions(withoutDuplicates(permissions)));
+		manager = rolesManager.getRole(zeCollection, RMRoles.MANAGER);
 
 		User sasquatch = users.sasquatchIn(zeCollection);
 		sasquatch.setCollectionDeleteAccess(true);
@@ -149,7 +149,7 @@ public class DocumentActionsPresenterUtilsAcceptanceTest extends ConstellioTest 
 
 
 		DocumentVO documentVo = new DocumentToVOBuilder(getModelLayerFactory()).build(document21WithContent2HavingTitle1.getWrappedRecord(),
-				RecordVO.VIEW_MODE.FORM, FakeSessionContext.gandalfInCollection(zeCollection));
+				RecordVO.VIEW_MODE.FORM, FakeSessionContext.sasquatchInCollection(zeCollection));
 
 		DocumentActionsPresenterUtils presenterUtils = spy(new DocumentActionsPresenterUtils(view));
 		doReturn(sasquatch).when(presenterUtils).getCurrentUser();
@@ -159,13 +159,13 @@ public class DocumentActionsPresenterUtilsAcceptanceTest extends ConstellioTest 
 
 	@Test
 	public void whenDeleteContentVersionImpossibleWithoutRolePermission() throws RecordServicesException {
-		Role role = rolesManager.getRole(zeCollection, RMRoles.MANAGER);
-		List<String> permissions = new ArrayList<>(role.getOperationPermissions());
+		Role manager = rolesManager.getRole(zeCollection, RMRoles.MANAGER);
+		List<String> permissions = new ArrayList<>(manager.getOperationPermissions());
 		if (permissions.contains(CorePermissions.DELETE_CONTENT_VERSION)) {
 			permissions.remove(CorePermissions.DELETE_CONTENT_VERSION);
 		}
-		rolesManager.updateRole(role.withPermissions(withoutDuplicates(permissions)));
-		Role manager = rolesManager.getRole(zeCollection, RMRoles.MANAGER);
+		rolesManager.updateRole(manager.withPermissions(withoutDuplicates(permissions)));
+		manager = rolesManager.getRole(zeCollection, RMRoles.MANAGER);
 
 		User sasquatch = users.sasquatchIn(zeCollection);
 		sasquatch.setCollectionDeleteAccess(true);
@@ -178,7 +178,7 @@ public class DocumentActionsPresenterUtilsAcceptanceTest extends ConstellioTest 
 
 
 		DocumentVO documentVo = new DocumentToVOBuilder(getModelLayerFactory()).build(document21WithContent2HavingTitle1.getWrappedRecord(),
-				RecordVO.VIEW_MODE.FORM, FakeSessionContext.gandalfInCollection(zeCollection));
+				RecordVO.VIEW_MODE.FORM, FakeSessionContext.sasquatchInCollection(zeCollection));
 
 		DocumentActionsPresenterUtils presenterUtils = spy(new DocumentActionsPresenterUtils(view));
 		doReturn(sasquatch).when(presenterUtils).getCurrentUser();
@@ -188,13 +188,13 @@ public class DocumentActionsPresenterUtilsAcceptanceTest extends ConstellioTest 
 
 	@Test
 	public void whenDeleteContentVersionImpossibleWithoutNoDeleteAccess() throws RecordServicesException {
-		Role role = rolesManager.getRole(zeCollection, RMRoles.MANAGER);
-		List<String> permissions = new ArrayList<>(role.getOperationPermissions());
+		Role manager = rolesManager.getRole(zeCollection, RMRoles.MANAGER);
+		List<String> permissions = new ArrayList<>(manager.getOperationPermissions());
 		if (!permissions.contains(CorePermissions.DELETE_CONTENT_VERSION)) {
 			permissions.add(CorePermissions.DELETE_CONTENT_VERSION);
 		}
-		rolesManager.updateRole(role.withPermissions(withoutDuplicates(permissions)));
-		Role manager = rolesManager.getRole(zeCollection, RMRoles.MANAGER);
+		rolesManager.updateRole(manager.withPermissions(withoutDuplicates(permissions)));
+		manager = rolesManager.getRole(zeCollection, RMRoles.MANAGER);
 
 		User sasquatch = users.sasquatchIn(zeCollection);
 		sasquatch.setCollectionDeleteAccess(false);
@@ -207,7 +207,7 @@ public class DocumentActionsPresenterUtilsAcceptanceTest extends ConstellioTest 
 
 
 		DocumentVO documentVo = new DocumentToVOBuilder(getModelLayerFactory()).build(document21WithContent2HavingTitle1.getWrappedRecord(),
-				RecordVO.VIEW_MODE.FORM, FakeSessionContext.gandalfInCollection(zeCollection));
+				RecordVO.VIEW_MODE.FORM, FakeSessionContext.sasquatchInCollection(zeCollection));
 
 		DocumentActionsPresenterUtils presenterUtils = spy(new DocumentActionsPresenterUtils(view));
 		doReturn(sasquatch).when(presenterUtils).getCurrentUser();

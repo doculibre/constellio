@@ -420,7 +420,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	}
 
 	public boolean isDeleteContentVersionPossible() {
-		return presenterUtils.getCurrentUser().has(CorePermissions.DELETE_CONTENT_VERSION).on(currentDocument()) &&
+		return getCurrentUser().has(CorePermissions.DELETE_CONTENT_VERSION).on(currentDocument()) &&
 			   !extensions.isModifyBlocked(currentDocument(), getCurrentUser()) &&
 			   getCurrentUser().hasDeleteAccess().on(currentDocument());
 	}
