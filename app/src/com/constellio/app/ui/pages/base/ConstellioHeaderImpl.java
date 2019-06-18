@@ -39,6 +39,7 @@ import com.constellio.app.ui.pages.search.SearchView;
 import com.constellio.app.ui.pages.search.SimpleSearchView;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.app.ui.util.MessageUtils;
+import com.constellio.data.utils.AccentApostropheCleaner;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.vaadin.data.Item;
@@ -51,22 +52,45 @@ import com.vaadin.event.MouseEvents;
 import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
-import com.vaadin.server.*;
+import com.vaadin.server.FontAwesome;
+import com.vaadin.server.Page;
+import com.vaadin.server.Resource;
+import com.vaadin.server.Responsive;
+import com.vaadin.server.ThemeResource;
 import com.vaadin.shared.MouseEventDetails.MouseButton;
 import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Alignment;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
+import com.vaadin.ui.ComboBox;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Image;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.MenuBar;
 import com.vaadin.ui.MenuBar.Command;
 import com.vaadin.ui.MenuBar.MenuItem;
+import com.vaadin.ui.Panel;
 import com.vaadin.ui.PopupView.PopupVisibilityEvent;
 import com.vaadin.ui.PopupView.PopupVisibilityListener;
+import com.vaadin.ui.TabSheet;
+import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.ColumnHeaderMode;
+import com.vaadin.ui.UI;
+import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.Window;
 import com.vaadin.ui.Window.CloseEvent;
 import com.vaadin.ui.Window.CloseListener;
 import com.vaadin.ui.themes.ValoTheme;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static java.util.Arrays.asList;
@@ -738,7 +762,9 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 			Collections.sort(sortedCollections, new Comparator<String>() {
 				@Override
 				public int compare(String o1, String o2) {
-					return collectionCodeToLabelConverter.getCollectionCaption(o1).compareTo(collectionCodeToLabelConverter.getCollectionCaption(o2));
+					String collectionCaption1 = AccentApostropheCleaner.removeAccents(collectionCodeToLabelConverter.getCollectionCaption(o1).toLowerCase());
+					String collectionCaption2 = AccentApostropheCleaner.removeAccents(collectionCodeToLabelConverter.getCollectionCaption(o2).toLowerCase());
+					return collectionCaption1.compareTo(collectionCaption2);
 				}
 			});
 			collectionMenu.setAutoOpen(true);
