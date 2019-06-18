@@ -227,59 +227,59 @@ public class SearchPresenterServiceAcceptTest extends ConstellioTest {
 		assertThat(facets.get(0).isOpen()).isFalse();
 	}
 
-	@Test
-	public void givenFacetIsVisisbleByDefaultThenOk() throws Exception {
-		Facet facet;
-		recordServices.add(facet = rm.newFacetField().setOrder(0).setFieldDataStoreCode("title_s")
-				.setTitle("Titre").setOrderResult(FacetOrderType.RELEVANCE).setOpenByDefault(true));
-
-		assertThat(searchPresenterService.isFacetVisisble(facet)).isTrue();
-	}
-
-	@Test
-	public void givenFacetThenMakeItUnVisisbleByUserThenOk() throws Exception {
-		Facet facet;
-		recordServices.add(facet = rm.newFacetField().setOrder(0).setFieldDataStoreCode("title_s")
-				.setTitle("Titre").setOrderResult(FacetOrderType.RELEVANCE).setOpenByDefault(true));
-
-		addRoleToFolderDefaultTitleMetadata("M");
-
-		assertThat(searchPresenterService.isFacetVisisble(facet)).isFalse();
-	}
-
-
-	@Test
-	public void givenFacetItIsVisisbleByUsingAValidRoleForUserThenOk() throws Exception {
-		Facet facet;
-		recordServices.add(facet = rm.newFacetField().setOrder(0).setFieldDataStoreCode("title_s")
-				.setTitle("Titre").setOrderResult(FacetOrderType.RELEVANCE).setOpenByDefault(true));
-
-		addRoleToFolderDefaultTitleMetadata("RGD");
-
-		assertThat(searchPresenterService.isFacetVisisble(facet)).isTrue();
-	}
-
-	@Test
-	public void givenFacetThenMakeItVisisbleByProvidingSchemaTypeThatIsNotRoleRestritedForTheMetadataThenOk() throws Exception {
-		Facet facet;
-		recordServices.add(facet = rm.newFacetField().setOrder(0).setFieldDataStoreCode("title_s")
-				.setTitle("Titre").setOrderResult(FacetOrderType.RELEVANCE).setOpenByDefault(true));
-
-		addRoleToFolderDefaultTitleMetadata("M");
-		searchPresenterService.setMetadataSchemaTypesList(asList(getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection).getSchemaType(Document.SCHEMA_TYPE)));
-		assertThat(searchPresenterService.isFacetVisisble(facet)).isTrue();
-	}
-
-	@Test
-	public void givenFacetThenMakeItNotVisisbleByProvidingSchemaTypeThatHaveARoleRestritionForTheMetadataThenOk() throws Exception {
-		Facet facet;
-		recordServices.add(facet = rm.newFacetField().setOrder(0).setFieldDataStoreCode("title_s")
-				.setTitle("Titre").setOrderResult(FacetOrderType.RELEVANCE).setOpenByDefault(true));
-
-		addRoleToFolderDefaultTitleMetadata("M");
-		searchPresenterService.setMetadataSchemaTypesList(asList(getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection).getSchemaType(Folder.SCHEMA_TYPE)));
-		assertThat(searchPresenterService.isFacetVisisble(facet)).isFalse();
-	}
+//	@Test
+//	public void givenFacetIsVisisbleByDefaultThenOk() throws Exception {
+//		Facet facet;
+//		recordServices.add(facet = rm.newFacetField().setOrder(0).setFieldDataStoreCode("title_s")
+//				.setTitle("Titre").setOrderResult(FacetOrderType.RELEVANCE).setOpenByDefault(true));
+//
+//		assertThat(searchPresenterService.isFacetVisisble(facet)).isTrue();
+//	}
+//
+//	@Test
+//	public void givenFacetThenMakeItUnVisisbleByUserThenOk() throws Exception {
+//		Facet facet;
+//		recordServices.add(facet = rm.newFacetField().setOrder(0).setFieldDataStoreCode("title_s")
+//				.setTitle("Titre").setOrderResult(FacetOrderType.RELEVANCE).setOpenByDefault(true));
+//
+//		addRoleToFolderDefaultTitleMetadata("M");
+//
+//		assertThat(searchPresenterService.isFacetVisisble(facet)).isFalse();
+//	}
+//
+//
+//	@Test
+//	public void givenFacetItIsVisisbleByUsingAValidRoleForUserThenOk() throws Exception {
+//		Facet facet;
+//		recordServices.add(facet = rm.newFacetField().setOrder(0).setFieldDataStoreCode("title_s")
+//				.setTitle("Titre").setOrderResult(FacetOrderType.RELEVANCE).setOpenByDefault(true));
+//
+//		addRoleToFolderDefaultTitleMetadata("RGD");
+//
+//		assertThat(searchPresenterService.isFacetVisisble(facet)).isTrue();
+//	}
+//
+//	@Test
+//	public void givenFacetThenMakeItVisisbleByProvidingSchemaTypeThatIsNotRoleRestritedForTheMetadataThenOk() throws Exception {
+//		Facet facet;
+//		recordServices.add(facet = rm.newFacetField().setOrder(0).setFieldDataStoreCode("title_s")
+//				.setTitle("Titre").setOrderResult(FacetOrderType.RELEVANCE).setOpenByDefault(true));
+//
+//		addRoleToFolderDefaultTitleMetadata("M");
+//		searchPresenterService.setMetadataSchemaTypesList(asList(getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection).getSchemaType(Document.SCHEMA_TYPE)));
+//		assertThat(searchPresenterService.isFacetVisisble(facet)).isTrue();
+//	}
+//
+//	@Test
+//	public void givenFacetThenMakeItNotVisisbleByProvidingSchemaTypeThatHaveARoleRestritionForTheMetadataThenOk() throws Exception {
+//		Facet facet;
+//		recordServices.add(facet = rm.newFacetField().setOrder(0).setFieldDataStoreCode("title_s")
+//				.setTitle("Titre").setOrderResult(FacetOrderType.RELEVANCE).setOpenByDefault(true));
+//
+//		addRoleToFolderDefaultTitleMetadata("M");
+//		searchPresenterService.setMetadataSchemaTypesList(asList(getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection).getSchemaType(Folder.SCHEMA_TYPE)));
+//		assertThat(searchPresenterService.isFacetVisisble(facet)).isFalse();
+//	}
 
 	private void addRoleToFolderDefaultTitleMetadata(String role)
 			throws OptimisticLocking {

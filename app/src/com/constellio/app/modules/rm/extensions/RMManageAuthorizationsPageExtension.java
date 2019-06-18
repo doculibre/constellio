@@ -42,9 +42,11 @@ public class RMManageAuthorizationsPageExtension extends PagesComponentsExtensio
 		Record autorizationTarget = view.getAutorizationTarget();
 		User user = appLayerFactory.getModelLayerFactory().newUserServices()
 				.getUserInCollection(view.getSessionContext().getCurrentUser().getUsername(), collection);
-		if(autorizationTarget.isOfSchemaType(Folder.SCHEMA_TYPE) && !user.has(RMPermissionsTo.MANAGE_FOLDER_AUTHORIZATIONS).on(autorizationTarget)) {
+		if(autorizationTarget.isOfSchemaType(Folder.SCHEMA_TYPE) &&
+		   (!user.has(RMPermissionsTo.MANAGE_FOLDER_AUTHORIZATIONS).on(autorizationTarget) || !user.hasWriteAccess().on(autorizationTarget))) {
 			view.setViewReadOnly(true);
-		} else if(autorizationTarget.isOfSchemaType(Document.SCHEMA_TYPE) && !user.has(RMPermissionsTo.MANAGE_DOCUMENT_AUTHORIZATIONS).on(autorizationTarget)) {
+		} else if(autorizationTarget.isOfSchemaType(Document.SCHEMA_TYPE) &&
+				  (!user.has(RMPermissionsTo.MANAGE_DOCUMENT_AUTHORIZATIONS).on(autorizationTarget) || !user.hasWriteAccess().on(autorizationTarget))) {
 			view.setViewReadOnly(true);
 		}
 	}
