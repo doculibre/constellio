@@ -1,6 +1,5 @@
 package com.constellio.app.modules.rm.ui.components.breadcrumb;
 
-import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
@@ -186,7 +185,7 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 			}
 		} else if (favoritesId != null) {
 			breadcrumbItems.add(0, new FavoritesBreadcrumbItem());
-			breadcrumbItems.add(1, new GroupFavoritesBreadcrumbItem(favoritesId));
+			breadcrumbItems.add(1, new GroupFavoritesBreadcrumbItem(favoritesId, rmSchemasRecordsServices.getCart(favoritesId).getTitle()));
 		}
 		else if (searchId != null) {
 			breadcrumbItems.add(0, new SearchResultsBreadcrumbItem(searchId, advancedSearch));

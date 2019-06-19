@@ -1,12 +1,12 @@
 package com.constellio.app.ui.framework.components.breadcrumb;
 
-import com.constellio.app.ui.i18n.i18n;
-
 public class GroupFavoritesBreadcrumbItem implements BreadcrumbItem {
 	private String favoriteGroupId;
+	private String favoriteGroupTitle;
 
-	public GroupFavoritesBreadcrumbItem(String favoriteGroupId) {
+	public GroupFavoritesBreadcrumbItem(String favoriteGroupId, String favoriteGroupTitle) {
 		this.favoriteGroupId = favoriteGroupId;
+		this.favoriteGroupTitle = favoriteGroupTitle;
 	}
 
 	public String getFavoriteGroupId() {
@@ -15,7 +15,7 @@ public class GroupFavoritesBreadcrumbItem implements BreadcrumbItem {
 
 	@Override
 	public String getLabel() {
-		return i18n.$("GroupFavoritesBreadcrumbItem.groupfavorites");
+		return favoriteGroupTitle;
 	}
 
 	@Override
