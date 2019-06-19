@@ -417,6 +417,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		};
 		windowButton.setEnabled(!presenter.getCartFolders().isEmpty() && presenter.canCurrentUserBuildDecommissioningList());
 		windowButton.setVisible(!presenter.getCartFolders().isEmpty() && presenter.canCurrentUserBuildDecommissioningList());
+
 		return windowButton;
 	}
 
@@ -794,7 +795,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		};
 	}
 
-	private class BatchProcessingViewImpl implements BatchProcessingView {
+	public class BatchProcessingViewImpl implements BatchProcessingView {
 		private final String schemaType;
 
 		public BatchProcessingViewImpl(String schemaType) {

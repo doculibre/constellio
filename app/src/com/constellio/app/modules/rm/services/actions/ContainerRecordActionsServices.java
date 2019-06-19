@@ -11,10 +11,7 @@ import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.records.RecordServices;
-import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -34,9 +31,6 @@ public class ContainerRecordActionsServices {
 	private RMModuleExtensions rmModuleExtensions;
 	private AppLayerFactory appLayerFactory;
 	private ModelLayerFactory modelLayerFactory;
-	private RecordServices recordServices;
-	private transient ModelLayerCollectionExtensions modelLayerCollectionExtensions;
-	private MetadataSchemasManager metadataSchemasManager;
 	private String collection;
 	private SearchServices searchServices;
 
@@ -45,10 +39,7 @@ public class ContainerRecordActionsServices {
 		this.collection = collection;
 		this.appLayerFactory = appLayerFactory;
 		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
-		this.metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
-		this.modelLayerCollectionExtensions = appLayerFactory.getModelLayerFactory().getExtensions().forCollection(collection);
 		this.rmModuleExtensions = appLayerFactory.getExtensions().forCollection(collection).forModule(ConstellioRMModule.ID);
-		this.recordServices = modelLayerFactory.newRecordServices();
 		this.searchServices = modelLayerFactory.newSearchServices();
 	}
 
@@ -94,7 +85,7 @@ public class ContainerRecordActionsServices {
 
 	public boolean isLabelsActionPossible(Record record, User user) {
 		return user.hasReadAccess().on(record)
-			   && rmModuleExtensions.isLabelsActionPossible(rm.wrapContainerRecord(record), user)
+			   && rmModuleExtensions.isLabelsActionPossibleOnContainerRecord(rm.wrapContainerRecord(record), user)
 			   && canPrintReports();
 	}
 
@@ -121,7 +112,7 @@ public class ContainerRecordActionsServices {
 		}
 
 		return user.hasDeleteAccess().on(record)
-			   && rmModuleExtensions.isDeleteActionPossible(rm.wrapContainerRecord(record), user);
+			   && rmModuleExtensions.isDeleteActionPossibleOnContainerRecord(rm.wrapContainerRecord(record), user);
 	}
 
 	public List<String> getConceptsWithPermissionsForCurrentUser(User user, String... permissions) {
@@ -136,7 +127,7 @@ public class ContainerRecordActionsServices {
 	public boolean isEmptyTheBoxActionPossible(Record record, User user) {
 
 		if (!(user.hasWriteAccess().on(record) && isContainerRecyclingAllowed()
-			  && rmModuleExtensions.isEmptyTheBoxActionPossible(rm.wrapContainerRecord(record), user))) {
+			  && rmModuleExtensions.isEmptyTheBoxActionPossibleOnContainerRecord(rm.wrapContainerRecord(record), user))) {
 			return false;
 		}
 

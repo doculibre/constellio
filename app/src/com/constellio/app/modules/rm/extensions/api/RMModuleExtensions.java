@@ -5,11 +5,13 @@ import com.constellio.app.api.extensions.NavigateToFromAPageImportExtension;
 import com.constellio.app.api.extensions.params.DocumentFolderBreadCrumbParams;
 import com.constellio.app.api.extensions.params.NavigateToFromAPageParams;
 import com.constellio.app.extensions.ModuleExtensions;
+import com.constellio.app.modules.rm.extensions.api.CartExtensions.CartExtensionActionPossibleParams;
 import com.constellio.app.modules.rm.extensions.api.ContainerRecordExtension.ContainerRecordExtensionActionPossibleParams;
 import com.constellio.app.modules.rm.extensions.api.DocumentExtension.DocumentExtensionActionPossibleParams;
 import com.constellio.app.modules.rm.extensions.api.DocumentExtension.DocumentExtensionAddMenuItemParams;
 import com.constellio.app.modules.rm.extensions.api.FolderExtension.FolderExtensionActionPossibleParams;
 import com.constellio.app.modules.rm.extensions.api.reports.RMReportBuilderFactories;
+import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -40,6 +42,7 @@ public class RMModuleExtensions implements ModuleExtensions {
 	private VaultBehaviorsList<DocumentFolderBreadCrumbExtention> documentBreadcrumExtentions;
 	private VaultBehaviorsList<NavigateToFromAPageImportExtension> navigateToFromAPageExtensions;
 	private VaultBehaviorsList<TaskPreCompletionExtention> taskPreCompletionExetention;
+	private VaultBehaviorsList<CartExtensions> cartExtensions;
 
 	private ModelLayerExtensions modelLayerExtensions;
 
@@ -55,6 +58,7 @@ public class RMModuleExtensions implements ModuleExtensions {
 		this.documentBreadcrumExtentions = new VaultBehaviorsList<>();
 		this.navigateToFromAPageExtensions = new VaultBehaviorsList<>();
 		this.taskPreCompletionExetention = new VaultBehaviorsList<>();
+		this.cartExtensions = new VaultBehaviorsList<>();
 		this.modelLayerExtensions = appLayerFactory.getModelLayerFactory().getExtensions();
 	}
 
@@ -89,6 +93,10 @@ public class RMModuleExtensions implements ModuleExtensions {
 
 	public VaultBehaviorsList<TaskManagementPresenterExtension> getTaskManagementPresenterExtensions() {
 		return taskManagementPresenterExtensions;
+	}
+
+	public VaultBehaviorsList<CartExtensions> getCartExtensions() {
+		return cartExtensions;
 	}
 
 	public VaultBehaviorsList<DocumentExtension> getDocumentExtensions() {
@@ -130,6 +138,86 @@ public class RMModuleExtensions implements ModuleExtensions {
 			}
 		}
 		return false;
+	}
+
+	public boolean isRenameActionPossibleOnCart(final Cart cart, final User user) {
+		return cartExtensions.getBooleanValue(true,
+				(behavior) -> behavior.isRenameActionPossible(new CartExtensionActionPossibleParams(cart, user)));
+	}
+
+	public boolean isPrepareEmailActionPossibleOnCart(final Cart cart, final User user) {
+		return cartExtensions.getBooleanValue(true,
+				(behavior) -> behavior.isPrepareEmailActionPossible(new CartExtensionActionPossibleParams(cart, user)));
+	}
+
+	public boolean isBatchDuplicateActionPossibleOnCart(final Cart cart, final User user) {
+		return cartExtensions.getBooleanValue(true,
+				(behavior) -> behavior.isBatchDuplicateActionPossible(new CartExtensionActionPossibleParams(cart, user)));
+	}
+
+	public boolean isDocumentBatchProcessingActionPossibleOnCart(final Cart cart, final User user) {
+		return cartExtensions.getBooleanValue(true,
+				(behavior) -> behavior.isDocumentBatchProcessingActionPossible(new CartExtensionActionPossibleParams(cart, user)));
+	}
+
+	public boolean isFolderBatchProcessingActionPossibleOnCart(final Cart cart, final User user) {
+		return cartExtensions.getBooleanValue(true,
+				(behavior) -> behavior.isFolderBatchProcessingActionPossible(new CartExtensionActionPossibleParams(cart, user)));
+	}
+
+	public boolean isContainerRecordBatchProcessingActionPossibleOnCart(final Cart cart, final User user) {
+		return cartExtensions.getBooleanValue(true,
+				(behavior) -> behavior.isContainerRecordBatchProcessingActionPossible(new CartExtensionActionPossibleParams(cart, user)));
+	}
+
+	public boolean isFoldersLabelsActionPossibleOnCart(final Cart cart, final User user) {
+		return cartExtensions.getBooleanValue(true,
+				(behavior) -> behavior.isFoldersLabelsActionPossible(new CartExtensionActionPossibleParams(cart, user)));
+	}
+
+	public boolean isDocumentLabelsActionPossibleOnCart(final Cart cart, final User user) {
+		return cartExtensions.getBooleanValue(true,
+				(behavior) -> behavior.isDocumentLabelsActionPossible(new CartExtensionActionPossibleParams(cart, user)));
+	}
+
+	public boolean isContainerLabelsActionPossibleOnCart(final Cart cart, final User user) {
+		return cartExtensions.getBooleanValue(true,
+				(behavior) -> behavior.isContainersLabelsActionPossible(new CartExtensionActionPossibleParams(cart, user)));
+	}
+
+	public boolean isBatchDeleteActionPossibleOnCart(final Cart cart, final User user) {
+		return cartExtensions.getBooleanValue(true,
+				(behavior) -> behavior.isBatchDeleteActionPossible(new CartExtensionActionPossibleParams(cart, user)));
+	}
+
+	public boolean isEmptyActionPossibleOnCart(final Cart cart, final User user) {
+		return cartExtensions.getBooleanValue(true,
+				(behavior) -> behavior.isEmptyActionPossible(new CartExtensionActionPossibleParams(cart, user)));
+	}
+
+	public boolean isShareActionPossibleOnCart(final Cart cart, final User user) {
+		return cartExtensions.getBooleanValue(true,
+				(behavior) -> behavior.isShareActionPossible(new CartExtensionActionPossibleParams(cart, user)));
+	}
+
+	public boolean isDecommissionActionPossibleOnCart(final Cart cart, final User user) {
+		return cartExtensions.getBooleanValue(true,
+				(behavior) -> behavior.isDecommissionActionPossible(new CartExtensionActionPossibleParams(cart, user)));
+	}
+
+	public boolean isPrintMetadataReportActionPossibleOnCart(final Cart cart, final User user) {
+		return cartExtensions.getBooleanValue(true,
+				(behavior) -> behavior.isPrintMetadataReportActionPossible(new CartExtensionActionPossibleParams(cart, user)));
+	}
+
+	public boolean isCreateSIPArchvesActionPossibleOnCart(final Cart cart, final User user) {
+		return cartExtensions.getBooleanValue(true,
+				(behavior) -> behavior.isCreateSIPArchvesActionPossible(new CartExtensionActionPossibleParams(cart, user)));
+	}
+
+	public boolean isConsolidatedPdfActionPossibleOnCart(final Cart cart, final User user) {
+		return cartExtensions.getBooleanValue(true,
+				(behavior) -> behavior.isConsolidatedPdfActionPossible(new CartExtensionActionPossibleParams(cart, user)));
 	}
 
 	public boolean isAddDocumentActionPossibleOnFolder(final Folder folder, final User user) {
@@ -373,17 +461,18 @@ public class RMModuleExtensions implements ModuleExtensions {
 				(behavior -> behavior.isSlipActionPossible(new ContainerRecordExtensionActionPossibleParams(containerRecord, user))));
 	}
 
-	public boolean isLabelsActionPossible(final ContainerRecord containerRecord, final User user) {
+	public boolean isLabelsActionPossibleOnContainerRecord(final ContainerRecord containerRecord, final User user) {
 		return containerRecordExtensions.getBooleanValue(true,
 				(behavior -> behavior.isLabelActionPossible(new ContainerRecordExtensionActionPossibleParams(containerRecord, user))));
 	}
 
-	public boolean isDeleteActionPossible(final ContainerRecord containerRecord, final User user) {
+	public boolean isDeleteActionPossibleOnContainerRecord(final ContainerRecord containerRecord, final User user) {
 		return containerRecordExtensions.getBooleanValue(true,
 				(behavior -> behavior.isDeleteActionPossible(new ContainerRecordExtensionActionPossibleParams(containerRecord, user))));
 	}
 
-	public boolean isEmptyTheBoxActionPossible(final ContainerRecord containerRecord, final User user) {
+	public boolean isEmptyTheBoxActionPossibleOnContainerRecord(final ContainerRecord containerRecord,
+																final User user) {
 		return containerRecordExtensions.getBooleanValue(true,
 				(behavior -> behavior.isEmptyTheBoxActionPossible(new ContainerRecordExtensionActionPossibleParams(containerRecord, user))));
 	}
