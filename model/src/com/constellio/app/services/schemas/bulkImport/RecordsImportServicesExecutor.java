@@ -545,10 +545,6 @@ public class RecordsImportServicesExecutor {
 		String lastId = batch.get(batch.size() - 1).getLegacyId();
 
 		progressionHandler.afterRecordImports(firstId, lastId, batch.size(), errorsCount);
-
-		if (modelLayerFactory.getConfiguration().isDeleteUnusedContentEnabled()) {
-			contentManager.deleteUnreferencedContents(RecordsFlushing.NOW());
-		}
 		return skipped;
 	}
 
