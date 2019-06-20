@@ -1,6 +1,5 @@
 package com.constellio.app.ui.framework.components;
 
-import com.constellio.app.api.extensions.params.AddComponentToSearchResultParams;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.ui.application.ConstellioUI;
@@ -101,17 +100,9 @@ public class SearchResultDisplay extends VerticalLayout {
 
 	protected void init(SearchResultVO searchResultVO, MetadataDisplayFactory componentFactory) {
 		titleComponent = newTitleComponent(searchResultVO);
-
-		List<Component> addtionalComponent = appLayerFactory.getExtensions().forCollection(sessionContext.getCurrentCollection())
-				.addComponentToSearchResult(new AddComponentToSearchResultParams(searchResultVO));
-
-		addComponent(titleComponent);
-		addComponent(newHighlightsLabel(searchResultVO));
-		if(addtionalComponent != null && addtionalComponent.size() > 0) {
-			addComponent(multipleComponentIntoVerticalLayout(addtionalComponent));
-		}
-		addComponent(newMetadataComponent(searchResultVO, componentFactory));
-
+		addComponents(titleComponent,
+				newHighlightsLabel(searchResultVO),
+				newMetadataComponent(searchResultVO, componentFactory));
 		addStyleName(RECORD_STYLE);
 		setWidth("100%");
 		setSpacing(true);
