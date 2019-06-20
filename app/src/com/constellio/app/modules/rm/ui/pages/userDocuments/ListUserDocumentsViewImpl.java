@@ -103,15 +103,6 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 		mainLayout.setSpacing(true);
 
 		multiFileUpload = new BaseMultiFileUpload() {
-			protected void displayStreamingFailedMessage() {
-				navigate().to(RMViews.class).listUserDocuments();
-				showErrorMessage($("ListUserDocumentsView.spaceLimitReached"));
-			}
-
-			protected boolean isSpaceLimitReached(StreamVariable.StreamingStartEvent event) {
-				return presenter.isSpaceLimitReached(event.getContentLength());
-			}
-
 			@Override
 			protected void handleFile(File file, String fileName, String mimeType, long length) {
 				presenter.handleFile(file, fileName, mimeType, length);
@@ -125,11 +116,6 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 				} else {
 					super.drop(event);
 				}
-			}
-
-			@Override
-			protected boolean isUploadWindow() {
-				return !inWindow;
 			}
 
 			@Override

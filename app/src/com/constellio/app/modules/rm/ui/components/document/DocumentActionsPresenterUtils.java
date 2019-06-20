@@ -795,7 +795,9 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 			Content content = getContent();
 			String borrowDate = DateFormatUtils.format(content.getCheckoutDateTime());
 			if (!isCurrentUserBorrower()) {
-				String borrowerCaption = SchemaCaptionUtils.getCaptionForRecordId(content.getCheckoutUserId());
+				String checkoutUserId = content.getCheckoutUserId();
+				User user = rmSchemasRecordsServices.getUser(checkoutUserId);
+				String borrowerCaption = user.getTitle();
 				String borrowedMessageKey = "DocumentActionsComponent.borrowedByOtherUser";
 				actionsComponent.setBorrowedMessage(borrowedMessageKey, borrowerCaption, borrowDate);
 			} else {
