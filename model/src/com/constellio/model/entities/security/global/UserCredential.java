@@ -40,6 +40,7 @@ public class UserCredential extends RecordWrapper {
 	public static final String AGENT_STATUS = "agentStatus";
 	public static final String HAS_AGREED_TO_PRIVACY_POLICY = "hasAgreedToPrivacyPolicy";
 	public static final String DO_NOT_RECEIVE_EMAILS = "doNotReceiveEmails";
+	public static final String HAS_SEEN_MESSAGE = "hasSeenMessage";
 
 	public UserCredential(Record record, MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE);
@@ -295,6 +296,9 @@ public class UserCredential extends RecordWrapper {
 
 	public boolean hasAgreedToPrivacyPolicy() {
 		return Boolean.TRUE.equals(get(HAS_AGREED_TO_PRIVACY_POLICY));
+	}
+	public boolean hasSeenMessage() {
+		return Boolean.TRUE.equals(get(HAS_SEEN_MESSAGE));
 	}
 
 	public UserCredential setAgreedPrivacyPolicy(Boolean hasAgreedToPrivacyPolicy) {

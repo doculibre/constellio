@@ -22,6 +22,7 @@ public class ModelLayerBackgroundThreadsManager implements StatefulService {
 
 	ModelLayerFactory modelLayerFactory;
 	BackgroundThreadsManager backgroundThreadsManager;
+	Has_Seen_Message_Runable hasSeenMessage ;
 	RecordsReindexingBackgroundAction recordsReindexingBackgroundAction;
 	TemporaryRecordsDeletionBackgroundAction temporaryRecordsDeletionBackgroundAction;
 	AuthorizationWithTimeRangeTokenUpdateBackgroundAction authorizationWithTimeRangeTokenUpdateBackgroundAction;
@@ -36,6 +37,7 @@ public class ModelLayerBackgroundThreadsManager implements StatefulService {
 	@Override
 	public void initialize() {
 		recordsReindexingBackgroundAction = new RecordsReindexingBackgroundAction(modelLayerFactory);
+		hasSeenMessage = new Has_Seen_Message_Runable();
 		backgroundThreadsManager.configure(repeatingAction("recordsReindexingBackgroundAction",
 				recordsReindexingBackgroundAction)
 				.executedEvery(standardSeconds(120)).handlingExceptionWith(CONTINUE));
@@ -86,6 +88,10 @@ public class ModelLayerBackgroundThreadsManager implements StatefulService {
 
 	public RecordsReindexingBackgroundAction getRecordsReindexingBackgroundAction() {
 		return recordsReindexingBackgroundAction;
+	}
+
+	public Has_Seen_Message_Runable hasSeenMessageRunable (){
+		return hasSeenMessage;
 	}
 
 	public TemporaryRecordsDeletionBackgroundAction getTemporaryRecordsDeletionBackgroundAction() {
