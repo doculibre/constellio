@@ -14,6 +14,7 @@ import com.constellio.app.modules.robots.ConstellioRobotsModule;
 import com.constellio.app.modules.tasks.TaskModule;
 import com.constellio.app.services.appManagement.AppManagementService;
 import com.constellio.app.services.appManagement.AppManagementServiceException;
+import com.constellio.app.services.background.AppLayerBackgroundThreadsManager;
 import com.constellio.app.services.collections.CollectionsManager;
 import com.constellio.app.services.corrector.CorrectorExcluderManager;
 import com.constellio.app.services.extensions.ConstellioModulesManagerImpl;
@@ -72,6 +73,8 @@ import static com.constellio.model.services.records.reindexing.ReindexationParam
 public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFactory {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(AppLayerFactoryImpl.class);
+
+	private AppLayerBackgroundThreadsManager appLayerBackgroundThreadsManager;
 
 	private FoldersLocator foldersLocator;
 
@@ -167,6 +170,8 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 		dataLayerFactory.getConfigManager().keepInCache(MigrationServices.VERSION_PROPERTIES_FILE);
 
 		correctorExcluderManager = add(new CorrectorExcluderManager(modelLayerFactory));
+
+		this.appLayerBackgroundThreadsManager = add(new AppLayerBackgroundThreadsManager(this));
 
 		initializationFinished = false;
 	}

@@ -18,7 +18,10 @@ public class MergingRecordIterator extends LazyMergingIterator<Record> {
 
 	@Override
 	protected String toUniqueKey(Record record) {
-		return record.getId();
+		if(record != null) {
+			return record.getId();
+		}
+		return null;
 	}
 
 	public static Iterator<Record> merge(List<Iterator<Record>> iterators) {

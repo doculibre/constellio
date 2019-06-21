@@ -82,4 +82,5 @@ public class CorePermissions {
 	public static final String ACCESS_TEMPORARY_RECORD = permission(SYSTEM_MANAGEMENT, "managerTemporaryRecords");
 	public static final String SEE_ALL_TEMPORARY_RECORD = permission(SYSTEM_MANAGEMENT, "seeAllTemporaryRecords");
 	public static final String ACCESS_DELETE_ALL_TEMPORARY_RECORD = permission(SYSTEM_MANAGEMENT, "accessDeleteAllTemporaryRecords");
+	public static final String VIEW_SYSTEM_STATE = permission(SYSTEM_MANAGEMENT, "viewSystemState");
 }

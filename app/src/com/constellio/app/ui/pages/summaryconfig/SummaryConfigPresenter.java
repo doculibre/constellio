@@ -62,7 +62,7 @@ public class SummaryConfigPresenter extends SingleSchemaBasePresenter<SummaryCon
 		List<MetadataVO> metadataVOs = new ArrayList<>();
 		MetadataToVOBuilder builder = new MetadataToVOBuilder();
 		for (Metadata metadata : list) {
-			if (metadata.isEnabled() && !metadata.isSystemReserved() && metadata.getType() != MetadataValueType.CONTENT) {
+			if (metadata.isEnabled() && metadata.getType() != MetadataValueType.CONTENT) {
 				metadataVOs
 						.add(builder.build(metadata, view.getSessionContext()));
 			}

@@ -52,11 +52,13 @@ import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.vaadin.data.util.BeanItemContainer;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -688,8 +690,19 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		return decommissioningList;
 	}
 
-	public void setValidationStatus(FolderDetailVO folder, Boolean valid) {
+	public void setValidationStatusAndRefreshView(FolderDetailVO folder, Boolean valid) {
 		decommissioningList().getFolderDetail(folder.getFolderId()).setFolderExcluded(Boolean.FALSE.equals(valid));
+		addOrUpdate(decommissioningList().getWrappedRecord());
+		// TODO: Do not hard-refresh the whole page
+		refreshView();
+	}
+
+	public void setValidationStatusForSelectedFoldersAndRefreshView(List<FolderDetailVO> folders, boolean valid) {
+		for (FolderDetailVO folder : folders) {
+			if (folder.isSelected()) {
+				decommissioningList().getFolderDetail(folder.getFolderId()).setFolderExcluded(Boolean.FALSE.equals(valid));
+			}
+		}
 		addOrUpdate(decommissioningList().getWrappedRecord());
 		// TODO: Do not hard-refresh the whole page
 		refreshView();

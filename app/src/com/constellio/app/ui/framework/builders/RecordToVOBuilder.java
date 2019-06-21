@@ -86,7 +86,8 @@ public class RecordToVOBuilder implements Serializable {
 				recordVOValue = listRecordVOValue;
 			}
 			MetadataValueVO metadataValueVO = new MetadataValueVO(metadataVO, recordVOValue);
-			if (user == null || user.hasAccessToMetadata(metadata, record)) {
+			if (user == null || user.hasAccessToMetadata(metadata, record) || viewMode == VIEW_MODE.FORM && metadataVO
+					.isRequired()) {
 				metadataValueVOs.add(metadataValueVO);
 			} else {
 				metadataCodeExcludedList.add(metadataVO.getCode());

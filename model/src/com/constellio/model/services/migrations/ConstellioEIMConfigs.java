@@ -13,6 +13,13 @@ import com.constellio.model.entities.enums.MetadataPopulatePriority;
 import com.constellio.model.entities.enums.ParsingBehavior;
 import com.constellio.model.entities.enums.SearchSortType;
 import com.constellio.model.entities.enums.TitleMetadataPopulatePriority;
+import com.constellio.model.entities.enums.BatchProcessingMode;
+import com.constellio.model.entities.enums.GroupAuthorizationsInheritance;
+import com.constellio.model.entities.enums.MemoryConsumptionLevel;
+import com.constellio.model.entities.enums.MetadataPopulatePriority;
+import com.constellio.model.entities.enums.ParsingBehavior;
+import com.constellio.model.entities.enums.SearchSortType;
+import com.constellio.model.entities.enums.TitleMetadataPopulatePriority;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -26,9 +33,18 @@ import java.util.Map;
 
 import static com.constellio.model.services.migrations.TimeScheduleConfigurationValidator.isCurrentlyInSchedule;
 import org.apache.commons.lang.StringUtils;
+import org.joda.time.LocalDate;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
+
+import static com.constellio.model.services.migrations.TimeScheduleConfigurationValidator.isCurrentlyInSchedule;
 
 public class ConstellioEIMConfigs {
 
@@ -131,7 +147,6 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration BATCH_PROCESSES_SCHEDULE;
 	public static final SystemConfiguration IS_RUNNING_WITH_SOLR_6;
 	public static final SystemConfiguration PRIVACY_POLICY;
-	public static final SystemConfiguration LOGIN_NOTIFICATION_STATE_ALERT;
 	public static final SystemConfiguration ADD_SECONDARY_SORT_WHEN_SORTING_BY_SCORE;
 	public static final SystemConfiguration INCLUDE_FROM_FIELD_WHEN_GENERATING_EMAILS;
 
@@ -150,6 +165,12 @@ public class ConstellioEIMConfigs {
 
 	public static final SystemConfiguration IS_TRASH_THREAD_EXECUTING;
 
+	public static final SystemConfiguration ADD_RECORD_ID_IN_EMAILS;
+
+	public static final SystemConfiguration ENABLE_SYSTEM_STATE_MEMORY_ALLOCATION;
+	public static final SystemConfiguration ENABLE_SYSTEM_STATE_OPT_DISK_USAGE;
+	public static final SystemConfiguration ENABLE_SYSTEM_STATE_SOLR_DISK_USAGE;
+	public static final SystemConfiguration ENABLE_SYSTEM_STATE_LICENSE;
 
 	static {
 		SystemConfigurationGroup others = new SystemConfigurationGroup(null, "others");
@@ -194,7 +215,6 @@ public class ConstellioEIMConfigs {
 		add(DEFAULT_START_TAB = others.createString("defaultStartTab").withDefaultValue("taxonomies"));
 		add(DEFAULT_TAXONOMY = others.createString("defaultTaxonomy"));
 		add(TAXONOMY_ORDER_IN_HOME_VIEW = others.createString("taxonomyOrderInHomeView"));
-		add(LOGIN_NOTIFICATION_STATE_ALERT = others.createBinary("loginNotificationStateAlert").whichIsHidden());
 
 		add(LAZY_TREE_BUFFER_SIZE = others.createInteger("lazyTreeBufferSize").withDefaultValue(50)
 				.scriptedBy(LazyTreeBufferSizeValidationScript.class));
@@ -243,8 +263,6 @@ public class ConstellioEIMConfigs {
 
 		add(KEEP_EVENTS_FOR_X_MONTH = others.createInteger("eventKeptPeriod").withDefaultValue(99999).whichIsHidden());
 
-		add(IS_TRASH_THREAD_EXECUTING = others.createBooleanTrueByDefault("eventKeptPeriod").whichIsHidden());
-
 		SystemConfigurationGroup trees = new SystemConfigurationGroup(null, "trees");
 
 		add(SHOW_TRIANGLE_ONLY_WHEN_FOLDER_HAS_CONTENT = trees
@@ -288,8 +306,15 @@ public class ConstellioEIMConfigs {
 		add(ADD_RECORD_ID_IN_EMAILS = others.createBooleanFalseByDefault("addRecordIdInEmails"));
 		add(GENERATED_EMAIL_FORMAT = others.createEnum("generatedEmailFormat", EmailTextFormat.class).withDefaultValue(EmailTextFormat.PLAIN_TEXT));
 
+		add(ADD_RECORD_ID_IN_EMAILS = others.createBooleanFalseByDefault("addRecordIdInEmails"));
 
 		configurations = Collections.unmodifiableList(modifiableConfigs);
+
+		SystemConfigurationGroup systemState = new SystemConfigurationGroup(null, "systemState");
+		add(ENABLE_SYSTEM_STATE_LICENSE = systemState.createBooleanTrueByDefault("enableSystemStateLicense"));
+		add(ENABLE_SYSTEM_STATE_MEMORY_ALLOCATION = systemState.createBooleanTrueByDefault("enableSystemStateMemoryAllocation"));
+		add(ENABLE_SYSTEM_STATE_OPT_DISK_USAGE = systemState.createBooleanTrueByDefault("enableSystemStateOptDiskUsage"));
+		add(ENABLE_SYSTEM_STATE_SOLR_DISK_USAGE = systemState.createBooleanTrueByDefault("enableSystemStateSolrDiskUsage"));
 	}
 
 	static void add(SystemConfiguration configuration) {
@@ -559,5 +584,25 @@ public class ConstellioEIMConfigs {
 			}
 		}
 		return extensionSet;
+	}
+
+	public boolean isAddingRecordIdInEmails() {
+		return manager.getValue(ADD_RECORD_ID_IN_EMAILS);
+	}
+
+	public boolean isSystemStateLicenseValidationEnabled() {
+		return manager.getValue(ENABLE_SYSTEM_STATE_LICENSE);
+	}
+
+	public boolean isSystemStateMemoryAllocationValidationEnabled() {
+		return manager.getValue(ENABLE_SYSTEM_STATE_MEMORY_ALLOCATION);
+	}
+
+	public boolean isSystemStateOptDiskUsageValidationEnabled() {
+		return manager.getValue(ENABLE_SYSTEM_STATE_OPT_DISK_USAGE);
+	}
+
+	public boolean isSystemStateSolrDiskUsageValidationEnabled() {
+		return manager.getValue(ENABLE_SYSTEM_STATE_SOLR_DISK_USAGE);
 	}
 }
