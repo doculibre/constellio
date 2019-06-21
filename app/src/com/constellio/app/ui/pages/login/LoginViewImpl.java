@@ -282,7 +282,7 @@ public class LoginViewImpl extends BaseViewImpl implements LoginView {
 		window.setWidth("90%");
 		window.setHeight("90%");
 		window.setModal(true);
-		window.setCaption($("LoginView.lastAlertWindow")); // TODO i18n
+		window.setCaption($("LoginView.lastAlertWindow"));
 
 		VerticalLayout mainLayout = new VerticalLayout();
 		mainLayout.setSpacing(true);
@@ -293,13 +293,7 @@ public class LoginViewImpl extends BaseViewImpl implements LoginView {
 		buttonLayout.setSpacing(true);
 		buttonLayout.setHeight("50px");
 
-		BaseButton cancelButton = new BaseButton($("cancel")) { // TODO change
-			@Override
-			protected void buttonClick(ClickEvent event) {
-				window.close();
-			}
-		};
-		BaseButton acceptButton = new BaseButton($("accept")) { // TODO change
+		BaseButton continueButton = new BaseButton($("continue")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
 				UserServices userServices = modelLayerFactory.newUserServices();
@@ -309,11 +303,11 @@ public class LoginViewImpl extends BaseViewImpl implements LoginView {
 				window.close();
 			}
 		};
-		acceptButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
+		continueButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
 		DocumentViewer documentViewer = new DocumentViewer(presenter.getLastAlertFile());
 
 		textLayout.addComponent(documentViewer);
-		buttonLayout.addComponents(acceptButton, cancelButton);
+		buttonLayout.addComponent(continueButton);
 
 		mainLayout.addComponents(textLayout, buttonLayout);
 		mainLayout.setComponentAlignment(buttonLayout, Alignment.BOTTOM_CENTER);

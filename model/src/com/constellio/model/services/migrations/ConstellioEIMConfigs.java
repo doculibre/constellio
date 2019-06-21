@@ -166,7 +166,6 @@ public class ConstellioEIMConfigs {
 		add(LOGO_LINK = others.createString("logoLink", "http://www.constellio.com"));
 		add(AUTHENTIFICATION_IMAGE = others.createBinary("authentificationImage"));
 		add(PRIVACY_POLICY = others.createBinary("privacyPolicy"));
-		add(LOGIN_NOTIFICATION_STATE_ALERT = others.createBinary("loginNotificationStateAlert"));
 		add(METADATA_POPULATE_PRIORITY = others.createEnum("metadataPopulatePriority", MetadataPopulatePriority.class)
 				.withDefaultValue(MetadataPopulatePriority.STYLES_REGEX_PROPERTIES));
 		add(TITLE_METADATA_POPULATE_PRIORITY = others
@@ -195,6 +194,7 @@ public class ConstellioEIMConfigs {
 		add(DEFAULT_START_TAB = others.createString("defaultStartTab").withDefaultValue("taxonomies"));
 		add(DEFAULT_TAXONOMY = others.createString("defaultTaxonomy"));
 		add(TAXONOMY_ORDER_IN_HOME_VIEW = others.createString("taxonomyOrderInHomeView"));
+		add(LOGIN_NOTIFICATION_STATE_ALERT = others.createBinary("loginNotificationStateAlert").whichIsHidden());
 
 		add(LAZY_TREE_BUFFER_SIZE = others.createInteger("lazyTreeBufferSize").withDefaultValue(50)
 				.scriptedBy(LazyTreeBufferSizeValidationScript.class));

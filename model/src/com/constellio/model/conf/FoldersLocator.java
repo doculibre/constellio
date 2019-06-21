@@ -110,6 +110,11 @@ public class FoldersLocator {
 		}
 	}
 
+	public File getLastAlertFile() {
+//		return new File(getWorkFolder(), "lastAlert.pdf");
+		return new File("C:\\Users\\Michael\\Desktop\\UserManual.pdf");
+	}
+
 	public File getReindexingFolder() {
 		return new File(getWorkFolder(), "reindexing");
 	}

@@ -96,13 +96,9 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 
 	public File getLastAlert() {
 		File lastAlert;
-		try {
-			lastAlert = appLayerFactory.newApplicationService().getLastAlertFromServer();
-		} catch (CannotConnectToServer cc) {
-			lastAlert = null;
-		}
+		lastAlert = new FoldersLocator().getLastAlertFile();/*appLayerFactory.newApplicationService().getLastAlertFromServer();*/
 
-		return lastAlert;
+		return lastAlert.exists() ? lastAlert : null;
 	}
 
 	public String getUpdateVersion() {
