@@ -13,7 +13,6 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.menu.MenuItemAction;
 import com.constellio.app.services.menu.MenuItemActionState;
-import com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
@@ -129,9 +128,5 @@ public class RMMenuItemActionsExtension extends MenuItemActionsExtension {
 					RMRecordsMenuItemActionType.valueOf(actionType), query, user, behaviorParams);
 		}
 		return null;
-	}
-
-	private MenuItemActionState toState(boolean possible) {
-		return new MenuItemActionState(possible ? MenuItemActionStateStatus.VISIBLE : MenuItemActionStateStatus.HIDDEN);
 	}
 }

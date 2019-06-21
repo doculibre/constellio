@@ -26,7 +26,6 @@ import com.constellio.app.ui.framework.components.menuBar.ConfirmDialogMenuBarIt
 import com.constellio.app.ui.framework.components.viewers.panel.ViewableRecordVOTablePanel;
 import com.constellio.app.ui.framework.containers.RefreshableContainer;
 import com.constellio.app.ui.pages.base.BaseView;
-import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.UIContext;
 import com.constellio.app.ui.params.ParamUtils;
@@ -311,9 +310,6 @@ public class DocumentMenuBarImpl extends BaseMenuBar implements DocumentMenuBar 
 				}
 			});
 		}
-
-		BaseViewImpl parentView = (BaseViewImpl) ConstellioUI.getCurrent().getCurrentView();
-		presenter.addItemsFromExtensions(rootItem, parentView);
 	}
 
 	@Override

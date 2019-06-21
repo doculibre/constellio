@@ -1,12 +1,9 @@
 package com.constellio.app.modules.rm.extensions.api;
 
 import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.ui.entities.RecordVO;
-import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
-import com.vaadin.server.Resource;
 
 public abstract class DocumentExtension {
 
@@ -82,9 +79,6 @@ public abstract class DocumentExtension {
 		return ExtensionBooleanResult.NOT_APPLICABLE;
 	}
 
-	public void addMenuItems(DocumentExtensionAddMenuItemParams params) {
-	}
-
 	public ExtensionBooleanResult isAddAuthorizationActionPossible(
 			DocumentExtensionActionPossibleParams documentExtensionActionPossibleParams) {
 		return ExtensionBooleanResult.NOT_APPLICABLE;
@@ -93,18 +87,6 @@ public abstract class DocumentExtension {
 	public ExtensionBooleanResult isGenerateReportActionPossible(
 			DocumentExtensionActionPossibleParams documentExtensionActionPossibleParams) {
 		return ExtensionBooleanResult.NOT_APPLICABLE;
-	}
-
-	public static abstract class DocumentExtensionAddMenuItemParams {
-		public abstract Document getDocument();
-
-		public abstract RecordVO getRecordVO();
-
-		public abstract BaseViewImpl getView();
-
-		public abstract User getUser();
-
-		public abstract void registerMenuItem(String caption, Resource icon, Runnable runnable);
 	}
 
 	public static class DocumentExtensionActionPossibleParams {

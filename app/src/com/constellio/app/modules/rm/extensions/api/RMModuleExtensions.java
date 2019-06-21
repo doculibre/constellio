@@ -8,7 +8,6 @@ import com.constellio.app.extensions.ModuleExtensions;
 import com.constellio.app.modules.rm.extensions.api.CartExtensions.CartExtensionActionPossibleParams;
 import com.constellio.app.modules.rm.extensions.api.ContainerRecordExtension.ContainerRecordExtensionActionPossibleParams;
 import com.constellio.app.modules.rm.extensions.api.DocumentExtension.DocumentExtensionActionPossibleParams;
-import com.constellio.app.modules.rm.extensions.api.DocumentExtension.DocumentExtensionAddMenuItemParams;
 import com.constellio.app.modules.rm.extensions.api.FolderExtension.FolderExtensionActionPossibleParams;
 import com.constellio.app.modules.rm.extensions.api.reports.RMReportBuilderFactories;
 import com.constellio.app.modules.rm.wrappers.Cart;
@@ -101,12 +100,6 @@ public class RMModuleExtensions implements ModuleExtensions {
 
 	public VaultBehaviorsList<DocumentExtension> getDocumentExtensions() {
 		return documentExtensions;
-	}
-
-	public void addMenuBarButtons(DocumentExtensionAddMenuItemParams params) {
-		for (DocumentExtension documentExtension : documentExtensions) {
-			documentExtension.addMenuItems(params);
-		}
 	}
 
 	public VaultBehaviorsList<FolderExtension> getFolderExtensions() {

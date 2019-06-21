@@ -2,6 +2,7 @@ package com.constellio.app.extensions.menu;
 
 import com.constellio.app.services.menu.MenuItemAction;
 import com.constellio.app.services.menu.MenuItemActionState;
+import com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -31,6 +32,10 @@ public abstract class MenuItemActionsExtension {
 
 	public MenuItemActionState getActionStateForQuery(MenuItemActionExtensionGetActionStateForQueryParams params) {
 		return null;
+	}
+
+	protected MenuItemActionState toState(boolean actionPossible) {
+		return new MenuItemActionState(actionPossible ? MenuItemActionStateStatus.VISIBLE : MenuItemActionStateStatus.HIDDEN);
 	}
 
 	@AllArgsConstructor

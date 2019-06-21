@@ -59,8 +59,6 @@ import static com.constellio.app.modules.rm.extensions.app.RMMenuItemActionsRequ
 import static com.constellio.app.modules.rm.extensions.app.RMMenuItemActionsRequestTaskExtension.RequestTypeMenuItem.REQUEST_BORROW_BUTTON;
 import static com.constellio.app.modules.rm.extensions.app.RMMenuItemActionsRequestTaskExtension.RequestTypeMenuItem.REQUEST_BORROW_EXTENSION_BUTTON;
 import static com.constellio.app.modules.rm.extensions.app.RMMenuItemActionsRequestTaskExtension.RequestTypeMenuItem.RETURN_REQUEST_BUTTON;
-import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus.HIDDEN;
-import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus.VISIBLE;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
@@ -674,9 +672,5 @@ public class RMMenuItemActionsRequestTaskExtension extends MenuItemActionsExtens
 
 	public boolean isExtensionRequestActionPossible(Record record, User user) {
 		return isReturnRequestActionPossible(record, user);
-	}
-
-	private MenuItemActionState toState(boolean actionPossible) {
-		return new MenuItemActionState(actionPossible ? VISIBLE : HIDDEN);
 	}
 }
