@@ -8,7 +8,11 @@ import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.modules.rm.RMEmailTemplateConstants;
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.*;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.Email;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.Printable;
+import com.constellio.app.modules.rm.wrappers.PrintableLabel;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
@@ -18,7 +22,11 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Report;
 import com.constellio.model.entities.records.wrappers.UserDocument;
-import com.constellio.model.entities.schemas.*;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentManager.UploadOptions;
@@ -37,7 +45,11 @@ import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.users.UserServices;
 import org.apache.commons.io.IOUtils;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -145,8 +157,6 @@ public class RMMigrationCombo implements ComboMigrationScript {
 		scripts.add(new RMMigrationTo8_2_1_4());
 		scripts.add(new RMMigrationTo8_2_2_4());
 		scripts.add(new RMMigrationTo8_2_2_5());
-		scripts.add(new RMMigrationTo8_3());
-		scripts.add(new RMMigrationTo8_3_1());
 
 		return scripts;
 	}
