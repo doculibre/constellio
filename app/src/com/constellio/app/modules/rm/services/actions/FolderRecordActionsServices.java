@@ -111,7 +111,7 @@ public class FolderRecordActionsServices {
 		return false;
 	}
 
-	public boolean isDuplicateActionPossible(Record record, User user) {
+	public boolean isCopyActionPossible(Record record, User user) {
 		Folder folder = rm.wrapFolder(record);
 		if (!hasUserReadAccess(record, user) ||
 			(folder.getPermissionStatus().isInactive() && !user.has(RMPermissionsTo.DUPLICATE_INACTIVE_FOLDER).on(folder)) ||
@@ -119,6 +119,17 @@ public class FolderRecordActionsServices {
 			return false;
 		}
 		return rmModuleExtensions.isCopyActionPossibleOnFolder(rm.wrapFolder(record), user);
+	}
+
+	public boolean isDownloadActionPossible(Record record, User user) {
+		Folder folder = rm.wrapFolder(record);
+		return hasUserReadAccess(record, user) && folder.hasContent() &&
+			   rmModuleExtensions.isDownloadActionPossibleOnFolder(rm.wrapFolder(record), user);
+	}
+
+	public boolean isCreateSipActionPossible(Record record, User user) {
+		return hasUserReadAccess(record, user) && user.has(RMPermissionsTo.GENERATE_SIP_ARCHIVES).globally() &&
+			   rmModuleExtensions.isCreateSipActionPossibleOnFolder(rm.wrapFolder(record), user);
 	}
 
 	// linkTo

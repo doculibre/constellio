@@ -769,7 +769,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 				}
 				if (presenter.isPdfGenerationActionPossible(notDeletedDocumentIds)) {
 					AvailableActionsParam params = new AvailableActionsParam(notDeletedDocumentIds, Arrays.asList(Document.SCHEMA_TYPE), null, null, null);
-					setParams(params);
+					setRecordIds(notDeletedDocumentIds);
 					super.buttonClick(event);
 				}
 			}

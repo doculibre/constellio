@@ -47,7 +47,7 @@ public class ContainerMenuItemServices {
 			MenuItemAction menuItemAction = buildMenuItemAction(CONTAINER_EDIT.name(),
 					isMenuItemActionPossible(CONTAINER_EDIT.name(), container, user, params),
 					"DisplayContainerView.edit", FontAwesome.EDIT, -1, 100,
-					() -> new ContainerRecordMenuItemActionBehaviors(collection, appLayerFactory).edit(params));
+					() -> new ContainerRecordMenuItemActionBehaviors(collection, appLayerFactory).edit(container, params));
 			menuItemActions.add(menuItemAction);
 		}
 
@@ -55,7 +55,7 @@ public class ContainerMenuItemServices {
 			MenuItemAction menuItemAction = buildMenuItemAction(CONTAINER_SLIP.name(),
 					isMenuItemActionPossible(CONTAINER_SLIP.name(), container, user, params),
 					"DisplayContainerView.slip", null, -1, 200,
-					() -> new ContainerRecordMenuItemActionBehaviors(collection, appLayerFactory).report(params));
+					() -> new ContainerRecordMenuItemActionBehaviors(collection, appLayerFactory).report(container, params));
 			menuItemActions.add(menuItemAction);
 		}
 
@@ -64,7 +64,7 @@ public class ContainerMenuItemServices {
 			MenuItemAction menuItemAction = buildMenuItemAction(CONTAINER_LABELS.name(),
 					isMenuItemActionPossible(CONTAINER_LABELS.name(), container, user, params),
 					"SearchView.labels", null, -1, 300,
-					() -> new ContainerRecordMenuItemActionBehaviors(collection, appLayerFactory).printLabel(params));
+					() -> new ContainerRecordMenuItemActionBehaviors(collection, appLayerFactory).printLabel(container, params));
 			menuItemActions.add(menuItemAction);
 		}
 
@@ -72,7 +72,7 @@ public class ContainerMenuItemServices {
 			MenuItemAction menuItemAction = buildMenuItemAction(CONTAINER_ADD_TO_CART.name(),
 					isMenuItemActionPossible(CONTAINER_ADD_TO_CART.name(), container, user, params),
 					"DisplayContainerView.addToCart", null, -1, 400,
-					() -> new ContainerRecordMenuItemActionBehaviors(collection, appLayerFactory).addToCart(params));
+					() -> new ContainerRecordMenuItemActionBehaviors(collection, appLayerFactory).addToCart(container, params));
 			menuItemActions.add(menuItemAction);
 		}
 
@@ -80,7 +80,7 @@ public class ContainerMenuItemServices {
 			MenuItemAction menuItemAction = buildMenuItemAction(CONTAINER_DELETE.name(),
 					isMenuItemActionPossible(CONTAINER_DELETE.name(), container, user, params),
 					"DisplayContainerView.delete", FontAwesome.TRASH_O, -1, 500,
-					() -> new ContainerRecordMenuItemActionBehaviors(collection, appLayerFactory).delete(params));
+					() -> new ContainerRecordMenuItemActionBehaviors(collection, appLayerFactory).delete(container, params));
 
 			menuItemAction.setConfirmMessage($("ConfirmDialog.confirmDelete"));
 
@@ -92,7 +92,7 @@ public class ContainerMenuItemServices {
 			MenuItemAction menuItemAction = buildMenuItemAction(CONTAINER_EMPTY_THE_BOX.name(),
 					isMenuItemActionPossible(CONTAINER_EMPTY_THE_BOX.name(), container, user, params),
 					"DisplayContainerView.empty", null, -1, 600,
-					() -> new ContainerRecordMenuItemActionBehaviors(collection, appLayerFactory).empty(params));
+					() -> new ContainerRecordMenuItemActionBehaviors(collection, appLayerFactory).empty(container, params));
 
 			menuItemAction.setConfirmMessage($("DisplayContainerView.confirmEmpty"));
 
@@ -112,7 +112,7 @@ public class ContainerMenuItemServices {
 			case CONTAINER_SLIP:
 				return containerRecordActionsServices.isSlipActionPossible(record, user);
 			case CONTAINER_LABELS:
-				return containerRecordActionsServices.isLabelsActionPossible(record, user);
+				return containerRecordActionsServices.isPrintLabelActionPossible(record, user);
 			case CONTAINER_ADD_TO_CART:
 				return containerRecordActionsServices.isAddToCartActionPossible(record, user);
 			case CONTAINER_DELETE:

@@ -104,9 +104,7 @@ public class CartMenuItemBehaviors {
 		this.cartRecordActionsServices = new CartRecordActionsServices(collection, appLayerFactory);
 	}
 
-	public void renameAction(MenuItemActionBehaviorParams params) {
-		Cart cart = rm.getCart(params.getRecordVO().getId());
-
+	public void renameAction(Cart cart, MenuItemActionBehaviorParams params) {
 		RenameDialog button = new RenameDialog(null,
 				$("CartView.reNameCartGroup"),
 				$("CartView.reNameCartGroup"), false) {
@@ -143,9 +141,7 @@ public class CartMenuItemBehaviors {
 		return true;
 	}
 
-	public void prepareEmailAction(MenuItemActionBehaviorParams params) {
-		Cart cart = rm.getCart(params.getRecordVO().getId());
-
+	public void prepareEmailAction(Cart cart, MenuItemActionBehaviorParams params) {
 		EmailMessage emailMessage = new CartEmailService(collection, modelLayerFactory)
 				.createEmailForCart(cartUtil.cartOwner(params.getUser(), cart), cartUtil.getCartDocumentIds(cart.getId()), params.getUser());
 		String filename = emailMessage.getFilename();
@@ -163,9 +159,7 @@ public class CartMenuItemBehaviors {
 		Page.getCurrent().open(resource, null, false);
 	}
 
-	public void batchDuplicateAction(MenuItemActionBehaviorParams params) {
-		Cart cart = rm.getCart(params.getRecordVO().getId());
-
+	public void batchDuplicateAction(Cart cart, MenuItemActionBehaviorParams params) {
 		if (!cartRecordActionsServices.isBatchDuplicateActionPossible(cart.getWrappedRecord(), params.getUser())) {
 			params.getView().showErrorMessage($("CartView.cannotDuplicate"));
 			return;
@@ -193,30 +187,30 @@ public class CartMenuItemBehaviors {
 		}
 	}
 
-	public void documentBatchProcessingAction(MenuItemActionBehaviorParams params) {
-		Button button = buildBatchProcessingButton(Document.SCHEMA_TYPE, params);
+	public void documentBatchProcessingAction(Cart cart, MenuItemActionBehaviorParams params) {
+		Button button = buildBatchProcessingButton(Document.SCHEMA_TYPE, cart.getId(), params);
 
 		button.click();
 	}
 
-	public void folderBatchProcessingAction(MenuItemActionBehaviorParams params) {
+	public void folderBatchProcessingAction(Cart cart, MenuItemActionBehaviorParams params) {
 
-		Button button = buildBatchProcessingButton(Folder.SCHEMA_TYPE, params);
-
-		button.click();
-	}
-
-	public void containerRecordBatchProcessingAction(MenuItemActionBehaviorParams params) {
-
-		Button button = buildBatchProcessingButton(ContainerRecord.SCHEMA_TYPE, params);
+		Button button = buildBatchProcessingButton(Folder.SCHEMA_TYPE, cart.getId(), params);
 
 		button.click();
 	}
 
-	private Button buildBatchProcessingButton(final String schemaType, MenuItemActionBehaviorParams params) {
-		CartBatchProcessingPresenter cartBatchProcessingPresenter = new CartBatchProcessingPresenter(appLayerFactory,
-				params.getUser(),
-				params.getRecordVO().getId(), params.getView());
+	public void containerRecordBatchProcessingAction(Cart cart, MenuItemActionBehaviorParams params) {
+
+		Button button = buildBatchProcessingButton(ContainerRecord.SCHEMA_TYPE, cart.getId(), params);
+
+		button.click();
+	}
+
+	private Button buildBatchProcessingButton(final String schemaType, String cartId,
+											  MenuItemActionBehaviorParams params) {
+		CartBatchProcessingPresenter cartBatchProcessingPresenter =
+				new CartBatchProcessingPresenter(appLayerFactory, params.getUser(), cartId, params.getView());
 
 		BatchProcessingMode mode = cartBatchProcessingPresenter.getBatchProcessingMode();
 		WindowButton button;
@@ -231,18 +225,18 @@ public class CartMenuItemBehaviors {
 		return button;
 	}
 
-	public void foldersLabelsAction(MenuItemActionBehaviorParams params) {
-		Button button = buildLabelsButton(Folder.SCHEMA_TYPE, params);
+	public void foldersLabelsAction(Cart cart, MenuItemActionBehaviorParams params) {
+		Button button = buildLabelsButton(Folder.SCHEMA_TYPE, cart.getId(), params);
 		button.click();
 	}
 
-	public void documentLabelsAction(MenuItemActionBehaviorParams params) {
-		Button button = buildLabelsButton(Document.SCHEMA_TYPE, params);
+	public void documentLabelsAction(Cart cart, MenuItemActionBehaviorParams params) {
+		Button button = buildLabelsButton(Document.SCHEMA_TYPE, cart.getId(), params);
 		button.click();
 	}
 
-	public void containerLabelsAction(MenuItemActionBehaviorParams params) {
-		Button button = buildLabelsButton(ContainerRecord.SCHEMA_TYPE, params);
+	public void containerLabelsAction(Cart cart, MenuItemActionBehaviorParams params) {
+		Button button = buildLabelsButton(ContainerRecord.SCHEMA_TYPE, cart.getId(), params);
 		button.click();
 	}
 
@@ -256,7 +250,7 @@ public class CartMenuItemBehaviors {
 		return labelTemplateManager.listTemplates(schemaType);
 	}
 
-	private Button buildLabelsButton(final String schemaType, MenuItemActionBehaviorParams params) {
+	private Button buildLabelsButton(final String schemaType, String cartId, MenuItemActionBehaviorParams params) {
 		Factory<List<LabelTemplate>> customLabelTemplatesFactory = new Factory<List<LabelTemplate>>() {
 			@Override
 			public List<LabelTemplate> get() {
@@ -280,21 +274,19 @@ public class CartMenuItemBehaviors {
 				sessionContext.getCurrentUser()
 		);
 
-		labelsButton.setElementsWithIds(cartUtil.getNotDeletedRecordsIds(schemaType, params.getUser(),
-				params.getRecordVO().getId()), schemaType, sessionContext);
+		labelsButton.setElementsWithIds(cartUtil.getNotDeletedRecordsIds(schemaType, params.getUser(), cartId),
+				schemaType, sessionContext);
 
 		return labelsButton;
 	}
 
-	public void batchDeleteAction(MenuItemActionBehaviorParams params) {
-		Cart cart = rm.getCart(params.getRecordVO().getId());
-
+	public void batchDeleteAction(Cart cart, MenuItemActionBehaviorParams params) {
 		Button button;
 		if (!isNeedingAReasonToDeleteRecords()) {
 			button = new DeleteButton(false) {
 				@Override
 				protected void confirmButtonClick(ConfirmDialog dialog) {
-					deletionRequested(null, params);
+					deletionRequested(null, cart, params);
 				}
 
 				@Override
@@ -318,7 +310,7 @@ public class CartMenuItemBehaviors {
 			button = new DeleteWithJustificationButton(false) {
 				@Override
 				protected void deletionConfirmed(String reason) {
-					deletionRequested(reason, params);
+					deletionRequested(reason, cart, params);
 				}
 
 				@Override
@@ -343,10 +335,8 @@ public class CartMenuItemBehaviors {
 		button.click();
 	}
 
-	public void deletionRequested(String reason, MenuItemActionBehaviorParams params) {
-		Cart cart = rm.getCart(params.getRecordVO().getId());
-
-		if (!cartRecordActionsServices.isBatchDeleteActionPossible(rm.get(params.getRecordVO().getId()), params.getUser())) {
+	public void deletionRequested(String reason, Cart cart, MenuItemActionBehaviorParams params) {
+		if (!cartRecordActionsServices.isBatchDeleteActionPossible(cart.getWrappedRecord(), params.getUser())) {
 			params.getView().showErrorMessage($("CartView.cannotDelete"));
 			return;
 		}
@@ -424,8 +414,7 @@ public class CartMenuItemBehaviors {
 	}
 
 	// Message de confirmation ne pas oublié.
-	public void emptyAction(MenuItemActionBehaviorParams params) {
-		Cart cart = rm.getCart(params.getRecordVO().getId());
+	public void emptyAction(Cart cart, MenuItemActionBehaviorParams params) {
 
 		List<Record> records = cartUtil.getCartRecords(cart.getId());
 		for (Record record : records) {
@@ -443,9 +432,7 @@ public class CartMenuItemBehaviors {
 		params.getView().navigate().to(RMViews.class).cart(cart.getId());
 	}
 
-	public void shareAction(MenuItemActionBehaviorParams params) {
-		Cart cart = rm.getCart(params.getRecordVO().getId());
-
+	public void shareAction(Cart cart, MenuItemActionBehaviorParams params) {
 
 		Button shareButton = new WindowButton($("CartView.share"), $("CartView.shareWindow")) {
 			@Override
@@ -462,7 +449,7 @@ public class CartMenuItemBehaviors {
 				BaseButton saveButton = new BaseButton($("save")) {
 					@Override
 					protected void buttonClick(ClickEvent event) {
-						shareWithUsersRequested(lookup.getValue(), params);
+						shareWithUsersRequested(lookup.getValue(), cart, params);
 						getWindow().close();
 					}
 				};
@@ -475,9 +462,7 @@ public class CartMenuItemBehaviors {
 		shareButton.click();
 	}
 
-	public void shareWithUsersRequested(List<String> userids, MenuItemActionBehaviorParams params) {
-		Cart cart = rm.getCart(params.getRecordVO().getId());
-
+	public void shareWithUsersRequested(List<String> userids, Cart cart, MenuItemActionBehaviorParams params) {
 		List<Folder> folders = cartUtil.getCartFolders(cart.getId());
 		for (Folder folder : folders) {
 			if (!rmModuleExtensions.isShareActionPossibleOnFolder(folder, params.getUser())) {
@@ -513,7 +498,7 @@ public class CartMenuItemBehaviors {
 	}
 
 
-	public void decommissionAction(MenuItemActionBehaviorParams params) {
+	public void decommissionAction(Cart cart, MenuItemActionBehaviorParams params) {
 		//		WindowButton windowButton = new WindowButton($("CartView.decommissioningList"), $("CartView.createDecommissioningList")) {
 		//
 		//			@Override
@@ -571,15 +556,15 @@ public class CartMenuItemBehaviors {
 		//		windowButton.click();
 	}
 
-	public void printMetadataReportAction(MenuItemActionBehaviorParams params) {
+	public void printMetadataReportAction(Cart cart, MenuItemActionBehaviorParams params) {
 
 	}
 
-	public void createSIPArchvesAction(MenuItemActionBehaviorParams params) {
+	public void createSIPArchvesAction(Cart cart, MenuItemActionBehaviorParams params) {
 
 	}
 
-	public void consolidatedPdfAction(MenuItemActionBehaviorParams params) {
+	public void consolidatedPdfAction(Cart cart, MenuItemActionBehaviorParams params) {
 
 	}
 }

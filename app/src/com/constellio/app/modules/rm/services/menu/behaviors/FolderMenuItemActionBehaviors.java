@@ -5,7 +5,6 @@ import com.constellio.app.api.extensions.taxonomies.FolderDeletionEvent;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMEmailTemplateConstants;
-import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
@@ -17,17 +16,12 @@ import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.ui.buttons.CartWindowButton;
 import com.constellio.app.modules.rm.ui.components.folder.fields.LookupFolderField;
-import com.constellio.app.modules.rm.ui.entities.FolderVO;
-import com.constellio.app.modules.rm.ui.pages.cart.DefaultFavoritesTable;
-import com.constellio.app.modules.rm.ui.pages.cart.DefaultFavoritesTable.CartItem;
 import com.constellio.app.modules.rm.util.DecommissionNavUtil;
 import com.constellio.app.modules.rm.util.RMNavigationUtils;
-import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
-import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
@@ -45,11 +39,8 @@ import com.constellio.app.ui.framework.components.RMSelectionPanelReportPresente
 import com.constellio.app.ui.framework.components.ReportTabButton;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
-import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.date.JodaDateField;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
-import com.constellio.app.ui.framework.components.table.RecordVOTable;
-import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.BaseView;
@@ -58,8 +49,6 @@ import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.RecordUpdateOptions;
-import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.EmailToSend;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -78,19 +67,13 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.security.roles.Roles;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
-import com.vaadin.event.ItemClickEvent;
-import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Field;
 import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.TabSheet;
-import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
-import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
 import lombok.extern.slf4j.Slf4j;
 import org.joda.time.LocalDate;
@@ -145,17 +128,17 @@ public class FolderMenuItemActionBehaviors {
 		schemaTypes = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
 	}
 
-	public void addToDocument(MenuItemActionBehaviorParams params) {
+	public void addToDocument(Folder folder, MenuItemActionBehaviorParams params) {
 		Button addDocumentButton = new AddButton($("DisplayFolderView.addDocument")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
-				params.getView().navigate().to(RMViews.class).addDocument(params.getRecordVO().getId());
+				params.getView().navigate().to(RMViews.class).addDocument(folder.getId());
 			}
 		};
 		addDocumentButton.click();
 	}
 
-	public void move(MenuItemActionBehaviorParams params) {
+	public void move(Folder folder, MenuItemActionBehaviorParams params) {
 		Button moveInFolderButton = new WindowButton($("DisplayFolderView.parentFolder"),
 				$("DisplayFolderView.parentFolder"), WindowButton.WindowConfiguration.modalDialog("50%", "20%")) {
 			@Override
@@ -171,7 +154,7 @@ public class FolderMenuItemActionBehaviors {
 						try {
 							RMSchemasRecordsServices rmSchemas = new RMSchemasRecordsServices(collection, appLayerFactory);
 
-							String currentFolderId = params.getRecordVO().getId();
+							String currentFolderId = folder.getId();
 							if (isNotBlank(parentId)) {
 								try {
 									recordServices.update(rmSchemas.getFolder(currentFolderId).setParentFolder(parentId));
@@ -199,39 +182,39 @@ public class FolderMenuItemActionBehaviors {
 		moveInFolderButton.click();
 	}
 
-	public void addSubFolder(MenuItemActionBehaviorParams params) {
+	public void addSubFolder(Folder folder, MenuItemActionBehaviorParams params) {
 		Button addSubFolderButton = new AddButton($("DisplayFolderView.addSubFolder")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
-				params.getView().navigate().to(RMViews.class).addFolder(params.getRecordVO().getId());
+				params.getView().navigate().to(RMViews.class).addFolder(folder.getId());
 			}
 		};
 		addSubFolderButton.click();
 	}
 
-	public void display(MenuItemActionBehaviorParams params) {
+	public void display(Folder folder, MenuItemActionBehaviorParams params) {
 		Button displayFolderButton = new DisplayButton($("DisplayFolderView.displayFolder")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
-				RMNavigationUtils.navigateToDisplayFolder(params.getRecordVO().getId(), params.getFormParams(),
+				RMNavigationUtils.navigateToDisplayFolder(folder.getId(), params.getFormParams(),
 						appLayerFactory, collection);
 			}
 		};
 		displayFolderButton.click();
 	}
 
-	public void edit(MenuItemActionBehaviorParams params) {
+	public void edit(Folder folder, MenuItemActionBehaviorParams params) {
 		Button editFolderButton = new EditButton($("DisplayFolderView.editFolder")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
-				RMNavigationUtils.navigateToEditFolder(params.getRecordVO().getId(), params.getFormParams(),
+				RMNavigationUtils.navigateToEditFolder(folder.getId(), params.getFormParams(),
 						appLayerFactory, collection);
 			}
 		};
 		editFolderButton.click();
 	}
 
-	public void delete(MenuItemActionBehaviorParams params) {
+	public void delete(Folder folder, MenuItemActionBehaviorParams params) {
 		boolean needAReasonToDeleteFolder = new RMConfigs(modelLayerFactory.getSystemConfigurationsManager())
 				.isNeedingAReasonBeforeDeletingFolders();
 
@@ -240,19 +223,19 @@ public class FolderMenuItemActionBehaviors {
 			deleteFolderButton = new DeleteButton($("DisplayFolderView.deleteFolder"), false) {
 				@Override
 				protected void confirmButtonClick(ConfirmDialog dialog) {
-					deleteFolder(null, params);
+					deleteFolder(folder, null, params);
 				}
 
 				@Override
 				protected String getConfirmDialogMessage() {
-					return $("ConfirmDialog.confirmDeleteWithRecord", params.getRecordVO().getTitle());
+					return $("ConfirmDialog.confirmDeleteWithRecord", folder.getTitle());
 				}
 			};
 		} else {
 			deleteFolderButton = new DeleteWithJustificationButton($("DisplayFolderView.deleteFolder"), false) {
 				@Override
 				protected void deletionConfirmed(String reason) {
-					deleteFolder(reason, params);
+					deleteFolder(folder, reason, params);
 				}
 
 				@Override
@@ -264,16 +247,15 @@ public class FolderMenuItemActionBehaviors {
 		deleteFolderButton.click();
 	}
 
-	public void copy(MenuItemActionBehaviorParams params) {
+	public void copy(Folder folder, MenuItemActionBehaviorParams params) {
 		Button duplicateFolderButton = new WindowButton($("DisplayFolderView.duplicateFolder"),
 				$("DisplayFolderView.duplicateFolderOnlyOrHierarchy")) {
 			@Override
 			protected Component buildWindowContent() {
-				BaseButton folder = new BaseButton($("DisplayFolderView.folderOnly")) {
+				BaseButton folderButton = new BaseButton($("DisplayFolderView.folderOnly")) {
 					@Override
 					protected void buttonClick(ClickEvent event) {
-						Folder folder = rm.getFolder(params.getRecordVO().getId());
-						if (folderRecordActionsServices.isDuplicateActionPossible(folder.getWrappedRecord(), params.getUser())) {
+						if (folderRecordActionsServices.isCopyActionPossible(folder.getWrappedRecord(), params.getUser())) {
 							navigateToDuplicateFolder(folder, false, params);
 						}
 						if (!params.isNestedView()) {
@@ -285,8 +267,7 @@ public class FolderMenuItemActionBehaviors {
 				BaseButton structure = new BaseButton($("DisplayFolderView.hierarchy")) {
 					@Override
 					protected void buttonClick(ClickEvent event) {
-						Folder folder = rm.getFolder(params.getRecordVO().getId());
-						if (folderRecordActionsServices.isDuplicateActionPossible(folder.getWrappedRecord(), params.getUser())) {
+						if (folderRecordActionsServices.isCopyActionPossible(folder.getWrappedRecord(), params.getUser())) {
 							try {
 								decommissioningService.validateDuplicateStructure(folder, params.getUser(), false);
 								navigateToDuplicateFolder(folder, true, params);
@@ -310,8 +291,8 @@ public class FolderMenuItemActionBehaviors {
 				};
 				cancel.addStyleName(ValoTheme.BUTTON_LINK);
 
-				HorizontalLayout layout = new HorizontalLayout(folder, structure, cancel);
-				layout.setComponentAlignment(folder, Alignment.TOP_LEFT);
+				HorizontalLayout layout = new HorizontalLayout(folderButton, structure, cancel);
+				layout.setComponentAlignment(folderButton, Alignment.TOP_LEFT);
 				layout.setComponentAlignment(structure, Alignment.TOP_LEFT);
 				layout.setComponentAlignment(cancel, Alignment.TOP_RIGHT);
 				layout.setExpandRatio(cancel, 1);
@@ -328,36 +309,35 @@ public class FolderMenuItemActionBehaviors {
 		duplicateFolderButton.click();
 	}
 
-	public void addAuthorization(MenuItemActionBehaviorParams params) {
+	public void addAuthorization(Folder folder, MenuItemActionBehaviorParams params) {
 		Button addAuthorizationButton = new LinkButton($("DisplayFolderView.addAuthorization")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
-				params.getView().navigate().to().listObjectAccessAndRoleAuthorizations(params.getRecordVO().getId());
+				params.getView().navigate().to().listObjectAccessAndRoleAuthorizations(folder.getId());
 			}
 		};
 		addAuthorizationButton.click();
 	}
 
-	public void share(MenuItemActionBehaviorParams params) {
+	public void share(Folder folder, MenuItemActionBehaviorParams params) {
 		Button shareFolderButton = new LinkButton($("DisplayFolderView.shareFolder")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
-				Folder folder = rm.getFolder(params.getRecordVO().getId());
 				if (!folderRecordActionsServices.isShareActionPossible(folder.getWrappedRecord(), params.getUser())) {
 					return;
 				}
-				params.getView().navigate().to().shareContent(params.getRecordVO().getId());
+				params.getView().navigate().to().shareContent(folder.getId());
 			}
 		};
 		shareFolderButton.click();
 	}
 
-	public void addToCart(MenuItemActionBehaviorParams params) {
-		CartWindowButton cartWindowButton = new CartWindowButton(params);
+	public void addToCart(Folder folder, MenuItemActionBehaviorParams params) {
+		CartWindowButton cartWindowButton = new CartWindowButton(folder.getWrappedRecord(), params);
 		cartWindowButton.addToCart();
 	}
 
-	public void borrow(MenuItemActionBehaviorParams params) {
+	public void borrow(Folder folder, MenuItemActionBehaviorParams params) {
 		Button borrowButton = new WindowButton($("DisplayFolderView.borrow"),
 				$("DisplayFolderView.borrow"), new WindowConfiguration(true, true, "50%", "500px")) {
 			@Override
@@ -435,7 +415,7 @@ public class FolderMenuItemActionBehaviors {
 						if (returnDatefield.getValue() != null) {
 							returnLocalDate = LocalDate.fromDateFields(returnDatefield.getValue());
 						}
-						if (borrowFolder(borrowLocalDate, previewReturnLocalDate, userId,
+						if (borrowFolder(folder, borrowLocalDate, previewReturnLocalDate, userId,
 								borrowingType, returnLocalDate, params)) {
 							getWindow().close();
 						}
@@ -468,7 +448,7 @@ public class FolderMenuItemActionBehaviors {
 		borrowButton.click();
 	}
 
-	public void returnFolder(MenuItemActionBehaviorParams params) {
+	public void returnFolder(Folder folder, MenuItemActionBehaviorParams params) {
 		Button returnButton = new WindowButton($("DisplayFolderView.returnFolder"),
 				$("DisplayFolderView.returnFolder")) {
 			@Override
@@ -488,7 +468,7 @@ public class FolderMenuItemActionBehaviors {
 						if (returnDatefield.getValue() != null) {
 							returnLocalDate = LocalDate.fromDateFields(returnDatefield.getValue());
 						}
-						if (returnFolder(returnLocalDate, params)) {
+						if (returnFolder(folder, returnLocalDate, params)) {
 							getWindow().close();
 						}
 					}
@@ -518,45 +498,43 @@ public class FolderMenuItemActionBehaviors {
 		returnButton.click();
 	}
 
-	public void sendReturnRemainder(MenuItemActionBehaviorParams params) {
+	public void sendReturnRemainder(Folder folder, MenuItemActionBehaviorParams params) {
 		Button reminderReturnFolderButton = new BaseButton($("DisplayFolderView.reminderReturnFolder")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
 				try {
-					FolderVO folderVO = ((FolderVO) params.getRecordVO());
-
 					EmailToSend emailToSend = newEmailToSend();
 					String constellioUrl = eimConfigs.getConstellioUrl();
 					User borrower = null;
-					if (folderVO.getBorrowUserEnteredId() != null) {
-						borrower = rm.getUser(folderVO.getBorrowUserEnteredId());
+					if (folder.getBorrowUserEntered() != null) {
+						borrower = rm.getUser(folder.getBorrowUserEntered());
 					} else {
-						borrower = rm.getUser(folderVO.getBorrowUserId());
+						borrower = rm.getUser(folder.getBorrowUser());
 					}
 
 					EmailAddress borrowerAddress = new EmailAddress(borrower.getTitle(), borrower.getEmail());
 					emailToSend.setTo(Arrays.asList(borrowerAddress));
 					emailToSend.setSendOn(TimeProvider.getLocalDateTime());
-					emailToSend.setSubject($("DisplayFolderView.returnFolderReminder") + folderVO.getTitle());
+					emailToSend.setSubject($("DisplayFolderView.returnFolderReminder") + folder.getTitle());
 					emailToSend.setTemplate(RMEmailTemplateConstants.REMIND_BORROW_TEMPLATE_ID);
 					List<String> parameters = new ArrayList<>();
-					String previewReturnDate = folderVO.getPreviewReturnDate().toString();
+					String previewReturnDate = folder.getBorrowPreviewReturnDate().toString();
 					parameters.add("previewReturnDate" + EmailToSend.PARAMETER_SEPARATOR + previewReturnDate);
 					parameters.add("borrower" + EmailToSend.PARAMETER_SEPARATOR + borrower.getUsername());
-					String borrowedFolderTitle = folderVO.getTitle();
+					String borrowedFolderTitle = folder.getTitle();
 					parameters.add("borrowedFolderTitle" + EmailToSend.PARAMETER_SEPARATOR + borrowedFolderTitle);
 					boolean isAddingRecordIdInEmails = eimConfigs.isAddingRecordIdInEmails();
 					if (isAddingRecordIdInEmails) {
 						parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + $("DisplayFolderView.returnFolderReminder") + " \""
-									   + folderVO.getTitle() + "\" (" + folderVO.getId() + ")");
+									   + folder.getTitle() + "\" (" + folder.getId() + ")");
 					} else {
 						parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + $("DisplayFolderView.returnFolderReminder") + " \""
-									   + folderVO.getTitle() + "\"");
+									   + folder.getTitle() + "\"");
 					}
 
 					parameters.add("constellioURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl);
 					parameters.add("recordURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl + "#!"
-								   + RMNavigationConfiguration.DISPLAY_FOLDER + "/" + folderVO.getId());
+								   + RMNavigationConfiguration.DISPLAY_FOLDER + "/" + folder.getId());
 					emailToSend.setParameters(parameters);
 
 					recordServices.add(emailToSend);
@@ -570,14 +548,13 @@ public class FolderMenuItemActionBehaviors {
 		reminderReturnFolderButton.click();
 	}
 
-	public void sendAvailableAlert(MenuItemActionBehaviorParams params) {
+	public void sendAvailableAlert(Folder folder, MenuItemActionBehaviorParams params) {
 		Button alertWhenAvailableButton = new BaseButton($("RMObject.alertWhenAvailable")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
 				try {
-					Folder folder = rm.getFolder(params.getRecordVO().getId());
 					List<String> usersToAlert = folder.getAlertUsersWhenAvailable();
-					String currentUserId = params.getRecordVO().getId();
+					String currentUserId = folder.getId();
 					if (!currentUserId.equals(folder.getBorrowUser()) && !currentUserId.equals(folder.getBorrowUserEntered())) {
 						List<String> newUsersToAlert = new ArrayList<>();
 						newUsersToAlert.addAll(usersToAlert);
@@ -597,7 +574,7 @@ public class FolderMenuItemActionBehaviors {
 		alertWhenAvailableButton.click();
 	}
 
-	public void printLabel(MenuItemActionBehaviorParams params) {
+	public void printLabel(Folder folder, MenuItemActionBehaviorParams params) {
 		Factory<List<LabelTemplate>> customLabelTemplatesFactory = new Factory<List<LabelTemplate>>() {
 			@Override
 			public List<LabelTemplate> get() {
@@ -620,7 +597,7 @@ public class FolderMenuItemActionBehaviors {
 		}
 	}
 
-	public void generateReport(MenuItemActionBehaviorParams params) {
+	public void generateReport(Folder folder, MenuItemActionBehaviorParams params) {
 		// FIXME refactor so that we don't we need to instanciate a presenter
 		RMSelectionPanelReportPresenter reportPresenter =
 				new RMSelectionPanelReportPresenter(appLayerFactory, collection, params.getUser()) {
@@ -631,7 +608,7 @@ public class FolderMenuItemActionBehaviors {
 
 					@Override
 					public List<String> getSelectedRecordIds() {
-						return asList(params.getRecordVO().getId());
+						return asList(folder.getId());
 					}
 				};
 
@@ -646,197 +623,26 @@ public class FolderMenuItemActionBehaviors {
 		reportGeneratorButton.click();
 	}
 
-	public void addToSelection(MenuItemActionBehaviorParams params) {
-		params.getView().getSessionContext().addSelectedRecordId(params.getRecordVO().getId(),
+	public void addToSelection(Folder folder, MenuItemActionBehaviorParams params) {
+		params.getView().getSessionContext().addSelectedRecordId(folder.getId(),
 				params.getRecordVO().getSchema().getTypeCode());
 	}
 
-	public void removeFromSelection(MenuItemActionBehaviorParams params) {
-		params.getView().getSessionContext().removeSelectedRecordId(params.getRecordVO().getId(),
+	public void removeFromSelection(Folder folder, MenuItemActionBehaviorParams params) {
+		params.getView().getSessionContext().removeSelectedRecordId(folder.getId(),
 				params.getRecordVO().getSchema().getTypeCode());
 	}
 
-	private void addToCartButton(MenuItemActionBehaviorParams params) {
-		WindowConfiguration configuration = new WindowConfiguration(true, true, "50%", "750px");
-		Button addToCartButton = new WindowButton($("DisplayFolderView.addToCart"), $("DisplayFolderView.selectCart"), configuration) {
-			@Override
-			protected Component buildWindowContent() {
-				VerticalLayout layout = new VerticalLayout();
-				layout.setSizeFull();
-
-				HorizontalLayout newCartLayout = new HorizontalLayout();
-				newCartLayout.setSpacing(true);
-				newCartLayout.addComponent(new Label($("CartView.newCart")));
-				final BaseTextField newCartTitleField;
-				newCartLayout.addComponent(newCartTitleField = new BaseTextField());
-				newCartTitleField.setRequired(true);
-				BaseButton saveButton;
-				newCartLayout.addComponent(saveButton = new BaseButton($("save")) {
-					@Override
-					protected void buttonClick(ClickEvent event) {
-						try {
-							createNewCartAndAddToItRequested(newCartTitleField.getValue(), params);
-							getWindow().close();
-						} catch (Exception e) {
-							showErrorMessage(MessageUtils.toMessage(e));
-						}
-					}
-				});
-				saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
-
-				TabSheet tabSheet = new TabSheet();
-				Table ownedCartsTable = buildOwnedFavoritesTable(getWindow(), params);
-
-				final RecordVOLazyContainer sharedCartsContainer = new RecordVOLazyContainer(getSharedCartsDataProvider(params));
-				RecordVOTable sharedCartsTable = new RecordVOTable($("CartView.sharedCarts"), sharedCartsContainer);
-				sharedCartsTable.addItemClickListener(new ItemClickListener() {
-					@Override
-					public void itemClick(ItemClickEvent event) {
-						RecordVO currentRecordVO = sharedCartsContainer.getRecordVO((int) event.getItemId());
-						Cart cart = rm.getCart(currentRecordVO.getId());
-						if (rm.numberOfFoldersInFavoritesReachesLimit(cart.getId(), 1)) {
-							params.getView().showMessage($("DisplayFolderViewImpl.cartCannotContainMoreThanAThousandFolders"));
-						} else {
-							Folder folder = rm.wrapFolder(params.getRecordVO().getRecord());
-							folder.addFavorite(cart.getId());
-							try {
-								recordServices.update(folder.getWrappedRecord(), RecordUpdateOptions.validationExceptionSafeOptions());
-								params.getView().showMessage($("DisplayFolderView.addedToCart"));
-							} catch (RecordServicesException e) {
-								e.printStackTrace();
-								throw new RuntimeException(e);
-							}
-						}
-						getWindow().close();
-					}
-				});
-
-				sharedCartsTable.setWidth("100%");
-				tabSheet.addTab(ownedCartsTable);
-				tabSheet.addTab(sharedCartsTable);
-				layout.addComponents(newCartLayout, tabSheet);
-				layout.setExpandRatio(tabSheet, 1);
-				return layout;
-			}
-		};
-		addToCartButton.click();
-	}
-
-	private void addToMyCartButton(MenuItemActionBehaviorParams params) {
-		Button button = new BaseButton($("DisplayFolderView.addToCart")) {
-			@Override
-			protected void buttonClick(ClickEvent event) {
-				if (rm.numberOfFoldersInFavoritesReachesLimit(params.getUser().getId(), 1)) {
-					params.getView().showMessage($("DisplayFolderViewImpl.cartCannotContainMoreThanAThousandFolders"));
-				} else {
-					Folder folder = rm.wrapFolder(params.getRecordVO().getRecord());
-					folder.addFavorite(params.getUser().getId());
-					try {
-						recordServices.update(folder.getWrappedRecord(), RecordUpdateOptions.validationExceptionSafeOptions());
-						params.getView().showMessage($("DisplayFolderViewImpl.folderAddedToDefaultFavorites"));
-					} catch (RecordServicesException e) {
-						e.printStackTrace();
-						throw new RuntimeException(e);
-					}
-				}
-			}
-		};
-		button.click();
-	}
-
-	private void createNewCartAndAddToItRequested(String title, MenuItemActionBehaviorParams params) {
-		Cart cart = rm.newCart();
-		Folder folder = rm.wrapFolder(params.getRecordVO().getRecord());
-		cart.setTitle(title);
-		cart.setOwner(params.getUser());
-		try {
-			folder.addFavorite(cart.getId());
-			recordServices.execute(new Transaction(cart.getWrappedRecord()).setUser(params.getUser()));
-			recordServices.update(folder.getWrappedRecord(), RecordUpdateOptions.validationExceptionSafeOptions());
-			params.getView().showMessage($("DisplayFolderView.addedToCart"));
-		} catch (RecordServicesException e) {
-			e.printStackTrace();
-			throw new RuntimeException(e);
-		}
-	}
-
-	private Table buildOwnedFavoritesTable(Window window, MenuItemActionBehaviorParams params) {
-		List<CartItem> cartItems = new ArrayList<>();
-		if (params.getUser().has(RMPermissionsTo.USE_MY_CART).globally()) {
-			cartItems.add(new DefaultFavoritesTable.CartItem($("CartView.defaultFavorites")));
-		}
-		List<Cart> ownedCarts = rm.wrapCarts(searchServices.search(new LogicalSearchQuery(from(rm.cartSchema()).where(rm.cart.owner())
-				.isEqualTo(params.getUser().getId())).sortAsc(Schemas.TITLE)));
-		for (Cart cart : ownedCarts) {
-			cartItems.add(new DefaultFavoritesTable.CartItem(cart, cart.getTitle()));
-		}
-		MetadataSchema cartSchema = rm.cartSchema();
-		MetadataSchemaVO cartSchemaVO = new MetadataSchemaToVOBuilder().build(cartSchema, RecordVO.VIEW_MODE.TABLE,
-				params.getView().getSessionContext());
-		final DefaultFavoritesTable.FavoritesContainer container =
-				new DefaultFavoritesTable.FavoritesContainer(DefaultFavoritesTable.CartItem.class, cartItems);
-		DefaultFavoritesTable defaultFavoritesTable = new DefaultFavoritesTable("favoritesTableFolderDisplay", container, cartSchemaVO);
-		defaultFavoritesTable.setCaption($("CartView.ownedCarts"));
-		defaultFavoritesTable.addItemClickListener(new ItemClickListener() {
-			@Override
-			public void itemClick(ItemClickEvent event) {
-				Cart cart = container.getCart((DefaultFavoritesTable.CartItem) event.getItemId());
-				if (cart == null) {
-					addToDefaultFavorite(params);
-				} else {
-					addToCartRequested(cart, params);
-				}
-				window.close();
-			}
-		});
-		container.removeContainerProperty(DefaultFavoritesTable.CartItem.DISPLAY_BUTTON);
-		defaultFavoritesTable.setWidth("100%");
-		return defaultFavoritesTable;
-	}
-
-	private void addToDefaultFavorite(MenuItemActionBehaviorParams params) {
-		if (rm.numberOfFoldersInFavoritesReachesLimit(params.getRecordVO().getId(), 1)) {
-			params.getView().showMessage($("DisplayFolderViewImpl.cartCannotContainMoreThanAThousandFolders"));
-		} else {
-			Folder folder = rm.wrapFolder(params.getRecordVO().getRecord());
-			folder.addFavorite(params.getRecordVO().getId());
-			try {
-				recordServices.update(folder.getWrappedRecord(), RecordUpdateOptions.validationExceptionSafeOptions());
-				params.getView().showMessage($("DisplayFolderViewImpl.folderAddedToDefaultFavorites"));
-			} catch (RecordServicesException e) {
-				e.printStackTrace();
-				throw new RuntimeException(e);
-			}
-		}
-	}
-
-	private void addToCartRequested(Cart cart, MenuItemActionBehaviorParams params) {
-		if (rm.numberOfFoldersInFavoritesReachesLimit(cart.getId(), 1)) {
-			params.getView().showMessage($("DisplayFolderViewImpl.cartCannotContainMoreThanAThousandFolders"));
-		} else {
-			Folder folder = rm.wrapFolder(params.getRecordVO().getRecord());
-			folder.addFavorite(cart.getId());
-			try {
-				recordServices.update(folder.getWrappedRecord(), RecordUpdateOptions.validationExceptionSafeOptions());
-				params.getView().showMessage($("DisplayFolderView.addedToCart"));
-			} catch (RecordServicesException e) {
-				e.printStackTrace();
-				throw new RuntimeException(e);
-			}
-		}
-	}
-
-	private void deleteFolder(String reason, MenuItemActionBehaviorParams params) {
-		String parentId = params.getRecordVO().get(Folder.PARENT_FOLDER);
+	private void deleteFolder(Folder folder, String reason, MenuItemActionBehaviorParams params) {
+		String parentId = folder.get(Folder.PARENT_FOLDER);
 		SchemaPresenterUtils presenterUtils = new SchemaPresenterUtils(Folder.DEFAULT_SCHEMA,
 				params.getView().getConstellioFactories(), params.getView().getSessionContext());
-		Record record = presenterUtils.toRecord(params.getRecordVO());
-		ValidationErrors validateLogicallyDeletable = recordServices.validateLogicallyDeletable(record, params.getUser());
+		ValidationErrors validateLogicallyDeletable = recordServices.validateLogicallyDeletable(folder, params.getUser());
 		if (validateLogicallyDeletable.isEmpty()) {
 			appLayerFactory.getExtensions().forCollection(collection)
-					.notifyFolderDeletion(new FolderDeletionEvent(rm.wrapFolder(record)));
+					.notifyFolderDeletion(new FolderDeletionEvent(folder));
 
-			boolean isDeleteSuccessful = delete(presenterUtils, params.getView(), record, reason, false, 1);
+			boolean isDeleteSuccessful = delete(presenterUtils, params.getView(), folder.getWrappedRecord(), reason, false, 1);
 			if (isDeleteSuccessful) {
 				if (parentId != null) {
 					RMNavigationUtils.navigateToDisplayFolder(parentId, params.getFormParams(), appLayerFactory, collection);
@@ -868,11 +674,11 @@ public class FolderMenuItemActionBehaviors {
 		boolean areTypeAndSearchIdPresent = DecommissionNavUtil.areTypeAndSearchIdPresent(params.getFormParams());
 
 		if (areTypeAndSearchIdPresent) {
-			params.getView().navigate().to(RMViews.class).duplicateFolderFromDecommission(params.getRecordVO().getId(), isStructure,
+			params.getView().navigate().to(RMViews.class).duplicateFolderFromDecommission(folder.getId(), isStructure,
 					DecommissionNavUtil.getSearchId(params.getFormParams()), DecommissionNavUtil.getSearchType(params.getFormParams()));
 		} else if (rmModuleExtensions
 				.navigateToDuplicateFolderWhileKeepingTraceOfPreviousView(
-						new NavigateToFromAPageParams(params.getFormParams(), isStructure, params.getRecordVO().getId()))) {
+						new NavigateToFromAPageParams(params.getFormParams(), isStructure, folder.getId()))) {
 		} else {
 			params.getView().navigate().to(RMViews.class).duplicateFolder(folder.getId(), isStructure);
 		}
@@ -905,7 +711,7 @@ public class FolderMenuItemActionBehaviors {
 		return previewReturnDate;
 	}
 
-	private boolean borrowFolder(LocalDate borrowingDate, LocalDate previewReturnDate, String userId,
+	private boolean borrowFolder(Folder folder, LocalDate borrowingDate, LocalDate previewReturnDate, String userId,
 								 BorrowingType borrowingType, LocalDate returnDate,
 								 MenuItemActionBehaviorParams params) {
 		boolean borrowed;
@@ -918,9 +724,9 @@ public class FolderMenuItemActionBehaviors {
 			Record record = recordServices.getDocumentById(userId);
 			User borrowerEntered = wrapUser(record);
 			try {
-				borrowingServices.borrowFolder(params.getRecordVO().getId(), borrowingDate, previewReturnDate,
+				borrowingServices.borrowFolder(folder.getId(), borrowingDate, previewReturnDate,
 						params.getUser(), borrowerEntered, borrowingType, true);
-				RMNavigationUtils.navigateToDisplayFolder(params.getRecordVO().getId(), params.getFormParams(),
+				RMNavigationUtils.navigateToDisplayFolder(folder.getId(), params.getFormParams(),
 						appLayerFactory, collection);
 				borrowed = true;
 			} catch (RecordServicesException e) {
@@ -930,20 +736,21 @@ public class FolderMenuItemActionBehaviors {
 			}
 		}
 		if (returnDate != null) {
-			return returnFolder(returnDate, borrowingDate, params);
+			return returnFolder(folder, returnDate, borrowingDate, params);
 		}
 		return borrowed;
 	}
 
-	private boolean returnFolder(LocalDate returnDate, LocalDate borrowingDate, MenuItemActionBehaviorParams params) {
+	private boolean returnFolder(Folder folder, LocalDate returnDate, LocalDate borrowingDate,
+								 MenuItemActionBehaviorParams params) {
 		String errorMessage = borrowingServices.validateReturnDate(returnDate, borrowingDate);
 		if (errorMessage != null) {
 			params.getView().showErrorMessage($(errorMessage));
 			return false;
 		}
 		try {
-			borrowingServices.returnFolder(params.getRecordVO().getId(), params.getUser(), returnDate, true);
-			RMNavigationUtils.navigateToDisplayFolder(params.getRecordVO().getId(), params.getFormParams(),
+			borrowingServices.returnFolder(folder.getId(), params.getUser(), returnDate, true);
+			RMNavigationUtils.navigateToDisplayFolder(folder.getId(), params.getFormParams(),
 					appLayerFactory, collection);
 			return true;
 		} catch (RecordServicesException e) {
@@ -952,10 +759,10 @@ public class FolderMenuItemActionBehaviors {
 		}
 	}
 
-	public boolean returnFolder(LocalDate returnDate, MenuItemActionBehaviorParams params) {
-		LocalDateTime borrowDateTime = rm.wrapFolder(params.getRecordVO().getRecord()).getBorrowDate();
+	public boolean returnFolder(Folder folder, LocalDate returnDate, MenuItemActionBehaviorParams params) {
+		LocalDateTime borrowDateTime = folder.getBorrowDate();
 		LocalDate borrowDate = borrowDateTime != null ? borrowDateTime.toLocalDate() : null;
-		return returnFolder(returnDate, borrowDate, params);
+		return returnFolder(folder, returnDate, borrowDate, params);
 	}
 
 	private User wrapUser(Record record) {

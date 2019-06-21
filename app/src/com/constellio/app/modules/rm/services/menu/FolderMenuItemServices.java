@@ -56,126 +56,126 @@ public class FolderMenuItemServices {
 			menuItemActions.add(buildMenuItemAction(FOLDER_ADD_DOCUMENT.name(),
 					isMenuItemActionPossible(FOLDER_ADD_DOCUMENT.name(), folder, user, params),
 					"DisplayFolderView.addDocument", null, -1, 100,
-					() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).addToDocument(params)));
+					() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).addToDocument(folder, params)));
 		}
 
 		if (!filteredActionTypes.contains(FOLDER_MOVE.name())) {
 			menuItemActions.add(buildMenuItemAction(FOLDER_MOVE.name(),
 					isMenuItemActionPossible(FOLDER_MOVE.name(), folder, user, params),
 					"DisplayFolderView.parentFolder", null, -1, 200,
-					() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).move(params)));
+					() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).move(folder, params)));
 		}
 
 		if (!filteredActionTypes.contains(FOLDER_ADD_SUBFOLDER.name())) {
 			menuItemActions.add(buildMenuItemAction(FOLDER_ADD_SUBFOLDER.name(),
 					isMenuItemActionPossible(FOLDER_ADD_SUBFOLDER.name(), folder, user, params),
 					"DisplayFolderView.addSubFolder", null, -1, 300,
-					() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).addSubFolder(params)));
+					() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).addSubFolder(folder, params)));
 		}
 
 		if (!filteredActionTypes.contains(FOLDER_DISPLAY.name())) {
 			menuItemActions.add(buildMenuItemAction(FOLDER_DISPLAY.name(),
 					isMenuItemActionPossible(FOLDER_DISPLAY.name(), folder, user, params),
 					"DisplayFolderView.displayFolder", null, -1, 400,
-					() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).display(params)));
+					() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).display(folder, params)));
 		}
 
 		if (!filteredActionTypes.contains(FOLDER_EDIT.name())) {
 			menuItemActions.add(buildMenuItemAction(FOLDER_EDIT.name(),
 					isMenuItemActionPossible(FOLDER_EDIT.name(), folder, user, params),
 					"DisplayFolderView.editFolder", null, -1, 500,
-					() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).edit(params)));
+					() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).edit(folder, params)));
 		}
 
 		if (!filteredActionTypes.contains(FOLDER_DELETE.name())) {
 			menuItemActions.add(buildMenuItemAction(FOLDER_DELETE.name(),
 					isMenuItemActionPossible(FOLDER_DELETE.name(), folder, user, params),
 					"DisplayFolderView.deleteFolder", null, -1, 600,
-					() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).delete(params)));
+					() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).delete(folder, params)));
 		}
 
 		if (!filteredActionTypes.contains(FOLDER_COPY.name())) {
 			menuItemActions.add(buildMenuItemAction(FOLDER_COPY.name(),
 					isMenuItemActionPossible(FOLDER_COPY.name(), folder, user, params),
 					"DisplayFolderView.duplicateFolder", null, -1, 700,
-					() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).copy(params)));
+					() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).copy(folder, params)));
 		}
 
 		if (!filteredActionTypes.contains(FOLDER_ADD_AUTHORIZATION.name())) {
 			menuItemActions.add(buildMenuItemAction(FOLDER_ADD_AUTHORIZATION.name(),
 					isMenuItemActionPossible(FOLDER_ADD_AUTHORIZATION.name(), folder, user, params),
 					"DisplayFolderView.addAuthorization", null, -1, 800,
-					() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).addAuthorization(params)));
+					() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).addAuthorization(folder, params)));
 		}
 
 		if (!filteredActionTypes.contains(FOLDER_SHARE.name())) {
 			menuItemActions.add(buildMenuItemAction(FOLDER_SHARE.name(),
 					isMenuItemActionPossible(FOLDER_SHARE.name(), folder, user, params),
 					"DisplayFolderView.shareFolder", null, -1, 900,
-					() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).share(params)));
+					() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).share(folder, params)));
 		}
 
 		if (!filteredActionTypes.contains(FOLDER_ADD_TO_CART.name())) {
 			menuItemActions.add(buildMenuItemAction(FOLDER_ADD_TO_CART.name(),
 					isMenuItemActionPossible(FOLDER_ADD_TO_CART.name(), folder, user, params),
 					"DisplayFolderView.addToCart", null, -1, 1000,
-					() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).addToCart(params)));
+					() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).addToCart(folder, params)));
 		}
 
 		if (!filteredActionTypes.contains(FOLDER_BORROW.name())) {
 			menuItemActions.add(buildMenuItemAction(FOLDER_BORROW.name(),
 					isMenuItemActionPossible(FOLDER_BORROW.name(), folder, user, params),
 					"DisplayFolderView.borrow", null, -1, 1100,
-					() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).borrow(params)));
+					() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).borrow(folder, params)));
 		}
 
 		if (!filteredActionTypes.contains(FOLDER_RETURN.name())) {
 			menuItemActions.add(buildMenuItemAction(FOLDER_RETURN.name(),
 					isMenuItemActionPossible(FOLDER_RETURN.name(), folder, user, params),
 					"DisplayFolderView.returnFolder", null, -1, 1200,
-					() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).returnFolder(params)));
+					() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).returnFolder(folder, params)));
 		}
 
 		if (!filteredActionTypes.contains(FOLDER_RETURN_REMAINDER.name())) {
 			menuItemActions.add(buildMenuItemAction(FOLDER_RETURN_REMAINDER.name(),
 					isMenuItemActionPossible(FOLDER_RETURN_REMAINDER.name(), folder, user, params),
 					"DisplayFolderView.reminderReturnFolder", null, -1, 1300,
-					() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).sendReturnRemainder(params)));
+					() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).sendReturnRemainder(folder, params)));
 		}
 
 		if (!filteredActionTypes.contains(FOLDER_AVAILABLE_ALERT.name())) {
 			menuItemActions.add(buildMenuItemAction(FOLDER_AVAILABLE_ALERT.name(),
 					isMenuItemActionPossible(FOLDER_AVAILABLE_ALERT.name(), folder, user, params),
 					"RMObject.alertWhenAvailable", null, -1, 1400,
-					() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).sendAvailableAlert(params)));
+					() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).sendAvailableAlert(folder, params)));
 		}
 
 		if (!filteredActionTypes.contains(FOLDER_PRINT_LABEL.name())) {
 			menuItemActions.add(buildMenuItemAction(FOLDER_PRINT_LABEL.name(),
 					isMenuItemActionPossible(FOLDER_PRINT_LABEL.name(), folder, user, params),
 					"DisplayFolderView.printLabel", null, -1, 1500,
-					() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).printLabel(params)));
+					() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).printLabel(folder, params)));
 		}
 
 		if (!filteredActionTypes.contains(FOLDER_GENERATE_REPORT.name())) {
 			menuItemActions.add(buildMenuItemAction(FOLDER_GENERATE_REPORT.name(),
 					isMenuItemActionPossible(FOLDER_GENERATE_REPORT.name(), folder, user, params),
 					"SearchView.metadataReportTitle", null, -1, 1600,
-					() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).generateReport(params)));
+					() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).generateReport(folder, params)));
 		}
 
 		if (!filteredActionTypes.contains(FOLDER_ADD_TO_SELECTION.name())) {
 			menuItemActions.add(buildMenuItemAction(FOLDER_ADD_TO_SELECTION.name(),
 					isMenuItemActionPossible(FOLDER_ADD_TO_SELECTION.name(), folder, user, params),
 					"addToOrRemoveFromSelection.add", null, -1, 1700,
-					() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).addToSelection(params)));
+					() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).addToSelection(folder, params)));
 		}
 
 		if (!filteredActionTypes.contains(FOLDER_REMOVE_FROM_SELECTION.name())) {
 			menuItemActions.add(buildMenuItemAction(FOLDER_REMOVE_FROM_SELECTION.name(),
 					isMenuItemActionPossible(FOLDER_REMOVE_FROM_SELECTION.name(), folder, user, params),
 					"addToOrRemoveFromSelection.remove", null, -1, 1800,
-					() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).removeFromSelection(params)));
+					() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).removeFromSelection(folder, params)));
 		}
 
 		return menuItemActions;
@@ -199,7 +199,7 @@ public class FolderMenuItemServices {
 			case FOLDER_DELETE:
 				return folderRecordActionsServices.isDeleteActionPossible(record, user);
 			case FOLDER_COPY:
-				return folderRecordActionsServices.isDuplicateActionPossible(record, user);
+				return folderRecordActionsServices.isCopyActionPossible(record, user);
 			case FOLDER_ADD_AUTHORIZATION:
 				return folderRecordActionsServices.isAddAuthorizationActionPossible(record, user);
 			case FOLDER_SHARE:

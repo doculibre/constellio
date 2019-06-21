@@ -83,7 +83,7 @@ public class ContainerRecordActionsServices {
 		return user.has(RMPermissionsTo.USE_MY_CART).globally();
 	}
 
-	public boolean isLabelsActionPossible(Record record, User user) {
+	public boolean isPrintLabelActionPossible(Record record, User user) {
 		return user.hasReadAccess().on(record)
 			   && rmModuleExtensions.isLabelsActionPossibleOnContainerRecord(rm.wrapContainerRecord(record), user)
 			   && canPrintReports();

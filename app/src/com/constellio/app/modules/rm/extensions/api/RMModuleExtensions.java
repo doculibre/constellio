@@ -122,13 +122,18 @@ public class RMModuleExtensions implements ModuleExtensions {
 	}
 
 	public boolean isCopyActionPossibleOnFolder(final Folder folder, final User user) {
-		return folderExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<FolderExtension>() {
-			@Override
-			public ExtensionBooleanResult call(FolderExtension behavior) {
-				return behavior.isCopyActionPossible(
-						new FolderExtensionActionPossibleParams(folder, user));
-			}
-		});
+		return folderExtensions.getBooleanValue(true,
+				(behavior) -> behavior.isCopyActionPossible(new FolderExtensionActionPossibleParams(folder, user)));
+	}
+
+	public boolean isDownloadActionPossibleOnFolder(final Folder folder, final User user) {
+		return folderExtensions.getBooleanValue(true,
+				(behavior) -> behavior.isDownloadActionPossible(new FolderExtensionActionPossibleParams(folder, user)));
+	}
+
+	public boolean isCreateSipActionPossibleOnFolder(final Folder folder, final User user) {
+		return folderExtensions.getBooleanValue(true,
+				(behavior) -> behavior.isCreateSipActionPossible(new FolderExtensionActionPossibleParams(folder, user)));
 	}
 
 	public boolean isPromptUser(PromptUserParam taskPreCompletionParam) throws ValidationException {
@@ -334,6 +339,18 @@ public class RMModuleExtensions implements ModuleExtensions {
 	public boolean isCopyActionPossibleOnDocument(final Document document, final User user) {
 		return documentExtensions.getBooleanValue(true,
 				(behavior) -> behavior.isCopyActionPossible(
+						new DocumentExtension.DocumentExtensionActionPossibleParams(document, user)));
+	}
+
+	public boolean isCreateSipActionPossibleOnDocument(final Document document, final User user) {
+		return documentExtensions.getBooleanValue(true,
+				(behavior) -> behavior.isCreateSipActionPossible(
+						new DocumentExtension.DocumentExtensionActionPossibleParams(document, user)));
+	}
+
+	public boolean isSendEmailActionPossibleOnDocument(final Document document, final User user) {
+		return documentExtensions.getBooleanValue(true,
+				(behavior) -> behavior.isSendEmailActionPossible(
 						new DocumentExtension.DocumentExtensionActionPossibleParams(document, user)));
 	}
 

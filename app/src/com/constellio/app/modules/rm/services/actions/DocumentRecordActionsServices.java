@@ -26,6 +26,11 @@ public class DocumentRecordActionsServices {
 		rmModuleExtensions = appLayerFactory.getExtensions().forCollection(collection).forModule(ConstellioRMModule.ID);
 	}
 
+	public boolean isMoveActionPossible(Record record, User user) {
+		return hasUserWriteAccess(record, user) && isEditActionPossible(record, user) &&
+			   rmModuleExtensions.isMoveActionPossibleOnDocument(rm.wrapDocument(record), user);
+	}
+
 	public boolean isDisplayActionPossible(Record record, User user) {
 		return hasUserReadAccess(record, user) &&
 			   rmModuleExtensions.isDisplayActionPossibleOnDocument(rm.wrapDocument(record), user);
@@ -61,6 +66,16 @@ public class DocumentRecordActionsServices {
 
 		// TODO rename DocumentExtension to something like DocumentRecordActionsExtension
 		return rmModuleExtensions.isCopyActionPossibleOnDocument(rm.wrapDocument(record), user);
+	}
+
+	public boolean isCreateSipActionPossible(Record record, User user) {
+		return hasUserReadAccess(record, user) && user.has(RMPermissionsTo.GENERATE_SIP_ARCHIVES).globally() &&
+			   rmModuleExtensions.isCreateSipActionPossibleOnDocument(rm.wrapDocument(record), user);
+	}
+
+	public boolean isSendEmailActionPossible(Record record, User user) {
+		return hasUserReadAccess(record, user) &&
+			   rmModuleExtensions.isSendEmailActionPossibleOnDocument(rm.wrapDocument(record), user);
 	}
 
 	public boolean isUnPublishActionPossible(Record record, User user) {

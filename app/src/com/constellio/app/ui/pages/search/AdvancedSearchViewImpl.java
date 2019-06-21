@@ -1,6 +1,5 @@
 package com.constellio.app.ui.pages.search;
 
-import com.constellio.app.api.extensions.params.AvailableActionsParam;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.ui.pages.cart.DefaultFavoritesTable;
@@ -202,8 +201,7 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 				public void buttonClick(ClickEvent event) {
 					List<String> selectedDocumentIds = getSelectedRecordIds();
 					if (presenter.isPdfGenerationActionPossible(selectedDocumentIds)) {
-						AvailableActionsParam params = new AvailableActionsParam(selectedDocumentIds, Arrays.asList(Document.SCHEMA_TYPE), null, null, null);
-						setParams(params);
+						setRecordIds(selectedDocumentIds);
 						super.buttonClick(event);
 					}
 				}

@@ -92,7 +92,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	public static final String SAVE_SEARCH = "save-search";
 	public static final Resource SELECTION_ICON_RESOURCE = new ThemeResource("images/icons/clipboard_12x16.png");
 
-	private enum ShareType {
+	public enum ShareType {
 		NONE, ALL, RESTRICTED
 	}
 

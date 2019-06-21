@@ -61,7 +61,7 @@ public class DocumentMenuItemServices {
 			menuItemActions.add(buildMenuItemAction(DOCUMENT_DISPLAY.name(),
 					isMenuItemActionPossible(DOCUMENT_DISPLAY.name(), document, user, params),
 					"DisplayDocumentView.displayDocument", FontAwesome.FILE_O, -1, 100,
-					() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).display(params)));
+					() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).display(document, params)));
 		}
 
 		if (!filteredActionTypes.contains(DOCUMENT_OPEN.name())) {
@@ -71,28 +71,28 @@ public class DocumentMenuItemServices {
 			menuItemActions.add(buildMenuItemAction(DOCUMENT_OPEN.name(),
 					isMenuItemActionPossible(DOCUMENT_OPEN.name(), document, user, params),
 					"DisplayDocumentView.openDocument", icon, -1, 200,
-					() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).open(params)));
+					() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).open(document, params)));
 		}
 
 		if (!filteredActionTypes.contains(DOCUMENT_EDIT.name())) {
 			menuItemActions.add(buildMenuItemAction(DOCUMENT_EDIT.name(),
 					isMenuItemActionPossible(DOCUMENT_EDIT.name(), document, user, params),
 					"DisplayDocumentView.editDocument", FontAwesome.EDIT, -1, 250,
-					() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).edit(params)));
+					() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).edit(document, params)));
 		}
 
 		if (!filteredActionTypes.contains(DOCUMENT_DOWNLOAD.name())) {
 			menuItemActions.add(buildMenuItemAction(DOCUMENT_DOWNLOAD.name(),
 					isMenuItemActionPossible(DOCUMENT_DOWNLOAD.name(), document, user, params),
 					"DocumentContextMenu.downloadDocument", FontAwesome.DOWNLOAD, -1, 400,
-					() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).download(params)));
+					() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).download(document, params)));
 		}
 
 		if (!filteredActionTypes.contains(DOCUMENT_DELETE.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(DOCUMENT_DELETE.name(),
 					isMenuItemActionPossible(DOCUMENT_DELETE.name(), document, user, params),
 					"DocumentContextMenu.deleteDocument", FontAwesome.TRASH_O, -1, 500,
-					() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).delete(params));
+					() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).delete(document, params));
 
 			menuItemAction.setConfirmMessage(i18n.$("ConfirmDialog.confirmDelete"));
 
@@ -103,14 +103,14 @@ public class DocumentMenuItemServices {
 			menuItemActions.add(buildMenuItemAction(DOCUMENT_COPY.name(),
 					isMenuItemActionPossible(DOCUMENT_COPY.name(), document, user, params),
 					"DocumentContextMenu.copyContent", null, -1, 600,
-					() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).copy(params)));
+					() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).copy(document, params)));
 		}
 
 		if (!filteredActionTypes.contains(DOCUMENT_FINALIZE.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(DOCUMENT_FINALIZE.name(),
 					isMenuItemActionPossible(DOCUMENT_FINALIZE.name(), document, user, params),
 					"DocumentContextMenu.finalize", FontAwesome.LEVEL_UP, -1, 700,
-					() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).finalize(params));
+					() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).finalize(document, params));
 
 			menuItemAction.setConfirmMessage(i18n.$("DocumentActionsComponent.finalize.confirm"));
 			menuItemActions.add(menuItemAction);
@@ -120,7 +120,7 @@ public class DocumentMenuItemServices {
 			MenuItemAction menuItemAction = buildMenuItemAction(DOCUMENT_PUBLISH.name(),
 					isMenuItemActionPossible(DOCUMENT_PUBLISH.name(), document, user, params),
 					"DocumentContextMenu.publish", null, -1, 800,
-					() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).publish(params));
+					() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).publish(document, params));
 
 			menuItemActions.add(menuItemAction);
 		}
@@ -129,7 +129,7 @@ public class DocumentMenuItemServices {
 			MenuItemAction menuItemAction = buildMenuItemAction(DOCUMENT_UNPUBLISH.name(),
 					isMenuItemActionPossible(DOCUMENT_UNPUBLISH.name(), document, user, params),
 					"DocumentContextMenu.unpublish", null, -1, 800,
-					() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).unPublish(params));
+					() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).unPublish(document, params));
 
 			menuItemActions.add(menuItemAction);
 		}
@@ -139,7 +139,7 @@ public class DocumentMenuItemServices {
 			MenuItemAction menuItemAction = buildMenuItemAction(DOCUMENT_CREATE_PDF.name(),
 					isMenuItemActionPossible(DOCUMENT_CREATE_PDF.name(), document, user, params),
 					"DocumentContextMenu.createPDFA", null, -1, 900,
-					() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).createPdf(params));
+					() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).createPdf(document, params));
 			menuItemAction.setConfirmMessage(i18n.$("ConfirmDialog.confirmCreatePDFA"));
 
 			menuItemActions.add(menuItemAction);
@@ -149,7 +149,7 @@ public class DocumentMenuItemServices {
 			MenuItemAction menuItemAction = buildMenuItemAction(DOCUMENT_ADD_TO_SELECTION.name(),
 					isMenuItemActionPossible(DOCUMENT_ADD_TO_SELECTION.name(), document, user, params),
 					"DocumentContextMenu.addToSelection", null, -1, 1000,
-					() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).addToSelection(params));
+					() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).addToSelection(document, params));
 
 			menuItemActions.add(menuItemAction);
 		}
@@ -159,7 +159,7 @@ public class DocumentMenuItemServices {
 			MenuItemAction menuItemAction = buildMenuItemAction(DOCUMENT_REMOVE_TO_SELECTION.name(),
 					isMenuItemActionPossible(DOCUMENT_REMOVE_TO_SELECTION.name(), document, user, params),
 					"DocumentContextMenu.removeToSelection", null, -1, 1100,
-					() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).removeToSelection(params));
+					() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).removeToSelection(document, params));
 
 			menuItemActions.add(menuItemAction);
 		}
@@ -168,7 +168,7 @@ public class DocumentMenuItemServices {
 			MenuItemAction menuItemAction = buildMenuItemAction(DOCUMENT_ADD_TO_CART.name(),
 					isMenuItemActionPossible(DOCUMENT_ADD_TO_CART.name(), document, user, params),
 					"DisplayFolderView.addToCart", null, -1, 1200,
-					() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).addToCart(params));
+					() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).addToCart(document, params));
 
 			menuItemActions.add(menuItemAction);
 		}
@@ -177,7 +177,7 @@ public class DocumentMenuItemServices {
 			MenuItemAction menuItemAction = buildMenuItemAction(DOCUMENT_UPLOAD.name(),
 					isMenuItemActionPossible(DOCUMENT_UPLOAD.name(), document, user, params),
 					"DocumentContextMenu.upload", null, -1, 1250,
-					() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).upload(params));
+					() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).upload(document, params));
 
 			menuItemActions.add(menuItemAction);
 		}
@@ -186,7 +186,7 @@ public class DocumentMenuItemServices {
 			MenuItemAction menuItemAction = buildMenuItemAction(DOCUMENT_PRINT_LABEL.name(),
 					isMenuItemActionPossible(DOCUMENT_PRINT_LABEL.name(), document, user, params),
 					"DisplayFolderView.printLabel", null, -1, 1300,
-					() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).printLabel(params));
+					() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).printLabel(document, params));
 
 			menuItemActions.add(menuItemAction);
 		}
@@ -195,7 +195,7 @@ public class DocumentMenuItemServices {
 			MenuItemAction menuItemAction = buildMenuItemAction(DOCUMENT_CHECK_IN.name(),
 					isMenuItemActionPossible(DOCUMENT_CHECK_IN.name(), document, user, params),
 					"DocumentContextMenu.checkIn", null, -1, 1400,
-					() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).checkIn(params));
+					() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).checkIn(document, params));
 
 			menuItemActions.add(menuItemAction);
 		}
@@ -204,7 +204,7 @@ public class DocumentMenuItemServices {
 			MenuItemAction menuItemAction = buildMenuItemAction(DOCUMENT_CHECK_OUT.name(),
 					isMenuItemActionPossible(DOCUMENT_CHECK_OUT.name(), document, user, params),
 					"DocumentContextMenu.checkOut", null, -1, 1400,
-					() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).checkOut(params));
+					() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).checkOut(document, params));
 
 			menuItemActions.add(menuItemAction);
 		}
@@ -213,7 +213,7 @@ public class DocumentMenuItemServices {
 			MenuItemAction menuItemAction = buildMenuItemAction(DOCUMENT_ADD_AUTHORIZATION.name(),
 					isMenuItemActionPossible(DOCUMENT_ADD_AUTHORIZATION.name(), document, user, params),
 					"DocumentContextMenu.addAuthorization", null, -1, 1500,
-					() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).addAuthorization(params));
+					() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).addAuthorization(document, params));
 
 			menuItemActions.add(menuItemAction);
 		}
@@ -222,7 +222,7 @@ public class DocumentMenuItemServices {
 			MenuItemAction menuItemAction = buildMenuItemAction(DOCUMENT_GENERATE_REPORT.name(),
 					isMenuItemActionPossible(DOCUMENT_GENERATE_REPORT.name(), document, user, params),
 					"DocumentContextMenu.ReportGeneratorButton", null, -1, 1600,
-					() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).reportGeneratorButton(params));
+					() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).reportGeneratorButton(document, params));
 
 			menuItemActions.add(menuItemAction);
 		}

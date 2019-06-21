@@ -45,6 +45,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.wrappers.SearchEvent;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.contents.ContentConversionManager;
@@ -60,7 +61,6 @@ import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.ui.Button;
 import org.apache.commons.io.FilenameUtils;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.List;
@@ -102,24 +102,24 @@ public class DocumentMenuItemActionBehaviors {
 		documentRecordActionsServices = new DocumentRecordActionsServices(collection, appLayerFactory);
 	}
 
-	public void display(MenuItemActionBehaviorParams params) {
+	public void display(Document document, MenuItemActionBehaviorParams params) {
 		Map<String, String> formParams = params.getFormParams();
-		String documentId = params.getRecordVO().getId();
+		String documentId = document.getId();
 
 		RMNavigationUtils.navigateToDisplayDocument(documentId, formParams, appLayerFactory, collection);
-		updateSearchResultClicked(params.getRecordVO());
+		updateSearchResultClicked(document.getWrappedRecord());
 	}
 
-	public void open(MenuItemActionBehaviorParams params) {
+	public void open(Document document, MenuItemActionBehaviorParams params) {
 		String agentURL = ConstellioAgentUtils.getAgentURL(params.getRecordVO(), params.getContentVersionVO());
 		Page.getCurrent().open(agentURL, params.isContextualMenu() ? "_top" : null);
-		loggingServices.openDocument(recordServices.getDocumentById(params.getRecordVO().getId()), params.getUser());
+		loggingServices.openDocument(recordServices.getDocumentById(document.getId()), params.getUser());
 	}
 
-	public void copy(MenuItemActionBehaviorParams params) {
+	public void copy(Document document, MenuItemActionBehaviorParams params) {
 		BaseView view = params.getView();
 		Map<String, String> formParams = params.getFormParams();
-		String documentId = params.getRecordVO().getId();
+		String documentId = document.getId();
 
 		boolean areSearchTypeAndSearchIdPresent = DecommissionNavUtil.areTypeAndSearchIdPresent(formParams);
 
@@ -136,21 +136,19 @@ public class DocumentMenuItemActionBehaviors {
 		}
 	}
 
-	public void edit(MenuItemActionBehaviorParams params) {
-		params.getView().navigate().to(RMViews.class).editDocument(params.getRecordVO().getId());
-		updateSearchResultClicked(params.getRecordVO());
+	public void edit(Document document, MenuItemActionBehaviorParams params) {
+		params.getView().navigate().to(RMViews.class).editDocument(document.getId());
+		updateSearchResultClicked(document.getWrappedRecord());
 	}
 
-	public void download(MenuItemActionBehaviorParams params) {
+	public void download(Document document, MenuItemActionBehaviorParams params) {
 		ContentVersionVOResource contentVersionResource = new ContentVersionVOResource(params.getContentVersionVO());
 		Resource downloadedResource = DownloadLink.wrapForDownload(contentVersionResource);
 		Page.getCurrent().open(downloadedResource, null, false);
-		loggingServices.downloadDocument(recordServices.getDocumentById(params.getRecordVO().getId()), params.getUser());
+		loggingServices.downloadDocument(recordServices.getDocumentById(document.getId()), params.getUser());
 	}
 
-	public void delete(MenuItemActionBehaviorParams params) {
-		Document document = rm.getDocument(params.getRecordVO().getId());
-
+	public void delete(Document document, MenuItemActionBehaviorParams params) {
 		if (validateDeleteDocumentPossibleExtensively(document.getWrappedRecord(), params.getUser()).isEmpty()) {
 			String parentId = document.getFolder();
 			try {
@@ -172,8 +170,7 @@ public class DocumentMenuItemActionBehaviors {
 		}
 	}
 
-	public void finalize(MenuItemActionBehaviorParams params) {
-		Document document = rm.getDocument(params.getRecordVO().getId());
+	public void finalize(Document document, MenuItemActionBehaviorParams params) {
 		Content content = document.getContent();
 		content.finalizeVersion();
 		try {
@@ -188,18 +185,16 @@ public class DocumentMenuItemActionBehaviors {
 		}
 	}
 
-	public void publish(MenuItemActionBehaviorParams params) {
-		Document documentFromParam =  rm.getDocument(params.getRecordVO().getId());
-		documentFromParam.setPublished(true);
+	public void publish(Document document, MenuItemActionBehaviorParams params) {
+		document.setPublished(true);
 		try {
-			recordServices.update(documentFromParam);
+			recordServices.update(document);
 		} catch (RecordServicesException e) {
 			params.getView().showErrorMessage(MessageUtils.toMessage(e));
 		}
 	}
 
-	public void createPdf(MenuItemActionBehaviorParams params) {
-		Document document = rm.getDocument(params.getRecordVO().getId());
+	public void createPdf(Document document, MenuItemActionBehaviorParams params) {
 		String extention = FilenameUtils.getExtension(document.getContent().getCurrentVersion().getFilename());
 
 		if (!extention.toUpperCase().equals("PDF") && !extention.equals("PDFA")) {
@@ -229,32 +224,31 @@ public class DocumentMenuItemActionBehaviors {
 	}
 
 
-	public void unPublish(MenuItemActionBehaviorParams params) {
-		Document documentFromParam =  rm.getDocument(params.getRecordVO().getId());
-		documentFromParam.setPublished(false);
+	public void unPublish(Document document, MenuItemActionBehaviorParams params) {
+		document.setPublished(false);
 		try {
-			recordServices.update(documentFromParam);
+			recordServices.update(document);
 		} catch (RecordServicesException e) {
 			params.getView().showErrorMessage(MessageUtils.toMessage(e));
 		}
 	}
 
-	public void addToSelection(MenuItemActionBehaviorParams params) {
-		params.getView().getSessionContext().addSelectedRecordId(params.getRecordVO().getId(),
+	public void addToSelection(Document document, MenuItemActionBehaviorParams params) {
+		params.getView().getSessionContext().addSelectedRecordId(document.getId(),
 				params.getRecordVO().getSchema().getTypeCode());
 	}
 
-	public void removeToSelection(MenuItemActionBehaviorParams params) {
-		params.getView().getSessionContext().removeSelectedRecordId(params.getRecordVO().getId(),
+	public void removeToSelection(Document document, MenuItemActionBehaviorParams params) {
+		params.getView().getSessionContext().removeSelectedRecordId(document.getId(),
 				params.getRecordVO().getSchema().getTypeCode());
 	}
 
-	public void addToCart(MenuItemActionBehaviorParams params) {
-		CartWindowButton cartWindowButton = new CartWindowButton(params);
+	public void addToCart(Document document, MenuItemActionBehaviorParams params) {
+		CartWindowButton cartWindowButton = new CartWindowButton(document.getWrappedRecord(), params);
 		cartWindowButton.addToCart();
 	}
 
-	public void printLabel(MenuItemActionBehaviorParams params) {
+	public void printLabel(Document document, MenuItemActionBehaviorParams params) {
 
 		Factory<List<LabelTemplate>> customLabelTemplatesFactory = (Factory<List<LabelTemplate>>) () -> appLayerFactory.getLabelTemplateManager().listExtensionTemplates(Document.SCHEMA_TYPE);
 
@@ -268,17 +262,15 @@ public class DocumentMenuItemActionBehaviors {
 		Button labels = new LabelButtonV2($("DisplayFolderView.printLabel"),
 				$("DisplayFolderView.printLabel"), customLabelTemplatesFactory,
 				defaultLabelTemplatesFactory, appLayerFactory,
-				sessionContext.getCurrentCollection(), userVO
-				, params.getRecordVO());
+				sessionContext.getCurrentCollection(), userVO, getDocumentVO(params, document));
 
 		labels.click();
 	}
 
-	public void checkIn(MenuItemActionBehaviorParams params) {
-		Document document = rm.getDocument(params.getRecordVO().getId());
-
+	public void checkIn(Document document, MenuItemActionBehaviorParams params) {
 		if (documentRecordActionsServices.isCheckInActionPossible(document.getWrappedRecord(), params.getUser())) {
-			UpdateContentVersionWindowImpl uploadWindow = createUpdateContentVersionWindow(params);
+			UpdateContentVersionWindowImpl uploadWindow =
+					createUpdateContentVersionWindow(getDocumentVO(params, document), params.getView());
 			uploadWindow.open(false);
 		} else if (documentRecordActionsServices.isCancelCheckOutPossible(document)) {
 			Content content = document.getContent();
@@ -299,11 +291,9 @@ public class DocumentMenuItemActionBehaviors {
 		}
 	}
 
-	public void checkOut(MenuItemActionBehaviorParams params) {
-		Document document = rm.getDocument(params.getRecordVO().getId());
-
+	public void checkOut(Document document, MenuItemActionBehaviorParams params) {
 		if (documentRecordActionsServices.isCheckOutActionPossible(document.getWrappedRecord(), params.getUser())) {
-			updateSearchResultClicked(getDocumentVO(params, document));
+			updateSearchResultClicked(document.getWrappedRecord());
 			Content content = document.getContent();
 			content.checkOut(params.getUser());
 			modelLayerFactory.newLoggingServices().borrowRecord(document.getWrappedRecord(), params.getUser(), TimeProvider.getLocalDateTime());
@@ -325,12 +315,12 @@ public class DocumentMenuItemActionBehaviors {
 		}
 	}
 
-	public void addAuthorization(MenuItemActionBehaviorParams params) {
-		params.getView().navigate().to().listObjectAccessAndRoleAuthorizations(params.getRecordVO().getId());
-		updateSearchResultClicked(params.getRecordVO());
+	public void addAuthorization(Document document, MenuItemActionBehaviorParams params) {
+		params.getView().navigate().to().listObjectAccessAndRoleAuthorizations(document.getId());
+		updateSearchResultClicked(document.getWrappedRecord());
 	}
 
-	public void reportGeneratorButton(MenuItemActionBehaviorParams params) {
+	public void reportGeneratorButton(Document document, MenuItemActionBehaviorParams params) {
 		RMSelectionPanelReportPresenter rmSelectionPanelReportPresenter = new RMSelectionPanelReportPresenter(appLayerFactory, collection, params.getUser()) {
 			@Override
 			public String getSelectedSchemaType() {
@@ -339,7 +329,7 @@ public class DocumentMenuItemActionBehaviors {
 
 			@Override
 			public List<String> getSelectedRecordIds() {
-				return asList(params.getRecordVO().getId());
+				return asList(document.getId());
 			}
 		};
 
@@ -350,8 +340,15 @@ public class DocumentMenuItemActionBehaviors {
 
 		};
 
-		reportGeneratorButton.setRecordVoList(params.getRecordVO());
+		reportGeneratorButton.setRecordVoList(getDocumentVO(params, document));
 		reportGeneratorButton.click();
+	}
+
+	public void upload(Document document, MenuItemActionBehaviorParams params) {
+		DocumentVO documentVO = getDocumentVO(params, document);
+		UpdateContentVersionWindowImpl uploadWindow = createUpdateContentVersionWindow(documentVO, params.getView());
+
+		uploadWindow.open(false);
 	}
 
 	private DocumentVO getDocumentVO(MenuItemActionBehaviorParams params, Document document) {
@@ -359,27 +356,21 @@ public class DocumentMenuItemActionBehaviors {
 				VIEW_MODE.DISPLAY, params.getView().getSessionContext());
 	}
 
-	public void upload(MenuItemActionBehaviorParams params) {
-		UpdateContentVersionWindowImpl uploadWindow = createUpdateContentVersionWindow(params);
-
-		uploadWindow.open(false);
-	}
-
-	@NotNull
-	private UpdateContentVersionWindowImpl createUpdateContentVersionWindow(MenuItemActionBehaviorParams params) {
+	private UpdateContentVersionWindowImpl createUpdateContentVersionWindow(RecordVO recordVO, BaseView view) {
 		final Map<RecordVO, MetadataVO> recordMap = new HashMap<>();
-		recordMap.put(params.getRecordVO(), params.getRecordVO().getMetadata(Document.CONTENT));
+		recordMap.put(recordVO, recordVO.getMetadata(Document.CONTENT));
 
 		return new UpdateContentVersionWindowImpl(recordMap) {
 			@Override
 			public void close() {
 				super.close();
-				params.getView().updateUI();
+				view.updateUI();
 			}
 		};
 	}
 
-	private void updateSearchResultClicked(RecordVO recordVO) {
+	// FIXME move elsewhere?
+	private void updateSearchResultClicked(Record record) {
 		if (Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()) {
 			ConstellioUI.getCurrent().setAttribute(SEARCH_EVENT_DWELL_TIME, System.currentTimeMillis());
 
@@ -391,10 +382,10 @@ public class DocumentMenuItemActionBehaviors {
 
 				String url = null;
 				try {
-					url = recordVO.get("url");
+					url = record.get(Schemas.URL);
 				} catch (RecordVORuntimeException_NoSuchMetadata ignored) {
 				}
-				String clicks = defaultIfBlank(url, recordVO.getId());
+				String clicks = defaultIfBlank(url, record.getId());
 				searchEventServices.updateClicks(searchEvent, clicks);
 			}
 		}

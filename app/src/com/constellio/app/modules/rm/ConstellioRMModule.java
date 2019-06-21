@@ -44,6 +44,7 @@ import com.constellio.app.modules.rm.extensions.SessionContextRecordExtension;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.extensions.app.BatchProcessingRecordFactoryExtension;
 import com.constellio.app.modules.rm.extensions.app.RMAdministrativeUnitRecordFieldFactoryExtension;
+import com.constellio.app.modules.rm.extensions.app.RMAdvancedSearchMenuItemActionsExtension;
 import com.constellio.app.modules.rm.extensions.app.RMBatchProcessingExtension;
 import com.constellio.app.modules.rm.extensions.app.RMBatchProcessingSpecialCaseExtension;
 import com.constellio.app.modules.rm.extensions.app.RMCmisExtension;
@@ -472,6 +473,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		extensions.lockedRecords.add(DocumentType.SCHEMA_TYPE, DocumentType.EMAIL_DOCUMENT_TYPE);
 
 		extensions.menuItemActionsExtensions.add(new RMMenuItemActionsExtension(collection, appLayerFactory));
+		extensions.menuItemActionsExtensions.add(new RMAdvancedSearchMenuItemActionsExtension(collection, appLayerFactory));
 		// FIXME should be merged with RMMenuItemActionsExtensions
 		extensions.menuItemActionsExtensions.add(new RMMenuItemActionsRequestTaskExtension(collection, appLayerFactory));
 	}

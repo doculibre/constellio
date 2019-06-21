@@ -199,7 +199,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
 
 	public void addPdfButton(final AvailableActionsParam param) {
 		final User currentUser = param.getUser();
-		WindowButton pdfButton = new ConsolidatedPdfButton(param) {
+		WindowButton pdfButton = new ConsolidatedPdfButton(param.getIds()) {
 			@Override
 			public void buttonClick(ClickEvent event) {
 				List<Record> records = recordServices().getRecordsById(collection, param.getIds());
@@ -607,29 +607,22 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
 			RMSchemasRecordsServices rmSchemas = new RMSchemasRecordsServices(collection, appLayerFactory);
 			for (String id : recordIds) {
 				Record record = recordServices.getDocumentById(id);
-				boolean isMovePossible = true;
 				try {
 					switch (record.getTypeCode()) {
 						case Folder.SCHEMA_TYPE:
 							Folder folder = rmSchemas.getFolder(id);
 							if (!rmModuleExtensions.isMoveActionPossibleOnFolder(folder, param.getUser())) {
-								isMovePossible = false;
 								couldNotMove.add(record.getTitle());
 								break;
 							}
-							if (isMovePossible) {
-								recordServices.update(folder.setParentFolder(parentId));
-							}
+							recordServices.update(folder.setParentFolder(parentId));
 							break;
 						case Document.SCHEMA_TYPE:
 							if (!rmModuleExtensions.isMoveActionPossibleOnDocument(rm.wrapDocument(record), param.getUser())) {
-								isMovePossible = false;
 								couldNotMove.add(record.getTitle());
 								break;
 							}
-							if (isMovePossible) {
-								recordServices.update(rmSchemas.getDocument(id).setFolder(parentId));
-							}
+							recordServices.update(rmSchemas.getDocument(id).setFolder(parentId));
 							break;
 						default:
 							couldNotMove.add(record.getTitle());
