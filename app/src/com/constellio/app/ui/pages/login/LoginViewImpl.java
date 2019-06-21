@@ -274,4 +274,53 @@ public class LoginViewImpl extends BaseViewImpl implements LoginView {
 		window.center();
 		ConstellioUI.getCurrent().addWindow(window);
 	}
+
+	@Override
+	public void popLastAlertWindow(final ModelLayerFactory modelLayerFactory, final User userInLastCollection,
+								   final String lastCollection) {
+		final Window window = new Window();
+		window.setWidth("90%");
+		window.setHeight("90%");
+		window.setModal(true);
+		window.setCaption($("LoginView.lastAlertWindow")); // TODO i18n
+
+		VerticalLayout mainLayout = new VerticalLayout();
+		mainLayout.setSpacing(true);
+
+		VerticalLayout textLayout = new VerticalLayout();
+		textLayout.setSizeFull();
+		HorizontalLayout buttonLayout = new HorizontalLayout();
+		buttonLayout.setSpacing(true);
+		buttonLayout.setHeight("50px");
+
+		BaseButton cancelButton = new BaseButton($("cancel")) { // TODO change
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				window.close();
+			}
+		};
+		BaseButton acceptButton = new BaseButton($("accept")) { // TODO change
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				UserServices userServices = modelLayerFactory.newUserServices();
+				userServices.addUpdateUserCredential(userServices.getUserCredential(userInLastCollection.getUsername())
+						.setReadLastAlert(true));
+				presenter.signInValidated(userInLastCollection, lastCollection);
+				window.close();
+			}
+		};
+		acceptButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
+		DocumentViewer documentViewer = new DocumentViewer(presenter.getLastAlertFile());
+
+		textLayout.addComponent(documentViewer);
+		buttonLayout.addComponents(acceptButton, cancelButton);
+
+		mainLayout.addComponents(textLayout, buttonLayout);
+		mainLayout.setComponentAlignment(buttonLayout, Alignment.BOTTOM_CENTER);
+
+		window.setContent(mainLayout);
+		window.setSizeUndefined();
+		window.center();
+		ConstellioUI.getCurrent().addWindow(window);
+	}
 }

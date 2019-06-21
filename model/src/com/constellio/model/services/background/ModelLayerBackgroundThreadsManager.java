@@ -22,7 +22,7 @@ public class ModelLayerBackgroundThreadsManager implements StatefulService {
 
 	ModelLayerFactory modelLayerFactory;
 	BackgroundThreadsManager backgroundThreadsManager;
-	Has_Seen_Message_Runable hasSeenMessage ;
+	DownloadLastServerStateBackgroundAction downloadLastServerStateBackgroundAction;
 	RecordsReindexingBackgroundAction recordsReindexingBackgroundAction;
 	TemporaryRecordsDeletionBackgroundAction temporaryRecordsDeletionBackgroundAction;
 	AuthorizationWithTimeRangeTokenUpdateBackgroundAction authorizationWithTimeRangeTokenUpdateBackgroundAction;
@@ -37,10 +37,14 @@ public class ModelLayerBackgroundThreadsManager implements StatefulService {
 	@Override
 	public void initialize() {
 		recordsReindexingBackgroundAction = new RecordsReindexingBackgroundAction(modelLayerFactory);
-		hasSeenMessage = new Has_Seen_Message_Runable();
 		backgroundThreadsManager.configure(repeatingAction("recordsReindexingBackgroundAction",
 				recordsReindexingBackgroundAction)
 				.executedEvery(standardSeconds(120)).handlingExceptionWith(CONTINUE));
+
+		downloadLastServerStateBackgroundAction = new DownloadLastServerStateBackgroundAction();
+		backgroundThreadsManager.configure(repeatingAction("downloadLastServerStateBackgroundAction",
+				downloadLastServerStateBackgroundAction)
+				.executedEvery(standardSeconds(1)).handlingExceptionWith(CONTINUE)); // TODO set hours and i18n
 
 		ModelLayerConfiguration configuration = modelLayerFactory.getConfiguration();
 		backgroundThreadsManager.configure(BackgroundThreadConfiguration.repeatingAction("removeTimedOutTokens", new Runnable() {
@@ -90,8 +94,8 @@ public class ModelLayerBackgroundThreadsManager implements StatefulService {
 		return recordsReindexingBackgroundAction;
 	}
 
-	public Has_Seen_Message_Runable hasSeenMessageRunable (){
-		return hasSeenMessage;
+	public DownloadLastServerStateBackgroundAction getDownloadLastServerStateBackgroundAction (){ // TODO ?
+		return downloadLastServerStateBackgroundAction;
 	}
 
 	public TemporaryRecordsDeletionBackgroundAction getTemporaryRecordsDeletionBackgroundAction() {

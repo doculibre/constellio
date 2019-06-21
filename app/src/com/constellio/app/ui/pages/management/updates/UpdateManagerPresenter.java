@@ -67,6 +67,10 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 		view.showAlternateUpdatePanel(handler);
 	}
 
+	public void lastAlertRequested(){
+		view.showLastAlertDownloadPanel();
+	}
+
 	public boolean isLicensedForAutomaticUpdate() {
 		return appLayerFactory.newApplicationService().isLicensedForAutomaticUpdate();
 	}
@@ -88,6 +92,17 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 		}
 
 		return changelog;
+	}
+
+	public File getLastAlert() {
+		File lastAlert;
+		try {
+			lastAlert = appLayerFactory.newApplicationService().getLastAlertFromServer();
+		} catch (CannotConnectToServer cc) {
+			lastAlert = null;
+		}
+
+		return lastAlert;
 	}
 
 	public String getUpdateVersion() {
@@ -230,6 +245,10 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 	}
 
 	public void licenseUploadCancelled() {
+		view.showStandardUpdatePanel();
+	}
+
+	public void lastAlertDownloadCancelled(){
 		view.showStandardUpdatePanel();
 	}
 

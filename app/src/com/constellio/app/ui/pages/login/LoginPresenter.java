@@ -124,10 +124,13 @@ public class LoginPresenter extends BasePresenter<LoginView> {
 						LOGGER.error("Unable to update user : " + username, e);
 					}
 					*/
-					if (userCredential.hasAgreedToPrivacyPolicy() || getPrivacyPolicyConfigValue() == null) {
+					if (userCredential.hasAgreedToPrivacyPolicy() || getPrivacyPolicyConfigValue() == null && // TODO TEST
+																	 userCredential.hasReadLastAlert() || getLastAlertConfigValue() == null) {
 						signInValidated(userInLastCollection, lastCollection);
-					} else {
+					} else if (!userCredential.hasAgreedToPrivacyPolicy()) {
 						view.popPrivacyPolicyWindow(modelLayerFactory, userInLastCollection, lastCollection);
+					} else {
+						view.popLastAlertWindow(modelLayerFactory, userInLastCollection, lastCollection);
 					}
 				}
 			} else {
@@ -247,5 +250,40 @@ public class LoginPresenter extends BasePresenter<LoginView> {
 	public Object getPrivacyPolicyConfigValue() {
 		SystemConfigurationsManager manager = modelLayerFactory.getSystemConfigurationsManager();
 		return manager.getValue(ConstellioEIMConfigs.PRIVACY_POLICY);
+	}
+
+	public File getLastAlertFile() {
+		SystemConfigurationsManager manager = modelLayerFactory.getSystemConfigurationsManager();
+		StreamFactory<InputStream> streamFactory = manager.getValue(ConstellioEIMConfigs.LOGIN_NOTIFICATION_STATE_ALERT);
+		InputStream returnStream = null;
+		if (streamFactory != null) {
+			try {
+				returnStream = streamFactory.create("lastAlert_eimUSR");
+			} catch (IOException e) {
+				e.printStackTrace();
+				return null;
+			}
+		}
+		if (returnStream == null) {
+			return null;
+		}
+
+		File file = new File("lastAlert_eimUSR");
+		try {
+			FileUtils.copyInputStreamToFile(returnStream, file);
+			//TODO Francis file created by resource is not removed from file system
+			modelLayerFactory.getDataLayerFactory().getIOServicesFactory().newIOServices().closeQuietly(returnStream);
+		} catch (IOException e) {
+			e.printStackTrace();
+			return null;
+		} finally {
+			IOUtils.closeQuietly(returnStream);
+		}
+		return file;
+	}
+
+	private Object getLastAlertConfigValue() {
+		SystemConfigurationsManager manager = modelLayerFactory.getSystemConfigurationsManager();
+		return manager.getValue(ConstellioEIMConfigs.LOGIN_NOTIFICATION_STATE_ALERT);
 	}
 }

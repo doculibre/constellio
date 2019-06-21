@@ -458,6 +458,19 @@ public class AppManagementService {
 		return changelogURL;
 	}
 
+	public String getAlertURLFromServer()
+			throws AppManagementServiceRuntimeException.CannotConnectToServer {
+		String serverUrl = SERVER_URL + "/url/"; //TODO Put dir
+		String alertURL;
+		try {
+			alertURL = sendPost(serverUrl, getInfosToSend());
+		} catch (IOException ioe) {
+			throw new AppManagementServiceRuntimeException.CannotConnectToServer(serverUrl);
+		}
+
+		return alertURL;
+	}
+
 	public String getWarURLFromServer()
 			throws AppManagementServiceRuntimeException.CannotConnectToServer {
 		String serverUrl = SERVER_URL + "/url/";
@@ -538,6 +551,41 @@ public class AppManagementService {
 		}
 
 		return changelog;
+	}
+
+	public /*String*/ File getLastAlertFromServer()
+			throws AppManagementServiceRuntimeException.CannotConnectToServer {
+
+		return new File("C:\\Users\\Michael\\Desktop\\UserManual.pdf");
+		/*String URL_ALERT = getAlertURLFromServer();
+
+		String alert = "";
+		try {
+			InputStream stream = getInputForPost(URL_ALERT, getLicenseInfo().getSignature());
+
+			if (stream == null) {
+				throw new AppManagementServiceRuntimeException.CannotConnectToServer(URL_ALERT);
+			}
+
+			BufferedReader in = new BufferedReader(new InputStreamReader(stream));
+			try {
+				String inputLine;
+				while ((inputLine = in.readLine()) != null) {
+					alert += inputLine;
+				}
+
+				if (this.isProxyPage(alert)) {
+					throw new AppManagementServiceRuntimeException.CannotConnectToServer(URL_ALERT);
+				}
+			} finally {
+				IOUtils.closeQuietly(in);
+			}
+
+		} catch (IOException | RuntimeException io) {
+			throw new AppManagementServiceRuntimeException.CannotConnectToServer(URL_ALERT, io);
+		}
+
+		return alert;*/
 	}
 
 	public String getVersionFromServer()

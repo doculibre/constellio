@@ -6,10 +6,12 @@ import com.constellio.app.entities.modules.ProgressInfo;
 import com.constellio.app.services.appManagement.AppManagementService.LicenseInfo;
 import com.constellio.app.services.recovery.UpdateRecoveryImpossibleCause;
 import com.constellio.app.ui.framework.buttons.ConfirmDialogButton;
+import com.constellio.app.ui.framework.buttons.DownloadLink;
 import com.constellio.app.ui.framework.buttons.LinkButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.components.LocalDateLabel;
+import com.constellio.app.ui.framework.components.viewers.document.DocumentViewer;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.util.ComponentTreeUtils;
 import com.constellio.model.conf.FoldersLocator;
@@ -20,6 +22,7 @@ import com.vaadin.event.dd.acceptcriteria.AcceptAll;
 import com.vaadin.event.dd.acceptcriteria.AcceptCriterion;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.ExternalResource;
+import com.vaadin.server.FileResource;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
@@ -37,10 +40,12 @@ import com.vaadin.ui.Upload.SucceededEvent;
 import com.vaadin.ui.Upload.SucceededListener;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+import javafx.scene.layout.BackgroundFill;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.LocalDate;
 import org.vaadin.dialogs.ConfirmDialog;
 
+import java.io.File;
 import java.io.OutputStream;
 import java.util.List;
 
@@ -56,6 +61,7 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 	private Button license;
 	private Button standardUpdate;
 	private Button alternateUpdate;
+	private WindowButton lastAlert;
 	private ConfirmDialogButton reindex;
 	FoldersLocator locator = new FoldersLocator();
 
@@ -129,6 +135,27 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 			}
 		});
 		buttons.add(license);
+
+		lastAlert = new WindowButton($("UpdateManagerViewImpl.printLastAlertShort"), $("UpdateManagerViewImpl.printLastAlertLong"),
+				WindowConfiguration.modalDialog("75%", "90%")) {
+			@Override
+			protected Component buildWindowContent() {
+				VerticalLayout layout = new VerticalLayout();
+				layout.addStyleName("no-scroll");
+				layout.setSizeFull();
+
+				File lastAlert = presenter.getLastAlert();
+				DownloadLink downloadLink = new DownloadLink(new FileResource(lastAlert),
+						$("UpdateManagerViewImpl.download") + " " + lastAlert.getName());
+				DocumentViewer viewer = new DocumentViewer(lastAlert);
+
+				layout.addComponents(downloadLink, viewer);
+				layout.setExpandRatio(viewer, 1);
+
+				return layout;
+			}
+		};
+		buttons.add(lastAlert);
 
 		return buttons;
 	}
@@ -367,6 +394,17 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 		panel = restartPanel;
 	}
 
+	@Override
+	public void showLastAlertDownloadPanel() {
+		Component lastAlertPanel = buildLastAlertPanel();
+		layout.replaceComponent(panel, lastAlertPanel);
+		license.setEnabled(false);
+		reindex.setEnabled(presenter.isRestartWithReindexButtonEnabled());
+		standardUpdate.setEnabled(false);
+		alternateUpdate.setEnabled(false);
+		panel = lastAlertPanel;
+	}
+
 	private Component buildInfoItem(String caption, Object value) {
 		Label captionLabel = new Label(caption);
 		captionLabel.addStyleName(ValoTheme.LABEL_BOLD);
@@ -501,6 +539,12 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 		layout.setSpacing(true);
 
 		return layout;
+	}
+
+	private Component buildLastAlertPanel() {
+		// TODO Download link
+
+		return new Label("<p style=\"color:red\">" + $("HELLO THERE") + "</p>", ContentMode.HTML);
 	}
 
 	private Component buildRestartRequiredPanel() {

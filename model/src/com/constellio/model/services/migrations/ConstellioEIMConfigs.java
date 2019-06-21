@@ -27,16 +27,8 @@ import java.util.Map;
 import static com.constellio.model.services.migrations.TimeScheduleConfigurationValidator.isCurrentlyInSchedule;
 import org.apache.commons.lang.StringUtils;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
-
-import static com.constellio.model.services.migrations.TimeScheduleConfigurationValidator.isCurrentlyInSchedule;
 
 public class ConstellioEIMConfigs {
 
@@ -139,7 +131,7 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration BATCH_PROCESSES_SCHEDULE;
 	public static final SystemConfiguration IS_RUNNING_WITH_SOLR_6;
 	public static final SystemConfiguration PRIVACY_POLICY;
-	public static final SystemConfiguration NEW_LOGIN_NOTIFICATION ;
+	public static final SystemConfiguration LOGIN_NOTIFICATION_STATE_ALERT;
 	public static final SystemConfiguration ADD_SECONDARY_SORT_WHEN_SORTING_BY_SCORE;
 	public static final SystemConfiguration INCLUDE_FROM_FIELD_WHEN_GENERATING_EMAILS;
 
@@ -174,7 +166,7 @@ public class ConstellioEIMConfigs {
 		add(LOGO_LINK = others.createString("logoLink", "http://www.constellio.com"));
 		add(AUTHENTIFICATION_IMAGE = others.createBinary("authentificationImage"));
 		add(PRIVACY_POLICY = others.createBinary("privacyPolicy"));
-		add(NEW_LOGIN_NOTIFICATION = others.createBinary("new_notification"));
+		add(LOGIN_NOTIFICATION_STATE_ALERT = others.createBinary("loginNotificationStateAlert"));
 		add(METADATA_POPULATE_PRIORITY = others.createEnum("metadataPopulatePriority", MetadataPopulatePriority.class)
 				.withDefaultValue(MetadataPopulatePriority.STYLES_REGEX_PROPERTIES));
 		add(TITLE_METADATA_POPULATE_PRIORITY = others
