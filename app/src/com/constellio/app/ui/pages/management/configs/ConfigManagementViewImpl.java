@@ -1,7 +1,6 @@
 package com.constellio.app.ui.pages.management.configs;
 
 import com.constellio.app.ui.entities.SystemConfigurationVO;
-import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.BaseMouseOverIcon;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
@@ -14,15 +13,10 @@ import com.constellio.app.ui.framework.data.SystemConfigurationGroupdataProvider
 import com.constellio.app.ui.handlers.OnEnterKeyHandler;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.model.entities.configs.SystemConfigurationType;
-import com.google.gwt.event.dom.client.MouseOverEvent;
-import com.google.gwt.event.dom.client.MouseOverHandler;
-import com.vaadin.client.ui.Icon;
-import com.vaadin.client.ui.ImageIcon;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.validator.IntegerRangeValidator;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
-import com.vaadin.server.Resource;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.AbstractComponent;
@@ -171,16 +165,16 @@ public class ConfigManagementViewImpl extends BaseViewImpl implements ConfigMana
 		String descriptionKey = "SystemConfigurationGroup." + groupCode + "." + configVO.getCode() + ".description";
 		String configDescription = $(descriptionKey);
 		BaseMouseOverIcon baseMouseOverIcon = new BaseMouseOverIcon(new ThemeResource("images/icons/information2.png"), configDescription);
-		if(StringUtils.isBlank(configDescription) || configDescription.equals(descriptionKey)) {
+		if (StringUtils.isBlank(configDescription) || configDescription.equals(descriptionKey)) {
 			baseMouseOverIcon.setVisible(false);
 		}
 		layout.setSizeFull();
-//		field.setWidth(null);
+		//		field.setWidth(null);
 		layout.addComponents(field, baseMouseOverIcon);
 		layout.setExpandRatio(field, 1);
-//		layout.setComponentAlignment(field, Alignment.MIDDLE_LEFT);
-//		layout.setComponentAlignment(baseMouseOverIcon, Alignment.MIDDLE_LEFT);
-//		layout.setExpandRatio(baseMouseOverIcon, 1.0f);
+		//		layout.setComponentAlignment(field, Alignment.MIDDLE_LEFT);
+		//		layout.setComponentAlignment(baseMouseOverIcon, Alignment.MIDDLE_LEFT);
+		//		layout.setExpandRatio(baseMouseOverIcon, 1.0f);
 		return layout;
 	}
 
