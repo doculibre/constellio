@@ -1,11 +1,9 @@
 package com.constellio.app.ui.pages.management.updates;
 
-import com.constellio.app.api.admin.services.SystemAnalysisUtils;
 import com.constellio.app.api.extensions.UpdateModeExtension.UpdateModeHandler;
 import com.constellio.app.entities.modules.ProgressInfo;
 import com.constellio.app.entities.system.SystemMemory;
 import com.constellio.app.entities.system.SystemMemory.MemoryDetails;
-import com.constellio.app.services.appManagement.AppManagementService.LicenseInfo;
 import com.constellio.app.services.recovery.UpdateRecoveryImpossibleCause;
 import com.constellio.app.ui.framework.buttons.ConfirmDialogButton;
 import com.constellio.app.ui.framework.buttons.DownloadLink;
@@ -17,7 +15,6 @@ import com.constellio.app.ui.framework.components.viewers.document.DocumentViewe
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.util.ComponentTreeUtils;
 import com.constellio.model.conf.FoldersLocator;
-import com.constellio.model.conf.FoldersLocatorMode;
 import com.vaadin.event.dd.DragAndDropEvent;
 import com.vaadin.event.dd.DropHandler;
 import com.vaadin.event.dd.acceptcriteria.AcceptAll;
@@ -26,23 +23,13 @@ import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.ExternalResource;
 import com.vaadin.server.FileResource;
 import com.vaadin.shared.ui.label.ContentMode;
-import com.vaadin.ui.Alignment;
-import com.vaadin.ui.Button;
+import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.Link;
-import com.vaadin.ui.TextArea;
-import com.vaadin.ui.UI;
-import com.vaadin.ui.Upload;
 import com.vaadin.ui.Upload.Receiver;
 import com.vaadin.ui.Upload.SucceededEvent;
 import com.vaadin.ui.Upload.SucceededListener;
-import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
-import javafx.scene.layout.BackgroundFill;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.LocalDate;
 import org.vaadin.dialogs.ConfirmDialog;
@@ -139,6 +126,7 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 		});
 		buttons.add(license);
 
+
 		lastAlert = new WindowButton($("UpdateManagerViewImpl.printLastAlertShort"), $("UpdateManagerViewImpl.printLastAlertLong"),
 				WindowConfiguration.modalDialog("75%", "90%")) {
 			@Override
@@ -148,6 +136,7 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 				layout.setSizeFull();
 
 				File lastAlert = presenter.getLastAlert();
+
 				DownloadLink downloadLink = new DownloadLink(new FileResource(lastAlert),
 						$("UpdateManagerViewImpl.download") + " " + lastAlert.getName());
 				DocumentViewer viewer = new DocumentViewer(lastAlert);
@@ -158,6 +147,7 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 				return layout;
 			}
 		};
+		lastAlert.setVisible(presenter.getLastAlertConfigValue() != null);
 		buttons.add(lastAlert);
 
 		return buttons;
@@ -169,8 +159,8 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 		layout.setSpacing(true);
 		layout.setWidth("100%");
 
-//		WindowButton allocatedMemoryButton = buildAllocatedMemoryButton();
-//		layout.addComponent(allocatedMemoryButton);
+		//		WindowButton allocatedMemoryButton = buildAllocatedMemoryButton();
+		//		layout.addComponent(allocatedMemoryButton);
 
 		Component messagePanel = buildMessagePanel();
 		layout.addComponent(messagePanel);
@@ -179,100 +169,100 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 		layout.setSpacing(true);
 
 		showStandardUpdatePanel();
-//		layout.addComponents(buildInfoItem($("UpdateManagerViewImpl.currentVersionofConstellio"), presenter.getCurrentVersion()));
-//
-//		MemoryDetails allocatedMemoryForConstellio = SystemAnalysisUtils.getAllocatedMemoryForConstellio();
-//		if (allocatedMemoryForConstellio != null) {
-//			layout.addComponents(buildInfoItem($("UpdateManagerViewImpl.allocatedMemoryForConstellio"), allocatedMemoryForConstellio));
-//		} else {
-//			layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.allocatedMemoryForConstellio"), $("UpdateManagerViewImpl.statut")));
-//		}
-//
-//		LicenseInfo info = presenter.getLicenseInfo();
-//		if (info != null) {
-//			layout.addComponents(
-//					buildInfoItem($("UpdateManagerViewImpl.clientName"), info.getClientName()),
-//					buildInfoItem($("UpdateManagerViewImpl.expirationDate"), info.getExpirationDate()));
-//		} else {
-//			layout.addComponents(
-//					buildInfoItemRed($("UpdateManagerViewImpl.clientName"), $("UpdateManagerViewImpl.statut")),
-//					buildInfoItemRed($("UpdateManagerViewImpl.expirationDate"), $("UpdateManagerViewImpl.statut")));
-//		}
-//
-//		if (locator.getFoldersLocatorMode() != FoldersLocatorMode.WRAPPER) {
-//			layout.addComponents(
-//					buildInfoItemRed($("UpdateManagerViewImpl.versionofKernel"), $("UpdateManagerViewImpl.statut")),
-//					buildInfoItemRed($("UpdateManagerViewImpl.privatedirectoryinstalled"), $("UpdateManagerViewImpl.statut")),
-//					buildInfoItemRed($("UpdateManagerViewImpl.javaversionofwrapper"), $("UpdateManagerViewImpl.statut")),
-//					buildInfoItemRed($("UpdateManagerViewImpl.javaversionoflinux"), $("UpdateManagerViewImpl.statut")),
-//					buildInfoItemRed($("UpdateManagerViewImpl.versionofSolr"), $("UpdateManagerViewImpl.statut")),
-//					buildInfoItemRed($("UpdateManagerViewImpl.UserrunningSolr"), $("UpdateManagerViewImpl.statut")),
-//					buildInfoItemRed($("UpdateManagerViewImpl.UserrunningConstellio"), $("UpdateManagerViewImpl.statut")),
-//					buildInfoItemRed($("UpdateManagerViewImpl.diskUsageOpt"), $("UpdateManagerViewImpl.statut")),
-//					buildInfoItemRed($("UpdateManagerViewImpl.diskUsageSolr"), $("UpdateManagerViewImpl.statut")));
-//		} else {
-//			String linuxVersion = presenter.getLinuxVersion();
-//			if (presenter.isLinuxVersionDeprecated(linuxVersion)) {
-//				layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.versionofKernel"), linuxVersion));
-//			} else {
-//				layout.addComponents(buildInfoItem($("UpdateManagerViewImpl.versionofKernel"), linuxVersion));
-//			}
-//
-//			if (!presenter.isPrivateRepositoryInstalled()) {
-//				layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.privatedirectoryinstalled"), $("no")));
-//			} else {
-//				layout.addComponents(buildInfoItem($("UpdateManagerViewImpl.privatedirectoryinstalled"), $("yes")));
-//			}
-//
-//			String wrapperJavaVersion = presenter.getWrapperJavaVersion();
-//			if (presenter.isJavaVersionDeprecated(wrapperJavaVersion)) {
-//				layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.javaversionofwrapper"), wrapperJavaVersion));
-//			} else {
-//				layout.addComponents(buildInfoItem($("UpdateManagerViewImpl.javaversionofwrapper"), wrapperJavaVersion));
-//			}
-//
-//			String javaVersion = presenter.getJavaVersion();
-//			if (presenter.isJavaVersionDeprecated(javaVersion)) {
-//				layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.javaversionoflinux"), javaVersion));
-//			} else {
-//				layout.addComponents(buildInfoItem($("UpdateManagerViewImpl.javaversionoflinux"), javaVersion));
-//			}
-//
-//			String solrVersion = presenter.getSolrVersion();
-//			if (presenter.isSolrVersionDeprecated(solrVersion)) {
-//				layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.versionofSolr"), solrVersion));
-//			} else {
-//				layout.addComponents(buildInfoItem($("UpdateManagerViewImpl.versionofSolr"), solrVersion));
-//			}
-//
-//			String solrUser = presenter.getSolrUser();
-//			if (presenter.isSolrUserRoot(solrUser)) {
-//				layout.addComponents(buildInfoItem($("UpdateManagerViewImpl.UserrunningSolr"), solrUser));
-//			} else {
-//				layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.UserrunningSolr"), solrUser));
-//			}
-//
-//			String constellioUser = presenter.getConstellioUser();
-//			if (presenter.isConstellioUserRoot(constellioUser)) {
-//				layout.addComponents(buildInfoItem($("UpdateManagerViewImpl.UserrunningConstellio"), constellioUser));
-//			} else {
-//				layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.UserrunningConstellio"), constellioUser));
-//			}
-//
-//			String diskUsageOpt = presenter.getDiskUsage("/opt");
-//			if (presenter.isDiskUsageProblematic(diskUsageOpt)) {
-//				layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.diskUsageOpt"), diskUsageOpt));
-//			} else {
-//				layout.addComponents(buildInfoItem($("UpdateManagerViewImpl.diskUsageOpt"), diskUsageOpt));
-//			}
-//
-//			String diskUsageSolr = presenter.getDiskUsage("/var/solr");
-//			if (presenter.isDiskUsageProblematic(diskUsageSolr)) {
-//				layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.diskUsageSolr"), diskUsageSolr));
-//			} else {
-//				layout.addComponents(buildInfoItem($("UpdateManagerViewImpl.diskUsageSolr"), diskUsageSolr));
-//			}
-//		}
+		//		layout.addComponents(buildInfoItem($("UpdateManagerViewImpl.currentVersionofConstellio"), presenter.getCurrentVersion()));
+		//
+		//		MemoryDetails allocatedMemoryForConstellio = SystemAnalysisUtils.getAllocatedMemoryForConstellio();
+		//		if (allocatedMemoryForConstellio != null) {
+		//			layout.addComponents(buildInfoItem($("UpdateManagerViewImpl.allocatedMemoryForConstellio"), allocatedMemoryForConstellio));
+		//		} else {
+		//			layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.allocatedMemoryForConstellio"), $("UpdateManagerViewImpl.statut")));
+		//		}
+		//
+		//		LicenseInfo info = presenter.getLicenseInfo();
+		//		if (info != null) {
+		//			layout.addComponents(
+		//					buildInfoItem($("UpdateManagerViewImpl.clientName"), info.getClientName()),
+		//					buildInfoItem($("UpdateManagerViewImpl.expirationDate"), info.getExpirationDate()));
+		//		} else {
+		//			layout.addComponents(
+		//					buildInfoItemRed($("UpdateManagerViewImpl.clientName"), $("UpdateManagerViewImpl.statut")),
+		//					buildInfoItemRed($("UpdateManagerViewImpl.expirationDate"), $("UpdateManagerViewImpl.statut")));
+		//		}
+		//
+		//		if (locator.getFoldersLocatorMode() != FoldersLocatorMode.WRAPPER) {
+		//			layout.addComponents(
+		//					buildInfoItemRed($("UpdateManagerViewImpl.versionofKernel"), $("UpdateManagerViewImpl.statut")),
+		//					buildInfoItemRed($("UpdateManagerViewImpl.privatedirectoryinstalled"), $("UpdateManagerViewImpl.statut")),
+		//					buildInfoItemRed($("UpdateManagerViewImpl.javaversionofwrapper"), $("UpdateManagerViewImpl.statut")),
+		//					buildInfoItemRed($("UpdateManagerViewImpl.javaversionoflinux"), $("UpdateManagerViewImpl.statut")),
+		//					buildInfoItemRed($("UpdateManagerViewImpl.versionofSolr"), $("UpdateManagerViewImpl.statut")),
+		//					buildInfoItemRed($("UpdateManagerViewImpl.UserrunningSolr"), $("UpdateManagerViewImpl.statut")),
+		//					buildInfoItemRed($("UpdateManagerViewImpl.UserrunningConstellio"), $("UpdateManagerViewImpl.statut")),
+		//					buildInfoItemRed($("UpdateManagerViewImpl.diskUsageOpt"), $("UpdateManagerViewImpl.statut")),
+		//					buildInfoItemRed($("UpdateManagerViewImpl.diskUsageSolr"), $("UpdateManagerViewImpl.statut")));
+		//		} else {
+		//			String linuxVersion = presenter.getLinuxVersion();
+		//			if (presenter.isLinuxVersionDeprecated(linuxVersion)) {
+		//				layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.versionofKernel"), linuxVersion));
+		//			} else {
+		//				layout.addComponents(buildInfoItem($("UpdateManagerViewImpl.versionofKernel"), linuxVersion));
+		//			}
+		//
+		//			if (!presenter.isPrivateRepositoryInstalled()) {
+		//				layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.privatedirectoryinstalled"), $("no")));
+		//			} else {
+		//				layout.addComponents(buildInfoItem($("UpdateManagerViewImpl.privatedirectoryinstalled"), $("yes")));
+		//			}
+		//
+		//			String wrapperJavaVersion = presenter.getWrapperJavaVersion();
+		//			if (presenter.isJavaVersionDeprecated(wrapperJavaVersion)) {
+		//				layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.javaversionofwrapper"), wrapperJavaVersion));
+		//			} else {
+		//				layout.addComponents(buildInfoItem($("UpdateManagerViewImpl.javaversionofwrapper"), wrapperJavaVersion));
+		//			}
+		//
+		//			String javaVersion = presenter.getJavaVersion();
+		//			if (presenter.isJavaVersionDeprecated(javaVersion)) {
+		//				layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.javaversionoflinux"), javaVersion));
+		//			} else {
+		//				layout.addComponents(buildInfoItem($("UpdateManagerViewImpl.javaversionoflinux"), javaVersion));
+		//			}
+		//
+		//			String solrVersion = presenter.getSolrVersion();
+		//			if (presenter.isSolrVersionDeprecated(solrVersion)) {
+		//				layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.versionofSolr"), solrVersion));
+		//			} else {
+		//				layout.addComponents(buildInfoItem($("UpdateManagerViewImpl.versionofSolr"), solrVersion));
+		//			}
+		//
+		//			String solrUser = presenter.getSolrUser();
+		//			if (presenter.isSolrUserRoot(solrUser)) {
+		//				layout.addComponents(buildInfoItem($("UpdateManagerViewImpl.UserrunningSolr"), solrUser));
+		//			} else {
+		//				layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.UserrunningSolr"), solrUser));
+		//			}
+		//
+		//			String constellioUser = presenter.getConstellioUser();
+		//			if (presenter.isConstellioUserRoot(constellioUser)) {
+		//				layout.addComponents(buildInfoItem($("UpdateManagerViewImpl.UserrunningConstellio"), constellioUser));
+		//			} else {
+		//				layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.UserrunningConstellio"), constellioUser));
+		//			}
+		//
+		//			String diskUsageOpt = presenter.getDiskUsage("/opt");
+		//			if (presenter.isDiskUsageProblematic(diskUsageOpt)) {
+		//				layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.diskUsageOpt"), diskUsageOpt));
+		//			} else {
+		//				layout.addComponents(buildInfoItem($("UpdateManagerViewImpl.diskUsageOpt"), diskUsageOpt));
+		//			}
+		//
+		//			String diskUsageSolr = presenter.getDiskUsage("/var/solr");
+		//			if (presenter.isDiskUsageProblematic(diskUsageSolr)) {
+		//				layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.diskUsageSolr"), diskUsageSolr));
+		//			} else {
+		//				layout.addComponents(buildInfoItem($("UpdateManagerViewImpl.diskUsageSolr"), diskUsageSolr));
+		//			}
+		//		}
 		return layout;
 	}
 

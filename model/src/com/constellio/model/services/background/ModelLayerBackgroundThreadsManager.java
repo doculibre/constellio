@@ -12,9 +12,7 @@ import org.joda.time.Duration;
 
 import static com.constellio.data.threads.BackgroundThreadConfiguration.repeatingAction;
 import static com.constellio.data.threads.BackgroundThreadExceptionHandling.CONTINUE;
-import static org.joda.time.Duration.standardHours;
-import static org.joda.time.Duration.standardMinutes;
-import static org.joda.time.Duration.standardSeconds;
+import static org.joda.time.Duration.*;
 
 public class ModelLayerBackgroundThreadsManager implements StatefulService {
 
@@ -22,7 +20,6 @@ public class ModelLayerBackgroundThreadsManager implements StatefulService {
 
 	ModelLayerFactory modelLayerFactory;
 	BackgroundThreadsManager backgroundThreadsManager;
-	DownloadLastServerStateBackgroundAction downloadLastServerStateBackgroundAction;
 	RecordsReindexingBackgroundAction recordsReindexingBackgroundAction;
 	TemporaryRecordsDeletionBackgroundAction temporaryRecordsDeletionBackgroundAction;
 	AuthorizationWithTimeRangeTokenUpdateBackgroundAction authorizationWithTimeRangeTokenUpdateBackgroundAction;
@@ -40,11 +37,6 @@ public class ModelLayerBackgroundThreadsManager implements StatefulService {
 		backgroundThreadsManager.configure(repeatingAction("recordsReindexingBackgroundAction",
 				recordsReindexingBackgroundAction)
 				.executedEvery(standardSeconds(120)).handlingExceptionWith(CONTINUE));
-
-		downloadLastServerStateBackgroundAction = new DownloadLastServerStateBackgroundAction();
-		backgroundThreadsManager.configure(repeatingAction("downloadLastServerStateBackgroundAction",
-				downloadLastServerStateBackgroundAction)
-				.executedEvery(standardSeconds(1)).handlingExceptionWith(CONTINUE)); // TODO set hours and i18n
 
 		ModelLayerConfiguration configuration = modelLayerFactory.getConfiguration();
 		backgroundThreadsManager.configure(BackgroundThreadConfiguration.repeatingAction("removeTimedOutTokens", new Runnable() {
@@ -92,10 +84,6 @@ public class ModelLayerBackgroundThreadsManager implements StatefulService {
 
 	public RecordsReindexingBackgroundAction getRecordsReindexingBackgroundAction() {
 		return recordsReindexingBackgroundAction;
-	}
-
-	public DownloadLastServerStateBackgroundAction getDownloadLastServerStateBackgroundAction (){ // TODO ?
-		return downloadLastServerStateBackgroundAction;
 	}
 
 	public TemporaryRecordsDeletionBackgroundAction getTemporaryRecordsDeletionBackgroundAction() {

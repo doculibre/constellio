@@ -12,7 +12,6 @@ import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.data.utils.ImpossibleRuntimeException;
-import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.UserDocument;
@@ -127,7 +126,7 @@ public class LoginPresenter extends BasePresenter<LoginView> {
 					*/
 					if (!userCredential.hasAgreedToPrivacyPolicy() && getPrivacyPolicyConfigValue() != null) {
 						view.popPrivacyPolicyWindow(modelLayerFactory, userInLastCollection, lastCollection);
-					} else if (!userCredential.hasReadLastAlert()){
+					} else if (!userCredential.hasReadLastAlert() && getLastAlertConfigValue() != null) {
 						view.popLastAlertWindow(modelLayerFactory, userInLastCollection, lastCollection);
 					} else {
 						signInValidated(userInLastCollection, lastCollection);
@@ -253,12 +252,36 @@ public class LoginPresenter extends BasePresenter<LoginView> {
 	}
 
 	public File getLastAlertFile() {
-		File lastAlert = new FoldersLocator().getLastAlertFile();
+		SystemConfigurationsManager manager = modelLayerFactory.getSystemConfigurationsManager();
+		StreamFactory<InputStream> streamFactory = manager.getValue(ConstellioEIMConfigs.LOGIN_NOTIFICATION_STATE_ALERT);
+		InputStream returnStream = null;
+		if (streamFactory != null) {
+			try {
+				returnStream = streamFactory.create("lastAlert.pdf");
+			} catch (IOException e) {
+				e.printStackTrace();
+				return null;
+			}
+		}
+		if (returnStream == null) {
+			return null;
+		}
 
-		return lastAlert.exists() ? lastAlert : null;
+		File file = new File("lastAlert.pdf");
+		try {
+			FileUtils.copyInputStreamToFile(returnStream, file);
+			//TODO Francis file created by resource is not removed from file system
+			modelLayerFactory.getDataLayerFactory().getIOServicesFactory().newIOServices().closeQuietly(returnStream);
+		} catch (IOException e) {
+			e.printStackTrace();
+			return null;
+		} finally {
+			IOUtils.closeQuietly(returnStream);
+		}
+		return file;
 	}
 
-	private Object getLastAlertConfigValue() {
+	public Object getLastAlertConfigValue() {
 		SystemConfigurationsManager manager = modelLayerFactory.getSystemConfigurationsManager();
 		return manager.getValue(ConstellioEIMConfigs.LOGIN_NOTIFICATION_STATE_ALERT);
 	}

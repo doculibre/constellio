@@ -12,6 +12,7 @@ import com.constellio.app.services.recovery.UpgradeAppRecoveryServiceImpl;
 import com.constellio.app.services.systemInformations.SystemInformationsService;
 import com.constellio.app.servlet.ConstellioMonitoringServlet;
 import com.constellio.app.ui.pages.base.BasePresenter;
+import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.conf.FoldersLocatorMode;
@@ -20,19 +21,18 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.services.configs.SystemConfigurationsManager;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.reindexing.ReindexationMode;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 
 import static com.constellio.app.services.migrations.VersionsComparator.isFirstVersionBeforeSecond;
 import static com.constellio.app.services.recovery.UpdateRecoveryImpossibleCause.TOO_SHORT_SPACE;
@@ -95,10 +95,38 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 	}
 
 	public File getLastAlert() {
-		File lastAlert;
-		lastAlert = new FoldersLocator().getLastAlertFile();/*appLayerFactory.newApplicationService().getLastAlertFromServer();*/
+		SystemConfigurationsManager manager = modelLayerFactory.getSystemConfigurationsManager();
+		StreamFactory<InputStream> streamFactory = manager.getValue(ConstellioEIMConfigs.LOGIN_NOTIFICATION_STATE_ALERT);
+		InputStream returnStream = null;
+		if (streamFactory != null) {
+			try {
+				returnStream = streamFactory.create("lastAlert.pdf");
+			} catch (IOException e) {
+				e.printStackTrace();
+				return null;
+			}
+		}
+		if (returnStream == null) {
+			return null;
+		}
 
-		return lastAlert.exists() ? lastAlert : null;
+		File file = new File("lastAlert.pdf");
+		try {
+			FileUtils.copyInputStreamToFile(returnStream, file);
+			//TODO Francis file created by resource is not removed from file system
+			modelLayerFactory.getDataLayerFactory().getIOServicesFactory().newIOServices().closeQuietly(returnStream);
+		} catch (IOException e) {
+			e.printStackTrace();
+			return null;
+		} finally {
+			IOUtils.closeQuietly(returnStream);
+		}
+		return file;
+	}
+
+	public Object getLastAlertConfigValue() {
+		SystemConfigurationsManager manager = modelLayerFactory.getSystemConfigurationsManager();
+		return manager.getValue(ConstellioEIMConfigs.LOGIN_NOTIFICATION_STATE_ALERT);
 	}
 
 	public String getUpdateVersion() {
