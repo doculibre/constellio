@@ -6,6 +6,7 @@ import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.search.SearchServices;
@@ -142,5 +143,17 @@ public class CartUtil {
 			}
 		}
 		return ids;
+	}
+
+	public List<Record> getCartRecords(String cartId) {
+		List<Record> records = new ArrayList<>();
+		LogicalSearchQuery logicalSearchQuery = getCartFoldersLogicalSearchQuery(cartId);
+		SearchServices searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
+		records.addAll(searchServices.search(logicalSearchQuery));
+		logicalSearchQuery = getCartDocumentsLogicalSearchQuery(cartId);
+		records.addAll((searchServices.search(logicalSearchQuery)));
+		logicalSearchQuery = getCartContainersLogicalSearchQuery(cartId);
+		records.addAll((searchServices.search(logicalSearchQuery)));
+		return records;
 	}
 }
