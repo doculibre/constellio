@@ -12,7 +12,6 @@ import com.constellio.app.services.recovery.UpgradeAppRecoveryServiceImpl;
 import com.constellio.app.services.systemInformations.SystemInformationsService;
 import com.constellio.app.servlet.ConstellioMonitoringServlet;
 import com.constellio.app.ui.pages.base.BasePresenter;
-import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.conf.FoldersLocatorMode;
@@ -27,12 +26,15 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.reindexing.ReindexationMode;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 
 import static com.constellio.app.services.migrations.VersionsComparator.isFirstVersionBeforeSecond;
 import static com.constellio.app.services.recovery.UpdateRecoveryImpossibleCause.TOO_SHORT_SPACE;
@@ -67,10 +69,6 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 		view.showAlternateUpdatePanel(handler);
 	}
 
-	public void lastAlertRequested(){
-		view.showLastAlertDownloadPanel();
-	}
-
 	public boolean isLicensedForAutomaticUpdate() {
 		return appLayerFactory.newApplicationService().isLicensedForAutomaticUpdate();
 	}
@@ -96,32 +94,9 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 
 	public File getLastAlert() {
 		SystemConfigurationsManager manager = modelLayerFactory.getSystemConfigurationsManager();
-		StreamFactory<InputStream> streamFactory = manager.getValue(ConstellioEIMConfigs.LOGIN_NOTIFICATION_STATE_ALERT);
-		InputStream returnStream = null;
-		if (streamFactory != null) {
-			try {
-				returnStream = streamFactory.create("lastAlert.pdf");
-			} catch (IOException e) {
-				e.printStackTrace();
-				return null;
-			}
-		}
-		if (returnStream == null) {
-			return null;
-		}
+		File lastAlert = manager.getFileFromValue(ConstellioEIMConfigs.LOGIN_NOTIFICATION_STATE_ALERT, "lastAlert.pdf");
 
-		File file = new File("lastAlert.pdf");
-		try {
-			FileUtils.copyInputStreamToFile(returnStream, file);
-			//TODO Francis file created by resource is not removed from file system
-			modelLayerFactory.getDataLayerFactory().getIOServicesFactory().newIOServices().closeQuietly(returnStream);
-		} catch (IOException e) {
-			e.printStackTrace();
-			return null;
-		} finally {
-			IOUtils.closeQuietly(returnStream);
-		}
-		return file;
+		return lastAlert;
 	}
 
 	public Object getLastAlertConfigValue() {
@@ -269,10 +244,6 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 	}
 
 	public void licenseUploadCancelled() {
-		view.showStandardUpdatePanel();
-	}
-
-	public void lastAlertDownloadCancelled(){
 		view.showStandardUpdatePanel();
 	}
 

@@ -14,8 +14,6 @@ public interface UpdateManagerView extends BaseView, ManualUpdateHandlerView {
 
 	void showRestartRequiredPanel();
 
-	void showLastAlertDownloadPanel();
-
 	ProgressInfo openProgressPopup();
 
 	void closeProgressPopup();

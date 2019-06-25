@@ -43,11 +43,13 @@ import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.utils.InstanciationUtils;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.EnumUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
@@ -551,5 +553,34 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 		});
 
 		return nonHidden;
+	}
+
+	public File getFileFromValue(SystemConfiguration config, String fileNameToReturn) {
+		StreamFactory<InputStream> streamFactory = this.getValue(config);
+		InputStream returnStream = null;
+		if (streamFactory != null) {
+			try {
+				returnStream = streamFactory.create(fileNameToReturn);
+			} catch (IOException e) {
+				e.printStackTrace();
+				return null;
+			}
+		}
+		if (returnStream == null) {
+			return null;
+		}
+
+		File file = new File(fileNameToReturn);
+		try {
+			FileUtils.copyInputStreamToFile(returnStream, file);
+			//TODO Francis file created by resource is not removed from file system
+			modelLayerFactory.getDataLayerFactory().getIOServicesFactory().newIOServices().closeQuietly(returnStream);
+		} catch (IOException e) {
+			e.printStackTrace();
+			return null;
+		} finally {
+			IOUtils.closeQuietly(returnStream);
+		}
+		return file;
 	}
 }

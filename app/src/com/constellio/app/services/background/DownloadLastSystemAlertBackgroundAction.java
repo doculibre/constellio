@@ -28,11 +28,27 @@ public class DownloadLastSystemAlertBackgroundAction implements Runnable {
 	private AppLayerFactory appLayerFactory;
 	private ModelLayerFactory modelLayerFactory;
 	private SchemasRecordsServices schemasRecordsServices;
+	private SystemConfigurationsManager manager;
 
 	public DownloadLastSystemAlertBackgroundAction(AppLayerFactory appLayerFactory) {
 		this.appLayerFactory = appLayerFactory;
 		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
-		schemasRecordsServices = SchemasRecordsServices.usingMainModelLayerFactory(Collection.SYSTEM_COLLECTION, modelLayerFactory);
+		this.schemasRecordsServices = SchemasRecordsServices.usingMainModelLayerFactory(Collection.SYSTEM_COLLECTION, modelLayerFactory);
+		this.manager = modelLayerFactory.getSystemConfigurationsManager();
+
+		try {
+			getOldAlertHash();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private void getOldAlertHash() throws IOException {
+		File lastAlertFromValue = manager.getFileFromValue(ConstellioEIMConfigs.LOGIN_NOTIFICATION_STATE_ALERT, "lastAlert.pdf");
+
+		if (null != lastAlertFromValue) {
+			oldAlertHash = calculateFileAlertHash(lastAlertFromValue);
+		}
 	}
 
 	@Override
@@ -40,28 +56,35 @@ public class DownloadLastSystemAlertBackgroundAction implements Runnable {
 		System.out.println("DownloadLastSystemAlertBackgroundAction @ " + new Date());
 
 		downloadLastAlertFromServer();
-		try {
-			calculateNewAlertHash();
-		} catch (IOException e) { //TODO handle better
-			e.printStackTrace();
-		}
 
-		if (!isOldAndNewAlertHashEquals()) {
-			resetHasReadLastAlertMetadataOnUsers();
-			copyNewAlertFileToConfigValue();
-			oldAlertHash = newAlertHash;
-			newAlertHash = null;
+		if (null != newAlert) {
+			try {
+				newAlertHash = calculateFileAlertHash(newAlert);
+			} catch (IOException e) { //TODO handle better
+				e.printStackTrace();
+			}
+
+			if (!isOldAndNewAlertHashEquals()) {
+				resetHasReadLastAlertMetadataOnUsers();
+				copyNewAlertFileToConfigValue();
+				oldAlertHash = newAlertHash;
+				newAlertHash = null;
+			}
 		}
 	}
 
 	private void downloadLastAlertFromServer() {
 		//TODO get file from update server
 		newAlert = new File("C:\\Users\\Michael\\Desktop\\UserManual.pdf");
+
+		if (!newAlert.exists()) {
+			newAlert = null;
+		}
 	}
 
-	private void calculateNewAlertHash() throws IOException {
+	private String calculateFileAlertHash(File fileToHash) throws IOException {
 		ContentManager contentManager = new ContentManager(modelLayerFactory);
-		newAlertHash = contentManager.upload(newAlert).getHash();
+		return contentManager.upload(fileToHash).getHash();
 	}
 
 	private boolean isOldAndNewAlertHashEquals() {
@@ -92,7 +115,7 @@ public class DownloadLastSystemAlertBackgroundAction implements Runnable {
 			}
 		};
 
-		SystemConfigurationsManager manager = modelLayerFactory.getSystemConfigurationsManager();
 		manager.setValue(ConstellioEIMConfigs.LOGIN_NOTIFICATION_STATE_ALERT, streamFactory);
+		newAlert = null;
 	}
 }

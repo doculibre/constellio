@@ -303,7 +303,7 @@ public class UserCredential extends RecordWrapper {
 		return this;
 	}
 
-	public boolean hasReadLastAlert() { // TODO
+	public boolean hasReadLastAlert() {
 		return Boolean.TRUE.equals(get(HAS_READ_LAST_ALERT));
 	}
 

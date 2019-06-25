@@ -23,12 +23,21 @@ import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.ExternalResource;
 import com.vaadin.server.FileResource;
 import com.vaadin.shared.ui.label.ContentMode;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Alignment;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.Link;
+import com.vaadin.ui.TextArea;
+import com.vaadin.ui.UI;
+import com.vaadin.ui.Upload;
 import com.vaadin.ui.Upload.Receiver;
 import com.vaadin.ui.Upload.SucceededEvent;
 import com.vaadin.ui.Upload.SucceededListener;
+import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.LocalDate;
@@ -388,17 +397,6 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 		panel = restartPanel;
 	}
 
-	@Override
-	public void showLastAlertDownloadPanel() {
-		Component lastAlertPanel = buildLastAlertPanel();
-		layout.replaceComponent(panel, lastAlertPanel);
-		license.setEnabled(false);
-		reindex.setEnabled(presenter.isRestartWithReindexButtonEnabled());
-		standardUpdate.setEnabled(false);
-		alternateUpdate.setEnabled(false);
-		panel = lastAlertPanel;
-	}
-
 	private Component buildInfoItem(String caption, Object value) {
 		Label captionLabel = new Label(caption);
 		captionLabel.addStyleName(ValoTheme.LABEL_BOLD);
@@ -533,12 +531,6 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 		layout.setSpacing(true);
 
 		return layout;
-	}
-
-	private Component buildLastAlertPanel() {
-		// TODO Download link
-
-		return new Label("<p style=\"color:red\">" + $("HELLO THERE") + "</p>", ContentMode.HTML);
 	}
 
 	private Component buildRestartRequiredPanel() {
