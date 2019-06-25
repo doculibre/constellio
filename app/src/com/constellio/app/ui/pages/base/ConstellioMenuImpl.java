@@ -1,5 +1,16 @@
 package com.constellio.app.ui.pages.base;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.io.InputStream;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
+
 import com.constellio.app.entities.system.SystemInfo;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
@@ -19,7 +30,6 @@ import com.vaadin.server.Page;
 import com.vaadin.server.StreamResource;
 import com.vaadin.server.StreamResource.StreamSource;
 import com.vaadin.server.ThemeResource;
-import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
@@ -27,27 +37,13 @@ import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CssLayout;
 import com.vaadin.ui.CustomComponent;
-import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.MenuBar;
 import com.vaadin.ui.MenuBar.Command;
 import com.vaadin.ui.MenuBar.MenuItem;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
-import com.vaadin.ui.VerticalSplitPanel;
 import com.vaadin.ui.themes.ValoTheme;
-import org.apache.commons.lang3.StringUtils;
-
-import java.io.InputStream;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.vaadin.ui.themes.ValoTheme.BUTTON_SMALL;
-import static com.vaadin.ui.themes.ValoTheme.BUTTON_TINY;
 
 /**
  * A responsive menu component providing user information and the controls for
@@ -182,60 +178,41 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 			@Override
 			protected Component buildWindowContent() {
 				VerticalLayout mainLayout = new VerticalLayout();
+				mainLayout.addStyleName("system-state-window-layout");
+				
 				SystemInfo systemInfo = SystemInfo.getInstance();
-				Label updateTimeComponent = new Label($("SystemInfo.lastTimeUpdated", systemInfo.getLastTimeUpdated().toString("HH:mm:ss")));
-				updateTimeComponent.addStyleName(ValoTheme.LABEL_SMALL);
-				mainLayout.addComponent(updateTimeComponent);
-				mainLayout.setComponentAlignment(updateTimeComponent, Alignment.TOP_LEFT);
+				Label updateTimeLabel = new Label($("SystemInfo.lastTimeUpdated", systemInfo.getLastTimeUpdated().toString("HH:mm:ss")));
+				updateTimeLabel.addStyleName("system-state-window-update-time");
+				mainLayout.addComponent(updateTimeLabel);
+				mainLayout.setComponentAlignment(updateTimeLabel, Alignment.TOP_LEFT);
 
 				ValidationErrors validationErrors = systemInfo.getValidationErrors();
 
-				if(!validationErrors.getValidationErrors().isEmpty()) {
+				if (!validationErrors.getValidationErrors().isEmpty()) {
 					mainLayout.addComponent(buildStatesComponent("errors", validationErrors.getValidationErrors()));
 				}
 
-				if(!validationErrors.getValidationWarnings().isEmpty()) {
+				if (!validationErrors.getValidationWarnings().isEmpty()) {
 					mainLayout.addComponent(buildStatesComponent("warnings", validationErrors.getValidationWarnings()));
 				}
 
-				if(!validationErrors.getValidationLogs().isEmpty()) {
+				if (!validationErrors.getValidationLogs().isEmpty()) {
 					mainLayout.addComponent(buildStatesComponent("logs", validationErrors.getValidationLogs()));
 				}
-
 				return mainLayout;
 			}
 
 			private Component buildStatesComponent(String criticity, List<ValidationError> validationErrors) {
 				VerticalLayout mainLayout = new VerticalLayout();
-				String backgroundColor = "yellowgreen";
-				switch (criticity) {
-					case "errors":
-						backgroundColor = "lightsalmon";
-						break;
-					case "warnings":
-						backgroundColor = "gold";
-						break;
-					case "logs":
-						backgroundColor = "yellowgreen";
-						break;
+				mainLayout.addStyleName("system-state-component");
+				mainLayout.addStyleName("system-state-component-" + criticity);
+				mainLayout.setCaption($("SystemInfo." + criticity));
+				
+				for (ValidationError error: validationErrors) {
+					Label validationErrorLabel = new Label($(error));
+					validationErrorLabel.addStyleName("system-state-component-validation-error");
+					mainLayout.addComponent(validationErrorLabel);
 				}
-
-				StringBuilder statesText = new StringBuilder();
-				StringBuilder colorIndicator = new StringBuilder();
-				statesText.append("<ul>");
-				for(ValidationError error: validationErrors) {
-					statesText.append("<li>" + $(error) + "</li>");
-					colorIndicator.append("&nbsp;<br>");
-				}
-				statesText.append("</ul>");
-				Label contentComponent = new Label(statesText.toString(), ContentMode.HTML);
-
-				HorizontalLayout contentLayout = new HorizontalLayout();
-				contentLayout.addComponents(new Label("<p style=\"background-color:" + backgroundColor + "\">" + colorIndicator.toString() + "</p>", ContentMode.HTML), contentComponent);
-
-				Label mainLayoutTitle = new Label($("SystemInfo." + criticity));
-				mainLayoutTitle.addStyleName(ValoTheme.LABEL_LARGE);
-				mainLayout.addComponents(mainLayoutTitle, contentLayout);
 				return mainLayout;
 			}
 
@@ -244,9 +221,10 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 				return presenter.hasUserRightToViewSystemState();
 			}
 		};
-		systemStateButton.addStyleName(BUTTON_TINY);
-		refreshSystemStateButton();
+		systemStateButton.addStyleName(ValoTheme.BUTTON_TINY);
 		systemStateButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
+		systemStateButton.addStyleName("constellio-menu-system-state-button");
+		refreshSystemStateButton();
 
 		UI.getCurrent().getNavigator().addViewChangeListener(new ViewChangeListener() {
 			@Override
@@ -302,17 +280,13 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 
 	private void refreshSystemStateButton() {
 		ValidationErrors validationErrors = SystemInfo.getInstance().getValidationErrors();
-		if(!validationErrors.isEmpty()) {
+		if (!validationErrors.isEmpty()) {
 			systemStateButton.setIcon(new ThemeResource("images/commun/error.gif"));
 		} else if (!validationErrors.isEmptyErrorAndWarnings()) {
 			systemStateButton.setIcon(new ThemeResource("images/commun/warning.png"));
 		} else {
 			systemStateButton.setIcon(new ThemeResource("images/commun/greenCircle.png"));
 		}
-	}
-
-	private void getSystemStateConditions() {
-		systemStateButton.setVisible(true);
 	}
 
 	@Override

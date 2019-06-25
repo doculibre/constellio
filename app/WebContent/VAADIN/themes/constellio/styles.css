@@ -12832,28 +12832,28 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .v-table-cell-content-file-icon-orange_hybrid_folder_frozen_opened {
- 	background-image: url('images/icons/folder2/orange_hybrid_folder_frozen_opened.png');
- 	background-repeat: no-repeat;
- 	background-position: 2px 10px;
- }
+	background-image: url('images/icons/folder2/orange_hybrid_folder_frozen_opened.png');
+	background-repeat: no-repeat;
+	background-position: 2px 10px;
+}
 
- .constellio .v-table-cell-content-file-icon-orange_hybrid_folder_frozen_opened .v-table-cell-wrapper {
- 	position: relative;
- 	text-align: left;
- 	left: 20px;
- }
+.constellio .v-table-cell-content-file-icon-orange_hybrid_folder_frozen_opened .v-table-cell-wrapper {
+	position: relative;
+	text-align: left;
+	left: 20px;
+}
 
- .constellio .v-table-cell-content-file-icon-orange_hybrid_folder_frozen_closed {
- 	background-image: url('images/icons/folder2/orange_hybrid_folder_frozen_closed.png');
- 	background-repeat: no-repeat;
- 	background-position: 2px 10px;
- }
+.constellio .v-table-cell-content-file-icon-orange_hybrid_folder_frozen_closed {
+	background-image: url('images/icons/folder2/orange_hybrid_folder_frozen_closed.png');
+	background-repeat: no-repeat;
+	background-position: 2px 10px;
+}
 
- .constellio .v-table-cell-content-file-icon-orange_hybrid_folder_frozen_closed .v-table-cell-wrapper {
- 	position: relative;
- 	text-align: left;
- 	left: 20px;
- }
+.constellio .v-table-cell-content-file-icon-orange_hybrid_folder_frozen_closed .v-table-cell-wrapper {
+	position: relative;
+	text-align: left;
+	left: 20px;
+}
 
 .constellio .v-table-cell-content-file-icon-orange_hybrid_folder_locked_closed {
 	background-image: url('images/icons/folder2/orange_hybrid_folder_locked_closed.png');
@@ -13753,12 +13753,60 @@ div.v-layout.v-horizontal.v-widget {
 	padding-top: 25px;
 }
 
+.constellio .base-window .v-scrollable .system-state-window-layout {
+	padding-top: 0px;
+}
+
 .constellio .base-window .v-scrollable .v-panel .v-scrollable {
 	overflow: auto;
 }
 
 .constellio .base-window .v-table .v-scrollable {
 	overflow: auto;
+}
+
+.constellio .constellio-menu-system-state-button {
+	margin: 0.3em 0px 0px;
+}
+
+.constellio .constellio-menu-system-state-button:hover {
+	color: white;
+}
+
+.constellio .v-slot-system-state-window-update-time {
+	float: right;
+	margin-bottom: -24px;
+}
+
+.constellio .v-slot-system-state-component .v-captiontext {
+	font-weight: bold;
+	font-size: 16px;
+}
+
+.constellio .system-state-component {
+	text-align: center;
+	margin-bottom: 10px;
+}
+
+.constellio .system-state-component .v-slot-system-state-component-validation-error {
+	padding: 0px 2px;
+}
+
+.constellio .system-state-component .system-state-component-validation-error {
+	background-color: white;
+	position: relative;
+}
+
+.constellio .system-state-component-errors {
+	border: 2px solid lightsalmon;
+}
+
+.constellio .system-state-component-warnings {
+	border: 2px solid gold;
+}
+
+.constellio .system-state-component-logs {
+	border: 2px solid yellowgreen;
 }
 
 .constellio .user-documents-window {
@@ -14664,6 +14712,11 @@ div.v-layout.v-horizontal.v-widget {
 	overflow-x: auto;
 }
 
+.constellio .v-ui[width-range~="1101px-"] .constellio-menu-system-state-button {
+	position: absolute;
+	bottom: 10px;
+}
+
 .constellio .v-ui[width-range~="1101px-"] .action-menu-wrapper {
 	padding-right: 260px;
 }
@@ -14737,6 +14790,11 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .v-ui[width-range~="801-1100px"] .folder-content-table .v-scrollable {
 	overflow-x: auto;
+}
+
+.constellio .v-ui[width-range~="801-1100px"] .constellio-menu-system-state-button {
+	position: absolute;
+	bottom: 10px;
 }
 
 .constellio .v-ui[width-range~="801-1100px"] .action-menu-wrapper {
