@@ -6,6 +6,7 @@ import com.auxilii.msgparser.attachment.Attachment;
 import com.auxilii.msgparser.attachment.FileAttachment;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Cart;
+import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Email;
 import com.constellio.app.modules.rm.wrappers.FilingSpace;
@@ -13,6 +14,8 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.PrintableReport;
 import com.constellio.app.modules.rm.wrappers.RMObject;
 import com.constellio.app.modules.rm.wrappers.RMUserFolder;
+import com.constellio.app.modules.rm.wrappers.RetentionRule;
+import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
@@ -1158,6 +1161,18 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 
 	public List<AdministrativeUnit> getAllAdministrativeUnits() {
 		return wrapAdministrativeUnits(getModelLayerFactory().newSearchServices().getAllRecords(administrativeUnit.schemaType()));
+	}
+
+	public List<RetentionRule> getAllRetentionRules() {
+		return wrapRetentionRules(getModelLayerFactory().newSearchServices().getAllRecords(retentionRule.schemaType()));
+	}
+
+	public List<Category> getAllCategories() {
+		return wrapCategorys(getModelLayerFactory().newSearchServices().getAllRecords(category.schemaType()));
+	}
+
+	public List<StorageSpace> getAllStorageSpaces() {
+		return wrapStorageSpaces(getModelLayerFactory().newSearchServices().getAllRecords(storageSpace.schemaType()));
 	}
 
 	public List<AdministrativeUnit> getAllAdministrativeUnitsInUnmodifiableState() {
