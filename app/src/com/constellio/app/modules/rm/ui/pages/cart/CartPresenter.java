@@ -163,6 +163,10 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		view.navigate().to(RMViews.class).cart(cartId);
 	}
 
+	public User getCurrentUser() {
+		return super.getCurrentUser();
+	}
+
 	private void removeFromFavorite(Record record) {
 		String schemaCode = record.getSchemaCode();
 
@@ -176,6 +180,14 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 			ContainerRecord containerRecord = rm().wrapContainerRecord(record);
 			containerRecord.removeFavorite(cartId);
 		}
+	}
+
+	public Cart getCart() {
+		return cart;
+	}
+
+	public RecordVO getCartAsRecordVO() {
+		return new RecordToVOBuilder().build(cart.getWrappedRecord(), VIEW_MODE.DISPLAY, view.getSessionContext());
 	}
 
 	public boolean canPrepareEmail() {

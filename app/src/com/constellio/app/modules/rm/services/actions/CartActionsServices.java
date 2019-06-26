@@ -25,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CartRecordActionsServices {
+public class CartActionsServices {
 	private RMSchemasRecordsServices rm;
 	private RMModuleExtensions rmModuleExtensions;
 	private AppLayerFactory appLayerFactory;
@@ -37,7 +37,7 @@ public class CartRecordActionsServices {
 	private SearchServices searchServices;
 	private CartUtil cartUtil;
 
-	public CartRecordActionsServices(String collection, AppLayerFactory appLayerFactory) {
+	public CartActionsServices(String collection, AppLayerFactory appLayerFactory) {
 		this.rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		this.collection = collection;
 		this.appLayerFactory = appLayerFactory;
@@ -306,7 +306,7 @@ public class CartRecordActionsServices {
 			   && rmModuleExtensions.isCreateSIPArchvesActionPossibleOnCart(cart, user);
 	}
 
-	public boolean isConsolidatedPdfActionPossible(Record record, User user) {
+	public boolean isPrntConsolidatedPdfActionPossible(Record record, User user) {
 		Cart cart = rm.wrapCart(record);
 
 		return hasCartPermission(cart.getId(), user)
