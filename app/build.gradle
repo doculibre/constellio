@@ -133,8 +133,3 @@ configurations.archives.artifacts.with { archives ->
     }
 }
 
-configurations.all {
-    resolutionStrategy {
-        force "javax.validation:validation-api:1.0.0.GA"
-    }
-}
