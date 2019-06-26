@@ -416,7 +416,6 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		metadataGroup.setRequired(true);
 		metadataGroup.setId("metadataGroup");
 		metadataGroup.addStyleName("metadataGroup");
-		metadataGroup.setCaption(presenter.getLabel());
 		for (String itemCode : presenter.getMetadataGroupList()) {
 			metadataGroup.setItemCaption(itemCode, presenter.getGroupLabel(itemCode));
 		}
@@ -625,11 +624,6 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 
 				if (!listOptionGroupRole.isVisible()) {
 					formMetadataVO.setReadAccessRoles(new ArrayList<String>());
-				}
-
-				if(presenter.isAccessRoleAndRequired(formMetadataVO)) {
-					showErrorMessage($("AddEditMetadataView.requiredMetadataCannotBeSecureByRole"));
-					return;
 				}
 
 				try {

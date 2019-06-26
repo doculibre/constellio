@@ -1,5 +1,6 @@
 package com.constellio.app.ui.pages.collection;
 
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.entities.RoleAuthVO;
@@ -162,5 +163,9 @@ public class CollectionGroupRolesPresenter extends SingleSchemaBasePresenter<Col
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
 		return user.has(CorePermissions.MANAGE_SECURITY).globally();
+	}
+
+	public boolean isRMModuleEnabled() {
+		return this.isSchemaExisting(AdministrativeUnit.DEFAULT_SCHEMA);
 	}
 }

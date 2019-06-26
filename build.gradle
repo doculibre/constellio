@@ -15,8 +15,14 @@ subprojects {
     }
 
     configurations.all {
+		exclude group: 'com.google.gwt', module: 'gwt-dev'
+		exclude group: 'com.google.gwt', module: 'gwt-user'
+		exclude group: 'com.vaadin.external.gwt', module: 'gwt-elemental'
+		exclude group: 'com.vaadin.external.gwt', module: 'gwt-dev'
+		
         resolutionStrategy {
             force "org.apache.james:apache-mime4j:${version_mime}"
+        	force "javax.validation:validation-api:1.0.0.GA"
         }
     }
 
@@ -79,9 +85,9 @@ subprojects {
 
         compileOnly "org.projectlombok:lombok:1.16.18"
 
-		compile "com.j256.ormlite:ormlite-core:5.1"
-		compile "com.j256.ormlite:ormlite-jdbc:5.1"
-		compile "mysql:mysql-connector-java:5.1.20"
+        compile "com.j256.ormlite:ormlite-core:5.1"
+        compile "com.j256.ormlite:ormlite-jdbc:5.1"
+        compile "mysql:mysql-connector-java:5.1.20"
     }
 
     configurations {
@@ -125,6 +131,9 @@ war {
                     "Implementation-Branch-Plugins": branchPlugins)
         }
     }
+
+    baseName = "constellio"
+    version = project.VERSION\
 
     webInf {
         from("resources_i18n/") {

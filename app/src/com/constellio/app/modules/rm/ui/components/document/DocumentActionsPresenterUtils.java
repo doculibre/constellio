@@ -171,7 +171,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		} else {
 			document.addFavorite(getCurrentUser().getId());
 			try {
-				presenterUtils.recordServices().update(document);
+				presenterUtils.recordServices().update(document.getWrappedRecord(), RecordUpdateOptions.validationExceptionSafeOptions());
 			} catch (RecordServicesException e) {
 				throw new RuntimeException(e);
 			}
@@ -182,7 +182,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		Document document = rmSchemasRecordsServices.wrapDocument(presenterUtils.getRecord(documentVO.getId()));
 		document.removeFavorite(getCurrentUser().getId());
 		try {
-			presenterUtils.recordServices().update(document);
+			presenterUtils.recordServices().update(document.getWrappedRecord(), RecordUpdateOptions.validationExceptionSafeOptions());
 		} catch (RecordServicesException e) {
 			throw new RuntimeException(e);
 		}
@@ -795,7 +795,9 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 			Content content = getContent();
 			String borrowDate = DateFormatUtils.format(content.getCheckoutDateTime());
 			if (!isCurrentUserBorrower()) {
-				String borrowerCaption = SchemaCaptionUtils.getCaptionForRecordId(content.getCheckoutUserId());
+				String checkoutUserId = content.getCheckoutUserId();
+				User user = rmSchemasRecordsServices.getUser(checkoutUserId);
+				String borrowerCaption = user.getTitle();
 				String borrowedMessageKey = "DocumentActionsComponent.borrowedByOtherUser";
 				actionsComponent.setBorrowedMessage(borrowedMessageKey, borrowerCaption, borrowDate);
 			} else {
@@ -866,7 +868,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		} else {
 			Document document = rmSchemasRecordsServices.getDocument(documentVO.getId());
 			document.addFavorite(cart.getId());
-			presenterUtils.addOrUpdate(document.getWrappedRecord());
+			presenterUtils.addOrUpdate(document.getWrappedRecord(), RecordUpdateOptions.validationExceptionSafeOptions());
 			actionsComponent.showMessage($("DocumentActionsComponent.addedToCart"));
 		}
 	}

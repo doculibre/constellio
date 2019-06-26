@@ -48,6 +48,7 @@ import com.constellio.app.modules.rm.extensions.app.RMListSchemaExtention;
 import com.constellio.app.modules.rm.extensions.app.RMRecordDisplayFactoryExtension;
 import com.constellio.app.modules.rm.extensions.app.RMRecordExportExtension;
 import com.constellio.app.modules.rm.extensions.app.RMSIPExtension;
+import com.constellio.app.modules.rm.extensions.app.RMXmlGeneratorExtension;
 import com.constellio.app.modules.rm.extensions.imports.DecommissioningListImportExtension;
 import com.constellio.app.modules.rm.extensions.imports.DocumentRuleImportExtension;
 import com.constellio.app.modules.rm.extensions.imports.EventImportExtension;
@@ -143,10 +144,13 @@ import com.constellio.app.modules.rm.migrations.RMMigrationTo8_1_0_1;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo8_1_1;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo8_1_1_1;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo8_1_1_2;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo8_1_1_6;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo8_1_2;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo8_1_4;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo8_2;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo8_2_1_4;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo8_2_2_4;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo8_2_2_5;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo8_3;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo8_3_1;
 import com.constellio.app.modules.rm.migrations.records.RMContainerRecordMigrationTo7_3;
@@ -173,6 +177,7 @@ import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.RecordMigrationScript;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.Capsule;
 import com.constellio.model.entities.records.wrappers.Report;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.ThesaurusConfig;
@@ -316,10 +321,13 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		scripts.add(new RMMigrationTo8_1_1());
 		scripts.add(new RMMigrationTo8_1_1_1());
 		scripts.add(new RMMigrationTo8_1_1_2());
+		scripts.add(new RMMigrationTo8_1_1_6());
 		scripts.add(new RMMigrationTo8_1_2());
 		scripts.add(new RMMigrationTo8_1_4());
 		scripts.add(new RMMigrationTo8_2());
 		scripts.add(new RMMigrationTo8_2_1_4());
+		scripts.add(new RMMigrationTo8_2_2_4());
+		scripts.add(new RMMigrationTo8_2_2_5());
 		scripts.add(new RMMigrationTo8_3());
 		scripts.add(new RMMigrationTo8_3_1());
 
@@ -446,6 +454,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		extensions.listSchemaCommandExtensions.add(new RMListSchemaExtention());
 		extensions.pagesComponentsExtensions.add(new RMUserProfileFieldsExtension(collection, appLayerFactory));
 		extensions.sipExtensions.add(new RMSIPExtension(collection, appLayerFactory));
+		extensions.xmlGeneratorExtensions.add(new RMXmlGeneratorExtension(collection, appLayerFactory));
 
 		extensions.lockedRecords.add(RMTaskType.SCHEMA_TYPE, RMTaskType.BORROW_REQUEST);
 		extensions.lockedRecords.add(RMTaskType.SCHEMA_TYPE, RMTaskType.BORROW_EXTENSION_REQUEST);
@@ -521,6 +530,10 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 
 		if (!cache.isConfigured(ThesaurusConfig.SCHEMA_TYPE)) {
 			cache.configureCache(CacheConfig.permanentCache(rm.thesaurusConfig.schemaType()));
+		}
+
+		if (!cache.isConfigured(Capsule.SCHEMA_TYPE)) {
+			cache.configureCache(CacheConfig.permanentCache(rm.capsule.schemaType()));
 		}
 
 		cache.configureCache(CacheConfig.permanentCache(rm.category.schemaType()));

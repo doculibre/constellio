@@ -46,13 +46,15 @@ public class CollectionGroupViewImpl extends BaseViewImpl implements CollectionG
 	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
 		List<Button> buttons = super.buildActionMenuButtons(event);
 
-		Button authorizations = new AuthorizationsButton(false) {
-			@Override
-			protected void buttonClick(ClickEvent event) {
-				presenter.authorizationsButtonClicked();
-			}
-		};
-		buttons.add(authorizations);
+		if (presenter.isRMModuleEnabled()) {
+			Button authorizations = new AuthorizationsButton(false) {
+				@Override
+				protected void buttonClick(ClickEvent event) {
+					presenter.authorizationsButtonClicked();
+				}
+			};
+			buttons.add(authorizations);
+		}
 
 		Button roles = new RolesButton(false) {
 			@Override

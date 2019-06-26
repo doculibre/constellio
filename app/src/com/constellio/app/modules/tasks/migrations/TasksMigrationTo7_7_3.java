@@ -67,7 +67,6 @@ public class TasksMigrationTo7_7_3 extends MigrationHelper implements MigrationS
 
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
-			com.google.gwt.dev.javac.asm.CollectMethodData cmd;
 		}
 	}
 }

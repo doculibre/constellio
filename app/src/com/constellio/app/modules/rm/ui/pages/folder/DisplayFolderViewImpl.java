@@ -85,6 +85,7 @@ import com.vaadin.ui.Table;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
+import com.vaadin.ui.Window.CloseEvent;
 import com.vaadin.ui.themes.ValoTheme;
 import org.joda.time.LocalDate;
 import org.slf4j.Logger;
@@ -177,6 +178,11 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			@Override
 			public boolean fireValueChangeWhenEqual() {
 				return true;
+			}
+
+			@Override
+			protected void onUploadWindowClosed(CloseEvent e) {
+				presenter.refreshDocuments();
 			}
 		} ;
 		uploadField.setVisible(false);

@@ -14337,6 +14337,21 @@ div.v-layout.v-horizontal.v-widget {
 	color: #551A8B;
 }
 
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .clickable-row .v-table-body tr, .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .clickable-row .v-table-body .reference-display {
+	cursor: pointer;
+	color: #696969;
+}
+
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .clickable-row .v-table-body tr:hover, .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .clickable-row .v-table-body .reference-display:hover {
+	color: white;
+	background-color: #197de1;
+	text-decoration: none;
+}
+
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .clickable-row .v-table-body tr:hover .reference-display-link, .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .clickable-row .v-table-body .reference-display:hover .reference-display-link {
+	color: white;
+}
+
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .agent-action-link {
 	white-space: normal;
 	height: inherit;

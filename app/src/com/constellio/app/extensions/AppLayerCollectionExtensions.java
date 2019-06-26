@@ -22,7 +22,7 @@ import com.constellio.app.api.extensions.SearchPageExtension;
 import com.constellio.app.api.extensions.SelectionPanelExtension;
 import com.constellio.app.api.extensions.SystemCheckExtension;
 import com.constellio.app.api.extensions.TaxonomyPageExtension;
-import com.constellio.app.api.extensions.params.AddComponentToSearchResultParams;
+import com.constellio.app.api.extensions.XmlGeneratorExtension;
 import com.constellio.app.api.extensions.params.AddFieldsInLabelXMLParams;
 import com.constellio.app.api.extensions.params.AvailableActionsParam;
 import com.constellio.app.api.extensions.params.CollectionSystemCheckParams;
@@ -30,6 +30,7 @@ import com.constellio.app.api.extensions.params.ConvertStructureToMapParams;
 import com.constellio.app.api.extensions.params.DecorateMainComponentAfterInitExtensionParams;
 import com.constellio.app.api.extensions.params.DocumentViewButtonExtensionParam;
 import com.constellio.app.api.extensions.params.ExportCollectionInfosSIPIsTaxonomySupportedParams;
+import com.constellio.app.api.extensions.params.ExtraMetadataToGenerateOnReferenceParams;
 import com.constellio.app.api.extensions.params.FilterCapsuleParam;
 import com.constellio.app.api.extensions.params.GetAvailableExtraMetadataAttributesParam;
 import com.constellio.app.api.extensions.params.GetSearchResultSimpleTableWindowComponentParam;
@@ -170,6 +171,8 @@ public class AppLayerCollectionExtensions {
 
 	public VaultBehaviorsList<SIPExtension> sipExtensions = new VaultBehaviorsList<>();
 
+	public VaultBehaviorsList<XmlGeneratorExtension> xmlGeneratorExtensions = new VaultBehaviorsList<>();
+
 	//Key : schema type code
 	//Values : record's code
 	public KeyListMap<String, String> lockedRecords = new KeyListMap<>();
@@ -199,6 +202,13 @@ public class AppLayerCollectionExtensions {
 	public void onWriteRecord(OnWriteRecordParams params) {
 		for (RecordExportExtension recordExportExtension : recordExportExtensions) {
 			recordExportExtension.onWriteRecord(params);
+		}
+	}
+
+	public void getExtraMetadataToGenerateOnAReference(
+			ExtraMetadataToGenerateOnReferenceParams extraMetadataToGenerateOnReferenceParams) {
+		for (XmlGeneratorExtension xmlGeneratorExtension1 : xmlGeneratorExtensions) {
+			xmlGeneratorExtension1.getExtraMetadataToGenerateOnReference(extraMetadataToGenerateOnReferenceParams);
 		}
 	}
 
@@ -742,18 +752,6 @@ public class AppLayerCollectionExtensions {
 		return condition;
 	}
 
-	public List<Component> addComponentToSearchResult(AddComponentToSearchResultParams addComponentToSearchResultParams) {
-		List<Component> allComponentFound = new ArrayList();
-		for (SearchPageExtension searchPageExtension : searchPageExtensions) {
-			List<? extends Component> componentFromSingleExtentionCall = searchPageExtension.addComponentToSearchResult(
-					addComponentToSearchResultParams);
-			if (componentFromSingleExtentionCall != null && componentFromSingleExtentionCall.size() > 0 ) {
-				allComponentFound.addAll(componentFromSingleExtentionCall);
-			}
-		}
-		return allComponentFound;
-	}
-
 	public Resource getIconFromContent(GetIconPathParams params) {
 		for (RecordAppExtension extension : recordAppExtensions) {
 			Resource calculatedResource = extension.getIconFromContent(params);
@@ -801,5 +799,11 @@ public class AppLayerCollectionExtensions {
 				return extension.isExportedTaxonomyInSIPCollectionInfos(new ExportCollectionInfosSIPIsTaxonomySupportedParams(taxonomy));
 			}
 		});
+	}
+
+	public void orderListOfElements(Record[] recordElements) {
+		for (LabelTemplateExtension extension : labelTemplateExtensions) {
+			extension.orderListOfElements(recordElements);
+		}
 	}
 }

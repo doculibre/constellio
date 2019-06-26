@@ -178,4 +178,8 @@ public abstract class SingleSchemaBasePresenter<T extends BaseView> extends Base
 	protected MetadataSchema defaultSchema() {
 		return schemaPresenterUtils.defaultSchema();
 	}
+
+	protected boolean isSchemaExisting(String schemaCode) {
+		return schemaPresenterUtils.hasSchema(schemaCode);
+	}
 }

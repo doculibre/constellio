@@ -216,7 +216,7 @@ public class SearchWebServiceAcceptTest extends ConstellioTest {
 
 		QueryResponse solrDocumentsList = solrServer.query(solrParams);
 		solrDocumentsList.getResponse().getAll(SearchWebService.SKOS_CONCEPTS);
-		solrDocumentsList.getResponse().getAll(ThesaurusService.DESAMBIUGATIONS);
+		solrDocumentsList.getResponse().getAll(ThesaurusService.DISAMBIGUATIONS);
 
 	}
 

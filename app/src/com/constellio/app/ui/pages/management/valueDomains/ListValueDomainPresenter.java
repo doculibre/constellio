@@ -1,9 +1,19 @@
 package com.constellio.app.ui.pages.management.valueDomains;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.regex.Pattern;
+
 import com.constellio.app.modules.rm.services.ValueListServices;
 import com.constellio.app.ui.entities.MetadataSchemaTypeVO;
 import com.constellio.app.ui.framework.builders.MetadataSchemaTypeToVOBuilder;
 import com.constellio.app.ui.pages.base.BasePresenter;
+import com.constellio.data.utils.comparators.AbstractTextComparator;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.User;
@@ -12,13 +22,6 @@ import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimisticLocking;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.jgoodies.common.base.Strings;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.regex.Pattern;
-
-import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ListValueDomainPresenter extends BasePresenter<ListValueDomainView> {
 
@@ -95,6 +98,12 @@ public class ListValueDomainPresenter extends BasePresenter<ListValueDomainView>
 			result.add(builder.build(schemaType));
 			labels.add(schemaType.getLabel());
 		}
+		Collections.sort(result, new AbstractTextComparator<MetadataSchemaTypeVO>() {
+			@Override
+			protected String getText(MetadataSchemaTypeVO schemaTypeVO) {
+				return schemaTypeVO.getLabel();
+			}
+		});
 		return result;
 	}
 
@@ -110,6 +119,12 @@ public class ListValueDomainPresenter extends BasePresenter<ListValueDomainView>
 
 			labels.add(schemaType.getLabel());
 		}
+		Collections.sort(result, new AbstractTextComparator<MetadataSchemaTypeVO>() {
+			@Override
+			protected String getText(MetadataSchemaTypeVO schemaTypeVO) {
+				return schemaTypeVO.getLabel();
+			}
+		});
 		return result;
 	}
 

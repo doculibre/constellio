@@ -79,7 +79,8 @@ public class RMConfigs {
 			NEED_REASON_BEFORE_DELETING_FOLDERS,
 			IS_DECOMMISSIONING_TYPE_REQUIRED_IN_CONTAINERS,
 			DEPOSIT_AND_DESTRUCTION_DATES_BASED_ON_ACTUAL_TRANSFER_DATE,
-			DECOMMISSIONING_LIST_WITH_SELECTED_FOLDERS;
+			DECOMMISSIONING_LIST_WITH_SELECTED_FOLDERS,
+			NUMBER_OF_DAYS_BEFORE_PREDICTED_DECOMMISSIONING_DATE;
 
 	// Category configs
 	public static final SystemConfiguration LINKABLE_CATEGORY_MUST_NOT_BE_ROOT, LINKABLE_CATEGORY_MUST_HAVE_APPROVED_RULES;
@@ -102,14 +103,14 @@ public class RMConfigs {
 
 		// Allow to enter retention rules for documents
 		add(DOCUMENT_RETENTION_RULES = decommissioning.createBooleanFalseByDefault("documentRetentionRules")
-				.withReIndexionRequired().scriptedBy(RMDocumentRetentionRulesScript.class));
+				.withReIndexationRequired().scriptedBy(RMDocumentRetentionRulesScript.class));
 
 		// Validation exception if a folder's rule and category are not linked
 		add(ENFORCE_CATEGORY_AND_RULE_RELATIONSHIP_IN_FOLDER = decommissioning
 				.createBooleanTrueByDefault("enforceCategoryAndRuleRelationshipInFolder"));
 
 		// Is the closing date calculated or manual?
-		add(CALCULATED_CLOSING_DATE = decommissioning.createBooleanTrueByDefault("calculatedCloseDate").withReIndexionRequired());
+		add(CALCULATED_CLOSING_DATE = decommissioning.createBooleanTrueByDefault("calculatedCloseDate").withReIndexationRequired());
 
 		// Years before closing for a fixed delay (if -1, then the same as the active delay)
 		add(CALCULATED_CLOSING_DATE_NUMBER_OF_YEAR_WHEN_FIXED_RULE = decommissioning
@@ -129,12 +130,12 @@ public class RMConfigs {
 		// Years before final disposition for a semi-active open delay (if -1, then not automatically calculated)
 		add(CALCULATED_INACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_PERIOD = decommissioning
 				.createInteger("calculatedInactiveDateNumberOfYearWhenOpenRule")
-				.withDefaultValue(1).withReIndexionRequired());
+				.withDefaultValue(1).withReIndexationRequired());
 
 		// Delays are computed from the opening date (if true), or the closing date (if false)
 		add(DECOMMISSIONING_DATE_BASED_ON = decommissioning
 				.createEnum("decommissioningDateBasedOn", DecommissioningDateBasedOn.class)
-				.withDefaultValue(DecommissioningDateBasedOn.CLOSE_DATE).withReIndexionRequired());
+				.withDefaultValue(DecommissioningDateBasedOn.CLOSE_DATE).withReIndexationRequired());
 
 		// End of the civil year for the purposes of calculating the delays (MM/DD)
 		add(YEAR_END_DATE = decommissioning.createString("yearEndDate").withDefaultValue("12/31")
@@ -209,6 +210,9 @@ public class RMConfigs {
 
 		add(IS_DECOMMISSIONING_TYPE_REQUIRED_IN_CONTAINERS = decommissioning.createBooleanTrueByDefault("isDecommissioningTypeRequiredInContainers")
 				.scriptedBy(RMDecommissioningTypeRequiredScript.class));
+
+		add(NUMBER_OF_DAYS_BEFORE_PREDICTED_DECOMMISSIONING_DATE = decommissioning.createInteger("numberOfDaysBeforePredictedDecommissioningDate")
+				.withDefaultValue(0));
 
 		SystemConfigurationGroup trees = new SystemConfigurationGroup(ID, "trees");
 
@@ -300,7 +304,7 @@ public class RMConfigs {
 
 
 		add(DEPOSIT_AND_DESTRUCTION_DATES_BASED_ON_ACTUAL_TRANSFER_DATE = decommissioning
-				.createBooleanTrueByDefault("depositAndDestructionDatesBasedOnActualTransferDate").withReIndexionRequired());
+				.createBooleanTrueByDefault("depositAndDestructionDatesBasedOnActualTransferDate").withReIndexationRequired());
 
 		add(NEED_REASON_BEFORE_DELETING_FOLDERS = others.createBooleanTrueByDefault("needReasonBeforeDeletingFolders"));
 
@@ -577,6 +581,10 @@ public class RMConfigs {
 
 	public boolean isDecommissioningListWithSelectedFolders() {
 		return manager.getValue(DECOMMISSIONING_LIST_WITH_SELECTED_FOLDERS);
+	}
+
+	public int getNumberOfDaysBeforePredictedDecommissioningDate() {
+		return manager.getValue(NUMBER_OF_DAYS_BEFORE_PREDICTED_DECOMMISSIONING_DATE);
 	}
 
 }

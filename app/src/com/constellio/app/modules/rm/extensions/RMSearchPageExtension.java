@@ -9,7 +9,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.constellio.app.api.extensions.SearchPageExtension;
-import com.constellio.app.api.extensions.params.AddComponentToSearchResultParams;
 import com.constellio.app.api.extensions.params.GetSearchResultSimpleTableWindowComponentParam;
 import com.constellio.app.api.extensions.params.SearchPageConditionParam;
 import com.constellio.app.api.extensions.taxonomies.GetCustomResultDisplayParam;
@@ -32,11 +31,8 @@ import com.constellio.app.ui.pages.search.AdvancedSearchViewImpl;
 import com.constellio.app.ui.pages.search.SimpleSearchViewImpl;
 import com.constellio.data.utils.LangUtils.StringReplacer;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
-import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Component;
-import com.vaadin.ui.Label;
 
 public class RMSearchPageExtension extends SearchPageExtension {
 

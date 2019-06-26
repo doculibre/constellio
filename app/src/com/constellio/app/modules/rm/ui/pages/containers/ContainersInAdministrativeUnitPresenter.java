@@ -3,6 +3,7 @@ package com.constellio.app.modules.rm.ui.pages.containers;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
 import com.constellio.app.modules.rm.navigation.RMViews;
+import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSearchConditionFactory;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSearchConditionFactory.ContainerSearchParameters;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
@@ -40,6 +41,7 @@ public class ContainersInAdministrativeUnitPresenter extends BasePresenter<Conta
 	}
 
 	public RecordVODataProvider getChildrenAdminUnitsDataProvider() {
+		final RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		final MetadataSchemaVO schemaVO = new MetadataSchemaToVOBuilder()
 				.build(schema(AdministrativeUnit.DEFAULT_SCHEMA), VIEW_MODE.TABLE, view.getSessionContext());
 		RecordVODataProvider dataProvider = new RecordVODataProvider(schemaVO, new RecordToVOBuilder(), modelLayerFactory,
@@ -53,8 +55,8 @@ public class ContainersInAdministrativeUnitPresenter extends BasePresenter<Conta
 				MetadataSchema schema = schema(schemaVO.getCode());
 				LogicalSearchCondition condition;
 				if (!visibleAdminUnitsId.isEmpty()) {
-					condition = LogicalSearchQueryOperators.from(schema)
-							.where(schema.getMetadata(AdministrativeUnit.PARENT)).isEqualTo(adminUnitId);
+					condition = LogicalSearchQueryOperators.from(rm.administrativeUnit.schemaType())
+							.where(rm.administrativeUnit.parent()).isEqualTo(adminUnitId);
 				} else {
 					condition = LogicalSearchQueryOperators.from(schema).where(Schemas.TOKENS).isContaining(Arrays.asList("A38"));
 				}
@@ -65,6 +67,7 @@ public class ContainersInAdministrativeUnitPresenter extends BasePresenter<Conta
 	}
 
 	public RecordVODataProvider getContainersDataProvider() {
+		final RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		MetadataSchemaVO schemaVO = new MetadataSchemaToVOBuilder()
 				.build(schema(ContainerRecord.DEFAULT_SCHEMA), VIEW_MODE.TABLE, view.getSessionContext());
 		RecordVODataProvider dataProvider = new RecordVODataProvider(schemaVO, new RecordToVOBuilder(), modelLayerFactory,

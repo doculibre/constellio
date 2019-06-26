@@ -61,6 +61,8 @@ public class BulkRecordTransactionHandler {
 
 	String resourceName;
 
+	boolean closed = false;
+
 	public BulkRecordTransactionHandler(RecordServices recordServices, String resourceName) {
 		this(recordServices, resourceName, new BulkRecordTransactionHandlerOptions());
 	}
@@ -157,6 +159,7 @@ public class BulkRecordTransactionHandler {
 				throw new BulkRecordTransactionHandlerRuntimeException_Interrupted(e);
 			}
 
+			closed = true;
 		}
 		recordServices.flush();
 		ensureNoExceptions();
@@ -267,9 +270,12 @@ public class BulkRecordTransactionHandler {
 		}
 	}
 
-	public void barrier() {
+	public void barrier() throws InterruptedException {
 		pushCurrent();
 		while (!isQueueEmptyAndWorkersWaiting()) {
+			if (closed) {
+				throw new InterruptedException("BulkRecordTransactionHandler was closed");
+			}
 			try {
 				Thread.sleep(10);
 			} catch (InterruptedException e) {

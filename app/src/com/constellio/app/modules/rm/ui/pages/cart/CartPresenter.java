@@ -56,6 +56,7 @@ import com.constellio.model.entities.batchprocess.AsyncTask;
 import com.constellio.model.entities.batchprocess.AsyncTaskCreationRequest;
 import com.constellio.model.entities.enums.BatchProcessingMode;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
@@ -120,7 +121,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	public void itemRemovalRequested(RecordVO recordVO) {
 		Record record = recordVO.getRecord();
 		removeFromFavorite(record);
-		addOrUpdate(record);
+		addOrUpdate(record, RecordUpdateOptions.validationExceptionSafeOptions());
 		view.navigate().to(RMViews.class).cart(cartId);
 	}
 
@@ -152,6 +153,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		}
 		Transaction transaction = new Transaction();
 		transaction.setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
+		transaction.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
 		transaction.addUpdate(records);
 		try {
 			recordServices().execute(transaction);
@@ -222,8 +224,8 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	}
 
 	public boolean canDelete() {
-		return cartHasRecords() && cartContainerIsEmpty()
-				&& canDeleteFolders(getCurrentUser()) && canDeleteDocuments(getCurrentUser()) && hasCartBatchDeletePermission();
+		return cartHasRecords() && canDeleteContainers(getCurrentUser())
+			   && canDeleteFolders(getCurrentUser()) && canDeleteDocuments(getCurrentUser()) && hasCartBatchDeletePermission();
 	}
 
 	public void deletionRequested(String reason) {
@@ -397,6 +399,15 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 			}
 			if (getCurrentBorrowerOf(document) != null && !getCurrentUser().has(RMPermissionsTo.DELETE_BORROWED_DOCUMENT)
 					.on(document)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	private boolean canDeleteContainers(User user) {
+		for (ContainerRecord container : getCartContainers()) {
+			if (!user.has(RMPermissionsTo.DELETE_CONTAINERS).on(container)) {
 				return false;
 			}
 		}

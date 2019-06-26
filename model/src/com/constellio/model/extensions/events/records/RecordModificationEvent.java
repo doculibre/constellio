@@ -2,6 +2,7 @@ package com.constellio.model.extensions.events.records;
 
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.SchemaUtils;
 
@@ -9,12 +10,15 @@ public class RecordModificationEvent implements RecordEvent {
 
 	MetadataList modifiedMetadatas;
 
+	MetadataSchema schema;
+
 	Record record;
 
 	Record originalRecord;
 
-	public RecordModificationEvent(Record record, MetadataList modifiedMetadatas) {
+	public RecordModificationEvent(Record record, MetadataList modifiedMetadatas, MetadataSchema schema) {
 		this.record = record;
+		this.schema = schema;
 		this.modifiedMetadatas = modifiedMetadatas;
 		this.originalRecord = record.getCopyOfOriginalRecord();
 	}
@@ -32,7 +36,9 @@ public class RecordModificationEvent implements RecordEvent {
 		return record;
 	}
 
-	public Record getOriginalRecord() { return originalRecord; }
+	public Record getOriginalRecord() {
+		return originalRecord;
+	}
 
 	public MetadataList getModifiedMetadatas() {
 		return modifiedMetadatas;
@@ -55,4 +61,7 @@ public class RecordModificationEvent implements RecordEvent {
 		return new SchemaUtils().getSchemaTypeCode(record.getSchemaCode());
 	}
 
+	public MetadataSchema getSchema() {
+		return schema;
+	}
 }
