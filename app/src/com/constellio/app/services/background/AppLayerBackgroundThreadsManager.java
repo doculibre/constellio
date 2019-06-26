@@ -6,8 +6,8 @@ import com.constellio.data.threads.BackgroundThreadsManager;
 
 import static com.constellio.data.threads.BackgroundThreadConfiguration.repeatingAction;
 import static com.constellio.data.threads.BackgroundThreadExceptionHandling.CONTINUE;
+import static org.joda.time.Duration.standardHours;
 import static org.joda.time.Duration.standardMinutes;
-import static org.joda.time.Duration.standardSeconds;
 
 public class AppLayerBackgroundThreadsManager implements StatefulService {
 
@@ -15,7 +15,7 @@ public class AppLayerBackgroundThreadsManager implements StatefulService {
 	AppLayerFactory appLayerFactory;
 	BackgroundThreadsManager backgroundThreadsManager;
 	UpdateSystemInfoBackgroundAction updateSystemInfoBackgroundAction;
-	DownloadLastSystemAlertBackgroundAction downloadLastSystemAlertBackgroundAction;
+	DownloadLastAlertBackgroundAction downloadLastAlertBackgroundAction;
 
 	public AppLayerBackgroundThreadsManager(AppLayerFactory appLayerFactory) {
 		this.appLayerFactory = appLayerFactory;
@@ -28,9 +28,9 @@ public class AppLayerBackgroundThreadsManager implements StatefulService {
 		backgroundThreadsManager.configure(repeatingAction("updateSystemInfo", updateSystemInfoBackgroundAction)
 				.executedEvery(standardMinutes(1)).handlingExceptionWith(CONTINUE).runningOnAllInstances());
 
-		downloadLastSystemAlertBackgroundAction = new DownloadLastSystemAlertBackgroundAction(appLayerFactory);
-		backgroundThreadsManager.configure(repeatingAction("downloadLastSystemAlertBackgroundAction", downloadLastSystemAlertBackgroundAction)
-				.executedEvery(standardSeconds(30)).handlingExceptionWith(CONTINUE)); // TODO set hours
+		downloadLastAlertBackgroundAction = new DownloadLastAlertBackgroundAction(appLayerFactory);
+		backgroundThreadsManager.configure(repeatingAction("downloadLastAlertBackgroundAction", downloadLastAlertBackgroundAction)
+				.executedEvery(standardHours(1)).handlingExceptionWith(CONTINUE));
 	}
 
 	@Override

@@ -1,5 +1,6 @@
 package com.constellio.app.services.background;
 
+import com.constellio.app.services.appManagement.AppManagementServiceRuntimeException.CannotConnectToServer;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.model.entities.records.ConditionnedActionExecutorInBatchBuilder;
@@ -20,7 +21,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
 
-public class DownloadLastSystemAlertBackgroundAction implements Runnable {
+public class DownloadLastAlertBackgroundAction implements Runnable {
 	private String oldAlertHash;
 	private String newAlertHash;
 	private File newAlert;
@@ -30,7 +31,7 @@ public class DownloadLastSystemAlertBackgroundAction implements Runnable {
 	private SchemasRecordsServices schemasRecordsServices;
 	private SystemConfigurationsManager manager;
 
-	public DownloadLastSystemAlertBackgroundAction(AppLayerFactory appLayerFactory) {
+	public DownloadLastAlertBackgroundAction(AppLayerFactory appLayerFactory) {
 		this.appLayerFactory = appLayerFactory;
 		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		this.schemasRecordsServices = SchemasRecordsServices.usingMainModelLayerFactory(Collection.SYSTEM_COLLECTION, modelLayerFactory);
@@ -44,7 +45,7 @@ public class DownloadLastSystemAlertBackgroundAction implements Runnable {
 	}
 
 	private void getOldAlertHash() throws IOException {
-		File lastAlertFromValue = manager.getFileFromValue(ConstellioEIMConfigs.LOGIN_NOTIFICATION_STATE_ALERT, "lastAlert.pdf");
+		File lastAlertFromValue = manager.getFileFromValue(ConstellioEIMConfigs.LOGIN_NOTIFICATION_ALERT, "lastAlert.pdf");
 
 		if (null != lastAlertFromValue) {
 			oldAlertHash = calculateFileAlertHash(lastAlertFromValue);
@@ -53,9 +54,13 @@ public class DownloadLastSystemAlertBackgroundAction implements Runnable {
 
 	@Override
 	public void run() {
-		System.out.println("DownloadLastSystemAlertBackgroundAction @ " + new Date());
+		System.out.println("DownloadLastAlertBackgroundAction @ " + new Date());
 
-		downloadLastAlertFromServer();
+		try {
+			downloadLastAlertFromServer();
+		} catch (CannotConnectToServer cannotConnectToServer) {
+			cannotConnectToServer.printStackTrace();
+		}
 
 		if (null != newAlert) {
 			try {
@@ -73,9 +78,8 @@ public class DownloadLastSystemAlertBackgroundAction implements Runnable {
 		}
 	}
 
-	private void downloadLastAlertFromServer() {
-		//TODO get file from update server
-		newAlert = new File("C:\\Users\\Michael\\Desktop\\UserManual.pdf");
+	private void downloadLastAlertFromServer() throws CannotConnectToServer {
+		newAlert = appLayerFactory.newApplicationService().getLastAlertFromServer();
 
 		if (!newAlert.exists()) {
 			newAlert = null;
@@ -115,7 +119,7 @@ public class DownloadLastSystemAlertBackgroundAction implements Runnable {
 			}
 		};
 
-		manager.setValue(ConstellioEIMConfigs.LOGIN_NOTIFICATION_STATE_ALERT, streamFactory);
+		manager.setValue(ConstellioEIMConfigs.LOGIN_NOTIFICATION_ALERT, streamFactory);
 		newAlert = null;
 	}
 }

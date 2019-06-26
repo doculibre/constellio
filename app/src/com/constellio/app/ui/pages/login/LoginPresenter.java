@@ -225,13 +225,13 @@ public class LoginPresenter extends BasePresenter<LoginView> {
 
 	public File getLastAlertFile() {
 		SystemConfigurationsManager manager = modelLayerFactory.getSystemConfigurationsManager();
-		File lastAlert = manager.getFileFromValue(ConstellioEIMConfigs.LOGIN_NOTIFICATION_STATE_ALERT, "lastAlert.pdf");
+		File lastAlert = manager.getFileFromValue(ConstellioEIMConfigs.LOGIN_NOTIFICATION_ALERT, "lastAlert.pdf");
 
 		return lastAlert;
 	}
 
 	public Object getLastAlertConfigValue() {
 		SystemConfigurationsManager manager = modelLayerFactory.getSystemConfigurationsManager();
-		return manager.getValue(ConstellioEIMConfigs.LOGIN_NOTIFICATION_STATE_ALERT);
+		return manager.getValue(ConstellioEIMConfigs.LOGIN_NOTIFICATION_ALERT);
 	}
 }
