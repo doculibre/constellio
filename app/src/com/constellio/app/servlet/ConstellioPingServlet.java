@@ -2,6 +2,7 @@ package com.constellio.app.servlet;
 
 import com.constellio.app.client.ZookeeperClient;
 import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.data.conf.PropertiesConfigurationRuntimeException.PropertiesConfigurationRuntimeException_ConfigNotDefined;
 import com.constellio.data.conf.PropertiesDataLayerConfiguration;
 import com.constellio.data.conf.SolrServerType;
 import com.constellio.data.dao.services.solr.SolrServerFactory;
@@ -44,57 +45,25 @@ public class ConstellioPingServlet extends HttpServlet {
 		if (systemRestarting) {
 			pw.append("Constellio status : online (restarting)");
 			pw.append("\n");
-			online = isSolrOnline(online, true);
+			online = testHttpSolr(online, true);
 
 		} else {
 			if (constellioFactories != null) {
 				getConstellioStatus(pw);
 
 				if (testSolr) {
-					String recordsDaoCloudSolrServerZkHost = constellioFactories.getDataLayerConfiguration()
-							.getRecordsDaoCloudSolrServerZKHost();
-
-					List<String> zooKeeperAddr = null;
-
-					if (Strings.isNotBlank(recordsDaoCloudSolrServerZkHost)) {
-						zooKeeperAddr = Arrays.asList(recordsDaoCloudSolrServerZkHost.split(","));
-					}
-
-
-					if (zooKeeperAddr != null) {
-						for (String addr : zooKeeperAddr) {
-							int port = getPort(addr);
-							String domain = getDomain(addr);
-							ZookeeperClient zookeeperClient = new ZookeeperClient(domain, port);
-							try {
-								String stat = zookeeperClient.stat();
-								if (stat.contains("Mode: leader") || stat.contains("Mode: follower")) {
-									online = isSolrOnline(online, true);
-									pw.append("ZooKeeper : " + domain + ":" + port + " is up and running");
-									pw.append("\n");
-								} else {
-									pw.append("ZooKeeper : " + domain + ":" + port + " is down");
-									online = isSolrOnline(online, false);
-									pw.append("\n");
-								}
-							} catch (Exception e) {
-								pw.append("ZooKeeper : " + domain + ":" + port + " is not responding");
-								online = isSolrOnline(online, false);
-								pw.append("\n");
-							}
-						}
-					}
+					online = testHttpSolr(testZookeeper(constellioFactories, pw, online), online);
 
 					SolrServerType solrServerType = constellioFactories.getDataLayerConfiguration().getRecordsDaoSolrServerType();
 
 					if (SolrServerType.HTTP == solrServerType) {
-						online = isSolrOnline(online, testHttpSolr(constellioFactories, testSolr, pw));
+						online = testHttpSolr(online, testHttpSolr(constellioFactories, testSolr, pw));
 					} else if (SolrServerType.CLOUD == solrServerType) {
 						CollectionAdminRequest collectionAdminRequest = new CollectionAdminRequest.ClusterStatus();
 
 						SolrClient solrClient = newSolrCloudServerFactory(constellioFactories).newSolrServer(SYSTEM_COLLECTION);
 
-						online = isSolrOnline(online, areSolrCloudNodeOnline(constellioFactories, pw, collectionAdminRequest, solrClient));
+						online = testHttpSolr(online, testSolrCloudNodes(constellioFactories, pw, collectionAdminRequest, solrClient));
 					} else {
 						throw new ImpossibleRuntimeException("Unsupported solr server type");
 					}
@@ -102,7 +71,7 @@ public class ConstellioPingServlet extends HttpServlet {
 			} else {
 				pw.append("Constellio status : online (starting)");
 				pw.append("\n");
-				online = isSolrOnline(online, true);
+				online = testHttpSolr(online, true);
 			}
 
 		}
@@ -116,8 +85,51 @@ public class ConstellioPingServlet extends HttpServlet {
 		pw.close();
 	}
 
-	private boolean areSolrCloudNodeOnline(ConstellioFactories constellioFactories, PrintWriter pw,
-										   CollectionAdminRequest collectionAdminRequest, SolrClient solrClient)
+	private boolean testZookeeper(ConstellioFactories constellioFactories, PrintWriter pw, boolean online) {
+		String recordsDaoCloudSolrServerZkHost = null;
+
+
+		try {
+			recordsDaoCloudSolrServerZkHost = constellioFactories.getDataLayerConfiguration()
+					.getRecordsDaoCloudSolrServerZKHost();
+		} catch (PropertiesConfigurationRuntimeException_ConfigNotDefined e) {
+
+		}
+
+		List<String> zooKeeperAddr = null;
+
+		if (Strings.isNotBlank(recordsDaoCloudSolrServerZkHost)) {
+			zooKeeperAddr = Arrays.asList(recordsDaoCloudSolrServerZkHost.split(","));
+		}
+
+		if (zooKeeperAddr != null) {
+			for (String addr : zooKeeperAddr) {
+				int port = getPort(addr);
+				String domain = getDomain(addr);
+				ZookeeperClient zookeeperClient = new ZookeeperClient(domain, port);
+				try {
+					String stat = zookeeperClient.stat();
+					if (stat.contains("Mode: leader") || stat.contains("Mode: follower")) {
+						online = testHttpSolr(online, true);
+						pw.append("ZooKeeper : " + domain + ":" + port + " is up and running");
+						pw.append("\n");
+					} else {
+						pw.append("ZooKeeper : " + domain + ":" + port + " is down");
+						online = testHttpSolr(online, false);
+						pw.append("\n");
+					}
+				} catch (Exception e) {
+					pw.append("ZooKeeper : " + domain + ":" + port + " is not responding");
+					online = testHttpSolr(online, false);
+					pw.append("\n");
+				}
+			}
+		}
+		return online;
+	}
+
+	private boolean testSolrCloudNodes(ConstellioFactories constellioFactories, PrintWriter pw,
+									   CollectionAdminRequest collectionAdminRequest, SolrClient solrClient)
 			throws IOException {
 		boolean online;
 		try {
@@ -153,7 +165,7 @@ public class ConstellioPingServlet extends HttpServlet {
 	}
 
 
-	private boolean isSolrOnline(boolean currentVal, boolean isOnline) {
+	private boolean testHttpSolr(boolean currentVal, boolean isOnline) {
 		if (!currentVal) {
 			return false;
 		} else {
