@@ -52,7 +52,7 @@ public class ConstellioPingServlet extends HttpServlet {
 				getConstellioStatus(pw);
 
 				if (testSolr) {
-					online = changeOnlineStatus(testZookeeper(constellioFactories, pw, online), online);
+					online = changeOnlineStatus(online, testZookeeper(constellioFactories, pw, online));
 
 					SolrServerType solrServerType = constellioFactories.getDataLayerConfiguration().getRecordsDaoSolrServerType();
 
