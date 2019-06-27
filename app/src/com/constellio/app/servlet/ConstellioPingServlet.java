@@ -45,25 +45,25 @@ public class ConstellioPingServlet extends HttpServlet {
 		if (systemRestarting) {
 			pw.append("Constellio status : online (restarting)");
 			pw.append("\n");
-			online = testHttpSolr(online, true);
+			online = changeOnlineStatus(online, true);
 
 		} else {
 			if (constellioFactories != null) {
 				getConstellioStatus(pw);
 
 				if (testSolr) {
-					online = testHttpSolr(testZookeeper(constellioFactories, pw, online), online);
+					online = changeOnlineStatus(testZookeeper(constellioFactories, pw, online), online);
 
 					SolrServerType solrServerType = constellioFactories.getDataLayerConfiguration().getRecordsDaoSolrServerType();
 
 					if (SolrServerType.HTTP == solrServerType) {
-						online = testHttpSolr(online, testHttpSolr(constellioFactories, testSolr, pw));
+						online = changeOnlineStatus(online, testHttpSolr(constellioFactories, testSolr, pw));
 					} else if (SolrServerType.CLOUD == solrServerType) {
 						CollectionAdminRequest collectionAdminRequest = new CollectionAdminRequest.ClusterStatus();
 
 						SolrClient solrClient = newSolrCloudServerFactory(constellioFactories).newSolrServer(SYSTEM_COLLECTION);
 
-						online = testHttpSolr(online, testSolrCloudNodes(constellioFactories, pw, collectionAdminRequest, solrClient));
+						online = changeOnlineStatus(online, testSolrCloudNodes(constellioFactories, pw, collectionAdminRequest, solrClient));
 					} else {
 						throw new ImpossibleRuntimeException("Unsupported solr server type");
 					}
@@ -71,7 +71,7 @@ public class ConstellioPingServlet extends HttpServlet {
 			} else {
 				pw.append("Constellio status : online (starting)");
 				pw.append("\n");
-				online = testHttpSolr(online, true);
+				online = changeOnlineStatus(online, true);
 			}
 
 		}
@@ -110,17 +110,17 @@ public class ConstellioPingServlet extends HttpServlet {
 				try {
 					String stat = zookeeperClient.stat();
 					if (stat.contains("Mode: leader") || stat.contains("Mode: follower")) {
-						online = testHttpSolr(online, true);
+						online = changeOnlineStatus(online, true);
 						pw.append("ZooKeeper : " + domain + ":" + port + " is up and running");
 						pw.append("\n");
 					} else {
 						pw.append("ZooKeeper : " + domain + ":" + port + " is down");
-						online = testHttpSolr(online, false);
+						online = changeOnlineStatus(online, false);
 						pw.append("\n");
 					}
 				} catch (Exception e) {
 					pw.append("ZooKeeper : " + domain + ":" + port + " is not responding");
-					online = testHttpSolr(online, false);
+					online = changeOnlineStatus(online, false);
 					pw.append("\n");
 				}
 			}
@@ -165,7 +165,7 @@ public class ConstellioPingServlet extends HttpServlet {
 	}
 
 
-	private boolean testHttpSolr(boolean currentVal, boolean isOnline) {
+	private boolean changeOnlineStatus(boolean currentVal, boolean isOnline) {
 		if (!currentVal) {
 			return false;
 		} else {
