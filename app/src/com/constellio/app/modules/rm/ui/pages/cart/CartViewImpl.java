@@ -7,11 +7,17 @@ import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.entities.FolderVO;
 import com.constellio.app.modules.rm.ui.pages.pdf.ConsolidatedPdfButton;
+import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.services.menu.MenuItemAction;
+import com.constellio.app.services.menu.MenuItemFactory;
+import com.constellio.app.services.menu.MenuItemServices;
+import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.application.Navigation;
+import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
@@ -37,13 +43,16 @@ import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
 import com.constellio.app.ui.framework.containers.RecordVOWithDistinctSchemaTypesLazyContainer;
 import com.constellio.app.ui.framework.data.RecordVOWithDistinctSchemasDataProvider;
+import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingButton;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingModifyingOneMetadataButton;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingView;
+import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.data.utils.Factory;
 import com.constellio.model.entities.enums.BatchProcessingMode;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
@@ -66,6 +75,7 @@ import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
@@ -73,6 +83,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.entities.enums.BatchProcessingMode.ALL_METADATA_OF_SCHEMA;
@@ -120,26 +131,67 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 
 	@Override
 	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
-		List<Button> buttons = super.buildActionMenuButtons(event);
-		buttons.add(buildRenameButton());
-		buttons.add(buildPrepareEmailButton());
-		buttons.add(buildBatchDuplicateButton());
-		buttons.add(buildDocumentsBatchProcessingButton());
-		buttons.add(buildFoldersBatchProcessingButton());
-		buttons.add(buildContainersBatchProcessingButton());
-		buttons.add(buildFoldersLabelsButton());
-		buttons.add(buildDocumentLabelsButton());
-		buttons.add(buildContainersLabelsButton());
-		buttons.add(buildBatchDeleteButton());
-		buttons.add(buildEmptyButton());
-		if (!presenter.isDefaultCart()) {
-			buttons.add(buildShareButton());
-		}
-		buttons.add(buildDecommissionButton());
-		buttons.add(buildPrintMetadataReportButton());
-		buttons.add(buildCreateSIPArchivesButton());
-		buttons.add(buildConsolidatedPdfButton());
-		return buttons;
+//		List<Button> buttons = super.buildActionMenuButtons(event);
+//		buttons.add(buildRenameButton());
+//		buttons.add(buildPrepareEmailButton());
+//		buttons.add(buildBatchDuplicateButton());
+//		buttons.add(buildDocumentsBatchProcessingButton());
+//		buttons.add(buildFoldersBatchProcessingButton());
+//		buttons.add(buildContainersBatchProcessingButton());
+//		buttons.add(buildFoldersLabelsButton());
+//		buttons.add(buildDocumentLabelsButton());
+//		buttons.add(buildContainersLabelsButton());
+//		buttons.add(buildBatchDeleteButton());
+//		buttons.add(buildEmptyButton());
+//		if (!presenter.isDefaultCart()) {
+//			buttons.add(buildShareButton());
+//		}
+//		buttons.add(buildDecommissionButton());
+//		buttons.add(buildPrintMetadataReportButton());
+//		buttons.add(buildCreateSIPArchivesButton());
+//		buttons.add(buildConsolidatedPdfButton());
+//		return buttons;
+
+		Cart cart = presenter.getCart();
+		Record record = cart.getWrappedRecord();
+		List<MenuItemAction> menuItemActions = new MenuItemServices(record.getCollection(), getConstellioFactories().getAppLayerFactory())
+				.getActionsForRecord(record, new MenuItemActionBehaviorParams() {
+					@Override
+					public BaseView getView() {
+						return (BaseView) ConstellioUI.getCurrent().getCurrentView();
+					}
+
+					@Override
+					public RecordVO getRecordVO() {
+						return presenter.getCartAsRecordVO();
+					}
+
+					@Override
+					public ContentVersionVO getContentVersionVO() {
+						return null;
+					}
+
+					@Override
+					public Map<String, String> getFormParams() {
+						return MapUtils.emptyIfNull(ParamUtils.getCurrentParams());
+					}
+
+					@Override
+					public User getUser() {
+						return presenter.getCurrentUser();
+					}
+
+					@Override
+					public boolean isContextualMenu() {
+						return true;
+					}
+
+					@Override
+					public boolean isNestedView() {
+						return false;
+					}
+				});
+		return new MenuItemFactory().buildActionButtons(menuItemActions);
 	}
 
 	private Button buildRenameButton() {

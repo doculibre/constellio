@@ -14,6 +14,7 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -49,6 +50,18 @@ public class CartUtil {
 	public List<Folder> getCartFolders(String cartId) {
 		LogicalSearchQuery logicalSearchQuery = getCartFoldersLogicalSearchQuery(cartId);
 		return rm.searchFolders(logicalSearchQuery);
+	}
+
+	public List<Folder> getNotDeletedCartFolders(String cartId) {
+		List<Folder> cartFolders = getCartFolders(cartId);
+		Iterator<Folder> iterator = cartFolders.iterator();
+		while (iterator.hasNext()) {
+			Folder currentFolder = iterator.next();
+			if (currentFolder.isLogicallyDeletedStatus()) {
+				iterator.remove();
+			}
+		}
+		return cartFolders;
 	}
 
 	private List<ContainerRecord> getCartContainers(String cartId) {
