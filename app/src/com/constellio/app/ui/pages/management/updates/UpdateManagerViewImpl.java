@@ -149,6 +149,7 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 				DownloadLink downloadLink = new DownloadLink(new FileResource(lastAlert),
 						$("UpdateManagerViewImpl.download") + " " + lastAlert.getName());
 				DocumentViewer viewer = new DocumentViewer(lastAlert);
+				viewer.setSizeFull();
 
 				layout.addComponents(downloadLink, viewer);
 				layout.setExpandRatio(viewer, 1);

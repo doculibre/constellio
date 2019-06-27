@@ -624,8 +624,8 @@ public class AppManagementService {
 		InputStream lastAlertFileInput = null;
 		OutputStream lastAlertFileOutput = null;
 
-		try {// TODO ask Maxime why without getInfosToSend it doesnt work on a VM but does on updatecenter
-			lastAlertFileInput = getInputForPost(URL_LAST_ALERT, /*getLicenseInfo().getSignature()*/getInfosToSend());
+		try {
+			lastAlertFileInput = getInputForPost(URL_LAST_ALERT, getLicenseInfo().getSignature());
 
 			if (lastAlertFileInput == null) {
 				throw new AppManagementServiceRuntimeException.CannotConnectToServer(URL_LAST_ALERT);
