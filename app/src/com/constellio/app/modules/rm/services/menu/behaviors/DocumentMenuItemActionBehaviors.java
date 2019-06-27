@@ -11,6 +11,7 @@ import com.constellio.app.modules.rm.services.logging.DecommissioningLoggingServ
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
 import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
 import com.constellio.app.modules.rm.ui.buttons.CartWindowButton;
+import com.constellio.app.modules.rm.ui.buttons.CartWindowButton.AddedRecordType;
 import com.constellio.app.modules.rm.ui.components.document.DocumentActionsPresenterUtils;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
@@ -244,7 +245,7 @@ public class DocumentMenuItemActionBehaviors {
 	}
 
 	public void addToCart(Document document, MenuItemActionBehaviorParams params) {
-		CartWindowButton cartWindowButton = new CartWindowButton(document.getWrappedRecord(), params);
+		CartWindowButton cartWindowButton = new CartWindowButton(document.getWrappedRecord(), params, AddedRecordType.DOCUMENT);
 		cartWindowButton.addToCart();
 	}
 

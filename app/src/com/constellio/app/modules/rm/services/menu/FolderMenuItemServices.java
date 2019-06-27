@@ -9,7 +9,9 @@ import com.constellio.app.services.menu.MenuItemActionState;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Resource;
+import com.vaadin.server.ThemeResource;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,6 +42,8 @@ public class FolderMenuItemServices {
 	private FolderRecordActionsServices folderRecordActionsServices;
 	private String collection;
 	private AppLayerFactory appLayerFactory;
+
+	private static final Resource SELECTION_ICON_RESOURCE = new ThemeResource("images/icons/clipboard_12x16.png");
 
 	public FolderMenuItemServices(String collection, AppLayerFactory appLayerFactory) {
 		this.collection = collection;
@@ -76,21 +80,21 @@ public class FolderMenuItemServices {
 		if (!filteredActionTypes.contains(FOLDER_DISPLAY.name())) {
 			menuItemActions.add(buildMenuItemAction(FOLDER_DISPLAY.name(),
 					isMenuItemActionPossible(FOLDER_DISPLAY.name(), folder, user, params),
-					"DisplayFolderView.displayFolder", null, -1, 400,
+					"DisplayFolderView.displayFolder", FontAwesome.FILE_O, -1, 400,
 					() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).display(folder, params)));
 		}
 
 		if (!filteredActionTypes.contains(FOLDER_EDIT.name())) {
 			menuItemActions.add(buildMenuItemAction(FOLDER_EDIT.name(),
 					isMenuItemActionPossible(FOLDER_EDIT.name(), folder, user, params),
-					"DisplayFolderView.editFolder", null, -1, 500,
+					"DisplayFolderView.editFolder", FontAwesome.EDIT, -1, 500,
 					() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).edit(folder, params)));
 		}
 
 		if (!filteredActionTypes.contains(FOLDER_DELETE.name())) {
 			menuItemActions.add(buildMenuItemAction(FOLDER_DELETE.name(),
 					isMenuItemActionPossible(FOLDER_DELETE.name(), folder, user, params),
-					"DisplayFolderView.deleteFolder", null, -1, 600,
+					"DisplayFolderView.deleteFolder", FontAwesome.TRASH_O, -1, 600,
 					() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).delete(folder, params)));
 		}
 
@@ -167,14 +171,14 @@ public class FolderMenuItemServices {
 		if (!filteredActionTypes.contains(FOLDER_ADD_TO_SELECTION.name())) {
 			menuItemActions.add(buildMenuItemAction(FOLDER_ADD_TO_SELECTION.name(),
 					isMenuItemActionPossible(FOLDER_ADD_TO_SELECTION.name(), folder, user, params),
-					"addToOrRemoveFromSelection.add", null, -1, 1700,
+					"addToOrRemoveFromSelection.add", SELECTION_ICON_RESOURCE, -1, 1700,
 					() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).addToSelection(folder, params)));
 		}
 
 		if (!filteredActionTypes.contains(FOLDER_REMOVE_FROM_SELECTION.name())) {
 			menuItemActions.add(buildMenuItemAction(FOLDER_REMOVE_FROM_SELECTION.name(),
 					isMenuItemActionPossible(FOLDER_REMOVE_FROM_SELECTION.name(), folder, user, params),
-					"addToOrRemoveFromSelection.remove", null, -1, 1800,
+					"addToOrRemoveFromSelection.remove", SELECTION_ICON_RESOURCE, -1, 1800,
 					() -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).removeFromSelection(folder, params)));
 		}
 

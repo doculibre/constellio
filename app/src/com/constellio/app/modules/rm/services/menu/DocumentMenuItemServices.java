@@ -14,6 +14,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Resource;
+import com.vaadin.server.ThemeResource;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,6 +46,8 @@ public class DocumentMenuItemServices {
 	private DocumentRecordActionsServices documentRecordActionsServices;
 	private String collection;
 	private AppLayerFactory appLayerFactory;
+
+	private static final Resource SELECTION_ICON_RESOURCE = new ThemeResource("images/icons/clipboard_12x16.png");
 
 	public DocumentMenuItemServices(String collection, AppLayerFactory appLayerFactory) {
 		this.collection = collection;
@@ -148,7 +151,7 @@ public class DocumentMenuItemServices {
 		if (!filteredActionTypes.contains(DOCUMENT_ADD_TO_SELECTION.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(DOCUMENT_ADD_TO_SELECTION.name(),
 					isMenuItemActionPossible(DOCUMENT_ADD_TO_SELECTION.name(), document, user, params),
-					"DocumentContextMenu.addToSelection", null, -1, 1000,
+					"DocumentContextMenu.addToSelection", SELECTION_ICON_RESOURCE, -1, 1000,
 					() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).addToSelection(document, params));
 
 			menuItemActions.add(menuItemAction);
@@ -158,7 +161,7 @@ public class DocumentMenuItemServices {
 		if (!filteredActionTypes.contains(DOCUMENT_REMOVE_TO_SELECTION.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(DOCUMENT_REMOVE_TO_SELECTION.name(),
 					isMenuItemActionPossible(DOCUMENT_REMOVE_TO_SELECTION.name(), document, user, params),
-					"DocumentContextMenu.removeToSelection", null, -1, 1100,
+					"DocumentContextMenu.removeToSelection", SELECTION_ICON_RESOURCE, -1, 1100,
 					() -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).removeToSelection(document, params));
 
 			menuItemActions.add(menuItemAction);

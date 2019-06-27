@@ -12,6 +12,7 @@ import com.constellio.app.modules.rm.services.cart.CartEmailServiceRuntimeExcept
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
 import com.constellio.app.modules.rm.ui.buttons.CartWindowButton;
+import com.constellio.app.modules.rm.ui.buttons.CartWindowButton.AddedRecordType;
 import com.constellio.app.modules.rm.ui.components.folder.fields.LookupFolderField;
 import com.constellio.app.modules.rm.ui.pages.pdf.ConsolidatedPdfButton;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
@@ -110,7 +111,7 @@ public class RMRecordsMenuItemBehaviors {
 	}
 
 	public void addToCart(List<Record> records, MenuItemActionBehaviorParams params) {
-		CartWindowButton cartWindowButton = new CartWindowButton(records, params);
+		CartWindowButton cartWindowButton = new CartWindowButton(records, params, AddedRecordType.MULTIPLE);
 		cartWindowButton.addToCart();
 	}
 

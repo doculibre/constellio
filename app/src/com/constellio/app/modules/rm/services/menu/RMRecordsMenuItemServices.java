@@ -20,6 +20,7 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.vaadin.server.Resource;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -160,9 +161,11 @@ public class RMRecordsMenuItemServices {
 												  MenuItemActionState previousState) {
 		long recordWithSupportedSchemaTypeCount = getRecordWithSupportedSchemaTypeCount(records, menuItemActionType);
 		if (recordWithSupportedSchemaTypeCount == 0) {
-			return new MenuItemActionState(HIDDEN, $("RMRecordsMenuItemServices.unsupportedSchema"));
+			return new MenuItemActionState(HIDDEN, $("RMRecordsMenuItemServices.unsupportedSchema",
+					StringUtils.join(menuItemActionType.getSchemaTypes(), ",")));
 		} else if (recordWithSupportedSchemaTypeCount != records.size()) {
-			return new MenuItemActionState(DISABLED, $("RMRecordsMenuItemServices.unsupportedSchema"));
+			return new MenuItemActionState(DISABLED, $("RMRecordsMenuItemServices.unsupportedSchema",
+					StringUtils.join(menuItemActionType.getSchemaTypes(), ",")));
 		}
 
 		int possibleCount = 0;
@@ -180,7 +183,7 @@ public class RMRecordsMenuItemServices {
 					possibleCount += actionPossible ? 1 : 0;
 				}
 				return calculateCorrectActionState(possibleCount, records.size() - possibleCount,
-						previousState, $("RMRecordsMenuItemServices.missingPermission"));
+						previousState, $("RMRecordsMenuItemServices.actionImpossible"));
 			case RMRECORDS_MOVE:
 				for (Record record : records) {
 					boolean actionPossible = false;
@@ -192,7 +195,7 @@ public class RMRecordsMenuItemServices {
 					possibleCount += actionPossible ? 1 : 0;
 				}
 				return calculateCorrectActionState(possibleCount, records.size() - possibleCount,
-						previousState, $("RMRecordsMenuItemServices.missingPermission"));
+						previousState, $("RMRecordsMenuItemServices.actionImpossible"));
 			case RMRECORDS_COPY:
 				for (Record record : records) {
 					boolean actionPossible = false;
@@ -204,7 +207,7 @@ public class RMRecordsMenuItemServices {
 					possibleCount += actionPossible ? 1 : 0;
 				}
 				return calculateCorrectActionState(possibleCount, records.size() - possibleCount,
-						previousState, $("RMRecordsMenuItemServices.missingPermission"));
+						previousState, $("RMRecordsMenuItemServices.actionImpossible"));
 			case RMRECORDS_CREATE_SIP:
 				for (Record record : records) {
 					boolean actionPossible = false;
@@ -216,7 +219,7 @@ public class RMRecordsMenuItemServices {
 					possibleCount += actionPossible ? 1 : 0;
 				}
 				return calculateCorrectActionState(possibleCount, records.size() - possibleCount,
-						previousState, $("RMRecordsMenuItemServices.missingPermission"));
+						previousState, $("RMRecordsMenuItemServices.actionImpossible"));
 			case RMRECORDS_SEND_EMAIL:
 				for (Record record : records) {
 					boolean actionPossible = false;
@@ -226,7 +229,7 @@ public class RMRecordsMenuItemServices {
 					possibleCount += actionPossible ? 1 : 0;
 				}
 				return calculateCorrectActionState(possibleCount, records.size() - possibleCount,
-						previousState, $("RMRecordsMenuItemServices.missingPermission"));
+						previousState, $("RMRecordsMenuItemServices.actionImpossible"));
 			case RMRECORDS_CREATE_PDF:
 				for (Record record : records) {
 					boolean actionPossible = false;
@@ -236,7 +239,7 @@ public class RMRecordsMenuItemServices {
 					possibleCount += actionPossible ? 1 : 0;
 				}
 				return calculateCorrectActionState(possibleCount, records.size() - possibleCount,
-						previousState, $("RMRecordsMenuItemServices.missingPermission"));
+						previousState, $("RMRecordsMenuItemServices.actionImpossible"));
 			case RMRECORDS_PRINT_LABEL:
 				for (Record record : records) {
 					boolean actionPossible = false;
@@ -250,7 +253,7 @@ public class RMRecordsMenuItemServices {
 					possibleCount += actionPossible ? 1 : 0;
 				}
 				return calculateCorrectActionState(possibleCount, records.size() - possibleCount,
-						previousState, $("RMRecordsMenuItemServices.missingPermission"));
+						previousState, $("RMRecordsMenuItemServices.actionImpossible"));
 			case RMRECORDS_ADD_SELECTION:
 				return new MenuItemActionState(VISIBLE);
 			case RMRECORDS_DOWNLOAD_ZIP:
@@ -264,7 +267,7 @@ public class RMRecordsMenuItemServices {
 					possibleCount += actionPossible ? 1 : 0;
 				}
 				return calculateCorrectActionState(possibleCount, records.size() - possibleCount,
-						previousState, $("RMRecordsMenuItemServices.missingPermission"));
+						previousState, $("RMRecordsMenuItemServices.actionImpossible"));
 		}
 
 		return new MenuItemActionState(HIDDEN);

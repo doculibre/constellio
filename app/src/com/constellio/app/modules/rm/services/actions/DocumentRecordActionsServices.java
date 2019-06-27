@@ -54,10 +54,6 @@ public class DocumentRecordActionsServices {
 			   rmModuleExtensions.isDownloadActionPossibleOnDocument(rm.wrapDocument(record), user);
 	}
 
-	public boolean isRenameActionPossible(Record record, User user) {
-		return false;
-	}
-
 	public boolean isCopyActionPossible(Record record, User user) {
 		// TODO
 		if (!user.hasReadAccess().on(record)) {

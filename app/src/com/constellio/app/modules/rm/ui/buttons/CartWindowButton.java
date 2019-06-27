@@ -55,6 +55,10 @@ import static java.util.Arrays.asList;
 
 public class CartWindowButton extends WindowButton {
 
+	public enum AddedRecordType {
+		DOCUMENT, FOLDER, CONTAINER, MULTIPLE
+	}
+
 	private RMSchemasRecordsServices rm;
 	private MenuItemActionBehaviorParams params;
 	private AppLayerFactory appLayerFactory;
@@ -63,16 +67,18 @@ public class CartWindowButton extends WindowButton {
 	private List<Record> records;
 	private SearchServices searchServices;
 	private MetadataSchemasManager metadataSchemasManager;
+	private AddedRecordType addedRecordType;
 
 	private int documentRecordCount = 0;
 	private int folderRecordCount = 0;
 	private int containerRecordCount = 0;
 
-	public CartWindowButton(Record record, MenuItemActionBehaviorParams params) {
-		this(Collections.singletonList(record), params);
+	public CartWindowButton(Record record, MenuItemActionBehaviorParams params, AddedRecordType addedRecordType) {
+		this(Collections.singletonList(record), params, addedRecordType);
 	}
 
-	public CartWindowButton(List<Record> records, MenuItemActionBehaviorParams params) {
+	public CartWindowButton(List<Record> records, MenuItemActionBehaviorParams params,
+							AddedRecordType addedRecordType) {
 		super($("DisplayFolderView.addToCart"), $("DisplayFolderView.selectCart"));
 
 		this.params = params;
@@ -83,6 +89,7 @@ public class CartWindowButton extends WindowButton {
 		this.records = records;
 		this.searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
 		this.metadataSchemasManager = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager();
+		this.addedRecordType = addedRecordType;
 
 		records.forEach(r -> {
 			if (r.isOfSchemaType(Document.SCHEMA_TYPE)) {
@@ -159,7 +166,6 @@ public class CartWindowButton extends WindowButton {
 		};
 	}
 
-
 	private DefaultFavoritesTable buildOwnedFavoritesTable(final Window window, MenuItemActionBehaviorParams params) {
 		List<CartItem> cartItems = new ArrayList<>();
 		if (hasCurrentUserPermissionToUseMyCart(params.getUser())) {
@@ -192,7 +198,6 @@ public class CartWindowButton extends WindowButton {
 	}
 
 	private void addToCartRequested(String cartId, BaseView baseView) {
-		// FIXME
 		if (rm.numberOfDocumentsInFavoritesReachesLimit(cartId, documentRecordCount)) {
 			baseView.showMessage($("DisplayDocumentView.cartCannotContainMoreThanAThousandDocuments"));
 		} else if (rm.numberOfFoldersInFavoritesReachesLimit(cartId, folderRecordCount)) {
@@ -207,7 +212,21 @@ public class CartWindowButton extends WindowButton {
 			transaction.addUpdate(records);
 			try {
 				recordServices.execute(transaction);
-				baseView.showMessage($("DocumentActionsComponent.addedToCart"));
+				switch (addedRecordType) {
+					case DOCUMENT:
+						baseView.showMessage($("DocumentActionsComponent.addedToCart"));
+						break;
+					case FOLDER:
+						baseView.showMessage($("DisplayFolderView.addedToCart"));
+						break;
+					case CONTAINER:
+						baseView.showMessage($("DisplayContainerView.addedToCart"));
+						break;
+					case MULTIPLE:
+						baseView.showMessage($("SearchView.addedToCart"));
+						break;
+				}
+
 			} catch (RecordServicesException e) {
 				throw new ImpossibleRuntimeException(e);
 			}
@@ -224,20 +243,35 @@ public class CartWindowButton extends WindowButton {
 	}
 
 	private void addToDefaultCart(MenuItemActionBehaviorParams params) {
-		// FIXME missing folder, container
 		if (rm.numberOfDocumentsInFavoritesReachesLimit(params.getUser().getId(), 1)) {
 			params.getView().showMessage($("DisplayDocumentView.cartCannotContainMoreThanAThousandDocuments"));
+		} else if (rm.numberOfFoldersInFavoritesReachesLimit(params.getUser().getId(), folderRecordCount)) {
+			params.getView().showMessage($("DisplayFolderViewImpl.cartCannotContainMoreThanAThousandFolders"));
+		} else if (rm.numberOfContainersInFavoritesReachesLimit(params.getUser().getId(), containerRecordCount)) {
+			params.getView().showMessage($("DisplayContainerViewImpl.cartCannotContainMoreThanAThousandContainers"));
 		} else {
 			for (Record record : records) {
 				addToFavorite(params.getUser().getId(), record);
 			}
-
 			Transaction transaction = new Transaction(RecordUpdateOptions.validationExceptionSafeOptions());
 			transaction.update(records);
 
 			try {
 				recordServices.execute(transaction);
-				params.getView().showMessage($("DisplayDocumentView.documentAddedToDefaultFavorites"));
+				switch (addedRecordType) {
+					case DOCUMENT:
+						params.getView().showMessage($("DisplayDocumentView.documentAddedToDefaultFavorites"));
+						break;
+					case FOLDER:
+						params.getView().showMessage($("DisplayFolderViewImpl.folderAddedToDefaultFavorites"));
+						break;
+					case CONTAINER:
+						params.getView().showMessage($("DisplayContainerViewImpl.containerAddedToDefaultFavorites"));
+						break;
+					case MULTIPLE:
+						params.getView().showMessage($("SearchView.addedToDefaultFavorites"));
+						break;
+				}
 			} catch (RecordServicesException e) {
 				e.printStackTrace();
 				throw new RuntimeException(e);
@@ -260,7 +294,20 @@ public class CartWindowButton extends WindowButton {
 
 		try {
 			recordServices.execute(transaction);
-			params.getView().showMessage($("DocumentActionsComponent.addedToCart"));
+			switch (addedRecordType) {
+				case DOCUMENT:
+					params.getView().showMessage($("DocumentActionsComponent.addedToCart"));
+					break;
+				case FOLDER:
+					params.getView().showMessage($("DisplayFolderView.addedToCart"));
+					break;
+				case CONTAINER:
+					params.getView().showMessage($("DisplayContainerView.addedToCart"));
+					break;
+				case MULTIPLE:
+					params.getView().showMessage($("SearchView.addedToCart"));
+					break;
+			}
 		} catch (RecordServicesException e) {
 			e.printStackTrace();
 			throw new RuntimeException(e);

@@ -15,6 +15,7 @@ import com.constellio.app.modules.rm.services.borrowingServices.BorrowingService
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.ui.buttons.CartWindowButton;
+import com.constellio.app.modules.rm.ui.buttons.CartWindowButton.AddedRecordType;
 import com.constellio.app.modules.rm.ui.components.folder.fields.LookupFolderField;
 import com.constellio.app.modules.rm.util.DecommissionNavUtil;
 import com.constellio.app.modules.rm.util.RMNavigationUtils;
@@ -333,7 +334,7 @@ public class FolderMenuItemActionBehaviors {
 	}
 
 	public void addToCart(Folder folder, MenuItemActionBehaviorParams params) {
-		CartWindowButton cartWindowButton = new CartWindowButton(folder.getWrappedRecord(), params);
+		CartWindowButton cartWindowButton = new CartWindowButton(folder.getWrappedRecord(), params, AddedRecordType.FOLDER);
 		cartWindowButton.addToCart();
 	}
 
