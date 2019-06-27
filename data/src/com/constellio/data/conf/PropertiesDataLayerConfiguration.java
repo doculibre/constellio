@@ -14,6 +14,8 @@ import static com.constellio.data.conf.SolrServerType.HTTP;
 public class PropertiesDataLayerConfiguration extends PropertiesConfiguration implements DataLayerConfiguration {
 
 	public static final String ZKHOST = "dao.records.cloud.zkHost";
+	public static final String NUMBER_OF_LIVE_NODE = "dao.records.cloud.numberOfLiveNode";
+
 
 	public static final String RECORD_TYPE = "dao.records.type";
 
@@ -156,6 +158,10 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 
 	public String getRecordsDaoCloudSolrServerZKHost() {
 		return getRequiredString(ZKHOST);
+	}
+
+	public int getRecordsDaoCloudSolrNumberOfLiveNode() {
+		return getInt(NUMBER_OF_LIVE_NODE, -1);
 	}
 
 	public boolean isRecordsDaoHttpSolrServerFaultInjectionEnabled() {
