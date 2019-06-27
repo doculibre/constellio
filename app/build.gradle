@@ -87,9 +87,11 @@ dependencies {
     compile "org.vaadin.addons:ckeditor-wrapper-for-vaadin:7.11.0"
     compile files("../libs/vaadin-breadcrumb-1.7.3.jar")
     compile files("../libs/vaadin-filteringtable-1.0.0.v7.jar")
+    compile files("../libs/vaadin-lazy-load-wrapper-0.1-alpha.jar");
     compile "org.ow2.asm:asm:5.0.3"
     compile "org.vaadin.addons:activelink:7.3.1"
     compile "org.vaadin.addons:popupbutton:2.6.0"
+    compile "org.asi.ui:custommenubar:1.2"
 }
 
 war {

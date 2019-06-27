@@ -13,4 +13,7 @@ public interface RecordNavigationExtension {
 	boolean isViewForSchemaTypeCode(String schemaTypeCode);
 
 	void prepareLinkToView(NavigationParams navigationParams, boolean isRecordInTrash, Locale currentLocale);
+	
+	String getViewHrefTag(NavigationParams navigationParams);
+	
 }

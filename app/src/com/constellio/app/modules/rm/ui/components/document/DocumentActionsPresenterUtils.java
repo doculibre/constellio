@@ -124,7 +124,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 				.forModule(ConstellioRMModule.ID);
 	}
 
-	public DocumentVO getDocumentVO() {
+	public DocumentVO getRecordVO() {
 		return this.documentVO;
 	}
 
@@ -749,8 +749,8 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		RMConfigs configs = new RMConfigs(getModelLayerFactory().getSystemConfigurationsManager());
 
 		updateBorrowedMessage();
-		DocumentVO documentVO = getDocumentVO();
-		actionsComponent.setDocumentVO(documentVO);
+		RecordVO documentVO = getRecordVO();
+		actionsComponent.setRecordVO(documentVO);
 		Boolean isLogicallyDeleted = documentVO.get(Schemas.LOGICALLY_DELETED_STATUS.getLocalCode());
 		if (Boolean.TRUE.equals(isLogicallyDeleted)) {
 			actionsComponent.setEditDocumentButtonState(ComponentState.INVISIBLE);

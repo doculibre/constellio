@@ -29,7 +29,7 @@ import java.util.Set;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class SearchResultDetailedTable extends BasePagedTable<SearchResultContainer> implements SearchResultTable {
-	public static final String TABLE_STYLE = "search-result-table";
+
 	public static final String CHECKBOX_PROPERTY = "checkbox";
 
 	private Set<Object> selected;
@@ -46,6 +46,8 @@ public class SearchResultDetailedTable extends BasePagedTable<SearchResultContai
 		super("SearchResultDetailedTable", container);
 		
 		addStyleName(ValoTheme.TABLE_BORDERLESS);
+		addStyleName(TABLE_STYLE);
+		addStyleName("search-result-detailed-table");
 
 		listeners = new HashSet<>();
 		selected = new LinkedHashSet<>();
@@ -95,7 +97,6 @@ public class SearchResultDetailedTable extends BasePagedTable<SearchResultContai
 		setColumnExpandRatio(SearchResultContainer.SEARCH_RESULT_PROPERTY, 1);
 		setColumnAlignment(SearchResultContainer.INDEX_PROPERTY_ID, Align.LEFT);
 		setPageLength(Math.min(container.size(), DEFAULT_PAGE_LENGTH));
-		addStyleName(TABLE_STYLE);
 	}
 
 	public List<String> getSelectedRecordIds() {

@@ -44,6 +44,10 @@ public class ContainerAdapter<T extends Container & Indexed & Sortable> extends 
 		return adapted;
 	}
 
+	public boolean isIndexProperty() {
+		return indexProperty;
+	}
+
 	@Override
 	public Collection<?> getContainerPropertyIds() {
 		List<Object> propertyIds = new ArrayList<>();

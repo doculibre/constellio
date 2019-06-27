@@ -1780,7 +1780,8 @@ $popup-view-z-index: 3;
 							
 							} 
 
-							.search-result-table {
+							.search-result-detailed-table {
+								
 								.v-table-cell-content {
 									border: none;
 								}
@@ -1801,14 +1802,36 @@ $popup-view-z-index: 3;
 									}
 								}
 							
+								.search-result-with-checkbox-and-index {
+									position: relative;
+								    top: -40px;
+								    padding-right: 310px;
+								    padding-left: 80px;
+								}
+							
+								.search-result-with-checkbox {
+									position: relative;
+								    top: -40px;
+								    padding-right: 310px;
+								    padding-left: 40px;
+								}
+							
+								.search-result-with-index {
+									position: relative;
+								    top: -40px;
+								    padding-right: 310px;
+								    padding-left: 40px;
+								}
+							
 								.search-result-title {
-									padding-top: 16px;
+									//padding-top: 16px;
+									padding-top: 6px;
 									font-size: 18px;
 									text-align: left;
 								}
 								
 								.document-search-result-title {
-									padding-top: 10px;
+									//padding-top: 10px;
 								}
 
 								.search-result-highlights {
@@ -1817,20 +1840,44 @@ $popup-view-z-index: 3;
 										font-style: normal;
 									}
 
-									margin-bottom: 10px;
+									//margin-bottom: 10px;
 									white-space: normal;
 									display: inline-block;
 									line-height: normal;
+									padding-top: 5px;
 								}
 
-								.search-result-metadata {
-									font-size: 14px;
-
-									.metadata-caption {
-										font-weight: bold;
+								.search-result-metadatas {
+									padding-top: 10px;
+									
+									.search-result-metadata {
+										font-size: 14px;
+										//padding: 3px 0px;
+										line-height: 1.7em;
+	
+										.metadata-caption {
+											font-weight: 700;
+										}
+									
+										.metadata-value {
+											position: relative;
+											top: -24px;
+											left: 250px;
+											margin-bottom: -24px;										
+										}
 									}
 								}
+							
+								.search-result-metadata-layout {
+									font-size: 14px;
+									padding-top: 10px;
+
+									.metadata-caption {
+										font-weight: 700;
+									}
 								
+								}
+							
 								.search-result-elevation-buttons {
 								    border: 1px solid rgb(25, 125, 225);
 								    border-radius: 4px;

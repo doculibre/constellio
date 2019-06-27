@@ -149,6 +149,8 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration ENABLE_SYSTEM_STATE_OPT_DISK_USAGE;
 	public static final SystemConfiguration ENABLE_SYSTEM_STATE_SOLR_DISK_USAGE;
 	public static final SystemConfiguration ENABLE_SYSTEM_STATE_LICENSE;
+	public static final SystemConfiguration NO_LNKS_IN_SEARCH_RESULTS;
+
 
 	static {
 		SystemConfigurationGroup others = new SystemConfigurationGroup(null, "others");
@@ -288,6 +290,8 @@ public class ConstellioEIMConfigs {
 		add(GENERATED_EMAIL_FORMAT = others.createEnum("generatedEmailFormat", EmailTextFormat.class).withDefaultValue(EmailTextFormat.PLAIN_TEXT));
 
 		add(UPDATE_SERVER_CONNECTION_ENABLED = advanced.createBooleanTrueByDefault("updateServerConnectionEnabled").whichIsHidden());
+
+		add(NO_LNKS_IN_SEARCH_RESULTS = search.createBooleanFalseByDefault("noLinksInSearchResults"));
 
 		configurations = Collections.unmodifiableList(modifiableConfigs);
 
@@ -585,5 +589,9 @@ public class ConstellioEIMConfigs {
 	}
 	public boolean isUpdateServerConnectionEnabled() {
 		return manager.getValue(UPDATE_SERVER_CONNECTION_ENABLED);
+	}
+
+	public boolean isNoLinksInSearchResults() {
+		return manager.getValue(NO_LNKS_IN_SEARCH_RESULTS);
 	}
 }
