@@ -491,7 +491,23 @@ public class AppManagementService {
 
 	String getInfosToSend() {
 		String delimiter = "*";
-		return getLicenseInfo().getSignature() + delimiter + getCurrentInstalledVersionInfo().getVersion();
+		StringBuilder sb = new StringBuilder();
+		LicenseInfo licenseInfo = getLicenseInfo();
+		if (licenseInfo != null) {
+			sb.append(licenseInfo.getSignature());
+		} else {
+			sb.append("No license");
+		}
+		
+		sb.append(delimiter);
+		
+		ConstellioVersionInfo versionInfo = getCurrentInstalledVersionInfo();
+		if (versionInfo != null) {
+			sb.append(versionInfo.getVersion());
+		} else {
+			sb.append("Unknown version");
+		}
+		return sb.toString();
 	}
 
 	String sendPost(String url, String infoSent)

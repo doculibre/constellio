@@ -36,12 +36,14 @@ public class RMMigrationTo8_3_1 implements MigrationScript {
 		protected void migrate(MetadataSchemaTypesBuilder builder) {
 			MetadataSchemaTypeBuilder schemaType = types().getSchemaType(DecommissioningList.SCHEMA_TYPE);
 			MetadataSchemaBuilder defaultSchema = schemaType.getDefaultSchema();
-			defaultSchema.createUndeletable(DecommissioningList.CONTENTS).setType(CONTENT).setMultivalue(true);
+			if (!defaultSchema.hasMetadata(DecommissioningList.CONTENTS)) {
+				defaultSchema.createUndeletable(DecommissioningList.CONTENTS).setType(CONTENT).setMultivalue(true);
 
-			SchemasDisplayManager manager = appLayerFactory.getMetadataSchemasDisplayManager();
-			SchemaDisplayConfig schemaDisplayConfig = manager.getSchema(collection, DecommissioningList.DEFAULT_SCHEMA);
-			schemaDisplayConfig = schemaDisplayConfig.withNewFormMetadata(DecommissioningList.DEFAULT_SCHEMA + "_" + DecommissioningList.CONTENTS);
-			manager.saveSchema(schemaDisplayConfig);
+				SchemasDisplayManager manager = appLayerFactory.getMetadataSchemasDisplayManager();
+				SchemaDisplayConfig schemaDisplayConfig = manager.getSchema(collection, DecommissioningList.DEFAULT_SCHEMA);
+				schemaDisplayConfig = schemaDisplayConfig.withNewFormMetadata(DecommissioningList.DEFAULT_SCHEMA + "_" + DecommissioningList.CONTENTS);
+				manager.saveSchema(schemaDisplayConfig);
+			}
 		}
 	}
 }

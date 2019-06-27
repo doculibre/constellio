@@ -1,5 +1,8 @@
 package com.constellio.app.services.migrations;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.services.extensions.core.CoreSearchFieldExtension;
 import com.constellio.app.services.extensions.core.CoreUserProfileFieldsExtension;
@@ -67,13 +70,11 @@ import com.constellio.app.services.migrations.scripts.CoreMigrationTo_8_1_3;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_8_2;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_8_2_1;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_8_2_1_1;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_8_2_3;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_8_3;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class ConstellioEIM {
 

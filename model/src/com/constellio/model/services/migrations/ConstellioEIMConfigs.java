@@ -1,5 +1,6 @@
 package com.constellio.model.services.migrations;
 
+import static com.constellio.model.services.migrations.TimeScheduleConfigurationValidator.isCurrentlyInSchedule;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.configs.AbstractSystemConfigurationScript;
 import com.constellio.model.entities.configs.SystemConfiguration;
@@ -18,7 +19,13 @@ import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import org.apache.commons.lang.StringUtils;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class ConstellioEIMConfigs {
@@ -140,8 +147,6 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration ADD_RECORD_ID_IN_EMAILS;
 
 	public static final SystemConfiguration GENERATED_EMAIL_FORMAT;
-
-	public static final SystemConfiguration ADD_RECORD_ID_IN_EMAILS;
 
 	public static final SystemConfiguration IS_TRASH_THREAD_EXECUTING;
 
