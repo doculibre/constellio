@@ -144,6 +144,7 @@ public class ConstellioEIM {
 		scripts.add(new CoreMigrationTo_8_2());
 		scripts.add(new CoreMigrationTo_8_2_1());
 		scripts.add(new CoreMigrationTo_8_2_1_1());
+		scripts.add(new CoreMigrationTo_8_2_3());
 		scripts.add(new CoreMigrationTo_8_3());
 
 		return scripts;
