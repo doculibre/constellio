@@ -1,15 +1,16 @@
 package com.constellio.app.ui.framework.components;
 
+import java.io.Serializable;
+import java.util.Map;
+
 import com.constellio.app.api.extensions.taxonomies.GetCustomResultDisplayParam;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.SearchResultVO;
 import com.constellio.app.ui.entities.UserVO;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.vaadin.ui.Button.ClickListener;
-
-import java.io.Serializable;
-import java.util.Map;
 
 @SuppressWarnings("serial")
 public class RecordDisplayFactory implements Serializable {
@@ -40,9 +41,11 @@ public class RecordDisplayFactory implements Serializable {
 
 		SearchResultDisplay searchResultDisplay = appLayerFactory.getExtensions()
 				.forCollection(currentUser.getSchema().getCollection()).getCustomResultDisplayFor(param);
+		
+		ConstellioEIMConfigs configs = new ConstellioEIMConfigs(appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager());
 
 		if (searchResultDisplay == null) {
-			result = new SearchResultDisplay(searchResultVO, componentFactory, appLayerFactory, query, extraParameters);
+			result = new SearchResultDisplay(searchResultVO, componentFactory, appLayerFactory, query, extraParameters, configs.isNoLinksInSearchResults());
 		} else {
 			result = searchResultDisplay;
 		}

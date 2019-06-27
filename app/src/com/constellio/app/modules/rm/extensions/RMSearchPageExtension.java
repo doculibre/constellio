@@ -5,7 +5,6 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import com.constellio.app.api.extensions.SearchPageExtension;
@@ -31,6 +30,7 @@ import com.constellio.app.ui.pages.search.AdvancedSearchViewImpl;
 import com.constellio.app.ui.pages.search.SimpleSearchViewImpl;
 import com.constellio.data.utils.LangUtils.StringReplacer;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.vaadin.ui.Component;
 
@@ -51,7 +51,8 @@ public class RMSearchPageExtension extends SearchPageExtension {
 	@Override
 	public SearchResultDisplay getCustomResultDisplayFor(GetCustomResultDisplayParam param) {
 		if (param.getSchemaType().equals(Document.SCHEMA_TYPE)) {
-			return new DocumentSearchResultDisplay(param.getSearchResultVO(), param.getComponentFactory(), appLayerFactory, param.getQuery());
+			ConstellioEIMConfigs configs = new ConstellioEIMConfigs(appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager());
+			return new DocumentSearchResultDisplay(param.getSearchResultVO(), param.getComponentFactory(), appLayerFactory, param.getQuery(), configs.isNoLinksInSearchResults());
 		}
 		return super.getCustomResultDisplayFor(param);
 	}

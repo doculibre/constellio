@@ -91,6 +91,7 @@ dependencies {
     compile "org.ow2.asm:asm:5.0.3"
     compile "org.vaadin.addons:activelink:7.3.1"
     compile "org.vaadin.addons:popupbutton:2.6.0"
+    compile "org.asi.ui:custommenubar:1.2"
 }
 
 war {

@@ -93,4 +93,10 @@ public class TaskRecordNavigationExtension implements RecordNavigationExtension 
 			}
 		}
 	}
+
+	@Override
+	public String getViewHrefTag(NavigationParams navigationParams) {
+		return null;
+	}
+	
 }

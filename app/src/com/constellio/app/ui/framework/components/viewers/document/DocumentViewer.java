@@ -10,6 +10,7 @@ import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.server.ResourceReference;
 import com.vaadin.shared.ui.label.ContentMode;
+import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomComponent;
 import com.vaadin.ui.Label;
 import org.apache.commons.io.FilenameUtils;
@@ -139,24 +140,33 @@ public class DocumentViewer extends CustomComponent {
 		try {
 			int width = (int) getWidth();
 			int height = (int) getHeight();
+			Unit widthUnits = getWidthUnits();
+			Unit heightUnits = getHeightUnits();
 
 			if (width <= 0 || height <= 0) {
 				width = DEFAULT_WIDTH;
 				height = DEFAULT_HEIGHT;
+				widthUnits = Unit.PIXELS;
+				heightUnits = Unit.PIXELS;
 			}
 
 			int maxWidth = Page.getCurrent().getBrowserWindowWidth();
 			if (width > maxWidth) {
 				width = maxWidth;
 			}
+			String widthStr = "" + width + widthUnits;
+			String heightStr = "" + height + heightUnits;
 
 			if (contentResource != null) {
 				ResourceReference contentResourceReference = ResourceReference.create(contentResource, this, "DocumentViewer.file");
 				String contentURL = contentResourceReference.getURL();
 
 				//				String iframeHTML = "<iframe src = \"./VAADIN/themes/constellio/viewerjs/index.html?/VIEWER/#../../../../" + contentURL + "\" width=\"" + width + "\" height=\"" + height + "\" allowfullscreen webkitallowfullscreen></iframe>";
-				String iframeHTML = "<iframe src = \"./VAADIN/themes/constellio/pdfjs/web/viewer.html?file=../../../../../" + contentURL + "\" width=\"" + width + "\" height=\"" + height + "\" allowfullscreen webkitallowfullscreen></iframe>";
-				setCompositionRoot(new Label(iframeHTML, ContentMode.HTML));
+				String iframeHTML = "<iframe src = \"./VAADIN/themes/constellio/pdfjs/web/viewer.html?file=../../../../../" + contentURL + "\" width=\"100%\" height=\"100%\" allowfullscreen webkitallowfullscreen></iframe>";
+				Component compositionRoot = new Label(iframeHTML, ContentMode.HTML);
+				compositionRoot.setWidth(widthStr);
+				compositionRoot.setHeight(heightStr);
+				setCompositionRoot(compositionRoot);
 			} else {
 				setVisible(false);
 			}

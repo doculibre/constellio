@@ -22,7 +22,6 @@ import com.constellio.app.ui.framework.components.BaseMouseOverIcon;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
-import com.constellio.app.ui.framework.components.lazyLoad.LazyLoadComponent;
 import com.constellio.app.ui.framework.decorators.base.ActionMenuButtonsDecorator;
 import com.constellio.app.ui.pages.home.HomeViewImpl;
 import com.constellio.model.entities.records.wrappers.RecordWrapperRuntimeException;

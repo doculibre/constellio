@@ -23,6 +23,7 @@ import com.constellio.app.api.extensions.SelectionPanelExtension;
 import com.constellio.app.api.extensions.SystemCheckExtension;
 import com.constellio.app.api.extensions.TaxonomyPageExtension;
 import com.constellio.app.api.extensions.XmlGeneratorExtension;
+import com.constellio.app.api.extensions.params.AddComponentToSearchResultParams;
 import com.constellio.app.api.extensions.params.AddFieldsInLabelXMLParams;
 import com.constellio.app.api.extensions.params.AvailableActionsParam;
 import com.constellio.app.api.extensions.params.CollectionSystemCheckParams;
@@ -805,5 +806,20 @@ public class AppLayerCollectionExtensions {
 		for (LabelTemplateExtension extension : labelTemplateExtensions) {
 			extension.orderListOfElements(recordElements);
 		}
+	}
+
+
+	public <T extends Component> List<T> addComponentToSearchResult(
+			AddComponentToSearchResultParams param) {
+		List<T> result = new ArrayList<>();
+		for (SearchPageExtension extension : searchPageExtensions) {
+			List<T> paramResult = (List<T>) extension.addComponentToSearchResult(param);
+			if (paramResult != null) {
+				for (T component : paramResult) {
+					result.add(component);
+				}
+			}
+		}
+		return result;
 	}
 }

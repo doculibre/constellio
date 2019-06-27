@@ -78,7 +78,7 @@ public class DocumentMenuBarImpl extends BaseMenuBar implements DocumentMenuBar 
 	protected DocumentMenuBarPresenter presenter;
 
 	public DocumentMenuBarImpl(RecordVO documentVO) {
-		super(true);
+		super(false);
 		
 		presenter = newPresenter();
 		setRecordVO(documentVO);
@@ -86,11 +86,16 @@ public class DocumentMenuBarImpl extends BaseMenuBar implements DocumentMenuBar 
 			presenter.setRecordVO(documentVO);
 		}
 
-		rootItem = addItem("", FontAwesome.BARS, new Command() {
-			@Override
-			public void menuSelected(MenuItem selectedItem) {
-			}
-		});
+		if (isLazyLoading()) {
+			rootItem = addItem("", FontAwesome.BARS, new Command() {
+				@Override
+				public void menuSelected(MenuItem selectedItem) {
+				}
+			});
+		} else {
+			rootItem = addItem("", FontAwesome.BARS, null);
+			lazyLoadChildren(rootItem);
+		}
 	}
 
 	@Override

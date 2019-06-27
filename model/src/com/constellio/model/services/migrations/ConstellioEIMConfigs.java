@@ -151,6 +151,8 @@ public class ConstellioEIMConfigs {
 
 	public static final SystemConfiguration IS_TRASH_THREAD_EXECUTING;
 
+	public static final SystemConfiguration NO_LNKS_IN_SEARCH_RESULTS;
+
 
 	static {
 		SystemConfigurationGroup others = new SystemConfigurationGroup(null, "others");
@@ -290,6 +292,8 @@ public class ConstellioEIMConfigs {
 		add(ADD_RECORD_ID_IN_EMAILS = others.createBooleanFalseByDefault("addRecordIdInEmails"));
 
 		add(UPDATE_SERVER_CONNECTION_ENABLED = advanced.createBooleanTrueByDefault("updateServerConnectionEnabled").whichIsHidden());
+
+		add(NO_LNKS_IN_SEARCH_RESULTS = search.createBooleanFalseByDefault("noLinksInSearchResults"));
 
 		configurations = Collections.unmodifiableList(modifiableConfigs);
 	}
@@ -566,5 +570,9 @@ public class ConstellioEIMConfigs {
 
 	public boolean isUpdateServerConnectionEnabled() {
 		return manager.getValue(UPDATE_SERVER_CONNECTION_ENABLED);
+	}
+	
+	public boolean isNoLinksInSearchResults() {
+		return manager.getValue(NO_LNKS_IN_SEARCH_RESULTS);
 	}
 }

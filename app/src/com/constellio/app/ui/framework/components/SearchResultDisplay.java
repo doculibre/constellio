@@ -40,7 +40,6 @@ import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CssLayout;
 import com.vaadin.ui.Label;
-import com.vaadin.ui.Layout;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
@@ -72,21 +71,23 @@ public class SearchResultDisplay extends CssLayout {
 
 	String query;
 	Map<String, String> extraParam;
+	boolean noLinks;
 
 	private Component titleComponent;
 
 	public SearchResultDisplay(SearchResultVO searchResultVO, MetadataDisplayFactory componentFactory,
-							   AppLayerFactory appLayerFactory, String query) {
-		this(searchResultVO, componentFactory, appLayerFactory, query, null);
+							   AppLayerFactory appLayerFactory, String query, boolean noLinks) {
+		this(searchResultVO, componentFactory, appLayerFactory, query, null, noLinks);
 	}
 
 	public SearchResultDisplay(SearchResultVO searchResultVO, MetadataDisplayFactory componentFactory,
-							   AppLayerFactory appLayerFactory, String query, Map<String,String> extraParam) {
+							   AppLayerFactory appLayerFactory, String query, Map<String,String> extraParam, boolean noLinks) {
 		this.appLayerFactory = appLayerFactory;
 		this.extraParam = extraParam;
 		schemasRecordsService = new SchemasRecordsServices(ConstellioUI.getCurrentSessionContext().getCurrentCollection(),
 				getAppLayerFactory().getModelLayerFactory());
 		this.query = query;
+		this.noLinks = noLinks;
 		searchConfigurationsManager = getAppLayerFactory().getModelLayerFactory().getSearchConfigurationsManager();
 
 		this.sessionContext = getCurrent().getSessionContext();
@@ -226,28 +227,56 @@ public class SearchResultDisplay extends CssLayout {
 	}
 
 	private void buildMetadataComponent(RecordVO recordVO, MetadataDisplayFactory componentFactory) {
-		StringBuilder sb = new StringBuilder();
-		for (MetadataValueVO metadataValue : recordVO.getSearchMetadataValues()) {
-			if (recordVO.getMetadataCodes().contains(metadataValue.getMetadata().getCode())) {
-				MetadataVO metadataVO = metadataValue.getMetadata();
-				if (!metadataVO.codeMatches(CommonMetadataBuilder.TITLE)) {
-					sb.append("<div class=\"metadata-label\">");
-					sb.append(metadataVO.getLabel());
-					sb.append(":</div><div class=\"metadata-value\">");
-					sb.append(metadataValue.getValue() != null ? metadataValue.getValue().toString() : "");
-					sb.append("</div>");
-//					Component value = componentFactory.build(recordVO, metadataValue);
-//					if (value != null) {
-//						value.addStyleName(METADATA_VALUE_STYLE);
-//						Label caption = new Label(metadataVO.getLabel() + ":");
-//						caption.addStyleName(METADATA_CAPTION_STYLE);
-//						addComponents(caption, value);
-//					}
+		if (noLinks) {
+			StringBuilder sb = new StringBuilder();
+			for (MetadataValueVO metadataValue : recordVO.getSearchMetadataValues()) {
+				if (recordVO.getMetadataCodes().contains(metadataValue.getMetadata().getCode())) {
+					MetadataVO metadataVO = metadataValue.getMetadata();
+					if (!metadataVO.codeMatches(CommonMetadataBuilder.TITLE)) {
+						String stringDisplayValue = componentFactory.buildString(recordVO, metadataValue);
+						if (stringDisplayValue != null) {
+							sb.append("<div class=\"search-result-metadata\">");
+							sb.append("<div class=\"metadata-caption\">");
+							sb.append(metadataVO.getLabel());
+							sb.append(":</div><div class=\"metadata-value\">");
+							sb.append(stringDisplayValue);
+							sb.append("</div>");
+							sb.append("</div>");
+						}
+					}
 				}
 			}
-		}
-		if (sb.length() > 0) {
-			addComponent(new Label(sb.toString(), ContentMode.HTML));
+			if (sb.length() > 0) {
+				sb.insert(0, "<div class=\"search-result-metadatas\">");
+				sb.append("</div>");
+				addComponent(new Label(sb.toString(), ContentMode.HTML));
+			}
+		} else {
+			VerticalLayout layout = new VerticalLayout();
+			layout.addStyleName("search-result-metadata-layout");
+			layout.setSpacing(true);
+			for (MetadataValueVO metadataValue : recordVO.getSearchMetadataValues()) {
+				if (recordVO.getMetadataCodes().contains(metadataValue.getMetadata().getCode())) {
+					MetadataVO metadataVO = metadataValue.getMetadata();
+					if (!metadataVO.codeMatches(CommonMetadataBuilder.TITLE)) {
+						Component value = componentFactory.build(recordVO, metadataValue);
+						if (value != null) {
+							Label caption = new Label(metadataVO.getLabel() + ":");
+							caption.addStyleName("metadata-caption");
+
+							I18NHorizontalLayout item = new I18NHorizontalLayout(caption, value);
+							item.setHeight("100%");
+							item.setSpacing(true);
+							item.addStyleName("metadata-caption-layout");
+
+							layout.addComponent(item);
+						}
+					}
+				}
+			}
+			if (layout.getComponentCount() > 0) {
+				addComponent(layout);
+			}
 		}
 	}
 
