@@ -203,6 +203,9 @@ public class MetadataDisplayFactory implements Serializable {
 						displayComponent = link;
 					} else {
 						String stringValue = StringUtils.replace(displayValue.toString(), "\n", "<br/>");
+						if (metadata.codeMatches(Schemas.CAPTION.getCode())) {
+							stringValue = StringUtils.replace(stringValue, "|", "/");
+						} 
 						displayComponent = new Label(stringValue, ContentMode.HTML);
 					}
 					break;
@@ -424,7 +427,9 @@ public class MetadataDisplayFactory implements Serializable {
 					displayValueString = intFormat.format(displayValue);
 					break;
 				case STRING:
-					if (MetadataInputType.PASSWORD.equals(metadataInputType)) {
+					if (metadata.codeMatches(Schemas.CAPTION.getCode())) {
+						displayValueString = StringUtils.replace(displayValue.toString(), "|", "/");
+					} else if (MetadataInputType.PASSWORD.equals(metadataInputType)) {
 						displayValueString = null;
 					} else if (MetadataInputType.URL.equals(metadataInputType)) {
 						String url = displayValue.toString();
@@ -433,7 +438,11 @@ public class MetadataDisplayFactory implements Serializable {
 						}
 						displayValueString = "<a href=\"" + url + "\" target=\"_blank\">" + url + "</a>";
 					} else {
-						displayValueString = StringUtils.replace(displayValue.toString(), "\n", "<br/>");
+						String stringValue = StringUtils.replace(displayValue.toString(), "\n", "<br/>");;
+						if (metadata.codeMatches(Schemas.CAPTION.getCode())) {
+							stringValue = StringUtils.replace(stringValue, "|", "/");
+						} 
+						displayValueString = stringValue;
 					}
 					break;
 				case TEXT:
@@ -465,9 +474,9 @@ public class MetadataDisplayFactory implements Serializable {
 					RecordIdToCaptionConverter converter = new RecordIdToCaptionConverter();
 					switch (metadataInputType) {
 						case LOOKUP:
-							AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
-							String collection = metadata.getCollection();
 							String referenceRecordId = displayValue.toString();
+//							AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
+//							String collection = metadata.getCollection();
 //							Component displayComponent = appLayerFactory.getExtensions().forCollection(collection).getDisplayForReference(allowedReferences, referenceRecordId);
 //							if (displayComponent != null && displayComponent.isVisible()) {
 //								if (allowedReferences != null && allowedReferences.getAllowedSchemaType() != null) {
