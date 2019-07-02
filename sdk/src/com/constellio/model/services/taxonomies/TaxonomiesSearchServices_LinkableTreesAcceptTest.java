@@ -29,10 +29,14 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.AuthorizationAddRequest;
 import com.constellio.model.entities.security.global.UserCredential;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordUtils;
+import com.constellio.model.services.records.cache2.RecordsCache2IntegrityDiagnosticService;
+import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.SchemaUtils;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.ConditionTemplate;
 import com.constellio.model.services.security.AuthorizationsServices;
@@ -58,11 +62,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static com.constellio.app.modules.rm.constants.RMTaxonomies.ADMINISTRATIVE_UNITS;
 import static com.constellio.app.modules.rm.constants.RMTaxonomies.CLASSIFICATION_PLAN;
 import static com.constellio.data.dao.dto.records.OptimisticLockingResolution.EXCEPTION;
+import static com.constellio.model.entities.schemas.RecordCacheType.NOT_CACHED;
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.taxonomies.TaxonomiesSearchOptions.HasChildrenFlagCalculated.NEVER;
 import static com.constellio.model.services.taxonomies.TaxonomiesTestsUtils.ajustIfBetterThanExpected;
+import static com.constellio.sdk.tests.TestUtils.englishMessages;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
@@ -114,8 +120,19 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 
 		waitForBatchProcess();
 		invalidateCachesOfRMSchemas();
-		getModelLayerFactory().getRecordsCaches().getCache(zeCollection).removeCache(AdministrativeUnit.SCHEMA_TYPE);
-		getModelLayerFactory().getRecordsCaches().getCache(zeCollection).removeCache(Category.SCHEMA_TYPE);
+
+		assertThat(getModelLayerFactory().getRecordsCaches().getRecord(records.unitId_20)).isNotNull();
+
+		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchemaType(AdministrativeUnit.SCHEMA_TYPE).setRecordCacheType(NOT_CACHED);
+				types.getSchemaType(Category.SCHEMA_TYPE).setRecordCacheType(NOT_CACHED);
+			}
+		});
+
+		assertThat(getModelLayerFactory().getRecordsCaches().getRecord(records.unitId_20)).isNull();
+
 		getDataLayerFactory().getExtensions().getSystemWideExtensions().bigVaultServerExtension
 				.add(new BigVaultServerExtension() {
 					@Override
@@ -129,6 +146,13 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 						returnedDocumentsCount.addAndGet(params.getReturnedResultsCount());
 					}
 				});
+
+		ValidationErrors errors = new RecordsCache2IntegrityDiagnosticService(getModelLayerFactory()).validateIntegrity(false, true);
+		//List<String> messages = englishMessages(errors).stream().map((s) -> substringBefore(s, " :")).collect(toList());
+
+		List<String> messages = englishMessages(errors);
+		assertThat(messages).isEmpty();
+
 	}
 
 	@Test
@@ -877,12 +901,18 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 		TaxonomiesSearchOptions optionsWithNoInvisibleRecords = new TaxonomiesSearchOptions()
 				.setShowInvisibleRecordsInLinkingMode(false);
 
+		checkCache();
+
 		getModelLayerFactory().newRecordServices().execute(new Transaction().addAll(records.getFolder_A20()
 				.setActualTransferDate(LocalDate.now())));
 
 		assertThat(records.getFolder_A20().<Boolean>get(Schemas.VISIBLE_IN_TREES)).isEqualTo(Boolean.FALSE);
 
+		checkCache();
+
 		givenUserHasReadAccessTo(records.folder_A20, records.folder_C01);
+
+		checkCache();
 
 		assertThatRootWhenSelectingAFolderUsingPlanTaxonomy(optionsWithNoInvisibleRecords)
 				.has(numFoundAndListSize(1))
@@ -1393,7 +1423,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 				.has(solrQueryCounts(4, 3, 2))
 				.has(secondSolrQueryCounts(4, 3, 2));
 
-		assertThat(queryCount.get()).isEqualTo(7);
+		assertThat(queryCount.get()).isEqualTo(9);
 	}
 
 	@Test
@@ -1577,8 +1607,13 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 		transaction.add(rootCategory);
 		getModelLayerFactory().newRecordServices().execute(transaction);
 
-		getModelLayerFactory().getRecordsCaches().invalidateAll();
-		getModelLayerFactory().getRecordsCaches().getCache(zeCollection).removeCache(Category.SCHEMA_TYPE);
+		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchemaType(Category.SCHEMA_TYPE).setRecordCacheType(NOT_CACHED);
+			}
+		});
+
 
 		User alice = users.aliceIn(zeCollection);
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("root",
@@ -1606,7 +1641,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 				.has(resultsInOrder("category_11", "category_12", "category_13", "category_14", "category_15", "category_16",
 						"category_17", "category_18", "category_19", "category_20", "category_21", "category_22", "category_23",
 						"category_24", "category_25", "category_26", "category_27", "category_28", "category_29", "category_30"))
-				.has(numFound(40)).has(listSize(20))
+				.has(numFound(50)).has(listSize(20))
 				.has(fastContinuationInfos(false, 30))
 				.has(solrQueryCounts(4, 41, 10))
 				.has(secondSolrQueryCounts(3, 41, 0));
@@ -1694,7 +1729,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 				.has(resultsInOrder("category_11", "category_12", "category_13", "category_14", "category_15", "category_16",
 						"category_17", "category_18", "category_19", "category_20", "category_21", "category_22", "category_23",
 						"category_24", "category_25", "category_26", "category_27", "category_28", "category_29", "category_30"))
-				.has(numFound(40)).has(listSize(20))
+				.has(numFound(50)).has(listSize(20))
 				.has(fastContinuationInfos(false, 30))
 				.has(solrQueryCounts(4, 41, 10))
 				.has(secondSolrQueryCounts(3, 41, 0));
@@ -1883,8 +1918,12 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 
 		authsServices.add(AuthorizationAddRequest.authorizationForUsers(alice).givingReadWriteAccess().on(records.unitId_10));
 
-		getModelLayerFactory().getRecordsCaches().invalidateAll();
-		getModelLayerFactory().getRecordsCaches().getCache(zeCollection).removeCache(Category.SCHEMA_TYPE);
+		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchemaType(Category.SCHEMA_TYPE).setRecordCacheType(NOT_CACHED);
+			}
+		});
 
 		Transaction transaction = new Transaction();
 		for (int i = 1; i <= 100; i++) {
@@ -3591,7 +3630,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 	private void invalidateCachesOfRMSchemas() {
 		for (MetadataSchemaType schemaType : rm.getTypes().getSchemaTypes()) {
 			if (schemaType.getCode().equals(User.SCHEMA_TYPE) || schemaType.getCode().equals(Group.SCHEMA_TYPE)) {
-				getModelLayerFactory().getRecordsCaches().getCache(zeCollection).invalidateRecordsOfType(schemaType.getCode());
+				getModelLayerFactory().getRecordsCaches().getCache(zeCollection).reloadSchemaType(schemaType.getCode());
 			}
 		}
 	}

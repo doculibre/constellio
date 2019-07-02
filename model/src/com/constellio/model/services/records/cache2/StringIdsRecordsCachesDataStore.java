@@ -4,6 +4,7 @@ import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.utils.Holder;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.LazyIterator;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -338,22 +339,47 @@ public class StringIdsRecordsCachesDataStore {
 		return StreamSupport.stream(spliteratorUnknownSize(iterator(collection, schemaType), DISTINCT + NONNULL + IMMUTABLE), false);
 	}
 
-	public synchronized void invalidate(Predicate<RecordDTO> predicate) {
-		List<String> idsToDelete = new ArrayList<>();
-		stream().filter(predicate).forEach((dto) -> idsToDelete.add(dto.getId()));
-		idsToDelete.stream().forEach((id -> this.allRecordsWithStringKey.remove(id)));
-
-	}
-
 	public synchronized void invalidate(byte collection, Predicate<RecordDTO> predicate) {
 		List<String> idsToDelete = new ArrayList<>();
 		stream(collection).filter(predicate).forEach((dto) -> idsToDelete.add(dto.getId()));
-		idsToDelete.stream().forEach((id -> this.allRecordsWithStringKey.remove(id)));
+		idsToDelete.stream().forEach((id -> {
+			this.allRecordsWithStringKey.remove(id).set(null);
+		}));
 	}
 
 	public synchronized void invalidate(byte collection, short schemaType, Predicate<RecordDTO> predicate) {
 		List<String> idsToDelete = new ArrayList<>();
 		stream(collection, schemaType).filter(predicate).forEach((dto) -> idsToDelete.add(dto.getId()));
-		idsToDelete.stream().forEach((id -> this.allRecordsWithStringKey.remove(id)));
+		idsToDelete.stream().forEach((id -> this.allRecordsWithStringKey.remove(id).set(null)));
+	}
+
+	public synchronized void invalidateAll(byte collectionId, short schemaTypeId) {
+		MetadataSchemaType schemaType = schemasManager.getSchemaTypes(collectionId).getSchemaType(schemaTypeId);
+
+		int collectionIndex = collectionId - Byte.MIN_VALUE;
+		List<Holder<RecordDTO>> holders = recordsWithStringKeyRegroupedByCollection[collectionIndex];
+
+		if (holders != null) {
+
+			Iterator<Holder<RecordDTO>> collectionHoldersDTO = holders.iterator();
+
+			while (collectionHoldersDTO.hasNext()) {
+				Holder<RecordDTO> recordDTOHolder = collectionHoldersDTO.next();
+
+				if (recordDTOHolder.get() == null) {
+					collectionHoldersDTO.remove();
+
+				} else if (recordDTOHolder.get().getSchemaCode().startsWith(schemaType.getCode() + "_")) {
+					this.allRecordsWithStringKey.remove(recordDTOHolder.get().getId());
+					collectionHoldersDTO.remove();
+				}
+			}
+		}
+
+		List<Holder<RecordDTO>>[] typesHolders = recordsWithStringKeyRegroupedByCollectionAndType[collectionIndex];
+		if (typesHolders != null) {
+			typesHolders[schemaTypeId] = new ArrayList<>();
+		}
+
 	}
 }

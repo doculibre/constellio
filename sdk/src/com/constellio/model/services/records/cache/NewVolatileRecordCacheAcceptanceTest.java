@@ -6,8 +6,10 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.records.RecordImpl;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.cache2.RecordsCache2IntegrityDiagnosticService;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
@@ -21,6 +23,7 @@ import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.AnotherSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
 import org.apache.commons.lang3.StringUtils;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
@@ -30,6 +33,7 @@ import org.junit.runners.Parameterized;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 
 import static com.constellio.data.dao.services.cache.InsertionReason.WAS_MODIFIED;
 import static com.constellio.data.dao.services.cache.InsertionReason.WAS_OBTAINED;
@@ -39,6 +43,7 @@ import static com.constellio.model.services.records.cache.CacheInsertionStatus.A
 import static com.constellio.model.services.records.cache.CacheInsertionStatus.REFUSED_OLD_VERSION;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static com.constellio.sdk.tests.QueryCounter.ON_SCHEMA_TYPES;
+import static com.constellio.sdk.tests.TestUtils.englishMessages;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEssentialInSummary;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
@@ -110,6 +115,19 @@ public class NewVolatileRecordCacheAcceptanceTest extends ConstellioTest {
 
 	}
 
+	@After
+	public void tearDown() throws Exception {
+
+		if (!failureDetectionTestWatcher.isFailed()) {
+			RecordsCache2IntegrityDiagnosticService service = new RecordsCache2IntegrityDiagnosticService(getModelLayerFactory());
+			ValidationErrors errors = service.validateIntegrity(false, true);
+			//List<String> messages = englishMessages(errors).stream().map((s) -> substringBefore(s, " :")).collect(toList());
+
+			List<String> messages = englishMessages(errors);
+			assertThat(messages).isEmpty();
+		}
+
+	}
 
 	@Test
 	public void whenInsertingSummaryLoadedRecordThenPermanentSummaryUpdatedVolatileInvalidated()

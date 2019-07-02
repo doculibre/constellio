@@ -1140,6 +1140,10 @@ public class MetadataBuilder {
 		return id;
 	}
 
+	public boolean isRequiringCacheReload() {
+		return originalMetadata != null && essentialInSummary != originalMetadata.isEssentialInSummary();
+	}
+
 
 	private static class EncryptionServicesFactory implements Factory<EncryptionServices> {
 

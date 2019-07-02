@@ -2,10 +2,12 @@ package com.constellio.model.services.records.cache;
 
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.extensions.DataLayerSystemExtensions;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.RecordCacheType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordImplRuntimeException;
@@ -13,6 +15,8 @@ import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesImpl;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
+import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -34,8 +38,6 @@ import static com.constellio.data.dao.services.cache.InsertionReason.WAS_MODIFIE
 import static com.constellio.data.dao.services.cache.InsertionReason.WAS_OBTAINED;
 import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
-import static com.constellio.model.services.records.cache.CacheConfig.permanentCache;
-import static com.constellio.model.services.records.cache.CacheConfig.volatileCache;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromEveryTypesOfEveryCollection;
@@ -112,14 +114,31 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 		otherInstanceRecordsCaches = otherModelLayerFactory.getRecordsCaches();
 		otherInstanceZeCollectionRecordsCache = otherModelLayerFactory.getRecordsCaches().getCache(zeCollection);
 
-		for (ModelLayerFactory aModelLayerFactory : asList(getModelLayerFactory(), otherModelLayerFactory)) {
-			RecordsCache collection1Cache = aModelLayerFactory.getRecordsCaches().getCache(zeCollection);
-			RecordsCache collection2Cache = aModelLayerFactory.getRecordsCaches().getCache(anotherCollection);
-			collection1Cache.configureCache(volatileCache(zeCollectionSchemaWithVolatileCache.type(), 4));
-			collection1Cache.configureCache(permanentCache(zeCollectionSchemaWithPermanentCache.type()));
-			collection2Cache.configureCache(volatileCache(anotherCollectionSchemaWithVolatileCache.type(), 3));
+		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchemaType(zeCollectionSchemaWithVolatileCache.type().getCode()).setRecordCacheType(RecordCacheType.SUMMARY_CACHED_WITH_VOLATILE);
+			}
+		});
 
-		}
+		getModelLayerFactory().getMetadataSchemasManager().modify(anotherCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchemaType(anotherCollectionSchemaWithVolatileCache.type().getCode()).setRecordCacheType(RecordCacheType.SUMMARY_CACHED_WITH_VOLATILE);
+			}
+		});
+
+		//		for (ModelLayerFactory aModelLayerFactory : asList(getModelLayerFactory(), otherModelLayerFactory)) {
+		//			RecordsCache collection1Cache = aModelLayerFactory.getRecordsCaches().getCache(zeCollection);
+		//			RecordsCache collection2Cache = aModelLayerFactory.getRecordsCaches().getCache(anotherCollection);
+		//
+		//
+		//
+		//			collection1Cache.configureCache(volatileCache(zeCollectionSchemaWithVolatileCache.type(), 4));
+		//			collection1Cache.configureCache(permanentCache(zeCollectionSchemaWithPermanentCache.type()));
+		//			collection2Cache.configureCache(volatileCache(anotherCollectionSchemaWithVolatileCache.type(), 3));
+		//
+		//		}
 
 		DataLayerSystemExtensions extensions = getDataLayerFactory().getExtensions().getSystemWideExtensions();
 		queriesListener = new StatsBigVaultServerExtension();
@@ -133,11 +152,11 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenRecordsAreNotFullyLoadedThenNotInsertedInCache()
+	public void givenRecordsAreNotFullyLoadedThenNotInsertedInVolatileCache()
 			throws Exception {
 
 		givenTestRecords();
-		recordsCaches.invalidateAll();
+		recordsCaches.invalidateVolatile();
 
 		List<Record> records = searchServices.search(new LogicalSearchQuery().setCondition(
 				fromAllSchemasIn(zeCollection).returnAll())
@@ -176,7 +195,7 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 		record.set(Schemas.LEGACY_ID, "zeLegacyId");
 		recordServices.add(record);
 
-		recordsCaches.invalidateAll();
+		recordsCaches.invalidateVolatile();
 
 		recordsCaches.getCache(record.getCollection()).insert(record, WAS_MODIFIED);
 		record.set(TITLE, "modified title");
@@ -216,7 +235,7 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 		record.set(Schemas.LEGACY_ID, "zeLegacyId");
 		recordServices.add(record);
 
-		recordsCaches.invalidateAll();
+		recordsCaches.invalidateVolatile();
 
 		recordsCaches.getCache(record.getCollection()).insert(record, WAS_MODIFIED);
 
@@ -226,7 +245,7 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 
 		assertThat(recordsCaches.getRecord(record.getId()).<String>get(TITLE)).isEqualTo("original title");
 		assertThat(recordsCaches.getCache(record.getCollection())
-				.getByMetadata(zeCollectionSchemaWithVolatileCache.metadata(Schemas.LEGACY_ID.getLocalCode()), "zeLegacyId")
+				.getSummaryByMetadata(zeCollectionSchemaWithVolatileCache.metadata(Schemas.LEGACY_ID.getLocalCode()), "zeLegacyId")
 				.<String>get(TITLE)).isEqualTo("original title");
 		assertThat(record.<String>get(TITLE)).isEqualTo("modified title");
 		assertThat(record.isDirty()).isTrue();
@@ -244,7 +263,7 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 		record.set(Schemas.LEGACY_ID, "zeLegacyId");
 		recordServices.add(record);
 
-		recordsCaches.invalidateAll();
+		recordsCaches.invalidateVolatile();
 
 		recordsCaches.getCache(record.getCollection()).insert(record, WAS_OBTAINED);
 
@@ -301,10 +320,10 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 
 		assertThatRecords("p1", "p2", "v1", "v2", "v3", "v4").areInBothCache();
 
-		recordsCaches.getCache(zeCollection).invalidate(asList("p1", "v1"));
+		recordsCaches.getCache(zeCollection).removeFromAllCaches(asList("p1", "v1"));
 		assertThatRecords("p1", "v1").areNotInBothCache();
 
-		recordsCaches.getCache(zeCollection).invalidate(asList("v3"));
+		recordsCaches.getCache(zeCollection).removeFromAllCaches(asList("v3"));
 		assertThatRecords("p1", "v1", "v3").areNotInBothCache();
 
 	}
@@ -318,7 +337,7 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 
 		assertThatRecords("p1", "p2", "v1", "v2", "v3", "v4").areInBothCache();
 
-		recordsCaches.getCache(zeCollection).invalidateRecordsOfType(zeCollectionSchemaWithVolatileCache.typeCode());
+		recordsCaches.getCache(zeCollection).reloadSchemaType(zeCollectionSchemaWithVolatileCache.typeCode());
 		assertThatRecords("p1", "p2", "v4").areInBothCache(); //v4 is in an other collection
 		assertThatRecords("v1", "v2", "v3").areNotInBothCache();
 
@@ -423,11 +442,9 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 		givenTestRecords();
 		loadAllRecordsInCaches();
 
-		recordsCaches.getCache(zeCollection).invalidateAll();
-		recordsCaches.getCache(anotherCollection).invalidateAll();
+		recordsCaches.invalidateVolatile();
 		assertThatRecords("p2", "v3", "v4").areOnlyIn(otherInstanceRecordsCaches);
-		otherInstanceRecordsCaches.getCache(zeCollection).invalidateAll();
-		otherInstanceRecordsCaches.getCache(anotherCollection).invalidateAll();
+		otherInstanceRecordsCaches.invalidateVolatile();
 		assertThatRecords("p2", "v3", "v4").areNotInBothCache();
 
 		recordServices.getDocumentById("p2");
@@ -475,8 +492,8 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 		assertThatRecords("p2", "v3", "v4").areInBothCache();
 		assertThatRecords("un1", "un2").areNotInBothCache();
 
-		recordsCaches.invalidateAll();
-		otherInstanceRecordsCaches.invalidateAll();
+		recordsCaches.invalidateVolatile();
+		otherInstanceRecordsCaches.invalidateVolatile();
 		assertThatRecords("un1", "p2", "v3", "v4", "un2").areNotInBothCache();
 	}
 
@@ -590,13 +607,13 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 
 		int initialQueriesSize = queriesListener.queries.size();
 		userServices.getUserInCollection("gandalf", zeCollection);
-		assertThat(queriesListener.queries).hasSize(initialQueriesSize + 2);
+		assertThat(queriesListener.queries).hasSize(initialQueriesSize);
 
 		userServices.getUser("gandalf");
-		assertThat(queriesListener.queries).hasSize(initialQueriesSize + 2);
+		assertThat(queriesListener.queries).hasSize(initialQueriesSize);
 
 		userServices.getUserInCollection("gandalf", zeCollection);
-		assertThat(queriesListener.queries).hasSize(initialQueriesSize + 2);
+		assertThat(queriesListener.queries).hasSize(initialQueriesSize);
 	}
 
 	@Test
@@ -697,44 +714,23 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenQueriesResultIdsThenInvalidatedLocallyAndRemotelyWhenARecordIsModified()
+	public void whenExecutingQueryWithMetadatasInCacheThenExecutedInCache()
 			throws Exception {
+
+		Toggle.USE_CACHE_FOR_QUERY_EXECUTION.enable();
 
 		givenTestRecords();
 		LogicalSearchQuery query = LogicalSearchQuery.query(from(zeCollectionSchemaWithPermanentCache.type())
 				.where(zeCollectionSchemaWithPermanentCache.stringMetadata()).isEqualTo("p2Code"));
 
-		assertThat(searchServices.cachedSearchRecordIds(query)).containsOnly("p2");
-		assertThat(searchServices.cachedSearchRecordIds(query)).containsOnly("p2");
-		assertThat(queriesListener.queries).hasSize(1);
-		assertThat(otherSystemQueriesListener.queries).hasSize(0);
-		assertThat(otherInstanceSearchServices.cachedSearchRecordIds(query)).containsOnly("p2");
-		assertThat(otherInstanceSearchServices.cachedSearchRecordIds(query)).containsOnly("p2");
-		assertThat(queriesListener.queries).hasSize(1);
-		assertThat(otherSystemQueriesListener.queries).hasSize(1);
-
-		recordsCaches.insert(record("p2"), WAS_OBTAINED);
-		queriesListener.queries.clear();
-		otherSystemQueriesListener.queries.clear();
-
-		assertThat(searchServices.cachedSearchRecordIds(query)).containsOnly("p2");
-		assertThat(otherInstanceSearchServices.cachedSearchRecordIds(query)).containsOnly("p2");
+		assertThat(searchServices.searchRecordIds(query)).containsOnly("p2");
+		assertThat(searchServices.searchRecordIds(query)).containsOnly("p2");
 		assertThat(queriesListener.queries).hasSize(0);
 		assertThat(otherSystemQueriesListener.queries).hasSize(0);
-
-		recordServices.update(record("p2").set(zeCollectionSchemaWithPermanentCache.stringMetadata(), "newP2Code"));
-		queriesListener.queries.clear();
-		otherSystemQueriesListener.queries.clear();
-
-		assertThat(searchServices.cachedSearchRecordIds(query)).isEmpty();
-		assertThat(otherInstanceSearchServices.cachedSearchRecordIds(query)).isEmpty();
-		assertThat(queriesListener.queries).hasSize(1);
-		assertThat(otherSystemQueriesListener.queries).hasSize(1);
-
-		assertThat(searchServices.cachedSearchRecordIds(query)).isEmpty();
-		assertThat(otherInstanceSearchServices.cachedSearchRecordIds(query)).isEmpty();
-		assertThat(queriesListener.queries).hasSize(1);
-		assertThat(otherSystemQueriesListener.queries).hasSize(1);
+		assertThat(otherInstanceSearchServices.searchRecordIds(query)).containsOnly("p2");
+		assertThat(otherInstanceSearchServices.searchRecordIds(query)).containsOnly("p2");
+		assertThat(queriesListener.queries).hasSize(0);
+		assertThat(otherSystemQueriesListener.queries).hasSize(0);
 
 	}
 
@@ -881,10 +877,9 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 	//-----------------------------------------------------------------
 
 	private void resetCacheAndQueries() {
-		recordsCaches.invalidateAll();
-		otherInstanceRecordsCaches.invalidateAll();
+		recordsCaches.invalidateVolatile();
+		otherInstanceRecordsCaches.invalidateVolatile();
 		queriesListener.clear();
-		assertThatRecords("un1", "p2", "v3", "v4", "un2").areNotInBothCache();
 	}
 
 	private void loadAllRecordsInCaches() {

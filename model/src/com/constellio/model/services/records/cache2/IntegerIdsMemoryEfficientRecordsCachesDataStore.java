@@ -507,6 +507,10 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 		}
 	}
 
+	synchronized void invalidateAll(byte predicateCollectionId, short predicateTypeId) {
+		invalidate(predicateCollectionId, predicateTypeId, (r) -> true);
+	}
+
 	synchronized void invalidate(byte predicateCollectionId, short predicateTypeId,
 								 Predicate<RecordDTO> predicate) {
 		obtainWritingPermit();

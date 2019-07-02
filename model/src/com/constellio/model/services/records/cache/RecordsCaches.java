@@ -18,9 +18,19 @@ public interface RecordsCaches {
 
 	Record getRecord(String id);
 
-	void invalidateAll();
+	default void invalidateVolatile() {
+		invalidateVolatile(MassiveCacheInvalidationReason.KEEP_INTEGRITY);
+	}
 
-	void invalidate(String collection);
+	void invalidateVolatile(MassiveCacheInvalidationReason reason);
+
+	//void reload(List<String> schemaTypes);
+
+	default void removeRecordsOfCollection(String collection) {
+		removeRecordsOfCollection(collection, false);
+	}
+
+	void removeRecordsOfCollection(String collection, boolean onlyLocally);
 
 	default boolean isCached(String id) {
 		return getRecord(id) != null;

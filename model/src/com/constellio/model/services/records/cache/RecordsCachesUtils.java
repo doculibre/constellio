@@ -5,7 +5,7 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
 public class RecordsCachesUtils {
 
-	public static CacheInsertionStatus evaluateCacheInsert(Record insertedRecord, CacheConfig cacheConfig) {
+	public static CacheInsertionStatus evaluateCacheInsert(Record insertedRecord) {
 
 		if (insertedRecord.isDirty()) {
 			return CacheInsertionStatus.REFUSED_DIRTY;

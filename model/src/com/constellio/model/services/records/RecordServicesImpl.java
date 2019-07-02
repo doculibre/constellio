@@ -557,6 +557,10 @@ public class RecordServicesImpl extends BaseRecordServices {
 		return realtimeGetById(DataStore.RECORDS, id);
 	}
 
+	public Record realtimeGetRecordSummaryById(String id) {
+		return realtimeGetSummaryById(DataStore.RECORDS, id);
+	}
+
 	public Record realtimeGetById(String dataStore, String id) {
 		try {
 			RecordDTO recordDTO = dao(dataStore).realGet(id);
@@ -574,6 +578,29 @@ public class RecordServicesImpl extends BaseRecordServices {
 			throw new RecordServicesRuntimeException.NoSuchRecordWithId(id, dataStore, e);
 		}
 	}
+
+
+	public Record realtimeGetSummaryById(String dataStore, String id) {
+		try {
+			RecordDTO recordDTO = dao(dataStore).realGet(id);
+			String collection = (String) recordDTO.getFields().get("collection_s");
+			CollectionInfo collectionInfo = modelLayerFactory.getCollectionsListManager().getCollectionInfo(collection);
+
+			Record record = new RecordImpl(recordDTO, collectionInfo);
+			newAutomaticMetadataServices()
+					.loadTransientEagerMetadatas((RecordImpl) record, newRecordProviderWithoutPreloadedRecords(),
+							new Transaction(new RecordUpdateOptions()));
+
+			MetadataSchema schema = metadataSchemasManager.getSchemaOf(record);
+
+			insertInCache(record, WAS_OBTAINED);
+			return record;
+
+		} catch (NoSuchRecordWithId e) {
+			throw new RecordServicesRuntimeException.NoSuchRecordWithId(id, dataStore, e);
+		}
+	}
+
 
 	private RecordDao dao(String dataStore) {
 		switch (dataStore) {
@@ -620,7 +647,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 		for (Record record : records) {
 			CacheConfig cacheConfig = recordsCaches.getCache(collection).getCacheConfigOf(record.getTypeCode());
 			if (cacheConfig != null) {
-				if (evaluateCacheInsert(record, cacheConfig) != CacheInsertionStatus.ACCEPTED && cacheConfig.isPermanent()) {
+				if (evaluateCacheInsert(record) != CacheInsertionStatus.ACCEPTED) {
 					insertedRecords.add(realtimeGetRecordById(record.getId()));
 				} else {
 					insertedRecords.add(record);
@@ -997,6 +1024,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 					Record record = recordsCaches.getRecord(idMarkedForReindexing);
 					if (record != null) {
+						record.set(Schemas.MARKED_FOR_REINDEXING, true);
 						((RecordImpl) record).markAsSaved(version, metadataSchemasManager.getSchemaOf(record));
 						recordsToInsertById.put(record.getId(), record);
 					}
@@ -1006,7 +1034,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 		for (AggregatedMetadataIncrementation incrementation : aggregationMetadatasIncremented) {
 			if (transactionResponseDTO != null) {
-				Record record = getDocumentById(incrementation.getRecordId());
+				Record record = realtimeGetRecordById(incrementation.getRecordId());
 				if (record != null) {
 					recordsToInsertById.put(record.getId(), record);
 				}

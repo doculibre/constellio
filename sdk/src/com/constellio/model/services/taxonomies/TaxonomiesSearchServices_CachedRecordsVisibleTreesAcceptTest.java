@@ -814,6 +814,8 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
 	public void givenInvisibleInTreeRecordsThenNotShownInTree()
 			throws Exception {
 
+		getDataLayerFactory().getDataLayerLogger().setMonitoredIds(asList("00000000309", "00000000310", "00000000311", "00000000312"));
+
 		givenConfig(RMConfigs.DISPLAY_SEMI_ACTIVE_RECORDS_IN_TREES, false);
 		givenConfig(RMConfigs.DISPLAY_SEMI_ACTIVE_RECORDS_IN_TREES, false);
 

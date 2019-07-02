@@ -8,6 +8,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Stream;
 
 public interface RecordsCache {
 
@@ -21,28 +22,41 @@ public interface RecordsCache {
 
 	CacheInsertionStatus insert(Record record, InsertionReason insertionReason);
 
-	void invalidateRecordsOfType(String recordType);
+	@Deprecated
+	default void reloadSchemaType(String recordType) {
+		reloadSchemaType(recordType, false);
+	}
 
-	void invalidate(List<String> recordIds);
+	@Deprecated
+	void reloadSchemaType(String recordType, boolean onlyLocally);
 
-	void invalidate(String recordId);
+	void removeFromAllCaches(List<String> recordIds);
 
+	void removeFromAllCaches(String recordId);
+
+	@Deprecated
 	void configureCache(CacheConfig cacheConfig);
 
+	@Deprecated
 	Collection<CacheConfig> getConfiguredCaches();
 
+	@Deprecated
 	CacheConfig getCacheConfigOf(String schemaOrTypeCode);
 
-	void invalidateAll();
+	default void invalidateVolatileReloadPermanent(List<String> schemaTypes) {
+		invalidateVolatileReloadPermanent(schemaTypes, false);
+	}
+
+	void invalidateVolatileReloadPermanent(List<String> schemaTypes, boolean onlyLocally);
 
 	Record getByMetadata(Metadata metadata, String value);
 
 	Record getSummaryByMetadata(Metadata metadata, String value);
 
-	void removeCache(String schemaType);
-
+	@Deprecated
 	boolean isConfigured(MetadataSchemaType type);
 
+	@Deprecated
 	boolean isConfigured(String typeCode);
 
 	boolean isEmpty();
@@ -60,5 +74,9 @@ public interface RecordsCache {
 		}
 
 		return statuses;
+	}
+
+	default Stream<Record> streamVolatile(MetadataSchemaType schemaType) {
+		throw new UnsupportedOperationException();
 	}
 }

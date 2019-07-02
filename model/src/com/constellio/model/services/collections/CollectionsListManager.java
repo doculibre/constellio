@@ -64,6 +64,8 @@ public class CollectionsListManager implements StatefulService, ConfigUpdatedEve
 		}
 
 		for (String collection : collections) {
+
+
 			byte collectionId = getCollectionInfo(collection).getCollectionId();
 			int collectionIndex = collectionId - Byte.MIN_VALUE;
 			collectionKeys[collectionIndex] = collection;
@@ -256,32 +258,28 @@ public class CollectionsListManager implements StatefulService, ConfigUpdatedEve
 
 	public CollectionInfo getCollectionInfo(String collectionCode) {
 		CollectionInfo cachedInfo = collectionInfoCache.get(collectionCode);
-		byte byteId = Byte.MIN_VALUE;
+		byte byteId;
 
 		if (cachedInfo == null) {
 			String mainDataLanguage = modelLayerConfiguration.getMainDataLanguage();
 
-			if (Collection.SYSTEM_COLLECTION.equals(collectionCode)) {
-				Element collectionElement = getElementFromFile(collectionCode);
+			Element collectionElement = getElementFromFile(collectionCode);
+			String idAsString = collectionElement.getAttributeValue("byteId");
+			if (Strings.isNotBlank(idAsString)) {
+				byteId = Byte.parseByte(idAsString);
 
-				String idAsString = collectionElement.getAttributeValue("byteId");
-
-				if (Strings.isNotBlank(idAsString)) {
-					byteId = Byte.parseByte(idAsString);
+			} else {
+				try {
+					byteId = getNextCollectionIdAndReserve(collectionCode);
+				} catch (NoMoreCollectionAvalibleException e) {
+					throw new RuntimeException(e);
 				}
+			}
 
+			if (Collection.SYSTEM_COLLECTION.equals(collectionCode)) {
 				cachedInfo = new CollectionInfo(byteId, collectionCode, mainDataLanguage, asList(mainDataLanguage));
 			} else {
-				List<String> collectionLanguages;
-
-				Element collectionElement = getElementFromFile(collectionCode);
-
-				collectionLanguages = Arrays.asList(collectionElement.getAttributeValue("languages").split(","));
-				String idAsString = collectionElement.getAttributeValue("byteId");
-
-				if (Strings.isNotBlank(idAsString)) {
-					byteId = Byte.parseByte(idAsString);
-				}
+				List<String> collectionLanguages = Arrays.asList(collectionElement.getAttributeValue("languages").split(","));
 
 				cachedInfo = new CollectionInfo(byteId, collectionCode, mainDataLanguage, collectionLanguages);
 			}

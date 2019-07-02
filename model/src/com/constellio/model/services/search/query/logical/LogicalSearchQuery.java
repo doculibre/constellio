@@ -63,6 +63,7 @@ public class LogicalSearchQuery implements SearchQuery {
 	private boolean spellcheck = false;
 	private String moreLikeThisRecord = null;
 	private boolean preferAnalyzedFields = false;
+	private boolean loadTransientValues = true;
 
 	private List<SearchBoost> fieldBoosts = new ArrayList<>();
 	private List<SearchBoost> queryBoosts = new ArrayList<>();
@@ -118,9 +119,20 @@ public class LogicalSearchQuery implements SearchQuery {
 
 		moreLikeThisFields = query.moreLikeThisFields;
 		language = query.language;
+		loadTransientValues = query.loadTransientValues;
 	}
 
 	// The following methods are attribute accessors
+
+
+	public boolean isLoadTransientValues() {
+		return loadTransientValues;
+	}
+
+	public LogicalSearchQuery setLoadTransientValues(boolean loadTransientValues) {
+		this.loadTransientValues = loadTransientValues;
+		return this;
+	}
 
 	public boolean isPreferAnalyzedFields() {
 		return preferAnalyzedFields;

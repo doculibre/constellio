@@ -134,15 +134,19 @@ public class RecordsCachesMemoryImpl implements RecordsCaches {
 		modelLayerFactory.getExtensions().getSystemWideExtensions().onGetByIdCacheHit(record, 0);
 	}
 
-	public void invalidateAll() {
+	public void invalidateVolatileReloadPermanent(List<String> schemaTypes, boolean onlyLocally) {
 		for (RecordsCache cache : collectionsCache.values()) {
-			cache.invalidateAll();
+			cache.invalidateVolatileReloadPermanent(schemaTypes);
 		}
 	}
 
-	public void invalidate(String collection) {
+	public void removeRecordsOfCollection(String collection, boolean onlyLocally) {
 		collectionsCache.remove(collection);
 	}
 
 
+	@Override
+	public void invalidateVolatile(MassiveCacheInvalidationReason reason) {
+
+	}
 }

@@ -102,6 +102,15 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 	}
 
 	@Override
+	public Record realtimeGetRecordSummaryById(String id) {
+		Record record = getConnectedRecordsCache().getRecordSummary(id);
+		if (record == null) {
+			record = recordServices.realtimeGetRecordSummaryById(id);
+		}
+		return record;
+	}
+
+	@Override
 	public Record getRecordByMetadata(Metadata metadata, String value) {
 		if (!metadata.isUniqueValue()) {
 			throw new IllegalArgumentException("Metadata '" + metadata + "' is not unique");

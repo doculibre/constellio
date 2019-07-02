@@ -22,7 +22,7 @@ public enum RecordCacheType implements EnumWithSmallCode {
 	}
 
 	public boolean hasVolatileCache() {
-		return this == SUMMARY_CACHED_WITH_VOLATILE || this == SUMMARY_CACHED_WITHOUT_VOLATILE || this == FULLY_CACHED;
+		return this == SUMMARY_CACHED_WITH_VOLATILE;
 	}
 
 	@Override

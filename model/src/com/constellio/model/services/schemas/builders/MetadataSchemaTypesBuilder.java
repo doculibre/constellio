@@ -555,4 +555,16 @@ public class MetadataSchemaTypesBuilder {
 		}
 		return schemasTypeIdSequence.getNewId();
 	}
+
+	public List<String> getTypesRequiringCacheReload() {
+		List<String> typesRequiringCacheReload = new ArrayList<>();
+
+		for(MetadataSchemaTypeBuilder typeBuilder : schemaTypes) {
+			if (typeBuilder.isRequiringCacheReload()) {
+				typesRequiringCacheReload.add(typeBuilder.getCode());
+			}
+		}
+
+		return typesRequiringCacheReload;
+	}
 }

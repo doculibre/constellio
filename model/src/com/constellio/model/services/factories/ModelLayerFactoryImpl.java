@@ -44,6 +44,7 @@ import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.records.cache.RecordsCachesMemoryImpl;
 import com.constellio.model.services.records.cache.eventBus.EventsBusRecordsCachesImpl;
 import com.constellio.model.services.records.cache2.FileSystemRecordsValuesCacheDataStore;
+import com.constellio.model.services.records.cache2.RecordsCachesDataStore;
 import com.constellio.model.services.records.extractions.RecordPopulateServices;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -84,7 +85,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 
 import static com.constellio.data.conf.HashingEncoding.BASE64;
-import static com.constellio.model.services.records.cache2.RecordsCaches2Impl.create;
 
 public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLayerFactory {
 	private static final Logger LOGGER = LogManager.getLogger(ModelLayerFactoryImpl.class);
@@ -180,21 +180,19 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 
 		this.schemasManager = add(new MetadataSchemasManager(this, modulesManagerDelayed));
 
-		if (Toggle.EVENT_BUS_RECORDS_CACHE.isEnabled() && !Toggle.USE_NEW_CACHE.isEnabled()) {
-			this.recordsCaches = new EventsBusRecordsCachesImpl(this);
-		} else {
-			if (Toggle.USE_NEW_CACHE.isEnabled()) {
-				File workFolder = new FoldersLocator().getWorkFolder();
-				workFolder.mkdirs();
-				File fileSystemCacheFolder = new File(new FoldersLocator().getWorkFolder(), "cache.db");
-				FileUtils.deleteQuietly(fileSystemCacheFolder);
-				FileSystemRecordsValuesCacheDataStore fileSystemRecordsValuesCacheDataStore
-						= new FileSystemRecordsValuesCacheDataStore(fileSystemCacheFolder);
-				this.recordsCaches = add(create(this, fileSystemRecordsValuesCacheDataStore));
+		if (Toggle.USE_NEW_CACHE.isEnabled()) {
+			File workFolder = new FoldersLocator().getWorkFolder();
+			workFolder.mkdirs();
+			File fileSystemCacheFolder = new File(new FoldersLocator().getWorkFolder(), "cache.db");
+			FileUtils.deleteQuietly(fileSystemCacheFolder);
+			FileSystemRecordsValuesCacheDataStore fileSystemRecordsValuesCacheDataStore
+					= new FileSystemRecordsValuesCacheDataStore(fileSystemCacheFolder);
 
-			} else {
-				this.recordsCaches = new RecordsCachesMemoryImpl(this);
-			}
+			RecordsCachesDataStore memoryDataStore = new RecordsCachesDataStore(this);
+			this.recordsCaches = new EventsBusRecordsCachesImpl(this, fileSystemRecordsValuesCacheDataStore, memoryDataStore);
+
+		} else {
+			this.recordsCaches = new RecordsCachesMemoryImpl(this);
 		}
 
 

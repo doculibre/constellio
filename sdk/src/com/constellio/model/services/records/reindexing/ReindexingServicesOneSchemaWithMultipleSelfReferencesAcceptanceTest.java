@@ -114,7 +114,7 @@ public class ReindexingServicesOneSchemaWithMultipleSelfReferencesAcceptanceTest
 		}
 		alterCalculedFieldIn(ids);
 
-		reindexingServices.reindexCollections(new ReindexationParams(ReindexationMode.RECALCULATE).setBatchSize(1));
+		reindexingServices.reindexCollections(new ReindexationParams(ReindexationMode.RECALCULATE_AND_REWRITE).setBatchSize(1));
 		for (int i = 3002; i <= 3010; i++) {
 			System.out.println(i);
 			assertThat(record("00" + i).<String>get(zeSchema.metadata(calculatedMetadata))).isEqualTo("Shish O Clock!");
@@ -141,7 +141,7 @@ public class ReindexingServicesOneSchemaWithMultipleSelfReferencesAcceptanceTest
 		transaction.add(new TestRecord(zeSchema, "003010").set(zeSchema.metadata(textMetadata), "Shish O Clock!"));
 		recordServices.execute(transaction);
 
-		reindexingServices.reindexCollections(new ReindexationParams(ReindexationMode.RECALCULATE).setBatchSize(1));
+		reindexingServices.reindexCollections(new ReindexationParams(ReindexationMode.RECALCULATE_AND_REWRITE).setBatchSize(1));
 		for (int i = 3001; i < 3010; i++) {
 			System.out.println(i);
 			assertThat(record("00" + i).<String>get(zeSchema.metadata(calculatedMetadata))).isEqualTo("Shish O Clock!");
@@ -153,7 +153,7 @@ public class ReindexingServicesOneSchemaWithMultipleSelfReferencesAcceptanceTest
 		}
 		alterCalculedFieldIn(ids);
 
-		reindexingServices.reindexCollections(new ReindexationParams(ReindexationMode.RECALCULATE).setBatchSize(1));
+		reindexingServices.reindexCollections(new ReindexationParams(ReindexationMode.RECALCULATE_AND_REWRITE).setBatchSize(1));
 		for (int i = 3001; i < 3010; i++) {
 			System.out.println(i);
 			assertThat(record("00" + i).<String>get(zeSchema.metadata(calculatedMetadata))).isEqualTo("Shish O Clock!");

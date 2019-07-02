@@ -420,7 +420,7 @@ public class RecordDeleteServices {
 
 			for (RecordDTO recordDTO : recordsDTO) {
 				ids.remove(recordDTO.getId());
-				recordServices.getRecordsCaches().getCache(record.getCollection()).invalidate(recordDTO.getId());
+				recordServices.getRecordsCaches().getCache(record.getCollection()).removeFromAllCaches(recordDTO.getId());
 			}
 
 			Transaction transaction = new Transaction();
@@ -846,6 +846,7 @@ public class RecordDeleteServices {
 		}
 
 		totallyDeleteSchemaTypeRecordsSkippingValidation_WARNING_CANNOT_BE_REVERTED(type);
+		modelLayerFactory.getRecordsCaches().getCache(type.getCollection()).invalidateVolatileReloadPermanent(asList(type.getCode()));
 	}
 
 	public void totallyDeleteSchemaTypeRecordsSkippingValidation_WARNING_CANNOT_BE_REVERTED(MetadataSchemaType type) {

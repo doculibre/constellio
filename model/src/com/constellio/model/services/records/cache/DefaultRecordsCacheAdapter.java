@@ -44,16 +44,16 @@ public class DefaultRecordsCacheAdapter implements RecordsCache {
 		return nestedRecordsCache.insert(record, reason);
 	}
 
-	public void invalidateRecordsOfType(String recordType) {
-		nestedRecordsCache.invalidateRecordsOfType(recordType);
+	public void reloadSchemaType(String recordType, boolean onlyLocally) {
+		nestedRecordsCache.reloadSchemaType(recordType, onlyLocally);
 	}
 
-	public void invalidate(List<String> recordIds) {
-		nestedRecordsCache.invalidate(recordIds);
+	public void removeFromAllCaches(List<String> recordIds) {
+		nestedRecordsCache.removeFromAllCaches(recordIds);
 	}
 
-	public void invalidate(String recordId) {
-		nestedRecordsCache.invalidate(recordId);
+	public void removeFromAllCaches(String recordId) {
+		nestedRecordsCache.removeFromAllCaches(recordId);
 	}
 
 	public void configureCache(CacheConfig cacheConfig) {
@@ -68,8 +68,8 @@ public class DefaultRecordsCacheAdapter implements RecordsCache {
 		return nestedRecordsCache.getCacheConfigOf(schemaOrTypeCode);
 	}
 
-	public void invalidateAll() {
-		nestedRecordsCache.invalidateAll();
+	public void invalidateVolatileReloadPermanent(List<String> schemaTypes, boolean onlyLocally) {
+		nestedRecordsCache.invalidateVolatileReloadPermanent(schemaTypes, onlyLocally);
 	}
 
 	public Record getByMetadata(Metadata metadata,
@@ -80,10 +80,6 @@ public class DefaultRecordsCacheAdapter implements RecordsCache {
 	public Record getSummaryByMetadata(Metadata metadata,
 									   String value) {
 		return nestedRecordsCache.getSummaryByMetadata(metadata, value);
-	}
-
-	public void removeCache(String schemaType) {
-		nestedRecordsCache.removeCache(schemaType);
 	}
 
 	public boolean isConfigured(MetadataSchemaType type) {

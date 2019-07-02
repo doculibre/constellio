@@ -296,12 +296,12 @@ public class RecordsCacheImpl implements RecordsCache {
 		} else {
 
 			CacheConfig cacheConfig = getCacheConfigOf(insertedRecord.getTypeCode());
-			CacheInsertionStatus status = evaluateCacheInsert(insertedRecord, cacheConfig);
+			CacheInsertionStatus status = evaluateCacheInsert(insertedRecord);
 			if (cacheConfig != null) {
 				synchronized (cacheConfig) {
 
 					if (status == CacheInsertionStatus.REFUSED_NOT_FULLY_LOADED) {
-						invalidate(insertedRecord.getId());
+						removeFromAllCaches(insertedRecord.getId());
 					}
 
 					if (status == ACCEPTED) {
@@ -342,7 +342,7 @@ public class RecordsCacheImpl implements RecordsCache {
 	}
 
 	@Override
-	public void invalidateRecordsOfType(String recordType) {
+	public void reloadSchemaType(String recordType, boolean onlyLocally) {
 		CacheConfig cacheConfig = cachedTypes.get(recordType);
 
 		if (cacheConfig != null) {
@@ -357,16 +357,16 @@ public class RecordsCacheImpl implements RecordsCache {
 		fullyLoadedSchemaTypes.remove(recordType);
 	}
 
-	public void invalidate(List<String> recordIds) {
+	public void removeFromAllCaches(List<String> recordIds) {
 		if (recordIds != null) {
 			for (String recordId : recordIds) {
-				invalidate(recordId);
+				removeFromAllCaches(recordId);
 			}
 		}
 	}
 
 	@Override
-	public void invalidate(String recordId) {
+	public void removeFromAllCaches(String recordId) {
 		if (recordId != null) {
 			RecordHolder holder = cacheById.get(recordId);
 			if (holder != null && holder.record != null) {
@@ -434,7 +434,7 @@ public class RecordsCacheImpl implements RecordsCache {
 	}
 
 	@Override
-	public void invalidateAll() {
+	public void invalidateVolatileReloadPermanent(List<String> schemaTypes, boolean onlyLocally) {
 		cacheById.clear();
 		for (VolatileCache cache : volatileCaches.values()) {
 			cache.invalidateAll();
@@ -481,22 +481,22 @@ public class RecordsCacheImpl implements RecordsCache {
 		return foundRecord;
 	}
 
-	@Override
-	public void removeCache(String schemaType) {
-		invalidateRecordsOfType(schemaType);
-		recordByMetadataCache.remove(schemaType);
-		if (volatileCaches.containsKey(schemaType)) {
-			volatileCaches.get(schemaType).invalidateAll();
-			volatileCaches.remove(schemaType);
-		}
-		if (permanentCaches.containsKey(schemaType)) {
-			permanentCaches.get(schemaType).invalidateAll();
-			permanentCaches.remove(schemaType);
-		}
-
-		cachedTypes.remove(schemaType);
-		fullyLoadedSchemaTypes.remove(schemaType);
-	}
+	//	@Override
+	//	public void removeCache(String schemaType) {
+	//		reloadSchemaType(schemaType);
+	//		recordByMetadataCache.remove(schemaType);
+	//		if (volatileCaches.containsKey(schemaType)) {
+	//			volatileCaches.get(schemaType).invalidateAll();
+	//			volatileCaches.remove(schemaType);
+	//		}
+	//		if (permanentCaches.containsKey(schemaType)) {
+	//			permanentCaches.get(schemaType).invalidateAll();
+	//			permanentCaches.remove(schemaType);
+	//		}
+	//
+	//		cachedTypes.remove(schemaType);
+	//		fullyLoadedSchemaTypes.remove(schemaType);
+	//	}
 
 	@Override
 	public boolean isConfigured(MetadataSchemaType type) {

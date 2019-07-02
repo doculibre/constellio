@@ -49,8 +49,6 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.background.ModelLayerBackgroundThreadsManager;
-import com.constellio.model.services.records.cache.CacheConfig;
-import com.constellio.model.services.records.cache.RecordsCache;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -138,8 +136,6 @@ public class TaskModule implements InstallableSystemModule, ModuleWithComboMigra
 
 		TasksSchemasRecordsServices taskSchemas = new TasksSchemasRecordsServices(collection, appLayerFactory);
 
-		RecordsCache cache = appLayerFactory.getModelLayerFactory().getRecordsCaches().getCache(collection);
-		cache.configureCache(CacheConfig.volatileCache(taskSchemas.userTask.schemaType(), 1000));
 	}
 
 	@Override

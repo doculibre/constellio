@@ -45,23 +45,15 @@ import com.constellio.app.modules.es.migrations.ESMigrationTo8_0_2;
 import com.constellio.app.modules.es.migrations.ESMigrationTo8_1_1;
 import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance;
 import com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPInstance;
-import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbInstance;
 import com.constellio.app.modules.es.navigation.ESNavigationConfiguration;
 import com.constellio.app.modules.es.scripts.RestoreConnectorTypes;
 import com.constellio.app.modules.es.services.ConnectorManager;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.Printable;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.configs.SystemConfiguration;
-import com.constellio.model.entities.records.wrappers.Capsule;
-import com.constellio.model.entities.records.wrappers.Report;
-import com.constellio.model.entities.records.wrappers.SavedSearch;
-import com.constellio.model.entities.records.wrappers.ThesaurusConfig;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.records.cache.CacheConfig;
 import com.constellio.model.services.records.cache.RecordsCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,7 +67,6 @@ import static com.constellio.app.extensions.api.scripts.Scripts.registerScript;
 import static com.constellio.app.modules.es.model.connectors.ConnectorType.CODE_HTTP;
 import static com.constellio.app.modules.es.model.connectors.ConnectorType.CODE_LDAP;
 import static com.constellio.app.modules.es.model.connectors.ConnectorType.CODE_SMB;
-import static com.constellio.model.services.records.cache.VolatileCacheInvalidationMethod.FIFO;
 
 public class ConstellioESModule implements InstallableSystemModule, ModuleWithComboMigration {
 	public static final String ID = "es";
@@ -212,34 +203,6 @@ public class ConstellioESModule implements InstallableSystemModule, ModuleWithCo
 		ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		RecordsCache recordsCache = modelLayerFactory.getRecordsCaches()
 				.getCache(collection);
-
-		recordsCache.removeCache(ConnectorSmbFolder.SCHEMA_TYPE);
-		recordsCache.configureCache(CacheConfig.permanentCache(es.connectorInstance.schemaType()));
-		recordsCache.configureCache(CacheConfig.permanentCache(es.connectorType.schemaType()));
-
-		if (!recordsCache.isConfigured(es.authorizationDetails.schemaType())) {
-			recordsCache.configureCache(CacheConfig.permanentCache(es.authorizationDetails.schemaType()));
-		}
-
-		if (!recordsCache.isConfigured(Printable.SCHEMA_TYPE)) {
-			recordsCache.configureCache(CacheConfig.permanentCache(es.printable.schemaType()));
-		}
-		if (!recordsCache.isConfigured(Report.SCHEMA_TYPE)) {
-			recordsCache.configureCache(CacheConfig.permanentCache(es.report.schemaType()));
-		}
-
-		if (!recordsCache.isConfigured(Capsule.SCHEMA_TYPE)) {
-			recordsCache.configureCache(CacheConfig.permanentCache(es.capsule.schemaType()));
-		}
-
-		if (!recordsCache.isConfigured(ThesaurusConfig.SCHEMA_TYPE)) {
-			recordsCache.configureCache(CacheConfig.permanentCache(es.thesaurusConfig.schemaType()));
-		}
-
-		MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
-		if (!recordsCache.isConfigured(SavedSearch.SCHEMA_TYPE)) {
-			recordsCache.configureCache(CacheConfig.volatileCache(types.getSchemaType(SavedSearch.SCHEMA_TYPE), 1000, FIFO));
-		}
 
 		extensions.recordExtensions.add(new ESRecordExtension(es));
 		extensions.schemaExtensions.add(new ESSchemaExtension());

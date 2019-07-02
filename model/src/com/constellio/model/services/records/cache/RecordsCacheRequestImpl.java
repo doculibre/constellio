@@ -122,7 +122,7 @@ public class RecordsCacheRequestImpl implements RecordsCache {
 		}
 
 		if (!insertedRecord.isFullyLoaded()) {
-			invalidate(insertedRecord.getId());
+			removeFromAllCaches(insertedRecord.getId());
 			return;
 		}
 
@@ -136,27 +136,27 @@ public class RecordsCacheRequestImpl implements RecordsCache {
 	}
 
 	@Override
-	public void invalidateRecordsOfType(String recordType) {
+	public void reloadSchemaType(String recordType, boolean onlyLocally) {
 		for (Map.Entry<String, Record> entry : new ArrayList<>(cache.entrySet())) {
 			if (entry.getValue().getTypeCode().equals(recordType)) {
 				cache.remove(entry.getKey());
 			}
 		}
-		nested.invalidateRecordsOfType(recordType);
+		nested.reloadSchemaType(recordType, onlyLocally);
 	}
 
 	@Override
-	public void invalidate(List<String> recordIds) {
+	public void removeFromAllCaches(List<String> recordIds) {
 		for (String recordId : recordIds) {
-			invalidate(recordId);
+			removeFromAllCaches(recordId);
 		}
 	}
 
 	@Override
-	public void invalidate(String recordId) {
+	public void removeFromAllCaches(String recordId) {
 
 		cache.remove(recordId);
-		nested.invalidate(recordId);
+		nested.removeFromAllCaches(recordId);
 	}
 
 	@Override
@@ -175,9 +175,9 @@ public class RecordsCacheRequestImpl implements RecordsCache {
 	}
 
 	@Override
-	public void invalidateAll() {
+	public void invalidateVolatileReloadPermanent(List<String> schemaTypes, boolean onlyLocally) {
 		cache.clear();
-		nested.invalidateAll();
+		nested.invalidateVolatileReloadPermanent(schemaTypes, onlyLocally);
 	}
 
 	@Override
@@ -223,12 +223,6 @@ public class RecordsCacheRequestImpl implements RecordsCache {
 		}
 
 		return record;
-	}
-
-	@Override
-	public void removeCache(String schemaType) {
-		invalidateRecordsOfType(schemaType);
-		nested.removeCache(schemaType);
 	}
 
 	@Override

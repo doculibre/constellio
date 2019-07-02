@@ -170,6 +170,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	}
 
 
+
 	boolean checkIfDakotaSeeAndCanDeleteEverythingInCollection2 = true;
 
 	@After
@@ -2964,7 +2965,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		userServices.addUpdateGlobalGroup(users.rumors().setStatus(GlobalGroupStatus.INACTIVE));
 
 		//TODO Should not be required
-		//Cache invalidation problemgetModelLayerFactory().getSecurityModelCache().invalidate(zeCollection);
+		//Cache invalidation problemgetModelLayerFactory().getSecurityModelCache().removeFromAllCaches(zeCollection);
 		reindex();
 
 		assertThat(users.edouardIn(zeCollection).hasReadAccess().on(record(TAXO1_CATEGORY1))).isFalse();

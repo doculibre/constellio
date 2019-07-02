@@ -130,7 +130,7 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 					@Override
 					public void afterQuery(AfterQueryParams params) {
 
-						LOGGER.warn("Query " + params.getSolrParams().toQueryString() + ":", new RuntimeException());
+						//LOGGER.warn("Query " + params.getSolrParams().toQueryString() + ":", new RuntimeException());
 
 						queriesCount.incrementAndGet();
 						String[] facetQuery = params.getSolrParams().getParams("facet.query");
@@ -1937,6 +1937,16 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				.has(numFound(25)).has(listSize(20))
 				.has(fastContinuationInfos(false, 20))
 				.has(solrQueryCounts(2, 302, 25))
+				.has(secondSolrQueryCounts(0, 0, 0));
+
+		assertThatRootWhenSelectingAFolderUsingPlanTaxonomy(withWriteAccess.setStartRow(10).setRows(20)
+				.setFastContinueInfos(null))
+				.has(resultsInOrder("category_11", "category_12", "category_13", "category_14", "category_15", "category_16",
+						"category_17", "category_18", "category_19", "category_20", "category_21", "category_22", "category_23",
+						"category_24", "category_25", "category_26", "category_27", "category_28", "category_29", "category_30"))
+				.has(numFound(50)).has(listSize(20))
+				.has(fastContinuationInfos(false, 30))
+				.has(solrQueryCounts(1, 0, 10))
 				.has(secondSolrQueryCounts(0, 0, 0));
 
 		assertThatRootWhenSelectingAFolderUsingPlanTaxonomy(withWriteAccess.setStartRow(10).setRows(20)
@@ -3879,7 +3889,7 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 
 	public void cleanStorageSpaces() {
 		RecordDao recordDao = getAppLayerFactory().getModelLayerFactory().getDataLayerFactory().newRecordDao();
-		TransactionDTO transaction = new TransactionDTO(RecordsFlushing.LATER());
+		TransactionDTO transaction = new TransactionDTO(RecordsFlushing.NOW());
 		ModifiableSolrParams modifiableSolrParams = new ModifiableSolrParams();
 		modifiableSolrParams.set("q", "schema_s:storageSpace*");
 		transaction = transaction.withDeletedByQueries(modifiableSolrParams);
@@ -3888,6 +3898,7 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 		} catch (RecordDaoException.OptimisticLocking optimisticLocking) {
 			optimisticLocking.printStackTrace();
 		}
+		getModelLayerFactory().getRecordsCaches().getCache(zeCollection).invalidateVolatileReloadPermanent(asList("storageSpace"));
 	}
 
 	@Override

@@ -165,10 +165,8 @@ import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
 import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
-import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.Printable;
 import com.constellio.app.modules.rm.wrappers.RMTaskType;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
@@ -176,22 +174,14 @@ import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.modules.tasks.TaskModule;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.RecordMigrationScript;
 import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.records.wrappers.Capsule;
-import com.constellio.model.entities.records.wrappers.Report;
-import com.constellio.model.entities.records.wrappers.SavedSearch;
-import com.constellio.model.entities.records.wrappers.ThesaurusConfig;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesException;
-import com.constellio.model.services.records.cache.CacheConfig;
 import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.security.GlobalSecuredTypeCondition;
 import org.slf4j.Logger;
@@ -203,7 +193,6 @@ import java.util.List;
 import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.records.cache.VolatileCacheInvalidationMethod.FIFO;
 import static java.util.Arrays.asList;
 
 public class ConstellioRMModule implements InstallableSystemModule, ModuleWithComboMigration,
@@ -505,63 +494,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
 		RecordsCache cache = modelLayerFactory.getRecordsCaches().getCache(collection);
-
-		for (MetadataSchemaType type : rm.valueListSchemaTypes()) {
-			if (cache.isConfigured(type)) {
-				cache.removeCache(type.getCode());
-			}
-			cache.configureCache(CacheConfig.permanentCache(type));
-		}
-
-		if (cache.isConfigured(AdministrativeUnit.SCHEMA_TYPE)) {
-			cache.removeCache(AdministrativeUnit.SCHEMA_TYPE);
-		}
-		cache.configureCache(CacheConfig.permanentCache(rm.administrativeUnit.schemaType()));
-
-		if (!cache.isConfigured(Printable.SCHEMA_TYPE)) {
-			cache.configureCache(CacheConfig.permanentCache(rm.printable.schemaType()));
-		}
-		if (!cache.isConfigured(Report.SCHEMA_TYPE)) {
-			cache.configureCache(CacheConfig.permanentCache(rm.report.schemaType()));
-		}
-
-		if (!cache.isConfigured(Cart.SCHEMA_TYPE)) {
-			cache.configureCache(CacheConfig.permanentCache(rm.cart.schemaType()));
-		}
-
-		if (cache.isConfigured(Category.SCHEMA_TYPE)) {
-			cache.removeCache(Category.SCHEMA_TYPE);
-		}
-
-		if (!cache.isConfigured(ThesaurusConfig.SCHEMA_TYPE)) {
-			cache.configureCache(CacheConfig.permanentCache(rm.thesaurusConfig.schemaType()));
-		}
-
-		if (!cache.isConfigured(Capsule.SCHEMA_TYPE)) {
-			cache.configureCache(CacheConfig.permanentCache(rm.capsule.schemaType()));
-		}
-
-		cache.configureCache(CacheConfig.permanentCache(rm.category.schemaType()));
-
-		cache.configureCache(CacheConfig.permanentCache(rm.retentionRule.schemaType()));
-		cache.configureCache(CacheConfig.permanentCache(rm.uniformSubdivision.schemaType()));
-		cache.configureCache(CacheConfig.permanentCache(rm.containerRecord.schemaType()));
-		cache.configureCache(CacheConfig.permanentCache(rm.decommissioningList.schemaType()));
-
-		if (!cache.isConfigured(rm.authorizationDetails.schemaType())) {
-			cache.configureCache(CacheConfig.permanentCache(rm.authorizationDetails.schemaType()));
-		}
-
-		MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
-		if (Toggle.CACHES_ENABLED.isEnabled()) {
-			cache.configureCache(CacheConfig.volatileCache(rm.event.schemaType(), DEFAULT_VOLATILE_EVENTS_CACHE_SIZE));
-			cache.configureCache(CacheConfig.volatileCache(rm.folder.schemaType(), DEFAULT_VOLATILE_FOLDERS_CACHE_SIZE));
-			cache.configureCache(CacheConfig.volatileCache(rm.documentSchemaType(), DEFAULT_VOLATILE_DOCUMENTS_CACHE_SIZE));
-
-			if (!cache.isConfigured(SavedSearch.SCHEMA_TYPE)) {
-				cache.configureCache(CacheConfig.volatileCache(types.getSchemaType(SavedSearch.SCHEMA_TYPE), 1000, FIFO));
-			}
-		}
+		
 	}
 
 	@Override

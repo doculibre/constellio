@@ -70,7 +70,7 @@ public class Toggle {
 
 	public static AvailableToggle USE_NEW_CACHE = newToggle(true);
 
-	public static AvailableToggle USE_CACHE_FOR_QUERY_EXECUTION = newToggle(true);
+	public static AvailableToggle USE_CACHE_FOR_QUERY_EXECUTION = newToggle(false);
 
 	public static AvailableToggle VALIDATE_CACHE_EXECUTION_SERVICE_USING_SOLR = newToggle(true);
 

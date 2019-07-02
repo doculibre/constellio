@@ -134,20 +134,17 @@ public class RecordsCachesDataStore {
 		return ids.stream().map((id) -> get(collectionId, id)).filter(Objects::nonNull);
 	}
 
-	public synchronized void invalidate(Predicate<RecordDTO> predicate) {
-		stringIdsDataStore.invalidate(predicate);
-		intIdsDataStore.invalidate(predicate);
-	}
-
-	public synchronized void invalidate(byte collection, Predicate<RecordDTO> predicate) {
-		stringIdsDataStore.invalidate(collection, predicate);
-		intIdsDataStore.invalidate(collection, predicate);
-	}
 
 	public synchronized void invalidate(byte collection, short schemaType, Predicate<RecordDTO> predicate) {
 		stringIdsDataStore.invalidate(collection, schemaType, predicate);
 		intIdsDataStore.invalidate(collection, schemaType, predicate);
 	}
+
+	public synchronized void invalidateAll(byte collection, short schemaType) {
+		stringIdsDataStore.invalidateAll(collection, schemaType);
+		intIdsDataStore.invalidateAll(collection, schemaType);
+	}
+
 
 	public Iterator<RecordDTO> iterator(boolean autoClosedIterator) {
 		return new LazyMergingIterator<>(

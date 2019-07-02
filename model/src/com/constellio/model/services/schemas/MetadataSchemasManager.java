@@ -263,12 +263,15 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 		MetadataSchemaTypesBuilder builder = modify(collection);
 		alteration.alter(builder);
 
+		List<String> typesRequiringCacheReload = builder.getTypesRequiringCacheReload();
+
 		try {
 			saveUpdateSchemaTypes(builder);
 		} catch (OptimisticLocking optimistickLocking) {
 			modify(collection, alteration);
 		}
 
+		modelLayerFactory.getRecordsCaches().getCache(collection).invalidateVolatileReloadPermanent(typesRequiringCacheReload);
 	}
 
 	public void deleteSchemaTypes(final List<MetadataSchemaType> typesToDelete) {

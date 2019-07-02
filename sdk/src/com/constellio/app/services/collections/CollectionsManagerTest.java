@@ -202,7 +202,7 @@ public class CollectionsManagerTest extends ConstellioTest {
 		inOrder.verify(transactionDTO).withDeletedByQueries(params);
 		inOrder.verify(recordDao).execute(transactionDTO);
 		inOrder.verify(modulesManager).removeCollectionFromVersionProperties(zeCollection, configManager);
-		inOrder.verify(caches).invalidate(zeCollection);
+		inOrder.verify(caches).removeRecordsOfCollection(zeCollection);
 
 	}
 

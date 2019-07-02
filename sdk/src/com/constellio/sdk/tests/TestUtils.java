@@ -73,12 +73,14 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval.PREFERRING;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQuery.query;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
+import static java.util.stream.Collectors.toList;
 import static junit.framework.Assert.fail;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -1152,6 +1154,35 @@ public class TestUtils {
 		return messages;
 	}
 
+	public static List<String> englishMessages(ValidationRuntimeException e) {
+		return englishMessages(e.getValidationErrors());
+	}
+
+	public static List<String> englishMessages(ValidationException e) {
+		return englishMessages(e.getErrors());
+
+	}
+
+	public static List<String> englishMessages(com.constellio.model.frameworks.validation.ValidationException e) {
+		return englishMessages(e.getValidationErrors());
+
+	}
+
+	public static List<String> englishMessages(List<ValidationError> errors) {
+		List<String> messages = new ArrayList<>();
+
+		Locale originalLocale = i18n.getLocale();
+		i18n.setLocale(Locale.ENGLISH);
+
+		for (ValidationError error : errors) {
+			messages.add($(error));
+		}
+
+		i18n.setLocale(originalLocale);
+
+		return messages;
+	}
+
 	public static List<String> frenchMessages(ValidationErrors errors) {
 		List<String> messages = new ArrayList<>();
 
@@ -1270,5 +1301,9 @@ public class TestUtils {
 		SDKEventBusSendingService.interconnect(sendingService1, sendingService2);
 
 		return sendingService1;
+	}
+
+	public static <T> ListAssert<T> assertThatStream(Stream<T> stream) {
+		return assertThat(stream.collect(toList()));
 	}
 }

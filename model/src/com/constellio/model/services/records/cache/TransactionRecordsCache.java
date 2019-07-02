@@ -90,18 +90,18 @@ public class TransactionRecordsCache implements RecordsCache {
 	}
 
 	@Override
-	public void invalidateRecordsOfType(String recordType) {
-		recordsCache.invalidateRecordsOfType(recordType);
+	public void reloadSchemaType(String recordType, boolean onlyLocally) {
+		recordsCache.reloadSchemaType(recordType, onlyLocally);
 	}
 
 	@Override
-	public void invalidate(List<String> recordIds) {
-		recordsCache.invalidate(recordIds);
+	public void removeFromAllCaches(List<String> recordIds) {
+		recordsCache.removeFromAllCaches(recordIds);
 	}
 
 	@Override
-	public void invalidate(String recordId) {
-		recordsCache.invalidate(recordId);
+	public void removeFromAllCaches(String recordId) {
+		recordsCache.removeFromAllCaches(recordId);
 	}
 
 	@Override
@@ -120,15 +120,10 @@ public class TransactionRecordsCache implements RecordsCache {
 	}
 
 	@Override
-	public void invalidateAll() {
-		recordsCache.invalidateAll();
+	public void invalidateVolatileReloadPermanent(List<String> schemaTypes, boolean onlyLocally) {
+		recordsCache.invalidateVolatileReloadPermanent(schemaTypes, onlyLocally);
 	}
 
-
-	@Override
-	public void removeCache(String schemaType) {
-		recordsCache.removeCache(schemaType);
-	}
 
 	@Override
 	public boolean isConfigured(MetadataSchemaType type) {

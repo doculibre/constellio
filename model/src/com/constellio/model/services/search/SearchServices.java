@@ -146,8 +146,7 @@ public class SearchServices {
 	}
 
 	public SPEQueryResponse query(LogicalSearchQuery query) {
-		ModifiableSolrParams params = addSolrModifiableParams(query);
-		return buildResponse(params, query);
+		return buildResponse(query);
 	}
 
 	@Deprecated
@@ -201,13 +200,13 @@ public class SearchServices {
 		maxSizeQuery.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(ESTIMATED_SIZE));
 		//maxSizeQuery.computeStatsOnField(ESTIMATED_SIZE);
 
-		List<Record> records = search(maxSizeQuery);
-		if (records.isEmpty()) {
+		QueryResponseDTO queryResponseDTO = queryDao(maxSizeQuery);
+		if (queryResponseDTO.getResults().isEmpty()) {
 			return Stream.empty();
 		}
 
-		int maxRecordSize = records.get(0).get(ESTIMATED_SIZE);
-		int batchSize = 100_000_1000 / maxRecordSize;
+		Number maxRecordSize = (Number) queryResponseDTO.getResults().get(0).getFields().get(ESTIMATED_SIZE.getDataStoreCode());
+		int batchSize = (maxRecordSize == null || maxRecordSize.intValue() == 0) ? 1000 : (100_000_1000 / maxRecordSize.intValue());
 		LOGGER.info("Streaming schema type '" + schemaType.getCode() + "' with batches of " + batchSize + ". Max record size is " + maxRecordSize);
 
 		LogicalSearchQuery query = new LogicalSearchQuery();
@@ -643,7 +642,7 @@ public class SearchServices {
 			@Override
 			public SearchResponseIterator<List<Record>> inBatches() {
 				final SearchResponseIterator iterator = this;
-				return new BatchBuilderSearchResponseIterator<Record>(records.iterator(), batchSize) {
+				return new BatchBuilderSearchResponseIterator<Record>(this, batchSize) {
 
 					@Override
 					public long getNumFound() {
@@ -726,10 +725,9 @@ public class SearchServices {
 		} else {
 
 			query.setReturnedMetadatas(ReturnedMetadatasFilter.idVersionSchema());
-			ModifiableSolrParams params = addSolrModifiableParams(query);
 
 			List<String> ids = new ArrayList<>();
-			for (Record record : buildResponse(params, query).getRecords()) {
+			for (Record record : buildResponse(query).getRecords()) {
 				ids.add(record.getId());
 			}
 			return ids;
@@ -1256,8 +1254,8 @@ public class SearchServices {
 		return sb.toString();
 	}
 
-	private SPEQueryResponse buildResponse(ModifiableSolrParams params, LogicalSearchQuery query) {
-		QueryResponseDTO queryResponseDTO = dataStoreDao(query.getDataStore()).query(query.getName(), params);
+	private SPEQueryResponse buildResponse(LogicalSearchQuery query) {
+		QueryResponseDTO queryResponseDTO = queryDao(query);
 		List<RecordDTO> recordDTOs = queryResponseDTO.getResults();
 
 		List<Record> records = recordServices.toRecords(recordDTOs, query.getReturnedMetadatas().isFullyLoaded());
@@ -1286,6 +1284,11 @@ public class SearchServices {
 		} else {
 			return response;
 		}
+	}
+
+	private QueryResponseDTO queryDao(LogicalSearchQuery query) {
+		ModifiableSolrParams params = addSolrModifiableParams(query);
+		return dataStoreDao(query.getDataStore()).query(query.getName(), params);
 	}
 
 	private List<MoreLikeThisRecord> getResultWithMoreLikeThis(List<MoreLikeThisDTO> moreLikeThisResults) {
@@ -1369,7 +1372,6 @@ public class SearchServices {
 			LOGGER.error("getAllRecords should not be called on schema type '" + schemaType.getCode() + "'");
 			return search(new LogicalSearchQuery(from(schemaType).returnAll()));
 		}
-
 
 	}
 

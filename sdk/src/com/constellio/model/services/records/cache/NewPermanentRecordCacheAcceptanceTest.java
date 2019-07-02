@@ -4,8 +4,10 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.records.RecordImpl;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.cache2.RecordsCache2IntegrityDiagnosticService;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
@@ -19,6 +21,7 @@ import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.AnotherSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
 import org.apache.commons.lang3.StringUtils;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
@@ -28,6 +31,7 @@ import org.junit.runners.Parameterized;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 
 import static com.constellio.data.dao.services.cache.InsertionReason.WAS_MODIFIED;
 import static com.constellio.data.dao.services.cache.InsertionReason.WAS_OBTAINED;
@@ -35,7 +39,10 @@ import static com.constellio.model.entities.schemas.RecordCacheType.FULLY_CACHED
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static com.constellio.sdk.tests.QueryCounter.ON_SCHEMA_TYPES;
+import static com.constellio.sdk.tests.TestUtils.assertThatStream;
+import static com.constellio.sdk.tests.TestUtils.englishMessages;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsUnique;
+import static org.apache.ignite.internal.util.lang.GridFunc.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 
@@ -106,6 +113,19 @@ public class NewPermanentRecordCacheAcceptanceTest extends ConstellioTest {
 
 	}
 
+	@After
+	public void tearDown() throws Exception {
+
+		if (!failureDetectionTestWatcher.isFailed()) {
+			RecordsCache2IntegrityDiagnosticService service = new RecordsCache2IntegrityDiagnosticService(getModelLayerFactory());
+			ValidationErrors errors = service.validateIntegrity(false, true);
+			//List<String> messages = englishMessages(errors).stream().map((s) -> substringBefore(s, " :")).collect(toList());
+
+			List<String> messages = englishMessages(errors);
+			assertThat(messages).isEmpty();
+		}
+
+	}
 
 	@Test
 	public void whenInsertingNotFullyLoadedRecordInPermanentCacheThenExceptionThrown()
@@ -262,11 +282,46 @@ public class NewPermanentRecordCacheAcceptanceTest extends ConstellioTest {
 		assertThat(recordFromCache.<String>get(TITLE)).isEqualTo("val4");
 		assertThat(recordFromCache.<String>get(zeCollectionSchemaType1.stringMetadata())).isEqualTo("val5");
 		assertThat(recordFromCache.<String>get(zeCollectionSchemaType1.anotherStringMetadata())).isEqualTo("val6");
+		assertThatStream(recordsCaches.stream(zeCollection).map(Record::getId)).contains(id(1234));
+		assertThatStream(recordsCaches.stream(zeCollectionSchemaType1.type()).map(Record::getId)).contains(id(1234));
 
 		recordServices.physicallyDelete(record, User.GOD);
 
 		recordFromCache = recordsCaches.getRecord(id(1234));
 		assertThat(recordFromCache).isNull();
+		assertThatStream(recordsCaches.stream(zeCollection).map(Record::getId)).doesNotContain(id(1234));
+		assertThatStream(recordsCaches.stream(zeCollectionSchemaType1.type()).map(Record::getId)).doesNotContain(id(1234));
+
+		assertThatStream(recordsCaches.stream(zeCollection).map(Record::getId)).doesNotContain(id(1234));
+		assertThatStream(recordsCaches.stream(zeCollectionSchemaType1.type()).map(Record::getId)).doesNotContain(id(1234));
+
+	}
+
+
+	@Test
+	public void givenInsertedRecordsWhenReloadingRecordsOfTypeThenNoDuplcatedAndAllReloaded()
+			throws Exception {
+
+		Record record1_state1 = newZeCollectionType1Record(1234).set(TITLE, "val1a");
+		recordServices.add(record1_state1);
+
+		Record record2_state1 = newZeCollectionType1Record(2345).set(TITLE, "val2a");
+		recordServices.add(record2_state1);
+
+		Record otherTypeRecord1_state1 = newZeCollectionType2Record(3456).set(TITLE, "val3a");
+		recordServices.add(otherTypeRecord1_state1);
+
+		Record otherCollectionRecord1_state1 = newAnotherCollectionType1Record(4567).set(TITLE, "val4a");
+		recordServices.add(otherCollectionRecord1_state1);
+
+		assertThatStream(recordsCaches.stream(zeCollectionSchemaType1.type()).map(Record::getId)).containsOnly(id(1234), id(2345));
+		assertThatStream(recordsCaches.stream(zeCollection).map(Record::getId)).containsOnlyOnce(id(1234), id(2345), id(3456));
+
+		recordsCaches.getCache(zeCollection).invalidateVolatileReloadPermanent(asList(zeCollectionSchemaType1.typeCode()));
+
+		assertThatStream(recordsCaches.stream(zeCollectionSchemaType1.type()).map(Record::getId)).containsOnly(id(1234), id(2345));
+		assertThatStream(recordsCaches.stream(zeCollection).map(Record::getId)).containsOnlyOnce(id(1234), id(2345), id(3456));
+
 
 	}
 
