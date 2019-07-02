@@ -188,6 +188,6 @@ public class ConstellioMenuPresenter implements Serializable {
 		UserServices userServices = modelLayerFactory.newUserServices();
 		User user = userServices.getUserInCollection(
 				sessionContext.getCurrentUser().getUsername(), sessionContext.getCurrentCollection());
-		return user.has(CorePermissions.VIEW_SYSTEM_STATE).onSomething();
+		return user.has(CorePermissions.VIEW_SYSTEM_STATE).onSomething() || user.has(CorePermissions.VIEW_SYSTEM_STATE).globally();
 	}
 }
