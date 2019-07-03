@@ -1117,6 +1117,10 @@ $popup-view-z-index: 3;
 				padding-top: 25px;
 			}
 		
+		    .system-state-window-layout {
+		    	padding-top: 0px;
+		    }
+		
 			.v-panel {
 				.v-scrollable {
 					overflow: auto;
@@ -1130,6 +1134,52 @@ $popup-view-z-index: 3;
 			}
 		}
 	}
+   
+    .constellio-menu-system-state-button {
+		margin: 0.3em 0px 0px;
+    }
+   
+   	.constellio-menu-system-state-button:hover {
+   		color: white;
+   	}
+   
+   	.v-slot-system-state-window-update-time {
+   		float: right;
+   		margin-bottom: -24px;
+	}
+   
+   	.v-slot-system-state-component {
+   		.v-captiontext {
+		    font-weight: bold;
+		    font-size: 16px;
+   		}
+    }
+   
+   	.system-state-component {
+   		text-align: center;
+   		margin-bottom: 10px;
+   		
+   		.v-slot-system-state-component-validation-error {
+   			padding: 0px 2px;
+   		}
+   	
+   		.system-state-component-validation-error {
+   			background-color: white;
+   			position: relative;
+   		}
+   	} 
+   
+   	.system-state-component-errors {
+		border: 2px solid lightsalmon;
+   	}
+
+   	.system-state-component-warnings {
+		border: 2px solid gold;
+   	}
+
+   	.system-state-component-logs {
+		border: 2px solid yellowgreen;
+   	}
 
 	.user-documents-window {
 		opacity: 0.98;
@@ -2122,6 +2172,11 @@ $popup-view-z-index: 3;
 		    	}
 	    	}
     	}
+   
+	    .constellio-menu-system-state-button {
+	   		position: absolute;
+			bottom: 10px;
+	    }
     	
         .action-menu-wrapper {
             padding-right: 260px;
@@ -2225,6 +2280,11 @@ $popup-view-z-index: 3;
 	    		overflow-x: auto;
 	    	}
     	}
+   
+	    .constellio-menu-system-state-button {
+	   		position: absolute;
+			bottom: 10px;
+	    }
 
         .action-menu-wrapper {
             padding-right: 260px;

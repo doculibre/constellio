@@ -3,7 +3,6 @@ package com.constellio.app.servlet;
 import com.constellio.app.client.ZookeeperClient;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.data.conf.PropertiesConfigurationRuntimeException.PropertiesConfigurationRuntimeException_ConfigNotDefined;
-import com.constellio.data.conf.PropertiesDataLayerConfiguration;
 import com.constellio.data.conf.SolrServerType;
 import com.constellio.data.dao.services.solr.SolrServerFactory;
 import com.constellio.data.dao.services.solr.serverFactories.CloudSolrServerFactory;
@@ -15,6 +14,7 @@ import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.request.CollectionAdminRequest;
 import org.apache.solr.common.util.NamedList;
+import org.apache.solr.common.util.SimpleOrderedMap;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import static com.constellio.model.entities.records.wrappers.Collection.SYSTEM_COLLECTION;
 
@@ -59,11 +60,10 @@ public class ConstellioPingServlet extends HttpServlet {
 					if (SolrServerType.HTTP == solrServerType) {
 						online = changeOnlineStatus(online, testHttpSolr(constellioFactories, testSolr, pw));
 					} else if (SolrServerType.CLOUD == solrServerType) {
-						CollectionAdminRequest collectionAdminRequest = new CollectionAdminRequest.ClusterStatus();
 
 						SolrClient solrClient = newSolrCloudServerFactory(constellioFactories).newSolrServer(SYSTEM_COLLECTION);
 
-						online = changeOnlineStatus(online, testSolrCloudNodes(constellioFactories, pw, collectionAdminRequest, solrClient));
+						online = changeOnlineStatus(online, testSolrCloudNodes(pw, solrClient));
 					} else {
 						throw new ImpossibleRuntimeException("Unsupported solr server type");
 					}
@@ -128,39 +128,47 @@ public class ConstellioPingServlet extends HttpServlet {
 		return online;
 	}
 
-	private boolean testSolrCloudNodes(ConstellioFactories constellioFactories, PrintWriter pw,
-									   CollectionAdminRequest collectionAdminRequest, SolrClient solrClient)
+	private boolean testSolrCloudNodes(PrintWriter pw, SolrClient solrClient)
 			throws IOException {
-		boolean online;
+		boolean online = true;
 		try {
-			final NamedList<Object> response = solrClient.request(collectionAdminRequest);
+			//CollectionAdminRequest.ClusterStatus
+			final NamedList<Object> response = solrClient.request(new CollectionAdminRequest.ClusterStatus());
 			final NamedList<Object> cluster = (NamedList<Object>) response.get("cluster");
 
-			final List<String> liveNodes = (List<String>) cluster.get("live_nodes");
+			final SimpleOrderedMap collectionFromCluster = (SimpleOrderedMap) cluster.get("collections");
 
-			for (String currentLiveNode : liveNodes) {
-				pw.append("solr : " + currentLiveNode + " is up and running");
-				pw.append("\n");
-			}
+			Map<String, Map> settingByCollection = collectionFromCluster.asShallowMap();
+			for (String collection : settingByCollection.keySet()) {
+				Map<String, Map> collectionSettingsMapByName = settingByCollection.get(collection);
 
-			int recordsDaoCloudSolrNumberOfLiveNode = getRecordsDaoCloudSolrNumberOfLiveNode(constellioFactories);
+				Map<String, Map> shardsByName = collectionSettingsMapByName.get("shards");
 
-			if (recordsDaoCloudSolrNumberOfLiveNode <= 0) {
-				pw.append("Error, you need to configure the number of expected solr node to make this ping work. Config : " + PropertiesDataLayerConfiguration.NUMBER_OF_LIVE_NODE + " in sdk.properties");
-				pw.append("\n");
-				online = false;
-			} else if ((liveNodes.size() != recordsDaoCloudSolrNumberOfLiveNode)) {
-				pw.append("Error : The expected number of solr node is " + recordsDaoCloudSolrNumberOfLiveNode + ". At this time only " + liveNodes.size() + " are online");
-				pw.append("\n");
-				online = false;
-			} else {
-				online = true;
+				for (String shardName : shardsByName.keySet()) {
+					Map<String, Map> shardSettingByName = shardsByName.get(shardName);
+
+					Map<String, Map> replicasByName = ((Map<String, Map>) shardSettingByName.get("replicas"));
+					for (String replicas : replicasByName.keySet()) {
+						Map<String, String> replicasState = replicasByName.get(replicas);
+						if (!replicasState.get("state").equals("active")) {
+							pw.append("core : " + replicasState.get("core") + " baseUrl : " + replicasState.get("base_url") + " Status : " + replicasState.get("state") + ".");
+							pw.append("\n");
+							online = false;
+						}
+					}
+				}
 			}
 		} catch (SolrServerException e) {
 			online = false;
 			pw.append("Error : the request to get solr server status failed. Exception message : " + e.getMessage());
 			pw.append("\n");
 		}
+
+		if (online) {
+			pw.append("Solr cluster is up and runnng.");
+			pw.append("\n");
+		}
+
 		return online;
 	}
 
@@ -205,10 +213,6 @@ public class ConstellioPingServlet extends HttpServlet {
 	private SolrServerFactory newSolrCloudServerFactory(ConstellioFactories constellioFactories) {
 		String zkHost = constellioFactories.getDataLayerConfiguration().getRecordsDaoCloudSolrServerZKHost();
 		return new CloudSolrServerFactory(zkHost);
-	}
-
-	private int getRecordsDaoCloudSolrNumberOfLiveNode(ConstellioFactories constellioFactories) {
-		return constellioFactories.getDataLayerConfiguration().getRecordsDaoCloudSolrNumberOfLiveNode();
 	}
 
 	private int getPort(String addrWithPort) {

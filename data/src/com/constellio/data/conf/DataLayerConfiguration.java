@@ -15,8 +15,6 @@ public interface DataLayerConfiguration {
 
 	String getRecordsDaoCloudSolrServerZKHost();
 
-	int getRecordsDaoCloudSolrNumberOfLiveNode();
-
 	boolean isRecordsDaoHttpSolrServerFaultInjectionEnabled();
 
 	ContentDaoType getContentDaoType();
