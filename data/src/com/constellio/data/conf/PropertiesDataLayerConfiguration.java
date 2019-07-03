@@ -160,10 +160,6 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 		return getRequiredString(ZKHOST);
 	}
 
-	public int getRecordsDaoCloudSolrNumberOfLiveNode() {
-		return getInt(NUMBER_OF_LIVE_NODE, -1);
-	}
-
 	public boolean isRecordsDaoHttpSolrServerFaultInjectionEnabled() {
 		return getBoolean("dao.records.http.faultInjection", false);
 	}
