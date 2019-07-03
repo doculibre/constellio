@@ -48,6 +48,9 @@ public class UserCredentialMenuItemServices {
 					isMenuItemActionPossible(USER_CREDENTIAL_GENERATE_TOKEN.name(), userCredential, user, params),
 					$("DisplayUserCredentialView.generateTokenButton"), null, -1, 200,
 					() -> new UserCredentialMenuItemActionBehaviors(appLayerFactory).generateToken(params));
+
+			menuItemAction.setConfirmMessage($("ConfirmDialog.confirmDelete"));
+
 			menuItemActions.add(menuItemAction);
 		}
 

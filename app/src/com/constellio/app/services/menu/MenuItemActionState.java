@@ -20,4 +20,12 @@ public class MenuItemActionState {
 	public enum MenuItemActionStateStatus {
 		VISIBLE, HIDDEN, DISABLED;
 	}
+
+	public static MenuItemActionStateStatus visibleOrHidden(boolean visible) {
+		if (visible) {
+			return MenuItemActionStateStatus.VISIBLE;
+		} else {
+			return MenuItemActionStateStatus.HIDDEN;
+		}
+	}
 }

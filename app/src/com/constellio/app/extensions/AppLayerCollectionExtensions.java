@@ -64,6 +64,8 @@ import com.constellio.app.api.extensions.taxonomies.TaxonomyExtraField;
 import com.constellio.app.api.extensions.taxonomies.TaxonomyManagementClassifiedType;
 import com.constellio.app.api.extensions.taxonomies.UserSearchEvent;
 import com.constellio.app.api.extensions.taxonomies.ValidateTaxonomyDeletableParams;
+import com.constellio.app.extensions.api.SchemaRecordExtention;
+import com.constellio.app.extensions.api.SchemaRecordExtention.SchemaRecordExtensionActionPossibleParams;
 import com.constellio.app.extensions.api.cmis.CmisExtension;
 import com.constellio.app.extensions.api.cmis.params.BuildAllowableActionsParams;
 import com.constellio.app.extensions.api.cmis.params.BuildCmisObjectFromConstellioRecordParams;
@@ -195,6 +197,8 @@ public class AppLayerCollectionExtensions {
 	public VaultBehaviorsList<RecordSecurityExtension> recordSecurityExtensions = new VaultBehaviorsList<>();
 
 	public VaultBehaviorsList<MenuItemActionsExtension> menuItemActionsExtensions = new VaultBehaviorsList<>();
+
+	public VaultBehaviorsList<SchemaRecordExtention> schemaRecordExtentions = new VaultBehaviorsList<>();
 
 
 	//Key : schema type code
@@ -901,5 +905,17 @@ public class AppLayerCollectionExtensions {
 		for (RecordFieldFactoryExtension extension : recordFieldFactoryExtensions) {
 			extension.postBuild(params);
 		}
+	}
+
+	public boolean isEditActionPossibleOnSchemaRecord(final Record record, final User user) {
+		return schemaRecordExtentions.getBooleanValue(true,
+				(behavior) -> behavior.isEditActionPossible(
+						new SchemaRecordExtensionActionPossibleParams(record, user)));
+	}
+
+	public boolean isDeleteActionPossibleOnSchemaRecord(final Record record, final User user) {
+		return schemaRecordExtentions.getBooleanValue(true,
+				(behavior) -> behavior.isDeleteActionPossible(
+						new SchemaRecordExtensionActionPossibleParams(record, user)));
 	}
 }
