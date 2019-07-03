@@ -112,24 +112,25 @@ public class IdsReallocationUtils {
 
 					while (idIterator.hasNext()) {
 						String id = idIterator.next();
-						int intId = (int) LangUtils.tryParseLong(id, 0);
 
+						if (!id.endsWith("ZZ")) {
+							int intId = (int) LangUtils.tryParseLong(id, 0);
 
-						if (typesWithUUIDs.contains(schemaType.getCode())) {
-							if (intId != 0) {
-								reallocator.get(schemaType).sequentialIdsToReallocateToUUID.add(id);
-								reallocator.set(intId, true);
-							}
+							if (typesWithUUIDs.contains(schemaType.getCode())) {
+								if (intId != 0) {
+									reallocator.get(schemaType).sequentialIdsToReallocateToUUID.add(id);
+									reallocator.set(intId, true);
+								}
 
-						} else {
-							if (intId == 0) {
-								reallocator.get(schemaType).idsToReallocateToSequential.add(id);
 							} else {
-								reallocator.set(intId, true);
+								if (intId == 0) {
+									reallocator.get(schemaType).idsToReallocateToSequential.add(id);
+								} else {
+									reallocator.set(intId, true);
+								}
+
 							}
-
 						}
-
 					}
 				}
 

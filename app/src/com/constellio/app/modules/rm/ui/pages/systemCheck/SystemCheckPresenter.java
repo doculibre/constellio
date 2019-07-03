@@ -3,6 +3,7 @@ package com.constellio.app.modules.rm.ui.pages.systemCheck;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.records.SystemCheckManager;
 import com.constellio.app.services.records.SystemCheckReportBuilder;
+import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.conf.FoldersLocator;
@@ -20,6 +21,7 @@ import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
 
@@ -86,13 +88,25 @@ public class SystemCheckPresenter extends BasePresenter<SystemCheckView> {
 
 
 	File getIncompatibleIds() {
-		File file = new File(new FoldersLocator().getWorkFolder(), "incompatibleIds.txt");
+		File file = new File(new FoldersLocator().getWorkFolder(), "incompatibleIds.csv");
 		FileUtils.deleteQuietly(file);
 		List<TypeWithIdsToReallocate> typesWithIdsToReallocates = IdsReallocationUtils.reallocateScanningSolr(modelLayerFactory);
 		try {
 			IdsReallocationUtils.writeCSVFile(typesWithIdsToReallocates, file);
 		} catch (FileNotFoundException e) {
 			throw new RuntimeException(e);
+		}
+
+		if (typesWithIdsToReallocates.isEmpty()) {
+			File successFile = new File(new FoldersLocator().getWorkFolder(), "AllIdsAreCompatible.txt");
+
+			try {
+				FileUtils.writeStringToFile(successFile, i18n.$("SystemCheckView.findIncompatibleIds.allOk"), "UTF-8");
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+
+			return successFile;
 		}
 
 		return file;
