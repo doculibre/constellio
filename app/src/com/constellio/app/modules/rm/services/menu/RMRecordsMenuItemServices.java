@@ -17,7 +17,9 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Resource;
+import com.vaadin.server.ThemeResource;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
@@ -28,6 +30,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_ADD_CART;
@@ -56,6 +59,8 @@ public class RMRecordsMenuItemServices {
 	private DocumentRecordActionsServices documentRecordActionsServices;
 	private FolderRecordActionsServices folderRecordActionsServices;
 	private ContainerRecordActionsServices containerRecordActionsServices;
+
+	private static final Resource SELECTION_ICON_RESOURCE = new ThemeResource("images/icons/clipboard_12x16.png");
 
 	public RMRecordsMenuItemServices(String collection, AppLayerFactory appLayerFactory) {
 		this.collection = collection;
@@ -125,23 +130,19 @@ public class RMRecordsMenuItemServices {
 	}
 
 	public MenuItemActionState getMenuItemActionStateForQuery(RMRecordsMenuItemActionType actionType,
-															  LogicalSearchQuery query, User user,
-															  MenuItemActionBehaviorParams params) {
-		//MenuItemActionState state = null;
-
+															  LogicalSearchQuery query,
+															  User user, MenuItemActionBehaviorParams params) {
 		if (query.getCondition() == null) {
 			return new MenuItemActionState(HIDDEN);
 		} else if (!actionType.getSchemaTypes().containsAll(query.getCondition().getFilterSchemaTypesCodes())) {
 			return new MenuItemActionState(HIDDEN);
-		} else if (params.getView().getSessionContext().getSelectedRecordIds().size() == 0) {
+		} /*else if (records.size() == 0) {
 			return new MenuItemActionState(DISABLED, "RMRecordsMenuItemServices.noRecordSelected");
 		}
 
-		List<Record> records = recordServices.getRecordsById(collection,
-				params.getView().getSessionContext().getSelectedRecordIds());
-		return computeActionState(actionType, records, user, params, null);
+		return computeActionState(actionType, records, user, params, null);*/
 
-		/*
+		MenuItemActionState state = null;
 		SearchResponseIterator<List<Record>> recordsIterator = searchServices.recordsIterator(query).inBatches();
 		while (recordsIterator.hasNext()) {
 			List<Record> records = recordsIterator.next();
@@ -153,7 +154,6 @@ public class RMRecordsMenuItemServices {
 			}
 		}
 		return state;
-		*/
 	}
 
 	public MenuItemActionState computeActionState(RMRecordsMenuItemActionType menuItemActionType, List<Record> records,
@@ -302,56 +302,53 @@ public class RMRecordsMenuItemServices {
 
 	private void addMenuItemAction(RMRecordsMenuItemActionType actionType, MenuItemActionState state,
 								   MenuItemActionBehaviorParams params, List<MenuItemAction> menuItemActions) {
-		List<Record> records = recordServices.getRecordsById(collection,
-				params.getView().getSessionContext().getSelectedRecordIds());
-
 		MenuItemAction menuItemAction = null;
 
 		switch (actionType) {
 			case RMRECORDS_ADD_CART:
 				menuItemAction = buildMenuItemAction(RMRECORDS_ADD_CART, state,
-						"ConstellioHeader.selection.actions.addToCart", null, -1, 100,
-						() -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).addToCart(records, params));
+						$("ConstellioHeader.selection.actions.addToCart"), null, -1, 100,
+						(ids) -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).addToCart(ids, params));
 				break;
 			case RMRECORDS_MOVE:
 				menuItemAction = buildMenuItemAction(RMRECORDS_MOVE, state,
-						"ConstellioHeader.selection.actions.moveInFolder", null, -1, 200,
-						() -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).move(records, params));
+						$("ConstellioHeader.selection.actions.moveInFolder"), null, -1, 200,
+						(ids) -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).move(ids, params));
 				break;
 			case RMRECORDS_COPY:
 				menuItemAction = buildMenuItemAction(RMRECORDS_COPY, state,
-						"ConstellioHeader.selection.actions.duplicate", null, -1, 300,
-						() -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).copy(records, params));
+						$("ConstellioHeader.selection.actions.duplicate"), null, -1, 300,
+						(ids) -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).copy(ids, params));
 				break;
 			case RMRECORDS_CREATE_SIP:
 				menuItemAction = buildMenuItemAction(RMRECORDS_CREATE_SIP, state,
-						"SIPButton.caption", null, -1, 400,
-						() -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).createSipArchive(records, params));
+						$("SIPButton.caption"), null, -1, 400,
+						(ids) -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).createSipArchive(ids, params));
 				break;
 			case RMRECORDS_SEND_EMAIL:
 				menuItemAction = buildMenuItemAction(RMRECORDS_SEND_EMAIL, state,
-						"ConstellioHeader.selection.actions.prepareEmail", null, -1, 500,
-						() -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).sendEmail(records, params));
+						$("ConstellioHeader.selection.actions.prepareEmail"), null, -1, 500,
+						(ids) -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).sendEmail(ids, params));
 				break;
 			case RMRECORDS_CREATE_PDF:
 				menuItemAction = buildMenuItemAction(RMRECORDS_CREATE_PDF, state,
-						"ConstellioHeader.selection.actions.pdf", null, -1, 600,
-						() -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).createPdf(records, params));
+						$("ConstellioHeader.selection.actions.pdf"), FontAwesome.FILE_PDF_O, -1, 600,
+						(ids) -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).createPdf(ids, params));
 				break;
 			case RMRECORDS_PRINT_LABEL:
 				menuItemAction = buildMenuItemAction(RMRECORDS_PRINT_LABEL, state,
-						"SearchView.printLabels", null, -1, 700,
-						() -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).generateLabels(records, params));
+						$("SearchView.printLabels"), FontAwesome.PRINT, -1, 700,
+						(ids) -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).printLabels(ids, params));
 				break;
 			case RMRECORDS_ADD_SELECTION:
 				menuItemAction = buildMenuItemAction(RMRECORDS_ADD_SELECTION, state,
-						"SearchView.addToSelection", null, -1, 800,
-						() -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).addToSelection(records, params));
+						$("SearchView.addToSelection"), SELECTION_ICON_RESOURCE, -1, 800,
+						(ids) -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).addToSelection(ids, params));
 				break;
 			case RMRECORDS_DOWNLOAD_ZIP:
 				menuItemAction = buildMenuItemAction(RMRECORDS_DOWNLOAD_ZIP, state,
-						"ReportViewer.download", null, -1, 900,
-						() -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).downloadZip(records, params));
+						$("ReportViewer.download", "(zip)"), FontAwesome.FILE_ARCHIVE_O, -1, 900,
+						(ids) -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).downloadZip(ids, params));
 				break;
 		}
 
@@ -377,7 +374,7 @@ public class RMRecordsMenuItemServices {
 
 	private MenuItemAction buildMenuItemAction(RMRecordsMenuItemActionType type, MenuItemActionState state,
 											   String caption, Resource icon, int group, int priority,
-											   Runnable command) {
+											   Consumer<List<String>> command) {
 		return MenuItemAction.builder()
 				.type(type.name())
 				.state(state)

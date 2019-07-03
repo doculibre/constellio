@@ -34,7 +34,6 @@ import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
 import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.ReportViewer;
 import com.constellio.app.ui.framework.components.ReportViewer.DownloadStreamResource;
-import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.data.io.services.facades.IOServices;
@@ -77,7 +76,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static java.util.Arrays.asList;
@@ -110,14 +108,16 @@ public class RMRecordsMenuItemBehaviors {
 		containerRecordActionsServices = new ContainerRecordActionsServices(collection, appLayerFactory);
 	}
 
-	public void addToCart(List<Record> records, MenuItemActionBehaviorParams params) {
-		CartWindowButton cartWindowButton = new CartWindowButton(records, params, AddedRecordType.MULTIPLE);
+	public void addToCart(List<String> recordIds, MenuItemActionBehaviorParams params) {
+		CartWindowButton cartWindowButton =
+				new CartWindowButton(getSelectedRecords(recordIds), params, AddedRecordType.MULTIPLE);
 		cartWindowButton.addToCart();
 	}
 
-	public void move(List<Record> records, MenuItemActionBehaviorParams params) {
-		WindowButton moveInFolderButton = new WindowButton($("ConstellioHeader.selection.actions.moveInFolder"), $("ConstellioHeader.selection.actions.moveInFolder")
-				, WindowButton.WindowConfiguration.modalDialog("50%", "140px")) {
+	public void move(List<String> recordIds, MenuItemActionBehaviorParams params) {
+		WindowButton moveInFolderButton = new WindowButton($("ConstellioHeader.selection.actions.moveInFolder"),
+				$("ConstellioHeader.selection.actions.moveInFolder"),
+				WindowButton.WindowConfiguration.modalDialog("50%", "140px")) {
 			@Override
 			protected Component buildWindowContent() {
 				VerticalLayout verticalLayout = new VerticalLayout();
@@ -132,7 +132,7 @@ public class RMRecordsMenuItemBehaviors {
 					protected void buttonClick(ClickEvent event) {
 						String parentId = (String) field.getValue();
 						try {
-							moveFolder(parentId, records, params.getUser(), params.getView());
+							moveFolder(parentId, getSelectedRecords(recordIds), params.getUser(), params.getView());
 						} catch (Throwable e) {
 							e.printStackTrace();
 						}
@@ -152,9 +152,10 @@ public class RMRecordsMenuItemBehaviors {
 		moveInFolderButton.click();
 	}
 
-	public void copy(List<Record> records, MenuItemActionBehaviorParams params) {
-		WindowButton duplicateButton = new WindowButton($("ConstellioHeader.selection.actions.duplicate"), $("ConstellioHeader.selection.actions.duplicate")
-				, WindowButton.WindowConfiguration.modalDialog("550px", "200px")) {
+	public void copy(List<String> recordIds, MenuItemActionBehaviorParams params) {
+		WindowButton duplicateButton = new WindowButton($("ConstellioHeader.selection.actions.duplicate"),
+				$("ConstellioHeader.selection.actions.duplicate"),
+				WindowButton.WindowConfiguration.modalDialog("550px", "200px")) {
 			@Override
 			protected Component buildWindowContent() {
 				VerticalLayout verticalLayout = new VerticalLayout();
@@ -168,7 +169,7 @@ public class RMRecordsMenuItemBehaviors {
 					@Override
 					protected void buttonClick(ClickEvent event) {
 						String parentId = (String) field.getValue();
-						duplicateButtonClicked(parentId, records, params.getUser(), params.getView());
+						duplicateButtonClicked(parentId, getSelectedRecords(recordIds), params.getUser(), params.getView());
 						getWindow().close();
 					}
 				};
@@ -184,12 +185,12 @@ public class RMRecordsMenuItemBehaviors {
 		duplicateButton.click();
 	}
 
-	public void createSipArchive(List<Record> records, MenuItemActionBehaviorParams params) {
+	public void createSipArchive(List<String> recordIds, MenuItemActionBehaviorParams params) {
 		SIPButtonImpl sipButton = new SIPButtonImpl($("SIPButton.caption"), $("SIPButton.caption"),
 				ConstellioUI.getCurrent().getHeader(), true) {
 			@Override
 			public void buttonClick(ClickEvent event) {
-				RecordVO[] recordVOS = getRecordVOList(getRecordIds(records), params.getView()).toArray(new RecordVO[0]);
+				RecordVO[] recordVOS = getRecordVOList(recordIds, params.getView()).toArray(new RecordVO[0]);
 				setAllObject(recordVOS);
 				super.buttonClick(event);
 			}
@@ -197,10 +198,10 @@ public class RMRecordsMenuItemBehaviors {
 		sipButton.click();
 	}
 
-	public void sendEmail(List<Record> records, MenuItemActionBehaviorParams params) {
+	public void sendEmail(List<String> recordIds, MenuItemActionBehaviorParams params) {
 		Button button = new Button($("ConstellioHeader.selection.actions.prepareEmail"));
 		button.addClickListener((event) -> {
-			EmailMessage emailMessage = createEmail(getRecordIds(records), params.getUser(), params.getView());
+			EmailMessage emailMessage = createEmail(recordIds, params.getUser(), params.getView());
 			String filename = emailMessage.getFilename();
 			InputStream stream = emailMessage.getInputStream();
 			startDownload(stream, filename);
@@ -208,15 +209,13 @@ public class RMRecordsMenuItemBehaviors {
 		button.click();
 	}
 
-	public void createPdf(List<Record> records, MenuItemActionBehaviorParams params) {
-		List<String> recordIds = getRecordIds(records);
+	public void createPdf(List<String> recordIds, MenuItemActionBehaviorParams params) {
 		WindowButton pdfButton = new ConsolidatedPdfButton(recordIds) {
 			@Override
 			public void buttonClick(ClickEvent event) {
 				List<Record> records = recordServices.getRecordsById(collection, recordIds);
 				for (Record record : records) {
 					if (!documentRecordActionsServices.isCreatePdfActionPossible(record, params.getUser())) {
-						showErrorMessage(i18n.$("ConstellioHeader.pdfGenerationBlockedByExtension"));
 						return;
 					}
 				}
@@ -226,8 +225,11 @@ public class RMRecordsMenuItemBehaviors {
 		pdfButton.click();
 	}
 
-	public void generateLabels(List<Record> records, MenuItemActionBehaviorParams params) {
-		String schemaType = records.get(0).getSchemaCode().split("_")[0];
+	public void printLabels(List<String> recordIds, MenuItemActionBehaviorParams params) {
+		if (recordIds.isEmpty()) {
+			return;
+		}
+		String schemaType = recordServices.getDocumentById(recordIds.get(0)).getSchemaCode().split("_")[0];
 
 		Factory<List<LabelTemplate>> customLabelTemplatesFactory =
 				() -> appLayerFactory.getLabelTemplateManager().listExtensionTemplates(schemaType);
@@ -246,19 +248,18 @@ public class RMRecordsMenuItemBehaviors {
 		labelsButton.addClickListener(new Button.ClickListener() {
 			@Override
 			public void buttonClick(Button.ClickEvent event) {
-				labelsButton.setElementsWithIds(getRecordIds(records), schemaType, params.getView().getSessionContext());
+				labelsButton.setElementsWithIds(recordIds, schemaType, params.getView().getSessionContext());
 			}
 		});
 		labelsButton.click();
 	}
 
-	public void addToSelection(List<Record> records, MenuItemActionBehaviorParams params) {
+	public void addToSelection(List<String> recordIds, MenuItemActionBehaviorParams params) {
 		BaseView view = params.getView();
 
 		SessionContext sessionContext = view.getSessionContext();
-		List<String> selectedSearchResultRecordIds = getRecordIds(records);
 		boolean someElementsNotAdded = false;
-		for (String selectedRecordId : selectedSearchResultRecordIds) {
+		for (String selectedRecordId : recordIds) {
 			Record record = recordServices.getDocumentById(selectedRecordId);
 
 			if (asList(Folder.SCHEMA_TYPE, Document.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE).contains(record.getTypeCode())) {
@@ -273,7 +274,7 @@ public class RMRecordsMenuItemBehaviors {
 		}
 	}
 
-	public void downloadZip(List<Record> records, MenuItemActionBehaviorParams params) {
+	public void downloadZip(List<String> recordIds, MenuItemActionBehaviorParams params) {
 		BaseView view = params.getView();
 
 		StreamSource streamSource = () -> {
@@ -281,7 +282,7 @@ public class RMRecordsMenuItemBehaviors {
 			File file = new File(folder, $("SearchView.contentZip"));
 			try {
 				new ZipContentsService(appLayerFactory.getModelLayerFactory(), collection)
-						.zipContentsOfRecords(getRecordIds(records), file);
+						.zipContentsOfRecords(recordIds, file);
 				return new FileInputStream(file);
 			} catch (NoContentToZipRuntimeException e) {
 				log.error("Error while zipping", e);
@@ -299,7 +300,7 @@ public class RMRecordsMenuItemBehaviors {
 		zipButton.click();
 	}
 
-	public void batchProcess(List<Record> records, MenuItemActionBehaviorParams params) {
+	public void batchProcess(List<String> recordIds, MenuItemActionBehaviorParams params) {
 		// TODO
 		/*
 		BatchProcessingMode mode = presenter.getBatchProcessingMode();
@@ -318,15 +319,10 @@ public class RMRecordsMenuItemBehaviors {
 	// PRIVATE
 	//
 
-	private List<String> getRecordIds(List<Record> records) {
-		return records.stream().map(Record::getId).collect(Collectors.toList());
-	}
-
 	private void moveFolder(String parentId, List<Record> records, User user, BaseView view)
 			throws RecordServicesException {
 		List<String> couldNotMove = new ArrayList<>();
 		if (isNotBlank(parentId)) {
-			RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 			RMSchemasRecordsServices rmSchemas = new RMSchemasRecordsServices(collection, appLayerFactory);
 			for (Record record : records) {
 				try {
@@ -367,7 +363,6 @@ public class RMRecordsMenuItemBehaviors {
 	private void duplicateButtonClicked(String parentId, List<Record> records, User user, BaseView view) {
 		List<String> couldNotDuplicate = new ArrayList<>();
 		if (isNotBlank(parentId)) {
-			RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 			RMSchemasRecordsServices rmSchemas = new RMSchemasRecordsServices(collection, appLayerFactory);
 			for (Record record : records) {
 				try {
@@ -530,6 +525,10 @@ public class RMRecordsMenuItemBehaviors {
 			recordsVO.add(builder.build(recordServices.getDocumentById(id), RecordVO.VIEW_MODE.FORM, view.getSessionContext()));
 		}
 		return recordsVO;
+	}
+
+	private List<Record> getSelectedRecords(List<String> selectedRecordIds) {
+		return recordServices.getRecordsById(collection, selectedRecordIds);
 	}
 
 }

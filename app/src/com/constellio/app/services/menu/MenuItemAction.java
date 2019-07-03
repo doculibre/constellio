@@ -5,6 +5,9 @@ import com.vaadin.server.Resource;
 import lombok.Builder;
 import lombok.Data;
 
+import java.util.List;
+import java.util.function.Consumer;
+
 @Data
 @Builder
 public class MenuItemAction {
@@ -12,7 +15,7 @@ public class MenuItemAction {
 	private MenuItemActionState state;
 	private String caption;
 	private Resource icon;
-	private Runnable command;
+	private Consumer<List<String>> command;
 	private int group;
 	private int priority;
 	private String confirmMessage;

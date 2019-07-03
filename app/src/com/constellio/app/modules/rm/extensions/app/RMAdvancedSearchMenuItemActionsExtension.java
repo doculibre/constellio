@@ -93,22 +93,22 @@ public class RMAdvancedSearchMenuItemActionsExtension extends MenuItemActionsExt
 		MenuItemAction menuItemAction = MenuItemAction.builder()
 				.type(RMRECORDS_GENERATE_REPORT)
 				.state(getActionState(params.getQuery()))
-				.caption("SearchView.metadataReportTitle")
+				.caption($("SearchView.metadataReportTitle"))
 				.icon(null)
 				.group(-1)
 				.priority(1000)
-				.command(() -> generateReport(params.getQuery(), params.getBehaviorParams()))
+				.command((ids) -> generateReport(params.getQuery(), params.getBehaviorParams()))
 				.build();
 		params.getMenuItemActions().add(menuItemAction);
 
 		MenuItemAction menuItemAction2 = MenuItemAction.builder()
 				.type(RMRECORDS_BATCH)
 				.state(getActionState(params.getQuery()))
-				.caption("AdvancedSearchView.batchProcessing")
+				.caption($("AdvancedSearchView.batchProcessing"))
 				.icon(null)
 				.group(-1)
 				.priority(1100)
-				.command(() -> batchProcess(params.getQuery(), params.getBehaviorParams()))
+				.command((ids) -> batchProcess(params.getQuery(), params.getBehaviorParams()))
 				.build();
 		params.getMenuItemActions().add(menuItemAction2);
 

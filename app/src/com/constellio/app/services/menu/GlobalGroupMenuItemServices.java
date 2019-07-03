@@ -14,6 +14,7 @@ import com.vaadin.server.Resource;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 import static com.constellio.app.services.menu.GlobalGroupMenuItemServices.GlobalGroupMenuItemActionType.GROUP_ADD_SUB_GROUP;
 import static com.constellio.app.services.menu.GlobalGroupMenuItemServices.GlobalGroupMenuItemActionType.GROUP_DELETE;
@@ -42,16 +43,16 @@ public class GlobalGroupMenuItemServices {
 		if (!filteredActionTypes.contains(GROUP_ADD_SUB_GROUP.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(GROUP_ADD_SUB_GROUP.name(),
 					isMenuItemActionPossible(GROUP_ADD_SUB_GROUP.name(), globalGroup, user, params),
-					"DisplayGlobalGroupView.addSubGroup", null, -1, 100,
-					() -> new GlobalGroupMenuItemActionBehaviors(appLayerFactory).groupAddSubGroup(params));
+					$("DisplayGlobalGroupView.addSubGroup"), null, -1, 100,
+					(ids) -> new GlobalGroupMenuItemActionBehaviors(appLayerFactory).groupAddSubGroup(params));
 			menuItemActions.add(menuItemAction);
 		}
 
 		if (!filteredActionTypes.contains(GROUP_EDIT.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(GROUP_EDIT.name(),
 					isMenuItemActionPossible(GROUP_EDIT.name(), globalGroup, user, params),
-					"edit", FontAwesome.EDIT, -1, 200,
-					() -> new GlobalGroupMenuItemActionBehaviors(appLayerFactory).edit(params));
+					$("edit"), FontAwesome.EDIT, -1, 200,
+					(ids) -> new GlobalGroupMenuItemActionBehaviors(appLayerFactory).edit(params));
 			menuItemActions.add(menuItemAction);
 		}
 
@@ -59,8 +60,8 @@ public class GlobalGroupMenuItemServices {
 		if (!filteredActionTypes.contains(GROUP_DELETE.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(GROUP_DELETE.name(),
 					isMenuItemActionPossible(GROUP_DELETE.name(), globalGroup, user, params),
-					"delete", FontAwesome.TRASH_O, -1, 300,
-					() -> new GlobalGroupMenuItemActionBehaviors(appLayerFactory).delete(params));
+					$("delete"), FontAwesome.TRASH_O, -1, 300,
+					(ids) -> new GlobalGroupMenuItemActionBehaviors(appLayerFactory).delete(params));
 
 			menuItemAction.setConfirmMessage($("ConfirmDialog.confirmDelete"));
 
@@ -91,7 +92,7 @@ public class GlobalGroupMenuItemServices {
 	}
 
 	private MenuItemAction buildMenuItemAction(String type, boolean possible, String caption, Resource icon,
-											   int group, int priority, Runnable command) {
+											   int group, int priority, Consumer<List<String>> command) {
 		return MenuItemAction.builder()
 				.type(type)
 				.state(possible ? new MenuItemActionState(VISIBLE) : new MenuItemActionState(HIDDEN))

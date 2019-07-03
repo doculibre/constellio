@@ -14,6 +14,7 @@ import com.vaadin.server.Resource;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 import static com.constellio.app.services.menu.UserCredentialMenuItemServices.UserCredentialMenuItemActionType.USER_CREDENTIAL_EDIT;
 import static com.constellio.app.services.menu.UserCredentialMenuItemServices.UserCredentialMenuItemActionType.USER_CREDENTIAL_GENERATE_TOKEN;
@@ -38,8 +39,8 @@ public class UserCredentialMenuItemServices {
 		if (!filteredActionTypes.contains(USER_CREDENTIAL_EDIT.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(USER_CREDENTIAL_EDIT.name(),
 					isMenuItemActionPossible(USER_CREDENTIAL_EDIT.name(), userCredential, user, params),
-					"edit", null, -1, 100,
-					() -> new UserCredentialMenuItemActionBehaviors(appLayerFactory).edit(params));
+					$("edit"), null, -1, 100,
+					(ids) -> new UserCredentialMenuItemActionBehaviors(appLayerFactory).edit(params));
 			menuItemActions.add(menuItemAction);
 		}
 
@@ -47,7 +48,7 @@ public class UserCredentialMenuItemServices {
 			MenuItemAction menuItemAction = buildMenuItemAction(USER_CREDENTIAL_GENERATE_TOKEN.name(),
 					isMenuItemActionPossible(USER_CREDENTIAL_GENERATE_TOKEN.name(), userCredential, user, params),
 					$("DisplayUserCredentialView.generateTokenButton"), null, -1, 200,
-					() -> new UserCredentialMenuItemActionBehaviors(appLayerFactory).generateToken(params));
+					(ids) -> new UserCredentialMenuItemActionBehaviors(appLayerFactory).generateToken(params));
 			menuItemActions.add(menuItemAction);
 		}
 
@@ -73,7 +74,7 @@ public class UserCredentialMenuItemServices {
 	}
 
 	private MenuItemAction buildMenuItemAction(String type, boolean possible, String caption, Resource icon,
-											   int group, int priority, Runnable command) {
+											   int group, int priority, Consumer<List<String>> command) {
 		return MenuItemAction.builder()
 				.type(type)
 				.state(possible ? new MenuItemActionState(MenuItemActionStateStatus.VISIBLE) : new MenuItemActionState(MenuItemActionStateStatus.HIDDEN))

@@ -70,7 +70,8 @@ public class DocumentRecordActionsServices {
 	}
 
 	public boolean isSendEmailActionPossible(Record record, User user) {
-		return hasUserReadAccess(record, user) &&
+		Document document = rm.wrapDocument(record);
+		return hasUserReadAccess(record, user) && document.hasContent() &&
 			   rmModuleExtensions.isSendEmailActionPossibleOnDocument(rm.wrapDocument(record), user);
 	}
 

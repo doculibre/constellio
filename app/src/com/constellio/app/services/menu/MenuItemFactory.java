@@ -10,17 +10,17 @@ import org.vaadin.peter.contextmenu.ContextMenu;
 import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuItem;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus.HIDDEN;
 import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus.VISIBLE;
-import static com.constellio.app.ui.i18n.i18n.$;
 
 public class MenuItemFactory {
 
 	public void buildContextMenu(ContextMenu rootMenu, List<MenuItemAction> menuItemActions) {
 		for (MenuItemAction menuItemAction : menuItemActions) {
-			ContextMenuItem menuItem = rootMenu.addItem($(menuItemAction.getCaption()), menuItemAction.getIcon());
+			ContextMenuItem menuItem = rootMenu.addItem(menuItemAction.getCaption(), menuItemAction.getIcon());
 			if (!Strings.isNullOrEmpty(menuItemAction.getConfirmMessage())) {
 				menuItem.addItemClickListener(new ConfirmDialogContextMenuItemClickListener(menuItemAction.getDialogMode()) {
 					@Override
@@ -30,12 +30,12 @@ public class MenuItemFactory {
 
 					@Override
 					protected void confirmButtonClick(ConfirmDialog dialog) {
-						menuItemAction.getCommand().run();
+						menuItemAction.getCommand().accept(Collections.emptyList());
 					}
 				});
 			} else {
 				menuItem.addItemClickListener((event) -> {
-					menuItemAction.getCommand().run();
+					menuItemAction.getCommand().accept(Collections.emptyList());
 				});
 			}
 			menuItem.setEnabled(menuItemAction.getState().getStatus() == VISIBLE);
@@ -44,8 +44,8 @@ public class MenuItemFactory {
 
 	public void buildMenuBar(MenuItem rootItem, List<MenuItemAction> menuItemActions) {
 		for (MenuItemAction menuItemAction : menuItemActions) {
-			MenuItem menuItem = rootItem.addItem($(menuItemAction.getCaption()), menuItemAction.getIcon(),
-					(selectedItem) -> menuItemAction.getCommand().run());
+			MenuItem menuItem = rootItem.addItem(menuItemAction.getCaption(), menuItemAction.getIcon(),
+					(selectedItem) -> menuItemAction.getCommand().accept(Collections.emptyList()));
 			menuItem.setEnabled(menuItemAction.getState().getStatus() == VISIBLE);
 			menuItem.setVisible(menuItemAction.getState().getStatus() != HIDDEN);
 		}
@@ -54,10 +54,10 @@ public class MenuItemFactory {
 	public List<Button> buildActionButtons(List<MenuItemAction> menuItemActions) {
 		List<Button> actionButtons = new ArrayList<>();
 		for (MenuItemAction menuItemAction : menuItemActions) {
-			BaseButton actionButton = new BaseButton($(menuItemAction.getCaption()), menuItemAction.getIcon()) {
+			BaseButton actionButton = new BaseButton(menuItemAction.getCaption(), menuItemAction.getIcon()) {
 				@Override
 				protected void buttonClick(ClickEvent event) {
-					menuItemAction.getCommand().run();
+					menuItemAction.getCommand().accept(Collections.emptyList());
 				}
 			};
 			actionButton.setEnabled(menuItemAction.getState().getStatus() == VISIBLE);

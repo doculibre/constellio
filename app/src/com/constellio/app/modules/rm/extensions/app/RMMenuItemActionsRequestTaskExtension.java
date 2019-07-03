@@ -104,8 +104,8 @@ public class RMMenuItemActionsRequestTaskExtension extends MenuItemActionsExtens
 				params.getMenuItemActions().add(MenuItemAction.builder()
 						.type(REQUEST_BORROW_BUTTON.name())
 						.state(toState(isBorrowRequestActionPossible))
-						.caption("RMRequestTaskButtonExtension.borrowRequest")
-						.command(() -> borrowRequest(params))
+						.caption($("RMRequestTaskButtonExtension.borrowRequest"))
+						.command((ids) -> borrowRequest(params))
 						.build());
 
 				boolean isRequestBorrowExtensionActionPossible = isExtensionRequestActionPossible(record, user);
@@ -113,8 +113,8 @@ public class RMMenuItemActionsRequestTaskExtension extends MenuItemActionsExtens
 				params.getMenuItemActions().add(MenuItemAction.builder()
 						.type(REQUEST_BORROW_EXTENSION_BUTTON.name())
 						.state(toState(isRequestBorrowExtensionActionPossible))
-						.caption("RMRequestTaskButtonExtension.borrowExtensionRequest")
-						.command(() -> borrowExtensionRequested(params))
+						.caption($("RMRequestTaskButtonExtension.borrowExtensionRequest"))
+						.command((ids) -> borrowExtensionRequested(params))
 						.build());
 
 				boolean isReactivationActionPossible = isReactivationRequestActionPossible(record, user);
@@ -122,8 +122,8 @@ public class RMMenuItemActionsRequestTaskExtension extends MenuItemActionsExtens
 				params.getMenuItemActions().add(MenuItemAction.builder()
 						.type(REACTIVATION_BUTTON.name())
 						.state(toState(isReactivationActionPossible))
-						.caption("RMRequestTaskButtonExtension.reactivationRequest")
-						.command(() -> reactivationRequested(params))
+						.caption($("RMRequestTaskButtonExtension.reactivationRequest"))
+						.command((ids) -> reactivationRequested(params))
 						.build());
 			}
 
@@ -137,9 +137,9 @@ public class RMMenuItemActionsRequestTaskExtension extends MenuItemActionsExtens
 			params.getMenuItemActions().add(MenuItemAction.builder()
 					.type(RETURN_REQUEST_BUTTON.name())
 					.state(toState(isReturnRequestActionPossible))
-					.caption("RMRequestTaskButtonExtension.returnRequest")
+					.caption($("RMRequestTaskButtonExtension.returnRequest"))
 					.confirmMessage(returnConfirmMessage)
-					.command(() -> returnRequest(params))
+					.command((ids) -> returnRequest(params))
 					.build());
 		}
 	}

@@ -4,7 +4,6 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.ui.pages.cart.DefaultFavoritesTable;
 import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.services.menu.MenuItemAction;
-import com.constellio.app.services.menu.MenuItemFactory;
 import com.constellio.app.services.menu.MenuItemServices;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
 import com.constellio.app.ui.application.ConstellioUI;
@@ -59,6 +58,8 @@ import java.util.Observable;
 import java.util.Observer;
 import java.util.stream.Collectors;
 
+import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus.HIDDEN;
+import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus.VISIBLE;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.entities.enums.BatchProcessingMode.ALL_METADATA_OF_SCHEMA;
 import static com.constellio.model.entities.enums.BatchProcessingMode.ONE_METADATA;
@@ -138,6 +139,7 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 		MenuItemServices menuItemServices = new MenuItemServices(getCollection(), this.getConstellioFactories().getAppLayerFactory());
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(getCollection(), this.getConstellioFactories().getAppLayerFactory());
 		List<MenuItemAction> selectedMenuItemActions = menuItemServices.getActionsForRecords(rm.get(getSelectedRecordIds()),
+				//List<MenuItemAction> selectedMenuItemActions = menuItemServices.getActionsForRecords(presenter.getSearchQuery(),
 				new MenuItemActionBehaviorParams() {
 					@Override
 					public BaseView getView() {
@@ -174,8 +176,19 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 						return false;
 					}
 				});
-		List<Component> selectionActions = new MenuItemFactory().buildActionButtons(selectedMenuItemActions)
-				.stream().map(a -> (Component) a).collect(Collectors.toList());
+
+		List<Component> selectionActions = selectedMenuItemActions.stream()
+				.map(menuItemAction -> {
+					BaseButton actionButton = new BaseButton(menuItemAction.getCaption(), menuItemAction.getIcon()) {
+						@Override
+						protected void buttonClick(ClickEvent event) {
+							menuItemAction.getCommand().accept(getSelectedRecordIds());
+						}
+					};
+					actionButton.setEnabled(menuItemAction.getState().getStatus() == VISIBLE);
+					actionButton.setVisible(menuItemAction.getState().getStatus() != HIDDEN);
+					return (Component) actionButton;
+				}).collect(Collectors.toList());
 
 		Button switchViewMode = buildSwitchViewMode();
 

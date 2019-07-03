@@ -14,6 +14,7 @@ import com.vaadin.server.Resource;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 import static com.constellio.app.modules.rm.services.menu.CartMenuItemServices.CartMenuItemActionType.CART_BATCH_DELETE;
 import static com.constellio.app.modules.rm.services.menu.CartMenuItemServices.CartMenuItemActionType.CART_BATCH_DUPLICATE;
@@ -22,9 +23,9 @@ import static com.constellio.app.modules.rm.services.menu.CartMenuItemServices.C
 import static com.constellio.app.modules.rm.services.menu.CartMenuItemServices.CartMenuItemActionType.CART_CREATE_SIP_ARCHIVE;
 import static com.constellio.app.modules.rm.services.menu.CartMenuItemServices.CartMenuItemActionType.CART_DECOMMISSIONING_LIST;
 import static com.constellio.app.modules.rm.services.menu.CartMenuItemServices.CartMenuItemActionType.CART_DOCUMENT_BATCH_PROCESSING;
+import static com.constellio.app.modules.rm.services.menu.CartMenuItemServices.CartMenuItemActionType.CART_DOCUMENT_LABEL;
 import static com.constellio.app.modules.rm.services.menu.CartMenuItemServices.CartMenuItemActionType.CART_EMPTY;
 import static com.constellio.app.modules.rm.services.menu.CartMenuItemServices.CartMenuItemActionType.CART_FOLDER_BATCH_PROCESSING;
-import static com.constellio.app.modules.rm.services.menu.CartMenuItemServices.CartMenuItemActionType.CART_DOCUMENT_LABEL;
 import static com.constellio.app.modules.rm.services.menu.CartMenuItemServices.CartMenuItemActionType.CART_FOLDER_LABEL;
 import static com.constellio.app.modules.rm.services.menu.CartMenuItemServices.CartMenuItemActionType.CART_PREPARE_EMAIL;
 import static com.constellio.app.modules.rm.services.menu.CartMenuItemServices.CartMenuItemActionType.CART_PRINT_CONSOLIDATED_PDF;
@@ -33,6 +34,7 @@ import static com.constellio.app.modules.rm.services.menu.CartMenuItemServices.C
 import static com.constellio.app.modules.rm.services.menu.CartMenuItemServices.CartMenuItemActionType.CART_SHARE;
 import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus.HIDDEN;
 import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus.VISIBLE;
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class CartMenuItemServices {
 
@@ -53,72 +55,72 @@ public class CartMenuItemServices {
 		if (!filteredActionTypes.contains(CART_RENAME.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(CART_RENAME.name(),
 					isMenuItemActionPossible(CART_RENAME.name(), cart, user, params),
-					"CartView.reNameCartGroup", null, -1, 100,
-					() -> new CartMenuItemActionBehaviors(collection, appLayerFactory).rename(cart, params));
+					$("CartView.reNameCartGroup"), null, -1, 100,
+					(ids) -> new CartMenuItemActionBehaviors(collection, appLayerFactory).rename(cart, params));
 			menuItemActions.add(menuItemAction);
 		}
 
 		if (!filteredActionTypes.contains(CART_PREPARE_EMAIL.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(CART_PREPARE_EMAIL.name(),
 					isMenuItemActionPossible(CART_PREPARE_EMAIL.name(), cart, user, params),
-					"CartView.prepareEmail", null, -1, 200,
-					() -> new CartMenuItemActionBehaviors(collection, appLayerFactory).prepareEmail(cart, params));
+					$("CartView.prepareEmail"), null, -1, 200,
+					(ids) -> new CartMenuItemActionBehaviors(collection, appLayerFactory).prepareEmail(cart, params));
 			menuItemActions.add(menuItemAction);
 		}
 
 		if (!filteredActionTypes.contains(CART_BATCH_DUPLICATE.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(CART_BATCH_DUPLICATE.name(),
 					isMenuItemActionPossible(CART_BATCH_DUPLICATE.name(), cart, user, params),
-					"CartView.documentsBatchProcessingButton", null, -1, 300,
-					() -> new CartMenuItemActionBehaviors(collection, appLayerFactory).batchDuplicate(cart, params));
+					$("CartView.documentsBatchProcessingButton"), null, -1, 300,
+					(ids) -> new CartMenuItemActionBehaviors(collection, appLayerFactory).batchDuplicate(cart, params));
 			menuItemActions.add(menuItemAction);
 		}
 
 		if (!filteredActionTypes.contains(CART_DOCUMENT_BATCH_PROCESSING.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(CART_DOCUMENT_BATCH_PROCESSING.name(),
 					isMenuItemActionPossible(CART_DOCUMENT_BATCH_PROCESSING.name(), cart, user, params),
-					"CartView.documentsBatchProcessingButton", null, -1, 400,
-					() -> new CartMenuItemActionBehaviors(collection, appLayerFactory).documentBatchProcessing(cart, params));
+					$("CartView.documentsBatchProcessingButton"), null, -1, 400,
+					(ids) -> new CartMenuItemActionBehaviors(collection, appLayerFactory).documentBatchProcessing(cart, params));
 			menuItemActions.add(menuItemAction);
 		}
 
 		if (!filteredActionTypes.contains(CART_FOLDER_BATCH_PROCESSING.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(CART_FOLDER_BATCH_PROCESSING.name(),
 					isMenuItemActionPossible(CART_FOLDER_BATCH_PROCESSING.name(), cart, user, params),
-					"CartView.foldersBatchProcessingButton", null, -1, 500,
-					() -> new CartMenuItemActionBehaviors(collection, appLayerFactory).folderBatchProcessing(cart, params));
+					$("CartView.foldersBatchProcessingButton"), null, -1, 500,
+					(ids) -> new CartMenuItemActionBehaviors(collection, appLayerFactory).folderBatchProcessing(cart, params));
 			menuItemActions.add(menuItemAction);
 		}
 
 		if (!filteredActionTypes.contains(CART_CONTAINER_RECORD_BATCH_PROCESSING.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(CART_CONTAINER_RECORD_BATCH_PROCESSING.name(),
 					isMenuItemActionPossible(CART_CONTAINER_RECORD_BATCH_PROCESSING.name(), cart, user, params),
-					"CartView.containersBatchProcessingButton", null, -1, 600,
-					() -> new CartMenuItemActionBehaviors(collection, appLayerFactory).containerRecordBatchProcessing(cart, params));
+					$("CartView.containersBatchProcessingButton"), null, -1, 600,
+					(ids) -> new CartMenuItemActionBehaviors(collection, appLayerFactory).containerRecordBatchProcessing(cart, params));
 			menuItemActions.add(menuItemAction);
 		}
 
 		if (!filteredActionTypes.contains(CART_DOCUMENT_LABEL.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(CART_DOCUMENT_LABEL.name(),
 					isMenuItemActionPossible(CART_DOCUMENT_LABEL.name(), cart, user, params),
-					"CartView.documentLabelsButton", null, -1, 700,
-					() -> new CartMenuItemActionBehaviors(collection, appLayerFactory).documentLabels(cart, params));
+					$("CartView.documentLabelsButton"), null, -1, 700,
+					(ids) -> new CartMenuItemActionBehaviors(collection, appLayerFactory).documentLabels(cart, params));
 			menuItemActions.add(menuItemAction);
 		}
 
 		if (!filteredActionTypes.contains(CART_FOLDER_LABEL.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(CART_FOLDER_LABEL.name(),
 					isMenuItemActionPossible(CART_FOLDER_LABEL.name(), cart, user, params),
-					"CartView.foldersLabelsButton", null, -1, 800,
-					() -> new CartMenuItemActionBehaviors(collection, appLayerFactory).foldersLabels(cart, params));
+					$("CartView.foldersLabelsButton"), null, -1, 800,
+					(ids) -> new CartMenuItemActionBehaviors(collection, appLayerFactory).foldersLabels(cart, params));
 			menuItemActions.add(menuItemAction);
 		}
 
 		if (!filteredActionTypes.contains(CART_CONTAINER_RECORD_LABEL.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(CART_CONTAINER_RECORD_LABEL.name(),
 					isMenuItemActionPossible(CART_CONTAINER_RECORD_LABEL.name(), cart, user, params),
-					"CartView.containersLabelsButton", null, -1, 900,
-					() -> new CartMenuItemActionBehaviors(collection, appLayerFactory).containerRecordLabels(cart, params));
+					$("CartView.containersLabelsButton"), null, -1, 900,
+					(ids) -> new CartMenuItemActionBehaviors(collection, appLayerFactory).containerRecordLabels(cart, params));
 			menuItemActions.add(menuItemAction);
 		}
 
@@ -126,8 +128,8 @@ public class CartMenuItemServices {
 		if (!filteredActionTypes.contains(CART_BATCH_DELETE.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(CART_BATCH_DELETE.name(),
 					isMenuItemActionPossible(CART_BATCH_DELETE.name(), cart, user, params),
-					DeleteButton.CAPTION, null, -1, 1000,
-					() -> new CartMenuItemActionBehaviors(collection, appLayerFactory).batchDelete(cart, params));
+					$(DeleteButton.CAPTION), null, -1, 1000,
+					(ids) -> new CartMenuItemActionBehaviors(collection, appLayerFactory).batchDelete(cart, params));
 
 			menuItemActions.add(menuItemAction);
 		}
@@ -135,48 +137,48 @@ public class CartMenuItemServices {
 		if (!filteredActionTypes.contains(CART_EMPTY.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(CART_EMPTY.name(),
 					isMenuItemActionPossible(CART_EMPTY.name(), cart, user, params),
-					"CartView.empty", null, -1, 1100,
-					() -> new CartMenuItemActionBehaviors(collection, appLayerFactory).empty(cart, params));
+					$("CartView.empty"), null, -1, 1100,
+					(ids) -> new CartMenuItemActionBehaviors(collection, appLayerFactory).empty(cart, params));
 			menuItemActions.add(menuItemAction);
 		}
 
 		if (!filteredActionTypes.contains(CART_SHARE.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(CART_SHARE.name(),
 					isMenuItemActionPossible(CART_SHARE.name(), cart, user, params),
-					"CartView.share", null, -1, 1200,
-					() -> new CartMenuItemActionBehaviors(collection, appLayerFactory).share(cart, params));
+					$("CartView.share"), null, -1, 1200,
+					(ids) -> new CartMenuItemActionBehaviors(collection, appLayerFactory).share(cart, params));
 			menuItemActions.add(menuItemAction);
 		}
 
 		if (!filteredActionTypes.contains(CART_DECOMMISSIONING_LIST.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(CART_DECOMMISSIONING_LIST.name(),
 					isMenuItemActionPossible(CART_DECOMMISSIONING_LIST.name(), cart, user, params),
-					"CartView.decommissioningList", null, -1, 1300,
-					() -> new CartMenuItemActionBehaviors(collection, appLayerFactory).decommission(cart, params));
+					$("CartView.decommissioningList"), null, -1, 1300,
+					(ids) -> new CartMenuItemActionBehaviors(collection, appLayerFactory).decommission(cart, params));
 			menuItemActions.add(menuItemAction);
 		}
 
 		if (!filteredActionTypes.contains(CART_PRINT_METADATA_REPORT.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(CART_PRINT_METADATA_REPORT.name(),
 					isMenuItemActionPossible(CART_PRINT_METADATA_REPORT.name(), cart, user, params),
-					"ReportGeneratorButton.buttonText", null, -1, 1400,
-					() -> new CartMenuItemActionBehaviors(collection, appLayerFactory).printMetadataReportAction(cart, params));
+					$("ReportGeneratorButton.buttonText"), null, -1, 1400,
+					(ids) -> new CartMenuItemActionBehaviors(collection, appLayerFactory).printMetadataReportAction(cart, params));
 			menuItemActions.add(menuItemAction);
 		}
 
 		if (!filteredActionTypes.contains(CART_CREATE_SIP_ARCHIVE.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(CART_CREATE_SIP_ARCHIVE.name(),
 					isMenuItemActionPossible(CART_CREATE_SIP_ARCHIVE.name(), cart, user, params),
-					"SIPButton.caption", null, -1, 1500,
-					() -> new CartMenuItemActionBehaviors(collection, appLayerFactory).createSIPArchvesAction(cart, params));
+					$("SIPButton.caption"), null, -1, 1500,
+					(ids) -> new CartMenuItemActionBehaviors(collection, appLayerFactory).createSIPArchvesAction(cart, params));
 			menuItemActions.add(menuItemAction);
 		}
 
 		if (!filteredActionTypes.contains(CART_PRINT_CONSOLIDATED_PDF.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(CART_PRINT_CONSOLIDATED_PDF.name(),
 					isMenuItemActionPossible(CART_PRINT_CONSOLIDATED_PDF.name(), cart, user, params),
-					"ConsolidatedPDFWindow.caption", null, -1, 1600,
-					() -> new CartMenuItemActionBehaviors(collection, appLayerFactory).consolidatedPdfAction(cart, params));
+					$("ConsolidatedPDFWindow.caption"), null, -1, 1600,
+					(ids) -> new CartMenuItemActionBehaviors(collection, appLayerFactory).consolidatedPdfAction(cart, params));
 			menuItemActions.add(menuItemAction);
 		}
 
@@ -224,7 +226,7 @@ public class CartMenuItemServices {
 	}
 
 	private MenuItemAction buildMenuItemAction(String type, boolean possible, String caption, Resource icon,
-											   int group, int priority, Runnable command) {
+											   int group, int priority, Consumer<List<String>> command) {
 		return MenuItemAction.builder()
 				.type(type)
 				.state(new MenuItemActionState(possible ? VISIBLE : HIDDEN))
