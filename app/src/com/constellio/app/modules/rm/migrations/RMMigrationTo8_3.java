@@ -56,6 +56,9 @@ public class RMMigrationTo8_3 implements MigrationScript {
 			if (role.hasOperationPermission(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST)) {
 				newPermissions.add(RMPermissionsTo.CREATE_DECOMMISSIONING_LIST);
 			}
+			if (role.hasOperationPermission(RMPermissionsTo.USE_CART)) {
+				newPermissions.add(RMPermissionsTo.USE_GROUP_CART);
+			}
 			role = role.withNewPermissions(newPermissions);
 			rolesManager.updateRole(role);
 		}
