@@ -20,6 +20,7 @@ import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.LangUtils.StringReplacer;
 import com.constellio.data.utils.ThreadUtils.IteratorElementTask;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.Content;
@@ -761,21 +762,25 @@ public class RecordsImportServicesExecutor {
 					} catch (NoSuchRecordWithId e) {
 
 						if (!RecordUtils.isZeroPaddingId(legacyId)) {
-							Map<String, Object> params = LangUtils.<String, Object>asMap("id", legacyId);
-							errors.add(RecordsImportServices.class, ID_MUST_RESPECT_PATTERN, params);
-							return null;
-						}
 
-						if (nextSequenceId == null) {
-							nextSequenceId = modelLayerFactory.getDataLayerFactory().getUniqueIdGenerator().next();
-						}
+							if (!Toggle.ALLOWS_CREATION_OF_RECORDS_WITH_NON_PADDED_ID.isEnabled()) {
+								Map<String, Object> params = LangUtils.<String, Object>asMap("id", legacyId);
+								errors.add(RecordsImportServices.class, ID_MUST_RESPECT_PATTERN, params);
+								return null;
+							}
 
-						if (legacyId.compareTo(nextSequenceId) >= 0) {
-							Map<String, Object> params = LangUtils.<String, Object>asMap("id", legacyId);
-							errors.add(RecordsImportServices.class, ID_MUST_BE_LOWER_THAN_SEQUENCE_TABLE, params);
-							return null;
-						}
+						} else {
 
+							if (nextSequenceId == null) {
+								nextSequenceId = modelLayerFactory.getDataLayerFactory().getUniqueIdGenerator().next();
+							}
+
+							if (legacyId.compareTo(nextSequenceId) >= 0) {
+								Map<String, Object> params = LangUtils.<String, Object>asMap("id", legacyId);
+								errors.add(RecordsImportServices.class, ID_MUST_BE_LOWER_THAN_SEQUENCE_TABLE, params);
+								return null;
+							}
+						}
 						record = recordServices.newRecordWithSchema(newSchema, legacyId);
 
 

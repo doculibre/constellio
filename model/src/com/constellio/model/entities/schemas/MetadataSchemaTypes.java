@@ -338,4 +338,6 @@ public class MetadataSchemaTypes implements Serializable {
 	public Set<String> getTypeParentOfOtherTypes() {
 		return typeParentOfOtherTypes;
 	}
+
+
 }
