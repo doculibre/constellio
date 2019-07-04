@@ -23,6 +23,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -97,7 +98,13 @@ public class SystemCheckPresenter extends BasePresenter<SystemCheckView> {
 			throw new RuntimeException(e);
 		}
 
-		if (typesWithIdsToReallocates.isEmpty()) {
+		boolean hasIdsToReallocate = false;
+		for (TypeWithIdsToReallocate type : typesWithIdsToReallocates) {
+			List<String> reallocatedIds = new ArrayList<>(type.getIdsToReallocateToSequential());
+			hasIdsToReallocate |= !reallocatedIds.isEmpty();
+		}
+
+		if (!hasIdsToReallocate) {
 			File successFile = new File(new FoldersLocator().getWorkFolder(), "AllIdsAreCompatible.txt");
 
 			try {

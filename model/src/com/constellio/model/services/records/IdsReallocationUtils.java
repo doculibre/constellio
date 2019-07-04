@@ -161,7 +161,7 @@ public class IdsReallocationUtils {
 					for (String id : reallocatedIds) {
 						String newId = type.getOldAndNewIdMapping().get(id);
 						writer.append(type.getSchemaType().getCollection() + "," + type.getSchemaType().getCode()
-									  + "," + id + "," + newId + "\n");
+									  + ",\"" + id + "\",\"" + newId + "\"\n");
 					}
 
 				}
@@ -201,8 +201,8 @@ public class IdsReallocationUtils {
 					typeWithIdsToReallocates.put(key, type);
 				}
 
-				type.idsToReallocateToSequential.add(splittedLines[2]);
-				type.oldAndNewIdMapping.put(splittedLines[2], splittedLines[3]);
+				type.idsToReallocateToSequential.add(splittedLines[2].replace("\"", ""));
+				type.oldAndNewIdMapping.put(splittedLines[2].replace("\"", ""), splittedLines[3].replace("'", ""));
 
 			}
 
