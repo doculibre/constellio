@@ -11,13 +11,8 @@ import com.constellio.app.modules.rm.model.enums.OriginStatus;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.reports.builders.decommissioning.DecommissioningListReportParameters;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.services.decommissioning.DecommissioningEmailService;
-import com.constellio.app.modules.rm.services.decommissioning.DecommissioningEmailServiceException;
-import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSecurityService;
-import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
-import com.constellio.app.modules.rm.services.decommissioning.DecommissioningServiceException;
+import com.constellio.app.modules.rm.services.decommissioning.*;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningServiceException.DecommissioningServiceException_TooMuchOptimisticLockingWhileAttemptingToDecommission;
-import com.constellio.app.modules.rm.services.decommissioning.SearchType;
 import com.constellio.app.modules.rm.ui.builders.FolderDetailToVOBuilder;
 import com.constellio.app.modules.rm.ui.builders.FolderToVOBuilder;
 import com.constellio.app.modules.rm.ui.entities.ContainerVO;
@@ -32,6 +27,7 @@ import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetail;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListValidation;
 import com.constellio.app.modules.rm.wrappers.structures.FolderDetailWithType;
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.components.NewReportPresenter;
@@ -53,22 +49,10 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.anyConditions;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
 import static java.util.Arrays.asList;
 
 public class DecommissioningListPresenter extends SingleSchemaBasePresenter<DecommissioningListView>
@@ -1017,5 +1001,11 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 
 	public void showErrorMessage(String message) {
 		view.showErrorMessage(message);
+	}
+
+	public void clearSavedSearchFromSession() {
+		ConstellioUI uiContext = ConstellioUI.getCurrent();
+		uiContext.clearAttribute(DecommissioningBuilderViewImpl.SAVE_SEARCH_DECOMMISSIONING);
+		uiContext.clearAttribute(DecommissioningBuilderViewImpl.DECOMMISSIONING_BUILDER_TYPE);
 	}
 }
