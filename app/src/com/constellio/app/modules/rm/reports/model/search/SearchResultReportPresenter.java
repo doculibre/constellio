@@ -9,6 +9,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.structure.ReportedMetadata;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.reports.ReportServices;
@@ -126,7 +127,7 @@ public class SearchResultReportPresenter extends BaseExcelReportPresenter {
 		for (Metadata metadata : orderedEnabledReportedMetadataList) {
 			Object metadataValue = record.get(metadata, locale);
 
-			if (metadataValue == null ||
+			if ((metadataValue == null && !MetadataValueType.BOOLEAN.equals(metadata.getType())) ||
 				metadataValue instanceof Collection && ((Collection) metadataValue).isEmpty() ||
 				!userInCollection.hasAccessToMetadata(metadata, record)) {
 				returnList.add(null);
