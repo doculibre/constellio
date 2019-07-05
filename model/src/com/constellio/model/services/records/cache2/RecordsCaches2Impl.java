@@ -436,7 +436,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 
 	@Override
 	public void close() {
-
+		fileSystemDataStore.close();
 	}
 
 	protected void removeFromAllCaches(byte collectionId, List<String> recordIds) {

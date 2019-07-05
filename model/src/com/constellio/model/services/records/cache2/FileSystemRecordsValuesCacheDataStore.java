@@ -20,8 +20,13 @@ public class FileSystemRecordsValuesCacheDataStore {
 	private HTreeMap<String, byte[]> stringKeyMapMemoryBuffer;
 
 	public FileSystemRecordsValuesCacheDataStore(File file) {
-		this.onDiskDatabase = DBMaker.fileDB(file).fileLockDisable().make();
-
+		if (!file.exists() || file.delete()) {
+			this.onDiskDatabase = DBMaker.fileDB(file).fileLockDisable().make();
+		} else {
+			throw new IllegalStateException("File delete failed. Only one instance per file can be active. " +
+											"To Create a new one close the other instance before instanciating " +
+											"the second one.");
+		}
 
 		intKeyMap = onDiskDatabase.hashMap("intKeysDataStore")
 				.keySerializer(Serializer.INTEGER)
