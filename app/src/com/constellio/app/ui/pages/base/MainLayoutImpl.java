@@ -12,6 +12,7 @@ import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.pages.base.ConstellioMenuImpl.ConstellioMenuButton;
 import com.constellio.app.ui.util.ComponentTreeUtils;
+import com.constellio.app.ui.util.PlatformDetectionUtils;
 import com.vaadin.event.dd.DropHandler;
 import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.View;
@@ -91,7 +92,14 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 		mainMenu = buildMainMenu();
 
 		userDocumentsWindow = new UserDocumentsWindow();
-		dragAndDropWrapper = new DragAndDropWrapper(mainMenuContentFooterLayout);
+		dragAndDropWrapper = new DragAndDropWrapper(mainMenuContentFooterLayout) {
+			@Override
+			public void setDropHandler(DropHandler dropHandler) {
+				if(PlatformDetectionUtils.isDesktop()) {
+					super.setDropHandler(dropHandler);
+				}
+			}
+		};
 		dragAndDropWrapper.setSizeFull();
 		dragAndDropWrapper.setDropHandler(userDocumentsWindow);
 		navigator.addViewChangeListener(new ViewChangeListener() {

@@ -8,6 +8,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -234,29 +235,46 @@ public class ResolverCache {
 
 		public synchronized boolean isRecordUpdate(String legacyId) {
 
+			boolean importAsLegacyId = Schemas.LEGACY_ID.getLocalCode().equals(this.metadata);
+
 			if (importDataSize == -1) {
 				importDataSize = importDataProvider.size(schemaType);
 			}
-			if (importDataSize <= MAX_NUMBER_OF_RECORDS_BEFORE_LOADING_ALL_UNIQUE_VALUES) {
-				MetadataSchemaType type = types.getSchemaType(schemaType);
-				return searchServices.hasResults(from(type).where(LEGACY_ID).isEqualTo(legacyId));
 
-			} else {
-				if (legacyIds == null) {
+			if (importAsLegacyId) {
 
+				if (importDataSize <= MAX_NUMBER_OF_RECORDS_BEFORE_LOADING_ALL_UNIQUE_VALUES) {
 					MetadataSchemaType type = types.getSchemaType(schemaType);
-					//List<String> ids = searchServices.searchRecordIds(from(type).where(Schemas.LEGACY_ID).isNotNull());
-					legacyIds = new HashSet<>();
-					Iterator<Record> iterators = searchServices.recordsIterator(new LogicalSearchQuery()
-							.setCondition(from(type).where(LEGACY_ID).isNotNull())
-							.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(LEGACY_ID)), 5000);
-					while (iterators.hasNext()) {
-						String aLegacyId = iterators.next().get(LEGACY_ID);
-						legacyIds.add(aLegacyId);
+					return searchServices.hasResults(from(type).where(LEGACY_ID).isEqualTo(legacyId));
+
+				} else {
+					if (legacyIds == null) {
+
+						MetadataSchemaType type = types.getSchemaType(schemaType);
+						//List<String> ids = searchServices.searchRecordIds(from(type).where(Schemas.LEGACY_ID).isNotNull());
+						legacyIds = new HashSet<>();
+						Iterator<Record> iterators = searchServices.recordsIterator(new LogicalSearchQuery()
+								.setCondition(from(type).where(LEGACY_ID).isNotNull())
+								.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(LEGACY_ID)), 5000);
+						while (iterators.hasNext()) {
+							String aLegacyId = iterators.next().get(LEGACY_ID);
+							legacyIds.add(aLegacyId);
+						}
 					}
+
+					return legacyIds.contains(legacyId);
+				}
+			} else {
+				MetadataSchemaType type = types.getSchemaType(schemaType);
+				try {
+					Record record = recordServices.getDocumentById(legacyId);
+					return type.getCode().equals(record.getTypeCode()) && type.getCollection().equals(record.getCollection());
+
+				} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+					return false;
 				}
 
-				return legacyIds.contains(legacyId);
+
 			}
 		}
 

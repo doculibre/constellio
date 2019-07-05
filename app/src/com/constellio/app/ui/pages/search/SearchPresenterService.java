@@ -129,33 +129,10 @@ public class SearchPresenterService {
 		return facetQuery;
 	}
 
-	public boolean isFacetVisisble(Facet facet) {
-		List<MetadataSchemaType> metadataSchemaTypeList = metadataSchemaTypesList;
-
-		if(metadataSchemaTypeList == null || metadataSchemaTypeList.isEmpty()) {
-			metadataSchemaTypeList = metadataSchemasManager.getSchemaTypes(collection).getSchemaTypes();
-		}
-
-
-		for(MetadataSchemaType metadataSchemaType : metadataSchemaTypeList) {
-			for(Metadata metadata : metadataSchemaType.getAllMetadatas()) {
-				if(metadata.getDataStoreCode().equals(facet.getFieldDataStoreCode()) && !user.hasGlobalAccessToMetadata(metadata)) {
-					return false;
-				}
-			}
-		}
-
-		return true;
-	}
-
 	public void configureQueryToComputeFacets(LogicalSearchQuery facetQuery) {
 
 		for (Facet facet : getActiveFacets()) {
 			if (facet.getFacetType() == FacetType.FIELD) {
-				if(!isFacetVisisble(facet)) {
-					continue;
-				}
-
 				facetQuery.addFieldFacet(facet.getFieldDataStoreCode());
 			} else {
 				for (Entry<String, String> entry : facet.getListQueries().entrySet()) {

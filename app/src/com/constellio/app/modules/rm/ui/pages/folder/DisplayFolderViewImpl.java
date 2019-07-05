@@ -120,6 +120,8 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	private Button deleteFolderButton, duplicateFolderButton, editFolderButton, addSubFolderButton, addDocumentButton,
 			addAuthorizationButton, shareFolderButton, printLabelButton, linkToFolderButton, borrowButton, returnFolderButton,
 			reminderReturnFolderButton, alertWhenAvailableButton, addToCartButton, addToCartMyCartButton, addToOrRemoveFromSelectionButton, startWorkflowButton, reportGeneratorButton;
+			viewAuthorizationButton, shareFolderButton, printLabelButton, linkToFolderButton, borrowButton, returnFolderButton,
+			reminderReturnFolderButton, alertWhenAvailableButton, addToCartButton, addToOrRemoveFromSelectionButton, startWorkflowButton, reportGeneratorButton;
 	WindowButton moveInFolderButton;
 	private Label borrowedLabel;
 
@@ -390,7 +392,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			};
 			linkToFolderButton.setVisible(false);
 
-			addAuthorizationButton = new LinkButton($("DisplayFolderView.addAuthorization")) {
+			viewAuthorizationButton = new LinkButton($("DisplayFolderView.addAuthorization")) {
 				@Override
 				protected void buttonClick(ClickEvent event) {
 					presenter.addAuthorizationButtonClicked();
@@ -474,7 +476,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			if (!isAFolderAndDestroyed) {
 				actionMenuButtons.add(duplicateFolderButton);
 				actionMenuButtons.add(linkToFolderButton);
-				actionMenuButtons.add(addAuthorizationButton);
+				actionMenuButtons.add(viewAuthorizationButton);
 				actionMenuButtons.add(shareFolderButton);
 				if (presenter.hasCurrentUserPermissionToUseCartGroup()) {
 					actionMenuButtons.add(addToCartButton);
@@ -893,8 +895,8 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 	@Override
 	public void setAuthorizationButtonState(ComponentState state) {
-		addAuthorizationButton.setVisible(state.isVisible());
-		addAuthorizationButton.setEnabled(state.isEnabled());
+		viewAuthorizationButton.setVisible(state.isVisible());
+		viewAuthorizationButton.setEnabled(state.isEnabled());
 	}
 
 	@Override
