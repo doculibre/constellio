@@ -772,8 +772,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 						metadata.getType() == MetadataValueType.STRING || metadata.getType() == MetadataValueType.TEXT;
 				MetadataDisplayConfig config = schemasDisplayManager().getMetadata(view.getCollection(), metadata.getCode());
 
-				if (getCurrentUser().hasGlobalAccessToMetadata(metadata)
-						&& config.isVisibleInAdvancedSearch() &&
+				if (config.isVisibleInAdvancedSearch() &&
 					isMetadataVisibleForUser(metadata, getCurrentUser()) &&
 					(!isTextOrString || isTextOrString && metadata.isSearchable() ||
 					 Schemas.PATH.getLocalCode().equals(metadata.getLocalCode()) ||

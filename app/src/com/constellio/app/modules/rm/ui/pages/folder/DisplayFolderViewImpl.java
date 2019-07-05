@@ -118,10 +118,9 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	private DisplayFolderPresenter presenter;
 	private boolean dragNDropAllowed;
 	private Button deleteFolderButton, duplicateFolderButton, editFolderButton, addSubFolderButton, addDocumentButton,
-			addAuthorizationButton, shareFolderButton, printLabelButton, linkToFolderButton, borrowButton, returnFolderButton,
-			reminderReturnFolderButton, alertWhenAvailableButton, addToCartButton, addToCartMyCartButton, addToOrRemoveFromSelectionButton, startWorkflowButton, reportGeneratorButton;
-			viewAuthorizationButton, shareFolderButton, printLabelButton, linkToFolderButton, borrowButton, returnFolderButton,
-			reminderReturnFolderButton, alertWhenAvailableButton, addToCartButton, addToOrRemoveFromSelectionButton, startWorkflowButton, reportGeneratorButton;
+			shareFolderButton, printLabelButton, linkToFolderButton, borrowButton, returnFolderButton,
+			reminderReturnFolderButton, alertWhenAvailableButton, addToCartButton, addToCartMyCartButton, addToOrRemoveFromSelectionButton,
+			startWorkflowButton, reportGeneratorButton, viewAuthorizationButton;
 	WindowButton moveInFolderButton;
 	private Label borrowedLabel;
 
