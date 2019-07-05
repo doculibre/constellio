@@ -583,7 +583,7 @@ public class TaskRecordExtension extends RecordExtension {
 					Group group = tasksSchema.getGroup(groupId);
 					List<UserCredential> groupUsers = userServices.getGlobalGroupActifUsers(group.getCode());
 					for (UserCredential user : groupUsers) {
-						User assigneeCandidate = rm.getUser(user.getId());
+						User assigneeCandidate = appLayerFactory.getModelLayerFactory().newUserServices().getUserInCollection(user.getUsername(), collection);
 						if (!assigneeCandidate.isAssignationEmailReceptionDisabled()) {
 							assigneeEmails.addAll(buildEmailAddressList(user.getTitle(), user.getEmail(), user.getPersonalEmails()));
 						}
