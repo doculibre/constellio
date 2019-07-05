@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.navigation;
 
+import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.ui.pages.decommissioning.OrderDecommissioningListPresenter;
 import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
@@ -440,6 +441,12 @@ public class RMViews extends CoreViews {
 
 	public void displayRetentionRule(String id) {
 		navigator.navigateTo(RMNavigationConfiguration.DISPLAY_RETENTION_RULE + "/" + id);
+	}
+
+	//CATEGORY
+
+	public void displayCategory(String id) {
+		taxonomyManagement(RMTaxonomies.CLASSIFICATION_PLAN, id);
 	}
 
 }
