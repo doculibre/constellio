@@ -83,7 +83,7 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 
 	public DocumentContextMenuImpl(DocumentVO documentVO) {
 		presenter = newPresenter();
-		setDocumentVO(documentVO);
+		setRecordVO(documentVO);
 		if (documentVO != null) {
 			presenter.setRecordVO(documentVO);
 		}
@@ -286,7 +286,7 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 					View parentView = ConstellioUI.getCurrent().getCurrentView();
 					ReportTabButton button = new ReportTabButton($("DocumentActionsComponent.printMetadataReport"),
 							$("DocumentActionsComponent.printMetadataReport"), (BaseView) parentView, true);
-					button.setRecordVoList(presenter.getDocumentVO());
+					button.setRecordVoList(presenter.getRecordVO());
 					button.click();
 				}
 			});
@@ -337,7 +337,7 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 	}
 
 	@Override
-	public void setDocumentVO(DocumentVO documentVO) {
+	public void setRecordVO(RecordVO documentVO) {
 		this.recordVO = documentVO;
 	}
 
@@ -388,7 +388,7 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 	}
 
 	@Override
-	public void setAddAuthorizationButtonState(ComponentState state) {
+	public void setViewAuthorizationButtonState(ComponentState state) {
 		addAuthorizationButtonVisible = state.isEnabled();
 	}
 

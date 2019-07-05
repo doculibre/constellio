@@ -15,8 +15,8 @@ import java.util.Map;
 
 public class HttpDocSearchResultDisplayImpl extends SearchResultDisplay {
 	public HttpDocSearchResultDisplayImpl(SearchResultVO searchResultVO, MetadataDisplayFactory componentFactory,
-										  AppLayerFactory appLayerFactory, String query) {
-		super(searchResultVO, componentFactory, appLayerFactory, query);
+										  AppLayerFactory appLayerFactory, String query, boolean noLinks) {
+		super(searchResultVO, componentFactory, appLayerFactory, query, noLinks);
 	}
 
 	@Override

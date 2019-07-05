@@ -1,14 +1,5 @@
 package com.constellio.app.modules.rm.navigation;
 
-import static com.constellio.app.ui.framework.components.ComponentState.enabledIf;
-import static com.constellio.app.ui.framework.components.ComponentState.visibleIf;
-
-import java.io.Serializable;
-import java.util.List;
-
-import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedListener.TreeListener;
-import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTreeItemEvent;
-
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.entities.navigation.PageItem;
@@ -39,6 +30,7 @@ import com.constellio.app.modules.rm.ui.pages.decommissioning.DocumentDecommissi
 import com.constellio.app.modules.rm.ui.pages.decommissioning.EditDecommissioningListViewImpl;
 import com.constellio.app.modules.rm.ui.pages.document.AddEditDocumentViewImpl;
 import com.constellio.app.modules.rm.ui.pages.document.DisplayDocumentViewImpl;
+import com.constellio.app.modules.rm.ui.pages.email.AddEmailAndEmailAttachmentsToFolderViewImpl;
 import com.constellio.app.modules.rm.ui.pages.email.AddEmailAttachmentsToFolderViewImpl;
 import com.constellio.app.modules.rm.ui.pages.folder.AddEditFolderViewImpl;
 import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderView;
@@ -89,6 +81,14 @@ import com.vaadin.event.ItemClickEvent;
 import com.vaadin.navigator.View;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.ui.Component;
+import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedListener.TreeListener;
+import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTreeItemEvent;
+
+import java.io.Serializable;
+import java.util.List;
+
+import static com.constellio.app.ui.framework.components.ComponentState.enabledIf;
+import static com.constellio.app.ui.framework.components.ComponentState.visibleIf;
 
 public class RMNavigationConfiguration implements Serializable {
 
@@ -139,6 +139,7 @@ public class RMNavigationConfiguration implements Serializable {
 	public static final String DUPLICATE_FOLDER = "duplicateFolder";
 	public static final String DISPLAY_DOCUMENT = "displayDocument";
 	public static final String ADD_EMAIL_ATTACHMENTS_TO_FOLDER = "addEmailAttachmentsToFolder";
+	public static final String ADD_EMAIL_AND_EMAIL_ATTACHMENTS_TO_FOLDER = "addEmailAndEmailAttachmentsToFolder";
 	public static final String EDIT_FOLDER = "editFolder";
 	public static final String DISPLAY_FOLDER = "displayFolder";
 	public static final String ADD_RETENTION_RULE = "addRetentionRule";
@@ -179,6 +180,7 @@ public class RMNavigationConfiguration implements Serializable {
 		service.register(EDIT_DOCUMENT, AddEditDocumentViewImpl.class);
 		service.register(DISPLAY_DOCUMENT, DisplayDocumentViewImpl.class);
 		service.register(ADD_EMAIL_ATTACHMENTS_TO_FOLDER, AddEmailAttachmentsToFolderViewImpl.class);
+		service.register(ADD_EMAIL_AND_EMAIL_ATTACHMENTS_TO_FOLDER, AddEmailAndEmailAttachmentsToFolderViewImpl.class);
 		service.register(ADD_FOLDER, AddEditFolderViewImpl.class);
 		service.register(EDIT_FOLDER, AddEditFolderViewImpl.class);
 		service.register(DUPLICATE_FOLDER, AddEditFolderViewImpl.class);

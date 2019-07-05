@@ -753,19 +753,6 @@ public class AppLayerCollectionExtensions {
 		return condition;
 	}
 
-	public List<Component> addComponentToSearchResult(AddComponentToSearchResultParams addComponentToSearchResultParams) {
-		List<Component> allComponentFound = new ArrayList();
-		for(SearchPageExtension searchPageExtension : searchPageExtensions) {
-			List<Component> componentFromSingleExtentionCall = searchPageExtension.addComponentToSearchResult(
-					addComponentToSearchResultParams);
-
-			if(componentFromSingleExtentionCall != null && componentFromSingleExtentionCall.size() > 0 ) {
-				allComponentFound.addAll(componentFromSingleExtentionCall);
-			}
-		}
-		return allComponentFound;
-	}
-
 	public Resource getIconFromContent(GetIconPathParams params) {
 		for (RecordAppExtension extension : recordAppExtensions) {
 			Resource calculatedResource = extension.getIconFromContent(params);
@@ -813,5 +800,26 @@ public class AppLayerCollectionExtensions {
 				return extension.isExportedTaxonomyInSIPCollectionInfos(new ExportCollectionInfosSIPIsTaxonomySupportedParams(taxonomy));
 			}
 		});
+	}
+
+	public void orderListOfElements(Record[] recordElements) {
+		for (LabelTemplateExtension extension : labelTemplateExtensions) {
+			extension.orderListOfElements(recordElements);
+		}
+	}
+
+
+	public <T extends Component> List<T> addComponentToSearchResult(
+			AddComponentToSearchResultParams param) {
+		List<T> result = new ArrayList<>();
+		for (SearchPageExtension extension : searchPageExtensions) {
+			List<T> paramResult = (List<T>) extension.addComponentToSearchResult(param);
+			if (paramResult != null) {
+				for (T component : paramResult) {
+					result.add(component);
+				}
+			}
+		}
+		return result;
 	}
 }

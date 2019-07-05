@@ -576,7 +576,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	private ComponentState getAuthorizationButtonState(User user, Folder folder) {
-		return ComponentState.visibleIf(user.has(RMPermissionsTo.MANAGE_FOLDER_AUTHORIZATIONS).on(folder) && user.hasWriteAndDeleteAccess().on(folder));
+		return ComponentState.visibleIf(user.hasAny(RMPermissionsTo.MANAGE_FOLDER_AUTHORIZATIONS, RMPermissionsTo.VIEW_FOLDER_AUTHORIZATIONS).on(folder));
 	}
 
 	ComponentState getShareButtonState(User user, Folder folder) {

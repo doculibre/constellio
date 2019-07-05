@@ -45,6 +45,7 @@ public class RecordTextInputDataProvider extends TextInputDataProvider<String> {
 	protected boolean onlyLinkables = false;
 	protected boolean writeAccess;
 	protected boolean includeDeactivated;
+	protected boolean includeLogicallyDeleted;
 	protected ConverterWithCache<String, String> converterWithCache;
 
 	public RecordTextInputDataProvider(ConstellioFactories constellioFactories, SessionContext sessionContext,
@@ -65,12 +66,12 @@ public class RecordTextInputDataProvider extends TextInputDataProvider<String> {
 	public RecordTextInputDataProvider(ConstellioFactories constellioFactories, SessionContext sessionContext,
 									   String schemaTypeCode, String schemaCode, boolean writeAccess,
 									   boolean includeDeactivated) {
-		this(constellioFactories, sessionContext, schemaTypeCode, schemaCode, writeAccess, includeDeactivated, false);
+		this(constellioFactories, sessionContext, schemaTypeCode, schemaCode, writeAccess, includeDeactivated, false, false);
 	}
 
 	public RecordTextInputDataProvider(ConstellioFactories constellioFactories, SessionContext sessionContext,
 									   String schemaTypeCode, String schemaCode, boolean writeAccess,
-									   boolean includeDeactivated, boolean onlyLinkables) {
+									   boolean includeDeactivated, boolean onlyLinkables, boolean includeLogicallyDeleted) {
 		this.writeAccess = writeAccess;
 		this.sessionContext = sessionContext;
 		this.schemaTypeCode = schemaTypeCode;
@@ -79,6 +80,7 @@ public class RecordTextInputDataProvider extends TextInputDataProvider<String> {
 		this.security = determineIfSecurity();
 		this.includeDeactivated = includeDeactivated;
 		this.onlyLinkables = onlyLinkables;
+		this.includeLogicallyDeleted = includeLogicallyDeleted;
 	}
 
 	public RecordTextInputDataProvider setConverterWithCache(
@@ -207,9 +209,13 @@ public class RecordTextInputDataProvider extends TextInputDataProvider<String> {
 
 		LogicalSearchQuery query = new LogicalSearchQuery(condition)
 				.setPreferAnalyzedFields(true)
-				.filteredByStatus(StatusFilter.ACTIVES)
 				.setStartRow(startIndex)
 				.setNumberOfRows(count);
+
+//		boolean isDDV = schemaTypeCode != null? schemaTypeCode.startsWith("ddv"):schemaCode.startsWith("ddv");
+		if(!includeLogicallyDeleted) {
+			query.filteredByStatus(StatusFilter.ACTIVES);
+		}
 
 		query.sortAsc(Schemas.CAPTION).sortAsc(Schemas.CODE).sortAsc(Schemas.TITLE);
 		if (sort != null) {

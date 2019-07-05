@@ -16,6 +16,7 @@ public class ValidationErrors {
 
 	private final List<ValidationError> validationErrors = new ArrayList<>();
 	private final List<ValidationError> validationWarnings = new ArrayList<>();
+	private final List<ValidationError> validationLogs = new ArrayList<>();
 
 	public ValidationErrors() {
 	}
@@ -23,6 +24,7 @@ public class ValidationErrors {
 	public ValidationErrors(ValidationErrors copy) {
 		this.validationErrors.addAll(new ArrayList<>(copy.getValidationErrors()));
 		this.validationWarnings.addAll(new ArrayList<>(copy.getValidationWarnings()));
+		this.validationLogs.addAll(new ArrayList<>(copy.getValidationLogs()));
 	}
 
 	public ValidationError create(Class<?> validatorClass, String code, Map<String, Object> parameters) {
@@ -54,6 +56,10 @@ public class ValidationErrors {
 		validationWarnings.add(create(validatorClass, code, parameters));
 	}
 
+	public void addLog(Class<?> validatorClass, String code, Map<String, Object> parameters) {
+		validationLogs.add(create(validatorClass, code, parameters));
+	}
+
 	public final String toMultilineErrorsSummaryString() {
 		StringBuilder sb = new StringBuilder();
 
@@ -67,6 +73,14 @@ public class ValidationErrors {
 
 		sb.append("\nValidation warnings :\n");
 		for (ValidationError validationError : getValidationWarnings()) {
+			if (!sb.toString().isEmpty()) {
+				sb.append("\n");
+			}
+			sb.append(validationError.toMultilineErrorSummaryString());
+		}
+
+		sb.append("\nValidation logs :\n");
+		for (ValidationError validationError : getValidationLogs()) {
 			if (!sb.toString().isEmpty()) {
 				sb.append("\n");
 			}
@@ -98,6 +112,16 @@ public class ValidationErrors {
 			}
 		}
 
+		sb.append("\nValidation logs :\n");
+		for (ValidationError validationError : getValidationLogs()) {
+			if (sb.toString().length() < 1000) {
+				if (!sb.toString().isEmpty()) {
+					sb.append(", ");
+				}
+				sb.append(validationError.toErrorSummaryString());
+			}
+		}
+
 		return sb.toString();
 	}
 
@@ -105,8 +129,16 @@ public class ValidationErrors {
 		return Collections.unmodifiableList(validationWarnings);
 	}
 
+	public List<ValidationError> getValidationLogs() {
+		return Collections.unmodifiableList(validationLogs);
+	}
+
 	public void addAllWarnings(Collection<ValidationError> validationWarnings) {
 		this.validationWarnings.addAll(validationWarnings);
+	}
+
+	public void addAllLogs(Collection<ValidationError> validationLogs) {
+		this.validationLogs.addAll(validationLogs);
 	}
 
 	public List<ValidationError> getValidationErrors() {
@@ -132,6 +164,10 @@ public class ValidationErrors {
 		return getValidationErrors().isEmpty() && getValidationWarnings().isEmpty();
 	}
 
+	public final boolean isEmptyErrorWarningAmdLogs() {
+		return getValidationErrors().isEmpty() && getValidationWarnings().isEmpty() && getValidationLogs().isEmpty();
+	}
+
 	public final void throwIfNonEmptyErrorOrWarnings()
 			throws ValidationException {
 		if (!isEmptyErrorAndWarnings()) {
@@ -147,5 +183,11 @@ public class ValidationErrors {
 				LOGGER.warn("Cannot add prefix to validation error", e);
 			}
 		}
+	}
+
+	public void clearAll() {
+		validationErrors.clear();
+		validationWarnings.clear();
+		validationLogs.clear();
 	}
 }

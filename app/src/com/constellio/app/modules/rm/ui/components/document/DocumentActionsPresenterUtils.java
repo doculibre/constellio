@@ -124,7 +124,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 				.forModule(ConstellioRMModule.ID);
 	}
 
-	public DocumentVO getDocumentVO() {
+	public DocumentVO getRecordVO() {
 		return this.documentVO;
 	}
 
@@ -227,7 +227,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 			if (areSearchTypeAndSearchIdPresent) {
 				actionsComponent.navigate().to(RMViews.class)
 						.addDocumentWithContentFromDecommission(documentVO.getId(), DecommissionNavUtil.getSearchId(params), DecommissionNavUtil.getSearchType(params));
-			} else if(params.get(RMViews.FAV_GROUP_ID_KEY) != null) {
+			} else if (params.get(RMViews.FAV_GROUP_ID_KEY) != null) {
 				actionsComponent.navigate().to(RMViews.class).addDocumentWithContentFromFavorites(documentVO.getId(), params.get(RMViews.FAV_GROUP_ID_KEY));
 			} else if (rmModuleExtensions
 					.navigateToAddDocumentWhileKeepingTraceOfPreviousView(new NavigateToFromAPageParams(params, documentVO.getId()))) {
@@ -320,16 +320,16 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		actionsComponent.showMessage("Clipboard integration TODO!");
 	}
 
-	protected boolean isAddAuthorizationPossible() {
-		return getCurrentUser().has(RMPermissionsTo.MANAGE_DOCUMENT_AUTHORIZATIONS).on(currentDocument());
+	protected boolean isViewAuthorizationPossible() {
+		return getCurrentUser().hasAny(RMPermissionsTo.MANAGE_DOCUMENT_AUTHORIZATIONS, RMPermissionsTo.VIEW_DOCUMENT_AUTHORIZATIONS).on(currentDocument());
 	}
 
 	protected boolean isCreateDocumentPossible() {
 		return getCurrentUser().has(RMPermissionsTo.CREATE_DOCUMENTS).on(currentDocument());
 	}
 
-	private ComponentState getAddAuthorizationState() {
-		return ComponentState.visibleIf(isAddAuthorizationPossible());
+	private ComponentState getViewAuthorizationState() {
+		return ComponentState.visibleIf(isViewAuthorizationPossible());
 	}
 
 	private ComponentState getCreateDocumentState() {
@@ -396,7 +396,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	}
 
 	public void addAuthorizationButtonClicked() {
-		if (isAddAuthorizationPossible()) {
+		if (isViewAuthorizationPossible()) {
 			actionsComponent.navigate().to().listObjectAccessAndRoleAuthorizations(documentVO.getId());
 			updateSearchResultClicked();
 		}
@@ -420,8 +420,9 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	}
 
 	public boolean isDeleteContentVersionPossible() {
-		return presenterUtils.getCurrentUser().has(CorePermissions.DELETE_CONTENT_VERSION).on(currentDocument()) &&
-			   !extensions.isModifyBlocked(currentDocument(), getCurrentUser());
+		return getCurrentUser().has(CorePermissions.DELETE_CONTENT_VERSION).on(currentDocument()) &&
+			   !extensions.isModifyBlocked(currentDocument(), getCurrentUser()) &&
+			   getCurrentUser().hasDeleteAccess().on(currentDocument());
 	}
 
 	public boolean isDeleteContentVersionPossible(ContentVersionVO contentVersionVO) {
@@ -749,14 +750,14 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		RMConfigs configs = new RMConfigs(getModelLayerFactory().getSystemConfigurationsManager());
 
 		updateBorrowedMessage();
-		DocumentVO documentVO = getDocumentVO();
-		actionsComponent.setDocumentVO(documentVO);
+		RecordVO documentVO = getRecordVO();
+		actionsComponent.setRecordVO(documentVO);
 		Boolean isLogicallyDeleted = documentVO.get(Schemas.LOGICALLY_DELETED_STATUS.getLocalCode());
 		if (Boolean.TRUE.equals(isLogicallyDeleted)) {
 			actionsComponent.setEditDocumentButtonState(ComponentState.INVISIBLE);
 			actionsComponent.setAddDocumentButtonState(ComponentState.INVISIBLE);
 			actionsComponent.setDeleteDocumentButtonState(ComponentState.INVISIBLE);
-			actionsComponent.setAddAuthorizationButtonState(ComponentState.INVISIBLE);
+			actionsComponent.setViewAuthorizationButtonState(ComponentState.INVISIBLE);
 			actionsComponent.setCreatePDFAButtonState(ComponentState.INVISIBLE);
 			actionsComponent.setShareDocumentButtonState(ComponentState.INVISIBLE);
 			actionsComponent.setUploadButtonState(ComponentState.INVISIBLE);
@@ -777,7 +778,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		// OH MY GOD WHY ARE WE YELLING LIKE THAT ?
 		actionsComponent.setAddDocumentButtonState(getCreateDocumentState());
 		actionsComponent.setDeleteDocumentButtonState(getDeleteButtonState());
-		actionsComponent.setAddAuthorizationButtonState(getAddAuthorizationState());
+		actionsComponent.setViewAuthorizationButtonState(getViewAuthorizationState());
 		actionsComponent.setCreatePDFAButtonState(getCreatePDFAState());
 		actionsComponent.setShareDocumentButtonState(getShareDocumentState());
 		actionsComponent.setUploadButtonState(getUploadButtonState());
@@ -795,7 +796,9 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 			Content content = getContent();
 			String borrowDate = DateFormatUtils.format(content.getCheckoutDateTime());
 			if (!isCurrentUserBorrower()) {
-				String borrowerCaption = SchemaCaptionUtils.getCaptionForRecordId(content.getCheckoutUserId());
+				String checkoutUserId = content.getCheckoutUserId();
+				User user = rmSchemasRecordsServices.getUser(checkoutUserId);
+				String borrowerCaption = user.getTitle();
 				String borrowedMessageKey = "DocumentActionsComponent.borrowedByOtherUser";
 				actionsComponent.setBorrowedMessage(borrowedMessageKey, borrowerCaption, borrowDate);
 			} else {

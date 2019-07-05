@@ -9,26 +9,18 @@ import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.model.enums.DecomListStatus;
 import com.constellio.app.modules.rm.model.enums.OriginStatus;
 import com.constellio.app.modules.rm.navigation.RMViews;
+import com.constellio.app.modules.rm.reports.builders.decommissioning.DecommissioningListExcelReportParameters;
 import com.constellio.app.modules.rm.reports.builders.decommissioning.DecommissioningListReportParameters;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.services.decommissioning.DecommissioningEmailService;
-import com.constellio.app.modules.rm.services.decommissioning.DecommissioningEmailServiceException;
-import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSecurityService;
-import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
-import com.constellio.app.modules.rm.services.decommissioning.DecommissioningServiceException;
+import com.constellio.app.modules.rm.services.decommissioning.*;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningServiceException.DecommissioningServiceException_TooMuchOptimisticLockingWhileAttemptingToDecommission;
-import com.constellio.app.modules.rm.services.decommissioning.SearchType;
 import com.constellio.app.modules.rm.ui.builders.FolderDetailToVOBuilder;
 import com.constellio.app.modules.rm.ui.builders.FolderToVOBuilder;
 import com.constellio.app.modules.rm.ui.entities.ContainerVO;
 import com.constellio.app.modules.rm.ui.entities.FolderComponent;
 import com.constellio.app.modules.rm.ui.entities.FolderDetailVO;
 import com.constellio.app.modules.rm.ui.entities.FolderVO;
-import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.DecommissioningList;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetail;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListValidation;
@@ -50,16 +42,15 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.RecordServicesWrapperRuntimeException;
 import com.constellio.model.services.records.SchemasRecordsServices;
+import com.constellio.model.services.reports.ReportServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
-import com.vaadin.data.util.BeanItemContainer;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -72,13 +63,14 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.anyConditions;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
 import static java.util.Arrays.asList;
 
 public class DecommissioningListPresenter extends SingleSchemaBasePresenter<DecommissioningListView>
 		implements NewReportPresenter {
+	private final String PDF_REPORT = "Reports.DecommissioningList";
+	private final String EXCEL_REPORT = "Reports.DecommissioningListExcelFormat";
+
 	private transient RMSchemasRecordsServices rmRecordsServices;
 	private transient DecommissioningService decommissioningService;
 	private transient DecommissioningList decommissioningList;
@@ -102,7 +94,9 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		return this;
 	}
 
-
+	public List<String> getReports() {
+		return asList(EXCEL_REPORT, PDF_REPORT);
+	}
 
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
@@ -787,22 +781,35 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 
 	@Override
 	public List<ReportWithCaptionVO> getSupportedReports() {
-		return asList(new ReportWithCaptionVO("Reports.DecommissioningList", $("Reports.DecommissioningList")));
+		List<ReportWithCaptionVO> supportedReports = new ArrayList<>();
+		ReportServices reportServices = new ReportServices(modelLayerFactory, collection);
+		List<String> userReports = reportServices.getUserReportTitles(getCurrentUser(), Folder.SCHEMA_TYPE);
+		if (userReports != null) {
+			for (String reportTitle : userReports) {
+				supportedReports.add(new ReportWithCaptionVO(reportTitle, reportTitle));
+			}
+		}
+		return supportedReports;
 	}
 
 	@Override
 	public NewReportWriterFactory getReport(String report) {
 
-		if (report.equals("Reports.DecommissioningList")) {
+		if (report.equals(PDF_REPORT)) {
 			return getRmReportBuilderFactories().decommissioningListBuilderFactory.getValue();
-		} else {//Reports.documentsCertificate //Reports.foldersCertificate
-			throw new RuntimeException("BUG: Unknown report: " + report);
+		} else {
+			return getRmReportBuilderFactories().decommissioningListExcelBuilderFactory.getValue();
 		}
 	}
 
 	@Override
 	public Object getReportParameters(String report) {
-		return new DecommissioningListReportParameters(decommissioningList.getId());
+		if (report.equals(PDF_REPORT)) {
+			return new DecommissioningListReportParameters(decommissioningList.getId());
+		} else {
+			return new DecommissioningListExcelReportParameters(decommissioningList.getId(),
+					Folder.SCHEMA_TYPE, collection, report, getCurrentUser());
+		}
 	}
 
 	public boolean isDocumentsCertificateButtonVisible() {
@@ -1047,12 +1054,12 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 	}
 
 	public List<ContainerVO> removeContainersCurrentUserCannotManage(List<ContainerVO> filteredContainers) {
-		if(filteredContainers != null) {
+		if (filteredContainers != null) {
 			Iterator<ContainerVO> iterator = filteredContainers.iterator();
 			while (iterator.hasNext()) {
 				ContainerVO currentContainer = iterator.next();
 
-				if(!hasUserPermissionToManageContainersOn(currentContainer)) {
+				if (!hasUserPermissionToManageContainersOn(currentContainer)) {
 					iterator.remove();
 				}
 			}
@@ -1064,9 +1071,9 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		boolean hasPermissionToManageContainers = getCurrentUser().has(RMPermissionsTo.MANAGE_CONTAINERS).globally();
 
 		List<String> administrativeUnitIds = currentContainer.getAdministrativeUnits();
-		if(administrativeUnitIds != null && !hasPermissionToManageContainers) {
+		if (administrativeUnitIds != null && !hasPermissionToManageContainers) {
 			List<AdministrativeUnit> administrativeUnits = rmRecordsServices.getAdministrativeUnits(administrativeUnitIds);
-			for(AdministrativeUnit unit: administrativeUnits) {
+			for (AdministrativeUnit unit : administrativeUnits) {
 				hasPermissionToManageContainers |= getCurrentUser().has(RMPermissionsTo.MANAGE_CONTAINERS).on(unit);
 			}
 		}
@@ -1075,7 +1082,7 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 
 	public List<String> getUsersWithReadPermissionOnAdministrativeUnit() {
 		Record administrativeUnit = getRecord(decommissioningList().getAdministrativeUnit());
-		if(administrativeUnit != null) {
+		if (administrativeUnit != null) {
 			return modelLayerFactory.newAuthorizationsServices().getUsersIdsWithRoleForRecord(Role.READ, administrativeUnit);
 		} else {
 			return modelLayerFactory.newAuthorizationsServices().getUsersIdsWithGlobalReadRightInCollection(collection);

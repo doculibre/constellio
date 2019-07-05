@@ -1,5 +1,22 @@
 package com.constellio.app.modules.rm.ui.pages.document;
 
+import static com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration.modalDialog;
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.io.output.ByteArrayOutputStream;
+import org.apache.commons.lang3.StringUtils;
+import org.vaadin.dialogs.ConfirmDialog;
+
 import com.constellio.app.api.extensions.params.DocumentFolderBreadCrumbParams;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
@@ -8,7 +25,6 @@ import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.decommissioning.SearchType;
 import com.constellio.app.modules.rm.ui.components.RMMetadataDisplayFactory;
 import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentContainerBreadcrumbTrail;
-import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.pages.cart.DefaultFavoritesTable;
 import com.constellio.app.modules.rm.ui.pages.decommissioning.breadcrumb.DecommissionBreadcrumbTrail;
 import com.constellio.app.modules.rm.wrappers.Cart;
@@ -77,28 +93,12 @@ import com.vaadin.ui.Upload.SucceededListener;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
-import org.apache.commons.io.output.ByteArrayOutputStream;
-import org.apache.commons.lang3.StringUtils;
-import org.vaadin.dialogs.ConfirmDialog;
-
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-import static com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration.modalDialog;
-import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocumentView, DropHandler {
 
 	private VerticalLayout mainLayout;
 	private Label borrowedLabel;
-	private DocumentVO documentVO;
+	private RecordVO documentVO;
 	private String taxonomyCode;
 	private TabSheet tabSheet;
 	private ContentViewer contentViewer;
@@ -154,7 +154,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	}
 
 	@Override
-	public void setDocumentVO(DocumentVO documentVO) {
+	public void setRecordVO(RecordVO documentVO) {
 		this.documentVO = documentVO;
 		if (recordDisplay != null) {
 			recordDisplay.setRecordVO(documentVO);
@@ -172,7 +172,8 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	}
 
 	private ContentViewer newContentViewer() {
-		ContentViewer contentViewer = new ContentViewer(documentVO, Document.CONTENT, documentVO.getContent());
+		ContentVersionVO contentVersionVO = documentVO.get(Document.CONTENT);
+		ContentViewer contentViewer = new ContentViewer(documentVO, Document.CONTENT, contentVersionVO);
 		if (popup) {
 			// FIXME CSS bug when displayed in window, hiding for now.
 			contentViewer.setVisible(false);
@@ -595,7 +596,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 				getCollection(), false, false, presenter.buildReportPresenter(), getSessionContext()) {
 			@Override
 			public void buttonClick(ClickEvent event) {
-				setRecordVoList(getDocumentVO());
+				setRecordVoList(getRecordVO());
 				super.buttonClick(event);
 			}
 		};
@@ -990,7 +991,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	}
 
 	@Override
-	public void setAddAuthorizationButtonState(ComponentState state) {
+	public void setViewAuthorizationButtonState(ComponentState state) {
 		addAuthorizationButton.setVisible(state.isVisible());
 		addAuthorizationButton.setEnabled(state.isEnabled());
 	}
@@ -1054,7 +1055,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	}
 
 	@Override
-	public DocumentVO getDocumentVO() {
+	public RecordVO getRecordVO() {
 		return documentVO;
 	}
 

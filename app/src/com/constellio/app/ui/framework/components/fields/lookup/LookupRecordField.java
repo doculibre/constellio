@@ -52,21 +52,21 @@ public class LookupRecordField extends LookupField<String> {
 	}
 
 	public LookupRecordField(String schemaTypeCode, boolean writeAccess) {
-		this(schemaTypeCode, null, writeAccess, true, true);
+		this(schemaTypeCode, null, writeAccess, true, true, false);
 	}
 
 	public LookupRecordField(String schemaTypeCode, boolean writeAccess, boolean isShowAllIfHasAccessToManageSecurity) {
-		this(schemaTypeCode, null, writeAccess, true, isShowAllIfHasAccessToManageSecurity);
+		this(schemaTypeCode, null, writeAccess, true, isShowAllIfHasAccessToManageSecurity, false);
 	}
 
 	public LookupRecordField(String schemaTypeCode, String schemaCode, boolean writeAccess) {
-		this(schemaTypeCode, schemaCode, writeAccess, true, true);
+		this(schemaTypeCode, schemaCode, writeAccess, true, true, false);
 	}
 
 
 	public LookupRecordField(String schemaTypeCode, String schemaCode, boolean writeAccess, boolean showDeactivated,
-							 boolean isShowAllIfHasAccessToManageSecurity) {
-		super(new RecordTextInputDataProvider(getInstance(), getCurrentSessionContext(), schemaTypeCode, schemaCode, writeAccess, showDeactivated),
+							 boolean isShowAllIfHasAccessToManageSecurity, boolean includeLogicallyDeleted) {
+		super(new RecordTextInputDataProvider(getInstance(), getCurrentSessionContext(), schemaTypeCode, schemaCode, writeAccess, showDeactivated, false, includeLogicallyDeleted),
 				getTreeDataProvider(schemaTypeCode, schemaCode, writeAccess, isShowAllIfHasAccessToManageSecurity));
 		this.isShowDeactivated = showDeactivated;
 		setItemConverter(new TaxonomyRecordIdToContextCaptionConverter());

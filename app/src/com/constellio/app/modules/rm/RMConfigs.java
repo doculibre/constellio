@@ -79,7 +79,8 @@ public class RMConfigs {
 			NEED_REASON_BEFORE_DELETING_FOLDERS,
 			IS_DECOMMISSIONING_TYPE_REQUIRED_IN_CONTAINERS,
 			DEPOSIT_AND_DESTRUCTION_DATES_BASED_ON_ACTUAL_TRANSFER_DATE,
-			DECOMMISSIONING_LIST_WITH_SELECTED_FOLDERS;
+			DECOMMISSIONING_LIST_WITH_SELECTED_FOLDERS,
+			NUMBER_OF_DAYS_BEFORE_PREDICTED_DECOMMISSIONING_DATE;
 
 	// Category configs
 	public static final SystemConfiguration LINKABLE_CATEGORY_MUST_NOT_BE_ROOT, LINKABLE_CATEGORY_MUST_HAVE_APPROVED_RULES;
@@ -209,6 +210,9 @@ public class RMConfigs {
 
 		add(IS_DECOMMISSIONING_TYPE_REQUIRED_IN_CONTAINERS = decommissioning.createBooleanTrueByDefault("isDecommissioningTypeRequiredInContainers")
 				.scriptedBy(RMDecommissioningTypeRequiredScript.class));
+
+		add(NUMBER_OF_DAYS_BEFORE_PREDICTED_DECOMMISSIONING_DATE = decommissioning.createInteger("numberOfDaysBeforePredictedDecommissioningDate")
+				.withDefaultValue(0));
 
 		SystemConfigurationGroup trees = new SystemConfigurationGroup(ID, "trees");
 
@@ -577,6 +581,10 @@ public class RMConfigs {
 
 	public boolean isDecommissioningListWithSelectedFolders() {
 		return manager.getValue(DECOMMISSIONING_LIST_WITH_SELECTED_FOLDERS);
+	}
+
+	public int getNumberOfDaysBeforePredictedDecommissioningDate() {
+		return manager.getValue(NUMBER_OF_DAYS_BEFORE_PREDICTED_DECOMMISSIONING_DATE);
 	}
 
 }

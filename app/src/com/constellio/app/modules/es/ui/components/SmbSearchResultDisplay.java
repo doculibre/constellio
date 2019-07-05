@@ -17,8 +17,8 @@ import com.vaadin.ui.Component;
 public class SmbSearchResultDisplay extends SearchResultDisplay {
 
 	public SmbSearchResultDisplay(SearchResultVO searchResultVO, MetadataDisplayFactory componentFactory,
-								  AppLayerFactory appLayerFactory, String query) {
-		super(searchResultVO, componentFactory, appLayerFactory, query);
+								  AppLayerFactory appLayerFactory, String query, boolean noLinks) {
+		super(searchResultVO, componentFactory, appLayerFactory, query, noLinks);
 	}
 
 	@Override

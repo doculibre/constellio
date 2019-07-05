@@ -667,6 +667,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 				protected String getConfirmDialogMessage() {
 					List<String> cartFolderIds = presenter.getCartFolderIds();
 					List<String> cartDocumentIds = presenter.getCartDocumentIds();
+					List<String> cartContainersIds = presenter.getCartContainersIds();
 
 					StringBuilder stringBuilder = new StringBuilder();
 					String prefix = "";
@@ -676,6 +677,9 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 					}
 					if (cartDocumentIds != null && !cartDocumentIds.isEmpty()) {
 						stringBuilder.append(prefix + cartDocumentIds.size() + " " + $("CartView.documents"));
+					}
+					if (cartContainersIds != null && !cartContainersIds.isEmpty()) {
+						stringBuilder.append(prefix + cartContainersIds.size() + " " + $("CartView.containers"));
 					}
 					return $("CartView.deleteConfirmationMessage", stringBuilder.toString());
 				}

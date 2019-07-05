@@ -6,6 +6,8 @@ import com.vaadin.ui.Component;
 import java.util.List;
 
 public interface SearchResultTable extends Component {
+	
+	String TABLE_STYLE = "search-result-table";
 
 	List<String> getSelectedRecordIds();
 

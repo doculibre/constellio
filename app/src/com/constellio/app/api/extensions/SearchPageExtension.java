@@ -34,7 +34,7 @@ public class SearchPageExtension {
 		return param.getCondition();
 	}
 
-	public List<Component> addComponentToSearchResult(AddComponentToSearchResultParams addComponentToSearchResultParams) {
+	public List<? extends Component> addComponentToSearchResult(AddComponentToSearchResultParams addComponentToSearchResultParams) {
 		return null;
 	}
 }

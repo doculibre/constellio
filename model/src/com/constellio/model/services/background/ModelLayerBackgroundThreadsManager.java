@@ -12,9 +12,7 @@ import org.joda.time.Duration;
 
 import static com.constellio.data.threads.BackgroundThreadConfiguration.repeatingAction;
 import static com.constellio.data.threads.BackgroundThreadExceptionHandling.CONTINUE;
-import static org.joda.time.Duration.standardHours;
-import static org.joda.time.Duration.standardMinutes;
-import static org.joda.time.Duration.standardSeconds;
+import static org.joda.time.Duration.*;
 
 public class ModelLayerBackgroundThreadsManager implements StatefulService {
 

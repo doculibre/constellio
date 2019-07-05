@@ -5,6 +5,7 @@ import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.breadcrumb.BreadcrumbTrail;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveRecordLookupField;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.frameworks.validation.ValidationException;
@@ -79,6 +80,16 @@ public class ListContentAccessAuthorizationsViewImpl extends ListAuthorizationsV
 			groups = new ListAddRemoveRecordLookupField(Group.SCHEMA_TYPE);
 			groups.setCaption($("AuthorizationsView.groups"));
 			groups.setId("groups");
+		}
+
+		@Override
+		public boolean isVisible() {
+			return super.isVisible() && !isViewReadOnly();
+		}
+
+		@Override
+		public boolean isEnabled() {
+			return super.isVisible() && !isViewReadOnly();
 		}
 	}
 
