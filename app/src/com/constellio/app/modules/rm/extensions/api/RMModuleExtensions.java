@@ -53,7 +53,7 @@ public class RMModuleExtensions implements ModuleExtensions {
 		this.documentExtensions = new VaultBehaviorsList<>();
 		this.folderExtensions = new VaultBehaviorsList<>();
 		this.containerRecordExtensions = new VaultBehaviorsList<>();
-		advancedSearchPresenterExtensions = new VaultBehaviorsList<>();
+		this.advancedSearchPresenterExtensions = new VaultBehaviorsList<>();
 		this.documentBreadcrumExtentions = new VaultBehaviorsList<>();
 		this.navigateToFromAPageExtensions = new VaultBehaviorsList<>();
 		this.taskPreCompletionExetention = new VaultBehaviorsList<>();

@@ -33,10 +33,16 @@ public class RecordVOActionButtonFactory {
 	private MenuItemFactory menuItemFactory;
 	private UserServices userServices;
 	private Object objectRecordVO = null;
+	private BaseView view;
 
 	public RecordVOActionButtonFactory(RecordVO recordVO) {
+		this(recordVO, null);
+	}
+
+	public RecordVOActionButtonFactory(RecordVO recordVO, BaseView view) {
 		super();
 		this.recordVO = recordVO;
+		this.view = view;
 		initialize();
 	}
 
@@ -66,7 +72,11 @@ public class RecordVOActionButtonFactory {
 				new MenuItemActionBehaviorParams() {
 					@Override
 					public BaseView getView() {
-						return (BaseView) ConstellioUI.getCurrent().getCurrentView();
+						if (view == null) {
+							return (BaseView) ConstellioUI.getCurrent().getCurrentView();
+						} else {
+							return view;
+						}
 					}
 
 					@Override

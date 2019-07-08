@@ -15,6 +15,7 @@ import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
@@ -35,15 +36,21 @@ public class MenuItemServices {
 
 	private UserCredentialMenuItemServices userCredentialMenuItemServices;
 	private GlobalGroupMenuItemServices globalGroupMenuItemServices;
+	private SchemaRecordMenuItemServices schemaRecordMenuItemServices;
+
+	private SchemasRecordsServices schemasRecordsServices;
 
 	public MenuItemServices(String collection, AppLayerFactory appLayerFactory) {
-		searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
+		this.searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
 
-		menuItemActionsExtensions = appLayerFactory.getExtensions()
+		this.menuItemActionsExtensions = appLayerFactory.getExtensions()
 				.forCollection(collection).menuItemActionsExtensions.getExtensions();
+
+		this.schemasRecordsServices = new SchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory());
 
 		this.userCredentialMenuItemServices = new UserCredentialMenuItemServices(appLayerFactory);
 		this.globalGroupMenuItemServices = new GlobalGroupMenuItemServices(appLayerFactory);
+		this.schemaRecordMenuItemServices = new SchemaRecordMenuItemServices(collection, appLayerFactory);
 	}
 
 	public List<MenuItemAction> getActionsForRecord(Record record, MenuItemActionBehaviorParams params) {
@@ -62,13 +69,19 @@ public class MenuItemServices {
 			if (objectRecordVO instanceof UserCredentialVO) {
 				menuItemActions.addAll(userCredentialMenuItemServices.getActionsForRecord(userCredentialMenuItemServices
 								.getUserCredential((UserCredentialVO) objectRecordVO), params.getUser(),
-						new ArrayList<>(), params));
+						filteredActionTypes, params));
 			} else if (objectRecordVO instanceof GlobalGroupVO) {
 				menuItemActions.addAll(globalGroupMenuItemServices.getActionsForRecord(globalGroupMenuItemServices
 								.getGlobalGroup((GlobalGroupVO) objectRecordVO), params.getUser(),
-						new ArrayList<>(), params));
+						filteredActionTypes, params));
 			}
 		}
+
+		if (record.getSchemaCode().startsWith("ddv")) {
+			menuItemActions.addAll(schemaRecordMenuItemServices.getActionsForRecord(record, params.getUser(), filteredActionTypes, params));
+		}
+
+
 		if (record != null) {
 			addMenuItemActionsFromExtensions(record, filteredActionTypes, params, menuItemActions);
 		}
@@ -143,15 +156,21 @@ public class MenuItemServices {
 
 	public MenuItemActionState getStateForAction(String actionType, Record record,
 												 MenuItemActionBehaviorParams params) {
+
 		if (record.isOfSchemaType(User.SCHEMA_TYPE)) {
-			// TODO
+			MenuItemActionState.visibleOrHidden(userCredentialMenuItemServices.isMenuItemActionPossible(actionType,
+					schemasRecordsServices.wrapUserCredential(record), params.getUser(), params));
 		} else if (record.isOfSchemaType(Group.SCHEMA_TYPE)) {
-			// TODO
+			MenuItemActionState.visibleOrHidden(globalGroupMenuItemServices.isMenuItemActionPossible(actionType,
+					schemasRecordsServices.wrapGlobalGroup(record), params.getUser(), params));
+		} else if (record.getSchemaCode().startsWith("ddv")) {
+			MenuItemActionState.visibleOrHidden(schemaRecordMenuItemServices.isMenuItemActionPossible(actionType,
+					record, params.getUser(), params));
 		} else {
 			// TODO
 		}
 
-		return geStateForActionFromExtensions(actionType, record, params);
+		return getStateForActionFromExtensions(actionType, record, params);
 	}
 
 	public MenuItemActionState getStateForAction(String actionType, List<Record> records,
@@ -162,7 +181,7 @@ public class MenuItemServices {
 			return state;
 		}
 
-		return geStateForActionFromExtensions(actionType, records, params);
+		return getStateForActionFromExtensions(actionType, records, params);
 	}
 
 	public MenuItemActionState getStateForAction(String actionType, LogicalSearchQuery query,
@@ -179,7 +198,7 @@ public class MenuItemServices {
 			return state;
 		}
 
-		return geStateForActionFromExtensions(actionType, query, params);
+		return getStateForActionFromExtensions(actionType, query, params);
 	}
 
 	private void addMenuItemActionsFromExtensions(Record record, List<String> filteredActionTypes,
@@ -212,8 +231,8 @@ public class MenuItemServices {
 		}
 	}
 
-	private MenuItemActionState geStateForActionFromExtensions(String actionType, Record record,
-															   MenuItemActionBehaviorParams behaviorParams) {
+	private MenuItemActionState getStateForActionFromExtensions(String actionType, Record record,
+																MenuItemActionBehaviorParams behaviorParams) {
 		MenuItemActionState state;
 		for (MenuItemActionsExtension menuItemActionsExtension : menuItemActionsExtensions) {
 			state = menuItemActionsExtension.getActionStateForRecord(
@@ -225,8 +244,8 @@ public class MenuItemServices {
 		return new MenuItemActionState(HIDDEN);
 	}
 
-	private MenuItemActionState geStateForActionFromExtensions(String actionType, List<Record> records,
-															   MenuItemActionBehaviorParams behaviorParams) {
+	private MenuItemActionState getStateForActionFromExtensions(String actionType, List<Record> records,
+																MenuItemActionBehaviorParams behaviorParams) {
 		MenuItemActionState state;
 		for (MenuItemActionsExtension menuItemActionsExtension : menuItemActionsExtensions) {
 			state = menuItemActionsExtension.getActionStateForRecords(
@@ -238,8 +257,8 @@ public class MenuItemServices {
 		return new MenuItemActionState(HIDDEN);
 	}
 
-	private MenuItemActionState geStateForActionFromExtensions(String actionType, LogicalSearchQuery query,
-															   MenuItemActionBehaviorParams behaviorParams) {
+	private MenuItemActionState getStateForActionFromExtensions(String actionType, LogicalSearchQuery query,
+																MenuItemActionBehaviorParams behaviorParams) {
 		MenuItemActionState state;
 		for (MenuItemActionsExtension menuItemActionsExtension : menuItemActionsExtensions) {
 			state = menuItemActionsExtension.getActionStateForQuery(

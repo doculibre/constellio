@@ -5,7 +5,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.UserCredential;
 
-public class UserCredentialGroupExtension {
+public class UserCredentialExtension {
 	public ExtensionBooleanResult isEditActionPossible(
 			UserCredentialExtensionActionPossibleParams params) {
 		return ExtensionBooleanResult.NOT_APPLICABLE;

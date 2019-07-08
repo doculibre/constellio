@@ -10,8 +10,8 @@ import com.constellio.app.api.extensions.params.EmailMessageParams;
 import com.constellio.app.api.extensions.params.PagesComponentsExtensionParams;
 import com.constellio.app.extensions.api.GlobalGroupExtension;
 import com.constellio.app.extensions.api.GlobalGroupExtension.GlobalGroupExtensionActionPossibleParams;
-import com.constellio.app.extensions.api.UserCredentialGroupExtension;
-import com.constellio.app.extensions.api.UserCredentialGroupExtension.UserCredentialExtensionActionPossibleParams;
+import com.constellio.app.extensions.api.UserCredentialExtension;
+import com.constellio.app.extensions.api.UserCredentialExtension.UserCredentialExtensionActionPossibleParams;
 import com.constellio.app.extensions.sequence.AvailableSequence;
 import com.constellio.app.extensions.sequence.AvailableSequenceForSystemParams;
 import com.constellio.app.extensions.sequence.SystemSequenceExtension;
@@ -36,7 +36,9 @@ public class AppLayerSystemExtensions {
 
 	public VaultBehaviorsList<GlobalGroupExtension> globalGroupExtensions = new VaultBehaviorsList<>();
 
-	public VaultBehaviorsList<UserCredentialGroupExtension> userCredentialGroupExtensions = new VaultBehaviorsList<>();
+	public VaultBehaviorsList<UserCredentialExtension> userCredentialGroupExtensions = new VaultBehaviorsList<>();
+
+
 
 	public List<AvailableSequence> getAvailableSequences() {
 

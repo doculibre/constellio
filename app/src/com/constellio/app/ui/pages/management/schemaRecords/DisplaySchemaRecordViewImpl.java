@@ -10,6 +10,7 @@ import com.constellio.app.ui.framework.components.RecordDisplay;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.breadcrumb.IntermediateBreadCrumbTailItem;
 import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
+import com.constellio.app.ui.framework.components.buttons.RecordVOActionButtonFactory;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
@@ -202,7 +203,10 @@ public class DisplaySchemaRecordViewImpl extends BaseViewImpl implements Display
 		if (presenter.isSequenceTable()) {
 			actionMenuButtons.add(new ListSequencesButton(recordVO.getId(), $("DisplaySchemaRecordView.sequences")));
 		}
-		return actionMenuButtons;
+
+
+		//		return actionMenuButtons;
+		return new RecordVOActionButtonFactory(recordVO, this).build();
 	}
 
 	@Override
