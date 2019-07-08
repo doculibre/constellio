@@ -28,6 +28,8 @@ import com.constellio.model.conf.PropertiesModelLayerConfiguration.InMemoryModel
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.cache.RecordsCaches;
+import com.constellio.model.services.records.cache.eventBus.EventsBusRecordsCachesImpl;
 import com.constellio.sdk.FakeEncryptionServices;
 import org.apache.commons.io.FileUtils;
 import org.apache.curator.RetryPolicy;
@@ -86,6 +88,12 @@ public class FactoriesTestFeatures {
 	public List<Runnable> afterTest() {
 
 		List<Runnable> runtimes = new ArrayList<>();
+
+		RecordsCaches recordsCaches = ConstellioFactories.getInstance().getModelLayerFactory().getRecordsCaches();
+
+		if (recordsCaches instanceof EventsBusRecordsCachesImpl) {
+			((EventsBusRecordsCachesImpl) recordsCaches).close();
+		}
 
 		if (ConstellioFactories.instanceProvider.isInitialized()) {
 			runtimes.addAll(clear());
