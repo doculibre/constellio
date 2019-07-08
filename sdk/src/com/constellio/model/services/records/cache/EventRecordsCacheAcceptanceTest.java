@@ -984,7 +984,7 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 
 		private void areIn(RecordsCaches recordsCaches) {
 			for (String id : ids) {
-				boolean isCached = recordsCaches.isCached(id);
+				boolean isCached = recordsCaches.getRecord(id) != null;
 				assertThat(isCached).describedAs("Record with id '" + id + "' is expected to be in cache").isTrue();
 			}
 		}
@@ -1015,7 +1015,7 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 
 		private void areNotIn(RecordsCaches recordsCaches) {
 			for (String id : ids) {
-				boolean isCached = recordsCaches.isCached(id);
+				boolean isCached = recordsCaches.getRecord(id) != null;
 				assertThat(isCached).describedAs("Record with id '" + id + "' is expected to not be in cache").isFalse();
 			}
 		}

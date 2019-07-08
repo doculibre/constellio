@@ -26,7 +26,12 @@ public class RecordEventDataSerializerExtension implements EventDataSerializerEx
 	@Override
 	public String serialize(Object data) {
 		Record record = (Record) data;
-		return (record.isSummary() ? "&" : "") + record.getId();
+
+		if (record.isSummary()) {
+			return "&" + record.getId();
+		} else {
+			return record.getId();
+		}
 	}
 
 	@Override

@@ -1026,7 +1026,7 @@ public class RecordImpl implements Record {
 
 	@Override
 	public boolean isActive() {
-		return Boolean.TRUE != get(Schemas.LOGICALLY_DELETED_STATUS);
+		return Boolean.TRUE.equals(get(Schemas.LOGICALLY_DELETED_STATUS));
 	}
 
 	@Override

@@ -859,6 +859,9 @@ public class RecordDeleteServices {
 			throw new RuntimeException(optimisticLocking);
 		}
 
+		recordServices.getRecordsCaches().getCache(type.getCollection())
+				.invalidateVolatileReloadPermanent(asList((type.getCode())));
+
 	}
 
 	public boolean isLogicallyDeletableAndIsSkipValidation(Record record, User user,
