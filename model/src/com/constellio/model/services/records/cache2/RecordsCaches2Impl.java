@@ -84,8 +84,11 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 		volatileCache = memoryDiskDatabase.hashMap("volatileCache")
 				.keySerializer(Serializer.STRING)
 				.valueSerializer(Serializer.JAVA)
-				.expireMaxSize(50000)
-				.expireStoreSize(100 * 1024 * 1024)
+				//.expireMaxSize(50000)
+				.expireExecutorPeriod(1)
+				.expireMaxSize(4)
+				.expireAfterGet()
+				//.expireStoreSize(modelLayerFactory.getConfiguration().getRecordsVolatileCacheMemorySize())
 				.create();
 
 	}
@@ -179,15 +182,9 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 			return CacheInsertionStatus.REFUSED_NULL;
 		}
 
-		RecordDTOMode recordDTOMode = ((RecordImpl) record).getRecordDTO().getLoadingMode();
-		if (((RecordImpl) record).getRecordDTO().getLoadingMode() == CUSTOM) {
-			if (insertionReason == LOADING_CACHE) {
-				recordDTOMode = SUMMARY;
-			} else {
-				throw new IllegalStateException("Cannot create summary record from a customly loaded Record");
-			}
+		if (((RecordImpl) record).getRecordDTO().getLoadingMode() == CUSTOM && insertionReason != LOADING_CACHE) {
+			throw new IllegalStateException("Cannot create summary record from a customly loaded Record");
 		}
-
 
 		//TODO Remove coupling!
 		if (!"savedSearch".equals(record.getTypeCode())) {
@@ -235,7 +232,8 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 
 
 		} else if (schemaType.getCacheType().isSummaryCache()) {
-			RecordDTO dto = toPersistedSummaryRecordDTO(record);
+			MetadataSchema schema = metadataSchemasManager.getSchemaOf(record);
+			RecordDTO dto = toPersistedSummaryRecordDTO(record, schema);
 
 			//			if (record.isSummary()) {
 			//				dto = ((RecordImpl) record).getRecordDTO();
@@ -252,11 +250,9 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 		}
 	}
 
-	private RecordDTO toPersistedSummaryRecordDTO(Record record) {
+	public static RecordDTO toPersistedSummaryRecordDTO(Record record, MetadataSchema schema) {
 
 		RecordDTO dto = ((RecordImpl) record).getRecordDTO();
-
-		MetadataSchema schema = metadataSchemasManager.getSchemaOf(record);
 
 		Map<String, Object> fields = new HashMap<>();
 
@@ -330,7 +326,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 	public void removeRecordsOfCollection(String collection, boolean onlyLocally) {
 		volatileCache.clear();
 		byte collectionId = modelLayerFactory.getCollectionsListManager().getCollectionInfo(collection).getCollectionId();
-		memoryDataStore.stream(collectionId).filter((record) -> Boolean.TRUE).forEach(this::remove);
+		memoryDataStore.invalidateAll(collectionId);
 	}
 
 	@Override
@@ -343,6 +339,11 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 	public Stream<Record> stream(String collection) {
 		CollectionInfo collectionInfo = this.metadataSchemasManager.getSchemaTypes(collection).getCollectionInfo();
 		return memoryDataStore.stream(collectionInfo.getCollectionId()).map(this::toRecord);
+	}
+
+	@Override
+	public Stream<Record> stream() {
+		return memoryDataStore.stream().map(this::toRecord);
 	}
 
 	@Override
@@ -517,7 +518,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 		}
 	}
 
-	protected Stream<Record> streamVolatile(MetadataSchemaType schemaType) {
+	public Stream<Record> streamVolatile(MetadataSchemaType schemaType) {
 		return StreamSupport.stream(volatileCache.getEntries().spliterator(), false)
 				.filter((e -> e.getValue().getCollection().equals(schemaType.getCollection()) &&
 							  e.getValue().getSchemaCode().startsWith(schemaType.getCode() + "_")))

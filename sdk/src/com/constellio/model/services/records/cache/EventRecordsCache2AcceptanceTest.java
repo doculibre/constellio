@@ -1,36 +1,53 @@
 package com.constellio.model.services.records.cache;
 
 import com.constellio.data.extensions.DataLayerSystemExtensions;
+import com.constellio.data.test.RandomWordsIterator;
+import com.constellio.model.conf.PropertiesModelLayerConfiguration.InMemoryModelLayerConfiguration;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.RecordCacheType;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.RecordDeleteServices;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesImpl;
+import com.constellio.model.services.records.cache2.RecordsCaches2Impl;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.ModelLayerConfigurationAlteration;
 import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.AnotherSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ThirdSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
 import com.constellio.sdk.tests.setups.SchemaShortcuts;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
+import java.io.File;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
+import static com.constellio.data.test.RandomWordsIterator.createFor;
+import static com.constellio.data.utils.Octets.megaoctets;
 import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromEveryTypesOfEveryCollection;
+import static com.constellio.sdk.tests.TestUtils.assertThatStream;
 import static com.constellio.sdk.tests.TestUtils.linkEventBus;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsUnique;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
+@RunWith(Parameterized.class)
 public class EventRecordsCache2AcceptanceTest extends ConstellioTest {
 
 	Transaction transaction;
@@ -60,9 +77,29 @@ public class EventRecordsCache2AcceptanceTest extends ConstellioTest {
 	StatsBigVaultServerExtension queriesListener;
 	StatsBigVaultServerExtension otherSystemQueriesListener;
 
+
+	boolean useZeroPaddedIds;
+
+	public EventRecordsCache2AcceptanceTest(String testCase) {
+		this.useZeroPaddedIds = testCase.equals("zero-padded-ids");
+	}
+
+	@Parameterized.Parameters(name = "{0}")
+	public static Collection<Object[]> testCases() {
+		return Arrays.asList(new Object[][]{{"zero-padded-ids"}, {"string-ids"}});
+	}
+
+
 	@Before
 	public void setUp()
 			throws Exception {
+
+		configure(new ModelLayerConfigurationAlteration() {
+			@Override
+			public void alter(InMemoryModelLayerConfiguration configuration) {
+				configuration.setRecordsVolatileCacheMemorySize("10M");
+			}
+		});
 
 		givenCollection("zeCollection").withAllTestUsers();
 		givenCollection("anotherCollection").withAllTestUsers();
@@ -72,7 +109,7 @@ public class EventRecordsCache2AcceptanceTest extends ConstellioTest {
 
 		defineSchemasManager()
 				.using(zeCollectionSchemas.withAStringMetadata(whichIsUnique).withAnotherStringMetadata()
-						.withAStringMetadataInAnotherSchema(whichIsUnique));
+						.withAStringMetadataInAnotherSchema(whichIsUnique).withALargeTextMetadata());
 		defineSchemasManager().using(anotherCollectionSchemas.withAStringMetadataInAnotherSchema(whichIsUnique));
 
 		ModelLayerFactory otherModelLayerFactory = getModelLayerFactory("other");
@@ -157,36 +194,400 @@ public class EventRecordsCache2AcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenInsertingRecordsThenInsertedInLocalVolatileCacheAndInAllPermanentCache() throws Exception {
 
-		assertThat(recordsCaches.getRecord("p1")).isNull();
-		assertThat(recordsCaches.getRecord("p2")).isNull();
-		assertThat(recordsCaches.getRecord("v1")).isNull();
+		assertThat(recordsCaches.getRecord(idOf(101))).isNull();
+		assertThat(recordsCaches.getRecord(idOf(102))).isNull();
+		assertThat(recordsCaches.getRecord(idOf(1))).isNull();
 
-		assertThat(otherInstanceRecordsCaches.getRecord("p1")).isNull();
-		assertThat(otherInstanceRecordsCaches.getRecord("p2")).isNull();
-		assertThat(otherInstanceRecordsCaches.getRecord("v1")).isNull();
+		assertThat(otherInstanceRecordsCaches.getRecord(idOf(101))).isNull();
+		assertThat(otherInstanceRecordsCaches.getRecord(idOf(102))).isNull();
+		assertThat(otherInstanceRecordsCaches.getRecord(idOf(1))).isNull();
 
-		tx.add(permanentRecord1 = newRecordOf("p1", zeCollectionSchemaWithPermanentCache).withTitle("b")
+		tx.add(permanentRecord1 = newRecordOf(idOf(101), zeCollectionSchemaWithPermanentCache).withTitle("b")
 				.set(zeCollectionSchemaWithPermanentCache.stringMetadata(), "p1Code"));
 
-		tx.add(permanentRecord2 = newRecordOf("p2", zeCollectionSchemaWithSummaryPermanentCache).withTitle("b"));
+		tx.add(permanentRecord2 = newRecordOf(idOf(102), zeCollectionSchemaWithSummaryPermanentCache).withTitle("c"));
 
-		tx.add(volatileRecord1 = newRecordOf("v1", zeCollectionSchemaWithVolatileCache).withTitle("c")
+		tx.add(volatileRecord1 = newRecordOf(idOf(1), zeCollectionSchemaWithVolatileCache).withTitle("d")
 				.set(zeCollectionSchemaWithVolatileCache.stringMetadata(), "code18"));
 
 		recordServices.execute(tx);
 
-		assertThat(recordsCaches.getRecord("p1").isSummary()).isFalse();
-		assertThat(recordsCaches.getRecord("p2")).isNull();
-		assertThat(recordsCaches.getRecordSummary("p2").isSummary()).isTrue();
-		assertThat(recordsCaches.getRecord("v1").isSummary()).isFalse();
-		assertThat(recordsCaches.getRecordSummary("v1").isSummary()).isTrue();
+		assertThat(recordsCaches.getRecord(idOf(101)).isSummary()).isFalse();
+		assertThat(recordsCaches.getRecord(idOf(102))).isNull();
+		assertThat(recordsCaches.getRecordSummary(idOf(102)).isSummary()).isTrue();
+		assertThat(recordsCaches.getRecord(idOf(1)).isSummary()).isFalse();
+		assertThat(recordsCaches.getRecordSummary(idOf(1)).isSummary()).isTrue();
 
 
-		assertThat(otherInstanceRecordsCaches.getRecord("p1").isSummary()).isFalse();
-		assertThat(otherInstanceRecordsCaches.getRecord("p2")).isNull();
-		assertThat(otherInstanceRecordsCaches.getRecordSummary("p2").isSummary()).isTrue();
-		assertThat(otherInstanceRecordsCaches.getRecord("v1")).isNull();
-		assertThat(otherInstanceRecordsCaches.getRecordSummary("v1").isSummary()).isTrue();
+		assertThat(otherInstanceRecordsCaches.getRecord(idOf(101)).isSummary()).isFalse();
+		assertThat(otherInstanceRecordsCaches.getRecord(idOf(102))).isNull();
+		assertThat(otherInstanceRecordsCaches.getRecordSummary(idOf(102)).isSummary()).isTrue();
+		assertThat(otherInstanceRecordsCaches.getRecord(idOf(1))).isNull();
+		assertThat(otherInstanceRecordsCaches.getRecordSummary(idOf(1)).isSummary()).isTrue();
+
+		otherInstanceRecordServices.getDocumentById(idOf(1));
+		assertThat(otherInstanceRecordsCaches.getRecord(idOf(1))).isNotNull();
+
+		//Update with new values
+		tx = new Transaction();
+		tx.add(permanentRecord1.withTitle("e")
+				.set(zeCollectionSchemaWithPermanentCache.stringMetadata(), "p1Code"));
+
+		tx.add(permanentRecord2.withTitle("f"));
+
+		tx.add(volatileRecord1.withTitle("g")
+				.set(zeCollectionSchemaWithVolatileCache.stringMetadata(), "code18"));
+
+		recordServices.execute(tx);
+
+		assertThat(recordsCaches.getRecord(idOf(101)).isSummary()).isFalse();
+		assertThat(recordsCaches.getRecord(idOf(101)).getTitle()).isEqualTo("e");
+		assertThat(recordsCaches.getRecord(idOf(102))).isNull();
+		assertThat(recordsCaches.getRecordSummary(idOf(102)).isSummary()).isTrue();
+		assertThat(recordsCaches.getRecordSummary(idOf(102)).getTitle()).isEqualTo("f");
+		assertThat(recordsCaches.getRecord(idOf(1)).isSummary()).isFalse();
+		assertThat(recordsCaches.getRecord(idOf(1)).getTitle()).isEqualTo("g");
+		assertThat(recordsCaches.getRecordSummary(idOf(1)).isSummary()).isTrue();
+		assertThat(recordsCaches.getRecordSummary(idOf(1)).getTitle()).isEqualTo("g");
+
+
+		assertThat(otherInstanceRecordsCaches.getRecord(idOf(101)).isSummary()).isFalse();
+		assertThat(otherInstanceRecordsCaches.getRecord(idOf(101)).getTitle()).isEqualTo("e");
+		assertThat(otherInstanceRecordsCaches.getRecord(idOf(102))).isNull();
+		assertThat(otherInstanceRecordsCaches.getRecordSummary(idOf(102)).isSummary()).isTrue();
+		assertThat(otherInstanceRecordsCaches.getRecordSummary(idOf(102)).getTitle()).isEqualTo("f");
+		assertThat(otherInstanceRecordsCaches.getRecord(idOf(1))).isNull();
+		assertThat(otherInstanceRecordsCaches.getRecordSummary(idOf(1)).isSummary()).isTrue();
+		assertThat(otherInstanceRecordsCaches.getRecordSummary(idOf(1)).getTitle()).isEqualTo("g");
+
+	}
+
+
+	@Test
+	public void whenRetrievingRecordsFromSolrThenInsertedInLocalVolatileCacheAndNotInRemoteOnes() throws Exception {
+
+		recordServices.add(volatileRecord1 = newRecordOf(idOf(1), zeCollectionSchemaWithVolatileCache));
+		assertThatStream(((RecordsCaches2Impl) recordsCaches).streamVolatile(zeCollectionSchemaWithVolatileCache.type())
+				.map(Record::getId)).containsOnly(idOf(1));
+
+		recordServices.add(volatileRecord2 = newRecordOf(idOf(2), zeCollectionSchemaWithVolatileCache));
+		assertThatStream(((RecordsCaches2Impl) recordsCaches).streamVolatile(zeCollectionSchemaWithVolatileCache.type())
+				.map(Record::getId)).containsOnly(idOf(1), idOf(2));
+
+		recordServices.add(volatileRecord3 = newRecordOf(idOf(3), zeCollectionSchemaWithVolatileCache));
+		assertThatStream(((RecordsCaches2Impl) recordsCaches).streamVolatile(zeCollectionSchemaWithVolatileCache.type())
+				.map(Record::getId)).containsOnly(idOf(1), idOf(2), idOf(3));
+
+		recordServices.add(volatileRecord4 = newRecordOf(idOf(4), zeCollectionSchemaWithVolatileCache));
+		assertThatStream(((RecordsCaches2Impl) recordsCaches).streamVolatile(zeCollectionSchemaWithVolatileCache.type())
+				.map(Record::getId)).containsOnly(idOf(1), idOf(2), idOf(3), idOf(4));
+
+		assertThatStream(((RecordsCaches2Impl) otherInstanceRecordsCaches).streamVolatile(zeCollectionSchemaWithVolatileCache.type())
+				.map(Record::getId)).isEmpty();
+
+		otherInstanceRecordServices.getDocumentById(idOf(1));
+		otherInstanceRecordServices.getDocumentById(idOf(4));
+
+		assertThatStream(((RecordsCaches2Impl) recordsCaches).streamVolatile(zeCollectionSchemaWithVolatileCache.type())
+				.map(Record::getId)).containsOnly(idOf(1), idOf(2), idOf(3), idOf(4));
+
+		assertThatStream(((RecordsCaches2Impl) otherInstanceRecordsCaches).streamVolatile(zeCollectionSchemaWithVolatileCache.type())
+				.map(Record::getId)).containsOnly(idOf(1), idOf(4));
+
+	}
+
+
+	@Test
+	public void whenDeletingRecordsFromThenRemovedFromAllVolatileAndPermanentCaches() throws Exception {
+
+
+		recordServices.add(volatileRecord1 = newRecordOf(idOf(1), zeCollectionSchemaWithVolatileCache));
+		assertThatStream(((RecordsCaches2Impl) recordsCaches).streamVolatile(zeCollectionSchemaWithVolatileCache.type())
+				.map(Record::getId)).containsOnly(idOf(1));
+
+		recordServices.add(volatileRecord2 = newRecordOf(idOf(2), zeCollectionSchemaWithVolatileCache));
+		assertThatStream(((RecordsCaches2Impl) recordsCaches).streamVolatile(zeCollectionSchemaWithVolatileCache.type())
+				.map(Record::getId)).containsOnly(idOf(1), idOf(2));
+
+		recordServices.add(volatileRecord3 = newRecordOf(idOf(3), zeCollectionSchemaWithVolatileCache));
+		assertThatStream(((RecordsCaches2Impl) recordsCaches).streamVolatile(zeCollectionSchemaWithVolatileCache.type())
+				.map(Record::getId)).containsOnly(idOf(1), idOf(2), idOf(3));
+
+		otherInstanceRecordServices.getDocumentById(idOf(1));
+		otherInstanceRecordServices.getDocumentById(idOf(2));
+
+		assertThatStream(((RecordsCaches2Impl) recordsCaches).streamVolatile(zeCollectionSchemaWithVolatileCache.type())
+				.map(Record::getId)).containsOnly(idOf(1), idOf(2), idOf(3));
+		assertThatStream(((RecordsCaches2Impl) otherInstanceRecordsCaches).streamVolatile(zeCollectionSchemaWithVolatileCache.type())
+				.map(Record::getId)).containsOnly(idOf(1), idOf(2));
+		assertThatStream(recordsCaches.stream(zeCollectionSchemaWithVolatileCache.type())
+				.map(Record::getId)).containsOnly(idOf(1), idOf(2), idOf(3));
+		assertThatStream(otherInstanceRecordsCaches.stream(zeCollectionSchemaWithVolatileCache.type())
+				.map(Record::getId)).containsOnly(idOf(1), idOf(2), idOf(3));
+
+		//Deleting the record, it is updated on the instance volatile cache, removed remotely
+		recordServices.logicallyDelete(volatileRecord2, User.GOD);
+
+		long newVersion = volatileRecord2.getVersion();
+
+		assertThatStream(((RecordsCaches2Impl) recordsCaches).streamVolatile(zeCollectionSchemaWithVolatileCache.type())
+				.map(Record::getId)).containsOnly(idOf(1), idOf(2), idOf(3));
+
+		assertThatStream(((RecordsCaches2Impl) otherInstanceRecordsCaches).streamVolatile(zeCollectionSchemaWithVolatileCache.type())
+				.map(Record::getId)).containsOnly(idOf(1));
+
+
+		assertThatStream(recordsCaches.stream(zeCollectionSchemaWithVolatileCache.type())
+				.map(Record::getId)).containsOnly(idOf(1), idOf(2), idOf(3));
+
+		assertThatStream(otherInstanceRecordsCaches.stream(zeCollectionSchemaWithVolatileCache.type())
+				.map(Record::getId)).containsOnly(idOf(1), idOf(2), idOf(3));
+
+		assertThat(recordsCaches.getRecord(idOf(2)).getVersion()).isEqualTo(newVersion);
+		assertThat(recordsCaches.getRecordSummary(idOf(2)).getVersion()).isEqualTo(newVersion);
+		assertThat(otherInstanceRecordsCaches.getRecordSummary(idOf(2)).getVersion()).isEqualTo(newVersion);
+
+		assertThat(recordsCaches.getRecord(idOf(2)).isActive()).isFalse();
+		assertThat(recordsCaches.getRecordSummary(idOf(2)).isActive()).isFalse();
+		assertThat(otherInstanceRecordsCaches.getRecordSummary(idOf(2)).isActive()).isFalse();
+
+		//Reinserting it in remote volatile cache
+		otherInstanceRecordServices.getDocumentById(idOf(2));
+		assertThatStream(((RecordsCaches2Impl) otherInstanceRecordsCaches).streamVolatile(zeCollectionSchemaWithVolatileCache.type())
+				.map(Record::getId)).containsOnly(idOf(1), idOf(2));
+
+		//Physically deleting the record, removed everywhere
+		recordServices.physicallyDelete(volatileRecord2, User.GOD);
+
+		assertThatStream(((RecordsCaches2Impl) recordsCaches).streamVolatile(zeCollectionSchemaWithVolatileCache.type())
+				.map(Record::getId)).containsOnly(idOf(1), idOf(3));
+
+		assertThatStream(((RecordsCaches2Impl) otherInstanceRecordsCaches).streamVolatile(zeCollectionSchemaWithVolatileCache.type())
+				.map(Record::getId)).containsOnly(idOf(1));
+
+
+		assertThatStream(recordsCaches.stream(zeCollectionSchemaWithVolatileCache.type())
+				.map(Record::getId)).containsOnly(idOf(1), idOf(3));
+
+		assertThatStream(otherInstanceRecordsCaches.stream(zeCollectionSchemaWithVolatileCache.type())
+				.map(Record::getId)).containsOnly(idOf(1), idOf(3));
+
+	}
+
+	@Test
+	public void whenUpdatingRecordWithPermanentAndVolatileCacheThenInvalidatedFromRemoteVolatileUpdatedInRemotePermanent()
+			throws Exception {
+
+
+		recordServices.add(volatileRecord1 = newRecordOf(idOf(1), zeCollectionSchemaWithVolatileCache));
+		assertThatStream(((RecordsCaches2Impl) recordsCaches).streamVolatile(zeCollectionSchemaWithVolatileCache.type())
+				.map(Record::getId)).containsOnly(idOf(1));
+
+		recordServices.add(volatileRecord2 = newRecordOf(idOf(2), zeCollectionSchemaWithVolatileCache));
+		assertThatStream(((RecordsCaches2Impl) recordsCaches).streamVolatile(zeCollectionSchemaWithVolatileCache.type())
+				.map(Record::getId)).containsOnly(idOf(1), idOf(2));
+
+		recordServices.add(volatileRecord3 = newRecordOf(idOf(3), zeCollectionSchemaWithVolatileCache));
+		assertThatStream(((RecordsCaches2Impl) recordsCaches).streamVolatile(zeCollectionSchemaWithVolatileCache.type())
+				.map(Record::getId)).containsOnly(idOf(1), idOf(2), idOf(3));
+
+		otherInstanceRecordServices.getDocumentById(idOf(1));
+		otherInstanceRecordServices.getDocumentById(idOf(2));
+
+		assertThatStream(((RecordsCaches2Impl) recordsCaches).streamVolatile(zeCollectionSchemaWithVolatileCache.type())
+				.map(Record::getId)).containsOnly(idOf(1), idOf(2), idOf(3));
+		assertThatStream(((RecordsCaches2Impl) otherInstanceRecordsCaches).streamVolatile(zeCollectionSchemaWithVolatileCache.type())
+				.map(Record::getId)).containsOnly(idOf(1), idOf(2));
+		assertThatStream(recordsCaches.stream(zeCollectionSchemaWithVolatileCache.type())
+				.map(Record::getId)).containsOnly(idOf(1), idOf(2), idOf(3));
+		assertThatStream(otherInstanceRecordsCaches.stream(zeCollectionSchemaWithVolatileCache.type())
+				.map(Record::getId)).containsOnly(idOf(1), idOf(2), idOf(3));
+
+		//Deleting the record, it is updated on the instance volatile cache, removed remotely
+		recordServices.update(volatileRecord2.set(Schemas.TITLE_CODE, "newValue"));
+
+		long newVersion = volatileRecord2.getVersion();
+
+		assertThatStream(((RecordsCaches2Impl) recordsCaches).streamVolatile(zeCollectionSchemaWithVolatileCache.type())
+				.map(Record::getId)).containsOnly(idOf(1), idOf(2), idOf(3));
+
+		assertThatStream(((RecordsCaches2Impl) otherInstanceRecordsCaches).streamVolatile(zeCollectionSchemaWithVolatileCache.type())
+				.map(Record::getId)).containsOnly(idOf(1));
+
+
+		assertThatStream(recordsCaches.stream(zeCollectionSchemaWithVolatileCache.type())
+				.map(Record::getId)).containsOnly(idOf(1), idOf(2), idOf(3));
+
+		assertThatStream(otherInstanceRecordsCaches.stream(zeCollectionSchemaWithVolatileCache.type())
+				.map(Record::getId)).containsOnly(idOf(1), idOf(2), idOf(3));
+
+		assertThat(recordsCaches.getRecord(idOf(2)).getVersion()).isEqualTo(newVersion);
+		assertThat(recordsCaches.getRecordSummary(idOf(2)).getVersion()).isEqualTo(newVersion);
+		assertThat(otherInstanceRecordsCaches.getRecordSummary(idOf(2)).getVersion()).isEqualTo(newVersion);
+
+		assertThat(recordsCaches.getRecord(idOf(2)).getTitle()).isEqualTo("newValue");
+		assertThat(recordsCaches.getRecordSummary(idOf(2)).getTitle()).isEqualTo("newValue");
+		assertThat(otherInstanceRecordsCaches.getRecordSummary(idOf(2)).getTitle()).isEqualTo("newValue");
+
+		//Reinserting it in remote volatile cache
+		otherInstanceRecordServices.getDocumentById(idOf(2));
+		assertThatStream(((RecordsCaches2Impl) otherInstanceRecordsCaches).streamVolatile(zeCollectionSchemaWithVolatileCache.type())
+				.map(Record::getId)).containsOnly(idOf(1), idOf(2));
+
+
+	}
+
+	@Test
+	public void whenDeletingTypeRecordsThenRemovedFromAllVolatileAndPermanentCaches() throws Exception {
+
+
+		recordServices.add(volatileRecord1 = newRecordOf(idOf(1), zeCollectionSchemaWithVolatileCache));
+		recordServices.add(volatileRecord2 = newRecordOf(idOf(2), zeCollectionSchemaWithVolatileCache));
+		recordServices.add(volatileRecord3 = newRecordOf(idOf(3), zeCollectionSchemaWithVolatileCache));
+		recordServices.add(permanentRecord1 = newRecordOf(idOf(101), zeCollectionSchemaWithPermanentCache));
+		recordServices.add(permanentRecord2 = newRecordOf(idOf(102), zeCollectionSchemaWithPermanentCache));
+
+		otherInstanceRecordServices.getDocumentById(idOf(1));
+		otherInstanceRecordServices.getDocumentById(idOf(2));
+
+		assertThatStream(((RecordsCaches2Impl) recordsCaches).streamVolatile(zeCollectionSchemaWithVolatileCache.type())
+				.map(Record::getId)).containsOnly(idOf(1), idOf(2), idOf(3));
+		assertThatStream(((RecordsCaches2Impl) otherInstanceRecordsCaches).streamVolatile(zeCollectionSchemaWithVolatileCache.type())
+				.map(Record::getId)).containsOnly(idOf(1), idOf(2));
+		assertThatStream(recordsCaches.stream(zeCollectionSchemaWithVolatileCache.collection())
+				.map(Record::getId)).contains(idOf(1), idOf(2), idOf(3), idOf(101), idOf(102));
+		assertThatStream(otherInstanceRecordsCaches.stream(zeCollectionSchemaWithVolatileCache.collection())
+				.map(Record::getId)).contains(idOf(1), idOf(2), idOf(3), idOf(101), idOf(102));
+
+		//Deleting the record, it is updated on the instance volatile cache, removed remotely
+
+		new RecordDeleteServices(getModelLayerFactory())
+				.totallyDeleteSchemaTypeRecordsSkippingValidation_WARNING_CANNOT_BE_REVERTED(zeCollectionSchemaWithVolatileCache.type());
+
+		assertThatStream(((RecordsCaches2Impl) recordsCaches).streamVolatile(zeCollectionSchemaWithVolatileCache.type())
+				.map(Record::getId)).isEmpty();
+		assertThatStream(((RecordsCaches2Impl) otherInstanceRecordsCaches).streamVolatile(zeCollectionSchemaWithVolatileCache.type())
+				.map(Record::getId)).isEmpty();
+
+
+		assertThatStream(recordsCaches.stream(zeCollectionSchemaWithVolatileCache.collection())
+				.map(Record::getId)).contains(idOf(101), idOf(102)).doesNotContain(idOf(1), idOf(2), idOf(3));
+		assertThatStream(otherInstanceRecordsCaches.stream(zeCollectionSchemaWithVolatileCache.collection())
+				.map(Record::getId)).contains(idOf(101), idOf(102)).doesNotContain(idOf(1), idOf(2), idOf(3));
+
+	}
+
+	@Test
+	public void whenDeletingCollectionRecordsThenRemovedFromAllVolatileAndPermanentCaches() throws Exception {
+
+
+		recordServices.add(volatileRecord1 = newRecordOf(idOf(1), zeCollectionSchemaWithVolatileCache));
+		recordServices.add(volatileRecord2 = newRecordOf(idOf(2), zeCollectionSchemaWithVolatileCache));
+		recordServices.add(volatileRecord3 = newRecordOf(idOf(3), zeCollectionSchemaWithVolatileCache));
+		recordServices.add(permanentRecord1 = newRecordOf(idOf(101), zeCollectionSchemaWithPermanentCache));
+		recordServices.add(permanentRecord2 = newRecordOf(idOf(102), zeCollectionSchemaWithPermanentCache));
+		recordServices.add(permanentRecord1 = newRecordOf(idOf(201), anotherCollectionSchemaWithVolatileCache));
+		recordServices.add(permanentRecord2 = newRecordOf(idOf(202), anotherCollectionSchemaWithVolatileCache));
+
+		otherInstanceRecordServices.getDocumentById(idOf(1));
+		otherInstanceRecordServices.getDocumentById(idOf(2));
+		otherInstanceRecordServices.getDocumentById(idOf(201));
+		otherInstanceRecordServices.getDocumentById(idOf(202));
+
+		assertThatStream(((RecordsCaches2Impl) recordsCaches).streamVolatile(zeCollectionSchemaWithVolatileCache.type())
+				.map(Record::getId)).containsOnly(idOf(1), idOf(2), idOf(3));
+		assertThatStream(((RecordsCaches2Impl) otherInstanceRecordsCaches).streamVolatile(zeCollectionSchemaWithVolatileCache.type())
+				.map(Record::getId)).containsOnly(idOf(1), idOf(2));
+
+		assertThatStream(((RecordsCaches2Impl) recordsCaches).streamVolatile(anotherCollectionSchemaWithVolatileCache.type())
+				.map(Record::getId)).containsOnly(idOf(201), idOf(202));
+		assertThatStream(((RecordsCaches2Impl) otherInstanceRecordsCaches).streamVolatile(anotherCollectionSchemaWithVolatileCache.type())
+				.map(Record::getId)).containsOnly(idOf(201), idOf(202));
+
+		assertThatStream(recordsCaches.stream(zeCollectionSchemaWithVolatileCache.collection())
+				.map(Record::getId)).contains(idOf(1), idOf(2), idOf(3), idOf(101), idOf(102));
+		assertThatStream(otherInstanceRecordsCaches.stream(zeCollectionSchemaWithVolatileCache.collection())
+				.map(Record::getId)).contains(idOf(1), idOf(2), idOf(3), idOf(101), idOf(102));
+
+		assertThatStream(recordsCaches.stream(anotherCollectionSchemaWithVolatileCache.collection())
+				.map(Record::getId)).contains(idOf(201), idOf(202));
+		assertThatStream(otherInstanceRecordsCaches.stream(anotherCollectionSchemaWithVolatileCache.collection())
+				.map(Record::getId)).contains(idOf(201), idOf(202));
+
+		//Deleting the record, it is updated on the instance volatile cache, removed remotely
+
+		getAppLayerFactory().getCollectionsManager().deleteCollection(zeCollection);
+
+		assertThatStream(((RecordsCaches2Impl) recordsCaches).streamVolatile(zeCollectionSchemaWithVolatileCache.type())
+				.map(Record::getId)).isEmpty();
+		assertThatStream(((RecordsCaches2Impl) otherInstanceRecordsCaches).streamVolatile(zeCollectionSchemaWithVolatileCache.type())
+				.map(Record::getId)).isEmpty();
+
+		assertThatStream(((RecordsCaches2Impl) recordsCaches).streamVolatile(anotherCollectionSchemaWithVolatileCache.type())
+				.map(Record::getId)).isEmpty();
+		assertThatStream(((RecordsCaches2Impl) otherInstanceRecordsCaches).streamVolatile(anotherCollectionSchemaWithVolatileCache.type())
+				.map(Record::getId)).isEmpty();
+
+		assertThatStream(recordsCaches.stream().map(Record::getId)).contains(idOf(201), idOf(202)).doesNotContain(idOf(1), idOf(2), idOf(3), idOf(101), idOf(102));
+		assertThatStream(otherInstanceRecordsCaches.stream().map(Record::getId)).contains(idOf(201), idOf(202)).doesNotContain(idOf(1), idOf(2), idOf(3), idOf(101), idOf(102));
+
+		assertThatStream(recordsCaches.stream(anotherCollectionSchemaWithVolatileCache.collection())
+				.map(Record::getId)).contains(idOf(201), idOf(202));
+		assertThatStream(otherInstanceRecordsCaches.stream(anotherCollectionSchemaWithVolatileCache.collection())
+				.map(Record::getId)).contains(idOf(201), idOf(202));
+
+	}
+
+	private String idOf(int i) {
+
+		return useZeroPaddedIds ? StringUtils.leftPad("" + (100000 + i), 11, '0') : ("" + i);
+	}
+
+	//@Test
+	public void whenVolatileCacheIsFullThenExpiredIndependentlyOnEachInstance() throws Exception {
+
+
+		File dictionaryFolder = getFoldersLocator().getDict();
+		RandomWordsIterator iterators = createFor(new File(dictionaryFolder, "fr_FR_avec_accents.dic"));
+
+		recordServices.add(volatileRecord1 = newRecordOf(idOf(1), zeCollectionSchemaWithVolatileCache)
+				.set(zeCollectionSchemaWithVolatileCache.largeTextMetadata(), iterators.nextWordsOfLength(megaoctets(2))));
+		assertThatStream(((RecordsCaches2Impl) recordsCaches).streamVolatile(zeCollectionSchemaWithVolatileCache.type())
+				.map(Record::getId)).containsOnly(idOf(1));
+
+		recordServices.add(volatileRecord1 = newRecordOf(idOf(2), zeCollectionSchemaWithVolatileCache)
+				.set(zeCollectionSchemaWithVolatileCache.largeTextMetadata(), iterators.nextWordsOfLength(megaoctets(2))));
+		assertThatStream(((RecordsCaches2Impl) recordsCaches).streamVolatile(zeCollectionSchemaWithVolatileCache.type())
+				.map(Record::getId)).containsOnly(idOf(1), idOf(2));
+
+		recordServices.add(volatileRecord1 = newRecordOf(idOf(3), zeCollectionSchemaWithVolatileCache)
+				.set(zeCollectionSchemaWithVolatileCache.largeTextMetadata(), iterators.nextWordsOfLength(megaoctets(2))));
+		assertThatStream(((RecordsCaches2Impl) recordsCaches).streamVolatile(zeCollectionSchemaWithVolatileCache.type())
+				.map(Record::getId)).containsOnly(idOf(1), idOf(2), idOf(3));
+
+		recordServices.add(volatileRecord1 = newRecordOf(idOf(4), zeCollectionSchemaWithVolatileCache)
+				.set(zeCollectionSchemaWithVolatileCache.largeTextMetadata(), iterators.nextWordsOfLength(megaoctets(2))));
+		assertThatStream(((RecordsCaches2Impl) recordsCaches).streamVolatile(zeCollectionSchemaWithVolatileCache.type())
+				.map(Record::getId)).containsOnly(idOf(1), idOf(2), idOf(3), idOf(4));
+
+		recordServices.add(volatileRecord1 = newRecordOf("v5", zeCollectionSchemaWithVolatileCache)
+				.set(zeCollectionSchemaWithVolatileCache.largeTextMetadata(), iterators.nextWordsOfLength(megaoctets(2))));
+		recordServices.getDocumentById(idOf(1));
+		Thread.sleep(10000);
+		assertThatStream(((RecordsCaches2Impl) recordsCaches).streamVolatile(zeCollectionSchemaWithVolatileCache.type())
+				.map(Record::getId)).containsOnly(idOf(1), idOf(3), idOf(4), "v5");
+
+		assertThatStream(((RecordsCaches2Impl) otherInstanceRecordsCaches).streamVolatile(zeCollectionSchemaWithVolatileCache.type())
+				.map(Record::getId)).isEmpty();
+
+		otherInstanceRecordServices.getDocumentById(idOf(1));
+		otherInstanceRecordServices.getDocumentById(idOf(4));
+
+		assertThatStream(((RecordsCaches2Impl) recordsCaches).streamVolatile(zeCollectionSchemaWithVolatileCache.type())
+				.map(Record::getId)).containsOnly(idOf(2), idOf(3), idOf(4), "v5");
+
+		assertThatStream(((RecordsCaches2Impl) otherInstanceRecordsCaches).streamVolatile(zeCollectionSchemaWithVolatileCache.type())
+				.map(Record::getId)).containsOnly(idOf(1), idOf(4));
 
 	}
 
@@ -199,48 +600,48 @@ public class EventRecordsCache2AcceptanceTest extends ConstellioTest {
 	}
 
 	private void loadAllRecordsInCaches() {
-		recordServices.getDocumentById("p1");
-		recordServices.getDocumentById("p2");
-		recordServices.getDocumentById("v1");
-		recordServices.getDocumentById("v2");
-		recordServices.getDocumentById("v3");
-		recordServices.getDocumentById("v4");
+		recordServices.getDocumentById(idOf(101));
+		recordServices.getDocumentById(idOf(102));
+		recordServices.getDocumentById(idOf(1));
+		recordServices.getDocumentById(idOf(2));
+		recordServices.getDocumentById(idOf(3));
+		recordServices.getDocumentById(idOf(4));
 
-		otherInstanceRecordServices.getDocumentById("p1");
-		otherInstanceRecordServices.getDocumentById("p2");
-		otherInstanceRecordServices.getDocumentById("v1");
-		otherInstanceRecordServices.getDocumentById("v2");
-		otherInstanceRecordServices.getDocumentById("v3");
-		otherInstanceRecordServices.getDocumentById("v4");
+		otherInstanceRecordServices.getDocumentById(idOf(101));
+		otherInstanceRecordServices.getDocumentById(idOf(102));
+		otherInstanceRecordServices.getDocumentById(idOf(1));
+		otherInstanceRecordServices.getDocumentById(idOf(2));
+		otherInstanceRecordServices.getDocumentById(idOf(3));
+		otherInstanceRecordServices.getDocumentById(idOf(4));
 
-		recordServices.getDocumentById("un1");
-		otherInstanceRecordServices.getDocumentById("un2");
+		recordServices.getDocumentById(idOf(801));
+		otherInstanceRecordServices.getDocumentById(idOf(802));
 	}
 
 	private void givenTestRecords()
 			throws Exception {
 		Transaction tx = new Transaction();
 
-		tx.add(permanentRecord1 = newRecordOf("p1", zeCollectionSchemaWithPermanentCache).withTitle("x")
+		tx.add(permanentRecord1 = newRecordOf(idOf(101), zeCollectionSchemaWithPermanentCache).withTitle("x")
 				.set(zeCollectionSchemaWithPermanentCache.stringMetadata(), "p1Code"));
 
-		tx.add(permanentRecord2 = newRecordOf("p2", zeCollectionSchemaWithPermanentCache).withTitle("b")
+		tx.add(permanentRecord2 = newRecordOf(idOf(102), zeCollectionSchemaWithPermanentCache).withTitle("b")
 				.set(zeCollectionSchemaWithPermanentCache.stringMetadata(), "p2Code"));
 
-		tx.add(volatileRecord1 = newRecordOf("v1", zeCollectionSchemaWithVolatileCache).withTitle("c")
+		tx.add(volatileRecord1 = newRecordOf(idOf(1), zeCollectionSchemaWithVolatileCache).withTitle("c")
 				.set(zeCollectionSchemaWithVolatileCache.stringMetadata(), "code18"));
 
-		tx.add(volatileRecord2 = newRecordOf("v2", zeCollectionSchemaWithVolatileCache).withTitle("c")
+		tx.add(volatileRecord2 = newRecordOf(idOf(2), zeCollectionSchemaWithVolatileCache).withTitle("c")
 				.set(zeCollectionSchemaWithVolatileCache.stringMetadata(), "code42"));
 
-		tx.add(volatileRecord3 = newRecordOf("v3", zeCollectionSchemaWithVolatileCache).withTitle("c")
+		tx.add(volatileRecord3 = newRecordOf(idOf(3), zeCollectionSchemaWithVolatileCache).withTitle("c")
 				.set(zeCollectionSchemaWithVolatileCache.stringMetadata(), "code3"));
 
-		tx.add(uncachedRecord1 = newRecordOf("un1", zeCollectionSchemaWithPermanentCache).withTitle("a"));
+		tx.add(uncachedRecord1 = newRecordOf(idOf(801), zeCollectionSchemaWithPermanentCache).withTitle("a"));
 		recordServices.execute(tx);
 		tx = new Transaction();
-		tx.add(volatileRecord4 = newRecordOf("v4", anotherCollectionSchemaWithVolatileCache).withTitle("d"));
-		tx.add(uncachedRecord2 = newRecordOf("un2", anotherCollectionSchemaWithoutCache).withTitle("e"));
+		tx.add(volatileRecord4 = newRecordOf(idOf(4), anotherCollectionSchemaWithVolatileCache).withTitle("d"));
+		tx.add(uncachedRecord2 = newRecordOf(idOf(802), anotherCollectionSchemaWithoutCache).withTitle("e"));
 
 		recordServices.execute(tx);
 

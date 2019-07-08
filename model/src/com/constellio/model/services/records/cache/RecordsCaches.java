@@ -49,7 +49,11 @@ public interface RecordsCaches {
 
 	Stream<Record> stream(MetadataSchemaType type);
 
-	Stream<Record> stream(String colletion);
+	Stream<Record> stream(String collection);
+
+	default Stream<Record> stream() {
+		throw new UnsupportedOperationException("Unsupported");
+	}
 
 	boolean isInitialized();
 }

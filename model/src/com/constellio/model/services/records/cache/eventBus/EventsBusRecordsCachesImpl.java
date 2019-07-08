@@ -8,6 +8,7 @@ import com.constellio.data.events.EventBusListener;
 import com.constellio.data.events.EventBusManager;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.RecordCacheType;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -80,7 +81,18 @@ public class EventsBusRecordsCachesImpl extends RecordsCaches2Impl implements Ev
 	@Override
 	public CacheInsertionStatus insert(Record insertedRecord, InsertionReason insertionReason) {
 		CacheInsertionStatus status = super.insert(insertedRecord, insertionReason);
-		handleRemotely(insertedRecord.getCollectionInfo().getCollectionId(), asList(insertedRecord), insertionReason);
+
+		if (status == CacheInsertionStatus.ACCEPTED) {
+			MetadataSchemaType schemaType = metadataSchemasManager.getSchemaTypeOf(insertedRecord);
+			if (schemaType.getCacheType().isSummaryCache()) {
+				Record recordSummary = getRecordSummary(insertedRecord.getId());
+				handleRemotely(recordSummary.getCollectionInfo().getCollectionId(), asList(recordSummary), insertionReason);
+			} else if (schemaType.getCacheType().hasPermanentCache()) {
+				handleRemotely(insertedRecord.getCollectionInfo().getCollectionId(), asList(insertedRecord), insertionReason);
+
+			}
+		}
+
 		return status;
 	}
 
@@ -102,7 +114,7 @@ public class EventsBusRecordsCachesImpl extends RecordsCaches2Impl implements Ev
 	public void removeRecordsOfCollection(String collection, boolean isOnlyLocally) {
 		super.removeRecordsOfCollection(collection, ONLY_LOCALLY);
 		if (!isOnlyLocally) {
-			eventBus.send(RELOAD_SCHEMA_TYPES, collection);
+			eventBus.send(REMOVE_COLLECTION_RECORDS, collection);
 		}
 	}
 
@@ -164,6 +176,15 @@ public class EventsBusRecordsCachesImpl extends RecordsCaches2Impl implements Ev
 		eventBus.send(INVALIDATE_VOLATILE_RECORDS, params);
 	}
 
+	@Override
+	protected void removeFromAllCaches(byte collectionId, List<String> recordIds) {
+		super.removeFromAllCaches(collectionId, recordIds);
+
+		Map<String, Object> params = new HashMap<>();
+		params.put("ids", recordIds);
+		params.put("collectionId", collectionId);
+		eventBus.send(REMOVE_RECORDS, params);
+	}
 
 	@Override
 	public void onEventReceived(Event event) {

@@ -382,4 +382,36 @@ public class StringIdsRecordsCachesDataStore {
 		}
 
 	}
+
+
+	public synchronized void invalidateAll(byte collectionId) {
+
+		int collectionIndex = collectionId - Byte.MIN_VALUE;
+
+		List<Holder<RecordDTO>> holders = recordsWithStringKeyRegroupedByCollection[collectionIndex];
+
+		if (holders != null) {
+			for (Holder<RecordDTO> recordDTOHolder : holders) {
+				if (recordDTOHolder.get() != null) {
+					this.allRecordsWithStringKey.remove(recordDTOHolder.get().getId());
+				}
+			}
+		}
+
+		if (recordsWithStringKeyRegroupedByCollection[collectionIndex] != null) {
+			recordsWithStringKeyRegroupedByCollection[collectionIndex].clear();
+		}
+
+		List<Holder<RecordDTO>>[] typesHolders = recordsWithStringKeyRegroupedByCollectionAndType[collectionIndex];
+		if (typesHolders != null) {
+			for (int i = 0; i < typesHolders.length; i++) {
+				List<Holder<RecordDTO>> typeHolders = typesHolders[i];
+
+				if (typeHolders != null) {
+					typesHolders[i] = new ArrayList<>();
+				}
+			}
+		}
+
+	}
 }

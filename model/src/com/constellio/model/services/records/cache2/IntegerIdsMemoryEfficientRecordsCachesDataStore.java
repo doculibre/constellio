@@ -168,7 +168,7 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 		try {
 			if (index >= 0) {
 
-				removeAtIndex(collectionId, typeId, index, summary);
+				removeFromMainListsAndTypeIndex(collectionId, typeId, index, summary);
 			}
 
 		} finally {
@@ -176,13 +176,20 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 		}
 	}
 
-	private void removeAtIndex(byte collectionId, short typeId, int index, boolean summary) {
+	private void removeFromMainListsAndTypeIndex(byte collectionId, short typeId, int index, boolean summary) {
+		int collectionIndex = removeFromMainLists(collectionId, index, summary);
+
+		IntArrayList typeIndexes = typesIndexes[collectionIndex][typeId];
+		typeIndexes.remove(index);
+	}
+
+	private int removeFromMainLists(int collectionId, int index, boolean summary) {
 		//Important to set the schema first, since it is the first read
 		schema.set(index, (short) 0);
 		versions.set(index, 0L);
 		collection.set(index, (byte) 0);
 		type.set(index, (short) 0);
-		int collectionIndex = ((int) collectionId) - Byte.MIN_VALUE;
+		int collectionIndex = collectionId - Byte.MIN_VALUE;
 
 
 		if (summary) {
@@ -190,9 +197,7 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 		} else {
 			fullyCachedData.set(index, null);
 		}
-
-		IntArrayList typeIndexes = typesIndexes[collectionIndex][typeId];
-		typeIndexes.remove(index);
+		return collectionIndex;
 	}
 
 
@@ -476,7 +481,7 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 					byte collectionId = getCollectionIdOf(dto);
 					short typeId = getTypeId(dto);
 					boolean summary = dto instanceof ByteArrayRecordDTO;
-					removeAtIndex(collectionId, typeId, i, summary);
+					removeFromMainListsAndTypeIndex(collectionId, typeId, i, summary);
 				}
 			}
 
@@ -496,10 +501,20 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 					if (collectionId != predicateCollectionId) {
 						continue;
 					}
-					short typeId = getTypeId(dto);
 					boolean summary = dto instanceof ByteArrayRecordDTO;
-					removeAtIndex(collectionId, typeId, i, summary);
+					removeFromMainLists(collectionId, i, summary);
 				}
+			}
+
+			int collectionIndex = predicateCollectionId - Byte.MIN_VALUE;
+			IntArrayList[] typeIndexes = typesIndexes[collectionIndex];
+			if (typeIndexes != null) {
+				for (IntArrayList typeIndex : typeIndexes) {
+					if (typeIndex != null) {
+						typeIndex.clear();
+					}
+				}
+
 			}
 
 		} finally {
@@ -509,6 +524,10 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 
 	synchronized void invalidateAll(byte predicateCollectionId, short predicateTypeId) {
 		invalidate(predicateCollectionId, predicateTypeId, (r) -> true);
+	}
+
+	synchronized void invalidateAll(byte predicateCollectionId) {
+		invalidate(predicateCollectionId, (r) -> true);
 	}
 
 	synchronized void invalidate(byte predicateCollectionId, short predicateTypeId,
@@ -529,7 +548,7 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 					}
 
 					boolean summary = dto instanceof ByteArrayRecordDTO;
-					removeAtIndex(collectionId, typeId, i, summary);
+					removeFromMainListsAndTypeIndex(collectionId, typeId, i, summary);
 				}
 			}
 

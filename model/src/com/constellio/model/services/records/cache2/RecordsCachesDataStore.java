@@ -145,6 +145,11 @@ public class RecordsCachesDataStore {
 		intIdsDataStore.invalidateAll(collection, schemaType);
 	}
 
+	public synchronized void invalidateAll(byte collection) {
+		stringIdsDataStore.invalidateAll(collection);
+		intIdsDataStore.invalidateAll(collection);
+	}
+
 
 	public Iterator<RecordDTO> iterator(boolean autoClosedIterator) {
 		return new LazyMergingIterator<>(

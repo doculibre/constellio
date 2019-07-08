@@ -86,6 +86,7 @@ import com.constellio.model.services.records.RecordServicesRuntimeException.Unre
 import com.constellio.model.services.records.cache.CacheConfig;
 import com.constellio.model.services.records.cache.CacheInsertionStatus;
 import com.constellio.model.services.records.cache.RecordsCaches;
+import com.constellio.model.services.records.cache2.RecordsCaches2Impl;
 import com.constellio.model.services.records.extractions.RecordPopulateServices;
 import com.constellio.model.services.records.populators.SearchFieldsPopulator;
 import com.constellio.model.services.records.populators.SortFieldsPopulator;
@@ -582,6 +583,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 	public Record realtimeGetSummaryById(String dataStore, String id) {
 		try {
+			//TODO Improve!!!!
 			RecordDTO recordDTO = dao(dataStore).realGet(id);
 			String collection = (String) recordDTO.getFields().get("collection_s");
 			CollectionInfo collectionInfo = modelLayerFactory.getCollectionsListManager().getCollectionInfo(collection);
@@ -592,6 +594,10 @@ public class RecordServicesImpl extends BaseRecordServices {
 							new Transaction(new RecordUpdateOptions()));
 
 			MetadataSchema schema = metadataSchemasManager.getSchemaOf(record);
+
+
+			RecordDTO summaryRecordDTO = RecordsCaches2Impl.toPersistedSummaryRecordDTO(record, schema);
+			record = toRecord(summaryRecordDTO, false);
 
 			insertInCache(record, WAS_OBTAINED);
 			return record;
