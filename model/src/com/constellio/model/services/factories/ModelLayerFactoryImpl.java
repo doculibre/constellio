@@ -183,13 +183,13 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 		if (Toggle.USE_NEW_CACHE.isEnabled()) {
 			File workFolder = new FoldersLocator().getWorkFolder();
 			workFolder.mkdirs();
-			File fileSystemCacheFolder = new File(new FoldersLocator().getWorkFolder(), "cache.db");
+			File fileSystemCacheFolder = new File(new FoldersLocator().getWorkFolder(), instanceName + "-cache.db");
 			FileUtils.deleteQuietly(fileSystemCacheFolder);
 			FileSystemRecordsValuesCacheDataStore fileSystemRecordsValuesCacheDataStore
 					= new FileSystemRecordsValuesCacheDataStore(fileSystemCacheFolder);
 
 			RecordsCachesDataStore memoryDataStore = new RecordsCachesDataStore(this);
-			this.recordsCaches = new EventsBusRecordsCachesImpl(this, fileSystemRecordsValuesCacheDataStore, memoryDataStore);
+			this.recordsCaches = add(new EventsBusRecordsCachesImpl(this, fileSystemRecordsValuesCacheDataStore, memoryDataStore));
 
 		} else {
 			this.recordsCaches = new RecordsCachesMemoryImpl(this);
