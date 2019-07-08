@@ -373,9 +373,6 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		MetadataList allMetadatas = schemaType.getAllMetadatas();
 		for (Metadata metadata : allMetadatas) {
 			if (!schemaType.hasSecurity() || (metadataCodes.contains(metadata.getCode()))) {
-				if (!getCurrentUser().hasGlobalAccessToMetadata(metadata)) {
-					continue;
-				}
 
 				boolean isTextOrString =
 						metadata.getType() == MetadataValueType.STRING || metadata.getType() == MetadataValueType.TEXT;
