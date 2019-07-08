@@ -11,17 +11,25 @@ public abstract class MenuItemActionBehaviorParams {
 
 	public abstract BaseView getView();
 
-	public abstract RecordVO getRecordVO();
-
-	public abstract ContentVersionVO getContentVersionVO();
-
 	public abstract Map<String, String> getFormParams();
 
 	public abstract User getUser();
 
-	public abstract boolean isContextualMenu();
+	public RecordVO getRecordVO() {
+		return null;
+	}
 
-	public abstract boolean isNestedView();
+	public ContentVersionVO getContentVersionVO() {
+		return null;
+	}
+
+	public boolean isContextualMenu() {
+		return false;
+	}
+
+	public boolean isNestedView() {
+		return false;
+	}
 
 	public Object getObjectRecordVO() {
 		return null;

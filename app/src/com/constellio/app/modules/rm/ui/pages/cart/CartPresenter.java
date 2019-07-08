@@ -236,8 +236,8 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	}
 
 	public boolean canDelete() {
-		return cartHasRecords() && cartContainerIsEmpty()
-				&& canDeleteFolders(getCurrentUser()) && canDeleteDocuments(getCurrentUser()) && hasCartBatchDeletePermission();
+		return cartHasRecords() && canDeleteContainers(getCurrentUser())
+			   && canDeleteFolders(getCurrentUser()) && canDeleteDocuments(getCurrentUser()) && hasCartBatchDeletePermission();
 	}
 
 	public void deletionRequested(String reason) {
@@ -411,6 +411,15 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 			}
 			if (getCurrentBorrowerOf(document) != null && !getCurrentUser().has(RMPermissionsTo.DELETE_BORROWED_DOCUMENT)
 					.on(document)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	private boolean canDeleteContainers(User user) {
+		for (ContainerRecord container : getCartContainers()) {
+			if (!user.has(RMPermissionsTo.DELETE_CONTAINERS).on(container)) {
 				return false;
 			}
 		}

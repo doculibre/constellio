@@ -39,6 +39,7 @@ import com.constellio.app.ui.pages.search.SearchView;
 import com.constellio.app.ui.pages.search.SimpleSearchView;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.app.ui.util.MessageUtils;
+import com.constellio.data.utils.AccentApostropheCleaner;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.vaadin.data.Item;
@@ -85,6 +86,8 @@ import com.vaadin.ui.themes.ValoTheme;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -736,7 +739,7 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 	}
 
 	public Navigator getNavigator() {
-		return UI.getCurrent().getNavigator();
+		return ConstellioUI.getCurrent().getNavigator();
 	}
 
 	@Override
@@ -775,6 +778,15 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 		MenuBar collectionMenu = new BaseMenuBar();
 		collectionMenu.addStyleName(ValoTheme.MENUBAR_BORDERLESS);
 		if (!collections.isEmpty()) {
+			ArrayList<String> sortedCollections = new ArrayList<>(collections);
+			Collections.sort(sortedCollections, new Comparator<String>() {
+				@Override
+				public int compare(String o1, String o2) {
+					String collectionCaption1 = AccentApostropheCleaner.removeAccents(collectionCodeToLabelConverter.getCollectionCaption(o1).toLowerCase());
+					String collectionCaption2 = AccentApostropheCleaner.removeAccents(collectionCodeToLabelConverter.getCollectionCaption(o2).toLowerCase());
+					return collectionCaption1.compareTo(collectionCaption2);
+				}
+			});
 			collectionMenu.setAutoOpen(true);
 			collectionMenu.addStyleName("header-collection-menu");
 
@@ -785,7 +797,7 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 
 			collectionSubMenu = collectionMenu.addItem("", FontAwesome.DATABASE, null);
 			setCollectionSubMenuCaption();
-			for (final String collection : collections) {
+			for (final String collection : sortedCollections) {
 				if (!Collection.SYSTEM_COLLECTION.equals(collection)) {
 					String collectionCaption = collectionCodeToLabelConverter.getCollectionCaption(collection);
 					MenuItem collectionMenuItem = collectionSubMenu.addItem(collectionCaption, new Command() {
@@ -828,28 +840,25 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 			menuItems.put(navigationItem, menuItem);
 			updateMenuItem(navigationItem, menuItem);
 		}
-		ConstellioUI ui = ConstellioUI.getCurrent();
-		if (ui != null) {
-			ui.getNavigator().addViewChangeListener(new ViewChangeListener() {
-				@Override
-				public boolean beforeViewChange(ViewChangeEvent event) {
-					return true;
-				}
+		getNavigator().addViewChangeListener(new ViewChangeListener() {
+			@Override
+			public boolean beforeViewChange(ViewChangeEvent event) {
+				return true;
+			}
 
-				@Override
-				public void afterViewChange(ViewChangeEvent event) {
-					View oldView = event.getOldView();
-					View newView = event.getNewView();
-					if (oldView instanceof BaseView && newView instanceof BaseView) {
-						for (NavigationItem navigationItem : actionMenuItems) {
-							MenuItem menuItem = menuItems.get(navigationItem);
-							navigationItem.viewChanged((BaseView) oldView, (BaseView) newView);
-							updateMenuItem(navigationItem, menuItem);
-						}
+			@Override
+			public void afterViewChange(ViewChangeEvent event) {
+				View oldView = event.getOldView();
+				View newView = event.getNewView();
+				if (oldView instanceof BaseView && newView instanceof BaseView) {
+					for (NavigationItem navigationItem : actionMenuItems) {
+						MenuItem menuItem = menuItems.get(navigationItem);
+						navigationItem.viewChanged((BaseView) oldView, (BaseView) newView);
+						updateMenuItem(navigationItem, menuItem);
 					}
 				}
-			});
-		}
+			}
+		});
 		return headerMenu;
 	}
 

@@ -9,11 +9,9 @@ import org.jaxen.jdom.JDOMXPath;
 import org.jdom.Attribute;
 import org.jdom.Document;
 import org.jdom.Element;
-import org.jdom.JDOMException;
 import org.jdom.Namespace;
 import org.jdom.input.SAXBuilder;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -24,6 +22,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class ThesaurusServiceBuilder {
@@ -97,15 +96,8 @@ public class ThesaurusServiceBuilder {
 			LOGGER.finest("Third pass of skos:Concept tags (validating relationships)");
 			processSKOSConceptsRelationships(parsedConcepts, namespaceContext, skosConceptElements);
 
-		} catch (JDOMException e) {
-
-			throw new ThesaurusInvalidFileFormat(e);
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		} catch (JaxenException e) {
-			throw new RuntimeException(e);
-		} catch (ParseException e) {
-			throw new RuntimeException(e);
+		} catch (Exception e) {
+			LOGGER.log(Level.WARNING, "Failed to create mew thesaurus service", e);
 		} finally {
 			IOUtils.closeQuietly(skosFileStream);
 		}

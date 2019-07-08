@@ -82,12 +82,6 @@ public class RecordVOContextMenu extends BaseContextMenu {
 					public boolean isContextualMenu() {
 						return true;
 					}
-
-					@Override
-					public boolean isNestedView() {
-						// FIXME how do we determine this?
-						return false;
-					}
 				});
 
 		menuItemFactory.buildContextMenu(this, menuItemActions);

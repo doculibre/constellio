@@ -1,7 +1,6 @@
 package com.constellio.app.modules.rm.extensions;
 
 import com.constellio.app.api.extensions.SearchPageExtension;
-import com.constellio.app.api.extensions.params.AddComponentToSearchResultParams;
 import com.constellio.app.api.extensions.params.GetSearchResultSimpleTableWindowComponentParam;
 import com.constellio.app.api.extensions.params.SearchPageConditionParam;
 import com.constellio.app.api.extensions.taxonomies.GetCustomResultDisplayParam;
@@ -20,16 +19,13 @@ import com.constellio.app.modules.rm.wrappers.RMUser;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.SearchResultDisplay;
-import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.pages.search.AdvancedSearchViewImpl;
 import com.constellio.app.ui.pages.search.SimpleSearchViewImpl;
 import com.constellio.data.utils.LangUtils.StringReplacer;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
-import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Component;
-import com.vaadin.ui.Label;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -55,7 +51,8 @@ public class RMSearchPageExtension extends SearchPageExtension {
 	@Override
 	public SearchResultDisplay getCustomResultDisplayFor(GetCustomResultDisplayParam param) {
 		if (param.getSchemaType().equals(Document.SCHEMA_TYPE)) {
-			return new DocumentSearchResultDisplay(param.getSearchResultVO(), param.getComponentFactory(), appLayerFactory, param.getQuery());
+			ConstellioEIMConfigs configs = new ConstellioEIMConfigs(appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager());
+			return new DocumentSearchResultDisplay(param.getSearchResultVO(), param.getComponentFactory(), appLayerFactory, param.getQuery(), configs.isNoLinksInSearchResults());
 		}
 		return super.getCustomResultDisplayFor(param);
 	}
@@ -112,34 +109,5 @@ public class RMSearchPageExtension extends SearchPageExtension {
 			}
 		}
 		return logicalSearchCondition;
-	}
-
-	@Override
-	public List<Component> addComponentToSearchResult(
-			AddComponentToSearchResultParams addComponentToSearchResultParams) {
-		ArrayList<Component> componentListToReturn = new ArrayList();
-
-		if (appLayerFactory.getModelLayerFactory().getSystemConfigs().isShowPathToResult()) {
-			String schemaTypeCode = addComponentToSearchResultParams.getSearchResultVO().getRecordVO().getSchema().getTypeCode();
-
-			if (!schemaTypeCode.equals(Folder.SCHEMA_TYPE) && !schemaTypeCode.equals(Document.SCHEMA_TYPE)) {
-				return null;
-			}
-
-			String captionTxt = addComponentToSearchResultParams.getSearchResultVO().getRecordVO().get(Schemas.CAPTION);
-
-
-			captionTxt = STRING_REPLACER.replaceOn(captionTxt);
-
-			Label value = new Label("/ " + captionTxt, ContentMode.HTML);
-
-			I18NHorizontalLayout item = new I18NHorizontalLayout(value);
-			item.setHeight("100%");
-			item.setSpacing(true);
-			item.addStyleName("metadata-caption-layout");
-			item.addStyleName(SearchResultDisplay.METADATA_STYLE);
-			componentListToReturn.add(item);
-		}
-		return componentListToReturn;
 	}
 }

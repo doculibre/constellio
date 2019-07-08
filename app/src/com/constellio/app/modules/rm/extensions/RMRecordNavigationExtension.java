@@ -163,7 +163,13 @@ public class RMRecordNavigationExtension implements RecordNavigationExtension {
 			}
 		}
 	}
-	
+
+	@Override
+	public String getViewHrefTag(NavigationParams navigationParams) {
+		return null;
+	}
+
+
 	protected boolean isOpenInViewer(ReferenceDisplay referenceDisplay) {
 		boolean openInViewer;
 		if (Toggle.SEARCH_RESULTS_VIEWER.isEnabled() && ComponentTreeUtils.findParent(referenceDisplay, SearchResultDisplay.class) != null) {

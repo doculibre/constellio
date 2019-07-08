@@ -63,8 +63,8 @@ public class RMRecordMenuBarHandler extends AbstractRecordMenuBarHandler {
 		}
 	}
 
-	public DocumentVO getDocumentVO(RecordVO recordVO) {
-		DocumentVO documentVO = null;
+	public RecordVO getDocumentVO(RecordVO recordVO) {
+		RecordVO documentVO = null;
 
 		String schemaTypeCode = recordVO.getSchema().getTypeCode();
 		if (recordVO instanceof DocumentVO) {

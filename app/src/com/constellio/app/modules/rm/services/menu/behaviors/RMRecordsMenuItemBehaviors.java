@@ -300,21 +300,6 @@ public class RMRecordsMenuItemBehaviors {
 		zipButton.click();
 	}
 
-	public void batchProcess(List<String> recordIds, MenuItemActionBehaviorParams params) {
-		// TODO
-		/*
-		BatchProcessingMode mode = presenter.getBatchProcessingMode();
-		if (mode.equals(ALL_METADATA_OF_SCHEMA)) {
-			return new BatchProcessingButton(presenter, this).hasResultSelected(!getSelectedRecordIds().isEmpty());
-		} else if (mode.equals(ONE_METADATA)) {
-			return new BatchProcessingModifyingOneMetadataButton(presenter, this)
-					.hasResultSelected(!getSelectedRecordIds().isEmpty());
-		} else {
-			throw new RuntimeException("Unsupported mode " + mode);
-		}
-		*/
-	}
-
 	//
 	// PRIVATE
 	//

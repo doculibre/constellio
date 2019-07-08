@@ -1,6 +1,7 @@
 package com.constellio.app.ui.framework.components;
 
 import com.constellio.app.modules.rm.reports.model.search.UnsupportedReportException;
+import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
@@ -9,6 +10,9 @@ import com.constellio.app.ui.framework.reports.ReportWithCaptionVO;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.Validator;
+import com.vaadin.server.Page;
+import com.vaadin.server.StreamResource;
+import com.vaadin.server.StreamResource.StreamSource;
 import com.vaadin.ui.AbstractSelect;
 import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
 import com.vaadin.ui.Button;
@@ -16,6 +20,7 @@ import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
+import com.vaadin.ui.themes.ValoTheme;
 
 import java.util.List;
 
@@ -26,9 +31,15 @@ public class ReportSelector extends HorizontalLayout {
 	private final NewReportPresenter presenter;
 	private AbstractSelect selector;
 	private final Button button;
+	private boolean isOpenInNewWindow;
 
 	public ReportSelector(NewReportPresenter presenter) {
+		this(presenter, true);
+	}
+
+	public ReportSelector(NewReportPresenter presenter, boolean isOpenInNewWindow) {
 		setSpacing(true);
+		this.isOpenInNewWindow = isOpenInNewWindow;
 		this.presenter = presenter;
 		button = buildActivationButton();
 		try {
@@ -81,24 +92,49 @@ public class ReportSelector extends HorizontalLayout {
 	}
 
 	private Button buildActivationButton() {
-		return new WindowButton($("ReportSelector.go"), null, WindowConfiguration.modalDialog("75%", "75%")) {
-			@Override
-			protected Component buildWindowContent() {
-				NewReportWriterFactory factory = presenter.getReport(getSelectedReport());
-				if (factory == null) {
-					return new Label($("ReportViewer.noReportFactoryAvailable"));
-				} else {
-					Object reportParameters = presenter.getReportParameters(getSelectedReport());
-					return new ReportViewer(factory.getReportBuilder(reportParameters),
-							factory.getFilename(reportParameters));
-				}
-			}
+		Button button;
 
-			@Override
-			protected String getWindowCaption() {
-				return $(getSelectedReport());
-			}
-		};
+		if (isOpenInNewWindow) {
+			button = new WindowButton($("ReportSelector.go"), null, WindowConfiguration.modalDialog("75%", "75%")) {
+				@Override
+				protected Component buildWindowContent() {
+					NewReportWriterFactory factory = presenter.getReport(getSelectedReport());
+					if (factory == null) {
+						return new Label($("ReportViewer.noReportFactoryAvailable"));
+					} else {
+						Object reportParameters = presenter.getReportParameters(getSelectedReport());
+						return new ReportViewer(factory.getReportBuilder(reportParameters),
+								factory.getFilename(reportParameters));
+					}
+				}
+
+				@Override
+				protected String getWindowCaption() {
+					return $(getSelectedReport());
+				}
+			};
+		} else {
+			button = new BaseButton($("ReportSelector.go")) {
+				@Override
+				protected void buttonClick(ClickEvent event) {
+					NewReportWriterFactory factory = presenter.getReport(getSelectedReport());
+					if (factory == null) {
+						addComponent(new Label($("ReportViewer.noReportFactoryAvailable")));
+					} else {
+						Object reportParameters = presenter.getReportParameters(getSelectedReport());
+
+						StreamSource source = ReportViewer.buildSource(factory.getReportBuilder(reportParameters));
+
+						StreamResource streamResource = new StreamResource(source, factory.getFilename(reportParameters));
+						streamResource.setCacheTime(0);
+						Page.getCurrent().open(streamResource, "_blank", isOpenInNewWindow);
+					}
+				}
+			};
+		}
+
+		button.addStyleName(ValoTheme.BUTTON_PRIMARY);
+		return button;
 	}
 
 }

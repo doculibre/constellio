@@ -1,14 +1,6 @@
 package com.constellio.app.modules.rm.ui.pages.userDocuments;
 
 import com.constellio.app.modules.rm.navigation.RMViews;
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.vaadin.dialogs.ConfirmDialog;
-
 import com.constellio.app.modules.rm.ui.components.userDocument.DeclareUserContentContainerButton;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
@@ -42,7 +34,15 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.DragAndDropWrapper;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.Window.CloseEvent;
 import com.vaadin.ui.themes.ValoTheme;
+import org.vaadin.dialogs.ConfirmDialog;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserDocumentsView, DropHandler {
 
@@ -127,8 +127,8 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 			}
 
 			@Override
-			protected boolean isUploadWindow() {
-				return !inWindow;
+			protected void onUploadWindowClosed(CloseEvent e) {
+				presenter.refreshDocuments();
 			}
 		};
 		multiFileUpload.setWidth("100%");
@@ -333,6 +333,23 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 		presenter.backgroundViewMonitor();
 	}
 
+	@Override
+	public void showUploadMessage(String message) {
+		//		multiFileUpload.notifyMessage(message);
+		showClickableMessage(message);
+	}
+
+	@Override
+	public void showUploadErrorMessage(String message) {
+		//		multiFileUpload.notifyMessage(message);
+		showErrorMessage(message);
+	}
+
+	@Override
+	public boolean isInAWindow() {
+		return inWindow;
+	}
+
 	private void refreshAvailableSpace() {
 		if (presenter.isQuotaSpaceConfigActivated()) {
 			Label quotaSpaceInfoAferRefresh = new Label(
@@ -344,16 +361,4 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 		}
 	}
 
-
-	@Override
-	public void showUploadMessage(String message) {
-//		multiFileUpload.notifyMessage(message);
-		showClickableMessage(message);
-	}
-
-	@Override
-	public void showUploadErrorMessage(String message) {
-//		multiFileUpload.notifyMessage(message);
-		showErrorMessage(message);
-	}
 }

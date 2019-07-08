@@ -7,9 +7,9 @@ import com.constellio.app.services.menu.MenuItemAction;
 import com.constellio.app.services.menu.MenuItemServices;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
 import com.constellio.app.ui.application.ConstellioUI;
-import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
+import com.constellio.app.ui.framework.buttons.LinkButton;
 import com.constellio.app.ui.framework.buttons.SIPButton.SIPButtonImpl;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.NewReportPresenter;
@@ -51,7 +51,7 @@ import org.apache.commons.collections4.MapUtils;
 
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Observable;
@@ -63,6 +63,7 @@ import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActio
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.entities.enums.BatchProcessingMode.ALL_METADATA_OF_SCHEMA;
 import static com.constellio.model.entities.enums.BatchProcessingMode.ONE_METADATA;
+import static java.util.Arrays.asList;
 
 public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresenter>
 		implements AdvancedSearchView, BatchProcessingView, Observer {
@@ -139,21 +140,10 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 		MenuItemServices menuItemServices = new MenuItemServices(getCollection(), this.getConstellioFactories().getAppLayerFactory());
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(getCollection(), this.getConstellioFactories().getAppLayerFactory());
 		List<MenuItemAction> selectedMenuItemActions = menuItemServices.getActionsForRecords(rm.get(getSelectedRecordIds()),
-				//List<MenuItemAction> selectedMenuItemActions = menuItemServices.getActionsForRecords(presenter.getSearchQuery(),
 				new MenuItemActionBehaviorParams() {
 					@Override
 					public BaseView getView() {
 						return (BaseView) ConstellioUI.getCurrent().getCurrentView();
-					}
-
-					@Override
-					public RecordVO getRecordVO() {
-						return null;
-					}
-
-					@Override
-					public ContentVersionVO getContentVersionVO() {
-						return null;
 					}
 
 					@Override
@@ -164,16 +154,6 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 					@Override
 					public User getUser() {
 						return presenter.getUser();
-					}
-
-					@Override
-					public boolean isContextualMenu() {
-						return false;
-					}
-
-					@Override
-					public boolean isNestedView() {
-						return false;
 					}
 				});
 
@@ -195,8 +175,43 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 		// TODO Build SelectAllButton properly for table mode
 		//		List<Component> actions = Arrays.asList(
 		//				buildSelectAllButton(), buildSavedSearchButton(), (Component) new ReportSelector(presenter));
-		List<Component> actions = Arrays.asList(
-				/*buildSelectAllButton(), buildAddToSelectionButton(),*/ buildSavedSearchButton()/*, (Component) switchViewMode*/);
+		// FIXME test for extensions batch process + generate report
+		List<MenuItemAction> menuItemActions = menuItemServices.getActionsForRecords(presenter.getSearchQuery(),
+				asList("RMRECORDS_ADD_CART", "RMRECORDS_MOVE", "RMRECORDS_COPY", "RMRECORDS_CREATE_SIP",
+						"RMRECORDS_SEND_EMAIL", "RMRECORDS_CREATE_PDF", "RMRECORDS_PRINT_LABEL",
+						"RMRECORDS_ADD_SELECTION", "RMRECORDS_DOWNLOAD_ZIP"),
+				new MenuItemActionBehaviorParams() {
+					@Override
+					public BaseView getView() {
+						return (BaseView) ConstellioUI.getCurrent().getCurrentView();
+					}
+
+					@Override
+					public Map<String, String> getFormParams() {
+						return MapUtils.emptyIfNull(ParamUtils.getCurrentParams());
+					}
+
+					@Override
+					public User getUser() {
+						return presenter.getUser();
+					}
+				});
+		List<Component> actions = menuItemActions.stream()
+				.map(menuItemAction -> {
+					BaseButton actionButton = new LinkButton(menuItemAction.getCaption()) {
+						@Override
+						protected void buttonClick(ClickEvent event) {
+							menuItemAction.getCommand().accept(Collections.emptyList());
+						}
+					};
+					actionButton.setEnabled(menuItemAction.getState().getStatus() == VISIBLE);
+					actionButton.setVisible(menuItemAction.getState().getStatus() != HIDDEN);
+					return (Component) actionButton;
+				}).collect(Collectors.toList());
+		actions.add(buildSavedSearchButton());
+
+		//List<Component> actions = Arrays.asList(
+		//		/*buildSelectAllButton(), buildAddToSelectionButton(),*/ buildSavedSearchButton()/*, (Component) switchViewMode*/);
 
 		return results.createSummary(actions, selectionActions);
 	}

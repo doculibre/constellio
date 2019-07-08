@@ -1,5 +1,6 @@
 package com.constellio.data.utils;
 
+import org.apache.commons.collections4.list.UnmodifiableList;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -513,5 +514,18 @@ public class LangUtils {
 
 		}
 		return notEmptyValue;
+	}
+
+	public static List<Throwable> getAllCauses(Throwable throwable) {
+		return new UnmodifiableList<>(getAllCausesRecursively(throwable));
+	}
+
+	private static List<Throwable> getAllCausesRecursively(Throwable throwable) {
+		List<Throwable> throwableList = new ArrayList<>();
+		while (throwable != null && !throwableList.contains(throwable)) {
+			throwableList.addAll(getAllCausesRecursively(throwable.getCause()));
+			throwableList.add(throwable);
+		}
+		return throwableList;
 	}
 }

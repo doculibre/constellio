@@ -631,7 +631,7 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 
 	@Override
 	public void runAsync(final Runnable runnable, final int pollInterval) {
-		ConstellioUI.getCurrent().runAsync(runnable, pollInterval);
+		ConstellioUI.getCurrent().runAsync(runnable, pollInterval, this);
 	}
 
 	@Override

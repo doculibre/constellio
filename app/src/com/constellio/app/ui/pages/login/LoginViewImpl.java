@@ -274,4 +274,47 @@ public class LoginViewImpl extends BaseViewImpl implements LoginView {
 		window.center();
 		ConstellioUI.getCurrent().addWindow(window);
 	}
+
+	@Override
+	public void popLastAlertWindow(final ModelLayerFactory modelLayerFactory, final User userInLastCollection,
+								   final String lastCollection) {
+		final Window window = new Window();
+		window.setWidth("90%");
+		window.setHeight("90%");
+		window.setModal(true);
+		window.setCaption($("LoginView.lastAlertWindow"));
+
+		VerticalLayout mainLayout = new VerticalLayout();
+		mainLayout.setSpacing(true);
+
+		VerticalLayout textLayout = new VerticalLayout();
+		textLayout.setSizeFull();
+		HorizontalLayout buttonLayout = new HorizontalLayout();
+		buttonLayout.setSpacing(true);
+		buttonLayout.setHeight("50px");
+
+		BaseButton continueButton = new BaseButton($("continue")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				UserServices userServices = modelLayerFactory.newUserServices();
+				userServices.addUpdateUserCredential(userServices.getUserCredential(userInLastCollection.getUsername())
+						.setReadLastAlert(true));
+				presenter.signInValidated(userInLastCollection, lastCollection);
+				window.close();
+			}
+		};
+		continueButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
+		DocumentViewer documentViewer = new DocumentViewer(presenter.getLastAlertFile());
+
+		textLayout.addComponent(documentViewer);
+		buttonLayout.addComponent(continueButton);
+
+		mainLayout.addComponents(textLayout, buttonLayout);
+		mainLayout.setComponentAlignment(buttonLayout, Alignment.BOTTOM_CENTER);
+
+		window.setContent(mainLayout);
+		window.setSizeUndefined();
+		window.center();
+		ConstellioUI.getCurrent().addWindow(window);
+	}
 }

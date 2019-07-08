@@ -24,7 +24,7 @@ public class SystemAnalysisUtils {
 	public static MemoryDetails getAllocatedMemoryForConstellio() {
 		FoldersLocator foldersLocator = new FoldersLocator();
 		if (foldersLocator.getFoldersLocatorMode() == FoldersLocatorMode.PROJECT) {
-			return null;
+			return MemoryDetails.buildUnavailableInformations();
 		}
 
 		String allocatedMemory = findValueOfParameter(foldersLocator.getWrapperConf().getAbsolutePath(), CONSTELLIO_MEMORY_PARAMETER, "=");

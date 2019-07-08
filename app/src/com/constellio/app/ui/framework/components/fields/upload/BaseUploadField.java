@@ -22,6 +22,7 @@ import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.ColumnHeaderMode;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.Window.CloseEvent;
 import org.vaadin.dialogs.ConfirmDialog;
 import org.vaadin.easyuploads.FileBuffer;
 
@@ -72,6 +73,11 @@ public class BaseUploadField extends CustomField<Object> implements DropHandler 
 		mainLayout.setSpacing(true);
 
 		multiFileUpload = new BaseMultiFileUpload() {
+			@Override
+			protected void onUploadWindowClosed(CloseEvent e) {
+				BaseUploadField.this.onUploadWindowClosed(e);
+			}
+
 			@SuppressWarnings("unchecked")
 			@Override
 			protected void handleFile(File file, String fileName, String mimeType, long length) {
@@ -198,6 +204,9 @@ public class BaseUploadField extends CustomField<Object> implements DropHandler 
 		multiFileUpload.setVisible(!isViewOnly);
 
 		mainLayout.addComponents(multiFileUpload, fileUploadsTable);
+	}
+
+	protected void onUploadWindowClosed(CloseEvent e) {
 	}
 
 	@Override

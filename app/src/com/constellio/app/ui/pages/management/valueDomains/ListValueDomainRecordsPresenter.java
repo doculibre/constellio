@@ -121,14 +121,13 @@ public class ListValueDomainRecordsPresenter extends SingleSchemaBasePresenter<L
 
 	@Override
 	protected boolean hasPageAccess(String params, final User user) {
-		String schemaTypeCode = new SchemaUtils().getSchemaTypeCode(params);
+		String schemaTypeCode = SchemaUtils.getSchemaTypeCode(params);
 		return new SchemaRecordsPresentersServices(appLayerFactory).canManageSchemaType(schemaTypeCode, user);
 	}
 
 	public void search(String freeText) {
 		this.freeText = freeText;
 		view.refreshTables();
-
 	}
 
 	public void disableButtonClick(RecordVO recordVO) {

@@ -383,7 +383,7 @@ public class TaskTable extends VerticalLayout {
 	private class TaskMenuBar extends BaseMenuBar {
 
 		private TaskMenuBar(final RecordVO taskVO) {
-			super(true);
+			super(true, false);
 
 			MenuItem rootItem = addItem("", FontAwesome.ELLIPSIS_V, null);
 

@@ -17,7 +17,6 @@ import com.constellio.app.services.menu.MenuItemServices;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.application.Navigation;
-import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
@@ -167,11 +166,6 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 					}
 
 					@Override
-					public ContentVersionVO getContentVersionVO() {
-						return null;
-					}
-
-					@Override
 					public Map<String, String> getFormParams() {
 						return MapUtils.emptyIfNull(ParamUtils.getCurrentParams());
 					}
@@ -184,11 +178,6 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 					@Override
 					public boolean isContextualMenu() {
 						return true;
-					}
-
-					@Override
-					public boolean isNestedView() {
-						return false;
 					}
 				});
 		return new MenuItemFactory().buildActionButtons(menuItemActions);
@@ -722,6 +711,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 				protected String getConfirmDialogMessage() {
 					List<String> cartFolderIds = presenter.getCartFolderIds();
 					List<String> cartDocumentIds = presenter.getCartDocumentIds();
+					List<String> cartContainersIds = presenter.getCartContainersIds();
 
 					StringBuilder stringBuilder = new StringBuilder();
 					String prefix = "";
@@ -731,6 +721,9 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 					}
 					if (cartDocumentIds != null && !cartDocumentIds.isEmpty()) {
 						stringBuilder.append(prefix + cartDocumentIds.size() + " " + $("CartView.documents"));
+					}
+					if (cartContainersIds != null && !cartContainersIds.isEmpty()) {
+						stringBuilder.append(prefix + cartContainersIds.size() + " " + $("CartView.containers"));
 					}
 					return $("CartView.deleteConfirmationMessage", stringBuilder.toString());
 				}

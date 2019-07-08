@@ -32,7 +32,7 @@ public class RecordVOMenuBar extends BaseMenuBar {
 	private UserServices userServices;
 
 	public RecordVOMenuBar(RecordVO recordVO) {
-		super(true);
+		super(true, false);
 		this.recordVO = recordVO;
 
 		sessionContext = ConstellioUI.getCurrentSessionContext();
@@ -83,17 +83,6 @@ public class RecordVOMenuBar extends BaseMenuBar {
 					@Override
 					public User getUser() {
 						return userServices.getUserInCollection(sessionContext.getCurrentUser().getUsername(), collection);
-					}
-
-					@Override
-					public boolean isContextualMenu() {
-						return false;
-					}
-
-					@Override
-					public boolean isNestedView() {
-						// FIXME how do we determine this?
-						return false;
 					}
 				});
 

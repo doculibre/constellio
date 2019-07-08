@@ -1292,6 +1292,10 @@ public abstract class GeneratedSchemasRecordsServices extends BaseSchemasRecords
 		public Metadata userFolder() {
 			return metadata("userFolder");
 		}
+
+		public Metadata contentHashes() {
+			return metadata("contentHashes");
+		}
 	}
 
 	public UserFolder wrapUserFolder(Record record) {

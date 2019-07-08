@@ -30,10 +30,11 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.frameworks.validation.ValidationException;
-import com.constellio.model.services.contents.ContentFactory;
 import com.constellio.model.services.contents.icap.IcapException;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.StatusFilter;
+import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.users.UserDocumentsServices;
@@ -69,6 +70,8 @@ public class ListUserDocumentsPresenter extends SingleSchemaBasePresenter<ListUs
 	private RecordVODataProvider userDocumentsDataProvider;
 
 	private ConstellioEIMConfigs eimConfigs;
+
+	boolean newContentSinceLastRefresh = false;
 
 	public ListUserDocumentsPresenter(ListUserDocumentsView view) {
 		super(view, UserDocument.DEFAULT_SCHEMA);
@@ -207,18 +210,19 @@ public class ListUserDocumentsPresenter extends SingleSchemaBasePresenter<ListUs
 				RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 				LogicalSearchQuery duplicateDocumentsQuery = new LogicalSearchQuery()
 						.setCondition(LogicalSearchQueryOperators.from(rm.documentSchemaType())
-								.where(rm.document.content()).is(ContentFactory.isHash(contentVersionVO.getDuplicatedHash()))
-								.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()
-						)
-						.filteredWithUser(getCurrentUser());
+								.where(rm.document.contentHashes()).isEqualTo(contentVersionVO.getDuplicatedHash())
+						).filteredByStatus(StatusFilter.ACTIVES)
+						.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(Schemas.IDENTIFIER, Schemas.TITLE))
+						.setNumberOfRows(100).filteredWithUser(getCurrentUser());
 				Metadata userMetadata = userDocumentSchema.getMetadata(UserDocument.USER);
 				List<Document> duplicateDocuments = rm.searchDocuments(duplicateDocumentsQuery);
 				LogicalSearchQuery duplicateUserDocumentsQuery = new LogicalSearchQuery()
 						.setCondition(LogicalSearchQueryOperators.from(rm.userDocumentSchemaType())
-								.where(rm.userDocument.content()).is(ContentFactory.isHash(contentVersionVO.getDuplicatedHash()))
-								.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()
+								.where(rm.userDocument.contentHashes()).isEqualTo(contentVersionVO.getDuplicatedHash())
 								.andWhere(Schemas.IDENTIFIER).isNotEqual(newRecord.getId())
 								.andWhere(userMetadata).is(currentUser.getWrappedRecord()))
+						.filteredByStatus(StatusFilter.ACTIVES)
+						.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(Schemas.IDENTIFIER, Schemas.TITLE))
 						.filteredWithUser(getCurrentUser());
 				List<UserDocument> duplicateUserDocuments = rm.searchUserDocuments(duplicateUserDocumentsQuery);
 				if (duplicateDocuments.size() > 0 || duplicateUserDocuments.size() > 0) {
@@ -237,9 +241,9 @@ public class ListUserDocumentsPresenter extends SingleSchemaBasePresenter<ListUs
 						message.append(generateDisplayLink(userDocument));
 					}
 					view.showUploadMessage(message.toString());
+					newContentSinceLastRefresh = true;
 				}
 			}
-			userDocumentsDataProvider.fireDataRefreshEvent();
 		} catch (final IcapException e) {
 			view.showUploadErrorMessage(e.getMessage());
 		} catch (Exception e) {
@@ -294,6 +298,12 @@ public class ListUserDocumentsPresenter extends SingleSchemaBasePresenter<ListUs
 
 	void backgroundViewMonitor() {
 		secondsSinceLastRefresh++;
+		if (view.isInAWindow() && secondsSinceLastRefresh >= 2 && newContentSinceLastRefresh) {
+			newContentSinceLastRefresh = false;
+			secondsSinceLastRefresh = 0;
+			userDocumentsDataProvider.fireDataRefreshEvent();
+		}
+
 		if (secondsSinceLastRefresh >= 10) {
 			SearchServices searchServices = modelLayerFactory.newSearchServices();
 
@@ -391,6 +401,10 @@ public class ListUserDocumentsPresenter extends SingleSchemaBasePresenter<ListUs
 	public ContentVersionVO getUpdatedContentVersionVO(RecordVO recordVO, ContentVersionVO previousConventVersionVO) {
 		UserDocumentVO updatedUserDocument = voBuilder.build(recordServices().getDocumentById(recordVO.getId()), VIEW_MODE.FORM, view.getSessionContext());
 		return updatedUserDocument.getContent();
+	}
+
+	public void refreshDocuments() {
+		userDocumentsDataProvider.fireDataRefreshEvent();
 	}
 
 	public boolean isQuotaSpaceConfigActivated() {

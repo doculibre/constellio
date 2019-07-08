@@ -18,7 +18,6 @@ import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -90,9 +89,8 @@ public class FolderUtil {
 
 		final RMSchemasRecordsServices rm = new RMSchemasRecordsServices(folder.getCollection(), appLayerFactory);
 		Function<Record, Folder> recordToFolder = new Function<Record, Folder>() {
-			@Nullable
 			@Override
-			public Folder apply(@Nullable Record input) {
+			public Folder apply(Record input) {
 				return rm.wrapFolder(input);
 			}
 		};

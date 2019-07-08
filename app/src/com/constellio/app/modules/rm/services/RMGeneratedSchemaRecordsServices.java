@@ -1188,6 +1188,10 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("content");
 		}
 
+		public Metadata contentHashes() {
+			return metadata("contentHashes");
+		}
+
 		public Metadata contentCheckedOutBy() {
 			return metadata("contentCheckedOutBy");
 		}

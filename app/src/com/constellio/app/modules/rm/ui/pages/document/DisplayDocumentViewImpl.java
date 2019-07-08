@@ -109,9 +109,9 @@ import static com.constellio.app.ui.i18n.i18n.$;
 public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocumentView, DropHandler {
 
 	private VerticalLayout mainLayout;
-	
+
 	private Label borrowedLabel;
-	private DocumentVO documentVO;
+	private RecordVO documentVO;
 	private String taxonomyCode;
 	private TabSheet tabSheet;
 	private ContentViewer contentViewer;
@@ -172,7 +172,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	}
 
 	@Override
-	public void setDocumentVO(DocumentVO documentVO) {
+	public void setRecordVO(RecordVO documentVO) {
 		this.documentVO = documentVO;
 		if (recordDisplay != null) {
 			recordDisplay.setRecordVO(documentVO);
@@ -190,7 +190,12 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	}
 
 	private ContentViewer newContentViewer() {
-		ContentViewer contentViewer = new ContentViewer(documentVO, Document.CONTENT, documentVO.getContent());
+		ContentVersionVO contentVersionVO = documentVO.get(Document.CONTENT);
+		ContentViewer contentViewer = new ContentViewer(documentVO, Document.CONTENT, contentVersionVO);
+		if (nestedView) {
+			// FIXME CSS bug when displayed in window, hiding for now.
+			contentViewer.setVisible(false);
+		}
 		return contentViewer;
 	}
 
@@ -569,8 +574,9 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		openDocumentButton.addStyleName(ValoTheme.BUTTON_LINK);
 		openDocumentButton.addStyleName("open-document-link");
 
-		if (documentVO.getContent() != null) {
-			downloadDocumentButton = new DownloadContentVersionLink(documentVO.getContent(), $("DisplayDocumentView.downloadDocument"));
+		if (((DocumentVO) documentVO).getContent() != null) {
+			downloadDocumentButton = new DownloadContentVersionLink(((DocumentVO) documentVO).getContent(),
+					$("DisplayDocumentView.downloadDocument"));
 			downloadDocumentButton.addStyleName("download-document-link");
 
 			openDocumentButton.setIcon(downloadDocumentButton.getIcon());
@@ -705,7 +711,8 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		reportGeneratorButton = new ReportTabButton($("SearchView.metadataReportTitle"), $("SearchView.metadataReportTitle"), presenter.getApplayerFactory(), getCollection(), false, false, presenter.buildReportPresenter(), getSessionContext()) {
 			@Override
 			public void buttonClick(ClickEvent event) {
-				setRecordVoList(  getDocumentVO());super.buttonClick(event);
+				setRecordVoList(getRecordVO());
+				super.buttonClick(event);
 			}
 		};
 
@@ -1203,7 +1210,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	}
 
 	@Override
-	public DocumentVO getDocumentVO() {
+	public RecordVO getRecordVO() {
 		return documentVO;
 	}
 

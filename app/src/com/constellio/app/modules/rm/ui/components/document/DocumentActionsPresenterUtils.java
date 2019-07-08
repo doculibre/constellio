@@ -29,7 +29,6 @@ import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.util.DateFormatUtils;
 import com.constellio.app.ui.util.MessageUtils;
-import com.constellio.app.ui.util.SchemaCaptionUtils;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.CorePermissions;
@@ -114,7 +113,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 				.forModule(ConstellioRMModule.ID);
 	}
 
-	public DocumentVO getDocumentVO() {
+	public DocumentVO getRecordVO() {
 		return this.documentVO;
 	}
 
@@ -746,8 +745,8 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		RMConfigs configs = new RMConfigs(getModelLayerFactory().getSystemConfigurationsManager());
 
 		updateBorrowedMessage();
-		DocumentVO documentVO = getDocumentVO();
-		actionsComponent.setDocumentVO(documentVO);
+		RecordVO documentVO = getRecordVO();
+		actionsComponent.setRecordVO(documentVO);
 		Boolean isLogicallyDeleted = documentVO.get(Schemas.LOGICALLY_DELETED_STATUS.getLocalCode());
 		if (Boolean.TRUE.equals(isLogicallyDeleted)) {
 			actionsComponent.setEditDocumentButtonState(ComponentState.INVISIBLE);
@@ -792,7 +791,9 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 			Content content = getContent();
 			String borrowDate = DateFormatUtils.format(content.getCheckoutDateTime());
 			if (!isCurrentUserBorrower()) {
-				String borrowerCaption = SchemaCaptionUtils.getCaptionForRecordId(content.getCheckoutUserId());
+				String checkoutUserId = content.getCheckoutUserId();
+				User user = rmSchemasRecordsServices.getUser(checkoutUserId);
+				String borrowerCaption = user.getTitle();
 				String borrowedMessageKey = "DocumentActionsComponent.borrowedByOtherUser";
 				actionsComponent.setBorrowedMessage(borrowedMessageKey, borrowerCaption, borrowDate);
 			} else {

@@ -185,7 +185,7 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 			}
 		} else if (favoritesId != null) {
 			breadcrumbItems.add(0, new FavoritesBreadcrumbItem());
-			breadcrumbItems.add(1, new GroupFavoritesBreadcrumbItem(favoritesId));
+			breadcrumbItems.add(1, new GroupFavoritesBreadcrumbItem(favoritesId, rmSchemasRecordsServices.getCart(favoritesId).getTitle()));
 		}
 		else if (searchId != null) {
 			breadcrumbItems.add(0, new SearchResultsBreadcrumbItem(searchId, advancedSearch));

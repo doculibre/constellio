@@ -50,6 +50,7 @@ import com.vaadin.server.Responsive;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.server.VaadinService;
 import com.vaadin.server.VaadinSession;
+import com.vaadin.ui.Component;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
@@ -415,7 +416,7 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 	}
 
 	public void removeRecordMenuBarHandler(RecordMenuBarHandler recordMenuBarHandler) {
-		this.recordContextMenuHandlers.remove(recordMenuBarHandler);
+		this.recordMenuBarHandlers.remove(recordMenuBarHandler);
 	}
 
 	public List<RecordMenuBarHandler> getRecordMenuBarHandlers() {
@@ -426,6 +427,7 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 		return (ConstellioUI) UI.getCurrent();
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public <T> T clearAttribute(String key) {
 		return (T) uiContext.remove(key);
@@ -451,25 +453,27 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 		return mainLayout;
 	}
 
-	public void runAsync(final Runnable runnable, int pollInterval) {
-		final boolean stopPolling;
+	public void runAsync(final Runnable runnable, int pollInterval, final Component component) {
+		final boolean restorePollingInterval;
+		final int pollIntervalBefore = getPollInterval();
 		if (getPollInterval() <= 0) {
 			setPollInterval(pollInterval);
-			stopPolling = true;
+			restorePollingInterval = true;
 		} else {
-			stopPolling = false;
+			restorePollingInterval = false;
 		}
 		new Thread() {
 			@Override
 			public void run() {
 				try {
-					access(runnable);
+					runnable.run();
 				} finally {
-					if (stopPolling) {
+					if (restorePollingInterval && component.isAttached()) {
+						// If not attached, it means that we probably have left the view, which means that poll interval has already been changed
 						access(new Runnable() {
 							@Override
 							public void run() {
-								setPollInterval(-1);
+								setPollInterval(pollIntervalBefore);
 							}
 						});
 					}

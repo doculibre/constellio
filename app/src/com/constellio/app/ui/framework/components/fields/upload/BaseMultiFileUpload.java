@@ -1,26 +1,5 @@
 package com.constellio.app.ui.framework.components.fields.upload;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.vaadin.easyuploads.DirectoryFileFactory;
-import org.vaadin.easyuploads.FileBuffer;
-import org.vaadin.easyuploads.FileFactory;
-import org.vaadin.easyuploads.MultiUpload;
-import org.vaadin.easyuploads.MultiUpload.FileDetail;
-import org.vaadin.easyuploads.MultiUploadHandler;
-import org.vaadin.easyuploads.UploadField.FieldType;
-
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.table.BaseTable;
@@ -34,7 +13,6 @@ import com.vaadin.event.dd.DropHandler;
 import com.vaadin.event.dd.acceptcriteria.AcceptAll;
 import com.vaadin.event.dd.acceptcriteria.AcceptCriterion;
 import com.vaadin.navigator.ViewChangeListener;
-import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.StreamVariable;
 import com.vaadin.server.StreamVariable.StreamingEndEvent;
 import com.vaadin.server.StreamVariable.StreamingErrorEvent;
@@ -55,6 +33,26 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window.CloseEvent;
 import com.vaadin.ui.Window.CloseListener;
 import com.vaadin.ui.themes.ValoTheme;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.vaadin.easyuploads.DirectoryFileFactory;
+import org.vaadin.easyuploads.FileBuffer;
+import org.vaadin.easyuploads.FileFactory;
+import org.vaadin.easyuploads.MultiUpload;
+import org.vaadin.easyuploads.MultiUpload.FileDetail;
+import org.vaadin.easyuploads.MultiUploadHandler;
+import org.vaadin.easyuploads.UploadField.FieldType;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 @SuppressWarnings("deprecation")
 public abstract class BaseMultiFileUpload extends CssLayout implements DropHandler, PollListener, ViewChangeListener {
@@ -128,6 +126,7 @@ public abstract class BaseMultiFileUpload extends CssLayout implements DropHandl
 				public void windowClose(CloseEvent e) {
 					infoLabel.setValue("");
 					uploadWindow.setVisible(false);
+					onUploadWindowClosed(e);
 				}
 			});
 
@@ -182,6 +181,10 @@ public abstract class BaseMultiFileUpload extends CssLayout implements DropHandl
 		} else {
 			progressBars.removeComponent(progressIndicator);
 		}
+	}
+
+	protected void onUploadWindowClosed(CloseEvent e) {
+
 	}
 
 	private void prepareUpload() {

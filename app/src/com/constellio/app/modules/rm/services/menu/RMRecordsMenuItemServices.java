@@ -105,12 +105,11 @@ public class RMRecordsMenuItemServices {
 					MenuItemActionState previousState = actionStateByType.get(actionType);
 
 					MenuItemActionState state = computeActionState(actionType, records, user, params, previousState);
-					if (actionStateByType.containsKey(actionType)) {
-						actionStateByType.put(actionType, state);
-					}
+					actionStateByType.put(actionType, state);
 
 					if (state.getStatus() == DISABLED) {
 						actionTypesIterator.remove();
+						break;
 					}
 				}
 			}

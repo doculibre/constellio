@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.services.decommissioning;
 
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
 import com.constellio.app.modules.rm.model.enums.RetentionType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -9,6 +10,7 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
+import org.joda.time.LocalDate;
 
 import java.util.Arrays;
 import java.util.List;
@@ -25,12 +27,14 @@ public class DecommissioningSearchConditionFactory {
 	TaxonomiesSearchServices taxonomiesSearchServices;
 	SearchServices searchServices;
 	DecommissioningService decommissioningService;
+	RMConfigs rmConfigs;
 
 	public DecommissioningSearchConditionFactory(String collection, AppLayerFactory appLayerFactory) {
 		this.schemas = new RMSchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory());
 		this.taxonomiesSearchServices = appLayerFactory.getModelLayerFactory().newTaxonomiesSearchService();
 		this.searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
 		this.decommissioningService = new DecommissioningService(collection, appLayerFactory);
+		this.rmConfigs = new RMConfigs(appLayerFactory);
 	}
 
 	public static List<SearchType> availableCriteriaForFoldersWithoutPlanifiedDate() {
@@ -103,67 +107,71 @@ public class DecommissioningSearchConditionFactory {
 
 	public LogicalSearchCondition activeToTransferToSemiActive(String adminUnitId) {
 		return fromFolderWhereAdministrativeUnitIs(adminUnitId)
-				.andWhere(schemas.folder.expectedTransferDate()).isLessOrEqualThan(getLocalDate())
+				.andWhere(schemas.folder.expectedTransferDate()).isLessOrEqualThan(getDecommissioningDate())
 				.andWhere(schemas.folder.archivisticStatus()).isEqualTo(ACTIVE);
 	}
 
 	public LogicalSearchCondition activeToDestroy(String adminUnitId) {
 		return fromFolderWhereAdministrativeUnitIs(adminUnitId)
-				.andWhere(schemas.folder.expectedDestructionDate()).isLessOrEqualThan(getLocalDate())
+				.andWhere(schemas.folder.expectedDestructionDate()).isLessOrEqualThan(getDecommissioningDate())
 				.andWhere(schemas.folder.archivisticStatus()).isEqualTo(ACTIVE);
 	}
 
 	public LogicalSearchCondition activeToDeposit(String adminUnitId) {
 		return fromFolderWhereAdministrativeUnitIs(adminUnitId)
-				.andWhere(schemas.folder.expectedDepositDate()).isLessOrEqualThan(getLocalDate())
+				.andWhere(schemas.folder.expectedDepositDate()).isLessOrEqualThan(getDecommissioningDate())
 				.andWhere(schemas.folder.archivisticStatus()).isEqualTo(ACTIVE);
 	}
 
 	public LogicalSearchCondition semiActiveToDestroy(String adminUnitId) {
 		return fromFolderWhereAdministrativeUnitIs(adminUnitId)
-				.andWhere(schemas.folder.expectedDestructionDate()).isLessOrEqualThan(getLocalDate())
+				.andWhere(schemas.folder.expectedDestructionDate()).isLessOrEqualThan(getDecommissioningDate())
 				.andWhere(schemas.folder.archivisticStatus()).isEqualTo(SEMI_ACTIVE);
 	}
 
 	public LogicalSearchCondition semiActiveToDeposit(String adminUnitId) {
 		return fromFolderWhereAdministrativeUnitIs(adminUnitId)
-				.andWhere(schemas.folder.expectedDepositDate()).isLessOrEqualThan(getLocalDate())
+				.andWhere(schemas.folder.expectedDepositDate()).isLessOrEqualThan(getDecommissioningDate())
 				.andWhere(schemas.folder.archivisticStatus()).isEqualTo(SEMI_ACTIVE);
 	}
 
 	public LogicalSearchCondition documentTransfer(String adminUnitId) {
 		return fromDocumentWhereAdministrativeUnitIs(adminUnitId)
 				.andWhere(schemas.document.sameSemiActiveFateAsFolder()).isFalse()
-				.andWhere(schemas.documentPlanifiedTransferDate()).isLessOrEqualThan(getLocalDate())
+				.andWhere(schemas.documentPlanifiedTransferDate()).isLessOrEqualThan(getDecommissioningDate())
 				.andWhere(schemas.documentArchivisticStatus()).isEqualTo(ACTIVE);
 	}
 
 	public LogicalSearchCondition documentActiveToDeposit(String adminUnitId) {
 		return fromDocumentWhereAdministrativeUnitIs(adminUnitId)
 				.andWhere(schemas.document.sameInactiveFateAsFolder()).isFalse()
-				.andWhere(schemas.documentPlanifiedDepositDate()).isLessOrEqualThan(getLocalDate())
+				.andWhere(schemas.documentPlanifiedDepositDate()).isLessOrEqualThan(getDecommissioningDate())
 				.andWhere(schemas.documentArchivisticStatus()).isEqualTo(ACTIVE);
 	}
 
 	public LogicalSearchCondition documentActiveToDestroy(String adminUnitId) {
 		return fromDocumentWhereAdministrativeUnitIs(adminUnitId)
 				.andWhere(schemas.document.sameInactiveFateAsFolder()).isFalse()
-				.andWhere(schemas.documentPlanifiedDestructionDate()).isLessOrEqualThan(getLocalDate())
+				.andWhere(schemas.documentPlanifiedDestructionDate()).isLessOrEqualThan(getDecommissioningDate())
 				.andWhere(schemas.documentArchivisticStatus()).isEqualTo(ACTIVE);
 	}
 
 	public LogicalSearchCondition documentSemiActiveToDeposit(String adminUnitId) {
 		return fromDocumentWhereAdministrativeUnitIs(adminUnitId)
 				.andWhere(schemas.document.sameInactiveFateAsFolder()).isFalse()
-				.andWhere(schemas.documentPlanifiedDepositDate()).isLessOrEqualThan(getLocalDate())
+				.andWhere(schemas.documentPlanifiedDepositDate()).isLessOrEqualThan(getDecommissioningDate())
 				.andWhere(schemas.documentArchivisticStatus()).isEqualTo(SEMI_ACTIVE);
 	}
 
 	public LogicalSearchCondition documentSemiActiveToDestroy(String adminUnitId) {
 		return fromDocumentWhereAdministrativeUnitIs(adminUnitId)
 				.andWhere(schemas.document.sameInactiveFateAsFolder()).isFalse()
-				.andWhere(schemas.documentPlanifiedDestructionDate()).isLessOrEqualThan(getLocalDate())
+				.andWhere(schemas.documentPlanifiedDestructionDate()).isLessOrEqualThan(getDecommissioningDate())
 				.andWhere(schemas.documentArchivisticStatus()).isEqualTo(SEMI_ACTIVE);
+	}
+
+	public LocalDate getDecommissioningDate() {
+		return getLocalDate().plusDays(rmConfigs.getNumberOfDaysBeforePredictedDecommissioningDate());
 	}
 
 	public LogicalSearchCondition getVisibleContainersCondition(ContainerSearchParameters params) {

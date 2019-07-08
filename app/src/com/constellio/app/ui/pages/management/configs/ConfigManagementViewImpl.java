@@ -165,16 +165,16 @@ public class ConfigManagementViewImpl extends BaseViewImpl implements ConfigMana
 		String descriptionKey = "SystemConfigurationGroup." + groupCode + "." + configVO.getCode() + ".description";
 		String configDescription = $(descriptionKey);
 		BaseMouseOverIcon baseMouseOverIcon = new BaseMouseOverIcon(new ThemeResource("images/icons/information2.png"), configDescription);
-		if(StringUtils.isBlank(configDescription) || configDescription.equals(descriptionKey)) {
+		if (StringUtils.isBlank(configDescription) || configDescription.equals(descriptionKey)) {
 			baseMouseOverIcon.setVisible(false);
 		}
 		layout.setSizeFull();
-//		field.setWidth(null);
+		//		field.setWidth(null);
 		layout.addComponents(field, baseMouseOverIcon);
 		layout.setExpandRatio(field, 1);
-//		layout.setComponentAlignment(field, Alignment.MIDDLE_LEFT);
-//		layout.setComponentAlignment(baseMouseOverIcon, Alignment.MIDDLE_LEFT);
-//		layout.setExpandRatio(baseMouseOverIcon, 1.0f);
+		//		layout.setComponentAlignment(field, Alignment.MIDDLE_LEFT);
+		//		layout.setComponentAlignment(baseMouseOverIcon, Alignment.MIDDLE_LEFT);
+		//		layout.setExpandRatio(baseMouseOverIcon, 1.0f);
 		return layout;
 	}
 

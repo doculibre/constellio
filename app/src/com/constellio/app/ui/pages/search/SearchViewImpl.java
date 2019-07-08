@@ -38,7 +38,6 @@ import com.constellio.model.entities.records.wrappers.Capsule;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.User;
-import com.jensjansson.pagedtable.PagedTable.PagedTableChangeEvent;
 import com.vaadin.data.Container.ItemSetChangeEvent;
 import com.vaadin.data.Container.ItemSetChangeListener;
 import com.vaadin.data.Property;
@@ -272,7 +271,9 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			}
 		}
 
-		SearchResultVODataProvider dataProvider = presenter.getSearchResults(includeFacets);
+		final SearchResultVODataProvider dataProvider = presenter.getSearchResults(includeFacets);
+		summary.removeAllComponents();
+		resultsArea.removeAllComponents();
 		spellCheckerSuggestions.removeAllComponents();
 		resultsTable = buildResultTable(dataProvider);
 
@@ -288,6 +289,13 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		} else {
 			summary.setVisible(false);
 		}
+
+		/* Code from 8.3
+		resultsArea.addComponent(new LazyLoadWrapper(resultsTable));
+		if (isDetailedView()) {
+			resultsArea.addComponent(((SearchResultDetailedTable) resultsTable).createControls());
+			((SearchResultDetailedTable) resultsTable).setItemsPerPageValue(presenter.getSelectedPageLength());
+		}*/
 
 		if (isDetailedView()) {
 			resultsArea.removeAllComponents();
@@ -441,10 +449,8 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		}
 
 		if (capsuleComponent != null) {
-			if (!capsuleArea.isVisible()) {
-				capsuleArea.setVisible(true);
-			}
 			capsuleArea.addComponent(capsuleComponent);
+			capsuleArea.setVisible(true);
 		} else {
 			capsuleArea.setVisible(false);
 		}
@@ -576,31 +582,33 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		srTable.setItemsPerPageValue(selectedPageLength);
 		srTable.setCurrentPage(currentPage);
 
-		srTable.addListener(new SearchResultDetailedTable.PageChangeListener() {
-			public void pageChanged(PagedTableChangeEvent event) {
-				presenter.setPageNumber(event.getCurrentPage());
-
-				presenter.saveTemporarySearch(false);
-				if (selectDeselectAllButton != null) {
-					hashMapAllSelection.put(presenter.getLastPageNumber(), selectDeselectAllButton.isSelectAllMode());
-					Boolean objIsSelectAllMode = hashMapAllSelection.get(new Integer(presenter.getPageNumber()));
-					boolean isSelectAllMode = true;
-					if (objIsSelectAllMode != null) {
-						isSelectAllMode = objIsSelectAllMode;
-					}
-					selectDeselectAllButton.setSelectAllMode(isSelectAllMode);
-				}
-			}
-		});
-		srTable.getItemsPerPageField().addValueChangeListener(new ValueChangeListener() {
-			@Override
-			public void valueChange(Property.ValueChangeEvent event) {
-				presenter.setSelectedPageLength((int) event.getProperty().getValue());
-				hashMapAllSelection = new HashMap<>();
-
-				presenter.searchNavigationButtonClicked();
-			}
-		});
+		if (false) {
+			//			srTable.addListener(new SearchResultDetailedTable.PageChangeListener() {
+			//				public void pageChanged(PagedTableChangeEvent event) {
+			//					presenter.setPageNumber(event.getCurrentPage());
+			//
+			//					presenter.saveTemporarySearch(false);
+			//					if (selectDeselectAllButton != null) {
+			//						hashMapAllSelection.put(presenter.getLastPageNumber(), selectDeselectAllButton.isSelectAllMode());
+			//						Boolean objIsSelectAllMode = hashMapAllSelection.get(new Integer(presenter.getPageNumber()));
+			//						boolean isSelectAllMode = true;
+			//						if (objIsSelectAllMode != null) {
+			//							isSelectAllMode = objIsSelectAllMode;
+			//						}
+			//						selectDeselectAllButton.setSelectAllMode(isSelectAllMode);
+			//					}
+			//				}
+			//			});
+			//			srTable.getItemsPerPageField().addValueChangeListener(new ValueChangeListener() {
+			//				@Override
+			//				public void valueChange(Property.ValueChangeEvent event) {
+			//					presenter.setSelectedPageLength((int) event.getProperty().getValue());
+			//					hashMapAllSelection = new HashMap<>();
+			//
+			//					presenter.searchNavigationButtonClicked();
+			//				}
+			//			});
+		}
 
 		srTable.setWidth("100%");
 

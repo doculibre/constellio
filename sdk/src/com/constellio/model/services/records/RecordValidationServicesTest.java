@@ -7,6 +7,7 @@ import com.constellio.model.entities.schemas.ConfigProvider;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.entries.DataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.entities.schemas.validation.RecordMetadataValidator;
@@ -102,8 +103,11 @@ public class RecordValidationServicesTest extends ConstellioTest {
 
 		when(record.getSchemaCode()).thenReturn("aSchemaCode");
 		when(record.get(firstMetadata)).thenReturn(aStringValue);
+		when(firstMetadata.getType()).thenReturn(MetadataValueType.STRING);
 		when(record.get(secondMetadata)).thenReturn(aStringValue);
+		when(secondMetadata.getType()).thenReturn(MetadataValueType.STRING);
 		when(record.get(thirdMetadata)).thenReturn(aStringValue);
+		when(thirdMetadata.getType()).thenReturn(MetadataValueType.STRING);
 
 		when(manualDataEntry.getType()).thenReturn(DataEntryType.MANUAL);
 		when(copiedDataEntry.getType()).thenReturn(DataEntryType.COPIED);

@@ -4,20 +4,17 @@ import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.model.entities.records.wrappers.Collection;
+import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.EmailToSend;
-import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.security.global.UserCredential;
-import com.constellio.model.services.schemas.builders.MetadataBuilder;
+import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.model.services.security.roles.RolesManager;
 
-import java.util.Set;
+import java.util.List;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
-import static com.constellio.model.entities.schemas.MetadataValueType.INTEGER;
-import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
+import static java.util.Arrays.asList;
 
 public class CoreMigrationTo_8_2_3 implements MigrationScript {
 
@@ -32,6 +29,18 @@ public class CoreMigrationTo_8_2_3 implements MigrationScript {
 			throws Exception {
 		appLayerFactory.getSystemGlobalConfigsManager().setReindexingRequired(true);
 		new CoreSchemaAlterationFor_8_2_3(collection, migrationResourcesProvider, appLayerFactory).migrate();
+
+		updatePermissions(appLayerFactory, collection);
+	}
+
+	private void updatePermissions(AppLayerFactory appLayerFactory, String collection) {
+		RolesManager roleManager = appLayerFactory.getModelLayerFactory().getRolesManager();
+		List<Role> allRoles = roleManager.getAllRoles(collection);
+		for (Role role : allRoles) {
+			if (roleManager.hasPermission(collection, role.getCode(), CorePermissions.MANAGE_SYSTEM_UPDATES)) {
+				roleManager.updateRole(role.withNewPermissions(asList(CorePermissions.VIEW_SYSTEM_STATE)));
+			}
+		}
 	}
 
 	class CoreSchemaAlterationFor_8_2_3 extends MetadataSchemasAlterationHelper {

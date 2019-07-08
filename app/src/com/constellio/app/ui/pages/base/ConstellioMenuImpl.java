@@ -1,18 +1,24 @@
 package com.constellio.app.ui.pages.base;
 
+import com.constellio.app.entities.system.SystemInfo;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.UserVO;
+import com.constellio.app.ui.framework.buttons.WindowButton;
+import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.components.menuBar.BaseMenuBar;
 import com.constellio.app.ui.pages.viewGroups.MenuViewGroup;
 import com.constellio.app.ui.pages.viewGroups.MenuViewGroup.DisabledMenuViewGroup;
+import com.constellio.model.frameworks.validation.ValidationError;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.Page;
 import com.vaadin.server.StreamResource;
 import com.vaadin.server.StreamResource.StreamSource;
 import com.vaadin.server.ThemeResource;
+import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
@@ -24,6 +30,7 @@ import com.vaadin.ui.MenuBar;
 import com.vaadin.ui.MenuBar.Command;
 import com.vaadin.ui.MenuBar.MenuItem;
 import com.vaadin.ui.UI;
+import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import org.apache.commons.lang3.StringUtils;
 
@@ -54,6 +61,10 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 	private CssLayout menuContent;
 
 	private MenuBar userMenu;
+
+	private Button valoMenuToggleButton;
+
+	private Button systemStateButton;
 
 	private CssLayout menuItemsLayout;
 
@@ -146,6 +157,58 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 			menuItemsLayout.addComponent(mainMenuItemComponent);
 		}
 
+		systemStateButton = new WindowButton($("SystemInfo.systemStateButtonTitle"), $("SystemInfo.systemStateWindowTitle"), WindowConfiguration.modalDialog("75%", "75%")) {
+			@Override
+			protected Component buildWindowContent() {
+				VerticalLayout mainLayout = new VerticalLayout();
+				mainLayout.addStyleName("system-state-window-layout");
+
+				SystemInfo systemInfo = SystemInfo.getInstance();
+				Label updateTimeLabel = new Label($("SystemInfo.lastTimeUpdated", systemInfo.getLastTimeUpdated().toString("HH:mm:ss")));
+				updateTimeLabel.addStyleName("system-state-window-update-time");
+				mainLayout.addComponent(updateTimeLabel);
+				mainLayout.setComponentAlignment(updateTimeLabel, Alignment.TOP_LEFT);
+
+				ValidationErrors validationErrors = systemInfo.getValidationErrors();
+
+				if (!validationErrors.getValidationErrors().isEmpty()) {
+					mainLayout.addComponent(buildStatesComponent("errors", validationErrors.getValidationErrors()));
+				}
+
+				if (!validationErrors.getValidationWarnings().isEmpty()) {
+					mainLayout.addComponent(buildStatesComponent("warnings", validationErrors.getValidationWarnings()));
+				}
+
+				if (!validationErrors.getValidationLogs().isEmpty()) {
+					mainLayout.addComponent(buildStatesComponent("logs", validationErrors.getValidationLogs()));
+				}
+				return mainLayout;
+			}
+
+			private Component buildStatesComponent(String criticity, List<ValidationError> validationErrors) {
+				VerticalLayout mainLayout = new VerticalLayout();
+				mainLayout.addStyleName("system-state-component");
+				mainLayout.addStyleName("system-state-component-" + criticity);
+				mainLayout.setCaption($("SystemInfo." + criticity));
+
+				for (ValidationError error : validationErrors) {
+					Label validationErrorLabel = new Label($(error));
+					validationErrorLabel.addStyleName("system-state-component-validation-error");
+					mainLayout.addComponent(validationErrorLabel);
+				}
+				return mainLayout;
+			}
+
+			@Override
+			public boolean isVisible() {
+				return presenter.hasUserRightToViewSystemState();
+			}
+		};
+		systemStateButton.addStyleName(ValoTheme.BUTTON_TINY);
+		systemStateButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
+		systemStateButton.addStyleName("constellio-menu-system-state-button");
+		refreshSystemStateButton();
+
 		UI.getCurrent().getNavigator().addViewChangeListener(new ViewChangeListener() {
 			@Override
 			public boolean beforeViewChange(ViewChangeEvent event) {
@@ -173,6 +236,7 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 				if (!newSelection && lastSelectedButton != null) {
 					lastSelectedButton.addStyleName(selectedStyleName);
 				}
+				refreshSystemStateButton();
 				return true;
 			}
 
@@ -180,6 +244,8 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 			public void afterViewChange(ViewChangeEvent event) {
 			}
 		});
+
+		menuItemsLayout.addComponent(systemStateButton);
 
 		return menuItemsLayout;
 	}
@@ -192,6 +258,17 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 			badgeLabel.setVisible(true);
 		} else {
 			badgeLabel.setVisible(false);
+		}
+	}
+
+	private void refreshSystemStateButton() {
+		ValidationErrors validationErrors = SystemInfo.getInstance().getValidationErrors();
+		if (!validationErrors.isEmpty()) {
+			systemStateButton.setIcon(new ThemeResource("images/commun/error.gif"));
+		} else if (!validationErrors.isEmptyErrorAndWarnings()) {
+			systemStateButton.setIcon(new ThemeResource("images/commun/warning.png"));
+		} else {
+			systemStateButton.setIcon(new ThemeResource("images/commun/greenCircle.png"));
 		}
 	}
 

@@ -1,14 +1,5 @@
 package com.constellio.model.extensions;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.data.frameworks.extensions.ExtensionUtils.BooleanCaller;
 import com.constellio.data.frameworks.extensions.VaultBehaviorsList;
@@ -16,7 +7,6 @@ import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.extensions.behaviors.BatchProcessingSpecialCaseExtension;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.extensions.behaviors.BatchProcessingSpecialCaseExtension;
 import com.constellio.model.extensions.behaviors.RecordExtension;
@@ -273,7 +263,7 @@ public class ModelLayerCollectionExtensions {
 		for (RecordExtension extension : recordExtensions.getExtensions()) {
 			ValidationErrors validationErrors = extension.validateLogicallyDeletable(event);
 			if (validationErrors != null && !validationErrors.isEmpty()) {
-				return extension.validateLogicallyDeletable(event);
+				return validationErrors;
 			}
 		}
 		return new ValidationErrors();

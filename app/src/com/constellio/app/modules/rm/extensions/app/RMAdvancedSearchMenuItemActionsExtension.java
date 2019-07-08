@@ -13,14 +13,20 @@ import com.constellio.app.services.menu.MenuItemAction;
 import com.constellio.app.services.menu.MenuItemActionState;
 import com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
+import com.constellio.app.services.menu.behavior.ui.AdvancedViewBatchProcessingPresenter;
+import com.constellio.app.services.menu.behavior.ui.AdvancedViewBatchProcessingViewImpl;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.buttons.BaseButton;
+import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.ReportTabButton;
 import com.constellio.app.ui.pages.search.AdvancedSearchViewImpl;
+import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingButton;
+import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingModifyingOneMetadataButton;
 import com.constellio.app.ui.pages.search.criteria.ConditionBuilder;
 import com.constellio.app.ui.pages.search.criteria.ConditionException;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
+import com.constellio.model.entities.enums.BatchProcessingMode;
 import com.constellio.model.entities.records.wrappers.Facet;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.User;
@@ -55,6 +61,8 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.entities.enums.BatchProcessingMode.ALL_METADATA_OF_SCHEMA;
+import static com.constellio.model.entities.enums.BatchProcessingMode.ONE_METADATA;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 @Slf4j
@@ -136,24 +144,25 @@ public class RMAdvancedSearchMenuItemActionsExtension extends MenuItemActionsExt
 		return new MenuItemActionState(MenuItemActionStateStatus.VISIBLE);
 	}
 
-	private void batchProcess(LogicalSearchQuery searchQuery, MenuItemActionBehaviorParams params) {
-		// TODO
-		/*
-		AdvancedSearchViewImpl view = ((AdvancedSearchViewImpl) params.getView());
-		List<String> selectedRecordIds = getRecordIds(records);
+	private void batchProcess(LogicalSearchQuery query, MenuItemActionBehaviorParams params) {
+		AdvancedViewBatchProcessingPresenter batchProcessingPresenter =
+				new AdvancedViewBatchProcessingPresenter(appLayerFactory, (AdvancedSearchViewImpl) params.getView(),
+						params.getUser(), query);
+		AdvancedViewBatchProcessingViewImpl batchProcessingView =
+				new AdvancedViewBatchProcessingViewImpl(batchProcessingPresenter);
 
 		WindowButton button;
-		BatchProcessingMode mode = presenter.getBatchProcessingMode();
+		BatchProcessingMode mode = batchProcessingPresenter.getBatchProcessingMode();
 		if (mode.equals(ALL_METADATA_OF_SCHEMA)) {
-			button = new BatchProcessingButton(presenter, view).hasResultSelected(!selectedRecordIds.isEmpty());
+			button = new BatchProcessingButton(batchProcessingPresenter, batchProcessingView)
+					.hasResultSelected(!batchProcessingView.getSelectedRecordIds().isEmpty());
 		} else if (mode.equals(ONE_METADATA)) {
-			button = new BatchProcessingModifyingOneMetadataButton(presenter, view)
-					.hasResultSelected(!selectedRecordIds.isEmpty());
+			button = new BatchProcessingModifyingOneMetadataButton(batchProcessingPresenter, batchProcessingView)
+					.hasResultSelected(!batchProcessingView.getSelectedRecordIds().isEmpty());
 		} else {
 			throw new RuntimeException("Unsupported mode " + mode);
 		}
 		button.click();
-		*/
 	}
 
 	private void generateReport(LogicalSearchQuery searchQuery, MenuItemActionBehaviorParams params) {

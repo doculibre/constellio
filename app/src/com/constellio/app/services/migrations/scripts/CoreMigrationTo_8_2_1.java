@@ -21,11 +21,11 @@ import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
 import static com.constellio.model.entities.schemas.MetadataValueType.INTEGER;
 import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
 
-public class CoreMigrationTo_8_2_1_0 implements MigrationScript {
+public class CoreMigrationTo_8_2_1 implements MigrationScript {
 
 	@Override
 	public String getVersion() {
-		return "8.2.1.0";
+		return "8.2.1";
 	}
 
 	@Override
@@ -39,14 +39,14 @@ public class CoreMigrationTo_8_2_1_0 implements MigrationScript {
 				.withInputType(MetadataInputType.RICHTEXT));
 
 		appLayerFactory.getSystemGlobalConfigsManager().setReindexingRequired(true);
-		new CoreSchemaAlterationFor_8_2_1_0(collection, migrationResourcesProvider, appLayerFactory).migrate();
+		new CoreSchemaAlterationFor_8_2_1(collection, migrationResourcesProvider, appLayerFactory).migrate();
 	}
 
-	class CoreSchemaAlterationFor_8_2_1_0 extends MetadataSchemasAlterationHelper {
+	class CoreSchemaAlterationFor_8_2_1 extends MetadataSchemasAlterationHelper {
 
-		protected CoreSchemaAlterationFor_8_2_1_0(String collection,
-												  MigrationResourcesProvider migrationResourcesProvider,
-												  AppLayerFactory appLayerFactory) {
+		protected CoreSchemaAlterationFor_8_2_1(String collection,
+												MigrationResourcesProvider migrationResourcesProvider,
+												AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 

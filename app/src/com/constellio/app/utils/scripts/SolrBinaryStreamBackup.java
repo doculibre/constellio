@@ -1,7 +1,5 @@
 package com.constellio.app.utils.scripts;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
@@ -17,8 +15,16 @@ import org.apache.solr.handler.loader.XMLLoader;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
-import java.io.*;
-import java.nio.charset.StandardCharsets;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.ByteArrayInputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -37,7 +43,7 @@ import java.util.zip.GZIPOutputStream;
 public class SolrBinaryStreamBackup {
 
 	private static final String[] COLLECTIONS = new String[] { "records", "events", "notifications" };
-	private static final int THREADS = Runtime.getRuntime().availableProcessors() * 8;
+	private static final int THREADS = 1;
 	private static final int BATCH_SIZE = 1000;
 
 	public static void main(String[] argv)

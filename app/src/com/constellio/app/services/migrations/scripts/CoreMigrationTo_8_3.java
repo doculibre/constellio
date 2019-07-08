@@ -1,34 +1,50 @@
 package com.constellio.app.services.migrations.scripts;
 
+import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.model.entities.CorePermissions;
-import com.constellio.model.entities.security.Role;
-import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.security.roles.RolesManager;
+import com.constellio.model.entities.records.wrappers.Collection;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.security.global.UserCredential;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
-import java.util.List;
+import static com.constellio.model.entities.security.global.UserCredential.HAS_READ_LAST_ALERT;
 
-import static java.util.Arrays.asList;
+public class CoreMigrationTo_8_3 implements MigrationScript {
 
-public class CoreMigrationTo_8_3 implements MigrationScript  {
 	@Override
 	public String getVersion() {
-		return "8_3";
+		return "8.3";
 	}
+
 
 	@Override
-	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
-						AppLayerFactory appLayerFactory) throws Exception {
-		ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
+	public void migrate(String collection, MigrationResourcesProvider provider,
+						AppLayerFactory appLayerFactory)
+			throws Exception {
+
+		if (Collection.SYSTEM_COLLECTION.equals(collection)) {
+			new CoreSchemaAlterationFor8_3_1(collection, provider, appLayerFactory).migrate();
+		}
+
+	}
 
 
-		RolesManager rolesManager = modelLayerFactory.getRolesManager();
-		List<Role> roleList = rolesManager.getAllRoles(collection);
+	private class CoreSchemaAlterationFor8_3_1 extends MetadataSchemasAlterationHelper {
+		public CoreSchemaAlterationFor8_3_1(String collection, MigrationResourcesProvider migrationResourcesProvider,
+											AppLayerFactory appLayerFactory) {
+			super(collection, migrationResourcesProvider, appLayerFactory);
+		}
 
-		for(Role role : roleList){
-			rolesManager.updateRole(role.withNewPermissions(asList(CorePermissions.MODIFY_RECORDS_USING_BATCH_PROCESS)));
+		@Override
+		protected void migrate(MetadataSchemaTypesBuilder builder) {
+			if (!builder.getDefaultSchema(UserCredential.SCHEMA_TYPE).hasMetadata(HAS_READ_LAST_ALERT)) {
+				builder.getDefaultSchema(UserCredential.SCHEMA_TYPE)
+						.createUndeletable(HAS_READ_LAST_ALERT).setType(MetadataValueType.BOOLEAN);
+			}
 		}
 	}
+
+
 }

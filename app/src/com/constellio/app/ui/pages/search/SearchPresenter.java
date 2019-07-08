@@ -452,69 +452,74 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		return dataProvider;
 	}
 
-	private void logSearchEvent(SearchResultVODataProvider dataProvider, SPEQueryResponse response) {
+	private void logSearchEvent(final SearchResultVODataProvider dataProvider, final SPEQueryResponse response) {
 		if (Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()) {
-			LogicalSearchQuery query = dataProvider.getQuery();
+			new Thread() {
+				@Override
+				public void run() {
+					LogicalSearchQuery query = dataProvider.getQuery();
 
-			int rows = getSelectedPageLength() == 0 ? 10 : getSelectedPageLength();
-			int start = (getPageNumber() > 0 ? getPageNumber() - 1 : 0) * rows;
+					int rows = getSelectedPageLength() == 0 ? 10 : getSelectedPageLength();
+					int start = (getPageNumber() > 0 ? getPageNumber() - 1 : 0) * rows;
 
-			query.setStartRow(start);
-			query.setNumberOfRows(rows);
+					query.setStartRow(start);
+					query.setNumberOfRows(rows);
 
-			ModifiableSolrParams modifiableSolrParams = modelLayerFactory.newSearchServices()
-					.addSolrModifiableParams(query);
+					ModifiableSolrParams modifiableSolrParams = modelLayerFactory.newSearchServices()
+							.addSolrModifiableParams(query);
 
-			SchemasRecordsServices schemasRecordsServices = new SchemasRecordsServices(collection, modelLayerFactory);
-			SearchEvent searchEvent = schemasRecordsServices.newSearchEvent();
-			searchEvent.setOriginalQuery(query.getFreeTextQuery());
-			searchEvent.setClickCount(0);
+					SchemasRecordsServices schemasRecordsServices = new SchemasRecordsServices(collection, modelLayerFactory);
+					SearchEvent searchEvent = schemasRecordsServices.newSearchEvent();
+					searchEvent.setOriginalQuery(query.getFreeTextQuery());
+					searchEvent.setClickCount(0);
 
-			Capsule capsule = getCapsuleForCurrentSearch();
-			if (capsule != null) {
-				searchEvent.setCapsule(capsule);
-			}
+					Capsule capsule = getCapsuleForCurrentSearch();
+					if (capsule != null) {
+						searchEvent.setCapsule(capsule);
+					}
 
-			ArrayList<String> paramList = new ArrayList<>();
+					ArrayList<String> paramList = new ArrayList<>();
 
-			for (String paramName : modifiableSolrParams.getParameterNames()) {
-				if (!StringUtils.equalsAny(paramName, "qf", "pf", "fl")) {
-					if ("q".equals(paramName)) {
-						searchEvent.setQuery(StringUtils.stripAccents(modifiableSolrParams.get(paramName).toLowerCase()));
-					} else {
-						String[] values = modifiableSolrParams.getParams(paramName);
+					for (String paramName : modifiableSolrParams.getParameterNames()) {
+						if (!StringUtils.equalsAny(paramName, "qf", "pf", "fl")) {
+							if ("q".equals(paramName)) {
+								searchEvent.setQuery(StringUtils.stripAccents(modifiableSolrParams.get(paramName).toLowerCase()));
+							} else {
+								String[] values = modifiableSolrParams.getParams(paramName);
 
-						if (values.length == 1) {
-							paramList.add(paramName + "=" + values[0]);
-						} else if (values.length > 1) {
-							StringBuilder valuesAsOneStringBuilder = new StringBuilder();
-							for (String value : values) {
-								valuesAsOneStringBuilder.append(paramName).append("=").append(value).append(";");
+								if (values.length == 1) {
+									paramList.add(paramName + "=" + values[0]);
+								} else if (values.length > 1) {
+									StringBuilder valuesAsOneStringBuilder = new StringBuilder();
+									for (String value : values) {
+										valuesAsOneStringBuilder.append(paramName).append("=").append(value).append(";");
+									}
+									paramList.add(valuesAsOneStringBuilder.toString());
+								}
+
 							}
-							paramList.add(valuesAsOneStringBuilder.toString());
 						}
+					}
+					searchEvent.setParams(paramList);
+					searchEvent.setQTime(response.getQtime());
+					searchEvent.setNumFound(response.getNumFound());
+					UIContext uiContext = view.getUIContext();
 
+					SearchEvent oldSearchEventRecord = view.getSessionContext().getAttribute(CURRENT_SEARCH_EVENT);
+					SearchEvent oldSearchEvent = null;
+					if (oldSearchEventRecord != null && oldSearchEventRecord.getCollection().equals(collection)) {
+						oldSearchEvent = oldSearchEventRecord;
+					}
+
+					if (!areSearchEventEqual(oldSearchEvent, searchEvent)) {
+						view.getSessionContext().setAttribute(CURRENT_SEARCH_EVENT, searchEvent);
+						SearchEventServices searchEventServices = new SearchEventServices(view.getCollection(), modelLayerFactory);
+						searchEventServices.save(searchEvent);
+
+						checkAndUpdateDwellTime(oldSearchEvent);
 					}
 				}
-			}
-			searchEvent.setParams(paramList);
-			searchEvent.setQTime(response.getQtime());
-			searchEvent.setNumFound(response.getNumFound());
-			UIContext uiContext = view.getUIContext();
-
-			SearchEvent oldSearchEventRecord = view.getSessionContext().getAttribute(CURRENT_SEARCH_EVENT);
-			SearchEvent oldSearchEvent = null;
-			if (oldSearchEventRecord != null && oldSearchEventRecord.getCollection().equals(collection)) {
-				oldSearchEvent = oldSearchEventRecord;
-			}
-
-			if (!areSearchEventEqual(oldSearchEvent, searchEvent)) {
-				view.getSessionContext().setAttribute(CURRENT_SEARCH_EVENT, searchEvent);
-				SearchEventServices searchEventServices = new SearchEventServices(view.getCollection(), modelLayerFactory);
-				searchEventServices.save(searchEvent);
-
-				checkAndUpdateDwellTime(oldSearchEvent);
-			}
+			}.start();
 		}
 	}
 

@@ -44,6 +44,10 @@ public class ContainerAdapter<T extends Container & Indexed & Sortable> extends 
 		return adapted;
 	}
 
+	public boolean isIndexProperty() {
+		return indexProperty;
+	}
+
 	@SuppressWarnings("unchecked")
 	public T getNestedContainerRecursive() {
 		T result = adapted;

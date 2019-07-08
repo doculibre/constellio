@@ -103,7 +103,19 @@ public class DeclareUserContentContainerButton extends ContainerButton {
 				}
 			};
 
-			mainLayout.addComponents(declareEmailButton, declareEmailAttachmentsButton);
+			Button declareEmailAndAttachmentsButton = new BaseButton($("ListUserDocumentsView.declareEmailAndEmailAttachments")) {
+				@Override
+				protected void buttonClick(ClickEvent event) {
+					String userDocumentId = userDocumentVO.getId();
+					ConstellioUI.getCurrent().navigateTo().addEmailAndAttachmentsToFolder(userDocumentId);
+					for (Window window : ConstellioUI.getCurrent().getWindows()) {
+						window.close();
+					}
+				}
+			};
+
+
+			mainLayout.addComponents(declareEmailButton, declareEmailAttachmentsButton, declareEmailAndAttachmentsButton);
 			setCompositionRoot(mainLayout);
 		}
 	}

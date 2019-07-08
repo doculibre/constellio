@@ -44,6 +44,8 @@ public class SearchResultDetailedTable extends BasePagedTable<SearchResultContai
 		super("SearchResultDetailedTable", container);
 
 		addStyleName(ValoTheme.TABLE_BORDERLESS);
+		addStyleName(TABLE_STYLE);
+		addStyleName("search-result-detailed-table");
 
 		addStyleName(SEARCH_RESULT_TABLE_STYLE);
 

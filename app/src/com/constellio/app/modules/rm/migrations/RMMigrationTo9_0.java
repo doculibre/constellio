@@ -4,22 +4,18 @@ import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
-import com.constellio.app.modules.rm.constants.RMRoles;
 import com.constellio.app.modules.rm.model.calculators.folder.FolderActualDepositDateCalculator;
 import com.constellio.app.modules.rm.model.calculators.folder.FolderActualDestructionDateCalculator;
 import com.constellio.app.modules.rm.model.calculators.folder.FolderActualTransferDateCalculator;
 import com.constellio.app.modules.rm.model.calculators.folder.FolderOpeningDateCalculator;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.services.migrations.CoreRoles;
-import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.security.roles.RolesManager;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import static java.util.Arrays.asList;

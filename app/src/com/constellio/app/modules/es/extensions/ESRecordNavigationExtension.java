@@ -246,4 +246,10 @@ public class ESRecordNavigationExtension implements RecordNavigationExtension {
 			}
 		}, fileName);
 	}
+
+	@Override
+	public String getViewHrefTag(NavigationParams navigationParams) {
+		return null;
+	}
+	
 }

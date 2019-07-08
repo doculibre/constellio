@@ -57,6 +57,7 @@ public class DecommissioningList extends RecordWrapper {
 	public static final String COMMENTS = "comments";
 	public static final String DOCUMENTS_REPORT_CONTENT = "documentsReportContent";
 	public static final String FOLDERS_REPORT_CONTENT = "foldersReportContent";
+	public static final String CONTENTS = "contents";
 
 	// Disabled fields
 	public static final String VALIDATION_DATE = "validationDate";    // never used, disabled in 5.1.0
@@ -264,6 +265,15 @@ public class DecommissioningList extends RecordWrapper {
 
 	public DecommissioningList setOriginArchivisticStatus(OriginStatus originStatus) {
 		set(ORIGIN_ARCHIVISTIC_STATUS, originStatus);
+		return this;
+	}
+
+	public List<Content> getContent() {
+		return get(CONTENTS);
+	}
+
+	public DecommissioningList setContent(List<Content> contents) {
+		set(CONTENTS, contents);
 		return this;
 	}
 

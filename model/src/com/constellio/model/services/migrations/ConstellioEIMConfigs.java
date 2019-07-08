@@ -5,14 +5,28 @@ import com.constellio.model.entities.configs.AbstractSystemConfigurationScript;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.configs.SystemConfigurationGroup;
 import com.constellio.model.entities.configs.core.listeners.UserTitlePatternConfigScript;
-import com.constellio.model.entities.enums.*;
+import com.constellio.model.entities.enums.BatchProcessingMode;
+import com.constellio.model.entities.enums.EmailTextFormat;
+import com.constellio.model.entities.enums.GroupAuthorizationsInheritance;
+import com.constellio.model.entities.enums.MemoryConsumptionLevel;
+import com.constellio.model.entities.enums.MetadataPopulatePriority;
+import com.constellio.model.entities.enums.ParsingBehavior;
+import com.constellio.model.entities.enums.SearchSortType;
+import com.constellio.model.entities.enums.TitleMetadataPopulatePriority;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.configs.EnableThumbnailsScript;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import org.apache.commons.lang.StringUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static com.constellio.model.services.migrations.TimeScheduleConfigurationValidator.isCurrentlyInSchedule;
 
@@ -119,6 +133,7 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration BATCH_PROCESSES_SCHEDULE;
 	public static final SystemConfiguration IS_RUNNING_WITH_SOLR_6;
 	public static final SystemConfiguration PRIVACY_POLICY;
+	public static final SystemConfiguration LOGIN_NOTIFICATION_ALERT;
 	public static final SystemConfiguration ADD_SECONDARY_SORT_WHEN_SORTING_BY_SCORE;
 	public static final SystemConfiguration INCLUDE_FROM_FIELD_WHEN_GENERATING_EMAILS;
 
@@ -136,6 +151,12 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration GENERATED_EMAIL_FORMAT;
 
 	public static final SystemConfiguration IS_TRASH_THREAD_EXECUTING;
+
+	public static final SystemConfiguration ENABLE_SYSTEM_STATE_MEMORY_ALLOCATION;
+	public static final SystemConfiguration ENABLE_SYSTEM_STATE_OPT_DISK_USAGE;
+	public static final SystemConfiguration ENABLE_SYSTEM_STATE_SOLR_DISK_USAGE;
+	public static final SystemConfiguration ENABLE_SYSTEM_STATE_LICENSE;
+	public static final SystemConfiguration NO_LNKS_IN_SEARCH_RESULTS;
 
 	public static final SystemConfiguration ENABLE_THUMBNAIL_GENERATION;
 
@@ -174,12 +195,13 @@ public class ConstellioEIMConfigs {
 				.withDefaultValue(3000));
 		add(CONTENT_MAX_LENGTH_FOR_PARSING_IN_MEGAOCTETS = advanced.createInteger("contentMaxLengthForParsingInMegaoctets")
 				.withDefaultValue(30));
-		add(FILE_EXTENSIONS_EXCLUDED_FROM_PARSING = advanced.createString("fileExtensionsExcludedFromParsing").withReIndexionRequired());
+		add(FILE_EXTENSIONS_EXCLUDED_FROM_PARSING = advanced.createString("fileExtensionsExcludedFromParsing").withReIndexationRequired());
 
 		add(CLEAN_DURING_INSTALL = advanced.createBooleanFalseByDefault("cleanDuringInstall"));
 
 		SystemConfigurationGroup hiddenSystemConfigs = new SystemConfigurationGroup(null, "system");
 		add(IN_UPDATE_PROCESS = hiddenSystemConfigs.createBooleanFalseByDefault("inUpdateProcess").whichIsHidden());
+		add(LOGIN_NOTIFICATION_ALERT = hiddenSystemConfigs.createBinary("loginNotificationAlert").whichIsHidden());
 		add(BATCH_PROCESSING_MODE = others.createEnum("batchProcessingMode", BatchProcessingMode.class)
 				.withDefaultValue(BatchProcessingMode.ALL_METADATA_OF_SCHEMA));
 		add(TRASH_PURGE_DELAI = others.createInteger("trashPurgeDelaiInDays").withDefaultValue(30));
@@ -287,7 +309,15 @@ public class ConstellioEIMConfigs {
 
 		add(UPDATE_SERVER_CONNECTION_ENABLED = advanced.createBooleanTrueByDefault("updateServerConnectionEnabled").whichIsHidden());
 
+		add(NO_LNKS_IN_SEARCH_RESULTS = search.createBooleanFalseByDefault("noLinksInSearchResults"));
+
 		configurations = Collections.unmodifiableList(modifiableConfigs);
+
+		SystemConfigurationGroup systemState = new SystemConfigurationGroup(null, "systemState");
+		add(ENABLE_SYSTEM_STATE_LICENSE = systemState.createBooleanTrueByDefault("enableSystemStateLicense"));
+		add(ENABLE_SYSTEM_STATE_MEMORY_ALLOCATION = systemState.createBooleanTrueByDefault("enableSystemStateMemoryAllocation"));
+		add(ENABLE_SYSTEM_STATE_OPT_DISK_USAGE = systemState.createBooleanTrueByDefault("enableSystemStateOptDiskUsage"));
+		add(ENABLE_SYSTEM_STATE_SOLR_DISK_USAGE = systemState.createBooleanTrueByDefault("enableSystemStateSolrDiskUsage"));
 	}
 
 	static void add(SystemConfiguration configuration) {
@@ -543,16 +573,12 @@ public class ConstellioEIMConfigs {
 		return manager.getValue(BATCH_PROCESSES_MAXIMUM_HISTORY_SIZE);
 	}
 
-	public boolean isUpdateServerConnectionEnabled() {
-		return manager.getValue(UPDATE_SERVER_CONNECTION_ENABLED);
+	public boolean isAddingRecordIdInEmails() {
+		return manager.getValue(ADD_RECORD_ID_IN_EMAILS);
 	}
 
 	public boolean isThumbnailGenerationEnabled() {
 		return manager.getValue(ENABLE_THUMBNAIL_GENERATION);
-	}
-
-	public boolean isAddingRecordIdInEmails() {
-		return manager.getValue(ADD_RECORD_ID_IN_EMAILS);
 	}
 
 	public EmailTextFormat getGeneratedEmailFormat() {
@@ -576,4 +602,27 @@ public class ConstellioEIMConfigs {
 		return extensionSet;
 	}
 
+	public boolean isSystemStateLicenseValidationEnabled() {
+		return manager.getValue(ENABLE_SYSTEM_STATE_LICENSE);
+	}
+
+	public boolean isSystemStateMemoryAllocationValidationEnabled() {
+		return manager.getValue(ENABLE_SYSTEM_STATE_MEMORY_ALLOCATION);
+	}
+
+	public boolean isSystemStateOptDiskUsageValidationEnabled() {
+		return manager.getValue(ENABLE_SYSTEM_STATE_OPT_DISK_USAGE);
+	}
+
+	public boolean isSystemStateSolrDiskUsageValidationEnabled() {
+		return manager.getValue(ENABLE_SYSTEM_STATE_SOLR_DISK_USAGE);
+	}
+
+	public boolean isUpdateServerConnectionEnabled() {
+		return manager.getValue(UPDATE_SERVER_CONNECTION_ENABLED);
+	}
+
+	public boolean isNoLinksInSearchResults() {
+		return manager.getValue(NO_LNKS_IN_SEARCH_RESULTS);
+	}
 }
