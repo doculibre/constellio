@@ -129,6 +129,24 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 	}
 
 	@Override
+	public Record getRecordSummaryByMetadata(Metadata metadata, String value) {
+		if (!metadata.isUniqueValue()) {
+			throw new IllegalArgumentException("Metadata '" + metadata + "' is not unique");
+		}
+		if (metadata.getCode().startsWith("global_")) {
+			throw new IllegalArgumentException("Metadata '" + metadata + "' is global, which has no specific schema type.");
+		}
+
+		Record foundRecord = getConnectedRecordsCache().getCache(metadata.getCollection()).getSummaryByMetadata(metadata, value);
+
+		if (foundRecord == null) {
+			foundRecord = recordServices.getRecordSummaryByMetadata(metadata, value);
+		}
+
+		return foundRecord;
+	}
+
+	@Override
 	public List<Record> getRecordsById(String collection,
 									   List<String> ids) {
 

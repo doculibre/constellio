@@ -23,12 +23,12 @@ public interface RecordsCache {
 	CacheInsertionStatus insert(Record record, InsertionReason insertionReason);
 
 	@Deprecated
-	default void reloadSchemaType(String recordType) {
-		reloadSchemaType(recordType, false);
+	default void reloadSchemaType(String recordType, boolean forceVolatileCacheClear) {
+		reloadSchemaType(recordType, false, forceVolatileCacheClear);
 	}
 
 	@Deprecated
-	void reloadSchemaType(String recordType, boolean onlyLocally);
+	void reloadSchemaType(String recordType, boolean onlyLocally, boolean forceVolatileCacheClear);
 
 	void removeFromAllCaches(List<String> recordIds);
 

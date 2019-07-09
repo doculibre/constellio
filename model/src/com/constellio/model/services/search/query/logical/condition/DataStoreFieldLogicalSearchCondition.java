@@ -203,7 +203,24 @@ public class DataStoreFieldLogicalSearchCondition extends LogicalSearchCondition
 	}
 
 	@Override
-	public boolean isSupportingMemoryExecution() {
+	public boolean isSupportingMemoryExecution(boolean queryingTypesInSummaryCache) {
+
+		if (dataStoreFields == null) {
+			return true;
+		}
+
+		if (queryingTypesInSummaryCache) {
+			boolean allMetadatasInCache = true;
+			for (DataStoreField queriedField : dataStoreFields) {
+				Metadata metadata = (Metadata) queriedField;
+				allMetadatasInCache &= metadata.isEssentialInSummary() || metadata.isUniqueValue();
+			}
+
+			if (!allMetadatasInCache) {
+				return false;
+			}
+		}
+
 		return valueCondition == null || valueCondition.isSupportingMemoryExecution();
 	}
 }

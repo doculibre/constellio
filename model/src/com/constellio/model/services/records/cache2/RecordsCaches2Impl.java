@@ -2,7 +2,6 @@ package com.constellio.model.services.records.cache2;
 
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordDTOMode;
-import com.constellio.data.dao.dto.records.SolrRecordDTO;
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.services.cache.InsertionReason;
 import com.constellio.data.utils.ImpossibleRuntimeException;
@@ -35,7 +34,6 @@ import org.mapdb.Serializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -51,6 +49,7 @@ import static com.constellio.data.dao.services.cache.InsertionReason.LOADING_CAC
 import static com.constellio.data.utils.LangUtils.isEqual;
 import static com.constellio.model.entities.schemas.Schemas.COLLECTION;
 import static com.constellio.model.entities.schemas.Schemas.SCHEMA;
+import static com.constellio.model.services.records.RecordUtils.toPersistedSummaryRecordDTO;
 import static com.constellio.model.services.records.cache.MassiveCacheInvalidationReason.KEEP_INTEGRITY;
 import static com.constellio.model.services.records.cache2.CacheRecordDTOUtils.convertDTOToByteArrays;
 
@@ -138,8 +137,9 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 
 
 	protected void reload(byte collectionId, String collection, List<String> schemaTypes,
-						  boolean onlyLocally) {
-		boolean clearVolatileCache = false;
+						  boolean onlyLocally, boolean forceVolatileCacheClear) {
+
+		boolean clearVolatileCache = forceVolatileCacheClear;
 		for (String schemaTypeCode : schemaTypes) {
 			MetadataSchemaType schemaType = metadataSchemasManager.getSchemaTypes(collection).getSchemaType(schemaTypeCode);
 			if (schemaType.getCacheType().hasVolatileCache()) {
@@ -183,7 +183,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 		}
 
 		if (((RecordImpl) record).getRecordDTO().getLoadingMode() == CUSTOM && insertionReason != LOADING_CACHE) {
-			throw new IllegalStateException("Cannot create summary record from a customly loaded Record");
+			return CacheInsertionStatus.REFUSED_NOT_FULLY_LOADED;
 		}
 
 		//TODO Remove coupling!
@@ -248,24 +248,6 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 		} else {
 			return CacheInsertionStatus.REFUSED_NOT_CACHED;
 		}
-	}
-
-	public static RecordDTO toPersistedSummaryRecordDTO(Record record, MetadataSchema schema) {
-
-		RecordDTO dto = ((RecordImpl) record).getRecordDTO();
-
-		Map<String, Object> fields = new HashMap<>();
-
-		for (Metadata summaryMetadata : schema.getSummaryMetadatas()) {
-			String summaryMetadataDataStoreCode = summaryMetadata.getDataStoreCode();
-			fields.put(summaryMetadataDataStoreCode, dto.getFields().get(summaryMetadataDataStoreCode));
-		}
-
-		fields.put("collection_s", dto.getFields().get("collection_s"));
-		fields.put("schema_s", dto.getFields().get("schema_s"));
-
-		return new SolrRecordDTO(dto.getId(), dto.getVersion(), Collections.unmodifiableMap(fields), SUMMARY);
-
 	}
 
 	@Override
@@ -511,7 +493,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 				.getSchemaType(metadata.getSchemaTypeCode());
 
 		if (schemaType.getCacheType().isSummaryCache() || schemaType.getCacheType() == RecordCacheType.FULLY_CACHED) {
-			return stream(metadata.getSchemaTypeCode())
+			return stream(schemaType)
 					.filter(record -> isEqual(value, record.get(metadata))).findFirst().orElse(null);
 		} else {
 			return null;

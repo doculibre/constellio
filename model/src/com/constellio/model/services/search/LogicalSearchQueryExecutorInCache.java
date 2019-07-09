@@ -128,8 +128,20 @@ public class LogicalSearchQueryExecutorInCache {
 		}
 
 		MetadataSchemaType schemaType = getQueriedSchemaType(condition);
-		return schemaType != null && schemaType.getCacheType() == RecordCacheType.FULLY_CACHED
-			   && Toggle.USE_CACHE_FOR_QUERY_EXECUTION.isEnabled() && condition.isSupportingMemoryExecution();
+
+		if (schemaType == null || !Toggle.USE_CACHE_FOR_QUERY_EXECUTION.isEnabled()) {
+			return false;
+
+		} else if (schemaType.getCacheType() == RecordCacheType.FULLY_CACHED) {
+			return condition.isSupportingMemoryExecution(false);
+
+		} else if (schemaType.getCacheType().hasPermanentCache()) {
+			return condition.isSupportingMemoryExecution(true);
+
+		} else {
+			return false;
+		}
+
 
 	}
 

@@ -98,13 +98,14 @@ public class EventsBusRecordsCachesImpl extends RecordsCaches2Impl implements Ev
 
 	@Override
 	protected void reload(byte collectionId, String collection, List<String> schemaTypes,
-						  boolean isOnlyLocally) {
+						  boolean isOnlyLocally, boolean forceVolatileCacheClear) {
 
-		super.reload(collectionId, collection, schemaTypes, ONLY_LOCALLY);
+		super.reload(collectionId, collection, schemaTypes, ONLY_LOCALLY, forceVolatileCacheClear);
 		if (!isOnlyLocally) {
 			Map<String, Object> params = new HashMap<>();
 			params.put("collectionId", collectionId);
 			params.put("collection", collection);
+			params.put("forceVolatileCacheClear", forceVolatileCacheClear);
 			params.put("schemaTypes", schemaTypes);
 			eventBus.send(RELOAD_SCHEMA_TYPES, params);
 		}
@@ -200,7 +201,8 @@ public class EventsBusRecordsCachesImpl extends RecordsCaches2Impl implements Ev
 				byte collectionId = event.getData("collectionId");
 				String collection = collectionsListManager.getCollectionCode(collectionId);
 				List<String> schemaTypes = event.getData("schemaTypes");
-				reload(collectionId, collection, schemaTypes, ONLY_LOCALLY);
+				boolean forceVolatileCacheClear = event.getData("forceVolatileCacheClear");
+				reload(collectionId, collection, schemaTypes, ONLY_LOCALLY, forceVolatileCacheClear);
 				break;
 
 			case REMOVE_RECORDS:

@@ -251,7 +251,8 @@ public class SchemaUtils {
 				case DATE:
 				case DATE_TIME:
 				case STRING:
-					summary = metadata.isEssentialInSummary() || metadata.isUniqueValue() || TITLE.isSameLocalCode(metadata) || metadata.isEssentialInSummary();
+					summary = metadata.isEssentialInSummary() || metadata.isUniqueValue()
+							  || TITLE.isSameLocalCode(metadata) || metadata.isEssentialInSummary();
 					break;
 
 				case STRUCTURE:

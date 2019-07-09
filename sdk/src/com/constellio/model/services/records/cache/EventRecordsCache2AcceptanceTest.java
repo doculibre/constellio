@@ -39,6 +39,8 @@ import java.util.List;
 
 import static com.constellio.data.test.RandomWordsIterator.createFor;
 import static com.constellio.data.utils.Octets.megaoctets;
+import static com.constellio.model.entities.schemas.RecordCacheType.NOT_CACHED;
+import static com.constellio.model.entities.schemas.RecordCacheType.SUMMARY_CACHED_WITHOUT_VOLATILE;
 import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromEveryTypesOfEveryCollection;
 import static com.constellio.sdk.tests.TestUtils.assertThatStream;
@@ -150,7 +152,7 @@ public class EventRecordsCache2AcceptanceTest extends ConstellioTest {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchemaType(zeCollectionSchemaWithSummaryPermanentCache.type().getCode()).setRecordCacheType(
-						RecordCacheType.SUMMARY_CACHED_WITHOUT_VOLATILE);
+						SUMMARY_CACHED_WITHOUT_VOLATILE);
 			}
 		});
 
@@ -175,7 +177,7 @@ public class EventRecordsCache2AcceptanceTest extends ConstellioTest {
 				.getSchemaType(zeCollectionSchemaWithPermanentCache.typeCode()).getCacheType()).isEqualTo(RecordCacheType.FULLY_CACHED);
 
 		assertThat(getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection)
-				.getSchemaType(zeCollectionSchemaWithSummaryPermanentCache.typeCode()).getCacheType()).isEqualTo(RecordCacheType.SUMMARY_CACHED_WITHOUT_VOLATILE);
+				.getSchemaType(zeCollectionSchemaWithSummaryPermanentCache.typeCode()).getCacheType()).isEqualTo(SUMMARY_CACHED_WITHOUT_VOLATILE);
 
 		assertThat(getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection)
 				.getSchemaType(zeCollectionSchemaWithVolatileCache.typeCode()).getCacheType()).isEqualTo(RecordCacheType.SUMMARY_CACHED_WITH_VOLATILE);
@@ -184,7 +186,7 @@ public class EventRecordsCache2AcceptanceTest extends ConstellioTest {
 				.getSchemaType(zeCollectionSchemaWithPermanentCache.typeCode()).getCacheType()).isEqualTo(RecordCacheType.FULLY_CACHED);
 
 		assertThat(otherModelLayerFactory.getMetadataSchemasManager().getSchemaTypes(zeCollection)
-				.getSchemaType(zeCollectionSchemaWithSummaryPermanentCache.typeCode()).getCacheType()).isEqualTo(RecordCacheType.SUMMARY_CACHED_WITHOUT_VOLATILE);
+				.getSchemaType(zeCollectionSchemaWithSummaryPermanentCache.typeCode()).getCacheType()).isEqualTo(SUMMARY_CACHED_WITHOUT_VOLATILE);
 
 		assertThat(otherModelLayerFactory.getMetadataSchemasManager().getSchemaTypes(zeCollection)
 				.getSchemaType(zeCollectionSchemaWithVolatileCache.typeCode()).getCacheType()).isEqualTo(RecordCacheType.SUMMARY_CACHED_WITH_VOLATILE);
@@ -347,6 +349,10 @@ public class EventRecordsCache2AcceptanceTest extends ConstellioTest {
 		assertThat(recordsCaches.getRecordSummary(idOf(2)).getVersion()).isEqualTo(newVersion);
 		assertThat(otherInstanceRecordsCaches.getRecordSummary(idOf(2)).getVersion()).isEqualTo(newVersion);
 
+		assertThat(recordsCaches.getRecord(idOf(2)).<Boolean>get(Schemas.LOGICALLY_DELETED_STATUS)).isTrue();
+		assertThat(recordsCaches.getRecordSummary(idOf(2)).<Boolean>get(Schemas.LOGICALLY_DELETED_STATUS)).isTrue();
+		assertThat(otherInstanceRecordsCaches.getRecordSummary(idOf(2)).<Boolean>get(Schemas.LOGICALLY_DELETED_STATUS)).isTrue();
+
 		assertThat(recordsCaches.getRecord(idOf(2)).isActive()).isFalse();
 		assertThat(recordsCaches.getRecordSummary(idOf(2)).isActive()).isFalse();
 		assertThat(otherInstanceRecordsCaches.getRecordSummary(idOf(2)).isActive()).isFalse();
@@ -371,6 +377,63 @@ public class EventRecordsCache2AcceptanceTest extends ConstellioTest {
 
 		assertThatStream(otherInstanceRecordsCaches.stream(zeCollectionSchemaWithVolatileCache.type())
 				.map(Record::getId)).containsOnly(idOf(1), idOf(3));
+
+	}
+
+
+	@Test
+	public void givenCacheConfigsAreChangedThenReplicatedOnAllCluster() throws Exception {
+
+		recordServices.add(volatileRecord1 = newRecordOf(idOf(1), zeCollectionSchemaWithVolatileCache));
+		recordServices.add(volatileRecord2 = newRecordOf(idOf(2), zeCollectionSchemaWithVolatileCache));
+		otherInstanceRecordServices.getDocumentById(idOf(1));
+		otherInstanceRecordServices.getDocumentById(idOf(2));
+
+		assertThatStream(((RecordsCaches2Impl) recordsCaches).streamVolatile(zeCollectionSchemaWithVolatileCache.type())
+				.map(Record::getId)).containsOnly(idOf(1), idOf(2));
+		assertThatStream(((RecordsCaches2Impl) otherInstanceRecordsCaches).streamVolatile(zeCollectionSchemaWithVolatileCache.type())
+				.map(Record::getId)).containsOnly(idOf(1), idOf(2));
+		assertThatStream(recordsCaches.stream(zeCollectionSchemaWithVolatileCache.type())
+				.map(Record::getId)).containsOnly(idOf(1), idOf(2));
+		assertThatStream(otherInstanceRecordsCaches.stream(zeCollectionSchemaWithVolatileCache.type())
+				.map(Record::getId)).containsOnly(idOf(1), idOf(2));
+
+		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection,
+				(MetadataSchemaTypesAlteration) types -> types.getSchemaType(zeCollectionSchemaWithVolatileCache.type().getCode()).setRecordCacheType(SUMMARY_CACHED_WITHOUT_VOLATILE));
+
+		assertThatStream(((RecordsCaches2Impl) recordsCaches).streamVolatile(zeCollectionSchemaWithVolatileCache.type())
+				.map(Record::getId)).isEmpty();
+		assertThatStream(((RecordsCaches2Impl) otherInstanceRecordsCaches).streamVolatile(zeCollectionSchemaWithVolatileCache.type())
+				.map(Record::getId)).isEmpty();
+		assertThatStream(recordsCaches.stream(zeCollectionSchemaWithVolatileCache.type())
+				.map(Record::getId)).containsOnly(idOf(1), idOf(2));
+		assertThatStream(otherInstanceRecordsCaches.stream(zeCollectionSchemaWithVolatileCache.type())
+				.map(Record::getId)).containsOnly(idOf(1), idOf(2));
+
+		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection,
+				(MetadataSchemaTypesAlteration) types -> types.getSchemaType(zeCollectionSchemaWithVolatileCache.type().getCode()).setRecordCacheType(NOT_CACHED));
+
+		assertThatStream(((RecordsCaches2Impl) recordsCaches).streamVolatile(zeCollectionSchemaWithVolatileCache.type())
+				.map(Record::getId)).isEmpty();
+		assertThatStream(((RecordsCaches2Impl) otherInstanceRecordsCaches).streamVolatile(zeCollectionSchemaWithVolatileCache.type())
+				.map(Record::getId)).isEmpty();
+		assertThatStream(recordsCaches.stream(zeCollectionSchemaWithVolatileCache.type())
+				.map(Record::getId)).isEmpty();
+		assertThatStream(otherInstanceRecordsCaches.stream(zeCollectionSchemaWithVolatileCache.type())
+				.map(Record::getId)).isEmpty();
+
+		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection,
+				(MetadataSchemaTypesAlteration) types -> types.getSchemaType(zeCollectionSchemaWithVolatileCache.type().getCode()).setRecordCacheType(SUMMARY_CACHED_WITHOUT_VOLATILE));
+
+		assertThatStream(((RecordsCaches2Impl) recordsCaches).streamVolatile(zeCollectionSchemaWithVolatileCache.type())
+				.map(Record::getId)).isEmpty();
+		assertThatStream(((RecordsCaches2Impl) otherInstanceRecordsCaches).streamVolatile(zeCollectionSchemaWithVolatileCache.type())
+				.map(Record::getId)).isEmpty();
+		assertThatStream(recordsCaches.stream(zeCollectionSchemaWithVolatileCache.type())
+				.map(Record::getId)).containsOnly(idOf(1), idOf(2));
+		assertThatStream(otherInstanceRecordsCaches.stream(zeCollectionSchemaWithVolatileCache.type())
+				.map(Record::getId)).containsOnly(idOf(1), idOf(2));
+
 
 	}
 

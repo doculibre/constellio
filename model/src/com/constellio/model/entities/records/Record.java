@@ -33,10 +33,15 @@ public interface Record extends Serializable, CollectionObject, Supplier<Record>
 
 	@Deprecated
 	default boolean isFullyLoaded() {
-		return !isSummary();
+		return getLoadedFieldsMode() == RecordDTOMode.FULLY_LOADED;
 	}
 
-	boolean isSummary();
+	@Deprecated
+	default boolean isSummary() {
+		return getLoadedFieldsMode() == RecordDTOMode.SUMMARY;
+	}
+
+	RecordDTOMode getLoadedFieldsMode();
 
 	boolean isModified(Metadata metadata);
 

@@ -182,7 +182,7 @@ public class RecordsCacheRequestImplTest extends ConstellioTest {
 		assertThat(cache.get(record2Id)).isEqualTo(record2);
 		assertThat(cache.getByMetadata(codeMetadata, "inexistentRecord")).isNull();
 
-		cache.reloadSchemaType("zeType");
+		cache.reloadSchemaType("zeType", true);
 
 		assertThat(cache.getByMetadata(codeMetadata, record1Code)).isEqualTo(record1);
 		assertThat(cache.get(record2Id)).isEqualTo(record2);
@@ -192,7 +192,7 @@ public class RecordsCacheRequestImplTest extends ConstellioTest {
 		inOrder.verify(nestedCache).getByMetadata(codeMetadata, record1Code);
 		inOrder.verify(nestedCache).get(record2Id);
 		inOrder.verify(nestedCache).getByMetadata(codeMetadata, "inexistentRecord");
-		inOrder.verify(nestedCache).reloadSchemaType("zeType");
+		inOrder.verify(nestedCache).reloadSchemaType("zeType", true);
 		inOrder.verify(nestedCache).getByMetadata(codeMetadata, record1Code);
 		inOrder.verify(nestedCache).get(record2Id);
 		inOrder.verify(nestedCache).getByMetadata(codeMetadata, "inexistentRecord");
@@ -208,7 +208,7 @@ public class RecordsCacheRequestImplTest extends ConstellioTest {
 		assertThat(cache.get(record2Id)).isEqualTo(record2);
 		assertThat(cache.getByMetadata(codeMetadata, "inexistentRecord")).isNull();
 
-		cache.reloadSchemaType("otherType");
+		cache.reloadSchemaType("otherType", true);
 		assertThat(cache.getByMetadata(codeMetadata, record1Code)).isEqualTo(record1);
 		//	assertThat(cache.get(record2Id)).isEqualTo(permanentRecord2);
 
@@ -217,7 +217,7 @@ public class RecordsCacheRequestImplTest extends ConstellioTest {
 		inOrder.verify(nestedCache).getByMetadata(codeMetadata, record1Code);
 		inOrder.verify(nestedCache).get(record2Id);
 		inOrder.verify(nestedCache).getByMetadata(codeMetadata, "inexistentRecord");
-		inOrder.verify(nestedCache).reloadSchemaType("otherType");
+		inOrder.verify(nestedCache).reloadSchemaType("otherType", true);
 		inOrder.verifyNoMoreInteractions();
 
 	}

@@ -377,7 +377,7 @@ public class RecordsCacheImplTest extends ConstellioTest {
 		cache.insert(newRecord(zeType, 3, 2), WAS_MODIFIED);
 		assertThatRecords("1", "2", "3", "10").areInCache();
 
-		cache.reloadSchemaType(zeType);
+		cache.reloadSchemaType(zeType, true);
 		assertThatRecords("1", "2", "3").areNotInCache();
 		assertThatRecord("10").isInCache();
 		assertThat(cache.volatileCaches.get(zeType).recordsInCache).isEqualTo(0);
@@ -400,7 +400,7 @@ public class RecordsCacheImplTest extends ConstellioTest {
 		cache.insert(newRecord(zeType, 3, 2), WAS_MODIFIED);
 		assertThatRecords("1", "2", "3", "10").areInCache();
 
-		cache.reloadSchemaType(zeType);
+		cache.reloadSchemaType(zeType, true);
 		assertThatRecords("1", "2", "3").areNotInCache();
 		assertThatRecord("10").isInCache();
 		assertThat(cache.permanentCaches.get(zeType).holders).hasSize(3);

@@ -90,8 +90,8 @@ public class TransactionRecordsCache implements RecordsCache {
 	}
 
 	@Override
-	public void reloadSchemaType(String recordType, boolean onlyLocally) {
-		recordsCache.reloadSchemaType(recordType, onlyLocally);
+	public void reloadSchemaType(String recordType, boolean onlyLocally, boolean forceVolatileCacheClear) {
+		recordsCache.reloadSchemaType(recordType, onlyLocally, forceVolatileCacheClear);
 	}
 
 	@Override

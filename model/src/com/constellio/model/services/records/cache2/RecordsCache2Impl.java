@@ -16,12 +16,12 @@ import com.constellio.model.services.schemas.SchemaUtils;
 import org.mapdb.HTreeMap;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
 
 public final class RecordsCache2Impl implements RecordsCache {
 
@@ -70,8 +70,8 @@ public final class RecordsCache2Impl implements RecordsCache {
 
 	@Override
 	@Deprecated
-	public void reloadSchemaType(String recordType, boolean onlyLocally) {
-		caches.reload(collectionId, collection, Collections.singletonList(recordType), onlyLocally);
+	public void reloadSchemaType(String recordType, boolean onlyLocally, boolean forceVolatileCacheClear) {
+		caches.reload(collectionId, collection, singletonList(recordType), onlyLocally, forceVolatileCacheClear);
 	}
 
 
@@ -138,7 +138,7 @@ public final class RecordsCache2Impl implements RecordsCache {
 
 	@Override
 	public void invalidateVolatileReloadPermanent(List<String> schemaTypes, boolean onlyLocally) {
-		caches.reload(collectionId, collection, schemaTypes, onlyLocally);
+		caches.reload(collectionId, collection, schemaTypes, onlyLocally, true);
 	}
 
 	@Override

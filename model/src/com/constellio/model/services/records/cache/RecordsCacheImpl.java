@@ -342,7 +342,7 @@ public class RecordsCacheImpl implements RecordsCache {
 	}
 
 	@Override
-	public void reloadSchemaType(String recordType, boolean onlyLocally) {
+	public void reloadSchemaType(String recordType, boolean onlyLocally, boolean forceVolatileCacheClear) {
 		CacheConfig cacheConfig = cachedTypes.get(recordType);
 
 		if (cacheConfig != null) {

@@ -86,7 +86,6 @@ import com.constellio.model.services.records.RecordServicesRuntimeException.Unre
 import com.constellio.model.services.records.cache.CacheConfig;
 import com.constellio.model.services.records.cache.CacheInsertionStatus;
 import com.constellio.model.services.records.cache.RecordsCaches;
-import com.constellio.model.services.records.cache2.RecordsCaches2Impl;
 import com.constellio.model.services.records.extractions.RecordPopulateServices;
 import com.constellio.model.services.records.populators.SearchFieldsPopulator;
 import com.constellio.model.services.records.populators.SortFieldsPopulator;
@@ -122,6 +121,7 @@ import java.util.stream.Stream;
 import static com.constellio.data.dao.services.cache.InsertionReason.WAS_MODIFIED;
 import static com.constellio.data.dao.services.cache.InsertionReason.WAS_OBTAINED;
 import static com.constellio.model.services.records.RecordUtils.invalidateTaxonomiesCache;
+import static com.constellio.model.services.records.RecordUtils.toPersistedSummaryRecordDTO;
 import static com.constellio.model.services.records.cache.RecordsCachesUtils.evaluateCacheInsert;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
@@ -529,6 +529,37 @@ public class RecordServicesImpl extends BaseRecordServices {
 		return searchServices.searchSingleResult(condition);
 	}
 
+
+	@Override
+	public Record getRecordSummaryByMetadata(Metadata metadata, String value) {
+		if (!metadata.isUniqueValue()) {
+			throw new IllegalArgumentException("Metadata '" + metadata + "' is not unique");
+		}
+		if (metadata.getCode().startsWith("global_")) {
+			throw new IllegalArgumentException("Metadata '" + metadata + "' is global, which has no specific schema type.");
+		}
+		SearchServices searchServices = modelLayerFactory.newSearchServices();
+		MetadataSchemaTypes types = modelFactory.getMetadataSchemasManager().getSchemaTypes(metadata.getCollection());
+		String schemaTypeCode = new SchemaUtils().getSchemaTypeCode(metadata);
+		MetadataSchemaType schemaType = types.getSchemaType(schemaTypeCode);
+
+		if (!schemaType.getCacheType().hasPermanentCache()) {
+			throw new IllegalArgumentException("Schema type '" + schemaTypeCode + "' has no permanent cache");
+		}
+
+		LogicalSearchCondition condition = from(schemaType).where(metadata).isEqualTo(value);
+
+		Record record = searchServices.searchSingleResult(condition);
+
+		if (record == null) {
+			return null;
+		}
+
+		RecordDTO recordDTO = toPersistedSummaryRecordDTO(record, schemaType.getSchema(record.getSchemaCode()));
+		return new RecordImpl(recordDTO, schemaType.getCollectionInfo());
+	}
+
+
 	public Record getDocumentById(String id) {
 		return getById(DataStore.RECORDS, id);
 	}
@@ -596,7 +627,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 			MetadataSchema schema = metadataSchemasManager.getSchemaOf(record);
 
 
-			RecordDTO summaryRecordDTO = RecordsCaches2Impl.toPersistedSummaryRecordDTO(record, schema);
+			RecordDTO summaryRecordDTO = toPersistedSummaryRecordDTO(record, schema);
 			record = toRecord(summaryRecordDTO, false);
 
 			insertInCache(record, WAS_OBTAINED);

@@ -3630,7 +3630,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 	private void invalidateCachesOfRMSchemas() {
 		for (MetadataSchemaType schemaType : rm.getTypes().getSchemaTypes()) {
 			if (schemaType.getCode().equals(User.SCHEMA_TYPE) || schemaType.getCode().equals(Group.SCHEMA_TYPE)) {
-				getModelLayerFactory().getRecordsCaches().getCache(zeCollection).reloadSchemaType(schemaType.getCode());
+				getModelLayerFactory().getRecordsCaches().getCache(zeCollection).reloadSchemaType(schemaType.getCode(), true);
 			}
 		}
 	}

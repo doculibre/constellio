@@ -136,13 +136,13 @@ public class RecordsCacheRequestImpl implements RecordsCache {
 	}
 
 	@Override
-	public void reloadSchemaType(String recordType, boolean onlyLocally) {
+	public void reloadSchemaType(String recordType, boolean onlyLocally, boolean forceVolatileCacheClear) {
 		for (Map.Entry<String, Record> entry : new ArrayList<>(cache.entrySet())) {
 			if (entry.getValue().getTypeCode().equals(recordType)) {
 				cache.remove(entry.getKey());
 			}
 		}
-		nested.reloadSchemaType(recordType, onlyLocally);
+		nested.reloadSchemaType(recordType, onlyLocally, forceVolatileCacheClear);
 	}
 
 	@Override

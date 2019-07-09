@@ -44,7 +44,7 @@ public class DefaultRecordsCacheAdapter implements RecordsCache {
 		return nestedRecordsCache.insert(record, reason);
 	}
 
-	public void reloadSchemaType(String recordType, boolean onlyLocally) {
+	public void reloadSchemaType(String recordType, boolean onlyLocally, boolean forceVolatileCacheClear) {
 		nestedRecordsCache.reloadSchemaType(recordType, onlyLocally);
 	}
 

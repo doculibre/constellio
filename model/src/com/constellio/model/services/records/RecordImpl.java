@@ -133,6 +133,11 @@ public class RecordImpl implements Record {
 		return recordDTO.getLoadingMode() == RecordDTOMode.SUMMARY;
 	}
 
+	@Override
+	public RecordDTOMode getLoadedFieldsMode() {
+		return recordDTO.getLoadingMode();
+	}
+
 	public Record updateAutomaticValue(Metadata metadata, Object value) {
 		return updateAutomaticValue(metadata, value, collectionInfo.getMainSystemLocale());
 	}
@@ -1026,7 +1031,7 @@ public class RecordImpl implements Record {
 
 	@Override
 	public boolean isActive() {
-		return Boolean.TRUE.equals(get(Schemas.LOGICALLY_DELETED_STATUS));
+		return !Boolean.TRUE.equals(get(Schemas.LOGICALLY_DELETED_STATUS));
 	}
 
 	@Override
