@@ -37,10 +37,11 @@ public abstract class BaseDao {
 	protected SearchServices searchServices;
 	protected UserServices userServices;
 	protected SchemasRecordsServices schemas;
+	protected ModelLayerFactory modelLayerFactory;
 
 	@PostConstruct
 	protected void init() {
-		ModelLayerFactory modelLayerFactory = ConstellioFactories.getInstance().getModelLayerFactory();
+		modelLayerFactory = ConstellioFactories.getInstance().getModelLayerFactory();
 		contentManager = modelLayerFactory.getContentManager();
 		metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
 		systemConfigurationsManager = modelLayerFactory.getSystemConfigurationsManager();
@@ -169,6 +170,7 @@ public abstract class BaseDao {
 	}
 
 	public Record getUserByUsername(String username, String collection) {
+		SchemasRecordsServices schemas = new SchemasRecordsServices(collection, modelLayerFactory);
 		return recordServices.getRecordsCaches().getCache(collection).getByMetadata(schemas.user.username(), username);
 	}
 

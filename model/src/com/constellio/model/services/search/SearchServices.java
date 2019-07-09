@@ -87,6 +87,7 @@ import static com.constellio.model.services.search.query.ReturnedMetadatasFilter
 import static com.constellio.model.services.search.query.logical.LogicalSearchQuery.INEXISTENT_COLLECTION_42;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
 
 public class SearchServices {
 
@@ -786,7 +787,7 @@ public class SearchServices {
 			return getLanguageCodes(query.getCondition().getCollection());
 
 		} else {
-			return Collections.singletonList(mainDataLanguage);
+			return singletonList(mainDataLanguage);
 		}
 	}
 
@@ -825,15 +826,15 @@ public class SearchServices {
 	public List<String> getLanguageCodes(String collection) {
 		List<String> languages = new ArrayList<>();
 		try {
-			List<String> languageCodes = INEXISTENT_COLLECTION_42.equals(collection) ? asList("fr") :
+			List<String> languageCodes = INEXISTENT_COLLECTION_42.equals(collection) ? singletonList(mainDataLanguage) :
 										 collectionsListManager.getCollectionLanguages(collection);
 			if (languageCodes == null || languageCodes.size() == 0) {
-				languages = Collections.singletonList(mainDataLanguage);
+				languages = singletonList(mainDataLanguage);
 			} else {
 				languages = Collections.unmodifiableList(languageCodes);
 			}
 		} catch (CollectionsListManagerRuntimeException_NoSuchCollection e) {
-			languages = Collections.singletonList(mainDataLanguage);
+			languages = singletonList(mainDataLanguage);
 		}
 		return languages;
 	}

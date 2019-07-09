@@ -439,12 +439,9 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 		loadSchemaType(type);
 	}
 
-	protected Stream<Record> stream(byte collectionId, String collection, String schemaType) {
+	protected Stream<Record> stream(byte collectionId, String schemaType) {
 		short typeId = metadataSchemasManager.getSchemaTypes(collectionId).getSchemaType(schemaType).getId();
-		return memoryDataStore.stream(collectionId, typeId).filter(recordDTO -> collection.equals(recordDTO.getCollection())).map(recordDTO -> {
-			CollectionInfo collectionInfo = collectionsListManager.getCollectionInfo(recordDTO.getCollection());
-			return toRecord(recordDTO);
-		});
+		return memoryDataStore.stream(collectionId, typeId).map(this::toRecord);
 	}
 
 
@@ -475,9 +472,33 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 		MetadataSchemaType schemaType = metadataSchemasManager.getSchemaTypes(collectionId)
 				.getSchemaType(metadata.getSchemaTypeCode());
 
+		if (!metadata.getCollection().equals(schemaType.getCollection())) {
+			throw new ImpossibleRuntimeException("Searching with a metadata from collection '" + metadata.getCollection() + "' in cache of collection '" + schemaType.getCollection() + "'");
+		}
+
 		if (schemaType.getCacheType() == RecordCacheType.FULLY_CACHED) {
-			return stream(collectionId, metadata.getCollection(), metadata.getSchemaTypeCode())
+			return stream(collectionId, metadata.getSchemaTypeCode())
 					.filter(record -> isEqual(value, record.get(metadata))).findFirst().orElse(null);
+
+			//			List<Record> allRecords = stream(schemaType.getCollection()).collect(Collectors.toList());
+			//
+			//			List<Record> records = stream(collectionId, metadata.getSchemaTypeCode())
+			//					.collect(Collectors.toList());
+			//
+			//			for (Record record : records) {
+			//				if (isEqual(value, record.get(metadata))) {
+			//					return record;
+			//				}
+			//			}
+			//
+			//			for (Record record : allRecords) {
+			//				if (record.getSchemaCode().startsWith(schemaType.getCode() + "_") && isEqual(value, record.get(metadata))) {
+			//					return record;
+			//				}
+			//			}
+			//
+			//			return null;
+
 		} else {
 			throw new ImpossibleRuntimeException("getByMetadata cannot be used for schema type which are not fully cached. If the schema type has a summary cache, try using getSummaryByMetadata instead");
 		}
