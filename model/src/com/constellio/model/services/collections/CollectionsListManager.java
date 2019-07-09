@@ -241,7 +241,7 @@ public class CollectionsListManager implements StatefulService, ConfigUpdatedEve
 	}
 
 	public byte getCollectionId(String collectionCode) {
-		for (int i = 1; i < collectionKeys.length; i++) {
+		for (int i = 0; i < collectionKeys.length; i++) {
 			String collectionKey = collectionKeys[i];
 			if (collectionCode.equals(collectionKey)) {
 				return (byte) (i + Byte.MIN_VALUE);
