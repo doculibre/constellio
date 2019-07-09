@@ -819,7 +819,7 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 				typeSchema1.create("integersMetadata").setType(INTEGER).setMultivalue(true);
 				typeSchema1.create("numbersMetadata").setType(NUMBER).setMultivalue(true);
 				typeSchema1.create("booleanMetadata").setType(BOOLEAN);
-				typeSchema1.create("stringsMetadata").setType(STRING).setMultivalue(true);
+				typeSchema1.create("stringsMetadata").setType(STRING).setMultivalue(true).setEssentialInSummary(true);
 				typeSchema1.create("enumsMetadata").setType(ENUM).defineAsEnum(FolderStatus.class);
 				typeSchema1.create("referencesMetadata").setType(REFERENCE).setMultivalue(true)
 						.defineReferencesTo(types.getSchemaType("type2"));
