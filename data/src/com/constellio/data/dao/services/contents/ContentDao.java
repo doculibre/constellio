@@ -2,6 +2,7 @@ package com.constellio.data.dao.services.contents;
 
 import com.constellio.data.dao.services.contents.ContentDaoException.ContentDaoException_NoSuchContent;
 import com.constellio.data.io.streamFactories.CloseableStreamFactory;
+import org.joda.time.LocalDateTime;
 
 import java.io.File;
 import java.io.InputStream;
@@ -14,6 +15,8 @@ public interface ContentDao {
 	void add(String newContentId, InputStream newInputStream);
 
 	void delete(List<String> contentIds);
+
+	LocalDateTime getLastModification(String contentId);
 
 	InputStream getContentInputStream(String contentId, String streamName)
 			throws ContentDaoException_NoSuchContent;
