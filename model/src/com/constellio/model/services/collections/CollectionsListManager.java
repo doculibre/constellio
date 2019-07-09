@@ -264,6 +264,11 @@ public class CollectionsListManager implements StatefulService, ConfigUpdatedEve
 			String mainDataLanguage = modelLayerConfiguration.getMainDataLanguage();
 
 			Element collectionElement = getElementFromFile(collectionCode);
+
+			if (collectionElement == null) {
+				throw new CollectionsListManagerRuntimeException_NoSuchCollection(collectionCode);
+			}
+
 			String idAsString = collectionElement.getAttributeValue("byteId");
 			if (Strings.isNotBlank(idAsString)) {
 				byteId = Byte.parseByte(idAsString);
