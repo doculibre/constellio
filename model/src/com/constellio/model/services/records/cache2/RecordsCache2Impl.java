@@ -54,7 +54,7 @@ public final class RecordsCache2Impl implements RecordsCache {
 
 	@Override
 	public List<Record> getAllValues(String schemaType) {
-		return caches.stream(collectionId, collection, schemaType).collect(Collectors.toList());
+		return caches.stream(collectionId, schemaType).collect(Collectors.toList());
 	}
 
 	@Override

@@ -34,10 +34,10 @@ import com.constellio.app.ui.i18n.i18n;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.utils.MimeTypes;
 import com.google.common.collect.Lists;
@@ -914,7 +914,7 @@ public class DocumentRestfulServicePUTAcceptanceTest extends BaseDocumentRestful
 		minDocumentToUpdate.setDirectAces(singletonList(AceDto.builder().principals(singleton(alice))
 				.permissions(singleton(READ)).endDate(toDateString(new LocalDate())).build()));
 		Response response = doPutQuery(minDocumentToUpdate, null);
-		assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
+		assertThat(response.getStatus()).describedAs(response.toString()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE).isEqualTo(i18n.$(new RequiredParameterException("ace.startDate").getValidationError()));
