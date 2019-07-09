@@ -2,7 +2,6 @@ package com.constellio.model.services.records;
 
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.dao.dto.records.RecordDTO;
-import com.constellio.data.dao.dto.records.RecordDTOMode;
 import com.constellio.data.dao.dto.records.RecordDeltaDTO;
 import com.constellio.data.dao.dto.records.TransactionDTO;
 import com.constellio.data.dao.dto.records.TransactionResponseDTO;
@@ -42,6 +41,7 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.ModificationImpact;
+import com.constellio.model.entities.schemas.RecordCacheType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.SequenceDataEntry;
 import com.constellio.model.entities.schemas.preparationSteps.CalculateMetadatasRecordPreparationStep;
@@ -118,6 +118,8 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
+import static com.constellio.data.dao.dto.records.RecordDTOMode.CUSTOM;
+import static com.constellio.data.dao.dto.records.RecordDTOMode.SUMMARY;
 import static com.constellio.data.dao.services.cache.InsertionReason.WAS_MODIFIED;
 import static com.constellio.data.dao.services.cache.InsertionReason.WAS_OBTAINED;
 import static com.constellio.model.services.records.RecordUtils.invalidateTaxonomiesCache;
@@ -1618,8 +1620,22 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 		for (Record record : transaction.getRecords()) {
 			RecordDTO recordDTO = ((RecordImpl) record).getRecordDTO();
-			if (recordDTO != null && ((RecordImpl) record).getRecordDTO().getLoadingMode() != RecordDTOMode.FULLY_LOADED) {
-				throw new ImpossibleRuntimeException("Cannot execute transaction using records that are not fully loaded");
+			if (recordDTO != null && ((RecordImpl) record).getRecordDTO().getLoadingMode() == SUMMARY) {
+				MetadataSchemaType schemaType = metadataSchemasManager
+						.getSchemaTypes(recordDTO.getCollection()).getSchemaType(record.getTypeCode());
+
+				if (schemaType.getCacheType() == RecordCacheType.FULLY_CACHED) {
+					throw new ImpossibleRuntimeException("Cannot execute transaction using records that are not fully or summary loaded");
+				}
+			}
+
+			if (recordDTO != null && ((RecordImpl) record).getRecordDTO().getLoadingMode() == CUSTOM) {
+				MetadataSchemaType schemaType = metadataSchemasManager
+						.getSchemaTypes(recordDTO.getCollection()).getSchemaType(record.getTypeCode());
+
+				if (schemaType.getCacheType().hasPermanentCache()) {
+					throw new ImpossibleRuntimeException("Cannot execute transaction using records that are not fully or summary loaded");
+				}
 			}
 		}
 
