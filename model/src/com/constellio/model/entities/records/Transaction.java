@@ -186,7 +186,7 @@ public class Transaction {
 
 	public Record add(Record addUpdateRecord) {
 
-		if (addUpdateRecord.getRecordDTOMode() != RecordDTOMode.FULLY_LOADED) {
+		if (addUpdateRecord.getRecordDTOMode() != null && addUpdateRecord.getRecordDTOMode() != RecordDTOMode.FULLY_LOADED) {
 			throw new IllegalArgumentException("Record must be fully loaded");
 		}
 

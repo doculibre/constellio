@@ -35,6 +35,7 @@ public class LogicalSearchQuery implements SearchQuery {
 	public static final int DEFAULT_NUMBER_OF_ROWS = 100000;
 
 	private static final String HIGHLIGHTING_FIELDS = "search_*";
+	public static final String INEXISTENT_COLLECTION_42 = "inexistentCollection42";
 
 	//This condition will be inserted in Filter Query
 	LogicalSearchCondition condition;
@@ -453,7 +454,7 @@ public class LogicalSearchQuery implements SearchQuery {
 	}
 
 	public static LogicalSearchQuery returningNoResults() {
-		return new LogicalSearchQuery(LogicalSearchQueryOperators.fromAllSchemasIn("inexistentCollection42").returnAll());
+		return new LogicalSearchQuery(LogicalSearchQueryOperators.fromAllSchemasIn(INEXISTENT_COLLECTION_42).returnAll());
 	}
 
 	public String getMoreLikeThisRecordId() {

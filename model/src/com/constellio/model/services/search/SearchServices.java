@@ -84,6 +84,7 @@ import static com.constellio.model.entities.schemas.Schemas.ESTIMATED_SIZE;
 import static com.constellio.model.services.records.RecordUtils.splitByCollection;
 import static com.constellio.model.services.search.VisibilityStatusFilter.ALL;
 import static com.constellio.model.services.search.query.ReturnedMetadatasFilter.onlyFields;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQuery.INEXISTENT_COLLECTION_42;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
@@ -824,7 +825,8 @@ public class SearchServices {
 	public List<String> getLanguageCodes(String collection) {
 		List<String> languages = new ArrayList<>();
 		try {
-			List<String> languageCodes = collectionsListManager.getCollectionLanguages(collection);
+			List<String> languageCodes = INEXISTENT_COLLECTION_42.equals(collection) ? asList("fr") :
+										 collectionsListManager.getCollectionLanguages(collection);
 			if (languageCodes == null || languageCodes.size() == 0) {
 				languages = Collections.singletonList(mainDataLanguage);
 			} else {
