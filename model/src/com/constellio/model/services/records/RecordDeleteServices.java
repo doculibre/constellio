@@ -126,7 +126,7 @@ public class RecordDeleteServices {
 		boolean parentActiveOrNull;
 		if (parentId != null) {
 			Record parent = recordServices.getDocumentById(parentId);
-			parentActiveOrNull = TRUE != parent.get(Schemas.LOGICALLY_DELETED_STATUS);
+			parentActiveOrNull = !TRUE.equals(parent.get(Schemas.LOGICALLY_DELETED_STATUS));
 		} else {
 			parentActiveOrNull = true;
 		}
