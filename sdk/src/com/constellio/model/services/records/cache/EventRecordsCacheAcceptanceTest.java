@@ -427,7 +427,8 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 
 	}
 
-	@Test
+	//@Test
+	//No longer possible with cache #2
 	public void givenRecordWhichIsNotFullyLoadedIsModifiedThenUpdatedInCacheIfPermanentInvalidatedIfVolatile()
 			throws Exception {
 

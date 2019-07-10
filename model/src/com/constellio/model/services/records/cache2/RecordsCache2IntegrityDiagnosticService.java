@@ -304,6 +304,22 @@ public class RecordsCache2IntegrityDiagnosticService {
 				List<Object> valueFromSolr = recordFromSolr.getValues(metadata).stream().filter((e) -> isValidValue(e)).collect(Collectors.toList());
 				List<Object> valueFromCache = recordFromCache.getValues(metadata).stream().filter((e) -> isValidValue(e)).collect(Collectors.toList());
 
+				if (metadata.getType() == MetadataValueType.INTEGER) {
+					valueFromSolr = valueFromSolr.stream().map((Object o) -> (((Number) o).intValue())).collect(Collectors.toList());
+				}
+
+				if (metadata.getType() == MetadataValueType.INTEGER) {
+					valueFromCache = valueFromCache.stream().map((Object o) -> (((Number) o).intValue())).collect(Collectors.toList());
+				}
+
+				if (metadata.getType() == MetadataValueType.NUMBER) {
+					valueFromSolr = valueFromSolr.stream().map((Object o) -> (((Number) o).doubleValue())).collect(Collectors.toList());
+				}
+
+				if (metadata.getType() == MetadataValueType.NUMBER) {
+					valueFromCache = valueFromCache.stream().map((Object o) -> (((Number) o).doubleValue())).collect(Collectors.toList());
+				}
+
 				valueFromSolr.removeIf(Objects::isNull);
 				valueFromCache.removeIf(Objects::isNull);
 
@@ -312,8 +328,24 @@ public class RecordsCache2IntegrityDiagnosticService {
 					return true;
 				}
 			} else {
-				Object valueFromSolr = recordFromSolr.getValues(metadata).stream().filter((e) -> isValidValue(e)).collect(Collectors.toList());
-				Object valueFromCache = recordFromCache.getValues(metadata).stream().filter((e) -> isValidValue(e)).collect(Collectors.toList());
+				Object valueFromSolr = recordFromSolr.get(metadata);
+				Object valueFromCache = recordFromCache.get(metadata);
+
+				if (metadata.getType() == MetadataValueType.INTEGER && valueFromSolr != null) {
+					valueFromSolr = ((Number) valueFromSolr).intValue();
+				}
+
+				if (metadata.getType() == MetadataValueType.INTEGER && valueFromCache != null) {
+					valueFromCache = ((Number) valueFromCache).intValue();
+				}
+
+				if (metadata.getType() == MetadataValueType.NUMBER && valueFromSolr != null) {
+					valueFromSolr = ((Number) valueFromSolr).doubleValue();
+				}
+
+				if (metadata.getType() == MetadataValueType.NUMBER && valueFromCache != null) {
+					valueFromCache = ((Number) valueFromCache).doubleValue();
+				}
 
 				if (!LangUtils.isEqual(valueFromSolr, valueFromCache)) {
 					LOGGER.warn("Record '" + recordFromCache.getId() + "' has a different value in cache for metadata '" + metadata.getLocalCode() + "'\nValue from cache : " + valueFromCache + "\nValue from solr : " + valueFromSolr + "\n");
