@@ -52,6 +52,10 @@ public class SearchRetentionRulesPresenter extends SingleSchemaBasePresenter<Sea
 		view.setDataProvider(dataProvider);
 	}
 
+	public boolean userHaveManageRetentionRulePermission() {
+		return getCurrentUser().has(RMPermissionsTo.MANAGE_RETENTIONRULE).globally();
+	}
+
 	public void backButtonClicked() {
 		view.navigate().to(RMViews.class).listRetentionRules();
 	}
