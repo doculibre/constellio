@@ -23,7 +23,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.*;
+import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
+import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
+import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.sdk.tests.TestUtils.asSet;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -135,19 +138,6 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 		}
 
 		assertThat(numberOfMetadatas).isEqualTo(6);
-	}
-
-	@Test
-	public void givenNewSchemaTypeAndMetadata() throws Exception {
-		MetadataSchemaTypeBuilder type1 = typesBuilder.createNewSchemaType("type1");
-		modelLayerFactory.getMetadataSchemasManager().saveUpdateSchemaTypes(typesBuilder);
-
-		modelLayerFactory.getMetadataSchemasManager().getSchemaTypes("type1");
-
-		MetadataSchemaTypeBuilder type2 = typesBuilder.createNewSchemaType("type2");
-		modelLayerFactory.getMetadataSchemasManager().saveUpdateSchemaTypes(typesBuilder);
-
-		short id2 = typesBuilder.getSchemaType(type2.getCode()).getId();
 	}
 
 	// Copied metadata validation tests

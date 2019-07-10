@@ -700,8 +700,10 @@ public class BigVaultRecordDao implements RecordDao {
 			}
 		}
 
-		for (Map.Entry<String, Object> field : entity.getCopyFields().entrySet()) {
-			document.addField(field.getKey(), field.getValue());
+		if (entity.getCopyFields() != null) {
+			for (Map.Entry<String, Object> field : entity.getCopyFields().entrySet()) {
+				document.addField(field.getKey(), field.getValue());
+			}
 		}
 
 		return document;

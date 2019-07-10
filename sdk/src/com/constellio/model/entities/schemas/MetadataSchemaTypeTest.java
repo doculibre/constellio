@@ -2,6 +2,7 @@ package com.constellio.model.entities.schemas;
 
 import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.Language;
+import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.sdk.tests.ConstellioTest;
 import org.junit.Before;
 import org.junit.Test;
@@ -34,6 +35,10 @@ public class MetadataSchemaTypeTest extends ConstellioTest {
 		when(customSchema1AutomaticMetadataWithInheritance.getInheritance()).thenReturn(defaultSchemaAutomaticMetadata);
 		when(customSchema2AutomaticMetadataWithInheritance.getInheritance()).thenReturn(defaultSchemaAutomaticMetadata);
 		CollectionInfo zeCollectionInfo = new CollectionInfo((byte) 0, zeCollection, "fr", Arrays.asList("fr"));
+		when(defaultSchema.getMetadatas()).thenReturn(new MetadataList());
+		when(customSchema1.getMetadatas()).thenReturn(new MetadataList());
+		when(customSchema2.getMetadatas()).thenReturn(new MetadataList());
+
 		type = new MetadataSchemaType((short) 0, aString(), null, zeCollectionInfo, asMap(Language.French, "label"),
 				asList(customSchema1, customSchema2),
 				defaultSchema, false, true, RecordCacheType.NOT_CACHED, true, false, "records");
@@ -58,7 +63,9 @@ public class MetadataSchemaTypeTest extends ConstellioTest {
 	@Test
 	public void whenGetAllSchemasThenReturnDefaultAndAllCustomSchemas()
 			throws Exception {
-
+		when(defaultSchema.getMetadatas()).thenReturn(new MetadataList());
+		when(customSchema1.getMetadatas()).thenReturn(new MetadataList());
+		when(customSchema2.getMetadatas()).thenReturn(new MetadataList());
 		assertThat(type.getAllSchemas()).containsOnly(customSchema1, customSchema2, defaultSchema);
 	}
 }

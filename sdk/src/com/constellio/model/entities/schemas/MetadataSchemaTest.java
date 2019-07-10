@@ -50,9 +50,16 @@ public class MetadataSchemaTest extends ConstellioTest {
 		when(secondTypeParentRelationToThirdType.isChildOfRelationship()).thenReturn(true);
 		when(firstTypeParentRelationToFirstType.getType()).thenReturn(MetadataValueType.REFERENCE);
 		when(secondTypeParentRelationToFirstType.getType()).thenReturn(MetadataValueType.REFERENCE);
-		when(secondTypeParentRelationToSecondType.getType()).thenReturn(MetadataValueType.REFERENCE);
+		when(secondTypeRelationToSecondType.getType()).thenReturn(MetadataValueType.REFERENCE);
 		when(secondTypeParentRelationToSecondType.getType()).thenReturn(MetadataValueType.REFERENCE);
 		when(secondTypeParentRelationToThirdType.getType()).thenReturn(MetadataValueType.REFERENCE);
+
+		when(firstTypeParentRelationToFirstType.getDataStoreCode()).thenReturn("parentRelationToFirstId_s");
+		when(secondTypeParentRelationToFirstType.getDataStoreCode()).thenReturn("parentRelationToFirstId_s");
+		when(secondTypeRelationToSecondType.getDataStoreCode()).thenReturn("parentRelationToSecondId_s");
+		when(secondTypeParentRelationToSecondType.getDataStoreCode()).thenReturn("relationToSecondId_s");
+		when(secondTypeParentRelationToThirdType.getDataStoreCode()).thenReturn("parentRelationToThirdId_s");
+
 		when(firstTypeParentRelationToFirstType.getAllowedReferences()).thenReturn(new AllowedReferences("first", null));
 		when(secondTypeParentRelationToFirstType.getAllowedReferences()).thenReturn(new AllowedReferences("first", null));
 		when(secondTypeParentRelationToSecondType.getAllowedReferences())

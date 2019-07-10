@@ -33,6 +33,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -381,6 +382,8 @@ public class RecordImplTest extends ConstellioTest {
 			throws Exception {
 		RecordImpl record = new TestRecord(theSchemaCode, "zeCollection");
 		Map<String, Object> fields = newSchemaFields();
+		fields.put("collection_s", "zeCollection");
+		fields.put("schema_s", "zeSchemaType_default");
 		fields.put(multipleTextMetadataCodeAndType, asList("firstValue"));
 		fields.put(multipleBooleanMetadataCodeAndType, asList("thirdValue"));
 
@@ -390,7 +393,7 @@ public class RecordImplTest extends ConstellioTest {
 		when(copyfieldsPopulator2.populateCopyfields(zeSchema, record))
 				.thenReturn(TestUtils.asMap("copiedField3", (Object) "copiedValue3"));
 
-		RecordDTO savedRecordDTO = new SolrRecordDTO(record.getId(), 1L, null, fields, RecordDTOMode.FULLY_LOADED);
+		RecordDTO savedRecordDTO = new SolrRecordDTO(record.getId(), 1L, fields, Collections.emptyMap(), RecordDTOMode.FULLY_LOADED);
 		record.refresh(1L, savedRecordDTO);
 
 		record.set(multipleTextMetadata, asList("firstValue"));
