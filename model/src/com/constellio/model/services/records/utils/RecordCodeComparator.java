@@ -7,8 +7,9 @@ import com.constellio.model.entities.schemas.sort.DefaultStringSortFieldNormaliz
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.Supplier;
 
-public class RecordCodeComparator implements Comparator<Record> {
+public class RecordCodeComparator implements Comparator<Supplier<Record>> {
 
 	List<String> typesOrder;
 
@@ -17,15 +18,18 @@ public class RecordCodeComparator implements Comparator<Record> {
 	}
 
 	@Override
-	public int compare(Record o1, Record o2) {
+	public int compare(Supplier<Record> o1, Supplier<Record> o2) {
 		return compareRecords(o1, o2);
 	}
 
-	public static int compareRecords(Record o1, Record o2) {
+	public static int compareRecords(Supplier<Record> o1, Supplier<Record> o2) {
 		return compareRecords(new ArrayList<String>(), o1, o2);
 	}
 
-	public static int compareRecords(List<String> typesOrder, Record o1, Record o2) {
+	public static int compareRecords(List<String> typesOrder, Supplier<Record> o1Supplier,
+									 Supplier<Record> o2Supplier) {
+		Record o1 = o1Supplier.get();
+		Record o2 = o1Supplier.get();
 
 		int type1 = typesOrder.indexOf(o1.getTypeCode());
 		int type2 = typesOrder.indexOf(o2.getTypeCode());
