@@ -522,6 +522,9 @@ public class RecordServicesImpl extends BaseRecordServices {
 		if (metadata.getCode().startsWith("global_")) {
 			throw new IllegalArgumentException("Metadata '" + metadata + "' is global, which has no specific schema type.");
 		}
+		if (value == null) {
+			return null;
+		}
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
 		MetadataSchemaTypes types = modelFactory.getMetadataSchemasManager().getSchemaTypes(metadata.getCollection());
 		String schemaTypeCode = new SchemaUtils().getSchemaTypeCode(metadata);

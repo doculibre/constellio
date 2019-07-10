@@ -143,6 +143,10 @@ public final class RecordsCache2Impl implements RecordsCache {
 
 	@Override
 	public Record getByMetadata(Metadata metadata, String value) {
+		if (value == null) {
+			return null;
+		}
+
 		return caches.getByMetadata(collectionId, metadata, value);
 	}
 
