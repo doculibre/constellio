@@ -262,31 +262,31 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 		MetadataSchemaTypesBuilder collection1Builder = schemasManager.modify(zeCollection);
 
 		//setId should never be used, this test use it to proove that values are saved
-		MetadataSchemaTypeBuilder type = collection1Builder.createNewSchemaType("t").setId((short) 1111);
-		MetadataSchemaBuilder defaultSchema = type.getDefaultSchema().setId((short) 2222);
-		MetadataSchemaBuilder customSchema = type.createCustomSchema("custom").setId((short) 3333);
-		MetadataBuilder defaultSchemaMetadata = defaultSchema.create("m1").setType(STRING).setId((short) 4444);
-		MetadataBuilder customSchemaMetadata = customSchema.create("m2").setType(STRING).setId((short) -1001);
+		MetadataSchemaTypeBuilder type = collection1Builder.createNewSchemaType("t").setId((short) 405);
+		MetadataSchemaBuilder defaultSchema = type.getDefaultSchema().setId((short) 406);
+		MetadataSchemaBuilder customSchema = type.createCustomSchema("custom").setId((short) 330);
+		MetadataBuilder defaultSchemaMetadata = defaultSchema.create("m1").setType(STRING).setId((short) 230);
+		MetadataBuilder customSchemaMetadata = customSchema.create("m2").setType(STRING).setId((short) 50);
 
 		schemasManager.saveUpdateSchemaTypes(collection1Builder);
 
 
 		assertThat(xmlOfConfig(zeCollection + SCHEMAS_CONFIG_PATH))
-				.containsOnlyOnce("\"1111\"")
-				.containsOnlyOnce("\"2222\"")
-				.containsOnlyOnce("\"3333\"")
-				.containsOnlyOnce("\"4444\"")
-				.containsOnlyOnce("\"-1001\"")
+				.containsOnlyOnce("\"405\"")
+				.containsOnlyOnce("\"406\"")
+				.containsOnlyOnce("\"330\"")
+				.containsOnlyOnce("\"230\"")
+				.containsOnlyOnce("\"50\"")
 				.doesNotContain("\"-2\"")
 				.doesNotContain("\"-7\"");
 
 		MetadataSchemaTypes zeCollectionTypes = schemasManager.getSchemaTypes(zeCollection);
-		assertThat(zeCollectionTypes.getSchemaType("t").getId()).isEqualTo((short) 1111);
-		assertThat(zeCollectionTypes.getSchemaType("t").getDefaultSchema().getId()).isEqualTo((short) 2222);
-		assertThat(zeCollectionTypes.getSchemaType("t").getSchema("custom").getId()).isEqualTo((short) 3333);
-		assertThat(zeCollectionTypes.getSchemaType("t").getDefaultSchema().get("m1").getId()).isEqualTo((short) 4444);
-		assertThat(zeCollectionTypes.getSchemaType("t").getSchema("custom").get("m1").getId()).isEqualTo((short) 4444);
-		assertThat(zeCollectionTypes.getSchemaType("t").getSchema("custom").get("m2").getId()).isEqualTo((short) -1001);
+		assertThat(zeCollectionTypes.getSchemaType("t").getId()).isEqualTo((short) 405);
+		assertThat(zeCollectionTypes.getSchemaType("t").getDefaultSchema().getId()).isEqualTo((short) 406);
+		assertThat(zeCollectionTypes.getSchemaType("t").getSchema("custom").getId()).isEqualTo((short) 330);
+		assertThat(zeCollectionTypes.getSchemaType("t").getDefaultSchema().get("m1").getId()).isEqualTo((short) 230);
+		assertThat(zeCollectionTypes.getSchemaType("t").getSchema("custom").get("m1").getId()).isEqualTo((short) 230);
+		assertThat(zeCollectionTypes.getSchemaType("t").getSchema("custom").get("m2").getId()).isEqualTo((short) 50);
 		assertThat(zeCollectionTypes.getSchemaType("t").getDefaultSchema().get("title").getId()).isEqualTo((short) -7);
 		assertThat(zeCollectionTypes.getSchemaType("t").getSchema("custom").get("title").getId()).isEqualTo((short) -7);
 
