@@ -1,7 +1,6 @@
 package com.constellio.model.entities.records;
 
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
-import com.constellio.data.dao.dto.records.RecordDTOMode;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
 import com.constellio.model.entities.records.TransactionRuntimeException.RecordIdCollision;
@@ -186,10 +185,6 @@ public class Transaction {
 
 	public Record add(Record addUpdateRecord) {
 
-		if (addUpdateRecord.getRecordDTOMode() != null && addUpdateRecord.getRecordDTOMode() != RecordDTOMode.FULLY_LOADED) {
-			throw new IllegalArgumentException("Record must be fully loaded");
-		}
-
 		records.add(addUpdateRecord);
 		validateCollection(addUpdateRecord.getCollection());
 		collection = addUpdateRecord.getCollection();
@@ -197,11 +192,6 @@ public class Transaction {
 	}
 
 	public Transaction update(Record addUpdateRecord) {
-
-		if (addUpdateRecord.getRecordDTOMode() != null
-			&& addUpdateRecord.getRecordDTOMode() != RecordDTOMode.FULLY_LOADED) {
-			throw new IllegalArgumentException("Record must be fully loaded");
-		}
 
 		if (updatedRecordsMap.containsKey(addUpdateRecord.getId())) {
 			if (updatedRecordsMap.get(addUpdateRecord.getId()) != addUpdateRecord) {

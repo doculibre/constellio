@@ -172,11 +172,18 @@ public class NewVolatileRecordCacheAcceptanceTest extends ConstellioTest {
 		//Currently, it is not possible to execute transaction using records that are not fully loaded
 
 		try {
-			recordServices.update(summaryRecordFromCache.set(zeCollectionSchemaType1.stringMetadata(), "val5"));
+			recordServices.update(getPartiallyLoaded(1234).set(zeCollectionSchemaType1.stringMetadata(), "val5"));
 			fail("Exception expected");
-		} catch (IllegalArgumentException e) {
+		} catch (ImpossibleRuntimeException e) {
 			//OK
 		}
+
+
+		recordServices.update(summaryRecordFromCache.set(zeCollectionSchemaType1.stringMetadata(), "val5"));
+		assertThat(summaryRecordFromCache.<String>get(TITLE)).isEqualTo("val1");
+		assertThat(summaryRecordFromCache.<String>get(zeCollectionSchemaType1.stringMetadata())).isEqualTo("val5");
+		assertThat(summaryRecordFromCache.<String>get(zeCollectionSchemaType1.anotherStringMetadata())).isNull();
+		assertThat(summaryRecordFromCache.isSummary()).isTrue();
 
 		//Inserting a new state of the record using a summary record, summary permanent is updated, remove from volatile
 
