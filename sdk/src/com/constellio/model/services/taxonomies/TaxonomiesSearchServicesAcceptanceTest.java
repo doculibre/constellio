@@ -3,17 +3,14 @@ package com.constellio.model.services.taxonomies;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.batch.controller.BatchProcessController;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
-import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
@@ -39,7 +36,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
-import static com.constellio.model.services.records.cache.CacheConfig.permanentCache;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
@@ -91,12 +87,6 @@ public class TaxonomiesSearchServicesAcceptanceTest extends ConstellioTest {
 		batchProcessesManager.initialize();
 
 		defineSchemasManager().using(schemas);
-
-		RecordsCache cache = getModelLayerFactory().getRecordsCaches().getCache(zeCollection);
-		MetadataSchemaTypes types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
-		cache.configureCache(permanentCache(types.getSchemaType(Authorization.SCHEMA_TYPE)));
-		cache.configureCache(permanentCache(types.getSchemaType(User.SCHEMA_TYPE)));
-		cache.configureCache(permanentCache(types.getSchemaType(Group.SCHEMA_TYPE)));
 
 		userSchema = schemas.getUserSchema();
 		Transaction transaction = new Transaction();
