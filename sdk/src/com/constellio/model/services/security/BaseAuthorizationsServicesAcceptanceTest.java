@@ -432,7 +432,7 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 
 		public BooleanAssert detachedAuthorizationFlag() {
 			Record record = get(recordId);
-			return assertThat(Boolean.TRUE == record.get(Schemas.IS_DETACHED_AUTHORIZATIONS))
+			return assertThat(Boolean.TRUE.equals(record.get(Schemas.IS_DETACHED_AUTHORIZATIONS)))
 					.describedAs("detach authorization flag on record '" + recordId + "'");
 		}
 	}

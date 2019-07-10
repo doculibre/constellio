@@ -387,7 +387,7 @@ public class SettingsImportServices {
 
 		for (Map.Entry<String, Boolean> entry : metasVisibility.entrySet()) {
 			String code = schema + "_" + entry.getKey();
-			if (Boolean.TRUE == entry.getValue()) {
+			if (Boolean.TRUE.equals(entry.getValue())) {
 				if (!modifiedMetadatas.contains(code)) {
 					int indexComment = modifiedMetadatas.indexOf(schema + "_comments");
 					if (indexComment == -1) {

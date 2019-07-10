@@ -75,7 +75,7 @@ public class RMMigrationTo7_3 implements MigrationScript {
 					.setDefaultValue(null);
 
 			MetadataSchemaBuilder schemaBuilder = typesBuilder.getDefaultSchema(ContainerRecord.SCHEMA_TYPE);
-			boolean required = Boolean.TRUE == schemaBuilder.get(ADMINISTRATIVE_UNIT).getDefaultRequirement();
+			boolean required = Boolean.TRUE.equals(schemaBuilder.get(ADMINISTRATIVE_UNIT).getDefaultRequirement());
 			typesBuilder.getDefaultSchema(ContainerRecord.SCHEMA_TYPE).get(ADMINISTRATIVE_UNIT)
 					.setTaxonomyRelationship(false).setDefaultRequirement(false).setEssentialInSummary(false)
 					.setEssential(false).setEnabled(false);
