@@ -9,6 +9,8 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.cache2.RecordsCache2IntegrityDiagnosticService;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.sdk.tests.annotations.PreserveState;
+import org.apache.commons.lang.StringUtils;
+import org.junit.After;
 import org.junit.Before;
 import org.mockito.MockitoAnnotations;
 
@@ -177,24 +179,22 @@ public class ConstellioTest extends AbstractConstellioTest {
 
 	}
 
-	//	@After
-	//	public void checkCacheAfterTest() throws Exception {
-	//
-	//		if (!failureDetectionTestWatcher.isFailed() && isUnitTestStatic() && ConstellioFactories.isInitialized()
-	//			&& cacheIntegrityCheckedAfterTest) {
-	//
-	//			ModelLayerFactory modelLayerFactory = ConstellioFactories.getInstance().getModelLayerFactory();
-	//
-	//			RecordsCache2IntegrityDiagnosticService service = new RecordsCache2IntegrityDiagnosticService(modelLayerFactory);
-	//			ValidationErrors errors = service.validateIntegrity(false, true);
-	//			//List<String> messages = englishMessages(errors).stream().map((s) -> substringBefore(s, " :")).collect(toList());
-	//
-	//			List<String> messages = englishMessages(errors);
-	//			if (!messages.isEmpty()) {
-	//				setFailMessage("Cache problems : \n" + StringUtils.join(messages, "\n"));
-	//			}
-	//			//assertThat(messages).isEmpty();
-	//		}
-	//
-	//	}
+	@After
+	public void checkCacheAfterTest() throws Exception {
+
+		if (!failureDetectionTestWatcher.isFailed() && isUnitTestStatic() && ConstellioFactories.isInitialized()
+			&& cacheIntegrityCheckedAfterTest) {
+
+			ModelLayerFactory modelLayerFactory = ConstellioFactories.getInstance().getModelLayerFactory();
+
+			RecordsCache2IntegrityDiagnosticService service = new RecordsCache2IntegrityDiagnosticService(modelLayerFactory);
+			ValidationErrors errors = service.validateIntegrity(false, true);
+
+			List<String> messages = englishMessages(errors);
+			if (!messages.isEmpty()) {
+				setFailMessage("Cache problems : \n" + StringUtils.join(messages, "\n"));
+			}
+		}
+
+	}
 }
