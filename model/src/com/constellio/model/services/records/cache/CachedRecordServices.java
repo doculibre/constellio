@@ -10,6 +10,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.RecordCacheType;
 import com.constellio.model.entities.security.SecurityModel;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -123,13 +124,25 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 			return null;
 		}
 
-		Record foundRecord = getConnectedRecordsCache().getCache(metadata.getCollection()).getByMetadata(metadata, value);
+		MetadataSchemaType schemaType = modelLayerFactory.getMetadataSchemasManager()
+				.getSchemaTypes(metadata.getCollection()).getSchemaType(metadata.getSchemaTypeCode());
 
-		if (foundRecord == null) {
-			foundRecord = recordServices.getRecordByMetadata(metadata, value);
+		if (schemaType.getCacheType() == RecordCacheType.FULLY_CACHED) {
+			return getConnectedRecordsCache().getCache(metadata.getCollection()).getByMetadata(metadata, value);
+
+		} else if (schemaType.getCacheType().hasPermanentCache()) {
+			Record foundRecordSummary = getConnectedRecordsCache().getCache(metadata.getCollection()).getSummaryByMetadata(metadata, value);
+			if (foundRecordSummary != null) {
+				return getDocumentById(foundRecordSummary.getId());
+			} else {
+				return null;
+			}
+
+		} else {
+			return recordServices.getRecordByMetadata(metadata, value);
 		}
 
-		return foundRecord;
+
 	}
 
 	@Override
