@@ -500,7 +500,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 			//			return null;
 
 		} else {
-			throw new ImpossibleRuntimeException("getByMetadata cannot be used for schema type which are not fully cached. If the schema type has a summary cache, try using getSummaryByMetadata instead");
+			throw new ImpossibleRuntimeException("getByMetadata cannot be used for schema type '" + schemaType.getCode() + "' which is not fully cached. If the schema type has a summary cache, try using getSummaryByMetadata instead");
 		}
 	}
 
