@@ -183,7 +183,7 @@ public class ConstellioTest extends AbstractConstellioTest {
 	public void checkCacheAfterTest() throws Exception {
 
 		if (!failureDetectionTestWatcher.isFailed() && isUnitTestStatic() && ConstellioFactories.isInitialized()
-			&& cacheIntegrityCheckedAfterTest) {
+			&& cacheIntegrityCheckedAfterTest && Toggle.SDK_REQUEST_CACHE_VALIDATION.isEnabled()) {
 
 			ModelLayerFactory modelLayerFactory = ConstellioFactories.getInstance().getModelLayerFactory();
 
