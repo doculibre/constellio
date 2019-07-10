@@ -33,8 +33,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-import static com.constellio.data.dao.services.cache.InsertionReason.WAS_MODIFIED;
-import static com.constellio.data.dao.services.cache.InsertionReason.WAS_OBTAINED;
 import static com.constellio.model.entities.schemas.RecordCacheType.FULLY_CACHED;
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
@@ -44,7 +42,6 @@ import static com.constellio.sdk.tests.TestUtils.englishMessages;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsUnique;
 import static org.apache.ignite.internal.util.lang.GridFunc.asList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
 
 @RunWith(Parameterized.class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
@@ -127,49 +124,50 @@ public class NewPermanentRecordCacheAcceptanceTest extends ConstellioTest {
 
 	}
 
-	@Test
-	public void whenInsertingNotFullyLoadedRecordInPermanentCacheThenExceptionThrown()
-			throws Exception {
-
-		Record record = newZeCollectionType1Record(1234).set(TITLE, "val1")
-				.set(zeCollectionSchemaType1.stringMetadata(), "val2")
-				.set(zeCollectionSchemaType1.anotherStringMetadata(), "val3");
-		recordServices.add(record);
-
-		Record partiallyLoadedRecord = ((RecordImpl) getPartiallyLoaded(1234).set(TITLE, "val4"));
-		partiallyLoadedRecord.markAsSaved(partiallyLoadedRecord.getVersion() - 1000, zeCollectionSchemaType1.instance());
-
-		try {
-			recordsCaches.insert(partiallyLoadedRecord, WAS_OBTAINED);
-			fail("Exception expected");
-		} catch (IllegalStateException e) {
-			//OK
-		}
-
-		try {
-			recordsCaches.insert(partiallyLoadedRecord, WAS_MODIFIED);
-			fail("Exception expected");
-		} catch (IllegalStateException e) {
-			//OK
-		}
-
-		partiallyLoadedRecord = ((RecordImpl) getPartiallyLoaded(1234).set(TITLE, "val5"));
-		partiallyLoadedRecord.markAsSaved(partiallyLoadedRecord.getVersion() + 1000, zeCollectionSchemaType1.instance());
-
-		try {
-			recordsCaches.insert(partiallyLoadedRecord, WAS_OBTAINED);
-
-			fail("Exception expected");
-		} catch (IllegalStateException e) {
-			//OK
-		}
-
-		//		Record recordFromCache = recordsCaches.getRecord(id(1234));
-		//		assertThat(recordFromCache.<String>get(TITLE)).isEqualTo("val4");
-		//		assertThat(recordFromCache.<String>get(zeCollectionSchemaType1.stringMetadata())).isEqualTo("val2");
-		//		assertThat(recordFromCache.<String>get(zeCollectionSchemaType1.anotherStringMetadata())).isEqualTo("val3");
-
-	}
+	//Not supporting other than full records
+	//	@Test
+	//	public void whenInsertingNotFullyLoadedRecordInPermanentCacheThenExceptionThrown()
+	//			throws Exception {
+	//
+	//		Record record = newZeCollectionType1Record(1234).set(TITLE, "val1")
+	//				.set(zeCollectionSchemaType1.stringMetadata(), "val2")
+	//				.set(zeCollectionSchemaType1.anotherStringMetadata(), "val3");
+	//		recordServices.add(record);
+	//
+	//		Record partiallyLoadedRecord = ((RecordImpl) getCustomlyLoaded(1234).set(TITLE, "val4"));
+	//		partiallyLoadedRecord.markAsSaved(partiallyLoadedRecord.getVersion() - 1000, zeCollectionSchemaType1.instance());
+	//
+	//		try {
+	//			recordsCaches.insert(partiallyLoadedRecord, WAS_OBTAINED);
+	//			fail("Exception expected");
+	//		} catch (IllegalStateException e) {
+	//			//OK
+	//		}
+	//
+	//		try {
+	//			recordsCaches.insert(partiallyLoadedRecord, WAS_MODIFIED);
+	//			fail("Exception expected");
+	//		} catch (IllegalStateException e) {
+	//			//OK
+	//		}
+	//
+	//		partiallyLoadedRecord = ((RecordImpl) getCustomlyLoaded(1234).set(TITLE, "val5"));
+	//		partiallyLoadedRecord.markAsSaved(partiallyLoadedRecord.getVersion() + 1000, zeCollectionSchemaType1.instance());
+	//
+	//		try {
+	//			recordsCaches.insert(partiallyLoadedRecord, WAS_OBTAINED);
+	//
+	//			fail("Exception expected");
+	//		} catch (IllegalStateException e) {
+	//			//OK
+	//		}
+	//
+	//		//		Record recordFromCache = recordsCaches.getRecord(id(1234));
+	//		//		assertThat(recordFromCache.<String>get(TITLE)).isEqualTo("val4");
+	//		//		assertThat(recordFromCache.<String>get(zeCollectionSchemaType1.stringMetadata())).isEqualTo("val2");
+	//		//		assertThat(recordFromCache.<String>get(zeCollectionSchemaType1.anotherStringMetadata())).isEqualTo("val3");
+	//
+	//	}
 
 
 	@Test
@@ -341,7 +339,7 @@ public class NewPermanentRecordCacheAcceptanceTest extends ConstellioTest {
 		return useZeroPaddedIds ? StringUtils.leftPad("" + intId, 11, "0") : "" + intId;
 	}
 
-	private RecordImpl getPartiallyLoaded(int id) {
+	private RecordImpl getCustomlyLoaded(int id) {
 		return (RecordImpl) searchServices.search(new LogicalSearchQuery().setCondition(
 				fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER).isEqualTo(id(id)))
 				.setReturnedMetadatas(ReturnedMetadatasFilter.idVersionSchemaTitlePath())).get(0);
