@@ -33,10 +33,10 @@ import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.RMSelectionPanelReportPresenter;
 import com.constellio.app.ui.framework.components.ReportTabButton;
-import com.constellio.app.ui.framework.components.ReportViewer;
 import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
 import com.constellio.app.ui.framework.components.fields.ListOptionGroup;
 import com.constellio.app.ui.framework.components.table.SelectionTableAdapter;
+import com.constellio.app.ui.framework.stream.DownloadStreamResource;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.util.ComponentTreeUtils;
 import com.constellio.data.io.services.facades.IOServices;
@@ -768,7 +768,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
 	private EmailMessage createEmail(AvailableActionsParam param) {
 		File newTempFile = null;
 		try {
-			newTempFile = ioServices.newTemporaryFile("RMSelectionPanelExtension-emailFile");
+			newTempFile = ioServices.newTemporaryFile("RMSelectionPanelExtension-emailFile-" + System.currentTimeMillis());
 			return createEmail(param, newTempFile);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
@@ -869,7 +869,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
 
 	@SuppressWarnings("deprecation")
 	private void startDownload(final InputStream stream, String filename) {
-		Resource resource = new ReportViewer.DownloadStreamResource(new StreamResource.StreamSource() {
+		Resource resource = new DownloadStreamResource(new StreamResource.StreamSource() {
 			@Override
 			public InputStream getStream() {
 				return stream;
