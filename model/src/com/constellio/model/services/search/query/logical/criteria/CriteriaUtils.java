@@ -10,16 +10,40 @@ import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.joda.time.LocalTime;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class CriteriaUtils {
 
 	public static String escape(String string) {
 		return ClientUtils.escapeQueryChars(string);
 	}
 
+	public static List<Object> convertToMemoryQueryValues(List<Object> values) {
+		List<Object> memoryQueryValues = new ArrayList<>();
+		for (Object item : values) {
+			memoryQueryValues.add(convertToMemoryQueryValue(item));
+
+		}
+		return memoryQueryValues;
+	}
+
+	public static Object convertToMemoryQueryValue(Object item) {
+		if (item instanceof Record) {
+			return ((Record) item).getId();
+
+		} else if (item instanceof RecordWrapper) {
+			return ((RecordWrapper) item).getId();
+
+		} else {
+			return item;
+		}
+	}
+
 	public static String toSolrStringValue(Object value, DataStoreField dataStoreField) {
 
 		if (value == null) {
-			return CriteriaUtils.getNullValueForDataStoreField(dataStoreField);
+			return dataStoreField == null ? null : CriteriaUtils.getNullValueForDataStoreField(dataStoreField);
 
 		} else if (value instanceof LocalDateTime) {
 			return correctLocalDateTime((LocalDateTime) value);
