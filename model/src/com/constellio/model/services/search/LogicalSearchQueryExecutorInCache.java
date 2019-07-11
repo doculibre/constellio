@@ -90,11 +90,11 @@ public class LogicalSearchQueryExecutorInCache {
 		Object value1 = record1.get(metadata);
 		Object value2 = record2.get(metadata);
 
-		if (value1 instanceof String) {
+		if (value1 instanceof String && metadata.getSortFieldNormalizer() != null) {
 			value1 = metadata.getSortFieldNormalizer().normalize((String) value1);
 		}
 
-		if (value2 instanceof String) {
+		if (value2 instanceof String && metadata.getSortFieldNormalizer() != null) {
 			value2 = metadata.getSortFieldNormalizer().normalize((String) value2);
 		}
 
