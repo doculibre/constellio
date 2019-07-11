@@ -3,6 +3,8 @@ package com.constellio.model.services.records.cache2;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.LangUtils.ListComparisonResults;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.EmailToSend;
+import com.constellio.model.entities.records.wrappers.TemporaryRecord;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataValueType;
@@ -60,6 +62,8 @@ public class RecordsCache2IntegrityDiagnosticService {
 	CollectionsListManager collectionsListManager;
 	MetadataSchemasManager metadataSchemasManager;
 
+	static List<String> includedTypesFromDiagnostic = asList(EmailToSend.SCHEMA_TYPE, TemporaryRecord.SCHEMA_TYPE);
+
 	public RecordsCache2IntegrityDiagnosticService(ModelLayerFactory modelLayerFactory) {
 		this.recordsCaches = modelLayerFactory.getRecordsCaches();
 		this.searchServices = modelLayerFactory.newSearchServices();
@@ -76,7 +80,8 @@ public class RecordsCache2IntegrityDiagnosticService {
 			for (MetadataSchemaType schemaType : metadataSchemasManager.getSchemaTypes(collection).getSchemaTypes()) {
 
 
-				if (schemaType.getCacheType().hasPermanentCache()) {
+				if (!includedTypesFromDiagnostic.contains(schemaType.getCode())
+					&& schemaType.getCacheType().hasPermanentCache()) {
 
 					PermanentCacheReport report = validatePermanentCacheScanningSolr(schemaType,
 							repair && !runTwiceToEliminateProblemsCausedByBadTiming);
@@ -94,7 +99,8 @@ public class RecordsCache2IntegrityDiagnosticService {
 					report.addErrors(errors);
 				}
 
-				if (schemaType.getCacheType().hasVolatileCache()) {
+				if (!includedTypesFromDiagnostic.contains(schemaType.getCode())
+					&& schemaType.getCacheType().hasVolatileCache()) {
 					VolatileCacheReport report = validateVolatileCache(schemaType,
 							repair && !runTwiceToEliminateProblemsCausedByBadTiming);
 
