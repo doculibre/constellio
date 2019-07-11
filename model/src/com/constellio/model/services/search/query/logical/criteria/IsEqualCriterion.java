@@ -4,6 +4,7 @@ import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.DataStoreField;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.services.records.RecordImpl;
 import com.constellio.model.services.search.query.logical.LogicalSearchValueCondition;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -47,7 +48,12 @@ public class IsEqualCriterion extends LogicalSearchValueCondition {
 	@Override
 	public boolean testConditionOnField(Metadata metadata, Record record) {
 
-		Object recordValue = record.get(metadata);
+		Object recordValue = null;
+		if (metadata.isEncrypted()) {
+			recordValue = ((RecordImpl) record).getRecordDTO().getFields().get(metadata.getDataStoreCode());
+		} else {
+			recordValue = record.get(metadata);
+		}
 
 		if (recordValue instanceof List) {
 			return ((List) recordValue).contains(value);
