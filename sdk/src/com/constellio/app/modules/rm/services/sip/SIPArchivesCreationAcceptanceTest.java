@@ -157,7 +157,7 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenExportingCollectionFoldersAndDocumentsThenAllExported()
 			throws Exception {
-
+		cacheIntegrityCheckedAfterTest = false;
 
 		Transaction tx = new Transaction();
 
@@ -579,7 +579,7 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenExportingCollectionThenExportTasks()
 			throws Exception {
-
+		cacheIntegrityCheckedAfterTest = false;
 		//		getIOLayerFactory().newZipService().zip(getTestResourceFile("sip1.zip"),
 		//				asList(new File("/Users/francisbaril/Downloads/SIPArchivesCreationAcceptanceTest-sip1").listFiles()));
 

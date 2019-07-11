@@ -10,7 +10,7 @@ import java.util.Map;
 
 public class Toggle {
 
-	public static AvailableToggle SDK_CACHE_INTEGRITY_VALIDATION = newToggle(false);
+	public static AvailableToggle SDK_CACHE_INTEGRITY_VALIDATION = newToggle(true);
 	public static AvailableToggle SDK_REQUEST_CACHE_VALIDATION = newToggle();
 
 	public static AvailableToggle ROLES_WITH_NEW_7_2_PERMISSIONS = newToggle();

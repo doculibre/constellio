@@ -29,7 +29,7 @@ public class RecordCodeComparator implements Comparator<Supplier<Record>> {
 	public static int compareRecords(List<String> typesOrder, Supplier<Record> o1Supplier,
 									 Supplier<Record> o2Supplier) {
 		Record o1 = o1Supplier.get();
-		Record o2 = o1Supplier.get();
+		Record o2 = o2Supplier.get();
 
 		int type1 = typesOrder.indexOf(o1.getTypeCode());
 		int type2 = typesOrder.indexOf(o2.getTypeCode());
