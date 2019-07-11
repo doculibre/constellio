@@ -68,15 +68,17 @@ public class LogicalSearchQueryExecutorInCache {
 				FieldLogicalSearchQuerySort fieldSort = (FieldLogicalSearchQuerySort) sort;
 				Metadata metadata =
 						schemaType.getDefaultSchema().getMetadataByDatastoreCode(fieldSort.getField().getDataStoreCode());
-				int sortValue;
-				if (sort.isAscending()) {
-					sortValue = compareMetadatasValues(o1, o2, metadata);
-				} else {
-					sortValue = -1 * compareMetadatasValues(o1, o2, metadata);
-				}
+				if (metadata != null) {
+					int sortValue;
+					if (sort.isAscending()) {
+						sortValue = compareMetadatasValues(o1, o2, metadata);
+					} else {
+						sortValue = -1 * compareMetadatasValues(o1, o2, metadata);
+					}
 
-				if (sortValue != 0) {
-					return sortValue;
+					if (sortValue != 0) {
+						return sortValue;
+					}
 				}
 			}
 
