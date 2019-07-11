@@ -444,7 +444,7 @@ public class AuthorizationsServices {
 
 			try {
 				Record target = recordServices.getDocumentById(removedAuthorization.getTarget());
-				if (request.isReattachIfLastAuthDeleted() && Boolean.TRUE == target.get(Schemas.IS_DETACHED_AUTHORIZATIONS)) {
+				if (request.isReattachIfLastAuthDeleted() && Boolean.TRUE.equals(target.get(Schemas.IS_DETACHED_AUTHORIZATIONS))) {
 					transaction.recordsToResetIfNoAuths.add(target.getId());
 				}
 			} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
