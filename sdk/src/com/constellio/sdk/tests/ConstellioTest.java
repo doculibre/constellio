@@ -187,6 +187,8 @@ public class ConstellioTest extends AbstractConstellioTest {
 
 			ModelLayerFactory modelLayerFactory = ConstellioFactories.getInstance().getModelLayerFactory();
 
+			modelLayerFactory.getBatchProcessesManager().waitUntilAllFinished();
+
 			RecordsCache2IntegrityDiagnosticService service = new RecordsCache2IntegrityDiagnosticService(modelLayerFactory);
 			ValidationErrors errors = service.validateIntegrity(false, true);
 
