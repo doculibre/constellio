@@ -5,6 +5,8 @@ import com.constellio.app.entities.modules.MigrationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpDocument;
+import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
+import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.RecordCacheType;
@@ -42,6 +44,8 @@ public class ESMigrationTo9_0 extends MigrationHelper implements MigrationScript
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder types) {
 			types.getSchemaType(ConnectorHttpDocument.SCHEMA_TYPE).setRecordCacheType(RecordCacheType.NOT_CACHED);
+			types.getSchemaType(ConnectorSmbFolder.SCHEMA_TYPE).setRecordCacheType(RecordCacheType.NOT_CACHED);
+			types.getSchemaType(ConnectorSmbDocument.SCHEMA_TYPE).setRecordCacheType(RecordCacheType.NOT_CACHED);
 		}
 	}
 }
