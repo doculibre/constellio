@@ -175,6 +175,7 @@ public abstract class BaseDao {
 	}
 
 	public Record getGroupByCode(String groupCode, String collection) {
+		SchemasRecordsServices schemas = new SchemasRecordsServices(collection, modelLayerFactory);
 		return recordServices.getRecordsCaches().getCache(collection).getByMetadata(schemas.group.code(), groupCode);
 	}
 
