@@ -22,6 +22,8 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.frameworks.validation.ValidationErrors;
+import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.collections.CollectionsListManagerRuntimeException.CollectionsListManagerRuntimeException_NoSuchCollection;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -30,6 +32,7 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.records.cache.RecordsCachesRequestMemoryImpl;
+import com.constellio.model.services.records.cache2.RecordsCache2IntegrityDiagnosticService;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.QueryElevation.DocElevation;
 import com.constellio.model.services.search.entities.SearchBoost;
@@ -693,6 +696,7 @@ public class SearchServices {
 				long countFromSolr = getResultCountUsingSolr(query);
 
 				if (count != countFromSolr) {
+					checkForCacheProblems();
 					throw new RuntimeException("Cached query execution problem");
 				}
 
@@ -703,6 +707,16 @@ public class SearchServices {
 
 		} else {
 			return getResultCountUsingSolr(query);
+		}
+	}
+
+	private void checkForCacheProblems() {
+		RecordsCache2IntegrityDiagnosticService service = new RecordsCache2IntegrityDiagnosticService(modelLayerFactory);
+		ValidationErrors errors = service.validateIntegrity(false, true);
+		try {
+			errors.throwIfNonEmpty();
+		} catch (ValidationException e) {
+			throw new RuntimeException(e);
 		}
 	}
 

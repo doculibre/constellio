@@ -12,10 +12,12 @@ import com.constellio.model.services.search.query.logical.FieldLogicalSearchQuer
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuerySort;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.constellio.model.services.search.query.logical.condition.SchemaFilters;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 public class LogicalSearchQueryExecutorInCache {
@@ -34,7 +36,23 @@ public class LogicalSearchQueryExecutorInCache {
 
 	public Stream<Record> stream(LogicalSearchQuery query) {
 		MetadataSchemaType schemaType = getQueriedSchemaType(query.getCondition());
-		Stream<Record> stream = recordsCaches.stream(schemaType).filter(query.getCondition());
+
+		Predicate<Record> filter = query.getCondition();
+
+		if (query.getCondition().getFilters() instanceof SchemaFilters) {
+			SchemaFilters schemaFilters = (SchemaFilters) query.getCondition().getFilters();
+
+			if (schemaFilters.getSchemaFilter() != null && schemaFilters.getSchemaTypeFilter() == null) {
+				filter = new Predicate<Record>() {
+					@Override
+					public boolean test(Record record) {
+						return schemaFilters.getSchemaFilter().getCode().equals(record.getSchemaCode());
+					}
+				}.and(filter);
+			}
+		}
+
+		Stream<Record> stream = recordsCaches.stream(schemaType).filter(filter);
 
 		if (!query.getSortFields().isEmpty()) {
 			return stream.sorted(newQuerySortFieldsComparator(query, schemaType));
