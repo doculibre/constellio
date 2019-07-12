@@ -4,6 +4,9 @@ import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.schemas.DataStoreField;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.services.records.RecordImpl;
 import org.apache.solr.client.solrj.util.ClientUtils;
 import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDate;
@@ -11,7 +14,9 @@ import org.joda.time.LocalDateTime;
 import org.joda.time.LocalTime;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class CriteriaUtils {
 
@@ -41,6 +46,47 @@ public class CriteriaUtils {
 
 		} else {
 			return item;
+		}
+	}
+
+	public static Object convertMetadataValue(Metadata metadata, Record record) {
+		Object recordValue;
+		if (metadata.isEncrypted()) {
+			recordValue = ((RecordImpl) record).getRecordDTO().getFields().get(metadata.getDataStoreCode());
+		} else {
+			recordValue = record.get(metadata);
+		}
+
+
+		if (metadata.getType() == MetadataValueType.ENUM) {
+			if (recordValue instanceof List) {
+				recordValue = ((List) recordValue).stream().map(o -> getCodeFromEnumWithSmallCode(o)).collect(Collectors.toList());
+			} else {
+				recordValue = ((EnumWithSmallCode) recordValue).getCode();
+			}
+		}
+
+		return recordValue;
+	}
+
+	public static <T> List<T> getValues(Object value) {
+		if (value == null) {
+			return Collections.emptyList();
+		} else {
+			if (value instanceof List) {
+				return (List<T>) value;
+			} else {
+				List<T> values = Collections.singletonList((T) value);
+				return values;
+			}
+		}
+	}
+
+	private static String getCodeFromEnumWithSmallCode(Object enumWithSmallCode) {
+		if (enumWithSmallCode == null) {
+			return null;
+		} else {
+			return ((EnumWithSmallCode) enumWithSmallCode).getCode();
 		}
 	}
 

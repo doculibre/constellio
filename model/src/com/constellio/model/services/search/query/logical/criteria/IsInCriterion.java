@@ -79,7 +79,9 @@ public class IsInCriterion extends LogicalSearchValueCondition {
 			return false;
 		}
 
-		for (Object value : record.getValues(metadata)) {
+		Object recordValue = CriteriaUtils.convertMetadataValue(metadata, record);
+
+		for (Object value : CriteriaUtils.getValues(recordValue)) {
 			if (memoryQueryValues.contains(value)) {
 				return true;
 			}

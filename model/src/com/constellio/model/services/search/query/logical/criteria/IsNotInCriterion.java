@@ -1,8 +1,11 @@
 package com.constellio.model.services.search.query.logical.criteria;
 
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.DataStoreField;
+import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.services.search.SearchServicesRuntimeException.TooManyElementsInCriterion;
 import com.constellio.model.services.search.query.logical.LogicalSearchValueCondition;
+import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
@@ -54,6 +57,13 @@ public class IsNotInCriterion extends LogicalSearchValueCondition {
 		solrQuery.append(dataStoreField.getDataStoreCode());
 		solrQuery.append(":*)");
 		return solrQuery.toString();
+	}
+
+	@Override
+	public boolean testConditionOnField(Metadata metadata, Record record) {
+		Object recordValue = CriteriaUtils.convertMetadataValue(metadata, record);
+
+		throw new NotImplementedException("Not implemented yet");
 	}
 
 	@Override
