@@ -185,12 +185,14 @@ public class ConstellioTest extends AbstractConstellioTest {
 		if (!failureDetectionTestWatcher.isFailed() && isUnitTestStatic() && ConstellioFactories.isInitialized()
 			&& cacheIntegrityCheckedAfterTest && Toggle.SDK_CACHE_INTEGRITY_VALIDATION.isEnabled()) {
 
-			ModelLayerFactory modelLayerFactory = ConstellioFactories.getInstance().getModelLayerFactory();
+			ValidationErrors errors = checkCacheAndReturnErrors(false, false);
 
-			modelLayerFactory.getBatchProcessesManager().waitUntilAllFinished();
-
-			RecordsCache2IntegrityDiagnosticService service = new RecordsCache2IntegrityDiagnosticService(modelLayerFactory);
-			ValidationErrors errors = service.validateIntegrity(false, true);
+			if (!errors.isEmptyErrorAndWarnings()
+				&& getCurrentTestSession().getBatchProcessTestFeature().waitForBatchProcessAfterTest) {
+				errors = checkCacheAndReturnErrors(true, true);
+			} else {
+				errors = checkCacheAndReturnErrors(false, true);
+			}
 
 			List<String> messages = englishMessages(errors);
 			if (!messages.isEmpty()) {
@@ -198,5 +200,16 @@ public class ConstellioTest extends AbstractConstellioTest {
 			}
 		}
 
+	}
+
+	private ValidationErrors checkCacheAndReturnErrors(boolean waitForBatchProcesses, boolean runTwice) {
+		ModelLayerFactory modelLayerFactory = ConstellioFactories.getInstance().getModelLayerFactory();
+
+		if (waitForBatchProcesses) {
+			modelLayerFactory.getBatchProcessesManager().waitUntilAllFinished();
+		}
+
+		RecordsCache2IntegrityDiagnosticService service = new RecordsCache2IntegrityDiagnosticService(modelLayerFactory);
+		return service.validateIntegrity(false, runTwice);
 	}
 }
