@@ -91,8 +91,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 				.valueSerializer(Serializer.JAVA)
 				//.expireMaxSize(50000)
 				//.expireExecutorPeriod(1)
-				// 16 * 1024*1024*1024  16GB
-				.expireStoreSize(200 * 1024)
+				.expireStoreSize(modelLayerFactory.getConfiguration().getRecordsVolatileCacheMemorySize())
 				//				.expireExecutor(executor)
 				//				.expireMaxSize(15)
 				.expireAfterGet()

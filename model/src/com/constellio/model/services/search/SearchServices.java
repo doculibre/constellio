@@ -405,7 +405,7 @@ public class SearchServices {
 
 			@Override
 			public long count() {
-				return getResultsCount(clonedQuery);
+				return getResultCountUsingSolr(clonedQuery);
 			}
 
 			@Override
