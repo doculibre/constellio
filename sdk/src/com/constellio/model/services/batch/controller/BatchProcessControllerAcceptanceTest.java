@@ -66,6 +66,7 @@ public class BatchProcessControllerAcceptanceTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 
+		cacheIntegrityCheckedAfterTest = false;
 		withSpiedServices(ModelLayerFactory.class);
 
 		recordsCaches = getModelLayerFactory().getRecordsCaches();
