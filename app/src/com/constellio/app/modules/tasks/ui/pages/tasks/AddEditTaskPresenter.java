@@ -10,6 +10,7 @@ import com.constellio.app.modules.tasks.extensions.api.params.TaskFormParams;
 import com.constellio.app.modules.tasks.extensions.api.params.TaskFormRetValue;
 import com.constellio.app.modules.tasks.extensions.param.PromptUserParam;
 import com.constellio.app.modules.tasks.TasksPermissionsTo;
+import com.constellio.app.modules.tasks.extensions.TaskAddEditTaskPresenterExtension;
 import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflowTask;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.TaskStatusType;
@@ -124,6 +125,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 
 	public static final String IS_INCLUSIVE_DECISION = "isInclusiveDecision";
 	public static final String INCLUSIVE_DECISION = "inclusiveDecision";
+	private RMModuleExtensions rmModuleExtensions = appCollectionExtentions.forModule(ConstellioRMModule.ID);
 
 	public AddEditTaskPresenter(AddEditTaskView view) {
 		super(view, Task.DEFAULT_SCHEMA);
@@ -336,12 +338,16 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 	}
 
 	private void saveRecord(Task task, Record record, boolean withRequiredValidation) {
-		RecordUpdateOptions recordUpdateOptions;
+		RecordUpdateOptions recordUpdateOptions = null;
+
+		if (rmModuleExtensions != null) {
+			for (TaskAddEditTaskPresenterExtension extension : rmModuleExtensions.getTaskAddEditTaskPresenterExtension()) {
+				options = extension.getRecordUpdateOption();
+			}
+		}
 
 		if (task.isModel()) {
 			recordUpdateOptions = RecordUpdateOptions.userModificationsSafeOptions();
-		} else {
-			recordUpdateOptions = null;
 		}
 
 		if (withRequiredValidation) {
@@ -440,7 +446,13 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		try {
 			TaskVO taskVO = getTask();
 			Task task = taskPresenterServices.toTask(new TaskVO(taskVO), toRecord(taskVO));
-			if (task.isModel()) {
+			boolean adjustRequiredUSRMetadatasFields = false;
+			if (rmModuleExtensions != null) {
+				for (TaskAddEditTaskPresenterExtension extension : rmModuleExtensions.getTaskAddEditTaskPresenterExtension()) {
+					adjustRequiredUSRMetadatasFields = extension.adjustRequiredUSRMetadatasFields();
+				}
+			}
+			if (task.isModel() || adjustRequiredUSRMetadatasFields) {
 				TaskForm form = view.getForm();
 				if (form != null && form instanceof RecordForm) {
 					MetadataSchemasManager schemasManager = modelLayerFactory.getMetadataSchemasManager();

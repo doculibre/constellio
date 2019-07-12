@@ -92,6 +92,8 @@ subprojects {
         compile 'com.sun.mail:javax.mail:1.6.2'
         compile 'com.microsoft.azure:adal4j:1.6.3'
         compile 'com.nimbusds:oauth2-oidc-sdk:4.5'
+        compile group: 'com.github.bbottema', name: 'emailaddress-rfc2822', version: '1.1.2'
+        compile group: 'net.markenwerk', name: 'utils-mail-dkim', version: '1.1.10'
 
         compileOnly "org.projectlombok:lombok:1.18.2"
         annotationProcessor "org.projectlombok:lombok:1.18.2"
