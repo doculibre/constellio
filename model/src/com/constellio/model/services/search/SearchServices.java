@@ -160,14 +160,23 @@ public class SearchServices {
 			List<Record> records = searchUsingCache(query);
 
 			if (Toggle.VALIDATE_CACHE_EXECUTION_SERVICE_USING_SOLR.isEnabled()) {
-				List<Record> solrRecords = searchUsingSolr(query);
 
-				List<String> cacheRecordIds = records.stream().map(Record::getId).collect(Collectors.toList());
-				List<String> solrRecordIds = solrRecords.stream().map(Record::getId).collect(Collectors.toList());
+				if (query.getSortFields() == null || query.getSortFields().isEmpty()) {
+					Set<String> cacheRecordIds = records.stream().map(Record::getId).collect(Collectors.toSet());
+					Set<String> solrRecordIds = searchUsingSolr(query).stream().map(Record::getId).collect(Collectors.toSet());
 
-				if (!cacheRecordIds.equals(solrRecordIds)) {
-					throw new RuntimeException("Cached query execution problem\nExpected : " + solrRecordIds
-											   + "\nWas : " + cacheRecordIds);
+					if (!cacheRecordIds.equals(solrRecordIds)) {
+						throw new RuntimeException("Cached query execution problem\nExpected : " + solrRecordIds
+												   + "\nWas : " + cacheRecordIds);
+					}
+				} else {
+					List<String> cacheRecordIds = records.stream().map(Record::getId).collect(Collectors.toList());
+					List<String> solrRecordIds = searchUsingSolr(query).stream().map(Record::getId).collect(Collectors.toList());
+
+					if (!cacheRecordIds.equals(solrRecordIds)) {
+						throw new RuntimeException("Cached query execution problem\nExpected : " + solrRecordIds
+												   + "\nWas : " + cacheRecordIds);
+					}
 				}
 
 			}

@@ -14,6 +14,8 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuerySort
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.condition.SchemaFilters;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Comparator;
 import java.util.List;
@@ -21,6 +23,8 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 public class LogicalSearchQueryExecutorInCache {
+
+	private static Logger LOGGER = LoggerFactory.getLogger(LogicalSearchQueryExecutorInCache.class);
 
 	SearchServices searchServices;
 	RecordsCaches recordsCaches;
@@ -50,6 +54,17 @@ public class LogicalSearchQueryExecutorInCache {
 					}
 				}.and(filter);
 			}
+		}
+
+		if (Toggle.VALIDATE_CACHE_EXECUTION_SERVICE_USING_SOLR.isEnabled()) {
+			filter = filter.and(new Predicate<Record>() {
+				@Override
+				public boolean test(Record record) {
+					LOGGER.info("Record returned by stream : " + record.getIdTitle());
+
+					return true;
+				}
+			});
 		}
 
 		Stream<Record> stream = recordsCaches.stream(schemaType).filter(filter)
