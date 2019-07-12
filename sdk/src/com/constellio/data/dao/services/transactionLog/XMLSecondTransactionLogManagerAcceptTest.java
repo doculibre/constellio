@@ -60,12 +60,6 @@ import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSearchab
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.atLeast;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.verify;
 
 @SlowTest
 public class XMLSecondTransactionLogManagerAcceptTest extends ConstellioTest {
@@ -96,10 +90,10 @@ public class XMLSecondTransactionLogManagerAcceptTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
+		cacheIntegrityCheckedAfterTest = false;
 		givenDisabledAfterTestValidations();
 		givenHashingEncodingIs(BASE64_URL_ENCODED);
 		givenBackgroundThreadsEnabled();
-		withSpiedServices(SecondTransactionLogManager.class);
 		logBaseFolder = newTempFolder();
 
 		configure(new DataLayerConfigurationAlteration() {
@@ -487,8 +481,6 @@ public class XMLSecondTransactionLogManagerAcceptTest extends ConstellioTest {
 			assertThat(stringMetadataLines).contains(zeSchema.stringMetadata().getDataStoreCode() + "=" + value);
 		}
 
-		verify(log, atLeast(500)).prepare(anyString(), any(BigVaultServerTransaction.class));
-		reset(log);
 
 		RecordDao recordDao = getDataLayerFactory().newRecordDao();
 		SolrSDKToolsServices solrSDKTools = new SolrSDKToolsServices(recordDao);
@@ -505,7 +497,6 @@ public class XMLSecondTransactionLogManagerAcceptTest extends ConstellioTest {
 			assertThat(getRecordsByStringMetadata(text)).hasSize(1);
 		}
 
-		verify(log, never()).prepare(anyString(), any(BigVaultServerTransaction.class));
 	}
 
 	private List<String> getRecordsByStringMetadata(String value) {

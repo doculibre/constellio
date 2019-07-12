@@ -260,7 +260,7 @@ public class SearchServices {
 			query.setReturnedMetadatas(onlyFields(schemaType.getSummaryMetadatasDataStoreCodes()));
 		}
 
-		return stream(query, batchSize);
+		return streamFromSolr(query, batchSize);
 
 	}
 
