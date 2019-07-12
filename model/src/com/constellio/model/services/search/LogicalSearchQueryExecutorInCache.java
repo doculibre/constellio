@@ -52,13 +52,14 @@ public class LogicalSearchQueryExecutorInCache {
 			}
 		}
 
-		Stream<Record> stream = recordsCaches.stream(schemaType).filter(filter);
+		Stream<Record> stream = recordsCaches.stream(schemaType).filter(filter)
+				.sorted(newIdComparator());
 
-		if (!query.getSortFields().isEmpty()) {
-			return stream.sorted(newQuerySortFieldsComparator(query, schemaType));
-		} else {
-			return stream;
-		}
+		//		if (!query.getSortFields().isEmpty()) {
+		//			return stream.sorted(newQuerySortFieldsComparator(query, schemaType));
+		//		} else {
+		return stream;
+		//		}
 	}
 
 	@NotNull
@@ -83,6 +84,13 @@ public class LogicalSearchQueryExecutorInCache {
 			}
 
 			return 0;
+		};
+	}
+
+	@NotNull
+	private Comparator<Record> newIdComparator() {
+		return (o1, o2) -> {
+			return o1.getId().compareTo(o2.getId());
 		};
 	}
 
@@ -115,7 +123,8 @@ public class LogicalSearchQueryExecutorInCache {
 
 	public static boolean hasNoUnsupportedFeatureOrFilter(LogicalSearchQuery query) {
 		return query.getFacetFilters().toSolrFilterQueries().isEmpty()
-			   && hasNoSortOrOnlyFieldSorts(query)
+			   //&& hasNoSortOrOnlyFieldSorts(query)
+			   && hasNoSort(query)
 			   && query.getFreeTextQuery() == null
 			   && query.getFieldPivotFacets().isEmpty()
 			   && query.getFieldPivotFacets().isEmpty()
@@ -130,6 +139,11 @@ public class LogicalSearchQueryExecutorInCache {
 			   && (query.getUserFilters() == null || query.getUserFilters().isEmpty())
 			   && !query.isHighlighting();
 	}
+
+	private static boolean hasNoSort(LogicalSearchQuery query) {
+		return query.getSortFields().isEmpty();
+	}
+
 
 	private static boolean hasNoSortOrOnlyFieldSorts(LogicalSearchQuery query) {
 		for (LogicalSearchQuerySort sort : query.getSortFields()) {

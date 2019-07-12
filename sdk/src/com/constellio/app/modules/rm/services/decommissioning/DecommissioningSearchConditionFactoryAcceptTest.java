@@ -4,6 +4,7 @@ import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSearchConditionFactory.ContainerSearchParameters;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -306,13 +307,13 @@ public class DecommissioningSearchConditionFactoryAcceptTest extends ConstellioT
 	@Test
 	public void whenSearchingDocumentSemiActiveToConservationThenObtainsValidResults()
 			throws Exception {
-
+		Toggle.USE_CACHE_FOR_QUERY_EXECUTION.disable();
 		givenConfig(RMConfigs.DOCUMENT_RETENTION_RULES, true);
 		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE, true);
 		givenDisabledAfterTestValidations();
 		waitForBatchProcess();
 		reindexIfRequired();
-
+		Toggle.USE_CACHE_FOR_QUERY_EXECUTION.enable();
 		givenTimeIs(new LocalDate(2100, 11, 5));
 		assertThatResultsOf(factory.documentSemiActiveToDeposit(records.unitId_10a))
 				.contains(records.decommissionnableContractsInFolder_A(42, 44))
