@@ -44,6 +44,8 @@ public class CriteriaUtils {
 		} else if (item instanceof RecordWrapper) {
 			return ((RecordWrapper) item).getId();
 
+		} else if (item instanceof EnumWithSmallCode) {
+			return ((EnumWithSmallCode) item).getCode();
 		} else {
 			return item;
 		}
