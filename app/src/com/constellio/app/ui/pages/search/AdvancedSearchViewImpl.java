@@ -139,7 +139,7 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 		// FIXME test only
 		MenuItemServices menuItemServices = new MenuItemServices(getCollection(), this.getConstellioFactories().getAppLayerFactory());
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(getCollection(), this.getConstellioFactories().getAppLayerFactory());
-		List<MenuItemAction> selectedMenuItemActions = menuItemServices.getActionsForRecords(rm.get(getSelectedRecordIds()),
+		List<MenuItemAction> selectedMenuItemActions = menuItemServices.getActionsForRecords(rm.get(results.getSelectedRecordIds()),
 				new MenuItemActionBehaviorParams() {
 					@Override
 					public BaseView getView() {

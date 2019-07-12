@@ -18,6 +18,8 @@ public class MenuItemAction {
 	private Consumer<List<String>> command;
 	private int group;
 	private int priority;
+	private int recordsLimit;
 	private String confirmMessage;
 	private DialogMode dialogMode;
+
 }

@@ -249,6 +249,7 @@ public class FolderMenuItemServices {
 				.group(group)
 				.priority(priority)
 				.command(command)
+				.recordsLimit(1)
 				.build();
 	}
 

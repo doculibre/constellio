@@ -106,6 +106,9 @@ public class RMMenuItemActionsRequestTaskExtension extends MenuItemActionsExtens
 						.state(toState(isBorrowRequestActionPossible))
 						.caption($("RMRequestTaskButtonExtension.borrowRequest"))
 						.command((ids) -> borrowRequest(params))
+						.recordsLimit(1)
+						.group(1)
+						.priority(3000)
 						.build());
 
 				boolean isRequestBorrowExtensionActionPossible = isExtensionRequestActionPossible(record, user);
@@ -115,6 +118,9 @@ public class RMMenuItemActionsRequestTaskExtension extends MenuItemActionsExtens
 						.state(toState(isRequestBorrowExtensionActionPossible))
 						.caption($("RMRequestTaskButtonExtension.borrowExtensionRequest"))
 						.command((ids) -> borrowExtensionRequested(params))
+						.recordsLimit(1)
+						.group(1)
+						.priority(3002)
 						.build());
 
 				boolean isReactivationActionPossible = isReactivationRequestActionPossible(record, user);
@@ -124,6 +130,9 @@ public class RMMenuItemActionsRequestTaskExtension extends MenuItemActionsExtens
 						.state(toState(isReactivationActionPossible))
 						.caption($("RMRequestTaskButtonExtension.reactivationRequest"))
 						.command((ids) -> reactivationRequested(params))
+						.recordsLimit(1)
+						.group(1)
+						.priority(3004)
 						.build());
 			}
 
@@ -140,6 +149,9 @@ public class RMMenuItemActionsRequestTaskExtension extends MenuItemActionsExtens
 					.caption($("RMRequestTaskButtonExtension.returnRequest"))
 					.confirmMessage(returnConfirmMessage)
 					.command((ids) -> returnRequest(params))
+					.recordsLimit(1)
+					.group(-1)
+					.priority(3006)
 					.build());
 		}
 	}

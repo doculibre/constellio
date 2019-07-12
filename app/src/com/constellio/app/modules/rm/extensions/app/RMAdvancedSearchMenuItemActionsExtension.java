@@ -105,6 +105,7 @@ public class RMAdvancedSearchMenuItemActionsExtension extends MenuItemActionsExt
 				.icon(null)
 				.group(-1)
 				.priority(1000)
+				.recordsLimit(-1)
 				.command((ids) -> generateReport(params.getQuery(), params.getBehaviorParams()))
 				.build();
 		params.getMenuItemActions().add(menuItemAction);
@@ -116,6 +117,7 @@ public class RMAdvancedSearchMenuItemActionsExtension extends MenuItemActionsExt
 				.icon(null)
 				.group(-1)
 				.priority(1100)
+				.recordsLimit(-1)
 				.command((ids) -> batchProcess(params.getQuery(), params.getBehaviorParams()))
 				.build();
 		params.getMenuItemActions().add(menuItemAction2);

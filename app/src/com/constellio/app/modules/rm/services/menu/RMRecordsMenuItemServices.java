@@ -11,12 +11,8 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.menu.MenuItemAction;
 import com.constellio.app.services.menu.MenuItemActionState;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
-import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.services.records.RecordServices;
-import com.constellio.model.services.search.SearchServices;
-import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Resource;
 import com.vaadin.server.ThemeResource;
@@ -26,10 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -54,8 +47,6 @@ public class RMRecordsMenuItemServices {
 	private String collection;
 	private AppLayerFactory appLayerFactory;
 
-	private RecordServices recordServices;
-	private SearchServices searchServices;
 	private DocumentRecordActionsServices documentRecordActionsServices;
 	private FolderRecordActionsServices folderRecordActionsServices;
 	private ContainerRecordActionsServices containerRecordActionsServices;
@@ -66,8 +57,6 @@ public class RMRecordsMenuItemServices {
 		this.collection = collection;
 		this.appLayerFactory = appLayerFactory;
 
-		recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
-		searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
 		documentRecordActionsServices = new DocumentRecordActionsServices(collection, appLayerFactory);
 		folderRecordActionsServices = new FolderRecordActionsServices(collection, appLayerFactory);
 		containerRecordActionsServices = new ContainerRecordActionsServices(collection, appLayerFactory);
@@ -86,82 +75,26 @@ public class RMRecordsMenuItemServices {
 		return menuItemActions;
 	}
 
-	public List<MenuItemAction> getActionsForQuery(LogicalSearchQuery query, User user,
-												   List<String> filteredActionTypes,
-												   MenuItemActionBehaviorParams params) {
-		List<MenuItemAction> menuItemActions = new ArrayList<>();
-
-		List<RMRecordsMenuItemActionType> actionTypes = getRMRecordsMenuItemActionTypes(filteredActionTypes);
-		if (!actionTypes.isEmpty()) {
-			Map<RMRecordsMenuItemActionType, MenuItemActionState> actionStateByType = new HashMap<>();
-
-			SearchResponseIterator<List<Record>> recordsIterator = searchServices.recordsIterator(query).inBatches();
-			while (recordsIterator.hasNext()) {
-				List<Record> records = recordsIterator.next();
-
-				Iterator<RMRecordsMenuItemActionType> actionTypesIterator = actionTypes.iterator();
-				while (actionTypesIterator.hasNext()) {
-					RMRecordsMenuItemActionType actionType = actionTypesIterator.next();
-					MenuItemActionState previousState = actionStateByType.get(actionType);
-
-					MenuItemActionState state = computeActionState(actionType, records, user, params, previousState);
-					actionStateByType.put(actionType, state);
-
-					if (state.getStatus() == DISABLED) {
-						actionTypesIterator.remove();
-						break;
-					}
-				}
-			}
-
-			for (RMRecordsMenuItemActionType actionType : actionStateByType.keySet()) {
-				addMenuItemAction(actionType, actionStateByType.get(actionType), params, menuItemActions);
-			}
-		}
-
-		return menuItemActions;
-	}
-
 	public MenuItemActionState getMenuItemActionStateForRecords(RMRecordsMenuItemActionType menuItemActionType,
 																List<Record> records, User user,
 																MenuItemActionBehaviorParams params) {
-		return computeActionState(menuItemActionType, records, user, params, null);
+		return computeActionState(menuItemActionType, records, user, params);
 	}
 
-	public MenuItemActionState getMenuItemActionStateForQuery(RMRecordsMenuItemActionType actionType,
-															  LogicalSearchQuery query,
-															  User user, MenuItemActionBehaviorParams params) {
-		if (query.getCondition() == null) {
-			return new MenuItemActionState(HIDDEN);
-		} else if (!actionType.getSchemaTypes().containsAll(query.getCondition().getFilterSchemaTypesCodes())) {
-			return new MenuItemActionState(HIDDEN);
-		} /*else if (records.size() == 0) {
-			return new MenuItemActionState(DISABLED, "RMRecordsMenuItemServices.noRecordSelected");
+	private MenuItemActionState computeActionState(RMRecordsMenuItemActionType menuItemActionType, List<Record> records,
+												   User user, MenuItemActionBehaviorParams params) {
+		if (records.isEmpty()) {
+			return new MenuItemActionState(DISABLED, $("RMRecordsMenuItemServices.noRecordSelected"));
 		}
 
-		return computeActionState(actionType, records, user, params, null);*/
-
-		MenuItemActionState state = null;
-		SearchResponseIterator<List<Record>> recordsIterator = searchServices.recordsIterator(query).inBatches();
-		while (recordsIterator.hasNext()) {
-			List<Record> records = recordsIterator.next();
-
-			state = computeActionState(actionType, records, user, params, state);
-
-			if (state.getStatus() == DISABLED) {
-				return state;
-			}
+		int limit = getRecordsLimit(menuItemActionType);
+		if (records.size() > limit) {
+			return new MenuItemActionState(DISABLED, $("RMRecordsMenuItemServices.recordsLimitReached", String.valueOf(limit)));
 		}
-		return state;
-	}
 
-	public MenuItemActionState computeActionState(RMRecordsMenuItemActionType menuItemActionType, List<Record> records,
-												  User user, MenuItemActionBehaviorParams params,
-												  MenuItemActionState previousState) {
 		long recordWithSupportedSchemaTypeCount = getRecordWithSupportedSchemaTypeCount(records, menuItemActionType);
 		if (recordWithSupportedSchemaTypeCount == 0) {
-			return new MenuItemActionState(HIDDEN, $("RMRecordsMenuItemServices.unsupportedSchema",
-					StringUtils.join(menuItemActionType.getSchemaTypes(), ",")));
+			return new MenuItemActionState(HIDDEN);
 		} else if (recordWithSupportedSchemaTypeCount != records.size()) {
 			return new MenuItemActionState(DISABLED, $("RMRecordsMenuItemServices.unsupportedSchema",
 					StringUtils.join(menuItemActionType.getSchemaTypes(), ",")));
@@ -182,7 +115,7 @@ public class RMRecordsMenuItemServices {
 					possibleCount += actionPossible ? 1 : 0;
 				}
 				return calculateCorrectActionState(possibleCount, records.size() - possibleCount,
-						previousState, $("RMRecordsMenuItemServices.actionImpossible"));
+						$("RMRecordsMenuItemServices.actionImpossible"));
 			case RMRECORDS_MOVE:
 				for (Record record : records) {
 					boolean actionPossible = false;
@@ -194,7 +127,7 @@ public class RMRecordsMenuItemServices {
 					possibleCount += actionPossible ? 1 : 0;
 				}
 				return calculateCorrectActionState(possibleCount, records.size() - possibleCount,
-						previousState, $("RMRecordsMenuItemServices.actionImpossible"));
+						$("RMRecordsMenuItemServices.actionImpossible"));
 			case RMRECORDS_COPY:
 				for (Record record : records) {
 					boolean actionPossible = false;
@@ -206,7 +139,7 @@ public class RMRecordsMenuItemServices {
 					possibleCount += actionPossible ? 1 : 0;
 				}
 				return calculateCorrectActionState(possibleCount, records.size() - possibleCount,
-						previousState, $("RMRecordsMenuItemServices.actionImpossible"));
+						$("RMRecordsMenuItemServices.actionImpossible"));
 			case RMRECORDS_CREATE_SIP:
 				for (Record record : records) {
 					boolean actionPossible = false;
@@ -218,7 +151,7 @@ public class RMRecordsMenuItemServices {
 					possibleCount += actionPossible ? 1 : 0;
 				}
 				return calculateCorrectActionState(possibleCount, records.size() - possibleCount,
-						previousState, $("RMRecordsMenuItemServices.actionImpossible"));
+						$("RMRecordsMenuItemServices.actionImpossible"));
 			case RMRECORDS_SEND_EMAIL:
 				for (Record record : records) {
 					boolean actionPossible = false;
@@ -228,7 +161,7 @@ public class RMRecordsMenuItemServices {
 					possibleCount += actionPossible ? 1 : 0;
 				}
 				return calculateCorrectActionState(possibleCount, records.size() - possibleCount,
-						previousState, $("RMRecordsMenuItemServices.actionImpossible"));
+						$("RMRecordsMenuItemServices.actionImpossible"));
 			case RMRECORDS_CREATE_PDF:
 				for (Record record : records) {
 					boolean actionPossible = false;
@@ -238,7 +171,7 @@ public class RMRecordsMenuItemServices {
 					possibleCount += actionPossible ? 1 : 0;
 				}
 				return calculateCorrectActionState(possibleCount, records.size() - possibleCount,
-						previousState, $("RMRecordsMenuItemServices.actionImpossible"));
+						$("RMRecordsMenuItemServices.actionImpossible"));
 			case RMRECORDS_PRINT_LABEL:
 				for (Record record : records) {
 					boolean actionPossible = false;
@@ -252,7 +185,7 @@ public class RMRecordsMenuItemServices {
 					possibleCount += actionPossible ? 1 : 0;
 				}
 				return calculateCorrectActionState(possibleCount, records.size() - possibleCount,
-						previousState, $("RMRecordsMenuItemServices.actionImpossible"));
+						$("RMRecordsMenuItemServices.actionImpossible"));
 			case RMRECORDS_ADD_SELECTION:
 				return new MenuItemActionState(VISIBLE);
 			case RMRECORDS_DOWNLOAD_ZIP:
@@ -266,37 +199,23 @@ public class RMRecordsMenuItemServices {
 					possibleCount += actionPossible ? 1 : 0;
 				}
 				return calculateCorrectActionState(possibleCount, records.size() - possibleCount,
-						previousState, $("RMRecordsMenuItemServices.actionImpossible"));
+						$("RMRecordsMenuItemServices.actionImpossible"));
 		}
 
 		return new MenuItemActionState(HIDDEN);
 	}
 
-	private MenuItemActionState calculateCorrectActionState(int possibleCount, int notPossibleCount,
-															MenuItemActionState previousState, String reason) {
-		if (previousState == null) {
-			if (possibleCount > 0 && notPossibleCount == 0) {
-				return new MenuItemActionState(VISIBLE);
-			} else if (possibleCount == 0 && notPossibleCount > 0) {
-				return new MenuItemActionState(HIDDEN, reason);
-			} else {
-				return new MenuItemActionState(DISABLED, reason);
-			}
-		}
+	private int getRecordsLimit(RMRecordsMenuItemActionType menuItemActionType) {
+		return menuItemActionType.getRecordsLimit();
+	}
 
-		if (previousState.getStatus() == VISIBLE && notPossibleCount > 1) {
-			return new MenuItemActionState(DISABLED, reason);
-		} else if (previousState.getStatus() == HIDDEN && possibleCount > 1) {
-			return new MenuItemActionState(DISABLED, previousState.getReason());
+	private MenuItemActionState calculateCorrectActionState(int possibleCount, int notPossibleCount, String reason) {
+		if (possibleCount > 0 && notPossibleCount == 0) {
+			return new MenuItemActionState(VISIBLE);
+		} else if (possibleCount == 0 && notPossibleCount > 0) {
+			return new MenuItemActionState(HIDDEN, reason);
 		}
-		return previousState;
-
-		// Logic
-		// if old is VISIBLE and 1 not possible then DISABLED with reason
-		// if old is HIDDEN and 1 is possible then DISABLED with reason from old
-		// if old is empty and all possible then VISIBLE
-		// if old is empty and all not possible then HIDDEN with reason
-		// if 1 possible and 1 not possible then DISABLED with reason
+		return new MenuItemActionState(DISABLED, reason);
 	}
 
 	private void addMenuItemAction(RMRecordsMenuItemActionType actionType, MenuItemActionState state,
@@ -307,46 +226,55 @@ public class RMRecordsMenuItemServices {
 			case RMRECORDS_ADD_CART:
 				menuItemAction = buildMenuItemAction(RMRECORDS_ADD_CART, state,
 						$("ConstellioHeader.selection.actions.addToCart"), null, -1, 100,
+						getRecordsLimit(actionType),
 						(ids) -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).addToCart(ids, params));
 				break;
 			case RMRECORDS_MOVE:
 				menuItemAction = buildMenuItemAction(RMRECORDS_MOVE, state,
 						$("ConstellioHeader.selection.actions.moveInFolder"), null, -1, 200,
+						getRecordsLimit(actionType),
 						(ids) -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).move(ids, params));
 				break;
 			case RMRECORDS_COPY:
 				menuItemAction = buildMenuItemAction(RMRECORDS_COPY, state,
 						$("ConstellioHeader.selection.actions.duplicate"), null, -1, 300,
+						getRecordsLimit(actionType),
 						(ids) -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).copy(ids, params));
 				break;
 			case RMRECORDS_CREATE_SIP:
 				menuItemAction = buildMenuItemAction(RMRECORDS_CREATE_SIP, state,
 						$("SIPButton.caption"), null, -1, 400,
+						getRecordsLimit(actionType),
 						(ids) -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).createSipArchive(ids, params));
 				break;
 			case RMRECORDS_SEND_EMAIL:
 				menuItemAction = buildMenuItemAction(RMRECORDS_SEND_EMAIL, state,
 						$("ConstellioHeader.selection.actions.prepareEmail"), null, -1, 500,
+						getRecordsLimit(actionType),
 						(ids) -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).sendEmail(ids, params));
 				break;
 			case RMRECORDS_CREATE_PDF:
 				menuItemAction = buildMenuItemAction(RMRECORDS_CREATE_PDF, state,
 						$("ConstellioHeader.selection.actions.pdf"), FontAwesome.FILE_PDF_O, -1, 600,
+						getRecordsLimit(actionType),
 						(ids) -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).createPdf(ids, params));
 				break;
 			case RMRECORDS_PRINT_LABEL:
 				menuItemAction = buildMenuItemAction(RMRECORDS_PRINT_LABEL, state,
 						$("SearchView.printLabels"), FontAwesome.PRINT, -1, 700,
+						getRecordsLimit(actionType),
 						(ids) -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).printLabels(ids, params));
 				break;
 			case RMRECORDS_ADD_SELECTION:
 				menuItemAction = buildMenuItemAction(RMRECORDS_ADD_SELECTION, state,
 						$("SearchView.addToSelection"), SELECTION_ICON_RESOURCE, -1, 800,
+						getRecordsLimit(actionType),
 						(ids) -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).addToSelection(ids, params));
 				break;
 			case RMRECORDS_DOWNLOAD_ZIP:
 				menuItemAction = buildMenuItemAction(RMRECORDS_DOWNLOAD_ZIP, state,
 						$("ReportViewer.download", "(zip)"), FontAwesome.FILE_ARCHIVE_O, -1, 900,
+						getRecordsLimit(actionType),
 						(ids) -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).downloadZip(ids, params));
 				break;
 		}
@@ -354,11 +282,6 @@ public class RMRecordsMenuItemServices {
 		if (menuItemAction != null) {
 			menuItemActions.add(menuItemAction);
 		}
-	}
-
-	private String getSchemaType(LogicalSearchQuery query) {
-		List<String> schemaTypes = query.getCondition().getFilterSchemaTypesCodes();
-		return schemaTypes != null && !schemaTypes.isEmpty() ? schemaTypes.get(0) : null;
 	}
 
 	private String getSchemaType(Record record) {
@@ -372,7 +295,7 @@ public class RMRecordsMenuItemServices {
 	}
 
 	private MenuItemAction buildMenuItemAction(RMRecordsMenuItemActionType type, MenuItemActionState state,
-											   String caption, Resource icon, int group, int priority,
+											   String caption, Resource icon, int group, int priority, int recordsLimit,
 											   Consumer<List<String>> command) {
 		return MenuItemAction.builder()
 				.type(type.name())
@@ -382,6 +305,7 @@ public class RMRecordsMenuItemServices {
 				.group(group)
 				.priority(priority)
 				.command(command)
+				.recordsLimit(recordsLimit)
 				.build();
 	}
 
@@ -394,17 +318,18 @@ public class RMRecordsMenuItemServices {
 	@AllArgsConstructor
 	@Getter
 	public enum RMRecordsMenuItemActionType {
-		RMRECORDS_ADD_CART(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE)),
-		RMRECORDS_MOVE(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE)),
-		RMRECORDS_COPY(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE)),
-		RMRECORDS_CREATE_SIP(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE)),
-		RMRECORDS_SEND_EMAIL(singletonList(Document.SCHEMA_TYPE)),
-		RMRECORDS_CREATE_PDF(singletonList(Document.SCHEMA_TYPE)),
-		RMRECORDS_PRINT_LABEL(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE)),
-		RMRECORDS_ADD_SELECTION(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE)),
-		RMRECORDS_DOWNLOAD_ZIP(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE));
+		RMRECORDS_ADD_CART(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE), 100000),
+		RMRECORDS_MOVE(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE), 100000),
+		RMRECORDS_COPY(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE), 100000),
+		RMRECORDS_CREATE_SIP(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE), 100000),
+		RMRECORDS_SEND_EMAIL(singletonList(Document.SCHEMA_TYPE), 100000),
+		RMRECORDS_CREATE_PDF(singletonList(Document.SCHEMA_TYPE), 100000),
+		RMRECORDS_PRINT_LABEL(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE), 100000),
+		RMRECORDS_ADD_SELECTION(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE), 100000),
+		RMRECORDS_DOWNLOAD_ZIP(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE), 100000);
 
 		private final List<String> schemaTypes;
+		private final int recordsLimit;
 
 		public static boolean contains(String typeAsString) {
 			for (RMRecordsMenuItemActionType type : RMRecordsMenuItemActionType.values()) {

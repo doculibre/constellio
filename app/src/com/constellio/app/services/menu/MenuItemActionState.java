@@ -21,11 +21,11 @@ public class MenuItemActionState {
 		VISIBLE, HIDDEN, DISABLED;
 	}
 
-	public static MenuItemActionStateStatus visibleOrHidden(boolean visible) {
+	public static MenuItemActionState visibleOrHidden(boolean visible) {
 		if (visible) {
-			return MenuItemActionStateStatus.VISIBLE;
+			return new MenuItemActionState(MenuItemActionStateStatus.VISIBLE);
 		} else {
-			return MenuItemActionStateStatus.HIDDEN;
+			return new MenuItemActionState(MenuItemActionStateStatus.HIDDEN);
 		}
 	}
 }

@@ -18,7 +18,6 @@ import com.constellio.app.services.menu.MenuItemActionState;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
 import java.util.List;
 
@@ -77,18 +76,6 @@ public class RMMenuItemActionsExtension extends MenuItemActionsExtension {
 	}
 
 	@Override
-	public void addMenuItemActionsForQuery(MenuItemActionExtensionAddMenuItemActionsForQueryParams params) {
-		LogicalSearchQuery query = params.getQuery();
-		User user = params.getBehaviorParams().getUser();
-		List<MenuItemAction> menuItemActions = params.getMenuItemActions();
-		List<String> filteredActionTypes = params.getFilteredActionTypes();
-		MenuItemActionBehaviorParams behaviorParams = params.getBehaviorParams();
-
-		menuItemActions.addAll(
-				rmRecordsMenuItemServices.getActionsForQuery(query, user, filteredActionTypes, behaviorParams));
-	}
-
-	@Override
 	public MenuItemActionState getActionStateForRecord(MenuItemActionExtensionGetActionStateForRecordParams params) {
 		Record record = params.getRecord();
 		User user = params.getBehaviorParams().getUser();
@@ -118,20 +105,6 @@ public class RMMenuItemActionsExtension extends MenuItemActionsExtension {
 		if (RMRecordsMenuItemActionType.contains(actionType)) {
 			return rmRecordsMenuItemServices.getMenuItemActionStateForRecords(
 					RMRecordsMenuItemActionType.valueOf(actionType), records, user, behaviorParams);
-		}
-		return null;
-	}
-
-	@Override
-	public MenuItemActionState getActionStateForQuery(MenuItemActionExtensionGetActionStateForQueryParams params) {
-		LogicalSearchQuery query = params.getQuery();
-		User user = params.getBehaviorParams().getUser();
-		String actionType = params.getMenuItemActionType();
-		MenuItemActionBehaviorParams behaviorParams = params.getBehaviorParams();
-
-		if (RMRecordsMenuItemActionType.contains(actionType)) {
-			return rmRecordsMenuItemServices.getMenuItemActionStateForQuery(
-					RMRecordsMenuItemActionType.valueOf(actionType), query, user, behaviorParams);
 		}
 		return null;
 	}
