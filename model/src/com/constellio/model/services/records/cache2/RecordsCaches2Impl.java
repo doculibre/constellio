@@ -37,6 +37,8 @@ import org.slf4j.LoggerFactory;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -79,14 +81,22 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 		this.memoryDataStore = memoryDataStore;
 		this.memoryDiskDatabase = DBMaker.memoryDB().make();
 
+		ScheduledExecutorService executor =
+				Executors.newScheduledThreadPool(2);
+
 		//Maximum 50K records or 100mo
-		volatileCache = memoryDiskDatabase.hashMap("volatileCache")
+		volatileCache = memoryDiskDatabase
+				.hashMap("volatileCache")
 				.keySerializer(Serializer.STRING)
 				.valueSerializer(Serializer.JAVA)
 				//.expireMaxSize(50000)
-				.expireExecutorPeriod(1)
-				.expireMaxSize(4)
+				//.expireExecutorPeriod(1)
+				// 16 * 1024*1024*1024  16GB
+				.expireStoreSize(200 * 1024)
+				//				.expireExecutor(executor)
+				//				.expireMaxSize(15)
 				.expireAfterGet()
+				.expireAfterCreate()
 				//.expireStoreSize(modelLayerFactory.getConfiguration().getRecordsVolatileCacheMemorySize())
 				.create();
 
@@ -466,7 +476,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 
 	protected Record getByMetadata(byte collectionId, Metadata metadata, String value) {
 		if (metadata.isSameLocalCode(Schemas.IDENTIFIER)) {
-			return get(metadata.getCollection(), value);
+			return get(value, metadata.getCollection());
 		}
 
 		MetadataSchemaType schemaType = metadataSchemasManager.getSchemaTypes(collectionId)
