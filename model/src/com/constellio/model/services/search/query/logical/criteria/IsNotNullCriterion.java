@@ -1,5 +1,6 @@
 package com.constellio.model.services.search.query.logical.criteria;
 
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.DataStoreField;
 import com.constellio.model.entities.schemas.Metadata;
@@ -22,8 +23,15 @@ public class IsNotNullCriterion extends LogicalSearchValueCondition {
 
 	@Override
 	public String getSolrQuery(DataStoreField dataStoreField) {
-		String nullValue = CriteriaUtils.getNullValueForDataStoreField(dataStoreField);
-		return "(" + dataStoreField.getDataStoreCode() + ":*)";
+		if (Toggle.MIGRATING_LEGACY_SAVESTATE.isEnabled()) {
+			String nullValue = CriteriaUtils.getNullValueForDataStoreField(dataStoreField);
+
+			return "(" + dataStoreField.getDataStoreCode() + ":*) AND -(" + dataStoreField.getDataStoreCode() + ":\"" + nullValue + "\")";
+		} else {
+			return "(" + dataStoreField.getDataStoreCode() + ":*)";
+		}
+
+
 	}
 
 	@Override

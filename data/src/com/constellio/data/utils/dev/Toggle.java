@@ -75,6 +75,8 @@ public class Toggle {
 
 	public static AvailableToggle VALIDATE_CACHE_EXECUTION_SERVICE_USING_SOLR = newToggle(true);
 
+	public static AvailableToggle MIGRATING_LEGACY_SAVESTATE = newToggle(false);
+
 	// ------------------------------------------------
 
 	private static Map<String, AvailableToggle> toggleMap = new HashMap<>();
