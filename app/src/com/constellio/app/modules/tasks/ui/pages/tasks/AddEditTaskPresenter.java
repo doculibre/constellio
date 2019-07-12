@@ -1,42 +1,16 @@
 package com.constellio.app.modules.tasks.ui.pages.tasks;
 
-import static com.constellio.app.ui.entities.RecordVO.VIEW_MODE.FORM;
-import static com.constellio.app.ui.i18n.i18n.$;
-import static java.util.Arrays.asList;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import com.constellio.app.modules.tasks.model.wrappers.TaskStatusType;
-import com.constellio.app.modules.tasks.model.wrappers.TaskUser;
-import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollower;
-import com.constellio.app.modules.tasks.ui.builders.TaskFollowerFromVOBuilder;
-import com.constellio.app.modules.tasks.ui.components.TaskFieldFactory;
-import com.constellio.app.modules.tasks.ui.components.fields.*;
-import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveTaskFollowerField;
-import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveWorkflowInclusiveDecisionFieldImpl;
-import com.constellio.app.modules.tasks.ui.entities.TaskFollowerVO;
-import com.constellio.app.ui.framework.components.RecordForm;
-import com.constellio.model.entities.records.RecordUpdateOptions;
-import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.services.records.RecordUtils;
-import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
-import com.jgoodies.common.base.Strings;
-import com.vaadin.ui.Field;
-import org.apache.commons.lang.StringUtils;
-
 import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflowTask;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.TaskStatusType;
+import com.constellio.app.modules.tasks.model.wrappers.TaskUser;
 import com.constellio.app.modules.tasks.model.wrappers.request.BorrowRequest;
 import com.constellio.app.modules.tasks.model.wrappers.request.ExtensionRequest;
 import com.constellio.app.modules.tasks.model.wrappers.request.ReactivationRequest;
 import com.constellio.app.modules.tasks.model.wrappers.request.RequestTask;
 import com.constellio.app.modules.tasks.model.wrappers.request.ReturnRequest;
+import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollower;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
 import com.constellio.app.modules.tasks.navigation.TaskViews;
 import com.constellio.app.modules.tasks.services.TaskPresenterServices;
@@ -51,6 +25,7 @@ import com.constellio.app.modules.tasks.ui.components.fields.TaskFormImpl;
 import com.constellio.app.modules.tasks.ui.components.fields.TaskProgressPercentageField;
 import com.constellio.app.modules.tasks.ui.components.fields.TaskQuestionFieldImpl;
 import com.constellio.app.modules.tasks.ui.components.fields.TaskRelativeDueDateField;
+import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveTaskFollowerField;
 import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveWorkflowInclusiveDecisionFieldImpl;
 import com.constellio.app.modules.tasks.ui.entities.TaskVO;
 import com.constellio.app.ui.entities.MetadataVO;
@@ -572,10 +547,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 	public void fieldValueChanged(Field<?> customField) {
 
 		Field<String> assignee = (Field<String>) view.getForm().getField(Task.ASSIGNEE);
-		boolean assigneeValue = false;
-		if(assignee != null) {
-			StringUtils.isNotBlank(assignee.getValue());
-		}
+		boolean assigneeValue = assignee != null && StringUtils.isNotBlank(assignee.getValue());
 
 		ListAddRemoveRecordLookupField group = (ListAddRemoveRecordLookupField) view.getForm().getField(Task.ASSIGNEE_GROUPS_CANDIDATES);
 		boolean groupValue = group != null && (CollectionUtils.isNotEmpty(group.getValue()) || group.getLookupFieldValue() != null);
