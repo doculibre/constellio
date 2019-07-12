@@ -41,7 +41,6 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.ModificationImpact;
-import com.constellio.model.entities.schemas.RecordCacheType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.SequenceDataEntry;
 import com.constellio.model.entities.schemas.preparationSteps.CalculateMetadatasRecordPreparationStep;
@@ -1627,7 +1626,8 @@ public class RecordServicesImpl extends BaseRecordServices {
 				MetadataSchemaType schemaType = metadataSchemasManager
 						.getSchemaTypes(recordDTO.getCollection()).getSchemaType(record.getTypeCode());
 
-				if (schemaType.getCacheType() == RecordCacheType.FULLY_CACHED) {
+				//if (schemaType.getCacheType() == RecordCacheType.FULLY_CACHED) {
+				if (schemaType.getCacheType().hasPermanentCache()) {
 					throw new ImpossibleRuntimeException("Cannot execute transaction using records that are not fully or summary loaded");
 				}
 			}

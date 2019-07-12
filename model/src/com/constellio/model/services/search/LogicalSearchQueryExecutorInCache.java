@@ -185,7 +185,7 @@ public class LogicalSearchQueryExecutorInCache {
 			return condition.isSupportingMemoryExecution(false);
 
 		} else if (schemaType.getCacheType().hasPermanentCache()) {
-			return condition.isSupportingMemoryExecution(true);
+			return false;//condition.isSupportingMemoryExecution(true);
 
 		} else {
 			return false;
