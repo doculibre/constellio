@@ -15,11 +15,13 @@ import java.util.List;
 public class IsInCriterion extends LogicalSearchValueCondition {
 
 	private final List<Object> values;
+	private final List<Object> memoryQueryValues;
 
 	@SuppressWarnings({"unchecked", "rawtypes"})
 	public IsInCriterion(List<?> values) {
 		super();
 		this.values = (List) values;
+		this.memoryQueryValues = CriteriaUtils.convertToMemoryQueryValues((List) values);
 		if (values.size() > 1000) {
 			throw new TooManyElementsInCriterion(values.size());
 		}
@@ -72,8 +74,13 @@ public class IsInCriterion extends LogicalSearchValueCondition {
 
 	@Override
 	public boolean testConditionOnField(Metadata metadata, Record record) {
+
+		if (memoryQueryValues.isEmpty()) {
+			return false;
+		}
+
 		for (Object value : record.getValues(metadata)) {
-			if (values.contains(value)) {
+			if (memoryQueryValues.contains(value)) {
 				return true;
 			}
 		}

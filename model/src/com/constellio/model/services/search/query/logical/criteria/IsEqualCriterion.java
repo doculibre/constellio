@@ -14,10 +14,12 @@ import java.util.List;
 public class IsEqualCriterion extends LogicalSearchValueCondition {
 
 	private final Object value;
+	private final Object memoryQueryValue;
 
 	public IsEqualCriterion(Object value) {
 		super();
 		this.value = value;
+		this.memoryQueryValue = CriteriaUtils.convertToMemoryQueryValue(value);
 	}
 
 	public Object getIndex() {
@@ -56,9 +58,9 @@ public class IsEqualCriterion extends LogicalSearchValueCondition {
 		}
 
 		if (recordValue instanceof List) {
-			return ((List) recordValue).contains(value);
+			return ((List) recordValue).contains(memoryQueryValue);
 		} else {
-			return LangUtils.isEqual(recordValue, value);
+			return LangUtils.isEqual(recordValue, memoryQueryValue);
 		}
 
 	}

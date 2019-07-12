@@ -157,11 +157,39 @@ public class SearchServices {
 	@Deprecated
 	public List<Record> cachedSearch(LogicalSearchQuery query) {
 		if (logicalSearchQueryExecutorInCache.isQueryExecutableInCache(query)) {
+			List<Record> records = searchUsingCache(query);
+
+			if (Toggle.VALIDATE_CACHE_EXECUTION_SERVICE_USING_SOLR.isEnabled()) {
+				List<Record> solrRecords = searchUsingSolr(query);
+
+				List<String> cacheRecordIds = records.stream().map(Record::getId).collect(Collectors.toList());
+				List<String> solrRecordIds = solrRecords.stream().map(Record::getId).collect(Collectors.toList());
+
+				if (!cacheRecordIds.equals(solrRecordIds)) {
+					throw new RuntimeException("Cached query execution problem\nExpected : " + solrRecordIds
+											   + "\nWas : " + cacheRecordIds);
+				}
+
+			}
+
+			return records;
+		} else {
+			return searchUsingSolr(query);
+		}
+	}
+
+	private List<Record> searchUsingCache(LogicalSearchQuery query) {
+		if (logicalSearchQueryExecutorInCache.isQueryExecutableInCache(query)) {
 			return logicalSearchQueryExecutorInCache.stream(query).collect(Collectors.toList());
 		} else {
 			return search(query);
 		}
 	}
+
+	private List<Record> searchUsingSolr(LogicalSearchQuery query) {
+		return query(query).getRecords();
+	}
+
 
 	@Deprecated
 	public List<String> cachedSearchRecordIds(LogicalSearchQuery query) {
@@ -232,11 +260,51 @@ public class SearchServices {
 	}
 
 	public Stream<Record> stream(LogicalSearchQuery query, int batchSize) {
+		return cachedStream(query, batchSize);
+	}
+
+	public Stream<Record> cachedStream(LogicalSearchQuery query) {
+		return cachedStream(query, 1000);
+	}
+
+	public Stream<Record> cachedStream(LogicalSearchQuery query, int batchSize) {
 
 		if (logicalSearchQueryExecutorInCache.isQueryExecutableInCache(query)) {
-			return logicalSearchQueryExecutorInCache.stream(query);
+
+			if (Toggle.VALIDATE_CACHE_EXECUTION_SERVICE_USING_SOLR.isEnabled()) {
+
+				if (query.getSortFields() == null || query.getSortFields().isEmpty()) {
+					Set<String> recordsFromCacheStream = logicalSearchQueryExecutorInCache.stream(query)
+							.map(Record::getId).collect(Collectors.toSet());
+					Set<String> recordsFromSolrStream = streamFromSolr(query)
+							.map(Record::getId).collect(Collectors.toSet());
+
+					if (!recordsFromCacheStream.equals(recordsFromSolrStream)) {
+						throw new RuntimeException("Cached query execution problem\nExpected : " + recordsFromSolrStream
+												   + "\nWas : " + recordsFromCacheStream);
+					}
+				} else {
+					List<String> recordsFromCacheStream = logicalSearchQueryExecutorInCache.stream(query)
+							.map(Record::getId).collect(Collectors.toList());
+					List<String> recordsFromSolrStream = streamFromSolr(query)
+							.map(Record::getId).collect(Collectors.toList());
+
+					if (!recordsFromCacheStream.equals(recordsFromSolrStream)) {
+						throw new RuntimeException("Cached query execution problem\nExpected : " + recordsFromSolrStream
+												   + "\nWas : " + recordsFromCacheStream);
+					}
+				}
+
+				Stream<Record> cacheStream = logicalSearchQueryExecutorInCache.stream(query);
+				Stream<Record> solrStream = streamFromSolr(query);
+				return new StreamValidator<>(solrStream, cacheStream);
+
+			} else {
+				return logicalSearchQueryExecutorInCache.stream(query);
+			}
+
 		} else {
-			return streamFromSolr(query, batchSize);
+			return streamFromSolr(query);
 		}
 	}
 
@@ -252,14 +320,15 @@ public class SearchServices {
 		Stream<Record> stream = StreamSupport.stream(new Supplier<Spliterator<Record>>() {
 			@Override
 			public Spliterator<Record> get() {
-				if (clonedQuery.getNumberOfRows() == 0) {
-					SearchResponseIterator<Record> iterator = recordsIteratorKeepingOrder(clonedQuery, batchSize);
-					return Spliterators.spliterator(iterator, iterator.getNumFound(), 0);
 
-				} else {
-					SPEQueryResponse response = query(clonedQuery);
-					return Spliterators.spliterator(response.getRecords().iterator(), response.getNumFound(), 0);
-				}
+
+				SearchResponseIterator<Record> iterator = getRecordSearchResponseIteratorUsingSolr(clonedQuery, batchSize, true);
+				return Spliterators.spliterator(iterator, iterator.getNumFound(), 0);
+
+				//				} else {
+				//					SPEQueryResponse response = query(clonedQuery);
+				//					return Spliterators.spliterator(response.getRecords().iterator(), response.getNumFound(), 0);
+				//				}
 			}
 		}, 0, false);
 
@@ -443,7 +512,8 @@ public class SearchServices {
 	}
 
 	public List<Record> search(LogicalSearchQuery query) {
-		return query(query).getRecords();
+		//return searchUsingSolr(query);
+		return cachedSearch(query);
 	}
 
 
@@ -603,14 +673,31 @@ public class SearchServices {
 			return streamToSearchResponseIterator(stream(query), batchSize);
 
 		} else {
-			ModifiableSolrParams params = addSolrModifiableParams(query);
-			final boolean fullyLoaded = query.getReturnedMetadatas().isFullyLoaded();
+			return getRecordSearchResponseIteratorUsingSolr(query, batchSize, true);
+		}
+	}
+
+	@NotNull
+	private SearchResponseIterator<Record> getRecordSearchResponseIteratorUsingSolr(LogicalSearchQuery query,
+																					int batchSize, boolean keepOrder) {
+		ModifiableSolrParams params = addSolrModifiableParams(query);
+		final boolean fullyLoaded = query.getReturnedMetadatas().isFullyLoaded();
+		if (keepOrder && !query.getSortFields().isEmpty()) {
 			return new LazyResultsKeepingOrderIterator<Record>(dataStoreDao(query.getDataStore()), params, batchSize) {
 
 				@Override
 				public Record convert(RecordDTO recordDTO) {
 					return recordServices.toRecord(recordDTO, fullyLoaded);
 				}
+			};
+		} else {
+			return new LazyResultsIterator<Record>(dataStoreDao(query.getDataStore()), params, batchSize, true) {
+				@Override
+				public Record convert(RecordDTO recordDTO) {
+					return recordServices.toRecord(recordDTO, fullyLoaded);
+				}
+
+				;
 			};
 		}
 	}
@@ -710,6 +797,7 @@ public class SearchServices {
 		}
 	}
 
+
 	private void checkForCacheProblems() {
 		RecordsCache2IntegrityDiagnosticService service = new RecordsCache2IntegrityDiagnosticService(modelLayerFactory);
 		ValidationErrors errors = service.validateIntegrity(false, true);
@@ -720,7 +808,7 @@ public class SearchServices {
 		}
 	}
 
-	private long getResultCountUsingSolr(LogicalSearchQuery query) {
+	public long getResultCountUsingSolr(LogicalSearchQuery query) {
 		int oldNumberOfRows = query.getNumberOfRows();
 		query.setNumberOfRows(0);
 		ModifiableSolrParams params = addSolrModifiableParams(query);

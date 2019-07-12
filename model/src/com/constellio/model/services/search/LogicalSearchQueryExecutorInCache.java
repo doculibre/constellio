@@ -52,13 +52,14 @@ public class LogicalSearchQueryExecutorInCache {
 			}
 		}
 
-		Stream<Record> stream = recordsCaches.stream(schemaType).filter(filter);
+		Stream<Record> stream = recordsCaches.stream(schemaType).filter(filter)
+				.sorted(newIdComparator());
 
-		if (!query.getSortFields().isEmpty()) {
-			return stream.sorted(newQuerySortFieldsComparator(query, schemaType));
-		} else {
-			return stream;
-		}
+		//		if (!query.getSortFields().isEmpty()) {
+		//			return stream.sorted(newQuerySortFieldsComparator(query, schemaType));
+		//		} else {
+		return stream;
+		//		}
 	}
 
 	@NotNull
@@ -68,15 +69,17 @@ public class LogicalSearchQueryExecutorInCache {
 				FieldLogicalSearchQuerySort fieldSort = (FieldLogicalSearchQuerySort) sort;
 				Metadata metadata =
 						schemaType.getDefaultSchema().getMetadataByDatastoreCode(fieldSort.getField().getDataStoreCode());
-				int sortValue;
-				if (sort.isAscending()) {
-					sortValue = compareMetadatasValues(o1, o2, metadata);
-				} else {
-					sortValue = -1 * compareMetadatasValues(o1, o2, metadata);
-				}
+				if (metadata != null) {
+					int sortValue;
+					if (sort.isAscending()) {
+						sortValue = compareMetadatasValues(o1, o2, metadata);
+					} else {
+						sortValue = -1 * compareMetadatasValues(o1, o2, metadata);
+					}
 
-				if (sortValue != 0) {
-					return sortValue;
+					if (sortValue != 0) {
+						return sortValue;
+					}
 				}
 			}
 
@@ -84,15 +87,22 @@ public class LogicalSearchQueryExecutorInCache {
 		};
 	}
 
+	@NotNull
+	private Comparator<Record> newIdComparator() {
+		return (o1, o2) -> {
+			return o1.getId().compareTo(o2.getId());
+		};
+	}
+
 	private int compareMetadatasValues(Record record1, Record record2, Metadata metadata) {
 		Object value1 = record1.get(metadata);
 		Object value2 = record2.get(metadata);
 
-		if (value1 instanceof String) {
+		if (value1 instanceof String && metadata.getSortFieldNormalizer() != null) {
 			value1 = metadata.getSortFieldNormalizer().normalize((String) value1);
 		}
 
-		if (value2 instanceof String) {
+		if (value2 instanceof String && metadata.getSortFieldNormalizer() != null) {
 			value2 = metadata.getSortFieldNormalizer().normalize((String) value2);
 		}
 
@@ -113,7 +123,8 @@ public class LogicalSearchQueryExecutorInCache {
 
 	public static boolean hasNoUnsupportedFeatureOrFilter(LogicalSearchQuery query) {
 		return query.getFacetFilters().toSolrFilterQueries().isEmpty()
-			   && hasNoSortOrOnlyFieldSorts(query)
+			   //&& hasNoSortOrOnlyFieldSorts(query)
+			   && hasNoSort(query)
 			   && query.getFreeTextQuery() == null
 			   && query.getFieldPivotFacets().isEmpty()
 			   && query.getFieldPivotFacets().isEmpty()
@@ -128,6 +139,11 @@ public class LogicalSearchQueryExecutorInCache {
 			   && (query.getUserFilters() == null || query.getUserFilters().isEmpty())
 			   && !query.isHighlighting();
 	}
+
+	private static boolean hasNoSort(LogicalSearchQuery query) {
+		return query.getSortFields().isEmpty();
+	}
+
 
 	private static boolean hasNoSortOrOnlyFieldSorts(LogicalSearchQuery query) {
 		for (LogicalSearchQuerySort sort : query.getSortFields()) {
