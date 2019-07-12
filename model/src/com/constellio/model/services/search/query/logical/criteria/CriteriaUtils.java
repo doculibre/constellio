@@ -29,7 +29,11 @@ public class CriteriaUtils {
 	}
 
 	public static Object convertToMemoryQueryValue(Object item) {
-		if (item instanceof Record) {
+
+		if (item instanceof List) {
+			return convertToMemoryQueryValues((List) item);
+
+		} else if (item instanceof Record) {
 			return ((Record) item).getId();
 
 		} else if (item instanceof RecordWrapper) {
