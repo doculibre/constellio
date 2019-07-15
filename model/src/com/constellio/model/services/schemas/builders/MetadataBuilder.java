@@ -76,6 +76,7 @@ public class MetadataBuilder {
 	private boolean increasedDependencyLevel = false;
 	private Boolean defaultRequirement;
 	private Boolean essential = false;
+	private Boolean cacheIndex = false;
 	private ClassListBuilder<RecordMetadataValidator<?>> recordMetadataValidators;
 	private MetadataAccessRestrictionBuilder accessRestrictionBuilder;
 	private Class<? extends StructureFactory> structureFactoryClass;
@@ -253,12 +254,13 @@ public class MetadataBuilder {
 		builder.increasedDependencyLevel = metadata.isIncreasedDependencyLevel();
 		builder.customAttributes = new HashSet<>(metadata.getCustomAttributes());
 		builder.customParameter = new HashMap<>(metadata.getCustomParameter());
+		builder.cacheIndex = metadata.isCacheIndex();
 		builder.id = metadata.getId();
 	}
 
 	@SuppressWarnings("unchecked")
 	private static void setBuilderPropertiesOfMetadataWithInheritance(Metadata metadata,
-																	  MetadataBuilder inheritanceMetadata,
+																		  MetadataBuilder inheritanceMetadata,
 																	  MetadataBuilder builder) {
 		builder.classProvider = inheritanceMetadata.classProvider;
 		builder.originalMetadata = metadata;
@@ -278,6 +280,7 @@ public class MetadataBuilder {
 		builder.uniqueValue = metadata.isUniqueValue();
 		builder.systemReserved = metadata.isSystemReserved();
 		builder.essential = metadata.isEssential();
+		builder.cacheIndex = metadata.isCacheIndex();
 		builder.essentialInSummary = metadata.isEssentialInSummary();
 		builder.childOfRelationship = metadata.isChildOfRelationship();
 		builder.taxonomyRelationship = metadata.isTaxonomyRelationship();
@@ -422,9 +425,20 @@ public class MetadataBuilder {
 		return this;
 	}
 
+	public MetadataBuilder setCacheIndex(boolean cacheIndex) {
+		ensureCanModify("cacheIndex");
+		this.cacheIndex = cacheIndex;
+		return this;
+	}
+
+	public boolean isCacheIndex() {
+		return inheritance == null ? isCacheIndex() : inheritance.isCacheIndex();
+	}
+
 	public boolean isMultiLingual() {
 		return inheritance == null ? multiLingual : inheritance.isMultiLingual();
 	}
+
 
 	public MetadataBuilder setMultiLingual(boolean multiLingual) {
 		ensureCanModify("multiLingual");
@@ -811,7 +825,7 @@ public class MetadataBuilder {
 		InheritedMetadataBehaviors behaviors = new InheritedMetadataBehaviors(this.isUndeletable(), multivalue, systemReserved,
 				unmodifiable, uniqueValue, childOfRelationship, taxonomyRelationship, sortable, searchable, schemaAutocomplete,
 				essential, encrypted, essentialInSummary, multiLingual, markedForDeletion, customAttributes,
-				increasedDependencyLevel, relationshipProvidingSecurity, transiency, dependencyOfAutomaticMetadata);
+				increasedDependencyLevel, relationshipProvidingSecurity, transiency, dependencyOfAutomaticMetadata, cacheIndex);
 
 		MetadataAccessRestriction accessRestriction = accessRestrictionBuilder.build();
 

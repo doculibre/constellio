@@ -294,6 +294,7 @@ public class MetadataSchemaXMLReader3 {
 			metadataBuilder.setLabels(xmlLabels);
 		}
 
+
 		List<String> validatorsClassNames = parseValidators(metadataElement, globalMetadataInCollectionSchema);
 		for (String validatorsClassName : validatorsClassNames) {
 			metadataBuilder.defineValidators().add(getValidatorClass(validatorsClassName));
@@ -317,6 +318,14 @@ public class MetadataSchemaXMLReader3 {
 			metadataBuilder.setUndeletable(getBooleanFlagValueWithTrueAsDefaultValue(metadataElement, "undeletable"));
 		}
 
+		String isCacheIndexStringValue = metadataElement.getAttributeValue("cacheIndex");
+
+		if(inheriteGlobalMetadata && isCacheIndexStringValue == null) {
+			metadataBuilder.setCacheIndex(false);
+		} else {
+			metadataBuilder.setCacheIndex(readBooleanWithDefaultValue(isCacheIndexStringValue, false));
+		}
+
 		String systemReservedStringValue = metadataElement.getAttributeValue("systemReserved");
 		if (inheriteGlobalMetadata && systemReservedStringValue == null) {
 			metadataBuilder.setSystemReserved(globalMetadataInCollectionSchema.isSystemReserved());
@@ -331,6 +340,7 @@ public class MetadataSchemaXMLReader3 {
 		} else {
 			metadataBuilder.setDefaultRequirement(readBooleanWithDefaultValue(defaultRequirementStringValue, false));
 		}
+
 
 		String essentialStringValue = metadataElement.getAttributeValue("essential");
 		if (inheriteGlobalMetadata && essentialStringValue == null) {

@@ -14,41 +14,17 @@ import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.records.wrappers.TemporaryRecord;
 import com.constellio.model.entities.records.wrappers.UserDocument;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.RegexConfig;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.entities.schemas.RegexConfig.RegexConfigType;
-import com.constellio.model.entities.schemas.entries.AggregatedDataEntry;
-import com.constellio.model.entities.schemas.entries.AggregationType;
-import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
-import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
-import com.constellio.model.entities.schemas.entries.DataEntry;
-import com.constellio.model.entities.schemas.entries.DataEntryType;
-import com.constellio.model.entities.schemas.entries.SequenceDataEntry;
+import com.constellio.model.entities.schemas.entries.*;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.contents.ContentFactory;
 import com.constellio.model.services.schemas.MetadataSchemasManagerRuntimeException.MetadataSchemasManagerRuntimeException_NoSuchCollection;
 import com.constellio.model.services.schemas.builders.DataEntryBuilderRuntimeException.DataEntryBuilderRuntimeException_InvalidMetadataCode;
-import com.constellio.model.services.schemas.builders.MetadataBuilder;
-import com.constellio.model.services.schemas.builders.MetadataBuilder_EnumClassTest;
-import com.constellio.model.services.schemas.builders.MetadataPopulateConfigsBuilder;
-import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
-import com.constellio.model.services.schemas.builders.MetadataSchemaBuilderRuntimeException;
-import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
-import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.model.services.schemas.builders.*;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilderRuntimeException.CannotDeleteSchemaTypeSinceItHasRecords;
-import com.constellio.model.services.schemas.testimpl.TestMetadataValidator3;
-import com.constellio.model.services.schemas.testimpl.TestRecordMetadataValidator1;
-import com.constellio.model.services.schemas.testimpl.TestRecordMetadataValidator2;
-import com.constellio.model.services.schemas.testimpl.TestRecordValidator1;
-import com.constellio.model.services.schemas.testimpl.TestRecordValidator2;
-import com.constellio.model.services.schemas.testimpl.TestRecordValidator3;
-import com.constellio.model.services.schemas.testimpl.TestStructureFactory1;
+import com.constellio.model.services.schemas.testimpl.*;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.utils.ClassProvider;
@@ -61,10 +37,7 @@ import com.constellio.sdk.tests.schemas.DaysBetweenSingleLocalDateAndAnotherSche
 import com.constellio.sdk.tests.schemas.MetadataBuilderConfigurator;
 import com.constellio.sdk.tests.schemas.MetadataSchemaTypesConfigurator;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
-import com.constellio.sdk.tests.schemas.TestsSchemasSetup.AnotherSchemaMetadatas;
-import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ThirdSchemaMetadatas;
-import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeCustomSchemaMetadatas;
-import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
+import com.constellio.sdk.tests.schemas.TestsSchemasSetup.*;
 import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
 import org.junit.Before;
@@ -79,51 +52,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.CONTENT;
-import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
-import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
-import static com.constellio.model.entities.schemas.RecordCacheType.FULLY_CACHED;
-import static com.constellio.model.entities.schemas.RecordCacheType.NOT_CACHED;
-import static com.constellio.model.entities.schemas.RecordCacheType.SUMMARY_CACHED_WITHOUT_VOLATILE;
-import static com.constellio.model.entities.schemas.RecordCacheType.SUMMARY_CACHED_WITH_VOLATILE;
+import static com.constellio.model.entities.schemas.MetadataValueType.*;
+import static com.constellio.model.entities.schemas.RecordCacheType.*;
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
-import static com.constellio.model.entities.schemas.entries.DataEntryType.AGGREGATED;
-import static com.constellio.model.entities.schemas.entries.DataEntryType.CALCULATED;
-import static com.constellio.model.entities.schemas.entries.DataEntryType.COPIED;
-import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
-import static com.constellio.model.entities.schemas.entries.DataEntryType.SEQUENCE;
+import static com.constellio.model.entities.schemas.entries.DataEntryType.*;
 import static com.constellio.model.services.schemas.MetadataSchemasManager.SCHEMAS_CONFIG_PATH;
 import static com.constellio.model.services.schemas.builders.MetadataPopulateConfigsBuilder.create;
 import static com.constellio.sdk.tests.TestUtils.getElementsClasses;
 import static com.constellio.sdk.tests.TestUtils.onlyElementsOfClass;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.ANOTHER_SCHEMA_TYPE_CODE;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZE_SCHEMA_TYPE_CODE;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.limitedTo50Characters;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.limitedTo50CharactersInCustomSchema;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichAllowsAnotherDefaultSchema;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichAllowsThirdSchemaType;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasDefaultRequirement;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasDefaultRequirementInCustomSchema;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasDefaultValue;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasInputMask;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasLabel;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasLabelInCustomSchema;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasNoDefaultRequirement;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasNoDefaultRequirementInCustomSchema;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasStructureFactory;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsChildOfRelationship;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsDisabled;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsDisabledInCustomSchema;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEnabled;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEnabledInCustomSchema;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultilingual;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsProvidingSecurity;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSchemaAutocomplete;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsTaxonomyRelationship;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsUndeletable;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.*;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.groups.Tuple.tuple;
@@ -701,6 +638,65 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 		defineSchemasManager().using(defaultSchema.withAStringMetadata(whichIsUndeletable));
 
 		assertThat(zeSchema.stringMetadata().isUndeletable()).isTrue();
+	}
+
+	@Test
+	public void whenCacheIndexTrueThenIsPersistedInXmlFile() {
+		final Map<String, Object> customParameter = new HashMap();
+
+		customParameter.put("key", "value");
+
+		schemasManager.modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				MetadataSchemaTypeBuilder testschemaSchemaType = types.createNewSchemaType("testschema");
+				testschemaSchemaType.createMetadata("string").setType(STRING).setCacheIndex(true);
+
+			}
+		});
+
+		boolean isCacheIndexSchemasManager = schemasManager.getSchemaTypes(zeCollection).getSchemaType("testschema").getMetadata("testschema_default_string").isCacheIndex();
+
+		assertThat(isCacheIndexSchemasManager).isTrue();
+
+		// Create a new instance to read and get the xml values
+		MetadataSchemasManager otherManager = new MetadataSchemasManager(getModelLayerFactory(),
+				new Delayed<>(getAppLayerFactory().getModulesManager()));
+		otherManager.initialize();
+
+		boolean isCacheIndex = otherManager.getSchemaTypes(zeCollection).getSchemaType("testschema").getMetadata("testschema_default_string").isCacheIndex();
+
+		assertThat(isCacheIndex).isTrue();
+	}
+
+	@Test
+	public void whenCacheIndexTrueOnMetadataInDefaultSchemaThenIsPersistedInXmlFile() {
+		final Map<String, Object> customParameter = new HashMap();
+
+		customParameter.put("key", "value");
+
+		schemasManager.modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				MetadataSchemaTypeBuilder testschemaSchemaType = types.createNewSchemaType("testschema");
+				testschemaSchemaType.createMetadata("string").setType(STRING).setCacheIndex(true);
+				testschemaSchemaType.createCustomSchema("test2");
+
+			}
+		});
+
+		boolean isCacheIndexSchemasManager = schemasManager.getSchemaTypes(zeCollection).getSchemaType("testschema").getMetadata("testschema_test2_string").isCacheIndex();
+
+		assertThat(isCacheIndexSchemasManager).isTrue();
+
+		// Create a new instance to read and get the xml values
+		MetadataSchemasManager otherManager = new MetadataSchemasManager(getModelLayerFactory(),
+				new Delayed<>(getAppLayerFactory().getModulesManager()));
+		otherManager.initialize();
+
+		boolean isCacheIndex = otherManager.getSchemaTypes(zeCollection).getSchemaType("testschema").getMetadata("testschema_test2_string").isCacheIndex();
+
+		assertThat(isCacheIndex).isTrue();
 	}
 
 	@Test

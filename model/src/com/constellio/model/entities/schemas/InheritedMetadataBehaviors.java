@@ -28,6 +28,7 @@ public class InheritedMetadataBehaviors implements Serializable {
 	final boolean reverseDependency;
 	final boolean relationshipProvidingSecurity;
 	final boolean dependencyOfAutomaticMetadata;
+	final boolean cacheIndex;
 	final MetadataTransiency volatility;
 	final Set<String> customAttributes;
 
@@ -40,7 +41,7 @@ public class InheritedMetadataBehaviors implements Serializable {
 									  boolean multiLingual, boolean markedForDeletion, Set<String> customAttributes,
 									  boolean reverseDependency,
 									  boolean relationshipProvidingSecurity, MetadataTransiency volatility,
-									  boolean dependencyOfAutomaticMetadata) {
+									  boolean dependencyOfAutomaticMetadata, boolean cacheIndex) {
 		this.undeletable = undeletable;
 		this.multivalue = multivalue;
 		this.systemReserved = systemReserved;
@@ -61,6 +62,7 @@ public class InheritedMetadataBehaviors implements Serializable {
 		this.relationshipProvidingSecurity = relationshipProvidingSecurity;
 		this.volatility = volatility == null ? MetadataTransiency.PERSISTED : volatility;
 		this.dependencyOfAutomaticMetadata = dependencyOfAutomaticMetadata;
+		this.cacheIndex = cacheIndex;
 	}
 
 	public boolean isReverseDependency() {
@@ -127,6 +129,10 @@ public class InheritedMetadataBehaviors implements Serializable {
 
 	public boolean isEssential() {
 		return essential;
+	}
+
+	public boolean isCacheIndex() {
+		return cacheIndex;
 	}
 
 	public boolean isEncrypted() {
