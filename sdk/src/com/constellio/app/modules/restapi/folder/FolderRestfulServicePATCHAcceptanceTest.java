@@ -1011,7 +1011,7 @@ public class FolderRestfulServicePATCHAcceptanceTest extends BaseFolderRestfulSe
 		List<Record> Folders = searchServices.search(new LogicalSearchQuery(
 				from(rm.folder.schemaType()).where(Schemas.IDENTIFIER).isEqualTo(id)));
 		assertThat(Folders.get(0).getTitle()).isEqualTo("title2");
-		assertThat(Folders.get(0).get(rm.folder.description())).isEqualTo("an other fake description");
+		assertThat(Folders.get(0).<String>get(rm.folder.description())).isEqualTo("an other fake description");
 
 		assertThat(response.getHeaderString("ETag")).isEqualTo("\"" + Folders.get(0).getVersion() + "\"");
 	}
