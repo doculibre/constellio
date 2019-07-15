@@ -268,6 +268,16 @@ public class MetadataList implements List<Metadata>, Serializable {
 		return new MetadataList(filteredMetadatasList).unModifiable();
 	}
 
+	public MetadataList onlyCacheIndex() {
+		List<Metadata> filteredMetadatasList = new ArrayList<>();
+		for (Metadata metadata : nestedList) {
+			if (metadata.isCacheIndex()) {
+				filteredMetadatasList.add(metadata);
+			}
+		}
+		return new MetadataList(filteredMetadatasList).unModifiable();
+	}
+
 	public MetadataList onlyPopulatedByStyles() {
 		List<Metadata> filteredMetadatasList = new ArrayList<>();
 		for (Metadata metadata : nestedList) {
