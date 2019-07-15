@@ -301,10 +301,6 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		}
 	}
 
-	@Override
-	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
-		List<Button> actionMenuButtons = new ArrayList<Button>();
-
 	private Button newEditFolderButton() {
 		Button editFolderButton;
 		if (!presenter.isLogicallyDeleted()) {
