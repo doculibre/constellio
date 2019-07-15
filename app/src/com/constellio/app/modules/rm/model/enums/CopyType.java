@@ -14,4 +14,19 @@ public enum CopyType implements EnumWithSmallCode {
 	public String getCode() {
 		return code;
 	}
+
+
+	public static CopyType getCopyType(String code) {
+		if (code == null) {
+			return null;
+		}
+
+		for (CopyType e : values()) {
+			if (e.code.equals(code)) {
+				return e;
+			}
+		}
+
+		return null;
+	}
 }

@@ -2,8 +2,8 @@ package com.constellio.app.modules.restapi.ace;
 
 import com.constellio.app.modules.restapi.core.config.RestApiResourceConfig;
 import com.constellio.app.modules.restapi.core.util.DateUtils;
-import com.constellio.app.modules.restapi.document.dto.AceDto;
-import com.constellio.app.modules.restapi.document.dto.AceListDto;
+import com.constellio.app.modules.restapi.resource.dto.AceDto;
+import com.constellio.app.modules.restapi.resource.dto.AceListDto;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Document;

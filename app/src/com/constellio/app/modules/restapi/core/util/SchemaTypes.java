@@ -10,9 +10,10 @@ import java.util.Set;
 @AllArgsConstructor
 @JsonFormat(shape = JsonFormat.Shape.STRING)
 public enum SchemaTypes {
-	DOCUMENT("documents");
+	DOCUMENT("documents"),
+	FOLDER("folders");
 
-	private static final Set<SchemaTypes> ALLOWED_SCHEMA_TYPES = Sets.newHashSet(DOCUMENT);
+	private static final Set<SchemaTypes> ALLOWED_SCHEMA_TYPES = Sets.newHashSet(DOCUMENT, FOLDER);
 
 	@Getter
 	private final String resource;
