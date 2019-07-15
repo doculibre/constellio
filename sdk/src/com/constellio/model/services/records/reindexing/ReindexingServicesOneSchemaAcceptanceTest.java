@@ -233,6 +233,9 @@ public class ReindexingServicesOneSchemaAcceptanceTest extends ConstellioTest {
 				.hasMetadataValue(zeSchema.metadata("copiedMetadata"), "value1")
 				.hasMetadataValue(zeSchema.metadata("calculatedMetadata"), "value2");
 
+		getModelLayerFactory().getRecordsCaches().getCache(zeCollection)
+				.invalidateVolatileReloadPermanent(asList(zeSchema.typeCode()));
+
 		reindexingServices.reindexCollections(new ReindexationParams(ReindexationMode.REWRITE).setBatchSize(1));
 
 		assertThatRecord(withId("000666"))
@@ -339,6 +342,9 @@ public class ReindexingServicesOneSchemaAcceptanceTest extends ConstellioTest {
 		RecordDTO record = recordDao.get("000666");
 		RecordDeltaDTO recordDeltaDTO = new RecordDeltaDTO(record, modifiedValues, record.getFields());
 		recordDao.execute(new TransactionDTO(RecordsFlushing.NOW()).withModifiedRecords(asList(recordDeltaDTO)));
+
+		getModelLayerFactory().getRecordsCaches().getCache(zeCollection)
+				.invalidateVolatileReloadPermanent(asList(zeSchema.typeCode()));
 
 		assertThatRecord(withId("000042"))
 				.hasMetadataValue(zeSchema.metadata("copiedMetadata"), "value1")

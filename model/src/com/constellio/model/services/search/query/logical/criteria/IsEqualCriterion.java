@@ -51,9 +51,17 @@ public class IsEqualCriterion extends LogicalSearchValueCondition {
 		Object recordValue = CriteriaUtils.convertMetadataValue(metadata, record);
 
 		if (recordValue instanceof List) {
-			return ((List) recordValue).contains(memoryQueryValue);
+			if (CriteriaUtils.useConvertedValues(metadata)) {
+				return ((List) recordValue).contains(memoryQueryValue);
+			} else {
+				return ((List) recordValue).contains(value);
+			}
 		} else {
-			return LangUtils.isEqual(recordValue, memoryQueryValue);
+			if (CriteriaUtils.useConvertedValues(metadata)) {
+				return LangUtils.isEqual(recordValue, memoryQueryValue);
+			} else {
+				return LangUtils.isEqual(recordValue, value);
+			}
 		}
 
 	}

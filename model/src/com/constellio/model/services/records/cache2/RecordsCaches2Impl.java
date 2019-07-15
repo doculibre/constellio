@@ -342,6 +342,16 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 		return initialized;
 	}
 
+	@Override
+	public void reloadAllSchemaTypes(String collection) {
+		MetadataSchemaTypes schemaTypes = this.metadataSchemasManager.getSchemaTypes(collection);
+		for (MetadataSchemaType schemaType : schemaTypes.getSchemaTypes()) {
+			if (schemaType.getCacheType() != RecordCacheType.NOT_CACHED) {
+				reloadSchemaType(schemaTypes.getCollectionInfo().getCollectionId(), collection, schemaType.getCode(), false);
+			}
+		}
+	}
+
 
 	private void loadCache(String collection) {
 		for (MetadataSchemaType type : metadataSchemasManager.getSchemaTypes(collection).getSchemaTypes()) {

@@ -6,6 +6,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.RecordCacheType;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.query.logical.FieldLogicalSearchQuerySort;
@@ -41,7 +42,40 @@ public class LogicalSearchQueryExecutorInCache {
 	public Stream<Record> stream(LogicalSearchQuery query) {
 		MetadataSchemaType schemaType = getQueriedSchemaType(query.getCondition());
 
-		Predicate<Record> filter = query.getCondition();
+		Predicate<Record> filter = new Predicate<Record>() {
+			@Override
+			public boolean test(Record record) {
+
+				boolean result = true;
+
+				switch (query.getVisibilityStatusFilter()) {
+
+					case HIDDENS:
+						result = Boolean.TRUE.equals(record.get(Schemas.HIDDEN));
+						break;
+					case VISIBLES:
+						result = !Boolean.TRUE.equals(record.get(Schemas.HIDDEN));
+						break;
+				}
+
+				if (!result) {
+					return false;
+				}
+
+				switch (query.getStatusFilter()) {
+
+					case DELETED:
+						result = Boolean.TRUE.equals(record.get(Schemas.LOGICALLY_DELETED_STATUS));
+						break;
+					case ACTIVES:
+						result = !Boolean.TRUE.equals(record.get(Schemas.LOGICALLY_DELETED_STATUS));
+						break;
+				}
+
+				return result;
+			}
+		}.and(query.getCondition());
+
 
 		if (query.getCondition().getFilters() instanceof SchemaFilters) {
 			SchemaFilters schemaFilters = (SchemaFilters) query.getCondition().getFilters();
@@ -137,7 +171,8 @@ public class LogicalSearchQueryExecutorInCache {
 	}
 
 	public static boolean hasNoUnsupportedFeatureOrFilter(LogicalSearchQuery query) {
-		return query.getFacetFilters().toSolrFilterQueries().isEmpty()
+		return !query.isForceExecutionInSolr()
+			   && query.getFacetFilters().toSolrFilterQueries().isEmpty()
 			   //&& hasNoSortOrOnlyFieldSorts(query)
 			   && hasNoSort(query)
 			   && query.getFreeTextQuery() == null

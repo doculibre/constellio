@@ -52,7 +52,7 @@ public class IsNotNullCriterion extends LogicalSearchValueCondition {
 	@Override
 	public boolean testConditionOnField(Metadata metadata, Record record) {
 
-		Object recordValue = record.get(metadata);
+		Object recordValue = CriteriaUtils.convertMetadataValue(metadata, record);
 
 		if (recordValue instanceof List) {
 			return !((List) recordValue).isEmpty();

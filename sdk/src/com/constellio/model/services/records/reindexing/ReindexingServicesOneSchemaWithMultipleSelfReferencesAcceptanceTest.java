@@ -172,9 +172,12 @@ public class ReindexingServicesOneSchemaWithMultipleSelfReferencesAcceptanceTest
 			modifiedMetadatas.put(calculatedMetadata + "_s", "Rick rolled!");
 			RecordDeltaDTO recordDeltaDTO = new RecordDeltaDTO(record, modifiedMetadatas, record.getFields());
 			deltas.add(recordDeltaDTO);
-		}
 
-		getDataLayerFactory().newRecordDao().execute(new TransactionDTO(RecordsFlushing.NOW()).withModifiedRecords(deltas));
+
+			getDataLayerFactory().newRecordDao().execute(new TransactionDTO(RecordsFlushing.NOW()).withModifiedRecords(deltas));
+
+			getModelLayerFactory().getRecordsCaches().reloadAllSchemaTypes(record.getCollection());
+		}
 	}
 
 	@Test

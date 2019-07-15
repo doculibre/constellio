@@ -881,9 +881,36 @@ public class RecordImpl implements Record {
 		if (!id.equals(record.id)) {
 			return false;
 		}
-		if (structuredValues != null ? !structuredValues.equals(record.structuredValues) : record.structuredValues != null) {
-			return false;
+
+		if (this.structuredValues != null) {
+			for (Map.Entry<String, Object> entry : this.structuredValues.entrySet()) {
+				if (entry.getValue() instanceof ModifiableStructure) {
+					if (((ModifiableStructure) entry.getValue()).isDirty()) {
+
+						if (record.structuredValues == null || !entry.getValue().equals(
+								record.structuredValues.get(entry.getKey()))) {
+							return false;
+
+						}
+					}
+				}
+			}
 		}
+
+		if (record.structuredValues != null) {
+			for (Map.Entry<String, Object> entry : record.structuredValues.entrySet()) {
+				if (entry.getValue() instanceof ModifiableStructure) {
+					if (((ModifiableStructure) entry.getValue()).isDirty()) {
+						if (this.structuredValues == null || !entry.getValue().equals(
+								this.structuredValues.get(entry.getKey()))) {
+							return false;
+
+						}
+					}
+				}
+			}
+		}
+
 
 		return true;
 	}
