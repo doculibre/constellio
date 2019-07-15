@@ -4,6 +4,7 @@ import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
@@ -60,6 +61,22 @@ public class ContentManagerScanAcceptanceTest extends ConstellioTest {
 		recordServices.logicallyDelete(documentToBeKept.getWrappedRecord(), User.GOD, new RecordLogicalDeleteOptions());
 
 		VaultScanResults vaultScanResults = new VaultScanResults();
+		contentManager.scanVaultContentAndDeleteUnreferencedFiles(vaultScanResults);
+		assertThat(vaultScanResults.getNumberOfDeletedContents()).isEqualTo(0);
+		assertThat(vaultScanResults.getReportMessage()).doesNotContain(documentToBeDeleted.getContent().getCurrentVersion().getHash());
+		assertThat(vaultScanResults.getReportMessage()).doesNotContain(documentToBeKept.getContent().getCurrentVersion().getHash());
+
+		givenTimeIs(TimeProvider.getLocalDateTime().plusHours(35));
+
+		vaultScanResults = new VaultScanResults();
+		contentManager.scanVaultContentAndDeleteUnreferencedFiles(vaultScanResults);
+		assertThat(vaultScanResults.getNumberOfDeletedContents()).isEqualTo(0);
+		assertThat(vaultScanResults.getReportMessage()).doesNotContain(documentToBeDeleted.getContent().getCurrentVersion().getHash());
+		assertThat(vaultScanResults.getReportMessage()).doesNotContain(documentToBeKept.getContent().getCurrentVersion().getHash());
+
+		givenTimeIs(TimeProvider.getLocalDateTime().plusMinutes(61));
+
+		vaultScanResults = new VaultScanResults();
 		contentManager.scanVaultContentAndDeleteUnreferencedFiles(vaultScanResults);
 
 		assertThat(vaultScanResults.getNumberOfDeletedContents()).isEqualTo(1);

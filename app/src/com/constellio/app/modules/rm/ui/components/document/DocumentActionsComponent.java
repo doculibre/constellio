@@ -46,7 +46,7 @@ public interface DocumentActionsComponent extends ViewComponent {
 
 	void setDeleteDocumentButtonState(ComponentState state);
 
-	void setAddAuthorizationButtonState(ComponentState state);
+	void setViewAuthorizationButtonState(ComponentState state);
 
 	void setCreatePDFAButtonState(ComponentState state);
 

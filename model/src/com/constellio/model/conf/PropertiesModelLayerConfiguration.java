@@ -123,7 +123,7 @@ public class PropertiesModelLayerConfiguration extends PropertiesConfiguration i
 
 	@Override
 	public Duration getDelayBeforeDeletingUnreferencedContents() {
-		return getDuration("unreferencedContentsThread.delayBeforeDeleting", Duration.standardMinutes(10));
+		return getDuration("unreferencedContentsThread.delayBeforeDeleting", Duration.standardHours(36));
 	}
 
 	@Override

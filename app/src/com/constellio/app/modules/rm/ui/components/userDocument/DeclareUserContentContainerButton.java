@@ -115,7 +115,7 @@ public class DeclareUserContentContainerButton extends ContainerButton {
 			};
 
 
-			mainLayout.addComponents(declareEmailButton, declareEmailAttachmentsButton, declareEmailAndAttachmentsButton);
+			mainLayout.addComponents(declareEmailButton, declareEmailAttachmentsButton/*, declareEmailAndAttachmentsButton*/);
 			setCompositionRoot(mainLayout);
 		}
 	}

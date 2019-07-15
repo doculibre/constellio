@@ -16,6 +16,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.eclipse.jetty.io.EofException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.vaadin.easyuploads.MultiFileUpload.FileUploadCancelException;
 
 @SuppressWarnings("serial")
 public class ConstellioErrorHandler extends DefaultErrorHandler {
@@ -30,11 +31,14 @@ public class ConstellioErrorHandler extends DefaultErrorHandler {
 		BaseViewImpl view = getCurrentView();
 		if (view != null) {
 			if ((!(view instanceof HomeView)) && (throwable instanceof CacheUpdateException)
-					&& throwable.getCause() != null
-					&& throwable.getCause() instanceof ContainerException_ItemListChanged) {
+				&& throwable.getCause() != null
+				&& throwable.getCause() instanceof ContainerException_ItemListChanged) {
 
 				view.updateUI();
 				getCurrentView().showMessage(i18n.$("ConstellioErrorHandler.tableElement"));
+			} else if ((!(view instanceof HomeView)) && (throwable instanceof FileUploadCancelException)) {
+				view.updateUI();
+				getCurrentView().showErrorMessage(throwable.getMessage());
 			} else if (ConstellioUI.getCurrent().isProductionMode()) {
 				if (throwable instanceof EofException) {
 					LOGGER.error("Connection killed", throwable);

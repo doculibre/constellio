@@ -551,9 +551,9 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 				String userTitle = rmSchemasRecordsServices.getUser(borrowUserEntered).getTitle();
 				LocalDateTime borrowDateTime = folder.getBorrowDate();
 				LocalDate borrowDate = borrowDateTime != null ? borrowDateTime.toLocalDate() : null;
-				borrowedMessage = $("DisplayFolderView.borrowedFolder", userTitle, borrowDate);
+				borrowedMessage = $(view.getFolderOrSubFolderButtonKey("DisplayFolderView.borrowedFolder"), userTitle, borrowDate);
 			} else {
-				borrowedMessage = $("DisplayFolderView.borrowedByNullUserFolder");
+				borrowedMessage = view.getFolderOrSubFolderButtonTitle("DisplayFolderView.borrowedByNullUserFolder");
 			}
 		} else if (folder.getContainer() != null) {
 			try {
@@ -664,7 +664,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	private ComponentState getAuthorizationButtonState(User user, Folder folder) {
-		return ComponentState.visibleIf(user.has(RMPermissionsTo.MANAGE_FOLDER_AUTHORIZATIONS).on(folder) && user.hasWriteAndDeleteAccess().on(folder));
+		return ComponentState.visibleIf(user.hasAny(RMPermissionsTo.MANAGE_FOLDER_AUTHORIZATIONS, RMPermissionsTo.VIEW_FOLDER_AUTHORIZATIONS).on(folder));
 	}
 
 	ComponentState getShareButtonState(User user, Folder folder) {
@@ -1147,7 +1147,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 				borrowed = true;
 			} catch (RecordServicesException e) {
 				LOGGER.error(e.getMessage(), e);
-				view.showErrorMessage($("DisplayFolderView.cannotBorrowFolder"));
+				view.showErrorMessage(view.getFolderOrSubFolderButtonTitle("DisplayFolderView.cannotBorrowFolder"));
 				borrowed = false;
 			}
 		}

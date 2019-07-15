@@ -10,6 +10,7 @@ import com.constellio.app.modules.rm.ui.entities.FolderVO;
 import com.constellio.app.modules.rm.ui.pages.cart.DefaultFavoritesTable;
 import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.ui.components.fields.StarredFieldImpl;
 import com.constellio.app.ui.application.Navigation;
@@ -124,7 +125,8 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	private boolean dragNDropAllowed;
 	private Button displayFolderButton, deleteFolderButton, duplicateFolderButton, editFolderButton, addSubFolderButton, addDocumentButton,
 			addAuthorizationButton, shareFolderButton, printLabelButton, linkToFolderButton, borrowButton, returnFolderButton,
-			reminderReturnFolderButton, alertWhenAvailableButton, addToCartButton, addToCartMyCartButton, addToOrRemoveFromSelectionButton, reportGeneratorButton;
+			reminderReturnFolderButton, alertWhenAvailableButton, addToCartButton, addToCartMyCartButton, addToOrRemoveFromSelectionButton, reportGeneratorButton,
+			startWorkflowButton, viewAuthorizationButton;
 	WindowButton moveInFolderButton;
 	private Label borrowedLabel;
 
@@ -287,6 +289,21 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		}
 		return displayFolderButton;
 	}
+	public String getFolderOrSubFolderButtonTitle(String key) {
+		return $(getFolderOrSubFolderButtonKey(key));
+	}
+
+	public String getFolderOrSubFolderButtonKey(String key) {
+		if (recordVO.get(Folder.PARENT_FOLDER) == null) {
+			return key;
+		} else {
+			return key + "SubFolder";
+		}
+	}
+
+	@Override
+	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
+		List<Button> actionMenuButtons = new ArrayList<Button>();
 
 	private Button newEditFolderButton() {
 		Button editFolderButton;
@@ -364,11 +381,16 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			};
 
 			displayFolderButton = newDisplayFolderButton();
-			editFolderButton = newEditFolderButton();
+			editFolderButton = new EditButton(getFolderOrSubFolderButtonTitle("DisplayFolderView.editFolder")) {
+				@Override
+				protected void buttonClick(ClickEvent event) {
+					presenter.editFolderButtonClicked();
+				}
+			};
 
 			deleteFolderButton = new Button();
-			if (!presenter.isNeedingAReasonToDeleteFolder()) {
-				deleteFolderButton = new DeleteButton($("DisplayFolderView.deleteFolder"), false) {
+			if(!presenter.isNeedingAReasonToDeleteFolder()) {
+				deleteFolderButton = new DeleteButton(getFolderOrSubFolderButtonTitle("DisplayFolderView.deleteFolder"), false) {
 					@Override
 					protected void confirmButtonClick(ConfirmDialog dialog) {
 						presenter.deleteFolderButtonClicked(null);
@@ -380,7 +402,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 					}
 				};
 			} else {
-				deleteFolderButton = new DeleteWithJustificationButton($("DisplayFolderView.deleteFolder"), false) {
+				deleteFolderButton = new DeleteWithJustificationButton(getFolderOrSubFolderButtonTitle("DisplayFolderView.deleteFolder"), false) {
 					@Override
 					protected void deletionConfirmed(String reason) {
 						presenter.deleteFolderButtonClicked(reason);
@@ -393,8 +415,9 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				};
 			}
 
-			duplicateFolderButton = new WindowButton($("DisplayFolderView.duplicateFolder"),
-					$("DisplayFolderView.duplicateFolderOnlyOrHierarchy")) {
+
+			duplicateFolderButton = new WindowButton(getFolderOrSubFolderButtonTitle("DisplayFolderView.duplicateFolder"),
+					getFolderOrSubFolderButtonTitle("DisplayFolderView.duplicateFolderOnlyOrHierarchy")) {
 				@Override
 				protected Component buildWindowContent() {
 					BaseButton folder = new BaseButton($("DisplayFolderView.folderOnly")) {
@@ -435,7 +458,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				}
 			};
 
-			linkToFolderButton = new LinkButton($("DisplayFolderView.linkToFolder")) {
+			linkToFolderButton = new LinkButton(getFolderOrSubFolderButtonTitle("DisplayFolderView.linkToFolder")) {
 				@Override
 				protected void buttonClick(ClickEvent event) {
 					presenter.linkToFolderButtonClicked();
@@ -443,14 +466,14 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			};
 			linkToFolderButton.setVisible(false);
 
-			addAuthorizationButton = new LinkButton($("DisplayFolderView.addAuthorization")) {
+			viewAuthorizationButton = new LinkButton($("DisplayFolderView.addAuthorization")) {
 				@Override
 				protected void buttonClick(ClickEvent event) {
 					presenter.addAuthorizationButtonClicked();
 				}
 			};
 
-			shareFolderButton = new LinkButton($("DisplayFolderView.shareFolder")) {
+			shareFolderButton = new LinkButton(getFolderOrSubFolderButtonTitle("DisplayFolderView.shareFolder")) {
 				@Override
 				protected void buttonClick(ClickEvent event) {
 					presenter.shareFolderButtonClicked();
@@ -532,7 +555,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			if (!isAFolderAndDestroyed) {
 				actionMenuButtons.add(duplicateFolderButton);
 				actionMenuButtons.add(linkToFolderButton);
-				actionMenuButtons.add(addAuthorizationButton);
+				actionMenuButtons.add(viewAuthorizationButton);
 				actionMenuButtons.add(shareFolderButton);
 				if (presenter.hasCurrentUserPermissionToUseCartGroup()) {
 					actionMenuButtons.add(addToCartButton);
@@ -958,8 +981,8 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 	@Override
 	public void setAuthorizationButtonState(ComponentState state) {
-		addAuthorizationButton.setVisible(state.isVisible());
-		addAuthorizationButton.setEnabled(state.isEnabled());
+		viewAuthorizationButton.setVisible(state.isVisible());
+		viewAuthorizationButton.setEnabled(state.isEnabled());
 	}
 
 	@Override
@@ -1024,8 +1047,8 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	}
 
 	private Button buildBorrowButton() {
-		return new WindowButton($("DisplayFolderView.borrow"),
-				$("DisplayFolderView.borrow"), new WindowConfiguration(true, true, "50%", "500px")) {
+		return new WindowButton(getFolderOrSubFolderButtonTitle("DisplayFolderView.borrow"),
+				getFolderOrSubFolderButtonTitle("DisplayFolderView.borrow"), new WindowConfiguration(true, true, "50%", "500px")) {
 			@Override
 			protected Component buildWindowContent() {
 				final JodaDateField borrowDatefield = new JodaDateField();
@@ -1134,8 +1157,8 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	}
 
 	private Button buildReturnFolderButton() {
-		return new WindowButton($("DisplayFolderView.returnFolder"),
-				$("DisplayFolderView.returnFolder")) {
+		return new WindowButton(getFolderOrSubFolderButtonTitle("DisplayFolderView.returnFolder"),
+				getFolderOrSubFolderButtonTitle("DisplayFolderView.returnFolder")) {
 			@Override
 			protected Component buildWindowContent() {
 
@@ -1146,7 +1169,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				returnDatefield.addStyleName("returnDate");
 				returnDatefield.setValue(TimeProvider.getLocalDate().toDate());
 
-				BaseButton returnFolderButton = new BaseButton($("DisplayFolderView.returnFolder")) {
+				BaseButton returnFolderButton = new BaseButton(getFolderOrSubFolderButtonTitle("DisplayFolderView.returnFolder")) {
 					@Override
 					protected void buttonClick(ClickEvent event) {
 						LocalDate returnLocalDate = null;

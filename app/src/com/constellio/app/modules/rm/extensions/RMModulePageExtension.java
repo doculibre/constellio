@@ -33,10 +33,10 @@ public class RMModulePageExtension extends PageExtension {
 	private ExtensionBooleanResult hasAccessToListContentAuthorizationPage(User user, Record restrictedRecord) {
 
 		if (restrictedRecord.getSchemaCode().startsWith(Folder.SCHEMA_TYPE)) {
-			return ExtensionBooleanResult.trueIf(user.has(RMPermissionsTo.MANAGE_FOLDER_AUTHORIZATIONS).on(restrictedRecord));
+			return ExtensionBooleanResult.trueIf(user.hasAny(RMPermissionsTo.MANAGE_FOLDER_AUTHORIZATIONS, RMPermissionsTo.VIEW_FOLDER_AUTHORIZATIONS).on(restrictedRecord));
 
 		} else if (restrictedRecord.getSchemaCode().startsWith(Document.SCHEMA_TYPE)) {
-			return ExtensionBooleanResult.trueIf(user.has(RMPermissionsTo.MANAGE_DOCUMENT_AUTHORIZATIONS).on(restrictedRecord));
+			return ExtensionBooleanResult.trueIf(user.hasAny(RMPermissionsTo.MANAGE_DOCUMENT_AUTHORIZATIONS, RMPermissionsTo.VIEW_DOCUMENT_AUTHORIZATIONS).on(restrictedRecord));
 
 		} else {
 			return ExtensionBooleanResult.NOT_APPLICABLE;

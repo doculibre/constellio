@@ -199,8 +199,8 @@ public class ContentManager implements StatefulService {
 					try {
 						createContentScanLockFile();
 						VaultScanResults vaultScanResults = new VaultScanResults();
-						scanVaultContentAndDeleteUnreferencedFiles(vaultScanResults);
 						addReportsAsTemporaryRecords(vaultScanResults);
+						scanVaultContentAndDeleteUnreferencedFiles(vaultScanResults);
 					} catch (IOException e) {
 						e.printStackTrace();
 					} catch (RecordServicesException e) {
@@ -296,13 +296,17 @@ public class ContentManager implements StatefulService {
 			if (!allReferencedHashes.contains(fileId)) {
 				File file = contentDao.getFileOf(fileId);
 				if (file.exists()) {
-					try {
-						contentDao.delete(asList(fileId, fileId + "__parsed", fileId + ".preview"));
-						vaultScanResults.incrementNumberOfDeletedContents();
-						vaultScanResults.appendMessage("INFO: Successfully deleted file " + file.getName() + "\n");
-					} catch (Exception e) {
-						vaultScanResults.appendMessage("ERROR: Could not delete file " + file.getName() + "\n");
-						vaultScanResults.appendMessage(e.getMessage() + "\n");
+					LocalDateTime lastModification = contentDao.getLastModification(fileId);
+					if (lastModification.isBefore(TimeProvider.getLocalDateTime().minus(configuration.getDelayBeforeDeletingUnreferencedContents()))) {
+						try {
+							contentDao.delete(asList(fileId, fileId + "__parsed", fileId + ".preview"));
+
+							vaultScanResults.incrementNumberOfDeletedContents();
+							vaultScanResults.appendMessage("INFO: Successfully deleted file " + file.getName() + "\n");
+						} catch (Exception e) {
+							vaultScanResults.appendMessage("ERROR: Could not delete file " + file.getName() + "\n");
+							vaultScanResults.appendMessage(e.getMessage() + "\n");
+						}
 					}
 				}
 			}

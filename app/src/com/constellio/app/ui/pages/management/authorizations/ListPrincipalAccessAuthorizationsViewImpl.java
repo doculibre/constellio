@@ -112,6 +112,16 @@ public class ListPrincipalAccessAuthorizationsViewImpl extends ListAuthorization
 			content.setRequired(true);
 			content.setId("content");
 		}
+
+		@Override
+		public boolean isVisible() {
+			return super.isVisible() && !isViewReadOnly();
+		}
+
+		@Override
+		public boolean isEnabled() {
+			return super.isVisible() && !isViewReadOnly();
+		}
 	}
 
 	public class AddPrincipalAccessButton extends WindowButton {
