@@ -75,6 +75,8 @@ public class LogicalSearchQuery implements SearchQuery {
 
 	private String language;
 
+	private boolean forceExecutionInSolr;
+
 	public LogicalSearchQuery() {
 		numberOfRows = DEFAULT_NUMBER_OF_ROWS;
 		startRow = 0;
@@ -569,11 +571,28 @@ public class LogicalSearchQuery implements SearchQuery {
 		}
 	}
 
+	public VisibilityStatusFilter getVisibilityStatusFilter() {
+		return visibilityStatusFilter;
+	}
+
+	public StatusFilter getStatusFilter() {
+		return statusFilter;
+	}
+
 	public List<LogicalSearchQuerySort> getSortFields() {
 		return sortFields;
 	}
 
 	public static LogicalSearchQuery query(LogicalSearchCondition condition) {
 		return new LogicalSearchQuery(condition);
+	}
+
+	public boolean isForceExecutionInSolr() {
+		return forceExecutionInSolr;
+	}
+
+	public LogicalSearchQuery setForceExecutionInSolr(boolean forceExecutionInSolr) {
+		this.forceExecutionInSolr = forceExecutionInSolr;
+		return this;
 	}
 }

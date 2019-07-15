@@ -2,6 +2,7 @@ package com.constellio.model.services.search;
 
 import com.constellio.data.extensions.AfterQueryParams;
 import com.constellio.data.extensions.BigVaultServerExtension;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -74,6 +75,7 @@ public class SearchServiceStreamingAcceptanceTest extends ConstellioTest {
 		recordServices.execute(tx);
 
 		query = new LogicalSearchQuery(from(zeSchema.instance()).returnAll());
+		query.setForceExecutionInSolr(true);
 
 		getDataLayerFactory().getExtensions().getSystemWideExtensions().bigVaultServerExtension
 				.add(new BigVaultServerExtension() {
@@ -105,6 +107,7 @@ public class SearchServiceStreamingAcceptanceTest extends ConstellioTest {
 	public void whenComputingMaxAndMinOfFieldThenOnlyLoadOneRecordFromSolr()
 			throws Exception {
 
+		Toggle.VALIDATE_CACHE_EXECUTION_SERVICE_USING_SOLR.disable();
 
 		assertThatRecords(searchServices.stream(query).collect(Collectors.toList()))
 				.extractingMetadatas("id", "stringMetadata", "numberMetadata")
@@ -127,18 +130,17 @@ public class SearchServiceStreamingAcceptanceTest extends ConstellioTest {
 				);
 		assertThatLoadedRecordsCountIs(4);
 
-
-		assertThat(searchServices.stream(query).max(asc(zeSchema.numberMetadata())).get().getId()).isEqualTo("id3");
+		assertThat(searchServices.streamFromSolr(query).max(asc(zeSchema.numberMetadata())).get().getId()).isEqualTo("id3");
 		assertThatLoadedRecordsCountIs(1);
 
-		assertThat(searchServices.stream(query).min(asc(zeSchema.numberMetadata())).get().getId()).isEqualTo("id2");
+		assertThat(searchServices.streamFromSolr(query).min(asc(zeSchema.numberMetadata())).get().getId()).isEqualTo("id2");
 		assertThatLoadedRecordsCountIs(1);
 
-		assertThat(searchServices.stream(query).filter(where(zeSchema.numberMetadata()).isEqualTo(66.6))
+		assertThat(searchServices.streamFromSolr(query).filter(where(zeSchema.numberMetadata()).isEqualTo(66.6))
 				.findFirst().get().getId()).isEqualTo("id3");
 		assertThatLoadedRecordsCountIs(1);
 
-		assertThat(searchServices.stream(query).filter(where(zeSchema.numberMetadata()).isGreaterThan(2))
+		assertThat(searchServices.streamFromSolr(query).filter(where(zeSchema.numberMetadata()).isGreaterThan(2))
 				.collect(recordIds())).containsOnly("id1", "id3", "id4");
 		assertThatLoadedRecordsCountIs(3);
 

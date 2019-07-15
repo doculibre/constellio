@@ -8,8 +8,10 @@ import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import com.constellio.model.services.records.cache2.RecordsCache2IntegrityDiagnosticService;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
@@ -36,7 +38,9 @@ import org.junit.runners.Parameterized;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static com.constellio.data.dao.dto.records.RecordsFlushing.NOW;
 import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
@@ -243,7 +247,7 @@ public class RecordServicesAgregatedMetadatasMechanicAcceptTest extends Constell
 				tuple("aThirdSchemaRecord2", 0.0, 0.0)
 		);
 
-		assertThat(nbQueries).isEqualTo(16);
+		assertThat(nbQueries).isEqualTo(13);
 	}
 
 	@Test
@@ -564,6 +568,7 @@ public class RecordServicesAgregatedMetadatasMechanicAcceptTest extends Constell
 
 			}
 		}));
+		getDataLayerFactory().getDataLayerLogger().setMonitoredIds(asList("lvl0"));
 
 		Metadata parent = zeSchema.metadata("parent");
 		Metadata value = zeSchema.metadata("value");
@@ -607,7 +612,7 @@ public class RecordServicesAgregatedMetadatasMechanicAcceptTest extends Constell
 		);
 
 		int nbQueries = clearAggregateMetadatasThenReindexReturningQtyOfQueriesOf(zeSchema, anotherSchema, thirdSchema);
-		assertThat(nbQueries).isEqualTo(8);
+		assertThat(nbQueries).isEqualTo(7);
 
 		assertThatRecords(searchServices.search(query(from(zeSchema.type()).returnAll())))
 				.extractingMetadatas(IDENTIFIER, agregated).containsOnly(
@@ -680,7 +685,7 @@ public class RecordServicesAgregatedMetadatasMechanicAcceptTest extends Constell
 		);
 
 		int nbQueries = clearAggregateMetadatasThenReindexReturningQtyOfQueriesOf(zeSchema, anotherSchema, thirdSchema);
-		assertThat(nbQueries).isEqualTo(8);
+		assertThat(nbQueries).isEqualTo(7);
 
 		assertThatRecords(searchServices.search(query(from(zeSchema.type()).returnAll())))
 				.extractingMetadatas(IDENTIFIER, agregated).containsOnly(
@@ -711,11 +716,14 @@ public class RecordServicesAgregatedMetadatasMechanicAcceptTest extends Constell
 
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
 
+		Set<String> collectionsToInvalidateCache = new HashSet<>();
+
 		for (String collection : modelLayerFactory.getCollectionsListManager().getCollectionsExcludingSystem()) {
 			List<SolrInputDocument> documents = new ArrayList<>();
 			for (Record record : searchServices.search(new LogicalSearchQuery(fromAllSchemasIn(collection).returnAll()))) {
 				MetadataSchema schema = modelLayerFactory.getMetadataSchemasManager().getSchemaOf(record);
 				if (!schema.getMetadatas().onlyAggregations().isEmpty()) {
+					collectionsToInvalidateCache.add(collection);
 					documents.add(solrInputDocumentRemovingMetadatas(record.getId(), schema.getMetadatas().onlyAggregations()));
 				}
 			}
@@ -726,6 +734,16 @@ public class RecordServicesAgregatedMetadatasMechanicAcceptTest extends Constell
 			} catch (BigVaultException e) {
 				throw new RuntimeException(e);
 			}
+		}
+
+		for (String collection : collectionsToInvalidateCache) {
+			modelLayerFactory.getRecordsCaches().getCache(collection).reloadAllSchemaTypes();
+		}
+
+		try {
+			new RecordsCache2IntegrityDiagnosticService(modelLayerFactory).validateIntegrity(false, false).throwIfNonEmpty();
+		} catch (ValidationException e) {
+			throw new RuntimeException(e);
 		}
 
 		QueryCounter queryCounter = new QueryCounter(modelLayerFactory.getDataLayerFactory(), ON_SCHEMA_TYPES(schemaTypes));

@@ -92,7 +92,7 @@ public class RecordServicesAgregatedRefCountMetadatasAcceptTest extends Constell
 		assertThat(record("merge1").<Double>get(anotherSchema_refCount)).isEqualTo(3.0);
 		assertThat(record("merge2").<Double>get(anotherSchema_refCount)).isEqualTo(2.0);
 		assertThat(record("merge3").<Double>get(thirdSchema_refCount)).isEqualTo(2.0);
-		assertThat(nbQueries).isEqualTo(10);
+		assertThat(nbQueries).isEqualTo(8);
 
 		tx = new Transaction();
 		tx.add(r4.set("ref", "merge1"));

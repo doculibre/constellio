@@ -136,7 +136,7 @@ public class BigVaultRecordDao implements RecordDao {
 				}
 
 				TransactionResponseDTO response = bigVaultServer.addAll(bigVaultServerTransaction);
-				dataLayerLogger.logTransaction(transaction);
+				dataLayerLogger.logTransaction(transaction, response);
 				if (secondTransactionLogManager != null) {
 					secondTransactionLogManager.flush(transaction.getTransactionId(), response);
 				}

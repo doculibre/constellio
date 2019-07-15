@@ -137,6 +137,11 @@ public final class RecordsCache2Impl implements RecordsCache {
 	}
 
 	@Override
+	public void reloadAllSchemaTypes() {
+		caches.reloadAllSchemaTypes(collection);
+	}
+
+	@Override
 	public void invalidateVolatileReloadPermanent(List<String> schemaTypes, boolean onlyLocally) {
 		caches.reload(collectionId, collection, schemaTypes, onlyLocally, true);
 	}

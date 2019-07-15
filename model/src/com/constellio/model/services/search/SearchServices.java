@@ -161,17 +161,22 @@ public class SearchServices {
 
 			if (Toggle.VALIDATE_CACHE_EXECUTION_SERVICE_USING_SOLR.isEnabled()) {
 
+
 				if (query.getSortFields() == null || query.getSortFields().isEmpty()) {
-					Set<String> cacheRecordIds = records.stream().map(Record::getId).collect(Collectors.toSet());
-					Set<String> solrRecordIds = searchUsingSolr(query).stream().map(Record::getId).collect(Collectors.toSet());
+					Set<String> cacheRecordIds = records.stream().limit(query.getNumberOfRows())
+							.map(Record::getId).collect(Collectors.toSet());
+					Set<String> solrRecordIds = searchUsingSolr(new LogicalSearchQuery(query).setName("*SDK* Validate cache"))
+							.stream().map(Record::getId).collect(Collectors.toSet());
 
 					if (!cacheRecordIds.equals(solrRecordIds)) {
 						throw new RuntimeException("Cached query execution problem\nExpected : " + solrRecordIds
 												   + "\nWas : " + cacheRecordIds);
 					}
 				} else {
-					List<String> cacheRecordIds = records.stream().map(Record::getId).collect(Collectors.toList());
-					List<String> solrRecordIds = searchUsingSolr(query).stream().map(Record::getId).collect(Collectors.toList());
+					List<String> cacheRecordIds = records.stream().limit(query.getNumberOfRows())
+							.map(Record::getId).collect(Collectors.toList());
+					List<String> solrRecordIds = searchUsingSolr(new LogicalSearchQuery(query).setName("*SDK* Validate cache"))
+							.stream().map(Record::getId).collect(Collectors.toList());
 
 					if (!cacheRecordIds.equals(solrRecordIds)) {
 						throw new RuntimeException("Cached query execution problem\nExpected : " + solrRecordIds
@@ -285,7 +290,7 @@ public class SearchServices {
 				if (query.getSortFields() == null || query.getSortFields().isEmpty()) {
 					Set<String> recordsFromCacheStream = logicalSearchQueryExecutorInCache.stream(query)
 							.map(Record::getId).collect(Collectors.toSet());
-					Set<String> recordsFromSolrStream = streamFromSolr(query)
+					Set<String> recordsFromSolrStream = streamFromSolr(new LogicalSearchQuery(query).setName("*SDK* Validate cache"))
 							.map(Record::getId).collect(Collectors.toSet());
 
 					if (!recordsFromCacheStream.equals(recordsFromSolrStream)) {
@@ -295,7 +300,7 @@ public class SearchServices {
 				} else {
 					List<String> recordsFromCacheStream = logicalSearchQueryExecutorInCache.stream(query)
 							.map(Record::getId).collect(Collectors.toList());
-					List<String> recordsFromSolrStream = streamFromSolr(query)
+					List<String> recordsFromSolrStream = streamFromSolr(new LogicalSearchQuery(query).setName("*SDK* Validate cache"))
 							.map(Record::getId).collect(Collectors.toList());
 
 					if (!recordsFromCacheStream.equals(recordsFromSolrStream)) {
@@ -329,15 +334,8 @@ public class SearchServices {
 		Stream<Record> stream = StreamSupport.stream(new Supplier<Spliterator<Record>>() {
 			@Override
 			public Spliterator<Record> get() {
-
-
 				SearchResponseIterator<Record> iterator = getRecordSearchResponseIteratorUsingSolr(clonedQuery, batchSize, true);
 				return Spliterators.spliterator(iterator, iterator.getNumFound(), 0);
-
-				//				} else {
-				//					SPEQueryResponse response = query(clonedQuery);
-				//					return Spliterators.spliterator(response.getRecords().iterator(), response.getNumFound(), 0);
-				//				}
 			}
 		}, 0, false);
 
@@ -357,15 +355,14 @@ public class SearchServices {
 			@NotNull
 			@Override
 			public Optional<Record> findFirst() {
-				clonedQuery.setNumberOfRows(1);
-				return super.findFirst();
+				List<Record> records = search(clonedQuery.setNumberOfRows(1).setForceExecutionInSolr(true));
+				return Optional.ofNullable(records.isEmpty() ? null : records.get(0));
 			}
 
 			@NotNull
 			@Override
 			public Optional<Record> findAny() {
-				clonedQuery.setNumberOfRows(1);
-				return super.findAny();
+				return findFirst();
 			}
 
 			@Override
@@ -486,7 +483,9 @@ public class SearchServices {
 						}
 					}
 					clonedQuery.setNumberOfRows(1);
-					return super.min(comparator);
+
+					List<Record> records = search(clonedQuery);
+					return Optional.ofNullable(records.isEmpty() ? null : records.get(0));
 
 				} else {
 					throw new IllegalArgumentException("Comparator must be of type SolrFieldsComparator");
@@ -509,7 +508,8 @@ public class SearchServices {
 						}
 					}
 					clonedQuery.setNumberOfRows(1);
-					return super.max(comparator);
+					List<Record> records = search(clonedQuery);
+					return Optional.ofNullable(records.isEmpty() ? null : records.get(0));
 
 				} else {
 					throw new IllegalArgumentException("Comparator must be of type SolrFieldsComparator");
@@ -789,7 +789,7 @@ public class SearchServices {
 			long count = logicalSearchQueryExecutorInCache.stream(query).count();
 
 			if (Toggle.VALIDATE_CACHE_EXECUTION_SERVICE_USING_SOLR.isEnabled()) {
-				long countFromSolr = getResultCountUsingSolr(query);
+				long countFromSolr = getResultCountUsingSolr(new LogicalSearchQuery(query).setName("*SDK* Validate cache"));
 
 				if (count != countFromSolr) {
 					checkForCacheProblems();

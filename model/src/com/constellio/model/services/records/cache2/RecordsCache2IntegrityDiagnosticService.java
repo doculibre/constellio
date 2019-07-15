@@ -353,6 +353,14 @@ public class RecordsCache2IntegrityDiagnosticService {
 					valueFromCache = ((Number) valueFromCache).doubleValue();
 				}
 
+				if (metadata.getType() == MetadataValueType.STRING && StringUtils.isBlank((String) valueFromSolr)) {
+					valueFromSolr = null;
+				}
+
+				if (metadata.getType() == MetadataValueType.STRING && StringUtils.isBlank((String) valueFromCache)) {
+					valueFromCache = null;
+				}
+
 				if (!LangUtils.isEqual(valueFromSolr, valueFromCache)) {
 					LOGGER.warn("Record '" + recordFromCache.getId() + "' has a different value in cache for metadata '" + metadata.getLocalCode() + "'\nValue from cache : " + valueFromCache + "\nValue from solr : " + valueFromSolr + "\n");
 					return true;

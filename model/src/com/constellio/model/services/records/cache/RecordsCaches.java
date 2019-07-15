@@ -56,4 +56,8 @@ public interface RecordsCaches {
 	}
 
 	boolean isInitialized();
+
+	default void reloadAllSchemaTypes(String collection) {
+		throw new UnsupportedOperationException("Unsupported");
+	}
 }

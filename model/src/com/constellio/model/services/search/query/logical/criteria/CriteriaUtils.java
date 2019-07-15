@@ -5,7 +5,9 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.schemas.DataStoreField;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataTransiency;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordImpl;
 import org.apache.solr.client.solrj.util.ClientUtils;
 import org.joda.time.DateTimeZone;
@@ -16,7 +18,6 @@ import org.joda.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class CriteriaUtils {
 
@@ -46,6 +47,10 @@ public class CriteriaUtils {
 
 		} else if (item instanceof EnumWithSmallCode) {
 			return ((EnumWithSmallCode) item).getCode();
+
+		} else if (item instanceof Number) {
+			return ((Number) item).doubleValue();
+
 		} else {
 			return item;
 		}
@@ -53,20 +58,55 @@ public class CriteriaUtils {
 
 	public static Object convertMetadataValue(Metadata metadata, Record record) {
 		Object recordValue;
+
+		//Same behavior than solr
+		if (metadata.getTransiency() != MetadataTransiency.PERSISTED) {
+			return metadata.isMultivalue() ? Collections.emptyList() : null;
+		}
+
 		if (metadata.isEncrypted()) {
 			recordValue = ((RecordImpl) record).getRecordDTO().getFields().get(metadata.getDataStoreCode());
+
+		} else if (metadata.getType() == MetadataValueType.NUMBER && metadata.isSameLocalCode(Schemas.VERSION)) {
+
+			//No conversion, since it is losing precision
+			return record.getVersion();
 		} else {
 			recordValue = record.get(metadata);
 		}
 
+		return convertMetadataValue(metadata, recordValue);
+	}
 
-		if (metadata.getType() == MetadataValueType.ENUM) {
+	public static Object convertMetadataValue(Metadata metadata, Object recordValue) {
+
+		if (recordValue == null) {
+			return null;
+		}
+
+		if (metadata.getType() == MetadataValueType.NUMBER || metadata.getType() == MetadataValueType.INTEGER
+			|| metadata.getType() == MetadataValueType.ENUM) {
+
 			if (recordValue instanceof List) {
-				recordValue = ((List) recordValue).stream().map(o -> getCodeFromEnumWithSmallCode(o)).collect(Collectors.toList());
-			} else {
+				List<Object> converted = new ArrayList<>();
+
+				for (Object item : ((List) recordValue)) {
+					converted.add(convertMetadataValue(metadata, item));
+				}
+
+				return converted;
+			}
+
+			if (metadata.getType() == MetadataValueType.ENUM) {
 				recordValue = ((EnumWithSmallCode) recordValue).getCode();
 			}
+
+			if (metadata.getType() == MetadataValueType.INTEGER || metadata.getType() == MetadataValueType.NUMBER) {
+				recordValue = ((Number) recordValue).doubleValue();
+			}
+
 		}
+
 
 		return recordValue;
 	}
@@ -161,5 +201,9 @@ public class CriteriaUtils {
 			default:
 				return getNullStringValue();
 		}
+	}
+
+	public static boolean useConvertedValues(Metadata metadata) {
+		return !(metadata.getType() == MetadataValueType.NUMBER && metadata.isSameLocalCode(Schemas.VERSION));
 	}
 }

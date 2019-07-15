@@ -43,6 +43,10 @@ public interface RecordsCache {
 	@Deprecated
 	CacheConfig getCacheConfigOf(String schemaOrTypeCode);
 
+	default void reloadAllSchemaTypes() {
+		throw new UnsupportedOperationException("Unsupported");
+	}
+
 	default void invalidateVolatileReloadPermanent(List<String> schemaTypes) {
 		invalidateVolatileReloadPermanent(schemaTypes, false);
 	}

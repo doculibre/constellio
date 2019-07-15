@@ -158,7 +158,7 @@ public class StreamValidator<T> implements Stream<T> {
 		List<T> stream2Records = stream2.collect(Collectors.toList());
 
 		if (!stream1Records.equals(stream2Records)) {
-			throw new IllegalArgumentException("Lists are different");
+			throw new IllegalArgumentException("Lists are different\nExpected : " + stream1Records + "\nWas : " + stream2Records);
 		}
 		return stream1Records;
 	}

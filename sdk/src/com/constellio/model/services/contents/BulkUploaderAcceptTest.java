@@ -103,6 +103,7 @@ public class BulkUploaderAcceptTest extends ConstellioTest {
 			assertThat(dataSummary.getMimetype()).describedAs("Mimetype of " + key).isEqualTo(expectedMimetype);
 			assertThat(dataSummary.getLength()).describedAs("Length of " + key).isEqualTo((long) bytes.length);
 			ParsedContent parsedContent = getModelLayerFactory().getContentManager().getParsedContent(expectedHash);
+			assertThat(parsedContent.getParsedContent()).isEqualTo(expectedParsedContent.getParsedContent());
 			assertThat(parsedContent).isEqualTo(expectedParsedContent);
 			InputStream contentInputStream = getModelLayerFactory().getContentManager()
 					.getContentInputStream(expectedHash, SDK_STREAM);
