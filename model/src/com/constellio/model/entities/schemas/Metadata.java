@@ -101,7 +101,7 @@ public class Metadata implements DataStoreField {
 				multivalue, false, false, false, false, false,
 				false, false, false, false, false,
 				false, multiLingual, false, new HashSet<String>(), false,
-				false, PERSISTED, false);
+				false, PERSISTED, false, false);
 		this.defaultRequirement = false;
 		this.dataEntry = null;
 		this.encryptionServicesFactory = null;
@@ -387,6 +387,8 @@ public class Metadata implements DataStoreField {
 	public boolean isEssential() {
 		return getInheritedMetadataBehaviors().isEssential();
 	}
+
+	public boolean isCacheIndex() { return getInheritedMetadataBehaviors().isCacheIndex(); }
 
 	public boolean isEssentialInSummary() {
 		return getInheritedMetadataBehaviors().isEssentialInSummary();
