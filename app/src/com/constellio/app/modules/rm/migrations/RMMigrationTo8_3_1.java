@@ -4,6 +4,7 @@ import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
+import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
@@ -43,6 +44,11 @@ public class RMMigrationTo8_3_1 implements MigrationScript {
 				SchemaDisplayConfig schemaDisplayConfig = manager.getSchema(collection, DecommissioningList.DEFAULT_SCHEMA);
 				schemaDisplayConfig = schemaDisplayConfig.withNewFormMetadata(DecommissioningList.DEFAULT_SCHEMA + "_" + DecommissioningList.CONTENTS);
 				manager.saveSchema(schemaDisplayConfig);
+			}
+
+			MetadataSchemaBuilder cartSchema = types().getSchema(Cart.DEFAULT_SCHEMA);
+			if (cartSchema.hasMetadata(Cart.TITLE)) {
+				cartSchema.get(Cart.TITLE).required();
 			}
 		}
 	}
