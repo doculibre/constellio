@@ -35,6 +35,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.constellio.app.ui.i18n.i18n.$;
 import static java.util.Arrays.asList;
 
 public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
@@ -185,7 +186,14 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 			}
 		} else if (favoritesId != null) {
 			breadcrumbItems.add(0, new FavoritesBreadcrumbItem());
-			breadcrumbItems.add(1, new GroupFavoritesBreadcrumbItem(favoritesId, rmSchemasRecordsServices.getCart(favoritesId).getTitle()));
+			Record favorite = folderPresenterUtils.getRecord(favoritesId);
+			String breadcrumbTitle = "";
+			if (favorite.isOfSchemaType(User.SCHEMA_TYPE)) {
+				breadcrumbTitle = $("CartView.defaultFavorites");
+			} else {
+				breadcrumbTitle = rmSchemasRecordsServices.getCart(favoritesId).getTitle();
+			}
+			breadcrumbItems.add(1, new GroupFavoritesBreadcrumbItem(favoritesId, breadcrumbTitle));
 		}
 		else if (searchId != null) {
 			breadcrumbItems.add(0, new SearchResultsBreadcrumbItem(searchId, advancedSearch));

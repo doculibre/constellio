@@ -663,10 +663,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 	public void fieldValueChanged(Field<?> customField) {
 
 		Field<String> assignee = (Field<String>) view.getForm().getField(Task.ASSIGNEE);
-		boolean assigneeValue = false;
-		if(assignee != null) {
-			StringUtils.isNotBlank(assignee.getValue());
-		}
+		boolean assigneeValue = assignee != null && StringUtils.isNotBlank(assignee.getValue());
 
 		ListAddRemoveRecordLookupField group = (ListAddRemoveRecordLookupField) view.getForm().getField(Task.ASSIGNEE_GROUPS_CANDIDATES);
 		boolean groupValue = group != null && (CollectionUtils.isNotEmpty(group.getValue()) || group.getLookupFieldValue() != null);

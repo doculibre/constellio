@@ -10,7 +10,9 @@ import com.vaadin.server.StreamVariable.StreamingErrorEvent;
 import com.vaadin.server.StreamVariable.StreamingProgressEvent;
 import com.vaadin.server.StreamVariable.StreamingStartEvent;
 import com.vaadin.server.WebBrowser;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.CssLayout;
+import com.vaadin.ui.DragAndDropWrapper;
 import com.vaadin.ui.DragAndDropWrapper.WrapperTransferable;
 import com.vaadin.ui.Html5File;
 import com.vaadin.ui.Label;
@@ -18,7 +20,6 @@ import com.vaadin.ui.ProgressIndicator;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
-
 import org.vaadin.easyuploads.MultiUpload.FileDetail;
 import org.vaadin.easyuploads.UploadField.FieldType;
 
@@ -29,8 +30,6 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import static com.constellio.app.ui.i18n.i18n.$;
 
 /**
  * MultiFileUpload makes it easier to upload multiple files. MultiFileUpload
@@ -307,7 +306,6 @@ public abstract class MultiFileUpload extends CssLayout implements DropHandler {
 
 					private String name;
 					private String mime;
-					private boolean isInterrupted;
 
 					public OutputStream getOutputStream() {
 						return receiver.receiveUpload(name, mime);
@@ -324,13 +322,8 @@ public abstract class MultiFileUpload extends CssLayout implements DropHandler {
 					}
 
 					public void streamingStarted(StreamingStartEvent event) {
-						if (event.getContentLength() > 0) {
-							name = event.getFileName();
-							mime = event.getMimeType();
-							isInterrupted = false;
-						} else {
-							isInterrupted = true;
-						}
+						name = event.getFileName();
+						mime = event.getMimeType();
 					}
 
 					public void streamingFinished(StreamingEndEvent event) {
@@ -342,20 +335,13 @@ public abstract class MultiFileUpload extends CssLayout implements DropHandler {
 
 					public void streamingFailed(StreamingErrorEvent event) {
 						progressBars.removeComponent(pi);
-						throw new FileUploadCancelException();
 					}
 
 					public boolean isInterrupted() {
-						return isInterrupted;
+						return false;
 					}
 				});
 			}
-		}
-	}
-
-	public class FileUploadCancelException extends RuntimeException {
-		public FileUploadCancelException() {
-			super($("DisplayFolderView.fileUploadCancel"));
 		}
 	}
 }

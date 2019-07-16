@@ -74,6 +74,9 @@ public class BaseExcelReportPresenter {
 				}
 			}
 		} else if (metadata.getType() == MetadataValueType.BOOLEAN) {
+			if (metadataValue == null) {
+				return $("no");
+			}
 			return metadataValue.equals(true) ? $("yes") : $("no");
 		} else if (metadata.getType() == MetadataValueType.TEXT || metadata.getType() == MetadataValueType.STRING) {
 			SchemasDisplayManager schemasManager = appLayerFactory.getMetadataSchemasDisplayManager();
