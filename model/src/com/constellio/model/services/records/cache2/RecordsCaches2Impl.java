@@ -516,6 +516,10 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 			return get(value, metadata.getCollection());
 		}
 
+		if (metadata.isUniqueValue()) {
+			throw new IllegalArgumentException("Metadata must be unique to use this method");
+		}
+
 		MetadataSchemaType schemaType = metadataSchemasManager.getSchemaTypes(collectionId)
 				.getSchemaType(metadata.getSchemaTypeCode());
 
