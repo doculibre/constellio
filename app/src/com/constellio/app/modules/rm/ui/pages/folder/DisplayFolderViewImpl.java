@@ -24,7 +24,6 @@ import com.constellio.app.ui.framework.buttons.AddToOrRemoveFromSelectionButton;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.DeleteWithJustificationButton;
-import com.constellio.app.ui.framework.buttons.DisplayButton;
 import com.constellio.app.ui.framework.buttons.DownloadLink;
 import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.buttons.LinkButton;
@@ -278,7 +277,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	private Button newDisplayFolderButton() {
 		Button displayFolderButton;
 		if (!presenter.isLogicallyDeleted()) {
-			displayFolderButton = new BaseButton($("DisplayFolderView.displayFolder"), false) {
+			displayFolderButton = new BaseButton($("DisplayFolderView.displayFolder")) {
 				@Override
 				protected void buttonClick(ClickEvent event) {
 					presenter.displayFolderButtonClicked();
