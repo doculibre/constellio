@@ -3,6 +3,7 @@ package com.constellio.model.services.contents;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
@@ -20,7 +21,7 @@ import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.attribute.FileTime;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ContentManagerScanAcceptanceTest extends ConstellioTest {
 
@@ -70,6 +71,29 @@ public class ContentManagerScanAcceptanceTest extends ConstellioTest {
 		recordServices.execute(transaction);
 		recordServices.physicallyDeleteNoMatterTheStatus(documentToBeDeleted.getWrappedRecord(), User.GOD, new RecordPhysicalDeleteOptions());
 		recordServices.logicallyDelete(documentToBeKept.getWrappedRecord(), User.GOD, new RecordLogicalDeleteOptions());
+
+		VaultScanResults vaultScanResults = new VaultScanResults();
+		contentManager.scanVaultContentAndDeleteUnreferencedFiles(vaultScanResults);
+		assertThat(vaultScanResults.getNumberOfDeletedContents()).isEqualTo(0);
+		assertThat(vaultScanResults.getReportMessage()).doesNotContain(documentToBeDeleted.getContent().getCurrentVersion().getHash());
+		assertThat(vaultScanResults.getReportMessage()).doesNotContain(documentToBeKept.getContent().getCurrentVersion().getHash());
+
+		givenTimeIs(TimeProvider.getLocalDateTime().plusHours(35));
+
+		vaultScanResults = new VaultScanResults();
+		contentManager.scanVaultContentAndDeleteUnreferencedFiles(vaultScanResults);
+		assertThat(vaultScanResults.getNumberOfDeletedContents()).isEqualTo(0);
+		assertThat(vaultScanResults.getReportMessage()).doesNotContain(documentToBeDeleted.getContent().getCurrentVersion().getHash());
+		assertThat(vaultScanResults.getReportMessage()).doesNotContain(documentToBeKept.getContent().getCurrentVersion().getHash());
+
+		givenTimeIs(TimeProvider.getLocalDateTime().plusMinutes(61));
+
+		vaultScanResults = new VaultScanResults();
+		contentManager.scanVaultContentAndDeleteUnreferencedFiles(vaultScanResults);
+
+		assertThat(vaultScanResults.getNumberOfDeletedContents()).isEqualTo(1);
+		assertThat(vaultScanResults.getReportMessage()).contains(documentToBeDeleted.getContent().getCurrentVersion().getHash());
+		assertThat(vaultScanResults.getReportMessage()).doesNotContain(documentToBeKept.getContent().getCurrentVersion().getHash());
 	}
 
 	private void givenOneUnlinkedFileAndOneLinkedWhichAreOlderThanThreeDays() throws Exception {

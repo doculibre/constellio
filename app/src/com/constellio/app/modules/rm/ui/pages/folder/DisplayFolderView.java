@@ -32,6 +32,10 @@ public interface DisplayFolderView extends BaseView, RecordsManagementViewGroup 
 
 	void hideAllActionMenuButtons();
 
+	String getFolderOrSubFolderButtonTitle(String key);
+
+	String getFolderOrSubFolderButtonKey(String key);
+
 	void setLogicallyDeletable(ComponentState state);
 
 	void setEditButtonState(ComponentState state);

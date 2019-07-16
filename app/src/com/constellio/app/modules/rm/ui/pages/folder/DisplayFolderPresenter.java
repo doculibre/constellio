@@ -22,7 +22,6 @@ import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
 import com.constellio.app.modules.rm.ui.builders.FolderToVOBuilder;
 import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentContainerBreadcrumbTrail;
 import com.constellio.app.modules.rm.ui.components.content.ConstellioAgentClickHandler;
-import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.entities.FolderVO;
 import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningBuilderViewImpl;
 import com.constellio.app.modules.rm.ui.pages.decommissioning.breadcrumb.DecommissionBreadcrumbTrail;
@@ -41,7 +40,6 @@ import com.constellio.app.modules.tasks.navigation.TaskViews;
 import com.constellio.app.modules.tasks.services.BetaWorkflowServices;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.ContentVersionVO.InputStreamProvider;
@@ -80,7 +78,6 @@ import com.constellio.model.entities.structures.EmailAddress;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
-import com.constellio.model.services.contents.ContentFactory;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentManager.UploadOptions;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
@@ -463,9 +460,9 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 				String userTitle = rmSchemasRecordsServices.getUser(borrowUserEntered).getTitle();
 				LocalDateTime borrowDateTime = folder.getBorrowDate();
 				LocalDate borrowDate = borrowDateTime != null ? borrowDateTime.toLocalDate() : null;
-				borrowedMessage = $("DisplayFolderView.borrowedFolder", userTitle, borrowDate);
+				borrowedMessage = $(view.getFolderOrSubFolderButtonKey("DisplayFolderView.borrowedFolder"), userTitle, borrowDate);
 			} else {
-				borrowedMessage = $("DisplayFolderView.borrowedByNullUserFolder");
+				borrowedMessage = view.getFolderOrSubFolderButtonTitle("DisplayFolderView.borrowedByNullUserFolder");
 			}
 		} else if (folder.getContainer() != null) {
 			try {
@@ -1062,7 +1059,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 				borrowed = true;
 			} catch (RecordServicesException e) {
 				LOGGER.error(e.getMessage(), e);
-				view.showErrorMessage($("DisplayFolderView.cannotBorrowFolder"));
+				view.showErrorMessage(view.getFolderOrSubFolderButtonTitle("DisplayFolderView.cannotBorrowFolder"));
 				borrowed = false;
 			}
 		}
