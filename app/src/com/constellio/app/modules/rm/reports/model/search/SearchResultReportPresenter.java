@@ -128,7 +128,7 @@ public class SearchResultReportPresenter extends BaseExcelReportPresenter {
 			Object metadataValue = record.get(metadata, locale);
 
 			if ((metadataValue == null && !MetadataValueType.BOOLEAN.equals(metadata.getType())) ||
-				metadataValue instanceof Collection && ((Collection) metadataValue).isEmpty() ||
+				(metadataValue instanceof Collection && ((Collection) metadataValue).isEmpty()) ||
 				!userInCollection.hasAccessToMetadata(metadata, record)) {
 				returnList.add(null);
 			} else {
