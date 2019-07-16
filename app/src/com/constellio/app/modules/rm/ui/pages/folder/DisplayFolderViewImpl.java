@@ -278,7 +278,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	private Button newDisplayFolderButton() {
 		Button displayFolderButton;
 		if (!presenter.isLogicallyDeleted()) {
-			displayFolderButton = new DisplayButton($("DisplayFolderView.displayFolder"), false) {
+			displayFolderButton = new BaseButton($("DisplayFolderView.displayFolder"), false) {
 				@Override
 				protected void buttonClick(ClickEvent event) {
 					presenter.displayFolderButtonClicked();
