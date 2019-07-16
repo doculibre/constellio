@@ -59,7 +59,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.*;
 
 import static com.constellio.app.modules.rm.ui.components.decommissioning.FolderDetailTableGenerator.CHECKBOX;
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -131,6 +130,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 
 	@Override
 	protected void initBeforeCreateComponents(ViewChangeEvent event) {
+		presenter.clearSavedSearchFromSession();
 		decommissioningList = presenter.forRecordId(event.getParameters()).getDecommissioningList();
 	}
 
