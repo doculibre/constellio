@@ -12,7 +12,9 @@ import org.joda.time.Duration;
 
 import static com.constellio.data.threads.BackgroundThreadConfiguration.repeatingAction;
 import static com.constellio.data.threads.BackgroundThreadExceptionHandling.CONTINUE;
-import static org.joda.time.Duration.*;
+import static org.joda.time.Duration.standardHours;
+import static org.joda.time.Duration.standardMinutes;
+import static org.joda.time.Duration.standardSeconds;
 
 public class ModelLayerBackgroundThreadsManager implements StatefulService {
 
@@ -25,6 +27,7 @@ public class ModelLayerBackgroundThreadsManager implements StatefulService {
 	AuthorizationWithTimeRangeTokenUpdateBackgroundAction authorizationWithTimeRangeTokenUpdateBackgroundAction;
 	FlushRecordsBackgroundAction flushRecordsBackgroundAction;
 	TemporaryFolderCleanerBackgroundAction temporaryFolderCleanerBackgroundAction;
+	FlushOldEmailToSend flushOldEmailToSend;
 
 	public ModelLayerBackgroundThreadsManager(ModelLayerFactory modelLayerFactory) {
 		this.modelLayerFactory = modelLayerFactory;
@@ -70,6 +73,10 @@ public class ModelLayerBackgroundThreadsManager implements StatefulService {
 			backgroundThreadsManager.configure(repeatingAction("TmpFilesDelete", temporaryFolderCleanerBackgroundAction)
 					.executedEvery(standardMinutes(5)).handlingExceptionWith(CONTINUE).runningOnAllInstances());
 		}
+
+		flushOldEmailToSend = new FlushOldEmailToSend(modelLayerFactory);
+		backgroundThreadsManager.configure(repeatingAction("flushOldEmail", flushOldEmailToSend)
+				.executedEvery(standardHours(3)).handlingExceptionWith(CONTINUE));
 
 		//Disabled for the moment
 		//		eventService = new EventService(modelLayerFactory);
