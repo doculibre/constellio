@@ -95,11 +95,11 @@ public class RecordsCachesMemoryImpl implements RecordsCaches {
 	}
 
 	@Override
-	public Record getRecordSummary(String id) {
-		return null;
+	public Record getRecordSummary(String id, String optionnalCollection, String optionnalSchemaType) {
+		return nested.getRecordSummary(id, optionnalCollection, optionnalSchemaType);
 	}
 
-	public Record getRecord(String id) {
+	public Record getRecord(String id, String optionnalCollection, String optionnalSchemaType) {
 
 		if (!enabled.get()) {
 			return null;
@@ -114,7 +114,7 @@ public class RecordsCachesMemoryImpl implements RecordsCaches {
 		}
 
 		if (nested != null) {
-			Record record = nested.getRecord(id);
+			Record record = nested.getRecord(id, optionnalCollection, optionnalSchemaType);
 			if (record != null) {
 				onCacheHit(record);
 				return record;

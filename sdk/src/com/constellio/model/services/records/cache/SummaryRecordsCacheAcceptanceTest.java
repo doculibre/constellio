@@ -14,7 +14,7 @@ public class SummaryRecordsCacheAcceptanceTest extends ConstellioTest {
 	//	TestsSchemasSetup zeCollectionSchemas = new TestsSchemasSetup(zeCollection).withSecurityFlag(false);
 	//	ZeSchemaMetadatas schemaType = zeCollectionSchemas.new ZeSchemaMetadatas();
 	//
-	//	RecordsCaches recordsCaches;
+	//	RecordsCaches cache;
 	//	RecordsCache recordsCache;
 	//
 	//	UserServices userServices;
@@ -46,7 +46,7 @@ public class SummaryRecordsCacheAcceptanceTest extends ConstellioTest {
 	//		cachelessRecordServices = getModelLayerFactory().newCachelessRecordServices();
 	//
 	//		userServices = getModelLayerFactory().newUserServices();
-	//		recordsCaches = getModelLayerFactory().getRecordsCaches();
+	//		cache = getModelLayerFactory().getRecordsCaches();
 	//		recordsCache = getModelLayerFactory().getRecordsCaches().getCache(zeCollection);
 	//
 	//		RecordsCache collection1Cache = getModelLayerFactory().getRecordsCaches().getCache(zeCollection);
@@ -117,7 +117,7 @@ public class SummaryRecordsCacheAcceptanceTest extends ConstellioTest {
 	//		resetCacheAndQueries();
 	//
 	//		LogicalSearchQuery query = new LogicalSearchQuery(from(schemaType.type()).returnAll());
-	//		recordsCaches.insert(zeCollection, searchServices.search(query), WAS_OBTAINED);
+	//		cache.insert(zeCollection, searchServices.search(query), WAS_OBTAINED);
 	//
 	//		assertThatTheThreeRecordsAreInCache();
 	//
@@ -136,7 +136,7 @@ public class SummaryRecordsCacheAcceptanceTest extends ConstellioTest {
 	//		List<Record> records = searchServices.search(query);
 	//
 	//		for (Record record : records) {
-	//			recordsCaches.insert(record, WAS_OBTAINED);
+	//			cache.insert(record, WAS_OBTAINED);
 	//		}
 	//
 	//		assertThat(recordsCache.get("1")).isNull();
@@ -147,7 +147,7 @@ public class SummaryRecordsCacheAcceptanceTest extends ConstellioTest {
 	//		assertThat(recordsCache.getSummary("3")).isNull();
 	//
 	//		for (Record record : records) {
-	//			recordsCaches.insert(record, WAS_OBTAINED);
+	//			cache.insert(record, WAS_OBTAINED);
 	//		}
 	//
 	//		assertThatTheThreeRecordsAreInCache();
@@ -156,7 +156,7 @@ public class SummaryRecordsCacheAcceptanceTest extends ConstellioTest {
 	//	//-----------------------------------------------------------------
 	//
 	//	private void resetCacheAndQueries() {
-	//		recordsCaches.invalidateVolatile();
+	//		cache.invalidateVolatile();
 	//		queriesListener.clear();
 	//		assertThatRecords("1", "2", "3", "4", "5").areNotInCache();
 	//	}
@@ -261,7 +261,7 @@ public class SummaryRecordsCacheAcceptanceTest extends ConstellioTest {
 	//
 	//		private void areInCache() {
 	//			for (String id : ids) {
-	//				boolean isCached = recordsCaches.isCached(id);
+	//				boolean isCached = cache.isCached(id);
 	//				assertThat(isCached).describedAs("Record with id '" + id + "' is expected to be in cache").isTrue();
 	//			}
 	//		}
@@ -272,7 +272,7 @@ public class SummaryRecordsCacheAcceptanceTest extends ConstellioTest {
 	//
 	//		private void areNotInCache() {
 	//			for (String id : ids) {
-	//				boolean isCached = recordsCaches.isCached(id);
+	//				boolean isCached = cache.isCached(id);
 	//				assertThat(isCached).describedAs("Record with id '" + id + "' is expected to not be in cache").isFalse();
 	//			}
 	//		}

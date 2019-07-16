@@ -137,7 +137,7 @@ public class MetadataSchemaXMLReader3 {
 				cacheType = RecordCacheType.NOT_CACHED;
 
 			} else if ("savedSearch".equals(code)) {
-				cacheType = RecordCacheType.HOOK;
+				cacheType = RecordCacheType.HOOK_ONLY;
 
 			} else {
 				cacheType = RecordCacheType.FULLY_CACHED;

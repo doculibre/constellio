@@ -70,13 +70,14 @@ public class RecordsCachesDataStore {
 		int intId = CacheRecordDTOUtils.toIntKey(dto.getId());
 
 		if (intId == CacheRecordDTOUtils.KEY_IS_NOT_AN_INT) {
-			stringIdsDataStore.remove(dto);
+			stringIdsDataStore.remove(dto.getId());
 
 		} else {
 			intIdsDataStore.remove(intId, dto);
 		}
 
 	}
+
 
 	public RecordDTO get(String id) {
 		int intId = CacheRecordDTOUtils.toIntKey(id);

@@ -144,12 +144,12 @@ public class StringIdsRecordsCachesDataStore {
 	}
 
 
-	void remove(RecordDTO dto) {
-		Holder<RecordDTO> recordDTOHolder = allRecordsWithStringKey.get(dto.getId());
+	void remove(String id) {
+		Holder<RecordDTO> recordDTOHolder = allRecordsWithStringKey.get(id);
 		if (recordDTOHolder != null) {
 			recordDTOHolder.set(null);
 			synchronized (this) {
-				allRecordsWithStringKey.remove(dto.getId());
+				allRecordsWithStringKey.remove(id);
 			}
 		}
 

@@ -138,14 +138,14 @@ public class NewPermanentRecordCacheAcceptanceTest extends ConstellioTest {
 	//		partiallyLoadedRecord.markAsSaved(partiallyLoadedRecord.getVersion() - 1000, zeCollectionSchemaType1.instance());
 	//
 	//		try {
-	//			recordsCaches.insert(partiallyLoadedRecord, WAS_OBTAINED);
+	//			cache.insert(partiallyLoadedRecord, WAS_OBTAINED);
 	//			fail("Exception expected");
 	//		} catch (IllegalStateException e) {
 	//			//OK
 	//		}
 	//
 	//		try {
-	//			recordsCaches.insert(partiallyLoadedRecord, WAS_MODIFIED);
+	//			cache.insert(partiallyLoadedRecord, WAS_MODIFIED);
 	//			fail("Exception expected");
 	//		} catch (IllegalStateException e) {
 	//			//OK
@@ -155,14 +155,14 @@ public class NewPermanentRecordCacheAcceptanceTest extends ConstellioTest {
 	//		partiallyLoadedRecord.markAsSaved(partiallyLoadedRecord.getVersion() + 1000, zeCollectionSchemaType1.instance());
 	//
 	//		try {
-	//			recordsCaches.insert(partiallyLoadedRecord, WAS_OBTAINED);
+	//			cache.insert(partiallyLoadedRecord, WAS_OBTAINED);
 	//
 	//			fail("Exception expected");
 	//		} catch (IllegalStateException e) {
 	//			//OK
 	//		}
 	//
-	//		//		Record recordFromCache = recordsCaches.getRecord(id(1234));
+	//		//		Record recordFromCache = cache.getRecord(id(1234));
 	//		//		assertThat(recordFromCache.<String>get(TITLE)).isEqualTo("val4");
 	//		//		assertThat(recordFromCache.<String>get(zeCollectionSchemaType1.stringMetadata())).isEqualTo("val2");
 	//		//		assertThat(recordFromCache.<String>get(zeCollectionSchemaType1.anotherStringMetadata())).isEqualTo("val3");

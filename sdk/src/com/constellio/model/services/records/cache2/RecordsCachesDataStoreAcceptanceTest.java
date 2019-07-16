@@ -633,7 +633,6 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 
 	}
 
-
 	//@Test
 	public void givenHighCacheConcurrencyThenNoExceptionAndStreamsNeverReturnNulls()
 			throws Exception {

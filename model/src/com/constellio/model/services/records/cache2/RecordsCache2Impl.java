@@ -49,7 +49,7 @@ public final class RecordsCache2Impl implements RecordsCache {
 
 	@Override
 	public Record getSummary(String id) {
-		return caches.getSummary(id, collection);
+		return caches.getRecordSummary(id, collection, null);
 	}
 
 	@Override
@@ -129,7 +129,7 @@ public final class RecordsCache2Impl implements RecordsCache {
 			case FULLY_CACHED:
 				return CacheConfig.permanentCache(schemaType);
 
-			case HOOK:
+			case HOOK_ONLY:
 				break;
 		}
 

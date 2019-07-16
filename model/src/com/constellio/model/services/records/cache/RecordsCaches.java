@@ -3,6 +3,7 @@ package com.constellio.model.services.records.cache;
 import com.constellio.data.dao.services.cache.InsertionReason;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.services.records.cache2.RecordsCachesHook;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,9 +15,25 @@ public interface RecordsCaches {
 
 	CacheInsertionStatus insert(Record record, InsertionReason insertionReason);
 
-	Record getRecordSummary(String id);
+	default Record getRecordSummary(String id) {
+		return getRecordSummary(id, null, null);
+	}
 
-	Record getRecord(String id);
+	default Record getRecordSummary(String id, String optionnalCollection) {
+		return getRecordSummary(id, optionnalCollection, null);
+	}
+
+	Record getRecordSummary(String id, String optionnalCollection, String optionnalSchemaType);
+
+	default Record getRecord(String id) {
+		return getRecord(id, null, null);
+	}
+
+	default Record getRecord(String id, String optionnalCollection) {
+		return getRecord(id, optionnalCollection, null);
+	}
+
+	Record getRecord(String id, String optionnalCollection, String optionnalSchemaType);
 
 	default void invalidateVolatile() {
 		invalidateVolatile(MassiveCacheInvalidationReason.KEEP_INTEGRITY);
@@ -58,6 +75,10 @@ public interface RecordsCaches {
 	boolean isInitialized();
 
 	default void reloadAllSchemaTypes(String collection) {
+		throw new UnsupportedOperationException("Unsupported");
+	}
+
+	default void register(RecordsCachesHook hook) {
 		throw new UnsupportedOperationException("Unsupported");
 	}
 }

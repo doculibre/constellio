@@ -27,6 +27,8 @@ import com.constellio.model.services.schemas.MetadataSchemaProvider;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SearchServices;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.mapdb.DB;
 import org.mapdb.DBMaker;
 import org.mapdb.HTreeMap;
@@ -61,6 +63,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 
 	private Map<String, RecordsCache> collectionCaches = new HashMap<>();
 
+	private RecordsCachesHooks hooks;
 	protected ModelLayerFactory modelLayerFactory;
 	MetadataSchemasManager metadataSchemasManager;
 	private CollectionsListManager collectionsListManager;
@@ -80,6 +83,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 		this.fileSystemDataStore = fileSystemDataStore;
 		this.memoryDataStore = memoryDataStore;
 		this.memoryDiskDatabase = DBMaker.memoryDB().make();
+		this.hooks = new RecordsCachesHooks(modelLayerFactory);
 
 		ScheduledExecutorService executor =
 				Executors.newScheduledThreadPool(2);
@@ -101,47 +105,8 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 
 	}
 
-	public Record get(String id, String collection) {
-		RecordDTO recordDTO = memoryDataStore.get(id);
-		if (recordDTO != null) {
-			String collectionCode = (String) recordDTO.getFields().get(COLLECTION.getDataStoreCode());
-			String schemaCode = (String) recordDTO.getFields().get(SCHEMA.getDataStoreCode());
-
-			//The record is in an other collection, so null is returned
-			if (!collectionCode.equals(collection)) {
-				return null;
-			}
-
-			MetadataSchemaTypes schemaTypes = metadataSchemasManager.getSchemaTypes(collectionCode);
-			MetadataSchema schema = schemaTypes.getSchema(schemaCode);
-			MetadataSchemaType schemaType = schemaTypes.getSchemaType(SchemaUtils.getSchemaTypeCode(schemaCode));
-			if (schemaType.getCacheType().isSummaryCache()) {
-				if (schemaType.getCacheType().hasVolatileCache()) {
-					recordDTO = volatileCache.get(id);
-					return recordDTO == null ? null : toRecord(recordDTO);
-
-				} else {
-					return null;
-				}
-
-			} else {
-				return toRecord(recordDTO);
-			}
-		}
-		return null;
-	}
-
-	public Record getSummary(String id, String collection) {
-		RecordDTO recordDTO = memoryDataStore.get(id);
-		if (recordDTO != null) {
-			String collectionCode = (String) recordDTO.getFields().get(COLLECTION.getDataStoreCode());
-			String schemaCode = (String) recordDTO.getFields().get(SCHEMA.getDataStoreCode());
-
-			if (collectionCode.equals(collection)) {
-				return toRecord(recordDTO);
-			}
-		}
-		return null;
+	public void register(RecordsCachesHook hook) {
+		hooks.register(hook);
 	}
 
 
@@ -187,6 +152,86 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 
 	public CacheInsertionStatus insert(Record record, InsertionReason insertionReason) {
 
+
+		CacheInsertionStatus problemo = validateInsertable(record, insertionReason);
+		if (problemo != null) {
+			return problemo;
+		}
+
+		RecordDTO current = memoryDataStore.get(record.getId());
+		if (current != null && current.getVersion() > record.getVersion()) {
+			return CacheInsertionStatus.REFUSED_OLD_VERSION;
+		}
+
+		MetadataSchemaTypes schemaTypes = metadataSchemasManager.getSchemaTypes(record);
+		MetadataSchemaType schemaType = schemaTypes.getSchemaType(record.getTypeCode());
+
+		RecordsCachesHook hook = hooks.getSchemaTypeHook(schemaTypes, schemaType.getId());
+		DeterminedHookCacheInsertion insertion = DeterminedHookCacheInsertion.DEFAULT_INSERT;
+		HookCacheInsertionResponse hookInsertionResponse = null;
+		if (hook != null) {
+			insertion = hook.determineCacheInsertion(record, schemaType, schemaTypes);
+			if (insertion.isInsertingUsingHook()) {
+				hookInsertionResponse = hook.insert(record, schemaTypes, insertionReason);
+			}
+		}
+
+		if (insertion.isContinuingVolatileCacheInsertion() && schemaType.getCacheType().hasVolatileCache()) {
+			insertInVolatileCache(record);
+		} else {
+			volatileCache.remove(record.getId());
+		}
+
+		if (insertion.isContinuingPermanentCacheInsertion()) {
+			return insertInPermanentCache(record, schemaType);
+		} else {
+			memoryDataStore.remove(current);
+			return hookInsertionResponse.status;
+		}
+
+	}
+
+	@NotNull
+	private CacheInsertionStatus insertInPermanentCache(Record record, MetadataSchemaType schemaType) {
+		if (schemaType.getCacheType() == RecordCacheType.FULLY_CACHED) {
+
+			RecordDTO dto = ((RecordImpl) record).getRecordDTO();
+			if (dto.getLoadingMode() != RecordDTOMode.FULLY_LOADED) {
+				LOGGER.error("Record '" + record.getId() + "' of type should not exist in summary state, since it is fully cached");
+				return CacheInsertionStatus.REFUSED_NOT_FULLY_LOADED;
+			}
+
+			memoryDataStore.insert(dto);
+			return CacheInsertionStatus.ACCEPTED;
+
+
+		} else if (schemaType.getCacheType().isSummaryCache()) {
+			MetadataSchema schema = metadataSchemasManager.getSchemaOf(record);
+			RecordDTO dto = toPersistedSummaryRecordDTO(record, schema);
+
+			memoryDataStore.insert(dto);
+			return CacheInsertionStatus.ACCEPTED;
+
+		} else {
+			return CacheInsertionStatus.REFUSED_NOT_CACHED;
+		}
+	}
+
+	private void insertInVolatileCache(Record record) {
+		if (record.getRecordDTOMode() != FULLY_LOADED) {
+			volatileCache.remove(record.getId());
+
+		} else {
+			RecordDTO volatileCacheDto = volatileCache.get(record.getId());
+			if (volatileCacheDto == null || volatileCacheDto.getVersion() < record.getVersion()) {
+				volatileCache.put(record.getId(), ((RecordImpl) record).getRecordDTO());
+			}
+
+		}
+	}
+
+	@Nullable
+	private CacheInsertionStatus validateInsertable(Record record, InsertionReason insertionReason) {
 		if (record == null) {
 			return CacheInsertionStatus.REFUSED_NULL;
 		}
@@ -205,62 +250,44 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 				return CacheInsertionStatus.REFUSED_DIRTY;
 			}
 		}
-
-		//TODO Validate if record is insertable
-
-		MetadataSchemaType schemaType = metadataSchemasManager.getSchemaTypeOf(record);
-
-		RecordDTO current = memoryDataStore.get(record.getId());
-		if (current != null && current.getVersion() > record.getVersion()) {
-			return CacheInsertionStatus.REFUSED_OLD_VERSION;
-		}
-
-		if (schemaType.getCacheType().hasVolatileCache()) {
-			if (record.getRecordDTOMode() != FULLY_LOADED) {
-				volatileCache.remove(record.getId());
-
-			} else {
-				RecordDTO volatileCacheDto = volatileCache.get(record.getId());
-				if (volatileCacheDto == null || volatileCacheDto.getVersion() < record.getVersion()) {
-					volatileCache.put(record.getId(), ((RecordImpl) record).getRecordDTO());
-				}
-
-			}
-		}
-
-		if (schemaType.getCacheType() == RecordCacheType.FULLY_CACHED) {
-
-			RecordDTO dto = ((RecordImpl) record).getRecordDTO();
-			if (dto.getLoadingMode() != RecordDTOMode.FULLY_LOADED) {
-				LOGGER.error("Record '" + record.getId() + "' of type should not exist in summary state, since it is fully cached");
-				return CacheInsertionStatus.REFUSED_NOT_FULLY_LOADED;
-			}
-
-			memoryDataStore.insert(dto);
-			return CacheInsertionStatus.ACCEPTED;
-
-
-		} else if (schemaType.getCacheType().isSummaryCache()) {
-			MetadataSchema schema = metadataSchemasManager.getSchemaOf(record);
-			RecordDTO dto = toPersistedSummaryRecordDTO(record, schema);
-
-			//			if (record.isSummary()) {
-			//				dto = ((RecordImpl) record).getRecordDTO();
-			//
-			//			} else {
-			//				dto = toPersistedSummaryRecordDTO(record);
-			//			}
-
-			memoryDataStore.insert(dto);
-			return CacheInsertionStatus.ACCEPTED;
-
-		} else {
-			return CacheInsertionStatus.REFUSED_NOT_CACHED;
-		}
+		return null;
 	}
 
+	//TODO Merge with getRecord
+	public Record get(String id, String collection) {
+		RecordDTO recordDTO = memoryDataStore.get(id);
+		if (recordDTO != null) {
+			String collectionCode = (String) recordDTO.getFields().get(COLLECTION.getDataStoreCode());
+			String schemaCode = (String) recordDTO.getFields().get(SCHEMA.getDataStoreCode());
+
+			//The record is in an other collection, so null is returned
+			if (!collectionCode.equals(collection)) {
+				return null;
+			}
+
+			MetadataSchemaTypes schemaTypes = metadataSchemasManager.getSchemaTypes(collectionCode);
+			MetadataSchema schema = schemaTypes.getSchema(schemaCode);
+			MetadataSchemaType schemaType = schemaTypes.getSchemaType(SchemaUtils.getSchemaTypeCode(schemaCode));
+			if (schemaType.getCacheType().isSummaryCache()) {
+				if (schemaType.getCacheType().hasVolatileCache()) {
+					recordDTO = volatileCache.get(id);
+					return recordDTO == null ? null : toRecord(recordDTO);
+
+				} else {
+					return null;
+				}
+
+			} else {
+				return toRecord(recordDTO);
+			}
+		}
+		return null;
+	}
+
+
 	@Override
-	public Record getRecord(String id) {
+	public Record getRecord(String id, String optionnalCollection, String optionnalSchemaType) {
+
 		RecordDTO recordDTO = memoryDataStore.get(id);
 		if (recordDTO != null) {
 			String collectionCode = (String) recordDTO.getFields().get(COLLECTION.getDataStoreCode());
@@ -287,14 +314,15 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 		return null;
 	}
 
-	@Override
-	public Record getRecordSummary(String id) {
+	public Record getRecordSummary(String id, String optionnalCollection, String optionnalSchemaType) {
 		RecordDTO recordDTO = memoryDataStore.get(id);
 		if (recordDTO != null) {
 			String collectionCode = (String) recordDTO.getFields().get(COLLECTION.getDataStoreCode());
 			String schemaCode = (String) recordDTO.getFields().get(SCHEMA.getDataStoreCode());
 
-			return toRecord(recordDTO);
+			if (optionnalCollection == null || collectionCode.equals(optionnalCollection)) {
+				return toRecord(recordDTO);
+			}
 		}
 		return null;
 	}
@@ -526,7 +554,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 	protected Record getSummaryByMetadata(byte collectionId, Metadata metadata, String value) {
 
 		if (metadata.isSameLocalCode(Schemas.IDENTIFIER)) {
-			return getSummary(value, metadata.getCollection());
+			return getRecordSummary(value, metadata.getCollection());
 		}
 
 		MetadataSchemaType schemaType = metadataSchemasManager.getSchemaTypes(collectionId)

@@ -101,6 +101,10 @@ public class CollectionInfo implements Serializable {
 		return collectionLocales.size() == 1;
 	}
 
+	public int getCollectionIndex() {
+		return collectionId - Byte.MIN_VALUE;
+	}
+
 	public byte getCollectionId() {
 		return collectionId;
 	}
