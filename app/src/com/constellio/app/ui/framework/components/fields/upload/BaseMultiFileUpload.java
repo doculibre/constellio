@@ -51,6 +51,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -463,7 +464,7 @@ public abstract class BaseMultiFileUpload extends CssLayout implements DropHandl
 						if (isUploadWindow()) {
 							showUploadWindowIfNotVisible();
 						}
-						isInterrupted = !(event.getContentLength() > 0);
+						isInterrupted = event.getContentLength() <= 0;
 					}
 
 					public void streamingFinished(StreamingEndEvent event) {
@@ -513,14 +514,7 @@ public abstract class BaseMultiFileUpload extends CssLayout implements DropHandl
 	}
 
 	private void closeUploadWindowIfAllDone() {
-		UI.getCurrent().access(new Runnable() {
-			@Override
-			public void run() {
-				if (!isUploadInProgress()) {
-					UI.getCurrent().removeWindow(uploadWindow);
-				}
-			}
-		});
+		closeUploadWindowIfAllDone(Collections.<String>emptyList());
 	}
 
 	private void closeUploadWindowIfAllDone(final List<String> emptyFilesName) {
@@ -531,7 +525,8 @@ public abstract class BaseMultiFileUpload extends CssLayout implements DropHandl
 					UI.getCurrent().removeWindow(uploadWindow);
 
 					if (!emptyFilesName.isEmpty()) {
-						StringBuilder errorMessage = new StringBuilder($("DisplayFolderView.fileUploadCancel") + " :");
+						StringBuilder errorMessage = new StringBuilder(
+								$("BaseMultiFileUpload.fileUploadCancel") + " :");
 						for (String s : emptyFilesName) {
 							errorMessage.append(" " + s);
 						}
