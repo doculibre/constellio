@@ -767,13 +767,13 @@ public class RecordsCacheImplTest extends ConstellioTest {
 
 		Record recordInNewVersion = newRecord(zeType, 1, 2L);
 
-		assertThat(cache.insert(record, WAS_MODIFIED)).isEqualTo(CacheInsertionStatus.ACCEPTED);
+		assertThat(cache.insert(record, WAS_MODIFIED).status).isEqualTo(CacheInsertionStatus.ACCEPTED);
 		assertThat(cache.get("1").getVersion()).isEqualTo(1L);
 
-		assertThat(cache.insert(recordInNewVersion, WAS_MODIFIED)).isEqualTo(CacheInsertionStatus.ACCEPTED);
+		assertThat(cache.insert(recordInNewVersion, WAS_MODIFIED).status).isEqualTo(CacheInsertionStatus.ACCEPTED);
 		assertThat(cache.get("1").getVersion()).isEqualTo(2L);
 
-		assertThat(cache.insert(record, WAS_MODIFIED)).isEqualTo(CacheInsertionStatus.REFUSED_OLD_VERSION);
+		assertThat(cache.insert(record, WAS_MODIFIED).status).isEqualTo(CacheInsertionStatus.REFUSED_OLD_VERSION);
 		assertThat(cache.get("1").getVersion()).isEqualTo(2L);
 
 	}

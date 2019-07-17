@@ -13,7 +13,7 @@ public interface RecordsCaches {
 
 	RecordsCache getCache(String collection);
 
-	CacheInsertionStatus insert(Record record, InsertionReason insertionReason);
+	CacheInsertionResponse insert(Record record, InsertionReason insertionReason);
 
 	default Record getRecordSummary(String id) {
 		return getRecordSummary(id, null, null);
@@ -53,9 +53,9 @@ public interface RecordsCaches {
 		return getRecord(id) != null;
 	}
 
-	default List<CacheInsertionStatus> insert(String collection, List<Record> records,
-											  InsertionReason insertionReason) {
-		List<CacheInsertionStatus> statuses = new ArrayList<>(records.size());
+	default List<CacheInsertionResponse> insert(String collection, List<Record> records,
+												InsertionReason insertionReason) {
+		List<CacheInsertionResponse> statuses = new ArrayList<>(records.size());
 
 		for (Record record : records) {
 			statuses.add(insert(record, insertionReason));
@@ -79,6 +79,10 @@ public interface RecordsCaches {
 	}
 
 	default void register(RecordsCachesHook hook) {
+		throw new UnsupportedOperationException("Unsupported");
+	}
+
+	default RecordsCachesHook getHook(MetadataSchemaType schemaType) {
 		throw new UnsupportedOperationException("Unsupported");
 	}
 }

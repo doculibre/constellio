@@ -40,7 +40,7 @@ public class RecordsCachesRequestMemoryImplTest extends ConstellioTest {
 	public void givenEmptyCacheWhenGetRecordByIdOnAllCollectionThenCallNestedCache()
 			throws Exception {
 
-		when(nestedCache.getRecord("zeRecord")).thenReturn(zeRecord);
+		when(nestedCache.getRecord("zeRecord", null, null)).thenReturn(zeRecord);
 
 		RecordsCachesRequestMemoryImpl recordsCachesRequest = new RecordsCachesRequestMemoryImpl(modelLayerFactory, "zeCache");
 		assertThat(recordsCachesRequest.getRecord("zeRecord")).isEqualTo(zeRecord);

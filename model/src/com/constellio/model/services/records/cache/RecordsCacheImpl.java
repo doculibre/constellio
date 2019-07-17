@@ -137,15 +137,15 @@ public class RecordsCacheImpl implements RecordsCache {
 		return true;
 	}
 
-	public List<CacheInsertionStatus> insert(List<Record> records, InsertionReason insertionReason) {
-		List<CacheInsertionStatus> statuses = new ArrayList<>();
+	public List<CacheInsertionResponse> insert(List<Record> records, InsertionReason insertionReason) {
+		List<CacheInsertionResponse> responses = new ArrayList<>();
 		if (records != null) {
 			for (Record record : records) {
-				statuses.add(insert(record, insertionReason));
+				responses.add(insert(record, insertionReason));
 			}
 		}
 
-		return statuses;
+		return responses;
 	}
 
 
@@ -285,14 +285,14 @@ public class RecordsCacheImpl implements RecordsCache {
 	}
 
 	@Override
-	public CacheInsertionStatus insert(Record insertedRecord, InsertionReason insertionReason) {
+	public CacheInsertionResponse insert(Record insertedRecord, InsertionReason insertionReason) {
 
 		if (insertedRecord == null) {
-			return CacheInsertionStatus.REFUSED_NULL;
+			return new CacheInsertionResponse(CacheInsertionStatus.REFUSED_NULL, null);
 		}
 
 		if ("savedSearch".equals(insertedRecord.getTypeCode())) {
-			return executeInsert(insertedRecord, insertionReason);
+			return new CacheInsertionResponse(executeInsert(insertedRecord, insertionReason), null);
 		} else {
 
 			CacheConfig cacheConfig = getCacheConfigOf(insertedRecord.getTypeCode());
@@ -305,13 +305,13 @@ public class RecordsCacheImpl implements RecordsCache {
 					}
 
 					if (status == ACCEPTED) {
-						return executeInsert(insertedRecord, insertionReason);
+						return new CacheInsertionResponse(executeInsert(insertedRecord, insertionReason), null);
 					} else {
-						return status;
+						return new CacheInsertionResponse(status, null);
 					}
 				}
 			} else {
-				return status;
+				return new CacheInsertionResponse(status, null);
 			}
 		}
 	}

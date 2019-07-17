@@ -7,6 +7,7 @@ import com.constellio.model.entities.records.wrappers.EmailToSend;
 import com.constellio.model.entities.records.wrappers.TemporaryRecord;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.frameworks.validation.ValidationErrors;
@@ -77,13 +78,14 @@ public class RecordsCache2IntegrityDiagnosticService {
 		recordServices.flushRecords();
 		ValidationErrors errors = new ValidationErrors();
 		for (String collection : collectionsListManager.getCollections()) {
-			for (MetadataSchemaType schemaType : metadataSchemasManager.getSchemaTypes(collection).getSchemaTypes()) {
+			MetadataSchemaTypes schemaTypes = metadataSchemasManager.getSchemaTypes(collection);
+			for (MetadataSchemaType schemaType : schemaTypes.getSchemaTypes()) {
 
 
 				if (!includedTypesFromDiagnostic.contains(schemaType.getCode())
 					&& schemaType.getCacheType().hasPermanentCache()) {
 
-					PermanentCacheReport report = validatePermanentCacheScanningSolr(schemaType,
+					PermanentCacheReport report = validatePermanentCacheScanningSolr(schemaType, schemaTypes,
 							repair && !runTwiceToEliminateProblemsCausedByBadTiming);
 
 					if (runTwiceToEliminateProblemsCausedByBadTiming && report.hasError()) {
@@ -92,7 +94,7 @@ public class RecordsCache2IntegrityDiagnosticService {
 						} catch (InterruptedException e) {
 							throw new RuntimeException(e);
 						}
-						PermanentCacheReport report2 = validatePermanentCacheScanningSolr(schemaType, repair);
+						PermanentCacheReport report2 = validatePermanentCacheScanningSolr(schemaType, schemaTypes, repair);
 						report = combineErrorsInBothReports(report, report2);
 					}
 
@@ -375,7 +377,8 @@ public class RecordsCache2IntegrityDiagnosticService {
 		return e != null && (!(e instanceof String) || StringUtils.isNotBlank((String) e));
 	}
 
-	private PermanentCacheReport validatePermanentCacheScanningSolr(MetadataSchemaType schemaType, boolean repair) {
+	private PermanentCacheReport validatePermanentCacheScanningSolr(MetadataSchemaType schemaType,
+																	MetadataSchemaTypes schemaTypes, boolean repair) {
 		boolean summary = schemaType.getCacheType().isSummaryCache();
 		Stream<Record> recordStream = searchServices.streamFromSolr(schemaType, summary);
 		PermanentCacheReport report = new PermanentCacheReport(schemaType);
@@ -384,7 +387,13 @@ public class RecordsCache2IntegrityDiagnosticService {
 		Set<String> recordsIdsFoundInSolr = new HashSet<>();
 
 		recordStream.forEach((recordFromSolr) -> {
-			recordsIdsFoundInSolr.add(recordFromSolr.getId());
+
+			RecordsCachesHook hook = recordsCaches.getHook(schemaType);
+			if (hook == null || hook.determineCacheInsertion(recordFromSolr, schemaTypes).isContinuingPermanentCacheInsertion()) {
+				recordsIdsFoundInSolr.add(recordFromSolr.getId());
+			}
+
+
 			Record recordFromCache = summary ? cache.getSummary(recordFromSolr.getId()) : cache.get(recordFromSolr.getId());
 			if (recordFromCache == null) {
 				report.missingRecords.add(recordFromSolr.getId());

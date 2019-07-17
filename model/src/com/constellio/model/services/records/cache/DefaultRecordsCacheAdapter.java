@@ -28,7 +28,7 @@ public class DefaultRecordsCacheAdapter implements RecordsCache {
 		return nestedRecordsCache.isCached(id);
 	}
 
-	public List<CacheInsertionStatus> insert(List<Record> record, InsertionReason reason) {
+	public List<CacheInsertionResponse> insert(List<Record> record, InsertionReason reason) {
 		return nestedRecordsCache.insert(record, reason);
 	}
 
@@ -40,7 +40,7 @@ public class DefaultRecordsCacheAdapter implements RecordsCache {
 		return nestedRecordsCache.getAllValuesInUnmodifiableState(schemaType);
 	}
 
-	public CacheInsertionStatus insert(Record record, InsertionReason reason) {
+	public CacheInsertionResponse insert(Record record, InsertionReason reason) {
 		return nestedRecordsCache.insert(record, reason);
 	}
 

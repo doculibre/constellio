@@ -2,14 +2,12 @@ package com.constellio.model.services.records.cache2;
 
 public enum DeterminedHookCacheInsertion {
 
-	//SavedSearch
 	INSERT_WITH_HOOK_REPLACING_DEFAULT_INSERT,
-
 
 	INSERT_WITH_HOOK_ALONG_DEFAULT_INSERT,
 
-	//Tasks
 	INSERT_WITH_HOOK_ALONG_DEFAULT_INSERT_WITHOUT_VOLATILE,
+
 
 	DEFAULT_INSERT;
 

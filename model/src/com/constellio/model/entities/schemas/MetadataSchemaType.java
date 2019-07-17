@@ -534,5 +534,4 @@ public class MetadataSchemaType implements Serializable {
 
 		return multilingual;
 	}
-
 }
