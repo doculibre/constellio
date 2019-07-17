@@ -64,12 +64,10 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 	private UserDocumentsWindow userDocumentsWindow;
 	private List<NavigationItem> navigationItems;
 
-	private AppLayerFactory appLayerFactory;
 	private boolean reindexationRequired;
 	private Component message;
 
 	public MainLayoutImpl(final AppLayerFactory appLayerFactory) {
-		this.appLayerFactory = appLayerFactory;
 		this.presenter = new MainLayoutPresenter(this);
 
 		reindexationRequired = appLayerFactory.getSystemGlobalConfigsManager().isReindexingRequired();
