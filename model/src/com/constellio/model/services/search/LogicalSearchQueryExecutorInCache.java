@@ -104,11 +104,11 @@ public class LogicalSearchQueryExecutorInCache {
 		Stream<Record> stream = recordsCaches.stream(schemaType).filter(filter)
 				.sorted(newIdComparator());
 
-		//		if (!query.getSortFields().isEmpty()) {
-		//			return stream.sorted(newQuerySortFieldsComparator(query, schemaType));
-		//		} else {
-		return stream;
-		//		}
+		if (!query.getSortFields().isEmpty()) {
+			return stream.sorted(newQuerySortFieldsComparator(query, schemaType));
+		} else {
+			return stream;
+		}
 	}
 
 	@NotNull
@@ -173,8 +173,8 @@ public class LogicalSearchQueryExecutorInCache {
 	public static boolean hasNoUnsupportedFeatureOrFilter(LogicalSearchQuery query) {
 		return !query.isForceExecutionInSolr()
 			   && query.getFacetFilters().toSolrFilterQueries().isEmpty()
-			   //&& hasNoSortOrOnlyFieldSorts(query)
-			   && hasNoSort(query)
+			   && hasNoSortOrOnlyFieldSorts(query)
+			   //&& hasNoSort(query)
 			   && query.getFreeTextQuery() == null
 			   && query.getFieldPivotFacets().isEmpty()
 			   && query.getFieldPivotFacets().isEmpty()

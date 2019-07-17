@@ -11,7 +11,9 @@ import com.constellio.model.services.records.cache2.HookCacheInsertionResponse;
 import com.constellio.model.services.records.cache2.RecordsCachesHook;
 import com.constellio.model.services.records.cache2.RemoteCacheAction;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
@@ -20,6 +22,8 @@ public class SavedSearchRecordsCachesHook implements RecordsCachesHook {
 
 	private int current = 0;
 	private Record[] lastSavedSearches;
+
+	private Map<String, Integer> recordsIndex = new HashMap<>();
 
 	public SavedSearchRecordsCachesHook(int maxSize) {
 		this.lastSavedSearches = new Record[maxSize];
@@ -40,8 +44,10 @@ public class SavedSearchRecordsCachesHook implements RecordsCachesHook {
 	}
 
 	@Override
-	public HookCacheInsertionResponse insert(Record record, MetadataSchemaTypes recordSchemaTypes,
-											 InsertionReason reason) {
+	public synchronized HookCacheInsertionResponse insert(Record record, MetadataSchemaTypes recordSchemaTypes,
+														  InsertionReason reason) {
+
+		Integer index = recordsIndex.get(record.getId());
 
 		if (current >= lastSavedSearches.length) {
 			current = 0;
@@ -57,7 +63,7 @@ public class SavedSearchRecordsCachesHook implements RecordsCachesHook {
 	public Record getById(String id) {
 		for (Record aSavedSearch : lastSavedSearches) {
 			if (aSavedSearch != null && aSavedSearch.getId().equals(id)) {
-				return aSavedSearch;
+				return aSavedSearch.getCopyOfOriginalRecord();
 			}
 		}
 

@@ -4,7 +4,6 @@ import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.services.cache.InsertionReason;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.records.cache2.DeterminedHookCacheInsertion;
 import com.constellio.model.services.records.cache2.HookCacheInsertionResponse;
@@ -27,7 +26,7 @@ public class TaskRecordsCachesHook implements RecordsCachesHook {
 
 	@Override
 	public List<String> getHookedSchemaTypes(MetadataSchemaTypes schemaTypes) {
-		return schemaTypes.hasType(SavedSearch.SCHEMA_TYPE) ? singletonList(SavedSearch.SCHEMA_TYPE) : emptyList();
+		return schemaTypes.hasType(Task.SCHEMA_TYPE) ? singletonList(Task.SCHEMA_TYPE) : emptyList();
 	}
 
 	@Override

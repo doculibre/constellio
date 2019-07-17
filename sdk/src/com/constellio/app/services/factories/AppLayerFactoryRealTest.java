@@ -2,7 +2,6 @@ package com.constellio.app.services.factories;
 
 import com.constellio.app.conf.AppLayerConfiguration;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateManager;
-import com.constellio.app.services.appManagement.AppManagementServiceException;
 import com.constellio.app.services.extensions.ConstellioModulesManagerImpl;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
 import com.constellio.app.services.migrations.MigrationServices;
@@ -121,29 +120,4 @@ public class AppLayerFactoryRealTest extends ConstellioTest {
 
 	}
 
-	//TODO
-	@Test
-	public void givenPluginWithExceptionDuringMigrateWhenInitializeThenConstellioRestarted()
-			throws AppManagementServiceException {
-		//fail();
-		//factory.initialize();
-		//verify(factory, times(1)).restart();
-	}
-
-	//TODO
-	@Test
-	public void givenPluginWithExceptionDuringStartWhenInitializeThenConstellioRestarted()
-			throws AppManagementServiceException {
-		//fail();
-		//factory.initialize();
-		//verify(factory, times(1)).restart();
-	}
-
-	@Test
-	public void givenValidPluginWhenInitializeThenConstellioNotRestarted()
-			throws AppManagementServiceException {
-		//fail();
-		//factory.initialize();
-		//verify(factory, times(0)).restart();
-	}
 }

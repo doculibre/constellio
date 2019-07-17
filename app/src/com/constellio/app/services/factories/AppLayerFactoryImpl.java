@@ -23,6 +23,7 @@ import com.constellio.app.services.extensions.plugins.JSPFConstellioPluginManage
 import com.constellio.app.services.metadata.AppSchemasServices;
 import com.constellio.app.services.migrations.ConstellioEIM;
 import com.constellio.app.services.migrations.MigrationServices;
+import com.constellio.app.services.records.SavedSearchRecordsCachesHook;
 import com.constellio.app.services.records.SystemCheckManager;
 import com.constellio.app.services.recovery.UpgradeAppRecoveryService;
 import com.constellio.app.services.recovery.UpgradeAppRecoveryServiceImpl;
@@ -251,6 +252,8 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 		upgradeAppRecoveryService.close();
 
 		initializationFinished = true;
+
+		getModelLayerFactory().getRecordsCaches().register(new SavedSearchRecordsCachesHook(10_000));
 	}
 
 	private void startupWithPossibleRecovery(UpgradeAppRecoveryServiceImpl recoveryService) {

@@ -41,6 +41,7 @@ import com.constellio.app.modules.tasks.migrations.TasksMigrationTo8_1_2;
 import com.constellio.app.modules.tasks.migrations.TasksMigrationTo8_1_4;
 import com.constellio.app.modules.tasks.migrations.TasksMigrationTo8_1_5;
 import com.constellio.app.modules.tasks.migrations.TasksMigrationTo8_2_42;
+import com.constellio.app.modules.tasks.model.TaskRecordsCachesHook;
 import com.constellio.app.modules.tasks.model.managers.TaskReminderEmailManager;
 import com.constellio.app.modules.tasks.navigation.TasksNavigationConfiguration;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
@@ -200,6 +201,7 @@ public class TaskModule implements InstallableSystemModule, ModuleWithComboMigra
 		TasksNavigationConfiguration.configureNavigation(appLayerFactory.getNavigatorConfigurationService());
 		appLayerFactory.getModelLayerFactory().getCachesManager().register(new UnreadTasksUserCache(appLayerFactory));
 		appLayerFactory.getModelLayerFactory().getCachesManager().register(new IncompleteTasksUserCache(appLayerFactory));
+		appLayerFactory.getModelLayerFactory().getRecordsCaches().register(new TaskRecordsCachesHook());
 	}
 
 	@Override
