@@ -69,11 +69,12 @@ public class CacheIndexService {
 					removeRecordIdToMapByValue(oldValue, oldVersion.getId(), mapWithKeyReturnValue.getValueRecordIdMap(), currentMetadata);
 				}
 
-				if (isNewValueNull) {
+				if (!isNewValueNull) {
 					addRecordIdToMapByValue(newValue, newVersion.getId(), mapWithKeyReturnValue.getValueRecordIdMap(), currentMetadata);
 				}
-
-				cleanUpEmptyMap(mapWithKeyReturnValue);
+				if (mapWithKeyReturnValue != null) {
+					cleanUpEmptyMap(mapWithKeyReturnValue);
+				}
 			}
 		}
     }

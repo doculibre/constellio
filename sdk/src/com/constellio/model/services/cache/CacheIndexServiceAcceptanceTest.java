@@ -224,7 +224,7 @@ public class CacheIndexServiceAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void noEmptyMapAfterRemoval() {
+	public void noEmptyMapAfterRemovalThenOk() {
 		CacheIndexService cacheIndexService = new CacheIndexService();
 
 		addRecordsToData(cacheIndexService);
@@ -235,6 +235,48 @@ public class CacheIndexServiceAcceptanceTest extends ConstellioTest {
 		cacheIndexService.addUpdate(record4, null, testsSchemaDefault);
 
 		assertThat(cacheIndexService.numberOfEmptyMap()).isEqualTo(0);
+	}
+
+	@Test
+	public void noEmptyMapAfterRemovalOfAllDataOfOneSchemaTypeAndOtherShcemaTypeDataStillThereThenOk() {
+		metadataSchemasManager.modify(zeCollection, (MetadataSchemaTypesAlteration) types -> {
+			MetadataSchemaTypeBuilder testSchemaBuilder = types.createNewSchemaType("testSecondSchema");
+
+
+			MetadataSchemaBuilder defaultTestSchemaBuilder = testSchemaBuilder.getDefaultSchema();
+
+			defaultTestSchemaBuilder.create("cacheIndexSecond").setType(MetadataValueType.STRING).setCacheIndex(true);
+		});
+
+
+		MetadataSchemaType secondTestSchemaType = metadataSchemasManager.getSchemaTypes(zeCollection).getSchemaType("testSecondSchema");
+		MetadataSchema testsSchemaDefaultSecond = secondTestSchemaType.getDefaultSchema();
+
+
+		Metadata cacheIndexSecond = testsSchemaDefaultSecond.getMetadata("cacheIndexSecond");
+
+		Record recordSecondSchemaType1 = recordServices.newRecordWithSchema(testsSchemaDefaultSecond);
+		recordSecondSchemaType1.set(cacheIndexSecond, "lalala1");
+
+		Record recordSecondSchemaType2 = recordServices.newRecordWithSchema(testsSchemaDefaultSecond);
+		recordSecondSchemaType2.set(cacheIndexSecond, "lalala2");
+
+		CacheIndexService cacheIndexService = new CacheIndexService();
+
+		addRecordsToData(cacheIndexService);
+
+		cacheIndexService.addUpdate(null, recordSecondSchemaType1, testsSchemaDefaultSecond);
+		cacheIndexService.addUpdate(null, recordSecondSchemaType2, testsSchemaDefaultSecond);
+
+		assertThat(cacheIndexService.countByIterating()).isEqualTo(6);
+
+		cacheIndexService.addUpdate(record1, null, testsSchemaDefault);
+		cacheIndexService.addUpdate(record2, null, testsSchemaDefault);
+		cacheIndexService.addUpdate(record3, null, testsSchemaDefault);
+		cacheIndexService.addUpdate(record4, null, testsSchemaDefault);
+
+		assertThat(cacheIndexService.numberOfEmptyMap()).isEqualTo(0);
+		assertThat(cacheIndexService.countByIterating()).isEqualTo(2);
 	}
 
 	@Test
@@ -324,6 +366,7 @@ public class CacheIndexServiceAcceptanceTest extends ConstellioTest {
 
 		assertThat(cacheIndexService.countByIterating()).isEqualTo(4);
 	}
+
 
 	@Test
 	public void givenRecordsInTwoSchemaTypeThenClearOneShemaType() throws Exception {
