@@ -1,17 +1,21 @@
 package com.constellio.model.services.records.cache;
 
+import com.constellio.data.dao.dto.records.RecordDTOMode;
 import com.constellio.data.extensions.DataLayerSystemExtensions;
 import com.constellio.data.test.RandomWordsIterator;
 import com.constellio.model.conf.PropertiesModelLayerConfiguration.InMemoryModelLayerConfiguration;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.RecordCacheType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordDeleteServices;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesImpl;
+import com.constellio.model.services.records.cache.NewVolatileRecordCacheAcceptanceTest.TestHook;
+import com.constellio.model.services.records.cache2.DeterminedHookCacheInsertion;
 import com.constellio.model.services.records.cache2.RecordsCaches2Impl;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
@@ -27,6 +31,7 @@ import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ThirdSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
 import com.constellio.sdk.tests.setups.SchemaShortcuts;
 import org.apache.commons.lang3.StringUtils;
+import org.assertj.core.api.LongAssert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -41,12 +46,19 @@ import static com.constellio.data.test.RandomWordsIterator.createFor;
 import static com.constellio.data.utils.Octets.megaoctets;
 import static com.constellio.model.entities.schemas.RecordCacheType.NOT_CACHED;
 import static com.constellio.model.entities.schemas.RecordCacheType.SUMMARY_CACHED_WITHOUT_VOLATILE;
+import static com.constellio.model.entities.schemas.RecordCacheType.SUMMARY_CACHED_WITH_VOLATILE;
 import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
+import static com.constellio.model.entities.schemas.Schemas.TITLE;
+import static com.constellio.model.services.records.cache2.DeterminedHookCacheInsertion.DEFAULT_INSERT;
+import static com.constellio.model.services.records.cache2.DeterminedHookCacheInsertion.INSERT_WITH_HOOK_ALONG_DEFAULT_INSERT;
+import static com.constellio.model.services.records.cache2.DeterminedHookCacheInsertion.INSERT_WITH_HOOK_ALONG_DEFAULT_INSERT_WITHOUT_VOLATILE;
+import static com.constellio.model.services.records.cache2.DeterminedHookCacheInsertion.INSERT_WITH_HOOK_REPLACING_DEFAULT_INSERT;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromEveryTypesOfEveryCollection;
 import static com.constellio.sdk.tests.TestUtils.assertThatStream;
 import static com.constellio.sdk.tests.TestUtils.linkEventBus;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsUnique;
 import static java.util.Arrays.asList;
+import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(Parameterized.class)
@@ -601,6 +613,180 @@ public class EventRecordsCache2AcceptanceTest extends ConstellioTest {
 
 	}
 
+	@Test
+	public void givenHookRegisteredOnPermanentAndVolatileCacheThenInsertBasedOnHook() throws Exception {
+
+
+		final String ID_INSERT_WITH_HOOK_REPLACING_DEFAULT_INSERT = idOf(1_000_001);
+		String ID_INSERT_WITH_HOOK_ALONG_DEFAULT_INSERT = idOf(1_000_002);
+		String ID_INSERT_WITH_HOOK_ALONG_DEFAULT_INSERT_WITHOUT_VOLATILE = idOf(1_000_003);
+		String ID_DEFAULT_INSERT = idOf(1_000_004);
+
+		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchemaType(zeCollectionSchemaWithVolatileCache.typeCode()).setRecordCacheType(SUMMARY_CACHED_WITH_VOLATILE);
+			}
+		});
+		getModelLayerFactory().getRecordsCaches().register(new TestHook() {
+
+			@Override
+			public DeterminedHookCacheInsertion determineCacheInsertion(Record record,
+																		MetadataSchemaTypes schemaTypes) {
+
+				if (record.getId().equals(ID_INSERT_WITH_HOOK_REPLACING_DEFAULT_INSERT)) {
+					return INSERT_WITH_HOOK_REPLACING_DEFAULT_INSERT;
+
+				} else if (record.getId().equals(ID_INSERT_WITH_HOOK_ALONG_DEFAULT_INSERT)) {
+					return INSERT_WITH_HOOK_ALONG_DEFAULT_INSERT;
+
+				} else if (record.getId().equals(ID_INSERT_WITH_HOOK_ALONG_DEFAULT_INSERT_WITHOUT_VOLATILE)) {
+					return INSERT_WITH_HOOK_ALONG_DEFAULT_INSERT_WITHOUT_VOLATILE;
+
+				} else if (record.getId().equals(ID_DEFAULT_INSERT)) {
+					return DEFAULT_INSERT;
+				} else {
+					throw new IllegalArgumentException("Bad record id");
+				}
+
+			}
+		});
+
+		getModelLayerFactory("other").getRecordsCaches().register(new TestHook() {
+
+			@Override
+			public DeterminedHookCacheInsertion determineCacheInsertion(Record record,
+																		MetadataSchemaTypes schemaTypes) {
+
+				if (record.getId().equals(ID_INSERT_WITH_HOOK_REPLACING_DEFAULT_INSERT)) {
+					return INSERT_WITH_HOOK_REPLACING_DEFAULT_INSERT;
+
+				} else if (record.getId().equals(ID_INSERT_WITH_HOOK_ALONG_DEFAULT_INSERT)) {
+					return INSERT_WITH_HOOK_ALONG_DEFAULT_INSERT;
+
+				} else if (record.getId().equals(ID_INSERT_WITH_HOOK_ALONG_DEFAULT_INSERT_WITHOUT_VOLATILE)) {
+					return INSERT_WITH_HOOK_ALONG_DEFAULT_INSERT_WITHOUT_VOLATILE;
+
+				} else if (record.getId().equals(ID_DEFAULT_INSERT)) {
+					return DEFAULT_INSERT;
+				} else {
+					throw new IllegalArgumentException("Bad record id");
+				}
+
+			}
+		});
+
+		Record r1, r2, r3, r4;
+		recordServices.add(r1 = newRecordOf(ID_INSERT_WITH_HOOK_REPLACING_DEFAULT_INSERT, zeCollectionSchemaWithVolatileCache).set(TITLE, "val1"));
+		recordServices.add(r2 = newRecordOf(ID_INSERT_WITH_HOOK_ALONG_DEFAULT_INSERT, zeCollectionSchemaWithVolatileCache).set(TITLE, "val2"));
+		recordServices.add(r3 = newRecordOf(ID_INSERT_WITH_HOOK_ALONG_DEFAULT_INSERT_WITHOUT_VOLATILE, zeCollectionSchemaWithVolatileCache).set(TITLE, "val3"));
+		recordServices.add(r4 = newRecordOf(ID_DEFAULT_INSERT, zeCollectionSchemaWithVolatileCache).set(TITLE, "val4"));
+
+		recordsCaches.invalidateVolatile();
+		otherInstanceRecordsCaches.invalidateVolatile();
+
+		for (RecordsCaches aCache : asList(recordsCaches, otherInstanceRecordsCaches)) {
+			assertThatVersion(aCache.getRecord(ID_INSERT_WITH_HOOK_REPLACING_DEFAULT_INSERT)).isEqualTo(r1.getVersion());
+			assertThat(aCache.getRecord(ID_INSERT_WITH_HOOK_REPLACING_DEFAULT_INSERT).getLoadedFieldsMode()).isEqualTo(RecordDTOMode.FULLY_LOADED);
+			assertThatVersion(aCache.getRecord(ID_INSERT_WITH_HOOK_ALONG_DEFAULT_INSERT)).isEqualTo(r2.getVersion());
+			assertThat(aCache.getRecord(ID_INSERT_WITH_HOOK_ALONG_DEFAULT_INSERT).getLoadedFieldsMode()).isEqualTo(RecordDTOMode.FULLY_LOADED);
+			assertThatVersion(aCache.getRecord(ID_INSERT_WITH_HOOK_ALONG_DEFAULT_INSERT_WITHOUT_VOLATILE)).isEqualTo(r3.getVersion());
+			assertThat(aCache.getRecord(ID_INSERT_WITH_HOOK_ALONG_DEFAULT_INSERT_WITHOUT_VOLATILE).getLoadedFieldsMode()).isEqualTo(RecordDTOMode.FULLY_LOADED);
+			assertThatVersion(aCache.getRecord(ID_DEFAULT_INSERT)).isNull(); //Was obtained from volatile
+
+			assertThatVersion(aCache.getRecordSummary(ID_INSERT_WITH_HOOK_REPLACING_DEFAULT_INSERT)).isEqualTo(r1.getVersion());
+			assertThat(aCache.getRecordSummary(ID_INSERT_WITH_HOOK_REPLACING_DEFAULT_INSERT).getLoadedFieldsMode()).isEqualTo(RecordDTOMode.SUMMARY);
+			assertThatVersion(aCache.getRecordSummary(ID_INSERT_WITH_HOOK_ALONG_DEFAULT_INSERT)).isEqualTo(r2.getVersion());
+			assertThat(aCache.getRecordSummary(ID_INSERT_WITH_HOOK_ALONG_DEFAULT_INSERT).getLoadedFieldsMode()).isEqualTo(RecordDTOMode.SUMMARY);
+			assertThatVersion(aCache.getRecordSummary(ID_INSERT_WITH_HOOK_ALONG_DEFAULT_INSERT_WITHOUT_VOLATILE)).isEqualTo(r3.getVersion());
+			assertThat(aCache.getRecordSummary(ID_INSERT_WITH_HOOK_ALONG_DEFAULT_INSERT_WITHOUT_VOLATILE).getLoadedFieldsMode()).isEqualTo(RecordDTOMode.SUMMARY);
+			assertThatVersion(aCache.getRecordSummary(ID_DEFAULT_INSERT)).isEqualTo(r4.getVersion());
+
+			assertThat(aCache.getCache(zeCollection).streamVolatile(zeCollectionSchemaWithVolatileCache.type())
+					.map(Record::getId).collect(toList())).isEmpty();
+
+			assertThat(aCache.stream(zeCollection).map(Record::getId).collect(toList()))
+					.contains(ID_INSERT_WITH_HOOK_ALONG_DEFAULT_INSERT, ID_INSERT_WITH_HOOK_ALONG_DEFAULT_INSERT_WITHOUT_VOLATILE, ID_DEFAULT_INSERT)
+					.doesNotContain(ID_INSERT_WITH_HOOK_REPLACING_DEFAULT_INSERT);
+		}
+		// Update records
+
+		recordServices.add(r1.set(TITLE, "val1a"));
+		recordServices.add(r2.set(TITLE, "val2b"));
+		recordServices.add(r3.set(TITLE, "val3c"));
+		recordServices.add(r4.set(TITLE, "val4d"));
+
+
+		assertThatVersion(recordsCaches.getRecord(ID_INSERT_WITH_HOOK_REPLACING_DEFAULT_INSERT)).isEqualTo(r1.getVersion());
+		assertThatVersion(recordsCaches.getRecord(ID_INSERT_WITH_HOOK_ALONG_DEFAULT_INSERT)).isEqualTo(r2.getVersion());
+		assertThatVersion(recordsCaches.getRecord(ID_INSERT_WITH_HOOK_ALONG_DEFAULT_INSERT_WITHOUT_VOLATILE)).isEqualTo(r3.getVersion());
+		assertThatVersion(recordsCaches.getRecord(ID_DEFAULT_INSERT)).isEqualTo(r4.getVersion());
+
+		assertThat(recordsCaches.getCache(zeCollection).streamVolatile(zeCollectionSchemaWithVolatileCache.type())
+				.map(Record::getId).collect(toList())).containsOnly(
+				ID_INSERT_WITH_HOOK_ALONG_DEFAULT_INSERT,
+				ID_DEFAULT_INSERT);
+
+		assertThatVersion(otherInstanceRecordsCaches.getRecord(ID_INSERT_WITH_HOOK_REPLACING_DEFAULT_INSERT)).isEqualTo(r1.getVersion());
+		assertThatVersion(otherInstanceRecordsCaches.getRecord(ID_INSERT_WITH_HOOK_ALONG_DEFAULT_INSERT)).isEqualTo(r2.getVersion());
+		assertThatVersion(otherInstanceRecordsCaches.getRecord(ID_INSERT_WITH_HOOK_ALONG_DEFAULT_INSERT_WITHOUT_VOLATILE)).isEqualTo(r3.getVersion());
+		assertThatVersion(otherInstanceRecordsCaches.getRecord(ID_DEFAULT_INSERT)).isNull();
+
+		assertThat(otherInstanceRecordsCaches.getCache(zeCollection).streamVolatile(zeCollectionSchemaWithVolatileCache.type())
+				.map(Record::getId).collect(toList())).containsOnly(
+				ID_INSERT_WITH_HOOK_ALONG_DEFAULT_INSERT).doesNotContain(ID_DEFAULT_INSERT);
+
+
+		recordsCaches.invalidateVolatile();
+		otherInstanceRecordsCaches.invalidateVolatile();
+
+		for (RecordsCaches aCache : asList(recordsCaches, otherInstanceRecordsCaches)) {
+			assertThatVersion(aCache.getRecord(ID_INSERT_WITH_HOOK_REPLACING_DEFAULT_INSERT)).isEqualTo(r1.getVersion());
+			assertThatVersion(aCache.getRecord(ID_INSERT_WITH_HOOK_ALONG_DEFAULT_INSERT)).isEqualTo(r2.getVersion());
+			assertThatVersion(aCache.getRecord(ID_INSERT_WITH_HOOK_ALONG_DEFAULT_INSERT_WITHOUT_VOLATILE)).isEqualTo(r3.getVersion());
+			assertThatVersion(aCache.getRecord(ID_DEFAULT_INSERT)).isNull(); //Was obtained from volatile
+
+			assertThatVersion(aCache.getRecordSummary(ID_INSERT_WITH_HOOK_REPLACING_DEFAULT_INSERT)).isEqualTo(r1.getVersion());
+			assertThatVersion(aCache.getRecordSummary(ID_INSERT_WITH_HOOK_ALONG_DEFAULT_INSERT)).isEqualTo(r2.getVersion());
+			assertThatVersion(aCache.getRecordSummary(ID_INSERT_WITH_HOOK_ALONG_DEFAULT_INSERT_WITHOUT_VOLATILE)).isEqualTo(r3.getVersion());
+			assertThatVersion(aCache.getRecordSummary(ID_DEFAULT_INSERT)).isEqualTo(r4.getVersion());
+		}
+		// Delete records
+
+
+		recordServices.logicallyDelete(r1, User.GOD);
+		recordServices.logicallyDelete(r2, User.GOD);
+		recordServices.logicallyDelete(r3, User.GOD);
+		recordServices.logicallyDelete(r4, User.GOD);
+
+		recordServices.physicallyDelete(r1, User.GOD);
+		recordServices.physicallyDelete(r2, User.GOD);
+		recordServices.physicallyDelete(r3, User.GOD);
+		recordServices.physicallyDelete(r4, User.GOD);
+
+		for (RecordsCaches aCache : asList(recordsCaches, otherInstanceRecordsCaches)) {
+			//Since it is not handled by the cache, the record does not benefit from automatic invalidation on delete
+			assertThatVersion(aCache.getRecord(ID_INSERT_WITH_HOOK_REPLACING_DEFAULT_INSERT)).isNotNull();
+			assertThatVersion(aCache.getRecord(ID_INSERT_WITH_HOOK_ALONG_DEFAULT_INSERT)).isNull();
+			assertThatVersion(aCache.getRecord(ID_INSERT_WITH_HOOK_ALONG_DEFAULT_INSERT_WITHOUT_VOLATILE)).isNull();
+			assertThatVersion(aCache.getRecord(ID_DEFAULT_INSERT)).isNull();
+
+			assertThatVersion(aCache.getRecordSummary(ID_INSERT_WITH_HOOK_REPLACING_DEFAULT_INSERT)).isNotNull();
+			assertThatVersion(aCache.getRecordSummary(ID_INSERT_WITH_HOOK_ALONG_DEFAULT_INSERT)).isNull();
+			assertThatVersion(aCache.getRecordSummary(ID_INSERT_WITH_HOOK_ALONG_DEFAULT_INSERT_WITHOUT_VOLATILE)).isNull();
+			assertThatVersion(aCache.getRecordSummary(ID_DEFAULT_INSERT)).isNull();
+
+			assertThat(aCache.getCache(zeCollection).streamVolatile(zeCollectionSchemaWithVolatileCache.type())
+					.map(Record::getId).collect(toList())).isEmpty();
+
+			assertThat(aCache.stream(zeCollection).map(Record::getId).collect(toList()))
+					.doesNotContain(ID_INSERT_WITH_HOOK_ALONG_DEFAULT_INSERT,
+							ID_INSERT_WITH_HOOK_ALONG_DEFAULT_INSERT_WITHOUT_VOLATILE,
+							ID_DEFAULT_INSERT, ID_INSERT_WITH_HOOK_REPLACING_DEFAULT_INSERT);
+		}
+
+	}
+
 	private String idOf(int i) {
 
 		return useZeroPaddedIds ? StringUtils.leftPad("" + (100000 + i), 11, '0') : ("" + i);
@@ -745,6 +931,10 @@ public class EventRecordsCache2AcceptanceTest extends ConstellioTest {
 		return new TestRecord(schema);
 	}
 
+	private LongAssert assertThatVersion(Record record) {
+		return assertThat(record == null ? null : record.getVersion());
+	}
+
 	private class OngoingEntryAssertion {
 
 		private List<String> ids;
@@ -799,6 +989,8 @@ public class EventRecordsCache2AcceptanceTest extends ConstellioTest {
 				assertThat(isCached).describedAs("Record with id '" + id + "' is expected to not be in cache").isFalse();
 			}
 		}
+
+
 	}
 
 }

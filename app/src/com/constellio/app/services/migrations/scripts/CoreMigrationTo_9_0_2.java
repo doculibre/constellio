@@ -8,9 +8,11 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.SearchEvent;
+import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
 import static com.constellio.model.entities.schemas.RecordCacheType.NOT_CACHED;
+import static com.constellio.model.entities.security.global.UserCredential.USERNAME;
 
 public class CoreMigrationTo_9_0_2 extends MigrationHelper implements MigrationScript {
 
@@ -38,6 +40,7 @@ public class CoreMigrationTo_9_0_2 extends MigrationHelper implements MigrationS
 			typesBuilder.getSchemaType(Event.SCHEMA_TYPE).setRecordCacheType(NOT_CACHED);
 			typesBuilder.getSchemaType(SearchEvent.SCHEMA_TYPE).setRecordCacheType(NOT_CACHED);
 			typesBuilder.getSchemaType(SavedSearch.SCHEMA_TYPE).setRecordCacheType(NOT_CACHED);
+			typesBuilder.getDefaultSchema(UserCredential.SCHEMA_TYPE).get(USERNAME).setUniqueValue(true);
 		}
 	}
 }

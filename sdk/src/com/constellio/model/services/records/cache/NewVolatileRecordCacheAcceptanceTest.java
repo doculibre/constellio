@@ -1,20 +1,18 @@
 package com.constellio.model.services.records.cache;
 
+import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordDTOMode;
 import com.constellio.data.dao.services.cache.InsertionReason;
 import com.constellio.data.utils.ImpossibleRuntimeException;
-import com.constellio.data.utils.Provider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordImpl;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.cache2.DeterminedHookCacheInsertion;
 import com.constellio.model.services.records.cache2.HookCacheInsertionResponse;
-import com.constellio.model.services.records.cache2.HookCachePresence;
 import com.constellio.model.services.records.cache2.RecordsCachesHook;
 import com.constellio.model.services.records.cache2.RemoteCacheAction;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
@@ -43,7 +41,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import static com.constellio.data.dao.services.cache.InsertionReason.WAS_MODIFIED;
 import static com.constellio.data.dao.services.cache.InsertionReason.WAS_OBTAINED;
@@ -158,8 +155,8 @@ public class NewVolatileRecordCacheAcceptanceTest extends ConstellioTest {
 		Record partiallyLoadedRecord = cache.getRecordSummary(id(1234));
 		partiallyLoadedRecord.markAsSaved(version - 1000, zeCollectionSchemaType1.instance());
 
-		assertThat(cache.insert(partiallyLoadedRecord, WAS_OBTAINED)).isEqualTo(REFUSED_OLD_VERSION);
-		assertThat(cache.insert(partiallyLoadedRecord, WAS_MODIFIED)).isEqualTo(REFUSED_OLD_VERSION);
+		assertThat(cache.insert(partiallyLoadedRecord, WAS_OBTAINED).status).isEqualTo(REFUSED_OLD_VERSION);
+		assertThat(cache.insert(partiallyLoadedRecord, WAS_MODIFIED).status).isEqualTo(REFUSED_OLD_VERSION);
 
 		//Record is found in volatile cache in it's full state
 		fullRecordFromCache = cache.getRecord(id(1234));
@@ -209,7 +206,7 @@ public class NewVolatileRecordCacheAcceptanceTest extends ConstellioTest {
 
 		summaryRecordFromCache.set(zeCollectionSchemaType1.stringMetadata(), "val6");
 		summaryRecordFromCache.markAsSaved(summaryRecordFromCache.getVersion() + 1000, zeCollectionSchemaType1.instance());
-		assertThat(cache.insert(summaryRecordFromCache, WAS_MODIFIED)).isEqualTo(ACCEPTED);
+		assertThat(cache.insert(summaryRecordFromCache, WAS_MODIFIED).status).isEqualTo(ACCEPTED);
 		fullRecordFromCache = cache.getRecord(id(1234));
 		assertThat(fullRecordFromCache).isNull();
 
@@ -357,13 +354,9 @@ public class NewVolatileRecordCacheAcceptanceTest extends ConstellioTest {
 			}
 		});
 		getModelLayerFactory().getRecordsCaches().register(new TestHook() {
-			@Override
-			public List<String> getHookSchemaTypes(MetadataSchemaTypes schemaTypes) {
-				return Arrays.asList(zeCollectionSchemaType1.typeCode());
-			}
 
 			@Override
-			public DeterminedHookCacheInsertion determineCacheInsertion(Record record, MetadataSchemaType schemaType,
+			public DeterminedHookCacheInsertion determineCacheInsertion(Record record,
 																		MetadataSchemaTypes schemaTypes) {
 
 				if (record.getId().equals(ID_INSERT_WITH_HOOK_REPLACING_DEFAULT_INSERT)) {
@@ -415,15 +408,83 @@ public class NewVolatileRecordCacheAcceptanceTest extends ConstellioTest {
 		assertThat(cache.getCache(zeCollection).streamVolatile(zeCollectionSchemaType1.type())
 				.map(Record::getId).collect(toList())).isEmpty();
 
-		assertThat(cache.stream(zeCollection).map(Record::getId).collect(toList())).containsOnly(
+		assertThat(cache.stream(zeCollection).map(Record::getId).collect(toList()))
+				.contains(ID_INSERT_WITH_HOOK_ALONG_DEFAULT_INSERT, ID_INSERT_WITH_HOOK_ALONG_DEFAULT_INSERT_WITHOUT_VOLATILE, ID_DEFAULT_INSERT)
+				.doesNotContain(ID_INSERT_WITH_HOOK_REPLACING_DEFAULT_INSERT);
+
+		// Update records
+
+		recordServices.add(r1.set(TITLE, "val1a"));
+		recordServices.add(r2.set(TITLE, "val2b"));
+		recordServices.add(r3.set(TITLE, "val3c"));
+		recordServices.add(r4.set(TITLE, "val4d"));
+
+		assertThatVersion(cache.getRecord(ID_INSERT_WITH_HOOK_REPLACING_DEFAULT_INSERT)).isEqualTo(r1.getVersion());
+		assertThatVersion(cache.getRecord(ID_INSERT_WITH_HOOK_ALONG_DEFAULT_INSERT)).isEqualTo(r2.getVersion());
+		assertThatVersion(cache.getRecord(ID_INSERT_WITH_HOOK_ALONG_DEFAULT_INSERT_WITHOUT_VOLATILE)).isEqualTo(r3.getVersion());
+		assertThatVersion(cache.getRecord(ID_DEFAULT_INSERT)).isEqualTo(r4.getVersion());
+
+		assertThat(cache.getCache(zeCollection).streamVolatile(zeCollectionSchemaType1.type())
+				.map(Record::getId).collect(toList())).containsOnly(
 				ID_INSERT_WITH_HOOK_ALONG_DEFAULT_INSERT,
-				ID_INSERT_WITH_HOOK_ALONG_DEFAULT_INSERT_WITHOUT_VOLATILE,
 				ID_DEFAULT_INSERT);
+
+		cache.invalidateVolatile();
+
+		assertThatVersion(cache.getRecord(ID_INSERT_WITH_HOOK_REPLACING_DEFAULT_INSERT)).isEqualTo(r1.getVersion());
+		assertThatVersion(cache.getRecord(ID_INSERT_WITH_HOOK_ALONG_DEFAULT_INSERT)).isEqualTo(r2.getVersion());
+		assertThatVersion(cache.getRecord(ID_INSERT_WITH_HOOK_ALONG_DEFAULT_INSERT_WITHOUT_VOLATILE)).isEqualTo(r3.getVersion());
+		assertThatVersion(cache.getRecord(ID_DEFAULT_INSERT)).isNull(); //Was obtained from volatile
+
+		assertThatVersion(cache.getRecordSummary(ID_INSERT_WITH_HOOK_REPLACING_DEFAULT_INSERT)).isEqualTo(r1.getVersion());
+		assertThatVersion(cache.getRecordSummary(ID_INSERT_WITH_HOOK_ALONG_DEFAULT_INSERT)).isEqualTo(r2.getVersion());
+		assertThatVersion(cache.getRecordSummary(ID_INSERT_WITH_HOOK_ALONG_DEFAULT_INSERT_WITHOUT_VOLATILE)).isEqualTo(r3.getVersion());
+		assertThatVersion(cache.getRecordSummary(ID_DEFAULT_INSERT)).isEqualTo(r4.getVersion());
+
+		// Delete records
+
+
+		recordServices.logicallyDelete(r1, User.GOD);
+		recordServices.logicallyDelete(r2, User.GOD);
+		recordServices.logicallyDelete(r3, User.GOD);
+		recordServices.logicallyDelete(r4, User.GOD);
+
+		recordServices.physicallyDelete(r1, User.GOD);
+		recordServices.physicallyDelete(r2, User.GOD);
+		recordServices.physicallyDelete(r3, User.GOD);
+		recordServices.physicallyDelete(r4, User.GOD);
+
+		//Since it is not handled by the cache, the record does not benefit from automatic invalidation on delete
+		assertThatVersion(cache.getRecord(ID_INSERT_WITH_HOOK_REPLACING_DEFAULT_INSERT)).isNotNull();
+		assertThatVersion(cache.getRecord(ID_INSERT_WITH_HOOK_ALONG_DEFAULT_INSERT)).isNull();
+		assertThatVersion(cache.getRecord(ID_INSERT_WITH_HOOK_ALONG_DEFAULT_INSERT_WITHOUT_VOLATILE)).isNull();
+		assertThatVersion(cache.getRecord(ID_DEFAULT_INSERT)).isNull();
+
+		assertThatVersion(cache.getRecordSummary(ID_INSERT_WITH_HOOK_REPLACING_DEFAULT_INSERT)).isNotNull();
+		assertThatVersion(cache.getRecordSummary(ID_INSERT_WITH_HOOK_ALONG_DEFAULT_INSERT)).isNull();
+		assertThatVersion(cache.getRecordSummary(ID_INSERT_WITH_HOOK_ALONG_DEFAULT_INSERT_WITHOUT_VOLATILE)).isNull();
+		assertThatVersion(cache.getRecordSummary(ID_DEFAULT_INSERT)).isNull();
+
+		assertThat(cache.getCache(zeCollection).streamVolatile(zeCollectionSchemaType1.type())
+				.map(Record::getId).collect(toList())).isEmpty();
+
+		assertThat(cache.stream(zeCollection).map(Record::getId).collect(toList()))
+				.doesNotContain(ID_INSERT_WITH_HOOK_ALONG_DEFAULT_INSERT,
+						ID_INSERT_WITH_HOOK_ALONG_DEFAULT_INSERT_WITHOUT_VOLATILE,
+						ID_DEFAULT_INSERT, ID_INSERT_WITH_HOOK_REPLACING_DEFAULT_INSERT);
+
+
 	}
+
 
 	public static abstract class TestHook implements RecordsCachesHook {
 
 		Map<String, Record> cache = new HashMap<>();
+
+		@Override
+		public List<String> getHookedSchemaTypes(MetadataSchemaTypes schemaTypes) {
+			return Arrays.asList("zeSchemaType");
+		}
 
 		@Override
 		public HookCacheInsertionResponse insert(Record record, MetadataSchemaTypes recordSchemaTypes,
@@ -433,14 +494,13 @@ public class NewVolatileRecordCacheAcceptanceTest extends ConstellioTest {
 		}
 
 		@Override
-		public Record getById(String id, Provider<String, MetadataSchemaType> schemaTypeProviderByCollection) {
+		public Record getById(String id) {
 			return cache.get(id);
 		}
 
 		@Override
-		public HookCachePresence isRestrictedToHookCache(String id, boolean integerId,
-														 Optional<MetadataSchemaType> metadataSchemaType) {
-			return HookCachePresence.CAN_BE_FOUND_IN_THIS_HOOK_CACHE;
+		public void removeRecordFromCache(RecordDTO recordDTO) {
+			cache.remove(recordDTO.getId());
 		}
 	}
 

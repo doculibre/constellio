@@ -67,8 +67,8 @@ public class TransactionRecordsCache implements RecordsCache {
 	}
 
 	@Override
-	public List<CacheInsertionStatus> insert(List<Record> record,
-											 InsertionReason insertionReason) {
+	public List<CacheInsertionResponse> insert(List<Record> record,
+											   InsertionReason insertionReason) {
 		return recordsCache.insert(record, insertionReason);
 	}
 
@@ -84,8 +84,8 @@ public class TransactionRecordsCache implements RecordsCache {
 	}
 
 	@Override
-	public CacheInsertionStatus insert(Record record,
-									   InsertionReason insertionReason) {
+	public CacheInsertionResponse insert(Record record,
+										 InsertionReason insertionReason) {
 		return recordsCache.insert(record, insertionReason);
 	}
 

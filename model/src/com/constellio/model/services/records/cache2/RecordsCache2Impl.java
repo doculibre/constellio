@@ -10,7 +10,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.RecordCacheType;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.cache.CacheConfig;
-import com.constellio.model.services.records.cache.CacheInsertionStatus;
+import com.constellio.model.services.records.cache.CacheInsertionResponse;
 import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.schemas.SchemaUtils;
 import org.mapdb.HTreeMap;
@@ -64,7 +64,7 @@ public final class RecordsCache2Impl implements RecordsCache {
 	}
 
 	@Override
-	public CacheInsertionStatus insert(Record record, InsertionReason insertionReason) {
+	public CacheInsertionResponse insert(Record record, InsertionReason insertionReason) {
 		return caches.insert(record, insertionReason);
 	}
 
@@ -180,5 +180,11 @@ public final class RecordsCache2Impl implements RecordsCache {
 		return caches.streamVolatile(schemaType);
 
 	}
+
+
+
+
+
+
 
 }

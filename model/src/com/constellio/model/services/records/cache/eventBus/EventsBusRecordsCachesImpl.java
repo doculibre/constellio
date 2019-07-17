@@ -12,6 +12,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.RecordCacheType;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.cache.CacheInsertionResponse;
 import com.constellio.model.services.records.cache.CacheInsertionStatus;
 import com.constellio.model.services.records.cache2.FileSystemRecordsValuesCacheDataStore;
 import com.constellio.model.services.records.cache2.RecordsCaches2Impl;
@@ -28,6 +29,7 @@ import java.util.Map;
 import static com.constellio.data.events.EventBusEventsExecutionStrategy.ONLY_SENT_REMOTELY;
 import static com.constellio.model.services.records.cache.MassiveCacheInvalidationReason.KEEP_INTEGRITY;
 import static com.constellio.model.services.records.cache.RecordsCachesUtils.evaluateCacheInsert;
+import static com.constellio.model.services.records.cache2.DeterminedHookCacheInsertion.DEFAULT_INSERT;
 import static java.util.Arrays.asList;
 
 /**
@@ -79,21 +81,22 @@ public class EventsBusRecordsCachesImpl extends RecordsCaches2Impl implements Ev
 	}
 
 	@Override
-	public CacheInsertionStatus insert(Record insertedRecord, InsertionReason insertionReason) {
-		CacheInsertionStatus status = super.insert(insertedRecord, insertionReason);
+	public CacheInsertionResponse insert(Record insertedRecord, InsertionReason insertionReason) {
+		CacheInsertionResponse response = super.insert(insertedRecord, insertionReason);
 
-		if (status == CacheInsertionStatus.ACCEPTED) {
+		if (response.getStatus() == CacheInsertionStatus.ACCEPTED) {
 			MetadataSchemaType schemaType = metadataSchemasManager.getSchemaTypeOf(insertedRecord);
 			if (schemaType.getCacheType().isSummaryCache()) {
-				Record recordSummary = getRecordSummary(insertedRecord.getId());
-				handleRemotely(recordSummary.getCollectionInfo().getCollectionId(), asList(recordSummary), insertionReason);
+				Record record = response.getDeterminedHookCacheInsertion() != DEFAULT_INSERT || response.getSummaryRecordDTO() == null
+								? insertedRecord : toRecord(response.getSummaryRecordDTO());
+				handleRemotely(insertedRecord.getCollectionInfo().getCollectionId(), asList(record), insertionReason);
 			} else if (schemaType.getCacheType().hasPermanentCache()) {
 				handleRemotely(insertedRecord.getCollectionInfo().getCollectionId(), asList(insertedRecord), insertionReason);
 
 			}
 		}
 
-		return status;
+		return response;
 	}
 
 	@Override

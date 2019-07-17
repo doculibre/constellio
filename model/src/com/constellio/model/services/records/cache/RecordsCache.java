@@ -20,7 +20,7 @@ public interface RecordsCache {
 
 	List<Record> getAllValuesInUnmodifiableState(String schemaType);
 
-	CacheInsertionStatus insert(Record record, InsertionReason insertionReason);
+	CacheInsertionResponse insert(Record record, InsertionReason insertionReason);
 
 	@Deprecated
 	default void reloadSchemaType(String recordType, boolean forceVolatileCacheClear) {
@@ -70,8 +70,8 @@ public interface RecordsCache {
 		return getSummary(id) != null;
 	}
 
-	default List<CacheInsertionStatus> insert(List<Record> records, InsertionReason insertionReason) {
-		List<CacheInsertionStatus> statuses = new ArrayList<>(records.size());
+	default List<CacheInsertionResponse> insert(List<Record> records, InsertionReason insertionReason) {
+		List<CacheInsertionResponse> statuses = new ArrayList<>(records.size());
 
 		for (Record record : records) {
 			statuses.add(insert(record, insertionReason));

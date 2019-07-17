@@ -69,7 +69,7 @@ public class RecordsCachesMemoryImpl implements RecordsCaches {
 		return false;
 	}
 
-	public List<CacheInsertionStatus> insert(String collection, List<Record> records, InsertionReason reason) {
+	public List<CacheInsertionResponse> insert(String collection, List<Record> records, InsertionReason reason) {
 		RecordsCache cache = getCache(collection);
 		return cache.insert(records, reason);
 	}
@@ -89,7 +89,7 @@ public class RecordsCachesMemoryImpl implements RecordsCaches {
 		return nested != null && nested.isInitialized();
 	}
 
-	public CacheInsertionStatus insert(Record record, InsertionReason reason) {
+	public CacheInsertionResponse insert(Record record, InsertionReason reason) {
 		RecordsCache cache = getCache(record.getCollection());
 		return cache.insert(record, reason);
 	}

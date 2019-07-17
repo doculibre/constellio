@@ -31,7 +31,7 @@ public class RecordsCachesHooks {
 		for (String collection : collectionsListManager.getCollectionsExcludingSystem()) {
 			MetadataSchemaTypes schemaTypes = metadataSchemasManager.getSchemaTypes(collection);
 			RecordsCachesHook[] schemaTypesHooks = getRegisteredHooks(schemaTypes);
-			List<String> hookedSchemaTypesCodes = hook.getHookSchemaTypes(schemaTypes);
+			List<String> hookedSchemaTypesCodes = hook.getHookedSchemaTypes(schemaTypes);
 			if (hookedSchemaTypesCodes != null) {
 				for (String hookedSchemaTypeCode : hookedSchemaTypesCodes) {
 					if (schemaTypes.hasType(hookedSchemaTypeCode)) {
@@ -53,6 +53,24 @@ public class RecordsCachesHooks {
 		RecordsCachesHook[] collectionHooks = hooks[schemaTypes.getCollectionInfo().getCollectionIndex()];
 		if (collectionHooks == null) {
 			collectionHooks = new RecordsCachesHook[MetadataSchemaTypes.LIMIT_OF_TYPES_IN_COLLECTION];
+
+			for (RecordsCachesHook hook : registerdHooks) {
+				RecordsCachesHook[] schemaTypesHooks = getRegisteredHooks(schemaTypes);
+				List<String> hookedSchemaTypesCodes = hook.getHookedSchemaTypes(schemaTypes);
+				if (hookedSchemaTypesCodes != null) {
+					for (String hookedSchemaTypeCode : hookedSchemaTypesCodes) {
+						if (schemaTypes.hasType(hookedSchemaTypeCode)) {
+							MetadataSchemaType metadataSchemaType = schemaTypes.getSchemaType(hookedSchemaTypeCode);
+							schemaTypesHooks[metadataSchemaType.getId()] = hook;
+						} else {
+							LOGGER.warn(hook.getClass().getName() + " not registered in collection for schema type '"
+										+ hookedSchemaTypeCode + "' : Type does not exist in collection " + schemaTypes.getCollection());
+						}
+					}
+				}
+			}
+
+			hooks[schemaTypes.getCollectionInfo().getCollectionIndex()] = collectionHooks;
 		}
 		return collectionHooks;
 	}
@@ -64,4 +82,7 @@ public class RecordsCachesHooks {
 	public RecordsCachesHook getSchemaTypeHook(MetadataSchemaTypes schemaTypes, short schemaTypeId) {
 		return getRegisteredHooks(schemaTypes)[schemaTypeId];
 	}
+
+
+
 }

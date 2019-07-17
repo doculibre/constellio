@@ -36,6 +36,7 @@ import static com.constellio.model.services.records.cache.CacheInsertionStatus.A
 import static com.constellio.model.services.records.cache.CacheInsertionStatus.REFUSED_OLD_VERSION;
 import static com.constellio.model.services.records.cache.RecordsCachesUtils.evaluateCacheInsert;
 import static com.constellio.model.services.records.cache.RecordsCachesUtils.hasNoUnsupportedFeatureOrFilter;
+import static com.constellio.model.services.records.cache2.DeterminedHookCacheInsertion.DEFAULT_INSERT;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
@@ -137,15 +138,15 @@ public class RecordsCacheImpl implements RecordsCache {
 		return true;
 	}
 
-	public List<CacheInsertionStatus> insert(List<Record> records, InsertionReason insertionReason) {
-		List<CacheInsertionStatus> statuses = new ArrayList<>();
+	public List<CacheInsertionResponse> insert(List<Record> records, InsertionReason insertionReason) {
+		List<CacheInsertionResponse> responses = new ArrayList<>();
 		if (records != null) {
 			for (Record record : records) {
-				statuses.add(insert(record, insertionReason));
+				responses.add(insert(record, insertionReason));
 			}
 		}
 
-		return statuses;
+		return responses;
 	}
 
 
@@ -285,14 +286,14 @@ public class RecordsCacheImpl implements RecordsCache {
 	}
 
 	@Override
-	public CacheInsertionStatus insert(Record insertedRecord, InsertionReason insertionReason) {
+	public CacheInsertionResponse insert(Record insertedRecord, InsertionReason insertionReason) {
 
 		if (insertedRecord == null) {
-			return CacheInsertionStatus.REFUSED_NULL;
+			return new CacheInsertionResponse(CacheInsertionStatus.REFUSED_NULL, null, DEFAULT_INSERT);
 		}
 
 		if ("savedSearch".equals(insertedRecord.getTypeCode())) {
-			return executeInsert(insertedRecord, insertionReason);
+			return new CacheInsertionResponse(executeInsert(insertedRecord, insertionReason), null, DEFAULT_INSERT);
 		} else {
 
 			CacheConfig cacheConfig = getCacheConfigOf(insertedRecord.getTypeCode());
@@ -305,13 +306,13 @@ public class RecordsCacheImpl implements RecordsCache {
 					}
 
 					if (status == ACCEPTED) {
-						return executeInsert(insertedRecord, insertionReason);
+						return new CacheInsertionResponse(executeInsert(insertedRecord, insertionReason), null, DEFAULT_INSERT);
 					} else {
-						return status;
+						return new CacheInsertionResponse(status, null, DEFAULT_INSERT);
 					}
 				}
 			} else {
-				return status;
+				return new CacheInsertionResponse(status, null, DEFAULT_INSERT);
 			}
 		}
 	}

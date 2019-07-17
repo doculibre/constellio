@@ -75,8 +75,8 @@ public class RecordsCacheRequestImpl implements RecordsCache {
 	}
 
 	@Override
-	public List<CacheInsertionStatus> insert(List<Record> records, InsertionReason insertionReason) {
-		List<CacheInsertionStatus> statuses = new ArrayList<>();
+	public List<CacheInsertionResponse> insert(List<Record> records, InsertionReason insertionReason) {
+		List<CacheInsertionResponse> statuses = new ArrayList<>();
 		for (Record record : records) {
 			statuses.add(insert(record, insertionReason));
 		}
@@ -96,7 +96,7 @@ public class RecordsCacheRequestImpl implements RecordsCache {
 
 
 	@Override
-	public CacheInsertionStatus insert(Record record, InsertionReason insertionReason) {
+	public CacheInsertionResponse insert(Record record, InsertionReason insertionReason) {
 		if (cache.size() < 10000) {
 			if (Toggle.LOG_REQUEST_CACHE.isEnabled()) {
 				if (!record.getSchemaCode().startsWith("event")) {
@@ -108,12 +108,12 @@ public class RecordsCacheRequestImpl implements RecordsCache {
 		} else {
 			LOGGER.info("inserting in request cache aborted, since request cache is full");
 		}
-		CacheInsertionStatus status = nested.insert(record, insertionReason);
-		if (status == CacheInsertionStatus.ACCEPTED) {
+		CacheInsertionResponse response = nested.insert(record, insertionReason);
+		if (response.getStatus() == CacheInsertionStatus.ACCEPTED) {
 			insertInRequestcache(record);
 		}
 
-		return status;
+		return response;
 	}
 
 	private void insertInRequestcache(Record insertedRecord) {

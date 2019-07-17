@@ -339,6 +339,7 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 	public void whenInvalidateRecordsThenInvalidatedEverywhere()
 			throws Exception {
 
+		cacheIntegrityCheckedAfterTest = false;
 		givenTestRecords();
 		loadAllRecordsInCaches();
 
@@ -696,6 +697,7 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		givenTestRecords();
+		Toggle.VALIDATE_CACHE_EXECUTION_SERVICE_USING_SOLR.disable();
 		LogicalSearchQuery query = LogicalSearchQuery.query(from(zeCollectionSchemaWithPermanentCache.type())
 				.where(zeCollectionSchemaWithPermanentCache.stringMetadata()).isEqualTo("p2Code"));
 
@@ -736,6 +738,7 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		givenTestRecords();
+		Toggle.VALIDATE_CACHE_EXECUTION_SERVICE_USING_SOLR.disable();
 		LogicalSearchQuery query = LogicalSearchQuery.query(from(zeCollectionSchemaWithPermanentCache.type())
 				.where(zeCollectionSchemaWithPermanentCache.stringMetadata()).isEqualTo("p2Code"));
 

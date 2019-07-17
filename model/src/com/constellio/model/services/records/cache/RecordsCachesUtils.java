@@ -15,10 +15,6 @@ public class RecordsCachesUtils {
 			return CacheInsertionStatus.REFUSED_UNSAVED;
 		}
 
-		if (!insertedRecord.isFullyLoaded()) {
-			return CacheInsertionStatus.REFUSED_NOT_FULLY_LOADED;
-		}
-
 		return CacheInsertionStatus.ACCEPTED;
 	}
 
