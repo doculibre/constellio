@@ -36,6 +36,7 @@ import static com.constellio.model.services.records.cache.CacheInsertionStatus.A
 import static com.constellio.model.services.records.cache.CacheInsertionStatus.REFUSED_OLD_VERSION;
 import static com.constellio.model.services.records.cache.RecordsCachesUtils.evaluateCacheInsert;
 import static com.constellio.model.services.records.cache.RecordsCachesUtils.hasNoUnsupportedFeatureOrFilter;
+import static com.constellio.model.services.records.cache2.DeterminedHookCacheInsertion.DEFAULT_INSERT;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
@@ -288,11 +289,11 @@ public class RecordsCacheImpl implements RecordsCache {
 	public CacheInsertionResponse insert(Record insertedRecord, InsertionReason insertionReason) {
 
 		if (insertedRecord == null) {
-			return new CacheInsertionResponse(CacheInsertionStatus.REFUSED_NULL, null);
+			return new CacheInsertionResponse(CacheInsertionStatus.REFUSED_NULL, null, DEFAULT_INSERT);
 		}
 
 		if ("savedSearch".equals(insertedRecord.getTypeCode())) {
-			return new CacheInsertionResponse(executeInsert(insertedRecord, insertionReason), null);
+			return new CacheInsertionResponse(executeInsert(insertedRecord, insertionReason), null, DEFAULT_INSERT);
 		} else {
 
 			CacheConfig cacheConfig = getCacheConfigOf(insertedRecord.getTypeCode());
@@ -305,13 +306,13 @@ public class RecordsCacheImpl implements RecordsCache {
 					}
 
 					if (status == ACCEPTED) {
-						return new CacheInsertionResponse(executeInsert(insertedRecord, insertionReason), null);
+						return new CacheInsertionResponse(executeInsert(insertedRecord, insertionReason), null, DEFAULT_INSERT);
 					} else {
-						return new CacheInsertionResponse(status, null);
+						return new CacheInsertionResponse(status, null, DEFAULT_INSERT);
 					}
 				}
 			} else {
-				return new CacheInsertionResponse(status, null);
+				return new CacheInsertionResponse(status, null, DEFAULT_INSERT);
 			}
 		}
 	}

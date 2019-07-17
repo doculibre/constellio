@@ -6,11 +6,11 @@ public class HookCacheInsertionResponse {
 
 	CacheInsertionStatus status;
 
-	RemoteCacheAction remoteCacheAction;
+	RemoteCacheAction hookRemoteCacheAction;
 
 	public HookCacheInsertionResponse(CacheInsertionStatus status,
-									  RemoteCacheAction remoteCacheAction) {
+									  RemoteCacheAction hookRemoteCacheAction) {
 		this.status = status;
-		this.remoteCacheAction = remoteCacheAction;
+		this.hookRemoteCacheAction = hookRemoteCacheAction;
 	}
 }

@@ -29,6 +29,7 @@ import java.util.Map;
 import static com.constellio.data.events.EventBusEventsExecutionStrategy.ONLY_SENT_REMOTELY;
 import static com.constellio.model.services.records.cache.MassiveCacheInvalidationReason.KEEP_INTEGRITY;
 import static com.constellio.model.services.records.cache.RecordsCachesUtils.evaluateCacheInsert;
+import static com.constellio.model.services.records.cache2.DeterminedHookCacheInsertion.DEFAULT_INSERT;
 import static java.util.Arrays.asList;
 
 /**
@@ -86,7 +87,7 @@ public class EventsBusRecordsCachesImpl extends RecordsCaches2Impl implements Ev
 		if (response.getStatus() == CacheInsertionStatus.ACCEPTED) {
 			MetadataSchemaType schemaType = metadataSchemasManager.getSchemaTypeOf(insertedRecord);
 			if (schemaType.getCacheType().isSummaryCache()) {
-				Record record = response.getSummaryRecordDTO() == null
+				Record record = response.getDeterminedHookCacheInsertion() != DEFAULT_INSERT || response.getSummaryRecordDTO() == null
 								? insertedRecord : toRecord(response.getSummaryRecordDTO());
 				handleRemotely(insertedRecord.getCollectionInfo().getCollectionId(), asList(record), insertionReason);
 			} else if (schemaType.getCacheType().hasPermanentCache()) {

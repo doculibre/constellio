@@ -57,6 +57,7 @@ import static com.constellio.model.entities.schemas.Schemas.SCHEMA;
 import static com.constellio.model.services.records.RecordUtils.toPersistedSummaryRecordDTO;
 import static com.constellio.model.services.records.cache.MassiveCacheInvalidationReason.KEEP_INTEGRITY;
 import static com.constellio.model.services.records.cache2.CacheRecordDTOUtils.convertDTOToByteArrays;
+import static com.constellio.model.services.records.cache2.DeterminedHookCacheInsertion.DEFAULT_INSERT;
 
 public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 
@@ -156,12 +157,12 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 
 		CacheInsertionStatus problemo = validateInsertable(record, insertionReason);
 		if (problemo != null) {
-			return new CacheInsertionResponse(problemo, null);
+			return new CacheInsertionResponse(problemo, null, DEFAULT_INSERT);
 		}
 
 		RecordDTO current = memoryDataStore.get(record.getId());
 		if (current != null && current.getVersion() > record.getVersion()) {
-			return new CacheInsertionResponse(CacheInsertionStatus.REFUSED_OLD_VERSION, null);
+			return new CacheInsertionResponse(CacheInsertionStatus.REFUSED_OLD_VERSION, null, DEFAULT_INSERT);
 		}
 
 		MetadataSchemaTypes schemaTypes = metadataSchemasManager.getSchemaTypes(record);
@@ -187,32 +188,33 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 
 		if (schemaType.getCacheType().hasPermanentCache()) {
 			if (insertion.isContinuingPermanentCacheInsertion()) {
-				return insertInPermanentCache(record, schemaType);
+				return insertInPermanentCache(record, schemaType, insertion);
 			} else {
 				if (current != null) {
 					memoryDataStore.remove(current);
 				}
-				return hookInsertionResponse == null ? null : new CacheInsertionResponse(hookInsertionResponse.status, null);
+				return new CacheInsertionResponse(hookInsertionResponse.status, null, insertion);
 			}
 		}
 
-		return hookInsertionResponse == null ? new CacheInsertionResponse(CacheInsertionStatus.REFUSED_NOT_CACHED, null)
-											 : new CacheInsertionResponse(hookInsertionResponse.status, null);
+		return hookInsertionResponse == null ? new CacheInsertionResponse(CacheInsertionStatus.REFUSED_NOT_CACHED, null, insertion)
+											 : new CacheInsertionResponse(hookInsertionResponse.status, null, insertion);
 
 	}
 
 	@NotNull
-	private CacheInsertionResponse insertInPermanentCache(Record record, MetadataSchemaType schemaType) {
+	private CacheInsertionResponse insertInPermanentCache(Record record, MetadataSchemaType schemaType,
+														  DeterminedHookCacheInsertion insertion) {
 		if (schemaType.getCacheType() == RecordCacheType.FULLY_CACHED) {
 
 			RecordDTO dto = ((RecordImpl) record).getRecordDTO();
 			if (dto.getLoadingMode() != RecordDTOMode.FULLY_LOADED) {
 				LOGGER.error("Record '" + record.getId() + "' of type should not exist in summary state, since it is fully cached");
-				return new CacheInsertionResponse(CacheInsertionStatus.REFUSED_NOT_FULLY_LOADED, null);
+				return new CacheInsertionResponse(CacheInsertionStatus.REFUSED_NOT_FULLY_LOADED, null, insertion);
 			}
 
 			memoryDataStore.insert(dto);
-			return new CacheInsertionResponse(CacheInsertionStatus.ACCEPTED, null);
+			return new CacheInsertionResponse(CacheInsertionStatus.ACCEPTED, null, insertion);
 
 
 		} else if (schemaType.getCacheType().isSummaryCache()) {
@@ -220,10 +222,10 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 			RecordDTO dto = toPersistedSummaryRecordDTO(record, schema);
 
 			memoryDataStore.insert(dto);
-			return new CacheInsertionResponse(CacheInsertionStatus.ACCEPTED, dto);
+			return new CacheInsertionResponse(CacheInsertionStatus.ACCEPTED, dto, insertion);
 
 		} else {
-			return new CacheInsertionResponse(CacheInsertionStatus.REFUSED_NOT_CACHED, null);
+			return new CacheInsertionResponse(CacheInsertionStatus.REFUSED_NOT_CACHED, null, insertion);
 		}
 	}
 
@@ -505,7 +507,6 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 
 	@Deprecated
 	protected List<Record> getAllValuesInUnmodifiableState(byte collectionId, String collection, String schemaType) {
-		CollectionInfo collectionInfo = collectionsListManager.getCollectionInfo(collection);
 		short typeId = metadataSchemasManager.getSchemaTypes(collectionId).getSchemaType(schemaType).getId();
 		return memoryDataStore.stream(collectionId, typeId).map(this::toRecord).collect(Collectors.toList());
 	}
@@ -579,7 +580,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 			return get(value, metadata.getCollection());
 		}
 
-		if (metadata.isUniqueValue()) {
+		if (!metadata.isUniqueValue()) {
 			throw new IllegalArgumentException("Metadata must be unique to use this method");
 		}
 

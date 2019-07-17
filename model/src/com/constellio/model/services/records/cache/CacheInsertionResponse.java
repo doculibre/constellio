@@ -1,6 +1,7 @@
 package com.constellio.model.services.records.cache;
 
 import com.constellio.data.dao.dto.records.RecordDTO;
+import com.constellio.model.services.records.cache2.DeterminedHookCacheInsertion;
 
 public class CacheInsertionResponse {
 
@@ -8,9 +9,12 @@ public class CacheInsertionResponse {
 
 	RecordDTO summaryRecordDTO;
 
-	public CacheInsertionResponse(CacheInsertionStatus status, RecordDTO summaryRecordDTO) {
+	DeterminedHookCacheInsertion determinedHookCacheInsertion;
+
+	public CacheInsertionResponse(CacheInsertionStatus status, RecordDTO summaryRecordDTO, DeterminedHookCacheInsertion determinedHookCacheInsertion) {
 		this.status = status;
 		this.summaryRecordDTO = summaryRecordDTO;
+		this.determinedHookCacheInsertion = determinedHookCacheInsertion;
 	}
 
 	public CacheInsertionStatus getStatus() {
@@ -19,5 +23,9 @@ public class CacheInsertionResponse {
 
 	public RecordDTO getSummaryRecordDTO() {
 		return summaryRecordDTO;
+	}
+
+	public DeterminedHookCacheInsertion getDeterminedHookCacheInsertion() {
+		return determinedHookCacheInsertion;
 	}
 }
