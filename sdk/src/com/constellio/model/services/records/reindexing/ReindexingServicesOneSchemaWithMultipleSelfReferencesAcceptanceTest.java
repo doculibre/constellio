@@ -88,6 +88,8 @@ public class ReindexingServicesOneSchemaWithMultipleSelfReferencesAcceptanceTest
 			throws Exception {
 		defineSchemasManager().using(schemas.with(childOfReferenceToSelfAndCopiedMetadataFromParent()));
 		givenTimeIs(shishOClock);
+
+		getDataLayerFactory().getDataLayerLogger().setMonitoredIds(asList("003002"));
 		Transaction transaction = new Transaction();
 		transaction.setUser(users.dakotaLIndienIn(zeCollection));
 
@@ -166,18 +168,18 @@ public class ReindexingServicesOneSchemaWithMultipleSelfReferencesAcceptanceTest
 		List<RecordDeltaDTO> deltas = new ArrayList<>();
 
 		for (String id : ids) {
-			RecordDTO record = getDataLayerFactory().newRecordDao().get(id);
+			RecordDTO record = getDataLayerFactory().newRecordDao().realGet(id);
 
 			Map<String, Object> modifiedMetadatas = new HashMap<>();
 			modifiedMetadatas.put(calculatedMetadata + "_s", "Rick rolled!");
 			RecordDeltaDTO recordDeltaDTO = new RecordDeltaDTO(record, modifiedMetadatas, record.getFields());
 			deltas.add(recordDeltaDTO);
 
-
-			getDataLayerFactory().newRecordDao().execute(new TransactionDTO(RecordsFlushing.NOW()).withModifiedRecords(deltas));
-
-			getModelLayerFactory().getRecordsCaches().reloadAllSchemaTypes(record.getCollection());
 		}
+
+		getDataLayerFactory().newRecordDao().execute(new TransactionDTO(RecordsFlushing.NOW()).withModifiedRecords(deltas));
+
+		getModelLayerFactory().getRecordsCaches().reloadAllSchemaTypes(zeCollection);
 	}
 
 	@Test

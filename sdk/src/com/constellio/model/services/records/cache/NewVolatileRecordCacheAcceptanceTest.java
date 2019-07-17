@@ -54,7 +54,7 @@ import static com.constellio.model.services.records.cache2.DeterminedHookCacheIn
 import static com.constellio.model.services.records.cache2.DeterminedHookCacheInsertion.INSERT_WITH_HOOK_REPLACING_DEFAULT_INSERT;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static com.constellio.sdk.tests.QueryCounter.ON_SCHEMA_TYPES;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEssentialInSummary;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsUnique;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
@@ -104,7 +104,7 @@ public class NewVolatileRecordCacheAcceptanceTest extends ConstellioTest {
 				withZeCollection().withAllTestUsers(),
 				withCollection(anotherCollection).withAllTestUsers()
 		);
-		defineSchemasManager().using(zeCollectionSchemas.withAStringMetadata(whichIsEssentialInSummary).withAnotherStringMetadata());
+		defineSchemasManager().using(zeCollectionSchemas.withAStringMetadata(whichIsUnique).withAnotherStringMetadata());
 		defineSchemasManager().using(anotherCollectionSchemas);
 
 		recordServices = getModelLayerFactory().newRecordServices();

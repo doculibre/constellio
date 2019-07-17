@@ -540,7 +540,7 @@ public class BetaWorkflowServices {
 				.where(tasks.userTask.betaWorkflow()).isEqualTo(workflowId)
 				.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()
 				.andWhere(tasks.userTask.isModel()).isTrue()).sortDesc(tasks.userTask.betaWorkflowTaskSort())
-				.filteredByVisibilityStatus(VisibilityStatusFilter.ALL);
+				.filteredByVisibilityStatus(VisibilityStatusFilter.ALL).setForceExecutionInSolr(true);
 	}
 
 	public Task getCurrentWorkflowInstanceTask(BetaWorkflowInstance workflowInstance) {

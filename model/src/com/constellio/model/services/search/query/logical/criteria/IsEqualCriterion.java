@@ -32,8 +32,12 @@ public class IsEqualCriterion extends LogicalSearchValueCondition {
 
 	@Override
 	public String getSolrQuery(DataStoreField dataStoreField) {
-		String convertedValue = CriteriaUtils.toSolrStringValue(value, dataStoreField);
-		return dataStoreField.getDataStoreCode() + ":\"" + convertedValue + "\"";
+		if (value == null) {
+			return IsNullCriterion.toIsNullSolrQuery(dataStoreField);
+		} else {
+			String convertedValue = CriteriaUtils.toSolrStringValue(value, dataStoreField);
+			return dataStoreField.getDataStoreCode() + ":\"" + convertedValue + "\"";
+		}
 	}
 
 	@Override
