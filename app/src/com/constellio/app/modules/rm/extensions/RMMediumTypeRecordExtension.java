@@ -23,10 +23,12 @@ import static com.constellio.model.entities.schemas.Schemas.CODE;
 @Slf4j
 public class RMMediumTypeRecordExtension extends RecordExtension {
 
+	private AppLayerFactory appLayerFactory;
 	private RMSchemasRecordsServices rm;
 	private MediumTypeService mediumTypeService;
 
 	public RMMediumTypeRecordExtension(String collection, AppLayerFactory appLayerFactory) {
+		this.appLayerFactory = appLayerFactory;
 		rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		mediumTypeService = new MediumTypeService(collection, appLayerFactory);
 	}
@@ -44,19 +46,24 @@ public class RMMediumTypeRecordExtension extends RecordExtension {
 
 	@Override
 	public void recordInModificationBeforeSave(RecordInModificationBeforeSaveEvent event) {
-		if (!event.isSchemaType(Folder.SCHEMA_TYPE)) {
-			return;
-		}
-
-		Folder folder = rm.wrapFolder(event.getRecord());
-		MetadataList modifiedMetadatas = event.getModifiedMetadatas();
-		if (modifiedMetadatas.containsMetadataWithLocalCode(Folder.HAS_CONTENT)) {
-			if (folder.hasContent()) {
-				addActivatedOnContentMediumTypes(folder);
-			} else {
-				removeActivatedOnContentMediumTypes(folder);
+		if (event.isSchemaType(Folder.SCHEMA_TYPE)) {
+			Folder folder = rm.wrapFolder(event.getRecord());
+			MetadataList modifiedMetadatas = event.getModifiedMetadatas();
+			if (modifiedMetadatas.containsMetadataWithLocalCode(Folder.HAS_CONTENT)) {
+				if (folder.hasContent()) {
+					addActivatedOnContentMediumTypes(folder);
+				} else {
+					removeActivatedOnContentMediumTypes(folder);
+				}
+				event.recalculateRecord(Collections.singletonList(Folder.MEDIA_TYPE));
 			}
-			event.recalculateRecord(Collections.singletonList(Folder.MEDIA_TYPE));
+		} else if (event.isSchemaType(MediumType.SCHEMA_TYPE)) {
+			MediumType mediumType = rm.wrapMediumType(event.getRecord());
+			MetadataList modifiedMetadatas = event.getModifiedMetadatas();
+			if (modifiedMetadatas.containsMetadataWithLocalCode(MediumType.ACTIVATED_ON_CONTENT) &&
+				mediumType.isActivatedOnContent()) {
+				appLayerFactory.getSystemGlobalConfigsManager().setReindexingRequired(true);
+			}
 		}
 	}
 
@@ -74,8 +81,5 @@ public class RMMediumTypeRecordExtension extends RecordExtension {
 			mediumTypes.remove(mediumType.getId());
 		}
 		folder.setMediumTypes(mediumTypes);
-	}
-
-	private class ExtensionValidationErrors {
 	}
 }
