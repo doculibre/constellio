@@ -266,8 +266,8 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 					Content content = toContent(recordVO, metadataVO, contentVersionVO, newMinorEmpty);
 					if (!newRecord) {
 						Content recordContent = (Content) metadataValue;
-						String recordContentVersionHash = recordContent.getCurrentVersion().getHash();
-						if (recordContentVersionHash.equals(contentVersionVO.getHash())) {
+
+						if (recordContent != null && recordContent.getCurrentVersion().getHash().equals(contentVersionVO.getHash())) {
 							// No change to content
 							metadataVOValue = recordContent;
 						} else {
