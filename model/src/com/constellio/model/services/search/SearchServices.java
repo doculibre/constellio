@@ -139,7 +139,7 @@ public class SearchServices {
 		this.disconnectableRecordsCaches = recordsCaches;
 		this.modelLayerFactory = modelLayerFactory;
 		this.logicalSearchQueryExecutorInCache = new LogicalSearchQueryExecutorInCache(this, recordsCaches,
-				metadataSchemasManager, modelLayerFactory.getExtensions().getSystemWideExtensions());
+				metadataSchemasManager, modelLayerFactory.getExtensions().getSystemWideExtensions(), mainDataLanguage);
 	}
 
 	public RecordsCaches getConnectedRecordsCache() {

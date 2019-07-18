@@ -3,10 +3,10 @@ package com.constellio.model.services.search;
 import com.constellio.data.utils.AccentApostropheCleaner;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.dev.Toggle;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.RecordCacheType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.ModelLayerSystemExtensions;
@@ -24,8 +24,14 @@ import org.slf4j.LoggerFactory;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
+
+import static com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval.PREFERRING;
+import static com.constellio.model.entities.schemas.MetadataValueType.INTEGER;
+import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 
 public class LogicalSearchQueryExecutorInCache {
 
@@ -35,14 +41,17 @@ public class LogicalSearchQueryExecutorInCache {
 	RecordsCaches recordsCaches;
 	MetadataSchemasManager schemasManager;
 	ModelLayerSystemExtensions modelLayerExtensions;
+	String mainDataLanguage;
 
 	public LogicalSearchQueryExecutorInCache(SearchServices searchServices, RecordsCaches recordsCaches,
 											 MetadataSchemasManager schemasManager,
-											 ModelLayerSystemExtensions modelLayerExtensions) {
+											 ModelLayerSystemExtensions modelLayerExtensions,
+											 String mainDataLanguage) {
 		this.searchServices = searchServices;
 		this.recordsCaches = recordsCaches;
 		this.schemasManager = schemasManager;
 		this.modelLayerExtensions = modelLayerExtensions;
+		this.mainDataLanguage = mainDataLanguage;
 	}
 
 	public Stream<Record> stream(LogicalSearchQuery query) {
@@ -125,6 +134,9 @@ public class LogicalSearchQueryExecutorInCache {
 	@NotNull
 	private Comparator<Record> newQuerySortFieldsComparator(LogicalSearchQuery query, MetadataSchemaType schemaType) {
 		return (o1, o2) -> {
+
+			String queryLanguage = query.getLanguage() == null ? mainDataLanguage : query.getLanguage();
+			Locale locale = Language.withCode(queryLanguage).getLocale();
 			for (LogicalSearchQuerySort sort : query.getSortFields()) {
 				FieldLogicalSearchQuerySort fieldSort = (FieldLogicalSearchQuerySort) sort;
 				Metadata metadata =
@@ -132,9 +144,9 @@ public class LogicalSearchQueryExecutorInCache {
 				if (metadata != null) {
 					int sortValue;
 					if (sort.isAscending()) {
-						sortValue = compareMetadatasValues(o1, o2, metadata);
+						sortValue = compareMetadatasValues(o1, o2, metadata, locale);
 					} else {
-						sortValue = -1 * compareMetadatasValues(o1, o2, metadata);
+						sortValue = -1 * compareMetadatasValues(o1, o2, metadata, locale);
 					}
 
 					if (sortValue != 0) {
@@ -147,6 +159,7 @@ public class LogicalSearchQueryExecutorInCache {
 		};
 	}
 
+
 	@NotNull
 	private Comparator<Record> newIdComparator() {
 		return (o1, o2) -> {
@@ -154,18 +167,18 @@ public class LogicalSearchQueryExecutorInCache {
 		};
 	}
 
-	private int compareMetadatasValues(Record record1, Record record2, Metadata metadata) {
-		Object value1 = record1.get(metadata);
-		Object value2 = record2.get(metadata);
+	private int compareMetadatasValues(Record record1, Record record2, Metadata metadata, Locale preferedLanguage) {
+		Object value1 = record1.get(metadata, preferedLanguage, PREFERRING);
+		Object value2 = record2.get(metadata, preferedLanguage, PREFERRING);
 
-		if (metadata.getType() == MetadataValueType.INTEGER) {
+		if (metadata.getType() == INTEGER) {
 			if (value1 == null) {
 				value1 = 0;
 			}
 			if (value2 == null) {
 				value2 = 0;
 			}
-		} else if (metadata.getType() == MetadataValueType.NUMBER) {
+		} else if (metadata.getType() == NUMBER) {
 			if (value1 == null) {
 				value1 = 0.0;
 			}
@@ -210,7 +223,7 @@ public class LogicalSearchQueryExecutorInCache {
 	public static boolean hasNoUnsupportedFeatureOrFilter(LogicalSearchQuery query) {
 		return !query.isForceExecutionInSolr()
 			   && query.getFacetFilters().toSolrFilterQueries().isEmpty()
-			   && hasNoSortOrOnlyFieldSorts(query)
+			   && hasNoUnsupportedSort(query)
 			   //&& hasNoSort(query)
 			   && query.getFreeTextQuery() == null
 			   && query.getFieldPivotFacets().isEmpty()
@@ -232,10 +245,15 @@ public class LogicalSearchQueryExecutorInCache {
 	}
 
 
-	private static boolean hasNoSortOrOnlyFieldSorts(LogicalSearchQuery query) {
+	private static boolean hasNoUnsupportedSort(LogicalSearchQuery query) {
 		for (LogicalSearchQuerySort sort : query.getSortFields()) {
 			if (!(sort instanceof FieldLogicalSearchQuerySort)) {
 				return false;
+			} else {
+				FieldLogicalSearchQuerySort fieldSort = (FieldLogicalSearchQuerySort) sort;
+				return fieldSort.getField().getType() == STRING
+					   || fieldSort.getField().getType() == NUMBER
+					   || fieldSort.getField().getType() == INTEGER;
 			}
 		}
 
