@@ -143,11 +143,7 @@ public class LogicalSearchQueryExecutorInCache {
 						schemaType.getDefaultSchema().getMetadataByDatastoreCode(fieldSort.getField().getDataStoreCode());
 				if (metadata != null) {
 					int sortValue;
-					if (sort.isAscending()) {
-						sortValue = compareMetadatasValues(o1, o2, metadata, locale);
-					} else {
-						sortValue = -1 * compareMetadatasValues(o1, o2, metadata, locale);
-					}
+					sortValue = compareMetadatasValues(o1, o2, metadata, locale, sort.isAscending());
 
 					if (sortValue != 0) {
 						return sortValue;
@@ -167,7 +163,8 @@ public class LogicalSearchQueryExecutorInCache {
 		};
 	}
 
-	private int compareMetadatasValues(Record record1, Record record2, Metadata metadata, Locale preferedLanguage) {
+	private int compareMetadatasValues(Record record1, Record record2, Metadata metadata, Locale preferedLanguage,
+									   boolean ascending) {
 		Object value1 = record1.get(metadata, preferedLanguage, PREFERRING);
 		Object value2 = record2.get(metadata, preferedLanguage, PREFERRING);
 
@@ -205,7 +202,8 @@ public class LogicalSearchQueryExecutorInCache {
 			}
 		}
 
-		return LangUtils.nullableNaturalCompare((Comparable) value1, (Comparable) value2);
+		int sort = LangUtils.nullableNaturalCompare((Comparable) value1, (Comparable) value2, ascending);
+		return ascending ? sort : (-1 * sort);
 	}
 
 	public Stream<Record> stream(LogicalSearchCondition condition) {
@@ -224,7 +222,6 @@ public class LogicalSearchQueryExecutorInCache {
 		return !query.isForceExecutionInSolr()
 			   && query.getFacetFilters().toSolrFilterQueries().isEmpty()
 			   && hasNoUnsupportedSort(query)
-			   //&& hasNoSort(query)
 			   && query.getFreeTextQuery() == null
 			   && query.getFieldPivotFacets().isEmpty()
 			   && query.getFieldPivotFacets().isEmpty()

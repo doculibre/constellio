@@ -348,18 +348,22 @@ public class LangUtils {
 	}
 
 	public static int nullableNaturalCompare(Comparable v1, Comparable v2) {
+		return nullableNaturalCompare(v1, v2, false);
+	}
+
+	public static int nullableNaturalCompare(Comparable v1, Comparable v2, boolean placeNullsAtEnd) {
 		if (v1 == null) {
 
 			if (v2 == null) {
 				return 0;
 			} else {
-				return -1;
+				return placeNullsAtEnd ? 1 : -1;
 			}
 
 		} else {
 
 			if (v2 == null) {
-				return 1;
+				return placeNullsAtEnd ? -1 : 1;
 			} else {
 				return v1.compareTo(v2);
 			}
