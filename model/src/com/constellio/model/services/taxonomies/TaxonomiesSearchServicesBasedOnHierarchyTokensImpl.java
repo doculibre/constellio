@@ -52,6 +52,7 @@ import static com.constellio.model.services.search.StatusFilter.ACTIVES;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasInCollectionOf;
+import static com.constellio.model.services.search.query.logical.QueryExecutionMethod.USE_SOLR;
 import static com.constellio.model.services.search.query.logical.valueCondition.ConditionTemplateFactory.schemaTypeIsIn;
 import static com.constellio.model.services.search.query.logical.valueCondition.ConditionTemplateFactory.schemaTypeIsNotIn;
 import static com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices.childrenCondition;
@@ -228,7 +229,7 @@ public class TaxonomiesSearchServicesBasedOnHierarchyTokensImpl implements Taxon
 				});
 
 			} else {
-				logicalSearchQuery = new LogicalSearchQuery(condition);
+				logicalSearchQuery = new LogicalSearchQuery(condition).setQueryExecutionMethod(USE_SOLR);
 			}
 			return logicalSearchQuery;
 		}
@@ -431,6 +432,7 @@ public class TaxonomiesSearchServicesBasedOnHierarchyTokensImpl implements Taxon
 			}
 		});
 		query.setName("TaxonomiesSearchServices:getNonTaxonomyRecords(" + ctx.username() + ", " + ctx.record.getId() + ")");
+		query.setQueryExecutionMethod(USE_SOLR);
 		return searchServices.query(query);
 	}
 

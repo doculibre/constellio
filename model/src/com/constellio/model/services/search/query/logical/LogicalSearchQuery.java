@@ -75,7 +75,7 @@ public class LogicalSearchQuery implements SearchQuery {
 
 	private String language;
 
-	private boolean forceExecutionInSolr;
+	private QueryExecutionMethod queryExecutionMethod = QueryExecutionMethod.USE_CACHE_IF_POSSIBLE;
 
 	public LogicalSearchQuery() {
 		numberOfRows = DEFAULT_NUMBER_OF_ROWS;
@@ -123,7 +123,7 @@ public class LogicalSearchQuery implements SearchQuery {
 		moreLikeThisFields = query.moreLikeThisFields;
 		language = query.language;
 		loadTransientValues = query.loadTransientValues;
-		forceExecutionInSolr = query.forceExecutionInSolr;
+		queryExecutionMethod = query.queryExecutionMethod;
 	}
 
 	// The following methods are attribute accessors
@@ -588,12 +588,13 @@ public class LogicalSearchQuery implements SearchQuery {
 		return new LogicalSearchQuery(condition);
 	}
 
-	public boolean isForceExecutionInSolr() {
-		return forceExecutionInSolr;
+	public QueryExecutionMethod getQueryExecutionMethod() {
+		return queryExecutionMethod;
 	}
 
-	public LogicalSearchQuery setForceExecutionInSolr(boolean forceExecutionInSolr) {
-		this.forceExecutionInSolr = forceExecutionInSolr;
+	public LogicalSearchQuery setQueryExecutionMethod(
+			QueryExecutionMethod queryExecutionMethod) {
+		this.queryExecutionMethod = queryExecutionMethod;
 		return this;
 	}
 }

@@ -15,6 +15,7 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.query.logical.FieldLogicalSearchQuerySort;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuerySort;
+import com.constellio.model.services.search.query.logical.QueryExecutionMethod;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.condition.SchemaFilters;
 import org.jetbrains.annotations.NotNull;
@@ -219,7 +220,7 @@ public class LogicalSearchQueryExecutorInCache {
 	}
 
 	public static boolean hasNoUnsupportedFeatureOrFilter(LogicalSearchQuery query) {
-		return !query.isForceExecutionInSolr()
+		return query.getQueryExecutionMethod() != QueryExecutionMethod.USE_SOLR
 			   && query.getFacetFilters().toSolrFilterQueries().isEmpty()
 			   && hasNoUnsupportedSort(query)
 			   && query.getFreeTextQuery() == null

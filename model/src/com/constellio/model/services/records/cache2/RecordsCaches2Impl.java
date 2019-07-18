@@ -659,14 +659,14 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 			Set<String> comparisonFields = new HashSet<>(comparisonRecordDTO.getFields().keySet());
 
 			for (String field : byteArrayRecordDTO.getFields().keySet()) {
-				System.out.println(field + ":" + byteArrayRecordDTO.getFields().get(field));
+				//System.out.println(field + ":" + byteArrayRecordDTO.getFields().get(field));
 				if (byteArrayRecordDTO.getFields().get(field) == null) {
 					byteArrayFields.remove(field);
 				}
 			}
 
 			for (String field : comparisonRecordDTO.getFields().keySet()) {
-				System.out.println(field + ":" + comparisonRecordDTO.getFields().get(field));
+				//	System.out.println(field + ":" + comparisonRecordDTO.getFields().get(field));
 				if (comparisonRecordDTO.getFields().get(field) == null) {
 					comparisonFields.remove(field);
 				}
