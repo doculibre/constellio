@@ -25,12 +25,9 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.records.RecordImpl;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.ongoing.OngoingLogicalSearchCondition;
-import com.constellio.model.services.security.roles.Roles;
-import com.constellio.model.services.security.roles.RolesManager;
 import com.vaadin.ui.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -308,7 +305,7 @@ public class AddExistingContainerPresenter extends SearchPresenter<AddExistingCo
 			tmpSearchRecord = recordServices().newRecordWithSchema(schema(SavedSearch.DEFAULT_SCHEMA));
 		} else {
 			SavedSearch savedSearch = new SavedSearch(tmpSearchRecord, types());
-			if (!Boolean.TRUE.equals(savedSearch.isTemporary())) {
+			if (!savedSearch.isTemporary()) {
 				tmpSearchRecord = recordServices()
 						.newRecordWithSchema(schema(SavedSearch.DEFAULT_SCHEMA));
 			}

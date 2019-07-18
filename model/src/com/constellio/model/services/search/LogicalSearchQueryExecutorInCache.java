@@ -1,12 +1,15 @@
 package com.constellio.model.services.search;
 
+import com.constellio.data.utils.AccentApostropheCleaner;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.RecordCacheType;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.extensions.ModelLayerSystemExtensions;
 import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.query.logical.FieldLogicalSearchQuerySort;
@@ -19,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -30,17 +34,21 @@ public class LogicalSearchQueryExecutorInCache {
 	SearchServices searchServices;
 	RecordsCaches recordsCaches;
 	MetadataSchemasManager schemasManager;
+	ModelLayerSystemExtensions modelLayerExtensions;
 
-	public LogicalSearchQueryExecutorInCache(SearchServices searchServices,
-											 RecordsCaches recordsCaches,
-											 MetadataSchemasManager schemasManager) {
+	public LogicalSearchQueryExecutorInCache(SearchServices searchServices, RecordsCaches recordsCaches,
+											 MetadataSchemasManager schemasManager,
+											 ModelLayerSystemExtensions modelLayerExtensions) {
 		this.searchServices = searchServices;
 		this.recordsCaches = recordsCaches;
 		this.schemasManager = schemasManager;
+		this.modelLayerExtensions = modelLayerExtensions;
 	}
 
 	public Stream<Record> stream(LogicalSearchQuery query) {
 		MetadataSchemaType schemaType = getQueriedSchemaType(query.getCondition());
+
+		final long startOfStreaming = new Date().getTime();
 
 		Predicate<Record> filter = new Predicate<Record>() {
 			@Override
@@ -102,7 +110,10 @@ public class LogicalSearchQueryExecutorInCache {
 		}
 
 		Stream<Record> stream = recordsCaches.stream(schemaType).filter(filter)
-				.sorted(newIdComparator());
+				.sorted(newIdComparator()).onClose(() -> {
+					long duration = new Date().getTime() - startOfStreaming;
+					modelLayerExtensions.onQueryExecution(query, duration);
+				});
 
 		if (!query.getSortFields().isEmpty()) {
 			return stream.sorted(newQuerySortFieldsComparator(query, schemaType));
@@ -147,12 +158,38 @@ public class LogicalSearchQueryExecutorInCache {
 		Object value1 = record1.get(metadata);
 		Object value2 = record2.get(metadata);
 
-		if (value1 instanceof String && metadata.getSortFieldNormalizer() != null) {
-			value1 = metadata.getSortFieldNormalizer().normalize((String) value1);
+		if (metadata.getType() == MetadataValueType.INTEGER) {
+			if (value1 == null) {
+				value1 = 0;
+			}
+			if (value2 == null) {
+				value2 = 0;
+			}
+		} else if (metadata.getType() == MetadataValueType.NUMBER) {
+			if (value1 == null) {
+				value1 = 0.0;
+			}
+			if (value2 == null) {
+				value2 = 0.0;
+			}
 		}
 
-		if (value2 instanceof String && metadata.getSortFieldNormalizer() != null) {
-			value2 = metadata.getSortFieldNormalizer().normalize((String) value2);
+		if (metadata.isSortable()) {
+			if (value1 instanceof String && metadata.getSortFieldNormalizer() != null) {
+				value1 = metadata.getSortFieldNormalizer().normalize((String) value1);
+			}
+
+			if (value2 instanceof String && metadata.getSortFieldNormalizer() != null) {
+				value2 = metadata.getSortFieldNormalizer().normalize((String) value2);
+			}
+		} else {
+			if (value1 instanceof String) {
+				value1 = AccentApostropheCleaner.removeAccents(((String) value1).toLowerCase());
+			}
+
+			if (value2 instanceof String) {
+				value2 = AccentApostropheCleaner.removeAccents(((String) value2).toLowerCase());
+			}
 		}
 
 		return LangUtils.nullableNaturalCompare((Comparable) value1, (Comparable) value2);

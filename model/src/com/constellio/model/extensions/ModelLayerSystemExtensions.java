@@ -13,13 +13,9 @@ import com.constellio.model.extensions.behaviors.UserAuthenticationExtension;
 import com.constellio.model.extensions.events.recordsCache.CacheHitParams;
 import com.constellio.model.extensions.events.recordsCache.CacheMissParams;
 import com.constellio.model.extensions.events.recordsCache.CachePutParams;
-import com.constellio.model.extensions.events.recordsCache.CacheQueryHitParams;
-import com.constellio.model.extensions.events.recordsCache.CacheQueryMissParams;
-import com.constellio.model.extensions.events.recordsCache.CacheQueryPutParams;
+import com.constellio.model.extensions.events.recordsCache.CacheQueryParams;
 import com.constellio.model.extensions.params.CanAuthenticateUsingPasswordFileIfLDAPFailedParams;
-import com.constellio.model.services.search.query.logical.LogicalSearchQuerySignature;
-
-import java.util.List;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
 public class ModelLayerSystemExtensions {
 
@@ -63,21 +59,9 @@ public class ModelLayerSystemExtensions {
 		}
 	}
 
-	public void onQueryCacheHit(LogicalSearchQuerySignature signature, long duration) {
+	public void onQueryExecution(LogicalSearchQuery query, long duration) {
 		for (RecordCacheExtension extension : recordCacheExtensions) {
-			extension.onCacheQueryHit(new CacheQueryHitParams(signature, duration));
-		}
-	}
-
-	public void onQueryCacheMiss(LogicalSearchQuerySignature signature, long duration) {
-		for (RecordCacheExtension extension : recordCacheExtensions) {
-			extension.onCacheQueryMiss(new CacheQueryMissParams(signature, duration));
-		}
-	}
-
-	public void onPutQueryResultsInCache(LogicalSearchQuerySignature signature, List<String> ids, long duration) {
-		for (RecordCacheExtension extension : recordCacheExtensions) {
-			extension.onCacheQueryPut(new CacheQueryPutParams(signature, ids, duration));
+			extension.onCacheQuery(new CacheQueryParams(query, duration));
 		}
 	}
 

@@ -1,6 +1,7 @@
 package com.constellio.model.services.records.populators;
 
 import com.constellio.data.dao.services.records.RecordDao;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
@@ -129,6 +130,14 @@ public class RecordNormalizedSortFieldAcceptanceTest extends ConstellioTest {
 		transaction.add(new TestRecord(zeSchema, "r9").set(zeSchema.stringMetadata(), "e1000"));
 		recordServices.execute(transaction);
 
+		assertThat(searchServices.searchRecordIds(allZeSchemaRecords().setForceExecutionInSolr(true).sortAsc(zeSchema.stringMetadata())))
+				.isEqualTo(asList("r1", "r7", "r8", "r9", "r2", "r3", "r4", "r5", "r6"));
+
+		assertThat(searchServices.searchRecordIds(allZeSchemaRecords().setForceExecutionInSolr(true).sortDesc(zeSchema.stringMetadata())))
+				.isEqualTo(asList("r6", "r5", "r4", "r3", "r2", "r9", "r8", "r7", "r1"));
+
+		//Cache return results in different order, but it's much better than solr!
+		Toggle.VALIDATE_CACHE_EXECUTION_SERVICE_USING_SOLR.disable();
 		assertThat(searchServices.searchRecordIds(allZeSchemaRecords().sortAsc(zeSchema.stringMetadata())))
 				.isEqualTo(asList("r1", "r7", "r8", "r9", "r2", "r3", "r4", "r5", "r6"));
 

@@ -48,7 +48,7 @@ public class OneXMLConfigPerCollectionManagerAcceptanceTest extends ConstellioTe
 	@Before
 	public void setUp()
 			throws Exception {
-
+		cacheIntegrityCheckedAfterTest = false;
 		when(dataLayerExtensions.getSystemWideExtensions()).thenReturn(dataLayerSystemExtensions);
 		cache = new SerializationCheckCache("zeCache", new ConstellioCacheOptions());
 
