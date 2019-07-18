@@ -69,6 +69,14 @@ public class CacheRecordDTOUtils {
 	public static class CacheRecordDTOBytesArray {
 		byte[] bytesToKeepInMemory;
 		byte[] bytesToPersist;
+
+		public byte[] getBytesToKeepInMemory() {
+			return bytesToKeepInMemory;
+		}
+
+		public byte[] getBytesToPersist() {
+			return bytesToPersist;
+		}
 	}
 
 	public static CacheRecordDTOBytesArray convertDTOToByteArrays(RecordDTO dto, MetadataSchema schema) {
