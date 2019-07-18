@@ -753,6 +753,8 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 		doc.setField(tasks.userTask.statusType().getDataStoreCode(), atomicSet("Mouahahahahaha"));
 		solrClient.add(doc);
 		solrClient.commit();
+
+		getModelLayerFactory().getRecordsCaches().reloadAllSchemaTypes(zeCollection);
 	}
 
 
