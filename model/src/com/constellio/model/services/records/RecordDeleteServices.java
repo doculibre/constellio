@@ -126,7 +126,7 @@ public class RecordDeleteServices {
 		boolean parentActiveOrNull;
 		if (parentId != null) {
 			Record parent = recordServices.getDocumentById(parentId);
-			parentActiveOrNull = TRUE != parent.get(Schemas.LOGICALLY_DELETED_STATUS);
+			parentActiveOrNull = !TRUE.equals(parent.get(Schemas.LOGICALLY_DELETED_STATUS));
 		} else {
 			parentActiveOrNull = true;
 		}
@@ -207,7 +207,7 @@ public class RecordDeleteServices {
 		String typeCode = new SchemaUtils().getSchemaTypeCode(record.getSchemaCode());
 		MetadataSchemaType schemaType = metadataSchemasManager.getSchemaTypes(record.getCollection()).getSchemaType(typeCode);
 
-		boolean correctStatus = TRUE == record.get(Schemas.LOGICALLY_DELETED_STATUS);
+		boolean correctStatus = TRUE.equals(record.get(Schemas.LOGICALLY_DELETED_STATUS));
 		List<Record> activeRecords = getActiveRecords(record);
 		boolean hasPermissions =
 				!schemaType.hasSecurity() || authorizationsServices
@@ -420,7 +420,7 @@ public class RecordDeleteServices {
 
 			for (RecordDTO recordDTO : recordsDTO) {
 				ids.remove(recordDTO.getId());
-				recordServices.getRecordsCaches().getCache(record.getCollection()).invalidate(recordDTO.getId());
+				recordServices.getRecordsCaches().getCache(record.getCollection()).removeFromAllCaches(recordDTO.getId());
 			}
 
 			Transaction transaction = new Transaction();
@@ -846,6 +846,7 @@ public class RecordDeleteServices {
 		}
 
 		totallyDeleteSchemaTypeRecordsSkippingValidation_WARNING_CANNOT_BE_REVERTED(type);
+		modelLayerFactory.getRecordsCaches().getCache(type.getCollection()).invalidateVolatileReloadPermanent(asList(type.getCode()));
 	}
 
 	public void totallyDeleteSchemaTypeRecordsSkippingValidation_WARNING_CANNOT_BE_REVERTED(MetadataSchemaType type) {
@@ -857,6 +858,9 @@ public class RecordDeleteServices {
 		} catch (OptimisticLocking optimisticLocking) {
 			throw new RuntimeException(optimisticLocking);
 		}
+
+		recordServices.getRecordsCaches().getCache(type.getCollection())
+				.invalidateVolatileReloadPermanent(asList((type.getCode())));
 
 	}
 

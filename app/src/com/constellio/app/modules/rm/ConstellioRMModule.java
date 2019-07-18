@@ -64,7 +64,102 @@ import com.constellio.app.modules.rm.extensions.imports.RetentionRuleImportExten
 import com.constellio.app.modules.rm.extensions.schema.RMAvailableCapacityExtension;
 import com.constellio.app.modules.rm.extensions.schema.RMExcelReportSchemaExtension;
 import com.constellio.app.modules.rm.extensions.schema.RMTrashSchemaExtension;
-import com.constellio.app.modules.rm.migrations.*;
+import com.constellio.app.modules.rm.migrations.RMMigrationCombo;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo5_0_1;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo5_0_2;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo5_0_3;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo5_0_4;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo5_0_4_1;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo5_0_5;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo5_0_6;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo5_0_7;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo5_1_0_3;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo5_1_0_4;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo5_1_0_6;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo5_1_2;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo5_1_2_2;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo5_1_3;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo5_1_4_1;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo5_1_5;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo5_1_7;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo5_1_9;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo6_1;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo6_1_4;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo6_2;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo6_2_0_7;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo6_3;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo6_4;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo6_5;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo6_5_1;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo6_5_20;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo6_5_21;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo6_5_33;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo6_5_34;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo6_5_36;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo6_5_37;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo6_5_50;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo6_5_54;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo6_5_7;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo6_6;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo6_7;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_0_10_5;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_0_5;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_1;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_1_1;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_1_2;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_2;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_2_0_1;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_2_0_2;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_2_0_3;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_2_0_4;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_3;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_3_1;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_4;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_4_2;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_4_48;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_4_48_1;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_4_49;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_5;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_5_2;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_5_3;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_5_5;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_6;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_6_10;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_6_11;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_6_2;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_6_3;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_6_6;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_6_6_1;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_6_6_2;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_6_8;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_6_9;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_7;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_7_0_42;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_7_1;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_7_2;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_7_3;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_7_4;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_7_4_33;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_7_5_4;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_7_5_5;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo8_0_1;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo8_0_2;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo8_0_3;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo8_1;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo8_1_0_1;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo8_1_1;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo8_1_1_1;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo8_1_1_2;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo8_1_2;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo8_1_4;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo8_2;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo8_2_1_4;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo8_2_1_5;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo8_2_2_4;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo8_2_42;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo9_0;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo9_0_1;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo9_0_2;
 import com.constellio.app.modules.rm.migrations.records.RMContainerRecordMigrationTo7_3;
 import com.constellio.app.modules.rm.migrations.records.RMDocumentMigrationTo7_6_10;
 import com.constellio.app.modules.rm.migrations.records.RMDocumentMigrationTo8_1_0_43;
@@ -75,10 +170,8 @@ import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
 import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
-import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.Printable;
 import com.constellio.app.modules.rm.wrappers.RMTaskType;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
@@ -86,24 +179,15 @@ import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.modules.tasks.TaskModule;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.RecordMigrationScript;
 import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.records.wrappers.Capsule;
-import com.constellio.model.entities.records.wrappers.Report;
-import com.constellio.model.entities.records.wrappers.SavedSearch;
-import com.constellio.model.entities.records.wrappers.ThesaurusConfig;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesException;
-import com.constellio.model.services.records.cache.CacheConfig;
 import com.constellio.model.services.records.cache.RecordsCache;
-import com.constellio.model.services.records.cache.ignite.RecordsCacheIgniteImpl;
 import com.constellio.model.services.security.GlobalSecuredTypeCondition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -114,13 +198,12 @@ import java.util.List;
 import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.records.cache.VolatileCacheInvalidationMethod.FIFO;
 import static java.util.Arrays.asList;
 
 public class ConstellioRMModule implements InstallableSystemModule, ModuleWithComboMigration,
 		InstallableSystemModuleWithRecordMigrations {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(RecordsCacheIgniteImpl.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(ConstellioRMModule.class);
 
 	public static final String ID = "rm";
 	public static final String NAME = "Constellio RM";
@@ -249,7 +332,8 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		scripts.add(new RMMigrationTo8_3_2());
 		scripts.add(new RMMigrationTo9_0());
 		scripts.add(new RMMigrationTo9_0_1());
-
+		scripts.add(new RMMigrationTo8_2_1_5());
+		scripts.add(new RMMigrationTo9_0_2());
 
 		return scripts;
 	}
@@ -428,62 +512,6 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
 		RecordsCache cache = modelLayerFactory.getRecordsCaches().getCache(collection);
 
-		for (MetadataSchemaType type : rm.valueListSchemaTypes()) {
-			if (cache.isConfigured(type)) {
-				cache.removeCache(type.getCode());
-			}
-			cache.configureCache(CacheConfig.permanentCache(type));
-		}
-
-		if (cache.isConfigured(AdministrativeUnit.SCHEMA_TYPE)) {
-			cache.removeCache(AdministrativeUnit.SCHEMA_TYPE);
-		}
-		cache.configureCache(CacheConfig.permanentCache(rm.administrativeUnit.schemaType()));
-
-		if (!cache.isConfigured(Printable.SCHEMA_TYPE)) {
-			cache.configureCache(CacheConfig.permanentCache(rm.printable.schemaType()));
-		}
-		if (!cache.isConfigured(Report.SCHEMA_TYPE)) {
-			cache.configureCache(CacheConfig.permanentCache(rm.report.schemaType()));
-		}
-
-		if (!cache.isConfigured(Cart.SCHEMA_TYPE)) {
-			cache.configureCache(CacheConfig.permanentCache(rm.cart.schemaType()));
-		}
-
-		if (cache.isConfigured(Category.SCHEMA_TYPE)) {
-			cache.removeCache(Category.SCHEMA_TYPE);
-		}
-
-		if (!cache.isConfigured(ThesaurusConfig.SCHEMA_TYPE)) {
-			cache.configureCache(CacheConfig.permanentCache(rm.thesaurusConfig.schemaType()));
-		}
-
-		if (!cache.isConfigured(Capsule.SCHEMA_TYPE)) {
-			cache.configureCache(CacheConfig.permanentCache(rm.capsule.schemaType()));
-		}
-
-		cache.configureCache(CacheConfig.permanentCache(rm.category.schemaType()));
-
-		cache.configureCache(CacheConfig.permanentCache(rm.retentionRule.schemaType()));
-		cache.configureCache(CacheConfig.permanentCache(rm.uniformSubdivision.schemaType()));
-		cache.configureCache(CacheConfig.permanentCache(rm.containerRecord.schemaType()));
-		cache.configureCache(CacheConfig.permanentCache(rm.decommissioningList.schemaType()));
-
-		if (!cache.isConfigured(rm.authorizationDetails.schemaType())) {
-			cache.configureCache(CacheConfig.permanentCache(rm.authorizationDetails.schemaType()));
-		}
-
-		MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
-		if (Toggle.CACHES_ENABLED.isEnabled()) {
-			cache.configureCache(CacheConfig.volatileCache(rm.event.schemaType(), DEFAULT_VOLATILE_EVENTS_CACHE_SIZE));
-			cache.configureCache(CacheConfig.volatileCache(rm.folder.schemaType(), DEFAULT_VOLATILE_FOLDERS_CACHE_SIZE));
-			cache.configureCache(CacheConfig.volatileCache(rm.documentSchemaType(), DEFAULT_VOLATILE_DOCUMENTS_CACHE_SIZE));
-
-			if (!cache.isConfigured(SavedSearch.SCHEMA_TYPE)) {
-				cache.configureCache(CacheConfig.volatileCache(types.getSchemaType(SavedSearch.SCHEMA_TYPE), 1000, FIFO));
-			}
-		}
 	}
 
 	@Override

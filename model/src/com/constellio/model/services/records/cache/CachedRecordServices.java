@@ -10,6 +10,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.RecordCacheType;
 import com.constellio.model.entities.security.SecurityModel;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -31,7 +32,6 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import static com.constellio.data.dao.services.cache.InsertionReason.WAS_OBTAINED;
 import static com.constellio.data.dao.services.records.DataStore.RECORDS;
 
 public class CachedRecordServices extends BaseRecordServices implements RecordServices {
@@ -103,6 +103,15 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 	}
 
 	@Override
+	public Record realtimeGetRecordSummaryById(String id) {
+		Record record = getConnectedRecordsCache().getRecordSummary(id);
+		if (record == null) {
+			record = recordServices.realtimeGetRecordSummaryById(id);
+		}
+		return record;
+	}
+
+	@Override
 	public Record getRecordByMetadata(Metadata metadata, String value) {
 		if (!metadata.isUniqueValue()) {
 			throw new IllegalArgumentException("Metadata '" + metadata + "' is not unique");
@@ -111,13 +120,44 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 			throw new IllegalArgumentException("Metadata '" + metadata + "' is global, which has no specific schema type.");
 		}
 
-		Record foundRecord = getConnectedRecordsCache().getCache(metadata.getCollection()).getByMetadata(metadata, value);
+		if (value == null) {
+			return null;
+		}
+
+		MetadataSchemaType schemaType = modelLayerFactory.getMetadataSchemasManager()
+				.getSchemaTypes(metadata.getCollection()).getSchemaType(metadata.getSchemaTypeCode());
+
+		if (schemaType.getCacheType() == RecordCacheType.FULLY_CACHED) {
+			return getConnectedRecordsCache().getCache(metadata.getCollection()).getByMetadata(metadata, value);
+
+		} else if (schemaType.getCacheType().hasPermanentCache()) {
+			Record foundRecordSummary = getConnectedRecordsCache().getCache(metadata.getCollection()).getSummaryByMetadata(metadata, value);
+			if (foundRecordSummary != null) {
+				return getDocumentById(foundRecordSummary.getId());
+			} else {
+				return null;
+			}
+
+		} else {
+			return recordServices.getRecordByMetadata(metadata, value);
+		}
+
+
+	}
+
+	@Override
+	public Record getRecordSummaryByMetadata(Metadata metadata, String value) {
+		if (!metadata.isUniqueValue()) {
+			throw new IllegalArgumentException("Metadata '" + metadata + "' is not unique");
+		}
+		if (metadata.getCode().startsWith("global_")) {
+			throw new IllegalArgumentException("Metadata '" + metadata + "' is global, which has no specific schema type.");
+		}
+
+		Record foundRecord = getConnectedRecordsCache().getCache(metadata.getCollection()).getSummaryByMetadata(metadata, value);
 
 		if (foundRecord == null) {
-			foundRecord = recordServices.getRecordByMetadata(metadata, value);
-			if (foundRecord != null) {
-				getConnectedRecordsCache().insert(foundRecord, WAS_OBTAINED);
-			}
+			foundRecord = recordServices.getRecordSummaryByMetadata(metadata, value);
 		}
 
 		return foundRecord;

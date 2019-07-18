@@ -5,7 +5,6 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
 import java.util.Collection;
 import java.util.List;
@@ -68,21 +67,9 @@ public class TransactionRecordsCache implements RecordsCache {
 	}
 
 	@Override
-	public List<CacheInsertionStatus> insert(List<Record> record,
-											 InsertionReason insertionReason) {
+	public List<CacheInsertionResponse> insert(List<Record> record,
+											   InsertionReason insertionReason) {
 		return recordsCache.insert(record, insertionReason);
-	}
-
-	@Override
-	public void insertQueryResults(LogicalSearchQuery query,
-								   List<Record> records) {
-		recordsCache.insertQueryResults(query, records);
-	}
-
-	@Override
-	public void insertQueryResultIds(LogicalSearchQuery query,
-									 List<String> recordIds) {
-		recordsCache.insertQueryResultIds(query, recordIds);
 	}
 
 	@Override
@@ -97,42 +84,24 @@ public class TransactionRecordsCache implements RecordsCache {
 	}
 
 	@Override
-	public List<Record> getQueryResults(
-			LogicalSearchQuery query) {
-		return recordsCache.getQueryResults(query);
-	}
-
-	@Override
-	public List<String> getQueryResultIds(
-			LogicalSearchQuery query) {
-		return recordsCache.getQueryResultIds(query);
-	}
-
-	@Override
-	public CacheInsertionStatus insert(Record record,
-									   InsertionReason insertionReason) {
+	public CacheInsertionResponse insert(Record record,
+										 InsertionReason insertionReason) {
 		return recordsCache.insert(record, insertionReason);
 	}
 
 	@Override
-	public CacheInsertionStatus forceInsert(Record record,
-											InsertionReason insertionReason) {
-		return recordsCache.forceInsert(record, insertionReason);
+	public void reloadSchemaType(String recordType, boolean onlyLocally, boolean forceVolatileCacheClear) {
+		recordsCache.reloadSchemaType(recordType, onlyLocally, forceVolatileCacheClear);
 	}
 
 	@Override
-	public void invalidateRecordsOfType(String recordType) {
-		recordsCache.invalidateRecordsOfType(recordType);
+	public void removeFromAllCaches(List<String> recordIds) {
+		recordsCache.removeFromAllCaches(recordIds);
 	}
 
 	@Override
-	public void invalidate(List<String> recordIds) {
-		recordsCache.invalidate(recordIds);
-	}
-
-	@Override
-	public void invalidate(String recordId) {
-		recordsCache.invalidate(recordId);
+	public void removeFromAllCaches(String recordId) {
+		recordsCache.removeFromAllCaches(recordId);
 	}
 
 	@Override
@@ -151,15 +120,10 @@ public class TransactionRecordsCache implements RecordsCache {
 	}
 
 	@Override
-	public void invalidateAll() {
-		recordsCache.invalidateAll();
+	public void invalidateVolatileReloadPermanent(List<String> schemaTypes, boolean onlyLocally) {
+		recordsCache.invalidateVolatileReloadPermanent(schemaTypes, onlyLocally);
 	}
 
-
-	@Override
-	public void removeCache(String schemaType) {
-		recordsCache.removeCache(schemaType);
-	}
 
 	@Override
 	public boolean isConfigured(MetadataSchemaType type) {
@@ -172,32 +136,8 @@ public class TransactionRecordsCache implements RecordsCache {
 	}
 
 	@Override
-	public int getCacheObjectsCount() {
-		return recordsCache.getCacheObjectsCount();
-	}
-
-	@Override
-	public int getCacheObjectsCount(String typeCode) {
-		return recordsCache.getCacheObjectsCount(typeCode);
-	}
-
-	@Override
-	public long getCacheObjectsSize(String typeCode) {
-		return recordsCache.getCacheObjectsSize(typeCode);
-	}
-
-	@Override
 	public boolean isEmpty() {
 		return recordsCache.isEmpty();
 	}
 
-	@Override
-	public boolean isFullyLoaded(String schemaType) {
-		return recordsCache.isFullyLoaded(schemaType);
-	}
-
-	@Override
-	public void markAsFullyLoaded(String schemaType) {
-		recordsCache.markAsFullyLoaded(schemaType);
-	}
 }

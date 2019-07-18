@@ -1,6 +1,5 @@
 package com.constellio.model.services.factories;
 
-import com.constellio.data.conf.CacheType;
 import com.constellio.data.dao.managers.StatefullServiceDecorator;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.services.DataStoreTypesFactory;
@@ -44,7 +43,8 @@ import com.constellio.model.services.records.cache.CachedRecordServices;
 import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.records.cache.RecordsCachesMemoryImpl;
 import com.constellio.model.services.records.cache.eventBus.EventsBusRecordsCachesImpl;
-import com.constellio.model.services.records.cache.ignite.RecordsCachesIgniteImpl;
+import com.constellio.model.services.records.cache2.FileSystemRecordsValuesCacheDataStore;
+import com.constellio.model.services.records.cache2.RecordsCachesDataStore;
 import com.constellio.model.services.records.extractions.RecordPopulateServices;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -74,9 +74,11 @@ import com.constellio.model.services.users.SolrUserCredentialsManager;
 import com.constellio.model.services.users.UserPhotosServices;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.model.services.users.sync.LDAPUserSyncManager;
+import org.apache.commons.io.FileUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
+import java.io.File;
 import java.io.IOException;
 import java.security.Key;
 import java.security.NoSuchAlgorithmException;
@@ -86,6 +88,7 @@ import static com.constellio.data.conf.HashingEncoding.BASE64;
 
 public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLayerFactory {
 	private static final Logger LOGGER = LogManager.getLogger(ModelLayerFactoryImpl.class);
+
 	private final DataLayerFactory dataLayerFactory;
 	private final IOServicesFactory ioServicesFactory;
 	private final FoldersLocator foldersLocator;
@@ -136,9 +139,10 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 								 ModelLayerConfiguration modelLayerConfiguration,
 								 StatefullServiceDecorator statefullServiceDecorator,
 								 Delayed<ConstellioModulesManager> modulesManagerDelayed, String instanceName,
+								 short instanceId,
 								 Factory<ModelLayerFactory> modelLayerFactoryFactory) {
 
-		super(dataLayerFactory, statefullServiceDecorator, instanceName);
+		super(dataLayerFactory, statefullServiceDecorator, instanceName, instanceId);
 
 		dataLayerFactory.getEventBusManager().getEventDataSerializer().register(new RecordEventDataSerializerExtension(this));
 
@@ -146,19 +150,11 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 
 		this.dataLayerFactory = dataLayerFactory;
 		this.modelLayerFactoryFactory = modelLayerFactoryFactory;
-		if (dataLayerFactory.getDataLayerConfiguration().getCacheType() == CacheType.IGNITE) {
-			this.recordsCaches = new RecordsCachesIgniteImpl(this);
-		} else {
-
-			if (Toggle.EVENT_BUS_RECORDS_CACHE.isEnabled()) {
-				this.recordsCaches = new EventsBusRecordsCachesImpl(this);
-			} else {
-				this.recordsCaches = new RecordsCachesMemoryImpl(this);
-			}
-		}
 		this.modelLayerLogger = new ModelLayerLogger();
 		this.modelLayerExtensions = new ModelLayerExtensions();
 		this.modelLayerConfiguration = modelLayerConfiguration;
+		this.collectionsListManager = add(new CollectionsListManager(this));
+
 
 		this.foldersLocator = foldersLocator;
 
@@ -166,6 +162,7 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 
 		ConfigManager configManager = dataLayerFactory.getConfigManager();
 		ConstellioCacheManager cacheManager = dataLayerFactory.getLocalCacheManager();
+		this.searchConfigurationsManager = add(new SearchConfigurationsManager(configManager, collectionsListManager, cacheManager));
 		this.securityTokenManager = add(new SecurityTokenManager(this));
 		this.systemConfigurationsManager = add(
 				new SystemConfigurationsManager(this, configManager, modulesManagerDelayed,
@@ -173,14 +170,32 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 		this.ioServicesFactory = dataLayerFactory.getIOServicesFactory();
 
 		this.forkParsers = add(new ForkParsers(modelLayerConfiguration.getForkParsersPoolSize()));
-		this.collectionsListManager = add(new CollectionsListManager(this));
+
 
 		this.batchProcessesManager = add(new BatchProcessesManager(this));
+
 		this.taxonomiesManager = add(
 				new TaxonomiesManager(configManager, newSearchServices(), batchProcessesManager, collectionsListManager,
-						recordsCaches, cacheManager, getSystemConfigs()));
+						cacheManager, getSystemConfigs()));
 
 		this.schemasManager = add(new MetadataSchemasManager(this, modulesManagerDelayed));
+
+		if (Toggle.USE_NEW_CACHE.isEnabled()) {
+			File workFolder = new FoldersLocator().getWorkFolder();
+			workFolder.mkdirs();
+			File fileSystemCacheFolder = new File(new FoldersLocator().getWorkFolder(), instanceName + "-cache.db");
+			FileUtils.deleteQuietly(fileSystemCacheFolder);
+			FileSystemRecordsValuesCacheDataStore fileSystemRecordsValuesCacheDataStore
+					= new FileSystemRecordsValuesCacheDataStore(fileSystemCacheFolder);
+
+			RecordsCachesDataStore memoryDataStore = new RecordsCachesDataStore(this);
+			this.recordsCaches = add(new EventsBusRecordsCachesImpl(this, fileSystemRecordsValuesCacheDataStore, memoryDataStore));
+
+		} else {
+			this.recordsCaches = new RecordsCachesMemoryImpl(this);
+		}
+
+
 		this.recordMigrationsManager = add(new RecordMigrationsManager(this));
 		this.batchProcessesController = add(
 				new BatchProcessController(this, modelLayerConfiguration.getNumberOfRecordsPerTask()));
@@ -216,7 +231,7 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 
 		taxonomiesSearchServicesCache = new EventBusTaxonomiesSearchServicesCache(new MemoryTaxonomiesSearchServicesCache(),
 				dataLayerFactory.getEventBusManager());
-		this.searchConfigurationsManager = add(new SearchConfigurationsManager(configManager, collectionsListManager, cacheManager));
+
 		this.synonymsConfigurationsManager = add(new SynonymsConfigurationsManager(configManager, collectionsListManager, cacheManager));
 
 	}
@@ -480,4 +495,5 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 	public TaxonomiesSearchServicesCache getTaxonomiesSearchServicesCache() {
 		return taxonomiesSearchServicesCache;
 	}
+
 }

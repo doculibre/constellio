@@ -1,7 +1,9 @@
 package com.constellio.model.services.records;
 
 import com.constellio.data.dao.dto.records.RecordDTO;
+import com.constellio.data.dao.dto.records.RecordDTOMode;
 import com.constellio.data.dao.dto.records.RecordDeltaDTO;
+import com.constellio.data.dao.dto.records.SolrRecordDTO;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.CollectionInfo;
@@ -74,7 +76,6 @@ public class RecordImpl implements Record {
 	private Map<String, Object> lazyTransientValues = new HashMap<String, Object>();
 	private Map<String, Object> eagerTransientValues = new HashMap<String, Object>();
 	private Map<String, Object> structuredValues;
-	private boolean fullyLoaded;
 	private boolean unmodifiable;
 	private CollectionInfo collectionInfo;
 
@@ -92,19 +93,17 @@ public class RecordImpl implements Record {
 		this.schemaTypeCode = SchemaUtils.getSchemaTypeCode(schemaCode);
 		this.version = -1;
 		this.recordDTO = null;
-		this.fullyLoaded = true;
 		this.collectionInfo = schema.getCollectionInfo();
 	}
 
-	private RecordImpl(RecordDTO recordDTO, CollectionInfo collectionInfo, Map<String, Object> eagerTransientValues,
-					   boolean fullyLoaded) {
-		this(recordDTO, collectionInfo, fullyLoaded);
+	private RecordImpl(RecordDTO recordDTO, CollectionInfo collectionInfo, Map<String, Object> eagerTransientValues) {
+		this(recordDTO, collectionInfo);
 		this.eagerTransientValues = new HashMap<>(eagerTransientValues);
 	}
 
 	private RecordImpl(RecordDTO recordDTO, CollectionInfo collectionInfo, Map<String, Object> eagerTransientValues,
-					   boolean fullyLoaded, boolean unmodifiable) {
-		this(recordDTO, collectionInfo, fullyLoaded);
+					   boolean unmodifiable) {
+		this(recordDTO, collectionInfo);
 		this.eagerTransientValues = new HashMap<>(eagerTransientValues);
 		this.unmodifiable = unmodifiable;
 		if (unmodifiable) {
@@ -113,19 +112,10 @@ public class RecordImpl implements Record {
 	}
 
 	public RecordImpl(MetadataSchema schema, RecordDTO recordDTO) {
-		this(schema, recordDTO, true);
-	}
-
-	public RecordImpl(MetadataSchema schema, RecordDTO recordDTO, boolean fullyLoaded) {
-		this(recordDTO, schema.getCollectionInfo(), fullyLoaded);
+		this(recordDTO, schema.getCollectionInfo());
 	}
 
 	public RecordImpl(RecordDTO recordDTO, CollectionInfo collectionInfo) {
-		this(recordDTO, collectionInfo, true);
-	}
-
-	public RecordImpl(RecordDTO recordDTO, CollectionInfo collectionInfo, boolean fullyLoaded) {
-		this.fullyLoaded = fullyLoaded;
 		this.id = recordDTO.getId();
 		this.version = recordDTO.getVersion();
 		this.schemaCode = (String) recordDTO.getFields().get("schema_s");
@@ -139,8 +129,13 @@ public class RecordImpl implements Record {
 		this.collectionInfo = collectionInfo;
 	}
 
-	public boolean isFullyLoaded() {
-		return fullyLoaded;
+	public boolean isSummary() {
+		return recordDTO.getLoadingMode() == RecordDTOMode.SUMMARY;
+	}
+
+	@Override
+	public RecordDTOMode getLoadedFieldsMode() {
+		return recordDTO.getLoadingMode();
 	}
 
 	public Record updateAutomaticValue(Metadata metadata, Object value) {
@@ -687,9 +682,12 @@ public class RecordImpl implements Record {
 
 		Map<String, Object> fields = new HashMap<String, Object>();
 
+		RecordDTOMode mode = RecordDTOMode.FULLY_LOADED;
 		if (recordDTO != null) {
 			fields.putAll(recordDTO.getFields());
+			mode = recordDTO.getLoadingMode();
 		}
+
 
 		for (Map.Entry<String, Object> entry : modifiedValues.entrySet()) {
 			String metadataAtomicCode = new SchemaUtils().getLocalCodeFromDataStoreCode(entry.getKey());
@@ -729,7 +727,7 @@ public class RecordImpl implements Record {
 		fields.put("collection_s", collection);
 		fields.put("estimatedSize_i", RecordUtils.estimateRecordSize(fields, copyfields));
 
-		return lastCreatedRecordDTO = new RecordDTO(id, version, null, fields, copyfields);
+		return lastCreatedRecordDTO = new SolrRecordDTO(id, version, fields, copyfields, mode);
 
 	}
 
@@ -871,9 +869,6 @@ public class RecordImpl implements Record {
 		if (disconnected != record.disconnected) {
 			return false;
 		}
-		if (fullyLoaded != record.fullyLoaded) {
-			return false;
-		}
 		if (modifiedValues != null ? !modifiedValues.equals(record.modifiedValues) : record.modifiedValues != null) {
 			return false;
 		}
@@ -886,9 +881,36 @@ public class RecordImpl implements Record {
 		if (!id.equals(record.id)) {
 			return false;
 		}
-		if (structuredValues != null ? !structuredValues.equals(record.structuredValues) : record.structuredValues != null) {
-			return false;
+
+		if (this.structuredValues != null) {
+			for (Map.Entry<String, Object> entry : this.structuredValues.entrySet()) {
+				if (entry.getValue() instanceof ModifiableStructure) {
+					if (((ModifiableStructure) entry.getValue()).isDirty()) {
+
+						if (record.structuredValues == null || !entry.getValue().equals(
+								record.structuredValues.get(entry.getKey()))) {
+							return false;
+
+						}
+					}
+				}
+			}
 		}
+
+		if (record.structuredValues != null) {
+			for (Map.Entry<String, Object> entry : record.structuredValues.entrySet()) {
+				if (entry.getValue() instanceof ModifiableStructure) {
+					if (((ModifiableStructure) entry.getValue()).isDirty()) {
+						if (this.structuredValues == null || !entry.getValue().equals(
+								this.structuredValues.get(entry.getKey()))) {
+							return false;
+
+						}
+					}
+				}
+			}
+		}
+
 
 		return true;
 	}
@@ -902,7 +924,6 @@ public class RecordImpl implements Record {
 		result = 31 * result + (int) (version ^ (version >>> 32));
 		result = 31 * result + (disconnected ? 1 : 0);
 		result = 31 * result + (structuredValues != null ? structuredValues.hashCode() : 0);
-		result = 31 * result + (fullyLoaded ? 1 : 0);
 		return result;
 	}
 
@@ -998,6 +1019,11 @@ public class RecordImpl implements Record {
 	}
 
 	@Override
+	public RecordDTOMode getRecordDTOMode() {
+		return recordDTO == null ? RecordDTOMode.FULLY_LOADED : recordDTO.getLoadingMode();
+	}
+
+	@Override
 	public String getCollection() {
 		return collection;
 	}
@@ -1032,7 +1058,7 @@ public class RecordImpl implements Record {
 
 	@Override
 	public boolean isActive() {
-		return Boolean.TRUE != get(Schemas.LOGICALLY_DELETED_STATUS);
+		return !Boolean.TRUE.equals(get(Schemas.LOGICALLY_DELETED_STATUS));
 	}
 
 	@Override
@@ -1045,7 +1071,7 @@ public class RecordImpl implements Record {
 		if (recordDTO == null) {
 			throw new RecordImplException_UnsupportedOperationOnUnsavedRecord("getCopyOfOriginalRecord", id);
 		}
-		return new RecordImpl(recordDTO, collectionInfo, eagerTransientValues, fullyLoaded);
+		return new RecordImpl(recordDTO, collectionInfo, eagerTransientValues);
 	}
 
 	@Override
@@ -1055,12 +1081,13 @@ public class RecordImpl implements Record {
 		}
 
 		if (unmodifiableCopyOfOriginalRecord == null) {
-			unmodifiableCopyOfOriginalRecord = new RecordImpl(recordDTO, collectionInfo, eagerTransientValues, fullyLoaded, true);
+			unmodifiableCopyOfOriginalRecord = new RecordImpl(recordDTO, collectionInfo, eagerTransientValues, true);
 		}
 		return unmodifiableCopyOfOriginalRecord;
 	}
 
 	@Override
+	@Deprecated
 	public Record getCopyOfOriginalRecordKeepingOnly(List<Metadata> metadatas) {
 		if (recordDTO == null) {
 			throw new RecordImplException_UnsupportedOperationOnUnsavedRecord("getCopyOfOriginalRecord", id);

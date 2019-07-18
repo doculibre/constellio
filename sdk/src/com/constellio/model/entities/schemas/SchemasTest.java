@@ -100,22 +100,22 @@ public class SchemasTest {
 	@Test
 	public void validateGetFrenchAnalyzedfield() {
 
-		Metadata textSingleValue = new Metadata("parsedContent_t", MetadataValueType.TEXT, false);
+		Metadata textSingleValue = new Metadata((short)0,"parsedContent_t", MetadataValueType.TEXT, false);
 		assertThat(textSingleValue.getAnalyzedField("fr").getDataStoreCode()).isEqualTo("parsedContent_t_fr");
 
-		Metadata textMultiValue = new Metadata("parsedContents_txt", MetadataValueType.TEXT, true);
+		Metadata textMultiValue = new Metadata((short)0,"parsedContents_txt", MetadataValueType.TEXT, true);
 		assertThat(textMultiValue.getAnalyzedField("fr").getDataStoreCode()).isEqualTo("parsedContents_txt_fr");
 
-		Metadata stringSingleValue = new Metadata("meta_s", MetadataValueType.TEXT, false);
+		Metadata stringSingleValue = new Metadata((short)0,"meta_s", MetadataValueType.TEXT, false);
 		assertThat(stringSingleValue.getAnalyzedField("fr").getDataStoreCode()).isEqualTo("meta_t_fr");
 
-		Metadata stringMultivalue = new Metadata("meta_ss", MetadataValueType.TEXT, true);
+		Metadata stringMultivalue = new Metadata((short)0,"meta_ss", MetadataValueType.TEXT, true);
 		assertThat(stringMultivalue.getAnalyzedField("fr").getDataStoreCode()).isEqualTo("meta_txt_fr");
 
-		Metadata contentSingleValue = new Metadata("content_s", MetadataValueType.CONTENT, false);
+		Metadata contentSingleValue = new Metadata((short)0,"content_s", MetadataValueType.CONTENT, false);
 		assertThat(contentSingleValue.getAnalyzedField("fr").getDataStoreCode()).isEqualTo("content_txt_fr");
 
-		Metadata contentMultiValue = new Metadata("contents_ss", MetadataValueType.CONTENT, true);
+		Metadata contentMultiValue = new Metadata((short)0,"contents_ss", MetadataValueType.CONTENT, true);
 		assertThat(contentMultiValue.getAnalyzedField("fr").getDataStoreCode()).isEqualTo("contents_txt_fr");
 
 	}

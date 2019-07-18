@@ -63,4 +63,5 @@ public interface ModelLayerConfiguration {
 
 	int getReindexingThreadBatchSize();
 
+	long getRecordsVolatileCacheMemorySize();
 }

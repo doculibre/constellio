@@ -914,7 +914,7 @@ public class DocumentRestfulServicePUTAcceptanceTest extends BaseDocumentRestful
 		minDocumentToUpdate.setDirectAces(singletonList(AceDto.builder().principals(singleton(alice))
 				.permissions(singleton(READ)).endDate(toDateString(new LocalDate())).build()));
 		Response response = doPutQuery(minDocumentToUpdate, null);
-		assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
+		assertThat(response.getStatus()).describedAs(response.toString()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE).isEqualTo(i18n.$(new RequiredParameterException("ace.startDate").getValidationError()));

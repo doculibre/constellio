@@ -83,6 +83,9 @@ public class PropertiesModelLayerConfiguration extends PropertiesConfiguration i
 			setDuration("unreferencedContentsThread.delayBeforeDeleting", duration);
 		}
 
+		public void setRecordsVolatileCacheMemorySize(String volatileCacheSizeInMemory) {
+			setString("dao.cache.volatileCacheSizeInMemory", volatileCacheSizeInMemory);
+		}
 	}
 
 	@Override
@@ -210,6 +213,12 @@ public class PropertiesModelLayerConfiguration extends PropertiesConfiguration i
 	public boolean isBatchProcessesThreadEnabled() {
 		return batchProcessesEnabled;
 	}
+
+
+	public long getRecordsVolatileCacheMemorySize() {
+		return getBytesSize("dao.cache.volatileCacheSizeInMemory", "250M");
+	}
+
 
 	@Override
 	public Factory<EncryptionServices> getEncryptionServicesFactory() {

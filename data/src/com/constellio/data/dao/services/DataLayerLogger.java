@@ -3,8 +3,10 @@ package com.constellio.data.dao.services;
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordDeltaDTO;
 import com.constellio.data.dao.dto.records.TransactionDTO;
+import com.constellio.data.dao.dto.records.TransactionResponseDTO;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransaction;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.common.params.SolrParams;
@@ -129,22 +131,41 @@ public class DataLayerLogger {
 		return StringUtils.join(lines, "\n");
 	}
 
-	public void logTransaction(TransactionDTO transaction) {
+	public void logTransaction(TransactionDTO transaction, TransactionResponseDTO response) {
 		StringBuilder logBuilder = new StringBuilder();
 
+		boolean printStack = false;
+
 		for (RecordDTO recordDTO : transaction.getNewRecords()) {
-			if (logAllTransactions || monitoredIds.contains(recordDTO.getId())) {
-				logBuilder.append("\n\t" + toString(recordDTO));
+			if (logAllTransactions) {
+				logBuilder.append("\n\t" + toString(recordDTO, response.getNewDocumentVersion(recordDTO.getId())));
+			}
+
+			if (monitoredIds.contains(recordDTO.getId())) {
+				printStack = true;
+				logBuilder.append("\n\t" + toString(recordDTO, response.getNewDocumentVersion(recordDTO.getId())));
 			}
 		}
 
 		for (RecordDeltaDTO recordDeltaDTO : transaction.getModifiedRecords()) {
-			if (logAllTransactions || monitoredIds.contains(recordDeltaDTO.getId())) {
-				logBuilder.append("\n\t" + toString(recordDeltaDTO));
+			if (logAllTransactions) {
+				logBuilder.append("\n\t" + toString(recordDeltaDTO, response.getNewDocumentVersion(recordDeltaDTO.getId())));
+			}
+		}
+
+		for (RecordDeltaDTO recordDeltaDTO : transaction.getModifiedRecords()) {
+			if (monitoredIds.contains(recordDeltaDTO.getId())) {
+				printStack = true;
+				logBuilder.append("\n\t" + toString(recordDeltaDTO, response.getNewDocumentVersion(recordDeltaDTO.getId())));
 			}
 		}
 
 		String log = logBuilder.toString();
+		if (printStack) {
+			log += "\n" + ExceptionUtils.getStackTrace(new RuntimeException());
+		}
+
+
 		if (!log.isEmpty()) {
 			LOGGER.info("Transaction #" + transaction.getTransactionId() + log);
 		}
@@ -175,10 +196,10 @@ public class DataLayerLogger {
 
 	private static List<String> hiddenFieldsInLogs = asList("modifiedOn_dt", "createdOn_dt");
 
-	private String toString(RecordDeltaDTO recordDeltaDTO) {
+	private String toString(RecordDeltaDTO recordDeltaDTO, long newVersion) {
 		StringBuilder log = new StringBuilder();
 
-		log.append(recordDeltaDTO.getId() + ">>  ");
+		log.append(recordDeltaDTO.getId() + "@" + recordDeltaDTO.getFromVersion() + " >> " + newVersion + "\t");
 		for (String modifiedField : recordDeltaDTO.getModifiedFields().keySet()) {
 			if (!hiddenFieldsInLogs.contains(modifiedField)) {
 				log.append(modifiedField);
@@ -197,10 +218,10 @@ public class DataLayerLogger {
 		return log.toString();
 	}
 
-	private String toString(RecordDTO recordDTO) {
+	private String toString(RecordDTO recordDTO, long newVersion) {
 		StringBuilder log = new StringBuilder();
 
-		log.append(recordDTO.getId() + ">>  ");
+		log.append(recordDTO.getId() + "@" + recordDTO.getVersion() + " >> " + newVersion + "\t");
 		for (Map.Entry<String, Object> field : recordDTO.getFields().entrySet()) {
 			if (!hiddenFieldsInLogs.contains(field.getKey())) {
 				log.append(field.getKey());

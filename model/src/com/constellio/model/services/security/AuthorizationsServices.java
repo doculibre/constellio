@@ -358,7 +358,7 @@ public class AuthorizationsServices {
 			try {
 				transaction.add(recordServices.getDocumentById(grantedOnRecord));
 			} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
-				LOGGER.info("Failed to invalidate hasChildrenCache after deletion of authorization", e);
+				LOGGER.info("Failed to removeFromAllCaches hasChildrenCache after deletion of authorization", e);
 			}
 		}
 
@@ -368,7 +368,7 @@ public class AuthorizationsServices {
 			////				refreshCaches(recordServices.getDocumentById(grantedOnRecord),
 			////						new ArrayList<String>(), request.get);
 			//			} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
-			//				LOGGER.info("Failed to invalidate hasChildrenCache after deletion of authorization", e);
+			//				LOGGER.info("Failed to removeFromAllCaches hasChildrenCache after deletion of authorization", e);
 			//			}
 
 		}
@@ -444,7 +444,7 @@ public class AuthorizationsServices {
 
 			try {
 				Record target = recordServices.getDocumentById(removedAuthorization.getTarget());
-				if (request.isReattachIfLastAuthDeleted() && Boolean.TRUE == target.get(Schemas.IS_DETACHED_AUTHORIZATIONS)) {
+				if (request.isReattachIfLastAuthDeleted() && Boolean.TRUE.equals(target.get(Schemas.IS_DETACHED_AUTHORIZATIONS))) {
 					transaction.recordsToResetIfNoAuths.add(target.getId());
 				}
 			} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {

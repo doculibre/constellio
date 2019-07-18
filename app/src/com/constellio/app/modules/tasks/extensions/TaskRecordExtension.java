@@ -112,7 +112,7 @@ public class TaskRecordExtension extends RecordExtension {
 		if (event.getRecord().getSchemaCode().startsWith(Task.SCHEMA_TYPE)) {
 			Task task = tasksSchema.wrapTask(event.getRecord());
 			sendDeletionEventToFollowers(task);
-			if (Boolean.TRUE != task.getReadByUser()) {
+			if (!Boolean.TRUE.equals(task.getReadByUser())) {
 				invalidateAllAssigneesForUnreadTasksCache(task);
 			}
 			List<String> finishedOrClosedStatuses = tasksSchema.getFinishedOrClosedStatusesIds();
@@ -126,7 +126,7 @@ public class TaskRecordExtension extends RecordExtension {
 	public void recordPhysicallyDeleted(RecordPhysicalDeletionEvent event) {
 		if (event.getRecord().getSchemaCode().startsWith(Task.SCHEMA_TYPE)) {
 			Task task = tasksSchema.wrapTask(event.getRecord());
-			if (Boolean.TRUE != task.getReadByUser()) {
+			if (!Boolean.TRUE.equals(task.getReadByUser())) {
 				invalidateAllAssigneesForUnreadTasksCache(task);
 			}
 			List<String> finishedOrClosedStatuses = tasksSchema.getFinishedOrClosedStatusesIds();
@@ -186,7 +186,7 @@ public class TaskRecordExtension extends RecordExtension {
 	public void recordRestored(RecordRestorationEvent event) {
 		if (event.getRecord().getSchemaCode().startsWith(Task.SCHEMA_TYPE)) {
 			Task task = tasksSchema.wrapTask(event.getRecord());
-			if (Boolean.TRUE != task.getReadByUser()) {
+			if (!Boolean.TRUE.equals(task.getReadByUser())) {
 				invalidateAllAssigneesForUnreadTasksCache(task);
 			}
 			List<String> finishedOrClosedStatuses = tasksSchema.getFinishedOrClosedStatusesIds();

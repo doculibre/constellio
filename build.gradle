@@ -30,7 +30,7 @@ subprojects {
     subprojects {
         sonarqube {
             properties {
-               property "sonar.sources", "src"
+                property "sonar.sources", "src"
             }
         }
     }
@@ -94,6 +94,8 @@ subprojects {
         compile 'com.nimbusds:oauth2-oidc-sdk:4.5'
         compile group: 'com.github.bbottema', name: 'emailaddress-rfc2822', version: '1.1.2'
         compile group: 'net.markenwerk', name: 'utils-mail-dkim', version: '1.1.10'
+        compile group: 'org.mapdb', name: 'mapdb', version: '3.0.7'
+        compile group: 'com.carrotsearch', name: 'hppc', version: '0.8.1'
 
         compileOnly "org.projectlombok:lombok:1.18.2"
         annotationProcessor "org.projectlombok:lombok:1.18.2"
@@ -103,7 +105,7 @@ subprojects {
     }
 
     configurations {
-        compile.exclude group: 'org.apache.cxf', module:'cxf-rt-rs-client'
+        compile.exclude group: 'org.apache.cxf', module: 'cxf-rt-rs-client'
         compile.exclude group: 'asm', module: 'asm'
     }
 

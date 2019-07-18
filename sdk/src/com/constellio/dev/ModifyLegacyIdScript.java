@@ -38,8 +38,6 @@ public class ModifyLegacyIdScript {
 		RecordServices recordServices = modelLayerFactory.newRecordServices();
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(COLLECTION, appLayerFactory);
 
-		modelLayerFactory.getRecordsCaches().getCache(COLLECTION).removeCache(rm.documentSchemaType().getCode());
-
 		long foldersCount = searchServices.getResultsCount(from(rm.folderSchemaType()).returnAll());
 		long documentsCount = searchServices.getResultsCount(from(rm.documentSchemaType()).returnAll());
 		System.out.println("Nombre de dossiers : " + foldersCount);

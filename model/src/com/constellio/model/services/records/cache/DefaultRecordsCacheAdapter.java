@@ -4,7 +4,6 @@ import com.constellio.data.dao.services.cache.InsertionReason;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
 import java.util.Collection;
 import java.util.List;
@@ -29,18 +28,8 @@ public class DefaultRecordsCacheAdapter implements RecordsCache {
 		return nestedRecordsCache.isCached(id);
 	}
 
-	public List<CacheInsertionStatus> insert(List<Record> record, InsertionReason reason) {
+	public List<CacheInsertionResponse> insert(List<Record> record, InsertionReason reason) {
 		return nestedRecordsCache.insert(record, reason);
-	}
-
-	public void insertQueryResults(LogicalSearchQuery query,
-								   List<Record> records) {
-		nestedRecordsCache.insertQueryResults(query, records);
-	}
-
-	public void insertQueryResultIds(LogicalSearchQuery query,
-									 List<String> recordIds) {
-		nestedRecordsCache.insertQueryResultIds(query, recordIds);
 	}
 
 	public List<Record> getAllValues(String schemaType) {
@@ -51,33 +40,20 @@ public class DefaultRecordsCacheAdapter implements RecordsCache {
 		return nestedRecordsCache.getAllValuesInUnmodifiableState(schemaType);
 	}
 
-	public List<Record> getQueryResults(
-			LogicalSearchQuery query) {
-		return nestedRecordsCache.getQueryResults(query);
-	}
-
-	public List<String> getQueryResultIds(LogicalSearchQuery query) {
-		return nestedRecordsCache.getQueryResultIds(query);
-	}
-
-	public CacheInsertionStatus insert(Record record, InsertionReason reason) {
+	public CacheInsertionResponse insert(Record record, InsertionReason reason) {
 		return nestedRecordsCache.insert(record, reason);
 	}
 
-	public CacheInsertionStatus forceInsert(Record record, InsertionReason reason) {
-		return nestedRecordsCache.forceInsert(record, reason);
+	public void reloadSchemaType(String recordType, boolean onlyLocally, boolean forceVolatileCacheClear) {
+		nestedRecordsCache.reloadSchemaType(recordType, onlyLocally);
 	}
 
-	public void invalidateRecordsOfType(String recordType) {
-		nestedRecordsCache.invalidateRecordsOfType(recordType);
+	public void removeFromAllCaches(List<String> recordIds) {
+		nestedRecordsCache.removeFromAllCaches(recordIds);
 	}
 
-	public void invalidate(List<String> recordIds) {
-		nestedRecordsCache.invalidate(recordIds);
-	}
-
-	public void invalidate(String recordId) {
-		nestedRecordsCache.invalidate(recordId);
+	public void removeFromAllCaches(String recordId) {
+		nestedRecordsCache.removeFromAllCaches(recordId);
 	}
 
 	public void configureCache(CacheConfig cacheConfig) {
@@ -92,8 +68,8 @@ public class DefaultRecordsCacheAdapter implements RecordsCache {
 		return nestedRecordsCache.getCacheConfigOf(schemaOrTypeCode);
 	}
 
-	public void invalidateAll() {
-		nestedRecordsCache.invalidateAll();
+	public void invalidateVolatileReloadPermanent(List<String> schemaTypes, boolean onlyLocally) {
+		nestedRecordsCache.invalidateVolatileReloadPermanent(schemaTypes, onlyLocally);
 	}
 
 	public Record getByMetadata(Metadata metadata,
@@ -106,10 +82,6 @@ public class DefaultRecordsCacheAdapter implements RecordsCache {
 		return nestedRecordsCache.getSummaryByMetadata(metadata, value);
 	}
 
-	public void removeCache(String schemaType) {
-		nestedRecordsCache.removeCache(schemaType);
-	}
-
 	public boolean isConfigured(MetadataSchemaType type) {
 		return nestedRecordsCache.isConfigured(type);
 	}
@@ -118,27 +90,9 @@ public class DefaultRecordsCacheAdapter implements RecordsCache {
 		return nestedRecordsCache.isConfigured(typeCode);
 	}
 
-	public int getCacheObjectsCount() {
-		return nestedRecordsCache.getCacheObjectsCount();
-	}
-
-	public int getCacheObjectsCount(String typeCode) {
-		return nestedRecordsCache.getCacheObjectsCount(typeCode);
-	}
-
-	public long getCacheObjectsSize(String typeCode) {
-		return nestedRecordsCache.getCacheObjectsSize(typeCode);
-	}
 
 	public boolean isEmpty() {
 		return nestedRecordsCache.isEmpty();
 	}
 
-	public boolean isFullyLoaded(String schemaType) {
-		return nestedRecordsCache.isFullyLoaded(schemaType);
-	}
-
-	public void markAsFullyLoaded(String schemaType) {
-		nestedRecordsCache.markAsFullyLoaded(schemaType);
-	}
 }

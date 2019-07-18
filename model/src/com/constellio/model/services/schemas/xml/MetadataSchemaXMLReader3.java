@@ -9,6 +9,7 @@ import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataTransiency;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.RecordCacheType;
 import com.constellio.model.entities.schemas.RegexConfig;
 import com.constellio.model.entities.schemas.RegexConfig.RegexConfigType;
 import com.constellio.model.entities.schemas.StructureFactory;
@@ -95,9 +96,15 @@ public class MetadataSchemaXMLReader3 {
 											   DataStoreTypesFactory typesFactory,
 											   ModelLayerFactory modelLayerFactory) {
 		String code = getCodeValue(element);
+		String id = element.getAttributeValue("id");
+
 		Map<Language, String> labels = readLabels(element);
 		MetadataSchemaTypeBuilder schemaTypeBuilder = typesBuilder.createNewSchemaType(code, false)
 				.setLabels(labels);
+
+		if (id != null) {
+			schemaTypeBuilder.setId(Short.valueOf(id));
+		}
 
 		MetadataSchemaBuilder collectionSchema = "collection".equals(code) ?
 												 null : typesBuilder.getSchema(Collection.DEFAULT_SCHEMA);
@@ -108,9 +115,42 @@ public class MetadataSchemaXMLReader3 {
 		schemaTypeBuilder.setSmallCode(element.getAttributeValue("smallCode"));
 		schemaTypeBuilder.setDataStore(element.getAttributeValue("dataStore"));
 
+		String cacheTypeStrValue = element.getAttributeValue("cache");
+		RecordCacheType cacheType;
+		if (cacheTypeStrValue == null) {
+			if ("folder".equals(code)) {
+				cacheType = RecordCacheType.SUMMARY_CACHED_WITH_VOLATILE;
+
+			} else if ("document".equals(code)) {
+				cacheType = RecordCacheType.SUMMARY_CACHED_WITH_VOLATILE;
+
+			} else if ("userTask".equals(code)) {
+				cacheType = RecordCacheType.SUMMARY_CACHED_WITH_VOLATILE;
+
+			} else if ("connectorSmbDocument".equals(code)) {
+				cacheType = RecordCacheType.SUMMARY_CACHED_WITH_VOLATILE;
+
+			} else if ("connectorHttpDocument".equals(code)) {
+				cacheType = RecordCacheType.SUMMARY_CACHED_WITH_VOLATILE;
+
+			} else if ("event".equals(code)) {
+				cacheType = RecordCacheType.NOT_CACHED;
+
+			} else if ("savedSearch".equals(code)) {
+				cacheType = RecordCacheType.HOOK_ONLY;
+
+			} else {
+				cacheType = RecordCacheType.FULLY_CACHED;
+			}
+		} else {
+			cacheType = (RecordCacheType) EnumWithSmallCodeUtils.toEnumWithSmallCode(RecordCacheType.class, cacheTypeStrValue);
+		}
+		schemaTypeBuilder.setRecordCacheType(cacheType);
+
+
 		parseDefaultSchema(element, schemaTypeBuilder, typesBuilder, collectionSchema);
 		parseCustomSchemas(element, schemaTypeBuilder, collectionSchema);
-		return schemaTypeBuilder.build(typesFactory, modelLayerFactory);
+		return schemaTypeBuilder.build(typesFactory, typesBuilder, modelLayerFactory);
 	}
 
 	private void parseCustomSchemas(Element root, MetadataSchemaTypeBuilder schemaTypeBuilder,
@@ -127,6 +167,12 @@ public class MetadataSchemaXMLReader3 {
 		schemaBuilder.setLabels(readLabels(schemaElement));
 		schemaBuilder.setUndeletable(getBooleanFlagValueWithTrueAsDefaultValue(schemaElement, "undeletable"));
 		schemaBuilder.setActive(getBooleanFlagValueWithTrueAsDefaultValue(schemaElement, "active"));
+
+		String id = schemaElement.getAttributeValue("id");
+		if (id != null) {
+			schemaBuilder.setId(Short.valueOf(id));
+		}
+
 		for (Element metadataElement : schemaElement.getChildren("m")) {
 			parseMetadata(schemaBuilder, metadataElement, collectionSchema);
 		}
@@ -233,12 +279,21 @@ public class MetadataSchemaXMLReader3 {
 			inheriteGlobalMetadata = true;
 		}
 
+		String idValue = metadataElement.getAttributeValue("id");
+		if (idValue != null) {
+			metadataBuilder.setId(Short.valueOf(idValue));
+
+		} else if (globalMetadataInCollectionSchema != null) {
+			metadataBuilder.setId(globalMetadataInCollectionSchema.getId());
+		}
+
 		Map<Language, String> xmlLabels = readLabels(metadataElement);
 		if (inheriteGlobalMetadata && (xmlLabels == null || xmlLabels.isEmpty())) {
 			metadataBuilder.setLabels(globalMetadataInCollectionSchema.getLabels());
 		} else {
 			metadataBuilder.setLabels(xmlLabels);
 		}
+
 
 		List<String> validatorsClassNames = parseValidators(metadataElement, globalMetadataInCollectionSchema);
 		for (String validatorsClassName : validatorsClassNames) {
@@ -263,6 +318,14 @@ public class MetadataSchemaXMLReader3 {
 			metadataBuilder.setUndeletable(getBooleanFlagValueWithTrueAsDefaultValue(metadataElement, "undeletable"));
 		}
 
+		String isCacheIndexStringValue = metadataElement.getAttributeValue("cacheIndex");
+
+		if(inheriteGlobalMetadata && isCacheIndexStringValue == null) {
+			metadataBuilder.setCacheIndex(false);
+		} else {
+			metadataBuilder.setCacheIndex(readBooleanWithDefaultValue(isCacheIndexStringValue, false));
+		}
+
 		String systemReservedStringValue = metadataElement.getAttributeValue("systemReserved");
 		if (inheriteGlobalMetadata && systemReservedStringValue == null) {
 			metadataBuilder.setSystemReserved(globalMetadataInCollectionSchema.isSystemReserved());
@@ -277,6 +340,7 @@ public class MetadataSchemaXMLReader3 {
 		} else {
 			metadataBuilder.setDefaultRequirement(readBooleanWithDefaultValue(defaultRequirementStringValue, false));
 		}
+
 
 		String essentialStringValue = metadataElement.getAttributeValue("essential");
 		if (inheriteGlobalMetadata && essentialStringValue == null) {
@@ -688,6 +752,11 @@ public class MetadataSchemaXMLReader3 {
 									MetadataSchemaTypesBuilder typesBuilder, MetadataSchemaBuilder collectionSchema) {
 		Element defaultSchemaElement = root.getChild("defaultSchema");
 		MetadataSchemaBuilder defaultSchemaBuilder = schemaTypeBuilder.getDefaultSchema();
+
+		String id = defaultSchemaElement.getAttributeValue("id");
+		if (id != null) {
+			defaultSchemaBuilder.setId(Short.valueOf(id));
+		}
 
 		defaultSchemaBuilder.setLabels(readLabels(defaultSchemaElement));
 		//	new CommonMetadataBuilder().addCommonMetadataToExistingSchema(defaultSchemaBuilder, typesBuilder);

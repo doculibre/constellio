@@ -6,6 +6,7 @@ import com.constellio.app.ui.framework.data.CollectionVODataProvider.CollectionV
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.frameworks.validation.ValidationException;
+import com.constellio.model.services.collections.exceptions.NoMoreCollectionAvalibleException;
 import com.vaadin.data.Validator;
 import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
@@ -133,6 +134,8 @@ public class AddEditCollectionViewImpl extends BaseViewImpl implements AddEditCo
 					presenter.saveButtonClicked(collectionVO);
 				} catch (AddEditCollectionPresenterException addEditCollectionPresenterException) {
 					showErrorMessage(addEditCollectionPresenterException.getMessage());
+				} catch (NoMoreCollectionAvalibleException noMoreCollectionAvalible) {
+					showErrorMessage($("com.constellio.app.ui.pages.management.collections.AddEditCollectionViewImpl_NoMoreCollectionAvalible"));
 				}
 			}
 

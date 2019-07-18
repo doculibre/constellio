@@ -84,7 +84,7 @@ public class MetadataSchemaXMLReader2 {
 		schemaTypeBuilder.setInTransactionLog(getBooleanFlagValueWithTrueAsDefaultValue(element, "inTransactionLog"));
 		parseDefaultSchema(element, schemaTypeBuilder, typesBuilder, collectionSchema);
 		parseCustomSchemas(element, schemaTypeBuilder, collectionSchema);
-		return schemaTypeBuilder.build(typesFactory, modelLayerFactory);
+		return schemaTypeBuilder.build(typesFactory, typesBuilder, modelLayerFactory);
 	}
 
 	private void parseCustomSchemas(Element root, MetadataSchemaTypeBuilder schemaTypeBuilder,
@@ -100,6 +100,8 @@ public class MetadataSchemaXMLReader2 {
 		MetadataSchemaBuilder schemaBuilder = schemaTypeBuilder.createCustomSchema(getCodeValue(schemaElement));
 		schemaBuilder.addLabel(Language.French, getLabelValue(schemaElement));
 		schemaBuilder.setUndeletable(getBooleanFlagValueWithTrueAsDefaultValue(schemaElement, "undeletable"));
+
+
 		for (Element metadataElement : schemaElement.getChildren("m")) {
 			parseMetadata(schemaBuilder, metadataElement, collectionSchema);
 		}

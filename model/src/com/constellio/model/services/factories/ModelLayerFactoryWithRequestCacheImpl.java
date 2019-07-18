@@ -353,6 +353,11 @@ public class ModelLayerFactoryWithRequestCacheImpl implements ModelLayerFactory 
 	}
 
 	@Override
+	public short getInstanceId() {
+		return modelLayerFactory.getInstanceId();
+	}
+
+	@Override
 	public String getInstanceName() {
 		return modelLayerFactory.getInstanceName();
 	}

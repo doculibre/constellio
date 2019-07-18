@@ -180,7 +180,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		try {
 			((RecordImpl) search.getWrappedRecord()).markAsSaved(search.getVersion() + 1, search.getSchema());
 			modelLayerFactory.getRecordsCaches().getCache(header.getCollection())
-					.forceInsert(search.getWrappedRecord(), WAS_MODIFIED);
+					.insert(search.getWrappedRecord(), WAS_MODIFIED);
 			return search;
 
 		} catch (Exception e) {

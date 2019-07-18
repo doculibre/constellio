@@ -14,17 +14,24 @@ import com.constellio.app.services.importExport.settings.model.ImportedType;
 import com.constellio.app.services.importExport.settings.model.ImportedValueList;
 import com.constellio.data.dao.managers.config.ConfigManagerRuntimeException;
 import com.constellio.model.entities.Language;
+import com.constellio.model.services.collections.CollectionsListManager;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import org.jdom2.Document;
 import org.jdom2.JDOMException;
 import org.jdom2.input.SAXBuilder;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.Mockito;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.when;
 
 public class SettingsXMLFileReaderRealTest extends SettingsImportServicesTestUtils {
 
@@ -35,15 +42,24 @@ public class SettingsXMLFileReaderRealTest extends SettingsImportServicesTestUti
 	private SettingsXMLFileReader reader2;
 	private SettingsXMLFileReader reader3;
 	private SettingsXMLFileReader reader4;
+	@Mock private CollectionsListManager collectionsListManager;
 
 	@Before
 	public void setup() {
 		document = getDocument("settings-input.xml");
 		document2 = getDocument("settings-input2.xml");
 		document3 = getDocument("settings-input3.xml");
-		reader = new SettingsXMLFileReader(document, zeCollection, getModelLayerFactory());
-		reader2 = new SettingsXMLFileReader(document2, zeCollection, getModelLayerFactory());
-		reader3 = new SettingsXMLFileReader(document3, zeCollection, getModelLayerFactory());
+
+		ModelLayerFactory modelLayerFactory = Mockito.spy(getModelLayerFactory());
+
+
+		when(modelLayerFactory.getCollectionsListManager()).thenReturn(collectionsListManager);
+		when(collectionsListManager.getCollectionLanguages(any())).thenReturn(Arrays.asList(Language.French.getCode()));
+
+
+		reader = new SettingsXMLFileReader(document, zeCollection, modelLayerFactory);
+		reader2 = new SettingsXMLFileReader(document2, zeCollection, modelLayerFactory);
+		reader3 = new SettingsXMLFileReader(document3, zeCollection, modelLayerFactory);
 
 		reader4 = new SettingsXMLFileReader(document3, null, getModelLayerFactory());
 	}

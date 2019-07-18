@@ -12,6 +12,14 @@ import java.io.File;
 import java.util.List;
 
 import static java.util.Arrays.asList;
+import com.constellio.model.services.collections.CollectionsListManager;
+import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Test;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class CoreMigrationTo_9_0_AcceptanceTest extends ConstellioTest {
@@ -31,11 +39,31 @@ public class CoreMigrationTo_9_0_AcceptanceTest extends ConstellioTest {
 		List<Role> roleList = rolesManager.getAllRoles(zeCollection);
 
 
-
 		getCurrentTestSession().getFactoriesTestFeatures().givenSystemInState(state);
 
-		for(Role role : roleList) {
+		for (Role role : roleList) {
 			assertThat(role.getOperationPermissions()).contains(CorePermissions.MODIFY_RECORDS_USING_BATCH_PROCESS);
+		}
+	}
+
+	@Test
+	public void whenMigratingTo9_0_0_ThenContentNeedingReconversionAreFlagged() {
+		givenTransactionLogIsEnabled();
+
+		getCurrentTestSession().getFactoriesTestFeatures()
+				.givenSystemInState(getTestResourceFile("withoutNewCacheIdSaveState.zip")).withPasswordsReset()
+				.withFakeEncryptionServices();
+
+		CollectionsListManager collectionsListManager = getModelLayerFactory().getCollectionsListManager();
+
+		Map<Byte, String> mapByteCollection = new HashMap<>();
+
+		for(String currentCollection : collectionsListManager.getCollections()) {
+			Byte collectionId = collectionsListManager.getCollectionId(currentCollection);
+
+			assertThat(mapByteCollection.get(collectionId)).isNull();
+
+			mapByteCollection.put(collectionId, currentCollection);
 		}
 	}
 }

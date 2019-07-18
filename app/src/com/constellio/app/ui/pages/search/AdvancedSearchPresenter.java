@@ -556,7 +556,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 			tmpSearchRecord = getTemporarySearchRecord();
 			if (tmpSearchRecord != null) {
 				SavedSearch savedSearch = new SavedSearch(tmpSearchRecord, types());
-				if (!Boolean.TRUE.equals(savedSearch.isTemporary())) {
+				if (!savedSearch.isTemporary()) {
 					tmpSearchRecord = recordServices()
 							.newRecordWithSchema(schema(SavedSearch.DEFAULT_SCHEMA), newRandomId());
 				}
@@ -580,7 +580,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 				.setPageLength(selectedPageLength);
 		try {
 			((RecordImpl) search.getWrappedRecord()).markAsSaved(search.getVersion() + 1, search.getSchema());
-			modelLayerFactory.getRecordsCaches().getCache(collection).forceInsert(search.getWrappedRecord(), WAS_MODIFIED);
+			modelLayerFactory.getRecordsCaches().getCache(collection).insert(search.getWrappedRecord(), WAS_MODIFIED);
 
 			//recordServices().update(search);
 			updateUIContext(search);

@@ -33,7 +33,7 @@ public class AttachedAncestorsCalculator extends AbstractMetadataValueCalculator
 	public List<String> calculate(CalculatorParameters parameters) {
 		SecurityModel securityModel = parameters.get(securityModelDependency);
 		HierarchyDependencyValue hierarchyDependencyValue = parameters.get(taxonomiesParam);
-		boolean isDetachedAuths = Boolean.TRUE == parameters.get(isDetachedAuthsParams);
+		boolean isDetachedAuths = Boolean.TRUE.equals(parameters.get(isDetachedAuthsParams));
 		boolean hasSecurity = parameters.getSchemaType().hasSecurity();
 
 		List<String> ancestors = new ArrayList<>();

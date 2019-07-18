@@ -29,10 +29,14 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.AuthorizationAddRequest;
 import com.constellio.model.entities.security.global.UserCredential;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordUtils;
+import com.constellio.model.services.records.cache2.RecordsCache2IntegrityDiagnosticService;
+import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.SchemaUtils;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.ConditionTemplate;
 import com.constellio.model.services.security.AuthorizationsServices;
@@ -58,11 +62,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static com.constellio.app.modules.rm.constants.RMTaxonomies.ADMINISTRATIVE_UNITS;
 import static com.constellio.app.modules.rm.constants.RMTaxonomies.CLASSIFICATION_PLAN;
 import static com.constellio.data.dao.dto.records.OptimisticLockingResolution.EXCEPTION;
+import static com.constellio.model.entities.schemas.RecordCacheType.NOT_CACHED;
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.taxonomies.TaxonomiesSearchOptions.HasChildrenFlagCalculated.NEVER;
 import static com.constellio.model.services.taxonomies.TaxonomiesTestsUtils.ajustIfBetterThanExpected;
+import static com.constellio.sdk.tests.TestUtils.englishMessages;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
@@ -114,8 +120,19 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 
 		waitForBatchProcess();
 		invalidateCachesOfRMSchemas();
-		getModelLayerFactory().getRecordsCaches().getCache(zeCollection).removeCache(AdministrativeUnit.SCHEMA_TYPE);
-		getModelLayerFactory().getRecordsCaches().getCache(zeCollection).removeCache(Category.SCHEMA_TYPE);
+
+		assertThat(getModelLayerFactory().getRecordsCaches().getRecord(records.unitId_20)).isNotNull();
+
+		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchemaType(AdministrativeUnit.SCHEMA_TYPE).setRecordCacheType(NOT_CACHED);
+				types.getSchemaType(Category.SCHEMA_TYPE).setRecordCacheType(NOT_CACHED);
+			}
+		});
+
+		assertThat(getModelLayerFactory().getRecordsCaches().getRecord(records.unitId_20)).isNull();
+
 		getDataLayerFactory().getExtensions().getSystemWideExtensions().bigVaultServerExtension
 				.add(new BigVaultServerExtension() {
 					@Override
@@ -129,6 +146,13 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 						returnedDocumentsCount.addAndGet(params.getReturnedResultsCount());
 					}
 				});
+
+		ValidationErrors errors = new RecordsCache2IntegrityDiagnosticService(getModelLayerFactory()).validateIntegrity(false, true);
+		//List<String> messages = englishMessages(errors).stream().map((s) -> substringBefore(s, " :")).collect(toList());
+
+		List<String> messages = englishMessages(errors);
+		assertThat(messages).isEmpty();
+
 	}
 
 	@Test
@@ -877,12 +901,18 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 		TaxonomiesSearchOptions optionsWithNoInvisibleRecords = new TaxonomiesSearchOptions()
 				.setShowInvisibleRecordsInLinkingMode(false);
 
+		checkCache();
+
 		getModelLayerFactory().newRecordServices().execute(new Transaction().addAll(records.getFolder_A20()
 				.setActualTransferDate(LocalDate.now())));
 
 		assertThat(records.getFolder_A20().<Boolean>get(Schemas.VISIBLE_IN_TREES)).isEqualTo(Boolean.FALSE);
 
+		checkCache();
+
 		givenUserHasReadAccessTo(records.folder_A20, records.folder_C01);
+
+		checkCache();
 
 		assertThatRootWhenSelectingAFolderUsingPlanTaxonomy(optionsWithNoInvisibleRecords)
 				.has(numFoundAndListSize(1))
@@ -1577,8 +1607,13 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 		transaction.add(rootCategory);
 		getModelLayerFactory().newRecordServices().execute(transaction);
 
-		getModelLayerFactory().getRecordsCaches().invalidateAll();
-		getModelLayerFactory().getRecordsCaches().getCache(zeCollection).removeCache(Category.SCHEMA_TYPE);
+		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchemaType(Category.SCHEMA_TYPE).setRecordCacheType(NOT_CACHED);
+			}
+		});
+
 
 		User alice = users.aliceIn(zeCollection);
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("root",
@@ -1609,17 +1644,6 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 				.has(numFound(50)).has(listSize(20))
 				.has(fastContinuationInfos(false, 30))
 				.has(solrQueryCounts(4, 41, 10))
-				.has(secondSolrQueryCounts(3, 41, 0));
-
-		//Calling with an different fast continue (simulating that one of the first ten record was not returned)
-		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("root", options.setStartRow(10).setRows(20)
-				.setFastContinueInfos(new FastContinueInfos(false, 11, new ArrayList<String>())))
-				.has(resultsInOrder("category_12", "category_13", "category_14", "category_15", "category_16", "category_17",
-						"category_18", "category_19", "category_20", "category_21", "category_22", "category_23", "category_24",
-						"category_25", "category_26", "category_27", "category_28", "category_29", "category_30", "category_31"))
-				.has(numFound(50)).has(listSize(20))
-				.has(fastContinuationInfos(false, 31))
-				.has(solrQueryCounts(4, 41, 1))
 				.has(secondSolrQueryCounts(3, 41, 0));
 
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("root",
@@ -1654,15 +1678,6 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 				.has(solrQueryCounts(3, 12, 0))
 				.has(secondSolrQueryCounts(3, 12, 0));
 
-		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("root", options.setStartRow(289).setRows(30)
-				.setFastContinueInfos(new FastContinueInfos(false, 290, new ArrayList<String>())))
-				.has(resultsInOrder("category_291", "category_292", "category_293",
-						"category_294", "category_295", "category_296", "category_297", "category_298", "category_299",
-						"category_300"))
-				.has(numFound(299)).has(listSize(10))
-				.has(fastContinuationInfos(true, 0))
-				.has(solrQueryCounts(3, 11, 0))
-				.has(secondSolrQueryCounts(3, 11, 0));
 	}
 
 	@Test
@@ -1719,17 +1734,6 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 				.has(solrQueryCounts(4, 41, 10))
 				.has(secondSolrQueryCounts(3, 41, 0));
 
-		//Calling with an different fast continue (but don't cause any problem since using the cache)
-		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("root", options.setStartRow(10).setRows(20)
-				.setFastContinueInfos(new FastContinueInfos(false, 11, new ArrayList<String>())))
-				.has(resultsInOrder("category_12", "category_13", "category_14", "category_15", "category_16",
-						"category_17", "category_18", "category_19", "category_20", "category_21", "category_22", "category_23",
-						"category_24", "category_25", "category_26", "category_27", "category_28", "category_29", "category_30",
-						"category_31"))
-				.has(numFound(50)).has(listSize(20))
-				.has(fastContinuationInfos(false, 31)).has(solrQueryCounts(4, 41, 1))
-				.has(secondSolrQueryCounts(3, 41, 0));
-
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("root",
 				options.setStartRow(0).setRows(30).setFastContinueInfos(null))
 				.has(resultsInOrder("category_1", "category_2", "category_3", "category_4", "category_5", "category_6",
@@ -1762,16 +1766,6 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 				.has(solrQueryCounts(3, 12, 0))
 				.has(secondSolrQueryCounts(3, 12, 0));
 
-		//Calling with an different fast continue (but don't cause any problem since using the cache)
-		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("root", options.setStartRow(289).setRows(30)
-				.setFastContinueInfos(new FastContinueInfos(false, 290, new ArrayList<String>())))
-				.has(resultsInOrder("category_291", "category_292", "category_293",
-						"category_294", "category_295", "category_296", "category_297", "category_298", "category_299",
-						"category_300"))
-				.has(numFound(299)).has(listSize(10))
-				.has(fastContinuationInfos(true, 0))
-				.has(solrQueryCounts(3, 11, 0))
-				.has(secondSolrQueryCounts(3, 11, 0));
 	}
 
 	@Test
@@ -1924,8 +1918,12 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 
 		authsServices.add(AuthorizationAddRequest.authorizationForUsers(alice).givingReadWriteAccess().on(records.unitId_10));
 
-		getModelLayerFactory().getRecordsCaches().invalidateAll();
-		getModelLayerFactory().getRecordsCaches().getCache(zeCollection).removeCache(Category.SCHEMA_TYPE);
+		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchemaType(Category.SCHEMA_TYPE).setRecordCacheType(NOT_CACHED);
+			}
+		});
 
 		Transaction transaction = new Transaction();
 		for (int i = 1; i <= 100; i++) {
@@ -1982,6 +1980,8 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 		waitForBatchProcess();
 
 		recordServices.refresh(alice);
+
+		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
 
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_Z999, options.setStartRow(70).setRows(20)
 				.setFastContinueInfos(null))
@@ -2204,16 +2204,6 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 				.has(fastContinuationInfos(true, 9, "zeFolder10"))
 				.has(solrQueryCounts(4, 31, 20))
 				.has(secondSolrQueryCounts(4, 31, 20));
-
-		//Calling with an different fast continue (but don't cause any problem since using the cache)
-		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_Z999, options.setStartRow(90).setRows(20)
-				.setFastContinueInfos(new FastContinueInfos(false, 91, new ArrayList<String>())))
-				.has(resultsInOrder("category_92", "category_93", "category_94", "category_95", "category_96",
-						"category_97", "category_98", "category_99", "category_100", "zeFolder1", "zeFolder2", "zeFolder3",
-						"zeFolder4", "zeFolder5", "zeFolder6", "zeFolder7", "zeFolder8", "zeFolder9", "zeFolder10", "zeFolder11"))
-				.has(numFound(399)).has(listSize(20))
-				.has(fastContinuationInfos(true, 10, "zeFolder10")).has(solrQueryCounts(4, 30, 20))
-				.has(secondSolrQueryCounts(4, 30, 20));
 
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_Z999, options.setStartRow(90).setRows(20)
 				.setFastContinueInfos(null))
@@ -3640,7 +3630,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 	private void invalidateCachesOfRMSchemas() {
 		for (MetadataSchemaType schemaType : rm.getTypes().getSchemaTypes()) {
 			if (schemaType.getCode().equals(User.SCHEMA_TYPE) || schemaType.getCode().equals(Group.SCHEMA_TYPE)) {
-				getModelLayerFactory().getRecordsCaches().getCache(zeCollection).invalidateRecordsOfType(schemaType.getCode());
+				getModelLayerFactory().getRecordsCaches().getCache(zeCollection).reloadSchemaType(schemaType.getCode(), true);
 			}
 		}
 	}

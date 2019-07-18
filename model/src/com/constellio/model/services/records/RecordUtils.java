@@ -1,6 +1,7 @@
 package com.constellio.model.services.records;
 
 import com.constellio.data.dao.dto.records.RecordDTO;
+import com.constellio.data.dao.dto.records.SolrRecordDTO;
 import com.constellio.data.utils.KeyListMap;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.LangUtils.ListComparisonResults;
@@ -35,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static com.constellio.data.dao.dto.records.RecordDTOMode.SUMMARY;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.SEQUENCE;
 import static java.util.Arrays.asList;
@@ -724,5 +726,23 @@ public class RecordUtils {
 			splittedByCollection.add(record.getCollection(), record);
 		}
 		return splittedByCollection.getNestedMap();
+	}
+
+	public static RecordDTO toPersistedSummaryRecordDTO(Record record, MetadataSchema schema) {
+
+		RecordDTO dto = ((RecordImpl) record).getRecordDTO();
+
+		Map<String, Object> fields = new HashMap<>();
+
+		for (Metadata summaryMetadata : schema.getSummaryMetadatas()) {
+			String summaryMetadataDataStoreCode = summaryMetadata.getDataStoreCode();
+			fields.put(summaryMetadataDataStoreCode, dto.getFields().get(summaryMetadataDataStoreCode));
+		}
+
+		fields.put("collection_s", dto.getFields().get("collection_s"));
+		fields.put("schema_s", dto.getFields().get("schema_s"));
+
+		return new SolrRecordDTO(dto.getId(), dto.getVersion(), Collections.unmodifiableMap(fields), SUMMARY);
+
 	}
 }

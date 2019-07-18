@@ -49,8 +49,8 @@ import com.constellio.model.services.records.RecordServicesImpl;
 import com.constellio.model.services.records.RecordValidationServices;
 import com.constellio.model.services.records.SimpleImportContent;
 import com.constellio.model.services.records.StructureImportContent;
-import com.constellio.model.services.records.cache.CacheConfig;
 import com.constellio.model.services.records.cache.RecordsCache;
+import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataBuilder_EnumClassTest.AValidEnum;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
@@ -100,10 +100,11 @@ import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
 import static com.constellio.data.dao.dto.records.OptimisticLockingResolution.EXCEPTION;
 import static com.constellio.model.entities.schemas.MetadataValueType.CONTENT;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.entities.schemas.RecordCacheType.FULLY_CACHED;
+import static com.constellio.model.entities.schemas.RecordCacheType.SUMMARY_CACHED_WITH_VOLATILE;
 import static com.constellio.model.entities.schemas.Schemas.CODE;
 import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
-import static com.constellio.model.services.records.cache.CacheConfig.permanentCache;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQuery.query;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
@@ -2728,7 +2729,12 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 				.withAParentReferenceFromZeSchemaToZeSchema()
 				.withAParentReferenceFromAnotherSchemaToZeSchema());
 
-		getModelLayerFactory().getRecordsCaches().getCache(zeCollection).configureCache(permanentCache(schemas.zeDefaultSchemaType()));
+		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchemaType(schemas.zeDefaultSchemaType().getCode()).setRecordCacheType(FULLY_CACHED);
+			}
+		});
 
 		getModelLayerFactory().newRecordServices().add(new TestRecord(zeSchema, "previouslySavedRecordId")
 				.set(LEGACY_ID, "previouslySavedRecordLegacyId").set(TITLE, "title")
@@ -2774,7 +2780,12 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 				.withAParentReferenceFromZeSchemaToZeSchema()
 				.withAParentReferenceFromAnotherSchemaToZeSchema());
 
-		getModelLayerFactory().getRecordsCaches().getCache(zeCollection).configureCache(permanentCache(schemas.zeDefaultSchemaType()));
+		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchemaType(schemas.zeDefaultSchemaType().getCode()).setRecordCacheType(FULLY_CACHED);
+			}
+		});
 
 		getModelLayerFactory().newRecordServices().add(new TestRecord(zeSchema, "previouslySavedRecordId")
 				.set(LEGACY_ID, "previouslySavedRecordLegacyId").set(TITLE, "title")
@@ -3259,7 +3270,13 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		final AtomicInteger queriesCount = new AtomicInteger();
 
 		RecordsCache cache = getModelLayerFactory().getRecordsCaches().getCache(zeCollection);
-		cache.configureCache(CacheConfig.volatileCache(zeSchema.type(), 1000));
+
+		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchemaType(zeSchema.typeCode()).setRecordCacheType(SUMMARY_CACHED_WITH_VOLATILE);
+			}
+		});
 
 		getDataLayerFactory().getExtensions().getSystemWideExtensions().bigVaultServerExtension
 				.add(new BigVaultServerExtension() {

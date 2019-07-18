@@ -157,7 +157,7 @@ public class MetadataBuilder_CodesCollectionAndLabelTest extends MetadataBuilder
 	public void givenCodeFinishingWithIdThenException()
 			throws Exception {
 		MetadataBuilder.createMetadataWithoutInheritance(CODE_DEFAULT_METADATA + "pid",
-				schemaBuilder).buildWithoutInheritance(typesFactory, modelLayerFactory);
+				schemaBuilder).buildWithoutInheritance(typesFactory, schemaTypeBuilder, modelLayerFactory);
 
 	}
 

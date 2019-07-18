@@ -17,6 +17,7 @@ import com.constellio.model.entities.schemas.MetadataPopulateConfigs;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.RecordCacheType;
 import com.constellio.model.entities.schemas.RegexConfig;
 import com.constellio.model.entities.schemas.RegexConfig.RegexConfigType;
 import com.constellio.model.entities.schemas.Schemas;
@@ -148,10 +149,10 @@ public class POJOEntitiesTest extends ConstellioTest {
 
 	@Test
 	public void testThatMetadataSchemaHasValidEqualsHashcodeAndToStringBehaviors() {
-		CollectionInfo zeCollectionInfo = new CollectionInfo(zeCollection, "fr", Arrays.asList("fr"));
-		MetadataSchema o = new MetadataSchema("a", "a", zeCollectionInfo, labels, new ArrayList<Metadata>(), true,
+		CollectionInfo zeCollectionInfo = new CollectionInfo((byte) 0, zeCollection, "fr", Arrays.asList("fr"));
+		MetadataSchema o = new MetadataSchema((short) 0, "a", "a", zeCollectionInfo, labels, new ArrayList<Metadata>(), true,
 				true, new HashSet<RecordValidator>(), null, DataStore.RECORDS, true);
-		MetadataSchema o2 = new MetadataSchema("a", "a", zeCollectionInfo, labels, new ArrayList<Metadata>(), true,
+		MetadataSchema o2 = new MetadataSchema((short) 0, "a", "a", zeCollectionInfo, labels, new ArrayList<Metadata>(), true,
 				true, new HashSet<RecordValidator>(), null, DataStore.RECORDS, true);
 		assertThatToEqualsAndToStringThrowNoException(o, o2);
 		assertThat(o).isInstanceOf(Serializable.class);
@@ -159,24 +160,23 @@ public class POJOEntitiesTest extends ConstellioTest {
 
 	@Test
 	public void testThatMetadataSchemaTypeHasValidEqualsHashcodeAndToStringBehaviors() {
-		CollectionInfo zeCollectionInfo = new CollectionInfo(zeCollection, "fr", Arrays.asList("fr"));
-		MetadataSchema defaultSchema = new MetadataSchema("a", "a", zeCollectionInfo, labels, new ArrayList<Metadata>(), true,
+		CollectionInfo zeCollectionInfo = new CollectionInfo((byte) 0, zeCollection, "fr", Arrays.asList("fr"));
+		MetadataSchema defaultSchema = new MetadataSchema((short) 0, "a", "a", zeCollectionInfo, labels, new ArrayList<Metadata>(), true,
 				true, new HashSet<RecordValidator>(), null, DataStore.RECORDS, true);
-		MetadataSchema defaultSchema2 = new MetadataSchema("a", "a", zeCollectionInfo, labels, new ArrayList<Metadata>(), true,
+		MetadataSchema defaultSchema2 = new MetadataSchema((short) 0, "a", "a", zeCollectionInfo, labels, new ArrayList<Metadata>(), true,
 				true, new HashSet<RecordValidator>(), null, DataStore.RECORDS, true);
-		MetadataSchemaType o = new MetadataSchemaType("a", null, zeCollectionInfo, labels, new ArrayList<MetadataSchema>(),
-				defaultSchema,
-				true, true, true, false, "records");
-		MetadataSchemaType o2 = new MetadataSchemaType("a", null, zeCollectionInfo, labels, new ArrayList<MetadataSchema>(),
+		MetadataSchemaType o = new MetadataSchemaType((short) 0, "a", null, zeCollectionInfo, labels, new ArrayList<MetadataSchema>(),
+				defaultSchema, true, true, RecordCacheType.NOT_CACHED, true, false, "records");
+		MetadataSchemaType o2 = new MetadataSchemaType((short) 0, "a", null, zeCollectionInfo, labels, new ArrayList<MetadataSchema>(),
 				defaultSchema2,
-				true, true, true, false, "records");
+				true, true, RecordCacheType.NOT_CACHED, true, false, "records");
 		assertThatToEqualsAndToStringThrowNoException(o, o2);
 		assertThat(o).isInstanceOf(Serializable.class);
 	}
 
 	@Test
 	public void testThatMetadataSchemaTypesHasValidEqualsHashcodeAndToStringBehaviors() {
-		CollectionInfo zeCollectionInfo = new CollectionInfo(zeCollection, "fr", Arrays.asList("fr"));
+		CollectionInfo zeCollectionInfo = new CollectionInfo((byte) 0, zeCollection, "fr", Arrays.asList("fr"));
 		MetadataSchemaTypes o = new MetadataSchemaTypes(zeCollectionInfo, 1, new ArrayList<MetadataSchemaType>(),
 				new ArrayList<String>(), new ArrayList<String>(), Arrays.asList(Language.French), MetadataNetwork.EMPTY());
 		MetadataSchemaTypes o2 = new MetadataSchemaTypes(zeCollectionInfo, 1, new ArrayList<MetadataSchemaType>(),

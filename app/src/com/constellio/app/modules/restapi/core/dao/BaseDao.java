@@ -113,14 +113,6 @@ public abstract class BaseDao {
 		return systemConfigurationsManager.getValue(ConstellioEIMConfigs.DATE_TIME_FORMAT);
 	}
 
-	public Record getUserByUsername(String username, String collection) {
-		return recordServices.getRecordsCaches().getCache(collection).getByMetadata(schemas.user.username(), username);
-	}
-
-	public Record getGroupByCode(String groupCode, String collection) {
-		return recordServices.getRecordsCaches().getCache(collection).getByMetadata(schemas.group.code(), groupCode);
-	}
-
 	protected Record getRecordByMetadata(Metadata metadata, String value) {
 		return recordServices.getRecordByMetadata(metadata, value);
 	}
@@ -179,4 +171,15 @@ public abstract class BaseDao {
 	private String getServerHost() {
 		return getUrl().split("/")[2].split(":")[0];
 	}
+
+	public Record getUserByUsername(String username, String collection) {
+		SchemasRecordsServices schemas = new SchemasRecordsServices(collection, modelLayerFactory);
+		return recordServices.getRecordsCaches().getCache(collection).getByMetadata(schemas.user.username(), username);
+	}
+
+	public Record getGroupByCode(String groupCode, String collection) {
+		SchemasRecordsServices schemas = new SchemasRecordsServices(collection, modelLayerFactory);
+		return recordServices.getRecordsCaches().getCache(collection).getByMetadata(schemas.group.code(), groupCode);
+	}
+
 }

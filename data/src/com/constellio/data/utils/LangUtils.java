@@ -19,9 +19,17 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
+import java.util.Spliterators;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiFunction;
+import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import static com.constellio.data.utils.AccentApostropheCleaner.removeAccents;
 
@@ -31,11 +39,13 @@ public class LangUtils {
 		return value != null ? value : defaultValue;
 	}
 
-
 	public static String toNullableString(Object o) {
 		return o == null ? null : o.toString();
 	}
 
+	public static <E> Stream<E> stream(Iterator<E> iterator) {
+		return StreamSupport.stream(Spliterators.<E>spliteratorUnknownSize(iterator, 0), false);
+	}
 
 	public static Comparator<Entry<String, String>> mapStringStringEntryValueComparator() {
 		return new Comparator<Entry<String, String>>() {
@@ -142,6 +152,91 @@ public class LangUtils {
 		}
 
 		return new MapComparisonResults<>(results.getNewItems(), results.getRemovedItems(), modifiedEntries);
+	}
+
+	public static <T extends Comparable> ListComparisonResults<T> compareSorting(Collection<T> before,
+																				 Collection<T> after) {
+		return compareSorting(before, after, null);
+	}
+
+	public static <T> ListComparisonResults<T> compareSorting(Collection<T> before, Collection<T> after,
+															  Comparator<T> comparator) {
+
+		List<T> beforeSorted = new ArrayList<>(before.stream().filter(Objects::nonNull).collect(Collectors.toList()));
+		List<T> afterSorted = new ArrayList<>(after.stream().filter(Objects::nonNull).collect(Collectors.toList()));
+
+		beforeSorted.sort(comparator);
+		afterSorted.sort(comparator);
+
+		List<T> newItems = new ArrayList<>();
+		List<T> removedItems = new ArrayList<>();
+
+		final AtomicInteger beforeIndex = new AtomicInteger();
+		final AtomicInteger afterIndex = new AtomicInteger();
+
+		BiFunction<T, T, Integer> compareFunction = (v1, v2) -> comparator == null ?
+																((Comparable) v1).compareTo(v2) :
+																comparator.compare(v1, v2);
+
+		Supplier<Integer> increaseBeforeIndex = () -> {
+			T lastValue = beforeSorted.get(beforeIndex.get());
+			beforeIndex.incrementAndGet();
+			while (beforeIndex.get() < beforeSorted.size()
+				   && compareFunction.apply(lastValue, beforeSorted.get(beforeIndex.get())) == 0) {
+				beforeIndex.incrementAndGet();
+			}
+			return beforeIndex.get();
+		};
+
+
+		Supplier<Integer> increaseAfterIndex = () -> {
+			T lastValue = afterSorted.get(afterIndex.get());
+			afterIndex.incrementAndGet();
+			while (afterIndex.get() < afterSorted.size()
+				   && compareFunction.apply(lastValue, afterSorted.get(afterIndex.get())) == 0) {
+				afterIndex.incrementAndGet();
+			}
+			return afterIndex.get();
+		};
+
+		while (beforeIndex.get() < before.size() && afterIndex.get() < after.size()) {
+			T beforeValue = beforeSorted.get(beforeIndex.get());
+			T afterValue = afterSorted.get(afterIndex.get());
+
+
+			int comparison = compareFunction.apply(beforeValue, afterValue);
+
+			if (comparison == 0) {
+				increaseBeforeIndex.get();
+				increaseAfterIndex.get();
+
+			} else if (comparison < 0) {
+				//Value in beforeList is smaller that the one in afterList, it have been removed
+				removedItems.add(beforeValue);
+				increaseBeforeIndex.get();
+
+			} else {
+				//Value in beforeList is higher that the one in afterList, it have been added
+				newItems.add(afterValue);
+				increaseAfterIndex.get();
+
+			}
+
+		}
+
+		//After list has been consumed, all these values are removed
+		while (beforeIndex.get() < beforeSorted.size()) {
+			removedItems.add(beforeSorted.get(beforeIndex.get()));
+			increaseBeforeIndex.get();
+		}
+
+		//Before list has been consumed, all these values are new
+		while (afterIndex.get() < afterSorted.size()) {
+			newItems.add(afterSorted.get(afterIndex.get()));
+			increaseAfterIndex.get();
+		}
+
+		return new ListComparisonResults<>(newItems, removedItems);
 	}
 
 	public static <T> ListComparisonResults<T> compare(Set<T> before, Set<T> after) {
@@ -254,18 +349,22 @@ public class LangUtils {
 	}
 
 	public static int nullableNaturalCompare(Comparable v1, Comparable v2) {
+		return nullableNaturalCompare(v1, v2, false);
+	}
+
+	public static int nullableNaturalCompare(Comparable v1, Comparable v2, boolean placeNullsAtEnd) {
 		if (v1 == null) {
 
 			if (v2 == null) {
 				return 0;
 			} else {
-				return -1;
+				return placeNullsAtEnd ? 1 : -1;
 			}
 
 		} else {
 
 			if (v2 == null) {
-				return 1;
+				return placeNullsAtEnd ? -1 : 1;
 			} else {
 				return v1.compareTo(v2);
 			}
@@ -528,8 +627,6 @@ public class LangUtils {
 		}
 		return throwableList;
 	}
-
-
 
 	/**
 	 * Similar to java.lang.long.tryParseLong, but returning null instead of throwing exception (for better performance)

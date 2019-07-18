@@ -1,15 +1,25 @@
 package com.constellio.sdk.tests;
 
+import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.data.utils.dev.Toggle.AvailableToggle;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.frameworks.validation.ValidationErrors;
+import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.cache2.RecordsCache2IntegrityDiagnosticService;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.sdk.tests.annotations.PreserveState;
+import org.apache.commons.lang.StringUtils;
+import org.junit.After;
 import org.junit.Before;
 import org.mockito.MockitoAnnotations;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+
+import static com.constellio.sdk.tests.TestUtils.englishMessages;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ConstellioTest extends AbstractConstellioTest {
 	protected Transaction tx;
@@ -33,9 +43,12 @@ public class ConstellioTest extends AbstractConstellioTest {
 
 	private static ConstellioTest currentInstance;
 
+	protected boolean cacheIntegrityCheckedAfterTest;
+
 	@Before
 	public void beforeConstellioTest() {
 		MockitoAnnotations.initMocks(this);
+		cacheIntegrityCheckedAfterTest = true;
 
 		for (AvailableToggle toggle : Toggle.getAllAvailable()) {
 			toggle.reset();
@@ -151,5 +164,52 @@ public class ConstellioTest extends AbstractConstellioTest {
 
 	public String getFailMessage() {
 		return failMessage;
+	}
+
+	public void checkCache() throws Exception {
+
+		ModelLayerFactory modelLayerFactory = ConstellioFactories.getInstance().getModelLayerFactory();
+
+		RecordsCache2IntegrityDiagnosticService service = new RecordsCache2IntegrityDiagnosticService(modelLayerFactory);
+		ValidationErrors errors = service.validateIntegrity(false, true);
+		//List<String> messages = englishMessages(errors).stream().map((s) -> substringBefore(s, " :")).collect(toList());
+
+		List<String> messages = englishMessages(errors);
+		assertThat(messages).isEmpty();
+
+	}
+
+	@After
+	public void checkCacheAfterTest() throws Exception {
+
+		if (!failureDetectionTestWatcher.isFailed() && isUnitTestStatic() && ConstellioFactories.isInitialized()
+			&& cacheIntegrityCheckedAfterTest && Toggle.SDK_CACHE_INTEGRITY_VALIDATION.isEnabled()) {
+
+			ValidationErrors errors = checkCacheAndReturnErrors(false, false);
+
+			if (!errors.isEmptyErrorAndWarnings()
+				&& getCurrentTestSession().getBatchProcessTestFeature().waitForBatchProcessAfterTest) {
+				errors = checkCacheAndReturnErrors(true, true);
+			} else {
+				errors = checkCacheAndReturnErrors(false, true);
+			}
+
+			List<String> messages = englishMessages(errors);
+			if (!messages.isEmpty()) {
+				setFailMessage("Cache problems : \n" + StringUtils.join(messages, "\n"));
+			}
+		}
+
+	}
+
+	private ValidationErrors checkCacheAndReturnErrors(boolean waitForBatchProcesses, boolean runTwice) {
+		ModelLayerFactory modelLayerFactory = ConstellioFactories.getInstance().getModelLayerFactory();
+
+		if (waitForBatchProcesses) {
+			modelLayerFactory.getBatchProcessesManager().waitUntilAllFinished();
+		}
+
+		RecordsCache2IntegrityDiagnosticService service = new RecordsCache2IntegrityDiagnosticService(modelLayerFactory);
+		return service.validateIntegrity(false, runTwice);
 	}
 }

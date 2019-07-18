@@ -171,6 +171,7 @@ public class TestsSchemasSetup extends SchemasSetup {
 
 	};
 
+
 	public static MetadataBuilderConfigurator whichIsEncrypted = new MetadataBuilderConfigurator() {
 
 		@Override
@@ -383,6 +384,15 @@ public class TestsSchemasSetup extends SchemasSetup {
 		@Override
 		public void configure(MetadataBuilder builder, MetadataSchemaTypesBuilder schemaTypes) {
 			builder.defineReferences().add(schemaTypes.getSchema("anotherSchemaType_default"));
+		}
+
+	};
+
+	public static MetadataBuilderConfigurator whichAllowsZeSchemaType = new MetadataBuilderConfigurator() {
+
+		@Override
+		public void configure(MetadataBuilder builder, MetadataSchemaTypesBuilder schemaTypes) {
+			builder.defineReferences().add(schemaTypes.getSchema("zeSchemaType_default"));
 		}
 
 	};

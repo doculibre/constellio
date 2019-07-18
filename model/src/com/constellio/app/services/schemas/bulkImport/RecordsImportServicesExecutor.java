@@ -35,6 +35,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.NoSuchSchemaType;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.RecordCacheType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.entities.schemas.entries.SequenceDataEntry;
@@ -1208,7 +1209,20 @@ public class RecordsImportServicesExecutor {
 
 			}
 
-			Record record = typeBatchImportContext.transactionCache.getByMetadata(resolverMetadata, resolver.value);
+			Record record = null;
+			if (targettedSchemaType.getCacheType() == RecordCacheType.FULLY_CACHED) {
+				record = typeBatchImportContext.transactionCache.getByMetadata(resolverMetadata, resolver.value);
+			} else if (targettedSchemaType.getCacheType().hasPermanentCache()) {
+				Record recordSummary = typeBatchImportContext.transactionCache.getSummaryByMetadata(resolverMetadata, resolver.value);
+				if (recordSummary != null) {
+					record = typeBatchImportContext.transactionCache.get(recordSummary.getId());
+				}
+
+				if (record == null) {
+					recordServices.getDocumentById(recordSummary.getId());
+				}
+			}
+
 			if (record != null) {
 				resolvedValue = record.getId();
 			}

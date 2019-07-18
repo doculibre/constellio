@@ -2,12 +2,14 @@ package com.constellio.model.services.records.cache;
 
 import com.constellio.data.dao.services.cache.InsertionReason;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.factories.ModelLayerFactory;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Stream;
 
 public class RecordsCachesMemoryImpl implements RecordsCaches {
 
@@ -67,22 +69,37 @@ public class RecordsCachesMemoryImpl implements RecordsCaches {
 		return false;
 	}
 
-	public List<CacheInsertionStatus> insert(String collection, List<Record> records, InsertionReason reason) {
+	public List<CacheInsertionResponse> insert(String collection, List<Record> records, InsertionReason reason) {
 		RecordsCache cache = getCache(collection);
 		return cache.insert(records, reason);
 	}
 
-	public CacheInsertionStatus insert(Record record, InsertionReason reason) {
+	@Override
+	public Stream<Record> stream(MetadataSchemaType type) {
+		return getCache(type.getCollection()).getAllValuesInUnmodifiableState(type.getCode()).stream();
+	}
+
+	@Override
+	public Stream<Record> stream(String colletion) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public boolean isInitialized() {
+		return nested != null && nested.isInitialized();
+	}
+
+	public CacheInsertionResponse insert(Record record, InsertionReason reason) {
 		RecordsCache cache = getCache(record.getCollection());
 		return cache.insert(record, reason);
 	}
 
-	public CacheInsertionStatus forceInsert(Record record, InsertionReason reason) {
-		RecordsCache cache = getCache(record.getCollection());
-		return cache.forceInsert(record, reason);
+	@Override
+	public Record getRecordSummary(String id, String optionnalCollection, String optionnalSchemaType) {
+		return nested.getRecordSummary(id, optionnalCollection, optionnalSchemaType);
 	}
 
-	public Record getRecord(String id) {
+	public Record getRecord(String id, String optionnalCollection, String optionnalSchemaType) {
 
 		if (!enabled.get()) {
 			return null;
@@ -97,7 +114,7 @@ public class RecordsCachesMemoryImpl implements RecordsCaches {
 		}
 
 		if (nested != null) {
-			Record record = nested.getRecord(id);
+			Record record = nested.getRecord(id, optionnalCollection, optionnalSchemaType);
 			if (record != null) {
 				onCacheHit(record);
 				return record;
@@ -117,28 +134,19 @@ public class RecordsCachesMemoryImpl implements RecordsCaches {
 		modelLayerFactory.getExtensions().getSystemWideExtensions().onGetByIdCacheHit(record, 0);
 	}
 
-	public void invalidateAll() {
+	public void invalidateVolatileReloadPermanent(List<String> schemaTypes, boolean onlyLocally) {
 		for (RecordsCache cache : collectionsCache.values()) {
-			cache.invalidateAll();
+			cache.invalidateVolatileReloadPermanent(schemaTypes);
 		}
 	}
 
-	public void invalidate(String collection) {
+	public void removeRecordsOfCollection(String collection, boolean onlyLocally) {
 		collectionsCache.remove(collection);
 	}
 
-	public int getCacheObjectsCount() {
-		int cacheTotalSize = 0;
-
-		for (RecordsCache cache : collectionsCache.values()) {
-			cacheTotalSize += cache.getCacheObjectsCount();
-		}
-
-		return cacheTotalSize;
-	}
 
 	@Override
-	public void setEnabled(boolean enabled) {
-		this.enabled.set(enabled);
+	public void invalidateVolatile(MassiveCacheInvalidationReason reason) {
+
 	}
 }

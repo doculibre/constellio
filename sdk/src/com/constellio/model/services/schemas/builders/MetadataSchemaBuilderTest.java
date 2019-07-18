@@ -55,7 +55,7 @@ public class MetadataSchemaBuilderTest extends ConstellioTest {
 		when(typesBuilder.getSchemaType(anyString())).thenThrow(NoSuchSchemaType.class);
 		when(typesBuilder.getLanguages()).thenReturn(Arrays.asList(Language.French));
 		when(typesBuilder.getClassProvider()).thenReturn(new DefaultClassProvider());
-		CollectionInfo zeCollectionInfo = new CollectionInfo("zeUltimateCollection", "fr", Arrays.asList("fr"));
+		CollectionInfo zeCollectionInfo = new CollectionInfo((byte) 0, "zeUltimateCollection", "fr", Arrays.asList("fr"));
 		metadataSchemaTypeBuilder = MetadataSchemaTypeBuilder
 				.createNewSchemaType(zeCollectionInfo, "aSchemaType", typesBuilder);
 		defaultSchemaBuilder = spy(metadataSchemaTypeBuilder.getDefaultSchema());
@@ -464,13 +464,13 @@ public class MetadataSchemaBuilderTest extends ConstellioTest {
 	}
 
 	private void build() {
-		defaultSchema = defaultSchemaBuilder.buildDefault(typesFactory, modelLayerFactory);
-		customSchema = customSchemaBuilder.buildCustom(defaultSchema, typesFactory, modelLayerFactory);
+		defaultSchema = defaultSchemaBuilder.buildDefault(typesFactory, metadataSchemaTypeBuilder, typesBuilder, modelLayerFactory);
+		customSchema = customSchemaBuilder.buildCustom(defaultSchema, metadataSchemaTypeBuilder, typesBuilder, typesFactory, modelLayerFactory);
 	}
 
 	private void buildAndModify() {
-		MetadataSchema defaultSchema = defaultSchemaBuilder.buildDefault(typesFactory, modelLayerFactory);
-		MetadataSchema customSchema = customSchemaBuilder.buildCustom(defaultSchema, typesFactory, modelLayerFactory);
+		MetadataSchema defaultSchema = defaultSchemaBuilder.buildDefault(typesFactory, metadataSchemaTypeBuilder, typesBuilder, modelLayerFactory);
+		MetadataSchema customSchema = customSchemaBuilder.buildCustom(defaultSchema, metadataSchemaTypeBuilder, typesBuilder, typesFactory, modelLayerFactory);
 		defaultSchemaBuilder = MetadataSchemaBuilder.modifyDefaultSchema(defaultSchema, metadataSchemaTypeBuilder);
 		customSchemaBuilder = MetadataSchemaBuilder.modifySchema(customSchema, metadataSchemaTypeBuilder);
 	}

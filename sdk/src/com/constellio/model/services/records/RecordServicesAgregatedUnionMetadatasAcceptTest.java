@@ -118,7 +118,7 @@ public class RecordServicesAgregatedUnionMetadatasAcceptTest extends ConstellioT
 		assertThat(record("merge2").getList(anotherSchema_stringValuesUnion)).containsOnly("value4");
 		assertThat(record("merge3").getList(thirdSchema_stringValuesUnion))
 				.containsOnly("value1new", "value2", "value3", "value4", "value5");
-		assertThat(queries).isEqualTo(10);
+		assertThat(queries).isEqualTo(8);
 
 	}
 

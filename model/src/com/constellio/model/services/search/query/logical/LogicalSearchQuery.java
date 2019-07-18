@@ -35,6 +35,7 @@ public class LogicalSearchQuery implements SearchQuery {
 	public static final int DEFAULT_NUMBER_OF_ROWS = 100000;
 
 	private static final String HIGHLIGHTING_FIELDS = "search_*";
+	public static final String INEXISTENT_COLLECTION_42 = "inexistentCollection42";
 
 	//This condition will be inserted in Filter Query
 	LogicalSearchCondition condition;
@@ -63,6 +64,7 @@ public class LogicalSearchQuery implements SearchQuery {
 	private boolean spellcheck = false;
 	private String moreLikeThisRecord = null;
 	private boolean preferAnalyzedFields = false;
+	private boolean loadTransientValues = true;
 
 	private List<SearchBoost> fieldBoosts = new ArrayList<>();
 	private List<SearchBoost> queryBoosts = new ArrayList<>();
@@ -72,6 +74,8 @@ public class LogicalSearchQuery implements SearchQuery {
 	private String name;
 
 	private String language;
+
+	private boolean forceExecutionInSolr;
 
 	public LogicalSearchQuery() {
 		numberOfRows = DEFAULT_NUMBER_OF_ROWS;
@@ -118,9 +122,21 @@ public class LogicalSearchQuery implements SearchQuery {
 
 		moreLikeThisFields = query.moreLikeThisFields;
 		language = query.language;
+		loadTransientValues = query.loadTransientValues;
+		forceExecutionInSolr = query.forceExecutionInSolr;
 	}
 
 	// The following methods are attribute accessors
+
+
+	public boolean isLoadTransientValues() {
+		return loadTransientValues;
+	}
+
+	public LogicalSearchQuery setLoadTransientValues(boolean loadTransientValues) {
+		this.loadTransientValues = loadTransientValues;
+		return this;
+	}
 
 	public boolean isPreferAnalyzedFields() {
 		return preferAnalyzedFields;
@@ -441,7 +457,7 @@ public class LogicalSearchQuery implements SearchQuery {
 	}
 
 	public static LogicalSearchQuery returningNoResults() {
-		return new LogicalSearchQuery(LogicalSearchQueryOperators.fromAllSchemasIn("inexistentCollection42").returnAll());
+		return new LogicalSearchQuery(LogicalSearchQueryOperators.fromAllSchemasIn(INEXISTENT_COLLECTION_42).returnAll());
 	}
 
 	public String getMoreLikeThisRecordId() {
@@ -556,11 +572,28 @@ public class LogicalSearchQuery implements SearchQuery {
 		}
 	}
 
+	public VisibilityStatusFilter getVisibilityStatusFilter() {
+		return visibilityStatusFilter;
+	}
+
+	public StatusFilter getStatusFilter() {
+		return statusFilter;
+	}
+
 	public List<LogicalSearchQuerySort> getSortFields() {
 		return sortFields;
 	}
 
 	public static LogicalSearchQuery query(LogicalSearchCondition condition) {
 		return new LogicalSearchQuery(condition);
+	}
+
+	public boolean isForceExecutionInSolr() {
+		return forceExecutionInSolr;
+	}
+
+	public LogicalSearchQuery setForceExecutionInSolr(boolean forceExecutionInSolr) {
+		this.forceExecutionInSolr = forceExecutionInSolr;
+		return this;
 	}
 }

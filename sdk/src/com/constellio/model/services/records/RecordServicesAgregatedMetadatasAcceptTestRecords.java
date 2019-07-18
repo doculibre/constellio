@@ -125,6 +125,8 @@ public class RecordServicesAgregatedMetadatasAcceptTestRecords {
 
 		client.add(inputDocuments);
 		client.commit();
+
+		modelLayerFactory.getRecordsCaches().reloadAllSchemaTypes(zeSchema.collection());
 	}
 
 	private Object setNull() {

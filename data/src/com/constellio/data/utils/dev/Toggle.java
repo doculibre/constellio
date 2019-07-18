@@ -10,6 +10,7 @@ import java.util.Map;
 
 public class Toggle {
 
+	public static AvailableToggle SDK_CACHE_INTEGRITY_VALIDATION = newToggle(true);
 	public static AvailableToggle SDK_REQUEST_CACHE_VALIDATION = newToggle();
 
 	public static AvailableToggle ROLES_WITH_NEW_7_2_PERMISSIONS = newToggle();
@@ -47,7 +48,6 @@ public class Toggle {
 	public static AvailableToggle PUTS_AFTER_SOLR_QUERY = newToggle(false);
 
 	public static AvailableToggle ALL_CONNECTORS_DISABLED = newToggle(false);
-	public static AvailableToggle GET_ALL_VALUES_USING_NEW_CACHE_METHOD = newToggle(true);
 	public static AvailableToggle LOG_CONNECTOR_INFOS_WARNINGS_ERRORS_IN_CONSOLE = newToggle(true);
 	public static AvailableToggle LOG_CONVERSION_FILENAME_AND_SIZE = newToggle(false);
 
@@ -68,6 +68,14 @@ public class Toggle {
 	public static AvailableToggle SEARCH_RESULTS_VIEWER = newToggle(true);
 
 	public static AvailableToggle ALLOWS_CREATION_OF_RECORDS_WITH_NON_PADDED_ID = newToggle(false);
+
+	public static AvailableToggle USE_NEW_CACHE = newToggle(true);
+
+	public static AvailableToggle USE_CACHE_FOR_QUERY_EXECUTION = newToggle(true);
+
+	public static AvailableToggle VALIDATE_CACHE_EXECUTION_SERVICE_USING_SOLR = newToggle(true);
+
+	public static AvailableToggle MIGRATING_LEGACY_SAVESTATE = newToggle(false);
 
 	// ------------------------------------------------
 

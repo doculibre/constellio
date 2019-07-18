@@ -16,6 +16,7 @@ import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.CollectionObject;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -54,7 +55,7 @@ import java.util.Set;
 import static com.constellio.model.services.schemas.xml.MetadataSchemaXMLWriter3.FORMAT_ATTRIBUTE;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
-public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerCollectionManagerListener<MetadataSchemaTypes> {
+public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerCollectionManagerListener<MetadataSchemaTypes>, MetadataSchemaProvider {
 
 	public static final String SCHEMAS_CONFIG_PATH = "/schemas.xml";
 	private final DataStoreTypesFactory typesFactory;
@@ -68,6 +69,7 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 	private ModelLayerFactory modelLayerFactory;
 	private Delayed<ConstellioModulesManager> modulesManagerDelayed;
 	private ConstellioCacheManager cacheManager;
+	private MetadataSchemaTypes[] typesByCollectionId = new MetadataSchemaTypes[256];
 
 	public MetadataSchemasManager(ModelLayerFactory modelLayerFactory,
 								  Delayed<ConstellioModulesManager> modulesManagerDelayed) {
@@ -197,6 +199,20 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 		return getSchemaTypes(collectionObject.getCollection());
 	}
 
+	public MetadataSchemaTypes getSchemaTypes(byte collectionId) {
+		int collectionIndex = collectionId - Byte.MIN_VALUE;
+		MetadataSchemaTypes types = typesByCollectionId[collectionIndex];
+
+		if (types == null) {
+			String collectionCode = collectionsListManager.getCollectionCode(collectionId);
+			return getSchemaTypes(collectionCode);
+		} else {
+			return types;
+		}
+
+
+	}
+
 	public MetadataSchemaTypes getSchemaTypes(String collection) {
 		MetadataSchemaTypes types = oneXmlConfigPerCollectionManager().get(collection);
 		if (types == null) {
@@ -247,12 +263,15 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 		MetadataSchemaTypesBuilder builder = modify(collection);
 		alteration.alter(builder);
 
+		List<String> typesRequiringCacheReload = builder.getTypesRequiringCacheReload();
+
 		try {
 			saveUpdateSchemaTypes(builder);
 		} catch (OptimisticLocking optimistickLocking) {
 			modify(collection, alteration);
 		}
 
+		modelLayerFactory.getRecordsCaches().getCache(collection).invalidateVolatileReloadPermanent(typesRequiringCacheReload);
 	}
 
 	public void deleteSchemaTypes(final List<MetadataSchemaType> typesToDelete) {
@@ -352,9 +371,14 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 	public void onValueModified(String collection, MetadataSchemaTypes newValue) {
 		xmlConfigReader();
 
+		int collectionIndex = collectionsListManager.getCollectionInfo(collection).getCollectionId() - Byte.MIN_VALUE;
+		typesByCollectionId[collectionIndex] = newValue;
+
 		for (MetadataSchemasManagerListener listener : listeners) {
 			listener.onCollectionSchemasModified(collection);
 		}
+
+
 	}
 
 	@Override
@@ -362,4 +386,20 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 
 	}
 
+
+	@Override
+	public MetadataSchema get(byte collectionId, short typeId, short schemaId) {
+		return getSchemaTypes(collectionId).getSchemaType(typeId).getSchema(schemaId);
+	}
+
+	@Override
+	public Metadata getMetadata(byte collectionId, short typeId, short metadataId) {
+		return getSchemaTypes(collectionId).getSchemaType(typeId).getMetadata(metadataId);
+	}
+
+
+	@Override
+	public MetadataSchemaType get(byte collectionId, short typeId) {
+		return getSchemaTypes(collectionId).getSchemaType(typeId);
+	}
 }

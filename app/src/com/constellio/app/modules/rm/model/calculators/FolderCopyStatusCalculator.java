@@ -52,7 +52,7 @@ public class FolderCopyStatusCalculator extends AbstractMetadataValueCalculator<
 			return folderCopyTypeManual;
 		}
 
-		if (Boolean.TRUE != ruleResponsibleUnits) {
+		if (!Boolean.TRUE.equals(ruleResponsibleUnits)) {
 			for (String ruleUnit : ruleUnits) {
 				if (ruleUnit.equals(folderUnit)) {
 					return CopyType.PRINCIPAL;

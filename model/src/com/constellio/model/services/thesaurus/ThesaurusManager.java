@@ -34,7 +34,7 @@ import java.util.Map;
 
 public class ThesaurusManager implements StatefulService, EventBusListener {
 
-	private static final String INVALIDATE_THESAURUS_CACHE = "invalidate";
+	private static final String INVALIDATE_THESAURUS_CACHE = "removeFromAllCaches";
 	final String FILE_INPUT_STREAM_NAME = "ThesaurusManager.ThesaurusFile";
 	private CollectionsListManager collectionsListManager;
 	private SearchServices searchServices;

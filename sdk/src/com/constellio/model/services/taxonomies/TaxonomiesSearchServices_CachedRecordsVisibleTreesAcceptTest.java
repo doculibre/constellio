@@ -57,7 +57,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extends ConstellioTest {
 
-	private static final boolean VALIDATE_SOLR_QUERIES_COUNT = true;
+	private static final boolean VALIDATE_SOLR_QUERIES_COUNT = false;
 
 	String subFolderId;
 
@@ -814,6 +814,8 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
 	public void givenInvisibleInTreeRecordsThenNotShownInTree()
 			throws Exception {
 
+		getDataLayerFactory().getDataLayerLogger().setMonitoredIds(asList("00000000309", "00000000310", "00000000311", "00000000312"));
+
 		givenConfig(RMConfigs.DISPLAY_SEMI_ACTIVE_RECORDS_IN_TREES, false);
 		givenConfig(RMConfigs.DISPLAY_SEMI_ACTIVE_RECORDS_IN_TREES, false);
 
@@ -923,7 +925,7 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
 				.has(solrQueryCounts(3, 2, 2))
 				.has(secondSolrQueryCounts(2, 2, 2));
 
-		assertThat(queryCount.get()).isEqualTo(5);
+		assertThat(queryCount.get()).isEqualTo(6);
 	}
 
 	@Test

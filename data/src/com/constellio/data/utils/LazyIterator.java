@@ -4,6 +4,7 @@ import com.constellio.data.utils.LazyIteratorRuntimeException.LazyIteratorRuntim
 import com.constellio.data.utils.LazyIteratorRuntimeException.LazyIteratorRuntimeException_RemoveNotAvailable;
 
 import java.util.Iterator;
+import java.util.stream.Stream;
 
 public abstract class LazyIterator<T> implements Iterator<T> {
 
@@ -34,9 +35,13 @@ public abstract class LazyIterator<T> implements Iterator<T> {
 	}
 
 	@Override
-	public final void remove() {
+	public void remove() {
 		throw new LazyIteratorRuntimeException_RemoveNotAvailable();
 	}
 
 	protected abstract T getNextOrNull();
+
+	public Stream<T> stream() {
+		return LangUtils.stream(this);
+	}
 }

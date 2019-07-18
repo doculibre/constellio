@@ -3,10 +3,13 @@ package com.constellio.model.services.search.cache;
 import com.constellio.data.extensions.DataLayerSystemExtensions;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.schemas.RecordCacheType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.records.cache.StatsBigVaultServerExtension;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
@@ -22,8 +25,6 @@ import org.junit.Test;
 
 import java.util.List;
 
-import static com.constellio.model.services.records.cache.CacheConfig.permanentCache;
-import static com.constellio.model.services.records.cache.CacheConfig.volatileCache;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasInExceptEvents;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -64,9 +65,15 @@ public class SerializedCacheSearchServiceAcceptTest extends ConstellioTest {
 		fromZeSchema = from(zeSchema.instance()).returnAll();
 
 		RecordsCache collectionCache = getModelLayerFactory().getRecordsCaches().getCache(zeCollection);
-		collectionCache.configureCache(volatileCache(zeSchema.type(), 10));
-		collectionCache.configureCache(permanentCache(anotherSchema.type()));
-		collectionCache.configureCache(permanentCache(thirdSchema.type()));
+
+		MetadataSchemasManager schemasManager = getModelLayerFactory().getMetadataSchemasManager();
+
+		MetadataSchemaTypesBuilder metadataSchemaTypesBuilder = schemasManager.modify(zeCollection);
+		metadataSchemaTypesBuilder.getSchemaType(zeSchema.type().getCode()).setRecordCacheType(RecordCacheType.SUMMARY_CACHED_WITH_VOLATILE);
+		metadataSchemaTypesBuilder.getSchemaType(anotherSchema.type().getCode()).setRecordCacheType(RecordCacheType.FULLY_CACHED);
+		metadataSchemaTypesBuilder.getSchemaType(thirdSchema.type().getCode()).setRecordCacheType(RecordCacheType.FULLY_CACHED);
+
+		schemasManager.saveUpdateSchemaTypes(metadataSchemaTypesBuilder);
 
 		thirdSchema_3 = record("thirdSchema_3");
 		zeSchema_4 = record("zeSchema_4");
