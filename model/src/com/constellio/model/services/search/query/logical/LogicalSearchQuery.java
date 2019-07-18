@@ -123,6 +123,7 @@ public class LogicalSearchQuery implements SearchQuery {
 		moreLikeThisFields = query.moreLikeThisFields;
 		language = query.language;
 		loadTransientValues = query.loadTransientValues;
+		forceExecutionInSolr = query.forceExecutionInSolr;
 	}
 
 	// The following methods are attribute accessors
