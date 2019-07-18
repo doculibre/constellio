@@ -258,11 +258,11 @@ public class SchemaUtils {
 				case STRUCTURE:
 				case CONTENT:
 					//TODO Based on summary flag, support these typestype
-					summary = false;
+					summary = metadata.isEssentialInSummary();
 					break;
 
 				case TEXT:
-					summary = false;
+					summary = metadata.isEssentialInSummary();
 					break;
 
 				case INTEGER:
