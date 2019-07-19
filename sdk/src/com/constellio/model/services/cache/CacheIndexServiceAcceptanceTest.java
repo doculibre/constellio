@@ -54,7 +54,7 @@ public class CacheIndexServiceAcceptanceTest extends ConstellioTest {
 			defaultTestSchemaBuilder.create("notCacheIndex").setType(MetadataValueType.STRING);
 			defaultTestSchemaBuilder.create("cacheIndexMultiValue").setType(MetadataValueType.STRING).setCacheIndex(true)
 					.setMultivalue(true);
-			defaultTestSchemaBuilder.create("unique").setType(MetadataValueType.STRING).setCacheIndex(true);
+			defaultTestSchemaBuilder.create("unique").setType(MetadataValueType.STRING).setUniqueValue(true);
 		});
 
 		testsSchemaDefault = metadataSchemasManager.getSchemaTypes(zeCollection).getSchemaType("testschema").getDefaultSchema();

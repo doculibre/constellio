@@ -26,4 +26,7 @@ public interface DataStoreField extends Serializable {
 
 	DataStoreField getSortField();
 
+	boolean isUniqueValue();
+
+	boolean isCacheIndex();
 }

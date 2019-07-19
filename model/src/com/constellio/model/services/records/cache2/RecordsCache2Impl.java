@@ -11,6 +11,7 @@ import com.constellio.model.entities.schemas.RecordCacheType;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.cache.CacheConfig;
 import com.constellio.model.services.records.cache.CacheInsertionResponse;
+import com.constellio.model.services.records.cache.FindMultipleRecordByMetadata;
 import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.schemas.SchemaUtils;
 import org.mapdb.HTreeMap;
@@ -23,7 +24,7 @@ import java.util.stream.Stream;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 
-public final class RecordsCache2Impl implements RecordsCache {
+public final class RecordsCache2Impl implements RecordsCache, FindMultipleRecordByMetadata {
 
 	private String collection;
 	private byte collectionId;
@@ -144,6 +145,15 @@ public final class RecordsCache2Impl implements RecordsCache {
 	@Override
 	public void invalidateVolatileReloadPermanent(List<String> schemaTypes, boolean onlyLocally) {
 		caches.reload(collectionId, collection, schemaTypes, onlyLocally, true);
+	}
+
+	@Override
+	public List<Record> getMultipleByMetadata(Metadata metadata, String value) {
+		if (value == null) {
+			return null;
+		}
+
+		return caches.getMultipleIdByMetadata(collectionId, metadata, value);
 	}
 
 	@Override
