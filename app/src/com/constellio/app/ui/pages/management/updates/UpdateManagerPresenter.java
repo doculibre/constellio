@@ -22,7 +22,6 @@ import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
-import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.reindexing.ReindexationMode;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
@@ -107,6 +106,10 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 	public Object getLastAlertConfigValue() {
 		SystemConfigurationsManager manager = modelLayerFactory.getSystemConfigurationsManager();
 		return manager.getValue(ConstellioEIMConfigs.LOGIN_NOTIFICATION_ALERT);
+	}
+
+	public boolean hasLastAlertPermission() {
+		return getCurrentUser().has(CorePermissions.VIEW_LOGIN_NOTIFICATION_ALERT).globally();
 	}
 
 	public String getUpdateVersion() {
