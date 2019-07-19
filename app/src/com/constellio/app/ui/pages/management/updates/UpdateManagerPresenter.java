@@ -22,7 +22,6 @@ import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
-import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.reindexing.ReindexationMode;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
@@ -222,15 +221,15 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 			} catch (Exception e) {
 				view.showErrorMessage(e.getMessage());
 			}
-
+/*
 			try {
 				appLayerFactory.newApplicationService().restart();
 			} catch (AppManagementServiceException ase) {
 				view.showErrorMessage($("UpdateManagerViewImpl.error.restart"));
-			}
+			}*/
 		}
-		ConstellioMonitoringServlet.systemRestarting = true;
-		view.navigate().to().serviceMonitoring();
+		//ConstellioMonitoringServlet.systemRestarting = true;
+		//view.navigate().to().serviceMonitoring();
 	}
 
 	public void licenseUpdateRequested() {
