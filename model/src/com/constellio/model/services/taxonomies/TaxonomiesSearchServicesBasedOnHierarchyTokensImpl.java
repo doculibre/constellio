@@ -34,6 +34,7 @@ import com.constellio.model.services.taxonomies.LinkableConceptFilter.LinkableCo
 import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions.HasChildrenFlagCalculated;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServicesRuntimeException.TaxonomiesSearchServicesRuntimeException_CannotFilterNonPrincipalConceptWithWriteOrDeleteAccess;
 import com.constellio.model.utils.Lazy;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -220,6 +221,16 @@ public class TaxonomiesSearchServicesBasedOnHierarchyTokensImpl implements Taxon
 					public String buildFQ(SecurityTokenManager securityTokenManager) {
 						return FilterUtils.userHierarchyFilter(user, securityTokenManager, options.getRequiredAccess(),
 								forSelectionOfSchemaType, options.isShowInvisibleRecordsInLinkingMode());
+					}
+
+					@Override
+					public boolean isExecutableInCache() {
+						return false;
+					}
+
+					@Override
+					public boolean hasUserAccessToRecord(Record record) {
+						throw new NotImplementedException();
 					}
 
 					@Override
@@ -424,6 +435,16 @@ public class TaxonomiesSearchServicesBasedOnHierarchyTokensImpl implements Taxon
 
 				return FilterUtils.userHierarchyFilter(ctx.user, securityTokenManager, ctx.options.getRequiredAccess(),
 						ctx.forSelectionOfSchemaType, ctx.options.isShowInvisibleRecordsInLinkingMode());
+			}
+
+			@Override
+			public boolean isExecutableInCache() {
+				return false;
+			}
+
+			@Override
+			public boolean hasUserAccessToRecord(Record record) {
+				throw new NotImplementedException();
 			}
 
 			@Override

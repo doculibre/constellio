@@ -1,9 +1,13 @@
 package com.constellio.model.services.search;
 
+import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.security.Role;
+import com.constellio.model.entities.security.global.AuthorizationAddRequest;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -11,7 +15,12 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
+import com.constellio.model.services.security.AuthorizationsServices;
+import com.constellio.model.services.security.roles.RolesManager;
+import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.setups.Users;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -19,6 +28,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class LogicalSearchQueryExecutorInCacheAcceptanceTest extends ConstellioTest {
@@ -30,11 +40,14 @@ public class LogicalSearchQueryExecutorInCacheAcceptanceTest extends ConstellioT
 
 	MetadataSchema testsSchemaDefault;
 
+	Users users = new Users();
+
 	LogicalSearchQueryExecutorInCache logicalSearchQueryExecutorInCache;
 
 	MetadataSchemasManager metadataSchemasManager;
 	RecordServices recordServices;
 	SearchServices searchServices;
+
 
 	Record record1;
 	Record record2;
@@ -43,12 +56,16 @@ public class LogicalSearchQueryExecutorInCacheAcceptanceTest extends ConstellioT
 
 	@Before
 	public void beforeTest() throws Exception {
-		prepareSystem(withZeCollection(), withCollection("secondCollection"));
+		prepareSystem(withZeCollection().withAllTestUsers());
+
+		UserServices userServices = getModelLayerFactory().newUserServices();
+
+		users.using(userServices);
 
 		metadataSchemasManager = getModelLayerFactory().getMetadataSchemasManager();
 
 		metadataSchemasManager.modify(zeCollection, (MetadataSchemaTypesAlteration) types -> {
-			MetadataSchemaTypeBuilder testSchemaBuilder = types.createNewSchemaType("testschema");
+			MetadataSchemaTypeBuilder testSchemaBuilder = types.createNewSchemaType("testschema").setSecurity(true);
 
 			MetadataSchemaBuilder defaultTestSchemaBuilder = testSchemaBuilder.getDefaultSchema();
 
@@ -94,12 +111,102 @@ public class LogicalSearchQueryExecutorInCacheAcceptanceTest extends ConstellioT
 	}
 
 	@Test
+	public void testUserFilterReadWithUser() throws Exception {
+		User aliceInCollection = users.aliceIn(zeCollection);
+
+		aliceInCollection.setCollectionReadAccess(false);
+		recordServices.update(aliceInCollection);
+
+		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(LogicalSearchQueryOperators
+				.from(testsSchemaDefault).where(cacheIndex).isEqualTo("toBeFound3")).filteredWithUser(aliceInCollection);
+
+		validateExecutableInCacheTrue(logicalSearchQuery);
+
+		List<Record> recordsResult1 = logicalSearchQueryExecutorInCache.stream(logicalSearchQuery).collect(Collectors.toList());
+		assertThat(recordsResult1.size()).isEqualTo(0);
+
+		AuthorizationsServices authorizationsServices = getModelLayerFactory().newAuthorizationsServices();
+		AuthorizationAddRequest authorizationAddRequest = authorizationForUsers(aliceInCollection).givingReadAccess().on(record3);
+
+		authorizationsServices.add(authorizationAddRequest);
+
+		List<Record> recordsResult2 = logicalSearchQueryExecutorInCache.stream(logicalSearchQuery).collect(Collectors.toList());
+		assertThat(recordsResult2.size()).isEqualTo(1);
+		assertThat(recordsResult2.get(0).getId()).isEqualTo(record3.getId());
+
+	}
+
+	@Test
+	public void testUserFilteWithRole() throws Exception {
+		User aliceInCollection = users.aliceIn(zeCollection);
+
+		aliceInCollection.setCollectionReadAccess(false);
+		recordServices.update(aliceInCollection);
+
+		RolesManager rolesManager = getModelLayerFactory().getRolesManager();
+
+		Role role = new Role(zeCollection, "CustomRole", Arrays.asList(CorePermissions.VIEW_EVENTS));
+
+		rolesManager.addRole(role);
+
+		Role adm = rolesManager.getRole(zeCollection, "ADM");
+
+		aliceInCollection = users.aliceIn(zeCollection);
+
+		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(LogicalSearchQueryOperators
+				.from(testsSchemaDefault).where(cacheIndex).isEqualTo("toBeFound3")).filteredWithUser(aliceInCollection, CorePermissions.VIEW_EVENTS);
+
+		boolean isExecutableInCache = logicalSearchQueryExecutorInCache.isQueryExecutableInCache(logicalSearchQuery);
+		assertThat(isExecutableInCache).isFalse();
+
+	}
+
+	@Test
+	public void testIsQueryExecutableInCache() throws Exception {
+		User aliceInCollection = users.aliceIn(zeCollection);
+
+		aliceInCollection.setCollectionReadAccess(false);
+		recordServices.update(aliceInCollection);
+
+		LogicalSearchQuery logicalSearchQuery1 = createValidQuery().filteredWithUser(aliceInCollection, CorePermissions.VIEW_EVENTS);
+
+		assertThat(logicalSearchQueryExecutorInCache.isQueryExecutableInCache(logicalSearchQuery1)).isFalse();
+
+		LogicalSearchQuery logicalSearchQuery2 = createValidQuery().filteredWithUser(aliceInCollection, CorePermissions.MANAGE_LDAP);
+
+		assertThat(logicalSearchQueryExecutorInCache.isQueryExecutableInCache(logicalSearchQuery2)).isFalse();
+
+		LogicalSearchQuery logicalSearchQuery3 = createValidQuery().filteredWithUser(aliceInCollection, Role.READ);
+
+		assertThat(logicalSearchQueryExecutorInCache.isQueryExecutableInCache(logicalSearchQuery3)).isTrue();
+
+		LogicalSearchQuery logicalSearchQuery4 = createValidQuery().filteredWithUser(aliceInCollection, Role.WRITE);
+
+		assertThat(logicalSearchQueryExecutorInCache.isQueryExecutableInCache(logicalSearchQuery4)).isTrue();
+
+		LogicalSearchQuery logicalSearchQuery5 = createValidQuery().filteredWithUser(aliceInCollection, Role.DELETE);
+
+		assertThat(logicalSearchQueryExecutorInCache.isQueryExecutableInCache(logicalSearchQuery5)).isTrue();
+
+	}
+
+	@NotNull
+	private LogicalSearchQuery createValidQuery() {
+		return new LogicalSearchQuery(LogicalSearchQueryOperators
+				.from(testsSchemaDefault).where(cacheIndex).isEqualTo("toBeFound3"));
+	}
+
+	private void validateExecutableInCacheTrue(LogicalSearchQuery logicalSearchQuery) {
+		boolean isExecutableInCache = logicalSearchQueryExecutorInCache.isQueryExecutableInCache(logicalSearchQuery);
+		assertThat(isExecutableInCache).isTrue();
+	}
+
+	@Test
 	public void testCompositeLogicalSearchConditionIsEqualCriterionThenSmallBaseListUsed() {
 		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(LogicalSearchQueryOperators
 				.from(testsSchemaDefault).where(cacheIndex).isEqualTo("toBeFound3").andWhere(unique).isEqualTo("unique3"));
 
-		boolean isExecutableInCache = logicalSearchQueryExecutorInCache.isQueryExecutableInCache(logicalSearchQuery);
-		assertThat(isExecutableInCache).isTrue();
+		validateExecutableInCacheTrue(logicalSearchQuery);
 
 		List<Record> queryResult = logicalSearchQueryExecutorInCache.stream(logicalSearchQuery).collect(Collectors.toList());
 
@@ -114,8 +221,7 @@ public class LogicalSearchQueryExecutorInCacheAcceptanceTest extends ConstellioT
 		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(LogicalSearchQueryOperators
 				.from(testsSchemaDefault).where(cacheIndex).isEqualTo("toBeFound3"));
 
-		boolean isExecutableInCache = logicalSearchQueryExecutorInCache.isQueryExecutableInCache(logicalSearchQuery);
-		assertThat(isExecutableInCache).isTrue();
+		validateExecutableInCacheTrue(logicalSearchQuery);
 
 		List<Record> queryResult = logicalSearchQueryExecutorInCache.stream(logicalSearchQuery).collect(Collectors.toList());
 
@@ -131,8 +237,7 @@ public class LogicalSearchQueryExecutorInCacheAcceptanceTest extends ConstellioT
 		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(LogicalSearchQueryOperators
 				.from(testsSchemaDefault).where(notCacheIndex).isEqualTo("nonCached1"));
 
-		boolean isExecutableInCache = logicalSearchQueryExecutorInCache.isQueryExecutableInCache(logicalSearchQuery);
-		assertThat(isExecutableInCache).isTrue();
+		validateExecutableInCacheTrue(logicalSearchQuery);
 
 		List<Record> queryResult = logicalSearchQueryExecutorInCache.stream(logicalSearchQuery).collect(Collectors.toList());
 
@@ -146,8 +251,7 @@ public class LogicalSearchQueryExecutorInCacheAcceptanceTest extends ConstellioT
 		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(LogicalSearchQueryOperators
 				.from(testsSchemaDefault).where(cacheIndex).isEqualTo(Arrays.asList("toBeFound2")).andWhere(unique).isEqualTo(Arrays.asList("unique2")));
 
-		boolean isExecutableInCache = logicalSearchQueryExecutorInCache.isQueryExecutableInCache(logicalSearchQuery);
-		assertThat(isExecutableInCache).isTrue();
+		validateExecutableInCacheTrue(logicalSearchQuery);
 
 		List<Record> queryResult = logicalSearchQueryExecutorInCache.stream(logicalSearchQuery).collect(Collectors.toList());
 
@@ -161,8 +265,7 @@ public class LogicalSearchQueryExecutorInCacheAcceptanceTest extends ConstellioT
 		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(LogicalSearchQueryOperators
 				.from(testsSchemaDefault).where(cacheIndex).isEqualTo(Arrays.asList("unique3")));
 
-		boolean isExecutableInCache = logicalSearchQueryExecutorInCache.isQueryExecutableInCache(logicalSearchQuery);
-		assertThat(isExecutableInCache).isTrue();
+		validateExecutableInCacheTrue(logicalSearchQuery);
 
 		List<Record> queryResult = logicalSearchQueryExecutorInCache.stream(logicalSearchQuery).collect(Collectors.toList());
 

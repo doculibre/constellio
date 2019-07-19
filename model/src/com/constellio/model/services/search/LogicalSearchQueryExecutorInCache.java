@@ -18,11 +18,12 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.query.logical.FieldLogicalSearchQuerySort;
 import com.constellio.model.services.search.query.logical.LogicalOperator;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery.UserFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuerySort;
 import com.constellio.model.services.search.query.logical.LogicalSearchValueCondition;
+import com.constellio.model.services.search.query.logical.QueryExecutionMethod;
 import com.constellio.model.services.search.query.logical.condition.CompositeLogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.condition.DataStoreFieldLogicalSearchCondition;
-import com.constellio.model.services.search.query.logical.QueryExecutionMethod;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.condition.SchemaFilters;
 import com.constellio.model.services.search.query.logical.criteria.IsEqualCriterion;
@@ -117,6 +118,7 @@ public class LogicalSearchQueryExecutorInCache {
 			}
 		}
 
+
 		if (Toggle.VALIDATE_CACHE_EXECUTION_SERVICE_USING_SOLR.isEnabled()) {
 			filter = filter.and(new Predicate<Record>() {
 				@Override
@@ -126,6 +128,10 @@ public class LogicalSearchQueryExecutorInCache {
 					return true;
 				}
 			});
+		}
+
+		if (query.getUserFilters() != null && !query.getUserFilters().isEmpty()) {
+			filter = ((Predicate<Record>) record -> isRecordAccessibleForUser(query.getUserFilters(), record)).and(filter);
 		}
 
 		boolean isBaseStreamDefined = false;
@@ -205,6 +211,16 @@ public class LogicalSearchQueryExecutorInCache {
 		} else {
 			return stream;
 		}
+	}
+
+	private static boolean isRecordAccessibleForUser(List<UserFilter> userFilterList, Record record) {
+		for (UserFilter currentUserFilter : userFilterList) {
+			if (!currentUserFilter.hasUserAccessToRecord(record)) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	private boolean canDataGetByMetadata(MetadataSchemaType schemaType, Object value, DataStoreField dataStoreField) {
@@ -319,8 +335,22 @@ public class LogicalSearchQueryExecutorInCache {
 			   && query.getFieldFacets().isEmpty()
 			   && query.getFieldPivotFacets().isEmpty()
 			   && query.getQueryFacets().isEmpty()
-			   && (query.getUserFilters() == null || query.getUserFilters().isEmpty())
+			   && areAllFiltersExecutableInCache(query.getUserFilters())
 			   && !query.isHighlighting();
+	}
+
+	private static boolean areAllFiltersExecutableInCache(List<UserFilter> userFilters) {
+		if (userFilters == null || userFilters.isEmpty()) {
+			return true;
+		}
+
+		for (UserFilter currentUserFilter : userFilters) {
+			if (!currentUserFilter.isExecutableInCache()) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	private static boolean hasNoSort(LogicalSearchQuery query) {

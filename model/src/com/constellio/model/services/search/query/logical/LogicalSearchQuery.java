@@ -2,6 +2,7 @@ package com.constellio.model.services.search.query.logical;
 
 import com.constellio.data.dao.services.records.DataStore;
 import com.constellio.data.utils.KeySetMap;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.DataStoreField;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -17,6 +18,7 @@ import com.constellio.model.services.search.query.SearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.condition.SchemaFilters;
 import com.constellio.model.services.security.SecurityTokenManager;
+import lombok.Getter;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
@@ -532,11 +534,16 @@ public class LogicalSearchQuery implements SearchQuery {
 	public interface UserFilter {
 		String buildFQ(SecurityTokenManager securityTokenManager);
 
+		boolean isExecutableInCache();
+
+		boolean hasUserAccessToRecord(Record record);
+
 		User getUser();
 	}
 
 	public static class DefaultUserFilter implements UserFilter {
 		private final User user;
+		@Getter
 		private final String access;
 
 		public DefaultUserFilter(User user, String access) {
@@ -569,6 +576,32 @@ public class LogicalSearchQuery implements SearchQuery {
 			}
 
 			return filter;
+		}
+
+		@Override
+		public boolean isExecutableInCache() {
+			switch (access) {
+				case Role.READ:
+				case Role.WRITE:
+				case Role.DELETE:
+					return true;
+				default:
+					return false;
+			}
+		}
+
+		@Override
+		public boolean hasUserAccessToRecord(Record record) {
+			switch (access) {
+				case Role.READ:
+					return user.hasReadAccess().on(record);
+				case Role.WRITE:
+					return user.hasWriteAccess().on(record);
+				case Role.DELETE:
+					return user.hasDeleteAccess().on(record);
+				default:
+					return user.has(access).on(record);
+			}
 		}
 	}
 
