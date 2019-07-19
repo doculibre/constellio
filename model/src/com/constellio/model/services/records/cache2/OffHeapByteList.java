@@ -76,6 +76,13 @@ public class OffHeapByteList {
 		return lastIndex == -1 ? -1 : get(lastIndex);
 	}
 
+	public void clear() {
+		for (int i = 0; i < this.adressesOfBatches.size(); i++) {
+			OffHeapMemoryAllocator.freeMemory(adressesOfBatches.get(i), batchSize);
+		}
+		this.adressesOfBatches.clear();
+	}
+
 	public Stream<Byte> stream() {
 		return new LazyIterator<Byte>() {
 			int index = 0;

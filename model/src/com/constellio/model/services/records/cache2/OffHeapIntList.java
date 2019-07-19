@@ -121,4 +121,11 @@ public class OffHeapIntList {
 			}
 		}.stream();
 	}
+
+	public void clear() {
+		for (int i = 0; i < this.adressesOfBatches.size(); i++) {
+			OffHeapMemoryAllocator.freeMemory(adressesOfBatches.get(i), batchSize * Integer.BYTES);
+		}
+		this.adressesOfBatches.clear();
+	}
 }
