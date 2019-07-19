@@ -361,6 +361,9 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 		if (!fullyCached) {
 			summaryCachedData.set(index, null);
 		} else {
+			while (fullyCachedData.size() < index) {
+				fullyCachedData.add(null);
+			}
 			fullyCachedData.add(index, null);
 		}
 	}

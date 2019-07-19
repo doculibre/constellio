@@ -356,7 +356,7 @@ public class SearchServices {
 			@NotNull
 			@Override
 			public Optional<Record> findFirst() {
-				List<Record> records = search(clonedQuery.setNumberOfRows(1).setForceExecutionInSolr(true));
+				List<Record> records = search(clonedQuery.setNumberOfRows(1));
 				return Optional.ofNullable(records.isEmpty() ? null : records.get(0));
 			}
 

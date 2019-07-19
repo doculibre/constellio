@@ -5,6 +5,9 @@ import com.constellio.data.dao.dto.records.RecordDTOMode;
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.services.cache.InsertionReason;
 import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.data.utils.LangUtils;
+import com.constellio.data.utils.LangUtils.ListComparisonResults;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
@@ -17,6 +20,7 @@ import com.constellio.model.services.caches.CacheIndexService;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordImpl;
+import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.records.cache.CacheInsertionResponse;
 import com.constellio.model.services.records.cache.CacheInsertionStatus;
 import com.constellio.model.services.records.cache.MassiveCacheInvalidationReason;
@@ -41,8 +45,10 @@ import org.slf4j.LoggerFactory;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -52,11 +58,11 @@ import java.util.stream.StreamSupport;
 
 import static com.constellio.data.dao.dto.records.RecordDTOMode.CUSTOM;
 import static com.constellio.data.dao.dto.records.RecordDTOMode.FULLY_LOADED;
-import static com.constellio.data.dao.dto.records.RecordDTOMode.SUMMARY;
 import static com.constellio.data.dao.services.cache.InsertionReason.LOADING_CACHE;
+import static com.constellio.data.utils.LangUtils.compare;
+import static com.constellio.data.utils.LangUtils.isEqual;
 import static com.constellio.model.entities.schemas.Schemas.COLLECTION;
 import static com.constellio.model.entities.schemas.Schemas.SCHEMA;
-import static com.constellio.model.services.records.RecordUtils.toPersistedSummaryRecordDTO;
 import static com.constellio.model.services.records.cache.MassiveCacheInvalidationReason.KEEP_INTEGRITY;
 import static com.constellio.model.services.records.cache2.CacheRecordDTOUtils.convertDTOToByteArrays;
 import static com.constellio.model.services.records.cache2.DeterminedHookCacheInsertion.DEFAULT_INSERT;
@@ -86,6 +92,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 		this.collectionsListManager = modelLayerFactory.getCollectionsListManager();
 		this.metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
 		this.fileSystemDataStore = fileSystemDataStore;
+		SummaryCacheSingletons.dataStore = fileSystemDataStore;
 		this.memoryDataStore = memoryDataStore;
 
 		this.memoryDiskDatabase = DBMaker.memoryDB().make();
@@ -198,7 +205,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 					oldRecord = toRecord(current);
 				}
 
-				return insertInPermanentCache(oldRecord, record, schemaType, insertion);
+				return insertInPermanentCache(oldRecord, record, schemaType, insertion, insertionReason);
 			} else {
 				if (current != null) {
 					memoryDataStore.remove(current);
@@ -215,7 +222,8 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 	@NotNull
 	private CacheInsertionResponse insertInPermanentCache(Record oldRecord, Record record,
 														  MetadataSchemaType schemaType,
-														  DeterminedHookCacheInsertion insertion) {
+														  DeterminedHookCacheInsertion insertion,
+														  InsertionReason insertionReason) {
 		if (schemaType.getCacheType() == RecordCacheType.FULLY_CACHED) {
 
 			RecordDTO dto = ((RecordImpl) record).getRecordDTO();
@@ -232,8 +240,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 
 
 		} else if (schemaType.getCacheType().isSummaryCache()) {
-			MetadataSchema schema = metadataSchemasManager.getSchemaOf(record);
-			RecordDTO dto = toPersistedSummaryRecordDTO(record, schema);
+			RecordDTO dto = toPersistedSummaryRecordDTO(record, insertionReason);
 
 			Record summaryRecord = toRecord(dto);
 			MetadataSchema metadataSchema = oldRecord != null ? schemaType.getSchema(oldRecord.getSchemaCode()) : schemaType.getSchema(record.getSchemaCode());
@@ -394,8 +401,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 			}
 
 			if (returnedRecord != null && returnedRecord.getLoadedFieldsMode() == FULLY_LOADED) {
-				MetadataSchema schema = metadataSchemasManager.getSchemaOf(returnedRecord);
-				returnedRecord = toRecord(toPersistedSummaryRecordDTO(returnedRecord, schema));
+				returnedRecord = toRecord(toPersistedSummaryRecordDTO(returnedRecord, null));
 			}
 		}
 
@@ -479,50 +485,6 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 				}
 			});
 		}
-	}
-
-
-	public RecordDTO prepareForCache(RecordDTO dto) {
-
-		if (dto.getLoadingMode() == CUSTOM) {
-			throw new IllegalStateException("Cannot create summary record from a customly loaded Record");
-		}
-
-		String collection = (String) dto.getFields().get("collection_s");
-		String schemaCode = (String) dto.getFields().get("schema_s");
-		MetadataSchemaType type = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection)
-				.getSchemaType(SchemaUtils.getSchemaTypeCode(schemaCode));
-
-		MetadataSchemaProvider schemaProvider = modelLayerFactory.getMetadataSchemasManager();
-
-		MetadataSchema schema = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchema(schemaCode);
-		CollectionInfo collectionInfo = schema.getCollectionInfo();
-
-		//TODO Handle Holder
-		CacheRecordDTOBytesArray bytesArray = convertDTOToByteArrays(dto, schema);
-
-		int intId = CacheRecordDTOUtils.toIntKey(dto.getId());
-
-		if (intId == CacheRecordDTOUtils.KEY_IS_NOT_AN_INT) {
-			if (bytesArray.bytesToPersist != null && bytesArray.bytesToPersist.length > 0) {
-				SummaryCacheSingletons.dataStore.saveStringKey(dto.getId(), bytesArray.bytesToPersist);
-			} else {
-				//SummaryCacheSingletons.dataStore.removeStringKey(dto.getId());
-			}
-			return new ByteArrayRecordDTOWithStringId(dto.getId(), schemaProvider, dto.getVersion(), dto.getLoadingMode() == SUMMARY,
-					collectionInfo.getCode(), collectionInfo.getCollectionId(), type.getCode(), type.getId(),
-					schema.getCode(), schema.getId(), bytesArray.bytesToKeepInMemory);
-		} else {
-			if (bytesArray.bytesToPersist != null && bytesArray.bytesToPersist.length > 0) {
-				SummaryCacheSingletons.dataStore.saveIntKey(intId, bytesArray.bytesToPersist);
-			} else {
-				//SummaryCacheSingletons.dataStore.removeIntKey(intId);
-			}
-			return new ByteArrayRecordDTOWithIntegerId(intId, schemaProvider, dto.getVersion(), dto.getLoadingMode() == SUMMARY,
-					collectionInfo.getCode(), collectionInfo.getCollectionId(), type.getCode(), type.getId(),
-					schema.getCode(), schema.getId(), bytesArray.bytesToKeepInMemory);
-		}
-
 	}
 
 	@Deprecated
@@ -728,5 +690,135 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 	public RecordsCachesHook getHook(MetadataSchemaType schemaType) {
 		return hooks.getSchemaTypeHook(
 				metadataSchemasManager.getSchemaTypes(schemaType.getCollection()), schemaType.getId());
+	}
+
+	private RecordDTO toPersistedSummaryRecordDTO(Record record, InsertionReason reason) {
+
+		if (Toggle.USE_BYTE_ARRAY_DTOS_FOR_SUMMARY_CACHE.isEnabled()) {
+			RecordDTO byteArrayRecordDTO = prepareForCache(((RecordImpl) record).getRecordDTO(), reason);
+
+			if (Toggle.VALIDATE_BYTE_ARRAY_DTOS_AFTER_CREATION.isEnabled()) {
+				validate(record, byteArrayRecordDTO);
+			}
+
+			return byteArrayRecordDTO;
+
+		} else {
+			MetadataSchema schema = metadataSchemasManager.getSchemaOf(record);
+			return RecordUtils.toPersistedSummaryRecordDTO(record, schema);
+		}
+	}
+
+	private void validate(Record record, RecordDTO byteArrayRecordDTO) {
+		MetadataSchema schema = metadataSchemasManager.getSchemaOf(record);
+		RecordDTO comparisonRecordDTO = RecordUtils.toPersistedSummaryRecordDTO(record, schema);
+
+		if (!byteArrayRecordDTO.getId().equals(comparisonRecordDTO.getId())) {
+			throw new IllegalArgumentException("Id not equal");
+
+		} else if (byteArrayRecordDTO.getVersion() != comparisonRecordDTO.getVersion()) {
+			throw new IllegalArgumentException("Version not equal");
+
+		} else if (byteArrayRecordDTO.getLoadingMode() != comparisonRecordDTO.getLoadingMode()) {
+			throw new IllegalArgumentException("Loading mode not equal");
+
+		} else if (!byteArrayRecordDTO.getCollection().equals(comparisonRecordDTO.getCollection())) {
+			throw new IllegalArgumentException("Collection not equal");
+
+		} else if (!byteArrayRecordDTO.getSchemaCode().equals(comparisonRecordDTO.getSchemaCode())) {
+			throw new IllegalArgumentException("Schema not equal");
+
+		} else if (!byteArrayRecordDTO.getFields().keySet().equals(comparisonRecordDTO.getFields().keySet())) {
+
+			Set<String> byteArrayFields = new HashSet<>(byteArrayRecordDTO.getFields().keySet());
+			Set<String> comparisonFields = new HashSet<>(comparisonRecordDTO.getFields().keySet());
+
+			for (String field : byteArrayRecordDTO.getFields().keySet()) {
+				//System.out.println(field + ":" + byteArrayRecordDTO.getFields().get(field));
+				if (byteArrayRecordDTO.getFields().get(field) == null) {
+					byteArrayFields.remove(field);
+				}
+			}
+
+			for (String field : comparisonRecordDTO.getFields().keySet()) {
+				//	System.out.println(field + ":" + comparisonRecordDTO.getFields().get(field));
+				if (comparisonRecordDTO.getFields().get(field) == null) {
+					comparisonFields.remove(field);
+				}
+			}
+
+			ListComparisonResults<String> diff = compare(byteArrayFields, comparisonFields);
+
+			StringBuilder stringBuilder = new StringBuilder();
+			if (!diff.getNewItems().isEmpty()) {
+				stringBuilder.append("\nFields that should be in byte array DTO : " + diff.getNewItems());
+			}
+			if (!diff.getRemovedItems().isEmpty()) {
+				stringBuilder.append("\nFields that should not be in byte array DTO : " + diff.getRemovedItems());
+			}
+
+			if (stringBuilder.length() > 0) {
+				throw new IllegalArgumentException("Not same fields : " + stringBuilder.toString());
+			}
+
+		} else {
+			Set<String> fields = byteArrayRecordDTO.getFields().keySet();
+
+			for (String field : fields) {
+				Object byteArrayFieldValue = byteArrayRecordDTO.getFields().get(field);
+				Object comparisonRecordFieldValue = comparisonRecordDTO.getFields().get(field);
+
+				if (!LangUtils.isEqual(byteArrayFieldValue, comparisonRecordFieldValue)) {
+					throw new IllegalArgumentException("Field '" + field + "' is different"
+													   + "\nByte array DTO value : " + byteArrayFieldValue
+													   + "\nObject DTO value : " + comparisonRecordFieldValue);
+				}
+			}
+
+		}
+	}
+
+
+	private RecordDTO prepareForCache(RecordDTO dto, InsertionReason reason) {
+
+		if (dto.getLoadingMode() == CUSTOM && reason != LOADING_CACHE) {
+			throw new IllegalStateException("Cannot create summary record from a customly loaded Record");
+		}
+
+		String collection = (String) dto.getFields().get("collection_s");
+		String schemaCode = (String) dto.getFields().get("schema_s");
+		MetadataSchemaType type = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection)
+				.getSchemaType(SchemaUtils.getSchemaTypeCode(schemaCode));
+
+		MetadataSchemaProvider schemaProvider = modelLayerFactory.getMetadataSchemasManager();
+
+		MetadataSchema schema = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchema(schemaCode);
+		CollectionInfo collectionInfo = schema.getCollectionInfo();
+
+		//TODO Handle Holder
+		CacheRecordDTOBytesArray bytesArray = convertDTOToByteArrays(dto, schema);
+
+		int intId = CacheRecordDTOUtils.toIntKey(dto.getId());
+
+		if (intId == CacheRecordDTOUtils.KEY_IS_NOT_AN_INT) {
+			if (bytesArray.bytesToPersist != null && bytesArray.bytesToPersist.length > 0) {
+				SummaryCacheSingletons.dataStore.saveStringKey(dto.getId(), bytesArray.bytesToPersist);
+			} else {
+				//SummaryCacheSingletons.dataStore.removeStringKey(dto.getId());
+			}
+			return new ByteArrayRecordDTOWithStringId(dto.getId(), schemaProvider, dto.getVersion(), true,
+					collectionInfo.getCode(), collectionInfo.getCollectionId(), type.getCode(), type.getId(),
+					schema.getCode(), schema.getId(), bytesArray.bytesToKeepInMemory);
+		} else {
+			if (bytesArray.bytesToPersist != null && bytesArray.bytesToPersist.length > 0) {
+				SummaryCacheSingletons.dataStore.saveIntKey(intId, bytesArray.bytesToPersist);
+			} else {
+				//SummaryCacheSingletons.dataStore.removeIntKey(intId);
+			}
+			return new ByteArrayRecordDTOWithIntegerId(intId, schemaProvider, dto.getVersion(), true,
+					collectionInfo.getCode(), collectionInfo.getCollectionId(), type.getCode(), type.getId(),
+					schema.getCode(), schema.getId(), bytesArray.bytesToKeepInMemory);
+		}
+
 	}
 }

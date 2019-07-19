@@ -22,6 +22,7 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuerySort
 import com.constellio.model.services.search.query.logical.LogicalSearchValueCondition;
 import com.constellio.model.services.search.query.logical.condition.CompositeLogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.condition.DataStoreFieldLogicalSearchCondition;
+import com.constellio.model.services.search.query.logical.QueryExecutionMethod;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.condition.SchemaFilters;
 import com.constellio.model.services.search.query.logical.criteria.IsEqualCriterion;
@@ -304,7 +305,7 @@ public class LogicalSearchQueryExecutorInCache {
 	}
 
 	public static boolean hasNoUnsupportedFeatureOrFilter(LogicalSearchQuery query) {
-		return !query.isForceExecutionInSolr()
+		return query.getQueryExecutionMethod() != QueryExecutionMethod.USE_SOLR
 			   && query.getFacetFilters().toSolrFilterQueries().isEmpty()
 			   && hasNoUnsupportedSort(query)
 			   && query.getFreeTextQuery() == null
