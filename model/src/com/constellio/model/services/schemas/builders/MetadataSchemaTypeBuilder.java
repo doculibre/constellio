@@ -427,7 +427,11 @@ public class MetadataSchemaTypeBuilder {
 	short nextMetadataId() {
 		if (metadatasIdSequence == null) {
 			metadatasIdSequence = new SchemasIdSequence();
-			for (MetadataSchemaBuilder schemaBuilder : allSchemas) {
+			for (MetadataBuilder metadataBuilder : defaultSchema.getMetadatas()) {
+				metadatasIdSequence.markAsAssigned(metadataBuilder.getId());
+			}
+
+			for (MetadataSchemaBuilder schemaBuilder : customSchemas) {
 				for (MetadataBuilder metadataBuilder : schemaBuilder.getMetadatas()) {
 					metadatasIdSequence.markAsAssigned(metadataBuilder.getId());
 				}

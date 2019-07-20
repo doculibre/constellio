@@ -29,4 +29,6 @@ public interface DataStoreField extends Serializable {
 	boolean isUniqueValue();
 
 	boolean isCacheIndex();
+
+	boolean isEncrypted();
 }
