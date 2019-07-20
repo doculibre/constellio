@@ -16,7 +16,6 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.security.AuthorizationsServices;
-import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
@@ -133,31 +132,6 @@ public class LogicalSearchQueryExecutorInCacheAcceptanceTest extends ConstellioT
 		List<Record> recordsResult2 = logicalSearchQueryExecutorInCache.stream(logicalSearchQuery).collect(Collectors.toList());
 		assertThat(recordsResult2.size()).isEqualTo(1);
 		assertThat(recordsResult2.get(0).getId()).isEqualTo(record3.getId());
-
-	}
-
-	@Test
-	public void testUserFilteWithRole() throws Exception {
-		User aliceInCollection = users.aliceIn(zeCollection);
-
-		aliceInCollection.setCollectionReadAccess(false);
-		recordServices.update(aliceInCollection);
-
-		RolesManager rolesManager = getModelLayerFactory().getRolesManager();
-
-		Role role = new Role(zeCollection, "CustomRole", Arrays.asList(CorePermissions.VIEW_EVENTS));
-
-		rolesManager.addRole(role);
-
-		Role adm = rolesManager.getRole(zeCollection, "ADM");
-
-		aliceInCollection = users.aliceIn(zeCollection);
-
-		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(LogicalSearchQueryOperators
-				.from(testsSchemaDefault).where(cacheIndex).isEqualTo("toBeFound3")).filteredWithUser(aliceInCollection, CorePermissions.VIEW_EVENTS);
-
-		boolean isExecutableInCache = logicalSearchQueryExecutorInCache.isQueryExecutableInCache(logicalSearchQuery);
-		assertThat(isExecutableInCache).isFalse();
 
 	}
 
