@@ -1,5 +1,6 @@
 package com.constellio.model.services.search;
 
+import com.constellio.data.utils.AccentApostropheCleaner;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.Language;
@@ -118,16 +119,16 @@ public class LogicalSearchQueryExecutorInCache {
 		}
 
 
-		if (Toggle.VALIDATE_CACHE_EXECUTION_SERVICE_USING_SOLR.isEnabled()) {
-			filter = filter.and(new Predicate<Record>() {
-				@Override
-				public boolean test(Record record) {
-					LOGGER.info("Record returned by stream : " + record.getIdTitle());
-
-					return true;
-				}
-			});
-		}
+//		if (Toggle.VALIDATE_CACHE_EXECUTION_SERVICE_USING_SOLR.isEnabled()) {
+		//			filter = filter.and(new Predicate<Record>() {
+		//				@Override
+		//				public boolean test(Record record) {
+		//					LOGGER.info("Record returned by stream : " + record.getIdTitle());
+		//
+		//					return true;
+		//				}
+		//			});
+		//		}
 
 		if (query.getUserFilters() != null && !query.getUserFilters().isEmpty()) {
 			filter = ((Predicate<Record>) record -> isRecordAccessibleForUser(query.getUserFilters(), record)).and(filter);
@@ -285,23 +286,23 @@ public class LogicalSearchQueryExecutorInCache {
 			}
 		}
 
-		//if (metadata.isSortable()) {
-		if (value1 instanceof String && metadata.getSortFieldNormalizer() != null) {
-			value1 = metadata.getSortFieldNormalizer().normalize((String) value1);
-		}
+		if (metadata.hasNormalizedSortField()) {
+			if (value1 instanceof String && metadata.getSortFieldNormalizer() != null) {
+				value1 = metadata.getSortFieldNormalizer().normalize((String) value1);
+			}
 
-		if (value2 instanceof String && metadata.getSortFieldNormalizer() != null) {
-			value2 = metadata.getSortFieldNormalizer().normalize((String) value2);
+			if (value2 instanceof String && metadata.getSortFieldNormalizer() != null) {
+				value2 = metadata.getSortFieldNormalizer().normalize((String) value2);
+			}
+		} else {
+			if (value1 instanceof String) {
+				value1 = AccentApostropheCleaner.removeAccents(((String) value1).toLowerCase());
+			}
+
+			if (value2 instanceof String) {
+				value2 = AccentApostropheCleaner.removeAccents(((String) value2).toLowerCase());
+			}
 		}
-		//		} else {
-		//			if (value1 instanceof String) {
-		//				value1 = AccentApostropheCleaner.removeAccents(((String) value1));
-		//			}
-		//
-		//			if (value2 instanceof String) {
-		//				value2 = AccentApostropheCleaner.removeAccents(((String) value2));
-		//			}
-		//		}
 
 		int sort = LangUtils.nullableNaturalCompare((Comparable) value1, (Comparable) value2, ascending);
 		return ascending ? sort : (-1 * sort);

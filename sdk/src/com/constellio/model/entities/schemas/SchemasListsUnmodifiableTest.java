@@ -42,9 +42,11 @@ public class SchemasListsUnmodifiableTest extends ConstellioTest {
 		List<Metadata> metadatas = Arrays.asList(metadata1, metadata2);
 		when(metadata1.getType()).thenReturn(MetadataValueType.BOOLEAN);
 		when(metadata2.getType()).thenReturn(MetadataValueType.ENUM);
+		when(metadata1.getId()).thenReturn((short) 1);
+		when(metadata2.getId()).thenReturn((short) 2);
 		Set<RecordValidator> validators = new HashSet<RecordValidator>();
 		CollectionInfo zeCollectionInfo = new CollectionInfo((byte) 0, zeCollection, "fr", Arrays.asList("fr"));
-		MetadataSchema schema = new MetadataSchema((short) 0, "aCode", "aCode", zeCollectionInfo, labels, metadatas, false, true, validators,
+		MetadataSchema schema = new MetadataSchema((short) 1, "aCode", "aCode", zeCollectionInfo, labels, metadatas, false, true, validators,
 				null, DataStore.RECORDS, true);
 
 		schema.getMetadatas().clear();

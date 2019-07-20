@@ -336,12 +336,18 @@ public class TestUtils {
 		return map;
 	}
 
+	private static short nextMetadataId = 1000;
+
 	public static Metadata mockMetadata(String code) {
+		if (nextMetadataId > 3000) {
+			nextMetadataId = 1000;
+		}
 		String localCode = code.split("_")[2];
 		final Metadata metadata = mock(Metadata.class, code);
 		when(metadata.getCode()).thenReturn(code);
 		when(metadata.getSchemaCode()).thenReturn(code.replace("_" + localCode, ""));
 		when(metadata.getLocalCode()).thenReturn(localCode);
+		when(metadata.getId()).thenReturn(nextMetadataId++);
 
 		when(metadata.getInheritanceCode()).thenAnswer(new Answer<String>() {
 			@Override

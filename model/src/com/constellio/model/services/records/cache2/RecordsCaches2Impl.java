@@ -60,7 +60,6 @@ import static com.constellio.data.dao.dto.records.RecordDTOMode.CUSTOM;
 import static com.constellio.data.dao.dto.records.RecordDTOMode.FULLY_LOADED;
 import static com.constellio.data.dao.services.cache.InsertionReason.LOADING_CACHE;
 import static com.constellio.data.utils.LangUtils.compare;
-import static com.constellio.data.utils.LangUtils.isEqual;
 import static com.constellio.model.entities.schemas.Schemas.COLLECTION;
 import static com.constellio.model.entities.schemas.Schemas.SCHEMA;
 import static com.constellio.model.services.records.cache.MassiveCacheInvalidationReason.KEEP_INTEGRITY;
@@ -539,10 +538,8 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 		int intId = CacheRecordDTOUtils.toIntKey(recordDTO.getId());
 		if (intId == CacheRecordDTOUtils.KEY_IS_NOT_AN_INT) {
 			memoryDataStore.remove(recordDTO);
-			fileSystemDataStore.removeStringKey(recordDTO.getId());
 		} else {
 			memoryDataStore.remove(recordDTO);
-			fileSystemDataStore.removeIntKey(intId);
 
 		}
 		volatileCache.remove(recordDTO.getId());
@@ -555,6 +552,12 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 			hook.removeRecordFromCache(recordDTO);
 		}
 
+		if (intId == CacheRecordDTOUtils.KEY_IS_NOT_AN_INT) {
+			fileSystemDataStore.removeStringKey(recordDTO.getId());
+		} else {
+			fileSystemDataStore.removeIntKey(intId);
+
+		}
 	}
 
 

@@ -72,7 +72,7 @@ public class MetadataSchema implements Serializable {
 		this.metadatas = new MetadataList(metadatas).unModifiable();
 		Set<Short> uniqueIds = metadatas.stream().map(Metadata::getId).collect(Collectors.toSet());
 		if (uniqueIds.size() != metadatas.size()) {
-			throw new IllegalStateException("Multiple records with same id");
+			throw new IllegalStateException("Multiple metadatas with same id");
 		}
 		this.undeletable = undeletable;
 		this.schemaValidators = schemaValidators;

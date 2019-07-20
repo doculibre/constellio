@@ -59,7 +59,7 @@ public class CacheIndexService {
 				MapWithKeyReturnValue mapWithKeyReturnValue = getValueHashToModify(collection, schemaType, currentMetadata.getLocalCode(), false);
 
 				if (mapWithKeyReturnValue != null) {
-					removeRecordIdToMapByValue(oldVersion.get(currentMetadata), oldVersion.getId(), mapWithKeyReturnValue.getValueRecordIdMap(), currentMetadata);
+ 					removeRecordIdToMapByValue(oldVersion.get(currentMetadata), oldVersion.getId(), mapWithKeyReturnValue.getValueRecordIdMap(), currentMetadata);
 					cleanUpEmptyMap(mapWithKeyReturnValue);
 				}
 			} else {

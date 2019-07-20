@@ -25,7 +25,6 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
-import org.junit.After;
 import org.junit.Test;
 
 import java.io.File;
@@ -68,12 +67,6 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 		reindexingServices = getModelLayerFactory().newReindexingServices();
 		contentManager = getModelLayerFactory().getContentManager();
 
-		SummaryCacheSingletons.dataStore = new FileSystemRecordsValuesCacheDataStore(new File(newTempFolder(), "test.db"));
-	}
-
-	@After
-	public void tearDown() throws Exception {
-		SummaryCacheSingletons.dataStore.close();
 	}
 
 	@Test

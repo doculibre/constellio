@@ -4,10 +4,14 @@ import org.mapdb.DB;
 import org.mapdb.DBMaker;
 import org.mapdb.HTreeMap;
 import org.mapdb.Serializer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 
 public class FileSystemRecordsValuesCacheDataStore {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(FileSystemRecordsValuesCacheDataStore.class);
 
 	private DB onDiskDatabase;
 
@@ -75,11 +79,19 @@ public class FileSystemRecordsValuesCacheDataStore {
 	}
 
 	public byte[] loadStringKey(String id) {
-		return stringKeyMapMemoryBuffer.get(id);
+		byte[] bytes = stringKeyMapMemoryBuffer.get(id);
+		if (bytes == null) {
+			throw new IllegalStateException("Record '" + id + "' has no stored bytes");
+		}
+		return bytes;
 	}
 
 	public byte[] loadIntKey(int id) {
-		return intKeyMapMemoryBuffer.get(id);
+		byte[] bytes = intKeyMapMemoryBuffer.get(id);
+		if (bytes == null) {
+			throw new IllegalStateException("Record '" + id + "' has no stored bytes");
+		}
+		return bytes;
 	}
 
 	public void close() {
