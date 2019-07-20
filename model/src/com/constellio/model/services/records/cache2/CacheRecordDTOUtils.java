@@ -283,8 +283,12 @@ public class CacheRecordDTOUtils {
 		Metadata metadataSearched = schema.getMetadataByDatastoreCode(metadataLocalCode);
 
 		byte[] byteArrayToSearchIn;
-		if (isMetatadataPersisted(metadataSearched)) {
+		if (metadataSearched == null) {
+			return null;
+
+		} else if (isMetatadataPersisted(metadataSearched)) {
 			byteArrayToSearchIn = persistedByteArraySupplier.get();
+
 		} else {
 			byteArrayToSearchIn = byteArray;
 		}

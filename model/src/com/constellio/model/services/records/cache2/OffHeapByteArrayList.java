@@ -61,6 +61,18 @@ class OffHeapByteArrayList {
 		set(index, value);
 	}
 
+	public void clear() {
+		for (int i = 0; i < this.byteArraySizes.size(); i++) {
+			long address = this.byteArrayMemoryAdresses.get(i);
+			long size = this.byteArraySizes.get(i);
+			if (address > 0 && size > 0) {
+				OffHeapMemoryAllocator.freeMemory(address, size);
+			}
+		}
+		this.byteArrayMemoryAdresses.clear();
+		this.byteArraySizes.clear();
+	}
+
 	public OffHeapBytesSupplier get(int index) {
 
 		long address = byteArrayMemoryAdresses.get(index);

@@ -81,6 +81,8 @@ public class Toggle {
 
 	public static AvailableToggle MIGRATING_LEGACY_SAVESTATE = newToggle(false);
 
+	public static AvailableToggle TRI_LEVEL_CACHE_LOCKING_Mecanism = newToggle(false);
+
 	// ------------------------------------------------
 
 	private static Map<String, AvailableToggle> toggleMap = new HashMap<>();

@@ -504,6 +504,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 
 	@Override
 	public void close() {
+		memoryDataStore.close();
 		fileSystemDataStore.close();
 	}
 
@@ -735,14 +736,16 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 
 			for (String field : byteArrayRecordDTO.getFields().keySet()) {
 				//System.out.println(field + ":" + byteArrayRecordDTO.getFields().get(field));
-				if (byteArrayRecordDTO.getFields().get(field) == null) {
+				Object value = byteArrayRecordDTO.getFields().get(field);
+				if (value == null || ((value instanceof List) && ((List) value).isEmpty())) {
 					byteArrayFields.remove(field);
 				}
 			}
 
 			for (String field : comparisonRecordDTO.getFields().keySet()) {
 				//	System.out.println(field + ":" + comparisonRecordDTO.getFields().get(field));
-				if (comparisonRecordDTO.getFields().get(field) == null) {
+				Object value = comparisonRecordDTO.getFields().get(field);
+				if (value == null || ((value instanceof List) && ((List) value).isEmpty())) {
 					comparisonFields.remove(field);
 				}
 			}

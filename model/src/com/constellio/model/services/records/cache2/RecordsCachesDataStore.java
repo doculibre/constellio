@@ -180,4 +180,7 @@ public class RecordsCachesDataStore {
 				stringIdsDataStore.iterator(collectionId, typeId, metadataId, value));
 	}
 
+	public void close() {
+		intIdsDataStore.close();
+	}
 }
