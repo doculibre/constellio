@@ -38,6 +38,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.QueryExecutionMethod.USE_SOLR;
 
 public class BetaWorkflowServices {
 	String collection;
@@ -540,7 +541,7 @@ public class BetaWorkflowServices {
 				.where(tasks.userTask.betaWorkflow()).isEqualTo(workflowId)
 				.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()
 				.andWhere(tasks.userTask.isModel()).isTrue()).sortDesc(tasks.userTask.betaWorkflowTaskSort())
-				.filteredByVisibilityStatus(VisibilityStatusFilter.ALL).setForceExecutionInSolr(true);
+				.filteredByVisibilityStatus(VisibilityStatusFilter.ALL).setQueryExecutionMethod(USE_SOLR);
 	}
 
 	public Task getCurrentWorkflowInstanceTask(BetaWorkflowInstance workflowInstance) {

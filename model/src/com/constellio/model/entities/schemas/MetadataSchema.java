@@ -18,6 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class MetadataSchema implements Serializable {
 
@@ -69,6 +70,10 @@ public class MetadataSchema implements Serializable {
 		this.labels = new HashMap<>(labels);
 		this.inTransactionLog = inTransactionLog;
 		this.metadatas = new MetadataList(metadatas).unModifiable();
+		Set<Short> uniqueIds = metadatas.stream().map(Metadata::getId).collect(Collectors.toSet());
+		if (uniqueIds.size() != metadatas.size()) {
+			throw new IllegalStateException("Multiple metadatas with same id");
+		}
 		this.undeletable = undeletable;
 		this.schemaValidators = schemaValidators;
 		this.calculatedInfos = calculatedInfos;

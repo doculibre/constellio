@@ -273,7 +273,6 @@ public class MetadataList implements List<Metadata>, Serializable {
 		List<Metadata> filteredMetadatasList = new ArrayList<>();
 		for (Metadata metadata : nestedList) {
 			if (!metadata.getLocalCode().equals(Schemas.IDENTIFIER.getLocalCode())
-				&& !metadata.getLocalCode().equals(Schemas.LEGACY_ID.getLocalCode())
 				&& (metadata.isCacheIndex()
 					|| (metadata.isUniqueValue() && (metadata.getType() == MetadataValueType.STRING
 													 || metadata.getType() == MetadataValueType.REFERENCE)))) {

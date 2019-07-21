@@ -44,7 +44,6 @@ import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatasAdapt
 import com.constellio.sdk.tests.setups.Users;
 import org.apache.commons.lang.SerializationUtils;
 import org.junit.Before;
-import org.junit.Test;
 import org.mockito.Mockito;
 
 import java.util.ArrayList;
@@ -100,7 +99,7 @@ public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 			schemas.new ZeSchemaMetadatas());
 	AnotherSchemaMetadatas anotherSchemas = schemas.new AnotherSchemaMetadatas();
 
-	@Test
+	//	// @Test
 	public void whenSavingARecordWithoutMetadatasSettedToDifferentValuesWhenSavingThenValuesPopulated()
 			throws Exception {
 		defineSchemasManager().using(schemas.with(fourMetadatas()
@@ -132,7 +131,7 @@ public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 				.hasNoMetadataValue(zeSchemas.textsMeta());
 	}
 
-	@Test
+	//	// @Test
 	public void whenRunningRepopulateActionThenRepopulate()
 			throws Exception {
 		// TODO Correct action to force rerun of extractors
@@ -179,7 +178,7 @@ public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 				.hasMetadataValue(zeSchemas.stringMeta(), "Mon premier contrat");
 	}
 
-	@Test
+	//	// @Test
 	public void whenSavingARecordWithMetadatasSettedToDefaultValuesWhenSavingThenValuesPopulatedUsingStyles()
 			throws Exception {
 		defineSchemasManager().using(schemas.with(fourMetadatas()
@@ -212,7 +211,7 @@ public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 				.hasMetadataValue(zeSchemas.textsMeta(), asList("value3", "value4"));
 	}
 
-	@Test
+	//	// @Test
 	public void whenSavingARecordWithMetadatasSettedToDefaultValuesWhenSavingThenValuesPopulatedUsingProperties()
 			throws Exception {
 
@@ -248,7 +247,7 @@ public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 				.hasMetadataValue(zeSchemas.textsMeta(), asList("value3", "value4"));
 	}
 
-	@Test
+	//	// @Test
 	public void whenSavingARecordWithMetadatasSettedToDifferentValuesWhenSavingThenValuesNotPopulated()
 			throws Exception {
 		defineSchemasManager().using(schemas.with(fourMetadatas()
@@ -285,7 +284,7 @@ public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 				.hasMetadataValue(zeSchemas.textsMeta(), asList("customTextValue1", "customTextValue2"));
 	}
 
-	@Test
+	//	// @Test
 	public void givenMetadatasWithMappedStylesWhenPopulatingNewRecordWithoutValuesThenValuesAreUpdated()
 			throws Exception {
 
@@ -328,7 +327,7 @@ public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 				.hasNoMetadataValue(zeSchemas.textsMeta());
 	}
 
-	@Test
+	//	// @Test
 	public void givenMetadatasWithMappedStylesWhenPopulatingSavedRecordWithoutValuesThenValuesAreUpdated()
 			throws Exception {
 
@@ -374,7 +373,7 @@ public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 				.hasNoMetadataValue(zeSchemas.textsMeta());
 	}
 
-	@Test
+	//	// @Test
 	public void givenRecordWithAManuallySettedValueWhenPopulateThenDoesNotOverwriteWithStyles()
 			throws Exception {
 
@@ -410,7 +409,7 @@ public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 				.hasMetadataValue(zeSchemas.stringsMeta(), asList("first value", "second value"));
 	}
 
-	@Test
+	//	// @Test
 	public void givenRecordWithAManuallyRemovedValueWhenPopulateThenDoesOverwriteWithStyles()
 			throws Exception {
 
@@ -450,7 +449,7 @@ public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 				.hasMetadataValue(zeSchemas.textsMeta(), asList("Frodon", "Gandalf Leblanc", "The ring contract"));
 	}
 
-	@Test
+	//	// @Test
 	public void givenMetadatasWithMappedPropertiesWhenPopulatingNewRecordWithoutValuesThenValuesAreUpdated()
 			throws Exception {
 
@@ -496,7 +495,7 @@ public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 				.hasNoMetadataValue(zeSchemas.textsMeta());
 	}
 
-	@Test
+	// @Test
 	public void givenMetadatasWithMappedPropertiesWhenPopulatingSavedRecordWithoutValuesThenValuesAreUpdated()
 			throws Exception {
 
@@ -546,7 +545,7 @@ public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 				.hasNoMetadataValue(zeSchemas.textsMeta());
 	}
 
-	@Test
+	// @Test
 	public void givenRecordWithAManuallySettedValueWhenPopulateThenDoesNotOverwriteWithProperties()
 			throws Exception {
 
@@ -585,7 +584,7 @@ public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 				.hasMetadataValue(zeSchemas.textsMeta(), asList("first value", "second value"));
 	}
 
-	@Test
+	// @Test
 	public void givenRecordWithAManuallyRemovedValueWhenPopulateThenDoesOverwriteWithProperties()
 			throws Exception {
 
@@ -626,7 +625,7 @@ public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 				.hasMetadataValue(zeSchemas.textsMeta(), asList("comments2", "author2"));
 	}
 
-	@Test
+	// @Test
 	public void givenRecordHasMultipleContentsThenPropertiesanExtractedOnAllOfThemPriorizingRequired()
 			throws Exception {
 
@@ -690,7 +689,7 @@ public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 
 	}
 
-	@Test
+	// @Test
 	public void givenPropertiesConfigsAreModifiedThenMetadataValuesAreNotRepopulatedWithProperties()
 			throws Exception {
 
@@ -740,7 +739,7 @@ public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 				.hasMetadataValue(zeSchemas.textMeta(), "Édouard Lechat");
 	}
 
-	@Test
+	// @Test
 	public void givenStylesArePriorizedOverPropertiesAndPropertiesOverRegexWhenPopulatingMetadatasThenPopulatedValuesBasedOnPriorities()
 			throws Exception {
 
@@ -779,7 +778,7 @@ public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 
 	}
 
-	@Test
+	// @Test
 	public void givenStylesArePriorizedOverRegexAndRegexOverPropertiesWhenPopulatingMetadatasThenPopulatedValuesBasedOnPriorities()
 			throws Exception {
 
@@ -817,7 +816,7 @@ public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 		validateThatARecordWithAContentWithoutRegexPropertiesAndStylesWillNotBePopulated();
 	}
 
-	@Test
+	// @Test
 	public void givenPropertiesArePriorizedOverRegexAndRegexOverStylesWhenPopulatingMetadatasThenPopulatedValuesBasedOnPriorities()
 			throws Exception {
 
@@ -855,7 +854,7 @@ public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 		validateThatARecordWithAContentWithoutRegexPropertiesAndStylesWillNotBePopulated();
 	}
 
-	@Test
+	// @Test
 	public void givenPropertiesArePriorizedOverStylesAndStylesOverRegexWhenPopulatingMetadatasThenPopulatedValuesBasedOnPriorities()
 			throws Exception {
 
@@ -893,7 +892,7 @@ public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 		validateThatARecordWithAContentWithoutRegexPropertiesAndStylesWillNotBePopulated();
 	}
 
-	@Test
+	// @Test
 	public void givenRegexArePriorizedOverPropertiesAndPropertiesOverStylesWhenPopulatingMetadatasThenPopulatedValuesBasedOnPriorities()
 			throws Exception {
 
@@ -931,7 +930,7 @@ public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 		validateThatARecordWithAContentWithoutRegexPropertiesAndStylesWillNotBePopulated();
 	}
 
-	@Test
+	// @Test
 	public void givenRegexArePriorizedOverStylesAndStylesOverPropertiesWhenPopulatingMetadatasThenPopulatedValuesBasedOnPriorities()
 			throws Exception {
 
@@ -970,7 +969,7 @@ public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 		validateThatARecordWithAContentWithoutRegexPropertiesAndStylesWillNotBePopulated();
 	}
 
-	@Test
+	// @Test
 	public void givenRemoveExtensionFromDocumentIsSelected()
 			throws Exception {
 
@@ -1012,7 +1011,7 @@ public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 		validateThatARecordWithAContentWithoutRegexPropertiesAndStylesAndNoExtensionWillNotBePopulated();
 	}
 
-	@Test
+	// @Test
 	public void whenCreatingADocumentWithACategoryMappedOnADocumentTypeThenSetToCustomSchema()
 			throws Exception {
 
@@ -1054,7 +1053,7 @@ public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 		verify(contentManager).getParsedContent(mappedToACustomSchema.getHash());
 	}
 
-	@Test
+	// @Test
 	public void givenAMetadataPopulatorConfiguredWithRegexWhenAddUpdateRecordThenUpdateValues()
 			throws RecordServicesException {
 		defineSchemasManager().using(schemas.with(fourMetadatas()
@@ -1114,7 +1113,7 @@ public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 				.hasMetadataValue(zeSchemas.textsMeta(), asList("Formulaire A-38"));
 	}
 
-	@Test
+	// @Test
 	public void givenARecordWithRegexExtractorsWhenAddUpdateRecordsThenUpdateValues()
 			throws Exception {
 
@@ -1173,7 +1172,7 @@ public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 				.hasMetadataValue(zeSchemas.textsMeta(), asList("Formulaire A-38"));
 	}
 
-	@Test
+	// @Test
 	public void givenARecordHasACustomValuesToMetadatasPopulatedByRegexesWhenUpdatedThenCustomValuesKept()
 			throws Exception {
 
@@ -1240,7 +1239,7 @@ public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 		;
 	}
 
-	@Test
+	// @Test
 	public void givenAOriginalRecordWithAContentAndPopulatedValuesAndARecordWithAContentThenValuesWillBeOverwritten() {
 		Record originalRecord = recordServices.newRecordWithSchema(types.getDefaultSchema(Document.SCHEMA_TYPE));
 		originalRecord.set(rm.document.content(), createContent(documentWithStylesAndProperties1));

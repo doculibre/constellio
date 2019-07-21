@@ -41,6 +41,7 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.ModificationImpact;
+import com.constellio.model.entities.schemas.RecordCacheType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.SequenceDataEntry;
 import com.constellio.model.entities.schemas.preparationSteps.CalculateMetadatasRecordPreparationStep;
@@ -524,10 +525,25 @@ public class RecordServicesImpl extends BaseRecordServices {
 		if (value == null) {
 			return null;
 		}
-		SearchServices searchServices = modelLayerFactory.newSearchServices();
+
 		MetadataSchemaTypes types = modelFactory.getMetadataSchemasManager().getSchemaTypes(metadata.getCollection());
 		String schemaTypeCode = new SchemaUtils().getSchemaTypeCode(metadata);
 		MetadataSchemaType schemaType = types.getSchemaType(schemaTypeCode);
+
+		if (schemaType.getCacheType() == RecordCacheType.FULLY_CACHED) {
+			return getRecordsCaches().getCache(metadata.getCollection()).getByMetadata(metadata, value);
+		} else if (schemaType.getCacheType().isSummaryCache()) {
+			Record record = getRecordsCaches().getCache(metadata.getCollection()).getSummaryByMetadata(metadata, value);
+
+			if (record != null) {
+				return getDocumentById(record.getId());
+			} else {
+				return null;
+			}
+		}
+
+
+		SearchServices searchServices = modelLayerFactory.newSearchServices();
 		LogicalSearchCondition condition = from(schemaType).where(metadata).isEqualTo(value);
 
 		return searchServices.searchSingleResult(condition);
@@ -549,6 +565,10 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 		if (!schemaType.getCacheType().hasPermanentCache()) {
 			throw new IllegalArgumentException("Schema type '" + schemaTypeCode + "' has no permanent cache");
+		}
+
+		if (schemaType.getCacheType().hasPermanentCache()) {
+			return getRecordsCaches().getCache(metadata.getCollection()).getSummaryByMetadata(metadata, value);
 		}
 
 		LogicalSearchCondition condition = from(schemaType).where(metadata).isEqualTo(value);

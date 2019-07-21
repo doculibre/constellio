@@ -11,11 +11,8 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.sdk.tests.ConstellioTest;
 import org.apache.commons.lang3.StringUtils;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -30,16 +27,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class RecordsCachesDataStorePerformanceAcceptanceTest extends ConstellioTest {
 
 	RecordsCachesDataStore dataStore;
-
-	@Before
-	public void setUp() throws Exception {
-		SummaryCacheSingletons.dataStore = new FileSystemRecordsValuesCacheDataStore(new File(newTempFolder(), "test.db"));
-	}
-
-	@After
-	public void tearDown() throws Exception {
-		SummaryCacheSingletons.dataStore.close();
-	}
 
 	//@Test
 	public void given150MRecordsSplittedOn10CollectionsAnd30TypesThenLookupByCollectionsAndTypesVeryFast()

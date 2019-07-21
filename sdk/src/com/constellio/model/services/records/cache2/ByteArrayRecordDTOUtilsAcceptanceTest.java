@@ -25,7 +25,6 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
-import org.junit.After;
 import org.junit.Test;
 
 import java.io.File;
@@ -36,6 +35,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichAllowsZeSchemaType;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEssentialInSummary;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -67,65 +67,59 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 		reindexingServices = getModelLayerFactory().newReindexingServices();
 		contentManager = getModelLayerFactory().getContentManager();
 
-		SummaryCacheSingletons.dataStore = new FileSystemRecordsValuesCacheDataStore(new File(newTempFolder(), "test.db"));
-	}
-
-	@After
-	public void tearDown() throws Exception {
-		SummaryCacheSingletons.dataStore.close();
 	}
 
 	@Test
 	public void whenStoringSingleValueMetadatasInAByteArrayRecordDTOThenStoredAndRetrieved() throws Exception {
 		defineSchemasManager().using(setup
-				.withATitle()
-				.withABooleanMetadata()
-				.withAnIntegerMetadata()
-				.withANumberMetadata()
-				.withAnEnumMetadata(FolderStatus.class)
-				.withAParentReferenceFromZeSchemaToZeSchema()
-				.withAReferenceFromAnotherSchemaToZeSchema()
-				.withADateMetadata()
-				.withAContentMetadata()
-				.withALargeTextMetadata()
-//				.withAStructureMetadata()
-				.withADateTimeMetadata());
+				.withATitle(whichIsEssentialInSummary)
+				.withABooleanMetadata(whichIsEssentialInSummary)
+				.withAnIntegerMetadata(whichIsEssentialInSummary)
+				.withANumberMetadata(whichIsEssentialInSummary)
+				.withAnEnumMetadata(FolderStatus.class, whichIsEssentialInSummary)
+				.withAParentReferenceFromZeSchemaToZeSchema(whichIsEssentialInSummary)
+				.withAReferenceFromAnotherSchemaToZeSchema(whichIsEssentialInSummary)
+				.withADateMetadata(whichIsEssentialInSummary)
+				.withAContentMetadata(whichIsEssentialInSummary)
+				.withALargeTextMetadata(whichIsEssentialInSummary)
+				//				.withAStructureMetadata()
+				.withADateTimeMetadata(whichIsEssentialInSummary));
 
 		init();
 
 		setup.modify((MetadataSchemaTypesAlteration) types -> {
 			types.getSchema(anotherSchema.code())
-					.create("booleanMetadata")
+					.create("booleanMetadata").setEssentialInSummary(true)
 					.setType(MetadataValueType.BOOLEAN);
 			types.getSchema(anotherSchema.code())
-					.create("integerMetadata")
+					.create("integerMetadata").setEssentialInSummary(true)
 					.setType(MetadataValueType.INTEGER);
 			types.getSchema(anotherSchema.code())
-					.create("numberMetadata")
+					.create("numberMetadata").setEssentialInSummary(true)
 					.setType(MetadataValueType.NUMBER);
 			types.getSchema(anotherSchema.code())
-					.create("enumMetadata")
+					.create("enumMetadata").setEssentialInSummary(true)
 					.setType(MetadataValueType.ENUM)
 					.defineAsEnum(CopyType.class);
 			types.getSchema(anotherSchema.code())
-					.create("dateMetadata")
+					.create("dateMetadata").setEssentialInSummary(true)
 					.setType(MetadataValueType.DATE);
 			types.getSchema(anotherSchema.code())
-					.create("dateTimeMetadata")
+					.create("dateTimeMetadata").setEssentialInSummary(true)
 					.setType(MetadataValueType.DATE_TIME);
 			types.getSchema(anotherSchema.code())
-					.create("textMetadata")
+					.create("textMetadata").setEssentialInSummary(true)
 					.setType(MetadataValueType.TEXT);
 			types.getSchema(anotherSchema.code())
-					.create("contentMetadata")
+					.create("contentMetadata").setEssentialInSummary(true)
 					.setType(MetadataValueType.CONTENT);
 			types.getSchema(anotherSchema.code())
-					.create("structureMetadata")
+					.create("structureMetadata").setEssentialInSummary(true)
 					.setType(MetadataValueType.STRUCTURE)
 					.defineStructureFactory(CommentFactory.class);
 
 			types.getSchema(zeSchema.code())
-					.create("structMetadata")
+					.create("structMetadata").setEssentialInSummary(true)
 					.setType(MetadataValueType.STRUCTURE)
 					.defineStructureFactory(CommentFactory.class);
 		});
@@ -380,61 +374,61 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenStoringMultivalueMetadatasInAByteArrayRecordDTOThenStoredAndRetrieved() throws Exception {
 		defineSchemasManager().using(setup
-				.withABooleanMetadata(whichIsMultivalue)
-				.withAnIntegerMetadata(whichIsMultivalue)
-				.withANumberMetadata(whichIsMultivalue)
-				.withADateMetadata(whichIsMultivalue)
-				.withADateTimeMetadata(whichIsMultivalue)
-				.withAReferenceMetadata(whichAllowsZeSchemaType, whichIsMultivalue)
-				.withAnEnumMetadata(CopyType.class, whichIsMultivalue)
-				.withAMultivaluedLargeTextMetadata()
-				.withAContentMetadata(whichIsMultivalue)
-				.withAReferenceFromAnotherSchemaToZeSchema(whichIsMultivalue));
+				.withABooleanMetadata(whichIsMultivalue, whichIsEssentialInSummary)
+				.withAnIntegerMetadata(whichIsMultivalue, whichIsEssentialInSummary)
+				.withANumberMetadata(whichIsMultivalue, whichIsEssentialInSummary)
+				.withADateMetadata(whichIsMultivalue, whichIsEssentialInSummary)
+				.withADateTimeMetadata(whichIsMultivalue, whichIsEssentialInSummary)
+				.withAReferenceMetadata(whichAllowsZeSchemaType, whichIsMultivalue, whichIsEssentialInSummary)
+				.withAnEnumMetadata(CopyType.class, whichIsMultivalue, whichIsEssentialInSummary)
+				.withAMultivaluedLargeTextMetadata(whichIsEssentialInSummary)
+				.withAContentMetadata(whichIsMultivalue, whichIsEssentialInSummary)
+				.withAReferenceFromAnotherSchemaToZeSchema(whichIsMultivalue, whichIsEssentialInSummary));
 
 		init();
 
 		setup.modify((MetadataSchemaTypesAlteration) types -> {
 			types.getSchema(anotherSchema.code())
-					.create("booleanMetadata")
+					.create("booleanMetadata").setEssentialInSummary(true)
 					.setType(MetadataValueType.BOOLEAN)
 					.setMultivalue(true);
 			types.getSchema(anotherSchema.code())
-					.create("integerMetadata")
+					.create("integerMetadata").setEssentialInSummary(true)
 					.setType(MetadataValueType.INTEGER)
 					.setMultivalue(true);
 			types.getSchema(anotherSchema.code())
-					.create("numberMetadata")
+					.create("numberMetadata").setEssentialInSummary(true)
 					.setType(MetadataValueType.NUMBER)
 					.setMultivalue(true);
 			types.getSchema(anotherSchema.code())
-					.create("enumMetadata")
+					.create("enumMetadata").setEssentialInSummary(true)
 					.setType(MetadataValueType.ENUM)
 					.defineAsEnum(CopyType.class)
 					.setMultivalue(true);
 			types.getSchema(anotherSchema.code())
-					.create("dateMetadata")
+					.create("dateMetadata").setEssentialInSummary(true)
 					.setType(MetadataValueType.DATE)
 					.setMultivalue(true);
 			types.getSchema(anotherSchema.code())
-					.create("dateTimeMetadata")
+					.create("dateTimeMetadata").setEssentialInSummary(true)
 					.setType(MetadataValueType.DATE_TIME)
 					.setMultivalue(true);
 			types.getSchema(anotherSchema.code())
-					.create("textMetadata")
+					.create("textMetadata").setEssentialInSummary(true)
 					.setType(MetadataValueType.TEXT)
 					.setMultivalue(true);
 			types.getSchema(anotherSchema.code())
-					.create("contentMetadata")
+					.create("contentMetadata").setEssentialInSummary(true)
 					.setType(MetadataValueType.CONTENT)
 					.setMultivalue(true);
 			types.getSchema(anotherSchema.code())
-					.create("structureMetadata")
+					.create("structureMetadata").setEssentialInSummary(true)
 					.setType(MetadataValueType.STRUCTURE)
 					.defineStructureFactory(CommentFactory.class)
 					.setMultivalue(true);
 
 			types.getSchema(zeSchema.code())
-					.create("structMetadata")
+					.create("structMetadata").setEssentialInSummary(true)
 					.setType(MetadataValueType.STRUCTURE)
 					.defineStructureFactory(CommentFactory.class)
 					.setMultivalue(true);
@@ -664,53 +658,53 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenStoringMetadatasInAByteArrayRecordDTOThenVerifyingTheStoreMetadatas() throws Exception {
 		defineSchemasManager().using(setup
-				.withATitle()
-				.withABooleanMetadata()
-				.withAnIntegerMetadata()
-				.withANumberMetadata()
-				.withAnEnumMetadata(FolderStatus.class)
-				.withAParentReferenceFromZeSchemaToZeSchema()
-				.withAReferenceFromAnotherSchemaToZeSchema()
-				.withADateMetadata()
-				.withAContentMetadata()
-				.withALargeTextMetadata()
-				.withADateTimeMetadata());
+				.withATitle(whichIsEssentialInSummary)
+				.withABooleanMetadata(whichIsEssentialInSummary)
+				.withAnIntegerMetadata(whichIsEssentialInSummary)
+				.withANumberMetadata(whichIsEssentialInSummary)
+				.withAnEnumMetadata(FolderStatus.class, whichIsEssentialInSummary)
+				.withAParentReferenceFromZeSchemaToZeSchema(whichIsEssentialInSummary)
+				.withAReferenceFromAnotherSchemaToZeSchema(whichIsEssentialInSummary)
+				.withADateMetadata(whichIsEssentialInSummary)
+				.withAContentMetadata(whichIsEssentialInSummary)
+				.withALargeTextMetadata(whichIsEssentialInSummary)
+				.withADateTimeMetadata(whichIsEssentialInSummary));
 
 		init();
 
 		setup.modify((MetadataSchemaTypesAlteration) types -> {
 			types.getSchema(anotherSchema.code())
-					.create("booleanMetadata")
+					.create("booleanMetadata").setEssentialInSummary(true)
 					.setType(MetadataValueType.BOOLEAN);
 			types.getSchema(anotherSchema.code())
-					.create("integerMetadata")
+					.create("integerMetadata").setEssentialInSummary(true)
 					.setType(MetadataValueType.INTEGER);
 			types.getSchema(anotherSchema.code())
-					.create("numberMetadata")
+					.create("numberMetadata").setEssentialInSummary(true)
 					.setType(MetadataValueType.NUMBER);
 			types.getSchema(anotherSchema.code())
-					.create("enumMetadata")
+					.create("enumMetadata").setEssentialInSummary(true)
 					.setType(MetadataValueType.ENUM)
 					.defineAsEnum(CopyType.class);
 			types.getSchema(anotherSchema.code())
-					.create("dateMetadata")
+					.create("dateMetadata").setEssentialInSummary(true)
 					.setType(MetadataValueType.DATE);
 			types.getSchema(anotherSchema.code())
-					.create("dateTimeMetadata")
+					.create("dateTimeMetadata").setEssentialInSummary(true)
 					.setType(MetadataValueType.DATE_TIME);
 			types.getSchema(anotherSchema.code())
-					.create("textMetadata")
+					.create("textMetadata").setEssentialInSummary(true)
 					.setType(MetadataValueType.TEXT);
 			types.getSchema(anotherSchema.code())
-					.create("contentMetadata")
+					.create("contentMetadata").setEssentialInSummary(true)
 					.setType(MetadataValueType.CONTENT);
 			types.getSchema(anotherSchema.code())
-					.create("structureMetadata")
+					.create("structureMetadata").setEssentialInSummary(true)
 					.setType(MetadataValueType.STRUCTURE)
 					.defineStructureFactory(CommentFactory.class);
 
 			types.getSchema(zeSchema.code())
-					.create("structMetadata")
+					.create("structMetadata").setEssentialInSummary(true)
 					.setType(MetadataValueType.STRUCTURE)
 					.defineStructureFactory(CommentFactory.class);
 		});
@@ -918,61 +912,61 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenStoringMetadatasInAByteArrayRecordDTOThenVerifyingTheStoredValues() throws Exception {
 		defineSchemasManager().using(setup
-				.withABooleanMetadata(whichIsMultivalue)
-				.withAnIntegerMetadata(whichIsMultivalue)
-				.withANumberMetadata(whichIsMultivalue)
-				.withADateMetadata(whichIsMultivalue)
-				.withADateTimeMetadata(whichIsMultivalue)
-				.withAReferenceMetadata(whichAllowsZeSchemaType, whichIsMultivalue)
-				.withAnEnumMetadata(CopyType.class, whichIsMultivalue)
-				.withAMultivaluedLargeTextMetadata()
-				.withAContentMetadata(whichIsMultivalue)
-				.withAReferenceFromAnotherSchemaToZeSchema(whichIsMultivalue));
+				.withABooleanMetadata(whichIsMultivalue, whichIsEssentialInSummary)
+				.withAnIntegerMetadata(whichIsMultivalue, whichIsEssentialInSummary)
+				.withANumberMetadata(whichIsMultivalue, whichIsEssentialInSummary)
+				.withADateMetadata(whichIsMultivalue, whichIsEssentialInSummary)
+				.withADateTimeMetadata(whichIsMultivalue, whichIsEssentialInSummary)
+				.withAReferenceMetadata(whichAllowsZeSchemaType, whichIsMultivalue, whichIsEssentialInSummary)
+				.withAnEnumMetadata(CopyType.class, whichIsMultivalue, whichIsEssentialInSummary)
+				.withAMultivaluedLargeTextMetadata(whichIsEssentialInSummary)
+				.withAContentMetadata(whichIsMultivalue, whichIsEssentialInSummary)
+				.withAReferenceFromAnotherSchemaToZeSchema(whichIsMultivalue, whichIsEssentialInSummary));
 
 		init();
 
 		setup.modify((MetadataSchemaTypesAlteration) types -> {
 			types.getSchema(anotherSchema.code())
-					.create("booleanMetadata")
+					.create("booleanMetadata").setEssentialInSummary(true)
 					.setType(MetadataValueType.BOOLEAN)
 					.setMultivalue(true);
 			types.getSchema(anotherSchema.code())
-					.create("integerMetadata")
+					.create("integerMetadata").setEssentialInSummary(true)
 					.setType(MetadataValueType.INTEGER)
 					.setMultivalue(true);
 			types.getSchema(anotherSchema.code())
-					.create("numberMetadata")
+					.create("numberMetadata").setEssentialInSummary(true)
 					.setType(MetadataValueType.NUMBER)
 					.setMultivalue(true);
 			types.getSchema(anotherSchema.code())
-					.create("enumMetadata")
+					.create("enumMetadata").setEssentialInSummary(true)
 					.setType(MetadataValueType.ENUM)
 					.defineAsEnum(CopyType.class)
 					.setMultivalue(true);
 			types.getSchema(anotherSchema.code())
-					.create("dateMetadata")
+					.create("dateMetadata").setEssentialInSummary(true)
 					.setType(MetadataValueType.DATE)
 					.setMultivalue(true);
 			types.getSchema(anotherSchema.code())
-					.create("dateTimeMetadata")
+					.create("dateTimeMetadata").setEssentialInSummary(true)
 					.setType(MetadataValueType.DATE_TIME)
 					.setMultivalue(true);
 			types.getSchema(anotherSchema.code())
-					.create("textMetadata")
+					.create("textMetadata").setEssentialInSummary(true)
 					.setType(MetadataValueType.TEXT)
 					.setMultivalue(true);
 			types.getSchema(anotherSchema.code())
-					.create("contentMetadata")
+					.create("contentMetadata").setEssentialInSummary(true)
 					.setType(MetadataValueType.CONTENT)
 					.setMultivalue(true);
 			types.getSchema(anotherSchema.code())
-					.create("structureMetadata")
+					.create("structureMetadata").setEssentialInSummary(true)
 					.setType(MetadataValueType.STRUCTURE)
 					.defineStructureFactory(CommentFactory.class)
 					.setMultivalue(true);
 
 			types.getSchema(zeSchema.code())
-					.create("structMetadata")
+					.create("structMetadata").setEssentialInSummary(true)
 					.setType(MetadataValueType.STRUCTURE)
 					.defineStructureFactory(CommentFactory.class)
 					.setMultivalue(true);
@@ -1178,29 +1172,29 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenStoringMetadatasInAByteArrayRecordDTOThenVerifyingTheEntries() throws Exception {
 		defineSchemasManager().using(setup
-				.withABooleanMetadata()
-				.withAStringMetadata()
-				.withANumberMetadata()
-				.withATitle()
-				.withAContentMetadata()
-				.withAnIntegerMetadata()
-				.withAReferenceMetadata(whichAllowsZeSchemaType, whichIsMultivalue)
-				.withAReferenceFromAnotherSchemaToZeSchema(whichIsMultivalue)
-				.withAParentReferenceFromZeSchemaToZeSchema());
+				.withABooleanMetadata(whichIsEssentialInSummary)
+				.withAStringMetadata(whichIsEssentialInSummary)
+				.withANumberMetadata(whichIsEssentialInSummary)
+				.withATitle(whichIsEssentialInSummary)
+				.withAContentMetadata(whichIsEssentialInSummary)
+				.withAnIntegerMetadata(whichIsEssentialInSummary)
+				.withAReferenceMetadata(whichAllowsZeSchemaType, whichIsMultivalue, whichIsEssentialInSummary)
+				.withAReferenceFromAnotherSchemaToZeSchema(whichIsMultivalue, whichIsEssentialInSummary)
+				.withAParentReferenceFromZeSchemaToZeSchema(whichIsEssentialInSummary));
 
 		init();
 
 		setup.modify((MetadataSchemaTypesAlteration) types -> {
 			types.getSchema(anotherSchema.code())
-					.create("stringMetadata").setMultivalue(true)
+					.create("stringMetadata").setMultivalue(true).setEssentialInSummary(true)
 					.setType(MetadataValueType.STRING);
 
 			types.getSchema(anotherSchema.code())
-					.create("booleanMetadata").setMultivalue(true)
+					.create("booleanMetadata").setMultivalue(true).setEssentialInSummary(true)
 					.setType(MetadataValueType.BOOLEAN);
 
 			types.getSchema(anotherSchema.code())
-					.create("textMetadata")
+					.create("textMetadata").setEssentialInSummary(true)
 					.setType(MetadataValueType.TEXT);
 		});
 
@@ -1299,53 +1293,53 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenStoringMetadatasInByteArrayRecordDTOThenVerifyingTheContain() throws Exception {
 		defineSchemasManager().using(setup
-				.withATitle()
-				.withABooleanMetadata()
-				.withAnIntegerMetadata()
-				.withANumberMetadata()
-				.withAnEnumMetadata(FolderStatus.class)
-				.withAParentReferenceFromZeSchemaToZeSchema()
-				.withAReferenceFromAnotherSchemaToZeSchema()
-				.withADateMetadata()
-				.withAContentMetadata()
-				.withALargeTextMetadata()
-				.withADateTimeMetadata());
+				.withATitle(whichIsEssentialInSummary)
+				.withABooleanMetadata(whichIsEssentialInSummary)
+				.withAnIntegerMetadata(whichIsEssentialInSummary)
+				.withANumberMetadata(whichIsEssentialInSummary)
+				.withAnEnumMetadata(FolderStatus.class, whichIsEssentialInSummary)
+				.withAParentReferenceFromZeSchemaToZeSchema(whichIsEssentialInSummary)
+				.withAReferenceFromAnotherSchemaToZeSchema(whichIsEssentialInSummary)
+				.withADateMetadata(whichIsEssentialInSummary)
+				.withAContentMetadata(whichIsEssentialInSummary)
+				.withALargeTextMetadata(whichIsEssentialInSummary)
+				.withADateTimeMetadata(whichIsEssentialInSummary));
 
 		init();
 
 		setup.modify((MetadataSchemaTypesAlteration) types -> {
 			types.getSchema(anotherSchema.code())
-					.create("booleanMetadata")
+					.create("booleanMetadata").setEssentialInSummary(true)
 					.setType(MetadataValueType.BOOLEAN);
 			types.getSchema(anotherSchema.code())
-					.create("integerMetadata")
+					.create("integerMetadata").setEssentialInSummary(true)
 					.setType(MetadataValueType.INTEGER);
 			types.getSchema(anotherSchema.code())
-					.create("numberMetadata")
+					.create("numberMetadata").setEssentialInSummary(true)
 					.setType(MetadataValueType.NUMBER);
 			types.getSchema(anotherSchema.code())
-					.create("enumMetadata")
+					.create("enumMetadata").setEssentialInSummary(true)
 					.setType(MetadataValueType.ENUM)
 					.defineAsEnum(CopyType.class);
 			types.getSchema(anotherSchema.code())
-					.create("dateMetadata")
+					.create("dateMetadata").setEssentialInSummary(true)
 					.setType(MetadataValueType.DATE);
 			types.getSchema(anotherSchema.code())
-					.create("dateTimeMetadata")
+					.create("dateTimeMetadata").setEssentialInSummary(true)
 					.setType(MetadataValueType.DATE_TIME);
 			types.getSchema(anotherSchema.code())
-					.create("textMetadata")
+					.create("textMetadata").setEssentialInSummary(true)
 					.setType(MetadataValueType.TEXT);
 			types.getSchema(anotherSchema.code())
-					.create("contentMetadata")
+					.create("contentMetadata").setEssentialInSummary(true)
 					.setType(MetadataValueType.CONTENT);
 			types.getSchema(anotherSchema.code())
-					.create("structureMetadata")
+					.create("structureMetadata").setEssentialInSummary(true)
 					.setType(MetadataValueType.STRUCTURE)
 					.defineStructureFactory(CommentFactory.class);
 
 			types.getSchema(zeSchema.code())
-					.create("structMetadata")
+					.create("structMetadata").setEssentialInSummary(true)
 					.setType(MetadataValueType.STRUCTURE)
 					.defineStructureFactory(CommentFactory.class);
 		});
@@ -1586,12 +1580,12 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 	public void whenStoringSingleValueIntegerMetadataInAByteArrayRecordDTOThenStoredAndRetrievedBetweenExtremes()
 			throws Exception {
 		defineSchemasManager().using(setup
-				.withAnIntegerMetadata());
+				.withAnIntegerMetadata(whichIsEssentialInSummary));
 
 		init();
 
 		setup.modify((MetadataSchemaTypesAlteration) types -> types.getSchema(anotherSchema.code())
-				.create("integerMetadata")
+				.create("integerMetadata").setEssentialInSummary(true)
 				.setType(MetadataValueType.INTEGER));
 
 		MetadataSchemaTypes schemaTypes = schemasManager.getSchemaTypes(zeCollection);
@@ -1641,12 +1635,12 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 	public void whenStoringMultivalueIntegerMetadataInAByteArrayRecordDTOThenStoredAndRetrievedBetweenExtremes()
 			throws Exception {
 		defineSchemasManager().using(setup
-				.withAnIntegerMetadata(whichIsMultivalue));
+				.withAnIntegerMetadata(whichIsMultivalue, whichIsEssentialInSummary));
 
 		init();
 
 		setup.modify((MetadataSchemaTypesAlteration) types -> types.getSchema(anotherSchema.code())
-				.create("integerMetadata")
+				.create("integerMetadata").setEssentialInSummary(true)
 				.setType(MetadataValueType.INTEGER)
 				.setMultivalue(true));
 
@@ -1697,12 +1691,12 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 	public void whenStoringSingleValueNumberMetadataInAByteArrayRecordDTOThenStoredAndRetrievedBetweenExtremes()
 			throws Exception {
 		defineSchemasManager().using(setup
-				.withANumberMetadata());
+				.withANumberMetadata(whichIsEssentialInSummary));
 
 		init();
 
 		setup.modify((MetadataSchemaTypesAlteration) types -> types.getSchema(anotherSchema.code())
-				.create("numberMetadata")
+				.create("numberMetadata").setEssentialInSummary(true)
 				.setType(MetadataValueType.NUMBER));
 
 		MetadataSchemaTypes schemaTypes = schemasManager.getSchemaTypes(zeCollection);
@@ -1752,12 +1746,12 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 	public void whenStoringMultivalueNumberMetadataInAByteArrayRecordDTOThenStoredAndRetrievedBetweenExtremes()
 			throws Exception {
 		defineSchemasManager().using(setup
-				.withANumberMetadata(whichIsMultivalue));
+				.withANumberMetadata(whichIsMultivalue, whichIsEssentialInSummary));
 
 		init();
 
 		setup.modify((MetadataSchemaTypesAlteration) types -> types.getSchema(anotherSchema.code())
-				.create("numberMetadata")
+				.create("numberMetadata").setEssentialInSummary(true)
 				.setType(MetadataValueType.NUMBER)
 				.setMultivalue(true));
 
@@ -1807,13 +1801,14 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenStoringSingleValueDateMetadataInAByteArrayRecordDTOThenStoredAndRetrievedLargeRange()
 			throws Exception {
+		cacheIntegrityCheckedAfterTest = false;
 		defineSchemasManager().using(setup
-				.withADateMetadata());
+				.withADateMetadata(whichIsEssentialInSummary));
 
 		init();
 
 		setup.modify((MetadataSchemaTypesAlteration) types -> types.getSchema(anotherSchema.code())
-				.create("dateMetadata")
+				.create("dateMetadata").setEssentialInSummary(true)
 				.setType(MetadataValueType.DATE));
 
 		LocalDate date = new LocalDate(-2000, 1, 1);
@@ -1844,12 +1839,12 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 	public void whenStoringMultivalueDateMetadataInAByteArrayRecordDTOThenStoredAndRetrievedLargeRange()
 			throws Exception {
 		defineSchemasManager().using(setup
-				.withADateMetadata(whichIsMultivalue));
+				.withADateMetadata(whichIsMultivalue, whichIsEssentialInSummary));
 
 		init();
 
 		setup.modify((MetadataSchemaTypesAlteration) types -> types.getSchema(anotherSchema.code())
-				.create("dateMetadata")
+				.create("dateMetadata").setEssentialInSummary(true)
 				.setType(MetadataValueType.DATE)
 				.setMultivalue(true));
 
@@ -1880,13 +1875,14 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenStoringSinglevalueDateTimeMetadataInAByteArrayRecordDTOThenStoredAndRetrievedLargeRange()
 			throws Exception {
+		cacheIntegrityCheckedAfterTest = false;
 		defineSchemasManager().using(setup
-				.withADateTimeMetadata());
+				.withADateTimeMetadata(whichIsEssentialInSummary));
 
 		init();
 
 		setup.modify((MetadataSchemaTypesAlteration) types -> types.getSchema(anotherSchema.code())
-				.create("dateTimeMetadata")
+				.create("dateTimeMetadata").setEssentialInSummary(true)
 				.setType(MetadataValueType.DATE_TIME));
 
 		LocalDateTime dateTime = new LocalDateTime(-2000, 1, 1, 0, 0);
@@ -1916,13 +1912,14 @@ public class ByteArrayRecordDTOUtilsAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenStoringMultivalueDateTimeMetadataInAByteArrayRecordDTOThenStoredAndRetrievedLargeRange()
 			throws Exception {
+		cacheIntegrityCheckedAfterTest = false;
 		defineSchemasManager().using(setup
-				.withADateTimeMetadata(whichIsMultivalue));
+				.withADateTimeMetadata(whichIsMultivalue, whichIsEssentialInSummary));
 
 		init();
 
 		setup.modify((MetadataSchemaTypesAlteration) types -> types.getSchema(anotherSchema.code())
-				.create("dateTimeMetadata")
+				.create("dateTimeMetadata").setEssentialInSummary(true)
 				.setType(MetadataValueType.DATE_TIME)
 				.setMultivalue(true));
 

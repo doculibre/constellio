@@ -4,6 +4,7 @@ import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordDTOMode;
 import com.constellio.data.dao.services.cache.InsertionReason;
 import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
@@ -152,11 +153,13 @@ public class NewVolatileRecordCacheAcceptanceTest extends ConstellioTest {
 
 		long version = cache.getRecord(id(1234)).getVersion();
 
-		Record partiallyLoadedRecord = cache.getRecordSummary(id(1234));
-		partiallyLoadedRecord.markAsSaved(version - 1000, zeCollectionSchemaType1.instance());
+		if (!Toggle.USE_BYTE_ARRAY_DTOS_FOR_SUMMARY_CACHE.isEnabled()) {
+			Record partiallyLoadedRecord = cache.getRecordSummary(id(1234));
+			partiallyLoadedRecord.markAsSaved(version - 1000, zeCollectionSchemaType1.instance());
 
-		assertThat(cache.insert(partiallyLoadedRecord, WAS_OBTAINED).status).isEqualTo(REFUSED_OLD_VERSION);
-		assertThat(cache.insert(partiallyLoadedRecord, WAS_MODIFIED).status).isEqualTo(REFUSED_OLD_VERSION);
+			assertThat(cache.insert(partiallyLoadedRecord, WAS_OBTAINED).status).isEqualTo(REFUSED_OLD_VERSION);
+			assertThat(cache.insert(partiallyLoadedRecord, WAS_MODIFIED).status).isEqualTo(REFUSED_OLD_VERSION);
+		}
 
 		//Record is found in volatile cache in it's full state
 		fullRecordFromCache = cache.getRecord(id(1234));
@@ -204,17 +207,21 @@ public class NewVolatileRecordCacheAcceptanceTest extends ConstellioTest {
 
 		//Inserting a new state of the record using a summary record, summary permanent is updated, remove from volatile
 
-		summaryRecordFromCache.set(zeCollectionSchemaType1.stringMetadata(), "val6");
-		summaryRecordFromCache.markAsSaved(summaryRecordFromCache.getVersion() + 1000, zeCollectionSchemaType1.instance());
-		assertThat(cache.insert(summaryRecordFromCache, WAS_MODIFIED).status).isEqualTo(ACCEPTED);
-		fullRecordFromCache = cache.getRecord(id(1234));
-		assertThat(fullRecordFromCache).isNull();
+		if (!Toggle.USE_BYTE_ARRAY_DTOS_FOR_SUMMARY_CACHE.isEnabled()) {
+			summaryRecordFromCache.set(zeCollectionSchemaType1.stringMetadata(), "val6");
+			summaryRecordFromCache.markAsSaved(summaryRecordFromCache.getVersion() + 1000, zeCollectionSchemaType1.instance());
+			assertThat(cache.insert(summaryRecordFromCache, WAS_MODIFIED).status).isEqualTo(ACCEPTED);
 
-		summaryRecordFromCache = cache.getRecordSummary(id(1234));
-		assertThat(summaryRecordFromCache.<String>get(TITLE)).isEqualTo("val1");
-		assertThat(summaryRecordFromCache.<String>get(zeCollectionSchemaType1.stringMetadata())).isEqualTo("val6");
-		assertThat(summaryRecordFromCache.<String>get(zeCollectionSchemaType1.anotherStringMetadata())).isNull();
-		assertThat(summaryRecordFromCache.isSummary()).isTrue();
+			summaryRecordFromCache = cache.getRecordSummary(id(1234));
+			assertThat(summaryRecordFromCache.<String>get(TITLE)).isEqualTo("val1");
+			assertThat(summaryRecordFromCache.<String>get(zeCollectionSchemaType1.stringMetadata())).isEqualTo("val6");
+			assertThat(summaryRecordFromCache.<String>get(zeCollectionSchemaType1.anotherStringMetadata())).isNull();
+			assertThat(summaryRecordFromCache.isSummary()).isTrue();
+
+			fullRecordFromCache = cache.getRecord(id(1234));
+			assertThat(fullRecordFromCache).isNull();
+		}
+
 
 	}
 

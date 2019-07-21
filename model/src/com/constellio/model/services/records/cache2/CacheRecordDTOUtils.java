@@ -69,6 +69,14 @@ public class CacheRecordDTOUtils {
 	public static class CacheRecordDTOBytesArray {
 		byte[] bytesToKeepInMemory;
 		byte[] bytesToPersist;
+
+		public byte[] getBytesToKeepInMemory() {
+			return bytesToKeepInMemory;
+		}
+
+		public byte[] getBytesToPersist() {
+			return bytesToPersist;
+		}
 	}
 
 	public static CacheRecordDTOBytesArray convertDTOToByteArrays(RecordDTO dto, MetadataSchema schema) {
@@ -275,8 +283,12 @@ public class CacheRecordDTOUtils {
 		Metadata metadataSearched = schema.getMetadataByDatastoreCode(metadataLocalCode);
 
 		byte[] byteArrayToSearchIn;
-		if (isMetatadataPersisted(metadataSearched)) {
+		if (metadataSearched == null) {
+			return null;
+
+		} else if (isMetatadataPersisted(metadataSearched)) {
 			byteArrayToSearchIn = persistedByteArraySupplier.get();
+
 		} else {
 			byteArrayToSearchIn = byteArray;
 		}

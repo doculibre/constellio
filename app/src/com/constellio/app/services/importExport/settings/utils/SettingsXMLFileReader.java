@@ -31,6 +31,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -111,7 +112,13 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 			}
 		}
 
-		List<String> language = modelLayerFactory.getCollectionsListManager().getCollectionLanguages(collectionCode);
+		List<String> language;
+
+		if (modelLayerFactory.getCollectionsListManager().getCollections().contains(collectionCode)) {
+			language = modelLayerFactory.getCollectionsListManager().getCollectionLanguages(collectionCode);
+		} else {
+			language = Collections.singletonList(modelLayerFactory.getConfiguration().getMainDataLanguage());
+		}
 		if (language == null || language.size() == 0) {
 			language = new ArrayList<>();
 			language.add(modelLayerFactory.getCollectionsListManager().getMainDataLanguage());
@@ -328,7 +335,7 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 			importedMetadata.setVisibleInTablesIn(toListOfString(element.getAttributeValue(VISIBLE_IN_TABLES_IN)));
 		}
 
-		if(element.getAttribute(REQUIRED_READ_ROLES) != null) {
+		if (element.getAttribute(REQUIRED_READ_ROLES) != null) {
 			importedMetadata.setRequiredReadRoles(toListOfString(element.getAttributeValue(REQUIRED_READ_ROLES)));
 		}
 

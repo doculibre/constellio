@@ -6,6 +6,7 @@ import com.constellio.data.utils.dev.Toggle.AvailableToggle;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.cache2.OffHeapMemoryAllocator;
 import com.constellio.model.services.records.cache2.RecordsCache2IntegrityDiagnosticService;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.sdk.tests.annotations.PreserveState;
@@ -47,6 +48,7 @@ public class ConstellioTest extends AbstractConstellioTest {
 
 	@Before
 	public void beforeConstellioTest() {
+		System.out.println("Allocated memory before test : " + OffHeapMemoryAllocator.getAllocatedMemory() + " bytes");
 		MockitoAnnotations.initMocks(this);
 		cacheIntegrityCheckedAfterTest = true;
 

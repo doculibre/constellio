@@ -252,17 +252,17 @@ public class SchemaUtils {
 				case DATE_TIME:
 				case STRING:
 					summary = metadata.isEssentialInSummary() || metadata.isUniqueValue()
-							  || TITLE.isSameLocalCode(metadata) || metadata.isEssentialInSummary();
+							  || TITLE.isSameLocalCode(metadata) || metadata.isEssentialInSummary() || metadata.isCacheIndex();
 					break;
 
 				case STRUCTURE:
 				case CONTENT:
 					//TODO Based on summary flag, support these typestype
-					summary = false;
+					summary = metadata.isEssentialInSummary();
 					break;
 
 				case TEXT:
-					summary = false;
+					summary = metadata.isEssentialInSummary();
 					break;
 
 				case INTEGER:

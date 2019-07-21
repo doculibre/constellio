@@ -5,18 +5,28 @@ import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.schemas.DataStoreField;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.RecordCacheType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.ModelLayerSystemExtensions;
+import com.constellio.model.services.records.cache.FindMultipleRecordByMetadata;
+import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.query.logical.FieldLogicalSearchQuerySort;
+import com.constellio.model.services.search.query.logical.LogicalOperator;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery.UserFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuerySort;
+import com.constellio.model.services.search.query.logical.LogicalSearchValueCondition;
+import com.constellio.model.services.search.query.logical.QueryExecutionMethod;
+import com.constellio.model.services.search.query.logical.condition.CompositeLogicalSearchCondition;
+import com.constellio.model.services.search.query.logical.condition.DataStoreFieldLogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.condition.SchemaFilters;
+import com.constellio.model.services.search.query.logical.criteria.IsEqualCriterion;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +42,7 @@ import static com.constellio.model.entities.records.LocalisedRecordMetadataRetri
 import static com.constellio.model.entities.schemas.MetadataValueType.INTEGER;
 import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.services.search.VisibilityStatusFilter.ALL;
 
 public class LogicalSearchQueryExecutorInCache {
 
@@ -42,6 +53,7 @@ public class LogicalSearchQueryExecutorInCache {
 	MetadataSchemasManager schemasManager;
 	ModelLayerSystemExtensions modelLayerExtensions;
 	String mainDataLanguage;
+	private int initialBaseStreamSize = -1;
 
 	public LogicalSearchQueryExecutorInCache(SearchServices searchServices, RecordsCaches recordsCaches,
 											 MetadataSchemasManager schemasManager,
@@ -107,28 +119,119 @@ public class LogicalSearchQueryExecutorInCache {
 			}
 		}
 
-		if (Toggle.VALIDATE_CACHE_EXECUTION_SERVICE_USING_SOLR.isEnabled()) {
-			filter = filter.and(new Predicate<Record>() {
-				@Override
-				public boolean test(Record record) {
-					LOGGER.info("Record returned by stream : " + record.getIdTitle());
 
-					return true;
-				}
-			});
+		//		if (Toggle.VALIDATE_CACHE_EXECUTION_SERVICE_USING_SOLR.isEnabled()) {
+		//			filter = filter.and(new Predicate<Record>() {
+		//				@Override
+		//				public boolean test(Record record) {
+		//					LOGGER.info("Record returned by stream : " + record.getIdTitle());
+		//
+		//					return true;
+		//				}
+		//			});
+		//		}
+
+		if (query.getUserFilters() != null && !query.getUserFilters().isEmpty()) {
+			filter = filter.and(record -> isRecordAccessibleForUser(query.getUserFilters(), record));
 		}
 
-		Stream<Record> stream = recordsCaches.stream(schemaType).filter(filter)
-				.sorted(newIdComparator()).onClose(() -> {
-					long duration = new Date().getTime() - startOfStreaming;
-					modelLayerExtensions.onQueryExecution(query, duration);
-				});
+		boolean isBaseStreamDefined = false;
+		List<Record> baseRecords = null;
+
+		RecordsCache recordsCache = recordsCaches.getCache(schemaType.getCollection());
+
+		if (recordsCache instanceof FindMultipleRecordByMetadata) {
+			FindMultipleRecordByMetadata findMultipleRecordByMetadata = (FindMultipleRecordByMetadata) recordsCache;
+
+			if (query.getCondition() instanceof DataStoreFieldLogicalSearchCondition) {
+				DataStoreFieldLogicalSearchCondition dataStoreFieldLogicalSearchCondition = (DataStoreFieldLogicalSearchCondition) query.getCondition();
+				LogicalSearchValueCondition logicalSearchValueCondition = dataStoreFieldLogicalSearchCondition.getValueCondition();
+				if (logicalSearchValueCondition instanceof IsEqualCriterion) {
+					IsEqualCriterion isEqualCriterion = (IsEqualCriterion) logicalSearchValueCondition;
+					List<DataStoreField> dataStoreFields = dataStoreFieldLogicalSearchCondition.getDataStoreFields();
+
+					if (dataStoreFields != null && dataStoreFields.size() == 1) {
+						Object value = isEqualCriterion.getMemoryQueryValue();
+						DataStoreField dataStoreField = dataStoreFields.get(0);
+						if (canDataGetByMetadata(schemaType, value, dataStoreField)) {
+
+							Metadata metadata = schemaType.getDefaultSchema().getMetadataByDatastoreCode(dataStoreField.getDataStoreCode());
+							isBaseStreamDefined = true;
+							baseRecords = findMultipleRecordByMetadata.getMultipleByMetadata(metadata, (String) value);
+							initialBaseStreamSize = baseRecords.size();
+						}
+					}
+				}
+			} else if (query.getCondition() instanceof CompositeLogicalSearchCondition) {
+				CompositeLogicalSearchCondition compositeLogicalSearchCondition = (CompositeLogicalSearchCondition) query.getCondition();
+
+				LogicalOperator logicalOperator = compositeLogicalSearchCondition.getLogicalOperator();
+
+				if (logicalOperator == LogicalOperator.AND) {
+					for (LogicalSearchCondition logicalSearchCondition : compositeLogicalSearchCondition.getNestedSearchConditions()) {
+						if (logicalSearchCondition instanceof DataStoreFieldLogicalSearchCondition
+							&& ((DataStoreFieldLogicalSearchCondition) logicalSearchCondition).getValueCondition() instanceof IsEqualCriterion) {
+							IsEqualCriterion isEqualCriterion = (IsEqualCriterion) ((DataStoreFieldLogicalSearchCondition) logicalSearchCondition).getValueCondition();
+							DataStoreFieldLogicalSearchCondition dataStoreFieldLogicalSearchCondition = (DataStoreFieldLogicalSearchCondition) logicalSearchCondition;
+
+							List<DataStoreField> dataStoreFields = dataStoreFieldLogicalSearchCondition.getDataStoreFields();
+
+							if (dataStoreFields != null && dataStoreFields.size() == 1) {
+								Object value = isEqualCriterion.getMemoryQueryValue();
+								DataStoreField dataStoreField = dataStoreFields.get(0);
+
+								if (canDataGetByMetadata(schemaType, value, dataStoreField)) {
+									Metadata metadata = schemaType.getDefaultSchema().getMetadataByDatastoreCode(dataStoreField.getDataStoreCode());
+									isBaseStreamDefined = true;
+									baseRecords = findMultipleRecordByMetadata.getMultipleByMetadata(metadata, (String) value);
+									initialBaseStreamSize = baseRecords.size();
+									break;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
+		Stream<Record> stream;
+
+		if (!isBaseStreamDefined) {
+			stream = recordsCaches.stream(schemaType).filter(filter)
+					.sorted(newIdComparator()).onClose(() -> {
+						long duration = new Date().getTime() - startOfStreaming;
+						modelLayerExtensions.onQueryExecution(query, duration);
+					});
+		} else {
+			stream = baseRecords.stream().filter(filter).sorted(newIdComparator());
+		}
 
 		if (!query.getSortFields().isEmpty()) {
+			initialBaseStreamSize = -1;
 			return stream.sorted(newQuerySortFieldsComparator(query, schemaType));
 		} else {
 			return stream;
 		}
+	}
+
+	private static boolean isRecordAccessibleForUser(List<UserFilter> userFilterList, Record record) {
+		for (UserFilter currentUserFilter : userFilterList) {
+			if (!currentUserFilter.hasUserAccessToRecord(record)) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	private boolean canDataGetByMetadata(MetadataSchemaType schemaType, Object value, DataStoreField dataStoreField) {
+		return value instanceof String
+			   && !dataStoreField.isEncrypted() && (dataStoreField.isUniqueValue() || dataStoreField.isCacheIndex()
+																					  && schemaType.getCacheType() == RecordCacheType.FULLY_CACHED);
+	}
+
+	protected int getLastStreamInitialBaseRecordSize() {
+		return initialBaseStreamSize;
 	}
 
 	@NotNull
@@ -184,7 +287,10 @@ public class LogicalSearchQueryExecutorInCache {
 			}
 		}
 
-		if (metadata.isSortable()) {
+		if (metadata.getLocalCode().equals(Schemas.IDENTIFIER.getLocalCode())) {
+			//Nothing!
+
+		} else if (metadata.hasNormalizedSortField()) {
 			if (value1 instanceof String && metadata.getSortFieldNormalizer() != null) {
 				value1 = metadata.getSortFieldNormalizer().normalize((String) value1);
 			}
@@ -207,7 +313,7 @@ public class LogicalSearchQueryExecutorInCache {
 	}
 
 	public Stream<Record> stream(LogicalSearchCondition condition) {
-		return stream(new LogicalSearchQuery(condition));
+		return stream(new LogicalSearchQuery(condition).filteredByVisibilityStatus(ALL));
 	}
 
 	public boolean isQueryExecutableInCache(LogicalSearchQuery query) {
@@ -219,7 +325,7 @@ public class LogicalSearchQueryExecutorInCache {
 	}
 
 	public static boolean hasNoUnsupportedFeatureOrFilter(LogicalSearchQuery query) {
-		return !query.isForceExecutionInSolr()
+		return query.getQueryExecutionMethod() != QueryExecutionMethod.USE_SOLR
 			   && query.getFacetFilters().toSolrFilterQueries().isEmpty()
 			   && hasNoUnsupportedSort(query)
 			   && query.getFreeTextQuery() == null
@@ -233,8 +339,22 @@ public class LogicalSearchQueryExecutorInCache {
 			   && query.getFieldFacets().isEmpty()
 			   && query.getFieldPivotFacets().isEmpty()
 			   && query.getQueryFacets().isEmpty()
-			   && (query.getUserFilters() == null || query.getUserFilters().isEmpty())
+			   && areAllFiltersExecutableInCache(query.getUserFilters())
 			   && !query.isHighlighting();
+	}
+
+	private static boolean areAllFiltersExecutableInCache(List<UserFilter> userFilters) {
+		if (userFilters == null || userFilters.isEmpty()) {
+			return true;
+		}
+
+		for (UserFilter currentUserFilter : userFilters) {
+			if (!currentUserFilter.isExecutableInCache()) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	private static boolean hasNoSort(LogicalSearchQuery query) {

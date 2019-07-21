@@ -5,6 +5,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.DataStoreField;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.services.search.query.logical.LogicalSearchValueCondition;
+import lombok.Getter;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
@@ -13,6 +14,8 @@ import java.util.List;
 public class IsEqualCriterion extends LogicalSearchValueCondition {
 
 	private final Object value;
+
+	@Getter
 	private final Object memoryQueryValue;
 
 	public IsEqualCriterion(Object value) {

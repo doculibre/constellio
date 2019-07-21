@@ -19,6 +19,7 @@ import static com.constellio.model.services.search.RecordStreamUtils.recordIds;
 import static com.constellio.model.services.search.SolrFieldsComparator.asc;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
+import static com.constellio.model.services.search.query.logical.QueryExecutionMethod.USE_SOLR;
 import static com.constellio.sdk.tests.TestUtils.assertThatRecords;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
@@ -75,7 +76,7 @@ public class SearchServiceStreamingAcceptanceTest extends ConstellioTest {
 		recordServices.execute(tx);
 
 		query = new LogicalSearchQuery(from(zeSchema.instance()).returnAll());
-		query.setForceExecutionInSolr(true);
+		query.setQueryExecutionMethod(USE_SOLR);
 
 		getDataLayerFactory().getExtensions().getSystemWideExtensions().bigVaultServerExtension
 				.add(new BigVaultServerExtension() {

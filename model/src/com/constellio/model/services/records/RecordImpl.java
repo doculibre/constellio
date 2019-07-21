@@ -183,6 +183,9 @@ public class RecordImpl implements Record {
 		// Get may parse some metadata, and this is required later
 		get(metadata);
 		validateMetadata(metadata);
+		if (!metadata.isMultivalue()) {
+			validateScalarValue(metadata, value);
+		}
 
 		Object convertedRecord;
 		if (value instanceof Record) {
@@ -215,6 +218,23 @@ public class RecordImpl implements Record {
 		}
 
 		return setModifiedValue(metadata, language, convertedRecord);
+	}
+
+	private void validateScalarValue(Metadata metadata, Object value) {
+		if (metadata.getType() == MetadataValueType.INTEGER || metadata.getType() == MetadataValueType.NUMBER) {
+			if (value != null && !(value instanceof Number)) {
+				throw new IllegalArgumentException("Invalid value for integer/number metadata : " + value.getClass().getName());
+			}
+		} else if (metadata.getType() == MetadataValueType.STRING || metadata.getType() == MetadataValueType.TEXT) {
+			if (value != null && !(value instanceof String)) {
+				throw new IllegalArgumentException("Invalid value for string/text metadata : " + value.getClass().getName());
+			}
+
+		} else if (metadata.getType() == MetadataValueType.REFERENCE) {
+			if (value != null && !(value instanceof String) && !(value instanceof Record) && !(value instanceof RecordWrapper)) {
+				throw new IllegalArgumentException("Invalid value for reference metadata : " + value.getClass().getName());
+			}
+		}
 	}
 
 	private void validateMetadata(Metadata metadata) {

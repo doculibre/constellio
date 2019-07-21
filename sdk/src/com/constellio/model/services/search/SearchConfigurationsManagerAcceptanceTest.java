@@ -128,6 +128,8 @@ public class SearchConfigurationsManagerAcceptanceTest extends ConstellioTest {
 		searchConfigurationsManager.setElevated(zeCollection, ELEVATED_KEY_1, record1);
 		searchConfigurationsManager.setExcluded(zeCollection, excludeRecord);
 
+		System.out.println("Excluded : " + excludeRecord.getId());
+
 		searchConfigurationsManager.removeQueryElevation(zeCollection, ELEVATED_KEY_1);
 
 		assertThat(searchConfigurationsManager.isElevated(zeCollection, ELEVATED_KEY_1, record0)).isFalse();
@@ -150,6 +152,7 @@ public class SearchConfigurationsManagerAcceptanceTest extends ConstellioTest {
 		Record excludeRecord = recordList.get(0);
 		String excludedRecordId = excludeRecord.getId();
 		String elevatedId = record0.getId();
+		System.out.println("Excluded : " + excludedRecordId);
 
 		searchConfigurationsManager.setElevated(zeCollection, ELEVATED_KEY_1, record0);
 		searchConfigurationsManager.setExcluded(zeCollection, excludeRecord);

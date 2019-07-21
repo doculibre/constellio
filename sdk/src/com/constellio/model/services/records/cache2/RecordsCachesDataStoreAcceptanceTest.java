@@ -20,7 +20,6 @@ import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import org.apache.commons.lang3.StringUtils;
 import org.assertj.core.api.ListAssert;
 import org.eclipse.collections.impl.list.mutable.primitive.IntArrayList;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -70,12 +69,6 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 		reindexingServices = getModelLayerFactory().newReindexingServices();
 
 		SummaryCacheSingletons.dataStore = new FileSystemRecordsValuesCacheDataStore(new File(newTempFolder(), "test.db"));
-	}
-
-
-	@After
-	public void tearDown() throws Exception {
-		SummaryCacheSingletons.dataStore.close();
 	}
 
 

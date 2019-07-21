@@ -26,6 +26,7 @@ import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.schemas.ModificationImpactCalculatorResponse;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 import java.util.function.Consumer;
@@ -120,7 +121,7 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 			throw new IllegalArgumentException("Metadata '" + metadata + "' is global, which has no specific schema type.");
 		}
 
-		if (value == null) {
+		if (StringUtils.isBlank(value)) {
 			return null;
 		}
 

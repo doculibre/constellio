@@ -75,6 +75,12 @@ public class OffHeapLongList {
 		return lastIndex == -1 ? -1 : get(lastIndex);
 	}
 
+	public void clear() {
+		for (int i = 0; i < this.adressesOfBatches.size(); i++) {
+			OffHeapMemoryAllocator.freeMemory(adressesOfBatches.get(i), batchSize * Long.BYTES);
+		}
+		this.adressesOfBatches.clear();
+	}
 
 	public Stream<Long> stream() {
 		return new LazyIterator<Long>() {

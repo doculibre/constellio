@@ -5,6 +5,8 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.Schemas;
 import com.rometools.utils.Strings;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -27,11 +29,13 @@ public class CacheIndexService {
 			throw new IllegalArgumentException("metadata parameter cannot be null");
 		}
 
-		if (!metadata.isCacheIndex()) {
-			throw new IllegalArgumentException("Metadata in parameter must be a cacheIndex to search on this cache");
+		if (!metadata.isCacheIndex() && !metadata.isUniqueValue()
+			&& (metadata.getType() != MetadataValueType.REFERENCE || metadata.getType() != MetadataValueType.STRING)
+			|| metadata.getLocalCode().equals(Schemas.IDENTIFIER.getLocalCode())) {
+			throw new IllegalArgumentException("Metadata in parameter must be a cacheIndex or unique and not ID to search on this cache");
 		}
 
-		if (value == null) {
+		if (Strings.isBlank(value)) {
 			return null;
 		}
 
@@ -55,7 +59,7 @@ public class CacheIndexService {
 				MapWithKeyReturnValue mapWithKeyReturnValue = getValueHashToModify(collection, schemaType, currentMetadata.getLocalCode(), false);
 
 				if (mapWithKeyReturnValue != null) {
-					removeRecordIdToMapByValue(oldVersion.get(currentMetadata), oldVersion.getId(), mapWithKeyReturnValue.getValueRecordIdMap(), currentMetadata);
+ 					removeRecordIdToMapByValue(oldVersion.get(currentMetadata), oldVersion.getId(), mapWithKeyReturnValue.getValueRecordIdMap(), currentMetadata);
 					cleanUpEmptyMap(mapWithKeyReturnValue);
 				}
 			} else {
