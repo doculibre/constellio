@@ -119,7 +119,7 @@ public class LogicalSearchQueryExecutorInCache {
 		}
 
 
-//		if (Toggle.VALIDATE_CACHE_EXECUTION_SERVICE_USING_SOLR.isEnabled()) {
+		//		if (Toggle.VALIDATE_CACHE_EXECUTION_SERVICE_USING_SOLR.isEnabled()) {
 		//			filter = filter.and(new Predicate<Record>() {
 		//				@Override
 		//				public boolean test(Record record) {
@@ -286,7 +286,11 @@ public class LogicalSearchQueryExecutorInCache {
 			}
 		}
 
-		if (metadata.hasNormalizedSortField()) {
+		if (metadata.getLocalCode().equals(Schemas.IDENTIFIER.getLocalCode())) {
+			//Nothing!
+
+		} else
+			if (metadata.hasNormalizedSortField()) {
 			if (value1 instanceof String && metadata.getSortFieldNormalizer() != null) {
 				value1 = metadata.getSortFieldNormalizer().normalize((String) value1);
 			}
