@@ -528,6 +528,7 @@ public class SearchServices {
 
 
 	public Record searchSingleResult(LogicalSearchCondition condition) {
+
 		if (logicalSearchQueryExecutorInCache.isConditionExecutableInCache(condition)) {
 			Record record = searchSingleResultUsingCache(condition);
 

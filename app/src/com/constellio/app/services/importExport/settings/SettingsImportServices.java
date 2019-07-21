@@ -537,6 +537,7 @@ public class SettingsImportServices {
 			metadataBuilder = schemaBuilder.create(importedMetadata.getCode());
 			if (metadataBuilder.getInheritance() == null) {
 				MetadataValueType type = EnumUtils.getEnum(MetadataValueType.class, importedMetadata.getType());
+
 				metadataBuilder.setType(type);
 				if (type == REFERENCE) {
 					MetadataSchemaTypeBuilder referencedTypeBuilder = typesBuilder

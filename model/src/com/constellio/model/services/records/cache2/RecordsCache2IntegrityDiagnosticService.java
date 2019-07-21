@@ -297,7 +297,8 @@ public class RecordsCache2IntegrityDiagnosticService {
 
 		for (Metadata metadata : schemaType.getSchema(recordFromSolr.getSchemaCode()).getMetadatas()) {
 
-			if (metadata.getType() == MetadataValueType.STRUCTURE || metadata.getType() == MetadataValueType.CONTENT) {
+			if (metadata.getType() == MetadataValueType.STRUCTURE || metadata.getType() == MetadataValueType.CONTENT
+				|| metadata.isEncrypted()) {
 				//TODO Improve!
 				continue;
 			}

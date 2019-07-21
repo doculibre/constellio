@@ -42,6 +42,7 @@ import static com.constellio.model.entities.records.LocalisedRecordMetadataRetri
 import static com.constellio.model.entities.schemas.MetadataValueType.INTEGER;
 import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.services.search.VisibilityStatusFilter.ALL;
 
 public class LogicalSearchQueryExecutorInCache {
 
@@ -131,7 +132,7 @@ public class LogicalSearchQueryExecutorInCache {
 		//		}
 
 		if (query.getUserFilters() != null && !query.getUserFilters().isEmpty()) {
-			filter = ((Predicate<Record>) record -> isRecordAccessibleForUser(query.getUserFilters(), record)).and(filter);
+			filter = filter.and(record -> isRecordAccessibleForUser(query.getUserFilters(), record));
 		}
 
 		boolean isBaseStreamDefined = false;
@@ -289,8 +290,7 @@ public class LogicalSearchQueryExecutorInCache {
 		if (metadata.getLocalCode().equals(Schemas.IDENTIFIER.getLocalCode())) {
 			//Nothing!
 
-		} else
-			if (metadata.hasNormalizedSortField()) {
+		} else if (metadata.hasNormalizedSortField()) {
 			if (value1 instanceof String && metadata.getSortFieldNormalizer() != null) {
 				value1 = metadata.getSortFieldNormalizer().normalize((String) value1);
 			}
@@ -313,7 +313,7 @@ public class LogicalSearchQueryExecutorInCache {
 	}
 
 	public Stream<Record> stream(LogicalSearchCondition condition) {
-		return stream(new LogicalSearchQuery(condition));
+		return stream(new LogicalSearchQuery(condition).filteredByVisibilityStatus(ALL));
 	}
 
 	public boolean isQueryExecutableInCache(LogicalSearchQuery query) {

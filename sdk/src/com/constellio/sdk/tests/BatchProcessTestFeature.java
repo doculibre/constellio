@@ -3,6 +3,7 @@ package com.constellio.sdk.tests;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.batchprocess.BatchProcessStatus;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
+import com.constellio.model.services.batch.xml.list.BatchProcessListReaderRuntimeException;
 
 import java.util.List;
 
@@ -42,20 +43,24 @@ public class BatchProcessTestFeature {
 		int errorsCount = 0;
 		for (BatchProcess batchProcess : batchProcesses) {
 			if (batchProcess != null) {
-				while (batchProcessesManager.get(batchProcess.getId()).getStatus() != BatchProcessStatus.FINISHED) {
+				try {
+					while (batchProcessesManager.get(batchProcess.getId()).getStatus() != BatchProcessStatus.FINISHED) {
 
-					if (batchProcessRuntimeActionExecuted == false) {
-						batchProcessRuntimeActionExecuted = true;
-						if (batchProcessRuntimeAction != null) {
-							batchProcessRuntimeAction.run();
+						if (batchProcessRuntimeActionExecuted == false) {
+							batchProcessRuntimeActionExecuted = true;
+							if (batchProcessRuntimeAction != null) {
+								batchProcessRuntimeAction.run();
+							}
+						}
+
+						try {
+							Thread.sleep(10);
+						} catch (InterruptedException e) {
+							throw new RuntimeException(e);
 						}
 					}
-
-					try {
-						Thread.sleep(10);
-					} catch (InterruptedException e) {
-						throw new RuntimeException(e);
-					}
+				} catch (BatchProcessListReaderRuntimeException.NoBatchProcessesInList e) {
+					//Mysteriously disapeared
 				}
 				errorsCount += batchProcessesManager.get(batchProcess.getId()).getErrors();
 

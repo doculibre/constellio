@@ -33,6 +33,7 @@ import com.constellio.model.services.schemas.MetadataSchemaProvider;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SearchServices;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.mapdb.DB;
@@ -660,13 +661,17 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 			return getRecordSummary(value, metadata.getCollection());
 		}
 
+		if (StringUtils.isBlank(value)) {
+			return null;
+		}
+
 		MetadataSchemaType schemaType = metadataSchemasManager.getSchemaTypes(collectionId)
 				.getSchemaType(metadata.getSchemaTypeCode());
 
 		if (schemaType.getCacheType().isSummaryCache() || schemaType.getCacheType() == RecordCacheType.FULLY_CACHED) {
 			List<String> searchResult = cacheIndexService.search(metadata, value);
 
-			if (!searchResult.isEmpty()) {
+			if (searchResult != null && !searchResult.isEmpty()) {
 				return toRecord(memoryDataStore.get(searchResult.get(0)));
 			} else {
 				return null;
