@@ -21,6 +21,7 @@ import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.util.FileIconUtils;
 import com.constellio.app.ui.util.SchemaCaptionUtils;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 import com.vaadin.data.Container;
@@ -484,6 +485,47 @@ public class RecordVOTable extends BaseTable {
 		}
 
 		@Override
+		public List<Object> getAllSelectedItemIds() {
+			List<Object> allSelectedItemIds;
+			if (isAllItemsSelected()) {
+				allSelectedItemIds = new ArrayList<>(getItemIds());
+			} else {
+				allSelectedItemIds = ensureListValue();
+			}
+			return allSelectedItemIds;
+		}
+
+		public List<RecordVO> getSelectedRecordVOs() {
+			List<RecordVO> selectedRecordVOs;
+			if (isAllItemsSelected()) {
+				selectedRecordVOs = getAllRecordVOs();
+			} else {
+				selectedRecordVOs = new ArrayList<>();
+				List<Object> listValue = ensureListValue();
+				for (Object itemId : listValue) {
+					RecordVO recordVO = getRecordVO(itemId);
+					selectedRecordVOs.add(recordVO);
+				}
+			}
+			return selectedRecordVOs;
+		}
+
+		public List<Record> getSelectedRecords() {
+			List<Record> selectedRecords;
+			if (isAllItemsSelected()) {
+				selectedRecords = getAllRecords();
+			} else {
+				selectedRecords = new ArrayList<>();
+				List<Object> listValue = ensureListValue();
+				for (Object itemId : listValue) {
+					RecordVO recordVO = getRecordVO(itemId);
+					selectedRecords.add(recordVO.getRecord());
+				}
+			}
+			return selectedRecords;
+		}
+
+		@Override
 		public boolean isSelected(Object itemId) {
 			List<Object> listValue = ensureListValue();
 			RecordVO recordVO = getRecordVO(itemId);
@@ -495,6 +537,15 @@ public class RecordVOTable extends BaseTable {
 			for (Object itemId : getItemIds()) {
 				RecordVO recordVO = getRecordVO(itemId);
 				listValue.add(recordVO);
+			}
+			return listValue;
+		}
+
+		private List<Record> getAllRecords() {
+			List<Record> listValue = new ArrayList<>();
+			for (Object itemId : getItemIds()) {
+				RecordVO recordVO = getRecordVO(itemId);
+				listValue.add(recordVO.getRecord());
 			}
 			return listValue;
 		}

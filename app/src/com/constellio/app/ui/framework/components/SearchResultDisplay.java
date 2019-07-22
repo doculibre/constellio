@@ -122,11 +122,13 @@ public class SearchResultDisplay extends CssLayout {
 	protected Component newTitleComponent(SearchResultVO searchResultVO) {
 		final RecordVO record = searchResultVO.getRecordVO();
 
-		VerticalLayout titleLayout = new VerticalLayout();
+		CssLayout titleLayout = new CssLayout();
 		titleLayout.setWidth("100%");
+
 		Component titleLink = newTitleLink(searchResultVO);
 		titleLink.addStyleName(TITLE_STYLE);
-//		titleLink.setWidthUndefined();
+
+		titleLink.setWidthUndefined();
 		titleLayout.addComponent(titleLink);
 
 		SessionContext currentSessionContext = ConstellioUI.getCurrentSessionContext();
@@ -153,8 +155,7 @@ public class SearchResultDisplay extends CssLayout {
 			elevationLayout.setComponentAlignment(excludeButton, Alignment.TOP_LEFT);
 			elevationLayout.setComponentAlignment(elevateButton, Alignment.TOP_LEFT);
 
-			titleLayout.addComponent(elevationLayout, 0);
-			titleLayout.setComponentAlignment(elevationLayout, Alignment.TOP_RIGHT);
+			titleLayout.addComponent(elevationLayout);
 			//			titleLayout.setExpandRatio(elevationLayout, 1);
 			//			titleLayout.setSpacing(true);
 		}

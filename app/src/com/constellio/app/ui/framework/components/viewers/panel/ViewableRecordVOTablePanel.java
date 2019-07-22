@@ -1,15 +1,12 @@
 package com.constellio.app.ui.framework.components.viewers.panel;
 
-import com.constellio.app.api.extensions.params.AvailableActionsParam;
-import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.modules.rm.ui.components.content.ConstellioAgentLink;
 import com.constellio.app.modules.rm.ui.pages.document.DisplayDocumentViewImpl;
 import com.constellio.app.modules.rm.ui.pages.document.DisplayDocumentWindow;
 import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderViewImpl;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.services.menu.MenuItemFactory.MenuItemRecordProvider;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -17,13 +14,13 @@ import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.buttons.BaseButton;
-import com.constellio.app.ui.framework.buttons.BaseLink;
 import com.constellio.app.ui.framework.buttons.IconButton;
 import com.constellio.app.ui.framework.buttons.SelectDeselectAllButton;
 import com.constellio.app.ui.framework.components.RecordDisplayFactory;
 import com.constellio.app.ui.framework.components.ViewWindow;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
+import com.constellio.app.ui.framework.components.menuBar.RecordListMenuBar;
 import com.constellio.app.ui.framework.components.mouseover.NiceTitle;
 import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.components.table.BaseTable.PagingControls;
@@ -31,19 +28,14 @@ import com.constellio.app.ui.framework.components.table.BaseTable.SelectionChang
 import com.constellio.app.ui.framework.components.table.BaseTable.SelectionChangeListener;
 import com.constellio.app.ui.framework.components.table.BaseTable.SelectionManager;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
+import com.constellio.app.ui.framework.components.table.RecordVOTable.RecordVOSelectionManager;
 import com.constellio.app.ui.framework.containers.ContainerAdapter;
 import com.constellio.app.ui.framework.containers.RecordVOContainer;
-import com.constellio.app.ui.pages.base.BasePresenterUtils;
-import com.constellio.app.ui.pages.base.ConstellioHeader;
-import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.management.schemaRecords.DisplaySchemaRecordWindow;
 import com.constellio.app.ui.util.ComponentTreeUtils;
 import com.constellio.app.ui.util.ResponsiveUtils;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
-import com.constellio.model.services.schemas.SchemaUtils;
 import com.vaadin.data.Item;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.ObjectProperty;
@@ -54,15 +46,11 @@ import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.Alignment;
-import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
-import com.vaadin.ui.MenuBar;
-import com.vaadin.ui.MenuBar.Command;
-import com.vaadin.ui.MenuBar.MenuItem;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.CellStyleGenerator;
@@ -85,6 +73,8 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 //@JavaScript({ "theme://jquery/jquery-2.1.4.min.js", "theme://scroll/fix-vertical-scroll.js" })
 public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
+
+	public static final int MAX_SELECTION_SIZE = 10000;
 
 	public static final Resource SELECTION_ICON_RESOURCE = new ThemeResource("images/icons/clipboard_12x16.png");
 
@@ -152,9 +142,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
 
 	private BaseButton quickActionButton;
 
-	private MenuBar selectionActionsMenuBar;
-
-	private boolean defaultSelectionListenerAdded = false;
+	private RecordListMenuBar selectionActionsMenuBar;
 
 	public ViewableRecordVOTablePanel(RecordVOContainer container) {
 		this(container, TableMode.LIST);
@@ -274,126 +262,38 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
 		actionAndModeButtonsLayout.setComponentAlignment(quickActionButton, Alignment.TOP_LEFT);
 	}
 
-	@SuppressWarnings("unchecked")
 	public void setDefaultSelectionActionButtons() {
 		if (isSelectColumn()) {
-			final List<Component> selectionActionButtons = new ArrayList<>();
-
-			ConstellioFactories constellioFactories = ConstellioUI.getCurrent().getConstellioFactories();
-			SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
-			String collection = sessionContext.getCurrentCollection();
-			AppLayerFactory appLayerFactory = constellioFactories.getAppLayerFactory();
-
-			BasePresenterUtils presenterUtils = new BasePresenterUtils(constellioFactories, sessionContext);
-			final List<String> ids = new ArrayList<>();
-			final List<String> schemaTypeCodes = new ArrayList<>();
-			final User user = presenterUtils.getCurrentUser();
-			VerticalLayout collectorLayout = new VerticalLayout();
-			collectorLayout.addComponentAttachListener(new ComponentAttachListener() {
+			selectionActionsMenuBar = new RecordListMenuBar(new MenuItemRecordProvider() {
 				@Override
-				public void componentAttachedToContainer(ComponentAttachEvent event) {
-					selectionActionButtons.add(event.getAttachedComponent());
-				}
-			});
-			ConstellioHeader header = ConstellioUI.getCurrent().getMainLayout().getHeader();
-
-			SelectionManager selectionManager = table.getSelectionManager();
-			List<Object> selectedItemIds;
-			if (selectionManager.isAllItemsSelected()) {
-				selectedItemIds = new ArrayList<>(recordVOContainer.getItemIds());
-			} else if (table.getValue() instanceof List) {
-				selectedItemIds = (List<Object>) table.getValue();
-				if (selectedItemIds == null) {
-					selectedItemIds = Collections.emptyList();
-				}
-			} else {
-				selectedItemIds = new ArrayList<>();
-				// FIXME Not scalable
-				for (Object itemId : recordVOContainer.getItemIds()) {
-					if (selectionManager.isSelected(itemId)) {
-						selectedItemIds.add(itemId);
-					}
-				}
-			}
-			for (Object selectedItemId : selectedItemIds) {
-				RecordVO recordVO = recordVOContainer.getRecordVO(selectedItemId);
-				String schemaTypeCode = recordVO.getSchema().getTypeCode();
-				ids.add(recordVO.getId());
-				if (!schemaTypeCodes.contains(schemaTypeCode)) {
-					schemaTypeCodes.add(schemaTypeCode);
-				}
-			}
-
-			if (!selectedItemIds.isEmpty()) {
-				BaseButton addToSelectionButton = new BaseButton($("SearchView.addToSelection"), SELECTION_ICON_RESOURCE) {
-					@Override
-					protected void buttonClick(ClickEvent event) {
-						SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
-						String collection = sessionContext.getCurrentCollection();
-
-						ConstellioFactories constellioFactories = ConstellioUI.getCurrent().getConstellioFactories();
-						ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
-						RecordServices recordServices = modelLayerFactory.newRecordServices();
-						List<Record> records = recordServices.getRecordsById(collection, ids);
-						for (Record record : records) {
-							String recordId = record.getId();
-							String schemaTypeCode = SchemaUtils.getSchemaTypeCode(record.getSchemaCode());
-							sessionContext.addSelectedRecordId(recordId, schemaTypeCode);
+				public List<Record> getRecords() {
+					List<Record> selectedRecords;
+					if (table.getSelectionManager() instanceof RecordVOSelectionManager) {
+						RecordVOSelectionManager recordVOSelectionManager = (RecordVOSelectionManager) table.getSelectionManager();
+						selectedRecords = recordVOSelectionManager.getSelectedRecords();
+					} else {
+						selectedRecords = new ArrayList<>();
+						List<Object> selectedItemIds = table.getSelectionManager().getAllSelectedItemIds();
+						for (Object itemId : selectedItemIds) {
+							RecordVO recordVO = getRecordVO(itemId);
+							selectedRecords.add(recordVO.getRecord());
 						}
 					}
-				};
-				addToSelectionButton.addStyleName(ValoTheme.BUTTON_LINK);
-				selectionActionButtons.add(addToSelectionButton);
-
-				AvailableActionsParam param = new AvailableActionsParam(ids, schemaTypeCodes, user, collectorLayout, header);
-				AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions().forCollection(collection);
-				extensions.addAvailableActions(param);
-			}
-			setSelectionActionButtons(selectionActionButtons);
-
-			if (!defaultSelectionListenerAdded) {
-				defaultSelectionListenerAdded = true;
-				table.addSelectionChangeListener(new SelectionChangeListener() {
-					@Override
-					public void selectionChanged(SelectionChangeEvent event) {
-						setDefaultSelectionActionButtons();
-					}
-				});
-			}
-		}
-	}
-
-	public void setSelectionActionButtons(List<Component> selectionActionButtons) {
-		if (isSelectColumn()) {
-			if (selectionActionsMenuBar != null) {
-				actionAndModeButtonsLayout.removeComponent(selectionActionsMenuBar);
-			}
-
-			selectionActionsMenuBar = new MenuBar();
+					return selectedRecords;
+				}
+			}, $("ViewableRecordVOTablePanel.selectionActions"), Collections.emptyList());
 			selectionActionsMenuBar.addStyleName("selection-action-menu-bar");
 			selectionActionsMenuBar.setAutoOpen(false);
-			selectionActionsMenuBar.addStyleName(ValoTheme.MENUBAR_BORDERLESS);
+			actionAndModeButtonsLayout.addComponent(selectionActionsMenuBar, 0);
+			actionAndModeButtonsLayout.setComponentAlignment(selectionActionsMenuBar, Alignment.TOP_RIGHT);
 
-			MenuItem rootItem = selectionActionsMenuBar.addItem($("ViewableRecordVOTablePanel.selectionActions"), null, null);
-			for (final Component selectionActionMenuButton : selectionActionButtons) {
-				Resource icon = selectionActionMenuButton.getIcon();
-				String caption = selectionActionMenuButton.getCaption();
-				rootItem.addItem(caption, icon, new Command() {
-					@Override
-					public void menuSelected(MenuItem selectedItem) {
-						if (selectionActionMenuButton instanceof Button) {
-							((Button) selectionActionMenuButton).click();
-						} else if (selectionActionMenuButton instanceof BaseLink) {
-							((BaseLink) selectionActionMenuButton).click();
-						}
-					}
-				});
-			}
-			if (rootItem.hasChildren()) {
-				actionAndModeButtonsLayout.addComponent(selectionActionsMenuBar, 0);
-				actionAndModeButtonsLayout.setComponentAlignment(selectionActionsMenuBar, Alignment.TOP_RIGHT);
-			}
-		}
+			addSelectionChangeListener(new SelectionChangeListener() {
+				@Override
+				public void selectionChanged(SelectionChangeEvent event) {
+					selectionActionsMenuBar.buildMenuItems();
+				}
+			});
+		}	
 	}
 
 	int computeCompressedWidth() {

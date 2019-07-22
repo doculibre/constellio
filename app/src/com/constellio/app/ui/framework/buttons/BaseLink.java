@@ -5,7 +5,7 @@ import com.vaadin.server.Resource;
 import com.vaadin.shared.ui.BorderStyle;
 import com.vaadin.ui.Link;
 
-public class BaseLink extends Link {
+public class BaseLink extends Link implements Clickable {
 
 	public BaseLink() {
 	}
@@ -19,6 +19,7 @@ public class BaseLink extends Link {
 	}
 
 	@SuppressWarnings("deprecation")
+	@Override
 	public void click() {
 		Resource resource = getResource();
 		if (resource != null) {

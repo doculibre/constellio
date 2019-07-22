@@ -62,11 +62,11 @@ public class RMRecordsMenuItemServices {
 		containerRecordActionsServices = new ContainerRecordActionsServices(collection, appLayerFactory);
 	}
 
-	public List<MenuItemAction> getActionsForRecords(List<Record> records, User user, List<String> filteredActionTypes,
+	public List<MenuItemAction> getActionsForRecords(List<Record> records, User user, List<String> excludedActionTypes,
 													 MenuItemActionBehaviorParams params) {
 		List<MenuItemAction> menuItemActions = new ArrayList<>();
 
-		List<RMRecordsMenuItemActionType> actionTypes = getRMRecordsMenuItemActionTypes(filteredActionTypes);
+		List<RMRecordsMenuItemActionType> actionTypes = getRMRecordsMenuItemActionTypes(excludedActionTypes);
 		for (RMRecordsMenuItemActionType actionType : actionTypes) {
 			MenuItemActionState state = getMenuItemActionStateForRecords(actionType, records, user, params);
 			addMenuItemAction(actionType, state, params, menuItemActions);
@@ -309,9 +309,9 @@ public class RMRecordsMenuItemServices {
 				.build();
 	}
 
-	private List<RMRecordsMenuItemActionType> getRMRecordsMenuItemActionTypes(List<String> filteredActionTypes) {
+	private List<RMRecordsMenuItemActionType> getRMRecordsMenuItemActionTypes(List<String> excludedActionTypes) {
 		return Arrays.stream(RMRecordsMenuItemActionType.values())
-				.filter(t -> !filteredActionTypes.contains(t.name()))
+				.filter(t -> !excludedActionTypes.contains(t.name()))
 				.collect(Collectors.toList());
 	}
 

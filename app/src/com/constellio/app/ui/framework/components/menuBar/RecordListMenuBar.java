@@ -1,31 +1,28 @@
-package com.constellio.app.ui.framework.components.contextmenu;
+package com.constellio.app.ui.framework.components.menuBar;
 
-import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.menu.MenuItemAction;
 import com.constellio.app.services.menu.MenuItemFactory;
+import com.constellio.app.services.menu.MenuItemFactory.CommandCallback;
 import com.constellio.app.services.menu.MenuItemFactory.MenuItemRecordProvider;
 import com.constellio.app.services.menu.MenuItemServices;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
 import com.constellio.app.ui.application.ConstellioUI;
-import com.constellio.app.ui.entities.ContentVersionVO;
-import com.constellio.app.ui.entities.RecordVO;
-import com.constellio.app.ui.entities.UserDocumentVO;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.params.ParamUtils;
-import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.users.UserServices;
+import com.vaadin.navigator.View;
+import com.vaadin.server.FontAwesome;
 import org.apache.commons.collections4.MapUtils;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-public class RecordVOContextMenu extends BaseContextMenu {
-	private RecordVO recordVO;
+public class RecordListMenuBar extends BaseMenuBar {
+
 	private SessionContext sessionContext;
 	private String collection;
 
@@ -33,9 +30,16 @@ public class RecordVOContextMenu extends BaseContextMenu {
 	private MenuItemFactory menuItemFactory;
 	private UserServices userServices;
 
-	public RecordVOContextMenu(RecordVO recordVO) {
-		super();
-		this.recordVO = recordVO;
+	private MenuItemRecordProvider recordProvider;
+	private String rootItemCaption;
+	private List<String> excludedActionTypes;
+
+	public RecordListMenuBar(MenuItemRecordProvider recordProvider, String rootItemCaption,
+							 List<String> excludedActionTypes) {
+		super(true, false);
+		this.recordProvider = recordProvider;
+		this.rootItemCaption = rootItemCaption;
+		this.excludedActionTypes = excludedActionTypes;
 
 		sessionContext = ConstellioUI.getCurrentSessionContext();
 		collection = sessionContext.getCurrentCollection();
@@ -44,31 +48,20 @@ public class RecordVOContextMenu extends BaseContextMenu {
 		userServices = appLayerFactory.getModelLayerFactory().newUserServices();
 		menuItemServices = new MenuItemServices(collection, appLayerFactory);
 		menuItemFactory = new MenuItemFactory();
+
+		buildMenuItems();
 	}
 
-	public void build() {
-		List<MenuItemAction> menuItemActions = menuItemServices.getActionsForRecord(recordVO.getRecord(),
+	public void buildMenuItems() {
+		removeItems();
+
+		MenuItem rootItem = addItem(rootItemCaption, FontAwesome.ELLIPSIS_V, null);
+
+		List<MenuItemAction> menuItemActions = menuItemServices.getActionsForRecords(recordProvider.getRecords(), excludedActionTypes,
 				new MenuItemActionBehaviorParams() {
 					@Override
 					public BaseView getView() {
 						return (BaseView) ConstellioUI.getCurrent().getCurrentView();
-					}
-
-					@Override
-					public RecordVO getRecordVO() {
-						return recordVO;
-					}
-
-					@Override
-					public ContentVersionVO getContentVersionVO() {
-						if (recordVO instanceof DocumentVO) {
-							DocumentVO documentVO = (DocumentVO) recordVO;
-							return documentVO.getContent();
-						} else if (recordVO instanceof UserDocumentVO) {
-							UserDocumentVO userDocumentVO = (UserDocumentVO) recordVO;
-							return userDocumentVO.getContent();
-						}
-						return null;
 					}
 
 					@Override
@@ -80,18 +73,21 @@ public class RecordVOContextMenu extends BaseContextMenu {
 					public User getUser() {
 						return userServices.getUserInCollection(sessionContext.getCurrentUser().getUsername(), collection);
 					}
-
-					@Override
-					public boolean isContextualMenu() {
-						return true;
-					}
 				});
 
-		menuItemFactory.buildContextMenu(this, menuItemActions, new MenuItemRecordProvider() {
+		final View originalView = ConstellioUI.getCurrent().getCurrentView();
+		menuItemFactory.buildMenuBar(rootItem, menuItemActions, recordProvider, new CommandCallback() {
 			@Override
-			public List<Record> getRecords() {
-				return Arrays.asList(recordVO.getRecord());
+			public void actionExecuted(MenuItemAction menuItemAction) {
+				View currentView = ConstellioUI.getCurrent().getCurrentView();
+				// No point in refreshing menu if we left the original page
+				if (currentView == originalView) {
+					// Recursive call
+					buildMenuItems();
+				}
 			}
+
 		});
 	}
+
 }

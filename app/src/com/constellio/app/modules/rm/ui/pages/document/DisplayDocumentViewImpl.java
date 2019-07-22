@@ -6,6 +6,7 @@ import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.decommissioning.SearchType;
+import com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType;
 import com.constellio.app.modules.rm.ui.components.RMMetadataDisplayFactory;
 import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentContainerBreadcrumbTrail;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
@@ -37,6 +38,7 @@ import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.RecordDisplay;
 import com.constellio.app.ui.framework.components.ReportTabButton;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
+import com.constellio.app.ui.framework.components.buttons.RecordVOActionButtonFactory;
 import com.constellio.app.ui.framework.components.content.DownloadContentVersionLink;
 import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
 import com.constellio.app.ui.framework.components.diff.DiffPanel;
@@ -94,6 +96,7 @@ import org.vaadin.dialogs.ConfirmDialog;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -867,9 +870,22 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		//Extension
 		actionMenuButtons.addAll(presenter.getButtonsFromExtension());
 
-		return actionMenuButtons;
+
+		List<String> excludedActionTypes = Arrays.asList(
+				DocumentMenuItemActionType.DOCUMENT_DISPLAY.name(),
+				DocumentMenuItemActionType.DOCUMENT_OPEN.name(),
+				DocumentMenuItemActionType.DOCUMENT_EDIT.name());
+		return new RecordVOActionButtonFactory(documentVO, excludedActionTypes).build();
 	}
 
+	@Override
+	protected Component buildActionMenu(ViewChangeEvent event) {
+		Component actionMenu = super.buildActionMenu(event);
+		if (!nestedView && actionMenuBarLayout != null) {
+			actionMenuBarLayout.addStyleName("not-nested-action-menu-bar-layout");
+		}
+		return actionMenu;
+	}
 
 	public void navigateToSelf() {
 		presenter.navigateToSelf();

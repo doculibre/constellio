@@ -825,6 +825,8 @@ public class BaseTable extends Table {
 
 	public static interface SelectionManager extends SelectionChangeListener {
 
+		List<Object> getAllSelectedItemIds();
+
 		boolean isAllItemsSelected();
 
 		boolean isAllItemsDeselected();
@@ -845,6 +847,17 @@ public class BaseTable extends Table {
 				listValue = new ArrayList<>();
 			}
 			return listValue;
+		}
+
+		@Override
+		public List<Object> getAllSelectedItemIds() {
+			List<Object> allSelectedItemIds;
+			if (isAllItemsSelected()) {
+				allSelectedItemIds = new ArrayList<>(getItemIds());
+			} else {
+				allSelectedItemIds = ensureListValue();
+			}
+			return allSelectedItemIds;
 		}
 
 		@Override

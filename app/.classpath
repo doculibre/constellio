@@ -19,8 +19,5 @@
 			<attribute name="org.eclipse.jst.component.dependency" value="/WEB-INF/lib"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="/constellio-java8/constellio/libs/gwt-dev-2.7.0.jar"/>
-	<classpathentry kind="lib" path="/constellio-java8/constellio/libs/gwt-elemental-2.7.0.jar"/>
-	<classpathentry kind="lib" path="/constellio-java8/constellio/libs/gwt-user-2.7.0.jar"/>
-	<classpathentry kind="output" path="bin/main"/>
+	<classpathentry kind="output" path="bin/default"/>
 </classpath>

@@ -5,6 +5,7 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.menu.MenuItemAction;
 import com.constellio.app.services.menu.MenuItemFactory;
+import com.constellio.app.services.menu.MenuItemFactory.MenuItemRecordProvider;
 import com.constellio.app.services.menu.MenuItemServices;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
 import com.constellio.app.ui.application.ConstellioUI;
@@ -20,12 +21,16 @@ import com.constellio.model.services.users.UserServices;
 import com.vaadin.ui.Button;
 import org.apache.commons.collections4.MapUtils;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
 public class RecordVOActionButtonFactory {
 
 	private RecordVO recordVO;
+	private BaseView view;
+	private List<String> excludedActionTypes;
+	
 	private SessionContext sessionContext;
 	private String collection;
 
@@ -33,16 +38,16 @@ public class RecordVOActionButtonFactory {
 	private MenuItemFactory menuItemFactory;
 	private UserServices userServices;
 	private Object objectRecordVO = null;
-	private BaseView view;
 
-	public RecordVOActionButtonFactory(RecordVO recordVO) {
-		this(recordVO, null);
+	public RecordVOActionButtonFactory(RecordVO recordVO, List<String> excludedActionTypes) {
+		this(recordVO, null, excludedActionTypes);
 	}
 
-	public RecordVOActionButtonFactory(RecordVO recordVO, BaseView view) {
+	public RecordVOActionButtonFactory(RecordVO recordVO, BaseView view, List<String> excludedActionTypes) {
 		super();
 		this.recordVO = recordVO;
 		this.view = view;
+		this.excludedActionTypes = excludedActionTypes;
 		initialize();
 	}
 
@@ -68,7 +73,7 @@ public class RecordVOActionButtonFactory {
 			record = recordVO.getRecord();
 		}
 
-		List<MenuItemAction> menuItemActions = menuItemServices.getActionsForRecord(record,
+		List<MenuItemAction> menuItemActions = menuItemServices.getActionsForRecord(record, excludedActionTypes,
 				new MenuItemActionBehaviorParams() {
 					@Override
 					public BaseView getView() {
@@ -112,7 +117,12 @@ public class RecordVOActionButtonFactory {
 					}
 				});
 
-		return menuItemFactory.buildActionButtons(menuItemActions);
+		return menuItemFactory.buildActionButtons(menuItemActions, new MenuItemRecordProvider() {
+			@Override
+			public List<Record> getRecords() {
+				return Arrays.asList(recordVO.getRecord());
+			}
+		});
 	}
 
 }

@@ -110,18 +110,16 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 					} else {
 						view.setDisplayDocumentButtonState(ComponentState.ENABLED);
 					}
-					Content content = getContent();
-					if (content != null) {
-						ContentVersionVO contentVersionVO = contentVersionVOBuilder.build(content);
-						view.setDownloadDocumentButtonState(ComponentState.ENABLED);
-						String agentURL = ConstellioAgentUtils.getAgentURL(documentVO, contentVersionVO);
-						view.setOpenDocumentButtonState(agentURL != null ? ComponentState.ENABLED : ComponentState.INVISIBLE);
-					} else {
-						view.setDownloadDocumentButtonState(ComponentState.INVISIBLE);
-						view.setOpenDocumentButtonState(ComponentState.INVISIBLE);
-					}
 				} else {
 					view.setDisplayDocumentButtonState(ComponentState.INVISIBLE);
+				}
+				Content content = getContent();
+				if (content != null) {
+					ContentVersionVO contentVersionVO = contentVersionVOBuilder.build(content);
+					view.setDownloadDocumentButtonState(ComponentState.ENABLED);
+					String agentURL = ConstellioAgentUtils.getAgentURL(documentVO, contentVersionVO);
+					view.setOpenDocumentButtonState(agentURL != null ? ComponentState.ENABLED : ComponentState.INVISIBLE);
+				} else {
 					view.setDownloadDocumentButtonState(ComponentState.INVISIBLE);
 					view.setOpenDocumentButtonState(ComponentState.INVISIBLE);
 				}

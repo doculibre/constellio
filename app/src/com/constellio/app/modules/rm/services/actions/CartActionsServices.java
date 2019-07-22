@@ -1,6 +1,5 @@
 package com.constellio.app.modules.rm.services.actions;
 
-import com.constellio.app.modules.restapi.core.exception.InvalidParameterException;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
@@ -108,71 +107,80 @@ public class CartActionsServices {
 
 	public boolean isDocumentBatchProcessingActionPossible(Record record, User user) {
 		Cart cart = rm.wrapCart(record);
-
-		String schemaTypeCode = isSchemaTypeValid(record, Document.SCHEMA_TYPE);
-
-		return isBatchProcessingButtonVisible(schemaTypeCode, user, cart)
-			   && hasCartPermission(cart.getId(), user)
-			   && rmModuleExtensions.isDocumentBatchProcessingActionPossibleOnCart(cart, user);
+		String schemaTypeCode = Document.SCHEMA_TYPE;
+		if (isRecordOfType(record, schemaTypeCode)) {
+			return isBatchProcessingButtonVisible(schemaTypeCode, user, cart)
+				   && hasCartPermission(cart.getId(), user)
+				   && rmModuleExtensions.isDocumentBatchProcessingActionPossibleOnCart(cart, user);
+		} else {
+			return false;
+		}	
 	}
 
 	public boolean isFolderBatchProcessingActionPossible(Record record, User user) {
 		Cart cart = rm.wrapCart(record);
-
-		String schemaTypeCode = isSchemaTypeValid(record, Folder.SCHEMA_TYPE);
-
-		return isBatchProcessingButtonVisible(schemaTypeCode, user, cart)
-			   && hasCartPermission(cart.getId(), user)
-			   && rmModuleExtensions.isFolderBatchProcessingActionPossibleOnCart(cart, user);
+		String schemaTypeCode = Folder.SCHEMA_TYPE;
+		if (isRecordOfType(record, schemaTypeCode)) {
+			return isBatchProcessingButtonVisible(schemaTypeCode, user, cart)
+				   && hasCartPermission(cart.getId(), user)
+				   && rmModuleExtensions.isFolderBatchProcessingActionPossibleOnCart(cart, user);
+		} else {
+			return false;
+		}	
 	}
 
 	public boolean isContainerBatchProcessingActionPossible(Record record, User user) {
 		Cart cart = rm.wrapCart(record);
-
-		String schemaTypeCode = isSchemaTypeValid(record, ContainerRecord.SCHEMA_TYPE);
-
-		return isBatchProcessingButtonVisible(schemaTypeCode, user, cart)
-			   && hasCartPermission(cart.getId(), user)
-			   && rmModuleExtensions.isContainerRecordBatchProcessingActionPossibleOnCart(cart, user);
+		String schemaTypeCode = ContainerRecord.SCHEMA_TYPE;
+		if (isRecordOfType(record, schemaTypeCode)) {
+			return isBatchProcessingButtonVisible(schemaTypeCode, user, cart)
+				   && hasCartPermission(cart.getId(), user)
+				   && rmModuleExtensions.isContainerRecordBatchProcessingActionPossibleOnCart(cart, user);
+		} else {
+			return false;
+		}	
 	}
 
 	public boolean isFoldersLabelsActionPossible(Record record, User user) {
 		Cart cart = rm.wrapCart(record);
-
-		String schemaTypeCode = isSchemaTypeValid(record, Folder.SCHEMA_TYPE);
-
-		return hasCartPermission(cart.getId(), user)
-			   && isLabelsButtonVisible(schemaTypeCode, cart.getId())
-			   && rmModuleExtensions.isFoldersLabelsActionPossibleOnCart(cart, user);
+		String schemaTypeCode = Folder.SCHEMA_TYPE;
+		if (isRecordOfType(record, schemaTypeCode)) {
+			return hasCartPermission(cart.getId(), user)
+				   && isLabelsButtonVisible(schemaTypeCode, cart.getId())
+				   && rmModuleExtensions.isFoldersLabelsActionPossibleOnCart(cart, user);
+		} else {
+			return false;
+		}	
 	}
 
 	public boolean isDocumentLabelsActionPossible(Record record, User user) {
 		Cart cart = rm.wrapCart(record);
-
-		String schemaTypeCode = isSchemaTypeValid(record, Document.SCHEMA_TYPE);
-
-		return hasCartPermission(cart.getId(), user)
-			   && isLabelsButtonVisible(schemaTypeCode, cart.getId())
-			   && rmModuleExtensions.isDocumentLabelsActionPossibleOnCart(cart, user);
+		String schemaTypeCode = Document.SCHEMA_TYPE;
+		if (isRecordOfType(record, schemaTypeCode)) {
+			return hasCartPermission(cart.getId(), user)
+				   && isLabelsButtonVisible(schemaTypeCode, cart.getId())
+				   && rmModuleExtensions.isDocumentLabelsActionPossibleOnCart(cart, user);
+		} else {
+			return false;
+		}
 	}
 
 	@NotNull
-	private String isSchemaTypeValid(Record record, String schemaType) {
+	private boolean isRecordOfType(Record record, String schemaType) {
 		String schemaTypeCode = metadataSchemasManager.getSchemaTypeOf(record).getCode();
-		if (!schemaType.equals(schemaTypeCode)) {
-			throw new InvalidParameterException("Record schemaType", schemaTypeCode);
-		}
-		return schemaTypeCode;
+		return schemaType.equals(schemaTypeCode);
 	}
 
 	public boolean isContainersLabelsActionPossible(Record record, User user) {
 		Cart cart = rm.wrapCart(record);
-
-		String schemaTypeCode = isSchemaTypeValid(record, ContainerRecord.SCHEMA_TYPE);
-
-		return hasCartPermission(cart.getId(), user)
-			   && isLabelsButtonVisible(schemaTypeCode, cart.getId())
-			   && rmModuleExtensions.isContainerLabelsActionPossibleOnCart(cart, user);
+		String schemaTypeCode = ContainerRecord.SCHEMA_TYPE;
+		if (isRecordOfType(record, schemaTypeCode)) {
+			return hasCartPermission(cart.getId(), user)
+				   && isLabelsButtonVisible(schemaTypeCode, cart.getId())
+				   && rmModuleExtensions.isContainerLabelsActionPossibleOnCart(cart, user);
+		} else {
+			return false;
+		}	
 	}
 
 	public boolean isLabelsButtonVisible(String schemaType, String cartId) {

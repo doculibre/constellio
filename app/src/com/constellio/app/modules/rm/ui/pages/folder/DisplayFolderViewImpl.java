@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.ui.pages.folder;
 
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
+import com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType;
 import com.constellio.app.modules.rm.ui.components.RMMetadataDisplayFactory;
 import com.constellio.app.modules.rm.ui.components.content.DocumentContentVersionWindowImpl;
 import com.constellio.app.modules.rm.ui.components.folder.fields.LookupFolderField;
@@ -53,6 +54,7 @@ import com.constellio.app.ui.framework.components.table.columns.EventVOTableColu
 import com.constellio.app.ui.framework.components.table.columns.TableColumnsManager;
 import com.constellio.app.ui.framework.components.table.columns.TaskVOTableColumnsManager;
 import com.constellio.app.ui.framework.components.viewers.panel.ViewableRecordVOTablePanel;
+import com.constellio.app.ui.framework.containers.RecordVOContainer;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.items.RecordVOItem;
@@ -96,11 +98,14 @@ import org.slf4j.LoggerFactory;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -560,7 +565,11 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			actionMenuButtons.add(reportGeneratorButton);
 		}
 
-		return new RecordVOActionButtonFactory(recordVO).build();
+		List<String> excludedActionTypes = Arrays.asList(
+				FolderMenuItemActionType.FOLDER_DISPLAY.name(),
+				FolderMenuItemActionType.FOLDER_EDIT.name(),
+				FolderMenuItemActionType.FOLDER_ADD_DOCUMENT.name());
+		return new RecordVOActionButtonFactory(recordVO, excludedActionTypes).build();
 	}
 
 	@Override
@@ -735,6 +744,21 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				@Override
 				protected SelectionManager newSelectionManager() {
 					return new SelectionManager() {
+
+						private Set<Object> selectedItemIds = new HashSet<>();
+
+						@Override
+						public List<Object> getAllSelectedItemIds() {
+							List<Object> allSelectedItemIds;
+							RecordVOContainer recordVOContainer = getRecordVOContainer();
+							if (isAllItemsSelected()) {
+								allSelectedItemIds = new ArrayList<>(recordVOContainer.getItemIds());
+							} else {
+								allSelectedItemIds = new ArrayList<>(selectedItemIds);
+							}
+							return allSelectedItemIds;
+						}
+
 						@Override
 						public boolean isAllItemsSelected() {
 							return presenter.isAllItemsSelected();
@@ -756,11 +780,14 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 							if (event.isAllItemsSelected()) {
 								presenter.selectAllClicked();
 							} else if (event.isAllItemsDeselected()) {
+								selectedItemIds.clear();
 								presenter.deselectAllClicked();
 							} else if (event.getSelectedItemId() != null) {
+								selectedItemIds.add(event.getSelectedItemId());
 								RecordVO recordVO = getRecordVO(event.getSelectedItemId());
 								presenter.recordSelectionChanged(recordVO, true);
 							} else if (event.getDeselectedItemId() != null) {
+								selectedItemIds.remove(event.getDeselectedItemId());
 								RecordVO recordVO = getRecordVO(event.getDeselectedItemId());
 								presenter.recordSelectionChanged(recordVO, false);
 							}

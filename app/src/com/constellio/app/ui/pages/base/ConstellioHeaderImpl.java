@@ -1,15 +1,10 @@
 package com.constellio.app.ui.pages.base;
 
 import com.constellio.app.api.extensions.SelectionPanelExtension;
-import com.constellio.app.api.extensions.params.AvailableActionsParam;
 import com.constellio.app.entities.navigation.NavigationItem;
-import com.constellio.app.modules.rm.constants.RMPermissionsTo;
-import com.constellio.app.modules.rm.ui.pages.cart.DefaultFavoritesTable;
-import com.constellio.app.modules.rm.wrappers.Cart;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType;
 import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.services.menu.MenuItemFactory.MenuItemRecordProvider;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.application.Navigation;
@@ -20,17 +15,15 @@ import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.components.BasePopupView;
 import com.constellio.app.ui.framework.components.ComponentState;
+import com.constellio.app.ui.framework.components.buttons.RecordListActionButtonFactory;
 import com.constellio.app.ui.framework.components.converters.CollectionCodeToLabelConverter;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
-import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.autocomplete.StringAutocompleteField;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.components.menuBar.BaseMenuBar;
 import com.constellio.app.ui.framework.components.table.BaseTable;
-import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.components.table.SelectionTableAdapter;
-import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.handlers.OnEnterKeyHandler;
 import com.constellio.app.ui.pages.base.SessionContext.SelectedRecordIdsChangeListener;
 import com.constellio.app.ui.pages.search.AdvancedSearchCriteriaComponent;
@@ -38,16 +31,15 @@ import com.constellio.app.ui.pages.search.AdvancedSearchView;
 import com.constellio.app.ui.pages.search.SearchView;
 import com.constellio.app.ui.pages.search.SimpleSearchView;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
-import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.utils.AccentApostropheCleaner;
 import com.constellio.model.entities.Language;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.vaadin.data.Item;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.event.FieldEvents.FocusEvent;
 import com.vaadin.event.FieldEvents.FocusListener;
-import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.MouseEvents;
 import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.View;
@@ -65,7 +57,6 @@ import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
-import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Image;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.MenuBar;
@@ -74,7 +65,6 @@ import com.vaadin.ui.MenuBar.MenuItem;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.PopupView.PopupVisibilityEvent;
 import com.vaadin.ui.PopupView.PopupVisibilityListener;
-import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.ColumnHeaderMode;
 import com.vaadin.ui.UI;
@@ -86,6 +76,7 @@ import com.vaadin.ui.themes.ValoTheme;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -94,7 +85,6 @@ import java.util.Locale;
 import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
-import static java.util.Arrays.asList;
 
 @SuppressWarnings("serial")
 public class ConstellioHeaderImpl extends I18NHorizontalLayout implements ConstellioHeader, SelectedRecordIdsChangeListener {
@@ -548,7 +538,7 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 			public void setSelected(Object itemId, boolean selected) {
 				String recordId = (String) itemId;
 				presenter.selectionChanged(recordId, selected);
-				refreshButtons();
+				refreshActionButtons();
 				adjustSelectAllButton(selected);
 			}
 		};
@@ -595,87 +585,19 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 	}
 
 	private void buildSelectionPanelButtons(VerticalLayout actionMenuLayout) {
-		WindowButton addToCartButton = buildAddToCartButton(actionMenuLayout);
-		SelectionPanelExtension.setStyles(addToCartButton);
-		actionMenuLayout.addComponents(addToCartButton);
-		presenter.buildSelectionPanelActionButtons(actionMenuLayout);
-	}
-
-	private WindowButton buildAddToCartButton(final VerticalLayout actionMenuLayout) {
-		WindowConfiguration configuration = new WindowConfiguration(true, true, "50%", "750px");
-		WindowButton windowButton = new WindowButton($("ConstellioHeader.selection.actions.addToCart"),
-				$("ConstellioHeader.selection.actions.addToCart"), configuration) {
+		final MenuItemRecordProvider recordProvider = new MenuItemRecordProvider() {
 			@Override
-			protected Component buildWindowContent() {
-				VerticalLayout layout = new VerticalLayout();
-				layout.setSizeFull();
-
-				HorizontalLayout newCartLayout = new HorizontalLayout();
-				newCartLayout.setSpacing(true);
-				newCartLayout.addComponent(new Label($("CartView.newCart")));
-				final BaseTextField newCartTitleField;
-				newCartLayout.addComponent(newCartTitleField = new BaseTextField());
-				newCartTitleField.setRequired(true);
-				BaseButton saveButton;
-				newCartLayout.addComponent(saveButton = new BaseButton($("save")) {
-					@Override
-					protected void buttonClick(ClickEvent event) {
-						AvailableActionsParam param = presenter.buildAvailableActionsParam(actionMenuLayout);
-						String title = newCartTitleField.getValue();
-
-						try {
-							presenter.createNewCartAndAddToItRequested(param.getIds(), title);
-							getWindow().close();
-						} catch (Exception e) {
-							getCurrentView().showErrorMessage(MessageUtils.toMessage(e));
-						}
-					}
-				});
-				saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
-
-				TabSheet tabSheet = new TabSheet();
-				final RecordVOLazyContainer sharedCartsContainer = new RecordVOLazyContainer(
-						presenter.getSharedCartsDataProvider());
-				RecordVOTable sharedCartsTable = new RecordVOTable($("CartView.sharedCarts"), sharedCartsContainer);
-				sharedCartsTable.addItemClickListener(new ItemClickEvent.ItemClickListener() {
-					@Override
-					public void itemClick(ItemClickEvent event) {
-						AvailableActionsParam param = presenter.buildAvailableActionsParam(actionMenuLayout);
-						presenter.addToCartRequested(param.getIds(), sharedCartsContainer.getRecordVO((int) event.getItemId()));
-						getWindow().close();
-					}
-				});
-
-				Table ownedCartsTable = buildOwnedFavoritesTable(getWindow());
-				ownedCartsTable.setWidth("100%");
-				sharedCartsTable.setWidth("100%");
-				tabSheet.addTab(ownedCartsTable);
-				tabSheet.addTab(sharedCartsTable);
-				layout.addComponents(newCartLayout, tabSheet);
-				layout.setExpandRatio(tabSheet, 1);
-				return layout;
-			}
-
-			@Override
-			public boolean isVisible() {
-				AvailableActionsParam param = presenter.buildAvailableActionsParam(actionMenuLayout);
-				return presenter.getCurrentUser().has(RMPermissionsTo.USE_MY_CART).globally() && containsOnly(
-						param.getSchemaTypeCodes(),
-						asList(Folder.SCHEMA_TYPE, Document.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE));
-			}
-
-			@Override
-			public boolean isEnabled() {
-				return isVisible();
+			public List<Record> getRecords() {
+				return presenter.getSelectedRecords();
 			}
 		};
-		SelectionPanelExtension.setStyles(windowButton);
-		AvailableActionsParam param = presenter.buildAvailableActionsParam(actionMenuLayout);
-		windowButton.setEnabled(
-				presenter.getCurrentUser().has(RMPermissionsTo.USE_MY_CART).globally() && containsOnly(param.getSchemaTypeCodes(),
-						asList(Folder.SCHEMA_TYPE, Document.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE)));
-		windowButton.setVisible(isEnabled());
-		return windowButton;
+		List<String> excludedActionTypes = Arrays.asList(RMRecordsMenuItemActionType.RMRECORDS_ADD_SELECTION.name());
+		RecordListActionButtonFactory actionButtonFactory = new RecordListActionButtonFactory(recordProvider, null, excludedActionTypes);
+		List<Button> actionButtons = actionButtonFactory.build();
+		for (Button actionButton : actionButtons) {
+			SelectionPanelExtension.setStyles(actionButton);
+			actionMenuLayout.addComponent(actionButton);
+		}
 	}
 
 	@Override
@@ -926,7 +848,7 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 		for (String id : idList) {
 			selectionTable.removeItem(id);
 		}
-		refreshButtons();
+		refreshActionButtons();
 	}
 
 	@Override
@@ -944,7 +866,7 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 	}
 
 	@Override
-	public void refreshButtons() {
+	public void refreshActionButtons() {
 		actionMenuLayout.removeAllComponents();
 		buildSelectionPanelButtons(actionMenuLayout);
 	}
@@ -965,33 +887,6 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 				entry.getValue().setChecked(false);
 			}
 		}
-	}
-
-	private Table buildOwnedFavoritesTable(final Window window) {
-		final AvailableActionsParam param = presenter.buildAvailableActionsParam(actionMenuLayout);
-		List<DefaultFavoritesTable.CartItem> cartItems = new ArrayList<>();
-		cartItems.add(new DefaultFavoritesTable.CartItem($("CartView.defaultFavorites")));
-		for (Cart cart : presenter.getOwnedCarts()) {
-			cartItems.add(new DefaultFavoritesTable.CartItem(cart, cart.getTitle()));
-		}
-		final DefaultFavoritesTable.FavoritesContainer container = new DefaultFavoritesTable.FavoritesContainer(DefaultFavoritesTable.CartItem.class, cartItems);
-		DefaultFavoritesTable defaultFavoritesTable = new DefaultFavoritesTable("favoritesConstellioHeader", container, presenter.getSchema());
-		defaultFavoritesTable.setCaption($("CartView.ownedCarts"));
-		defaultFavoritesTable.addItemClickListener(new ItemClickEvent.ItemClickListener() {
-			@Override
-			public void itemClick(ItemClickEvent event) {
-				Cart cart = container.getCart((DefaultFavoritesTable.CartItem) event.getItemId());
-				if (cart == null) {
-					presenter.addToDefaultFavoriteRequested(param.getIds());
-				} else {
-					presenter.addToCartRequested(param.getIds(), cart);
-				}
-				window.close();
-			}
-		});
-		container.removeContainerProperty(DefaultFavoritesTable.CartItem.DISPLAY_BUTTON);
-		defaultFavoritesTable.setWidth("100%");
-		return defaultFavoritesTable;
 	}
 
 

@@ -21,6 +21,7 @@ import com.constellio.model.services.schemas.SchemaUtils;
 import com.vaadin.ui.MenuBar;
 
 import java.io.IOException;
+import java.util.Collections;
 
 public class RMRecordMenuBarHandler extends AbstractRecordMenuBarHandler {
 
@@ -57,7 +58,7 @@ public class RMRecordMenuBarHandler extends AbstractRecordMenuBarHandler {
 	public MenuBar get(RecordVO recordVO) {
 		String schemaTypeCode = recordVO.getSchema().getTypeCode();
 		if (Document.SCHEMA_TYPE.equals(schemaTypeCode) || Folder.SCHEMA_TYPE.equals(schemaTypeCode)) {
-			return new RecordVOMenuBar(recordVO);
+			return new RecordVOMenuBar(recordVO, Collections.emptyList());
 		} else {
 			return null;
 		}

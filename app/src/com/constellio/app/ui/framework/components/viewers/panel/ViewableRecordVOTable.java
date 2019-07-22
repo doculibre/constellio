@@ -50,12 +50,12 @@ public class ViewableRecordVOTable extends RecordVOTable {
 
 	private void init() {
 		addStyleName("viewable-record-table");
-		setColumnHeaderMode(ColumnHeaderMode.HIDDEN);
 		addStyleName(ValoTheme.TABLE_BORDERLESS);
 		addStyleName(ValoTheme.TABLE_NO_HEADER);
 		addStyleName(ValoTheme.TABLE_NO_HORIZONTAL_LINES);
 		addStyleName(ValoTheme.TABLE_NO_VERTICAL_LINES);
 		setColumnWidth(ViewableRecordVOContainer.THUMBNAIL_PROPERTY, ViewableRecordVOContainer.THUMBNAIL_WIDTH);
+		setColumnHeaderMode(ColumnHeaderMode.HIDDEN);
 	}
 
 	public boolean isCompressed() {

@@ -1,18 +1,14 @@
 package com.constellio.app.modules.rm.ui.pages.cart;
 
-import com.constellio.app.api.extensions.params.AvailableActionsParam;
-import com.constellio.app.modules.rm.model.enums.DecommissioningListType;
-import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.navigation.RMViews;
-import com.constellio.app.modules.rm.ui.entities.DocumentVO;
-import com.constellio.app.modules.rm.ui.entities.FolderVO;
-import com.constellio.app.modules.rm.ui.pages.pdf.ConsolidatedPdfButton;
+import com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType;
 import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.menu.MenuItemAction;
 import com.constellio.app.services.menu.MenuItemFactory;
+import com.constellio.app.services.menu.MenuItemFactory.MenuItemRecordProvider;
 import com.constellio.app.services.menu.MenuItemServices;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
 import com.constellio.app.ui.application.ConstellioUI;
@@ -20,22 +16,13 @@ import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
-import com.constellio.app.ui.framework.buttons.ConfirmDialogButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
-import com.constellio.app.ui.framework.buttons.DeleteWithJustificationButton;
-import com.constellio.app.ui.framework.buttons.LinkButton;
-import com.constellio.app.ui.framework.buttons.SIPButton.SIPButtonImpl;
-import com.constellio.app.ui.framework.buttons.WindowButton;
-import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
 import com.constellio.app.ui.framework.components.ReportSelector;
-import com.constellio.app.ui.framework.components.ReportTabButton;
 import com.constellio.app.ui.framework.components.ReportViewer.DownloadStreamResource;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.breadcrumb.IntermediateBreadCrumbTailItem;
 import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
-import com.constellio.app.ui.framework.components.fields.enumWithSmallCode.EnumWithSmallCodeComboBox;
-import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveRecordLookupFieldWithIgnoreOneRecord;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.components.table.columns.TableColumnsManager;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
@@ -45,12 +32,8 @@ import com.constellio.app.ui.framework.data.RecordVOWithDistinctSchemasDataProvi
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.base.SessionContext;
-import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingButton;
-import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingModifyingOneMetadataButton;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingView;
 import com.constellio.app.ui.params.ParamUtils;
-import com.constellio.data.utils.Factory;
-import com.constellio.model.entities.enums.BatchProcessingMode;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
@@ -73,20 +56,17 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
-import com.vaadin.ui.themes.ValoTheme;
 import org.apache.commons.collections4.MapUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.entities.enums.BatchProcessingMode.ALL_METADATA_OF_SCHEMA;
-import static com.constellio.model.entities.enums.BatchProcessingMode.ONE_METADATA;
 import static java.util.Arrays.asList;
 
 public class CartViewImpl extends BaseViewImpl implements CartView {
@@ -152,75 +132,45 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 //		return buttons;
 
 		Cart cart = presenter.getCart();
-		Record record = cart.getWrappedRecord();
-		List<MenuItemAction> menuItemActions = new MenuItemServices(record.getCollection(), getConstellioFactories().getAppLayerFactory())
-				.getActionsForRecord(record, new MenuItemActionBehaviorParams() {
-					@Override
-					public BaseView getView() {
-						return (BaseView) ConstellioUI.getCurrent().getCurrentView();
-					}
+		if (cart != null) {
+			Record record = cart.getWrappedRecord();
+			List<String> excludedActionTypes = Arrays.asList(RMRecordsMenuItemActionType.RMRECORDS_ADD_CART.name());
+			List<MenuItemAction> menuItemActions = new MenuItemServices(record.getCollection(), getConstellioFactories().getAppLayerFactory())
+					.getActionsForRecord(record, excludedActionTypes, new MenuItemActionBehaviorParams() {
+						@Override
+						public BaseView getView() {
+							return (BaseView) ConstellioUI.getCurrent().getCurrentView();
+						}
 
-					@Override
-					public RecordVO getRecordVO() {
-						return presenter.getCartAsRecordVO();
-					}
+						@Override
+						public RecordVO getRecordVO() {
+							return presenter.getCartAsRecordVO();
+						}
 
-					@Override
-					public Map<String, String> getFormParams() {
-						return MapUtils.emptyIfNull(ParamUtils.getCurrentParams());
-					}
+						@Override
+						public Map<String, String> getFormParams() {
+							return MapUtils.emptyIfNull(ParamUtils.getCurrentParams());
+						}
 
-					@Override
-					public User getUser() {
-						return presenter.getCurrentUser();
-					}
+						@Override
+						public User getUser() {
+							return presenter.getCurrentUser();
+						}
 
-					@Override
-					public boolean isContextualMenu() {
-						return true;
-					}
-				});
-		return new MenuItemFactory().buildActionButtons(menuItemActions);
-	}
-
-	private Button buildRenameButton() {
-		RenameDialog button = new RenameDialog(null,
-				$("CartView.reNameCartGroup"),
-				$("CartView.reNameCartGroup"), false) {
-			@Override
-			public void save(String newTitle) {
-				if (presenter.renameFavoritetsGroup(newTitle)) {
-					getWindow().close();
-					navigate().to(RMViews.class).cart(presenter.cart().getId());
+						@Override
+						public boolean isContextualMenu() {
+							return true;
+						}
+					});
+			return new MenuItemFactory().buildActionButtons(menuItemActions, new MenuItemRecordProvider() {
+				@Override
+				public List<Record> getRecords() {
+					return presenter.getAllCartItemRecords();
 				}
-			}
-		};
-
-		if (!presenter.isDefaultCart()) {
-			button.setOriginalValue(presenter.cart().getTitle());
+			});
+		} else {
+			return Collections.emptyList();
 		}
-
-		button.setEnabled(presenter.canRenameFavoriteGroup());
-		button.setVisible(presenter.canRenameFavoriteGroup());
-		return button;
-	}
-
-	private Button buildFoldersLabelsButton() {
-		Button button = buildLabelsButton(Folder.SCHEMA_TYPE);
-		button.setCaption($("CartView.foldersLabelsButton"));
-		return button;
-	}
-
-	private Button buildContainersLabelsButton() {
-		Button button = buildLabelsButton(ContainerRecord.SCHEMA_TYPE);
-		button.setCaption($("CartView.containersLabelsButton"));
-		return button;
-	}
-
-	private Button buildDocumentLabelsButton() {
-		Button button = buildLabelsButton(Document.SCHEMA_TYPE);
-		button.setCaption($("CartView.documentLabelsButton"));
-		return button;
 	}
 
 	@Override
@@ -250,97 +200,6 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 				}
 			}
 		};
-	}
-
-	private Button buildLabelsButton(final String schemaType) {
-		Factory<List<LabelTemplate>> customLabelTemplatesFactory = new Factory<List<LabelTemplate>>() {
-			@Override
-			public List<LabelTemplate> get() {
-				return presenter.getCustomTemplates(schemaType);
-			}
-		};
-		Factory<List<LabelTemplate>> defaultLabelTemplatesFactory = new Factory<List<LabelTemplate>>() {
-			@Override
-			public List<LabelTemplate> get() {
-				return presenter.getDefaultTemplates(schemaType);
-			}
-		};
-		LabelButtonV2 labelsButton = new LabelButtonV2(
-				$("SearchView.labels"),
-				$("SearchView.printLabels"),
-				customLabelTemplatesFactory,
-				defaultLabelTemplatesFactory,
-				getConstellioFactories().getAppLayerFactory(),
-				getSessionContext().getCurrentCollection(),
-				getSessionContext().getCurrentUser()
-		);
-		labelsButton.setElementsWithIds(presenter.getNotDeletedRecordsIds(schemaType), schemaType, getSessionContext());
-		labelsButton.setEnabled(presenter.isLabelsButtonVisible(schemaType));
-		labelsButton.setVisible(presenter.isLabelsButtonVisible(schemaType));
-		return labelsButton;
-	}
-
-	private Button buildContainersBatchProcessingButton() {
-		Button batchProcessingButton = buildBatchProcessingButton(ContainerRecord.SCHEMA_TYPE);
-		batchProcessingButton.setCaption($("CartView.containersBatchProcessingButton"));
-		return batchProcessingButton;
-	}
-
-	private Button buildBatchProcessingButton(final String schemaType) {
-		BatchProcessingMode mode = presenter.getBatchProcessingMode();
-		WindowButton button;
-		if (mode.equals(ALL_METADATA_OF_SCHEMA)) {
-			button = new BatchProcessingButton(presenter, new BatchProcessingViewImpl(schemaType));
-		} else if (mode.equals(ONE_METADATA)) {
-			button = new BatchProcessingModifyingOneMetadataButton(presenter, new BatchProcessingViewImpl(schemaType));
-		} else {
-			throw new RuntimeException("Unsupported mode " + mode);
-		}
-
-		button.setEnabled(presenter.isBatchProcessingButtonVisible(schemaType));
-		button.setVisible(presenter.isBatchProcessingButtonVisible(schemaType));
-		return button;
-	}
-
-	private Button buildDocumentsBatchProcessingButton() {
-		Button button = buildBatchProcessingButton(Document.SCHEMA_TYPE);
-		button.setCaption($("CartView.documentsBatchProcessingButton"));
-		return button;
-	}
-
-	private Button buildFoldersBatchProcessingButton() {
-		Button button = buildBatchProcessingButton(Folder.SCHEMA_TYPE);
-		button.setCaption($("CartView.foldersBatchProcessingButton"));
-		return button;
-	}
-
-	private Button buildShareButton() {
-		Button shareButton = new WindowButton($("CartView.share"), $("CartView.shareWindow")) {
-			@Override
-			protected Component buildWindowContent() {
-				VerticalLayout layout = new VerticalLayout();
-				layout.setSpacing(true);
-
-				final ListAddRemoveRecordLookupFieldWithIgnoreOneRecord lookup = new ListAddRemoveRecordLookupFieldWithIgnoreOneRecord(User.SCHEMA_TYPE, getSessionContext().getCurrentUser().getId());
-				lookup.setValue(presenter.cart().getSharedWithUsers());
-
-				layout.addComponent(lookup);
-
-				BaseButton saveButton = new BaseButton($("save")) {
-					@Override
-					protected void buttonClick(ClickEvent event) {
-						presenter.shareWithUsersRequested(lookup.getValue());
-						getWindow().close();
-					}
-				};
-				saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
-				layout.addComponent(saveButton);
-				return layout;
-			}
-		};
-		shareButton.setEnabled(presenter.cartHasRecords());
-		shareButton.setVisible(presenter.cartHasRecords());
-		return shareButton;
 	}
 
 	private HorizontalLayout buildFolderFilterComponent() {
@@ -383,83 +242,6 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		};
 		filterComponent.addComponents(containerFilterField, filterButton);
 		return filterComponent;
-	}
-
-	private Button buildPrintMetadataReportButton() {
-		ReportTabButton reportGeneratorButton = new ReportTabButton($("ReportGeneratorButton.buttonText"), $("ReportGeneratorButton.windowText"),
-				this.getConstellioFactories().getAppLayerFactory(), getCollection(), false, false, this.presenter, getSessionContext()) {
-			@Override
-			public void buttonClick(ClickEvent event) {
-				List<RecordVO> allRecords = new ArrayList<>();
-				allRecords.addAll(presenter.getNotDeletedCartFoldersVO());
-				allRecords.addAll(presenter.getNotDeletedCartDocumentVO());
-				setRecordVoList(allRecords.toArray(new RecordVO[0]));
-				super.buttonClick(event);
-			}
-		};
-		reportGeneratorButton.setEnabled(presenter.cartHasRecords());
-		reportGeneratorButton.setVisible(presenter.cartHasRecords());
-		return reportGeneratorButton;
-	}
-
-	private Button buildDecommissionButton() {
-		WindowButton windowButton = new WindowButton($("CartView.decommissioningList"), $("CartView.createDecommissioningList")) {
-
-			@Override
-			public void buttonClick(ClickEvent event) {
-				if (!presenter.isSubFolderDecommissioningAllowed() && presenter.isAnyFolderASubFolder()) {
-					showErrorMessage($("CartView.cannotDecommissionSubFolder"));
-				} else if (presenter.getCommonAdministrativeUnit(presenter.getCartFolders()) == null) {
-					showErrorMessage($("CartView.foldersFromDifferentAdminUnits"));
-				} else if (presenter.getCommonDecommissioningListTypes(presenter.getCartFolders()).isEmpty()) {
-					showErrorMessage($("CartView.foldersShareNoCommonDecommisioningTypes"));
-				} else if (presenter.isAnyFolderBorrowed()) {
-					showErrorMessage($("CartView.aFolderIsBorrowed"));
-				} else if (presenter.isAnyFolderInDecommissioningList()) {
-					showErrorMessage($("CartView.aFolderIsInADecommissioningList"));
-				} else if (presenter.isDecommissioningActionPossible()) {
-					super.buttonClick(event);
-				}
-			}
-
-			@Override
-			protected Component buildWindowContent() {
-				VerticalLayout layout = new VerticalLayout();
-
-				final BaseTextField titleField = new BaseTextField($("title"));
-				layout.addComponent(titleField);
-
-				final EnumWithSmallCodeComboBox<DecommissioningListType> decomTypeField = new EnumWithSmallCodeComboBox<>(DecommissioningListType.class);
-				decomTypeField.removeAllItems();
-				decomTypeField.addItems(presenter.getCommonDecommissioningListTypes(presenter.getCartFolders()));
-				decomTypeField.setCaption($("CartView.decommissioningTypeField"));
-				layout.addComponent(decomTypeField);
-
-				BaseButton saveButton = new BaseButton($("save")) {
-					@Override
-					protected void buttonClick(ClickEvent event) {
-						if (StringUtils.isBlank(titleField.getValue())) {
-							showErrorMessage($("CartView.decommissioningListIsMissingTitle"));
-							return;
-						}
-						if (decomTypeField.getValue() == null) {
-							showErrorMessage($("CartView.decommissioningListIsMissingType"));
-							return;
-						}
-						presenter.buildDecommissioningListRequested(titleField.getValue(), (DecommissioningListType) decomTypeField.getValue());
-						getWindow().close();
-					}
-				};
-				saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
-				layout.addComponent(saveButton);
-				layout.setSpacing(true);
-				return layout;
-			}
-		};
-		windowButton.setEnabled(!presenter.getCartFolders().isEmpty() && presenter.canCurrentUserBuildDecommissioningList());
-		windowButton.setVisible(!presenter.getCartFolders().isEmpty() && presenter.canCurrentUserBuildDecommissioningList());
-
-		return windowButton;
 	}
 
 	@Override
@@ -650,108 +432,6 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		containerTable = newTable;
 	}
 
-	private Button buildPrepareEmailButton() {
-		Button button = new LinkButton($("CartView.prepareEmail")) {
-			@Override
-			protected void buttonClick(ClickEvent event) {
-				presenter.emailPreparationRequested();
-			}
-		};
-		button.setEnabled(presenter.canPrepareEmail());
-		button.setVisible(presenter.canPrepareEmail());
-		return button;
-	}
-
-	private Button buildBatchDuplicateButton() {
-		Button button = new LinkButton($("CartView.batchDuplicate")) {
-			@Override
-			protected void buttonClick(ClickEvent event) {
-				presenter.duplicationRequested();
-			}
-		};
-		button.setEnabled(presenter.canDuplicate());
-		button.setVisible(presenter.canDuplicate());
-		return button;
-	}
-
-	private Button buildBatchDeleteButton() {
-		Button button;
-		if(!presenter.isNeedingAReasonToDeleteRecords()) {
-			button = new DeleteButton(false) {
-				@Override
-				protected void confirmButtonClick(ConfirmDialog dialog) {
-					presenter.deletionRequested(null);
-				}
-
-				@Override
-				protected String getConfirmDialogMessage() {
-					List<String> cartFolderIds = presenter.getCartFolderIds();
-					List<String> cartDocumentIds = presenter.getCartDocumentIds();
-
-					StringBuilder stringBuilder = new StringBuilder();
-					String prefix = "";
-					if (cartFolderIds != null && !cartFolderIds.isEmpty()) {
-						stringBuilder.append(prefix + cartFolderIds.size() + " " + $("CartView.folders"));
-						prefix = " " + $("CartView.andAll") + " ";
-					}
-					if (cartDocumentIds != null && !cartDocumentIds.isEmpty()) {
-						stringBuilder.append(prefix + cartDocumentIds.size() + " " + $("CartView.documents"));
-					}
-					return $("CartView.deleteConfirmationMessageWithoutJustification", stringBuilder.toString());
-				}
-			};
-		} else {
-			button = new DeleteWithJustificationButton(false) {
-				@Override
-				protected void deletionConfirmed(String reason) {
-					presenter.deletionRequested(reason);
-				}
-
-				@Override
-				protected String getConfirmDialogMessage() {
-					List<String> cartFolderIds = presenter.getCartFolderIds();
-					List<String> cartDocumentIds = presenter.getCartDocumentIds();
-					List<String> cartContainersIds = presenter.getCartContainersIds();
-
-					StringBuilder stringBuilder = new StringBuilder();
-					String prefix = "";
-					if (cartFolderIds != null && !cartFolderIds.isEmpty()) {
-						stringBuilder.append(prefix + cartFolderIds.size() + " " + $("CartView.folders"));
-						prefix = " " + $("CartView.andAll") + " ";
-					}
-					if (cartDocumentIds != null && !cartDocumentIds.isEmpty()) {
-						stringBuilder.append(prefix + cartDocumentIds.size() + " " + $("CartView.documents"));
-					}
-					if (cartContainersIds != null && !cartContainersIds.isEmpty()) {
-						stringBuilder.append(prefix + cartContainersIds.size() + " " + $("CartView.containers"));
-					}
-					return $("CartView.deleteConfirmationMessage", stringBuilder.toString());
-				}
-			};
-		}
-
-		button.setEnabled(presenter.canDelete());
-		button.setVisible(presenter.canDelete());
-		return button;
-	}
-
-	private Button buildEmptyButton() {
-		Button button = new ConfirmDialogButton($("CartView.empty")) {
-			@Override
-			protected String getConfirmDialogMessage() {
-				return $("CartView.emptyCartConfirmation");
-			}
-
-			@Override
-			protected void confirmButtonClick(ConfirmDialog dialog) {
-				presenter.cartEmptyingRequested();
-			}
-		};
-		button.setEnabled(presenter.canEmptyCart());
-		button.setVisible(presenter.canEmptyCart());
-		return button;
-	}
-
 	private Container buildContainer(final RecordVOWithDistinctSchemasDataProvider dataProvider) {
 		RecordVOWithDistinctSchemaTypesLazyContainer records = new RecordVOWithDistinctSchemaTypesLazyContainer(
 				dataProvider, asList(CommonMetadataBuilder.TITLE));
@@ -788,41 +468,6 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 			}
 		});
 		return container;
-	}
-
-	private Button buildCreateSIPArchivesButton() {
-		SIPButtonImpl siPbutton = new SIPButtonImpl($("SIPButton.caption"), $("SIPButton.caption"), ConstellioUI.getCurrent().getHeader(), true) {
-			@Override
-			public void buttonClick(ClickEvent event) {
-				setAllObject(presenter.getNotDeletedCartFoldersVO().toArray(new FolderVO[0]));
-				super.buttonClick(event);
-			}
-		};
-		siPbutton.setEnabled(presenter.cartHasRecords());
-		siPbutton.setVisible(presenter.cartHasRecords());
-		return siPbutton;
-	}
-
-	private Button buildConsolidatedPdfButton() {
-		Button consolidatedPdfButton = new ConsolidatedPdfButton() {
-			@Override
-			public void buttonClick(ClickEvent event) {
-				List<String> notDeletedDocumentIds = new ArrayList<>();
-				List<DocumentVO> notDeletedDocumentVOs = presenter.getNotDeletedCartDocumentVO();
-				for (DocumentVO documentVO : notDeletedDocumentVOs) {
-					notDeletedDocumentIds.add(documentVO.getId());
-				}
-				if (presenter.isPdfGenerationActionPossible(notDeletedDocumentIds)) {
-					AvailableActionsParam params = new AvailableActionsParam(notDeletedDocumentIds, Arrays.asList(Document.SCHEMA_TYPE), null, null, null);
-					setRecordIds(notDeletedDocumentIds);
-					super.buttonClick(event);
-				}
-			}
-
-		};
-		consolidatedPdfButton.setEnabled(presenter.cartHasRecords());
-		consolidatedPdfButton.setVisible(presenter.cartHasRecords());
-		return consolidatedPdfButton;
 	}
 
 	@Override

@@ -30,8 +30,6 @@ import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.DeleteWithJustificationButton;
-import com.constellio.app.ui.framework.buttons.DisplayButton;
-import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.buttons.LinkButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
@@ -194,25 +192,13 @@ public class FolderMenuItemActionBehaviors {
 	}
 
 	public void display(Folder folder, MenuItemActionBehaviorParams params) {
-		Button displayFolderButton = new DisplayButton($("DisplayFolderView.displayFolder")) {
-			@Override
-			protected void buttonClick(ClickEvent event) {
-				RMNavigationUtils.navigateToDisplayFolder(folder.getId(), params.getFormParams(),
-						appLayerFactory, collection);
-			}
-		};
-		displayFolderButton.click();
+		RMNavigationUtils.navigateToDisplayFolder(folder.getId(), params.getFormParams(),
+				appLayerFactory, collection);
 	}
 
 	public void edit(Folder folder, MenuItemActionBehaviorParams params) {
-		Button editFolderButton = new EditButton($("DisplayFolderView.editFolder")) {
-			@Override
-			protected void buttonClick(ClickEvent event) {
-				RMNavigationUtils.navigateToEditFolder(folder.getId(), params.getFormParams(),
-						appLayerFactory, collection);
-			}
-		};
-		editFolderButton.click();
+		RMNavigationUtils.navigateToEditFolder(folder.getId(), params.getFormParams(),
+				appLayerFactory, collection);
 	}
 
 	public void delete(Folder folder, MenuItemActionBehaviorParams params) {

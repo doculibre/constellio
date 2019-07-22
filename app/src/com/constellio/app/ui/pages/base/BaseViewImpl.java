@@ -77,6 +77,7 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 	private Component actionMenu;
 	private List<Button> actionMenuButtons;
 	private Map<Button, MenuItem> actionMenuButtonsAndItems = new HashMap<>();
+	protected I18NHorizontalLayout actionMenuBarLayout;
 
 	private List<ViewEnterListener> viewEnterListeners = new ArrayList<>();
 
@@ -410,7 +411,7 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 				MenuBar menuBar = newActionMenuBar();
 				List<Button> quickActionButtons = getQuickActionMenuButtons();
 				if (quickActionButtons != null && !quickActionButtons.isEmpty()) {
-					I18NHorizontalLayout actionMenuBarLayout = new I18NHorizontalLayout();
+					actionMenuBarLayout = new I18NHorizontalLayout();
 					actionMenuBarLayout.addStyleName("action-menu-bar-layout");
 					actionMenuBarLayout.setSpacing(true);
 
