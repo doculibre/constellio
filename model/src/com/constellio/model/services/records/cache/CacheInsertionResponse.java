@@ -1,7 +1,7 @@
 package com.constellio.model.services.records.cache;
 
 import com.constellio.data.dao.dto.records.RecordDTO;
-import com.constellio.model.services.records.cache2.DeterminedHookCacheInsertion;
+import com.constellio.model.services.records.cache.hooks.DeterminedHookCacheInsertion;
 
 public class CacheInsertionResponse {
 

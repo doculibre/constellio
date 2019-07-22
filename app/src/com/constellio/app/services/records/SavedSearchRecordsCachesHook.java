@@ -6,10 +6,10 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.records.cache.CacheInsertionStatus;
-import com.constellio.model.services.records.cache2.DeterminedHookCacheInsertion;
-import com.constellio.model.services.records.cache2.HookCacheInsertionResponse;
-import com.constellio.model.services.records.cache2.RecordsCachesHook;
-import com.constellio.model.services.records.cache2.RemoteCacheAction;
+import com.constellio.model.services.records.cache.hooks.DeterminedHookCacheInsertion;
+import com.constellio.model.services.records.cache.hooks.HookCacheInsertionResponse;
+import com.constellio.model.services.records.cache.hooks.RecordsCachesHook;
+import com.constellio.model.services.records.cache.hooks.RemoteCacheAction;
 
 import java.util.HashMap;
 import java.util.List;

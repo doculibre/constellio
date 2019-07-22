@@ -37,7 +37,7 @@ import static com.constellio.data.dao.services.records.DataStore.RECORDS;
 
 public class CachedRecordServices extends BaseRecordServices implements RecordServices {
 
-	RecordsCaches disconnectableRecordsCaches;
+	RecordsCaches recordsCaches;
 
 	RecordServices recordServices;
 
@@ -45,16 +45,11 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 								RecordsCaches recordsCaches) {
 		super(modelLayerFactory);
 		this.recordServices = recordServices;
-		this.disconnectableRecordsCaches = recordsCaches;
+		this.recordsCaches = recordsCaches;
 	}
 
-	public RecordsCaches getConnectedRecordsCache() {
-		if (disconnectableRecordsCaches != null && (disconnectableRecordsCaches instanceof RecordsCachesRequestMemoryImpl)) {
-			if (((RecordsCachesRequestMemoryImpl) disconnectableRecordsCaches).isDisconnected()) {
-				disconnectableRecordsCaches = modelLayerFactory.getModelLayerFactoryFactory().get().getRecordsCaches();
-			}
-		}
-		return disconnectableRecordsCaches;
+	public RecordsCaches getRecordsCache() {
+		return recordsCaches;
 	}
 
 	@Override
@@ -64,7 +59,7 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 
 	@Override
 	public Record getById(String dataStore, String id) {
-		Record record = RECORDS.equals(dataStore) ? getConnectedRecordsCache().getRecord(id) : null;
+		Record record = RECORDS.equals(dataStore) ? getRecordsCache().getRecord(id) : null;
 		if (record == null) {
 			record = recordServices.getById(dataStore, id);
 		}
@@ -72,7 +67,7 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 	}
 
 	public Record getById(MetadataSchemaType schemaType, String id) {
-		RecordsCache cache = getConnectedRecordsCache().getCache(schemaType.getCollection());
+		RecordsCache cache = getRecordsCache().getCache(schemaType.getCollection());
 		Record record = cache.get(id);
 		if (record == null) {
 			record = recordServices.getById(schemaType, id);
@@ -87,7 +82,7 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 
 	@Override
 	public Record realtimeGetById(MetadataSchemaType schemaType, String id) {
-		Record record = getConnectedRecordsCache().getRecord(id);
+		Record record = getRecordsCache().getRecord(id);
 		if (record == null) {
 			record = recordServices.realtimeGetById(schemaType, id);
 		}
@@ -96,7 +91,7 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 
 	@Override
 	public Record realtimeGetById(String dataStore, String id) {
-		Record record = getConnectedRecordsCache().getRecord(id);
+		Record record = getRecordsCache().getRecord(id);
 		if (record == null) {
 			record = recordServices.realtimeGetById(dataStore, id);
 		}
@@ -105,7 +100,7 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 
 	@Override
 	public Record realtimeGetRecordSummaryById(String id) {
-		Record record = getConnectedRecordsCache().getRecordSummary(id);
+		Record record = getRecordsCache().getRecordSummary(id);
 		if (record == null) {
 			record = recordServices.realtimeGetRecordSummaryById(id);
 		}
@@ -129,10 +124,10 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 				.getSchemaTypes(metadata.getCollection()).getSchemaType(metadata.getSchemaTypeCode());
 
 		if (schemaType.getCacheType() == RecordCacheType.FULLY_CACHED) {
-			return getConnectedRecordsCache().getCache(metadata.getCollection()).getByMetadata(metadata, value);
+			return getRecordsCache().getCache(metadata.getCollection()).getByMetadata(metadata, value);
 
 		} else if (schemaType.getCacheType().hasPermanentCache()) {
-			Record foundRecordSummary = getConnectedRecordsCache().getCache(metadata.getCollection()).getSummaryByMetadata(metadata, value);
+			Record foundRecordSummary = getRecordsCache().getCache(metadata.getCollection()).getSummaryByMetadata(metadata, value);
 			if (foundRecordSummary != null) {
 				return getDocumentById(foundRecordSummary.getId());
 			} else {
@@ -155,7 +150,7 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 			throw new IllegalArgumentException("Metadata '" + metadata + "' is global, which has no specific schema type.");
 		}
 
-		Record foundRecord = getConnectedRecordsCache().getCache(metadata.getCollection()).getSummaryByMetadata(metadata, value);
+		Record foundRecord = getRecordsCache().getCache(metadata.getCollection()).getSummaryByMetadata(metadata, value);
 
 		if (foundRecord == null) {
 			foundRecord = recordServices.getRecordSummaryByMetadata(metadata, value);
@@ -329,7 +324,7 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 
 	@Override
 	public RecordsCaches getRecordsCaches() {
-		return getConnectedRecordsCache();
+		return getRecordsCache();
 	}
 
 	@Override

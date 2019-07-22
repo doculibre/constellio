@@ -11,7 +11,7 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
-import com.constellio.model.services.records.cache2.RecordsCache2IntegrityDiagnosticService;
+import com.constellio.model.services.records.cache.RecordsCache2IntegrityDiagnosticService;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;

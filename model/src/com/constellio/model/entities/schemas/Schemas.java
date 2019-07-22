@@ -37,7 +37,7 @@ Schemas {
 	public static final Metadata PRINCIPAL_PATH = add(new Metadata(-10, "principalpath_s", STRING, false));
 	public static final Metadata REMOVED_AUTHORIZATIONS = add(new Metadata(-11, "removedauthorizations_ss", STRING, true));
 	public static final Metadata ALL_REMOVED_AUTHS = add(new Metadata(-12, "allRemovedAuths_ss", STRING, true));
-	public static final Metadata IS_DETACHED_AUTHORIZATIONS = add(new Metadata(-13, "detachedauthorizations_s", STRING, false));
+	public static final Metadata IS_DETACHED_AUTHORIZATIONS = add(new Metadata(-13, "detachedauthorizations_s", BOOLEAN, false));
 	public static final Metadata TOKENS = add(new Metadata(-14, "tokens_ss", STRING, true));
 	public static final Metadata TOKENS_OF_HIERARCHY = add(new Metadata(-15, "tokensHierarchy_ss", STRING, true));
 	public static final Metadata ATTACHED_ANCESTORS = add(new Metadata(-16, "attachedAncestors_ss", STRING, true));

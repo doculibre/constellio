@@ -14,9 +14,9 @@ import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.cache.CacheInsertionResponse;
 import com.constellio.model.services.records.cache.CacheInsertionStatus;
-import com.constellio.model.services.records.cache2.FileSystemRecordsValuesCacheDataStore;
-import com.constellio.model.services.records.cache2.RecordsCaches2Impl;
-import com.constellio.model.services.records.cache2.RecordsCachesDataStore;
+import com.constellio.model.services.records.cache.dataStore.FileSystemRecordsValuesCacheDataStore;
+import com.constellio.model.services.records.cache.RecordsCaches2Impl;
+import com.constellio.model.services.records.cache.dataStore.RecordsCachesDataStore;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +29,7 @@ import java.util.Map;
 import static com.constellio.data.events.EventBusEventsExecutionStrategy.ONLY_SENT_REMOTELY;
 import static com.constellio.model.services.records.cache.MassiveCacheInvalidationReason.KEEP_INTEGRITY;
 import static com.constellio.model.services.records.cache.RecordsCachesUtils.evaluateCacheInsert;
-import static com.constellio.model.services.records.cache2.DeterminedHookCacheInsertion.DEFAULT_INSERT;
+import static com.constellio.model.services.records.cache.hooks.DeterminedHookCacheInsertion.DEFAULT_INSERT;
 import static java.util.Arrays.asList;
 
 /**

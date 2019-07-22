@@ -7,7 +7,6 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.records.RecordImpl;
 import com.constellio.model.services.records.RecordServices;
-import com.constellio.model.services.records.cache2.RecordsCache2IntegrityDiagnosticService;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;

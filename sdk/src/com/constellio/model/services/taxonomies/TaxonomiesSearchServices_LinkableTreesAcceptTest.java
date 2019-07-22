@@ -33,7 +33,7 @@ import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordUtils;
-import com.constellio.model.services.records.cache2.RecordsCache2IntegrityDiagnosticService;
+import com.constellio.model.services.records.cache.RecordsCache2IntegrityDiagnosticService;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;

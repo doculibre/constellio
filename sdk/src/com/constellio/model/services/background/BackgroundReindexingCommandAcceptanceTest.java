@@ -6,7 +6,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
-import com.constellio.model.services.records.cache2.RecordsCache2IntegrityDiagnosticService;
+import com.constellio.model.services.records.cache.RecordsCache2IntegrityDiagnosticService;
 import com.constellio.model.services.records.reindexing.ReindexationMode;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;

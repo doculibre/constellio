@@ -365,14 +365,16 @@ public class MetadataSchemaType implements Serializable {
 
 	private MetadataSchema getNullableSchema(String codeOrCode) {
 		MetadataSchema schema = null;
-		try {
-			if (codeOrCode.contains("_")) {
-				schema = getSchemaWithCompleteCode(codeOrCode);
-			} else {
-				schema = getSchemaWithLocalCode(codeOrCode);
+		if (codeOrCode != null) {
+			try {
+				if (codeOrCode.contains("_")) {
+					schema = getSchemaWithCompleteCode(codeOrCode);
+				} else {
+					schema = getSchemaWithLocalCode(codeOrCode);
+				}
+			} catch (NoSuchSchema e) {
+				return null;
 			}
-		} catch (NoSuchSchema e) {
-			return null;
 		}
 		return schema;
 	}

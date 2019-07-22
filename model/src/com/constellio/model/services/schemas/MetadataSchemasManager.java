@@ -259,19 +259,21 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 	}
 
 	public void modify(String collection, MetadataSchemaTypesAlteration alteration) {
+		modify(collection, alteration, true);
+	}
+
+	public void modify(String collection, MetadataSchemaTypesAlteration alteration, boolean reloadCacheIfRequired) {
 
 		MetadataSchemaTypesBuilder builder = modify(collection);
 		alteration.alter(builder);
 
-		List<String> typesRequiringCacheReload = builder.getTypesRequiringCacheReload();
-
 		try {
-			saveUpdateSchemaTypes(builder);
+			saveUpdateSchemaTypes(builder, reloadCacheIfRequired);
 		} catch (OptimisticLocking optimistickLocking) {
-			modify(collection, alteration);
+			modify(collection, alteration, reloadCacheIfRequired);
 		}
 
-		modelLayerFactory.getRecordsCaches().getCache(collection).invalidateVolatileReloadPermanent(typesRequiringCacheReload);
+
 	}
 
 	public void deleteSchemaTypes(final List<MetadataSchemaType> typesToDelete) {
@@ -306,6 +308,13 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 
 	public MetadataSchemaTypes saveUpdateSchemaTypes(MetadataSchemaTypesBuilder schemaTypesBuilder)
 			throws OptimisticLocking {
+		return saveUpdateSchemaTypes(schemaTypesBuilder, true);
+	}
+
+	public MetadataSchemaTypes saveUpdateSchemaTypes(MetadataSchemaTypesBuilder schemaTypesBuilder,
+													 boolean reloadCacheIfRequired)
+			throws OptimisticLocking {
+		List<String> typesRequiringCacheReload = schemaTypesBuilder.getTypesRequiringCacheReload();
 		MetadataSchemaTypes schemaTypes = schemaTypesBuilder.build(typesFactory, modelLayerFactory);
 
 		Document document = new MetadataSchemaXMLWriter3().write(schemaTypes);
@@ -318,6 +327,11 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 		} catch (Throwable t) {
 			batchProcessesManager.cancelStandByBatchProcesses(batchProcesses);
 			throw t;
+		}
+
+		if (reloadCacheIfRequired) {
+			modelLayerFactory.getRecordsCaches().getCache(schemaTypes.getCollection())
+					.invalidateVolatileReloadPermanent(typesRequiringCacheReload);
 		}
 
 		return schemaTypes;

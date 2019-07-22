@@ -5,9 +5,9 @@ import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.services.cache.InsertionReason;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.services.records.cache2.DeterminedHookCacheInsertion;
-import com.constellio.model.services.records.cache2.HookCacheInsertionResponse;
-import com.constellio.model.services.records.cache2.RecordsCachesHook;
+import com.constellio.model.services.records.cache.hooks.DeterminedHookCacheInsertion;
+import com.constellio.model.services.records.cache.hooks.HookCacheInsertionResponse;
+import com.constellio.model.services.records.cache.hooks.RecordsCachesHook;
 
 import java.util.HashMap;
 import java.util.List;
@@ -15,8 +15,8 @@ import java.util.Map;
 
 import static com.constellio.data.dao.services.cache.InsertionReason.WAS_MODIFIED;
 import static com.constellio.model.services.records.cache.CacheInsertionStatus.ACCEPTED;
-import static com.constellio.model.services.records.cache2.RemoteCacheAction.DO_NOTHING;
-import static com.constellio.model.services.records.cache2.RemoteCacheAction.INSERT;
+import static com.constellio.model.services.records.cache.hooks.RemoteCacheAction.DO_NOTHING;
+import static com.constellio.model.services.records.cache.hooks.RemoteCacheAction.INSERT;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 

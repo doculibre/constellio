@@ -31,8 +31,7 @@ import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.records.cache.RecordsCaches;
-import com.constellio.model.services.records.cache.RecordsCachesRequestMemoryImpl;
-import com.constellio.model.services.records.cache2.RecordsCache2IntegrityDiagnosticService;
+import com.constellio.model.services.records.cache.RecordsCache2IntegrityDiagnosticService;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.QueryElevation.DocElevation;
 import com.constellio.model.services.search.entities.SearchBoost;
@@ -143,11 +142,11 @@ public class SearchServices {
 	}
 
 	public RecordsCaches getConnectedRecordsCache() {
-		if (disconnectableRecordsCaches != null && (disconnectableRecordsCaches instanceof RecordsCachesRequestMemoryImpl)) {
-			if (((RecordsCachesRequestMemoryImpl) disconnectableRecordsCaches).isDisconnected()) {
-				disconnectableRecordsCaches = modelLayerFactory.getModelLayerFactoryFactory().get().getRecordsCaches();
-			}
-		}
+//		if (disconnectableRecordsCaches != null && (disconnectableRecordsCaches instanceof RecordsCachesRequestMemoryImpl)) {
+//			if (((RecordsCachesRequestMemoryImpl) disconnectableRecordsCaches).isDisconnected()) {
+//				disconnectableRecordsCaches = modelLayerFactory.getModelLayerFactoryFactory().get().getRecordsCaches();
+//			}
+//		}
 		return disconnectableRecordsCaches;
 	}
 

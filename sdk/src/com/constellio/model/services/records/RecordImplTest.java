@@ -179,7 +179,7 @@ public class RecordImplTest extends ConstellioTest {
 		when(factoredMetadata.getCode()).thenReturn(theSchemaCode + "_" + factoredMetadataCode);
 		when(factoredMetadata.getDataStoreType()).thenReturn("s");
 		when(factoredMetadata.getDataStoreCode()).thenReturn(factoredMetadataCodeAndType);
-		when(factoredMetadata.getType()).thenReturn(MetadataValueType.STRING);
+		when(factoredMetadata.getType()).thenReturn(MetadataValueType.STRUCTURE);
 		when(factoredMetadata.getStructureFactory()).thenReturn((StructureFactory) stringStructureFactory);
 		when(factoredMetadata.getDataEntry()).thenReturn(new ManualDataEntry());
 

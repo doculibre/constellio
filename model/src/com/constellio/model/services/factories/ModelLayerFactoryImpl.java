@@ -10,7 +10,6 @@ import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.io.IOServicesFactory;
 import com.constellio.data.utils.Delayed;
 import com.constellio.data.utils.Factory;
-import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.conf.email.EmailConfigurationsManager;
@@ -41,10 +40,9 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesImpl;
 import com.constellio.model.services.records.cache.CachedRecordServices;
 import com.constellio.model.services.records.cache.RecordsCaches;
-import com.constellio.model.services.records.cache.RecordsCachesMemoryImpl;
 import com.constellio.model.services.records.cache.eventBus.EventsBusRecordsCachesImpl;
-import com.constellio.model.services.records.cache2.FileSystemRecordsValuesCacheDataStore;
-import com.constellio.model.services.records.cache2.RecordsCachesDataStore;
+import com.constellio.model.services.records.cache.dataStore.FileSystemRecordsValuesCacheDataStore;
+import com.constellio.model.services.records.cache.dataStore.RecordsCachesDataStore;
 import com.constellio.model.services.records.extractions.RecordPopulateServices;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -180,21 +178,15 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 
 		this.schemasManager = add(new MetadataSchemasManager(this, modulesManagerDelayed));
 
-		if (Toggle.USE_NEW_CACHE.isEnabled()) {
-			File workFolder = new FoldersLocator().getWorkFolder();
-			workFolder.mkdirs();
-			File fileSystemCacheFolder = new File(new FoldersLocator().getWorkFolder(), instanceName + "-cache.db");
-			FileUtils.deleteQuietly(fileSystemCacheFolder);
-			FileSystemRecordsValuesCacheDataStore fileSystemRecordsValuesCacheDataStore
-					= new FileSystemRecordsValuesCacheDataStore(fileSystemCacheFolder);
+		File workFolder = new FoldersLocator().getWorkFolder();
+		workFolder.mkdirs();
+		File fileSystemCacheFolder = new File(new FoldersLocator().getWorkFolder(), instanceName + "-cache.db");
+		FileUtils.deleteQuietly(fileSystemCacheFolder);
+		FileSystemRecordsValuesCacheDataStore fileSystemRecordsValuesCacheDataStore
+				= new FileSystemRecordsValuesCacheDataStore(fileSystemCacheFolder);
 
-			RecordsCachesDataStore memoryDataStore = new RecordsCachesDataStore(this);
-			this.recordsCaches = add(new EventsBusRecordsCachesImpl(this, fileSystemRecordsValuesCacheDataStore, memoryDataStore));
-
-		} else {
-			this.recordsCaches = new RecordsCachesMemoryImpl(this);
-		}
-
+		RecordsCachesDataStore memoryDataStore = new RecordsCachesDataStore(this);
+		this.recordsCaches = add(new EventsBusRecordsCachesImpl(this, fileSystemRecordsValuesCacheDataStore, memoryDataStore));
 
 		this.recordMigrationsManager = add(new RecordMigrationsManager(this));
 		this.batchProcessesController = add(
@@ -418,10 +410,6 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 	}
 
 	public RecordsCaches getRecordsCaches() {
-		return recordsCaches;
-	}
-
-	public RecordsCaches getBottomRecordsCaches() {
 		return recordsCaches;
 	}
 

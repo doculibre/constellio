@@ -227,15 +227,20 @@ public class RecordValidationServicesAcceptanceTest extends ConstellioTest {
 		defineSchemasManager().using(schemas.withAStringMetadata());
 		record = recordServices.newRecordWithSchema(zeSchema.instance());
 
-		record.set(zeSchema.stringMetadata(), 1);
-		List<ValidationError> errors = services.validateManualMetadatasReturningErrors(record, recordProvider, transaction)
-				.getValidationErrors();
-
-		assertThat(errors).hasSize(1);
-		assertThat(errors.get(0)).has(codeBasedOn(MetadataValueTypeValidator.class, INVALID_VALUE_FOR_METADATA));
-		assertThat(errors.get(0).getParameters()).containsEntry(EXPECTED_TYPE_MESSAGE_PARAM, "STRING")
-				.containsEntry(METADATA_CODE_MESSAGE_PARAM, zeSchema.stringMetadata().getCode())
-				.containsEntry(WAS_VALUE_CLASS_MESSAGE_PARAM, "java.lang.Double");
+		try {
+			record.set(zeSchema.stringMetadata(), 1);
+			fail("Exception expected");
+		} catch (IllegalArgumentException e) {
+			//OK
+		}
+//		List<ValidationError> errors = services.validateManualMetadatasReturningErrors(record, recordProvider, transaction)
+		//				.getValidationErrors();
+		//
+		//		assertThat(errors).hasSize(1);
+		//		assertThat(errors.get(0)).has(codeBasedOn(MetadataValueTypeValidator.class, INVALID_VALUE_FOR_METADATA));
+		//		assertThat(errors.get(0).getParameters()).containsEntry(EXPECTED_TYPE_MESSAGE_PARAM, "STRING")
+		//				.containsEntry(METADATA_CODE_MESSAGE_PARAM, zeSchema.stringMetadata().getCode())
+		//				.containsEntry(WAS_VALUE_CLASS_MESSAGE_PARAM, "java.lang.Double");
 
 	}
 
@@ -329,15 +334,20 @@ public class RecordValidationServicesAcceptanceTest extends ConstellioTest {
 		defineSchemasManager().using(schemas.withANumberMetadata());
 		record = recordServices.newRecordWithSchema(zeSchema.instance());
 
-		record.set(zeSchema.numberMetadata(), "not a number");
-		List<ValidationError> errors = services.validateManualMetadatasReturningErrors(record, recordProvider, transaction)
-				.getValidationErrors();
-
-		assertThat(errors).hasSize(1);
-		assertThat(errors.get(0)).has(codeBasedOn(MetadataValueTypeValidator.class, INVALID_VALUE_FOR_METADATA));
-		assertThat(errors.get(0).getParameters()).containsEntry(EXPECTED_TYPE_MESSAGE_PARAM, "NUMBER")
-				.containsEntry(METADATA_CODE_MESSAGE_PARAM, zeSchema.numberMetadata().getCode())
-				.containsEntry(WAS_VALUE_CLASS_MESSAGE_PARAM, "java.lang.String");
+		try {
+			record.set(zeSchema.numberMetadata(), "not a number");
+			fail("Exception expected");
+		} catch (IllegalArgumentException e) {
+			//OK
+		}
+//		List<ValidationError> errors = services.validateManualMetadatasReturningErrors(record, recordProvider, transaction)
+		//				.getValidationErrors();
+		//
+		//		assertThat(errors).hasSize(1);
+		//		assertThat(errors.get(0)).has(codeBasedOn(MetadataValueTypeValidator.class, INVALID_VALUE_FOR_METADATA));
+		//		assertThat(errors.get(0).getParameters()).containsEntry(EXPECTED_TYPE_MESSAGE_PARAM, "NUMBER")
+		//				.containsEntry(METADATA_CODE_MESSAGE_PARAM, zeSchema.numberMetadata().getCode())
+		//				.containsEntry(WAS_VALUE_CLASS_MESSAGE_PARAM, "java.lang.String");
 
 	}
 

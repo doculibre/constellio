@@ -3,7 +3,7 @@ package com.constellio.model.services.records.cache;
 import com.constellio.data.dao.services.cache.InsertionReason;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.services.records.cache2.RecordsCachesHook;
+import com.constellio.model.services.records.cache.hooks.RecordsCachesHook;
 
 import java.util.ArrayList;
 import java.util.List;
