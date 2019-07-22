@@ -2,6 +2,7 @@ package com.constellio.model.services.records.cache;
 
 import com.constellio.data.dao.services.cache.InsertionReason;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.records.cache.hooks.RecordsCachesHook;
 
@@ -85,4 +86,8 @@ public interface RecordsCaches {
 	default RecordsCachesHook getHook(MetadataSchemaType schemaType) {
 		throw new UnsupportedOperationException("Unsupported");
 	}
+
+	Stream<Record> getRecordsByIndexedMetadata(MetadataSchemaType schemaType, Metadata metadata, String value);
+
+	Stream<Record> getRecordsSummaryByIndexedMetadata(MetadataSchemaType schemaType, Metadata metadata, String value);
 }

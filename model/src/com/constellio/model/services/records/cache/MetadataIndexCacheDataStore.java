@@ -5,25 +5,29 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.rometools.utils.Strings;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Concurrency is handled at multiple levels.
+ * <p>
+ * - Map creation and iteration is synchronized on this
+ * - Map get/put/iteration is synchronized on the given map
+ */
 public class MetadataIndexCacheDataStore {
-	private Map<String, Map<String, Map<String, Map<String, Object>>>> cacheIndexMap;
 
-	public MetadataIndexCacheDataStore() {
-		cacheIndexMap = new HashMap<>();
-	}
 
-	public List<String> search(Metadata metadata, String value) {
+	private Map<Short, Map<String, Object>>[][] cacheIndexMaps = new Map[256][];
+
+	public List<String> search(MetadataSchemaType schemaType, Metadata metadata, String value) {
 
 		if (metadata == null) {
 			throw new IllegalArgumentException("metadata parameter cannot be null");
@@ -36,48 +40,66 @@ public class MetadataIndexCacheDataStore {
 		}
 
 		if (Strings.isBlank(value)) {
-			return null;
+			return Collections.emptyList();
 		}
 
-		return getRecordWithValue(metadata.getCollection(), metadata.getSchemaTypeCode(), metadata.getLocalCode(), value);
+		Map<String, Object> metadataIndexMap = getMetadataIndexMap(schemaType, metadata, false);
+		return getRecordsWithValue(metadataIndexMap, value);
 	}
 
-	public void addUpdate(Record oldVersion, Record newVersion, MetadataSchema metadataSchema) {
-		validateParameters(oldVersion, newVersion, metadataSchema);
+	public void addUpdate(Record oldVersion, Record newVersion, MetadataSchemaType schemaType, MetadataSchema schema) {
+		validateParameters(oldVersion, newVersion, schema);
 
-		String collection = metadataSchema.getCollection();
-		String schemaType = metadataSchema.getCode().substring(0, metadataSchema.getCode().indexOf("_"));
+		if (schemaType.getCollectionInfo().getCollectionId() != schema.getCollectionInfo().getCollectionId()) {
+			throw new IllegalArgumentException("Schema type and schema have different collection id");
+		}
 
-		for (Metadata currentMetadata : metadataSchema.getMetadatas().onlyNoIdCacheIndexAndUniqueReferenceOrString()) {
+		for (Metadata currentMetadata : schema.getMetadatas().onlyNoIdCacheIndexAndUniqueReferenceOrString()) {
 			if (oldVersion == null) {
+				if (newVersion.getCollectionInfo().getCollectionId() != schemaType.getCollectionInfo().getCollectionId()) {
+					throw new IllegalArgumentException("New version and schema type have different collection id");
+				}
+
 				Object newValue = newVersion.get(currentMetadata);
 				if (!isObjectNullOrEmpty(newValue)) {
-					MapWithKeyReturnValue mapWithKeyReturnValue = getValueHashToModify(collection, schemaType, currentMetadata.getLocalCode(), true);
-					addRecordIdToMapByValue(newValue, newVersion.getId(), mapWithKeyReturnValue.getValueRecordIdMap(), currentMetadata);
+					Map<String, Object> metadataIndexMap = getMetadataIndexMap(schemaType, currentMetadata, true);
+					addRecordIdToMapByValue(newValue, newVersion.getId(), metadataIndexMap, currentMetadata);
 				}
 			} else if (newVersion == null) {
-				MapWithKeyReturnValue mapWithKeyReturnValue = getValueHashToModify(collection, schemaType, currentMetadata.getLocalCode(), false);
+				if (oldVersion.getCollectionInfo().getCollectionId() != schemaType.getCollectionInfo().getCollectionId()) {
+					throw new IllegalArgumentException("New version and schema type have different collection id");
+				}
 
-				if (mapWithKeyReturnValue != null) {
-					removeRecordIdToMapByValue(oldVersion.get(currentMetadata), oldVersion.getId(), mapWithKeyReturnValue.getValueRecordIdMap(), currentMetadata);
-					cleanUpEmptyMap(mapWithKeyReturnValue);
+				Map<String, Object> metadataIndexMap = getMetadataIndexMap(schemaType, currentMetadata, false);
+
+				if (!metadataIndexMap.isEmpty()) {
+					removeRecordIdToMapByValue(oldVersion.get(currentMetadata), oldVersion.getId(), metadataIndexMap, currentMetadata);
 				}
 			} else {
+				if (oldVersion.getCollectionInfo().getCollectionId() != schemaType.getCollectionInfo().getCollectionId()) {
+					throw new IllegalArgumentException("New version and schema type have different collection id");
+				}
+				if (newVersion.getCollectionInfo().getCollectionId() != schemaType.getCollectionInfo().getCollectionId()) {
+					throw new IllegalArgumentException("New version and schema type have different collection id");
+				}
+				if (!oldVersion.getId().equals(newVersion.getId())) {
+					throw new IllegalArgumentException("Records have different ids");
+				}
+
 				Object newValue = newVersion.get(currentMetadata);
 				boolean isNewValueNull = isObjectNullOrEmpty(newValue);
 
-				MapWithKeyReturnValue mapWithKeyReturnValue = getValueHashToModify(collection, schemaType, currentMetadata.getLocalCode(), !isNewValueNull);
+				Map<String, Object> metadataIndexMap = getMetadataIndexMap(schemaType, currentMetadata, !isNewValueNull);
 
 				Object oldValue = oldVersion.get(currentMetadata);
-				if (mapWithKeyReturnValue != null) {
-					removeRecordIdToMapByValue(oldValue, oldVersion.getId(), mapWithKeyReturnValue.getValueRecordIdMap(), currentMetadata);
+				if (!metadataIndexMap.isEmpty()) {
+					removeRecordIdToMapByValue(oldValue, oldVersion.getId(), metadataIndexMap, currentMetadata);
 				}
 
 				if (!isNewValueNull) {
-					addRecordIdToMapByValue(newValue, newVersion.getId(), mapWithKeyReturnValue.getValueRecordIdMap(), currentMetadata);
+					addRecordIdToMapByValue(newValue, newVersion.getId(), metadataIndexMap, currentMetadata);
 				}
-				if (mapWithKeyReturnValue != null) {
-					cleanUpEmptyMap(mapWithKeyReturnValue);
+				if (!metadataIndexMap.isEmpty()) {
 				}
 			}
 		}
@@ -93,19 +115,22 @@ public class MetadataIndexCacheDataStore {
 		}
 	}
 
-	private void cleanUpEmptyMap(MapWithKeyReturnValue mapWithKeyReturnValue) {
-		if (mapWithKeyReturnValue.getValueRecordIdMap().isEmpty()) {
-			mapWithKeyReturnValue.getMetadataMap().remove(mapWithKeyReturnValue.getMetadataKey());
-
-			if (mapWithKeyReturnValue.getMetadataMap().isEmpty()) {
-				mapWithKeyReturnValue.getSchemaTypeMap().remove(mapWithKeyReturnValue.getSchemaTypeKey());
-
-				if (mapWithKeyReturnValue.getSchemaTypeMap().isEmpty()) {
-					cacheIndexMap.remove(mapWithKeyReturnValue.getCollectionKey());
-				}
-			}
-		}
-	}
+	//	private void cleanUpEmptyMap(MetadataSchemaType schemaType, Metadata metadata,
+	//								 Map<String, Object> metadataIndexMap) {
+	//		if (metadataIndexMap.isEmpty()) {
+	//			int collectionIndex = schemaType.getId() - Byte.MIN_VALUE;
+	//			cacheIndexMaps[collectionIndex][schemaType.getId()].get()
+	//			mapWithKeyReturnValue.getMetadataMap().remove(mapWithKeyReturnValue.getMetadataKey());
+	//
+	//			if (mapWithKeyReturnValue.getMetadataMap().isEmpty()) {
+	//				mapWithKeyReturnValue.getSchemaTypeMap().remove(mapWithKeyReturnValue.getSchemaTypeKey());
+	//
+	//				if (mapWithKeyReturnValue.getSchemaTypeMap().isEmpty()) {
+	//					cacheIndexMap.remove(mapWithKeyReturnValue.getCollectionKey());
+	//				}
+	//			}
+	//		}
+	//	}
 
 	private void validateParameters(Record oldVersion, Record newVersion, MetadataSchema metadataSchema) {
 		if (metadataSchema == null) {
@@ -127,136 +152,82 @@ public class MetadataIndexCacheDataStore {
 		}
 	}
 
-	@Getter
-	@AllArgsConstructor
-	private class MapWithKeyReturnValue {
-		private Map<String, Map<String, Map<String, Object>>> schemaTypeMap;
-		private String collectionKey;
+	private Map<String, Object> getMetadataIndexMap(MetadataSchemaType schemaType, Metadata metadata,
+													boolean createIfNotExisitant) {
 
-		private Map<String, Map<String, Object>> metadataMap;
-		private String schemaTypeKey;
-
-		private Map<String, Object> valueRecordIdMap;
-		private String metadataKey;
-	}
-
-	private MapWithKeyReturnValue getValueHashToModify(String collection, String schemaType, String metadataCode,
-													   boolean createIfNotExisitant) {
-
-		if (Strings.isBlank(collection) || Strings.isBlank(schemaType) || Strings.isBlank(metadataCode)) {
-			throw new IllegalArgumentException("All the parameters must be not equal to null");
-		}
-
-		Map<String, Map<String, Map<String, Object>>> schemaTypeMap = cacheIndexMap.get(collection);
-
-		if (schemaTypeMap == null) {
+		Map<Short, Map<String, Object>>[] typeMaps = this.cacheIndexMaps[schemaType.getCollectionInfo().getCollectionIndex()];
+		if (typeMaps == null) {
 			if (createIfNotExisitant) {
-				schemaTypeMap = new HashMap<>();
-
-				cacheIndexMap.put(collection, schemaTypeMap);
+				synchronized (this) {
+					typeMaps = this.cacheIndexMaps[schemaType.getCollectionInfo().getCollectionIndex()];
+					if (typeMaps == null) {
+						typeMaps = this.cacheIndexMaps[schemaType.getCollectionInfo().getCollectionIndex()]
+								= new Map[MetadataSchemaTypes.LIMIT_OF_TYPES_IN_COLLECTION];
+					}
+				}
 			} else {
-				return null;
+				return Collections.emptyMap();
 			}
 		}
 
-		Map<String, Map<String, Object>> metadataMap = schemaTypeMap.get(schemaType);
-
-		if (metadataMap == null) {
+		Map<Short, Map<String, Object>> metadataMaps = typeMaps[schemaType.getId()];
+		if (metadataMaps == null) {
 			if (createIfNotExisitant) {
-				metadataMap = new HashMap();
-				schemaTypeMap.put(schemaType, metadataMap);
+				synchronized (this) {
+					metadataMaps = typeMaps[schemaType.getId()];
+					if (metadataMaps == null) {
+						metadataMaps = typeMaps[schemaType.getId()] = new HashMap<>();
+					}
+				}
 			} else {
-				return null;
+				return Collections.emptyMap();
 			}
 		}
 
-		Map<String, Object> valueRecordIdMap = metadataMap.get(metadataCode);
 
-		if (valueRecordIdMap == null) {
+		Map<String, Object> metadataIndexMap = metadataMaps.get(metadata.getId());
+		if (metadataIndexMap == null) {
 			if (createIfNotExisitant) {
-				valueRecordIdMap = new HashMap<>();
-
-				metadataMap.put(metadataCode, valueRecordIdMap);
+				synchronized (this) {
+					metadataIndexMap = metadataMaps.computeIfAbsent(metadata.getId(), k -> new HashMap<>());
+				}
 			} else {
-				return null;
+				return Collections.emptyMap();
 			}
 		}
 
-		return new MapWithKeyReturnValue(schemaTypeMap, collection, metadataMap, schemaType, valueRecordIdMap, metadataCode);
+		return metadataIndexMap;
 	}
 
 	public int countByIterating() {
 		int counter = 0;
 
-		for (String collectionKey : cacheIndexMap.keySet()) {
-			Map<String, Map<String, Map<String, Object>>> schemaTypeMap =
-					nullToEmptyMap(cacheIndexMap.get(collectionKey));
+		for (int i = 0; i < cacheIndexMaps.length; i++) {
+			Map<Short, Map<String, Object>>[] typesMaps = cacheIndexMaps[i];
+			if (typesMaps != null) {
+				for (int j = 0; j < typesMaps.length; j++) {
+					Map<Short, Map<String, Object>> metadatasMaps = typesMaps[j];
+					if (metadatasMaps != null) {
+						synchronized (metadatasMaps) {
+							for (Map<String, Object> metadatasMap : metadatasMaps.values()) {
 
-			for (String schemaTypeKey : schemaTypeMap.keySet()) {
-				Map<String, Map<String, Object>> metadataMap = nullToEmptyMap(schemaTypeMap.get(schemaTypeKey));
+								synchronized (metadatasMap) {
+									for (Object value : metadatasMap.values()) {
+										if (value instanceof List) {
+											counter += ((List) value).size();
+										} else if (value != null) {
+											counter++;
+										}
+									}
 
-				for (String metadataKey : metadataMap.keySet()) {
-					Map<String, Object> valueRecordIdMap = nullToEmptyMap(metadataMap.get(metadataKey));
-
-					for (String value : valueRecordIdMap.keySet()) {
-						Object recordIdObj = valueRecordIdMap.get(value);
-
-						if (recordIdObj instanceof List) {
-							counter += ((List) recordIdObj).size();
-						} else if (recordIdObj != null) {
-							counter++;
+								}
+							}
 						}
 					}
 				}
 			}
 		}
-
 		return counter;
-	}
-
-	public int numberOfEmptyMap() {
-		int counter = 0;
-
-		for (String collectionKey : cacheIndexMap.keySet()) {
-			Map<String, Map<String, Map<String, Object>>> schemaTypeMap =
-					nullToEmptyMap(cacheIndexMap.get(collectionKey));
-
-			if (schemaTypeMap.isEmpty()) {
-				counter++;
-			}
-
-			for (String schemaTypeKey : schemaTypeMap.keySet()) {
-				Map<String, Map<String, Object>> metadataMap = nullToEmptyMap(schemaTypeMap.get(schemaTypeKey));
-
-				if (metadataMap.isEmpty()) {
-					counter++;
-				}
-
-				for (String metadataKey : metadataMap.keySet()) {
-					Map<String, Object> valueRecordIdMap = nullToEmptyMap(metadataMap.get(metadataKey));
-
-					if (valueRecordIdMap.isEmpty()) {
-						counter++;
-					}
-
-					for (String value : valueRecordIdMap.keySet()) {
-						if (valueRecordIdMap.isEmpty()) {
-							counter++;
-						}
-					}
-				}
-			}
-		}
-
-		return counter;
-	}
-
-	private Map nullToEmptyMap(Map map) {
-		if (map == null) {
-			return new HashMap();
-		} else {
-			return map;
-		}
 	}
 
 	private void removeRecordIdToMapByValue(Object value, String recordId, Map<String, Object> valueRecordIdMap,
@@ -325,53 +296,31 @@ public class MetadataIndexCacheDataStore {
 	}
 
 
-	private List<String> getRecordWithValue(String collection, String schemaType, String metadataCode, String value) {
-		if (Strings.isBlank(collection) || Strings.isBlank(schemaType) || Strings.isBlank(metadataCode) || Strings.isBlank(value)) {
-			throw new IllegalArgumentException("All the parameters must have a value");
-		}
+	private List<String> getRecordsWithValue(Map<String, Object> metadataIndexMap, String value) {
 
-		Map<String, Map<String, Map<String, Object>>> schemaTypeMap = cacheIndexMap.get(collection);
-		if (schemaTypeMap == null || schemaTypeMap.isEmpty()) {
-			return null;
-		}
-
-		Map<String, Map<String, Object>> metadataMap = schemaTypeMap.get(schemaType);
-
-		if (metadataMap == null || schemaTypeMap.isEmpty()) {
-			return null;
-		}
-
-		Map<String, Object> valueRecordIdMap = metadataMap.get(metadataCode);
-
-		if (valueRecordIdMap == null || valueRecordIdMap.isEmpty()) {
-			return null;
-		}
-
-		Object referencesToRecordAsObject = valueRecordIdMap.get(value);
+		Object referencesToRecordAsObject = metadataIndexMap.get(value);
 
 		if (referencesToRecordAsObject == null) {
-			return null;
+			return Collections.emptyList();
+
 		} else if (referencesToRecordAsObject instanceof List) {
 			return (List<String>) referencesToRecordAsObject;
+
 		} else {
-			List<String> referenceToRecordAsList = new ArrayList<String>();
-			referenceToRecordAsList.add((String) referencesToRecordAsObject);
-			return referenceToRecordAsList;
+			return Collections.singletonList((String) referencesToRecordAsObject);
 		}
 	}
 
 
 	public void clear(CollectionInfo collectionInfo) {
-		cacheIndexMap.remove(collectionInfo.getCode());
+		cacheIndexMaps[collectionInfo.getCollectionIndex()] = null;
 	}
 
 	public void clear(MetadataSchemaType metadataSchemaType) {
-		Map metadataSchemaTypeMap = cacheIndexMap.get(metadataSchemaType.getCollection());
 
-		if (metadataSchemaTypeMap == null) {
-			return;
+		Map[] typesMaps = cacheIndexMaps[metadataSchemaType.getCollectionInfo().getCollectionIndex()];
+		if (typesMaps != null) {
+			typesMaps[metadataSchemaType.getId()] = null;
 		}
-
-		metadataSchemaTypeMap.remove(metadataSchemaType.getCode());
 	}
 }

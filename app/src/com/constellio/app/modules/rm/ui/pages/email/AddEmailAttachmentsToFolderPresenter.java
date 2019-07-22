@@ -1,6 +1,7 @@
 package com.constellio.app.modules.rm.ui.pages.email;
 
 import com.constellio.app.modules.rm.navigation.RMViews;
+import com.constellio.app.modules.rm.services.EmailParsingServices;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -83,9 +84,9 @@ public class AddEmailAttachmentsToFolderPresenter extends SingleSchemaBasePresen
 			InputStream messageInputStream = contentManager.getContentInputStream(emailContentVersion.getHash(),
 					"AddEmailAttachmentsToFolderPresenter.saveButtonClicked");
 			try {
-				Map<String, Object> parsedEmail = rmSchemasRecordsServices.parseEmail(filename, messageInputStream);
+				Map<String, Object> parsedEmail = new EmailParsingServices(rmSchemasRecordsServices).parseEmail(filename, messageInputStream);
 				Map<String, InputStream> emailAttachments = (Map<String, InputStream>) parsedEmail
-						.get(RMSchemasRecordsServices.EMAIL_ATTACHMENTS);
+						.get(EmailParsingServices.EMAIL_ATTACHMENTS);
 				for (Entry<String, InputStream> emailAttachment : emailAttachments.entrySet()) {
 					String attachmentFilename = emailAttachment.getKey();
 					InputStream attachmentIn = emailAttachment.getValue();
