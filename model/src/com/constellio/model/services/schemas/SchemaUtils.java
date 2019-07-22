@@ -31,6 +31,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static com.constellio.model.entities.schemas.Schemas.TITLE;
+
 public class SchemaUtils {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(SchemaUtils.class);
@@ -169,7 +171,7 @@ public class SchemaUtils {
 		throw new SchemaUtilsRuntimeException_NoMetadataWithDatastoreCode(metadataDataStoreCode);
 	}
 
-	public String getLocalCodeFromDataStoreCode(String metadataDataStoreCode) {
+	public static String getLocalCodeFromDataStoreCode(String metadataDataStoreCode) {
 		int indexOfUnderscore = metadataDataStoreCode.indexOf("_");
 		String firstPart;
 		if (indexOfUnderscore == -1) {
@@ -213,12 +215,74 @@ public class SchemaUtils {
 		return index;
 	}
 
+
+	public Map<String, Metadata> buildIndexByDatastoreCode(List<Metadata> metadatas) {
+		Map<String, Metadata> index = new HashMap<>();
+		for (Metadata metadata : metadatas) {
+			index.put(metadata.getDataStoreCode(), metadata);
+		}
+		return index;
+	}
+
+
+	public Map<Short, Metadata> buildIndexById(List<Metadata> metadatas) {
+		Map<Short, Metadata> index = new HashMap<>();
+		for (Metadata metadata : metadatas) {
+			index.put(metadata.getId(), metadata);
+		}
+		return index;
+	}
+
 	public Map<String, Metadata> buildIndexByLocalCode(List<Metadata> metadatas) {
 		Map<String, Metadata> index = new HashMap<>();
 		for (Metadata metadata : metadatas) {
 			index.put(metadata.getLocalCode(), metadata);
 		}
 		return index;
+	}
+
+	public List<Metadata> buildListOfSummaryMetadatas(List<Metadata> metadatas) {
+
+		List<Metadata> summaryMetadatas = new ArrayList<>();
+
+		for (Metadata metadata : metadatas) {
+			boolean summary;
+			switch (metadata.getType()) {
+				case DATE:
+				case DATE_TIME:
+				case STRING:
+					summary = metadata.isEssentialInSummary() || metadata.isUniqueValue()
+							  || TITLE.isSameLocalCode(metadata) || metadata.isEssentialInSummary() || metadata.isCacheIndex();
+					break;
+
+				case STRUCTURE:
+				case CONTENT:
+					//TODO Based on summary flag, support these typestype
+					summary = metadata.isEssentialInSummary();
+					break;
+
+				case TEXT:
+					summary = metadata.isEssentialInSummary();
+					break;
+
+				case INTEGER:
+				case NUMBER:
+				case BOOLEAN:
+				case REFERENCE:
+				case ENUM:
+					summary = true;
+					break;
+				default:
+					throw new ImpossibleRuntimeException("Unsupported type : " + metadata.getType());
+
+			}
+
+			if (summary) {
+				summaryMetadatas.add(metadata);
+			}
+		}
+
+		return summaryMetadatas;
 	}
 
 	public String getLocalCodeFromMetadataCode(String metadataCode) {

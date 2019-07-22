@@ -35,6 +35,7 @@ import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetail;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListValidation;
 import com.constellio.app.modules.rm.wrappers.structures.FolderDetailWithType;
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.components.NewReportPresenter;
@@ -1108,5 +1109,11 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 	public String getUsername(String userId) {
 		Record record = recordServices().getDocumentById(userId);
 		return rmRecordsServices.wrapUser(record).getUsername();
+	}
+
+	public void clearSavedSearchFromSession() {
+		ConstellioUI uiContext = ConstellioUI.getCurrent();
+		uiContext.clearAttribute(DecommissioningBuilderViewImpl.SAVE_SEARCH_DECOMMISSIONING);
+		uiContext.clearAttribute(DecommissioningBuilderViewImpl.DECOMMISSIONING_BUILDER_TYPE);
 	}
 }

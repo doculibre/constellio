@@ -171,7 +171,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		try {
 			((RecordImpl) search.getWrappedRecord()).markAsSaved(search.getVersion() + 1, search.getSchema());
 			modelLayerFactory.getRecordsCaches().getCache(header.getCollection())
-					.forceInsert(search.getWrappedRecord(), WAS_MODIFIED);
+					.insert(search.getWrappedRecord(), WAS_MODIFIED);
 			return search;
 
 		} catch (Exception e) {
@@ -364,9 +364,6 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		MetadataList allMetadatas = schemaType.getAllMetadatas();
 		for (Metadata metadata : allMetadatas) {
 			if (!schemaType.hasSecurity() || (metadataCodes.contains(metadata.getCode()))) {
-				if (!getCurrentUser().hasGlobalAccessToMetadata(metadata)) {
-					continue;
-				}
 
 				boolean isTextOrString =
 						metadata.getType() == MetadataValueType.STRING || metadata.getType() == MetadataValueType.TEXT;

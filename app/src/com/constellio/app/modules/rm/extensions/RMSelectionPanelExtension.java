@@ -699,7 +699,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
 								Content newContent = contentManager.createMajor(user, filename, contentVersionDataSummary);
 								newDocument.setContent(newContent);
 							}
-							if (Boolean.TRUE == newDocument.getBorrowed()) {
+							if (Boolean.TRUE.equals(newDocument.getBorrowed())) {
 								newDocument.setBorrowed(false);
 							}
 							String title = record.getTitle() + " (" + $("AddEditDocumentViewImpl.copy") + ")";

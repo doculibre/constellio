@@ -1,5 +1,6 @@
 package com.constellio.model.services.search.query.logical.condition;
 
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.search.query.logical.LogicalOperator;
 import com.constellio.model.services.search.query.logical.LogicalSearchValueCondition;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -8,6 +9,8 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import static com.constellio.model.services.search.query.logical.LogicalOperator.AND;
 
 public class CompositeLogicalSearchCondition extends LogicalSearchCondition {
 
@@ -88,4 +91,30 @@ public class CompositeLogicalSearchCondition extends LogicalSearchCondition {
 		return query;
 	}
 
+
+	@Override
+	public boolean test(Record record) {
+
+		boolean returnedValue = this.logicalOperator == AND;
+
+		for (LogicalSearchCondition condition : nestedSearchConditions) {
+			if (this.logicalOperator == AND) {
+				returnedValue &= condition.test(record);
+			} else {
+				returnedValue |= condition.test(record);
+			}
+		}
+
+		return returnedValue;
+	}
+
+	@Override
+	public boolean isSupportingMemoryExecution(boolean queryingTypesInSummaryCache) {
+		boolean supported = true;
+
+		for (LogicalSearchCondition condition : nestedSearchConditions) {
+			supported &= condition.isSupportingMemoryExecution(queryingTypesInSummaryCache);
+		}
+		return supported;
+	}
 }

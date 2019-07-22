@@ -62,6 +62,7 @@ public class DeprecatedBatchProcessesManagerAcceptanceTest extends ConstellioTes
 
 	@Before
 	public void setUp() {
+		//Toggle.MIGRATING_LEGACY_SAVESTATE.enable();
 		givenCollection(zeCollection);
 		givenWaitForBatchProcessAfterTestIsDisabled();
 		getModelLayerFactory().getBatchProcessesController().close();

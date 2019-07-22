@@ -308,7 +308,7 @@ public class AddExistingContainerPresenter extends SearchPresenter<AddExistingCo
 			tmpSearchRecord = recordServices().newRecordWithSchema(schema(SavedSearch.DEFAULT_SCHEMA));
 		} else {
 			SavedSearch savedSearch = new SavedSearch(tmpSearchRecord, types());
-			if (!Boolean.TRUE.equals(savedSearch.isTemporary())) {
+			if (!savedSearch.isTemporary()) {
 				tmpSearchRecord = recordServices()
 						.newRecordWithSchema(schema(SavedSearch.DEFAULT_SCHEMA));
 			}

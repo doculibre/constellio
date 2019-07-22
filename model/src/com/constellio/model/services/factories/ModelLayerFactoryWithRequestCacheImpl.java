@@ -267,11 +267,6 @@ public class ModelLayerFactoryWithRequestCacheImpl implements ModelLayerFactory 
 	}
 
 	@Override
-	public RecordsCaches getBottomRecordsCaches() {
-		return modelLayerFactory.getRecordsCaches();
-	}
-
-	@Override
 	public SecurityTokenManager getSecurityTokenManager() {
 		return modelLayerFactory.getSecurityTokenManager();
 	}
@@ -350,6 +345,11 @@ public class ModelLayerFactoryWithRequestCacheImpl implements ModelLayerFactory 
 	@Override
 	public SynonymsConfigurationsManager getSynonymsConfigurationsManager() {
 		return modelLayerFactory.getSynonymsConfigurationsManager();
+	}
+
+	@Override
+	public short getInstanceId() {
+		return modelLayerFactory.getInstanceId();
 	}
 
 	@Override

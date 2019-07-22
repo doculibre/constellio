@@ -6,7 +6,7 @@ import com.constellio.app.modules.restapi.core.exception.RecordLogicallyDeletedE
 import com.constellio.app.modules.restapi.core.exception.RecordNotFoundException;
 import com.constellio.app.modules.restapi.core.exception.RequiredParameterException;
 import com.constellio.app.modules.restapi.core.util.SchemaTypes;
-import com.constellio.app.modules.restapi.document.dto.AceDto;
+import com.constellio.app.modules.restapi.resource.dto.AceDto;
 import com.constellio.app.modules.restapi.signature.SignatureService;
 import com.constellio.app.modules.restapi.validation.dao.ValidationDao;
 import com.constellio.app.modules.restapi.validation.exception.ExpiredSignedUrlException;
@@ -55,6 +55,7 @@ public class ValidationServiceTest {
 	private int expiration = 3600;
 	private String version = "1.0";
 	private boolean physical = false;
+	private String copySourceId = null;
 
 	private String token = "token";
 	private String signature = "8OQvBGl5lu64hwRSAIh8KQkuq17W-SYLWcsJLEGMMe4";
@@ -80,13 +81,15 @@ public class ValidationServiceTest {
 
 	@Test
 	public void testValidateSignatureWithCorrectSignature() throws Exception {
-		validationService.validateSignature(host, id, serviceKey, schemaType, method, date, expiration, version, physical, signature);
+		validationService.validateSignature(host, id, serviceKey, schemaType, method, date, expiration, version, physical,
+				copySourceId, signature);
 	}
 
 	@Test(expected = InvalidSignatureException.class)
 	public void testValidateSignatureWithInvalidSignature() throws Exception {
 		String fakeSignature = "0000000000000000000000000000000000000000000";
-		validationService.validateSignature(host, id, serviceKey, schemaType, method, date, expiration, version, physical, fakeSignature);
+		validationService.validateSignature(host, id, serviceKey, schemaType, method, date, expiration, version, physical,
+				copySourceId, fakeSignature);
 	}
 
 	@Test(expected = InvalidSignatureException.class)
@@ -94,14 +97,16 @@ public class ValidationServiceTest {
 		when(validationDao.getUserTokens(anyString(), anyBoolean())).thenReturn(Lists.newArrayList("fakeToken1", "fakeToken2"));
 		when(signatureService.sign(anyString(), anyString())).thenReturn("anotherSignature");
 
-		validationService.validateSignature(host, id, serviceKey, schemaType, method, date, expiration, version, physical, signature);
+		validationService.validateSignature(host, id, serviceKey, schemaType, method, date, expiration, version, physical,
+				copySourceId, signature);
 	}
 
 	@Test(expected = UnauthenticatedUserException.class)
 	public void testValidateSignatureWithNoToken() throws Exception {
 		when(validationDao.getUserTokens(anyString(), anyBoolean())).thenReturn(Collections.<String>emptyList());
 
-		validationService.validateSignature(host, id, serviceKey, schemaType, method, date, expiration, version, physical, signature);
+		validationService.validateSignature(host, id, serviceKey, schemaType, method, date, expiration, version, physical,
+				copySourceId, signature);
 	}
 
 	@Test

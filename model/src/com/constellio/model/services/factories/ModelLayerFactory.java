@@ -139,8 +139,6 @@ public interface ModelLayerFactory extends LayerFactory {
 
 	RecordsCaches getRecordsCaches();
 
-	RecordsCaches getBottomRecordsCaches();
-
 	SecurityTokenManager getSecurityTokenManager();
 
 	ModelLayerLogger getModelLayerLogger();

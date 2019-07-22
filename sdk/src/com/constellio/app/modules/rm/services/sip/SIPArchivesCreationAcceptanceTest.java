@@ -37,6 +37,7 @@ import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.event.EventTestUtil;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.records.utils.RecordCodeComparator;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestUtils;
 import com.constellio.sdk.tests.setups.Users;
@@ -56,12 +57,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.constellio.app.modules.rm.model.enums.DecommissioningType.DEPOSIT;
 import static com.constellio.app.modules.rm.model.enums.DecommissioningType.TRANSFERT_TO_SEMI_ACTIVE;
 import static com.constellio.data.dao.services.bigVault.solr.SolrUtils.atomicSet;
 import static com.constellio.sdk.tests.TestUtils.zipFileWithSameContentExceptingFiles;
 import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
 import static java.util.Locale.FRENCH;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.contentOf;
@@ -154,12 +157,13 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenExportingCollectionFoldersAndDocumentsThenAllExported()
 			throws Exception {
-
+		cacheIntegrityCheckedAfterTest = false;
 
 		Transaction tx = new Transaction();
 
 		int folderIndex = 0;
-		for (Category category : rm.getAllCategories()) {
+		for (Category category : rm.getAllCategories().stream().sorted(
+				new RecordCodeComparator(emptyList())).collect(Collectors.toList())) {
 
 			String folderId = "folder" + ++folderIndex;
 			tx.add(rm.newFolderWithId(folderId).setOpenDate(new LocalDate(2018, 1, 1))
@@ -200,17 +204,52 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 
 		TestUtils.assertFilesInZip(new File(tempFolder, "foldersAndDocuments-001.zip")).contains(
 				"bag-info.txt",
+				"bagit.txt",
+				"data/category-X/category-X100/category-X110/folder-folder4.xml",
+				"data/category-X/category-X100/category-X110/folder-folder4/document-folder4_document1.xml",
+				"data/category-X/category-X100/category-X110/folder-folder4/document-folder4_document2.xml",
+				"data/category-X/category-X100/category-X120/folder-folder5.xml",
+				"data/category-X/category-X100/category-X120/folder-folder5/document-folder5_document1.xml",
+				"data/category-X/category-X100/category-X120/folder-folder5/document-folder5_document2.xml",
+				"data/category-X/category-X100/folder-folder3.xml",
+				"data/category-X/category-X100/folder-folder3/document-folder3_document1.xml",
+				"data/category-X/category-X100/folder-folder3/document-folder3_document2.xml",
+				"data/category-X/category-X13/folder-folder2.xml",
+				"data/category-X/category-X13/folder-folder2/document-folder2_document1.xml",
+				"data/category-X/category-X13/folder-folder2/document-folder2_document2.xml",
 				"data/category-X/folder-folder1.xml",
 				"data/category-X/folder-folder1/document-folder1_document1.xml",
 				"data/category-X/folder-folder1/document-folder1_document2.xml",
-				"data/category-X/category-X100/category-X110/folder-folder9.xml",
-				"data/category-X/category-X100/category-X110/folder-folder9/document-folder9_document1.xml",
-				"data/category-X/category-X100/category-X110/folder-folder9/document-folder9_document2.xml",
-				"data/category-X/category-X100/category-X120/folder-folder10.xml",
-				"data/category-X/category-X100/category-X120/folder-folder10/document-folder10_document1.xml",
-				"data/category-X/category-X100/category-X120/folder-folder10/document-folder10_document2.xml",
-				"foldersAndDocuments-001.xml", "manifest-sha256.txt", "tagmanifest-sha256.txt"
-		);
+				"data/category-Z/category-Z100/category-Z110/category-Z111/folder-folder9.xml",
+				"data/category-Z/category-Z100/category-Z110/category-Z111/folder-folder9/document-folder9_document1.xml",
+				"data/category-Z/category-Z100/category-Z110/category-Z111/folder-folder9/document-folder9_document2.xml",
+				"data/category-Z/category-Z100/category-Z110/category-Z112/folder-folder10.xml",
+				"data/category-Z/category-Z100/category-Z110/category-Z112/folder-folder10/document-folder10_document1.xml",
+				"data/category-Z/category-Z100/category-Z110/category-Z112/folder-folder10/document-folder10_document2.xml",
+				"data/category-Z/category-Z100/category-Z110/folder-folder8.xml",
+				"data/category-Z/category-Z100/category-Z110/folder-folder8/document-folder8_document1.xml",
+				"data/category-Z/category-Z100/category-Z110/folder-folder8/document-folder8_document2.xml",
+				"data/category-Z/category-Z100/category-Z120/folder-folder11.xml",
+				"data/category-Z/category-Z100/category-Z120/folder-folder11/document-folder11_document1.xml",
+				"data/category-Z/category-Z100/category-Z120/folder-folder11/document-folder11_document2.xml",
+				"data/category-Z/category-Z100/folder-folder7.xml",
+				"data/category-Z/category-Z100/folder-folder7/document-folder7_document1.xml",
+				"data/category-Z/category-Z100/folder-folder7/document-folder7_document2.xml",
+				"data/category-Z/category-Z200/folder-folder12.xml",
+				"data/category-Z/category-Z200/folder-folder12/document-folder12_document1.xml",
+				"data/category-Z/category-Z200/folder-folder12/document-folder12_document2.xml",
+				"data/category-Z/category-Z999/folder-folder13.xml",
+				"data/category-Z/category-Z999/folder-folder13/document-folder13_document1.xml",
+				"data/category-Z/category-Z999/folder-folder13/document-folder13_document2.xml",
+				"data/category-Z/category-ZE42/folder-folder14.xml",
+				"data/category-Z/category-ZE42/folder-folder14/document-folder14_document1.xml",
+				"data/category-Z/category-ZE42/folder-folder14/document-folder14_document2.xml",
+				"data/category-Z/folder-folder6.xml",
+				"data/category-Z/folder-folder6/document-folder6_document1.xml",
+				"data/category-Z/folder-folder6/document-folder6_document2.xml",
+				"foldersAndDocuments-001.xml",
+				"manifest-sha256.txt",
+				"tagmanifest-sha256.txt");
 
 	}
 
@@ -542,7 +581,7 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenExportingCollectionThenExportTasks()
 			throws Exception {
-
+		cacheIntegrityCheckedAfterTest = false;
 		//		getIOLayerFactory().newZipService().zip(getTestResourceFile("sip1.zip"),
 		//				asList(new File("/Users/francisbaril/Downloads/SIPArchivesCreationAcceptanceTest-sip1").listFiles()));
 
@@ -714,6 +753,8 @@ public class SIPArchivesCreationAcceptanceTest extends ConstellioTest {
 		doc.setField(tasks.userTask.statusType().getDataStoreCode(), atomicSet("Mouahahahahaha"));
 		solrClient.add(doc);
 		solrClient.commit();
+
+		getModelLayerFactory().getRecordsCaches().reloadAllSchemaTypes(zeCollection);
 	}
 
 

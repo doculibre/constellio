@@ -86,7 +86,7 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 		searchExpression = search.getFreeTextSearch();
 		facetSelections.putAll(search.getSelectedFacets());
 		sortCriterion = search.getSortField();
-		if(search.getSortOrder() != null) {
+		if (search.getSortOrder() != null) {
 			sortOrder = SortOrder.valueOf(search.getSortOrder().name());
 		}
 		pageNumber = search.getPageNumber();
@@ -104,9 +104,9 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 						collection);
 
 		if (allowedSchemaTypes().isEmpty()) {
-			service = new SearchPresenterService(collection, user, modelLayerFactory,null);
+			service = new SearchPresenterService(collection, user, modelLayerFactory, null);
 		} else {
-			service = new SearchPresenterService(collection, user, modelLayerFactory,allowedSchemaTypes());
+			service = new SearchPresenterService(collection, user, modelLayerFactory, allowedSchemaTypes());
 		}
 
 	}
@@ -228,7 +228,7 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 
 	protected List<MetadataSchemaType> allowedSchemaTypes() {
 		List<MetadataSchemaType> result = new ArrayList<>();
-		if(types() != null) {
+		if (types() != null) {
 			for (MetadataSchemaType type : types().getSchemaTypes()) {
 				SchemaTypeDisplayConfig config = schemasDisplayManager()
 						.getType(view.getSessionContext().getCurrentCollection(), type.getCode());
@@ -279,7 +279,7 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 			tmpSearchRecord = getTemporarySearchRecord();
 			if (tmpSearchRecord != null) {
 				SavedSearch savedSearch = new SavedSearch(tmpSearchRecord, types());
-				if (!Boolean.TRUE.equals(savedSearch.isTemporary())) {
+				if (!savedSearch.isTemporary()) {
 					tmpSearchRecord = recordServices()
 							.newRecordWithSchema(schema(SavedSearch.DEFAULT_SCHEMA), newRandomId());
 				}

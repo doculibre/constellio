@@ -57,23 +57,23 @@ public class RecordUtilsUnitTest extends ConstellioTest {
 			throws Exception {
 
 		assertThat(SchemaUtils.getMetadataLocalCodeWithoutPrefix(
-				Metadata.newDummyMetadata("zeSchema_default", "patate", MetadataValueType.STRING, true, false)))
+				Metadata.newDummyMetadata((short) 1, "zeSchema_default", "patate", MetadataValueType.STRING, true, false)))
 				.isEqualTo("patate");
 
 		assertThat(SchemaUtils.getMetadataLocalCodeWithoutPrefix(
-				Metadata.newDummyMetadata("zeSchema_default", "USRpatate", MetadataValueType.STRING, true, false)))
+				Metadata.newDummyMetadata((short) 1, "zeSchema_default", "USRpatate", MetadataValueType.STRING, true, false)))
 				.isEqualTo("patate");
 
 		assertThat(SchemaUtils.getMetadataLocalCodeWithoutPrefix(
-				Metadata.newDummyMetadata("zeSchema_default", "MAPpatate", MetadataValueType.STRING, true, false)))
+				Metadata.newDummyMetadata((short) 1, "zeSchema_default", "MAPpatate", MetadataValueType.STRING, true, false)))
 				.isEqualTo("patate");
 
 		assertThat(SchemaUtils.getMetadataLocalCodeWithoutPrefix(
-				Metadata.newDummyMetadata("zeSchema_default", "USRMAPpatate", MetadataValueType.STRING, true, false)))
+				Metadata.newDummyMetadata((short) 1, "zeSchema_default", "USRMAPpatate", MetadataValueType.STRING, true, false)))
 				.isEqualTo("patate");
 
 		assertThat(SchemaUtils.getMetadataLocalCodeWithoutPrefix(
-				Metadata.newDummyMetadata("zeSchema_default", "MAPUSRpatate", MetadataValueType.STRING, true, false)))
+				Metadata.newDummyMetadata((short) 1, "zeSchema_default", "MAPUSRpatate", MetadataValueType.STRING, true, false)))
 				.isEqualTo("patate");
 
 	}

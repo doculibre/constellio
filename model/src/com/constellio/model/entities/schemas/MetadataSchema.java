@@ -18,10 +18,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class MetadataSchema implements Serializable {
 
 	private static final String UNDERSCORE = "_";
+
+	private final short id;
 
 	private final String localCode;
 
@@ -37,9 +40,13 @@ public class MetadataSchema implements Serializable {
 
 	private final Set<RecordValidator> schemaValidators;
 
+	private final Map<String, Metadata> indexByDataStoreCode;
+
 	private final Map<String, Metadata> indexByLocalCode;
 
 	private final Map<String, Metadata> indexByCode;
+
+	private final Map<Short, Metadata> indexById;
 
 	private MetadataSchemaCalculatedInfos calculatedInfos;
 
@@ -49,25 +56,45 @@ public class MetadataSchema implements Serializable {
 
 	private final CollectionInfo collectionInfo;
 
-	public MetadataSchema(String localCode, String code, CollectionInfo collectionInfo, Map<Language, String> labels,
+	private List<Metadata> summaryMetadatas;
+
+	public MetadataSchema(short id, String localCode, String code, CollectionInfo collectionInfo,
+						  Map<Language, String> labels,
 						  List<Metadata> metadatas,
 						  Boolean undeletable, boolean inTransactionLog, Set<RecordValidator> schemaValidators,
 						  MetadataSchemaCalculatedInfos calculatedInfos, String dataStore, boolean active) {
 		super();
+		this.id = id;
 		this.localCode = localCode;
 		this.code = code;
 		this.labels = new HashMap<>(labels);
 		this.inTransactionLog = inTransactionLog;
 		this.metadatas = new MetadataList(metadatas).unModifiable();
+		Set<Short> uniqueIds = metadatas.stream().map(Metadata::getId).collect(Collectors.toSet());
+		if (uniqueIds.size() != metadatas.size()) {
+			throw new IllegalStateException("Multiple metadatas with same id");
+		}
 		this.undeletable = undeletable;
 		this.schemaValidators = schemaValidators;
 		this.calculatedInfos = calculatedInfos;
 		this.indexByLocalCode = Collections.unmodifiableMap(new SchemaUtils().buildIndexByLocalCode(metadatas));
 		this.indexByCode = Collections.unmodifiableMap(new SchemaUtils().buildIndexByCode(metadatas));
+		this.indexByDataStoreCode = Collections.unmodifiableMap(new SchemaUtils().buildIndexByDatastoreCode(metadatas));
+		this.indexById = Collections.unmodifiableMap(new SchemaUtils().buildIndexById(metadatas));
 		this.dataStore = dataStore;
 		this.active = active;
 		this.collectionInfo = collectionInfo;
+		this.summaryMetadatas = new SchemaUtils().buildListOfSummaryMetadatas(metadatas);
 
+	}
+
+	public List<Metadata> getSummaryMetadatas() {
+		return summaryMetadatas;
+	}
+
+
+	public short getId() {
+		return id;
 	}
 
 	public String getLocalCode() {
@@ -113,7 +140,6 @@ public class MetadataSchema implements Serializable {
 	public boolean hasMetadataWithCode(String metadataCode) {
 		try {
 			String localCode = new SchemaUtils().getLocalCodeFromMetadataCode(metadataCode);
-
 			return indexByLocalCode.get(localCode) != null;
 		} catch (MetadataSchemasRuntimeException.CannotGetMetadatasOfAnotherSchemaType | MetadataSchemasRuntimeException.CannotGetMetadatasOfAnotherSchema e) {
 			return false;
@@ -123,6 +149,15 @@ public class MetadataSchema implements Serializable {
 	public Metadata get(String metadataCode) {
 		return getMetadata(metadataCode);
 	}
+
+	public Metadata getMetadataByDatastoreCode(String dataStoreCode) {
+		return indexByDataStoreCode.get(dataStoreCode);
+	}
+
+	public Metadata getMetadataById(Short id) {
+		return indexById.get(id);
+	}
+
 
 	public Metadata getMetadata(String metadataCode) {
 

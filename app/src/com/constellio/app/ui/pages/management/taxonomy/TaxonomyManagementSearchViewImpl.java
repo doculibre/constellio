@@ -108,34 +108,37 @@ public class TaxonomyManagementSearchViewImpl extends BaseViewImpl implements Ta
 				}
 			});
 
-			buttonsContainer.addButton(new ContainerButton() {
-				@Override
-				protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
-					return new EditButton() {
-						@Override
-						protected void buttonClick(ClickEvent event) {
-							Integer index = (Integer) itemId;
-							RecordVO entity = dataProvider.getRecordVO(index);
-							presenter.editButtonClicked(entity);
-						}
-					};
-				}
-			});
+			if (!presenter.canOnlyConsultTaxonomy()) {
+				buttonsContainer.addButton(new ContainerButton() {
+					@Override
+					protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
+						return new EditButton() {
+							@Override
+							protected void buttonClick(ClickEvent event) {
+								Integer index = (Integer) itemId;
+								RecordVO entity = dataProvider.getRecordVO(index);
+								presenter.editButtonClicked(entity);
+							}
+						};
+					}
+				});
 
-			buttonsContainer.addButton(new ContainerButton() {
-				@Override
-				protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
-					DeleteButton deleteButton = new DeleteButton() {
-						@Override
-						protected void confirmButtonClick(ConfirmDialog dialog) {
-							Integer index = (Integer) itemId;
-							RecordVO entity = dataProvider.getRecordVO(index);
-							presenter.deleteButtonClicked(entity);
-						}
-					};
-					return deleteButton;
-				}
-			});
+				buttonsContainer.addButton(new ContainerButton() {
+					@Override
+					protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
+						DeleteButton deleteButton = new DeleteButton() {
+							@Override
+							protected void confirmButtonClick(ConfirmDialog dialog) {
+								Integer index = (Integer) itemId;
+								RecordVO entity = dataProvider.getRecordVO(index);
+								presenter.deleteButtonClicked(entity);
+							}
+						};
+						return deleteButton;
+					}
+				});
+			}
+
 			// TODO Implement deleteLogically for taxonomy concepts
 			recordsContainer = buttonsContainer;
 

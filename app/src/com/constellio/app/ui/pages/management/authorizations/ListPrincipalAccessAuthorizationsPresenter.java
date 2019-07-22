@@ -3,9 +3,9 @@ package com.constellio.app.ui.pages.management.authorizations;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
@@ -58,9 +58,10 @@ public class ListPrincipalAccessAuthorizationsPresenter extends ListAuthorizatio
 			authorizationsServices().execute(authorizationDeleteRequest(authorization).setExecutedBy(getCurrentUser()));
 		} else {
 			List<String> principals = authorization.getPrincipals();
-			principals.remove(recordId);
+			ArrayList<String> principalsModifiableList = new ArrayList<>(principals);
+			principalsModifiableList.remove(recordId);
 			authorizationsServices()
-					.execute(modifyAuthorization(authorization).withNewPrincipalIds(principals).setExecutedBy(getCurrentUser()));
+					.execute(modifyAuthorization(authorization).withNewPrincipalIds(principalsModifiableList).setExecutedBy(getCurrentUser()));
 		}
 	}
 

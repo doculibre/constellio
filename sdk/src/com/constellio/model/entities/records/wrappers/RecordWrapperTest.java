@@ -110,7 +110,7 @@ public class RecordWrapperTest extends ConstellioTest {
 
 		RecordImpl wrappedRecord = new TestRecord("folder_default", "zeUltimateCollection", "42");
 		wrappedRecord.set(Schemas.TITLE, "zeTitle");
-		wrappedRecord.set(Schemas.MODIFIED_BY, shishOClock);
+		wrappedRecord.set(Schemas.MODIFIED_ON, shishOClock);
 
 		wrapper = new RecordWrapper(wrappedRecord, metadataSchemaTypes, "folder");
 		byte[] bytes = SerializationUtils.serialize(wrapper);
@@ -125,7 +125,7 @@ public class RecordWrapperTest extends ConstellioTest {
 	public void givenDisconnectedUnserializedRecordWrapperWhenSetMetadataThenException() {
 		RecordImpl wrappedRecord = new TestRecord("folder_default", "zeUltimateCollection", "42");
 		wrappedRecord.set(Schemas.TITLE, "zeTitle");
-		wrappedRecord.set(Schemas.MODIFIED_BY, shishOClock);
+		wrappedRecord.set(Schemas.MODIFIED_ON, shishOClock);
 
 		wrapper = new RecordWrapper(wrappedRecord, metadataSchemaTypes, "folder");
 		byte[] bytes = SerializationUtils.serialize(wrapper);
@@ -138,7 +138,7 @@ public class RecordWrapperTest extends ConstellioTest {
 	public void givenDisconnectedUnserializedRecordWrapperWhenGetMetadataThenException() {
 		RecordImpl wrappedRecord = new TestRecord("folder_default", "zeUltimateCollection", "42");
 		wrappedRecord.set(Schemas.TITLE, "zeTitle");
-		wrappedRecord.set(Schemas.MODIFIED_BY, shishOClock);
+		wrappedRecord.set(Schemas.MODIFIED_ON, shishOClock);
 
 		wrapper = new RecordWrapper(wrappedRecord, metadataSchemaTypes, "folder");
 		byte[] bytes = SerializationUtils.serialize(wrapper);
@@ -151,7 +151,7 @@ public class RecordWrapperTest extends ConstellioTest {
 	public void givenDisconnectedUnserializedRecordWrapperWhenGetListMetadataThenException() {
 		RecordImpl wrappedRecord = new TestRecord("folder_default", "zeUltimateCollection", "42");
 		wrappedRecord.set(Schemas.TITLE, "zeTitle");
-		wrappedRecord.set(Schemas.MODIFIED_BY, shishOClock);
+		wrappedRecord.set(Schemas.MODIFIED_ON, shishOClock);
 
 		wrapper = new RecordWrapper(wrappedRecord, metadataSchemaTypes, "folder");
 		byte[] bytes = SerializationUtils.serialize(wrapper);
@@ -164,7 +164,7 @@ public class RecordWrapperTest extends ConstellioTest {
 	public void givenDisconnectedUnserializedRecordWrapperWhenGetSchemaThenException() {
 		RecordImpl wrappedRecord = new TestRecord("folder_default", "zeUltimateCollection", "42");
 		wrappedRecord.set(Schemas.TITLE, "zeTitle");
-		wrappedRecord.set(Schemas.MODIFIED_BY, shishOClock);
+		wrappedRecord.set(Schemas.MODIFIED_ON, shishOClock);
 
 		wrapper = new RecordWrapper(wrappedRecord, metadataSchemaTypes, "folder");
 		byte[] bytes = SerializationUtils.serialize(wrapper);
@@ -177,7 +177,7 @@ public class RecordWrapperTest extends ConstellioTest {
 	public void givenReconnectgivenDisconnectedUnserializedRecordWrapperWhenGetOrSetMetadataThenOK() {
 		RecordImpl wrappedRecord = new TestRecord("folder_default", "zeUltimateCollection", "42");
 		wrappedRecord.set(Schemas.TITLE, "zeTitle");
-		wrappedRecord.set(Schemas.MODIFIED_BY, shishOClock);
+		wrappedRecord.set(Schemas.MODIFIED_ON, shishOClock);
 
 		wrapper = new RecordWrapper(wrappedRecord, metadataSchemaTypes, "folder");
 		byte[] bytes = SerializationUtils.serialize(wrapper);

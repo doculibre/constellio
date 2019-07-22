@@ -29,6 +29,7 @@ import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.RecordCacheType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.AuthorizationAddRequest;
@@ -80,7 +81,7 @@ import static org.junit.Assert.fail;
 
 public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends ConstellioTest {
 
-	private static final boolean VALIDATE_SOLR_QUERIES_COUNT = true;
+	private static final boolean VALIDATE_SOLR_QUERIES_COUNT = false;
 
 	Users users = new Users();
 	User alice;
@@ -129,7 +130,7 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 					@Override
 					public void afterQuery(AfterQueryParams params) {
 
-						LOGGER.warn("Query " + params.getSolrParams().toQueryString() + ":", new RuntimeException());
+						//LOGGER.warn("Query " + params.getSolrParams().toQueryString() + ":", new RuntimeException());
 
 						queriesCount.incrementAndGet();
 						String[] facetQuery = params.getSolrParams().getParams("facet.query");
@@ -373,6 +374,10 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 	@Test
 	public void givenUserHaveAuthorizationsOnSomeFoldersThenValidTreeForDocumentSelectionUsingPlanTaxonomy()
 			throws Exception {
+
+
+		assertThat(getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection).getSchemaType("folder")
+				.getCacheType()).isEqualTo(RecordCacheType.SUMMARY_CACHED_WITH_VOLATILE);
 
 		givenUserHasReadAccessTo(records.folder_A18, records.folder_A08);
 
@@ -1807,7 +1812,7 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 			}
 
 			if (i == size - 1) {
-				subFolderNearEnd = rm.newFolder().setTitle("Sub folder").setParentFolder(folder).setOpenDate(LocalDate.now());
+				subFolderNearEnd = rm.newFolderWithId("zeSubFolder").setTitle("Sub folder").setParentFolder(folder).setOpenDate(LocalDate.now());
 				addedRecords.add(subFolderNearEnd);
 			}
 		}
@@ -1836,7 +1841,7 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				.has(solrQueryCounts(3, 2, 2))
 				.has(secondSolrQueryCounts(2, 2, 2));
 
-		assertThat(queryCount.get()).isEqualTo(6);
+		assertThat(queryCount.get()).isEqualTo(7);
 	}
 
 	@Test
@@ -1932,6 +1937,16 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				.has(numFound(25)).has(listSize(20))
 				.has(fastContinuationInfos(false, 20))
 				.has(solrQueryCounts(2, 302, 25))
+				.has(secondSolrQueryCounts(0, 0, 0));
+
+		assertThatRootWhenSelectingAFolderUsingPlanTaxonomy(withWriteAccess.setStartRow(10).setRows(20)
+				.setFastContinueInfos(null))
+				.has(resultsInOrder("category_11", "category_12", "category_13", "category_14", "category_15", "category_16",
+						"category_17", "category_18", "category_19", "category_20", "category_21", "category_22", "category_23",
+						"category_24", "category_25", "category_26", "category_27", "category_28", "category_29", "category_30"))
+				.has(numFound(50)).has(listSize(20))
+				.has(fastContinuationInfos(false, 30))
+				.has(solrQueryCounts(1, 0, 10))
 				.has(secondSolrQueryCounts(0, 0, 0));
 
 		assertThatRootWhenSelectingAFolderUsingPlanTaxonomy(withWriteAccess.setStartRow(10).setRows(20)
@@ -3874,7 +3889,7 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 
 	public void cleanStorageSpaces() {
 		RecordDao recordDao = getAppLayerFactory().getModelLayerFactory().getDataLayerFactory().newRecordDao();
-		TransactionDTO transaction = new TransactionDTO(RecordsFlushing.LATER());
+		TransactionDTO transaction = new TransactionDTO(RecordsFlushing.NOW());
 		ModifiableSolrParams modifiableSolrParams = new ModifiableSolrParams();
 		modifiableSolrParams.set("q", "schema_s:storageSpace*");
 		transaction = transaction.withDeletedByQueries(modifiableSolrParams);
@@ -3883,6 +3898,7 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 		} catch (RecordDaoException.OptimisticLocking optimisticLocking) {
 			optimisticLocking.printStackTrace();
 		}
+		getModelLayerFactory().getRecordsCaches().getCache(zeCollection).invalidateVolatileReloadPermanent(asList("storageSpace"));
 	}
 
 	@Override

@@ -4,6 +4,8 @@ import com.constellio.data.dao.managers.StatefulService;
 
 public interface LayerFactory {
 
+	public short getInstanceId();
+
 	public String getInstanceName();
 
 	public <T extends StatefulService> T add(T statefulService);

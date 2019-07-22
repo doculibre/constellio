@@ -40,7 +40,7 @@ public class MetadataSchemaTypesBuilderOldTest extends ConstellioTest {
 	public void setup()
 			throws Exception {
 		when(modelLayerFactory.getTaxonomiesManager()).thenReturn(taxonomiesManager);
-		CollectionInfo zeCollectionInfo = new CollectionInfo(zeCollection, "fr", Arrays.asList("fr"));
+		CollectionInfo zeCollectionInfo = new CollectionInfo((byte) 0, zeCollection, "fr", Arrays.asList("fr"));
 		typesBuilder = MetadataSchemaTypesBuilder.createWithVersion(zeCollectionInfo, VERSION, new DefaultClassProvider(),
 				Arrays.asList(Language.French));
 		folderTypeBuilder = typesBuilder.createNewSchemaType(FOLDER);

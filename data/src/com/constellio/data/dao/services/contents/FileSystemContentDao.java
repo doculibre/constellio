@@ -17,6 +17,7 @@ import org.apache.commons.io.FileExistsException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDateTime;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -363,6 +364,12 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 				getReplicatedVaultFile(file).delete();
 			}
 		}
+	}
+
+	@Override
+	public LocalDateTime getLastModification(String contentId) {
+		File file = getFileOf(contentId);
+		return new LocalDateTime(file.lastModified());
 	}
 
 	@Override

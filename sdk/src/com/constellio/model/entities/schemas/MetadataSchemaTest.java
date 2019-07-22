@@ -50,9 +50,16 @@ public class MetadataSchemaTest extends ConstellioTest {
 		when(secondTypeParentRelationToThirdType.isChildOfRelationship()).thenReturn(true);
 		when(firstTypeParentRelationToFirstType.getType()).thenReturn(MetadataValueType.REFERENCE);
 		when(secondTypeParentRelationToFirstType.getType()).thenReturn(MetadataValueType.REFERENCE);
-		when(secondTypeParentRelationToSecondType.getType()).thenReturn(MetadataValueType.REFERENCE);
+		when(secondTypeRelationToSecondType.getType()).thenReturn(MetadataValueType.REFERENCE);
 		when(secondTypeParentRelationToSecondType.getType()).thenReturn(MetadataValueType.REFERENCE);
 		when(secondTypeParentRelationToThirdType.getType()).thenReturn(MetadataValueType.REFERENCE);
+
+		when(firstTypeParentRelationToFirstType.getDataStoreCode()).thenReturn("parentRelationToFirstId_s");
+		when(secondTypeParentRelationToFirstType.getDataStoreCode()).thenReturn("parentRelationToFirstId_s");
+		when(secondTypeRelationToSecondType.getDataStoreCode()).thenReturn("parentRelationToSecondId_s");
+		when(secondTypeParentRelationToSecondType.getDataStoreCode()).thenReturn("relationToSecondId_s");
+		when(secondTypeParentRelationToThirdType.getDataStoreCode()).thenReturn("parentRelationToThirdId_s");
+
 		when(firstTypeParentRelationToFirstType.getAllowedReferences()).thenReturn(new AllowedReferences("first", null));
 		when(secondTypeParentRelationToFirstType.getAllowedReferences()).thenReturn(new AllowedReferences("first", null));
 		when(secondTypeParentRelationToSecondType.getAllowedReferences())
@@ -72,12 +79,12 @@ public class MetadataSchemaTest extends ConstellioTest {
 				secondTypeParentRelationToThirdType, secondTypeRelationToSecondType);
 		List<Taxonomy> taxonomies = Arrays.asList(firstTaxonomy, secondTaxonomy);
 
-		CollectionInfo zeCollectionInfo = new CollectionInfo(zeCollection, "fr", Arrays.asList("fr"));
-		MetadataSchema schema = new MetadataSchema("default", "second_default", zeCollectionInfo, labels, metadatas, false,
+		CollectionInfo zeCollectionInfo = new CollectionInfo((byte) 0, zeCollection, "fr", Arrays.asList("fr"));
+		MetadataSchema schema = new MetadataSchema((short) 1, "default", "second_default", zeCollectionInfo, labels, metadatas, false,
 				true, new HashSet<RecordValidator>(), null, DataStore.RECORDS, true);
 
-		MetadataSchemaType schemaType = new MetadataSchemaType("second", null, zeCollectionInfo, asMap(Language.French, "titre"),
-				new ArrayList<MetadataSchema>(), schema, true, true, true, false, "records");
+		MetadataSchemaType schemaType = new MetadataSchemaType((short) 0, "second", null, zeCollectionInfo, asMap(Language.French, "titre"),
+				new ArrayList<MetadataSchema>(), schema, true, true, RecordCacheType.NOT_CACHED, true, false, "records");
 
 		List<Metadata> returnedMetadatas = schemaType.getTaxonomySchemasMetadataWithChildOfRelationship(taxonomies);
 
@@ -107,8 +114,8 @@ public class MetadataSchemaTest extends ConstellioTest {
 				.asList(relationToT4, taxonomyRelationToT4, relationToT3Custom, taxonomyRelationToT3Custom, relationToOtherSchema,
 						textMetadata);
 
-		CollectionInfo zeCollectionInfo = new CollectionInfo(zeCollection, "fr", Arrays.asList("fr"));
-		MetadataSchema schema = new MetadataSchema("default", "zeType_default", zeCollectionInfo, labels, metadatas, false,
+		CollectionInfo zeCollectionInfo = new CollectionInfo((byte) 0, zeCollection, "fr", Arrays.asList("fr"));
+		MetadataSchema schema = new MetadataSchema((short) 1, "default", "zeType_default", zeCollectionInfo, labels, metadatas, false,
 				true, new HashSet<RecordValidator>(), null, DataStore.RECORDS, true);
 
 		List<Metadata> returnedMetadatas = schema.getTaxonomyRelationshipReferences(taxonomies);
@@ -140,8 +147,8 @@ public class MetadataSchemaTest extends ConstellioTest {
 		List<Metadata> metadatas = Arrays
 				.asList(relationToT4, taxonomyRelationToT4, relationToT3Custom, taxonomyRelationToT3Custom, relationToOtherSchema,
 						textMetadata, relationToT1, relationToT2);
-		CollectionInfo zeCollectionInfo = new CollectionInfo(zeCollection, "fr", Arrays.asList("fr"));
-		MetadataSchema schema = new MetadataSchema("default", "t2_default", zeCollectionInfo, labels, metadatas, false,
+		CollectionInfo zeCollectionInfo = new CollectionInfo((byte) 0, zeCollection, "fr", Arrays.asList("fr"));
+		MetadataSchema schema = new MetadataSchema((short) 1, "default", "t2_default", zeCollectionInfo, labels, metadatas, false,
 				true, new HashSet<RecordValidator>(), null, DataStore.RECORDS, true);
 
 		List<Metadata> returnedMetadatas = schema.getTaxonomyRelationshipReferences(taxonomies);
@@ -149,21 +156,26 @@ public class MetadataSchemaTest extends ConstellioTest {
 
 	}
 
+	short nextMetadataId = 1;
+
 	private Metadata mockedTextMetadata() {
 		Metadata textMetadata = mock(Metadata.class, "textMetadata");
 		when(textMetadata.getType()).thenReturn(MetadataValueType.STRING);
+		when(textMetadata.getId()).thenReturn(nextMetadataId++);
 		return textMetadata;
 	}
 
 	private Metadata mockTaxonomyRefMetadata(String code, String type) {
 		Metadata metadata = mockRefMetadata(code, type);
 		when(metadata.isTaxonomyRelationship()).thenReturn(true);
+		when(metadata.getId()).thenReturn(nextMetadataId++);
 		return metadata;
 	}
 
 	private Metadata mockTaxonomyRefMetadata(String code, Set<String> schemas) {
 		Metadata metadata = mockRefMetadata(code, schemas);
 		when(metadata.isTaxonomyRelationship()).thenReturn(true);
+		when(metadata.getId()).thenReturn(nextMetadataId++);
 		return metadata;
 	}
 
@@ -174,6 +186,7 @@ public class MetadataSchemaTest extends ConstellioTest {
 		when(metadata.getLocalCode()).thenReturn(localCode);
 		when(metadata.getType()).thenReturn(MetadataValueType.REFERENCE);
 		when(metadata.getAllowedReferences()).thenReturn(new AllowedReferences(type, null));
+		when(metadata.getId()).thenReturn(nextMetadataId++);
 		return metadata;
 	}
 
@@ -184,6 +197,7 @@ public class MetadataSchemaTest extends ConstellioTest {
 		when(metadata.getLocalCode()).thenReturn(localCode);
 		when(metadata.getType()).thenReturn(MetadataValueType.REFERENCE);
 		when(metadata.getAllowedReferences()).thenReturn(new AllowedReferences(null, schemas));
+		when(metadata.getId()).thenReturn(nextMetadataId++);
 		return metadata;
 	}
 }

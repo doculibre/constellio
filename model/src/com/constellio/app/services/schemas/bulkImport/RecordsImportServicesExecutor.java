@@ -35,6 +35,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.NoSuchSchemaType;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.RecordCacheType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.entities.schemas.entries.SequenceDataEntry;
@@ -545,10 +546,6 @@ public class RecordsImportServicesExecutor {
 		String lastId = batch.get(batch.size() - 1).getLegacyId();
 
 		progressionHandler.afterRecordImports(firstId, lastId, batch.size(), errorsCount);
-
-		if (modelLayerFactory.getConfiguration().isDeleteUnusedContentEnabled()) {
-			contentManager.deleteUnreferencedContents(RecordsFlushing.NOW());
-		}
 		return skipped;
 	}
 
@@ -711,8 +708,9 @@ public class RecordsImportServicesExecutor {
 					   ImportData toImport, ValidationErrors errors)
 			throws PostponedRecordException, SkippedBecauseOfFailedDependency {
 		MetadataSchemaType schemaType = getMetadataSchemaType(typeImportContext.schemaType);
-		MetadataSchema newSchema = getMetadataSchema(typeImportContext.schemaType + "_" + toImport.getSchema());
 
+		MetadataSchema newSchema = toImport.getSchema() == null? null:getMetadataSchema(typeImportContext.schemaType + "_" + toImport.getSchema());
+		MetadataSchema defaultSchema = getMetadataSchema(typeImportContext.schemaType + "_" + "default");
 
 		Record record;
 		String legacyId = toImport.getLegacyId();
@@ -729,7 +727,12 @@ public class RecordsImportServicesExecutor {
 			record = null;
 			if (typeBatchImportContext.options.isMergeExistingRecordWithSameUniqueMetadata()) {
 				for (String uniqueMetadataCode : typeImportContext.uniqueMetadatas) {
-					Metadata uniqueMetadata = newSchema.getMetadata(uniqueMetadataCode);
+					Metadata uniqueMetadata;
+					if(newSchema == null) {
+						uniqueMetadata = defaultSchema.getMetadata(uniqueMetadataCode);
+					} else {
+						uniqueMetadata = newSchema.getMetadata(uniqueMetadataCode);
+					}
 
 					record = recordServices.getRecordByMetadata(uniqueMetadata, (String) toImport.getValue(uniqueMetadataCode));
 					if (record != null) {
@@ -740,7 +743,7 @@ public class RecordsImportServicesExecutor {
 
 			if (record == null) {
 				if (importAsLegacyId) {
-					record = recordServices.newRecordWithSchema(newSchema);
+					record = recordServices.newRecordWithSchema(newSchema == null? defaultSchema:newSchema);
 				} else {
 
 					try {
@@ -781,7 +784,7 @@ public class RecordsImportServicesExecutor {
 								return null;
 							}
 						}
-						record = recordServices.newRecordWithSchema(newSchema, legacyId);
+						record = recordServices.newRecordWithSchema(newSchema == null? defaultSchema:newSchema, legacyId);
 
 
 					}
@@ -790,11 +793,15 @@ public class RecordsImportServicesExecutor {
 			}
 		}
 
-		if (!newSchema.getCode().equals(record.getSchemaCode())) {
+		if (newSchema != null && !newSchema.getCode().equals(record.getSchemaCode())) {
 			MetadataSchema wasSchema = getMetadataSchema(record.getSchemaCode());
 			record.changeSchema(wasSchema, newSchema);
 		}
-		record.set(LEGACY_ID, legacyId);
+
+		if(importAsLegacyId) {
+			record.set(LEGACY_ID, legacyId);
+		}
+
 		for (Entry<String, Object> field : toImport.getFields().entrySet()) {
 
 			String key = field.getKey();
@@ -803,7 +810,13 @@ public class RecordsImportServicesExecutor {
 				locale = new Locale(substringAfter(key, "_"));
 				key = substringBefore(key, "_");
 			}
-			Metadata metadata = newSchema.getMetadata(key);
+
+			Metadata metadata;
+			if(newSchema == null) {
+				metadata = defaultSchema.getMetadata(key);
+			} else {
+				metadata = newSchema.getMetadata(key);
+			}
 			if (metadata.getType() != MetadataValueType.STRUCTURE) {
 				Object value = field.getValue();
 				Object convertedValue =
@@ -1196,7 +1209,20 @@ public class RecordsImportServicesExecutor {
 
 			}
 
-			Record record = typeBatchImportContext.transactionCache.getByMetadata(resolverMetadata, resolver.value);
+			Record record = null;
+			if (targettedSchemaType.getCacheType() == RecordCacheType.FULLY_CACHED) {
+				record = typeBatchImportContext.transactionCache.getByMetadata(resolverMetadata, resolver.value);
+			} else if (targettedSchemaType.getCacheType().hasPermanentCache()) {
+				Record recordSummary = typeBatchImportContext.transactionCache.getSummaryByMetadata(resolverMetadata, resolver.value);
+				if (recordSummary != null) {
+					record = typeBatchImportContext.transactionCache.get(recordSummary.getId());
+				}
+
+				if (record == null) {
+					recordServices.getDocumentById(recordSummary.getId());
+				}
+			}
+
 			if (record != null) {
 				resolvedValue = record.getId();
 			}

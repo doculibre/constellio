@@ -14,6 +14,7 @@ import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.utils.DefaultClassProvider;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.schemas.FakeDataStoreTypeFactory;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -53,9 +54,8 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 		when(modelLayerFactory.getTaxonomiesManager()).thenReturn(taxonomiesManager);
 		typesFactory = new FakeDataStoreTypeFactory();
 
-		CollectionInfo zeCollectionInfo = new CollectionInfo("zeUltimateCollection", "fr", Arrays.asList("fr"));
-		typesBuilder = MetadataSchemaTypesBuilder.createWithVersion(zeCollectionInfo, 0, new DefaultClassProvider(),
-				Arrays.asList(Language.French));
+		CollectionInfo zeCollectionInfo = new CollectionInfo((byte) 0, "zeUltimateCollection", "fr", Arrays.asList("fr"));
+		typesBuilder = getMetadataSchemaTypesBuilder(zeCollectionInfo);
 
 		zeType = typesBuilder.createNewSchemaType("zeType");
 		zeTypeDefaultSchema = zeType.getDefaultSchema();
@@ -68,6 +68,12 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 		aThirdType = typesBuilder.createNewSchemaType("aThirdType");
 		aThirdTypeDefaultSchema = aThirdType.getDefaultSchema();
 		aThirdTypeCustomSchema = aThirdType.createCustomSchema("custom");
+	}
+
+	@NotNull
+	private MetadataSchemaTypesBuilder getMetadataSchemaTypesBuilder(CollectionInfo zeCollectionInfo) {
+		return MetadataSchemaTypesBuilder.createWithVersion(zeCollectionInfo, 0, new DefaultClassProvider(),
+				Arrays.asList(Language.French));
 	}
 
 	@Test
@@ -684,7 +690,8 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 		givenZeDefaultSchemaMetadata("m1", STRING).defineDataEntry().asCalculated(CalculatorUsingM2.class);
 		givenZeDefaultSchemaMetadata("m2", STRING).defineDataEntry().asCopied(zeSchemaMetadataRef, anotherSchemaMetadata);
 
-		List<Metadata> metadatas = zeTypeDefaultSchema.buildDefault(typesFactory, modelLayerFactory).getAutomaticMetadatas();
+		List<Metadata> metadatas = zeTypeDefaultSchema.buildDefault(typesFactory, typesBuilder.getSchemaType(zeTypeDefaultSchema.getTypeCode())
+				, typesBuilder, modelLayerFactory).getAutomaticMetadatas();
 
 		assertThat(metadatas).extracting("localCode")
 				.isEqualTo(
@@ -706,7 +713,8 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 
 		zeSchemaMetadataRef.defineReferences().set(anotherType);
 
-		zeTypeDefaultSchema.buildDefault(typesFactory, modelLayerFactory).getAutomaticMetadatas();
+		zeTypeDefaultSchema.buildDefault(typesFactory, typesBuilder.getSchemaType(zeTypeDefaultSchema.getTypeCode())
+				, typesBuilder, modelLayerFactory).getAutomaticMetadatas();
 	}
 
 	@Test

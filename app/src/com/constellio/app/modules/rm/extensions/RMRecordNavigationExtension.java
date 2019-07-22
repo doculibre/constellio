@@ -5,10 +5,7 @@ import com.constellio.app.extensions.records.RecordNavigationExtensionUtils;
 import com.constellio.app.extensions.records.params.NavigationParams;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningBuilderViewImpl;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.RetentionRule;
+import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.framework.components.SearchResultDisplay;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
@@ -69,43 +66,43 @@ public class RMRecordNavigationExtension implements RecordNavigationExtension {
 			String decommissioningSearchId = null;
 			String decommissioningType = null;
 
-			if(component instanceof ReferenceDisplay) {
-				Map<String,String> extraParameters = ((ReferenceDisplay) component).getExtraParameters();
-				if(extraParameters != null) {
+			if (component instanceof ReferenceDisplay) {
+				Map<String, String> extraParameters = ((ReferenceDisplay) component).getExtraParameters();
+				if (extraParameters != null) {
 					decommissioningSearchId = extraParameters.get(DecommissioningBuilderViewImpl.SAVE_SEARCH_DECOMMISSIONING);
 					decommissioningType = extraParameters.get(DecommissioningBuilderViewImpl.DECOMMISSIONING_BUILDER_TYPE);
 				}
 			}
 
-			if(decommissioningSearchId != null || decommissioningType != null) {
+			if (decommissioningSearchId != null || decommissioningType != null) {
 				constellioNavigator.displayFolderFromDecommission(recordId, configs.getConstellioUrl(), navigationParams.isOpenInNewTab(), decommissioningSearchId, decommissioningType);
-			}
-			else{
+			} else {
 				constellioNavigator.displayFolder(recordId, configs.getConstellioUrl(), navigationParams.isOpenInNewTab());
 			}
 		} else if (Document.SCHEMA_TYPE.equals(schemaTypeCode)) {
 			String decommissioningSearchId = null;
 			String decommissioningType = null;
 
-			if(component instanceof ReferenceDisplay) {
-				Map<String,String> extraParameters = ((ReferenceDisplay) component).getExtraParameters();
-				if(extraParameters != null) {
+			if (component instanceof ReferenceDisplay) {
+				Map<String, String> extraParameters = ((ReferenceDisplay) component).getExtraParameters();
+				if (extraParameters != null) {
 					decommissioningSearchId = extraParameters.get(DecommissioningBuilderViewImpl.SAVE_SEARCH_DECOMMISSIONING);
 					decommissioningType = extraParameters.get(DecommissioningBuilderViewImpl.DECOMMISSIONING_BUILDER_TYPE);
 				}
 			}
 
-			if(decommissioningSearchId != null || decommissioningType != null) {
+			if (decommissioningSearchId != null || decommissioningType != null) {
 				constellioNavigator.displayDocumentFromDecommission(recordId, configs.getConstellioUrl(),
 						navigationParams.isOpenInNewTab(), decommissioningSearchId, decommissioningType);
-			}
-			else{
+			} else {
 				constellioNavigator.displayDocument(recordId, configs.getConstellioUrl(), navigationParams.isOpenInNewTab());
 			}
 		} else if (ContainerRecord.SCHEMA_TYPE.equals(schemaTypeCode)) {
 			constellioNavigator.displayContainer(recordId);
 		} else if (RetentionRule.SCHEMA_TYPE.equals(schemaTypeCode)) {
 			constellioNavigator.displayRetentionRule(recordId);
+		} else if (Category.SCHEMA_TYPE.equals(schemaTypeCode)) {
+			constellioNavigator.displayCategory(recordId);
 		} else {
 			throw new UnsupportedOperationException("No navigation for schema type code " + schemaTypeCode);
 		}
@@ -119,6 +116,8 @@ public class RMRecordNavigationExtension implements RecordNavigationExtension {
 		} else if (Document.SCHEMA_TYPE.equals(schemaTypeCode)) {
 			viewForSchemaTypeCode = true;
 		} else if (ContainerRecord.SCHEMA_TYPE.equals(schemaTypeCode)) {
+			viewForSchemaTypeCode = true;
+		} else if (Category.SCHEMA_TYPE.equals(schemaTypeCode)) {
 			viewForSchemaTypeCode = true;
 		} else {
 			viewForSchemaTypeCode = RetentionRule.SCHEMA_TYPE.equals(schemaTypeCode);

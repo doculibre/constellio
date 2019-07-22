@@ -8,8 +8,10 @@ import com.constellio.data.conf.EventBusSendingServiceType;
 import com.constellio.data.conf.IdGeneratorType;
 import com.constellio.data.conf.SolrServerType;
 import com.constellio.data.dao.dto.records.RecordDTO;
+import com.constellio.data.dao.dto.records.RecordDTOMode;
 import com.constellio.data.dao.dto.records.RecordDeltaDTO;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
+import com.constellio.data.dao.dto.records.SolrRecordDTO;
 import com.constellio.data.dao.dto.records.TransactionDTO;
 import com.constellio.data.dao.managers.StatefullServiceDecorator;
 import com.constellio.data.dao.managers.config.CachedConfigManager;
@@ -118,10 +120,10 @@ public class DataLayerFactory extends LayerFactoryImpl {
 
 
 	public DataLayerFactory(IOServicesFactory ioServicesFactory, DataLayerConfiguration dataLayerConfiguration,
-							StatefullServiceDecorator statefullServiceDecorator, String instanceName,
+							StatefullServiceDecorator statefullServiceDecorator, String instanceName, short instanceId,
 							String warVersion) {
 
-		super(statefullServiceDecorator, instanceName);
+		super(statefullServiceDecorator, instanceName, instanceId);
 
 		this.dataLayerExtensions = new DataLayerExtensions();
 		this.dataLayerConfiguration = dataLayerConfiguration;
@@ -159,13 +161,8 @@ public class DataLayerFactory extends LayerFactoryImpl {
 
 		constellioJobManager = add(new ConstellioJobManager(dataLayerConfiguration));
 
-		if (dataLayerConfiguration.getCacheType() == CacheType.IGNITE) {
 
-			localCacheManager = new ConstellioIgniteCacheManager(dataLayerConfiguration.getCacheUrl(), warVersion);
-			igniteClient = ((ConstellioIgniteCacheManager) localCacheManager).getClient();
-			distributedCacheManager = new ConstellioIgniteCacheManager(dataLayerConfiguration.getCacheUrl(), warVersion);
-
-		} else if (dataLayerConfiguration.getCacheType() == CacheType.MEMORY) {
+		if (dataLayerConfiguration.getCacheType() == CacheType.MEMORY) {
 
 			if (dataLayerConfiguration.getCacheUrl() != null) {
 				ConstellioIgniteCacheManager cacheManager = new ConstellioIgniteCacheManager(dataLayerConfiguration.getCacheUrl(),
@@ -203,11 +200,7 @@ public class DataLayerFactory extends LayerFactoryImpl {
 			throw new ImpossibleRuntimeException("Unsupported ConfigManagerType");
 		}
 
-		if (dataLayerConfiguration.getCacheType() == CacheType.IGNITE) {
-			configManager = new CachedConfigManager(configManagerWithoutCache, localCacheManager.getCache("configManager"));
-		} else {
-			configManager = new CachedConfigManager(configManagerWithoutCache, distributedCacheManager.getCache("configManager"));
-		}
+		configManager = new CachedConfigManager(configManagerWithoutCache, distributedCacheManager.getCache("configManager"));
 
 		if (dataLayerConfiguration.getIdGeneratorType() == IdGeneratorType.UUID_V1) {
 			this.idGenerator = new UUIDV1Generator();
@@ -418,7 +411,7 @@ public class DataLayerFactory extends LayerFactoryImpl {
 		RecordDao recordDao = newRecordDao();
 		Map<String, Object> fields = new HashMap<>();
 		fields.put("value_s", solrKeyPart);
-		RecordDTO record = new RecordDTO("the_private_key", -1L, null, fields);
+		RecordDTO record = new SolrRecordDTO("the_private_key", -1L, fields, RecordDTOMode.FULLY_LOADED);
 		try {
 			recordDao.execute(new TransactionDTO(UUID.randomUUID().toString(), RecordsFlushing.NOW, Arrays.asList(record),
 					new ArrayList<RecordDeltaDTO>()));

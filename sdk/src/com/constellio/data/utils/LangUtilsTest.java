@@ -32,6 +32,24 @@ public class LangUtilsTest extends ConstellioTest {
 
 	}
 
+
+	@Test
+	public void whenComparingUsingSortListsThenCorrect()
+			throws Exception {
+
+		List<String> before = Arrays.asList("a", "a", "b", "b", "d");
+		List<String> after = Arrays.asList("a", "c", "c", "d");
+
+		ListComparisonResults<String> results = new LangUtils().compareSorting(before, after);
+		assertThat(results.getNewItems()).containsOnly("c").hasSize(1);
+		assertThat(results.getRemovedItems()).containsOnly("b").hasSize(1);
+
+		results = new LangUtils().compareSorting(after, before);
+		assertThat(results.getRemovedItems()).containsOnly("c").hasSize(1);
+		assertThat(results.getNewItems()).containsOnly("b").hasSize(1);
+
+	}
+
 	@Test
 	public void whenComparingMapsThenCorrect()
 			throws Exception {
@@ -57,5 +75,6 @@ public class LangUtilsTest extends ConstellioTest {
 		assertThat(results.getModifiedEntries()).containsOnly(new ModifiedEntry<>("c", "2", "1"));
 
 	}
+
 
 }

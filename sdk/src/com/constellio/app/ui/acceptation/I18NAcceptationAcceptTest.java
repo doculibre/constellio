@@ -16,6 +16,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.utils.EnumWithSmallCodeUtils;
+import com.constellio.model.utils.i18n.Utf8ResourceBundles;
 import com.constellio.sdk.dev.tools.CompareI18nKeys;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
@@ -27,6 +28,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -68,9 +70,30 @@ public class I18NAcceptationAcceptTest extends ConstellioTest {
 	@Test
 	public void whenDetectDuplicatedKeyThenReturnTrue() {
 		givenEnglishSystem();
+
+		findDuplicateKeys();
+
+		System.out.println("Found " + duplicatedKeys.size() + " duplicated keys :");
+		duplicatedKeys.forEach(System.out::println);
+
 		assertThat(duplicatedKeys).isEmpty();
+	}
 
+	private void findDuplicateKeys() {
+		Set<String> allKeys = new HashSet<>();
 
+		for (Utf8ResourceBundles bundle : i18n.getDefaultBundle()) {
+
+			Enumeration<String> keyEnumeration = bundle.getBundle(Locale.ENGLISH).getKeys();
+			while (keyEnumeration.hasMoreElements()) {
+				String key = keyEnumeration.nextElement();
+				if (allKeys.contains(key)) {
+					duplicatedKeys.add(key);
+				} else {
+					allKeys.add(key);
+				}
+			}
+		}
 	}
 
 

@@ -26,7 +26,7 @@ public class SecurityModelCache implements EventBusListener {
 
 	public static final String cacheName = "securityModelCache";
 
-	public static final String INVALIDATE_EVENT_TYPE = "invalidate";
+	public static final String INVALIDATE_EVENT_TYPE = "removeFromAllCaches";
 	public static final String UPDATE_CACHE_EVENT_TYPE = "authsCreated";
 	public static final String REMOVE_AUTH_EVENT_TYPE = "authDeleted";
 

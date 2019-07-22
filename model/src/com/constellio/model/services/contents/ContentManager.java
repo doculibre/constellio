@@ -2,7 +2,9 @@ package com.constellio.model.services.contents;
 
 import com.constellio.data.conf.HashingEncoding;
 import com.constellio.data.dao.dto.records.RecordDTO;
+import com.constellio.data.dao.dto.records.RecordDTOMode;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
+import com.constellio.data.dao.dto.records.SolrRecordDTO;
 import com.constellio.data.dao.dto.records.TransactionDTO;
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.services.bigVault.RecordDaoException.OptimisticLocking;
@@ -69,6 +71,7 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 import com.constellio.model.utils.MimeTypes;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.apache.commons.io.filefilter.AgeFileFilter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.joda.time.Duration;
@@ -103,6 +106,7 @@ public class ContentManager implements StatefulService {
 
 	//TODO Increase this limit to 100
 	private static final int REPARSE_REINDEX_BATCH_SIZE = 1;
+	private static final long FILE_MINIMUM_AGE_BEFORE_DELETION_IN_MILLIS = 259200000; //3 days
 
 	public static final String READ_FILE_TO_UPLOAD = "ContentManager-ReadFileToUpload";
 
@@ -189,16 +193,18 @@ public class ContentManager implements StatefulService {
 		Runnable scanVaultContentsInBackgroundRunnable = new Runnable() {
 			@Override
 			public void run() {
+				boolean isDeleteUnusedContentEnabled = modelLayerFactory.getConfiguration().isDeleteUnusedContentEnabled();
 				boolean isInScanVaultContentsSchedule = new ConstellioEIMConfigs(modelLayerFactory).isInScanVaultContentsSchedule();
 				if (serviceThreadEnabled && ReindexingServices.getReindexingInfos() == null
 					&& isInScanVaultContentsSchedule
 					&& isEncodingSafeForScan()
-					&& !doesContentScanLockFileExist()) {
+					&& !doesContentScanLockFileExist()
+						&& isDeleteUnusedContentEnabled) {
 					try {
 						createContentScanLockFile();
 						VaultScanResults vaultScanResults = new VaultScanResults();
-						scanVaultContentAndDeleteUnreferencedFiles(vaultScanResults);
 						addReportsAsTemporaryRecords(vaultScanResults);
+						scanVaultContentAndDeleteUnreferencedFiles(vaultScanResults);
 					} catch (IOException e) {
 						e.printStackTrace();
 					} catch (RecordServicesException e) {
@@ -294,13 +300,17 @@ public class ContentManager implements StatefulService {
 			if (!allReferencedHashes.contains(fileId)) {
 				File file = contentDao.getFileOf(fileId);
 				if (file.exists()) {
-					try {
-						contentDao.delete(asList(fileId, fileId + "__parsed", fileId + ".preview"));
-						vaultScanResults.incrementNumberOfDeletedContents();
-						vaultScanResults.appendMessage("INFO: Successfully deleted file " + file.getName() + "\n");
-					} catch (Exception e) {
-						vaultScanResults.appendMessage("ERROR: Could not delete file " + file.getName() + "\n");
-						vaultScanResults.appendMessage(e.getMessage() + "\n");
+					LocalDateTime lastModification = contentDao.getLastModification(fileId);
+					if (lastModification.isBefore(TimeProvider.getLocalDateTime().minus(configuration.getDelayBeforeDeletingUnreferencedContents()))) {
+						try {
+							contentDao.delete(asList(fileId, fileId + "__parsed", fileId + ".preview"));
+
+							vaultScanResults.incrementNumberOfDeletedContents();
+							vaultScanResults.appendMessage("INFO: Successfully deleted file " + file.getName() + "\n");
+						} catch (Exception e) {
+							vaultScanResults.appendMessage("ERROR: Could not delete file " + file.getName() + "\n");
+							vaultScanResults.appendMessage(e.getMessage() + "\n");
+						}
 					}
 				}
 			}
@@ -316,7 +326,7 @@ public class ContentManager implements StatefulService {
 			if (file.exists() && shouldFileBeScannedForDeletion(file)) {
 				if (file.isDirectory()) {
 					getAllContentsFromVaultAndRemoveOrphan(fileId, fileList, vaultScanResults);
-				} else {
+				} else if(new AgeFileFilter(System.currentTimeMillis() - FILE_MINIMUM_AGE_BEFORE_DELETION_IN_MILLIS).accept(file)) {
 					fileList.add(file.getName());
 				}
 			}
@@ -358,7 +368,7 @@ public class ContentManager implements StatefulService {
 
 	private boolean shouldFileBeScannedForDeletion(File file) {
 		boolean isMainFile = !(file.getName().endsWith("__parsed") || file.getName().endsWith(".preview"));
-		List<String> restrictedFiles = asList("tlogs", "tlogs_bck");
+		List<String> restrictedFiles = asList("tlogs", "tlogs_bck", "vaultRecovery");
 		return isMainFile && !restrictedFiles.contains(file.getName());
 	}
 
@@ -682,7 +692,7 @@ public class ContentManager implements StatefulService {
 			fields.put("contentMarkerHash_s", hash);
 			fields.put("time_dt", TimeProvider.getLocalDateTime());
 
-			RecordDTO recordDTO = new RecordDTO(id, fields);
+			RecordDTO recordDTO = new SolrRecordDTO(id, fields, RecordDTOMode.FULLY_LOADED);
 			try {
 				recordDao.execute(new TransactionDTO(RecordsFlushing.ADD_LATER()).withNewRecords(asList(recordDTO)));
 			} catch (OptimisticLocking e) {

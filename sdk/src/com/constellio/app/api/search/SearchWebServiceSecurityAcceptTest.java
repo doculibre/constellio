@@ -3,16 +3,16 @@ package com.constellio.app.api.search;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.SearchEvent;
-import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.RecordCacheType;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
-import com.constellio.model.services.records.cache.RecordsCache;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.FreeTextSearchServices;
 import com.constellio.model.services.search.query.logical.FreeTextQuery;
@@ -43,7 +43,6 @@ import java.util.List;
 
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
-import static com.constellio.model.services.records.cache.CacheConfig.permanentCache;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
 import static java.util.Arrays.asList;
@@ -88,13 +87,14 @@ public class SearchWebServiceSecurityAcceptTest extends ConstellioTest {
 				withCollection(anotherCollection)
 		);
 
+		MetadataSchemasManager schemasManager = getModelLayerFactory().getMetadataSchemasManager();
+
 		for (String collection : asList(zeCollection, anotherCollection)) {
-			RecordsCache cache = getModelLayerFactory().getRecordsCaches().getCache(collection);
-			MetadataSchemaTypes types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
-			cache.configureCache(permanentCache(types.getSchemaType(Authorization.SCHEMA_TYPE)));
-			cache.configureCache(permanentCache(types.getSchemaType(User.SCHEMA_TYPE)));
-			cache.configureCache(permanentCache(types.getSchemaType(Group.SCHEMA_TYPE)));
-			cache.configureCache(permanentCache(types.getSchemaType(SearchEvent.SCHEMA_TYPE)));
+			MetadataSchemaTypesBuilder metadataSchemaTypesBuilder = schemasManager.modify(collection);
+			metadataSchemaTypesBuilder.getSchemaType(Authorization.SCHEMA_TYPE).setRecordCacheType(RecordCacheType.FULLY_CACHED);
+			metadataSchemaTypesBuilder.getSchemaType(User.SCHEMA_TYPE).setRecordCacheType(RecordCacheType.FULLY_CACHED);
+			metadataSchemaTypesBuilder.getSchemaType(Group.SCHEMA_TYPE).setRecordCacheType(RecordCacheType.FULLY_CACHED);
+			metadataSchemaTypesBuilder.getSchemaType(SearchEvent.SCHEMA_TYPE).setRecordCacheType(RecordCacheType.FULLY_CACHED);
 		}
 
 		recordServices = getModelLayerFactory().newRecordServices();

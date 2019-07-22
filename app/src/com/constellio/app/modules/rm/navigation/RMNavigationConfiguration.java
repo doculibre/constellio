@@ -393,8 +393,7 @@ public class RMNavigationConfiguration implements Serializable {
 				new NavigationItem.Decorator(getTaxonomyItem(config)) {
 					@Override
 					public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
-						return visibleIf(item.getStateFor(user, appLayerFactory).isVisible() ||
-										 user.hasAny(RMPermissionsTo.MANAGE_CLASSIFICATION_PLAN, RMPermissionsTo.CONSULT_CLASSIFICATION_PLAN).globally());
+						return visibleIf(item.getStateFor(user, appLayerFactory).isVisible());
 					}
 
 					@Override

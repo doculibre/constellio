@@ -1,8 +1,10 @@
 package com.constellio.data.dao.services.records;
 
 import com.constellio.data.dao.dto.records.RecordDTO;
+import com.constellio.data.dao.dto.records.RecordDTOMode;
 import com.constellio.data.dao.dto.records.RecordDeltaDTO;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
+import com.constellio.data.dao.dto.records.SolrRecordDTO;
 import com.constellio.data.dao.dto.records.TransactionDTO;
 import com.constellio.data.dao.services.bigVault.BigVaultRecordDao;
 import com.constellio.data.dao.services.bigVault.RecordDaoException.OptimisticLocking;
@@ -64,7 +66,7 @@ public class BigVaultRecordDaoLoadTest extends ConstellioTest {
 	private RecordDTO newRecordWithTitle(String title) {
 		Map<String, Object> fields = new HashMap<String, Object>();
 		fields.put("title_s", title);
-		RecordDTO record = new RecordDTO(UUID.randomUUID().toString(), -1, null, fields);
+		RecordDTO record = new SolrRecordDTO(UUID.randomUUID().toString(), -1, null, fields, RecordDTOMode.FULLY_LOADED);
 		return record;
 	}
 

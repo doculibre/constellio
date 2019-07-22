@@ -1197,6 +1197,15 @@ $popup-view-z-index: 3;
     .v-disabled:hover {
     	text-decoration: none;
     }
+    	
+    .v-lazyloadingwrapper-loading {
+	    background-color: white;
+	    border: none;
+	    //background-image: url("img/loading-indicator.gif");
+	    //background-repeat: no-repeat;
+	    //background-position: 50% center;
+	    //border: 2px solid silver;
+	}
     
     .v-filterselect {
     	width: 100%;
@@ -1626,6 +1635,7 @@ $popup-view-z-index: 3;
 
     .constellio-menu-system-state-button {
 		margin: 0.3em 0px 0px;
+		width: 100%;
     }
 
    	.constellio-menu-system-state-button:hover {

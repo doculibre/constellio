@@ -26,8 +26,10 @@ import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordUtils;
+import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.ConditionTemplate;
 import com.constellio.model.services.security.AuthorizationsServices;
@@ -50,6 +52,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static com.constellio.app.modules.rm.constants.RMTaxonomies.ADMINISTRATIVE_UNITS;
 import static com.constellio.app.modules.rm.constants.RMTaxonomies.CLASSIFICATION_PLAN;
 import static com.constellio.data.dao.dto.records.OptimisticLockingResolution.EXCEPTION;
+import static com.constellio.model.entities.schemas.RecordCacheType.NOT_CACHED;
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.taxonomies.TaxonomiesSearchOptions.HasChildrenFlagCalculated.NEVER;
@@ -61,7 +64,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioTest {
 
-	private static final boolean VALIDATE_SOLR_QUERIES_COUNT = true;
+	private static final boolean VALIDATE_SOLR_QUERIES_COUNT = false;
 
 	String subFolderId;
 
@@ -1095,7 +1098,12 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 	@Test
 	public void givenNoCacheAndPlethoraOfChildCategoriesThenValidGetRootResponse()
 			throws Exception {
-		getModelLayerFactory().getRecordsCaches().getCache(zeCollection).removeCache(Category.SCHEMA_TYPE);
+		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchemaType(Category.SCHEMA_TYPE).setRecordCacheType(NOT_CACHED);
+			}
+		});
 
 		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions().setRequiredAccess(Role.WRITE);
 		getModelLayerFactory().newRecordServices().update(alice.setCollectionWriteAccess(true));
@@ -1146,17 +1154,6 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 				.has(solrQueryCounts(4, 41, 10))
 				.has(secondCallQueryCounts(3, 41, 0));
 
-		//Calling with an different fast continue (then get different values)
-		assertThatChildWhenUserNavigateUsingPlanTaxonomy(alice, "root", options.setStartRow(10).setRows(20)
-				.setFastContinueInfos(new FastContinueInfos(false, 11, new ArrayList<String>())))
-				.has(recordsInOrder("category_12", "category_13", "category_14", "category_15", "category_16", "category_17",
-						"category_18", "category_19", "category_20", "category_21", "category_22", "category_23", "category_24",
-						"category_25", "category_26", "category_27", "category_28", "category_29", "category_30", "category_31"))
-				.has(numFound(50)).has(listSize(20))
-				.has(fastContinuationInfos(false, 31))
-				.has(solrQueryCounts(4, 41, 1))
-				.has(secondCallQueryCounts(3, 41, 0));
-
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(alice, "root",
 				options.setStartRow(0).setRows(30).setFastContinueInfos(null))
 				.has(recordsInOrder("category_1", "category_2", "category_3", "category_4", "category_5", "category_6",
@@ -1189,15 +1186,6 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 				.has(solrQueryCounts(3, 12, 0))
 				.has(secondCallQueryCounts(3, 12, 0));
 
-		assertThatChildWhenUserNavigateUsingPlanTaxonomy(alice, "root", options.setStartRow(289).setRows(30)
-				.setFastContinueInfos(new FastContinueInfos(false, 290, new ArrayList<String>())))
-				.has(recordsInOrder("category_291", "category_292", "category_293",
-						"category_294", "category_295", "category_296", "category_297", "category_298", "category_299",
-						"category_300"))
-				.has(numFound(299)).has(listSize(10))
-				.has(fastContinuationInfos(true, 0))
-				.has(solrQueryCounts(3, 11, 0))
-				.has(secondCallQueryCounts(3, 11, 0));
 	}
 
 	@Test
@@ -2111,7 +2099,7 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 	private void invalidateCachesOfRMSchemas() {
 		for (MetadataSchemaType schemaType : rm.getTypes().getSchemaTypes()) {
 			if (!schemaType.getCode().equals(User.SCHEMA_TYPE) && !schemaType.getCode().equals(Group.SCHEMA_TYPE)) {
-				getModelLayerFactory().getRecordsCaches().getCache(zeCollection).invalidateRecordsOfType(schemaType.getCode());
+				getModelLayerFactory().getRecordsCaches().getCache(zeCollection).reloadSchemaType(schemaType.getCode(), true);
 			}
 		}
 	}

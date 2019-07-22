@@ -23,6 +23,10 @@ public class MetadataSchemasRuntimeException extends RuntimeException {
 		public NoSuchSchema(String code) {
 			super("The schema code : '" + code + "' doesn't exist!");
 		}
+
+		public NoSuchSchema(short id) {
+			super("The schema id : '" + id + "' doesn't exist!");
+		}
 	}
 
 	public static class CannotGetMetadatasOfAnotherSchema extends MetadataSchemasRuntimeException {
@@ -54,6 +58,10 @@ public class MetadataSchemasRuntimeException extends RuntimeException {
 
 		public NoSuchSchemaType(String code) {
 			super("No such schema type '" + code + "'");
+		}
+
+		public NoSuchSchemaType(short id) {
+			super("No such schema type with id '" + id + "'");
 		}
 	}
 

@@ -20,7 +20,6 @@ import com.vaadin.ui.ProgressIndicator;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
-
 import org.vaadin.easyuploads.MultiUpload.FileDetail;
 import org.vaadin.easyuploads.UploadField.FieldType;
 
@@ -279,7 +278,7 @@ public abstract class MultiFileUpload extends CssLayout implements DropHandler {
 	 * A helper method to set DirectoryFileFactory with given pathname as
 	 * directory.
 	 *
-	 * @param file
+	 * @param directoryWhereToUpload
 	 */
 	public void setRootDirectory(String directoryWhereToUpload) {
 		setFileFactory(new DirectoryFileFactory(
@@ -294,7 +293,7 @@ public abstract class MultiFileUpload extends CssLayout implements DropHandler {
 	}
 
 	public void drop(DragAndDropEvent event) {
-		DragAndDropWrapper.WrapperTransferable transferable = (WrapperTransferable) event
+		final DragAndDropWrapper.WrapperTransferable transferable = (WrapperTransferable) event
 				.getTransferable();
 		Html5File[] files = transferable.getFiles();
 		if (files != null) {
@@ -325,7 +324,6 @@ public abstract class MultiFileUpload extends CssLayout implements DropHandler {
 					public void streamingStarted(StreamingStartEvent event) {
 						name = event.getFileName();
 						mime = event.getMimeType();
-
 					}
 
 					public void streamingFinished(StreamingEndEvent event) {

@@ -93,6 +93,7 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 		givenTimeIs(new LocalDate(2014, 12, 12));
+		cacheIntegrityCheckedAfterTest = false;
 	}
 
 	@Test
@@ -391,6 +392,9 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 		//params.put("record", recordId);
 		//params.put("brokenLinkRecordId
 
+		getModelLayerFactory().getRecordsCaches().getCache(zeCollection).invalidateVolatileReloadPermanent(
+				asList(zeSchema.typeCode(), anotherSchema.typeCode()));
+
 		SystemCheckResults systemCheckResults = systemCheckManager.runSystemCheck(false);
 		assertThat(systemCheckResults.getMetric(BROKEN_REFERENCES_METRIC)).isEqualTo(2);
 		assertThat(systemCheckResults.getMetric(CHECKED_REFERENCES_METRIC)).isEqualTo(3);
@@ -469,6 +473,9 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 		//rams.put("metadataCode", referenceMetadata.getCode());
 		//params.put("record", recordId);
 		//params.put("brokenLinkRecordId
+
+		getModelLayerFactory().getRecordsCaches().getCache(zeCollection)
+				.invalidateVolatileReloadPermanent(asList(zeSchema.typeCode()));
 
 		SystemCheckManager systemCheckManager = new SystemCheckManager(getAppLayerFactory());
 		SystemCheckResults systemCheckResults = systemCheckManager.runSystemCheck(false);

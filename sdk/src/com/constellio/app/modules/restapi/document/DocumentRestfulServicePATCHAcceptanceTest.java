@@ -16,12 +16,12 @@ import com.constellio.app.modules.restapi.core.exception.mapper.RestApiErrorResp
 import com.constellio.app.modules.restapi.core.util.CustomHttpHeaders;
 import com.constellio.app.modules.restapi.core.util.DateUtils;
 import com.constellio.app.modules.restapi.core.util.HttpMethods;
-import com.constellio.app.modules.restapi.document.dto.AceDto;
 import com.constellio.app.modules.restapi.document.dto.ContentDto;
 import com.constellio.app.modules.restapi.document.dto.DocumentDto;
 import com.constellio.app.modules.restapi.document.dto.DocumentTypeDto;
-import com.constellio.app.modules.restapi.document.dto.ExtendedAttributeDto;
-import com.constellio.app.modules.restapi.document.exception.DocumentTypeNotFoundException;
+import com.constellio.app.modules.restapi.resource.dto.AceDto;
+import com.constellio.app.modules.restapi.resource.dto.ExtendedAttributeDto;
+import com.constellio.app.modules.restapi.resource.exception.ResourceTypeNotFoundException;
 import com.constellio.app.modules.restapi.validation.exception.ExpiredSignedUrlException;
 import com.constellio.app.modules.restapi.validation.exception.InvalidSignatureException;
 import com.constellio.app.modules.restapi.validation.exception.UnallowedHostException;
@@ -33,9 +33,9 @@ import com.constellio.app.ui.i18n.i18n;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -246,6 +246,7 @@ public class DocumentRestfulServicePATCHAcceptanceTest extends BaseDocumentRestf
 				.containsExactly(tuple(fakeDocumentType.getId(), fakeDocumentType.getCode(), fakeDocumentType.getTitle()));
 		assertThat(singletonList(doc.getContent())).extracting("versionType", "filename", "hash", "version")
 				.containsExactly(tuple(MAJOR, fakeFilename, dataSummaryV2.getHash(), "2.0"));
+
 		assertThat(doc.getDirectAces()).extracting("principals", "permissions").contains(
 				tuple(Sets.newHashSet(docUpdate.getDirectAces().get(0).getPrincipals()), Sets.newHashSet(docUpdate.getDirectAces().get(0).getPermissions())));
 		assertThat(doc.getExtendedAttributes()).extracting("key", "values")
@@ -630,7 +631,7 @@ public class DocumentRestfulServicePATCHAcceptanceTest extends BaseDocumentRestf
 	@Test
 	public void testPartialUpdateDocumentWithSchemaChangeAndInvalidMetadataKey() throws Exception {
 		switchToCustomSchema(fakeDocument.getId());
-		addUsrMetadata(MetadataValueType.STRING, records.documentTypeForm().getLinkedSchema(), null, null);
+		addUsrMetadata(id, records.documentTypeForm().getLinkedSchema(), MetadataValueType.STRING, null, null);
 
 		documentToPartialUpdate.setType(DocumentTypeDto.builder().id(records.documentTypeId_9).build());
 		documentToPartialUpdate.setExtendedAttributes(singletonList(
@@ -818,7 +819,7 @@ public class DocumentRestfulServicePATCHAcceptanceTest extends BaseDocumentRestf
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-				.isEqualTo(i18n.$(new DocumentTypeNotFoundException("id", "fake").getValidationError()));
+				.isEqualTo(i18n.$(new ResourceTypeNotFoundException("id", "fake").getValidationError()));
 	}
 
 	@Test
@@ -829,7 +830,7 @@ public class DocumentRestfulServicePATCHAcceptanceTest extends BaseDocumentRestf
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-				.isEqualTo(i18n.$(new DocumentTypeNotFoundException("code", "fake").getValidationError()));
+				.isEqualTo(i18n.$(new ResourceTypeNotFoundException("code", "fake").getValidationError()));
 	}
 
 	@Test
@@ -992,7 +993,7 @@ public class DocumentRestfulServicePATCHAcceptanceTest extends BaseDocumentRestf
 	@Test
 	public void testPartialUpdateDocumentWithCustomSchema() throws Exception {
 		switchToCustomSchema(fakeDocument.getId());
-		addUsrMetadata(MetadataValueType.STRING, records.documentTypeForm().getLinkedSchema(), null, null);
+		addUsrMetadata(id, records.documentTypeForm().getLinkedSchema(), MetadataValueType.STRING, null, null);
 
 		List<String> value1 = singletonList("value11"), value2 = asList("value21", "value22");
 		documentToPartialUpdate.setType(DocumentTypeDto.builder().id(records.documentTypeForm().getId()).build());

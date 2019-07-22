@@ -76,7 +76,7 @@ public class IsEqualCriterionTest extends ConstellioTest {
 		IsEqualCriterion criterion = new IsEqualCriterion(null);
 
 		assertThat(criterion.getSolrQuery(textMetadata)).isEqualTo(
-				"textMetadata:\"__NULL__\"");
+				"(*:* -textMetadata:*)");
 	}
 
 	@Test

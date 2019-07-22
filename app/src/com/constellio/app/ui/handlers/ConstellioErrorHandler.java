@@ -30,8 +30,8 @@ public class ConstellioErrorHandler extends DefaultErrorHandler {
 		BaseViewImpl view = getCurrentView();
 		if (view != null) {
 			if ((!(view instanceof HomeView)) && (throwable instanceof CacheUpdateException)
-					&& throwable.getCause() != null
-					&& throwable.getCause() instanceof ContainerException_ItemListChanged) {
+				&& throwable.getCause() != null
+				&& throwable.getCause() instanceof ContainerException_ItemListChanged) {
 
 				view.updateUI();
 				getCurrentView().showMessage(i18n.$("ConstellioErrorHandler.tableElement"));

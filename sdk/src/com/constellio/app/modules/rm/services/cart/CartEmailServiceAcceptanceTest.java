@@ -124,7 +124,6 @@ public class CartEmailServiceAcceptanceTest extends ConstellioTest {
 		addDocumentsToCart(cart, documents);
 		transaction.add(cart);
 		recordServices.execute(transaction);
-		recordServices.execute(new Transaction(documents));
 	}
 
 	private void addDocumentsToCart(Cart cart, List<Record> documents) {
@@ -207,8 +206,12 @@ public class CartEmailServiceAcceptanceTest extends ConstellioTest {
 	public void givenCartWithTestDocumentsWhenCreateEmlForCartThenOk()
 			throws Exception {
 		InputStream emlStreamFactory = cartEmlService.createEmailForCart(cart.getOwner(), getCartDocumentIds(cart), users.adminIn(zeCollection)).getInputStream();
-		validateEml(emlStreamFactory);
-		IOUtils.closeQuietly(emlStreamFactory);
+		try {
+			validateEml(emlStreamFactory);
+		} finally {
+			IOUtils.closeQuietly(emlStreamFactory);
+		}
+
 	}
 
 	@Test

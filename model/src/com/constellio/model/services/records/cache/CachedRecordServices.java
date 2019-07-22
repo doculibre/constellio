@@ -10,6 +10,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.RecordCacheType;
 import com.constellio.model.entities.security.SecurityModel;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -25,18 +26,18 @@ import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.schemas.ModificationImpactCalculatorResponse;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import static com.constellio.data.dao.services.cache.InsertionReason.WAS_OBTAINED;
 import static com.constellio.data.dao.services.records.DataStore.RECORDS;
 
 public class CachedRecordServices extends BaseRecordServices implements RecordServices {
 
-	RecordsCaches disconnectableRecordsCaches;
+	RecordsCaches recordsCaches;
 
 	RecordServices recordServices;
 
@@ -44,16 +45,11 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 								RecordsCaches recordsCaches) {
 		super(modelLayerFactory);
 		this.recordServices = recordServices;
-		this.disconnectableRecordsCaches = recordsCaches;
+		this.recordsCaches = recordsCaches;
 	}
 
-	public RecordsCaches getConnectedRecordsCache() {
-		if (disconnectableRecordsCaches != null && (disconnectableRecordsCaches instanceof RecordsCachesRequestMemoryImpl)) {
-			if (((RecordsCachesRequestMemoryImpl) disconnectableRecordsCaches).isDisconnected()) {
-				disconnectableRecordsCaches = modelLayerFactory.getModelLayerFactoryFactory().get().getRecordsCaches();
-			}
-		}
-		return disconnectableRecordsCaches;
+	public RecordsCaches getRecordsCache() {
+		return recordsCaches;
 	}
 
 	@Override
@@ -63,7 +59,7 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 
 	@Override
 	public Record getById(String dataStore, String id) {
-		Record record = RECORDS.equals(dataStore) ? getConnectedRecordsCache().getRecord(id) : null;
+		Record record = RECORDS.equals(dataStore) ? getRecordsCache().getRecord(id) : null;
 		if (record == null) {
 			record = recordServices.getById(dataStore, id);
 		}
@@ -71,7 +67,7 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 	}
 
 	public Record getById(MetadataSchemaType schemaType, String id) {
-		RecordsCache cache = getConnectedRecordsCache().getCache(schemaType.getCollection());
+		RecordsCache cache = getRecordsCache().getCache(schemaType.getCollection());
 		Record record = cache.get(id);
 		if (record == null) {
 			record = recordServices.getById(schemaType, id);
@@ -86,7 +82,7 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 
 	@Override
 	public Record realtimeGetById(MetadataSchemaType schemaType, String id) {
-		Record record = getConnectedRecordsCache().getRecord(id);
+		Record record = getRecordsCache().getRecord(id);
 		if (record == null) {
 			record = recordServices.realtimeGetById(schemaType, id);
 		}
@@ -95,9 +91,18 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 
 	@Override
 	public Record realtimeGetById(String dataStore, String id) {
-		Record record = getConnectedRecordsCache().getRecord(id);
+		Record record = getRecordsCache().getRecord(id);
 		if (record == null) {
 			record = recordServices.realtimeGetById(dataStore, id);
+		}
+		return record;
+	}
+
+	@Override
+	public Record realtimeGetRecordSummaryById(String id) {
+		Record record = getRecordsCache().getRecordSummary(id);
+		if (record == null) {
+			record = recordServices.realtimeGetRecordSummaryById(id);
 		}
 		return record;
 	}
@@ -111,13 +116,44 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 			throw new IllegalArgumentException("Metadata '" + metadata + "' is global, which has no specific schema type.");
 		}
 
-		Record foundRecord = getConnectedRecordsCache().getCache(metadata.getCollection()).getByMetadata(metadata, value);
+		if (StringUtils.isBlank(value)) {
+			return null;
+		}
+
+		MetadataSchemaType schemaType = modelLayerFactory.getMetadataSchemasManager()
+				.getSchemaTypes(metadata.getCollection()).getSchemaType(metadata.getSchemaTypeCode());
+
+		if (schemaType.getCacheType() == RecordCacheType.FULLY_CACHED) {
+			return getRecordsCache().getCache(metadata.getCollection()).getByMetadata(metadata, value);
+
+		} else if (schemaType.getCacheType().hasPermanentCache()) {
+			Record foundRecordSummary = getRecordsCache().getCache(metadata.getCollection()).getSummaryByMetadata(metadata, value);
+			if (foundRecordSummary != null) {
+				return getDocumentById(foundRecordSummary.getId());
+			} else {
+				return null;
+			}
+
+		} else {
+			return recordServices.getRecordByMetadata(metadata, value);
+		}
+
+
+	}
+
+	@Override
+	public Record getRecordSummaryByMetadata(Metadata metadata, String value) {
+		if (!metadata.isUniqueValue()) {
+			throw new IllegalArgumentException("Metadata '" + metadata + "' is not unique");
+		}
+		if (metadata.getCode().startsWith("global_")) {
+			throw new IllegalArgumentException("Metadata '" + metadata + "' is global, which has no specific schema type.");
+		}
+
+		Record foundRecord = getRecordsCache().getCache(metadata.getCollection()).getSummaryByMetadata(metadata, value);
 
 		if (foundRecord == null) {
-			foundRecord = recordServices.getRecordByMetadata(metadata, value);
-			if (foundRecord != null) {
-				getConnectedRecordsCache().insert(foundRecord, WAS_OBTAINED);
-			}
+			foundRecord = recordServices.getRecordSummaryByMetadata(metadata, value);
 		}
 
 		return foundRecord;
@@ -288,7 +324,7 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 
 	@Override
 	public RecordsCaches getRecordsCaches() {
-		return getConnectedRecordsCache();
+		return getRecordsCache();
 	}
 
 	@Override

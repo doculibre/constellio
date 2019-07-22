@@ -494,8 +494,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 					protected String toColumnId(Object propertyId) {
 						if (propertyId instanceof MetadataVO) {
 							if (Task.STARRED_BY_USERS.equals(((MetadataVO) propertyId).getLocalCode())) {
-								setColumnHeader(propertyId, "");
-								setColumnWidth(propertyId, 60);
+								setColumnHeader(propertyId, ((MetadataVO) propertyId).getLabel(getSessionContext().getCurrentLocale()));
 							}
 						}
 						return super.toColumnId(propertyId);
@@ -1158,7 +1157,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	}
 
 	@Override
-	public void setAddAuthorizationButtonState(ComponentState state) {
+	public void setViewAuthorizationButtonState(ComponentState state) {
 		addAuthorizationButton.setVisible(state.isVisible());
 		addAuthorizationButton.setEnabled(state.isEnabled());
 		actionButtonStateChanged(addAuthorizationButton);

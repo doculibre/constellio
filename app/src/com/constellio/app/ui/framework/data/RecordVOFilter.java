@@ -4,6 +4,7 @@ import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
+import com.constellio.data.utils.AccentApostropheCleaner;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.vaadin.data.Container;
@@ -44,7 +45,11 @@ public class RecordVOFilter implements Container.Filter {
 				if (getValue() instanceof String) {
 					String stringValue = (String) getValue();
 					if (StringUtils.isNotBlank(stringValue)) {
-						query.setCondition(query.getCondition().andWhere(metadata).isStartingWithText(stringValue));
+						if (metadata.isSortable()) {
+							query.setCondition(query.getCondition().andWhere(metadata.getSortField()).isContainingText(AccentApostropheCleaner.cleanAll(stringValue.toLowerCase())));
+						} else {
+							query.setCondition(query.getCondition().andWhere(metadata).isContainingText(stringValue));
+						}
 					}
 				}
 				break;

@@ -3,6 +3,7 @@ package com.constellio.model.services.batch.manager;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.dao.managers.config.ConfigManager;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -21,6 +22,8 @@ public class BatchProcessManagerStartupAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenSystemWithCurrentBatchProcessesIsStartingThenFinished()
 			throws Exception {
+		Toggle.MIGRATING_LEGACY_SAVESTATE.enable();
+		Toggle.VALIDATE_BYTE_ARRAY_DTOS_AFTER_CREATION.disable();
 		givenBackgroundThreadsEnabled();
 		givenSystemWithCurrentBatchProcessesIsStarting();
 
@@ -42,6 +45,8 @@ public class BatchProcessManagerStartupAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenStartedBatchProcessWhenStartingACollectionThenPutTo()
 			throws Exception {
+		Toggle.MIGRATING_LEGACY_SAVESTATE.enable();
+		Toggle.VALIDATE_BYTE_ARRAY_DTOS_AFTER_CREATION.disable();
 		givenWaitForBatchProcessAfterTestIsDisabled();
 		given_some_processed_batch_process_and_a_current_jammed_process();
 
@@ -69,7 +74,8 @@ public class BatchProcessManagerStartupAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenStartedBatchProcessWhenStartingACollectionThenDeletePreviousCompletedOnesBeforeStarting()
 			throws Exception {
-
+		Toggle.MIGRATING_LEGACY_SAVESTATE.enable();
+		Toggle.VALIDATE_BYTE_ARRAY_DTOS_AFTER_CREATION.disable();
 		givenWaitForBatchProcessAfterTestIsDisabled();
 		given_some_processed_batch_process_and_a_current_jammed_process();
 

@@ -13944,6 +13944,11 @@ div.v-layout.v-horizontal.v-widget {
 	text-decoration: none;
 }
 
+.constellio .v-lazyloadingwrapper-loading {
+	background-color: white;
+	border: none;
+}
+
 .constellio .v-filterselect {
 	width: 100%;
 }
@@ -14317,6 +14322,7 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .constellio-menu-system-state-button {
 	margin: 0.3em 0px 0px;
+	width: 100%;
 }
 
 .constellio .constellio-menu-system-state-button:hover {

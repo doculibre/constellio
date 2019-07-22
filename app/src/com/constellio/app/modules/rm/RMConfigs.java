@@ -83,7 +83,8 @@ public class RMConfigs {
 			NUMBER_OF_DAYS_BEFORE_PREDICTED_DECOMMISSIONING_DATE,
 			ALLOW_SORTING_IN_FOLDER_LIST_OF_DECOMMISSIONING,
 			CREATE_MISSING_AUTHORIZATIONS_FOR_TASK,
-			SUB_FOLDER_DECOMMISSIONING;
+			SUB_FOLDER_DECOMMISSIONING,
+			IGNORE_VALIDATIONS_IN_BATCH_PROCESSING;
 
 	// Category configs
 	public static final SystemConfiguration LINKABLE_CATEGORY_MUST_NOT_BE_ROOT, LINKABLE_CATEGORY_MUST_HAVE_APPROVED_RULES;
@@ -321,6 +322,9 @@ public class RMConfigs {
 				.createBooleanFalseByDefault("decommissioningListWithSelectedFolders"));
 
 		add(CREATE_MISSING_AUTHORIZATIONS_FOR_TASK = others.createBooleanFalseByDefault("createMissingAuthorizationsForTask"));
+
+		add(IGNORE_VALIDATIONS_IN_BATCH_PROCESSING = others.createBooleanFalseByDefault("ignoreValidationsInBatchProcessing")
+				.whichIsHidden());
 	}
 
 	static void add(SystemConfiguration configuration) {
@@ -599,6 +603,10 @@ public class RMConfigs {
 
 	public boolean isCreateMissingAuthorizationsForTask() {
 		return manager.getValue(CREATE_MISSING_AUTHORIZATIONS_FOR_TASK);
+	}
+
+	public boolean isIgnoreValidationsInBatchProcessing() {
+		return manager.getValue(IGNORE_VALIDATIONS_IN_BATCH_PROCESSING);
 	}
 
 }

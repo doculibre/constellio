@@ -541,26 +541,29 @@ public class RecordAutomaticMetadataServices {
 				systemConfigurationsManager.getValue(ConstellioEIMConfigs.GROUP_AUTHORIZATIONS_INHERITANCE);
 		KeyListMap<String, String> groupsReceivingAccessToGroup = new KeyListMap<>();
 		KeyListMap<String, String> groupsGivingAccessToGroup = new KeyListMap<>();
-		Metadata groupAncestorMetadata = types.getSchema(Group.DEFAULT_SCHEMA).getMetadata(Group.ANCESTORS);
+		MetadataSchema groupSchema = types.getSchema(Group.DEFAULT_SCHEMA);
 		Map<String, Boolean> globalGroupDisabledMap = new HashMap<>();
-		for (Record group : searchServices.getAllRecordsInUnmodifiableState(types.getSchemaType(Group.SCHEMA_TYPE))) {
-			if (group != null) {
-				globalGroupDisabledMap.put(group.getId(), !disabledGroups.contains(group.<String>get(Schemas.CODE)));
+		if (groupSchema.hasMetadataWithCode(Group.ANCESTORS)) {
+			Metadata groupAncestorMetadata = groupSchema.getMetadata(Group.ANCESTORS);
+			for (Record group : searchServices.getAllRecordsInUnmodifiableState(types.getSchemaType(Group.SCHEMA_TYPE))) {
+				if (group != null) {
+					globalGroupDisabledMap.put(group.getId(), !disabledGroups.contains(group.<String>get(Schemas.CODE)));
 
-				for (String ancestor : group.<String>getList(groupAncestorMetadata)) {
-					if (groupInheritanceMode == FROM_PARENT_TO_CHILD) {
-						groupsGivingAccessToGroup.add(group.getId(), ancestor);
-						groupsReceivingAccessToGroup.add(ancestor, group.getId());
+					for (String ancestor : group.<String>getList(groupAncestorMetadata)) {
+						if (groupInheritanceMode == FROM_PARENT_TO_CHILD) {
+							groupsGivingAccessToGroup.add(group.getId(), ancestor);
+							groupsReceivingAccessToGroup.add(ancestor, group.getId());
 
-					} else {
-						groupsReceivingAccessToGroup.add(group.getId(), ancestor);
-						groupsGivingAccessToGroup.add(ancestor, group.getId());
+						} else {
+							groupsReceivingAccessToGroup.add(group.getId(), ancestor);
+							groupsGivingAccessToGroup.add(ancestor, group.getId());
+						}
+
 					}
 
+				} else {
+					LOGGER.warn("Null record returned while getting all groups");
 				}
-
-			} else {
-				LOGGER.warn("Null record returned while getting all groups");
 			}
 		}
 
@@ -616,6 +619,11 @@ public class RecordAutomaticMetadataServices {
 		List<String> removedAuthorizations = new ArrayList<>();
 		List<String> attachedAncestors = new ArrayList<>();
 		MetadataSchema recordSchema = schemasManager.getSchemaTypes(record.getCollection()).getSchema(record.getSchemaCode());
+
+		if (record.getId().equals("zeSubFolder")) {
+			System.out.println("!!");
+		}
+
 		List<Metadata> parentReferences = recordSchema.getParentReferences();
 		for (Metadata metadata : parentReferences) {
 			String referenceValue = record.get(metadata);

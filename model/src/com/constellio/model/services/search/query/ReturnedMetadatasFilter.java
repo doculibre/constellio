@@ -12,19 +12,15 @@ import static java.util.Arrays.asList;
 
 public class ReturnedMetadatasFilter {
 
-	private boolean includeParsedContent;
-
 	private boolean includeLargeText;
 
 	private Set<String> acceptedFields;
 
-	public ReturnedMetadatasFilter(boolean includeParsedContent, boolean includeLargeText) {
-		this.includeParsedContent = includeParsedContent;
+	public ReturnedMetadatasFilter(boolean includeLargeText) {
 		this.includeLargeText = includeLargeText;
 	}
 
-	public ReturnedMetadatasFilter(boolean includeParsedContent, boolean includeLargeText, Set<String> acceptedFields) {
-		this.includeParsedContent = includeParsedContent;
+	public ReturnedMetadatasFilter(boolean includeLargeText, Set<String> acceptedFields) {
 		this.includeLargeText = includeLargeText;
 		this.acceptedFields = acceptedFields;
 	}
@@ -53,6 +49,10 @@ public class ReturnedMetadatasFilter {
 		return new ReturnedMetadatasFilter(fields);
 	}
 
+	public static ReturnedMetadatasFilter onlySummaryFields(Set<String> fields) {
+		return new ReturnedMetadatasFilter(fields);
+	}
+
 	public static ReturnedMetadatasFilter onlyMetadatas(List<Metadata> metadatas) {
 		Set<String> datastorecodes = new HashSet<>();
 		for (Metadata metadata : metadatas) {
@@ -62,23 +62,19 @@ public class ReturnedMetadatasFilter {
 	}
 
 	public static ReturnedMetadatasFilter allExceptContentAndLargeText() {
-		return new ReturnedMetadatasFilter(false, false);
+		return new ReturnedMetadatasFilter(false);
 	}
 
 	public static ReturnedMetadatasFilter allExceptLarge() {
-		return new ReturnedMetadatasFilter(false, true);
+		return new ReturnedMetadatasFilter(true);
 	}
 
 	public static ReturnedMetadatasFilter all() {
-		return new ReturnedMetadatasFilter(true, true);
+		return new ReturnedMetadatasFilter(true);
 	}
 
 	public static ReturnedMetadatasFilter allAndWithIncludedFields(Set<String> acceptedFields) {
-		return new ReturnedMetadatasFilter(true, true, acceptedFields);
-	}
-
-	public boolean isIncludeParsedContent() {
-		return includeParsedContent;
+		return new ReturnedMetadatasFilter(true, acceptedFields);
 	}
 
 	public Set<String> getAcceptedFields() {

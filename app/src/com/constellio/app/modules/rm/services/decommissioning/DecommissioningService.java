@@ -468,10 +468,10 @@ public class DecommissioningService {
 
 		} catch (RecordServicesException.OptimisticLocking e) {
 			modelLayerFactory.getRecordsCaches().getCache(decommissioningList.getCollection())
-					.invalidateRecordsOfType(Folder.SCHEMA_TYPE);
+					.reloadSchemaType(Folder.SCHEMA_TYPE, true);
 
 			modelLayerFactory.getRecordsCaches().getCache(decommissioningList.getCollection())
-					.invalidateRecordsOfType(ContainerRecord.SCHEMA_TYPE);
+					.reloadSchemaType(ContainerRecord.SCHEMA_TYPE, true);
 
 			if (attempt < 3) {
 				LOGGER.warn("Decommission failed, retrying...", e);

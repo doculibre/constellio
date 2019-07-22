@@ -76,7 +76,7 @@ public class ConstellioFactories {
 		return instanceProvider.getInstance(new Factory<ConstellioFactories>() {
 			@Override
 			public ConstellioFactories get() {
-				ConstellioFactories instance = buildFor(propertyFile, decorator, null);
+				ConstellioFactories instance = buildFor(propertyFile, decorator, null, (short) 0);
 				return instance;
 			}
 		});
@@ -103,7 +103,7 @@ public class ConstellioFactories {
 	//	}
 
 	public static ConstellioFactories buildFor(File propertyFile, ConstellioFactoriesDecorator decorator,
-											   String instanceName) {
+											   String instanceName, short instanceId) {
 		ConstellioFactories factories = new ConstellioFactories();
 
 		factories.propertyFile = propertyFile;
@@ -112,25 +112,25 @@ public class ConstellioFactories {
 		factories.decorator = decorator;
 		factories.foldersLocator = decorator.decorateFoldersLocator(new FoldersLocator());
 		factories.buildConfiguration(propertyFile, configs);
-		factories.buildLayers(instanceName);
+		factories.buildLayers(instanceName, instanceId);
 		return factories;
 	}
 
-	private void buildLayers(String instanceName) {
+	private void buildLayers(String instanceName, short instanceId) {
 		Delayed<ConstellioModulesManager> modulesManager = new Delayed<>();
 		ioServicesFactory = new IOServicesFactory(dataLayerConfiguration.getTempFolder());
 
 		String warVersion = GetWarVersionUtils.getWarVersionUsingGradleAsFallback(null);
 
 		dataLayerFactory = decorator.decorateDataLayerFactory(new DataLayerFactory(ioServicesFactory, dataLayerConfiguration,
-				decorator.getStatefullServiceDecorator(), instanceName, warVersion));
+				decorator.getStatefullServiceDecorator(), instanceName, instanceId, warVersion));
 
 		modelLayerFactory = decorator.decorateModelServicesFactory(new ModelLayerFactoryImpl(dataLayerFactory, foldersLocator,
-				modelLayerConfiguration, decorator.getStatefullServiceDecorator(), modulesManager, instanceName,
+				modelLayerConfiguration, decorator.getStatefullServiceDecorator(), modulesManager, instanceName, instanceId,
 				new ModelLayerFactoryFactory()));
 
 		appLayerFactory = decorator.decorateAppServicesFactory(new AppLayerFactoryImpl(appLayerConfiguration, modelLayerFactory,
-				dataLayerFactory, decorator.getStatefullServiceDecorator(), instanceName));
+				dataLayerFactory, decorator.getStatefullServiceDecorator(), instanceName, instanceId));
 
 		modulesManager.set(appLayerFactory.getModulesManager());
 

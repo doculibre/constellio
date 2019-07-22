@@ -140,6 +140,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 
 	@Override
 	protected void initBeforeCreateComponents(ViewChangeEvent event) {
+		presenter.clearSavedSearchFromSession();
 		decommissioningList = presenter.forRecordId(event.getParameters()).getDecommissioningList();
 	}
 

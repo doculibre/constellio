@@ -3,6 +3,7 @@ package com.constellio.model.entities.records;
 import com.constellio.data.events.EventDataSerializerExtension;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordImpl;
+import com.constellio.model.services.records.RecordServices;
 
 public class RecordEventDataSerializerExtension implements EventDataSerializerExtension {
 
@@ -24,11 +25,23 @@ public class RecordEventDataSerializerExtension implements EventDataSerializerEx
 
 	@Override
 	public String serialize(Object data) {
-		return ((Record) data).getId();
+		Record record = (Record) data;
+
+		if (record.isSummary()) {
+			return "&" + record.getId();
+		} else {
+			return record.getId();
+		}
 	}
 
 	@Override
 	public Object deserialize(String recordId) {
-		return modelLayerFactory.newCachelessRecordServices().realtimeGetRecordById(recordId);
+
+		RecordServices recordServices = modelLayerFactory.newCachelessRecordServices();
+		if (recordId.startsWith("&")) {
+			return recordServices.realtimeGetRecordSummaryById(recordId.substring(1));
+		} else {
+			return recordServices.realtimeGetRecordById(recordId);
+		}
 	}
 }
