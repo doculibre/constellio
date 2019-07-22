@@ -1,6 +1,7 @@
 package com.constellio.app.modules.rm.services.menu.behaviors;
 
 import com.constellio.app.api.extensions.params.EmailMessageParams;
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.extensions.RMSelectionPanelExtension;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -28,6 +29,8 @@ import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.BaseLink;
+import com.constellio.app.ui.framework.buttons.DeleteButton;
+import com.constellio.app.ui.framework.buttons.DeleteWithJustificationButton;
 import com.constellio.app.ui.framework.buttons.SIPButton.SIPButtonImpl;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
@@ -35,7 +38,9 @@ import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.ReportViewer;
 import com.constellio.app.ui.framework.components.ReportViewer.DownloadStreamResource;
 import com.constellio.app.ui.pages.base.BaseView;
+import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.Factory;
 import com.constellio.model.entities.records.Content;
@@ -43,6 +48,8 @@ import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.extensions.ModelLayerCollectionExtensions;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.emails.EmailServices;
@@ -65,7 +72,9 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
+import org.jetbrains.annotations.NotNull;
 import org.joda.time.LocalDateTime;
+import org.vaadin.dialogs.ConfirmDialog;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
@@ -93,6 +102,7 @@ public class RMRecordsMenuItemBehaviors {
 	private FolderRecordActionsServices folderRecordActionsServices;
 	private DocumentRecordActionsServices documentRecordActionsServices;
 	private ContainerRecordActionsServices containerRecordActionsServices;
+	private ModelLayerCollectionExtensions modelCollectionExtensions;
 
 	private static final String ZIP_CONTENT_RESOURCE = "zipContentsFolder";
 
@@ -102,6 +112,7 @@ public class RMRecordsMenuItemBehaviors {
 		recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 		decommissioningService = new DecommissioningService(collection, appLayerFactory);
 		ioServices = appLayerFactory.getModelLayerFactory().getDataLayerFactory().getIOServicesFactory().newIOServices();
+		this.modelCollectionExtensions = appLayerFactory.getModelLayerFactory().getExtensions().forCollection(collection);
 
 		folderRecordActionsServices = new FolderRecordActionsServices(collection, appLayerFactory);
 		documentRecordActionsServices = new DocumentRecordActionsServices(collection, appLayerFactory);
@@ -298,6 +309,134 @@ public class RMRecordsMenuItemBehaviors {
 		BaseLink zipButton = new BaseLink($("ReportViewer.download", "(zip)"),
 				new DownloadStreamResource(streamSource, $("SearchView.contentZip")));
 		zipButton.click();
+	}
+
+	public boolean isNeedingAReasonToDeleteRecords() {
+		return new RMConfigs(appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager()).isNeedingAReasonBeforeDeletingFolders();
+	}
+
+	private int countPerShemaType(String schemaType, List<String> recordIds) {
+		int counter = 0;
+
+		if (recordIds == null) {
+			return 0;
+		}
+
+		for (Record record : recordServices.getRecordsById(collection, recordIds)) {
+			if (record.getSchemaCode().startsWith(schemaType)) {
+				counter++;
+			}
+		}
+
+		return counter;
+	}
+
+	public void batchDelete(List<String> recordIds, MenuItemActionBehaviorParams params) {
+		Button button;
+		if (!isNeedingAReasonToDeleteRecords()) {
+			button = new DeleteButton(false) {
+				@Override
+				protected void confirmButtonClick(ConfirmDialog dialog) {
+					deletionRequested(null, recordIds, params);
+					Page.getCurrent().reload();
+				}
+
+				@Override
+				protected String getConfirmDialogMessage() {
+					int folderCount = countPerShemaType(Folder.SCHEMA_TYPE, recordIds);
+					int documentCount = countPerShemaType(Document.SCHEMA_TYPE, recordIds);
+					int containerCount = countPerShemaType(ContainerRecord.SCHEMA_TYPE, recordIds);
+
+					StringBuilder stringBuilder = getRecordsInfo(folderCount, documentCount, containerCount);
+
+					return $("CartView.deleteConfirmationMessageWithoutJustification", stringBuilder.toString());
+				}
+			};
+		} else {
+			button = new DeleteWithJustificationButton(false) {
+				@Override
+				protected void deletionConfirmed(String reason) {
+					deletionRequested(reason, recordIds, params);
+					Page.getCurrent().reload();
+				}
+
+				@Override
+				protected String getConfirmDialogMessage() {
+					int folderCount = countPerShemaType(Folder.SCHEMA_TYPE, recordIds);
+					int documentCount = countPerShemaType(Document.SCHEMA_TYPE, recordIds);
+					int containerCount = countPerShemaType(ContainerRecord.SCHEMA_TYPE, recordIds);
+
+					StringBuilder stringBuilder = getRecordsInfo(folderCount, documentCount, containerCount);
+
+					return $("CartView.deleteConfirmationMessage", stringBuilder.toString());
+				}
+			};
+		}
+
+		button.click();
+	}
+
+	@NotNull
+	private StringBuilder getRecordsInfo(int folderCount, int documentCount, int containerCount) {
+		StringBuilder stringBuilder = new StringBuilder();
+		String prefix = "";
+		if (folderCount > 0) {
+			stringBuilder.append(prefix + folderCount + " " + $("CartView.folders"));
+			if ((containerCount > 0 || documentCount > 0) && (containerCount == 0 || documentCount == 0)) {
+				prefix = " " + $("CartView.andAll") + " ";
+			} else if (containerCount > 0 && documentCount > 0) {
+				prefix = ", ";
+			}
+		}
+		if (documentCount > 0) {
+			stringBuilder.append(prefix + documentCount + " " + $("CartView.documents"));
+			if (containerCount > 0) {
+				prefix = " " + $("CartView.andAll") + " ";
+			}
+		}
+
+		if (containerCount > 0) {
+			stringBuilder.append(prefix + documentCount + " " + $("CartView.containers"));
+		}
+		return stringBuilder;
+	}
+
+	private boolean isBatchDeletePossible(List<String> recordIds, MenuItemActionBehaviorParams params) {
+		return documentRecordActionsServices.canDeleteDocuments(recordIds, params.getUser())
+			   && folderRecordActionsServices.canDeleteFolders(recordIds, params.getUser())
+			   && containerRecordActionsServices.canDeleteContainers(recordIds, params.getUser());
+	}
+
+	public void deletionRequested(String reason, List<String> recordIds, MenuItemActionBehaviorParams params) {
+		if (!isBatchDeletePossible(recordIds, params)) {
+			params.getView().showErrorMessage($("cannotDelete"));
+			return;
+		}
+		List<Record> recordsById = recordServices.getRecordsById(collection, recordIds);
+		for (Record record : recordsById) {
+			ValidationErrors validateDeleteAuthorized = modelCollectionExtensions.validateDeleteAuthorized(record, params.getUser());
+			if (!validateDeleteAuthorized.isEmpty()) {
+				MessageUtils.getCannotDeleteWindow(validateDeleteAuthorized).openWindow();
+				return;
+			}
+		}
+
+		for (Record record : recordsById) {
+			delete(record, reason, params);
+		}
+	}
+
+	protected final void delete(Record record, String reason,
+								MenuItemActionBehaviorParams menuItemActionBehaviorParams) {
+		delete(record, reason, true, false, menuItemActionBehaviorParams);
+	}
+
+
+	protected final void delete(Record record, String reason, boolean physically, boolean throwException,
+								MenuItemActionBehaviorParams params) {
+		SchemaPresenterUtils presenterUtils = new SchemaPresenterUtils(Document.DEFAULT_SCHEMA,
+				params.getView().getConstellioFactories(), params.getView().getSessionContext());
+		presenterUtils.delete(record, null, true, 1);
 	}
 
 	//
