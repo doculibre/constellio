@@ -536,6 +536,8 @@ public class FileParser {
 		TesseractOCRConfig tesseractOCRConfig = new TesseractOCRConfig();
 		//tesseractOCRConfig.setEnableImageProcessing(1);
 		tesseractOCRConfig.setLanguage("fra+eng");
+		tesseractOCRConfig.setTesseractPath("C:\\Program Files (x86)\\Tesseract-OCR");
+		tesseractOCRConfig.setTessdataPath("C:\\Program Files (x86)\\Tesseract-OCR\\tessdata");
 		parseContext.set(TesseractOCRConfig.class, tesseractOCRConfig);
 
 		PDFParserConfig pdfConfig = new PDFParserConfig();
