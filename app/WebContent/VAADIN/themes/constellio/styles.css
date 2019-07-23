@@ -13948,6 +13948,11 @@ div.v-layout.v-horizontal.v-widget {
 	width: 100%;
 }
 
+.constellio .v-lazyloadingwrapper-loading {
+	background-color: white;
+	border: none;
+}
+
 .constellio .v-filterselect-suggestmenu .gwt-MenuItem {
 	padding-left: 0px;
 	padding-right: 0px;

@@ -36,29 +36,7 @@ public interface DisplayFolderView extends BaseView, RecordsManagementViewGroup 
 
 	void setEditButtonState(ComponentState state);
 
-	void setMoveInFolderState(ComponentState state);
-
 	void setAddDocumentButtonState(ComponentState state);
-
-	void setAddSubFolderButtonState(ComponentState state);
-
-	void setDuplicateFolderButtonState(ComponentState state);
-
-	void setPrintButtonState(ComponentState state);
-
-	void setShareFolderButtonState(ComponentState state);
-
-	void setAuthorizationButtonState(ComponentState authorizationButtonState);
-
-	void setBorrowButtonState(ComponentState state);
-
-	void setReturnFolderButtonState(ComponentState state);
-
-	void setReminderReturnFolderButtonState(ComponentState state);
-
-	void setAlertWhenAvailableButtonState(ComponentState state);
-
-	//	void setStartWorkflowButtonState(ComponentState state);
 
 	void setBorrowedMessage(String borrowedMessage);
 

@@ -1,6 +1,5 @@
 package com.constellio.app.extensions.records;
 
-import com.constellio.app.api.extensions.taxonomies.FolderDeletionEvent;
 import com.constellio.app.extensions.records.params.GetIconPathParams;
 import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
 import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpDocument;
@@ -10,9 +9,7 @@ import com.constellio.app.modules.es.services.ConnectorManager;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentContainerBreadcrumbTrail;
 import com.constellio.app.modules.rm.ui.pages.folder.AddEditFolderView;
-import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderPresenter;
 import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderView;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
@@ -22,25 +19,18 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.pages.base.SessionContext;
-import com.constellio.app.ui.pages.base.UIContext;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
-import com.constellio.sdk.tests.MockedNavigation;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
 import java.util.Locale;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.assertj.core.api.Assertions.fail;
 
 /**
  * Created by Patrick on 2015-11-19.
@@ -212,25 +202,27 @@ public class RecordAppExtensionAcceptTest extends ConstellioTest {
 
 	@Test
 	public void givenAFolderIsDeletedThenIsNotified() {
-		MockedNavigation navigator = new MockedNavigation();
-
-		UIContext uiContext = mock(UIContext.class);
-		when(uiContext.getAttribute(FolderDocumentContainerBreadcrumbTrail.TAXONOMY_CODE)).thenReturn(null);
-		when(displayFolderView.getConstellioFactories()).thenReturn(getConstellioFactories());
-		when(displayFolderView.getSessionContext()).thenReturn(FakeSessionContext.gandalfInCollection(zeCollection));
-		when(displayFolderView.getUIContext()).thenReturn(uiContext);
-		when(displayFolderView.getCollection()).thenReturn(zeCollection);
-		when(displayFolderView.navigate()).thenReturn(navigator);
-		Folder folder = rmSchemasRecordsServices.searchFolders(where(rmSchemasRecordsServices.folder.title()).isContainingText("Avocat")).get(0);
-
-		getAppLayerFactory().getExtensions().forCollection(zeCollection).recordAppExtensions.add(recordAppExtension1);
-		getAppLayerFactory().getExtensions().forCollection(zeCollection).recordAppExtensions.add(recordAppExtension2);
-
-		DisplayFolderPresenter displayFolderPresenter = new DisplayFolderPresenter(displayFolderView, null, false, false);
-		displayFolderPresenter.forParams(folder.getId());
-
-		displayFolderPresenter.deleteFolderButtonClicked("No reason");
-		verify(recordAppExtension1, times(1)).notifyFolderDeleted(any(FolderDeletionEvent.class));
-		verify(recordAppExtension2, times(1)).notifyFolderDeleted(any(FolderDeletionEvent.class));
+		fail("TODO: Reimplement");
+		//
+		//		MockedNavigation navigator = new MockedNavigation();
+		//
+		//		UIContext uiContext = mock(UIContext.class);
+		//		when(uiContext.getAttribute(FolderDocumentContainerBreadcrumbTrail.TAXONOMY_CODE)).thenReturn(null);
+		//		when(displayFolderView.getConstellioFactories()).thenReturn(getConstellioFactories());
+		//		when(displayFolderView.getSessionContext()).thenReturn(FakeSessionContext.gandalfInCollection(zeCollection));
+		//		when(displayFolderView.getUIContext()).thenReturn(uiContext);
+		//		when(displayFolderView.getCollection()).thenReturn(zeCollection);
+		//		when(displayFolderView.navigate()).thenReturn(navigator);
+		//		Folder folder = rmSchemasRecordsServices.searchFolders(where(rmSchemasRecordsServices.folder.title()).isContainingText("Avocat")).get(0);
+		//
+		//		getAppLayerFactory().getExtensions().forCollection(zeCollection).recordAppExtensions.add(recordAppExtension1);
+		//		getAppLayerFactory().getExtensions().forCollection(zeCollection).recordAppExtensions.add(recordAppExtension2);
+		//
+		//		DisplayFolderPresenter displayFolderPresenter = new DisplayFolderPresenter(displayFolderView, null, false, false);
+		//		displayFolderPresenter.forParams(folder.getId());
+		//
+		//		displayFolderPresenter.deleteFolderButtonClicked("No reason");
+		//		verify(recordAppExtension1, times(1)).notifyFolderDeleted(any(FolderDeletionEvent.class));
+		//		verify(recordAppExtension2, times(1)).notifyFolderDeleted(any(FolderDeletionEvent.class));
 	}
 }

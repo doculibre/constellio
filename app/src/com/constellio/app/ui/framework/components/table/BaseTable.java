@@ -1,14 +1,21 @@
 package com.constellio.app.ui.framework.components.table;
 
+import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.SelectDeselectAllButton;
+import com.constellio.app.ui.framework.components.BaseForm;
+import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.contextmenu.BaseContextMenuTableListener;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
+import com.constellio.app.ui.framework.components.fields.number.BaseIntegerField;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.components.table.TablePropertyCache.CellKey;
 import com.constellio.app.ui.framework.components.table.columns.TableColumnsManager;
+import com.constellio.model.frameworks.validation.ValidationErrors;
+import com.constellio.model.frameworks.validation.ValidationException;
 import com.jensjansson.pagedtable.PagedTableContainer;
 import com.vaadin.data.Container;
 import com.vaadin.data.Property;
+import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.data.util.ObjectProperty;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
@@ -22,6 +29,7 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.MenuBar;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.TextField;
+import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import org.apache.commons.lang3.StringUtils;
 import org.vaadin.peter.contextmenu.ContextMenu;
@@ -32,12 +40,16 @@ import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableRowEvent
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 
 public class BaseTable extends Table {
+
+	public static final int MAX_SELECTION_LENGTH = 3;
 
 	public static final int DEFAULT_PAGE_LENGTH = 10;
 
@@ -441,27 +453,8 @@ public class BaseTable extends Table {
 
 	public SelectDeselectAllButton newSelectDeselectAllToggleButton(String selectAllCaption,
 																	String deselectAllCaption) {
-		final SelectDeselectAllButton toggleButton = new SelectDeselectAllButton(selectAllCaption, deselectAllCaption, !selectionManager.isAllItemsSelected()) {
-			@Override
-			protected void onSelectAll(ClickEvent event) {
-				SelectionChangeEvent selectionChangeEvent = new SelectionChangeEvent();
-				selectionChangeEvent.setComponent(this);
-				selectionChangeEvent.setAllItemsSelected(true);
-				fireSelectionChangeEvent(selectionChangeEvent);
-			}
-
-			@Override
-			protected void onDeselectAll(ClickEvent event) {
-				SelectionChangeEvent selectionChangeEvent = new SelectionChangeEvent();
-				selectionChangeEvent.setComponent(this);
-				selectionChangeEvent.setAllItemsDeselected(true);
-				fireSelectionChangeEvent(selectionChangeEvent);
-			}
-
-			@Override
-			protected void buttonClickCallBack(boolean selectAllMode) {
-			}
-		};
+		final SelectDeselectAllButton toggleButton =
+				new MaxLengthSelectDeselectAllButton(selectAllCaption, deselectAllCaption, !selectionManager.isAllItemsSelected());
 		addSelectionChangeListener(new SelectionChangeListener() {
 			@Override
 			public void selectionChanged(SelectionChangeEvent event) {
@@ -1089,6 +1082,176 @@ public class BaseTable extends Table {
 			this.itemsPerPageValue = value;
 			if (itemsPerPageField != null) {
 				itemsPerPageField.setValue(value);
+			}
+		}
+
+	}
+
+	public class MaxLengthSelectDeselectAllButton extends SelectDeselectAllButton {
+
+		private int rangeStart = -1;
+		private int rangeEnd = -1;
+
+		@PropertyId("rangeStart")
+		private BaseIntegerField rangeStartField;
+		@PropertyId("rangeEnd")
+		private BaseIntegerField rangeEndField;
+
+		private MaxLengthSelectDeselectAllButton(String selectAllCaption, String deselectAllCaption,
+												 boolean selectAllMode) {
+			super(selectAllCaption, deselectAllCaption, selectAllMode);
+		}
+
+		public int getRangeStart() {
+			return rangeStart;
+		}
+
+		public void setRangeStart(int rangeStart) {
+			this.rangeStart = rangeStart;
+		}
+
+		public int getRangeEnd() {
+			return rangeEnd;
+		}
+
+		public void setRangeEnd(int rangeEnd) {
+			this.rangeEnd = rangeEnd;
+		}
+
+		@Override
+		protected void onSelectAll(ClickEvent event) {
+			SelectionChangeEvent selectionChangeEvent = new SelectionChangeEvent();
+			selectionChangeEvent.setComponent(this);
+			selectionChangeEvent.setAllItemsSelected(true);
+			fireSelectionChangeEvent(selectionChangeEvent);
+		}
+
+		@Override
+		protected void onDeselectAll(ClickEvent event) {
+			SelectionChangeEvent selectionChangeEvent = new SelectionChangeEvent();
+			selectionChangeEvent.setComponent(this);
+			selectionChangeEvent.setAllItemsDeselected(true);
+			fireSelectionChangeEvent(selectionChangeEvent);
+		}
+
+		@Override
+		protected void buttonClickCallBack(boolean selectAllMode) {
+		}
+
+		@SuppressWarnings({"rawtypes", "unchecked"})
+		@Override
+		protected void buttonClick(ClickEvent event) {
+			int realSize;
+			if (pagedTableContainer != null) {
+				realSize = pagedTableContainer.getRealSize();
+			} else {
+				realSize = size();
+			}
+			if (realSize <= MAX_SELECTION_LENGTH) {
+				super.buttonClick(event);
+			} else {
+				if (rangeStart == -1) {
+					rangeStart = 1;
+				}
+				if (rangeEnd == -1 || rangeEnd > (rangeStart + (MAX_SELECTION_LENGTH - 1))) {
+					rangeEnd = rangeStart + (MAX_SELECTION_LENGTH - 1);
+					if (rangeEnd > size() - 1) {
+						rangeEnd = size() - 1;
+					}
+				}
+
+				final BaseWindow selectionRangeWindow = new BaseWindow($("BaseTable.selection.range"));
+				selectionRangeWindow.setModal(true);
+				selectionRangeWindow.center();
+				selectionRangeWindow.setWidth("500px");
+
+				VerticalLayout selectionRangeLayout = new VerticalLayout();
+				selectionRangeLayout.addStyleName("selection-range-layout");
+				selectionRangeLayout.setSpacing(true);
+
+				rangeStartField = new BaseIntegerField($("BaseTable.selection.rangeStart"));
+				rangeStartField.addStyleName("selection-start-start");
+
+				rangeEndField = new BaseIntegerField($("BaseTable.selection.rangeEnd"));
+				rangeEndField.addStyleName("selection-range-end");
+
+				Button deselectAllButton = new BaseButton($("deselectAll")) {
+					@Override
+					protected void buttonClick(ClickEvent event) {
+						SelectionChangeEvent deselectAllEvent = new SelectionChangeEvent();
+						deselectAllEvent.setAllItemsDeselected(true);
+						fireSelectionChangeEvent(deselectAllEvent);
+						selectionRangeWindow.close();
+					}
+				};
+				deselectAllButton.addStyleName(ValoTheme.BUTTON_LINK);
+				deselectAllButton.addStyleName("selection-range-deselect-all-button");
+				deselectAllButton.setVisible(!selectionManager.getAllSelectedItemIds().isEmpty());
+				if (deselectAllButton.isVisible()) {
+					selectionRangeWindow.setHeight("300px");
+				} else {
+					selectionRangeWindow.setHeight("260px");
+				}
+
+				BaseForm rangeForm = new BaseForm(this, this, rangeStartField, rangeEndField) {
+					@Override
+					protected void saveButtonClick(Object viewObject) throws ValidationException {
+						int realRangeStart = rangeStart - 1;
+						int realRangeEnd = rangeEnd - 1;
+						int realSize;
+						if (pagedTableContainer != null) {
+							realSize = pagedTableContainer.getRealSize();
+						} else {
+							realSize = size();
+						}
+						ValidationErrors errors = new ValidationErrors();
+						if (realRangeStart < 0) {
+							Map<String, Object> parameters = new HashMap<>();
+							parameters.put("rangeStart", rangeStart);
+							errors.add(BaseTable.class, "rangeStartMustBePositive", parameters);
+						} else if (realRangeEnd > (realRangeStart + MAX_SELECTION_LENGTH - 1) || realRangeEnd > realSize - 1 || realRangeEnd < realRangeStart) {
+							int rangeEndMin = rangeStart;
+							int rangeEndMax = rangeStart + MAX_SELECTION_LENGTH - 1;
+							if (rangeEndMax > realSize) {
+								rangeEndMax = realSize;
+							}
+							Map<String, Object> parameters = new HashMap<>();
+							parameters.put("rangeEnd", rangeEnd);
+							parameters.put("minValue", rangeEndMin);
+							parameters.put("maxValue", rangeEndMax);
+							errors.add(BaseTable.class, "rangeEndMustBeBetween", parameters);
+						}
+						if (errors.isEmpty()) {
+							SelectionChangeEvent deselectAllEvent = new SelectionChangeEvent();
+							deselectAllEvent.setAllItemsDeselected(true);
+							fireSelectionChangeEvent(deselectAllEvent);
+
+							List<Object> selectedItemIds = getItemIds(realRangeStart, realRangeEnd - realRangeStart + 1);
+							for (Object selectedItemId : selectedItemIds) {
+								SelectionChangeEvent newSelectionEvent = new SelectionChangeEvent();
+								newSelectionEvent.setSelectedItemId(selectedItemId);
+								fireSelectionChangeEvent(newSelectionEvent);
+							}
+							selectionRangeWindow.close();
+						} else {
+							throw new ValidationException(errors);
+						}
+					}
+
+					@Override
+					protected void cancelButtonClick(Object viewObject) {
+						selectionRangeWindow.close();
+					}
+
+					@Override
+					protected String getSaveButtonCaption() {
+						return $("select");
+					}
+				};
+
+				selectionRangeLayout.addComponents(deselectAllButton, rangeForm);
+				selectionRangeWindow.setContent(selectionRangeLayout);
+				getUI().addWindow(selectionRangeWindow);
 			}
 		}
 
