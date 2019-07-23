@@ -365,7 +365,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		String searchTypeAsString = null;
 		String favGroupIdKey = null;
 
-		if(presenter.getParams() != null) {
+		if (presenter.getParams() != null) {
 			if (presenter.getParams().get("decommissioningSearchId") != null) {
 				saveSearchDecommissioningId = presenter.getParams().get("decommissioningSearchId");
 
@@ -392,7 +392,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 		if (breadcrumbTrail != null) {
 			return breadcrumbTrail;
-		}else if(favGroupIdKey != null) {
+		} else if (favGroupIdKey != null) {
 			return new FolderDocumentContainerBreadcrumbTrail(documentVO.getId(), null, null, favGroupIdKey, this);
 		} else if (saveSearchDecommissioningId != null && searchType != null) {
 			return new DecommissionBreadcrumbTrail($("DecommissioningBuilderView.viewTitle." + searchType.name()), searchType,
@@ -439,7 +439,8 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	public void setTasks(final RecordVODataProvider dataProvider) {
 		Table tasksTable = new RecordVOTable(dataProvider) {
 			@Override
-			protected Component buildMetadataComponent(Object itemId, MetadataValueVO metadataValue, RecordVO recordVO) {
+			protected Component buildMetadataComponent(Object itemId, MetadataValueVO metadataValue,
+													   RecordVO recordVO) {
 				if (Task.STARRED_BY_USERS.equals(metadataValue.getMetadata().getLocalCode())) {
 					return new StarredFieldImpl(recordVO.getId(), (List<String>) metadataValue.getValue(), getSessionContext().getCurrentUser().getId()) {
 						@Override
@@ -702,7 +703,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	}
 
 	@Override
-	public void setAddAuthorizationButtonState(ComponentState state) {
+	public void setViewAuthorizationButtonState(ComponentState state) {
 	}
 
 	@Override

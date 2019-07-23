@@ -297,7 +297,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 			displayFolderButton = newDisplayFolderButton();
 			editFolderButton = newEditFolderButton();
-		}	
+		}
 
 		List<String> excludedActionTypes = Arrays.asList(
 				FolderMenuItemActionType.FOLDER_DISPLAY.name(),
@@ -315,6 +315,16 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				button.setEnabled(false);
 			}
 		}
+	}
+
+	@Override
+	public String getFolderOrSubFolderButtonTitle(String key) {
+		return key;
+	}
+
+	@Override
+	public String getFolderOrSubFolderButtonKey(String key) {
+		return key;
 	}
 
 	@Override
@@ -476,7 +486,8 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		if (!(tasksComponent instanceof Table)) {
 			Table table = new RecordVOTable(tasksDataProvider) {
 				@Override
-				protected Component buildMetadataComponent(Object itemId, MetadataValueVO metadataValue, RecordVO recordVO) {
+				protected Component buildMetadataComponent(Object itemId, MetadataValueVO metadataValue,
+														   RecordVO recordVO) {
 					if (Task.STARRED_BY_USERS.equals(metadataValue.getMetadata().getLocalCode())) {
 						return new StarredFieldImpl(recordVO.getId(), (List<String>) metadataValue.getValue(),
 								getSessionContext().getCurrentUser().getId()) {
@@ -596,8 +607,8 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 	//@Override
 	//public void setStartWorkflowButtonState(ComponentState state) {
-		//startWorkflowButton.setVisible(state.isVisible());
-		//startWorkflowButton.setEnabled(state.isEnabled());
+	//startWorkflowButton.setVisible(state.isVisible());
+	//startWorkflowButton.setEnabled(state.isEnabled());
 	//}
 
 	@Override
