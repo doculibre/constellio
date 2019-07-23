@@ -37,6 +37,7 @@ import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.records.RecordImpl;
 import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 import com.google.common.base.Strings;
 import com.vaadin.data.Container;
@@ -62,7 +63,6 @@ import org.vaadin.dialogs.ConfirmDialog;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -132,45 +132,47 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 //		return buttons;
 
 		Cart cart = presenter.getCart();
+		Record record = null;
 		if (cart != null) {
-			Record record = cart.getWrappedRecord();
-			List<String> excludedActionTypes = Arrays.asList(RMRecordsMenuItemActionType.RMRECORDS_ADD_CART.name());
-			List<MenuItemAction> menuItemActions = new MenuItemServices(record.getCollection(), getConstellioFactories().getAppLayerFactory())
-					.getActionsForRecord(record, excludedActionTypes, new MenuItemActionBehaviorParams() {
-						@Override
-						public BaseView getView() {
-							return (BaseView) ConstellioUI.getCurrent().getCurrentView();
-						}
-
-						@Override
-						public RecordVO getRecordVO() {
-							return presenter.getCartAsRecordVO();
-						}
-
-						@Override
-						public Map<String, String> getFormParams() {
-							return MapUtils.emptyIfNull(ParamUtils.getCurrentParams());
-						}
-
-						@Override
-						public User getUser() {
-							return presenter.getCurrentUser();
-						}
-
-						@Override
-						public boolean isContextualMenu() {
-							return true;
-						}
-					});
-			return new MenuItemFactory().buildActionButtons(menuItemActions, new MenuItemRecordProvider() {
-				@Override
-				public List<Record> getRecords() {
-					return presenter.getAllCartItemRecords();
-				}
-			});
+			record = cart.getWrappedRecord();
 		} else {
-			return Collections.emptyList();
+			record = new RecordImpl(presenter.getCartMetadataSchema(), presenter.getCurrentUser().getId());
 		}
+
+		List<String> excludedActionTypes = Arrays.asList(RMRecordsMenuItemActionType.RMRECORDS_ADD_CART.name());
+		List<MenuItemAction> menuItemActions = new MenuItemServices(this.getCollection(), getConstellioFactories().getAppLayerFactory())
+				.getActionsForRecord(record, excludedActionTypes, new MenuItemActionBehaviorParams() {
+					@Override
+					public BaseView getView() {
+						return (BaseView) ConstellioUI.getCurrent().getCurrentView();
+					}
+
+					@Override
+					public RecordVO getRecordVO() {
+						return presenter.getCartAsRecordVO();
+					}
+
+					@Override
+					public Map<String, String> getFormParams() {
+						return MapUtils.emptyIfNull(ParamUtils.getCurrentParams());
+					}
+
+					@Override
+					public User getUser() {
+						return presenter.getCurrentUser();
+					}
+
+					@Override
+					public boolean isContextualMenu() {
+						return true;
+					}
+				});
+		return new MenuItemFactory().buildActionButtons(menuItemActions, new MenuItemRecordProvider() {
+			@Override
+			public List<Record> getRecords() {
+				return presenter.getAllCartItemRecords();
+			}
+		});
 	}
 
 	@Override

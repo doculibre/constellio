@@ -68,7 +68,7 @@ public class MenuItemServices {
 			}
 		}
 
-		if (record.getSchemaCode().startsWith("ddv")) {
+		if (record != null && record.getSchemaCode().startsWith("ddv")) {
 			menuItemActions.addAll(schemaRecordMenuItemServices.getActionsForRecord(record, params.getUser(), excludedActionTypes, params));
 		}
 
