@@ -1,9 +1,5 @@
 package com.constellio.app.modules.rm.services;
 
-import com.auxilii.msgparser.Message;
-import com.auxilii.msgparser.MsgParser;
-import com.auxilii.msgparser.attachment.Attachment;
-import com.auxilii.msgparser.attachment.FileAttachment;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.Category;
@@ -14,9 +10,8 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.PrintableReport;
 import com.constellio.app.modules.rm.wrappers.RMObject;
 import com.constellio.app.modules.rm.wrappers.RMUserFolder;
-import com.constellio.app.modules.rm.wrappers.UserFunction;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
-import com.constellio.app.modules.rm.wrappers.StorageSpace;
+import com.constellio.app.modules.rm.wrappers.UserFunction;
 import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
@@ -53,41 +48,13 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
-import org.apache.poi.hsmf.datatypes.ByteChunk;
-import org.apache.poi.hsmf.datatypes.Chunk;
-import org.apache.poi.hsmf.datatypes.ChunkGroup;
-import org.apache.poi.hsmf.datatypes.Chunks;
-import org.apache.poi.hsmf.datatypes.MAPIProperty;
-import org.apache.poi.hsmf.datatypes.StringChunk;
-import org.apache.poi.hsmf.parsers.POIFSChunkParser;
-import org.apache.poi.poifs.filesystem.POIFSFileSystem;
-import org.joda.time.LocalDateTime;
 
-import javax.mail.Address;
-import javax.mail.BodyPart;
-import javax.mail.Message.RecipientType;
-import javax.mail.MessagingException;
-import javax.mail.Session;
-import javax.mail.internet.MimeMessage;
-import javax.mail.internet.MimeMultipart;
-import javax.mail.internet.MimeUtility;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
-import java.util.Properties;
 
 import static com.constellio.model.entities.schemas.Schemas.SCHEMA;
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
@@ -98,8 +65,6 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 
 	private static final Logger LOGGER = Logger.getLogger(RMSchemasRecordsServices.class);
 
-	public static final String EMAIL_MIME_TYPES = "mimeTypes";
-	public static final String EMAIL_ATTACHMENTS = "attachments";
 	private static final long NUMBER_OF_RECORDS_IN_CART_LIMIT = 1000;
 
 	public RMSchemasRecordsServices(String collection, SessionContextProvider sessionContextProvider) {
@@ -264,6 +229,27 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 		String emailSchemaTypeId = getRecordIdForEmailSchema();
 		email.setType(emailSchemaTypeId);
 		return email;
+	}
+
+	//KEEP
+	public String getRecordIdForEmailSchema() {
+		ModelLayerFactory modelLayerFactory = getModelLayerFactory();
+		SearchServices searchServices = modelLayerFactory.newSearchServices();
+		MetadataSchemaTypes types = getTypes();
+
+		MetadataSchema documentTypeDefaultSchema = schema(DocumentType.DEFAULT_SCHEMA);
+		Metadata linkedSchemaMetadata = documentTypeDefaultSchema.getMetadata(DocumentType.LINKED_SCHEMA);
+		LogicalSearchCondition condition = from(documentTypeDefaultSchema).where(linkedSchemaMetadata)
+				.isEqualTo(Email.SCHEMA);
+		DocumentType emailDocumentType = new DocumentType(
+				searchServices.search(new LogicalSearchQuery().setCondition(condition)).get(0), types);
+		return emailDocumentType.getId();
+	}
+
+	//KEEP
+	public boolean isEmail(String fileName) {
+		String extension = StringUtils.lowerCase(FilenameUtils.getExtension(fileName));
+		return extension.equals("eml") || extension.equals("msg");
 	}
 
 	public Report newReport() {
@@ -842,298 +828,6 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 		return linkedSchemaCode;
 	}
 
-	//KEEP
-	public String getRecordIdForEmailSchema() {
-		ModelLayerFactory modelLayerFactory = getModelLayerFactory();
-		SearchServices searchServices = modelLayerFactory.newSearchServices();
-		MetadataSchemaTypes types = getTypes();
-
-		MetadataSchema documentTypeDefaultSchema = schema(DocumentType.DEFAULT_SCHEMA);
-		Metadata linkedSchemaMetadata = documentTypeDefaultSchema.getMetadata(DocumentType.LINKED_SCHEMA);
-		LogicalSearchCondition condition = from(documentTypeDefaultSchema).where(linkedSchemaMetadata)
-				.isEqualTo(Email.SCHEMA);
-		DocumentType emailDocumentType = new DocumentType(
-				searchServices.search(new LogicalSearchQuery().setCondition(condition)).get(0), types);
-		return emailDocumentType.getId();
-	}
-
-	//KEEP
-	public boolean isEmail(String fileName) {
-		String extension = StringUtils.lowerCase(FilenameUtils.getExtension(fileName));
-		return extension.equals("eml") || extension.equals("msg");
-	}
-
-	//KEEP
-	public Map<String, Object> parseEmail(String fileName, InputStream messageInputStream) {
-		Map<String, Object> parsedMessage;
-		String extension = StringUtils.lowerCase(FilenameUtils.getExtension(fileName));
-		if ("eml".equals(extension)) {
-			parsedMessage = parseEml(messageInputStream);
-		} else if ("msg".equals(extension)) {
-			parsedMessage = parseMsg(messageInputStream);
-		} else {
-			throw new IllegalArgumentException("Invalid file name : " + fileName);
-		}
-		return parsedMessage;
-	}
-
-	//KEEP
-	@SuppressWarnings("unchecked")
-	public Email newEmail(String fileName, InputStream messageInputStream) {
-		Map<String, Object> parsedEmail = parseEmail(fileName, messageInputStream);
-
-		Email email = newEmail();
-
-		String subject = (String) parsedEmail.get(Email.SUBJECT);
-		String object = (String) parsedEmail.get(Email.EMAIL_OBJECT);
-		Date sentOn = (Date) parsedEmail.get(Email.EMAIL_SENT_ON);
-		Date receivedOn = (Date) parsedEmail.get(Email.EMAIL_RECEIVED_ON);
-		String from = (String) parsedEmail.get(Email.EMAIL_FROM);
-		List<String> to = (List<String>) parsedEmail.get(Email.EMAIL_TO);
-		List<String> ccTo = (List<String>) parsedEmail.get(Email.EMAIL_CC_TO);
-		List<String> bccTo = (List<String>) parsedEmail.get(Email.EMAIL_BCC_TO);
-		List<String> attachmentFileNames = (List<String>) parsedEmail.get(Email.EMAIL_ATTACHMENTS_LIST);
-
-		LocalDateTime sentOnDateTime = sentOn != null ? new LocalDateTime(sentOn.getTime()) : null;
-		LocalDateTime receivedOnDateTime = receivedOn != null ? new LocalDateTime(receivedOn.getTime()) : null;
-
-		email.setSubject(subject);
-		email.setEmailObject(object);
-		email.setEmailSentOn(sentOnDateTime);
-		email.setEmailReceivedOn(receivedOnDateTime);
-		email.setEmailFrom(from);
-		email.setEmailTo(to);
-		email.setEmailCCTo(ccTo);
-		email.setEmailBCCTo(bccTo);
-		email.setEmailAttachmentsList(attachmentFileNames);
-
-		return email;
-	}
-
-	//KEEP
-	public Map<String, Object> parseEml(InputStream messageInputStream) {
-		Map<String, Object> parsed = new HashMap<String, Object>();
-
-		Properties props = System.getProperties();
-		props.put("mail.host", "smtp.dummydomain.com");
-		props.put("mail.transport.protocol", "smtp");
-
-		Session mailSession = Session.getDefaultInstance(props, null);
-		try {
-			MimeMessage message = new MimeMessage(mailSession, messageInputStream);
-			messageInputStream.close();
-			String subject = message.getSubject();
-			String object = subject;
-			Date sentDate = message.getSentDate();
-			Date receivedDate = message.getReceivedDate();
-
-			Address from = message.getFrom()[0];
-			Address[] to = message.getRecipients(RecipientType.TO);
-			Address[] cc = message.getRecipients(RecipientType.CC);
-			Address[] bcc = message.getRecipients(RecipientType.BCC);
-
-			ByteArrayOutputStream contentOs = new ByteArrayOutputStream();
-			message.writeTo(contentOs);
-			contentOs.close();
-			String content = contentOs.toString("UTF-8");
-
-			parsed.put(Email.SUBJECT, subject);
-			parsed.put(Email.EMAIL_OBJECT, object);
-			parsed.put(Email.EMAIL_SENT_ON, sentDate);
-			parsed.put(Email.EMAIL_RECEIVED_ON, receivedDate);
-			parsed.put(Email.EMAIL_FROM, "" + from);
-			parsed.put(Email.EMAIL_TO, addressesAsStringList(to));
-			parsed.put(Email.EMAIL_CC_TO, addressesAsStringList(cc));
-			parsed.put(Email.EMAIL_BCC_TO, addressesAsStringList(bcc));
-
-			Map<String, InputStream> attachments = new HashMap<String, InputStream>();
-			parsed.put(EMAIL_ATTACHMENTS, attachments);
-
-			Map<String, String> mimeTypes = new HashMap<String, String>();
-			parsed.put(EMAIL_MIME_TYPES, mimeTypes);
-
-			List<String> attachmentFileNames = new ArrayList<>();
-			parsed.put(Email.EMAIL_ATTACHMENTS_LIST, attachmentFileNames);
-
-			Object messageContent = message.getContent();
-			if (messageContent instanceof MimeMultipart) {
-				MimeMultipart mimeMultipart = (MimeMultipart) messageContent;
-				int partCount = mimeMultipart.getCount();
-				for (int i = 0; i < partCount; i++) {
-					try {
-						BodyPart bodyPart = mimeMultipart.getBodyPart(i);
-						String partFileName = bodyPart.getFileName();
-						Object partContent = bodyPart.getContent();
-						if (partContent instanceof InputStream) {
-							partFileName = MimeUtility.decodeText(partFileName);
-							InputStream inputAttachment = (InputStream) partContent;
-							attachments.put(partFileName, inputAttachment);
-							mimeTypes.put(partFileName, bodyPart.getContentType());
-							attachmentFileNames.add(partFileName);
-						}
-					} catch (Throwable t) {
-						LOGGER.warn("Error while parsing message content", t);
-					}
-				}
-			}
-
-		} catch (MessagingException e) {
-			throw new RuntimeException(e);
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
-		return parsed;
-	}
-
-	//KEEP
-	private static List<String> addressesAsStringList(Address[] addresses) {
-		List<String> addressesStr = new ArrayList<>();
-		if (addresses != null) {
-			for (Address address : addresses) {
-				addressesStr.add(address.toString());
-			}
-		}
-		return addressesStr;
-	}
-
-	//KEEP
-	public Map<String, Object> parseMsg(InputStream messageInputStream) {
-		Map<String, Object> parsed = new HashMap<String, Object>();
-		try {
-			byte[] messageBytes = IOUtils.toByteArray(messageInputStream);
-			messageInputStream.close();
-
-			Chunks CHUNKS = new Chunks();
-			POIFSFileSystem filesystem = new POIFSFileSystem(new ByteArrayInputStream(messageBytes));
-			ChunkGroup[] chunkGroups = POIFSChunkParser.parse(filesystem);
-			for (ChunkGroup chunkGroup : chunkGroups) {
-				for (Chunk chunk : chunkGroup.getChunks()) {
-					Chunk recordChunk;
-					int chunkId = chunk.getChunkId();
-					if (chunkId == MAPIProperty.BODY.id) {
-						if (chunk instanceof ByteChunk) {
-							final ByteChunk byteChunk = (ByteChunk) chunk;
-							recordChunk = new StringChunk(byteChunk.getChunkId(), byteChunk.getType()) {
-								@Override
-								public String get7BitEncoding() {
-									return byteChunk.getAs7bitString();
-								}
-
-								@Override
-								public void set7BitEncoding(String encoding) {
-									super.set7BitEncoding(encoding);
-								}
-
-								@Override
-								public void readValue(InputStream value)
-										throws IOException {
-									byteChunk.readValue(value);
-								}
-
-								@Override
-								public void writeValue(OutputStream out)
-										throws IOException {
-									byteChunk.writeValue(out);
-								}
-
-								@Override
-								public String getValue() {
-									return new String(byteChunk.getValue());
-								}
-
-								@Override
-								public byte[] getRawValue() {
-									return byteChunk.getValue();
-								}
-
-								@Override
-								public void setValue(String str) {
-									byteChunk.setValue(str.getBytes());
-								}
-
-								@Override
-								public String toString() {
-									return byteChunk.toString();
-								}
-
-								@Override
-								public String getEntryName() {
-									return byteChunk.getEntryName();
-								}
-							};
-						} else {
-							recordChunk = chunk;
-						}
-					} else {
-						recordChunk = chunk;
-					}
-					CHUNKS.record(recordChunk);
-				}
-			}
-
-			String from = getValue(CHUNKS.getDisplayFromChunk());
-			String subject = getValue(CHUNKS.getSubjectChunk());
-			String to = getValue(CHUNKS.getDisplayToChunk());
-			String cc = getValue(CHUNKS.getDisplayCCChunk());
-			String bcc = getValue(CHUNKS.getDisplayBCCChunk());
-			String content = getValue(CHUNKS.getTextBodyChunk());
-
-			MsgParser msgp = new MsgParser();
-			Message msg = msgp.parseMsg(new ByteArrayInputStream(messageBytes));
-			Date sentDate = msg.getDate();
-			Date receivedDate = msg.getDate();
-
-			parsed.put(Email.SUBJECT, subject);
-			parsed.put(Email.EMAIL_OBJECT, subject);
-			parsed.put(Email.EMAIL_SENT_ON, sentDate);
-			parsed.put(Email.EMAIL_RECEIVED_ON, receivedDate);
-			parsed.put(Email.EMAIL_FROM, from);
-			parsed.put(Email.EMAIL_CC_TO, splitAddresses(to));
-			parsed.put(Email.EMAIL_CC_TO, splitAddresses(cc));
-			parsed.put(Email.EMAIL_BCC_TO, splitAddresses(bcc));
-			insertMsgAttachments(parsed, msg);
-
-		} catch (UnsupportedOperationException e) {
-			throw new RuntimeException(e);
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
-
-		return parsed;
-	}
-
-	//KEEP
-	private String getValue(StringChunk chunk) {
-		return chunk == null ? null : chunk.getValue();
-	}
-
-	//KEEP
-	private static List<String> splitAddresses(String addresses) {
-		return Arrays.asList(StringUtils.split(addresses, ";"));
-	}
-
-	//KEEP
-	private static void insertMsgAttachments(Map<String, Object> parsed, Message msg) {
-		Map<String, InputStream> attachments = new HashMap<String, InputStream>();
-		parsed.put(EMAIL_ATTACHMENTS, attachments);
-
-		List<String> attachmentFileNames = new ArrayList<>();
-		parsed.put(Email.EMAIL_ATTACHMENTS_LIST, attachmentFileNames);
-
-		Map<String, String> mimeTypes = new HashMap<String, String>();
-		parsed.put(EMAIL_MIME_TYPES, mimeTypes);
-
-		List<Attachment> atts = msg.getAttachments();
-		for (Attachment att : atts) {
-			if (att instanceof FileAttachment) {
-				FileAttachment file = (FileAttachment) att;
-				String fileName = file.getFilename();
-				attachments.put(file.getLongFilename(), new ByteArrayInputStream(file.getData()));
-				mimeTypes.put(fileName, file.getMimeTag());
-				attachmentFileNames.add(fileName);
-			}
-		}
-	}
 
 	//KEEP
 	public AuthorizationAddRequest newAuthorization() {
@@ -1182,31 +876,50 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 		return wrapYearType(getByCode(ddvYearType.schemaType(), code));
 	}
 
+	@Deprecated
+	/**
+	 * User LogicalSearchQuery instead
+	 */
 	public List<AdministrativeUnit> getAllAdministrativeUnits() {
 		return wrapAdministrativeUnits(getModelLayerFactory().newSearchServices().getAllRecords(administrativeUnit.schemaType()));
 	}
 
+	@Deprecated
+	/**
+	 * User LogicalSearchQuery instead
+	 */
 	public List<RetentionRule> getAllRetentionRules() {
 		return wrapRetentionRules(getModelLayerFactory().newSearchServices().getAllRecords(retentionRule.schemaType()));
 	}
 
+	@Deprecated
+	/**
+	 * User LogicalSearchQuery instead
+	 */
 	public List<Category> getAllCategories() {
 		return wrapCategorys(getModelLayerFactory().newSearchServices().getAllRecords(category.schemaType()));
 	}
 
-	public List<StorageSpace> getAllStorageSpaces() {
-		return wrapStorageSpaces(getModelLayerFactory().newSearchServices().getAllRecords(storageSpace.schemaType()));
-	}
-
+	@Deprecated
+	/**
+	 * User LogicalSearchQuery instead
+	 */
 	public List<AdministrativeUnit> getAllAdministrativeUnitsInUnmodifiableState() {
 		return wrapAdministrativeUnits(
 				getModelLayerFactory().newSearchServices().getAllRecordsInUnmodifiableState(administrativeUnit.schemaType()));
 	}
 
+	/**
+	 * Use logical search query instead
+	 *
+	 * @return
+	 */
+	@Deprecated
 	public List<PrintableReport> getAllPrintableReports() {
 		return wrapPrintableReports(getModelLayerFactory().newSearchServices().cachedSearch(new LogicalSearchQuery(
 				from(printable_report.schemaType()).where(SCHEMA).isEqualTo(PrintableReport.SCHEMA_NAME))));
 	}
+
 
 	public List<Folder> getFolderByUnicity(String unicity) {
 		List<Folder> resultListFolder = wrapFolders(getModelLayerFactory().newSearchServices().search(new LogicalSearchQuery(
@@ -1238,10 +951,11 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 	}
 
 	/**
-	 * TODO Upgrade to streams
+	 * Use logical search query instead
 	 *
 	 * @return
 	 */
+	@Deprecated
 	public List<AdministrativeUnit> getAdministrativeUnitsUsingFilter(
 			final Provider<AdministrativeUnit, Boolean> provider) {
 
@@ -1257,65 +971,4 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 
 	}
 
-	//	public List<AdministrativeUnit> getAdministrativeUnitsOfUser(User user,
-	//																 boolean includeAuthsOfParentAdministrativeUnits,
-	//																 Provider<SecurityModelAuthorization, Boolean> filter) {
-	//
-	//		List<SecurityModelAuthorization> authorizations = getModelLayerFactory().newRecordServices()
-	//				.getSecurityModel(user.getCollection()).getAuthorizationsToPrincipal(user.getId(), true);
-	//
-	//		Set<String> foundIds = new HashSet<>();
-	//
-	//		for (SecurityModelAuthorization authorization : authorizations) {
-	//			if (AdministrativeUnit.SCHEMA_TYPE.equals(authorization.getDetails().getTargetSchemaType())
-	//				&& filter.get(authorization)) {
-	//				foundIds.add(authorization.getDetails().getId());
-	//			}
-	//		}
-	//
-	//
-	//		List<AdministrativeUnit> returnedAdmUnits = new ArrayList<>();
-	//		for (AdministrativeUnit admUnit : getAllAdministrativeUnitsInUnmodifiableState()) {
-	//
-	//			if (foundIds.contains(admUnit.getId())
-	//				|| (includeAuthsOfParentAdministrativeUnits && containsAny(admUnit.getAncestors(), foundIds))) {
-	//				returnedAdmUnits.add(admUnit);
-	//			}
-	//		}
-	//
-	//		return returnedAdmUnits;
-	//	}
-	//
-	//	public List<AdministrativeUnit> getAdministrativeUnitsOfUser(User user,
-	//																 boolean includeAuthsOfParentAdministrativeUnits,
-	//																 Provider<AdministrativeUnit, Boolean> filter) {
-	//
-	//		List<SecurityModelAuthorization> authorizations = getModelLayerFactory().newRecordServices()
-	//				.getSecurityModel(user.getCollection()).getAuthorizationsToPrincipal(user.getId(), true);
-	//
-	//		Set<String> foundIds = new HashSet<>();
-	//
-	//		for (SecurityModelAuthorization authorization : authorizations) {
-	//			if (AdministrativeUnit.SCHEMA_TYPE.equals(authorization.getDetails().getTargetSchemaType())
-	//				&& filter.get(authorization)) {
-	//				foundIds.add(authorization.getDetails().getId());
-	//			}
-	//		}
-	//
-	//
-	//		List<AdministrativeUnit> returnedAdmUnits = new ArrayList<>();
-	//		for (AdministrativeUnit admUnit : getAllAdministrativeUnitsInUnmodifiableState()) {
-	//
-	//
-	//			user.h
-	//
-	//
-	//			if (foundIds.contains(admUnit.getId())
-	//				|| (includeAuthsOfParentAdministrativeUnits && containsAny(admUnit.getAncestors(), foundIds))) {
-	//				returnedAdmUnits.add(admUnit);
-	//			}
-	//		}
-	//
-	//		return returnedAdmUnits;
-	//	}
 }

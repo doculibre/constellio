@@ -43,8 +43,6 @@ import org.mapdb.Serializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -234,7 +232,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 
 			MetadataSchema metadataSchema = oldRecord != null ? schemaType.getSchema(oldRecord.getSchemaCode()) : schemaType.getSchema(record.getSchemaCode());
 
-			metadataIndexCacheDataStore.addUpdate(oldRecord, record, metadataSchema);
+			metadataIndexCacheDataStore.addUpdate(oldRecord, record, schemaType, metadataSchema);
 			memoryDataStore.insert(dto);
 			return new CacheInsertionResponse(CacheInsertionStatus.ACCEPTED, null, insertion);
 
@@ -245,7 +243,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 			Record summaryRecord = toRecord(dto);
 			MetadataSchema metadataSchema = oldRecord != null ? schemaType.getSchema(oldRecord.getSchemaCode()) : schemaType.getSchema(record.getSchemaCode());
 
-			metadataIndexCacheDataStore.addUpdate(oldRecord, summaryRecord, metadataSchema);
+			metadataIndexCacheDataStore.addUpdate(oldRecord, summaryRecord, schemaType, metadataSchema);
 			memoryDataStore.insert(dto);
 			return new CacheInsertionResponse(CacheInsertionStatus.ACCEPTED, dto, insertion);
 
@@ -463,6 +461,46 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 		}
 	}
 
+	@Override
+	public Stream<Record> getRecordsByIndexedMetadata(MetadataSchemaType schemaType, Metadata metadata, String value) {
+		return getRecordsByIndexedMetadataLoadedAsTheyAreStored(schemaType, metadata, value);
+	}
+
+	@Override
+	public Stream<Record> getRecordsSummaryByIndexedMetadata(MetadataSchemaType schemaType, Metadata metadata,
+															 String value) {
+		return getRecordsByIndexedMetadataLoadedAsTheyAreStored(schemaType, metadata, value);
+	}
+
+	private Stream<Record> getRecordsByIndexedMetadataLoadedAsTheyAreStored(MetadataSchemaType schemaType,
+																			Metadata metadata, String value) {
+		if (metadata.isSameLocalCode(Schemas.IDENTIFIER)) {
+			Record record = get(value, metadata.getCollection());
+			if (record == null) {
+				return Stream.empty();
+			}
+		}
+
+		if (!metadata.getCollection().equals(schemaType.getCollection())) {
+			throw new ImpossibleRuntimeException("Searching with a metadata from collection '" + metadata.getCollection() + "' in cache of collection '" + schemaType.getCollection() + "'");
+		}
+
+		if (schemaType.getCacheType() == RecordCacheType.FULLY_CACHED) {
+			List<String> searchResult = metadataIndexCacheDataStore.search(schemaType, metadata, value);
+
+			if (searchResult != null && !searchResult.isEmpty()) {
+				return searchResult.stream().map((id) -> {
+					return toRecord(memoryDataStore.get(id));
+				});
+			} else {
+				return Stream.empty();
+			}
+
+		} else {
+			throw new ImpossibleRuntimeException("getByMetadata cannot be used for schema type '" + schemaType.getCode() + "' which is not fully cached. If the schema type has a summary cache, try using getSummaryByMetadata instead");
+		}
+	}
+
 
 	private void loadCache(String collection) {
 		for (MetadataSchemaType type : metadataSchemasManager.getSchemaTypes(collection).getSchemaTypes()) {
@@ -546,8 +584,8 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 		volatileCache.remove(recordDTO.getId());
 
 		MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(recordDTO.getCollection());
-		metadataIndexCacheDataStore.addUpdate(toRecord(recordDTO), null, types.getSchema(recordDTO.getSchemaCode()));
 		MetadataSchemaType type = types.getSchemaType(SchemaUtils.getSchemaTypeCode(recordDTO.getSchemaCode()));
+		metadataIndexCacheDataStore.addUpdate(toRecord(recordDTO), null, type, types.getSchema(recordDTO.getSchemaCode()));
 		RecordsCachesHook hook = hooks.getSchemaTypeHook(types, type.getId());
 		if (hook != null) {
 			hook.removeRecordFromCache(recordDTO);
@@ -564,43 +602,6 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 
 	protected Record toRecord(RecordDTO dto) {
 		return modelLayerFactory.newRecordServices().toRecord(dto, dto.getLoadingMode() == FULLY_LOADED);
-	}
-
-	protected List<Record> getMultipleIdByMetadata(byte collectionId, Metadata metadata, String value) {
-		if (metadata.isSameLocalCode(Schemas.IDENTIFIER)) {
-			Record record = get(value, metadata.getCollection());
-			if (record == null) {
-				return Arrays.asList(record);
-			} else {
-				Collections.emptyList();
-			}
-		}
-
-		MetadataSchemaType schemaType = metadataSchemasManager.getSchemaTypes(collectionId)
-				.getSchemaType(metadata.getSchemaTypeCode());
-
-		if (!metadata.getCollection().equals(schemaType.getCollection())) {
-			throw new ImpossibleRuntimeException("Searching with a metadata from collection '" + metadata.getCollection() + "' in cache of collection '" + schemaType.getCollection() + "'");
-		}
-
-		if (schemaType.getCacheType() == RecordCacheType.FULLY_CACHED) {
-			List<String> searchResult = metadataIndexCacheDataStore.search(metadata, value);
-
-			if (searchResult != null && !searchResult.isEmpty()) {
-				return searchResult.stream().map(this::getRecordUsingMemoryDataStore).collect(Collectors.toList());
-			} else {
-				return Collections.emptyList();
-			}
-
-		} else {
-			throw new ImpossibleRuntimeException("getByMetadata cannot be used for schema type '" + schemaType.getCode() + "' which is not fully cached. If the schema type has a summary cache, try using getSummaryByMetadata instead");
-		}
-	}
-
-	private Record getRecordUsingMemoryDataStore(String id) {
-		RecordDTO recordDTO = memoryDataStore.get(id);
-
-		return toRecord(recordDTO);
 	}
 
 	protected Record getByMetadata(byte collectionId, Metadata metadata, String value) {
@@ -620,7 +621,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 		}
 
 		if (schemaType.getCacheType() == RecordCacheType.FULLY_CACHED) {
-			List<String> searchResult = metadataIndexCacheDataStore.search(metadata, value);
+			List<String> searchResult = metadataIndexCacheDataStore.search(schemaType, metadata, value);
 
 			if (searchResult != null && !searchResult.isEmpty()) {
 				return toRecord(memoryDataStore.get(searchResult.get(0)));
@@ -669,7 +670,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 				.getSchemaType(metadata.getSchemaTypeCode());
 
 		if (schemaType.getCacheType().isSummaryCache() || schemaType.getCacheType() == RecordCacheType.FULLY_CACHED) {
-			List<String> searchResult = metadataIndexCacheDataStore.search(metadata, value);
+			List<String> searchResult = metadataIndexCacheDataStore.search(schemaType, metadata, value);
 
 			if (searchResult != null && !searchResult.isEmpty()) {
 				return toRecord(memoryDataStore.get(searchResult.get(0)));
@@ -700,6 +701,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 		return hooks.getSchemaTypeHook(
 				metadataSchemasManager.getSchemaTypes(schemaType.getCollection()), schemaType.getId());
 	}
+
 
 	private RecordDTO toPersistedSummaryRecordDTO(Record record, InsertionReason reason) {
 

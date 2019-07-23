@@ -48,7 +48,7 @@ public class MenuItemServices {
 		return getActionsForRecord(record, Collections.emptyList(), params);
 	}
 
-	public List<MenuItemAction> getActionsForRecord(Record record, List<String> filteredActionTypes,
+	public List<MenuItemAction> getActionsForRecord(Record record, List<String> excludedActionTypes,
 													MenuItemActionBehaviorParams params) {
 		if (params.getView() == null) {
 			return Collections.emptyList();
@@ -60,20 +60,20 @@ public class MenuItemServices {
 			if (objectRecordVO instanceof UserCredentialVO) {
 				menuItemActions.addAll(userCredentialMenuItemServices.getActionsForRecord(userCredentialMenuItemServices
 								.getUserCredential((UserCredentialVO) objectRecordVO), params.getUser(),
-						filteredActionTypes, params));
+						excludedActionTypes, params));
 			} else if (objectRecordVO instanceof GlobalGroupVO) {
 				menuItemActions.addAll(globalGroupMenuItemServices.getActionsForRecord(globalGroupMenuItemServices
 								.getGlobalGroup((GlobalGroupVO) objectRecordVO), params.getUser(),
-						filteredActionTypes, params));
+						excludedActionTypes, params));
 			}
 		}
 
 		if (record.getSchemaCode().startsWith("ddv")) {
-			menuItemActions.addAll(schemaRecordMenuItemServices.getActionsForRecord(record, params.getUser(), filteredActionTypes, params));
+			menuItemActions.addAll(schemaRecordMenuItemServices.getActionsForRecord(record, params.getUser(), excludedActionTypes, params));
 		}
 
 
-		addMenuItemActionsFromExtensions(record, filteredActionTypes, params, menuItemActions);
+		addMenuItemActionsFromExtensions(record, excludedActionTypes, params, menuItemActions);
 
 		return menuItemActions;
 	}
@@ -82,20 +82,20 @@ public class MenuItemServices {
 		return getActionsForRecords(records, Collections.emptyList(), params);
 	}
 
-	public List<MenuItemAction> getActionsForRecords(List<Record> records, List<String> filteredActionTypes,
+	public List<MenuItemAction> getActionsForRecords(List<Record> records, List<String> excludedActionTypes,
 													 MenuItemActionBehaviorParams params) {
-		if (params.getView() == null) {
-			return Collections.emptyList();
-		}
+		//		if (params.getView() == null) {
+		//			return Collections.emptyList();
+		//		}
 
 		List<MenuItemAction> menuItemActions = new ArrayList<>();
 
-		for (String actionType : getMenuItemActionTypesForRecordList(filteredActionTypes)) {
+		for (String actionType : getMenuItemActionTypesForRecordList(excludedActionTypes)) {
 			MenuItemActionState state = getStateForAction(actionType, records, params);
 			addMenuItemAction(actionType, state, menuItemActions);
 		}
 
-		addMenuItemActionsFromExtensions(records, filteredActionTypes, params, menuItemActions);
+		addMenuItemActionsFromExtensions(records, excludedActionTypes, params, menuItemActions);
 
 		return menuItemActions;
 	}
@@ -104,8 +104,7 @@ public class MenuItemServices {
 		return getActionsForRecords(query, Collections.emptyList(), params);
 	}
 
-
-	public List<MenuItemAction> getActionsForRecords(LogicalSearchQuery query, List<String> filteredActionTypes,
+	public List<MenuItemAction> getActionsForRecords(LogicalSearchQuery query, List<String> excludedActionTypes,
 													 MenuItemActionBehaviorParams params) {
 		if (params.getView() == null) {
 			return Collections.emptyList();
@@ -114,7 +113,7 @@ public class MenuItemServices {
 		// only used by extensions for now
 
 		List<MenuItemAction> menuItemActions = new ArrayList<>();
-		addMenuItemActionsFromExtensions(query, filteredActionTypes, params, menuItemActions);
+		addMenuItemActionsFromExtensions(query, excludedActionTypes, params, menuItemActions);
 
 		return menuItemActions;
 	}
@@ -154,33 +153,33 @@ public class MenuItemServices {
 		return getStateForActionFromExtensions(actionType, query, params);
 	}
 
-	private void addMenuItemActionsFromExtensions(Record record, List<String> filteredActionTypes,
+	private void addMenuItemActionsFromExtensions(Record record, List<String> excludedActionTypes,
 												  MenuItemActionBehaviorParams params,
 												  List<MenuItemAction> menuItemActions) {
 		for (MenuItemActionsExtension menuItemActionsExtension : menuItemActionsExtensions) {
 			menuItemActionsExtension.addMenuItemActionsForRecord(
 					new MenuItemActionExtensionAddMenuItemActionsForRecordParams(record, menuItemActions,
-							filteredActionTypes, params));
+							excludedActionTypes, params));
 		}
 	}
 
-	private void addMenuItemActionsFromExtensions(List<Record> records, List<String> filteredActionTypes,
+	private void addMenuItemActionsFromExtensions(List<Record> records, List<String> excludedActionTypes,
 												  MenuItemActionBehaviorParams params,
 												  List<MenuItemAction> menuItemActions) {
 		for (MenuItemActionsExtension menuItemActionsExtension : menuItemActionsExtensions) {
 			menuItemActionsExtension.addMenuItemActionsForRecords(
 					new MenuItemActionExtensionAddMenuItemActionsForRecordsParams(records, menuItemActions,
-							filteredActionTypes, params));
+							excludedActionTypes, params));
 		}
 	}
 
-	private void addMenuItemActionsFromExtensions(LogicalSearchQuery query, List<String> filteredActionTypes,
+	private void addMenuItemActionsFromExtensions(LogicalSearchQuery query, List<String> excludedActionTypes,
 												  MenuItemActionBehaviorParams params,
 												  List<MenuItemAction> menuItemActions) {
 		for (MenuItemActionsExtension menuItemActionsExtension : menuItemActionsExtensions) {
 			menuItemActionsExtension.addMenuItemActionsForQuery(
 					new MenuItemActionExtensionAddMenuItemActionsForQueryParams(query, menuItemActions,
-							filteredActionTypes, params));
+							excludedActionTypes, params));
 		}
 	}
 
@@ -223,7 +222,7 @@ public class MenuItemServices {
 		return new MenuItemActionState(HIDDEN);
 	}
 
-	private List<String> getMenuItemActionTypesForRecordList(List<String> filteredActionTypes) {
+	private List<String> getMenuItemActionTypesForRecordList(List<String> excludedActionTypes) {
 		return Collections.emptyList();
 	}
 

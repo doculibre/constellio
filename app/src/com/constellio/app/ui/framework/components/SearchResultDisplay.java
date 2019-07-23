@@ -31,7 +31,6 @@ import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CssLayout;
 import com.vaadin.ui.Label;
-import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import org.apache.commons.lang3.StringUtils;
 
@@ -122,11 +121,13 @@ public class SearchResultDisplay extends CssLayout {
 	protected Component newTitleComponent(SearchResultVO searchResultVO) {
 		final RecordVO record = searchResultVO.getRecordVO();
 
-		VerticalLayout titleLayout = new VerticalLayout();
+		CssLayout titleLayout = new CssLayout();
 		titleLayout.setWidth("100%");
+
 		Component titleLink = newTitleLink(searchResultVO);
 		titleLink.addStyleName(TITLE_STYLE);
-//		titleLink.setWidthUndefined();
+
+		titleLink.setWidthUndefined();
 		titleLayout.addComponent(titleLink);
 
 		SessionContext currentSessionContext = ConstellioUI.getCurrentSessionContext();
@@ -153,8 +154,7 @@ public class SearchResultDisplay extends CssLayout {
 			elevationLayout.setComponentAlignment(excludeButton, Alignment.TOP_LEFT);
 			elevationLayout.setComponentAlignment(elevateButton, Alignment.TOP_LEFT);
 
-			titleLayout.addComponent(elevationLayout, 0);
-			titleLayout.setComponentAlignment(elevationLayout, Alignment.TOP_RIGHT);
+			titleLayout.addComponent(elevationLayout);
 			//			titleLayout.setExpandRatio(elevationLayout, 1);
 			//			titleLayout.setSpacing(true);
 		}
@@ -237,30 +237,19 @@ public class SearchResultDisplay extends CssLayout {
 				addComponent(new Label(sb.toString(), ContentMode.HTML));
 			}
 		} else {
-			VerticalLayout layout = new VerticalLayout();
-			layout.addStyleName("search-result-metadata-layout");
-			layout.setSpacing(true);
 			for (MetadataValueVO metadataValue : recordVO.getSearchMetadataValues()) {
 				if (recordVO.getMetadataCodes().contains(metadataValue.getMetadata().getCode())) {
 					MetadataVO metadataVO = metadataValue.getMetadata();
 					if (!metadataVO.codeMatches(CommonMetadataBuilder.TITLE)) {
 						Component value = componentFactory.build(recordVO, metadataValue);
 						if (value != null) {
+							value.addStyleName("metadata-value");
 							Label caption = new Label(metadataVO.getLabel() + ":");
 							caption.addStyleName("metadata-caption");
-
-							I18NHorizontalLayout item = new I18NHorizontalLayout(caption, value);
-							item.setHeight("100%");
-							item.setSpacing(true);
-							item.addStyleName("metadata-caption-layout");
-
-							layout.addComponent(item);
+							addComponents(caption, value);
 						}
 					}
 				}
-			}
-			if (layout.getComponentCount() > 0) {
-				addComponent(layout);
 			}
 		}
 	}
@@ -269,7 +258,7 @@ public class SearchResultDisplay extends CssLayout {
 		return appLayerFactory;
 	}
 
-	public void addClickListener(ClickListener listener) {
+	public void addClickListener(final ClickListener listener) {
 		ReferenceDisplay referenceDisplay = ComponentTreeUtils.getFirstChild(titleComponent, ReferenceDisplay.class);
 		if (referenceDisplay != null) {
 			referenceDisplay.addClickListener(listener);

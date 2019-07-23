@@ -138,6 +138,10 @@ $popup-view-z-index: 3;
 	.compact-menubar .v-menubar-submenu-indicator  + .v-menubar-menuitem-caption:after {
 		display:none;
 	}
+	
+	.v-menubar-popup [class*="disabled"] {
+	    cursor: pointer;
+	}
 
 	.task-management-view {
 		.v-menubar .v-menubar-submenu-indicator  + .v-menubar-menuitem-caption:after {
@@ -1050,6 +1054,10 @@ $popup-view-z-index: 3;
     .h1 {
     	padding-left: 10px;
     }
+    
+    .v-panel, .v-textfield, .v-datefield, .v-textarea, .v-filterselect, .v-button, .v-menubar, .v-menubar-popup, .v-menubar-popup .v-menubar-menuitem, .v-menubar-borderless .v-menubar-menuitem, .v-menubar > .v-menubar-menuitem:first-child, .v-menubar > .v-menubar-menuitem:first-child:last-child, .v-menubar > .v-menubar-menuitem:last-child, .v-menubar-borderless .v-menubar-menuitem:first-child, .v-menubar-borderless .v-menubar-menuitem:last-child, .v-menubar-borderless .v-menubar-menuitem:first-child:last-child, .v-tree-node-caption:after {
+    	border-radius: 0;
+    }
 
     .v-slot-login-panel, .v-slot-setup-panel {
     	background-image: url(images/background.jpg);
@@ -1202,6 +1210,15 @@ $popup-view-z-index: 3;
     .v-filterselect {
     	width: 100%;
     }
+    	
+    .v-lazyloadingwrapper-loading {
+	    background-color: white;
+	    border: none;
+	    //background-image: url("img/loading-indicator.gif");
+	    //background-repeat: no-repeat;
+	    //background-position: 50% center;
+	    //border: 2px solid silver;
+	}
     
     .v-filterselect-suggestmenu {
     	.gwt-MenuItem {
@@ -2226,6 +2243,7 @@ $popup-view-z-index: 3;
 					}
 				}
   			}
+
   		}
 
 		.viewable-record-table [class*="-row"].v-selected {
@@ -2465,25 +2483,6 @@ $popup-view-z-index: 3;
 								color: #551A8B;
 							}
 
-							.clickable-row {
-						    	.v-table-body {
-						    		tr, .reference-display {
-						    			cursor: pointer;
-										color: #696969;
-
-										&:hover {
-						    				color: white;
-						    				background-color: #197de1;
-						    				text-decoration: none;
-
-									   		.reference-display-link {
-									   			color: white;
-									   		}
-						    			}
-						    		}
-						    	}
-							}
-
 							.agent-action-link {
             					white-space: normal;
             					height: inherit;
@@ -2548,7 +2547,7 @@ $popup-view-z-index: 3;
                             	border-top: 1px solid rgb(213, 213, 213);
 							}
 
-							.search-result-table {
+							.viewable-record-table {
 								.v-table-cell-content {
 									border: none;
 								}
@@ -2996,7 +2995,7 @@ $popup-view-z-index: 3;
 
     .v-ui[width-range~="1101px-"] {
     	.user-menu {
-    		bottom: 40px;
+    		bottom: 60px;
     	}
 
 	    .valo-menu-part {
@@ -3117,6 +3116,10 @@ $popup-view-z-index: 3;
 			top: 0px;
 			right: 20px;
 	    }
+	    
+	    .not-nested-action-menu-bar-layout {
+	    	top: -30px;
+	    }
 
   		.viewable-record-table-panel {
 	  		.action-menu-bar-layout {
@@ -3145,7 +3148,7 @@ $popup-view-z-index: 3;
 
     .v-ui[width-range~="801-1100px"] {
     	.user-menu {
-    		bottom: 40px;
+    		bottom: 60px;
     	}
 
     	.sidebar {
@@ -3226,6 +3229,10 @@ $popup-view-z-index: 3;
 			position: absolute;
 			top: 0px;
 			right: 20px;
+	    }
+	    
+	    .not-nested-action-menu-bar-layout {
+	    	top: -30px;
 	    }
 
   		.viewable-record-table-panel {

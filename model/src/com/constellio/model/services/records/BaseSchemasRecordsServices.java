@@ -225,6 +225,14 @@ public class BaseSchemasRecordsServices implements Serializable {
 		return wrappedList.stream();
 	}
 
+	protected <T> Stream<T> streamFromCache(LogicalSearchQuery query, Function<Record, T> wrapperFunction) {
+		return modelLayerFactory.newSearchServices().stream(query).map(wrapperFunction);
+	}
+
+	protected <T> Stream<T> streamFromCache(LogicalSearchCondition condition, Function<Record, T> wrapperFunction) {
+		return modelLayerFactory.newSearchServices().stream(new LogicalSearchQuery(condition)).map(wrapperFunction);
+	}
+
 	protected <T> Iterator<T> iterateFromCache(MetadataSchemaType schemaType, Function<Record, T> wrapperFunction) {
 		List<Record> records = modelLayerFactory.newRecordServices().getRecordsCaches()
 				.getCache(schemaType.getCollection()).getAllValues(schemaType.getCode());

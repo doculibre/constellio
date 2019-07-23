@@ -6,6 +6,7 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.menu.MenuItemAction;
 import com.constellio.app.services.menu.MenuItemFactory;
+import com.constellio.app.services.menu.MenuItemFactory.MenuItemRecordProvider;
 import com.constellio.app.services.menu.MenuItemServices;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
 import com.constellio.app.ui.application.ConstellioUI;
@@ -37,6 +38,7 @@ import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -154,7 +156,12 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 					}
 				});
 
-		new MenuItemFactory().buildContextMenu(this, menuItemActions);
+		new MenuItemFactory().buildContextMenu(this, menuItemActions, new MenuItemRecordProvider() {
+			@Override
+			public List<Record> getRecords() {
+				return Arrays.asList(recordVO.getRecord());
+			}
+		});
 	}
 
 	@Override

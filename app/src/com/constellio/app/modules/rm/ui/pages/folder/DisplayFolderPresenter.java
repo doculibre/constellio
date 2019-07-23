@@ -1,8 +1,6 @@
 package com.constellio.app.modules.rm.ui.pages.folder;
 
 import com.constellio.app.api.extensions.params.DocumentFolderBreadCrumbParams;
-import com.constellio.app.api.extensions.params.NavigateToFromAPageParams;
-import com.constellio.app.api.extensions.taxonomies.FolderDeletionEvent;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMEmailTemplateConstants;
@@ -12,10 +10,10 @@ import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.navigation.RMViews;
+import com.constellio.app.modules.rm.services.EmailParsingServices;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
-import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.services.decommissioning.SearchType;
 import com.constellio.app.modules.rm.services.events.RMEventsSearchServices;
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
@@ -26,7 +24,6 @@ import com.constellio.app.modules.rm.ui.entities.FolderVO;
 import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningBuilderViewImpl;
 import com.constellio.app.modules.rm.ui.pages.decommissioning.breadcrumb.DecommissionBreadcrumbTrail;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
-import com.constellio.app.modules.rm.util.DecommissionNavUtil;
 import com.constellio.app.modules.rm.util.RMNavigationUtils;
 import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
@@ -61,7 +58,6 @@ import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.pages.search.SearchPresenter.SortOrder;
 import com.constellio.app.ui.pages.search.SearchPresenterService;
 import com.constellio.app.ui.params.ParamUtils;
-import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.KeySetMap;
@@ -83,7 +79,6 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.structures.EmailAddress;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
-import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentManager.UploadOptions;
@@ -106,7 +101,6 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQueryOper
 import com.constellio.model.services.search.query.logical.LogicalSearchQuerySort;
 import com.constellio.model.services.search.query.logical.ScoreLogicalSearchQuerySort;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
-import com.constellio.model.services.security.AuthorizationsServices;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -235,9 +229,9 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	public void forParams(String params) {
 		String id;
 
-		Map<String, String> currentParams = ParamUtils.getParamsMap(params);
-		if (currentParams.size() > 0) {
-			this.params = currentParams;
+		Map<String, String> lParamsAsMap = ParamUtils.getParamsMap(params);
+		if (lParamsAsMap.size() > 0) {
+			this.params = ParamUtils.getParamsMap(params);
 			id = this.params.get("id");
 		} else {
 			id = params;
@@ -521,25 +515,11 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 	private void disableMenuItems(Folder folder) {
 		if (!folder.isLogicallyDeletedStatus()) {
-			RMConfigs rmConfigs = new RMConfigs(modelLayerFactory.getSystemConfigurationsManager());
-
 			User user = getCurrentUser();
-			view.setLogicallyDeletable(getDeleteButtonState(user, folder));
 			view.setDisplayButtonState(getDisplayButtonState(user, folder));
 			view.setEditButtonState(getEditButtonState(user, folder));
-			view.setMoveInFolderState(getMoveInFolderButtonState(user, folder));
-			view.setAddSubFolderButtonState(getAddFolderButtonState(user, folder));
 			view.setAddDocumentButtonState(getAddDocumentButtonState(user, folder));
-			view.setDuplicateFolderButtonState(getDuplicateFolderButtonState(user, folder));
-			view.setAuthorizationButtonState(getAuthorizationButtonState(user, folder));
-			view.setShareFolderButtonState(getShareButtonState(user, folder));
-			view.setPrintButtonState(getPrintButtonState(user, folder));
-			view.setBorrowButtonState(getBorrowButtonState(user, folder));
-			view.setReturnFolderButtonState(getReturnFolderButtonState(user, folder));
-			view.setReminderReturnFolderButtonState(getReminderReturnFolderButtonState(user, folder));
-			view.setAlertWhenAvailableButtonState(getAlertWhenAvailableButtonState(user, folder));
 			view.setBorrowedMessage(getBorrowMessageState(folder));
-			//view.setStartWorkflowButtonState(ComponentState.visibleIf(rmConfigs.areWorkflowsEnabled()));
 		}
 	}
 
@@ -551,9 +531,9 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 				String userTitle = rmSchemasRecordsServices.getUser(borrowUserEntered).getTitle();
 				LocalDateTime borrowDateTime = folder.getBorrowDate();
 				LocalDate borrowDate = borrowDateTime != null ? borrowDateTime.toLocalDate() : null;
-				borrowedMessage = $(view.getFolderOrSubFolderButtonKey("DisplayFolderView.borrowedFolder"), userTitle, borrowDate);
+				borrowedMessage = $("DisplayFolderView.borrowedFolder", userTitle, borrowDate);
 			} else {
-				borrowedMessage = view.getFolderOrSubFolderButtonTitle("DisplayFolderView.borrowedByNullUserFolder");
+				borrowedMessage = $("DisplayFolderView.borrowedByNullUserFolder");
 			}
 		} else if (folder.getContainer() != null) {
 			try {
@@ -574,149 +554,6 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		return borrowedMessage;
 	}
 
-	protected ComponentState getBorrowButtonState(User user, Folder folder) {
-		try {
-			borrowingServices.validateCanBorrow(user, folder, null);
-			return ComponentState
-					.visibleIf(user.hasAll(RMPermissionsTo.BORROW_FOLDER, RMPermissionsTo.BORROWING_FOLDER_DIRECTLY).on(folder)
-							   && rmModuleExtensions.isBorrowingActionPossibleOnFolder(folder, user));
-		} catch (Exception e) {
-			return ComponentState.INVISIBLE;
-		}
-	}
-
-	private ComponentState getReturnFolderButtonState(User user, Folder folder) {
-		try {
-			borrowingServices.validateCanReturnFolder(user, folder);
-			return ComponentState.ENABLED;
-		} catch (Exception e) {
-			return ComponentState.INVISIBLE;
-		}
-	}
-
-	protected ComponentState getReminderReturnFolderButtonState(User user, Folder folder) {
-		return isBorrowedByOtherUser(user, folder);
-	}
-
-	protected ComponentState getAlertWhenAvailableButtonState(User user, Folder folder) {
-		return isBorrowedByOtherUser(user, folder);
-	}
-
-	private ComponentState isBorrowedByOtherUser(User currentUser, Folder folder) {
-		Boolean borrowed = folder.getBorrowed();
-		if ((borrowed != null && borrowed) && borrowed && !isCurrentUserBorrower(currentUser, folder)) {
-			return ComponentState.ENABLED;
-		} else {
-			return ComponentState.INVISIBLE;
-		}
-	}
-
-	private boolean isCurrentUserBorrower(User currentUser, Folder folder) {
-		return currentUser.getId().equals(folder.getBorrowUserEntered());
-	}
-
-	ComponentState getPrintButtonState(User user, Folder folder) {
-		AuthorizationsServices authorizationsServices = modelLayerFactory.newAuthorizationsServices();
-		if (authorizationsServices.canRead(user, folder.getWrappedRecord())) {
-			if (folder.getPermissionStatus().isInactive()) {
-				if (folder.getBorrowed() != null && folder.getBorrowed()) {
-					return ComponentState.visibleIf(user.has(RMPermissionsTo.MODIFY_INACTIVE_BORROWED_FOLDER).on(folder) && user
-							.has(RMPermissionsTo.MODIFY_INACTIVE_FOLDERS).on(folder));
-				}
-				return ComponentState.visibleIf(user.has(RMPermissionsTo.MODIFY_INACTIVE_FOLDERS).on(folder));
-			}
-			if (folder.getPermissionStatus().isSemiActive()) {
-				if (folder.getBorrowed() != null && folder.getBorrowed()) {
-					return ComponentState.visibleIf(user.has(RMPermissionsTo.MODIFY_SEMIACTIVE_BORROWED_FOLDER).on(folder) && user
-							.has(RMPermissionsTo.MODIFY_SEMIACTIVE_FOLDERS).on(folder));
-				}
-				return ComponentState.visibleIf(user.has(RMPermissionsTo.MODIFY_SEMIACTIVE_FOLDERS).on(folder));
-			}
-			//			if(rmModuleExtensions.getReportBuilderFactories().labelsBuilderFactory.getValue() == null) {
-			//				return ComponentState.DISABLED;
-			//			}
-			return ComponentState.ENABLED;
-		}
-		return ComponentState.INVISIBLE;
-	}
-
-	private ComponentState getDuplicateFolderButtonState(User user, Folder folder) {
-		return ComponentState.visibleIf(isDuplicateFolderPossible(user, folder));
-	}
-
-	private boolean isDuplicateFolderPossible(User user, Folder folder) {
-		AuthorizationsServices authorizationsServices = modelLayerFactory.newAuthorizationsServices();
-		if (!authorizationsServices.canWrite(user, folder.getWrappedRecord())) {
-			return false;
-		}
-
-		if (folder.getPermissionStatus().isInactive() && !user.has(RMPermissionsTo.DUPLICATE_INACTIVE_FOLDER).on(folder)) {
-			return false;
-		}
-		if (folder.getPermissionStatus().isSemiActive() && !user.has(RMPermissionsTo.DUPLICATE_SEMIACTIVE_FOLDER).on(folder)) {
-			return false;
-		}
-
-		if (!rmModuleExtensions.isCopyActionPossibleOnFolder(folder, user)) {
-			return false;
-		}
-		return true;
-	}
-
-	private ComponentState getAuthorizationButtonState(User user, Folder folder) {
-		return ComponentState.visibleIf(user.hasAny(RMPermissionsTo.MANAGE_FOLDER_AUTHORIZATIONS, RMPermissionsTo.VIEW_FOLDER_AUTHORIZATIONS).on(folder));
-	}
-
-	ComponentState getShareButtonState(User user, Folder folder) {
-		return ComponentState.visibleIf(isShareFolderPossible(user, folder));
-	}
-
-	private boolean isShareFolderPossible(User user, Folder folder) {
-		if (!user.has(RMPermissionsTo.SHARE_FOLDER).on(folder)) {
-			return false;
-		}
-		if (folder.getPermissionStatus().isInactive() && !user.has(RMPermissionsTo.SHARE_A_INACTIVE_FOLDER).on(folder)) {
-			return false;
-		}
-		if (folder.getPermissionStatus().isSemiActive() && !user.has(RMPermissionsTo.SHARE_A_SEMIACTIVE_FOLDER).on(folder)) {
-			return false;
-		}
-		if (isNotBlank(folder.getLegacyId()) && !user.has(RMPermissionsTo.SHARE_A_IMPORTED_FOLDER).on(folder)) {
-			return false;
-		}
-
-		if (!rmModuleExtensions.isShareActionPossibleOnFolder(folder, user)) {
-			return false;
-		}
-		return true;
-	}
-
-	ComponentState getDeleteButtonState(User user, Folder folder) {
-		if (user.hasDeleteAccess().on(folder) && extensions.validateDeleteAuthorized(folder.getWrappedRecord(), user).isEmpty()) {
-			if (folder.getPermissionStatus().isInactive()) {
-				if (folder.getBorrowed() != null && folder.getBorrowed()) {
-					return ComponentState.visibleIf(user.has(RMPermissionsTo.MODIFY_INACTIVE_BORROWED_FOLDER).on(folder) && user
-							.has(RMPermissionsTo.DELETE_INACTIVE_FOLDERS).on(folder));
-				}
-				return ComponentState.visibleIf(user.has(RMPermissionsTo.DELETE_INACTIVE_FOLDERS).on(folder));
-			}
-			if (folder.getPermissionStatus().isSemiActive()) {
-				if (folder.getBorrowed() != null && folder.getBorrowed()) {
-					return ComponentState.visibleIf(user.has(RMPermissionsTo.MODIFY_SEMIACTIVE_BORROWED_FOLDER).on(folder) && user
-							.has(RMPermissionsTo.DELETE_SEMIACTIVE_FOLDERS).on(folder));
-				}
-				return ComponentState.visibleIf(user.has(RMPermissionsTo.DELETE_SEMIACTIVE_FOLDERS).on(folder));
-			}
-			return ComponentState.ENABLED;
-		}
-		return ComponentState.INVISIBLE;
-	}
-
-	ComponentState getMoveInFolderButtonState(User user, Folder folder) {
-		//		return getEditButtonState(user, folder);
-		return ComponentState.INVISIBLE;
-	}
-
 	ComponentState getDisplayButtonState(User user, Folder folder) {
 		if (view.isInWindow()) {
 			return ComponentState.INVISIBLE;
@@ -732,28 +569,6 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		return ComponentState.visibleIf(user.hasWriteAccess().on(folder)
 										&& !extensions.isModifyBlocked(folder.getWrappedRecord(), user) && extensions
 												.isRecordModifiableBy(folder.getWrappedRecord(), user));
-	}
-
-	ComponentState getAddFolderButtonState(User user, Folder folder) {
-		if (user.hasWriteAccess().on(folder) &&
-			user.hasAll(RMPermissionsTo.CREATE_SUB_FOLDERS, RMPermissionsTo.CREATE_FOLDERS).on(folder)) {
-			if (folder.getPermissionStatus().isInactive()) {
-				if (folder.getBorrowed() != null && folder.getBorrowed()) {
-					return ComponentState.visibleIf(user.has(RMPermissionsTo.MODIFY_INACTIVE_BORROWED_FOLDER).on(folder) && user
-							.has(RMPermissionsTo.CREATE_SUB_FOLDERS_IN_INACTIVE_FOLDERS).on(folder));
-				}
-				return ComponentState.visibleIf(user.has(RMPermissionsTo.CREATE_SUB_FOLDERS_IN_INACTIVE_FOLDERS).on(folder));
-			}
-			if (folder.getPermissionStatus().isSemiActive()) {
-				if (folder.getBorrowed() != null && folder.getBorrowed()) {
-					return ComponentState.visibleIf(user.has(RMPermissionsTo.MODIFY_SEMIACTIVE_BORROWED_FOLDER).on(folder) && user
-							.has(RMPermissionsTo.CREATE_SUB_FOLDERS_IN_SEMIACTIVE_FOLDERS).on(folder));
-				}
-				return ComponentState.visibleIf(user.has(RMPermissionsTo.CREATE_SUB_FOLDERS_IN_SEMIACTIVE_FOLDERS).on(folder));
-			}
-			return ComponentState.ENABLED;
-		}
-		return ComponentState.INVISIBLE;
 	}
 
 	ComponentState getAddDocumentButtonState(User user, Folder folder) {
@@ -837,10 +652,6 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		navigate().to(RMViews.class).addDocument(folderVO.getId());
 	}
 
-	public void addSubFolderButtonClicked() {
-		navigate().to(RMViews.class).addFolder(folderVO.getId());
-	}
-
 	public void navigateToSelf() {
 		navigateToFolder(this.folderVO.getId());
 	}
@@ -851,85 +662,6 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 	public void editFolderButtonClicked() {
 		RMNavigationUtils.navigateToEditFolder(folderVO.getId(), params, appLayerFactory, collection);
-	}
-
-	public void deleteFolderButtonClicked(String reason) {
-		String parentId = folderVO.get(Folder.PARENT_FOLDER);
-		Record record = toRecord(folderVO);
-		ValidationErrors validateLogicallyDeletable = recordServices.validateLogicallyDeletable(record, getCurrentUser());
-		if (validateLogicallyDeletable.isEmpty()) {
-			appLayerFactory.getExtensions().forCollection(collection)
-					.notifyFolderDeletion(new FolderDeletionEvent(rmSchemasRecordsServices.wrapFolder(record)));
-
-			boolean isDeleteSuccessful = delete(record, reason, false, WAIT_ONE_SECOND);
-			if (isDeleteSuccessful) {
-				if (parentId != null) {
-					navigateToFolder(parentId);
-				} else {
-					navigate().to().home();
-				}
-			}
-		} else {
-			MessageUtils.getCannotDeleteWindow(validateLogicallyDeletable).openWindow();
-		}
-	}
-
-	public void duplicateFolderButtonClicked() {
-		Folder folder = rmSchemasRecordsServices().getFolder(folderVO.getId());
-		if (isDuplicateFolderPossible(getCurrentUser(), folder)) {
-			navigateToDuplicateFolder(folder, false);
-		}
-		if (!nestedView) {
-			view.closeAllWindows();
-		}
-	}
-
-	private void navigateToDuplicateFolder(Folder folder, boolean isStructure) {
-		boolean areTypeAndSearchIdPresent = DecommissionNavUtil.areTypeAndSearchIdPresent(params);
-
-		if (areTypeAndSearchIdPresent) {
-			navigate().to(RMViews.class).duplicateFolderFromDecommission(folderVO.getId(), isStructure,
-					DecommissionNavUtil.getSearchId(params), DecommissionNavUtil.getSearchType(params));
-		} else if (rmModuleExtensions
-				.navigateToDuplicateFolderWhileKeepingTraceOfPreviousView(new NavigateToFromAPageParams(params, isStructure, folderVO.getId()))) {
-		} else {
-			navigate().to(RMViews.class).duplicateFolder(folder.getId(), isStructure);
-		}
-	}
-
-	public void duplicateStructureButtonClicked() {
-		Folder folder = rmSchemasRecordsServices().getFolder(folderVO.getId());
-		if (isDuplicateFolderPossible(getCurrentUser(), folder)) {
-			try {
-				decommissioningService().validateDuplicateStructure(folder, getCurrentUser(), false);
-				navigateToDuplicateFolder(folder, true);
-			} catch (RecordServicesException.ValidationException e) {
-				view.showErrorMessage($(e.getErrors()));
-			} catch (Exception e) {
-				view.showErrorMessage(e.getMessage());
-			}
-		}
-		if (!nestedView) {
-			view.closeAllWindows();
-		}
-	}
-
-	public void linkToFolderButtonClicked() {
-		// TODO ZeroClipboardComponent
-		view.showMessage("Clipboard integration TODO!");
-	}
-
-	public void addAuthorizationButtonClicked() {
-		navigate().to().listObjectAccessAndRoleAuthorizations(folderVO.getId());
-	}
-
-	public void shareFolderButtonClicked() {
-		Folder folder = rmSchemasRecordsServices().getFolder(folderVO.getId());
-		if (!isShareFolderPossible(getCurrentUser(), folder)) {
-			return;
-		}
-
-		navigate().to().shareContent(folderVO.getId());
 	}
 
 	public void documentClicked(RecordVO recordVO) {
@@ -960,17 +692,8 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		navigate().to(TaskViews.class).displayTask(taskVO.getId());
 	}
 
-	private DecommissioningService decommissioningService() {
-		return new DecommissioningService(getCurrentUser().getCollection(), appLayerFactory);
-	}
-
 	private RMSchemasRecordsServices rmSchemasRecordsServices() {
 		return new RMSchemasRecordsServices(getCurrentUser().getCollection(), appLayerFactory);
-	}
-
-	private boolean documentExists(String fileName) {
-		List<String> allDocumentTitles = getAllDocumentTitles();
-		return allDocumentTitles.contains(fileName);
 	}
 
 	private List<String> getAllDocumentTitles() {
@@ -1049,7 +772,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 				if (rmSchemasRecordsServices().isEmail(fileName)) {
 					InputStreamProvider inputStreamProvider = uploadedContentVO.getInputStreamProvider();
 					InputStream in = inputStreamProvider.getInputStream(DisplayFolderPresenter.class + ".contentVersionUploaded");
-					document = rmSchemasRecordsServices.newEmail(fileName, in);
+					document = new EmailParsingServices(rmSchemasRecordsServices).newEmail(fileName, in);
 				} else {
 					document = rmSchemasRecordsServices.newDocument();
 				}
@@ -1147,7 +870,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 				borrowed = true;
 			} catch (RecordServicesException e) {
 				LOGGER.error(e.getMessage(), e);
-				view.showErrorMessage(view.getFolderOrSubFolderButtonTitle("DisplayFolderView.cannotBorrowFolder"));
+				view.showErrorMessage($("DisplayFolderView.cannotBorrowFolder"));
 				borrowed = false;
 			}
 		}

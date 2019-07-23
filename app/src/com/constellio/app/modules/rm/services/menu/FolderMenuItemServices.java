@@ -253,7 +253,7 @@ public class FolderMenuItemServices {
 				.build();
 	}
 
-	enum FolderMenuItemActionType {
+	public static enum FolderMenuItemActionType {
 		FOLDER_DISPLAY,
 		FOLDER_ADD_DOCUMENT,
 		FOLDER_MOVE,

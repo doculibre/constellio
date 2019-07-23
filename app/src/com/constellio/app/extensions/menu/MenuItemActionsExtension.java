@@ -43,7 +43,7 @@ public abstract class MenuItemActionsExtension {
 	public static class MenuItemActionExtensionAddMenuItemActionsForRecordParams {
 		private Record record;
 		private List<MenuItemAction> menuItemActions;
-		private List<String> filteredActionTypes;
+		private List<String> excludedActionTypes;
 		private MenuItemActionBehaviorParams behaviorParams;
 	}
 
@@ -52,7 +52,7 @@ public abstract class MenuItemActionsExtension {
 	public static class MenuItemActionExtensionAddMenuItemActionsForRecordsParams {
 		private List<Record> records;
 		private List<MenuItemAction> menuItemActions;
-		private List<String> filteredActionTypes;
+		private List<String> excludedActionTypes;
 		private MenuItemActionBehaviorParams behaviorParams;
 	}
 
@@ -61,7 +61,7 @@ public abstract class MenuItemActionsExtension {
 	public static class MenuItemActionExtensionAddMenuItemActionsForQueryParams {
 		private LogicalSearchQuery query;
 		private List<MenuItemAction> menuItemActions;
-		private List<String> filteredActionTypes;
+		private List<String> excludedActionTypes;
 		private MenuItemActionBehaviorParams behaviorParams;
 	}
 

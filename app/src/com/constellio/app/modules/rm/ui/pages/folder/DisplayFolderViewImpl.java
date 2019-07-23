@@ -1,16 +1,10 @@
 package com.constellio.app.modules.rm.ui.pages.folder;
 
-import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
-import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
+import com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType;
 import com.constellio.app.modules.rm.ui.components.RMMetadataDisplayFactory;
 import com.constellio.app.modules.rm.ui.components.content.DocumentContentVersionWindowImpl;
-import com.constellio.app.modules.rm.ui.components.folder.fields.LookupFolderField;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
-import com.constellio.app.modules.rm.ui.entities.FolderVO;
-import com.constellio.app.modules.rm.ui.pages.cart.DefaultFavoritesTable;
-import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.ui.components.fields.StarredFieldImpl;
 import com.constellio.app.ui.application.Navigation;
@@ -20,29 +14,16 @@ import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.AddButton;
-import com.constellio.app.ui.framework.buttons.AddToOrRemoveFromSelectionButton;
-import com.constellio.app.ui.framework.buttons.BaseButton;
-import com.constellio.app.ui.framework.buttons.DeleteButton;
-import com.constellio.app.ui.framework.buttons.DeleteWithJustificationButton;
+import com.constellio.app.ui.framework.buttons.DisplayButton;
 import com.constellio.app.ui.framework.buttons.DownloadLink;
 import com.constellio.app.ui.framework.buttons.EditButton;
-import com.constellio.app.ui.framework.buttons.LinkButton;
-import com.constellio.app.ui.framework.buttons.WindowButton;
-import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
-import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
 import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.RecordDisplay;
-import com.constellio.app.ui.framework.components.ReportTabButton;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.buttons.RecordVOActionButtonFactory;
 import com.constellio.app.ui.framework.components.content.ContentVersionVOResource;
 import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
-import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
-import com.constellio.app.ui.framework.components.fields.BaseComboBox;
-import com.constellio.app.ui.framework.components.fields.BaseTextField;
-import com.constellio.app.ui.framework.components.fields.date.JodaDateField;
-import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 import com.constellio.app.ui.framework.components.fields.upload.ContentVersionUploadField;
 import com.constellio.app.ui.framework.components.search.FacetsPanel;
 import com.constellio.app.ui.framework.components.splitpanel.CollapsibleHorizontalSplitPanel;
@@ -53,16 +34,13 @@ import com.constellio.app.ui.framework.components.table.columns.EventVOTableColu
 import com.constellio.app.ui.framework.components.table.columns.TableColumnsManager;
 import com.constellio.app.ui.framework.components.table.columns.TaskVOTableColumnsManager;
 import com.constellio.app.ui.framework.components.viewers.panel.ViewableRecordVOTablePanel;
+import com.constellio.app.ui.framework.containers.RecordVOContainer;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.search.SearchPresenter.SortOrder;
-import com.constellio.app.ui.util.MessageUtils;
-import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.KeySetMap;
-import com.constellio.data.utils.TimeProvider;
-import com.constellio.model.entities.records.wrappers.User;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.event.ItemClickEvent;
@@ -74,13 +52,9 @@ import com.vaadin.event.dd.acceptcriteria.AcceptCriterion;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
-import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
-import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomComponent;
-import com.vaadin.ui.Field;
-import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.TabSheet.Tab;
@@ -90,17 +64,18 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.Window.CloseEvent;
 import com.vaadin.ui.themes.ValoTheme;
-import org.joda.time.LocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -122,11 +97,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	private Component eventsComponent;
 	private DisplayFolderPresenter presenter;
 	private boolean dragNDropAllowed;
-	private Button displayFolderButton, deleteFolderButton, duplicateFolderButton, editFolderButton, addSubFolderButton, addDocumentButton,
-			addAuthorizationButton, shareFolderButton, printLabelButton, linkToFolderButton, borrowButton, returnFolderButton,
-			reminderReturnFolderButton, alertWhenAvailableButton, addToCartButton, addToCartMyCartButton, addToOrRemoveFromSelectionButton, reportGeneratorButton,
-			startWorkflowButton, viewAuthorizationButton;
-	WindowButton moveInFolderButton;
+	private Button displayFolderButton, editFolderButton, addDocumentButton;
 	private Label borrowedLabel;
 
 	private Window documentVersionWindow;
@@ -277,7 +248,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	private Button newDisplayFolderButton() {
 		Button displayFolderButton;
 		if (!presenter.isLogicallyDeleted()) {
-			displayFolderButton = new BaseButton($("DisplayFolderView.displayFolder")) {
+			displayFolderButton = new DisplayButton($("DisplayFolderView.displayFolder"), false) {
 				@Override
 				protected void buttonClick(ClickEvent event) {
 					presenter.displayFolderButtonClicked();
@@ -287,17 +258,6 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			displayFolderButton = null;
 		}
 		return displayFolderButton;
-	}
-	public String getFolderOrSubFolderButtonTitle(String key) {
-		return $(getFolderOrSubFolderButtonKey(key));
-	}
-
-	public String getFolderOrSubFolderButtonKey(String key) {
-		if (recordVO.get(Folder.PARENT_FOLDER) == null) {
-			return key;
-		} else {
-			return key + "SubFolder";
-		}
 	}
 
 	private Button newEditFolderButton() {
@@ -332,253 +292,18 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 	@Override
 	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
-		List<Button> actionMenuButtons = new ArrayList<Button>();
-
 		if (!presenter.isLogicallyDeleted()) {
 			addDocumentButton = newAddDocumentButton();
 
-			moveInFolderButton = new WindowButton($("DisplayFolderView.parentFolder"), $("DisplayFolderView.parentFolder")
-					, WindowButton.WindowConfiguration.modalDialog("50%", "20%")) {
-				@Override
-				protected Component buildWindowContent() {
-					VerticalLayout verticalLayout = new VerticalLayout();
-					verticalLayout.setSpacing(true);
-					final LookupFolderField field = new LookupFolderField();
-					verticalLayout.addComponent(field);
-					BaseButton saveButton = new BaseButton($("save")) {
-						@Override
-						protected void buttonClick(ClickEvent event) {
-							String parentId = (String) field.getValue();
-							try {
-								presenter.parentFolderButtonClicked(parentId);
-							} catch (Throwable e) {
-								LOGGER.warn("error when trying to modify folder parent to " + parentId, e);
-								showErrorMessage("DisplayFolderView.parentFolderException");
-							}
-							moveInFolderButton.getWindow().close();
-						}
-					};
-					saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
-					HorizontalLayout hLayout = new HorizontalLayout();
-					hLayout.setSizeFull();
-					hLayout.addComponent(saveButton);
-					hLayout.setComponentAlignment(saveButton, Alignment.BOTTOM_RIGHT);
-					verticalLayout.addComponent(hLayout);
-					return verticalLayout;
-				}
-			};
-
-			addSubFolderButton = new AddButton($("DisplayFolderView.addSubFolder")) {
-				@Override
-				protected void buttonClick(ClickEvent event) {
-					presenter.addSubFolderButtonClicked();
-				}
-			};
-
 			displayFolderButton = newDisplayFolderButton();
-			editFolderButton = new EditButton(getFolderOrSubFolderButtonTitle("DisplayFolderView.editFolder")) {
-				@Override
-				protected void buttonClick(ClickEvent event) {
-					presenter.editFolderButtonClicked();
-				}
-			};
-
-			deleteFolderButton = new Button();
-			if(!presenter.isNeedingAReasonToDeleteFolder()) {
-				deleteFolderButton = new DeleteButton(getFolderOrSubFolderButtonTitle("DisplayFolderView.deleteFolder"), false) {
-					@Override
-					protected void confirmButtonClick(ConfirmDialog dialog) {
-						presenter.deleteFolderButtonClicked(null);
-					}
-
-					@Override
-					protected String getConfirmDialogMessage() {
-						return $("ConfirmDialog.confirmDeleteWithRecord", recordVO.getTitle());
-					}
-				};
-			} else {
-				deleteFolderButton = new DeleteWithJustificationButton(getFolderOrSubFolderButtonTitle("DisplayFolderView.deleteFolder"), false) {
-					@Override
-					protected void deletionConfirmed(String reason) {
-						presenter.deleteFolderButtonClicked(reason);
-					}
-
-					@Override
-					public Component getRecordCaption() {
-						return new ReferenceDisplay(recordVO);
-					}
-				};
-			}
-
-
-			duplicateFolderButton = new WindowButton(getFolderOrSubFolderButtonTitle("DisplayFolderView.duplicateFolder"),
-					getFolderOrSubFolderButtonTitle("DisplayFolderView.duplicateFolderOnlyOrHierarchy")) {
-				@Override
-				protected Component buildWindowContent() {
-					BaseButton folder = new BaseButton($("DisplayFolderView.folderOnly")) {
-						@Override
-						protected void buttonClick(ClickEvent event) {
-							presenter.duplicateFolderButtonClicked();
-						}
-					};
-
-					BaseButton structure = new BaseButton($("DisplayFolderView.hierarchy")) {
-						@Override
-						protected void buttonClick(ClickEvent event) {
-							presenter.duplicateStructureButtonClicked();
-						}
-					};
-
-					BaseButton cancel = new BaseButton($("cancel")) {
-						@Override
-						protected void buttonClick(ClickEvent event) {
-							getWindow().close();
-						}
-					};
-					cancel.addStyleName(ValoTheme.BUTTON_LINK);
-
-					HorizontalLayout layout = new HorizontalLayout(folder, structure, cancel);
-					layout.setComponentAlignment(folder, Alignment.TOP_LEFT);
-					layout.setComponentAlignment(structure, Alignment.TOP_LEFT);
-					layout.setComponentAlignment(cancel, Alignment.TOP_RIGHT);
-					layout.setExpandRatio(cancel, 1);
-
-					layout.setWidth("95%");
-					layout.setSpacing(true);
-
-					VerticalLayout wrapper = new VerticalLayout(layout);
-					wrapper.setSizeFull();
-
-					return wrapper;
-				}
-			};
-
-			linkToFolderButton = new LinkButton(getFolderOrSubFolderButtonTitle("DisplayFolderView.linkToFolder")) {
-				@Override
-				protected void buttonClick(ClickEvent event) {
-					presenter.linkToFolderButtonClicked();
-				}
-			};
-			linkToFolderButton.setVisible(false);
-
-			viewAuthorizationButton = new LinkButton($("DisplayFolderView.addAuthorization")) {
-				@Override
-				protected void buttonClick(ClickEvent event) {
-					presenter.addAuthorizationButtonClicked();
-				}
-			};
-
-			shareFolderButton = new LinkButton(getFolderOrSubFolderButtonTitle("DisplayFolderView.shareFolder")) {
-				@Override
-				protected void buttonClick(ClickEvent event) {
-					presenter.shareFolderButtonClicked();
-				}
-			};
-
-			addToCartButton = buildAddToCartButton();
-			addToCartMyCartButton = buildAddToMyCartButton();
-
-			addToOrRemoveFromSelectionButton = new AddToOrRemoveFromSelectionButton(recordVO,
-					getSessionContext().getSelectedRecordIds().contains(recordVO.getId()));
-
-			Factory<List<LabelTemplate>> customLabelTemplatesFactory = new Factory<List<LabelTemplate>>() {
-				@Override
-				public List<LabelTemplate> get() {
-					return presenter.getCustomTemplates();
-				}
-			};
-			Factory<List<LabelTemplate>> defaultLabelTemplatesFactory = new Factory<List<LabelTemplate>>() {
-				@Override
-				public List<LabelTemplate> get() {
-					return presenter.getDefaultTemplates();
-				}
-			};
-			try {
-				printLabelButton = new LabelButtonV2($("DisplayFolderView.printLabel"),
-						$("DisplayFolderView.printLabel"), customLabelTemplatesFactory, defaultLabelTemplatesFactory,
-						getConstellioFactories().getAppLayerFactory(), getSessionContext().getCurrentCollection(), getSessionContext().getCurrentUser(), recordVO);
-			} catch (Exception e) {
-				showErrorMessage(e.getMessage());
-			}
-
-			borrowButton = buildBorrowButton();
-
-			returnFolderButton = buildReturnFolderButton();
-
-			reminderReturnFolderButton = new BaseButton($("DisplayFolderView.reminderReturnFolder")) {
-				@Override
-				protected void buttonClick(ClickEvent event) {
-					presenter.reminderReturnFolder();
-				}
-			};
-
-			alertWhenAvailableButton = new BaseButton($("RMObject.alertWhenAvailable")) {
-				@Override
-				protected void buttonClick(ClickEvent event) {
-					presenter.alertWhenAvailable();
-				}
-			};
-
-			reportGeneratorButton = new ReportTabButton($("SearchView.metadataReportTitle"), $("SearchView.metadataReportTitle"), presenter.getApplayerFactory(),
-					getCollection(), false, false, presenter.buildReportPresenter(), getSessionContext()) {
-				@Override
-				public void buttonClick(ClickEvent event) {
-					setRecordVoList(recordVO);
-					super.buttonClick(event);
-				}
-			};
-
-			//startWorkflowButton = new StartWorkflowButton();
-			//startWorkflowButton.setVisible(presenter.hasPermissionToStartWorkflow());
-
-			if (nestedView) {
-				actionMenuButtons.add(addDocumentButton);
-			}
-			actionMenuButtons.add(addSubFolderButton);
-
-			boolean isAFolderAndDestroyed = (recordVO instanceof FolderVO
-											 && ((FolderVO) recordVO).getArchivisticStatus().isDestroyed());
-
-			if (!nestedView) {
-				actionMenuButtons.add(editFolderButton);
-			}
-
-			if (!isAFolderAndDestroyed) {
-				actionMenuButtons.add(moveInFolderButton);
-			}
-			actionMenuButtons.add(deleteFolderButton);
-			if (!isAFolderAndDestroyed) {
-				actionMenuButtons.add(duplicateFolderButton);
-				actionMenuButtons.add(linkToFolderButton);
-				actionMenuButtons.add(viewAuthorizationButton);
-				actionMenuButtons.add(shareFolderButton);
-				if (presenter.hasCurrentUserPermissionToUseCartGroup()) {
-					actionMenuButtons.add(addToCartButton);
-				} else if (presenter.hasCurrentUserPermissionToUseMyCart()) {
-					actionMenuButtons.add(addToCartMyCartButton);
-				}
-				actionMenuButtons.add(addToOrRemoveFromSelectionButton);
-			}
-			if (!isAFolderAndDestroyed) {
-				actionMenuButtons.add(printLabelButton);
-				actionMenuButtons.add(borrowButton);
-			}
-			actionMenuButtons.add(returnFolderButton);
-			actionMenuButtons.add(reminderReturnFolderButton);
-
-			if (!isAFolderAndDestroyed) {
-
-				actionMenuButtons.add(alertWhenAvailableButton);
-			}
-
-			/*if (presenter.hasPermissionToStartWorkflow() && !isAFolderAndDestroyed) {
-				actionMenuButtons.add(startWorkflowButton);
-			}*/
-
-			actionMenuButtons.add(reportGeneratorButton);
+			editFolderButton = newEditFolderButton();
 		}
 
-		return new RecordVOActionButtonFactory(recordVO).build();
+		List<String> excludedActionTypes = Arrays.asList(
+				FolderMenuItemActionType.FOLDER_DISPLAY.name(),
+				FolderMenuItemActionType.FOLDER_EDIT.name(),
+				FolderMenuItemActionType.FOLDER_ADD_DOCUMENT.name());
+		return new RecordVOActionButtonFactory(recordVO, excludedActionTypes).build();
 	}
 
 	@Override
@@ -592,95 +317,14 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		}
 	}
 
-	private Button buildAddToMyCartButton() {
-		Button button = new BaseButton($("DisplayFolderView.addToCart")) {
-			@Override
-			protected void buttonClick(ClickEvent event) {
-				presenter.addToDefaultFavorite();
-			}
-		};
-
-		return button;
+	@Override
+	public String getFolderOrSubFolderButtonTitle(String key) {
+		return key;
 	}
 
-	private WindowButton buildAddToCartButton() {
-		WindowConfiguration configuration = new WindowConfiguration(true, true, "50%", "750px");
-		return new WindowButton($("DisplayFolderView.addToCart"), $("DisplayFolderView.selectCart"), configuration) {
-			@Override
-			protected Component buildWindowContent() {
-				VerticalLayout layout = new VerticalLayout();
-				layout.setSizeFull();
-
-				HorizontalLayout newCartLayout = new HorizontalLayout();
-				newCartLayout.setSpacing(true);
-				newCartLayout.addComponent(new Label($("CartView.newCart")));
-				final BaseTextField newCartTitleField;
-				newCartLayout.addComponent(newCartTitleField = new BaseTextField());
-				newCartTitleField.setRequired(true);
-				BaseButton saveButton;
-				newCartLayout.addComponent(saveButton = new BaseButton($("save")) {
-					@Override
-					protected void buttonClick(ClickEvent event) {
-						try {
-							presenter.createNewCartAndAddToItRequested(newCartTitleField.getValue());
-							getWindow().close();
-						} catch (Exception e) {
-							showErrorMessage(MessageUtils.toMessage(e));
-						}
-					}
-				});
-				saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
-
-				TabSheet tabSheet = new TabSheet();
-				Table ownedCartsTable = buildOwnedFavoritesTable(getWindow());
-
-				final RecordVOLazyContainer sharedCartsContainer = new RecordVOLazyContainer(
-						presenter.getSharedCartsDataProvider());
-				RecordVOTable sharedCartsTable = new RecordVOTable($("CartView.sharedCarts"), sharedCartsContainer);
-				sharedCartsTable.addItemClickListener(new ItemClickListener() {
-					@Override
-					public void itemClick(ItemClickEvent event) {
-						presenter.addToCartRequested(sharedCartsContainer.getRecordVO((int) event.getItemId()));
-						getWindow().close();
-					}
-				});
-
-				sharedCartsTable.setWidth("100%");
-				tabSheet.addTab(ownedCartsTable);
-				tabSheet.addTab(sharedCartsTable);
-				layout.addComponents(newCartLayout, tabSheet);
-				layout.setExpandRatio(tabSheet, 1);
-				return layout;
-			}
-		};
-	}
-
-	private DefaultFavoritesTable buildOwnedFavoritesTable(final Window window) {
-		List<DefaultFavoritesTable.CartItem> cartItems = new ArrayList<>();
-		if (presenter.hasCurrentUserPermissionToUseMyCart()) {
-			cartItems.add(new DefaultFavoritesTable.CartItem($("CartView.defaultFavorites")));
-		}
-		for (Cart cart : presenter.getOwnedCarts()) {
-			cartItems.add(new DefaultFavoritesTable.CartItem(cart, cart.getTitle()));
-		}
-		final DefaultFavoritesTable.FavoritesContainer container = new DefaultFavoritesTable.FavoritesContainer(DefaultFavoritesTable.CartItem.class, cartItems);
-		DefaultFavoritesTable defaultFavoritesTable = new DefaultFavoritesTable("favoritesTableFolderDisplay", container, presenter.getSchema());
-		defaultFavoritesTable.setCaption($("CartView.ownedCarts"));
-		defaultFavoritesTable.addItemClickListener(new ItemClickListener() {
-			@Override
-			public void itemClick(ItemClickEvent event) {
-				Cart cart = container.getCart((DefaultFavoritesTable.CartItem) event.getItemId());
-				if (cart == null) {
-					presenter.addToDefaultFavorite();
-				} else {
-					presenter.addToCartRequested(cart);
-				}
-				window.close();
-			}
-		});
-		container.removeContainerProperty(DefaultFavoritesTable.CartItem.DISPLAY_BUTTON);
-		defaultFavoritesTable.setWidth("100%");
-		return defaultFavoritesTable;
+	@Override
+	public String getFolderOrSubFolderButtonKey(String key) {
+		return key;
 	}
 
 	@Override
@@ -753,6 +397,21 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				@Override
 				protected SelectionManager newSelectionManager() {
 					return new SelectionManager() {
+
+						private Set<Object> selectedItemIds = new HashSet<>();
+
+						@Override
+						public List<Object> getAllSelectedItemIds() {
+							List<Object> allSelectedItemIds;
+							RecordVOContainer recordVOContainer = getRecordVOContainer();
+							if (isAllItemsSelected()) {
+								allSelectedItemIds = new ArrayList<>(recordVOContainer.getItemIds());
+							} else {
+								allSelectedItemIds = new ArrayList<>(selectedItemIds);
+							}
+							return allSelectedItemIds;
+						}
+
 						@Override
 						public boolean isAllItemsSelected() {
 							return presenter.isAllItemsSelected();
@@ -774,11 +433,14 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 							if (event.isAllItemsSelected()) {
 								presenter.selectAllClicked();
 							} else if (event.isAllItemsDeselected()) {
+								selectedItemIds.clear();
 								presenter.deselectAllClicked();
 							} else if (event.getSelectedItemId() != null) {
+								selectedItemIds.add(event.getSelectedItemId());
 								RecordVO recordVO = getRecordVO(event.getSelectedItemId());
 								presenter.recordSelectionChanged(recordVO, true);
 							} else if (event.getDeselectedItemId() != null) {
+								selectedItemIds.remove(event.getDeselectedItemId());
 								RecordVO recordVO = getRecordVO(event.getDeselectedItemId());
 								presenter.recordSelectionChanged(recordVO, false);
 							}
@@ -824,7 +486,8 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		if (!(tasksComponent instanceof Table)) {
 			Table table = new RecordVOTable(tasksDataProvider) {
 				@Override
-				protected Component buildMetadataComponent(Object itemId, MetadataValueVO metadataValue, RecordVO recordVO) {
+				protected Component buildMetadataComponent(Object itemId, MetadataValueVO metadataValue,
+														   RecordVO recordVO) {
 					if (Task.STARRED_BY_USERS.equals(metadataValue.getMetadata().getLocalCode())) {
 						return new StarredFieldImpl(recordVO.getId(), (List<String>) metadataValue.getValue(),
 								getSessionContext().getCurrentUser().getId()) {
@@ -921,14 +584,6 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 	@Override
 	public void setLogicallyDeletable(ComponentState state) {
-		deleteFolderButton.setVisible(state.isVisible());
-		deleteFolderButton.setEnabled(state.isEnabled());
-	}
-
-	@Override
-	public void setMoveInFolderState(ComponentState state) {
-		moveInFolderButton.setVisible(state.isVisible());
-		moveInFolderButton.setEnabled(state.isEnabled());
 	}
 
 	@Override
@@ -950,66 +605,10 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		dragNDropAllowed = state.isEnabled();
 	}
 
-	@Override
-	public void setAddSubFolderButtonState(ComponentState state) {
-		addSubFolderButton.setVisible(state.isVisible());
-		addSubFolderButton.setEnabled(state.isEnabled());
-	}
-
-	@Override
-	public void setDuplicateFolderButtonState(ComponentState state) {
-		duplicateFolderButton.setVisible(state.isVisible());
-		duplicateFolderButton.setEnabled(state.isEnabled());
-	}
-
-	@Override
-	public void setPrintButtonState(ComponentState state) {
-		printLabelButton.setVisible(state.isVisible());
-		printLabelButton.setEnabled(state.isEnabled());
-	}
-
-	@Override
-	public void setShareFolderButtonState(ComponentState state) {
-		shareFolderButton.setVisible(state.isVisible());
-		shareFolderButton.setEnabled(state.isEnabled());
-	}
-
-	@Override
-	public void setAuthorizationButtonState(ComponentState state) {
-		viewAuthorizationButton.setVisible(state.isVisible());
-		viewAuthorizationButton.setEnabled(state.isEnabled());
-	}
-
-	@Override
-	public void setBorrowButtonState(ComponentState state) {
-		borrowButton.setVisible(state.isVisible());
-		borrowButton.setEnabled(state.isEnabled());
-	}
-
-	@Override
-	public void setReturnFolderButtonState(ComponentState state) {
-		returnFolderButton.setVisible(state.isVisible());
-		returnFolderButton.setEnabled(state.isEnabled());
-
-	}
-
-	@Override
-	public void setReminderReturnFolderButtonState(ComponentState state) {
-		reminderReturnFolderButton.setVisible(state.isVisible());
-		reminderReturnFolderButton.setEnabled(state.isEnabled());
-
-	}
-
-	@Override
-	public void setAlertWhenAvailableButtonState(ComponentState state) {
-		alertWhenAvailableButton.setVisible(state.isVisible());
-		alertWhenAvailableButton.setEnabled(state.isEnabled());
-	}
-
 	//@Override
 	//public void setStartWorkflowButtonState(ComponentState state) {
-		//startWorkflowButton.setVisible(state.isVisible());
-		//startWorkflowButton.setEnabled(state.isEnabled());
+	//startWorkflowButton.setVisible(state.isVisible());
+	//startWorkflowButton.setEnabled(state.isEnabled());
 	//}
 
 	@Override
@@ -1039,165 +638,6 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	@Override
 	public AcceptCriterion getAcceptCriterion() {
 		return uploadField != null ? uploadField.getAcceptCriterion() : AcceptAll.get();
-	}
-
-	private Button buildBorrowButton() {
-		return new WindowButton(getFolderOrSubFolderButtonTitle("DisplayFolderView.borrow"),
-				getFolderOrSubFolderButtonTitle("DisplayFolderView.borrow"), new WindowConfiguration(true, true, "50%", "500px")) {
-			@Override
-			protected Component buildWindowContent() {
-				final JodaDateField borrowDatefield = new JodaDateField();
-				borrowDatefield.setCaption($("DisplayFolderView.borrowDate"));
-				borrowDatefield.setRequired(true);
-				borrowDatefield.setId("borrowDate");
-				borrowDatefield.addStyleName("borrowDate");
-				borrowDatefield.setValue(TimeProvider.getLocalDate().toDate());
-
-				final Field<?> lookupUser = new LookupRecordField(User.SCHEMA_TYPE);
-				lookupUser.setCaption($("DisplayFolderView.borrower"));
-				lookupUser.setId("borrower");
-				lookupUser.addStyleName(USER_LOOKUP);
-				lookupUser.setRequired(true);
-
-				final ComboBox borrowingTypeField = new BaseComboBox();
-				borrowingTypeField.setCaption($("DisplayFolderView.borrowingType"));
-				for (BorrowingType borrowingType : BorrowingType.values()) {
-					borrowingTypeField.addItem(borrowingType);
-					borrowingTypeField
-							.setItemCaption(borrowingType, $("DisplayFolderView.borrowingType." + borrowingType.getCode()));
-				}
-				borrowingTypeField.setRequired(true);
-				borrowingTypeField.setNullSelectionAllowed(false);
-
-				final JodaDateField previewReturnDatefield = new JodaDateField();
-				previewReturnDatefield.setCaption($("DisplayFolderView.previewReturnDate"));
-				previewReturnDatefield.setRequired(true);
-				previewReturnDatefield.setId("previewReturnDate");
-				previewReturnDatefield.addStyleName("previewReturnDate");
-
-				final JodaDateField returnDatefield = new JodaDateField();
-				returnDatefield.setCaption($("DisplayFolderView.returnDate"));
-				returnDatefield.setRequired(false);
-				returnDatefield.setId("returnDate");
-				returnDatefield.addStyleName("returnDate");
-
-				borrowDatefield.addValueChangeListener(new ValueChangeListener() {
-					@Override
-					public void valueChange(ValueChangeEvent event) {
-						previewReturnDatefield.setValue(
-								presenter.getPreviewReturnDate(borrowDatefield.getValue(), borrowingTypeField.getValue()));
-					}
-				});
-				borrowingTypeField.addValueChangeListener(new ValueChangeListener() {
-					@Override
-					public void valueChange(ValueChangeEvent event) {
-						previewReturnDatefield.setValue(
-								presenter.getPreviewReturnDate(borrowDatefield.getValue(), borrowingTypeField.getValue()));
-					}
-				});
-
-				BaseButton borrowButton = new BaseButton($("DisplayFolderView.borrow")) {
-					@Override
-					protected void buttonClick(ClickEvent event) {
-						String userId = null;
-						BorrowingType borrowingType = null;
-						if (lookupUser.getValue() != null) {
-							userId = (String) lookupUser.getValue();
-						}
-						if (borrowingTypeField.getValue() != null) {
-							borrowingType = BorrowingType.valueOf(borrowingTypeField.getValue().toString());
-						}
-						LocalDate borrowLocalDate = null;
-						LocalDate previewReturnLocalDate = null;
-						LocalDate returnLocalDate = null;
-						if (borrowDatefield.getValue() != null) {
-							borrowLocalDate = LocalDate.fromDateFields(borrowDatefield.getValue());
-						}
-						if (previewReturnDatefield.getValue() != null) {
-							previewReturnLocalDate = LocalDate.fromDateFields(previewReturnDatefield.getValue());
-						}
-						if (returnDatefield.getValue() != null) {
-							returnLocalDate = LocalDate.fromDateFields(returnDatefield.getValue());
-						}
-						if (presenter.borrowFolder(borrowLocalDate, previewReturnLocalDate, userId,
-								borrowingType, returnLocalDate)) {
-							getWindow().close();
-						}
-					}
-				};
-				borrowButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
-
-				BaseButton cancelButton = new BaseButton($("cancel")) {
-					@Override
-					protected void buttonClick(ClickEvent event) {
-						getWindow().close();
-					}
-				};
-				cancelButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
-
-				HorizontalLayout horizontalLayout = new HorizontalLayout();
-				horizontalLayout.setSpacing(true);
-				horizontalLayout.addComponents(borrowButton, cancelButton);
-
-				VerticalLayout verticalLayout = new VerticalLayout();
-				verticalLayout
-						.addComponents(borrowDatefield, borrowingTypeField, lookupUser, previewReturnDatefield, returnDatefield,
-								horizontalLayout);
-				verticalLayout.setSpacing(true);
-				verticalLayout.addStyleName("no-scroll");
-
-				return verticalLayout;
-			}
-		};
-	}
-
-	private Button buildReturnFolderButton() {
-		return new WindowButton(getFolderOrSubFolderButtonTitle("DisplayFolderView.returnFolder"),
-				getFolderOrSubFolderButtonTitle("DisplayFolderView.returnFolder")) {
-			@Override
-			protected Component buildWindowContent() {
-
-				final JodaDateField returnDatefield = new JodaDateField();
-				returnDatefield.setCaption($("DisplayFolderView.returnDate"));
-				returnDatefield.setRequired(false);
-				returnDatefield.setId("returnDate");
-				returnDatefield.addStyleName("returnDate");
-				returnDatefield.setValue(TimeProvider.getLocalDate().toDate());
-
-				BaseButton returnFolderButton = new BaseButton(getFolderOrSubFolderButtonTitle("DisplayFolderView.returnFolder")) {
-					@Override
-					protected void buttonClick(ClickEvent event) {
-						LocalDate returnLocalDate = null;
-						if (returnDatefield.getValue() != null) {
-							returnLocalDate = LocalDate.fromDateFields(returnDatefield.getValue());
-						}
-						if (presenter.returnFolder(returnLocalDate)) {
-							getWindow().close();
-						}
-					}
-				};
-				returnFolderButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
-
-				BaseButton cancelButton = new BaseButton($("cancel")) {
-					@Override
-					protected void buttonClick(ClickEvent event) {
-						getWindow().close();
-					}
-				};
-				cancelButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
-
-				HorizontalLayout horizontalLayout = new HorizontalLayout();
-				horizontalLayout.setSpacing(true);
-				horizontalLayout.addComponents(returnFolderButton, cancelButton);
-
-				VerticalLayout verticalLayout = new VerticalLayout();
-				verticalLayout
-						.addComponents(returnDatefield, horizontalLayout);
-				verticalLayout.setSpacing(true);
-
-				return verticalLayout;
-			}
-		};
 	}
 
 	@Override

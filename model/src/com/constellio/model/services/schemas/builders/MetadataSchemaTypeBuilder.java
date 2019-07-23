@@ -30,7 +30,6 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 public class MetadataSchemaTypeBuilder {
 
 	private static final String DEFAULT = "default";
-
 	private static final String UNDERSCORE = "_";
 	private final Set<MetadataSchemaBuilder> allSchemas = new HashSet<MetadataSchemaBuilder>();
 	private short id;

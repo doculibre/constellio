@@ -1,6 +1,5 @@
-package com.constellio.app.ui.framework.components.contextmenu;
+package com.constellio.app.ui.framework.components.buttons;
 
-import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.menu.MenuItemAction;
@@ -9,34 +8,40 @@ import com.constellio.app.services.menu.MenuItemFactory.MenuItemRecordProvider;
 import com.constellio.app.services.menu.MenuItemServices;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
 import com.constellio.app.ui.application.ConstellioUI;
-import com.constellio.app.ui.entities.ContentVersionVO;
-import com.constellio.app.ui.entities.RecordVO;
-import com.constellio.app.ui.entities.UserDocumentVO;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.params.ParamUtils;
-import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.users.UserServices;
+import com.vaadin.ui.Button;
 import org.apache.commons.collections4.MapUtils;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-public class RecordVOContextMenu extends BaseContextMenu {
-	private RecordVO recordVO;
+public class RecordListActionButtonFactory {
+
+	private MenuItemRecordProvider recordProvider;
+	private List<String> excludedActionTypes;
+
 	private SessionContext sessionContext;
 	private String collection;
 
 	private MenuItemServices menuItemServices;
 	private MenuItemFactory menuItemFactory;
 	private UserServices userServices;
+	private BaseView view;
 
-	public RecordVOContextMenu(RecordVO recordVO) {
+	public RecordListActionButtonFactory(MenuItemRecordProvider recordProvider, BaseView view,
+										 List<String> excludedActionTypes) {
 		super();
-		this.recordVO = recordVO;
+		this.recordProvider = recordProvider;
+		this.view = view;
+		this.excludedActionTypes = excludedActionTypes;
+		initialize();
+	}
 
+	private void initialize() {
 		sessionContext = ConstellioUI.getCurrentSessionContext();
 		collection = sessionContext.getCurrentCollection();
 
@@ -46,29 +51,16 @@ public class RecordVOContextMenu extends BaseContextMenu {
 		menuItemFactory = new MenuItemFactory();
 	}
 
-	public void build() {
-		List<MenuItemAction> menuItemActions = menuItemServices.getActionsForRecord(recordVO.getRecord(),
+	public List<Button> build() {
+		List<MenuItemAction> menuItemActions = menuItemServices.getActionsForRecords(recordProvider.getRecords(), excludedActionTypes,
 				new MenuItemActionBehaviorParams() {
 					@Override
 					public BaseView getView() {
-						return (BaseView) ConstellioUI.getCurrent().getCurrentView();
-					}
-
-					@Override
-					public RecordVO getRecordVO() {
-						return recordVO;
-					}
-
-					@Override
-					public ContentVersionVO getContentVersionVO() {
-						if (recordVO instanceof DocumentVO) {
-							DocumentVO documentVO = (DocumentVO) recordVO;
-							return documentVO.getContent();
-						} else if (recordVO instanceof UserDocumentVO) {
-							UserDocumentVO userDocumentVO = (UserDocumentVO) recordVO;
-							return userDocumentVO.getContent();
+						if (view == null) {
+							return (BaseView) ConstellioUI.getCurrent().getCurrentView();
+						} else {
+							return view;
 						}
-						return null;
 					}
 
 					@Override
@@ -80,18 +72,8 @@ public class RecordVOContextMenu extends BaseContextMenu {
 					public User getUser() {
 						return userServices.getUserInCollection(sessionContext.getCurrentUser().getUsername(), collection);
 					}
-
-					@Override
-					public boolean isContextualMenu() {
-						return true;
-					}
 				});
-
-		menuItemFactory.buildContextMenu(this, menuItemActions, new MenuItemRecordProvider() {
-			@Override
-			public List<Record> getRecords() {
-				return Arrays.asList(recordVO.getRecord());
-			}
-		});
+		return menuItemFactory.buildActionButtons(menuItemActions, recordProvider);
 	}
+
 }

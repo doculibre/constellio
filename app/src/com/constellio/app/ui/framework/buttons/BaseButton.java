@@ -6,7 +6,7 @@ import com.vaadin.ui.Button;
 import com.vaadin.ui.themes.ValoTheme;
 
 @SuppressWarnings("serial")
-public abstract class BaseButton extends Button {
+public abstract class BaseButton extends Button implements Clickable {
 
 	private String textCaption;
 

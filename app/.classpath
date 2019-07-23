@@ -22,5 +22,6 @@
 	<classpathentry kind="lib" path="/constellio-java8/constellio/libs/gwt-dev-2.7.0.jar"/>
 	<classpathentry kind="lib" path="/constellio-java8/constellio/libs/gwt-elemental-2.7.0.jar"/>
 	<classpathentry kind="lib" path="/constellio-java8/constellio/libs/gwt-user-2.7.0.jar"/>
-	<classpathentry kind="output" path="bin/main"/>
+	<classpathentry kind="lib" path="/constellio-java8/constellio/libs/vaadin-lazy-load-wrapper-0.1-alpha.jar"/>
+	<classpathentry kind="output" path="bin/default"/>
 </classpath>

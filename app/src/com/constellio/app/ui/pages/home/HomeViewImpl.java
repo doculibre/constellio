@@ -446,6 +446,8 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 			return new ValueSelectionManager() {
 				@Override
 				public void selectionChanged(SelectionChangeEvent event) {
+					super.selectionChanged(event);
+					
 					Object selectedItemId = event.getSelectedItemId();
 					Object deselectedItemId = event.getDeselectedItemId();
 					boolean allItemsSelected = event.isAllItemsSelected();
@@ -459,7 +461,6 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 						String recordId = recordVO.getId();
 						presenter.selectionChanged(recordId, false);
 					} else if (allItemsSelected) {
-						// FIXME
 						for (Object itemId : getItemIds()) {
 							if (!isSelected(itemId)) {
 								RecordVO recordVO = getRecordVO(itemId);
@@ -468,7 +469,6 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 							}
 						}
 					} else if (allItemsDeselected) {
-						// FIXME
 						for (Object itemId : getItemIds()) {
 							if (isSelected(itemId)) {
 								RecordVO recordVO = getRecordVO(itemId);
@@ -477,6 +477,30 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 							}
 						}
 					}
+				}
+
+				@Override
+				public boolean isAllItemsSelected() {
+					boolean allItemsSelected = true;
+					for (Object itemId : getItemIds()) {
+						if (!isSelected(itemId)) {
+							allItemsSelected = false;
+							break;
+						}
+					}
+					return allItemsSelected;
+				}
+
+				@Override
+				public boolean isAllItemsDeselected() {
+					boolean allItemsDeselected = true;
+					for (Object itemId : getItemIds()) {
+						if (isSelected(itemId)) {
+							allItemsDeselected = false;
+							break;
+						}
+					}
+					return allItemsDeselected;
 				}
 
 				@Override

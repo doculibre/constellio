@@ -29,6 +29,7 @@ import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -206,7 +207,7 @@ public class DisplaySchemaRecordViewImpl extends BaseViewImpl implements Display
 
 
 		//		return actionMenuButtons;
-		return new RecordVOActionButtonFactory(recordVO, this).build();
+		return new RecordVOActionButtonFactory(recordVO, this, Collections.emptyList()).build();
 	}
 
 	@Override

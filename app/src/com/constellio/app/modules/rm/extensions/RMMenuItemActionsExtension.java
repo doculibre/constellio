@@ -46,20 +46,20 @@ public class RMMenuItemActionsExtension extends MenuItemActionsExtension {
 		Record record = params.getRecord();
 		User user = params.getBehaviorParams().getUser();
 		List<MenuItemAction> menuItemActions = params.getMenuItemActions();
-		List<String> filteredActionTypes = params.getFilteredActionTypes();
+		List<String> excludedActionTypes = params.getExcludedActionTypes();
 		MenuItemActionBehaviorParams behaviorParams = params.getBehaviorParams();
 
 		if (record.isOfSchemaType(Document.SCHEMA_TYPE)) {
 			menuItemActions.addAll(documentMenuItemServices.getActionsForRecord(rm.wrapDocument(record), user,
-					filteredActionTypes, behaviorParams));
+					excludedActionTypes, behaviorParams));
 		} else if (record.isOfSchemaType(Folder.SCHEMA_TYPE)) {
 			menuItemActions.addAll(folderMenuItemServices.getActionsForRecord(rm.wrapFolder(record), user,
-					filteredActionTypes, behaviorParams));
+					excludedActionTypes, behaviorParams));
 		} else if (record.isOfSchemaType(ContainerRecord.SCHEMA_TYPE)) {
 			menuItemActions.addAll(containerMenuItemServices.getActionsForRecord(rm.wrapContainerRecord(record), user,
-					filteredActionTypes, behaviorParams));
+					excludedActionTypes, behaviorParams));
 		} else if(record.isOfSchemaType(Cart.SCHEMA_TYPE)) {
-			menuItemActions.addAll(cartMenuItemServices.getActionsForRecord(rm.wrapCart(record), user, filteredActionTypes, behaviorParams));
+			menuItemActions.addAll(cartMenuItemServices.getActionsForRecord(rm.wrapCart(record), user, excludedActionTypes, behaviorParams));
 		}
 	}
 
@@ -68,11 +68,11 @@ public class RMMenuItemActionsExtension extends MenuItemActionsExtension {
 		List<Record> records = params.getRecords();
 		User user = params.getBehaviorParams().getUser();
 		List<MenuItemAction> menuItemActions = params.getMenuItemActions();
-		List<String> filteredActionTypes = params.getFilteredActionTypes();
+		List<String> excludedActionTypes = params.getExcludedActionTypes();
 		MenuItemActionBehaviorParams behaviorParams = params.getBehaviorParams();
 
 		menuItemActions.addAll(rmRecordsMenuItemServices.getActionsForRecords(records, user,
-				filteredActionTypes, behaviorParams));
+				excludedActionTypes, behaviorParams));
 	}
 
 	@Override

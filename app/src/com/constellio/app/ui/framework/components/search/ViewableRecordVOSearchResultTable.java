@@ -2,7 +2,6 @@ package com.constellio.app.ui.framework.components.search;
 
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.SearchResultTable;
-import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.components.table.BaseTable.SelectionManager;
 import com.constellio.app.ui.framework.components.viewers.panel.ViewableRecordVOTablePanel;
 import com.constellio.app.ui.framework.containers.RecordVOContainer;
@@ -11,8 +10,6 @@ import com.constellio.app.ui.framework.containers.SearchResultContainer;
 import com.constellio.app.ui.framework.containers.SearchResultVOLazyContainer;
 import com.constellio.app.ui.pages.search.SearchPresenter;
 import com.constellio.app.ui.pages.search.SearchView;
-import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingButton;
-import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingModifyingOneMetadataButton;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.VerticalLayout;
 
@@ -28,8 +25,6 @@ public class ViewableRecordVOSearchResultTable extends ViewableRecordVOTablePane
 
 	public static final String TABLE_STYLE = "viewable-record-search-result-table-panel";
 
-	private static final int MAX_SELECTION_RANGE = 100;
-
 	private Set<Object> selectedItemIds = new HashSet<>();
 	private Set<Object> deselectedItemIds = new HashSet<>();
 	private boolean allItemsSelected;
@@ -42,6 +37,7 @@ public class ViewableRecordVOSearchResultTable extends ViewableRecordVOTablePane
 		this.presenter = presenter;
 		addStyleName(TABLE_STYLE);
 		addStyleName(SEARCH_RESULT_TABLE_STYLE);
+		setDefaultSelectionActionButtons();
 	}
 
 	@Override
@@ -91,6 +87,18 @@ public class ViewableRecordVOSearchResultTable extends ViewableRecordVOTablePane
 					deselectedItemIds.clear();
 					presenter.fireNoRecordSelected();
 				}
+			}
+
+			@Override
+			public List<Object> getAllSelectedItemIds() {
+				List<Object> allSelectedItemIds;
+				RecordVOContainer recordVOContainer = getRecordVOContainer();
+				if (isAllItemsSelected()) {
+					allSelectedItemIds = new ArrayList<>(recordVOContainer.getItemIds());
+				} else {
+					allSelectedItemIds = new ArrayList<>(selectedItemIds);
+				}
+				return allSelectedItemIds;
 			}
 
 			@Override
@@ -154,36 +162,6 @@ public class ViewableRecordVOSearchResultTable extends ViewableRecordVOTablePane
 		setCountCaption(totalCount);
 
 		setViewActionButtonsLayoutComponents(alwaysActive);
-
-		List<Component> selectionActionButtons = new ArrayList<>();
-		//		for (Component component : alwaysActive) {
-		//			selectionActionButtons.add(component);
-		//		}
-		for (Component component : extra) {
-			if (component instanceof BatchProcessingButton || component instanceof BatchProcessingModifyingOneMetadataButton) {
-				component.setEnabled(recordVOContainer != null && recordVOContainer.size() > 0);
-			} else {
-				component.setEnabled(selectedItemIds.size() > 0);
-			}
-			selectionActionButtons.add(component);
-		}
-		setSelectionActionButtons(selectionActionButtons);
-
-		addSelectionChangeListener(new BaseTable.SelectionChangeListener() {
-			@Override
-			public void selectionChanged(BaseTable.SelectionChangeEvent event) {
-				boolean somethingSelected = event.isAllItemsSelected() || event.getSelectedItemId() != null;
-				for (Component component : extra) {
-					if (component instanceof BatchProcessingButton
-						|| component instanceof BatchProcessingModifyingOneMetadataButton) {
-						component.setEnabled(recordVOContainer != null && recordVOContainer.size() > 0);
-					} else {
-						component.setEnabled(somethingSelected);
-					}
-				}
-				setSelectionActionButtons(selectionActionButtons);
-			}
-		});
 
 		return null;
 	}

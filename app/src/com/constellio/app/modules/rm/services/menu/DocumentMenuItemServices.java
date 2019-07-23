@@ -301,7 +301,7 @@ public class DocumentMenuItemServices {
 				.build();
 	}
 
-	enum DocumentMenuItemActionType {
+	public static enum DocumentMenuItemActionType {
 		DOCUMENT_DISPLAY,
 		DOCUMENT_OPEN,
 		DOCUMENT_EDIT,

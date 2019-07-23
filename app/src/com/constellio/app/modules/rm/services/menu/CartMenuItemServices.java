@@ -45,14 +45,15 @@ public class CartMenuItemServices {
 	public CartMenuItemServices(String collection, AppLayerFactory appLayerFactory) {
 		this.collection = collection;
 		this.appLayerFactory = appLayerFactory;
+		this.cartActionsServices = new CartActionsServices(collection, appLayerFactory);
 	}
 
 	public List<MenuItemAction> getActionsForRecord(Cart cart, User user,
-													List<String> filteredActionTypes,
+													List<String> excludedActionTypes,
 													MenuItemActionBehaviorParams params) {
 		List<MenuItemAction> menuItemActions = new ArrayList<>();
 
-		if (!filteredActionTypes.contains(CART_RENAME.name())) {
+		if (!excludedActionTypes.contains(CART_RENAME.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(CART_RENAME.name(),
 					isMenuItemActionPossible(CART_RENAME.name(), cart, user, params),
 					$("CartView.reNameCartGroup"), null, -1, 100,
@@ -60,7 +61,7 @@ public class CartMenuItemServices {
 			menuItemActions.add(menuItemAction);
 		}
 
-		if (!filteredActionTypes.contains(CART_PREPARE_EMAIL.name())) {
+		if (!excludedActionTypes.contains(CART_PREPARE_EMAIL.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(CART_PREPARE_EMAIL.name(),
 					isMenuItemActionPossible(CART_PREPARE_EMAIL.name(), cart, user, params),
 					$("CartView.prepareEmail"), null, -1, 200,
@@ -68,7 +69,7 @@ public class CartMenuItemServices {
 			menuItemActions.add(menuItemAction);
 		}
 
-		if (!filteredActionTypes.contains(CART_BATCH_DUPLICATE.name())) {
+		if (!excludedActionTypes.contains(CART_BATCH_DUPLICATE.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(CART_BATCH_DUPLICATE.name(),
 					isMenuItemActionPossible(CART_BATCH_DUPLICATE.name(), cart, user, params),
 					$("CartView.documentsBatchProcessingButton"), null, -1, 300,
@@ -76,7 +77,7 @@ public class CartMenuItemServices {
 			menuItemActions.add(menuItemAction);
 		}
 
-		if (!filteredActionTypes.contains(CART_DOCUMENT_BATCH_PROCESSING.name())) {
+		if (!excludedActionTypes.contains(CART_DOCUMENT_BATCH_PROCESSING.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(CART_DOCUMENT_BATCH_PROCESSING.name(),
 					isMenuItemActionPossible(CART_DOCUMENT_BATCH_PROCESSING.name(), cart, user, params),
 					$("CartView.documentsBatchProcessingButton"), null, -1, 400,
@@ -84,7 +85,7 @@ public class CartMenuItemServices {
 			menuItemActions.add(menuItemAction);
 		}
 
-		if (!filteredActionTypes.contains(CART_FOLDER_BATCH_PROCESSING.name())) {
+		if (!excludedActionTypes.contains(CART_FOLDER_BATCH_PROCESSING.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(CART_FOLDER_BATCH_PROCESSING.name(),
 					isMenuItemActionPossible(CART_FOLDER_BATCH_PROCESSING.name(), cart, user, params),
 					$("CartView.foldersBatchProcessingButton"), null, -1, 500,
@@ -92,7 +93,7 @@ public class CartMenuItemServices {
 			menuItemActions.add(menuItemAction);
 		}
 
-		if (!filteredActionTypes.contains(CART_CONTAINER_RECORD_BATCH_PROCESSING.name())) {
+		if (!excludedActionTypes.contains(CART_CONTAINER_RECORD_BATCH_PROCESSING.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(CART_CONTAINER_RECORD_BATCH_PROCESSING.name(),
 					isMenuItemActionPossible(CART_CONTAINER_RECORD_BATCH_PROCESSING.name(), cart, user, params),
 					$("CartView.containersBatchProcessingButton"), null, -1, 600,
@@ -100,7 +101,7 @@ public class CartMenuItemServices {
 			menuItemActions.add(menuItemAction);
 		}
 
-		if (!filteredActionTypes.contains(CART_DOCUMENT_LABEL.name())) {
+		if (!excludedActionTypes.contains(CART_DOCUMENT_LABEL.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(CART_DOCUMENT_LABEL.name(),
 					isMenuItemActionPossible(CART_DOCUMENT_LABEL.name(), cart, user, params),
 					$("CartView.documentLabelsButton"), null, -1, 700,
@@ -108,7 +109,7 @@ public class CartMenuItemServices {
 			menuItemActions.add(menuItemAction);
 		}
 
-		if (!filteredActionTypes.contains(CART_FOLDER_LABEL.name())) {
+		if (!excludedActionTypes.contains(CART_FOLDER_LABEL.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(CART_FOLDER_LABEL.name(),
 					isMenuItemActionPossible(CART_FOLDER_LABEL.name(), cart, user, params),
 					$("CartView.foldersLabelsButton"), null, -1, 800,
@@ -116,7 +117,7 @@ public class CartMenuItemServices {
 			menuItemActions.add(menuItemAction);
 		}
 
-		if (!filteredActionTypes.contains(CART_CONTAINER_RECORD_LABEL.name())) {
+		if (!excludedActionTypes.contains(CART_CONTAINER_RECORD_LABEL.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(CART_CONTAINER_RECORD_LABEL.name(),
 					isMenuItemActionPossible(CART_CONTAINER_RECORD_LABEL.name(), cart, user, params),
 					$("CartView.containersLabelsButton"), null, -1, 900,
@@ -125,7 +126,7 @@ public class CartMenuItemServices {
 		}
 
 
-		if (!filteredActionTypes.contains(CART_BATCH_DELETE.name())) {
+		if (!excludedActionTypes.contains(CART_BATCH_DELETE.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(CART_BATCH_DELETE.name(),
 					isMenuItemActionPossible(CART_BATCH_DELETE.name(), cart, user, params),
 					$(DeleteButton.CAPTION), null, -1, 1000,
@@ -134,7 +135,7 @@ public class CartMenuItemServices {
 			menuItemActions.add(menuItemAction);
 		}
 
-		if (!filteredActionTypes.contains(CART_EMPTY.name())) {
+		if (!excludedActionTypes.contains(CART_EMPTY.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(CART_EMPTY.name(),
 					isMenuItemActionPossible(CART_EMPTY.name(), cart, user, params),
 					$("CartView.empty"), null, -1, 1100,
@@ -142,7 +143,7 @@ public class CartMenuItemServices {
 			menuItemActions.add(menuItemAction);
 		}
 
-		if (!filteredActionTypes.contains(CART_SHARE.name())) {
+		if (!excludedActionTypes.contains(CART_SHARE.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(CART_SHARE.name(),
 					isMenuItemActionPossible(CART_SHARE.name(), cart, user, params),
 					$("CartView.share"), null, -1, 1200,
@@ -150,7 +151,7 @@ public class CartMenuItemServices {
 			menuItemActions.add(menuItemAction);
 		}
 
-		if (!filteredActionTypes.contains(CART_DECOMMISSIONING_LIST.name())) {
+		if (!excludedActionTypes.contains(CART_DECOMMISSIONING_LIST.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(CART_DECOMMISSIONING_LIST.name(),
 					isMenuItemActionPossible(CART_DECOMMISSIONING_LIST.name(), cart, user, params),
 					$("CartView.decommissioningList"), null, -1, 1300,
@@ -158,7 +159,7 @@ public class CartMenuItemServices {
 			menuItemActions.add(menuItemAction);
 		}
 
-		if (!filteredActionTypes.contains(CART_PRINT_METADATA_REPORT.name())) {
+		if (!excludedActionTypes.contains(CART_PRINT_METADATA_REPORT.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(CART_PRINT_METADATA_REPORT.name(),
 					isMenuItemActionPossible(CART_PRINT_METADATA_REPORT.name(), cart, user, params),
 					$("ReportGeneratorButton.buttonText"), null, -1, 1400,
@@ -166,7 +167,7 @@ public class CartMenuItemServices {
 			menuItemActions.add(menuItemAction);
 		}
 
-		if (!filteredActionTypes.contains(CART_CREATE_SIP_ARCHIVE.name())) {
+		if (!excludedActionTypes.contains(CART_CREATE_SIP_ARCHIVE.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(CART_CREATE_SIP_ARCHIVE.name(),
 					isMenuItemActionPossible(CART_CREATE_SIP_ARCHIVE.name(), cart, user, params),
 					$("SIPButton.caption"), null, -1, 1500,
@@ -174,7 +175,7 @@ public class CartMenuItemServices {
 			menuItemActions.add(menuItemAction);
 		}
 
-		if (!filteredActionTypes.contains(CART_PRINT_CONSOLIDATED_PDF.name())) {
+		if (!excludedActionTypes.contains(CART_PRINT_CONSOLIDATED_PDF.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(CART_PRINT_CONSOLIDATED_PDF.name(),
 					isMenuItemActionPossible(CART_PRINT_CONSOLIDATED_PDF.name(), cart, user, params),
 					$("ConsolidatedPDFWindow.caption"), null, -1, 1600,
@@ -196,6 +197,8 @@ public class CartMenuItemServices {
 				return cartActionsServices.isPrepareEmailActionPossible(record, user);
 			case CART_BATCH_DUPLICATE:
 				return cartActionsServices.isBatchDuplicateActionPossible(record, user);
+			case CART_BATCH_DELETE:
+				return cartActionsServices.isBatchDeleteActionPossible(record, user);
 			case CART_DOCUMENT_BATCH_PROCESSING:
 				return cartActionsServices.isDocumentBatchProcessingActionPossible(record, user);
 			case CART_FOLDER_BATCH_PROCESSING:

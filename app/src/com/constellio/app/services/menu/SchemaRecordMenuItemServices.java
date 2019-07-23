@@ -29,17 +29,17 @@ public class SchemaRecordMenuItemServices {
 		schemaRecordActionsServices = new SchemaRecordActionsServices(collection, appLayerFactory);
 	}
 
-	public List<MenuItemAction> getActionsForRecord(Record record, User user, List<String> filteredActionTypes,
+	public List<MenuItemAction> getActionsForRecord(Record record, User user, List<String> excludedActionTypes,
 													MenuItemActionBehaviorParams params) {
 		List<MenuItemAction> menuItemActions = new ArrayList<>();
 
-		if (!filteredActionTypes.contains(SCHEMA_RECORD_EDIT.name())) {
+		if (!excludedActionTypes.contains(SCHEMA_RECORD_EDIT.name())) {
 			menuItemActions.add(buildMenuItemAction(SCHEMA_RECORD_EDIT.name(),
 					isMenuItemActionPossible(SCHEMA_RECORD_EDIT.name(), record, user, params),
 					"editWithIcon", null, -1, 100,
 					(ids) -> new SchemaRecordMenuItemActionBehaviors(collection, appLayerFactory).edit(record, params)));
 		}
-		if (!filteredActionTypes.contains(SCHEMA_RECORD_DELETE.name())) {
+		if (!excludedActionTypes.contains(SCHEMA_RECORD_DELETE.name())) {
 			menuItemActions.add(buildMenuItemAction(SCHEMA_RECORD_DELETE.name(),
 					isMenuItemActionPossible(SCHEMA_RECORD_DELETE.name(), record, user, params),
 					"deleteWithIcon", null, -1, 100,

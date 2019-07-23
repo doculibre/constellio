@@ -22,7 +22,7 @@ import java.util.stream.Stream;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 
-public final class RecordsCache2Impl implements RecordsCache, FindMultipleRecordByMetadata {
+public final class RecordsCache2Impl implements RecordsCache {
 
 	private String collection;
 	private byte collectionId;
@@ -143,15 +143,6 @@ public final class RecordsCache2Impl implements RecordsCache, FindMultipleRecord
 	@Override
 	public final void invalidateVolatileReloadPermanent(List<String> schemaTypes, boolean onlyLocally) {
 		caches.reload(collectionId, collection, schemaTypes, onlyLocally, true);
-	}
-
-	@Override
-	public final List<Record> getMultipleByMetadata(Metadata metadata, String value) {
-		if (value == null) {
-			return null;
-		}
-
-		return caches.getMultipleIdByMetadata(collectionId, metadata, value);
 	}
 
 	@Override

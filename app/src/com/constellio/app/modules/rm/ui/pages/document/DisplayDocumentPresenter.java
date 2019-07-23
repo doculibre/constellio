@@ -30,7 +30,6 @@ import com.constellio.app.ui.framework.builders.EventToVOBuilder;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.components.ComponentState;
-import com.constellio.app.ui.framework.components.RMSelectionPanelReportPresenter;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
@@ -38,8 +37,6 @@ import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.RecordUpdateOptions;
-import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
@@ -67,7 +64,6 @@ import java.util.List;
 import java.util.Map;
 
 import static com.constellio.app.modules.tasks.model.wrappers.Task.STARRED_BY_USERS;
-import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
@@ -110,18 +106,16 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 					} else {
 						view.setDisplayDocumentButtonState(ComponentState.ENABLED);
 					}
-					Content content = getContent();
-					if (content != null) {
-						ContentVersionVO contentVersionVO = contentVersionVOBuilder.build(content);
-						view.setDownloadDocumentButtonState(ComponentState.ENABLED);
-						String agentURL = ConstellioAgentUtils.getAgentURL(documentVO, contentVersionVO);
-						view.setOpenDocumentButtonState(agentURL != null ? ComponentState.ENABLED : ComponentState.INVISIBLE);
-					} else {
-						view.setDownloadDocumentButtonState(ComponentState.INVISIBLE);
-						view.setOpenDocumentButtonState(ComponentState.INVISIBLE);
-					}
 				} else {
 					view.setDisplayDocumentButtonState(ComponentState.INVISIBLE);
+				}
+				Content content = getContent();
+				if (content != null) {
+					ContentVersionVO contentVersionVO = contentVersionVOBuilder.build(content);
+					view.setDownloadDocumentButtonState(ComponentState.ENABLED);
+					String agentURL = ConstellioAgentUtils.getAgentURL(documentVO, contentVersionVO);
+					view.setOpenDocumentButtonState(agentURL != null ? ComponentState.ENABLED : ComponentState.INVISIBLE);
+				} else {
 					view.setDownloadDocumentButtonState(ComponentState.INVISIBLE);
 					view.setOpenDocumentButtonState(ComponentState.INVISIBLE);
 				}
@@ -384,51 +378,6 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		}
 	}
 
-	public void deleteDocumentButtonClicked() {
-		presenterUtils.deleteDocumentButtonClicked(params);
-	}
-
-	public void linkToDocumentButtonClicked() {
-		presenterUtils.linkToDocumentButtonClicked();
-	}
-
-	public void addAuthorizationButtonClicked() {
-		presenterUtils.addAuthorizationButtonClicked();
-	}
-
-	public void shareDocumentButtonClicked() {
-		presenterUtils.shareDocumentButtonClicked();
-	}
-
-	public void createPDFAButtonClicked() {
-		if (!presenterUtils.getRecordVO().getExtension().toUpperCase().equals("PDF") && !presenterUtils.getRecordVO()
-				.getExtension().toUpperCase().equals("PDFA")) {
-			presenterUtils.createPDFA(params);
-		} else {
-			this.view.showErrorMessage($("DocumentActionsComponent.documentAllreadyPDFA"));
-		}
-	}
-
-	public void uploadButtonClicked() {
-		presenterUtils.uploadButtonClicked();
-	}
-
-	public void checkInButtonClicked() {
-		presenterUtils.checkInButtonClicked();
-	}
-
-	public void alertWhenAvailableClicked() {
-		presenterUtils.alertWhenAvailable();
-	}
-
-	public void checkOutButtonClicked() {
-		presenterUtils.checkOutButtonClicked(view.getSessionContext());
-	}
-
-	public void finalizeButtonClicked() {
-		presenterUtils.finalizeButtonClicked();
-	}
-
 	public void updateWindowClosed() {
 		presenterUtils.updateWindowClosed();
 	}
@@ -446,25 +395,6 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		return presenterUtils.getContentTitle();
 	}
 
-	public void renameContentButtonClicked(String newContentTitle) {
-		Document document = presenterUtils.renameContentButtonClicked(newContentTitle);
-		if (document != null) {
-			addOrUpdate(document.getWrappedRecord());
-			presenterUtils.navigateToDisplayDocument(document.getId(), params);
-		}
-	}
-
-	public RecordVODataProvider getSharedCartsDataProvider() {
-		final MetadataSchemaVO cartSchemaVO = schemaVOBuilder.build(rm.cartSchema(), VIEW_MODE.TABLE, view.getSessionContext());
-		return new RecordVODataProvider(cartSchemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
-			@Override
-			public LogicalSearchQuery getQuery() {
-				return new LogicalSearchQuery(from(rm.cartSchema()).where(rm.cartSharedWithUsers())
-						.isContaining(asList(getCurrentUser().getId()))).sortAsc(Schemas.TITLE);
-			}
-		};
-	}
-
 	public boolean hasContent() {
 		return presenterUtils.hasContent();
 	}
@@ -473,35 +403,14 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		view.navigate().to(TaskViews.class).displayTask(taskVO.getId());
 	}
 
-	public void addToCartRequested(RecordVO recordVO) {
-		Cart cart = rm.getCart(recordVO.getId());
-		addToCartRequested(cart);
-	}
-
-	public void addToCartRequested(Cart cart) {
-		if (rm.numberOfDocumentsInFavoritesReachesLimit(cart.getId(), 1)) {
-			view.showMessage($("DisplayDocumentView.cartCannotContainMoreThanAThousandDocuments"));
-		} else {
-			presenterUtils.addToCartRequested(cart);
-		}
-	}
-
 	public InputStream getSignatureInputStream(String certificate, String password) {
 		// TODO: Sign the file
 		ContentVersionVO content = presenterUtils.getRecordVO().getContent();
 		return modelLayerFactory.getContentManager().getContentInputStream(content.getHash(), content.getFileName());
 	}
 
-	public void publishButtonClicked() {
-		updateAndRefresh(presenterUtils.publishButtonClicked());
-	}
-
 	public boolean isLogicallyDeleted() {
 		return document == null || document.isLogicallyDeletedStatus();
-	}
-
-	public void unpublishButtonClicked() {
-		updateAndRefresh(presenterUtils.unpublishButtonClicked());
 	}
 
 	public String getPublicLink() {
@@ -513,20 +422,6 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		if (document != null) {
 			addOrUpdate(document.getWrappedRecord());
 			RMNavigationUtils.navigateToDisplayDocument(document.getId(), params, appLayerFactory, collection);
-		}
-	}
-
-	public void createNewCartAndAddToItRequested(String title) {
-		Cart cart = rm.newCart();
-		cart.setTitle(title);
-		cart.setOwner(getCurrentUser());
-		document.addFavorite(cart.getId());
-		try {
-			recordServices().execute(new Transaction(cart.getWrappedRecord()).setUser(getCurrentUser()));
-			recordServices().update(document.getWrappedRecord(), RecordUpdateOptions.validationExceptionSafeOptions());
-			view.showMessage($("DocumentActionsComponent.addedToCart"));
-		} catch (RecordServicesException e) {
-			e.printStackTrace();
 		}
 	}
 
@@ -618,42 +513,8 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		query.sortFirstOn(sortField);
 	}
 
-	public void addToDefaultFavorite() {
-		if (rm.numberOfDocumentsInFavoritesReachesLimit(getCurrentUser().getId(), 1)) {
-			view.showMessage($("DisplayDocumentView.cartCannotContainMoreThanAThousandDocuments"));
-		} else {
-			document.addFavorite(getCurrentUser().getId());
-			try {
-				recordServices.update(document.getWrappedRecord(), RecordUpdateOptions.validationExceptionSafeOptions());
-			} catch (RecordServicesException e) {
-				e.printStackTrace();
-				throw new RuntimeException(e);
-			}
-			view.showMessage($("DisplayDocumentView.documentAddedToDefaultFavorites"));
-		}
-	}
-
-	public RMSelectionPanelReportPresenter buildReportPresenter() {
-		return new RMSelectionPanelReportPresenter(appLayerFactory, collection, getCurrentUser()) {
-			@Override
-			public String getSelectedSchemaType() {
-				return Document.SCHEMA_TYPE;
-			}
-
-			@Override
-			public List<String> getSelectedRecordIds() {
-				return asList(presenterUtils.getRecordVO().getId());
-			}
-		};
-	}
-
 	public AppLayerFactory getApplayerFactory() {
 		return appLayerFactory;
-	}
-
-	public List<Cart> getOwnedCarts() {
-		return rm.wrapCarts(searchServices().search(new LogicalSearchQuery(from(rm.cartSchema()).where(rm.cart.owner())
-				.isEqualTo(getCurrentUser().getId())).sortAsc(Schemas.TITLE)));
 	}
 
 	public MetadataSchemaVO getSchema() {
