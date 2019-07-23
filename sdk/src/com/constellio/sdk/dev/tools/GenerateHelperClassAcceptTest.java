@@ -10,7 +10,6 @@ import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbInstance;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
-import com.constellio.app.modules.rm.wrappers.UserFunction;
 import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
@@ -27,6 +26,7 @@ import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.SIParchive;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
+import com.constellio.app.modules.rm.wrappers.UserFunction;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.app.modules.rm.wrappers.type.StorageSpaceType;
@@ -371,7 +371,17 @@ public class GenerateHelperClassAcceptTest extends ConstellioTest {
 		stringBuilder.append("\n\tpublic Stream<" + wrapperName + "> " + StringUtils.uncapitalize(wrapperName) + "Stream() {");
 		stringBuilder.append("\n\t\treturn streamFromCache(" + schemaTypeCall + ",this::wrap" + wrapperName + ");");
 		stringBuilder.append("\n\t}\n");
+
+		stringBuilder.append("\n\tpublic Stream<" + wrapperName + "> " + StringUtils.uncapitalize(wrapperName) + "Stream(LogicalSearchQuery query) {");
+		stringBuilder.append("\n\t\treturn streamFromCache(" + schemaTypeCall + ",query,this::wrap" + wrapperName + ");");
+		stringBuilder.append("\n\t}\n");
+
+
+		stringBuilder.append("\n\tpublic Stream<" + wrapperName + "> " + StringUtils.uncapitalize(wrapperName) + "Stream(LogicalSearchCondition condition) {");
+		stringBuilder.append("\n\t\treturn streamFromCache(" + schemaTypeCall + ",condition,this::wrap" + wrapperName + ");");
+		stringBuilder.append("\n\t}\n");
 	}
+
 
 	private void appendIterateFromCacheHelperMethod(MetadataSchema schema, String wrapperName,
 													StringBuilder stringBuilder) {

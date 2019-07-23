@@ -11,7 +11,6 @@ import com.constellio.app.modules.rm.wrappers.PrintableReport;
 import com.constellio.app.modules.rm.wrappers.RMObject;
 import com.constellio.app.modules.rm.wrappers.RMUserFolder;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
-import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.modules.rm.wrappers.UserFunction;
 import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
@@ -830,7 +829,6 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 	}
 
 
-
 	//KEEP
 	public AuthorizationAddRequest newAuthorization() {
 		return authorizationInCollection(getCollection());
@@ -878,22 +876,34 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 		return wrapYearType(getByCode(ddvYearType.schemaType(), code));
 	}
 
+	@Deprecated
+	/**
+	 * User LogicalSearchQuery instead
+	 */
 	public List<AdministrativeUnit> getAllAdministrativeUnits() {
 		return wrapAdministrativeUnits(getModelLayerFactory().newSearchServices().getAllRecords(administrativeUnit.schemaType()));
 	}
 
+	@Deprecated
+	/**
+	 * User LogicalSearchQuery instead
+	 */
 	public List<RetentionRule> getAllRetentionRules() {
 		return wrapRetentionRules(getModelLayerFactory().newSearchServices().getAllRecords(retentionRule.schemaType()));
 	}
 
+	@Deprecated
+	/**
+	 * User LogicalSearchQuery instead
+	 */
 	public List<Category> getAllCategories() {
 		return wrapCategorys(getModelLayerFactory().newSearchServices().getAllRecords(category.schemaType()));
 	}
 
-	public List<StorageSpace> getAllStorageSpaces() {
-		return wrapStorageSpaces(getModelLayerFactory().newSearchServices().getAllRecords(storageSpace.schemaType()));
-	}
-
+	@Deprecated
+	/**
+	 * User LogicalSearchQuery instead
+	 */
 	public List<AdministrativeUnit> getAllAdministrativeUnitsInUnmodifiableState() {
 		return wrapAdministrativeUnits(
 				getModelLayerFactory().newSearchServices().getAllRecordsInUnmodifiableState(administrativeUnit.schemaType()));
@@ -909,6 +919,7 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 		return wrapPrintableReports(getModelLayerFactory().newSearchServices().cachedSearch(new LogicalSearchQuery(
 				from(printable_report.schemaType()).where(SCHEMA).isEqualTo(PrintableReport.SCHEMA_NAME))));
 	}
+
 
 	public List<Folder> getFolderByUnicity(String unicity) {
 		List<Folder> resultListFolder = wrapFolders(getModelLayerFactory().newSearchServices().search(new LogicalSearchQuery(
@@ -960,65 +971,4 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 
 	}
 
-	//	public List<AdministrativeUnit> getAdministrativeUnitsOfUser(User user,
-	//																 boolean includeAuthsOfParentAdministrativeUnits,
-	//																 Provider<SecurityModelAuthorization, Boolean> filter) {
-	//
-	//		List<SecurityModelAuthorization> authorizations = getModelLayerFactory().newRecordServices()
-	//				.getSecurityModel(user.getCollection()).getAuthorizationsToPrincipal(user.getId(), true);
-	//
-	//		Set<String> foundIds = new HashSet<>();
-	//
-	//		for (SecurityModelAuthorization authorization : authorizations) {
-	//			if (AdministrativeUnit.SCHEMA_TYPE.equals(authorization.getDetails().getTargetSchemaType())
-	//				&& filter.get(authorization)) {
-	//				foundIds.add(authorization.getDetails().getId());
-	//			}
-	//		}
-	//
-	//
-	//		List<AdministrativeUnit> returnedAdmUnits = new ArrayList<>();
-	//		for (AdministrativeUnit admUnit : getAllAdministrativeUnitsInUnmodifiableState()) {
-	//
-	//			if (foundIds.contains(admUnit.getId())
-	//				|| (includeAuthsOfParentAdministrativeUnits && containsAny(admUnit.getAncestors(), foundIds))) {
-	//				returnedAdmUnits.add(admUnit);
-	//			}
-	//		}
-	//
-	//		return returnedAdmUnits;
-	//	}
-	//
-	//	public List<AdministrativeUnit> getAdministrativeUnitsOfUser(User user,
-	//																 boolean includeAuthsOfParentAdministrativeUnits,
-	//																 Provider<AdministrativeUnit, Boolean> filter) {
-	//
-	//		List<SecurityModelAuthorization> authorizations = getModelLayerFactory().newRecordServices()
-	//				.getSecurityModel(user.getCollection()).getAuthorizationsToPrincipal(user.getId(), true);
-	//
-	//		Set<String> foundIds = new HashSet<>();
-	//
-	//		for (SecurityModelAuthorization authorization : authorizations) {
-	//			if (AdministrativeUnit.SCHEMA_TYPE.equals(authorization.getDetails().getTargetSchemaType())
-	//				&& filter.get(authorization)) {
-	//				foundIds.add(authorization.getDetails().getId());
-	//			}
-	//		}
-	//
-	//
-	//		List<AdministrativeUnit> returnedAdmUnits = new ArrayList<>();
-	//		for (AdministrativeUnit admUnit : getAllAdministrativeUnitsInUnmodifiableState()) {
-	//
-	//
-	//			user.h
-	//
-	//
-	//			if (foundIds.contains(admUnit.getId())
-	//				|| (includeAuthsOfParentAdministrativeUnits && containsAny(admUnit.getAncestors(), foundIds))) {
-	//				returnedAdmUnits.add(admUnit);
-	//			}
-	//		}
-	//
-	//		return returnedAdmUnits;
-	//	}
 }

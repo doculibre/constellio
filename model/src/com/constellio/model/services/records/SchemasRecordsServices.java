@@ -452,40 +452,94 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 		getModelLayerFactory().newRecordServices().executeWithoutImpactHandling(tx);
 	}
 
+	/**
+	 * Use LogicalSearchQuery instead
+	 *
+	 * @return
+	 */
+	@Deprecated
 	public List<Authorization> getAllAuthorizations() {
 		return wrapSolrAuthorizationDetailss(
 				getModelLayerFactory().newSearchServices().getAllRecordsInUnmodifiableState(authorizationDetails.schemaType()));
 	}
 
+	/**
+	 * Use LogicalSearchQuery instead
+	 *
+	 * @return
+	 */
+	@Deprecated
 	public List<Authorization> getAllAuthorizationsInUnmodifiableState() {
 		return wrapSolrAuthorizationDetailss(
 				getModelLayerFactory().newSearchServices().getAllRecordsInUnmodifiableState(authorizationDetails.schemaType()));
 	}
 
+	/**
+	 * Use LogicalSearchQuery instead
+	 *
+	 * @return
+	 */
+	@Deprecated
 	public List<UserCredential> getAllUserCredentials() {
 		return modelLayerFactory.newUserServices().getAllUserCredentials();
 	}
 
+	/**
+	 * Use LogicalSearchQuery instead
+	 *
+	 * @return
+	 */
+	@Deprecated
 	public List<GlobalGroup> getAllGlobalGroups() {
 		return modelLayerFactory.newUserServices().getAllGlobalGroups();
 	}
 
+	/**
+	 * Use LogicalSearchQuery instead
+	 *
+	 * @return
+	 */
+	@Deprecated
 	public List<User> getAllUsers() {
 		return wrapUsers(getModelLayerFactory().newSearchServices().getAllRecordsInUnmodifiableState(user.schemaType()));
 	}
 
+	/**
+	 * Use LogicalSearchQuery instead
+	 *
+	 * @return
+	 */
+	@Deprecated
 	public List<Facet> getAllFacets() {
 		return wrapFacets(getModelLayerFactory().newSearchServices().getAllRecordsInUnmodifiableState(facet.schemaType()));
 	}
 
+	/**
+	 * Use LogicalSearchQuery instead
+	 *
+	 * @return
+	 */
+	@Deprecated
 	public List<User> getAllUsersInUnmodifiableState() {
 		return wrapUsers(getModelLayerFactory().newSearchServices().getAllRecordsInUnmodifiableState(user.schemaType()));
 	}
 
+	/**
+	 * Use LogicalSearchQuery instead
+	 *
+	 * @return
+	 */
+	@Deprecated
 	public List<Group> getAllGroups() {
 		return wrapGroups(getModelLayerFactory().newSearchServices().getAllRecordsInUnmodifiableState(group.schemaType()));
 	}
 
+	/**
+	 * Use LogicalSearchQuery instead
+	 *
+	 * @return
+	 */
+	@Deprecated
 	public List<Report> getAllReports() {
 		return wrapReports(getModelLayerFactory().newSearchServices().getAllRecords(report.schemaType()));
 	}

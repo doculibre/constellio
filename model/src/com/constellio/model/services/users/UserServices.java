@@ -1117,7 +1117,9 @@ public class UserServices {
 								onlyActiveUsersAndGroups);
 					}
 				} else {
-					for (Group aGroup : schemas.getAllGroups()) {
+					LogicalSearchQuery query = new LogicalSearchQuery(from(schemas.group.schemaType())
+							.where(schemas.group.parent()).isEqualTo(group.getId()));
+					for (Group aGroup : schemas.searchGroups(query)) {
 						if (group.getId().equals(aGroup.getParent())) {
 							getUsersRecordsInGroup(aGroup, returnedUserRecords, usernamesOfReturnedUsers, true,
 									onlyActiveUsersAndGroups);
@@ -1125,7 +1127,11 @@ public class UserServices {
 					}
 				}
 			}
-			for (User aUser : schemas.getAllUsers()) {
+
+			LogicalSearchQuery query = new LogicalSearchQuery(from(schemas.user.schemaType())
+					.where(schemas.user.groups()).isEqualTo(group.getId()));
+
+			for (User aUser : schemas.searchUsers(query)) {
 				if (!usernamesOfReturnedUsers.contains(aUser.getId()) && aUser.getUserGroups().contains(group.getId())) {
 
 					boolean includedUser;

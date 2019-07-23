@@ -6,6 +6,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.SchemasRecordsServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.security.SecurityTokenManager;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
@@ -22,6 +23,7 @@ import static com.constellio.model.entities.schemas.Schemas.TOKENS;
 import static com.constellio.model.entities.security.Role.DELETE;
 import static com.constellio.model.entities.security.Role.READ;
 import static com.constellio.model.entities.security.Role.WRITE;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
 public class UserAuthorizationsUtils {
@@ -233,7 +235,9 @@ public class UserAuthorizationsUtils {
 	private static List<String> getActiveChildrensIn(Group group, SchemasRecordsServices schemas) {
 		List<String> ids = new ArrayList<>();
 
-		for (Group aGroup : schemas.getAllGroups()) {
+		LogicalSearchQuery query = new LogicalSearchQuery(from(schemas.group.schemaType())
+				.where(schemas.group.parent()).isEqualTo(group.getId()));
+		for (Group aGroup : schemas.searchGroups(query)) {
 			if (group.getId().equals(aGroup.getParent())) {
 				if (schemas.isGroupActive(aGroup)) {
 					ids.add(aGroup.getId());
