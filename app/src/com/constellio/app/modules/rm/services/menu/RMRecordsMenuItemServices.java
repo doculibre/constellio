@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
 
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_ADD_CART;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_ADD_SELECTION;
+import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_BATCH_DELETE;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_COPY;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_CREATE_PDF;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_CREATE_SIP;
@@ -200,6 +201,20 @@ public class RMRecordsMenuItemServices {
 				}
 				return calculateCorrectActionState(possibleCount, records.size() - possibleCount,
 						$("RMRecordsMenuItemServices.actionImpossible"));
+			case RMRECORDS_BATCH_DELETE:
+				for (Record record : records) {
+					boolean actionPossible = false;
+					if (record.isOfSchemaType(Document.SCHEMA_TYPE)) {
+						actionPossible = documentRecordActionsServices.isDeleteActionPossible(record, user);
+					} else if (record.isOfSchemaType(Folder.SCHEMA_TYPE)) {
+						actionPossible = folderRecordActionsServices.isDeleteActionPossible(record, user);
+					} else if (record.isOfSchemaType(ContainerRecord.SCHEMA_TYPE)) {
+						actionPossible = containerRecordActionsServices.isDeleteActionPossible(record, user);
+					}
+					possibleCount += actionPossible ? 1 : 0;
+				}
+				return calculateCorrectActionState(possibleCount, records.size() - possibleCount,
+						$("RMRecordsMenuItemServices.actionImpossible"));
 		}
 
 		return new MenuItemActionState(HIDDEN);
@@ -277,6 +292,11 @@ public class RMRecordsMenuItemServices {
 						getRecordsLimit(actionType),
 						(ids) -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).downloadZip(ids, params));
 				break;
+			case RMRECORDS_BATCH_DELETE:
+				menuItemAction = buildMenuItemAction(RMRECORDS_BATCH_DELETE, state,
+						$("deleteWithIcon"), null, -1, 1000,
+						getRecordsLimit(actionType), (ids) -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).batchDelete(ids, params));
+				break;
 		}
 
 		if (menuItemAction != null) {
@@ -326,7 +346,8 @@ public class RMRecordsMenuItemServices {
 		RMRECORDS_CREATE_PDF(singletonList(Document.SCHEMA_TYPE), 100000),
 		RMRECORDS_PRINT_LABEL(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE), 100000),
 		RMRECORDS_ADD_SELECTION(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE), 100000),
-		RMRECORDS_DOWNLOAD_ZIP(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE), 100000);
+		RMRECORDS_DOWNLOAD_ZIP(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE), 100000),
+		RMRECORDS_BATCH_DELETE(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE), 100000);
 
 		private final List<String> schemaTypes;
 		private final int recordsLimit;

@@ -12,6 +12,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -33,12 +34,14 @@ public class ContainerRecordActionsServices {
 	private ModelLayerFactory modelLayerFactory;
 	private String collection;
 	private SearchServices searchServices;
+	private RecordServices recordServices;
 
 	public ContainerRecordActionsServices(String collection, AppLayerFactory appLayerFactory) {
 		this.rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		this.collection = collection;
 		this.appLayerFactory = appLayerFactory;
 		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
+		this.recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 		this.rmModuleExtensions = appLayerFactory.getExtensions().forCollection(collection).forModule(ConstellioRMModule.ID);
 		this.searchServices = modelLayerFactory.newSearchServices();
 	}
@@ -87,6 +90,19 @@ public class ContainerRecordActionsServices {
 		return user.hasReadAccess().on(record)
 			   && rmModuleExtensions.isLabelsActionPossibleOnContainerRecord(rm.wrapContainerRecord(record), user)
 			   && canPrintReports();
+	}
+
+	public boolean canDeleteContainers(List<String> ids, User user) {
+		for (Record record : recordServices.getRecordsById(collection, ids)) {
+			if (!record.getSchemaCode().startsWith(ContainerRecord.SCHEMA_TYPE)) {
+				continue;
+			}
+
+			if (!isDeleteActionPossible(record, user)) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	public boolean isDeleteActionPossible(Record record, User user) {

@@ -13,17 +13,24 @@ import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
+import com.constellio.model.services.records.RecordServices;
+
+import java.util.List;
 
 public class DocumentRecordActionsServices {
 
 	private RMSchemasRecordsServices rm;
 	private RMModuleExtensions rmModuleExtensions;
+	private String collection;
+	private RecordServices recordServices;
 	private transient ModelLayerCollectionExtensions modelLayerCollectionExtensions;
 
 	public DocumentRecordActionsServices(String collection, AppLayerFactory appLayerFactory) {
-		rm = new RMSchemasRecordsServices(collection, appLayerFactory);
-		modelLayerCollectionExtensions = appLayerFactory.getModelLayerFactory().getExtensions().forCollection(collection);
-		rmModuleExtensions = appLayerFactory.getExtensions().forCollection(collection).forModule(ConstellioRMModule.ID);
+		this.rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+		this.collection = collection;
+		this.recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
+		this.modelLayerCollectionExtensions = appLayerFactory.getModelLayerFactory().getExtensions().forCollection(collection);
+		this.rmModuleExtensions = appLayerFactory.getExtensions().forCollection(collection).forModule(ConstellioRMModule.ID);
 	}
 
 	public boolean isMoveActionPossible(Record record, User user) {
@@ -93,6 +100,19 @@ public class DocumentRecordActionsServices {
 		Document document = rm.wrapDocument(record);
 		return user.hasReadAccess().on(record)
 				&& rmModuleExtensions.isPrintLabelActionPossibleOnDocument(document, user);
+	}
+
+	public boolean canDeleteDocuments(List<String> ids, User user) {
+		for (Record record : recordServices.getRecordsById(collection, ids)) {
+			if (!record.getSchemaCode().startsWith(Document.SCHEMA_TYPE)) {
+				continue;
+			}
+
+			if (!isDeleteActionPossible(record, user)) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	public boolean isDeleteActionPossible(Record record, User user) {
