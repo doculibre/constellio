@@ -435,14 +435,20 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 							} else if (event.isAllItemsDeselected()) {
 								selectedItemIds.clear();
 								presenter.deselectAllClicked();
-							} else if (event.getSelectedItemId() != null) {
-								selectedItemIds.add(event.getSelectedItemId());
-								RecordVO recordVO = getRecordVO(event.getSelectedItemId());
-								presenter.recordSelectionChanged(recordVO, true);
-							} else if (event.getDeselectedItemId() != null) {
-								selectedItemIds.remove(event.getDeselectedItemId());
-								RecordVO recordVO = getRecordVO(event.getDeselectedItemId());
-								presenter.recordSelectionChanged(recordVO, false);
+							} else if (event.getSelectedItemIds() != null) {
+								List<Object> selectedItemIds = event.getSelectedItemIds();
+								for (Object selectedItemId : selectedItemIds) {
+									this.selectedItemIds.add(selectedItemId);
+									RecordVO recordVO = getRecordVO(selectedItemId);
+									presenter.recordSelectionChanged(recordVO, true);
+								}
+							} else if (event.getDeselectedItemIds() != null) {
+								List<Object> deselectedItemIds = event.getDeselectedItemIds();
+								for (Object deselectedItemId : deselectedItemIds) {
+									this.selectedItemIds.remove(deselectedItemId);
+									RecordVO recordVO = getRecordVO(deselectedItemId);
+									presenter.recordSelectionChanged(recordVO, false);
+								}
 							}
 						}
 					};

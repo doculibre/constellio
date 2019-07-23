@@ -62,15 +62,19 @@ public class ViewableRecordVOSearchResultTable extends ViewableRecordVOTablePane
 			public void selectionChanged(
 					com.constellio.app.ui.framework.components.table.BaseTable.SelectionChangeEvent event) {
 				RecordVOContainer recordVOContainer = getRecordVOContainer();
-				if (event.getSelectedItemId() != null) {
-					Object selectedItemId = event.getSelectedItemId();
-					selectedItemIds.add(selectedItemId);
-					deselectedItemIds.remove(selectedItemId);
+				if (event.getSelectedItemIds() != null) {
+					List<Object> selectedItemIds = event.getSelectedItemIds();
+					for (Object selectedItemId : selectedItemIds) {
+						selectedItemIds.add(selectedItemId);
+						deselectedItemIds.remove(selectedItemId);
+					}
 					presenter.fireSomeRecordsSelected();
-				} else if (event.getDeselectedItemId() != null) {
-					Object deselectedItemId = event.getDeselectedItemId();
-					selectedItemIds.remove(deselectedItemId);
-					deselectedItemIds.add(deselectedItemId);
+				} else if (event.getDeselectedItemIds() != null) {
+					List<Object> deselectedItemIds = event.getDeselectedItemIds();
+					for (Object deselectedItemId : deselectedItemIds) {
+						selectedItemIds.remove(deselectedItemId);
+						deselectedItemIds.add(deselectedItemId);
+					}
 					if (selectedItemIds.isEmpty()) {
 						presenter.fireNoRecordSelected();
 					} else {

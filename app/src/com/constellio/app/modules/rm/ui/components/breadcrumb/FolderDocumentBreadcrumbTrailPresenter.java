@@ -12,6 +12,7 @@ import com.constellio.app.ui.framework.components.breadcrumb.BreadcrumbItem;
 import com.constellio.app.ui.framework.components.breadcrumb.FavoritesBreadcrumbItem;
 import com.constellio.app.ui.framework.components.breadcrumb.GroupFavoritesBreadcrumbItem;
 import com.constellio.app.ui.framework.components.breadcrumb.SearchResultsBreadcrumbItem;
+import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.UIContext;
@@ -35,7 +36,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.constellio.app.ui.i18n.i18n.$;
 import static java.util.Arrays.asList;
 
 public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
@@ -186,14 +186,12 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 			}
 		} else if (favoritesId != null) {
 			breadcrumbItems.add(0, new FavoritesBreadcrumbItem());
-			Record favorite = folderPresenterUtils.getRecord(favoritesId);
-			String breadcrumbTitle = "";
-			if (favorite.isOfSchemaType(User.SCHEMA_TYPE)) {
-				breadcrumbTitle = $("CartView.defaultFavorites");
-			} else {
-				breadcrumbTitle = rmSchemasRecordsServices.getCart(favoritesId).getTitle();
-			}
-			breadcrumbItems.add(1, new GroupFavoritesBreadcrumbItem(favoritesId, breadcrumbTitle));
+
+
+			String title = favoritesId.equals(breadcrumbTrail.getView().getSessionContext().getCurrentUser().getId()) ? i18n.$("CartView.defaultFavorites") : rmSchemasRecordsServices.getCart(favoritesId).getTitle();
+
+
+			breadcrumbItems.add(1, new GroupFavoritesBreadcrumbItem(favoritesId, title));
 		}
 		else if (searchId != null) {
 			breadcrumbItems.add(0, new SearchResultsBreadcrumbItem(searchId, advancedSearch));

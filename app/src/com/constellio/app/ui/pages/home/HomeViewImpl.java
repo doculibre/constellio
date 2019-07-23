@@ -447,19 +447,23 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 				@Override
 				public void selectionChanged(SelectionChangeEvent event) {
 					super.selectionChanged(event);
-					
-					Object selectedItemId = event.getSelectedItemId();
-					Object deselectedItemId = event.getDeselectedItemId();
+
+					List<Object> selectedItemIds = event.getSelectedItemIds();
+					List<Object> deselectedItemIds = event.getDeselectedItemIds();
 					boolean allItemsSelected = event.isAllItemsSelected();
 					boolean allItemsDeselected = event.isAllItemsDeselected();
-					if (selectedItemId != null) {
-						RecordVO recordVO = getRecordVO(selectedItemId);
-						String recordId = recordVO.getId();
-						presenter.selectionChanged(recordId, true);
-					} else if (deselectedItemId != null) {
-						RecordVO recordVO = getRecordVO(deselectedItemId);
-						String recordId = recordVO.getId();
-						presenter.selectionChanged(recordId, false);
+					if (selectedItemIds != null) {
+						for (Object selectedItemId : selectedItemIds) {
+							RecordVO recordVO = getRecordVO(selectedItemId);
+							String recordId = recordVO.getId();
+							presenter.selectionChanged(recordId, true);
+						}
+					} else if (deselectedItemIds != null) {
+						for (Object deselectedItemId : deselectedItemIds) {
+							RecordVO recordVO = getRecordVO(deselectedItemId);
+							String recordId = recordVO.getId();
+							presenter.selectionChanged(recordId, false);
+						}
 					} else if (allItemsSelected) {
 						for (Object itemId : getItemIds()) {
 							if (!isSelected(itemId)) {

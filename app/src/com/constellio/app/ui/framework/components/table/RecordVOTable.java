@@ -558,15 +558,19 @@ public class RecordVOTable extends BaseTable {
 			} else if (event.isAllItemsDeselected()) {
 				setValue(new ArrayList<>());
 			} else {
-				Object selectedItemId = event.getSelectedItemId();
-				Object deselectedItemId = event.getDeselectedItemId();
+				List<Object> selectedItemIds = event.getSelectedItemIds();
+				List<Object> deselectedItemIds = event.getDeselectedItemIds();
 				List<Object> listValue = ensureListValue();
-				if (selectedItemId != null) {
-					RecordVO recordVO = getRecordVO(selectedItemId);
-					listValue.add(recordVO);
-				} else if (deselectedItemId != null) {
-					RecordVO recordVO = getRecordVO(deselectedItemId);
-					listValue.remove(recordVO);
+				if (selectedItemIds != null) {
+					for (Object selectedItemId : selectedItemIds) {
+						RecordVO recordVO = getRecordVO(selectedItemId);
+						listValue.add(recordVO);
+					}
+				} else if (deselectedItemIds != null) {
+					for (Object deselectedItemId : deselectedItemIds) {
+						RecordVO recordVO = getRecordVO(deselectedItemId);
+						listValue.remove(recordVO);
+					}
 				}
 				setValue(listValue);
 			}

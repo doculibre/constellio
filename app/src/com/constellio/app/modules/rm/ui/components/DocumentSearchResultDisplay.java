@@ -10,9 +10,7 @@ import com.constellio.app.ui.entities.SearchResultVO;
 import com.constellio.app.ui.framework.components.BaseUpdatableContentVersionPresenter;
 import com.constellio.app.ui.framework.components.MetadataDisplayFactory;
 import com.constellio.app.ui.framework.components.SearchResultDisplay;
-import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.model.services.schemas.SchemaUtils;
-import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Component;
 
 public class DocumentSearchResultDisplay extends SearchResultDisplay {
@@ -20,18 +18,7 @@ public class DocumentSearchResultDisplay extends SearchResultDisplay {
 	public DocumentSearchResultDisplay(SearchResultVO searchResultVO, MetadataDisplayFactory componentFactory,
 									   AppLayerFactory appLayerFactory, String query, boolean noLinks) {
 		super(searchResultVO, componentFactory, appLayerFactory, query, noLinks);
-	}
-
-	@Override
-	protected Component newTitleComponent(SearchResultVO searchResultVO) {
-		Component titleComponent = super.newTitleComponent(searchResultVO);
-		I18NHorizontalLayout layout = new I18NHorizontalLayout(titleComponent);
-		layout.setExpandRatio(titleComponent, 1);
-		layout.setComponentAlignment(titleComponent, Alignment.BOTTOM_LEFT);
-		layout.setWidth("100%");
-		layout.setHeight("100%");
-		layout.addStyleName("document-search-result-display");
-		return layout;
+		addStyleName("document-search-result-display");
 	}
 
 	@Override

@@ -10,7 +10,6 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.SearchResultVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
-import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.components.mouseover.NiceTitle;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.util.ComponentTreeUtils;
@@ -23,10 +22,15 @@ import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 import com.constellio.model.services.search.SearchConfigurationsManager;
 import com.constellio.model.services.users.CredentialUserPermissionChecker;
 import com.google.common.base.Strings;
+import com.vaadin.event.LayoutEvents.LayoutClickEvent;
+import com.vaadin.event.LayoutEvents.LayoutClickListener;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Resource;
+import com.vaadin.shared.MouseEventDetails;
+import com.vaadin.shared.MouseEventDetails.MouseButton;
 import com.vaadin.shared.ui.label.ContentMode;
-import com.vaadin.ui.Alignment;
+import com.vaadin.ui.Button;
+import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CssLayout;
@@ -71,7 +75,7 @@ public class SearchResultDisplay extends CssLayout {
 	Map<String, String> extraParam;
 	boolean noLinks;
 
-	private Component titleComponent;
+	private Component titleLink;
 
 	public SearchResultDisplay(SearchResultVO searchResultVO, MetadataDisplayFactory componentFactory,
 							   AppLayerFactory appLayerFactory, String query, boolean noLinks) {
@@ -106,8 +110,7 @@ public class SearchResultDisplay extends CssLayout {
 		setWidth("100%");
 		//		setSpacing(true);
 
-		titleComponent = newTitleComponent(searchResultVO);
-		addComponent(titleComponent);
+		addTitleComponents(searchResultVO);
 
 		addComponent(newHighlightsLabel(searchResultVO));
 		List<Component> additionalComponents = appLayerFactory.getExtensions().forCollection(sessionContext.getCurrentCollection())
@@ -118,17 +121,14 @@ public class SearchResultDisplay extends CssLayout {
 		buildMetadataComponent(searchResultVO.getRecordVO(), componentFactory);
 	}
 
-	protected Component newTitleComponent(SearchResultVO searchResultVO) {
+	private void addTitleComponents(SearchResultVO searchResultVO) {
 		final RecordVO record = searchResultVO.getRecordVO();
 
-		CssLayout titleLayout = new CssLayout();
-		titleLayout.setWidth("100%");
-
-		Component titleLink = newTitleLink(searchResultVO);
+		titleLink = newTitleLink(searchResultVO);
 		titleLink.addStyleName(TITLE_STYLE);
 
 		titleLink.setWidthUndefined();
-		titleLayout.addComponent(titleLink);
+		addComponent(titleLink);
 
 		SessionContext currentSessionContext = ConstellioUI.getCurrentSessionContext();
 		CredentialUserPermissionChecker userHas = getAppLayerFactory().getModelLayerFactory().newUserServices()
@@ -147,18 +147,9 @@ public class SearchResultDisplay extends CssLayout {
 			excludeButton = new ExcludeButton();
 			elevateButton = new ElevateButton(elevateText, elevateIcon, elevateNiceTitleText);
 
-			I18NHorizontalLayout elevationLayout = new I18NHorizontalLayout();
-			elevationLayout.addStyleName("search-result-elevation-buttons");
-			elevationLayout.addComponent(excludeButton);
-			elevationLayout.addComponent(elevateButton);
-			elevationLayout.setComponentAlignment(excludeButton, Alignment.TOP_LEFT);
-			elevationLayout.setComponentAlignment(elevateButton, Alignment.TOP_LEFT);
-
-			titleLayout.addComponent(elevationLayout);
-			//			titleLayout.setExpandRatio(elevationLayout, 1);
-			//			titleLayout.setSpacing(true);
+			addComponent(elevateButton);
+			addComponent(excludeButton);
 		}
-		return titleLayout;
 	}
 
 	protected void addVisitedStyleNameIfNecessary(Component titleLink, String id) {
@@ -258,10 +249,32 @@ public class SearchResultDisplay extends CssLayout {
 		return appLayerFactory;
 	}
 
+	@Override
+	public void addLayoutClickListener(final LayoutClickListener layoutListener) {
+		super.addLayoutClickListener(layoutListener);
+
+		Button nestedButton = ComponentTreeUtils.getFirstChild(titleLink, Button.class);
+		if (nestedButton != null) {
+			nestedButton.addClickListener(new ClickListener() {
+				@Override
+				public void buttonClick(ClickEvent event) {
+					MouseEventDetails mouseEventDetails = new MouseEventDetails();
+					mouseEventDetails.setButton(MouseButton.LEFT);
+					mouseEventDetails.setClientX(event.getClientX());
+					mouseEventDetails.setClientY(event.getClientY());
+					mouseEventDetails.setRelativeX(event.getRelativeX());
+					mouseEventDetails.setRelativeY(event.getRelativeY());
+					LayoutClickEvent layoutClickEvent = new LayoutClickEvent(event.getComponent(), mouseEventDetails, SearchResultDisplay.this, event.getComponent());
+					layoutListener.layoutClick(layoutClickEvent);
+				}
+			});
+		}
+	}
+
 	public void addClickListener(final ClickListener listener) {
-		ReferenceDisplay referenceDisplay = ComponentTreeUtils.getFirstChild(titleComponent, ReferenceDisplay.class);
-		if (referenceDisplay != null) {
-			referenceDisplay.addClickListener(listener);
+		Button nestedButton = ComponentTreeUtils.getFirstChild(titleLink, Button.class);
+		if (nestedButton != null) {
+			nestedButton.addClickListener(listener);
 		}
 	}
 
@@ -277,8 +290,8 @@ public class SearchResultDisplay extends CssLayout {
 		}
 	}
 
-	public Component getTitleComponent() {
-		return titleComponent;
+	public Component getTitleLink() {
+		return titleLink;
 	}
 
 	public static class ElevationButton extends BaseButton {

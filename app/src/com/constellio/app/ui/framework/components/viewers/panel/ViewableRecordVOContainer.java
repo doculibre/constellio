@@ -309,7 +309,7 @@ public class ViewableRecordVOContainer extends IndexedContainer implements ItemS
 		RecordVO recordVO = recordVOContainer.getRecordVO(itemId);
 		SearchResultVO searchResultVO = new SearchResultVO(recordVO, new HashMap<String, List<String>>());
 		SearchResultDisplay searchResultDisplay = displayFactory.build(searchResultVO, null, null, null, null);
-		searchResultDisplay.getTitleComponent().setIcon(null);
+		searchResultDisplay.getTitleLink().setIcon(null);
 		return searchResultDisplay;
 	}
 

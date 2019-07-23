@@ -61,6 +61,7 @@ import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
@@ -112,6 +113,10 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		modelLayerExtensions = modelLayerFactory.getExtensions().forCollection(view.getCollection());
 		rmModuleExtensions = appLayerFactory.getExtensions().forCollection(view.getCollection()).forModule(ConstellioRMModule.ID);
 		recordServices = modelLayerFactory.newRecordServices();
+	}
+
+	public MetadataSchema getCartMetadataSchema() {
+		return modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchema(Cart.DEFAULT_SCHEMA);
 	}
 
 	public boolean havePermisionToGroupCart() {
