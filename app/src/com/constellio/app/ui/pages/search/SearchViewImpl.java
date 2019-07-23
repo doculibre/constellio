@@ -45,6 +45,7 @@ import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
+import com.vaadin.lazyloadwrapper.LazyLoadWrapper;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Resource;
@@ -299,11 +300,11 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 
 		if (isDetailedView()) {
 			resultsArea.removeAllComponents();
-			resultsArea.addComponent(resultsTable);
+			resultsArea.addComponent(new LazyLoadWrapper(resultsTable));
 			((ViewableRecordVOSearchResultTable) resultsTable).setItemsPerPageValue(presenter.getSelectedPageLength());
 		} else {
 			resultsArea.removeAllComponents();
-			resultsArea.addComponent(resultsTable);
+			resultsArea.addComponent(new LazyLoadWrapper(resultsTable));
 		}
 
 		refreshCapsule();

@@ -209,7 +209,7 @@ public class CartWindowButton extends WindowButton {
 				addToFavorite(cartId, record);
 			}
 			Transaction transaction = new Transaction(RecordUpdateOptions.validationExceptionSafeOptions());
-			transaction.addUpdate(records);
+			transaction.update(records);
 			try {
 				recordServices.execute(transaction);
 				switch (addedRecordType) {
@@ -283,17 +283,19 @@ public class CartWindowButton extends WindowButton {
 		Cart cart = rm.newCart();
 		cart.setTitle(title);
 		cart.setOwner(params.getUser());
-
-		for (Record record : records) {
-			addToFavorite(cart.getId(), record);
-		}
-
-		Transaction transaction = new Transaction(RecordUpdateOptions.validationExceptionSafeOptions());
-		transaction.update(cart.getWrappedRecord());
-		transaction.update(records);
-
 		try {
+			recordServices.add(cart);
+
+			for (Record record : records) {
+				addToFavorite(cart.getId(), record);
+			}
+
+			Transaction transaction = new Transaction(RecordUpdateOptions.validationExceptionSafeOptions());
+			transaction.update(cart.getWrappedRecord());
+			transaction.update(records);
+
 			recordServices.execute(transaction);
+
 			switch (addedRecordType) {
 				case DOCUMENT:
 					params.getView().showMessage($("DocumentActionsComponent.addedToCart"));

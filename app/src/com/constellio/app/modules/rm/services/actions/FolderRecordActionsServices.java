@@ -9,6 +9,9 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.services.records.RecordServices;
+
+import java.util.List;
 
 import static org.apache.commons.lang.StringUtils.isNotBlank;
 
@@ -16,9 +19,13 @@ public class FolderRecordActionsServices {
 
 	private RMSchemasRecordsServices rm;
 	private RMModuleExtensions rmModuleExtensions;
+	private String collection;
+	private RecordServices recordServices;
 
 	public FolderRecordActionsServices(String collection, AppLayerFactory appLayerFactory) {
 		rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+		this.collection = collection;
+		recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 		rmModuleExtensions = appLayerFactory.getExtensions().forCollection(collection).forModule(ConstellioRMModule.ID);
 	}
 
@@ -109,6 +116,19 @@ public class FolderRecordActionsServices {
 			return true;
 		}
 		return false;
+	}
+
+	public boolean canDeleteFolders(List<String> ids, User user) {
+		for (Record record : recordServices.getRecordsById(collection, ids)) {
+			if (!record.getSchemaCode().startsWith(Folder.SCHEMA_TYPE)) {
+				continue;
+			}
+
+			if (!isDeleteActionPossible(record, user)) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	public boolean isCopyActionPossible(Record record, User user) {

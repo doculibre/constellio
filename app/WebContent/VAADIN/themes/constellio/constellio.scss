@@ -1210,6 +1210,15 @@ $popup-view-z-index: 3;
     .v-filterselect {
     	width: 100%;
     }
+    	
+    .v-lazyloadingwrapper-loading {
+	    background-color: white;
+	    border: none;
+	    //background-image: url("img/loading-indicator.gif");
+	    //background-repeat: no-repeat;
+	    //background-position: 50% center;
+	    //border: 2px solid silver;
+	}
     
     .v-filterselect-suggestmenu {
     	.gwt-MenuItem {

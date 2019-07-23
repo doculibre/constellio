@@ -186,6 +186,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
 		viewActionButtonsLayout.setVisible(false);
 		
 		tableLayout = new VerticalLayout();
+		tableLayout.addStyleName("viewable-record-panel-table-layout");
 		tableLayout.setHeight("100%");
 
 		tableButtonsLayout = new I18NHorizontalLayout();
