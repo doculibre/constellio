@@ -10,6 +10,7 @@ import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.navigation.RMViews;
+import com.constellio.app.modules.rm.services.EmailParsingServices;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
@@ -771,7 +772,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 				if (rmSchemasRecordsServices().isEmail(fileName)) {
 					InputStreamProvider inputStreamProvider = uploadedContentVO.getInputStreamProvider();
 					InputStream in = inputStreamProvider.getInputStream(DisplayFolderPresenter.class + ".contentVersionUploaded");
-					document = rmSchemasRecordsServices.newEmail(fileName, in);
+					document = new EmailParsingServices(rmSchemasRecordsServices).newEmail(fileName, in);
 				} else {
 					document = rmSchemasRecordsServices.newDocument();
 				}

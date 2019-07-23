@@ -1,22 +1,10 @@
 package com.constellio.app.modules.tasks.ui.pages;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.navigation.RMViews;
+import com.constellio.app.modules.rm.services.EmailParsingServices;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
 import com.constellio.app.modules.rm.ui.components.content.ConstellioAgentClickHandler;
@@ -65,6 +53,18 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public abstract class AbstractTaskPresenter<T extends BaseView> extends SingleSchemaBasePresenter<T> implements TaskPresenter {
 
@@ -256,7 +256,7 @@ public abstract class AbstractTaskPresenter<T extends BaseView> extends SingleSc
 					if (rm.isEmail(fileName)) {
 						InputStreamProvider inputStreamProvider = uploadedContentVO.getInputStreamProvider();
 						InputStream in = inputStreamProvider.getInputStream(DisplayFolderPresenter.class + ".contentVersionUploaded");
-						Document document = rm.newEmail(fileName, in);
+						Document document = new EmailParsingServices(rm).newEmail(fileName, in);
 						newRecord = document.getWrappedRecord();
 					} else {
 						Document document = rm.newDocument();

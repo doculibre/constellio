@@ -6,6 +6,7 @@ import com.constellio.app.modules.rm.model.CopyRetentionRuleInRule;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.navigation.RMViews;
+import com.constellio.app.modules.rm.services.EmailParsingServices;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
@@ -279,7 +280,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		String extension = StringUtils.lowerCase(FilenameUtils.getExtension(fileName));
 		if ("eml".equals(extension) || "msg".equals(extension)) {
 			InputStream messageInputStream = contentVersionVO.getInputStreamProvider().getInputStream("populateFromUserDocument");
-			Email email = rmSchemasRecordsServices.newEmail(fileName, messageInputStream);
+			Email email = new EmailParsingServices(rmSchemasRecordsServices).newEmail(fileName, messageInputStream);
 			documentVO = voBuilder.build(email.getWrappedRecord(), VIEW_MODE.FORM, view.getSessionContext());
 			contentVersionVO.setMajorVersion(true);
 		} else {
@@ -307,7 +308,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 			view.closeAllWindows();
 		} else if (userDocumentId != null) {
 			view.navigate().to(RMViews.class).listUserDocuments();
-		} else if (addViewWithCopy){
+		} else if (addViewWithCopy) {
 			navigateToDocumentDisplay(documentOriginalCopy.getId());
 		} else if (addView) {
 			String parentId = documentVO.getFolder();
@@ -759,7 +760,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 								InputStream inputStream = null;
 								try {
 									inputStream = contentVersionVO.getInputStreamProvider().getInputStream("populateFromEML");
-									Email email = AddEditDocumentPresenter.this.rmSchemasRecordsServices
+									Email email = new EmailParsingServices(AddEditDocumentPresenter.this.rmSchemasRecordsServices)
 											.newEmail(filename, inputStream);
 									document = rmSchemas().wrapEmail(document.changeSchemaTo(Email.SCHEMA));
 
