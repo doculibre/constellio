@@ -22,11 +22,11 @@ public class SmbSearchResultDisplay extends SearchResultDisplay {
 	}
 
 	@Override
-	protected Component newTitleComponent(SearchResultVO searchResultVO) {
+	protected Component newTitleLink(SearchResultVO searchResultVO) {
 		RecordVO recordVO = searchResultVO.getRecordVO();
 
 		String schemaCode = recordVO.getSchema().getCode();
-		Component titleComponent;
+		Component titleLink;
 
 		SystemConfigurationsManager systemConfigurationsManager = getAppLayerFactory().getModelLayerFactory().getSystemConfigurationsManager();
 		boolean agentRegistered = getAppLayerFactory().getPluginManager().isRegistered("agent");
@@ -35,15 +35,15 @@ public class SmbSearchResultDisplay extends SearchResultDisplay {
 			MetadataVO smbPathMetadata = recordVO.getMetadata(ConnectorSmbDocument.URL);
 			String agentURL = ConstellioAgentUtils.getAgentSmbURL(recordVO, smbPathMetadata);
 			if (agentURL != null) {
-				titleComponent = new ConstellioAgentLink(agentURL, null, recordVO.getTitle(), false);
-				((ConstellioAgentLink) titleComponent).addVisitedClickListener(recordVO.getId());
+				titleLink = new ConstellioAgentLink(agentURL, null, recordVO.getTitle(), false);
+				((ConstellioAgentLink) titleLink).addVisitedClickListener(recordVO.getId());
 			} else {
-				titleComponent = super.newTitleComponent(searchResultVO);
+				titleLink = super.newTitleLink(searchResultVO);
 			}
 		} else {
-			titleComponent = super.newTitleComponent(searchResultVO);
+			titleLink = super.newTitleLink(searchResultVO);
 		}
 
-		return titleComponent;
+		return titleLink;
 	}
 }

@@ -496,7 +496,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 				ClickListener elevationClickListener = getElevationClickListener(searchResultVO, index);
 				ClickListener exclusionClickListener = getExclusionClickListener(searchResultVO, index);
 				SearchResultDisplay searchResultDisplay = displayFactory.build(searchResultVO, query, null, elevationClickListener, exclusionClickListener);
-				searchResultDisplay.getTitleComponent().setIcon(null);
+				searchResultDisplay.getTitleLink().setIcon(null);
 				return searchResultDisplay;
 			}
 

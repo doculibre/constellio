@@ -136,9 +136,10 @@ public class ViewableRecordVOTable extends RecordVOTable {
 							mouseEventDetails.setRelativeX(event.getRelativeX());
 							mouseEventDetails.setRelativeY(event.getRelativeY());
 							Item item = getItem(itemId);
+							ItemClickEvent itemClickEvent = new ItemClickEvent(ViewableRecordVOTable.this, item, itemId, propertyId, mouseEventDetails);
 							for (Object itemClickListenerObj : itemClickListeners) {
 								ItemClickListener itemClickListener = (ItemClickListener) itemClickListenerObj;
-								itemClickListener.itemClick(new ItemClickEvent(ViewableRecordVOTable.this, item, itemId, propertyId, mouseEventDetails));
+								itemClickListener.itemClick(itemClickEvent);
 							}
 						}
 					}

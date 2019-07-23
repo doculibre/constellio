@@ -17,6 +17,7 @@ import com.vaadin.data.Container;
 import com.vaadin.data.Property;
 import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.data.util.ObjectProperty;
+import com.vaadin.data.util.converter.Converter.ConversionException;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
@@ -49,7 +50,7 @@ import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 
 public class BaseTable extends Table {
 
-	public static final int MAX_SELECTION_LENGTH = 10000;
+	public static final int MAX_SELECTION_LENGTH = 3;
 
 	public static final int DEFAULT_PAGE_LENGTH = 10;
 
@@ -745,9 +746,9 @@ public class BaseTable extends Table {
 			@Override
 			public void selectionChanged(SelectionChangeEvent event) {
 				if (event.getComponent() != SelectionCheckBox.this) {
-					if (event.isAllItemsSelected() || itemId.equals(event.getSelectedItemId())) {
+					if (event.isAllItemsSelected() || (event.getSelectedItemIds() != null && event.getSelectedItemIds().contains(itemId))) {
 						setInternalValue(true);
-					} else if (event.isAllItemsDeselected() || itemId.equals(event.getDeselectedItemId())) {
+					} else if (event.isAllItemsDeselected() || (event.getDeselectedItemIds() != null && event.getDeselectedItemIds().contains(itemId))) {
 						setInternalValue(false);
 					}
 				}
@@ -760,9 +761,9 @@ public class BaseTable extends Table {
 
 		private Component component;
 
-		private Object selectedItemId;
+		private List<Object> selectedItemIds;
 
-		private Object deselectedItemId;
+		private List<Object> deselectedItemIds;
 
 		private boolean allItemsSelected;
 
@@ -776,20 +777,38 @@ public class BaseTable extends Table {
 			this.component = component;
 		}
 
-		public Object getSelectedItemId() {
-			return selectedItemId;
+		public List<Object> getSelectedItemIds() {
+			return selectedItemIds;
 		}
 
+		public void setSelectedItemIds(List<Object> selectedItemIds) {
+			this.selectedItemIds = selectedItemIds;
+		}
+
+		@SuppressWarnings("unchecked")
 		public void setSelectedItemId(Object selectedItemId) {
-			this.selectedItemId = selectedItemId;
+			if (selectedItemId instanceof List) {
+				setSelectedItemIds((List<Object>) selectedItemId);
+			} else if (selectedItemId != null) {
+				setSelectedItemIds(Arrays.asList(selectedItemId));
+			}
 		}
 
-		public Object getDeselectedItemId() {
-			return deselectedItemId;
+		public List<Object> getDeselectedItemIds() {
+			return deselectedItemIds;
 		}
 
+		public void setDeselectedItemIds(List<Object> deselectedItemIds) {
+			this.deselectedItemIds = deselectedItemIds;
+		}
+
+		@SuppressWarnings("unchecked")
 		public void setDeselectedItemId(Object deselectedItemId) {
-			this.deselectedItemId = deselectedItemId;
+			if (deselectedItemId instanceof List) {
+				setDeselectedItemIds((List<Object>) deselectedItemId);
+			} else if (deselectedItemId != null) {
+				setDeselectedItemIds(Arrays.asList(deselectedItemId));
+			}
 		}
 
 		public boolean isAllItemsSelected() {
@@ -878,13 +897,19 @@ public class BaseTable extends Table {
 			} else if (event.isAllItemsDeselected()) {
 				setValue(new ArrayList<>());
 			} else {
-				Object selectedItemId = event.getSelectedItemId();
-				Object deselectedItemId = event.getDeselectedItemId();
+				List<Object> selectedItemIds = event.getSelectedItemIds();
+				List<Object> deselectedItemIds = event.getDeselectedItemIds();
 				List<Object> listValue = ensureListValue();
-				if (selectedItemId != null && !listValue.contains(selectedItemId)) {
-					listValue.add(selectedItemId);
-				} else if (deselectedItemId != null) {
-					listValue.remove(deselectedItemId);
+				if (selectedItemIds != null) {
+					for (Object selectedItemId : selectedItemIds) {
+						if (!listValue.contains(selectedItemId)) {
+							listValue.add(selectedItemId);
+						}
+					}
+				} else if (deselectedItemIds != null) {
+					for (Object deselectedItemId : deselectedItemIds) {
+						listValue.remove(deselectedItemId);
+					}
 				}
 				setValue(listValue);
 			}
@@ -1171,6 +1196,21 @@ public class BaseTable extends Table {
 
 				rangeStartField = new BaseIntegerField($("BaseTable.selection.rangeStart"));
 				rangeStartField.addStyleName("selection-start-start");
+				rangeStartField.addValueChangeListener(new ValueChangeListener() {
+					@Override
+					public void valueChange(com.vaadin.data.Property.ValueChangeEvent event) {
+						try {
+							Integer newRangeStart = (Integer) rangeStartField.getConvertedValue();
+							Integer newRangeEnd = newRangeStart + (MAX_SELECTION_LENGTH - 1);
+							if (newRangeEnd > size() - 1) {
+								newRangeEnd = size() - 1;
+							}
+							rangeEndField.setValue("" + newRangeEnd);
+						} catch (ConversionException e) {
+							// Ignore
+						}
+					}
+				});
 
 				rangeEndField = new BaseIntegerField($("BaseTable.selection.rangeEnd"));
 				rangeEndField.addStyleName("selection-range-end");
@@ -1227,11 +1267,9 @@ public class BaseTable extends Table {
 							fireSelectionChangeEvent(deselectAllEvent);
 
 							List<Object> selectedItemIds = getItemIds(realRangeStart, realRangeEnd - realRangeStart + 1);
-							for (Object selectedItemId : selectedItemIds) {
-								SelectionChangeEvent newSelectionEvent = new SelectionChangeEvent();
-								newSelectionEvent.setSelectedItemId(selectedItemId);
-								fireSelectionChangeEvent(newSelectionEvent);
-							}
+							SelectionChangeEvent newSelectionEvent = new SelectionChangeEvent();
+							newSelectionEvent.setSelectedItemIds(selectedItemIds);
+							fireSelectionChangeEvent(newSelectionEvent);
 							selectionRangeWindow.close();
 						} else {
 							throw new ValidationException(errors);
