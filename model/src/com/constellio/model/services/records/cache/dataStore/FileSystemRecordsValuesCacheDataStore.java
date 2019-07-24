@@ -48,14 +48,18 @@ public class FileSystemRecordsValuesCacheDataStore {
 		intKeyMapMemoryBuffer = onMEmoryDatabase.hashMap("intKeysDataStoreBuffer")
 				.keySerializer(Serializer.INTEGER)
 				.valueSerializer(Serializer.BYTE_ARRAY)
-				.expireMaxSize(10000)
+				.expireStoreSize(50 * 1024 * 1024)
+				.expireAfterGet()
+				.expireAfterCreate()
 				.expireOverflow(intKeyMap)
 				.create();
 
 		stringKeyMapMemoryBuffer = onMEmoryDatabase.hashMap("stringKeysDataStoreBuffer")
 				.keySerializer(Serializer.STRING)
 				.valueSerializer(Serializer.BYTE_ARRAY)
-				.expireMaxSize(25)
+				.expireStoreSize(5 * 1024 * 1024)
+				.expireAfterGet()
+				.expireAfterCreate()
 				.expireOverflow(stringKeyMap)
 				.create();
 

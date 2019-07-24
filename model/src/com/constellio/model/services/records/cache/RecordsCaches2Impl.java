@@ -29,6 +29,7 @@ import com.constellio.model.services.records.cache.hooks.DeterminedHookCacheInse
 import com.constellio.model.services.records.cache.hooks.HookCacheInsertionResponse;
 import com.constellio.model.services.records.cache.hooks.RecordsCachesHook;
 import com.constellio.model.services.records.cache.hooks.RecordsCachesHooks;
+import com.constellio.model.services.records.cache.offHeapCollections.OffHeapMemoryAllocator;
 import com.constellio.model.services.schemas.MetadataSchemaProvider;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
@@ -503,9 +504,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 
 
 	private void loadCache(String collection) {
-		for (MetadataSchemaType type : metadataSchemasManager.getSchemaTypes(collection).getSchemaTypes()) {
-			loadSchemaType(type);
-		}
+		metadataSchemasManager.getSchemaTypes(collection).getSchemaTypes().stream().forEach(this::loadSchemaType);
 	}
 
 	private void loadSchemaType(MetadataSchemaType type) {
@@ -515,9 +514,17 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 			AtomicInteger added = new AtomicInteger();
 
 			long count = searchServices.streamFromSolr(type, type.getCacheType().isSummaryCache()).count();
+			System.out.println("Loading records of schema type " + type.getCode() + " in increments of " + count);
 			searchServices.streamFromSolr(type, type.getCacheType().isSummaryCache()).forEach((record) -> {
 				CacheInsertionResponse response = (insert(record, LOADING_CACHE));
-				LOGGER.info("Adding records " + record.getTypeCode() + " : " + added.incrementAndGet() + "/" + count);
+
+				int inserted = added.incrementAndGet();
+				if (inserted % 10000 == 0 || inserted == count) {
+
+					long mb = OffHeapMemoryAllocator.getAllocatedMemory() / (1024 * 1024);
+					LOGGER.info("Adding records " + record.getTypeCode() + " : " + inserted + "/" + count
+								+ " (" + mb + "mb loaded in memory)");
+				}
 				if (response.getStatus() != CacheInsertionStatus.ACCEPTED) {
 					LOGGER.warn("Could not load record '" + record.getId() + "' in cache : " + response.getStatus());
 				}
