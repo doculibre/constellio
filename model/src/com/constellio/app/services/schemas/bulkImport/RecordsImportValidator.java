@@ -164,7 +164,8 @@ public class RecordsImportValidator {
 					validateValueUnicityOfUniqueMetadata(uniqueMetadatas, importData, decoratedErrors);
 
 					markUniqueValuesAsInFile(importAsLegacyId, uniqueMetadatas, importData);
-					MetadataSchema metadataSchema = type.getSchema(importData.getSchema());
+
+					MetadataSchema metadataSchema = type.getSchema(importData.getSchema() == null ? "default" : importData.getSchema());
 
 					validateFields(importData, metadataSchema, decoratedErrors);
 
