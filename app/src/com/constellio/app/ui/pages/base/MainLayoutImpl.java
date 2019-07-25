@@ -12,6 +12,7 @@ import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.pages.base.ConstellioMenuImpl.ConstellioMenuButton;
 import com.constellio.app.ui.util.ComponentTreeUtils;
+import com.constellio.app.ui.util.PlatformDetectionUtils;
 import com.vaadin.event.dd.DropHandler;
 import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.View;
@@ -63,8 +64,13 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 	private UserDocumentsWindow userDocumentsWindow;
 	private List<NavigationItem> navigationItems;
 
-	public MainLayoutImpl(AppLayerFactory appLayerFactory) {
+	private boolean reindexationRequired;
+	private Component message;
+
+	public MainLayoutImpl(final AppLayerFactory appLayerFactory) {
 		this.presenter = new MainLayoutPresenter(this);
+
+		reindexationRequired = appLayerFactory.getSystemGlobalConfigsManager().isReindexingRequired();
 
 		addStyleName("main-layout");
 
@@ -91,7 +97,14 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 		mainMenu = buildMainMenu();
 
 		userDocumentsWindow = new UserDocumentsWindow();
-		dragAndDropWrapper = new DragAndDropWrapper(mainMenuContentFooterLayout);
+		dragAndDropWrapper = new DragAndDropWrapper(mainMenuContentFooterLayout) {
+			@Override
+			public void setDropHandler(DropHandler dropHandler) {
+				if (PlatformDetectionUtils.isDesktop()) {
+					super.setDropHandler(dropHandler);
+				}
+			}
+		};
 		dragAndDropWrapper.setSizeFull();
 		dragAndDropWrapper.setDropHandler(userDocumentsWindow);
 		navigator.addViewChangeListener(new ViewChangeListener() {
@@ -107,6 +120,8 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 					dragAndDropWrapper.setDropHandler(null);
 				} else if (newView instanceof DropHandler) {
 					dragAndDropWrapper.setDropHandler((DropHandler) newView);
+				} else if (appLayerFactory.getSystemGlobalConfigsManager().isReindexingRequired() != reindexationRequired) {
+					updateMessage();
 				} else {
 					List<DropHandler> viewDropHandlers = ComponentTreeUtils.getChildren((Component) newView, DropHandler.class);
 					if (viewDropHandlers.size() > 1) {
@@ -119,6 +134,8 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 				}
 				//				SerializationUtils.clone(event.getOldView());
 				//				SerializationUtils.clone(newView);
+
+				reindexationRequired = appLayerFactory.getSystemGlobalConfigsManager().isReindexingRequired();
 			}
 		});
 
@@ -134,9 +151,8 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 
 		contentFooterLayout.addComponent(contentViewWrapper);
 
-		Component message = buildMessage();
+		message = buildMessage();
 		if (message != null) {
-			message.addStyleName("message");
 			contentFooterLayout.addComponent(message);
 		}
 
@@ -226,6 +242,7 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 		message.addStyleName("footer-warning");
 		message.addStyleName(ValoTheme.LABEL_LARGE);
 		message.addStyleName(ValoTheme.LABEL_BOLD);
+		message.addStyleName("message");
 		return message;
 	}
 
@@ -292,6 +309,19 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 		ComponentState state = presenter.getStateFor(navigationItem);
 		button.setVisible(state.isVisible());
 		button.setEnabled(state.isEnabled());
+	}
+
+	private void updateMessage() {
+		Component newMessage = buildMessage();
+		if (newMessage != null) {
+			if (contentFooterLayout.getComponentIndex(message) != -1) {
+				contentFooterLayout.replaceComponent(message, newMessage);
+			} else {
+				contentFooterLayout.addComponent(newMessage, 1);
+			}
+			message = newMessage;
+		}
+
 	}
 
 	@Override

@@ -41,12 +41,13 @@ import com.constellio.data.utils.TimeProvider;
 import com.constellio.data.utils.TimeProvider.DefaultTimeProvider;
 import com.constellio.data.utils.dev.Toggle.AvailableToggle;
 import com.constellio.model.conf.FoldersLocator;
-import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.collections.exceptions.NoMoreCollectionAvalibleException;
+import com.constellio.model.services.collections.exceptions.NoMoreCollectionAvalibleRuntimeException;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
@@ -141,7 +142,6 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 
 	protected Map<String, String> sdkProperties = new HashMap<>();
 
-	protected CollectionInfo zeCollectionInfo = new CollectionInfo("zeCollection", "fr", asList("fr"));
 	protected String zeCollection = "zeCollection";
 	protected String businessCollection = "LaCollectionDeRida";
 	protected String admin = "admin";
@@ -811,7 +811,11 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	protected ModulesAndMigrationsTestFeatures givenCollectionInVersion(String collection, List<String> languages,
 																		String version) {
 		ensureNotUnitTest();
-		getAppLayerFactory().getCollectionsManager().createCollectionInVersion(collection, languages, version);
+		try {
+			getAppLayerFactory().getCollectionsManager().createCollectionInVersion(collection, languages, version);
+		} catch (NoMoreCollectionAvalibleException noMoreCollectionAvalibleException) {
+			noMoreCollectionAvalibleException.printStackTrace();
+		}
 		return new ModulesAndMigrationsTestFeatures(getCurrentTestSession().getFactoriesTestFeatures(), collection);
 	}
 
@@ -860,7 +864,11 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 
 	protected ModulesAndMigrationsTestFeatures givenCollection(String collection, List<String> languages) {
 		ensureNotUnitTest();
-		getAppLayerFactory().getCollectionsManager().createCollectionInCurrentVersion(collection, languages);
+		try {
+			getAppLayerFactory().getCollectionsManager().createCollectionInCurrentVersion(collection, languages);
+		} catch (NoMoreCollectionAvalibleException noMoreCollectionAvalibleException) {
+			throw new NoMoreCollectionAvalibleRuntimeException();
+		}
 		return new ModulesAndMigrationsTestFeatures(getCurrentTestSession().getFactoriesTestFeatures(), collection);
 	}
 

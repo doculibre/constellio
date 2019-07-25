@@ -150,7 +150,7 @@ public class RMFavoritesTable implements Serializable {
 		MetadataSchemaVO folderSchema = new MetadataSchemaToVOBuilder().build(folderSchemaType.getDefaultSchema(), VIEW_MODE.TABLE, sessionContext);
 		RecordVODataProvider folderVODataProvider = new RecordVODataProvider(folderSchema, new RecordToVOBuilder(), appLayerFactory.getModelLayerFactory(), sessionContext) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				return new LogicalSearchQuery(from(folderSchemaType).where(rm.folder.favorites()).isContaining(asList(user.getId()))).filteredByStatus(StatusFilter.ACTIVES);
 			}
 		};
@@ -159,7 +159,7 @@ public class RMFavoritesTable implements Serializable {
 		MetadataSchemaVO documentSchema = new MetadataSchemaToVOBuilder().build(documentSchemaType.getDefaultSchema(), VIEW_MODE.TABLE, sessionContext);
 		RecordVODataProvider documentVODataProvider = new RecordVODataProvider(documentSchema, new RecordToVOBuilder(), appLayerFactory.getModelLayerFactory(), sessionContext) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				final Metadata documentFavoritesList = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(sessionContext.getCurrentCollection()).getMetadata(Document.DEFAULT_SCHEMA + "_" + Document.FAVORITES);
 				return new LogicalSearchQuery(from(documentSchemaType).where(documentFavoritesList).isContaining(asList(user.getId()))).filteredByStatus(StatusFilter.ACTIVES);
 			}
@@ -169,7 +169,7 @@ public class RMFavoritesTable implements Serializable {
 		MetadataSchemaVO containerSchema = new MetadataSchemaToVOBuilder().build(containerSchemaType.getDefaultSchema(), VIEW_MODE.TABLE, sessionContext);
 		RecordVODataProvider containerVODataProvider = new RecordVODataProvider(containerSchema, new RecordToVOBuilder(), appLayerFactory.getModelLayerFactory(), sessionContext) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				final Metadata containerFavoritesList = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(sessionContext.getCurrentCollection()).getMetadata(ContainerRecord.DEFAULT_SCHEMA + "_" + ContainerRecord.FAVORITES);
 				return new LogicalSearchQuery(from(containerSchemaType).where(containerFavoritesList).isContaining(asList(user.getId()))).filteredByStatus(StatusFilter.ACTIVES);
 			}

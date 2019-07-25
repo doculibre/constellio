@@ -16,7 +16,6 @@ import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -58,9 +57,8 @@ public class DocumentUtil {
 
 		final RMSchemasRecordsServices rm = new RMSchemasRecordsServices(folder.getCollection(), appLayerFactory);
 		Function<Record, Document> recordToDocument = new Function<Record, Document>() {
-			@Nullable
 			@Override
-			public Document apply(@Nullable Record input) {
+			public Document apply(Record input) {
 				return rm.wrapDocument(input);
 			}
 		};

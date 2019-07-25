@@ -2,47 +2,45 @@ package com.constellio.app.modules.rm.ui.components.contextmenu;
 
 import com.constellio.app.modules.rm.ui.components.document.DocumentActionsPresenterUtils;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
-import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.services.menu.MenuItemAction;
+import com.constellio.app.services.menu.MenuItemFactory;
+import com.constellio.app.services.menu.MenuItemFactory.MenuItemRecordProvider;
+import com.constellio.app.services.menu.MenuItemServices;
+import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
-import com.constellio.app.ui.framework.buttons.ConfirmDialogButton.DialogMode;
-import com.constellio.app.ui.framework.buttons.DownloadLink;
 import com.constellio.app.ui.framework.components.ComponentState;
-import com.constellio.app.ui.framework.components.ReportTabButton;
-import com.constellio.app.ui.framework.components.content.ContentVersionVOResource;
 import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
-import com.constellio.app.ui.framework.components.contextmenu.BaseContextMenuItemClickListener;
-import com.constellio.app.ui.framework.components.contextmenu.ConfirmDialogContextMenuItemClickListener;
 import com.constellio.app.ui.framework.components.contextmenu.RecordContextMenu;
 import com.constellio.app.ui.framework.containers.RefreshableContainer;
 import com.constellio.app.ui.pages.base.BaseView;
-import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.UIContext;
 import com.constellio.app.ui.params.ParamUtils;
-import com.constellio.app.ui.util.FileIconUtils;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.services.records.RecordServices;
 import com.vaadin.data.Container;
-import com.vaadin.navigator.View;
 import com.vaadin.server.ClientConnector;
-import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Page;
-import com.vaadin.server.Resource;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.Notification.Type;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Window;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -82,12 +80,10 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 
 	public DocumentContextMenuImpl(DocumentVO documentVO) {
 		presenter = newPresenter();
-		setDocumentVO(documentVO);
+		setRecordVO(documentVO);
 		if (documentVO != null) {
 			presenter.setRecordVO(documentVO);
 		}
-
-
 	}
 
 	protected DocumentContextMenuPresenter newPresenter() {
@@ -123,180 +119,50 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 			addItem(borrowedMessage);
 		}
 
-		if (displayDocumentButtonVisible) {
-			ContextMenuItem displayDocumentItem = addItem($("DocumentContextMenu.displayDocument"), FontAwesome.FILE_O);
-			displayDocumentItem.addItemClickListener(new BaseContextMenuItemClickListener() {
-				@Override
-				public void contextMenuItemClicked(ContextMenuItemClickEvent event) {
-					presenter.displayDocumentButtonClicked();
-				}
-			});
-		}
+		// FIXME quick test only
+		RecordServices recordServices = getConstellioFactories().getAppLayerFactory().getModelLayerFactory().newRecordServices();
+		Record record = recordServices.getDocumentById(recordVO.getId());
 
-		if (openDocumentButtonVisible) {
-			String fileName = contentVersionVO.getFileName();
-			Resource icon = FileIconUtils.getIcon(fileName);
-			ContextMenuItem downloadDocumentItem = addItem($("DocumentContextMenu.openDocument"), icon);
-			downloadDocumentItem.addItemClickListener(new BaseContextMenuItemClickListener() {
-				@Override
-				public void contextMenuItemClicked(ContextMenuItemClickEvent event) {
-					String agentURL = ConstellioAgentUtils.getAgentURL(recordVO, contentVersionVO);
-					openAgentURL(agentURL);
-					presenter.logOpenAgentUrl(recordVO);
-				}
-			});
-		}
+		List<MenuItemAction> menuItemActions = new MenuItemServices(record.getCollection(), getConstellioFactories().getAppLayerFactory())
+				.getActionsForRecord(record, new MenuItemActionBehaviorParams() {
+					@Override
+					public BaseView getView() {
+						return (BaseView) ConstellioUI.getCurrent().getCurrentView();
+					}
 
-		if (downloadDocumentButtonVisible) {
-			ContextMenuItem downloadDocumentItem = addItem($("DocumentContextMenu.downloadDocument"), FontAwesome.DOWNLOAD);
-			downloadDocumentItem.addItemClickListener(new BaseContextMenuItemClickListener() {
-				@SuppressWarnings("deprecation")
-				@Override
-				public void contextMenuItemClicked(ContextMenuItemClickEvent event) {
-					ContentVersionVOResource contentVersionResource = new ContentVersionVOResource(contentVersionVO);
-					Resource downloadedResource = DownloadLink.wrapForDownload(contentVersionResource);
-					Page.getCurrent().open(downloadedResource, null, false);
-					presenter.logDownload(recordVO);
-				}
-			});
-		}
+					@Override
+					public RecordVO getRecordVO() {
+						return recordVO;
+					}
 
-		if (editDocumentButtonVisible) {
-			ContextMenuItem editDocumentItem = addItem($("DocumentContextMenu.editDocument"), FontAwesome.EDIT);
-			editDocumentItem.addItemClickListener(new BaseContextMenuItemClickListener() {
-				@Override
-				public void contextMenuItemClicked(ContextMenuItemClickEvent event) {
-					presenter.editDocumentButtonClicked(ParamUtils.getCurrentParams());
-				}
-			});
-		}
+					@Override
+					public ContentVersionVO getContentVersionVO() {
+						return contentVersionVO;
+					}
 
-		if (deleteDocumentButtonVisible) {
-			ContextMenuItem deleteDocumentItem = addItem($("DocumentContextMenu.deleteDocument"), FontAwesome.TRASH_O);
-			deleteDocumentItem.addItemClickListener(new ConfirmDialogContextMenuItemClickListener(DialogMode.INFO) {
-				@Override
-				protected String getConfirmDialogMessage() {
-					return $("ConfirmDialog.confirmDelete");
-				}
+					@Override
+					public Map<String, String> getFormParams() {
+						return MapUtils.emptyIfNull(ParamUtils.getCurrentParams());
+					}
 
-				@Override
-				protected void confirmButtonClick(ConfirmDialog dialog) {
-					presenter.deleteDocumentButtonClicked(ParamUtils.getCurrentParams());
-				}
-			});
-		}
+					@Override
+					public User getUser() {
+						return presenter.getCurrentUser();
+					}
 
-		if (addAuthorizationButtonVisible) {
-			ContextMenuItem addAuthorizationItem = addItem($("DocumentContextMenu.addAuthorization"), FontAwesome.KEY);
-			addAuthorizationItem.addItemClickListener(new BaseContextMenuItemClickListener() {
-				@Override
-				public void contextMenuItemClicked(ContextMenuItemClickEvent event) {
-					presenter.addAuthorizationButtonClicked();
-				}
-			});
-		}
+					@Override
+					public boolean isContextualMenu() {
+						return true;
+					}
+				});
 
-		if (createPDFAButtonVisible) {
-			ContextMenuItem createPDFAItem = addItem($("DocumentContextMenu.createPDFA"), FontAwesome.FILE_PDF_O);
-			createPDFAItem.addItemClickListener(new ConfirmDialogContextMenuItemClickListener(DialogMode.WARNING) {
-				@Override
-				protected String getConfirmDialogMessage() {
-					return $("ConfirmDialog.confirmCreatePDFA");
-				}
-
-				@Override
-				protected void confirmButtonClick(ConfirmDialog dialog) {
-					presenter.createPDFA(ParamUtils.getCurrentParams());
-				}
-			});
-		}
-
-		if (shareDocumentButtonVisible) {
-			ContextMenuItem shareDocumentItem = addItem($("DocumentContextMenu.shareDocument"), FontAwesome.PAPER_PLANE_O);
-			shareDocumentItem.addItemClickListener(new BaseContextMenuItemClickListener() {
-				@Override
-				public void contextMenuItemClicked(ContextMenuItemClickEvent event) {
-					presenter.shareDocumentButtonClicked();
-				}
-			});
-		}
-
-		if (uploadButtonVisible) {
-			ContextMenuItem uploadItem = addItem($("DocumentContextMenu.upload"), FontAwesome.UPLOAD);
-			uploadItem.addItemClickListener(new BaseContextMenuItemClickListener() {
-				@Override
-				public void contextMenuItemClicked(ContextMenuItemClickEvent event) {
-					presenter.uploadButtonClicked();
-				}
-			});
-		}
-
-		if (checkInButtonVisible) {
-			ContextMenuItem checkInItem = addItem($("DocumentContextMenu.checkIn"), FontAwesome.UNLOCK);
-			checkInItem.addItemClickListener(new BaseContextMenuItemClickListener() {
-				@Override
-				public void contextMenuItemClicked(ContextMenuItemClickEvent event) {
-					presenter.checkInButtonClicked();
-				}
-			});
-		}
-
-		if (alertWhenAvailableButtonVisible) {
-			ContextMenuItem alertWhenAvailableItem = addItem($("DocumentContextMenu.alertWhenAvailable"), FontAwesome.BELL_O);
-			alertWhenAvailableItem.addItemClickListener(new BaseContextMenuItemClickListener() {
-				@Override
-				public void contextMenuItemClicked(ContextMenuItemClickEvent event) {
-					presenter.alertWhenAvailable();
-				}
-			});
-		}
-
-		if (checkOutButtonVisible) {
-			ContextMenuItem checkOutItem = addItem($("DocumentContextMenu.checkOut"), FontAwesome.LOCK);
-			checkOutItem.addItemClickListener(new BaseContextMenuItemClickListener() {
-				@Override
-				public void contextMenuItemClicked(ContextMenuItemClickEvent event) {
-					presenter.checkOutButtonClicked(getSessionContext());
-					refreshParent();
-				}
-			});
-		}
-
-		if (finalizeButtonVisible) {
-			ContextMenuItem finalizeItem = addItem($("DocumentContextMenu.finalize"), FontAwesome.LEVEL_UP);
-			finalizeItem.addItemClickListener(new ConfirmDialogContextMenuItemClickListener(DialogMode.INFO) {
-				@Override
-				protected String getConfirmDialogMessage() {
-					return $("DocumentActionsComponent.finalize.confirm");
-				}
-
-				@Override
-				protected void confirmButtonClick(ConfirmDialog dialog) {
-					presenter.finalizeButtonClicked();
-				}
-			});
-		}
-
-		if (presenter.hasMetadataReport()) {
-			ContextMenuItem metadataReportGenerator = addItem($("DocumentActionsComponent.printMetadataReportWithoutIcon"),
-					FontAwesome.LIST_ALT);
-			metadataReportGenerator.addItemClickListener(new BaseContextMenuItemClickListener() {
-
-				@Override
-				public void contextMenuItemClicked(ContextMenuItemClickEvent contextMenuItemClickEvent) {
-					View parentView = ConstellioUI.getCurrent().getCurrentView();
-					ReportTabButton button = new ReportTabButton($("DocumentActionsComponent.printMetadataReport"),
-							$("DocumentActionsComponent.printMetadataReport"), (BaseView) parentView, true);
-					button.setRecordVoList(presenter.getDocumentVO());
-					button.click();
-				}
-			});
-		}
-
-		View parentView = ConstellioUI.getCurrent().getCurrentView();
-		presenter.addItemsFromExtensions(this, (BaseViewImpl) parentView);
+		new MenuItemFactory().buildContextMenu(this, menuItemActions, new MenuItemRecordProvider() {
+			@Override
+			public List<Record> getRecords() {
+				return Arrays.asList(recordVO.getRecord());
+			}
+		});
 	}
-
 
 	@Override
 	public ConstellioFactories getConstellioFactories() {
@@ -338,7 +204,7 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 	}
 
 	@Override
-	public void setDocumentVO(DocumentVO documentVO) {
+	public void setRecordVO(RecordVO documentVO) {
 		this.recordVO = documentVO;
 	}
 
@@ -389,7 +255,7 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 	}
 
 	@Override
-	public void setAddAuthorizationButtonState(ComponentState state) {
+	public void setViewAuthorizationButtonState(ComponentState state) {
 		addAuthorizationButtonVisible = state.isEnabled();
 	}
 
@@ -505,7 +371,7 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 		if (parent instanceof Table) {
 			Container container = ((Table) parent).getContainerDataSource();
 			if (container instanceof RefreshableContainer) {
-				((RefreshableContainer) container).refresh();
+				((RefreshableContainer) container).forceRefresh();
 			}
 		}
 	}

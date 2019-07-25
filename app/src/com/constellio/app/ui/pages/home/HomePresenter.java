@@ -165,7 +165,7 @@ public class HomePresenter extends BasePresenter<HomeView> {
 		currentTab = tabCode;
 	}
 
-	public boolean recordClicked(String id, String taxonomyCode) {
+	public boolean recordClicked(String id, String taxonomyCode, boolean recentItems) {
 		boolean navigating = false;
 		if (id != null && !id.startsWith("dummy")) {
 			try {
@@ -177,13 +177,21 @@ public class HomePresenter extends BasePresenter<HomeView> {
 				String schemaCode = record.getSchemaCode();
 				String schemaTypeCode = SchemaUtils.getSchemaTypeCode(schemaCode);
 				if (Folder.SCHEMA_TYPE.equals(schemaTypeCode)) {
-					view.getUIContext().setAttribute(BaseBreadcrumbTrail.TAXONOMY_CODE, taxonomyCode);
-					view.navigate().to(RMViews.class).displayFolder(id);
-					navigating = true;
+					if (!recentItems) {
+						view.getUIContext().setAttribute(BaseBreadcrumbTrail.TAXONOMY_CODE, taxonomyCode);
+						view.navigate().to(RMViews.class).displayFolder(id);
+						navigating = true;
+					} else {
+						navigating = false;
+					}
 				} else if (Document.SCHEMA_TYPE.equals(schemaTypeCode)) {
-					view.getUIContext().setAttribute(BaseBreadcrumbTrail.TAXONOMY_CODE, taxonomyCode);
-					view.navigate().to(RMViews.class).displayDocument(id);
-					navigating = true;
+					if (!recentItems) {
+						view.getUIContext().setAttribute(BaseBreadcrumbTrail.TAXONOMY_CODE, taxonomyCode);
+						view.navigate().to(RMViews.class).displayDocument(id);
+						navigating = true;
+					} else {
+						navigating = false;
+					}
 				} else if (ContainerRecord.SCHEMA_TYPE.equals(schemaTypeCode)) {
 					view.navigate().to(RMViews.class).displayContainer(id);
 					navigating = true;

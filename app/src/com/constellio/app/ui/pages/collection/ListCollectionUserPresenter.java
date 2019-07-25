@@ -55,7 +55,7 @@ public class ListCollectionUserPresenter extends SingleSchemaBasePresenter<ListC
 		RecordToVOBuilder voBuilder = new RecordToVOBuilder();
 		return new RecordVODataProvider(schemaVO, voBuilder, modelLayerFactory, view.getSessionContext()) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				return new LogicalSearchQuery()
 						.setCondition(from(defaultSchema()).where(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull())
 						.sortAsc(Schemas.TITLE);

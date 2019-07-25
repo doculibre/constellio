@@ -44,6 +44,7 @@ public class DocumentContextMenuPresenter extends DocumentActionsPresenterUtils<
 			String agentURL = ConstellioAgentUtils.getAgentURL(documentVO, contentVersionVO);
 			contextMenu.setOpenDocumentButtonState(agentURL != null ? ComponentState.ENABLED : ComponentState.INVISIBLE);
 		} else {
+			contextMenu.setContentVersionVO(null);
 			contextMenu.setDownloadDocumentButtonState(ComponentState.INVISIBLE);
 			contextMenu.setOpenDocumentButtonState(ComponentState.INVISIBLE);
 		}
@@ -73,7 +74,7 @@ public class DocumentContextMenuPresenter extends DocumentActionsPresenterUtils<
 		if (Document.SCHEMA_TYPE.equals(recordSchemaTypeCode)) {
 			this.documentVO = voBuilder.build(record, VIEW_MODE.DISPLAY, contextMenu.getSessionContext());
 			setRecordVO(documentVO);
-			contextMenu.setDocumentVO(documentVO);
+			contextMenu.setRecordVO(documentVO);
 			updateActionsComponent();
 			showContextMenu = true;
 		} else {
@@ -88,7 +89,7 @@ public class DocumentContextMenuPresenter extends DocumentActionsPresenterUtils<
 	}
 
 	public boolean hasMetadataReport() {
-		return !ReportGeneratorUtils.getPrintableReportTemplate(presenterUtils.appLayerFactory(), presenterUtils.getCollection(), getDocumentVO().getSchema().getCode(), PrintableReportListPossibleType.DOCUMENT).isEmpty();
+		return !ReportGeneratorUtils.getPrintableReportTemplate(presenterUtils.appLayerFactory(), presenterUtils.getCollection(), getRecordVO().getSchema().getCode(), PrintableReportListPossibleType.DOCUMENT).isEmpty();
 	}
 
 	public void logOpenAgentUrl(RecordVO recordVO) {

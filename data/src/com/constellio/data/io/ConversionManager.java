@@ -62,6 +62,8 @@ public class ConversionManager implements StatefulService {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ConversionManager.class);
 
+	private static final long CONVERSION_TIMEOUT = 300000L;
+
 	/*
 	 * In addition to OpenDocument formats (.odt, .ott, .oth, and .odm), Writer 2.x can open the formats used by OOo 1.x (.sxw, .stw, and .sxg) and the following text document formats:
 	 *   Microsoft Word 6.0/95/97/2000/XP) (.doc and .dot)	WordPerfect Document (.wpd)
@@ -251,7 +253,7 @@ public class ConversionManager implements StatefulService {
 
 			DocumentFormatRegistry formatRegistry = DefaultDocumentFormatRegistry.getInstance();
 			if (onlineConversionUrl != null) {
-				officeManager = OnlineOfficeManager.builder().poolSize(numberOfProcesses).urlConnection(onlineConversionUrl)
+				officeManager = OnlineOfficeManager.builder().taskExecutionTimeout(CONVERSION_TIMEOUT).poolSize(numberOfProcesses).urlConnection(onlineConversionUrl)
 						.build();
 
 				delegate = OnlineConverter.builder()
@@ -260,7 +262,7 @@ public class ConversionManager implements StatefulService {
 						.build();
 			} else {
 				int[] portNumbers = getPortNumbers();
-				officeManager = LocalOfficeManager.builder().install().portNumbers(portNumbers).build();
+				officeManager = LocalOfficeManager.builder().taskExecutionTimeout(CONVERSION_TIMEOUT).install().portNumbers(portNumbers).build();
 
 				delegate =
 						LocalConverter.builder()

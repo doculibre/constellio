@@ -4,7 +4,6 @@ import com.constellio.app.api.extensions.params.NavigateToFromAPageParams;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
-import com.constellio.app.modules.rm.extensions.api.DocumentExtension.DocumentExtensionAddMenuItemParams;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.navigation.RMViews;
@@ -18,7 +17,6 @@ import com.constellio.app.modules.rm.util.RMNavigationUtils;
 import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.ContentVersionVO;
@@ -27,13 +25,10 @@ import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.entities.RecordVORuntimeException.RecordVORuntimeException_NoSuchMetadata;
 import com.constellio.app.ui.framework.builders.ContentVersionToVOBuilder;
 import com.constellio.app.ui.framework.components.ComponentState;
-import com.constellio.app.ui.framework.components.contextmenu.BaseContextMenu;
-import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.util.DateFormatUtils;
 import com.constellio.app.ui.util.MessageUtils;
-import com.constellio.app.ui.util.SchemaCaptionUtils;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.CorePermissions;
@@ -56,13 +51,7 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.security.AuthorizationsServices;
-import com.vaadin.server.Resource;
-import com.vaadin.ui.MenuBar.Command;
-import com.vaadin.ui.MenuBar.MenuItem;
 import org.apache.commons.io.FilenameUtils;
-import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuItem;
-import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuItemClickEvent;
-import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuItemClickListener;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -124,7 +113,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 				.forModule(ConstellioRMModule.ID);
 	}
 
-	public DocumentVO getDocumentVO() {
+	public DocumentVO getRecordVO() {
 		return this.documentVO;
 	}
 
@@ -234,7 +223,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 			if (areSearchTypeAndSearchIdPresent) {
 				actionsComponent.navigate().to(RMViews.class)
 						.addDocumentWithContentFromDecommission(documentVO.getId(), DecommissionNavUtil.getSearchId(params), DecommissionNavUtil.getSearchType(params));
-			} else if(params.get(RMViews.FAV_GROUP_ID_KEY) != null) {
+			} else if (params != null && params.get(RMViews.FAV_GROUP_ID_KEY) != null) {
 				actionsComponent.navigate().to(RMViews.class).addDocumentWithContentFromFavorites(documentVO.getId(), params.get(RMViews.FAV_GROUP_ID_KEY));
 			} else if (rmModuleExtensions
 					.navigateToAddDocumentWhileKeepingTraceOfPreviousView(new NavigateToFromAPageParams(params, documentVO.getId()))) {
@@ -327,16 +316,16 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		actionsComponent.showMessage("Clipboard integration TODO!");
 	}
 
-	protected boolean isAddAuthorizationPossible() {
-		return getCurrentUser().has(RMPermissionsTo.MANAGE_DOCUMENT_AUTHORIZATIONS).on(currentDocument());
+	protected boolean isViewAuthorizationPossible() {
+		return getCurrentUser().hasAny(RMPermissionsTo.MANAGE_DOCUMENT_AUTHORIZATIONS, RMPermissionsTo.VIEW_DOCUMENT_AUTHORIZATIONS).on(currentDocument());
 	}
 
 	protected boolean isCreateDocumentPossible() {
 		return getCurrentUser().has(RMPermissionsTo.CREATE_DOCUMENTS).on(currentDocument());
 	}
 
-	private ComponentState getAddAuthorizationState() {
-		return ComponentState.visibleIf(isAddAuthorizationPossible());
+	private ComponentState getViewAuthorizationState() {
+		return ComponentState.visibleIf(isViewAuthorizationPossible());
 	}
 
 	private ComponentState getCreateDocumentState() {
@@ -403,7 +392,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	}
 
 	public void addAuthorizationButtonClicked() {
-		if (isAddAuthorizationPossible()) {
+		if (isViewAuthorizationPossible()) {
 			actionsComponent.navigate().to().listObjectAccessAndRoleAuthorizations(documentVO.getId());
 			updateSearchResultClicked();
 		}
@@ -427,8 +416,9 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	}
 
 	public boolean isDeleteContentVersionPossible() {
-		return presenterUtils.getCurrentUser().has(CorePermissions.DELETE_CONTENT_VERSION).on(currentDocument()) &&
-			   !extensions.isModifyBlocked(currentDocument(), getCurrentUser());
+		return getCurrentUser().has(CorePermissions.DELETE_CONTENT_VERSION).on(currentDocument()) &&
+			   !extensions.isModifyBlocked(currentDocument(), getCurrentUser()) &&
+			   getCurrentUser().hasDeleteAccess().on(currentDocument());
 	}
 
 	public boolean isDeleteContentVersionPossible(ContentVersionVO contentVersionVO) {
@@ -756,14 +746,14 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		RMConfigs configs = new RMConfigs(getModelLayerFactory().getSystemConfigurationsManager());
 
 		updateBorrowedMessage();
-		DocumentVO documentVO = getDocumentVO();
-		actionsComponent.setDocumentVO(documentVO);
+		RecordVO documentVO = getRecordVO();
+		actionsComponent.setRecordVO(documentVO);
 		Boolean isLogicallyDeleted = documentVO.get(Schemas.LOGICALLY_DELETED_STATUS.getLocalCode());
 		if (Boolean.TRUE.equals(isLogicallyDeleted)) {
 			actionsComponent.setEditDocumentButtonState(ComponentState.INVISIBLE);
 			actionsComponent.setAddDocumentButtonState(ComponentState.INVISIBLE);
 			actionsComponent.setDeleteDocumentButtonState(ComponentState.INVISIBLE);
-			actionsComponent.setAddAuthorizationButtonState(ComponentState.INVISIBLE);
+			actionsComponent.setViewAuthorizationButtonState(ComponentState.INVISIBLE);
 			actionsComponent.setCreatePDFAButtonState(ComponentState.INVISIBLE);
 			actionsComponent.setShareDocumentButtonState(ComponentState.INVISIBLE);
 			actionsComponent.setUploadButtonState(ComponentState.INVISIBLE);
@@ -784,7 +774,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		// OH MY GOD WHY ARE WE YELLING LIKE THAT ?
 		actionsComponent.setAddDocumentButtonState(getCreateDocumentState());
 		actionsComponent.setDeleteDocumentButtonState(getDeleteButtonState());
-		actionsComponent.setAddAuthorizationButtonState(getAddAuthorizationState());
+		actionsComponent.setViewAuthorizationButtonState(getViewAuthorizationState());
 		actionsComponent.setCreatePDFAButtonState(getCreatePDFAState());
 		actionsComponent.setShareDocumentButtonState(getShareDocumentState());
 		actionsComponent.setUploadButtonState(getUploadButtonState());
@@ -802,7 +792,9 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 			Content content = getContent();
 			String borrowDate = DateFormatUtils.format(content.getCheckoutDateTime());
 			if (!isCurrentUserBorrower()) {
-				String borrowerCaption = SchemaCaptionUtils.getCaptionForRecordId(content.getCheckoutUserId());
+				String checkoutUserId = content.getCheckoutUserId();
+				User user = rmSchemasRecordsServices.getUser(checkoutUserId);
+				String borrowerCaption = user.getTitle();
 				String borrowedMessageKey = "DocumentActionsComponent.borrowedByOtherUser";
 				actionsComponent.setBorrowedMessage(borrowedMessageKey, borrowerCaption, borrowDate);
 			} else {
@@ -829,7 +821,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		return currentDocument;
 	}
 
-	protected User getCurrentUser() {
+	public User getCurrentUser() {
 		if (currentUser == null) {
 			currentUser = presenterUtils.getCurrentUser();
 		}
@@ -904,97 +896,6 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		loggingServices.openDocument(rmSchemasRecordsServices.get(recordVO.getId()), getCurrentUser());
 	}
 
-	public void addItemsFromExtensions(final MenuItem rootItem, final BaseViewImpl view) {
-
-		final String collection = presenterUtils.getCollection();
-		final AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
-
-		RMModuleExtensions extensions = appLayerFactory.getExtensions().forCollection(collection)
-				.forModule(ConstellioRMModule.ID);
-
-		final Record record = currentDocument();
-
-		extensions.addMenuBarButtons(new DocumentExtensionAddMenuItemParams() {
-			@Override
-			public Document getDocument() {
-				RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
-				return rm.wrapDocument(record);
-			}
-
-			@Override
-			public RecordVO getRecordVO() {
-				return documentVO;
-			}
-
-			@Override
-			public BaseViewImpl getView() {
-				return view;
-			}
-
-			@Override
-			public User getUser() {
-				return currentUser;
-			}
-
-			@Override
-			public void registerMenuItem(String caption, Resource icon, final Runnable runnable) {
-				MenuItem item = rootItem.addItem(caption, icon, null);
-				item.setCommand(new Command() {
-					@Override
-					public void menuSelected(MenuItem selectedItem) {
-						runnable.run();
-					}
-				});
-			}
-		});
-	}
-
-	public void addItemsFromExtensions(final BaseContextMenu menu, final BaseViewImpl view) {
-
-		final String collection = presenterUtils.getCollection();
-		final AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
-
-		RMModuleExtensions extensions = appLayerFactory.getExtensions().forCollection(collection)
-				.forModule(ConstellioRMModule.ID);
-
-		final Record record = currentDocument();
-
-		extensions.addMenuBarButtons(new DocumentExtensionAddMenuItemParams() {
-			@Override
-			public Document getDocument() {
-				RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
-				return rm.wrapDocument(record);
-			}
-
-			@Override
-			public RecordVO getRecordVO() {
-				return documentVO;
-			}
-
-			@Override
-			public BaseViewImpl getView() {
-				return view;
-			}
-
-			@Override
-			public User getUser() {
-				return currentUser;
-			}
-
-			@Override
-			public void registerMenuItem(String caption, Resource icon, final Runnable runnable) {
-				ContextMenuItem item = menu.addItem(caption, icon);
-				item.addItemClickListener(new ContextMenuItemClickListener() {
-					@Override
-					public void contextMenuItemClicked(ContextMenuItemClickEvent contextMenuItemClickEvent) {
-						runnable.run();
-					}
-				});
-			}
-		});
-
-	}
-
 	protected void updateSearchResultClicked() {
 		if (Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()) {
 			ConstellioUI.getCurrent().setAttribute(SEARCH_EVENT_DWELL_TIME, System.currentTimeMillis());
@@ -1018,52 +919,5 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 			}
 		}
 	}
-
-	//	public void addItemsFromExtensions(final MenuItem rootItem, final BaseViewImpl view) {
-	//
-	//		final String collection = presenterUtils.getCollection();
-	//		final AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
-	//
-	//		RMModuleExtensions extensions = appLayerFactory.getExtensions().forCollection(collection)
-	//				.forModule(ConstellioRMModule.ID);
-	//
-	//		final Record record = currentDocument();
-	//
-	//		extensions.addMenuBarButtons(new DocumentExtensionAddMenuItemParams() {
-	//
-	//			@Override
-	//			public Document getDocument() {
-	//				RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
-	//				return rm.wrapDocument(record);
-	//			}
-	//
-	//			@Override
-	//			public RecordVO getRecordVO() {
-	//				return documentVO;
-	//			}
-	//
-	//			@Override
-	//			public BaseViewImpl getView() {
-	//				return view;
-	//			}
-	//
-	//			@Override
-	//			public User getUser() {
-	//				return getCurrentUser();
-	//			}
-	//
-	//			@Override
-	//			public void registerMenuItem(String caption, Resource icon, final Runnable runnable) {
-	//
-	//				MenuItem workflowItem = rootItem.addItem(caption, icon, null);
-	//				workflowItem.setCommand(new Command() {
-	//					@Override
-	//					public void menuSelected(MenuItem selectedItem) {
-	//						runnable.run();
-	//					}
-	//				});
-	//			}
-	//		});
-	//	}
 
 }

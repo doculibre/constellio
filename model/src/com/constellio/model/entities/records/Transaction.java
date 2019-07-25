@@ -184,6 +184,7 @@ public class Transaction {
 	}
 
 	public Record add(Record addUpdateRecord) {
+
 		records.add(addUpdateRecord);
 		validateCollection(addUpdateRecord.getCollection());
 		collection = addUpdateRecord.getCollection();
@@ -191,6 +192,7 @@ public class Transaction {
 	}
 
 	public Transaction update(Record addUpdateRecord) {
+
 		if (updatedRecordsMap.containsKey(addUpdateRecord.getId())) {
 			if (updatedRecordsMap.get(addUpdateRecord.getId()) != addUpdateRecord) {
 				throw new RecordIdCollision();

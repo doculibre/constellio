@@ -3,14 +3,14 @@ package com.constellio.app.modules.restapi.core.exception;
 import com.constellio.model.frameworks.validation.ValidationError;
 import lombok.Getter;
 
-import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.StatusType;
 import java.util.Collections;
 import java.util.Map;
 
 @Getter
 public abstract class BaseRestApiException extends RuntimeException {
 
-	protected Response.Status status;
+	protected StatusType status;
 	protected ValidationError validationError;
 
 	protected void buildValidationError(Class<?> validatorClass, String code, Map<String, Object> parameters) {

@@ -1813,7 +1813,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 			public boolean matches(Record record) {
 				try {
 					Record refreshedRecord = recordServices.getDocumentById(record.getId());
-					return Boolean.TRUE == refreshedRecord.get(Schemas.LOGICALLY_DELETED_STATUS);
+					return Boolean.TRUE.equals(refreshedRecord.get(Schemas.LOGICALLY_DELETED_STATUS));
 				} catch (NoSuchRecordWithId e) {
 					return false;
 				}

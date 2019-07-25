@@ -47,7 +47,7 @@ public class SearchSchemaRecordsPresenter extends SingleSchemaBasePresenter<Sear
 		RecordVODataProvider dataProvider = new RecordVODataProvider(
 				schemaVO, voBuilder, modelLayerFactory, view.getSessionContext()) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				return new LogicalSearchQuery(from(defaultSchema()).returnAll())
 						.filteredByStatus(StatusFilter.ACTIVES).sortAsc(Schemas.TITLE)
 						.setFreeTextQuery(queryExpression);

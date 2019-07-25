@@ -364,6 +364,10 @@ public class FoldersLocator {
 		return warFile;
 	}
 
+	public File getLastAlertFile() {
+		return new File(getDefaultTempFolder(), "lastAlert.pdf");
+	}
+
 	public File getDefaultImportationFolder() {
 		if (getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER) {
 			return new File(getConstellioWebinfFolder(), "to-import");

@@ -23,6 +23,7 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.PrintableReport;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
+import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -78,6 +79,7 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 import com.vaadin.ui.Component;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.common.params.ModifiableSolrParams;
+import org.joda.time.LocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -121,8 +123,13 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		batchProcessingExtensions = appLayerFactory.getExtensions().forCollection(view.getCollection()).batchProcessingExtensions;
 	}
 
+	@Override
+	public String getSavedSearchId() {
+		return searchID;
+	}
+
 	public boolean hasBatchProcessPermission(){
-		return getCurrentUser().has(CorePermissions.MODIFY_RECORDS_USING_BATCH_PROCESS).onSomething();
+		return getCurrentUser().has(CorePermissions.MODIFY_RECORDS_USING_BATCH_PROCESS).globally() || getCurrentUser().has(CorePermissions.MODIFY_RECORDS_USING_BATCH_PROCESS).onSomething();
 	}
 
 	public void setSchemaType(String schemaType) {
@@ -147,12 +154,11 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	@Override
 	public AdvancedSearchPresenter forRequestParameters(String params) {
 		if (StringUtils.isNotBlank(params)) {
-			String[] parts = params.split("/", 2);
+			String[] parts = params.split("/", 3);
 			searchID = parts[1];
 			SavedSearch search = getSavedSearch(searchID);
 			setSavedSearch(search);
 			updateUIContext(search);
-
 		} else {
 			searchExpression = StringUtils.stripToNull(view.getSearchExpression());
 			resetFacetSelection();
@@ -224,13 +230,11 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	}
 
 	public boolean batchEditRequested(String code, Object value, String schemaType) {
-		Map<String, Object> changes = new HashMap<>();
-		changes.put(code, value);
-
 		LogicalSearchQuery query = buildBatchProcessLogicalSearchQuery();
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
 		ModifiableSolrParams params = searchServices.addSolrModifiableParams(query);
 
+		Map<String, Object> changes = getChanges(code, value);
 		AsyncTask asyncTask = new ChangeValueOfMetadataBatchAsyncTask(changes, SolrUtils.toSingleQueryString(params),
 				null, searchServices().getResultsCount(query));
 
@@ -241,6 +245,16 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		BatchProcessesManager manager = modelLayerFactory.getBatchProcessesManager();
 		manager.addAsyncTask(asyncTaskRequest);
 		return true;
+	}
+
+	private Map<String, Object> getChanges(String code, Object value) {
+		Map<String, Object> changes = new HashMap<>();
+		changes.put(code, value);
+		if ((Task.DEFAULT_SCHEMA + "_" + Task.ASSIGNEE).equals(code)) {
+			changes.put((Task.DEFAULT_SCHEMA + "_" + Task.ASSIGNED_ON), LocalDate.now());
+			changes.put((Task.DEFAULT_SCHEMA + "_" + Task.ASSIGNER), getCurrentUser().getId());
+		}
+		return changes;
 	}
 
 	@Override
@@ -307,7 +321,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 				schemaType(schemaTypeCode).getDefaultSchema(), RecordVO.VIEW_MODE.SEARCH, view.getSessionContext());
 		return new RecordVODataProvider(schemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				LogicalSearchQuery query = getSearchQuery().setHighlighting(highlighter).setOverridedQueryParams(extraSolrParams);
 				if (sortCriterion == null) {
 					if (StringUtils.isNotBlank(getUserSearchExpression())) {
@@ -492,7 +506,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 				.build(rm.cartSchema(), RecordVO.VIEW_MODE.TABLE, view.getSessionContext());
 		return new RecordVODataProvider(cartSchemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				return new LogicalSearchQuery(from(rm.cartSchema()).where(rm.cartOwner())
 						.isEqualTo(getCurrentUser().getId())).sortAsc(Schemas.TITLE);
 			}
@@ -506,7 +520,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 				.build(rm.cartSchema(), RecordVO.VIEW_MODE.TABLE, view.getSessionContext());
 		return new RecordVODataProvider(cartSchemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				return new LogicalSearchQuery(from(rm.cartSchema()).where(rm.cartSharedWithUsers())
 						.isContaining(Arrays.asList(getCurrentUser().getId()))).sortAsc(Schemas.TITLE);
 			}
@@ -542,7 +556,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 			tmpSearchRecord = getTemporarySearchRecord();
 			if (tmpSearchRecord != null) {
 				SavedSearch savedSearch = new SavedSearch(tmpSearchRecord, types());
-				if (!Boolean.TRUE.equals(savedSearch.isTemporary())) {
+				if (!savedSearch.isTemporary()) {
 					tmpSearchRecord = recordServices()
 							.newRecordWithSchema(schema(SavedSearch.DEFAULT_SCHEMA), newRandomId());
 				}
@@ -566,7 +580,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 				.setPageLength(selectedPageLength);
 		try {
 			((RecordImpl) search.getWrappedRecord()).markAsSaved(search.getVersion() + 1, search.getSchema());
-			modelLayerFactory.getRecordsCaches().getCache(collection).forceInsert(search.getWrappedRecord(), WAS_MODIFIED);
+			modelLayerFactory.getRecordsCaches().getCache(collection).insert(search.getWrappedRecord(), WAS_MODIFIED);
 
 			//recordServices().update(search);
 			updateUIContext(search);

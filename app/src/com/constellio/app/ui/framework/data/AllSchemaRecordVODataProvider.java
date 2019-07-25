@@ -49,7 +49,7 @@ public class AllSchemaRecordVODataProvider extends RecordVODataProvider {
 	}
 
 	@Override
-	protected LogicalSearchQuery getQuery() {
+	public LogicalSearchQuery getQuery() {
 		MetadataSchemaVO schemaVO = getSchema();
 		String schemaCode = schemaVO.getCode();
 		String collection = schemaVO.getCollection();

@@ -179,6 +179,7 @@ public class FacetConfigurationServiceAcceptTest extends ConstellioTest {
 		LogicalSearchQuery query = new LogicalSearchQuery();
 		query.setCondition(condition);
 		query.setNumberOfRows(1);
+		query.sortAsc(Schemas.IDENTIFIER);
 		List<Record> records = searchServices.search(query);
 		assertThat(records.get(0).getSchemaCode()).startsWith(Facet.SCHEMA_TYPE);
 		return records.get(0);

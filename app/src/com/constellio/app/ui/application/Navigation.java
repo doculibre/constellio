@@ -7,6 +7,7 @@ import com.vaadin.ui.UI;
 import java.lang.reflect.InvocationTargetException;
 
 public class Navigation {
+
 	public CoreViews to() {
 		return to(CoreViews.class);
 	}

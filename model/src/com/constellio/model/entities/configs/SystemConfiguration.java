@@ -125,7 +125,7 @@ public class SystemConfiguration implements Serializable {
 				rebootRequired, true, requireReIndexing);
 	}
 
-	public SystemConfiguration withReIndexionRequired() {
+	public SystemConfiguration withReIndexationRequired() {
 		return new SystemConfiguration(type, module, configGroupCode, code, defaultValue, enumClass, scriptClass, hidden,
 				rebootRequired, hiddenValue, true);
 	}

@@ -34,7 +34,7 @@ public class BetaListWorkflowsPresenter extends SingleSchemaBasePresenter<BetaLi
 				.build(schema(BetaWorkflow.DEFAULT_SCHEMA), VIEW_MODE.TABLE, view.getSessionContext());
 		return new RecordVODataProvider(schema, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				return workflowServices().getWorkflowsQuery();
 			}
 		};

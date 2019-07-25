@@ -1,6 +1,5 @@
 package com.constellio.app.modules.rm.ui.pages.pdf;
 
-import com.constellio.app.api.extensions.params.AvailableActionsParam;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.vaadin.server.Page;
 import com.vaadin.ui.Component;
@@ -13,20 +12,20 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ConsolidatedPdfButton extends WindowButton {
 
-	private AvailableActionsParam param;
+	private List<String> recordIds;
 
 	public ConsolidatedPdfButton() {
 		this(null);
 	}
 
-	public ConsolidatedPdfButton(AvailableActionsParam param) {
+	public ConsolidatedPdfButton(List<String> recordIds) {
 		super($("ConsolidatedPDFWindow.caption"), $("PdfFileNamePanel.caption"), WindowButton.WindowConfiguration.modalDialog("60%", "200px"));
-		this.param = param;
+		this.recordIds = recordIds;
 		ConsolidatedPdfWindow.ensurePresentIfRunningAndNotAdded();
 	}
 
-	public void setParams(AvailableActionsParam param) {
-		this.param = param;
+	public void setRecordIds(List<String> recordIds) {
+		this.recordIds = recordIds;
 	}
 
 	@Override
@@ -35,10 +34,9 @@ public class ConsolidatedPdfButton extends WindowButton {
 		pdfPanel.addPdfFileNameListener(new PdfFileNamePanel.PdfFileNameListener() {
 			@Override
 			public void pdfFileNameFinished(PdfFileNamePanel.PdfInfos pdfInfos) {
-				List<String> ids = param.getIds();
-				if (!CollectionUtils.isEmpty(ids)) {
+				if (!CollectionUtils.isEmpty(recordIds)) {
 					ConsolidatedPdfWindow window = ConsolidatedPdfWindow.getInstance();
-					window.createPdf(pdfInfos.getPdfFileName(), ids, pdfInfos.isIncludeMetadatas());
+					window.createPdf(pdfInfos.getPdfFileName(), recordIds, pdfInfos.isIncludeMetadatas());
 				} else {
 					showErrorMessage($("ConsolidatedPDFWindow.noDocumentSelectedForPdf"));
 				}

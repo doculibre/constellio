@@ -1,6 +1,7 @@
 package com.constellio.model.services.records.populators;
 
 import com.constellio.data.dao.services.records.RecordDao;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
@@ -20,6 +21,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.QueryExecutionMethod.USE_CACHE;
+import static com.constellio.model.services.search.query.logical.QueryExecutionMethod.USE_SOLR;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSortable;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -129,10 +132,29 @@ public class RecordNormalizedSortFieldAcceptanceTest extends ConstellioTest {
 		transaction.add(new TestRecord(zeSchema, "r9").set(zeSchema.stringMetadata(), "e1000"));
 		recordServices.execute(transaction);
 
-		assertThat(searchServices.searchRecordIds(allZeSchemaRecords().sortAsc(zeSchema.stringMetadata())))
+		//É1  e10   e100   e1000  E2  É3  e4  è5  é6
+
+		//E2
+
+		assertThat(searchServices.searchRecordIds(allZeSchemaRecords().setQueryExecutionMethod(USE_SOLR).sortAsc(zeSchema.stringMetadata())))
 				.isEqualTo(asList("r1", "r7", "r8", "r9", "r2", "r3", "r4", "r5", "r6"));
 
-		assertThat(searchServices.searchRecordIds(allZeSchemaRecords().sortDesc(zeSchema.stringMetadata())))
+		assertThat(searchServices.searchRecordIds(allZeSchemaRecords().setQueryExecutionMethod(USE_SOLR).sortDesc(zeSchema.stringMetadata())))
+				.isEqualTo(asList("r6", "r5", "r4", "r3", "r2", "r9", "r8", "r7", "r1"));
+
+		//Cache return results in different order, but it's much better than solr!
+		Toggle.VALIDATE_CACHE_EXECUTION_SERVICE_USING_SOLR.disable();
+		assertThat(searchServices.searchRecordIds(allZeSchemaRecords().setQueryExecutionMethod(USE_SOLR).sortAsc(zeSchema.stringMetadata())))
+				.isEqualTo(asList("r1", "r7", "r8", "r9", "r2", "r3", "r4", "r5", "r6"));
+
+		assertThat(searchServices.searchRecordIds(allZeSchemaRecords().setQueryExecutionMethod(USE_SOLR).sortDesc(zeSchema.stringMetadata())))
+				.isEqualTo(asList("r6", "r5", "r4", "r3", "r2", "r9", "r8", "r7", "r1"));
+
+
+		assertThat(searchServices.searchRecordIds(allZeSchemaRecords().setQueryExecutionMethod(USE_CACHE).sortAsc(zeSchema.stringMetadata())))
+				.isEqualTo(asList("r1", "r7", "r8", "r9", "r2", "r3", "r4", "r5", "r6"));
+
+		assertThat(searchServices.searchRecordIds(allZeSchemaRecords().setQueryExecutionMethod(USE_CACHE).sortDesc(zeSchema.stringMetadata())))
 				.isEqualTo(asList("r6", "r5", "r4", "r3", "r2", "r9", "r8", "r7", "r1"));
 
 	}

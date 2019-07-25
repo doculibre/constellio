@@ -15,10 +15,24 @@ public class EmailRecipientServices {
 			return returnAddresses;
 		}
 		filterUsersWhoDoNotWantEmails(users);
+		filterInactiveUsers(users);
 		for (User user : users) {
 			returnAddresses.add(new EmailAddress(user.getTitle(), user.getEmail()));
 		}
 		return returnAddresses;
+	}
+
+	private static void filterInactiveUsers(List<User> users) {
+		if (users == null) {
+			return;
+		}
+		Iterator<User> userIterator = users.iterator();
+		while (userIterator.hasNext()) {
+			User user = userIterator.next();
+			if (user.isLogicallyDeletedStatus()) {
+				userIterator.remove();
+			}
+		}
 	}
 
 	public static void filterUsersWhoDoNotWantEmails(List<User> users) {

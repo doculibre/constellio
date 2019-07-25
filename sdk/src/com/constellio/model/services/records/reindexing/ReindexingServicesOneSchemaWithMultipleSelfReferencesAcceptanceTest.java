@@ -88,6 +88,8 @@ public class ReindexingServicesOneSchemaWithMultipleSelfReferencesAcceptanceTest
 			throws Exception {
 		defineSchemasManager().using(schemas.with(childOfReferenceToSelfAndCopiedMetadataFromParent()));
 		givenTimeIs(shishOClock);
+
+		getDataLayerFactory().getDataLayerLogger().setMonitoredIds(asList("003002"));
 		Transaction transaction = new Transaction();
 		transaction.setUser(users.dakotaLIndienIn(zeCollection));
 
@@ -114,7 +116,7 @@ public class ReindexingServicesOneSchemaWithMultipleSelfReferencesAcceptanceTest
 		}
 		alterCalculedFieldIn(ids);
 
-		reindexingServices.reindexCollections(new ReindexationParams(ReindexationMode.RECALCULATE).setBatchSize(1));
+		reindexingServices.reindexCollections(new ReindexationParams(ReindexationMode.RECALCULATE_AND_REWRITE).setBatchSize(1));
 		for (int i = 3002; i <= 3010; i++) {
 			System.out.println(i);
 			assertThat(record("00" + i).<String>get(zeSchema.metadata(calculatedMetadata))).isEqualTo("Shish O Clock!");
@@ -141,7 +143,7 @@ public class ReindexingServicesOneSchemaWithMultipleSelfReferencesAcceptanceTest
 		transaction.add(new TestRecord(zeSchema, "003010").set(zeSchema.metadata(textMetadata), "Shish O Clock!"));
 		recordServices.execute(transaction);
 
-		reindexingServices.reindexCollections(new ReindexationParams(ReindexationMode.RECALCULATE).setBatchSize(1));
+		reindexingServices.reindexCollections(new ReindexationParams(ReindexationMode.RECALCULATE_AND_REWRITE).setBatchSize(1));
 		for (int i = 3001; i < 3010; i++) {
 			System.out.println(i);
 			assertThat(record("00" + i).<String>get(zeSchema.metadata(calculatedMetadata))).isEqualTo("Shish O Clock!");
@@ -153,7 +155,7 @@ public class ReindexingServicesOneSchemaWithMultipleSelfReferencesAcceptanceTest
 		}
 		alterCalculedFieldIn(ids);
 
-		reindexingServices.reindexCollections(new ReindexationParams(ReindexationMode.RECALCULATE).setBatchSize(1));
+		reindexingServices.reindexCollections(new ReindexationParams(ReindexationMode.RECALCULATE_AND_REWRITE).setBatchSize(1));
 		for (int i = 3001; i < 3010; i++) {
 			System.out.println(i);
 			assertThat(record("00" + i).<String>get(zeSchema.metadata(calculatedMetadata))).isEqualTo("Shish O Clock!");
@@ -166,15 +168,18 @@ public class ReindexingServicesOneSchemaWithMultipleSelfReferencesAcceptanceTest
 		List<RecordDeltaDTO> deltas = new ArrayList<>();
 
 		for (String id : ids) {
-			RecordDTO record = getDataLayerFactory().newRecordDao().get(id);
+			RecordDTO record = getDataLayerFactory().newRecordDao().realGet(id);
 
 			Map<String, Object> modifiedMetadatas = new HashMap<>();
 			modifiedMetadatas.put(calculatedMetadata + "_s", "Rick rolled!");
 			RecordDeltaDTO recordDeltaDTO = new RecordDeltaDTO(record, modifiedMetadatas, record.getFields());
 			deltas.add(recordDeltaDTO);
+
 		}
 
 		getDataLayerFactory().newRecordDao().execute(new TransactionDTO(RecordsFlushing.NOW()).withModifiedRecords(deltas));
+
+		getModelLayerFactory().getRecordsCaches().reloadAllSchemaTypes(zeCollection);
 	}
 
 	@Test

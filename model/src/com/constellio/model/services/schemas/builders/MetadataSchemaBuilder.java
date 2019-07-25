@@ -56,6 +56,8 @@ public class MetadataSchemaBuilder {
 
 	private static final String DEFAULT = "default";
 
+	private short id;
+
 	private String localCode;
 
 	private CollectionInfo collectionInfo;
@@ -94,6 +96,7 @@ public class MetadataSchemaBuilder {
 		builder.setLocalCode(schema.getLocalCode());
 		builder.setCollectionInfo(schema.getCollectionInfo());
 		builder.setCode(schema.getCode());
+		builder.id = schema.getId();
 		builder.setUndeletable(schema.isUndeletable());
 		builder.setLabels(schema.getLabels());
 		builder.setActive(schema.isActive());
@@ -131,6 +134,7 @@ public class MetadataSchemaBuilder {
 		builder.setLocalCode(defaultSchema.getLocalCode());
 		builder.setCode(defaultSchema.getCode());
 		builder.setCollectionInfo(defaultSchema.getCollectionInfo());
+		builder.id = defaultSchema.getId();
 		builder.setUndeletable(defaultSchema.isUndeletable());
 		builder.setSchemaTypeBuilder(typeBuilder);
 		builder.setActive(defaultSchema.isActive());
@@ -217,6 +221,10 @@ public class MetadataSchemaBuilder {
 	MetadataSchemaBuilder setCode(String code) {
 		this.code = code;
 		return this;
+	}
+
+	public short getId() {
+		return id;
 	}
 
 	public String getLocalCode() {
@@ -355,8 +363,10 @@ public class MetadataSchemaBuilder {
 
 	}
 
-	MetadataSchema buildDefault(DataStoreTypesFactory typesFactory, ModelLayerFactory modelLayerFactory) {
-		MetadataList newMetadatas = buildMetadatas(typesFactory, modelLayerFactory);
+	MetadataSchema buildDefault(DataStoreTypesFactory typesFactory, MetadataSchemaTypeBuilder typeBuilder,
+								MetadataSchemaTypesBuilder typesBuilder,
+								ModelLayerFactory modelLayerFactory) {
+		MetadataList newMetadatas = buildMetadatas(typesFactory, typeBuilder, modelLayerFactory);
 
 		validateDefault(this);
 
@@ -376,7 +386,11 @@ public class MetadataSchemaBuilder {
 		boolean inTransactionLog = schemaTypeBuilder.isInTransactionLog();
 		Set<RecordValidator> recordValidators = this.schemaValidators.build();
 
-		MetadataSchema metadataSchema = new MetadataSchema(this.getLocalCode(), this.getCode(), collectionInfo, newLabels, newMetadatas,
+		if (id == 0) {
+			id = typeBuilder.nextSchemaId();
+		}
+
+		MetadataSchema metadataSchema = new MetadataSchema(id, this.getLocalCode(), this.getCode(), collectionInfo, newLabels, newMetadatas,
 				this.isUndeletable(),
 				inTransactionLog, recordValidators, calculateSchemaInfos(newMetadatas, recordValidators),
 				schemaTypeBuilder.getDataStore(), this.isActive());
@@ -503,12 +517,14 @@ public class MetadataSchemaBuilder {
 			}
 
 		}
+
 	}
 
-	MetadataList buildMetadatas(DataStoreTypesFactory typesFactory, ModelLayerFactory modelLayerFactory) {
+	MetadataList buildMetadatas(DataStoreTypesFactory typesFactory, MetadataSchemaTypeBuilder typeBuilder,
+								ModelLayerFactory modelLayerFactory) {
 		MetadataList newMetadatas = new MetadataList();
 		for (MetadataBuilder metadataBuilder : this.metadatas) {
-			newMetadatas.add(metadataBuilder.buildWithoutInheritance(typesFactory, modelLayerFactory));
+			newMetadatas.add(metadataBuilder.buildWithoutInheritance(typesFactory, typeBuilder, modelLayerFactory));
 		}
 		return newMetadatas;
 	}
@@ -551,8 +567,9 @@ public class MetadataSchemaBuilder {
 		return new SchemaUtils();
 	}
 
-	MetadataSchema buildCustom(MetadataSchema defaultSchema, DataStoreTypesFactory typesFactory,
-							   ModelLayerFactory modelLayerFactory) {
+	MetadataSchema buildCustom(MetadataSchema defaultSchema, MetadataSchemaTypeBuilder typeBuilder,
+							   MetadataSchemaTypesBuilder typesBuilder,
+							   DataStoreTypesFactory typesFactory, ModelLayerFactory modelLayerFactory) {
 		final MetadataList newMetadatas = new MetadataList();
 		for (MetadataBuilder metadataBuilder : this.metadatas) {
 			try {
@@ -560,7 +577,7 @@ public class MetadataSchemaBuilder {
 				newMetadatas.add(metadataBuilder.buildWithInheritance(inheritance));
 			} catch (MetadataSchemasRuntimeException.NoSuchMetadata e) {
 				LOGGER.debug("No inheritance found for metadata {}", code, e);
-				newMetadatas.add(metadataBuilder.buildWithoutInheritance(typesFactory, modelLayerFactory));
+				newMetadatas.add(metadataBuilder.buildWithoutInheritance(typesFactory, typeBuilder, modelLayerFactory));
 			}
 
 		}
@@ -571,8 +588,12 @@ public class MetadataSchemaBuilder {
 
 		final Set<RecordValidator> recordValidators = this.schemaValidators.build(defaultSchema.getValidators());
 
+		if (id == 0) {
+			id = typeBuilder.nextSchemaId();
+		}
+
 		boolean inTransactionLog = schemaTypeBuilder.isInTransactionLog();
-		MetadataSchema metadataSchema = new MetadataSchema(this.getLocalCode(), this.getCode(), collectionInfo, newLabels, newMetadatas,
+		MetadataSchema metadataSchema = new MetadataSchema(this.getId(), this.getLocalCode(), this.getCode(), collectionInfo, newLabels, newMetadatas,
 				this.isUndeletable(), inTransactionLog, recordValidators, calculateSchemaInfos(newMetadatas, recordValidators)
 				, schemaTypeBuilder.getDataStore(), this.isActive());
 		return metadataSchema;
@@ -710,5 +731,10 @@ public class MetadataSchemaBuilder {
 
 	public void setActive(boolean active) {
 		this.active = active;
+	}
+
+	public MetadataSchemaBuilder setId(short id) {
+		this.id = id;
+		return this;
 	}
 }

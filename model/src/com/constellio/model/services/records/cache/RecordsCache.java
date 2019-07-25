@@ -4,10 +4,11 @@ import com.constellio.data.dao.services.cache.InsertionReason;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Stream;
 
 public interface RecordsCache {
 
@@ -15,60 +16,71 @@ public interface RecordsCache {
 
 	Record getSummary(String id);
 
-	boolean isCached(String id);
-
-	List<CacheInsertionStatus> insert(List<Record> record, InsertionReason insertionReason);
-
-	void insertQueryResults(LogicalSearchQuery query, List<Record> records);
-
-	void insertQueryResultIds(LogicalSearchQuery query, List<String> recordIds);
-
 	List<Record> getAllValues(String schemaType);
 
 	List<Record> getAllValuesInUnmodifiableState(String schemaType);
 
-	List<Record> getQueryResults(LogicalSearchQuery query);
+	CacheInsertionResponse insert(Record record, InsertionReason insertionReason);
 
-	List<String> getQueryResultIds(LogicalSearchQuery query);
+	@Deprecated
+	default void reloadSchemaType(String recordType, boolean forceVolatileCacheClear) {
+		reloadSchemaType(recordType, false, forceVolatileCacheClear);
+	}
 
-	CacheInsertionStatus insert(Record record, InsertionReason insertionReason);
+	@Deprecated
+	void reloadSchemaType(String recordType, boolean onlyLocally, boolean forceVolatileCacheClear);
 
-	CacheInsertionStatus forceInsert(Record record, InsertionReason insertionReason);
+	void removeFromAllCaches(List<String> recordIds);
 
-	void invalidateRecordsOfType(String recordType);
+	void removeFromAllCaches(String recordId);
 
-	void invalidate(List<String> recordIds);
-
-	void invalidate(String recordId);
-
+	@Deprecated
 	void configureCache(CacheConfig cacheConfig);
 
+	@Deprecated
 	Collection<CacheConfig> getConfiguredCaches();
 
+	@Deprecated
 	CacheConfig getCacheConfigOf(String schemaOrTypeCode);
 
-	void invalidateAll();
+	default void reloadAllSchemaTypes() {
+		throw new UnsupportedOperationException("Unsupported");
+	}
+
+	default void invalidateVolatileReloadPermanent(List<String> schemaTypes) {
+		invalidateVolatileReloadPermanent(schemaTypes, false);
+	}
+
+	void invalidateVolatileReloadPermanent(List<String> schemaTypes, boolean onlyLocally);
 
 	Record getByMetadata(Metadata metadata, String value);
 
 	Record getSummaryByMetadata(Metadata metadata, String value);
 
-	void removeCache(String schemaType);
-
+	@Deprecated
 	boolean isConfigured(MetadataSchemaType type);
 
+	@Deprecated
 	boolean isConfigured(String typeCode);
-
-	int getCacheObjectsCount();
-
-	int getCacheObjectsCount(String typeCode);
-
-	long getCacheObjectsSize(String typeCode);
 
 	boolean isEmpty();
 
-	boolean isFullyLoaded(String schemaType);
+	@Deprecated
+	default boolean isCached(String id) {
+		return getSummary(id) != null;
+	}
 
-	void markAsFullyLoaded(String schemaType);
+	default List<CacheInsertionResponse> insert(List<Record> records, InsertionReason insertionReason) {
+		List<CacheInsertionResponse> statuses = new ArrayList<>(records.size());
 
+		for (Record record : records) {
+			statuses.add(insert(record, insertionReason));
+		}
+
+		return statuses;
+	}
+
+	default Stream<Record> streamVolatile(MetadataSchemaType schemaType) {
+		throw new UnsupportedOperationException();
+	}
 }

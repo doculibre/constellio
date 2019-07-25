@@ -8,6 +8,12 @@ import org.apache.commons.lang3.StringUtils;
 @SuppressWarnings("serial")
 public abstract class IconButton extends BaseButton {
 
+	private NiceTitle niceTitle;
+
+	private boolean iconOnly;
+
+	private boolean borderless;
+
 	public IconButton(Resource iconResource, String caption) {
 		this(iconResource, caption, iconResource != null);
 	}
@@ -18,6 +24,8 @@ public abstract class IconButton extends BaseButton {
 
 	public IconButton(Resource iconResource, String caption, boolean iconOnly, boolean borderless) {
 		super(caption);
+		this.iconOnly = iconOnly;
+		this.borderless = borderless;
 		setIcon(iconResource);
 		if (borderless) {
 			addStyleName(ValoTheme.BUTTON_BORDERLESS);
@@ -28,13 +36,22 @@ public abstract class IconButton extends BaseButton {
 			addStyleName(ValoTheme.BUTTON_ICON_ONLY);
 			if (StringUtils.isNotBlank(caption)) {
 				setIconAlternateText(caption);
-				addExtension(new NiceTitle(this, caption));
+				addExtension(niceTitle = new NiceTitle(caption));
 			}
 		}
 	}
 
-	protected boolean isBorderless() {
-		return true;
+	@Override
+	public void setEnabled(boolean enabled) {
+		super.setEnabled(enabled);
+
+		String caption = getCaption();
+		if (!enabled && niceTitle != null) {
+			niceTitle.remove();
+			niceTitle = null;
+		} else if (iconOnly && enabled && niceTitle == null && StringUtils.isNotBlank(caption)) {
+			addExtension(niceTitle = new NiceTitle(caption));
+		}
 	}
 
 }

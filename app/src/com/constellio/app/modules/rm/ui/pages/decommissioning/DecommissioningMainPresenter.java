@@ -10,6 +10,7 @@ import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSec
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.services.decommissioning.SearchType;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
@@ -179,7 +180,7 @@ public class DecommissioningMainPresenter extends SingleSchemaBasePresenter<Deco
 		MetadataSchemaVO schemaVO = new MetadataSchemaToVOBuilder().build(schema, VIEW_MODE.TABLE, view.getSessionContext());
 		return new RecordVODataProvider(schemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				return getQueryForTab(tabId);
 			}
 		};
@@ -212,5 +213,11 @@ public class DecommissioningMainPresenter extends SingleSchemaBasePresenter<Deco
 
 	public User getUser() {
 		return getCurrentUser();
+	}
+
+	public void clearSavedSearchFromSession() {
+		ConstellioUI uiContext = ConstellioUI.getCurrent();
+		uiContext.clearAttribute(DecommissioningBuilderViewImpl.SAVE_SEARCH_DECOMMISSIONING);
+		uiContext.clearAttribute(DecommissioningBuilderViewImpl.DECOMMISSIONING_BUILDER_TYPE);
 	}
 }

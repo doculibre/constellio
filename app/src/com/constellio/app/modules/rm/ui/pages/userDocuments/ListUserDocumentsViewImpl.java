@@ -34,9 +34,9 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.DragAndDropWrapper;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.Window.CloseEvent;
 import com.vaadin.ui.themes.ValoTheme;
 import org.vaadin.dialogs.ConfirmDialog;
-import org.vaadin.easyuploads.MultiFileUpload;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -54,7 +54,7 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 
 	private DragAndDropWrapper dragAndDropWrapper;
 	private VerticalLayout mainLayout;
-	private MultiFileUpload multiFileUpload;
+	private BaseMultiFileUpload multiFileUpload;
 	private RecordVOLazyContainer userContentContainer;
 	private ButtonsContainer<RecordVOLazyContainer> buttonsContainer;
 	private SelectionTableAdapter userContentSelectTableAdapter;
@@ -64,10 +64,17 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 
 	private RecordIdToCaptionConverter recordIdToCaptionConverter = new RecordIdToCaptionConverter();
 
+	private boolean inWindow;
+
 	private ListUserDocumentsPresenter presenter;
 	private Component quotaSpaceInfo;
 
 	public ListUserDocumentsViewImpl() {
+		this(false);
+	}
+
+	public ListUserDocumentsViewImpl(boolean inWindow) {
+		this.inWindow = inWindow;
 		presenter = new ListUserDocumentsPresenter(this);
 	}
 
@@ -117,6 +124,11 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 				} else {
 					super.drop(event);
 				}
+			}
+
+			@Override
+			protected void onUploadWindowClosed(CloseEvent e) {
+				presenter.refreshDocuments();
 			}
 		};
 		multiFileUpload.setWidth("100%");
@@ -319,6 +331,23 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 	@Override
 	protected void onBackgroundViewMonitor() {
 		presenter.backgroundViewMonitor();
+	}
+
+	@Override
+	public void showUploadMessage(String message) {
+		//		multiFileUpload.notifyMessage(message);
+		showClickableMessage(message);
+	}
+
+	@Override
+	public void showUploadErrorMessage(String message) {
+		//		multiFileUpload.notifyMessage(message);
+		showErrorMessage(message);
+	}
+
+	@Override
+	public boolean isInAWindow() {
+		return inWindow;
 	}
 
 	private void refreshAvailableSpace() {

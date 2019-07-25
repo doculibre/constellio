@@ -18,6 +18,7 @@ public class RMPermissionsTo {
 	private static final String FOLDER_GROUP = "folders";
 
 	public static final String MANAGE_FOLDER_AUTHORIZATIONS = permission(FOLDER_GROUP, "manageFolderAuthorizations");
+	public static final String VIEW_FOLDER_AUTHORIZATIONS = permission(FOLDER_GROUP, "viewFolderAuthorizations");
 
 	public static final String SHARE_FOLDER = permission(FOLDER_GROUP, "shareFolders");
 	public static final String SHARE_A_SEMIACTIVE_FOLDER = permission(FOLDER_GROUP, "shareSemiActiveFolders");
@@ -63,6 +64,7 @@ public class RMPermissionsTo {
 	private static final String DOCUMENT_GROUP = "documents";
 
 	public static final String MANAGE_DOCUMENT_AUTHORIZATIONS = permission(DOCUMENT_GROUP, "manageDocumentAuthorizations");
+	public static final String VIEW_DOCUMENT_AUTHORIZATIONS = permission(DOCUMENT_GROUP, "viewDocumentAuthorizations");
 	public static final String SHARE_DOCUMENT = permission(DOCUMENT_GROUP, "shareDocuments");
 	public static final String SHARE_A_SEMIACTIVE_DOCUMENT = permission(DOCUMENT_GROUP, "shareSemiActiveDocuments");
 	public static final String SHARE_A_INACTIVE_DOCUMENT = permission(DOCUMENT_GROUP, "shareInactiveDocuments");
@@ -118,10 +120,10 @@ public class RMPermissionsTo {
 	// Cart
 	private static final String CART_GROUP = "carts";
 	public static final String USE_CART = permission(CART_GROUP, "useCart");
-	public static final String CART_BATCH_DELETE = permission(CART_GROUP, "cartBatchDelete");
-
 	public static final String USE_MY_CART = permission(CART_GROUP, "useMyCart");
 	public static final String USE_GROUP_CART = permission(CART_GROUP, "useGroupCart");
+	public static final String CART_BATCH_DELETE = permission(CART_GROUP, "cartBatchDelete");
+
 
 	// RM Module management
 	private static final String RM_MANAGEMENT = "rmManagement";

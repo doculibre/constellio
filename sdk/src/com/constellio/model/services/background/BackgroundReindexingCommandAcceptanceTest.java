@@ -6,6 +6,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.records.cache.RecordsCache2IntegrityDiagnosticService;
 import com.constellio.model.services.records.reindexing.ReindexationMode;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
@@ -77,9 +78,16 @@ public class BackgroundReindexingCommandAcceptanceTest extends ConstellioTest {
 		}
 		recordServices.execute(transaction);
 
+
+
+		checkCache();
 		setNumberMetadataToABadValueTo(transaction.getRecords());
+		getModelLayerFactory().getRecordsCaches().getCache(zeCollection).invalidateVolatileReloadPermanent(asList("zeSchemaType"));
 		markForReindexing(idsMarkedForReindexing);
+		checkCache();
 		assertThat(searchServices.getResultsCount(whereNumberIsFive)).isEqualTo(0);
+
+		new RecordsCache2IntegrityDiagnosticService(getModelLayerFactory()).validateIntegrity(false, false);
 
 		RecordsReindexingBackgroundAction command = new RecordsReindexingBackgroundAction(getModelLayerFactory());
 

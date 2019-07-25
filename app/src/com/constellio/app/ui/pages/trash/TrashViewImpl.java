@@ -1,6 +1,6 @@
 package com.constellio.app.ui.pages.trash;
 
-import com.constellio.app.ui.framework.buttons.BaseButton;
+import com.constellio.app.ui.framework.buttons.ConfirmDialogButton;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.containers.SchemaTypeVOLazyContainer;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
@@ -18,6 +18,7 @@ import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.ColumnHeaderMode;
 import com.vaadin.ui.VerticalLayout;
 import org.apache.commons.lang3.StringUtils;
+import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.List;
 import java.util.Set;
@@ -102,9 +103,14 @@ public class TrashViewImpl extends BaseViewImpl implements TrashView {
 	}
 
 	private Button buildDeleteSelectionButton() {
-		deleteSelectionButton = new BaseButton($("TrashView.deleteSelection")) {
+		deleteSelectionButton = new ConfirmDialogButton($("TrashView.deleteSelection")) {
 			@Override
-			protected void buttonClick(ClickEvent event) {
+			protected String getConfirmDialogMessage() {
+				return $("TrashView.deleteConfirmation");
+			}
+
+			@Override
+			protected void confirmButtonClick(ConfirmDialog dialog) {
 				Set<String> notDeleted = presenter.deleteSelection();
 				replaceDeletedRecordsTypeAndCountComponents();
 				rebuildTrashTable();
@@ -120,9 +126,14 @@ public class TrashViewImpl extends BaseViewImpl implements TrashView {
 
 
 	private Button buildRestoreSelectionButton() {
-		restoreSelectionButton = new BaseButton($("TrashView.restoreSelection")) {
+		restoreSelectionButton = new ConfirmDialogButton($("TrashView.restoreSelection")) {
 			@Override
-			protected void buttonClick(ClickEvent event) {
+			protected String getConfirmDialogMessage() {
+				return $("TrashView.restoreConfirmation");
+			}
+
+			@Override
+			protected void confirmButtonClick(ConfirmDialog dialog) {
 				List<String> notRestored = presenter.restoreSelection();
 				replaceDeletedRecordsTypeAndCountComponents();
 				rebuildTrashTable();

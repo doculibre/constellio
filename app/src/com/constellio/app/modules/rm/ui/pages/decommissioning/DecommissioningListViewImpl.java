@@ -15,24 +15,27 @@ import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetail;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListValidation;
 import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.ConfirmDialogButton;
 import com.constellio.app.ui.framework.buttons.ContentButton;
+import com.constellio.app.ui.framework.buttons.DecommissioningListReportButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.buttons.LinkButton;
-import com.constellio.app.ui.framework.buttons.ReportButton;
 import com.constellio.app.ui.framework.buttons.SIPButton.SIPButtonImpl;
 import com.constellio.app.ui.framework.buttons.SelectDeselectAllButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
+import com.constellio.app.ui.framework.components.BaseUpdatableContentVersionPresenter;
+import com.constellio.app.ui.framework.components.ContentVersionDisplay;
 import com.constellio.app.ui.framework.components.RecordDisplay;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
+import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.components.fields.comment.RecordCommentsEditorImpl;
 import com.constellio.app.ui.framework.components.table.BaseTable;
-import com.constellio.app.ui.framework.reports.ReportWithCaptionVO;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.util.SchemaCaptionUtils;
 import com.vaadin.data.Container;
@@ -48,25 +51,26 @@ import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
+import com.vaadin.ui.Table;
+import com.vaadin.ui.Table.ColumnGenerator;
+import com.vaadin.ui.Table.ColumnHeaderMode;
 import com.vaadin.ui.TextArea;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import org.apache.commons.lang3.StringUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import static com.constellio.app.modules.rm.ui.components.decommissioning.FolderDetailTableGenerator.CHECKBOX;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DecommissioningListViewImpl extends BaseViewImpl implements DecommissioningListView {
@@ -136,6 +140,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 
 	@Override
 	protected void initBeforeCreateComponents(ViewChangeEvent event) {
+		presenter.clearSavedSearchFromSession();
 		decommissioningList = presenter.forRecordId(event.getParameters()).getDecommissioningList();
 	}
 
@@ -204,9 +209,10 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 		missingFolderLabel.addStyleName(ValoTheme.LABEL_COLORED);
 		missingFolderLabel.addStyleName(ValoTheme.LABEL_BOLD);
 
+		Component files = getContentTable(decommissioningList);
 		VerticalLayout layout = new VerticalLayout(missingFolderLabel, display, selectedFoldersComponent, validationComponent,
 				packageableFolderComponent,
-				processableFolderComponent, foldersToValidateComponent, excludedFolderComponent, containerComponent, comments);
+				processableFolderComponent, foldersToValidateComponent, excludedFolderComponent, containerComponent, comments, files);
 		layout.setSpacing(true);
 		layout.setWidth("100%");
 
@@ -533,7 +539,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 	}
 
 	private Button buildPrintButton() {
-		ReportButton button = new ReportButton(new ReportWithCaptionVO("Reports.DecommissioningList", $("Reports.DecommissioningList")), presenter);
+		DecommissioningListReportButton button = new DecommissioningListReportButton(presenter);
 		button.setCaption($("DecommissioningListView.print"));
 		button.addStyleName(ValoTheme.BUTTON_LINK);
 		return button;
@@ -1143,10 +1149,79 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 		}
 	}
 
+	VerticalLayout getContentTable(RecordVO recordVO) {
+		Table contentsTable = new BaseTable(getClass().getName());
+		new ContentsTableGenerator().attachedTo(contentsTable);
+
+		ArrayList<ContentVersionVO> contents = recordVO.get(DecommissioningList.CONTENTS);
+		if (!contents.isEmpty()) {
+			for (ContentVersionVO contentVersionVO : contents) {
+				contentsTable.addItem(contentVersionVO);
+			}
+		}
+		contentsTable.setWidth("100%");
+		contentsTable.setHeight("100%");
+		contentsTable.setPageLength(contentsTable.size());
+		contentsTable.setColumnHeaderMode(ColumnHeaderMode.HIDDEN);
+		VerticalLayout verticalLayout = new VerticalLayout();
+		verticalLayout.addComponents(new Label($("DecommissioningListView.contents")), contentsTable);
+		return verticalLayout;
+	}
+
 
 	@Override
 	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
 		return new DecommissionBreadcrumbTrail(getTitle(), null, null, null, this);
+	}
+
+	private class ContentsTableGenerator implements ColumnGenerator {
+		public static final String DOWNLOAD_LINK = "downloadLink";
+		public static final String USER = "user";
+		public static final String DATE = "uploadDate";
+
+		public Table attachedTo(Table table) {
+			table.addGeneratedColumn(DOWNLOAD_LINK, this);
+			table.setColumnHeader(DOWNLOAD_LINK, $(DOWNLOAD_LINK));
+
+			table.addGeneratedColumn(USER, this);
+			table.setColumnHeader(USER, $(USER));
+
+			table.addGeneratedColumn(DATE, this);
+			table.setColumnHeader(DATE, $(DATE));
+
+			return table;
+		}
+
+		@Override
+		public Object generateCell(Table source, Object itemId, Object columnId) {
+			if (columnId == null) {
+				return null;
+			}
+			ContentVersionVO contentVersionVO = (ContentVersionVO) itemId;
+			switch ((String) columnId) {
+				case DOWNLOAD_LINK:
+					return generateDownloadLinkCell(contentVersionVO);
+				case USER:
+					return generateUserCell(contentVersionVO);
+				case DATE:
+					return generateDateCell(contentVersionVO);
+			}
+			return null;
+		}
+
+		private Object generateDownloadLinkCell(ContentVersionVO contentVersionVO) {
+			String filename = contentVersionVO.getFileName();
+			return new ContentVersionDisplay(decommissioningList, contentVersionVO, filename, new BaseUpdatableContentVersionPresenter());
+		}
+
+		private Object generateUserCell(ContentVersionVO contentVersionVO) {
+			return new ReferenceDisplay(contentVersionVO.getLastModifiedBy());
+		}
+
+		private Object generateDateCell(ContentVersionVO contentVersionVO) {
+			return new Label(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(contentVersionVO.getLastModificationDateTime()));
+		}
+
 	}
 
 	public class RefreshableBeanItemContainer<BEANTYPE> extends BeanItemContainer {

@@ -9,6 +9,8 @@ import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.security.authentification.PasswordFileAuthenticationService;
+import com.constellio.model.services.users.SolrUserCredentialsManager;
 import com.constellio.model.services.users.UserServices;
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
@@ -25,6 +27,8 @@ public class UserImportServices implements ImportServices {
 	private int batchSize;
 	private UserServices userServices;
 	private int currentElement;
+	private PasswordFileAuthenticationService passwordFileAuthenticationService;
+	SolrUserCredentialsManager solrUserCredentialsManager;
 
 	public UserImportServices(ModelLayerFactory modelLayerFactory) {
 		this(modelLayerFactory, DEFAULT_BATCH_SIZE);
@@ -33,6 +37,8 @@ public class UserImportServices implements ImportServices {
 	public UserImportServices(ModelLayerFactory modelLayerFactory, int batchSize) {
 		this.batchSize = batchSize;
 		userServices = modelLayerFactory.newUserServices();
+		this.passwordFileAuthenticationService = modelLayerFactory.getPasswordFileAuthenticationService();
+		this.solrUserCredentialsManager = modelLayerFactory.getUserCredentialsManager();
 	}
 
 	void importUser(List<String> collections, UserCredential userCredential) {
@@ -103,6 +109,7 @@ public class UserImportServices implements ImportServices {
 		List<String> globalGroups = (List<String>) toImport.getFields().get("globalGroups");
 		UserCredentialStatus userCredentialStatus;
 		String status = (String) toImport.getFields().get("status");
+		String password = (String) toImport.getFields().get("password");
 		if (status.equals("p")) {
 			userCredentialStatus = UserCredentialStatus.PENDING;
 		} else if (status.equals("s")) {
@@ -125,6 +132,9 @@ public class UserImportServices implements ImportServices {
 					username, firstName, lastName, email, globalGroups, collections, userCredentialStatus);
 		}
 		try {
+			if (solrUserCredentialsManager.getUserCredential(username) == null) {
+				passwordFileAuthenticationService.changePassword(username, password);
+			}
 			userServices.addUpdateUserCredential(userCredential);
 		} catch (Exception e) {
 			LOGGER.warn(e.toString(), e);

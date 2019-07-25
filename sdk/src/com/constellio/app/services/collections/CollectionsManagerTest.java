@@ -15,6 +15,7 @@ import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.utils.Delayed;
 import com.constellio.model.conf.ModelLayerConfiguration;
+import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.services.collections.CollectionsListManager;
@@ -39,8 +40,10 @@ import org.mockito.Mock;
 
 import java.util.Arrays;
 
+import static java.util.Arrays.asList;
 import static junit.framework.TestCase.fail;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.anyByte;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doNothing;
@@ -53,6 +56,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class CollectionsManagerTest extends ConstellioTest {
+
+	protected CollectionInfo zeCollectionInfo = new CollectionInfo((byte) 0, "zeCollection", "fr", asList("fr"));
 
 	@Mock RecordsCaches caches;
 	@Mock ConstellioPluginManager pluginManager;
@@ -123,7 +128,7 @@ public class CollectionsManagerTest extends ConstellioTest {
 		collectionsManager.createCollectionInCurrentVersion("zeCollection", Arrays.asList("fr"));
 
 		verify(collectionsManager).createCollectionConfigs("zeCollection");
-		verify(collectionsListManager).addCollection("zeCollection", Arrays.asList("fr"));
+		verify(collectionsListManager).addCollection(eq("zeCollection"), eq(Arrays.asList("fr")), anyByte());
 		verify(migrationServices).migrate("zeCollection", null, true);
 		verify(userServices).addGlobalGroupsInCollection("zeCollection");
 		verify(collectionsManager).initializeCollection("zeCollection");
@@ -142,7 +147,7 @@ public class CollectionsManagerTest extends ConstellioTest {
 			// OK
 		}
 		verify(collectionsManager, never()).createCollectionConfigs("zeCollection");
-		verify(collectionsListManager, never()).addCollection("zeCollection", Arrays.asList("fr"));
+		verify(collectionsListManager, never()).addCollection(eq("zeCollection"), eq(Arrays.asList("fr")), anyByte());
 	}
 
 	@Test
@@ -157,7 +162,7 @@ public class CollectionsManagerTest extends ConstellioTest {
 		} catch (Exception thrown) {
 			assertThat(thrown).isSameAs(otherManagerException);
 		}
-		verify(collectionsListManager, never()).addCollection(anyString(), eq(Arrays.asList("fr")));
+		verify(collectionsListManager, never()).addCollection(anyString(), eq(Arrays.asList("fr")), anyByte());
 
 	}
 
@@ -197,7 +202,7 @@ public class CollectionsManagerTest extends ConstellioTest {
 		inOrder.verify(transactionDTO).withDeletedByQueries(params);
 		inOrder.verify(recordDao).execute(transactionDTO);
 		inOrder.verify(modulesManager).removeCollectionFromVersionProperties(zeCollection, configManager);
-		inOrder.verify(caches).invalidate(zeCollection);
+		inOrder.verify(caches).removeRecordsOfCollection(zeCollection);
 
 	}
 

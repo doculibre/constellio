@@ -2,10 +2,13 @@ package com.constellio.sdk.tests;
 
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
+import org.slf4j.LoggerFactory;
 
 import static org.junit.Assert.fail;
 
 public class FailureDetectionTestWatcher extends TestWatcher {
+
+	private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(FailureDetectionTestWatcher.class);
 
 	private boolean failed;
 
@@ -30,6 +33,13 @@ public class FailureDetectionTestWatcher extends TestWatcher {
 				String failMessage = ConstellioTest.getInstance().getFailMessage();
 				if (failMessage != null) {
 					fail(failMessage);
+				}
+			}
+		} else {
+			if (ConstellioTest.getInstance() != null) {
+				String failMessage = ConstellioTest.getInstance().getFailMessage();
+				if (failMessage != null) {
+					LOGGER.warn("A problem was detected that may have caused test failure. " + failMessage);
 				}
 			}
 		}

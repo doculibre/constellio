@@ -10,6 +10,7 @@ import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.model.enums.DecomListStatus;
 import com.constellio.app.modules.rm.model.enums.OriginStatus;
 import com.constellio.app.modules.rm.navigation.RMViews;
+import com.constellio.app.modules.rm.reports.builders.decommissioning.DecommissioningListExcelReportParameters;
 import com.constellio.app.modules.rm.reports.builders.decommissioning.DecommissioningListReportParameters;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningEmailService;
@@ -34,6 +35,7 @@ import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetail;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListValidation;
 import com.constellio.app.modules.rm.wrappers.structures.FolderDetailWithType;
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.components.NewReportPresenter;
@@ -46,20 +48,20 @@ import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
+import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.RecordServicesWrapperRuntimeException;
 import com.constellio.model.services.records.SchemasRecordsServices;
+import com.constellio.model.services.reports.ReportServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
-import com.vaadin.data.util.BeanItemContainer;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -79,6 +81,9 @@ import static java.util.Arrays.asList;
 
 public class DecommissioningListPresenter extends SingleSchemaBasePresenter<DecommissioningListView>
 		implements NewReportPresenter {
+	private final String PDF_REPORT = "Reports.DecommissioningList";
+	private final String EXCEL_REPORT = "Reports.DecommissioningListExcelFormat";
+
 	private transient RMSchemasRecordsServices rmRecordsServices;
 	private transient DecommissioningService decommissioningService;
 	private transient DecommissioningList decommissioningList;
@@ -104,6 +109,10 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 
 	public boolean sortFolderList() {
 		return modelLayerFactory.getSystemConfigurationsManager().getValue(RMConfigs.ALLOW_SORTING_IN_FOLDER_LIST_OF_DECOMMISSIONING);
+	}
+
+	public List<String> getReports() {
+		return asList(EXCEL_REPORT, PDF_REPORT);
 	}
 
 	@Override
@@ -295,6 +304,8 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 				view.showErrorMessage(wrappedException.getMessage());
 				e.printStackTrace();
 			}
+		} catch (ValidationException e) {
+			view.showMessage($(e));
 		} catch (Exception ex) {
 			view.showErrorMessage(ex.getMessage());
 			ex.printStackTrace();
@@ -787,22 +798,35 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 
 	@Override
 	public List<ReportWithCaptionVO> getSupportedReports() {
-		return asList(new ReportWithCaptionVO("Reports.DecommissioningList", $("Reports.DecommissioningList")));
+		List<ReportWithCaptionVO> supportedReports = new ArrayList<>();
+		ReportServices reportServices = new ReportServices(modelLayerFactory, collection);
+		List<String> userReports = reportServices.getUserReportTitles(getCurrentUser(), Folder.SCHEMA_TYPE);
+		if (userReports != null) {
+			for (String reportTitle : userReports) {
+				supportedReports.add(new ReportWithCaptionVO(reportTitle, reportTitle));
+			}
+		}
+		return supportedReports;
 	}
 
 	@Override
 	public NewReportWriterFactory getReport(String report) {
 
-		if (report.equals("Reports.DecommissioningList")) {
+		if (report.equals(PDF_REPORT)) {
 			return getRmReportBuilderFactories().decommissioningListBuilderFactory.getValue();
-		} else {//Reports.documentsCertificate //Reports.foldersCertificate
-			throw new RuntimeException("BUG: Unknown report: " + report);
+		} else {
+			return getRmReportBuilderFactories().decommissioningListExcelBuilderFactory.getValue();
 		}
 	}
 
 	@Override
 	public Object getReportParameters(String report) {
-		return new DecommissioningListReportParameters(decommissioningList.getId());
+		if (report.equals(PDF_REPORT)) {
+			return new DecommissioningListReportParameters(decommissioningList.getId());
+		} else {
+			return new DecommissioningListExcelReportParameters(decommissioningList.getId(),
+					Folder.SCHEMA_TYPE, collection, report, getCurrentUser());
+		}
 	}
 
 	public boolean isDocumentsCertificateButtonVisible() {
@@ -1047,12 +1071,12 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 	}
 
 	public List<ContainerVO> removeContainersCurrentUserCannotManage(List<ContainerVO> filteredContainers) {
-		if(filteredContainers != null) {
+		if (filteredContainers != null) {
 			Iterator<ContainerVO> iterator = filteredContainers.iterator();
 			while (iterator.hasNext()) {
 				ContainerVO currentContainer = iterator.next();
 
-				if(!hasUserPermissionToManageContainersOn(currentContainer)) {
+				if (!hasUserPermissionToManageContainersOn(currentContainer)) {
 					iterator.remove();
 				}
 			}
@@ -1064,9 +1088,9 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		boolean hasPermissionToManageContainers = getCurrentUser().has(RMPermissionsTo.MANAGE_CONTAINERS).globally();
 
 		List<String> administrativeUnitIds = currentContainer.getAdministrativeUnits();
-		if(administrativeUnitIds != null && !hasPermissionToManageContainers) {
+		if (administrativeUnitIds != null && !hasPermissionToManageContainers) {
 			List<AdministrativeUnit> administrativeUnits = rmRecordsServices.getAdministrativeUnits(administrativeUnitIds);
-			for(AdministrativeUnit unit: administrativeUnits) {
+			for (AdministrativeUnit unit : administrativeUnits) {
 				hasPermissionToManageContainers |= getCurrentUser().has(RMPermissionsTo.MANAGE_CONTAINERS).on(unit);
 			}
 		}
@@ -1075,10 +1099,21 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 
 	public List<String> getUsersWithReadPermissionOnAdministrativeUnit() {
 		Record administrativeUnit = getRecord(decommissioningList().getAdministrativeUnit());
-		if(administrativeUnit != null) {
+		if (administrativeUnit != null) {
 			return modelLayerFactory.newAuthorizationsServices().getUsersIdsWithRoleForRecord(Role.READ, administrativeUnit);
 		} else {
 			return modelLayerFactory.newAuthorizationsServices().getUsersIdsWithGlobalReadRightInCollection(collection);
 		}
+	}
+
+	public String getUsername(String userId) {
+		Record record = recordServices().getDocumentById(userId);
+		return rmRecordsServices.wrapUser(record).getUsername();
+	}
+
+	public void clearSavedSearchFromSession() {
+		ConstellioUI uiContext = ConstellioUI.getCurrent();
+		uiContext.clearAttribute(DecommissioningBuilderViewImpl.SAVE_SEARCH_DECOMMISSIONING);
+		uiContext.clearAttribute(DecommissioningBuilderViewImpl.DECOMMISSIONING_BUILDER_TYPE);
 	}
 }

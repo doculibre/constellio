@@ -5,6 +5,7 @@ import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -179,5 +180,14 @@ public class ConstellioMenuPresenter implements Serializable {
 			returnList.add($("Language." + code));
 		}
 		return returnList;
+	}
+
+	public boolean hasUserRightToViewSystemState() {
+		SessionContext sessionContext = constellioMenu.getSessionContext();
+		ModelLayerFactory modelLayerFactory = ConstellioFactories.getInstance().getModelLayerFactory();
+		UserServices userServices = modelLayerFactory.newUserServices();
+		User user = userServices.getUserInCollection(
+				sessionContext.getCurrentUser().getUsername(), sessionContext.getCurrentCollection());
+		return user.has(CorePermissions.VIEW_SYSTEM_STATE).onSomething() || user.has(CorePermissions.VIEW_SYSTEM_STATE).globally();
 	}
 }

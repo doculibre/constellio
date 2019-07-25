@@ -44,6 +44,7 @@ public class TaxonomyManagementSearchPresenter extends BasePresenter<TaxonomyMan
 	private String queryExpression;
 	private Taxonomy retrievedTaxonomy;
 	private Language language;
+	private String taxonomyCode;
 
 	public TaxonomyManagementSearchPresenter(TaxonomyManagementSearchView view) {
 		super(view);
@@ -53,11 +54,22 @@ public class TaxonomyManagementSearchPresenter extends BasePresenter<TaxonomyMan
 	public TaxonomyManagementSearchPresenter forParams(String parameters) {
 		Map<String, String> params = ParamUtils.getParamsMap(parameters);
 		String taxonomyCode = params.get(TAXONOMY_CODE);
+		this.taxonomyCode = taxonomyCode;
 		queryExpression = params.get(QUERY);
 		taxonomy = new TaxonomyToVOBuilder().build(fetchTaxonomy(taxonomyCode));
 		taxonomiesSearchServices = modelLayerFactory.newTaxonomiesSearchService();
 		retrievedTaxonomy = fetchTaxonomy(taxonomy.getCode());
 		return this;
+	}
+
+	public boolean canOnlyConsultTaxonomy() {
+		TaxonomyPresentersService presentersService = new TaxonomyPresentersService(appLayerFactory);
+
+		if (presentersService.canManage(taxonomyCode, getCurrentUser())) {
+			return false;
+		}
+
+		return presentersService.canConsult(taxonomyCode, getCurrentUser());
 	}
 
 	public List<RecordVODataProvider> getDataProviders() {
@@ -66,6 +78,7 @@ public class TaxonomyManagementSearchPresenter extends BasePresenter<TaxonomyMan
 		List<RecordVODataProvider> dataProviders = createDataProvidersForSchemas(schemaTypes);
 		return dataProviders;
 	}
+
 
 	List<RecordVODataProvider> createDataProvidersForSchemas(MetadataSchemaTypes schemaTypes) {
 		List<RecordVODataProvider> dataProviders = new ArrayList<>();
@@ -109,7 +122,7 @@ public class TaxonomyManagementSearchPresenter extends BasePresenter<TaxonomyMan
 		RecordVODataProvider dataProvider = new RecordVODataProvider(schemaVO, voBuilder, modelLayerFactory,
 				view.getSessionContext()) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				return queryFactory.get();
 			}
 		};
@@ -168,7 +181,8 @@ public class TaxonomyManagementSearchPresenter extends BasePresenter<TaxonomyMan
 	protected boolean hasPageAccess(String parameters, final User user) {
 		Map<String, String> params = ParamUtils.getParamsMap(parameters);
 		String taxonomyCode = params.get(TAXONOMY_CODE);
-		return new TaxonomyPresentersService(appLayerFactory).canManage(taxonomyCode, user);
+		return new TaxonomyPresentersService(appLayerFactory).canManage(taxonomyCode, user) ||
+			   new TaxonomyPresentersService(appLayerFactory).canConsult(taxonomyCode, user);
 	}
 
 	public void viewAssembled() {

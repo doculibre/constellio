@@ -112,7 +112,7 @@ public class TaskRecordExtension extends RecordExtension {
 		if (event.getRecord().getSchemaCode().startsWith(Task.SCHEMA_TYPE)) {
 			Task task = tasksSchema.wrapTask(event.getRecord());
 			sendDeletionEventToFollowers(task);
-			if (Boolean.TRUE != task.getReadByUser()) {
+			if (!Boolean.TRUE.equals(task.getReadByUser())) {
 				invalidateAllAssigneesForUnreadTasksCache(task);
 			}
 			List<String> finishedOrClosedStatuses = tasksSchema.getFinishedOrClosedStatusesIds();
@@ -126,7 +126,7 @@ public class TaskRecordExtension extends RecordExtension {
 	public void recordPhysicallyDeleted(RecordPhysicalDeletionEvent event) {
 		if (event.getRecord().getSchemaCode().startsWith(Task.SCHEMA_TYPE)) {
 			Task task = tasksSchema.wrapTask(event.getRecord());
-			if (Boolean.TRUE != task.getReadByUser()) {
+			if (!Boolean.TRUE.equals(task.getReadByUser())) {
 				invalidateAllAssigneesForUnreadTasksCache(task);
 			}
 			List<String> finishedOrClosedStatuses = tasksSchema.getFinishedOrClosedStatusesIds();
@@ -186,7 +186,7 @@ public class TaskRecordExtension extends RecordExtension {
 	public void recordRestored(RecordRestorationEvent event) {
 		if (event.getRecord().getSchemaCode().startsWith(Task.SCHEMA_TYPE)) {
 			Task task = tasksSchema.wrapTask(event.getRecord());
-			if (Boolean.TRUE != task.getReadByUser()) {
+			if (!Boolean.TRUE.equals(task.getReadByUser())) {
 				invalidateAllAssigneesForUnreadTasksCache(task);
 			}
 			List<String> finishedOrClosedStatuses = tasksSchema.getFinishedOrClosedStatusesIds();
@@ -584,7 +584,10 @@ public class TaskRecordExtension extends RecordExtension {
 					Group group = tasksSchema.getGroup(groupId);
 					List<UserCredential> groupUsers = userServices.getGlobalGroupActifUsers(group.getCode());
 					for (UserCredential user : groupUsers) {
-						assigneeEmails.addAll(buildEmailAddressList(user.getTitle(), user.getEmail(), user.getPersonalEmails()));
+						User assigneeCandidate = appLayerFactory.getModelLayerFactory().newUserServices().getUserInCollection(user.getUsername(), collection);
+						if (!assigneeCandidate.isAssignationEmailReceptionDisabled()) {
+							assigneeEmails.addAll(buildEmailAddressList(user.getTitle(), user.getEmail(), user.getPersonalEmails()));
+						}
 					}
 				} catch (UserServicesRuntimeException_NoSuchGroup e) {
 					LOGGER.warn("Group assigned in task " + task.getTitle() + " does not exist " + groupId);

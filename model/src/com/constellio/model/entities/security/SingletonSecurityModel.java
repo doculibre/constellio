@@ -4,6 +4,7 @@ import com.constellio.data.utils.KeyListMap;
 import com.constellio.model.entities.calculators.DynamicDependencyValues;
 import com.constellio.model.entities.enums.GroupAuthorizationsInheritance;
 import com.constellio.model.entities.records.wrappers.Authorization;
+import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -79,20 +80,29 @@ public class SingletonSecurityModel implements SecurityModel {
 	}
 
 	private void insertAuthorizationInMemoryMaps(Authorization authorizationDetail) {
-		boolean securableRecord = securableRecordSchemaTypes.contains(authorizationDetail.getTargetSchemaType());
-		SecurityModelAuthorization securityModelAuthorization = new SecurityModelAuthorization(
-				authorizationDetail, securableRecord, groupAuthorizationsInheritance);
-		authorizations.add(securityModelAuthorization);
-		authorizationsById.put(authorizationDetail.getId(), securityModelAuthorization);
-		authorizationsByTargets.add(authorizationDetail.getTarget(), securityModelAuthorization);
+		boolean securableRecord = false;
 
-		for (String principalId : authorizationDetail.getPrincipals()) {
-			if (globalGroupDisabledMap.keySet().contains(principalId)) {
-				securityModelAuthorization.addGroupId(principalId);
-			} else {
-				securityModelAuthorization.addUserId(principalId);
+		try {
+			securableRecord = securableRecordSchemaTypes.contains(authorizationDetail.getTargetSchemaType());
+
+
+			SecurityModelAuthorization securityModelAuthorization = new SecurityModelAuthorization(
+					authorizationDetail, securableRecord, groupAuthorizationsInheritance);
+			authorizations.add(securityModelAuthorization);
+			authorizationsById.put(authorizationDetail.getId(), securityModelAuthorization);
+			authorizationsByTargets.add(authorizationDetail.getTarget(), securityModelAuthorization);
+
+			for (String principalId : authorizationDetail.getPrincipals()) {
+				if (globalGroupDisabledMap.keySet().contains(principalId)) {
+					securityModelAuthorization.addGroupId(principalId);
+				} else {
+					securityModelAuthorization.addUserId(principalId);
+				}
+				authorizationsByPrincipalId.add(principalId, securityModelAuthorization);
 			}
-			authorizationsByPrincipalId.add(principalId, securityModelAuthorization);
+
+		} catch (MetadataSchemasRuntimeException.NoSuchMetadata e) {
+			//Can occur during migration of old versions
 		}
 	}
 

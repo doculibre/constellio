@@ -27,4 +27,7 @@ public interface LoginView extends BaseView {
 	void popPrivacyPolicyWindow(final ModelLayerFactory modelLayerFactory, final User userInLastCollection,
 								final String lastCollection);
 
+	void popLastAlertWindow(final ModelLayerFactory modelLayerFactory, final User userInLastCollection,
+							final String lastCollection);
+
 }

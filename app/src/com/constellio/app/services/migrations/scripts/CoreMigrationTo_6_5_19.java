@@ -38,7 +38,7 @@ public class CoreMigrationTo_6_5_19 implements MigrationScript {
 					getAllGroups();
 
 			boolean runGroupMigration = true;
-			while (runGroupMigration) {
+			for (int attempt = 0; attempt < 5 && runGroupMigration; attempt++) {
 				runGroupMigration = false;
 				for (final GlobalGroup globalGroup : globalGroupList) {
 					try {

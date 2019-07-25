@@ -7,21 +7,21 @@ import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.MetadataDisplayFactory;
-import com.constellio.app.ui.framework.components.contextmenu.BaseContextMenuTableListener;
 import com.constellio.app.ui.framework.components.contextmenu.RecordContextMenu;
 import com.constellio.app.ui.framework.components.contextmenu.RecordContextMenuHandler;
 import com.constellio.app.ui.framework.components.menuBar.RecordMenuBarHandler;
 import com.constellio.app.ui.framework.components.table.TablePropertyCache.CellKey;
 import com.constellio.app.ui.framework.components.table.columns.RecordVOTableColumnsManager;
 import com.constellio.app.ui.framework.components.table.columns.TableColumnsManager;
-import com.constellio.app.ui.framework.components.viewers.panel.ViewableRecordVOContainer;
 import com.constellio.app.ui.framework.containers.ContainerAdapter;
+import com.constellio.app.ui.framework.containers.RecordVOContainer;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.util.FileIconUtils;
 import com.constellio.app.ui.util.SchemaCaptionUtils;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 import com.vaadin.data.Container;
@@ -38,24 +38,16 @@ import com.vaadin.ui.MenuBar;
 import com.vaadin.ui.Table;
 import org.apache.commons.lang3.StringUtils;
 import org.vaadin.peter.contextmenu.ContextMenu;
-import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableFooterEvent;
-import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableHeaderEvent;
-import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableRowEvent;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 public class RecordVOTable extends BaseTable {
 
 	public static final String STYLE_NAME = "record-table";
 	public static final String CLICKABLE_ROW_STYLE_NAME = "clickable-row";
-	public static final String MENUBAR_PROPERTY_ID = "menuBar";
-	private RecordContextMenu contextMenu;
 	private List<MetadataSchemaVO> schemaVOs = new ArrayList<>();
 	private MetadataDisplayFactory metadataDisplayFactory = new MetadataDisplayFactory();
-	private boolean menuBarColumnAdded = false;
-	private boolean menuBarColumnRemoved = false;
 
 	public RecordVOTable() {
 		super(null);
@@ -187,18 +179,16 @@ public class RecordVOTable extends BaseTable {
 
 	@SuppressWarnings("rawtypes")
 	protected RecordVO getRecordVOForTitleColumn(Item item) {
+		RecordVO recordVO;
 		if (item instanceof RecordVOItem) {
-			return ((RecordVOItem) item).getRecord();
-		}
-		if (item instanceof BeanItem) {
+			recordVO = ((RecordVOItem) item).getRecord();
+		} else if (item instanceof BeanItem) {
 			Object bean = ((BeanItem) item).getBean();
-			return (RecordVO) bean;
+			recordVO = (RecordVO) bean;
+		} else {
+			recordVO = null;
 		}
-		return null;
-	}
-
-	public boolean isContextMenuPossible() {
-		return true;
+		return recordVO;
 	}
 
 	public final List<MetadataSchemaVO> getSchemas() {
@@ -313,15 +303,13 @@ public class RecordVOTable extends BaseTable {
 	}
 
 	private void findSchemaVOs(Container container) {
-		if (container instanceof RecordVOLazyContainer) {
-			RecordVOLazyContainer recordVOLazyContainer = (RecordVOLazyContainer) container;
-			schemaVOs = recordVOLazyContainer.getSchemas();
+		if (container instanceof RecordVOContainer) {
+			RecordVOContainer recordVOContainer = (RecordVOContainer) container;
+			schemaVOs = recordVOContainer.getSchemas();
 		} else if (container instanceof ContainerAdapter) {
 			ContainerAdapter<?> containerAdapter = (ContainerAdapter<?>) container;
+			// Recursive call
 			findSchemaVOs(containerAdapter.getNestedContainer());
-		} else if (container instanceof ViewableRecordVOContainer) {
-			ViewableRecordVOContainer viewableRecordVOContainer = (ViewableRecordVOContainer) container;
-			findSchemaVOs(viewableRecordVOContainer.getRecordVOContainer());
 		}
 	}
 
@@ -329,10 +317,6 @@ public class RecordVOTable extends BaseTable {
 		if (schemaVOs != null && !schemaVOs.isEmpty()) {
 			MetadataVO titleMetadata = schemaVOs.get(0).getMetadata(Schemas.TITLE.getCode());
 			setColumnExpandRatio(titleMetadata, 1);
-			if (isContextMenuPossible()) {
-				addContextMenu();
-				addMenuBarColumn();
-			}
 		}
 	}
 	
@@ -351,15 +335,82 @@ public class RecordVOTable extends BaseTable {
 		if (schemaVOs != null && !schemaVOs.isEmpty()) {
 			MetadataVO titleMetadata = schemaVOs.get(0).getMetadata(Schemas.TITLE.getCode());
 			setColumnWidth(titleMetadata, width);
-		}	
-	} 
-
-	protected RecordVO getRecordVO(Object itemId) {
-		RecordVOItem recordVOItem = (RecordVOItem) getItem(itemId);
-		return recordVOItem.getRecord();
+		}
 	}
 
-	protected void addContextMenu() {
+	@SuppressWarnings("rawtypes")
+	protected RecordVO getRecordVO(Object itemId) {
+		RecordVO recordVO;
+		Item item = getItem(itemId);
+		if (item instanceof RecordVOItem) {
+			recordVO = ((RecordVOItem) item).getRecord();
+		} else if (item instanceof BeanItem) {
+			Object bean = ((BeanItem) item).getBean();
+			recordVO = (RecordVO) bean;
+		} else {
+			recordVO = null;
+		}
+		return recordVO;
+	}
+
+	@Override
+	protected void contextMenuOpened(ContextMenu contextMenu, Object itemId) {
+		RecordVO recordVO = getRecordVO(itemId);
+		RecordContextMenu recordContextMenu = (RecordContextMenu) contextMenu;
+		recordContextMenu.openFor(recordVO);
+	}
+
+	@Override
+	public boolean isMenuBarColumn() {
+		boolean menuBarForSchema = false;
+		for (MetadataSchemaVO schemaVO : schemaVOs) {
+			String schemaCode = schemaVO.getCode();
+			List<RecordMenuBarHandler> recordMenuBarHandlers = ConstellioUI.getCurrent().getRecordMenuBarHandlers();
+			for (RecordMenuBarHandler recordMenuBarHandler : recordMenuBarHandlers) {
+				if (recordMenuBarHandler.isMenuBarForSchemaCode(schemaCode)) {
+					menuBarForSchema = true;
+					break;
+				}
+			}
+		}
+		return menuBarForSchema;
+	}
+
+	@Override
+	protected MenuBar newMenuBar(Object itemId) {
+		MenuBar menuBar = null;
+		List<RecordMenuBarHandler> recordMenuBarHandlers = ConstellioUI.getCurrent().getRecordMenuBarHandlers();
+		for (RecordMenuBarHandler recordMenuBarHandler : recordMenuBarHandlers) {
+			Item item = getItem(itemId);
+			RecordVO recordVO = getRecordVOForTitleColumn(item);
+			menuBar = recordMenuBarHandler.get(recordVO);
+			if (menuBar != null) {
+				break;
+			}
+		}
+		return menuBar;
+	}
+
+	@Override
+	public boolean isContextMenuPossible() {
+		boolean contextMenuForSchema = false;
+		loop1:
+		for (MetadataSchemaVO schemaVO : schemaVOs) {
+			String schemaCode = schemaVO.getCode();
+			List<RecordContextMenuHandler> recordContextMenuHandlers = ConstellioUI.getCurrent().getRecordContextMenuHandlers();
+			for (RecordContextMenuHandler recordContextMenuHandler : recordContextMenuHandlers) {
+				contextMenuForSchema = recordContextMenuHandler.isContextMenuForSchemaCode(schemaCode);
+				if (contextMenuForSchema) {
+					break loop1;
+				}
+			}
+		}
+		return contextMenuForSchema;
+	}
+
+	@Override
+	protected ContextMenu newContextMenu() {
+		RecordContextMenu contextMenu = null;
 		for (MetadataSchemaVO schemaVO : schemaVOs) {
 			String schemaCode = schemaVO.getCode();
 			List<RecordContextMenuHandler> recordContextMenuHandlers = ConstellioUI.getCurrent().getRecordContextMenuHandlers();
@@ -369,105 +420,8 @@ public class RecordVOTable extends BaseTable {
 					break;
 				}
 			}
-			if (contextMenu != null) {
-				contextMenu.setAsContextMenuOf(this);
-				BaseContextMenuTableListener contextMenuTableListener = new BaseContextMenuTableListener() {
-					@Override
-					public void onContextMenuOpenFromFooter(ContextMenuOpenedOnTableFooterEvent event) {
-					}
-
-					@Override
-					public void onContextMenuOpenFromHeader(ContextMenuOpenedOnTableHeaderEvent event) {
-					}
-
-					@Override
-					public void onContextMenuOpenFromRow(ContextMenuOpenedOnTableRowEvent event) {
-						Object itemId = event.getItemId();
-						RecordVO recordVO = getRecordVO(itemId);
-						contextMenu.openFor(recordVO);
-					}
-				};
-				contextMenu.addContextMenuTableListener(contextMenuTableListener);
-				break;
-			}
 		}
-	}
-
-	public boolean isMenuBarColumnRemoved() {
-		return menuBarColumnRemoved;
-	}
-
-	public void removeMenuBarColumn() {
-		menuBarColumnRemoved = true;
-		boolean menuBarColumnGenerated = getColumnGenerator(MENUBAR_PROPERTY_ID) != null;
-		if (menuBarColumnGenerated) {
-			removeGeneratedColumn(MENUBAR_PROPERTY_ID);
-		}
-	}
-
-	protected void addMenuBarColumn() {
-		boolean menuBarColumnGenerated = getColumnGenerator(MENUBAR_PROPERTY_ID) != null;
-		if (!menuBarColumnGenerated && !menuBarColumnRemoved) {
-			boolean menuBarRequired = false;
-			for (MetadataSchemaVO schemaVO : schemaVOs) {
-				String schemaCode = schemaVO.getCode();
-				List<RecordMenuBarHandler> recordMenuBarHandlers = ConstellioUI.getCurrent().getRecordMenuBarHandlers();
-				for (RecordMenuBarHandler recordMenuBarHandler : recordMenuBarHandlers) {
-					if (recordMenuBarHandler.isMenuBarForSchemaCode(schemaCode)) {
-						menuBarRequired = true;
-						break;
-					}
-				}
-			}
-			if (menuBarRequired) {
-				addGeneratedColumn(MENUBAR_PROPERTY_ID, new ColumnGenerator() {
-					@Override
-					public Object generateCell(Table source, Object itemId, Object columnId) {
-						Component cellContent;
-						Item item = getItem(itemId);
-						RecordVO recordVO = getRecordVOForTitleColumn(item);
-						String recordId = recordVO != null ? recordVO.getId() : "_NULL_";
-						CellKey cellKey = new CellKey(recordId, columnId);
-						Property<?> cellProperty = cellProperties.get(cellKey);
-						if (cellProperty != null) {
-							cellContent = (Component) cellProperty.getValue();
-						} else {
-							if (recordVO != null) {
-								MenuBar menuBar = null;
-								List<RecordMenuBarHandler> recordMenuBarHandlers = ConstellioUI.getCurrent().getRecordMenuBarHandlers();
-								for (RecordMenuBarHandler recordMenuBarHandler : recordMenuBarHandlers) {
-									menuBar = recordMenuBarHandler.get(recordVO);
-									if (menuBar != null) {
-										break;
-									}
-								}
-								if (menuBar == null) {
-									cellContent = new Label("");
-								} else {
-									cellContent = menuBar;
-								}
-							} else {
-								cellContent = new Label("");
-							}
-							cellProperties.put(cellKey, new ObjectProperty<Object>(cellContent));
-						}
-						return cellContent;
-					}
-				});
-				setColumnHeader(MENUBAR_PROPERTY_ID, "");
-				setColumnCollapsible(MENUBAR_PROPERTY_ID, false);
-				menuBarColumnAdded = true;
-			}
-		}
-	}
-
-	@Override
-	public Collection<?> getContainerPropertyIds() {
-		List<Object> containerPropertyIds = new ArrayList<>(super.getContainerPropertyIds());
-		if (menuBarColumnAdded) {
-			containerPropertyIds.add(MENUBAR_PROPERTY_ID);
-		}
-		return containerPropertyIds;
+		return contextMenu;
 	}
 
 	@Override
@@ -499,8 +453,129 @@ public class RecordVOTable extends BaseTable {
 		}
 	}
 
-	public ContextMenu getContextMenu() {
-		return contextMenu;
+	@Override
+	protected SelectionManager newSelectionManager() {
+		return new RecordVOSelectionManager();
+	}
+
+	public class RecordVOSelectionManager implements SelectionManager {
+
+		@SuppressWarnings({"rawtypes", "unchecked"})
+		private List<Object> ensureListValue() {
+			List<Object> listValue;
+			Object objectValue = getValue();
+			if (objectValue instanceof List) {
+				listValue = (List) objectValue;
+			} else {
+				listValue = new ArrayList<>();
+			}
+			return listValue;
+		}
+
+		@Override
+		public boolean isAllItemsSelected() {
+			List<Object> listValue = ensureListValue();
+			return listValue.containsAll(getAllRecordVOs());
+		}
+
+		@Override
+		public boolean isAllItemsDeselected() {
+			List<Object> listValue = ensureListValue();
+			return listValue.isEmpty();
+		}
+
+		@Override
+		public List<Object> getAllSelectedItemIds() {
+			List<Object> allSelectedItemIds;
+			if (isAllItemsSelected()) {
+				allSelectedItemIds = new ArrayList<>(getItemIds());
+			} else {
+				allSelectedItemIds = ensureListValue();
+			}
+			return allSelectedItemIds;
+		}
+
+		public List<RecordVO> getSelectedRecordVOs() {
+			List<RecordVO> selectedRecordVOs;
+			if (isAllItemsSelected()) {
+				selectedRecordVOs = getAllRecordVOs();
+			} else {
+				selectedRecordVOs = new ArrayList<>();
+				List<Object> listValue = ensureListValue();
+				for (Object itemId : listValue) {
+					RecordVO recordVO = getRecordVO(itemId);
+					selectedRecordVOs.add(recordVO);
+				}
+			}
+			return selectedRecordVOs;
+		}
+
+		public List<Record> getSelectedRecords() {
+			List<Record> selectedRecords;
+			if (isAllItemsSelected()) {
+				selectedRecords = getAllRecords();
+			} else {
+				selectedRecords = new ArrayList<>();
+				List<Object> listValue = ensureListValue();
+				for (Object itemId : listValue) {
+					RecordVO recordVO = getRecordVO(itemId);
+					selectedRecords.add(recordVO.getRecord());
+				}
+			}
+			return selectedRecords;
+		}
+
+		@Override
+		public boolean isSelected(Object itemId) {
+			List<Object> listValue = ensureListValue();
+			RecordVO recordVO = getRecordVO(itemId);
+			return listValue.contains(recordVO);
+		}
+
+		private List<RecordVO> getAllRecordVOs() {
+			List<RecordVO> listValue = new ArrayList<>();
+			for (Object itemId : getItemIds()) {
+				RecordVO recordVO = getRecordVO(itemId);
+				listValue.add(recordVO);
+			}
+			return listValue;
+		}
+
+		private List<Record> getAllRecords() {
+			List<Record> listValue = new ArrayList<>();
+			for (Object itemId : getItemIds()) {
+				RecordVO recordVO = getRecordVO(itemId);
+				listValue.add(recordVO.getRecord());
+			}
+			return listValue;
+		}
+
+		@Override
+		public void selectionChanged(SelectionChangeEvent event) {
+			if (event.isAllItemsSelected()) {
+				List<RecordVO> listValue = getAllRecordVOs();
+				setValue(listValue);
+			} else if (event.isAllItemsDeselected()) {
+				setValue(new ArrayList<>());
+			} else {
+				List<Object> selectedItemIds = event.getSelectedItemIds();
+				List<Object> deselectedItemIds = event.getDeselectedItemIds();
+				List<Object> listValue = ensureListValue();
+				if (selectedItemIds != null) {
+					for (Object selectedItemId : selectedItemIds) {
+						RecordVO recordVO = getRecordVO(selectedItemId);
+						listValue.add(recordVO);
+					}
+				} else if (deselectedItemIds != null) {
+					for (Object deselectedItemId : deselectedItemIds) {
+						RecordVO recordVO = getRecordVO(deselectedItemId);
+						listValue.remove(recordVO);
+					}
+				}
+				setValue(listValue);
+			}
+		}
+		
 	}
 
 }

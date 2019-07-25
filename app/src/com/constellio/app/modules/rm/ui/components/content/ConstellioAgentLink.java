@@ -1,7 +1,5 @@
 package com.constellio.app.modules.rm.ui.components.content;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -16,6 +14,9 @@ import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+
+import static com.constellio.app.ui.application.ConstellioUI.getCurrent;
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ConstellioAgentLink extends HorizontalLayout {
 	
@@ -43,6 +44,10 @@ public class ConstellioAgentLink extends HorizontalLayout {
 				new ConstellioAgentClickHandler().handleClick(agentURL, recordVO, contentVersionVO, null);
 			}
 		});
+		SessionContext sessionContext = getCurrent().getSessionContext();
+		if (recordVO != null && sessionContext.isVisited(recordVO.getId())) {
+			agentLink.addStyleName("visited-link");
+		}
 		addComponent(agentLink);
 		if (downloadLink) {
 			if (presenter != null) {

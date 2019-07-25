@@ -1,9 +1,9 @@
 package com.constellio.app.modules.rm.ui.components.document;
 
-import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.application.Navigation;
+import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.ViewComponent;
@@ -26,7 +26,7 @@ public interface DocumentActionsComponent extends ViewComponent {
 
 	ConstellioFactories getConstellioFactories();
 
-	void setDocumentVO(DocumentVO documentVO);
+	void setRecordVO(RecordVO documentVO);
 
 	void openUploadWindow(boolean checkingIn);
 
@@ -46,7 +46,7 @@ public interface DocumentActionsComponent extends ViewComponent {
 
 	void setDeleteDocumentButtonState(ComponentState state);
 
-	void setAddAuthorizationButtonState(ComponentState state);
+	void setViewAuthorizationButtonState(ComponentState state);
 
 	void setCreatePDFAButtonState(ComponentState state);
 

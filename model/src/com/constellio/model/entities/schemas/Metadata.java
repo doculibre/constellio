@@ -29,6 +29,8 @@ import static com.constellio.model.services.schemas.builders.ClassListBuilder.co
 
 public class Metadata implements DataStoreField {
 
+	final short id;
+
 	final Metadata inheritance;
 
 	final String collection;
@@ -78,16 +80,17 @@ public class Metadata implements DataStoreField {
 
 	final Map<String, Object> customParameter;
 
-	Metadata(String localCode, MetadataValueType type, boolean multivalue) {
-		this("global_default", localCode, type, multivalue, false);
+	Metadata(int id, String localCode, MetadataValueType type, boolean multivalue) {
+		this(id, "global_default", localCode, type, multivalue, false);
 	}
 
-	Metadata(String localCode, MetadataValueType type, boolean multivalue, boolean multiLingual) {
-		this("global_default", localCode, type, multivalue, multiLingual);
+	Metadata(int id, String localCode, MetadataValueType type, boolean multivalue, boolean multiLingual) {
+		this(id, "global_default", localCode, type, multivalue, multiLingual);
 	}
 
-	Metadata(String schemaCode, String datastoreCode, MetadataValueType type, boolean multivalue,
+	Metadata(int id, String schemaCode, String datastoreCode, MetadataValueType type, boolean multivalue,
 			 boolean multiLingual) {
+		this.id = (short) id;
 		this.inheritance = null;
 
 		this.enabled = false;
@@ -98,7 +101,7 @@ public class Metadata implements DataStoreField {
 				multivalue, false, false, false, false, false,
 				false, false, false, false, false,
 				false, multiLingual, false, new HashSet<String>(), false,
-				false, PERSISTED, false);
+				false, PERSISTED, false, false);
 		this.defaultRequirement = false;
 		this.dataEntry = null;
 		this.encryptionServicesFactory = null;
@@ -179,7 +182,8 @@ public class Metadata implements DataStoreField {
 		return Schemas.isGlobalMetadata(getLocalCode());
 	}
 
-	public Metadata(String localCode, String code, String collection, Map<Language, String> labels, Boolean enabled,
+	public Metadata(short id, String localCode, String code, String collection, Map<Language, String> labels,
+					Boolean enabled,
 					InheritedMetadataBehaviors inheritedMetadataBehaviors, MetadataValueType type,
 					AllowedReferences allowedReferences, Boolean defaultRequirement, DataEntry dataEntry,
 					Set<RecordMetadataValidator<?>> recordMetadataValidators, String dataStoreType,
@@ -189,7 +193,7 @@ public class Metadata implements DataStoreField {
 					Factory<EncryptionServices> encryptionServices, Boolean duplicatbale,
 					Map<String, Object> customParameter) {
 		super();
-
+		this.id = id;
 		this.inheritance = null;
 		this.localCode = localCode;
 		this.code = code;
@@ -217,12 +221,14 @@ public class Metadata implements DataStoreField {
 		this.customParameter = Collections.unmodifiableMap(customParameter);
 	}
 
-	public Metadata(Metadata inheritance, Map<Language, String> labels, boolean enabled, boolean defaultRequirement,
+	public Metadata(Metadata inheritance, Map<Language, String> labels, boolean enabled,
+					boolean defaultRequirement,
 					String code,
 					Set<RecordMetadataValidator<?>> recordMetadataValidators, Object defaultValue, String inputMask,
 					MetadataPopulateConfigs populateConfigs, boolean duplicable, Map<String, Object> customParameter) {
 		super();
 
+		this.id = inheritance.getId();
 		this.localCode = inheritance.getLocalCode();
 		this.code = code;
 		this.collection = inheritance.collection;
@@ -252,6 +258,10 @@ public class Metadata implements DataStoreField {
 
 	public Map<String, Object> getCustomParameter() {
 		return customParameter;
+	}
+
+	public short getId() {
+		return id;
 	}
 
 	public String getCode() {
@@ -378,6 +388,8 @@ public class Metadata implements DataStoreField {
 		return getInheritedMetadataBehaviors().isEssential();
 	}
 
+	public boolean isCacheIndex() { return getInheritedMetadataBehaviors().isCacheIndex(); }
+
 	public boolean isEssentialInSummary() {
 		return getInheritedMetadataBehaviors().isEssentialInSummary();
 	}
@@ -455,20 +467,20 @@ public class Metadata implements DataStoreField {
 		return enumClass;
 	}
 
-	public static Metadata newDummyMetadata(String schemaCode, String localCode, MetadataValueType type,
+	public static Metadata newDummyMetadata(short id, String schemaCode, String localCode, MetadataValueType type,
 											boolean multivalue,
 											boolean multiLingual) {
-		return new Metadata(schemaCode, localCode, type, multivalue, multiLingual);
+		return new Metadata(id, schemaCode, localCode, type, multivalue, multiLingual);
 	}
 
-	public static Metadata newGlobalMetadata(String dataStoreCode, MetadataValueType type, boolean multivalue,
+	public static Metadata newGlobalMetadata(short id, String dataStoreCode, MetadataValueType type, boolean multivalue,
 											 boolean multiLingual) {
-		return new Metadata("global_default", dataStoreCode, type, multivalue, multiLingual);
+		return new Metadata(id, "global_default", dataStoreCode, type, multivalue, multiLingual);
 	}
 
 	public Metadata getSearchableMetadataWithLanguage(String language) {
 		String schemaCode = code.replace("_" + localCode, "");
-		return new Metadata(schemaCode, getDataStoreCode().replace("_s", "_t") + "_" + language, type, isMultivalue(),
+		return new Metadata(id, schemaCode, getDataStoreCode().replace("_s", "_t") + "_" + language, type, isMultivalue(),
 				isMultiLingual());
 	}
 
@@ -578,4 +590,5 @@ public class Metadata implements DataStoreField {
 	public boolean isGlobal() {
 		return global;
 	}
+
 }

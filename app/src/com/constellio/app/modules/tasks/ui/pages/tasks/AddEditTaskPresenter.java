@@ -4,12 +4,13 @@ import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.modules.tasks.TaskModule;
+import com.constellio.app.modules.tasks.TasksPermissionsTo;
+import com.constellio.app.modules.tasks.extensions.TaskAddEditTaskPresenterExtension;
 import com.constellio.app.modules.tasks.extensions.action.Action;
 import com.constellio.app.modules.tasks.extensions.api.TaskModuleExtensions;
 import com.constellio.app.modules.tasks.extensions.api.params.TaskFormParams;
 import com.constellio.app.modules.tasks.extensions.api.params.TaskFormRetValue;
 import com.constellio.app.modules.tasks.extensions.param.PromptUserParam;
-import com.constellio.app.modules.tasks.TasksPermissionsTo;
 import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflowTask;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.TaskStatusType;
@@ -71,19 +72,6 @@ import org.apache.commons.lang.StringUtils;
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-
-import static com.constellio.app.modules.tasks.model.wrappers.Task.ASSIGNEE;
-import static com.constellio.app.ui.entities.RecordVO.VIEW_MODE.FORM;
-import static com.constellio.app.ui.i18n.i18n.$;
-import static java.util.Arrays.asList;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -336,12 +324,16 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 	}
 
 	private void saveRecord(Task task, Record record, boolean withRequiredValidation) {
-		RecordUpdateOptions recordUpdateOptions;
+		RecordUpdateOptions recordUpdateOptions = null;
+
+		if (rmModuleExtensions != null) {
+			for (TaskAddEditTaskPresenterExtension extension : rmModuleExtensions.getTaskAddEditTaskPresenterExtension()) {
+				recordUpdateOptions = extension.getRecordUpdateOption();
+			}
+		}
 
 		if (task.isModel()) {
 			recordUpdateOptions = RecordUpdateOptions.userModificationsSafeOptions();
-		} else {
-			recordUpdateOptions = null;
 		}
 
 		if (withRequiredValidation) {
@@ -440,7 +432,13 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		try {
 			TaskVO taskVO = getTask();
 			Task task = taskPresenterServices.toTask(new TaskVO(taskVO), toRecord(taskVO));
-			if (task.isModel()) {
+			boolean adjustRequiredUSRMetadatasFields = false;
+			if (rmModuleExtensions != null) {
+				for (TaskAddEditTaskPresenterExtension extension : rmModuleExtensions.getTaskAddEditTaskPresenterExtension()) {
+					adjustRequiredUSRMetadatasFields = extension.adjustRequiredUSRMetadatasFields();
+				}
+			}
+			if (task.isModel() || adjustRequiredUSRMetadatasFields) {
 				TaskForm form = view.getForm();
 				if (form != null && form instanceof RecordForm) {
 					MetadataSchemasManager schemasManager = modelLayerFactory.getMetadataSchemasManager();
@@ -665,10 +663,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 	public void fieldValueChanged(Field<?> customField) {
 
 		Field<String> assignee = (Field<String>) view.getForm().getField(Task.ASSIGNEE);
-		boolean assigneeValue = false;
-		if(assignee != null) {
-			StringUtils.isNotBlank(assignee.getValue());
-		}
+		boolean assigneeValue = assignee != null && StringUtils.isNotBlank(assignee.getValue());
 
 		ListAddRemoveRecordLookupField group = (ListAddRemoveRecordLookupField) view.getForm().getField(Task.ASSIGNEE_GROUPS_CANDIDATES);
 		boolean groupValue = group != null && (CollectionUtils.isNotEmpty(group.getValue()) || group.getLookupFieldValue() != null);

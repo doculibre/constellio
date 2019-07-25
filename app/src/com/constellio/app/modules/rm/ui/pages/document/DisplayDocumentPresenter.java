@@ -30,7 +30,6 @@ import com.constellio.app.ui.framework.builders.EventToVOBuilder;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.components.ComponentState;
-import com.constellio.app.ui.framework.components.RMSelectionPanelReportPresenter;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
@@ -38,8 +37,6 @@ import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.RecordUpdateOptions;
-import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
@@ -67,7 +64,6 @@ import java.util.List;
 import java.util.Map;
 
 import static com.constellio.app.modules.tasks.model.wrappers.Task.STARRED_BY_USERS;
-import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
@@ -92,29 +88,34 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	private DocumentVO documentVO;
 	private Map<String, String> params = null;
 	private boolean nestedView;
+	private boolean inWindow;
 
-	public DisplayDocumentPresenter(final DisplayDocumentView view, RecordVO recordVO, final boolean nestedView) {
+	public DisplayDocumentPresenter(final DisplayDocumentView view, RecordVO recordVO, final boolean nestedView,
+									final boolean inWindow) {
 		super(view);
 		this.nestedView = nestedView;
+		this.inWindow = inWindow;
 		initTransientObjects();
 		presenterUtils = new DocumentActionsPresenterUtils<DisplayDocumentView>(view) {
 			@Override
 			public void updateActionsComponent() {
 				super.updateActionsComponent();
 				if (nestedView) {
-					view.setDisplayDocumentButtonState(ComponentState.ENABLED);
-					Content content = getContent();
-					if (content != null) {
-						ContentVersionVO contentVersionVO = contentVersionVOBuilder.build(content);
-						view.setDownloadDocumentButtonState(ComponentState.ENABLED);
-						String agentURL = ConstellioAgentUtils.getAgentURL(documentVO, contentVersionVO);
-						view.setOpenDocumentButtonState(agentURL != null ? ComponentState.ENABLED : ComponentState.INVISIBLE);
+					if (inWindow) {
+						view.setDisplayDocumentButtonState(ComponentState.INVISIBLE);
 					} else {
-						view.setDownloadDocumentButtonState(ComponentState.INVISIBLE);
-						view.setOpenDocumentButtonState(ComponentState.INVISIBLE);
+						view.setDisplayDocumentButtonState(ComponentState.ENABLED);
 					}
 				} else {
 					view.setDisplayDocumentButtonState(ComponentState.INVISIBLE);
+				}
+				Content content = getContent();
+				if (content != null) {
+					ContentVersionVO contentVersionVO = contentVersionVOBuilder.build(content);
+					view.setDownloadDocumentButtonState(ComponentState.ENABLED);
+					String agentURL = ConstellioAgentUtils.getAgentURL(documentVO, contentVersionVO);
+					view.setOpenDocumentButtonState(agentURL != null ? ComponentState.ENABLED : ComponentState.INVISIBLE);
+				} else {
 					view.setDownloadDocumentButtonState(ComponentState.INVISIBLE);
 					view.setOpenDocumentButtonState(ComponentState.INVISIBLE);
 				}
@@ -187,8 +188,8 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		document = rm.wrapDocument(record);
 		hasWriteAccess = getCurrentUser().hasWriteAccess().on(record);
 
-		documentVO = voBuilder.build(record, VIEW_MODE.DISPLAY, view.getSessionContext());
-		view.setDocumentVO(documentVO);
+		final DocumentVO documentVO = voBuilder.build(record, VIEW_MODE.DISPLAY, view.getSessionContext());
+		view.setRecordVO(documentVO);
 		presenterUtils.setRecordVO(documentVO);
 		ModelLayerFactory modelLayerFactory = view.getConstellioFactories().getModelLayerFactory();
 		User user = getCurrentUser();
@@ -199,7 +200,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		tasksDataProvider = new RecordVODataProvider(
 				tasksSchemaVO, voBuilder, modelLayerFactory, view.getSessionContext()) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				TasksSchemasRecordsServices tasks = new TasksSchemasRecordsServices(collection, appLayerFactory);
 				Metadata taskDocumentMetadata = tasks.userTask.schema().getMetadata(RMTask.LINKED_DOCUMENTS);
 				LogicalSearchQuery query = new LogicalSearchQuery();
@@ -244,7 +245,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 
 	public void backgroundViewMonitor() {
 		clearRequestCache();
-		DocumentVO documentVO = presenterUtils.getDocumentVO();
+		DocumentVO documentVO = presenterUtils.getRecordVO();
 		try {
 			ContentVersionVO contentVersionVO = documentVO.getContent();
 			Record currentRecord = getRecord(documentVO.getId());
@@ -259,7 +260,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 				|| ObjectUtils.notEqual(lastKnownCheckoutUserId, currentCheckoutUserId)
 				|| ObjectUtils.notEqual(lastKnownLength, currentLength)) {
 				documentVO = voBuilder.build(currentRecord, VIEW_MODE.DISPLAY, view.getSessionContext());
-				view.setDocumentVO(documentVO);
+				view.setRecordVO(documentVO);
 				presenterUtils.setRecordVO(documentVO);
 				presenterUtils.updateActionsComponent();
 				if ((lastKnownCheckoutUserId != null && currentCheckoutUserId == null)
@@ -288,7 +289,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 
 	@Override
 	protected List<String> getRestrictedRecordIds(String params) {
-		DocumentVO documentVO = presenterUtils.getDocumentVO();
+		DocumentVO documentVO = presenterUtils.getRecordVO();
 		return Arrays.asList(documentVO == null ? extractIdFromParams(params) : documentVO.getId());
 	}
 
@@ -305,7 +306,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 
 		return new RecordVODataProvider(schemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				return new BetaWorkflowServices(view.getCollection(), appLayerFactory).getWorkflowsQuery();
 			}
 		};
@@ -313,7 +314,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 
 	public void workflowStartRequested(RecordVO record) {
 		Map<String, List<String>> parameters = new HashMap<>();
-		parameters.put(RMTask.LINKED_DOCUMENTS, asList(presenterUtils.getDocumentVO().getId()));
+		parameters.put(RMTask.LINKED_DOCUMENTS, asList(presenterUtils.getRecordVO().getId()));
 		BetaWorkflow workflow = new TasksSchemasRecordsServices(view.getCollection(), appLayerFactory)
 				.getBetaWorkflow(record.getId());
 		new BetaWorkflowServices(view.getCollection(), appLayerFactory).start(workflow, getCurrentUser(), parameters);
@@ -321,7 +322,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 
 	public void updateContentVersions() {
 		List<ContentVersionVO> contentVersionVOs = new ArrayList<ContentVersionVO>();
-		DocumentVO documentVO = presenterUtils.getDocumentVO();
+		DocumentVO documentVO = presenterUtils.getRecordVO();
 		Record record = getRecord(documentVO.getId());
 		Document document = new Document(record, types());
 
@@ -357,7 +358,11 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	}
 
 	public void displayDocumentButtonClicked() {
-		view.navigate().to(RMViews.class).displayDocument(documentVO.getId());
+		if (view.isInWindow() || nestedView) {
+			view.openInWindow();
+		} else {
+			view.navigate().to(RMViews.class).displayDocument(documentVO.getId());
+		}
 	}
 
 	public void openDocumentButtonClicked() {
@@ -373,57 +378,12 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		}
 	}
 
-	public void deleteDocumentButtonClicked() {
-		presenterUtils.deleteDocumentButtonClicked(params);
-	}
-
-	public void linkToDocumentButtonClicked() {
-		presenterUtils.linkToDocumentButtonClicked();
-	}
-
-	public void addAuthorizationButtonClicked() {
-		presenterUtils.addAuthorizationButtonClicked();
-	}
-
-	public void shareDocumentButtonClicked() {
-		presenterUtils.shareDocumentButtonClicked();
-	}
-
-	public void createPDFAButtonClicked() {
-		if (!presenterUtils.getDocumentVO().getExtension().toUpperCase().equals("PDF") && !presenterUtils.getDocumentVO()
-				.getExtension().toUpperCase().equals("PDFA")) {
-			presenterUtils.createPDFA(params);
-		} else {
-			this.view.showErrorMessage($("DocumentActionsComponent.documentAllreadyPDFA"));
-		}
-	}
-
-	public void uploadButtonClicked() {
-		presenterUtils.uploadButtonClicked();
-	}
-
-	public void checkInButtonClicked() {
-		presenterUtils.checkInButtonClicked();
-	}
-
-	public void alertWhenAvailableClicked() {
-		presenterUtils.alertWhenAvailable();
-	}
-
-	public void checkOutButtonClicked() {
-		presenterUtils.checkOutButtonClicked(view.getSessionContext());
-	}
-
-	public void finalizeButtonClicked() {
-		presenterUtils.finalizeButtonClicked();
-	}
-
 	public void updateWindowClosed() {
 		presenterUtils.updateWindowClosed();
 	}
 
 	public String getDocumentTitle() {
-		DocumentVO documentVO = presenterUtils.getDocumentVO();
+		DocumentVO documentVO = presenterUtils.getRecordVO();
 		return documentVO.getTitle();
 	}
 
@@ -435,25 +395,6 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		return presenterUtils.getContentTitle();
 	}
 
-	public void renameContentButtonClicked(String newContentTitle) {
-		Document document = presenterUtils.renameContentButtonClicked(newContentTitle);
-		if (document != null) {
-			addOrUpdate(document.getWrappedRecord());
-			presenterUtils.navigateToDisplayDocument(document.getId(), params);
-		}
-	}
-
-	public RecordVODataProvider getSharedCartsDataProvider() {
-		final MetadataSchemaVO cartSchemaVO = schemaVOBuilder.build(rm.cartSchema(), VIEW_MODE.TABLE, view.getSessionContext());
-		return new RecordVODataProvider(cartSchemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
-			@Override
-			protected LogicalSearchQuery getQuery() {
-				return new LogicalSearchQuery(from(rm.cartSchema()).where(rm.cartSharedWithUsers())
-						.isContaining(asList(getCurrentUser().getId()))).sortAsc(Schemas.TITLE);
-			}
-		};
-	}
-
 	public boolean hasContent() {
 		return presenterUtils.hasContent();
 	}
@@ -462,40 +403,19 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		view.navigate().to(TaskViews.class).displayTask(taskVO.getId());
 	}
 
-	public void addToCartRequested(RecordVO recordVO) {
-		Cart cart = rm.getCart(recordVO.getId());
-		addToCartRequested(cart);
-	}
-
-	public void addToCartRequested(Cart cart) {
-		if (rm.numberOfDocumentsInFavoritesReachesLimit(cart.getId(), 1)) {
-			view.showMessage($("DisplayDocumentView.cartCannotContainMoreThanAThousandDocuments"));
-		} else {
-			presenterUtils.addToCartRequested(cart);
-		}
-	}
-
 	public InputStream getSignatureInputStream(String certificate, String password) {
 		// TODO: Sign the file
-		ContentVersionVO content = presenterUtils.getDocumentVO().getContent();
+		ContentVersionVO content = presenterUtils.getRecordVO().getContent();
 		return modelLayerFactory.getContentManager().getContentInputStream(content.getHash(), content.getFileName());
-	}
-
-	public void publishButtonClicked() {
-		updateAndRefresh(presenterUtils.publishButtonClicked());
 	}
 
 	public boolean isLogicallyDeleted() {
 		return document == null || document.isLogicallyDeletedStatus();
 	}
 
-	public void unpublishButtonClicked() {
-		updateAndRefresh(presenterUtils.unpublishButtonClicked());
-	}
-
 	public String getPublicLink() {
 		String url = modelLayerFactory.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.CONSTELLIO_URL);
-		return url + "dl?id=" + presenterUtils.getDocumentVO().getId();
+		return url + "dl?id=" + presenterUtils.getRecordVO().getId();
 	}
 
 	private void updateAndRefresh(Document document) {
@@ -505,27 +425,13 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		}
 	}
 
-	public void createNewCartAndAddToItRequested(String title) {
-		Cart cart = rm.newCart();
-		cart.setTitle(title);
-		cart.setOwner(getCurrentUser());
-		document.addFavorite(cart.getId());
-		try {
-			recordServices().execute(new Transaction(cart.getWrappedRecord()).setUser(getCurrentUser()));
-			recordServices().update(document.getWrappedRecord(), RecordUpdateOptions.validationExceptionSafeOptions());
-			view.showMessage($("DocumentActionsComponent.addedToCart"));
-		} catch (RecordServicesException e) {
-			e.printStackTrace();
-		}
-	}
-
 	public boolean hasWritePermission() {
 		return hasWriteAccess;
 	}
 
 	public boolean hasCurrentUserPermissionToPublishOnCurrentDocument() {
 		return getCurrentUser().has(RMPermissionsTo.PUBLISH_AND_UNPUBLISH_DOCUMENTS)
-				.on(getRecord(presenterUtils.getDocumentVO().getId()));
+				.on(getRecord(presenterUtils.getRecordVO().getId()));
 	}
 
 	public boolean hasCurrentUserPermissionToUseCartGroup() {
@@ -543,10 +449,10 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 				.build(rm.eventSchema(), VIEW_MODE.TABLE, view.getSessionContext());
 		return new RecordVODataProvider(eventSchemaVO, new EventToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				RMEventsSearchServices rmEventsSearchServices = new RMEventsSearchServices(modelLayerFactory, collection);
 				LogicalSearchQuery query = rmEventsSearchServices
-						.newFindEventByRecordIDQuery(getCurrentUser(), presenterUtils.getDocumentVO().getId());
+						.newFindEventByRecordIDQuery(getCurrentUser(), presenterUtils.getRecordVO().getId());
 				return query == null ? null : rmEventsSearchServices.exceptEventTypes(query,
 						asList(EventType.OPEN_DOCUMENT, EventType.DOWNLOAD_DOCUMENT, EventType.UPLOAD_DOCUMENT,
 								EventType.SHARE_DOCUMENT, EventType.FINALIZE_DOCUMENT));
@@ -555,7 +461,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	}
 
 	protected boolean hasCurrentUserPermissionToViewEvents() {
-		return getCurrentUser().has(CorePermissions.VIEW_EVENTS).on(getRecord(presenterUtils.getDocumentVO().getId()));
+		return getCurrentUser().has(CorePermissions.VIEW_EVENTS).on(getRecord(presenterUtils.getRecordVO().getId()));
 	}
 
 	protected boolean hasCurrentUserPermissionToViewFileSystemName() {
@@ -607,42 +513,8 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		query.sortFirstOn(sortField);
 	}
 
-	public void addToDefaultFavorite() {
-		if (rm.numberOfDocumentsInFavoritesReachesLimit(getCurrentUser().getId(), 1)) {
-			view.showMessage($("DisplayDocumentView.cartCannotContainMoreThanAThousandDocuments"));
-		} else {
-			document.addFavorite(getCurrentUser().getId());
-			try {
-				recordServices.update(document.getWrappedRecord(), RecordUpdateOptions.validationExceptionSafeOptions());
-			} catch (RecordServicesException e) {
-				e.printStackTrace();
-				throw new RuntimeException(e);
-			}
-			view.showMessage($("DisplayDocumentView.documentAddedToDefaultFavorites"));
-		}
-	}
-
-	public RMSelectionPanelReportPresenter buildReportPresenter() {
-		return new RMSelectionPanelReportPresenter(appLayerFactory, collection, getCurrentUser()) {
-			@Override
-			public String getSelectedSchemaType() {
-				return Document.SCHEMA_TYPE;
-			}
-
-			@Override
-			public List<String> getSelectedRecordIds() {
-				return asList(presenterUtils.getDocumentVO().getId());
-			}
-		};
-	}
-
 	public AppLayerFactory getApplayerFactory() {
 		return appLayerFactory;
-	}
-
-	public List<Cart> getOwnedCarts() {
-		return rm.wrapCarts(searchServices().search(new LogicalSearchQuery(from(rm.cartSchema()).where(rm.cart.owner())
-				.isEqualTo(getCurrentUser().getId())).sortAsc(Schemas.TITLE)));
 	}
 
 	public MetadataSchemaVO getSchema() {

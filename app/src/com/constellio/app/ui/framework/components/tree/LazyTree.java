@@ -80,8 +80,9 @@ public class LazyTree<T extends Serializable> extends CustomField<Object> {
 		super();
 		this.dataProvider = treeDataProvider;
 		this.bufferSize = bufferSize;
+		this.multiValue = multiValue;
 
-		if (multiValue) {
+		if (this.multiValue) {
 			adaptee = new TreeTableComponent();
 		} else {
 			adaptee = new TreeComponent();

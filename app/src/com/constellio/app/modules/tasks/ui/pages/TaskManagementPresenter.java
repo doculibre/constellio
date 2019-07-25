@@ -306,7 +306,7 @@ public class TaskManagementPresenter extends AbstractTaskPresenter<TaskManagemen
 
 		return new RecordVODataProvider(schemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				return workflowServices.getWorkflowsQuery();
 			}
 		};
@@ -329,7 +329,7 @@ public class TaskManagementPresenter extends AbstractTaskPresenter<TaskManagemen
 			case TaskManagementView.TASKS_ASSIGNED_TO_CURRENT_USER:
 				return new RecordVODataProvider(schemaVO, new TaskToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 					@Override
-					protected LogicalSearchQuery getQuery() {
+					public LogicalSearchQuery getQuery() {
 						LogicalSearchQuery query = tasksSearchServices.getTasksAssignedToUserQuery(getCurrentUser());
 						addTimeStampToQuery(query);
 						addStarredSortToQuery(query);
@@ -345,7 +345,7 @@ public class TaskManagementPresenter extends AbstractTaskPresenter<TaskManagemen
 			case TaskManagementView.TASKS_ASSIGNED_BY_CURRENT_USER:
 				return new RecordVODataProvider(schemaVO, new TaskToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 					@Override
-					protected LogicalSearchQuery getQuery() {
+					public LogicalSearchQuery getQuery() {
 						LogicalSearchQuery query = tasksSearchServices.getTasksAssignedByUserQuery(getCurrentUser());
 						addTimeStampToQuery(query);
 						addStarredSortToQuery(query);
@@ -361,7 +361,7 @@ public class TaskManagementPresenter extends AbstractTaskPresenter<TaskManagemen
 			case TaskManagementView.TASKS_NOT_ASSIGNED:
 				return new RecordVODataProvider(schemaVO, new TaskToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 					@Override
-					protected LogicalSearchQuery getQuery() {
+					public LogicalSearchQuery getQuery() {
 						LogicalSearchQuery query = tasksSearchServices.getUnassignedTasksQuery(getCurrentUser());
 						addTimeStampToQuery(query);
 						addStarredSortToQuery(query);
@@ -377,7 +377,7 @@ public class TaskManagementPresenter extends AbstractTaskPresenter<TaskManagemen
 			case TaskManagementView.TASKS_RECENTLY_COMPLETED:
 				return new RecordVODataProvider(schemaVO, new TaskToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 					@Override
-					protected LogicalSearchQuery getQuery() {
+					public LogicalSearchQuery getQuery() {
 						LogicalSearchQuery query = tasksSearchServices.getRecentlyCompletedTasks(getCurrentUser());
 						addTimeStampToQuery(query);
 						addStarredSortToQuery(query);

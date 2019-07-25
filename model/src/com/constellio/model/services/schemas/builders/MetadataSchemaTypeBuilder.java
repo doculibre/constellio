@@ -7,6 +7,7 @@ import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.CannotGetMetadatasOfAnotherSchemaType;
+import com.constellio.model.entities.schemas.RecordCacheType;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.SchemaComparators;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilderRuntimeException.CannotDeleteSchema;
@@ -29,9 +30,9 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 public class MetadataSchemaTypeBuilder {
 
 	private static final String DEFAULT = "default";
-
 	private static final String UNDERSCORE = "_";
 	private final Set<MetadataSchemaBuilder> allSchemas = new HashSet<MetadataSchemaBuilder>();
+	private short id;
 	private String code;
 	private String smallCode;
 	private CollectionInfo collectionInfo;
@@ -45,6 +46,11 @@ public class MetadataSchemaTypeBuilder {
 	private ClassProvider classProvider;
 	private Set<String> flags = new HashSet<>();
 	private String dataStore;
+	private SchemasIdSequence metadatasIdSequence;
+	private RecordCacheType recordCacheType;
+	private SchemasIdSequence schemasIdSequence;
+
+	private MetadataSchemaType lastVersion;
 
 	MetadataSchemaTypeBuilder() {
 	}
@@ -63,6 +69,7 @@ public class MetadataSchemaTypeBuilder {
 		builder.setLabels(configureLabels(code, typesBuilder));
 		builder.customSchemas = new HashSet<>();
 		builder.dataStore = "records";
+		builder.recordCacheType = RecordCacheType.FULLY_CACHED;
 		builder.defaultSchema = MetadataSchemaBuilder.createDefaultSchema(builder, typesBuilder, initialize);
 
 		return builder;
@@ -91,6 +98,9 @@ public class MetadataSchemaTypeBuilder {
 		builder.inTransactionLog = schemaType.isInTransactionLog();
 		builder.customSchemas = new HashSet<>();
 		builder.dataStore = schemaType.getDataStore();
+		builder.recordCacheType = schemaType.getCacheType();
+		builder.id = schemaType.getId();
+		builder.lastVersion = schemaType;
 		for (MetadataSchema schema : schemaType.getCustomSchemas()) {
 			builder.customSchemas.add(MetadataSchemaBuilder.modifySchema(schema, builder));
 		}
@@ -151,6 +161,11 @@ public class MetadataSchemaTypeBuilder {
 		this.undeletable = undeletable;
 	}
 
+	public short getId() {
+		return id;
+	}
+
+
 	public Set<MetadataSchemaBuilder> getAllSchemas() {
 		allSchemas.addAll(customSchemas);
 		allSchemas.add(defaultSchema);
@@ -206,19 +221,20 @@ public class MetadataSchemaTypeBuilder {
 		return customSchema;
 	}
 
-	public MetadataSchemaType build(DataStoreTypesFactory typesFactory, ModelLayerFactory modelLayerFactory) {
-		MetadataSchema defaultSchema = this.defaultSchema.buildDefault(typesFactory, modelLayerFactory);
+	public MetadataSchemaType build(DataStoreTypesFactory typesFactory, MetadataSchemaTypesBuilder typesBuilder,
+									ModelLayerFactory modelLayerFactory) {
+		MetadataSchema defaultSchema = this.defaultSchema.buildDefault(typesFactory, this, typesBuilder, modelLayerFactory);
 
 		List<MetadataSchema> schemas = new ArrayList<MetadataSchema>();
 		for (MetadataSchemaBuilder metadataSchemaBuilder : this.customSchemas) {
-			schemas.add(metadataSchemaBuilder.buildCustom(defaultSchema, typesFactory, modelLayerFactory));
+			schemas.add(metadataSchemaBuilder.buildCustom(defaultSchema, this, typesBuilder, typesFactory, modelLayerFactory));
 		}
 
 		if (labels == null || labels.isEmpty()) {
 			throw new MetadataSchemaTypeBuilderRuntimeException.LabelNotDefined(code);
 		} else {
 			for (Entry<Language, String> entry : labels.entrySet()) {
-				if(collectionInfo.getCollectionLocales().contains(entry.getKey().getLocale())) {
+				if (collectionInfo.getCollectionLocales().contains(entry.getKey().getLocale())) {
 					if (Strings.isNullOrEmpty(entry.getValue())) {
 						throw new MetadataSchemaTypeBuilderRuntimeException.LabelNotDefinedForLanguage(entry.getKey(), code);
 					}
@@ -226,10 +242,24 @@ public class MetadataSchemaTypeBuilder {
 			}
 		}
 
+		if (id == 0) {
+			id = typesBuilder.nextSchemaTypeId();
+		}
+
 		Collections.sort(schemas, SchemaComparators.SCHEMA_COMPARATOR_BY_ASC_LOCAL_CODE);
-		return new MetadataSchemaType(code, smallCode, collectionInfo, labels, schemas, defaultSchema, undeletable, security,
-				inTransactionLog,
+		return new MetadataSchemaType(id, code, smallCode, collectionInfo, labels, schemas, defaultSchema, undeletable, security,
+				recordCacheType, inTransactionLog,
 				readOnlyLocked, dataStore);
+	}
+
+	public RecordCacheType getRecordCacheType() {
+		return recordCacheType;
+	}
+
+	public MetadataSchemaTypeBuilder setRecordCacheType(
+			RecordCacheType recordCacheType) {
+		this.recordCacheType = recordCacheType;
+		return this;
 	}
 
 	public MetadataBuilder getMetadata(String metadataCode) {
@@ -308,6 +338,14 @@ public class MetadataSchemaTypeBuilder {
 		return this;
 	}
 
+	public MetadataSchemaTypeBuilder setId(short id) {
+		if (this.id != (short) 0) {
+			throw new IllegalStateException("Cannot set id of already created schema type");
+		}
+		this.id = id;
+		return this;
+	}
+
 	public boolean isReadOnlyLocked() {
 		return readOnlyLocked;
 	}
@@ -383,5 +421,50 @@ public class MetadataSchemaTypeBuilder {
 		}
 
 		return customSchema;
+	}
+
+	short nextMetadataId() {
+		if (metadatasIdSequence == null) {
+			metadatasIdSequence = new SchemasIdSequence();
+			for (MetadataBuilder metadataBuilder : defaultSchema.getMetadatas()) {
+				metadatasIdSequence.markAsAssigned(metadataBuilder.getId());
+			}
+
+			for (MetadataSchemaBuilder schemaBuilder : customSchemas) {
+				for (MetadataBuilder metadataBuilder : schemaBuilder.getMetadatas()) {
+					metadatasIdSequence.markAsAssigned(metadataBuilder.getId());
+				}
+			}
+		}
+		return metadatasIdSequence.getNewId();
+	}
+
+	public short nextSchemaId() {
+		if (schemasIdSequence == null) {
+			schemasIdSequence = new SchemasIdSequence();
+			for (MetadataSchemaBuilder metadataSchemaBuilder : allSchemas) {
+				schemasIdSequence.markAsAssigned(metadataSchemaBuilder.getId());
+			}
+		}
+		return schemasIdSequence.getNewId();
+	}
+
+	public boolean isRequiringCacheReload() {
+		if (lastVersion != null) {
+
+			if (lastVersion.getCacheType() != recordCacheType) {
+				return true;
+			}
+
+			for (MetadataSchemaBuilder builder : getAllSchemas()) {
+				for (MetadataBuilder metadataBuilder : builder.getMetadatas()) {
+					if (metadataBuilder.isRequiringCacheReload()) {
+						return true;
+					}
+				}
+			}
+
+		}
+		return false;
 	}
 }

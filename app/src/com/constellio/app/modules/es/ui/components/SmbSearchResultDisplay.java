@@ -17,16 +17,16 @@ import com.vaadin.ui.Component;
 public class SmbSearchResultDisplay extends SearchResultDisplay {
 
 	public SmbSearchResultDisplay(SearchResultVO searchResultVO, MetadataDisplayFactory componentFactory,
-								  AppLayerFactory appLayerFactory, String query) {
-		super(searchResultVO, componentFactory, appLayerFactory, query);
+								  AppLayerFactory appLayerFactory, String query, boolean noLinks) {
+		super(searchResultVO, componentFactory, appLayerFactory, query, noLinks);
 	}
 
 	@Override
-	protected Component newTitleComponent(SearchResultVO searchResultVO) {
+	protected Component newTitleLink(SearchResultVO searchResultVO) {
 		RecordVO recordVO = searchResultVO.getRecordVO();
 
 		String schemaCode = recordVO.getSchema().getCode();
-		Component titleComponent;
+		Component titleLink;
 
 		SystemConfigurationsManager systemConfigurationsManager = getAppLayerFactory().getModelLayerFactory().getSystemConfigurationsManager();
 		boolean agentRegistered = getAppLayerFactory().getPluginManager().isRegistered("agent");
@@ -35,15 +35,15 @@ public class SmbSearchResultDisplay extends SearchResultDisplay {
 			MetadataVO smbPathMetadata = recordVO.getMetadata(ConnectorSmbDocument.URL);
 			String agentURL = ConstellioAgentUtils.getAgentSmbURL(recordVO, smbPathMetadata);
 			if (agentURL != null) {
-				titleComponent = new ConstellioAgentLink(agentURL, null, recordVO.getTitle(), false);
-				((ConstellioAgentLink) titleComponent).addVisitedClickListener(recordVO.getId());
+				titleLink = new ConstellioAgentLink(agentURL, null, recordVO.getTitle(), false);
+				((ConstellioAgentLink) titleLink).addVisitedClickListener(recordVO.getId());
 			} else {
-				titleComponent = super.newTitleComponent(searchResultVO);
+				titleLink = super.newTitleLink(searchResultVO);
 			}
 		} else {
-			titleComponent = super.newTitleComponent(searchResultVO);
+			titleLink = super.newTitleLink(searchResultVO);
 		}
 
-		return titleComponent;
+		return titleLink;
 	}
 }

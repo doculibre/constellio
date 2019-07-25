@@ -383,7 +383,7 @@ public class TaskTable extends VerticalLayout {
 	private class TaskMenuBar extends BaseMenuBar {
 
 		private TaskMenuBar(final RecordVO taskVO) {
-			addStyleName(ValoTheme.MENUBAR_BORDERLESS);
+			super(true, false);
 
 			MenuItem rootItem = addItem("", FontAwesome.ELLIPSIS_V, null);
 
@@ -554,6 +554,11 @@ public class TaskTable extends VerticalLayout {
 			this.taskVO = taskVO;
 			this.expanded = expanded;
 			init();
+			postInit();
+		}
+
+		protected void postInit() {
+
 		}
 
 		protected void reloadTask() {
@@ -1189,13 +1194,19 @@ public class TaskTable extends VerticalLayout {
 
 		@Override
 		public void select(Object itemId) {
-			super.select(itemId);
+			Set<Object> selectedValues = new HashSet<Object>((Set<?>) getValue());
+			if (!selectedValues.contains(itemId)) {
+				selectedValues.add(itemId);
+				setValue(selectedValues);
+			}
 		}
 
 		public void deselect(Object itemId) {
 			Set<Object> selectedValues = new HashSet<Object>((Set<?>) getValue());
-			selectedValues.remove(itemId);
-			setValue(selectedValues);
+			if (selectedValues.contains(itemId)) {
+				selectedValues.remove(itemId);
+				setValue(selectedValues);
+			}
 		}
 
 		private TaskDetailsComponent getTaskDetailsComponent(Object itemId) {
@@ -1222,16 +1233,6 @@ public class TaskTable extends VerticalLayout {
 			//					return getContainerDataSource();
 			//				}
 			//			});
-		}
-
-		@Override
-		protected void enableContentRefreshing(boolean refreshContent) {
-			super.enableContentRefreshing(refreshContent);
-		}
-
-		@Override
-		protected void resetPageBuffer() {
-			super.resetPageBuffer();
 		}
 
 		@SuppressWarnings("unchecked")

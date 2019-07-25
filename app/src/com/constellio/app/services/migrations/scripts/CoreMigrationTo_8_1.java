@@ -9,6 +9,8 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
+import static com.constellio.model.entities.security.global.UserCredential.HAS_AGREED_TO_PRIVACY_POLICY;
+
 public class CoreMigrationTo_8_1 implements MigrationScript {
 	@Override
 	public String getVersion() {
@@ -32,9 +34,9 @@ public class CoreMigrationTo_8_1 implements MigrationScript {
 
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder builder) {
-			if (!builder.getDefaultSchema(UserCredential.SCHEMA_TYPE).hasMetadata(UserCredential.HAS_AGREED_TO_PRIVACY_POLICY)) {
+			if (!builder.getDefaultSchema(UserCredential.SCHEMA_TYPE).hasMetadata(HAS_AGREED_TO_PRIVACY_POLICY)) {
 				builder.getDefaultSchema(UserCredential.SCHEMA_TYPE)
-						.createUndeletable(UserCredential.HAS_AGREED_TO_PRIVACY_POLICY).setType(MetadataValueType.BOOLEAN);
+						.createUndeletable(HAS_AGREED_TO_PRIVACY_POLICY).setType(MetadataValueType.BOOLEAN);
 			}
 		}
 	}

@@ -26,6 +26,8 @@ public class UserDocument extends RecordWrapper {
 
 	public static final String USER_FOLDER = "userFolder";
 
+	public static final String CONTENT_HASHES = "contentHashes";
+
 	public UserDocument(Record record, MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE);
 	}

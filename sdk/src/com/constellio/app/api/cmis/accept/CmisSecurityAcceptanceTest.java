@@ -5,14 +5,13 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.RecordCacheType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.global.AuthorizationAddRequest;
 import com.constellio.model.services.contents.ContentManagementAcceptTest;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
-import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
@@ -60,7 +59,6 @@ import java.util.List;
 import java.util.Map;
 
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
-import static com.constellio.model.services.records.cache.CacheConfig.permanentCache;
 import static java.util.Arrays.asList;
 import static org.apache.chemistry.opencmis.commons.enums.AclPropagation.REPOSITORYDETERMINED;
 import static org.apache.chemistry.opencmis.commons.enums.IncludeRelationships.NONE;
@@ -128,12 +126,14 @@ public class CmisSecurityAcceptanceTest extends ConstellioTest {
 			}
 		});
 		zeCollectionRecords = zeCollectionSchemas.givenRecords(recordServices);
+		MetadataSchemasManager schemasManager = getModelLayerFactory().getMetadataSchemasManager();
 
-		RecordsCache cache = getModelLayerFactory().getRecordsCaches().getCache(zeCollection);
-		MetadataSchemaTypes types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
-		cache.configureCache(permanentCache(types.getSchemaType(Authorization.SCHEMA_TYPE)));
-		cache.configureCache(permanentCache(types.getSchemaType(User.SCHEMA_TYPE)));
-		cache.configureCache(permanentCache(types.getSchemaType(Group.SCHEMA_TYPE)));
+		MetadataSchemaTypesBuilder metadataSchemaTypesBuilder = schemasManager.modify(zeCollection);
+		metadataSchemaTypesBuilder.getSchemaType(Authorization.SCHEMA_TYPE).setRecordCacheType(RecordCacheType.FULLY_CACHED);
+		metadataSchemaTypesBuilder.getSchemaType(User.SCHEMA_TYPE).setRecordCacheType(RecordCacheType.FULLY_CACHED);
+		metadataSchemaTypesBuilder.getSchemaType(Group.SCHEMA_TYPE).setRecordCacheType(RecordCacheType.FULLY_CACHED);
+
+		schemasManager.saveUpdateSchemaTypes(metadataSchemaTypesBuilder);
 
 		userServices.addUserToCollection(users.alice(), zeCollection);
 		userServices.addUserToCollection(users.bob(), zeCollection);

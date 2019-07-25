@@ -6,6 +6,8 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.Duration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -13,6 +15,8 @@ import java.util.List;
 import java.util.Map;
 
 public abstract class PropertiesConfiguration {
+
+	private static Logger LOGGER = LoggerFactory.getLogger(PropertiesConfiguration.class);
 
 	protected File propertyFile;
 
@@ -181,6 +185,38 @@ public abstract class PropertiesConfiguration {
 		}
 
 		return null;
+	}
+
+	public long getBytesSize(String key, String defaultValue) {
+
+		String bytesSizeString = getString(key, null);
+
+		if (bytesSizeString == null) {
+			return parseByteSize(defaultValue);
+		} else {
+			try {
+				return parseByteSize(bytesSizeString);
+			} catch (RuntimeException e) {
+				LOGGER.warn("Get bytes size");
+				e.printStackTrace();
+			}
+
+			return parseByteSize(defaultValue);
+		}
+
+	}
+
+	private long parseByteSize(String defaultValue) {
+		if (defaultValue.toLowerCase().endsWith("k")) {
+			return Long.parseLong(defaultValue.substring(0, defaultValue.length() - 1)) * 1024;
+
+		} else if (defaultValue.toLowerCase().endsWith("m")) {
+			return Long.parseLong(defaultValue.substring(0, defaultValue.length() - 1)) * 1024 * 1024;
+
+		} else if (defaultValue.toLowerCase().endsWith("g")) {
+			return Long.parseLong(defaultValue.substring(0, defaultValue.length() - 1)) * 1024 * 1024 * 1024;
+		}
+		return Long.parseLong(defaultValue);
 	}
 
 	protected void setDuration(String key, Duration value) {

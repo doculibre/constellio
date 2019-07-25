@@ -48,7 +48,7 @@ public class AddEditSchemaRecordPresenterAcceptTest extends ConstellioTest {
 		when(view.getConstellioFactories()).thenReturn(getConstellioFactories());
 		when(view.getSessionContext()).thenReturn(FakeSessionContext.adminInCollection(zeCollection));
 
-		presenter = new AddEditSchemaRecordPresenter(view);
+		presenter = new AddEditSchemaRecordPresenter(view, null);
 	}
 
 	@Test

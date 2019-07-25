@@ -443,79 +443,79 @@ public class ESSchemasRecordsServices extends ESGeneratedSchemasRecordsServices 
 		}
 
 		public Metadata url() {
-			return Metadata.newGlobalMetadata("url_s", STRING, false, false);
+			return Metadata.newGlobalMetadata((short) 0, "url_s", STRING, false, false);
 		}
 
 		public Metadata connectorUrl() {
-			return Metadata.newGlobalMetadata("connectorUrl_s", STRING, false, false);
+			return Metadata.newGlobalMetadata((short) 0, "connectorUrl_s", STRING, false, false);
 		}
 
 		public Metadata mimetype() {
-			return Metadata.newGlobalMetadata("mimetype_s", STRING, false, false);
+			return Metadata.newGlobalMetadata((short) 0, "mimetype_s", STRING, false, false);
 		}
 
 		public Metadata traversalCode() {
-			return Metadata.newGlobalMetadata("traversalCode_s", STRING, false, false);
+			return Metadata.newGlobalMetadata((short) 0, "traversalCode_s", STRING, false, false);
 		}
 
 		public Metadata connector() {
-			return Metadata.newGlobalMetadata("connector_s", REFERENCE, false, false);
+			return Metadata.newGlobalMetadata((short) 0, "connector_s", REFERENCE, false, false);
 		}
 
 		public Metadata connectorType() {
-			return Metadata.newGlobalMetadata("connectorType_s", REFERENCE, false, false);
+			return Metadata.newGlobalMetadata((short) 0, "connectorType_s", REFERENCE, false, false);
 		}
 
 		public Metadata fetched() {
-			return Metadata.newGlobalMetadata("fetched_s", BOOLEAN, false, false);
+			return Metadata.newGlobalMetadata((short) 0, "fetched_s", BOOLEAN, false, false);
 		}
 
 		public Metadata fetchedDateTime() {
-			return Metadata.newGlobalMetadata("fetchedDateTime_dt", DATE_TIME, false, false);
+			return Metadata.newGlobalMetadata((short) 0, "fetchedDateTime_dt", DATE_TIME, false, false);
 		}
 
 		public Metadata status() {
-			return Metadata.newGlobalMetadata("status_s", ENUM, false, false);
+			return Metadata.newGlobalMetadata((short) 0, "status_s", ENUM, false, false);
 		}
 
 		public Metadata fetchFrequency() {
-			return Metadata.newGlobalMetadata("fetchFrequency_s", ENUM, false, false);
+			return Metadata.newGlobalMetadata((short) 0, "fetchFrequency_s", ENUM, false, false);
 		}
 
 		public Metadata fetchDelay() {
-			return Metadata.newGlobalMetadata("fetchDelay_d", NUMBER, false, false);
+			return Metadata.newGlobalMetadata((short) 0, "fetchDelay_d", NUMBER, false, false);
 		}
 
 		public Metadata nextFetch() {
-			return Metadata.newGlobalMetadata("nextFetch_dt", DATE_TIME, false, false);
+			return Metadata.newGlobalMetadata((short) 0, "nextFetch_dt", DATE_TIME, false, false);
 		}
 
 		public Metadata searchable() {
-			return Metadata.newGlobalMetadata("searchable_s", BOOLEAN, false, false);
+			return Metadata.newGlobalMetadata((short) 0, "searchable_s", BOOLEAN, false, false);
 		}
 
 		public Metadata neverFetch() {
-			return Metadata.newGlobalMetadata("neverFetch_s", BOOLEAN, false, false);
+			return Metadata.newGlobalMetadata((short) 0, "neverFetch_s", BOOLEAN, false, false);
 		}
 
 		public Metadata errorCode() {
-			return Metadata.newGlobalMetadata("errorCode_s", STRING, false, false);
+			return Metadata.newGlobalMetadata((short) 0, "errorCode_s", STRING, false, false);
 		}
 
 		public Metadata errorsCount() {
-			return Metadata.newGlobalMetadata("errorsCount_d", NUMBER, false, false);
+			return Metadata.newGlobalMetadata((short) 0, "errorsCount_d", NUMBER, false, false);
 		}
 
 		public Metadata errorMessage() {
-			return Metadata.newGlobalMetadata("errorMessage_s", STRING, false, false);
+			return Metadata.newGlobalMetadata((short) 0, "errorMessage_s", STRING, false, false);
 		}
 
 		public Metadata errorStackTrace() {
-			return Metadata.newGlobalMetadata("errorStackTrace_s", TEXT, false, false);
+			return Metadata.newGlobalMetadata((short) 0, "errorStackTrace_s", TEXT, false, false);
 		}
 
 		public final Metadata lastModified() {
-			return Metadata.newGlobalMetadata("lastModified_dt", DATE_TIME, false, false);
+			return Metadata.newGlobalMetadata((short) 0, "lastModified_dt", DATE_TIME, false, false);
 		}
 	}
 

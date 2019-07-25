@@ -351,7 +351,7 @@ public class StorageSpaceAcceptanceTest extends ConstellioTest {
 
 	public void cleanStorageSpaces() {
 		RecordDao recordDao = getAppLayerFactory().getModelLayerFactory().getDataLayerFactory().newRecordDao();
-		TransactionDTO transaction = new TransactionDTO(RecordsFlushing.LATER());
+		TransactionDTO transaction = new TransactionDTO(RecordsFlushing.NOW());
 		ModifiableSolrParams modifiableSolrParams = new ModifiableSolrParams();
 		modifiableSolrParams.set("q", "schema_s:storageSpace*");
 		transaction = transaction.withDeletedByQueries(modifiableSolrParams);
@@ -360,5 +360,7 @@ public class StorageSpaceAcceptanceTest extends ConstellioTest {
 		} catch (RecordDaoException.OptimisticLocking optimisticLocking) {
 			optimisticLocking.printStackTrace();
 		}
+		getModelLayerFactory().getRecordsCaches().getCache(zeCollection)
+				.invalidateVolatileReloadPermanent(asList("storageSpace"));
 	}
 }

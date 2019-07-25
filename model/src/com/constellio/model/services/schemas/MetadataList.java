@@ -5,6 +5,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 
@@ -262,6 +263,20 @@ public class MetadataList implements List<Metadata>, Serializable {
 		List<Metadata> filteredMetadatasList = new ArrayList<>();
 		for (Metadata metadata : nestedList) {
 			if (metadata.getDataEntry().getType() == DataEntryType.AGGREGATED) {
+				filteredMetadatasList.add(metadata);
+			}
+		}
+		return new MetadataList(filteredMetadatasList).unModifiable();
+	}
+
+	public MetadataList onlyNoIdCacheIndexAndUniqueReferenceOrString() {
+		List<Metadata> filteredMetadatasList = new ArrayList<>();
+		for (Metadata metadata : nestedList) {
+			if (!metadata.getLocalCode().equals(Schemas.IDENTIFIER.getLocalCode())
+				&& (metadata.isCacheIndex()
+					|| (metadata.isUniqueValue() && (metadata.getType() == MetadataValueType.STRING
+													 || metadata.getType() == MetadataValueType.REFERENCE)))) {
+
 				filteredMetadatasList.add(metadata);
 			}
 		}

@@ -86,7 +86,7 @@ public class TrashPresenter extends BasePresenter<TrashView> {
 						view.getSessionContext(), true);
 		return dataProvider = new RecordVODataProvider(schemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				return TrashPresenter.this.getQuery();
 			}
 		};

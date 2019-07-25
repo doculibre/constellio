@@ -19,9 +19,11 @@ import com.constellio.model.entities.schemas.MetadataAccessRestriction;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.RecordCacheType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimisticLocking;
 import com.constellio.model.services.schemas.builders.MetadataAccessRestrictionBuilder;
@@ -70,7 +72,6 @@ import static com.constellio.data.dao.services.records.DataStore.RECORDS;
 import static com.constellio.model.entities.schemas.MetadataTransiency.TRANSIENT_EAGER;
 import static com.constellio.model.entities.schemas.MetadataTransiency.TRANSIENT_LAZY;
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
-import static com.constellio.model.services.records.cache.CacheConfig.permanentCache;
 import static com.constellio.model.services.search.VisibilityStatusFilter.ALL;
 import static com.constellio.model.services.search.VisibilityStatusFilter.HIDDENS;
 import static com.constellio.model.services.search.VisibilityStatusFilter.VISIBLES;
@@ -2965,7 +2966,12 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 
 		assertThat(searchServices.searchSingleResult(from(zeSchema.type()).returnAll()).<Double>get(zeSchema.numberMetadata())).isNull();
 
-		getModelLayerFactory().getRecordsCaches().getCache(zeCollection).configureCache(permanentCache(zeSchema.type()));
+		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchemaType(zeSchema.typeCode()).setRecordCacheType(RecordCacheType.FULLY_CACHED);
+			}
+		});
 
 		searchServices.searchSingleResult(from(zeSchema.type()).returnAll());
 		Record recordInCache = getModelLayerFactory().getRecordsCaches().getCache(zeCollection).get(record.getId());
@@ -2988,7 +2994,12 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		assertThat(searchServices.searchSingleResult(from(zeSchema.type()).returnAll()).<Double>get(zeSchema.numberMetadata()))
 				.isEqualTo(15.0);
 
-		getModelLayerFactory().getRecordsCaches().getCache(zeCollection).configureCache(permanentCache(zeSchema.type()));
+		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchemaType(zeSchema.typeCode()).setRecordCacheType(RecordCacheType.FULLY_CACHED);
+			}
+		});
 
 		searchServices.searchSingleResult(from(zeSchema.type()).returnAll());
 		Record recordInCache = getModelLayerFactory().getRecordsCaches().getCache(zeCollection).get(record.getId());

@@ -25,6 +25,7 @@ import com.constellio.app.modules.rm.model.calculators.FolderInactiveDisposalTyp
 import com.constellio.app.modules.rm.model.calculators.FolderSemiActiveRetentionTypeCalculator;
 import com.constellio.app.modules.rm.model.calculators.FolderTokensOfHierarchyCalculator;
 import com.constellio.app.modules.rm.model.calculators.FolderTreeVisibilityCalculator;
+import com.constellio.app.modules.rm.model.calculators.UserDocumentContentHashesCalculator;
 import com.constellio.app.modules.rm.model.calculators.category.CategoryCopyRetentionRulesOnDocumentTypesCalculator;
 import com.constellio.app.modules.rm.model.calculators.category.CategoryLevelCalculator;
 import com.constellio.app.modules.rm.model.calculators.container.ContainerRecordAvailableSizeCalculator;
@@ -48,8 +49,9 @@ import com.constellio.app.modules.rm.model.calculators.document.DocumentApplicab
 import com.constellio.app.modules.rm.model.calculators.document.DocumentArchivisticStatusCalculator;
 import com.constellio.app.modules.rm.model.calculators.document.DocumentAutocompleteFieldCalculator;
 import com.constellio.app.modules.rm.model.calculators.document.DocumentCaptionCalculator;
-import com.constellio.app.modules.rm.model.calculators.document.DocumentCheckedOutUserCalculator;
+import com.constellio.app.modules.rm.model.calculators.document.DocumentCheckedOutUserCalculator2;
 import com.constellio.app.modules.rm.model.calculators.document.DocumentConfidentialCalculator;
+import com.constellio.app.modules.rm.model.calculators.document.DocumentContentHashesCalculator;
 import com.constellio.app.modules.rm.model.calculators.document.DocumentEssentialCalculator;
 import com.constellio.app.modules.rm.model.calculators.document.DocumentExpectedDepositDateCalculator;
 import com.constellio.app.modules.rm.model.calculators.document.DocumentExpectedDestructionDateCalculator;
@@ -455,7 +457,8 @@ public final class GeneratedRMMigrationCombo {
     documentSchema.get("categoryCode").defineDataEntry().asCopied(documentSchema.get("folder"), typesBuilder.getMetadata("folder_default_categoryCode"));
     documentSchema.get("closingDate").defineDataEntry().asCopied(documentSchema.get("folder"), typesBuilder.getMetadata("folder_default_closingDate"));
     documentSchema.get("confidential").defineDataEntry().asCalculated(DocumentConfidentialCalculator.class);
-    documentSchema.get("contentCheckedOutBy").defineDataEntry().asCalculated(DocumentCheckedOutUserCalculator.class);
+	  documentSchema.get("contentCheckedOutBy").defineDataEntry().asCalculated(DocumentCheckedOutUserCalculator2.class);
+	  documentSchema.get("contentHashes").defineDataEntry().asCalculated(DocumentContentHashesCalculator.class);
     documentSchema.get("copyStatus").defineDataEntry().asCopied(documentSchema.get("folder"), typesBuilder.getMetadata("folder_default_copyStatus"));
     documentSchema.get("documentType").defineDataEntry().asCopied(documentSchema.get("type"), typesBuilder.getMetadata("ddvDocumentType_default_title"));
     documentSchema.get("essential").defineDataEntry().asCalculated(DocumentEssentialCalculator.class);
@@ -574,6 +577,7 @@ public final class GeneratedRMMigrationCombo {
     uniformSubdivisionSchema.get("principalpath").defineDataEntry().asCalculated(PrincipalPathCalculator.class);
     uniformSubdivisionSchema.get("tokens").defineDataEntry().asCalculated(TokensCalculator4.class);
     uniformSubdivisionSchema.get("tokensHierarchy").defineDataEntry().asCalculated(DefaultTokensOfHierarchyCalculator.class);
+	  userDocumentSchema.get("contentHashes").defineDataEntry().asCalculated(UserDocumentContentHashesCalculator.class);
   }
 
   private void createCapsuleSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder capsuleSchemaType, MetadataSchemaBuilder capsuleSchema) {
@@ -724,7 +728,12 @@ public final class GeneratedRMMigrationCombo {
     document_content.setSearchable(true);
     document_content.setDuplicable(true);
     document_content.defineStructureFactory(ContentFactory.class);
-    MetadataBuilder document_contentCheckedOutBy = documentSchema.create("contentCheckedOutBy").setType(MetadataValueType.STRING);
+	  MetadataBuilder document_contentCheckedOutBy = documentSchema.create("contentCheckedOutBy").setType(MetadataValueType.REFERENCE);
+	  document_contentCheckedOutBy.setUndeletable(true);
+	  document_contentCheckedOutBy.defineReferencesTo(types.getSchemaType("user"));
+	  MetadataBuilder document_contentHashes = documentSchema.create("contentHashes").setType(MetadataValueType.STRING);
+	  document_contentHashes.setMultivalue(true);
+	  document_contentHashes.setUndeletable(true);
     MetadataBuilder document_copyStatus = documentSchema.create("copyStatus").setType(MetadataValueType.ENUM);
     document_copyStatus.defineAsEnum(CopyType.class);
     MetadataBuilder document_createdBy = documentSchema.create("createdBy").setType(MetadataValueType.REFERENCE);
@@ -1015,6 +1024,7 @@ public final class GeneratedRMMigrationCombo {
     MetadataBuilder document_email_confidential = document_emailSchema.get("confidential");
     MetadataBuilder document_email_content = document_emailSchema.get("content");
     MetadataBuilder document_email_contentCheckedOutBy = document_emailSchema.get("contentCheckedOutBy");
+	  MetadataBuilder document_email_contentHashes = document_emailSchema.get("contentHashes");
     MetadataBuilder document_email_copyStatus = document_emailSchema.get("copyStatus");
     MetadataBuilder document_email_createdBy = document_emailSchema.get("createdBy");
     MetadataBuilder document_email_createdOn = document_emailSchema.get("createdOn");
@@ -1327,8 +1337,7 @@ public final class GeneratedRMMigrationCombo {
     ddvStorageSpaceType_errorOnPhysicalDeletion.setSystemReserved(true);
     ddvStorageSpaceType_errorOnPhysicalDeletion.setUndeletable(true);
     ddvStorageSpaceType_errorOnPhysicalDeletion.setMultiLingual(false);
-	  MetadataBuilder ddvStorageSpaceType_estimatedSize = ddvStorageSpaceTypeSchema.create("estimatedSize")
-			  .setType(MetadataValueType.INTEGER);
+	  MetadataBuilder ddvStorageSpaceType_estimatedSize = ddvStorageSpaceTypeSchema.create("estimatedSize").setType(MetadataValueType.INTEGER);
 	  ddvStorageSpaceType_estimatedSize.setSystemReserved(true);
 	  ddvStorageSpaceType_estimatedSize.setUndeletable(true);
 	  ddvStorageSpaceType_estimatedSize.setMultiLingual(false);
@@ -1706,8 +1715,7 @@ public final class GeneratedRMMigrationCombo {
     ddvContainerRecordType_errorOnPhysicalDeletion.setSystemReserved(true);
     ddvContainerRecordType_errorOnPhysicalDeletion.setUndeletable(true);
     ddvContainerRecordType_errorOnPhysicalDeletion.setMultiLingual(false);
-	  MetadataBuilder ddvContainerRecordType_estimatedSize = ddvContainerRecordTypeSchema.create("estimatedSize")
-			  .setType(MetadataValueType.INTEGER);
+	  MetadataBuilder ddvContainerRecordType_estimatedSize = ddvContainerRecordTypeSchema.create("estimatedSize").setType(MetadataValueType.INTEGER);
 	  ddvContainerRecordType_estimatedSize.setSystemReserved(true);
 	  ddvContainerRecordType_estimatedSize.setUndeletable(true);
 	  ddvContainerRecordType_estimatedSize.setMultiLingual(false);
@@ -1829,6 +1837,9 @@ public final class GeneratedRMMigrationCombo {
   }
 
   private void createUserDocumentSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder userDocumentSchemaType, MetadataSchemaBuilder userDocumentSchema) {
+	  MetadataBuilder userDocument_contentHashes = userDocumentSchema.create("contentHashes").setType(MetadataValueType.STRING);
+	  userDocument_contentHashes.setMultivalue(true);
+	  userDocument_contentHashes.setUndeletable(true);
     MetadataBuilder userDocument_folder = userDocumentSchema.create("folder").setType(MetadataValueType.REFERENCE);
     userDocument_folder.defineReferencesTo(types.getSchemaType("folder"));
   }
@@ -1909,8 +1920,7 @@ public final class GeneratedRMMigrationCombo {
     ddvVariablePeriod_errorOnPhysicalDeletion.setSystemReserved(true);
     ddvVariablePeriod_errorOnPhysicalDeletion.setUndeletable(true);
     ddvVariablePeriod_errorOnPhysicalDeletion.setMultiLingual(false);
-	  MetadataBuilder ddvVariablePeriod_estimatedSize = ddvVariablePeriodSchema.create("estimatedSize")
-			  .setType(MetadataValueType.INTEGER);
+	  MetadataBuilder ddvVariablePeriod_estimatedSize = ddvVariablePeriodSchema.create("estimatedSize").setType(MetadataValueType.INTEGER);
 	  ddvVariablePeriod_estimatedSize.setSystemReserved(true);
 	  ddvVariablePeriod_estimatedSize.setUndeletable(true);
 	  ddvVariablePeriod_estimatedSize.setMultiLingual(false);
@@ -2343,6 +2353,11 @@ public final class GeneratedRMMigrationCombo {
     decommissioningList_containers.setUndeletable(true);
     decommissioningList_containers.setEssential(true);
     decommissioningList_containers.defineReferencesTo(types.getSchemaType("containerRecord"));
+	  MetadataBuilder decommissioningList_contents = decommissioningListSchema.create("contents").setType(MetadataValueType.CONTENT);
+	  decommissioningList_contents.setMultivalue(true);
+	  decommissioningList_contents.setUndeletable(true);
+	  decommissioningList_contents.setSearchable(true);
+	  decommissioningList_contents.defineStructureFactory(ContentFactory.class);
     MetadataBuilder decommissioningList_createdBy = decommissioningListSchema.create("createdBy").setType(MetadataValueType.REFERENCE);
     decommissioningList_createdBy.setSystemReserved(true);
     decommissioningList_createdBy.setUndeletable(true);
@@ -2390,8 +2405,7 @@ public final class GeneratedRMMigrationCombo {
     decommissioningList_errorOnPhysicalDeletion.setSystemReserved(true);
     decommissioningList_errorOnPhysicalDeletion.setUndeletable(true);
     decommissioningList_errorOnPhysicalDeletion.setMultiLingual(false);
-	  MetadataBuilder decommissioningList_estimatedSize = decommissioningListSchema.create("estimatedSize")
-			  .setType(MetadataValueType.INTEGER);
+	  MetadataBuilder decommissioningList_estimatedSize = decommissioningListSchema.create("estimatedSize").setType(MetadataValueType.INTEGER);
 	  decommissioningList_estimatedSize.setSystemReserved(true);
 	  decommissioningList_estimatedSize.setUndeletable(true);
 	  decommissioningList_estimatedSize.setEssential(true);
@@ -2889,8 +2903,7 @@ public final class GeneratedRMMigrationCombo {
     ddvMediumType_errorOnPhysicalDeletion.setSystemReserved(true);
     ddvMediumType_errorOnPhysicalDeletion.setUndeletable(true);
     ddvMediumType_errorOnPhysicalDeletion.setMultiLingual(false);
-	  MetadataBuilder ddvMediumType_estimatedSize = ddvMediumTypeSchema.create("estimatedSize")
-			  .setType(MetadataValueType.INTEGER);
+	  MetadataBuilder ddvMediumType_estimatedSize = ddvMediumTypeSchema.create("estimatedSize").setType(MetadataValueType.INTEGER);
 	  ddvMediumType_estimatedSize.setSystemReserved(true);
 	  ddvMediumType_estimatedSize.setUndeletable(true);
 	  ddvMediumType_estimatedSize.setMultiLingual(false);
@@ -3302,8 +3315,7 @@ public final class GeneratedRMMigrationCombo {
     ddvFolderType_errorOnPhysicalDeletion.setSystemReserved(true);
     ddvFolderType_errorOnPhysicalDeletion.setUndeletable(true);
     ddvFolderType_errorOnPhysicalDeletion.setMultiLingual(false);
-	  MetadataBuilder ddvFolderType_estimatedSize = ddvFolderTypeSchema.create("estimatedSize")
-			  .setType(MetadataValueType.INTEGER);
+	  MetadataBuilder ddvFolderType_estimatedSize = ddvFolderTypeSchema.create("estimatedSize").setType(MetadataValueType.INTEGER);
 	  ddvFolderType_estimatedSize.setSystemReserved(true);
 	  ddvFolderType_estimatedSize.setUndeletable(true);
 	  ddvFolderType_estimatedSize.setMultiLingual(false);
@@ -3955,8 +3967,7 @@ public final class GeneratedRMMigrationCombo {
     uniformSubdivision_errorOnPhysicalDeletion.setSystemReserved(true);
     uniformSubdivision_errorOnPhysicalDeletion.setUndeletable(true);
     uniformSubdivision_errorOnPhysicalDeletion.setMultiLingual(false);
-	  MetadataBuilder uniformSubdivision_estimatedSize = uniformSubdivisionSchema.create("estimatedSize")
-			  .setType(MetadataValueType.INTEGER);
+	  MetadataBuilder uniformSubdivision_estimatedSize = uniformSubdivisionSchema.create("estimatedSize").setType(MetadataValueType.INTEGER);
 	  uniformSubdivision_estimatedSize.setSystemReserved(true);
 	  uniformSubdivision_estimatedSize.setUndeletable(true);
 	  uniformSubdivision_estimatedSize.setEssential(true);
@@ -4182,8 +4193,7 @@ public final class GeneratedRMMigrationCombo {
     administrativeUnit_errorOnPhysicalDeletion.setSystemReserved(true);
     administrativeUnit_errorOnPhysicalDeletion.setUndeletable(true);
     administrativeUnit_errorOnPhysicalDeletion.setMultiLingual(false);
-	  MetadataBuilder administrativeUnit_estimatedSize = administrativeUnitSchema.create("estimatedSize")
-			  .setType(MetadataValueType.INTEGER);
+	  MetadataBuilder administrativeUnit_estimatedSize = administrativeUnitSchema.create("estimatedSize").setType(MetadataValueType.INTEGER);
 	  administrativeUnit_estimatedSize.setSystemReserved(true);
 	  administrativeUnit_estimatedSize.setUndeletable(true);
 	  administrativeUnit_estimatedSize.setEssential(true);
@@ -4411,8 +4421,7 @@ public final class GeneratedRMMigrationCombo {
     ddvDocumentType_errorOnPhysicalDeletion.setSystemReserved(true);
     ddvDocumentType_errorOnPhysicalDeletion.setUndeletable(true);
     ddvDocumentType_errorOnPhysicalDeletion.setMultiLingual(false);
-	  MetadataBuilder ddvDocumentType_estimatedSize = ddvDocumentTypeSchema.create("estimatedSize")
-			  .setType(MetadataValueType.INTEGER);
+	  MetadataBuilder ddvDocumentType_estimatedSize = ddvDocumentTypeSchema.create("estimatedSize").setType(MetadataValueType.INTEGER);
 	  ddvDocumentType_estimatedSize.setSystemReserved(true);
 	  ddvDocumentType_estimatedSize.setUndeletable(true);
 	  ddvDocumentType_estimatedSize.setMultiLingual(false);
@@ -5140,14 +5149,12 @@ public final class GeneratedRMMigrationCombo {
     containerRecord_availableSize.setUndeletable(true);
     MetadataBuilder containerRecord_borrowDate = containerRecordSchema.create("borrowDate").setType(MetadataValueType.DATE);
     containerRecord_borrowDate.setUndeletable(true);
-    containerRecord_borrowDate.setEssential(true);
     MetadataBuilder containerRecord_borrowReturnDate = containerRecordSchema.create("borrowReturnDate").setType(MetadataValueType.DATE_TIME);
     containerRecord_borrowReturnDate.setUndeletable(true);
     MetadataBuilder containerRecord_borrowed = containerRecordSchema.create("borrowed").setType(MetadataValueType.BOOLEAN);
     containerRecord_borrowed.setUndeletable(true);
     MetadataBuilder containerRecord_borrower = containerRecordSchema.create("borrower").setType(MetadataValueType.REFERENCE);
     containerRecord_borrower.setUndeletable(true);
-    containerRecord_borrower.setEssential(true);
     containerRecord_borrower.defineReferencesTo(types.getSchemaType("user"));
     MetadataBuilder containerRecord_capacity = containerRecordSchema.create("capacity").setType(MetadataValueType.NUMBER);
     containerRecord_capacity.setUndeletable(true);
@@ -5163,7 +5170,6 @@ public final class GeneratedRMMigrationCombo {
     containerRecord_comments.defineStructureFactory(CommentFactory.class);
     MetadataBuilder containerRecord_completionDate = containerRecordSchema.create("completionDate").setType(MetadataValueType.DATE);
     containerRecord_completionDate.setUndeletable(true);
-    containerRecord_completionDate.setEssential(true);
     MetadataBuilder containerRecord_createdBy = containerRecordSchema.create("createdBy").setType(MetadataValueType.REFERENCE);
     containerRecord_createdBy.setSystemReserved(true);
     containerRecord_createdBy.setUndeletable(true);
@@ -5211,8 +5217,7 @@ public final class GeneratedRMMigrationCombo {
     containerRecord_errorOnPhysicalDeletion.setSystemReserved(true);
     containerRecord_errorOnPhysicalDeletion.setUndeletable(true);
     containerRecord_errorOnPhysicalDeletion.setMultiLingual(false);
-	  MetadataBuilder containerRecord_estimatedSize = containerRecordSchema.create("estimatedSize")
-			  .setType(MetadataValueType.INTEGER);
+	  MetadataBuilder containerRecord_estimatedSize = containerRecordSchema.create("estimatedSize").setType(MetadataValueType.INTEGER);
 	  containerRecord_estimatedSize.setSystemReserved(true);
 	  containerRecord_estimatedSize.setUndeletable(true);
 	  containerRecord_estimatedSize.setEssential(true);
@@ -5224,7 +5229,6 @@ public final class GeneratedRMMigrationCombo {
     containerRecord_favorites.setUndeletable(true);
     MetadataBuilder containerRecord_filingSpace = containerRecordSchema.create("filingSpace").setType(MetadataValueType.REFERENCE);
     containerRecord_filingSpace.setUndeletable(true);
-    containerRecord_filingSpace.setEssential(true);
     containerRecord_filingSpace.defineReferencesTo(types.getSchemaType("filingSpace"));
     MetadataBuilder containerRecord_fillRatioEntered = containerRecordSchema.create("fillRatioEntered").setType(MetadataValueType.NUMBER);
     containerRecord_fillRatioEntered.setUndeletable(true);
@@ -5326,7 +5330,6 @@ public final class GeneratedRMMigrationCombo {
     containerRecord_pathParts.setMultiLingual(false);
     MetadataBuilder containerRecord_planifiedReturnDate = containerRecordSchema.create("planifiedReturnDate").setType(MetadataValueType.DATE);
     containerRecord_planifiedReturnDate.setUndeletable(true);
-    containerRecord_planifiedReturnDate.setEssential(true);
     MetadataBuilder containerRecord_position = containerRecordSchema.create("position").setType(MetadataValueType.STRING);
     containerRecord_position.setUndeletable(true);
     containerRecord_position.setSearchable(true);
@@ -5337,13 +5340,10 @@ public final class GeneratedRMMigrationCombo {
     containerRecord_principalpath.setMultiLingual(false);
     MetadataBuilder containerRecord_realDepositDate = containerRecordSchema.create("realDepositDate").setType(MetadataValueType.DATE);
     containerRecord_realDepositDate.setUndeletable(true);
-    containerRecord_realDepositDate.setEssential(true);
     MetadataBuilder containerRecord_realReturnDate = containerRecordSchema.create("realReturnDate").setType(MetadataValueType.DATE);
     containerRecord_realReturnDate.setUndeletable(true);
-    containerRecord_realReturnDate.setEssential(true);
     MetadataBuilder containerRecord_realTransferDate = containerRecordSchema.create("realTransferDate").setType(MetadataValueType.DATE);
     containerRecord_realTransferDate.setUndeletable(true);
-    containerRecord_realTransferDate.setEssential(true);
     MetadataBuilder containerRecord_removedauthorizations = containerRecordSchema.create("removedauthorizations").setType(MetadataValueType.STRING);
     containerRecord_removedauthorizations.setMultivalue(true);
     containerRecord_removedauthorizations.setSystemReserved(true);
@@ -5376,7 +5376,6 @@ public final class GeneratedRMMigrationCombo {
     containerRecord_storageSpace.defineTaxonomyRelationshipToType(types.getSchemaType("storageSpace"));
     MetadataBuilder containerRecord_temporaryIdentifier = containerRecordSchema.create("temporaryIdentifier").setType(MetadataValueType.STRING);
     containerRecord_temporaryIdentifier.setUndeletable(true);
-    containerRecord_temporaryIdentifier.setEssential(true);
     containerRecord_temporaryIdentifier.setSearchable(true);
     MetadataBuilder containerRecord_title = containerRecordSchema.create("title").setType(MetadataValueType.STRING);
     containerRecord_title.setDefaultRequirement(true);
@@ -5711,8 +5710,7 @@ public final class GeneratedRMMigrationCombo {
     MetadataBuilder temporaryRecord_batchProcessReport_destructionDate = temporaryRecord_batchProcessReportSchema.get("destructionDate");
     MetadataBuilder temporaryRecord_batchProcessReport_detachedauthorizations = temporaryRecord_batchProcessReportSchema.get("detachedauthorizations");
     MetadataBuilder temporaryRecord_batchProcessReport_errorOnPhysicalDeletion = temporaryRecord_batchProcessReportSchema.get("errorOnPhysicalDeletion");
-	  MetadataBuilder temporaryRecord_batchProcessReport_estimatedSize = temporaryRecord_batchProcessReportSchema
-			  .get("estimatedSize");
+	  MetadataBuilder temporaryRecord_batchProcessReport_estimatedSize = temporaryRecord_batchProcessReportSchema.get("estimatedSize");
     MetadataBuilder temporaryRecord_batchProcessReport_id = temporaryRecord_batchProcessReportSchema.get("id");
     MetadataBuilder temporaryRecord_batchProcessReport_legacyIdentifier = temporaryRecord_batchProcessReportSchema.get("legacyIdentifier");
     MetadataBuilder temporaryRecord_batchProcessReport_logicallyDeletedOn = temporaryRecord_batchProcessReportSchema.get("logicallyDeletedOn");
@@ -6131,8 +6129,7 @@ public final class GeneratedRMMigrationCombo {
     retentionRule_errorOnPhysicalDeletion.setMultiLingual(false);
     MetadataBuilder retentionRule_essentialDocuments = retentionRuleSchema.create("essentialDocuments").setType(MetadataValueType.BOOLEAN);
     retentionRule_essentialDocuments.setUndeletable(true);
-	  MetadataBuilder retentionRule_estimatedSize = retentionRuleSchema.create("estimatedSize")
-			  .setType(MetadataValueType.INTEGER);
+	  MetadataBuilder retentionRule_estimatedSize = retentionRuleSchema.create("estimatedSize").setType(MetadataValueType.INTEGER);
 	  retentionRule_estimatedSize.setSystemReserved(true);
 	  retentionRule_estimatedSize.setUndeletable(true);
 	  retentionRule_estimatedSize.setEssential(true);
@@ -6334,7 +6331,7 @@ public final class GeneratedRMMigrationCombo {
     transaction.add(manager.getMetadata(collection, "category_default_title").withMetadataGroup("").withInputType(MetadataInputType.FIELD).withHighlightStatus(true).withVisibleInAdvancedSearchStatus(false));
     transaction.add(manager.getType(collection, "collection").withSimpleSearchStatus(false).withAdvancedSearchStatus(false).withManageableStatus(false).withMetadataGroup(resourcesProvider.getLanguageMap(asList("default:defaultGroupLabel"))));
     transaction.add(manager.getType(collection, "containerRecord").withSimpleSearchStatus(true).withAdvancedSearchStatus(true).withManageableStatus(false).withMetadataGroup(resourcesProvider.getLanguageMap(asList("default:defaultGroupLabel"))));
-    transaction.add(manager.getSchema(collection, "containerRecord_default").withFormMetadataCodes(asList("containerRecord_default_type", "containerRecord_default_temporaryIdentifier", "containerRecord_default_identifier", "containerRecord_default_decommissioningType", "containerRecord_default_storageSpace", "containerRecord_default_full", "containerRecord_default_description", "containerRecord_default_position", "containerRecord_default_borrower", "containerRecord_default_filingSpace", "containerRecord_default_borrowDate", "containerRecord_default_completionDate", "containerRecord_default_planifiedReturnDate", "containerRecord_default_realDepositDate", "containerRecord_default_realReturnDate", "containerRecord_default_realTransferDate", "containerRecord_default_capacity", "containerRecord_default_administrativeUnits")).withDisplayMetadataCodes(asList("containerRecord_default_type", "containerRecord_default_temporaryIdentifier", "containerRecord_default_identifier", "containerRecord_default_full", "containerRecord_default_description", "containerRecord_default_administrativeUnits", "containerRecord_default_storageSpace", "containerRecord_default_capacity")).withSearchResultsMetadataCodes(asList("containerRecord_default_title", "containerRecord_default_modifiedOn")).withTableMetadataCodes(asList("containerRecord_default_title", "containerRecord_default_modifiedOn")));
+	  transaction.add(manager.getSchema(collection, "containerRecord_default").withFormMetadataCodes(asList("containerRecord_default_type", "containerRecord_default_temporaryIdentifier", "containerRecord_default_identifier", "containerRecord_default_decommissioningType", "containerRecord_default_storageSpace", "containerRecord_default_full", "containerRecord_default_description", "containerRecord_default_position", "containerRecord_default_capacity", "containerRecord_default_administrativeUnits")).withDisplayMetadataCodes(asList("containerRecord_default_type", "containerRecord_default_temporaryIdentifier", "containerRecord_default_identifier", "containerRecord_default_full", "containerRecord_default_description", "containerRecord_default_administrativeUnits", "containerRecord_default_storageSpace", "containerRecord_default_capacity")).withSearchResultsMetadataCodes(asList("containerRecord_default_title", "containerRecord_default_modifiedOn")).withTableMetadataCodes(asList("containerRecord_default_title", "containerRecord_default_modifiedOn")));
     transaction.add(manager.getMetadata(collection, "containerRecord_default_administrativeUnits").withMetadataGroup("").withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
     transaction.add(manager.getMetadata(collection, "containerRecord_default_availableSize").withMetadataGroup("").withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
     transaction.add(manager.getMetadata(collection, "containerRecord_default_borrowDate").withMetadataGroup("").withInputType(MetadataInputType.HIDDEN).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
@@ -6412,7 +6409,7 @@ public final class GeneratedRMMigrationCombo {
     transaction.add(manager.getMetadata(collection, "ddvYearType_default_path").withMetadataGroup("").withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
     transaction.add(manager.getMetadata(collection, "ddvYearType_default_title").withMetadataGroup("").withInputType(MetadataInputType.FIELD).withHighlightStatus(true).withVisibleInAdvancedSearchStatus(false));
     transaction.add(manager.getType(collection, "decommissioningList").withSimpleSearchStatus(false).withAdvancedSearchStatus(false).withManageableStatus(false).withMetadataGroup(resourcesProvider.getLanguageMap(asList("default:defaultGroupLabel"))));
-    transaction.add(manager.getSchema(collection, "decommissioningList_default").withFormMetadataCodes(asList("decommissioningList_default_title", "decommissioningList_default_description", "decommissioningList_default_administrativeUnit", "decommissioningList_default_approvalRequest", "decommissioningList_default_approvalUser", "decommissioningList_default_filingSpace", "decommissioningList_default_processingUser", "decommissioningList_default_approvalDate", "decommissioningList_default_approvalRequestDate", "decommissioningList_default_processingDate", "decommissioningList_default_containerDetails", "decommissioningList_default_folderDetails")).withDisplayMetadataCodes(asList("decommissioningList_default_title", "decommissioningList_default_type", "decommissioningList_default_description", "decommissioningList_default_administrativeUnit", "decommissioningList_default_filingSpace", "decommissioningList_default_createdOn", "decommissioningList_default_createdBy", "decommissioningList_default_modifiedOn", "decommissioningList_default_modifiedBy", "decommissioningList_default_uniformCategory", "decommissioningList_default_uniformRule", "decommissioningList_default_status", "decommissioningList_default_approvalDate", "decommissioningList_default_approvalUser")).withSearchResultsMetadataCodes(asList("decommissioningList_default_title", "decommissioningList_default_modifiedOn")).withTableMetadataCodes(asList("decommissioningList_default_title", "decommissioningList_default_modifiedOn")));
+	  transaction.add(manager.getSchema(collection, "decommissioningList_default").withFormMetadataCodes(asList("decommissioningList_default_title", "decommissioningList_default_description", "decommissioningList_default_administrativeUnit", "decommissioningList_default_approvalRequest", "decommissioningList_default_approvalUser", "decommissioningList_default_filingSpace", "decommissioningList_default_processingUser", "decommissioningList_default_approvalDate", "decommissioningList_default_approvalRequestDate", "decommissioningList_default_processingDate", "decommissioningList_default_containerDetails", "decommissioningList_default_folderDetails", "decommissioningList_default_contents")).withDisplayMetadataCodes(asList("decommissioningList_default_title", "decommissioningList_default_type", "decommissioningList_default_description", "decommissioningList_default_administrativeUnit", "decommissioningList_default_filingSpace", "decommissioningList_default_createdOn", "decommissioningList_default_createdBy", "decommissioningList_default_modifiedOn", "decommissioningList_default_modifiedBy", "decommissioningList_default_uniformCategory", "decommissioningList_default_uniformRule", "decommissioningList_default_status", "decommissioningList_default_approvalDate", "decommissioningList_default_approvalUser")).withSearchResultsMetadataCodes(asList("decommissioningList_default_title", "decommissioningList_default_modifiedOn")).withTableMetadataCodes(asList("decommissioningList_default_title", "decommissioningList_default_modifiedOn")));
     transaction.add(manager.getMetadata(collection, "decommissioningList_default_administrativeUnit").withMetadataGroup("").withInputType(MetadataInputType.HIDDEN).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
     transaction.add(manager.getMetadata(collection, "decommissioningList_default_approvalDate").withMetadataGroup("").withInputType(MetadataInputType.HIDDEN).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
     transaction.add(manager.getMetadata(collection, "decommissioningList_default_approvalRequest").withMetadataGroup("").withInputType(MetadataInputType.HIDDEN).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
@@ -6590,9 +6587,9 @@ public final class GeneratedRMMigrationCombo {
 
   public void applyGeneratedRoles() {
     RolesManager rolesManager = appLayerFactory.getModelLayerFactory().getRolesManager();;
-    rolesManager.updateRole(rolesManager.getRole(collection, "ADM").withNewPermissions(asList("core.accessDeleteAllTemporaryRecords", "core.deleteContentVersion", "core.deletePublicSavedSearch", "core.ldapConfigurationManagement", "core.manageConnectors", "core.manageEmailServer", "core.manageExcelReport", "core.manageFacets", "core.manageLabels", "core.manageMetadataExtractor", "core.manageMetadataSchemas", "core.managePrintableReport", "core.manageSearchBoost", "core.manageSecurity", "core.manageSystemCollections", "core.manageSystemConfiguration", "core.manageSystemDataImports", "core.manageSystemGroups", "core.manageSystemGroupsActivation", "core.manageSystemUpdates", "core.manageSystemUsers", "core.manageTaxonomies", "core.manageTrash", "core.manageValueList", "core.managerTemporaryRecords", "core.modifyPublicSavedSearch", "core.seeAllTemporaryRecords", "core.useExternalAPIS", "core.viewEvents", "core.viewSystemBatchProcesses", "rm.borrowContainer", "rm.borrowFolder", "rm.borrowingFolderDirectly", "rm.borrowingRequestOnContainer", "rm.borrowingRequestOnFolder", "rm.createActiveFolderToSemiActiveDecommissioningList", "rm.createDocuments", "rm.createFolders", "rm.createInactiveDocuments", "rm.createSemiActiveDocuments", "rm.createSubFolders", "rm.createSubFoldersInInactiveFolders", "rm.createSubFoldersInSemiActiveFolders", "rm.decommissioning", "rm.deleteBorrowedDocuments", "rm.deleteContainers", "rm.deleteInactiveDocuments", "rm.deleteInactiveFolders", "rm.deletePublishedDocuments", "rm.deleteSemiActiveDocuments", "rm.deleteSemiActiveFolders", "rm.displayContainers", "rm.duplicateInactiveFolders", "rm.duplicateSemiActiveFolders", "rm.editActiveFolderToSemiActiveDecommissioningList", "rm.editDecommissioningList", "rm.generateSIPArchives", "rm.manageBagInfo", "rm.manageClassificationPlan", "rm.manageContainers", "rm.manageDocumentAuthorizations", "rm.manageFolderAuthorizations", "rm.manageReports", "rm.manageRequestOnContainer", "rm.manageRequestOnFolder", "rm.manageRetentionRule", "rm.manageStorageSpaces", "rm.manageUniformSubdivisions", "rm.modifyFolderDecomDate", "rm.modifyImportedDocuments", "rm.modifyImportedFolders", "rm.modifyInactiveBorrowedFolder", "rm.modifyInactiveDocuments", "rm.modifyInactiveFolders", "rm.modifyOpeningDateFolder", "rm.modifySemiActiveBorrowedFolder", "rm.modifySemiActiveDocuments", "rm.modifySemiActiveFolders", "rm.processDecommissioningList", "rm.publishAndUnpublishDocuments", "rm.reactivationRequestOnFolder", "rm.returnOtherUsersDocuments", "rm.returnOtherUsersFolders", "rm.shareDocuments", "rm.shareFolders", "rm.shareImportedDocuments", "rm.shareImportedFolders", "rm.shareInactiveDocuments", "rm.shareInactiveFolders", "rm.shareSemiActiveDocuments", "rm.shareSemiActiveFolders", "rm.uploadInactiveDocuments", "rm.uploadSemiActiveDocuments", "rm.useCart", "rm.viewSystemFilename", "tasks.manageWorkflows", "tasks.startWorkflows")));
-    rolesManager.addRole(new Role(collection, "U", resourcesProvider.getValuesOfAllLanguagesWithSeparator("init.roles.U", " / "), asList("rm.borrowContainer", "rm.borrowFolder", "rm.borrowingRequestOnContainer", "rm.borrowingRequestOnFolder", "rm.createDocuments", "rm.createFolders", "rm.createSubFolders", "rm.deletePublishedDocuments", "rm.deleteSemiActiveDocuments", "rm.deleteSemiActiveFolders", "rm.modifySemiActiveBorrowedFolder", "rm.publishAndUnpublishDocuments", "rm.reactivationRequestOnFolder", "rm.shareDocuments", "rm.shareFolders", "rm.shareSemiActiveDocuments", "rm.shareSemiActiveFolders", "rm.uploadSemiActiveDocuments", "rm.useCart")));
-    rolesManager.addRole(new Role(collection, "M", resourcesProvider.getValuesOfAllLanguagesWithSeparator("init.roles.M", " / "), asList("manageLabels", "rm.borrowContainer", "rm.borrowFolder", "rm.borrowingRequestOnContainer", "rm.borrowingRequestOnFolder", "rm.createDocuments", "rm.createFolders", "rm.createSubFolders", "rm.decommissioning", "rm.deletePublishedDocuments", "rm.deleteSemiActiveDocuments", "rm.deleteSemiActiveFolders", "rm.manageContainers", "rm.manageDocumentAuthorizations", "rm.manageFolderAuthorizations", "rm.modifyOpeningDateFolder", "rm.modifySemiActiveBorrowedFolder", "rm.publishAndUnpublishDocuments", "rm.reactivationRequestOnFolder", "rm.shareDocuments", "rm.shareFolders", "rm.shareSemiActiveDocuments", "rm.shareSemiActiveFolders", "rm.uploadSemiActiveDocuments", "rm.useCart")));
-    rolesManager.addRole(new Role(collection, "RGD", resourcesProvider.getValuesOfAllLanguagesWithSeparator("init.roles.RGD", " / "), asList("core.accessDeleteAllTemporaryRecords", "core.deleteContentVersion", "core.deletePublicSavedSearch", "core.ldapConfigurationManagement", "core.manageConnectors", "core.manageEmailServer", "core.manageExcelReport", "core.manageFacets", "core.manageLabels", "core.manageMetadataExtractor", "core.manageMetadataSchemas", "core.managePrintableReport", "core.manageSearchBoost", "core.manageSecurity", "core.manageSystemCollections", "core.manageSystemConfiguration", "core.manageSystemDataImports", "core.manageSystemGroups", "core.manageSystemGroupsActivation", "core.manageSystemUpdates", "core.manageSystemUsers", "core.manageTaxonomies", "core.manageTrash", "core.manageValueList", "core.managerTemporaryRecords", "core.modifyPublicSavedSearch", "core.seeAllTemporaryRecords", "core.useExternalAPIS", "core.viewEvents", "core.viewSystemBatchProcesses", "rm.borrowContainer", "rm.borrowFolder", "rm.borrowingFolderDirectly", "rm.borrowingRequestOnContainer", "rm.borrowingRequestOnFolder", "rm.createActiveFolderToSemiActiveDecommissioningList", "rm.createDocuments", "rm.createFolders", "rm.createInactiveDocuments", "rm.createSemiActiveDocuments", "rm.createSubFolders", "rm.createSubFoldersInInactiveFolders", "rm.createSubFoldersInSemiActiveFolders", "rm.decommissioning", "rm.deleteBorrowedDocuments", "rm.deleteContainers", "rm.deleteInactiveDocuments", "rm.deleteInactiveFolders", "rm.deletePublishedDocuments", "rm.deleteSemiActiveDocuments", "rm.deleteSemiActiveFolders", "rm.displayContainers", "rm.duplicateInactiveFolders", "rm.duplicateSemiActiveFolders", "rm.editActiveFolderToSemiActiveDecommissioningList", "rm.editDecommissioningList", "rm.generateSIPArchives", "rm.manageBagInfo", "rm.manageClassificationPlan", "rm.manageContainers", "rm.manageDocumentAuthorizations", "rm.manageFolderAuthorizations", "rm.manageReports", "rm.manageRequestOnContainer", "rm.manageRequestOnFolder", "rm.manageRetentionRule", "rm.manageStorageSpaces", "rm.manageUniformSubdivisions", "rm.modifyFolderDecomDate", "rm.modifyImportedDocuments", "rm.modifyImportedFolders", "rm.modifyInactiveBorrowedFolder", "rm.modifyInactiveDocuments", "rm.modifyInactiveFolders", "rm.modifyOpeningDateFolder", "rm.modifySemiActiveBorrowedFolder", "rm.modifySemiActiveDocuments", "rm.modifySemiActiveFolders", "rm.processDecommissioningList", "rm.publishAndUnpublishDocuments", "rm.reactivationRequestOnFolder", "rm.returnOtherUsersDocuments", "rm.returnOtherUsersFolders", "rm.shareDocuments", "rm.shareFolders", "rm.shareImportedDocuments", "rm.shareImportedFolders", "rm.shareInactiveDocuments", "rm.shareInactiveFolders", "rm.shareSemiActiveDocuments", "rm.shareSemiActiveFolders", "rm.uploadInactiveDocuments", "rm.uploadSemiActiveDocuments", "rm.useCart", "rm.viewSystemFilename", "tasks.manageWorkflows", "tasks.startWorkflows")));
+	  rolesManager.updateRole(rolesManager.getRole(collection, "ADM").withNewPermissions(asList("core.accessDeleteAllTemporaryRecords", "core.batchProcess", "core.deleteContentVersion", "core.deletePublicSavedSearch", "core.ldapConfigurationManagement", "core.manageConnectors", "core.manageEmailServer", "core.manageExcelReport", "core.manageFacets", "core.manageLabels", "core.manageMetadataExtractor", "core.manageMetadataSchemas", "core.managePrintableReport", "core.manageSearchBoost", "core.manageSecurity", "core.manageSystemCollections", "core.manageSystemConfiguration", "core.manageSystemDataImports", "core.manageSystemGroups", "core.manageSystemGroupsActivation", "core.manageSystemUpdates", "core.manageSystemUsers", "core.manageTaxonomies", "core.manageTrash", "core.manageValueList", "core.managerTemporaryRecords", "core.modifyPublicSavedSearch", "core.seeAllTemporaryRecords", "core.useExternalAPIS", "core.viewEvents", "core.viewSystemBatchProcesses", "rm.borrowContainer", "rm.borrowFolder", "rm.borrowingFolderDirectly", "rm.borrowingRequestOnContainer", "rm.borrowingRequestOnFolder", "rm.cartBatchDelete", "rm.consultClassificationPlan", "rm.consultRetentionRule", "rm.createActiveFolderToSemiActiveDecommissioningList", "rm.createDecommissioningList", "rm.createDocuments", "rm.createFolders", "rm.createInactiveDocuments", "rm.createSemiActiveDocuments", "rm.createSubFolders", "rm.createSubFoldersInInactiveFolders", "rm.createSubFoldersInSemiActiveFolders", "rm.decommissioning", "rm.deleteBorrowedDocuments", "rm.deleteContainers", "rm.deleteInactiveDocuments", "rm.deleteInactiveFolders", "rm.deletePublishedDocuments", "rm.deleteSemiActiveDocuments", "rm.deleteSemiActiveFolders", "rm.displayContainers", "rm.duplicateInactiveFolders", "rm.duplicateSemiActiveFolders", "rm.editActiveFolderToSemiActiveDecommissioningList", "rm.editDecommissioningList", "rm.generateSIPArchives", "rm.manageBagInfo", "rm.manageClassificationPlan", "rm.manageContainers", "rm.manageDocumentAuthorizations", "rm.manageFolderAuthorizations", "rm.manageReports", "rm.manageRequestOnContainer", "rm.manageRequestOnFolder", "rm.manageRetentionRule", "rm.manageStorageSpaces", "rm.manageUniformSubdivisions", "rm.modifyFolderDecomDate", "rm.modifyImportedDocuments", "rm.modifyImportedFolders", "rm.modifyInactiveBorrowedFolder", "rm.modifyInactiveDocuments", "rm.modifyInactiveFolders", "rm.modifyOpeningDateFolder", "rm.modifySemiActiveBorrowedFolder", "rm.modifySemiActiveDocuments", "rm.modifySemiActiveFolders", "rm.processDecommissioningList", "rm.publishAndUnpublishDocuments", "rm.reactivationRequestOnFolder", "rm.returnOtherUsersDocuments", "rm.returnOtherUsersFolders", "rm.shareDocuments", "rm.shareFolders", "rm.shareImportedDocuments", "rm.shareImportedFolders", "rm.shareInactiveDocuments", "rm.shareInactiveFolders", "rm.shareSemiActiveDocuments", "rm.shareSemiActiveFolders", "rm.uploadInactiveDocuments", "rm.uploadSemiActiveDocuments", "rm.useGroupCart", "rm.useMyCart", "rm.viewSystemFilename", "tasks.manageWorkflows", "tasks.startWorkflows")));
+	  rolesManager.addRole(new Role(collection, "U", resourcesProvider.getValuesOfAllLanguagesWithSeparator("init.roles.U", " / "), asList("rm.borrowContainer", "rm.borrowFolder", "rm.borrowingRequestOnContainer", "rm.borrowingRequestOnFolder", "rm.createDocuments", "rm.createFolders", "rm.createSubFolders", "rm.deletePublishedDocuments", "rm.deleteSemiActiveDocuments", "rm.deleteSemiActiveFolders", "rm.modifySemiActiveBorrowedFolder", "rm.publishAndUnpublishDocuments", "rm.reactivationRequestOnFolder", "rm.shareDocuments", "rm.shareFolders", "rm.shareSemiActiveDocuments", "rm.shareSemiActiveFolders", "rm.uploadSemiActiveDocuments", "rm.useGroupCart", "rm.useMyCart")));
+	  rolesManager.addRole(new Role(collection, "M", resourcesProvider.getValuesOfAllLanguagesWithSeparator("init.roles.M", " / "), asList("manageLabels", "rm.borrowContainer", "rm.borrowFolder", "rm.borrowingRequestOnContainer", "rm.borrowingRequestOnFolder", "rm.createActiveFolderToSemiActiveDecommissioningList", "rm.createDecommissioningList", "rm.createDocuments", "rm.createFolders", "rm.createSubFolders", "rm.decommissioning", "rm.deletePublishedDocuments", "rm.deleteSemiActiveDocuments", "rm.deleteSemiActiveFolders", "rm.editActiveFolderToSemiActiveDecommissioningList", "rm.manageContainers", "rm.manageDocumentAuthorizations", "rm.manageFolderAuthorizations", "rm.modifyOpeningDateFolder", "rm.modifySemiActiveBorrowedFolder", "rm.publishAndUnpublishDocuments", "rm.reactivationRequestOnFolder", "rm.shareDocuments", "rm.shareFolders", "rm.shareSemiActiveDocuments", "rm.shareSemiActiveFolders", "rm.uploadSemiActiveDocuments", "rm.useGroupCart", "rm.useMyCart")));
+	  rolesManager.addRole(new Role(collection, "RGD", resourcesProvider.getValuesOfAllLanguagesWithSeparator("init.roles.RGD", " / "), asList("core.accessDeleteAllTemporaryRecords", "core.batchProcess", "core.deleteContentVersion", "core.deletePublicSavedSearch", "core.ldapConfigurationManagement", "core.manageConnectors", "core.manageEmailServer", "core.manageExcelReport", "core.manageFacets", "core.manageLabels", "core.manageMetadataExtractor", "core.manageMetadataSchemas", "core.managePrintableReport", "core.manageSearchBoost", "core.manageSecurity", "core.manageSystemCollections", "core.manageSystemConfiguration", "core.manageSystemDataImports", "core.manageSystemGroups", "core.manageSystemGroupsActivation", "core.manageSystemUpdates", "core.manageSystemUsers", "core.manageTaxonomies", "core.manageTrash", "core.manageValueList", "core.managerTemporaryRecords", "core.modifyPublicSavedSearch", "core.seeAllTemporaryRecords", "core.useExternalAPIS", "core.viewEvents", "core.viewSystemBatchProcesses", "rm.borrowContainer", "rm.borrowFolder", "rm.borrowingFolderDirectly", "rm.borrowingRequestOnContainer", "rm.borrowingRequestOnFolder", "rm.cartBatchDelete", "rm.consultClassificationPlan", "rm.consultRetentionRule", "rm.createActiveFolderToSemiActiveDecommissioningList", "rm.createDecommissioningList", "rm.createDocuments", "rm.createFolders", "rm.createInactiveDocuments", "rm.createSemiActiveDocuments", "rm.createSubFolders", "rm.createSubFoldersInInactiveFolders", "rm.createSubFoldersInSemiActiveFolders", "rm.decommissioning", "rm.deleteBorrowedDocuments", "rm.deleteContainers", "rm.deleteInactiveDocuments", "rm.deleteInactiveFolders", "rm.deletePublishedDocuments", "rm.deleteSemiActiveDocuments", "rm.deleteSemiActiveFolders", "rm.displayContainers", "rm.duplicateInactiveFolders", "rm.duplicateSemiActiveFolders", "rm.editActiveFolderToSemiActiveDecommissioningList", "rm.editDecommissioningList", "rm.generateSIPArchives", "rm.manageBagInfo", "rm.manageClassificationPlan", "rm.manageContainers", "rm.manageDocumentAuthorizations", "rm.manageFolderAuthorizations", "rm.manageReports", "rm.manageRequestOnContainer", "rm.manageRequestOnFolder", "rm.manageRetentionRule", "rm.manageStorageSpaces", "rm.manageUniformSubdivisions", "rm.modifyFolderDecomDate", "rm.modifyImportedDocuments", "rm.modifyImportedFolders", "rm.modifyInactiveBorrowedFolder", "rm.modifyInactiveDocuments", "rm.modifyInactiveFolders", "rm.modifyOpeningDateFolder", "rm.modifySemiActiveBorrowedFolder", "rm.modifySemiActiveDocuments", "rm.modifySemiActiveFolders", "rm.processDecommissioningList", "rm.publishAndUnpublishDocuments", "rm.reactivationRequestOnFolder", "rm.returnOtherUsersDocuments", "rm.returnOtherUsersFolders", "rm.shareDocuments", "rm.shareFolders", "rm.shareImportedDocuments", "rm.shareImportedFolders", "rm.shareInactiveDocuments", "rm.shareInactiveFolders", "rm.shareSemiActiveDocuments", "rm.shareSemiActiveFolders", "rm.uploadInactiveDocuments", "rm.uploadSemiActiveDocuments", "rm.useGroupCart", "rm.useMyCart", "rm.viewSystemFilename", "tasks.manageWorkflows", "tasks.startWorkflows")));
   }
 }

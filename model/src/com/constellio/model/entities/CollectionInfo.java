@@ -22,7 +22,11 @@ public class CollectionInfo implements Serializable {
 
 	List<String> secondaryCollectionLanguageCodes = new ArrayList<>();
 
-	public CollectionInfo(String code, String mainSystemLanguageCode, List<String> collectionLanguesCodes) {
+	byte collectionId;
+
+	public CollectionInfo(byte collectionId, String code, String mainSystemLanguageCode,
+						  List<String> collectionLanguesCodes) {
+		this.collectionId = collectionId;
 		this.code = code;
 		this.mainSystemLocale = Language.withCode(mainSystemLanguageCode).locale;
 		this.mainSystemLanguage = Language.withLocale(mainSystemLocale);
@@ -49,7 +53,8 @@ public class CollectionInfo implements Serializable {
 		this.secondaryCollectionLanguageCodes = Collections.unmodifiableList(secondaryCollectionLanguageCodes);
 	}
 
-	public CollectionInfo(String code, Locale mainSystemLocale, List<Locale> collectionLocales) {
+	public CollectionInfo(byte collectionId, String code, Locale mainSystemLocale, List<Locale> collectionLocales) {
+		this.collectionId = collectionId;
 		this.code = code;
 		this.mainSystemLocale = mainSystemLocale;
 		this.collectionLocales = Collections.unmodifiableList(collectionLocales);
@@ -94,5 +99,13 @@ public class CollectionInfo implements Serializable {
 
 	public boolean isMonoLingual() {
 		return collectionLocales.size() == 1;
+	}
+
+	public int getCollectionIndex() {
+		return collectionId - Byte.MIN_VALUE;
+	}
+
+	public byte getCollectionId() {
+		return collectionId;
 	}
 }

@@ -1,6 +1,7 @@
 package com.constellio.app.ui.framework.components.table.columns;
 
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
+import com.constellio.model.entities.records.wrappers.Event;
 import com.vaadin.ui.Table;
 
 import java.util.ArrayList;
@@ -21,19 +22,13 @@ public class EventVOTableColumnsManager extends RecordVOTableColumnsManager {
 
 	@Override
 	protected List<String> getDefaultVisibleColumnIds(Table table) {
-		List<String> defaultVisibleColumnIds = new ArrayList<>(super.getDefaultVisibleColumnIds(table));
-		defaultVisibleColumnIds = addForcedVisibleColumnsToDefaults(defaultVisibleColumnIds);
-		return defaultVisibleColumnIds;
-	}
+		ArrayList<String> defaultVisibleColumns = new ArrayList<>();
 
-	protected List<String> addForcedVisibleColumnsToDefaults(List<String> defaultVisibleColumnIds) {
+		defaultVisibleColumns = addColumnIfNotAlreadyIn(defaultVisibleColumns, Event.TYPE);
+		defaultVisibleColumns = addColumnIfNotAlreadyIn(defaultVisibleColumns, Event.USERNAME);
+		defaultVisibleColumns = addColumnIfNotAlreadyIn(defaultVisibleColumns, "createdOn");
 
-		ArrayList<String> allVisibleColumns = new ArrayList<>(defaultVisibleColumnIds);
-
-		allVisibleColumns = addColumnIfNotAlreadyIn(allVisibleColumns, com.constellio.model.entities.records.wrappers.Event.TYPE);
-		allVisibleColumns = addColumnIfNotAlreadyIn(allVisibleColumns, com.constellio.model.entities.records.wrappers.Event.USERNAME);
-
-		return allVisibleColumns;
+		return defaultVisibleColumns;
 	}
 
 	protected ArrayList<String> addColumnIfNotAlreadyIn(ArrayList<String> defaultVisibleColumnIds,

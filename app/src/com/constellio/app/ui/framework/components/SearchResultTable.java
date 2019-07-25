@@ -7,6 +7,10 @@ import java.util.List;
 
 public interface SearchResultTable extends Component {
 
+	String TABLE_STYLE = "search-result-table";
+
+	String SEARCH_RESULT_TABLE_STYLE = "search-result-table";
+
 	List<String> getSelectedRecordIds();
 
 	List<String> getUnselectedRecordIds();

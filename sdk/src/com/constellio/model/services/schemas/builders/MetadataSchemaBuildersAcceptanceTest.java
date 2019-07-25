@@ -54,7 +54,7 @@ public class MetadataSchemaBuildersAcceptanceTest extends ConstellioTest {
 		assertThat(typeBuilder.getCustomSchema("zeCustomSchema").getMetadata("zeMetadata").getCode()).isEqualTo(
 				"zetype_zeCustomSchema_zeMetadata");
 
-		MetadataSchemaType metadataSchemaType = typeBuilder.build(typesFactory, modelLayerFactory);
+		MetadataSchemaType metadataSchemaType = typeBuilder.build(typesFactory, typesBuilder, modelLayerFactory);
 
 		Metadata defaultMetadata = metadataSchemaType.getDefaultSchema().getMetadata(theMetadataCode);
 
@@ -71,7 +71,7 @@ public class MetadataSchemaBuildersAcceptanceTest extends ConstellioTest {
 
 		assertZeMetadataCreatedAndInherited(typeBuilder);
 
-		MetadataSchemaType metadataSchemaType = typeBuilder.build(typesFactory, modelLayerFactory);
+		MetadataSchemaType metadataSchemaType = typeBuilder.build(typesFactory, typesBuilder, modelLayerFactory);
 
 		Metadata defaultMetadata = metadataSchemaType.getDefaultSchema().getMetadata(theMetadataCode);
 		Metadata customMetadata = metadataSchemaType.getCustomSchema(theCustomSchemaCode).getMetadata(theMetadataCode);
@@ -87,7 +87,7 @@ public class MetadataSchemaBuildersAcceptanceTest extends ConstellioTest {
 
 		assertZeMetadataCreatedAndInherited(typeBuilder);
 
-		MetadataSchemaType metadataSchemaType = typeBuilder.build(typesFactory, modelLayerFactory);
+		MetadataSchemaType metadataSchemaType = typeBuilder.build(typesFactory, typesBuilder, modelLayerFactory);
 
 		Metadata defaultMetadata = metadataSchemaType.getDefaultSchema().getMetadata(theMetadataCode);
 		Metadata customMetadata = metadataSchemaType.getCustomSchema(theCustomSchemaCode).getMetadata(theMetadataCode);
@@ -95,13 +95,13 @@ public class MetadataSchemaBuildersAcceptanceTest extends ConstellioTest {
 		assertSameInheritance(defaultMetadata, customMetadata);
 
 		typeBuilder.getDefaultSchema().create("newMetadata").setType(MetadataValueType.TEXT);
-		metadataSchemaType = typeBuilder.build(typesFactory, modelLayerFactory);
+		metadataSchemaType = typeBuilder.build(typesFactory, typesBuilder, modelLayerFactory);
 
 		metadataSchemaType.getSchema(theCustomSchemaCode).hasMetadataWithCode("newMetadata");
 	}
 
 	public MetadataSchemaTypeBuilder createMetadataSchemaTypeBuilder() {
-		CollectionInfo zeCollectionInfo = new CollectionInfo(zeCollection, "fr", asList("fr"));
+		CollectionInfo zeCollectionInfo = new CollectionInfo((byte) 0, zeCollection, "fr", asList("fr"));
 		MetadataSchemaTypeBuilder typeBuilder = MetadataSchemaTypeBuilder
 				.createNewSchemaType(zeCollectionInfo, "zetype", typesBuilder);
 		typeBuilder.getDefaultSchema().create(theMetadataCode).addLabel(Language.French, "zeMetadata")

@@ -1,6 +1,5 @@
 package com.constellio.app.modules.rm.ui.components.menuBar;
 
-import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.pages.document.AddEditDocumentViewImpl;
 import com.constellio.app.modules.rm.ui.pages.document.AddEditDocumentWindow;
 import com.constellio.app.modules.rm.ui.pages.document.DisplayDocumentViewImpl;
@@ -23,10 +22,9 @@ import com.constellio.app.ui.framework.components.content.ContentVersionVOResour
 import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
 import com.constellio.app.ui.framework.components.menuBar.BaseMenuBar;
 import com.constellio.app.ui.framework.components.menuBar.ConfirmDialogMenuBarItemCommand;
-import com.constellio.app.ui.framework.components.viewers.panel.ViewableRecordTablePanel;
+import com.constellio.app.ui.framework.components.viewers.panel.ViewableRecordVOTablePanel;
 import com.constellio.app.ui.framework.containers.RefreshableContainer;
 import com.constellio.app.ui.pages.base.BaseView;
-import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.UIContext;
 import com.constellio.app.ui.params.ParamUtils;
@@ -77,14 +75,34 @@ public class DocumentMenuBarImpl extends BaseMenuBar implements DocumentMenuBar 
 	private boolean addToCartButtonVisible;
 	private boolean publishButtonVisible;
 
+	private MenuItem rootItem;
+
 	protected DocumentMenuBarPresenter presenter;
 
-	public DocumentMenuBarImpl(DocumentVO documentVO) {
+	public DocumentMenuBarImpl(RecordVO documentVO) {
+		super(true, false);
+
 		presenter = newPresenter();
-		setDocumentVO(documentVO);
+		setRecordVO(documentVO);
 		if (documentVO != null) {
 			presenter.setRecordVO(documentVO);
 		}
+
+		if (isLazyLoading()) {
+			rootItem = addItem("", FontAwesome.BARS, new Command() {
+				@Override
+				public void menuSelected(MenuItem selectedItem) {
+				}
+			});
+		} else {
+			rootItem = addItem("", FontAwesome.BARS, null);
+			lazyLoadChildren(rootItem);
+		}
+	}
+
+	@Override
+	protected void lazyLoadChildren(MenuItem rootItem) {
+		presenter.lazyLoadingChildren();
 	}
 
 	protected DocumentMenuBarPresenter newPresenter() {
@@ -107,7 +125,6 @@ public class DocumentMenuBarImpl extends BaseMenuBar implements DocumentMenuBar 
 		removeItems();
 
 		MenuItem rootItem = addItem("", FontAwesome.ELLIPSIS_V, null);
-		rootItem.setIcon(FontAwesome.BARS);
 
 		if (StringUtils.isNotBlank(borrowedMessage)) {
 			rootItem.addItem(borrowedMessage, null);
@@ -306,14 +323,11 @@ public class DocumentMenuBarImpl extends BaseMenuBar implements DocumentMenuBar 
 					View parentView = ConstellioUI.getCurrent().getCurrentView();
 					ReportTabButton button = new ReportTabButton($("DocumentActionsComponent.printMetadataReport"),
 							$("DocumentActionsComponent.printMetadataReport"), (BaseView) parentView, true);
-					button.setRecordVoList(presenter.getDocumentVO());
+					button.setRecordVoList(presenter.getRecordVO());
 					button.click();
 				}
 			});
 		}
-
-		BaseViewImpl parentView = (BaseViewImpl) ConstellioUI.getCurrent().getCurrentView();
-		presenter.addItemsFromExtensions(rootItem, parentView);
 	}
 
 	@Override
@@ -356,8 +370,8 @@ public class DocumentMenuBarImpl extends BaseMenuBar implements DocumentMenuBar 
 	}
 
 	@Override
-	public void setDocumentVO(DocumentVO documentVO) {
-		this.recordVO = documentVO;
+	public void setRecordVO(RecordVO recordVO) {
+		this.recordVO = recordVO;
 	}
 
 	private void initUploadWindow() {
@@ -409,7 +423,7 @@ public class DocumentMenuBarImpl extends BaseMenuBar implements DocumentMenuBar 
 	}
 
 	@Override
-	public void setAddAuthorizationButtonState(ComponentState state) {
+	public void setViewAuthorizationButtonState(ComponentState state) {
 		addAuthorizationButtonVisible = state.isEnabled();
 	}
 
@@ -508,19 +522,19 @@ public class DocumentMenuBarImpl extends BaseMenuBar implements DocumentMenuBar 
 		if (parent instanceof Table) {
 			Container container = ((Table) parent).getContainerDataSource();
 			if (container instanceof RefreshableContainer) {
-				((RefreshableContainer) container).refresh();
+				((RefreshableContainer) container).forceRefresh();
 			}
 		}
 	}
 
 	@Override
 	public boolean isInViewer() {
-		return ComponentTreeUtils.findParent(this, ViewableRecordTablePanel.class) != null;
+		return ComponentTreeUtils.findParent(this, ViewableRecordVOTablePanel.class) != null;
 	}
 
 	@Override
 	public void displayInWindow() {
-		DisplayDocumentViewImpl view = new DisplayDocumentViewImpl(recordVO, false);
+		DisplayDocumentViewImpl view = new DisplayDocumentViewImpl(recordVO, false, true);
 
 		DocumentViewWindow window =  ComponentTreeUtils.findParent(this, DocumentViewWindow.class);
 		boolean newWindow;

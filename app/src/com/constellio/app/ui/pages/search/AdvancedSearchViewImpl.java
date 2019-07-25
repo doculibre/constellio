@@ -1,23 +1,17 @@
 package com.constellio.app.ui.pages.search;
 
-import com.constellio.app.api.extensions.params.AvailableActionsParam;
-import com.constellio.app.modules.rm.constants.RMPermissionsTo;
-import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
+import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.ui.pages.cart.DefaultFavoritesTable;
-import com.constellio.app.modules.rm.ui.pages.pdf.ConsolidatedPdfButton;
 import com.constellio.app.modules.rm.wrappers.Cart;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.StorageSpace;
-import com.constellio.app.modules.tasks.model.wrappers.Task;
+import com.constellio.app.services.menu.MenuItemAction;
+import com.constellio.app.services.menu.MenuItemServices;
+import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
+import com.constellio.app.ui.framework.buttons.LinkButton;
 import com.constellio.app.ui.framework.buttons.SIPButton.SIPButtonImpl;
 import com.constellio.app.ui.framework.buttons.WindowButton;
-import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
-import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.NewReportPresenter;
 import com.constellio.app.ui.framework.components.ReportTabButton;
 import com.constellio.app.ui.framework.components.ReportViewer.DownloadStreamResource;
@@ -28,18 +22,17 @@ import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.SearchResultVODataProvider;
 import com.constellio.app.ui.framework.items.RecordVOItem;
+import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.ConstellioHeader;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingButton;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingModifyingOneMetadataButton;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingView;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
+import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.app.ui.util.MessageUtils;
-import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.enums.BatchProcessingMode;
-import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.constellio.model.services.users.UserServices;
+import com.constellio.model.entities.records.wrappers.User;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.server.Page;
@@ -49,24 +42,28 @@ import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
-import com.vaadin.ui.Link;
-import com.vaadin.ui.Panel;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
+import org.apache.commons.collections4.MapUtils;
 
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Observable;
 import java.util.Observer;
+import java.util.stream.Collectors;
 
+import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus.HIDDEN;
+import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus.VISIBLE;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.entities.enums.BatchProcessingMode.ALL_METADATA_OF_SCHEMA;
 import static com.constellio.model.entities.enums.BatchProcessingMode.ONE_METADATA;
+import static java.util.Arrays.asList;
 
 public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresenter>
 		implements AdvancedSearchView, BatchProcessingView, Observer {
@@ -130,7 +127,7 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 
 	@Override
 	protected Component buildSearchUI() {
-		return new VerticalLayout();
+		return null;
 	}
 
 	@Override
@@ -138,210 +135,83 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 		// TODO: Create an extension for this
 
 		final String schemaType = getSchemaType();
-		List<Component> selectionActions = new ArrayList<>();
 
-		batchProcessingButton = newBatchProcessingButton();
-		batchProcessingButton.addStyleName(ValoTheme.BUTTON_LINK);
-		batchProcessingButton.addStyleName(BATCH_PROCESS_BUTTONSTYLE);
-		if (ContainerRecord.SCHEMA_TYPE.equals(schemaType)) {
-			batchProcessingButton.setVisible(presenter.getUser().has(RMPermissionsTo.MANAGE_CONTAINERS).onSomething());
-		} else if (StorageSpace.SCHEMA_TYPE.equals(schemaType)) {
-			batchProcessingButton.setVisible(presenter.getUser().has(RMPermissionsTo.MANAGE_STORAGE_SPACES).globally());
-		}
-
-		if(!presenter.hasBatchProcessPermission()) {
-			batchProcessingButton.setVisible(false);
-		}
-
-		selectionActions.add(batchProcessingButton);
-
-		if (Folder.SCHEMA_TYPE.equals(schemaType) || ContainerRecord.SCHEMA_TYPE.equals(schemaType) || Document.SCHEMA_TYPE.equals(schemaType)) {
-			Factory<List<LabelTemplate>> customLabelTemplatesFactory = new Factory<List<LabelTemplate>>() {
-				@Override
-				public List<LabelTemplate> get() {
-					return presenter.getCustomTemplates();
-				}
-			};
-			Factory<List<LabelTemplate>> defaultLabelTemplatesFactory = new Factory<List<LabelTemplate>>() {
-				@Override
-				public List<LabelTemplate> get() {
-					return presenter.getDefaultTemplates();
-				}
-			};
-			final LabelButtonV2 labelsButton = new LabelButtonV2($("SearchView.labels"),
-					$("SearchView.printLabels"),
-					customLabelTemplatesFactory,
-					defaultLabelTemplatesFactory,
-					getConstellioFactories().getAppLayerFactory(),
-					getSessionContext().getCurrentCollection(),
-					getSessionContext().getCurrentUser());
-			labelsButton.setSchemaType(schemaType);
-			labelsButton.addStyleName(ValoTheme.BUTTON_LINK);
-			labelsButton.addStyleName(LABELS_BUTTONSTYLE);
-			labelsButton.addClickListener(new Button.ClickListener() {
-				@Override
-				public void buttonClick(Button.ClickEvent event) {
-					labelsButton.setElementsWithIds(getSelectedRecordIds(), schemaType, getSessionContext());
-				}
-			});
-			selectionActions.add(labelsButton);
-		}
-
-		if (Document.SCHEMA_TYPE.equals(schemaType)) {
-			Component zipButton = new Link($("ReportViewer.download", "(zip)"),
-					new DownloadStreamResource(presenter.getZippedContents(), presenter.getZippedContentsFilename()));
-			zipButton.addStyleName(ValoTheme.BUTTON_LINK);
-			selectionActions.add(zipButton);
-
-			Button consolidatedPdfButton = new ConsolidatedPdfButton() {
-				@Override
-				public void buttonClick(ClickEvent event) {
-					List<String> selectedDocumentIds = getSelectedRecordIds();
-					if (presenter.isPdfGenerationActionPossible(selectedDocumentIds)) {
-						AvailableActionsParam params = new AvailableActionsParam(selectedDocumentIds, Arrays.asList(Document.SCHEMA_TYPE), null, null, null);
-						setParams(params);
-						super.buttonClick(event);
-					}
-				}
-			};
-			consolidatedPdfButton.addStyleName(ValoTheme.BUTTON_LINK);
-			selectionActions.add(consolidatedPdfButton);
-		}
-
-
-		reportButton = new ReportTabButton($("SearchView.metadataReportTitle"), $("SearchView.metadataReportTitle"), this,
-				!presenter.getListSearchableMetadataSchemaType().contains(schemaType),
-				!(Folder.SCHEMA_TYPE.equals(schemaType) || Document.SCHEMA_TYPE.equals(schemaType) || Task.SCHEMA_TYPE.equals(schemaType))) {
-
-			BaseWindow querySelectionWindow;
-
-			@Override
-			public void buttonClick(ClickEvent event) {
-				if (querySelectionWindow == null || !(ConstellioUI.getCurrent().getWindows() != null && ConstellioUI.getCurrent().getWindows().contains(querySelectionWindow))) {
-					querySelectionWindow = new BaseWindow($("com.constellio.app.extensions.WorkflowPageExtension_confirmationTitle"));
-					querySelectionWindow.setWidth("50%");
-					querySelectionWindow.setHeight("220px");
-					querySelectionWindow.center();
-					querySelectionWindow.setModal(true);
-					querySelectionWindow.setContent(buildQuerySelectionWindow());
-					ConstellioUI.getCurrent().addWindow(querySelectionWindow);
-					querySelectionWindow.focus();
-				}
-			}
-
-			@Override
-			protected LogicalSearchQuery getLogicalSearchQuery(String selectedSchemaFilter) {
-				LogicalSearchQuery query = AdvancedSearchViewImpl.this.presenter.buildReportLogicalSearchQuery();
-				if (selectedSchemaFilter != null) {
-					query.setCondition(query.getCondition().andWhere(Schemas.SCHEMA).isEqualTo(selectedSchemaFilter));
-				}
-				return query;
-			}
-
-			private Component buildQuerySelectionWindow() {
-				Panel panel = new Panel();
-				VerticalLayout vLayout = new VerticalLayout();
-				vLayout.setSpacing(true);
-
-				Label questionLabel = new Label($("AdvancedSearch.reportRecordSelection"));
-
-				BaseButton allSearchResultsButton = new BaseButton($("AdvancedSearchView.allSearchResults")) {
+		// FIXME test only
+		MenuItemServices menuItemServices = new MenuItemServices(getCollection(), this.getConstellioFactories().getAppLayerFactory());
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(getCollection(), this.getConstellioFactories().getAppLayerFactory());
+		List<MenuItemAction> selectedMenuItemActions = menuItemServices.getActionsForRecords(rm.get(results.getSelectedRecordIds()),
+				new MenuItemActionBehaviorParams() {
 					@Override
-					protected void buttonClick(ClickEvent event) {
-						presenter.allSearchResultsButtonClicked();
-						querySelectionWindow.close();
-						proceedToReportSelection(event);
+					public BaseView getView() {
+						return (BaseView) ConstellioUI.getCurrent().getCurrentView();
 					}
-				};
 
-				BaseButton selectedSearchResultsButton = new BaseButton($("AdvancedSearchView.selectedSearchResults")) {
 					@Override
-					protected void buttonClick(ClickEvent event) {
-						presenter.selectedSearchResultsButtonClicked();
-						querySelectionWindow.close();
-						proceedToReportSelection(event);
+					public Map<String, String> getFormParams() {
+						return MapUtils.emptyIfNull(ParamUtils.getCurrentParams());
 					}
-				};
 
-				if (getSelectedRecordIds() == null || getSelectedRecordIds().isEmpty()) {
-					selectedSearchResultsButton.setEnabled(false);
-				}
+					@Override
+					public User getUser() {
+						return presenter.getUser();
+					}
+				});
 
-				vLayout.addComponents(questionLabel, allSearchResultsButton, selectedSearchResultsButton);
-
-				panel.setContent(vLayout);
-				panel.setSizeFull();
-				return panel;
-			}
-
-			private void proceedToReportSelection(ClickEvent event) {
-				super.buttonClick(event);
-			}
-
-			@Override
-			public boolean isVisible() {
-				return super.isVisible();
-			}
-
-			@Override
-			public void setVisible(boolean visible) {
-				super.setVisible(visible);
-			}
-
-			@Override
-			public boolean isEnabled() {
-				return super.isEnabled();
-			}
-
-			@Override
-			public void setEnabled(boolean enabled) {
-				super.setEnabled(enabled);
-			}
-		};
-		reportButton.addStyleName(ValoTheme.BUTTON_LINK);
-		reportButton.setVisible(presenter.hasAnyReportForSchemaType(schemaType));
-		reportButton.setEnabled(presenter.hasAnyReportForSchemaType(schemaType));
-		selectionActions.add(reportButton);
-
-
-		if (Folder.SCHEMA_TYPE.equals(schemaType) || Document.SCHEMA_TYPE.equals(schemaType)) {
-			if (presenter.hasCurrentUserPermissionToUseCart()) {
-				Button addToCart = buildAddToCartButton();
-				selectionActions.add(addToCart);
-			}
-
-			UserServices userServices = header.getConstellioFactories().getModelLayerFactory().newUserServices();
-			boolean hasAccessToSIP = userServices.getUserInCollection(header.getSessionContext().getCurrentUser().getUsername(), getCollection())
-					.has(RMPermissionsTo.GENERATE_SIP_ARCHIVES).globally();
-			sipButton = new SIPButtonImpl($("SIPButton.caption"), $("SIPButton.caption"), ConstellioUI.getCurrent().getHeader(), true) {
-				@Override
-				public void buttonClick(ClickEvent event) {
-					RecordVO[] recordVOS = presenter.getRecordVOList(results.getSelectedRecordIds())
-							.toArray(new RecordVO[0]);
-					sipButton.setAllObject(recordVOS);
-					super.buttonClick(event);
-				}
-			};
-			sipButton.addStyleName(ValoTheme.BUTTON_LINK);
-			sipButton.setVisible(hasAccessToSIP);
-			sipButton.setEnabled(hasAccessToSIP);
-			selectionActions.add(sipButton);
-		}
-
-		if (ContainerRecord.SCHEMA_TYPE.equals(schemaType)) {
-			if (presenter.hasCurrentUserPermissionToUseCart()) {
-				Button addToCart = buildAddToCartButton();
-				selectionActions.add(addToCart);
-			}
-		}
+		List<Component> selectionActions = selectedMenuItemActions.stream()
+				.map(menuItemAction -> {
+					BaseButton actionButton = new BaseButton(menuItemAction.getCaption(), menuItemAction.getIcon()) {
+						@Override
+						protected void buttonClick(ClickEvent event) {
+							menuItemAction.getCommand().accept(getSelectedRecordIds());
+						}
+					};
+					actionButton.setEnabled(menuItemAction.getState().getStatus() == VISIBLE);
+					actionButton.setVisible(menuItemAction.getState().getStatus() != HIDDEN);
+					return (Component) actionButton;
+				}).collect(Collectors.toList());
 
 		Button switchViewMode = buildSwitchViewMode();
 
 		// TODO Build SelectAllButton properly for table mode
 		//		List<Component> actions = Arrays.asList(
 		//				buildSelectAllButton(), buildSavedSearchButton(), (Component) new ReportSelector(presenter));
-		List<Component> actions = Arrays.asList(
-				buildSelectAllButton(), buildAddToSelectionButton(), buildSavedSearchButton(), (Component) switchViewMode);
+		// FIXME test for extensions batch process + generate report
+		List<MenuItemAction> menuItemActions = menuItemServices.getActionsForRecords(presenter.getSearchQuery(),
+				asList("RMRECORDS_ADD_CART", "RMRECORDS_MOVE", "RMRECORDS_COPY", "RMRECORDS_CREATE_SIP",
+						"RMRECORDS_SEND_EMAIL", "RMRECORDS_CREATE_PDF", "RMRECORDS_PRINT_LABEL",
+						"RMRECORDS_ADD_SELECTION", "RMRECORDS_DOWNLOAD_ZIP"),
+				new MenuItemActionBehaviorParams() {
+					@Override
+					public BaseView getView() {
+						return (BaseView) ConstellioUI.getCurrent().getCurrentView();
+					}
+
+					@Override
+					public Map<String, String> getFormParams() {
+						return MapUtils.emptyIfNull(ParamUtils.getCurrentParams());
+					}
+
+					@Override
+					public User getUser() {
+						return presenter.getUser();
+					}
+				});
+		List<Component> actions = menuItemActions.stream()
+				.map(menuItemAction -> {
+					BaseButton actionButton = new LinkButton(menuItemAction.getCaption()) {
+						@Override
+						protected void buttonClick(ClickEvent event) {
+							menuItemAction.getCommand().accept(Collections.emptyList());
+						}
+					};
+					actionButton.setEnabled(menuItemAction.getState().getStatus() == VISIBLE);
+					actionButton.setVisible(menuItemAction.getState().getStatus() != HIDDEN);
+					return (Component) actionButton;
+				}).collect(Collectors.toList());
+		actions.add(buildSavedSearchButton());
+
+		//List<Component> actions = Arrays.asList(
+		//		/*buildSelectAllButton(), buildAddToSelectionButton(),*/ buildSavedSearchButton()/*, (Component) switchViewMode*/);
 
 		return results.createSummary(actions, selectionActions);
 	}
@@ -373,24 +243,25 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 		return switchViewModeButton;
 	}
 
-    @Override
-    protected SearchResultTable buildSimpleResultsTable(SearchResultVODataProvider dataProvider) {
-         SearchResultTable table;
-    	if (!Toggle.SEARCH_RESULTS_VIEWER.isEnabled()) {
-        //Fixme : use dataProvider instead
-        final RecordVOLazyContainer container = new RecordVOLazyContainer(presenter.getSearchResultsAsRecordVOs());
-         table = new SearchResultSimpleTable(container, presenter);
-        table.setWidth("100%");
-        ((SearchResultSimpleTable)table).getTable().addItemClickListener(new ItemClickListener() {
-			@Override
-			public void itemClick(ItemClickEvent event) {
-				Object itemId = event.getItemId();
-				RecordVOItem item = (RecordVOItem) container.getItem(itemId);
-				RecordVO recordVO = item.getRecord();
-				((AdvancedSearchPresenter) presenter).searchResultClicked(recordVO);
-			}});
-    	} else {
-    		table = super.buildSimpleResultsTable(dataProvider);
+	@Override
+	protected SearchResultTable buildSimpleResultsTable(SearchResultVODataProvider dataProvider) {
+		SearchResultTable table;
+		if (!Toggle.SEARCH_RESULTS_VIEWER.isEnabled()) {
+			//Fixme : use dataProvider instead
+			final RecordVOLazyContainer container = new RecordVOLazyContainer(presenter.getSearchResultsAsRecordVOs());
+			table = new SearchResultSimpleTable(container, presenter);
+			table.setWidth("100%");
+			((SearchResultSimpleTable) table).getTable().addItemClickListener(new ItemClickListener() {
+				@Override
+				public void itemClick(ItemClickEvent event) {
+					Object itemId = event.getItemId();
+					RecordVOItem item = (RecordVOItem) container.getItem(itemId);
+					RecordVO recordVO = item.getRecord();
+					((AdvancedSearchPresenter) presenter).searchResultClicked(recordVO, (Integer) itemId);
+				}
+			});
+		} else {
+			table = super.buildSimpleResultsTable(dataProvider);
 		}
 		return table;
 	}

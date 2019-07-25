@@ -58,25 +58,29 @@ public abstract class ConfirmDialogButton extends IconButton {
 								  String notOkCaption,
 								  String cancelCaption, ConfirmDialog.Listener closeListener) {
 		String iconName;
-		switch (dialogMode) {
-			case INFO:
-				iconName = "info";
-				break;
-			case WARNING:
-				iconName = "warn";
-				break;
-			case ERROR:
-				iconName = "error";
-				break;
-			case STOP:
-				iconName = "stop";
-				break;
-			case TEXT:
-			default:
-				iconName = null;
-				break;
+		if (dialogMode != null) {
+			switch (dialogMode) {
+				case INFO:
+					iconName = "info";
+					break;
+				case WARNING:
+					iconName = "warn";
+					break;
+				case ERROR:
+					iconName = "error";
+					break;
+				case STOP:
+					iconName = "stop";
+					break;
+				case TEXT:
+				default:
+					iconName = null;
+					break;
+			}
+		} else {
+			iconName = null;
 		}
-		;
+
 		if (iconName != null) {
 			StringBuilder html = new StringBuilder();
 			html.append("<span style=\"height: 60px;\" class=\"confirm-dialog-" + iconName + "\">");

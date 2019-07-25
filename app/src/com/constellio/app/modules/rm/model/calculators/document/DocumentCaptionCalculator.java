@@ -27,7 +27,7 @@ public class DocumentCaptionCalculator extends StringMetadataValueCalculator {
 		if (parentCaption == null) {
 			return title;
 		} else {
-			return parentCaption + " | " + title;
+			return parentCaption + " / " + title;
 		}
 	}
 

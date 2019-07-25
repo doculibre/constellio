@@ -40,7 +40,7 @@ public class ListBagInfoPresenter extends BasePresenter<ListBagInfoView> {
 			dataProvider = new RecordVODataProvider(
 					schemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 				@Override
-				protected LogicalSearchQuery getQuery() {
+				public LogicalSearchQuery getQuery() {
 					OngoingLogicalSearchCondition FromCondition = from(BagInfoSchemaType.getSchema(BagInfo.DEFAULT_SCHEMA));
 					LogicalSearchCondition condition = FromCondition.where(returnAll());
 					return new LogicalSearchQuery().setCondition(condition);

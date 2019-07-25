@@ -17,6 +17,7 @@ import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.TransactionRecordsReindexation;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.RecordCacheType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.behaviors.RecordExtension;
 import com.constellio.model.extensions.events.records.RecordCreationEvent;
@@ -80,7 +81,6 @@ import static com.constellio.model.services.records.RecordServicesAcceptanceTest
 import static com.constellio.model.services.records.RecordServicesAcceptanceTestUtils.calculatedTextFromDummyCalculator;
 import static com.constellio.model.services.records.RecordServicesAcceptanceTestUtils.calculatedTextListFromDummyCalculator;
 import static com.constellio.model.services.records.RecordServicesAcceptanceTestUtils.calculatedTextListFromDummyCalculatorReturningInvalidType;
-import static com.constellio.model.services.records.cache.CacheConfig.permanentCache;
 import static com.constellio.model.services.schemas.validators.MetadataUnmodifiableValidator.UNMODIFIABLE_METADATA;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQuery.query;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -427,8 +427,13 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 
 		defineSchemasManager().using(schemas.withAStringMetadata().withAnotherStringMetadata());
 
-		getModelLayerFactory().getRecordsCaches().getCache(zeCollection)
-				.configureCache(permanentCache(schemas.zeDefaultSchemaType()));
+		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchemaType(zeSchema.typeCode()).setRecordCacheType(RecordCacheType.FULLY_CACHED);
+			}
+		});
+
 
 		Transaction tx = new Transaction();
 		Record record1 = tx.add(new TestRecord(zeSchema, "record1").set(zeSchema.stringMetadata(), "value1"));
@@ -1165,6 +1170,8 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 	public void given2RecordsIn2DifferentSchemaWithTheSecondCalculatedFromTheFirstWhenExecutingAsyncTransactionThenAddedInCorrectOrder()
 			throws Exception {
 		defineSchemasManager().using(schemas.withAMetadataCopiedInAnotherSchema());
+		cacheIntegrityCheckedAfterTest = false;
+
 
 		Record zeSchemaRecord1 = recordServices.newRecordWithSchema(zeSchema.instance());
 		zeSchemaRecord1.set(zeSchema.getCopiedMeta(), "1.1");
@@ -1310,6 +1317,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenExecutingASyncWithMoreThan10000RecordsAndThrowExceptionOptimisticLockingResolutionThenOk()
 			throws Exception {
+
 
 		defineSchemasManager().using(schemas.withATitle().withAStringMetadata());
 		recordServices.executeHandlingImpactsAsync(
@@ -1589,7 +1597,13 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 		recordServices.recalculate(record);
 		assertThat(record.<Double>get(zeSchema.numberMetadata())).isEqualTo(16.0);
 
-		getModelLayerFactory().getRecordsCaches().getCache(zeCollection).configureCache(permanentCache(zeSchema.type()));
+		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchemaType(zeSchema.typeCode()).setRecordCacheType(RecordCacheType.FULLY_CACHED);
+			}
+		});
+
 		Record recordInCache = getModelLayerFactory().getRecordsCaches().getCache(zeCollection).get(record.getId());
 		assertThat(recordInCache.<Double>get(zeSchema.numberMetadata())).isNull();
 
@@ -1621,8 +1635,17 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 		record = recordServices.getDocumentById(record.getId());
 		assertThat(record.<Double>get(zeSchema.numberMetadata())).isEqualTo(16.0);
 
-		getModelLayerFactory().getRecordsCaches().getCache(zeCollection).configureCache(permanentCache(zeSchema.type()));
 		Record recordInCache = getModelLayerFactory().getRecordsCaches().getCache(zeCollection).get(record.getId());
+		assertThat(recordInCache.<Double>get(zeSchema.numberMetadata())).isEqualTo(16.0);
+
+		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchemaType(zeSchema.typeCode()).setRecordCacheType(RecordCacheType.FULLY_CACHED);
+			}
+		});
+
+		recordInCache = getModelLayerFactory().getRecordsCaches().getCache(zeCollection).get(record.getId());
 		assertThat(recordInCache.<Double>get(zeSchema.numberMetadata())).isEqualTo(16.0);
 
 	}
@@ -2037,6 +2060,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 
 		defineSchemasManager().using(schemas.withAReferenceFromAnotherSchemaToZeSchema()
 				.withAnotherSchemaStringMetadata(whichIsScripted("#STRICT:title + referenceFromAnotherSchemaToZeSchema.title")));
+		cacheIntegrityCheckedAfterTest = false;
 
 		Transaction transaction = new Transaction();
 		transaction.add(new TestRecord(zeSchema, "ours").set(TITLE, "L'ours"));
@@ -2049,6 +2073,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 
 		getDataLayerFactory().newRecordDao().getBigVaultServer().getNestedSolrServer().deleteById("ours");
 		getDataLayerFactory().newRecordDao().getBigVaultServer().getNestedSolrServer().commit();
+		recordServices.getRecordsCaches().getCache(zeCollection).invalidateVolatileReloadPermanent(asList(zeSchema.typeCode()));
 
 		pointeur.set(Schemas.TITLE, "Pointeur d'ours brisé");
 		transaction = new Transaction(pointeur);
@@ -2082,6 +2107,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 								.asCopied(anotherSchemaType.get("referenceFromAnotherSchemaToZeSchema"), zeSchemaTypeTitle);
 					}
 				}));
+		cacheIntegrityCheckedAfterTest = false;
 
 		Transaction transaction = new Transaction();
 		transaction.add(new TestRecord(zeSchema, "ours").set(TITLE, "L'ours"));
@@ -2093,6 +2119,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 
 		getDataLayerFactory().newRecordDao().getBigVaultServer().getNestedSolrServer().deleteById("ours");
 		getDataLayerFactory().newRecordDao().getBigVaultServer().getNestedSolrServer().commit();
+		recordServices.getRecordsCaches().getCache(zeCollection).invalidateVolatileReloadPermanent(asList(zeSchema.typeCode()));
 
 		pointeur.set(Schemas.TITLE, "Pointeur d'ours brisé");
 		transaction = new Transaction(pointeur);
@@ -2127,6 +2154,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 								.asCopied(anotherSchemaType.get("referenceFromAnotherSchemaToZeSchema"), zeSchemaTypeTitle);
 					}
 				}));
+		cacheIntegrityCheckedAfterTest = false;
 
 		Transaction transaction = new Transaction();
 		transaction.add(new TestRecord(zeSchema, "ours").set(TITLE, "L'ours"));
@@ -2136,6 +2164,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 
 		getDataLayerFactory().newRecordDao().getBigVaultServer().getNestedSolrServer().deleteById("ours");
 		getDataLayerFactory().newRecordDao().getBigVaultServer().getNestedSolrServer().commit();
+		recordServices.getRecordsCaches().getCache(zeCollection).invalidateVolatileReloadPermanent(asList(zeSchema.typeCode()));
 
 		assertThatRecord(pointeur).extracting("title", "stringMetadata").isEqualTo(asList(
 				"Pointeur d'", asList("L'ours")));
@@ -2165,6 +2194,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 		givenDisabledAfterTestValidations();
 		defineSchemasManager().using(schemas.withAReferenceFromAnotherSchemaToZeSchema(whichIsMultivalue)
 				.withAnotherSchemaStringMetadata(whichIsScripted("title + referenceFromAnotherSchemaToZeSchema.title")));
+		cacheIntegrityCheckedAfterTest = false;
 
 		Transaction transaction = new Transaction();
 		transaction.add(new TestRecord(zeSchema, "ours").set(TITLE, "d'ours"));
@@ -2176,6 +2206,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 
 		getDataLayerFactory().newRecordDao().getBigVaultServer().getNestedSolrServer().deleteById("ours");
 		getDataLayerFactory().newRecordDao().getBigVaultServer().getNestedSolrServer().commit();
+		recordServices.getRecordsCaches().getCache(zeCollection).invalidateVolatileReloadPermanent(asList(zeSchema.typeCode()));
 
 		pointeur.set(Schemas.TITLE, "Pointeur d'ours brisé");
 		transaction = new Transaction(pointeur);

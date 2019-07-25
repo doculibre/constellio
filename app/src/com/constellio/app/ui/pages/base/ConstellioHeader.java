@@ -51,7 +51,7 @@ public interface ConstellioHeader extends Serializable {
 
 	void refreshSelectionPanel();
 
-	void refreshButtons();
+	void refreshActionButtons();
 
 	void removeRecordsFromPanel(List<String> idList);
 

@@ -77,7 +77,7 @@ public class TasksNavigationConfiguration implements Serializable {
 					navigate.to(TaskViews.class).addTaskToFolder(folderId);
 				} else if (currentView instanceof DisplayDocumentView) {
 					DisplayDocumentView displayFolderView = (DisplayDocumentView) currentView;
-					String documentId = displayFolderView.getDocumentVO().getId();
+					String documentId = displayFolderView.getRecordVO().getId();
 					navigate.to(TaskViews.class).addTaskToDocument(documentId);
 				} else {
 					navigate.to(TaskViews.class).addTask();

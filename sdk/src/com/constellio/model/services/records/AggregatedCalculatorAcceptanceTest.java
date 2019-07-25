@@ -117,7 +117,7 @@ public class AggregatedCalculatorAcceptanceTest extends ConstellioTest {
 				ContainerRecord.SCHEMA_TYPE);
 
 		assertThatRecord(records.getContainerBac13()).extracting(AGGREGATED_METADATA).isEqualTo(asList(1D));
-		assertThat(nbQueries).isEqualTo(8);
+		assertThat(nbQueries).isEqualTo(7);
 	}
 
 	@Test
@@ -133,6 +133,8 @@ public class AggregatedCalculatorAcceptanceTest extends ConstellioTest {
 										types.getDefaultSchema(Folder.SCHEMA_TYPE).getMetadata(Folder.LINEAR_SIZE));
 					}
 				});
+
+		getDataLayerFactory().getDataLayerLogger().setMonitoredIds(asList("00000000061"));
 
 		RecordServices recordServices = getModelLayerFactory().newRecordServices();
 		Transaction tx = new Transaction();
@@ -154,7 +156,7 @@ public class AggregatedCalculatorAcceptanceTest extends ConstellioTest {
 				ContainerRecord.SCHEMA_TYPE);
 
 		assertThatRecord(records.getContainerBac13()).extracting(AGGREGATED_METADATA).isEqualTo(asList(3D));
-		assertThat(nbQueries).isEqualTo(8);
+		assertThat(nbQueries).isEqualTo(7);
 	}
 
 	public Record fetchBac13FromSolr() {

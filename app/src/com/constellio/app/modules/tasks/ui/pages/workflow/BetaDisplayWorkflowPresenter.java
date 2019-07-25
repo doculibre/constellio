@@ -75,7 +75,7 @@ public class BetaDisplayWorkflowPresenter extends SingleSchemaBasePresenter<Beta
 		MetadataSchemaVO taskTypeSchemaVO = schemaVOBuilder.build(taskTypeSchema, VIEW_MODE.TABLE, sessionContext);
 		view.setTaskTypeDataProvider(new RecordVODataProvider(taskTypeSchemaVO, new RecordToVOBuilder(), view) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				LogicalSearchQuery query = new LogicalSearchQuery();
 				query.setCondition(from(schemaType(TaskType.SCHEMA_TYPE)).returnAll());
 				query.sortDesc(Schemas.TITLE);

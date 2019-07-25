@@ -40,8 +40,15 @@ public abstract class PageItem implements CodedItem, Serializable {
 
 	public static abstract class RecentItemTable extends PageItem {
 
-		protected RecentItemTable(String code) {
+		private String schemaType;
+
+		protected RecentItemTable(String code, String schemaType) {
 			super(code, Type.RECENT_ITEM_TABLE);
+			this.schemaType = schemaType;
+		}
+
+		public String getSchemaType() {
+			return schemaType;
 		}
 
 		public abstract List<RecentItem> getItems(AppLayerFactory appLayerFactory, SessionContext sessionContext);

@@ -9,6 +9,7 @@ import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.joda.time.LocalDateTime;
 
 import java.io.File;
 import java.io.IOException;
@@ -80,6 +81,11 @@ public class HadoopContentDao implements StatefulService, ContentDao {
 
 		} catch (IOException e) {
 		}
+	}
+
+	@Override
+	public LocalDateTime getLastModification(String contentId) {
+		throw new UnsupportedOperationException("Unsupported");
 	}
 
 	@Override

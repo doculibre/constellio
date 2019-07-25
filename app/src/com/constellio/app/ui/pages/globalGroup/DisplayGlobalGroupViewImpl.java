@@ -10,6 +10,7 @@ import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.components.BaseDisplay;
 import com.constellio.app.ui.framework.components.BaseDisplay.CaptionAndComponent;
 import com.constellio.app.ui.framework.components.TableStringFilter;
+import com.constellio.app.ui.framework.components.buttons.RecordVOActionButtonFactory;
 import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
@@ -360,7 +361,8 @@ public class DisplayGlobalGroupViewImpl extends BaseViewImpl implements DisplayG
 		deleteButton.setEnabled((globalGroupVO.getStatus() == GlobalGroupStatus.ACTIVE) && globalGroupVO.isLocallyCreated());
 		actionMenuButtons.add(deleteButton);
 
-		return actionMenuButtons;
+		//		return actionMenuButtons;
+		return new RecordVOActionButtonFactory(globalGroupVO).build();
 	}
 
 	@Override
@@ -385,5 +387,15 @@ public class DisplayGlobalGroupViewImpl extends BaseViewImpl implements DisplayG
 		tableFilterSubGroups = newTableFilterSubGroups;
 		tableFilterGlobalGroupsUser = newTableFilterGlobalGroupsUser;
 		tableFilterAvailableAvailableUsers = newTableFilterAvailableAvailableUsers;
+	}
+
+	@Override
+	public DisplayGlobalGroupPresenter getPresenter() {
+		return presenter;
+	}
+
+	@Override
+	public String getBreadCrumb() {
+		return presenter.getBreadCrumb();
 	}
 }

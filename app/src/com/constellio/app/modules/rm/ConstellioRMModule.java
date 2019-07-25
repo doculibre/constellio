@@ -1,42 +1,98 @@
 package com.constellio.app.modules.rm;
 
-import com.constellio.app.entities.modules.*;
+import com.constellio.app.entities.modules.ComboMigrationScript;
+import com.constellio.app.entities.modules.InstallableSystemModule;
+import com.constellio.app.entities.modules.InstallableSystemModuleWithRecordMigrations;
+import com.constellio.app.entities.modules.MigrationScript;
+import com.constellio.app.entities.modules.ModuleWithComboMigration;
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.constants.RMRoles;
-import com.constellio.app.modules.rm.extensions.*;
+import com.constellio.app.modules.rm.extensions.LabelSchemaRestrictionPageExtension;
+import com.constellio.app.modules.rm.extensions.RMCheckInAlertsRecordExtension;
+import com.constellio.app.modules.rm.extensions.RMCleanAdministrativeUnitButtonExtension;
+import com.constellio.app.modules.rm.extensions.RMContainerRecordExtension;
+import com.constellio.app.modules.rm.extensions.RMCreateDecommissioningListExtension;
+import com.constellio.app.modules.rm.extensions.RMDocumentExtension;
+import com.constellio.app.modules.rm.extensions.RMDownloadContentVersionLinkExtension;
+import com.constellio.app.modules.rm.extensions.RMEmailDocumentRecordExtension;
+import com.constellio.app.modules.rm.extensions.RMEventRecordExtension;
+import com.constellio.app.modules.rm.extensions.RMFolderExtension;
+import com.constellio.app.modules.rm.extensions.RMGenericRecordPageExtension;
+import com.constellio.app.modules.rm.extensions.RMListSchemaTypeExtension;
+import com.constellio.app.modules.rm.extensions.RMManageAuthorizationsPageExtension;
+import com.constellio.app.modules.rm.extensions.RMMediumTypeRecordExtension;
+import com.constellio.app.modules.rm.extensions.RMMenuItemActionsExtension;
+import com.constellio.app.modules.rm.extensions.RMModulePageExtension;
+import com.constellio.app.modules.rm.extensions.RMOldSchemasBlockageRecordExtension;
+import com.constellio.app.modules.rm.extensions.RMRecordAppExtension;
+import com.constellio.app.modules.rm.extensions.RMRecordCaptionExtension;
+import com.constellio.app.modules.rm.extensions.RMRecordNavigationExtension;
+import com.constellio.app.modules.rm.extensions.RMRequestTaskApprovedExtension;
+import com.constellio.app.modules.rm.extensions.RMRequestTaskButtonExtension;
+import com.constellio.app.modules.rm.extensions.RMSchemaTypesPageExtension;
+import com.constellio.app.modules.rm.extensions.RMSchemasLogicalDeleteExtension;
+import com.constellio.app.modules.rm.extensions.RMSearchPageExtension;
+import com.constellio.app.modules.rm.extensions.RMSelectionPanelExtension;
+import com.constellio.app.modules.rm.extensions.RMSystemCheckExtension;
+import com.constellio.app.modules.rm.extensions.RMTaskRecordExtension;
+import com.constellio.app.modules.rm.extensions.RMTaxonomyPageExtension;
+import com.constellio.app.modules.rm.extensions.RMUserProfileFieldsExtension;
+import com.constellio.app.modules.rm.extensions.RMUserRecordExtension;
+import com.constellio.app.modules.rm.extensions.RemoveClickableNotificationsWhenChangingPage;
+import com.constellio.app.modules.rm.extensions.SessionContextRecordExtension;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
-import com.constellio.app.modules.rm.extensions.app.*;
-import com.constellio.app.modules.rm.extensions.imports.*;
+import com.constellio.app.modules.rm.extensions.app.BatchProcessingRecordFactoryExtension;
+import com.constellio.app.modules.rm.extensions.app.RMAdministrativeUnitRecordFieldFactoryExtension;
+import com.constellio.app.modules.rm.extensions.app.RMAdvancedSearchMenuItemActionsExtension;
+import com.constellio.app.modules.rm.extensions.app.RMBatchProcessingExtension;
+import com.constellio.app.modules.rm.extensions.app.RMBatchProcessingSpecialCaseExtension;
+import com.constellio.app.modules.rm.extensions.app.RMCmisExtension;
+import com.constellio.app.modules.rm.extensions.app.RMListSchemaExtention;
+import com.constellio.app.modules.rm.extensions.app.RMMenuItemActionsRequestTaskExtension;
+import com.constellio.app.modules.rm.extensions.app.RMRecordDisplayFactoryExtension;
+import com.constellio.app.modules.rm.extensions.app.RMRecordExportExtension;
+import com.constellio.app.modules.rm.extensions.app.RMSIPExtension;
+import com.constellio.app.modules.rm.extensions.app.RMXmlGeneratorExtension;
+import com.constellio.app.modules.rm.extensions.imports.DecommissioningListImportExtension;
+import com.constellio.app.modules.rm.extensions.imports.DocumentRuleImportExtension;
+import com.constellio.app.modules.rm.extensions.imports.EventImportExtension;
+import com.constellio.app.modules.rm.extensions.imports.FolderRuleImportExtension;
+import com.constellio.app.modules.rm.extensions.imports.ReportImportExtension;
+import com.constellio.app.modules.rm.extensions.imports.RetentionRuleImportExtension;
 import com.constellio.app.modules.rm.extensions.schema.RMAvailableCapacityExtension;
 import com.constellio.app.modules.rm.extensions.schema.RMExcelReportSchemaExtension;
 import com.constellio.app.modules.rm.extensions.schema.RMTrashSchemaExtension;
 import com.constellio.app.modules.rm.migrations.*;
-import com.constellio.app.modules.rm.migrations.records.*;
+import com.constellio.app.modules.rm.migrations.records.RMContainerRecordMigrationTo7_3;
+import com.constellio.app.modules.rm.migrations.records.RMDocumentMigrationTo7_6_10;
+import com.constellio.app.modules.rm.migrations.records.RMDocumentMigrationTo8_1_0_43;
+import com.constellio.app.modules.rm.migrations.records.RMEmailMigrationTo7_7_1;
+import com.constellio.app.modules.rm.migrations.records.RMFolderMigrationTo8_1_1_2;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
 import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.*;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
+import com.constellio.app.modules.rm.wrappers.Category;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.RMTaskType;
+import com.constellio.app.modules.rm.wrappers.RetentionRule;
+import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.modules.tasks.TaskModule;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.RecordMigrationScript;
 import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.records.wrappers.*;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesException;
-import com.constellio.model.services.records.cache.CacheConfig;
 import com.constellio.model.services.records.cache.RecordsCache;
-import com.constellio.model.services.records.cache.ignite.RecordsCacheIgniteImpl;
 import com.constellio.model.services.security.GlobalSecuredTypeCondition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,13 +103,12 @@ import java.util.List;
 import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.records.cache.VolatileCacheInvalidationMethod.FIFO;
 import static java.util.Arrays.asList;
 
 public class ConstellioRMModule implements InstallableSystemModule, ModuleWithComboMigration,
 		InstallableSystemModuleWithRecordMigrations {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(RecordsCacheIgniteImpl.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(ConstellioRMModule.class);
 
 	public static final String ID = "rm";
 	public static final String NAME = "Constellio RM";
@@ -167,15 +222,23 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		scripts.add(new RMMigrationTo8_1_1());
 		scripts.add(new RMMigrationTo8_1_1_1());
 		scripts.add(new RMMigrationTo8_1_1_2());
+		scripts.add(new RMMigrationTo8_1_1_6());
 		scripts.add(new RMMigrationTo8_1_2());
 		scripts.add(new RMMigrationTo8_1_4());
 		scripts.add(new RMMigrationTo8_2());
-		scripts.add(new RMMigrationTo8_2_1_5());
 		scripts.add(new RMMigrationTo8_2_42());
+		scripts.add(new RMMigrationTo8_2_1_4());
+		scripts.add(new RMMigrationTo8_2_1_5());
 		scripts.add(new RMMigrationTo8_2_2_4());
+		scripts.add(new RMMigrationTo8_2_2_5());
+		scripts.add(new RMMigrationTo8_2_3());
+		scripts.add(new RMMigrationTo8_3());
+		scripts.add(new RMMigrationTo8_3_1());
+		scripts.add(new RMMigrationTo8_3_2());
 		scripts.add(new RMMigrationTo9_0());
 		scripts.add(new RMMigrationTo9_0_1());
-
+		scripts.add(new RMMigrationTo8_2_1_5());
+		scripts.add(new RMMigrationTo9_0_2());
 
 		return scripts;
 	}
@@ -302,6 +365,8 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		extensions.pagesComponentsExtensions.add(new RMUserProfileFieldsExtension(collection, appLayerFactory));
 		extensions.sipExtensions.add(new RMSIPExtension(collection, appLayerFactory));
 		extensions.recordFieldFactoryExtensions.add(new RMAdministrativeUnitRecordFieldFactoryExtension());
+		extensions.xmlGeneratorExtensions.add(new RMXmlGeneratorExtension(collection, appLayerFactory));
+		extensions.pagesComponentsExtensions.add(new RMManageAuthorizationsPageExtension(collection, appLayerFactory));
 
 		extensions.lockedRecords.add(RMTaskType.SCHEMA_TYPE, RMTaskType.BORROW_REQUEST);
 		extensions.lockedRecords.add(RMTaskType.SCHEMA_TYPE, RMTaskType.BORROW_EXTENSION_REQUEST);
@@ -312,7 +377,10 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		extensions.lockedRecords.add(TaskStatus.SCHEMA_TYPE, TaskStatus.STANDBY_CODE);
 		extensions.lockedRecords.add(DocumentType.SCHEMA_TYPE, DocumentType.EMAIL_DOCUMENT_TYPE);
 
-
+		extensions.menuItemActionsExtensions.add(new RMMenuItemActionsExtension(collection, appLayerFactory));
+		extensions.menuItemActionsExtensions.add(new RMAdvancedSearchMenuItemActionsExtension(collection, appLayerFactory));
+		// FIXME should be merged with RMMenuItemActionsExtensions
+		extensions.menuItemActionsExtensions.add(new RMMenuItemActionsRequestTaskExtension(collection, appLayerFactory));
 	}
 
 	private void setupModelLayerExtensions(String collection, AppLayerFactory appLayerFactory) {
@@ -349,62 +417,6 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
 		RecordsCache cache = modelLayerFactory.getRecordsCaches().getCache(collection);
 
-		for (MetadataSchemaType type : rm.valueListSchemaTypes()) {
-			if (cache.isConfigured(type)) {
-				cache.removeCache(type.getCode());
-			}
-			cache.configureCache(CacheConfig.permanentCache(type));
-		}
-
-		if (cache.isConfigured(AdministrativeUnit.SCHEMA_TYPE)) {
-			cache.removeCache(AdministrativeUnit.SCHEMA_TYPE);
-		}
-		cache.configureCache(CacheConfig.permanentCache(rm.administrativeUnit.schemaType()));
-
-		if (!cache.isConfigured(Printable.SCHEMA_TYPE)) {
-			cache.configureCache(CacheConfig.permanentCache(rm.printable.schemaType()));
-		}
-		if (!cache.isConfigured(Report.SCHEMA_TYPE)) {
-			cache.configureCache(CacheConfig.permanentCache(rm.report.schemaType()));
-		}
-
-		if (!cache.isConfigured(Cart.SCHEMA_TYPE)) {
-			cache.configureCache(CacheConfig.permanentCache(rm.cart.schemaType()));
-		}
-
-		if (cache.isConfigured(Category.SCHEMA_TYPE)) {
-			cache.removeCache(Category.SCHEMA_TYPE);
-		}
-
-		if (!cache.isConfigured(ThesaurusConfig.SCHEMA_TYPE)) {
-			cache.configureCache(CacheConfig.permanentCache(rm.thesaurusConfig.schemaType()));
-		}
-
-		if (!cache.isConfigured(Capsule.SCHEMA_TYPE)) {
-			cache.configureCache(CacheConfig.permanentCache(rm.capsule.schemaType()));
-		}
-
-		cache.configureCache(CacheConfig.permanentCache(rm.category.schemaType()));
-
-		cache.configureCache(CacheConfig.permanentCache(rm.retentionRule.schemaType()));
-		cache.configureCache(CacheConfig.permanentCache(rm.uniformSubdivision.schemaType()));
-		cache.configureCache(CacheConfig.permanentCache(rm.containerRecord.schemaType()));
-		cache.configureCache(CacheConfig.permanentCache(rm.decommissioningList.schemaType()));
-
-		if (!cache.isConfigured(rm.authorizationDetails.schemaType())) {
-			cache.configureCache(CacheConfig.permanentCache(rm.authorizationDetails.schemaType()));
-		}
-
-		MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
-		if (Toggle.CACHES_ENABLED.isEnabled()) {
-			cache.configureCache(CacheConfig.volatileCache(rm.event.schemaType(), DEFAULT_VOLATILE_EVENTS_CACHE_SIZE));
-			cache.configureCache(CacheConfig.volatileCache(rm.folder.schemaType(), DEFAULT_VOLATILE_FOLDERS_CACHE_SIZE));
-			cache.configureCache(CacheConfig.volatileCache(rm.documentSchemaType(), DEFAULT_VOLATILE_DOCUMENTS_CACHE_SIZE));
-
-			if (!cache.isConfigured(SavedSearch.SCHEMA_TYPE)) {
-				cache.configureCache(CacheConfig.volatileCache(types.getSchemaType(SavedSearch.SCHEMA_TYPE), 1000, FIFO));
-			}
-		}
 	}
 
 	@Override

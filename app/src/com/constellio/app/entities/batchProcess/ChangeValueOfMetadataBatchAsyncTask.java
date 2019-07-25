@@ -10,8 +10,12 @@ import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessR
 import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessRecordModifications;
 import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessResults;
 import com.constellio.app.ui.util.DateFormatUtils;
+import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
+import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
+import com.constellio.data.dao.services.bigVault.LazyResultsIterator;
 import com.constellio.data.dao.services.bigVault.solr.SolrUtils;
+import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.utils.BatchBuilderIterator;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.conf.FoldersLocator;
@@ -29,6 +33,7 @@ import com.constellio.model.entities.records.wrappers.BatchProcessReport;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.params.BatchProcessingSpecialCaseParams;
@@ -45,11 +50,19 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
+import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.iterators.RecordSearchResponseIterator;
+import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.users.UserServices;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.solr.client.solrj.SolrClient;
+import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -70,7 +83,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.entities.schemas.Schemas.ESTIMATED_SIZE;
 import static com.constellio.model.services.records.RecordUtils.changeSchemaTypeAccordingToTypeLinkedSchema;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.ALL;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
 public class ChangeValueOfMetadataBatchAsyncTask implements AsyncTask {
@@ -129,7 +145,7 @@ public class ChangeValueOfMetadataBatchAsyncTask implements AsyncTask {
 					try {
 						recordServices.prepareRecords(transaction);
 						appendCsvReport(transaction, appLayerFactory, params);
-						recordServices.execute(transaction);
+						recordServices.executeHandlingImpactsAsync(transaction);
 					} catch (Throwable t) {
 						if (report != null) {
 							report.appendErrors(asList(t.getMessage()));
@@ -143,7 +159,7 @@ public class ChangeValueOfMetadataBatchAsyncTask implements AsyncTask {
 				}
 			}
 
-			csvInputStream = new FileInputStream(csvReport);
+			csvInputStream = new FileInputStream(createOrGetTempFile(params));
 			ContentVersionDataSummary contentVersion = contentManager.upload(csvInputStream, csvReport.getName()).getContentVersionDataSummary();
 			Content content = contentManager.createMajor(batchUser, csvReport.getName(), contentVersion);
 			report.setContent(content);
@@ -171,6 +187,7 @@ public class ChangeValueOfMetadataBatchAsyncTask implements AsyncTask {
 	private BatchBuilderIterator<Record> getBatchIterator(AppLayerFactory appLayerFactory,
 														  StoredBatchProcessPart previousPart) {
 		Iterator iterator;
+		int idealBatchSize = 100;
 
 		if (recordIds == null) {
 			ModifiableSolrParams params = new ModifiableSolrParams();
@@ -181,8 +198,14 @@ public class ChangeValueOfMetadataBatchAsyncTask implements AsyncTask {
 			}
 			params.set("sort", "principalPath_s asc, id asc");
 
+			try {
+				ModifiableSolrParams idealSizeParams = SolrUtils.parseQueryString(query);
+				idealBatchSize = getIdealBatchSize(idealSizeParams, appLayerFactory);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 
-			iterator = new RecordSearchResponseIterator(appLayerFactory.getModelLayerFactory(), params, 1000, true);
+			iterator = new RecordSearchResponseIterator(appLayerFactory.getModelLayerFactory(), params, idealBatchSize, true);
 			if (previousPart != null) {
 				((RecordSearchResponseIterator) iterator).beginAfterId(previousPart.getLastId());
 			}
@@ -191,9 +214,47 @@ public class ChangeValueOfMetadataBatchAsyncTask implements AsyncTask {
 			if (previousPart != null) {
 				((RecordFromIdListIterator) iterator).beginAfterId(previousPart.getLastId());
 			}
+
+			if(recordIds.size() != 0) {
+				Record record = appLayerFactory.getModelLayerFactory().newRecordServices().getDocumentById(recordIds.get(0));
+				idealBatchSize = getIdealBatchSize(appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypeOf(record), appLayerFactory);
+			}
 		}
 
-		return new BatchBuilderIterator<>(iterator, 1000);
+		return new BatchBuilderIterator<>(iterator, idealBatchSize);
+	}
+
+	public int getIdealBatchSize(MetadataSchemaType schemaType, AppLayerFactory appLayerFactory) {
+
+		LogicalSearchQuery maxSizeQuery = new LogicalSearchQuery(from(schemaType).returnAll());
+		return getIdealBatchSize(appLayerFactory.getModelLayerFactory().newSearchServices().addSolrModifiableParams(maxSizeQuery), appLayerFactory);
+	}
+
+	public int getIdealBatchSize(ModifiableSolrParams idealSizeParams, AppLayerFactory appLayerFactory) {
+		idealSizeParams.set("sort", ESTIMATED_SIZE.getDataStoreCode() + " desc");
+		idealSizeParams.set("rows", 1);
+		idealSizeParams.set("fl", ESTIMATED_SIZE.getDataStoreCode());
+
+		QueryResponse response = null;
+		try {
+			SolrClient server = appLayerFactory.getModelLayerFactory().getDataLayerFactory().getRecordsVaultServer().getNestedSolrServer();
+			response = server.query(idealSizeParams);
+		} catch (IOException | SolrServerException e) {
+			return 100;
+		}
+
+		SolrDocumentList result = response.getResults();
+
+		if (result.getNumFound() == 0) {
+			return 100;
+		} else {
+			int maxRecordSize = (int) result.get(0).getFieldValue(ESTIMATED_SIZE.getDataStoreCode());
+			if(maxRecordSize <= 0) {
+				return 100;
+			} else {
+				return Math.min(100_000_000 / maxRecordSize, 500);
+			}
+		}
 	}
 
 	private Transaction buildTransactionForBatch(ModelLayerFactory modelLayerFactory, User batchUser,
@@ -241,7 +302,7 @@ public class ChangeValueOfMetadataBatchAsyncTask implements AsyncTask {
 				MetadataSchemasManager schemasManager = modelLayerFactory.getMetadataSchemasManager();
 				MetadataSchema batchProcessReportSchema = schemasManager.getSchemaTypes(collection)
 						.getSchema(BatchProcessReport.FULL_SCHEMA);
-				Record reportRecord = modelLayerFactory.newSearchServices().searchSingleResult(LogicalSearchQueryOperators.from(batchProcessReportSchema)
+				Record reportRecord = modelLayerFactory.newSearchServices().searchSingleResult(from(batchProcessReportSchema)
 						.where(batchProcessReportSchema.getMetadata(BatchProcessReport.LINKED_BATCH_PROCESS))
 						.isEqualTo(batchProcess.getId()));
 				if (reportRecord != null) {

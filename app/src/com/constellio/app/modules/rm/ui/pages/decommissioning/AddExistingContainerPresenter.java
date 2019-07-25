@@ -55,6 +55,8 @@ public class AddExistingContainerPresenter extends SearchPresenter<AddExistingCo
 	boolean displayResults;
 	DecommissioningType decommissioningType;
 
+	private String searchID;
+
 	public AddExistingContainerPresenter(AddExistingContainerView view) {
 		super(view);
 	}
@@ -75,7 +77,8 @@ public class AddExistingContainerPresenter extends SearchPresenter<AddExistingCo
 		view.setCriteriaSchemaType(ContainerRecord.SCHEMA_TYPE);
 
 		if (parts.length > 1) {
-			SavedSearch search = getSavedSearch(parts[2]);
+			searchID = parts[2];
+			SavedSearch search = getSavedSearch(searchID);
 			setSavedSearch(search);
 			this.displayResults = true;
 		} else {
@@ -305,7 +308,7 @@ public class AddExistingContainerPresenter extends SearchPresenter<AddExistingCo
 			tmpSearchRecord = recordServices().newRecordWithSchema(schema(SavedSearch.DEFAULT_SCHEMA));
 		} else {
 			SavedSearch savedSearch = new SavedSearch(tmpSearchRecord, types());
-			if (!Boolean.TRUE.equals(savedSearch.isTemporary())) {
+			if (!savedSearch.isTemporary()) {
 				tmpSearchRecord = recordServices()
 						.newRecordWithSchema(schema(SavedSearch.DEFAULT_SCHEMA));
 			}
@@ -351,4 +354,10 @@ public class AddExistingContainerPresenter extends SearchPresenter<AddExistingCo
 		AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions().forCollection(view.getCollection());
 		return extensions.getComponentForCriterion(criterion);
 	}
+
+	@Override
+	public String getSavedSearchId() {
+		return searchID;
+	}
+	
 }

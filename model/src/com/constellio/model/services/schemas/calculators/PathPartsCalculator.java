@@ -46,6 +46,10 @@ public class PathPartsCalculator extends AbstractMetadataValueCalculator<List<St
 	protected List<String> getPathsParts(String id, List<String> paths) {
 		Set<String> pathsParts = new HashSet<>();
 
+		if (id.equals("zeSubFolder")) {
+			System.out.println("!!");
+		}
+
 		for (String path : paths) {
 			String last = null;
 			if (path != null) {

@@ -11,7 +11,7 @@ import com.constellio.app.modules.restapi.core.service.BaseService;
 import com.constellio.app.modules.restapi.core.util.DateUtils;
 import com.constellio.app.modules.restapi.core.util.ListUtils;
 import com.constellio.app.modules.restapi.core.util.StringUtils;
-import com.constellio.app.modules.restapi.document.dto.AceDto;
+import com.constellio.app.modules.restapi.resource.dto.AceDto;
 import com.constellio.app.modules.restapi.signature.SignatureService;
 import com.constellio.app.modules.restapi.validation.dao.ValidationDao;
 import com.constellio.app.modules.restapi.validation.exception.ExpiredSignedUrlException;
@@ -45,10 +45,11 @@ public class ValidationService extends BaseService {
 	private ValidationDao validationDao;
 
 	public void validateSignature(String host, String id, String serviceKey, String schemaType, String method,
-								  String date, int expiration,
-								  String version, Boolean physical, String signature) throws Exception {
+								  String date, int expiration, String version, Boolean physical, String copySourceId,
+								  String signature) throws Exception {
 		String physicalValue = physical != null ? String.valueOf(physical) : null;
-		String data = StringUtils.concat(host, id, serviceKey, schemaType, method, date, String.valueOf(expiration), version, physicalValue);
+		String data = StringUtils.concat(host, id, serviceKey, schemaType, method, date, String.valueOf(expiration),
+				version, physicalValue, copySourceId);
 
 		Collection<String> tokens = validationDao.getUserTokens(serviceKey, true);
 		if (tokens.isEmpty()) {

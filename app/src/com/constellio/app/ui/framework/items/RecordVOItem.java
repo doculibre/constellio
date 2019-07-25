@@ -2,6 +2,7 @@ package com.constellio.app.ui.framework.items;
 
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.entities.SearchResultVO;
 import com.vaadin.data.Item;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.AbstractProperty;
@@ -13,14 +14,26 @@ import java.util.List;
 public class RecordVOItem implements Item {
 
 	final RecordVO recordVO;
+	final SearchResultVO searchResultVO;
 
 	public RecordVOItem(RecordVO recordVO) {
 		super();
 		this.recordVO = recordVO;
+		this.searchResultVO = null;
+	}
+
+	public RecordVOItem(SearchResultVO searchResultVO) {
+		super();
+		this.recordVO = searchResultVO.getRecordVO();
+		this.searchResultVO = searchResultVO;
 	}
 
 	public RecordVO getRecord() {
 		return recordVO;
+	}
+
+	public SearchResultVO getSearchResult() {
+		return searchResultVO;
 	}
 
 	@Override

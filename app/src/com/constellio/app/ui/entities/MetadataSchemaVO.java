@@ -61,7 +61,7 @@ public class MetadataSchemaVO implements Serializable {
 	}
 
 	public String getTypeCode() {
-		return code.split("_")[0];
+		return code != null ? code.split("_")[0] : null;
 	}
 
 	public String getCollection() {

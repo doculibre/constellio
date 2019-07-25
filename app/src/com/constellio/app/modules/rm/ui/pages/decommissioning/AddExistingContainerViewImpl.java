@@ -89,6 +89,7 @@ public class AddExistingContainerViewImpl extends SearchViewImpl<AddExistingCont
 		});
 
 		VerticalLayout searchUI = new VerticalLayout(addCriterion, criteria, searchButton);
+		searchUI.addStyleName("add-existing-container-search-ui");
 		searchUI.setComponentAlignment(addCriterion, Alignment.MIDDLE_RIGHT);
 		searchUI.setSpacing(true);
 

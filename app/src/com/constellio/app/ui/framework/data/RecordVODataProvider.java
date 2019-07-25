@@ -9,8 +9,8 @@ import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.SessionContextProvider;
-import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
 import com.constellio.data.dao.dto.records.FacetValue;
+import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -20,6 +20,9 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.cache.SerializableSearchCache;
 import com.constellio.model.services.search.cache.SerializedCacheSearchService;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.condition.DataStoreFilters;
+import com.constellio.model.services.search.query.logical.condition.SchemaFilters;
+import com.constellio.model.services.search.query.logical.condition.SchemaTypesFilters;
 import org.apache.commons.collections4.CollectionUtils;
 
 import java.io.IOException;
@@ -53,7 +56,6 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 		this.voBuilders.put(schema.getCode(), voBuilder);
 		this.sessionContext = ConstellioUI.getCurrentSessionContext();
 		init(modelLayerFactory);
-
 	}
 
 	public RecordVODataProvider(MetadataSchemaVO schema, RecordToVOBuilder voBuilder,
@@ -255,7 +257,13 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 
 			for (int i = 0; i < propertyId.length; i++) {
 				Metadata metadata;
-				MetadataSchema schema = query.getSchemaCondition();
+				MetadataSchema schema;
+				DataStoreFilters filters = query.getCondition().getFilters();
+				if (filters instanceof SchemaFilters) {
+					schema = ((SchemaFilters) filters).getSchema();
+				} else {
+					schema = ((SchemaTypesFilters) filters).getSchemaTypes().get(0).getDefaultSchema();
+				}
 				MetadataVO metadataVO = propertyId[i];
 				if (schema.hasMetadataWithCode(new SchemaUtils().getLocalCodeFromMetadataCode(metadataVO.getCode()))) {
 					metadata = schema.getMetadata(new SchemaUtils().getLocalCodeFromMetadataCode(metadataVO.getCode()));
@@ -273,7 +281,7 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 		query.clearSort();
 	}
 
-	protected abstract LogicalSearchQuery getQuery();
+	public abstract LogicalSearchQuery getQuery();
 
 	public void setBatchSize(int batchSize) {
 		this.batchSize = batchSize;

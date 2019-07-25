@@ -155,8 +155,12 @@ public class SavedSearch extends RecordWrapper {
 		return this;
 	}
 
-	public Boolean isTemporary() {
+	public Boolean getTemporary() {
 		return get(TEMPORARY);
+	}
+
+	public boolean isTemporary() {
+		return getBooleanWithDefaultValue(TEMPORARY, false);
 	}
 
 	public SavedSearch setTemporary(Boolean temporary) {

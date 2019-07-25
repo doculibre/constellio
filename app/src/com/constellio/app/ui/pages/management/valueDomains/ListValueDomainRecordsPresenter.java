@@ -57,7 +57,7 @@ public class ListValueDomainRecordsPresenter extends SingleSchemaBasePresenter<L
 		RecordVODataProvider dataProvider = new RecordVODataProvider(
 				schemaVO, voBuilder, modelLayerFactory, view.getSessionContext()) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				MetadataSchema schema = defaultSchema();
 				LogicalSearchCondition condition = from(schema).returnAll();
 				if (isHierarchical()) {
@@ -121,14 +121,13 @@ public class ListValueDomainRecordsPresenter extends SingleSchemaBasePresenter<L
 
 	@Override
 	protected boolean hasPageAccess(String params, final User user) {
-		String schemaTypeCode = new SchemaUtils().getSchemaTypeCode(params);
+		String schemaTypeCode = SchemaUtils.getSchemaTypeCode(params);
 		return new SchemaRecordsPresentersServices(appLayerFactory).canManageSchemaType(schemaTypeCode, user);
 	}
 
 	public void search(String freeText) {
 		this.freeText = freeText;
 		view.refreshTables();
-
 	}
 
 	public void disableButtonClick(RecordVO recordVO) {

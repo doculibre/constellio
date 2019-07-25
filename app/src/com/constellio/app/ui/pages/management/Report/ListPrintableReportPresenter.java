@@ -61,7 +61,7 @@ public class ListPrintableReportPresenter extends SingleSchemaBasePresenter<List
 				view.getSessionContext());
 		return new RecordVODataProvider(printableReportVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				MetadataSchemaType printableSchemaType = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchemaType(Printable.SCHEMA_TYPE);
 				return schemaType == null ? null : new LogicalSearchQuery(from(printableSchemaType).where(printableSchemaType.getCustomSchema(PrintableReport.SCHEMA_TYPE).get(PrintableReport.RECORD_TYPE)).isEqualTo(schemaType));
 			}

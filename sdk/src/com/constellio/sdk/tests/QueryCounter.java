@@ -25,10 +25,14 @@ public class QueryCounter extends BigVaultServerExtension {
 
 	@Override
 	public void afterQuery(AfterQueryParams params) {
-		if (filter.apply(params)) {
+		if (!isAlwaysExcludedQueryName(params.getQueryName()) && filter.apply(params)) {
 			queryCounter.incrementAndGet();
 			returnedResultsCounter.addAndGet(params.getReturnedResultsCount());
 		}
+	}
+
+	private boolean isAlwaysExcludedQueryName(String queryName) {
+		return queryName != null && queryName.contains("*SDK*");
 	}
 
 	public int newQueryCalls() {

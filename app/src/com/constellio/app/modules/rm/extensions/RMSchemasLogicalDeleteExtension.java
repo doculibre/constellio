@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.extensions;
 
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Category;
@@ -13,6 +14,7 @@ import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.behaviors.RecordExtension;
 import com.constellio.model.extensions.events.records.RecordLogicalDeletionEvent;
@@ -154,12 +156,24 @@ public class RMSchemasLogicalDeleteExtension extends RecordExtension {
 	private ValidationErrors isFolderLogicallyDeletable(RecordLogicalDeletionValidationEvent event) {
 		//TODO check if user can delete borrowed documents
 		ValidationErrors validationErrors = new ValidationErrors();
-		List<Record> checkedOutDocument = searchServices.search(filteredQueryForErrorMessages(from(rm.document.schemaType())
+		LogicalSearchQuery borrowedDocumentsQuery = filteredQueryForErrorMessages(from(rm.document.schemaType())
 				.where(rm.document.contentCheckedOutBy()).isNotNull()
-				.andWhere(PATH_PARTS).isEqualTo(event.getRecord())));
+				.andWhere(PATH_PARTS).isEqualTo(event.getRecord()));
+		long countForBorrowedDocuments = searchServices.getResultsCount(borrowedDocumentsQuery);
 
-		if (!checkedOutDocument.isEmpty()) {
-			validationErrors.add(RMSchemasLogicalDeleteExtension.class, "folderWithCheckoutDocuments", toRecordsParameter(checkedOutDocument));
+		if (countForBorrowedDocuments != 0) {
+			User user = event.getUser();
+			if (user != null) {
+				long countForBorrowedDocumentsThatCurrentUserCanDelete = searchServices.getResultsCount(borrowedDocumentsQuery.filteredWithUser(user, RMPermissionsTo.DELETE_BORROWED_DOCUMENT));
+				if (countForBorrowedDocumentsThatCurrentUserCanDelete != countForBorrowedDocuments) {
+					List<Record> checkedOutDocument = searchServices.search(borrowedDocumentsQuery);
+					validationErrors.add(RMSchemasLogicalDeleteExtension.class, "folderWithCheckoutDocuments", toRecordsParameter(checkedOutDocument));
+				}
+
+			} else {
+				List<Record> checkedOutDocument = searchServices.search(borrowedDocumentsQuery);
+				validationErrors.add(RMSchemasLogicalDeleteExtension.class, "folderWithCheckoutDocuments", toRecordsParameter(checkedOutDocument));
+			}
 		}
 
 		if (!event.isThenPhysicallyDeleted()) {

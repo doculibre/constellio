@@ -1,16 +1,5 @@
 package com.constellio.app.extensions;
 
-import static com.constellio.app.api.extensions.GenericRecordPageExtension.OTHERS_TAB;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-
 import com.constellio.app.api.extensions.BatchProcessingExtension;
 import com.constellio.app.api.extensions.BatchProcessingExtension.AddCustomLabelsParams;
 import com.constellio.app.api.extensions.BatchProcessingExtension.IsMetadataDisplayedWhenModifiedParams;
@@ -29,14 +18,15 @@ import com.constellio.app.api.extensions.RecordDisplayFactoryExtension;
 import com.constellio.app.api.extensions.RecordExportExtension;
 import com.constellio.app.api.extensions.RecordFieldFactoryExtension;
 import com.constellio.app.api.extensions.RecordSecurityExtension;
-import com.constellio.app.api.extensions.SIPExtension;
 import com.constellio.app.api.extensions.RecordTextInputDataProviderExtension;
+import com.constellio.app.api.extensions.SIPExtension;
 import com.constellio.app.api.extensions.SchemaTypesPageExtension;
 import com.constellio.app.api.extensions.SearchCriterionExtension;
 import com.constellio.app.api.extensions.SearchPageExtension;
 import com.constellio.app.api.extensions.SelectionPanelExtension;
 import com.constellio.app.api.extensions.SystemCheckExtension;
 import com.constellio.app.api.extensions.TaxonomyPageExtension;
+import com.constellio.app.api.extensions.XmlGeneratorExtension;
 import com.constellio.app.api.extensions.params.AddComponentToSearchResultParams;
 import com.constellio.app.api.extensions.params.AddFieldsInLabelXMLParams;
 import com.constellio.app.api.extensions.params.AvailableActionsParam;
@@ -46,8 +36,9 @@ import com.constellio.app.api.extensions.params.CollectionSystemCheckParams;
 import com.constellio.app.api.extensions.params.ConvertStructureToMapParams;
 import com.constellio.app.api.extensions.params.DecorateMainComponentAfterInitExtensionParams;
 import com.constellio.app.api.extensions.params.DocumentViewButtonExtensionParam;
-import com.constellio.app.api.extensions.params.FieldBindingExtentionParam;
 import com.constellio.app.api.extensions.params.ExportCollectionInfosSIPIsTaxonomySupportedParams;
+import com.constellio.app.api.extensions.params.ExtraMetadataToGenerateOnReferenceParams;
+import com.constellio.app.api.extensions.params.FieldBindingExtentionParam;
 import com.constellio.app.api.extensions.params.FilterCapsuleParam;
 import com.constellio.app.api.extensions.params.GetAvailableExtraMetadataAttributesParam;
 import com.constellio.app.api.extensions.params.GetSearchResultSimpleTableWindowComponentParam;
@@ -60,9 +51,9 @@ import com.constellio.app.api.extensions.params.OnWriteRecordParams;
 import com.constellio.app.api.extensions.params.PagesComponentsExtensionParams;
 import com.constellio.app.api.extensions.params.RecordFieldFactoryExtensionParams;
 import com.constellio.app.api.extensions.params.RecordFieldFactoryPostBuildExtensionParams;
-import com.constellio.app.api.extensions.params.RecordTextInputDataProviderSortMetadatasParam;
 import com.constellio.app.api.extensions.params.RecordFieldsExtensionParams;
 import com.constellio.app.api.extensions.params.RecordSecurityParam;
+import com.constellio.app.api.extensions.params.RecordTextInputDataProviderSortMetadatasParam;
 import com.constellio.app.api.extensions.params.SearchPageConditionParam;
 import com.constellio.app.api.extensions.params.TryRepairAutomaticValueParams;
 import com.constellio.app.api.extensions.params.UpdateComponentExtensionParams;
@@ -75,6 +66,8 @@ import com.constellio.app.api.extensions.taxonomies.TaxonomyExtraField;
 import com.constellio.app.api.extensions.taxonomies.TaxonomyManagementClassifiedType;
 import com.constellio.app.api.extensions.taxonomies.UserSearchEvent;
 import com.constellio.app.api.extensions.taxonomies.ValidateTaxonomyDeletableParams;
+import com.constellio.app.extensions.api.SchemaRecordExtention;
+import com.constellio.app.extensions.api.SchemaRecordExtention.SchemaRecordExtensionActionPossibleParams;
 import com.constellio.app.extensions.api.cmis.CmisExtension;
 import com.constellio.app.extensions.api.cmis.params.BuildAllowableActionsParams;
 import com.constellio.app.extensions.api.cmis.params.BuildCmisObjectFromConstellioRecordParams;
@@ -84,6 +77,7 @@ import com.constellio.app.extensions.api.cmis.params.CheckOutParams;
 import com.constellio.app.extensions.api.cmis.params.DeleteTreeParams;
 import com.constellio.app.extensions.api.cmis.params.GetObjectParams;
 import com.constellio.app.extensions.api.cmis.params.IsSchemaTypeSupportedParams;
+import com.constellio.app.extensions.menu.MenuItemActionsExtension;
 import com.constellio.app.extensions.records.RecordAppExtension;
 import com.constellio.app.extensions.records.RecordNavigationExtension;
 import com.constellio.app.extensions.records.params.BuildRecordVOParams;
@@ -128,6 +122,17 @@ import com.vaadin.server.Resource;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Field;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+
+import static com.constellio.app.api.extensions.GenericRecordPageExtension.OTHERS_TAB;
 
 public class AppLayerCollectionExtensions {
 
@@ -193,6 +198,11 @@ public class AppLayerCollectionExtensions {
 
 	public VaultBehaviorsList<RecordSecurityExtension> recordSecurityExtensions = new VaultBehaviorsList<>();
 
+	public VaultBehaviorsList<MenuItemActionsExtension> menuItemActionsExtensions = new VaultBehaviorsList<>();
+
+	public VaultBehaviorsList<XmlGeneratorExtension> xmlGeneratorExtensions = new VaultBehaviorsList<>();
+
+	public VaultBehaviorsList<SchemaRecordExtention> schemaRecordExtentions = new VaultBehaviorsList<>();
 
 	//Key : schema type code
 	//Values : record's code
@@ -226,6 +236,13 @@ public class AppLayerCollectionExtensions {
 	public void onWriteRecord(OnWriteRecordParams params) {
 		for (RecordExportExtension recordExportExtension : recordExportExtensions) {
 			recordExportExtension.onWriteRecord(params);
+		}
+	}
+
+	public void getExtraMetadataToGenerateOnAReference(
+			ExtraMetadataToGenerateOnReferenceParams extraMetadataToGenerateOnReferenceParams) {
+		for (XmlGeneratorExtension xmlGeneratorExtension1 : xmlGeneratorExtensions) {
+			xmlGeneratorExtension1.getExtraMetadataToGenerateOnReference(extraMetadataToGenerateOnReferenceParams);
 		}
 	}
 
@@ -597,6 +614,9 @@ public class AppLayerCollectionExtensions {
 				break;
 			}
 		}
+		if (recordFieldFactory == null) {
+			recordFieldFactory = new RecordFieldFactoryExtension().newRecordFieldFactory(params);
+		}
 		return recordFieldFactory;
 	}
 
@@ -825,19 +845,6 @@ public class AppLayerCollectionExtensions {
 		return condition;
 	}
 
-	public List<Component> addComponentToSearchResult(AddComponentToSearchResultParams addComponentToSearchResultParams) {
-		List<Component> allComponentFound = new ArrayList();
-		for(SearchPageExtension searchPageExtension : searchPageExtensions) {
-			List<Component> componentFromSingleExtentionCall = searchPageExtension.addComponentToSearchResult(
-					addComponentToSearchResultParams);
-
-			if(componentFromSingleExtentionCall != null && componentFromSingleExtentionCall.size() > 0 ) {
-				allComponentFound.addAll(componentFromSingleExtentionCall);
-			}
-		}
-		return allComponentFound;
-	}
-
 	public Resource getIconFromContent(GetIconPathParams params) {
 		for (RecordAppExtension extension : recordAppExtensions) {
 			Resource calculatedResource = extension.getIconFromContent(params);
@@ -897,4 +904,35 @@ public class AppLayerCollectionExtensions {
 		}
 	}
 
+	public void orderListOfElements(Record[] recordElements) {
+		for (LabelTemplateExtension extension : labelTemplateExtensions) {
+			extension.orderListOfElements(recordElements);
+		}
+	}
+
+	public <T extends Component> List<T> addComponentToSearchResult(
+			AddComponentToSearchResultParams param) {
+		List<T> result = new ArrayList<>();
+		for (SearchPageExtension extension : searchPageExtensions) {
+			List<T> paramResult = (List<T>) extension.addComponentToSearchResult(param);
+			if (paramResult != null) {
+				for (T component : paramResult) {
+					result.add(component);
+				}
+			}
+		}
+		return result;
+	}
+
+	public boolean isEditActionPossibleOnSchemaRecord(final Record record, final User user) {
+		return schemaRecordExtentions.getBooleanValue(true,
+				(behavior) -> behavior.isEditActionPossible(
+						new SchemaRecordExtensionActionPossibleParams(record, user)));
+	}
+
+	public boolean isDeleteActionPossibleOnSchemaRecord(final Record record, final User user) {
+		return schemaRecordExtentions.getBooleanValue(true,
+				(behavior) -> behavior.isDeleteActionPossible(
+						new SchemaRecordExtensionActionPossibleParams(record, user)));
+	}
 }

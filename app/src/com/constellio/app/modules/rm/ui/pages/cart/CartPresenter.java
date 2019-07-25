@@ -61,6 +61,7 @@ import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
@@ -114,6 +115,10 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		recordServices = modelLayerFactory.newRecordServices();
 	}
 
+	public MetadataSchema getCartMetadataSchema() {
+		return modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchema(Cart.DEFAULT_SCHEMA);
+	}
+
 	public boolean havePermisionToGroupCart() {
 		return getCurrentUser().has(RMPermissionsTo.USE_GROUP_CART).globally();
 	}
@@ -133,7 +138,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 
 		if (Strings.isNotBlank(name)) {
 			try {
-				cart().setTitle(name);
+				cart.setTitle(name);
 				recordServices.update(cart.getWrappedRecord());
 			} catch (RecordServicesException e) {
 				throw new RuntimeException("Unexpected error when updating cart");
@@ -163,6 +168,10 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		view.navigate().to(RMViews.class).cart(cartId);
 	}
 
+	public User getCurrentUser() {
+		return super.getCurrentUser();
+	}
+
 	private void removeFromFavorite(Record record) {
 		String schemaCode = record.getSchemaCode();
 
@@ -176,6 +185,14 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 			ContainerRecord containerRecord = rm().wrapContainerRecord(record);
 			containerRecord.removeFavorite(cartId);
 		}
+	}
+
+	public Cart getCart() {
+		return cart;
+	}
+
+	public RecordVO getCartAsRecordVO() {
+		return new RecordToVOBuilder().build(cart.getWrappedRecord(), VIEW_MODE.DISPLAY, view.getSessionContext());
 	}
 
 	public boolean canPrepareEmail() {
@@ -224,8 +241,8 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	}
 
 	public boolean canDelete() {
-		return cartHasRecords() && cartContainerIsEmpty()
-				&& canDeleteFolders(getCurrentUser()) && canDeleteDocuments(getCurrentUser()) && hasCartBatchDeletePermission();
+		return cartHasRecords() && canDeleteContainers(getCurrentUser())
+			   && canDeleteFolders(getCurrentUser()) && canDeleteDocuments(getCurrentUser()) && hasCartBatchDeletePermission();
 	}
 
 	public void deletionRequested(String reason) {
@@ -306,14 +323,6 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 				builder.build(schema(Folder.DEFAULT_SCHEMA), VIEW_MODE.TABLE, view.getSessionContext()));
 	}
 
-	Cart cart() {
-		if (!isDefaultCart() && cart == null) {
-			//			cart = rm().getOrCreateUserCart(getCurrentUser());
-			cart = rm().getCart(cartId);
-		}
-		return cart;
-	}
-
 	public boolean hasCartBatchDeletePermission() {
 		return getCurrentUser().has(RMPermissionsTo.CART_BATCH_DELETE).globally();
 	}
@@ -323,7 +332,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	}
 
 	String cartOwner() {
-		return isDefaultCart() ? getCurrentUser().getId() : cart().getOwner();
+		return isDefaultCart() ? getCurrentUser().getId() : cart.getOwner();
 	}
 
 	private boolean cartHasOnlyFolders() {
@@ -405,6 +414,15 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		return true;
 	}
 
+	private boolean canDeleteContainers(User user) {
+		for (ContainerRecord container : getCartContainers()) {
+			if (!user.has(RMPermissionsTo.DELETE_CONTAINERS).on(container)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
 	protected String getCurrentBorrowerOf(Document document) {
 		return document.getContent() == null ? null : document.getContent().getCheckoutUserId();
 	}
@@ -461,6 +479,9 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 
 	public void forParams(String parameters) {
 		cartId = parameters;
+		if (!isDefaultCart()) {
+			cart = rm().getCart(cartId);
+		}
 	}
 
 	public List<String> getNotDeletedRecordsIds(String schemaType) {
@@ -637,8 +658,8 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 				return;
 			}
 		}
-		cart().setSharedWithUsers(userids);
-		addOrUpdate(cart().getWrappedRecord());
+		cart.setSharedWithUsers(userids);
+		addOrUpdate(cart.getWrappedRecord());
 	}
 
 	BatchProcessingPresenterService batchProcessingPresenterService() {
@@ -1023,6 +1044,15 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		return foldersIds;
 	}
 
+	public List<Record> getCartFolderRecords() {
+		List<Folder> folders = getCartFolders();
+		List<Record> foldersRecords = new ArrayList<>();
+		for (Folder folder : folders) {
+			foldersRecords.add(folder.getWrappedRecord());
+		}
+		return foldersRecords;
+	}
+
 	protected List<Folder> getCartFolders() {
 		LogicalSearchQuery logicalSearchQuery = getCartFoldersLogicalSearchQuery();
 		return rm().searchFolders(logicalSearchQuery);
@@ -1042,6 +1072,15 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		return documentsIds;
 	}
 
+	public List<Record> getCartDocumentRecords() {
+		List<Document> documents = getCartDocuments();
+		List<Record> documentsRecords = new ArrayList<>();
+		for (Document document : documents) {
+			documentsRecords.add(document.getWrappedRecord());
+		}
+		return documentsRecords;
+	}
+
 	private List<Document> getCartDocuments() {
 		LogicalSearchQuery logicalSearchQuery = getCartDocumentsLogicalSearchQuery();
 		return rm().searchDocuments(logicalSearchQuery);
@@ -1059,6 +1098,15 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 			containersIds.add(container.getId());
 		}
 		return containersIds;
+	}
+
+	public List<Record> getCartContainersRecords() {
+		List<ContainerRecord> containers = getCartContainers();
+		List<Record> containersRecords = new ArrayList<>();
+		for (ContainerRecord container : containers) {
+			containersRecords.add(container.getWrappedRecord());
+		}
+		return containersRecords;
 	}
 
 	private List<ContainerRecord> getCartContainers() {
@@ -1107,6 +1155,14 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		return result;
 	}
 
+	public List<Record> getAllCartItemRecords() {
+		List<Record> result = new ArrayList<>();
+		result.addAll(getCartFolderRecords());
+		result.addAll(getCartDocumentRecords());
+		result.addAll(getCartContainersRecords());
+		return result;
+	}
+
 	public boolean cartHasRecords() {
 		return !(cartFoldersIsEmpty() && cartDocumentsIsEmpty() && cartContainerIsEmpty());
 	}
@@ -1115,7 +1171,6 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		if (isDefaultCart()) {
 			return false;
 		}
-		Cart cart = cart();
 		List<String> sharedWithUsers = cart.getSharedWithUsers();
 		return (sharedWithUsers == null || sharedWithUsers.size() <= 0);
 	}

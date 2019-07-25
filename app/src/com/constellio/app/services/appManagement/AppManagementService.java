@@ -3,6 +3,7 @@ package com.constellio.app.services.appManagement;
 import com.constellio.app.entities.modules.ProgressInfo;
 import com.constellio.app.services.appManagement.AppManagementServiceException.CannotSaveOldPlugins;
 import com.constellio.app.services.appManagement.AppManagementServiceRuntimeException.AppManagementServiceRuntimeException_SameVersionsInDifferentFolders;
+import com.constellio.app.services.appManagement.AppManagementServiceRuntimeException.CannotConnectToServer;
 import com.constellio.app.services.appManagement.AppManagementServiceRuntimeException.WarFileNotFound;
 import com.constellio.app.services.appManagement.AppManagementServiceRuntimeException.WarFileVersionMustBeHigher;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
@@ -441,6 +442,11 @@ public class AppManagementService {
 		return ioServices.newOutputStreamFactory(warFile, WRITE_WAR_FILE_STREAM);
 	}
 
+	public StreamFactory<OutputStream> getLastAlertFileDestination() {
+		File lastAlertFile = foldersLocator.getLastAlertFile();
+		return ioServices.newOutputStreamFactory(lastAlertFile, "alert");
+	}
+
 	public String getWarVersion() {
 		return GetWarVersionUtils.getWarVersion(null);
 	}
@@ -471,9 +477,37 @@ public class AppManagementService {
 		return warURL;
 	}
 
+	public String getLastAlertURLFromServer() throws CannotConnectToServer {
+		String serverUrl = SERVER_URL + "/alert/";
+		String lastAlertURL;
+		try {
+			lastAlertURL = sendPost(serverUrl, getInfosToSend());
+		} catch (IOException e) {
+			throw new AppManagementServiceRuntimeException.CannotConnectToServer(serverUrl);
+		}
+
+		return lastAlertURL;
+	}
+
 	String getInfosToSend() {
 		String delimiter = "*";
-		return getLicenseInfo().getSignature() + delimiter + getCurrentInstalledVersionInfo().getVersion();
+		StringBuilder sb = new StringBuilder();
+		LicenseInfo licenseInfo = getLicenseInfo();
+		if (licenseInfo != null) {
+			sb.append(licenseInfo.getSignature());
+		} else {
+			sb.append("No license");
+		}
+
+		sb.append(delimiter);
+
+		ConstellioVersionInfo versionInfo = getCurrentInstalledVersionInfo();
+		if (versionInfo != null) {
+			sb.append(versionInfo.getVersion());
+		} else {
+			sb.append("Unknown version");
+		}
+		return sb.toString();
 	}
 
 	String sendPost(String url, String infoSent)
@@ -599,6 +633,31 @@ public class AppManagementService {
 		} catch (IOException ioe) {
 			throw new AppManagementServiceRuntimeException.CannotConnectToServer(URL_WAR, ioe);
 		}
+	}
+
+	public File getLastAlertFromServer() throws CannotConnectToServer {
+		String URL_LAST_ALERT = getLastAlertURLFromServer();
+
+		InputStream lastAlertFileInput = null;
+		OutputStream lastAlertFileOutput = null;
+
+		try {
+			lastAlertFileInput = getInputForPost(URL_LAST_ALERT, getLicenseInfo().getSignature());
+
+			if (lastAlertFileInput == null) {
+				throw new AppManagementServiceRuntimeException.CannotConnectToServer(URL_LAST_ALERT);
+			}
+
+			lastAlertFileOutput = getLastAlertFileDestination().create("alert download");
+			IOUtils.copy(lastAlertFileInput, lastAlertFileOutput);
+		} catch (IOException | RuntimeException io) {
+			throw new AppManagementServiceRuntimeException.CannotConnectToServer(URL_LAST_ALERT, io);
+		} finally {
+			IOUtils.closeQuietly(lastAlertFileInput);
+			IOUtils.closeQuietly(lastAlertFileOutput);
+		}
+
+		return foldersLocator.getLastAlertFile();
 	}
 
 	public String getWebappFolderName() {

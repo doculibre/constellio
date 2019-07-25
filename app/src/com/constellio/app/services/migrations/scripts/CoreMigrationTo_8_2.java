@@ -27,8 +27,6 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.SchemasRecordsServices;
-import com.constellio.model.services.records.cache.CacheConfig;
-import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
@@ -71,17 +69,6 @@ public class CoreMigrationTo_8_2 implements MigrationScript {
 				final Metadata userAuthsMetadata = schemas.user.schema().get("authorizations");
 				final Metadata userAllAuthsMetadata = schemas.user.schema().get("allauthorizations");
 				final Metadata groupAuthsMetadata = schemas.group.schema().get("authorizations");
-
-				RecordsCache cache = appLayerFactory.getModelLayerFactory().getRecordsCaches().getCache(collection);
-				if (!cache.isConfigured(schemas.userSchemaType())) {
-					cache.configureCache(CacheConfig.permanentCache(schemas.userSchemaType()));
-				}
-				if (!cache.isConfigured(schemas.groupSchemaType())) {
-					cache.configureCache(CacheConfig.permanentCache(schemas.groupSchemaType()));
-				}
-				if (!cache.isConfigured(schemas.authorizationDetails.schemaType())) {
-					cache.configureCache(CacheConfig.permanentCache(schemas.authorizationDetails.schemaType()));
-				}
 
 				for (User user : schemas.getAllUsers()) {
 					for (String auth : user.<String>getList(userAuthsMetadata)) {

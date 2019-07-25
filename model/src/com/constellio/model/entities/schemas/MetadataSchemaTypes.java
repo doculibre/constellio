@@ -10,6 +10,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -17,17 +18,23 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import static com.constellio.data.dao.services.records.DataStore.RECORDS;
 import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 
 public class MetadataSchemaTypes implements Serializable {
 
+	public static int LIMIT_OF_SCHEMAS__IN_TYPE = 500;
+	public static int LIMIT_OF_TYPES_IN_COLLECTION = 500;
+
 	private static final String DEFAULT = "default";
 
 	private static final String UNDERSCORE = "_";
 
 	private final int version;
+
+	private final List<MetadataSchemaType> schemaTypesById;
 
 	private final List<MetadataSchemaType> schemaTypes;
 	private final Map<String, MetadataSchemaType> schemaTypesMap;
@@ -56,8 +63,19 @@ public class MetadataSchemaTypes implements Serializable {
 		this.schemaTypesMap = toUnmodifiableMap(schemaTypes);
 		this.languages = Collections.unmodifiableList(languages);
 		this.typeParentOfOtherTypes = buildTypeParentOfOtherTypes(schemaTypes);
+		this.schemaTypesById = buildTypesById(schemaTypes);
 		this.metadataNetwork = metadataNetwork;
 		this.collectionInfo = collectionInfo;
+	}
+
+	private List<MetadataSchemaType> buildTypesById(List<MetadataSchemaType> schemaTypes) {
+		MetadataSchemaType[] types = new MetadataSchemaType[LIMIT_OF_TYPES_IN_COLLECTION];
+
+		for (MetadataSchemaType type : schemaTypes) {
+			types[type.getId()] = type;
+		}
+
+		return Collections.unmodifiableList(Arrays.asList(types));
 	}
 
 	public CollectionInfo getCollectionInfo() {
@@ -161,6 +179,16 @@ public class MetadataSchemaTypes implements Serializable {
 
 		if (schemaType == null) {
 			throw new MetadataSchemasRuntimeException.NoSuchSchemaType(schemaTypeCode);
+		}
+
+		return schemaType;
+	}
+
+	public MetadataSchemaType getSchemaType(short typeId) {
+		MetadataSchemaType schemaType = schemaTypesById.get(typeId);
+
+		if (schemaType == null) {
+			throw new MetadataSchemasRuntimeException.NoSuchSchemaType(typeId);
 		}
 
 		return schemaType;
@@ -337,5 +365,10 @@ public class MetadataSchemaTypes implements Serializable {
 
 	public Set<String> getTypeParentOfOtherTypes() {
 		return typeParentOfOtherTypes;
+	}
+
+	public Stream<MetadataSchemaType> streamTypes() {
+		return getSchemaTypes().stream();
+
 	}
 }

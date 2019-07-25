@@ -2,15 +2,16 @@ package com.constellio.app.modules.rm.ui.menuBar;
 
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
-import com.constellio.app.modules.rm.ui.components.menuBar.DocumentMenuBarImpl;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.components.menuBar.AbstractRecordMenuBarHandler;
+import com.constellio.app.ui.framework.components.menuBar.RecordVOMenuBar;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Event;
@@ -20,6 +21,7 @@ import com.constellio.model.services.schemas.SchemaUtils;
 import com.vaadin.ui.MenuBar;
 
 import java.io.IOException;
+import java.util.Collections;
 
 public class RMRecordMenuBarHandler extends AbstractRecordMenuBarHandler {
 
@@ -55,16 +57,15 @@ public class RMRecordMenuBarHandler extends AbstractRecordMenuBarHandler {
 	@Override
 	public MenuBar get(RecordVO recordVO) {
 		String schemaTypeCode = recordVO.getSchema().getTypeCode();
-		if (Document.SCHEMA_TYPE.equals(schemaTypeCode) || Event.SCHEMA_TYPE.equals(schemaTypeCode)) {
-			DocumentVO documentVO = getDocumentVO(recordVO);
-			return documentVO != null ? new DocumentMenuBarImpl(documentVO) : null;
+		if (Document.SCHEMA_TYPE.equals(schemaTypeCode) || Folder.SCHEMA_TYPE.equals(schemaTypeCode)) {
+			return new RecordVOMenuBar(recordVO, Collections.emptyList());
 		} else {
 			return null;
 		}
 	}
 
-	public DocumentVO getDocumentVO(RecordVO recordVO) {
-		DocumentVO documentVO = null;
+	public RecordVO getDocumentVO(RecordVO recordVO) {
+		RecordVO documentVO = null;
 
 		String schemaTypeCode = recordVO.getSchema().getTypeCode();
 		if (recordVO instanceof DocumentVO) {

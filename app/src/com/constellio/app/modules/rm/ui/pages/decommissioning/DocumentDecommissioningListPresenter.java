@@ -21,6 +21,7 @@ import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
@@ -55,7 +56,7 @@ public class DocumentDecommissioningListPresenter extends SingleSchemaBasePresen
 				schema(Document.DEFAULT_SCHEMA), VIEW_MODE.TABLE, view.getSessionContext());
 		return new RecordVODataProvider(schema, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				LogicalSearchCondition condition = from(rmRecordsServices().documentSchemaType())
 						.where(Schemas.IDENTIFIER).isIn(decommissioningList().getDocuments());
 				return new LogicalSearchQuery(condition);
@@ -112,9 +113,10 @@ public class DocumentDecommissioningListPresenter extends SingleSchemaBasePresen
 			view.navigate().to(RMViews.class).displayDocumentDecommissioningList(recordId);
 		} catch (DecommissioningServiceException_TooMuchOptimisticLockingWhileAttemptingToDecommission e) {
 			view.showMessage($("DecommissioningListView.tooMuchOptimisticLocking"));
-
 		} catch (DecommissioningServiceException e) {
 			view.showMessage($(e));
+		} catch (ValidationException e) {
+			view.showErrorMessage($(e));
 		}
 
 	}

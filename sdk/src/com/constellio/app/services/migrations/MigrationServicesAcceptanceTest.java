@@ -122,7 +122,7 @@ public class MigrationServicesAcceptanceTest extends ConstellioTest {
 				new CollectionsManager(getAppLayerFactory(), moduleManager, new Delayed<>(migrationServices),
 						systemGlobalConfigsManager));
 		collectionsManager.createCollectionConfigs("collection1");
-		collectionsListManager.addCollection("collection1", Arrays.asList("fr"));
+		collectionsListManager.addCollection("collection1", Arrays.asList("fr"), (byte) 42);
 		try {
 			migrationServices.migrate("collection1", null, false);
 		} catch (OptimisticLockingConfiguration optimisticLockingConfiguration) {
@@ -130,7 +130,7 @@ public class MigrationServicesAcceptanceTest extends ConstellioTest {
 		}
 
 		collectionsManager.createCollectionConfigs("collection2");
-		collectionsListManager.addCollection("collection2", Arrays.asList("fr"));
+		collectionsListManager.addCollection("collection2", Arrays.asList("fr"), (byte) 68);
 		try {
 			migrationServices.migrate("collection2", null, false);
 		} catch (OptimisticLockingConfiguration optimisticLockingConfiguration) {

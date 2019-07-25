@@ -1,8 +1,5 @@
 package com.constellio.app.ui.pages.management.schemaRecords;
 
-import com.constellio.app.modules.rm.navigation.RMViews;
-import com.constellio.app.ui.application.CoreViews;
-import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
@@ -13,6 +10,7 @@ import com.constellio.app.ui.framework.components.RecordDisplay;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.breadcrumb.IntermediateBreadCrumbTailItem;
 import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
+import com.constellio.app.ui.framework.components.buttons.RecordVOActionButtonFactory;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
@@ -31,6 +29,7 @@ import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -56,8 +55,15 @@ public class DisplaySchemaRecordViewImpl extends BaseViewImpl implements Display
 
 	private RecordVOTable subRecordsTable;
 
+	private boolean nestedView;
+
 	public DisplaySchemaRecordViewImpl() {
-		this.presenter = new DisplaySchemaRecordPresenter(this);
+		this(null, false, false);
+	}
+
+	public DisplaySchemaRecordViewImpl(RecordVO recordVO, boolean nestedView, boolean inWindow) {
+		this.presenter = new DisplaySchemaRecordPresenter(this, recordVO, nestedView, inWindow);
+		this.nestedView = nestedView;
 	}
 
 	@Override
@@ -158,6 +164,21 @@ public class DisplaySchemaRecordViewImpl extends BaseViewImpl implements Display
 	}
 
 	@Override
+	protected boolean isActionMenuBar() {
+		return nestedView;
+	}
+
+	@Override
+	protected boolean isBreadcrumbsVisible() {
+		return !nestedView;
+	}
+
+	@Override
+	protected boolean isFullWidthIfActionMenuAbsent() {
+		return true;
+	}
+
+	@Override
 	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
 		List<Button> actionMenuButtons = new ArrayList<Button>();
 		if (presenter.isEditButtonVisible()) {
@@ -167,7 +188,9 @@ public class DisplaySchemaRecordViewImpl extends BaseViewImpl implements Display
 					presenter.editButtonClicked();
 				}
 			};
-			actionMenuButtons.add(editButton);
+			if (!nestedView) {
+				actionMenuButtons.add(editButton);
+			}
 		}
 		if (presenter.isDeleteButtonVisible()) {
 			deleteButton = new DeleteButton(false) {
@@ -181,9 +204,22 @@ public class DisplaySchemaRecordViewImpl extends BaseViewImpl implements Display
 		if (presenter.isSequenceTable()) {
 			actionMenuButtons.add(new ListSequencesButton(recordVO.getId(), $("DisplaySchemaRecordView.sequences")));
 		}
-		return actionMenuButtons;
+
+
+		//		return actionMenuButtons;
+		return new RecordVOActionButtonFactory(recordVO, this, Collections.emptyList()).build();
 	}
 
+	@Override
+	protected List<Button> getQuickActionMenuButtons() {
+		List<Button> quickActionMenuButtons = new ArrayList<>();
+		if (nestedView) {
+			if (presenter.isEditButtonVisible()) {
+				quickActionMenuButtons.add(editButton);
+			}
+		}
+		return quickActionMenuButtons;
+	}
 
 	@Override
 	protected ClickListener getBackButtonClickListener() {

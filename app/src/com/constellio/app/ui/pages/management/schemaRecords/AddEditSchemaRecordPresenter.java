@@ -45,12 +45,15 @@ public class AddEditSchemaRecordPresenter extends SingleSchemaBasePresenter<AddE
 
 	private RecordVO recordVO;
 
-	public AddEditSchemaRecordPresenter(AddEditSchemaRecordView view) {
+	public AddEditSchemaRecordPresenter(AddEditSchemaRecordView view, RecordVO recordVO) {
 		super(view);
+		this.recordVO = recordVO;
 	}
 
 	public void forParams(String params) {
-		computeParams(params);
+		if (params != null) {
+			computeParams(params);
+		}
 		view.setRecordVO(recordVO);
 	}
 

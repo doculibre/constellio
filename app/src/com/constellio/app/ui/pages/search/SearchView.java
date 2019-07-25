@@ -1,11 +1,14 @@
 package com.constellio.app.ui.pages.search;
 
+import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.data.SearchResultVODataProvider;
 import com.constellio.app.ui.pages.base.BaseView;
 
 import java.util.List;
 
 public interface SearchView extends BaseView {
+
+	String getSavedSearchId();
 
 	void refreshSearchResultsAndFacets();
 
@@ -24,5 +27,11 @@ public interface SearchView extends BaseView {
     void fireSomeRecordsSelected();
 
 	void fireNoRecordSelected();
+
+	boolean scrollIntoView(Integer contentIndex, String recordId);
+
+	Integer getReturnIndex();
+
+	RecordVO getReturnRecordVO();
 	
 }

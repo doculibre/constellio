@@ -64,24 +64,6 @@ public class BetaWorkflowServicesAcceptanceTest extends ConstellioTest {
 		givenConfig(RMConfigs.WORKFLOWS_ENABLED, true);
 	}
 
-	@Test
-	public void whenSearchingWorkflowModelTaskThenOnlyReturnGivenWorkflowModelTask()
-			throws Exception {
-
-		BetaWorkflow approvalWorkflow = tasks.getBetaWorkflowWithCode("approval");
-		BetaWorkflow simpleWorkflow = tasks.getBetaWorkflowWithCode("simple");
-		services.start(approvalWorkflow, users.adminIn(zeCollection), noExtraFields);
-
-		assertThat(services.getWorkflows()).extracting("code").isEqualTo(asList(
-				"simple", "approval"));
-
-		assertThat(services.getWorkflowModelTasks(approvalWorkflow.getId())).extracting("id").isEqualTo(asList(
-				"details", "approval", "refusalFirstTask", "approvedFirstTask", "approvedSecondTask"));
-
-		assertThat(services.getWorkflowModelTasks(simpleWorkflow.getId())).extracting("id").isEqualTo(asList(
-				"task1", "task2", "task3", "task4", "taskZ"));
-
-	}
 
 	@Test
 	public void whenStartingAWorkflowThenCreateFirstTasks()

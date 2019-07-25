@@ -22,7 +22,7 @@ import com.constellio.model.services.records.RecordLogicalDeleteOptions;
 import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
-import com.constellio.model.services.records.cache.RecordsCachesMemoryImpl;
+import com.constellio.model.services.records.cache.RecordsCaches2Impl;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.MockedFactories;
@@ -80,7 +80,7 @@ public class DecommissioningListPresenterTest extends ConstellioTest {
 		when(view.getSessionContext()).thenReturn(FakeSessionContext.gandalfInCollection(zeCollection));
 		when(factories.getAppLayerFactory().newPresenterService()).thenReturn(presenterService);
 		when(factories.getModelLayerFactory().getRecordsCaches())
-				.thenReturn(new RecordsCachesMemoryImpl(factories.getModelLayerFactory()));
+				.thenReturn(mock(RecordsCaches2Impl.class));
 		when(presenterService.getCurrentUser(isA(SessionContext.class))).thenReturn(user);
 		factories.getRecordServices();
 

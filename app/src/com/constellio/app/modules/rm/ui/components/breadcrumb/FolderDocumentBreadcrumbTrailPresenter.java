@@ -12,6 +12,7 @@ import com.constellio.app.ui.framework.components.breadcrumb.BreadcrumbItem;
 import com.constellio.app.ui.framework.components.breadcrumb.FavoritesBreadcrumbItem;
 import com.constellio.app.ui.framework.components.breadcrumb.GroupFavoritesBreadcrumbItem;
 import com.constellio.app.ui.framework.components.breadcrumb.SearchResultsBreadcrumbItem;
+import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.UIContext;
@@ -185,7 +186,12 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 			}
 		} else if (favoritesId != null) {
 			breadcrumbItems.add(0, new FavoritesBreadcrumbItem());
-			breadcrumbItems.add(1, new GroupFavoritesBreadcrumbItem(favoritesId));
+
+
+			String title = favoritesId.equals(breadcrumbTrail.getView().getSessionContext().getCurrentUser().getId()) ? i18n.$("CartView.defaultFavorites") : rmSchemasRecordsServices.getCart(favoritesId).getTitle();
+
+
+			breadcrumbItems.add(1, new GroupFavoritesBreadcrumbItem(favoritesId, title));
 		}
 		else if (searchId != null) {
 			breadcrumbItems.add(0, new SearchResultsBreadcrumbItem(searchId, advancedSearch));

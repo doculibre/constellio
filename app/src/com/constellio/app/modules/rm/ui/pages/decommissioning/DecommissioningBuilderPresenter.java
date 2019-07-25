@@ -70,6 +70,7 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 	boolean displayResults;
 	boolean addMode;
 	int pageNumber;
+	private String searchID;
 
 	public DecommissioningBuilderPresenter(DecommissioningBuilderView view) {
 		super(view);
@@ -95,15 +96,17 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 				this.displayResults = false;
 				pageNumber = 1;
 			} else {
+				searchID = saveSearchFromSession;
 				searchType = SearchType.valueOf(parts[0]);
-				SavedSearch savedSearch = getSavedSearch(saveSearchFromSession);
+				SavedSearch savedSearch = getSavedSearch(searchID);
 				setSavedSearch(savedSearch);
 				view.setExtraParameters(searchType.toString(), savedSearch.getId());
 				this.displayResults = true;
 			}
 		} else if (parts.length > 2) {
 			searchType = SearchType.valueOf(parts[0]);
-			SavedSearch search = getSavedSearch(parts[2]);
+			searchID = parts[2];
+			SavedSearch search = getSavedSearch(searchID);
 
 			setSavedSearch(search);
 			this.displayResults = true;
@@ -443,7 +446,7 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 			tmpSearchRecord = recordServices().newRecordWithSchema(schema(SavedSearch.DEFAULT_SCHEMA));
 		} else {
 			SavedSearch savedSearch = new SavedSearch(tmpSearchRecord, types());
-			if (!Boolean.TRUE.equals(savedSearch.isTemporary())) {
+			if (!savedSearch.isTemporary()) {
 				tmpSearchRecord = recordServices()
 						.newRecordWithSchema(schema(SavedSearch.DEFAULT_SCHEMA));
 			}
@@ -503,4 +506,10 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 		AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions().forCollection(view.getCollection());
 		return extensions.getComponentForCriterion(criterion);
 	}
+
+	@Override
+	public String getSavedSearchId() {
+		return searchID;
+	}
+	
 }

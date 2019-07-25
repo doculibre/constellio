@@ -1,7 +1,7 @@
 package com.constellio.app.ui.pages.summaryconfig;
 
 import com.constellio.app.ui.entities.MetadataVO;
-import org.apache.commons.lang3.NotImplementedException;
+import org.apache.commons.lang.NotImplementedException;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 

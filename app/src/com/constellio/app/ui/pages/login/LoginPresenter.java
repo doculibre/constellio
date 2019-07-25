@@ -10,7 +10,6 @@ import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.pages.base.SessionContext;
-import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.User;
@@ -29,16 +28,12 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.security.authentification.AuthenticationService;
 import com.constellio.model.services.users.UserServices;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -124,10 +119,12 @@ public class LoginPresenter extends BasePresenter<LoginView> {
 						LOGGER.error("Unable to update user : " + username, e);
 					}
 					*/
-					if (userCredential.hasAgreedToPrivacyPolicy() || getPrivacyPolicyConfigValue() == null) {
-						signInValidated(userInLastCollection, lastCollection);
-					} else {
+					if (!userCredential.hasAgreedToPrivacyPolicy() && getPrivacyPolicyConfigValue() != null) {
 						view.popPrivacyPolicyWindow(modelLayerFactory, userInLastCollection, lastCollection);
+					} else if (!userCredential.hasReadLastAlert() && getLastAlertConfigValue() != null) {
+						view.popLastAlertWindow(modelLayerFactory, userInLastCollection, lastCollection);
+					} else {
+						signInValidated(userInLastCollection, lastCollection);
 					}
 				}
 			} else {
@@ -216,36 +213,25 @@ public class LoginPresenter extends BasePresenter<LoginView> {
 
 	public File getPrivacyPolicyFile() {
 		SystemConfigurationsManager manager = modelLayerFactory.getSystemConfigurationsManager();
-		StreamFactory<InputStream> streamFactory = manager.getValue(ConstellioEIMConfigs.PRIVACY_POLICY);
-		InputStream returnStream = null;
-		if (streamFactory != null) {
-			try {
-				returnStream = streamFactory.create("privacyPolicy_eimUSR");
-			} catch (IOException e) {
-				e.printStackTrace();
-				return null;
-			}
-		}
-		if (returnStream == null) {
-			return null;
-		}
+		File policy = manager.getFileFromValue(ConstellioEIMConfigs.PRIVACY_POLICY, "privacyPolicy_eimUSR");
 
-		File file = new File("privacyPolicy_eimUSR");
-		try {
-			FileUtils.copyInputStreamToFile(returnStream, file);
-			//TODO Francis file created by resource is not removed from file system
-			modelLayerFactory.getDataLayerFactory().getIOServicesFactory().newIOServices().closeQuietly(returnStream);
-		} catch (IOException e) {
-			e.printStackTrace();
-			return null;
-		} finally {
-			IOUtils.closeQuietly(returnStream);
-		}
-		return file;
+		return policy;
 	}
 
 	public Object getPrivacyPolicyConfigValue() {
 		SystemConfigurationsManager manager = modelLayerFactory.getSystemConfigurationsManager();
 		return manager.getValue(ConstellioEIMConfigs.PRIVACY_POLICY);
+	}
+
+	public File getLastAlertFile() {
+		SystemConfigurationsManager manager = modelLayerFactory.getSystemConfigurationsManager();
+		File lastAlert = manager.getFileFromValue(ConstellioEIMConfigs.LOGIN_NOTIFICATION_ALERT, "lastAlert.pdf");
+
+		return lastAlert;
+	}
+
+	public Object getLastAlertConfigValue() {
+		SystemConfigurationsManager manager = modelLayerFactory.getSystemConfigurationsManager();
+		return manager.getValue(ConstellioEIMConfigs.LOGIN_NOTIFICATION_ALERT);
 	}
 }

@@ -4,6 +4,7 @@ import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.DocumentAlteration;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.model.conf.ModelLayerConfiguration;
+import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.sdk.tests.ConstellioTest;
 import org.junit.Test;
@@ -13,6 +14,7 @@ import org.mockito.Mock;
 import java.util.Arrays;
 import java.util.List;
 
+import static java.util.Arrays.asList;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doReturn;
@@ -46,6 +48,17 @@ public class CollectionsListManagerTest extends ConstellioTest {
 			public List<String> readCollections() {
 				return Arrays.asList("collection1", "collection2");
 			}
+
+			@Override
+			public CollectionInfo getCollectionInfo(String collectionCode) {
+				if (collectionCode.equals("collection1")) {
+					return new CollectionInfo((byte) 1, collectionCode, "fr", asList("fr"));
+				} else if (collectionCode.equals("collection2")) {
+					return new CollectionInfo((byte) 2, collectionCode, "fr", asList("fr"));
+				}
+
+				throw new IllegalStateException("Collection for testing not supported");
+			}
 		});
 		collectionsListManager.initialize();
 
@@ -68,7 +81,20 @@ public class CollectionsListManagerTest extends ConstellioTest {
 			public List<String> readCollections() {
 				return Arrays.asList("collection1", "collection2");
 			}
+
+			@Override
+			public CollectionInfo getCollectionInfo(String collectionCode) {
+				if (collectionCode.equals("collection1")) {
+					return new CollectionInfo((byte) 1, collectionCode, "fr", asList("fr"));
+				} else if (collectionCode.equals("collection2")) {
+					return new CollectionInfo((byte) 2, collectionCode, "fr", asList("fr"));
+				}
+
+				throw new IllegalStateException("Collection for testing not supported");
+			}
 		});
+
+
 		collectionsListManager.initialize();
 
 		CollectionsListManagerListener listener1 = mock(CollectionsListManagerListener.class);

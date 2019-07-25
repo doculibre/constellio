@@ -106,6 +106,9 @@ public class ReindexingServicesTwoSchemasAcceptanceTest extends ConstellioTest {
 		RecordDeltaDTO recordDeltaDTO = new RecordDeltaDTO(record, modifiedValues, record.getFields());
 		recordDao.execute(new TransactionDTO(RecordsFlushing.NOW()).withModifiedRecords(asList(recordDeltaDTO)));
 
+		getModelLayerFactory().getRecordsCaches().getCache(zeCollection)
+				.invalidateVolatileReloadPermanent(asList(zeSchema.typeCode()));
+
 		assertThatRecord(withId("000666"))
 				.hasMetadataValue(anotherSchema.metadata("copiedMetadata"), "value1")
 				.hasMetadataValue(anotherSchema.metadata("calculatedMetadata"), "value2");
@@ -160,6 +163,9 @@ public class ReindexingServicesTwoSchemasAcceptanceTest extends ConstellioTest {
 		RecordDTO record = recordDao.get("000666");
 		RecordDeltaDTO recordDeltaDTO = new RecordDeltaDTO(record, modifiedValues, record.getFields());
 		recordDao.execute(new TransactionDTO(RecordsFlushing.NOW()).withModifiedRecords(asList(recordDeltaDTO)));
+
+		getModelLayerFactory().getRecordsCaches().getCache(zeCollection)
+				.invalidateVolatileReloadPermanent(asList(zeSchema.typeCode()));
 
 		assertThatRecord(withId("000042"))
 				.hasMetadataValue(anotherSchema.metadata("copiedMetadata"), "value1")

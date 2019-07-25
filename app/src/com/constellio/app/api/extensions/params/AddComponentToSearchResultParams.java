@@ -12,4 +12,5 @@ public class AddComponentToSearchResultParams {
 	public SearchResultVO getSearchResultVO() {
 		return searchResultVO;
 	}
+
 }

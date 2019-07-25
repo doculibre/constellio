@@ -118,8 +118,8 @@ public class OneXMLConfigPerCollectionManagerUsingAttributeVersionAcceptanceTest
 
 		createCollectionFile("collection1");
 		createCollectionFile("collection2");
-		collectionsListManager.addCollection("collection1", languages);
-		collectionsListManager.addCollection("collection2", languages);
+		collectionsListManager.addCollection("collection1", languages, (byte) 42);
+		collectionsListManager.addCollection("collection2", languages, (byte) 68);
 
 		assertThat(manager.get("collection1").value).isEqualTo("A");
 		assertThat(manager.get("collection2").value).isEqualTo("A");
@@ -131,8 +131,8 @@ public class OneXMLConfigPerCollectionManagerUsingAttributeVersionAcceptanceTest
 
 		createCollectionFile("collection1");
 		createCollectionFile("collection2");
-		collectionsListManager.addCollection("collection1", languages);
-		collectionsListManager.addCollection("collection2", languages);
+		collectionsListManager.addCollection("collection1", languages, (byte) 42);
+		collectionsListManager.addCollection("collection2", languages, (byte) 68);
 
 		manager = newManager(managerListener);
 		assertThat(manager.get("collection1").value).isEqualTo("A");
@@ -145,8 +145,8 @@ public class OneXMLConfigPerCollectionManagerUsingAttributeVersionAcceptanceTest
 
 		createCollectionFile("collection1");
 		createCollectionFile("collection2");
-		collectionsListManager.addCollection("collection1", languages);
-		collectionsListManager.addCollection("collection2", languages);
+		collectionsListManager.addCollection("collection1", languages, (byte) 42);
+		collectionsListManager.addCollection("collection2", languages, (byte) 68);
 
 		updateCollectionValue("collection1", "B");
 		updateCollectionValue("collection2", "C");
@@ -161,8 +161,8 @@ public class OneXMLConfigPerCollectionManagerUsingAttributeVersionAcceptanceTest
 
 		createCollectionFile("collection1");
 		createCollectionFile("collection2");
-		collectionsListManager.addCollection("collection1", languages);
-		collectionsListManager.addCollection("collection2", languages);
+		collectionsListManager.addCollection("collection1", languages, (byte) 42);
+		collectionsListManager.addCollection("collection2", languages, (byte) 68);
 
 		updateCollectionValue("collection1", "B");
 		updateCollectionValue("collection2", "C");
@@ -180,8 +180,8 @@ public class OneXMLConfigPerCollectionManagerUsingAttributeVersionAcceptanceTest
 
 		createCollectionFile("collection1");
 		createCollectionFile("collection2");
-		collectionsListManager.addCollection("collection1", languages);
-		collectionsListManager.addCollection("collection2", languages);
+		collectionsListManager.addCollection("collection1", languages, (byte) 42);
+		collectionsListManager.addCollection("collection2", languages, (byte) 68);
 
 		String versionBefore = manager.get("collection1").version;
 
@@ -221,8 +221,8 @@ public class OneXMLConfigPerCollectionManagerUsingAttributeVersionAcceptanceTest
 		OneXMLConfigPerCollectionManager<Data> otherManager = newManager(otherManagerListener);
 		createCollectionFile("collection1");
 		createCollectionFile("collection2");
-		collectionsListManager.addCollection("collection1", languages);
-		collectionsListManager.addCollection("collection2", languages);
+		collectionsListManager.addCollection("collection1", languages, (byte) 42);
+		collectionsListManager.addCollection("collection2", languages, (byte) 68);
 
 		assertThat(otherManager.get("collection1").value).isEqualTo("A");
 		assertThat(otherManager.get("collection2").value).isEqualTo("A");
@@ -235,8 +235,8 @@ public class OneXMLConfigPerCollectionManagerUsingAttributeVersionAcceptanceTest
 		OneXMLConfigPerCollectionManager<Data> otherManager = newManager(otherManagerListener);
 		createCollectionFile("collection1");
 		createCollectionFile("collection2");
-		collectionsListManager.addCollection("collection1", languages);
-		collectionsListManager.addCollection("collection2", languages);
+		collectionsListManager.addCollection("collection1", languages, (byte) 42);
+		collectionsListManager.addCollection("collection2", languages, (byte) 68);
 
 		updateCollectionValue("collection1", "B");
 		updateCollectionValue("collection2", "C");
@@ -257,8 +257,8 @@ public class OneXMLConfigPerCollectionManagerUsingAttributeVersionAcceptanceTest
 
 		createCollectionFile("collection1");
 		createCollectionFile("collection2");
-		collectionsListManager.addCollection("collection1", languages);
-		collectionsListManager.addCollection("collection2", languages);
+		collectionsListManager.addCollection("collection1", languages, (byte) 42);
+		collectionsListManager.addCollection("collection2", languages, (byte) 68);
 
 		updateCollectionValue("collection1", "B");
 		updateCollectionValue("collection2", "C");

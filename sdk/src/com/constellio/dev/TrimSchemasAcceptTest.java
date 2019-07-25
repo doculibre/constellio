@@ -51,7 +51,7 @@ public class TrimSchemasAcceptTest extends ConstellioTest {
 		File inputFile = new File(inputFilePath);
 		File outputFile = new File(outputFilePath);
 
-		CollectionInfo collectionInfo = new CollectionInfo("collection", "fr", Arrays.asList("fr"));
+		CollectionInfo collectionInfo = new CollectionInfo((byte) 0, "collection", "fr", Arrays.asList("fr"));
 		Document originalDocument = getDocumentFromFile(inputFile);
 		long fileLength = inputFile.length();
 		System.out.println("fileLength before " + fileLength);

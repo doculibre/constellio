@@ -654,6 +654,13 @@ public class CoreViews {
 		navigator.navigateTo(viewPath);
 	}
 
+	public void addEmailAndAttachmentsToFolder(String userDocumentId) {
+		Map<String, Object> params = new HashMap<>();
+		params.put("userDocumentId", userDocumentId);
+		String viewPath = ParamUtils.addParams(RMNavigationConfiguration.ADD_EMAIL_AND_EMAIL_ATTACHMENTS_TO_FOLDER, params);
+		navigator.navigateTo(viewPath);
+	}
+
 	public void systemCheck() {
 		navigator.navigateTo(NavigatorConfigurationService.SYSTEM_CHECK);
 	}

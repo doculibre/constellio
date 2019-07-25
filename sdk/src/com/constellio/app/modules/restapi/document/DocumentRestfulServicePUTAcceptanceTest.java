@@ -18,12 +18,12 @@ import com.constellio.app.modules.restapi.core.util.CustomHttpHeaders;
 import com.constellio.app.modules.restapi.core.util.DateUtils;
 import com.constellio.app.modules.restapi.core.util.HashingUtils;
 import com.constellio.app.modules.restapi.core.util.HttpMethods;
-import com.constellio.app.modules.restapi.document.dto.AceDto;
 import com.constellio.app.modules.restapi.document.dto.ContentDto;
 import com.constellio.app.modules.restapi.document.dto.DocumentDto;
 import com.constellio.app.modules.restapi.document.dto.DocumentTypeDto;
-import com.constellio.app.modules.restapi.document.dto.ExtendedAttributeDto;
-import com.constellio.app.modules.restapi.document.exception.DocumentTypeNotFoundException;
+import com.constellio.app.modules.restapi.resource.dto.AceDto;
+import com.constellio.app.modules.restapi.resource.dto.ExtendedAttributeDto;
+import com.constellio.app.modules.restapi.resource.exception.ResourceTypeNotFoundException;
 import com.constellio.app.modules.restapi.validation.exception.ExpiredSignedUrlException;
 import com.constellio.app.modules.restapi.validation.exception.InvalidSignatureException;
 import com.constellio.app.modules.restapi.validation.exception.UnallowedHostException;
@@ -34,10 +34,10 @@ import com.constellio.app.ui.i18n.i18n;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.utils.MimeTypes;
 import com.google.common.collect.Lists;
@@ -566,7 +566,7 @@ public class DocumentRestfulServicePUTAcceptanceTest extends BaseDocumentRestful
 	@Test
 	public void testUpdateDocumentWithSchemaChangeAndInvalidMetadataKey() throws Exception {
 		switchToCustomSchema(fakeDocument.getId());
-		addUsrMetadata(MetadataValueType.STRING, records.documentTypeForm().getLinkedSchema(), null, null);
+		addUsrMetadata(id, records.documentTypeForm().getLinkedSchema(), MetadataValueType.STRING, null, null);
 
 		minDocumentToUpdate.setType(DocumentTypeDto.builder().id(records.documentTypeId_1).build());
 		minDocumentToUpdate.setExtendedAttributes(singletonList(
@@ -785,7 +785,7 @@ public class DocumentRestfulServicePUTAcceptanceTest extends BaseDocumentRestful
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-				.isEqualTo(i18n.$(new DocumentTypeNotFoundException("id", "fake").getValidationError()));
+				.isEqualTo(i18n.$(new ResourceTypeNotFoundException("id", "fake").getValidationError()));
 	}
 
 	@Test
@@ -796,7 +796,7 @@ public class DocumentRestfulServicePUTAcceptanceTest extends BaseDocumentRestful
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-				.isEqualTo(i18n.$(new DocumentTypeNotFoundException("code", "fake").getValidationError()));
+				.isEqualTo(i18n.$(new ResourceTypeNotFoundException("code", "fake").getValidationError()));
 	}
 
 	@Test
@@ -914,7 +914,7 @@ public class DocumentRestfulServicePUTAcceptanceTest extends BaseDocumentRestful
 		minDocumentToUpdate.setDirectAces(singletonList(AceDto.builder().principals(singleton(alice))
 				.permissions(singleton(READ)).endDate(toDateString(new LocalDate())).build()));
 		Response response = doPutQuery(minDocumentToUpdate, null);
-		assertThat(response.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
+		assertThat(response.getStatus()).describedAs(response.toString()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE).isEqualTo(i18n.$(new RequiredParameterException("ace.startDate").getValidationError()));
@@ -959,7 +959,7 @@ public class DocumentRestfulServicePUTAcceptanceTest extends BaseDocumentRestful
 	@Test
 	public void testUpdateDocumentWithCustomSchema() throws Exception {
 		switchToCustomSchema(fakeDocument.getId());
-		addUsrMetadata(MetadataValueType.STRING, records.documentTypeForm().getLinkedSchema(), null, null);
+		addUsrMetadata(id, records.documentTypeForm().getLinkedSchema(), MetadataValueType.STRING, null, null);
 
 		List<String> value1 = singletonList("value1b"), value2 = asList("value2c", "value2d");
 		minDocumentToUpdate.setType(DocumentTypeDto.builder().id(records.documentTypeForm().getId()).build());

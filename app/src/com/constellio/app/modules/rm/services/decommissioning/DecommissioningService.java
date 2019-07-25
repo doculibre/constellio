@@ -48,6 +48,7 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.structures.EmailAddress;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.extensions.events.schemas.PutSchemaRecordsInTrashEvent;
+import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.emails.EmailRecipientServices;
@@ -454,23 +455,23 @@ public class DecommissioningService {
 	}
 
 	public void decommission(DecommissioningList decommissioningList, User user)
-			throws DecommissioningServiceException {
+			throws DecommissioningServiceException, ValidationException {
 
 		decommission(decommissioningList, user, 0);
 	}
 
 	public void decommission(DecommissioningList decommissioningList, User user, int attempt)
-			throws DecommissioningServiceException {
+			throws DecommissioningServiceException, ValidationException {
 
 		try {
 			decommissioner(decommissioningList).process(decommissioningList, user, TimeProvider.getLocalDate());
 
 		} catch (RecordServicesException.OptimisticLocking e) {
 			modelLayerFactory.getRecordsCaches().getCache(decommissioningList.getCollection())
-					.invalidateRecordsOfType(Folder.SCHEMA_TYPE);
+					.reloadSchemaType(Folder.SCHEMA_TYPE, true);
 
 			modelLayerFactory.getRecordsCaches().getCache(decommissioningList.getCollection())
-					.invalidateRecordsOfType(ContainerRecord.SCHEMA_TYPE);
+					.reloadSchemaType(ContainerRecord.SCHEMA_TYPE, true);
 
 			if (attempt < 3) {
 				LOGGER.warn("Decommission failed, retrying...", e);

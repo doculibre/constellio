@@ -166,7 +166,7 @@ public class SearchServicesElevationAcceptTest extends ConstellioTest {
 		String idExcluded = record.getId();
 
 		searchConfigurationsManager.setExcluded(zeCollection, idExcluded);
-
+		System.out.println("Excluded : " + idExcluded);
 		recordList = loadRecords(query);
 		assertThat(recordList).isNotEmpty().extracting("id").doesNotContain(idExcluded);
 	}

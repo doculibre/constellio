@@ -6,7 +6,6 @@ import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
-import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
@@ -28,7 +27,6 @@ import com.constellio.app.ui.framework.buttons.ConfirmDialogButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.fields.number.BaseIntegerField;
-import com.constellio.app.ui.framework.decorators.base.ActionMenuButtonsDecorator;
 import com.constellio.app.ui.pages.base.BasePresenterUtils;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
@@ -226,27 +224,6 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
 	@Override
 	public void decorateMainComponentBeforeViewAssembledOnViewEntered(
 			DecorateMainComponentAfterInitExtensionParams params) {
-		super.decorateMainComponentAfterViewAssembledOnViewEntered(params);
-		Component mainComponent = params.getMainComponent();
-		if (mainComponent instanceof DisplayFolderViewImpl || mainComponent instanceof DisplayContainerViewImpl) {
-			BaseViewImpl view = (BaseViewImpl) mainComponent;
-			view.addActionMenuButtonsDecorator(new ActionMenuButtonsDecorator() {
-				@Override
-				public void decorate(final BaseViewImpl view, List<Button> actionMenuButtons) {
-					Context context = buildContext(view);
-					Folder folder = context.getFolder();
-
-					if (folder == null || folder.getArchivisticStatus() != FolderStatus.INACTIVE_DESTROYED) {
-						actionMenuButtons.add(buildRequestBorrowButton(view));
-						actionMenuButtons.add(buildRequestBorrowExtensionButton(view));
-						actionMenuButtons.add(buildRequestReactivationButton(view));
-					}
-
-					actionMenuButtons.add(buildRequestReturnButton(view));
-
-				}
-			});
-		}
 	}
 
 	private User getCurrentUser(BaseView view) {

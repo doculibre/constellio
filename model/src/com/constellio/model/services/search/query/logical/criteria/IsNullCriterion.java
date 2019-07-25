@@ -1,9 +1,14 @@
 package com.constellio.model.services.search.query.logical.criteria;
 
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.DataStoreField;
+import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.services.search.query.logical.LogicalSearchValueCondition;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
 
 public class IsNullCriterion extends LogicalSearchValueCondition {
 
@@ -18,7 +23,16 @@ public class IsNullCriterion extends LogicalSearchValueCondition {
 
 	@Override
 	public String getSolrQuery(DataStoreField dataStoreField) {
-		return "(*:* -" + dataStoreField.getDataStoreCode() + ":*)";
+		return toIsNullSolrQuery(dataStoreField);
+	}
+
+	@NotNull
+	public static String toIsNullSolrQuery(DataStoreField dataStoreField) {
+		String query = "(*:* -" + dataStoreField.getDataStoreCode() + ":*)";
+		if (dataStoreField.isMultivalue()) {
+			query = "(" + query + " OR " + dataStoreField.getDataStoreCode() + ":" + CriteriaUtils.getNullValueForDataStoreField(dataStoreField) + ")";
+		}
+		return query;
 	}
 
 	@Override
@@ -34,5 +48,23 @@ public class IsNullCriterion extends LogicalSearchValueCondition {
 	@Override
 	public String toString() {
 		return getClass().getSimpleName();
+	}
+
+	@Override
+	public boolean testConditionOnField(Metadata metadata, Record record) {
+
+		Object recordValue = record.get(metadata);
+
+		if (recordValue instanceof List) {
+			return ((List) recordValue).isEmpty();
+		} else {
+			return recordValue == null;
+		}
+
+	}
+
+	@Override
+	public boolean isSupportingMemoryExecution() {
+		return true;
 	}
 }

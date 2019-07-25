@@ -1,5 +1,6 @@
 package com.constellio.model.services.search.query.logical.condition;
 
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.search.query.logical.LogicalSearchValueCondition;
 
 import java.util.List;
@@ -40,5 +41,16 @@ public class NegatedLogicalSearchCondition extends LogicalSearchCondition {
 	@Override
 	public String getSolrQuery(SolrQueryBuilderContext params) {
 		return "( *:* -" + negated.getSolrQuery(params) + " )";
+	}
+
+	@Override
+	public boolean isSupportingMemoryExecution(boolean queryingTypesInSummaryCache) {
+		return negated.isSupportingMemoryExecution(queryingTypesInSummaryCache);
+	}
+
+
+	@Override
+	public boolean test(Record record) {
+		return !negated.test(record);
 	}
 }

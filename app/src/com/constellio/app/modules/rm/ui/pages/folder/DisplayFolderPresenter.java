@@ -1,8 +1,6 @@
 package com.constellio.app.modules.rm.ui.pages.folder;
 
 import com.constellio.app.api.extensions.params.DocumentFolderBreadCrumbParams;
-import com.constellio.app.api.extensions.params.NavigateToFromAPageParams;
-import com.constellio.app.api.extensions.taxonomies.FolderDeletionEvent;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMEmailTemplateConstants;
@@ -12,22 +10,20 @@ import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.navigation.RMViews;
+import com.constellio.app.modules.rm.services.EmailParsingServices;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
-import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.services.decommissioning.SearchType;
 import com.constellio.app.modules.rm.services.events.RMEventsSearchServices;
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
 import com.constellio.app.modules.rm.ui.builders.FolderToVOBuilder;
 import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentContainerBreadcrumbTrail;
 import com.constellio.app.modules.rm.ui.components.content.ConstellioAgentClickHandler;
-import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.entities.FolderVO;
 import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningBuilderViewImpl;
 import com.constellio.app.modules.rm.ui.pages.decommissioning.breadcrumb.DecommissionBreadcrumbTrail;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
-import com.constellio.app.modules.rm.util.DecommissionNavUtil;
 import com.constellio.app.modules.rm.util.RMNavigationUtils;
 import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
@@ -41,7 +37,6 @@ import com.constellio.app.modules.tasks.navigation.TaskViews;
 import com.constellio.app.modules.tasks.services.BetaWorkflowServices;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.ContentVersionVO.InputStreamProvider;
@@ -59,13 +54,12 @@ import com.constellio.app.ui.framework.components.RMSelectionPanelReportPresente
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
-import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.pages.search.SearchPresenter.SortOrder;
 import com.constellio.app.ui.pages.search.SearchPresenterService;
 import com.constellio.app.ui.params.ParamUtils;
-import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
+import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.KeySetMap;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.CorePermissions;
@@ -85,9 +79,10 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.structures.EmailAddress;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
-import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
-import com.constellio.model.services.contents.ContentFactory;
+import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.contents.ContentManager.UploadOptions;
+import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.contents.icap.IcapException;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
@@ -98,6 +93,7 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.StatusFilter;
+import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.FunctionLogicalSearchQuerySort;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryFacetFilters;
@@ -105,7 +101,6 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQueryOper
 import com.constellio.model.services.search.query.logical.LogicalSearchQuerySort;
 import com.constellio.model.services.search.query.logical.ScoreLogicalSearchQuerySort;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
-import com.constellio.model.services.security.AuthorizationsServices;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -145,6 +140,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	private MetadataSchemaToVOBuilder schemaVOBuilder = new MetadataSchemaToVOBuilder();
 	private FolderToVOBuilder folderVOBuilder;
 	private DocumentToVOBuilder documentVOBuilder;
+	private List<String> documentsTitle;
 
 	private FolderVO folderVO;
 
@@ -163,12 +159,15 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 	protected RecordToVOBuilder voBuilder = new RecordToVOBuilder();
 
+	private Set<String> selectedRecordIds = new HashSet<>();
 
 	Boolean allItemsSelected = false;
 
 	Boolean allItemsDeselected = false;
 
 	private boolean nestedView;
+
+	private boolean inWindow;
 
 	private Map<String, String> params = null;
 
@@ -177,16 +176,19 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	String sortCriterion;
 	SortOrder sortOrder;
 
-	public DisplayFolderPresenter(DisplayFolderView view, RecordVO recordVO, boolean nestedView) {
+	private RecordVO returnRecordVO;
+	private Integer returnIndex;
+
+	public DisplayFolderPresenter(DisplayFolderView view, RecordVO recordVO, boolean nestedView, boolean inWindow) {
 		super(view, Folder.DEFAULT_SCHEMA);
 		this.nestedView = nestedView;
+		this.inWindow = inWindow;
 		presenterUtilsForDocument = new SchemaPresenterUtils(Document.DEFAULT_SCHEMA, view.getConstellioFactories(), view.getSessionContext());
 		initTransientObjects();
 		if (recordVO != null) {
 			this.taxonomyCode = recordVO.getId();
 			forParams(recordVO.getId());
 		}
-
 	}
 
 	private void readObject(java.io.ObjectInputStream stream)
@@ -255,7 +257,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		voBuilders.put(documentsSchemaVO.getCode(), documentVOBuilder);
 		folderContentDataProvider = new RecordVODataProvider(Arrays.asList(foldersSchemaVO, documentsSchemaVO), voBuilders, modelLayerFactory, view.getSessionContext()) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				return getFolderContentQuery();
 			}
 		};
@@ -271,7 +273,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		tasksDataProvider = new RecordVODataProvider(
 				tasksSchemaVO, folderVOBuilder, modelLayerFactory, view.getSessionContext()) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				LogicalSearchQuery query = getTasksQuery();
 				addStarredSortToQuery(query);
 				query.sortDesc(Schemas.MODIFIED_ON);
@@ -290,8 +292,6 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 		eventsDataProvider = getEventsDataProvider();
 		view.setEvents(eventsDataProvider);
-
-		computeAllItemsSelected();
 	}
 
 	public Map<String, String> getParams() {
@@ -489,7 +489,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 		return new RecordVODataProvider(schemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				return new BetaWorkflowServices(view.getCollection(), appLayerFactory).getWorkflowsQuery();
 			}
 		};
@@ -515,25 +515,11 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 	private void disableMenuItems(Folder folder) {
 		if (!folder.isLogicallyDeletedStatus()) {
-			RMConfigs rmConfigs = new RMConfigs(modelLayerFactory.getSystemConfigurationsManager());
-
 			User user = getCurrentUser();
-			view.setLogicallyDeletable(getDeleteButtonState(user, folder));
 			view.setDisplayButtonState(getDisplayButtonState(user, folder));
 			view.setEditButtonState(getEditButtonState(user, folder));
-			view.setMoveInFolderState(getMoveInFolderButtonState(user, folder));
-			view.setAddSubFolderButtonState(getAddFolderButtonState(user, folder));
 			view.setAddDocumentButtonState(getAddDocumentButtonState(user, folder));
-			view.setDuplicateFolderButtonState(getDuplicateFolderButtonState(user, folder));
-			view.setAuthorizationButtonState(getAuthorizationButtonState(user, folder));
-			view.setShareFolderButtonState(getShareButtonState(user, folder));
-			view.setPrintButtonState(getPrintButtonState(user, folder));
-			view.setBorrowButtonState(getBorrowButtonState(user, folder));
-			view.setReturnFolderButtonState(getReturnFolderButtonState(user, folder));
-			view.setReminderReturnFolderButtonState(getReminderReturnFolderButtonState(user, folder));
-			view.setAlertWhenAvailableButtonState(getAlertWhenAvailableButtonState(user, folder));
 			view.setBorrowedMessage(getBorrowMessageState(folder));
-			view.setStartWorkflowButtonState(ComponentState.visibleIf(rmConfigs.areWorkflowsEnabled()));
 		}
 	}
 
@@ -568,151 +554,12 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		return borrowedMessage;
 	}
 
-	protected ComponentState getBorrowButtonState(User user, Folder folder) {
-		try {
-			borrowingServices.validateCanBorrow(user, folder, null);
-			return ComponentState
-					.visibleIf(user.hasAll(RMPermissionsTo.BORROW_FOLDER, RMPermissionsTo.BORROWING_FOLDER_DIRECTLY).on(folder)
-							   && rmModuleExtensions.isBorrowingActionPossibleOnFolder(folder, user));
-		} catch (Exception e) {
-			return ComponentState.INVISIBLE;
-		}
-	}
-
-	private ComponentState getReturnFolderButtonState(User user, Folder folder) {
-		try {
-			borrowingServices.validateCanReturnFolder(user, folder);
-			return ComponentState.ENABLED;
-		} catch (Exception e) {
-			return ComponentState.INVISIBLE;
-		}
-	}
-
-	protected ComponentState getReminderReturnFolderButtonState(User user, Folder folder) {
-		return isBorrowedByOtherUser(user, folder);
-	}
-
-	protected ComponentState getAlertWhenAvailableButtonState(User user, Folder folder) {
-		return isBorrowedByOtherUser(user, folder);
-	}
-
-	private ComponentState isBorrowedByOtherUser(User currentUser, Folder folder) {
-		Boolean borrowed = folder.getBorrowed();
-		if ((borrowed != null && borrowed) && borrowed && !isCurrentUserBorrower(currentUser, folder)) {
-			return ComponentState.ENABLED;
-		} else {
-			return ComponentState.INVISIBLE;
-		}
-	}
-
-	private boolean isCurrentUserBorrower(User currentUser, Folder folder) {
-		return currentUser.getId().equals(folder.getBorrowUserEntered());
-	}
-
-	ComponentState getPrintButtonState(User user, Folder folder) {
-		AuthorizationsServices authorizationsServices = modelLayerFactory.newAuthorizationsServices();
-		if (authorizationsServices.canRead(user, folder.getWrappedRecord())) {
-			if (folder.getPermissionStatus().isInactive()) {
-				if (folder.getBorrowed() != null && folder.getBorrowed()) {
-					return ComponentState.visibleIf(user.has(RMPermissionsTo.MODIFY_INACTIVE_BORROWED_FOLDER).on(folder) && user
-							.has(RMPermissionsTo.MODIFY_INACTIVE_FOLDERS).on(folder));
-				}
-				return ComponentState.visibleIf(user.has(RMPermissionsTo.MODIFY_INACTIVE_FOLDERS).on(folder));
-			}
-			if (folder.getPermissionStatus().isSemiActive()) {
-				if (folder.getBorrowed() != null && folder.getBorrowed()) {
-					return ComponentState.visibleIf(user.has(RMPermissionsTo.MODIFY_SEMIACTIVE_BORROWED_FOLDER).on(folder) && user
-							.has(RMPermissionsTo.MODIFY_SEMIACTIVE_FOLDERS).on(folder));
-				}
-				return ComponentState.visibleIf(user.has(RMPermissionsTo.MODIFY_SEMIACTIVE_FOLDERS).on(folder));
-			}
-			//			if(rmModuleExtensions.getReportBuilderFactories().labelsBuilderFactory.getValue() == null) {
-			//				return ComponentState.DISABLED;
-			//			}
-			return ComponentState.ENABLED;
-		}
-		return ComponentState.INVISIBLE;
-	}
-
-	private ComponentState getDuplicateFolderButtonState(User user, Folder folder) {
-		return ComponentState.visibleIf(isDuplicateFolderPossible(user, folder));
-	}
-
-	private boolean isDuplicateFolderPossible(User user, Folder folder) {
-		AuthorizationsServices authorizationsServices = modelLayerFactory.newAuthorizationsServices();
-		if (!authorizationsServices.canWrite(user, folder.getWrappedRecord())) {
-			return false;
-		}
-
-		if (folder.getPermissionStatus().isInactive() && !user.has(RMPermissionsTo.DUPLICATE_INACTIVE_FOLDER).on(folder)) {
-			return false;
-		}
-		if (folder.getPermissionStatus().isSemiActive() && !user.has(RMPermissionsTo.DUPLICATE_SEMIACTIVE_FOLDER).on(folder)) {
-			return false;
-		}
-
-		if (!rmModuleExtensions.isCopyActionPossibleOnFolder(folder, user)) {
-			return false;
-		}
-		return true;
-	}
-
-	private ComponentState getAuthorizationButtonState(User user, Folder folder) {
-		return ComponentState.visibleIf(user.has(RMPermissionsTo.MANAGE_FOLDER_AUTHORIZATIONS).on(folder) && user.hasWriteAndDeleteAccess().on(folder));
-	}
-
-	ComponentState getShareButtonState(User user, Folder folder) {
-		return ComponentState.visibleIf(isShareFolderPossible(user, folder));
-	}
-
-	private boolean isShareFolderPossible(User user, Folder folder) {
-		if (!user.has(RMPermissionsTo.SHARE_FOLDER).on(folder)) {
-			return false;
-		}
-		if (folder.getPermissionStatus().isInactive() && !user.has(RMPermissionsTo.SHARE_A_INACTIVE_FOLDER).on(folder)) {
-			return false;
-		}
-		if (folder.getPermissionStatus().isSemiActive() && !user.has(RMPermissionsTo.SHARE_A_SEMIACTIVE_FOLDER).on(folder)) {
-			return false;
-		}
-		if (isNotBlank(folder.getLegacyId()) && !user.has(RMPermissionsTo.SHARE_A_IMPORTED_FOLDER).on(folder)) {
-			return false;
-		}
-
-		if (!rmModuleExtensions.isShareActionPossibleOnFolder(folder, user)) {
-			return false;
-		}
-		return true;
-	}
-
-	ComponentState getDeleteButtonState(User user, Folder folder) {
-		if (user.hasDeleteAccess().on(folder) && extensions.validateDeleteAuthorized(folder.getWrappedRecord(), user).isEmpty()) {
-			if (folder.getPermissionStatus().isInactive()) {
-				if (folder.getBorrowed() != null && folder.getBorrowed()) {
-					return ComponentState.visibleIf(user.has(RMPermissionsTo.MODIFY_INACTIVE_BORROWED_FOLDER).on(folder) && user
-							.has(RMPermissionsTo.DELETE_INACTIVE_FOLDERS).on(folder));
-				}
-				return ComponentState.visibleIf(user.has(RMPermissionsTo.DELETE_INACTIVE_FOLDERS).on(folder));
-			}
-			if (folder.getPermissionStatus().isSemiActive()) {
-				if (folder.getBorrowed() != null && folder.getBorrowed()) {
-					return ComponentState.visibleIf(user.has(RMPermissionsTo.MODIFY_SEMIACTIVE_BORROWED_FOLDER).on(folder) && user
-							.has(RMPermissionsTo.DELETE_SEMIACTIVE_FOLDERS).on(folder));
-				}
-				return ComponentState.visibleIf(user.has(RMPermissionsTo.DELETE_SEMIACTIVE_FOLDERS).on(folder));
-			}
-			return ComponentState.ENABLED;
-		}
-		return ComponentState.INVISIBLE;
-	}
-
-	ComponentState getMoveInFolderButtonState(User user, Folder folder) {
-		//		return getEditButtonState(user, folder);
-		return ComponentState.INVISIBLE;
-	}
-
 	ComponentState getDisplayButtonState(User user, Folder folder) {
-		return ComponentState.visibleIf(nestedView && user.hasReadAccess().on(folder));
+		if (view.isInWindow()) {
+			return ComponentState.INVISIBLE;
+		} else {
+			return ComponentState.visibleIf(nestedView && user.hasReadAccess().on(folder));
+		}
 	}
 
 	ComponentState getEditButtonState(User user, Folder folder) {
@@ -722,28 +569,6 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		return ComponentState.visibleIf(user.hasWriteAccess().on(folder)
 										&& !extensions.isModifyBlocked(folder.getWrappedRecord(), user) && extensions
 												.isRecordModifiableBy(folder.getWrappedRecord(), user));
-	}
-
-	ComponentState getAddFolderButtonState(User user, Folder folder) {
-		if (user.hasWriteAccess().on(folder) &&
-			user.hasAll(RMPermissionsTo.CREATE_SUB_FOLDERS, RMPermissionsTo.CREATE_FOLDERS).on(folder)) {
-			if (folder.getPermissionStatus().isInactive()) {
-				if (folder.getBorrowed() != null && folder.getBorrowed()) {
-					return ComponentState.visibleIf(user.has(RMPermissionsTo.MODIFY_INACTIVE_BORROWED_FOLDER).on(folder) && user
-							.has(RMPermissionsTo.CREATE_SUB_FOLDERS_IN_INACTIVE_FOLDERS).on(folder));
-				}
-				return ComponentState.visibleIf(user.has(RMPermissionsTo.CREATE_SUB_FOLDERS_IN_INACTIVE_FOLDERS).on(folder));
-			}
-			if (folder.getPermissionStatus().isSemiActive()) {
-				if (folder.getBorrowed() != null && folder.getBorrowed()) {
-					return ComponentState.visibleIf(user.has(RMPermissionsTo.MODIFY_SEMIACTIVE_BORROWED_FOLDER).on(folder) && user
-							.has(RMPermissionsTo.CREATE_SUB_FOLDERS_IN_SEMIACTIVE_FOLDERS).on(folder));
-				}
-				return ComponentState.visibleIf(user.has(RMPermissionsTo.CREATE_SUB_FOLDERS_IN_SEMIACTIVE_FOLDERS).on(folder));
-			}
-			return ComponentState.ENABLED;
-		}
-		return ComponentState.INVISIBLE;
 	}
 
 	ComponentState getAddDocumentButtonState(User user, Folder folder) {
@@ -827,10 +652,6 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		navigate().to(RMViews.class).addDocument(folderVO.getId());
 	}
 
-	public void addSubFolderButtonClicked() {
-		navigate().to(RMViews.class).addFolder(folderVO.getId());
-	}
-
 	public void navigateToSelf() {
 		navigateToFolder(this.folderVO.getId());
 	}
@@ -841,85 +662,6 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 	public void editFolderButtonClicked() {
 		RMNavigationUtils.navigateToEditFolder(folderVO.getId(), params, appLayerFactory, collection);
-	}
-
-	public void deleteFolderButtonClicked(String reason) {
-		String parentId = folderVO.get(Folder.PARENT_FOLDER);
-		Record record = toRecord(folderVO);
-		ValidationErrors validateLogicallyDeletable = recordServices.validateLogicallyDeletable(record, getCurrentUser());
-		if (validateLogicallyDeletable.isEmpty()) {
-			appLayerFactory.getExtensions().forCollection(collection)
-					.notifyFolderDeletion(new FolderDeletionEvent(rmSchemasRecordsServices.wrapFolder(record)));
-
-			boolean isDeleteSuccessful = delete(record, reason, false, WAIT_ONE_SECOND);
-			if (isDeleteSuccessful) {
-				if (parentId != null) {
-					navigateToFolder(parentId);
-				} else {
-					navigate().to().home();
-				}
-			}
-		} else {
-			MessageUtils.getCannotDeleteWindow(validateLogicallyDeletable).openWindow();
-		}
-	}
-
-	public void duplicateFolderButtonClicked() {
-		Folder folder = rmSchemasRecordsServices().getFolder(folderVO.getId());
-		if (isDuplicateFolderPossible(getCurrentUser(), folder)) {
-			navigateToDuplicateFolder(folder, false);
-		}
-		if (!nestedView) {
-			view.closeAllWindows();
-		}
-	}
-
-	private void navigateToDuplicateFolder(Folder folder, boolean isStructure) {
-		boolean areTypeAndSearchIdPresent = DecommissionNavUtil.areTypeAndSearchIdPresent(params);
-
-		if (areTypeAndSearchIdPresent) {
-			navigate().to(RMViews.class).duplicateFolderFromDecommission(folderVO.getId(), isStructure,
-					DecommissionNavUtil.getSearchId(params), DecommissionNavUtil.getSearchType(params));
-		} else if (rmModuleExtensions
-				.navigateToDuplicateFolderWhileKeepingTraceOfPreviousView(new NavigateToFromAPageParams(params, isStructure, folderVO.getId()))) {
-		} else {
-			navigate().to(RMViews.class).duplicateFolder(folder.getId(), isStructure);
-		}
-	}
-
-	public void duplicateStructureButtonClicked() {
-		Folder folder = rmSchemasRecordsServices().getFolder(folderVO.getId());
-		if (isDuplicateFolderPossible(getCurrentUser(), folder)) {
-			try {
-				decommissioningService().validateDuplicateStructure(folder, getCurrentUser(), false);
-				navigateToDuplicateFolder(folder, true);
-			} catch (RecordServicesException.ValidationException e) {
-				view.showErrorMessage($(e.getErrors()));
-			} catch (Exception e) {
-				view.showErrorMessage(e.getMessage());
-			}
-		}
-		if (!nestedView) {
-			view.closeAllWindows();
-		}
-	}
-
-	public void linkToFolderButtonClicked() {
-		// TODO ZeroClipboardComponent
-		view.showMessage("Clipboard integration TODO!");
-	}
-
-	public void addAuthorizationButtonClicked() {
-		navigate().to().listObjectAccessAndRoleAuthorizations(folderVO.getId());
-	}
-
-	public void shareFolderButtonClicked() {
-		Folder folder = rmSchemasRecordsServices().getFolder(folderVO.getId());
-		if (!isShareFolderPossible(getCurrentUser(), folder)) {
-			return;
-		}
-
-		navigate().to().shareContent(folderVO.getId());
 	}
 
 	public void documentClicked(RecordVO recordVO) {
@@ -950,12 +692,28 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		navigate().to(TaskViews.class).displayTask(taskVO.getId());
 	}
 
-	private DecommissioningService decommissioningService() {
-		return new DecommissioningService(getCurrentUser().getCollection(), appLayerFactory);
-	}
-
 	private RMSchemasRecordsServices rmSchemasRecordsServices() {
 		return new RMSchemasRecordsServices(getCurrentUser().getCollection(), appLayerFactory);
+	}
+
+	private List<String> getAllDocumentTitles() {
+		if (documentsTitle != null) {
+			return documentsTitle;
+		} else {
+			//TODO replace with SearchServices.stream in Constellio 9.0
+			documentsTitle = new ArrayList<>();
+			RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+			LogicalSearchQuery query = new LogicalSearchQuery()
+					.setCondition(from(rm.document.schemaType()).where(rm.document.folder()).is(folderVO.getId()))
+					.filteredByStatus(StatusFilter.ACTIVES)
+					.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(Schemas.TITLE));
+
+			List<Record> documents = modelLayerFactory.newSearchServices().search(query);
+			for (Record document : documents) {
+				documentsTitle.add(document.getId());
+			}
+			return documentsTitle;
+		}
 	}
 
 	private SearchResponseIterator<Record> getExistingDocumentInCurrentFolder(String fileName) {
@@ -991,10 +749,10 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 					RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 					LogicalSearchQuery duplicateDocumentsQuery = new LogicalSearchQuery()
 							.setCondition(LogicalSearchQueryOperators.from(rm.documentSchemaType())
-									.where(rm.document.content()).is(ContentFactory.isHash(uploadedContentVO.getDuplicatedHash()))
-									.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()
-							)
-							.filteredWithUser(getCurrentUser());
+									.where(rm.document.contentHashes()).isEqualTo(uploadedContentVO.getDuplicatedHash())
+							).filteredByStatus(StatusFilter.ACTIVES)
+							.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(Schemas.IDENTIFIER, Schemas.TITLE))
+							.setNumberOfRows(100).filteredWithUser(getCurrentUser());
 					List<Document> duplicateDocuments = rm.searchDocuments(duplicateDocumentsQuery);
 					if (duplicateDocuments.size() > 0) {
 						StringBuilder message = new StringBuilder(
@@ -1010,33 +768,33 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 					}
 				}
 				uploadedContentVO.setMajorVersion(true);
-				Record newRecord;
+				Document document;
 				if (rmSchemasRecordsServices().isEmail(fileName)) {
 					InputStreamProvider inputStreamProvider = uploadedContentVO.getInputStreamProvider();
 					InputStream in = inputStreamProvider.getInputStream(DisplayFolderPresenter.class + ".contentVersionUploaded");
-					Document document = rmSchemasRecordsServices.newEmail(fileName, in);
-					newRecord = document.getWrappedRecord();
+					document = new EmailParsingServices(rmSchemasRecordsServices).newEmail(fileName, in);
 				} else {
-					Document document = rmSchemasRecordsServices.newDocument();
-					newRecord = document.getWrappedRecord();
+					document = rmSchemasRecordsServices.newDocument();
 				}
-				DocumentVO documentVO = documentVOBuilder.build(newRecord, VIEW_MODE.FORM, view.getSessionContext());
-				documentVO.setFolder(folderVO);
-				documentVO.setTitle(fileName);
-				documentVO.setContent(uploadedContentVO);
-
-				String schemaCode = newRecord.getSchemaCode();
-				ConstellioFactories constellioFactories = view.getConstellioFactories();
-				SessionContext sessionContext = view.getSessionContext();
-				SchemaPresenterUtils documentPresenterUtils = new SchemaPresenterUtils(schemaCode, constellioFactories,
-						sessionContext);
-				newRecord = documentPresenterUtils.toRecord(documentVO);
-
-				documentPresenterUtils.addOrUpdate(newRecord);
-				//				documentsDataProvider.fireDataRefreshEvent();
-				folderContentDataProvider.fireDataRefreshEvent();
-				view.refreshFolderContentTab();
-				//				view.selectFolderContentTab();
+				document.setFolder(folderVO.getId());
+				document.setTitle(fileName);
+				InputStream inputStream = null;
+				ContentVersionDataSummary contentVersionDataSummary;
+				try {
+					inputStream = uploadedContentVO.getInputStreamProvider().getInputStream("SchemaPresenterUtils-VersionInputStream");
+					UploadOptions options = new UploadOptions().setFileName(fileName);
+					ContentManager.ContentVersionDataSummaryResponse uploadResponse = uploadContent(inputStream, options);
+					contentVersionDataSummary = uploadResponse.getContentVersionDataSummary();
+					document.setContent(appLayerFactory.getModelLayerFactory().getContentManager().createMajor(getCurrentUser(), fileName, contentVersionDataSummary));
+					Transaction transaction = new Transaction();
+					transaction.add(document);
+					transaction.setUser(getCurrentUser());
+					appLayerFactory.getModelLayerFactory().newRecordServices().executeWithoutImpactHandling(transaction);
+					documentsTitle.add(document.getTitle());
+				} finally {
+					IOServices ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();
+					ioServices.closeQuietly(inputStream);
+				}
 			} catch (final IcapException e) {
 				view.showErrorMessage(e.getMessage());
 			} catch (Exception e) {
@@ -1277,7 +1035,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 				.build(rmSchemasRecordsServices.cartSchema(), VIEW_MODE.TABLE, view.getSessionContext());
 		return new RecordVODataProvider(cartSchemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				return new LogicalSearchQuery(
 						from(rmSchemasRecordsServices.cartSchema()).where(rmSchemasRecordsServices.cartOwner())
 								.isEqualTo(getCurrentUser().getId())).sortAsc(Schemas.TITLE);
@@ -1290,7 +1048,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 				.build(rmSchemasRecordsServices.cartSchema(), VIEW_MODE.TABLE, view.getSessionContext());
 		return new RecordVODataProvider(cartSchemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				return new LogicalSearchQuery(
 						from(rmSchemasRecordsServices.cartSchema()).where(rmSchemasRecordsServices.cartSharedWithUsers())
 								.isContaining(asList(getCurrentUser().getId()))).sortAsc(Schemas.TITLE);
@@ -1334,7 +1092,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 				.build(rmSchemasRecordsServices.eventSchema(), VIEW_MODE.TABLE, view.getSessionContext());
 		return new RecordVODataProvider(eventSchemaVO, new EventToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 			@Override
-			protected LogicalSearchQuery getQuery() {
+			public LogicalSearchQuery getQuery() {
 				RMEventsSearchServices rmEventsSearchServices = new RMEventsSearchServices(modelLayerFactory, collection);
 				return rmEventsSearchServices.newFindEventByRecordIDQuery(getCurrentUser(), folderVO.getId());
 			}
@@ -1375,46 +1133,16 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	public boolean isSelected(RecordVO recordVO) {
-		String recordId = recordVO.getId();
-		SessionContext sessionContext = view.getSessionContext();
-		return sessionContext.getSelectedRecordIds().contains(recordId);
+		return allItemsSelected || selectedRecordIds.contains(recordVO.getId());
 	}
 
 	public void recordSelectionChanged(RecordVO recordVO, Boolean selected) {
 		String recordId = recordVO.getId();
-		SessionContext sessionContext = view.getSessionContext();
 		if (selected) {
-			sessionContext.addSelectedRecordId(recordId, recordVO.getSchema().getTypeCode());
+			selectedRecordIds.add(recordId);
 		} else {
-			sessionContext.removeSelectedRecordId(recordId, recordVO.getSchema().getTypeCode());
+			selectedRecordIds.remove(recordId);
 		}
-	}
-
-	void computeAllItemsSelected() {
-		SessionContext sessionContext = view.getSessionContext();
-		List<String> selectedRecordIds = sessionContext.getSelectedRecordIds();
-		SearchServices searchServices = modelLayerFactory.newSearchServices();
-
-		if (selectedRecordIds.isEmpty()) {
-			allItemsSelected = false;
-			return;
-		}
-
-		List<String> subFolderIds = searchServices.searchRecordIds(getSubFoldersQuery());
-		for (String subFolderId : subFolderIds) {
-			if (!selectedRecordIds.contains(subFolderId)) {
-				allItemsSelected = false;
-				return;
-			}
-		}
-		List<String> documentIds = searchServices.searchRecordIds(getDocumentsQuery());
-		for (String documentId : documentIds) {
-			if (!selectedRecordIds.contains(documentId)) {
-				allItemsSelected = false;
-				return;
-			}
-		}
-		allItemsSelected = !subFolderIds.isEmpty() || !documentIds.isEmpty();
 	}
 
 	boolean isAllItemsSelected() {
@@ -1428,33 +1156,13 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	void selectAllClicked() {
 		allItemsSelected = true;
 		allItemsDeselected = false;
-
-		SessionContext sessionContext = view.getSessionContext();
-		SearchServices searchServices = modelLayerFactory.newSearchServices();
-		List<String> subFolderIds = searchServices.searchRecordIds(getSubFoldersQuery());
-		for (String subFolderId : subFolderIds) {
-			sessionContext.addSelectedRecordId(subFolderId, Folder.SCHEMA_TYPE);
-		}
-		List<String> documentIds = searchServices.searchRecordIds(getDocumentsQuery());
-		for (String documentId : documentIds) {
-			sessionContext.addSelectedRecordId(documentId, Document.SCHEMA_TYPE);
-		}
+		selectedRecordIds.clear();
 	}
 
 	void deselectAllClicked() {
 		allItemsSelected = false;
 		allItemsDeselected = true;
-
-		SessionContext sessionContext = view.getSessionContext();
-		SearchServices searchServices = modelLayerFactory.newSearchServices();
-		List<String> subFolderIds = searchServices.searchRecordIds(getSubFoldersQuery());
-		for (String subFolderId : subFolderIds) {
-			sessionContext.removeSelectedRecordId(subFolderId, Folder.SCHEMA_TYPE);
-		}
-		List<String> documentIds = searchServices.searchRecordIds(getDocumentsQuery());
-		for (String documentId : documentIds) {
-			sessionContext.removeSelectedRecordId(documentId, Document.SCHEMA_TYPE);
-		}
+		selectedRecordIds.clear();
 	}
 
 	String generateDisplayLink(Document document) {
@@ -1518,6 +1226,11 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 	public boolean isNeedingAReasonToDeleteFolder() {
 		return new RMConfigs(modelLayerFactory.getSystemConfigurationsManager()).isNeedingAReasonBeforeDeletingFolders();
+	}
+
+	public void refreshDocuments() {
+		//documentsDataProvider.fireDataRefreshEvent();
+		view.refreshFolderContentTab();
 	}
 
 	public void facetValueSelected(String facetId, String facetValue) {
@@ -1642,4 +1355,18 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	public MetadataSchemaVO getSchema() {
 		return new MetadataSchemaToVOBuilder().build(schema(Cart.DEFAULT_SCHEMA), RecordVO.VIEW_MODE.TABLE, view.getSessionContext());
 	}
+
+	public void itemClicked(RecordVO recordVO, Integer index) {
+		this.returnIndex = index;
+		this.returnRecordVO = recordVO;
+	}
+
+	public Integer getReturnIndex() {
+		return returnIndex;
+	}
+
+	public RecordVO getReturnRecordVO() {
+		return returnRecordVO;
+	}
+
 }

@@ -1,6 +1,5 @@
 package com.constellio.app.modules.rm.ui.pages.document;
 
-import com.constellio.app.modules.rm.RMEmailTemplateConstants;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -12,10 +11,7 @@ import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.UIContext;
 import com.constellio.model.entities.enums.ParsingBehavior;
-import com.constellio.model.entities.records.Content;
-import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.records.wrappers.EmailToSend;
 import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -24,13 +20,10 @@ import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
-import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.setups.Users;
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
@@ -40,9 +33,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.when;
 
 public class DisplayDocumentPresenterAcceptTest extends ConstellioTest {
@@ -89,46 +82,47 @@ public class DisplayDocumentPresenterAcceptTest extends ConstellioTest {
 		when(displayDocumentView.navigateTo()).thenReturn(navigator);
 		when(displayDocumentView.getUIContext()).thenReturn(uiContext);
 
-		presenter = new DisplayDocumentPresenter(displayDocumentView, null, false);
+		presenter = new DisplayDocumentPresenter(displayDocumentView, null, false, false);
 	}
 
 	@Test
 	public void givenDocumentWithContentWhenCreatePDFAThenOk()
 			throws Exception {
-
-		Content initialContent = rmRecords.getDocumentWithContent_A19().getContent();
-		String initialHash = initialContent.getCurrentVersion().getHash();
-		String initialOlderVersionHash = initialContent.getHistoryVersions().get(0).getHash();
-		assertThat(rmRecords.getDocumentWithContent_A19().getContent().getHistoryVersions()).hasSize(1);
-
-		presenter.forParams(rmRecords.document_A19);
-		assertThat(presenter.presenterUtils.getCreatePDFAState().isVisible()).isTrue();
-
-		presenter.createPDFAButtonClicked();
-
-		Content modifiedContent = rmRecords.getDocumentWithContent_A19().getContent();
-
-		assertThat(modifiedContent.getCurrentVersion().getMimetype())
-				.isEqualTo("application/pdf");
-		assertThat(modifiedContent.getCurrentVersion().getHash())
-				.isNotEqualTo(initialHash)
-				.isNotEqualTo(initialOlderVersionHash);
-		assertThat(modifiedContent.getCurrentVersion().getFilename())
-				.isEqualTo("Chevreuil.pdf");
-
-		assertThat(modifiedContent.getHistoryVersions()).hasSize(2);
-		assertThat(modifiedContent.getHistoryVersions().get(0).getMimetype())
-				.isEqualTo("application/vnd.oasis.opendocument.text");
-		assertThat(modifiedContent.getHistoryVersions().get(0).getHash())
-				.isEqualTo(initialOlderVersionHash);
-		assertThat(modifiedContent.getHistoryVersions().get(0).getFilename())
-				.isEqualTo("Chevreuil.odt");
-		assertThat(modifiedContent.getHistoryVersions().get(1).getMimetype())
-				.isEqualTo("application/vnd.oasis.opendocument.text");
-		assertThat(modifiedContent.getHistoryVersions().get(1).getHash())
-				.isEqualTo(initialHash);
-		assertThat(modifiedContent.getHistoryVersions().get(1).getFilename())
-				.isEqualTo("Chevreuil.odt");
+		fail("TODO: Reimplement");
+		//
+		//		Content initialContent = rmRecords.getDocumentWithContent_A19().getContent();
+		//		String initialHash = initialContent.getCurrentVersion().getHash();
+		//		String initialOlderVersionHash = initialContent.getHistoryVersions().get(0).getHash();
+		//		assertThat(rmRecords.getDocumentWithContent_A19().getContent().getHistoryVersions()).hasSize(1);
+		//
+		//		presenter.forParams(rmRecords.document_A19);
+		//		assertThat(presenter.presenterUtils.getCreatePDFAState().isVisible()).isTrue();
+		//
+		//		presenter.createPDFAButtonClicked();
+		//
+		//		Content modifiedContent = rmRecords.getDocumentWithContent_A19().getContent();
+		//
+		//		assertThat(modifiedContent.getCurrentVersion().getMimetype())
+		//				.isEqualTo("application/pdf");
+		//		assertThat(modifiedContent.getCurrentVersion().getHash())
+		//				.isNotEqualTo(initialHash)
+		//				.isNotEqualTo(initialOlderVersionHash);
+		//		assertThat(modifiedContent.getCurrentVersion().getFilename())
+		//				.isEqualTo("Chevreuil.pdf");
+		//
+		//		assertThat(modifiedContent.getHistoryVersions()).hasSize(2);
+		//		assertThat(modifiedContent.getHistoryVersions().get(0).getMimetype())
+		//				.isEqualTo("application/vnd.oasis.opendocument.text");
+		//		assertThat(modifiedContent.getHistoryVersions().get(0).getHash())
+		//				.isEqualTo(initialOlderVersionHash);
+		//		assertThat(modifiedContent.getHistoryVersions().get(0).getFilename())
+		//				.isEqualTo("Chevreuil.odt");
+		//		assertThat(modifiedContent.getHistoryVersions().get(1).getMimetype())
+		//				.isEqualTo("application/vnd.oasis.opendocument.text");
+		//		assertThat(modifiedContent.getHistoryVersions().get(1).getHash())
+		//				.isEqualTo(initialHash);
+		//		assertThat(modifiedContent.getHistoryVersions().get(1).getFilename())
+		//				.isEqualTo("Chevreuil.odt");
 	}
 
 	@Test
@@ -149,12 +143,13 @@ public class DisplayDocumentPresenterAcceptTest extends ConstellioTest {
 	@Test
 	public void givenCheckedOutDocumentWhenCreatePDFAThenItIsNotVisible()
 			throws Exception {
-
-		assertThat(rmRecords.getDocumentWithContent_A19().getContent().getHistoryVersions()).hasSize(1);
-
-		presenter.forParams(rmRecords.document_A19);
-		presenter.checkOutButtonClicked();
-		assertThat(presenter.presenterUtils.getCreatePDFAState().isVisible()).isFalse();
+		fail("TODO: Reimplement");
+		//
+		//		assertThat(rmRecords.getDocumentWithContent_A19().getContent().getHistoryVersions()).hasSize(1);
+		//
+		//		presenter.forParams(rmRecords.document_A19);
+		//		presenter.checkOutButtonClicked();
+		//		assertThat(presenter.presenterUtils.getCreatePDFAState().isVisible()).isFalse();
 	}
 
 	@Test
@@ -176,135 +171,140 @@ public class DisplayDocumentPresenterAcceptTest extends ConstellioTest {
 	@Test
 	public void givenCheckoutDocumentAndCurrentBorrowerThenAlertButtonIsNotVisible()
 			throws Exception {
-
-		presenter.forParams(rmRecords.document_A19);
-		presenter.checkOutButtonClicked();
-		assertThat(presenter.presenterUtils.getAlertWhenAvailableButtonState().isVisible()).isFalse();
+		fail("TODO: Reimplement");
+		//
+		//		presenter.forParams(rmRecords.document_A19);
+		//		presenter.checkOutButtonClicked();
+		//		assertThat(presenter.presenterUtils.getAlertWhenAvailableButtonState().isVisible()).isFalse();
 	}
 
 	@Test
 	public void givenCheckoutDocumentAndAnotherUserThenAlertButtonIsVisible()
 			throws Exception {
-
-		presenter.forParams(rmRecords.document_A19);
-		presenter.checkOutButtonClicked();
-
-		connectAsBob();
-		presenter.forParams(rmRecords.document_A19);
-
-		assertThat(presenter.presenterUtils.getAlertWhenAvailableButtonState().isVisible()).isTrue();
+		fail("TODO: Reimplement");
+		//
+		//		presenter.forParams(rmRecords.document_A19);
+		//		presenter.checkOutButtonClicked();
+		//
+		//		connectAsBob();
+		//		presenter.forParams(rmRecords.document_A19);
+		//
+		//		assertThat(presenter.presenterUtils.getAlertWhenAvailableButtonState().isVisible()).isTrue();
 	}
 
 	@Test
 	public void whenAlertWhenAvailableThenOk()
 			throws Exception {
-
-		presenter.forParams(rmRecords.document_A19);
-		presenter.checkOutButtonClicked();
-		presenter.alertWhenAvailableClicked();
-
-		connectAsBob();
-		presenter.forParams(rmRecords.document_A19);
-		presenter.alertWhenAvailableClicked();
-
-		connectAsAlice();
-		presenter.forParams(rmRecords.document_A19);
-		presenter.alertWhenAvailableClicked();
-
-		Document document = rmRecords.getDocumentWithContent_A19();
-		assertThat(document.getAlertUsersWhenAvailable()).containsOnly(
-				rmRecords.getBob_userInAC().getId(),
-				rmRecords.getAlice().getId());
+		fail("TODO: Reimplement");
+		//
+		//		presenter.forParams(rmRecords.document_A19);
+		//		presenter.checkOutButtonClicked();
+		//		presenter.alertWhenAvailableClicked();
+		//
+		//		connectAsBob();
+		//		presenter.forParams(rmRecords.document_A19);
+		//		presenter.alertWhenAvailableClicked();
+		//
+		//		connectAsAlice();
+		//		presenter.forParams(rmRecords.document_A19);
+		//		presenter.alertWhenAvailableClicked();
+		//
+		//		Document document = rmRecords.getDocumentWithContent_A19();
+		//		assertThat(document.getAlertUsersWhenAvailable()).containsOnly(
+		//				rmRecords.getBob_userInAC().getId(),
+		//				rmRecords.getAlice().getId());
 	}
 
 	@Test
 	public void givenSomeUsersToAlertWhenAlertWhenAvailableClickedManyTimeThenAlertOnceToEachUser()
 			throws Exception {
-
-		presenter.forParams(rmRecords.document_A19);
-		presenter.checkOutButtonClicked();
-
-		presenter.forParams(rmRecords.document_A19);
-		presenter.alertWhenAvailableClicked();
-		presenter.forParams(rmRecords.document_A19);
-		presenter.alertWhenAvailableClicked();
-
-		connectAsBob();
-		presenter.forParams(rmRecords.document_A19);
-
-		presenter.alertWhenAvailableClicked();
-		presenter.forParams(rmRecords.document_A19);
-		presenter.alertWhenAvailableClicked();
-
-		Document document = rmRecords.getDocumentWithContent_A19();
-		assertThat(document.getAlertUsersWhenAvailable()).containsOnly(rmRecords.getBob_userInAC().getId());
+		fail("TODO: Reimplement");
+		//
+		//		presenter.forParams(rmRecords.document_A19);
+		//		presenter.checkOutButtonClicked();
+		//
+		//		presenter.forParams(rmRecords.document_A19);
+		//		presenter.alertWhenAvailableClicked();
+		//		presenter.forParams(rmRecords.document_A19);
+		//		presenter.alertWhenAvailableClicked();
+		//
+		//		connectAsBob();
+		//		presenter.forParams(rmRecords.document_A19);
+		//
+		//		presenter.alertWhenAvailableClicked();
+		//		presenter.forParams(rmRecords.document_A19);
+		//		presenter.alertWhenAvailableClicked();
+		//
+		//		Document document = rmRecords.getDocumentWithContent_A19();
+		//		assertThat(document.getAlertUsersWhenAvailable()).containsOnly(rmRecords.getBob_userInAC().getId());
 	}
 
 	private void connectAsBob() {
 		sessionContext = FakeSessionContext.bobInCollection(zeCollection);
 		sessionContext.setCurrentLocale(Locale.FRENCH);
 		when(displayDocumentView.getSessionContext()).thenReturn(sessionContext);
-		presenter = new DisplayDocumentPresenter(displayDocumentView, null, false);
+		presenter = new DisplayDocumentPresenter(displayDocumentView, null, false, false);
 	}
 
 	private void connectAsSasquatch() {
 		sessionContext = FakeSessionContext.sasquatchInCollection(zeCollection);
 		sessionContext.setCurrentLocale(Locale.FRENCH);
 		when(displayDocumentView.getSessionContext()).thenReturn(sessionContext);
-		presenter = new DisplayDocumentPresenter(displayDocumentView, null, false);
+		presenter = new DisplayDocumentPresenter(displayDocumentView, null, false, false);
 	}
 
 	private void connectAsAlice() {
 		sessionContext = FakeSessionContext.aliceInCollection(zeCollection);
 		sessionContext.setCurrentLocale(Locale.FRENCH);
 		when(displayDocumentView.getSessionContext()).thenReturn(sessionContext);
-		presenter = new DisplayDocumentPresenter(displayDocumentView, null, false);
+		presenter = new DisplayDocumentPresenter(displayDocumentView, null, false, false);
 	}
 
 	@Test
 	public void givenUserToAlertWhenReturnDocumentThenEmailToSendIsCreated()
 			throws Exception {
-
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
-		LogicalSearchCondition condition = from(getSchemaTypes().getSchemaType(EmailToSend.SCHEMA_TYPE))
-				.where(rm.emailToSend.template()).isEqualTo(RMEmailTemplateConstants.ALERT_AVAILABLE_ID);
-		LogicalSearchQuery query = new LogicalSearchQuery();
-		query.setCondition(condition);
-		long numberOfPreExistingEmails = searchServices.getResultsCount(query);
-		givenTimeIs(now);
-		presenter.forParams(rmRecords.document_A19);
-		presenter.checkOutButtonClicked();
-
-		givenTimeIs(shishOClock);
-		connectAsBob();
-		presenter.forParams(rmRecords.document_A19);
-		presenter.alertWhenAvailableClicked();
-		List<String> usersToAlert = rmRecords.getDocumentWithContent_A19().getAlertUsersWhenAvailable();
-
-		presenter.forParams(rmRecords.document_A19);
-		Content content = rmRecords.getDocumentWithContent_A19().getContent().checkIn();
-		Document document = rmRecords.getDocumentWithContent_A19().setContent(content);
-		recordServices.update(document.getWrappedRecord());
-		recordServices.flush();
-
-		Document documentWithContentA19 = rmRecords.getDocumentWithContent_A19();
-		List<Record> emailToSendRecords = searchServices.search(query);
-
-		assertThat(emailToSendRecords).hasSize(1 + (int) numberOfPreExistingEmails);
-		EmailToSend emailToSend = new EmailToSend(emailToSendRecords.get(0), getSchemaTypes());
-		assertThat(emailToSend.getTo()).hasSize(usersToAlert.size());
-		assertThat(emailToSend.getTo().get(0).getName()).isEqualTo(users.bobIn(zeCollection).getTitle());
-		assertThat(emailToSend.getTo().get(0).getEmail()).isEqualTo(users.bobIn(zeCollection).getEmail());
-		assertThat(emailToSend.getSubject()).isEqualTo("Le document demandé est disponible: " + documentWithContentA19
-				.getTitle());
-		assertThat(emailToSend.getTemplate()).isEqualTo(RMEmailTemplateConstants.ALERT_AVAILABLE_ID);
-		assertThat(emailToSend.getError()).isNull();
-		assertThat(emailToSend.getTryingCount()).isEqualTo(0);
-		assertThat(emailToSend.getParameters()).containsOnly("subject:" + StringEscapeUtils.escapeHtml4("Le document demandé est disponible: Chevreuil.odt"),
-				"returnDate:2016-04-03  01:02:03", "title:Chevreuil.odt", "constellioURL:http://localhost:8080/constellio/",
-				"recordURL:http://localhost:8080/constellio/#!displayDocument/docA19", "recordType:document");
-
-		assertThat(rmRecords.getDocumentWithContent_A19().getAlertUsersWhenAvailable()).isEmpty();
+		fail("TODO: Reimplement");
+		//
+		//		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		//		LogicalSearchCondition condition = from(getSchemaTypes().getSchemaType(EmailToSend.SCHEMA_TYPE))
+		//				.where(rm.emailToSend.template()).isEqualTo(RMEmailTemplateConstants.ALERT_AVAILABLE_ID);
+		//		LogicalSearchQuery query = new LogicalSearchQuery();
+		//		query.setCondition(condition);
+		//		long numberOfPreExistingEmails = searchServices.getResultsCount(query);
+		//		givenTimeIs(now);
+		//		presenter.forParams(rmRecords.document_A19);
+		//		presenter.checkOutButtonClicked();
+		//
+		//		givenTimeIs(shishOClock);
+		//		connectAsBob();
+		//		presenter.forParams(rmRecords.document_A19);
+		//		presenter.alertWhenAvailableClicked();
+		//		List<String> usersToAlert = rmRecords.getDocumentWithContent_A19().getAlertUsersWhenAvailable();
+		//
+		//		presenter.forParams(rmRecords.document_A19);
+		//		Content content = rmRecords.getDocumentWithContent_A19().getContent().checkIn();
+		//		Document document = rmRecords.getDocumentWithContent_A19().setContent(content);
+		//		recordServices.update(document.getWrappedRecord());
+		//		recordServices.flush();
+		//
+		//		Document documentWithContentA19 = rmRecords.getDocumentWithContent_A19();
+		//		List<Record> emailToSendRecords = searchServices.search(query);
+		//
+		//		assertThat(emailToSendRecords).hasSize(1 + (int) numberOfPreExistingEmails);
+		//		EmailToSend emailToSend = new EmailToSend(emailToSendRecords.get(0), getSchemaTypes());
+		//		assertThat(emailToSend.getTo()).hasSize(usersToAlert.size());
+		//		assertThat(emailToSend.getTo().get(0).getName()).isEqualTo(users.bobIn(zeCollection).getTitle());
+		//		assertThat(emailToSend.getTo().get(0).getEmail()).isEqualTo(users.bobIn(zeCollection).getEmail());
+		//		assertThat(emailToSend.getSubject()).isEqualTo("Le document demandé est disponible: " + documentWithContentA19
+		//				.getTitle());
+		//		assertThat(emailToSend.getTemplate()).isEqualTo(RMEmailTemplateConstants.ALERT_AVAILABLE_ID);
+		//		assertThat(emailToSend.getError()).isNull();
+		//		assertThat(emailToSend.getTryingCount()).isEqualTo(0);
+		//		assertThat(emailToSend.getParameters()).containsOnly("subject:" + StringEscapeUtils.escapeHtml4("Le document demandé est disponible: Chevreuil.odt"),
+		//				"returnDate:2016-04-03  01:02:03", "title:Chevreuil.odt", "constellioURL:http://localhost:8080/constellio/",
+		//				"recordURL:http://localhost:8080/constellio/#!displayDocument/docA19", "recordType:document");
+		//
+		//		assertThat(rmRecords.getDocumentWithContent_A19().getAlertUsersWhenAvailable()).isEmpty();
 	}
 
 	@Test
@@ -361,7 +361,7 @@ public class DisplayDocumentPresenterAcceptTest extends ConstellioTest {
 		sessionContext = FakeSessionContext.aliceInCollection(zeCollection);
 		sessionContext.setCurrentLocale(Locale.FRENCH);
 		when(displayDocumentView.getSessionContext()).thenReturn(sessionContext);
-		presenter = new DisplayDocumentPresenter(displayDocumentView, null, false);
+		presenter = new DisplayDocumentPresenter(displayDocumentView, null, false, false);
 	}
 
 	//

@@ -8,6 +8,8 @@ import com.constellio.model.entities.schemas.MetadataNetwork;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.services.collections.exceptions.NoMoreCollectionAvalibleException;
+import com.constellio.model.services.collections.exceptions.NoMoreCollectionAvalibleRuntimeException;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
@@ -46,17 +48,22 @@ public abstract class SchemasSetup {
 
 	public static void prepareSetups(MetadataSchemasManager manager, CollectionsManager collectionsManager) {
 		SchemasSetup.manager = manager;
+		int collectionId = 0;
 		for (SchemasSetup setup : setups) {
 
 			if (collectionsManager != null && !collectionsManager.getCollectionCodes().contains(setup.collection)) {
-				collectionsManager.createCollectionInCurrentVersion(setup.collection, setup.languages);
+				try {
+					collectionsManager.createCollectionInCurrentVersion(setup.collection, setup.languages);
+				} catch (NoMoreCollectionAvalibleException e) {
+					throw new NoMoreCollectionAvalibleRuntimeException();
+				}
 			}
 
 			if (!setup.wasSetUp) {
 
 				CollectionInfo collectionInfo;
 				if (collectionsManager == null) {
-					collectionInfo = new CollectionInfo(setup.collection, "fr", asList("fr"));
+					collectionInfo = new CollectionInfo((byte) collectionId++, setup.collection, "fr", asList("fr"));
 				} else {
 					collectionInfo = collectionsManager.getCollectionInfo(setup.collection);
 				}
@@ -118,6 +125,7 @@ public abstract class SchemasSetup {
 			builderConfigurator.configure(metadataSchemaTypeBuilder, typesBuilder);
 		}
 	}
+
 
 	public MetadataSchemaTypes getTypes() {
 		return types;

@@ -4,6 +4,6 @@ import com.vaadin.data.Container;
 
 public interface RefreshableContainer extends Container {
 
-	void refresh();
+	void forceRefresh();
 
 }
