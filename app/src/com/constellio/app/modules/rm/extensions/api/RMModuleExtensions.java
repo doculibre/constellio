@@ -61,6 +61,7 @@ public class RMModuleExtensions implements ModuleExtensions {
 		this.taskPreCompletionExetention = new VaultBehaviorsList<>();
 		this.cartExtensions = new VaultBehaviorsList<>();
 		this.modelLayerExtensions = appLayerFactory.getModelLayerFactory().getExtensions();
+		this.containerRecordExtensions = new VaultBehaviorsList<>();
 	}
 
 	public RMReportBuilderFactories getReportBuilderFactories() {
