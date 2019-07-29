@@ -15,6 +15,7 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
+import com.constellio.model.services.search.query.logical.QueryExecutionMethod;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -171,7 +172,7 @@ public class LogicalSearchQueryExecutorInCacheAcceptanceTest extends ConstellioT
 	}
 
 	private void validateExecutableInCacheTrue(LogicalSearchQuery logicalSearchQuery) {
-		boolean isExecutableInCache = logicalSearchQueryExecutorInCache.isQueryExecutableInCache(logicalSearchQuery);
+		boolean isExecutableInCache = logicalSearchQueryExecutorInCache.isQueryExecutableInCache(logicalSearchQuery.setQueryExecutionMethod(QueryExecutionMethod.USE_CACHE));
 		assertThat(isExecutableInCache).isTrue();
 	}
 

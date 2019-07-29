@@ -52,4 +52,9 @@ public class KeyLongMap<K> extends HashMap<K, Long> {
 
 		return entries;
 	}
+
+	public long getLong(K key) {
+		Long value = get(key);
+		return value == null ? 0 : value;
+	}
 }

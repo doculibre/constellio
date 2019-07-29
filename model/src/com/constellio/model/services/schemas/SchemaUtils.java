@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static com.constellio.model.entities.schemas.Schemas.MIGRATION_DATA_VERSION;
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
 
 public class SchemaUtils {
@@ -275,6 +276,10 @@ public class SchemaUtils {
 				default:
 					throw new ImpossibleRuntimeException("Unsupported type : " + metadata.getType());
 
+			}
+
+			if (summary && metadata.hasSameCode(MIGRATION_DATA_VERSION)) {
+				summary = false;
 			}
 
 			if (summary) {

@@ -260,7 +260,7 @@ public class MetadataBuilder {
 
 	@SuppressWarnings("unchecked")
 	private static void setBuilderPropertiesOfMetadataWithInheritance(Metadata metadata,
-																		  MetadataBuilder inheritanceMetadata,
+																	  MetadataBuilder inheritanceMetadata,
 																	  MetadataBuilder builder) {
 		builder.classProvider = inheritanceMetadata.classProvider;
 		builder.originalMetadata = metadata;
@@ -794,7 +794,7 @@ public class MetadataBuilder {
 	}
 
 	Metadata buildWithoutInheritance(DataStoreTypesFactory typesFactory, MetadataSchemaTypeBuilder typeBuilder,
-									 final ModelLayerFactory modelLayerFactory) {
+									 short typeId, final ModelLayerFactory modelLayerFactory) {
 
 		AllowedReferences references = allowedReferencesBuilder == null ? null : allowedReferencesBuilder.build();
 		Set<RecordMetadataValidator<?>> validators = this.recordMetadataValidators.build();
@@ -845,7 +845,8 @@ public class MetadataBuilder {
 		}
 
 
-		return new Metadata(id, localCode, this.getCode(), collection, this.getLabels(), this.getEnabled(), behaviors,
+		return new Metadata(id, localCode, this.getCode(), typeBuilder.getCollectionInfo().getCollectionId(), collection
+				, typeId, this.getLabels(), this.getEnabled(), behaviors,
 				this.type, references, this.getDefaultRequirement(), this.dataEntry, validators, dataStoreType,
 				accessRestriction, structureFactory, enumClass, defaultValue, inputMask, populateConfigsBuilder.build(),
 				encryptionServicesFactory, duplicable, customParameter);

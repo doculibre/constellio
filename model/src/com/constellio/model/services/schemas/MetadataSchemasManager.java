@@ -24,6 +24,7 @@ import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.extensions.ConstellioModulesManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimisticLocking;
 import com.constellio.model.services.schemas.MetadataSchemasManagerRuntimeException.MetadataSchemasManagerRuntimeException_NoSuchCollection;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
@@ -315,6 +316,7 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 													 boolean reloadCacheIfRequired)
 			throws OptimisticLocking {
 		List<String> typesRequiringCacheReload = schemaTypesBuilder.getTypesRequiringCacheReload();
+		List<String> newSchemaTypes = schemaTypesBuilder.getNewSchemaTypes();
 		MetadataSchemaTypes schemaTypes = schemaTypesBuilder.build(typesFactory, modelLayerFactory);
 
 		Document document = new MetadataSchemaXMLWriter3().write(schemaTypes);
@@ -329,10 +331,13 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 			throw t;
 		}
 
+		RecordsCaches caches = modelLayerFactory.getRecordsCaches();
 		if (reloadCacheIfRequired) {
-			modelLayerFactory.getRecordsCaches().getCache(schemaTypes.getCollection())
-					.invalidateVolatileReloadPermanent(typesRequiringCacheReload);
+			caches.getCache(schemaTypes.getCollection()).invalidateVolatileReloadPermanent(typesRequiringCacheReload);
 		}
+		newSchemaTypes.forEach((s) -> {
+			caches.markAsInitialized(schemaTypes.getSchemaType(s));
+		});
 
 		return schemaTypes;
 	}

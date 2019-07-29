@@ -203,24 +203,34 @@ public class DataStoreFieldLogicalSearchCondition extends LogicalSearchCondition
 	}
 
 	@Override
-	public boolean isSupportingMemoryExecution(boolean queryingTypesInSummaryCache) {
+	public boolean isSupportingMemoryExecution(boolean queryingTypesInSummaryCache, boolean requiringExecutionMethod) {
 
 		if (dataStoreFields == null) {
 			return true;
 		}
 
 		if (queryingTypesInSummaryCache) {
-			boolean allMetadatasInCache = true;
 			for (DataStoreField queriedField : dataStoreFields) {
 				Metadata metadata = (Metadata) queriedField;
-				allMetadatasInCache &= metadata.isEssentialInSummary() || metadata.isUniqueValue();
+				if (!(metadata.isEssentialInSummary() || metadata.isUniqueValue() || metadata.isCacheIndex())) {
+					if (requiringExecutionMethod) {
+						throw new IllegalArgumentException("Query is using a metadata which is not supported with execution in cache : " + metadata.getCode());
+					} else {
+						return false;
+					}
+				}
 			}
+		}
 
-			if (!allMetadatasInCache) {
+		boolean valueConditionSupportingExecution = valueCondition == null || valueCondition.isSupportingMemoryExecution();
+		if (!valueConditionSupportingExecution) {
+			if (requiringExecutionMethod) {
+				throw new IllegalArgumentException("Query is using a value condition which is not supported with execution in cache : " + valueCondition.getClass().getName());
+			} else {
 				return false;
 			}
 		}
 
-		return valueCondition == null || valueCondition.isSupportingMemoryExecution();
+		return valueConditionSupportingExecution;
 	}
 }

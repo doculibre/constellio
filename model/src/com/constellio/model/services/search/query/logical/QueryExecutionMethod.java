@@ -7,4 +7,8 @@ public enum QueryExecutionMethod {
 		return this == ENSURE_INDEXED_METADATA_USED || this == USE_CACHE || this == USE_CACHE_IF_POSSIBLE
 			   || this == USE_CACHED_RESULTS;
 	}
+
+	public boolean requiringCacheExecution() {
+		return this == ENSURE_INDEXED_METADATA_USED || this == USE_CACHE;
+	}
 }

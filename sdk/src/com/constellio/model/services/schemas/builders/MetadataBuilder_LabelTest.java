@@ -78,7 +78,7 @@ public class MetadataBuilder_LabelTest extends MetadataBuilderTest {
 	public void givenCodeFinishingWithIdThenException()
 			throws Exception {
 		MetadataBuilder.createMetadataWithoutInheritance(CODE_DEFAULT_METADATA + "pid",
-				schemaBuilder).buildWithoutInheritance(typesFactory, schemaTypeBuilder, modelLayerFactory);
+				schemaBuilder).buildWithoutInheritance(typesFactory, schemaTypeBuilder, (short) 42, modelLayerFactory);
 
 	}
 

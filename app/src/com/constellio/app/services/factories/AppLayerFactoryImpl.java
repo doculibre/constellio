@@ -341,6 +341,7 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 	}
 
 	public void postInitialization() {
+		modelLayerFactory.postInitialization();
 		pluginManager.configure();
 
 		if (modelLayerFactory.newReindexingServices().isLockFileExisting()) {

@@ -12,6 +12,7 @@ import com.constellio.data.dao.services.records.DataStore;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.utils.BatchBuilderIterator;
 import com.constellio.data.utils.BatchBuilderSearchResponseIterator;
+import com.constellio.data.utils.Holder;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
@@ -30,8 +31,8 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.cache.RecordsCache;
-import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.records.cache.RecordsCache2IntegrityDiagnosticService;
+import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.QueryElevation.DocElevation;
 import com.constellio.model.services.search.entities.SearchBoost;
@@ -73,8 +74,10 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.Spliterator;
 import java.util.Spliterators;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.BiFunction;
 import java.util.function.BinaryOperator;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -142,11 +145,11 @@ public class SearchServices {
 	}
 
 	public RecordsCaches getConnectedRecordsCache() {
-//		if (disconnectableRecordsCaches != null && (disconnectableRecordsCaches instanceof RecordsCachesRequestMemoryImpl)) {
-//			if (((RecordsCachesRequestMemoryImpl) disconnectableRecordsCaches).isDisconnected()) {
-//				disconnectableRecordsCaches = modelLayerFactory.getModelLayerFactoryFactory().get().getRecordsCaches();
-//			}
-//		}
+		//		if (disconnectableRecordsCaches != null && (disconnectableRecordsCaches instanceof RecordsCachesRequestMemoryImpl)) {
+		//			if (((RecordsCachesRequestMemoryImpl) disconnectableRecordsCaches).isDisconnected()) {
+		//				disconnectableRecordsCaches = modelLayerFactory.getModelLayerFactoryFactory().get().getRecordsCaches();
+		//			}
+		//		}
 		return disconnectableRecordsCaches;
 	}
 
@@ -341,6 +344,57 @@ public class SearchServices {
 
 		return new StreamAdaptor<Record>(stream) {
 
+			boolean parallel = false;
+
+			@Override
+			public boolean isParallel() {
+				return parallel;
+			}
+
+			@NotNull
+			@Override
+			public Stream<Record> parallel() {
+				parallel = true;
+				return this;
+			}
+
+			@Override
+			public void forEach(Consumer<? super Record> action) {
+
+				if (parallel) {
+					final LinkedBlockingQueue<Holder<Record>> queue = new LinkedBlockingQueue<>(batchSize * 3);
+
+					new Thread(() -> {
+						try {
+							super.forEach((r) -> {
+								try {
+									queue.put(new Holder(r));
+								} catch (InterruptedException e) {
+									throw new RuntimeException(e);
+								}
+							});
+						} finally {
+							try {
+								queue.put(new Holder(null));
+							} catch (InterruptedException e) {
+								throw new RuntimeException(e);
+							}
+						}
+					}).start();
+
+					Record nextRecord;
+					try {
+						while ((nextRecord = queue.take().get()) != null) {
+							action.accept(nextRecord);
+						}
+					} catch (InterruptedException e) {
+						throw new RuntimeException(e);
+					}
+				} else {
+					super.forEach(action);
+				}
+			}
+
 			@Override
 			public Stream<Record> filter(Predicate<? super Record> predicate) {
 				LogicalSearchCondition condition = (LogicalSearchCondition) predicate;
@@ -528,7 +582,7 @@ public class SearchServices {
 
 	public Record searchSingleResult(LogicalSearchCondition condition) {
 
-		if (logicalSearchQueryExecutorInCache.isConditionExecutableInCache(condition)) {
+		if (logicalSearchQueryExecutorInCache.isConditionExecutableInCache(condition, false)) {
 			Record record = searchSingleResultUsingCache(condition);
 
 			if (Toggle.VALIDATE_CACHE_EXECUTION_SERVICE_USING_SOLR.isEnabled()) {

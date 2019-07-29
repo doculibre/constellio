@@ -223,11 +223,18 @@ public class MetadataSchemaTypeBuilder {
 
 	public MetadataSchemaType build(DataStoreTypesFactory typesFactory, MetadataSchemaTypesBuilder typesBuilder,
 									ModelLayerFactory modelLayerFactory) {
-		MetadataSchema defaultSchema = this.defaultSchema.buildDefault(typesFactory, this, typesBuilder, modelLayerFactory);
+
+
+		if (id == 0) {
+			id = typesBuilder.nextSchemaTypeId();
+		}
+
+
+		MetadataSchema defaultSchema = this.defaultSchema.buildDefault(typesFactory, this, typesBuilder, id, modelLayerFactory);
 
 		List<MetadataSchema> schemas = new ArrayList<MetadataSchema>();
 		for (MetadataSchemaBuilder metadataSchemaBuilder : this.customSchemas) {
-			schemas.add(metadataSchemaBuilder.buildCustom(defaultSchema, this, typesBuilder, typesFactory, modelLayerFactory));
+			schemas.add(metadataSchemaBuilder.buildCustom(defaultSchema, this, typesBuilder, id, typesFactory, modelLayerFactory));
 		}
 
 		if (labels == null || labels.isEmpty()) {
@@ -240,10 +247,6 @@ public class MetadataSchemaTypeBuilder {
 					}
 				}
 			}
-		}
-
-		if (id == 0) {
-			id = typesBuilder.nextSchemaTypeId();
 		}
 
 		Collections.sort(schemas, SchemaComparators.SCHEMA_COMPARATOR_BY_ASC_LOCAL_CODE);
@@ -466,5 +469,9 @@ public class MetadataSchemaTypeBuilder {
 
 		}
 		return false;
+	}
+
+	public boolean isNewSchemaType() {
+		return lastVersion == null;
 	}
 }

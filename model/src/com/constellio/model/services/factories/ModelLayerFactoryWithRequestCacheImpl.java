@@ -338,6 +338,11 @@ public class ModelLayerFactoryWithRequestCacheImpl implements ModelLayerFactory 
 	}
 
 	@Override
+	public void postInitialization() {
+		modelLayerFactory.postInitialization();
+	}
+
+	@Override
 	public SearchConfigurationsManager getSearchConfigurationsManager() {
 		return modelLayerFactory.getSearchConfigurationsManager();
 	}

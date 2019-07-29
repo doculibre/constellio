@@ -567,20 +567,18 @@ public class RecordServicesImpl extends BaseRecordServices {
 			throw new IllegalArgumentException("Schema type '" + schemaTypeCode + "' has no permanent cache");
 		}
 
-		if (schemaType.getCacheType().hasPermanentCache()) {
-			return getRecordsCaches().getCache(metadata.getCollection()).getSummaryByMetadata(metadata, value);
+		Record returnedRecord = getRecordsCaches().getCache(metadata.getCollection()).getSummaryByMetadata(metadata, value);
+		if (returnedRecord == null && getRecordsCaches().isCacheInitialized(schemaType)) {
+			LogicalSearchCondition condition = from(schemaType).where(metadata).isEqualTo(value);
+
+			Record record = searchServices.searchSingleResult(condition);
+			if (record != null) {
+				RecordDTO recordDTO = toPersistedSummaryRecordDTO(record, schemaType.getSchema(record.getSchemaCode()));
+				returnedRecord = new RecordImpl(recordDTO, schemaType.getCollectionInfo());
+			}
 		}
 
-		LogicalSearchCondition condition = from(schemaType).where(metadata).isEqualTo(value);
-
-		Record record = searchServices.searchSingleResult(condition);
-
-		if (record == null) {
-			return null;
-		}
-
-		RecordDTO recordDTO = toPersistedSummaryRecordDTO(record, schemaType.getSchema(record.getSchemaCode()));
-		return new RecordImpl(recordDTO, schemaType.getCollectionInfo());
+		return returnedRecord;
 	}
 
 

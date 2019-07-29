@@ -77,7 +77,6 @@ public interface RecordServices {
 
 	Record getRecordSummaryByMetadata(Metadata metadata, String value);
 
-
 	Record realtimeGetById(MetadataSchemaType schemaType, String id);
 
 	Record realtimeGetById(String dataStore, String id);

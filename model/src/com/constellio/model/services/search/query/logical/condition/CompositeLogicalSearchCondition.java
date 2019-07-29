@@ -109,11 +109,11 @@ public class CompositeLogicalSearchCondition extends LogicalSearchCondition {
 	}
 
 	@Override
-	public boolean isSupportingMemoryExecution(boolean queryingTypesInSummaryCache) {
+	public boolean isSupportingMemoryExecution(boolean queryingTypesInSummaryCache, boolean requiringExecutionMethod) {
 		boolean supported = true;
 
 		for (LogicalSearchCondition condition : nestedSearchConditions) {
-			supported &= condition.isSupportingMemoryExecution(queryingTypesInSummaryCache);
+			supported &= condition.isSupportingMemoryExecution(queryingTypesInSummaryCache, requiringExecutionMethod);
 		}
 		return supported;
 	}

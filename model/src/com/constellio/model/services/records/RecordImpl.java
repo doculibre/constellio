@@ -356,7 +356,7 @@ public class RecordImpl implements Record {
 	@Override
 	@SuppressWarnings("unchecked")
 	public <T> T get(Metadata metadata) {
-		return get(metadata, collectionInfo.getMainSystemLanguage().getCode(), STRICT);
+ 		return get(metadata, collectionInfo.getMainSystemLanguage().getCode(), STRICT);
 	}
 
 	private <T> T get(Metadata metadata, String language, LocalisedRecordMetadataRetrieval mode) {
