@@ -188,7 +188,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		document = rm.wrapDocument(record);
 		hasWriteAccess = getCurrentUser().hasWriteAccess().on(record);
 
-		final DocumentVO documentVO = voBuilder.build(record, VIEW_MODE.DISPLAY, view.getSessionContext());
+		documentVO = voBuilder.build(record, VIEW_MODE.DISPLAY, view.getSessionContext());
 		view.setRecordVO(documentVO);
 		presenterUtils.setRecordVO(documentVO);
 		ModelLayerFactory modelLayerFactory = view.getConstellioFactories().getModelLayerFactory();

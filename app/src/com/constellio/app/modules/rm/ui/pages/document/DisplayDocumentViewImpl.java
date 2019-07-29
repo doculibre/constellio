@@ -80,7 +80,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import static com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration.modalDialog;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocumentView, DropHandler {
@@ -160,10 +159,6 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	private ContentViewer newContentViewer() {
 		ContentVersionVO contentVersionVO = documentVO.get(Document.CONTENT);
 		ContentViewer contentViewer = new ContentViewer(documentVO, Document.CONTENT, contentVersionVO);
-		if (nestedView) {
-			// FIXME CSS bug when displayed in window, hiding for now.
-			contentViewer.setVisible(false);
-		}
 		return contentViewer;
 	}
 
@@ -523,8 +518,6 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 	@Override
 	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
-		List<Button> actionMenuButtons = new ArrayList<>();
-
 		displayDocumentButton = new DisplayButton($("DisplayDocumentView.displayDocument"), false) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
@@ -787,6 +780,9 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	public void openInWindow() {
 		DisplayDocumentViewImpl displayView = new DisplayDocumentViewImpl(documentVO, true, true);
 		Window window = new DisplayDocumentWindow(displayView);
+		for (Window.CloseListener closeListener : editWindowCloseListeners) {
+			window.addCloseListener(closeListener);
+		}
 		getUI().addWindow(window);
 	}
 
@@ -812,24 +808,4 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		return this.editWindowCloseListeners;
 	}
 
-	private class StartWorkflowButton extends WindowButton {
-		public StartWorkflowButton() {
-			super($("TasksManagementView.startWorkflowBeta"), $("TasksManagementView.startWorkflow"), modalDialog("75%", "75%"));
-		}
-
-		@Override
-		protected Component buildWindowContent() {
-			RecordVOTable table = new RecordVOTable(presenter.getWorkflows());
-			table.setWidth("98%");
-			table.addItemClickListener(new ItemClickListener() {
-				@Override
-				public void itemClick(ItemClickEvent event) {
-					RecordVOItem item = (RecordVOItem) event.getItem();
-					presenter.workflowStartRequested(item.getRecord());
-					getWindow().close();
-				}
-			});
-			return table;
-		}
-	}
 }
