@@ -3,6 +3,7 @@ package com.constellio.app.services.background;
 import com.constellio.app.services.appManagement.AppManagementServiceRuntimeException.CannotConnectToServer;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.io.streamFactories.StreamFactory;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.ConditionnedActionExecutorInBatchBuilder;
 import com.constellio.model.entities.records.ConditionnedActionExecutorInBatchBuilder.RecordScript;
 import com.constellio.model.entities.records.Record;
@@ -54,6 +55,10 @@ public class DownloadLastAlertBackgroundAction implements Runnable {
 
 	@Override
 	public void run() {
+		if (!Toggle.ALLOW_LAST_ALERT.isEnabled()) {
+			return;
+		}
+
 		System.out.println("DownloadLastAlertBackgroundAction @ " + new Date());
 
 		try {

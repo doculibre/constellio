@@ -157,7 +157,7 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 				return layout;
 			}
 		};
-		lastAlert.setVisible(presenter.hasLastAlertPermission() && presenter.getLastAlertConfigValue() != null);
+		lastAlert.setVisible(presenter.isLastAlertViewingPossible());
 		buttons.add(lastAlert);
 
 		return buttons;

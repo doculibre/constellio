@@ -103,13 +103,17 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 		return lastAlert;
 	}
 
-	public Object getLastAlertConfigValue() {
+	private Object getLastAlertConfigValue() {
 		SystemConfigurationsManager manager = modelLayerFactory.getSystemConfigurationsManager();
 		return manager.getValue(ConstellioEIMConfigs.LOGIN_NOTIFICATION_ALERT);
 	}
 
-	public boolean hasLastAlertPermission() {
+	private boolean hasLastAlertPermission() {
 		return getCurrentUser().has(CorePermissions.VIEW_LOGIN_NOTIFICATION_ALERT).globally();
+	}
+
+	public boolean isLastAlertViewingPossible() {
+		return hasLastAlertPermission() && getLastAlertConfigValue() != null;
 	}
 
 	public String getUpdateVersion() {

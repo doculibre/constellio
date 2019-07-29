@@ -11,6 +11,7 @@ import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.User;
@@ -122,7 +123,7 @@ public class LoginPresenter extends BasePresenter<LoginView> {
 					*/
 					if (!userCredential.hasAgreedToPrivacyPolicy() && getPrivacyPolicyConfigValue() != null) {
 						view.popPrivacyPolicyWindow(modelLayerFactory, userInLastCollection, lastCollection);
-					} else if (hasLastAlertPermission(userInLastCollection) && !userCredential.hasReadLastAlert() && getLastAlertConfigValue() != null) {
+					} else if (isLastAlertViewingPossible(userInLastCollection, userCredential)) {
 						view.popLastAlertWindow(modelLayerFactory, userInLastCollection, lastCollection);
 					} else {
 						signInValidated(userInLastCollection, lastCollection);
@@ -235,8 +236,13 @@ public class LoginPresenter extends BasePresenter<LoginView> {
 		return lastAlert;
 	}
 
-	public Object getLastAlertConfigValue() {
+	private Object getLastAlertConfigValue() {
 		SystemConfigurationsManager manager = modelLayerFactory.getSystemConfigurationsManager();
 		return manager.getValue(ConstellioEIMConfigs.LOGIN_NOTIFICATION_ALERT);
+	}
+
+	public boolean isLastAlertViewingPossible(User userInLastCollection, UserCredential userCredential) {
+		return Toggle.ALLOW_LAST_ALERT.isEnabled() && hasLastAlertPermission(userInLastCollection)
+			   && !userCredential.hasReadLastAlert() && getLastAlertConfigValue() != null;
 	}
 }

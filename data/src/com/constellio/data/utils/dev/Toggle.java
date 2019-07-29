@@ -67,6 +67,8 @@ public class Toggle {
 
 	public static AvailableToggle ALLOWS_CREATION_OF_RECORDS_WITH_NON_PADDED_ID = newToggle(false);
 
+	public static AvailableToggle ALLOW_LAST_ALERT = newToggle(true);
+
 	// ------------------------------------------------
 
 	private static Map<String, AvailableToggle> toggleMap = new HashMap<>();
