@@ -197,7 +197,10 @@ public class SearchServices {
 
 	private List<Record> searchUsingCache(LogicalSearchQuery query) {
 		if (logicalSearchQueryExecutorInCache.isQueryExecutableInCache(query)) {
-			return logicalSearchQueryExecutorInCache.stream(query).collect(Collectors.toList());
+			Stream<Record> stream = logicalSearchQueryExecutorInCache.stream(query);
+			List<Record> records = stream.collect(Collectors.toList());
+			stream.close();
+			return records;
 		} else {
 			return search(query);
 		}
@@ -841,7 +844,9 @@ public class SearchServices {
 
 	public long getResultsCount(LogicalSearchQuery query) {
 		if (logicalSearchQueryExecutorInCache.isQueryExecutableInCache(query)) {
-			long count = logicalSearchQueryExecutorInCache.stream(query).count();
+			Stream<Record> stream = logicalSearchQueryExecutorInCache.stream(query);
+			long count = stream.count();
+			stream.close();
 
 			if (Toggle.VALIDATE_CACHE_EXECUTION_SERVICE_USING_SOLR.isEnabled()) {
 				long countFromSolr = getResultCountUsingSolr(new LogicalSearchQuery(query).setName("*SDK* Validate cache"));
