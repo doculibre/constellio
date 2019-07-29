@@ -18,7 +18,6 @@ import com.constellio.app.ui.i18n.i18n;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataValueType;
-import org.jdom2.Text;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.junit.Test;
@@ -196,13 +195,13 @@ public class FolderRestfulServiceGETAcceptanceTest extends BaseFolderRestfulServ
 
 	@Test
 	public void testGetFolderWithTextUsr() throws Exception {
-		final Text value1 = new Text("<b>value1");
+		final String value1 = "<b>value1";
 		final String value2a = "<i>value2a", value2b = "<html>";
 		addUsrMetadata(MetadataValueType.TEXT, value1, asList(value2a, value2b));
 
 		FolderDto folderDto = doGetQueryAndParseResponse();
 		assertThat(folderDto.getExtendedAttributes()).containsOnly(
-				ExtendedAttributeDto.builder().key(fakeMetadata1).values(singletonList(String.valueOf(value1))).build(),
+				ExtendedAttributeDto.builder().key(fakeMetadata1).values(singletonList(value1)).build(),
 				ExtendedAttributeDto.builder().key(fakeMetadata2).values(asList(value2a, value2b)).build());
 	}
 
