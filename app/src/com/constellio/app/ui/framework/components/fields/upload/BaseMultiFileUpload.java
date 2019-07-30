@@ -387,7 +387,7 @@ public abstract class BaseMultiFileUpload extends CssLayout implements DropHandl
 			dropZone.setStyleName("v-multifileupload-dropzone");
 			dropZone.setSizeUndefined();
 			//addComponent(dropZone, 1);
-			addComponent(dropZone);
+			addComponent(dropZone, 0);
 			dropZone.setDropHandler(this);
 			addStyleName("no-horizontal-drag-hints");
 			addStyleName("no-vertical-drag-hints");

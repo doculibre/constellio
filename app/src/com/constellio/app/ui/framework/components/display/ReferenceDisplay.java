@@ -157,8 +157,6 @@ public class ReferenceDisplay extends Button {
 	}
 
 	protected void prepareLink() {
-		addStyleName(STYLE_NAME + "-link");
-		
 		final ConstellioUI ui = ConstellioUI.getCurrent();
 		SessionContext sessionContext = ui.getSessionContext();
 		String collection = sessionContext.getCurrentCollection();
@@ -187,8 +185,15 @@ public class ReferenceDisplay extends Button {
 			}
 		}
 		if (navigationParams != null) {
+			boolean activeLink = false;
 			for (final RecordNavigationExtension recordNavigationExtension : recordNavigationExtensions) {
-				recordNavigationExtension.prepareLinkToView(navigationParams, isRecordInTrash, sessionContext.getCurrentLocale());
+				boolean activeLinkForExtension = recordNavigationExtension.prepareLinkToView(navigationParams, isRecordInTrash, sessionContext.getCurrentLocale());
+				if (!activeLink && activeLinkForExtension) {
+					activeLink = true;
+				}
+			}
+			if (activeLink && isEnabled()) {
+				addActiveLinkStyle();
 			}
 			
 			// Mark as visited
@@ -201,6 +206,22 @@ public class ReferenceDisplay extends Button {
 				}
 			}	
 		}
+	}
+
+	@Override
+	public void setEnabled(boolean enabled) {
+		super.setEnabled(enabled);
+		if (!enabled) {
+			removeActiveLinkStyle();
+		}
+	}
+
+	private void addActiveLinkStyle() {
+		addStyleName(STYLE_NAME + "-link");
+	}
+
+	private void removeActiveLinkStyle() {
+		removeStyleName(STYLE_NAME + "-link");
 	}
 
 	protected void addContextMenu() {

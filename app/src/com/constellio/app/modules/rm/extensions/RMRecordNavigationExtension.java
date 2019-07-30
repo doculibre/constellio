@@ -5,7 +5,11 @@ import com.constellio.app.extensions.records.RecordNavigationExtensionUtils;
 import com.constellio.app.extensions.records.params.NavigationParams;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningBuilderViewImpl;
-import com.constellio.app.modules.rm.wrappers.*;
+import com.constellio.app.modules.rm.wrappers.Category;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.framework.components.SearchResultDisplay;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
@@ -126,8 +130,9 @@ public class RMRecordNavigationExtension implements RecordNavigationExtension {
 	}
 
 	@Override
-	public void prepareLinkToView(final NavigationParams navigationParams, final boolean isRecordInTrash,
-								  Locale currentLocale) {
+	public boolean prepareLinkToView(final NavigationParams navigationParams, final boolean isRecordInTrash,
+									 Locale currentLocale) {
+		boolean activeLink;
 		String schemaTypeCode = navigationParams.getSchemaTypeCode();
 		if (isViewForSchemaTypeCode(schemaTypeCode)) {
 			String schemaTypeLabel = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection)
@@ -151,7 +156,7 @@ public class RMRecordNavigationExtension implements RecordNavigationExtension {
 				};
 				referenceDisplay.setEnabled(true);
 				referenceDisplay.addClickListener(clickListener);
-
+				activeLink = true;
 			} else if (component instanceof Table) {
 				// FIXME Assumes that it is called by an item click listener
 				if (isRecordInTrash) {
@@ -159,8 +164,14 @@ public class RMRecordNavigationExtension implements RecordNavigationExtension {
 				} else {
 					navigateToView(navigationParams);
 				}
+				activeLink = true;
+			} else {
+				activeLink = false;
 			}
+		} else {
+			activeLink = false;
 		}
+		return activeLink;
 	}
 
 	@Override

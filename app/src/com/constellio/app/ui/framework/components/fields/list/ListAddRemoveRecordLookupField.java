@@ -1,18 +1,12 @@
 package com.constellio.app.ui.framework.components.fields.list;
 
-import java.util.List;
-
 import com.constellio.app.ui.framework.components.converters.RecordIdToCaptionConverter;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupField.SelectionChangeListener;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
-import com.vaadin.data.Property;
-import com.vaadin.data.Property.ValueChangeEvent;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ListAddRemoveRecordLookupField extends ListAddRemoveField<String, LookupRecordField> {
 
