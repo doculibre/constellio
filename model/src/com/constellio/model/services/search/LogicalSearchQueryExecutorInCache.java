@@ -53,7 +53,6 @@ public class LogicalSearchQueryExecutorInCache {
 	MetadataSchemasManager schemasManager;
 	ModelLayerSystemExtensions modelLayerExtensions;
 	String mainDataLanguage;
-	private int initialBaseStreamSize = -1;
 
 	public LogicalSearchQueryExecutorInCache(SearchServices searchServices, RecordsCaches recordsCaches,
 											 MetadataSchemasManager schemasManager,
@@ -74,7 +73,6 @@ public class LogicalSearchQueryExecutorInCache {
 		Stream<Record> stream = newBaseRecordStream(query, schemaType, filter);
 
 		if (!query.getSortFields().isEmpty()) {
-			initialBaseStreamSize = -1;
 			return stream.sorted(newQuerySortFieldsComparator(query, schemaType));
 		} else {
 			return stream;//.sorted(newIdComparator());
@@ -224,10 +222,6 @@ public class LogicalSearchQueryExecutorInCache {
 	private boolean canDataGetByMetadata(DataStoreField dataStoreField, Object value) {
 		return value instanceof String
 			   && !dataStoreField.isEncrypted() && (dataStoreField.isUniqueValue() || dataStoreField.isCacheIndex());
-	}
-
-	protected int getLastStreamInitialBaseRecordSize() {
-		return initialBaseStreamSize;
 	}
 
 	@NotNull

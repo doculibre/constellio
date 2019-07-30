@@ -326,7 +326,7 @@ public class SearchServices {
 
 				Stream<Record> cacheStream = logicalSearchQueryExecutorInCache.stream(query);
 				Stream<Record> solrStream = streamFromSolr(query);
-				return new StreamValidator<>(solrStream, cacheStream);
+				return new StreamValidator<>(solrStream, cacheStream, !query.getSortFields().isEmpty());
 
 			} else {
 				return logicalSearchQueryExecutorInCache.stream(query);

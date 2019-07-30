@@ -93,11 +93,11 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 
 	@Override
 	public Record realtimeGetById(String dataStore, String id) {
-		Record record = getRecordsCache().getRecord(id);
-		if (record == null) {
-			record = recordServices.realtimeGetById(dataStore, id);
-		}
-		return record;
+		//		Record record = getRecordsCache().getRecord(id);
+		//		if (record == null) {
+		return recordServices.realtimeGetById(dataStore, id);
+		//		}
+		//return record;
 	}
 
 	@Override
@@ -168,10 +168,12 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 		List<Record> records = new ArrayList<>();
 
 		ids.forEach(id -> {
-			try {
-				records.add(getDocumentById(id));
-			} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
-				LOGGER.warn("Record with id '" + id + "' does not exist");
+			if (id != null) {
+				try {
+					records.add(getDocumentById(id));
+				} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+					LOGGER.warn("Record with id '" + id + "' does not exist");
+				}
 			}
 		});
 

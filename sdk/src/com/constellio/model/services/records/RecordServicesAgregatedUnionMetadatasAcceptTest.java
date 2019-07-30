@@ -104,7 +104,7 @@ public class RecordServicesAgregatedUnionMetadatasAcceptTest extends ConstellioT
 			}
 		}));
 
-		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
+		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0).setQueryDebuggingMode(true);
 		assertThat(getNetworkLinksOf(zeCollection)).containsOnly(
 				tuple("group_default_ancestors", "group_default_parent", 0),
 				tuple("group_default_ancestors", "group_default_ancestors", 0),
@@ -156,6 +156,7 @@ public class RecordServicesAgregatedUnionMetadatasAcceptTest extends ConstellioT
 				solrInputDocumentRemovingMetadatas("merge2", anotherSchema.metadata("stringValuesUnion")),
 				solrInputDocumentRemovingMetadatas("merge3", anotherSchema.metadata("stringValuesUnion"))
 		)));
+		System.out.println("---- ---- ----");
 		int queries = clearAggregateMetadatasThenReindexReturningQtyOfQueriesOf(zeSchema, anotherSchema, thirdSchema);
 		assertThat(record("merge1").getList(anotherSchema_stringValuesUnion))
 				.containsOnly("value1new", "value2", "value3", "value5");
@@ -163,7 +164,7 @@ public class RecordServicesAgregatedUnionMetadatasAcceptTest extends ConstellioT
 		assertThat(record("merge3").getList(thirdSchema_stringValuesUnion))
 				.containsOnly("value1new", "value2", "value3", "value4", "value5");
 
-		assertThat(queries).isEqualTo(recordCacheType == FULLY_CACHED ? 2 : 10);
+		assertThat(queries).isEqualTo(recordCacheType == FULLY_CACHED ? 8 : 10);
 
 	}
 

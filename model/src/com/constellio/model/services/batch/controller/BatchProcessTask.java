@@ -107,8 +107,12 @@ public class BatchProcessTask extends RecursiveTask<List<String>> {
 				} catch (InterruptedException e1) {
 					throw new RuntimeException(e1);
 				}
-				List<String> recordIds = new RecordUtils().toIdList(records);
-				List<Record> newBatch = recordServices.getRecordsById(batch.get(0).getCollection(), recordIds);
+
+				List<Record> newBatch = new ArrayList<>();
+				for (Record record : records) {
+					newBatch.add(recordServices.realtimeGetRecordById(record.getId()));
+				}
+
 				recordServices.flush();
 				execute(newBatch, errors);
 
