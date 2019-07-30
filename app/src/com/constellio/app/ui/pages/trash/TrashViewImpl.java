@@ -1,8 +1,6 @@
 package com.constellio.app.ui.pages.trash;
 
-import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.ConfirmDialogButton;
-import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.containers.SchemaTypeVOLazyContainer;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
@@ -23,7 +21,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -113,12 +111,16 @@ public class TrashViewImpl extends BaseViewImpl implements TrashView {
 
 			@Override
 			protected void confirmButtonClick(ConfirmDialog dialog) {
-				Set<String> notDeleted = presenter.deleteSelection();
+				Map<String, String> notDeletedIdsAndTitle = presenter.deleteSelection();
 				replaceDeletedRecordsTypeAndCountComponents();
 				rebuildTrashTable();
 				enableOrDisableActionButtons();
-				if (!notDeleted.isEmpty()) {
-					showMessage($("TrashView.deleteNotPossibleForRecords") + ":<br>" + StringUtils.join(notDeleted, "<br>"));
+				if (!notDeletedIdsAndTitle.isEmpty()) {
+					StringBuffer errorMessage = new StringBuffer($("TrashView.deleteNotPossibleForRecords") + ":<br>");
+					for (Map.Entry<String, String> deleteItem : notDeletedIdsAndTitle.entrySet()) {
+						errorMessage.append(deleteItem.getKey() + " - " + deleteItem.getValue() + "<br>");
+					}
+					showMessage(errorMessage.toString());
 				}
 			}
 		};
@@ -136,12 +138,16 @@ public class TrashViewImpl extends BaseViewImpl implements TrashView {
 
 			@Override
 			protected void confirmButtonClick(ConfirmDialog dialog) {
-				List<String> notRestored = presenter.restoreSelection();
+				Map<String, String> notRestoredIdsAndTitle = presenter.restoreSelection();
 				replaceDeletedRecordsTypeAndCountComponents();
 				rebuildTrashTable();
 				enableOrDisableActionButtons();
-				if (!notRestored.isEmpty()) {
-					showMessage($("TrashView.restoreNotPossibleForRecords") + ":<br>" + StringUtils.join(notRestored, "<br>"));
+				if (!notRestoredIdsAndTitle.isEmpty()) {
+					StringBuffer errorMessage = new StringBuffer($("TrashView.restoreNotPossibleForRecords") + ":<br>");
+					for (Map.Entry<String, String> deleteItem : notRestoredIdsAndTitle.entrySet()) {
+						errorMessage.append(deleteItem.getKey() + " - " + deleteItem.getValue() + "<br>");
+					}
+					showMessage(errorMessage.toString());
 				}
 			}
 		};
