@@ -1194,7 +1194,7 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 				.isEqualTo(
 						exportedDecommissiongLists.get(0).getFoldersReportContent().getLastMajorContentVersion().getFilename());
 
-		assertThatRecords(listSearchDecommissiongList).extractingMetadatas(Schemas.LEGACY_ID.getLocalCode())
+		assertThatRecords(listSearchDecommissiongList).extractingMetadatas(Schemas.IDENTIFIER.getLocalCode())
 				.contains(exportedDecommissiongListsIds.toArray(new Tuple[0]));
 
 		assertThat(listSearchDecommissiongList.size()).isEqualTo(exportedDecommissiongLists.size());

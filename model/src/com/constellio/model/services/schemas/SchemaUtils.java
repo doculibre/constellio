@@ -247,40 +247,7 @@ public class SchemaUtils {
 		List<Metadata> summaryMetadatas = new ArrayList<>();
 
 		for (Metadata metadata : metadatas) {
-			boolean summary;
-			switch (metadata.getType()) {
-				case DATE:
-				case DATE_TIME:
-				case STRING:
-					summary = metadata.isEssentialInSummary() || metadata.isUniqueValue()
-							  || TITLE.isSameLocalCode(metadata) || metadata.isEssentialInSummary() || metadata.isCacheIndex();
-					break;
-
-				case STRUCTURE:
-				case CONTENT:
-					//TODO Based on summary flag, support these typestype
-					summary = metadata.isEssentialInSummary();
-					break;
-
-				case TEXT:
-					summary = metadata.isEssentialInSummary();
-					break;
-
-				case INTEGER:
-				case NUMBER:
-				case BOOLEAN:
-				case REFERENCE:
-				case ENUM:
-					summary = true;
-					break;
-				default:
-					throw new ImpossibleRuntimeException("Unsupported type : " + metadata.getType());
-
-			}
-
-			if (summary && metadata.hasSameCode(MIGRATION_DATA_VERSION)) {
-				summary = false;
-			}
+			boolean summary = isSummary(metadata);
 
 			if (summary) {
 				summaryMetadatas.add(metadata);
@@ -288,6 +255,44 @@ public class SchemaUtils {
 		}
 
 		return summaryMetadatas;
+	}
+
+	public static boolean isSummary(Metadata metadata) {
+		boolean summary;
+		switch (metadata.getType()) {
+			case DATE:
+			case DATE_TIME:
+			case STRING:
+				summary = metadata.isEssentialInSummary() || metadata.isUniqueValue()
+						  || TITLE.isSameLocalCode(metadata) || metadata.isEssentialInSummary() || metadata.isCacheIndex();
+				break;
+
+			case STRUCTURE:
+			case CONTENT:
+				//TODO Based on summary flag, support these typestype
+				summary = metadata.isEssentialInSummary();
+				break;
+
+			case TEXT:
+				summary = metadata.isEssentialInSummary();
+				break;
+
+			case INTEGER:
+			case NUMBER:
+			case BOOLEAN:
+			case REFERENCE:
+			case ENUM:
+				summary = true;
+				break;
+			default:
+				throw new ImpossibleRuntimeException("Unsupported type : " + metadata.getType());
+
+		}
+
+		if (summary && metadata.hasSameCode(MIGRATION_DATA_VERSION)) {
+			summary = false;
+		}
+		return summary;
 	}
 
 	public String getLocalCodeFromMetadataCode(String metadataCode) {

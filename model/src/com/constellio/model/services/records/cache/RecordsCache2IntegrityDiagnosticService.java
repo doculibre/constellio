@@ -380,7 +380,7 @@ public class RecordsCache2IntegrityDiagnosticService {
 	private PermanentCacheReport validatePermanentCacheScanningSolr(MetadataSchemaType schemaType,
 																	MetadataSchemaTypes schemaTypes, boolean repair) {
 		boolean summary = schemaType.getCacheType().isSummaryCache();
-		Stream<Record> recordStream = searchServices.streamFromSolr(schemaType, summary);
+		Stream<Record> recordStream = searchServices.streamFromSolr(schemaType, summary, "*SDK* Validate cache");
 		PermanentCacheReport report = new PermanentCacheReport(schemaType);
 
 		RecordsCache cache = recordsCaches.getCache(schemaType.getCollection());

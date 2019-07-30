@@ -144,6 +144,10 @@ public class SearchServices {
 				metadataSchemasManager, modelLayerFactory.getExtensions().getSystemWideExtensions(), mainDataLanguage);
 	}
 
+	public LogicalSearchQueryExecutorInCache getQueryExecutorInCache() {
+		return logicalSearchQueryExecutorInCache;
+	}
+
 	public RecordsCaches getConnectedRecordsCache() {
 		//		if (disconnectableRecordsCaches != null && (disconnectableRecordsCaches instanceof RecordsCachesRequestMemoryImpl)) {
 		//			if (((RecordsCachesRequestMemoryImpl) disconnectableRecordsCaches).isDisconnected()) {
@@ -244,6 +248,10 @@ public class SearchServices {
 	}
 
 	public Stream<Record> streamFromSolr(MetadataSchemaType schemaType, boolean summary) {
+		return streamFromSolr(schemaType, summary, null);
+	}
+
+	public Stream<Record> streamFromSolr(MetadataSchemaType schemaType, boolean summary, String streamName) {
 
 		LogicalSearchQuery maxSizeQuery = new LogicalSearchQuery(from(schemaType).returnAll());
 		maxSizeQuery.sortDesc(ESTIMATED_SIZE);
@@ -251,6 +259,7 @@ public class SearchServices {
 		maxSizeQuery.filteredByVisibilityStatus(ALL);
 		maxSizeQuery.filteredByStatus(StatusFilter.ALL);
 		maxSizeQuery.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(ESTIMATED_SIZE));
+		maxSizeQuery.setName(streamName);
 		//maxSizeQuery.computeStatsOnField(ESTIMATED_SIZE);
 
 		QueryResponseDTO queryResponseDTO = queryDao(maxSizeQuery);
@@ -317,7 +326,7 @@ public class SearchServices {
 
 				Stream<Record> cacheStream = logicalSearchQueryExecutorInCache.stream(query);
 				Stream<Record> solrStream = streamFromSolr(query);
-				return new StreamValidator<>(solrStream, cacheStream);
+				return new StreamValidator<>(solrStream, cacheStream, !query.getSortFields().isEmpty());
 
 			} else {
 				return logicalSearchQueryExecutorInCache.stream(query);

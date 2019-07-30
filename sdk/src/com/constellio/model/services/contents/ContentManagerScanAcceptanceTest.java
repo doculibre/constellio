@@ -97,10 +97,11 @@ public class ContentManagerScanAcceptanceTest extends ConstellioTest {
 		assertThat(vaultScanResults.getReportMessage()).doesNotContain(documentToBeDeleted.getContent().getCurrentVersion().getHash());
 		assertThat(vaultScanResults.getReportMessage()).doesNotContain(documentToBeKept.getContent().getCurrentVersion().getHash());
 
-		givenTimeIs(TimeProvider.getLocalDateTime().plusMinutes(61));
+		givenTimeIs(TimeProvider.getLocalDateTime().plusDays(3));
 
 		vaultScanResults = new VaultScanResults();
 		contentManager.scanVaultContentAndDeleteUnreferencedFiles(vaultScanResults);
+
 
 		assertThat(vaultScanResults.getNumberOfDeletedContents()).isEqualTo(1);
 		assertThat(vaultScanResults.getReportMessage()).contains(documentToBeDeleted.getContent().getCurrentVersion().getHash());

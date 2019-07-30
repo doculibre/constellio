@@ -77,7 +77,7 @@ public class EnableThumbnailsScript implements SystemConfigurationScript<Boolean
 		String collection = schemaType.getCollection();
 		LogicalSearchQuery query = new LogicalSearchQuery(from(schemaType).whereAny(contentMetadatas).isNotNull());
 
-		long count = searchServices.getResultCountUsingSolr(query);
+		long count = searchServices.getResultsCount(query);
 		Iterator<List<String>> iterator = new BatchBuilderIterator<>(searchServices.recordsIdsIterator(query), 50000);
 
 		SolrClient solrClient = modelLayerFactory.getDataLayerFactory().newRecordDao().getBigVaultServer().getNestedSolrServer();

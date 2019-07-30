@@ -719,8 +719,17 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 	public List<Record> getRecordsById(String collection, List<String> ids) {
 
-		LogicalSearchQuery query = new LogicalSearchQuery(fromAllSchemasIn(collection).where(Schemas.IDENTIFIER).isIn(ids));
-		return modelFactory.newSearchServices().search(query);
+		List<Record> records = new ArrayList<>();
+
+		ids.forEach(id -> {
+			try {
+				records.add(getDocumentById(id));
+			} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+				LOGGER.warn("Record with id '" + id + "' does not exist");
+			}
+		});
+
+		return records;
 	}
 
 	public void prepareRecords(Transaction transaction)

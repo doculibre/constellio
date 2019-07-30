@@ -15,7 +15,7 @@ public class LogicalOrMetadataAggregationHandler implements MetadataAggregationH
 	public Object calculate(SearchAggregatedValuesParams params) {
 		List<DataStoreField> dataStoreFields = new ArrayList<DataStoreField>(params.getInputMetadatas());
 
-		LogicalSearchQuery query = new LogicalSearchQuery(params.getQuery());
+		LogicalSearchQuery query = new LogicalSearchQuery(params.getCombinedQuery());
 		query.setCondition(query.getCondition().andWhereAny(dataStoreFields).isTrue());
 
 		return params.getSearchServices().hasResults(query);

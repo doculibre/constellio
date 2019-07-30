@@ -4,6 +4,7 @@ import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransaction;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.RecordCacheType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
@@ -15,12 +16,20 @@ import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.AnotherSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ThirdSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
+import org.junit.FixMethodOrder;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.MethodSorters;
+import org.junit.runners.Parameterized;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 
 import static com.constellio.data.dao.dto.records.RecordsFlushing.NOW;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.entities.schemas.RecordCacheType.FULLY_CACHED;
+import static com.constellio.model.entities.schemas.RecordCacheType.NOT_CACHED;
 import static com.constellio.model.services.records.RecordServicesAgregatedMetadatasMechanicAcceptTest.clearAggregateMetadatasThenReindexReturningQtyOfQueriesOf;
 import static com.constellio.sdk.tests.TestUtils.getNetworkLinksOf;
 import static com.constellio.sdk.tests.TestUtils.solrInputDocumentRemovingMetadatas;
@@ -28,6 +37,8 @@ import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
+@RunWith(Parameterized.class)
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class RecordServicesAgregatedUnionMetadatasAcceptTest extends ConstellioTest {
 
 	TestsSchemasSetup schemas = new TestsSchemasSetup(zeCollection);
@@ -35,6 +46,31 @@ public class RecordServicesAgregatedUnionMetadatasAcceptTest extends ConstellioT
 	AnotherSchemaMetadatas anotherSchema = schemas.new AnotherSchemaMetadatas();
 	ThirdSchemaMetadatas thirdSchema = schemas.new ThirdSchemaMetadatas();
 	RecordServicesAgregatedMetadatasAcceptTestRecords records = new RecordServicesAgregatedMetadatasAcceptTestRecords();
+
+	boolean inputMetadatasEssentialInSummary;
+	RecordCacheType recordCacheType;
+	boolean usingCache;
+
+	public RecordServicesAgregatedUnionMetadatasAcceptTest(String testCase) {
+		if (testCase.equals("noCache")) {
+			recordCacheType = NOT_CACHED;
+
+		} else if (testCase.equals("fullyPermanent")) {
+			recordCacheType = RecordCacheType.FULLY_CACHED;
+			usingCache = true;
+
+		} else if (testCase.equals("summaryPermanent") || testCase.equals("summaryPermanentWithInsufficientSummaryMetadatas")) {
+			recordCacheType = RecordCacheType.SUMMARY_CACHED_WITHOUT_VOLATILE;
+			usingCache = inputMetadatasEssentialInSummary = testCase.equals("summaryPermanent");
+
+		}
+	}
+
+	@Parameterized.Parameters(name = "{0}")
+	public static Collection<Object[]> testCases() {
+		return Arrays.asList(new Object[][]{
+				{"noCache"}, {"fullyPermanent"}, {"summaryPermanent"}, {"summaryPermanentWithInsufficientSummaryMetadatas"}});
+	}
 
 	@Test
 	public void givenUnionOfSingleValueStringMetadatasThenAllStringsAreCopiedWithoutDuplicates()
@@ -47,20 +83,28 @@ public class RecordServicesAgregatedUnionMetadatasAcceptTest extends ConstellioT
 				MetadataSchemaTypeBuilder zeType = schemaTypes.getSchemaType(zeSchema.typeCode());
 				MetadataSchemaTypeBuilder anotherType = schemaTypes.getSchemaType(anotherSchema.typeCode());
 				MetadataSchemaTypeBuilder thirdType = schemaTypes.getSchemaType(thirdSchema.typeCode());
-				MetadataBuilder zeSchema_value1 = zeType.createMetadata("stringValue1").setType(STRING);
-				MetadataBuilder zeSchema_Value2 = zeType.createMetadata("stringValue2").setType(STRING).setMultivalue(true);
+				MetadataBuilder zeSchema_value1 = zeType.createMetadata("stringValue1").setType(STRING)
+						.setEssentialInSummary(inputMetadatasEssentialInSummary);
+				MetadataBuilder zeSchema_Value2 = zeType.createMetadata("stringValue2").setType(STRING)
+						.setMultivalue(true).setEssentialInSummary(inputMetadatasEssentialInSummary);
 				MetadataBuilder zeSchema_zeRef = zeType.createMetadata("ref").defineReferencesTo(anotherType);
-				MetadataBuilder anotherSchema_stringValuesUnion = anotherType.createMetadata("stringValuesUnion").setType(STRING)
+				MetadataBuilder anotherSchema_stringValuesUnion = anotherType.createMetadata("stringValuesUnion")
+						.setType(STRING).setEssentialInSummary(inputMetadatasEssentialInSummary)
 						.setMultivalue(true).defineDataEntry().asUnion(zeSchema_zeRef, zeSchema_value1, zeSchema_Value2);
 				MetadataBuilder anotherSchema_zeRef = anotherType.createMetadata("ref").defineReferencesTo(thirdType);
 				MetadataBuilder anotherSchema_value = anotherType.createMetadata("stringValue").setType(STRING)
-						.setMultivalue(true);
-				thirdType.createMetadata("stringValuesUnion").setType(STRING).setMultivalue(true)
+						.setMultivalue(true).setEssentialInSummary(inputMetadatasEssentialInSummary);
+				thirdType.createMetadata("stringValuesUnion")
+						.setType(STRING).setMultivalue(true).setEssentialInSummary(inputMetadatasEssentialInSummary)
 						.defineDataEntry().asUnion(anotherSchema_zeRef, anotherSchema_stringValuesUnion, anotherSchema_value);
 
+				zeType.setRecordCacheType(recordCacheType);
+				anotherType.setRecordCacheType(recordCacheType);
+				thirdType.setRecordCacheType(recordCacheType);
 			}
 		}));
 
+		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0).setQueryDebuggingMode(true);
 		assertThat(getNetworkLinksOf(zeCollection)).containsOnly(
 				tuple("group_default_ancestors", "group_default_parent", 0),
 				tuple("group_default_ancestors", "group_default_ancestors", 0),
@@ -112,13 +156,15 @@ public class RecordServicesAgregatedUnionMetadatasAcceptTest extends ConstellioT
 				solrInputDocumentRemovingMetadatas("merge2", anotherSchema.metadata("stringValuesUnion")),
 				solrInputDocumentRemovingMetadatas("merge3", anotherSchema.metadata("stringValuesUnion"))
 		)));
+		System.out.println("---- ---- ----");
 		int queries = clearAggregateMetadatasThenReindexReturningQtyOfQueriesOf(zeSchema, anotherSchema, thirdSchema);
 		assertThat(record("merge1").getList(anotherSchema_stringValuesUnion))
 				.containsOnly("value1new", "value2", "value3", "value5");
 		assertThat(record("merge2").getList(anotherSchema_stringValuesUnion)).containsOnly("value4");
 		assertThat(record("merge3").getList(thirdSchema_stringValuesUnion))
 				.containsOnly("value1new", "value2", "value3", "value4", "value5");
-		assertThat(queries).isEqualTo(8);
+
+		assertThat(queries).isEqualTo(recordCacheType == FULLY_CACHED ? 8 : 10);
 
 	}
 
@@ -133,17 +179,24 @@ public class RecordServicesAgregatedUnionMetadatasAcceptTest extends ConstellioT
 				MetadataSchemaTypeBuilder zeType = schemaTypes.getSchemaType(zeSchema.typeCode());
 				MetadataSchemaTypeBuilder anotherType = schemaTypes.getSchemaType(anotherSchema.typeCode());
 				MetadataSchemaTypeBuilder thirdType = schemaTypes.getSchemaType(thirdSchema.typeCode());
-				MetadataBuilder zeSchema_value1 = zeType.createMetadata("stringValue1").setType(STRING);
-				MetadataBuilder zeSchema_Value2 = zeType.createMetadata("stringValue2").setType(STRING).setMultivalue(true);
+				MetadataBuilder zeSchema_value1 = zeType.createMetadata("stringValue1")
+						.setType(STRING).setEssentialInSummary(inputMetadatasEssentialInSummary);
+				MetadataBuilder zeSchema_Value2 = zeType.createMetadata("stringValue2")
+						.setType(STRING).setMultivalue(true).setEssentialInSummary(inputMetadatasEssentialInSummary);
 				MetadataBuilder zeSchema_zeRef = zeType.createMetadata("ref").defineReferencesTo(anotherType);
 				MetadataBuilder anotherSchema_stringValuesUnion = anotherType.createMetadata("stringValuesUnion").setType(STRING)
 						.setMultivalue(true).defineDataEntry().asUnion(zeSchema_zeRef, zeSchema_value1, zeSchema_Value2);
 				MetadataBuilder anotherSchema_zeRef = anotherType.createMetadata("ref").defineReferencesTo(thirdType);
-				MetadataBuilder anotherSchema_value = anotherType.createMetadata("stringValue").setType(STRING)
+				MetadataBuilder anotherSchema_value = anotherType.createMetadata("stringValue")
+						.setType(STRING).setEssentialInSummary(inputMetadatasEssentialInSummary)
 						.setMultivalue(true);
 				thirdType.createMetadata("stringValuesUnion").setType(STRING).setMultivalue(true)
+						.setEssentialInSummary(inputMetadatasEssentialInSummary)
 						.defineDataEntry().asUnion(anotherSchema_zeRef, anotherSchema_stringValuesUnion, anotherSchema_value);
 
+				zeType.setRecordCacheType(recordCacheType);
+				anotherType.setRecordCacheType(recordCacheType);
+				thirdType.setRecordCacheType(recordCacheType);
 			}
 		}));
 
@@ -230,17 +283,21 @@ public class RecordServicesAgregatedUnionMetadatasAcceptTest extends ConstellioT
 				MetadataSchemaTypeBuilder zeType = schemaTypes.getSchemaType(zeSchema.typeCode());
 				MetadataSchemaTypeBuilder anotherType = schemaTypes.getSchemaType(anotherSchema.typeCode());
 				MetadataSchemaTypeBuilder thirdType = schemaTypes.getSchemaType(thirdSchema.typeCode());
-				MetadataBuilder zeSchema_valueMetadata = zeType.getDefaultSchema().create("stringValue").setType(STRING);
+				MetadataBuilder zeSchema_valueMetadata = zeType.getDefaultSchema().create("stringValue")
+						.setType(STRING).setEssentialInSummary(inputMetadatasEssentialInSummary);
 				MetadataBuilder zeSchema_zeRef = zeType.getDefaultSchema().create("ref").defineReferencesTo(anotherType);
 
 				MetadataBuilder anotherSchema_stringValuesUnion = anotherType.getDefaultSchema().create("stringValuesUnion")
-						.setType(STRING).setMultivalue(true)
+						.setType(STRING).setMultivalue(true).setEssentialInSummary(inputMetadatasEssentialInSummary)
 						.defineDataEntry().asUnion(zeSchema_zeRef, zeSchema_valueMetadata);
 				MetadataBuilder anotherSchema_zeRef = anotherType.getDefaultSchema().create("ref").defineReferencesTo(thirdType);
 				MetadataBuilder thirdSchema_stringValuesUnion = thirdType.getDefaultSchema().create("stringValuesUnion")
-						.setType(STRING).setMultivalue(true)
+						.setType(STRING).setMultivalue(true).setEssentialInSummary(inputMetadatasEssentialInSummary)
 						.defineDataEntry().asUnion(anotherSchema_zeRef, anotherSchema_stringValuesUnion);
 
+				zeType.setRecordCacheType(recordCacheType);
+				anotherType.setRecordCacheType(recordCacheType);
+				thirdType.setRecordCacheType(recordCacheType);
 			}
 		}));
 		Metadata anotherSchema_stringValuesUnion = anotherSchema.metadata("stringValuesUnion");
