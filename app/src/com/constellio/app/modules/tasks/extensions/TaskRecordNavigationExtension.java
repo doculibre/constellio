@@ -58,8 +58,9 @@ public class TaskRecordNavigationExtension implements RecordNavigationExtension 
 	}
 
 	@Override
-	public void prepareLinkToView(final NavigationParams navigationParams, final boolean isRecordInTrash,
-								  Locale currentLocale) {
+	public boolean prepareLinkToView(final NavigationParams navigationParams, final boolean isRecordInTrash,
+									 Locale currentLocale) {
+		boolean activeLink;
 		String schemaTypeCode = navigationParams.getSchemaTypeCode();
 		if (isViewForSchemaTypeCode(schemaTypeCode)) {
 			String schemaTypeLabel = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection)
@@ -91,7 +92,11 @@ public class TaskRecordNavigationExtension implements RecordNavigationExtension 
 					navigateToView(navigationParams);
 				}
 			}
+			activeLink = true;
+		} else {
+			activeLink = false;
 		}
+		return activeLink;
 	}
 
 	@Override

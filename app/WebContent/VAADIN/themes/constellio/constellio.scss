@@ -464,6 +464,8 @@ $popup-view-z-index: 3;
 	}
 	
 	.v-label-h1 {
+		font-size: 21.6px;
+		font-weight: bold;
 	}
 
 	.v-tooltip {
@@ -2172,7 +2174,8 @@ $popup-view-z-index: 3;
   			}
 
   			.previous-button {
-  				padding-left: 20px;
+  				margin-left: 12px;
+  				margin-right: -12px;
   			}
   		}
 

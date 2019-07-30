@@ -12269,6 +12269,11 @@ div.v-layout.v-horizontal.v-widget {
 	font-size: 16px;
 }
 
+.constellio .v-label-h1 {
+	font-size: 21.6px;
+	font-weight: bold;
+}
+
 .constellio .v-tooltip {
 	font-weight: bold;
 	background-color: #197de1;
@@ -14785,7 +14790,8 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .viewable-record-table-panel .v-slot-selection-buttons-layout .previous-button {
-	padding-left: 20px;
+	margin-left: 12px;
+	margin-right: -12px;
 }
 
 .constellio .viewable-record-table-panel .selection-action-menu-bar .v-menubar-submenu-indicator + .v-menubar-menuitem-caption:after {
