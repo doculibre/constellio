@@ -13,6 +13,7 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.ModelLayerSystemExtensions;
 import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.FieldLogicalSearchQuerySort;
 import com.constellio.model.services.search.query.logical.LogicalOperator;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -76,7 +77,7 @@ public class LogicalSearchQueryExecutorInCache {
 			initialBaseStreamSize = -1;
 			return stream.sorted(newQuerySortFieldsComparator(query, schemaType));
 		} else {
-			return stream.sorted(newIdComparator());
+			return stream;//.sorted(newIdComparator());
 		}
 	}
 
@@ -193,13 +194,21 @@ public class LogicalSearchQueryExecutorInCache {
 		} else {
 			Metadata metadata = (Metadata) requiredFieldEqualCondition.getDataStoreFields().get(0);
 			Object value = ((IsEqualCriterion) requiredFieldEqualCondition.getValueCondition()).getMemoryQueryValue();
-			stream = recordsCaches.getRecordsByIndexedMetadata(schemaType, metadata, (String) value);
+			if (query.getReturnedMetadatas() != null && query.getReturnedMetadatas().isOnlySummary()) {
+				stream = recordsCaches.getRecordsSummaryByIndexedMetadata(schemaType, metadata, (String) value);
+			} else {
+				stream = recordsCaches.getRecordsByIndexedMetadata(schemaType, metadata, (String) value);
+			}
 		}
 
-		return stream.filter(filter).onClose(() -> {
-			long duration = new Date().getTime() - startOfStreaming;
-			modelLayerExtensions.onQueryExecution(query, duration);
-		});
+		return stream.filter(filter).
+
+				onClose(() ->
+
+				{
+					long duration = new Date().getTime() - startOfStreaming;
+					modelLayerExtensions.onQueryExecution(query, duration);
+				});
 	}
 
 	private static boolean isRecordAccessibleForUser(List<UserFilter> userFilterList, Record record) {
@@ -308,7 +317,8 @@ public class LogicalSearchQueryExecutorInCache {
 			return false;
 		}
 
-		return hasNoUnsupportedFeatureOrFilter(query) && isConditionExecutableInCache(query.getCondition(), query.getQueryExecutionMethod().requiringCacheExecution());
+		return hasNoUnsupportedFeatureOrFilter(query) && isConditionExecutableInCache(query.getCondition(),
+				query.getReturnedMetadatas(), query.getQueryExecutionMethod().requiringCacheExecution());
 
 	}
 
@@ -386,7 +396,14 @@ public class LogicalSearchQueryExecutorInCache {
 		return true;
 	}
 
+
 	public boolean isConditionExecutableInCache(LogicalSearchCondition condition, boolean requiringExecutionInCache) {
+		return isConditionExecutableInCache(condition, ReturnedMetadatasFilter.all(), requiringExecutionInCache);
+	}
+
+	public boolean isConditionExecutableInCache(LogicalSearchCondition condition,
+												ReturnedMetadatasFilter returnedMetadatasFilter,
+												boolean requiringExecutionInCache) {
 		MetadataSchemaType schemaType = getQueriedSchemaType(condition);
 
 		if (recordsCaches == null || schemaType == null || !recordsCaches.isCacheInitialized(schemaType)) {
@@ -401,7 +418,8 @@ public class LogicalSearchQueryExecutorInCache {
 
 		} else if (schemaType.getCacheType().hasPermanentCache()) {
 			//Verify that schemaType is loaded
-			return false;//condition.isSupportingMemoryExecution(true);
+			return returnedMetadatasFilter.isOnlySummary() &&
+				   condition.isSupportingMemoryExecution(true, requiringExecutionInCache);
 
 		} else {
 			return false;

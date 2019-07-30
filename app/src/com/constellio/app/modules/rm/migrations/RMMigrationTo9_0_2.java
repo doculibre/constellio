@@ -7,6 +7,7 @@ import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
 import static com.constellio.model.entities.schemas.RecordCacheType.SUMMARY_CACHED_WITH_VOLATILE;
@@ -36,6 +37,13 @@ public class RMMigrationTo9_0_2 extends MigrationHelper implements MigrationScri
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			typesBuilder.getSchemaType(Folder.SCHEMA_TYPE).setRecordCacheType(SUMMARY_CACHED_WITH_VOLATILE);
 			typesBuilder.getSchemaType(Document.SCHEMA_TYPE).setRecordCacheType(SUMMARY_CACHED_WITH_VOLATILE);
+			typesBuilder.getDefaultSchema(Folder.SCHEMA_TYPE).get(Folder.SUB_FOLDERS_TOKENS).setEssentialInSummary(true);
+			typesBuilder.getDefaultSchema(Folder.SCHEMA_TYPE).get(Folder.DOCUMENTS_TOKENS).setEssentialInSummary(true);
+			typesBuilder.getDefaultSchema(Folder.SCHEMA_TYPE).get(Schemas.TOKENS_OF_HIERARCHY.getLocalCode()).setEssentialInSummary(true);
+			typesBuilder.getDefaultSchema(Document.SCHEMA_TYPE).get(Schemas.TOKENS_OF_HIERARCHY.getLocalCode()).setEssentialInSummary(true);
+
+			typesBuilder.getDefaultSchema(Document.SCHEMA_TYPE).get(Document.FOLDER).setCacheIndex(true);
+			typesBuilder.getDefaultSchema(Folder.SCHEMA_TYPE).get(Folder.PARENT_FOLDER).setCacheIndex(true);
 		}
 	}
 }

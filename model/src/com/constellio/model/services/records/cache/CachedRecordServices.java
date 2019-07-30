@@ -28,12 +28,14 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import static com.constellio.data.dao.services.records.DataStore.RECORDS;
+import static org.apache.calcite.sql.advise.SqlAdvisor.LOGGER;
 
 public class CachedRecordServices extends BaseRecordServices implements RecordServices {
 
@@ -163,30 +165,17 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 	public List<Record> getRecordsById(String collection,
 									   List<String> ids) {
 
-		//TODO
+		List<Record> records = new ArrayList<>();
 
-		//		RecordsCache cache = recordsCaches.getCache(collection);
-		//		List<Record> records = new ArrayList<>();
-		//		List<String> unfoundIds = new ArrayList<>();
-		//		for (int i = 0; i < ids.size(); i++) {
-		//			Record cachedRecord = cache.get(ids.get(i));
-		//			records.add(cachedRecord);
-		//			if (cachedRecord == null) {
-		//				unfoundIds.add(ids.get(i));
-		//			}
-		//		}
-		//
-		//		if (!unfoundIds.isEmpty()) {
-		//			List<Record> missingRecords = recordServices.getRecordsById(collection, unfoundIds);
-		//			for(int i = 0 ; i < ids.size() ; i++) {
-		//				if (records.get(i) == null) {
-		//					int index =
-		//				}
-		//			}
-		//			int index = ids.indexOf(m)
-		//		}
+		ids.forEach(id -> {
+			try {
+				records.add(getDocumentById(id));
+			} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+				LOGGER.warn("Record with id '" + id + "' does not exist");
+			}
+		});
 
-		return recordServices.getRecordsById(collection, ids);
+		return records;
 	}
 
 	@Override

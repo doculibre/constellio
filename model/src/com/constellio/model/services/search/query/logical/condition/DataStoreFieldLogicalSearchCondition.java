@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static com.constellio.model.services.schemas.SchemaUtils.isSummary;
 import static com.constellio.model.services.search.query.logical.LogicalOperator.AND;
 
 public class DataStoreFieldLogicalSearchCondition extends LogicalSearchCondition {
@@ -212,7 +213,7 @@ public class DataStoreFieldLogicalSearchCondition extends LogicalSearchCondition
 		if (queryingTypesInSummaryCache) {
 			for (DataStoreField queriedField : dataStoreFields) {
 				Metadata metadata = (Metadata) queriedField;
-				if (!(metadata.isEssentialInSummary() || metadata.isUniqueValue() || metadata.isCacheIndex())) {
+				if (!isSummary(metadata)) {
 					if (requiringExecutionMethod) {
 						throw new IllegalArgumentException("Query is using a metadata which is not supported with execution in cache : " + metadata.getCode());
 					} else {

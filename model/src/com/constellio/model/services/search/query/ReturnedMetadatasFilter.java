@@ -14,19 +14,11 @@ public class ReturnedMetadatasFilter {
 
 	private boolean includeLargeText;
 
+	private boolean onlySummary;
+
 	private Set<String> acceptedFields;
 
-	public ReturnedMetadatasFilter(boolean includeLargeText) {
-		this.includeLargeText = includeLargeText;
-	}
-
-	public ReturnedMetadatasFilter(boolean includeLargeText, Set<String> acceptedFields) {
-		this.includeLargeText = includeLargeText;
-		this.acceptedFields = acceptedFields;
-	}
-
-	public ReturnedMetadatasFilter(Set<String> acceptedFields) {
-		this.acceptedFields = acceptedFields;
+	private ReturnedMetadatasFilter() {
 	}
 
 	public static ReturnedMetadatasFilter idVersionSchema() {
@@ -46,11 +38,17 @@ public class ReturnedMetadatasFilter {
 	}
 
 	public static ReturnedMetadatasFilter onlyFields(Set<String> fields) {
-		return new ReturnedMetadatasFilter(fields);
+		ReturnedMetadatasFilter filter = new ReturnedMetadatasFilter();
+		filter.acceptedFields = fields;
+		return filter;
 	}
 
-	public static ReturnedMetadatasFilter onlySummaryFields(Set<String> fields) {
-		return new ReturnedMetadatasFilter(fields);
+	public static ReturnedMetadatasFilter onlySummaryFields() {
+		ReturnedMetadatasFilter filter = new ReturnedMetadatasFilter();
+		filter.onlySummary = true;
+		filter.acceptedFields = null;
+		filter.includeLargeText = false;
+		return filter;
 	}
 
 	public static ReturnedMetadatasFilter onlyMetadatas(List<Metadata> metadatas) {
@@ -58,23 +56,27 @@ public class ReturnedMetadatasFilter {
 		for (Metadata metadata : metadatas) {
 			datastorecodes.add(metadata.getDataStoreCode());
 		}
-		return new ReturnedMetadatasFilter(datastorecodes);
+		ReturnedMetadatasFilter filter = new ReturnedMetadatasFilter();
+		filter.acceptedFields = datastorecodes;
+		return filter;
 	}
 
 	public static ReturnedMetadatasFilter allExceptContentAndLargeText() {
-		return new ReturnedMetadatasFilter(false);
-	}
-
-	public static ReturnedMetadatasFilter allExceptLarge() {
-		return new ReturnedMetadatasFilter(true);
+		return new ReturnedMetadatasFilter();
 	}
 
 	public static ReturnedMetadatasFilter all() {
-		return new ReturnedMetadatasFilter(true);
+		ReturnedMetadatasFilter filter = new ReturnedMetadatasFilter();
+		filter.includeLargeText = true;
+		return filter;
 	}
 
 	public static ReturnedMetadatasFilter allAndWithIncludedFields(Set<String> acceptedFields) {
-		return new ReturnedMetadatasFilter(true, acceptedFields);
+		ReturnedMetadatasFilter filter = new ReturnedMetadatasFilter();
+		filter.onlySummary = false;
+		filter.acceptedFields = acceptedFields;
+		filter.includeLargeText = true;
+		return filter;
 	}
 
 	public Set<String> getAcceptedFields() {
@@ -100,8 +102,14 @@ public class ReturnedMetadatasFilter {
 		} else {
 			Set<String> acceptedFields = new HashSet<>(this.acceptedFields);
 			acceptedFields.addAll(fields);
-			return new ReturnedMetadatasFilter(acceptedFields);
+			ReturnedMetadatasFilter filter = new ReturnedMetadatasFilter();
+			filter.acceptedFields = acceptedFields;
+			return filter;
 		}
+	}
+
+	public boolean isOnlySummary() {
+		return onlySummary;
 	}
 
 	public boolean isFullyLoaded() {

@@ -170,7 +170,7 @@ public class AggregatedCalculatorAcceptanceTest extends ConstellioTest {
 		@Override
 		public String calculate(SearchAggregatedValuesParams params) {
 			SearchServices searchServices = params.getSearchServices();
-			LogicalSearchQuery query = params.getQuery();
+			LogicalSearchQuery query = params.getCombinedQuery();
 			query.sortAsc(Schemas.TITLE);
 			List<Record> referenceRecords = searchServices.search(query);
 			StringBuilder stringBuilder = new StringBuilder();
