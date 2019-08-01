@@ -46,23 +46,23 @@ import com.constellio.data.utils.Delayed;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.conf.FoldersLocator;
+import com.constellio.model.conf.FoldersLocatorMode;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.RecordMigrationScript;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.extensions.ConstellioModulesManager;
+import com.constellio.model.services.extensions.ConstellioModulesManagerException.ConstellioModulesManagerException_ModuleInstallationFailed;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.reindexing.ReindexationMode;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -158,8 +158,11 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 		migrationServicesDelayed.set(newMigrationServices());
 		try {
 			newMigrationServices().migrate(null, false);
-		} catch (OptimisticLockingConfiguration optimisticLockingConfiguration) {
-			throw new RuntimeException(optimisticLockingConfiguration);
+		} catch (OptimisticLockingConfiguration e) {
+			throw new RuntimeException(e);
+
+		} catch (ConstellioModulesManagerException_ModuleInstallationFailed e) {
+			throw new RuntimeException(e);
 		}
 		labelTemplateManager = new LabelTemplateManager(dataLayerFactory.getConfigManager(), this);
 		this.navigatorConfigService = new NavigatorConfigurationService();
@@ -288,7 +291,6 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 		appLayerExtensions.getSystemWideExtensions().pagesComponentsExtensions.add(new DefaultPagesComponentsExtension(this));
 		this.pluginManager.detectPlugins();
 
-		Set<String> invalidPlugins = new HashSet<>();
 		super.initialize();
 
 		String warVersion = newApplicationService().getWarVersion();
@@ -297,20 +299,26 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 		}
 
 		try {
-			collectionsManager.initializeModulesResources();
-			invalidPlugins.addAll(newMigrationServices().migrate(null, false));
-		} catch (OptimisticLockingConfiguration optimisticLockingConfiguration) {
-			throw new RuntimeException(optimisticLockingConfiguration);
-		}
-
-		invalidPlugins.addAll(collectionsManager.initializeCollectionsAndGetInvalidModules());
-		getModulesManager().enableComplementaryModules();
-
-		if (!invalidPlugins.isEmpty()) {
-			LOGGER.warn("System is restarting because of invalid modules \n\t" + StringUtils.join(invalidPlugins, "\n\t"));
 			try {
-				restart();
-			} catch (AppManagementServiceException e) {
+				collectionsManager.initializeModulesResources();
+				newMigrationServices().migrate(null, false);
+			} catch (OptimisticLockingConfiguration optimisticLockingConfiguration) {
+				throw new RuntimeException(optimisticLockingConfiguration);
+			}
+
+
+			collectionsManager.initializeCollectionsAndGetInvalidModules();
+			getModulesManager().enableComplementaryModules();
+		} catch (ConstellioModulesManagerException_ModuleInstallationFailed e) {
+			if (new FoldersLocator().getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER) {
+				LOGGER.warn("System is restarting because of failure to install/update module '" + e.getFailedModule()
+							+ "' in collection '" + e.getFailedCollection() + "'", e);
+				try {
+					restart();
+				} catch (AppManagementServiceException e2) {
+					throw new RuntimeException(e2);
+				}
+			} else {
 				throw new RuntimeException(e);
 			}
 		}

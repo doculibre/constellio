@@ -20,6 +20,7 @@ import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.extensions.ConstellioModulesManager;
+import com.constellio.model.services.extensions.ConstellioModulesManagerException.ConstellioModulesManagerException_ModuleInstallationFailed;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.users.UserServices;
 import org.apache.commons.lang3.StringUtils;
@@ -28,7 +29,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -106,20 +106,19 @@ public class AddEditCollectionPresenter extends BasePresenter<AddEditCollectionV
 		validateCode(code);
 		validateModules(entity.getModules());
 		if (!getActionEdit()) {
-			Set<String> invalidModules = createCollection(entity);
-			if (invalidModules.isEmpty()) {
+			try {
+				createCollection(entity);
 				view.showMessage($("AddEditCollectionPresenter.addConfirmation"));
-			} else {
-				view.showMessage($("AddEditCollectionPresenter.addConfirmationWithInvalidModules" + StringUtils
-						.join(invalidModules, "\n")));
+			} catch (ConstellioModulesManagerException_ModuleInstallationFailed e) {
+				view.showMessage($("AddEditCollectionPresenter.addConfirmationWithInvalidModules" + e.getFailedModule()));
 			}
 		} else {
-			Set<String> invalidModules = updateCollection(entity);
-			if (invalidModules.isEmpty()) {
+			try {
+				updateCollection(entity);
 				view.showMessage($("AddEditCollectionPresenter.updateConfirmation"));
-			} else {
-				view.showMessage($("AddEditCollectionPresenter.updateConfirmationWithInvalidModules" + StringUtils
-						.join(invalidModules, "\n")));
+
+			} catch (ConstellioModulesManagerException_ModuleInstallationFailed e) {
+				view.showMessage($("AddEditCollectionPresenter.updateConfirmationWithInvalidModules" + e.getFailedModule()));
 			}
 		}
 		navigateToBackPage();
@@ -151,18 +150,17 @@ public class AddEditCollectionPresenter extends BasePresenter<AddEditCollectionV
 		}
 	}
 
-	Set<String> updateCollection(CollectionVO entity) {
+	void updateCollection(CollectionVO entity) throws ConstellioModulesManagerException_ModuleInstallationFailed {
 		String collectionName = entity.getName();
 		try {
 			recordServices().update(collectionRecord.setName(collectionName).setTitle(collectionName));
-			return updateCollectionModules(entity, collectionRecord.getWrappedRecord(), entity.getCode(), entity.getModules());
+			updateCollectionModules(entity, collectionRecord.getWrappedRecord(), entity.getCode(), entity.getModules());
 		} catch (RecordServicesException e) {
 			throw new RuntimeException(e);
 		}
 	}
 
-	Set<String> createCollection(CollectionVO entity)
-			throws AddEditCollectionPresenterException {
+	void createCollection(CollectionVO entity) throws ConstellioModulesManagerException_ModuleInstallationFailed {
 		Set<String> modules = entity.getModules();
 		String collectionCode = entity.getCode();
 		String collectionName = entity.getName();
@@ -172,10 +170,9 @@ public class AddEditCollectionPresenter extends BasePresenter<AddEditCollectionV
 		Set<String> languages = entity.getSupportedLanguages();
 		Record record = collectionsManager
 				.createCollectionInCurrentVersion(collectionCode, collectionName, new ArrayList<>(languages));
-		Set<String> returnValue = updateCollectionModules(entity, record, collectionCode, modules);
+		updateCollectionModules(entity, record, collectionCode, modules);
 		runScriptsFromConfigs(collectionCode);
 
-		return returnValue;
 	}
 
 	public void runScriptsFromConfigs(String collection) {
@@ -195,16 +192,16 @@ public class AddEditCollectionPresenter extends BasePresenter<AddEditCollectionV
 		}
 	}
 
-	Set<String> updateCollectionModules(CollectionVO entity, Record collectionRecord, String collectionCode,
-										Set<String> modules) {
+	void updateCollectionModules(CollectionVO entity, Record collectionRecord, String collectionCode,
+								 Set<String> modules)
+			throws ConstellioModulesManagerException_ModuleInstallationFailed {
 		List<String> roles = new ArrayList<>();
-		Set<String> invalidModules = new HashSet<>();
 		for (String currentModule : modules) {
 			Module module = modulesManager.getInstalledModule(currentModule);
 			if (!modulesManager.isInstalled(module)) {
-				invalidModules.addAll(modulesManager.installValidModuleAndGetInvalidOnes(module, collectionsListManager));
+				modulesManager.installValidModuleAndGetInvalidOnes(module, collectionsListManager);
 			}
-			invalidModules.addAll(modulesManager.enableValidModuleAndGetInvalidOnes(collectionCode, module));
+			modulesManager.enableValidModuleAndGetInvalidOnes(collectionCode, module);
 			roles.addAll(PluginUtil.getRolesForCreator(module));
 		}
 
@@ -227,7 +224,6 @@ public class AddEditCollectionPresenter extends BasePresenter<AddEditCollectionV
 		} catch (RecordServicesException e) {
 			throw new RuntimeException(e);
 		}
-		return invalidModules;
 	}
 
 	public void cancelButtonClicked() {

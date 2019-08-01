@@ -5,14 +5,9 @@ import com.constellio.app.ui.framework.data.CollectionVODataProvider.CollectionV
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.modules.Module;
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.services.extensions.ConstellioModulesManager;
-import com.constellio.model.services.factories.ModelLayerFactory;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 
 public class FirstSetupPresenter {
 
@@ -41,32 +36,6 @@ public class FirstSetupPresenter {
 		//		foldersLocator.
 	}
 
-	private void createCollection(String code, Set<String> modules, String language) {
-		Record collectionRecord = factories.getAppLayerFactory().getCollectionsManager().createCollectionInCurrentVersion(code,
-				Arrays.asList(language));
-
-		ConstellioModulesManager modulesManager = factories.getAppLayerFactory().getModulesManager();
-
-		List<String> roles = new ArrayList<>();
-		for (String moduleCode : modules) {
-			Module module = modulesManager.getInstalledModule(moduleCode);
-			modulesManager.enableValidModuleAndGetInvalidOnes(code, module);
-			roles.addAll(getRolesForCreator(module));
-		}
-
-		ModelLayerFactory modelLayerFactory = factories.getModelLayerFactory();
-
-		// TODO Create admin user with specified password
-		//   |--> But how will the user provide the password?
-
-		//		UserServices userServices = modelLayerFactory.newUserServices();
-		//		User user = userServices.getUserInCollection("admin", code);
-		//		try {
-		//			modelLayerFactory.newRecordServices().update(user.setUserRoles(roles).setCollectionAllAccess(true));
-		//		} catch (RecordServicesException e) {
-		//			throw new RuntimeException(e);
-		//		}
-	}
 
 	List<String> getRolesForCreator(Module module) {
 		return (module.getRolesForCreator() == null) ? new ArrayList<String>() : module.getRolesForCreator();

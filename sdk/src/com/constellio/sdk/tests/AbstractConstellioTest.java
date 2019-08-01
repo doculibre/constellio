@@ -46,6 +46,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.extensions.ConstellioModulesManagerException.ConstellioModulesManagerException_ModuleInstallationFailed;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
@@ -807,12 +808,6 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		return getCurrentTestSession().getSchemaTestFeatures().useWithMockedSchemaManager(metadataSchemaManager);
 	}
 
-	protected ModulesAndMigrationsTestFeatures givenCollectionInVersion(String collection, List<String> languages,
-																		String version) {
-		ensureNotUnitTest();
-		getAppLayerFactory().getCollectionsManager().createCollectionInVersion(collection, languages, version);
-		return new ModulesAndMigrationsTestFeatures(getCurrentTestSession().getFactoriesTestFeatures(), collection);
-	}
 
 	protected ModulesAndMigrationsTestFeatures givenCollectionWithTitle(String collection, String collectionTitle) {
 		ModulesAndMigrationsTestFeatures features = givenCollection(collection);
@@ -859,7 +854,11 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 
 	protected ModulesAndMigrationsTestFeatures givenCollection(String collection, List<String> languages) {
 		ensureNotUnitTest();
-		getAppLayerFactory().getCollectionsManager().createCollectionInCurrentVersion(collection, languages);
+		try {
+			getAppLayerFactory().getCollectionsManager().createCollectionInCurrentVersion(collection, languages);
+		} catch (ConstellioModulesManagerException_ModuleInstallationFailed constellioModulesManagerException_moduleInstallationFailed) {
+			throw new RuntimeException(constellioModulesManagerException_moduleInstallationFailed);
+		}
 		return new ModulesAndMigrationsTestFeatures(getCurrentTestSession().getFactoriesTestFeatures(), collection);
 	}
 
