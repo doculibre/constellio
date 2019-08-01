@@ -11,6 +11,7 @@ import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.Button;
@@ -46,8 +47,14 @@ public class SearchConfigurationViewImpl extends BaseViewImpl implements SearchC
 		VerticalLayout mainLayout = new VerticalLayout();
 
 		CssLayout collectionSectionLayout = new CustomCssLayout();
-		collectionSectionLayout.addComponents(createStatisticsButton(), createSearchBoostByMetadatasButton(), createSeachBoostByQueryButton(),
-				createSolrFeatureRequestButton(), createFacetsManagementButton());
+		ConstellioEIMConfigs eimConfigs = new ConstellioEIMConfigs(getConstellioFactories().getAppLayerFactory().getModelLayerFactory());
+		if (eimConfigs.isLearnToRankFeatureActivated()) {
+			collectionSectionLayout.addComponents(createStatisticsButton(), createSearchBoostByMetadatasButton(), createSeachBoostByQueryButton(),
+					createSolrFeatureRequestButton(), createFacetsManagementButton());
+		} else {
+			collectionSectionLayout.addComponents(createStatisticsButton(), createSearchBoostByMetadatasButton(), createSeachBoostByQueryButton(), createFacetsManagementButton());
+		}
+
 		//layout.addComponents(createStatisticsButton(), createSearchBoostByMetadatasButton(), createSeachBoostByQueryButton(), createFacetsManagementButton());
 
 		if (Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()) {

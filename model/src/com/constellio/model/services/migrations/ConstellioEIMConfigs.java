@@ -164,6 +164,9 @@ public class ConstellioEIMConfigs {
 
 	public static final SystemConfiguration SHOW_PATH_TO_RESULT;
 
+	public static final SystemConfiguration ENABLE_LEARN_TO_RANK_FEATURE;
+	;
+
 	static {
 		SystemConfigurationGroup others = new SystemConfigurationGroup(null, "others");
 		add(DEFAULT_PARSING_BEHAVIOR = others.createEnum("defaultParsingBehavior", ParsingBehavior.class)
@@ -237,6 +240,9 @@ public class ConstellioEIMConfigs {
 				.whichIsHidden());
 
 		add(ENABLE_INACTIF_SCHEMAS_IN_SEARCH = search.createBooleanTrueByDefault("enableInactifSchemasInSearch"));
+
+		add(ENABLE_LEARN_TO_RANK_FEATURE = search.createBooleanFalseByDefault("enableLearnToRankFeature")
+				.whichIsHidden());
 
 		SystemConfigurationGroup icapConfigurationGroup = new SystemConfigurationGroup(null, "icapScan");
 		add(ICAP_SCAN_ACTIVATED = icapConfigurationGroup.createBooleanFalseByDefault("icapScanActivated"));
@@ -624,5 +630,9 @@ public class ConstellioEIMConfigs {
 
 	public boolean isNoLinksInSearchResults() {
 		return manager.getValue(NO_LNKS_IN_SEARCH_RESULTS);
+	}
+
+	public boolean isLearnToRankFeatureActivated() {
+		return manager.getValue(ENABLE_LEARN_TO_RANK_FEATURE);
 	}
 }
