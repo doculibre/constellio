@@ -185,6 +185,41 @@ public class CoreMigrationTo_8_2 implements MigrationScript {
 				coreType.setSecurity(false);
 			}
 
+
+			for (MetadataSchemaTypeBuilder schemaBuilder : typesBuilder.getTypes()) {
+				if (schemaBuilder.getDefaultSchema().hasMetadata(LegacyGlobalMetadatas.AUTHORIZATIONS.getLocalCode())) {
+					schemaBuilder.getDefaultSchema().get(LegacyGlobalMetadatas.AUTHORIZATIONS.getLocalCode())
+							.defineDataEntry().asManual();
+				}
+
+				if (schemaBuilder.getDefaultSchema().hasMetadata(LegacyGlobalMetadatas.ALL_AUTHORIZATIONS.getLocalCode())) {
+					schemaBuilder.getDefaultSchema().get(LegacyGlobalMetadatas.ALL_AUTHORIZATIONS.getLocalCode())
+							.defineDataEntry().asManual();
+				}
+
+				if (schemaBuilder.getDefaultSchema().hasMetadata(LegacyGlobalMetadatas.INHERITED_AUTHORIZATIONS.getLocalCode())) {
+					schemaBuilder.getDefaultSchema().get(LegacyGlobalMetadatas.INHERITED_AUTHORIZATIONS.getLocalCode())
+							.defineDataEntry().asManual();
+				}
+
+				if (schemaBuilder.getDefaultSchema().hasMetadata(LegacyGlobalMetadatas.FOLLOWERS.getLocalCode())) {
+					schemaBuilder.getDefaultSchema().get(LegacyGlobalMetadatas.FOLLOWERS.getLocalCode())
+							.defineDataEntry().asManual();
+				}
+
+				if (schemaBuilder.getDefaultSchema().hasMetadata(LegacyGlobalMetadatas.PARENT_PATH.getLocalCode())) {
+					schemaBuilder.getDefaultSchema().get(LegacyGlobalMetadatas.PARENT_PATH.getLocalCode())
+							.defineDataEntry().asManual();
+				}
+
+				if (schemaBuilder.getDefaultSchema().hasMetadata(LegacyGlobalMetadatas.NON_TAXONOMY_AUTHORIZATIONS.getLocalCode())) {
+					schemaBuilder.getDefaultSchema().get(LegacyGlobalMetadatas.NON_TAXONOMY_AUTHORIZATIONS.getLocalCode())
+							.defineDataEntry().asManual();
+				}
+
+
+			}
+
 			MetadataSchemaBuilder userDocumentSchema = typesBuilder.getDefaultSchema(UserDocument.SCHEMA_TYPE);
 
 			if (!userDocumentSchema.hasMetadata(UserDocument.CONTENT_SIZE)) {
