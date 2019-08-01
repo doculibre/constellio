@@ -16,6 +16,7 @@ import com.constellio.model.entities.schemas.ModificationImpact;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
@@ -36,6 +37,7 @@ import org.junit.Test;
 import java.util.Collections;
 import java.util.List;
 
+import static com.constellio.model.entities.schemas.RecordCacheType.NOT_CACHED;
 import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.ALL_REMOVED_AUTHS;
 import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.ATTACHED_ANCESTORS;
 import static java.util.Arrays.asList;
@@ -77,6 +79,7 @@ public class ModificationImpactCalculator_HierarchiesAcceptanceTest extends Cons
 		TaxonomiesManager taxonomiesManager = getModelLayerFactory().getTaxonomiesManager();
 		searchServices = spy(getModelLayerFactory().newSearchServices());
 		doReturn(1L).when(searchServices).getResultsCount(any(LogicalSearchCondition.class));
+		doReturn(1L).when(searchServices).getResultsCount(any(LogicalSearchQuery.class));
 		schemasManager = getModelLayerFactory().getMetadataSchemasManager();
 		recordServices = getModelLayerFactory().newRecordServices();
 
@@ -115,7 +118,7 @@ public class ModificationImpactCalculator_HierarchiesAcceptanceTest extends Cons
 	@Test
 	public void givenPathModifiedOfTaxonomyConceptThenHasImpactOnTaxonomyChildren()
 			throws Exception {
-
+		givenNoCaches();
 		TestRecord record = (TestRecord) records.taxo1_firstTypeItem2_firstTypeItem1;
 
 		record.markAsModified(taxonomy1FirstSchema.path());
@@ -125,10 +128,27 @@ public class ModificationImpactCalculator_HierarchiesAcceptanceTest extends Cons
 		assertPathAndAuthorizationsImpactInFirstAndSecondSchema(record, response.getImpacts());
 	}
 
+	private void givenNoCaches() {
+		schemas.modify(new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchemaType(taxonomy1FirstSchema.type().getCode()).setRecordCacheType(NOT_CACHED);
+				types.getSchemaType(taxonomy1SecondSchema.type().getCode()).setRecordCacheType(NOT_CACHED);
+				types.getSchemaType(folderSchema.type().getCode()).setRecordCacheType(NOT_CACHED);
+				types.getSchemaType(documentSchema.type().getCode()).setRecordCacheType(NOT_CACHED);
+				types.getSchemaType(taxonomy2DefaultSchema.type().getCode()).setRecordCacheType(NOT_CACHED);
+				types.getSchemaType(collectionSchema.type().getCode()).setRecordCacheType(NOT_CACHED);
+
+
+			}
+		});
+	}
+
 	@Test
 	public void givenTrivialMetadataModifiedOfTaxonomyConceptThenNoImpactOnTaxonomyChildren()
 			throws Exception {
 
+		givenNoCaches();
 		TestRecord record = records.taxo1_firstTypeItem2_firstTypeItem1;
 
 		record.set(taxonomy1FirstSchema.title(), "newTitle");
@@ -141,7 +161,7 @@ public class ModificationImpactCalculator_HierarchiesAcceptanceTest extends Cons
 	@Test
 	public void givenPathMetadataModifiedOfTaxonomyConceptUsedByFoldersThenHasImpactOnTaxonomyChildrenAndRecordsUsingIt()
 			throws Exception {
-
+		givenNoCaches();
 		TestRecord record = records.taxo1_firstTypeItem2_secondTypeItem1;
 
 		record.markAsModified(folderSchema.path());
@@ -154,7 +174,7 @@ public class ModificationImpactCalculator_HierarchiesAcceptanceTest extends Cons
 	@Test
 	public void givenAllRemovedAuthsMetadataModifiedOfTaxonomyConceptUsedByFoldersThenHasImpactOnTaxonomyChildrenAndRecordsUsingIt()
 			throws Exception {
-
+		givenNoCaches();
 		TestRecord record = records.taxo1_firstTypeItem2_secondTypeItem1;
 
 		record.markAsModified(folderSchema.allRemovedAuths());
@@ -167,7 +187,7 @@ public class ModificationImpactCalculator_HierarchiesAcceptanceTest extends Cons
 	@Test
 	public void givenTrivialMetadataModifiedOfTaxonomyConceptUsedByFoldersThenHasNoImpactOnTaxonomyChildrenAndRecordsUsingIt()
 			throws Exception {
-
+		givenNoCaches();
 		TestRecord record = records.taxo1_firstTypeItem2_secondTypeItem1;
 
 		record.set(taxonomy1SecondSchema.title(), "newTitle");
@@ -181,6 +201,7 @@ public class ModificationImpactCalculator_HierarchiesAcceptanceTest extends Cons
 	public void givenARecordPathModifiedThenHasImpactOnChildren()
 			throws Exception {
 
+		givenNoCaches();
 		TestRecord record = new TestRecord(folderSchema, "zeFolder");
 		recordServices.add(record);
 
@@ -195,6 +216,7 @@ public class ModificationImpactCalculator_HierarchiesAcceptanceTest extends Cons
 	public void givenARecordAttachedAncestorsModifiedThenHasImpactOnChildren()
 			throws Exception {
 
+		givenNoCaches();
 		TestRecord record = new TestRecord(folderSchema, "zeFolder");
 		recordServices.add(record);
 
@@ -207,6 +229,111 @@ public class ModificationImpactCalculator_HierarchiesAcceptanceTest extends Cons
 
 	@Test
 	public void givenTrivialMetadataOfRecordsModifiedThenHasNoImpactOnChildren()
+			throws Exception {
+
+		givenNoCaches();
+		TestRecord record = new TestRecord(folderSchema, "zeFolder");
+		recordServices.add(record);
+
+		record.set(folderSchema.title(), "newTitle");
+		ModificationImpactCalculatorResponse response = impactCalculator
+				.findTransactionImpact(new Transaction(record), true);
+
+		assertThat(response.getImpacts()).isEmpty();
+	}
+
+
+	@Test
+	public void givenPathModifiedOfCachedTaxonomyConceptThenHasImpactOnTaxonomyChildren()
+			throws Exception {
+		TestRecord record = (TestRecord) records.taxo1_firstTypeItem2_firstTypeItem1;
+
+		record.markAsModified(taxonomy1FirstSchema.path());
+		ModificationImpactCalculatorResponse response = impactCalculator
+				.findTransactionImpact(new Transaction(record), true);
+
+		assertPathAndAuthorizationsImpactInFirstAndSecondSchema(record, response.getImpacts());
+	}
+
+	@Test
+	public void givenTrivialMetadataModifiedOfCachedTaxonomyConceptThenNoImpactOnTaxonomyChildren()
+			throws Exception {
+
+		TestRecord record = records.taxo1_firstTypeItem2_firstTypeItem1;
+
+		record.set(taxonomy1FirstSchema.title(), "newTitle");
+		ModificationImpactCalculatorResponse response = impactCalculator
+				.findTransactionImpact(new Transaction(record), true);
+
+		assertThat(response.getImpacts()).isEmpty();
+	}
+
+	@Test
+	public void givenPathMetadataModifiedOfTaxonomyConceptUsedByCachedFoldersThenHasImpactOnTaxonomyChildrenAndRecordsUsingIt()
+			throws Exception {
+		TestRecord record = records.taxo1_firstTypeItem2_secondTypeItem1;
+
+		record.markAsModified(folderSchema.path());
+		ModificationImpactCalculatorResponse response = impactCalculator
+				.findTransactionImpact(new Transaction(record), true);
+
+		assertPathAndAuthorizationsImpactInSecondSchemaAndFolderSchema(record, response.getImpacts());
+	}
+
+	@Test
+	public void givenAllRemovedAuthsMetadataModifiedOfTaxonomyConceptUsedByCachedFoldersThenHasImpactOnTaxonomyChildrenAndRecordsUsingIt()
+			throws Exception {
+		TestRecord record = records.taxo1_firstTypeItem2_secondTypeItem1;
+
+		record.markAsModified(folderSchema.allRemovedAuths());
+		ModificationImpactCalculatorResponse response = impactCalculator
+				.findTransactionImpact(new Transaction(record), true);
+
+		assertAllRemovedAuthImpactInSecondSchemaAndFolderSchema(record, response.getImpacts());
+	}
+
+	@Test
+	public void givenTrivialMetadataModifiedOfTaxonomyConceptUsedByCachedFoldersThenHasNoImpactOnTaxonomyChildrenAndRecordsUsingIt()
+			throws Exception {
+		TestRecord record = records.taxo1_firstTypeItem2_secondTypeItem1;
+
+		record.set(taxonomy1SecondSchema.title(), "newTitle");
+		ModificationImpactCalculatorResponse response = impactCalculator
+				.findTransactionImpact(new Transaction(record), true);
+
+		assertThat(response.getImpacts()).isEmpty();
+	}
+
+	@Test
+	public void givenACachedRecordPathModifiedThenHasImpactOnChildren()
+			throws Exception {
+
+		TestRecord record = new TestRecord(folderSchema, "zeFolder");
+		recordServices.add(record);
+
+		record.markAsModified(folderSchema.path());
+		ModificationImpactCalculatorResponse response = impactCalculator
+				.findTransactionImpact(new Transaction(record), true);
+
+		assertPathAndAuthorizationsImpactInFolderAndDocumentSchema(record, response.getImpacts());
+	}
+
+	@Test
+	public void givenARecordAttachedAncestorsOfCachedRecordModifiedThenHasImpactOnChildren()
+			throws Exception {
+
+		TestRecord record = new TestRecord(folderSchema, "zeFolder");
+		recordServices.add(record);
+
+		record.markAsModified(folderSchema.attachedAncestors());
+		ModificationImpactCalculatorResponse response = impactCalculator
+				.findTransactionImpact(new Transaction(record), true);
+
+		assertAttachedAncestorsImpactInFolderAndDocumentSchema(record, response.getImpacts());
+	}
+
+	@Test
+	public void givenTrivialMetadataOfCachedRecordsModifiedThenHasNoImpactOnChildren()
 			throws Exception {
 
 		TestRecord record = new TestRecord(folderSchema, "zeFolder");

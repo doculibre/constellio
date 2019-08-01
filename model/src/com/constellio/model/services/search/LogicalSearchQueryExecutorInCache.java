@@ -412,7 +412,7 @@ public class LogicalSearchQueryExecutorInCache {
 
 		} else if (schemaType.getCacheType().hasPermanentCache()) {
 			//Verify that schemaType is loaded
-			return returnedMetadatasFilter.isOnlySummary() &&
+			return (returnedMetadatasFilter.isOnlySummary() || returnedMetadatasFilter.isOnlyId()) &&
 				   condition.isSupportingMemoryExecution(true, requiringExecutionInCache);
 
 		} else {

@@ -10,12 +10,8 @@ import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessR
 import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessRecordModifications;
 import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessResults;
 import com.constellio.app.ui.util.DateFormatUtils;
-import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
-import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
-import com.constellio.data.dao.services.bigVault.LazyResultsIterator;
 import com.constellio.data.dao.services.bigVault.solr.SolrUtils;
-import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.utils.BatchBuilderIterator;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.conf.FoldersLocator;
@@ -50,12 +46,8 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
-import com.constellio.model.services.search.SearchServices;
-import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.iterators.RecordSearchResponseIterator;
-import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.users.UserServices;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -85,7 +77,6 @@ import java.util.Map.Entry;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.entities.schemas.Schemas.ESTIMATED_SIZE;
 import static com.constellio.model.services.records.RecordUtils.changeSchemaTypeAccordingToTypeLinkedSchema;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.ALL;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
@@ -205,7 +196,7 @@ public class ChangeValueOfMetadataBatchAsyncTask implements AsyncTask {
 				e.printStackTrace();
 			}
 
-			iterator = new RecordSearchResponseIterator(appLayerFactory.getModelLayerFactory(), params, idealBatchSize, true);
+			iterator = new RecordSearchResponseIterator(appLayerFactory.getModelLayerFactory(), params, idealBatchSize, true, "ChangeValueAsyncTask");
 			if (previousPart != null) {
 				((RecordSearchResponseIterator) iterator).beginAfterId(previousPart.getLastId());
 			}
@@ -215,7 +206,7 @@ public class ChangeValueOfMetadataBatchAsyncTask implements AsyncTask {
 				((RecordFromIdListIterator) iterator).beginAfterId(previousPart.getLastId());
 			}
 
-			if(recordIds.size() != 0) {
+			if (recordIds.size() != 0) {
 				Record record = appLayerFactory.getModelLayerFactory().newRecordServices().getDocumentById(recordIds.get(0));
 				idealBatchSize = getIdealBatchSize(appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypeOf(record), appLayerFactory);
 			}
@@ -249,7 +240,7 @@ public class ChangeValueOfMetadataBatchAsyncTask implements AsyncTask {
 			return 100;
 		} else {
 			int maxRecordSize = (int) result.get(0).getFieldValue(ESTIMATED_SIZE.getDataStoreCode());
-			if(maxRecordSize <= 0) {
+			if (maxRecordSize <= 0) {
 				return 100;
 			} else {
 				return Math.min(100_000_000 / maxRecordSize, 500);

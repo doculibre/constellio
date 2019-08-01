@@ -925,7 +925,7 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
 				.has(solrQueryCounts(3, 2, 2))
 				.has(secondSolrQueryCounts(2, 2, 2));
 
-		assertThat(queryCount.get()).isEqualTo(6);
+		assertThat(queryCount.get()).isEqualTo(4);
 	}
 
 	@Test

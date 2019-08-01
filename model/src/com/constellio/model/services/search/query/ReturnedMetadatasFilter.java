@@ -112,6 +112,10 @@ public class ReturnedMetadatasFilter {
 		return onlySummary;
 	}
 
+	public boolean isOnlyId() {
+		return !includeLargeText && (acceptedFields != null && acceptedFields.isEmpty());
+	}
+
 	public boolean isFullyLoaded() {
 		return acceptedFields == null && includeLargeText;
 	}

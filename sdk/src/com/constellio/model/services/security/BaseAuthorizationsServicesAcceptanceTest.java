@@ -1,6 +1,7 @@
 package com.constellio.model.services.security;
 
 import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.batchprocess.RecordBatchProcess;
@@ -30,6 +31,7 @@ import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.QueryExecutionMethod;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.security.SecurityAcceptanceTestSetup.Records;
 import com.constellio.model.services.security.roles.RolesManager;
@@ -442,8 +444,10 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
 		boolean hasAccessUsingWrapperMethod = user.hasReadAccess().on(record);
 
+		boolean wasEnabled = Toggle.VALIDATE_CACHE_EXECUTION_SERVICE_USING_SOLR.enable();
 		boolean hasAccessUsingSearchTokens = searchServices.hasResults(new LogicalSearchQuery().filteredWithUser(user)
 				.setCondition(fromAllSchemasIn(zeCollection).where(IDENTIFIER).isEqualTo(record)));
+		Toggle.VALIDATE_CACHE_EXECUTION_SERVICE_USING_SOLR.set(wasEnabled);
 
 		if (hasAccessUsingWrapperMethod && !hasAccessUsingSearchTokens) {
 			fail("User '" + user.getUsername() + "' has read access on '" + record.getSchemaIdTitle()
@@ -460,8 +464,11 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 	protected boolean hasWriteAccess(User user, Record record) {
 		boolean hasAccessUsingWrapperMethod = user.hasWriteAccess().on(record);
 
-		boolean hasAccessUsingSearchTokens = searchServices.hasResults(new LogicalSearchQuery().filteredWithUserWrite(user)
+		boolean wasEnabled = Toggle.VALIDATE_CACHE_EXECUTION_SERVICE_USING_SOLR.enable();
+		boolean hasAccessUsingSearchTokens = searchServices.hasResults(new LogicalSearchQuery()
+				.setQueryExecutionMethod(QueryExecutionMethod.USE_CACHE).filteredWithUserWrite(user)
 				.setCondition(fromAllSchemasIn(zeCollection).where(IDENTIFIER).isEqualTo(record)));
+		Toggle.VALIDATE_CACHE_EXECUTION_SERVICE_USING_SOLR.set(wasEnabled);
 
 		if (hasAccessUsingWrapperMethod && !hasAccessUsingSearchTokens) {
 			fail("User '" + user.getUsername() + "' has read access on '" + record.getSchemaIdTitle()
@@ -478,8 +485,10 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 	protected boolean hasDeleteAccess(User user, Record record) {
 		boolean hasAccessUsingWrapperMethod = user.hasDeleteAccess().on(record);
 
+		boolean wasEnabled = Toggle.VALIDATE_CACHE_EXECUTION_SERVICE_USING_SOLR.enable();
 		boolean hasAccessUsingSearchTokens = searchServices.hasResults(new LogicalSearchQuery().filteredWithUserDelete(user)
 				.setCondition(fromAllSchemasIn(zeCollection).where(IDENTIFIER).isEqualTo(record)));
+		Toggle.VALIDATE_CACHE_EXECUTION_SERVICE_USING_SOLR.set(wasEnabled);
 
 		if (hasAccessUsingWrapperMethod && !hasAccessUsingSearchTokens) {
 			fail("User '" + user.getUsername() + "' has read access on '" + record.getSchemaIdTitle()

@@ -688,7 +688,7 @@ public class RecordServicesTest extends ConstellioTest {
 
 		InOrder inOrder = inOrder(recordServices);
 		inOrder.verify(recordServices).mergeRecords(eq(transaction), anyString());
-		inOrder.verify(recordServices).executeWithImpactHandler(transaction, recordModificationImpactHandler, 4);
+		inOrder.verify(recordServices).executeWithImpactHandler(transaction, recordModificationImpactHandler, false, 4);
 	}
 
 	@Test

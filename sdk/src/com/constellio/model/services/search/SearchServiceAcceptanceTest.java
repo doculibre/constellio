@@ -36,6 +36,7 @@ import com.constellio.model.services.search.moreLikeThis.MoreLikeThisClustering;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
+import com.constellio.model.services.search.query.logical.QueryExecutionMethod;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.criteria.MeasuringUnitTime;
 import com.constellio.model.services.search.query.logical.ongoing.OngoingLogicalSearchConditionWithDataStoreFields;
@@ -297,7 +298,8 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		recordServices.execute(tx);
 
 		List<String> stringMetadatasOfRecordsWhenIteratingAsc = new ArrayList<>();
-		Iterator<Record> recordIterator = searchServices.recordsIterator(from(zeSchema.type()).returnAll(), 5);
+		Iterator<Record> recordIterator = searchServices.recordsIterator(new LogicalSearchQuery(from(zeSchema.type()).returnAll())
+				.setQueryExecutionMethod(QueryExecutionMethod.USE_SOLR), 5);
 		while (recordIterator.hasNext()) {
 			Record record = recordIterator.next();
 			stringMetadatasOfRecordsWhenIteratingAsc.add(record.<String>get(zeSchema.stringMetadata()));
@@ -308,7 +310,8 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 						"V40", "V41"));
 
 		List<String> stringMetadatasOfRecordsWhenIteratingDesc = new ArrayList<>();
-		recordIterator = searchServices.reverseRecordsIterator(from(zeSchema.type()).returnAll(), 5);
+		recordIterator = searchServices.reverseRecordsIterator(new LogicalSearchQuery(from(zeSchema.type()).returnAll())
+				.setQueryExecutionMethod(QueryExecutionMethod.USE_SOLR), 5);
 		while (recordIterator.hasNext()) {
 			Record record = recordIterator.next();
 			stringMetadatasOfRecordsWhenIteratingDesc.add(record.<String>get(zeSchema.stringMetadata()));

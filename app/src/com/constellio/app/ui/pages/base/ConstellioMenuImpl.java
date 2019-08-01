@@ -10,6 +10,8 @@ import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.components.menuBar.BaseMenuBar;
 import com.constellio.app.ui.pages.viewGroups.MenuViewGroup;
 import com.constellio.app.ui.pages.viewGroups.MenuViewGroup.DisabledMenuViewGroup;
+import com.constellio.model.conf.FoldersLocator;
+import com.constellio.model.conf.FoldersLocatorMode;
 import com.constellio.model.frameworks.validation.ValidationError;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.vaadin.navigator.View;
@@ -262,11 +264,18 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 	}
 
 	private void refreshSystemStateButton() {
-		ValidationErrors validationErrors = SystemInfo.getInstance().getValidationErrors();
-		if (!validationErrors.isEmpty()) {
-			systemStateButton.setIcon(new ThemeResource("images/commun/error.gif"));
-		} else if (!validationErrors.isEmptyErrorAndWarnings()) {
-			systemStateButton.setIcon(new ThemeResource("images/commun/warning.png"));
+
+		if (new FoldersLocator().getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER) {
+
+			ValidationErrors validationErrors = SystemInfo.getInstance().getValidationErrors();
+			if (!validationErrors.isEmpty()) {
+				systemStateButton.setIcon(new ThemeResource("images/commun/error.gif"));
+			} else if (!validationErrors.isEmptyErrorAndWarnings()) {
+				systemStateButton.setIcon(new ThemeResource("images/commun/warning.png"));
+			} else {
+				systemStateButton.setIcon(new ThemeResource("images/commun/greenCircle.png"));
+			}
+
 		} else {
 			systemStateButton.setIcon(new ThemeResource("images/commun/greenCircle.png"));
 		}

@@ -37,6 +37,7 @@ import java.util.Set;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.QueryExecutionMethod.USE_CACHE;
 
 public class RetentionRuleToVOBuilder extends RecordToVOBuilder {
 
@@ -77,7 +78,8 @@ public class RetentionRuleToVOBuilder extends RecordToVOBuilder {
 	}
 
 	@Override
-	protected RetentionRuleVO newRecordVO(String id, List<MetadataValueVO> metadataValueVOs, VIEW_MODE viewMode, List<String> excludedMetdataCode) {
+	protected RetentionRuleVO newRecordVO(String id, List<MetadataValueVO> metadataValueVOs, VIEW_MODE viewMode,
+										  List<String> excludedMetdataCode) {
 		MetadataSchemaVO schema = metadataValueVOs.get(0).getMetadata().getSchema();
 
 		MetadataValueVO categoriesMetadataValueVO = new MetadataValueVO(getCategoriesMetadata(schema), getCategories(id));
@@ -123,7 +125,7 @@ public class RetentionRuleToVOBuilder extends RecordToVOBuilder {
 	private List<String> getUniformSubdivisions(String id) {
 		LogicalSearchCondition condition = from(rm.uniformSubdivision.schemaType())
 				.where(rm.uniformSubdivision.retentionRule()).isEqualTo(id);
-		return searchServices.cachedSearchRecordIds(new LogicalSearchQuery(condition));
+		return searchServices.cachedSearchRecordIds(new LogicalSearchQuery(condition).setQueryExecutionMethod(USE_CACHE));
 	}
 
 	private MetadataVO getUniformSubdivisionsMetadata(MetadataSchemaVO schema) {

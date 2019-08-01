@@ -1841,7 +1841,7 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				.has(solrQueryCounts(3, 2, 2))
 				.has(secondSolrQueryCounts(2, 2, 2));
 
-		assertThat(queryCount.get()).isEqualTo(7);
+		assertThat(queryCount.get()).isEqualTo(5);
 	}
 
 	@Test

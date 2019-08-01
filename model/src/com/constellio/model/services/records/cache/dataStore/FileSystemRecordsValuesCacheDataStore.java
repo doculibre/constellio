@@ -1,6 +1,8 @@
 package com.constellio.model.services.records.cache.dataStore;
 
 import com.constellio.data.utils.dev.Toggle;
+import com.constellio.model.conf.FoldersLocator;
+import com.constellio.model.conf.FoldersLocatorMode;
 import org.mapdb.BTreeMap;
 import org.mapdb.DB;
 import org.mapdb.DBMaker;
@@ -23,14 +25,21 @@ public class FileSystemRecordsValuesCacheDataStore {
 
 	public FileSystemRecordsValuesCacheDataStore(File file) {
 		if (!file.exists() || file.delete()) {
-			Maker dbMaker = DBMaker.fileDB(file);
 
-			if (Toggle.USE_MMAP_WITHMAP_DB.isEnabled()) {
-				dbMaker.fileMmapEnableIfSupported().fileMmapPreclearDisable();
-				dbMaker.allocateStartSize(500 * 1024 * 1024).allocateIncrement(500 * 1024 * 1024);
+			if (new FoldersLocator().getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER) {
+				Maker dbMaker = DBMaker.fileDB(file);
+
+				if (Toggle.USE_MMAP_WITHMAP_DB.isEnabled()) {
+					dbMaker.fileMmapEnableIfSupported().fileMmapPreclearDisable();
+					dbMaker.allocateStartSize(500 * 1024 * 1024).allocateIncrement(500 * 1024 * 1024);
+				}
+				this.onDiskDatabase = dbMaker.fileLockDisable().make();
+			} else {
+				Maker dbMaker = DBMaker.memoryDB();
+				this.onDiskDatabase = dbMaker.make();
 			}
 
-			this.onDiskDatabase = dbMaker.fileLockDisable().executorEnable().make();
+
 		} else {
 			throw new IllegalStateException("File delete failed. Only one instance per file can be active. " +
 											"To Create a new one close the other instance before instanciating " +

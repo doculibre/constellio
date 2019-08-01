@@ -235,7 +235,7 @@ public class BatchProcessControllerThread extends ConstellioThread {
 
 		params.set("sort", "principalPath_s asc, id asc");
 
-		RecordSearchResponseIterator iterator = new RecordSearchResponseIterator(modelLayerFactory, params, 1000, true);
+		RecordSearchResponseIterator iterator = new RecordSearchResponseIterator(modelLayerFactory, params, 1000, true, null);
 		BatchBuilderIterator<Record> batchIterator = new BatchBuilderIterator<>(iterator, 1000);
 		StoredBatchProcessPart previousPart = batchProcessProgressionServices.getLastBatchProcessPart(batchProcess);
 		if (previousPart != null) {

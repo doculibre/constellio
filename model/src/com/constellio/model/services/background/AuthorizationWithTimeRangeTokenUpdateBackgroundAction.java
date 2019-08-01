@@ -14,6 +14,8 @@ import com.constellio.model.services.search.SearchServices;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
+
 import static com.constellio.data.utils.TimeProvider.getLocalDate;
 import static com.constellio.model.entities.records.RecordUpdateOptions.validationExceptionSafeOptions;
 import static com.constellio.model.entities.records.TransactionRecordsReindexation.ALL;
@@ -41,7 +43,8 @@ public class AuthorizationWithTimeRangeTokenUpdateBackgroundAction implements Ru
 
 		for (String collection : collectionsListManager.getCollectionsExcludingSystem()) {
 			SchemasRecordsServices schemas = new SchemasRecordsServices(collection, modelLayerFactory);
-			for (Authorization auth : schemas.getAllAuthorizationsInUnmodifiableState()) {
+			List<Authorization> auths = schemas.getAllAuthorizationsInUnmodifiableState();
+			for (Authorization auth : auths) {
 				if (auth.hasModifiedStatusSinceLastTokenRecalculate()) {
 					auth = auth.getCopyOfOriginalRecord();
 					try {

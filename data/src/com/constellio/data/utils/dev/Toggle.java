@@ -172,12 +172,20 @@ public class Toggle {
 			}
 		}
 
-		public void enable() {
+		public boolean enable() {
+			boolean oldValue = enabled;
 			enabled = true;
+			return oldValue;
 		}
 
-		public void disable() {
+		public void set(boolean value) {
+			this.enabled = value;
+		}
+
+		public boolean disable() {
+			boolean oldValue = enabled;
 			enabled = false;
+			return oldValue;
 		}
 
 		public String getId() {
