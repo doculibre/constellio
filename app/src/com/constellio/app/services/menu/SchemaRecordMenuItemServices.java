@@ -16,6 +16,7 @@ import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActio
 import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus.VISIBLE;
 import static com.constellio.app.services.menu.SchemaRecordMenuItemServices.SchemaRecordMenuItemActionType.SCHEMA_RECORD_DELETE;
 import static com.constellio.app.services.menu.SchemaRecordMenuItemServices.SchemaRecordMenuItemActionType.SCHEMA_RECORD_EDIT;
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class SchemaRecordMenuItemServices {
 	private SchemaRecordActionsServices schemaRecordActionsServices;
@@ -36,13 +37,13 @@ public class SchemaRecordMenuItemServices {
 		if (!excludedActionTypes.contains(SCHEMA_RECORD_EDIT.name())) {
 			menuItemActions.add(buildMenuItemAction(SCHEMA_RECORD_EDIT.name(),
 					isMenuItemActionPossible(SCHEMA_RECORD_EDIT.name(), record, user, params),
-					"editWithIcon", null, -1, 100,
+					$("editWithIcon"), null, -1, 100,
 					(ids) -> new SchemaRecordMenuItemActionBehaviors(collection, appLayerFactory).edit(record, params)));
 		}
 		if (!excludedActionTypes.contains(SCHEMA_RECORD_DELETE.name())) {
 			menuItemActions.add(buildMenuItemAction(SCHEMA_RECORD_DELETE.name(),
 					isMenuItemActionPossible(SCHEMA_RECORD_DELETE.name(), record, user, params),
-					"deleteWithIcon", null, -1, 100,
+					$("deleteWithIcon"), null, -1, 100,
 					(ids) -> new SchemaRecordMenuItemActionBehaviors(collection, appLayerFactory).delete(record, params)));
 		}
 

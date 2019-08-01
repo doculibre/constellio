@@ -8,8 +8,12 @@ import com.constellio.app.modules.rm.model.calculators.folder.FolderActualDeposi
 import com.constellio.app.modules.rm.model.calculators.folder.FolderActualDestructionDateCalculator;
 import com.constellio.app.modules.rm.model.calculators.folder.FolderActualTransferDateCalculator;
 import com.constellio.app.modules.rm.model.calculators.folder.FolderOpeningDateCalculator;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.migrations.CoreRoles;
+import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -17,6 +21,7 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.security.roles.RolesManager;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static java.util.Arrays.asList;
@@ -39,10 +44,7 @@ public class RMMigrationTo9_0 implements MigrationScript {
 		ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
 
 		RolesManager rolesManager = modelLayerFactory.getRolesManager();
-
-
 		List<Role> roleList1 = rolesManager.getAllRoles(collection);
-
 		for (Role role : roleList1) {
 			if (role.hasOperationPermission(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST)) {
 				rolesManager.updateRole(role.withNewPermissions(asList(RMPermissionsTo.CREATE_DECOMMISSIONING_LIST)));
@@ -50,12 +52,14 @@ public class RMMigrationTo9_0 implements MigrationScript {
 		}
 
 		List<Role> roleList2 = rolesManager.getAllRoles(collection);
-
-
 		for (Role role : roleList2) {
 			rolesManager.updateRole(role.withNewPermissions(asList(RMPermissionsTo.CART_BATCH_DELETE,
 					CorePermissions.MODIFY_RECORDS_USING_BATCH_PROCESS)));
 		}
+
+		Role adminRole = rolesManager.getRole(collection, CoreRoles.ADMINISTRATOR);
+		adminRole = adminRole.withTitle(migrationResourcesProvider.getValuesOfAllLanguagesWithSeparator("init.roles.ADM", " / "));
+		rolesManager.updateRole(adminRole);
 	}
 
 	private class SchemaAlterationFor9_0 extends MetadataSchemasAlterationHelper {
@@ -76,6 +80,21 @@ public class RMMigrationTo9_0 implements MigrationScript {
 					.asCalculated(FolderActualDepositDateCalculator.class);
 			defaultFolderSchema.get(Folder.ACTUAL_DESTRUCTION_DATE).defineDataEntry()
 					.asCalculated(FolderActualDestructionDateCalculator.class);
+
+			SchemasDisplayManager displayManager = appLayerFactory.getMetadataSchemasDisplayManager();
+			displayManager.saveSchema(displayManager.getSchema(collection, AdministrativeUnit.DEFAULT_SCHEMA)
+					.withRemovedFormMetadatas(AdministrativeUnit.DEFAULT_SCHEMA + "_" + AdministrativeUnit.FUNCTIONS));
+
+			List<String> folderTypeFormMetadataCodes = displayManager.getSchema(collection, FolderType.DEFAULT_SCHEMA).getFormMetadataCodes();
+			String code = FolderType.DEFAULT_SCHEMA + "_" + FolderType.CODE;
+			String title = FolderType.DEFAULT_SCHEMA + "_" + FolderType.TITLE;
+			if (folderTypeFormMetadataCodes.containsAll(asList(code, title))) {
+				folderTypeFormMetadataCodes = new ArrayList<>(folderTypeFormMetadataCodes);
+				folderTypeFormMetadataCodes.removeAll(asList(code, title));
+				folderTypeFormMetadataCodes.addAll(0, asList(code, title));
+			}
+
+			displayManager.saveSchema(displayManager.getSchema(collection, FolderType.DEFAULT_SCHEMA).withFormMetadataCodes(folderTypeFormMetadataCodes));
 		}
 
 	}
