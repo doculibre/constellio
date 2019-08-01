@@ -46,7 +46,7 @@ import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class CoreMigrationTo_8_2 implements MigrationScript {
-	private static final Logger LOGGER = LoggerFactory.getLogger(CoreMigrationTo_7_1.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(CoreMigrationTo_8_2.class);
 
 	@Override
 	public String getVersion() {
@@ -106,6 +106,10 @@ public class CoreMigrationTo_8_2 implements MigrationScript {
 							tx.add(detail.setPrincipals(authsPrincipals.get(detail.getId())));
 						}
 
+						if (true) {
+							throw new RuntimeException("k-boom");
+						}
+
 						recordServices.executeWithoutImpactHandling(tx);
 					}
 				}.execute(from(schemas.authorizationDetails.schemaType()).returnAll());
@@ -155,6 +159,8 @@ public class CoreMigrationTo_8_2 implements MigrationScript {
 				}
 			}
 		}
+
+		new CoreSchemaAlterationFor_8_2_1(collection, migrationResourcesProvider, appLayerFactory).migrate();
 	}
 
 	class CoreSchemaAlterationFor_8_2 extends MetadataSchemasAlterationHelper {
@@ -170,12 +176,59 @@ public class CoreMigrationTo_8_2 implements MigrationScript {
 
 			MetadataSchemaTypeBuilder type = typesBuilder.getSchemaType(Event.SCHEMA_TYPE);
 			MetadataSchemaBuilder defaultSchema = type.getDefaultSchema();
-			defaultSchema.createUndeletable(Event.NEGATIVE_AUTHORIZATION).setType(BOOLEAN);
+			if (!defaultSchema.hasMetadata(Event.NEGATIVE_AUTHORIZATION)) {
+				defaultSchema.createUndeletable(Event.NEGATIVE_AUTHORIZATION).setType(BOOLEAN);
+			}
 
 			if (!typesBuilder.getSchema(Authorization.DEFAULT_SCHEMA).hasMetadata(Authorization.PRINCIPALS)) {
 				typesBuilder.getSchema(Authorization.DEFAULT_SCHEMA).create(Authorization.PRINCIPALS)
 						.setType(STRING).setMultivalue(true);
 			}
+
+			for (MetadataSchemaTypeBuilder coreType : CoreTypes.coreSchemaTypes(typesBuilder)) {
+				coreType.setSecurity(false);
+			}
+
+			MetadataSchemaBuilder userDocumentSchema = typesBuilder.getDefaultSchema(UserDocument.SCHEMA_TYPE);
+
+			if (!userDocumentSchema.hasMetadata(UserDocument.CONTENT_SIZE)) {
+				MetadataBuilder userDocumentContentSize = userDocumentSchema.createUndeletable(UserDocument.CONTENT_SIZE)
+						.setType(MetadataValueType.NUMBER).defineDataEntry()
+						.asCalculated(UserDocumentContentSizeCalculator.class);
+
+				MetadataSchemaBuilder userSchema = typesBuilder.getDefaultSchema(User.SCHEMA_TYPE);
+				userSchema.createUndeletable(User.USER_DOCUMENT_SIZE_SUM)
+						.setType(MetadataValueType.NUMBER).setEssential(false).defineDataEntry()
+						.asSum(userDocumentSchema.getMetadata(UserDocument.USER), userDocumentContentSize);
+			}
+
+			MetadataSchemaBuilder savedSearchSchema = typesBuilder.getDefaultSchema(SavedSearch.SCHEMA_TYPE);
+			if (!savedSearchSchema.hasMetadata(SavedSearch.SHARED_USERS)) {
+				savedSearchSchema.createUndeletable(SavedSearch.SHARED_USERS).setType(MetadataValueType.STRING)
+						.setMultivalue(true);
+			}
+			if (!savedSearchSchema.hasMetadata(SavedSearch.SHARED_GROUPS)) {
+				savedSearchSchema.createUndeletable(SavedSearch.SHARED_GROUPS).setType(MetadataValueType.STRING)
+						.setMultivalue(true);
+			}
+			if (!savedSearchSchema.hasMetadata(SavedSearch.RESTRICTED)) {
+				savedSearchSchema.createUndeletable(SavedSearch.RESTRICTED).setType(MetadataValueType.BOOLEAN)
+						.setEssential(false).defineDataEntry().asCalculated(SavedSearchRestrictedCalculator.class);
+			}
+		}
+	}
+
+
+	class CoreSchemaAlterationFor_8_2_1 extends MetadataSchemasAlterationHelper {
+
+		protected CoreSchemaAlterationFor_8_2_1(String collection,
+												MigrationResourcesProvider migrationResourcesProvider,
+												AppLayerFactory appLayerFactory) {
+			super(collection, migrationResourcesProvider, appLayerFactory);
+		}
+
+		@Override
+		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 
 			for (MetadataSchemaTypeBuilder schemaBuilder : typesBuilder.getTypes()) {
 				if (schemaBuilder.getDefaultSchema().hasMetadata(LegacyGlobalMetadatas.AUTHORIZATIONS.getLocalCode())) {
@@ -211,36 +264,6 @@ public class CoreMigrationTo_8_2 implements MigrationScript {
 
 			}
 
-			for (MetadataSchemaTypeBuilder coreType : CoreTypes.coreSchemaTypes(typesBuilder)) {
-				coreType.setSecurity(false);
-			}
-
-			MetadataSchemaBuilder userDocumentSchema = typesBuilder.getDefaultSchema(UserDocument.SCHEMA_TYPE);
-
-			if (!userDocumentSchema.hasMetadata(UserDocument.CONTENT_SIZE)) {
-				MetadataBuilder userDocumentContentSize = userDocumentSchema.createUndeletable(UserDocument.CONTENT_SIZE)
-						.setType(MetadataValueType.NUMBER).defineDataEntry()
-						.asCalculated(UserDocumentContentSizeCalculator.class);
-
-				MetadataSchemaBuilder userSchema = typesBuilder.getDefaultSchema(User.SCHEMA_TYPE);
-				userSchema.createUndeletable(User.USER_DOCUMENT_SIZE_SUM)
-						.setType(MetadataValueType.NUMBER).setEssential(false).defineDataEntry()
-						.asSum(userDocumentSchema.getMetadata(UserDocument.USER), userDocumentContentSize);
-			}
-
-			MetadataSchemaBuilder savedSearchSchema = typesBuilder.getDefaultSchema(SavedSearch.SCHEMA_TYPE);
-			if (!savedSearchSchema.hasMetadata(SavedSearch.SHARED_USERS)) {
-				savedSearchSchema.createUndeletable(SavedSearch.SHARED_USERS).setType(MetadataValueType.STRING)
-						.setMultivalue(true);
-			}
-			if (!savedSearchSchema.hasMetadata(SavedSearch.SHARED_GROUPS)) {
-				savedSearchSchema.createUndeletable(SavedSearch.SHARED_GROUPS).setType(MetadataValueType.STRING)
-						.setMultivalue(true);
-			}
-			if (!savedSearchSchema.hasMetadata(SavedSearch.RESTRICTED)) {
-				savedSearchSchema.createUndeletable(SavedSearch.RESTRICTED).setType(MetadataValueType.BOOLEAN)
-						.setEssential(false).defineDataEntry().asCalculated(SavedSearchRestrictedCalculator.class);
-			}
 		}
 	}
 }
