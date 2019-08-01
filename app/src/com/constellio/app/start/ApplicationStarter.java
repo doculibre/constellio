@@ -171,8 +171,8 @@ public class ApplicationStarter {
 		src.setStsIncludeSubDomains(true);
 		https_config.addCustomizer(src);
 
-		ServerConnector https = new ServerConnector(server,
-				new SslConnectionFactory(sslContextFactory, HttpVersion.HTTP_2.asString()),
+		ServerConnector https = new ServerConnector(sslServer,
+				new SslConnectionFactory(sslContextFactory, HttpVersion.HTTP_1_1.asString()),
 				new HttpConnectionFactory(https_config));
 		https.setPort(params.getPort());
 		https.setIdleTimeout(30000);
