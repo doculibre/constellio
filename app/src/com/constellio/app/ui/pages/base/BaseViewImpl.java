@@ -187,7 +187,8 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 			}
 
 			mainComponent = buildMainComponent(event);
-			mainComponent.addStyleName("main-component");
+			mainComponent.setId("main-component");
+			mainComponent.addStyleName(mainComponent.getId());
 
 			if (breadcrumbTrail != null) {
 				breadcrumbTrail.setWidth(null);
