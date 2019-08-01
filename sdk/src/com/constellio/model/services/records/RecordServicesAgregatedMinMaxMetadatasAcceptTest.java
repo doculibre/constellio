@@ -113,7 +113,7 @@ public class RecordServicesAgregatedMinMaxMetadatasAcceptTest extends Constellio
 		assertThat(record("merge1").<Double>get(anotherSchema_maxValue)).isEqualTo(1.6);
 		assertThat(record("merge2").<Double>get(anotherSchema_maxValue)).isEqualTo(1.5);
 		assertThat(record("merge3").<Double>get(thirdSchema_maxValue)).isEqualTo(1.6);
-		assertThat(nbQueries).isEqualTo(8);
+		assertThat(nbQueries).isEqualTo(2);
 	}
 
 	@Test
@@ -191,7 +191,7 @@ public class RecordServicesAgregatedMinMaxMetadatasAcceptTest extends Constellio
 		assertThat(record("merge1").<LocalDate>get(anotherSchema_maxValue)).isEqualTo(date(2011, 7, 1));
 		assertThat(record("merge2").<LocalDate>get(anotherSchema_maxValue)).isEqualTo(date(2011, 6, 1));
 		assertThat(record("merge3").<LocalDateTime>get(thirdSchema_maxValue)).isEqualTo(dateTime(2011, 7, 1, 0, 0, 0));
-		assertThat(nbQueries).isEqualTo(8);
+		assertThat(nbQueries).isEqualTo(2);
 	}
 
 	@Test

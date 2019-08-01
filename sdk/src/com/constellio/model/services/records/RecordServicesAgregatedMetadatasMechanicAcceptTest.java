@@ -247,7 +247,7 @@ public class RecordServicesAgregatedMetadatasMechanicAcceptTest extends Constell
 				tuple("aThirdSchemaRecord2", 0.0, 0.0)
 		);
 
-		assertThat(nbQueries).isEqualTo(13);
+		assertThat(nbQueries).isEqualTo(3);
 	}
 
 	@Test
@@ -612,7 +612,7 @@ public class RecordServicesAgregatedMetadatasMechanicAcceptTest extends Constell
 		);
 
 		int nbQueries = clearAggregateMetadatasThenReindexReturningQtyOfQueriesOf(zeSchema, anotherSchema, thirdSchema);
-		assertThat(nbQueries).isEqualTo(7);
+		assertThat(nbQueries).isEqualTo(1);
 
 		assertThatRecords(searchServices.search(query(from(zeSchema.type()).returnAll())))
 				.extractingMetadatas(IDENTIFIER, agregated).containsOnly(
@@ -685,7 +685,7 @@ public class RecordServicesAgregatedMetadatasMechanicAcceptTest extends Constell
 		);
 
 		int nbQueries = clearAggregateMetadatasThenReindexReturningQtyOfQueriesOf(zeSchema, anotherSchema, thirdSchema);
-		assertThat(nbQueries).isEqualTo(7);
+		assertThat(nbQueries).isEqualTo(1);
 
 		assertThatRecords(searchServices.search(query(from(zeSchema.type()).returnAll())))
 				.extractingMetadatas(IDENTIFIER, agregated).containsOnly(

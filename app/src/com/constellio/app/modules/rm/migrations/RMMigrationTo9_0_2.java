@@ -4,6 +4,7 @@ import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
+import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -44,6 +45,9 @@ public class RMMigrationTo9_0_2 extends MigrationHelper implements MigrationScri
 
 			typesBuilder.getDefaultSchema(Document.SCHEMA_TYPE).get(Document.FOLDER).setCacheIndex(true);
 			typesBuilder.getDefaultSchema(Folder.SCHEMA_TYPE).get(Folder.PARENT_FOLDER).setCacheIndex(true);
+			typesBuilder.getDefaultSchema(DecommissioningList.SCHEMA_TYPE).get(DecommissioningList.FOLDERS).setCacheIndex(true);
+			typesBuilder.getDefaultSchema(DecommissioningList.SCHEMA_TYPE).get(DecommissioningList.DOCUMENTS).setCacheIndex(true);
+			typesBuilder.getDefaultSchema(Document.SCHEMA_TYPE).get(Document.FOLDER_CATEGORY).setCacheIndex(true);
 		}
 	}
 }

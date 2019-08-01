@@ -17,6 +17,7 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.cache.hooks.RecordsCachesHook;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SearchServices;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.collections.impl.factory.Sets;
@@ -297,7 +298,7 @@ public class RecordsCache2IntegrityDiagnosticService {
 		for (Metadata metadata : schemaType.getSchema(recordFromSolr.getSchemaCode()).getMetadatas()) {
 
 			if (metadata.getType() == MetadataValueType.STRUCTURE || metadata.getType() == MetadataValueType.CONTENT
-				|| metadata.isEncrypted()) {
+				|| metadata.isEncrypted() || !SchemaUtils.isSummary(metadata)) {
 				//TODO Improve!
 				continue;
 			}

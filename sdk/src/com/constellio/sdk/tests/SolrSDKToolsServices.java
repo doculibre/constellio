@@ -59,7 +59,7 @@ public class SolrSDKToolsServices {
 		params.add("fq", "-type_s:marker");
 		params.add("fq", "-id:lock__*");
 
-		for (Iterator<RecordDTO> iterator = new LazyRecordDTOResultsIterator(recordDao, params, 100, true); iterator
+		for (Iterator<RecordDTO> iterator = new LazyRecordDTOResultsIterator(recordDao, params, 100, true, "*SDK* Snapshot"); iterator
 				.hasNext(); ) {
 			RecordDTO record = iterator.next();
 			if (!record.getId().endsWith("ZZ")) {

@@ -18,6 +18,7 @@ import java.util.Arrays;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -48,7 +49,7 @@ public class LazyResultsIteratorTest extends ConstellioTest {
 		modifiableSolrParams.set("q", "zeQ");
 		modifiableSolrParams.set("fq", "zeFQ");
 
-		iterator = spy(new LazyResultsIterator<String>(recordDao, modifiableSolrParams, 3, true) {
+		iterator = spy(new LazyResultsIterator<String>(recordDao, modifiableSolrParams, 3, true, "test") {
 			@Override
 			public String convert(RecordDTO recordDTO) {
 				return "converted_" + recordDTO.getId();
@@ -71,7 +72,7 @@ public class LazyResultsIteratorTest extends ConstellioTest {
 
 		ArgumentCaptor<SolrParams> solrParams = ArgumentCaptor.forClass(SolrParams.class);
 
-		when(recordDao.query(solrParams.capture())).thenReturn(noResultsResponse);
+		when(recordDao.query(anyString(), solrParams.capture())).thenReturn(noResultsResponse);
 
 		assertThat(iterator.hasNext()).isFalse();
 		verify(iterator).loadNextBatch();
@@ -84,7 +85,7 @@ public class LazyResultsIteratorTest extends ConstellioTest {
 
 		QueryResponseDTO batch1 = responseWithElements(record1, record2, record3);
 		QueryResponseDTO batch2 = responseWithElements(record4);
-		when(recordDao.query(any(SolrParams.class))).thenReturn(batch1).thenReturn(batch2);
+		when(recordDao.query(anyString(), any(SolrParams.class))).thenReturn(batch1).thenReturn(batch2);
 
 		assertThat(iterator.hasNext()).isTrue();
 		assertThat(iterator.next()).isEqualTo("converted_1");
@@ -104,7 +105,7 @@ public class LazyResultsIteratorTest extends ConstellioTest {
 
 		QueryResponseDTO batch1 = responseWithElements(record1, record2, record3);
 		QueryResponseDTO batch2 = responseWithElements(record4);
-		when(recordDao.query(any(SolrParams.class))).thenReturn(batch1).thenReturn(batch2);
+		when(recordDao.query(anyString(), any(SolrParams.class))).thenReturn(batch1).thenReturn(batch2);
 
 		assertThat(iterator.hasNext()).isTrue();
 		assertThat(iterator.hasNext()).isTrue();
@@ -132,7 +133,7 @@ public class LazyResultsIteratorTest extends ConstellioTest {
 
 		QueryResponseDTO batch1 = responseWithElements(record1, record2, record3);
 		QueryResponseDTO batch2 = responseWithElements(record4);
-		when(recordDao.query(any(SolrParams.class))).thenReturn(batch1).thenReturn(batch2);
+		when(recordDao.query(anyString(), any(SolrParams.class))).thenReturn(batch1).thenReturn(batch2);
 
 		assertThat(iterator.next()).isEqualTo("converted_1");
 		assertThat(iterator.next()).isEqualTo("converted_2");
@@ -147,7 +148,7 @@ public class LazyResultsIteratorTest extends ConstellioTest {
 
 		QueryResponseDTO batch1 = responseWithElements(record1, record2, record3);
 		QueryResponseDTO batch2 = noResultsResponse;
-		when(recordDao.query(any(SolrParams.class))).thenReturn(batch1).thenReturn(batch2);
+		when(recordDao.query(anyString(), any(SolrParams.class))).thenReturn(batch1).thenReturn(batch2);
 
 		assertThat(iterator.hasNext()).isTrue();
 		assertThat(iterator.next()).isEqualTo("converted_1");
@@ -166,7 +167,7 @@ public class LazyResultsIteratorTest extends ConstellioTest {
 		QueryResponseDTO batch1 = responseWithElements(record1, record2, record3);
 		QueryResponseDTO batch2 = responseWithElements(record3, record1, record4);
 		QueryResponseDTO batch3 = noResultsResponse;
-		when(recordDao.query(any(SolrParams.class))).thenReturn(batch1).thenReturn(batch2).thenReturn(batch3);
+		when(recordDao.query(anyString(), any(SolrParams.class))).thenReturn(batch1).thenReturn(batch2).thenReturn(batch3);
 
 		assertThat(iterator.hasNext()).isTrue();
 		assertThat(iterator.next()).isEqualTo("converted_1");
@@ -192,7 +193,7 @@ public class LazyResultsIteratorTest extends ConstellioTest {
 		QueryResponseDTO batch2 = responseWithElements(record3, record1, record4);
 		QueryResponseDTO batch3 = noResultsResponse;
 		ArgumentCaptor<SolrParams> solrParams = ArgumentCaptor.forClass(SolrParams.class);
-		when(recordDao.query(solrParams.capture())).thenReturn(batch1).thenReturn(batch2).thenReturn(batch3);
+		when(recordDao.query(anyString(), solrParams.capture())).thenReturn(batch1).thenReturn(batch2).thenReturn(batch3);
 
 		while (iterator.hasNext()) {
 			iterator.next();
@@ -222,7 +223,7 @@ public class LazyResultsIteratorTest extends ConstellioTest {
 
 		ArgumentCaptor<SolrParams> solrParams = ArgumentCaptor.forClass(SolrParams.class);
 
-		when(recordDao.query(solrParams.capture())).thenReturn(noResultsResponse);
+		when(recordDao.query(anyString(), solrParams.capture())).thenReturn(noResultsResponse);
 
 		iterator.next();
 
@@ -234,7 +235,7 @@ public class LazyResultsIteratorTest extends ConstellioTest {
 
 		ArgumentCaptor<SolrParams> solrParams = ArgumentCaptor.forClass(SolrParams.class);
 		QueryResponseDTO batch1 = responseWithElements(record1);
-		when(recordDao.query(solrParams.capture())).thenReturn(batch1);
+		when(recordDao.query(anyString(), solrParams.capture())).thenReturn(batch1);
 
 		iterator.next();
 		try {

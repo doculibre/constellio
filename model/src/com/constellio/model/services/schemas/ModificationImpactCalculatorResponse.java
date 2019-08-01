@@ -8,18 +8,19 @@ public class ModificationImpactCalculatorResponse {
 
 	List<ModificationImpact> impacts;
 
-	List<String> recordsToReindex;
+	List<String> recordsToReindexLater;
 
-	public ModificationImpactCalculatorResponse(List<ModificationImpact> impacts, List<String> recordsToReindex) {
+	public ModificationImpactCalculatorResponse(List<ModificationImpact> impacts, List<String> recordsToReindexLater) {
 		this.impacts = impacts;
-		this.recordsToReindex = recordsToReindex;
+		this.recordsToReindexLater = recordsToReindexLater;
 	}
 
 	public List<ModificationImpact> getImpacts() {
 		return impacts;
 	}
 
-	public List<String> getRecordsToReindex() {
-		return recordsToReindex;
+
+	public List<String> getRecordsToReindexLater() {
+		return recordsToReindexLater;
 	}
 }

@@ -99,6 +99,7 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryFacetFilters;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuerySort;
+import com.constellio.model.services.search.query.logical.QueryExecutionMethod;
 import com.constellio.model.services.search.query.logical.ScoreLogicalSearchQuerySort;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import org.apache.commons.lang3.StringUtils;
@@ -480,7 +481,9 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	public int getTaskCount() {
-		return tasksDataProvider.size();
+		LogicalSearchQuery query = new LogicalSearchQuery(tasksDataProvider.getQuery());
+		query.setQueryExecutionMethod(QueryExecutionMethod.USE_CACHE);
+		return (int) searchServices().getResultsCount(query);
 	}
 
 	public RecordVODataProvider getWorkflows() {

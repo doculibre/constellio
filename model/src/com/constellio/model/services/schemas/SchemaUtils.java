@@ -25,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -257,6 +258,22 @@ public class SchemaUtils {
 		return summaryMetadatas;
 	}
 
+	public static boolean areCacheIndex(Collection<Metadata> metadatas) {
+		boolean allSummary = true;
+		for (Metadata metadata : metadatas) {
+			allSummary &= metadata.isCacheIndex();
+		}
+		return allSummary;
+	}
+
+	public static boolean areSummary(Collection<Metadata> metadatas) {
+		boolean allSummary = true;
+		for (Metadata metadata : metadatas) {
+			allSummary &= isSummary(metadata);
+		}
+		return allSummary;
+	}
+
 	public static boolean isSummary(Metadata metadata) {
 		boolean summary;
 		switch (metadata.getType()) {
@@ -264,7 +281,11 @@ public class SchemaUtils {
 			case DATE_TIME:
 			case STRING:
 				summary = metadata.isEssentialInSummary() || metadata.isUniqueValue()
-						  || TITLE.isSameLocalCode(metadata) || metadata.isEssentialInSummary() || metadata.isCacheIndex();
+						  || TITLE.isSameLocalCode(metadata) || metadata.isEssentialInSummary()
+						  || metadata.isCacheIndex() || Schemas.TOKENS.getLocalCode().equals(metadata.getLocalCode())
+						  || Schemas.ALL_REMOVED_AUTHS.getLocalCode().equals(metadata.getLocalCode())
+						  || Schemas.ATTACHED_ANCESTORS.getLocalCode().equals(metadata.getLocalCode());
+				;
 				break;
 
 			case STRUCTURE:

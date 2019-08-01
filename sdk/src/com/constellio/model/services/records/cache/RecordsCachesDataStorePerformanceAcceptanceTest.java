@@ -3,10 +3,10 @@ package com.constellio.model.services.records.cache;
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordDTOMode;
 import com.constellio.data.dao.dto.records.SolrRecordDTO;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.schemas.RecordCacheType;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.records.cache.ByteArrayRecordDTO;
 import com.constellio.model.services.records.cache.dataStore.RecordsCachesDataStore;
 import com.constellio.model.services.records.cache.offHeapCollections.OffHeapMemoryAllocator;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
@@ -105,6 +105,7 @@ public class RecordsCachesDataStorePerformanceAcceptanceTest extends ConstellioT
 	public void given4MRecordsSplittedOn10CollectionsAnd30TypesThenLookupByCollectionsAndTypesVeryFast()
 			throws Exception {
 
+		Toggle.USE_MMAP_WITHMAP_DB.enable();
 		prepareSystem(withZeCollection(), withCollection("collection2"), withCollection("collection3"), withCollection("collection4"));
 		String[] collections = new String[]{"zeCollection", "collection2", "collection3", "collection4",};
 

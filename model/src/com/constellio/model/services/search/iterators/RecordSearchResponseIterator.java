@@ -14,8 +14,8 @@ public class RecordSearchResponseIterator extends LazyResultsIterator<Record> im
 	private RecordServices recordServices;
 
 	public RecordSearchResponseIterator(ModelLayerFactory modelLayerFactory, SolrParams solrParams, int intervalsLength,
-										boolean fullyLoaded) {
-		super(modelLayerFactory.getDataLayerFactory().newRecordDao(), solrParams, intervalsLength, true);
+										boolean fullyLoaded, String queryName) {
+		super(modelLayerFactory.getDataLayerFactory().newRecordDao(), solrParams, intervalsLength, true, queryName);
 		this.fullyLoaded = fullyLoaded;
 		this.recordServices = modelLayerFactory.newRecordServices();
 	}

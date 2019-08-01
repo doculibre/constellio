@@ -132,7 +132,7 @@ public class InheritedMetadataBehaviors implements Serializable {
 	}
 
 	public boolean isCacheIndex() {
-		return cacheIndex;
+		return cacheIndex || childOfRelationship || taxonomyRelationship;
 	}
 
 	public boolean isEncrypted() {
