@@ -39,6 +39,7 @@ import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.entities.schemas.entries.InMemoryAggregatedValuesParams;
 import com.constellio.model.entities.schemas.entries.SearchAggregatedValuesParams;
+import com.constellio.model.entities.schemas.entries.SearchAggregatedValuesParams.SearchAggregatedValuesParamsQuery;
 import com.constellio.model.entities.schemas.entries.TransactionAggregatedValuesParams;
 import com.constellio.model.entities.security.SecurityModel;
 import com.constellio.model.entities.security.SingletonSecurityModel;
@@ -53,7 +54,9 @@ import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
+import com.constellio.model.services.search.LogicalSearchQueryExecutorInCache;
 import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.ongoing.OngoingLogicalSearchCondition;
@@ -74,6 +77,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import static com.constellio.model.entities.enums.GroupAuthorizationsInheritance.FROM_PARENT_TO_CHILD;
 import static com.constellio.model.services.records.aggregations.MetadataAggregationHandlerFactory.getHandlerFor;
@@ -176,19 +181,20 @@ public class RecordAutomaticMetadataServices {
 		AggregatedDataEntry aggregatedDataEntry = (AggregatedDataEntry) metadata.getDataEntry();
 
 		Map<String, List<String>> inputMetadatasByReferenceMetadata = aggregatedDataEntry.getInputMetadatasByReferenceMetadata();
-		LogicalSearchQuery query = buildAggregatedQuery(record, types, inputMetadatasByReferenceMetadata);
+		LogicalSearchQuery query = buildCombinedAggregatedQuery(record, types, inputMetadatasByReferenceMetadata);
+		List<SearchAggregatedValuesParamsQuery> queries = buildAggregatedQueries(metadata, record, types, inputMetadatasByReferenceMetadata);
 
 		AggregationType agregationType = aggregatedDataEntry.getAgregationType();
 		if (agregationType != null) {
-			SearchAggregatedValuesParams aggregatedValuesParams = new SearchAggregatedValuesParams(query, record, metadata,
+			SearchAggregatedValuesParams aggregatedValuesParams = new SearchAggregatedValuesParams(query, queries, record, metadata,
 					aggregatedDataEntry, types, searchServices);
 			Object calculatedValue = getHandlerFor(metadata).calculate(aggregatedValuesParams);
 			(aggregatedValuesParams.getRecord()).updateAutomaticValue(metadata, calculatedValue);
 		}
 	}
 
-	private LogicalSearchQuery buildAggregatedQuery(Record record, MetadataSchemaTypes types,
-													Map<String, List<String>> inputMetadatasByReferenceMetadata) {
+	private LogicalSearchQuery buildCombinedAggregatedQuery(Record record, MetadataSchemaTypes types,
+															Map<String, List<String>> inputMetadatasByReferenceMetadata) {
 		List<MetadataSchemaType> schemaTypes = new ArrayList<>();
 		for (String referenceMetadata : inputMetadatasByReferenceMetadata.keySet()) {
 			MetadataSchemaType schemaType = types.getSchemaType(SchemaUtils.getSchemaTypeCode(referenceMetadata));
@@ -202,6 +208,70 @@ public class RecordAutomaticMetadataServices {
 			conditions.add(ongoingCondition.where(metadata).isEqualTo(record));
 		}
 		return new LogicalSearchQuery().setCondition(ongoingCondition.whereAnyCondition(conditions));
+
+
+	}
+
+	private List<SearchAggregatedValuesParamsQuery> buildAggregatedQueries(Metadata aggregatedMetadata,
+																		   Record record,
+																		   MetadataSchemaTypes types,
+																		   Map<String, List<String>> inputMetadatasByReferenceMetadata) {
+
+		List<SearchAggregatedValuesParamsQuery> queries = new ArrayList<>();
+
+		for (Map.Entry<String, List<String>> entry : inputMetadatasByReferenceMetadata.entrySet()) {
+			Metadata metadata = types.getMetadata(entry.getKey());
+			MetadataSchemaType schemaType = types.getSchemaType(SchemaUtils.getSchemaTypeCode(entry.getKey()));
+
+			LogicalSearchQuery query = new LogicalSearchQuery(from(schemaType).where(metadata).isEqualTo(record));
+			List<Metadata> metadatas = new ArrayList<>();
+			for (String value : entry.getValue()) {
+				metadatas.add(schemaType.getDefaultSchema().get(value));
+			}
+
+			Supplier<Stream<Record>> streamSupplier = new Supplier<Stream<Record>>() {
+				@Override
+				public Stream<Record> get() {
+
+					LogicalSearchQueryExecutorInCache executorInCache = searchServices.getQueryExecutorInCache();
+					Stream<Record> stream = null;
+					if (schemaType.getCacheType().isSummaryCache()) {
+						for (Metadata aMetadata : metadatas) {
+							if (!SchemaUtils.isSummary(aMetadata)) {
+								LOGGER.warn("Aggregated metadata '" + aggregatedMetadata.getCode() + "' should use cache for recalculation : metadata '" + aMetadata.getCode() + "' used to calculation is not summary");
+								stream = searchServices.streamFromSolr(query);
+								break;
+							}
+						}
+
+						query.setReturnedMetadatas(ReturnedMetadatasFilter.onlySummaryFields());
+						if (stream == null) {
+							if (!executorInCache.isQueryExecutableInCache(query)) {
+								LOGGER.warn("Aggregated metadata '" + aggregatedMetadata.getCode() + "' should use cache for recalculation : query unsupported in cache");
+								stream = searchServices.streamFromSolr(query);
+
+							} else {
+								stream = executorInCache.stream(query);
+
+							}
+						}
+					} else {
+						if (executorInCache.isQueryExecutableInCache(query)) {
+							stream = executorInCache.stream(query);
+
+						} else {
+							LOGGER.warn("Aggregated metadata '" + aggregatedMetadata.getCode() + "' should use cache for recalculation");
+							stream = searchServices.streamFromSolr(query);
+						}
+					}
+					return stream;
+				}
+			};
+
+			queries.add(new SearchAggregatedValuesParamsQuery(query, metadatas, schemaType, streamSupplier));
+		}
+
+		return queries;
 	}
 
 	private void setAggregatedValuesInRecordsBasedOnOtherRecordInTransaction(TransactionExecutionContext context,

@@ -482,7 +482,7 @@ public class BatchProcessingPresenterService {
 				List<Taxonomy> taxonomies = modelLayerFactory.getTaxonomiesManager().getEnabledTaxonomies(collection);
 				ModificationImpactCalculatorResponse response = new ModificationImpactCalculator(
 						schemas.getTypes(), taxonomies, searchServices, recordServices).findTransactionImpact(transaction, true);
-				transaction.addAllRecordsToReindex(response.getRecordsToReindex());
+				transaction.addAllRecordsToReindex(response.getRecordsToReindexLater());
 				for (ModificationImpact impact : response.getImpacts()) {
 					impacts.add(
 							new BatchProcessPossibleImpact(impact.getPotentialImpactsCount(), impact.getImpactedSchemaType()));
@@ -545,7 +545,7 @@ public class BatchProcessingPresenterService {
 			ModificationImpactCalculatorResponse modificationImpactCalculatorResponse =
 					new ModificationImpactCalculator(schemas.getTypes(), taxonomies, searchServices,
 							recordServices).findTransactionImpact(transaction, true);
-			transaction.addAllRecordsToReindex(modificationImpactCalculatorResponse.getRecordsToReindex());
+			transaction.addAllRecordsToReindex(modificationImpactCalculatorResponse.getRecordsToReindexLater());
 			for (ModificationImpact impact : modificationImpactCalculatorResponse.getImpacts()) {
 				impacts.add(new BatchProcessPossibleImpact(impact.getPotentialImpactsCount(), impact.getImpactedSchemaType()));
 			}

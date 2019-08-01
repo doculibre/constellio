@@ -26,7 +26,7 @@ public abstract class SolrStatMetadataAggregationHandler implements MetadataAggr
 	public Object calculate(SearchAggregatedValuesParams params) {
 
 		Metadata inputMetadata = params.getTypes().getMetadata(params.getAggregatedDataEntry().getFirstInputMetadata());
-		LogicalSearchQuery query = params.getQuery();
+		LogicalSearchQuery query = params.getCombinedQuery();
 
 		if (inputMetadata.getType() == MetadataValueType.NUMBER) {
 			query.computeStatsOnField(inputMetadata);

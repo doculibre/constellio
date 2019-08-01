@@ -12,6 +12,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.ModificationImpact;
+import com.constellio.model.entities.schemas.RecordCacheType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
@@ -192,6 +193,7 @@ public class ModificationImpactCalculatorTest extends ConstellioTest {
 
 		List<Metadata> automaticMetadatas = asList(firstAutomaticMetadata, secondAutomaticMetadata, thirdAutomaticMetadata);
 		when(schemaType.getAutomaticMetadatas()).thenReturn(automaticMetadatas);
+		when(schemaType.getCacheType()).thenReturn(RecordCacheType.FULLY_CACHED);
 
 		RecordsModification modification = new RecordsModification(Arrays.asList(record), Arrays.asList(modifiedMetadata),
 				schemaType);
@@ -225,6 +227,7 @@ public class ModificationImpactCalculatorTest extends ConstellioTest {
 				secondAutomaticMetadata, modifiedMetadatas);
 		doReturn(thirdMetadataReferences).when(impactCalculator).getReferenceMetadatasLinkingToModifiedMetadatas(
 				thirdAutomaticMetadata, modifiedMetadatas);
+		when(schemaType.getCacheType()).thenReturn(RecordCacheType.FULLY_CACHED);
 
 		List<Metadata> automaticMetadatas = asList(firstAutomaticMetadata, secondAutomaticMetadata, thirdAutomaticMetadata);
 		when(schemaType.getAutomaticMetadatas()).thenReturn(automaticMetadatas);
@@ -261,6 +264,7 @@ public class ModificationImpactCalculatorTest extends ConstellioTest {
 				secondAutomaticMetadata, modifiedMetadatas);
 		doReturn(thirdMetadataReferences).when(impactCalculator).getReferenceMetadatasLinkingToModifiedMetadatas(
 				thirdAutomaticMetadata, modifiedMetadatas);
+		when(schemaType.getCacheType()).thenReturn(RecordCacheType.FULLY_CACHED);
 
 		List<Metadata> automaticMetadatas = asList(firstAutomaticMetadata, secondAutomaticMetadata, thirdAutomaticMetadata);
 		when(schemaType.getAutomaticMetadatas()).thenReturn(automaticMetadatas);

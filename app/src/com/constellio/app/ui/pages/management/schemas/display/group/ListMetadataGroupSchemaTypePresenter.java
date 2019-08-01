@@ -1,25 +1,32 @@
 package com.constellio.app.ui.pages.management.schemas.display.group;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import org.apache.commons.lang3.StringUtils;
-
+import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
+import com.constellio.app.services.schemasDisplay.SchemaDisplayManagerTransaction;
+import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 public class ListMetadataGroupSchemaTypePresenter extends SingleSchemaBasePresenter<ListMetadataGroupSchemaTypeView> {
 
 	private String schemaTypeCode;
 	
 	private List<String> metadataGroups = new ArrayList<>();
+	private String defaultMetadataGroup;
 
 	public ListMetadataGroupSchemaTypePresenter(ListMetadataGroupSchemaTypeView view) {
 		super(view);
@@ -30,7 +37,13 @@ public class ListMetadataGroupSchemaTypePresenter extends SingleSchemaBasePresen
 		schemaTypeCode = paramsMap.get("schemaTypeCode");
 
 		SchemaTypeDisplayConfig typeConfig = schemasDisplayManager().getType(collection, schemaTypeCode);
-		metadataGroups.addAll(typeConfig.getMetadataGroup().keySet());
+		Set<String> allMetadataGroups = typeConfig.getMetadataGroup().keySet();
+		for (String metadataGroup : allMetadataGroups) {
+			metadataGroups.add(metadataGroup);
+			if (metadataGroup.startsWith("default:")) {
+				defaultMetadataGroup = metadataGroup;
+			}
+		}
 		
 		view.setMetadataGroups(metadataGroups);
 	}
@@ -75,9 +88,12 @@ public class ListMetadataGroupSchemaTypePresenter extends SingleSchemaBasePresen
 	public void backButtonClicked() {
 		view.navigate().to().listSchemaTypes();
 	}
-	
-	private void saveChanges() {
-		SchemaTypeDisplayConfig typeConfig = schemasDisplayManager().getType(collection, schemaTypeCode);
+
+	private void saveChanges(String medataGroupCode, boolean metatadaGroupCodeDeleted) {
+		SchemasDisplayManager displayManager = schemasDisplayManager();
+		SchemaDisplayManagerTransaction transaction = new SchemaDisplayManagerTransaction();
+
+		SchemaTypeDisplayConfig typeConfig = displayManager.getType(collection, schemaTypeCode);
 		Map<String, Map<Language, String>> oldGroups = typeConfig.getMetadataGroup();
 		Map<String, Map<Language, String>> newGroups = new LinkedHashMap<>();
 		for (String metadataGroup : metadataGroups) {
@@ -85,9 +101,27 @@ public class ListMetadataGroupSchemaTypePresenter extends SingleSchemaBasePresen
 			newGroups.put(metadataGroup, metadataGroupLabels);
 		}
 		typeConfig = typeConfig.withMetadataGroup(newGroups);
-		schemasDisplayManager().saveType(typeConfig);
+		transaction.add(typeConfig);
+
+		if (metatadaGroupCodeDeleted) {
+			MetadataSchemaType schemaType = schemaType(schemaTypeCode);
+			for (MetadataSchema metadataSchema : schemaType.getAllSchemas()) {
+				for (Metadata metadata : metadataSchema.getMetadatas()) {
+					MetadataDisplayConfig displayConfig = displayManager.getMetadata(collection, metadata.getCode());
+					if (displayConfig.getMetadataGroupCode().equals(medataGroupCode)) {
+						transaction.add(displayConfig.withMetadataGroup(getDefaultMetadataGroupCode()));
+					}
+				}
+			}
+		}
+
+		displayManager.execute(transaction);
 	}
-	
+
+	public String getDefaultMetadataGroupCode() {
+		return defaultMetadataGroup;
+	}
+
 	void groupDroppedOn(String code, String targetCode, Boolean above) {
 		int targetIndex = above ? metadataGroups.indexOf(targetCode) : metadataGroups.indexOf(targetCode) + 1;
 		if (targetIndex >= metadataGroups.size()) {
@@ -95,7 +129,7 @@ public class ListMetadataGroupSchemaTypePresenter extends SingleSchemaBasePresen
 		}
 		metadataGroups.remove(code);
 		metadataGroups.add(targetIndex, code);
-		saveChanges();
+		saveChanges(code, false);
 	}
 	
 	void windowClosed() {
@@ -121,7 +155,7 @@ public class ListMetadataGroupSchemaTypePresenter extends SingleSchemaBasePresen
 	void deleteButtonClicked(String code) {
 		if (metadataGroups.size() > 1) {
 			metadataGroups.remove(code);
-			saveChanges();
+			saveChanges(code, true);
 			view.removeMetadataGroup(code);
 		} else {
 			view.displayDeleteError();

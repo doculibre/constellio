@@ -26,13 +26,16 @@ public abstract class LazyResultsIterator<T> extends LazyIterator<T> implements 
 	private long currentNumFound = -1;
 	protected String lastId = null;
 	private boolean ascendingSort;
+	private String queryName;
 
-	public LazyResultsIterator(RecordDao recordDao, SolrParams solrParams, int intervalsLength, boolean ascendingSort) {
+	public LazyResultsIterator(RecordDao recordDao, SolrParams solrParams, int intervalsLength, boolean ascendingSort,
+							   String queryName) {
 		this.recordDao = recordDao;
 		this.solrParams = new ModifiableSolrParams(solrParams);
 		this.solrParams.set("rows", intervalsLength);
 		this.intervalsLength = intervalsLength;
 		this.ascendingSort = ascendingSort;
+		this.queryName = queryName;
 	}
 
 	@Override
@@ -95,7 +98,7 @@ public abstract class LazyResultsIterator<T> extends LazyIterator<T> implements 
 			}
 		}
 		//params.set("start", currentStart);
-		QueryResponseDTO responseDTO = recordDao.query(params);
+		QueryResponseDTO responseDTO = recordDao.query(queryName, params);
 		currentBatch = responseDTO.getResults();
 		currentNumFound = responseDTO.getNumFound();
 		currentBatchIndex = 0;
@@ -105,8 +108,9 @@ public abstract class LazyResultsIterator<T> extends LazyIterator<T> implements 
 	public static class LazyRecordDTOResultsIterator extends LazyResultsIterator<RecordDTO> {
 
 		public LazyRecordDTOResultsIterator(RecordDao recordDao, SolrParams solrParams, int intervalsLength,
-											boolean ascendingSort) {
-			super(recordDao, solrParams, intervalsLength, ascendingSort);
+											boolean ascendingSort,
+											String queryName) {
+			super(recordDao, solrParams, intervalsLength, ascendingSort, queryName);
 		}
 
 		@Override

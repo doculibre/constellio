@@ -7,9 +7,6 @@ import com.constellio.model.services.emails.EmailServicesException.EmailTempExce
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.LocalDateTime;
-import org.simplejavamail.converter.EmailConverter;
-import org.simplejavamail.email.AttachmentResource;
-import org.simplejavamail.email.Email;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -142,15 +139,19 @@ public class EmailServices {
 	}
 
 	public List<MessageAttachment> getAttachments(MimeMessage message)
-			throws IOException {
-		Email emailFromMimeMessage = EmailConverter.mimeMessageToEmail(message);
-		List<AttachmentResource> attachments = emailFromMimeMessage.getAttachments();
+			throws IOException, MessagingException {
 		List<MessageAttachment> returnList = new ArrayList<>();
-		if (attachments != null) {
-			for (AttachmentResource attachmentResource : attachments) {
-				returnList.add(new MessageAttachment().setAttachmentName(attachmentResource.getName())
-						.setInputStream(attachmentResource.getDataSource().getInputStream())
-						.setMimeType(attachmentResource.getDataSource().getContentType()));
+		Multipart multipart = (Multipart) message.getContent();
+
+		for (int x = 0; x < multipart.getCount(); x++) {
+			BodyPart bodyPart = multipart.getBodyPart(x);
+			String disposition = bodyPart.getDisposition();
+			if (disposition != null && (disposition.equals(BodyPart.ATTACHMENT))) {
+				DataHandler handler = bodyPart.getDataHandler();
+
+				returnList.add(new MessageAttachment().setAttachmentName(handler.getName())
+						.setInputStream(handler.getInputStream())
+						.setMimeType(handler.getContentType()));
 			}
 		}
 		return returnList;

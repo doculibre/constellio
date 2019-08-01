@@ -22,6 +22,7 @@ import java.util.function.Consumer;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_ADD_AUTHORIZATION;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_ADD_TO_CART;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_ADD_TO_SELECTION;
+import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_AVAILABLE_ALERT;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_CHECK_IN;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_CHECK_OUT;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_COPY;
@@ -213,6 +214,15 @@ public class DocumentMenuItemServices {
 			menuItemActions.add(menuItemAction);
 		}
 
+		if (!filteredActionTypes.contains(DOCUMENT_AVAILABLE_ALERT.name())) {
+			MenuItemAction menuItemAction = buildMenuItemAction(DOCUMENT_AVAILABLE_ALERT.name(),
+					isMenuItemActionPossible(DOCUMENT_AVAILABLE_ALERT.name(), document, user, params),
+					$("DocumentContextMenu.alertWhenAvailable"), FontAwesome.BELL_O, -1, 1450,
+					(ids) -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).alertAvailable(document, params));
+
+			menuItemActions.add(menuItemAction);
+		}
+
 		if (!filteredActionTypes.contains(DOCUMENT_ADD_AUTHORIZATION.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(DOCUMENT_ADD_AUTHORIZATION.name(),
 					isMenuItemActionPossible(DOCUMENT_ADD_AUTHORIZATION.name(), document, user, params),
@@ -278,6 +288,8 @@ public class DocumentMenuItemServices {
 				return documentRecordActionsServices.isCheckOutActionPossible(record, user);
 			case DOCUMENT_CHECK_IN:
 				return documentRecordActionsServices.isCheckInActionPossible(record, user);
+			case DOCUMENT_AVAILABLE_ALERT:
+				return documentRecordActionsServices.isAvailableAlertActionPossible(record, user);
 			case DOCUMENT_ADD_AUTHORIZATION:
 				return documentRecordActionsServices.isAddAuthorizationActionPossible(record, user);
 			case DOCUMENT_GENERATE_REPORT:
@@ -319,6 +331,7 @@ public class DocumentMenuItemServices {
 		DOCUMENT_PRINT_LABEL,
 		DOCUMENT_CHECK_OUT,
 		DOCUMENT_CHECK_IN,
+		DOCUMENT_AVAILABLE_ALERT,
 		DOCUMENT_ADD_AUTHORIZATION,
 		DOCUMENT_GENERATE_REPORT;
 	}

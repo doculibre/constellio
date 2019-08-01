@@ -481,17 +481,18 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 
 	@Override
 	public Stream<Record> getRecordsByIndexedMetadata(MetadataSchemaType schemaType, Metadata metadata, String value) {
-		return getRecordsByIndexedMetadataLoadedAsTheyAreStored(schemaType, metadata, value);
+		return getRecordsByIndexedMetadataLoadedAsTheyAreStored(schemaType, metadata, value, false);
 	}
 
 	@Override
 	public Stream<Record> getRecordsSummaryByIndexedMetadata(MetadataSchemaType schemaType, Metadata metadata,
 															 String value) {
-		return getRecordsByIndexedMetadataLoadedAsTheyAreStored(schemaType, metadata, value);
+		return getRecordsByIndexedMetadataLoadedAsTheyAreStored(schemaType, metadata, value, true);
 	}
 
 	private Stream<Record> getRecordsByIndexedMetadataLoadedAsTheyAreStored(MetadataSchemaType schemaType,
-																			Metadata metadata, String value) {
+																			Metadata metadata, String value,
+																			boolean summary) {
 		if (metadata.isSameLocalCode(Schemas.IDENTIFIER)) {
 			Record record = get(value, metadata.getCollection());
 			if (record == null) {
@@ -503,7 +504,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 			throw new ImpossibleRuntimeException("Searching with a metadata from collection '" + metadata.getCollection() + "' in cache of collection '" + schemaType.getCollection() + "'");
 		}
 
-		if (schemaType.getCacheType() == RecordCacheType.FULLY_CACHED) {
+		//if (schemaType.getCacheType() == RecordCacheType.FULLY_CACHED) {
 			List<String> searchResult = metadataIndexCacheDataStore.search(schemaType, metadata, value);
 
 			if (searchResult != null && !searchResult.isEmpty()) {
@@ -514,9 +515,9 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 				return Stream.empty();
 			}
 
-		} else {
-			throw new ImpossibleRuntimeException("getByMetadata cannot be used for schema type '" + schemaType.getCode() + "' which is not fully cached. If the schema type has a summary cache, try using getSummaryByMetadata instead");
-		}
+//		} else {
+		//			throw new ImpossibleRuntimeException("getByMetadata cannot be used for schema type '" + schemaType.getCode() + "' which is not fully cached. If the schema type has a summary cache, try using getSummaryByMetadata instead");
+		//		}
 	}
 
 

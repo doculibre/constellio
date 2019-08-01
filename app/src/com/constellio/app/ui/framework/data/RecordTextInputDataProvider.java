@@ -75,7 +75,8 @@ public class RecordTextInputDataProvider extends TextInputDataProvider<String> {
 
 	public RecordTextInputDataProvider(ConstellioFactories constellioFactories, SessionContext sessionContext,
 									   String schemaTypeCode, String schemaCode, boolean writeAccess,
-									   boolean includeDeactivated, boolean onlyLinkables, boolean includeLogicallyDeleted) {
+									   boolean includeDeactivated, boolean onlyLinkables,
+									   boolean includeLogicallyDeleted) {
 		this.writeAccess = writeAccess;
 		this.sessionContext = sessionContext;
 		this.schemaTypeCode = schemaTypeCode;
@@ -167,7 +168,7 @@ public class RecordTextInputDataProvider extends TextInputDataProvider<String> {
 
 	public SPEQueryResponse searchAutocompleteField(User user, String text, int startIndex, int count) {
 		LogicalSearchQuery query = getQuery(user, text, startIndex, count);
-		return modelLayerFactory.newSearchServices().query(query);
+		return modelLayerFactory.newSearchServices().query(query.setName("Autocomplete"));
 	}
 
 	public LogicalSearchQuery getQuery(User user, String text, int startIndex, int count) {
@@ -215,8 +216,8 @@ public class RecordTextInputDataProvider extends TextInputDataProvider<String> {
 				.setStartRow(startIndex)
 				.setNumberOfRows(count);
 
-//		boolean isDDV = schemaTypeCode != null? schemaTypeCode.startsWith("ddv"):schemaCode.startsWith("ddv");
-		if(!includeLogicallyDeleted) {
+		//		boolean isDDV = schemaTypeCode != null? schemaTypeCode.startsWith("ddv"):schemaCode.startsWith("ddv");
+		if (!includeLogicallyDeleted) {
 			query.filteredByStatus(StatusFilter.ACTIVES);
 		}
 

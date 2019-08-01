@@ -1,8 +1,6 @@
 package com.constellio.app.ui.pages.management.valueDomains;
 
 import com.constellio.app.ui.entities.MetadataSchemaTypeVO;
-import com.constellio.app.ui.entities.MetadataSchemaVO;
-import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.DisplayButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
@@ -15,7 +13,6 @@ import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
-import com.constellio.app.ui.pages.management.schemaRecords.SchemaRecordViewBreadcrumbTrail;
 import com.constellio.app.ui.pages.viewGroups.AdminViewGroup;
 import com.constellio.app.ui.util.ViewErrorDisplay;
 import com.constellio.data.utils.dev.Toggle;
@@ -136,10 +133,16 @@ public class ListValueDomainViewImpl extends BaseViewImpl implements ListValueDo
 		protected Component buildWindowContent() {
 			baseTextFieldMap = new HashMap<>();
 
-			for (String language : presenter.getCollectionLanguage()) {
-				BaseTextField baseTextField = new BaseTextField($("title") + " (" + language.toUpperCase() + ")");
+			if (presenter.getCollectionLanguage().size() == 1) {
+				BaseTextField baseTextField = new BaseTextField($("title"));
 				baseTextField.setRequired(true);
-				baseTextFieldMap.put(Language.withCode(language), baseTextField);
+				baseTextFieldMap.put(Language.withCode(presenter.getCollectionLanguage().get(0)), baseTextField);
+			} else {
+				for (String language : presenter.getCollectionLanguage()) {
+					BaseTextField baseTextField = new BaseTextField($("title") + " (" + language.toUpperCase() + ")");
+					baseTextField.setRequired(true);
+					baseTextFieldMap.put(Language.withCode(language), baseTextField);
+				}
 			}
 
 			final AbstractField[] fieldArray = new AbstractField[baseTextFieldMap.size() + 1];

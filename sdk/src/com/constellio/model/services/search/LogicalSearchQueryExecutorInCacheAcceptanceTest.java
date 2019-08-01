@@ -185,7 +185,6 @@ public class LogicalSearchQueryExecutorInCacheAcceptanceTest extends ConstellioT
 
 		List<Record> queryResult = logicalSearchQueryExecutorInCache.stream(logicalSearchQuery).collect(Collectors.toList());
 
-		assertThat(logicalSearchQueryExecutorInCache.getLastStreamInitialBaseRecordSize()).isEqualTo(2);
 		assertThat(queryResult.size()).isEqualTo(1);
 		assertThat(queryResult.get(0).getId()).isEqualTo(record3.getId());
 
@@ -200,7 +199,6 @@ public class LogicalSearchQueryExecutorInCacheAcceptanceTest extends ConstellioT
 
 		List<Record> queryResult = logicalSearchQueryExecutorInCache.stream(logicalSearchQuery).collect(Collectors.toList());
 
-		assertThat(logicalSearchQueryExecutorInCache.getLastStreamInitialBaseRecordSize()).isEqualTo(2);
 		assertThat(queryResult.size()).isEqualTo(2);
 		assertThat(queryResult.get(0).getId()).isEqualTo(record3.getId());
 		assertThat(queryResult.get(1).getId()).isEqualTo(record4.getId());
@@ -216,7 +214,6 @@ public class LogicalSearchQueryExecutorInCacheAcceptanceTest extends ConstellioT
 
 		List<Record> queryResult = logicalSearchQueryExecutorInCache.stream(logicalSearchQuery).collect(Collectors.toList());
 
-		assertThat(logicalSearchQueryExecutorInCache.getLastStreamInitialBaseRecordSize()).isEqualTo(-1);
 		assertThat(queryResult.size()).isEqualTo(1);
 
 	}
@@ -230,7 +227,6 @@ public class LogicalSearchQueryExecutorInCacheAcceptanceTest extends ConstellioT
 
 		List<Record> queryResult = logicalSearchQueryExecutorInCache.stream(logicalSearchQuery).collect(Collectors.toList());
 
-		assertThat(logicalSearchQueryExecutorInCache.getLastStreamInitialBaseRecordSize()).isEqualTo(-1);
 		assertThat(queryResult.size()).isEqualTo(0);
 
 	}
@@ -244,7 +240,6 @@ public class LogicalSearchQueryExecutorInCacheAcceptanceTest extends ConstellioT
 
 		List<Record> queryResult = logicalSearchQueryExecutorInCache.stream(logicalSearchQuery).collect(Collectors.toList());
 
-		assertThat(logicalSearchQueryExecutorInCache.getLastStreamInitialBaseRecordSize()).isEqualTo(-1);
 		assertThat(queryResult.size()).isEqualTo(0);
 
 	}

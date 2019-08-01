@@ -48,7 +48,7 @@ public class SerializedCacheSearchService {
 	public SPEQueryResponse query(LogicalSearchQuery query, final int batch) {
 		long qtime = System.currentTimeMillis();
 		LogicalSearchQuery duplicateQuery = new LogicalSearchQuery(query);
-		List<Record> records = search(duplicateQuery, batch);
+		List<Record> records = search(duplicateQuery,  batch);
 		Map<String, Map<String, List<String>>> highlights = unmodifiableMap(cache.getHighlightingMap());
 
 		long numFound = records.size();

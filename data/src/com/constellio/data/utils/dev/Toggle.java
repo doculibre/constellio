@@ -73,7 +73,7 @@ public class Toggle {
 
 	public static AvailableToggle USE_BYTE_ARRAY_DTOS_FOR_SUMMARY_CACHE = newToggle(true);
 
-	public static AvailableToggle VALIDATE_CACHE_EXECUTION_SERVICE_USING_SOLR = newToggle(false);
+	public static AvailableToggle VALIDATE_CACHE_EXECUTION_SERVICE_USING_SOLR = newToggle(true);
 
 	public static AvailableToggle VALIDATE_BYTE_ARRAY_DTOS_AFTER_CREATION = newToggle(true);
 
@@ -172,12 +172,20 @@ public class Toggle {
 			}
 		}
 
-		public void enable() {
+		public boolean enable() {
+			boolean oldValue = enabled;
 			enabled = true;
+			return oldValue;
 		}
 
-		public void disable() {
+		public void set(boolean value) {
+			this.enabled = value;
+		}
+
+		public boolean disable() {
+			boolean oldValue = enabled;
 			enabled = false;
+			return oldValue;
 		}
 
 		public String getId() {

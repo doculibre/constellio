@@ -7,6 +7,7 @@ import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.records.wrappers.UserPermissionsChecker;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.SecurityModel;
@@ -168,7 +169,6 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 					.containsOnly(otherCollectionRecords.allFoldersAndDocumentsIds().toArray(new String[0]));
 		}
 	}
-
 
 
 	boolean checkIfDakotaSeeAndCanDeleteEverythingInCollection2 = true;
@@ -3425,7 +3425,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		auth3 = add(authorizationForUser(charles).on(FOLDER_TYPE1).givingReadWriteAccess().andOverridingInheritedAuths());
 		recordServices.update(records.folder4()
 				.set(setup.folderSchema.firstReferenceMetadataProvidingSecurity(), FOLDER_TYPE1));
-
+		waitForBatchProcess();
 		assertThat(users.charlesIn(zeCollection).hasReadAccess().on(record(FOLDER4))).isTrue();
 
 		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
@@ -3660,6 +3660,11 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		}
 
 		setTimeToCalling(date(2016, 4, 5));
+		UserPermissionsChecker checker = users.aliceIn(zeCollection).hasWriteAccess();
+		assertThat(checker.on(record(FOLDER4))).isFalse();
+
+		assertThat(checker.on(record(FOLDER4_1))).isFalse();
+
 		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
 			verifyRecord.usersWithWriteAccess().containsOnly(bob, charles, dakota, edouard, chuck);
 		}

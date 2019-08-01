@@ -148,7 +148,12 @@ public class NewVolatileRecordCacheAcceptanceTest extends ConstellioTest {
 		Record summaryRecordFromCache = cache.getRecordSummary(id(1234));
 		assertThat(summaryRecordFromCache.<String>get(TITLE)).isEqualTo("val1");
 		assertThat(summaryRecordFromCache.<String>get(zeCollectionSchemaType1.stringMetadata())).isEqualTo("val2");
-		assertThat(summaryRecordFromCache.<String>get(zeCollectionSchemaType1.anotherStringMetadata())).isNull();
+		try {
+			summaryRecordFromCache.<String>get(zeCollectionSchemaType1.anotherStringMetadata());
+			fail("Exception expected");
+		} catch (IllegalArgumentException e) {
+			//OK
+		}
 		assertThat(summaryRecordFromCache.isSummary()).isTrue();
 
 		long version = cache.getRecord(id(1234)).getVersion();
@@ -171,7 +176,12 @@ public class NewVolatileRecordCacheAcceptanceTest extends ConstellioTest {
 		summaryRecordFromCache = cache.getRecordSummary(id(1234));
 		assertThat(summaryRecordFromCache.<String>get(TITLE)).isEqualTo("val1");
 		assertThat(summaryRecordFromCache.<String>get(zeCollectionSchemaType1.stringMetadata())).isEqualTo("val2");
-		assertThat(summaryRecordFromCache.<String>get(zeCollectionSchemaType1.anotherStringMetadata())).isNull();
+		try {
+			summaryRecordFromCache.<String>get(zeCollectionSchemaType1.anotherStringMetadata());
+			fail("Exception expected");
+		} catch (IllegalArgumentException e) {
+			//OK
+		}
 		assertThat(summaryRecordFromCache.isSummary()).isTrue();
 
 		//Updating the record using a fully loaded record, both volatile and summary permanent are updated
@@ -185,7 +195,12 @@ public class NewVolatileRecordCacheAcceptanceTest extends ConstellioTest {
 		summaryRecordFromCache = cache.getRecordSummary(id(1234));
 		assertThat(summaryRecordFromCache.<String>get(TITLE)).isEqualTo("val1");
 		assertThat(summaryRecordFromCache.<String>get(zeCollectionSchemaType1.stringMetadata())).isEqualTo("val4");
-		assertThat(summaryRecordFromCache.<String>get(zeCollectionSchemaType1.anotherStringMetadata())).isNull();
+		try {
+			summaryRecordFromCache.<String>get(zeCollectionSchemaType1.anotherStringMetadata());
+			fail("Exception expected");
+		} catch (IllegalArgumentException e) {
+			//OK
+		}
 		assertThat(summaryRecordFromCache.isSummary()).isTrue();
 
 		//Currently, it is not possible to execute transaction using records that are not fully loaded
@@ -215,7 +230,6 @@ public class NewVolatileRecordCacheAcceptanceTest extends ConstellioTest {
 			summaryRecordFromCache = cache.getRecordSummary(id(1234));
 			assertThat(summaryRecordFromCache.<String>get(TITLE)).isEqualTo("val1");
 			assertThat(summaryRecordFromCache.<String>get(zeCollectionSchemaType1.stringMetadata())).isEqualTo("val6");
-			assertThat(summaryRecordFromCache.<String>get(zeCollectionSchemaType1.anotherStringMetadata())).isNull();
 			assertThat(summaryRecordFromCache.isSummary()).isTrue();
 
 			fullRecordFromCache = cache.getRecord(id(1234));
@@ -252,7 +266,12 @@ public class NewVolatileRecordCacheAcceptanceTest extends ConstellioTest {
 		assertThat(recordFromCache.isSummary()).isTrue();
 		assertThat(recordFromCache.<String>get(TITLE)).isEqualTo("val1");
 		assertThat(recordFromCache.<String>get(zeCollectionSchemaType1.stringMetadata())).isEqualTo("val2");
-		assertThat(recordFromCache.<String>get(zeCollectionSchemaType1.anotherStringMetadata())).isNull();
+		try {
+			recordFromCache.<String>get(zeCollectionSchemaType1.anotherStringMetadata());
+			//failed
+		} catch (IllegalArgumentException e) {
+			//OK
+		}
 		assertThat(recordFromCache.isSummary()).isTrue();
 
 
@@ -267,7 +286,12 @@ public class NewVolatileRecordCacheAcceptanceTest extends ConstellioTest {
 		assertThat(recordFromCache.isSummary()).isTrue();
 		assertThat(recordFromCache.<String>get(TITLE)).isEqualTo("val1");
 		assertThat(recordFromCache.<String>get(zeCollectionSchemaType1.stringMetadata())).isEqualTo("val2");
-		assertThat(recordFromCache.<String>get(zeCollectionSchemaType1.anotherStringMetadata())).isNull();
+		try {
+			recordFromCache.<String>get(zeCollectionSchemaType1.anotherStringMetadata());
+			//failed
+		} catch (IllegalArgumentException e) {
+			//OK
+		}
 
 		// Get by metadata
 		try {
@@ -280,14 +304,18 @@ public class NewVolatileRecordCacheAcceptanceTest extends ConstellioTest {
 		assertThat(recordFromCache.isSummary()).isTrue();
 		assertThat(recordFromCache.<String>get(TITLE)).isEqualTo("val1");
 		assertThat(recordFromCache.<String>get(zeCollectionSchemaType1.stringMetadata())).isEqualTo("val2");
-		assertThat(recordFromCache.<String>get(zeCollectionSchemaType1.anotherStringMetadata())).isNull();
+		try {
+			recordFromCache.<String>get(zeCollectionSchemaType1.anotherStringMetadata());
+			//failed
+		} catch (IllegalArgumentException e) {
+			//OK
+		}
 		assertThat(recordFromCache.isSummary()).isTrue();
 
 		recordFromCache = cache.getCache(zeCollection).getSummaryByMetadata(zeCollectionSchemaType1.stringMetadata(), "valAA");
 		assertThat(recordFromCache.isSummary()).isTrue();
 		assertThat(recordFromCache.<String>get(TITLE)).isEqualTo("valA");
 		assertThat(recordFromCache.<String>get(zeCollectionSchemaType1.stringMetadata())).isEqualTo("valAA");
-		assertThat(recordFromCache.<String>get(zeCollectionSchemaType1.anotherStringMetadata())).isNull();
 		assertThat(recordFromCache.isSummary()).isTrue();
 
 		assertThat(cache.getCache(zeCollection).getAllValues(zeCollectionSchemaType1.typeCode())).hasSize(2);

@@ -62,13 +62,8 @@ public class DocumentRecordActionsServices {
 	}
 
 	public boolean isCopyActionPossible(Record record, User user) {
-		// TODO
-		if (!user.hasReadAccess().on(record)) {
-			return false;
-		}
-
-		// TODO rename DocumentExtension to something like DocumentRecordActionsExtension
-		return rmModuleExtensions.isCopyActionPossibleOnDocument(rm.wrapDocument(record), user);
+		return !user.hasReadAccess().on(record) &&
+			   rmModuleExtensions.isCopyActionPossibleOnDocument(rm.wrapDocument(record), user);
 	}
 
 	public boolean isCreateSipActionPossible(Record record, User user) {
@@ -92,14 +87,14 @@ public class DocumentRecordActionsServices {
 	public boolean isPublishActionPossible(Record record, User user) {
 		Document document = rm.wrapDocument(record);
 		return user.has(RMPermissionsTo.PUBLISH_AND_UNPUBLISH_DOCUMENTS)
-				.on(record) && rmModuleExtensions.isPublishActionPossibleOnDocument(document, user)
-				&& !document.isPublished();
+					   .on(record) && rmModuleExtensions.isPublishActionPossibleOnDocument(document, user)
+			   && !document.isPublished();
 	}
 
 	public boolean isPrintLabelActionPossible(Record record, User user) {
 		Document document = rm.wrapDocument(record);
 		return user.hasReadAccess().on(record)
-				&& rmModuleExtensions.isPrintLabelActionPossibleOnDocument(document, user);
+			   && rmModuleExtensions.isPrintLabelActionPossibleOnDocument(document, user);
 	}
 
 	public boolean canDeleteDocuments(List<String> ids, User user) {
@@ -134,7 +129,7 @@ public class DocumentRecordActionsServices {
 				Folder parentFolder = rm.getFolder(document.getFolder());
 				if (parentFolder.getBorrowed() != null && parentFolder.getBorrowed()) {
 					return user.has(RMPermissionsTo.MODIFY_INACTIVE_BORROWED_FOLDER).on(parentFolder)
-									   && user.has(RMPermissionsTo.DELETE_INACTIVE_DOCUMENT).on(record);
+						   && user.has(RMPermissionsTo.DELETE_INACTIVE_DOCUMENT).on(record);
 				}
 				return user.has(RMPermissionsTo.DELETE_INACTIVE_DOCUMENT).on(record);
 			}
@@ -142,7 +137,7 @@ public class DocumentRecordActionsServices {
 				Folder parentFolder = rm.getFolder(document.getFolder());
 				if (parentFolder.getBorrowed() != null && parentFolder.getBorrowed()) {
 					return user.has(RMPermissionsTo.MODIFY_SEMIACTIVE_BORROWED_FOLDER).on(parentFolder)
-									   && user.has(RMPermissionsTo.DELETE_SEMIACTIVE_DOCUMENT).on(record);
+						   && user.has(RMPermissionsTo.DELETE_SEMIACTIVE_DOCUMENT).on(record);
 				}
 				return user.has(RMPermissionsTo.DELETE_SEMIACTIVE_DOCUMENT).on(record);
 			}
@@ -177,13 +172,13 @@ public class DocumentRecordActionsServices {
 	}
 
 	public boolean isAddToSelectionActionPossible(Record record, User user, SessionContext sessionContext) {
-		return  hasUserReadAccess(record, user)
-				&& rmModuleExtensions.isAddRemoveToSelectionActionPossibleOnDocument(rm.wrapDocument(record), user);
+		return hasUserReadAccess(record, user)
+			   && rmModuleExtensions.isAddRemoveToSelectionActionPossibleOnDocument(rm.wrapDocument(record), user);
 	}
 
 	public boolean isRemoveToSelectionActionPossible(Record record, User user) {
-		return  hasUserReadAccess(record, user)
-				&& rmModuleExtensions.isAddRemoveToSelectionActionPossibleOnDocument(rm.wrapDocument(record), user);
+		return hasUserReadAccess(record, user)
+			   && rmModuleExtensions.isAddRemoveToSelectionActionPossibleOnDocument(rm.wrapDocument(record), user);
 	}
 
 	private boolean isUploadPossible(Document document, User user) {
@@ -200,34 +195,34 @@ public class DocumentRecordActionsServices {
 	public boolean isUploadActionPossible(Record record, User user) {
 		Document document = rm.wrapDocument(record);
 
-		if(!rmModuleExtensions.isUploadActionPossibleOnDocument(rm.wrapDocument(record), user)
-		   || !isEditActionPossible(record, user)) {
+		if (!rmModuleExtensions.isUploadActionPossibleOnDocument(rm.wrapDocument(record), user)
+			|| !isEditActionPossible(record, user)) {
 			return false;
 		}
 
-			FolderStatus archivisticStatus = document.getArchivisticStatus();
-			if (archivisticStatus != null && isUploadPossible(document, user) && user.hasWriteAccess().on(record)
-				&& modelLayerCollectionExtensions.isRecordModifiableBy(record, user)
-				&& !modelLayerCollectionExtensions.isModifyBlocked(record, user)) {
-				if (archivisticStatus.isInactive()) {
-					Folder parentFolder = rm.getFolder(document.getFolder());
-					if (parentFolder.getBorrowed() != null && parentFolder.getBorrowed()) {
-						return user.has(RMPermissionsTo.MODIFY_INACTIVE_BORROWED_FOLDER).on(parentFolder)
-										   && user.has(RMPermissionsTo.UPLOAD_INACTIVE_DOCUMENT).on(record);
-					}
-					return (user.has(RMPermissionsTo.UPLOAD_INACTIVE_DOCUMENT).on(record));
+		FolderStatus archivisticStatus = document.getArchivisticStatus();
+		if (archivisticStatus != null && isUploadPossible(document, user) && user.hasWriteAccess().on(record)
+			&& modelLayerCollectionExtensions.isRecordModifiableBy(record, user)
+			&& !modelLayerCollectionExtensions.isModifyBlocked(record, user)) {
+			if (archivisticStatus.isInactive()) {
+				Folder parentFolder = rm.getFolder(document.getFolder());
+				if (parentFolder.getBorrowed() != null && parentFolder.getBorrowed()) {
+					return user.has(RMPermissionsTo.MODIFY_INACTIVE_BORROWED_FOLDER).on(parentFolder)
+						   && user.has(RMPermissionsTo.UPLOAD_INACTIVE_DOCUMENT).on(record);
 				}
-				if (archivisticStatus.isSemiActive()) {
-					Folder parentFolder = rm.getFolder(document.getFolder());
-					if (parentFolder.getBorrowed() != null && parentFolder.getBorrowed()) {
-						return user.has(RMPermissionsTo.MODIFY_SEMIACTIVE_BORROWED_FOLDER).on(parentFolder)
-										   && user.has(RMPermissionsTo.UPLOAD_SEMIACTIVE_DOCUMENT).on(record);
-					}
-					return user.has(RMPermissionsTo.UPLOAD_SEMIACTIVE_DOCUMENT).on(record);
-				}
-				return true;
+				return (user.has(RMPermissionsTo.UPLOAD_INACTIVE_DOCUMENT).on(record));
 			}
-			return false;
+			if (archivisticStatus.isSemiActive()) {
+				Folder parentFolder = rm.getFolder(document.getFolder());
+				if (parentFolder.getBorrowed() != null && parentFolder.getBorrowed()) {
+					return user.has(RMPermissionsTo.MODIFY_SEMIACTIVE_BORROWED_FOLDER).on(parentFolder)
+						   && user.has(RMPermissionsTo.UPLOAD_SEMIACTIVE_DOCUMENT).on(record);
+				}
+				return user.has(RMPermissionsTo.UPLOAD_SEMIACTIVE_DOCUMENT).on(record);
+			}
+			return true;
+		}
+		return false;
 	}
 
 	public boolean isCheckInActionPossible(Record record, User user) {
@@ -283,16 +278,23 @@ public class DocumentRecordActionsServices {
 		return rmModuleExtensions.isFinalizeActionPossibleOnDocument(document, user) && isEditActionPossible(record, user);
 	}
 
-	protected boolean isContentCheckedOut(Content content) {
+	public boolean isAvailableAlertActionPossible(Record record, User user) {
+		Document document = rm.wrapDocument(record);
+		Content content = document.getContent();
+		return !isEmail(document) && content != null && content.getCheckoutUserId() != null &&
+			   !user.getId().equals(content.getCheckoutUserId());
+	}
+
+	private boolean isContentCheckedOut(Content content) {
 		return content != null && content.getCheckoutUserId() != null;
 	}
 
-	protected boolean isCheckOutPossible(Document document) {
+	private boolean isCheckOutPossible(Document document) {
 		boolean email = isEmail(document);
-		return !email && (document != null && !isContentCheckedOut(document.getContent()));
+		return !email && !isContentCheckedOut(document.getContent());
 	}
 
-	protected boolean isContentCheckedOut(Document document) {
+	private boolean isContentCheckedOut(Document document) {
 		return isContentCheckedOut(document.getContent());
 	}
 
@@ -314,186 +316,6 @@ public class DocumentRecordActionsServices {
 		}
 		return email;
 	}
-
-	/*
-	DocumentActionsComponent.linkToDocument= Lien vers ce document
-	DocumentActionsComponent.modifyDocumentType=Modifier le type de ce document
-	*/
-
-	/*
-
-	Old buttons from context menu :
-	if (displayDocumentButtonVisible) {
-			ContextMenuItem displayDocumentItem = addItem($("DocumentContextMenu.displayDocument"), FontAwesome.FILE_O);
-			displayDocumentItem.addItemClickListener(new BaseContextMenuItemClickListener() {
-				@Override
-				public void contextMenuItemClicked(ContextMenuItemClickEvent event) {
-					presenter.displayDocumentButtonClicked();
-				}
-			});
-		}
-
-		if (openDocumentButtonVisible) {
-			String fileName = contentVersionVO.getFileName();
-			Resource icon = FileIconUtils.getIcon(fileName);
-			ContextMenuItem downloadDocumentItem = addItem($("DocumentContextMenu.openDocument"), icon);
-			downloadDocumentItem.addItemClickListener(new BaseContextMenuItemClickListener() {
-				@Override
-				public void contextMenuItemClicked(ContextMenuItemClickEvent event) {
-					String agentURL = ConstellioAgentUtils.getAgentURL(recordVO, contentVersionVO);
-					openAgentURL(agentURL);
-					presenter.logOpenAgentUrl(recordVO);
-				}
-			});
-		}
-
-		if (downloadDocumentButtonVisible) {
-			ContextMenuItem downloadDocumentItem = addItem($("DocumentContextMenu.downloadDocument"), FontAwesome.DOWNLOAD);
-			downloadDocumentItem.addItemClickListener(new BaseContextMenuItemClickListener() {
-				@SuppressWarnings("deprecation")
-				@Override
-				public void contextMenuItemClicked(ContextMenuItemClickEvent event) {
-					ContentVersionVOResource contentVersionResource = new ContentVersionVOResource(contentVersionVO);
-					Resource downloadedResource = DownloadLink.wrapForDownload(contentVersionResource);
-					Page.getCurrent().open(downloadedResource, null, false);
-					presenter.logDownload(recordVO);
-				}
-			});
-		}
-
-		if (editDocumentButtonVisible) {
-			ContextMenuItem editDocumentItem = addItem($("DocumentContextMenu.editDocument"), FontAwesome.EDIT);
-			editDocumentItem.addItemClickListener(new BaseContextMenuItemClickListener() {
-				@Override
-				public void contextMenuItemClicked(ContextMenuItemClickEvent event) {
-					presenter.editDocumentButtonClicked(ParamUtils.getCurrentParams());
-				}
-			});
-		}
-
-		if (deleteDocumentButtonVisible) {
-			ContextMenuItem deleteDocumentItem = addItem($("DocumentContextMenu.deleteDocument"), FontAwesome.TRASH_O);
-			deleteDocumentItem.addItemClickListener(new ConfirmDialogContextMenuItemClickListener(DialogMode.INFO) {
-				@Override
-				protected String getConfirmDialogMessage() {
-					return $("ConfirmDialog.confirmDelete");
-				}
-
-				@Override
-				protected void confirmButtonClick(ConfirmDialog dialog) {
-					presenter.deleteDocumentButtonClicked(ParamUtils.getCurrentParams());
-				}
-			});
-		}
-
-		if (addAuthorizationButtonVisible) {
-			ContextMenuItem addAuthorizationItem = addItem($("DocumentContextMenu.addAuthorization"), FontAwesome.KEY);
-			addAuthorizationItem.addItemClickListener(new BaseContextMenuItemClickListener() {
-				@Override
-				public void contextMenuItemClicked(ContextMenuItemClickEvent event) {
-					presenter.addAuthorizationButtonClicked();
-				}
-			});
-		}
-
-		if (createPDFAButtonVisible) {
-			ContextMenuItem createPDFAItem = addItem($("DocumentContextMenu.createPDFA"), FontAwesome.FILE_PDF_O);
-			createPDFAItem.addItemClickListener(new ConfirmDialogContextMenuItemClickListener(DialogMode.WARNING) {
-				@Override
-				protected String getConfirmDialogMessage() {
-					return $("ConfirmDialog.confirmCreatePDFA");
-				}
-
-				@Override
-				protected void confirmButtonClick(ConfirmDialog dialog) {
-					presenter.createPDFA(ParamUtils.getCurrentParams());
-				}
-			});
-		}
-
-		if (shareDocumentButtonVisible) {
-			ContextMenuItem shareDocumentItem = addItem($("DocumentContextMenu.shareDocument"), FontAwesome.PAPER_PLANE_O);
-			shareDocumentItem.addItemClickListener(new BaseContextMenuItemClickListener() {
-				@Override
-				public void contextMenuItemClicked(ContextMenuItemClickEvent event) {
-					presenter.shareDocumentButtonClicked();
-				}
-			});
-		}
-
-		if (uploadButtonVisible) {
-			ContextMenuItem uploadItem = addItem($("DocumentContextMenu.upload"), FontAwesome.UPLOAD);
-			uploadItem.addItemClickListener(new BaseContextMenuItemClickListener() {
-				@Override
-				public void contextMenuItemClicked(ContextMenuItemClickEvent event) {
-					presenter.uploadButtonClicked();
-				}
-			});
-		}
-
-		if (checkInButtonVisible) {
-			ContextMenuItem checkInItem = addItem($("DocumentContextMenu.checkIn"), FontAwesome.UNLOCK);
-			checkInItem.addItemClickListener(new BaseContextMenuItemClickListener() {
-				@Override
-				public void contextMenuItemClicked(ContextMenuItemClickEvent event) {
-					presenter.checkInButtonClicked();
-				}
-			});
-		}
-
-		if (alertWhenAvailableButtonVisible) {
-			ContextMenuItem alertWhenAvailableItem = addItem($("DocumentContextMenu.alertWhenAvailable"), FontAwesome.BELL_O);
-			alertWhenAvailableItem.addItemClickListener(new BaseContextMenuItemClickListener() {
-				@Override
-				public void contextMenuItemClicked(ContextMenuItemClickEvent event) {
-					presenter.alertWhenAvailable();
-				}
-			});
-		}
-
-		if (checkOutButtonVisible) {
-			ContextMenuItem checkOutItem = addItem($("DocumentContextMenu.checkOut"), FontAwesome.LOCK);
-			checkOutItem.addItemClickListener(new BaseContextMenuItemClickListener() {
-				@Override
-				public void contextMenuItemClicked(ContextMenuItemClickEvent event) {
-					presenter.checkOutButtonClicked(getSessionContext());
-					refreshParent();
-				}
-			});
-		}
-
-		if (finalizeButtonVisible) {
-			ContextMenuItem finalizeItem = addItem($("DocumentContextMenu.finalize"), FontAwesome.LEVEL_UP);
-			finalizeItem.addItemClickListener(new ConfirmDialogContextMenuItemClickListener(DialogMode.INFO) {
-				@Override
-				protected String getConfirmDialogMessage() {
-					return $("DocumentActionsComponent.finalize.confirm");
-				}
-
-				@Override
-				protected void confirmButtonClick(ConfirmDialog dialog) {
-					presenter.finalizeButtonClicked();
-				}
-			});
-		}
-
-		if (presenter.hasMetadataReport()) {
-			ContextMenuItem metadataReportGenerator = addItem($("DocumentActionsComponent.printMetadataReportWithoutIcon"),
-					FontAwesome.LIST_ALT);
-			metadataReportGenerator.addItemClickListener(new BaseContextMenuItemClickListener() {
-
-				@Override
-				public void contextMenuItemClicked(ContextMenuItemClickEvent contextMenuItemClickEvent) {
-					View parentView = ConstellioUI.getCurrent().getCurrentView();
-					ReportTabButton button = new ReportTabButton($("DocumentActionsComponent.printMetadataReport"),
-							$("DocumentActionsComponent.printMetadataReport"), (BaseView) parentView, true);
-					button.setRecordVoList(presenter.getDocumentVO());
-					button.click();
-				}
-			});
-		}
-
-	 */
 
 	private boolean hasUserWriteAccess(Record record, User user) {
 		return user.hasWriteAccess().on(record);

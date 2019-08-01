@@ -1,11 +1,15 @@
 package com.constellio.model.services.search;
 
+import com.constellio.data.utils.LangUtils;
+import com.constellio.data.utils.LangUtils.ListComparisonResults;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.Spliterator;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
@@ -32,9 +36,12 @@ public class StreamValidator<T> implements Stream<T> {
 	Stream<T> stream1;
 	Stream<T> stream2;
 
-	public StreamValidator(Stream<T> stream1, Stream<T> stream2) {
+	boolean sorted;
+
+	public StreamValidator(Stream<T> stream1, Stream<T> stream2, boolean sorted) {
 		this.stream1 = stream1;
 		this.stream2 = stream2;
+		this.sorted = sorted;
 	}
 
 
@@ -49,7 +56,7 @@ public class StreamValidator<T> implements Stream<T> {
 	public <R> Stream<R> map(Function<? super T, ? extends R> mapper) {
 		Stream<R> s1 = stream1.map(mapper);
 		Stream<R> s2 = stream2.map(mapper);
-		return new StreamValidator<>(s1, s2);
+		return new StreamValidator<>(s1, s2, sorted);
 	}
 
 	@Override
@@ -77,7 +84,7 @@ public class StreamValidator<T> implements Stream<T> {
 	public <R> Stream<R> flatMap(Function<? super T, ? extends Stream<? extends R>> mapper) {
 		Stream<R> s1 = stream1.flatMap(mapper);
 		Stream<R> s2 = stream2.flatMap(mapper);
-		return new StreamValidator<>(s1, s2);
+		return new StreamValidator<>(s1, s2, sorted);
 	}
 
 	@Override
@@ -105,42 +112,42 @@ public class StreamValidator<T> implements Stream<T> {
 	public Stream<T> distinct() {
 		Stream<T> s1 = stream1.distinct();
 		Stream<T> s2 = stream2.distinct();
-		return new StreamValidator<>(s1, s2);
+		return new StreamValidator<>(s1, s2, sorted);
 	}
 
 	@Override
 	public Stream<T> sorted() {
 		Stream<T> s1 = stream1.sorted();
 		Stream<T> s2 = stream2.sorted();
-		return new StreamValidator<>(s1, s2);
+		return new StreamValidator<>(s1, s2, sorted);
 	}
 
 	@Override
 	public Stream<T> sorted(Comparator<? super T> comparator) {
 		Stream<T> s1 = stream1.sorted(comparator);
 		Stream<T> s2 = stream2.sorted(comparator);
-		return new StreamValidator<>(s1, s2);
+		return new StreamValidator<>(s1, s2, sorted);
 	}
 
 	@Override
 	public Stream<T> peek(Consumer<? super T> action) {
 		Stream<T> s1 = stream1.peek(action);
 		Stream<T> s2 = stream2.peek(action);
-		return new StreamValidator<>(s1, s2);
+		return new StreamValidator<>(s1, s2, sorted);
 	}
 
 	@Override
 	public Stream<T> limit(long maxSize) {
 		Stream<T> s1 = stream1.limit(maxSize);
 		Stream<T> s2 = stream2.limit(maxSize);
-		return new StreamValidator<>(s1, s2);
+		return new StreamValidator<>(s1, s2, sorted);
 	}
 
 	@Override
 	public Stream<T> skip(long n) {
 		Stream<T> s1 = stream1.skip(n);
 		Stream<T> s2 = stream2.skip(n);
-		return new StreamValidator<>(s1, s2);
+		return new StreamValidator<>(s1, s2, sorted);
 	}
 
 	@Override
@@ -157,8 +164,20 @@ public class StreamValidator<T> implements Stream<T> {
 		List<T> stream1Records = stream1.collect(Collectors.toList());
 		List<T> stream2Records = stream2.collect(Collectors.toList());
 
-		if (!stream1Records.equals(stream2Records)) {
-			throw new IllegalArgumentException("Lists are different\nExpected : " + stream1Records + "\nWas : " + stream2Records);
+		if (sorted) {
+			if (!stream1Records.equals(stream2Records)) {
+				throw new IllegalArgumentException("Lists are different\nExpected : " + stream1Records + "\nWas : " + stream2Records);
+			}
+		} else {
+			Set<T> stream1RecordsSet = new HashSet<>(stream1Records);
+			Set<T> stream2RecordsSet = new HashSet<>(stream2Records);
+			if (!stream1RecordsSet.equals(stream2RecordsSet)) {
+				ListComparisonResults<T> results = LangUtils.compare(stream1RecordsSet, stream2RecordsSet);
+				if (!results.getNewItems().isEmpty() || !results.getRemovedItems().isEmpty()) {
+					throw new IllegalArgumentException("Lists are different\nMissing : " + results.getRemovedItems()
+													   + "\nNot expected : " + results.getNewItems());
+				}
+			}
 		}
 		return stream1Records;
 	}

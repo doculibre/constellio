@@ -5,12 +5,14 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import java.util.List;
+import java.util.Set;
 
 public class ModificationImpact {
 
 	final MetadataSchemaType impactedSchemaType;
 	final List<Metadata> metadataToReindex;
 	final LogicalSearchCondition logicalSearchCondition;
+	final Set<String> markForReindexingInsteadOfBatchProcess;
 	final int potentialImpactsCount;
 	final String transactionTitle;
 
@@ -20,6 +22,23 @@ public class ModificationImpact {
 		this.impactedSchemaType = impactedSchemaType;
 		this.metadataToReindex = metadataToReindex;
 		this.logicalSearchCondition = logicalSearchCondition;
+		this.markForReindexingInsteadOfBatchProcess = null;
+		this.potentialImpactsCount = potentialImpactsCount;
+		this.transactionTitle = transactionTitle;
+
+		if (logicalSearchCondition == null) {
+			throw new RuntimeException("logicalSearchCondition required");
+		}
+	}
+
+	public ModificationImpact(MetadataSchemaType impactedSchemaType, List<Metadata> metadataToReindex,
+							  LogicalSearchCondition logicalSearchCondition,
+							  Set<String> markForReindexingInsteadOfBatchProcess, int potentialImpactsCount,
+							  String transactionTitle) {
+		this.impactedSchemaType = impactedSchemaType;
+		this.metadataToReindex = metadataToReindex;
+		this.logicalSearchCondition = logicalSearchCondition;
+		this.markForReindexingInsteadOfBatchProcess = markForReindexingInsteadOfBatchProcess;
 		this.potentialImpactsCount = potentialImpactsCount;
 		this.transactionTitle = transactionTitle;
 
@@ -56,6 +75,10 @@ public class ModificationImpact {
 
 	public String getTransactionTitle() {
 		return transactionTitle;
+	}
+
+	public Set<String> getMarkForReindexingInsteadOfBatchProcess() {
+		return markForReindexingInsteadOfBatchProcess;
 	}
 
 	@Override
