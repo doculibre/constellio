@@ -106,10 +106,6 @@ public class CoreMigrationTo_8_2 implements MigrationScript {
 							tx.add(detail.setPrincipals(authsPrincipals.get(detail.getId())));
 						}
 
-						if (true) {
-							throw new RuntimeException("k-boom");
-						}
-
 						recordServices.executeWithoutImpactHandling(tx);
 					}
 				}.execute(from(schemas.authorizationDetails.schemaType()).returnAll());
