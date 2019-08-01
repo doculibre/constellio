@@ -27,6 +27,7 @@ import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.components.NewReportPresenter;
 import com.constellio.app.ui.framework.components.SearchResultDetailedTable;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
+import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.data.SearchResultVODataProvider;
 import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import com.constellio.app.ui.framework.reports.ReportWithCaptionVO;
@@ -123,7 +124,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	}
 
 	public boolean isShowNumberingColumn() {
-		return modelLayerFactory.getSystemConfigs().isShowResultsNumberingInListView();
+		return modelLayerFactory.getSystemConfigs().isShowResultsNumberingInListView() || getSearchResults(false).size() > BaseTable.MAX_SELECTION_LENGTH;
 	}
 
 	public enum SortOrder {ASCENDING, DESCENDING}

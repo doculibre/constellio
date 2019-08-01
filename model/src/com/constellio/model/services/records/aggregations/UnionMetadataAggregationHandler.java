@@ -16,24 +16,34 @@ import java.util.Set;
 
 public class UnionMetadataAggregationHandler implements MetadataAggregationHandler {
 
+
 	@Override
 	public Object calculate(SearchAggregatedValuesParams params) {
-		List<Metadata> inputMetadatas = params.getInputMetadatas();
-		LogicalSearchQuery query = new LogicalSearchQuery(params.getQuery());
-		query.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(inputMetadatas));
+		//		Set<Object> allValues = new HashSet<>();
+		//		for (SearchAggregatedValuesParamsQuery entry : params.getQueries()) {
+		//			entry.getStreamSupplier().get().forEach((r) -> {
+		//				for (Metadata metadata : entry.getMetadatas()) {
+		//					allValues.addAll(r.getValues(metadata));
+		//				}
+		//			});
+		//		}
+
+		LogicalSearchQuery query = new LogicalSearchQuery(params.getCombinedQuery());
+
+		query.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(params.getInputMetadatas()));
 		SearchResponseIterator<Record> iterator = params.getSearchServices().recordsIterator(query, 10000);
 
-		Set<Comparable> values = new HashSet<>();
+		Set<Comparable> allValues = new HashSet<>();
 
 		while (iterator.hasNext()) {
 			Record record = iterator.next();
-			for (Metadata inputMetadata : inputMetadatas) {
-				values.addAll((List) record.getValues(inputMetadata));
+			for (Metadata inputMetadata : params.getInputMetadatas()) {
+				allValues.addAll((List) record.getValues(inputMetadata));
 			}
 
 		}
 
-		List<Comparable> listValues = new ArrayList<>(values);
+		List<Comparable> listValues = new ArrayList(allValues);
 		Collections.sort(listValues);
 
 		return listValues;

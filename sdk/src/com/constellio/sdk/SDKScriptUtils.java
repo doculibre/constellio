@@ -13,9 +13,6 @@ import com.constellio.model.services.security.authentification.AuthenticationSer
 
 import java.io.File;
 
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
-
 /**
  * Created by dakota on 11/9/15.
  */
@@ -36,7 +33,7 @@ public class SDKScriptUtils {
 				File keyTxt = new File(modelLayerConfiguration.getDataLayerConfiguration().getSettingsFileSystemBaseFolder(),
 						"key.txt");
 
-				modelLayerConfiguration = spy(modelLayerConfiguration);
+				//modelLayerConfiguration = spy(modelLayerConfiguration);
 				modelLayerConfiguration.setBatchProcessesEnabled(false);
 				Factory<EncryptionServices> encryptionServicesFactory = new Factory<EncryptionServices>() {
 					@Override
@@ -44,8 +41,10 @@ public class SDKScriptUtils {
 						return new FakeEncryptionServices();
 					}
 				};
-				when(modelLayerConfiguration.getEncryptionServicesFactory()).thenReturn(encryptionServicesFactory);
-				when(modelLayerConfiguration.getConstellioEncryptionFile()).thenReturn(keyTxt);
+				//				when(modelLayerConfiguration.getEncryptionServicesFactory()).thenReturn(encryptionServicesFactory);
+				//				when(modelLayerConfiguration.getConstellioEncryptionFile()).thenReturn(keyTxt);
+
+
 				return modelLayerConfiguration;
 			}
 

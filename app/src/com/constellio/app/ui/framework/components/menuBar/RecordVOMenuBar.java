@@ -1,6 +1,7 @@
 package com.constellio.app.ui.framework.components.menuBar;
 
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
+import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.menu.MenuItemAction;
@@ -80,6 +81,8 @@ public class RecordVOMenuBar extends BaseMenuBar {
 						} else if (recordVO instanceof UserDocumentVO) {
 							UserDocumentVO userDocumentVO = (UserDocumentVO) recordVO;
 							return userDocumentVO.getContent();
+						} else if (recordVO.get(Document.CONTENT) != null) {
+							return recordVO.get(Document.CONTENT);
 						}
 						return null;
 					}

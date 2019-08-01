@@ -64,7 +64,7 @@ public class ContainerMenuItemServices {
 		if (!filteredActionTypes.contains(CONTAINER_LABELS.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(CONTAINER_LABELS.name(),
 					isMenuItemActionPossible(CONTAINER_LABELS.name(), container, user, params),
-					$("SearchView.labels"), null, -1, 300,
+					$("SearchView.labels"), FontAwesome.PRINT, -1, 300,
 					(ids) -> new ContainerRecordMenuItemActionBehaviors(collection, appLayerFactory).printLabel(container, params));
 			menuItemActions.add(menuItemAction);
 		}
@@ -72,7 +72,7 @@ public class ContainerMenuItemServices {
 		if (!filteredActionTypes.contains(CONTAINER_ADD_TO_CART.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(CONTAINER_ADD_TO_CART.name(),
 					isMenuItemActionPossible(CONTAINER_ADD_TO_CART.name(), container, user, params),
-					$("DisplayContainerView.addToCart"), null, -1, 400,
+					$("DisplayContainerView.addToCart"), FontAwesome.LIST_ALT, -1, 400,
 					(ids) -> new ContainerRecordMenuItemActionBehaviors(collection, appLayerFactory).addToCart(container, params));
 			menuItemActions.add(menuItemAction);
 		}

@@ -364,9 +364,9 @@ public class MetadataSchemaBuilder {
 	}
 
 	MetadataSchema buildDefault(DataStoreTypesFactory typesFactory, MetadataSchemaTypeBuilder typeBuilder,
-								MetadataSchemaTypesBuilder typesBuilder,
+								MetadataSchemaTypesBuilder typesBuilder, short typeId,
 								ModelLayerFactory modelLayerFactory) {
-		MetadataList newMetadatas = buildMetadatas(typesFactory, typeBuilder, modelLayerFactory);
+		MetadataList newMetadatas = buildMetadatas(typesFactory, typeBuilder, typeId, modelLayerFactory);
 
 		validateDefault(this);
 
@@ -521,10 +521,10 @@ public class MetadataSchemaBuilder {
 	}
 
 	MetadataList buildMetadatas(DataStoreTypesFactory typesFactory, MetadataSchemaTypeBuilder typeBuilder,
-								ModelLayerFactory modelLayerFactory) {
+								short typeId, ModelLayerFactory modelLayerFactory) {
 		MetadataList newMetadatas = new MetadataList();
 		for (MetadataBuilder metadataBuilder : this.metadatas) {
-			newMetadatas.add(metadataBuilder.buildWithoutInheritance(typesFactory, typeBuilder, modelLayerFactory));
+			newMetadatas.add(metadataBuilder.buildWithoutInheritance(typesFactory, typeBuilder, typeId, modelLayerFactory));
 		}
 		return newMetadatas;
 	}
@@ -568,7 +568,7 @@ public class MetadataSchemaBuilder {
 	}
 
 	MetadataSchema buildCustom(MetadataSchema defaultSchema, MetadataSchemaTypeBuilder typeBuilder,
-							   MetadataSchemaTypesBuilder typesBuilder,
+							   MetadataSchemaTypesBuilder typesBuilder, short typeId,
 							   DataStoreTypesFactory typesFactory, ModelLayerFactory modelLayerFactory) {
 		final MetadataList newMetadatas = new MetadataList();
 		for (MetadataBuilder metadataBuilder : this.metadatas) {
@@ -577,7 +577,7 @@ public class MetadataSchemaBuilder {
 				newMetadatas.add(metadataBuilder.buildWithInheritance(inheritance));
 			} catch (MetadataSchemasRuntimeException.NoSuchMetadata e) {
 				LOGGER.debug("No inheritance found for metadata {}", code, e);
-				newMetadatas.add(metadataBuilder.buildWithoutInheritance(typesFactory, typeBuilder, modelLayerFactory));
+				newMetadatas.add(metadataBuilder.buildWithoutInheritance(typesFactory, typeBuilder, typeId, modelLayerFactory));
 			}
 
 		}

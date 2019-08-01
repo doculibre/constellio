@@ -315,12 +315,12 @@ public class XmlReportGeneratorAcceptanceTest extends ConstellioTest {
 		}
 
 		assertThat(listOfMetadataInFolder.size()).isGreaterThanOrEqualTo(310);
-		assertThat(tagNameTextMap.get("linkedFolders_1_title")).isEqualTo("Abeille");
-		assertThat(tagNameTextMap.get("linkedFolders_1_id")).isEqualTo("A01");
-		assertThat(tagNameTextMap.get("linkedFolders_0_title")).isEqualTo("Baleine");
-		assertThat(tagNameTextMap.get("linkedFolders_0_id")).isEqualTo("A04");
-		assertThat(tagNameTextMap.get("linkedFolders_1_ref_folder_container_localization")).isEqualTo("Tablette 2-30_C_01");
-		assertThat(tagNameTextMap.get("linkedFolders_0_ref_folder_container_localization")).isNull();
+		assertThat(tagNameTextMap.get("linkedFolders_0_title")).isEqualTo("Abeille");
+		assertThat(tagNameTextMap.get("linkedFolders_0_id")).isEqualTo("A01");
+		assertThat(tagNameTextMap.get("linkedFolders_1_title")).isEqualTo("Baleine");
+		assertThat(tagNameTextMap.get("linkedFolders_1_id")).isEqualTo("A04");
+		assertThat(tagNameTextMap.get("linkedFolders_0_ref_folder_container_localization")).isEqualTo("Tablette 2-30_C_01");
+		assertThat(tagNameTextMap.get("linkedFolders_1_ref_folder_container_localization")).isNull();
 		assertThat(xmlRecordValues).contains(listOfMetadataInFolder.toArray(new Tuple[0]));
 	}
 

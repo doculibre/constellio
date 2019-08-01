@@ -153,8 +153,9 @@ public class ESRecordNavigationExtension implements RecordNavigationExtension {
 	}
 
 	@Override
-	public void prepareLinkToView(final NavigationParams navigationParams, boolean isRecordInTrash,
-								  Locale currentLocale) {
+	public boolean prepareLinkToView(final NavigationParams navigationParams, boolean isRecordInTrash,
+									 Locale currentLocale) {
+		boolean activeLink;
 		if (isViewForSchemaTypeCode(navigationParams.getSchemaTypeCode())) {
 			ClickListener clickListener = null;
 
@@ -205,10 +206,17 @@ public class ESRecordNavigationExtension implements RecordNavigationExtension {
 					clickListener = prepareFileDownloader(url, title, id, collection, referenceDisplay, title);
 				}
 				referenceDisplay.addClickListener(clickListener);
+				activeLink = true;
 			} else if (component instanceof Table) {
 				// TODO Implement for table 
+				activeLink = false;
+			} else {
+				activeLink = false;
 			}
+		} else {
+			activeLink = false;
 		}
+		return activeLink;
 	}
 
 	private ClickListener prepareFileDownloader(String url, String title, String id, String collection,

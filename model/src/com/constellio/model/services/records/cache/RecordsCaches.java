@@ -73,7 +73,9 @@ public interface RecordsCaches {
 		throw new UnsupportedOperationException("Unsupported");
 	}
 
-	boolean isInitialized();
+	//boolean isFullyPermanentCacheInitialized();
+
+	boolean isCacheInitialized(MetadataSchemaType schemaType);
 
 	default void reloadAllSchemaTypes(String collection) {
 		throw new UnsupportedOperationException("Unsupported");
@@ -90,4 +92,8 @@ public interface RecordsCaches {
 	Stream<Record> getRecordsByIndexedMetadata(MetadataSchemaType schemaType, Metadata metadata, String value);
 
 	Stream<Record> getRecordsSummaryByIndexedMetadata(MetadataSchemaType schemaType, Metadata metadata, String value);
+
+	void onPostLayerInitialization();
+
+	void markAsInitialized(MetadataSchemaType schemaType);
 }

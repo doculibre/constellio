@@ -341,7 +341,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 
 	protected Component buildSummary(SearchResultTable results) {
 		List<Component> actions = Arrays.asList(/*
-				(Component) buildSelectAllButton(), buildAddToSelectionButton(),*/ buildSavedSearchButton());
+				(Component) buildSelectAllButton(), buildAddToSelectionButton(), buildSavedSearchButton() */);
 		return results.createSummary(actions, buildAddToSelectionButton(), buildZipButton());
 	}
 
@@ -527,6 +527,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 				presenter.searchResultClicked(searchResultVO.getRecordVO(), index);
 			}
 		});
+		viewerPanel.setQuickActionButton(buildSavedSearchButton());
 		return viewerPanel;
 	}
 
@@ -930,7 +931,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		return zipButton;
 	}
 
-	protected Button buildSavedSearchButton() {
+	protected BaseButton buildSavedSearchButton() {
 		WindowButton button = new WindowButton($("SearchView.saveSearch"), $("SearchView.saveSearch"),
 				WindowConfiguration.modalDialog("50%", "70%")) {
 			@Override
@@ -1000,6 +1001,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			}
 		};
 		button.addStyleName(ValoTheme.BUTTON_LINK);
+		button.addStyleName("save-search-button");
 		return button;
 	}
 

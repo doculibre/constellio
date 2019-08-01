@@ -464,6 +464,8 @@ $popup-view-z-index: 3;
 	}
 	
 	.v-label-h1 {
+		font-size: 21.6px;
+		font-weight: bold;
 	}
 
 	.v-tooltip {
@@ -2172,7 +2174,8 @@ $popup-view-z-index: 3;
   			}
 
   			.previous-button {
-  				padding-left: 20px;
+  				margin-left: 12px;
+  				margin-right: -12px;
   			}
   		}
 
@@ -2208,6 +2211,139 @@ $popup-view-z-index: 3;
   		}
 
   		.viewable-record-table {
+			.v-table-cell-content {
+				border: none;
+			}
+
+			.v-table-table {
+				// box-shadow: none;
+
+				.v-table-cell-content {
+		  			border: none;
+					vertical-align: top;
+
+					.v-checkbox {
+						margin-top: 23px;
+					}
+
+					.row-index {
+						margin-top: 23px;
+					}
+
+					.v-spacing {
+						height: 5px;
+					}
+				}
+  			
+			}
+
+  			.search-result-record {
+  				// padding-right: 45px;
+  				padding-top: 4px; 
+  			}
+
+			.search-result-with-checkbox-and-index {
+				position: relative;
+			    top: -40px;
+			    padding-right: 310px;
+			    padding-left: 80px;
+			}
+
+			.search-result-with-checkbox {
+				position: relative;
+			    top: -40px;
+			    padding-right: 310px;
+			    padding-left: 40px;
+			}
+
+			.search-result-with-index {
+				position: relative;
+			    top: -40px;
+			    padding-right: 310px;
+			    padding-left: 40px;
+			}
+
+			.search-result-title {
+				padding-top: 6px;
+				padding-bottom: 4px;
+				//font-size: 18px;
+				text-align: left;
+				color: #197de1;
+				font-weight: bold;
+			}
+			
+			.document-search-result-title {
+				padding-top: 0px;
+			}
+
+			.search-result-highlights {
+				em {
+					font-weight: bold;
+					font-style: normal;
+				}
+
+				// margin-bottom: 10px;
+				white-space: normal;
+				display: inline-block;
+				line-height: normal;
+				padding-top: 5px;
+			}
+
+			.metadata-caption, .metadata-value {
+				font-size: 14px;
+				//padding: 3px 0px;
+				line-height: 1.7em;
+			}
+			
+			.metadata-caption {
+				font-weight: 700;
+			}
+
+			.metadata-value {
+				position: relative;
+				top: -24px;
+				left: 250px;
+				margin-bottom: -24px;
+			}
+
+			.search-result-metadata-layout {
+				font-size: 14px;
+				padding-top: 10px;
+
+				.metadata-caption {
+					font-weight: 700;
+				}
+
+			}
+
+			.v-slot-search-result-elevation-buttons {
+				position: relative;
+				margin-bottom: -35px;
+			}
+			
+			.search-result-elevation, .search-result-exclusion {
+				width: auto;
+				position: relative;
+				float: right;
+				top: -30px;
+				margin-bottom: -35px;
+
+				.v-button-caption {
+					display: none;
+				}
+			}
+			
+			.search-result-elevation {
+				right: 36px;
+			}
+
+			.search-result-exclusion {
+				right: 0px;
+			}
+			
+			.search-result-elevation:hover, .search-result-exclusion:hover {
+				text-decoration: none;
+			}
 
   			.v-table-body {
   				border: none;
@@ -2219,29 +2355,6 @@ $popup-view-z-index: 3;
 	  			.v-table-cell-content-nullviewer-results-table-listMode-searchResult {
 	  				vertical-align: top;
 	  			}
-  			}
-
-  			.search-result-record {
-  				// padding-right: 45px;
-
-				.search-result-title {
-					padding-top: 8px;
-					// font-size: 18px;
-					text-align: left;
-					font-weight: bold;
-				}
-
-				.document-search-result-title {
-					padding-top: 10px;
-				}
-
-				.search-result-metadata {
-					font-size: 14px;
-
-					.metadata-caption {
-						font-weight: bold;
-					}
-				}
   			}
 
   		}
@@ -2261,6 +2374,13 @@ $popup-view-z-index: 3;
 			//background-origin: border-box;
 			//color: #ecf2f8;
 			//text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.05);
+		}
+
+		.viewable-record-table-compressed {
+	
+			.search-result-title {
+				width: 350px;
+			}
 		}
 
 		.viewable-record-table-table-mode {
@@ -2545,146 +2665,6 @@ $popup-view-z-index: 3;
 
 							.viewable-record-search-result-table-panel {
                             	border-top: 1px solid rgb(213, 213, 213);
-							}
-
-							.viewable-record-table {
-								.v-table-cell-content {
-									border: none;
-								}
-
-								.v-table-table {
-									// box-shadow: none;
-
-									.v-table-cell-content {
-							  			border: none;
-										vertical-align: top;
-
-										.v-checkbox {
-											margin-top: 23px;
-										}
-
-										.row-index {
-											margin-top: 23px;
-										}
-
-										.v-spacing {
-											height: 5px;
-										}
-									}
-								}
-
-								.search-result-with-checkbox-and-index {
-									position: relative;
-								    top: -40px;
-								    padding-right: 310px;
-								    padding-left: 80px;
-								}
-
-								.search-result-with-checkbox {
-									position: relative;
-								    top: -40px;
-								    padding-right: 310px;
-								    padding-left: 40px;
-								}
-
-								.search-result-with-index {
-									position: relative;
-								    top: -40px;
-								    padding-right: 310px;
-								    padding-left: 40px;
-								}
-
-								.search-result-title {
-									padding-top: 6px;
-									//font-size: 18px;
-									text-align: left;
-									color: #197de1;
-									font-weight: bold;
-								}
-								
-								.document-search-result-title {
-									padding-top: 0px;
-								}
-
-								.search-result-highlights {
-									em {
-										font-weight: bold;
-										font-style: normal;
-									}
-
-									// margin-bottom: 10px;
-									white-space: normal;
-									display: inline-block;
-									line-height: normal;
-									padding-top: 5px;
-								}
-
-								.search-result-metadatas {
-									padding-top: 10px;
-
-									.search-result-metadata {
-										font-size: 14px;
-										//padding: 3px 0px;
-										line-height: 1.7em;
-
-										.metadata-caption {
-											font-weight: 700;
-										}
-
-										.metadata-value {
-											position: relative;
-											top: -24px;
-											left: 250px;
-											margin-bottom: -24px;
-										}
-									}
-								}
-
-								.search-result-metadata-layout {
-									font-size: 14px;
-									padding-top: 10px;
-
-									.metadata-caption {
-										font-weight: 700;
-									}
-
-								}
-
-								.v-slot-search-result-elevation-buttons {
-									position: relative;
-									margin-bottom: -35px;
-								}
-
-								.search-result-elevation-buttons {
-								    padding-left: 5px;
-								    padding-right: 5px;
-
-					  				border: none;
-
-					  				.search-result-exclusion {
-					  					position: relative;
-					  					right: 8px;
-					  				}
-
-					  				.v-button-caption {
-					  					display: none;
-					  				}
-								}
-								
-								.search-result-elevation, .search-result-exclusion {
-									width: auto;
-								}
-								
-								.search-result-elevation:hover, .search-result-exclusion:hover {
-									text-decoration: none;
-								}
-							}
-
-							.viewable-record-table-compressed {
-
-								.search-result-title {
-									width: 350px;
-								}
 							}
 
 						   	.task-table {

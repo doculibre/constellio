@@ -50,7 +50,7 @@ import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 
 public class BaseTable extends Table {
 
-	public static final int MAX_SELECTION_LENGTH = 3;
+	public static final int MAX_SELECTION_LENGTH = 1000;
 
 	public static final int DEFAULT_PAGE_LENGTH = 10;
 

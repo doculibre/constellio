@@ -44,8 +44,8 @@ public class NegatedLogicalSearchCondition extends LogicalSearchCondition {
 	}
 
 	@Override
-	public boolean isSupportingMemoryExecution(boolean queryingTypesInSummaryCache) {
-		return negated.isSupportingMemoryExecution(queryingTypesInSummaryCache);
+	public boolean isSupportingMemoryExecution(boolean queryingTypesInSummaryCache, boolean requiringExecutionMethod) {
+		return negated.isSupportingMemoryExecution(queryingTypesInSummaryCache, requiringExecutionMethod);
 	}
 
 

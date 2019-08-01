@@ -6,11 +6,12 @@ import com.constellio.data.utils.dev.Toggle.AvailableToggle;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.records.cache.offHeapCollections.OffHeapMemoryAllocator;
 import com.constellio.model.services.records.cache.RecordsCache2IntegrityDiagnosticService;
+import com.constellio.model.services.records.cache.offHeapCollections.OffHeapMemoryAllocator;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.sdk.tests.annotations.PreserveState;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.SystemUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.mockito.MockitoAnnotations;
@@ -56,6 +57,9 @@ public class ConstellioTest extends AbstractConstellioTest {
 			toggle.reset();
 		}
 
+		if (SystemUtils.IS_OS_WINDOWS) {
+			Toggle.USE_MMAP_WITHMAP_DB.disable();
+		}
 		Toggle.ROLES_WITH_NEW_7_2_PERMISSIONS.enable();
 
 		testSession = ConstellioTestSession.build(isUnitTest(), sdkProperties, skipTestRule, getClass(), checkRollback());
@@ -187,6 +191,8 @@ public class ConstellioTest extends AbstractConstellioTest {
 		if (!failureDetectionTestWatcher.isFailed() && isUnitTestStatic() && ConstellioFactories.isInitialized()
 			&& cacheIntegrityCheckedAfterTest && Toggle.SDK_CACHE_INTEGRITY_VALIDATION.isEnabled()) {
 
+			ConstellioFactories.getInstance().getDataLayerFactory()
+					.getDataLayerLogger().setPrintAllQueriesLongerThanMS(10000);
 			ValidationErrors errors = checkCacheAndReturnErrors(false, false);
 
 			if (!errors.isEmptyErrorAndWarnings()

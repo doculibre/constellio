@@ -32,9 +32,13 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
+import static com.constellio.model.services.schemas.SchemaUtils.areCacheIndex;
 import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.ALL_REMOVED_AUTHS;
 import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.ATTACHED_ANCESTORS;
 import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.TOKENS;
@@ -83,8 +87,11 @@ public class ModificationImpactCalculator {
 		List<String> transactionRecordIds = executedAfterTransaction ? null : transaction.getRecordIds();
 
 		for (RecordsModification recordsModification : recordsModifications) {
-			recordsModificationImpacts
-					.addAll(findImpactOfARecordsModification(recordsModification, transactionRecordIds, transaction.getTitle()));
+			for (ModificationImpact anImpact : findImpactOfARecordsModification(
+					recordsModification, transactionRecordIds, transaction.getTitle())) {
+				recordsModificationImpacts.add(anImpact);
+			}
+
 		}
 
 		for (Record record : transaction.getRecords()) {
@@ -97,10 +104,10 @@ public class ModificationImpactCalculator {
 				Metadata authorizationTargetSchemaTypeMetadata = authSchema.getMetadata(Authorization.TARGET_SCHEMA_TYPE);
 
 				String authorizationTarget = record.get(authorizationTargetMetadata);
-				String authorizationTargetSchemaType= record.get(authorizationTargetSchemaTypeMetadata);
+				String authorizationTargetSchemaType = record.get(authorizationTargetSchemaTypeMetadata);
 
 				if (Authorization.isSecurableSchemaType(authorizationTargetSchemaType)
-				&& (record.isModified(authorizationPrincipals) || record.isModified(lastTokenRecalculate))) {
+					&& (record.isModified(authorizationPrincipals) || record.isModified(lastTokenRecalculate))) {
 					LogicalSearchCondition condition = fromAllSchemasInCollectionOf(record, DataStore.RECORDS)
 							.where(Schemas.ATTACHED_ANCESTORS).isEqualTo(authorizationTarget);
 					transaction.addAllRecordsToReindex(searchServices.searchRecordIds(condition));
@@ -181,14 +188,41 @@ public class ModificationImpactCalculator {
 		if (!references.isEmpty()) {
 			Iterator<List<Record>> batchIterator = splitModifiedRecordsInBatchOf1000(recordsModification);
 			while (batchIterator.hasNext()) {
-				LogicalSearchCondition condition = getLogicalSearchConditionFor(schemaType, batchIterator.next(),
-						transactionRecordIds, references);
 
-				int recordsCount = (int) searchServices.getResultsCount(condition);
-				if (recordsCount > 0) {
-					recordsModificationImpactsInType.add(new ModificationImpact(
-							schemaType, reindexedMetadatas, condition, recordsCount, transactionTitle));
+				List<Record> modifiedRecordsBatch = batchIterator.next();
+				LogicalSearchCondition condition = getLogicalSearchConditionFor(schemaType, modifiedRecordsBatch,
+						transactionRecordIds, references);
+				int recordsCount;
+				if (schemaType.getCacheType().hasPermanentCache() && areCacheIndex(references)) {
+					Set<String> ids = new HashSet<>();
+					for (Metadata referenceMetadata : references) {
+						for (Record modifiedRecord : modifiedRecordsBatch) {
+							for (String id : recordServices.getRecordsCaches()
+									.getRecordsByIndexedMetadata(schemaType, referenceMetadata, modifiedRecord.getId())
+									.map(Record::getId).collect(Collectors.toList())) {
+
+								if (transactionRecordIds == null || !transactionRecordIds.contains(id)) {
+									ids.add(id);
+								}
+							}
+						}
+					}
+					recordsCount = ids.size();
+					if (recordsCount > 0) {
+						recordsModificationImpactsInType.add(new ModificationImpact(
+								schemaType, reindexedMetadatas, condition, ids, recordsCount, transactionTitle));
+					}
+
+				} else {
+					recordsCount = (int) searchServices.getResultsCount(condition);
+
+					if (recordsCount > 0) {
+						recordsModificationImpactsInType.add(new ModificationImpact(
+								schemaType, reindexedMetadatas, condition, recordsCount, transactionTitle));
+					}
 				}
+
+
 			}
 		}
 

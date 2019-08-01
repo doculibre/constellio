@@ -57,7 +57,7 @@ public class JaccardDocumentSorter {
 
 			QueryResponse response = null;
 			try {
-				response = server.query(solrQuery);
+				response = server.query("searchMoreLikeThis " + id, solrQuery);
 			} catch (CouldNotExecuteQuery couldNotExecuteQuery) {
 				throw new RuntimeException(couldNotExecuteQuery);
 			}

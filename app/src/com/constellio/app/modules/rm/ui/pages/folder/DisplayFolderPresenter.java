@@ -99,6 +99,7 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryFacetFilters;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuerySort;
+import com.constellio.model.services.search.query.logical.QueryExecutionMethod;
 import com.constellio.model.services.search.query.logical.ScoreLogicalSearchQuerySort;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import org.apache.commons.lang3.StringUtils;
@@ -140,7 +141,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	private MetadataSchemaToVOBuilder schemaVOBuilder = new MetadataSchemaToVOBuilder();
 	private FolderToVOBuilder folderVOBuilder;
 	private DocumentToVOBuilder documentVOBuilder;
-	private List<String> documentsTitle;
+	private List<String> documentTitles = new ArrayList<>();
 
 	private FolderVO folderVO;
 
@@ -480,7 +481,9 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	public int getTaskCount() {
-		return tasksDataProvider.size();
+		LogicalSearchQuery query = new LogicalSearchQuery(tasksDataProvider.getQuery());
+		query.setQueryExecutionMethod(QueryExecutionMethod.USE_CACHE);
+		return (int) searchServices().getResultsCount(query);
 	}
 
 	public RecordVODataProvider getWorkflows() {
@@ -697,11 +700,11 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	private List<String> getAllDocumentTitles() {
-		if (documentsTitle != null) {
-			return documentsTitle;
+		if (documentTitles != null) {
+			return documentTitles;
 		} else {
 			//TODO replace with SearchServices.stream in Constellio 9.0
-			documentsTitle = new ArrayList<>();
+			documentTitles = new ArrayList<>();
 			RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 			LogicalSearchQuery query = new LogicalSearchQuery()
 					.setCondition(from(rm.document.schemaType()).where(rm.document.folder()).is(folderVO.getId()))
@@ -710,9 +713,9 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 			List<Record> documents = modelLayerFactory.newSearchServices().search(query);
 			for (Record document : documents) {
-				documentsTitle.add(document.getId());
+				documentTitles.add(document.getId());
 			}
-			return documentsTitle;
+			return documentTitles;
 		}
 	}
 
@@ -790,7 +793,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 					transaction.add(document);
 					transaction.setUser(getCurrentUser());
 					appLayerFactory.getModelLayerFactory().newRecordServices().executeWithoutImpactHandling(transaction);
-					documentsTitle.add(document.getTitle());
+					documentTitles.add(document.getTitle());
 				} finally {
 					IOServices ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();
 					ioServices.closeQuietly(inputStream);
@@ -832,6 +835,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 				//documentsDataProvider.fireDataRefreshEvent();
 			}
 		}
+		folderContentDataProvider.fireDataRefreshEvent();
 	}
 
 	private boolean hasWritePermission(Record record) {

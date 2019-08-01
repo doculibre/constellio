@@ -14,6 +14,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static com.constellio.model.entities.schemas.Schemas.MARKED_FOR_PARSING;
+import static com.constellio.model.entities.schemas.Schemas.MARKED_FOR_PREVIEW_CONVERSION;
+import static com.constellio.model.entities.schemas.Schemas.MARKED_FOR_REINDEXING;
+import static com.constellio.model.services.schemas.SchemaUtils.isSummary;
 import static com.constellio.model.services.search.query.logical.LogicalOperator.AND;
 
 public class DataStoreFieldLogicalSearchCondition extends LogicalSearchCondition {
@@ -203,24 +207,34 @@ public class DataStoreFieldLogicalSearchCondition extends LogicalSearchCondition
 	}
 
 	@Override
-	public boolean isSupportingMemoryExecution(boolean queryingTypesInSummaryCache) {
+	public boolean isSupportingMemoryExecution(boolean queryingTypesInSummaryCache, boolean requiringExecutionMethod) {
 
 		if (dataStoreFields == null) {
 			return true;
 		}
 
 		if (queryingTypesInSummaryCache) {
-			boolean allMetadatasInCache = true;
 			for (DataStoreField queriedField : dataStoreFields) {
 				Metadata metadata = (Metadata) queriedField;
-				allMetadatasInCache &= metadata.isEssentialInSummary() || metadata.isUniqueValue();
+				if (!isSummary(metadata) && !metadata.isSameLocalCodeThanAny(MARKED_FOR_REINDEXING, MARKED_FOR_PREVIEW_CONVERSION, MARKED_FOR_PARSING)) {
+					if (requiringExecutionMethod) {
+						throw new IllegalArgumentException("Query is using a metadata which is not supported with execution in cache : " + metadata.getCode());
+					} else {
+						return false;
+					}
+				}
 			}
+		}
 
-			if (!allMetadatasInCache) {
+		boolean valueConditionSupportingExecution = valueCondition == null || valueCondition.isSupportingMemoryExecution();
+		if (!valueConditionSupportingExecution) {
+			if (requiringExecutionMethod) {
+				throw new IllegalArgumentException("Query is using a value condition which is not supported with execution in cache : " + valueCondition.getClass().getName());
+			} else {
 				return false;
 			}
 		}
 
-		return valueCondition == null || valueCondition.isSupportingMemoryExecution();
+		return valueConditionSupportingExecution;
 	}
 }

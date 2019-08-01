@@ -15,6 +15,7 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
+import com.constellio.model.services.search.query.logical.QueryExecutionMethod;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -171,7 +172,7 @@ public class LogicalSearchQueryExecutorInCacheAcceptanceTest extends ConstellioT
 	}
 
 	private void validateExecutableInCacheTrue(LogicalSearchQuery logicalSearchQuery) {
-		boolean isExecutableInCache = logicalSearchQueryExecutorInCache.isQueryExecutableInCache(logicalSearchQuery);
+		boolean isExecutableInCache = logicalSearchQueryExecutorInCache.isQueryExecutableInCache(logicalSearchQuery.setQueryExecutionMethod(QueryExecutionMethod.USE_CACHE));
 		assertThat(isExecutableInCache).isTrue();
 	}
 
@@ -184,7 +185,6 @@ public class LogicalSearchQueryExecutorInCacheAcceptanceTest extends ConstellioT
 
 		List<Record> queryResult = logicalSearchQueryExecutorInCache.stream(logicalSearchQuery).collect(Collectors.toList());
 
-		assertThat(logicalSearchQueryExecutorInCache.getLastStreamInitialBaseRecordSize()).isEqualTo(2);
 		assertThat(queryResult.size()).isEqualTo(1);
 		assertThat(queryResult.get(0).getId()).isEqualTo(record3.getId());
 
@@ -199,7 +199,6 @@ public class LogicalSearchQueryExecutorInCacheAcceptanceTest extends ConstellioT
 
 		List<Record> queryResult = logicalSearchQueryExecutorInCache.stream(logicalSearchQuery).collect(Collectors.toList());
 
-		assertThat(logicalSearchQueryExecutorInCache.getLastStreamInitialBaseRecordSize()).isEqualTo(2);
 		assertThat(queryResult.size()).isEqualTo(2);
 		assertThat(queryResult.get(0).getId()).isEqualTo(record3.getId());
 		assertThat(queryResult.get(1).getId()).isEqualTo(record4.getId());
@@ -215,7 +214,6 @@ public class LogicalSearchQueryExecutorInCacheAcceptanceTest extends ConstellioT
 
 		List<Record> queryResult = logicalSearchQueryExecutorInCache.stream(logicalSearchQuery).collect(Collectors.toList());
 
-		assertThat(logicalSearchQueryExecutorInCache.getLastStreamInitialBaseRecordSize()).isEqualTo(-1);
 		assertThat(queryResult.size()).isEqualTo(1);
 
 	}
@@ -229,7 +227,6 @@ public class LogicalSearchQueryExecutorInCacheAcceptanceTest extends ConstellioT
 
 		List<Record> queryResult = logicalSearchQueryExecutorInCache.stream(logicalSearchQuery).collect(Collectors.toList());
 
-		assertThat(logicalSearchQueryExecutorInCache.getLastStreamInitialBaseRecordSize()).isEqualTo(-1);
 		assertThat(queryResult.size()).isEqualTo(0);
 
 	}
@@ -243,7 +240,6 @@ public class LogicalSearchQueryExecutorInCacheAcceptanceTest extends ConstellioT
 
 		List<Record> queryResult = logicalSearchQueryExecutorInCache.stream(logicalSearchQuery).collect(Collectors.toList());
 
-		assertThat(logicalSearchQueryExecutorInCache.getLastStreamInitialBaseRecordSize()).isEqualTo(-1);
 		assertThat(queryResult.size()).isEqualTo(0);
 
 	}

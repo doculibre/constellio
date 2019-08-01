@@ -25,12 +25,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static com.constellio.model.entities.schemas.Schemas.MIGRATION_DATA_VERSION;
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
 
 public class SchemaUtils {
@@ -246,36 +248,7 @@ public class SchemaUtils {
 		List<Metadata> summaryMetadatas = new ArrayList<>();
 
 		for (Metadata metadata : metadatas) {
-			boolean summary;
-			switch (metadata.getType()) {
-				case DATE:
-				case DATE_TIME:
-				case STRING:
-					summary = metadata.isEssentialInSummary() || metadata.isUniqueValue()
-							  || TITLE.isSameLocalCode(metadata) || metadata.isEssentialInSummary() || metadata.isCacheIndex();
-					break;
-
-				case STRUCTURE:
-				case CONTENT:
-					//TODO Based on summary flag, support these typestype
-					summary = metadata.isEssentialInSummary();
-					break;
-
-				case TEXT:
-					summary = metadata.isEssentialInSummary();
-					break;
-
-				case INTEGER:
-				case NUMBER:
-				case BOOLEAN:
-				case REFERENCE:
-				case ENUM:
-					summary = true;
-					break;
-				default:
-					throw new ImpossibleRuntimeException("Unsupported type : " + metadata.getType());
-
-			}
+			boolean summary = isSummary(metadata);
 
 			if (summary) {
 				summaryMetadatas.add(metadata);
@@ -283,6 +256,64 @@ public class SchemaUtils {
 		}
 
 		return summaryMetadatas;
+	}
+
+	public static boolean areCacheIndex(Collection<Metadata> metadatas) {
+		boolean allSummary = true;
+		for (Metadata metadata : metadatas) {
+			allSummary &= metadata.isCacheIndex();
+		}
+		return allSummary;
+	}
+
+	public static boolean areSummary(Collection<Metadata> metadatas) {
+		boolean allSummary = true;
+		for (Metadata metadata : metadatas) {
+			allSummary &= isSummary(metadata);
+		}
+		return allSummary;
+	}
+
+	public static boolean isSummary(Metadata metadata) {
+		boolean summary;
+		switch (metadata.getType()) {
+			case DATE:
+			case DATE_TIME:
+			case STRING:
+				summary = metadata.isEssentialInSummary() || metadata.isUniqueValue()
+						  || TITLE.isSameLocalCode(metadata) || metadata.isEssentialInSummary()
+						  || metadata.isCacheIndex() || Schemas.TOKENS.getLocalCode().equals(metadata.getLocalCode())
+						  || Schemas.ALL_REMOVED_AUTHS.getLocalCode().equals(metadata.getLocalCode())
+						  || Schemas.ATTACHED_ANCESTORS.getLocalCode().equals(metadata.getLocalCode());
+				;
+				break;
+
+			case STRUCTURE:
+			case CONTENT:
+				//TODO Based on summary flag, support these typestype
+				summary = metadata.isEssentialInSummary();
+				break;
+
+			case TEXT:
+				summary = metadata.isEssentialInSummary();
+				break;
+
+			case INTEGER:
+			case NUMBER:
+			case BOOLEAN:
+			case REFERENCE:
+			case ENUM:
+				summary = true;
+				break;
+			default:
+				throw new ImpossibleRuntimeException("Unsupported type : " + metadata.getType());
+
+		}
+
+		if (summary && metadata.hasSameCode(MIGRATION_DATA_VERSION)) {
+			summary = false;
+		}
+		return summary;
 	}
 
 	public String getLocalCodeFromMetadataCode(String metadataCode) {

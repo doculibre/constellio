@@ -65,15 +65,15 @@ public class ViewableRecordVOSearchResultTable extends ViewableRecordVOTablePane
 				if (event.getSelectedItemIds() != null) {
 					List<Object> selectedItemIds = event.getSelectedItemIds();
 					for (Object selectedItemId : selectedItemIds) {
-						selectedItemIds.add(selectedItemId);
-						deselectedItemIds.remove(selectedItemId);
+						ViewableRecordVOSearchResultTable.this.selectedItemIds.add(selectedItemId);
+						ViewableRecordVOSearchResultTable.this.deselectedItemIds.remove(selectedItemId);
 					}
 					presenter.fireSomeRecordsSelected();
 				} else if (event.getDeselectedItemIds() != null) {
 					List<Object> deselectedItemIds = event.getDeselectedItemIds();
 					for (Object deselectedItemId : deselectedItemIds) {
-						selectedItemIds.remove(deselectedItemId);
-						deselectedItemIds.add(deselectedItemId);
+						ViewableRecordVOSearchResultTable.this.selectedItemIds.remove(deselectedItemId);
+						ViewableRecordVOSearchResultTable.this.deselectedItemIds.add(deselectedItemId);
 					}
 					if (selectedItemIds.isEmpty()) {
 						presenter.fireNoRecordSelected();
@@ -81,14 +81,14 @@ public class ViewableRecordVOSearchResultTable extends ViewableRecordVOTablePane
 						presenter.fireSomeRecordsSelected();
 					}
 				} else if (event.isAllItemsSelected()) {
-					allItemsSelected = true;
-					selectedItemIds.addAll(recordVOContainer.getItemIds());
-					deselectedItemIds.clear();
+					ViewableRecordVOSearchResultTable.this.allItemsSelected = true;
+					ViewableRecordVOSearchResultTable.this.selectedItemIds.addAll(recordVOContainer.getItemIds());
+					ViewableRecordVOSearchResultTable.this.deselectedItemIds.clear();
 					presenter.fireSomeRecordsSelected();
 				} else if (event.isAllItemsDeselected()) {
-					allItemsSelected = false;
-					selectedItemIds.clear();
-					deselectedItemIds.clear();
+					ViewableRecordVOSearchResultTable.this.allItemsSelected = false;
+					ViewableRecordVOSearchResultTable.this.selectedItemIds.clear();
+					ViewableRecordVOSearchResultTable.this.deselectedItemIds.clear();
 					presenter.fireNoRecordSelected();
 				}
 			}

@@ -4,11 +4,12 @@ import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.records.RecordServices;
 
 import java.util.List;
@@ -18,14 +19,18 @@ import static org.apache.commons.lang.StringUtils.isNotBlank;
 public class FolderRecordActionsServices {
 
 	private RMSchemasRecordsServices rm;
+	private ModelLayerCollectionExtensions extensions;
 	private RMModuleExtensions rmModuleExtensions;
 	private String collection;
 	private RecordServices recordServices;
+	private BorrowingServices borrowingServices;
 
 	public FolderRecordActionsServices(String collection, AppLayerFactory appLayerFactory) {
 		rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		this.collection = collection;
 		recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
+		borrowingServices = new BorrowingServices(collection, appLayerFactory.getModelLayerFactory());
+		extensions = appLayerFactory.getModelLayerFactory().getExtensions().forCollection(collection);
 		rmModuleExtensions = appLayerFactory.getExtensions().forCollection(collection).forModule(ConstellioRMModule.ID);
 	}
 
@@ -93,7 +98,9 @@ public class FolderRecordActionsServices {
 			return false;
 		}
 		return hasUserWriteAccess(record, user) &&
-			   rmModuleExtensions.isEditActionPossibleOnFolder(folder, user);
+			   rmModuleExtensions.isEditActionPossibleOnFolder(folder, user) &&
+			   !extensions.isModifyBlocked(folder.getWrappedRecord(), user) &&
+			   extensions.isRecordModifiableBy(folder.getWrappedRecord(), user);
 	}
 
 	public boolean isDeleteActionPossible(Record record, User user) {
@@ -180,14 +187,10 @@ public class FolderRecordActionsServices {
 
 	public boolean isBorrowActionPossible(Record record, User user) {
 		Folder folder = rm.wrapFolder(record);
-		if (!hasUserReadAccess(record, user) ||
-			(folder.getBorrowed() != null && folder.getBorrowed())) {
+		try {
+			borrowingServices.validateCanBorrow(user, folder, null);
+		} catch (Exception e) {
 			return false;
-		} else if (folder.getContainer() != null) {
-			ContainerRecord containerRecord = rm.getContainerRecord(folder.getContainer());
-			if (containerRecord.getBorrowed() != null && containerRecord.getBorrowed()) {
-				return false;
-			}
 		}
 		return user.hasAll(RMPermissionsTo.BORROW_FOLDER, RMPermissionsTo.BORROWING_FOLDER_DIRECTLY).on(folder) &&
 			   rmModuleExtensions.isBorrowingActionPossibleOnFolder(folder, user);
@@ -195,15 +198,9 @@ public class FolderRecordActionsServices {
 
 	public boolean isReturnActionPossible(Record record, User user) {
 		Folder folder = rm.wrapFolder(record);
-		boolean hasPermissionToReturnOtherUsersFolder = user.has(RMPermissionsTo.RETURN_OTHER_USERS_FOLDERS).on(folder);
-		boolean hasPermissionToReturnOwnFolderDirectly = user.has(RMPermissionsTo.BORROW_FOLDER).on(folder) &&
-														 user.has(RMPermissionsTo.BORROWING_FOLDER_DIRECTLY).on(folder);
-		if (!user.hasReadAccess().on(folder) ||
-			(folder.getBorrowed() == null || !folder.getBorrowed())) {
-			return false;
-		} else if (!hasPermissionToReturnOtherUsersFolder && !user.getId().equals(folder.getBorrowUserEntered())) {
-			return false;
-		} else if (!hasPermissionToReturnOwnFolderDirectly && user.getId().equals(folder.getBorrowUserEntered())) {
+		try {
+			borrowingServices.validateCanReturnFolder(user, folder);
+		} catch (Exception e) {
 			return false;
 		}
 		return rmModuleExtensions.isReturnActionPossibleOnFolder(rm.wrapFolder(record), user);

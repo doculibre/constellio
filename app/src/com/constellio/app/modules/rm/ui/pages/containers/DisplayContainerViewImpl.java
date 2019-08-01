@@ -257,7 +257,7 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 		delete.setEnabled(presenter.canDelete());
 		actionMenuButtons.add(delete);
 
-		return new RecordVOActionButtonFactory(presenter.getContainer()).build();
+		return new RecordVOActionButtonFactory(presenter.getContainer(), new ArrayList<>()).build();
 	}
 
 	private Button buildAddToMyCartButton(){

@@ -35,6 +35,10 @@ public class Metadata implements DataStoreField {
 
 	final String collection;
 
+	final Byte collectionId;
+
+	final Short typeId;
+
 	final String localCode;
 
 	final String code;
@@ -95,6 +99,8 @@ public class Metadata implements DataStoreField {
 
 		this.enabled = false;
 		this.collection = null;
+		this.collectionId = null;
+		this.typeId = null;
 		this.type = type;
 		this.allowedReferences = null;
 		this.inheritedMetadataBehaviors = new InheritedMetadataBehaviors(false,
@@ -182,7 +188,8 @@ public class Metadata implements DataStoreField {
 		return Schemas.isGlobalMetadata(getLocalCode());
 	}
 
-	public Metadata(short id, String localCode, String code, String collection, Map<Language, String> labels,
+	public Metadata(short id, String localCode, String code, byte collectionId, String collection, short typeId,
+					Map<Language, String> labels,
 					Boolean enabled,
 					InheritedMetadataBehaviors inheritedMetadataBehaviors, MetadataValueType type,
 					AllowedReferences allowedReferences, Boolean defaultRequirement, DataEntry dataEntry,
@@ -197,6 +204,8 @@ public class Metadata implements DataStoreField {
 		this.inheritance = null;
 		this.localCode = localCode;
 		this.code = code;
+		this.collectionId = collectionId;
+		this.typeId = typeId;
 		this.collection = collection;
 		this.labels = Collections.unmodifiableMap(labels);
 		this.enabled = enabled;
@@ -232,6 +241,8 @@ public class Metadata implements DataStoreField {
 		this.localCode = inheritance.getLocalCode();
 		this.code = code;
 		this.collection = inheritance.collection;
+		this.collectionId = inheritance.collectionId;
+		this.typeId = inheritance.typeId;
 		this.inheritance = inheritance;
 		this.labels = Collections.unmodifiableMap(labels);
 		this.enabled = enabled;
@@ -388,7 +399,9 @@ public class Metadata implements DataStoreField {
 		return getInheritedMetadataBehaviors().isEssential();
 	}
 
-	public boolean isCacheIndex() { return getInheritedMetadataBehaviors().isCacheIndex(); }
+	public boolean isCacheIndex() {
+		return getInheritedMetadataBehaviors().isCacheIndex();
+	}
 
 	public boolean isEssentialInSummary() {
 		return getInheritedMetadataBehaviors().isEssentialInSummary();
@@ -591,4 +604,11 @@ public class Metadata implements DataStoreField {
 		return global;
 	}
 
+	public Byte getCollectionId() {
+		return collectionId;
+	}
+
+	public Short getTypeId() {
+		return typeId;
+	}
 }

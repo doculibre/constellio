@@ -163,10 +163,12 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
 		setSpacing(true);
 		addStyleName("viewable-record-table-panel");
 
+		boolean empty = recordVOContainer.size() == 0; 
 		table = buildResultsTable();
 		if (isSelectColumn()) {
 			selectDeselectAllToggleButton = newSelectDeselectAllToggleButton();
 			selectDeselectAllToggleButton.addStyleName(ValoTheme.BUTTON_LINK);
+			selectDeselectAllToggleButton.setVisible(!empty);
 		}
 
 		countLabel = new Label();

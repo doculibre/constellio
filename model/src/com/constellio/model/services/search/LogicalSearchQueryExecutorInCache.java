@@ -13,6 +13,7 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.ModelLayerSystemExtensions;
 import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.FieldLogicalSearchQuerySort;
 import com.constellio.model.services.search.query.logical.LogicalOperator;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -41,6 +42,7 @@ import static com.constellio.model.entities.schemas.MetadataValueType.INTEGER;
 import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.services.search.VisibilityStatusFilter.ALL;
+import static java.util.Arrays.asList;
 
 public class LogicalSearchQueryExecutorInCache {
 
@@ -51,7 +53,6 @@ public class LogicalSearchQueryExecutorInCache {
 	MetadataSchemasManager schemasManager;
 	ModelLayerSystemExtensions modelLayerExtensions;
 	String mainDataLanguage;
-	private int initialBaseStreamSize = -1;
 
 	public LogicalSearchQueryExecutorInCache(SearchServices searchServices, RecordsCaches recordsCaches,
 											 MetadataSchemasManager schemasManager,
@@ -72,10 +73,9 @@ public class LogicalSearchQueryExecutorInCache {
 		Stream<Record> stream = newBaseRecordStream(query, schemaType, filter);
 
 		if (!query.getSortFields().isEmpty()) {
-			initialBaseStreamSize = -1;
 			return stream.sorted(newQuerySortFieldsComparator(query, schemaType));
 		} else {
-			return stream.sorted(newIdComparator());
+			return stream;//.sorted(newIdComparator());
 		}
 	}
 
@@ -192,13 +192,21 @@ public class LogicalSearchQueryExecutorInCache {
 		} else {
 			Metadata metadata = (Metadata) requiredFieldEqualCondition.getDataStoreFields().get(0);
 			Object value = ((IsEqualCriterion) requiredFieldEqualCondition.getValueCondition()).getMemoryQueryValue();
-			stream = recordsCaches.getRecordsByIndexedMetadata(schemaType, metadata, (String) value);
+			if (query.getReturnedMetadatas() != null && query.getReturnedMetadatas().isOnlySummary()) {
+				stream = recordsCaches.getRecordsSummaryByIndexedMetadata(schemaType, metadata, (String) value);
+			} else {
+				stream = recordsCaches.getRecordsByIndexedMetadata(schemaType, metadata, (String) value);
+			}
 		}
 
-		return stream.filter(filter).onClose(() -> {
-			long duration = new Date().getTime() - startOfStreaming;
-			modelLayerExtensions.onQueryExecution(query, duration);
-		});
+		return stream.filter(filter).
+
+				onClose(() ->
+
+				{
+					long duration = new Date().getTime() - startOfStreaming;
+					modelLayerExtensions.onQueryExecution(query, duration);
+				});
 	}
 
 	private static boolean isRecordAccessibleForUser(List<UserFilter> userFilterList, Record record) {
@@ -214,10 +222,6 @@ public class LogicalSearchQueryExecutorInCache {
 	private boolean canDataGetByMetadata(DataStoreField dataStoreField, Object value) {
 		return value instanceof String
 			   && !dataStoreField.isEncrypted() && (dataStoreField.isUniqueValue() || dataStoreField.isCacheIndex());
-	}
-
-	protected int getLastStreamInitialBaseRecordSize() {
-		return initialBaseStreamSize;
 	}
 
 	@NotNull
@@ -303,30 +307,53 @@ public class LogicalSearchQueryExecutorInCache {
 	}
 
 	public boolean isQueryExecutableInCache(LogicalSearchQuery query) {
-		if (recordsCaches == null || !recordsCaches.isInitialized() || !isConditionExecutableInCache(query.getCondition())) {
+		if (recordsCaches == null) {
 			return false;
 		}
 
-		return hasNoUnsupportedFeatureOrFilter(query);
+		return hasNoUnsupportedFeatureOrFilter(query) && isConditionExecutableInCache(query.getCondition(),
+				query.getReturnedMetadatas(), query.getQueryExecutionMethod().requiringCacheExecution());
+
 	}
 
+	private static List<Predicate<LogicalSearchQuery>> requirements = asList(
+			(query) -> query.getQueryExecutionMethod() != QueryExecutionMethod.USE_SOLR,
+			(query) -> query.getFacetFilters().toSolrFilterQueries().isEmpty(),
+			(query) -> hasNoUnsupportedSort(query),
+			(query) -> query.getFreeTextQuery() == null,
+			(query) -> query.getFieldPivotFacets().isEmpty(),
+			(query) -> query.getQueryBoosts().isEmpty(),
+			(query) -> query.getStatisticFields().isEmpty(),
+			(query) -> !query.isPreferAnalyzedFields(),
+			(query) -> query.getResultsProjection() == null,
+			(query) -> query.getFieldFacets().isEmpty(),
+			(query) -> query.getFieldPivotFacets().isEmpty(),
+			(query) -> query.getQueryFacets().isEmpty(),
+			(query) -> areAllFiltersExecutableInCache(query.getUserFilters()),
+			(query) -> !query.isHighlighting()
+
+
+	);
+
+	/**
+	 * Will throw IllegalArgumentException if the query is requiring execution in cache and use unsupported features
+	 *
+	 * @param query
+	 * @return
+	 */
 	public static boolean hasNoUnsupportedFeatureOrFilter(LogicalSearchQuery query) {
-		return query.getQueryExecutionMethod() != QueryExecutionMethod.USE_SOLR
-			   && query.getFacetFilters().toSolrFilterQueries().isEmpty()
-			   && hasNoUnsupportedSort(query)
-			   && query.getFreeTextQuery() == null
-			   && query.getFieldPivotFacets().isEmpty()
-			   && query.getFieldPivotFacets().isEmpty()
-			   && query.getFieldBoosts().isEmpty()
-			   && query.getQueryBoosts().isEmpty()
-			   && query.getStatisticFields().isEmpty()
-			   && !query.isPreferAnalyzedFields()
-			   && query.getResultsProjection() == null
-			   && query.getFieldFacets().isEmpty()
-			   && query.getFieldPivotFacets().isEmpty()
-			   && query.getQueryFacets().isEmpty()
-			   && areAllFiltersExecutableInCache(query.getUserFilters())
-			   && !query.isHighlighting();
+		for (int i = 0; i < requirements.size(); i++) {
+			if (!requirements.get(i).test(query)) {
+				if (query.getQueryExecutionMethod().requiringCacheExecution()) {
+					throw new IllegalArgumentException("Query is using a feature which is not supported with execution in cache. Requirement at index '" + i + "' failed.");
+				} else {
+					return false;
+				}
+
+			}
+		}
+		return true;
+
 	}
 
 	private static boolean areAllFiltersExecutableInCache(List<UserFilter> userFilters) {
@@ -363,22 +390,30 @@ public class LogicalSearchQueryExecutorInCache {
 		return true;
 	}
 
-	public boolean isConditionExecutableInCache(LogicalSearchCondition condition) {
 
-		if (recordsCaches == null || !recordsCaches.isInitialized()) {
+	public boolean isConditionExecutableInCache(LogicalSearchCondition condition, boolean requiringExecutionInCache) {
+		return isConditionExecutableInCache(condition, ReturnedMetadatasFilter.all(), requiringExecutionInCache);
+	}
+
+	public boolean isConditionExecutableInCache(LogicalSearchCondition condition,
+												ReturnedMetadatasFilter returnedMetadatasFilter,
+												boolean requiringExecutionInCache) {
+		MetadataSchemaType schemaType = getQueriedSchemaType(condition);
+
+		if (recordsCaches == null || schemaType == null || !recordsCaches.isCacheInitialized(schemaType)) {
 			return false;
 		}
-
-		MetadataSchemaType schemaType = getQueriedSchemaType(condition);
 
 		if (schemaType == null || !Toggle.USE_CACHE_FOR_QUERY_EXECUTION.isEnabled()) {
 			return false;
 
 		} else if (schemaType.getCacheType() == RecordCacheType.FULLY_CACHED) {
-			return condition.isSupportingMemoryExecution(false);
+			return condition.isSupportingMemoryExecution(false, requiringExecutionInCache);
 
 		} else if (schemaType.getCacheType().hasPermanentCache()) {
-			return false;//condition.isSupportingMemoryExecution(true);
+			//Verify that schemaType is loaded
+			return (returnedMetadatasFilter.isOnlySummary() || returnedMetadatasFilter.isOnlyId()) &&
+				   condition.isSupportingMemoryExecution(true, requiringExecutionInCache);
 
 		} else {
 			return false;

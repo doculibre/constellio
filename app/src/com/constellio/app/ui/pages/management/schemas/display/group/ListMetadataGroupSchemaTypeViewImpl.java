@@ -1,13 +1,5 @@
 package com.constellio.app.ui.pages.management.schemas.display.group;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.vaadin.dialogs.ConfirmDialog;
-
 import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
@@ -38,6 +30,13 @@ import com.vaadin.ui.Table.TableDragMode;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
+import org.vaadin.dialogs.ConfirmDialog;
+
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ListMetadataGroupSchemaTypeViewImpl extends BaseViewImpl implements ListMetadataGroupSchemaTypeView {
 	
@@ -189,12 +188,18 @@ public class ListMetadataGroupSchemaTypeViewImpl extends BaseViewImpl implements
 			}
 		};
 		deleteButton.addStyleName(GROUP_DELETE_BUTTON);
+		deleteButton.setVisible(isNotDefaultGroup(group));
+		deleteButton.setEnabled(isNotDefaultGroup(group));
 		
 		I18NHorizontalLayout buttonsLayout = new I18NHorizontalLayout(editButton, deleteButton);
 
 		table.getContainerProperty(group, "buttons").setValue(buttonsLayout);
 	}
-	
+
+	private boolean isNotDefaultGroup(String group) {
+		return !presenter.getDefaultMetadataGroupCode().equals(group);
+	}
+
     @SuppressWarnings("unchecked")
     /**
      * 

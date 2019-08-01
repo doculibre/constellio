@@ -171,4 +171,6 @@ public interface ModelLayerFactory extends LayerFactory {
 
 	ModelLayerCachesManager getCachesManager();
 
+	void postInitialization();
+
 }

@@ -360,6 +360,7 @@ public class RecordImpl implements Record {
 	}
 
 	private <T> T get(Metadata metadata, String language, LocalisedRecordMetadataRetrieval mode) {
+
 		if (metadata == null) {
 			throw new RecordRuntimeException.RequiredMetadataArgument();
 		}
@@ -368,6 +369,11 @@ public class RecordImpl implements Record {
 		}
 
 		String codeAndType;
+
+
+		if (recordDTO != null && recordDTO.getLoadingMode() == RecordDTOMode.SUMMARY && !SchemaUtils.isSummary(metadata)) {
+			throw new IllegalArgumentException("Non summary metadata '" + metadata.getCode() + "' cannot be obtained on summary record");
+		}
 
 		if (collectionInfo.getMainSystemLanguage().getCode().equals(language) || language == null) {
 			codeAndType = metadata.getDataStoreCode();

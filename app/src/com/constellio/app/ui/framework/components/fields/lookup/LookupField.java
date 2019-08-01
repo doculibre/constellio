@@ -87,6 +87,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<Ob
 	public static final String CLEAR_BUTTON_STYLE_NAME = STYLE_NAME + "-clear-button";
 	public static final String LOOKUP_WINDOW_STYLE_NAME = STYLE_NAME + "-window";
 	public static final String LOOKUP_WINDOW_CONTENT_STYLE_NAME = LOOKUP_WINDOW_STYLE_NAME + "-content";
+	private static final String SELECT_PROPERTY_ID = "select";
 	private static final String CAPTION_PROPERTY_ID = "caption";
 
 	protected TextInputDataProvider<T> suggestInputDataProvider;
@@ -709,7 +710,6 @@ public abstract class LookupField<T extends Serializable> extends CustomField<Ob
 					}
 				}
 			});
-			selectButton.setVisible(multiValue);
 
 			if (!getLookupTreeDataProviders().isEmpty()) {
 				if (getLookupTreeDataProviders().size() > 1) {
@@ -789,6 +789,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<Ob
 				} else {
 					addComponent(lookupTreeComponent);
 				}
+				selectButton.setVisible(multiValue);
 			} else {
 				Container searchResultsContainer = new LookupSearchResultContainer(geSuggestInputDataProvider(), searchField);
 				searchResultsTable.setContainerDataSource(searchResultsContainer);
@@ -797,6 +798,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<Ob
 				} else {
 					addComponent(searchResultsTable);
 				}
+				selectButton.setVisible(false);
 			}
 
 			searchFieldLayout.setWidth("100%");

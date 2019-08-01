@@ -63,6 +63,7 @@ import com.vaadin.server.Resource;
 import com.vaadin.ui.Button;
 import org.apache.commons.io.FilenameUtils;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -352,6 +353,29 @@ public class DocumentMenuItemActionBehaviors {
 		uploadWindow.open(false);
 	}
 
+	public void alertAvailable(Document document, MenuItemActionBehaviorParams params) {
+		List<String> usersToAlert = document.getAlertUsersWhenAvailable();
+		String currentUserId = params.getUser().getId();
+		List<String> newUsersToAlert = new ArrayList<>(usersToAlert);
+
+		String currentBorrower = getCurrentBorrowerOf(document);
+
+		if (!newUsersToAlert.contains(currentUserId) && currentBorrower != null && !currentUserId.equals(currentBorrower)) {
+			newUsersToAlert.add(currentUserId);
+			document.setAlertUsersWhenAvailable(newUsersToAlert);
+			try {
+				recordServices.update(document);
+			} catch (RecordServicesException e) {
+				params.getView().showErrorMessage(MessageUtils.toMessage(e));
+			}
+		}
+		params.getView().showMessage($("RMObject.createAlert"));
+	}
+
+	private String getCurrentBorrowerOf(Document document) {
+		return document.getContent() == null ? null : document.getContent().getCheckoutUserId();
+	}
+
 	private DocumentVO getDocumentVO(MenuItemActionBehaviorParams params, Document document) {
 		return new DocumentToVOBuilder(modelLayerFactory).build(document.getWrappedRecord(),
 				VIEW_MODE.DISPLAY, params.getView().getSessionContext());
@@ -418,5 +442,4 @@ public class DocumentMenuItemActionBehaviors {
 	private void navigateToDisplayFolder(String folderId, Map<String, String> params) {
 		RMNavigationUtils.navigateToDisplayFolder(folderId, params, appLayerFactory, collection);
 	}
-
 }

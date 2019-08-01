@@ -1,8 +1,12 @@
 package com.constellio.model.services.records.cache.dataStore;
 
+import com.constellio.data.utils.dev.Toggle;
+import com.constellio.model.conf.FoldersLocator;
+import com.constellio.model.conf.FoldersLocatorMode;
+import org.mapdb.BTreeMap;
 import org.mapdb.DB;
 import org.mapdb.DBMaker;
-import org.mapdb.HTreeMap;
+import org.mapdb.DBMaker.Maker;
 import org.mapdb.Serializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,75 +19,87 @@ public class FileSystemRecordsValuesCacheDataStore {
 
 	private DB onDiskDatabase;
 
-	private HTreeMap<Integer, byte[]> intKeyMap;
+	private BTreeMap<Integer, byte[]> intKeyMap;
 
-	private HTreeMap<Integer, byte[]> intKeyMapMemoryBuffer;
-
-	private HTreeMap<String, byte[]> stringKeyMap;
-
-	private HTreeMap<String, byte[]> stringKeyMapMemoryBuffer;
+	private BTreeMap<String, byte[]> stringKeyMap;
 
 	public FileSystemRecordsValuesCacheDataStore(File file) {
 		if (!file.exists() || file.delete()) {
-			this.onDiskDatabase = DBMaker.fileDB(file).fileLockDisable().make();
+
+			if (new FoldersLocator().getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER) {
+				Maker dbMaker = DBMaker.fileDB(file);
+
+				if (Toggle.USE_MMAP_WITHMAP_DB.isEnabled()) {
+					dbMaker.fileMmapEnableIfSupported().fileMmapPreclearDisable();
+					dbMaker.allocateStartSize(500 * 1024 * 1024).allocateIncrement(500 * 1024 * 1024);
+				}
+				this.onDiskDatabase = dbMaker.fileLockDisable().make();
+			} else {
+				Maker dbMaker = DBMaker.memoryDB();
+				this.onDiskDatabase = dbMaker.make();
+			}
+
+
 		} else {
 			throw new IllegalStateException("File delete failed. Only one instance per file can be active. " +
 											"To Create a new one close the other instance before instanciating " +
 											"the second one.");
 		}
 
-		intKeyMap = onDiskDatabase.hashMap("intKeysDataStore")
+		intKeyMap = onDiskDatabase.treeMap("intKeysDataStore")
+				.valuesOutsideNodesEnable()
 				.keySerializer(Serializer.INTEGER)
 				.valueSerializer(Serializer.BYTE_ARRAY)
 				.create();
 
-		stringKeyMap = onDiskDatabase.hashMap("stringKeysDataStore")
+		stringKeyMap = onDiskDatabase.treeMap("stringKeysDataStore")
+				.valuesOutsideNodesEnable()
 				.keySerializer(Serializer.STRING)
 				.valueSerializer(Serializer.BYTE_ARRAY)
 				.create();
 
-		DB onMEmoryDatabase = DBMaker.memoryDB().make();
+		DB onMEmoryDatabase = DBMaker.memoryDirectDB().make();
 
-
-		intKeyMapMemoryBuffer = onMEmoryDatabase.hashMap("intKeysDataStoreBuffer")
-				.keySerializer(Serializer.INTEGER)
-				.valueSerializer(Serializer.BYTE_ARRAY)
-				.expireStoreSize(50 * 1024 * 1024)
-				.expireAfterGet()
-				.expireAfterCreate()
-				.expireOverflow(intKeyMap)
-				.create();
-
-		stringKeyMapMemoryBuffer = onMEmoryDatabase.hashMap("stringKeysDataStoreBuffer")
-				.keySerializer(Serializer.STRING)
-				.valueSerializer(Serializer.BYTE_ARRAY)
-				.expireStoreSize(5 * 1024 * 1024)
-				.expireAfterGet()
-				.expireAfterCreate()
-				.expireOverflow(stringKeyMap)
-				.create();
+		//
+		//		intKeyMapMemoryBuffer = onMEmoryDatabase.hashMap("intKeysDataStoreBuffer")
+		//				.keySerializer(Serializer.INTEGER)
+		//				.valueSerializer(Serializer.BYTE_ARRAY)
+		//				.expireStoreSize(25 * 1024 * 1024)
+		//				//.expireAfterGet()
+		//				.expireAfterUpdate()
+		//				.expireOverflow(intKeyMap)
+		//				.create();
+		//
+		//		stringKeyMapMemoryBuffer = onMEmoryDatabase.hashMap("stringKeysDataStoreBuffer")
+		//				.keySerializer(Serializer.STRING)
+		//				.valueSerializer(Serializer.BYTE_ARRAY)
+		//				.expireStoreSize(5 * 1024 * 1024)
+		//				.expireAfterGet()
+		//				.expireAfterCreate()
+		//				.expireOverflow(stringKeyMap)
+		//				.create();
 
 
 	}
 
 	public void saveStringKey(String id, byte[] bytes) {
-		stringKeyMapMemoryBuffer.put(id, bytes);
+		stringKeyMap.put(id, bytes);
 	}
 
 	public void saveIntKey(int id, byte[] bytes) {
-		intKeyMapMemoryBuffer.put(id, bytes);
+		intKeyMap.put(id, bytes);
 	}
 
 	public void removeStringKey(String id) {
-		stringKeyMapMemoryBuffer.remove(id);
+		stringKeyMap.remove(id);
 	}
 
 	public void removeIntKey(int id) {
-		intKeyMapMemoryBuffer.remove(id);
+		intKeyMap.remove(id);
 	}
 
 	public byte[] loadStringKey(String id) {
-		byte[] bytes = stringKeyMapMemoryBuffer.get(id);
+		byte[] bytes = stringKeyMap.get(id);
 		if (bytes == null) {
 			throw new IllegalStateException("Record '" + id + "' has no stored bytes");
 		}
@@ -91,7 +107,7 @@ public class FileSystemRecordsValuesCacheDataStore {
 	}
 
 	public byte[] loadIntKey(int id) {
-		byte[] bytes = intKeyMapMemoryBuffer.get(id);
+		byte[] bytes = intKeyMap.get(id);
 		if (bytes == null) {
 			throw new IllegalStateException("Record '" + id + "' has no stored bytes");
 		}
@@ -107,7 +123,7 @@ public class FileSystemRecordsValuesCacheDataStore {
 	public void clearAll() {
 		intKeyMap.clear();
 		stringKeyMap.clear();
-		intKeyMapMemoryBuffer.clear();
-		stringKeyMapMemoryBuffer.clear();
+		intKeyMap.clear();
+		stringKeyMap.clear();
 	}
 }

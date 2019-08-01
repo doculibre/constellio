@@ -135,7 +135,7 @@ public abstract class SearchResultVODataProvider implements DataProvider {
 		SerializedCacheSearchService searchServices = new SerializedCacheSearchService(modelLayerFactory, queryCache, true);
 		List<SearchResultVO> results = new ArrayList<>(numberOfItems);
 
-		SPEQueryResponse response = searchServices.query(query, resultsPerPage);
+		SPEQueryResponse response = searchServices.query(query, Math.max(resultsPerPage, numberOfItems));
 		onQuery(query, response);
 		List<Record> records = response.getRecords();
 		for (int i = 0; i < Math.min(numberOfItems, records.size()); i++) {

@@ -157,7 +157,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 	public void executeWithImpactHandler(Transaction transaction, RecordModificationImpactHandler handler)
 			throws RecordServicesException {
-		executeWithImpactHandler(transaction, handler, 0);
+		executeWithImpactHandler(transaction, handler, false, 0);
 	}
 
 	@Override
@@ -262,16 +262,24 @@ public class RecordServicesImpl extends BaseRecordServices {
 		prepareRecords(transaction);
 		ModificationImpactCalculatorResponse impacts = getModificationImpacts(transaction, false);
 
-		transaction.addAllRecordsToReindex(impacts.getRecordsToReindex());
+		transaction.addAllRecordsToReindex(impacts.getRecordsToReindexLater());
 		if (impacts.getImpacts().isEmpty()) {
 			saveContentsAndRecords(transaction, null, attempt);
 		} else {
 			Transaction newTransaction = new Transaction(transaction);
 			for (ModificationImpact impact : impacts.getImpacts()) {
-				LOGGER.debug("Handling modification impact. Reindexing " + impact.getMetadataToReindex() + " for records of "
-							 + impact.getLogicalSearchCondition().toString());
-				LogicalSearchQuery searchQuery = new LogicalSearchQuery(impact.getLogicalSearchCondition());
-				List<Record> recordsFound = modelFactory.newSearchServices().search(searchQuery);
+
+				List<Record> recordsFound;
+				if (impact.getMarkForReindexingInsteadOfBatchProcess() == null) {
+					LOGGER.debug("Handling modification impact. Reindexing " + impact.getMetadataToReindex() + " for records of "
+								 + impact.getLogicalSearchCondition().toString());
+					LogicalSearchQuery searchQuery = new LogicalSearchQuery(impact.getLogicalSearchCondition());
+					recordsFound = modelFactory.newSearchServices().search(searchQuery);
+
+				} else {
+					recordsFound = getRecordsById(transaction.getCollection(), new ArrayList<>(impact.getMarkForReindexingInsteadOfBatchProcess()));
+				}
+
 				for (Record record : recordsFound) {
 					if (!newTransaction.getRecordIds().contains(record.getId())) {
 						newTransaction.addUpdate(record);
@@ -281,6 +289,8 @@ public class RecordServicesImpl extends BaseRecordServices {
 				newTransaction.getRecordUpdateOptions().getTransactionRecordsReindexation()
 						.addReindexedMetadatas(impact.getMetadataToReindex());
 			}
+
+
 			execute(newTransaction, attempt);
 		}
 
@@ -290,29 +300,93 @@ public class RecordServicesImpl extends BaseRecordServices {
 			throws RecordServicesException {
 		if (!transaction.getRecords().isEmpty()) {
 			AddToBatchProcessImpactHandler handler = addToBatchProcessModificationImpactHandler();
-			executeWithImpactHandler(transaction, handler);
+			executeWithImpactHandler(transaction, handler, false, 0);
 			return handler.getAllCreatedBatchProcesses();
 		} else {
 			return Collections.emptyList();
 		}
 	}
 
-	public void executeWithImpactHandler(Transaction transaction, RecordModificationImpactHandler handler, int attempt)
+	public List<BatchProcess> executeHandlingSomeImpactsNow(Transaction transaction)
+			throws RecordServicesException {
+		if (!transaction.getRecords().isEmpty()) {
+			AddToBatchProcessImpactHandler handler = addToBatchProcessModificationImpactHandler();
+			executeWithImpactHandler(transaction, handler, true, 0);
+			return handler.getAllCreatedBatchProcesses();
+		} else {
+			return Collections.emptyList();
+		}
+	}
+
+	public void executeWithImpactHandler(Transaction transaction, RecordModificationImpactHandler handler,
+										 boolean tryHandlingSomeImpactsNow, int attempt)
 			throws RecordServicesException {
 		transaction.setOnlyBeingPrepared(false);
 		validateNotTooMuchRecords(transaction);
 
 		prepareRecords(transaction);
+		Transaction newTransaction = new Transaction(transaction);
+		boolean newImpactsHandledNow = false;
+		List<ModificationImpact> impactsToHandleLater = new ArrayList<>();
 		if (handler != null) {
 			ModificationImpactCalculatorResponse impacts = getModificationImpacts(transaction, true);
 
+			Set<String> idsReindexedNow = new HashSet<>();
+
+
 			for (ModificationImpact modificationImpact : impacts.getImpacts()) {
-				handler.prepareToHandle(modificationImpact);
+				if (modificationImpact.getMarkForReindexingInsteadOfBatchProcess() != null) {
+
+					idsReindexedNow.addAll(modificationImpact.getMarkForReindexingInsteadOfBatchProcess());
+
+					boolean tryHandlingThisImpactsNow = tryHandlingSomeImpactsNow &&
+														idsReindexedNow.size() + modificationImpact.getMarkForReindexingInsteadOfBatchProcess().size() < 250;
+
+					boolean impactIsHandledNow = false;
+					boolean impactIsHandledLater = false;
+					for (String id : modificationImpact.getMarkForReindexingInsteadOfBatchProcess()) {
+						if (!newTransaction.getRecordIds().contains(id)) {
+							if (tryHandlingThisImpactsNow) {
+								Record record = getDocumentById(id);
+								newTransaction.addUpdate(record);
+								newImpactsHandledNow = true;
+								impactIsHandledNow = true;
+							} else {
+								newTransaction.addRecordToReindex(id);
+								impactIsHandledLater = true;
+							}
+						}
+					}
+
+					if (impactIsHandledNow) {
+						newTransaction.getRecordUpdateOptions().getTransactionRecordsReindexation()
+								.addReindexedMetadatas(modificationImpact.getMetadataToReindex());
+					}
+
+					//					if (impactIsHandledLater) {
+					//						impactsToHandleLater.add(modificationImpact);
+					//					}
+
+
+				} else {
+					impactsToHandleLater.add(modificationImpact);
+				}
+
+
 			}
-			transaction.addAllRecordsToReindex(impacts.getRecordsToReindex());
+
+			transaction.addAllRecordsToReindex(impacts.getRecordsToReindexLater());
 		}
 
-		saveContentsAndRecords(transaction, handler, attempt);
+		if (newImpactsHandledNow) {
+			executeWithImpactHandler(newTransaction, handler, false, attempt);
+		} else {
+			for (ModificationImpact modificationImpact : impactsToHandleLater) {
+				handler.prepareToHandle(modificationImpact);
+			}
+
+			saveContentsAndRecords(newTransaction, handler, attempt);
+		}
 
 	}
 
@@ -350,7 +424,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 			if (handler == null) {
 				execute(transaction, attempt + 1);
 			} else {
-				executeWithImpactHandler(transaction, handler, attempt + 1);
+				executeWithImpactHandler(transaction, handler, false, attempt + 1);
 			}
 		}
 	}
@@ -567,20 +641,18 @@ public class RecordServicesImpl extends BaseRecordServices {
 			throw new IllegalArgumentException("Schema type '" + schemaTypeCode + "' has no permanent cache");
 		}
 
-		if (schemaType.getCacheType().hasPermanentCache()) {
-			return getRecordsCaches().getCache(metadata.getCollection()).getSummaryByMetadata(metadata, value);
+		Record returnedRecord = getRecordsCaches().getCache(metadata.getCollection()).getSummaryByMetadata(metadata, value);
+		if (returnedRecord == null && getRecordsCaches().isCacheInitialized(schemaType)) {
+			LogicalSearchCondition condition = from(schemaType).where(metadata).isEqualTo(value);
+
+			Record record = searchServices.searchSingleResult(condition);
+			if (record != null) {
+				RecordDTO recordDTO = toPersistedSummaryRecordDTO(record, schemaType.getSchema(record.getSchemaCode()));
+				returnedRecord = new RecordImpl(recordDTO, schemaType.getCollectionInfo());
+			}
 		}
 
-		LogicalSearchCondition condition = from(schemaType).where(metadata).isEqualTo(value);
-
-		Record record = searchServices.searchSingleResult(condition);
-
-		if (record == null) {
-			return null;
-		}
-
-		RecordDTO recordDTO = toPersistedSummaryRecordDTO(record, schemaType.getSchema(record.getSchemaCode()));
-		return new RecordImpl(recordDTO, schemaType.getCollectionInfo());
+		return returnedRecord;
 	}
 
 
@@ -721,8 +793,17 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 	public List<Record> getRecordsById(String collection, List<String> ids) {
 
-		LogicalSearchQuery query = new LogicalSearchQuery(fromAllSchemasIn(collection).where(Schemas.IDENTIFIER).isIn(ids));
-		return modelFactory.newSearchServices().search(query);
+		List<Record> records = new ArrayList<>();
+
+		ids.forEach(id -> {
+			try {
+				records.add(getDocumentById(id));
+			} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+				LOGGER.warn("Record with id '" + id + "' does not exist");
+			}
+		});
+
+		return records;
 	}
 
 	public void prepareRecords(Transaction transaction)

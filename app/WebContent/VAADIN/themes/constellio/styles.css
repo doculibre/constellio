@@ -12269,6 +12269,11 @@ div.v-layout.v-horizontal.v-widget {
 	font-size: 16px;
 }
 
+.constellio .v-label-h1 {
+	font-size: 21.6px;
+	font-weight: bold;
+}
+
 .constellio .v-tooltip {
 	font-weight: bold;
 	background-color: #197de1;
@@ -14785,7 +14790,8 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .viewable-record-table-panel .v-slot-selection-buttons-layout .previous-button {
-	padding-left: 20px;
+	margin-left: 12px;
+	margin-right: -12px;
 }
 
 .constellio .viewable-record-table-panel .selection-action-menu-bar .v-menubar-submenu-indicator + .v-menubar-menuitem-caption:after {
@@ -14815,6 +14821,130 @@ div.v-layout.v-horizontal.v-widget {
 	cursor: pointer;
 }
 
+.constellio .viewable-record-table-panel .viewable-record-table .v-table-cell-content {
+	border: none;
+}
+
+.constellio .viewable-record-table-panel .viewable-record-table .v-table-table .v-table-cell-content {
+	border: none;
+	vertical-align: top;
+}
+
+.constellio .viewable-record-table-panel .viewable-record-table .v-table-table .v-table-cell-content .v-checkbox {
+	margin-top: 23px;
+}
+
+.constellio .viewable-record-table-panel .viewable-record-table .v-table-table .v-table-cell-content .row-index {
+	margin-top: 23px;
+}
+
+.constellio .viewable-record-table-panel .viewable-record-table .v-table-table .v-table-cell-content .v-spacing {
+	height: 5px;
+}
+
+.constellio .viewable-record-table-panel .viewable-record-table .search-result-record {
+	padding-top: 4px;
+}
+
+.constellio .viewable-record-table-panel .viewable-record-table .search-result-with-checkbox-and-index {
+	position: relative;
+	top: -40px;
+	padding-right: 310px;
+	padding-left: 80px;
+}
+
+.constellio .viewable-record-table-panel .viewable-record-table .search-result-with-checkbox {
+	position: relative;
+	top: -40px;
+	padding-right: 310px;
+	padding-left: 40px;
+}
+
+.constellio .viewable-record-table-panel .viewable-record-table .search-result-with-index {
+	position: relative;
+	top: -40px;
+	padding-right: 310px;
+	padding-left: 40px;
+}
+
+.constellio .viewable-record-table-panel .viewable-record-table .search-result-title {
+	padding-top: 6px;
+	padding-bottom: 4px;
+	text-align: left;
+	color: #197de1;
+	font-weight: bold;
+}
+
+.constellio .viewable-record-table-panel .viewable-record-table .document-search-result-title {
+	padding-top: 0px;
+}
+
+.constellio .viewable-record-table-panel .viewable-record-table .search-result-highlights {
+	white-space: normal;
+	display: inline-block;
+	line-height: normal;
+	padding-top: 5px;
+}
+
+.constellio .viewable-record-table-panel .viewable-record-table .search-result-highlights em {
+	font-weight: bold;
+	font-style: normal;
+}
+
+.constellio .viewable-record-table-panel .viewable-record-table .metadata-caption, .constellio .viewable-record-table-panel .viewable-record-table .metadata-value {
+	font-size: 14px;
+	line-height: 1.7em;
+}
+
+.constellio .viewable-record-table-panel .viewable-record-table .metadata-caption {
+	font-weight: 700;
+}
+
+.constellio .viewable-record-table-panel .viewable-record-table .metadata-value {
+	position: relative;
+	top: -24px;
+	left: 250px;
+	margin-bottom: -24px;
+}
+
+.constellio .viewable-record-table-panel .viewable-record-table .search-result-metadata-layout {
+	font-size: 14px;
+	padding-top: 10px;
+}
+
+.constellio .viewable-record-table-panel .viewable-record-table .search-result-metadata-layout .metadata-caption {
+	font-weight: 700;
+}
+
+.constellio .viewable-record-table-panel .viewable-record-table .v-slot-search-result-elevation-buttons {
+	position: relative;
+	margin-bottom: -35px;
+}
+
+.constellio .viewable-record-table-panel .viewable-record-table .search-result-elevation, .constellio .viewable-record-table-panel .viewable-record-table .search-result-exclusion {
+	width: auto;
+	position: relative;
+	float: right;
+	top: -30px;
+	margin-bottom: -35px;
+}
+
+.constellio .viewable-record-table-panel .viewable-record-table .search-result-elevation .v-button-caption, .constellio .viewable-record-table-panel .viewable-record-table .search-result-exclusion .v-button-caption {
+	display: none;
+}
+
+.constellio .viewable-record-table-panel .viewable-record-table .search-result-elevation {
+	right: 36px;
+}
+
+.constellio .viewable-record-table-panel .viewable-record-table .search-result-exclusion {
+	right: 0px;
+}
+
+.constellio .viewable-record-table-panel .viewable-record-table .search-result-elevation:hover, .constellio .viewable-record-table-panel .viewable-record-table .search-result-exclusion:hover {
+	text-decoration: none;
+}
+
 .constellio .viewable-record-table-panel .viewable-record-table .v-table-body {
 	border: none;
 }
@@ -14827,24 +14957,6 @@ div.v-layout.v-horizontal.v-widget {
 	vertical-align: top;
 }
 
-.constellio .viewable-record-table-panel .viewable-record-table .search-result-record .search-result-title {
-	padding-top: 8px;
-	text-align: left;
-	font-weight: bold;
-}
-
-.constellio .viewable-record-table-panel .viewable-record-table .search-result-record .document-search-result-title {
-	padding-top: 10px;
-}
-
-.constellio .viewable-record-table-panel .viewable-record-table .search-result-record .search-result-metadata {
-	font-size: 14px;
-}
-
-.constellio .viewable-record-table-panel .viewable-record-table .search-result-record .search-result-metadata .metadata-caption {
-	font-weight: bold;
-}
-
 .constellio .viewable-record-table-panel .viewable-record-table [class*="-row"].v-selected {
 	outline: 1px solid #197de1;
 	outline-offset: -1px;
@@ -14853,6 +14965,10 @@ div.v-layout.v-horizontal.v-widget {
 	background-origin: inherit;
 	text-shadow: inherit;
 	color: inherit;
+}
+
+.constellio .viewable-record-table-panel .viewable-record-table-compressed .search-result-title {
+	width: 350px;
 }
 
 .constellio .viewable-record-table-panel .viewable-record-table-table-mode .v-table-cell-content {
@@ -15100,132 +15216,6 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .viewable-record-search-result-table-panel {
 	border-top: 1px solid #d5d5d5;
-}
-
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .viewable-record-table .v-table-cell-content {
-	border: none;
-}
-
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .viewable-record-table .v-table-table .v-table-cell-content {
-	border: none;
-	vertical-align: top;
-}
-
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .viewable-record-table .v-table-table .v-table-cell-content .v-checkbox {
-	margin-top: 23px;
-}
-
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .viewable-record-table .v-table-table .v-table-cell-content .row-index {
-	margin-top: 23px;
-}
-
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .viewable-record-table .v-table-table .v-table-cell-content .v-spacing {
-	height: 5px;
-}
-
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .viewable-record-table .search-result-with-checkbox-and-index {
-	position: relative;
-	top: -40px;
-	padding-right: 310px;
-	padding-left: 80px;
-}
-
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .viewable-record-table .search-result-with-checkbox {
-	position: relative;
-	top: -40px;
-	padding-right: 310px;
-	padding-left: 40px;
-}
-
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .viewable-record-table .search-result-with-index {
-	position: relative;
-	top: -40px;
-	padding-right: 310px;
-	padding-left: 40px;
-}
-
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .viewable-record-table .search-result-title {
-	padding-top: 6px;
-	text-align: left;
-	color: #197de1;
-	font-weight: bold;
-}
-
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .viewable-record-table .document-search-result-title {
-	padding-top: 0px;
-}
-
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .viewable-record-table .search-result-highlights {
-	white-space: normal;
-	display: inline-block;
-	line-height: normal;
-	padding-top: 5px;
-}
-
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .viewable-record-table .search-result-highlights em {
-	font-weight: bold;
-	font-style: normal;
-}
-
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .viewable-record-table .search-result-metadatas {
-	padding-top: 10px;
-}
-
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .viewable-record-table .search-result-metadatas .search-result-metadata {
-	font-size: 14px;
-	line-height: 1.7em;
-}
-
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .viewable-record-table .search-result-metadatas .search-result-metadata .metadata-caption {
-	font-weight: 700;
-}
-
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .viewable-record-table .search-result-metadatas .search-result-metadata .metadata-value {
-	position: relative;
-	top: -24px;
-	left: 250px;
-	margin-bottom: -24px;
-}
-
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .viewable-record-table .search-result-metadata-layout {
-	font-size: 14px;
-	padding-top: 10px;
-}
-
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .viewable-record-table .search-result-metadata-layout .metadata-caption {
-	font-weight: 700;
-}
-
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .viewable-record-table .v-slot-search-result-elevation-buttons {
-	position: relative;
-	margin-bottom: -35px;
-}
-
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .viewable-record-table .search-result-elevation-buttons {
-	padding-left: 5px;
-	padding-right: 5px;
-	border: none;
-}
-
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .viewable-record-table .search-result-elevation-buttons .search-result-exclusion {
-	position: relative;
-	right: 8px;
-}
-
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .viewable-record-table .search-result-elevation-buttons .v-button-caption {
-	display: none;
-}
-
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .viewable-record-table .search-result-elevation, .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .viewable-record-table .search-result-exclusion {
-	width: auto;
-}
-
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .viewable-record-table .search-result-elevation:hover, .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .viewable-record-table .search-result-exclusion:hover {
-	text-decoration: none;
-}
-
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .viewable-record-table-compressed .search-result-title {
-	width: 350px;
 }
 
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .task-table .reference-display-link {

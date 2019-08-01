@@ -149,5 +149,6 @@ public abstract class LogicalSearchCondition implements Predicate<Record> {
 		return filters != null ? filters.getCollection() : null;
 	}
 
-	public abstract boolean isSupportingMemoryExecution(boolean queryingTypesInSummaryCache);
+	public abstract boolean isSupportingMemoryExecution(boolean queryingTypesInSummaryCache,
+														boolean requiringExecutionMethod);
 }
