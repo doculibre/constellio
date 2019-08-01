@@ -57,6 +57,7 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 	private I18NHorizontalLayout mainMenuContentFooterLayout;
 	private CssLayout contentFooterWrapperLayout;
 	private VerticalLayout contentFooterLayout;
+	private VerticalLayout footerLayout;
 	private ConstellioHeaderImpl header;
 	private ConstellioMenuImpl mainMenu;
 	private SingleComponentContainer contentViewWrapper;
@@ -90,6 +91,10 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 
 		contentFooterLayout = new VerticalLayout();
 		contentFooterLayout.addStyleName("content-footer");
+
+		footerLayout = new VerticalLayout();
+		footerLayout.setId("footer-layout");
+		footerLayout.addStyleName(footerLayout.getId());
 
 		header = buildHeader();
 		header.setSizeUndefined();
@@ -150,10 +155,11 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 		contentFooterWrapperLayout.addComponent(contentFooterLayout);
 
 		contentFooterLayout.addComponent(contentViewWrapper);
+		contentFooterLayout.addComponent(footerLayout);
 
 		message = buildMessage();
 		if (message != null) {
-			contentFooterLayout.addComponent(message);
+			footerLayout.addComponent(message);
 		}
 
 		contentFooterLayout.setExpandRatio(contentViewWrapper, 1);
@@ -166,7 +172,7 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 			layoutWithoutSpacing.setHeight("75px");
 			layoutWithoutSpacing.addComponent(footer);
 			layoutWithoutSpacing.addComponent(buildInstanceType(isSystemDistributed));
-			contentFooterLayout.addComponent(layoutWithoutSpacing);
+			footerLayout.addComponent(layoutWithoutSpacing);
 		}
 
 		Component license = buildLicense();
@@ -274,6 +280,7 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 	}
 
 	protected void buildInitJavascript() {
+		JavaScript.getCurrent().execute("constellio_registerScrollListener();");
 		JavaScript.getCurrent().addFunction("constellio_easter_egg_code", new JavaScriptFunction() {
 			@Override
 			public void call(JsonArray arguments) {
@@ -314,10 +321,10 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 	private void updateMessage() {
 		Component newMessage = buildMessage();
 		if (newMessage != null) {
-			if (contentFooterLayout.getComponentIndex(message) != -1) {
-				contentFooterLayout.replaceComponent(message, newMessage);
+			if (footerLayout.getComponentIndex(message) != -1) {
+				footerLayout.replaceComponent(message, newMessage);
 			} else {
-				contentFooterLayout.addComponent(newMessage, 1);
+				footerLayout.addComponent(newMessage, 1);
 			}
 			message = newMessage;
 		}

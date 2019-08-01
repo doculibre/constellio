@@ -88,6 +88,8 @@ public class AddEditDocumentViewImpl extends BaseViewImpl implements AddEditDocu
 			mainLayout.setSpacing(true);
 			
 			contentViewer = new ContentViewer(recordVO, Document.CONTENT, contentVersionVO);
+			contentViewer.setWidth("100%");
+			contentViewer.setHeight("100%");
 			mainLayout.addComponents(contentViewer, recordForm);
 			
 			recordForm.setWidth("700px");

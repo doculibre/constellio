@@ -142,10 +142,12 @@ public class DocumentViewer extends CustomComponent {
 			Unit widthUnits = getWidthUnits();
 			Unit heightUnits = getHeightUnits();
 
-			if (width <= 0 || height <= 0) {
+			if (width <= 0) {
 				width = DEFAULT_WIDTH;
-				height = DEFAULT_HEIGHT;
 				widthUnits = Unit.PIXELS;
+			}
+			if (height <= 0) {
+				height = DEFAULT_HEIGHT;
 				heightUnits = Unit.PIXELS;
 			}
 

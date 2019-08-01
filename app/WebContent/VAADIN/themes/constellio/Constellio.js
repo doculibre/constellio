@@ -1,4 +1,75 @@
+var isScrolling;
+
+var lastScrollTop;
+
 var lastKnownActiveElement;
+
+function constellio_registerScrollListener() {
+	var contentFooterWrapper = document.getElementById("content-footer-wrapper");
+	if (contentFooterWrapper) {
+		lastScrollTop = contentFooterWrapper.scrollTop;
+		contentFooterWrapper.addEventListener('scroll', function ( event ) {
+			// Clear our timeout throughout the scroll
+			window.clearTimeout(isScrolling);
+
+			// Set a timeout to run after scrolling ends
+			isScrolling = setTimeout(function() {
+				// Run the callback
+				//console.log("Scrolling has stopped.");
+				//var closeViewerButton = document.getElementById("close-viewer-button");
+				var closableViewerLayout = document.getElementById("close-button-viewer-metadata-layout");
+				var newScrollTop = contentFooterWrapper.scrollTop;
+				var scrollingUp = lastScrollTop > newScrollTop;
+				if (closableViewerLayout && (scrollingUp || !constellio_isVisible(closableViewerLayout))) {
+					var mainComponent = document.getElementById("main-component");
+					
+					var mainComponentHeight = constellio_getHeight(mainComponent);
+					var closableViewerLayoutHeight = constellio_getHeight(closableViewerLayout);
+					if ((newScrollTop + closableViewerLayoutHeight) > mainComponentHeight) {
+						newScrollTop = mainComponentHeight - closableViewerLayoutHeight - 30;
+					} else if (newScrollTop > 80) {
+						newScrollTop -= 70; // Remove white space where table mode buttons are
+					}
+					closableViewerLayout.style.top = newScrollTop + "px";
+				}
+				lastScrollTop = contentFooterWrapper.scrollTop;
+			}, 66);
+
+		}, false);
+	}
+}
+
+// https://stackoverflow.com/questions/19669786/check-if-element-is-visible-in-dom
+function constellio_isVisible(elem) {
+    if (!(elem instanceof Element)) throw Error('DomUtil: elem is not an element.');
+    const style = getComputedStyle(elem);
+    if (style.display === 'none') return false;
+    if (style.visibility !== 'visible') return false;
+    if (style.opacity < 0.1) return false;
+    if (elem.offsetWidth + elem.offsetHeight + elem.getBoundingClientRect().height +
+        elem.getBoundingClientRect().width === 0) {
+        return false;
+    }
+    const elemCenter   = {
+        x: elem.getBoundingClientRect().left + elem.offsetWidth / 2,
+        y: elem.getBoundingClientRect().top + elem.offsetHeight / 2
+    };
+    if (elemCenter.x < 0) return false;
+    if (elemCenter.x > (document.documentElement.clientWidth || window.innerWidth)) return false;
+    if (elemCenter.y < 0) return false;
+    if (elemCenter.y > (document.documentElement.clientHeight || window.innerHeight)) return false;
+    let pointContainer = document.elementFromPoint(elemCenter.x, elemCenter.y);
+    do {
+        if (pointContainer === elem) return true;
+    } while (pointContainer = pointContainer.parentNode);
+    return false;
+}
+
+function constellio_getHeight(elem) {
+    var rect = elem.getBoundingClientRect();
+    return rect.height;
+	//return elem.clientHeight;
+}
 
 function constellio_registerKeyDownListener(overflowElementId) {
     document.body.addEventListener("keydown", function(event) {

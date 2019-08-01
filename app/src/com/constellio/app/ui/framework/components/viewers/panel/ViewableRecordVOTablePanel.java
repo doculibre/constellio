@@ -780,7 +780,8 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
 				closeViewer();
 			}
 		};
-		closeViewerButton.addStyleName("close-viewer-button");
+		closeViewerButton.setId("close-viewer-button");
+		closeViewerButton.addStyleName(closeViewerButton.getId());
 		return closeViewerButton;
 	}
 
