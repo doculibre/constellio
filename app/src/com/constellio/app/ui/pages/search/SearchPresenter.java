@@ -288,6 +288,10 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		ConstellioModulesManager modulesManager = constellioFactories.getAppLayerFactory().getModulesManager();
 		Module rmModule = modulesManager.getInstalledModule(ConstellioRMModule.ID);
 		allowDownloadZip = modulesManager.isModuleEnabled(collection, rmModule);
+		
+
+		ConstellioEIMConfigs configs = new ConstellioEIMConfigs(appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager());
+		view.setLazyLoadedSearchResults(configs.isLazyLoadedSearchResults());
 	}
 
 	public void resetFacetAndOrder() {

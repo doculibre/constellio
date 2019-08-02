@@ -154,8 +154,8 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration ENABLE_SYSTEM_STATE_OPT_DISK_USAGE;
 	public static final SystemConfiguration ENABLE_SYSTEM_STATE_SOLR_DISK_USAGE;
 	public static final SystemConfiguration ENABLE_SYSTEM_STATE_LICENSE;
-	public static final SystemConfiguration NO_LNKS_IN_SEARCH_RESULTS;
-
+	public static final SystemConfiguration NO_LINKS_IN_SEARCH_RESULTS;
+	public static final SystemConfiguration LAZY_LOADED_SEARCH_RESULTS;
 
 	static {
 		SystemConfigurationGroup others = new SystemConfigurationGroup(null, "others");
@@ -296,7 +296,8 @@ public class ConstellioEIMConfigs {
 
 		add(UPDATE_SERVER_CONNECTION_ENABLED = advanced.createBooleanTrueByDefault("updateServerConnectionEnabled").whichIsHidden());
 
-		add(NO_LNKS_IN_SEARCH_RESULTS = search.createBooleanFalseByDefault("noLinksInSearchResults"));
+		add(NO_LINKS_IN_SEARCH_RESULTS = search.createBooleanFalseByDefault("noLinksInSearchResults"));
+		add(LAZY_LOADED_SEARCH_RESULTS = search.createBooleanTrueByDefault("lazyLoadedSearchResults"));
 
 		configurations = Collections.unmodifiableList(modifiableConfigs);
 
@@ -597,6 +598,11 @@ public class ConstellioEIMConfigs {
 	}
 
 	public boolean isNoLinksInSearchResults() {
-		return manager.getValue(NO_LNKS_IN_SEARCH_RESULTS);
+		return manager.getValue(NO_LINKS_IN_SEARCH_RESULTS);
 	}
+
+	public boolean isLazyLoadedSearchResults() {
+		return manager.getValue(LAZY_LOADED_SEARCH_RESULTS);
+	}
+	
 }
