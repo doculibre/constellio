@@ -33,7 +33,6 @@ import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.util.DateFormatUtils;
 import com.constellio.app.ui.util.MessageUtils;
-import com.constellio.app.ui.util.SchemaCaptionUtils;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.CorePermissions;
@@ -280,7 +279,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 				return ComponentState
 						.visibleIf(getCurrentUser().has(RMPermissionsTo.DELETE_INACTIVE_DOCUMENT).on(currentDocument()));
 			}
-			if (archivisticStatus != null && archivisticStatus.isInactive()) {
+			if (archivisticStatus != null && archivisticStatus.isSemiActive()) {
 				Folder parentFolder = rmSchemasRecordsServices.getFolder(currentDocument().getParentId());
 				if (parentFolder.getBorrowed() != null && parentFolder.getBorrowed()) {
 					return ComponentState
@@ -601,6 +600,8 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 			} catch (RecordServicesException e) {
 				actionsComponent.showErrorMessage(MessageUtils.toMessage(e));
 			}
+		} else {
+			actionsComponent.showErrorMessage($("DocumentActionsComponent.cantCheckOutDocumentDeleted"));
 		}
 	}
 
@@ -639,6 +640,14 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		boolean checkedOut = isContentCheckedOut();
 		boolean borrower = isCurrentUserBorrower();
 		return !email && (!checkedOut || borrower);
+	}
+
+	private boolean isDocumentLogicallyDeleted() {
+		if (currentDocument().getId() != null) {
+			return rmSchemasRecordsServices.getDocument(currentDocument().getId()).isLogicallyDeletedStatus();
+		} else {
+			return true;
+		}
 	}
 
 	ComponentState getUploadButtonState() {
@@ -690,7 +699,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 
 	protected boolean isCheckOutPossible() {
 		boolean email = isEmail();
-		return !email && (getContent() != null && !isContentCheckedOut());
+		return !email && !isDocumentLogicallyDeleted() && (getContent() != null && !isContentCheckedOut());
 	}
 
 	private ComponentState getCheckOutState() {
