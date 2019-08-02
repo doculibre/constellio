@@ -47,6 +47,8 @@ public class ModificationImpact {
 		}
 	}
 
+
+
 	public List<Metadata> getMetadataToReindex() {
 		return metadataToReindex;
 	}

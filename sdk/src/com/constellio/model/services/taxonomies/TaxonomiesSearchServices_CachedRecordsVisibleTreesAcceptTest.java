@@ -33,7 +33,6 @@ import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.InDevelopmentTest;
 import com.constellio.sdk.tests.setups.Users;
-import org.apache.solr.common.params.SolrParams;
 import org.assertj.core.api.Condition;
 import org.assertj.core.api.ObjectAssert;
 import org.joda.time.LocalDate;
@@ -914,9 +913,14 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
 		final AtomicInteger queryCount = new AtomicInteger();
 		getDataLayerFactory().getExtensions().getSystemWideExtensions().bigVaultServerExtension
 				.add(new BigVaultServerExtension() {
+
+
 					@Override
-					public void afterQuery(SolrParams solrParams, long qtime) {
-						queryCount.incrementAndGet();
+					public void afterQuery(AfterQueryParams params) {
+
+						if (params.getQueryName() == null || !params.getQueryName().contains("*SDK*")) {
+							queryCount.incrementAndGet();
+						}
 					}
 				});
 

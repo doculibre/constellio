@@ -58,6 +58,8 @@ public class MetadataSchema implements Serializable {
 
 	private List<Metadata> summaryMetadatas;
 
+	private List<Metadata> cacheIndexMetadatas;
+
 	public MetadataSchema(short id, String localCode, String code, CollectionInfo collectionInfo,
 						  Map<Language, String> labels,
 						  List<Metadata> metadatas,
@@ -85,6 +87,7 @@ public class MetadataSchema implements Serializable {
 		this.active = active;
 		this.collectionInfo = collectionInfo;
 		this.summaryMetadatas = new SchemaUtils().buildListOfSummaryMetadatas(metadatas);
+		this.cacheIndexMetadatas = new SchemaUtils().buildListOfCacheIndexMetadatas(metadatas);
 
 	}
 
@@ -275,6 +278,10 @@ public class MetadataSchema implements Serializable {
 
 	public String getDataStore() {
 		return dataStore;
+	}
+
+	public List<Metadata> getCacheIndexMetadatas() {
+		return cacheIndexMetadatas;
 	}
 
 	public boolean hasMultilingualMetadatas() {

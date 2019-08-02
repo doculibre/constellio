@@ -258,7 +258,6 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 		} else if (schemaType.getCacheType().isSummaryCache()) {
 			RecordDTO dto = toPersistedSummaryRecordDTO(record, insertionReason);
 
-			Record summaryRecord = toRecord(dto);
 			MetadataSchema metadataSchema = oldRecord != null ? schemaType.getSchema(oldRecord.getSchemaCode()) : schemaType.getSchema(record.getSchemaCode());
 
 			metadataIndexCacheDataStore.addUpdate(oldRecord, record, schemaType, metadataSchema);

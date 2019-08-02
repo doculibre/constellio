@@ -47,7 +47,6 @@ import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
 import org.apache.solr.common.params.ModifiableSolrParams;
-import org.apache.solr.common.params.SolrParams;
 import org.assertj.core.api.BooleanAssert;
 import org.assertj.core.api.Condition;
 import org.assertj.core.api.ListAssert;
@@ -1827,12 +1826,18 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 		final AtomicInteger queryCount = new AtomicInteger();
 		getDataLayerFactory().getExtensions().getSystemWideExtensions().bigVaultServerExtension
 				.add(new BigVaultServerExtension() {
+
 					@Override
-					public void afterQuery(SolrParams solrParams, long qtime) {
-						queryCount.incrementAndGet();
+					public void afterQuery(AfterQueryParams params) {
+
+						if (params.getQueryName() == null || !params.getQueryName().contains("*SDK*")) {
+							queryCount.incrementAndGet();
+						}
 					}
 				});
 
+
+		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0).setQueryDebuggingMode(true);
 		recordServices.refresh(alice);
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_X13, withWriteAccess)
 				.has(resultsInOrder(folderNearEnd.getId(), subFolderNearEnd.getParentFolder()))
@@ -1840,7 +1845,7 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				.has(unlinkable(subFolderNearEnd.getParentFolder()))
 				.has(solrQueryCounts(3, 2, 2))
 				.has(secondSolrQueryCounts(2, 2, 2));
-
+		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(10000).setQueryDebuggingMode(false);
 		assertThat(queryCount.get()).isEqualTo(5);
 	}
 

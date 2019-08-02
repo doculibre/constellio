@@ -13,7 +13,7 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder
 
 import static com.constellio.model.entities.schemas.RecordCacheType.SUMMARY_CACHED_WITH_VOLATILE;
 
-public class RMMigrationTo9_0_2 extends MigrationHelper implements MigrationScript {
+public class RMMigrationTo9_0_3 extends MigrationHelper implements MigrationScript {
 
 	@Override
 	public String getVersion() {
@@ -24,7 +24,7 @@ public class RMMigrationTo9_0_2 extends MigrationHelper implements MigrationScri
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
 						AppLayerFactory appLayerFactory)
 			throws Exception {
-		new RMMigrationTo9_0_2.SchemaAlterationFor9_0_2(collection, migrationResourcesProvider, appLayerFactory).migrate();
+		new RMMigrationTo9_0_3.SchemaAlterationFor9_0_2(collection, migrationResourcesProvider, appLayerFactory).migrate();
 	}
 
 	class SchemaAlterationFor9_0_2 extends MetadataSchemasAlterationHelper {

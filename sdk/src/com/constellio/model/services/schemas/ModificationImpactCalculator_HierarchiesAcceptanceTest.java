@@ -40,6 +40,7 @@ import java.util.List;
 import static com.constellio.model.entities.schemas.RecordCacheType.NOT_CACHED;
 import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.ALL_REMOVED_AUTHS;
 import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.ATTACHED_ANCESTORS;
+import static com.constellio.sdk.tests.TestUtils.asSet;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
@@ -142,6 +143,10 @@ public class ModificationImpactCalculator_HierarchiesAcceptanceTest extends Cons
 
 			}
 		});
+
+		List<Taxonomy> taxonomies = getModelLayerFactory().getTaxonomiesManager().getEnabledTaxonomies(zeCollection);
+		MetadataSchemaTypes zeTypes = schemasManager.getSchemaTypes(zeCollection);
+		impactCalculator = new ModificationImpactCalculator(zeTypes, taxonomies, searchServices, recordServices);
 	}
 
 	@Test
@@ -168,7 +173,18 @@ public class ModificationImpactCalculator_HierarchiesAcceptanceTest extends Cons
 		ModificationImpactCalculatorResponse response = impactCalculator
 				.findTransactionImpact(new Transaction(record), true);
 
-		assertPathAndAuthorizationsImpactInSecondSchemaAndFolderSchema(record, response.getImpacts());
+		assertThat(response.getImpacts()).hasSize(2);
+		assertThat(response.getImpacts().get(1).getMetadataToReindex()).extracting("localCode")
+				.containsOnly("allRemovedAuths", "folderMetaWithTaxoDependency", "attachedAncestors", "path");
+		assertThat(response.getImpacts().get(0).getMetadataToReindex()).extracting("localCode")
+				.containsOnly("allRemovedAuths", "attachedAncestors", "path", "taxo1SecondSchemaMetaWithTaxoDependency");
+		assertThat(response.getImpacts().get(0).getLogicalSearchCondition())
+				.isEqualTo(LogicalSearchQueryOperators.from(taxonomy1SecondSchema.type()).whereAny(
+						asList(taxonomy1SecondSchema.parentOfType2())).isIn(asList(record)));
+		assertThat(response.getImpacts().get(1).getLogicalSearchCondition())
+				.isEqualTo(LogicalSearchQueryOperators.from(folderSchema.type())
+						.whereAny(asList(folderSchema.taxonomy1())).isIn(asList(record)));
+
 	}
 
 	@Test
@@ -181,7 +197,18 @@ public class ModificationImpactCalculator_HierarchiesAcceptanceTest extends Cons
 		ModificationImpactCalculatorResponse response = impactCalculator
 				.findTransactionImpact(new Transaction(record), true);
 
-		assertAllRemovedAuthImpactInSecondSchemaAndFolderSchema(record, response.getImpacts());
+
+		Metadata folderAllRemovedAuths = folderSchema.allRemovedAuths();
+		Metadata taxo1SecondSchemaAllRemovedAuths = taxonomy1SecondSchema.allRemovedAuths();
+
+		assertThat(response.getImpacts()).extracting("metadataToReindex")
+				.containsExactly(asList(taxo1SecondSchemaAllRemovedAuths), asList(folderAllRemovedAuths));
+		assertThat(response.getImpacts().get(0).getLogicalSearchCondition())
+				.isEqualTo(LogicalSearchQueryOperators.from(taxonomy1SecondSchema.type()).whereAny(
+						asList(taxonomy1SecondSchema.parentOfType2())).isIn(asList(record)));
+		assertThat(response.getImpacts().get(1).getLogicalSearchCondition())
+				.isEqualTo(LogicalSearchQueryOperators.from(folderSchema.type())
+						.whereAny(asList(folderSchema.taxonomy1())).isIn(asList(record)));
 	}
 
 	@Test
@@ -240,11 +267,12 @@ public class ModificationImpactCalculator_HierarchiesAcceptanceTest extends Cons
 				.findTransactionImpact(new Transaction(record), true);
 
 		assertThat(response.getImpacts()).isEmpty();
+		assertThat(response.getRecordsToReindexLater()).isEmpty();
 	}
 
 
 	@Test
-	public void givenPathModifiedOfCachedTaxonomyConceptThenHasImpactOnTaxonomyChildren()
+	public void givenPathModifiedOfCachedTaxonomyConceptWithoutChildrenThenHasNoImpact()
 			throws Exception {
 		TestRecord record = (TestRecord) records.taxo1_firstTypeItem2_firstTypeItem1;
 
@@ -252,11 +280,12 @@ public class ModificationImpactCalculator_HierarchiesAcceptanceTest extends Cons
 		ModificationImpactCalculatorResponse response = impactCalculator
 				.findTransactionImpact(new Transaction(record), true);
 
-		assertPathAndAuthorizationsImpactInFirstAndSecondSchema(record, response.getImpacts());
+		assertThat(response.getImpacts()).isEmpty();
+		assertThat(response.getRecordsToReindexLater()).isEmpty();
 	}
 
 	@Test
-	public void givenTrivialMetadataModifiedOfCachedTaxonomyConceptThenNoImpactOnTaxonomyChildren()
+	public void givenTrivialMetadataModifiedOfCachedTaxonomyConceptWithoutChildremThenNoImpacts()
 			throws Exception {
 
 		TestRecord record = records.taxo1_firstTypeItem2_firstTypeItem1;
@@ -266,10 +295,11 @@ public class ModificationImpactCalculator_HierarchiesAcceptanceTest extends Cons
 				.findTransactionImpact(new Transaction(record), true);
 
 		assertThat(response.getImpacts()).isEmpty();
+		assertThat(response.getRecordsToReindexLater()).isEmpty();
 	}
 
 	@Test
-	public void givenPathMetadataModifiedOfTaxonomyConceptUsedByCachedFoldersThenHasImpactOnTaxonomyChildrenAndRecordsUsingIt()
+	public void givenPathMetadataModifiedOfTaxonomyConceptUsedByCachedFoldersWithoutChildrenThenHasNoImpact()
 			throws Exception {
 		TestRecord record = records.taxo1_firstTypeItem2_secondTypeItem1;
 
@@ -277,11 +307,12 @@ public class ModificationImpactCalculator_HierarchiesAcceptanceTest extends Cons
 		ModificationImpactCalculatorResponse response = impactCalculator
 				.findTransactionImpact(new Transaction(record), true);
 
-		assertPathAndAuthorizationsImpactInSecondSchemaAndFolderSchema(record, response.getImpacts());
+		assertThat(response.getImpacts()).isEmpty();
+		assertThat(response.getRecordsToReindexLater()).isEmpty();
 	}
 
 	@Test
-	public void givenAllRemovedAuthsMetadataModifiedOfTaxonomyConceptUsedByCachedFoldersThenHasImpactOnTaxonomyChildrenAndRecordsUsingIt()
+	public void givenAllRemovedAuthsMetadataModifiedOfTaxonomyConceptUsedByCachedFoldersWithoutChildrenThenHasImpact()
 			throws Exception {
 		TestRecord record = records.taxo1_firstTypeItem2_secondTypeItem1;
 
@@ -289,11 +320,12 @@ public class ModificationImpactCalculator_HierarchiesAcceptanceTest extends Cons
 		ModificationImpactCalculatorResponse response = impactCalculator
 				.findTransactionImpact(new Transaction(record), true);
 
-		assertAllRemovedAuthImpactInSecondSchemaAndFolderSchema(record, response.getImpacts());
+		assertThat(response.getImpacts()).isEmpty();
+		assertThat(response.getRecordsToReindexLater()).isEmpty();
 	}
 
 	@Test
-	public void givenTrivialMetadataModifiedOfTaxonomyConceptUsedByCachedFoldersThenHasNoImpactOnTaxonomyChildrenAndRecordsUsingIt()
+	public void givenTrivialMetadataModifiedOfTaxonomyConceptUsedByCachedFoldersWithoutChildrenThenHasNoImpact()
 			throws Exception {
 		TestRecord record = records.taxo1_firstTypeItem2_secondTypeItem1;
 
@@ -305,7 +337,7 @@ public class ModificationImpactCalculator_HierarchiesAcceptanceTest extends Cons
 	}
 
 	@Test
-	public void givenACachedRecordPathModifiedThenHasImpactOnChildren()
+	public void givenACachedRecordPathModifiedOnRecordWithoutChildrenThenHasNoImpact()
 			throws Exception {
 
 		TestRecord record = new TestRecord(folderSchema, "zeFolder");
@@ -315,11 +347,12 @@ public class ModificationImpactCalculator_HierarchiesAcceptanceTest extends Cons
 		ModificationImpactCalculatorResponse response = impactCalculator
 				.findTransactionImpact(new Transaction(record), true);
 
-		assertPathAndAuthorizationsImpactInFolderAndDocumentSchema(record, response.getImpacts());
+		assertThat(response.getImpacts()).isEmpty();
+		assertThat(response.getRecordsToReindexLater()).isEmpty();
 	}
 
 	@Test
-	public void givenARecordAttachedAncestorsOfCachedRecordModifiedThenHasImpactOnChildren()
+	public void givenARecordAttachedAncestorsOfCachedRecordWithoutChildrenModifiedThenHasNoImpact()
 			throws Exception {
 
 		TestRecord record = new TestRecord(folderSchema, "zeFolder");
@@ -329,21 +362,202 @@ public class ModificationImpactCalculator_HierarchiesAcceptanceTest extends Cons
 		ModificationImpactCalculatorResponse response = impactCalculator
 				.findTransactionImpact(new Transaction(record), true);
 
-		assertAttachedAncestorsImpactInFolderAndDocumentSchema(record, response.getImpacts());
+		assertThat(response.getImpacts()).isEmpty();
+		assertThat(response.getRecordsToReindexLater()).isEmpty();
 	}
 
 	@Test
-	public void givenTrivialMetadataOfCachedRecordsModifiedThenHasNoImpactOnChildren()
+	public void givenTrivialMetadataOfCachedRecordsWithoutChildrenModifiedThenHasNoImpact()
 			throws Exception {
 
 		TestRecord record = new TestRecord(folderSchema, "zeFolder");
 		recordServices.add(record);
+
 
 		record.set(folderSchema.title(), "newTitle");
 		ModificationImpactCalculatorResponse response = impactCalculator
 				.findTransactionImpact(new Transaction(record), true);
 
 		assertThat(response.getImpacts()).isEmpty();
+		assertThat(response.getRecordsToReindexLater()).isEmpty();
+	}
+
+
+	@Test
+	public void givenPathModifiedOfCachedTaxonomyConceptWithChildrenThenHasImpactOnTaxonomyChildren()
+			throws Exception {
+		TestRecord record = (TestRecord) records.taxo1_firstTypeItem2_firstTypeItem2;
+
+		recordServices.add(new TestRecord(folderSchema, "subfolder1").set(folderSchema.taxonomy1(),
+				records.taxo1_firstTypeItem2_firstTypeItem2_secondTypeItem2_secondTypeItem1.getId()));
+		recordServices.add(new TestRecord(folderSchema, "subfolder2").set(folderSchema.taxonomy1(),
+				records.taxo1_firstTypeItem2_firstTypeItem2_secondTypeItem1.getId()));
+		recordServices.add(new TestRecord(documentSchema, "doc1").set(documentSchema.parent(), "subfolder1"));
+		recordServices.add(new TestRecord(documentSchema, "doc2").set(documentSchema.parent(), "subfolder2"));
+
+
+		record.markAsModified(taxonomy1FirstSchema.path());
+		ModificationImpactCalculatorResponse response = impactCalculator
+				.findTransactionImpact(new Transaction(record), true);
+
+		assertThat(response.getImpacts()).hasSize(1);
+
+		assertThat(response.getImpacts().get(0).getMetadataToReindex()).extracting("localCode")
+				.containsOnly("allRemovedAuths", "taxo1SecondSchemaMetaWithTaxoDependency", "attachedAncestors", "path");
+
+		assertThat(response.getImpacts().get(0).getLogicalSearchCondition())
+				.isEqualTo(LogicalSearchQueryOperators.from(taxonomy1SecondSchema.type())
+						.whereAny(asList(taxonomy1SecondSchema.parentOfType1())).isIn(asList(record)));
+		assertThat(response.getImpacts()).extracting("markForReindexingInsteadOfBatchProcess")
+				.containsOnly(asSet(records.taxo1_firstTypeItem2_firstTypeItem2_secondTypeItem1.getId(),
+						records.taxo1_firstTypeItem2_firstTypeItem2_secondTypeItem2.getId()));
+	}
+
+	@Test
+	public void givenTrivialMetadataModifiedOfCachedTaxonomyConceptWithChildrenThenNoImpactOnTaxonomyChildren()
+			throws Exception {
+
+		TestRecord record = records.taxo1_firstTypeItem2_firstTypeItem1;
+
+		record.set(taxonomy1FirstSchema.title(), "newTitle");
+		ModificationImpactCalculatorResponse response = impactCalculator
+				.findTransactionImpact(new Transaction(record), true);
+
+		assertThat(response.getRecordsToReindexLater()).isEmpty();
+
+	}
+
+	@Test
+	public void givenPathMetadataModifiedOfTaxonomyConceptUsedByCachedFoldersWithChildrenThenHasImpactOnTaxonomyChildrenAndRecordsUsingIt()
+			throws Exception {
+		TestRecord record = records.taxo1_firstTypeItem2_secondTypeItem1;
+
+		recordServices.add(new TestRecord(folderSchema, "subfolder1").set(folderSchema.taxonomy1(),
+				records.taxo1_firstTypeItem2_secondTypeItem1.getId()));
+		recordServices.add(new TestRecord(folderSchema, "subfolder2").set(folderSchema.taxonomy1(),
+				records.taxo1_firstTypeItem2_secondTypeItem1.getId()));
+		recordServices.add(new TestRecord(documentSchema, "doc1").set(documentSchema.parent(), "subfolder1"));
+		recordServices.add(new TestRecord(documentSchema, "doc2").set(documentSchema.parent(), "subfolder2"));
+
+		record.markAsModified(this.taxonomy1SecondSchema.path());
+		ModificationImpactCalculatorResponse response = impactCalculator
+				.findTransactionImpact(new Transaction(record), true);
+
+		assertThat(response.getImpacts()).hasSize(1);
+		assertThat(response.getImpacts().get(0).getMetadataToReindex()).extracting("localCode")
+				.containsOnly("allRemovedAuths", "folderMetaWithTaxoDependency", "attachedAncestors", "path");
+		assertThat(response.getImpacts().get(0).getLogicalSearchCondition())
+				.isEqualTo(LogicalSearchQueryOperators.from(folderSchema.type())
+						.whereAny(asList(folderSchema.taxonomy1())).isIn(asList(record)));
+
+		assertThat(response.getImpacts()).extracting("markForReindexingInsteadOfBatchProcess")
+				.containsOnly(asSet("subfolder1", "subfolder2"));
+	}
+
+	@Test
+	public void givenAllRemovedAuthsMetadataModifiedOfTaxonomyConceptUsedByCachedFoldersWithChildrenThenHasImpactOnTaxonomyChildrenAndRecordsUsingIt()
+			throws Exception {
+		TestRecord record = records.taxo1_firstTypeItem2_secondTypeItem1;
+
+		recordServices.add(new TestRecord(folderSchema, "subfolder1").set(folderSchema.taxonomy1(),
+				records.taxo1_firstTypeItem2_secondTypeItem1.getId()));
+		recordServices.add(new TestRecord(folderSchema, "subfolder2").set(folderSchema.taxonomy1(),
+				records.taxo1_firstTypeItem2_secondTypeItem1.getId()));
+		recordServices.add(new TestRecord(documentSchema, "doc1").set(documentSchema.parent(), "subfolder1"));
+		recordServices.add(new TestRecord(documentSchema, "doc2").set(documentSchema.parent(), "subfolder2"));
+
+		record.markAsModified(folderSchema.allRemovedAuths());
+		ModificationImpactCalculatorResponse response = impactCalculator
+				.findTransactionImpact(new Transaction(record), true);
+
+		assertThat(response.getImpacts()).hasSize(1);
+		assertThat(response.getImpacts().get(0).getMetadataToReindex()).extracting("localCode").containsOnly("allRemovedAuths");
+		assertThat(response.getImpacts().get(0).getLogicalSearchCondition())
+				.isEqualTo(LogicalSearchQueryOperators.from(folderSchema.type())
+						.whereAny(asList(folderSchema.taxonomy1())).isIn(asList(record)));
+		assertThat(response.getImpacts()).extracting("markForReindexingInsteadOfBatchProcess")
+				.containsOnly(asSet("subfolder1", "subfolder2"));
+	}
+
+	@Test
+	public void givenTrivialMetadataModifiedOfTaxonomyConceptUsedByCachedFoldersWithChildrenThenHasNoImpactOnTaxonomyChildrenAndRecordsUsingIt()
+			throws Exception {
+		TestRecord record = records.taxo1_firstTypeItem2_secondTypeItem1;
+
+		recordServices.add(new TestRecord(folderSchema, "subfolder1").set(folderSchema.taxonomy1(),
+				records.taxo1_firstTypeItem2_firstTypeItem2_secondTypeItem2_secondTypeItem1.getId()));
+		recordServices.add(new TestRecord(folderSchema, "subfolder2").set(folderSchema.taxonomy1(),
+				records.taxo1_firstTypeItem2_firstTypeItem2_secondTypeItem1.getId()));
+		recordServices.add(new TestRecord(documentSchema, "doc1").set(documentSchema.parent(), "subfolder1"));
+		recordServices.add(new TestRecord(documentSchema, "doc2").set(documentSchema.parent(), "subfolder2"));
+
+		record.set(taxonomy1SecondSchema.title(), "newTitle");
+		ModificationImpactCalculatorResponse response = impactCalculator
+				.findTransactionImpact(new Transaction(record), true);
+
+		assertThat(response.getRecordsToReindexLater()).isEmpty();
+	}
+
+	@Test
+	public void givenACachedRecordPathModifiedOnRecordWithChildrenThenHasImpactOnChildren()
+			throws Exception {
+
+		TestRecord record = new TestRecord(folderSchema, "zeFolder");
+		recordServices.add(record);
+
+		recordServices.add(new TestRecord(documentSchema, "doc1").set(documentSchema.parent(), "zeFolder"));
+		recordServices.add(new TestRecord(documentSchema, "doc2").set(documentSchema.parent(), "zeFolder"));
+		recordServices.add(new TestRecord(folderSchema, "subfolder1").set(folderSchema.parent(), "zeFolder"));
+		recordServices.add(new TestRecord(folderSchema, "subfolder2").set(folderSchema.parent(), "zeFolder"));
+
+		record.markAsModified(folderSchema.path());
+		ModificationImpactCalculatorResponse response = impactCalculator
+				.findTransactionImpact(new Transaction(record), true);
+
+		assertPathAndAuthorizationsImpactInFolderAndDocumentSchema(record, response.getImpacts());
+		assertThat(response.getImpacts()).extracting("markForReindexingInsteadOfBatchProcess")
+				.containsOnly(asSet("subfolder1", "subfolder2"), asSet("doc1", "doc2"));
+	}
+
+	@Test
+	public void givenARecordAttachedAncestorsOfCachedRecordWithChildrensModifiedThenHasImpactOnChildren()
+			throws Exception {
+
+		TestRecord record = new TestRecord(folderSchema, "zeFolder");
+		recordServices.add(record);
+
+		recordServices.add(new TestRecord(documentSchema, "doc1").set(documentSchema.parent(), "zeFolder"));
+		recordServices.add(new TestRecord(documentSchema, "doc2").set(documentSchema.parent(), "zeFolder"));
+		recordServices.add(new TestRecord(folderSchema, "subfolder1").set(folderSchema.parent(), "zeFolder"));
+		recordServices.add(new TestRecord(folderSchema, "subfolder2").set(folderSchema.parent(), "zeFolder"));
+
+		record.markAsModified(folderSchema.attachedAncestors());
+		ModificationImpactCalculatorResponse response = impactCalculator
+				.findTransactionImpact(new Transaction(record), true);
+
+		assertAttachedAncestorsImpactInFolderAndDocumentSchema(record, response.getImpacts());
+		assertThat(response.getImpacts()).extracting("markForReindexingInsteadOfBatchProcess")
+				.containsOnly(asSet("subfolder1", "subfolder2"), asSet("doc1", "doc2"));
+	}
+
+	@Test
+	public void givenTrivialMetadataOfCachedRecordsWithChildrensModifiedThenHasNoImpactOnChildren()
+			throws Exception {
+
+		TestRecord record = new TestRecord(folderSchema, "zeFolder");
+		recordServices.add(record);
+
+		recordServices.add(new TestRecord(documentSchema, "doc1").set(documentSchema.parent(), "zeFolder"));
+		recordServices.add(new TestRecord(documentSchema, "doc2").set(documentSchema.parent(), "zeFolder"));
+		recordServices.add(new TestRecord(folderSchema, "subfolder1").set(folderSchema.parent(), "zeFolder"));
+		recordServices.add(new TestRecord(folderSchema, "subfolder2").set(folderSchema.parent(), "zeFolder"));
+
+		record.set(folderSchema.title(), "newTitle");
+		ModificationImpactCalculatorResponse response = impactCalculator
+				.findTransactionImpact(new Transaction(record), true);
+
+		assertThat(response.getImpacts()).isEmpty();
+		assertThat(response.getRecordsToReindexLater()).isEmpty();
 	}
 
 	// ------------------------------------------------------------------------------------------------------------

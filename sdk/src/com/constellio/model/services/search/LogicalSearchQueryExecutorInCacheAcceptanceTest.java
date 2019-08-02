@@ -199,9 +199,7 @@ public class LogicalSearchQueryExecutorInCacheAcceptanceTest extends ConstellioT
 
 		List<Record> queryResult = logicalSearchQueryExecutorInCache.stream(logicalSearchQuery).collect(Collectors.toList());
 
-		assertThat(queryResult.size()).isEqualTo(2);
-		assertThat(queryResult.get(0).getId()).isEqualTo(record3.getId());
-		assertThat(queryResult.get(1).getId()).isEqualTo(record4.getId());
+		assertThat(queryResult).extracting("id").containsOnly(record3.getId(), record4.getId());
 
 	}
 

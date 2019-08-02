@@ -23,4 +23,5 @@ public class ModificationImpactCalculatorResponse {
 	public List<String> getRecordsToReindexLater() {
 		return recordsToReindexLater;
 	}
+
 }

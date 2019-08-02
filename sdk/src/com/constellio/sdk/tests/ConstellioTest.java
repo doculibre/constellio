@@ -57,6 +57,7 @@ public class ConstellioTest extends AbstractConstellioTest {
 			toggle.reset();
 		}
 
+		Toggle.USE_FILESYSTEM_DB_FOR_LARGE_METADATAS_CACHE.disable();
 		if (SystemUtils.IS_OS_WINDOWS) {
 			Toggle.USE_MMAP_WITHMAP_DB.disable();
 		}

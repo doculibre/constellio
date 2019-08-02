@@ -83,6 +83,8 @@ public class Toggle {
 
 	public static AvailableToggle USE_MMAP_WITHMAP_DB = newToggle(true);
 
+	public static AvailableToggle USE_FILESYSTEM_DB_FOR_LARGE_METADATAS_CACHE = newToggle(true);
+
 	public static AvailableToggle DEBUG_DTOS = newToggle(false);
 
 	// ------------------------------------------------

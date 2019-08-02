@@ -10,9 +10,12 @@ import com.rometools.utils.Strings;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
@@ -50,66 +53,73 @@ public class MetadataIndexCacheDataStore {
 	}
 
 	public void addUpdate(Record oldVersion, Record newVersion, MetadataSchemaType schemaType, MetadataSchema schema) {
+		long start = new Date().getTime();
 		validateParameters(oldVersion, newVersion, schema);
 
 		if (schemaType.getCollectionInfo().getCollectionId() != schema.getCollectionInfo().getCollectionId()) {
 			throw new IllegalArgumentException("Schema type and schema have different collection id");
 		}
 
-		for (Metadata currentMetadata : schema.getMetadatas()) {
-
-			if ((currentMetadata.isCacheIndex() || (currentMetadata.isUniqueValue())
-												   && (currentMetadata.getType() == STRING || currentMetadata.getType() == REFERENCE)
-												   && !IDENTIFIER.isSameLocalCode(currentMetadata))) {
-
-				if (oldVersion == null) {
-					if (newVersion.getCollectionInfo().getCollectionId() != schemaType.getCollectionInfo().getCollectionId()) {
-						throw new IllegalArgumentException("New version and schema type have different collection id");
-					}
-
-					Object newValue = newVersion.get(currentMetadata);
-					if (!isObjectNullOrEmpty(newValue)) {
-						Map<String, Object> metadataIndexMap = getMetadataIndexMap(schemaType, currentMetadata, true);
-						addRecordIdToMapByValue(newValue, newVersion.getId(), metadataIndexMap, currentMetadata);
-					}
-				} else if (newVersion == null) {
-					if (oldVersion.getCollectionInfo().getCollectionId() != schemaType.getCollectionInfo().getCollectionId()) {
-						throw new IllegalArgumentException("New version and schema type have different collection id");
-					}
-
-					Map<String, Object> metadataIndexMap = getMetadataIndexMap(schemaType, currentMetadata, false);
-
-					if (!metadataIndexMap.isEmpty()) {
-						removeRecordIdToMapByValue(oldVersion.get(currentMetadata), oldVersion.getId(), metadataIndexMap, currentMetadata);
-					}
-				} else {
-					if (oldVersion.getCollectionInfo().getCollectionId() != schemaType.getCollectionInfo().getCollectionId()) {
-						throw new IllegalArgumentException("New version and schema type have different collection id");
-					}
-					if (newVersion.getCollectionInfo().getCollectionId() != schemaType.getCollectionInfo().getCollectionId()) {
-						throw new IllegalArgumentException("New version and schema type have different collection id");
-					}
-					if (!oldVersion.getId().equals(newVersion.getId())) {
-						throw new IllegalArgumentException("Records have different ids");
-					}
-
-					Object newValue = newVersion.get(currentMetadata);
-					boolean isNewValueNull = isObjectNullOrEmpty(newValue);
-
-					Map<String, Object> metadataIndexMap = getMetadataIndexMap(schemaType, currentMetadata, !isNewValueNull);
-
-					Object oldValue = oldVersion.get(currentMetadata);
-					if (!metadataIndexMap.isEmpty()) {
-						removeRecordIdToMapByValue(oldValue, oldVersion.getId(), metadataIndexMap, currentMetadata);
-					}
-
-					if (!isNewValueNull) {
-						addRecordIdToMapByValue(newValue, newVersion.getId(), metadataIndexMap, currentMetadata);
-					}
-					if (!metadataIndexMap.isEmpty()) {
-					}
-				}
+		for (Metadata currentMetadata : schema.getCacheIndexMetadatas()) {
+			if (oldVersion == null) {
+				addRecordMetadata(newVersion, schemaType, currentMetadata);
+			} else if (newVersion == null) {
+				removeRecordMetadata(oldVersion, schemaType, currentMetadata);
+			} else {
+				updateRecordMetadata(oldVersion, newVersion, schemaType, currentMetadata);
 			}
+		}
+	}
+
+	private void updateRecordMetadata(Record oldVersion, Record newVersion, MetadataSchemaType schemaType,
+									  Metadata currentMetadata) {
+		if (oldVersion.getCollectionInfo().getCollectionId() != schemaType.getCollectionInfo().getCollectionId()) {
+			throw new IllegalArgumentException("New version and schema type have different collection id");
+		}
+		if (newVersion.getCollectionInfo().getCollectionId() != schemaType.getCollectionInfo().getCollectionId()) {
+			throw new IllegalArgumentException("New version and schema type have different collection id");
+		}
+		if (!oldVersion.getId().equals(newVersion.getId())) {
+			throw new IllegalArgumentException("Records have different ids");
+		}
+
+		Object newValue = newVersion.get(currentMetadata);
+		boolean isNewValueNull = isObjectNullOrEmpty(newValue);
+
+		Map<String, Object> metadataIndexMap = getMetadataIndexMap(schemaType, currentMetadata, !isNewValueNull);
+
+		Object oldValue = oldVersion.get(currentMetadata);
+		if (!metadataIndexMap.isEmpty()) {
+			removeRecordIdToMapByValue(oldValue, oldVersion.getId(), metadataIndexMap, currentMetadata);
+		}
+
+		if (!isNewValueNull) {
+			addRecordIdToMapByValue(newValue, newVersion.getId(), metadataIndexMap, currentMetadata);
+		}
+	}
+
+	private void removeRecordMetadata(Record oldVersion, MetadataSchemaType schemaType, Metadata currentMetadata) {
+		if (oldVersion.getCollectionInfo().getCollectionId() != schemaType.getCollectionInfo().getCollectionId()) {
+			throw new IllegalArgumentException("New version and schema type have different collection id");
+		}
+
+		Map<String, Object> metadataIndexMap = getMetadataIndexMap(schemaType, currentMetadata, false);
+
+		if (!metadataIndexMap.isEmpty()) {
+			removeRecordIdToMapByValue(oldVersion.get(currentMetadata), oldVersion.getId(), metadataIndexMap, currentMetadata);
+		}
+	}
+
+	private void addRecordMetadata(Record newVersion, MetadataSchemaType schemaType, Metadata currentMetadata) {
+		if (newVersion.getCollectionInfo().getCollectionId() != schemaType.getCollectionInfo().getCollectionId()) {
+			throw new IllegalArgumentException("New version and schema type have different collection id");
+		}
+
+		Object newValue = newVersion.get(currentMetadata);
+		if (!isObjectNullOrEmpty(newValue)) {
+			Map<String, Object> metadataIndexMap = getMetadataIndexMap(schemaType, currentMetadata, true);
+
+			addRecordIdToMapByValue(newValue, newVersion.getId(), metadataIndexMap, currentMetadata);
 		}
 	}
 
@@ -149,15 +159,15 @@ public class MetadataIndexCacheDataStore {
 			throw new IllegalArgumentException("For these parameters : oldVersion and newVersion, one need to be not null.");
 		}
 
-		if (oldVersion != null && (!oldVersion.getCollection().equals(metadataSchema.getCollection())
-								   || !metadataSchema.getCode().startsWith(oldVersion.getTypeCode()))) {
-			throw new IllegalArgumentException("oldVersion parameter is not in the same collection or same schemaType than metadataSchema parameter");
-		}
-
-		if (newVersion != null && (!newVersion.getCollection().equals(metadataSchema.getCollection())
-								   || !metadataSchema.getCode().startsWith(newVersion.getTypeCode()))) {
-			throw new IllegalArgumentException("newVersion parameter is not in the same collection or same schemaType than metadataSchema parameter");
-		}
+		//		if (oldVersion != null && (!oldVersion.getCollection().equals(metadataSchema.getCollection())
+		//								   || !metadataSchema.getCode().startsWith(oldVersion.getTypeCode()))) {
+		//			throw new IllegalArgumentException("oldVersion parameter is not in the same collection or same schemaType than metadataSchema parameter");
+		//		}
+		//
+		//		if (newVersion != null && (!newVersion.getCollection().equals(metadataSchema.getCollection())
+		//								   || !metadataSchema.getCode().startsWith(newVersion.getTypeCode()))) {
+		//			throw new IllegalArgumentException("newVersion parameter is not in the same collection or same schemaType than metadataSchema parameter");
+		//		}
 	}
 
 	private Map<String, Object> getMetadataIndexMap(MetadataSchemaType schemaType, Metadata metadata,
@@ -221,8 +231,8 @@ public class MetadataIndexCacheDataStore {
 
 								synchronized (metadatasMap) {
 									for (Object value : metadatasMap.values()) {
-										if (value instanceof List) {
-											counter += ((List) value).size();
+										if (value instanceof Set) {
+											counter += ((Set) value).size();
 										} else if (value != null) {
 											counter++;
 										}
@@ -258,7 +268,7 @@ public class MetadataIndexCacheDataStore {
 	}
 
 	private void removeValueToCache(String value, String recordId, Map<String, Object> valueRecordIdMap) {
-		List<String> recordIdFromCache = (List<String>) valueRecordIdMap.get(value);
+		Set<String> recordIdFromCache = (Set<String>) valueRecordIdMap.get(value);
 
 		if (recordIdFromCache == null) {
 			return;
@@ -291,16 +301,16 @@ public class MetadataIndexCacheDataStore {
 	}
 
 	private void addValueToCache(String value, String recordId, Map<String, Object> valueRecordIdMap) {
-		List<String> recordIdFromCache = (List<String>) valueRecordIdMap.get(value);
+		Set<String> recordIdFromCache = (Set<String>) valueRecordIdMap.get(value);
 
 		if (recordIdFromCache == null) {
-			recordIdFromCache = new ArrayList();
+			recordIdFromCache = new HashSet<>();
 			valueRecordIdMap.put(value, recordIdFromCache);
 		}
 
-		if (!recordIdFromCache.contains(recordId)) {
-			recordIdFromCache.add(recordId);
-		}
+		//if (!recordIdFromCache.contains(recordId)) {
+		recordIdFromCache.add(recordId);
+		//}
 	}
 
 
@@ -311,8 +321,8 @@ public class MetadataIndexCacheDataStore {
 		if (referencesToRecordAsObject == null) {
 			return Collections.emptyList();
 
-		} else if (referencesToRecordAsObject instanceof List) {
-			return (List<String>) referencesToRecordAsObject;
+		} else if (referencesToRecordAsObject instanceof Set) {
+			return new ArrayList<>((Set<String>) referencesToRecordAsObject);
 
 		} else {
 			return Collections.singletonList((String) referencesToRecordAsObject);

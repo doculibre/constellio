@@ -76,8 +76,8 @@ public class TwoTaxonomiesContainingFolderAndDocumentsSetup extends SchemasSetup
 		MetadataSchemaTypeBuilder taxo1Type1 = typesBuilder.createNewSchemaType("taxo1Type1");
 		MetadataSchemaTypeBuilder taxo1Type2 = typesBuilder.createNewSchemaType("taxo1Type2");
 		MetadataSchemaTypeBuilder taxo2Type = typesBuilder.createNewSchemaType("taxo2Type");
-		MetadataSchemaTypeBuilder folderType = typesBuilder.createNewSchemaType("folder");
-		MetadataSchemaTypeBuilder documentType = typesBuilder.createNewSchemaType("document");
+		MetadataSchemaTypeBuilder folderType = typesBuilder.createNewSchemaType("zefolder");
+		MetadataSchemaTypeBuilder documentType = typesBuilder.createNewSchemaType("zedocument");
 
 		setupTaxonomy1(taxo1Type1, taxo1Type2);
 		setupTaxonomy2(taxo2Type);
@@ -381,11 +381,11 @@ public class TwoTaxonomiesContainingFolderAndDocumentsSetup extends SchemasSetup
 
 	public class FolderSchema implements SchemaShortcuts {
 		public MetadataSchemaType type() {
-			return get("folder");
+			return get("zefolder");
 		}
 
 		public String code() {
-			return "folder_default";
+			return "zefolder_default";
 		}
 
 		public String collection() {
@@ -442,11 +442,11 @@ public class TwoTaxonomiesContainingFolderAndDocumentsSetup extends SchemasSetup
 	public class DocumentSchema implements SchemaShortcuts {
 
 		public MetadataSchemaType type() {
-			return get("document");
+			return get("zedocument");
 		}
 
 		public String code() {
-			return "document_default";
+			return "zedocument_default";
 		}
 
 		public MetadataSchema instance() {

@@ -1,8 +1,6 @@
 package com.constellio.model.services.records.cache.dataStore;
 
 import com.constellio.data.utils.dev.Toggle;
-import com.constellio.model.conf.FoldersLocator;
-import com.constellio.model.conf.FoldersLocatorMode;
 import org.mapdb.BTreeMap;
 import org.mapdb.DB;
 import org.mapdb.DBMaker;
@@ -26,7 +24,7 @@ public class FileSystemRecordsValuesCacheDataStore {
 	public FileSystemRecordsValuesCacheDataStore(File file) {
 		if (!file.exists() || file.delete()) {
 
-			if (new FoldersLocator().getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER) {
+			if (Toggle.USE_FILESYSTEM_DB_FOR_LARGE_METADATAS_CACHE.isEnabled()) {
 				Maker dbMaker = DBMaker.fileDB(file);
 
 				if (Toggle.USE_MMAP_WITHMAP_DB.isEnabled()) {

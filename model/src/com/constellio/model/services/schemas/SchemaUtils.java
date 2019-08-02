@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 import static com.constellio.model.entities.schemas.Schemas.MIGRATION_DATA_VERSION;
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
 
@@ -243,6 +244,22 @@ public class SchemaUtils {
 		return index;
 	}
 
+
+	public List<Metadata> buildListOfCacheIndexMetadatas(List<Metadata> metadatas) {
+
+		List<Metadata> cacheIndexMetadatas = new ArrayList<>();
+
+		for (Metadata metadata : metadatas) {
+			boolean cacheIndex = isCacheIndex(metadata);
+
+			if (cacheIndex) {
+				cacheIndexMetadatas.add(metadata);
+			}
+		}
+
+		return cacheIndexMetadatas;
+	}
+
 	public List<Metadata> buildListOfSummaryMetadatas(List<Metadata> metadatas) {
 
 		List<Metadata> summaryMetadatas = new ArrayList<>();
@@ -273,6 +290,14 @@ public class SchemaUtils {
 		}
 		return allSummary;
 	}
+
+
+	public static boolean isCacheIndex(Metadata metadata) {
+		return (metadata.isCacheIndex() || (metadata.isUniqueValue())
+										   && (metadata.getType() == MetadataValueType.STRING || metadata.getType() == REFERENCE)
+										   && !Schemas.IDENTIFIER.isSameLocalCode(metadata));
+	}
+
 
 	public static boolean isSummary(Metadata metadata) {
 		boolean summary;
@@ -458,7 +483,7 @@ public class SchemaUtils {
 		for (Dependency calculatorDependency : calculatedDataEntry.getCalculator().getDependencies()) {
 			if (calculatorDependency instanceof LocalDependency) {
 				LocalDependency calculatorLocalDependency = (LocalDependency) calculatorDependency;
-				if (calculatorLocalDependency.getReturnType() == MetadataValueType.REFERENCE) {
+				if (calculatorLocalDependency.getReturnType() == REFERENCE) {
 					Metadata otherMetadata = schema.get(calculatorLocalDependency.getLocalMetadataCode());
 					if (otherMetadata.getAllowedReferences().getTypeWithAllowedSchemas()
 							.equals(metadata.getAllowedReferences().getTypeWithAllowedSchemas())) {
