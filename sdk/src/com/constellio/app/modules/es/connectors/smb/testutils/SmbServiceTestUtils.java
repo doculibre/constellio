@@ -80,9 +80,9 @@ public class SmbServiceTestUtils {
 		credentialsWithInvalidUsername = new Credentials("validDomain", "invalidUsername", "validPassword");
 		credentialsWithInvalidPassword = new Credentials("validDomain", "validUsername", "invalidPassword");
 
-		fetchValidShare = new SmbRetrievalConfiguration(Arrays.asList(validShare), Arrays.asList(validShare), new ArrayList<String>(), false);
-		fetchValidFolder = new SmbRetrievalConfiguration(Arrays.asList(validFolder), Arrays.asList(validFolder), new ArrayList<String>(), false);
-		fetchValidFile = new SmbRetrievalConfiguration(Arrays.asList(validFile), Arrays.asList(validFile), new ArrayList<String>(), false);
+		fetchValidShare = new SmbRetrievalConfiguration(Arrays.asList(validShare), Arrays.asList(validShare), new ArrayList<String>(), false, false);
+		fetchValidFolder = new SmbRetrievalConfiguration(Arrays.asList(validFolder), Arrays.asList(validFolder), new ArrayList<String>(), false, false);
+		fetchValidFile = new SmbRetrievalConfiguration(Arrays.asList(validFile), Arrays.asList(validFile), new ArrayList<String>(), false, false);
 
 		// ///////////////////////////////////////////////////
 		// Valid Smb File

@@ -38,7 +38,7 @@ public class SmbShareServiceSimpleImpl implements SmbShareService {
 									 ConnectorSmbUtils smbUtils,
 									 ConnectorLogger logger, ESSchemasRecordsServices es) {
 		this(credentials, smbRetrievalConfiguration, smbUtils, logger, es,
-				new WindowsPermissionsFactoryImpl(new TrusteeManager(), smbRetrievalConfiguration.isSkipSharePermissions()),
+				new WindowsPermissionsFactoryImpl(new TrusteeManager(), smbRetrievalConfiguration.isSkipSharePermissions(), smbRetrievalConfiguration.isSkipContentAndAcl()),
 				new SmbFileFactoryImpl());
 	}
 
@@ -58,7 +58,7 @@ public class SmbShareServiceSimpleImpl implements SmbShareService {
 
 	@Override
 	public SmbFileDTO getSmbFileDTO(String url) {
-		return getSmbFileDTO(url, true);
+		return getSmbFileDTO(url, !smbRetrievalConfiguration.isSkipContentAndAcl());
 	}
 
 	@Override

@@ -97,6 +97,14 @@ public class RecordVO implements Serializable {
 		return viewMode;
 	}
 
+	public String getSchemaCode() {
+		String schema = null;
+		if (record != null) {
+			schema = record.getSchemaCode();
+		}
+		return schema;
+	}
+
 	public MetadataSchemaVO getSchema() {
 		MetadataSchemaVO schema = null;
 		if (!metadataValues.isEmpty()) {

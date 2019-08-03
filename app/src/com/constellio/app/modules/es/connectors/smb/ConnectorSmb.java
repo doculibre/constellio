@@ -120,7 +120,8 @@ public class ConnectorSmb extends Connector {
 		SmbRetrievalConfiguration smbRetrievalConfiguration = new SmbRetrievalConfiguration(connectorInstance.getSeeds(),
 				connectorInstance.getInclusions(),
 				connectorInstance.getExclusions(),
-				connectorInstance.isSkipShareAccessControl());
+				connectorInstance.isSkipShareAccessControl(),
+				connectorInstance.isSkipContentAndAcl());
 
 		if (smbShareService == null) {
 			smbShareService = new SmbShareServiceSimpleImpl(credentials, smbRetrievalConfiguration, smbUtils, logger, es);
