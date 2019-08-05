@@ -209,6 +209,7 @@ public class RecordDeleteServices {
 
 		boolean correctStatus = TRUE == record.get(Schemas.LOGICALLY_DELETED_STATUS);
 		List<Record> activeRecords = getActiveRecords(record);
+		boolean activeRecordInHierarchy = !(activeRecords.isEmpty() || activeRecords.size() == 1 && activeRecords.get(0).getId().equals(record.getId()));
 		boolean hasPermissions =
 				!schemaType.hasSecurity() || authorizationsServices
 						.hasRestaurationPermissionOnHierarchy(user, record, recordsHierarchy);
@@ -217,7 +218,7 @@ public class RecordDeleteServices {
 			validationErrors.add(RecordDeleteServices.class, "recordIsNotLogicallyDeleted");
 			return validationErrors;
 
-		} else if (!activeRecords.isEmpty()) {
+		} else if (activeRecordInHierarchy) {
 			validationErrors.add(RecordDeleteServices.class, "activeRecordInHierarchy", toParameter("records", activeRecords));
 			return validationErrors;
 
