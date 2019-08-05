@@ -125,6 +125,7 @@ public class ConnectorManager implements StatefulService {
 
 					final LeaderElectionManager leaderElectionManager =
 							es.getModelLayerFactory().getDataLayerFactory().getLeaderElectionService();
+
 					if (leaderElectionManager.isCurrentNodeLeader()) {
 						getCrawler().crawlUntil(new Factory<Boolean>() {
 							@Override

@@ -14,7 +14,9 @@ public class FlushEventsBackgroundAction implements Runnable {
 
 	@Override
 	public void run() {
-		if (ReindexingServices.getReindexingInfos() == null && Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()) {
+		if (ReindexingServices.getReindexingInfos() == null
+			&& modelLayerFactory.getRecordsCaches().areSummaryCachesInitialized()
+			&& Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()) {
 			modelLayerFactory.getDataLayerFactory().newEventsDao().flush();
 		}
 	}

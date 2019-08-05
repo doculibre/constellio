@@ -57,6 +57,12 @@ public class SearchResultVOLazyContainer extends LazyQueryContainer implements R
 		return dataProvider.getRecordVO(index);
 	}
 
+	@Override
+	public List<RecordVO> getRecordsVO(List<Object> itemIds) {
+		List<Integer> indexes = (List) itemIds;
+		return dataProvider.getRecordsVO(indexes);
+	}
+
 	public SearchResultVO getSearchResultVO(int index) {
 		return dataProvider.getSearchResultVO(index);
 	}

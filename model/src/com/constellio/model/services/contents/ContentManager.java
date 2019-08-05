@@ -172,7 +172,9 @@ public class ContentManager implements StatefulService {
 		Runnable contentActionsInBackgroundRunnable = new Runnable() {
 			@Override
 			public void run() {
-				if (serviceThreadEnabled && ReindexingServices.getReindexingInfos() == null) {
+				if (serviceThreadEnabled
+					&& ReindexingServices.getReindexingInfos() == null
+					&& modelLayerFactory.getRecordsCaches().areSummaryCachesInitialized()) {
 					if (modelLayerFactory.getConfiguration().isDeleteUnusedContentEnabled()) {
 						deleteUnreferencedContents();
 					}
@@ -185,7 +187,8 @@ public class ContentManager implements StatefulService {
 			@Override
 			public void run() {
 				if (serviceThreadEnabled && ReindexingServices.getReindexingInfos() == null
-					&& new ConstellioEIMConfigs(modelLayerFactory).isInViewerContentsConversionSchedule()) {
+					&& new ConstellioEIMConfigs(modelLayerFactory).isInViewerContentsConversionSchedule()
+					&& modelLayerFactory.getRecordsCaches().areSummaryCachesInitialized()) {
 					convertPendingContentForPreview();
 				}
 			}
@@ -196,10 +199,11 @@ public class ContentManager implements StatefulService {
 				boolean isDeleteUnusedContentEnabled = modelLayerFactory.getConfiguration().isDeleteUnusedContentEnabled();
 				boolean isInScanVaultContentsSchedule = new ConstellioEIMConfigs(modelLayerFactory).isInScanVaultContentsSchedule();
 				if (serviceThreadEnabled && ReindexingServices.getReindexingInfos() == null
+					&& modelLayerFactory.getRecordsCaches().areSummaryCachesInitialized()
 					&& isInScanVaultContentsSchedule
 					&& isEncodingSafeForScan()
 					&& !doesContentScanLockFileExist()
-						&& isDeleteUnusedContentEnabled) {
+					&& isDeleteUnusedContentEnabled) {
 					try {
 						createContentScanLockFile();
 						VaultScanResults vaultScanResults = new VaultScanResults();
@@ -326,7 +330,7 @@ public class ContentManager implements StatefulService {
 			if (file.exists() && shouldFileBeScannedForDeletion(file)) {
 				if (file.isDirectory()) {
 					getAllContentsFromVaultAndRemoveOrphan(fileId, fileList, vaultScanResults);
-				} else if(new AgeFileFilter(System.currentTimeMillis() - FILE_MINIMUM_AGE_BEFORE_DELETION_IN_MILLIS).accept(file)) {
+				} else if (new AgeFileFilter(System.currentTimeMillis() - FILE_MINIMUM_AGE_BEFORE_DELETION_IN_MILLIS).accept(file)) {
 					fileList.add(file.getName());
 				}
 			}

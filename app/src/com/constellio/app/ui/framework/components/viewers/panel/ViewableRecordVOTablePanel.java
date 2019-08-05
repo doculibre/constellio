@@ -80,8 +80,8 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
 
 	public static enum TableMode {
 		LIST, TABLE;
-	} 
-	
+	}
+
 	private VerticalLayout tableLayout;
 
 	private I18NHorizontalLayout viewActionButtonsLayout;
@@ -97,7 +97,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
 	private RecordVOContainer recordVOContainer;
 
 	private BaseTable table;
-	
+
 	private ViewerMetadataPanel viewerMetadataPanel;
 
 	private BaseButton previousButton;
@@ -111,11 +111,11 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
 	private SelectDeselectAllButton selectDeselectAllToggleButton;
 
 	private Label countLabel;
-	
+
 	private BaseButton closeViewerButton;
 
 	private Object selectedItemId;
-	
+
 	private RecordVO selectedRecordVO;
 
 	private Object previousItemId;
@@ -125,7 +125,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
 	private List<SelectionChangeListener> selectionChangeListeners = new ArrayList<>();
 
 	private List<ItemClickListener> itemClickListeners = new ArrayList<>();
-	
+
 	private List<TableCompressListener> tableCompressListeners = new ArrayList<>();
 
 	private List<TableModeChangeListener> tableModeChangeListeners = new ArrayList<>();
@@ -163,7 +163,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
 		setSpacing(true);
 		addStyleName("viewable-record-table-panel");
 
-		boolean empty = recordVOContainer.size() == 0; 
+		boolean empty = recordVOContainer.size() == 0;
 		table = buildResultsTable();
 		if (isSelectColumn()) {
 			selectDeselectAllToggleButton = newSelectDeselectAllToggleButton();
@@ -186,7 +186,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
 		viewActionButtonsLayout.addStyleName("viewable-record-table-panel-view-action-menu-layout");
 		viewActionButtonsLayout.setSpacing(true);
 		viewActionButtonsLayout.setVisible(false);
-		
+
 		tableLayout = new VerticalLayout();
 		tableLayout.addStyleName("viewable-record-panel-table-layout");
 		tableLayout.setHeight("100%");
@@ -277,8 +277,8 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
 					} else {
 						selectedRecords = new ArrayList<>();
 						List<Object> selectedItemIds = table.getSelectionManager().getAllSelectedItemIds();
-						for (Object itemId : selectedItemIds) {
-							RecordVO recordVO = getRecordVO(itemId);
+						List<RecordVO> recordVOS = recordVOContainer.getRecordsVO(selectedItemIds);
+						for (RecordVO recordVO : recordVOS) {
 							selectedRecords.add(recordVO.getRecord());
 						}
 					}
@@ -296,7 +296,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
 					selectionActionsMenuBar.buildMenuItems();
 				}
 			});
-		}	
+		}
 	}
 
 	int computeCompressedWidth() {
@@ -587,7 +587,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
 			selectionButtonsLayout.replaceComponent(selectDeselectAllToggleButtonBefore, selectDeselectAllToggleButton);
 		}
 	}
-	
+
 	void rowClicked(ItemClickEvent event) {
 		Object itemId = event.getItemId();
 		if (isCompressionSupported()) {
@@ -700,7 +700,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
 
 	private void closeViewer() {
 		selectedItemId = null;
-		
+
 		TableCompressEvent tableCompressEvent = new TableCompressEvent(null, false);
 		for (TableCompressListener tableCompressListener : tableCompressListeners) {
 			tableCompressListener.tableCompressChange(tableCompressEvent);
@@ -791,7 +791,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
 		selectedRecordVO = new RecordToVOBuilder().build(selectedRecord, VIEW_MODE.DISPLAY, ConstellioUI.getCurrentSessionContext());
 		selectRecordVO(selectedItemId, null, true);
 	}
-	
+
 	public List<TableCompressListener> getTableCompressListeners() {
 		return tableCompressListeners;
 	}

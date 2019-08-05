@@ -40,7 +40,8 @@ public class RecordsReindexingBackgroundAction implements Runnable {
 	@Override
 	public synchronized void run() {
 
-		if (ReindexingServices.getReindexingInfos() == null) {
+		if (ReindexingServices.getReindexingInfos() == null
+			&& modelLayerFactory.getRecordsCaches().areSummaryCachesInitialized()) {
 			for (String collection : collectionsListManager.getCollectionsExcludingSystem()) {
 				LogicalSearchQuery query = new LogicalSearchQuery();
 				query.setCondition(LogicalSearchQueryOperators.fromAllSchemasInExceptEvents(collection)

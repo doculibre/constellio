@@ -99,7 +99,8 @@ public class TaskReminderEmailManager implements StatefulService {
 
 	void generateReminderEmails() {
 
-		if (ReindexingServices.getReindexingInfos() == null) {
+		if (ReindexingServices.getReindexingInfos() == null
+			&& appLayerFactory.getModelLayerFactory().getRecordsCaches().areSummaryCachesInitialized()) {
 			LogicalSearchQuery query = new LogicalSearchQuery(
 					from(taskSchemas.userTask.schema()).where(taskSchemas.userTask.nextReminderOn())
 							.isLessOrEqualThan(TimeProvider.getLocalDate()));
@@ -172,7 +173,7 @@ public class TaskReminderEmailManager implements StatefulService {
 		String status_en = taskSchemas.getTaskStatus(task.getStatus()).getTitle(Locale.ENGLISH);
 
 		boolean isAddingRecordIdInEmails = eimConfigs.isAddingRecordIdInEmails();
-		if(isAddingRecordIdInEmails) {
+		if (isAddingRecordIdInEmails) {
 			newParameters.add(TASK_TITLE_PARAMETER + ":" + formatToParameter(StringEscapeUtils.escapeHtml4(task.getTitle())) + " (" + task.getId() + ")");
 		} else {
 			newParameters.add(TASK_TITLE_PARAMETER + ":" + formatToParameter(StringEscapeUtils.escapeHtml4(task.getTitle())));

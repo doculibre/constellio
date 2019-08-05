@@ -7,6 +7,7 @@ import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.AbstractList;
 import java.util.ArrayList;
@@ -112,4 +113,24 @@ public class LazyRecordList extends AbstractList<Record> {
 		}
 		return size;
 	}
+
+	@NotNull
+	public List<Record> subList(int fromIndex, int toIndex) {
+		List<Record> returnedValues = new ArrayList<>();
+		int previousBatchSize = this.batchSize;
+
+
+		for (int i = fromIndex; i < toIndex; i++) {
+			this.batchSize = Math.min(toIndex - i, 250);
+			Record record = get(i);
+			if (record == null) {
+				throw new IllegalStateException("No record at index '" + i + "'");
+			}
+			returnedValues.add(record);
+		}
+
+		this.batchSize = previousBatchSize;
+		return returnedValues;
+	}
+
 }

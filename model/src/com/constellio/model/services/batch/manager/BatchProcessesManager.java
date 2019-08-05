@@ -510,7 +510,8 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 					.getModelLayerBackgroundThreadsManager().getRecordsReindexingBackgroundAction();
 
 			SearchServices searchServices = modelLayerFactory.newSearchServices();
-			if (recordsReindexingBackgroundAction != null && ReindexingServices.getReindexingInfos() == null) {
+			if (recordsReindexingBackgroundAction != null
+				&& ReindexingServices.getReindexingInfos() == null) {
 				while (searchServices.hasResults(fromEveryTypesOfEveryCollection().where(MARKED_FOR_REINDEXING).isTrue())) {
 					recordsReindexingBackgroundAction.run();
 				}

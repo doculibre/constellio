@@ -8,11 +8,22 @@ import com.vaadin.data.Container.ItemSetChangeNotifier;
 import com.vaadin.data.Container.PropertySetChangeNotifier;
 import com.vaadin.data.Container.Sortable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public interface RecordVOContainer extends Indexed, Sortable, Filterable, PropertySetChangeNotifier, ItemSetChangeNotifier, RefreshableContainer {
 
 	RecordVO getRecordVO(Object itemId);
+
+	default List<RecordVO> getRecordsVO(List<Object> itemIds) {
+		List<RecordVO> recordVOS = new ArrayList<>();
+
+		for (Object itemId : itemIds) {
+			recordVOS.add(getRecordVO(itemId));
+		}
+
+		return recordVOS;
+	}
 
 	List<MetadataSchemaVO> getSchemas();
 

@@ -77,6 +77,8 @@ public interface RecordsCaches {
 
 	boolean isCacheInitialized(MetadataSchemaType schemaType);
 
+	boolean areSummaryCachesInitialized();
+
 	default void reloadAllSchemaTypes(String collection) {
 		throw new UnsupportedOperationException("Unsupported");
 	}

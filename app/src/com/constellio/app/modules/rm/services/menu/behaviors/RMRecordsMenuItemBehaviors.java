@@ -46,6 +46,8 @@ import com.constellio.data.utils.Factory;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.RecordUpdateOptions;
+import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
@@ -448,6 +450,7 @@ public class RMRecordsMenuItemBehaviors {
 		List<String> couldNotMove = new ArrayList<>();
 		if (isNotBlank(parentId)) {
 			RMSchemasRecordsServices rmSchemas = new RMSchemasRecordsServices(collection, appLayerFactory);
+			List<Record> recordsToMove = new ArrayList<>();
 			for (Record record : records) {
 				try {
 					switch (record.getTypeCode()) {
@@ -457,14 +460,22 @@ public class RMRecordsMenuItemBehaviors {
 								couldNotMove.add(record.getTitle());
 								break;
 							}
-							recordServices.update(folder.setParentFolder(parentId));
+							Transaction txValidateFolder = new Transaction(folder.setParentFolder(parentId));
+							txValidateFolder.setOptions(RecordUpdateOptions.userModificationsSafeOptions());
+							recordServices.validateTransaction(txValidateFolder);
+							recordsToMove.add(record);
+
 							break;
 						case Document.SCHEMA_TYPE:
 							if (!documentRecordActionsServices.isMoveActionPossible(record, user)) {
 								couldNotMove.add(record.getTitle());
 								break;
 							}
-							recordServices.update(rmSchemas.wrapDocument(record).setFolder(parentId));
+							Transaction txValidateDocument = new Transaction(rmSchemas.wrapDocument(record).setFolder(parentId));
+							txValidateDocument.setOptions(RecordUpdateOptions.userModificationsSafeOptions());
+							recordServices.validateTransaction(txValidateDocument);
+							recordsToMove.add(record);
+
 							break;
 						default:
 							couldNotMove.add(record.getTitle());
@@ -474,7 +485,12 @@ public class RMRecordsMenuItemBehaviors {
 					couldNotMove.add(record.getTitle());
 				}
 			}
+
+			Transaction tx = new Transaction(recordsToMove);
+			tx.setOptions(RecordUpdateOptions.userModificationsSafeOptions());
+			recordServices.executeHandlingImpactsAsync(tx);
 		}
+
 
 		if (couldNotMove.isEmpty()) {
 			view.showErrorMessage($("ConstellioHeader.selection.actions.actionCompleted", records.size()));

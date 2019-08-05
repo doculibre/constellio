@@ -294,7 +294,7 @@ public class CartWindowButton extends WindowButton {
 			transaction.update(cart.getWrappedRecord());
 			transaction.update(records);
 
-			recordServices.execute(transaction);
+			recordServices.executeHandlingImpactsAsync(transaction);
 
 			switch (addedRecordType) {
 				case DOCUMENT:

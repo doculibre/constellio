@@ -15,6 +15,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.schemas.MetadataSchemasManagerRuntimeException.MetadataSchemasManagerRuntimeException_NoSuchCollection;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
@@ -340,12 +341,23 @@ public class ConnectorCrawler {
 
 	public void crawlUntil(Factory<Boolean> condition) {
 		while (!condition.get()) {
-			boolean hasCrawledSomething = crawlAllConnectors();
 
-			if (!hasCrawledSomething) {
-				waitSinceNoJobs();
-			}
-			if (crawledConnectors.isEmpty()) {
+			if (ReindexingServices.getReindexingInfos() == null &&
+				es.getModelLayerFactory().getRecordsCaches().areSummaryCachesInitialized()) {
+
+				boolean hasCrawledSomething = crawlAllConnectors();
+
+				if (!hasCrawledSomething) {
+					waitSinceNoJobs();
+				}
+				if (crawledConnectors.isEmpty()) {
+					try {
+						Thread.sleep(200);
+					} catch (InterruptedException e) {
+						throw new RuntimeException(e);
+					}
+				}
+			} else {
 				try {
 					Thread.sleep(200);
 				} catch (InterruptedException e) {

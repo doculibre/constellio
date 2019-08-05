@@ -112,6 +112,38 @@ public abstract class SearchResultVODataProvider implements DataProvider {
 		return searchResultVO != null ? searchResultVO.getRecordVO() : null;
 	}
 
+	public List<RecordVO> getRecordsVO(List<Integer> indexes) {
+
+		int currentStart = -1;
+		int currentEnd = -1;
+		List<RecordVO> recordVOS = new ArrayList<>();
+
+		for (int i = 0; i < indexes.size(); i++) {
+			if (currentStart == -1) {
+				currentStart = indexes.get(i);
+				currentEnd = indexes.get(i);
+
+			} else if (currentEnd + 1 == indexes.get(i)) {
+				currentEnd++;
+
+			} else {
+				for (SearchResultVO searchResultVO : listSearchResultVOs(currentStart, currentEnd - currentStart + 1)) {
+					recordVOS.add(searchResultVO.getRecordVO());
+				}
+				currentStart = indexes.get(i);
+				currentEnd = indexes.get(i);
+			}
+		}
+
+		if (currentStart != -1) {
+			for (SearchResultVO searchResultVO : listSearchResultVOs(currentStart, currentEnd - currentStart + 1)) {
+				recordVOS.add(searchResultVO.getRecordVO());
+			}
+		}
+
+		return recordVOS;
+	}
+
 	public int size() {
 		SerializedCacheSearchService searchServices = new SerializedCacheSearchService(modelLayerFactory, queryCache, true);
 		if (size == null) {
@@ -138,8 +170,10 @@ public abstract class SearchResultVODataProvider implements DataProvider {
 		SPEQueryResponse response = searchServices.query(query, Math.max(resultsPerPage, numberOfItems));
 		onQuery(query, response);
 		List<Record> records = response.getRecords();
-		for (int i = 0; i < Math.min(numberOfItems, records.size()); i++) {
-			RecordVO recordVO = voBuilder.build(records.get(startIndex + i), VIEW_MODE.SEARCH, sessionContext);
+		List<Record> subListOfRecords = records.subList(startIndex, startIndex + Math.min(numberOfItems, records.size()));
+
+		for (Record record : subListOfRecords) {
+			RecordVO recordVO = voBuilder.build(record, VIEW_MODE.SEARCH, sessionContext);
 			SearchResultVO searchResultVO = new SearchResultVO(recordVO, response.getHighlighting(recordVO.getId()));
 			results.add(searchResultVO);
 		}
