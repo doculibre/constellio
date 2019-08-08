@@ -258,7 +258,7 @@ public class RMRecordsMenuItemServices {
 				break;
 			case RMRECORDS_CREATE_SIP:
 				menuItemAction = buildMenuItemAction(RMRECORDS_CREATE_SIP, state,
-						$("SIPButton.caption"), null, -1, 400,
+						$("SIPButton.caption"), FontAwesome.FILE_ARCHIVE_O, -1, 400,
 						getRecordsLimit(actionType),
 						(ids) -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).createSipArchive(ids, params));
 				break;

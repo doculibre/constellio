@@ -49,6 +49,7 @@ import com.constellio.app.modules.rm.extensions.app.RMAdvancedSearchMenuItemActi
 import com.constellio.app.modules.rm.extensions.app.RMBatchProcessingExtension;
 import com.constellio.app.modules.rm.extensions.app.RMBatchProcessingSpecialCaseExtension;
 import com.constellio.app.modules.rm.extensions.app.RMCmisExtension;
+import com.constellio.app.modules.rm.extensions.app.RMDecommissioningBuilderMenuItemActionsExtension;
 import com.constellio.app.modules.rm.extensions.app.RMListSchemaExtention;
 import com.constellio.app.modules.rm.extensions.app.RMMenuItemActionsRequestTaskExtension;
 import com.constellio.app.modules.rm.extensions.app.RMRecordDisplayFactoryExtension;
@@ -379,6 +380,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 
 		extensions.menuItemActionsExtensions.add(new RMMenuItemActionsExtension(collection, appLayerFactory));
 		extensions.menuItemActionsExtensions.add(new RMAdvancedSearchMenuItemActionsExtension(collection, appLayerFactory));
+		extensions.menuItemActionsExtensions.add(new RMDecommissioningBuilderMenuItemActionsExtension(collection, appLayerFactory));
 		// FIXME should be merged with RMMenuItemActionsExtensions
 		extensions.menuItemActionsExtensions.add(new RMMenuItemActionsRequestTaskExtension(collection, appLayerFactory));
 	}

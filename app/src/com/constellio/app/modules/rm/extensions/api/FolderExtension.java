@@ -75,6 +75,11 @@ public abstract class FolderExtension {
 		return ExtensionBooleanResult.NOT_APPLICABLE;
 	}
 
+	public ExtensionBooleanResult isCreateDecommissioningListActionPossible(
+			FolderExtensionActionPossibleParams params) {
+		return ExtensionBooleanResult.NOT_APPLICABLE;
+	}
+
 	public static class FolderExtensionActionPossibleParams {
 		private Folder folder;
 		private User user;

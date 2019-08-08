@@ -409,7 +409,7 @@ public class RMRecordsMenuItemBehaviors {
 			   && containerRecordActionsServices.canDeleteContainers(recordIds, params.getUser());
 	}
 
-	public void deletionRequested(String reason, List<String> recordIds, MenuItemActionBehaviorParams params) {
+	private void deletionRequested(String reason, List<String> recordIds, MenuItemActionBehaviorParams params) {
 		if (!isBatchDeletePossible(recordIds, params)) {
 			params.getView().showErrorMessage($("cannotDelete"));
 			return;

@@ -200,6 +200,10 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 		return searchType;
 	}
 
+	public String getAdminUnitId() {
+		return adminUnitId;
+	}
+
 	public DecommissioningList getDecommissioningList() {
 		return decommissioningListId == null ? null : rmRecordServices().getDecommissioningList(decommissioningListId);
 	}

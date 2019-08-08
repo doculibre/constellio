@@ -292,4 +292,12 @@ public class DecommissioningBuilderViewImpl extends SearchViewImpl<Decommissioni
 	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
 		return new DecommissionBreadcrumbTrail(getTitle(),  presenter.getSearchType(), null, presenter.decommissioningListId, this);
 	}
+
+	public SearchType getSearchType() {
+		return presenter.getSearchType();
+	}
+
+	public String getAdminUnitId() {
+		return presenter.getAdminUnitId();
+	}
 }

@@ -282,6 +282,12 @@ public class RMModuleExtensions implements ModuleExtensions {
 		});
 	}
 
+	public boolean isCreateDecommissioningListActionPossibleOnFolder(Folder folder, User user) {
+		return folderExtensions.getBooleanValue(true,
+				(behavior) -> behavior.isCreateDecommissioningListActionPossible(
+						new FolderExtensionActionPossibleParams(folder, user)));
+	}
+
 	public boolean isBorrowingActionPossibleOnFolder(final Folder folder, final User user) {
 		return folderExtensions.getBooleanValue(true,
 				(behavior) -> behavior.isBorrowingActionPossible(new FolderExtensionActionPossibleParams(folder, user)));

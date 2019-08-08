@@ -159,6 +159,11 @@ public class FolderRecordActionsServices {
 			   rmModuleExtensions.isCreateSipActionPossibleOnFolder(rm.wrapFolder(record), user);
 	}
 
+	public boolean isCreateDecommissioningListActionPossible(Record record, User user) {
+		return hasUserReadAccess(record, user) && user.has(RMPermissionsTo.CREATE_DECOMMISSIONING_LIST).globally() &&
+			   rmModuleExtensions.isCreateDecommissioningListActionPossibleOnFolder(rm.wrapFolder(record), user);
+	}
+
 	// linkTo
 
 	public boolean isAddAuthorizationActionPossible(Record record, User user) {
