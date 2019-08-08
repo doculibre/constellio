@@ -9,7 +9,7 @@ dependencies {
     compile "org.glassfish.jersey.containers:jersey-container-servlet:2.26"
     compile "org.apache.commons:commons-jexl3:3.0"
 
-    compile files("../libs/simple-java-mail-5.1.7-modified.jar")
+    compile files("../libs/simple-java-mail-5.2.1-SNAPSHOT.jar")
 }
 
 sourceSets {
