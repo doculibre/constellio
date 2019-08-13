@@ -64,7 +64,7 @@ public class CartUtil {
 		return cartFolders;
 	}
 
-	private List<ContainerRecord> getCartContainers(String cartId) {
+	public List<ContainerRecord> getCartContainers(String cartId) {
 		LogicalSearchQuery logicalSearchQuery = getCartContainersLogicalSearchQuery(cartId);
 		return rm.searchContainerRecords(logicalSearchQuery);
 	}
