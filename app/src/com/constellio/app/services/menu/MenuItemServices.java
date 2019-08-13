@@ -85,6 +85,10 @@ public class MenuItemServices {
 			return Collections.emptyList();
 		}
 
+		if (excludedActionTypes == null) {
+			excludedActionTypes = Collections.emptyList();
+		}
+
 		List<MenuItemAction> menuItemActions = new ArrayList<>();
 		Object objectRecordVO = params.getObjectRecordVO();
 		if (objectRecordVO != null) {
