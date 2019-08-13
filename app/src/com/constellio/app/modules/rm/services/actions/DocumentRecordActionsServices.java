@@ -239,7 +239,7 @@ public class DocumentRecordActionsServices {
 
 	private boolean isCheckInPossible(User user, Document document) {
 		boolean email = isEmail(document);
-		return !email && (document.getContent() != null && isCurrentUserBorrower(user, document.getContent()));
+		return !email && document.getContent() != null && isCurrentUserBorrower(user, document.getContent());
 	}
 
 	public boolean isCheckOutActionPossible(Record record, User user) {
@@ -291,7 +291,7 @@ public class DocumentRecordActionsServices {
 
 	private boolean isCheckOutPossible(Document document) {
 		boolean email = isEmail(document);
-		return !email && !isContentCheckedOut(document.getContent());
+		return document.getContent() != null && !email && !isContentCheckedOut(document.getContent());
 	}
 
 	private boolean isContentCheckedOut(Document document) {
