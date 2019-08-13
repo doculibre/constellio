@@ -68,6 +68,10 @@ import com.constellio.app.api.extensions.taxonomies.UserSearchEvent;
 import com.constellio.app.api.extensions.taxonomies.ValidateTaxonomyDeletableParams;
 import com.constellio.app.extensions.api.SchemaRecordExtention;
 import com.constellio.app.extensions.api.SchemaRecordExtention.SchemaRecordExtensionActionPossibleParams;
+import com.constellio.app.extensions.api.UserDocumentExtension;
+import com.constellio.app.extensions.api.UserDocumentExtension.UserDocumentExtensionActionPossibleParams;
+import com.constellio.app.extensions.api.UserFolderExtension;
+import com.constellio.app.extensions.api.UserFolderExtension.UserFolderExtensionActionPossibleParams;
 import com.constellio.app.extensions.api.cmis.CmisExtension;
 import com.constellio.app.extensions.api.cmis.params.BuildAllowableActionsParams;
 import com.constellio.app.extensions.api.cmis.params.BuildCmisObjectFromConstellioRecordParams;
@@ -109,6 +113,8 @@ import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Capsule;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.records.wrappers.UserDocument;
+import com.constellio.model.entities.records.wrappers.UserFolder;
 import com.constellio.model.entities.schemas.AllowedReferences;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataFilter;
@@ -203,6 +209,10 @@ public class AppLayerCollectionExtensions {
 	public VaultBehaviorsList<XmlGeneratorExtension> xmlGeneratorExtensions = new VaultBehaviorsList<>();
 
 	public VaultBehaviorsList<SchemaRecordExtention> schemaRecordExtentions = new VaultBehaviorsList<>();
+
+	public VaultBehaviorsList<UserFolderExtension> userFolderExtensions = new VaultBehaviorsList<>();
+
+	public VaultBehaviorsList<UserDocumentExtension> userDocumentExtensions = new VaultBehaviorsList<>();
 
 	//Key : schema type code
 	//Values : record's code
@@ -934,5 +944,13 @@ public class AppLayerCollectionExtensions {
 		return schemaRecordExtentions.getBooleanValue(true,
 				(behavior) -> behavior.isDeleteActionPossible(
 						new SchemaRecordExtensionActionPossibleParams(record, user)));
+	}
+
+	public boolean isClassifyActionPossibleOnUserDocument(final UserDocument userDocument, User user) {
+		return userDocumentExtensions.getBooleanValue(true, (behavior) -> behavior.isFileActionPossible(new UserDocumentExtensionActionPossibleParams(userDocument, user)));
+	}
+
+	public boolean isClassifyActionPossibleOnUserFolder(final UserFolder userFolder, User user) {
+		return userFolderExtensions.getBooleanValue(true, (behavior -> behavior.isFileActionPossible(new UserFolderExtensionActionPossibleParams(userFolder, user))));
 	}
 }

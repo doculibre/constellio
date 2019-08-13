@@ -420,7 +420,7 @@ public class ListUserDocumentsPresenter extends SingleSchemaBasePresenter<ListUs
 		DragAndDropWrapper.WrapperTransferable transferable = (DragAndDropWrapper.WrapperTransferable) event
 				.getTransferable();
 		Html5File[] files = transferable.getFiles();
-		if(files != null) {
+		if (files == null) {
 			return false;
 		}
 
