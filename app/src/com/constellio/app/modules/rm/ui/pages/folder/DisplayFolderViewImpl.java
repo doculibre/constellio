@@ -557,10 +557,16 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	protected List<Button> getQuickActionMenuButtons() {
 		List<Button> quickActionMenuButtons = new ArrayList<>();
 		if (!nestedView) {
-			quickActionMenuButtons.add(editFolderButton);
-			quickActionMenuButtons.add(addDocumentButton);
+			if (editFolderButton != null) {
+				quickActionMenuButtons.add(editFolderButton);
+			}
+			if (addDocumentButton != null) {
+				quickActionMenuButtons.add(addDocumentButton);
+			}
 		} else {
-			quickActionMenuButtons.add(displayFolderButton);
+			if (displayFolderButton != null) {
+				quickActionMenuButtons.add(displayFolderButton);
+			}
 		}
 		return quickActionMenuButtons;
 	}
