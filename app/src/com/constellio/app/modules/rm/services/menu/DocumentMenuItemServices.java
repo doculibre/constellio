@@ -33,6 +33,7 @@ import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServic
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_EDIT;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_FINALIZE;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_GENERATE_REPORT;
+import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_GET_PUBLIC_LINK;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_OPEN;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_PRINT_LABEL;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_PUBLISH;
@@ -130,10 +131,19 @@ public class DocumentMenuItemServices {
 			menuItemActions.add(menuItemAction);
 		}
 
+		if (!filteredActionTypes.contains(DOCUMENT_GET_PUBLIC_LINK.name())) {
+			MenuItemAction menuItemAction = buildMenuItemAction(DOCUMENT_GET_PUBLIC_LINK.name(),
+					isMenuItemActionPossible(DOCUMENT_GET_PUBLIC_LINK.name(), document, user, params),
+					$("DocumentActionsComponent.linkToDocument"), FontAwesome.LINK, -1, 900,
+					(ids) -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).linkToDocument(document, params));
+
+			menuItemActions.add(menuItemAction);
+		}
+
 		if (!filteredActionTypes.contains(DOCUMENT_UNPUBLISH.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(DOCUMENT_UNPUBLISH.name(),
 					isMenuItemActionPossible(DOCUMENT_UNPUBLISH.name(), document, user, params),
-					$("DocumentContextMenu.unpublish"), FontAwesome.GLOBE, -1, 800,
+					$("DocumentContextMenu.unpublish"), FontAwesome.GLOBE, -1, 1000,
 					(ids) -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).unPublish(document, params));
 
 			menuItemActions.add(menuItemAction);
@@ -143,7 +153,7 @@ public class DocumentMenuItemServices {
 		if (!filteredActionTypes.contains(DOCUMENT_CREATE_PDF.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(DOCUMENT_CREATE_PDF.name(),
 					isMenuItemActionPossible(DOCUMENT_CREATE_PDF.name(), document, user, params),
-					$("DocumentContextMenu.createPDFA"), FontAwesome.FILE_PDF_O, -1, 900,
+					$("DocumentContextMenu.createPDFA"), FontAwesome.FILE_PDF_O, -1, 1100,
 					(ids) -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).createPdf(document, params));
 			menuItemAction.setConfirmMessage($("ConfirmDialog.confirmCreatePDFA"));
 
@@ -153,7 +163,7 @@ public class DocumentMenuItemServices {
 		if (!filteredActionTypes.contains(DOCUMENT_ADD_TO_SELECTION.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(DOCUMENT_ADD_TO_SELECTION.name(),
 					isMenuItemActionPossible(DOCUMENT_ADD_TO_SELECTION.name(), document, user, params),
-					$("DocumentContextMenu.addToSelection"), SELECTION_ICON_RESOURCE, -1, 1000,
+					$("DocumentContextMenu.addToSelection"), SELECTION_ICON_RESOURCE, -1, 1200,
 					(ids) -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).addToSelection(document, params));
 
 			menuItemActions.add(menuItemAction);
@@ -163,7 +173,7 @@ public class DocumentMenuItemServices {
 		if (!filteredActionTypes.contains(DOCUMENT_REMOVE_TO_SELECTION.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(DOCUMENT_REMOVE_TO_SELECTION.name(),
 					isMenuItemActionPossible(DOCUMENT_REMOVE_TO_SELECTION.name(), document, user, params),
-					$("DocumentContextMenu.removeToSelection"), SELECTION_ICON_RESOURCE, -1, 1100,
+					$("DocumentContextMenu.removeToSelection"), SELECTION_ICON_RESOURCE, -1, 1300,
 					(ids) -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).removeToSelection(document, params));
 
 			menuItemActions.add(menuItemAction);
@@ -172,7 +182,7 @@ public class DocumentMenuItemServices {
 		if (!filteredActionTypes.contains(DOCUMENT_ADD_TO_CART.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(DOCUMENT_ADD_TO_CART.name(),
 					isMenuItemActionPossible(DOCUMENT_ADD_TO_CART.name(), document, user, params),
-					$("DisplayFolderView.addToCart"), FontAwesome.LIST_ALT, -1, 1200,
+					$("DisplayFolderView.addToCart"), FontAwesome.LIST_ALT, -1, 1400,
 					(ids) -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).addToCart(document, params));
 
 			menuItemActions.add(menuItemAction);
@@ -181,7 +191,7 @@ public class DocumentMenuItemServices {
 		if (!filteredActionTypes.contains(DOCUMENT_UPLOAD.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(DOCUMENT_UPLOAD.name(),
 					isMenuItemActionPossible(DOCUMENT_UPLOAD.name(), document, user, params),
-					$("DocumentContextMenu.upload"), FontAwesome.UPLOAD, -1, 1250,
+					$("DocumentContextMenu.upload"), FontAwesome.UPLOAD, -1, 1500,
 					(ids) -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).upload(document, params));
 
 			menuItemActions.add(menuItemAction);
@@ -190,7 +200,7 @@ public class DocumentMenuItemServices {
 		if (!filteredActionTypes.contains(DOCUMENT_PRINT_LABEL.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(DOCUMENT_PRINT_LABEL.name(),
 					isMenuItemActionPossible(DOCUMENT_PRINT_LABEL.name(), document, user, params),
-					$("DisplayFolderView.printLabel"), FontAwesome.PRINT, -1, 1300,
+					$("DisplayFolderView.printLabel"), FontAwesome.PRINT, -1, 1600,
 					(ids) -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).printLabel(document, params));
 
 			menuItemActions.add(menuItemAction);
@@ -199,7 +209,7 @@ public class DocumentMenuItemServices {
 		if (!filteredActionTypes.contains(DOCUMENT_CHECK_IN.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(DOCUMENT_CHECK_IN.name(),
 					isMenuItemActionPossible(DOCUMENT_CHECK_IN.name(), document, user, params),
-					$("DocumentContextMenu.checkIn"), FontAwesome.UNLOCK, -1, 1400,
+					$("DocumentContextMenu.checkIn"), FontAwesome.UNLOCK, -1, 1700,
 					(ids) -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).checkIn(document, params));
 
 			menuItemActions.add(menuItemAction);
@@ -208,7 +218,7 @@ public class DocumentMenuItemServices {
 		if (!filteredActionTypes.contains(DOCUMENT_CHECK_OUT.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(DOCUMENT_CHECK_OUT.name(),
 					isMenuItemActionPossible(DOCUMENT_CHECK_OUT.name(), document, user, params),
-					$("DocumentContextMenu.checkOut"), FontAwesome.LOCK, -1, 1400,
+					$("DocumentContextMenu.checkOut"), FontAwesome.LOCK, -1, 1800,
 					(ids) -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).checkOut(document, params));
 
 			menuItemActions.add(menuItemAction);
@@ -217,7 +227,7 @@ public class DocumentMenuItemServices {
 		if (!filteredActionTypes.contains(DOCUMENT_AVAILABLE_ALERT.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(DOCUMENT_AVAILABLE_ALERT.name(),
 					isMenuItemActionPossible(DOCUMENT_AVAILABLE_ALERT.name(), document, user, params),
-					$("DocumentContextMenu.alertWhenAvailable"), FontAwesome.BELL_O, -1, 1450,
+					$("DocumentContextMenu.alertWhenAvailable"), FontAwesome.BELL_O, -1, 1900,
 					(ids) -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).alertAvailable(document, params));
 
 			menuItemActions.add(menuItemAction);
@@ -226,7 +236,7 @@ public class DocumentMenuItemServices {
 		if (!filteredActionTypes.contains(DOCUMENT_ADD_AUTHORIZATION.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(DOCUMENT_ADD_AUTHORIZATION.name(),
 					isMenuItemActionPossible(DOCUMENT_ADD_AUTHORIZATION.name(), document, user, params),
-					$("DocumentContextMenu.addAuthorization"), FontAwesome.KEY, -1, 1500,
+					$("DocumentContextMenu.addAuthorization"), FontAwesome.KEY, -1, 2000,
 					(ids) -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).addAuthorization(document, params));
 
 			menuItemActions.add(menuItemAction);
@@ -235,7 +245,7 @@ public class DocumentMenuItemServices {
 		if (!filteredActionTypes.contains(DOCUMENT_GENERATE_REPORT.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(DOCUMENT_GENERATE_REPORT.name(),
 					isMenuItemActionPossible(DOCUMENT_GENERATE_REPORT.name(), document, user, params),
-					$("DocumentContextMenu.ReportGeneratorButton"), FontAwesome.LIST_ALT, -1, 1600,
+					$("DocumentContextMenu.ReportGeneratorButton"), FontAwesome.LIST_ALT, -1, 2100,
 					(ids) -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).reportGeneratorButton(document, params));
 
 			menuItemActions.add(menuItemAction);
@@ -268,6 +278,8 @@ public class DocumentMenuItemServices {
 				return documentRecordActionsServices.isPublishActionPossible(record, user);
 			case DOCUMENT_UNPUBLISH:
 				return documentRecordActionsServices.isUnPublishActionPossible(record, user);
+			case DOCUMENT_GET_PUBLIC_LINK:
+				return documentRecordActionsServices.isGetPublicLinkActionPossible(record, user);
 			case DOCUMENT_CREATE_PDF:
 				return documentRecordActionsServices.isCreatePdfActionPossible(record, user);
 			case DOCUMENT_ADD_TO_SELECTION:
@@ -322,6 +334,7 @@ public class DocumentMenuItemServices {
 		DOCUMENT_COPY,
 		DOCUMENT_FINALIZE,
 		DOCUMENT_PUBLISH,
+		DOCUMENT_GET_PUBLIC_LINK,
 		DOCUMENT_UNPUBLISH,
 		DOCUMENT_CREATE_PDF,
 		DOCUMENT_ADD_TO_SELECTION,

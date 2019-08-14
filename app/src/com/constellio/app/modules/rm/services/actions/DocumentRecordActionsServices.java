@@ -84,6 +84,14 @@ public class DocumentRecordActionsServices {
 			   && document.isPublished();
 	}
 
+
+	public boolean isGetPublicLinkActionPossible(Record record, User user) {
+		Document document = rm.wrapDocument(record);
+
+		return rmModuleExtensions.isGetPublicLinkActionPossibleOnDocument(document, user)
+			   && document.isPublished();
+	}
+
 	public boolean isPublishActionPossible(Record record, User user) {
 		Document document = rm.wrapDocument(record);
 		return user.has(RMPermissionsTo.PUBLISH_AND_UNPUBLISH_DOCUMENTS)
