@@ -66,8 +66,13 @@ public class DecommissioningSecurityService {
 	}
 
 	private boolean hasPermissionOnList(User user, DecommissioningList list, String permission) {
-		AdministrativeUnit administrativeUnit = rm.getAdministrativeUnit(list.getAdministrativeUnit());
-		return user.has(permission).on(administrativeUnit);
+		String administrativeUnitId = list.getAdministrativeUnit();
+		if (administrativeUnitId != null) {
+			AdministrativeUnit administrativeUnit = rm.getAdministrativeUnit(administrativeUnitId);
+			return user.has(permission).on(administrativeUnit);
+		} else {
+			return user.has(permission).globally();
+		}
 	}
 
 	public boolean canValidate(DecommissioningList list, User user) {

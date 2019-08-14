@@ -108,7 +108,7 @@ public class CartActionsServices {
 	public boolean isDocumentBatchProcessingActionPossible(Record record, User user) {
 		Cart cart = rm.wrapCart(record);
 		String schemaTypeCode = Document.SCHEMA_TYPE;
-		if (isRecordOfType(record, schemaTypeCode)) {
+		if (areSchemaTypeRecordPresent(record, schemaTypeCode, user)) {
 			return isBatchProcessingButtonVisible(schemaTypeCode, user, cart)
 				   && hasCartPermission(cart.getId(), user)
 				   && rmModuleExtensions.isDocumentBatchProcessingActionPossibleOnCart(cart, user);
@@ -120,19 +120,19 @@ public class CartActionsServices {
 	public boolean isFolderBatchProcessingActionPossible(Record record, User user) {
 		Cart cart = rm.wrapCart(record);
 		String schemaTypeCode = Folder.SCHEMA_TYPE;
-		if (isRecordOfType(record, schemaTypeCode)) {
+		if (areSchemaTypeRecordPresent(record, schemaTypeCode, user)) {
 			return isBatchProcessingButtonVisible(schemaTypeCode, user, cart)
 				   && hasCartPermission(cart.getId(), user)
 				   && rmModuleExtensions.isFolderBatchProcessingActionPossibleOnCart(cart, user);
 		} else {
 			return false;
-		}	
+		}
 	}
 
 	public boolean isContainerBatchProcessingActionPossible(Record record, User user) {
 		Cart cart = rm.wrapCart(record);
 		String schemaTypeCode = ContainerRecord.SCHEMA_TYPE;
-		if (isRecordOfType(record, schemaTypeCode)) {
+		if (areSchemaTypeRecordPresent(record, schemaTypeCode, user)) {
 			return isBatchProcessingButtonVisible(schemaTypeCode, user, cart)
 				   && hasCartPermission(cart.getId(), user)
 				   && rmModuleExtensions.isContainerRecordBatchProcessingActionPossibleOnCart(cart, user);
@@ -144,7 +144,7 @@ public class CartActionsServices {
 	public boolean isFoldersLabelsActionPossible(Record record, User user) {
 		Cart cart = rm.wrapCart(record);
 		String schemaTypeCode = Folder.SCHEMA_TYPE;
-		if (isRecordOfType(record, schemaTypeCode)) {
+		if (areSchemaTypeRecordPresent(record, schemaTypeCode, user)) {
 			return hasCartPermission(cart.getId(), user)
 				   && isLabelsButtonVisible(schemaTypeCode, cart.getId())
 				   && rmModuleExtensions.isFoldersLabelsActionPossibleOnCart(cart, user);
@@ -156,7 +156,7 @@ public class CartActionsServices {
 	public boolean isDocumentLabelsActionPossible(Record record, User user) {
 		Cart cart = rm.wrapCart(record);
 		String schemaTypeCode = Document.SCHEMA_TYPE;
-		if (isRecordOfType(record, schemaTypeCode)) {
+		if (areSchemaTypeRecordPresent(record, schemaTypeCode, user)) {
 			return hasCartPermission(cart.getId(), user)
 				   && isLabelsButtonVisible(schemaTypeCode, cart.getId())
 				   && rmModuleExtensions.isDocumentLabelsActionPossibleOnCart(cart, user);
@@ -166,15 +166,26 @@ public class CartActionsServices {
 	}
 
 	@NotNull
-	private boolean isRecordOfType(Record record, String schemaType) {
-		String schemaTypeCode = metadataSchemasManager.getSchemaTypeOf(record).getCode();
-		return schemaType.equals(schemaTypeCode);
+	private boolean areSchemaTypeRecordPresent(Record record, String schemaType, User user) {
+		List<? extends RecordWrapper> recordWithPossibleDeleted;
+
+		if (ContainerRecord.SCHEMA_TYPE.equals(schemaType)) {
+			recordWithPossibleDeleted = cartUtil.getCartContainers(record.getId());
+		} else if (Folder.SCHEMA_TYPE.equals(schemaType)) {
+			recordWithPossibleDeleted = cartUtil.getCartFolders(record.getId());
+		} else if (Document.SCHEMA_TYPE.equals(schemaType)) {
+			recordWithPossibleDeleted = cartUtil.getCartDocuments(record.getId());
+		} else {
+			throw new IllegalArgumentException("SchemaType not supported : " + schemaType);
+		}
+
+		return getNonDeletedRecordsIds(recordWithPossibleDeleted, user).size() > 0;
 	}
 
 	public boolean isContainersLabelsActionPossible(Record record, User user) {
 		Cart cart = rm.wrapCart(record);
 		String schemaTypeCode = ContainerRecord.SCHEMA_TYPE;
-		if (isRecordOfType(record, schemaTypeCode)) {
+		if (areSchemaTypeRecordPresent(record, schemaTypeCode, user)) {
 			return hasCartPermission(cart.getId(), user)
 				   && isLabelsButtonVisible(schemaTypeCode, cart.getId())
 				   && rmModuleExtensions.isContainerLabelsActionPossibleOnCart(cart, user);

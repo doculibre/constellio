@@ -449,6 +449,17 @@ public class RMModuleExtensions implements ModuleExtensions {
 		});
 	}
 
+	public boolean isGetPublicLinkActionPossibleOnDocument(final Document document, final User user) {
+		return documentExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<DocumentExtension>() {
+
+			@Override
+			public ExtensionBooleanResult call(DocumentExtension behavior) {
+				return behavior.isGetPublicLinkActionPossible(
+						new DocumentExtension.DocumentExtensionActionPossibleParams(document, user));
+			}
+		});
+	}
+
 	public boolean isDeleteActionPossbileOnDocument(final Document document, final User user) {
 		return documentExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<DocumentExtension>() {
 			@Override

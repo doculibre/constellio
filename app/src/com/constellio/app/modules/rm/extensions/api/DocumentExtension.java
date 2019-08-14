@@ -67,6 +67,10 @@ public abstract class DocumentExtension {
 		return ExtensionBooleanResult.NOT_APPLICABLE;
 	}
 
+	public ExtensionBooleanResult isGetPublicLinkActionPossible(DocumentExtensionActionPossibleParams params) {
+		return ExtensionBooleanResult.NOT_APPLICABLE;
+	}
+
 	public ExtensionBooleanResult isUnPublishActionPossible(DocumentExtensionActionPossibleParams params) {
 		return ExtensionBooleanResult.NOT_APPLICABLE;
 	}

@@ -93,66 +93,67 @@ public class RMMenuItemActionsRequestTaskExtension extends MenuItemActionsExtens
 	public void addMenuItemActionsForRecord(MenuItemActionExtensionAddMenuItemActionsForRecordParams params) {
 		Record record = params.getRecord();
 		User user = params.getBehaviorParams().getUser();
+		if (record != null) {
+			if (params.getRecord().isOfSchemaType(ContainerRecord.SCHEMA_TYPE)) {
 
-		if (params.getRecord().isOfSchemaType(ContainerRecord.SCHEMA_TYPE)) {
+				Folder folder = getFolderOrNull(record);
 
-			Folder folder = getFolderOrNull(record);
+				if (folder == null || folder.getArchivisticStatus() != FolderStatus.INACTIVE_DESTROYED) {
+					boolean isBorrowRequestActionPossible = isBorrowRequestActionPossible(record, user);
 
-			if (folder == null || folder.getArchivisticStatus() != FolderStatus.INACTIVE_DESTROYED) {
-				boolean isBorrowRequestActionPossible = isBorrowRequestActionPossible(record, user);
+					params.getMenuItemActions().add(MenuItemAction.builder()
+							.type(REQUEST_BORROW_BUTTON.name())
+							.state(toState(isBorrowRequestActionPossible))
+							.caption($("RMRequestTaskButtonExtension.borrowRequest"))
+							.command((ids) -> borrowRequest(params))
+							.recordsLimit(1)
+							.group(1)
+							.priority(3000)
+							.build());
+
+					boolean isRequestBorrowExtensionActionPossible = isExtensionRequestActionPossible(record, user);
+
+					params.getMenuItemActions().add(MenuItemAction.builder()
+							.type(REQUEST_BORROW_EXTENSION_BUTTON.name())
+							.state(toState(isRequestBorrowExtensionActionPossible))
+							.caption($("RMRequestTaskButtonExtension.borrowExtensionRequest"))
+							.command((ids) -> borrowExtensionRequested(params))
+							.recordsLimit(1)
+							.group(1)
+							.priority(3002)
+							.build());
+
+					boolean isReactivationActionPossible = isReactivationRequestActionPossible(record, user);
+
+					params.getMenuItemActions().add(MenuItemAction.builder()
+							.type(REACTIVATION_BUTTON.name())
+							.state(toState(isReactivationActionPossible))
+							.caption($("RMRequestTaskButtonExtension.reactivationRequest"))
+							.command((ids) -> reactivationRequested(params))
+							.recordsLimit(1)
+							.group(1)
+							.priority(3004)
+							.build());
+				}
+
+				String returnConfirmMessage = params.getBehaviorParams().getView() instanceof DisplayContainerViewImpl ?
+											  $("DisplayFolderView.confirmReturnContainerMessage") :
+											  $("DisplayFolderView.confirmReturnMessage");
+
+				boolean isReturnRequestActionPossible =
+						isReturnRequestActionPossible(record, user);
 
 				params.getMenuItemActions().add(MenuItemAction.builder()
-						.type(REQUEST_BORROW_BUTTON.name())
-						.state(toState(isBorrowRequestActionPossible))
-						.caption($("RMRequestTaskButtonExtension.borrowRequest"))
-						.command((ids) -> borrowRequest(params))
+						.type(RETURN_REQUEST_BUTTON.name())
+						.state(toState(isReturnRequestActionPossible))
+						.caption($("RMRequestTaskButtonExtension.returnRequest"))
+						.confirmMessage(returnConfirmMessage)
+						.command((ids) -> returnRequest(params))
 						.recordsLimit(1)
-						.group(1)
-						.priority(3000)
-						.build());
-
-				boolean isRequestBorrowExtensionActionPossible = isExtensionRequestActionPossible(record, user);
-
-				params.getMenuItemActions().add(MenuItemAction.builder()
-						.type(REQUEST_BORROW_EXTENSION_BUTTON.name())
-						.state(toState(isRequestBorrowExtensionActionPossible))
-						.caption($("RMRequestTaskButtonExtension.borrowExtensionRequest"))
-						.command((ids) -> borrowExtensionRequested(params))
-						.recordsLimit(1)
-						.group(1)
-						.priority(3002)
-						.build());
-
-				boolean isReactivationActionPossible = isReactivationRequestActionPossible(record, user);
-
-				params.getMenuItemActions().add(MenuItemAction.builder()
-						.type(REACTIVATION_BUTTON.name())
-						.state(toState(isReactivationActionPossible))
-						.caption($("RMRequestTaskButtonExtension.reactivationRequest"))
-						.command((ids) -> reactivationRequested(params))
-						.recordsLimit(1)
-						.group(1)
-						.priority(3004)
+						.group(-1)
+						.priority(3006)
 						.build());
 			}
-
-			String returnConfirmMessage = params.getBehaviorParams().getView() instanceof DisplayContainerViewImpl ?
-										  $("DisplayFolderView.confirmReturnContainerMessage") :
-										  $("DisplayFolderView.confirmReturnMessage");
-
-			boolean isReturnRequestActionPossible =
-					isReturnRequestActionPossible(record, user);
-
-			params.getMenuItemActions().add(MenuItemAction.builder()
-					.type(RETURN_REQUEST_BUTTON.name())
-					.state(toState(isReturnRequestActionPossible))
-					.caption($("RMRequestTaskButtonExtension.returnRequest"))
-					.confirmMessage(returnConfirmMessage)
-					.command((ids) -> returnRequest(params))
-					.recordsLimit(1)
-					.group(-1)
-					.priority(3006)
-					.build());
 		}
 	}
 

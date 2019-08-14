@@ -29,6 +29,8 @@ import com.constellio.app.ui.entities.RecordVORuntimeException.RecordVORuntimeEx
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.builders.ContentVersionToVOBuilder;
 import com.constellio.app.ui.framework.buttons.DownloadLink;
+import com.constellio.app.ui.framework.buttons.WindowButton;
+import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
 import com.constellio.app.ui.framework.components.RMSelectionPanelReportPresenter;
 import com.constellio.app.ui.framework.components.ReportTabButton;
@@ -53,6 +55,7 @@ import com.constellio.model.services.contents.ContentConversionManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.logging.SearchEventServices;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
@@ -61,6 +64,10 @@ import com.constellio.model.services.search.SearchServices;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.ui.Button;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.themes.ValoTheme;
 import org.apache.commons.io.FilenameUtils;
 
 import java.util.ArrayList;
@@ -186,6 +193,26 @@ public class DocumentMenuItemActionBehaviors {
 			params.getView().showErrorMessage(MessageUtils.toMessage(e));
 		}
 	}
+
+	public void linkToDocument(Document document, MenuItemActionBehaviorParams params) {
+		WindowButton.WindowConfiguration publicLinkConfig = new WindowConfiguration(true, false, "75%", "125px");
+		WindowButton publicLinkButton = new WindowButton(
+				$("DocumentContextMenu.publicLink"), $("DocumentContextMenu.publicLink"), publicLinkConfig) {
+			@Override
+			protected Component buildWindowContent() {
+				String url = modelLayerFactory.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.CONSTELLIO_URL);
+				String publicLink = url + "dl?id=" + document.getId();
+
+				Label link = new Label(publicLink);
+				Label message = new Label($("DocumentContextMenu.publicLinkInfo"));
+				message.addStyleName(ValoTheme.LABEL_BOLD);
+				return new VerticalLayout(message, link);
+			}
+		};
+		publicLinkButton.click();
+	}
+
+
 
 	public void publish(Document document, MenuItemActionBehaviorParams params) {
 		document.setPublished(true);

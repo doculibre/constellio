@@ -84,6 +84,14 @@ public class DocumentRecordActionsServices {
 			   && document.isPublished();
 	}
 
+
+	public boolean isGetPublicLinkActionPossible(Record record, User user) {
+		Document document = rm.wrapDocument(record);
+
+		return rmModuleExtensions.isGetPublicLinkActionPossibleOnDocument(document, user)
+			   && document.isPublished();
+	}
+
 	public boolean isPublishActionPossible(Record record, User user) {
 		Document document = rm.wrapDocument(record);
 		return user.has(RMPermissionsTo.PUBLISH_AND_UNPUBLISH_DOCUMENTS)
@@ -239,7 +247,7 @@ public class DocumentRecordActionsServices {
 
 	private boolean isCheckInPossible(User user, Document document) {
 		boolean email = isEmail(document);
-		return !email && (document.getContent() != null && isCurrentUserBorrower(user, document.getContent()));
+		return !email && document.getContent() != null && isCurrentUserBorrower(user, document.getContent());
 	}
 
 	public boolean isCheckOutActionPossible(Record record, User user) {
@@ -291,7 +299,7 @@ public class DocumentRecordActionsServices {
 
 	private boolean isCheckOutPossible(Document document) {
 		boolean email = isEmail(document);
-		return !email && !isContentCheckedOut(document.getContent());
+		return document.getContent() != null && !email && !isContentCheckedOut(document.getContent());
 	}
 
 	private boolean isContentCheckedOut(Document document) {
