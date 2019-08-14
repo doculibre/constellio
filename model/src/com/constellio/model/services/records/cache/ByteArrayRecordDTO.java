@@ -7,10 +7,10 @@ import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.records.cache.CacheRecordDTOUtils.CacheRecordDTOBytesArray;
 import com.constellio.model.services.schemas.MetadataSchemaProvider;
 import com.constellio.model.services.schemas.SchemaUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -128,7 +128,7 @@ public abstract class ByteArrayRecordDTO implements Map<String, Object>, RecordD
 
 		@Override
 		public String getId() {
-			return StringUtils.leftPad("" + id, 11, '0');
+			return RecordUtils.toStringId(id);
 		}
 
 		@Override

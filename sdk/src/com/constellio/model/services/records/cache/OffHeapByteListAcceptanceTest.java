@@ -1,7 +1,9 @@
 package com.constellio.model.services.records.cache;
 
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.services.records.cache.offHeapCollections.OffHeapByteList;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Random;
@@ -9,6 +11,11 @@ import java.util.Random;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class OffHeapByteListAcceptanceTest extends ConstellioTest {
+
+	@Before
+	public void validateNotWritingOutsideOfReservedMemory() {
+		Toggle.OFF_HEAP_ADDRESS_VALIDATOR.enable();
+	}
 
 	@Test
 	public void whenSavingValuesThenRetrievable() {
@@ -19,7 +26,7 @@ public class OffHeapByteListAcceptanceTest extends ConstellioTest {
 
 		Random random = new Random();
 
-		for (int i = 0; i < 500_000; i++) {
+		for (int i = 0; i < 100_000; i++) {
 			System.out.println(i);
 			int modifiedIndex = random.nextInt(100_000);
 			byte newValue = (byte) (random.nextInt(256) + Byte.MIN_VALUE);
@@ -35,7 +42,7 @@ public class OffHeapByteListAcceptanceTest extends ConstellioTest {
 				}
 			}
 		}
-
+		byteList.clear();
 
 	}
 }

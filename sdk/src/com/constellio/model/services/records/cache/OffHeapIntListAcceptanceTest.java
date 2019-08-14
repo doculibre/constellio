@@ -1,8 +1,10 @@
 package com.constellio.model.services.records.cache;
 
 import com.constellio.data.utils.ThreadList;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.services.records.cache.offHeapCollections.OffHeapIntList;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Random;
@@ -14,6 +16,11 @@ import static org.junit.Assert.fail;
 
 public class OffHeapIntListAcceptanceTest extends ConstellioTest {
 
+	@Before
+	public void validateNotWritingOutsideOfReservedMemory() {
+		Toggle.OFF_HEAP_ADDRESS_VALIDATOR.enable();
+	}
+
 	@Test
 	public void whenGettingAnUnsetIndexThenOutOfBoundException() {
 		OffHeapIntList intList = new OffHeapIntList();
@@ -24,6 +31,7 @@ public class OffHeapIntListAcceptanceTest extends ConstellioTest {
 		intList.get(4);
 
 		intList.get(100005);
+		intList.clear();
 	}
 
 	@Test
@@ -35,7 +43,7 @@ public class OffHeapIntListAcceptanceTest extends ConstellioTest {
 
 		Random random = new Random();
 
-		for (int i = 0; i < 500_000; i++) {
+		for (int i = 0; i < 100_000; i++) {
 			System.out.println(i);
 			int modifiedIndex = random.nextInt(100_000);
 			int newValue = random.nextInt();
@@ -53,6 +61,7 @@ public class OffHeapIntListAcceptanceTest extends ConstellioTest {
 				}
 			}
 		}
+		intList.clear();
 
 	}
 
@@ -101,6 +110,7 @@ public class OffHeapIntListAcceptanceTest extends ConstellioTest {
 
 		finished.set(true);
 		threadList.joinAll();
+		list.clear();
 	}
 
 	@Test
@@ -136,6 +146,6 @@ public class OffHeapIntListAcceptanceTest extends ConstellioTest {
 				fail("binary search failed");
 			}
 		}
-
+		intList.clear();
 	}
 }
