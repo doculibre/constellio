@@ -104,8 +104,10 @@ public class DecomApprobationRequestWindowButton extends WindowButton {
 		buttonsLayout.addComponent(cancelButton);
 		buttonsLayout.setSpacing(true);
 		layout.addComponent(buttonsLayout);
+		layout.setMargin(true);
+		layout.setSpacing(true);
 		layout.setComponentAlignment(buttonsLayout, Alignment.BOTTOM_RIGHT);
-		getWindow().setHeight("220px");
+		getWindow().setHeightUndefined();
 		return layout;
 	}
 
