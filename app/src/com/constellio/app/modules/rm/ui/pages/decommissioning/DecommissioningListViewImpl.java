@@ -1183,7 +1183,11 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 		contentsTable.setVisible(contentsTable.size() > 0);
 		VerticalLayout verticalLayout = new VerticalLayout();
 		Label label = new Label($("DecommissioningListView.contents"));
-		label.addStyleName(RecordDisplay.STYLE_CAPTION);
+		//TODO : ajouter le style dans le scss :
+		// 			width: 300px;
+		//	    	word-wrap: break-word;
+		//			border-bottom: 1px dotted #dfdfdf;
+		//	    	font-weight: bold;
 		verticalLayout.addComponents(label, multiFileUpload, contentsTable);
 		return verticalLayout;
 	}
