@@ -1,7 +1,11 @@
 package com.constellio.app.modules.rm.ui.pages.decommissioning;
 
 import com.constellio.app.modules.rm.navigation.RMViews;
-import com.constellio.app.modules.rm.ui.components.decommissioning.*;
+import com.constellio.app.modules.rm.ui.components.decommissioning.ContainerDetailTableGenerator;
+import com.constellio.app.modules.rm.ui.components.decommissioning.DecomApprobationRequestWindowButton;
+import com.constellio.app.modules.rm.ui.components.decommissioning.DecomValidationRequestWindowButton;
+import com.constellio.app.modules.rm.ui.components.decommissioning.FolderDetailTableGenerator;
+import com.constellio.app.modules.rm.ui.components.decommissioning.ValidationsGenerator;
 import com.constellio.app.modules.rm.ui.entities.ContainerVO;
 import com.constellio.app.modules.rm.ui.entities.FolderDetailVO;
 import com.constellio.app.modules.rm.ui.entities.FolderVO;
@@ -13,7 +17,14 @@ import com.constellio.app.modules.rm.wrappers.structures.DecomListValidation;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
-import com.constellio.app.ui.framework.buttons.*;
+import com.constellio.app.ui.framework.buttons.AddButton;
+import com.constellio.app.ui.framework.buttons.BaseButton;
+import com.constellio.app.ui.framework.buttons.ConfirmDialogButton;
+import com.constellio.app.ui.framework.buttons.ContentButton;
+import com.constellio.app.ui.framework.buttons.DecommissioningListReportButton;
+import com.constellio.app.ui.framework.buttons.DeleteButton;
+import com.constellio.app.ui.framework.buttons.EditButton;
+import com.constellio.app.ui.framework.buttons.LinkButton;
 import com.constellio.app.ui.framework.buttons.SIPButton.SIPButtonImpl;
 import com.constellio.app.ui.framework.buttons.SelectDeselectAllButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
@@ -36,10 +47,10 @@ import com.vaadin.data.util.BeanItem;
 import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.data.util.DefaultItemSorter;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Alignment;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
@@ -59,9 +70,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.*;
 
-import static com.constellio.app.modules.rm.ui.components.decommissioning.FolderDetailTableGenerator.CHECKBOX;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DecommissioningListViewImpl extends BaseViewImpl implements DecommissioningListView {
@@ -200,9 +209,9 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 		missingFolderLabel.addStyleName(ValoTheme.LABEL_BOLD);
 
 		Component files = getContentTable(decommissioningList);
-		VerticalLayout layout = new VerticalLayout(missingFolderLabel, display, selectedFoldersComponent, validationComponent,
+		VerticalLayout layout = new VerticalLayout(missingFolderLabel, display, files, selectedFoldersComponent, validationComponent,
 				packageableFolderComponent,
-				processableFolderComponent, foldersToValidateComponent, excludedFolderComponent, containerComponent, comments, files);
+				processableFolderComponent, foldersToValidateComponent, excludedFolderComponent, containerComponent, comments);
 		layout.setSpacing(true);
 		layout.setWidth("100%");
 
@@ -1150,7 +1159,9 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 		contentsTable.setPageLength(contentsTable.size());
 		contentsTable.setColumnHeaderMode(ColumnHeaderMode.HIDDEN);
 		VerticalLayout verticalLayout = new VerticalLayout();
-		verticalLayout.addComponents(new Label($("DecommissioningListView.contents")), contentsTable);
+		Label label = new Label($("DecommissioningListView.contents"));
+		label.addStyleName(RecordDisplay.STYLE_CAPTION);
+		verticalLayout.addComponents(label, contentsTable);
 		return verticalLayout;
 	}
 
