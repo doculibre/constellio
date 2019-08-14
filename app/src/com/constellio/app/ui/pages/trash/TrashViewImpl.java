@@ -142,12 +142,15 @@ public class TrashViewImpl extends BaseViewImpl implements TrashView {
 				replaceDeletedRecordsTypeAndCountComponents();
 				rebuildTrashTable();
 				enableOrDisableActionButtons();
+				notRestoredIdsAndTitle.put("drink, drink, drink", "que desirez-vous");
+				notRestoredIdsAndTitle.put("put, put, put", "st-hubert bbq");
 				if (!notRestoredIdsAndTitle.isEmpty()) {
-					StringBuffer errorMessage = new StringBuffer($("TrashView.restoreNotPossibleForRecords") + ":<br>");
-					for (Map.Entry<String, String> deleteItem : notRestoredIdsAndTitle.entrySet()) {
+					//					StringBuffer errorMessage = new StringBuffer($("TrashView.restoreNotPossibleForRecords") + ":<br>");
+					showErrorMessage($("TrashView.restoreNotPossibleForRecords") + ":<br>" + StringUtils.join(notRestoredIdsAndTitle.keySet() + " - " + notRestoredIdsAndTitle.entrySet() + "<br>"));
+					/*for (Map.Entry<String, String> deleteItem : notRestoredIdsAndTitle.entrySet()) {
 						errorMessage.append(deleteItem.getKey() + " - " + deleteItem.getValue() + "<br>");
-					}
-					showMessage(errorMessage.toString());
+					}*/
+					//					showMessage(errorMessage.toString());
 				}
 			}
 		};
