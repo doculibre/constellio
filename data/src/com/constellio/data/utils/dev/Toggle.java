@@ -87,6 +87,8 @@ public class Toggle {
 
 	public static AvailableToggle DEBUG_DTOS = newToggle(false);
 
+	public static AvailableToggle OFF_HEAP_ADDRESS_VALIDATOR = newToggle(false);
+
 	// ------------------------------------------------
 
 	private static Map<String, AvailableToggle> toggleMap = new HashMap<>();

@@ -1,5 +1,6 @@
 package com.constellio.model.services.records.cache;
 
+import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
@@ -89,12 +90,15 @@ public class MetadataIndexCacheDataStore {
 		Map<String, Object> metadataIndexMap = getMetadataIndexMap(schemaType, currentMetadata, !isNewValueNull);
 
 		Object oldValue = oldVersion.get(currentMetadata);
-		if (!metadataIndexMap.isEmpty()) {
-			removeRecordIdToMapByValue(oldValue, oldVersion.getId(), metadataIndexMap, currentMetadata);
-		}
 
-		if (!isNewValueNull) {
-			addRecordIdToMapByValue(newValue, newVersion.getId(), metadataIndexMap, currentMetadata);
+		if (!LangUtils.isEqual(newValue, oldValue)) {
+			if (!metadataIndexMap.isEmpty()) {
+				removeRecordIdToMapByValue(oldValue, oldVersion.getId(), metadataIndexMap, currentMetadata);
+			}
+
+			if (!isNewValueNull) {
+				addRecordIdToMapByValue(newValue, newVersion.getId(), metadataIndexMap, currentMetadata);
+			}
 		}
 	}
 

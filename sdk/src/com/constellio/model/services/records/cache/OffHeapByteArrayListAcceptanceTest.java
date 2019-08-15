@@ -1,5 +1,6 @@
 package com.constellio.model.services.records.cache;
 
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.services.records.cache.offHeapCollections.OffHeapByteArrayList;
 import com.constellio.sdk.tests.ConstellioTest;
 import org.junit.Test;
@@ -10,16 +11,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class OffHeapByteArrayListAcceptanceTest extends ConstellioTest {
 
-	@Test
-	public void whenSavingValuesThenRetrievable() {
 
+	@Test
+	public void whenSavingValuesThenRetrievableValidatingMemoryUsage() {
+
+		Toggle.OFF_HEAP_ADDRESS_VALIDATOR.enable();
 		byte[][] insertedValues = new byte[100_000][];
 
 		OffHeapByteArrayList list = new OffHeapByteArrayList();
 
 		Random random = new Random();
 
-		for (int i = 0; i < 500_000; i++) {
+		for (int i = 0; i < 5_000; i++) {
 			System.out.println(i);
 			int modifiedIndex = random.nextInt(100_000);
 			byte[] newValue = new byte[random.nextInt(10)];
@@ -38,7 +41,39 @@ public class OffHeapByteArrayListAcceptanceTest extends ConstellioTest {
 				}
 			}
 		}
+		list.clear();
 
+	}
+
+	@Test
+	public void whenSavingValuesThenRetrievableValidatingPerformance() {
+
+		byte[][] insertedValues = new byte[100_000][];
+
+		OffHeapByteArrayList list = new OffHeapByteArrayList();
+
+		Random random = new Random();
+
+		for (int i = 0; i < 100_000; i++) {
+			System.out.println(i);
+			int modifiedIndex = random.nextInt(100_000);
+			byte[] newValue = new byte[random.nextInt(10)];
+			for (int j = 0; j < newValue.length; j++) {
+				newValue[j] = (byte) (random.nextInt(256) + Byte.MIN_VALUE);
+			}
+			insertedValues[modifiedIndex] = newValue;
+			list.set(modifiedIndex, newValue);
+
+			assertSameBytes(newValue, list.getArray(modifiedIndex));
+			if (i % 100 == 0) {
+				for (int j = 0; j < 100_000; j++) {
+					assertSameBytes(insertedValues[j], list.getArray(j));
+
+
+				}
+			}
+		}
+		list.clear();
 
 	}
 
