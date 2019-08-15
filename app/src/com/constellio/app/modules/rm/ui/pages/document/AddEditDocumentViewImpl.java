@@ -9,6 +9,7 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.components.viewers.ContentViewer;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.model.entities.records.wrappers.UserDocument;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.vaadin.data.Buffered.SourceException;
 import com.vaadin.data.Property.ValueChangeEvent;
@@ -23,12 +24,15 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 public class AddEditDocumentViewImpl extends BaseViewImpl implements AddEditDocumentView {
 
+	public static final String RECORD_FORM_WIDTH = "700px";
 	private final AddEditDocumentPresenter presenter;
 	private RecordVO recordVO;
 	private ContentViewer contentViewer;
 	private DocumentFormImpl recordForm;
 	private I18NHorizontalLayout mainLayout;
 	private boolean popup;
+	private boolean isUserDocumentViewer = false;
+	private boolean isDuplicateDocumentViewer = false;
 
 	public AddEditDocumentViewImpl() {
 		this(null);
@@ -82,18 +86,32 @@ public class AddEditDocumentViewImpl extends BaseViewImpl implements AddEditDocu
 		
 		mainLayout = new I18NHorizontalLayout();
 		mainLayout.setSizeFull();
-		
-		ContentVersionVO contentVersionVO = recordVO.get(Document.CONTENT); 
-		if (contentVersionVO != null) {
+
+		ContentVersionVO contentVersionVO = recordVO.get(Document.CONTENT);
+		RecordVO userDocumentRecordVO = presenter.getUserDocumentRecordVO();
+		RecordVO duplicateDocumentRecordVO = presenter.getDuplicateDocumentRecordVO();
+		if (contentVersionVO != null && !presenter.isAddView()
+			|| userDocumentRecordVO != null || duplicateDocumentRecordVO != null) {
 			mainLayout.setSpacing(true);
-			
-			contentViewer = new ContentViewer(recordVO, Document.CONTENT, contentVersionVO);
+
+			if (userDocumentRecordVO != null) {
+				contentViewer = new ContentViewer(userDocumentRecordVO, UserDocument.CONTENT, userDocumentRecordVO.get(UserDocument.CONTENT));
+				isUserDocumentViewer = true;
+			} else if (duplicateDocumentRecordVO != null) {
+				contentViewer = new ContentViewer(duplicateDocumentRecordVO, Document.CONTENT, duplicateDocumentRecordVO.get(Document.CONTENT));
+				isDuplicateDocumentViewer = true;
+			} else {
+				contentViewer = new ContentViewer(recordVO, Document.CONTENT, contentVersionVO);
+			}
+
 			contentViewer.setWidth("100%");
 			contentViewer.setHeight("100%");
-			mainLayout.addComponents(contentViewer, recordForm);
-			
-			recordForm.setWidth("700px");
-			mainLayout.setExpandRatio(contentViewer, 1);
+			if (contentViewer.isViewerComponentVisible()) {
+				mainLayout.addComponent(contentViewer);
+				recordForm.setWidth(RECORD_FORM_WIDTH);
+				mainLayout.setExpandRatio(contentViewer, 1);
+			}
+			mainLayout.addComponents(recordForm);
 		} else {
 			mainLayout.addComponent(recordForm);
 		}
@@ -115,8 +133,22 @@ public class AddEditDocumentViewImpl extends BaseViewImpl implements AddEditDocu
 
 			@Override
 			public void reload() {
+				Component oldRecordForm = recordForm;
+
 				recordForm = newForm();
-				mainLayout.replaceComponent(this, recordForm);
+
+				if ((isUserDocumentViewer && presenter.getUserDocumentRecordVO() == null)
+					|| (isDuplicateDocumentViewer && presenter.getDuplicateDocumentRecordVO() == null)) {
+					isDuplicateDocumentViewer = false;
+					isUserDocumentViewer = false;
+					mainLayout.removeComponent(contentViewer);
+					contentViewer = null;
+				} else if (contentViewer != null && contentViewer.isViewerComponentVisible()) {
+					recordForm.setWidth(RECORD_FORM_WIDTH);
+					mainLayout.setExpandRatio(contentViewer, 1);
+				}
+
+				mainLayout.replaceComponent(oldRecordForm, recordForm);
 			}
 
 			@Override

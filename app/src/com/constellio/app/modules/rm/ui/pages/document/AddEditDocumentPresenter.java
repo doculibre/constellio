@@ -88,6 +88,8 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 	ConstellioEIMConfigs eimConfigs;
 	private Map<String, String> params;
 	private Document documentOriginalCopy = null;
+	private boolean isFromUserDocument;
+	private String copyId = null;
 
 	public AddEditDocumentPresenter(AddEditDocumentView view, RecordVO recordVO) {
 		super(view, Document.DEFAULT_SCHEMA);
@@ -148,7 +150,8 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 			}
 			addView = true;
 		}
-
+		this.isFromUserDocument = false;
+		this.copyId = null;
 		documentVO = voBuilder.build(document.getWrappedRecord(), VIEW_MODE.FORM, view.getSessionContext());
 		if (userDocumentId != null) {
 			populateFromUserDocument(userDocumentId);
@@ -188,6 +191,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 
 		documentVO.setTitle(document.getTitle() + " (" + $("AddEditDocumentViewImpl.copy") + ")");
 		documentVO.setFolder(document.getFolder());
+		copyId = existingDocumentId;
 	}
 
 	@Override
@@ -293,6 +297,8 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 			documentVO.setTitle(userDocument.getTitle());
 		}
 		documentVO.setContent(contentVersionVO);
+
+		isFromUserDocument = true;
 	}
 
 	public boolean isAddView() {
@@ -350,6 +356,24 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 			document.setContent(contentBeforeChange);
 		} finally {
 			IOUtils.closeQuietly(in);
+		}
+	}
+
+	public RecordVO getUserDocumentRecordVO() {
+		if (isFromUserDocument && userDocumentId != null) {
+			UserDocument userDocument = rmSchemasRecordsServices.getUserDocument(userDocumentId);
+			return voBuilder.build(userDocument.getWrappedRecord(), VIEW_MODE.FORM, view.getSessionContext());
+		} else {
+			return null;
+		}
+	}
+
+	public RecordVO getDuplicateDocumentRecordVO() {
+		if (copyId != null) {
+			Document document = rmSchemasRecordsServices.getDocument(copyId);
+			return voBuilder.build(document.getWrappedRecord(), VIEW_MODE.FORM, view.getSessionContext());
+		} else {
+			return null;
 		}
 	}
 
@@ -502,7 +526,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		if (isAddView() && valueChangeField instanceof DocumentContentField) {
 			DocumentContentField contentField = getContentField();
 			ContentVersionVO contentVersionVO = contentField.getFieldValue();
-			if (Boolean.TRUE.equals(contentVersionVO.hasFoundDuplicate())) {
+			if (contentVersionVO != null && Boolean.TRUE.equals(contentVersionVO.hasFoundDuplicate())) {
 				RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 				LogicalSearchQuery duplicateDocumentsQuery = new LogicalSearchQuery()
 						.setCondition(LogicalSearchQueryOperators.from(rm.documentSchemaType())
@@ -722,6 +746,8 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 			contentField.addContentUploadedListener(new ContentUploadedListener() {
 				@Override
 				public void newContentUploaded() {
+					isFromUserDocument = false;
+					copyId = null;
 					ContentVersionVO contentVersionVO = contentField.getFieldValue();
 					if (contentVersionVO != null) {
 						if (Boolean.TRUE.equals(contentVersionVO.hasFoundDuplicate())) {
@@ -794,6 +820,9 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 							documentVO.setContent(null);
 							getContentField().setFieldValue(null);
 						}
+					} else {
+						documentVO.setContent(null);
+						view.getForm().reload();
 					}
 				}
 			});
