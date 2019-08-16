@@ -1,10 +1,8 @@
 package com.constellio.model.services.records.cache;
 
 import com.constellio.data.utils.ThreadList;
-import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.services.records.cache.offHeapCollections.OffHeapIntList;
 import com.constellio.sdk.tests.ConstellioTest;
-import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Random;
@@ -16,10 +14,10 @@ import static org.junit.Assert.fail;
 
 public class OffHeapIntListAcceptanceTest extends ConstellioTest {
 
-	@Before
-	public void validateNotWritingOutsideOfReservedMemory() {
-		Toggle.OFF_HEAP_ADDRESS_VALIDATOR.enable();
-	}
+//	@Before
+//	public void validateNotWritingOutsideOfReservedMemory() {
+//		Toggle.OFF_HEAP_ADDRESS_VALIDATOR.enable();
+//	}
 
 	@Test
 	public void whenGettingAnUnsetIndexThenOutOfBoundException() {

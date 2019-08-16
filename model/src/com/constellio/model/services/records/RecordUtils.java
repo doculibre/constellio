@@ -2,6 +2,7 @@ package com.constellio.model.services.records;
 
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.SolrRecordDTO;
+import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.KeyListMap;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.LangUtils.ListComparisonResults;
@@ -42,6 +43,8 @@ import static com.constellio.model.entities.schemas.entries.DataEntryType.SEQUEN
 import static java.util.Arrays.asList;
 
 public class RecordUtils {
+
+	public static final byte KEY_IS_NOT_AN_INT = 0;
 
 	private static Logger LOGGER = LoggerFactory.getLogger(RecordUtils.class);
 
@@ -744,6 +747,28 @@ public class RecordUtils {
 
 		return new SolrRecordDTO(dto.getId(), dto.getVersion(), Collections.unmodifiableMap(fields), SUMMARY);
 
+	}
+
+	public static int toIntKey(Object key) {
+		if (key instanceof Integer) {
+			return ((Integer) key);
+		}
+
+		if (key instanceof Long) {
+			return KEY_IS_NOT_AN_INT;
+		}
+
+		if (key instanceof String) {
+			long value = LangUtils.tryParseLong((String) key, 0);
+
+			if (((String) key).length() == 11 && value < Integer.MAX_VALUE) {
+				return (int) value;
+			} else {
+				return KEY_IS_NOT_AN_INT;
+			}
+		}
+
+		throw new ImpossibleRuntimeException("Invalid key : " + key);
 	}
 
 	public static String toStringId(int intId) {

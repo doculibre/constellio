@@ -3,8 +3,8 @@ package com.constellio.model.services.records.cache.dataStore;
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.utils.LazyMergingIterator;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.records.cache.ByteArrayRecordDTO.ByteArrayRecordDTOWithIntegerId;
-import com.constellio.model.services.records.cache.CacheRecordDTOUtils;
 
 import java.util.Iterator;
 import java.util.List;
@@ -40,10 +40,10 @@ public class RecordsCachesDataStore {
 		if (dto instanceof ByteArrayRecordDTOWithIntegerId) {
 			intId = ((ByteArrayRecordDTOWithIntegerId) dto).getIntId();
 		} else {
-			intId = CacheRecordDTOUtils.toIntKey(dto.getId());
+			intId = RecordUtils.toIntKey(dto.getId());
 		}
 
-		if (intId == CacheRecordDTOUtils.KEY_IS_NOT_AN_INT) {
+		if (intId == RecordUtils.KEY_IS_NOT_AN_INT) {
 			stringIdsDataStore.insert(dto);
 		} else {
 			intIdsDataStore.insert(intId, dto, false);
@@ -56,10 +56,10 @@ public class RecordsCachesDataStore {
 		if (dto instanceof ByteArrayRecordDTOWithIntegerId) {
 			intId = ((ByteArrayRecordDTOWithIntegerId) dto).getIntId();
 		} else {
-			intId = CacheRecordDTOUtils.toIntKey(dto.getId());
+			intId = RecordUtils.toIntKey(dto.getId());
 		}
 
-		if (intId == CacheRecordDTOUtils.KEY_IS_NOT_AN_INT) {
+		if (intId == RecordUtils.KEY_IS_NOT_AN_INT) {
 			stringIdsDataStore.insert(dto);
 		} else {
 			intIdsDataStore.insert(intId, dto, true);
@@ -68,9 +68,9 @@ public class RecordsCachesDataStore {
 
 
 	public void remove(RecordDTO dto) {
-		int intId = CacheRecordDTOUtils.toIntKey(dto.getId());
+		int intId = RecordUtils.toIntKey(dto.getId());
 
-		if (intId == CacheRecordDTOUtils.KEY_IS_NOT_AN_INT) {
+		if (intId == RecordUtils.KEY_IS_NOT_AN_INT) {
 			stringIdsDataStore.remove(dto.getId());
 
 		} else {
@@ -81,9 +81,9 @@ public class RecordsCachesDataStore {
 
 
 	public RecordDTO get(String id) {
-		int intId = CacheRecordDTOUtils.toIntKey(id);
+		int intId = RecordUtils.toIntKey(id);
 
-		if (intId == CacheRecordDTOUtils.KEY_IS_NOT_AN_INT) {
+		if (intId == RecordUtils.KEY_IS_NOT_AN_INT) {
 			return stringIdsDataStore.get(id);
 
 		} else {
@@ -92,9 +92,9 @@ public class RecordsCachesDataStore {
 	}
 
 	public RecordDTO get(byte collectionId, String id) {
-		int intId = CacheRecordDTOUtils.toIntKey(id);
+		int intId = RecordUtils.toIntKey(id);
 
-		if (intId == CacheRecordDTOUtils.KEY_IS_NOT_AN_INT) {
+		if (intId == RecordUtils.KEY_IS_NOT_AN_INT) {
 			return stringIdsDataStore.get(id);
 
 		} else {

@@ -1,9 +1,7 @@
 package com.constellio.model.services.records.cache.offHeapCollections;
 
-import com.constellio.data.utils.dev.Toggle;
 import com.constellio.sdk.tests.ConstellioTest;
 import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -19,10 +17,10 @@ public class OffHeapMemoryAllocatorTest extends ConstellioTest {
 	long adr;
 	private List<Long> allocatedAddresses = new ArrayList<>();
 
-	@Before
-	public void validateNotWritingOutsideOfReservedMemory() {
-		Toggle.OFF_HEAP_ADDRESS_VALIDATOR.enable();
-	}
+//	@Before
+//	public void validateNotWritingOutsideOfReservedMemory() {
+//		Toggle.OFF_HEAP_ADDRESS_VALIDATOR.enable();
+//	}
 
 
 	@Test
