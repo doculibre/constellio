@@ -307,38 +307,6 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 		return null;
 	}
 
-	//TODO Merge with getRecord
-	public Record get(String id, String collection) {
-		RecordDTO recordDTO = memoryDataStore.get(id);
-		if (recordDTO != null) {
-			String collectionCode = (String) recordDTO.getFields().get(COLLECTION.getDataStoreCode());
-			String schemaCode = (String) recordDTO.getFields().get(SCHEMA.getDataStoreCode());
-
-			//The record is in an other collection, so null is returned
-			if (!collectionCode.equals(collection)) {
-				return null;
-			}
-
-			MetadataSchemaTypes schemaTypes = metadataSchemasManager.getSchemaTypes(collectionCode);
-			MetadataSchema schema = schemaTypes.getSchema(schemaCode);
-			MetadataSchemaType schemaType = schemaTypes.getSchemaType(SchemaUtils.getSchemaTypeCode(schemaCode));
-			if (schemaType.getCacheType().isSummaryCache()) {
-				if (schemaType.getCacheType().hasVolatileCache()) {
-					recordDTO = volatileCache.get(id);
-					return recordDTO == null ? null : toRecord(recordDTO);
-
-				} else {
-					return null;
-				}
-
-			} else {
-				return toRecord(recordDTO);
-			}
-		}
-		return null;
-	}
-
-
 	@Override
 	public Record getRecord(String id, String optionnalCollection, String optionnalSchemaType) {
 
@@ -500,7 +468,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 													  Metadata metadata, String value,
 													  boolean summary) {
 		if (metadata.isSameLocalCode(Schemas.IDENTIFIER)) {
-			Record record = get(value, metadata.getCollection());
+			Record record = getRecord(value, metadata.getCollection(), null);
 			if (record == null) {
 				return Stream.empty();
 			}
@@ -709,7 +677,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 
 	protected Record getByMetadata(byte collectionId, Metadata metadata, String value) {
 		if (metadata.isSameLocalCode(Schemas.IDENTIFIER)) {
-			return get(value, metadata.getCollection());
+			return getRecord(value, metadata.getCollection(), null);
 		}
 
 		if (!metadata.isUniqueValue()) {
