@@ -143,14 +143,22 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
 	private BaseButton quickActionButton;
 
 	private RecordListMenuBar selectionActionsMenuBar;
+	private RecordListMenuBar initialSelectionActionsMenuBar = null;
 
 	public ViewableRecordVOTablePanel(RecordVOContainer container) {
-		this(container, TableMode.LIST);
+		this(container, TableMode.LIST, null);
 	}
 
 	public ViewableRecordVOTablePanel(RecordVOContainer container, TableMode tableMode) {
+		this(container, tableMode, null);
+	}
+
+	public ViewableRecordVOTablePanel(RecordVOContainer container, TableMode tableMode,
+									  RecordListMenuBar recordListMenuBar) {
 		this.recordVOContainer = container;
 		this.tableMode = tableMode != null ? tableMode : TableMode.LIST;
+		this.initialSelectionActionsMenuBar = recordListMenuBar;
+
 		buildUI();
 	}
 
@@ -265,38 +273,56 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
 		actionAndModeButtonsLayout.setComponentAlignment(quickActionButton, Alignment.TOP_LEFT);
 	}
 
-	public void setDefaultSelectionActionButtons() {
+	public void setSelectionActionButtons() {
 		if (isSelectColumn()) {
-			selectionActionsMenuBar = new RecordListMenuBar(new MenuItemRecordProvider() {
-				@Override
-				public List<Record> getRecords() {
-					List<Record> selectedRecords;
-					if (table.getSelectionManager() instanceof RecordVOSelectionManager) {
-						RecordVOSelectionManager recordVOSelectionManager = (RecordVOSelectionManager) table.getSelectionManager();
-						selectedRecords = recordVOSelectionManager.getSelectedRecords();
-					} else {
-						selectedRecords = new ArrayList<>();
-						List<Object> selectedItemIds = table.getSelectionManager().getAllSelectedItemIds();
-						List<RecordVO> recordVOS = recordVOContainer.getRecordsVO(selectedItemIds);
-						for (RecordVO recordVO : recordVOS) {
-							selectedRecords.add(recordVO.getRecord());
-						}
-					}
-					return selectedRecords;
-				}
-			}, $("ViewableRecordVOTablePanel.selectionActions"), Collections.emptyList());
-			selectionActionsMenuBar.addStyleName("selection-action-menu-bar");
-			selectionActionsMenuBar.setAutoOpen(false);
-			actionAndModeButtonsLayout.addComponent(selectionActionsMenuBar, 0);
-			actionAndModeButtonsLayout.setComponentAlignment(selectionActionsMenuBar, Alignment.TOP_RIGHT);
+			if (initialSelectionActionsMenuBar == null) {
+				selectionActionsMenuBar = new RecordListMenuBar(getMenuItemProvider(), $("ViewableRecordVOTablePanel.selectionActions"), Collections.emptyList());
+			} else {
+				selectionActionsMenuBar = initialSelectionActionsMenuBar;
+				selectionActionsMenuBar.setRecordProvider(getMenuItemProvider());
+			}
 
-			addSelectionChangeListener(new SelectionChangeListener() {
-				@Override
-				public void selectionChanged(SelectionChangeEvent event) {
-					selectionActionsMenuBar.buildMenuItems();
-				}
-			});
+			addSelectionActionsMenuBarToView();
 		}
+	}
+
+	private MenuItemRecordProvider getMenuItemProvider() {
+		return new MenuItemRecordProvider() {
+			@Override
+			public List<Record> getRecords() {
+				return ViewableRecordVOTablePanel.this.getRecords();
+			}
+		};
+	}
+
+	private void addSelectionActionsMenuBarToView() {
+		selectionActionsMenuBar.addStyleName("selection-action-menu-bar");
+		selectionActionsMenuBar.setAutoOpen(false);
+		actionAndModeButtonsLayout.addComponent(selectionActionsMenuBar, 0);
+		actionAndModeButtonsLayout.setComponentAlignment(selectionActionsMenuBar, Alignment.TOP_RIGHT);
+
+		addSelectionChangeListener(new SelectionChangeListener() {
+			@Override
+			public void selectionChanged(SelectionChangeEvent event) {
+				selectionActionsMenuBar.buildMenuItems();
+			}
+		});
+	}
+
+	public List<Record> getRecords() {
+		List<Record> selectedRecords;
+		if (table.getSelectionManager() instanceof RecordVOSelectionManager) {
+			RecordVOSelectionManager recordVOSelectionManager = (RecordVOSelectionManager) table.getSelectionManager();
+			selectedRecords = recordVOSelectionManager.getSelectedRecords();
+		} else {
+			selectedRecords = new ArrayList<>();
+			List<Object> selectedItemIds = table.getSelectionManager().getAllSelectedItemIds();
+			List<RecordVO> recordVOS = recordVOContainer.getRecordsVO(selectedItemIds);
+			for (RecordVO recordVO : recordVOS) {
+				selectedRecords.add(recordVO.getRecord());
+			}
+		}
+		return selectedRecords;
 	}
 
 	int computeCompressedWidth() {

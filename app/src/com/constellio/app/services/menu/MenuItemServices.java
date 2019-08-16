@@ -7,6 +7,7 @@ import com.constellio.app.extensions.menu.MenuItemActionsExtension.MenuItemActio
 import com.constellio.app.extensions.menu.MenuItemActionsExtension.MenuItemActionExtensionGetActionStateForQueryParams;
 import com.constellio.app.extensions.menu.MenuItemActionsExtension.MenuItemActionExtensionGetActionStateForRecordParams;
 import com.constellio.app.extensions.menu.MenuItemActionsExtension.MenuItemActionExtensionGetActionStateForRecordsParams;
+import com.constellio.app.modules.rm.ui.pages.userDocuments.ListUserDocumentsViewImpl;
 import com.constellio.app.services.action.UserDocumentActionsServices;
 import com.constellio.app.services.action.UserFolderActionsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -124,6 +125,16 @@ public class MenuItemServices {
 		//		}
 
 		List<MenuItemAction> menuItemActions = new ArrayList<>();
+
+		if (excludedActionTypes == null) {
+			excludedActionTypes = new ArrayList<>();
+		} else {
+			excludedActionTypes = new ArrayList<>(excludedActionTypes);
+		}
+
+		if (!(params.getView() instanceof ListUserDocumentsViewImpl)) {
+			excludedActionTypes.add(CLASSIFY.name());
+		}
 
 		for (RecordsMenuItemActionType actionType : getMenuItemActionTypesForRecordList(excludedActionTypes)) {
 			MenuItemActionState state = getMenuItemActionStateForRecords(actionType, records, params.getUser(), params);

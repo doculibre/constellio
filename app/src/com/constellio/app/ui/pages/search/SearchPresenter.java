@@ -1109,5 +1109,4 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	public RecordVO getReturnRecordVO() {
 		return returnRecordVO;
 	}
-
 }
