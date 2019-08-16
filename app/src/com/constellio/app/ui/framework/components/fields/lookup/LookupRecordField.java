@@ -86,8 +86,8 @@ public class LookupRecordField extends LookupField<String> {
 	}
 
 	public static LookupTreeDataProvider<String>[] getTreeDataProvider(String schemaTypeCode, String schemaCode,
-			boolean writeAccess,
-			boolean isShowAllIfHasAccessToManageSecurity) {
+																	   boolean writeAccess,
+																	   boolean isShowAllIfHasAccessToManageSecurity) {
 		SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
 		String collection = sessionContext.getCurrentCollection();
 		UserVO currentUserVO = sessionContext.getCurrentUser();
@@ -109,8 +109,10 @@ public class LookupRecordField extends LookupField<String> {
 		List<RecordLookupTreeDataProvider> dataProviders = new ArrayList<>();
 		for (Taxonomy taxonomy : taxonomies) {
 			String taxonomyCode = taxonomy.getCode();
+			boolean filterWithWriteAccess = taxonomy.hasSameCode(taxonomiesManager.getPrincipalTaxonomy(collection))
+											&& !taxonomy.getSchemaTypes().contains(schemaTypeCode);
 			if (StringUtils.isNotBlank(taxonomyCode)) {
-				dataProviders.add(new RecordLookupTreeDataProvider(schemaTypeCode, taxonomyCode, writeAccess, isShowAllIfHasAccessToManageSecurity));
+				dataProviders.add(new RecordLookupTreeDataProvider(schemaTypeCode, taxonomyCode, filterWithWriteAccess, isShowAllIfHasAccessToManageSecurity));
 			}
 		}
 
@@ -118,9 +120,11 @@ public class LookupRecordField extends LookupField<String> {
 	}
 
 
-	public static LookupTreeDataProvider<String>[] getTreeDataProviderRootItemsOnly(String schemaTypeCode, String schemaCode,
-			boolean writeAccess,
-			boolean isShowAllIfHasAccessToManageSecurity, final RecordTextInputDataProviderFactory recordTextInputDataProviderFactory) {
+	public static LookupTreeDataProvider<String>[] getTreeDataProviderRootItemsOnly(String schemaTypeCode,
+																					String schemaCode,
+																					boolean writeAccess,
+																					boolean isShowAllIfHasAccessToManageSecurity,
+																					final RecordTextInputDataProviderFactory recordTextInputDataProviderFactory) {
 		SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
 		String collection = sessionContext.getCurrentCollection();
 		UserVO currentUserVO = sessionContext.getCurrentUser();
@@ -143,38 +147,38 @@ public class LookupRecordField extends LookupField<String> {
 		for (Taxonomy taxonomy : taxonomies) {
 			String taxonomyCode = taxonomy.getCode();
 			if (StringUtils.isNotBlank(taxonomyCode)) {
-					dataProviders.add(new RecordLookupTreeDataProvider(schemaTypeCode, taxonomyCode, writeAccess,
-							isShowAllIfHasAccessToManageSecurity) {
-						@Override
-						public ObjectsResponse<String> getChildren(String parent, int start, int maxSize) {
-							return new ObjectsResponse<>(new ArrayList<String>(), 0L);
-						}
+				dataProviders.add(new RecordLookupTreeDataProvider(schemaTypeCode, taxonomyCode, writeAccess,
+						isShowAllIfHasAccessToManageSecurity) {
+					@Override
+					public ObjectsResponse<String> getChildren(String parent, int start, int maxSize) {
+						return new ObjectsResponse<>(new ArrayList<String>(), 0L);
+					}
 
-						@Override
-						public boolean isSelectable(String selection) {
-							return true;
-						}
+					@Override
+					public boolean isSelectable(String selection) {
+						return true;
+					}
 
-						@Override
-						public boolean hasChildren(String parent) {
-							return false;
-						}
+					@Override
+					public boolean hasChildren(String parent) {
+						return false;
+					}
 
-						@Override
-						public boolean isLeaf(String parent) {
-							return true;
-						}
+					@Override
+					public boolean isLeaf(String parent) {
+						return true;
+					}
 
-						@Override
-						public TextInputDataProvider<String> search() {
-							return recordTextInputDataProviderFactory.getProvider();
-						}
+					@Override
+					public TextInputDataProvider<String> search() {
+						return recordTextInputDataProviderFactory.getProvider();
+					}
 
-						@Override
-						public TextInputDataProvider<String> searchWithoutDisabled() {
-							return recordTextInputDataProviderFactory.getProvider();
-						}
-					});
+					@Override
+					public TextInputDataProvider<String> searchWithoutDisabled() {
+						return recordTextInputDataProviderFactory.getProvider();
+					}
+				});
 			}
 		}
 
