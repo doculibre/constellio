@@ -2,6 +2,7 @@ package com.constellio.app.ui.framework.components.search;
 
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.SearchResultTable;
+import com.constellio.app.ui.framework.components.menuBar.RecordListMenuBar;
 import com.constellio.app.ui.framework.components.table.BaseTable.SelectionManager;
 import com.constellio.app.ui.framework.components.viewers.panel.ViewableRecordVOTablePanel;
 import com.constellio.app.ui.framework.containers.RecordVOContainer;
@@ -32,12 +33,13 @@ public class ViewableRecordVOSearchResultTable extends ViewableRecordVOTablePane
 	private SearchPresenter<? extends SearchView> presenter;
 
 	public ViewableRecordVOSearchResultTable(RecordVOContainer container, TableMode tableMode,
-											 SearchPresenter<? extends SearchView> presenter) {
-		super(container, tableMode);
+											 SearchPresenter<? extends SearchView> presenter,
+											 RecordListMenuBar recordListMenuBar) {
+		super(container, tableMode, recordListMenuBar);
 		this.presenter = presenter;
 		addStyleName(TABLE_STYLE);
 		addStyleName(SEARCH_RESULT_TABLE_STYLE);
-		setDefaultSelectionActionButtons();
+		setSelectionActionButtons();
 	}
 
 	@Override

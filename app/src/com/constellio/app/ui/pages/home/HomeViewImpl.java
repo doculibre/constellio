@@ -433,7 +433,7 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 					}
 				}
 			});
-			setDefaultSelectionActionButtons();
+			setSelectionActionButtons();
 		}
 
 		@Override

@@ -30,8 +30,8 @@ public class RecordListMenuBar extends BaseMenuBar {
 	private MenuItemFactory menuItemFactory;
 	private UserServices userServices;
 
-	private MenuItemRecordProvider recordProvider;
-	private String rootItemCaption;
+	protected MenuItemRecordProvider recordProvider;
+	protected String rootItemCaption;
 	private List<String> excludedActionTypes;
 
 	public RecordListMenuBar(MenuItemRecordProvider recordProvider, String rootItemCaption,
@@ -49,6 +49,13 @@ public class RecordListMenuBar extends BaseMenuBar {
 		menuItemServices = new MenuItemServices(collection, appLayerFactory);
 		menuItemFactory = new MenuItemFactory();
 
+		if (recordProvider != null) {
+			buildMenuItems();
+		}
+	}
+
+	public void setRecordProvider(MenuItemRecordProvider recordProvider) {
+		this.recordProvider = recordProvider;
 		buildMenuItems();
 	}
 

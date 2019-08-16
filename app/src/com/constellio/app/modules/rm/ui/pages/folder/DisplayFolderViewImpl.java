@@ -475,7 +475,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			} else {
 				tabSheet.replaceComponent(folderContentComponent, folderContentComponent = viewerPanel);
 			}
-			viewerPanel.setDefaultSelectionActionButtons();
+			viewerPanel.setSelectionActionButtons();
 		}
 		tabSheet.setSelectedTab(folderContentComponent);
 		tabSheet.addSelectedTabChangeListener(selectedTabChangeListener);

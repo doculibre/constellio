@@ -23,6 +23,7 @@ import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveRecordLookupField;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
+import com.constellio.app.ui.framework.components.menuBar.RecordListMenuBar;
 import com.constellio.app.ui.framework.components.search.FacetsPanel;
 import com.constellio.app.ui.framework.components.search.ViewableRecordVOSearchResultTable;
 import com.constellio.app.ui.framework.components.table.BaseTable;
@@ -477,7 +478,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		} else {
 			tableMode = null;
 		}
-		ViewableRecordVOSearchResultTable viewerPanel = new ViewableRecordVOSearchResultTable(container, tableMode, presenter) {
+		ViewableRecordVOSearchResultTable viewerPanel = new ViewableRecordVOSearchResultTable(container, tableMode, presenter, getRecordListMenuBar()) {
 			@Override
 			protected boolean isIndexColumn() {
 				return indexColumn;
@@ -1003,6 +1004,10 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		button.addStyleName(ValoTheme.BUTTON_LINK);
 		button.addStyleName("save-search-button");
 		return button;
+	}
+
+	public RecordListMenuBar getRecordListMenuBar() {
+		return null;
 	}
 
 	private Component buildCapsuleUI(Capsule capsule) {

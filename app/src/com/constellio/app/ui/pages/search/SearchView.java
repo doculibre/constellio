@@ -33,5 +33,4 @@ public interface SearchView extends BaseView {
 	Integer getReturnIndex();
 
 	RecordVO getReturnRecordVO();
-	
 }
