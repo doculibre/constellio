@@ -138,11 +138,22 @@ public class TrashServices {
 			Record record = recordServices().getDocumentById(recordId);
 			if (recordServices().isRestorable(record, currentUser)) {
 				recordServices().restore(record, currentUser);
-			} else {
+			} else if (!isRecordGoingToBeRestoredByParent(record, selectedRecords)) {
 				returnMap.put(recordId, record.getTitle());
 			}
 		}
 		return returnMap;
+	}
+
+	private boolean isRecordGoingToBeRestoredByParent(Record record, Set<String> selectedRecords) {
+		String principalPath = StringUtils.defaultIfBlank((String) record.get(Schemas.PRINCIPAL_PATH), "");
+		for (String pathNode : principalPath.split("/")) {
+			if (!pathNode.equals(record.getId()) && selectedRecords.contains(pathNode)) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	private RecordServices recordServices() {
