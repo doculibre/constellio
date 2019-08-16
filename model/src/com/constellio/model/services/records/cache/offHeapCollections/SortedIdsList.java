@@ -6,6 +6,8 @@ public interface SortedIdsList {
 
 	void add(String id);
 
+	void add(int id);
+
 	void remove(String id);
 
 	List<String> getValues();

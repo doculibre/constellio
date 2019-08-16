@@ -1,9 +1,7 @@
 package com.constellio.model.services.records.cache.offHeapCollections;
 
-import com.constellio.data.utils.dev.Toggle;
 import com.constellio.sdk.tests.ConstellioTest;
 import org.apache.commons.lang3.StringUtils;
-import org.junit.Before;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -17,10 +15,10 @@ public class SortedIntIdsListTest extends ConstellioTest {
 	private static int smallTestedCapacity = (int) (SortedIntIdsList.INITIAL_SIZE * Math.pow(SortedIntIdsList.RESIZE_FACTOR, 5));
 	private static int largeTestedCapacity = (int) (SortedIntIdsList.INITIAL_SIZE * Math.pow(SortedIntIdsList.RESIZE_FACTOR, 7));
 
-	@Before
-	public void validateNotWritingOutsideOfReservedMemory() {
-		Toggle.OFF_HEAP_ADDRESS_VALIDATOR.enable();
-	}
+//	@Before
+//	public void validateNotWritingOutsideOfReservedMemory() {
+//		Toggle.OFF_HEAP_ADDRESS_VALIDATOR.enable();
+//	}
 
 	@Test
 	public void whenAddingItemsAtFirstIndexThenAlwaysValid() {

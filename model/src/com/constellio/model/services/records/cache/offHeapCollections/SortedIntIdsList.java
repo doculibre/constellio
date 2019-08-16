@@ -1,5 +1,7 @@
 package com.constellio.model.services.records.cache.offHeapCollections;
 
+import com.constellio.model.services.records.RecordUtils;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,6 +27,11 @@ public class SortedIntIdsList implements SortedIdsList {
 	public synchronized void add(String id) {
 
 		int intId = Integer.valueOf(id);
+		add(intId);
+	}
+
+	@Override
+	public synchronized void add(int intId) {
 
 		int placementIndex = findIndexToPlaceNewValue(intId);
 
@@ -72,7 +79,13 @@ public class SortedIntIdsList implements SortedIdsList {
 
 	@Override
 	public synchronized void remove(String id) {
-		int intId = Integer.valueOf(id);
+		int intId = RecordUtils.toIntKey(id);
+		if (intId != RecordUtils.KEY_IS_NOT_AN_INT) {
+			remove(intId);
+		}
+	}
+
+	public synchronized void remove(int intId) {
 		int index = binarySearch(intId);
 
 		if (index != -1) {

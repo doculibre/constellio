@@ -43,7 +43,7 @@ public final class RecordsCache2Impl implements RecordsCache {
 
 	@Override
 	public final Record get(String id) {
-		return caches.get(id, collection);
+		return caches.getRecord(id, collection, null);
 	}
 
 	@Override

@@ -12,7 +12,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class OffHeapByteArrayListAcceptanceTest extends ConstellioTest {
 
 
-	@Test
+	//@Test
 	public void whenSavingValuesThenRetrievableValidatingMemoryUsage() {
 
 		Toggle.OFF_HEAP_ADDRESS_VALIDATOR.enable();

@@ -273,6 +273,9 @@ public class MetadataIndexCacheDataStoreAcceptanceTest extends ConstellioTest {
 
 		metadataIndexCacheDataStore.addUpdate(record1, record1Update, testsSchemaTypeDefault, testsSchemaDefault);
 
+		System.out.println("toBeFound1".hashCode());
+		System.out.println("updatedValue".hashCode());
+
 		assertThat(metadataIndexCacheDataStore.search(testsSchemaTypeDefault, cacheIndex, "toBeFound1")).isEmpty();
 		assertThat(metadataIndexCacheDataStore.search(testsSchemaTypeDefault, cacheIndex, "updatedValue")).containsAll(Arrays.asList(record1.getId()));
 

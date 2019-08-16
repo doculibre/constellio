@@ -307,38 +307,6 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 		return null;
 	}
 
-	//TODO Merge with getRecord
-	public Record get(String id, String collection) {
-		RecordDTO recordDTO = memoryDataStore.get(id);
-		if (recordDTO != null) {
-			String collectionCode = (String) recordDTO.getFields().get(COLLECTION.getDataStoreCode());
-			String schemaCode = (String) recordDTO.getFields().get(SCHEMA.getDataStoreCode());
-
-			//The record is in an other collection, so null is returned
-			if (!collectionCode.equals(collection)) {
-				return null;
-			}
-
-			MetadataSchemaTypes schemaTypes = metadataSchemasManager.getSchemaTypes(collectionCode);
-			MetadataSchema schema = schemaTypes.getSchema(schemaCode);
-			MetadataSchemaType schemaType = schemaTypes.getSchemaType(SchemaUtils.getSchemaTypeCode(schemaCode));
-			if (schemaType.getCacheType().isSummaryCache()) {
-				if (schemaType.getCacheType().hasVolatileCache()) {
-					recordDTO = volatileCache.get(id);
-					return recordDTO == null ? null : toRecord(recordDTO);
-
-				} else {
-					return null;
-				}
-
-			} else {
-				return toRecord(recordDTO);
-			}
-		}
-		return null;
-	}
-
-
 	@Override
 	public Record getRecord(String id, String optionnalCollection, String optionnalSchemaType) {
 
@@ -487,20 +455,20 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 
 	@Override
 	public Stream<Record> getRecordsByIndexedMetadata(MetadataSchemaType schemaType, Metadata metadata, String value) {
-		return getRecordsByIndexedMetadataLoadedAsTheyAreStored(schemaType, metadata, value, false);
+		return getRecordWithMetadataValue(schemaType, metadata, value, false);
 	}
 
 	@Override
 	public Stream<Record> getRecordsSummaryByIndexedMetadata(MetadataSchemaType schemaType, Metadata metadata,
 															 String value) {
-		return getRecordsByIndexedMetadataLoadedAsTheyAreStored(schemaType, metadata, value, true);
+		return getRecordWithMetadataValue(schemaType, metadata, value, true);
 	}
 
-	private Stream<Record> getRecordsByIndexedMetadataLoadedAsTheyAreStored(MetadataSchemaType schemaType,
-																			Metadata metadata, String value,
-																			boolean summary) {
+	private Stream<Record> getRecordWithMetadataValue(MetadataSchemaType schemaType,
+													  Metadata metadata, String value,
+													  boolean summary) {
 		if (metadata.isSameLocalCode(Schemas.IDENTIFIER)) {
-			Record record = get(value, metadata.getCollection());
+			Record record = getRecord(value, metadata.getCollection(), null);
 			if (record == null) {
 				return Stream.empty();
 			}
@@ -511,12 +479,12 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 		}
 
 		//if (schemaType.getCacheType() == RecordCacheType.FULLY_CACHED) {
-		List<String> searchResult = metadataIndexCacheDataStore.search(schemaType, metadata, value);
+		List<String> potentialIds = metadataIndexCacheDataStore.search(schemaType, metadata, value);
 
-		if (searchResult != null && !searchResult.isEmpty()) {
-			return searchResult.stream().map((id) -> {
+		if (potentialIds != null && !potentialIds.isEmpty()) {
+			return potentialIds.stream().map((id) -> {
 				return toRecord(memoryDataStore.get(id));
-			});
+			}).filter((r) -> metadata.isMultivalue() ? r.getList(metadata).contains(value) : value.equals(r.get(metadata)));
 		} else {
 			return Stream.empty();
 		}
@@ -677,8 +645,8 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 
 
 	private void remove(RecordDTO recordDTO) {
-		int intId = CacheRecordDTOUtils.toIntKey(recordDTO.getId());
-		if (intId == CacheRecordDTOUtils.KEY_IS_NOT_AN_INT) {
+		int intId = RecordUtils.toIntKey(recordDTO.getId());
+		if (intId == RecordUtils.KEY_IS_NOT_AN_INT) {
 			memoryDataStore.remove(recordDTO);
 		} else {
 			memoryDataStore.remove(recordDTO);
@@ -694,7 +662,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 			hook.removeRecordFromCache(recordDTO);
 		}
 
-		if (intId == CacheRecordDTOUtils.KEY_IS_NOT_AN_INT) {
+		if (intId == RecordUtils.KEY_IS_NOT_AN_INT) {
 			fileSystemDataStore.removeStringKey(recordDTO.getId());
 		} else {
 			fileSystemDataStore.removeIntKey(intId);
@@ -709,7 +677,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 
 	protected Record getByMetadata(byte collectionId, Metadata metadata, String value) {
 		if (metadata.isSameLocalCode(Schemas.IDENTIFIER)) {
-			return get(value, metadata.getCollection());
+			return getRecord(value, metadata.getCollection(), null);
 		}
 
 		if (!metadata.isUniqueValue()) {
@@ -724,13 +692,15 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 		}
 
 		if (schemaType.getCacheType() == RecordCacheType.FULLY_CACHED) {
-			List<String> searchResult = metadataIndexCacheDataStore.search(schemaType, metadata, value);
+			List<String> potentialIds = metadataIndexCacheDataStore.search(schemaType, metadata, value);
 
-			if (searchResult != null && !searchResult.isEmpty()) {
-				return toRecord(memoryDataStore.get(searchResult.get(0)));
-			} else {
-				return null;
+			for (String potentialId : potentialIds) {
+				Record record = toRecord(memoryDataStore.get(potentialId));
+				if (value.equals(record.get(metadata))) {
+					return record;
+				}
 			}
+			return null;
 
 		} else {
 			throw new ImpossibleRuntimeException("getByMetadata cannot be used for schema type '" + schemaType.getCode() + "' which is not fully cached. If the schema type has a summary cache, try using getSummaryByMetadata instead");
@@ -755,13 +725,16 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 				.getSchemaType(metadata.getSchemaTypeCode());
 
 		if (schemaType.getCacheType().isSummaryCache() || schemaType.getCacheType() == RecordCacheType.FULLY_CACHED) {
-			List<String> searchResult = metadataIndexCacheDataStore.search(schemaType, metadata, value);
+			List<String> potentialIds = metadataIndexCacheDataStore.search(schemaType, metadata, value);
 
-			if (searchResult != null && !searchResult.isEmpty()) {
-				return toRecord(memoryDataStore.get(searchResult.get(0)));
-			} else {
-				return null;
+			for (String potentialId : potentialIds) {
+				Record record = toRecord(memoryDataStore.get(potentialId));
+				if (value.equals(record.get(metadata))) {
+					return record;
+				}
 			}
+			return null;
+
 		} else {
 			return null;
 		}
@@ -896,9 +869,9 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 		//TODO Handle Holder
 		CacheRecordDTOBytesArray bytesArray = convertDTOToByteArrays(dto, schema);
 
-		int intId = CacheRecordDTOUtils.toIntKey(dto.getId());
+		int intId = RecordUtils.toIntKey(dto.getId());
 
-		if (intId == CacheRecordDTOUtils.KEY_IS_NOT_AN_INT) {
+		if (intId == RecordUtils.KEY_IS_NOT_AN_INT) {
 			if (bytesArray.bytesToPersist != null && bytesArray.bytesToPersist.length > 0) {
 				SummaryCacheSingletons.dataStore.saveStringKey(dto.getId(), bytesArray.bytesToPersist);
 

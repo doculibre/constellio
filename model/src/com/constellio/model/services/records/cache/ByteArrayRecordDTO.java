@@ -88,9 +88,9 @@ public abstract class ByteArrayRecordDTO implements Map<String, Object>, RecordD
 		//TODO Handle Holder
 		CacheRecordDTOBytesArray bytesArray = convertDTOToByteArrays(dto, schema);
 
-		int intId = CacheRecordDTOUtils.toIntKey(dto.getId());
+		int intId = RecordUtils.toIntKey(dto.getId());
 
-		if (intId == CacheRecordDTOUtils.KEY_IS_NOT_AN_INT) {
+		if (intId == RecordUtils.KEY_IS_NOT_AN_INT) {
 			if (bytesArray.bytesToPersist != null && bytesArray.bytesToPersist.length > 0) {
 				SummaryCacheSingletons.dataStore.saveStringKey(dto.getId(), bytesArray.bytesToPersist);
 			} else {

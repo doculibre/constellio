@@ -1,8 +1,6 @@
 package com.constellio.model.services.records.cache;
 
 import com.constellio.data.dao.dto.records.RecordDTO;
-import com.constellio.data.utils.ImpossibleRuntimeException;
-import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.schemas.Metadata;
@@ -32,6 +30,8 @@ import static com.constellio.model.entities.schemas.MetadataValueType.CONTENT;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRUCTURE;
 import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
+import static com.constellio.model.services.records.RecordUtils.KEY_IS_NOT_AN_INT;
+import static com.constellio.model.services.records.RecordUtils.toIntKey;
 
 /**
  * This utility class handle the reading and writing of a byte array regrouping a Record DTO metadata values
@@ -65,8 +65,7 @@ public class CacheRecordDTOUtils {
 	private static final byte BYTES_TO_WRITE_LONG_VALUES_SIZE = 8;
 	private static final byte BYTES_TO_WRITE_LOCAL_DATE_VALUES_SIZE = 3;
 
-	public static final byte KEY_IS_NOT_AN_INT = 0;
-	private static final byte KEY_LENGTH = 11;
+	private static final byte ID_LENGTH = 11;
 
 	private static final byte VALUE_IS_NOT_FOUND = -1;
 
@@ -245,7 +244,7 @@ public class CacheRecordDTOUtils {
 	}
 
 	private static boolean isMetatadataPersisted(Metadata metadata) {
-//		if (metadata.isUniqueValue() || metadata.isCacheIndex()) {
+		//		if (metadata.isUniqueValue() || metadata.isCacheIndex()) {
 		//			return false;
 		//		}
 		if (metadata.getType() == STRUCTURE || metadata.getType() == TEXT ||
@@ -254,28 +253,6 @@ public class CacheRecordDTOUtils {
 		}
 
 		return false;
-	}
-
-	public static int toIntKey(Object key) {
-		if (key instanceof Integer) {
-			return ((Integer) key);
-		}
-
-		if (key instanceof Long) {
-			return KEY_IS_NOT_AN_INT;
-		}
-
-		if (key instanceof String) {
-			long value = LangUtils.tryParseLong((String) key, 0);
-
-			if (((String) key).length() == KEY_LENGTH && value < Integer.MAX_VALUE) {
-				return (int) value;
-			} else {
-				return KEY_IS_NOT_AN_INT;
-			}
-		}
-
-		throw new ImpossibleRuntimeException("Invalid key : " + key);
 	}
 
 	private static int threeByteArrayToInt(byte[] byteArray, short startingIndex) {
@@ -839,7 +816,7 @@ public class CacheRecordDTOUtils {
 
 	private static String formatToId(int id) {
 		// rebuild the id to have have the right length (ex: 8 -> "00000000008")
-		return String.format("%0" + KEY_LENGTH + "d", id);
+		return String.format("%0" + ID_LENGTH + "d", id);
 	}
 
 	private static Boolean parseBooleanFromByteArray(byte[] byteArray, short startingIndex) {
