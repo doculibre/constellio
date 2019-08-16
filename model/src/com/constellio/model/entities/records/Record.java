@@ -6,6 +6,7 @@ import com.constellio.model.entities.CollectionObject;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.schemas.MetadataList;
 
 import java.io.Serializable;
@@ -107,4 +108,9 @@ public interface Record extends Serializable, CollectionObject, Supplier<Record>
 
 	RecordDTOMode getRecordDTOMode();
 
+	default boolean isLogicallyDeleted() {
+		return Boolean.TRUE.equals(get(Schemas.LOGICALLY_DELETED_STATUS));
+	}
+
+	;
 }

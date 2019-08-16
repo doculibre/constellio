@@ -98,6 +98,7 @@ public class FolderRecordActionsServices {
 			return false;
 		}
 		return hasUserWriteAccess(record, user) &&
+			   !record.isLogicallyDeleted() &&
 			   rmModuleExtensions.isEditActionPossibleOnFolder(folder, user) &&
 			   !extensions.isModifyBlocked(folder.getWrappedRecord(), user) &&
 			   extensions.isRecordModifiableBy(folder.getWrappedRecord(), user);
@@ -156,11 +157,13 @@ public class FolderRecordActionsServices {
 
 	public boolean isCreateSipActionPossible(Record record, User user) {
 		return hasUserReadAccess(record, user) && user.has(RMPermissionsTo.GENERATE_SIP_ARCHIVES).globally() &&
+			   !record.isLogicallyDeleted() &&
 			   rmModuleExtensions.isCreateSipActionPossibleOnFolder(rm.wrapFolder(record), user);
 	}
 
 	public boolean isCreateDecommissioningListActionPossible(Record record, User user) {
 		return hasUserReadAccess(record, user) && user.has(RMPermissionsTo.CREATE_DECOMMISSIONING_LIST).globally() &&
+			   !record.isLogicallyDeleted() &&
 			   rmModuleExtensions.isCreateDecommissioningListActionPossibleOnFolder(rm.wrapFolder(record), user);
 	}
 
@@ -170,6 +173,7 @@ public class FolderRecordActionsServices {
 		return isEditActionPossible(record, user) &&
 			   user.has(RMPermissionsTo.MANAGE_FOLDER_AUTHORIZATIONS).on(record) &&
 			   user.hasWriteAndDeleteAccess().on(record) &&
+			   !record.isLogicallyDeleted() &&
 			   rmModuleExtensions.isAddAuthorizationActionPossibleOnFolder(rm.wrapFolder(record), user);
 	}
 
@@ -178,6 +182,7 @@ public class FolderRecordActionsServices {
 		if (!hasUserWriteAccess(record, user) || !user.has(RMPermissionsTo.SHARE_FOLDER).on(folder) ||
 			(folder.getPermissionStatus().isInactive() && !user.has(RMPermissionsTo.SHARE_A_INACTIVE_FOLDER).on(folder)) ||
 			(folder.getPermissionStatus().isSemiActive() && !user.has(RMPermissionsTo.SHARE_A_SEMIACTIVE_FOLDER).on(folder)) ||
+			(record.isLogicallyDeleted()) ||
 			(isNotBlank(folder.getLegacyId()) && !user.has(RMPermissionsTo.SHARE_A_IMPORTED_FOLDER).on(folder))) {
 			return false;
 		}
@@ -186,6 +191,7 @@ public class FolderRecordActionsServices {
 
 	public boolean isAddToCartActionPossible(Record record, User user) {
 		return hasUserReadAccess(record, user) &&
+			   !record.isLogicallyDeleted() &&
 			   (hasUserPermissionToUseCart(user) || hasUserPermissionToUseMyCart(user)) &&
 			   rmModuleExtensions.isAddToCartActionPossibleOnFolder(rm.wrapFolder(record), user);
 	}
@@ -198,6 +204,7 @@ public class FolderRecordActionsServices {
 			return false;
 		}
 		return user.hasAll(RMPermissionsTo.BORROW_FOLDER, RMPermissionsTo.BORROWING_FOLDER_DIRECTLY).on(folder) &&
+			   !record.isLogicallyDeleted() &&
 			   rmModuleExtensions.isBorrowingActionPossibleOnFolder(folder, user);
 	}
 
@@ -235,6 +242,7 @@ public class FolderRecordActionsServices {
 
 	public boolean isGenerateReportActionPossible(Record record, User user) {
 		return hasUserWriteAccess(record, user) &&
+			   !record.isLogicallyDeleted() &&
 			   rmModuleExtensions.isGenerateReportActionPossibleOnFolder(rm.wrapFolder(record), user);
 	}
 
