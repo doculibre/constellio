@@ -52,6 +52,7 @@ public class DocumentRecordActionsServices {
 
 	public boolean isEditActionPossible(Record record, User user) {
 		return hasUserWriteAccess(record, user) &&
+			   !record.isLogicallyDeleted() &&
 			   rmModuleExtensions.isEditActionPossibleOnDocument(rm.wrapDocument(record), user);
 	}
 
@@ -63,17 +64,20 @@ public class DocumentRecordActionsServices {
 
 	public boolean isCopyActionPossible(Record record, User user) {
 		return !user.hasReadAccess().on(record) &&
+			   !record.isLogicallyDeleted() &&
 			   rmModuleExtensions.isCopyActionPossibleOnDocument(rm.wrapDocument(record), user);
 	}
 
 	public boolean isCreateSipActionPossible(Record record, User user) {
 		return hasUserReadAccess(record, user) && user.has(RMPermissionsTo.GENERATE_SIP_ARCHIVES).globally() &&
+			   !record.isLogicallyDeleted() &&
 			   rmModuleExtensions.isCreateSipActionPossibleOnDocument(rm.wrapDocument(record), user);
 	}
 
 	public boolean isSendEmailActionPossible(Record record, User user) {
 		Document document = rm.wrapDocument(record);
 		return hasUserReadAccess(record, user) && document.hasContent() &&
+			   !record.isLogicallyDeleted() &&
 			   rmModuleExtensions.isSendEmailActionPossibleOnDocument(rm.wrapDocument(record), user);
 	}
 
@@ -88,21 +92,23 @@ public class DocumentRecordActionsServices {
 	public boolean isGetPublicLinkActionPossible(Record record, User user) {
 		Document document = rm.wrapDocument(record);
 
-		return rmModuleExtensions.isGetPublicLinkActionPossibleOnDocument(document, user)
-			   && document.isPublished();
+		return rmModuleExtensions.isGetPublicLinkActionPossibleOnDocument(document, user) &&
+			   document.isPublished();
 	}
 
 	public boolean isPublishActionPossible(Record record, User user) {
 		Document document = rm.wrapDocument(record);
 		return user.has(RMPermissionsTo.PUBLISH_AND_UNPUBLISH_DOCUMENTS)
-					   .on(record) && rmModuleExtensions.isPublishActionPossibleOnDocument(document, user)
-			   && !document.isPublished();
+					   .on(record) && rmModuleExtensions.isPublishActionPossibleOnDocument(document, user) &&
+			   !record.isLogicallyDeleted() &&
+			   !document.isPublished();
 	}
 
 	public boolean isPrintLabelActionPossible(Record record, User user) {
 		Document document = rm.wrapDocument(record);
-		return user.hasReadAccess().on(record)
-			   && rmModuleExtensions.isPrintLabelActionPossibleOnDocument(document, user);
+		return user.hasReadAccess().on(record) &&
+			   !record.isLogicallyDeleted() &&
+			   rmModuleExtensions.isPrintLabelActionPossibleOnDocument(document, user);
 	}
 
 	public boolean canDeleteDocuments(List<String> ids, User user) {
@@ -121,7 +127,8 @@ public class DocumentRecordActionsServices {
 	public boolean isDeleteActionPossible(Record record, User user) {
 		Document document = rm.wrapDocument(record);
 
-		if (user.hasDeleteAccess().on(record) &&
+		if (!document.isLogicallyDeletedStatus()
+			&& user.hasDeleteAccess().on(record) &&
 			rmModuleExtensions.isDeleteActionPossbileOnDocument(rm.wrapDocument(record), user)) {
 			if (document.isPublished() && !user.has(RMPermissionsTo.DELETE_PUBLISHED_DOCUMENT)
 					.on(record)) {
@@ -158,7 +165,9 @@ public class DocumentRecordActionsServices {
 		Document document = rm.getDocument(record.getId());
 
 		if (!isCheckOutPossible(document) ||
-			document.getContent() == null || !isEditActionPossible(record, user)) {
+			document.getContent() == null ||
+			!isEditActionPossible(record, user) ||
+			record.isLogicallyDeleted()) {
 			return false;
 		}
 
@@ -167,6 +176,7 @@ public class DocumentRecordActionsServices {
 
 	public boolean isAddToCartActionPossible(Record record, User user) {
 		return user.hasReadAccess().on(record) &&
+			   !record.isLogicallyDeleted() &&
 			   (hasUserPermissionToUseCart(user) || hasUserPermissionToUseMyCart(user)) &&
 			   rmModuleExtensions.isAddToCartActionPossibleOnDocument(rm.wrapDocument(record), user);
 	}
@@ -180,8 +190,9 @@ public class DocumentRecordActionsServices {
 	}
 
 	public boolean isAddToSelectionActionPossible(Record record, User user, SessionContext sessionContext) {
-		return hasUserReadAccess(record, user)
-			   && rmModuleExtensions.isAddRemoveToSelectionActionPossibleOnDocument(rm.wrapDocument(record), user);
+		return hasUserReadAccess(record, user) &&
+			   !record.isLogicallyDeleted() &&
+			   rmModuleExtensions.isAddRemoveToSelectionActionPossibleOnDocument(rm.wrapDocument(record), user);
 	}
 
 	public boolean isRemoveToSelectionActionPossible(Record record, User user) {
@@ -263,13 +274,15 @@ public class DocumentRecordActionsServices {
 	}
 
 	public boolean isGenerateReportActionPossible(Record record, User user) {
-		return user.hasReadAccess().on(record)
-			   && rmModuleExtensions.isGenerateReportActionPossibleOnDocument(rm.wrapDocument(record), user);
+		return user.hasReadAccess().on(record) &&
+			   !record.isLogicallyDeleted() &&
+			   rmModuleExtensions.isGenerateReportActionPossibleOnDocument(rm.wrapDocument(record), user);
 	}
 
 	public boolean isAddAuthorizationActionPossible(Record record, User user) {
-		return user.has(RMPermissionsTo.MANAGE_DOCUMENT_AUTHORIZATIONS).on(record)
-			   && rmModuleExtensions.isAddAuthorizationActionPossibleOnDocument(rm.wrapDocument(record), user);
+		return user.has(RMPermissionsTo.MANAGE_DOCUMENT_AUTHORIZATIONS).on(record) &&
+			   !record.isLogicallyDeleted() &&
+			   rmModuleExtensions.isAddAuthorizationActionPossibleOnDocument(rm.wrapDocument(record), user);
 	}
 
 	public boolean isFinalizeActionPossible(Record record, User user) {
@@ -299,7 +312,9 @@ public class DocumentRecordActionsServices {
 
 	private boolean isCheckOutPossible(Document document) {
 		boolean email = isEmail(document);
-		return document.getContent() != null && !email && !isContentCheckedOut(document.getContent());
+		return document.getContent() != null &&
+			   !document.isLogicallyDeletedStatus() &&
+			   !email && !isContentCheckedOut(document.getContent());
 	}
 
 	private boolean isContentCheckedOut(Document document) {
