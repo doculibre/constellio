@@ -812,15 +812,17 @@ public class SearchServices {
 						if (metadata.getType() == MetadataValueType.CONTENT) {
 							for (String language : languages) {
 								String analyzedField = metadata.getAnalyzedField(language).getDataStoreCode();
-								if (!fields.contains(analyzedField)) {
-									sb.append(analyzedField + " ");
+								if (!fields.contains(analyzedField) && !analyzedField.contains("null")) {
+									sb.append(analyzedField);
+									sb.append(" ");
 									fields.add(analyzedField);
 								}
 							}
 						} else {
 							String analyzedField = metadata.getAnalyzedField(metadata.isMultiLingual() ? queryLanguage : mainDataLanguage).getDataStoreCode();
-							if (!fields.contains(analyzedField)) {
-								sb.append(analyzedField + " ");
+							if (!fields.contains(analyzedField) && !analyzedField.contains("null")) {
+								sb.append(analyzedField);
+								sb.append(" ");
 								fields.add(analyzedField);
 							}
 
@@ -977,7 +979,8 @@ public class SearchServices {
 
 				} else {
 
-					List<Record> records = cachedSearch(new LogicalSearchQuery(from(schemaType).returnAll()));
+					List<Record> records = cachedSearch(new LogicalSearchQuery(from(schemaType).returnAll())
+							.setName("Loading records of '" + schemaType.getCode() + "'"));
 					if (!Toggle.PUTS_AFTER_SOLR_QUERY.isEnabled()) {
 
 						if (records.size() > 1000) {

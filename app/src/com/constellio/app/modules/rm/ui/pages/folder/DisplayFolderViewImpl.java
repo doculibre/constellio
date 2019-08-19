@@ -186,7 +186,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			protected void onUploadWindowClosed(CloseEvent e) {
 				presenter.refreshDocuments();
 			}
-		} ;
+		};
 		uploadField.setVisible(false);
 		uploadField.setImmediate(true);
 		uploadField.setMultiValue(false);
@@ -207,7 +207,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		tabSheet.addTab(recordDisplay, $("DisplayFolderView.tabs.metadata"));
 		tabSheet.addTab(folderContentComponent,
 				$("DisplayFolderView.tabs.folderContent", presenter.getFolderContentCount()));
-		tabSheet.addTab(tasksComponent, $("DisplayFolderView.tabs.tasks", presenter.getTaskCount()));
+		tabSheet.addTab(tasksComponent, $("DisplayFolderView.tabs.tasks"));
 
 		eventsComponent = new CustomComponent();
 		tabSheet.addTab(eventsComponent, $("DisplayFolderView.tabs.logs"));
@@ -327,7 +327,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			};
 
 			deleteFolderButton = new Button();
-			if(!presenter.isNeedingAReasonToDeleteFolder()) {
+			if (!presenter.isNeedingAReasonToDeleteFolder()) {
 				deleteFolderButton = new DeleteButton(getFolderOrSubFolderButtonTitle("DisplayFolderView.deleteFolder"), false) {
 					@Override
 					protected void confirmButtonClick(ConfirmDialog dialog) {
@@ -352,6 +352,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 					}
 				};
 			}
+			deleteFolderButton.addStyleName("deleteFolderButton");
 
 
 			duplicateFolderButton = new WindowButton(getFolderOrSubFolderButtonTitle("DisplayFolderView.duplicateFolder"),
@@ -530,7 +531,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		}
 	}
 
-	private Button buildAddToMyCartButton(){
+	private Button buildAddToMyCartButton() {
 		Button button = new BaseButton($("DisplayFolderView.addToCart")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
@@ -595,7 +596,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 	private DefaultFavoritesTable buildOwnedFavoritesTable(final Window window) {
 		List<DefaultFavoritesTable.CartItem> cartItems = new ArrayList<>();
-		if(presenter.hasCurrentUserPermissionToUseMyCart()) {
+		if (presenter.hasCurrentUserPermissionToUseMyCart()) {
 			cartItems.add(new DefaultFavoritesTable.CartItem($("CartView.defaultFavorites")));
 		}
 		for (Cart cart : presenter.getOwnedCarts()) {

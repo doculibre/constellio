@@ -67,6 +67,11 @@ public class Toggle {
 
 	public static AvailableToggle ALLOWS_CREATION_OF_RECORDS_WITH_NON_PADDED_ID = newToggle(false);
 
+	public static AvailableToggle NO_TAXONOMIES_CACHE_INVALIDATION = newToggle(false);
+
+	public static AvailableToggle PERFORMANCE_TESTING = newToggle(false);
+
+
 	// ------------------------------------------------
 
 	private static Map<String, AvailableToggle> toggleMap = new HashMap<>();

@@ -12,6 +12,7 @@ import com.constellio.app.ui.entities.UserVO;
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
@@ -26,6 +27,7 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.extensions.events.schemas.PutSchemaRecordsInTrashEvent;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentManager.UploadOptions;
@@ -161,23 +163,31 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 	}
 
 	public final void delete(Record record, String reason, boolean physically, User user, int waitInSeconds) {
+		ValidationErrors errors = recordServices().validateLogicallyThenPhysicallyDeletable(record, user);
+		delete(record, reason, physically, user, waitInSeconds, errors);
+	}
+
+	public final void delete(Record record, String reason, boolean physically, User user, int waitInSeconds,
+							 ValidationErrors validateLogicallyThenPhysicallyDeletableErrors) {
 		boolean putFirstInTrash = putFirstInTrash(record);
-		if (recordServices().validateLogicallyThenPhysicallyDeletable(record, user).isEmpty() || putFirstInTrash) {
+		if (validateLogicallyThenPhysicallyDeletableErrors.isEmpty() || putFirstInTrash) {
 
 			RecordLogicalDeleteOptions options = new RecordLogicalDeleteOptions();
 			//Validations are already done
 			options.setSkipValidations(true);
-			if (waitInSeconds > 0) {
+			if (!Toggle.PERFORMANCE_TESTING.isEnabled() && waitInSeconds > 0) {
 				options.setRecordsFlushing(RecordsFlushing.WITHIN_SECONDS(waitInSeconds));
 			}
 
 			recordServices().logicallyDelete(record, user, options);
 
-			if (waitInSeconds > 0) {
-				try {
-					Thread.sleep(1000 * waitInSeconds);
-				} catch (InterruptedException e) {
-					throw new RuntimeException(e);
+			if (!Toggle.PERFORMANCE_TESTING.isEnabled()) {
+				if (waitInSeconds > 0) {
+					try {
+						Thread.sleep(1000 * waitInSeconds);
+					} catch (InterruptedException e) {
+						throw new RuntimeException(e);
+					}
 				}
 			}
 

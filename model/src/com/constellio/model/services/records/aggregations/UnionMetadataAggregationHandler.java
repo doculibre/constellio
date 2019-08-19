@@ -20,6 +20,7 @@ public class UnionMetadataAggregationHandler implements MetadataAggregationHandl
 	public Object calculate(SearchAggregatedValuesParams params) {
 		List<Metadata> inputMetadatas = params.getInputMetadatas();
 		LogicalSearchQuery query = new LogicalSearchQuery(params.getQuery());
+		query.setName("UnionMetadataAggregationHandler:BackgroundThread:Union metadata '" + params.getMetadata().getCode() + "' recalculate for record " + params.getRecord().getId());
 		query.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(inputMetadatas));
 		SearchResponseIterator<Record> iterator = params.getSearchServices().recordsIterator(query, 10000);
 

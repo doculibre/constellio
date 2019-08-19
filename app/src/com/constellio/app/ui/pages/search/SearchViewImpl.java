@@ -37,7 +37,6 @@ import com.vaadin.data.Container.ItemSetChangeListener;
 import com.vaadin.data.Property;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
-import com.vaadin.lazyloadwrapper.LazyLoadWrapper;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.shared.ui.label.ContentMode;
@@ -255,7 +254,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		if (temporarySave) {
 			SavedSearch savedSearch = presenter.saveTemporarySearch(false);
 
-			for(SaveSearchListener saveSearchListener : saveSearchListenerList) {
+			for (SaveSearchListener saveSearchListener : saveSearchListenerList) {
 				saveSearchListener.save(new SaveSearchListener.Event(savedSearch));
 			}
 		}
@@ -273,7 +272,11 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 
 		summary.addComponent(buildSummary(results));
 
-		resultsArea.addComponent(new LazyLoadWrapper(results));
+		if (presenter.isLazyLoadedSearchResults()){
+			//resultsArea.addComponent(new LazyLoadWrapper(results));
+		} else{
+			resultsArea.addComponent(results);
+		}
 		if (isDetailedView()) {
 			resultsArea.addComponent(((SearchResultDetailedTable) results).createControls());
 			((SearchResultDetailedTable) results).setItemsPerPageValue(presenter.getSelectedPageLength());
@@ -424,31 +427,31 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		srTable.setCurrentPage(currentPage);
 
 		if (false) {
-//			srTable.addListener(new SearchResultDetailedTable.PageChangeListener() {
-//				public void pageChanged(PagedTableChangeEvent event) {
-//					presenter.setPageNumber(event.getCurrentPage());
-//	
-//					presenter.saveTemporarySearch(false);
-//					if (selectDeselectAllButton != null) {
-//						hashMapAllSelection.put(presenter.getLastPageNumber(), selectDeselectAllButton.isSelectAllMode());
-//						Boolean objIsSelectAllMode = hashMapAllSelection.get(new Integer(presenter.getPageNumber()));
-//						boolean isSelectAllMode = true;
-//						if (objIsSelectAllMode != null) {
-//							isSelectAllMode = objIsSelectAllMode;
-//						}
-//						selectDeselectAllButton.setSelectAllMode(isSelectAllMode);
-//					}
-//				}
-//			});
-//			srTable.getItemsPerPageField().addValueChangeListener(new ValueChangeListener() {
-//				@Override
-//				public void valueChange(Property.ValueChangeEvent event) {
-//					presenter.setSelectedPageLength((int) event.getProperty().getValue());
-//					hashMapAllSelection = new HashMap<>();
-//	
-//					presenter.searchNavigationButtonClicked();
-//				}
-//			});
+			//			srTable.addListener(new SearchResultDetailedTable.PageChangeListener() {
+			//				public void pageChanged(PagedTableChangeEvent event) {
+			//					presenter.setPageNumber(event.getCurrentPage());
+			//
+			//					presenter.saveTemporarySearch(false);
+			//					if (selectDeselectAllButton != null) {
+			//						hashMapAllSelection.put(presenter.getLastPageNumber(), selectDeselectAllButton.isSelectAllMode());
+			//						Boolean objIsSelectAllMode = hashMapAllSelection.get(new Integer(presenter.getPageNumber()));
+			//						boolean isSelectAllMode = true;
+			//						if (objIsSelectAllMode != null) {
+			//							isSelectAllMode = objIsSelectAllMode;
+			//						}
+			//						selectDeselectAllButton.setSelectAllMode(isSelectAllMode);
+			//					}
+			//				}
+			//			});
+			//			srTable.getItemsPerPageField().addValueChangeListener(new ValueChangeListener() {
+			//				@Override
+			//				public void valueChange(Property.ValueChangeEvent event) {
+			//					presenter.setSelectedPageLength((int) event.getProperty().getValue());
+			//					hashMapAllSelection = new HashMap<>();
+			//
+			//					presenter.searchNavigationButtonClicked();
+			//				}
+			//			});
 		}
 
 		srTable.setWidth("100%");

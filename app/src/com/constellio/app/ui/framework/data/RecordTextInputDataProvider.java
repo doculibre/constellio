@@ -71,7 +71,8 @@ public class RecordTextInputDataProvider extends TextInputDataProvider<String> {
 
 	public RecordTextInputDataProvider(ConstellioFactories constellioFactories, SessionContext sessionContext,
 									   String schemaTypeCode, String schemaCode, boolean writeAccess,
-									   boolean includeDeactivated, boolean onlyLinkables, boolean includeLogicallyDeleted) {
+									   boolean includeDeactivated, boolean onlyLinkables,
+									   boolean includeLogicallyDeleted) {
 		this.writeAccess = writeAccess;
 		this.sessionContext = sessionContext;
 		this.schemaTypeCode = schemaTypeCode;
@@ -210,10 +211,11 @@ public class RecordTextInputDataProvider extends TextInputDataProvider<String> {
 		LogicalSearchQuery query = new LogicalSearchQuery(condition)
 				.setPreferAnalyzedFields(true)
 				.setStartRow(startIndex)
-				.setNumberOfRows(count);
+				.setNumberOfRows(count)
+				.setName("Autocomplete query for input '" + text + "'");
 
-//		boolean isDDV = schemaTypeCode != null? schemaTypeCode.startsWith("ddv"):schemaCode.startsWith("ddv");
-		if(!includeLogicallyDeleted) {
+		//		boolean isDDV = schemaTypeCode != null? schemaTypeCode.startsWith("ddv"):schemaCode.startsWith("ddv");
+		if (!includeLogicallyDeleted) {
 			query.filteredByStatus(StatusFilter.ACTIVES);
 		}
 

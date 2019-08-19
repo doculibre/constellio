@@ -1,6 +1,5 @@
 package com.constellio.model.services.migrations;
 
-import static com.constellio.model.services.migrations.TimeScheduleConfigurationValidator.isCurrentlyInSchedule;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.configs.AbstractSystemConfigurationScript;
 import com.constellio.model.entities.configs.SystemConfiguration;
@@ -27,6 +26,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import static com.constellio.model.services.migrations.TimeScheduleConfigurationValidator.isCurrentlyInSchedule;
 
 public class ConstellioEIMConfigs {
 
@@ -155,6 +156,8 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration ENABLE_SYSTEM_STATE_SOLR_DISK_USAGE;
 	public static final SystemConfiguration ENABLE_SYSTEM_STATE_LICENSE;
 	public static final SystemConfiguration NO_LNKS_IN_SEARCH_RESULTS;
+
+	public static final SystemConfiguration LAZY_LOADED_SEARCH_RESULTS;
 
 
 	static {
@@ -297,6 +300,8 @@ public class ConstellioEIMConfigs {
 		add(UPDATE_SERVER_CONNECTION_ENABLED = advanced.createBooleanTrueByDefault("updateServerConnectionEnabled").whichIsHidden());
 
 		add(NO_LNKS_IN_SEARCH_RESULTS = search.createBooleanFalseByDefault("noLinksInSearchResults"));
+
+		add(LAZY_LOADED_SEARCH_RESULTS = search.createBooleanTrueByDefault("lazyLoadedSearchResults"));
 
 		configurations = Collections.unmodifiableList(modifiableConfigs);
 
@@ -563,11 +568,11 @@ public class ConstellioEIMConfigs {
 	public Set<String> getFileExtensionsExcludedFromParsing() {
 		String extensionsAsString = manager.getValue(FILE_EXTENSIONS_EXCLUDED_FROM_PARSING);
 		Set<String> extensionSet = new HashSet<>();
-		if(!StringUtils.isBlank(extensionsAsString)) {
+		if (!StringUtils.isBlank(extensionsAsString)) {
 			String[] splittedExtensions = extensionsAsString.split(",");
-			for(String currentExtension: splittedExtensions) {
+			for (String currentExtension : splittedExtensions) {
 				String formattedExtension = currentExtension.trim().toLowerCase();
-				if(formattedExtension.startsWith(".")) {
+				if (formattedExtension.startsWith(".")) {
 					extensionSet.add(formattedExtension.substring(1));
 				} else {
 					extensionSet.add(formattedExtension);
@@ -592,11 +597,16 @@ public class ConstellioEIMConfigs {
 	public boolean isSystemStateSolrDiskUsageValidationEnabled() {
 		return manager.getValue(ENABLE_SYSTEM_STATE_SOLR_DISK_USAGE);
 	}
+
 	public boolean isUpdateServerConnectionEnabled() {
 		return manager.getValue(UPDATE_SERVER_CONNECTION_ENABLED);
 	}
 
 	public boolean isNoLinksInSearchResults() {
 		return manager.getValue(NO_LNKS_IN_SEARCH_RESULTS);
+	}
+
+	public boolean isLazyLoadedSearchResults() {
+		return manager.getValue(LAZY_LOADED_SEARCH_RESULTS);
 	}
 }

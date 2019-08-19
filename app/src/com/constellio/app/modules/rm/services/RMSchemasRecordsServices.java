@@ -15,6 +15,7 @@ import com.constellio.app.modules.rm.wrappers.PrintableReport;
 import com.constellio.app.modules.rm.wrappers.RMObject;
 import com.constellio.app.modules.rm.wrappers.RMUserFolder;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
+import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
 import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
@@ -1181,6 +1182,11 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 
 	public List<AdministrativeUnit> getAllAdministrativeUnits() {
 		return wrapAdministrativeUnits(getModelLayerFactory().newSearchServices().getAllRecords(administrativeUnit.schemaType()));
+	}
+
+
+	public List<UniformSubdivision> getAllUniformSubdivisions() {
+		return wrapUniformSubdivisions(getModelLayerFactory().newSearchServices().getAllRecords(uniformSubdivision.schemaType()));
 	}
 
 	public List<Category> getAllCategories() {

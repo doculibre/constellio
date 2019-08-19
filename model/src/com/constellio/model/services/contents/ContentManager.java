@@ -842,6 +842,7 @@ public class ContentManager implements StatefulService {
 			query.setNumberOfRows(50);
 			query.sortDesc(Schemas.MODIFIED_ON);
 			query.sortDesc(Schemas.CREATED_ON);
+			query.setName("ContentManager:BackgroundThread:getRecordsWithFlag(markedForParsing_s)");
 
 			List<Record> records = searchServices.search(query);
 

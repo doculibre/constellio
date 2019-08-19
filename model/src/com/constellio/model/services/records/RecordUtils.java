@@ -4,6 +4,7 @@ import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.utils.KeyListMap;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.LangUtils.ListComparisonResults;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
@@ -108,8 +109,8 @@ public class RecordUtils {
 			Schemas.MIGRATION_DATA_VERSION.getLocalCode(), Schemas.IDENTIFIER.getLocalCode());
 
 	public static int estimateRecordUpdateSize(Map<String, Object> modifiedFields, Map<String, Object> fields,
-			Map<String, Object> modifiedCopyFields,
-			Map<String, Object> copyFields) {
+											   Map<String, Object> modifiedCopyFields,
+											   Map<String, Object> copyFields) {
 
 		int size = 0;
 
@@ -568,6 +569,11 @@ public class RecordUtils {
 	public static void invalidateTaxonomiesCache(List<Record> records, MetadataSchemaTypes types,
 												 RecordProvider recordProvider,
 												 TaxonomiesSearchServicesCache cache) {
+
+		if (Toggle.NO_TAXONOMIES_CACHE_INVALIDATION.isEnabled()) {
+			return;
+		}
+
 
 		Set<String> idsWithPossibleNewChildren = new HashSet<>();
 		Set<String> idsWithPossibleRemovedChildren = new HashSet<>();

@@ -16,6 +16,7 @@ public class LogicalOrMetadataAggregationHandler implements MetadataAggregationH
 		List<DataStoreField> dataStoreFields = new ArrayList<DataStoreField>(params.getInputMetadatas());
 
 		LogicalSearchQuery query = new LogicalSearchQuery(params.getQuery());
+		query.setName("LogicalOrMetadataAggregationHandler:BackgroundThread:Logical OR metadata '" + params.getMetadata().getCode() + "' recalculate for record " + params.getRecord().getId());
 		query.setCondition(query.getCondition().andWhereAny(dataStoreFields).isTrue());
 
 		return params.getSearchServices().hasResults(query);

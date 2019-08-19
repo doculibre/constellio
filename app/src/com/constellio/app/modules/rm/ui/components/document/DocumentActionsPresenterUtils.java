@@ -33,7 +33,6 @@ import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.util.DateFormatUtils;
 import com.constellio.app.ui.util.MessageUtils;
-import com.constellio.app.ui.util.SchemaCaptionUtils;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.CorePermissions;
@@ -189,9 +188,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	}
 
 	public boolean documentInDefaultFavorites() {
-		Record record = presenterUtils.getRecord(documentVO.getId());
-		Document document = rmSchemasRecordsServices.wrapDocument(record);
-		return document.getFavorites().contains(getCurrentUser().getId());
+		return documentVO.getList(Document.FAVORITES).contains(getCurrentUser().getId());
 	}
 
 	public Document renameContentButtonClicked(String newName) {
@@ -296,11 +293,12 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	}
 
 	public void deleteDocumentButtonClicked(Map<String, String> params) {
-		if (validateDeleteDocumentPossibleExtensively().isEmpty()) {
+		ValidationErrors errors = validateDeleteDocumentPossibleExtensively();
+		if (errors.isEmpty()) {
 			Document document = rmSchemasRecordsServices.getDocument(documentVO.getId());
 			String parentId = document.getFolder();
 			try {
-				presenterUtils.delete(document.getWrappedRecord(), null, true, WAIT_ONE_SECOND);
+				presenterUtils.delete(document.getWrappedRecord(), null, true, getCurrentUser(), WAIT_ONE_SECOND, errors);
 			} catch (RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord e) {
 				actionsComponent.showMessage(MessageUtils.toMessage(e));
 				return;

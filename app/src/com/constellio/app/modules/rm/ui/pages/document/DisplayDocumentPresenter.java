@@ -82,6 +82,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	private boolean hasWriteAccess;
 	private TrashServices trashServices;
 	private Record record;
+	private MetadataSchemaVO tasksSchemaVO;
 
 	private String lastKnownContentVersionNumber;
 	private String lastKnownCheckoutUserId;
@@ -110,7 +111,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	}
 
 	public String getFavGroupId() {
-		if(params != null) {
+		if (params != null) {
 			return params.get(RMViews.FAV_GROUP_ID_KEY);
 		} else {
 			return null;
@@ -172,36 +173,44 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		User user = getCurrentUser();
 		modelLayerFactory.newLoggingServices().logRecordView(record, user);
 
-		MetadataSchemaVO tasksSchemaVO = schemaVOBuilder
-				.build(getTasksSchema(), VIEW_MODE.TABLE, Arrays.asList(STARRED_BY_USERS), view.getSessionContext(), true);
-		tasksDataProvider = new RecordVODataProvider(
-				tasksSchemaVO, voBuilder, modelLayerFactory, view.getSessionContext()) {
-			@Override
-			protected LogicalSearchQuery getQuery() {
-				TasksSchemasRecordsServices tasks = new TasksSchemasRecordsServices(collection, appLayerFactory);
-				Metadata taskDocumentMetadata = tasks.userTask.schema().getMetadata(RMTask.LINKED_DOCUMENTS);
-				LogicalSearchQuery query = new LogicalSearchQuery();
-				query.setCondition(from(tasks.userTask.schemaType()).where(taskDocumentMetadata).is(documentVO.getId()));
-				query.filteredByStatus(StatusFilter.ACTIVES);
-				query.filteredWithUser(getCurrentUser());
-				addStarredSortToQuery(query);
-				query.sortDesc(Schemas.MODIFIED_ON);
+		tasksSchemaVO = schemaVOBuilder.build(getTasksSchema(), VIEW_MODE.TABLE, Arrays.asList(STARRED_BY_USERS), view.getSessionContext(), true);
 
-				return query;
-			}
-
-			@Override
-			protected void clearSort(LogicalSearchQuery query) {
-				super.clearSort(query);
-				addStarredSortToQuery(query);
-			}
-		};
-		eventsDataProvider = getEventsDataProvider();
+		if (hasCurrentUserPermissionToViewEvents()) {
+			eventsDataProvider = getEventsDataProvider();
+		}
 
 		ContentVersionVO contentVersionVO = documentVO.getContent();
 		lastKnownContentVersionNumber = contentVersionVO != null ? contentVersionVO.getVersion() : null;
 		lastKnownCheckoutUserId = contentVersionVO != null ? contentVersionVO.getCheckoutUserId() : null;
 		lastKnownLength = contentVersionVO != null ? contentVersionVO.getLength() : null;
+	}
+
+	public void taskTabSelected() {
+		if (tasksDataProvider == null) {
+			tasksDataProvider = new RecordVODataProvider(
+					tasksSchemaVO, voBuilder, modelLayerFactory, view.getSessionContext()) {
+				@Override
+				protected LogicalSearchQuery getQuery() {
+					TasksSchemasRecordsServices tasks = new TasksSchemasRecordsServices(collection, appLayerFactory);
+					Metadata taskDocumentMetadata = tasks.userTask.schema().getMetadata(RMTask.LINKED_DOCUMENTS);
+					LogicalSearchQuery query = new LogicalSearchQuery();
+					query.setCondition(from(tasks.userTask.schemaType()).where(taskDocumentMetadata).is(record.getId()));
+					query.filteredByStatus(StatusFilter.ACTIVES);
+					query.filteredWithUser(getCurrentUser());
+					addStarredSortToQuery(query);
+					query.sortDesc(Schemas.MODIFIED_ON);
+
+					return query;
+				}
+
+				@Override
+				protected void clearSort(LogicalSearchQuery query) {
+					super.clearSort(query);
+					addStarredSortToQuery(query);
+				}
+			};
+			view.setTasks(tasksDataProvider);
+		}
 	}
 
 	public int getTaskCount() {
@@ -274,7 +283,9 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	public void viewAssembled() {
 		presenterUtils.updateActionsComponent();
 		view.setTasks(tasksDataProvider);
-		view.setEvents(eventsDataProvider);
+		if (hasCurrentUserPermissionToViewEvents()) {
+			view.setEvents(eventsDataProvider);
+		}
 		view.setPublishButtons(presenterUtils.isDocumentPublished());
 	}
 

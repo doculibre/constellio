@@ -12,7 +12,9 @@ import org.joda.time.Duration;
 
 import static com.constellio.data.threads.BackgroundThreadConfiguration.repeatingAction;
 import static com.constellio.data.threads.BackgroundThreadExceptionHandling.CONTINUE;
-import static org.joda.time.Duration.*;
+import static org.joda.time.Duration.standardHours;
+import static org.joda.time.Duration.standardMinutes;
+import static org.joda.time.Duration.standardSeconds;
 
 public class ModelLayerBackgroundThreadsManager implements StatefulService {
 
@@ -36,7 +38,7 @@ public class ModelLayerBackgroundThreadsManager implements StatefulService {
 		recordsReindexingBackgroundAction = new RecordsReindexingBackgroundAction(modelLayerFactory);
 		backgroundThreadsManager.configure(repeatingAction("recordsReindexingBackgroundAction",
 				recordsReindexingBackgroundAction)
-				.executedEvery(standardSeconds(120)).handlingExceptionWith(CONTINUE));
+				.executedEvery(standardSeconds(5)).handlingExceptionWith(CONTINUE));
 
 		ModelLayerConfiguration configuration = modelLayerFactory.getConfiguration();
 		backgroundThreadsManager.configure(BackgroundThreadConfiguration.repeatingAction("removeTimedOutTokens", new Runnable() {
@@ -65,7 +67,7 @@ public class ModelLayerBackgroundThreadsManager implements StatefulService {
 		backgroundThreadsManager.configure(repeatingAction("flushRecords", flushRecordsBackgroundAction)
 				.executedEvery(standardMinutes(2)).handlingExceptionWith(CONTINUE).runningOnAllInstances());
 
-		if(modelLayerFactory.getFoldersLocator().getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER && SystemUtils.IS_OS_LINUX) {
+		if (modelLayerFactory.getFoldersLocator().getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER && SystemUtils.IS_OS_LINUX) {
 			temporaryFolderCleanerBackgroundAction = new TemporaryFolderCleanerBackgroundAction();
 			backgroundThreadsManager.configure(repeatingAction("TmpFilesDelete", temporaryFolderCleanerBackgroundAction)
 					.executedEvery(standardMinutes(5)).handlingExceptionWith(CONTINUE).runningOnAllInstances());

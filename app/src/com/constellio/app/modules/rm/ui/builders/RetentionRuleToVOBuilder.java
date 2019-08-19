@@ -23,8 +23,6 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SearchServices;
-import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -36,7 +34,6 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class RetentionRuleToVOBuilder extends RecordToVOBuilder {
 
@@ -77,7 +74,8 @@ public class RetentionRuleToVOBuilder extends RecordToVOBuilder {
 	}
 
 	@Override
-	protected RetentionRuleVO newRecordVO(String id, List<MetadataValueVO> metadataValueVOs, VIEW_MODE viewMode, List<String> excludedMetdataCode) {
+	protected RetentionRuleVO newRecordVO(String id, List<MetadataValueVO> metadataValueVOs, VIEW_MODE viewMode,
+										  List<String> excludedMetdataCode) {
 		MetadataSchemaVO schema = metadataValueVOs.get(0).getMetadata().getSchema();
 
 		MetadataValueVO categoriesMetadataValueVO = new MetadataValueVO(getCategoriesMetadata(schema), getCategories(id));
@@ -96,12 +94,12 @@ public class RetentionRuleToVOBuilder extends RecordToVOBuilder {
 	}
 
 	private List<String> getCategories(String id) {
-		LogicalSearchCondition condition = from(rm.category.schemaType()).where(rm.category.retentionRules())
-				.isEqualTo(id);
-		List<Record> categoryRecords = searchServices.cachedSearch(new LogicalSearchQuery(condition));
+		List<Category> allCategories = rm.getAllCategories();
 		List<Category> categories = new ArrayList<>();
-		for (Record categoryRecord : categoryRecords) {
-			categories.add(rm.wrapCategory(categoryRecord));
+		for (Category category : allCategories) {
+			if (category.getList(rm.category.retentionRules()).contains(id)) {
+				categories.add(category);
+			}
 		}
 		Collections.sort(categories, new AbstractTextComparator<Category>() {
 			@Override
@@ -121,9 +119,13 @@ public class RetentionRuleToVOBuilder extends RecordToVOBuilder {
 	}
 
 	private List<String> getUniformSubdivisions(String id) {
-		LogicalSearchCondition condition = from(rm.uniformSubdivision.schemaType())
-				.where(rm.uniformSubdivision.retentionRule()).isEqualTo(id);
-		return searchServices.cachedSearchRecordIds(new LogicalSearchQuery(condition));
+		List<String> returnedIds = new ArrayList<>();
+		for (UniformSubdivision uniformSubdivision : rm.getAllUniformSubdivisions()) {
+			if (uniformSubdivision.getRetentionRules().contains(id)) {
+				returnedIds.add(uniformSubdivision.getId());
+			}
+		}
+		return returnedIds;
 	}
 
 	private MetadataVO getUniformSubdivisionsMetadata(MetadataSchemaVO schema) {
