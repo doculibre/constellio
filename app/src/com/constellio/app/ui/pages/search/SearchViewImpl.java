@@ -37,6 +37,7 @@ import com.vaadin.data.Container.ItemSetChangeListener;
 import com.vaadin.data.Property;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
+import com.vaadin.lazyloadwrapper.LazyLoadWrapper;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.shared.ui.label.ContentMode;
@@ -272,9 +273,9 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 
 		summary.addComponent(buildSummary(results));
 
-		if (presenter.isLazyLoadedSearchResults()){
-			//resultsArea.addComponent(new LazyLoadWrapper(results));
-		} else{
+		if (presenter.isLazyLoadedSearchResults()) {
+			resultsArea.addComponent(new LazyLoadWrapper(results));
+		} else {
 			resultsArea.addComponent(results);
 		}
 		if (isDetailedView()) {
