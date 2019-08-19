@@ -216,6 +216,10 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 
 			int counter = 0;
 			for (Object object : visiblePropertyObject) {
+				if (!(object instanceof MetadataVO)) {
+					continue;
+				}
+
 				MetadataVO metadataVO = (MetadataVO) object;
 				Object metadataValue = recordVO.get(metadataVO);
 				String valueAsString = null;
@@ -266,14 +270,10 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 		initParameters(view.getParameters());
 		switch (this.eventCategory) {
 			case EVENTS_BY_ADMINISTRATIVE_UNIT:
+			case EVENTS_BY_FOLDER:
 				return rmSchemasEventsServices().newFindEventByDateRangeAndByAdministrativeUnitQuery(currentUser, eventType,
 						startDate,
-						endDate, id);
-			case EVENTS_BY_FOLDER:
-				return rmSchemasEventsServices()
-						.newFindEventByDateRangeAndByAdministrativeUnitQuery(currentUser, eventType, startDate,
-								endDate,
-								id);//newFindEventByDateRangeAndByFolderQuery(currentUser, eventType, startDate, endDate, id);
+						endDate, id);//newFindEventByDateRangeAndByFolderQuery(currentUser, eventType, startDate, endDate, id);
 			case EVENTS_BY_CONTAINER:
 				return rmSchemasEventsServices()
 						.newFindEventByDateRangeAndByContainerQuery(currentUser, eventType, startDate,
@@ -292,7 +292,12 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 				return rmSchemasEventsServices().newFindCurrentlyBorrowedDocumentsQuery(currentUser);
 			case CURRENTLY_BORROWED_FOLDERS:
 				return rmSchemasEventsServices().newFindCurrentlyBorrowedFoldersQuery(currentUser);
-
+			case FOLDERS_BORROW_OR_RETURN:
+				if (EventType.BORROW_FOLDER.equals(eventType)) {
+					return rmSchemasEventsServices().newFindBorrowedFoldersByDateRangeQuery(currentUser, startDate, endDate);
+				} else {
+					return rmSchemasEventsServices().newFindEventByDateRangeQuery(currentUser, eventType, startDate, endDate);
+				}
 			default:
 				return rmSchemasEventsServices().newFindEventByDateRangeQuery(currentUser, eventType, startDate, endDate);
 		}
