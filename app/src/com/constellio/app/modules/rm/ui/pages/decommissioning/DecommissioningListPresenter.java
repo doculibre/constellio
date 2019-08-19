@@ -34,6 +34,7 @@ import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetail;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListValidation;
 import com.constellio.app.modules.rm.wrappers.structures.FolderDetailWithType;
+import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.components.NewReportPresenter;
@@ -192,6 +193,23 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 	public void deleteButtonClicked() {
 		delete(decommissioningList().getWrappedRecord());
 		view.navigate().to(RMViews.class).decommissioning();
+	}
+
+	public void deleteContentButtonClicked(ContentVersionVO contentVersionVO) {
+		List<Content> contents = new ArrayList<>(decommissioningList().getContent());
+		Iterator<Content> content = contents.iterator();
+		while (content.hasNext()) {
+			if (content.next().getId().equals(contentVersionVO.getContentId())) {
+				content.remove();
+				break;
+			}
+		}
+		decommissioningList().setContent(contents);
+		addOrUpdate(decommissioningList().getWrappedRecord());
+	}
+
+	public boolean canCurrentUserDeleteContent() {
+		return getCurrentUser().has(RMPermissionsTo.EDIT_DECOMMISSIONING_LIST).onSomething();
 	}
 
 	public boolean isProcessable() {

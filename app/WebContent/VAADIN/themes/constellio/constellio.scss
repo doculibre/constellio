@@ -1216,7 +1216,7 @@ $popup-view-z-index: 3;
 	}
 
 	.v-multifileupload-dropzone {
-		width: 80%;
+		width: 100%;
 		background-color: #fafafa;
 		background-image: none;
 		padding-top: 8px;
@@ -1224,6 +1224,13 @@ $popup-view-z-index: 3;
 		.v-label {
 			font-size: inherit;
 		}
+	}
+
+	.v-multifileupload-uploads {
+	    float: right;
+	    position: relative;
+	    top: -38px;
+	    margin-bottom: -38px;
 	}
 
 	.base-multifileupload-completed:after {
