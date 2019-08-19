@@ -200,13 +200,42 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 		return temporaryFile;
 	}
 
+	private String[] filterHeaderRecord(String[] headerTitleArray, Object[] visiblePropertyObjectArray) {
+
+		List<String> filteredHeaderList = new ArrayList<>();
+		for (int i = 0; i < visiblePropertyObjectArray.length; i++) {
+			if (visiblePropertyObjectArray[i] instanceof MetadataVO) {
+				filteredHeaderList.add(headerTitleArray[i]);
+			}
+		}
+
+		return filteredHeaderList.toArray(new String[0]);
+	}
+
+	private Object[] filterVisiblePropertryObjectRecord(Object[] visiblePropertyObjectArray,
+														String[] headerTitleArray) {
+
+		List<Object> filterVisiblePropertyObject = new ArrayList<>();
+		for (int i = 0; i < visiblePropertyObjectArray.length; i++) {
+			if (visiblePropertyObjectArray[i] instanceof MetadataVO) {
+				filterVisiblePropertyObject.add(visiblePropertyObjectArray[i]);
+			}
+		}
+
+		return filterVisiblePropertyObject.toArray(new Object[0]);
+	}
+
 	public void writeCsvReport(CSVWriter csvWriter) {
 		RecordVODataProvider dataProvider = getDataProvider();
 
-		String[] headerRecord = view.getTableColumn();
-		csvWriter.writeNext(headerRecord);
-		SearchResponseIterator<Record> searchResponseIterator = dataProvider.getIterator();
 		Object[] visiblePropertyObject = view.getTableVisibleProperties();
+		String[] tableColumn = view.getTableColumn();
+		String[] tableColumnFiltered = filterHeaderRecord(tableColumn, visiblePropertyObject);
+		visiblePropertyObject = filterVisiblePropertryObjectRecord(visiblePropertyObject, tableColumn);
+
+		csvWriter.writeNext(tableColumnFiltered);
+		SearchResponseIterator<Record> searchResponseIterator = dataProvider.getIterator();
+
 
 		while (searchResponseIterator.hasNext()) {
 			Record currentRecord = searchResponseIterator.next();
@@ -216,9 +245,6 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 
 			int counter = 0;
 			for (Object object : visiblePropertyObject) {
-				if (!(object instanceof MetadataVO)) {
-					continue;
-				}
 
 				MetadataVO metadataVO = (MetadataVO) object;
 				Object metadataValue = recordVO.get(metadataVO);
