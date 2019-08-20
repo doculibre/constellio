@@ -731,25 +731,25 @@ $popup-view-z-index: 3;
 			white-space: normal;
 		}
 
-	    .display-caption {
-	    	width: 300px;
-	    	word-wrap: break-word;
-			border-bottom: 1px dotted #dfdfdf;
-	    	font-weight: bold;
-		}
-
-	    .display-value, .v-caption-display-value {
-	    	text-align: left;
-	    	font-size: inherit;
-	    	word-break: break-word;
-	    	padding-left: 10px;
-	    }
-
     	.v-disabled {
     		opacity: inherit;
     		color: inherit;
     	}
 	}
+
+    .display-caption {
+    	width: 300px;
+    	word-wrap: break-word;
+		border-bottom: 1px dotted #dfdfdf;
+    	font-weight: bold;
+	}
+
+    .display-value, .v-caption-display-value {
+    	text-align: left;
+    	font-size: inherit;
+    	word-break: break-word;
+    	padding-left: 10px;
+    }
 
 	.error-label {
 		color: red;

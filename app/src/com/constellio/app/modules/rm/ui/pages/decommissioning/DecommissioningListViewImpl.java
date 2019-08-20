@@ -1190,7 +1190,6 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 		label.addStyleName(BaseDisplay.STYLE_CAPTION);
 
 		VerticalLayout result = new VerticalLayout(label, multiFileUpload, contentsTable);
-		result.addStyleName(BaseDisplay.STYLE_NAME);
 		return result;
 	}
 

@@ -13468,23 +13468,23 @@ div.v-layout.v-horizontal.v-widget {
 	white-space: normal;
 }
 
-.constellio .base-display .display-caption {
+.constellio .base-display .v-disabled {
+	opacity: inherit;
+	color: inherit;
+}
+
+.constellio .display-caption {
 	width: 300px;
 	word-wrap: break-word;
 	border-bottom: 1px dotted #dfdfdf;
 	font-weight: bold;
 }
 
-.constellio .base-display .display-value, .constellio .base-display .v-caption-display-value {
+.constellio .display-value, .constellio .v-caption-display-value {
 	text-align: left;
 	font-size: inherit;
 	word-break: break-word;
 	padding-left: 10px;
-}
-
-.constellio .base-display .v-disabled {
-	opacity: inherit;
-	color: inherit;
 }
 
 .constellio .error-label {
