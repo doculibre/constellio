@@ -213,7 +213,6 @@ public class DocumentMenuItemActionBehaviors {
 	}
 
 
-
 	public void publish(Document document, MenuItemActionBehaviorParams params) {
 		document.setPublished(true);
 		try {
@@ -345,6 +344,12 @@ public class DocumentMenuItemActionBehaviors {
 	}
 
 	public void addAuthorization(Document document, MenuItemActionBehaviorParams params) {
+		params.getView().navigate().to().shareContent(document.getId());
+		updateSearchResultClicked(document.getWrappedRecord());
+	}
+
+
+	public void manageAuthorizations(Document document, MenuItemActionBehaviorParams params) {
 		params.getView().navigate().to().listObjectAccessAndRoleAuthorizations(document.getId());
 		updateSearchResultClicked(document.getWrappedRecord());
 	}
