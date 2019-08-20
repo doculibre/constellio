@@ -88,6 +88,12 @@ public abstract class DocumentExtension {
 		return ExtensionBooleanResult.NOT_APPLICABLE;
 	}
 
+
+	public ExtensionBooleanResult isManageAuthorizationActionPossible(
+			DocumentExtensionActionPossibleParams documentExtensionActionPossibleParams) {
+		return ExtensionBooleanResult.NOT_APPLICABLE;
+	}
+
 	public ExtensionBooleanResult isGenerateReportActionPossible(
 			DocumentExtensionActionPossibleParams documentExtensionActionPossibleParams) {
 		return ExtensionBooleanResult.NOT_APPLICABLE;

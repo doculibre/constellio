@@ -211,7 +211,9 @@ public class ContentVersionVOTable extends BaseTable {
 			}
 		}
 		setColumnCollapsed(COMMENT, true);
-		setColumnCollapsed(SYSTEM_FILE_NAME, true);
+		if (isShowingSystemFileName) {
+			setColumnCollapsed(SYSTEM_FILE_NAME, true);
+		}
 	}
 
 	public void removeAllSelection() {

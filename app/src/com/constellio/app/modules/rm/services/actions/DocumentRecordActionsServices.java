@@ -280,10 +280,18 @@ public class DocumentRecordActionsServices {
 	}
 
 	public boolean isAddAuthorizationActionPossible(Record record, User user) {
-		return user.has(RMPermissionsTo.MANAGE_DOCUMENT_AUTHORIZATIONS).on(record) &&
+		return user.has(RMPermissionsTo.SHARE_DOCUMENT).on(record) &&
 			   !record.isLogicallyDeleted() &&
 			   rmModuleExtensions.isAddAuthorizationActionPossibleOnDocument(rm.wrapDocument(record), user);
 	}
+
+
+	public boolean isManageAuthorizationActionPossible(Record record, User user) {
+		return user.has(RMPermissionsTo.MANAGE_DOCUMENT_AUTHORIZATIONS).on(record) &&
+			   !record.isLogicallyDeleted() &&
+			   rmModuleExtensions.isManageAuthorizationActionPossibleOnDocument(rm.wrapDocument(record), user);
+	}
+
 
 	public boolean isFinalizeActionPossible(Record record, User user) {
 		Document document = rm.wrapDocument(record);

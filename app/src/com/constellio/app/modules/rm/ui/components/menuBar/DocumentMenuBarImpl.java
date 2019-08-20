@@ -195,7 +195,7 @@ public class DocumentMenuBarImpl extends BaseMenuBar implements DocumentMenuBar 
 		}
 
 		if (addAuthorizationButtonVisible) {
-			MenuItem addAuthorizationItem = rootItem.addItem($("DocumentContextMenu.addAuthorization"), FontAwesome.KEY, null);
+			MenuItem addAuthorizationItem = rootItem.addItem($("DocumentContextMenu.manageAuthorizations"), FontAwesome.KEY, null);
 			addAuthorizationItem.setCommand(new Command() {
 				@Override
 				public void menuSelected(MenuItem selectedItem) {
