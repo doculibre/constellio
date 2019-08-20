@@ -200,13 +200,42 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 		return temporaryFile;
 	}
 
+	private String[] filterHeaderRecord(String[] headerTitleArray, Object[] visiblePropertyObjectArray) {
+
+		List<String> filteredHeaderList = new ArrayList<>();
+		for (int i = 0; i < visiblePropertyObjectArray.length; i++) {
+			if (visiblePropertyObjectArray[i] instanceof MetadataVO) {
+				filteredHeaderList.add(headerTitleArray[i]);
+			}
+		}
+
+		return filteredHeaderList.toArray(new String[0]);
+	}
+
+	private Object[] filterVisiblePropertryObjectRecord(Object[] visiblePropertyObjectArray,
+														String[] headerTitleArray) {
+
+		List<Object> filterVisiblePropertyObject = new ArrayList<>();
+		for (int i = 0; i < visiblePropertyObjectArray.length; i++) {
+			if (visiblePropertyObjectArray[i] instanceof MetadataVO) {
+				filterVisiblePropertyObject.add(visiblePropertyObjectArray[i]);
+			}
+		}
+
+		return filterVisiblePropertyObject.toArray(new Object[0]);
+	}
+
 	public void writeCsvReport(CSVWriter csvWriter) {
 		RecordVODataProvider dataProvider = getDataProvider();
 
-		String[] headerRecord = view.getTableColumn();
-		csvWriter.writeNext(headerRecord);
-		SearchResponseIterator<Record> searchResponseIterator = dataProvider.getIterator();
 		Object[] visiblePropertyObject = view.getTableVisibleProperties();
+		String[] tableColumn = view.getTableColumn();
+		String[] tableColumnFiltered = filterHeaderRecord(tableColumn, visiblePropertyObject);
+		visiblePropertyObject = filterVisiblePropertryObjectRecord(visiblePropertyObject, tableColumn);
+
+		csvWriter.writeNext(tableColumnFiltered);
+		SearchResponseIterator<Record> searchResponseIterator = dataProvider.getIterator();
+
 
 		while (searchResponseIterator.hasNext()) {
 			Record currentRecord = searchResponseIterator.next();
@@ -216,6 +245,7 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 
 			int counter = 0;
 			for (Object object : visiblePropertyObject) {
+
 				MetadataVO metadataVO = (MetadataVO) object;
 				Object metadataValue = recordVO.get(metadataVO);
 				String valueAsString = null;
@@ -266,14 +296,10 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 		initParameters(view.getParameters());
 		switch (this.eventCategory) {
 			case EVENTS_BY_ADMINISTRATIVE_UNIT:
+			case EVENTS_BY_FOLDER:
 				return rmSchemasEventsServices().newFindEventByDateRangeAndByAdministrativeUnitQuery(currentUser, eventType,
 						startDate,
-						endDate, id);
-			case EVENTS_BY_FOLDER:
-				return rmSchemasEventsServices()
-						.newFindEventByDateRangeAndByAdministrativeUnitQuery(currentUser, eventType, startDate,
-								endDate,
-								id);//newFindEventByDateRangeAndByFolderQuery(currentUser, eventType, startDate, endDate, id);
+						endDate, id);//newFindEventByDateRangeAndByFolderQuery(currentUser, eventType, startDate, endDate, id);
 			case EVENTS_BY_CONTAINER:
 				return rmSchemasEventsServices()
 						.newFindEventByDateRangeAndByContainerQuery(currentUser, eventType, startDate,
@@ -292,7 +318,12 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 				return rmSchemasEventsServices().newFindCurrentlyBorrowedDocumentsQuery(currentUser);
 			case CURRENTLY_BORROWED_FOLDERS:
 				return rmSchemasEventsServices().newFindCurrentlyBorrowedFoldersQuery(currentUser);
-
+			case FOLDERS_BORROW_OR_RETURN:
+				if (EventType.BORROW_FOLDER.equals(eventType)) {
+					return rmSchemasEventsServices().newFindBorrowedFoldersByDateRangeQuery(currentUser, startDate, endDate);
+				} else {
+					return rmSchemasEventsServices().newFindEventByDateRangeQuery(currentUser, eventType, startDate, endDate);
+				}
 			default:
 				return rmSchemasEventsServices().newFindEventByDateRangeQuery(currentUser, eventType, startDate, endDate);
 		}

@@ -22,6 +22,7 @@ import com.vaadin.ui.Button;
 import org.apache.commons.collections4.MapUtils;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -120,6 +121,10 @@ public class RecordVOActionButtonFactory {
 		return menuItemFactory.buildActionButtons(menuItemActions, new MenuItemRecordProvider() {
 			@Override
 			public List<Record> getRecords() {
+				if (recordVO == null) {
+					return Collections.emptyList();
+				}
+
 				return Arrays.asList(recordVO.getRecord());
 			}
 		});
