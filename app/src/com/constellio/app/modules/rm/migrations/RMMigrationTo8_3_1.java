@@ -60,7 +60,7 @@ public class RMMigrationTo8_3_1 implements MigrationScript {
 			RolesManager rolesManager = factory.getModelLayerFactory().getRolesManager();
 
 			Role admRole = rolesManager.getRole(collection, CoreRoles.ADMINISTRATOR);
-			rolesManager.updateRole(admRole.withNewPermissions(asList(CorePermissions.BATCH_PROCESS)));
+			rolesManager.updateRole(admRole.withNewPermissions(asList(CorePermissions.MODIFY_RECORDS_USING_BATCH_PROCESS)));
 
 			List<Role> allRoles = rolesManager.getAllRoles(collection);
 			for (Role role : allRoles) {

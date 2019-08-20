@@ -630,30 +630,32 @@ public class RecordAutomaticMetadataServices {
 		KeyListMap<String, String> groupsGivingAccessToUser = new KeyListMap<>();
 		KeyListMap<String, String> activePrincipalsGivingAccessToPrincipal = new KeyListMap<>();
 
-		Metadata groupAncestorMetadata = types.getSchema(Group.DEFAULT_SCHEMA).getMetadata(Group.ANCESTORS);
 		Map<String, Boolean> globalGroupEnabledMap = new HashMap<>();
-		for (Record group : searchServices.getAllRecordsInUnmodifiableState(types.getSchemaType(Group.SCHEMA_TYPE))) {
-			if (group != null) {
-				boolean enabled = !disabledGroups.contains(group.<String>get(Schemas.CODE));
-				globalGroupEnabledMap.put(group.getId(), enabled);
+		if (types.getSchema(Group.DEFAULT_SCHEMA).hasMetadataWithCode(Group.ANCESTORS)) {
+			Metadata groupAncestorMetadata = types.getSchema(Group.DEFAULT_SCHEMA).getMetadata(Group.ANCESTORS);
 
-				for (String ancestor : group.<String>getList(groupAncestorMetadata)) {
-					if (groupInheritanceMode == FROM_PARENT_TO_CHILD) {
-						groupsGivingAccessToGroup.add(group.getId(), ancestor);
-						groupsReceivingAccessFromGroup.add(ancestor, group.getId());
+			for (Record group : searchServices.getAllRecordsInUnmodifiableState(types.getSchemaType(Group.SCHEMA_TYPE))) {
+				if (group != null) {
+					boolean enabled = !disabledGroups.contains(group.<String>get(Schemas.CODE));
+					globalGroupEnabledMap.put(group.getId(), enabled);
 
-					} else {
-						groupsReceivingAccessFromGroup.add(group.getId(), ancestor);
-						groupsGivingAccessToGroup.add(ancestor, group.getId());
+					for (String ancestor : group.<String>getList(groupAncestorMetadata)) {
+						if (groupInheritanceMode == FROM_PARENT_TO_CHILD) {
+							groupsGivingAccessToGroup.add(group.getId(), ancestor);
+							groupsReceivingAccessFromGroup.add(ancestor, group.getId());
+
+						} else {
+							groupsReceivingAccessFromGroup.add(group.getId(), ancestor);
+							groupsGivingAccessToGroup.add(ancestor, group.getId());
+						}
+
 					}
 
-					}
-
-			} else {
-				LOGGER.warn("Null record returned while getting all groups");
+				} else {
+					LOGGER.warn("Null record returned while getting all groups");
+				}
 			}
 		}
-
 
 		Metadata userGroups = types.getSchemaType(User.SCHEMA_TYPE).getDefaultSchema().getMetadata(User.GROUPS);
 		for (Record user : searchServices.getAllRecordsInUnmodifiableState(types.getSchemaType(User.SCHEMA_TYPE))) {
