@@ -18,6 +18,7 @@ import com.constellio.app.ui.framework.components.ReportViewer.DownloadStreamRes
 import com.constellio.app.ui.framework.components.SearchResultSimpleTable;
 import com.constellio.app.ui.framework.components.SearchResultTable;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
+import com.constellio.app.ui.framework.components.search.ViewableRecordVOSearchResultTable;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.SearchResultVODataProvider;
@@ -38,7 +39,6 @@ import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.server.StreamResource;
-import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
@@ -63,7 +63,6 @@ import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActio
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.entities.enums.BatchProcessingMode.ALL_METADATA_OF_SCHEMA;
 import static com.constellio.model.entities.enums.BatchProcessingMode.ONE_METADATA;
-import static java.util.Arrays.asList;
 
 public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresenter>
 		implements AdvancedSearchView, BatchProcessingView, Observer {
@@ -143,7 +142,7 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 				new MenuItemActionBehaviorParams() {
 					@Override
 					public BaseView getView() {
-						return (BaseView) ConstellioUI.getCurrent().getCurrentView();
+						return AdvancedSearchViewImpl.this;
 					}
 
 					@Override
@@ -170,20 +169,18 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 					return (Component) actionButton;
 				}).collect(Collectors.toList());
 
-		Button switchViewMode = buildSwitchViewMode();
+		//		Button switchViewMode = buildSwitchViewMode();
 
 		// TODO Build SelectAllButton properly for table mode
 		//		List<Component> actions = Arrays.asList(
 		//				buildSelectAllButton(), buildSavedSearchButton(), (Component) new ReportSelector(presenter));
 		// FIXME test for extensions batch process + generate report
 		List<MenuItemAction> menuItemActions = menuItemServices.getActionsForRecords(presenter.getSearchQuery(),
-				asList("RMRECORDS_ADD_CART", "RMRECORDS_MOVE", "RMRECORDS_COPY", "RMRECORDS_CREATE_SIP",
-						"RMRECORDS_SEND_EMAIL", "RMRECORDS_CREATE_PDF", "RMRECORDS_PRINT_LABEL",
-						"RMRECORDS_ADD_SELECTION", "RMRECORDS_DOWNLOAD_ZIP"),
+				selectedMenuItemActions.stream().map(menuItemAction -> menuItemAction.getType()).collect(Collectors.toList()),
 				new MenuItemActionBehaviorParams() {
 					@Override
 					public BaseView getView() {
-						return (BaseView) ConstellioUI.getCurrent().getCurrentView();
+						return AdvancedSearchViewImpl.this;
 					}
 
 					@Override
@@ -208,13 +205,24 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 					actionButton.setVisible(menuItemAction.getState().getStatus() != HIDDEN);
 					return (Component) actionButton;
 				}).collect(Collectors.toList());
-		actions.add(buildSavedSearchButton());
 
-		//List<Component> actions = Arrays.asList(
-		//		/*buildSelectAllButton(), buildAddToSelectionButton(),*/ buildSavedSearchButton()/*, (Component) switchViewMode*/);
 
-		return results.createSummary(actions, selectionActions);
+		if (results instanceof ViewableRecordVOSearchResultTable) {
+			ViewableRecordVOSearchResultTable viewableRecordVOSearchResultTable = (ViewableRecordVOSearchResultTable) results;
+			viewableRecordVOSearchResultTable.setQuickActionButtonsToExpend();
+			for (Component component : actions) {
+				if (component instanceof BaseButton) {
+
+					viewableRecordVOSearchResultTable.setQuickActionButton((BaseButton) component);
+				}
+			}
+
+		}
+
+		return results.createSummary(Collections.emptyList(), selectionActions);
 	}
+
+
 
 	private String getSwitchViewModeCaption() {
 		String caption;
@@ -226,22 +234,6 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 		return caption;
 	}
 
-	private Button buildSwitchViewMode() {
-		final Button switchViewModeButton = new Button(getSwitchViewModeCaption());
-		switchViewModeButton.addClickListener(new Button.ClickListener() {
-			@Override
-			public void buttonClick(Button.ClickEvent event) {
-				if (presenter.getResultsViewMode().equals(SearchResultsViewMode.DETAILED)) {
-					presenter.switchToTableView();
-				} else if (presenter.getResultsViewMode().equals(SearchResultsViewMode.TABLE)) {
-					presenter.switchToDetailedView();
-				}
-				switchViewModeButton.setCaption(getSwitchViewModeCaption());
-			}
-		});
-		switchViewModeButton.addStyleName(ValoTheme.BUTTON_LINK);
-		return switchViewModeButton;
-	}
 
 	@Override
 	protected SearchResultTable buildSimpleResultsTable(SearchResultVODataProvider dataProvider) {

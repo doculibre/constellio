@@ -253,6 +253,10 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
 		adjustTableExpansion();
 	}
 
+	public void setQuickActionButtonsToExpend() {
+		tableButtonsLayout.setExpandRatio(actionAndModeButtonsLayout, 1);
+	}
+
 	public void setViewActionButtonsLayoutComponents(List<Component> components) {
 		viewActionButtonsLayout.setVisible(!components.isEmpty());
 		for (Component component : components) {
