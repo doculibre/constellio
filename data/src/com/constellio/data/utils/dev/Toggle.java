@@ -75,7 +75,7 @@ public class Toggle {
 
 	public static AvailableToggle VALIDATE_CACHE_EXECUTION_SERVICE_USING_SOLR = newToggle(false);
 
-	public static AvailableToggle VALIDATE_BYTE_ARRAY_DTOS_AFTER_CREATION = newToggle(true);
+	public static AvailableToggle VALIDATE_BYTE_ARRAY_DTOS_AFTER_CREATION = newToggle(false);
 
 	public static AvailableToggle MIGRATING_LEGACY_SAVESTATE = newToggle(false);
 

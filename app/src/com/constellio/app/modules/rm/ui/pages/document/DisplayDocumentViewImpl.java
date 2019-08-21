@@ -264,6 +264,13 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 			public void selectedTabChange(TabSheet.SelectedTabChangeEvent event) {
 				if (event.getTabSheet().getSelectedTab() == eventsComponent) {
 					presenter.refreshEvents();
+
+				} else if (event.getTabSheet().getSelectedTab() == tasksComponent) {
+					presenter.tasksTabSelected();
+
+				} else if (event.getTabSheet().getSelectedTab() == eventsComponent) {
+					presenter.eventsTabSelected();
+
 				}
 			}
 		});
@@ -487,8 +494,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 			}
 		});
 		Component oldTasksComponent = tasksComponent;
-		tasksComponent = tasksTable;
-		tabSheet.replaceComponent(oldTasksComponent, tasksComponent);
+		tabSheet.replaceComponent(oldTasksComponent, tasksTable);
 	}
 
 	@Override

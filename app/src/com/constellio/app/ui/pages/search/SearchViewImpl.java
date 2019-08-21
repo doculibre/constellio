@@ -412,13 +412,13 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		//
 		//			resultsAndFacetsPanel = body;
 		//		} else {
-			I18NHorizontalLayout body = new I18NHorizontalLayout(resultsArea, facetsArea);
-			body.addStyleName("search-result-and-facets-container");
-			body.setWidth("100%");
-			body.setExpandRatio(resultsArea, 1);
-			body.setSpacing(true);
+		I18NHorizontalLayout body = new I18NHorizontalLayout(resultsArea, facetsArea);
+		body.addStyleName("search-result-and-facets-container");
+		body.setWidth("100%");
+		body.setExpandRatio(resultsArea, 1);
+		body.setSpacing(true);
 
-			resultsAndFacetsPanel = body;
+		resultsAndFacetsPanel = body;
 		//		}
 
 		refreshCapsule();
@@ -471,7 +471,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 
 		RecordDisplayFactory displayFactory = new RecordDisplayFactory(getSessionContext().getCurrentUser(), extraParameters);
 
-		final boolean indexColumn = presenter.isShowNumberingColumn();
+		final boolean indexColumn = presenter.isShowNumberingColumn(dataProvider);
 		ViewableRecordVOSearchResultTable.TableMode tableMode;
 		if (this.resultsTable != null) {
 			tableMode = ((ViewableRecordVOSearchResultTable) this.resultsTable).getTableMode();
@@ -551,7 +551,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 
 	protected SearchResultTable buildDetailedResultsTable(SearchResultVODataProvider dataProvider) {
 		SearchResultContainer container = buildResultContainer(dataProvider);
-		SearchResultDetailedTable srTable = new SearchResultDetailedTable(container, presenter.isAllowDownloadZip(), presenter.isShowNumberingColumn()) {
+		SearchResultDetailedTable srTable = new SearchResultDetailedTable(container, presenter.isAllowDownloadZip(), presenter.isShowNumberingColumn(dataProvider)) {
 			@Override
 			protected void onPreviousPageButtonClicked() {
 				super.onPreviousPageButtonClicked();
@@ -626,7 +626,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		RecordDisplayFactory displayFactory = new RecordDisplayFactory(getSessionContext().getCurrentUser(), extraParameters);
 		SearchResultVOLazyContainer results = new SearchResultVOLazyContainer(dataProvider);
 		SearchResultContainer container = new SearchResultContainer(results, displayFactory,
-				presenter.getSearchQuery().getFreeTextQuery(), presenter.isShowNumberingColumn()) {
+				presenter.getSearchQuery().getFreeTextQuery(), presenter.isShowNumberingColumn(dataProvider)) {
 			@Override
 			protected ClickListener getClickListener(final SearchResultVO searchResultVO, final Integer index) {
 				return new ClickListener() {

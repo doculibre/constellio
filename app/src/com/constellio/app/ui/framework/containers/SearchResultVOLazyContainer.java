@@ -28,7 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SearchResultVOLazyContainer extends LazyQueryContainer implements RecordVOContainer {
-	
+
 	private SearchResultVODataProvider dataProvider;
 
 	public SearchResultVOLazyContainer(SearchResultVODataProvider dataProvider) {
@@ -98,7 +98,7 @@ public class SearchResultVOLazyContainer extends LazyQueryContainer implements R
 		SearchResultVODataProvider dataProvider;
 
 		public SearchResultVOLazyQueryDefinition(SearchResultVODataProvider dataProvider) {
-			super(true, 100, null);
+			super(true, dataProvider.getResultsPerPage(), null);
 			this.dataProvider = dataProvider;
 
 			List<RecordVODataProvider> recordVODataProviders = new ArrayList<>();

@@ -56,7 +56,7 @@ public class RecordProvider {
 			}
 		}
 		if (record == null && recordServices != null) {
-			record = recordServices.realtimeGetRecordById(id);
+			record = recordServices.getDocumentById(id);
 			if (record != null) {
 				memoryList.put(id, record);
 			}

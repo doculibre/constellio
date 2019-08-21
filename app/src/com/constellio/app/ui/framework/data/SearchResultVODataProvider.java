@@ -57,6 +57,10 @@ public abstract class SearchResultVODataProvider implements DataProvider {
 		init(appLayerFactory, sessionContext);
 	}
 
+	public int getResultsPerPage() {
+		return resultsPerPage;
+	}
+
 	public Map<String, List<FacetValue>> getFieldFacetValues() {
 		SerializedCacheSearchService searchServices = new SerializedCacheSearchService(modelLayerFactory, queryCache, true);
 		return searchServices.getFieldFacetValues();

@@ -77,7 +77,7 @@ public class LogicalSearchQuery implements SearchQuery {
 
 	private String language;
 
-	private QueryExecutionMethod queryExecutionMethod = QueryExecutionMethod.USE_CACHE_IF_POSSIBLE;
+	private QueryExecutionMethod queryExecutionMethod = QueryExecutionMethod.DEFAULT;
 
 	public LogicalSearchQuery() {
 		numberOfRows = DEFAULT_NUMBER_OF_ROWS;

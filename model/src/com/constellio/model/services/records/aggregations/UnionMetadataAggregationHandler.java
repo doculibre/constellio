@@ -7,6 +7,7 @@ import com.constellio.model.entities.schemas.entries.InMemoryAggregatedValuesPar
 import com.constellio.model.entities.schemas.entries.SearchAggregatedValuesParams;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.QueryExecutionMethod;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -31,6 +32,8 @@ public class UnionMetadataAggregationHandler implements MetadataAggregationHandl
 		LogicalSearchQuery query = new LogicalSearchQuery(params.getCombinedQuery());
 
 		query.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(params.getInputMetadatas()));
+		query.setQueryExecutionMethod(QueryExecutionMethod.USE_CACHE);
+		query.setName("RecordReindexing:BackgroundThread:UnionMetadataAggregationHandlerQuery");
 		SearchResponseIterator<Record> iterator = params.getSearchServices().recordsIterator(query, 10000);
 
 		Set<Comparable> allValues = new HashSet<>();
