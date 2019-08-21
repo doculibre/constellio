@@ -22,7 +22,6 @@ subprojects {
 		
         resolutionStrategy {
             force "org.apache.james:apache-mime4j:${version_mime}"
-        	force "javax.validation:validation-api:1.0.0.GA"
         }
     }
 
