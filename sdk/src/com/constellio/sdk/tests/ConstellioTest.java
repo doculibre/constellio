@@ -69,6 +69,7 @@ public class ConstellioTest extends AbstractConstellioTest {
 
 			//			testSession.getFactoriesTestFeatures().clear();
 			try {
+				SDKConstellioFactoriesInstanceProvider.firstTest = true;
 				testSession.getFactoriesTestFeatures().getConstellioFactories();
 			} catch (Exception e) {
 
