@@ -16,6 +16,8 @@ public class SDKConstellioFactoriesInstanceProvider implements ConstellioFactori
 
 	public static final String DEFAULT_NAME = "default";
 
+	public static boolean firstTest;
+
 	ThreadLocal<String> nameThreadLocal = new ThreadLocal<>();
 	Map<String, ConstellioFactories> instances = new HashMap<>();
 
@@ -38,7 +40,11 @@ public class SDKConstellioFactoriesInstanceProvider implements ConstellioFactori
 				if (constellioFactories == null) {
 					constellioFactories = constellioFactoriesFactory.get();
 					instances.put(name, constellioFactories);
-					constellioFactories.getAppLayerFactory().initialize();
+					if (firstTest) {
+						firstTest = false;
+					} else {
+						constellioFactories.getAppLayerFactory().initialize();
+					}
 					createdByThisThread = true;
 				}
 			}
