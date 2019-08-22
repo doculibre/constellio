@@ -1,11 +1,11 @@
 package com.constellio.model.services.migrations;
 
-import static com.constellio.model.services.migrations.TimeScheduleConfigurationValidator.isCurrentlyInSchedule;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.configs.AbstractSystemConfigurationScript;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.configs.SystemConfigurationGroup;
 import com.constellio.model.entities.configs.core.listeners.UserTitlePatternConfigScript;
+import com.constellio.model.entities.enums.AutocompleteSplitCriteria;
 import com.constellio.model.entities.enums.BatchProcessingMode;
 import com.constellio.model.entities.enums.EmailTextFormat;
 import com.constellio.model.entities.enums.GroupAuthorizationsInheritance;
@@ -27,6 +27,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import static com.constellio.model.services.migrations.TimeScheduleConfigurationValidator.isCurrentlyInSchedule;
 
 public class ConstellioEIMConfigs {
 
@@ -114,6 +116,7 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration LAZY_TREE_BUFFER_SIZE;
 
 	public static final SystemConfiguration AUTOCOMPLETE_SIZE;
+	public static final SystemConfiguration AUTOCOMPLETE_SPLIT_CRITERIA;
 
 	//public static final SystemConfiguration DEFAULT_FONT_SIZE;
 
@@ -207,6 +210,8 @@ public class ConstellioEIMConfigs {
 
 		add(AUTOCOMPLETE_SIZE = others.createInteger("autocompleteSize").withDefaultValue(15)
 				.scriptedBy(AutocompleteSizeValidationScript.class));
+		add(AUTOCOMPLETE_SPLIT_CRITERIA = others.createEnum("autocompleteSplitCriteria", AutocompleteSplitCriteria.class)
+				.withDefaultValue(AutocompleteSplitCriteria.SPACE).withReIndexationRequired());
 
 		SystemConfigurationGroup search = new SystemConfigurationGroup(null, "search");
 		add(SEARCH_SORT_TYPE = search.createEnum("sortType", SearchSortType.class).withDefaultValue(SearchSortType.RELEVENCE));
@@ -491,6 +496,10 @@ public class ConstellioEIMConfigs {
 		return manager.getValue(AUTOCOMPLETE_SIZE);
 	}
 
+	public AutocompleteSplitCriteria getAutocompleteSplitCriteria() {
+		return manager.getValue(AUTOCOMPLETE_SPLIT_CRITERIA);
+	}
+
 	public boolean isIncludeContentsInSavestate() {
 		return manager.getValue(INCLUDE_CONTENTS_IN_SAVESTATE);
 	}
@@ -563,11 +572,11 @@ public class ConstellioEIMConfigs {
 	public Set<String> getFileExtensionsExcludedFromParsing() {
 		String extensionsAsString = manager.getValue(FILE_EXTENSIONS_EXCLUDED_FROM_PARSING);
 		Set<String> extensionSet = new HashSet<>();
-		if(!StringUtils.isBlank(extensionsAsString)) {
+		if (!StringUtils.isBlank(extensionsAsString)) {
 			String[] splittedExtensions = extensionsAsString.split(",");
-			for(String currentExtension: splittedExtensions) {
+			for (String currentExtension : splittedExtensions) {
 				String formattedExtension = currentExtension.trim().toLowerCase();
-				if(formattedExtension.startsWith(".")) {
+				if (formattedExtension.startsWith(".")) {
 					extensionSet.add(formattedExtension.substring(1));
 				} else {
 					extensionSet.add(formattedExtension);
@@ -592,6 +601,7 @@ public class ConstellioEIMConfigs {
 	public boolean isSystemStateSolrDiskUsageValidationEnabled() {
 		return manager.getValue(ENABLE_SYSTEM_STATE_SOLR_DISK_USAGE);
 	}
+
 	public boolean isUpdateServerConnectionEnabled() {
 		return manager.getValue(UPDATE_SERVER_CONNECTION_ENABLED);
 	}
