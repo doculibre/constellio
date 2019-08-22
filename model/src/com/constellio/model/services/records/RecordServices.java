@@ -1,6 +1,7 @@
 package com.constellio.model.services.records;
 
 import com.constellio.data.dao.dto.records.RecordDTO;
+import com.constellio.data.dao.services.records.DataStore;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
@@ -77,23 +78,76 @@ public interface RecordServices {
 
 	Record getRecordSummaryByMetadata(Metadata metadata, String value);
 
-	Record realtimeGetById(MetadataSchemaType schemaType, String id);
+	default Record realtimeGetById(MetadataSchemaType schemaType, String id, boolean callExtensions) {
+		return realtimeGetById(schemaType.getDataStore(), id, callExtensions);
+	}
 
-	Record realtimeGetById(String dataStore, String id);
+	Record realtimeGetById(String dataStore, String id, boolean callExtensions);
 
-	Record realtimeGetRecordSummaryById(String id);
+	Record realtimeGetRecordSummaryById(String id, boolean callExtensions);
 
-	Record realtimeGetRecordById(String id);
+	List<Record> realtimeGetRecordById(List<String> ids, boolean callExtensions);
 
-	Record getDocumentById(String id);
+	default Record realtimeGetRecordById(String id, boolean callExtensions) {
+		return realtimeGetById(DataStore.RECORDS, id, callExtensions);
+	}
 
-	Record getDocumentById(String id, User user);
+	default Record getDocumentById(String id, boolean callExtensions) {
+		return getById(DataStore.RECORDS, id, callExtensions);
+	}
 
-	Record getById(MetadataSchemaType schemaType, String id);
+	Record getDocumentById(String id, User user, boolean callExtensions);
 
-	Record getById(String dataStore, String id);
+	default Record getById(MetadataSchemaType schemaType, String id, boolean callExtensions) {
+		return getById(schemaType.getDataStore(), id, callExtensions);
+	}
 
-	List<Record> getRecordsById(String collection, List<String> ids);
+	Record getById(String dataStore, String id, boolean callExtensions);
+
+	List<Record> getRecordsById(String collection, List<String> ids, boolean callExtensions);
+
+	// --
+
+
+	default Record realtimeGetById(MetadataSchemaType schemaType, String id) {
+		return realtimeGetById(schemaType, id, true);
+	}
+
+	default Record realtimeGetById(String dataStore, String id) {
+		return realtimeGetById(dataStore, id, true);
+	}
+
+	default Record realtimeGetRecordSummaryById(String id) {
+		return realtimeGetRecordSummaryById(id, true);
+	}
+
+	default Record realtimeGetRecordById(String id) {
+		return realtimeGetRecordById(id, true);
+	}
+
+	default Record getDocumentById(String id) {
+		return getDocumentById(id, true);
+	}
+
+	default Record getDocumentById(String id, User user) {
+		return getDocumentById(id, user, true);
+	}
+
+	default Record getById(MetadataSchemaType schemaType, String id) {
+		return getById(schemaType, id, true);
+	}
+
+	default Record getById(String dataStore, String id) {
+		return getById(dataStore, id, true);
+	}
+
+	default List<Record> getRecordsById(String collection, List<String> ids) {
+		return getRecordsById(collection, ids, true);
+	}
+
+	default List<Record> realtimeGetRecordById(List<String> ids) {
+		return realtimeGetRecordById(ids, true);
+	}
 
 	void prepareRecords(Transaction transaction)
 			throws RecordServicesException.ValidationException;

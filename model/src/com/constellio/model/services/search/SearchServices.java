@@ -871,7 +871,7 @@ public class SearchServices {
 
 	public long getResultsCount(LogicalSearchQuery query) {
 		LogicalSearchQuery clonedQuery = new LogicalSearchQuery(query);
-		clonedQuery.setReturnedMetadatas(ReturnedMetadatasFilter.idVersionSchema());
+		clonedQuery.setReturnedMetadatas(ReturnedMetadatasFilter.onlySummaryFields());
 		clonedQuery.clearSort();
 		if (logicalSearchQueryExecutorInCache.isQueryExecutableInCache(clonedQuery)) {
 			Stream<Record> stream = logicalSearchQueryExecutorInCache.stream(clonedQuery);

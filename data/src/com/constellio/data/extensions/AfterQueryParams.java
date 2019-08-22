@@ -12,4 +12,6 @@ public interface AfterQueryParams {
 
 	String getQueryName();
 
+	boolean isGetByIdQuery();
+
 }

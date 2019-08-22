@@ -40,10 +40,33 @@ public class DataLayerSystemExtensions {
 
 	//----------------- Callers ---------------
 
+	public void afterRealtimeGetById(final long qtime, final String id, boolean found) {
+		AfterGetByIdParams params = new AfterGetByIdParams() {
+			@Override
+			public String getId() {
+				return id;
+			}
+
+			@Override
+			public long getQtime() {
+				return qtime;
+			}
+
+			@Override
+			public boolean found() {
+				return found;
+			}
+		};
+		for (BigVaultServerExtension extension : bigVaultServerExtension) {
+			extension.afterRealtimeGetById(params);
+		}
+	}
+
 	public void afterQuery(final SolrParams params, final String name, final long qtime, final int resultsSize) {
 		for (BigVaultServerExtension extension : bigVaultServerExtension) {
 			try {
 				extension.afterQuery(params, qtime);
+				final boolean getById = name != null && name.startsWith("getById:");
 				extension.afterQuery(new AfterQueryParams() {
 					@Override
 					public SolrParams getSolrParams() {
@@ -65,7 +88,32 @@ public class DataLayerSystemExtensions {
 						return name;
 					}
 
+					@Override
+					public boolean isGetByIdQuery() {
+						return getById;
+					}
+
 				});
+				if (getById) {
+					String id = name.substring(name.indexOf(":"));
+					extension.afterGetById(new AfterGetByIdParams() {
+
+						@Override
+						public long getQtime() {
+							return qtime;
+						}
+
+						@Override
+						public boolean found() {
+							return resultsSize > 0;
+						}
+
+						@Override
+						public String getId() {
+							return id;
+						}
+					});
+				}
 			} catch (Exception e) {
 				e.printStackTrace();
 			}

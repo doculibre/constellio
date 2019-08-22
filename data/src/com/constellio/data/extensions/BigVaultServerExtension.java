@@ -12,6 +12,13 @@ public class BigVaultServerExtension {
 	public void afterQuery(AfterQueryParams params) {
 	}
 
+	public void afterRealtimeGetById(AfterGetByIdParams params) {
+	}
+
+	public void afterGetById(AfterGetByIdParams params) {
+	}
+
+
 	public void afterUpdate(BigVaultServerTransaction transaction, long qtime) {
 	}
 

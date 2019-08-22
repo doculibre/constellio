@@ -1,6 +1,7 @@
 package com.constellio.model.services.contents;
 
 import com.constellio.data.conf.HashingEncoding;
+import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordDTOMode;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
@@ -827,6 +828,7 @@ public class ContentManager implements StatefulService {
 						}
 						try {
 							transaction.setRecordFlushing(RecordsFlushing.LATER());
+							transaction.setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
 							recordServices.executeWithoutImpactHandling(transaction);
 						} catch (RecordServicesException e) {
 							throw new RuntimeException(e);
