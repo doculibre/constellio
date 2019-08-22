@@ -68,7 +68,12 @@ public class DisplaySchemaRecordViewImpl extends BaseViewImpl implements Display
 
 	@Override
 	protected void initBeforeCreateComponents(ViewChangeEvent event) {
-		presenter.forParams(event == null ? recordVO.getId() : event.getParameters());
+		if (event != null) {
+			presenter.forParams(event.getParameters());
+		} else if (recordVO != null) {
+			presenter.forParams(recordVO.getId());
+		}
+
 	}
 
 	@Override

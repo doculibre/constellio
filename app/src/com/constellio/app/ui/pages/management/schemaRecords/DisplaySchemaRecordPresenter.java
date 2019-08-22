@@ -48,6 +48,7 @@ public class DisplaySchemaRecordPresenter extends SingleSchemaBasePresenter<Disp
 		this.recordVO = recordVO;
 		this.nestedView = nestedView;
 		this.inWindow = inWindow;
+		this.view.setRecordVO(recordVO);
 		initTransientObjects();
 	}
 
