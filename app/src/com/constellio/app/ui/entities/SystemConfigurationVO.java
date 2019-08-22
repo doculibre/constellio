@@ -15,6 +15,7 @@ import static com.constellio.model.entities.configs.SystemConfigurationType.BINA
 
 public class SystemConfigurationVO implements Serializable {
 	String code;
+	String configSubGroupCode;
 	Object value;
 	SystemConfigurationType type;
 	Class<? extends Enum<?>> values;
@@ -24,10 +25,11 @@ public class SystemConfigurationVO implements Serializable {
 	boolean rebootRequired;
 	boolean hiddenValue;
 
-	public SystemConfigurationVO(String code, Object value,
+	public SystemConfigurationVO(String code, String configSubGroupCode, Object value,
 								 SystemConfigurationType type, Class<? extends Enum<?>> values, boolean rebootRequired,
 								 boolean hiddenValue) {
 		this.code = code;
+		this.configSubGroupCode = configSubGroupCode;
 		this.value = value;
 		this.type = type;
 		this.values = values;
@@ -38,6 +40,10 @@ public class SystemConfigurationVO implements Serializable {
 
 	public String getCode() {
 		return code;
+	}
+
+	public String getConfigSubGroupCode() {
+		return configSubGroupCode;
 	}
 
 	public void setCode(String code) {

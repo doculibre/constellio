@@ -15,6 +15,8 @@ public class SystemConfiguration implements Serializable {
 
 	String configGroupCode;
 
+	String configSubGroupCode;
+
 	String code;
 
 	String propertyKey;
@@ -34,8 +36,17 @@ public class SystemConfiguration implements Serializable {
 						Class<? extends Enum<?>> enumClass, Class<? extends SystemConfigurationScript> scriptClass,
 						boolean hidden,
 						boolean rebootRequired, boolean hiddenValue, boolean requireReIndexing) {
+		this(type, module, configGroupCode, "default", code, defaultValue, enumClass, scriptClass, hidden, rebootRequired, hiddenValue, requireReIndexing);
+	}
+
+	SystemConfiguration(SystemConfigurationType type, String module, String configGroupCode, String configSubGroupCode, String code,
+						Object defaultValue,
+						Class<? extends Enum<?>> enumClass, Class<? extends SystemConfigurationScript> scriptClass,
+						boolean hidden,
+						boolean rebootRequired, boolean hiddenValue, boolean requireReIndexing) {
 		this.type = type;
 		this.configGroupCode = configGroupCode;
+		this.configSubGroupCode = configSubGroupCode;
 		this.code = code;
 		this.module = module;
 		this.defaultValue = defaultValue;
@@ -58,6 +69,10 @@ public class SystemConfiguration implements Serializable {
 
 	public String getConfigGroupCode() {
 		return configGroupCode;
+	}
+
+	public String getConfigSubGroupCode() {
+		return configSubGroupCode;
 	}
 
 	public String getCode() {
@@ -127,6 +142,11 @@ public class SystemConfiguration implements Serializable {
 
 	public SystemConfiguration withReIndexationRequired() {
 		return new SystemConfiguration(type, module, configGroupCode, code, defaultValue, enumClass, scriptClass, hidden,
+				rebootRequired, hiddenValue, true);
+	}
+
+	public SystemConfiguration inSubGroup(String subgroupCode) {
+		return new SystemConfiguration(type, module, configGroupCode, subgroupCode, code, defaultValue, enumClass, scriptClass, hidden,
 				rebootRequired, hiddenValue, true);
 	}
 

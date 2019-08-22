@@ -8,7 +8,7 @@ import java.io.Serializable;
 public class SystemConfigurationToVOBuilder implements Serializable {
 
 	public SystemConfigurationVO build(SystemConfiguration config, Object value) {
-		return new SystemConfigurationVO(config.getCode(),
+		return new SystemConfigurationVO(config.getCode(), config.getConfigSubGroupCode(),
 				value, config.getType(),
 				config.getEnumClass(), config.isRebootRequired(), config.isHiddenValue());
 

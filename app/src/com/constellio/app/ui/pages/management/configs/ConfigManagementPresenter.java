@@ -190,6 +190,14 @@ public class ConfigManagementPresenter extends BasePresenter<ConfigManagementVie
 		return $("SystemConfigurationGroup." + groupCode);
 	}
 
+	public String getSubGroupLabel(String groupCode, String subGroupCode) {
+		if ("default".equals(subGroupCode)) {
+			return $("SystemConfigurationGroup.defaultSubgroup");
+		} else {
+			return $("SystemConfigurationGroup." + groupCode + "." + subGroupCode);
+		}
+	}
+
 	public void backButtonClick() {
 		view.navigate().to().adminModule();
 	}

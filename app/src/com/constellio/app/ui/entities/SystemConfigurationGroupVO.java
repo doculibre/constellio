@@ -1,8 +1,7 @@
 package com.constellio.app.ui.entities;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class SystemConfigurationGroupVO implements Serializable {
 
@@ -16,6 +15,12 @@ public class SystemConfigurationGroupVO implements Serializable {
 
 		this.groupCode = groupCode;
 		this.configs = configs;
+		this.configs.sort(new Comparator<SystemConfigurationVO>() {
+			@Override
+			public int compare(SystemConfigurationVO config1, SystemConfigurationVO config2) {
+				return config1.getConfigSubGroupCode().compareTo(config2.getConfigSubGroupCode());
+			}
+		});
 	}
 
 	public String getGroupCode() {
@@ -30,6 +35,15 @@ public class SystemConfigurationGroupVO implements Serializable {
 		return configs;
 	}
 
+	public List<String> getConfigSubGroupCodes() {
+		Set<String> configsSubGroupCodes = new HashSet<>();
+		for(SystemConfigurationVO config : configs){
+			configsSubGroupCodes.add(config.getConfigSubGroupCode());
+		}
+
+		return new ArrayList<>(configsSubGroupCodes);
+	}
+
 	public void setConfigs(List<SystemConfigurationVO> configs) {
 		this.configs = configs;
 	}
@@ -42,6 +56,17 @@ public class SystemConfigurationGroupVO implements Serializable {
 		SystemConfigurationVO config = configs.get(i);
 		config.setStringValue(newStringValue);
 		updatedSystemConfigurationVOIndexes.add(i);
+	}
+
+	public List<SystemConfigurationVO> getSystemConfigurationVOsForSubGroup(String configSubGroupCode) {
+		ArrayList<SystemConfigurationVO> configsForSubGroup = new ArrayList<>();
+		for(SystemConfigurationVO config : configs){
+			if(config.getConfigSubGroupCode().equals(configSubGroupCode)) {
+				configsForSubGroup.add(config);
+			}
+		}
+
+		return configsForSubGroup;
 	}
 
 	public SystemConfigurationVO getSystemConfigurationVO(String code) {

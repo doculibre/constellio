@@ -195,7 +195,7 @@ public class ConstellioEIMConfigs {
 
 		SystemConfigurationGroup advanced = new SystemConfigurationGroup(null, "advanced");
 		add(PARSED_CONTENT_MAX_LENGTH_IN_KILOOCTETS = advanced.createInteger("parsedContentMaxLengthInKilooctets")
-				.withDefaultValue(3000));
+				.withDefaultValue(3000).inSubGroup("contentParsing"));
 		add(CONTENT_MAX_LENGTH_FOR_PARSING_IN_MEGAOCTETS = advanced.createInteger("contentMaxLengthForParsingInMegaoctets")
 				.withDefaultValue(30));
 		add(FILE_EXTENSIONS_EXCLUDED_FROM_PARSING = advanced.createString("fileExtensionsExcludedFromParsing").withReIndexationRequired());

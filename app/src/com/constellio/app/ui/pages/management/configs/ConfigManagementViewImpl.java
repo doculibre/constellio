@@ -1,5 +1,6 @@
 package com.constellio.app.ui.pages.management.configs;
 
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.SystemConfigurationVO;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.BaseMouseOverIcon;
@@ -17,28 +18,18 @@ import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.validator.IntegerRangeValidator;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
+import com.vaadin.server.Page;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.shared.ui.label.ContentMode;
-import com.vaadin.ui.AbstractComponent;
-import com.vaadin.ui.AbstractField;
-import com.vaadin.ui.Alignment;
-import com.vaadin.ui.Button;
+import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.CheckBox;
-import com.vaadin.ui.ComboBox;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.DateField;
-import com.vaadin.ui.Field;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.TabSheet;
-import com.vaadin.ui.TextField;
-import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import org.apache.commons.lang.StringUtils;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -48,6 +39,8 @@ public class ConfigManagementViewImpl extends BaseViewImpl implements ConfigMana
 
 	ConfigManagementPresenter presenter;
 	private TabSheet tabsheet;
+
+	Map<String, Component> subGroupComponents = new HashMap<>();
 
 	SystemConfigurationGroupdataProvider dataProvider;
 
@@ -71,6 +64,7 @@ public class ConfigManagementViewImpl extends BaseViewImpl implements ConfigMana
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
 		VerticalLayout layout = new VerticalLayout();
+		layout.addStyleName("no-scroll");
 		layout.setSizeFull();
 		layout.setSpacing(true);
 
@@ -78,64 +72,100 @@ public class ConfigManagementViewImpl extends BaseViewImpl implements ConfigMana
 		tabsheet.addStyleName("config-management");
 
 		for (String groupCode : dataProvider.getCodesList()) {
-			List<SystemConfigurationVO> configs = dataProvider.getSystemConfigurationGroup(groupCode).getConfigs();
-			if (!configs.isEmpty()) {
+			List<String> configSubGroupCodes = dataProvider.getSystemConfigurationGroup(groupCode).getConfigSubGroupCodes();
+			if(!configSubGroupCodes.isEmpty()) {
 				VerticalLayout groupLayout = new VerticalLayout();
 				groupLayout.addStyleName("config-group");
 				groupLayout.setSizeFull();
 				groupLayout.setSpacing(true);
-				groupLayout.setId(groupCode);
 
-				for (int i = 0; i < configs.size(); i++) {
-					SystemConfigurationVO currentConfigurationVO = configs.get(i);
-					String fieldCaption = presenter.getLabel(groupCode, currentConfigurationVO.getCode());
-					Field<?> field = createField(currentConfigurationVO);
-					field.setId(groupCode + i);
-					field.addStyleName(CONFIG_ELEMENT_VALUE);
-					field.addValueChangeListener(new ValueChangeListener() {
-						@Override
-						public void valueChange(ValueChangeEvent event) {
-							Field<?> field = (Field<?>) event.getProperty();
-							String id = field.getId();
-							String groupCode = tabsheet.getSelectedTab().getId();
-							String iString = StringUtils.substringAfter(id, groupCode);
-							if (StringUtils.isNotBlank(iString)) {
-								int i = Integer.valueOf(iString);
-								Object value = field.getValue();
-								if (value == null) {
-									dataProvider.valueChange(groupCode, i, null);
-								} else {
-									dataProvider.valueChange(groupCode, i, value);
-								}
+				TabSheet groupTabSheet = new TabSheet();
+				groupTabSheet.addSelectedTabChangeListener(new TabSheet.SelectedTabChangeListener() {
+					@Override
+					public void selectedTabChange(TabSheet.SelectedTabChangeEvent event) {
+						String tabId = event.getTabSheet().getSelectedTab().getId();
+						Component subGroupSection = subGroupComponents.get(tabId);
+						if(subGroupSection != null) {
+							try {
+								Page.getCurrent().getJavaScript().execute("document.getElementById(\""+subGroupSection.getId()+"\").scrollIntoView()");
+								ConstellioUI.getCurrent().scrollIntoView(subGroupSection);
+							} catch (Exception e) {
+
 							}
 						}
-					});
-					field.setSizeFull();
+					}
+				});
+				groupLayout.addComponent(groupTabSheet);
+				for(String configSubGroupCode: configSubGroupCodes) {
+					Label subGroupLabel = new Label(presenter.getSubGroupLabel(groupCode, configSubGroupCode));
+					subGroupLabel.addStyleName(ValoTheme.LABEL_LARGE);
+					subGroupLabel.addStyleName(ValoTheme.LABEL_BOLD);
+					subGroupLabel.setId(groupCode + "." + configSubGroupCode + "_label");
 
-					OnEnterKeyHandler onEnterHandler = new OnEnterKeyHandler() {
-						@Override
-						public void onEnterKeyPressed() {
-							presenter.saveButtonClicked();
+					String subGroupCompleteCode = groupCode + "." + configSubGroupCode;
+					Label subGroupTab = new Label();
+					subGroupTab.setId(subGroupCompleteCode);
+					subGroupComponents.put(subGroupCompleteCode, subGroupLabel);
+					groupLayout.addComponent(subGroupLabel);
+					groupTabSheet.addTab(subGroupTab, subGroupLabel.getValue());
+
+					List<SystemConfigurationVO> configs = dataProvider.getSystemConfigurationGroup(groupCode).getSystemConfigurationVOsForSubGroup(configSubGroupCode);
+
+					for (int i = 0; i < configs.size(); i++) {
+						SystemConfigurationVO currentConfigurationVO = configs.get(i);
+						String fieldCaption = presenter.getLabel(groupCode, currentConfigurationVO.getCode());
+						Field<?> field = createField(currentConfigurationVO);
+						field.setId(groupCode + i);
+						field.addStyleName(CONFIG_ELEMENT_VALUE);
+						field.addValueChangeListener(new ValueChangeListener() {
+							@Override
+							public void valueChange(ValueChangeEvent event) {
+								Field<?> field = (Field<?>) event.getProperty();
+								String id = field.getId();
+								String groupCode = tabsheet.getSelectedTab().getId();
+								String iString = StringUtils.substringAfter(id, groupCode);
+								if (StringUtils.isNotBlank(iString)) {
+									int i = Integer.valueOf(iString);
+									Object value = field.getValue();
+									if (value == null) {
+										dataProvider.valueChange(groupCode, i, null);
+									} else {
+										dataProvider.valueChange(groupCode, i, value);
+									}
+								}
+							}
+						});
+						field.setSizeFull();
+
+						OnEnterKeyHandler onEnterHandler = new OnEnterKeyHandler() {
+							@Override
+							public void onEnterKeyPressed() {
+								presenter.saveButtonClicked();
+							}
+						};
+						if (field instanceof TextField) {
+							onEnterHandler.installOn((TextField) field);
+						} else if (field instanceof DateField) {
+							onEnterHandler.installOn((DateField) field);
+						} else if (field instanceof ComboBox) {
+							onEnterHandler.installOn((ComboBox) field);
 						}
-					};
-					if (field instanceof TextField) {
-						onEnterHandler.installOn((TextField) field);
-					} else if (field instanceof DateField) {
-						onEnterHandler.installOn((DateField) field);
-					} else if (field instanceof ComboBox) {
-						onEnterHandler.installOn((ComboBox) field);
-					}
 
-					field.setCaption(fieldCaption);
-					if (field instanceof AbstractComponent) {
-						((AbstractComponent) field).setCaptionAsHtml(true);
-					}
+						field.setCaption(fieldCaption);
+						if (field instanceof AbstractComponent) {
+							((AbstractComponent) field).setCaptionAsHtml(true);
+						}
 
-					HorizontalLayout currentConfigLayout = wrapFieldWithDocumentation(currentConfigurationVO, groupCode, field);
-					groupLayout.addComponent(currentConfigLayout);
+						HorizontalLayout currentConfigLayout = wrapFieldWithDocumentation(currentConfigurationVO, groupCode, field);
+						groupLayout.addComponent(currentConfigLayout);
+					}
 				}
-
-				tabsheet.addTab(groupLayout, presenter.getGroupLabel(groupCode));
+				Panel groupPanel = new Panel(groupLayout);
+				groupPanel.setId(groupCode);
+				groupPanel.addStyleName(ValoTheme.PANEL_SCROLL_INDICATOR);
+				groupPanel.addStyleName(ValoTheme.PANEL_BORDERLESS);
+//				groupPanel.setSizeFull();
+				tabsheet.addTab(groupPanel, presenter.getGroupLabel(groupCode));
 			}
 		}
 		layout.addComponent(tabsheet);
