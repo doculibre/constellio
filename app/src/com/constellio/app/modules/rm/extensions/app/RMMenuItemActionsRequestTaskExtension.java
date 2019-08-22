@@ -94,7 +94,7 @@ public class RMMenuItemActionsRequestTaskExtension extends MenuItemActionsExtens
 		Record record = params.getRecord();
 		User user = params.getBehaviorParams().getUser();
 		if (record != null) {
-			if (params.getRecord().isOfSchemaType(ContainerRecord.SCHEMA_TYPE)) {
+			if (params.getRecord().isOfSchemaType(ContainerRecord.SCHEMA_TYPE) || params.getRecord().isOfSchemaType(Folder.SCHEMA_TYPE)) {
 
 				Folder folder = getFolderOrNull(record);
 

@@ -139,7 +139,7 @@ public class DisplayTaskPresenter extends AbstractTaskPresenter<DisplayTaskView>
 	public void initTaskVO(String id) {
 		Record task = getRecord(id);
 		setSchemaCode(task.getSchemaCode());
-		taskVO = new TaskVO(new TaskToVOBuilder().build(task, FORM, view.getSessionContext()));
+		taskVO = new TaskToVOBuilder().build(task, FORM, view.getSessionContext());
 		initSubTaskDataProvider();
 		eventsDataProvider = getEventsDataProvider();
 	}
@@ -357,7 +357,7 @@ public class DisplayTaskPresenter extends AbstractTaskPresenter<DisplayTaskView>
 	}
 
 	@Override
-	public void reloadTaskModified(Task task) {
+	public void reloadTaskModified(String id) {
 		reloadCurrentTask();
 	}
 

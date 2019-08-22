@@ -1,23 +1,12 @@
 package com.constellio.app.modules.tasks.ui.pages.tasks;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.vaadin.dialogs.ConfirmDialog;
-
 import com.constellio.app.modules.tasks.ui.components.TaskTable;
 import com.constellio.app.modules.tasks.ui.components.breadcrumb.TaskBreadcrumbTrail;
 import com.constellio.app.modules.tasks.ui.components.display.TaskDisplayFactory;
 import com.constellio.app.ui.entities.RecordVO;
-import com.constellio.app.ui.framework.buttons.AddButton;
-import com.constellio.app.ui.framework.buttons.ConfirmDialogButton;
-import com.constellio.app.ui.framework.buttons.DeleteButton;
-import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.components.RecordDisplay;
-import com.constellio.app.ui.framework.components.ReportTabButton;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
+import com.constellio.app.ui.framework.components.buttons.RecordVOActionButtonFactory;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.components.table.columns.EventVOTableColumnsManager;
 import com.constellio.app.ui.framework.components.table.columns.TableColumnsManager;
@@ -32,6 +21,11 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomComponent;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.VerticalLayout;
+
+import java.util.Collections;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DisplayTaskViewImpl extends BaseViewImpl implements DisplayTaskView {
 	public static final String STYLE_NAME = "display-folder";
@@ -104,134 +98,7 @@ public class DisplayTaskViewImpl extends BaseViewImpl implements DisplayTaskView
 
 	@Override
 	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
-		List<Button> actionMenuButtons = new ArrayList<>();
-
-		if (!presenter.isLogicallyDeleted()) {
-
-			if (!presenter.isClosedOrTerminated()) {
-
-				EditButton editCurrentTask = new EditButton($("DisplayTaskView.modifyTask")) {
-					@Override
-					protected void buttonClick(ClickEvent event) {
-						presenter.editButtonClicked();
-					}
-
-					@Override
-					public boolean isVisible() {
-						return super.isVisible() && presenter.isEditCurrentTaskButtonVisible();
-					}
-				};
-				actionMenuButtons.add(editCurrentTask);
-			}
-			ConfirmDialogButton autoAssignTask = new ConfirmDialogButton($("DisplayTaskView.autoAssignTask")) {
-				@Override
-				protected String getConfirmDialogMessage() {
-					return $("DisplayTaskView.autoAssignTaskDialogMessage");
-				}
-
-				@Override
-				protected void confirmButtonClick(ConfirmDialog dialog) {
-					presenter.autoAssignButtonClicked();
-				}
-
-				@Override
-				public boolean isVisible() {
-					return super.isVisible() && presenter.isAutoAssignButtonEnabled();
-				}
-			};
-			actionMenuButtons.add(autoAssignTask);
-
-			TaskCompleteWindowButton completeTask = new TaskCompleteWindowButton(presenter.getTask(),
-					$("DisplayTaskView.completeTask"), this.getConstellioFactories().getAppLayerFactory(), presenter) {
-				@Override
-				protected String getConfirmDialogMessage() {
-					if (presenter.isSubTaskPresentAndHaveCertainStatus(presenter.getTaskVO())) {
-						return $("DisplayTaskView.subTaskPresentComplete");
-					}
-
-					return $("DisplayTaskView.completeTaskDialogMessage");
-				}
-
-
-				@Override
-				public boolean isVisible() {
-					return super.isVisible() && presenter.isCompleteCurrentTaskButtonVisible();
-				}
-			};
-			actionMenuButtons.add(completeTask);
-
-			ConfirmDialogButton closeTask = new ConfirmDialogButton($("DisplayTaskView.closeTask")) {
-				@Override
-				protected String getConfirmDialogMessage() {
-					return $("DisplayTaskView.closeTaskDialogMessage");
-				}
-
-				@Override
-				protected void confirmButtonClick(ConfirmDialog dialog) {
-					presenter.closeButtonClicked();
-				}
-
-				@Override
-				public boolean isVisible() {
-					return super.isVisible() && presenter.isCloseCurrentTaskButtonVisible();
-				}
-
-				@Override
-				public boolean isEnabled() {
-					return super.isEnabled() && presenter.isCloseCurrentTaskButtonVisible();
-				}
-			};
-			actionMenuButtons.add(closeTask);
-			if (!presenter.isClosedOrTerminated()) {
-				AddButton createSubTask = new AddButton($("DisplayTaskView.createSubTask"), false) {
-					@Override
-					protected void buttonClick(ClickEvent event) {
-						presenter.createSubTaskButtonClicked();
-					}
-
-					@Override
-					public boolean isVisible() {
-						return super.isVisible() && presenter.isCreateCurrentTaskSubTaskButtonVisible();
-					}
-				};
-				actionMenuButtons.add(createSubTask);
-			}
-			DeleteButton deleteTask = new DeleteButton($("DisplayTaskView.deleteTask")) {
-				@Override
-				protected String getConfirmDialogMessage() {
-					if (presenter.isSubTaskPresentAndHaveCertainStatus(recordDisplay.getRecordVO())) {
-						return $("DisplayTaskView.subTaskPresentWarning");
-					} else {
-						return super.getConfirmDialogMessage();
-					}
-				}
-
-				@Override
-				protected void confirmButtonClick(ConfirmDialog dialog) {
-					presenter.deleteButtonClicked();
-				}
-
-				@Override
-				public boolean isVisible() {
-					return super.isVisible() && presenter.isDeleteCurrentTaskButtonVisible();
-				}
-			};
-			actionMenuButtons.add(deleteTask);
-
-			ReportTabButton reportGeneratorButton = new ReportTabButton($("SearchView.metadataReportTitle"), $("SearchView.metadataReportTitle"), presenter.getApplayerFactory(),
-					getCollection(), false, false, presenter.buildReportPresenter(), getSessionContext()) {
-				@Override
-				public void buttonClick(ClickEvent event) {
-					setRecordVoList(getCurrentTask());
-					super.buttonClick(event);
-				}
-			};
-
-
-			actionMenuButtons.add(reportGeneratorButton);
-		}
-
-		return actionMenuButtons;
+		return new RecordVOActionButtonFactory(presenter.getTaskVO(), Collections.emptyList()).build();
 	}
 
 	@Override
