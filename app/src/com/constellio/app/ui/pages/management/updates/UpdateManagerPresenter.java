@@ -108,6 +108,10 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 		return manager.getValue(ConstellioEIMConfigs.LOGIN_NOTIFICATION_ALERT);
 	}
 
+	public boolean hasLastAlertPermission() {
+		return getCurrentUser().has(CorePermissions.VIEW_LOGIN_NOTIFICATION_ALERT).globally();
+	}
+
 	public String getUpdateVersion() {
 		if (!appLayerFactory.getModelLayerFactory().getSystemConfigs().isUpdateServerConnectionEnabled()) {
 			return "0";

@@ -60,53 +60,58 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 	}
 
 	@Override
-	public Record getById(String dataStore, String id) {
+	public Record getById(String dataStore, String id, boolean callExtensions) {
 		Record record = RECORDS.equals(dataStore) ? getRecordsCache().getRecord(id) : null;
 		if (record == null) {
-			record = recordServices.getById(dataStore, id);
+			record = recordServices.getById(dataStore, id, callExtensions);
 		}
 		return record;
 	}
 
-	public Record getById(MetadataSchemaType schemaType, String id) {
+	public Record getById(MetadataSchemaType schemaType, String id, boolean callExtensions) {
 		RecordsCache cache = getRecordsCache().getCache(schemaType.getCollection());
 		Record record = cache.get(id);
 		if (record == null) {
-			record = recordServices.getById(schemaType, id);
+			record = recordServices.getById(schemaType, id, callExtensions);
 		}
 		return record;
 	}
 
 	@Override
-	public Record realtimeGetRecordById(String id) {
-		return realtimeGetById(RECORDS, id);
+	public Record realtimeGetRecordById(String id, boolean callExtensions) {
+		return realtimeGetById(RECORDS, id, callExtensions);
 	}
 
 	@Override
-	public Record realtimeGetById(MetadataSchemaType schemaType, String id) {
+	public Record realtimeGetById(MetadataSchemaType schemaType, String id, boolean callExtensions) {
 		Record record = getRecordsCache().getRecord(id);
 		if (record == null) {
-			record = recordServices.realtimeGetById(schemaType, id);
+			record = recordServices.realtimeGetById(schemaType, id, callExtensions);
 		}
 		return record;
 	}
 
 	@Override
-	public Record realtimeGetById(String dataStore, String id) {
+	public Record realtimeGetById(String dataStore, String id, boolean callExtensions) {
 		//		Record record = getRecordsCache().getRecord(id);
 		//		if (record == null) {
-		return recordServices.realtimeGetById(dataStore, id);
+		return recordServices.realtimeGetById(dataStore, id, callExtensions);
 		//		}
 		//return record;
 	}
 
 	@Override
-	public Record realtimeGetRecordSummaryById(String id) {
+	public Record realtimeGetRecordSummaryById(String id, boolean callExtensions) {
 		Record record = getRecordsCache().getRecordSummary(id);
 		if (record == null) {
-			record = recordServices.realtimeGetRecordSummaryById(id);
+			record = recordServices.realtimeGetRecordSummaryById(id, callExtensions);
 		}
 		return record;
+	}
+
+	@Override
+	public List<Record> realtimeGetRecordById(List<String> ids, boolean callExtensions) {
+		return null;
 	}
 
 	@Override
@@ -163,14 +168,14 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 
 	@Override
 	public List<Record> getRecordsById(String collection,
-									   List<String> ids) {
+									   List<String> ids, boolean callExtensions) {
 
 		List<Record> records = new ArrayList<>();
 
 		ids.forEach(id -> {
 			if (id != null) {
 				try {
-					records.add(getDocumentById(id));
+					records.add(getDocumentById(id, callExtensions));
 				} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
 					LOGGER.warn("Record with id '" + id + "' does not exist");
 				}

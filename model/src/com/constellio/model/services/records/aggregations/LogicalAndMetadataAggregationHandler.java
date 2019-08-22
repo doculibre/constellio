@@ -6,6 +6,7 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.InMemoryAggregatedValuesParams;
 import com.constellio.model.entities.schemas.entries.SearchAggregatedValuesParams;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.QueryExecutionMethod;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
 import java.util.ArrayList;
@@ -41,6 +42,9 @@ public class LogicalAndMetadataAggregationHandler implements MetadataAggregation
 		List<MetadataSchemaType> schemaTypes = params.getTypes().getSchemaTypesWithCode(schemaTypeCodes);
 		LogicalSearchQuery query = new LogicalSearchQuery(from(schemaTypes)
 				.whereAllConditions(queryCondition, anyConditions(conditions)));
+
+		query.setQueryExecutionMethod(QueryExecutionMethod.USE_CACHE);
+		query.setName("RecordReindexing:BackgroundThread:UnionMetadataAggregationHandlerQuery");
 
 		return !params.getSearchServices().hasResults(query);
 	}

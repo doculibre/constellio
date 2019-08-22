@@ -459,7 +459,7 @@ public class BigVaultRecordDao implements RecordDao {
 	}
 
 	@Override
-	public RecordDTO get(String id)
+	public RecordDTO get(String id, boolean callExtensions)
 			throws RecordDaoException.NoSuchRecordWithId {
 		ModifiableSolrParams params = new ModifiableSolrParams();
 		params.set("fq", ID_FIELD + ":" + id);
@@ -474,11 +474,11 @@ public class BigVaultRecordDao implements RecordDao {
 	}
 
 	@Override
-	public RecordDTO realGet(String id)
+	public RecordDTO realGet(String id, boolean callExtensions)
 			throws RecordDaoException.NoSuchRecordWithId {
 		SolrDocument solrDocument;
 		try {
-			solrDocument = bigVaultServer.realtimeGet(id);
+			solrDocument = bigVaultServer.realtimeGet(id, callExtensions);
 		} catch (BigVaultException.CouldNotExecuteQuery e) {
 			throw new BigVaultRuntimeException.CannotQuerySingleDocument(e);
 		}
@@ -491,13 +491,13 @@ public class BigVaultRecordDao implements RecordDao {
 	}
 
 	@Override
-	public List<RecordDTO> realGet(List<String> ids) {
+	public List<RecordDTO> realGet(List<String> ids, boolean callExtensions) {
 
 		List<RecordDTO> recordDTOS = new ArrayList<>();
 
 		try {
 
-			for (SolrDocument solrDocument : bigVaultServer.realtimeGet(ids)) {
+			for (SolrDocument solrDocument : bigVaultServer.realtimeGet(ids, callExtensions)) {
 				if (solrDocument != null) {
 					recordDTOS.add(toEntity(solrDocument, RecordDTOMode.FULLY_LOADED));
 				}
@@ -1028,7 +1028,7 @@ public class BigVaultRecordDao implements RecordDao {
 	public long getCurrentVersion(String id) {
 
 		try {
-			return get(id).getVersion();
+			return get(id, true).getVersion();
 		} catch (NoSuchRecordWithId noSuchRecordWithId) {
 			return -1L;
 		}

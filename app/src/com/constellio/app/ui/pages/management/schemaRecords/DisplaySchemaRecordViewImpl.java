@@ -71,6 +71,7 @@ public class DisplaySchemaRecordViewImpl extends BaseViewImpl implements Display
 		if (event != null) {
 			presenter.forParams(event.getParameters());
 		}
+		presenter.forParams(event == null ? recordVO.getId() : event.getParameters());
 	}
 
 	@Override

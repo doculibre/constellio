@@ -42,6 +42,7 @@ import static com.constellio.model.entities.schemas.MetadataValueType.INTEGER;
 import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.services.search.VisibilityStatusFilter.ALL;
+import static com.constellio.model.services.search.query.logical.QueryExecutionMethod.USE_CACHE;
 import static java.util.Arrays.asList;
 
 public class LogicalSearchQueryExecutorInCache {
@@ -146,7 +147,8 @@ public class LogicalSearchQueryExecutorInCache {
 		return filter;
 	}
 
-	private DataStoreFieldLogicalSearchCondition findRequiredFieldEqualCondition(LogicalSearchCondition condition) {
+	private DataStoreFieldLogicalSearchCondition findRequiredFieldEqualCondition(LogicalSearchCondition condition,
+																				 MetadataSchemaType schemaType) {
 		if (condition instanceof DataStoreFieldLogicalSearchCondition) {
 			DataStoreFieldLogicalSearchCondition fieldCondition = (DataStoreFieldLogicalSearchCondition) condition;
 			LogicalSearchValueCondition logicalSearchValueCondition = fieldCondition.getValueCondition();
@@ -157,6 +159,9 @@ public class LogicalSearchQueryExecutorInCache {
 				if (dataStoreFields != null && dataStoreFields.size() == 1) {
 					Object value = isEqualCriterion.getMemoryQueryValue();
 					DataStoreField dataStoreField = dataStoreFields.get(0);
+					if (((Metadata) dataStoreField).getCode().startsWith("global")) {
+						dataStoreField = schemaType.getDefaultSchema().getMetadata(dataStoreField.getLocalCode());
+					}
 					if (canDataGetByMetadata(dataStoreField, value)) {
 						return (DataStoreFieldLogicalSearchCondition) condition;
 					}
@@ -167,7 +172,7 @@ public class LogicalSearchQueryExecutorInCache {
 			LogicalOperator logicalOperator = compositeCondition.getLogicalOperator();
 			if (logicalOperator == LogicalOperator.AND) {
 				for (LogicalSearchCondition childCondition : compositeCondition.getNestedSearchConditions()) {
-					DataStoreFieldLogicalSearchCondition requiredFieldEqualCondition = findRequiredFieldEqualCondition(childCondition);
+					DataStoreFieldLogicalSearchCondition requiredFieldEqualCondition = findRequiredFieldEqualCondition(childCondition, schemaType);
 					if (requiredFieldEqualCondition != null) {
 						return requiredFieldEqualCondition;
 					}
@@ -184,13 +189,18 @@ public class LogicalSearchQueryExecutorInCache {
 		final long startOfStreaming = new Date().getTime();
 
 		DataStoreFieldLogicalSearchCondition requiredFieldEqualCondition
-				= findRequiredFieldEqualCondition(query.getCondition());
+				= findRequiredFieldEqualCondition(query.getCondition(), schemaType);
 
 		Stream<Record> stream;
 		if (requiredFieldEqualCondition == null) {
 			stream = recordsCaches.stream(schemaType);
 		} else {
 			Metadata metadata = (Metadata) requiredFieldEqualCondition.getDataStoreFields().get(0);
+
+			if ((metadata).getCode().startsWith("global")) {
+				metadata = schemaType.getDefaultSchema().getMetadata(metadata.getLocalCode());
+			}
+
 			Object value = ((IsEqualCriterion) requiredFieldEqualCondition.getValueCondition()).getMemoryQueryValue();
 			if (query.getReturnedMetadatas() != null && query.getReturnedMetadatas().isOnlySummary()) {
 				stream = recordsCaches.getRecordsSummaryByIndexedMetadata(schemaType, metadata, (String) value);
@@ -311,10 +321,11 @@ public class LogicalSearchQueryExecutorInCache {
 			return false;
 		}
 
-		return hasNoUnsupportedFeatureOrFilter(query) && isConditionExecutableInCache(query.getCondition(),
-				query.getReturnedMetadatas(), query.getQueryExecutionMethod().requiringCacheExecution());
+		return hasNoUnsupportedFeatureOrFilter(query)
+			   && isConditionExecutableInCache(query.getCondition(), query.getReturnedMetadatas(), query.getQueryExecutionMethod());
 
 	}
+
 
 	private static List<Predicate<LogicalSearchQuery>> requirements = asList(
 			(query) -> query.getQueryExecutionMethod() != QueryExecutionMethod.USE_SOLR,
@@ -391,13 +402,14 @@ public class LogicalSearchQueryExecutorInCache {
 	}
 
 
-	public boolean isConditionExecutableInCache(LogicalSearchCondition condition, boolean requiringExecutionInCache) {
-		return isConditionExecutableInCache(condition, ReturnedMetadatasFilter.all(), requiringExecutionInCache);
+	public boolean isConditionExecutableInCache(LogicalSearchCondition condition,
+												QueryExecutionMethod queryExecutionMethod) {
+		return isConditionExecutableInCache(condition, ReturnedMetadatasFilter.all(), queryExecutionMethod);
 	}
 
 	public boolean isConditionExecutableInCache(LogicalSearchCondition condition,
 												ReturnedMetadatasFilter returnedMetadatasFilter,
-												boolean requiringExecutionInCache) {
+												QueryExecutionMethod queryExecutionMethod) {
 		MetadataSchemaType schemaType = getQueriedSchemaType(condition);
 
 		if (recordsCaches == null || schemaType == null || !recordsCaches.isCacheInitialized(schemaType)) {
@@ -408,12 +420,14 @@ public class LogicalSearchQueryExecutorInCache {
 			return false;
 
 		} else if (schemaType.getCacheType() == RecordCacheType.FULLY_CACHED) {
-			return condition.isSupportingMemoryExecution(false, requiringExecutionInCache);
+			return condition.isSupportingMemoryExecution(false, queryExecutionMethod == USE_CACHE)
+				   && (!queryExecutionMethod.requiringCacheIndexBaseStream(schemaType.getCacheType()) || findRequiredFieldEqualCondition(condition, schemaType) != null);
 
 		} else if (schemaType.getCacheType().hasPermanentCache()) {
 			//Verify that schemaType is loaded
 			return (returnedMetadatasFilter.isOnlySummary() || returnedMetadatasFilter.isOnlyId()) &&
-				   condition.isSupportingMemoryExecution(true, requiringExecutionInCache);
+				   condition.isSupportingMemoryExecution(true, queryExecutionMethod == USE_CACHE)
+				   && (!queryExecutionMethod.requiringCacheIndexBaseStream(schemaType.getCacheType()) || findRequiredFieldEqualCondition(condition, schemaType) != null);
 
 		} else {
 			return false;

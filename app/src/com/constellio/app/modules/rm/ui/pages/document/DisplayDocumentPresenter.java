@@ -91,6 +91,8 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	private boolean nestedView;
 	private boolean inWindow;
 
+	private MetadataSchemaVO tasksSchemaVO;
+
 	public DisplayDocumentPresenter(final DisplayDocumentView view, RecordVO recordVO, final boolean nestedView,
 									final boolean inWindow) {
 		super(view);
@@ -196,8 +198,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		User user = getCurrentUser();
 		modelLayerFactory.newLoggingServices().logRecordView(record, user);
 
-		MetadataSchemaVO tasksSchemaVO = schemaVOBuilder
-				.build(getTasksSchema(), VIEW_MODE.TABLE, Arrays.asList(STARRED_BY_USERS), view.getSessionContext(), true);
+		tasksSchemaVO = schemaVOBuilder.build(getTasksSchema(), VIEW_MODE.TABLE, Arrays.asList(STARRED_BY_USERS), view.getSessionContext(), true);
 		tasksDataProvider = new RecordVODataProvider(
 				tasksSchemaVO, voBuilder, modelLayerFactory, view.getSessionContext()) {
 			@Override
@@ -219,7 +220,6 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 				addStarredSortToQuery(query);
 			}
 		};
-		eventsDataProvider = getEventsDataProvider();
 
 		ContentVersionVO contentVersionVO = documentVO.getContent();
 		lastKnownContentVersionNumber = contentVersionVO != null ? contentVersionVO.getVersion() : null;
@@ -298,8 +298,6 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 
 	public void viewAssembled() {
 		presenterUtils.updateActionsComponent();
-		view.setTasks(tasksDataProvider);
-		view.setEvents(eventsDataProvider);
 		view.setPublishButtons(presenterUtils.isDocumentPublished());
 	}
 
@@ -524,4 +522,11 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		return new MetadataSchemaToVOBuilder().build(schema(Cart.DEFAULT_SCHEMA), RecordVO.VIEW_MODE.TABLE, view.getSessionContext());
 	}
 
+	public void tasksTabSelected() {
+		view.setTasks(tasksDataProvider);
+	}
+
+	public void eventsTabSelected() {
+		view.setEvents(getEventsDataProvider());
+	}
 }

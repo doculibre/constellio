@@ -123,8 +123,9 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		return defaultPageLength != null ? defaultPageLength.getValue() : SearchResultDetailedTable.DEFAULT_PAGE_LENGTH;
 	}
 
-	public boolean isShowNumberingColumn() {
-		return modelLayerFactory.getSystemConfigs().isShowResultsNumberingInListView() || getSearchResults(false).size() > BaseTable.MAX_SELECTION_LENGTH;
+	public boolean isShowNumberingColumn(SearchResultVODataProvider dataProvider) {
+		boolean lazyLoadedFacets = modelLayerFactory.getSystemConfigs().isLazyLoadedFacets();
+		return modelLayerFactory.getSystemConfigs().isShowResultsNumberingInListView() || dataProvider.size() > BaseTable.MAX_SELECTION_LENGTH;
 	}
 
 	public enum SortOrder {ASCENDING, DESCENDING}

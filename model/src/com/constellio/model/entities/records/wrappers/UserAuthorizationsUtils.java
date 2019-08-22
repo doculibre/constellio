@@ -4,7 +4,8 @@ import com.constellio.data.utils.KeySetMap;
 import com.constellio.model.entities.enums.GroupAuthorizationsInheritance;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.services.records.RecordServicesRuntimeException;
+import com.constellio.model.entities.security.SecurityModel;
+import com.constellio.model.entities.security.SecurityModelAuthorization;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.security.SecurityTokenManager;
@@ -249,20 +250,6 @@ public class UserAuthorizationsUtils {
 		return ids;
 	}
 
-	public static Set<String> getAuthsReceivedBy(User user) {
-		List<String> principalsIdsToInclude = getPrincipalsIdsGivingAuthsTo(user);
-		Set<String> authsId = new HashSet<>();
-
-		//TODO Security model improvement
-		for (Authorization auth : user.getRolesDetails().getSchemasRecordsServices().getAllAuthorizationsInUnmodifiableState()) {
-			if (CollectionUtils.containsAny(auth.getPrincipals(), principalsIdsToInclude)) {
-				authsId.add(auth.getId());
-			}
-		}
-
-		return authsId;
-	}
-
 	public static Set<String> getAuthsReceivedBy(Group group, SchemasRecordsServices schemas) {
 		List<String> principalsIdsToInclude = getPrincipalsIdsGivingAuthsTo(group, schemas);
 		Set<String> authsId = new HashSet<>();
@@ -281,18 +268,13 @@ public class UserAuthorizationsUtils {
 															   boolean includeSpecifics,
 															   AuthorizationDetailsFilter filter) {
 
-		Set<String> authsId = getAuthsReceivedBy(user);
 		KeySetMap<String, String> tokens = new KeySetMap<>();
 
-		for (String authId : authsId) {
-			try {
-				Authorization authorizationDetails = user.getAuthorizationDetail(authId);
-				if (authorizationDetails.isActiveAuthorization() && filter.isIncluded(authorizationDetails)
-					&& (!Authorization.isSecurableSchemaType(authorizationDetails.getTargetSchemaType()) || includeSpecifics)) {
-					tokens.add(authorizationDetails.getTarget(), authId);
-				}
-			} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
-				LOGGER.warn("User " + user.getUsername() + "' has an authorization without details : " + authId);
+		SecurityModel securityModel = user.getRolesDetails().getSecurityModel();
+		for (SecurityModelAuthorization auth : securityModel.getAuthorizationsToPrincipal(user.getId(), true)) {
+			if (auth.getDetails().isActiveAuthorization() && filter.isIncluded(auth.getDetails())
+				&& (!Authorization.isSecurableSchemaType(auth.getDetails().getTargetSchemaType()) || includeSpecifics)) {
+				tokens.add(auth.getDetails().getTarget(), auth.getDetails().getId());
 			}
 		}
 

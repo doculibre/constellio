@@ -1,5 +1,6 @@
 package com.constellio.model.services.records.cache;
 
+import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.LangUtils.ListComparisonResults;
 import com.constellio.model.entities.records.Record;
@@ -62,6 +63,7 @@ public class RecordsCache2IntegrityDiagnosticService {
 	RecordServices cacheLessRecordServices;
 	CollectionsListManager collectionsListManager;
 	MetadataSchemasManager metadataSchemasManager;
+	BigVaultServer recordBigVaultServer;
 
 	static List<String> includedTypesFromDiagnostic = asList(EmailToSend.SCHEMA_TYPE, TemporaryRecord.SCHEMA_TYPE);
 
@@ -72,6 +74,7 @@ public class RecordsCache2IntegrityDiagnosticService {
 		this.cacheLessRecordServices = modelLayerFactory.newCachelessRecordServices();
 		this.collectionsListManager = modelLayerFactory.getCollectionsListManager();
 		this.metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
+		this.recordBigVaultServer = modelLayerFactory.getDataLayerFactory().getRecordsVaultServer();
 	}
 
 	public ValidationErrors validateIntegrity(boolean repair, boolean runTwiceToEliminateProblemsCausedByBadTiming) {
@@ -241,7 +244,7 @@ public class RecordsCache2IntegrityDiagnosticService {
 			Record recordFromSolr;
 
 			try {
-				recordFromSolr = cacheLessRecordServices.getDocumentById(recordFromVolatileCache.getId());
+				recordFromSolr = this.recordServices.realtimeGetRecordById(recordFromVolatileCache.getId(), false);
 			} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
 				recordFromSolr = null;
 			}

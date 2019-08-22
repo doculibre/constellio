@@ -89,8 +89,10 @@ import static com.constellio.model.entities.schemas.Schemas.ESTIMATED_SIZE;
 import static com.constellio.model.services.records.RecordUtils.splitByCollection;
 import static com.constellio.model.services.search.VisibilityStatusFilter.ALL;
 import static com.constellio.model.services.search.query.ReturnedMetadatasFilter.onlyFields;
+import static com.constellio.model.services.search.query.ReturnedMetadatasFilter.onlySummaryFields;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQuery.INEXISTENT_COLLECTION_42;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.QueryExecutionMethod.DEFAULT;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 
@@ -350,7 +352,7 @@ public class SearchServices {
 			@Override
 			public Spliterator<Record> get() {
 				SearchResponseIterator<Record> iterator = getRecordSearchResponseIteratorUsingSolr(clonedQuery, batchSize, true);
-				return Spliterators.spliterator(iterator, iterator.getNumFound(), 0);
+				return Spliterators.spliteratorUnknownSize(iterator, 0);
 			}
 		}, 0, false);
 
@@ -594,7 +596,7 @@ public class SearchServices {
 
 	public Record searchSingleResult(LogicalSearchCondition condition) {
 
-		if (logicalSearchQueryExecutorInCache.isConditionExecutableInCache(condition, false)) {
+		if (logicalSearchQueryExecutorInCache.isConditionExecutableInCache(condition, DEFAULT)) {
 			Record record = searchSingleResultUsingCache(condition);
 
 			if (Toggle.VALIDATE_CACHE_EXECUTION_SERVICE_USING_SOLR.isEnabled()) {
@@ -612,8 +614,24 @@ public class SearchServices {
 
 			return record;
 
-		} else {
+		} else if (logicalSearchQueryExecutorInCache.isConditionExecutableInCache(condition, onlySummaryFields(), DEFAULT)) {
+			Record recordSummary = searchSingleResultUsingCache(condition);
 
+			if (Toggle.VALIDATE_CACHE_EXECUTION_SERVICE_USING_SOLR.isEnabled()) {
+				Record recordFromSolr = searchSingleResultUsingSolr(condition);
+
+				String recordId = recordSummary == null ? null : recordSummary.getId();
+				String recordFromSolrId = recordFromSolr == null ? null : recordFromSolr.getId();
+
+				if (!LangUtils.isEqual(recordId, recordFromSolrId)) {
+					throw new RuntimeException("Cached query execution problem");
+				}
+
+			}
+
+			return recordSummary == null ? null : recordServices.getDocumentById(recordSummary.getId());
+
+		} else {
 			return searchSingleResultUsingSolr(condition);
 		}
 	}
@@ -853,7 +871,7 @@ public class SearchServices {
 
 	public long getResultsCount(LogicalSearchQuery query) {
 		LogicalSearchQuery clonedQuery = new LogicalSearchQuery(query);
-		clonedQuery.setReturnedMetadatas(ReturnedMetadatasFilter.idVersionSchema());
+		clonedQuery.setReturnedMetadatas(ReturnedMetadatasFilter.onlySummaryFields());
 		clonedQuery.clearSort();
 		if (logicalSearchQueryExecutorInCache.isQueryExecutableInCache(clonedQuery)) {
 			Stream<Record> stream = logicalSearchQueryExecutorInCache.stream(clonedQuery);

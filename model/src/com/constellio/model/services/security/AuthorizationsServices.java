@@ -16,6 +16,8 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
+import com.constellio.model.entities.security.SecurityModel;
+import com.constellio.model.entities.security.SecurityModelAuthorization;
 import com.constellio.model.entities.security.global.AuthorizationAddRequest;
 import com.constellio.model.entities.security.global.AuthorizationDeleteRequest;
 import com.constellio.model.entities.security.global.AuthorizationModificationRequest;
@@ -119,7 +121,7 @@ public class AuthorizationsServices {
 		List<User> allUsersInCollection = modelLayerFactory.newUserServices().getAllUsersInCollection(collection);
 		List<User> returnedUsers = new ArrayList<>();
 
-		for(User currentUser: allUsersInCollection) {
+		for (User currentUser : allUsersInCollection) {
 			if (StringUtils.isNotBlank(currentUser.getEmail()) && currentUser.getStatus() == UserCredentialStatus.ACTIVE &&
 				(currentUser.hasCollectionReadAccess() || currentUser.hasCollectionWriteAccess() || currentUser.hasCollectionDeleteAccess())) {
 				returnedUsers.add(currentUser);
@@ -132,7 +134,7 @@ public class AuthorizationsServices {
 		List<User> allUsersInCollection = modelLayerFactory.newUserServices().getAllUsersInCollection(collection);
 		List<String> returnedUsers = new ArrayList<>();
 
-		for(User currentUser: allUsersInCollection) {
+		for (User currentUser : allUsersInCollection) {
 			if (StringUtils.isNotBlank(currentUser.getEmail()) && currentUser.getStatus() == UserCredentialStatus.ACTIVE && currentUser.hasCollectionReadAccess()) {
 				returnedUsers.add(currentUser.getId());
 			}
@@ -267,7 +269,7 @@ public class AuthorizationsServices {
 		List<User> usersWithRoleForRecord = getUsersWithRoleForRecord(role, record);
 		ArrayList<String> usersIds = new ArrayList<>();
 
-		for(User user: usersWithRoleForRecord) {
+		for (User user : usersWithRoleForRecord) {
 			usersIds.add(user.getId());
 		}
 		return usersIds;
@@ -638,15 +640,36 @@ public class AuthorizationsServices {
 	 */
 	public List<Authorization> getRecordAuthorizations(Record record) {
 		SchemasRecordsServices schemas = schemas(record.getCollection());
-		List<String> authIds;
+
+		List<Authorization> authorizations = new ArrayList<>();
 		if (User.DEFAULT_SCHEMA.equals(record.getSchemaCode())) {
-			authIds = new ArrayList<>(getAuthsReceivedBy(schemas.wrapUser(record)));
+			User user = schemas.wrapUser(record);
+			SecurityModel securityModel = user.getRolesDetails().getSecurityModel();
+
+			Set<String> ids = new HashSet<>();
+
+			for (SecurityModelAuthorization authorization : securityModel.getAuthorizationsToPrincipal(user.getId(), true)) {
+				if (!ids.contains(authorization.getDetails().getId())) {
+					authorizations.add(authorization.getDetails());
+					ids.add(authorization.getDetails().getId());
+				}
+			}
+
 
 		} else if (Group.DEFAULT_SCHEMA.equals(record.getSchemaCode())) {
-			authIds = new ArrayList<>(getAuthsReceivedBy(schemas.wrapGroup(record), schemas));
+			List<String> authIds = new ArrayList<>(getAuthsReceivedBy(schemas.wrapGroup(record), schemas));
+
+			for (String authId : authIds) {
+				Authorization authDetails = getDetails(record.getCollection(), authId);
+				if (authDetails != null) {
+					authorizations.add(authDetails);
+				} else {
+					LOGGER.error("Missing authorization '" + authId + "'");
+				}
+			}
 
 		} else {
-			authIds = new ArrayList<>();
+			List<String> authIds = new ArrayList<>();
 			for (Authorization authorizationDetails : schemas.getAllAuthorizationsInUnmodifiableState()) {
 
 				boolean targettingRecordOrAncestor =
@@ -659,17 +682,18 @@ public class AuthorizationsServices {
 				}
 			}
 
+			for (String authId : authIds) {
+				Authorization authDetails = getDetails(record.getCollection(), authId);
+				if (authDetails != null) {
+					authorizations.add(authDetails);
+				} else {
+					LOGGER.error("Missing authorization '" + authId + "'");
+				}
+			}
+
 		}
 
-		List<Authorization> authorizations = new ArrayList<>();
-		for (String authId : authIds) {
-			Authorization authDetails = getDetails(record.getCollection(), authId);
-			if (authDetails != null) {
-				authorizations.add(authDetails);
-			} else {
-				LOGGER.error("Missing authorization '" + authId + "'");
-			}
-		}
+
 		return authorizations;
 	}
 

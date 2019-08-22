@@ -478,6 +478,21 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 			throw new ImpossibleRuntimeException("Searching with a metadata from collection '" + metadata.getCollection() + "' in cache of collection '" + schemaType.getCollection() + "'");
 		}
 
+
+		if (metadata.isSameLocalCode(Schemas.IDENTIFIER)) {
+			Record record;
+			if (schemaType.getCacheType().isSummaryCache()) {
+				record = getRecordSummary(value);
+			} else {
+				record = getRecord(value);
+			}
+
+			if (record == null) {
+				return Stream.empty();
+			} else {
+				return Stream.of(record);
+			}
+		}
 		//if (schemaType.getCacheType() == RecordCacheType.FULLY_CACHED) {
 		List<String> potentialIds = metadataIndexCacheDataStore.search(schemaType, metadata, value);
 
