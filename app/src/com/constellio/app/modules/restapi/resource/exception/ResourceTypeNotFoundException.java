@@ -1,4 +1,4 @@
-package com.constellio.app.modules.restapi.document.exception;
+package com.constellio.app.modules.restapi.resource.exception;
 
 import com.constellio.app.modules.restapi.core.exception.BaseRestApiException;
 import com.google.common.collect.Maps;
@@ -6,11 +6,11 @@ import com.google.common.collect.Maps;
 import javax.ws.rs.core.Response;
 import java.util.Map;
 
-public class DocumentTypeNotFoundException extends BaseRestApiException {
+public class ResourceTypeNotFoundException extends BaseRestApiException {
 
-	private static final String CODE = "documentTypeNotFound";
+	private static final String CODE = "typeNotFound";
 
-	public DocumentTypeNotFoundException(String field, String value) {
+	public ResourceTypeNotFoundException(String field, String value) {
 		status = Response.Status.NOT_FOUND;
 
 		Map<String, Object> parameters = Maps.newHashMap();

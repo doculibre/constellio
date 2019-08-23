@@ -6,6 +6,7 @@ import com.constellio.app.modules.restapi.core.exception.InvalidParameterExcepti
 import com.constellio.app.modules.restapi.core.exception.InvalidParameterWithHttpMethodException;
 import com.constellio.app.modules.restapi.core.exception.RequiredParameterException;
 import com.constellio.app.modules.restapi.core.exception.mapper.RestApiErrorResponse;
+import com.constellio.app.modules.restapi.core.util.CustomHttpHeaders;
 import com.constellio.app.modules.restapi.core.util.HttpMethods;
 import com.constellio.app.modules.restapi.core.util.SchemaTypes;
 import com.google.common.base.Strings;
@@ -55,7 +56,8 @@ public class UrlRestfulService {
 						@Parameter(description = "Version (GET only). Set to 'last' for latest version.") @QueryParam("version") String version,
 						@Parameter(description = "Physical (DELETE only). Set to true to physically delete the resource.",
 								schema = @Schema(type = "boolean", defaultValue = "false")) @QueryParam("physical") String physical,
-						@HeaderParam(HttpHeaders.HOST) String host) throws Exception {
+						@HeaderParam(HttpHeaders.HOST) String host,
+						@HeaderParam(CustomHttpHeaders.COPY_SOURCE) String copySourceId) throws Exception {
 
 		if (token == null) {
 			throw new RequiredParameterException("token");
@@ -77,15 +79,23 @@ public class UrlRestfulService {
 			throw new InvalidParameterException("method", method);
 		}
 
-		if (Strings.isNullOrEmpty(id) && Strings.isNullOrEmpty(folderId)) {
-			throw new AtLeastOneParameterRequiredException("id", "folderId");
-		}
 		if (!Strings.isNullOrEmpty(id) && !Strings.isNullOrEmpty(folderId)) {
 			throw new InvalidParameterCombinationException("id", "folderId");
 		}
-		if (Strings.isNullOrEmpty(folderId) && method.equals(POST)) {
-			throw new RequiredParameterException("folderId");
+
+		if (schemaType == SchemaTypes.DOCUMENT) {
+			if (Strings.isNullOrEmpty(id) && Strings.isNullOrEmpty(folderId)) {
+				throw new AtLeastOneParameterRequiredException("id", "folderId");
+			}
+			if (Strings.isNullOrEmpty(folderId) && method.equals(POST)) {
+				throw new RequiredParameterException("folderId");
+			}
+		} else if (schemaType == SchemaTypes.FOLDER) {
+			if (Strings.isNullOrEmpty(id) && Strings.isNullOrEmpty(folderId) && !method.equals(POST)) {
+				throw new AtLeastOneParameterRequiredException("id", "folderId");
+			}
 		}
+
 		if (!Strings.isNullOrEmpty(id) && method.equals(POST)) {
 			throw new InvalidParameterWithHttpMethodException("id", method);
 		}
@@ -102,8 +112,12 @@ public class UrlRestfulService {
 			throw new InvalidParameterException("physical", physical);
 		}
 
+		if (copySourceId != null && !method.equals(POST)) {
+			throw new InvalidParameterWithHttpMethodException("copySourceId", copySourceId);
+		}
+
 		String url = urlService.getSignedUrl(host, token, serviceKey, schemaType, method, id, folderId,
-				String.valueOf(expiration), version, physical);
+				String.valueOf(expiration), version, physical, copySourceId);
 		return Response.ok(url).build();
 	}
 
