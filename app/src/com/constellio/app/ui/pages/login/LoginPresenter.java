@@ -11,6 +11,7 @@ import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.UserDocument;
@@ -121,7 +122,7 @@ public class LoginPresenter extends BasePresenter<LoginView> {
 					*/
 					if (!userCredential.hasAgreedToPrivacyPolicy() && getPrivacyPolicyConfigValue() != null) {
 						view.popPrivacyPolicyWindow(modelLayerFactory, userInLastCollection, lastCollection);
-					} else if (!userCredential.hasReadLastAlert() && getLastAlertConfigValue() != null) {
+					} else if (hasLastAlertPermission(userInLastCollection) && !userCredential.hasReadLastAlert() && getLastAlertConfigValue() != null) {
 						view.popLastAlertWindow(modelLayerFactory, userInLastCollection, lastCollection);
 					} else {
 						signInValidated(userInLastCollection, lastCollection);
@@ -200,6 +201,10 @@ public class LoginPresenter extends BasePresenter<LoginView> {
 		query.setCondition(from(userDocumentsSchema).where(userMetadata).is(user.getId()));
 		query.sortDesc(Schemas.MODIFIED_ON);
 		return searchServices.getResultsCount(query) > 0;
+	}
+
+	private boolean hasLastAlertPermission(User user) {
+		return user.has(CorePermissions.VIEW_LOGIN_NOTIFICATION_ALERT).globally();
 	}
 
 	public String getLogoTarget() {
