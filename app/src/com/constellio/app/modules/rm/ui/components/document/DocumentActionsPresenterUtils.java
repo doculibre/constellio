@@ -600,7 +600,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 			} catch (RecordServicesException e) {
 				actionsComponent.showErrorMessage(MessageUtils.toMessage(e));
 			}
-		} else {
+		} else if (isCheckOutNotPossibleDocumentDeleted()) {
 			actionsComponent.showErrorMessage($("DocumentActionsComponent.cantCheckOutDocumentDeleted"));
 		}
 	}
@@ -644,7 +644,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 
 	private boolean isDocumentLogicallyDeleted() {
 		if (currentDocument().getId() != null) {
-			return rmSchemasRecordsServices.getDocument(currentDocument().getId()).isLogicallyDeletedStatus();
+			return rmSchemasRecordsServices.getDocument(documentVO.getId()).isLogicallyDeletedStatus();
 		} else {
 			return true;
 		}
@@ -700,6 +700,10 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	protected boolean isCheckOutPossible() {
 		boolean email = isEmail();
 		return !email && !isDocumentLogicallyDeleted() && (getContent() != null && !isContentCheckedOut());
+	}
+
+	protected boolean isCheckOutNotPossibleDocumentDeleted() {
+		return !isEmail() && isDocumentLogicallyDeleted() && (getContent() != null && !isContentCheckedOut());
 	}
 
 	private ComponentState getCheckOutState() {
