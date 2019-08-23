@@ -279,7 +279,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 				return ComponentState
 						.visibleIf(getCurrentUser().has(RMPermissionsTo.DELETE_INACTIVE_DOCUMENT).on(currentDocument()));
 			}
-			if (archivisticStatus != null && archivisticStatus.isInactive()) {
+			if (archivisticStatus != null && archivisticStatus.isSemiActive()) {
 				Folder parentFolder = rmSchemasRecordsServices.getFolder(currentDocument().getParentId());
 				if (parentFolder.getBorrowed() != null && parentFolder.getBorrowed()) {
 					return ComponentState
@@ -600,6 +600,8 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 			} catch (RecordServicesException e) {
 				actionsComponent.showErrorMessage(MessageUtils.toMessage(e));
 			}
+		} else if (isCheckOutNotPossibleDocumentDeleted()) {
+			actionsComponent.showErrorMessage($("DocumentActionsComponent.cantCheckOutDocumentDeleted"));
 		}
 	}
 
@@ -638,6 +640,14 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		boolean checkedOut = isContentCheckedOut();
 		boolean borrower = isCurrentUserBorrower();
 		return !email && (!checkedOut || borrower);
+	}
+
+	private boolean isDocumentLogicallyDeleted() {
+		if (currentDocument().getId() != null) {
+			return rmSchemasRecordsServices.getDocument(documentVO.getId()).isLogicallyDeletedStatus();
+		} else {
+			return true;
+		}
 	}
 
 	ComponentState getUploadButtonState() {
@@ -689,7 +699,11 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 
 	protected boolean isCheckOutPossible() {
 		boolean email = isEmail();
-		return !email && (getContent() != null && !isContentCheckedOut());
+		return !email && !isDocumentLogicallyDeleted() && (getContent() != null && !isContentCheckedOut());
+	}
+
+	protected boolean isCheckOutNotPossibleDocumentDeleted() {
+		return !isEmail() && isDocumentLogicallyDeleted() && (getContent() != null && !isContentCheckedOut());
 	}
 
 	private ComponentState getCheckOutState() {
