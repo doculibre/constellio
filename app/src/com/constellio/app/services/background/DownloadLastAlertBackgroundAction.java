@@ -3,6 +3,8 @@ package com.constellio.app.services.background;
 import com.constellio.app.services.appManagement.AppManagementServiceRuntimeException.CannotConnectToServer;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.io.streamFactories.StreamFactory;
+import com.constellio.model.conf.FoldersLocator;
+import com.constellio.model.conf.FoldersLocatorMode;
 import com.constellio.model.entities.records.ConditionnedActionExecutorInBatchBuilder;
 import com.constellio.model.entities.records.ConditionnedActionExecutorInBatchBuilder.RecordScript;
 import com.constellio.model.entities.records.Record;
@@ -56,24 +58,26 @@ public class DownloadLastAlertBackgroundAction implements Runnable {
 	public void run() {
 		System.out.println("DownloadLastAlertBackgroundAction @ " + new Date());
 
-		try {
-			downloadLastAlertFromServer();
-		} catch (CannotConnectToServer cannotConnectToServer) {
-			cannotConnectToServer.printStackTrace();
-		}
-
-		if (null != newAlert) {
+		if (new FoldersLocator().getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER) {
 			try {
-				newAlertHash = calculateFileAlertHash(newAlert);
-			} catch (IOException e) { //TODO handle better
-				e.printStackTrace();
+				downloadLastAlertFromServer();
+			} catch (CannotConnectToServer cannotConnectToServer) {
+				cannotConnectToServer.printStackTrace();
 			}
 
-			if (!isOldAndNewAlertHashEquals()) {
-				resetHasReadLastAlertMetadataOnUsers();
-				copyNewAlertFileToConfigValue();
-				oldAlertHash = newAlertHash;
-				newAlertHash = null;
+			if (null != newAlert) {
+				try {
+					newAlertHash = calculateFileAlertHash(newAlert);
+				} catch (IOException e) { //TODO handle better
+					e.printStackTrace();
+				}
+
+				if (!isOldAndNewAlertHashEquals()) {
+					resetHasReadLastAlertMetadataOnUsers();
+					copyNewAlertFileToConfigValue();
+					oldAlertHash = newAlertHash;
+					newAlertHash = null;
+				}
 			}
 		}
 	}
