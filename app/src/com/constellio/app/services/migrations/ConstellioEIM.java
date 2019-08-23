@@ -65,6 +65,7 @@ import com.constellio.app.services.migrations.scripts.CoreMigrationTo_8_1_0_1;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_8_1_2;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_8_1_3;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_8_2;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_8_2_0;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_8_2_1;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_8_2_1_1;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_8_2_3;

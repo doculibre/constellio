@@ -85,8 +85,11 @@ subprojects {
         compileOnly "org.projectlombok:lombok:1.16.18"
 
         compile "com.j256.ormlite:ormlite-core:5.1"
-        compile "com.j256.ormlite:ormlite-jdbc:5.1"
-        compile "mysql:mysql-connector-java:5.1.20"
+		compile "com.j256.ormlite:ormlite-jdbc:5.1"
+		compile "mysql:mysql-connector-java:5.1.20"
+
+        compile 'com.microsoft.azure:adal4j:1.6.3'
+        compile 'com.nimbusds:oauth2-oidc-sdk:4.5'
     }
 
     configurations {
@@ -152,7 +155,8 @@ war {
                              ":constellio-plugins:plugin009", ":constellio-plugins:plugin010", ":constellio-plugins:plugin012", ":constellio-plugins:plugin015",
                              ":constellio-plugins:plugin016", ":constellio-plugins:plugin017", ":constellio-plugins:plugin018", ":constellio-plugins:plugin019",
                              ":constellio-plugins:plugin020", ":constellio-plugins:plugin027", ":constellio-plugins:plugin028", ":constellio-plugins:plugin030",
-                             ":constellio-plugins:plugin032", ":constellio-plugins:plugin033", ":constellio-plugins:plugin034", ":constellio-plugins:plugin035", ":constellio-plugins:plugin036", ":constellio-plugins:plugin038", ":constellio-plugins:plugin039", ":constellio-plugins:plugin040"]
+                             ":constellio-plugins:plugin032", ":constellio-plugins:plugin033", ":constellio-plugins:plugin034", ":constellio-plugins:plugin035",
+                             ":constellio-plugins:plugin036", ":constellio-plugins:plugin038", ":constellio-plugins:plugin039", ":constellio-plugins:plugin040"]
         def installPlugins = [":constellio-plugins:plugin023", ":constellio-plugins:plugin025"]
 
         from(files(updatePlugins.collect { project(it).jar.outputs.files })) {
