@@ -99,6 +99,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	private HashMap<Integer, Boolean> hashMapAllSelection = new HashMap<>();
 	private List<SaveSearchListener> saveSearchListenerList = new ArrayList<>();
 	private Map<String, String> extraParameters = null;
+	private boolean lazyLoadedSearchResults;
 
 	public void addSaveSearchListenerList(SaveSearchListener saveSearchListener) {
 		saveSearchListenerList.add(saveSearchListener);
@@ -273,7 +274,11 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 
 		summary.addComponent(buildSummary(results));
 
-		resultsArea.addComponent(new LazyLoadWrapper(results));
+		if (lazyLoadedSearchResults) {
+			resultsArea.addComponent(new LazyLoadWrapper(results));
+		} else {
+			resultsArea.addComponent(results);
+		}
 		if (isDetailedView()) {
 			resultsArea.addComponent(((SearchResultDetailedTable) results).createControls());
 			((SearchResultDetailedTable) results).setItemsPerPageValue(presenter.getSelectedPageLength());
@@ -282,6 +287,11 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		refreshCapsule();
 
 		return dataProvider;
+	}
+
+	@Override
+	public void setLazyLoadedSearchResults(boolean lazyLoadedSearchResults) {
+		this.lazyLoadedSearchResults = lazyLoadedSearchResults;
 	}
 
 	private boolean isDetailedView() {
