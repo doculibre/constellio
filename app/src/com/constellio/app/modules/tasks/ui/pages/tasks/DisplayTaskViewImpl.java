@@ -1,5 +1,6 @@
 package com.constellio.app.modules.tasks.ui.pages.tasks;
 
+import com.constellio.app.modules.tasks.services.menu.TaskMenuItemServices.TaskItemActionType;
 import com.constellio.app.modules.tasks.ui.components.TaskTable;
 import com.constellio.app.modules.tasks.ui.components.breadcrumb.TaskBreadcrumbTrail;
 import com.constellio.app.modules.tasks.ui.components.display.TaskDisplayFactory;
@@ -22,27 +23,38 @@ import com.vaadin.ui.CustomComponent;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.VerticalLayout;
 
-import java.util.Collections;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DisplayTaskViewImpl extends BaseViewImpl implements DisplayTaskView {
-	public static final String STYLE_NAME = "display-folder";
 	private final DisplayTaskPresenter presenter;
 	private Component subTasks;
 	private Component eventsComponent;
 	private TabSheet tabSheet;
 	private RecordDisplay recordDisplay;
 	private VerticalLayout recordDisplayLayout;
+	private boolean nestedView = false;
+	private boolean inWindow = false;
 
 	public DisplayTaskViewImpl() {
 		presenter = new DisplayTaskPresenter(this);
 	}
 
+	public DisplayTaskViewImpl(RecordVO recordVO, boolean nestedView, boolean inWindow) {
+		this.nestedView = nestedView;
+		this.inWindow = inWindow;
+		presenter = new DisplayTaskPresenter(this, recordVO, nestedView, inWindow);
+	}
+
 	@Override
 	protected void initBeforeCreateComponents(ViewChangeEvent event) {
-		presenter.initTaskVO(event.getParameters());
+		if (event != null) {
+			presenter.initTaskVO(event.getParameters());
+		}
 	}
 
 	@Override
@@ -60,7 +72,6 @@ public class DisplayTaskViewImpl extends BaseViewImpl implements DisplayTaskView
 		subTasks.setId(SUB_TASKS_ID);
 
 		tabSheet = new TabSheet();
-		tabSheet.addStyleName(STYLE_NAME);
 		tabSheet.addTab(recordDisplayLayout, $("DisplayTaskView.tabs.metadata"));
 		tabSheet.addTab(subTasks, $("DisplayTaskView.tabs.subtasks", presenter.getSubTaskCount()));
 
@@ -83,7 +94,24 @@ public class DisplayTaskViewImpl extends BaseViewImpl implements DisplayTaskView
 
 		verticalLayout.addComponent(tabSheet);
 		presenter.selectInitialTabForUser();
+
+
 		return verticalLayout;
+	}
+
+	@Override
+	protected boolean isFullWidthIfActionMenuAbsent() {
+		return true;
+	}
+
+	@Override
+	protected boolean isActionMenuBar() {
+		return true;
+	}
+
+	@Override
+	protected boolean isBreadcrumbsVisible() {
+		return !nestedView;
 	}
 
 	@Override
@@ -98,7 +126,7 @@ public class DisplayTaskViewImpl extends BaseViewImpl implements DisplayTaskView
 
 	@Override
 	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
-		return new RecordVOActionButtonFactory(presenter.getTaskVO(), Collections.emptyList()).build();
+		return new RecordVOActionButtonFactory(presenter.getTaskVO(), Arrays.asList(TaskItemActionType.TASK_EDIT.name())).build();
 	}
 
 	@Override
@@ -134,6 +162,21 @@ public class DisplayTaskViewImpl extends BaseViewImpl implements DisplayTaskView
 	}
 
 	@Override
+	protected List<Button> getQuickActionMenuButtons() {
+		List<Button> buttons = getEditButton();
+
+		return buttons;
+	}
+
+	private List<Button> getEditButton() {
+		List<TaskItemActionType> taskItemsToExclude = new ArrayList(Arrays.asList(TaskItemActionType.values()));
+		taskItemsToExclude.remove(TaskItemActionType.TASK_EDIT);
+
+		return new RecordVOActionButtonFactory(presenter.getTaskVO(),
+				taskItemsToExclude.stream().map((item) -> item.name()).collect(Collectors.toList())).build();
+	}
+
+	@Override
 	public void selectTasksTab() {
 		tabSheet.setSelectedTab(subTasks);
 	}
@@ -152,12 +195,16 @@ public class DisplayTaskViewImpl extends BaseViewImpl implements DisplayTaskView
 
 	@Override
 	protected ClickListener getBackButtonClickListener() {
-		return new ClickListener() {
-			@Override
-			public void buttonClick(ClickEvent event) {
-				presenter.backButtonClicked();
-			}
-		};
+		if (nestedView || inWindow) {
+			return null;
+		} else {
+			return new ClickListener() {
+				@Override
+				public void buttonClick(ClickEvent event) {
+					presenter.backButtonClicked();
+				}
+			};
+		}
 	}
 
 	@Override

@@ -83,7 +83,7 @@ public class TaskMenuItemServices {
 		if (!filteredActionTypes.contains(TASK_DELETE.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(TASK_DELETE.name(),
 					isMenuItemActionPossible(TASK_DELETE.name(), task, user, params),
-					$("DisplayTaskView.deleteTask"), null, -1, 600,
+					$("DisplayTaskView.deleteTask"), FontAwesome.TRASH_O, -1, 600,
 					(ids) -> new TaskMenuItemActionBehaviors(collection, appLayerFactory).delete(task, params));
 			menuItemActions.add(menuItemAction);
 		}
@@ -136,7 +136,7 @@ public class TaskMenuItemServices {
 				.build();
 	}
 
-	enum TaskItemActionType {
+	public enum TaskItemActionType {
 		TASK_EDIT,
 		TASK_AUTO_ASSIGN,
 		TASK_COMPLETE,

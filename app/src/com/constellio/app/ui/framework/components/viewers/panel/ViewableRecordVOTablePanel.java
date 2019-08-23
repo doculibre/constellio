@@ -6,6 +6,8 @@ import com.constellio.app.modules.rm.ui.pages.document.DisplayDocumentWindow;
 import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderViewImpl;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.tasks.model.wrappers.Task;
+import com.constellio.app.modules.tasks.ui.pages.tasks.DisplayTaskViewImpl;
 import com.constellio.app.services.menu.MenuItemFactory.MenuItemRecordProvider;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
@@ -987,6 +989,10 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
 					panelContent = view;
 				} else if (Folder.SCHEMA_TYPE.equals(schemaTypeCode)) {
 					DisplayFolderViewImpl view = new DisplayFolderViewImpl(recordVO, true, false);
+					view.enter(null);
+					panelContent = view;
+				} else if (Task.SCHEMA_TYPE.equals(schemaTypeCode)) {
+					DisplayTaskViewImpl view = new DisplayTaskViewImpl(recordVO, true, false);
 					view.enter(null);
 					panelContent = view;
 				} else {

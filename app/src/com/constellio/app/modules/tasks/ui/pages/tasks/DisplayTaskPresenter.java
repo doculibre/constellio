@@ -62,9 +62,22 @@ public class DisplayTaskPresenter extends AbstractTaskPresenter<DisplayTaskView>
 
 	transient private RMModuleExtensions rmModuleExtensions;
 
+	private boolean nestedView = false;
+	private boolean inWindow = false;
+
 	public DisplayTaskPresenter(DisplayTaskView view) {
 		super(view, Task.DEFAULT_SCHEMA);
 		initTransientObjects();
+	}
+
+	public DisplayTaskPresenter(DisplayTaskView view, RecordVO recordVO, boolean nestedView, boolean inWindow) {
+		super(view, Task.DEFAULT_SCHEMA);
+		this.nestedView = nestedView;
+		this.inWindow = inWindow;
+		initTransientObjects();
+		if (recordVO != null) {
+			initTaskVO(recordVO.getId());
+		}
 	}
 
 	@Override
