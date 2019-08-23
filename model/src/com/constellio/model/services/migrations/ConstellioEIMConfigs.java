@@ -84,8 +84,6 @@ public class ConstellioEIMConfigs {
 
 	public static final SystemConfiguration TRANSACTION_DELAY;
 
-	public static final SystemConfiguration LAZY_LOADED_FACETS;
-
 	public static final SystemConfiguration REPLACE_SPACES_IN_SIMPLE_SEARCH_FOR_ANDS;
 
 	public static final SystemConfiguration UPDATE_SERVER_CONNECTION_ENABLED;
@@ -222,8 +220,6 @@ public class ConstellioEIMConfigs {
 		add(REMOVE_EXTENSION_FROM_RECORD_TITLE = advanced.createBooleanFalseByDefault("removeExtensionFromDocument"));
 
 		add(TABLE_DYNAMIC_CONFIGURATION = advanced.createBooleanTrueByDefault("tableDynamicConfiguration"));
-
-		add(LAZY_LOADED_FACETS = search.createBooleanTrueByDefault("lazyLoadedFacets"));
 
 		add(ADD_SECONDARY_SORT_WHEN_SORTING_BY_SCORE = search.createBooleanTrueByDefault("addSecondarySortWhenSortingByScore")
 				.whichIsHidden());
@@ -389,10 +385,6 @@ public class ConstellioEIMConfigs {
 
 	public Boolean isRemoveExtensionFromRecordTitle() {
 		return manager.getValue(REMOVE_EXTENSION_FROM_RECORD_TITLE);
-	}
-
-	public Boolean isLazyLoadedFacets() {
-		return manager.getValue(LAZY_LOADED_FACETS);
 	}
 
 	public ParsingBehavior getDefaultParsingBehavior() {
