@@ -131,7 +131,11 @@ public class AddEditDocumentViewImpl extends BaseViewImpl implements AddEditDocu
 				});
 			}
 
+		} else {
+			mainLayout.addComponent(recordForm);
 		}
+
+
 		return mainLayout;
 	}
 
