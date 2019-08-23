@@ -25,8 +25,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import static com.constellio.model.entities.records.wrappers.Collection.SYSTEM_COLLECTION;
-
 public class ConstellioPingServlet extends HttpServlet {
 
 	public static boolean systemRestarting;
@@ -61,7 +59,7 @@ public class ConstellioPingServlet extends HttpServlet {
 						online = changeOnlineStatus(online, testHttpSolr(constellioFactories, testSolr, pw));
 					} else if (SolrServerType.CLOUD == solrServerType) {
 
-						SolrClient solrClient = newSolrCloudServerFactory(constellioFactories).newSolrServer(SYSTEM_COLLECTION);
+						SolrClient solrClient = constellioFactories.getDataLayerFactory().newRecordDao().getBigVaultServer().getNestedSolrServer();
 
 						online = changeOnlineStatus(online, testSolrCloudNodes(pw, solrClient));
 					} else {
@@ -73,7 +71,6 @@ public class ConstellioPingServlet extends HttpServlet {
 				pw.append("\n");
 				online = changeOnlineStatus(online, true);
 			}
-
 		}
 
 		if (online) {
