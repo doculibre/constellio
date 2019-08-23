@@ -486,7 +486,7 @@ public class SearchServices {
 			if (query.getUserFilters() != null && query.getUserFilters().size() > 0) {
 				user = query.getUserFilters().get(0).getUser();
 			}
-			String qf = getQfFor(languages, query.getLanguage(), query.getFieldBoosts(), searchedSchemaTypes, user);
+			String qf = getQfFor(languages, queryLanguage, query.getFieldBoosts(), searchedSchemaTypes, user);
 			params.add(DisMaxParams.QF, qf);
 			params.add(DisMaxParams.PF, qf);
 			if (systemConfigs.isReplaceSpacesInSimpleSearchForAnds()) {
