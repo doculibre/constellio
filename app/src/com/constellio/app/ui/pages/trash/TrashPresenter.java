@@ -29,8 +29,10 @@ import com.vaadin.ui.Table;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -120,22 +122,22 @@ public class TrashPresenter extends BasePresenter<TrashView> {
 		};
 	}
 
-	public List<String> restoreSelection() {
+	public Map<String, String> restoreSelection() {
 		Set<String> selection = computeSelection();
 		if (StringUtils.isBlank(view.getSelectedType()) || selection.isEmpty()) {
-			return asList();
+			return Collections.emptyMap();
 		}
-		List<String> returnSet = trashServices().restoreSelection(selection, getCurrentUser());
+		Map<String, String> returnMap = trashServices().restoreSelection(selection, getCurrentUser());
 		this.selectedRecordIds.clear();
-		return returnSet;
+		return returnMap;
 	}
 
-	public Set<String> deleteSelection() {
+	public Map<String, String> deleteSelection() {
 		Set<String> selection = computeSelection();
 		if (StringUtils.isBlank(view.getSelectedType()) || selection.isEmpty()) {
-			return new HashSet<>();
+			return Collections.emptyMap();
 		}
-		Set<String> notDeleted = trashServices().deleteSelection(selection, getCurrentUser());
+		Map<String, String> notDeleted = trashServices().deleteSelection(selection, getCurrentUser());
 		this.selectedRecordIds.clear();
 		return notDeleted;
 	}
