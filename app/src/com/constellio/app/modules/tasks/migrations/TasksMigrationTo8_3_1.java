@@ -5,8 +5,10 @@ import com.constellio.app.entities.modules.MigrationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.modules.tasks.TasksEmailTemplates;
+import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.dao.managers.config.ConfigManagerException;
+import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import org.apache.commons.io.IOUtils;
 
@@ -69,7 +71,8 @@ public class TasksMigrationTo8_3_1 extends MigrationHelper implements MigrationS
 
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
-
+			typesBuilder.getDefaultSchema(Task.SCHEMA_TYPE)
+					.getMetadata(CommonMetadataBuilder.VISIBLE_IN_TREES).setDefaultValue(false);
 		}
 	}
 }
