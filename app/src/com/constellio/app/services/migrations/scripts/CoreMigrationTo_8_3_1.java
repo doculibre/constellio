@@ -3,15 +3,18 @@ package com.constellio.app.services.migrations.scripts;
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
-import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.calculators.SavedSearchRestrictedCalculator2;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
@@ -25,6 +28,9 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 
 public class CoreMigrationTo_8_3_1 implements MigrationScript {
 
+	private final String SAVED_SEACH_SHARED_GROUPS_CODE = SavedSearch.DEFAULT_SCHEMA + "_" + SavedSearch.SHARED_GROUPS;
+	private final String SAVED_SEACH_SHARED_USERS_CODE = SavedSearch.DEFAULT_SCHEMA + "_" + SavedSearch.SHARED_USERS;
+
 	@Override
 	public String getVersion() {
 		return "8.3.1";
@@ -37,30 +43,37 @@ public class CoreMigrationTo_8_3_1 implements MigrationScript {
 			throws Exception {
 
 		if (!Collection.SYSTEM_COLLECTION.equals(collection)) {
-			RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+			MetadataSchemasManager schemasManager = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager();
+			MetadataSchemaTypes schemaTypes = schemasManager.getSchemaTypes(collection);
 			SearchServices searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
 			LogicalSearchQuery allSavedSearchQuery = new LogicalSearchQuery()
-					.setCondition(from(rm.savedSearch.schemaType()).returnAll());
-			List<SavedSearch> savedSearches = rm.wrapSavedSearches(searchServices.search(allSavedSearchQuery));
+					.setCondition(from(schemaTypes.getSchemaType(SavedSearch.SCHEMA_TYPE)).returnAll());
+			List<Record> savedSearches = searchServices.search(allSavedSearchQuery);
 
 			Map<String, List<String>> sharedGroups = new HashMap<>();
 			Map<String, List<String>> sharedUsers = new HashMap<>();
-			for (SavedSearch savedSearch : savedSearches) {
-				sharedGroups.put(savedSearch.getId(), savedSearch.getSharedGroups());
-				sharedUsers.put(savedSearch.getId(), savedSearch.getSharedUsers());
+			for (Record savedSearch : savedSearches) {
+				sharedGroups.put(savedSearch.getId(), savedSearch.<String>getValues(schemaTypes.getMetadata(SAVED_SEACH_SHARED_GROUPS_CODE)));
+				sharedUsers.put(savedSearch.getId(), savedSearch.<String>getValues(schemaTypes.getMetadata(SAVED_SEACH_SHARED_USERS_CODE)));
 			}
 
 			new CoreSchemaAlterationFor8_3_1_delete(collection, provider, appLayerFactory).migrate();
 			new CoreSchemaAlterationFor8_3_1_recreate(collection, provider, appLayerFactory).migrate();
 
 			Transaction transaction = new Transaction();
-			savedSearches = rm.wrapSavedSearches(searchServices.search(allSavedSearchQuery));
-			for (SavedSearch savedSearch : savedSearches) {
-				savedSearch.setSharedGroups(sharedGroups.get(savedSearch.getId()));
-				savedSearch.setSharedUsers(sharedUsers.get(savedSearch.getId()));
+			savedSearches = searchServices.search(allSavedSearchQuery);
+			schemaTypes = schemasManager.getSchemaTypes(collection);
+			for (Record savedSearch : savedSearches) {
+				savedSearch.set(schemaTypes.getMetadata(SAVED_SEACH_SHARED_GROUPS_CODE), sharedGroups.get(savedSearch.getId()));
+				savedSearch.set(schemaTypes.getMetadata(SAVED_SEACH_SHARED_USERS_CODE), sharedUsers.get(savedSearch.getId()));
 				transaction.add(savedSearch);
 			}
-			rm.executeTransaction(transaction);
+
+			try {
+				appLayerFactory.getModelLayerFactory().newRecordServices().execute(transaction);
+			} catch (RecordServicesException e) {
+				throw new RuntimeException(e);
+			}
 		}
 	}
 

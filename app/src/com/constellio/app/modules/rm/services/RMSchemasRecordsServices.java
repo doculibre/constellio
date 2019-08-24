@@ -1175,15 +1175,6 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 		return record == null ? null : new SavedSearch(record, getTypes());
 	}
 
-	public List<SavedSearch> wrapSavedSearches(List<Record> records) {
-		List<SavedSearch> wrapped = new ArrayList<>();
-		for (Record record : records) {
-			wrapped.add(new SavedSearch(record, getTypes()));
-		}
-
-		return wrapped;
-	}
-
 	public YearType getYearTypeWithCode(String code) {
 		return wrapYearType(getByCode(ddvYearType.schemaType(), code));
 	}

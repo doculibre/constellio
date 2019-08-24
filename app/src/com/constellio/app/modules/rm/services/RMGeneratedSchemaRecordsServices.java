@@ -21,7 +21,6 @@ import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.app.modules.rm.wrappers.type.StorageSpaceType;
 import com.constellio.app.modules.rm.wrappers.type.YearType;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -206,93 +205,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("sharedWithUsers");
 		}
 	}
-
-	public SavedSearch wrapSavedSearch(Record record) {
-		return record == null ? null : new SavedSearch(record, getTypes());
-	}
-
-	public List<SavedSearch> wrapSavedSearches(List<Record> records) {
-		List<SavedSearch> wrapped = new ArrayList<>();
-		for (Record record : records) {
-			wrapped.add(new SavedSearch(record, getTypes()));
-		}
-
-		return wrapped;
-	}
-
-	public final SchemaTypeShortcuts_savedSearch_default savedSearch
-			= new SchemaTypeShortcuts_savedSearch_default("savedSearch_default");
-
-	public class SchemaTypeShortcuts_savedSearch_default extends SchemaTypeShortcuts {
-		protected SchemaTypeShortcuts_savedSearch_default(String schemaCode) {
-			super(schemaCode);
-		}
-
-		public Metadata user() {
-			return metadata("user");
-		}
-
-		public Metadata isPublic() {
-			return metadata("public");
-		}
-
-		public Metadata sortField() {
-			return metadata("sortField");
-		}
-
-		public Metadata facetSelections() {
-			return metadata("facetSelections");
-		}
-
-		public Metadata freeTextSearch() {
-			return metadata("freeTextSearch");
-		}
-
-		public Metadata advancedSearch() {
-			return metadata("advancedSearch");
-		}
-
-		public Metadata schemaFilter() {
-			return metadata("schemaFilter");
-		}
-
-		public Metadata searchType() {
-			return metadata("searchType");
-		}
-
-		public Metadata sortOrder() {
-			return metadata("sortOrder");
-		}
-
-		public Metadata temporary() {
-			return metadata("temporary");
-		}
-
-		public Metadata pageNumber() {
-			return metadata("pageNumber");
-		}
-
-		public Metadata resultsViewMode() {
-			return metadata("resultsViewMode");
-		}
-
-		public Metadata pageLength() {
-			return metadata("pageLength");
-		}
-
-		public Metadata sharedUsers() {
-			return metadata("sharedUsers");
-		}
-
-		public Metadata sharedGroups() {
-			return metadata("sharedGroups");
-		}
-
-		public Metadata isRestricted() {
-			return metadata("restricted");
-		}
-	}
-
 	public Category wrapCategory(Record record) {
 		return record == null ? null : new Category(record, getTypes(), locale);
 	}
