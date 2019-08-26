@@ -5,6 +5,7 @@ import com.constellio.model.entities.configs.AbstractSystemConfigurationScript;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.configs.SystemConfigurationGroup;
 import com.constellio.model.entities.configs.core.listeners.UserTitlePatternConfigScript;
+import com.constellio.model.entities.enums.AutocompleteSplitCriteria;
 import com.constellio.model.entities.enums.BatchProcessingMode;
 import com.constellio.model.entities.enums.EmailTextFormat;
 import com.constellio.model.entities.enums.GroupAuthorizationsInheritance;
@@ -113,6 +114,7 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration LAZY_TREE_BUFFER_SIZE;
 
 	public static final SystemConfiguration AUTOCOMPLETE_SIZE;
+	public static final SystemConfiguration AUTOCOMPLETE_SPLIT_CRITERIA;
 
 	//public static final SystemConfiguration DEFAULT_FONT_SIZE;
 
@@ -206,6 +208,8 @@ public class ConstellioEIMConfigs {
 
 		add(AUTOCOMPLETE_SIZE = others.createInteger("autocompleteSize").withDefaultValue(15)
 				.scriptedBy(AutocompleteSizeValidationScript.class));
+		add(AUTOCOMPLETE_SPLIT_CRITERIA = others.createEnum("autocompleteSplitCriteria", AutocompleteSplitCriteria.class)
+				.withDefaultValue(AutocompleteSplitCriteria.SPACE).withReIndexationRequired());
 
 		SystemConfigurationGroup search = new SystemConfigurationGroup(null, "search");
 		add(SEARCH_SORT_TYPE = search.createEnum("sortType", SearchSortType.class).withDefaultValue(SearchSortType.RELEVENCE));
@@ -483,6 +487,10 @@ public class ConstellioEIMConfigs {
 
 	public int getAutocompleteSize() {
 		return manager.getValue(AUTOCOMPLETE_SIZE);
+	}
+
+	public AutocompleteSplitCriteria getAutocompleteSplitCriteria() {
+		return manager.getValue(AUTOCOMPLETE_SPLIT_CRITERIA);
 	}
 
 	public boolean isIncludeContentsInSavestate() {
