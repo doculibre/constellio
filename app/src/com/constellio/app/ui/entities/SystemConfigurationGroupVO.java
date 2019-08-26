@@ -15,12 +15,12 @@ public class SystemConfigurationGroupVO implements Serializable {
 
 		this.groupCode = groupCode;
 		this.configs = configs;
-		this.configs.sort(new Comparator<SystemConfigurationVO>() {
-			@Override
-			public int compare(SystemConfigurationVO config1, SystemConfigurationVO config2) {
-				return config1.getConfigSubGroupCode().compareTo(config2.getConfigSubGroupCode());
-			}
-		});
+//		this.configs.sort(new Comparator<SystemConfigurationVO>() {
+//			@Override
+//			public int compare(SystemConfigurationVO config1, SystemConfigurationVO config2) {
+//				return config1.getConfigSubGroupCode().compareTo(config2.getConfigSubGroupCode());
+//			}
+//		});
 	}
 
 	public String getGroupCode() {
@@ -36,7 +36,7 @@ public class SystemConfigurationGroupVO implements Serializable {
 	}
 
 	public List<String> getConfigSubGroupCodes() {
-		Set<String> configsSubGroupCodes = new HashSet<>();
+		Set<String> configsSubGroupCodes = new LinkedHashSet<>();
 		for(SystemConfigurationVO config : configs){
 			configsSubGroupCodes.add(config.getConfigSubGroupCode());
 		}

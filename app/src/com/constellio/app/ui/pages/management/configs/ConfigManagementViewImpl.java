@@ -64,8 +64,6 @@ public class ConfigManagementViewImpl extends BaseViewImpl implements ConfigMana
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
 		VerticalLayout layout = new VerticalLayout();
-		layout.addStyleName("no-scroll");
-		layout.setSizeFull();
 		layout.setSpacing(true);
 
 		this.tabsheet = new TabSheet();
@@ -76,8 +74,8 @@ public class ConfigManagementViewImpl extends BaseViewImpl implements ConfigMana
 			if(!configSubGroupCodes.isEmpty()) {
 				VerticalLayout groupLayout = new VerticalLayout();
 				groupLayout.addStyleName("config-group");
-				groupLayout.setSizeFull();
-				groupLayout.setSpacing(true);
+				groupLayout.setId(groupCode);
+				groupLayout.setHeightUndefined();
 
 				TabSheet groupTabSheet = new TabSheet();
 				groupTabSheet.addSelectedTabChangeListener(new TabSheet.SelectedTabChangeListener() {
@@ -88,7 +86,6 @@ public class ConfigManagementViewImpl extends BaseViewImpl implements ConfigMana
 						if(subGroupSection != null) {
 							try {
 								Page.getCurrent().getJavaScript().execute("document.getElementById(\""+subGroupSection.getId()+"\").scrollIntoView()");
-								ConstellioUI.getCurrent().scrollIntoView(subGroupSection);
 							} catch (Exception e) {
 
 							}
@@ -96,6 +93,11 @@ public class ConfigManagementViewImpl extends BaseViewImpl implements ConfigMana
 					}
 				});
 				groupLayout.addComponent(groupTabSheet);
+
+				VerticalLayout configsLayout = new VerticalLayout();
+				configsLayout.setHeightUndefined();
+				configsLayout.setSpacing(true);
+
 				for(String configSubGroupCode: configSubGroupCodes) {
 					Label subGroupLabel = new Label(presenter.getSubGroupLabel(groupCode, configSubGroupCode));
 					subGroupLabel.addStyleName(ValoTheme.LABEL_LARGE);
@@ -103,12 +105,13 @@ public class ConfigManagementViewImpl extends BaseViewImpl implements ConfigMana
 					subGroupLabel.setId(groupCode + "." + configSubGroupCode + "_label");
 
 					String subGroupCompleteCode = groupCode + "." + configSubGroupCode;
-					Label subGroupTab = new Label();
+					VerticalLayout subGroupTab = new VerticalLayout();
 					subGroupTab.setId(subGroupCompleteCode);
 					subGroupComponents.put(subGroupCompleteCode, subGroupLabel);
-					groupLayout.addComponent(subGroupLabel);
+					configsLayout.addComponent(subGroupLabel);
 					groupTabSheet.addTab(subGroupTab, subGroupLabel.getValue());
 
+					//CHANGE VALUE CHANGE
 					List<SystemConfigurationVO> configs = dataProvider.getSystemConfigurationGroup(groupCode).getSystemConfigurationVOsForSubGroup(configSubGroupCode);
 
 					for (int i = 0; i < configs.size(); i++) {
@@ -157,15 +160,18 @@ public class ConfigManagementViewImpl extends BaseViewImpl implements ConfigMana
 						}
 
 						HorizontalLayout currentConfigLayout = wrapFieldWithDocumentation(currentConfigurationVO, groupCode, field);
-						groupLayout.addComponent(currentConfigLayout);
+						configsLayout.addComponent(currentConfigLayout);
 					}
 				}
-				Panel groupPanel = new Panel(groupLayout);
-				groupPanel.setId(groupCode);
-				groupPanel.addStyleName(ValoTheme.PANEL_SCROLL_INDICATOR);
-				groupPanel.addStyleName(ValoTheme.PANEL_BORDERLESS);
-//				groupPanel.setSizeFull();
-				tabsheet.addTab(groupPanel, presenter.getGroupLabel(groupCode));
+
+				Panel configsPanel = new Panel(configsLayout);
+				configsPanel.addStyleName(ValoTheme.PANEL_BORDERLESS);
+				configsPanel.addStyleName(ValoTheme.PANEL_SCROLL_INDICATOR);
+				configsPanel.setHeight((Page.getCurrent().getBrowserWindowHeight() -400) + "px");
+				configsPanel.setWidth("100%");
+				groupLayout.addComponent(configsPanel);
+
+				tabsheet.addTab(groupLayout, presenter.getGroupLabel(groupCode));
 			}
 		}
 		layout.addComponent(tabsheet);
