@@ -109,6 +109,7 @@ public class CoreMigrationTo_8_2 implements MigrationScript {
 								recordServices.logicallyDelete(detail.getWrappedRecord(), User.GOD);
 							}
 						}
+					}
 				}.execute(from(schemas.authorizationDetails.schemaType()).returnAll());
 
 				new ActionExecutorInBatch(searchServices, "Reverse auth/principals relations - Modify users", 1000) {

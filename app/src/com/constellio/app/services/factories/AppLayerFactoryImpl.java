@@ -245,8 +245,10 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 		ConstellioEIMConfigs constellioConfigs = new ConstellioEIMConfigs(configManager);
 		boolean recoveryModeActive = constellioConfigs.isInUpdateProcess();
 		if (Toggle.FORCE_ROLLBACK.isEnabled() || recoveryModeActive) {
+			LOGGER.info("Launching in rollback mode");
 			startupWithPossibleRecovery(upgradeAppRecoveryService);
 		} else {
+			LOGGER.info("Launching in normal mode");
 			normalStartup();
 		}
 		if (dataLayerFactory.getDataLayerConfiguration().isBackgroundThreadsEnabled()) {
@@ -261,6 +263,7 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 
 	private void startupWithPossibleRecovery(UpgradeAppRecoveryServiceImpl recoveryService) {
 		if (dataLayerFactory.getSecondTransactionLogManager() != null) {
+			LOGGER.info("Second tlog manager detected");
 			recoveryService.startRollbackMode();
 			try {
 				normalStartup();
@@ -269,9 +272,11 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 				if (recoveryService.isInRollbackMode()) {
 					LOGGER.error("Error when trying to start application", exception);
 					recoveryService.rollback(exception);
+					LOGGER.info("rollbacked successfully");
 					//this.appLayerFactory.getModelLayerFactory().getDataLayerFactory().close(false);
 					try {
 						newApplicationService().restart();
+						LOGGER.info("Restart command launched");
 					} catch (AppManagementServiceException e) {
 						throw new RuntimeException(e);
 					}
@@ -281,6 +286,7 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 				}
 			}
 		} else {
+			LOGGER.info("Second tlog manager not detected");
 			//rare case in tests
 			normalStartup();
 		}

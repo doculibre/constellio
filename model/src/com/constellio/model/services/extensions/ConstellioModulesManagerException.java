@@ -21,9 +21,14 @@ public class ConstellioModulesManagerException extends Exception {
 
 		private String failedCollection;
 
+		boolean launchRestart;
+
 		public ConstellioModulesManagerException_ModuleInstallationFailed(String failedModule, String failedCollection,
-																		  Throwable cause) {
+																		  Throwable cause, boolean launchRestart) {
 			super("Failed to install/update module '" + failedModule + "' in collection '" + failedCollection + "'", cause);
+			this.launchRestart = launchRestart;
+			this.failedCollection = failedCollection;
+			this.failedModule = failedModule;
 		}
 
 		public String getFailedModule() {

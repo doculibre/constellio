@@ -249,8 +249,13 @@ public class MigrationServices {
 			if (!dataLayerFactory.getTransactionLogRecoveryManager().isInRollbackMode()) {
 				constellioPluginManager
 						.handleModuleNotMigratedCorrectly(migration.getModuleId(), collection, e);
+
+				throw new ConstellioModulesManagerException_ModuleInstallationFailed(migration.getModuleId(), migration.getCollection(), e, true);
+
+			} else {
+				throw new ConstellioModulesManagerException_ModuleInstallationFailed(migration.getModuleId(), migration.getCollection(), e, false);
 			}
-			throw new ConstellioModulesManagerException_ModuleInstallationFailed(migration.getModuleId(), migration.getCollection(), e);
+
 		}
 	}
 

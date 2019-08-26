@@ -92,10 +92,19 @@ public class UpgradeAppRecoveryServiceImpl implements UpgradeAppRecoveryService 
 
 	public void rollback(Throwable t) {
 		closeAppAndModelLayers();
+		LOGGER.info("closeAppAndModelLayers() finished");
+
 		replaceSettingsByTheSavedOneButKeepRecoverySettings();
+		LOGGER.info("replaceSettingsByTheSavedOneButKeepRecoverySettings() finished");
+
 		transactionLogRecoveryManager.rollback(t);
+		LOGGER.info("transactionLogRecoveryManager.rollback() finished");
+
 		prepareNextStartup(t);
+		LOGGER.info("prepareNextStartup() finished");
+
 		deleteSavedSettings();
+		LOGGER.info("deleteSavedSettings() finished");
 	}
 
 	@Override
@@ -137,6 +146,7 @@ public class UpgradeAppRecoveryServiceImpl implements UpgradeAppRecoveryService 
 	private void pointToPreviousValidVersion() {
 		String version = this.upgradeAppRecoveryConfigManager.getLastValidVersion();
 		String validVersionPath = this.upgradeAppRecoveryConfigManager.getLastValidVersionDirectoryPath();
+		LOGGER.info("Last valid version path is '" + validVersionPath + "'");
 		AppManagementService appService = appLayerFactory.newApplicationService();
 		appService.pointToVersionDuringApplicationStartup(new ConstellioVersionInfo(version, validVersionPath));
 	}
@@ -157,11 +167,16 @@ public class UpgradeAppRecoveryServiceImpl implements UpgradeAppRecoveryService 
 
 	private void replaceSettingsByTheSavedOneButKeepRecoverySettings() {
 		if (this.oldSetting.exists()) {
+			LOGGER.info("replaceSettingsByTheSavedOneButKeepRecoverySettings - old settings exist");
 			Map<String, String> currentRecoveryProperties = this.upgradeAppRecoveryConfigManager.getAllProperties();
+			LOGGER.info("replaced properties : " + currentRecoveryProperties);
 			ConfigManager confManager = appLayerFactory.getModelLayerFactory()
 					.getDataLayerFactory().getConfigManager();
 			confManager.copySettingsFrom(this.oldSetting);
+			LOGGER.info("replaced with properties : " + currentRecoveryProperties);
 			this.upgradeAppRecoveryConfigManager.replaceAllProperties(currentRecoveryProperties);
+		} else {
+			LOGGER.info("replaceSettingsByTheSavedOneButKeepRecoverySettings - old settings does not exist");
 		}
 	}
 
