@@ -38,7 +38,7 @@ public class DecommissioningSecurityService {
 		}
 
 		for (Record decomList : searchServices.getAllRecordsInUnmodifiableState(rm.decommissioningList.schemaType())) {
-			if (user.getId().equals(decomList.get(rm.decommissioningList.pendingValidations()))) {
+			if (decomList.getValues(rm.decommissioningList.pendingValidations()).contains(user.getId())) {
 				return true;
 			}
 		}

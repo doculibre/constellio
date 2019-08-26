@@ -296,8 +296,6 @@ public class ConstellioEIMConfigs {
 		add(NO_LINKS_IN_SEARCH_RESULTS = search.createBooleanFalseByDefault("noLinksInSearchResults"));
 		add(LAZY_LOADED_SEARCH_RESULTS = search.createBooleanTrueByDefault("lazyLoadedSearchResults"));
 
-		add(LAZY_LOADED_SEARCH_RESULTS = search.createBooleanTrueByDefault("lazyLoadedSearchResults"));
-
 		configurations = Collections.unmodifiableList(modifiableConfigs);
 
 		SystemConfigurationGroup systemState = new SystemConfigurationGroup(null, "systemState");
