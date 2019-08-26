@@ -127,4 +127,11 @@ public class ConstellioCmisWebServicesServlet extends CmisWebServicesServlet {
 			return "true".equals(System.getProperty("cmisEnabled"));
 		}
 	}
+
+	@Override
+	public void destroy() {
+		if (bus != null) {
+			super.destroy();
+		}
+	}
 }

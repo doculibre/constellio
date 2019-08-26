@@ -125,6 +125,10 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 		return credentialSchema().getMetadata(UserCredential.SERVICE_KEY);
 	}
 
+	public Metadata credentialDN() {
+		return credentialSchema().getMetadata(UserCredential.DN);
+	}
+
 	public UserCredential newCredential() {
 		return new UserCredential(create(credentialSchema()), getTypes());
 	}

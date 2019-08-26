@@ -60,6 +60,7 @@ import com.constellio.model.extensions.events.records.RecordInModificationBefore
 import com.constellio.model.extensions.events.records.RecordInModificationBeforeValidationAndAutomaticValuesCalculationEvent;
 import com.constellio.model.extensions.events.records.RecordLogicalDeletionEvent;
 import com.constellio.model.extensions.events.records.RecordModificationEvent;
+import com.constellio.model.extensions.events.records.RecordReindexationEvent;
 import com.constellio.model.extensions.events.records.RecordRestorationEvent;
 import com.constellio.model.extensions.events.records.TransactionExecutedEvent;
 import com.constellio.model.extensions.events.records.TransactionExecutionBeforeSaveEvent;
@@ -666,7 +667,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 		boolean validations = transaction.getRecordUpdateOptions().isValidationsEnabled();
 		ParsedContentProvider parsedContentProvider = new ParsedContentProvider(modelFactory.getContentManager(),
 				transaction.getParsedContentCache());
-		for (Record record : transaction.getRecords()) {
+		for (final Record record : transaction.getRecords()) {
 			recordPopulateServices.populate(record, parsedContentProvider);
 
 			MetadataSchema schema = types.getSchema(record.getSchemaCode());
@@ -699,6 +700,16 @@ public class RecordServicesImpl extends BaseRecordServices {
 								throw new RecordServicesRuntimeException_ExceptionWhileCalculating(record.getId(), metadata, e);
 							}
 						}
+
+						MetadataList modifiedMetadatas = record.getModifiedMetadatas(types);
+						extensions.callRecordReindexed(new RecordReindexationEvent(record, modifiedMetadatas) {
+							@Override
+							public void recalculateRecord(List<String> metadatas) {
+								newAutomaticMetadataServices().updateAutomaticMetadatas(
+										(RecordImpl) record, newRecordProvider(transaction),
+										metadatas, transaction);
+							}
+						});
 
 						validationServices.validateAccess(record, transaction);
 					} else if (step instanceof UpdateCreationModificationUsersAndDateRecordPreparationStep) {

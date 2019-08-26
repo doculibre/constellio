@@ -1,11 +1,10 @@
 package com.constellio.app.modules.restapi;
 
-import com.constellio.app.entities.modules.InstallableSystemModule;
+import com.constellio.app.entities.modules.InstallableSystemModuleExcludedFromSSO;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.modules.restapi.core.config.RestApiResourceConfig;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.start.ApplicationStarter;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.google.common.base.Strings;
 import lombok.extern.slf4j.Slf4j;
@@ -19,7 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 @Slf4j
-public class ConstellioRestApiModule implements InstallableSystemModule {
+public class ConstellioRestApiModule extends InstallableSystemModuleExcludedFromSSO {
 
 	public static final String ID = "restapi";
 	public static final String NAME = "Constellio Rest Api";
@@ -81,23 +80,24 @@ public class ConstellioRestApiModule implements InstallableSystemModule {
 
 	@Override
 	public void stop(String collection, AppLayerFactory appLayerFactory) {
-
 	}
 
 	@Override
-	public void addDemoData(String collection, AppLayerFactory appLayerFactory) {
+	public String getServicePath() {
+		return SERVICE_PATH;
 	}
 
 	@Override
-	public void start(AppLayerFactory appLayerFactory) {
-		log.info("Rest Api Module started");
-
+	public ServletHolder configureServlet(AppLayerFactory appLayerFactory) {
 		ServletHolder servletHolder = new ServletHolder(new ServletContainer(new RestApiResourceConfig()));
 		servletHolder.setInitOrder(0);
 		servletHolder.setInitParameter("jersey.config.server.provider.packages", "com.constellio.app.modules.restapi");
 
-		ApplicationStarter.registerServlet(SERVICE_PATH + "*", servletHolder);
+		return servletHolder;
+	}
 
+	@Override
+	public List<FilterHolder> configureFilters(AppLayerFactory appLayerFactory) {
 		FilterHolder filterHolder = new FilterHolder(new CrossOriginFilter());
 		filterHolder.setInitParameter(CrossOriginFilter.ALLOWED_METHODS_PARAM, "GET,HEAD,POST,PUT,PATCH,DELETE,OPTIONS");
 		filterHolder.setInitParameter(CrossOriginFilter.ALLOWED_HEADERS_PARAM,
@@ -109,7 +109,17 @@ public class ConstellioRestApiModule implements InstallableSystemModule {
 			filterHolder.setInitParameter(CrossOriginFilter.ALLOWED_ORIGINS_PARAM, allowedOrigins);
 		}
 
-		ApplicationStarter.registerFilter(SERVICE_PATH + "*", filterHolder);
+		return Collections.singletonList(filterHolder);
+	}
+
+	@Override
+	public void addDemoData(String collection, AppLayerFactory appLayerFactory) {
+	}
+
+	@Override
+	public void start(AppLayerFactory appLayerFactory) {
+		super.start(appLayerFactory);
+		log.info("Rest Api Module started");
 	}
 
 	@Override

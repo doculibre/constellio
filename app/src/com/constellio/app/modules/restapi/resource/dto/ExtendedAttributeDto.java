@@ -1,4 +1,4 @@
-package com.constellio.app.modules.restapi.document.dto;
+package com.constellio.app.modules.restapi.resource.dto;
 
 import com.fasterxml.jackson.annotation.JsonRootName;
 import io.swagger.v3.oas.annotations.media.Schema;

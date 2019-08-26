@@ -84,8 +84,6 @@ public class ConstellioEIMConfigs {
 
 	public static final SystemConfiguration TRANSACTION_DELAY;
 
-	public static final SystemConfiguration LAZY_LOADED_FACETS;
-
 	public static final SystemConfiguration REPLACE_SPACES_IN_SIMPLE_SEARCH_FOR_ANDS;
 
 	public static final SystemConfiguration UPDATE_SERVER_CONNECTION_ENABLED;
@@ -155,10 +153,8 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration ENABLE_SYSTEM_STATE_OPT_DISK_USAGE;
 	public static final SystemConfiguration ENABLE_SYSTEM_STATE_SOLR_DISK_USAGE;
 	public static final SystemConfiguration ENABLE_SYSTEM_STATE_LICENSE;
-	public static final SystemConfiguration NO_LNKS_IN_SEARCH_RESULTS;
-
+	public static final SystemConfiguration NO_LINKS_IN_SEARCH_RESULTS;
 	public static final SystemConfiguration LAZY_LOADED_SEARCH_RESULTS;
-
 
 	static {
 		SystemConfigurationGroup others = new SystemConfigurationGroup(null, "others");
@@ -184,7 +180,7 @@ public class ConstellioEIMConfigs {
 		add(INCLUDE_FROM_FIELD_WHEN_GENERATING_EMAILS = others.createBooleanTrueByDefault("includeFromFieldWhenGeneratingEmails"));
 
 		add(DATE_FORMAT = others.createString("dateFormat").withDefaultValue("yyyy-MM-dd"));
-		add(DATE_TIME_FORMAT = others.createString("dateTimeFormat").withDefaultValue("yyyy-MM-dd HH:mm:ss").whichHasHiddenValue());
+		add(DATE_TIME_FORMAT = others.createString("dateTimeFormat").withDefaultValue("yyyy-MM-dd HH:mm:ss"));
 
 		SystemConfigurationGroup advanced = new SystemConfigurationGroup(null, "advanced");
 		add(PARSED_CONTENT_MAX_LENGTH_IN_KILOOCTETS = advanced.createInteger("parsedContentMaxLengthInKilooctets")
@@ -224,8 +220,6 @@ public class ConstellioEIMConfigs {
 		add(REMOVE_EXTENSION_FROM_RECORD_TITLE = advanced.createBooleanFalseByDefault("removeExtensionFromDocument"));
 
 		add(TABLE_DYNAMIC_CONFIGURATION = advanced.createBooleanTrueByDefault("tableDynamicConfiguration"));
-
-		add(LAZY_LOADED_FACETS = search.createBooleanTrueByDefault("lazyLoadedFacets"));
 
 		add(ADD_SECONDARY_SORT_WHEN_SORTING_BY_SCORE = search.createBooleanTrueByDefault("addSecondarySortWhenSortingByScore")
 				.whichIsHidden());
@@ -299,7 +293,8 @@ public class ConstellioEIMConfigs {
 
 		add(UPDATE_SERVER_CONNECTION_ENABLED = advanced.createBooleanTrueByDefault("updateServerConnectionEnabled").whichIsHidden());
 
-		add(NO_LNKS_IN_SEARCH_RESULTS = search.createBooleanFalseByDefault("noLinksInSearchResults"));
+		add(NO_LINKS_IN_SEARCH_RESULTS = search.createBooleanFalseByDefault("noLinksInSearchResults"));
+		add(LAZY_LOADED_SEARCH_RESULTS = search.createBooleanTrueByDefault("lazyLoadedSearchResults"));
 
 		add(LAZY_LOADED_SEARCH_RESULTS = search.createBooleanTrueByDefault("lazyLoadedSearchResults"));
 
@@ -393,10 +388,6 @@ public class ConstellioEIMConfigs {
 
 	public Boolean isRemoveExtensionFromRecordTitle() {
 		return manager.getValue(REMOVE_EXTENSION_FROM_RECORD_TITLE);
-	}
-
-	public Boolean isLazyLoadedFacets() {
-		return manager.getValue(LAZY_LOADED_FACETS);
 	}
 
 	public ParsingBehavior getDefaultParsingBehavior() {
@@ -603,7 +594,7 @@ public class ConstellioEIMConfigs {
 	}
 
 	public boolean isNoLinksInSearchResults() {
-		return manager.getValue(NO_LNKS_IN_SEARCH_RESULTS);
+		return manager.getValue(NO_LINKS_IN_SEARCH_RESULTS);
 	}
 
 	public boolean isLazyLoadedSearchResults() {

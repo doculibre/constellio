@@ -7,7 +7,6 @@ import com.constellio.model.conf.FoldersLocatorMode;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.extensions.events.records.RecordReindexationEvent;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
@@ -57,11 +56,6 @@ public class RecordsReindexingBackgroundAction implements Runnable {
 				List<Record> records = searchServices.search(query);
 
 				if (!records.isEmpty()) {
-					for (Record record : records) {
-						modelLayerFactory.getExtensions().forCollection(collection)
-								.callRecordReindexed(new RecordReindexationEvent(record));
-					}
-
 					Transaction transaction = new Transaction(records);
 					transaction.setOptions(validationExceptionSafeOptions().setForcedReindexationOfMetadatas(ALL())
 							.setOptimisticLockingResolution(EXCEPTION).setUpdateAggregatedMetadatas(true)

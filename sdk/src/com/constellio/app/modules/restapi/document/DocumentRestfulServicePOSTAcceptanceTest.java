@@ -16,12 +16,12 @@ import com.constellio.app.modules.restapi.core.util.CustomHttpHeaders;
 import com.constellio.app.modules.restapi.core.util.DateUtils;
 import com.constellio.app.modules.restapi.core.util.HashingUtils;
 import com.constellio.app.modules.restapi.core.util.HttpMethods;
-import com.constellio.app.modules.restapi.document.dto.AceDto;
 import com.constellio.app.modules.restapi.document.dto.ContentDto;
 import com.constellio.app.modules.restapi.document.dto.DocumentDto;
 import com.constellio.app.modules.restapi.document.dto.DocumentTypeDto;
-import com.constellio.app.modules.restapi.document.dto.ExtendedAttributeDto;
-import com.constellio.app.modules.restapi.document.exception.DocumentTypeNotFoundException;
+import com.constellio.app.modules.restapi.resource.dto.AceDto;
+import com.constellio.app.modules.restapi.resource.dto.ExtendedAttributeDto;
+import com.constellio.app.modules.restapi.resource.exception.ResourceTypeNotFoundException;
 import com.constellio.app.modules.restapi.validation.exception.ExpiredSignedUrlException;
 import com.constellio.app.modules.restapi.validation.exception.InvalidSignatureException;
 import com.constellio.app.modules.restapi.validation.exception.UnallowedHostException;
@@ -684,7 +684,7 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-				.isEqualTo(i18n.$(new DocumentTypeNotFoundException("id", minDocumentToAdd.getType().getId()).getValidationError()));
+				.isEqualTo(i18n.$(new ResourceTypeNotFoundException("id", minDocumentToAdd.getType().getId()).getValidationError()));
 	}
 
 	@Test
@@ -696,7 +696,7 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
 
 		RestApiErrorResponse error = response.readEntity(RestApiErrorResponse.class);
 		assertThat(error.getMessage()).doesNotContain(OPEN_BRACE).doesNotContain(CLOSE_BRACE)
-				.isEqualTo(i18n.$(new DocumentTypeNotFoundException("code", minDocumentToAdd.getType().getCode()).getValidationError()));
+				.isEqualTo(i18n.$(new ResourceTypeNotFoundException("code", minDocumentToAdd.getType().getCode()).getValidationError()));
 	}
 
 	@Test

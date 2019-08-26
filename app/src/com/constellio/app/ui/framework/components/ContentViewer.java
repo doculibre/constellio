@@ -1,7 +1,7 @@
 package com.constellio.app.ui.framework.components;
 
 import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.ui.framework.components.ReportViewer.DownloadStreamResource;
+import com.constellio.app.ui.framework.stream.DownloadStreamResource;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.vaadin.server.StreamResource;
@@ -35,7 +35,7 @@ public class ContentViewer extends VerticalLayout {
 		viewer.setHeight("1024px");
 
 		Link download = new Link($("ReportViewer.download", contentName),
-				new DownloadStreamResource(source, contentName, ReportViewer.getMimeTypeFromFileName(contentName)));
+				new DownloadStreamResource(source, contentName, DownloadStreamResource.getMimeTypeFromFileName(contentName)));
 
 		addComponents(download, viewer);
 		setWidth("100%");
