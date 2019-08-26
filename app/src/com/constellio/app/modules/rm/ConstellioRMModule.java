@@ -1,11 +1,14 @@
 package com.constellio.app.modules.rm;
 
-import com.constellio.app.entities.modules.*;
+import com.constellio.app.entities.modules.ComboMigrationScript;
+import com.constellio.app.entities.modules.InstallableSystemModule;
+import com.constellio.app.entities.modules.InstallableSystemModuleWithRecordMigrations;
+import com.constellio.app.entities.modules.MigrationScript;
+import com.constellio.app.entities.modules.ModuleWithComboMigration;
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.constants.RMRoles;
-import com.constellio.app.modules.rm.extensions.*;
 import com.constellio.app.modules.rm.extensions.LabelSchemaRestrictionPageExtension;
 import com.constellio.app.modules.rm.extensions.RMCheckInAlertsRecordExtension;
 import com.constellio.app.modules.rm.extensions.RMCleanAdministrativeUnitButtonExtension;
@@ -38,8 +41,6 @@ import com.constellio.app.modules.rm.extensions.RMUserRecordExtension;
 import com.constellio.app.modules.rm.extensions.RemoveClickableNotificationsWhenChangingPage;
 import com.constellio.app.modules.rm.extensions.SessionContextRecordExtension;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
-import com.constellio.app.modules.rm.extensions.app.*;
-import com.constellio.app.modules.rm.extensions.imports.*;
 import com.constellio.app.modules.rm.extensions.app.BatchProcessingRecordFactoryExtension;
 import com.constellio.app.modules.rm.extensions.app.RMBatchProcessingExtension;
 import com.constellio.app.modules.rm.extensions.app.RMBatchProcessingSpecialCaseExtension;
@@ -58,7 +59,6 @@ import com.constellio.app.modules.rm.extensions.imports.RetentionRuleImportExten
 import com.constellio.app.modules.rm.extensions.schema.RMAvailableCapacityExtension;
 import com.constellio.app.modules.rm.extensions.schema.RMExcelReportSchemaExtension;
 import com.constellio.app.modules.rm.extensions.schema.RMTrashSchemaExtension;
-import com.constellio.app.modules.rm.migrations.*;
 import com.constellio.app.modules.rm.migrations.RMMigrationCombo;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo5_0_1;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo5_0_2;
@@ -152,10 +152,11 @@ import com.constellio.app.modules.rm.migrations.RMMigrationTo8_2;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo8_2_1_4;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo8_2_2_4;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo8_2_2_5;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo8_2_3;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo8_3;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo8_3_1;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo8_3_1_1;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo8_3_2;
-import com.constellio.app.modules.rm.migrations.RMMigrationTo8_2_3;
 import com.constellio.app.modules.rm.migrations.records.RMContainerRecordMigrationTo7_3;
 import com.constellio.app.modules.rm.migrations.records.RMDocumentMigrationTo7_6_10;
 import com.constellio.app.modules.rm.migrations.records.RMEmailMigrationTo7_7_1;
@@ -164,11 +165,19 @@ import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
 import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.*;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
+import com.constellio.app.modules.rm.wrappers.Cart;
+import com.constellio.app.modules.rm.wrappers.Category;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.Printable;
+import com.constellio.app.modules.rm.wrappers.RMTaskType;
+import com.constellio.app.modules.rm.wrappers.RetentionRule;
+import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.modules.tasks.TaskModule;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.RecordMigrationScript;
@@ -180,6 +189,7 @@ import com.constellio.model.entities.records.wrappers.ThesaurusConfig;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -187,17 +197,26 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.cache.CacheConfig;
 import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.records.cache.ignite.RecordsCacheIgniteImpl;
+import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.security.GlobalSecuredTypeCondition;
+import com.constellio.model.services.users.UserServices;
+import org.apache.poi.ss.formula.functions.T;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.entities.schemas.Schemas.VISIBLE_IN_TREES;
 import static com.constellio.model.services.records.cache.VolatileCacheInvalidationMethod.FIFO;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static java.util.Arrays.asList;
 
 public class ConstellioRMModule implements InstallableSystemModule, ModuleWithComboMigration,
@@ -327,6 +346,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		scripts.add(new RMMigrationTo8_2_3());
 		scripts.add(new RMMigrationTo8_3());
 		scripts.add(new RMMigrationTo8_3_1());
+		scripts.add(new RMMigrationTo8_3_1_1());
 		scripts.add(new RMMigrationTo8_3_2());
 
 		return scripts;
@@ -380,9 +400,57 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 	}
 
 	@Override
-	public void start(String collection, AppLayerFactory appLayerFactory) {
+	public void start(final String collection, final AppLayerFactory appLayerFactory) {
 		setupModelLayerExtensions(collection, appLayerFactory);
 		setupAppLayerExtensions(collection, appLayerFactory);
+
+		new Thread() {
+			@Override
+			public void run() {
+				preloadCategoryTaxonomyCache(collection, appLayerFactory);
+			}
+		}.start();
+
+	}
+
+	private void preloadCategoryTaxonomyCache(String collection, AppLayerFactory appLayerFactory) {
+		UserServices userServices = appLayerFactory.getModelLayerFactory().newUserServices();
+		SearchServices searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
+		List<User> allUsersInCollection = userServices.getAllUsersInCollection(collection);
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+		for (int i = 0; i < allUsersInCollection.size(); i++) {
+			LOGGER.info("Loading taxonomy cache of user " + i + " / " + allUsersInCollection.size());
+			User user = allUsersInCollection.get(i);
+
+			LogicalSearchQuery query = new LogicalSearchQuery(fromAllSchemasIn(collection)
+					.where(Schemas.SCHEMA).<T>isNot(LogicalSearchQueryOperators.<T>startingWithText(Category.SCHEMA_TYPE + "_"))
+					.andWhere(VISIBLE_IN_TREES).isTrueOrNull());
+
+			query.filteredWithUser(user);
+			query.setFieldFacetLimit(100_000);
+			query.addFieldFacet(rm.folder.category().getDataStoreCode());
+			query.setNumberOfRows(0);
+
+			Set<String> visibleIds = new HashSet<>();
+			for (FacetValue facetValue : searchServices.query(query)
+					.getFieldFacetValues(rm.folder.category().getDataStoreCode())) {
+				if (facetValue.getQuantity() > 0) {
+
+					String id = facetValue.getValue();
+					while (id != null) {
+						visibleIds.add(id);
+						id = rm.getCategory(id).getParent();
+					}
+				}
+			}
+
+			for (Category category : rm.getAllCategories()) {
+				appLayerFactory.getModelLayerFactory().getTaxonomiesSearchServicesCache()
+						.insert(user.getUsername(), category.getId(), "visible", visibleIds.contains(category.getId()));
+			}
+
+		}
+
 	}
 
 	@Override

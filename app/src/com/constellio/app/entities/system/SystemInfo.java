@@ -69,38 +69,42 @@ public class SystemInfo {
 	}
 
 	public static SystemInfo getInstance() {
-		if(instance == null) {
+		if (instance == null) {
 			instance = new SystemInfo();
 		}
 		return instance;
 	}
 
 	synchronized public void recalculate() {
-		//TODO merge SystemInformationsService with SystemAnalysisUtils
-		AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
-		ConstellioEIMConfigs configs = new ConstellioEIMConfigs(appLayerFactory.getModelLayerFactory());
-		SystemInformationsService systemInformationsService = new SystemInformationsService();
-		this.lastTimeUpdated = TimeProvider.getLocalDateTime();
-		systemMemory = SystemMemory.fetchSystemMemoryInfo();
-		licenseInfo = fetchLicenseInfo(appLayerFactory);
-		constellioVersion = fetchConstellioVersion(appLayerFactory);
-		validationErrors = new ValidationErrors();
 
-		FoldersLocator locator = new FoldersLocator();
+		if (new FoldersLocator().getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER) {
 
-		if (locator.getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER) {
-			kernelVersion = systemInformationsService.getLinuxVersion();
-			isPrivateRepositoryInstalled = systemInformationsService.isPrivateRepositoryInstalled();
-			wrapperJavaVersion = systemInformationsService.getWrapperJavaVersion();
-			linuxJavaVersion = systemInformationsService.getLinuxVersion();
-			solrVersion = systemInformationsService.getSolrVersion();
-			userRunningSolr = systemInformationsService.getSolrUser();
-			userRunningConstellio = systemInformationsService.getConstellioUser();
-			optDiskUsage = systemInformationsService.getDiskUsage("/opt");
-			solrDiskUsage = systemInformationsService.getDiskUsage("/var/solr");
+			//TODO merge SystemInformationsService with SystemAnalysisUtils
+			AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
+			ConstellioEIMConfigs configs = new ConstellioEIMConfigs(appLayerFactory.getModelLayerFactory());
+			SystemInformationsService systemInformationsService = new SystemInformationsService();
+			this.lastTimeUpdated = TimeProvider.getLocalDateTime();
+			systemMemory = SystemMemory.fetchSystemMemoryInfo();
+			licenseInfo = fetchLicenseInfo(appLayerFactory);
+			constellioVersion = fetchConstellioVersion(appLayerFactory);
+			validationErrors = new ValidationErrors();
+
+			FoldersLocator locator = new FoldersLocator();
+
+			if (locator.getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER) {
+				kernelVersion = systemInformationsService.getLinuxVersion();
+				isPrivateRepositoryInstalled = systemInformationsService.isPrivateRepositoryInstalled();
+				wrapperJavaVersion = systemInformationsService.getWrapperJavaVersion();
+				linuxJavaVersion = systemInformationsService.getLinuxVersion();
+				solrVersion = systemInformationsService.getSolrVersion();
+				userRunningSolr = systemInformationsService.getSolrUser();
+				userRunningConstellio = systemInformationsService.getConstellioUser();
+				optDiskUsage = systemInformationsService.getDiskUsage("/opt");
+				solrDiskUsage = systemInformationsService.getDiskUsage("/var/solr");
+			}
+
+			analyzeSystemAndFindValidationErrors(configs);
 		}
-
-		analyzeSystemAndFindValidationErrors(configs);
 	}
 
 	synchronized public void appendConstellioFreeMemory() {
@@ -111,10 +115,10 @@ public class SystemInfo {
 	}
 
 	synchronized public void appendSolrFreeMemory() {
-//		constellioFreeMemory.add(new MemoryDetails((double) ((Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) * 100 / Runtime.getRuntime().totalMemory()), MemoryUnit.B));
-//		while (constellioFreeMemory.size() > 5) {
-//			constellioFreeMemory.remove(0);
-//		}
+		//		constellioFreeMemory.add(new MemoryDetails((double) ((Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) * 100 / Runtime.getRuntime().totalMemory()), MemoryUnit.B));
+		//		while (constellioFreeMemory.size() > 5) {
+		//			constellioFreeMemory.remove(0);
+		//		}
 	}
 
 	private static String fetchConstellioVersion(AppLayerFactory appLayerFactory) {
@@ -198,12 +202,12 @@ public class SystemInfo {
 			ConstellioEIMConfigs configs) {
 		validationErrors.clearAll();
 
-//		FOR TEST PURPOSE
-//		HashMap<String, Object> objectObjectHashMap = new HashMap<>();
-//		objectObjectHashMap.put("memory", "0.5 GB");
-//		validationErrors.add(SystemInfo.class, UNALLOCATED_MEMORY, objectObjectHashMap);
+		//		FOR TEST PURPOSE
+		//		HashMap<String, Object> objectObjectHashMap = new HashMap<>();
+		//		objectObjectHashMap.put("memory", "0.5 GB");
+		//		validationErrors.add(SystemInfo.class, UNALLOCATED_MEMORY, objectObjectHashMap);
 
-		if(configs.isSystemStateLicenseValidationEnabled()) {
+		if (configs.isSystemStateLicenseValidationEnabled()) {
 			validateLicense();
 		}
 
@@ -214,8 +218,8 @@ public class SystemInfo {
 		validateDiskUsage(configs);
 
 
-//		validateMemoryConsumption();
-//		validateRepository();
+		//		validateMemoryConsumption();
+		//		validateRepository();
 	}
 
 	private void validateMemoryAllocation() {
@@ -225,7 +229,7 @@ public class SystemInfo {
 		HashMap<String, Object> totalServerMemoryParameters = buildSingleValueParameters(parameterKey, systemMemory.getTotalSystemMemory().toString(MemoryUnit.GB));
 		HashMap<String, Object> unallocatedMemoryParameters = buildSingleValueParameters(parameterKey, systemMemory.getUnallocatedMemory().toString(MemoryUnit.GB));
 
-		if(systemMemory.getConstellioAllocatedMemory().getAmount() != null && systemMemory.getSolrAllocatedMemory().getAmount() != null && systemMemory.getTotalSystemMemory().getAmount() != null) {
+		if (systemMemory.getConstellioAllocatedMemory().getAmount() != null && systemMemory.getSolrAllocatedMemory().getAmount() != null && systemMemory.getTotalSystemMemory().getAmount() != null) {
 
 			double constellioMemoryPercentage = systemMemory.getConstellioAllocatedMemory().toNumberOfBytes() * 100 / systemMemory.getTotalSystemMemory().toNumberOfBytes();
 			double solrMemoryPercentage = systemMemory.getSolrAllocatedMemory().toNumberOfBytes() * 100 / systemMemory.getTotalSystemMemory().toNumberOfBytes();
@@ -233,41 +237,41 @@ public class SystemInfo {
 
 			validationErrors.addLog(SystemInfo.class, TOTAL_SERVER_MEMORY, totalServerMemoryParameters);
 
-			if(constellioMemoryPercentage <= 20) {
+			if (constellioMemoryPercentage <= 20) {
 				validationErrors.add(SystemInfo.class, CONSTELLIO_ALLOCATED_MEMORY, constellioMemoryParameters);
-			} else if(constellioMemoryPercentage < 40) {
+			} else if (constellioMemoryPercentage < 40) {
 				validationErrors.addWarning(SystemInfo.class, CONSTELLIO_ALLOCATED_MEMORY, constellioMemoryParameters);
 			} else {
 				validationErrors.addLog(SystemInfo.class, CONSTELLIO_ALLOCATED_MEMORY, constellioMemoryParameters);
 			}
 
-			if(solrMemoryPercentage <= 20) {
+			if (solrMemoryPercentage <= 20) {
 				validationErrors.add(SystemInfo.class, SOLR_ALLOCATED_MEMORY, solrMemoryParameters);
-			} else if(solrMemoryPercentage < 40) {
+			} else if (solrMemoryPercentage < 40) {
 				validationErrors.addWarning(SystemInfo.class, SOLR_ALLOCATED_MEMORY, solrMemoryParameters);
 			} else {
 				validationErrors.addLog(SystemInfo.class, SOLR_ALLOCATED_MEMORY, solrMemoryParameters);
 			}
 
-			if(unallocatedMemoryPercentage < 20 && systemMemory.getUnallocatedMemory().isLessThan(new MemoryDetails(2d, MemoryUnit.GB))) {
+			if (unallocatedMemoryPercentage < 20 && systemMemory.getUnallocatedMemory().isLessThan(new MemoryDetails(2d, MemoryUnit.GB))) {
 				validationErrors.addWarning(SystemInfo.class, UNALLOCATED_MEMORY, unallocatedMemoryParameters);
 			} else {
 				validationErrors.addLog(SystemInfo.class, UNALLOCATED_MEMORY, unallocatedMemoryParameters);
 			}
 		} else {
-			if(systemMemory.getConstellioAllocatedMemory().getAmount() == null) {
+			if (systemMemory.getConstellioAllocatedMemory().getAmount() == null) {
 				validationErrors.addWarning(SystemInfo.class, MISSING_INFORMATION_ON_CONSTELLIO_MEMORY_CONFIGURATION, constellioMemoryParameters);
 			} else {
 				validationErrors.addLog(SystemInfo.class, CONSTELLIO_ALLOCATED_MEMORY, constellioMemoryParameters);
 			}
 
-			if(systemMemory.getSolrAllocatedMemory().getAmount() == null) {
+			if (systemMemory.getSolrAllocatedMemory().getAmount() == null) {
 				validationErrors.addWarning(SystemInfo.class, MISSING_INFORMATION_ON_SOLR_MEMORY_CONFIGURATION, solrMemoryParameters);
 			} else {
 				validationErrors.addLog(SystemInfo.class, SOLR_ALLOCATED_MEMORY, solrMemoryParameters);
 			}
 
-			if(systemMemory.getTotalSystemMemory().getAmount() == null) {
+			if (systemMemory.getTotalSystemMemory().getAmount() == null) {
 				validationErrors.addWarning(SystemInfo.class, MISSING_INFORMATION_ON_TOTAL_SERVER_MEMORY, totalServerMemoryParameters);
 			} else {
 				validationErrors.addLog(SystemInfo.class, TOTAL_SERVER_MEMORY, totalServerMemoryParameters);
@@ -276,16 +280,16 @@ public class SystemInfo {
 	}
 
 	private void validateMemoryConsumption() {
-		if(constellioFreeMemory.size() >= 5) {
+		if (constellioFreeMemory.size() >= 5) {
 			boolean hadEnoughMemoryRemaining = false;
-			for(MemoryDetails freeMemory: constellioFreeMemory) {
-				if(freeMemory.isGreaterThan(new MemoryDetails(1d, MemoryUnit.GB))) {
+			for (MemoryDetails freeMemory : constellioFreeMemory) {
+				if (freeMemory.isGreaterThan(new MemoryDetails(1d, MemoryUnit.GB))) {
 					hadEnoughMemoryRemaining = true;
 					break;
 				}
 			}
 
-			if(hadEnoughMemoryRemaining) {
+			if (hadEnoughMemoryRemaining) {
 				validationErrors.addLog(SystemInfo.class, CONSTELLIO_MEMORY_CONSUMPTION_LOW, new HashMap<String, Object>());
 			} else {
 				validationErrors.addWarning(SystemInfo.class, CONSTELLIO_MEMORY_CONSUMPTION_HIGH, new HashMap<String, Object>());
@@ -310,9 +314,9 @@ public class SystemInfo {
 	}
 
 	private void validateLicense() {
-		if(licenseInfo == null || licenseInfo.getExpirationDate() == null) {
+		if (licenseInfo == null || licenseInfo.getExpirationDate() == null) {
 			validationErrors.addWarning(SystemInfo.class, INVALID_LICENSE);
-		} else if(TimeProvider.getLocalDate().isAfter(licenseInfo.getExpirationDate())) {
+		} else if (TimeProvider.getLocalDate().isAfter(licenseInfo.getExpirationDate())) {
 			validationErrors.addWarning(SystemInfo.class, LICENSE_EXPIRED, buildSingleValueParameters("expirationDate", licenseInfo.getExpirationDate().toString("yyyy-MM-dd")));
 		} else {
 			validationErrors.addLog(SystemInfo.class, VALID_LICENSE, buildSingleValueParameters("expirationDate", licenseInfo.getExpirationDate().toString("yyyy-MM-dd")));
@@ -322,14 +326,14 @@ public class SystemInfo {
 	private void validateDiskUsage(ConstellioEIMConfigs configs) {
 		String parameterKey = "consumptionPercentage";
 
-		if(configs.isSystemStateOptDiskUsageValidationEnabled()) {
-			if(StringUtils.isNotBlank(optDiskUsage) && optDiskUsage.endsWith("%")) {
+		if (configs.isSystemStateOptDiskUsageValidationEnabled()) {
+			if (StringUtils.isNotBlank(optDiskUsage) && optDiskUsage.endsWith("%")) {
 				try {
 					int consumptionPercentage = Integer.parseInt(optDiskUsage.replace("%", ""));
 					HashMap<String, Object> parameters = buildSingleValueParameters(parameterKey, consumptionPercentage + "%");
-					if(isInRange(consumptionPercentage, 0, 75)) {
+					if (isInRange(consumptionPercentage, 0, 75)) {
 						validationErrors.addLog(SystemInfo.class, OPT_DISK_USAGE, parameters);
-					} else if(isInRange(consumptionPercentage, 75, 90)) {
+					} else if (isInRange(consumptionPercentage, 75, 90)) {
 						validationErrors.addWarning(SystemInfo.class, OPT_DISK_USAGE, parameters);
 					} else {
 						validationErrors.add(SystemInfo.class, OPT_DISK_USAGE, parameters);
@@ -342,14 +346,14 @@ public class SystemInfo {
 			}
 		}
 
-		if(configs.isSystemStateSolrDiskUsageValidationEnabled()) {
-			if(StringUtils.isNotBlank(solrDiskUsage) && solrDiskUsage.endsWith("%")) {
+		if (configs.isSystemStateSolrDiskUsageValidationEnabled()) {
+			if (StringUtils.isNotBlank(solrDiskUsage) && solrDiskUsage.endsWith("%")) {
 				try {
 					int consumptionPercentage = Integer.parseInt(solrDiskUsage.replace("%", ""));
 					HashMap<String, Object> parameters = buildSingleValueParameters(parameterKey, consumptionPercentage + "%");
-					if(isInRange(consumptionPercentage, 0, 75)) {
+					if (isInRange(consumptionPercentage, 0, 75)) {
 						validationErrors.addLog(SystemInfo.class, SOLR_DISK_USAGE, parameters);
-					} else if(isInRange(consumptionPercentage, 75, 90)) {
+					} else if (isInRange(consumptionPercentage, 75, 90)) {
 						validationErrors.addWarning(SystemInfo.class, SOLR_DISK_USAGE, parameters);
 					} else {
 						validationErrors.add(SystemInfo.class, SOLR_DISK_USAGE, parameters);
@@ -364,7 +368,7 @@ public class SystemInfo {
 	}
 
 	private void validateRepository() {
-		if(!isPrivateRepositoryInstalled) {
+		if (!isPrivateRepositoryInstalled) {
 			validationErrors.addWarning(SystemInfo.class, PRIVATE_REPOSITORY_IS_NOT_INSTALLED);
 		}
 	}

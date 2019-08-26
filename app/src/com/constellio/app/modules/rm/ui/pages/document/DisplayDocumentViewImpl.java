@@ -1,22 +1,5 @@
 package com.constellio.app.modules.rm.ui.pages.document;
 
-import static com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration.modalDialog;
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.io.output.ByteArrayOutputStream;
-import org.apache.commons.lang3.StringUtils;
-import org.vaadin.dialogs.ConfirmDialog;
-
 import com.constellio.app.api.extensions.params.DocumentFolderBreadCrumbParams;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
@@ -93,6 +76,22 @@ import com.vaadin.ui.Upload.SucceededListener;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
+import org.apache.commons.io.output.ByteArrayOutputStream;
+import org.apache.commons.lang3.StringUtils;
+import org.vaadin.dialogs.ConfirmDialog;
+
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration.modalDialog;
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocumentView, DropHandler {
 
@@ -249,7 +248,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 		tabSheet.addTab(recordDisplay, $("DisplayDocumentView.tabs.metadata"));
 		tabSheet.addTab(buildVersionTab(), $("DisplayDocumentView.tabs.versions"));
-		tabSheet.addTab(tasksComponent, $("DisplayDocumentView.tabs.tasks", presenter.getTaskCount()));
+		tabSheet.addTab(tasksComponent, $("DisplayDocumentView.tabs.tasks"));
 
 		eventsComponent = new CustomComponent();
 		tabSheet.addTab(eventsComponent, $("DisplayDocumentView.tabs.logs"));
@@ -264,6 +263,9 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 			public void selectedTabChange(TabSheet.SelectedTabChangeEvent event) {
 				if (event.getTabSheet().getSelectedTab() == eventsComponent) {
 					presenter.refreshEvents();
+
+				} else if (event.getTabSheet().getSelectedTab() == tasksComponent) {
+					presenter.taskTabSelected();
 				}
 			}
 		});
@@ -317,7 +319,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		String searchTypeAsString = null;
 		String favGroupIdKey = null;
 
-		if(presenter.getParams() != null) {
+		if (presenter.getParams() != null) {
 			if (presenter.getParams().get("decommissioningSearchId") != null) {
 				saveSearchDecommissioningId = presenter.getParams().get("decommissioningSearchId");
 
@@ -329,7 +331,6 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 			favGroupIdKey = presenter.getParams().get(RMViews.FAV_GROUP_ID_KEY);
 		}
-
 
 
 		SearchType searchType = null;
@@ -346,7 +347,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 		if (breadcrumbTrail != null) {
 			return breadcrumbTrail;
-		}else if(favGroupIdKey != null) {
+		} else if (favGroupIdKey != null) {
 			return new FolderDocumentContainerBreadcrumbTrail(documentVO.getId(), null, null, favGroupIdKey, this);
 		} else if (saveSearchDecommissioningId != null && searchType != null) {
 			return new DecommissionBreadcrumbTrail($("DecommissioningBuilderView.viewTitle." + searchType.name()), searchType,
@@ -391,62 +392,64 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 	@Override
 	public void setTasks(final RecordVODataProvider dataProvider) {
-		Table tasksTable = new RecordVOTable(dataProvider) {
-			@Override
-			protected Component buildMetadataComponent(MetadataValueVO metadataValue, RecordVO recordVO) {
-				if (Task.STARRED_BY_USERS.equals(metadataValue.getMetadata().getLocalCode())) {
-					return new StarredFieldImpl(recordVO.getId(), (List<String>) metadataValue.getValue(), getSessionContext().getCurrentUser().getId()) {
+		if (dataProvider != null) {
+			Table tasksTable = new RecordVOTable(dataProvider) {
+				@Override
+				protected Component buildMetadataComponent(MetadataValueVO metadataValue, RecordVO recordVO) {
+					if (Task.STARRED_BY_USERS.equals(metadataValue.getMetadata().getLocalCode())) {
+						return new StarredFieldImpl(recordVO.getId(), (List<String>) metadataValue.getValue(), getSessionContext().getCurrentUser().getId()) {
+							@Override
+							public void updateTaskStarred(boolean isStarred, String taskId) {
+								presenter.updateTaskStarred(isStarred, taskId, dataProvider);
+							}
+						};
+					} else {
+						return super.buildMetadataComponent(metadataValue, recordVO);
+					}
+				}
+
+				@Override
+				protected TableColumnsManager newColumnsManager() {
+					return new RecordVOTableColumnsManager() {
 						@Override
-						public void updateTaskStarred(boolean isStarred, String taskId) {
-							presenter.updateTaskStarred(isStarred, taskId, dataProvider);
+						protected String toColumnId(Object propertyId) {
+							if (propertyId instanceof MetadataVO) {
+								if (Task.STARRED_BY_USERS.equals(((MetadataVO) propertyId).getLocalCode())) {
+									setColumnHeader(propertyId, "");
+									setColumnWidth(propertyId, 60);
+								}
+							}
+							return super.toColumnId(propertyId);
 						}
 					};
-				} else {
-					return super.buildMetadataComponent(metadataValue, recordVO);
 				}
-			}
 
-			@Override
-			protected TableColumnsManager newColumnsManager() {
-				return new RecordVOTableColumnsManager() {
-					@Override
-					protected String toColumnId(Object propertyId) {
-						if (propertyId instanceof MetadataVO) {
-							if (Task.STARRED_BY_USERS.equals(((MetadataVO) propertyId).getLocalCode())) {
-								setColumnHeader(propertyId, "");
-								setColumnWidth(propertyId, 60);
-							}
+				@Override
+				public Collection<?> getSortableContainerPropertyIds() {
+					Collection<?> sortableContainerPropertyIds = super.getSortableContainerPropertyIds();
+					Iterator<?> iterator = sortableContainerPropertyIds.iterator();
+					while (iterator.hasNext()) {
+						Object property = iterator.next();
+						if (property != null && property instanceof MetadataVO && Task.STARRED_BY_USERS.equals(((MetadataVO) property).getLocalCode())) {
+							iterator.remove();
 						}
-						return super.toColumnId(propertyId);
 					}
-				};
-			}
-
-			@Override
-			public Collection<?> getSortableContainerPropertyIds() {
-				Collection<?> sortableContainerPropertyIds = super.getSortableContainerPropertyIds();
-				Iterator<?> iterator = sortableContainerPropertyIds.iterator();
-				while (iterator.hasNext()) {
-					Object property = iterator.next();
-					if (property != null && property instanceof MetadataVO && Task.STARRED_BY_USERS.equals(((MetadataVO) property).getLocalCode())) {
-						iterator.remove();
-					}
+					return sortableContainerPropertyIds;
 				}
-				return sortableContainerPropertyIds;
-			}
-		};
-		tasksTable.setSizeFull();
-		tasksTable.addItemClickListener(new ItemClickListener() {
-			@Override
-			public void itemClick(ItemClickEvent event) {
-				RecordVOItem item = (RecordVOItem) event.getItem();
-				RecordVO recordVO = item.getRecord();
-				presenter.taskClicked(recordVO);
-			}
-		});
-		Component oldTasksComponent = tasksComponent;
-		tasksComponent = tasksTable;
-		tabSheet.replaceComponent(oldTasksComponent, tasksComponent);
+			};
+			tasksTable.setSizeFull();
+			tasksTable.addItemClickListener(new ItemClickListener() {
+				@Override
+				public void itemClick(ItemClickEvent event) {
+					RecordVOItem item = (RecordVOItem) event.getItem();
+					RecordVO recordVO = item.getRecord();
+					presenter.taskClicked(recordVO);
+				}
+			});
+			Component oldTasksComponent = tasksComponent;
+			tasksComponent = tasksTable;
+			tabSheet.replaceComponent(oldTasksComponent, tasksComponent);
+		}
 	}
 
 	@Override
@@ -731,7 +734,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		actionMenuButtons.add(shareDocumentButton);
 		if (presenter.hasCurrentUserPermissionToUseCartGroup()) {
 			actionMenuButtons.add(addToCartButton);
-		} else if (presenter.hasCurrentUserPermissionToUseMyCart()){
+		} else if (presenter.hasCurrentUserPermissionToUseMyCart()) {
 			actionMenuButtons.add(addToCartMyCartButton);
 		}
 		actionMenuButtons.add(addToOrRemoveFromSelectionButton);
@@ -760,7 +763,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		presenter.navigateToSelf();
 	}
 
-	private Button buildAddToMyCartButton(){
+	private Button buildAddToMyCartButton() {
 		Button button = new BaseButton($("DisplayFolderView.addToCart")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
@@ -824,7 +827,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 	private DefaultFavoritesTable buildOwnedFavoritesTable(final Window window) {
 		List<DefaultFavoritesTable.CartItem> cartItems = new ArrayList<>();
-		if(presenter.hasCurrentUserPermissionToUseMyCart()) {
+		if (presenter.hasCurrentUserPermissionToUseMyCart()) {
 			cartItems.add(new DefaultFavoritesTable.CartItem($("CartView.defaultFavorites")));
 		}
 		for (Cart cart : presenter.getOwnedCarts()) {

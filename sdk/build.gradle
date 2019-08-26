@@ -27,7 +27,6 @@ dependencies {
     testCompile "org.assertj:assertj-core:1.6.0"
     testCompile "com.github.detro.ghostdriver:phantomjsdriver:1.1.0"
     testCompile "org.apache.zookeeper:zookeeper:3.4.6"
-    //testCompile "javax.validation:validation-api:1.0.0.GA"
     testCompile "com.squareup:javapoet:1.7.0"
 
     compile project(":constellio:data")

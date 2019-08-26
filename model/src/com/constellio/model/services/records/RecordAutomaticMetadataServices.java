@@ -505,30 +505,68 @@ public class RecordAutomaticMetadataServices {
 					disabledGroups.add(globalGroup.getCode());
 				}
 			}
+
+			boolean newGroupsDisabled = true;
+			while (newGroupsDisabled) {
+				newGroupsDisabled = false;
+
+				for (Record record : searchServices.getAllRecordsInUnmodifiableState(systemCollectionSchemasRecordServices.getTypes()
+						.getSchemaType(GlobalGroup.SCHEMA_TYPE))) {
+					GlobalGroup globalGroup = systemCollectionSchemasRecordServices.wrapGlobalGroup(record);
+					boolean disabled = disabledGroups.contains(globalGroup.getCode());
+					if (!disabled && globalGroup.getParent() != null && disabledGroups.contains(globalGroup.getParent())) {
+						disabledGroups.add(globalGroup.getCode());
+						newGroupsDisabled = true;
+					}
+				}
+			}
 		}
 
 		GroupAuthorizationsInheritance groupInheritanceMode =
 				systemConfigurationsManager.getValue(ConstellioEIMConfigs.GROUP_AUTHORIZATIONS_INHERITANCE);
-		KeyListMap<String, String> groupsReceivingAccessToGroup = new KeyListMap<>();
+		KeyListMap<String, String> groupsReceivingAccessFromGroup = new KeyListMap<>();
 		KeyListMap<String, String> groupsGivingAccessToGroup = new KeyListMap<>();
+
+		KeyListMap<String, String> groupsGivingAccessToUser = new KeyListMap<>();
+		KeyListMap<String, String> activePrincipalsGivingAccessToPrincipal = new KeyListMap<>();
+
 		Metadata groupAncestorMetadata = types.getSchema(Group.DEFAULT_SCHEMA).getMetadata(Group.ANCESTORS);
-		Map<String, Boolean> globalGroupDisabledMap = new HashMap<>();
+		Map<String, Boolean> globalGroupEnabledMap = new HashMap<>();
 		for (Record group : searchServices.getAllRecordsInUnmodifiableState(types.getSchemaType(Group.SCHEMA_TYPE))) {
 			if (group != null) {
-				globalGroupDisabledMap.put(group.getId(), !disabledGroups.contains(group.<String>get(Schemas.CODE)));
+				boolean enabled = !disabledGroups.contains(group.<String>get(Schemas.CODE));
+				globalGroupEnabledMap.put(group.getId(), enabled);
 
 				for (String ancestor : group.<String>getList(groupAncestorMetadata)) {
 					if (groupInheritanceMode == FROM_PARENT_TO_CHILD) {
 						groupsGivingAccessToGroup.add(group.getId(), ancestor);
-						groupsReceivingAccessToGroup.add(ancestor, group.getId());
+						groupsReceivingAccessFromGroup.add(ancestor, group.getId());
 
 					} else {
-						groupsReceivingAccessToGroup.add(group.getId(), ancestor);
+						groupsReceivingAccessFromGroup.add(group.getId(), ancestor);
 						groupsGivingAccessToGroup.add(ancestor, group.getId());
 					}
 
 				}
 
+			} else {
+				LOGGER.warn("Null record returned while getting all groups");
+			}
+		}
+
+
+		Metadata userGroups = types.getSchemaType(User.SCHEMA_TYPE).getDefaultSchema().getMetadata(User.GROUPS);
+		for (Record user : searchServices.getAllRecordsInUnmodifiableState(types.getSchemaType(User.SCHEMA_TYPE))) {
+			if (user != null) {
+				Set<String> allGroups = new HashSet<>();
+
+				for (String groupId : user.<String>getList(userGroups)) {
+					allGroups.add(groupId);
+					allGroups.addAll(groupsGivingAccessToGroup.get(groupId));
+				}
+
+				groupsGivingAccessToUser.addAll(user.getId(), new ArrayList<>(allGroups));
+				activePrincipalsGivingAccessToPrincipal.add(user.getId(), user.getId());
 			} else {
 				LOGGER.warn("Null record returned while getting all groups");
 			}
@@ -553,8 +591,29 @@ public class RecordAutomaticMetadataServices {
 			}
 		}
 
-		return new SingletonSecurityModel(authorizationDetails, globalGroupDisabledMap, groupsReceivingAccessToGroup, groupsGivingAccessToGroup, groupInheritanceMode,
-				securableRecordSchemaTypes, collection);
+
+		for (Map.Entry<String, List<String>> entry : groupsGivingAccessToGroup.getMapEntries()) {
+			for (String groupId : entry.getValue()) {
+				Boolean disabled = globalGroupEnabledMap.get(groupId);
+				if (Boolean.TRUE.equals(disabled)) {
+					activePrincipalsGivingAccessToPrincipal.add(entry.getKey(), groupId);
+				}
+
+			}
+		}
+
+		for (Map.Entry<String, List<String>> entry : groupsGivingAccessToUser.getMapEntries()) {
+			for (String groupId : entry.getValue()) {
+				Boolean disabled = globalGroupEnabledMap.get(groupId);
+				if (Boolean.TRUE.equals(disabled)) {
+					activePrincipalsGivingAccessToPrincipal.add(entry.getKey(), groupId);
+				}
+			}
+		}
+
+		return new SingletonSecurityModel(authorizationDetails, globalGroupEnabledMap, groupsReceivingAccessFromGroup,
+				groupsGivingAccessToGroup, groupsGivingAccessToUser, activePrincipalsGivingAccessToPrincipal,
+				groupInheritanceMode, securableRecordSchemaTypes, collection);
 	}
 
 

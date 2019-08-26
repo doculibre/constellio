@@ -241,8 +241,9 @@ public class RecordDeleteServices {
 						.hasDeletePermissionOnHierarchyNoMatterTheStatus(user, record, recordsHierarchy);
 		Metadata referenceMetadata = referenceMetadata(record);
 		boolean referencesInConfigs = referenceMetadata != null;
-		boolean referencesUnhandled =
-				isReferencedByOtherRecords(record, recordsHierarchy) && !options.isSetMostReferencesToNull();
+
+		final Set<String> recordsInHierarchyWithDependency = getRecordsInHierarchyWithDependency(record, recordsHierarchy);
+		boolean referencesUnhandled = !recordsInHierarchyWithDependency.isEmpty() && !options.isSetMostReferencesToNull();
 
 		ValidationErrors validationErrors = new ValidationErrors();
 		if (referencesInConfigs) {
@@ -253,7 +254,6 @@ public class RecordDeleteServices {
 			validationErrors.add(RecordDeleteServices.class, "noSufficientPermissionsOnHierarchy");
 		}
 
-		final Set<String> recordsInHierarchyWithDependency = getRecordsInHierarchyWithDependency(record, recordsHierarchy);
 		if (referencesUnhandled) {
 			validationErrors.add(RecordDeleteServices.class, "recordInHierarchyReferencedOutsideOfHierarchy", toParameter("records", getTenFirstRecords(recordsInHierarchyWithDependency, record.getCollection())));
 		}

@@ -129,9 +129,10 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	private MetadataSchemaToVOBuilder schemaVOBuilder = new MetadataSchemaToVOBuilder();
 	private FolderToVOBuilder folderVOBuilder;
 	private DocumentToVOBuilder documentVOBuilder;
-	private List<String> documentsTitle;
 
 	private FolderVO folderVO;
+
+	private MetadataSchemaVO tasksSchemaVO;
 
 	private transient RMConfigs rmConfigs;
 	private transient RMSchemasRecordsServices rmSchemasRecordsServices;
@@ -205,9 +206,9 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		String id;
 		Map<String, String> paramsMap = ParamUtils.getParamsMap(params);
 
-		Map<String, String> lParamsAsMap = ParamUtils.getParamsMap(params);
-		if (lParamsAsMap.size() > 0) {
-			this.params = ParamUtils.getParamsMap(params);
+		Map<String, String> currentParams = ParamUtils.getParamsMap(params);
+		if (currentParams.size() > 0) {
+			this.params = currentParams;
 			id = this.params.get("id");
 		} else {
 			id = params;
@@ -243,30 +244,16 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			}
 		};
 
-		MetadataSchemaVO tasksSchemaVO = schemaVOBuilder
+		tasksSchemaVO = schemaVOBuilder
 				.build(getTasksSchema(), VIEW_MODE.TABLE, Arrays.asList(STARRED_BY_USERS), view.getSessionContext(), true);
-		tasksDataProvider = new RecordVODataProvider(
-				tasksSchemaVO, folderVOBuilder, modelLayerFactory, view.getSessionContext()) {
-			@Override
-			protected LogicalSearchQuery getQuery() {
-				LogicalSearchQuery query = getTasksQuery();
-				addStarredSortToQuery(query);
-				query.sortDesc(Schemas.MODIFIED_ON);
-				return query;
-			}
-
-			@Override
-			protected void clearSort(LogicalSearchQuery query) {
-				super.clearSort(query);
-				addStarredSortToQuery(query);
-			}
-		};
 
 		view.setFolderContent(Arrays.asList(subFoldersDataProvider, documentsDataProvider));
 		view.setTasks(tasksDataProvider);
 
-		eventsDataProvider = getEventsDataProvider();
-		view.setEvents(eventsDataProvider);
+		if (hasCurrentUserPermissionToViewEvents()) {
+			eventsDataProvider = getEventsDataProvider();
+			view.setEvents(eventsDataProvider);
+		}
 
 		computeAllItemsSelected();
 	}
@@ -350,7 +337,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 		Map<String, String> params = getParams();
 
-		if(params != null) {
+		if (params != null) {
 			if (params.get("decommissioningSearchId") != null) {
 				saveSearchDecommissioningId = params.get("decommissioningSearchId");
 				view.getUIContext()
@@ -759,7 +746,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			appLayerFactory.getExtensions().forCollection(collection)
 					.notifyFolderDeletion(new FolderDeletionEvent(rmSchemasRecordsServices.wrapFolder(record)));
 
-			boolean isDeleteSuccessful = delete(record, reason, false, WAIT_ONE_SECOND);
+			boolean isDeleteSuccessful = delete(record, reason, false, WAIT_ONE_SECOND, validateLogicallyDeletable);
 			if (isDeleteSuccessful) {
 				if (parentId != null) {
 					navigateToFolder(parentId);
@@ -880,31 +867,6 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		return new RMSchemasRecordsServices(getCurrentUser().getCollection(), appLayerFactory);
 	}
 
-	private boolean documentExists(String fileName) {
-		List<String> allDocumentTitles = getAllDocumentTitles();
-		return allDocumentTitles.contains(fileName);
-	}
-
-	private List<String> getAllDocumentTitles() {
-		if(documentsTitle != null) {
-			return documentsTitle;
-		} else {
-			//TODO replace with SearchServices.stream in Constellio 9.0
-			documentsTitle = new ArrayList<>();
-			RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
-			LogicalSearchQuery query = new LogicalSearchQuery()
-					.setCondition(from(rm.document.schemaType()).where(rm.document.folder()).is(folderVO.getId()))
-					.filteredByStatus(StatusFilter.ACTIVES)
-					.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(Schemas.TITLE));
-
-			List<Record> documents = modelLayerFactory.newSearchServices().search(query);
-			for(Record document: documents) {
-				documentsTitle.add(document.getId());
-			}
-			return documentsTitle;
-		}
-	}
-
 	private SearchResponseIterator<Record> getExistingDocumentInCurrentFolder(String fileName) {
 		Record record = getRecord(folderVO.getId());
 
@@ -979,7 +941,6 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 					transaction.add(document);
 					transaction.setUser(getCurrentUser());
 					appLayerFactory.getModelLayerFactory().newRecordServices().executeWithoutImpactHandling(transaction);
-					documentsTitle.add(document.getTitle());
 				} finally {
 					IOServices ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();
 					ioServices.closeQuietly(inputStream);
@@ -995,15 +956,15 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			StringBuilder message = new StringBuilder();
 			boolean refreshDocument = false;
 
-			while(existingDocument.hasNext()) {
+			while (existingDocument.hasNext()) {
 				Record currentRecord = existingDocument.next();
 				Content content = currentRecord.get(rmSchemasRecordsServices.document.content());
 				ContentVersion contentVersion = content.getCurrentVersion();
-				if(contentVersion.getHash() != null && !uploadedContentVO.getHash().equals(contentVersion.getHash())) {
+				if (contentVersion.getHash() != null && !uploadedContentVO.getHash().equals(contentVersion.getHash())) {
 					refreshDocument = true;
-					if (!hasWritePermission(currentRecord)){
+					if (!hasWritePermission(currentRecord)) {
 						message.append($("displayFolderView.noWritePermission", currentRecord) + "</br>");
-					} else if(isCheckedOutByOtherUser(currentRecord)) {
+					} else if (isCheckedOutByOtherUser(currentRecord)) {
 						message.append($("displayFolderView.checkoutByAnOtherUser", currentRecord) + "</br>");
 					} else {
 						view.showVersionUpdateWindow(voBuilder.build(currentRecord,
@@ -1013,11 +974,11 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 					message.append($("displayfolderview.unchangeFile", currentRecord.getTitle()) + "</br>");
 				}
 			}
-			if(message.length() > 0) {
+			if (message.length() > 0) {
 				view.showErrorMessage(message.toString());
 			}
 
-			if(refreshDocument) {
+			if (refreshDocument) {
 				documentsDataProvider.fireDataRefreshEvent();
 			}
 		}
@@ -1030,7 +991,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 	private boolean isCheckedOutByOtherUser(Record recordVO) {
 		Content content = recordVO.get(rmSchemasRecordsServices.document.content());
-		if(recordVO.getTypeCode().equals(Document.SCHEMA_TYPE) && content != null) {
+		if (recordVO.getTypeCode().equals(Document.SCHEMA_TYPE) && content != null) {
 			User currentUser = presenterUtilsForDocument.getCurrentUser();
 			String checkOutUserId = content.getCheckoutUserId();
 			return checkOutUserId != null && !checkOutUserId.equals(currentUser.getId());
@@ -1122,7 +1083,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			String borrowedFolderTitle = folderVO.getTitle();
 			parameters.add("borrowedFolderTitle" + EmailToSend.PARAMETER_SEPARATOR + borrowedFolderTitle);
 			boolean isAddingRecordIdInEmails = eimConfigs.isAddingRecordIdInEmails();
-			if(isAddingRecordIdInEmails) {
+			if (isAddingRecordIdInEmails) {
 				parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + $("DisplayFolderView.returnFolderReminder") + " \""
 							   + folderVO.getTitle() + "\" (" + folderVO.getId() + ")");
 			} else {
@@ -1301,6 +1262,26 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	void tasksTabSelected() {
+		if (tasksDataProvider == null) {
+			tasksDataProvider = new RecordVODataProvider(
+					tasksSchemaVO, folderVOBuilder, modelLayerFactory, view.getSessionContext()) {
+				@Override
+				protected LogicalSearchQuery getQuery() {
+					LogicalSearchQuery query = getTasksQuery();
+					addStarredSortToQuery(query);
+					query.sortDesc(Schemas.MODIFIED_ON);
+					return query;
+				}
+
+				@Override
+				protected void clearSort(LogicalSearchQuery query) {
+					super.clearSort(query);
+					addStarredSortToQuery(query);
+				}
+			};
+			view.setTasks(tasksDataProvider);
+		}
+
 		view.selectTasksTab();
 	}
 

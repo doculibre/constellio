@@ -11,7 +11,6 @@ import com.constellio.app.ui.framework.buttons.SelectDeselectAllButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.components.RecordDisplayFactory;
-import com.constellio.app.ui.framework.components.ReportViewer.DownloadStreamResource;
 import com.constellio.app.ui.framework.components.SearchResultDetailedTable;
 import com.constellio.app.ui.framework.components.SearchResultSimpleTable;
 import com.constellio.app.ui.framework.components.SearchResultTable;
@@ -24,6 +23,7 @@ import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.containers.SearchResultContainer;
 import com.constellio.app.ui.framework.containers.SearchResultVOLazyContainer;
 import com.constellio.app.ui.framework.data.SearchResultVODataProvider;
+import com.constellio.app.ui.framework.stream.DownloadStreamResource;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.search.SearchPresenter.SortOrder;
 import com.constellio.data.utils.KeySetMap;
@@ -99,6 +99,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	private HashMap<Integer, Boolean> hashMapAllSelection = new HashMap<>();
 	private List<SaveSearchListener> saveSearchListenerList = new ArrayList<>();
 	private Map<String, String> extraParameters = null;
+	private boolean lazyLoadedSearchResults;
 
 	public void addSaveSearchListenerList(SaveSearchListener saveSearchListener) {
 		saveSearchListenerList.add(saveSearchListener);
@@ -255,7 +256,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		if (temporarySave) {
 			SavedSearch savedSearch = presenter.saveTemporarySearch(false);
 
-			for(SaveSearchListener saveSearchListener : saveSearchListenerList) {
+			for (SaveSearchListener saveSearchListener : saveSearchListenerList) {
 				saveSearchListener.save(new SaveSearchListener.Event(savedSearch));
 			}
 		}
@@ -273,7 +274,11 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 
 		summary.addComponent(buildSummary(results));
 
-		resultsArea.addComponent(new LazyLoadWrapper(results));
+		if (lazyLoadedSearchResults) {
+			resultsArea.addComponent(new LazyLoadWrapper(results));
+		} else {
+			resultsArea.addComponent(results);
+		}
 		if (isDetailedView()) {
 			resultsArea.addComponent(((SearchResultDetailedTable) results).createControls());
 			((SearchResultDetailedTable) results).setItemsPerPageValue(presenter.getSelectedPageLength());
@@ -282,6 +287,11 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		refreshCapsule();
 
 		return dataProvider;
+	}
+
+	@Override
+	public void setLazyLoadedSearchResults(boolean lazyLoadedSearchResults) {
+		this.lazyLoadedSearchResults = lazyLoadedSearchResults;
 	}
 
 	private boolean isDetailedView() {
@@ -424,31 +434,31 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		srTable.setCurrentPage(currentPage);
 
 		if (false) {
-//			srTable.addListener(new SearchResultDetailedTable.PageChangeListener() {
-//				public void pageChanged(PagedTableChangeEvent event) {
-//					presenter.setPageNumber(event.getCurrentPage());
-//	
-//					presenter.saveTemporarySearch(false);
-//					if (selectDeselectAllButton != null) {
-//						hashMapAllSelection.put(presenter.getLastPageNumber(), selectDeselectAllButton.isSelectAllMode());
-//						Boolean objIsSelectAllMode = hashMapAllSelection.get(new Integer(presenter.getPageNumber()));
-//						boolean isSelectAllMode = true;
-//						if (objIsSelectAllMode != null) {
-//							isSelectAllMode = objIsSelectAllMode;
-//						}
-//						selectDeselectAllButton.setSelectAllMode(isSelectAllMode);
-//					}
-//				}
-//			});
-//			srTable.getItemsPerPageField().addValueChangeListener(new ValueChangeListener() {
-//				@Override
-//				public void valueChange(Property.ValueChangeEvent event) {
-//					presenter.setSelectedPageLength((int) event.getProperty().getValue());
-//					hashMapAllSelection = new HashMap<>();
-//	
-//					presenter.searchNavigationButtonClicked();
-//				}
-//			});
+			//			srTable.addListener(new SearchResultDetailedTable.PageChangeListener() {
+			//				public void pageChanged(PagedTableChangeEvent event) {
+			//					presenter.setPageNumber(event.getCurrentPage());
+			//
+			//					presenter.saveTemporarySearch(false);
+			//					if (selectDeselectAllButton != null) {
+			//						hashMapAllSelection.put(presenter.getLastPageNumber(), selectDeselectAllButton.isSelectAllMode());
+			//						Boolean objIsSelectAllMode = hashMapAllSelection.get(new Integer(presenter.getPageNumber()));
+			//						boolean isSelectAllMode = true;
+			//						if (objIsSelectAllMode != null) {
+			//							isSelectAllMode = objIsSelectAllMode;
+			//						}
+			//						selectDeselectAllButton.setSelectAllMode(isSelectAllMode);
+			//					}
+			//				}
+			//			});
+			//			srTable.getItemsPerPageField().addValueChangeListener(new ValueChangeListener() {
+			//				@Override
+			//				public void valueChange(Property.ValueChangeEvent event) {
+			//					presenter.setSelectedPageLength((int) event.getProperty().getValue());
+			//					hashMapAllSelection = new HashMap<>();
+			//
+			//					presenter.searchNavigationButtonClicked();
+			//				}
+			//			});
 		}
 
 		srTable.setWidth("100%");

@@ -131,7 +131,7 @@ public class ExcelImportDataIterator extends LazyIterator<ImportData> implements
     }
 
     public ImportData parseRecord() {
-        String schema = DEFAULT_SCHEMA;
+        String schema = null;
         Map<String, Object> fields = new HashMap<>();
         String legacy = null;
 

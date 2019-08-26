@@ -89,6 +89,7 @@ public class UserServices {
 	private final UniqueIdGenerator secondaryUniqueIdGenerator;
 	private final AuthorizationsServices authorizationsServices;
 	private final ModelLayerFactory modelLayerFactory;
+	private final SchemasRecordsServices schemas;
 
 	public UserServices(ModelLayerFactory modelLayerFactory) {
 		this.modelLayerFactory = modelLayerFactory;
@@ -104,6 +105,7 @@ public class UserServices {
 		this.rolesManager = modelLayerFactory.getRolesManager();
 		this.secondaryUniqueIdGenerator = modelLayerFactory.getDataLayerFactory().getSecondaryUniqueIdGenerator();
 		this.authorizationsServices = modelLayerFactory.newAuthorizationsServices();
+		this.schemas = SchemasRecordsServices.usingMainModelLayerFactory(com.constellio.model.entities.records.wrappers.Collection.SYSTEM_COLLECTION, modelLayerFactory);
 	}
 
 	public UserCredential createUserCredential(String username, String firstName, String lastName, String email,
@@ -851,6 +853,10 @@ public class UserServices {
 
 	public UserCredential getUserCredential(String username) {
 		return userCredentialsManager.getUserCredential(username);
+	}
+
+	public UserCredential getUserCredentialByDN(String dn) {
+		return userCredentialsManager.getUserCredentialByDN(dn);
 	}
 
 	public List<UserCredential> getActiveUserCredentials() {

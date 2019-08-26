@@ -33,7 +33,6 @@ import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.util.DateFormatUtils;
 import com.constellio.app.ui.util.MessageUtils;
-import com.constellio.app.ui.util.SchemaCaptionUtils;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.CorePermissions;
@@ -189,9 +188,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	}
 
 	public boolean documentInDefaultFavorites() {
-		Record record = presenterUtils.getRecord(documentVO.getId());
-		Document document = rmSchemasRecordsServices.wrapDocument(record);
-		return document.getFavorites().contains(getCurrentUser().getId());
+		return documentVO.getList(Document.FAVORITES).contains(getCurrentUser().getId());
 	}
 
 	public Document renameContentButtonClicked(String newName) {
@@ -227,7 +224,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 			if (areSearchTypeAndSearchIdPresent) {
 				actionsComponent.navigate().to(RMViews.class)
 						.addDocumentWithContentFromDecommission(documentVO.getId(), DecommissionNavUtil.getSearchId(params), DecommissionNavUtil.getSearchType(params));
-			} else if (params.get(RMViews.FAV_GROUP_ID_KEY) != null) {
+			} else if (params != null && params.get(RMViews.FAV_GROUP_ID_KEY) != null) {
 				actionsComponent.navigate().to(RMViews.class).addDocumentWithContentFromFavorites(documentVO.getId(), params.get(RMViews.FAV_GROUP_ID_KEY));
 			} else if (rmModuleExtensions
 					.navigateToAddDocumentWhileKeepingTraceOfPreviousView(new NavigateToFromAPageParams(params, documentVO.getId()))) {
@@ -280,7 +277,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 				return ComponentState
 						.visibleIf(getCurrentUser().has(RMPermissionsTo.DELETE_INACTIVE_DOCUMENT).on(currentDocument()));
 			}
-			if (archivisticStatus != null && archivisticStatus.isInactive()) {
+			if (archivisticStatus != null && archivisticStatus.isSemiActive()) {
 				Folder parentFolder = rmSchemasRecordsServices.getFolder(currentDocument().getParentId());
 				if (parentFolder.getBorrowed() != null && parentFolder.getBorrowed()) {
 					return ComponentState
@@ -296,11 +293,12 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	}
 
 	public void deleteDocumentButtonClicked(Map<String, String> params) {
-		if (validateDeleteDocumentPossibleExtensively().isEmpty()) {
+		ValidationErrors errors = validateDeleteDocumentPossibleExtensively();
+		if (errors.isEmpty()) {
 			Document document = rmSchemasRecordsServices.getDocument(documentVO.getId());
 			String parentId = document.getFolder();
 			try {
-				presenterUtils.delete(document.getWrappedRecord(), null, true, WAIT_ONE_SECOND);
+				presenterUtils.delete(document.getWrappedRecord(), null, true, getCurrentUser(), WAIT_ONE_SECOND, errors);
 			} catch (RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord e) {
 				actionsComponent.showMessage(MessageUtils.toMessage(e));
 				return;
@@ -601,6 +599,8 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 			} catch (RecordServicesException e) {
 				actionsComponent.showErrorMessage(MessageUtils.toMessage(e));
 			}
+		} else if (isCheckOutNotPossibleDocumentDeleted()) {
+			actionsComponent.showErrorMessage($("DocumentActionsComponent.cantCheckOutDocumentDeleted"));
 		}
 	}
 
@@ -639,6 +639,14 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		boolean checkedOut = isContentCheckedOut();
 		boolean borrower = isCurrentUserBorrower();
 		return !email && (!checkedOut || borrower);
+	}
+
+	private boolean isDocumentLogicallyDeleted() {
+		if (currentDocument().getId() != null) {
+			return rmSchemasRecordsServices.getDocument(documentVO.getId()).isLogicallyDeletedStatus();
+		} else {
+			return true;
+		}
 	}
 
 	ComponentState getUploadButtonState() {
@@ -690,7 +698,11 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 
 	protected boolean isCheckOutPossible() {
 		boolean email = isEmail();
-		return !email && (getContent() != null && !isContentCheckedOut());
+		return !email && !isDocumentLogicallyDeleted() && (getContent() != null && !isContentCheckedOut());
+	}
+
+	protected boolean isCheckOutNotPossibleDocumentDeleted() {
+		return !isEmail() && isDocumentLogicallyDeleted() && (getContent() != null && !isContentCheckedOut());
 	}
 
 	private ComponentState getCheckOutState() {

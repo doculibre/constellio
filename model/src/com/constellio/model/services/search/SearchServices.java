@@ -486,7 +486,7 @@ public class SearchServices {
 			if (query.getUserFilters() != null && query.getUserFilters().size() > 0) {
 				user = query.getUserFilters().get(0).getUser();
 			}
-			String qf = getQfFor(languages, query.getLanguage(), query.getFieldBoosts(), searchedSchemaTypes, user);
+			String qf = getQfFor(languages, queryLanguage, query.getFieldBoosts(), searchedSchemaTypes, user);
 			params.add(DisMaxParams.QF, qf);
 			params.add(DisMaxParams.PF, qf);
 			if (systemConfigs.isReplaceSpacesInSimpleSearchForAnds()) {
@@ -812,15 +812,17 @@ public class SearchServices {
 						if (metadata.getType() == MetadataValueType.CONTENT) {
 							for (String language : languages) {
 								String analyzedField = metadata.getAnalyzedField(language).getDataStoreCode();
-								if (!fields.contains(analyzedField)) {
-									sb.append(analyzedField + " ");
+								if (!fields.contains(analyzedField) && !analyzedField.contains("null")) {
+									sb.append(analyzedField);
+									sb.append(" ");
 									fields.add(analyzedField);
 								}
 							}
 						} else {
 							String analyzedField = metadata.getAnalyzedField(metadata.isMultiLingual() ? queryLanguage : mainDataLanguage).getDataStoreCode();
-							if (!fields.contains(analyzedField)) {
-								sb.append(analyzedField + " ");
+							if (!fields.contains(analyzedField) && !analyzedField.contains("null")) {
+								sb.append(analyzedField);
+								sb.append(" ");
 								fields.add(analyzedField);
 							}
 
@@ -977,7 +979,8 @@ public class SearchServices {
 
 				} else {
 
-					List<Record> records = cachedSearch(new LogicalSearchQuery(from(schemaType).returnAll()));
+					List<Record> records = cachedSearch(new LogicalSearchQuery(from(schemaType).returnAll())
+							.setName("Loading records of '" + schemaType.getCode() + "'"));
 					if (!Toggle.PUTS_AFTER_SOLR_QUERY.isEnabled()) {
 
 						if (records.size() > 1000) {

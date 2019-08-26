@@ -1,31 +1,11 @@
 package com.constellio.app.ui.framework.components.fields.upload;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.vaadin.easyuploads.DirectoryFileFactory;
-import org.vaadin.easyuploads.FileBuffer;
-import org.vaadin.easyuploads.FileFactory;
-import org.vaadin.easyuploads.MultiUpload;
-import org.vaadin.easyuploads.MultiUpload.FileDetail;
-import org.vaadin.easyuploads.MultiUploadHandler;
-import org.vaadin.easyuploads.UploadField.FieldType;
-
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.pages.base.ClickableNotification;
 import com.constellio.app.ui.util.FileIconUtils;
+import com.constellio.data.utils.dev.Toggle;
 import com.vaadin.data.Item;
 import com.vaadin.event.UIEvents.PollEvent;
 import com.vaadin.event.UIEvents.PollListener;
@@ -34,7 +14,7 @@ import com.vaadin.event.dd.DropHandler;
 import com.vaadin.event.dd.acceptcriteria.AcceptAll;
 import com.vaadin.event.dd.acceptcriteria.AcceptCriterion;
 import com.vaadin.navigator.ViewChangeListener;
-import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
+import com.vaadin.server.Page;
 import com.vaadin.server.StreamVariable;
 import com.vaadin.server.StreamVariable.StreamingEndEvent;
 import com.vaadin.server.StreamVariable.StreamingErrorEvent;
@@ -48,6 +28,9 @@ import com.vaadin.ui.DragAndDropWrapper;
 import com.vaadin.ui.DragAndDropWrapper.WrapperTransferable;
 import com.vaadin.ui.Html5File;
 import com.vaadin.ui.Label;
+import com.vaadin.ui.ProgressBar;
+import com.vaadin.ui.Notification;
+import com.vaadin.ui.Notification.Type;
 import com.vaadin.ui.ProgressIndicator;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.UI;
@@ -55,6 +38,29 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window.CloseEvent;
 import com.vaadin.ui.Window.CloseListener;
 import com.vaadin.ui.themes.ValoTheme;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.vaadin.easyuploads.DirectoryFileFactory;
+import org.vaadin.easyuploads.FileBuffer;
+import org.vaadin.easyuploads.FileFactory;
+import org.vaadin.easyuploads.MultiUpload;
+import org.vaadin.easyuploads.MultiUpload.FileDetail;
+import org.vaadin.easyuploads.MultiUploadHandler;
+import org.vaadin.easyuploads.UploadField.FieldType;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 @SuppressWarnings("deprecation")
 public abstract class BaseMultiFileUpload extends CssLayout implements DropHandler, PollListener, ViewChangeListener {
@@ -62,15 +68,15 @@ public abstract class BaseMultiFileUpload extends CssLayout implements DropHandl
 	private CssLayout progressBars = new CssLayout();
 	private CssLayout uploads = new CssLayout();
 	private String uploadButtonCaption = "...";
-	
+
 	private BaseWindow uploadWindow;
-	
+
 	private VerticalLayout uploadWindowContent;
-	
+
 	private Label infoLabel;
-	
+
 	private UploadsTable uploadsTable;
-	
+
 	private DragAndDropWrapper dragAndDropWrapper;
 
 	private DragAndDropWrapper dropZone;
@@ -78,7 +84,7 @@ public abstract class BaseMultiFileUpload extends CssLayout implements DropHandl
 	public static final String COMPLETE_STYLE_NAME = "base-multifileupload-completed";
 
 	private String dropZoneCaption = $("BaseMultiFileUpload.dropZoneCaption");
-	
+
 	private int uiPollIntervalBefore = -1;
 
 	public BaseMultiFileUpload() {
@@ -93,7 +99,7 @@ public abstract class BaseMultiFileUpload extends CssLayout implements DropHandl
 		//				progressBars.addComponent(detachedComponent, 0);
 		//			}
 		//		});
-		
+
 		setWidth("200px");
 		uploads.setStyleName("v-multifileupload-uploads");
 
@@ -103,18 +109,18 @@ public abstract class BaseMultiFileUpload extends CssLayout implements DropHandl
 			infoLabel.setVisible(false);
 			infoLabel.setWidth("100%");
 			infoLabel.setContentMode(ContentMode.HTML);
-			
+
 			uploadsTable = new UploadsTable();
-			
+
 			uploadWindowContent = new VerticalLayout();
 			uploadWindowContent.addStyleName("upload-window-content");
 			uploadWindowContent.setSpacing(true);
 			uploadWindowContent.setWidth("100%");
-			
+
 			dragAndDropWrapper = new DragAndDropWrapper(uploadWindowContent);
 			dragAndDropWrapper.setSizeFull();
 			dragAndDropWrapper.setDropHandler(this);
-			
+
 			uploadWindow = new BaseWindow();
 			uploadWindow.addStyleName("upload-window");
 			uploadWindow.setClosable(false);
@@ -137,16 +143,16 @@ public abstract class BaseMultiFileUpload extends CssLayout implements DropHandl
 		} else {
 			addComponent(progressBars);
 		}
-		
+
 		addComponent(uploads);
-		
+
 		prepareUpload();
 	}
-	
+
 	protected boolean isUploadWindow() {
 		return true;
 	}
-	
+
 	public void setInfoMessage(String message) {
 		infoLabel.setValue(message);
 		infoLabel.setVisible(true);
@@ -163,25 +169,27 @@ public abstract class BaseMultiFileUpload extends CssLayout implements DropHandl
 	public void setDropZoneCaption(String dropZoneCaption) {
 		this.dropZoneCaption = dropZoneCaption;
 	}
-	
-	private void addProgressIndicator(ProgressIndicator progressIndicator) {
+
+	private void addProgressIndicator(ProgressBar progressBar) {
 		if (isUploadWindow()) {
-			uploadsTable.addUpload(progressIndicator);
+			uploadsTable.addUpload(progressBar);
 		} else {
-			progressBars.addComponent(progressIndicator);
+			progressBars.addComponent(progressBar);
 		}
 	}
-	
-	private void removeProgressIndicator(ProgressIndicator progressIndicator) {
-		try {
-			Thread.sleep(1000);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
+
+	private void removeProgressBar(ProgressBar progressBar) {
+		if (!Toggle.PERFORMANCE_TESTING.isEnabled()) {
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 		}
 		if (isUploadWindow()) {
-			uploadsTable.removeUpload(progressIndicator);
+			uploadsTable.removeUpload(progressBar);
 		} else {
-			progressBars.removeComponent(progressIndicator);
+			progressBars.removeComponent(progressBar);
 		}
 	}
 
@@ -194,7 +202,7 @@ public abstract class BaseMultiFileUpload extends CssLayout implements DropHandl
 
 		final MultiUpload upload = new MultiUpload();
 		MultiUploadHandler handler = new MultiUploadHandler() {
-			private LinkedList<ProgressIndicator> indicators;
+			private LinkedList<ProgressBar> progressBars;
 
 			public void streamingStarted(StreamingStartEvent event) {
 				if (isUploadWindow()) {
@@ -203,8 +211,8 @@ public abstract class BaseMultiFileUpload extends CssLayout implements DropHandl
 			}
 
 			public void streamingFinished(StreamingEndEvent event) {
-				if (!indicators.isEmpty()) {
-					removeProgressIndicator(indicators.remove(0));
+				if (!progressBars.isEmpty()) {
+					removeProgressBar(progressBars.remove(0));
 				}
 				File file = receiver.getFile();
 				handleFile(file, event.getFileName(), event.getMimeType(),
@@ -219,8 +227,8 @@ public abstract class BaseMultiFileUpload extends CssLayout implements DropHandl
 				Logger.getLogger(getClass().getName()).log(Level.FINE,
 						"Streaming failed", event.getException());
 
-				for (ProgressIndicator progressIndicator : indicators) {
-					removeProgressIndicator(progressIndicator);
+				for (ProgressBar progressBar : progressBars) {
+					removeProgressBar(progressBar);
 				}
 				if (isUploadWindow()) {
 					closeUploadWindowIfAllDone();
@@ -231,7 +239,7 @@ public abstract class BaseMultiFileUpload extends CssLayout implements DropHandl
 				long readBytes = event.getBytesReceived();
 				long contentLength = event.getContentLength();
 				float f = (float) readBytes / (float) contentLength;
-				indicators.get(0).setValue(f);
+				progressBars.get(0).setValue(f);
 			}
 
 			public OutputStream getOutputStream() {
@@ -242,15 +250,15 @@ public abstract class BaseMultiFileUpload extends CssLayout implements DropHandl
 			}
 
 			public void filesQueued(Collection<FileDetail> pendingFileNames) {
-				if (indicators == null) {
-					indicators = new LinkedList<ProgressIndicator>();
+				if (progressBars == null) {
+					progressBars = new LinkedList<ProgressBar>();
 				}
 				for (FileDetail f : pendingFileNames) {
-					ProgressIndicator pi = createProgressIndicator();
-					pi.setCaption(f.getFileName());
-					pi.setVisible(true);
-					indicators.add(pi);
-					addProgressIndicator(pi);
+					ProgressBar pb = createProgressBar();
+					pb.setCaption(f.getFileName());
+					pb.setVisible(true);
+					progressBars.add(pb);
+					addProgressIndicator(pb);
 				}
 			}
 
@@ -265,7 +273,7 @@ public abstract class BaseMultiFileUpload extends CssLayout implements DropHandl
 		uploads.addComponent(upload);
 	}
 
-	private ProgressIndicator createProgressIndicator() {
+	private ProgressIndicator createProgressBar() {
 		ProgressIndicator progressIndicator = new ProgressIndicator();
 		progressIndicator.setPollingInterval(300);
 		progressIndicator.setValue(0f);
@@ -316,7 +324,7 @@ public abstract class BaseMultiFileUpload extends CssLayout implements DropHandl
 	protected int getPollinInterval() {
 		return 500;
 	}
-	
+
 	private boolean isUploadInProgress() {
 		boolean uploadInProgress;
 		if (isUploadWindow()) {
@@ -409,7 +417,7 @@ public abstract class BaseMultiFileUpload extends CssLayout implements DropHandl
 	 * A helper method to set DirectoryFileFactory with given pathname as
 	 * directory.
 	 *
-	 * @param file
+	 * @param directoryWhereToUpload
 	 */
 	public void setRootDirectory(String directoryWhereToUpload) {
 		setFileFactory(new DirectoryFileFactory(
@@ -427,7 +435,8 @@ public abstract class BaseMultiFileUpload extends CssLayout implements DropHandl
 		DragAndDropWrapper.WrapperTransferable transferable = (WrapperTransferable) event
 				.getTransferable();
 		Html5File[] files = transferable.getFiles();
-		if(files != null) {
+		final List<String> emptyFilesName = new ArrayList<>();
+		if (files != null) {
 			for (final Html5File html5File : files) {
 				final ProgressIndicator pi = new ProgressIndicator();
 				pi.setCaption(html5File.getFileName());
@@ -437,6 +446,7 @@ public abstract class BaseMultiFileUpload extends CssLayout implements DropHandl
 
 					private String name;
 					private String mime;
+					private boolean isInterrupted;
 
 					public OutputStream getOutputStream() {
 						return receiver.receiveUpload(name, mime);
@@ -448,7 +458,7 @@ public abstract class BaseMultiFileUpload extends CssLayout implements DropHandl
 
 					public void onProgress(StreamingProgressEvent event) {
 						float p = (float) event.getBytesReceived()
-								/ (float) event.getContentLength();
+								  / (float) event.getContentLength();
 						pi.setValue(p);
 					}
 
@@ -458,20 +468,27 @@ public abstract class BaseMultiFileUpload extends CssLayout implements DropHandl
 						if (isUploadWindow()) {
 							showUploadWindowIfNotVisible();
 						}
+						isInterrupted = event.getContentLength() <= 0;
 					}
 
 					public void streamingFinished(StreamingEndEvent event) {
-						removeProgressIndicator(pi);
-						handleFile(receiver.getFile(), html5File.getFileName(),
-								html5File.getType(), html5File.getFileSize());
-						receiver.setValue(null);
+						removeProgressBar(pi);
+
+						if (isInterrupted) {
+							emptyFilesName.add(html5File.getFileName());
+						} else {
+							handleFile(receiver.getFile(), html5File.getFileName(),
+									html5File.getType(), html5File.getFileSize());
+							receiver.setValue(null);
+						}
+
 						if (isUploadWindow()) {
-							closeUploadWindowIfAllDone();
+							closeUploadWindowIfAllDone(emptyFilesName);
 						}
 					}
 
 					public void streamingFailed(StreamingErrorEvent event) {
-						removeProgressIndicator(pi);
+						removeProgressBar(pi);
 						if (isUploadWindow()) {
 							closeUploadWindowIfAllDone();
 						}
@@ -482,9 +499,11 @@ public abstract class BaseMultiFileUpload extends CssLayout implements DropHandl
 					}
 				});
 			}
+
+
 		}
 	}
-	
+
 	private void showUploadWindowIfNotVisible() {
 		UI.getCurrent().access(new Runnable() {
 			@Override
@@ -497,15 +516,32 @@ public abstract class BaseMultiFileUpload extends CssLayout implements DropHandl
 			}
 		});
 	}
-	
+
 	private void closeUploadWindowIfAllDone() {
+		closeUploadWindowIfAllDone(Collections.<String>emptyList());
+	}
+
+	private void closeUploadWindowIfAllDone(final List<String> emptyFilesName) {
 		UI.getCurrent().access(new Runnable() {
 			@Override
 			public void run() {
 				if (!isUploadInProgress()) {
 					UI.getCurrent().removeWindow(uploadWindow);
+
+					if (!emptyFilesName.isEmpty()) {
+						StringBuilder errorMessage = new StringBuilder(
+								$("BaseMultiFileUpload.fileUploadCancel") + " :");
+						for (String s : emptyFilesName) {
+							errorMessage.append(" " + s);
+						}
+
+						Notification notification = new Notification(errorMessage.toString() + "<br/><br/>" +
+																	 $("clickToClose"), Type.WARNING_MESSAGE);
+						notification.setHtmlContentAllowed(true);
+						notification.show(Page.getCurrent());
+					}
 				}
-			}	
+			}
 		});
 	}
 
@@ -513,27 +549,27 @@ public abstract class BaseMultiFileUpload extends CssLayout implements DropHandl
 
 @SuppressWarnings("deprecation")
 class UploadsTable extends BaseTable {
-	
+
 	private static final String FILE_PROPERTY = "file";
-	
+
 	private static final String PROGRESS_BAR_PROPERTY = "progressBar";
 
 	public UploadsTable() {
 		super("multifileupload-uploads-table");
 		addStyleName("multifileupload-uploads-table");
 		addStyleName(ValoTheme.TABLE_BORDERLESS);
-		
+
 		setHeight("500px");
 		setWidth("100%");
-		
+
 		addContainerProperty(FILE_PROPERTY, Component.class, "");
 		addContainerProperty(PROGRESS_BAR_PROPERTY, ProgressIndicator.class, null);
-		
+
 		setColumnHeaderMode(ColumnHeaderMode.HIDDEN);
-		
+
 		setColumnWidth(PROGRESS_BAR_PROPERTY, 160);
 		setColumnExpandRatio(FILE_PROPERTY, 1);
-		
+
 		setCellStyleGenerator(new CellStyleGenerator() {
 			@Override
 			public String getStyle(Table source, Object itemId, Object propertyId) {
@@ -556,30 +592,30 @@ class UploadsTable extends BaseTable {
 			}
 		});
 	}
-	
+
 	@SuppressWarnings("unchecked")
-	void addUpload(ProgressIndicator progressIndicator) {
-		Item item = addItem(progressIndicator);
-		
-		String filename = progressIndicator.getCaption();
+	void addUpload(ProgressBar progressBar) {
+		Item item = addItem(progressBar);
+
+		String filename = progressBar.getCaption();
 		Label filenameLabel = new Label(filename);
-		progressIndicator.setCaption(null);
-		
+		progressBar.setCaption(null);
+
 		item.getItemProperty(FILE_PROPERTY).setValue(filenameLabel);
-		item.getItemProperty(PROGRESS_BAR_PROPERTY).setValue(progressIndicator);
+		item.getItemProperty(PROGRESS_BAR_PROPERTY).setValue(progressBar);
 	}
-	
-	void removeUpload(ProgressIndicator progressIndicator) {
-		removeItem(progressIndicator);
+
+	void removeUpload(ProgressBar progressBar) {
+		removeItem(progressBar);
 	}
-	
+
 }
 
 class TempFileFactory implements FileFactory {
 
 	public File createFile(String fileName, String mimeType) {
 		final String tempFileName = "upload_tmpfile_"
-				+ System.currentTimeMillis();
+									+ System.currentTimeMillis();
 		try {
 			return File.createTempFile(tempFileName, null);
 		} catch (IOException e) {

@@ -1,5 +1,6 @@
 package com.constellio.app.ui.pages.events;
 
+import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -196,6 +197,7 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 							List<String> defaultVisibleColumnIds = super.getDefaultVisibleColumnIds(table);
 							defaultVisibleColumnIds.add(EVENT_DEFAULT_TYPE);
 							defaultVisibleColumnIds.add(EVENT_DEFAULT_USERNAME);
+							defaultVisibleColumnIds.add(Document.DEFAULT_SCHEMA + "_" + Document.CONTENT_CHECKED_OUT_BY);
 							return defaultVisibleColumnIds;
 						}
 
@@ -241,7 +243,6 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 		}
 		return new Label(eventTypeCaption);
 	}
-
 
 
 	private static Component negativeAuthorizationLabel(MetadataValueVO metadataValue) {

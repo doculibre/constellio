@@ -1,6 +1,5 @@
 package com.constellio.model.services.migrations;
 
-import static com.constellio.model.services.migrations.TimeScheduleConfigurationValidator.isCurrentlyInSchedule;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.configs.AbstractSystemConfigurationScript;
 import com.constellio.model.entities.configs.SystemConfiguration;
@@ -27,6 +26,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import static com.constellio.model.services.migrations.TimeScheduleConfigurationValidator.isCurrentlyInSchedule;
 
 public class ConstellioEIMConfigs {
 
@@ -82,8 +83,6 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration TABLE_DYNAMIC_CONFIGURATION;
 
 	public static final SystemConfiguration TRANSACTION_DELAY;
-
-	public static final SystemConfiguration LAZY_LOADED_FACETS;
 
 	public static final SystemConfiguration REPLACE_SPACES_IN_SIMPLE_SEARCH_FOR_ANDS;
 
@@ -154,8 +153,8 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration ENABLE_SYSTEM_STATE_OPT_DISK_USAGE;
 	public static final SystemConfiguration ENABLE_SYSTEM_STATE_SOLR_DISK_USAGE;
 	public static final SystemConfiguration ENABLE_SYSTEM_STATE_LICENSE;
-	public static final SystemConfiguration NO_LNKS_IN_SEARCH_RESULTS;
-
+	public static final SystemConfiguration NO_LINKS_IN_SEARCH_RESULTS;
+	public static final SystemConfiguration LAZY_LOADED_SEARCH_RESULTS;
 
 	static {
 		SystemConfigurationGroup others = new SystemConfigurationGroup(null, "others");
@@ -181,7 +180,7 @@ public class ConstellioEIMConfigs {
 		add(INCLUDE_FROM_FIELD_WHEN_GENERATING_EMAILS = others.createBooleanTrueByDefault("includeFromFieldWhenGeneratingEmails"));
 
 		add(DATE_FORMAT = others.createString("dateFormat").withDefaultValue("yyyy-MM-dd"));
-		add(DATE_TIME_FORMAT = others.createString("dateTimeFormat").withDefaultValue("yyyy-MM-dd HH:mm:ss").whichHasHiddenValue());
+		add(DATE_TIME_FORMAT = others.createString("dateTimeFormat").withDefaultValue("yyyy-MM-dd HH:mm:ss"));
 
 		SystemConfigurationGroup advanced = new SystemConfigurationGroup(null, "advanced");
 		add(PARSED_CONTENT_MAX_LENGTH_IN_KILOOCTETS = advanced.createInteger("parsedContentMaxLengthInKilooctets")
@@ -221,8 +220,6 @@ public class ConstellioEIMConfigs {
 		add(REMOVE_EXTENSION_FROM_RECORD_TITLE = advanced.createBooleanFalseByDefault("removeExtensionFromDocument"));
 
 		add(TABLE_DYNAMIC_CONFIGURATION = advanced.createBooleanTrueByDefault("tableDynamicConfiguration"));
-
-		add(LAZY_LOADED_FACETS = search.createBooleanTrueByDefault("lazyLoadedFacets"));
 
 		add(ADD_SECONDARY_SORT_WHEN_SORTING_BY_SCORE = search.createBooleanTrueByDefault("addSecondarySortWhenSortingByScore")
 				.whichIsHidden());
@@ -296,7 +293,8 @@ public class ConstellioEIMConfigs {
 
 		add(UPDATE_SERVER_CONNECTION_ENABLED = advanced.createBooleanTrueByDefault("updateServerConnectionEnabled").whichIsHidden());
 
-		add(NO_LNKS_IN_SEARCH_RESULTS = search.createBooleanFalseByDefault("noLinksInSearchResults"));
+		add(NO_LINKS_IN_SEARCH_RESULTS = search.createBooleanFalseByDefault("noLinksInSearchResults"));
+		add(LAZY_LOADED_SEARCH_RESULTS = search.createBooleanTrueByDefault("lazyLoadedSearchResults"));
 
 		configurations = Collections.unmodifiableList(modifiableConfigs);
 
@@ -388,10 +386,6 @@ public class ConstellioEIMConfigs {
 
 	public Boolean isRemoveExtensionFromRecordTitle() {
 		return manager.getValue(REMOVE_EXTENSION_FROM_RECORD_TITLE);
-	}
-
-	public Boolean isLazyLoadedFacets() {
-		return manager.getValue(LAZY_LOADED_FACETS);
 	}
 
 	public ParsingBehavior getDefaultParsingBehavior() {
@@ -563,11 +557,11 @@ public class ConstellioEIMConfigs {
 	public Set<String> getFileExtensionsExcludedFromParsing() {
 		String extensionsAsString = manager.getValue(FILE_EXTENSIONS_EXCLUDED_FROM_PARSING);
 		Set<String> extensionSet = new HashSet<>();
-		if(!StringUtils.isBlank(extensionsAsString)) {
+		if (!StringUtils.isBlank(extensionsAsString)) {
 			String[] splittedExtensions = extensionsAsString.split(",");
-			for(String currentExtension: splittedExtensions) {
+			for (String currentExtension : splittedExtensions) {
 				String formattedExtension = currentExtension.trim().toLowerCase();
-				if(formattedExtension.startsWith(".")) {
+				if (formattedExtension.startsWith(".")) {
 					extensionSet.add(formattedExtension.substring(1));
 				} else {
 					extensionSet.add(formattedExtension);
@@ -592,11 +586,16 @@ public class ConstellioEIMConfigs {
 	public boolean isSystemStateSolrDiskUsageValidationEnabled() {
 		return manager.getValue(ENABLE_SYSTEM_STATE_SOLR_DISK_USAGE);
 	}
+
 	public boolean isUpdateServerConnectionEnabled() {
 		return manager.getValue(UPDATE_SERVER_CONNECTION_ENABLED);
 	}
 
 	public boolean isNoLinksInSearchResults() {
-		return manager.getValue(NO_LNKS_IN_SEARCH_RESULTS);
+		return manager.getValue(NO_LINKS_IN_SEARCH_RESULTS);
+	}
+
+	public boolean isLazyLoadedSearchResults() {
+		return manager.getValue(LAZY_LOADED_SEARCH_RESULTS);
 	}
 }

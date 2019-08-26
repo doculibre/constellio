@@ -64,6 +64,7 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.apache.commons.io.filefilter.AgeFileFilter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.joda.time.Duration;
@@ -95,6 +96,7 @@ public class ContentManager implements StatefulService {
 
 	//TODO Increase this limit to 100
 	private static final int REPARSE_REINDEX_BATCH_SIZE = 1;
+	private static final long FILE_MINIMUM_AGE_BEFORE_DELETION_IN_MILLIS = 259200000; //3 days
 
 	public static final String READ_FILE_TO_UPLOAD = "ContentManager-ReadFileToUpload";
 
@@ -311,7 +313,7 @@ public class ContentManager implements StatefulService {
 			if (file.exists() && shouldFileBeScannedForDeletion(file)) {
 				if (file.isDirectory()) {
 					getAllContentsFromVaultAndRemoveOrphan(fileId, fileList, vaultScanResults);
-				} else {
+				} else if(new AgeFileFilter(System.currentTimeMillis() - FILE_MINIMUM_AGE_BEFORE_DELETION_IN_MILLIS).accept(file)) {
 					fileList.add(file.getName());
 				}
 			}
@@ -353,7 +355,7 @@ public class ContentManager implements StatefulService {
 
 	private boolean shouldFileBeScannedForDeletion(File file) {
 		boolean isMainFile = !(file.getName().endsWith("__parsed") || file.getName().endsWith(".preview"));
-		List<String> restrictedFiles = asList("tlogs", "tlogs_bck");
+		List<String> restrictedFiles = asList("tlogs", "tlogs_bck", "vaultRecovery");
 		return isMainFile && !restrictedFiles.contains(file.getName());
 	}
 
@@ -842,6 +844,7 @@ public class ContentManager implements StatefulService {
 			query.setNumberOfRows(50);
 			query.sortDesc(Schemas.MODIFIED_ON);
 			query.sortDesc(Schemas.CREATED_ON);
+			query.setName("ContentManager:BackgroundThread:getRecordsWithFlag(markedForParsing_s)");
 
 			List<Record> records = searchServices.search(query);
 

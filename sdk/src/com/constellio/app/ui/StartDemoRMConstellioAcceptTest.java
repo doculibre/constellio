@@ -53,6 +53,7 @@ public class StartDemoRMConstellioAcceptTest extends ConstellioTest {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers()
 						.withRMTest(records).withFoldersAndContainersOfEveryStatus()
+						.withDocumentsHavingContent().withDocumentsDecommissioningList()
 		);
 		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
 

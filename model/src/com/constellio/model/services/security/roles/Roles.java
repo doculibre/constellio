@@ -2,6 +2,7 @@ package com.constellio.model.services.security.roles;
 
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Role;
+import com.constellio.model.entities.security.SecurityModel;
 import com.constellio.model.services.records.SchemasRecordsServices;
 
 import java.util.ArrayList;
@@ -71,5 +72,11 @@ public class Roles {
 			}
 		}
 		return returnedRoles;
+	}
+
+	public SecurityModel getSecurityModel() {
+		return schemasRecordsServices.getModelLayerFactory().newRecordServices()
+				.getSecurityModel(schemasRecordsServices.getCollection());
+
 	}
 }
