@@ -129,7 +129,6 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	private MetadataSchemaToVOBuilder schemaVOBuilder = new MetadataSchemaToVOBuilder();
 	private FolderToVOBuilder folderVOBuilder;
 	private DocumentToVOBuilder documentVOBuilder;
-	private List<String> documentsTitle;
 
 	private FolderVO folderVO;
 
@@ -868,31 +867,6 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		return new RMSchemasRecordsServices(getCurrentUser().getCollection(), appLayerFactory);
 	}
 
-	private boolean documentExists(String fileName) {
-		List<String> allDocumentTitles = getAllDocumentTitles();
-		return allDocumentTitles.contains(fileName);
-	}
-
-	private List<String> getAllDocumentTitles() {
-		if (documentsTitle != null) {
-			return documentsTitle;
-		} else {
-			//TODO replace with SearchServices.stream in Constellio 9.0
-			documentsTitle = new ArrayList<>();
-			RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
-			LogicalSearchQuery query = new LogicalSearchQuery()
-					.setCondition(from(rm.document.schemaType()).where(rm.document.folder()).is(folderVO.getId()))
-					.filteredByStatus(StatusFilter.ACTIVES)
-					.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(Schemas.TITLE));
-
-			List<Record> documents = modelLayerFactory.newSearchServices().search(query);
-			for (Record document : documents) {
-				documentsTitle.add(document.getId());
-			}
-			return documentsTitle;
-		}
-	}
-
 	private SearchResponseIterator<Record> getExistingDocumentInCurrentFolder(String fileName) {
 		Record record = getRecord(folderVO.getId());
 
@@ -967,7 +941,6 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 					transaction.add(document);
 					transaction.setUser(getCurrentUser());
 					appLayerFactory.getModelLayerFactory().newRecordServices().executeWithoutImpactHandling(transaction);
-					documentsTitle.add(document.getTitle());
 				} finally {
 					IOServices ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();
 					ioServices.closeQuietly(inputStream);
