@@ -24,43 +24,44 @@ import static java.util.Arrays.asList;
 public class AutocompleteFieldCalculator implements MetadataValueCalculator<List<String>> {
 
 	DynamicLocalDependency autocompleteMetadatasDependency = new LocalAutocompleteMetadatasDependency();
-
 	ConfigDependency<AutocompleteSplitCriteria> autocompletSplitCriteriaConfigDependency
 			= ConstellioEIMConfigs.AUTOCOMPLETE_SPLIT_CRITERIA.dependency();
-	private static AutocompleteSplitCriteria autocompleteSplitCriteria;
 
 	@Override
 	public List<String> calculate(CalculatorParameters parameters) {
-		autocompleteSplitCriteria = parameters.get(autocompletSplitCriteriaConfigDependency);
 		Set<String> words = new HashSet<>();
-		splitInLowerCasedTermsRemovingAccents(words, parameters.get(autocompleteMetadatasDependency));
+		splitInLowerCasedTermsRemovingAccents(words, parameters.get(autocompleteMetadatasDependency),
+				parameters.get(autocompletSplitCriteriaConfigDependency));
 		List<String> returnedWords = new ArrayList<>(words);
 		Collections.sort(returnedWords);
 		return returnedWords;
 	}
 
 	public static void splitInLowerCasedTermsRemovingAccents(Set<String> words,
-															 DynamicDependencyValues autocompleteMetadatasValues) {
+															 DynamicDependencyValues autocompleteMetadatasValues,
+															 AutocompleteSplitCriteria autocompleteSplitCriteria) {
 		for (Metadata metadata : autocompleteMetadatasValues.getAvailableMetadatasWithAValue().onlySchemaAutocomplete()) {
-			splitInLowerCasedTermsRemovingAccents(words, autocompleteMetadatasValues.getValue(metadata));
+			splitInLowerCasedTermsRemovingAccents(words, autocompleteMetadatasValues.getValue(metadata),
+					autocompleteSplitCriteria);
 		}
 	}
 
-	public static void splitInLowerCasedTermsRemovingAccents(Set<String> words, Object value) {
+	public static void splitInLowerCasedTermsRemovingAccents(Set<String> words, Object value,
+															 AutocompleteSplitCriteria autocompleteSplitCriteria) {
+		String regex = autocompleteSplitCriteria.getRegex();
+
 		if (value instanceof List) {
 			for (String item : (List<String>) value) {
-				splitInLowerCasedTermsRemovingAccents(words, item);
+				splitInLowerCasedTermsRemovingAccents(words, item, regex);
 			}
 
 		} else if (value instanceof String) {
-			splitInLowerCasedTermsRemovingAccents(words, (String) value);
+			splitInLowerCasedTermsRemovingAccents(words, (String) value, regex);
 
 		}
 	}
 
-	public static void splitInLowerCasedTermsRemovingAccents(Set<String> words, String value) {
-		String regex = autocompleteSplitCriteria.regex;
-
+	private static void splitInLowerCasedTermsRemovingAccents(Set<String> words, String value, String regex) {
 		if (value != null) {
 			String cleanedValue = AccentApostropheCleaner.removeAccents(value).toLowerCase();
 			for (String word : cleanedValue.split(regex)) {
