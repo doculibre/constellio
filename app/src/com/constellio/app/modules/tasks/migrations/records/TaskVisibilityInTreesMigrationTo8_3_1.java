@@ -1,8 +1,7 @@
 package com.constellio.app.modules.tasks.migrations.records;
 
-import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
+import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordMigrationScript;
@@ -10,10 +9,10 @@ import com.constellio.model.entities.schemas.Schemas;
 
 public class TaskVisibilityInTreesMigrationTo8_3_1 extends RecordMigrationScript {
 
-	private RMSchemasRecordsServices rm;
+	private TasksSchemasRecordsServices schemas;
 
 	public TaskVisibilityInTreesMigrationTo8_3_1(String collection, AppLayerFactory appLayerFactory) {
-		this.rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+		this.schemas = new TasksSchemasRecordsServices(collection, appLayerFactory);
 	}
 
 	@Override
@@ -23,12 +22,8 @@ public class TaskVisibilityInTreesMigrationTo8_3_1 extends RecordMigrationScript
 
 	@Override
 	public void migrate(Record record) {
-		try {
-			RMTask task = rm.wrapRMTask(record);
-			task.set(Schemas.VISIBLE_IN_TREES.getLocalCode(), false);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		Task task = schemas.wrapTask(record);
+		task.set(Schemas.VISIBLE_IN_TREES.getLocalCode(), false);
 	}
 
 	@Override
