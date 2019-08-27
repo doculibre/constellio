@@ -58,7 +58,7 @@ public class ApplicationStarter {
 		resources.add(params.getWebContentDir().getAbsolutePath());
 
 		server = newServer(params);
-		server.setThreadPool(new QueuedThreadPool(1000));
+		server.setThreadPool(new QueuedThreadPool(5000));
 
 		// Static file handler
 		handler = new WebAppContext();
