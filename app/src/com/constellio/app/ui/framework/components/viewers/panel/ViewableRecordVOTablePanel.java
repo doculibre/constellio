@@ -1,9 +1,11 @@
 package com.constellio.app.ui.framework.components.viewers.panel;
 
 import com.constellio.app.modules.rm.ui.components.content.ConstellioAgentLink;
+import com.constellio.app.modules.rm.ui.pages.containers.DisplayContainerViewImpl;
 import com.constellio.app.modules.rm.ui.pages.document.DisplayDocumentViewImpl;
 import com.constellio.app.modules.rm.ui.pages.document.DisplayDocumentWindow;
 import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderViewImpl;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
@@ -993,6 +995,10 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
 					panelContent = view;
 				} else if (Task.SCHEMA_TYPE.equals(schemaTypeCode)) {
 					DisplayTaskViewImpl view = new DisplayTaskViewImpl(recordVO, true, false);
+					view.enter(null);
+					panelContent = view;
+				} else if (ContainerRecord.SCHEMA_TYPE.equals(schemaTypeCode)) {
+					DisplayContainerViewImpl view = new DisplayContainerViewImpl(recordVO, false, true);
 					view.enter(null);
 					panelContent = view;
 				} else {

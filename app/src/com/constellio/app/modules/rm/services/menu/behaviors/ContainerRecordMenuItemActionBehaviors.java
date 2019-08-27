@@ -65,6 +65,10 @@ public class ContainerRecordMenuItemActionBehaviors {
 		this.decommissioningService = new DecommissioningService(collection, appLayerFactory);
 	}
 
+	public void consult(ContainerRecord container, MenuItemActionBehaviorParams params) {
+		params.getView().navigate().to(RMViews.class).displayContainer(container.getId());
+	}
+
 	public void edit(ContainerRecord container, MenuItemActionBehaviorParams params) {
 		params.getFormParams();
 		if (getFavoriteGroupId(params) != null) {

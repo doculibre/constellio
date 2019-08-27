@@ -19,6 +19,7 @@ import java.util.function.Consumer;
 import static com.constellio.app.modules.tasks.services.menu.TaskMenuItemServices.TaskItemActionType.TASK_AUTO_ASSIGN;
 import static com.constellio.app.modules.tasks.services.menu.TaskMenuItemServices.TaskItemActionType.TASK_CLOSE;
 import static com.constellio.app.modules.tasks.services.menu.TaskMenuItemServices.TaskItemActionType.TASK_COMPLETE;
+import static com.constellio.app.modules.tasks.services.menu.TaskMenuItemServices.TaskItemActionType.TASK_CONSULT;
 import static com.constellio.app.modules.tasks.services.menu.TaskMenuItemServices.TaskItemActionType.TASK_CREATE_SUB_TASK;
 import static com.constellio.app.modules.tasks.services.menu.TaskMenuItemServices.TaskItemActionType.TASK_DELETE;
 import static com.constellio.app.modules.tasks.services.menu.TaskMenuItemServices.TaskItemActionType.TASK_EDIT;
@@ -44,6 +45,14 @@ public class TaskMenuItemServices {
 													List<String> filteredActionTypes,
 													MenuItemActionBehaviorParams params) {
 		List<MenuItemAction> menuItemActions = new ArrayList<>();
+
+		if (!filteredActionTypes.contains(TASK_CONSULT.name())) {
+			MenuItemAction menuItemAction = buildMenuItemAction(TASK_CONSULT.name(),
+					isMenuItemActionPossible(TASK_CONSULT.name(), task, user, params),
+					$("DisplayTaskView.consult"), FontAwesome.SEARCH, -1, 100,
+					(ids) -> new TaskMenuItemActionBehaviors(collection, appLayerFactory).display(task, params));
+			menuItemActions.add(menuItemAction);
+		}
 
 		if (!filteredActionTypes.contains(TASK_EDIT.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(TASK_EDIT.name(),
@@ -103,6 +112,8 @@ public class TaskMenuItemServices {
 		Record record = container.getWrappedRecord();
 
 		switch (TaskItemActionType.valueOf(menuItemActionType)) {
+			case TASK_CONSULT:
+				return taskActionsServices.isConsultActionPossible(record, user);
 			case TASK_EDIT:
 				return taskActionsServices.isEditActionPossible(record, user);
 			case TASK_AUTO_ASSIGN:
@@ -137,6 +148,7 @@ public class TaskMenuItemServices {
 	}
 
 	public enum TaskItemActionType {
+		TASK_CONSULT,
 		TASK_EDIT,
 		TASK_AUTO_ASSIGN,
 		TASK_COMPLETE,

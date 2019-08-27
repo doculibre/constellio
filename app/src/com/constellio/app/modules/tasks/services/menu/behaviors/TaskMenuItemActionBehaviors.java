@@ -56,6 +56,11 @@ public class TaskMenuItemActionBehaviors {
 
 	}
 
+	public void display(Task task, MenuItemActionBehaviorParams params) {
+		params.getView().navigate().to(TaskViews.class).displayTask(task.getId());
+	}
+
+
 	public void edit(Task task, MenuItemActionBehaviorParams params) {
 		params.getView().navigate().to().editTask(task.getId());
 	}

@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.ui.pages.containers;
 
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.navigation.RMViews;
+import com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerRecordMenuItemActionType;
 import com.constellio.app.modules.rm.ui.breadcrumb.ContainerByAdministrativeUnitBreadcrumbTrail;
 import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentContainerBreadcrumbTrail;
 import com.constellio.app.modules.rm.ui.pages.cart.DefaultFavoritesTable;
@@ -54,6 +55,7 @@ import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -62,14 +64,17 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 	private final DisplayContainerPresenter presenter;
 	private Label borrowedLabel;
 	private boolean popup = false;
+	private boolean isNested = false;
+	private Button consultButton = null;
 	private MetadataSchemaToVOBuilder schemaVOBuilder = new MetadataSchemaToVOBuilder();
 	public DisplayContainerViewImpl() {
-		this(null, false);
+		this(null, false, false);
 	}
 
 
-	public DisplayContainerViewImpl(RecordVO recordVO, boolean popup) {
+	public DisplayContainerViewImpl(RecordVO recordVO, boolean popup, boolean isNested) {
 		presenter = new DisplayContainerPresenter(this, recordVO, popup);
+		this.isNested = isNested;
 		this.popup = popup;
 	}
 
@@ -92,7 +97,6 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
 		final VerticalLayout layout = new VerticalLayout();
-		layout.setWidth("100%");
 		layout.setSpacing(true);
 
 		final RecordVO recordVO = presenter.getContainer();
@@ -126,16 +130,22 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 				}
 			}
 		};
+
+		if (isNested) {
+			Label titleLabel = new Label(getTitleCaption());
+			titleLabel.addStyleName(ValoTheme.LABEL_H1);
+			layout.addComponent(titleLabel);
+		}
+
 		layout.addComponents(borrowedLabel, new RecordDisplay(recordVO, metadataDisplayFactory));
 
 		layout.addComponent(buildFoldersTable(presenter.getFolders()));
-
 		return layout;
 	}
 
 	@Override
 	protected ClickListener getBackButtonClickListener() {
-		if (!popup) {
+		if (!popup && !isNested) {
 			return new ClickListener() {
 				@Override
 				public void buttonClick(ClickEvent event) {
@@ -176,9 +186,17 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 		return table;
 	}
 
+	private String getTitleCaption() {
+		return $("DisplayContainerView.viewTitle");
+	}
+
 	@Override
 	protected String getTitle() {
-		return $("DisplayContainerView.viewTitle");
+		if (!isNested) {
+			return getTitleCaption();
+		} else {
+			return null;
+		}
 	}
 
 	@Override
@@ -257,7 +275,44 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 		delete.setEnabled(presenter.canDelete());
 		actionMenuButtons.add(delete);
 
-		return new RecordVOActionButtonFactory(presenter.getContainer(), new ArrayList<>()).build();
+		List<Button> buttonList = new RecordVOActionButtonFactory(presenter.getContainer(), Collections.emptyList()).build();
+
+		consultButton = getConsultButton(buttonList);
+
+		if (consultButton != null) {
+			buttonList.remove(consultButton);
+		}
+
+		return buttonList;
+	}
+
+	private Button getConsultButton(List<Button> buttons) {
+		for (Button button : buttons) {
+			if (button.getId().equals(ContainerRecordMenuItemActionType.CONTAINER_CONSULT.name())) {
+				return button;
+			}
+		}
+
+		return null;
+	}
+
+	@Override
+	protected List<Button> getQuickActionMenuButtons() {
+		if (consultButton != null) {
+			return Arrays.asList(consultButton);
+		} else {
+			return Collections.emptyList();
+		}
+	}
+
+	@Override
+	protected boolean isFullWidthIfActionMenuAbsent() {
+		return true;
+	}
+
+	@Override
+	protected boolean isActionMenuBar() {
+		return true;
 	}
 
 	private Button buildAddToMyCartButton(){
@@ -361,6 +416,11 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 			borrowedLabel.setVisible(false);
 			borrowedLabel.setValue(null);
 		}
+	}
+
+	@Override
+	protected boolean isBreadcrumbsVisible() {
+		return !isNested;
 	}
 
 	@Override

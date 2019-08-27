@@ -44,6 +44,12 @@ public class TaskActionsServices {
 		this.taskPresenterServices = new TaskPresenterServices(tasksSchemas, recordServices, tasksSearchServices, modelLayerFactory.newLoggingServices());
 	}
 
+	public boolean isConsultActionPossible(Record record, User user) {
+		return user.hasReadAccess().on(record)
+			   && isNotLogicallyDeleted(record)
+			   && taskModuleExtensions.isConsultActionPossibleOnTask(tasksSchemas.wrapTask(record), user);
+	}
+
 	public boolean isEditActionPossible(Record record, User user) {
 		return user.hasWriteAccess().on(record)
 			   && isNotLogicallyDeleted(record)

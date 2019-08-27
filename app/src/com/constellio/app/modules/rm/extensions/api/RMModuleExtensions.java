@@ -485,6 +485,11 @@ public class RMModuleExtensions implements ModuleExtensions {
 		});
 	}
 
+	public boolean isConsultActionPossibleOnContainerRecord(final ContainerRecord containerRecord, final User user) {
+		return containerRecordExtensions.getBooleanValue(true, (behavior ->
+				behavior.isConsultActionPossible(new ContainerRecordExtensionActionPossibleParams(containerRecord, user))));
+	}
+
 	public boolean isAddToCartActionPossibleOnContainerRecord(final ContainerRecord containerRecord, final User user) {
 		return containerRecordExtensions.getBooleanValue(true,
 				(behavior) -> behavior.isAddToCartActionPossible(new ContainerRecordExtensionActionPossibleParams(containerRecord, user)));

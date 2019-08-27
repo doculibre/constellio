@@ -79,7 +79,7 @@ public class RMSearchPageExtension extends SearchPageExtension {
 		} else {
 			if (typeCode.equals(ContainerRecord.SCHEMA_TYPE) &&
 				DisplayContainerPresenter.hasRestrictedRecordAccess(rm, param.getUser(), recordVO.getRecord())) {
-				DisplayContainerViewImpl view = new DisplayContainerViewImpl(recordVO, true);
+				DisplayContainerViewImpl view = new DisplayContainerViewImpl(recordVO, true, false);
 				view.enter(null);
 				result = view;
 			} else {

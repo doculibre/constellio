@@ -16,12 +16,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerMenuItemActionType.CONTAINER_ADD_TO_CART;
-import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerMenuItemActionType.CONTAINER_DELETE;
-import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerMenuItemActionType.CONTAINER_EDIT;
-import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerMenuItemActionType.CONTAINER_EMPTY_THE_BOX;
-import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerMenuItemActionType.CONTAINER_LABELS;
-import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerMenuItemActionType.CONTAINER_SLIP;
+import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerRecordMenuItemActionType.CONTAINER_ADD_TO_CART;
+import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerRecordMenuItemActionType.CONTAINER_CONSULT;
+import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerRecordMenuItemActionType.CONTAINER_DELETE;
+import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerRecordMenuItemActionType.CONTAINER_EDIT;
+import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerRecordMenuItemActionType.CONTAINER_EMPTY_THE_BOX;
+import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerRecordMenuItemActionType.CONTAINER_LABELS;
+import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerRecordMenuItemActionType.CONTAINER_SLIP;
 import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus.HIDDEN;
 import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus.VISIBLE;
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -44,10 +45,18 @@ public class ContainerMenuItemServices {
 													MenuItemActionBehaviorParams params) {
 		List<MenuItemAction> menuItemActions = new ArrayList<>();
 
+		if (!filteredActionTypes.contains(CONTAINER_CONSULT.name())) {
+			MenuItemAction menuItemAction = buildMenuItemAction(CONTAINER_CONSULT.name(),
+					isMenuItemActionPossible(CONTAINER_CONSULT.name(), container, user, params),
+					$("DisplayContainerView.consult"), FontAwesome.SEARCH, -1, 100,
+					(ids) -> new ContainerRecordMenuItemActionBehaviors(collection, appLayerFactory).consult(container, params));
+			menuItemActions.add(menuItemAction);
+		}
+
 		if (!filteredActionTypes.contains(CONTAINER_EDIT.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(CONTAINER_EDIT.name(),
 					isMenuItemActionPossible(CONTAINER_EDIT.name(), container, user, params),
-					$("DisplayContainerView.edit"), FontAwesome.EDIT, -1, 100,
+					$("DisplayContainerView.edit"), FontAwesome.EDIT, -1, 150,
 					(ids) -> new ContainerRecordMenuItemActionBehaviors(collection, appLayerFactory).edit(container, params));
 			menuItemActions.add(menuItemAction);
 		}
@@ -107,7 +116,9 @@ public class ContainerMenuItemServices {
 											MenuItemActionBehaviorParams params) {
 		Record record = container.getWrappedRecord();
 
-		switch (ContainerMenuItemActionType.valueOf(menuItemActionType)) {
+		switch (ContainerRecordMenuItemActionType.valueOf(menuItemActionType)) {
+			case CONTAINER_CONSULT:
+				return containerRecordActionsServices.isDisplayActionPossible(record, user);
 			case CONTAINER_EDIT:
 				return containerRecordActionsServices.isEditActionPossible(record, user);
 			case CONTAINER_SLIP:
@@ -139,7 +150,8 @@ public class ContainerMenuItemServices {
 				.build();
 	}
 
-	enum ContainerMenuItemActionType {
+	public enum ContainerRecordMenuItemActionType {
+		CONTAINER_CONSULT,
 		CONTAINER_EDIT,
 		CONTAINER_SLIP,
 		CONTAINER_LABELS,

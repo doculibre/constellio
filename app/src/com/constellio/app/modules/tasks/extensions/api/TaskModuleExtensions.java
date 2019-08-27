@@ -80,4 +80,9 @@ public class TaskModuleExtensions implements ModuleExtensions {
 		return taskExtensions.getBooleanValue(true,
 				(behavior) -> behavior.isEditActionPossible(new TaskExtensionActionPossibleParams(task, user)));
 	}
+
+	public boolean isConsultActionPossibleOnTask(final Task task, final User user) {
+		return taskExtensions.getBooleanValue(true,
+				(behavior -> behavior.isConsultActionPossible(new TaskExtensionActionPossibleParams(task, user))));
+	}
 }

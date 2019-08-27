@@ -9,6 +9,10 @@ import lombok.Getter;
 
 public class TaskExtension {
 
+	public ExtensionBooleanResult isConsultActionPossible(TaskExtensionActionPossibleParams params) {
+		return ExtensionBooleanResult.NOT_APPLICABLE;
+	}
+
 	public ExtensionBooleanResult isEditActionPossible(TaskExtensionActionPossibleParams params) {
 		return ExtensionBooleanResult.NOT_APPLICABLE;
 	}
