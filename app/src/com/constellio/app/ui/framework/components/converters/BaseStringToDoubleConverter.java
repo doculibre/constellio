@@ -20,5 +20,18 @@ public class BaseStringToDoubleConverter extends StringToDoubleConverter {
 		return stringValue;
 	}
 
+	@Override
+	protected Number convertToNumber(String value, Class<? extends Number> targetType, Locale locale)
+			throws ConversionException {
+		if (value == null) {
+			return null;
+		}
 
+		try {
+			String numberDotFormat = value.replace(",", ".");
+			return Double.parseDouble(numberDotFormat);
+		} catch (NumberFormatException e) {
+			return null;
+		}
+	}
 }

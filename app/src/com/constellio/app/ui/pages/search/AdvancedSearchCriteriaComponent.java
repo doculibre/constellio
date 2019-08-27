@@ -502,7 +502,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 			value.addValueChangeListener(new ValueChangeListener() {
 				@Override
 				public void valueChange(Property.ValueChangeEvent event) {
-					criterion.setValue(value.getConvertedValue());
+					verifyNewValue(value, criterion);
 				}
 			});
 			value.setVisible(true);
@@ -515,7 +515,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 			endValue.addValueChangeListener(new ValueChangeListener() {
 				@Override
 				public void valueChange(Property.ValueChangeEvent event) {
-					criterion.setEndValue(endValue.getConvertedValue());
+					verifyNewValue(value, criterion);
 				}
 			});
 
@@ -535,6 +535,15 @@ public class AdvancedSearchCriteriaComponent extends Table {
 			component.setSpacing(true);
 
 			return component;
+		}
+
+		private void verifyNewValue(TextField newValue, Criterion criterion) {
+			Object convertedValue = newValue.getConvertedValue();
+			if (convertedValue != null) {
+				criterion.setValue(convertedValue);
+			} else {
+				presenter.showErrorMessage($("AdvancedSearchView.invalidDoubleFormat"));
+			}
 		}
 
 		private ComboBox buildComparisonComboBox(final Criterion criterion, final Component firstComponent,
@@ -829,5 +838,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 		MetadataVO getMetadataVO(String metadataCode);
 
 		Component getExtensionComponentForCriterion(Criterion criterion);
+
+		void showErrorMessage(String message);
 	}
 }

@@ -498,4 +498,9 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 		AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions().forCollection(view.getCollection());
 		return extensions.getComponentForCriterion(criterion);
 	}
+
+	@Override
+	public void showErrorMessage(String message) {
+		view.showErrorMessage(message);
+	}
 }
