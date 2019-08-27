@@ -76,35 +76,31 @@ public class SystemInfo {
 	}
 
 	synchronized public void recalculate() {
+		//TODO merge SystemInformationsService with SystemAnalysisUtils
+		AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
+		ConstellioEIMConfigs configs = new ConstellioEIMConfigs(appLayerFactory.getModelLayerFactory());
+		SystemInformationsService systemInformationsService = new SystemInformationsService();
+		this.lastTimeUpdated = TimeProvider.getLocalDateTime();
+		systemMemory = SystemMemory.fetchSystemMemoryInfo();
+		licenseInfo = fetchLicenseInfo(appLayerFactory);
+		constellioVersion = fetchConstellioVersion(appLayerFactory);
+		validationErrors = new ValidationErrors();
 
-		if (new FoldersLocator().getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER) {
+		FoldersLocator locator = new FoldersLocator();
 
-			//TODO merge SystemInformationsService with SystemAnalysisUtils
-			AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
-			ConstellioEIMConfigs configs = new ConstellioEIMConfigs(appLayerFactory.getModelLayerFactory());
-			SystemInformationsService systemInformationsService = new SystemInformationsService();
-			this.lastTimeUpdated = TimeProvider.getLocalDateTime();
-			systemMemory = SystemMemory.fetchSystemMemoryInfo();
-			licenseInfo = fetchLicenseInfo(appLayerFactory);
-			constellioVersion = fetchConstellioVersion(appLayerFactory);
-			validationErrors = new ValidationErrors();
-
-			FoldersLocator locator = new FoldersLocator();
-
-			if (locator.getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER) {
-				kernelVersion = systemInformationsService.getLinuxVersion();
-				isPrivateRepositoryInstalled = systemInformationsService.isPrivateRepositoryInstalled();
-				wrapperJavaVersion = systemInformationsService.getWrapperJavaVersion();
-				linuxJavaVersion = systemInformationsService.getLinuxVersion();
-				solrVersion = systemInformationsService.getSolrVersion();
-				userRunningSolr = systemInformationsService.getSolrUser();
-				userRunningConstellio = systemInformationsService.getConstellioUser();
-				optDiskUsage = systemInformationsService.getDiskUsage("/opt");
-				solrDiskUsage = systemInformationsService.getDiskUsage("/var/solr");
-			}
-
-			analyzeSystemAndFindValidationErrors(configs);
+		if (locator.getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER) {
+			kernelVersion = systemInformationsService.getLinuxVersion();
+			isPrivateRepositoryInstalled = systemInformationsService.isPrivateRepositoryInstalled();
+			wrapperJavaVersion = systemInformationsService.getWrapperJavaVersion();
+			linuxJavaVersion = systemInformationsService.getLinuxVersion();
+			solrVersion = systemInformationsService.getSolrVersion();
+			userRunningSolr = systemInformationsService.getSolrUser();
+			userRunningConstellio = systemInformationsService.getConstellioUser();
+			optDiskUsage = systemInformationsService.getDiskUsage("/opt");
+			solrDiskUsage = systemInformationsService.getDiskUsage("/var/solr");
 		}
+
+		analyzeSystemAndFindValidationErrors(configs);
 	}
 
 	synchronized public void appendConstellioFreeMemory() {
