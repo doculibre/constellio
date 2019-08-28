@@ -975,6 +975,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
 
 		private void setRecordVO(RecordVO recordVO) {
 			mainLayout.removeAllComponents();
+			this.removeStyleName("nested-view");
 
 			if (recordVO != null) {
 				Component panelContent;
@@ -1004,6 +1005,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
 				} else {
 					UserVO currentUser = ConstellioUI.getCurrentSessionContext().getCurrentUser();
 					panelContent = new RecordDisplayFactory(currentUser).build(recordVO, true);
+					this.addStyleName("nested-view");
 				}
 				mainLayout.addComponent(panelContent);
 			}
