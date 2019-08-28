@@ -3,6 +3,7 @@ package com.constellio.app.ui.pages.setup;
 import com.constellio.app.entities.modules.InstallableModule;
 import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
 import com.constellio.app.services.appManagement.AppManagementServiceException;
+import com.constellio.app.services.collections.CollectionsManager;
 import com.constellio.app.services.collections.CollectionsManagerRuntimeException.CollectionsManagerRuntimeException_InvalidCode;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.servlet.ConstellioMonitoringServlet;
@@ -151,6 +152,7 @@ public class ConstellioSetupPresenter extends BasePresenter<ConstellioSetupView>
 		Runnable runnable = new Runnable() {
 			@Override
 			public void run() {
+				CollectionsManager.NEW_SYSTEM_MAIN_DATA_LANGUAGE = setupLocaleCode;
 				ConstellioFactories factories = view.getConstellioFactories();
 				try {
 					setSystemLanguage(setupLocaleCode);
