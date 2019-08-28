@@ -2904,6 +2904,10 @@ $popup-view-z-index: 3;
 							}
 						}
 
+						.nested-view.viewer-metadata-panel {
+                            top: 0px;
+						}
+
 						.no-caption-action-menu-bar .v-menubar-submenu-indicator + .v-menubar-menuitem-caption:after {
 							display:none;
 						}

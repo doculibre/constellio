@@ -270,7 +270,6 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 				} else if (event.getTabSheet().getSelectedTab() == eventsComponent) {
 					presenter.eventsTabSelected();
-
 				}
 			}
 		});

@@ -6,6 +6,7 @@ import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
+import com.constellio.app.modules.tasks.services.menu.behaviors.TaskMenuItemActionBehaviors.TaskMenuItemPresenter;
 import com.constellio.app.modules.tasks.ui.components.fields.StarredFieldImpl;
 import com.constellio.app.modules.tasks.ui.entities.TaskVO;
 import com.constellio.app.modules.tasks.ui.pages.tasks.TaskCompleteWindowButton;
@@ -44,7 +45,6 @@ import com.constellio.app.ui.framework.data.BaseRecordTreeDataProvider;
 import com.constellio.app.ui.framework.data.LazyTreeDataProvider;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.items.RecordVOItem;
-import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.frameworks.validation.ValidationException;
@@ -1018,7 +1018,7 @@ public class TaskTable extends VerticalLayout {
 		});
 	}
 
-	public interface TaskPresenter {
+	public interface TaskPresenter extends TaskMenuItemPresenter {
 
 		RecordVO reloadRequested(RecordVO recordVO);
 
@@ -1061,10 +1061,6 @@ public class TaskTable extends VerticalLayout {
 
 		boolean isMetadataReportAllowed(RecordVO recordVO);
 
-		BaseView getView();
-
-		void reloadTaskModified(Task task);
-
 		String getCurrentUserId();
 
 		void updateTaskStarred(boolean isStarred, String taskId);
@@ -1072,10 +1068,6 @@ public class TaskTable extends VerticalLayout {
 		void registerPreviousSelectedTab();
 
 		Task getTask(RecordVO recordVO);
-
-		void afterCompletionActions();
-
-		void beforeCompletionActions(Task task);
 
 		RecordVO getDocumentVO(String linkedDocumentId);
 

@@ -72,6 +72,11 @@ public class ContainerRecordActionsServices {
 		return rmModuleExtensions.getReportBuilderFactories().transferContainerRecordBuilderFactory.getValue();
 	}
 
+	public boolean isDisplayActionPossible(Record record, User user) {
+		return user.hasReadAccess().on(record)
+			   && rmModuleExtensions.isConsultActionPossibleOnContainerRecord(rm.wrapContainerRecord(record), user);
+	}
+
 	public boolean isAddToCartActionPossible(Record record, User user) {
 		return user.hasReadAccess().on(record) &&
 			   (hasUserPermissionToUseCart(user) || hasUserPermissionToUseMyCart(user)) &&

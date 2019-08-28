@@ -473,7 +473,7 @@ public class TaskManagementPresenter extends AbstractTaskPresenter<TaskManagemen
 	}
 
 	@Override
-	public void reloadTaskModified(Task task) {
+	public void reloadTaskModified(String id) {
 		loadTab(selectedTab);
 	}
 

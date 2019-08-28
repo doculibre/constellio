@@ -10,6 +10,7 @@ import com.constellio.app.extensions.core.LockedRecordsExtension;
 import com.constellio.app.modules.rm.extensions.imports.TaskImportExtension;
 import com.constellio.app.modules.tasks.caches.IncompleteTasksUserCache;
 import com.constellio.app.modules.tasks.caches.UnreadTasksUserCache;
+import com.constellio.app.modules.tasks.extensions.TaskMenuItemActionsExtension;
 import com.constellio.app.modules.tasks.extensions.TaskRecordAppExtension;
 import com.constellio.app.modules.tasks.extensions.TaskRecordExtension;
 import com.constellio.app.modules.tasks.extensions.TaskRecordNavigationExtension;
@@ -44,7 +45,6 @@ import com.constellio.app.modules.tasks.migrations.TasksMigrationTo8_2_42;
 import com.constellio.app.modules.tasks.model.TaskRecordsCachesHook;
 import com.constellio.app.modules.tasks.model.managers.TaskReminderEmailManager;
 import com.constellio.app.modules.tasks.navigation.TasksNavigationConfiguration;
-import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.modules.tasks.services.background.AlertOverdueTasksBackgroundAction;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.configs.SystemConfiguration;
@@ -121,6 +121,9 @@ public class TaskModule implements InstallableSystemModule, ModuleWithComboMigra
 		extensions.pagesComponentsExtensions.add(new TaskUserProfileFieldsExtension(collection, appLayerFactory));
 
 		extensions.registerModuleExtensionsPoint(ID, new TaskModuleExtensions(appLayerFactory));
+
+		// after register because it need it in the extension constructor.
+		extensions.menuItemActionsExtensions.add(new TaskMenuItemActionsExtension(collection, appLayerFactory));
 	}
 
 	private void setupModelLayerExtensions(String collection, AppLayerFactory appLayerFactory) {
@@ -134,9 +137,6 @@ public class TaskModule implements InstallableSystemModule, ModuleWithComboMigra
 
 		//TODO Francis : Move in Constellio core's init
 		extensions.recordExtensions.add(new LockedRecordsExtension(collection, appLayerFactory));
-
-		TasksSchemasRecordsServices taskSchemas = new TasksSchemasRecordsServices(collection, appLayerFactory);
-
 	}
 
 	@Override

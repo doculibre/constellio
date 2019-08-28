@@ -57,6 +57,8 @@ public class DisplaySchemaRecordViewImpl extends BaseViewImpl implements Display
 
 	private boolean nestedView;
 
+	private boolean isInWindow;
+
 	public DisplaySchemaRecordViewImpl() {
 		this(null, false, false);
 	}
@@ -64,6 +66,7 @@ public class DisplaySchemaRecordViewImpl extends BaseViewImpl implements Display
 	public DisplaySchemaRecordViewImpl(RecordVO recordVO, boolean nestedView, boolean inWindow) {
 		this.presenter = new DisplaySchemaRecordPresenter(this, recordVO, nestedView, inWindow);
 		this.nestedView = nestedView;
+		this.isInWindow = inWindow;
 	}
 
 	@Override
@@ -228,12 +231,16 @@ public class DisplaySchemaRecordViewImpl extends BaseViewImpl implements Display
 
 	@Override
 	protected ClickListener getBackButtonClickListener() {
-		return new ClickListener() {
-			@Override
-			public void buttonClick(ClickEvent event) {
-				presenter.backButtonClicked();
-			}
-		};
+		if (isInWindow) {
+			return null;
+		} else {
+			return new ClickListener() {
+				@Override
+				public void buttonClick(ClickEvent event) {
+					presenter.backButtonClicked();
+				}
+			};
+		}
 	}
 
 
