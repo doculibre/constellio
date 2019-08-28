@@ -23,6 +23,7 @@ import com.constellio.model.entities.schemas.AllowedReferences;
 import com.constellio.model.services.search.query.logical.criteria.MeasuringUnitTime;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.BeanItemContainer;
+import com.vaadin.data.util.converter.Converter.ConversionException;
 import com.vaadin.server.Resource;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.Alignment;
@@ -538,10 +539,10 @@ public class AdvancedSearchCriteriaComponent extends Table {
 		}
 
 		private void verifyNewValue(TextField newValue, Criterion criterion) {
-			Object convertedValue = newValue.getConvertedValue();
-			if (convertedValue != null) {
-				criterion.setValue(convertedValue);
-			} else {
+			try {
+				criterion.setValue(newValue.getConvertedValue());
+			} catch (ConversionException e) {
+				criterion.setValue(null);
 				presenter.showErrorMessage($("AdvancedSearchView.invalidDoubleFormat"));
 			}
 		}
