@@ -208,23 +208,11 @@ public class SearchResultDisplay extends CssLayout {
 					MetadataVO metadataVO = metadataValue.getMetadata();
 					if (!metadataVO.codeMatches(CommonMetadataBuilder.TITLE)) {
 						String stringDisplayValue = componentFactory.buildString(recordVO, metadataValue);
-						if (stringDisplayValue != null) {
-							sb.append("<div class=\"search-result-metadata\">");
-							sb.append("<div class=\"metadata-caption\">");
-							sb.append(metadataVO.getLabel());
-							sb.append(":</div><div class=\"metadata-value\">");
-							sb.append(stringDisplayValue);
-							sb.append("</div>");
-							sb.append("</div>");
-						}
+						buildSearchResultInfo(sb, metadataVO.getLabel(), stringDisplayValue);
 					}
 				}
 			}
-			if (sb.length() > 0) {
-				sb.insert(0, "<div class=\"search-result-metadatas\">");
-				sb.append("</div>");
-				addComponent(new Label(sb.toString(), ContentMode.HTML));
-			}
+			this.addComponent(addSearchResultMetadatas(sb));
 		} else {
 			for (MetadataValueVO metadataValue : recordVO.getSearchMetadataValues()) {
 				if (recordVO.getMetadataCodes().contains(metadataValue.getMetadata().getCode())) {
@@ -240,6 +228,28 @@ public class SearchResultDisplay extends CssLayout {
 					}
 				}
 			}
+		}
+	}
+
+	public static Label addSearchResultMetadatas(StringBuilder sb) {
+		if (sb.length() > 0) {
+			sb.insert(0, "<div class=\"search-result-metadatas\">");
+			sb.append("</div>");
+			return new Label(sb.toString(), ContentMode.HTML);
+		} else {
+			return null;
+		}
+	}
+
+	public static void buildSearchResultInfo(StringBuilder sb, String label, String stringDisplayValue) {
+		if (stringDisplayValue != null) {
+			sb.append("<div class=\"search-result-metadata\">");
+			sb.append("<div class=\"metadata-caption\">");
+			sb.append(label);
+			sb.append(":</div><div class=\"metadata-value\">");
+			sb.append(stringDisplayValue);
+			sb.append("</div>");
+			sb.append("</div>");
 		}
 	}
 
