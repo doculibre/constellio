@@ -249,7 +249,7 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 			startupWithPossibleRecovery(upgradeAppRecoveryService);
 		} else {
 			LOGGER.info("Launching in normal mode");
-			normalStartup();
+			normalStartup(false);
 		}
 		if (dataLayerFactory.getDataLayerConfiguration().isBackgroundThreadsEnabled()) {
 			dataLayerFactory.getBackgroundThreadsManager().onSystemStarted();
@@ -266,7 +266,7 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 			LOGGER.info("Second tlog manager detected");
 			recoveryService.startRollbackMode();
 			try {
-				normalStartup();
+				normalStartup(true);
 				recoveryService.stopRollbackMode();
 			} catch (Throwable exception) {
 				if (recoveryService.isInRollbackMode()) {
@@ -288,12 +288,12 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 		} else {
 			LOGGER.info("Second tlog manager not detected");
 			//rare case in tests
-			normalStartup();
+			normalStartup(false);
 		}
 
 	}
 
-	private void normalStartup() {
+	private void normalStartup(boolean recoveryMode) {
 		appLayerExtensions.getSystemWideExtensions().pagesComponentsExtensions.add(new DefaultPagesComponentsExtension(this));
 		this.pluginManager.detectPlugins();
 
@@ -316,7 +316,7 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 			collectionsManager.initializeCollectionsAndGetInvalidModules();
 			getModulesManager().enableComplementaryModules();
 		} catch (ConstellioModulesManagerException_ModuleInstallationFailed e) {
-			if (new FoldersLocator().getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER) {
+			if (new FoldersLocator().getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER && !recoveryMode) {
 				LOGGER.warn("System is restarting because of failure to install/update module '" + e.getFailedModule()
 							+ "' in collection '" + e.getFailedCollection() + "'", e);
 				try {
