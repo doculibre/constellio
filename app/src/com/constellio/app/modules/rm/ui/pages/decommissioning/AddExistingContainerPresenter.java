@@ -351,4 +351,9 @@ public class AddExistingContainerPresenter extends SearchPresenter<AddExistingCo
 		AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions().forCollection(view.getCollection());
 		return extensions.getComponentForCriterion(criterion);
 	}
+
+	@Override
+	public void showErrorMessage(String message) {
+		view.showErrorMessage(message);
+	}
 }

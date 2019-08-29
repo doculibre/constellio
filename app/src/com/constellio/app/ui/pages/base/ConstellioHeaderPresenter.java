@@ -448,6 +448,11 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		return extensions.getComponentForCriterion(criterion);
 	}
 
+	@Override
+	public void showErrorMessage(String message) {
+		showMessage(message);
+	}
+
 	private MetadataSchemaTypes types() {
 		MetadataSchemasManager metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
 		return metadataSchemasManager.getSchemaTypes(header.getCollection());

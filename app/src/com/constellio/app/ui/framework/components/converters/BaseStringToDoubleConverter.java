@@ -5,6 +5,8 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.Locale;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
 public class BaseStringToDoubleConverter extends StringToDoubleConverter {
 
 	@Override
@@ -20,5 +22,22 @@ public class BaseStringToDoubleConverter extends StringToDoubleConverter {
 		return stringValue;
 	}
 
+	private Double convertToDouble(String value) {
+		if (value == null) {
+			return null;
+		}
 
+		String numberDotFormat = value.replace(",", ".");
+		return Double.parseDouble(numberDotFormat);
+	}
+
+	@Override
+	public Double convertToModel(String value, Class<? extends Double> targetType, Locale locale)
+			throws ConversionException {
+		try {
+			return StringUtils.isBlank(value) ? null : convertToDouble(value);
+		} catch (NumberFormatException e) {
+			throw new ConversionException($("AdvancedSearchView.invalidDoubleFormat"));
+		}
+	}
 }
