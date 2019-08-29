@@ -1,4 +1,4 @@
-package com.constellio.app.services.migrations.scripts;
+package com.constellio.app.modules.tasks.migrations;
 
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
@@ -10,7 +10,7 @@ import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
-public class CoreMigrationTo_8_3_1_1 implements MigrationScript {
+public class TasksMigrationTo_8_3_1_1 implements MigrationScript {
 
 	@Override
 	public String getVersion() {
