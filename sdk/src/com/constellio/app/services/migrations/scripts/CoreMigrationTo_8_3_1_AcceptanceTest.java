@@ -11,6 +11,7 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import javafx.util.Pair;
+import org.apache.solr.common.SolrDocument;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -71,7 +72,7 @@ public class CoreMigrationTo_8_3_1_AcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void whenMigratingTo8_3_1ThenSavedSearchUsersAndGroupsAreTheSame() {
+	public void whenMigratingTo8_3_1ThenSavedSearchUsersAndGroupsAreTheSame() throws Exception {
 		assertThat(sharedGroupsId).isNotNull();
 		assertThat(sharedGroups).isNotNull();
 		assertThat(sharedGroups.getType()).isEqualTo(MetadataValueType.REFERENCE);
@@ -91,6 +92,18 @@ public class CoreMigrationTo_8_3_1_AcceptanceTest extends ConstellioTest {
 			assertThatRecord(record).extracting(sharedGroups, sharedUsers)
 					.isEqualTo(asList(savedSearchTitleAndGroupsAndUsersSharedWith.getKey(),
 							savedSearchTitleAndGroupsAndUsersSharedWith.getValue()));
+
+			SolrDocument document = getModelLayerFactory().getDataLayerFactory().getRecordsVaultServer().realtimeGet(record.getId());
+
+			assertThat(document.get("sharedGroupsId_ss"))
+					.isEqualTo(savedSearchTitleAndGroupsAndUsersSharedWith.getKey().isEmpty() ? null : savedSearchTitleAndGroupsAndUsersSharedWith.getKey());
+			assertThat(document.get("sharedUsersId_ss"))
+					.isEqualTo(savedSearchTitleAndGroupsAndUsersSharedWith.getValue().isEmpty() ? null : savedSearchTitleAndGroupsAndUsersSharedWith.getValue());
+			assertThat(document.get("sharedGroups_ss")).isNull();
+			assertThat(document.get("sharedUsers_ss")).isNull();
+
+			//			assertThat(document.get("sharedGroups_ss")).isNull();
+			//			assertThat(document.get("sharedUsers_ss")).isNull();
 		}
 	}
 }

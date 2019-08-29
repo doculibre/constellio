@@ -71,11 +71,11 @@ public class CoreMigrationTo_8_3_1 implements MigrationScript {
 				inputDocument.setField("id", savedSearch.getId());
 				if (!searchGroupsValues.isEmpty()) {
 					inputDocument.setField("sharedGroupsId_ss", SolrUtils.atomicSet(searchGroupsValues));
-					inputDocument.setField(searchGroups.getDataStoreCode(), SolrUtils.atomicSet(""));
+					inputDocument.setField("sharedGroups_ss", SolrUtils.atomicSet(null));
 				}
-				if (!searchGroupsValues.isEmpty()) {
+				if (!searchUsersValues.isEmpty()) {
 					inputDocument.setField("sharedUsersId_ss", SolrUtils.atomicSet(searchUsersValues));
-					inputDocument.setField(searchUsers.getDataStoreCode(), SolrUtils.atomicSet(""));
+					inputDocument.setField("sharedUsers_ss", SolrUtils.atomicSet(null));
 				}
 
 				sharedGroups.put(savedSearch.getId(), searchGroupsValues);
