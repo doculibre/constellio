@@ -48,6 +48,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.collections.exceptions.NoMoreCollectionAvalibleException;
 import com.constellio.model.services.collections.exceptions.NoMoreCollectionAvalibleRuntimeException;
+import com.constellio.model.services.extensions.ConstellioModulesManagerException.ConstellioModulesManagerException_ModuleInstallationFailed;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
@@ -866,8 +867,12 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		ensureNotUnitTest();
 		try {
 			getAppLayerFactory().getCollectionsManager().createCollectionInCurrentVersion(collection, languages);
+		} catch (ConstellioModulesManagerException_ModuleInstallationFailed constellioModulesManagerException_moduleInstallationFailed) {
+			throw new RuntimeException(constellioModulesManagerException_moduleInstallationFailed);
+
 		} catch (NoMoreCollectionAvalibleException noMoreCollectionAvalibleException) {
 			throw new NoMoreCollectionAvalibleRuntimeException();
+
 		}
 		return new ModulesAndMigrationsTestFeatures(getCurrentTestSession().getFactoriesTestFeatures(), collection);
 	}

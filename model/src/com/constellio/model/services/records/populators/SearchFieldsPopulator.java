@@ -1,18 +1,5 @@
 package com.constellio.model.services.records.populators;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import com.constellio.model.services.migrations.ConstellioEIMConfigs;
-import org.apache.commons.io.FilenameUtils;
-import org.joda.time.LocalDate;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.data.utils.KeyListMap;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.conf.FoldersLocatorMode;
@@ -32,6 +19,7 @@ import com.constellio.model.services.extensions.ModelLayerExtensions;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.FieldsPopulator;
 import com.constellio.model.services.records.RecordUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.joda.time.LocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,6 +30,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 import static com.constellio.data.dao.services.bigVault.BigVaultRecordDao.DATE_SEARCH_FIELD;
 
@@ -178,7 +167,7 @@ public class SearchFieldsPopulator extends SeparatedFieldsPopulator implements F
 			}
 
 			String currentExtension = FilenameUtils.getExtension(currentVersion.getFilename());
-			currentExtension = currentExtension == null? null : currentExtension.toLowerCase();
+			currentExtension = currentExtension == null ? null : currentExtension.toLowerCase();
 			if (parsedContent != null && contentLanguage != null &&
 				!fileExtensionsExcludedFromParsing.contains(currentExtension)) {
 				keyListMap.add(code + "_txt_" + contentLanguage, parsedContent.getParsedContent());

@@ -21,6 +21,7 @@ import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.RecordMigrationScript;
+import com.constellio.model.services.extensions.ConstellioModulesManagerException.ConstellioModulesManagerException_ModuleInstallationFailed;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimisticLocking;
@@ -33,10 +34,8 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import static com.constellio.model.entities.records.wrappers.Collection.SYSTEM_COLLECTION;
 import static java.util.Arrays.asList;
@@ -188,20 +187,17 @@ public class MigrationServices {
 		return returnList;
 	}
 
-	public Set<String> migrate(String toVersion, boolean newModule)
-			throws OptimisticLockingConfiguration {
-		Set<String> modulesNotMigratedCorrectly = new HashSet<>();
+	public void migrate(String toVersion, boolean newModule)
+			throws ConstellioModulesManagerException_ModuleInstallationFailed, OptimisticLockingConfiguration {
 
 		List<String> collections = modelLayerFactory.getCollectionsListManager().getCollections();
 		for (String collection : collections) {
-			modulesNotMigratedCorrectly.addAll(migrate(collection, toVersion, newModule));
+			migrate(collection, toVersion, newModule);
 		}
-		return modulesNotMigratedCorrectly;
 	}
 
-	private Set<String> migrateModules(String collection, String toVersion, boolean newModule)
-			throws OptimisticLockingConfiguration {
-		Set<String> modulesNotMigratedCorrectly = new HashSet<>();
+	private void migrateModules(String collection, String toVersion, boolean newModule)
+			throws ConstellioModulesManagerException_ModuleInstallationFailed, OptimisticLockingConfiguration {
 		List<String> collectionCodes = collectionsManager.getCollectionCodesExcludingSystem();
 		boolean newCollection = isNewCollection(collection);
 		if (newCollection && appLayerFactory.getAppLayerConfiguration().isFastMigrationsEnabled() &&
@@ -213,9 +209,8 @@ public class MigrationServices {
 
 		boolean firstMigration = true;
 		boolean fastMigrationEnabled = appLayerFactory.getAppLayerConfiguration().isFastMigrationsEnabled();
-		while (modulesNotMigratedCorrectly.isEmpty() &&
-			   !(migrations = filterRunnedMigration(collection,
-					   getAllMigrationsFor(newModule && fastMigrationEnabled, collection))).isEmpty()) {
+		while (!(migrations = filterRunnedMigration(collection,
+				getAllMigrationsFor(newModule && fastMigrationEnabled, collection))).isEmpty()) {
 
 			LOGGER.info("Migrating collection " + collection + " : " + migrations);
 			for (Migration migration : migrations) {
@@ -227,30 +222,23 @@ public class MigrationServices {
 						firstMigration = false;
 					}
 
-					boolean exceptionWhenMigrating = migrateWithoutException(migration, collection);
-					if (exceptionWhenMigrating) {
-						modulesNotMigratedCorrectly.add(migration.getMigrationId());
-					}
+					migrateWithoutException(migration, collection);
 				}
 			}
 		}
-		return modulesNotMigratedCorrectly;
 	}
 
-	private boolean migrateWithoutException(ComboMigrationScript migration, String moduleId, String collection) {
-		boolean exceptionWhenMigrating = false;
+	private void migrateWithoutException(ComboMigrationScript migration, String moduleId, String collection) {
 		try {
 			migrate(collection, moduleId, migration);
 		} catch (Throwable e) {
 			constellioPluginManager
 					.handleModuleNotMigratedCorrectly(moduleId, collection, e);
-			exceptionWhenMigrating = true;
 		}
-		return exceptionWhenMigrating;
 	}
 
-	private boolean migrateWithoutException(Migration migration, String collection) {
-		boolean exceptionWhenMigrating = false;
+	private void migrateWithoutException(Migration migration, String collection)
+			throws ConstellioModulesManagerException_ModuleInstallationFailed {
 		try {
 			if (migration.getScript() instanceof ComboMigrationScript) {
 				migrate(collection, migration.getModuleId(), (ComboMigrationScript) migration.getScript());
@@ -258,23 +246,22 @@ public class MigrationServices {
 				migrate(migration);
 			}
 		} catch (Throwable e) {
-			e.printStackTrace();
-			if (dataLayerFactory.getTransactionLogRecoveryManager().isInRollbackMode()) {
-				throw new RuntimeException("A migration error is triggering a rollback", e);
-
-			} else {
-				e.printStackTrace();
+			if (!dataLayerFactory.getTransactionLogRecoveryManager().isInRollbackMode()) {
 				constellioPluginManager
 						.handleModuleNotMigratedCorrectly(migration.getModuleId(), collection, e);
-				exceptionWhenMigrating = true;
+
+				throw new ConstellioModulesManagerException_ModuleInstallationFailed(migration.getModuleId(), migration.getCollection(), e, true);
+
+			} else {
+				throw new ConstellioModulesManagerException_ModuleInstallationFailed(migration.getModuleId(), migration.getCollection(), e, false);
 			}
+
 		}
-		return exceptionWhenMigrating;
 	}
 
-	public Set<String> migrate(String collection, String toVersion, boolean newModule)
-			throws OptimisticLockingConfiguration {
-		return migrateModules(collection, toVersion, newModule);
+	public void migrate(String collection, String toVersion, boolean newModule)
+			throws OptimisticLockingConfiguration, ConstellioModulesManagerException_ModuleInstallationFailed {
+		migrateModules(collection, toVersion, newModule);
 	}
 
 	boolean isNewCollection(String collection) {
@@ -289,21 +276,16 @@ public class MigrationServices {
 
 	List<Migration> filterRunnedMigration(String collection, List<Migration> migrations) {
 		if (configManager.exist(VERSION_PROPERTIES_FILE)) {
-			String propertyKey = collection + "_completedMigrations";
-			String completedMigrations = dataLayerFactory.getConfigManager().getProperties(VERSION_PROPERTIES_FILE)
-					.getProperties().get(propertyKey);
 
-			if (completedMigrations == null) {
-				return migrations;
-			} else {
-				List<Migration> filteredMigrations = new ArrayList<>();
-				for (Migration migration : migrations) {
-					if (!completedMigrations.contains(migration.getMigrationId())) {
-						filteredMigrations.add(migration);
-					}
+			List<String> runnedMigrations = getCompletedMigrations(collection);
+
+			List<Migration> filteredMigrations = new ArrayList<>();
+			for (Migration migration : migrations) {
+				if (!runnedMigrations.contains(migration.getMigrationId())) {
+					filteredMigrations.add(migration);
 				}
-				return filteredMigrations;
 			}
+			return filteredMigrations;
 		} else {
 			return migrations;
 		}

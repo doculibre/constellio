@@ -2,9 +2,9 @@ package com.constellio.model.services.extensions;
 
 import com.constellio.model.entities.modules.Module;
 import com.constellio.model.services.collections.CollectionsListManager;
+import com.constellio.model.services.extensions.ConstellioModulesManagerException.ConstellioModulesManagerException_ModuleInstallationFailed;
 
 import java.util.List;
-import java.util.Set;
 
 public interface ConstellioModulesManager {
 	Module getInstalledModule(String module);
@@ -13,7 +13,8 @@ public interface ConstellioModulesManager {
 
 	List<? extends Module> getInstalledModules();
 
-	Set<String> enableValidModuleAndGetInvalidOnes(String collection, Module module);
+	void enableValidModuleAndGetInvalidOnes(String collection, Module module)
+			throws ConstellioModulesManagerException_ModuleInstallationFailed;
 
 	List<String> getPermissionGroups(String collection);
 
@@ -21,7 +22,8 @@ public interface ConstellioModulesManager {
 
 	boolean isInstalled(Module module);
 
-	Set<String> installValidModuleAndGetInvalidOnes(Module module, CollectionsListManager collectionsListManager);
+	void installValidModuleAndGetInvalidOnes(Module module, CollectionsListManager collectionsListManager)
+			throws ConstellioModulesManagerException_ModuleInstallationFailed;
 
 	List<? extends Module> getEnabledModules(String collection);
 
@@ -34,5 +36,5 @@ public interface ConstellioModulesManager {
 
 	public void initializePluginResources(String collection);
 
-	public void enableComplementaryModules();
+	public void enableComplementaryModules() throws ConstellioModulesManagerException_ModuleInstallationFailed;
 }

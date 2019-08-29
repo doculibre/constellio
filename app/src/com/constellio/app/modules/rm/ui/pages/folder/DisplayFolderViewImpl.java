@@ -174,7 +174,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			}
 		};
 		uploadField.addStyleName("display-folder-upload-field");
-		//		uploadField.setVisible(false);
+		uploadField.setVisible(false);
 		uploadField.setImmediate(true);
 		uploadField.setMultiValue(false);
 		uploadField.setMajorVersionFieldVisible(false);

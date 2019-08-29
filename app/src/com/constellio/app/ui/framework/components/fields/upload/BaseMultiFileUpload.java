@@ -5,6 +5,7 @@ import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.pages.base.ClickableNotification;
 import com.constellio.app.ui.util.FileIconUtils;
+import com.constellio.data.utils.dev.Toggle;
 import com.vaadin.data.Item;
 import com.vaadin.event.UIEvents.PollEvent;
 import com.vaadin.event.UIEvents.PollListener;
@@ -27,6 +28,7 @@ import com.vaadin.ui.DragAndDropWrapper;
 import com.vaadin.ui.DragAndDropWrapper.WrapperTransferable;
 import com.vaadin.ui.Html5File;
 import com.vaadin.ui.Label;
+import com.vaadin.ui.ProgressBar;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.Notification.Type;
 import com.vaadin.ui.ProgressIndicator;
@@ -168,24 +170,26 @@ public abstract class BaseMultiFileUpload extends CssLayout implements DropHandl
 		this.dropZoneCaption = dropZoneCaption;
 	}
 
-	private void addProgressIndicator(ProgressIndicator progressIndicator) {
+	private void addProgressIndicator(ProgressBar progressBar) {
 		if (isUploadWindow()) {
-			uploadsTable.addUpload(progressIndicator);
+			uploadsTable.addUpload(progressBar);
 		} else {
-			progressBars.addComponent(progressIndicator);
+			progressBars.addComponent(progressBar);
 		}
 	}
 
-	private void removeProgressIndicator(ProgressIndicator progressIndicator) {
-		try {
-			Thread.sleep(1000);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
+	private void removeProgressBar(ProgressBar progressBar) {
+		if (!Toggle.PERFORMANCE_TESTING.isEnabled()) {
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 		}
 		if (isUploadWindow()) {
-			uploadsTable.removeUpload(progressIndicator);
+			uploadsTable.removeUpload(progressBar);
 		} else {
-			progressBars.removeComponent(progressIndicator);
+			progressBars.removeComponent(progressBar);
 		}
 	}
 
@@ -198,7 +202,7 @@ public abstract class BaseMultiFileUpload extends CssLayout implements DropHandl
 
 		final MultiUpload upload = new MultiUpload();
 		MultiUploadHandler handler = new MultiUploadHandler() {
-			private LinkedList<ProgressIndicator> indicators;
+			private LinkedList<ProgressBar> progressBars;
 
 			public void streamingStarted(StreamingStartEvent event) {
 				if (isUploadWindow()) {
@@ -207,8 +211,8 @@ public abstract class BaseMultiFileUpload extends CssLayout implements DropHandl
 			}
 
 			public void streamingFinished(StreamingEndEvent event) {
-				if (!indicators.isEmpty()) {
-					removeProgressIndicator(indicators.remove(0));
+				if (!progressBars.isEmpty()) {
+					removeProgressBar(progressBars.remove(0));
 				}
 				File file = receiver.getFile();
 				handleFile(file, event.getFileName(), event.getMimeType(),
@@ -223,8 +227,8 @@ public abstract class BaseMultiFileUpload extends CssLayout implements DropHandl
 				Logger.getLogger(getClass().getName()).log(Level.FINE,
 						"Streaming failed", event.getException());
 
-				for (ProgressIndicator progressIndicator : indicators) {
-					removeProgressIndicator(progressIndicator);
+				for (ProgressBar progressBar : progressBars) {
+					removeProgressBar(progressBar);
 				}
 				if (isUploadWindow()) {
 					closeUploadWindowIfAllDone();
@@ -235,7 +239,7 @@ public abstract class BaseMultiFileUpload extends CssLayout implements DropHandl
 				long readBytes = event.getBytesReceived();
 				long contentLength = event.getContentLength();
 				float f = (float) readBytes / (float) contentLength;
-				indicators.get(0).setValue(f);
+				progressBars.get(0).setValue(f);
 			}
 
 			public OutputStream getOutputStream() {
@@ -246,15 +250,15 @@ public abstract class BaseMultiFileUpload extends CssLayout implements DropHandl
 			}
 
 			public void filesQueued(Collection<FileDetail> pendingFileNames) {
-				if (indicators == null) {
-					indicators = new LinkedList<ProgressIndicator>();
+				if (progressBars == null) {
+					progressBars = new LinkedList<ProgressBar>();
 				}
 				for (FileDetail f : pendingFileNames) {
-					ProgressIndicator pi = createProgressIndicator();
-					pi.setCaption(f.getFileName());
-					pi.setVisible(true);
-					indicators.add(pi);
-					addProgressIndicator(pi);
+					ProgressBar pb = createProgressBar();
+					pb.setCaption(f.getFileName());
+					pb.setVisible(true);
+					progressBars.add(pb);
+					addProgressIndicator(pb);
 				}
 			}
 
@@ -269,7 +273,7 @@ public abstract class BaseMultiFileUpload extends CssLayout implements DropHandl
 		uploads.addComponent(upload);
 	}
 
-	private ProgressIndicator createProgressIndicator() {
+	private ProgressIndicator createProgressBar() {
 		ProgressIndicator progressIndicator = new ProgressIndicator();
 		progressIndicator.setPollingInterval(300);
 		progressIndicator.setValue(0f);
@@ -468,7 +472,7 @@ public abstract class BaseMultiFileUpload extends CssLayout implements DropHandl
 					}
 
 					public void streamingFinished(StreamingEndEvent event) {
-						removeProgressIndicator(pi);
+						removeProgressBar(pi);
 
 						if (isInterrupted) {
 							emptyFilesName.add(html5File.getFileName());
@@ -484,7 +488,7 @@ public abstract class BaseMultiFileUpload extends CssLayout implements DropHandl
 					}
 
 					public void streamingFailed(StreamingErrorEvent event) {
-						removeProgressIndicator(pi);
+						removeProgressBar(pi);
 						if (isUploadWindow()) {
 							closeUploadWindowIfAllDone();
 						}
@@ -590,19 +594,19 @@ class UploadsTable extends BaseTable {
 	}
 
 	@SuppressWarnings("unchecked")
-	void addUpload(ProgressIndicator progressIndicator) {
-		Item item = addItem(progressIndicator);
+	void addUpload(ProgressBar progressBar) {
+		Item item = addItem(progressBar);
 
-		String filename = progressIndicator.getCaption();
+		String filename = progressBar.getCaption();
 		Label filenameLabel = new Label(filename);
-		progressIndicator.setCaption(null);
+		progressBar.setCaption(null);
 
 		item.getItemProperty(FILE_PROPERTY).setValue(filenameLabel);
-		item.getItemProperty(PROGRESS_BAR_PROPERTY).setValue(progressIndicator);
+		item.getItemProperty(PROGRESS_BAR_PROPERTY).setValue(progressBar);
 	}
 
-	void removeUpload(ProgressIndicator progressIndicator) {
-		removeItem(progressIndicator);
+	void removeUpload(ProgressBar progressBar) {
+		removeItem(progressBar);
 	}
 
 }

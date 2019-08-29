@@ -90,10 +90,12 @@ public class CoreMigrationTo_8_2 implements MigrationScript {
 					public void doActionOnBatch(List<Record> records) throws Exception {
 						Transaction tx = new Transaction();
 						for (Authorization detail : schemas.wrapSolrAuthorizationDetailss(records)) {
-							tx.add(detail.setPrincipals(authsPrincipals.get(detail.getId())));
+							if (!detail.getRoles().isEmpty()) {
+								tx.add(detail.setPrincipals(authsPrincipals.get(detail.getId())));
+							} else {
+								recordServices.logicallyDelete(detail.getWrappedRecord(), User.GOD);
+							}
 						}
-
-						recordServices.executeWithoutImpactHandling(tx);
 					}
 				}.execute(from(schemas.authorizationDetails.schemaType()).returnAll());
 

@@ -12,6 +12,8 @@ import com.constellio.app.modules.rm.wrappers.RMObject;
 import com.constellio.app.modules.rm.wrappers.RMUserFolder;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.UserFunction;
+import com.constellio.app.modules.rm.wrappers.StorageSpace;
+import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
 import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
@@ -896,6 +898,11 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 	/**
 	 * User LogicalSearchQuery instead
 	 */
+
+	public List<UniformSubdivision> getAllUniformSubdivisions() {
+		return wrapUniformSubdivisions(getModelLayerFactory().newSearchServices().getAllRecords(uniformSubdivision.schemaType()));
+	}
+
 	public List<Category> getAllCategories() {
 		return wrapCategorys(getModelLayerFactory().newSearchServices().getAllRecords(category.schemaType()));
 	}

@@ -14,6 +14,7 @@ import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.extensions.ConstellioModulesManager;
+import com.constellio.model.services.extensions.ConstellioModulesManagerException.ConstellioModulesManagerException_ModuleInstallationFailed;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
@@ -83,6 +84,8 @@ public class ModulesAndMigrationsTestFeatures {
 			throw new RuntimeException(e);
 		} catch (FailedToStart failedToStart) {
 			throw new RuntimeException(failedToStart);
+		} catch (ConstellioModulesManagerException_ModuleInstallationFailed e) {
+			throw new RuntimeException(e);
 		}
 		return this;
 	}

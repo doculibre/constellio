@@ -286,6 +286,11 @@ public class AddEditRobotPresenter extends BaseRobotPresenter<AddEditRobotView>
 		return extensions.getComponentForCriterion(criterion);
 	}
 
+	@Override
+	public void showErrorMessage(String message) {
+		view.showErrorMessage(message);
+	}
+
 	public boolean isAddMode() {
 		return ADD.equals(pageMode);
 	}

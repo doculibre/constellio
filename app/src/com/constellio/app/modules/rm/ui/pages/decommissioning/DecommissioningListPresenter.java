@@ -36,6 +36,7 @@ import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetai
 import com.constellio.app.modules.rm.wrappers.structures.DecomListValidation;
 import com.constellio.app.modules.rm.wrappers.structures.FolderDetailWithType;
 import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.components.NewReportPresenter;
@@ -43,12 +44,15 @@ import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import com.constellio.app.ui.framework.reports.ReportWithCaptionVO;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.data.utils.TimeProvider;
+import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.frameworks.validation.ValidationException;
+import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.RecordServicesWrapperRuntimeException;
@@ -60,6 +64,7 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -194,6 +199,23 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 	public void deleteButtonClicked() {
 		delete(decommissioningList().getWrappedRecord());
 		view.navigate().to(RMViews.class).decommissioning();
+	}
+
+	public void deleteContentButtonClicked(ContentVersionVO contentVersionVO) {
+		List<Content> contents = new ArrayList<>(decommissioningList().getContent());
+		Iterator<Content> content = contents.iterator();
+		while (content.hasNext()) {
+			if (content.next().getId().equals(contentVersionVO.getContentId())) {
+				content.remove();
+				break;
+			}
+		}
+		decommissioningList().setContent(contents);
+		addOrUpdate(decommissioningList().getWrappedRecord());
+	}
+
+	public boolean canCurrentUserDeleteContent() {
+		return getCurrentUser().has(RMPermissionsTo.EDIT_DECOMMISSIONING_LIST).onSomething();
 	}
 
 	public boolean isProcessable() {
@@ -1115,5 +1137,22 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		ConstellioUI uiContext = ConstellioUI.getCurrent();
 		uiContext.clearAttribute(DecommissioningBuilderViewImpl.SAVE_SEARCH_DECOMMISSIONING);
 		uiContext.clearAttribute(DecommissioningBuilderViewImpl.DECOMMISSIONING_BUILDER_TYPE);
+	}
+
+	public void handleFile(File file, String fileName) {
+		DecommissioningList decommissioningList = rmRecordsServices.getDecommissioningList(recordId);
+		ContentManager contentManager = new ContentManager(modelLayerFactory);
+		ContentVersionDataSummary contentVersionDataSummary;
+		try {
+			contentVersionDataSummary = contentManager.upload(file);
+			Content content = contentManager.createMajor(getCurrentUser(), fileName, contentVersionDataSummary);
+			List<Content> contents = new ArrayList<>();
+			contents.addAll(decommissioningList.getContent());
+			contents.add(content);
+			decommissioningList.setContent(contents);
+			recordServices().add(decommissioningList);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
 }

@@ -4,10 +4,15 @@ import com.constellio.data.utils.AccentApostropheCleaner;
 import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.DynamicDependencyValues;
+import com.constellio.model.entities.calculators.MetadataValueCalculator;
+import com.constellio.model.entities.calculators.dependencies.ConfigDependency;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.DynamicLocalDependency;
+import com.constellio.model.entities.enums.AutocompleteSplitCriteria;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import com.google.common.base.Strings;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -20,39 +25,49 @@ import static java.util.Arrays.asList;
 public class AutocompleteFieldCalculator extends AbstractMetadataValueCalculator<List<String>> {
 
 	DynamicLocalDependency autocompleteMetadatasDependency = new LocalAutocompleteMetadatasDependency();
+	ConfigDependency<AutocompleteSplitCriteria> autocompletSplitCriteriaConfigDependency
+			= ConstellioEIMConfigs.AUTOCOMPLETE_SPLIT_CRITERIA.dependency();
 
 	@Override
 	public List<String> calculate(CalculatorParameters parameters) {
 		Set<String> words = new HashSet<>();
-		splitInLowerCasedTermsRemovingAccents(words, parameters.get(autocompleteMetadatasDependency));
+		splitInLowerCasedTermsRemovingAccents(words, parameters.get(autocompleteMetadatasDependency),
+				parameters.get(autocompletSplitCriteriaConfigDependency));
 		List<String> returnedWords = new ArrayList<>(words);
 		Collections.sort(returnedWords);
 		return returnedWords;
 	}
 
 	public static void splitInLowerCasedTermsRemovingAccents(Set<String> words,
-															 DynamicDependencyValues autocompleteMetadatasValues) {
+															 DynamicDependencyValues autocompleteMetadatasValues,
+															 AutocompleteSplitCriteria autocompleteSplitCriteria) {
 		for (Metadata metadata : autocompleteMetadatasValues.getAvailableMetadatasWithAValue().onlySchemaAutocomplete()) {
-			splitInLowerCasedTermsRemovingAccents(words, autocompleteMetadatasValues.<Object>getValue(metadata));
+			splitInLowerCasedTermsRemovingAccents(words, autocompleteMetadatasValues.getValue(metadata),
+					autocompleteSplitCriteria);
 		}
 	}
 
-	public static void splitInLowerCasedTermsRemovingAccents(Set<String> words, Object value) {
+	public static void splitInLowerCasedTermsRemovingAccents(Set<String> words, Object value,
+															 AutocompleteSplitCriteria autocompleteSplitCriteria) {
+		String regex = autocompleteSplitCriteria.getRegex();
+
 		if (value instanceof List) {
 			for (String item : (List<String>) value) {
-				splitInLowerCasedTermsRemovingAccents(words, item);
+				splitInLowerCasedTermsRemovingAccents(words, item, regex);
 			}
 		} else if (value instanceof String) {
-			splitInLowerCasedTermsRemovingAccents(words, (String) value);
+			splitInLowerCasedTermsRemovingAccents(words, (String) value, regex);
 
 		}
 	}
 
-	public static void splitInLowerCasedTermsRemovingAccents(Set<String> words, String value) {
+	private static void splitInLowerCasedTermsRemovingAccents(Set<String> words, String value, String regex) {
 		if (value != null) {
 			String cleanedValue = AccentApostropheCleaner.removeAccents(value).toLowerCase();
-			for (String word : cleanedValue.split(" ")) {
-				words.add(word);
+			for (String word : cleanedValue.split(regex)) {
+				if (!Strings.isNullOrEmpty(word)) {
+					words.add(word);
+				}
 			}
 		}
 	}
@@ -74,7 +89,7 @@ public class AutocompleteFieldCalculator extends AbstractMetadataValueCalculator
 
 	@Override
 	public List<? extends Dependency> getDependencies() {
-		return asList(autocompleteMetadatasDependency);
+		return asList(autocompleteMetadatasDependency, autocompletSplitCriteriaConfigDependency);
 	}
 
 	public static class LocalAutocompleteMetadatasDependency extends DynamicLocalDependency {

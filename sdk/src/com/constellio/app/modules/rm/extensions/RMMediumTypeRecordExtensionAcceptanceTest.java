@@ -16,6 +16,7 @@ import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.reindexing.ReindexationMode;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
 import org.joda.time.LocalDate;
@@ -790,6 +791,61 @@ public class RMMediumTypeRecordExtensionAcceptanceTest extends ConstellioTest {
 		assertThat(folder.hasContent()).isTrue();
 		assertThat(folder.getMediumTypes()).contains(digitalMediumType.getId(), digitalMediumType2.getId());
 		assertThat(folder.getMediaType()).isEqualTo(FolderMediaType.ELECTRONIC);
+	}
+
+	@Test
+	public void givenInactivatedDigitalMediumTypeAndActivationThenCorrectStateAfterSystemReindexation()
+			throws Exception {
+		recordServices.update(digitalMediumType.setActivatedOnContent(false));
+
+		Folder folder = newFolderWithId("folder");
+		Document document = newDigitalDocumentWithId("document", folder);
+		Folder folder2 = newFolderWithId("folder2").setMediumTypes(digitalMediumType.getId());
+		recordServices.execute(new Transaction().addAll(folder, document, folder2));
+
+		assertThat(rm.getFolder("folder").getMediumTypes()).isEmpty();
+		assertThat(rm.getFolder("folder2").getMediumTypes()).containsOnly(digitalMediumType.getId());
+
+		recordServices.update(digitalMediumType.setActivatedOnContent(true));
+
+		getModelLayerFactory().newReindexingServices().createLockFile();
+		getModelLayerFactory().newReindexingServices().reindexCollections(ReindexationMode.RECALCULATE);
+		getModelLayerFactory().newReindexingServices().removeLockFile();
+		waitForBatchProcess();
+
+		folder = rm.getFolder("folder");
+		assertThat(folder.hasContent()).isTrue();
+		assertThat(folder.getMediumTypes()).contains(digitalMediumType.getId());
+		assertThat(folder.getMediaType()).isEqualTo(FolderMediaType.ELECTRONIC);
+
+		folder2 = rm.getFolder("folder2");
+		assertThat(folder2.hasContent()).isFalse();
+		assertThat(folder2.getMediumTypes()).isEmpty();
+		assertThat(folder2.getMediaType()).isEqualTo(FolderMediaType.UNKNOWN);
+	}
+
+	@Test
+	public void givenInactivatedDigitalMediumTypeAndActivationThenNotUpdatedAfterReindexationWithoutLockFile()
+			throws Exception {
+		recordServices.update(digitalMediumType.setActivatedOnContent(false));
+
+		Folder folder2 = newFolderWithId("folder2").setMediumTypes(digitalMediumType.getId());
+		recordServices.execute(new Transaction().addAll(folder2));
+
+		folder2 = rm.getFolder("folder2");
+		assertThat(folder2.hasContent()).isFalse();
+		assertThat(folder2.getMediumTypes()).containsOnly(digitalMediumType.getId());
+		assertThat(folder2.getMediaType()).isEqualTo(FolderMediaType.ELECTRONIC);
+
+		recordServices.update(digitalMediumType.setActivatedOnContent(true));
+
+		getModelLayerFactory().newReindexingServices().reindexCollections(ReindexationMode.RECALCULATE);
+		waitForBatchProcess();
+
+		folder2 = rm.getFolder("folder2");
+		assertThat(folder2.hasContent()).isFalse();
+		assertThat(folder2.getMediumTypes()).containsOnly(digitalMediumType.getId());
+		assertThat(folder2.getMediaType()).isEqualTo(FolderMediaType.ELECTRONIC);
 	}
 
 	private Folder newFolderWithId(String id) {

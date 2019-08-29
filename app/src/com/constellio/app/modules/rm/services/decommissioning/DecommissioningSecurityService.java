@@ -9,6 +9,7 @@ import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListValidation;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
@@ -16,8 +17,6 @@ import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class DecommissioningSecurityService {
 	RMSchemasRecordsServices rm;
@@ -37,13 +36,19 @@ public class DecommissioningSecurityService {
 			|| user.hasAny(RMPermissionsTo.CREATE_TRANSFER_DECOMMISSIONING_LIST, RMPermissionsTo.EDIT_TRANSFER_DECOMMISSIONING_LIST).onSomething()) {
 			return true;
 		}
-		return searchServices.hasResults(
-				from(rm.decommissioningList.schemaType()).where(rm.decommissioningList.pendingValidations()).isEqualTo(user));
+
+		for (Record decomList : searchServices.getAllRecordsInUnmodifiableState(rm.decommissioningList.schemaType())) {
+			if (decomList.getValues(rm.decommissioningList.pendingValidations()).contains(user.getId())) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	public boolean hasAccessToDecommissioningListPage(DecommissioningList list, User user) {
 		return hasProcessPermissionOnList(user, list) || hasCreatePermissionOnList(user, list)
-				|| hasManageDecommissioningPermissionOnList(user, list) ||
+			   || hasManageDecommissioningPermissionOnList(user, list) ||
 			   hasPermissionToCreateTransferOnList(list, user) ||
 			   canValidate(list, user);
 	}
@@ -117,7 +122,7 @@ public class DecommissioningSecurityService {
 		List<String> tabs;
 		boolean createDecommissioningListPerm = user.has(RMPermissionsTo.CREATE_DECOMMISSIONING_LIST).onSomething();
 		if (user.has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).onSomething()
-				|| createDecommissioningListPerm) {
+			|| createDecommissioningListPerm) {
 			tabs = new ArrayList<>(Arrays.asList(
 					DecommissioningMainPresenter.GENERATED,
 					DecommissioningMainPresenter.PENDING_VALIDATION,
@@ -128,8 +133,8 @@ public class DecommissioningSecurityService {
 					DecommissioningMainPresenter.APPROVED,
 					DecommissioningMainPresenter.PROCESSED));
 
-			if(createDecommissioningListPerm) {
-				tabs.add(0,	DecommissioningMainPresenter.CREATE);
+			if (createDecommissioningListPerm) {
+				tabs.add(0, DecommissioningMainPresenter.CREATE);
 			}
 		} else if (user.has(RMPermissionsTo.APPROVE_DECOMMISSIONING_LIST).onSomething()) {
 			tabs = new ArrayList<>(Arrays.asList(

@@ -25,8 +25,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.anyConditions;
@@ -130,17 +132,28 @@ public class TrashServices {
 		return returnList;
 	}
 
-	public List<String> restoreSelection(Set<String> selectedRecords, User currentUser) {
-		List<String> returnList = new ArrayList<>();
+	public Map<String, String> restoreSelection(Set<String> selectedRecords, User currentUser) {
+		Map<String, String> returnMap = new HashMap<>();
 		for (String recordId : selectedRecords) {
 			Record record = recordServices().getDocumentById(recordId);
 			if (recordServices().isRestorable(record, currentUser)) {
 				recordServices().restore(record, currentUser);
-			} else {
-				returnList.add(record.getTitle());
+			} else if (!isRecordGoingToBeRestoredByParent(record, selectedRecords)) {
+				returnMap.put(recordId, record.getTitle());
 			}
 		}
-		return returnList;
+		return returnMap;
+	}
+
+	private boolean isRecordGoingToBeRestoredByParent(Record record, Set<String> selectedRecords) {
+		String principalPath = StringUtils.defaultIfBlank((String) record.get(Schemas.PRINCIPAL_PATH), "");
+		for (String pathNode : principalPath.split("/")) {
+			if (!pathNode.equals(record.getId()) && selectedRecords.contains(pathNode)) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	private RecordServices recordServices() {
@@ -150,8 +163,8 @@ public class TrashServices {
 		return recordServices;
 	}
 
-	public Set<String> deleteSelection(Set<String> selectedRecords, User currentUser) {
-		Set<String> returnSet = new HashSet<>();
+	public Map<String, String> deleteSelection(Set<String> selectedRecords, User currentUser) {
+		Map<String, String> returnMap = new HashMap<>();
 		for (String recordId : selectedRecords) {
 			Record record;
 			try {
@@ -163,14 +176,14 @@ public class TrashServices {
 			try {
 				boolean deleted = handleRecordPhysicalDelete(record, currentUser);
 				if (!deleted) {
-					returnSet.add(record.getTitle());
+					returnMap.put(recordId, record.getTitle());
 				}
 			} catch (Throwable e) {
 				LOGGER.warn("record not deleted correctly from trash");
-				returnSet.add(recordId);
+				returnMap.put(recordId, record.getTitle());
 			}
 		}
-		return returnSet;
+		return returnMap;
 	}
 
 	public Set<String> getTypesWithLogicallyDeletedRecords(String collection, User currentUser) {
