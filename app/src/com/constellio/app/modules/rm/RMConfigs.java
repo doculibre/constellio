@@ -110,7 +110,7 @@ public class RMConfigs {
 
 		// Allow to enter retention rules for documents
 		add(DOCUMENT_RETENTION_RULES = decommissioning.createBooleanFalseByDefault("documentRetentionRules")
-				.withReIndexationRequired().scriptedBy(RMDocumentRetentionRulesScript.class));
+				.withReIndexationRequired().scriptedBy(RMDocumentRetentionRulesScript.class).whichIsHidden());
 
 		// Validation exception if a folder's rule and category are not linked
 		add(ENFORCE_CATEGORY_AND_RULE_RELATIONSHIP_IN_FOLDER = decommissioning
