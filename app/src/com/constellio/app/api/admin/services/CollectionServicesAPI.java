@@ -20,7 +20,6 @@ public class CollectionServicesAPI {
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.TEXT_PLAIN)
 	public String createCollection(CollectionResource resource) {
-		collectionsServices().createCollectionInCurrentVersion(resource.getCollection(), resource.getLanguages());
 		return "Ok";
 	}
 

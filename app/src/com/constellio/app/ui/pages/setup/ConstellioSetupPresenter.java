@@ -3,6 +3,7 @@ package com.constellio.app.ui.pages.setup;
 import com.constellio.app.entities.modules.InstallableModule;
 import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
 import com.constellio.app.services.appManagement.AppManagementServiceException;
+import com.constellio.app.services.collections.CollectionsManager;
 import com.constellio.app.services.collections.CollectionsManagerRuntimeException.CollectionsManagerRuntimeException_InvalidCode;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.servlet.ConstellioMonitoringServlet;
@@ -34,6 +35,7 @@ import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.extensions.ConstellioModulesManager;
+import com.constellio.model.services.extensions.ConstellioModulesManagerException.ConstellioModulesManagerException_ModuleInstallationFailed;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServicesException;
@@ -139,8 +141,8 @@ public class ConstellioSetupPresenter extends BasePresenter<ConstellioSetupView>
 	}
 
 	public void saveRequested(final List<String> languages, final List<String> modules, final String collectionTitle,
-			final String collectionCode,
-			final String adminPassword, String adminPasswordConfirmation, final boolean demoData)
+							  final String collectionCode,
+							  final String adminPassword, String adminPasswordConfirmation, final boolean demoData)
 			throws ConstellioSetupPresenterException {
 
 		validUserEntry(modules, collectionCode, adminPassword, adminPasswordConfirmation);
@@ -150,79 +152,86 @@ public class ConstellioSetupPresenter extends BasePresenter<ConstellioSetupView>
 		Runnable runnable = new Runnable() {
 			@Override
 			public void run() {
+				CollectionsManager.NEW_SYSTEM_MAIN_DATA_LANGUAGE = setupLocaleCode;
 				ConstellioFactories factories = view.getConstellioFactories();
-
-				setSystemLanguage(setupLocaleCode);
-				Record collectionRecord = factories.getAppLayerFactory().getCollectionsManager().createCollectionInCurrentVersion(
-						collectionCode, languages);
-				Collection collection = new Collection(collectionRecord,
-						modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collectionCode));
-				String effectiveCollectionTitle;
-				if (StringUtils.isBlank(collectionTitle)) {
-					effectiveCollectionTitle = collectionCode;
-				} else {
-					effectiveCollectionTitle = collectionTitle;
-				}
-				collection.setName(effectiveCollectionTitle).setTitle(effectiveCollectionTitle);
 				try {
-					recordServices().update(collection);
-				} catch (RecordServicesException e) {
-					throw new RuntimeException(e);
-				}
+					setSystemLanguage(setupLocaleCode);
+					Record collectionRecord = factories.getAppLayerFactory().getCollectionsManager().createCollectionInCurrentVersion(
+							collectionCode, languages);
+					Collection collection = new Collection(collectionRecord,
+							modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collectionCode));
+					String effectiveCollectionTitle;
+					if (StringUtils.isBlank(collectionTitle)) {
+						effectiveCollectionTitle = collectionCode;
+					} else {
+						effectiveCollectionTitle = collectionTitle;
+					}
+					collection.setName(effectiveCollectionTitle).setTitle(effectiveCollectionTitle);
+					try {
+						recordServices().update(collection);
+					} catch (RecordServicesException e) {
+						throw new RuntimeException(e);
+					}
 
-				ConstellioModulesManager modulesManager = factories.getAppLayerFactory().getModulesManager();
+					ConstellioModulesManager modulesManager = factories.getAppLayerFactory().getModulesManager();
 
-				List<String> roles = new ArrayList<>();
-				for (String moduleCode : modules) {
-					Module module = modulesManager.getInstalledModule(moduleCode);
-					modulesManager.installValidModuleAndGetInvalidOnes(module,
-							factories.getModelLayerFactory().getCollectionsListManager());
-					modulesManager.enableValidModuleAndGetInvalidOnes(collectionCode, module);
-					roles.addAll(PluginUtil.getRolesForCreator(module));
-					if (demoData) {
-						try {
-							((InstallableModule) module).addDemoData(collectionCode, appLayerFactory);
-						} catch (Throwable e) {
-							LOGGER.error("Error when adding demo data of module " + module.getId() + " in collection " + collection, e);
+					List<String> roles = new ArrayList<>();
+					for (String moduleCode : modules) {
+						Module module = modulesManager.getInstalledModule(moduleCode);
+
+						modulesManager.installValidModuleAndGetInvalidOnes(module,
+								factories.getModelLayerFactory().getCollectionsListManager());
+
+						modulesManager.enableValidModuleAndGetInvalidOnes(collectionCode, module);
+
+						roles.addAll(PluginUtil.getRolesForCreator(module));
+						if (demoData) {
+							try {
+								((InstallableModule) module).addDemoData(collectionCode, appLayerFactory);
+							} catch (Throwable e) {
+								LOGGER.error("Error when adding demo data of module " + module.getId() + " in collection " + collection, e);
+							}
 						}
 					}
+
+					ModelLayerFactory modelLayerFactory = factories.getModelLayerFactory();
+
+					UserServices userServices = modelLayerFactory.newUserServices();
+					UserCredential adminCredential = userServices.createUserCredential("admin", "System", "Admin", "admin@administration.com",
+							new ArrayList<String>(), asList(collectionCode), UserCredentialStatus.ACTIVE).setSystemAdminEnabled();
+					userServices.addUpdateUserCredential(adminCredential);
+					userServices.addUserToCollection(adminCredential, collectionCode);
+					User user = userServices.getUserRecordInCollection("admin", collectionCode);
+					String effectiveAdminPassword;
+					if (StringUtils.isBlank(adminPassword)) {
+						effectiveAdminPassword = "password";
+					} else {
+						effectiveAdminPassword = adminPassword;
+					}
+					modelLayerFactory.getPasswordFileAuthenticationService().changePassword("admin", effectiveAdminPassword);
+					try {
+						modelLayerFactory.newRecordServices().update(user.setUserRoles(roles).setCollectionAllAccess(true));
+					} catch (RecordServicesException e) {
+						throw new RuntimeException(e);
+					}
+
+					SessionContext sessionContext = view.getSessionContext();
+					UserVO userVO = userToVOBuilder.build(user.getWrappedRecord(), VIEW_MODE.DISPLAY, sessionContext);
+					sessionContext.setCurrentCollection(collectionCode);
+					sessionContext.setCurrentLocale(new Locale(setupLocaleCode));
+					sessionContext.setCurrentUser(userVO);
+
+					view.updateUI();
+				} catch (ConstellioModulesManagerException_ModuleInstallationFailed constellioModulesManagerException_moduleInstallationFailed) {
+					throw new RuntimeException(constellioModulesManagerException_moduleInstallationFailed);
 				}
-
-				ModelLayerFactory modelLayerFactory = factories.getModelLayerFactory();
-
-				UserServices userServices = modelLayerFactory.newUserServices();
-				UserCredential adminCredential = userServices.createUserCredential("admin", "System", "Admin", "admin@administration.com",
-						new ArrayList<String>(), asList(collectionCode), UserCredentialStatus.ACTIVE).setSystemAdminEnabled();
-				userServices.addUpdateUserCredential(adminCredential);
-				userServices.addUserToCollection(adminCredential, collectionCode);
-				User user = userServices.getUserRecordInCollection("admin", collectionCode);
-				String effectiveAdminPassword;
-				if (StringUtils.isBlank(adminPassword)) {
-					effectiveAdminPassword = "password";
-				} else {
-					effectiveAdminPassword = adminPassword;
-				}
-				modelLayerFactory.getPasswordFileAuthenticationService().changePassword("admin", effectiveAdminPassword);
-				try {
-					modelLayerFactory.newRecordServices().update(user.setUserRoles(roles).setCollectionAllAccess(true));
-				} catch (RecordServicesException e) {
-					throw new RuntimeException(e);
-				}
-
-				SessionContext sessionContext = view.getSessionContext();
-				UserVO userVO = userToVOBuilder.build(user.getWrappedRecord(), VIEW_MODE.DISPLAY, sessionContext);
-				sessionContext.setCurrentCollection(collectionCode);
-				sessionContext.setCurrentLocale(new Locale(setupLocaleCode));
-				sessionContext.setCurrentUser(userVO);
-
-				view.updateUI();
 			}
 		};
 		view.runAsync(runnable);
 	}
 
 	public void validUserEntry(List<String> modules, String collectionCode, String adminPassword,
-			String adminPasswordConfirmation)
+							   String adminPasswordConfirmation)
 			throws ConstellioSetupPresenterException_CodeMustBeAlphanumeric, ConstellioSetupPresenterException_MustSelectAtLeastOneModule, ConstellioSetupPresenterException_TasksCannotBeTheOnlySelectedModule, ConstellioSetupPresenterException_AdminConfirmationPasswordNotEqualToAdminPassword {
 		if (!isValidCode(collectionCode)) {
 			throw new ConstellioSetupPresenterException_CodeMustBeAlphanumeric();
@@ -230,8 +239,8 @@ public class ConstellioSetupPresenter extends BasePresenter<ConstellioSetupView>
 			throw new ConstellioSetupPresenterException_MustSelectAtLeastOneModule();
 		} else if (modules.size() == 1 && modules.contains("tasks")) {
 			throw new ConstellioSetupPresenterException_TasksCannotBeTheOnlySelectedModule();
-		} else if((StringUtils.isNotBlank(adminPassword) || StringUtils.isNotBlank(adminPasswordConfirmation))
-				&& !adminPassword.equals(adminPasswordConfirmation)){
+		} else if ((StringUtils.isNotBlank(adminPassword) || StringUtils.isNotBlank(adminPasswordConfirmation))
+				   && !adminPassword.equals(adminPasswordConfirmation)) {
 			throw new ConstellioSetupPresenterException_AdminConfirmationPasswordNotEqualToAdminPassword();
 		}
 		view.showMessage($("ConstellioSetupView.setupInProgress"));

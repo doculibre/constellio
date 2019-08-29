@@ -8,6 +8,7 @@ import com.constellio.model.entities.schemas.MetadataNetwork;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.services.extensions.ConstellioModulesManagerException.ConstellioModulesManagerException_ModuleInstallationFailed;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
@@ -49,7 +50,11 @@ public abstract class SchemasSetup {
 		for (SchemasSetup setup : setups) {
 
 			if (collectionsManager != null && !collectionsManager.getCollectionCodes().contains(setup.collection)) {
-				collectionsManager.createCollectionInCurrentVersion(setup.collection, setup.languages);
+				try {
+					collectionsManager.createCollectionInCurrentVersion(setup.collection, setup.languages);
+				} catch (ConstellioModulesManagerException_ModuleInstallationFailed constellioModulesManagerException_moduleInstallationFailed) {
+					throw new RuntimeException(constellioModulesManagerException_moduleInstallationFailed);
+				}
 			}
 
 			if (!setup.wasSetUp) {
