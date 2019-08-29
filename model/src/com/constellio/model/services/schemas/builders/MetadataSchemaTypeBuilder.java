@@ -4,6 +4,7 @@ import com.constellio.data.dao.services.DataStoreTypesFactory;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.Language;
+import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.CannotGetMetadatasOfAnotherSchemaType;
@@ -14,6 +15,8 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.utils.ClassProvider;
 import com.google.common.base.Strings;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -27,6 +30,8 @@ import java.util.Set;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class MetadataSchemaTypeBuilder {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(MetadataSchemaTypeBuilder.class);
 
 	private static final String DEFAULT = "default";
 
@@ -214,11 +219,18 @@ public class MetadataSchemaTypeBuilder {
 			schemas.add(metadataSchemaBuilder.buildCustom(defaultSchema, typesFactory, modelLayerFactory));
 		}
 
+
 		if (labels == null || labels.isEmpty()) {
-			throw new MetadataSchemaTypeBuilderRuntimeException.LabelNotDefined(code);
+			String mainDataLanguage = modelLayerFactory.getConfiguration().getMainDataLanguage();
+			if (!defaultSchema.getCollection().equals(Collection.SYSTEM_COLLECTION)) {
+				throw new MetadataSchemaTypeBuilderRuntimeException.LabelNotDefined(code);
+			} else {
+				LOGGER.warn("Schema '" + defaultSchema.getCode() + "' of collection '" + defaultSchema.getCollection()
+							+ "' do not have labels in main data language '" + mainDataLanguage + "'");
+			}
 		} else {
 			for (Entry<Language, String> entry : labels.entrySet()) {
-				if(collectionInfo.getCollectionLocales().contains(entry.getKey().getLocale())) {
+				if (collectionInfo.getCollectionLocales().contains(entry.getKey().getLocale())) {
 					if (Strings.isNullOrEmpty(entry.getValue())) {
 						throw new MetadataSchemaTypeBuilderRuntimeException.LabelNotDefinedForLanguage(entry.getKey(), code);
 					}

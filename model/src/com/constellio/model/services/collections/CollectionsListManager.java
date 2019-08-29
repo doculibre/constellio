@@ -206,4 +206,24 @@ public class CollectionsListManager implements StatefulService, ConfigUpdatedEve
 		return getCollectionInfo(Collection.SYSTEM_COLLECTION).getMainSystemLanguage().getCode();
 
 	}
+
+	public void fixCollectionLanguage(final String collectionCode) {
+		final String mainDataLanguage = getMainDataLanguage();
+		configManager.updateXML(CONFIG_FILE_PATH, new DocumentAlteration() {
+			@Override
+			public void alter(Document document) {
+				for (Element collectionElement : document.getRootElement().getChildren()) {
+					if (collectionCode.equals(collectionElement.getName())) {
+						List<String> languages = Arrays.asList(collectionElement.getAttributeValue("languages").split(","));
+						if (!languages.contains(mainDataLanguage)) {
+							languages = new ArrayList<>(languages);
+							languages.add(0, mainDataLanguage);
+						}
+						collectionElement.setAttribute("languages", StringUtils.join(languages, ","));
+					}
+				}
+			}
+		});
+		collectionInfoCache.remove(collectionCode);
+	}
 }

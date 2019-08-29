@@ -54,6 +54,8 @@ import static java.util.Arrays.asList;
 
 public class CollectionsManager implements StatefulService {
 
+	public static String NEW_SYSTEM_MAIN_DATA_LANGUAGE = null;
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(CollectionsManager.class);
 
 	private final Delayed<MigrationServices> migrationServicesDelayed;
@@ -126,6 +128,11 @@ public class CollectionsManager implements StatefulService {
 
 	private void createSystemCollection() {
 		String mainDataLanguage = modelLayerFactory.getConfiguration().getMainDataLanguage();
+
+		if (NEW_SYSTEM_MAIN_DATA_LANGUAGE != null) {
+			mainDataLanguage = NEW_SYSTEM_MAIN_DATA_LANGUAGE;
+		}
+
 		List<String> languages = asList(mainDataLanguage);
 		createCollectionInCurrentVersion(Collection.SYSTEM_COLLECTION, languages);
 	}
