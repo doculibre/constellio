@@ -208,13 +208,13 @@ public class ConstellioEIMConfigs {
 
 		add(AUTOCOMPLETE_SIZE = others.createInteger("autocompleteSize").withDefaultValue(15)
 				.scriptedBy(AutocompleteSizeValidationScript.class));
-		add(AUTOCOMPLETE_SPLIT_CRITERIA = others.createEnum("autocompleteSplitCriteria", AutocompleteSplitCriteria.class)
-				.withDefaultValue(AutocompleteSplitCriteria.SPACE).withReIndexationRequired());
 
 		SystemConfigurationGroup search = new SystemConfigurationGroup(null, "search");
 		add(SEARCH_SORT_TYPE = search.createEnum("sortType", SearchSortType.class).withDefaultValue(SearchSortType.RELEVENCE));
 		add(REPLACE_SPACES_IN_SIMPLE_SEARCH_FOR_ANDS = search.createBooleanFalseByDefault("replaceSpacesInSimpleSearchForAnds"));
 		add(IS_RUNNING_WITH_SOLR_6 = search.createBooleanFalseByDefault("isRunningWithSolr6").whichIsHidden());
+		add(AUTOCOMPLETE_SPLIT_CRITERIA = search.createEnum("autocompleteSplitCriteria", AutocompleteSplitCriteria.class)
+				.withDefaultValue(AutocompleteSplitCriteria.SPACE).withReIndexationRequired());
 
 		add(MAX_SELECTABLE_SEARCH_RESULTS = advanced.createInteger("maxSelectableSearchResults").withDefaultValue(500));
 		add(WRITE_ZZRECORDS_IN_TLOG = advanced.createBooleanFalseByDefault("writeZZRecordsInTlog")
