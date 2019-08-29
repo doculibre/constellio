@@ -5,7 +5,6 @@ import com.constellio.app.ui.entities.RoleAuthVO;
 import com.constellio.app.ui.entities.RoleVO;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
-import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.framework.components.fields.ListOptionGroup;
@@ -32,7 +31,6 @@ import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.ColumnGenerator;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
-import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
 import org.vaadin.dialogs.ConfirmDialog;
 
@@ -153,12 +151,11 @@ public class CollectionGroupRolesViewImpl extends BaseViewImpl implements Collec
 	@Override
 	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
 		Button windowButton = new WindowButton($("CollectionGroupRolesView.addRoleButton"),
-				$("CollectionGroupRolesView.addRoleWindowTitle"),
-				WindowConfiguration.modalDialog("800px", "450px")) {
+				$("CollectionGroupRolesView.addRoleWindowTitle")) {
 			@Override
 			protected Component buildWindowContent() {
 				VerticalLayout mainLayout = new VerticalLayout();
-				final Window window = getWindow();
+
 				if (presenter.isRMModuleEnabled()) {
 					targetField = new LookupRecordField(presenter.getPrincipalTaxonomySchemaCode());
 					targetField.setCaption($("CollectionGroupRolesView.targetField"));
@@ -173,14 +170,7 @@ public class CollectionGroupRolesViewImpl extends BaseViewImpl implements Collec
 				targetField.addValueChangeListener(new Property.ValueChangeListener() {
 					@Override
 					public void valueChange(Property.ValueChangeEvent event) {
-						if (presenter.isRMModuleEnabled() && event.getProperty().getValue() == null) {
-							warningLabel.setVisible(true);
-							window.setHeight((window.getHeight() + 100) + "px");
-
-						} else {
-							warningLabel.setVisible(false);
-							window.setHeight((window.getHeight() - 100) + "px");
-						}
+						warningLabel.setVisible(presenter.isRMModuleEnabled() && event.getProperty().getValue() == null);
 					}
 				});
 
