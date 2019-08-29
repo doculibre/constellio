@@ -225,15 +225,15 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 			} catch (Exception e) {
 				view.showErrorMessage(e.getMessage());
 			}
-/*
+
 			try {
 				appLayerFactory.newApplicationService().restart();
 			} catch (AppManagementServiceException ase) {
 				view.showErrorMessage($("UpdateManagerViewImpl.error.restart"));
-			}*/
+			}
 		}
-		//ConstellioMonitoringServlet.systemRestarting = true;
-		//view.navigate().to().serviceMonitoring();
+		ConstellioMonitoringServlet.systemRestarting = true;
+		view.navigate().to().serviceMonitoring();
 	}
 
 	public void licenseUpdateRequested() {
