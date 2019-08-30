@@ -624,10 +624,6 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	}
 
 	@Override
-	public void setStartWorkflowButtonState(ComponentState state) {
-	}
-
-	@Override
 	public void setUploadButtonState(ComponentState state) {
 	}
 

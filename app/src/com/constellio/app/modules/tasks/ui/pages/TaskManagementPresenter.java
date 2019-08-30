@@ -2,7 +2,6 @@ package com.constellio.app.modules.tasks.ui.pages;
 
 import com.constellio.app.api.extensions.params.UpdateComponentExtensionParams;
 import com.constellio.app.modules.rm.ConstellioRMModule;
-import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.tasks.TasksPermissionsTo;
 import com.constellio.app.modules.tasks.extensions.TaskManagementPresenterExtension;
@@ -451,11 +450,6 @@ public class TaskManagementPresenter extends AbstractTaskPresenter<TaskManagemen
 		taskPresenterServices = new TaskPresenterServices(
 				schemas, recordServices(), tasksSearchServices, modelLayerFactory.newLoggingServices());
 		searchServices = modelLayerFactory.newSearchServices();
-	}
-
-	public boolean areWorkflowsEnabled() {
-		RMConfigs configs = new RMConfigs(modelLayerFactory.getSystemConfigurationsManager());
-		return configs.areWorkflowsEnabled();
 	}
 
 	public boolean hasPermissionToStartWorkflow() {
