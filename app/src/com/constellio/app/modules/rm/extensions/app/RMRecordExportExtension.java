@@ -21,9 +21,6 @@ import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetai
 import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListValidation;
 import com.constellio.app.modules.rm.wrappers.structures.RetentionRuleDocumentType;
-import com.constellio.app.modules.tasks.model.wrappers.Task;
-import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollower;
-import com.constellio.app.modules.tasks.model.wrappers.structures.TaskReminder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.model.entities.records.Record;
@@ -35,15 +32,6 @@ import com.constellio.model.entities.schemas.ModifiableStructure;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.contents.UserSerializedContentFactory;
 import com.constellio.model.services.records.StructureImportContent;
-import org.apache.commons.lang3.NotImplementedException;
-import org.apache.commons.lang3.StringUtils;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static com.constellio.data.utils.LangUtils.toNullableString;
 import com.constellio.model.services.search.SearchServices;
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.StringUtils;
@@ -55,6 +43,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static com.constellio.data.utils.LangUtils.toNullableString;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class RMRecordExportExtension extends RecordExportExtension {
@@ -104,14 +93,6 @@ public class RMRecordExportExtension extends RecordExportExtension {
 
 		if (structure instanceof DecomListValidation) {
 			return (Map) writeDecomListValidation(((DecomListValidation) structure));
-		}
-
-		if (structure instanceof TaskFollower) {
-			return (Map) writeTaskFollowers(((TaskFollower) structure));
-		}
-
-		if (structure instanceof TaskReminder) {
-			return (Map) writeTaskReminder(((TaskReminder) structure));
 		}
 
 		return super.convertStructureToMap(params);

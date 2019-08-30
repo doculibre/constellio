@@ -1,6 +1,7 @@
 package com.constellio.app.modules.tasks.extensions;
 
 import com.constellio.app.api.extensions.RecordExportExtension;
+import com.constellio.app.api.extensions.params.ConvertStructureToMapParams;
 import com.constellio.app.api.extensions.params.OnWriteRecordParams;
 import com.constellio.app.modules.rm.extensions.imports.TaskImportExtension;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -10,6 +11,7 @@ import com.constellio.app.modules.tasks.model.wrappers.structures.TaskReminder;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.ModifiableStructure;
 import com.constellio.model.services.search.SearchServices;
 
 import java.util.ArrayList;
@@ -105,6 +107,23 @@ public class TasksRecordExportExtension extends RecordExportExtension {
 
 	public MetadataSchemaTypes getTypes() {
 		return appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
+	}
+
+
+	@Override
+	public Map<String, Object> convertStructureToMap(ConvertStructureToMapParams params) {
+
+		ModifiableStructure structure = params.getStructure();
+
+		if (structure instanceof TaskFollower) {
+			return (Map) writeTaskFollowers(((TaskFollower) structure));
+		}
+
+		if (structure instanceof TaskReminder) {
+			return (Map) writeTaskReminder(((TaskReminder) structure));
+		}
+
+		return super.convertStructureToMap(params);
 	}
 
 	// N'as pas été fait encore. pusiqu'on ne peut pas vraiment sérialisé un Object et qu'il n'est pas vraiment essentiel.
