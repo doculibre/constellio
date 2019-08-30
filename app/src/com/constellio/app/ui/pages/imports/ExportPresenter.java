@@ -401,11 +401,11 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 					}
 					exporter().exportSystemToFile(file, params);
 					view.startDownload(filename, new FileInputStream(file), "application/zip");
+					completeImportExportAudit(newExportAudit, file);
 				} catch (Throwable t) {
 					LOGGER.error("Error while generating savestate", t);
 					view.showErrorMessage($("ExportView.error"));
-				} finally {
-					completeImportExportAudit(newExportAudit, file);
+
 				}
 			}
 		}
