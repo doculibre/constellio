@@ -4,7 +4,6 @@ import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.modules.rm.ui.pages.document.DisplayDocumentView;
 import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderView;
-import com.constellio.app.modules.tasks.TasksPermissionsTo;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.modules.tasks.services.TasksSearchServices;
 import com.constellio.app.modules.tasks.ui.pages.TaskManagementView;
@@ -133,7 +132,7 @@ public class TasksNavigationConfiguration implements Serializable {
 
 			@Override
 			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
-				return ComponentState.visibleIf(user.has(TasksPermissionsTo.MANAGE_WORKFLOWS).globally());
+				return ComponentState.visibleIf(false);
 			}
 		});
 	}
