@@ -15,7 +15,6 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
-import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.collections.CollectionsListManager;
@@ -183,6 +182,8 @@ public class UserServicesUnitTest extends ConstellioTest {
 		doReturn(collection1UserSchema).when(userServices).userSchema("collection1");
 		doReturn(collection2GroupSchema).when(userServices).groupSchema("collection2");
 		doReturn(collection2UserSchema).when(userServices).userSchema("collection2");
+
+		when(modelLayerConfiguration.getMainDataLanguage()).thenReturn("fr");
 	}
 
 	@Test

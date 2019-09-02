@@ -44,7 +44,8 @@ public class BaseSchemasRecordsServices implements Serializable {
 		this.modelLayerFactoryFactory = modelLayerFactoryFactory;
 		this.locale = locale;
 		if (this.locale == null) {
-			this.locale = Language.withCode(modelLayerFactory.getConfiguration().getMainDataLanguage()).getLocale();
+			String mainDataLanguage = modelLayerFactory.getConfiguration().getMainDataLanguage();
+			this.locale = mainDataLanguage == null ? Locale.ENGLISH : Language.withCode(mainDataLanguage).getLocale();
 		}
 	}
 
