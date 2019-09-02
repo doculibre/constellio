@@ -40,7 +40,6 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.aggregations.GetMetadatasUsedToCalculateParams;
 import com.constellio.model.services.records.aggregations.MetadataAggregationHandler;
 import com.constellio.model.services.records.aggregations.MetadataAggregationHandlerFactory;
-import com.constellio.model.services.records.utils.RecordDTOIterator;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
@@ -48,7 +47,6 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.VisibilityStatusFilter;
-import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.LogicalSearchValueCondition;
@@ -287,9 +285,6 @@ public class ReindexingServices {
 								   RecordUpdateOptions transactionOptions) {
 		MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
 
-		if (params.getReindexationMode().isFullRewrite()) {
-			recreateIndexes(collection);
-		}
 
 		ReindexingRecordsProvider recordsProvider = new ReindexingRecordsProvider(modelLayerFactory, mainThreadQueryRows);
 		ReindexingAggregatedValuesTempStorage aggregatedValuesTempStorage = newReindexingAggregatedValuesTempStorage();
@@ -405,18 +400,6 @@ public class ReindexingServices {
 			}
 		}
 		return false;
-	}
-
-	private void recreateIndexes(String collection) {
-		RecordDao recordDao = modelLayerFactory.getDataLayerFactory().newRecordDao();
-
-		LogicalSearchQuery query = new LogicalSearchQuery()
-				.setCondition(fromAllSchemasIn(collection).returnAll())
-				.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(Schemas.PATH))
-				.filteredByVisibilityStatus(VisibilityStatusFilter.ALL);
-
-		Iterator<Record> idsIterator = modelLayerFactory.newSearchServices().recordsIterator(query, 50000);
-		recordDao.recreateZeroCounterIndexesIn(collection, new RecordDTOIterator(idsIterator));
 	}
 
 	private void reindexCollectionType(BulkRecordTransactionHandler bulkTransactionHandler, MetadataSchemaTypes types,

@@ -124,7 +124,6 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	}
 
 	public boolean isShowNumberingColumn(SearchResultVODataProvider dataProvider) {
-		boolean lazyLoadedFacets = modelLayerFactory.getSystemConfigs().isLazyLoadedFacets();
 		return modelLayerFactory.getSystemConfigs().isShowResultsNumberingInListView() || dataProvider.size() > BaseTable.MAX_SELECTION_LENGTH;
 	}
 

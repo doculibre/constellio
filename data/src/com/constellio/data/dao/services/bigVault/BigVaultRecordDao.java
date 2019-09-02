@@ -7,7 +7,6 @@ import com.constellio.data.dao.dto.records.QueryResponseDTO;
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordDTOMode;
 import com.constellio.data.dao.dto.records.RecordDeltaDTO;
-import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.dao.dto.records.SolrRecordDTO;
 import com.constellio.data.dao.dto.records.TransactionDTO;
 import com.constellio.data.dao.dto.records.TransactionResponseDTO;
@@ -53,7 +52,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -269,38 +267,6 @@ public class BigVaultRecordDao implements RecordDao {
 	@Override
 	public void removeOldLocks() {
 		bigVaultServer.removeLockWithAgeGreaterThan(10);
-	}
-
-	@Override
-	public void recreateZeroCounterIndexesIn(String collection, Iterator<RecordDTO> idsIterator) {
-
-		ModifiableSolrParams params = new ModifiableSolrParams();
-		params.set("fq", "id:idx_rfc_*");
-		params.set("q", "type_s:index");
-		params.set("fq", "collection_s:" + collection);
-
-		BigVaultServerTransaction transaction = new BigVaultServerTransaction(RecordsFlushing.NOW())
-				.addDeletedQuery(SolrUtils.toDeleteQueries(params));
-		String transactionId = transaction.getTransactionId();
-		try {
-
-			if (secondTransactionLogManager != null) {
-				secondTransactionLogManager.prepare(transactionId, transaction);
-			}
-
-			TransactionResponseDTO response = bigVaultServer.addAll(transaction);
-
-			if (secondTransactionLogManager != null) {
-				secondTransactionLogManager.flush(transactionId, response);
-			}
-
-		} catch (BigVaultException e) {
-			if (secondTransactionLogManager != null) {
-				secondTransactionLogManager.cancel(transactionId);
-			}
-			throw new RuntimeException(e);
-		}
-
 	}
 
 	@SuppressWarnings({"rawtypes", "unchecked"})

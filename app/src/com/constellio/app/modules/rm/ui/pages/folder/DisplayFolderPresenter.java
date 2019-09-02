@@ -297,8 +297,6 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			eventsDataProvider = getEventsDataProvider();
 			view.setEvents(eventsDataProvider);
 		}
-
-		computeAllItemsSelected();
 	}
 
 	public Map<String, String> getParams() {
@@ -1126,7 +1124,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			tasksDataProvider = new RecordVODataProvider(
 					tasksSchemaVO, folderVOBuilder, modelLayerFactory, view.getSessionContext()) {
 				@Override
-				protected LogicalSearchQuery getQuery() {
+				public LogicalSearchQuery getQuery() {
 					LogicalSearchQuery query = getTasksQuery();
 					addStarredSortToQuery(query);
 					query.sortDesc(Schemas.MODIFIED_ON);

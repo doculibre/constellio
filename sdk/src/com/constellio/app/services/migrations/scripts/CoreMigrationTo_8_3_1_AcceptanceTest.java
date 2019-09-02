@@ -93,7 +93,7 @@ public class CoreMigrationTo_8_3_1_AcceptanceTest extends ConstellioTest {
 					.isEqualTo(asList(savedSearchTitleAndGroupsAndUsersSharedWith.getKey(),
 							savedSearchTitleAndGroupsAndUsersSharedWith.getValue()));
 
-			SolrDocument document = getModelLayerFactory().getDataLayerFactory().getRecordsVaultServer().realtimeGet(record.getId());
+			SolrDocument document = getModelLayerFactory().getDataLayerFactory().getRecordsVaultServer().realtimeGet(record.getId(), false);
 
 			assertThat(document.get("sharedGroupsId_ss"))
 					.isEqualTo(savedSearchTitleAndGroupsAndUsersSharedWith.getKey().isEmpty() ? null : savedSearchTitleAndGroupsAndUsersSharedWith.getKey());

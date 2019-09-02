@@ -156,7 +156,6 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration ENABLE_SYSTEM_STATE_OPT_DISK_USAGE;
 	public static final SystemConfiguration ENABLE_SYSTEM_STATE_SOLR_DISK_USAGE;
 	public static final SystemConfiguration ENABLE_SYSTEM_STATE_LICENSE;
-	public static final SystemConfiguration NO_LNKS_IN_SEARCH_RESULTS;
 
 	public static final SystemConfiguration ENABLE_THUMBNAIL_GENERATION;
 
@@ -412,10 +411,6 @@ public class ConstellioEIMConfigs {
 
 	public Boolean isRemoveExtensionFromRecordTitle() {
 		return manager.getValue(REMOVE_EXTENSION_FROM_RECORD_TITLE);
-	}
-
-	public Boolean isLazyLoadedFacets() {
-		return manager.getValue(LAZY_LOADED_FACETS);
 	}
 
 	public boolean isShowPathToResult() {

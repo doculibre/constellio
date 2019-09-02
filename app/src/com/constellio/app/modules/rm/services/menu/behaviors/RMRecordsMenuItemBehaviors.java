@@ -35,8 +35,7 @@ import com.constellio.app.ui.framework.buttons.SIPButton.SIPButtonImpl;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
 import com.constellio.app.ui.framework.components.BaseWindow;
-import com.constellio.app.ui.framework.components.ReportViewer;
-import com.constellio.app.ui.framework.components.ReportViewer.DownloadStreamResource;
+import com.constellio.app.ui.framework.stream.DownloadStreamResource;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
@@ -649,7 +648,7 @@ public class RMRecordsMenuItemBehaviors {
 	}
 
 	private void startDownload(final InputStream stream, String filename) {
-		Resource resource = new ReportViewer.DownloadStreamResource(new StreamResource.StreamSource() {
+		Resource resource = new DownloadStreamResource(new StreamResource.StreamSource() {
 			@Override
 			public InputStream getStream() {
 				return stream;

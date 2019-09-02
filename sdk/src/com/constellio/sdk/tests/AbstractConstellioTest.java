@@ -809,16 +809,6 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		return getCurrentTestSession().getSchemaTestFeatures().useWithMockedSchemaManager(metadataSchemaManager);
 	}
 
-	protected ModulesAndMigrationsTestFeatures givenCollectionInVersion(String collection, List<String> languages,
-																		String version) {
-		ensureNotUnitTest();
-		try {
-			getAppLayerFactory().getCollectionsManager().createCollectionInVersion(collection, languages, version);
-		} catch (NoMoreCollectionAvalibleException noMoreCollectionAvalibleException) {
-			noMoreCollectionAvalibleException.printStackTrace();
-		}
-		return new ModulesAndMigrationsTestFeatures(getCurrentTestSession().getFactoriesTestFeatures(), collection);
-	}
 
 	protected ModulesAndMigrationsTestFeatures givenCollectionWithTitle(String collection, String collectionTitle) {
 		ModulesAndMigrationsTestFeatures features = givenCollection(collection);

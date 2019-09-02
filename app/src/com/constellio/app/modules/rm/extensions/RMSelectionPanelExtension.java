@@ -35,8 +35,6 @@ import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.RMSelectionPanelReportPresenter;
 import com.constellio.app.ui.framework.components.ReportTabButton;
-import com.constellio.app.ui.framework.components.ReportViewer;
-import com.constellio.app.ui.framework.components.ReportViewer.DownloadStreamResource;
 import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
 import com.constellio.app.ui.framework.components.fields.ListOptionGroup;
 import com.constellio.app.ui.framework.components.table.SelectionTableAdapter;

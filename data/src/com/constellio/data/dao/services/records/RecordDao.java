@@ -10,7 +10,6 @@ import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.params.SolrParams;
 
-import java.util.Iterator;
 import java.util.List;
 
 public interface RecordDao {
@@ -63,8 +62,6 @@ public interface RecordDao {
 	void removeOldLocks();
 
 	long getCurrentVersion(String id);
-
-	void recreateZeroCounterIndexesIn(String collection, Iterator<RecordDTO> recordsIterator);
 
 	BigVaultServer getBigVaultServer();
 

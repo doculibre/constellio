@@ -4,7 +4,6 @@ import com.constellio.data.utils.AccentApostropheCleaner;
 import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.DynamicDependencyValues;
-import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.ConfigDependency;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.DynamicLocalDependency;
@@ -42,7 +41,7 @@ public class AutocompleteFieldCalculator extends AbstractMetadataValueCalculator
 															 DynamicDependencyValues autocompleteMetadatasValues,
 															 AutocompleteSplitCriteria autocompleteSplitCriteria) {
 		for (Metadata metadata : autocompleteMetadatasValues.getAvailableMetadatasWithAValue().onlySchemaAutocomplete()) {
-			splitInLowerCasedTermsRemovingAccents(words, autocompleteMetadatasValues.getValue(metadata),
+			splitInLowerCasedTermsRemovingAccents(words, (Object) autocompleteMetadatasValues.getValue(metadata),
 					autocompleteSplitCriteria);
 		}
 	}

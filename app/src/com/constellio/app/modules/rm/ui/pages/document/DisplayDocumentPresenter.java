@@ -92,7 +92,6 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	private boolean nestedView;
 	private boolean inWindow;
 
-	private MetadataSchemaVO tasksSchemaVO;
 
 	public DisplayDocumentPresenter(final DisplayDocumentView view, RecordVO recordVO, final boolean nestedView,
 									final boolean inWindow) {
