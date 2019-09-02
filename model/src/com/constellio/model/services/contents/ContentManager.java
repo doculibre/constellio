@@ -308,7 +308,7 @@ public class ContentManager implements StatefulService {
 					LocalDateTime lastModification = contentDao.getLastModification(fileId);
 					if (lastModification.isBefore(TimeProvider.getLocalDateTime().minus(configuration.getDelayBeforeDeletingUnreferencedContents()))) {
 						try {
-							contentDao.delete(asList(fileId, fileId + "__parsed", fileId + ".preview"));
+							contentDao.delete(asList(fileId, fileId + "__parsed", fileId + ".preview", fileId + ".jpegConversion", fileId + ".icapscan", fileId + ".thumbnail"));
 
 							vaultScanResults.incrementNumberOfDeletedContents();
 							vaultScanResults.appendMessage("INFO: Successfully deleted file " + file.getName() + "\n");
@@ -331,7 +331,7 @@ public class ContentManager implements StatefulService {
 			if (file.exists() && shouldFileBeScannedForDeletion(file)) {
 				if (file.isDirectory()) {
 					getAllContentsFromVaultAndRemoveOrphan(fileId, fileList, vaultScanResults);
-				} else if (new AgeFileFilter(System.currentTimeMillis() - FILE_MINIMUM_AGE_BEFORE_DELETION_IN_MILLIS).accept(file)) {
+				} else if (new AgeFileFilter(TimeProvider.getLocalDateTime().toDate().getTime() - FILE_MINIMUM_AGE_BEFORE_DELETION_IN_MILLIS).accept(file)) {
 					fileList.add(file.getName());
 				}
 			}
@@ -345,7 +345,8 @@ public class ContentManager implements StatefulService {
 		boolean containsMainFile = false;
 		for (String fileId : subFiles) {
 			File file = contentDao.getFileOf(fileId);
-			if (file.exists() && (file.getName().endsWith("__parsed") || file.getName().endsWith(".preview"))) {
+			if (file.exists() && (file.getName().endsWith("__parsed") || file.getName().endsWith(".preview") || file.getName().endsWith(".jpegConversion")
+								  || file.getName().endsWith(".icapscan"))) {
 				File mainFile = getMainFile(file);
 				if (!mainFile.exists()) {
 					try {
@@ -372,7 +373,9 @@ public class ContentManager implements StatefulService {
 	}
 
 	private boolean shouldFileBeScannedForDeletion(File file) {
-		boolean isMainFile = !(file.getName().endsWith("__parsed") || file.getName().endsWith(".preview"));
+		boolean isMainFile = !(file.getName().endsWith("__parsed") || file.getName().endsWith(".preview")
+							   || file.getName().endsWith(".thumbnail") || file.getName().endsWith(".jpegConversion")
+							   || file.getName().endsWith(".icapscan"));
 		List<String> restrictedFiles = asList("tlogs", "tlogs_bck", "vaultRecovery");
 		return isMainFile && !restrictedFiles.contains(file.getName());
 	}

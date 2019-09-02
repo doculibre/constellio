@@ -774,7 +774,6 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 			actionsComponent.setCheckOutButtonState(ComponentState.INVISIBLE);
 			actionsComponent.setAlertWhenAvailableButtonState(ComponentState.INVISIBLE);
 			actionsComponent.setFinalizeButtonState(ComponentState.INVISIBLE);
-			actionsComponent.setStartWorkflowButtonState(ComponentState.INVISIBLE);
 			actionsComponent.setCartButtonState(ComponentState.INVISIBLE);
 			actionsComponent.setAddToOrRemoveFromSelectionButtonState(ComponentState.INVISIBLE);
 			actionsComponent.setPublishButtonState(ComponentState.INVISIBLE);
@@ -795,7 +794,6 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		actionsComponent.setCheckOutButtonState(getCheckOutState());
 		actionsComponent.setAlertWhenAvailableButtonState(getAlertWhenAvailableButtonState());
 		actionsComponent.setFinalizeButtonState(getFinalizeButtonState());
-		actionsComponent.setStartWorkflowButtonState(ComponentState.visibleIf(configs.areWorkflowsEnabled()));
 		actionsComponent.setCopyDocumentButtonState(getCopyDocumentState());
 		actionsComponent.setPublishButtonState(getPublishButtonState());
 	}

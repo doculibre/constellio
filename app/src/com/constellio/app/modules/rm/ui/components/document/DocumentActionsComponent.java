@@ -38,8 +38,6 @@ public interface DocumentActionsComponent extends ViewComponent {
 
 	void setCopyDocumentButtonState(ComponentState state);
 
-	void setStartWorkflowButtonState(ComponentState state);
-
 	void setEditDocumentButtonState(ComponentState state);
 
 	void setAddDocumentButtonState(ComponentState state);

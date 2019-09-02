@@ -1,6 +1,5 @@
 package com.constellio.app.modules.tasks.services;
 
-import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflow;
@@ -60,8 +59,6 @@ public class BetaWorkflowServicesAcceptanceTest extends ConstellioTest {
 
 		givenApprovalWorkflow();
 		givenSimpleWorkflow();
-
-		givenConfig(RMConfigs.WORKFLOWS_ENABLED, true);
 	}
 
 
