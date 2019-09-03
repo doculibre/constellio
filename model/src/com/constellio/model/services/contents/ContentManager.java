@@ -313,7 +313,7 @@ public class ContentManager implements StatefulService {
 			if (file.exists() && shouldFileBeScannedForDeletion(file)) {
 				if (file.isDirectory()) {
 					getAllContentsFromVaultAndRemoveOrphan(fileId, fileList, vaultScanResults);
-				} else if(new AgeFileFilter(System.currentTimeMillis() - FILE_MINIMUM_AGE_BEFORE_DELETION_IN_MILLIS).accept(file)) {
+				} else if (new AgeFileFilter(TimeProvider.getLocalDateTime().toDateTime().getMillis() - FILE_MINIMUM_AGE_BEFORE_DELETION_IN_MILLIS).accept(file)) {
 					fileList.add(file.getName());
 				}
 			}

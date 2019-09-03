@@ -20,7 +20,8 @@ public class ConnectorHttpDocumentURLCache extends ConnectorDocumentURLCache {
 	public ConnectorHttpDocumentURLCache(ConnectorInstance instance,
 										 AppLayerFactory appLayerFactory) {
 		super(instance, appLayerFactory, asList(ConnectorHttpDocument.SCHEMA_TYPE));
-
+		addCachedMetadata(ConnectorHttpDocument.DIGEST);
+		addCachedMetadata(ConnectorHttpDocument.COPY_OF);
 	}
 
 

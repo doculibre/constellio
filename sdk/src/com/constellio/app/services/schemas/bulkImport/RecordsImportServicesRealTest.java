@@ -1938,8 +1938,8 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 
 		assertThatRecords(searchServices.search(query(from(zeSchema.type()).returnAll())))
 				.extractingMetadatas("id", "title", "legacyIdentifier").containsOnly(
-				tuple("00000222222", "v1", "00000222222"),
-				tuple(unusedId, "v1", unusedId)
+				tuple("00000222222", "v1", null),
+				tuple(unusedId, "v1", null)
 		);
 
 		assertThatRecords(searchServices.search(query(from(anotherSchema.type()).returnAll())))
