@@ -1,14 +1,8 @@
 package com.constellio.app.ui.framework.components;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.Serializable;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.lang3.StringUtils;
-
+import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
@@ -17,8 +11,17 @@ import com.vaadin.ui.CustomComponent;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.TabSheet;
+import com.vaadin.ui.TabSheet.Tab;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+import org.apache.commons.lang3.StringUtils;
+
+import java.io.Serializable;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 @SuppressWarnings("serial")
 public class BaseDisplay extends CustomComponent {
@@ -121,6 +124,18 @@ public class BaseDisplay extends CustomComponent {
 				panel.setHeight((Page.getCurrent().getBrowserWindowHeight() -250) + "px");
 				tabs.put(tabCaption, panel);
 				addTab(tabSheet, panel, tabCaption, tabIcon);
+
+				AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
+
+				List<String> tabCaptionToIgnore = appLayerFactory.getExtensions().
+						forCollection(ConstellioUI.getCurrentSessionContext()
+								.getCurrentCollection()).getTabSheetCaptionToHideInDisplayAndForm();
+
+				if (tabCaptionToIgnore.contains(tabCaption)) {
+					Tab tab = tabSheet.getTab(panel);
+					tab.setVisible(false);
+					tab.setEnabled(false);
+				}
 			} else {
 				layout = (VerticalLayout) panel.getContent();
 			}

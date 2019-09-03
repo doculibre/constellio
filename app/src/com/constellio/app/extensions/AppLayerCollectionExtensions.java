@@ -93,6 +93,8 @@ import com.constellio.app.extensions.sequence.AvailableSequence;
 import com.constellio.app.extensions.sequence.AvailableSequenceForRecordParams;
 import com.constellio.app.extensions.sequence.CollectionSequenceExtension;
 import com.constellio.app.extensions.treenode.TreeNodeExtension;
+import com.constellio.app.extensions.ui.TabSheetInDisplayAndFormExtention;
+import com.constellio.app.extensions.ui.TabSheetInDisplayAndFormExtention.TabSheetInDisplayAndFormExtentionParams;
 import com.constellio.app.modules.rm.extensions.params.RMSchemaTypesPageExtensionExclusionByPropertyParams;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -213,6 +215,9 @@ public class AppLayerCollectionExtensions {
 	public VaultBehaviorsList<UserFolderExtension> userFolderExtensions = new VaultBehaviorsList<>();
 
 	public VaultBehaviorsList<UserDocumentExtension> userDocumentExtensions = new VaultBehaviorsList<>();
+
+	public VaultBehaviorsList<TabSheetInDisplayAndFormExtention> tabSheetCaptionToHide = new VaultBehaviorsList<>();
+
 
 	//Key : schema type code
 	//Values : record's code
@@ -934,6 +939,7 @@ public class AppLayerCollectionExtensions {
 		return result;
 	}
 
+
 	public boolean isEditActionPossibleOnSchemaRecord(final Record record, final User user) {
 		return schemaRecordExtentions.getBooleanValue(true,
 				(behavior) -> behavior.isEditActionPossible(
@@ -952,5 +958,15 @@ public class AppLayerCollectionExtensions {
 
 	public boolean isClassifyActionPossibleOnUserFolder(final UserFolder userFolder, User user) {
 		return userFolderExtensions.getBooleanValue(true, (behavior -> behavior.isFileActionPossible(new UserFolderExtensionActionPossibleParams(userFolder, user))));
+	}
+
+	public List<String> getTabSheetCaptionToHideInDisplayAndForm() {
+		List<String> actionTabToIgnore = new ArrayList<>();
+
+		for (TabSheetInDisplayAndFormExtention tabSheetInDisplayAndFormExtention : tabSheetCaptionToHide) {
+			actionTabToIgnore.addAll(tabSheetInDisplayAndFormExtention.getTabSheetCaptionToHide(new TabSheetInDisplayAndFormExtentionParams()));
+		}
+
+		return actionTabToIgnore;
 	}
 }

@@ -1,5 +1,8 @@
 package com.constellio.app.ui.framework.components;
 
+import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.handlers.OnEnterKeyHandler;
 import com.constellio.app.ui.util.MessageUtils;
@@ -304,6 +307,18 @@ public abstract class BaseForm<T> extends CustomComponent {
 				} else {
 					tabSheet.addTab(panel, tabCaption);
 				}
+				AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
+
+				List<String> tabCaptionToIgnore = appLayerFactory.getExtensions().
+						forCollection(ConstellioUI.getCurrentSessionContext().getCurrentCollection()).
+						getTabSheetCaptionToHideInDisplayAndForm();
+
+				if (tabCaptionToIgnore.contains(groupLabel)) {
+					Tab tab = tabSheet.getTab(panel);
+					tab.setVisible(false);
+					tab.setEnabled(false);
+				}
+
 			} else {
 				fieldLayout = (VerticalLayout) panel.getContent();
 			}
