@@ -66,7 +66,7 @@ public class Excel2007FileImportDataIteratorAcceptanceTest extends ImportDataIte
                 .has(field("zeEmptyField", null))
                 .has(field("modifyOn", emptyList()));
 
-        assertThat(importDataIterator.next()).has(id("42")).has(index(3)).has(schema("default"))
+        assertThat(importDataIterator.next()).has(id("42")).has(index(3)).has(schema(null))
                 .has(noField("id")).has(noField("schema"))
                 .has(field("title", "Another title"))
                 .has(field("referenceToAThirdSchema", "666"))
