@@ -52,6 +52,7 @@ public class RMContainerRecordExtensionAcceptanceTest extends ConstellioTest {
 	public void whenModifyingContainerWithSomeExistingFavoritesIdsThenNonExistingIdsAreDeleted()
 			throws RecordServicesException {
 		Cart cart = rm.newCart().setOwner(users.adminIn(zeCollection).getId());
+		cart.setTitle("Chocolat");
 		recordServices.add(cart);
 		String existingId = cart.getId();
 		List<String> listWithOneExistingId = new ArrayList<>();
@@ -71,7 +72,9 @@ public class RMContainerRecordExtensionAcceptanceTest extends ConstellioTest {
 	public void whenModifyingContainerWithExistentFavoritesIdsThenFavoritesListStaysTheSame()
 			throws RecordServicesException {
 		Cart firstCart = rm.newCart().setOwner(users.adminIn(zeCollection).getId());
+		firstCart.setTitle("Uno");
 		Cart secondCart = rm.newCart().setOwner(users.adminIn(zeCollection).getId());
+		secondCart.setTitle("Dos");
 		recordServices.add(firstCart);
 		recordServices.add(secondCart);
 		List<String> listWithExistingIds = asList(firstCart.getId(), secondCart.getId());

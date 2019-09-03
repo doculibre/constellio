@@ -198,6 +198,7 @@ public class RMFolderExtensionAcceptanceTest extends ConstellioTest {
 	public void whenModifyingFolderWithSomeExistingFavoritesIdsThenNonExistingIdsAreDeleted()
 			throws RecordServicesException {
 		Cart cart = rm.newCart().setOwner(users.adminIn(zeCollection).getId());
+		cart.setTitle("Sugar");
 		recordServices.add(cart);
 		String existingId = cart.getId();
 		List<String> listWithOneExistingId = new ArrayList<>();
@@ -217,7 +218,9 @@ public class RMFolderExtensionAcceptanceTest extends ConstellioTest {
 	public void whenModifyingFolderWithExistentFavoritesIdsThenFavoritesListStaysTheSame()
 			throws RecordServicesException {
 		Cart firstCart = rm.newCart().setOwner(users.adminIn(zeCollection).getId());
+		firstCart.setTitle("First");
 		Cart secondCart = rm.newCart().setOwner(users.adminIn(zeCollection).getId());
+		secondCart.setTitle("Second");
 		recordServices.add(firstCart);
 		recordServices.add(secondCart);
 		List<String> listWithExistingIds = asList(firstCart.getId(), secondCart.getId());
