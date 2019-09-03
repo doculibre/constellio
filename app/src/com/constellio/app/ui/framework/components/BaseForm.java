@@ -18,9 +18,9 @@ import com.vaadin.data.fieldgroup.FieldGroup;
 import com.vaadin.data.fieldgroup.FieldGroup.CommitException;
 import com.vaadin.data.util.BeanItem;
 import com.vaadin.data.validator.AbstractValidator;
-import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.ui.AbstractField;
+import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
@@ -179,7 +179,6 @@ public abstract class BaseForm<T> extends CustomComponent {
 		buttonsLayout.setSpacing(true);
 
 		saveButton = new Button(getSaveButtonCaption());
-		saveButton.addStyleName(SAVE_BUTTON);
 		saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
 		saveButton.addClickListener(new ClickListener() {
 			@Override
@@ -205,6 +204,8 @@ public abstract class BaseForm<T> extends CustomComponent {
 
 		formLayout.addComponent(buttonsLayout);
 		buttonsLayout.addComponents(saveButton, cancelButton);
+		buttonsLayout.setComponentAlignment(saveButton, Alignment.BOTTOM_CENTER);
+		buttonsLayout.setComponentAlignment(cancelButton, Alignment.BOTTOM_CENTER);
 
 		if (useTabSheet) {
 			List<String> orderedTabGroupLabels = getOrderedTabCaptions(viewObject);
@@ -300,7 +301,7 @@ public abstract class BaseForm<T> extends CustomComponent {
 				panel.addStyleName(ValoTheme.PANEL_BORDERLESS);
 				panel.addStyleName("base-form-tab-panel");
 				panel.setWidth("100%");
-				panel.setHeight((Page.getCurrent().getBrowserWindowHeight() - 250) + "px");
+
 				tabs.put(tabCaption, panel);
 				if (tabIcon != null) {
 					tabSheet.addTab(panel, tabCaption, tabIcon);
