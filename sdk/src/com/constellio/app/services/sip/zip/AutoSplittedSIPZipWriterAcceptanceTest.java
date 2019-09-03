@@ -27,21 +27,26 @@ public class AutoSplittedSIPZipWriterAcceptanceTest extends ConstellioTest {
 		AutoSplittedSIPZipWriter writer = new AutoSplittedSIPZipWriter(getAppLayerFactory(), fileNameProvider, 1_000_000_000, bagInfoFactory);
 
 		writer.addDivisionInfo(new MetsDivisionInfo("everything", null, "Everything", "data"));
-		for (int i = 0; i < 1_000_000; i++) {
-			if (i % 100 == 0) {
-				System.out.println(i);
+		File tempFolder = newTempFolder();
+		try {
+			for (int i = 0; i < 100_000; i++) {
+				if (i % 100 == 0) {
+					System.out.println(i);
+				}
+				File tempFile = new File(tempFolder, "temp" + i);
+				FileUtils.writeStringToFile(tempFile, "f" + i, "UTF-8");
+
+				SIPZipWriterTransaction tx = writer.newInsertTransaction();
+
+				tx.addContentFile("everything/f" + i, readFileToByteArray(tempFile)).setTitle("Ze file " + i).setId("f" + i).setDmdid("everything");
+
+				writer.insertAll(tx);
+
 			}
-			File tempFile = new File(newTempFolder(), "temp");
-			FileUtils.writeStringToFile(tempFile, "" + i, "UTF-8");
-
-			SIPZipWriterTransaction tx = writer.newInsertTransaction();
-
-			tx.addContentFile("everything/" + i, readFileToByteArray(tempFile)).setTitle("Ze file " + i).setId("" + i).setDmdid("everything");
-
-			writer.insertAll(tx);
-			tempFile.delete();
+		} finally {
+			writer.close();
+			FileUtils.deleteDirectory(tempFolder);
 		}
-		writer.close();
 
 	}
 }

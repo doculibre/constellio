@@ -49,11 +49,9 @@ public class AutoSplittedSIPZipWriter implements SIPZipWriter {
 		this.sipBytesLimit = sipBytesLimit;
 		this.bagInfoFactory = bagInfoFactory;
 
-		if (appLayerFactory.getModelLayerFactory().getSystemConfigs().getMemoryConsumptionLevel().isPrioritizingMemoryConsumption()) {
-			metsFilesEntriesLimit = 10000;
-		} else {
-			metsFilesEntriesLimit = 100000;
-		}
+		//Librairy au.edu.apsr.mtk.base.FileGrp does not scale well writing large mets file (to much search operations in the document while adding)
+		metsFilesEntriesLimit = 10000;
+
 	}
 
 	public AutoSplittedSIPZipWriter setCompressionLevel(int compressionLevel) {
@@ -114,6 +112,7 @@ public class AutoSplittedSIPZipWriter implements SIPZipWriter {
 		for (AutoSplittedSIPZipWriterListener listener : listeners) {
 			listener.onSIPFileClosed(currentWriter.getSipZipInfos().getSipName(), currentWriter.getZipFile(), lastFile);
 		}
+		currentWriter = null;
 	}
 
 	@Override

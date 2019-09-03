@@ -116,6 +116,7 @@ public class CartEmailServiceAcceptanceTest extends ConstellioTest {
 		transaction.add(documentWithoutContent.setTitle("withoutContent"));
 
 		cart = rm.getOrCreateUserCart(users.aliceIn(zeCollection));
+		cart.setTitle("Ou est mon panier!!!");
 		List<Record> documents = asList(document11WithContent1HavingTitle1.getWrappedRecord(),
 				document12WithContent1HavingTitle2.getWrappedRecord(),
 				document21WithContent2HavingTitle1.getWrappedRecord(),

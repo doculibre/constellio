@@ -116,14 +116,6 @@ public class MetadataSchemaTypeBuilderTest extends ConstellioTest {
 		assertThat(schemaTypeBuilder.getLabel(Language.French)).isEqualTo("zeLabel");
 	}
 
-	@Test(expected = MetadataSchemaTypeBuilderRuntimeException.LabelNotDefined.class)
-	public void givenLabelNotDefinedWhenBuildingThenException()
-			throws Exception {
-		schemaTypeBuilder.setLabels(null);
-
-		build();
-	}
-
 	@Test(expected = MetadataSchemaTypeBuilderRuntimeException.LabelNotDefinedForLanguage.class)
 	public void givenLabelEmptyWhenBuildingThenException()
 			throws Exception {
