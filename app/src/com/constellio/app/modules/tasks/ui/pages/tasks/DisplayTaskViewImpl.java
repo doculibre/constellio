@@ -111,7 +111,7 @@ public class DisplayTaskViewImpl extends BaseViewImpl implements DisplayTaskView
 
 	@Override
 	protected boolean isBreadcrumbsVisible() {
-		return !nestedView;
+		return !nestedView && !inWindow;
 	}
 
 	@Override

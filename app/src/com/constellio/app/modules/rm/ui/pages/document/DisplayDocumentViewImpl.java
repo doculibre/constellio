@@ -151,11 +151,6 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		versionTable.setContentVersions(contentVersions);
 	}
 
-	@Override
-	protected String getTitle() {
-		return null;
-	}
-
 	private ContentViewer newContentViewer() {
 		ContentVersionVO contentVersionVO = documentVO.get(Document.CONTENT);
 		ContentViewer contentViewer = new ContentViewer(documentVO, Document.CONTENT, contentVersionVO);
@@ -763,13 +758,18 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	}
 
 	@Override
+	public String getTitle() {
+		return $("DisplayDocumentView.viewTitle");
+	}
+
+	@Override
 	protected boolean isActionMenuBar() {
 		return true;
 	}
 
 	@Override
 	protected boolean isBreadcrumbsVisible() {
-		return !nestedView;
+		return !nestedView && !presenter.isInWindow();
 	}
 
 	@Override
