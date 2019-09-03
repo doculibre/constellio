@@ -110,6 +110,8 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 		when(displayFolderView.getCollection()).thenReturn(zeCollection);
 		when(displayFolderView.getConstellioFactories()).thenReturn(getConstellioFactories());
 		when(displayFolderView.getUIContext()).thenReturn(uiContext);
+		when(displayFolderView.getFolderOrSubFolderButtonKey("DisplayFolderView.borrowedFolder"))
+				.thenReturn("DisplayFolderView.borrowedFolder");
 
 		chuckCredentialVO = new UserCredentialVO();
 		chuckCredentialVO.setUsername("chuck");
