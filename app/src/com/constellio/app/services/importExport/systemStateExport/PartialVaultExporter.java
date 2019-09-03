@@ -1,11 +1,13 @@
 package com.constellio.app.services.importExport.systemStateExport;
 
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.importExport.systemStateExport.SystemStateExporterRuntimeException.SystemStateExporterRuntimeException_InvalidRecordId;
 import com.constellio.data.dao.services.contents.FileSystemContentDao;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import org.apache.commons.io.FileUtils;
 
@@ -43,24 +45,27 @@ public class PartialVaultExporter {
 		Set<String> hashes = new HashSet<>(appLayerFactory.getExtensions().getHashsToIncludeInSystemExport());
 
 		for (String id : recordIdsToInclude) {
-			Record record = appLayerFactory.getModelLayerFactory().newRecordServices().getDocumentById(id);
+			try {
+				Record record = appLayerFactory.getModelLayerFactory().newRecordServices().getDocumentById(id);
 
-			for (Metadata contentMetadata : metadataSchemasManager.getSchemaTypeOf(record).getAllMetadatas().onlyWithType(MetadataValueType.CONTENT)) {
-				for (Content content : record.<Content>getValues(contentMetadata)) {
-					hashes.addAll(content.getHashOfAllVersions());
+				for (Metadata contentMetadata : metadataSchemasManager.getSchemaTypeOf(record).getAllMetadatas().onlyWithType(MetadataValueType.CONTENT)) {
+					for (Content content : record.<Content>getValues(contentMetadata)) {
+						hashes.addAll(content.getHashOfAllVersions());
+					}
 				}
+			} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+				throw new SystemStateExporterRuntimeException_InvalidRecordId(id);
 			}
-
 		}
 
 		for (String hash : hashes) {
 			File srcFile = contentDao.getFileOf(hash);
 			File parentFolder = srcFile.getParentFile();
 
-			for (String filename : asList(srcFile.getName(), srcFile.getName() + "__parsed", srcFile.getName() + ".preview")) {
+			for (String filename : asList(hash, hash + "__parsed", hash + ".preview")) {
 				File fileToCopy = new File(parentFolder, filename);
 				if (fileToCopy.exists()) {
-					File destFile = new File(srcFile.getAbsolutePath()
+					File destFile = new File(fileToCopy.getAbsolutePath()
 							.replace(contentDaoBaseFolder.getAbsolutePath(), exportedPartialFolder.getAbsolutePath()));
 					destFile.getParentFile().mkdirs();
 					try {

@@ -202,7 +202,7 @@ public class IdsReallocationUtils {
 				}
 
 				type.idsToReallocateToSequential.add(splittedLines[2].replace("\"", ""));
-				type.oldAndNewIdMapping.put(splittedLines[2].replace("\"", ""), splittedLines[3].replace("'", ""));
+				type.oldAndNewIdMapping.put(splittedLines[2].replace("\"", ""), splittedLines[3].replace("'", "").replace("\"", ""));
 
 			}
 

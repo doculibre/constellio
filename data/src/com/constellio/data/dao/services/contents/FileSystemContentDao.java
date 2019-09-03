@@ -69,6 +69,10 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 		}
 	}
 
+	public File getRootFolder() {
+		return rootFolder;
+	}
+
 	File getVaultRootRecoveryFolder() {
 		return vaultRecoveryFolder;
 	}
