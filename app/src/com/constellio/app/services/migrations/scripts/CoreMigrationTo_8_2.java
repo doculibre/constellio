@@ -109,6 +109,8 @@ public class CoreMigrationTo_8_2 implements MigrationScript {
 								recordServices.logicallyDelete(detail.getWrappedRecord(), User.GOD);
 							}
 						}
+
+						recordServices.executeWithoutImpactHandling(tx);
 					}
 				}.execute(from(schemas.authorizationDetails.schemaType()).returnAll());
 

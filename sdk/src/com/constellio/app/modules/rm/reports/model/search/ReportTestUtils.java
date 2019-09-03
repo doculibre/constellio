@@ -205,7 +205,7 @@ public class ReportTestUtils {
 		assertThat(result2.size()).isEqualTo(3);
 		assertThat(result2.get(0)).isEqualTo(expectedFolderTitle_A02);
 		assertThat(result2.get(1)).isEqualTo("Bob 'Elvis' Gratton");
-		assertThat(result2.get(2)).isEqualTo("");
+		assertThat(result2.get(2)).isEqualTo(null);
 	}
 
 	public void validateDefaultReportWithRichText(SearchResultReportModel model) {
