@@ -114,9 +114,10 @@ public class IcapService {
 	}
 
 	public void scan(final String filename, final InputStream fileContent) {
+		icapServerUrl = modelLayerFactory.getSystemConfigs().getIcapServerUrl();
 		if (modelLayerFactory.getSystemConfigs().getIcapScanActivated()
-			&& new FoldersLocator().getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER) {
-			icapServerUrl = modelLayerFactory.getSystemConfigs().getIcapServerUrl();
+			&& (new FoldersLocator().getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER
+				|| (StringUtils.isNotBlank(icapServerUrl) && icapServerUrl.contains("localhost")))) {
 
 			if (StringUtils.isBlank(icapServerUrl)) {
 				LOGGER.error("ICAP is activated while its server URL is missing");

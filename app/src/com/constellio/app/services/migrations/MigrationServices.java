@@ -202,7 +202,7 @@ public class MigrationServices {
 		boolean newCollection = isNewCollection(collection);
 		if (newCollection && appLayerFactory.getAppLayerConfiguration().isFastMigrationsEnabled() &&
 			(!SYSTEM_COLLECTION.equals(collection) || collectionCodes.isEmpty())) {
-			migrateWithoutException(new CoreMigrationCombo(), null, collection);
+			migrate(collection, null, new CoreMigrationCombo());
 		}
 
 		List<Migration> migrations;

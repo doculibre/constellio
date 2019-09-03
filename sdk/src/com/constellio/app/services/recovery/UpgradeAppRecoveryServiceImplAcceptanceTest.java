@@ -26,7 +26,6 @@ import org.junit.rules.TemporaryFolder;
 
 import static com.constellio.app.modules.rm.model.enums.CopyType.PRINCIPAL;
 import static com.constellio.app.services.recovery.UpdateRecoveryImpossibleCause.TOO_SHORT_MEMORY;
-import static com.constellio.app.services.recovery.UpdateRecoveryImpossibleCause.TOO_SHORT_SPACE;
 import static com.constellio.app.services.recovery.UpgradeAppRecoveryServiceImpl.REQUIRED_MEMORY_IN_MO;
 import static com.constellio.app.services.recovery.UpgradeAppRecoveryServiceImpl.REQUIRED_SPACE_IN_GIG;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -71,9 +70,6 @@ public class UpgradeAppRecoveryServiceImplAcceptanceTest extends ConstellioTest 
 		REQUIRED_MEMORY_IN_MO = 1000 * 1024;
 		assertThat(upgradeAppRecoveryService.isUpdateWithRecoveryPossible()).isEqualTo(TOO_SHORT_MEMORY);
 
-		REQUIRED_MEMORY_IN_MO = 1;
-		REQUIRED_SPACE_IN_GIG = 500 * 1024 * 1024;
-		assertThat(upgradeAppRecoveryService.isUpdateWithRecoveryPossible()).isEqualTo(TOO_SHORT_SPACE);
 	}
 
 	//@Test

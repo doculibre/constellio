@@ -604,6 +604,6 @@ public class ConstellioEIMConfigs {
 	}
 
 	public boolean isLazyLoadedSearchResults() {
-		return manager.getValue(LAZY_LOADED_SEARCH_RESULTS);
+		return manager != null && manager.<Boolean>getValue(LAZY_LOADED_SEARCH_RESULTS);
 	}
 }

@@ -19,7 +19,6 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
 import java.util.List;
-import java.util.Set;
 
 import static java.util.Arrays.asList;
 
@@ -75,6 +74,7 @@ public class SystemStateExporter {
 			new PartialVaultExporter(tempFolderContentFolder, appLayerFactory)
 					.export(params.getOnlyExportContentOfRecords());
 
+			copyTLogsTo(tempFolderContentFolder);
 		}
 
 		copyPluginsJarFolderTo(tempPluginsFolder, params.isExportPluginJars());
@@ -112,48 +112,48 @@ public class SystemStateExporter {
 
 	}
 
-//	private Set<String> findExportedHashes(SystemStateExportParams params) {
-//		Set<String> exportedHashes = new HashSet<>();
-//
-//		for (String recordId : params.getOnlyExportContentOfRecords()) {
-//
-//			try {
-//				Record record = recordServices.getDocumentById(recordId);
-//
-//				exportedHashes.addAll(recordHashes);
-//				if (recordHashes.isEmpty()) {
-//					throw new SystemStateExporterRuntimeException_RecordHasNoContent(recordId);
-//				}
-//
-//			} catch (NoSuchRecordWithId e) {
-//				throw new SystemStateExporterRuntimeException_InvalidRecordId(recordId);
-//			}
-//
-//		}
-//
-//		return exportedHashes;
-//	}
+	//	private Set<String> findExportedHashes(SystemStateExportParams params) {
+	//		Set<String> exportedHashes = new HashSet<>();
+	//
+	//		for (String recordId : params.getOnlyExportContentOfRecords()) {
+	//
+	//			try {
+	//				Record record = recordServices.getDocumentById(recordId);
+	//
+	//				exportedHashes.addAll(recordHashes);
+	//				if (recordHashes.isEmpty()) {
+	//					throw new SystemStateExporterRuntimeException_RecordHasNoContent(recordId);
+	//				}
+	//
+	//			} catch (NoSuchRecordWithId e) {
+	//				throw new SystemStateExporterRuntimeException_InvalidRecordId(recordId);
+	//			}
+	//
+	//		}
+	//
+	//		return exportedHashes;
+	//	}
 
-//	private Set<String> getRecordHashes(Record record) {
-//		Set<String> exportedHashes = new HashSet<>();
-//		MetadataSchema schema = schemasManager.getSchemaTypes(record.getCollection()).getSchema(record.getSchemaCode());
-//		for (Metadata contentMetadata : schema.getMetadatas().onlyWithType(MetadataValueType.CONTENT)) {
-//			if (contentMetadata.isMultivalue()) {
-//				List<Content> contents = record.getList(contentMetadata);
-//				for (Content content : contents) {
-//					exportedHashes.addAll(content.getHashOfAllVersions());
-//				}
-//			} else {
-//				Content content = record.get(contentMetadata);
-//				if (content != null) {
-//					exportedHashes.addAll(content.getHashOfAllVersions());
-//				}
-//			}
-//		}
-//		return exportedHashes;
-//	}
+	//	private Set<String> getRecordHashes(Record record) {
+	//		Set<String> exportedHashes = new HashSet<>();
+	//		MetadataSchema schema = schemasManager.getSchemaTypes(record.getCollection()).getSchema(record.getSchemaCode());
+	//		for (Metadata contentMetadata : schema.getMetadatas().onlyWithType(MetadataValueType.CONTENT)) {
+	//			if (contentMetadata.isMultivalue()) {
+	//				List<Content> contents = record.getList(contentMetadata);
+	//				for (Content content : contents) {
+	//					exportedHashes.addAll(content.getHashOfAllVersions());
+	//				}
+	//			} else {
+	//				Content content = record.get(contentMetadata);
+	//				if (content != null) {
+	//					exportedHashes.addAll(content.getHashOfAllVersions());
+	//				}
+	//			}
+	//		}
+	//		return exportedHashes;
+	//	}
 
-	private void copyContentsTo(File tempFolderContentsFolder, final Set<String> exportedHashes) {
+	private void copyTLogsTo(File tempFolderContentsFolder) {
 		final File contentsFolder = dataLayerConfiguration.getContentDaoFileSystemFolder();
 		final File tlogsFolder = new File(contentsFolder, "tlogs");
 		final File tlogsBckFolder = new File(contentsFolder, "tlogs_bck");
@@ -164,19 +164,6 @@ public class SystemStateExporter {
 
 					if (pathname.equals(contentsFolder) || pathname.getAbsolutePath().contains(tlogsFolder.getAbsolutePath())) {
 						return !pathname.getAbsolutePath().contains(tlogsBckFolder.getAbsolutePath());
-					}
-
-					String name;
-					if (pathname.getName().contains("_") && pathname.getName().split("_").length > 0) {
-						name = pathname.getName().split("_")[0];
-					} else {
-						name = pathname.getName();
-					}
-
-					for (String hash : exportedHashes) {
-						if (hash.contains(name)) {
-							return true;
-						}
 					}
 
 					return false;
