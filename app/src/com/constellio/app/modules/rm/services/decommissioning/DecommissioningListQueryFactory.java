@@ -66,7 +66,7 @@ public class DecommissioningListQueryFactory {
 	}
 
 	public LogicalSearchQuery getListsPendingValidationQuery(User user) {
-		if (hasProcessOrCreateDecomissioningPerm(user)) {
+		if (hasProcessAndCreateDecomissioningPerm(user)) {
 			LogicalSearchCondition condition = from(rm.decommissioningList.schemaType())
 					.where(rm.decommissioningList.status()).isEqualTo(DecomListStatus.IN_VALIDATION)
 					.andWhere(rm.decommissioningList.approvalRequest()).isNull()
@@ -85,7 +85,12 @@ public class DecommissioningListQueryFactory {
 
 	private boolean hasProcessOrCreateDecomissioningPerm(User user) {
 		return user.has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).onSomething()
-				|| user.has(RMPermissionsTo.CREATE_DECOMMISSIONING_LIST).onSomething();
+			   || user.has(RMPermissionsTo.CREATE_DECOMMISSIONING_LIST).onSomething();
+	}
+
+	private boolean hasProcessAndCreateDecomissioningPerm(User user) {
+		return user.has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).onSomething()
+			   && user.has(RMPermissionsTo.CREATE_DECOMMISSIONING_LIST).onSomething();
 	}
 
 	public LogicalSearchQuery getListsToValidateQuery(User user) {

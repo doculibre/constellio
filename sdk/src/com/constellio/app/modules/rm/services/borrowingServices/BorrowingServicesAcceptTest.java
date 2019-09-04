@@ -1,6 +1,8 @@
 package com.constellio.app.modules.rm.services.borrowingServices;
 
 import com.constellio.app.modules.rm.RMTestRecords;
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
+import com.constellio.app.modules.rm.constants.RMRoles;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServicesRunTimeException.BorrowingServicesRunTimeException_FolderIsAlreadyBorrowed;
@@ -23,6 +25,7 @@ import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
 import org.joda.time.LocalDate;
@@ -31,6 +34,7 @@ import org.junit.Test;
 
 import java.util.List;
 
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class BorrowingServicesAcceptTest extends ConstellioTest {
@@ -265,6 +269,9 @@ public class BorrowingServicesAcceptTest extends ConstellioTest {
 
 		nowDate = nowDate.plusDays(1);
 		givenTimeIs(nowDate);
+		RolesManager rolesManager = getModelLayerFactory().getRolesManager();
+		rolesManager.updateRole(rolesManager.getRole(zeCollection, RMRoles.USER)
+				.withNewPermissions(asList(RMPermissionsTo.BORROWING_FOLDER_DIRECTLY)));
 		borrowingServices.returnFolder(folderC30.getId(), records.getBob_userInAC(), nowDate, true);
 		folderC30 = records.getFolder_C30();
 
