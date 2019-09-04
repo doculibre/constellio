@@ -114,14 +114,17 @@ public class FileSIPZipWriter implements SIPZipWriter {
 
 	public void close() {
 
-		try {
-			addBagInfoFile();
-			addMetsFile();
-			addManifestFiles();
-			addBagItFile();
+		if (zipOutputStream != null) {
+			try {
+				addBagInfoFile();
+				addMetsFile();
+				addManifestFiles();
+				addBagItFile();
 
-		} finally {
-			IOUtils.closeQuietly(zipOutputStream);
+			} finally {
+				IOUtils.closeQuietly(zipOutputStream);
+				zipOutputStream = null;
+			}
 		}
 
 	}

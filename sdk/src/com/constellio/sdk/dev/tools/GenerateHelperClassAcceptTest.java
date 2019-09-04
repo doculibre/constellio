@@ -52,6 +52,7 @@ import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.ImportAudit;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.Report;
+import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.SearchEvent;
 import com.constellio.model.entities.records.wrappers.TemporaryRecord;
 import com.constellio.model.entities.records.wrappers.ThesaurusConfig;
@@ -126,6 +127,7 @@ public class GenerateHelperClassAcceptTest extends ConstellioTest {
 		wrappers.put(SearchEvent.DEFAULT_SCHEMA, SearchEvent.class);
 		wrappers.put(ThesaurusConfig.DEFAULT_SCHEMA, ThesaurusConfig.class);
 		wrappers.put(CapsuleLanguage.DEFAULT_SCHEMA, CapsuleLanguage.class);
+		wrappers.put(SavedSearch.DEFAULT_SCHEMA, SavedSearch.class);
 
 		System.out.println(header());
 

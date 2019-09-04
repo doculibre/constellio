@@ -80,6 +80,8 @@ public class PartialSystemStateExporter {
 
 	DataLayerFactory dataLayerFactory;
 
+	AppLayerFactory appLayerFactory;
+
 	public PartialSystemStateExporter(AppLayerFactory appLayerFactory) {
 		this.appLayerConfiguration = appLayerFactory.getAppLayerConfiguration();
 		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
@@ -92,6 +94,7 @@ public class PartialSystemStateExporter {
 		this.recordServices = modelLayerFactory.newRecordServices();
 		this.searchServices = modelLayerFactory.newSearchServices();
 		recordDao = (BigVaultRecordDao) dataLayerFactory.newRecordDao();
+		this.appLayerFactory = appLayerFactory;
 	}
 
 	private void exportSystemToFolder(File folder, PartialSystemStateExportParams params) {
@@ -221,6 +224,11 @@ public class PartialSystemStateExporter {
 		try {
 			exportSystemToFolder(tempFolder, params);
 			File tempFolderContentFolder = new File(tempFolder, "content");
+
+			new PartialVaultExporter(tempFolderContentFolder, appLayerFactory)
+					.export(params.getIds());
+
+
 			File tempFolderSettingsFolder = new File(tempFolder, "settings");
 
 			List<File> list;

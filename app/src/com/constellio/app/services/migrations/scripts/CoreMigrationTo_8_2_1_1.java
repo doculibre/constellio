@@ -3,7 +3,10 @@ package com.constellio.app.services.migrations.scripts;
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
+import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
+import com.constellio.model.entities.records.wrappers.Capsule;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.security.global.UserCredential;
@@ -20,6 +23,9 @@ public class CoreMigrationTo_8_2_1_1 implements MigrationScript {
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
 						AppLayerFactory appLayerFactory) throws Exception {
 		SchemasDisplayManager manager = appLayerFactory.getMetadataSchemasDisplayManager();
+
+		manager.saveMetadata(manager.getMetadata(collection, Capsule.DEFAULT_SCHEMA + "_" + Capsule.HTML)
+				.withInputType(MetadataInputType.RICHTEXT));
 
 		if (collection.equals(Collection.SYSTEM_COLLECTION)) {
 			new CoreSchemaAlterationFor_8_2_1_1(collection, migrationResourcesProvider, appLayerFactory).migrate();

@@ -2,22 +2,14 @@ package com.constellio.app.services.importExport.systemStateExport;
 
 import com.constellio.app.conf.AppLayerConfiguration;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.services.importExport.systemStateExport.SystemStateExporterRuntimeException.SystemStateExporterRuntimeException_InvalidRecordId;
-import com.constellio.app.services.importExport.systemStateExport.SystemStateExporterRuntimeException.SystemStateExporterRuntimeException_RecordHasNoContent;
 import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogManager;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.services.zip.ZipService;
 import com.constellio.data.io.services.zip.ZipServiceException;
-import com.constellio.model.entities.records.Content;
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
-import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
@@ -26,9 +18,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import static java.util.Arrays.asList;
 
@@ -54,6 +44,8 @@ public class SystemStateExporter {
 
 	DataLayerFactory dataLayerFactory;
 
+	AppLayerFactory appLayerFactory;
+
 	public SystemStateExporter(AppLayerFactory appLayerFactory) {
 		this.appLayerConfiguration = appLayerFactory.getAppLayerConfiguration();
 		ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
@@ -64,6 +56,7 @@ public class SystemStateExporter {
 		this.secondTransactionLogManager = dataLayerFactory.getSecondTransactionLogManager();
 		this.schemasManager = modelLayerFactory.getMetadataSchemasManager();
 		this.recordServices = modelLayerFactory.newRecordServices();
+		this.appLayerFactory = appLayerFactory;
 	}
 
 	public void exportSystemToFolder(File folder, SystemStateExportParams params) {
@@ -77,8 +70,11 @@ public class SystemStateExporter {
 		if (params.isExportAllContent()) {
 			copyContentsTo(tempFolderContentFolder);
 		} else {
-			Set<String> exportedHashes = findExportedHashes(params);
-			copyContentsTo(tempFolderContentFolder, exportedHashes);
+
+			new PartialVaultExporter(tempFolderContentFolder, appLayerFactory)
+					.export(params.getOnlyExportContentOfRecords());
+
+			copyTLogsTo(tempFolderContentFolder);
 		}
 
 		copyPluginsJarFolderTo(tempPluginsFolder, params.isExportPluginJars());
@@ -116,48 +112,48 @@ public class SystemStateExporter {
 
 	}
 
-	private Set<String> findExportedHashes(SystemStateExportParams params) {
-		Set<String> exportedHashes = new HashSet<>();
+	//	private Set<String> findExportedHashes(SystemStateExportParams params) {
+	//		Set<String> exportedHashes = new HashSet<>();
+	//
+	//		for (String recordId : params.getOnlyExportContentOfRecords()) {
+	//
+	//			try {
+	//				Record record = recordServices.getDocumentById(recordId);
+	//
+	//				exportedHashes.addAll(recordHashes);
+	//				if (recordHashes.isEmpty()) {
+	//					throw new SystemStateExporterRuntimeException_RecordHasNoContent(recordId);
+	//				}
+	//
+	//			} catch (NoSuchRecordWithId e) {
+	//				throw new SystemStateExporterRuntimeException_InvalidRecordId(recordId);
+	//			}
+	//
+	//		}
+	//
+	//		return exportedHashes;
+	//	}
 
-		for (String recordId : params.getOnlyExportContentOfRecords()) {
+	//	private Set<String> getRecordHashes(Record record) {
+	//		Set<String> exportedHashes = new HashSet<>();
+	//		MetadataSchema schema = schemasManager.getSchemaTypes(record.getCollection()).getSchema(record.getSchemaCode());
+	//		for (Metadata contentMetadata : schema.getMetadatas().onlyWithType(MetadataValueType.CONTENT)) {
+	//			if (contentMetadata.isMultivalue()) {
+	//				List<Content> contents = record.getList(contentMetadata);
+	//				for (Content content : contents) {
+	//					exportedHashes.addAll(content.getHashOfAllVersions());
+	//				}
+	//			} else {
+	//				Content content = record.get(contentMetadata);
+	//				if (content != null) {
+	//					exportedHashes.addAll(content.getHashOfAllVersions());
+	//				}
+	//			}
+	//		}
+	//		return exportedHashes;
+	//	}
 
-			try {
-				Record record = recordServices.getDocumentById(recordId);
-				Set<String> recordHashes = getRecordHashes(record);
-				exportedHashes.addAll(recordHashes);
-				if (recordHashes.isEmpty()) {
-					throw new SystemStateExporterRuntimeException_RecordHasNoContent(recordId);
-				}
-
-			} catch (NoSuchRecordWithId e) {
-				throw new SystemStateExporterRuntimeException_InvalidRecordId(recordId);
-			}
-
-		}
-
-		return exportedHashes;
-	}
-
-	private Set<String> getRecordHashes(Record record) {
-		Set<String> exportedHashes = new HashSet<>();
-		MetadataSchema schema = schemasManager.getSchemaTypes(record.getCollection()).getSchema(record.getSchemaCode());
-		for (Metadata contentMetadata : schema.getMetadatas().onlyWithType(MetadataValueType.CONTENT)) {
-			if (contentMetadata.isMultivalue()) {
-				List<Content> contents = record.getList(contentMetadata);
-				for (Content content : contents) {
-					exportedHashes.addAll(content.getHashOfAllVersions());
-				}
-			} else {
-				Content content = record.get(contentMetadata);
-				if (content != null) {
-					exportedHashes.addAll(content.getHashOfAllVersions());
-				}
-			}
-		}
-		return exportedHashes;
-	}
-
-	private void copyContentsTo(File tempFolderContentsFolder, final Set<String> exportedHashes) {
+	private void copyTLogsTo(File tempFolderContentsFolder) {
 		final File contentsFolder = dataLayerConfiguration.getContentDaoFileSystemFolder();
 		final File tlogsFolder = new File(contentsFolder, "tlogs");
 		final File tlogsBckFolder = new File(contentsFolder, "tlogs_bck");
@@ -168,19 +164,6 @@ public class SystemStateExporter {
 
 					if (pathname.equals(contentsFolder) || pathname.getAbsolutePath().contains(tlogsFolder.getAbsolutePath())) {
 						return !pathname.getAbsolutePath().contains(tlogsBckFolder.getAbsolutePath());
-					}
-
-					String name;
-					if (pathname.getName().contains("_") && pathname.getName().split("_").length > 0) {
-						name = pathname.getName().split("_")[0];
-					} else {
-						name = pathname.getName();
-					}
-
-					for (String hash : exportedHashes) {
-						if (hash.contains(name)) {
-							return true;
-						}
 					}
 
 					return false;

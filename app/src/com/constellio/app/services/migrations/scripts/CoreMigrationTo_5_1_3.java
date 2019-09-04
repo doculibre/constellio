@@ -4,7 +4,6 @@ import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.conf.DataLayerConfiguration;
-import com.constellio.data.dao.services.bigVault.solr.BigVaultException;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.conf.email.EmailConfigurationsManager;
@@ -12,6 +11,7 @@ import com.constellio.model.conf.email.EmailServerConfiguration;
 import com.constellio.model.conf.ldap.LDAPConfigurationManager;
 import com.constellio.model.conf.ldap.config.LDAPServerConfiguration;
 import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
+import com.constellio.model.services.encrypt.EncryptionKeyFactory;
 import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.users.SolrUserCredentialsManager;
@@ -40,7 +40,7 @@ public class CoreMigrationTo_5_1_3 implements MigrationScript {
 		DataLayerFactory dataLayerFactory = modelLayerFactory.getDataLayerFactory();
 		EncryptionServices encryptionServices;
 		try {
-			if (isFirstInit(dataLayerFactory)) {
+			if (isFirstInit(modelLayerFactory)) {
 				createKeyFile(modelLayerFactory.getConfiguration(), dataLayerFactory.getDataLayerConfiguration());
 				createKeyDocument(dataLayerFactory);
 				encryptionServices = modelLayerFactory.newEncryptionServices();
@@ -94,11 +94,12 @@ public class CoreMigrationTo_5_1_3 implements MigrationScript {
 		FileUtils.writeByteArrayToFile(encryptionFile, fileKeyPart.getBytes());
 	}
 
-	private static boolean isFirstInit(DataLayerFactory dataLayerFactory) {
+	private static boolean isFirstInit(ModelLayerFactory modelLayerFactory) {
 		try {
-			dataLayerFactory.readEncryptionKey();
+			EncryptionKeyFactory.getApplicationKey(modelLayerFactory);
+
 			return false;
-		} catch (BigVaultException e) {
+		} catch (Exception e) {
 			return true;
 		}
 	}

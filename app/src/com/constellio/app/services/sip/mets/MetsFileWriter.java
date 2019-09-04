@@ -297,8 +297,13 @@ public class MetsFileWriter {
 
 		for (MetsContentFileReference contentFileReference : contentFileReferences) {
 			MetsStructureDivision structureDivision = allDivisions.get(contentFileReference.getDmdid());
+
 			if (structureDivision == null) {
-				throw new IllegalArgumentException("No such division with id '" + contentFileReference.getDmdid() + "'");
+				if (divisionsInfoMap.containsKey(contentFileReference.getDmdid())) {
+					structureDivision = new MetsStructureDivision(divisionsInfoMap.get(contentFileReference.getDmdid()));
+				} else {
+					throw new IllegalArgumentException("No such division with id '" + contentFileReference.getDmdid() + "'");
+				}
 			}
 			structureDivision.filePointers.add(new MetsFilePointer(contentFileReference.getId()));
 		}

@@ -95,6 +95,12 @@ public class RMMigrationTo7_6_6_AcceptanceTest extends ConstellioTest {
 		ReindexingServices reindexingServices = getModelLayerFactory().newReindexingServices();
 		reindexingServices.reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE);
 
+		Record unit10 = record("unitId_10");
+
+		List<String> usersWithReadAccess = new ArrayList<>();
+		User gandalfUser = rm.getModelLayerFactory().newUserServices().getUserInCollection("gandalf", zeCollection);
+		assertThat(gandalfUser.hasReadAccess().on(unit10)).isTrue();
+
 		//Administrative units
 		assertThat(getUsersWithReadAccess("unitId_10")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "gandalf");
 		assertThat(getUsersWithReadAccess("unitId_20")).containsOnly("admin", "chuck", "alice");

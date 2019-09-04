@@ -178,9 +178,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	}
 
 	public boolean documentInDefaultFavorites() {
-		Record record = presenterUtils.getRecord(documentVO.getId());
-		Document document = rmSchemasRecordsServices.wrapDocument(record);
-		return document.getFavorites().contains(getCurrentUser().getId());
+		return documentVO.getList(Document.FAVORITES).contains(getCurrentUser().getId());
 	}
 
 	public void editDocumentButtonClicked() {
@@ -276,7 +274,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 				return ComponentState
 						.visibleIf(getCurrentUser().has(RMPermissionsTo.DELETE_INACTIVE_DOCUMENT).on(currentDocument()));
 			}
-			if (archivisticStatus != null && archivisticStatus.isInactive()) {
+			if (archivisticStatus != null && archivisticStatus.isSemiActive()) {
 				Folder parentFolder = rmSchemasRecordsServices.getFolder(currentDocument().getParentId());
 				if (parentFolder.getBorrowed() != null && parentFolder.getBorrowed()) {
 					return ComponentState
@@ -292,11 +290,12 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	}
 
 	public void deleteDocumentButtonClicked(Map<String, String> params) {
-		if (validateDeleteDocumentPossibleExtensively().isEmpty()) {
+		ValidationErrors errors = validateDeleteDocumentPossibleExtensively();
+		if (errors.isEmpty()) {
 			Document document = rmSchemasRecordsServices.getDocument(documentVO.getId());
 			String parentId = document.getFolder();
 			try {
-				presenterUtils.delete(document.getWrappedRecord(), null, true, WAIT_ONE_SECOND);
+				presenterUtils.delete(document.getWrappedRecord(), null, true, getCurrentUser(), WAIT_ONE_SECOND, errors);
 			} catch (RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord e) {
 				actionsComponent.showMessage(MessageUtils.toMessage(e));
 				return;
@@ -597,6 +596,8 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 			} catch (RecordServicesException e) {
 				actionsComponent.showErrorMessage(MessageUtils.toMessage(e));
 			}
+		} else if (isCheckOutNotPossibleDocumentDeleted()) {
+			actionsComponent.showErrorMessage($("DocumentActionsComponent.cantCheckOutDocumentDeleted"));
 		}
 	}
 
@@ -635,6 +636,14 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		boolean checkedOut = isContentCheckedOut();
 		boolean borrower = isCurrentUserBorrower();
 		return !email && (!checkedOut || borrower);
+	}
+
+	private boolean isDocumentLogicallyDeleted() {
+		if (currentDocument().getId() != null) {
+			return rmSchemasRecordsServices.getDocument(documentVO.getId()).isLogicallyDeletedStatus();
+		} else {
+			return true;
+		}
 	}
 
 	ComponentState getUploadButtonState() {
@@ -686,7 +695,11 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 
 	protected boolean isCheckOutPossible() {
 		boolean email = isEmail();
-		return !email && (getContent() != null && !isContentCheckedOut());
+		return !email && !isDocumentLogicallyDeleted() && (getContent() != null && !isContentCheckedOut());
+	}
+
+	protected boolean isCheckOutNotPossibleDocumentDeleted() {
+		return !isEmail() && isDocumentLogicallyDeleted() && (getContent() != null && !isContentCheckedOut());
 	}
 
 	private ComponentState getCheckOutState() {

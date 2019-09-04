@@ -6,7 +6,6 @@ import com.constellio.app.api.extensions.params.OnWriteRecordParams;
 import com.constellio.app.modules.rm.extensions.imports.DecommissioningListImportExtension;
 import com.constellio.app.modules.rm.extensions.imports.ReportImportExtension;
 import com.constellio.app.modules.rm.extensions.imports.RetentionRuleImportExtension;
-import com.constellio.app.modules.rm.extensions.imports.TaskImportExtension;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleInRule;
 import com.constellio.app.modules.rm.model.enums.CopyType;
@@ -22,9 +21,6 @@ import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetai
 import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListValidation;
 import com.constellio.app.modules.rm.wrappers.structures.RetentionRuleDocumentType;
-import com.constellio.app.modules.tasks.model.wrappers.Task;
-import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollower;
-import com.constellio.app.modules.tasks.model.wrappers.structures.TaskReminder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.model.entities.records.Record;
@@ -36,15 +32,19 @@ import com.constellio.model.entities.schemas.ModifiableStructure;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.contents.UserSerializedContentFactory;
 import com.constellio.model.services.records.StructureImportContent;
+import com.constellio.model.services.search.SearchServices;
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static com.constellio.data.utils.LangUtils.toNullableString;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class RMRecordExportExtension extends RecordExportExtension {
 
@@ -95,14 +95,6 @@ public class RMRecordExportExtension extends RecordExportExtension {
 			return (Map) writeDecomListValidation(((DecomListValidation) structure));
 		}
 
-		if (structure instanceof TaskFollower) {
-			return (Map) writeTaskFollowers(((TaskFollower) structure));
-		}
-
-		if (structure instanceof TaskReminder) {
-			return (Map) writeTaskReminder(((TaskReminder) structure));
-		}
-
 		return super.convertStructureToMap(params);
 	}
 
@@ -118,14 +110,27 @@ public class RMRecordExportExtension extends RecordExportExtension {
 		} else if (params.isRecordOfType(SavedSearch.SCHEMA_TYPE)) {
 			throw new NotImplementedException("Pas implémenté");
 			//manageSavedSearch(params);
-		} else if (params.isRecordOfType(Task.SCHEMA_TYPE)) {
-			manageUserTask(params);
 		} else if (params.isRecordOfType(Folder.SCHEMA_TYPE)) {
 			manageFolder(params);
 		} else if (params.isRecordOfType(Document.SCHEMA_TYPE)) {
 			manageDocument(params);
 		}
 
+	}
+
+	@Override
+	public Set<String> getHashsToInclude() {
+
+		SearchServices searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
+		Set<String> hashes = new HashSet<>();
+
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+		hashes.addAll(searchServices.getHashesOf(from(rm.documentTypeSchema()).returnAll()));
+		//hashes.addAll(searchServices.getHashesOf(from(rm.document.schemaType()).where(rm.document.isModel()).isTrue()));
+		hashes.addAll(searchServices.getHashesOf(from(rm.report.schemaType()).returnAll()));
+		hashes.addAll(searchServices.getHashesOf(from(rm.printable.schemaType()).returnAll()));
+
+		return hashes;
 	}
 
 	private void manageDocument(OnWriteRecordParams params) {
@@ -156,65 +161,6 @@ public class RMRecordExportExtension extends RecordExportExtension {
 			}
 		}
 
-	}
-
-	private void manageUserTask(OnWriteRecordParams params) {
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
-		Task task = new Task(params.getRecord(), getTypes());
-
-		List<Map<String, String>> listTaskReminder = new ArrayList<>();
-
-		for (TaskReminder taskReminder : task.getReminders()) {
-			Map<String, String> map = writeTaskReminder(taskReminder);
-			listTaskReminder.add(map);
-		}
-
-		params.getModifiableImportRecord().addField(Task.REMINDERS, listTaskReminder);
-
-		List<Map<String, String>> listTaskFollowers = new ArrayList<>();
-
-		for (TaskFollower taskFollower : task.getTaskFollowers()) {
-			listTaskFollowers.add(writeTaskFollowers(taskFollower));
-		}
-
-		params.getModifiableImportRecord().addField(Task.TASK_FOLLOWERS, listTaskFollowers);
-	}
-
-
-	private Map<String, String> writeTaskFollowers(TaskFollower taskFollower) {
-		Map<String, String> map = new HashMap();
-
-		map.put(TaskImportExtension.FOLLOWER_ID, taskFollower.getFollowerId());
-		map.put(TaskImportExtension.FOLLOW_TASK_STATUS_MODIFIED, Boolean.toString(taskFollower.getFollowTaskStatusModified()));
-		map.put(TaskImportExtension.FOLLOW_TASK_ASSIGNEE_MODIFIED, Boolean.toString(taskFollower.getFollowTaskAssigneeModified()));
-		map.put(TaskImportExtension.FOLLOW_SUB_TASKS_MODIFIED, Boolean.toString(taskFollower.getFollowSubTasksModified()));
-		map.put(TaskImportExtension.FOLLOW_TASK_COMPLETED, Boolean.toString(taskFollower.getFollowTaskCompleted()));
-		map.put(TaskImportExtension.FOLLOW_TASK_DELETE, Boolean.toString(taskFollower.getFollowTaskDeleted()));
-
-		return map;
-	}
-
-	private Map<String, String> writeTaskReminder(TaskReminder taskReminder) {
-		Map<String, String> map = new HashMap();
-
-		map.put(TaskImportExtension.FIXED_DATE, taskReminder.getFixedDate() != null ? taskReminder.getFixedDate().toString("yyyy-MM-dd") : null);
-		map.put(TaskImportExtension.NUMBER_OF_DAYS_TO_RELATIVE_DATE, Integer.toString(taskReminder.getNumberOfDaysToRelativeDate()));
-		map.put(TaskImportExtension.BEFORE_RELATIVE_DATE, convertBooleanToString(taskReminder.isBeforeRelativeDate()));
-		map.put(TaskImportExtension.RELATIVE_DATE_METADATA_CODE, taskReminder.getRelativeDateMetadataCode());
-		map.put(TaskImportExtension.PROCESSED, convertBooleanToString(taskReminder.isBeforeRelativeDate()));
-
-		return map;
-	}
-
-	private void manageSavedSearch(OnWriteRecordParams params) {
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
-		SavedSearch savedSearch = rm.wrapSavedSearch(params.getRecord());
-
-		List<Map<String, String>> reportList = new ArrayList<>();
-
-		for (Criterion criterion : savedSearch.getAdvancedSearch()) {
-			writeSavedSearchCriterion(criterion);
-		}
 	}
 
 	public MetadataSchemaTypes getTypes() {

@@ -1423,7 +1423,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 				.has(solrQueryCounts(4, 3, 2))
 				.has(secondSolrQueryCounts(4, 3, 2));
 
-		assertThat(queryCount.get()).isEqualTo(9);
+		assertThat(queryCount.get()).isEqualTo(10);
 	}
 
 	@Test

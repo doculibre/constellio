@@ -17,7 +17,6 @@ import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.users.UserServices;
 import com.vaadin.data.Item;
-import org.apache.commons.collections4.CollectionUtils;
 import org.vaadin.addons.lazyquerycontainer.LazyQueryContainer;
 import org.vaadin.addons.lazyquerycontainer.LazyQueryDefinition;
 import org.vaadin.addons.lazyquerycontainer.Query;
@@ -52,7 +51,8 @@ public class RecordVOLazyContainer extends LazyQueryContainer implements RecordV
 		this(dataProviders, batchSize, isOnlyTableMetadatasShown());
 	}
 
-	public RecordVOLazyContainer(List<RecordVODataProvider> dataProviders, int batchSize, boolean isOnlyTableMetadatasShown) {
+	public RecordVOLazyContainer(List<RecordVODataProvider> dataProviders, int batchSize,
+			boolean isOnlyTableMetadatasShown) {
 		super(new RecordVOLazyQueryDefinition(dataProviders, isOnlyTableMetadatasShown, batchSize),
 				new RecordVOLazyQueryFactory(dataProviders));
 		this.dataProviders = dataProviders;
@@ -254,9 +254,12 @@ public class RecordVOLazyContainer extends LazyQueryContainer implements RecordV
 		@Override
 		public Query constructQuery(final QueryDefinition queryDefinition) {
 			List<RecordVOFilter> filters = new ArrayList<>();
-			for (Filter filter : CollectionUtils.emptyIfNull(queryDefinition.getFilters())) {
-				if (filter instanceof RecordVOFilter) {
-					filters.add((RecordVOFilter) filter);
+			List<Filter> queryDefinitionFilters = queryDefinition.getFilters();
+			if (queryDefinitionFilters != null) {
+				for (Filter filter : queryDefinitionFilters) {
+					if (filter instanceof RecordVOFilter) {
+						filters.add((RecordVOFilter) filter);
+					}
 				}
 			}
 

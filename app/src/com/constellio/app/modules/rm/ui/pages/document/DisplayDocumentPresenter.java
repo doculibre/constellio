@@ -81,6 +81,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	private boolean hasWriteAccess;
 	private TrashServices trashServices;
 	private Record record;
+	private MetadataSchemaVO tasksSchemaVO;
 
 	private String lastKnownContentVersionNumber;
 	private String lastKnownCheckoutUserId;
@@ -91,7 +92,6 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	private boolean nestedView;
 	private boolean inWindow;
 
-	private MetadataSchemaVO tasksSchemaVO;
 
 	public DisplayDocumentPresenter(final DisplayDocumentView view, RecordVO recordVO, final boolean nestedView,
 									final boolean inWindow) {
@@ -302,6 +302,10 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 
 	public void viewAssembled() {
 		presenterUtils.updateActionsComponent();
+		view.setTasks(tasksDataProvider);
+		if (hasCurrentUserPermissionToViewEvents()) {
+			view.setEvents(eventsDataProvider);
+		}
 		view.setPublishButtons(presenterUtils.isDocumentPublished());
 	}
 

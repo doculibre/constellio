@@ -89,6 +89,12 @@ public class Toggle {
 
 	public static AvailableToggle OFF_HEAP_ADDRESS_VALIDATOR = newToggle(false);
 
+	public static AvailableToggle NO_TAXONOMIES_CACHE_INVALIDATION = newToggle(false);
+
+	public static AvailableToggle PERFORMANCE_TESTING = newToggle(false);
+
+
+
 	public static AvailableToggle DEACTIVATE_WORKFLOW_ACTIONS = newToggle(true);
 
 	// ------------------------------------------------

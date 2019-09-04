@@ -118,17 +118,24 @@ public class TransactionLogRecoveryManager implements RecoveryService, BigVaultS
 		if (inRollbackMode) {
 			LOGGER.info("Rolling back");
 			realRollback(t);
+
+		} else {
+			LOGGER.info("Not in rolling back mode");
 		}
 	}
 
 	void realRollback(Throwable t) {
 		dataLayerFactory.getRecordsVaultServer().unregisterListener(this);
 		recover();
+		LOGGER.info("Rollback - recovered solr");
 		deleteRecoveryFile();
+		LOGGER.info("deleteRecoveryFile() done");
 		SecondTransactionLogManager transactionLogManager = dataLayerFactory
 				.getSecondTransactionLogManager();
 		transactionLogManager.deleteUnregroupedLog();
+		LOGGER.info("transactionLogManager.deleteUnregroupedLog() done");
 		transactionLogManager.setAutomaticRegroupAndMoveInVaultEnabled(true);
+		LOGGER.info("transactionLogManager.setAutomaticRegroupAndMoveInVaultEnabled(true) done");
 		inRollbackMode = false;
 	}
 

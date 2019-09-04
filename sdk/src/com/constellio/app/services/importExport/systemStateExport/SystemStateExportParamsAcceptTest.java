@@ -5,7 +5,6 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.services.extensions.plugins.InvalidJarsTest;
 import com.constellio.app.services.importExport.systemStateExport.SystemStateExporterRuntimeException.SystemStateExporterRuntimeException_InvalidRecordId;
-import com.constellio.app.services.importExport.systemStateExport.SystemStateExporterRuntimeException.SystemStateExporterRuntimeException_RecordHasNoContent;
 import com.constellio.data.conf.HashingEncoding;
 import com.constellio.data.io.services.zip.ZipService;
 import com.constellio.model.entities.enums.ParsingBehavior;
@@ -190,17 +189,6 @@ public class SystemStateExportParamsAcceptTest extends ConstellioTest {
 				.has(transactionLogs())
 				.has(noTransactionLogBackups())
 				.has(contents(document1CurrentContent, document1PreviousContent));
-	}
-
-	@Test(expected = SystemStateExporterRuntimeException_RecordHasNoContent.class)
-	public void whenExportingStateWithRecordWithoutContentMetadataThenException()
-			throws Exception {
-
-		File zipFile = new File(newTempFolder(), "file.zip");
-		SystemStateExportParams params = new SystemStateExportParams();
-		params.setExportPluginJars(false);
-		params.setOnlyExportContentOfRecords(asList(document1Id, rmTestRecords.ruleId_1));
-		new SystemStateExporter(getAppLayerFactory()).exportSystemToFile(zipFile, params);
 	}
 
 	@Test(expected = SystemStateExporterRuntimeException_InvalidRecordId.class)

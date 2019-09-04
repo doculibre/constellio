@@ -43,6 +43,7 @@ import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.extensions.ConstellioModulesManager;
+import com.constellio.model.services.extensions.ConstellioModulesManagerException.ConstellioModulesManagerException_ModuleInstallationFailed;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
@@ -139,10 +140,18 @@ public class RMMigrationTo5_0_7 implements MigrationScript {
 		CollectionsListManager collectionsListManager = appLayerFactory.getModelLayerFactory().getCollectionsListManager();
 		ConstellioModulesManager modulesManager = appLayerFactory.getModulesManager();
 		if (!modulesManager.isInstalled(taskModule)) {
-			modulesManager.installValidModuleAndGetInvalidOnes(taskModule, collectionsListManager);
+			try {
+				modulesManager.installValidModuleAndGetInvalidOnes(taskModule, collectionsListManager);
+			} catch (ConstellioModulesManagerException_ModuleInstallationFailed constellioModulesManagerException_moduleInstallationFailed) {
+				throw new RuntimeException(constellioModulesManagerException_moduleInstallationFailed);
+			}
 		}
 		if (!modulesManager.isModuleEnabled(collection, taskModule)) {
-			modulesManager.enableValidModuleAndGetInvalidOnes(collection, taskModule);
+			try {
+				modulesManager.enableValidModuleAndGetInvalidOnes(collection, taskModule);
+			} catch (ConstellioModulesManagerException_ModuleInstallationFailed constellioModulesManagerException_moduleInstallationFailed) {
+				throw new RuntimeException(constellioModulesManagerException_moduleInstallationFailed);
+			}
 		}
 	}
 

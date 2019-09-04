@@ -45,12 +45,12 @@ import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
 import com.constellio.app.ui.framework.components.NewReportPresenter;
 import com.constellio.app.ui.framework.components.ReportTabButton;
-import com.constellio.app.ui.framework.components.ReportViewer.DownloadStreamResource;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.enumWithSmallCode.EnumWithSmallCodeComboBox;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveRecordLookupFieldWithIgnoreOneRecord;
 import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import com.constellio.app.ui.framework.reports.ReportWithCaptionVO;
+import com.constellio.app.ui.framework.stream.DownloadStreamResource;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
@@ -311,7 +311,7 @@ public class CartMenuItemActionBehaviors {
 
 	public void batchDelete(Cart cart, MenuItemActionBehaviorParams params) {
 		Button button;
-		if(!isNeedingAReasonToDeleteRecords()) {
+		if (!isNeedingAReasonToDeleteRecords()) {
 			button = new DeleteButton(false) {
 				@Override
 				protected void confirmButtonClick(ConfirmDialog dialog) {
@@ -378,7 +378,7 @@ public class CartMenuItemActionBehaviors {
 		}
 
 		for (Record record : recordServices.getRecordsById(params.getView().getCollection(), getAllCartItems(cart.getId()))) {
-			delete(record, reason,params);
+			delete(record, reason, params);
 		}
 		cartEmptyingRequested(cart.getId(), params.getView());
 	}
@@ -415,12 +415,14 @@ public class CartMenuItemActionBehaviors {
 		}
 	}
 
-	protected final void delete(Record record, String reason, MenuItemActionBehaviorParams menuItemActionBehaviorParams) {
+	protected final void delete(Record record, String reason,
+								MenuItemActionBehaviorParams menuItemActionBehaviorParams) {
 		delete(record, reason, true, false, menuItemActionBehaviorParams);
 	}
 
 
-	protected final void delete(Record record, String reason, boolean physically, boolean throwException, MenuItemActionBehaviorParams params) {
+	protected final void delete(Record record, String reason, boolean physically, boolean throwException,
+								MenuItemActionBehaviorParams params) {
 		SchemaPresenterUtils presenterUtils = new SchemaPresenterUtils(Document.DEFAULT_SCHEMA,
 				params.getView().getConstellioFactories(), params.getView().getSessionContext());
 		presenterUtils.delete(record, null, true, 1);
@@ -571,7 +573,7 @@ public class CartMenuItemActionBehaviors {
 						}
 						buildDecommissioningListRequested(titleField.getValue(), (DecommissioningListType)
 										decomTypeField.getValue(),
-										cart.getId(), params.getUser(), params.getView());
+								cart.getId(), params.getUser(), params.getView());
 						getWindow().close();
 					}
 				};
@@ -585,7 +587,8 @@ public class CartMenuItemActionBehaviors {
 		windowButton.click();
 	}
 
-	public void buildDecommissioningListRequested(String title, DecommissioningListType decomType, String cartId, User user, BaseView view) {
+	public void buildDecommissioningListRequested(String title, DecommissioningListType decomType, String cartId,
+												  User user, BaseView view) {
 		DecommissioningList list = rm.newDecommissioningList();
 		list.setTitle(title);
 		list.setAdministrativeUnit(getCommonAdministrativeUnit(cartUtil.getCartFolders(cartId)));

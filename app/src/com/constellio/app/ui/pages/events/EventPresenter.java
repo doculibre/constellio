@@ -96,10 +96,12 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 
 			Metadata documentIdentifierMetadata = documentDefaultSchema.getMetadata(CommonMetadataBuilder.ID);
 			Metadata titleMetadata = documentDefaultSchema.getMetadata(CommonMetadataBuilder.TITLE);
+			Metadata contentCheckedOutByMetadata = documentDefaultSchema.getMetadata(Document.CONTENT_CHECKED_OUT_BY);
 
 			metadataCodes = new ArrayList<>();
 			metadataCodes.add(documentIdentifierMetadata.getCode());
 			metadataCodes.add(titleMetadata.getCode());
+			metadataCodes.add(contentCheckedOutByMetadata.getCode());
 
 			schemaVO = new MetadataSchemaToVOBuilder()
 					.build(documentDefaultSchema, VIEW_MODE.TABLE, metadataCodes, view.getSessionContext(), true);

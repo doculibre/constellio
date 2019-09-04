@@ -33,6 +33,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.collections.exceptions.NoMoreCollectionAvalibleException;
+import com.constellio.model.services.extensions.ConstellioModulesManagerException.ConstellioModulesManagerException_ModuleInstallationFailed;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
@@ -51,6 +52,8 @@ import java.util.Set;
 import static java.util.Arrays.asList;
 
 public class CollectionsManager implements StatefulService {
+
+	public static String NEW_SYSTEM_MAIN_DATA_LANGUAGE = null;
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(CollectionsManager.class);
 
@@ -87,8 +90,12 @@ public class CollectionsManager implements StatefulService {
 		if (!collectionsListManager.getCollections().contains(Collection.SYSTEM_COLLECTION)) {
 			try {
 				createSystemCollection();
+			} catch (ConstellioModulesManagerException_ModuleInstallationFailed constellioModulesManagerException_moduleInstallationFailed) {
+				throw new RuntimeException(constellioModulesManagerException_moduleInstallationFailed);
+
 			} catch (NoMoreCollectionAvalibleException noMoreCollectionAvalibleException) {
 				throw new ImpossibleRuntimeException("System collection could not be created. Witch should never happen.");
+
 			}
 
 		}
@@ -121,8 +128,13 @@ public class CollectionsManager implements StatefulService {
 		}
 	}
 
-	private void createSystemCollection() throws NoMoreCollectionAvalibleException {
+	private void createSystemCollection() throws NoMoreCollectionAvalibleException, ConstellioModulesManagerException_ModuleInstallationFailed {
 		String mainDataLanguage = modelLayerFactory.getConfiguration().getMainDataLanguage();
+
+		if (NEW_SYSTEM_MAIN_DATA_LANGUAGE != null) {
+			mainDataLanguage = NEW_SYSTEM_MAIN_DATA_LANGUAGE;
+		}
+
 		List<String> languages = asList(mainDataLanguage);
 		createCollectionInCurrentVersion(Collection.SYSTEM_COLLECTION, languages);
 	}
@@ -260,22 +272,22 @@ public class CollectionsManager implements StatefulService {
 	}
 
 	public Record createCollectionInCurrentVersion(String code, String name, List<String> languages)
-			throws NoMoreCollectionAvalibleException {
+			throws ConstellioModulesManagerException_ModuleInstallationFailed, NoMoreCollectionAvalibleException {
 		return createCollectionInVersion(code, name, languages, null);
 	}
 
 	public Record createCollectionInCurrentVersion(String code, List<String> languages)
-			throws NoMoreCollectionAvalibleException {
+			throws ConstellioModulesManagerException_ModuleInstallationFailed, NoMoreCollectionAvalibleException {
 		return createCollectionInVersion(code, languages, null);
 	}
 
 	public Record createCollectionInVersion(String code, List<String> languages, String version)
-			throws NoMoreCollectionAvalibleException {
+			throws ConstellioModulesManagerException_ModuleInstallationFailed, NoMoreCollectionAvalibleException {
 		return createCollectionInVersion(code, code, languages, version);
 	}
 
 	public Record createCollectionInVersion(String code, String name, List<String> languages, String version)
-			throws NoMoreCollectionAvalibleException {
+			throws ConstellioModulesManagerException_ModuleInstallationFailed, NoMoreCollectionAvalibleException {
 		prepareCollectionCreationAndGetInvalidModules(code, name, languages, version);
 		return createCollectionAfterPrepare(code, name, languages);
 	}
@@ -289,9 +301,9 @@ public class CollectionsManager implements StatefulService {
 		return collectionRecord;
 	}
 
-	private Set<String> prepareCollectionCreationAndGetInvalidModules(String code, String name,
-																	  List<String> languages, String version)
-			throws NoMoreCollectionAvalibleException {
+	private void prepareCollectionCreationAndGetInvalidModules(String code, String name,
+															   List<String> languages, String version)
+			throws ConstellioModulesManagerException_ModuleInstallationFailed, NoMoreCollectionAvalibleException {
 		validateCode(code);
 
 		boolean reindexingRequired = systemGlobalConfigsManager.isReindexingRequired();
@@ -314,15 +326,14 @@ public class CollectionsManager implements StatefulService {
 		byte collectionId = collectionsListManager.registerPendingCollectionInfo(code, mainDataLanguage, languages);
 		createCollectionConfigs(code);
 		collectionsListManager.addCollection(code, languages, collectionId);
-		Set<String> returnList = new HashSet<>();
+
 		try {
-			returnList.addAll(migrationServicesDelayed.get().migrate(code, version, true));
+			migrationServicesDelayed.get().migrate(code, version, true);
 		} catch (OptimisticLockingConfiguration optimisticLockingConfiguration) {
 			throw new CollectionsManagerRuntimeException_CannotMigrateCollection(code, version, optimisticLockingConfiguration);
 		} finally {
 			systemGlobalConfigsManager.setReindexingRequired(reindexingRequired);
 		}
-		return returnList;
 	}
 
 	public void validateCode(String code) {
@@ -334,13 +345,11 @@ public class CollectionsManager implements StatefulService {
 		}
 	}
 
-	public Set<String> initializeCollectionsAndGetInvalidModules() {
-		Set<String> returnList = new HashSet<>();
+	public void initializeCollectionsAndGetInvalidModules() {
 		for (String collection : getCollectionCodes()) {
-			returnList.addAll(constellioModulesManager.startModules(collection));
+			constellioModulesManager.startModules(collection);
 			initializeCollection(collection);
 		}
-		return returnList;
 	}
 
 	public void initializeModulesResources() {
