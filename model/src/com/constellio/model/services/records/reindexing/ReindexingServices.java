@@ -168,6 +168,7 @@ public class ReindexingServices {
 
 				for (String collection : modelLayerFactory.getCollectionsListManager().getCollections()) {
 					reindexCollection(collection, params);
+					modelLayerFactory.getSecurityModelCache().invalidate(collection);
 				}
 
 				if (logManager != null && params.getReindexationMode().isFullRewrite()) {
@@ -200,6 +201,7 @@ public class ReindexingServices {
 
 			dataLayerFactory.getDataLayerLogger().setQueryLoggingEnabled(true);
 		}
+
 
 	}
 

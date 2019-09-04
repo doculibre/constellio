@@ -7,7 +7,10 @@ import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.modules.tasks.TasksEmailTemplates;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
+import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.data.dao.managers.config.ConfigManagerException;
+import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import org.apache.commons.io.IOUtils;
@@ -36,6 +39,7 @@ public class TasksMigrationTo8_3_1 extends MigrationHelper implements MigrationS
 
 		new SchemaAlterationFor8_3_1(collection, migrationResourcesProvider, appLayerFactory).migrate();
 		reloadEmailTemplates();
+		updateTaskFormAndDisplay(collection, appLayerFactory);
 	}
 
 	private void reloadEmailTemplates() {
@@ -46,6 +50,22 @@ public class TasksMigrationTo8_3_1 extends MigrationHelper implements MigrationS
 			reloadEmailTemplate("taskAssigneeToYouTemplate.html", TasksEmailTemplates.TASK_ASSIGNED_TO_YOU);
 			reloadEmailTemplate("taskReminderTemplate.html", TasksEmailTemplates.TASK_REMINDER);
 			reloadEmailTemplate("taskStatusModificationTemplate.html", TasksEmailTemplates.TASK_STATUS_MODIFIED);
+		}
+	}
+
+	private void updateTaskFormAndDisplay(String collection, AppLayerFactory appLayerFactory) {
+		if (!Collection.SYSTEM_COLLECTION.equals(collection)) {
+			SchemasDisplayManager manager = appLayerFactory.getMetadataSchemasDisplayManager();
+
+			SchemaTypesDisplayTransactionBuilder transactionBuilder = manager.newTransactionBuilderFor(collection);
+
+			transactionBuilder.in(Task.SCHEMA_TYPE)
+					.removeFromDisplay(Task.READ_BY_USER);
+
+			transactionBuilder.in(Task.SCHEMA_TYPE)
+					.removeFromForm(Task.READ_BY_USER);
+
+			manager.execute(transactionBuilder.build());
 		}
 	}
 

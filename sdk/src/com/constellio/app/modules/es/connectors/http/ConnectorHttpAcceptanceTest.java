@@ -1333,10 +1333,6 @@ public class ConnectorHttpAcceptanceTest extends ConstellioTest {
 		return es.getConnectorHttpDocumentByUrl(url).getId();
 	}
 
-	private ConnectorHttpContext loadContext() {
-		return new ConnectorHttpContextServices(es).loadContext(connectorInstance.getId());
-	}
-
 	private void givenTestWebsiteInState1() {
 		if (server != null) {
 			try {

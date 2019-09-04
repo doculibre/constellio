@@ -15,6 +15,7 @@ import com.constellio.data.utils.BatchBuilderSearchResponseIterator;
 import com.constellio.data.utils.Holder;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.dev.Toggle;
+import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.DataStoreField;
@@ -1586,5 +1587,41 @@ public class SearchServices {
 		} else {
 			return modelLayerFactory.getDataLayerFactory().newEventsDao();
 		}
+	}
+
+	public Set<String> getHashesOf(LogicalSearchQuery query) {
+		Set<String> hashes = new HashSet<>();
+		String collection = getCollection(query);
+		List<MetadataSchemaType> types = getSearchedTypes(query, metadataSchemasManager.getSchemaTypes(collection));
+		if (types.size() != 1) {
+			throw new IllegalArgumentException("Query must be searching in exactly one schema type");
+		}
+		MetadataSchemaType schemaType = types.get(0);
+
+		List<Metadata> contentMetadatas = schemaType.getAllMetadatas().onlyWithType(MetadataValueType.CONTENT);
+
+		if (contentMetadatas.isEmpty()) {
+			return Collections.emptySet();
+		}
+
+		query.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(contentMetadatas));
+		query.setCondition(query.getCondition().andWhereAny(contentMetadatas).isNotNull());
+
+		Iterator<Record> recordIterator = recordsIterator(query, 1000);
+		while (recordIterator.hasNext()) {
+			Record record = recordIterator.next();
+			for (Metadata contentMetadata : contentMetadatas) {
+				for (Content content : record.<Content>getValues(contentMetadata)) {
+					hashes.addAll(content.getHashOfAllVersions());
+				}
+			}
+		}
+
+		return hashes;
+	}
+
+
+	public Set<String> getHashesOf(LogicalSearchCondition condition) {
+		return getHashesOf(new LogicalSearchQuery(condition));
 	}
 }

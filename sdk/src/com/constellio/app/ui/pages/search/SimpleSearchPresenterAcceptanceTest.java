@@ -325,14 +325,14 @@ public class SimpleSearchPresenterAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenCreatedSavedSearchThenCreatedProperly() {
 		simpleSearchPresenter.saveSearch("New Title", false,
-				asList(users.alice().getId(), users.bob().getId()), users.aliceIn(zeCollection).getUserGroups());
+				asList(users.aliceIn(zeCollection).getId(), users.bobIn(zeCollection).getId()), users.aliceIn(zeCollection).getUserGroups());
 
 		SavedSearch savedSearch =
 				rm.wrapSavedSearch(searchServices.getAllRecords(types.getSchemaType(SavedSearch.SCHEMA_TYPE)).get(0));
 
 		assertThat(savedSearch.getTitle()).isEqualTo("New Title");
 		assertThat(savedSearch.isPublic()).isFalse();
-		assertThat(savedSearch.getSharedUsers()).containsOnly(users.alice().getId(), users.bob().getId());
+		assertThat(savedSearch.getSharedUsers()).containsOnly(users.aliceIn(zeCollection).getId(), users.bobIn(zeCollection).getId());
 		assertThat(savedSearch.getSharedGroups())
 				.containsOnly(users.aliceIn(zeCollection).getUserGroups().toArray(new String[0]));
 	}

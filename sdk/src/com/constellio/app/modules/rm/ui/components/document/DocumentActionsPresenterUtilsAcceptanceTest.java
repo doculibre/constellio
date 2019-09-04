@@ -47,7 +47,9 @@ import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 /**
  * Created by Constellio on 2016-12-08.
@@ -246,7 +248,7 @@ public class DocumentActionsPresenterUtilsAcceptanceTest extends ConstellioTest 
 				records.getFolder_A01().getId());
 		transaction.add(documentWithoutContent.setTitle("withoutContent"));
 
-		cart = rm.getOrCreateUserCart(users.aliceIn(zeCollection));
+		cart = (Cart) rm.getOrCreateUserCart(users.aliceIn(zeCollection)).setTitle("Mon panier!!");
 		List<Record> documents = asList(document11WithContent1HavingTitle1.getWrappedRecord(),
 				document12WithContent1HavingTitle2.getWrappedRecord(),
 				document21WithContent2HavingTitle1.getWrappedRecord(),

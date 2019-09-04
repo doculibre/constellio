@@ -48,12 +48,6 @@ public class AllAdminServicesAcceptTest extends ConstellioTest {
 		runAdminServicesLoginAcceptanceTest().givenServiceKeyIsModifiedThenPreviousServiceKeyDoNotWorkAnymore();
 	}
 
-	@Test
-	public void whenCreateCollectionThenItIsCreated()
-			throws Exception {
-		runCollectionsManagementAcceptTest().whenCreateCollectionThenItIsCreated();
-	}
-
 	//TODO Broken @Test
 	public void whenUsingDriverThenCanConfigureSchemaTypes()
 			throws Exception {

@@ -1,9 +1,12 @@
 package com.constellio.app.extensions;
 
+import com.constellio.app.api.extensions.RecordExportExtension;
 import com.constellio.model.entities.CollectionObject;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 public class AppLayerExtensions {
 
@@ -26,4 +29,14 @@ public class AppLayerExtensions {
 		return systemWideExtensions;
 	}
 
+	public Set<String> getHashsToIncludeInSystemExport() {
+		Set<String> hashes = new HashSet<>();
+		for (AppLayerCollectionExtensions extensions : collectionExtensions.values()) {
+			for (RecordExportExtension extension : extensions.recordExportExtensions) {
+				hashes.addAll(extension.getHashsToInclude());
+			}
+		}
+
+		return hashes;
+	}
 }

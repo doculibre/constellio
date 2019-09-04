@@ -23,6 +23,9 @@ import java.util.List;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.ALL;
 import static com.constellio.sdk.tests.TestUtils.assertThatRecords;
 import static java.util.Arrays.asList;
+import static com.constellio.sdk.tests.TestUtils.asList;
+import static com.constellio.sdk.tests.TestUtils.assertThatRecords;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 
 public class SIPBuildAsyncTaskAcceptanceTest extends ConstellioTest {
@@ -93,13 +96,9 @@ public class SIPBuildAsyncTaskAcceptanceTest extends ConstellioTest {
 				.getSchemaType(SIParchive.SCHEMA_TYPE).getCustomSchema(SIParchive.SCHEMA_NAME);
 		LogicalSearchCondition allCondition = LogicalSearchQueryOperators.from(sipArchiveSchema).where(ALL);
 		List<TemporaryRecord> records = rm.wrapTemporaryRecords(searchServices.search(new LogicalSearchQuery(allCondition)));
-		assertThatRecords(records).extractingMetadata("title").containsOnly(
-				"testFileName (1 de 5).zip",
-				"testFileName (2 de 5).zip",
-				"testFileName (3 de 5).zip",
-				"testFileName (4 de 5).zip",
-				"testFileName (5 de 5).zip"
-		);
+		assertThatRecords(records).extractingMetadata("title").containsOnly(testfileName + ".zip");
+		TemporaryRecord record = records.get(0);
+		assertThat(record.getContent()).isNotNull();
 	}
 
 	@Test

@@ -31,4 +31,35 @@
         <status>a</status>
         <domain>domain</domain>
     </userCredential>
+    <userCredential username="bobino">
+        <firstName>Guy 'Bobino'</firstName>
+        <lastName>Sanche</lastName>
+        <email>bobino@doculibre.com</email>
+        <serviceKey>null</serviceKey>
+        <tokens/>
+        <systemAdmin>false</systemAdmin>
+        <globalGroups multivalue="true">
+        </globalGroups>
+        <collections multivalue="true">
+            <item>zeCollection</item>
+        </collections>
+        <status>a</status>
+        <domain>domain</domain>
+    </userCredential>
+    <userCredential username="Bobinette">
+        <firstName>Paule 'Bobinette'</firstName>
+        <lastName>Bayard</lastName>
+        <password>marionnette</password>
+        <email>bobinette@doculibre.com</email>
+        <serviceKey>null</serviceKey>
+        <tokens/>
+        <systemAdmin>false</systemAdmin>
+        <globalGroups multivalue="true">
+        </globalGroups>
+        <collections multivalue="true">
+            <item>zeCollection</item>
+        </collections>
+        <status>a</status>
+        <domain>domain</domain>
+    </userCredential>
 </userCredentials>

@@ -112,10 +112,9 @@ public class SIPBuildAsyncTask implements AsyncTask {
 		DefaultSIPZipBagInfoFactory bagInfoFactory = new DefaultSIPZipBagInfoFactory(appLayerFactory, locale);
 		bagInfoFactory.setHeaderLines(bagInfoLines);
 
-		long zipMaximumLength = limitSize ? SIP_MAX_FILES_LENGTH : 0;
 		SIPFileNameProvider sipFileNameProvider = new DefaultSIPFileNameProvider(outFolder, sipFileName);
 		AutoSplittedSIPZipWriter writer = new AutoSplittedSIPZipWriter(
-				appLayerFactory, sipFileNameProvider, zipMaximumLength, bagInfoFactory);
+				appLayerFactory, sipFileNameProvider, SIP_MAX_FILES_LENGTH, bagInfoFactory);
 		sipBuilder.buildWithFoldersAndDocuments(writer, this.includeFolderIds, this.includeDocumentIds, new ProgressInfo() {
 			@Override
 			public void setEnd(long end) {

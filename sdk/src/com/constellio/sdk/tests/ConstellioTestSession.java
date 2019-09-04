@@ -141,42 +141,45 @@ public class ConstellioTestSession {
 
 		List<Runnable> runnables = new ArrayList<>();
 		try {
-			if (factoriesTestFeatures != null) {
-				runnables = factoriesTestFeatures.afterTest();
-			}
-		} finally {
-			if (streamsTestFeatures != null) {
-				streamsTestFeatures.afterTest();
-			}
-			if (fileSystemTestFeatures != null) {
-				fileSystemTestFeatures.close();
-			}
-			if (schemaTestFeatures != null) {
-				schemaTestFeatures.afterTest(firstClean);
-			}
+			try {
+				if (factoriesTestFeatures != null) {
+					runnables = factoriesTestFeatures.afterTest();
+				}
+			} finally {
 
-			if (streamsTestFeatures != null) {
-				List<String> unClosedResources = streamsTestFeatures.getUnClosedResources();
-				if (!unClosedResources.isEmpty()) {
-					throw new RuntimeException("Resources were not closed : " + unClosedResources.toString());
+				if (streamsTestFeatures != null) {
+					streamsTestFeatures.afterTest();
+				}
+				if (fileSystemTestFeatures != null) {
+					fileSystemTestFeatures.close();
+				}
+				if (schemaTestFeatures != null) {
+					schemaTestFeatures.afterTest(firstClean);
+				}
+
+				if (streamsTestFeatures != null) {
+					List<String> unClosedResources = streamsTestFeatures.getUnClosedResources();
+					if (!unClosedResources.isEmpty()) {
+						throw new RuntimeException("Resources were not closed : " + unClosedResources.toString());
+					}
+				}
+
+				TimeProvider.setTimeProvider(new DefaultTimeProvider());
+				if (TimeProvider.getLocalDate().getYear() < 2015) {
+					throw new RuntimeException(
+							"The local date returned by the system is invalid : " + TimeProvider.getLocalDate());
+				}
+
+				if (exception != null) {
+					throw new RuntimeException(exception);
 				}
 			}
 
-			TimeProvider.setTimeProvider(new DefaultTimeProvider());
-			if (TimeProvider.getLocalDate().getYear() < 2015) {
-				throw new RuntimeException(
-						"The local date returned by the system is invalid : " + TimeProvider.getLocalDate());
-			}
-
-			if (exception != null) {
-				throw new RuntimeException(exception);
+		} finally {
+			for (Runnable runnable : runnables) {
+				runnable.run();
 			}
 		}
-
-		for (Runnable runnable : runnables) {
-			runnable.run();
-		}
-
 	}
 
 	public AfterTestValidationsTestFeature getAfterTestValidationsTestFeature() {

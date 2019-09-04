@@ -12,6 +12,7 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.security.authentification.PasswordFileAuthenticationService;
 import com.constellio.model.services.users.SolrUserCredentialsManager;
 import com.constellio.model.services.users.UserServices;
+import com.rometools.utils.Strings;
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -132,7 +133,7 @@ public class UserImportServices implements ImportServices {
 					username, firstName, lastName, email, globalGroups, collections, userCredentialStatus);
 		}
 		try {
-			if (solrUserCredentialsManager.getUserCredential(username) == null) {
+			if (solrUserCredentialsManager.getUserCredential(username) == null && Strings.isNotEmpty(password)) {
 				passwordFileAuthenticationService.changePassword(username, password);
 			}
 			userServices.addUpdateUserCredential(userCredential);

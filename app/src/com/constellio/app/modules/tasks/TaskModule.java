@@ -18,6 +18,7 @@ import com.constellio.app.modules.tasks.extensions.TaskRecordNavigationExtension
 import com.constellio.app.modules.tasks.extensions.TaskSchemaTypesPageExtension;
 import com.constellio.app.modules.tasks.extensions.TaskStatusSchemasExtension;
 import com.constellio.app.modules.tasks.extensions.TaskUserProfileFieldsExtension;
+import com.constellio.app.modules.tasks.extensions.TasksRecordExportExtension;
 import com.constellio.app.modules.tasks.extensions.WorkflowRecordExtension;
 import com.constellio.app.modules.tasks.extensions.api.TaskModuleExtensions;
 import com.constellio.app.modules.tasks.extensions.schema.TaskTrashSchemaExtension;
@@ -94,6 +95,7 @@ public class TaskModule implements InstallableSystemModule, ModuleWithComboMigra
 		scripts.add(new TasksMigrationTo8_1_5());
 		scripts.add(new TasksMigrationTo8_2_42());
 		scripts.add(new TasksMigrationTo8_3_1());
+		//		scripts.add(new TasksMigrationTo_8_3_1_1());
 
 		return scripts;
 	}
@@ -134,6 +136,7 @@ public class TaskModule implements InstallableSystemModule, ModuleWithComboMigra
 		extensions.recordNavigationExtensions.add(new TaskRecordNavigationExtension(appLayerFactory, collection));
 		extensions.schemaTypesPageExtensions.add(new TaskSchemaTypesPageExtension());
 		extensions.pagesComponentsExtensions.add(new TaskUserProfileFieldsExtension(collection, appLayerFactory));
+		extensions.recordExportExtensions.add(new TasksRecordExportExtension(collection, appLayerFactory));
 
 		extensions.registerModuleExtensionsPoint(ID, new TaskModuleExtensions(appLayerFactory));
 
