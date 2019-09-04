@@ -783,6 +783,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
 				}
 			}
 		};
+		previousButton.addStyleName("chevron");
 		previousButton.addStyleName("previous-button");
 		previousButton.setWidth("24px");
 		previousButton.addExtension(new NiceTitle(caption, false));
@@ -800,6 +801,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
 				}
 			}
 		};
+		nextButton.addStyleName("chevron");
 		nextButton.addStyleName("next-button");
 		nextButton.setWidth("24px");
 		nextButton.addExtension(new NiceTitle(caption, false));

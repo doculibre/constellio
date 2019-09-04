@@ -11918,6 +11918,12 @@ div.v-layout.v-horizontal.v-widget {
 	color: gray;
 }
 
+.constellio .v-button.chevron:focus:after {
+	box-shadow: none;
+	border: none;
+	-webkit-box-shadow: none;
+}
+
 .constellio .djs-container .highlight .djs-outline {
 	stroke-width: 2px important;
 	stroke: #08c !important;

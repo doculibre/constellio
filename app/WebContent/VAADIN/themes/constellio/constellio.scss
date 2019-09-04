@@ -75,6 +75,12 @@ $popup-view-z-index: 3;
 
 @mixin constellio {
 
+    .v-button.chevron:focus:after  {
+        box-shadow: none;
+        border: none;
+        -webkit-box-shadow: none;
+    }
+
 	.djs-container .highlight .djs-outline {
 	   stroke-width: 2px important;
 	   stroke: #08c !important;

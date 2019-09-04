@@ -759,7 +759,11 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 	@Override
 	public String getTitle() {
-		return $("DisplayDocumentView.viewTitle");
+		if (!nestedView) {
+			return $("DisplayDocumentView.viewTitle");
+		} else {
+			return null;
+		}
 	}
 
 	@Override
