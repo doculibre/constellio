@@ -1,5 +1,8 @@
 package com.constellio.app.ui.framework.components;
 
+import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.handlers.OnEnterKeyHandler;
 import com.constellio.app.ui.util.MessageUtils;
@@ -15,7 +18,6 @@ import com.vaadin.data.fieldgroup.FieldGroup;
 import com.vaadin.data.fieldgroup.FieldGroup.CommitException;
 import com.vaadin.data.util.BeanItem;
 import com.vaadin.data.validator.AbstractValidator;
-import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.ui.AbstractField;
 import com.vaadin.ui.Button;
@@ -176,7 +178,7 @@ public abstract class BaseForm<T> extends CustomComponent {
 		buttonsLayout.setSpacing(true);
 
 		saveButton = new Button(getSaveButtonCaption());
-		saveButton.addStyleName(SAVE_BUTTON);
+		//		saveButton.addStyleName(SAVE_BUTTON);
 		saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
 		saveButton.addClickListener(new ClickListener() {
 			@Override
@@ -297,13 +299,25 @@ public abstract class BaseForm<T> extends CustomComponent {
 				panel.addStyleName(ValoTheme.PANEL_BORDERLESS);
 				panel.addStyleName("base-form-tab-panel");
 				panel.setWidth("100%");
-				panel.setHeight((Page.getCurrent().getBrowserWindowHeight() - 250) + "px");
+
 				tabs.put(tabCaption, panel);
 				if (tabIcon != null) {
 					tabSheet.addTab(panel, tabCaption, tabIcon);
 				} else {
 					tabSheet.addTab(panel, tabCaption);
 				}
+				AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
+
+				List<String> tabCaptionToIgnore = appLayerFactory.getExtensions().
+						forCollection(ConstellioUI.getCurrentSessionContext().getCurrentCollection()).
+						getTabSheetCaptionToHideInDisplayAndForm();
+
+				if (tabCaptionToIgnore.contains(groupLabel)) {
+					Tab tab = tabSheet.getTab(panel);
+					tab.setVisible(false);
+					tab.setEnabled(false);
+				}
+
 			} else {
 				fieldLayout = (VerticalLayout) panel.getContent();
 			}

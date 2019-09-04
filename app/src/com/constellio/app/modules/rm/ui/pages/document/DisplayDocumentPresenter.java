@@ -143,6 +143,10 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		}
 	}
 
+	public boolean isInWindow() {
+		return inWindow;
+	}
+
 	private void initTransientObjects() {
 		recordServices = modelLayerFactory.newRecordServices();
 	}

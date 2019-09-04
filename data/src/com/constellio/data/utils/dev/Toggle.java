@@ -95,6 +95,8 @@ public class Toggle {
 
 
 
+	public static AvailableToggle DEACTIVATE_WORKFLOW_ACTIONS = newToggle(true);
+
 	// ------------------------------------------------
 
 	private static Map<String, AvailableToggle> toggleMap = new HashMap<>();

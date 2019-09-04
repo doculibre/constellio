@@ -178,7 +178,7 @@ public class DisplaySchemaRecordViewImpl extends BaseViewImpl implements Display
 
 	@Override
 	protected boolean isBreadcrumbsVisible() {
-		return !nestedView;
+		return !nestedView && !isInWindow;
 	}
 
 	@Override
