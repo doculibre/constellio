@@ -303,9 +303,6 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	public void viewAssembled() {
 		presenterUtils.updateActionsComponent();
 		view.setTasks(tasksDataProvider);
-		if (hasCurrentUserPermissionToViewEvents()) {
-			view.setEvents(eventsDataProvider);
-		}
 		view.setPublishButtons(presenterUtils.isDocumentPublished());
 	}
 
