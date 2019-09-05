@@ -27,7 +27,7 @@ public class ArchiveManagementViewImpl extends BaseViewImpl implements ArchiveMa
 
 	private final ArchiveManagementPresenter presenter;
 
-	private Button decommissioning, multipleContainers, newContainer, containers, reports, availableSpace, baginfo;
+	private Button decommissioning, multipleContainers, containers, reports, availableSpace, baginfo;
 
 	public ArchiveManagementViewImpl() {
 		presenter = new ArchiveManagementPresenter(this);
@@ -97,11 +97,6 @@ public class ArchiveManagementViewImpl extends BaseViewImpl implements ArchiveMa
 	@Override
 	public void setDecommissioningButtonVisible(boolean visible) {
 		decommissioning.setVisible(visible);
-	}
-
-	@Override
-	public void setNewContainerButtonVisible(boolean visible) {
-		newContainer.setVisible(visible);
 	}
 
 	@Override
