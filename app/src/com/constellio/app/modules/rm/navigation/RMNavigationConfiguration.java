@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.navigation;
 
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.entities.navigation.NavigationItem;
+import com.constellio.app.entities.navigation.NavigationItem.Active;
 import com.constellio.app.entities.navigation.PageItem.RecentItemTable;
 import com.constellio.app.entities.navigation.PageItem.RecordTable;
 import com.constellio.app.entities.navigation.PageItem.RecordTree;
@@ -96,6 +97,7 @@ public class RMNavigationConfiguration implements Serializable {
 	public static final String ADD_FOLDER = "addFolder";
 	public static final String ADD_SUB_FOLDER = "addSubFolder";
 	public static final String ADD_DOCUMENT = "addDocument";
+	public static final String ADD_CONTAINER_RECORD = "addContainerRecord";
 
 	public static final String LAST_VIEWED_FOLDERS = "lastViewedFolders";
 	public static final String LAST_VIEWED_DOCUMENTS = "lastViewedDocuments";
@@ -260,6 +262,18 @@ public class RMNavigationConfiguration implements Serializable {
 				return enabledIf(user.has(RMPermissionsTo.CREATE_DOCUMENTS).onSomething());
 			}
 		}, 2);
+
+		config.add(ConstellioHeader.ACTION_MENU, new Active(ADD_CONTAINER_RECORD) {
+			@Override
+			public void activate(Navigation navigate) {
+				navigate.to(RMViews.class).addContainer();
+			}
+
+			@Override
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
+				return enabledIf(user.has(RMPermissionsTo.MANAGE_CONTAINERS).onSomething());
+			}
+		}, 3);
 	}
 
 	private static void configureHomeFragments(NavigationConfig config) {
