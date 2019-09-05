@@ -91,23 +91,30 @@ public class DecommissioningListQueryFactoryAcceptanceTest extends ConstellioTes
 	public void givenUserHasProcessPermissionWhenSearchingListsPendingValidationThenReturnListsPendingValidationNotApproval()
 			throws RecordServicesException {
 		DecommissioningList list = addListWithValidationRequestToBobAndChuck();
-		LogicalSearchQuery query = queryFactory.getListsPendingValidationQuery(records.getAdmin());
-		assertThat(searchServices.search(query)).extracting("id").containsOnly(list.getId());
+		User admin = records.getAdmin();
+		LogicalSearchQuery query = queryFactory.getListsPendingValidationQuery(admin);
+		List<Record> decommissioningListsProcessable = searchServices.search(query);
+		assertThat(decommissioningListsProcessable).extracting("id").containsOnly(list.getId(), records.list_25);
+		for (Record decommissioningList : decommissioningListsProcessable) {
+			assertThat(admin.has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).on(decommissioningList)).isTrue();
+			assertThat(admin.has(RMPermissionsTo.CREATE_DECOMMISSIONING_LIST).on(decommissioningList)).isTrue();
+		}
+
 	}
 
 	@Test
-	public void givenUserHasProcessPermissionWhenSearchingListsPendingValidationThenDoNotReturnListsTheUserMustValidate()
+	public void givenUserHasProcessPermissionWhenSearchingListsPendingValidationThenReturnListsTheUserMustValidate()
 			throws RecordServicesException {
 		addListWithValidationRequestToBobAndChuck();
 		LogicalSearchQuery query = queryFactory.getListsPendingValidationQuery(records.getChuckNorris());
-		assertThat(searchServices.hasResults(query)).isFalse();
+		assertThat(searchServices.search(query)).extracting("id").containsOnly(records.list_25);
 	}
 
 	@Test
-	public void givenNoValidationRequestWhenSearchingListsToValidateThenReturnNone()
+	public void givenNoValidationRequestWhenSearchingListsToValidateThenReturn()
 			throws RecordServicesException {
 		LogicalSearchQuery query = queryFactory.getListsPendingValidationQuery(records.getChuckNorris());
-		assertThat(searchServices.hasResults(query)).isFalse();
+		assertThat(searchServices.search(query)).extracting("id").containsOnly(records.list_25);
 	}
 
 	@Test
