@@ -162,21 +162,6 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		ContentVersionVO contentVersionVO = documentVO.get(Document.CONTENT);
 		final ContentViewer contentViewer = new ContentViewer(documentVO, Document.CONTENT, contentVersionVO);
 
-		//		contentViewer.addImageViewerVisibilityChangeListener(new VisibilityChangeListener() {
-		//			@Override
-		//			public void onVisibilityChange(VisibilityChangeEvent visibilityChangeEvent) {
-		//				if (contentViewer != null && !visibilityChangeEvent.isNewVisibilily()) {
-		//
-		//					if (!contentViewer.isViewerComponentVisible()
-		//						&& contentMetadataComponent instanceof CollapsibleHorizontalSplitPanel
-		//						&& ((CollapsibleHorizontalSplitPanel)contentMetadataComponent).getRealFirstComponent() == contentViewer) {
-		//
-		//						visibilityChangeEvent.setRemoveThisVisiblityLisener(true);
-		//					}
-		//				}
-		//			}
-		//		});
-
 		return contentViewer;
 	}
 
@@ -288,8 +273,6 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 				} else if (event.getTabSheet().getSelectedTab() == eventsComponent) {
 					presenter.eventsTabSelected();
-				} else if (event.getTabSheet().getSelectedTab() == contentViewer) {
-					contentViewer.attach();
 				}
 			}
 		});
