@@ -81,27 +81,10 @@ import java.util.List;
 import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
-import org.apache.commons.io.output.ByteArrayOutputStream;
-import org.apache.commons.lang3.StringUtils;
-import org.vaadin.dialogs.ConfirmDialog;
-
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-import static com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration.modalDialog;
-import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocumentView, DropHandler {
 
 	private VerticalLayout mainLayout;
-
 	private Label borrowedLabel;
 	private RecordVO documentVO;
 	private String taxonomyCode;
@@ -128,6 +111,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	private boolean nestedView;
 
 	private List<Window.CloseListener> editWindowCloseListeners = new ArrayList<>();
+	private Component contentMetadataComponent;
 
 	public DisplayDocumentViewImpl() {
 		this(null, false, false);
@@ -151,7 +135,14 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 	@Override
 	protected void afterViewAssembled(ViewChangeEvent event) {
+		if (!contentViewer.isViewerComponentVisible()
+			&& contentMetadataComponent instanceof CollapsibleHorizontalSplitPanel
+			&& ((CollapsibleHorizontalSplitPanel) contentMetadataComponent).getRealFirstComponent() == contentViewer) {
+			mainLayout.replaceComponent(contentMetadataComponent, tabSheet);
+		}
+
 		presenter.viewAssembled();
+
 	}
 
 	@Override
@@ -169,7 +160,23 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 	private ContentViewer newContentViewer() {
 		ContentVersionVO contentVersionVO = documentVO.get(Document.CONTENT);
-		ContentViewer contentViewer = new ContentViewer(documentVO, Document.CONTENT, contentVersionVO);
+		final ContentViewer contentViewer = new ContentViewer(documentVO, Document.CONTENT, contentVersionVO);
+
+		//		contentViewer.addImageViewerVisibilityChangeListener(new VisibilityChangeListener() {
+		//			@Override
+		//			public void onVisibilityChange(VisibilityChangeEvent visibilityChangeEvent) {
+		//				if (contentViewer != null && !visibilityChangeEvent.isNewVisibilily()) {
+		//
+		//					if (!contentViewer.isViewerComponentVisible()
+		//						&& contentMetadataComponent instanceof CollapsibleHorizontalSplitPanel
+		//						&& ((CollapsibleHorizontalSplitPanel)contentMetadataComponent).getRealFirstComponent() == contentViewer) {
+		//
+		//						visibilityChangeEvent.setRemoveThisVisiblityLisener(true);
+		//					}
+		//				}
+		//			}
+		//		});
+
 		return contentViewer;
 	}
 
@@ -281,11 +288,12 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 				} else if (event.getTabSheet().getSelectedTab() == eventsComponent) {
 					presenter.eventsTabSelected();
+				} else if (event.getTabSheet().getSelectedTab() == contentViewer) {
+					contentViewer.attach();
 				}
 			}
 		});
 
-		Component contentMetadataComponent;
 		if (contentViewerInitiallyVisible && !nestedView) {
 			CollapsibleHorizontalSplitPanel splitPanel = new CollapsibleHorizontalSplitPanel(DisplayDocumentViewImpl.class.getName());
 			splitPanel.setFirstComponent(contentViewer);
