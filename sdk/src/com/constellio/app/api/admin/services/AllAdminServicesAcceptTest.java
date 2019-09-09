@@ -6,6 +6,7 @@ import com.constellio.sdk.tests.annotations.SlowTest;
 import org.junit.After;
 import org.junit.Test;
 
+// Comment to test commit
 @SlowTest
 @DriverTest
 public class AllAdminServicesAcceptTest extends ConstellioTest {
