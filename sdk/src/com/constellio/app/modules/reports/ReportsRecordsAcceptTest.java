@@ -82,11 +82,14 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
 		ContentVersionDataSummary upload = contentManager.upload(new FileInputStream(file.getAbsolutePath()), "Etiquette")
 				.getContentVersionDataSummary();
 		Content c = contentManager.createSystemContent("test-" + LocalDate.now() + ".jasper", upload);
-		Printable r = rm.newPrintableLabel();
+		PrintableLabel r = rm.newPrintableLabel();
 		r.setTitle(title);
 		r.setJasperFile(c);
 		Transaction t = new Transaction();
 		t.add(r);
+		r.setLigne(4);
+		r.setColonne(2);
+
 		recordServices.execute(t);
 
 		LogicalSearchCondition condition = from(rm.printable_label.schemaType()).where(rm.printable_label.title())
@@ -108,6 +111,8 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
 		PrintableLabel printableLabel = rm.newPrintableLabel();
 		printableLabel.setJasperFile(c);
 		printableLabel.setTitle(title);
+		printableLabel.setLigne(4);
+		printableLabel.setColonne(2);
 
 		Transaction t = new Transaction();
 		t.add(printableLabel);
