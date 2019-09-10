@@ -37,6 +37,7 @@ import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderView;
 import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderViewImpl;
 import com.constellio.app.modules.rm.ui.pages.home.CheckedOutDocumentsTable;
 import com.constellio.app.modules.rm.ui.pages.management.ArchiveManagementViewImpl;
+import com.constellio.app.modules.rm.ui.pages.personalspace.PersonnalSpaceView;
 import com.constellio.app.modules.rm.ui.pages.reports.RMReportsViewImpl;
 import com.constellio.app.modules.rm.ui.pages.retentionRule.AddEditRetentionRuleViewImpl;
 import com.constellio.app.modules.rm.ui.pages.retentionRule.DisplayRetentionRuleViewImpl;
@@ -150,11 +151,13 @@ public class RMNavigationConfiguration implements Serializable {
 	public static final String LIST_RETENTION_RULES = "listRetentionRules";
 	public static final String RETENTION_RULES_SEARCH = "retentionRuleSearch";
 	public static final String LIST_USER_DOCUMENTS = "listUserDocuments";
+	public static final String LIST_USER_DOCUMENTS_ICON = "images/icons/config/briefcase.png";
 
 
 	public static void configureNavigation(NavigationConfig config) {
 		configureHeaderActionMenu(config);
 		configureHomeFragments(config);
+		configurePersonalSpace(config);
 		configureCollectionAdmin(config);
 		configureMainLayoutNavigation(config);
 	}
@@ -343,6 +346,25 @@ public class RMNavigationConfiguration implements Serializable {
 			public RecordVODataProvider getDataProvider(AppLayerFactory appLayerFactory,
 														SessionContext sessionContext) {
 				return new CheckedOutDocumentsTable(appLayerFactory, sessionContext).getDataProvider();
+			}
+		});
+	}
+
+	private static void configurePersonalSpace(NavigationConfig config) {
+		config.add(PersonnalSpaceView.PERSONAL_SPACE, new NavigationItem.Active(LIST_USER_DOCUMENTS, LIST_USER_DOCUMENTS_ICON) {
+			@Override
+			public void activate(Navigation navigate) {
+				navigate.to(RMViews.class).listUserDocuments();
+			}
+
+			@Override
+			public int getOrderValue() {
+				return 1;
+			}
+
+			@Override
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
+				return visibleIf(true);
 			}
 		});
 	}
