@@ -690,6 +690,12 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 		return recordServices.get().toRecord(dto, dto.getLoadingMode() == FULLY_LOADED);
 	}
 
+	@Override
+	public int estimateMaxResultSizeUsingIndexedMetadata(MetadataSchemaType schemaType, Metadata metadata,
+														 String value) {
+		return metadataIndexCacheDataStore.estimateMaxResultSizeUsingIndexedMetadata(schemaType, metadata, value);
+	}
+
 	protected Record getByMetadata(byte collectionId, Metadata metadata, String value) {
 		if (metadata.isSameLocalCode(Schemas.IDENTIFIER)) {
 			return getRecord(value, metadata.getCollection(), null);

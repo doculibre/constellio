@@ -311,6 +311,20 @@ public class MetadataSchemaType implements Serializable {
 		return Collections.unmodifiableList(referenceMetadatas);
 	}
 
+
+	public List<Metadata> getAllParentReferencesTo(String metadataSchemaType) {
+		List<Metadata> refs = new ArrayList<>();
+
+
+		for (Metadata parentReferenceMetadata : defaultSchema.getParentReferences()){
+			if (parentReferenceMetadata.getReferencedSchemaType().equals(metadataSchemaType)) {
+				refs.add(parentReferenceMetadata);
+			}
+		}
+
+		return refs;
+	}
+
 	public List<Metadata> getAllParentReferences() {
 		List<Metadata> parentReferenceMetadatas = new ArrayList<>();
 

@@ -13,6 +13,7 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.data.dao.services.idGenerator.ZeroPaddedSequentialUniqueIdGenerator;
 import com.constellio.data.extensions.AfterQueryParams;
 import com.constellio.data.extensions.BigVaultServerExtension;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
@@ -62,7 +63,7 @@ import static com.constellio.model.services.taxonomies.TaxonomiesTestsUtils.crea
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioTest {
+public class TaxonomiesSearchServices_VisibleTreesLegacyAcceptTest extends ConstellioTest {
 
 	private static final boolean VALIDATE_SOLR_QUERIES_COUNT = true;
 
@@ -91,7 +92,7 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 				withZeCollection().withAllTest(users).withConstellioRMModule().withRMTest(records)
 						.withFoldersAndContainersOfEveryStatus()
 		);
-
+		Toggle.TRY_USING_NEW_CACHE_BASED_TAXONOMIES_SEARCH_SERVICES_QUERY_HANDLER.disable();
 		inCollection(zeCollection).giveReadAccessTo(admin);
 
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
