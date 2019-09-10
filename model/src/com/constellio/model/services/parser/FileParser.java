@@ -121,7 +121,9 @@ public class FileParser {
 		if (!options.isBeautify()) {
 			return parseWithoutBeautifying(inputStreamStreamFactory, length, options.isDetectLanguage(), options.isOcr());
 		}
-		return parse(inputStreamStreamFactory, length, options.isDetectLanguage(), options.isOcr());
+
+
+		return parse(inputStreamStreamFactory, length, options.isDetectLanguage(), options.isOcr(), options.getParsedContentText());
 	}
 
 	public ParsedContent parse(StreamFactory<InputStream> inputStreamFactory, long length)
@@ -140,7 +142,7 @@ public class FileParser {
 		CopyInputStreamFactory inputStreamFactory = null;
 		try {
 			inputStreamFactory = ioServices.copyToReusableStreamFactory(inputStream, null);
-			return parse(inputStreamFactory, inputStreamFactory.length(), detectLanguage, ocr);
+			return parse(inputStreamFactory, inputStreamFactory.length(), detectLanguage, ocr, null);
 		} finally {
 			ioServices.closeQuietly(inputStream);
 			ioServices.closeQuietly(inputStreamFactory);
@@ -149,11 +151,11 @@ public class FileParser {
 
 	public ParsedContent parse(StreamFactory<InputStream> inputStreamFactory, long length, boolean detectLanguage)
 			throws FileParserException {
-		return parse(inputStreamFactory, length, detectLanguage, false);
+		return parse(inputStreamFactory, length, detectLanguage, false, null);
 	}
 
 	private ParsedContent parse(StreamFactory<InputStream> inputStreamFactory, long length, boolean detectLanguage,
-								boolean ocr)
+								boolean ocr, String parsedContentTextToUse)
 			throws FileParserException {
 
 		//Pattern patternForChar = Pattern.compile("([^\u0000-\u00FF]+)");
@@ -206,9 +208,15 @@ public class FileParser {
 		}
 
 		String type = metadata.get(Metadata.CONTENT_TYPE);
-		String parsedContent = handler.toString().trim();
-		//parsedContent = patternForChar.matcher(parsedContent).replaceAll("");
-		parsedContent = patternForSpaceAndReturn.matcher(parsedContent).replaceAll("");
+		String parsedContent;
+
+		if (parsedContentTextToUse != null) {
+			parsedContent = parsedContentTextToUse;
+		} else {
+			parsedContent = handler.toString().trim();
+			//parsedContent = patternForChar.matcher(parsedContent).replaceAll("");
+			parsedContent = patternForSpaceAndReturn.matcher(parsedContent).replaceAll("");
+		}
 		String language = detectLanguage ? languageDetectionManager.tryDetectLanguage(parsedContent) : null;
 		Map<String, Object> properties = getPropertiesHashMap(metadata, type);
 		Map<String, List<String>> styles = null;

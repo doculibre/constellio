@@ -55,6 +55,8 @@ public interface ModelLayerConfiguration {
 
 	boolean isDeleteUnusedContentEnabled();
 
+	void setDeleteUnusedContentEnabled(boolean enabled);
+
 	File getContentImportThreadFolder();
 
 	boolean isReindexingEvents();

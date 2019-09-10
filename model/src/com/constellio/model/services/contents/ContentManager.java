@@ -409,6 +409,15 @@ public class ContentManager implements StatefulService {
 		return getContentDao().isDocumentExisting(hash + ".preview");
 	}
 
+
+	public boolean hasContent(String hash) {
+		return getContentDao().isDocumentExisting(hash);
+	}
+
+	public boolean hasParsedContent(String hash) {
+		return getContentDao().isDocumentExisting(hash + "__parsed");
+	}
+
 	public boolean hasContentThumbnail(String hash) {
 		return getContentDao().isDocumentExisting(hash + ".thumbnail");
 	}
@@ -554,6 +563,7 @@ public class ContentManager implements StatefulService {
 					mimeType = detectMimetype(closeableInputStreamFactory, fileName);
 				}
 				duplicate = parsedContentResponse.hasFoundDuplicate();
+
 			} else {
 				mimeType = detectMimetype(closeableInputStreamFactory, fileName);
 				duplicate = doesFileExist(hash);
@@ -608,6 +618,7 @@ public class ContentManager implements StatefulService {
 			response = new ParsedContentResponse(true, parsedContent);
 		} catch (ContentManagerException_ContentNotParsed e) {
 			parsedContent = parseAndSave(hash, inputStreamFactory, parseOptions);
+
 			response = new ParsedContentResponse(false, parsedContent);
 		}
 		return response;
@@ -1220,6 +1231,7 @@ public class ContentManager implements StatefulService {
 		private boolean detectLanguage;
 		private boolean ocr;
 		private boolean parse;
+		private String parsedContentText;
 
 		public ParseOptions() {
 			beautify = true;
@@ -1228,11 +1240,15 @@ public class ContentManager implements StatefulService {
 			ocr = false;
 		}
 
-		public static ParseOptions NO_PARSING = new ParseOptions(false, false, false, false);
+		public static ParseOptions NO_PARSING = new ParseOptions(false, false, false, false, null);
 
-		public static ParseOptions PARSING_WITHOUT_OCR = new ParseOptions(true, true, false, true);
+		public static ParseOptions PARSING_WITHOUT_OCR = new ParseOptions(true, true, false, true, null);
 
-		public static ParseOptions PARSING_WITH_OCR = new ParseOptions(true, true, true, true);
+		public static ParseOptions PARSING_WITH_OCR = new ParseOptions(true, true, true, true, null);
+
+		public static ParseOptions useAlreadyParsedContent(String parsedContentText) {
+			return new ParseOptions(true, true, false, true, parsedContentText);
+		}
 
 	}
 
