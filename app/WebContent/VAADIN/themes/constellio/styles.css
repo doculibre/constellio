@@ -15698,6 +15698,10 @@ div.v-layout.v-horizontal.v-widget {
 	overflow-x: auto;
 }
 
+.constellio .v-ui[width-range~="801-1100px"] .responsive-button [class*="caption"] {
+	display: none;
+}
+
 .constellio .v-ui[width-range~="801-1100px"] .valo-menu .valo-menu-part .valo-menu-item .v-icon {
 	font-size: 1em;
 }
@@ -15802,6 +15806,10 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .v-ui[width-range~="801-1100px"] .task-management-view .v-slot-task-action-buttons {
 	top: 38px;
+}
+
+.constellio .v-ui[width-range~="0-800px"] .responsive-button [class*="caption"] {
+	display: none;
 }
 
 .constellio .v-ui[width-range~="0-800px"] .header .header-logo {

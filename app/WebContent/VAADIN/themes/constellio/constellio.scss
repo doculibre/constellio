@@ -3231,6 +3231,12 @@ $popup-view-z-index: 3;
     }
 
     .v-ui[width-range~="801-1100px"] {
+    
+    	.responsive-button {
+			[class*="caption"] {
+				display: none;
+			}
+    	}
 
 		.valo-menu {
 			.valo-menu-part {
@@ -3378,10 +3384,12 @@ $popup-view-z-index: 3;
 	}
 
     .v-ui[width-range~="0-800px"] {
-
-	    .valo-menu-part {
-	        //@include valo-menu-phone($valo-menu-background-color);
-	    }
+    
+    	.responsive-button {
+			[class*="caption"] {
+				display: none;
+			}
+    	}
 
     	.header {
 			.header-logo {
