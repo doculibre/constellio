@@ -11,14 +11,12 @@ import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.menu.behaviors.FolderMenuItemActionBehaviors;
-import com.constellio.app.modules.rm.ui.pages.folder.AddEditFolderView;
 import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderView;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
-import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
@@ -51,8 +49,6 @@ import static org.mockito.Mockito.when;
 public class RecordAppExtensionAcceptTest extends ConstellioTest {
 
 	RecordToVOBuilder voBuilder = new RecordToVOBuilder();
-	@Mock AddEditFolderView view;
-	@Mock CoreViews navigator;
 	@Mock RecordAppExtension recordAppExtension1;
 	@Mock RecordAppExtension recordAppExtension2;
 	@Mock DisplayFolderView displayFolderView;
