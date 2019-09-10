@@ -7,8 +7,6 @@ public interface ArchiveManagementView extends BaseView, ArchivesManagementViewG
 
 	void setDecommissioningButtonVisible(boolean visible);
 
-	void setNewContainerButtonVisible(boolean visible);
-
 	void setContainersButtonVisible(boolean visible);
 
 	void setPrintReportsButtonVisible(boolean visible);

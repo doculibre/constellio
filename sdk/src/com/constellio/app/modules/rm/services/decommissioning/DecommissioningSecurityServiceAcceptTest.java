@@ -100,7 +100,8 @@ public class DecommissioningSecurityServiceAcceptTest extends ConstellioTest {
 
 		assertThatResultsOf(queryFactory.getListsToValidateQuery(sasquatch)).isEmpty();
 
-		assertThatResultsOf(queryFactory.getListsPendingValidationQuery(sasquatch)).isEmpty();
+		assertThatResultsOf(queryFactory.getListsPendingValidationQuery(sasquatch))
+				.extracting("id").containsOnly(records.list_25);
 	}
 
 	@Test
@@ -155,7 +156,8 @@ public class DecommissioningSecurityServiceAcceptTest extends ConstellioTest {
 
 		assertThatResultsOf(queryFactory.getListsToValidateQuery(sasquatch)).isEmpty();
 
-		assertThatResultsOf(queryFactory.getListsPendingValidationQuery(sasquatch)).isEmpty();
+		assertThatResultsOf(queryFactory.getListsPendingValidationQuery(sasquatch))
+				.extracting("id").containsOnly(records.list_25);
 
 		assertThatResultsOf(queryFactory.getListsPendingValidationQuery(robin)).isEmpty();
 	}

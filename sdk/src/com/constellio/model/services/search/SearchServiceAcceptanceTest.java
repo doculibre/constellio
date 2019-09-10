@@ -707,6 +707,7 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		LogicalSearchQuery query = new LogicalSearchQuery();
 		query.setCondition(condition);
 		query.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(zeSchema.booleanMetadata()));
+		query.setQueryExecutionMethod(QueryExecutionMethod.USE_SOLR);
 		List<Record> records = searchServices.search(query);
 
 		assertThat(ids(records)).containsOnly(TestUtils.idsArray(expectedRecord, expectedRecord2));
@@ -735,6 +736,7 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		LogicalSearchQuery query = new LogicalSearchQuery();
 		query.setCondition(condition);
 		query.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(zeSchema.stringMetadata()));
+		query.setQueryExecutionMethod(QueryExecutionMethod.USE_SOLR);
 		List<Record> records = searchServices.search(query);
 
 		assertThat(ids(records)).containsOnly(TestUtils.idsArray(expectedRecord, expectedRecord2));

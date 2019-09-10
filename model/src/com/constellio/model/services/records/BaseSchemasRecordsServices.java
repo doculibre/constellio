@@ -44,6 +44,8 @@ public class BaseSchemasRecordsServices implements Serializable {
 		this(collection, modelLayerFactoryFactory, null);
 	}
 
+
+
 	public BaseSchemasRecordsServices(String collection, Factory<ModelLayerFactory> modelLayerFactoryFactory,
 									  Locale locale) {
 		this.collection = collection;

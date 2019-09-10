@@ -339,7 +339,7 @@ public class RecordServicesTest extends ConstellioTest {
 	@Test
 	public void givenRecordDTOWhenGetDocumentByIdThenRecordHasRecordDTO()
 			throws Exception {
-		when(recordDao.get(theId)).thenReturn(recordDTO);
+		when(recordDao.get(theId, true)).thenReturn(recordDTO);
 
 		RecordImpl recordObtained = (RecordImpl) recordServices.getDocumentById(theId);
 
@@ -351,7 +351,7 @@ public class RecordServicesTest extends ConstellioTest {
 	public void givenInexistentIdWhenGetDocumentByIdThenThrowException()
 			throws Exception {
 
-		when(recordDao.get(theId)).thenThrow(RecordDaoException.NoSuchRecordWithId.class);
+		when(recordDao.get(theId, true)).thenThrow(RecordDaoException.NoSuchRecordWithId.class);
 
 		recordServices.getDocumentById(theId);
 
@@ -363,7 +363,7 @@ public class RecordServicesTest extends ConstellioTest {
 			throws Exception {
 		User theUser = mock(User.class, "theUser");
 
-		when(recordDao.get(theId)).thenReturn(recordDTO);
+		when(recordDao.get(theId, true)).thenReturn(recordDTO);
 		when(authorizationServices.canRead(eq(theUser), any(Record.class))).thenReturn(false);
 		when(modelFactory.newAuthorizationsServices()).thenReturn(authorizationServices);
 
@@ -378,7 +378,7 @@ public class RecordServicesTest extends ConstellioTest {
 			throws Exception {
 		User theUser = mock(User.class, "theUser");
 
-		when(recordDao.get(theId)).thenReturn(recordDTO);
+		when(recordDao.get(theId, true)).thenReturn(recordDTO);
 
 		when(authorizationServices.canRead(eq(theUser), any(Record.class))).thenReturn(true);
 		when(modelFactory.newAuthorizationsServices()).thenReturn(authorizationServices);
@@ -394,7 +394,7 @@ public class RecordServicesTest extends ConstellioTest {
 			throws Exception {
 		User theUser = mock(User.class, "theUser");
 
-		when(recordDao.get(theId)).thenReturn(recordDTO);
+		when(recordDao.get(theId, true)).thenReturn(recordDTO);
 
 		when(authorizationServices.canRead(eq(theUser), any(Record.class))).thenReturn(false);
 		when(modelFactory.newAuthorizationsServices()).thenReturn(authorizationServices);
@@ -964,8 +964,8 @@ public class RecordServicesTest extends ConstellioTest {
 		long currentFirstRecordDTOVersion = aLong();
 		when(currentFirstRecordDTO.getVersion()).thenReturn(currentFirstRecordDTOVersion);
 
-		when(recordDao.get(firstRecordId)).thenReturn(currentFirstRecordDTO);
-		when(recordDao.get(deletedRecordId)).thenThrow(NoSuchRecordWithId.class);
+		when(recordDao.get(firstRecordId, true)).thenReturn(currentFirstRecordDTO);
+		when(recordDao.get(deletedRecordId, true)).thenThrow(NoSuchRecordWithId.class);
 
 		recordServices.refresh(asList(firstRecord, deletedRecord, newRecord));
 

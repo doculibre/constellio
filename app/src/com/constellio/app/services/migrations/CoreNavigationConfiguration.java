@@ -3,6 +3,8 @@ package com.constellio.app.services.migrations;
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
+import com.constellio.app.modules.rm.ui.pages.personalspace.PersonnalSpaceView;
+import com.constellio.app.modules.rm.ui.pages.viewGroups.PersonnalSpaceViewGroup;
 import com.constellio.app.modules.rm.ui.pages.viewGroups.RecordsManagementViewGroup;
 import com.constellio.app.modules.tasks.TasksPermissionsTo;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -88,6 +90,7 @@ public class CoreNavigationConfiguration implements Serializable {
 	public static final String HOME = "home";
 	public static final String TRASH = "trash";
 	public static final String BATCH_PROCESSES = "batchProcesses";
+	public static final String PERSONNAL_SPACE = "personnalSpace";
 
 	public static final String SYSTEM_CHECK = "systemCheck";
 	public static final String SYSTEM_CHECK_ICON = "images/icons/config/system-check.png";
@@ -98,8 +101,13 @@ public class CoreNavigationConfiguration implements Serializable {
 	public static final String SEARCH_CONFIG = "searchConfig";
 	public static final String SEARCH_CONFIG_ICON = "images/icons/config/configuration-search.png";
 
+
+	public static final String BATCH_PROCESS_ICON = "images/icons/config/traitementenlot.png";
+	public static final String BATCH_PROCESS = "batchProcess";
+
 	public void configureNavigation(NavigationConfig config) {
 		configureHeaderActionMenu(config);
+		configurePersonnalSpace(config);
 		configureSystemAdmin(config);
 		configureCollectionAdmin(config);
 		configureMainLayoutNavigation(config);
@@ -115,17 +123,6 @@ public class CoreNavigationConfiguration implements Serializable {
 			@Override
 			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				return ComponentState.visibleIf(user.has(CorePermissions.MODIFY_RECORDS_USING_BATCH_PROCESS).onSomething());
-			}
-		});
-		config.add(ConstellioHeader.ACTION_MENU, new NavigationItem.Active(TEMPORARY_RECORDS) {
-			@Override
-			public void activate(Navigation navigate) {
-				navigate.to().listTemporaryRecords();
-			}
-
-			@Override
-			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
-				return ComponentState.visibleIf(user.hasAny(CorePermissions.ACCESS_TEMPORARY_RECORD, CorePermissions.SEE_ALL_TEMPORARY_RECORD).globally());
 			}
 		});
 	}
@@ -486,6 +483,45 @@ public class CoreNavigationConfiguration implements Serializable {
 		});
 	}
 
+	private static void configurePersonnalSpace(NavigationConfig config) {
+		config.add(PersonnalSpaceView.PERSONAL_SPACE, new NavigationItem.Active(BATCH_PROCESS, BATCH_PROCESS_ICON) {
+			@Override
+			public void activate(Navigation navigate) {
+				navigate.to().batchProcesses();
+			}
+
+			@Override
+			public int getOrderValue() {
+				return 2;
+			}
+
+			@Override
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
+				return visibleIf(user.has(CorePermissions.MODIFY_RECORDS_USING_BATCH_PROCESS).onSomething());
+			}
+		});
+
+		config.add(PersonnalSpaceView.PERSONAL_SPACE, new NavigationItem.Active(TEMPORARY_RECORDS, TEMPORARY_RECORDS_ICON) {
+			@Override
+			public void activate(Navigation navigate) {
+				navigate.to().listTemporaryRecords();
+			}
+
+			@Override
+			public int getOrderValue() {
+				return 3;
+			}
+
+			@Override
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
+				UserServices userServices = appLayerFactory.getModelLayerFactory().newUserServices();
+				return visibleIf(userServices.getUser(user.getUsername()).isSystemAdmin()
+								 || user.hasAny(CorePermissions.ACCESS_TEMPORARY_RECORD, CorePermissions.SEE_ALL_TEMPORARY_RECORD)
+										 .globally());
+			}
+		});
+	}
+
 	private void configureMainLayoutNavigation(NavigationConfig config) {
 		//		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION,
 		//				new NavigationItem.Active(null, null, PrintableViewGroup.class) {
@@ -499,6 +535,24 @@ public class CoreNavigationConfiguration implements Serializable {
 		//						return ComponentState.INVISIBLE;
 		//					}
 		//				});
+		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION, new NavigationItem.Active(PERSONNAL_SPACE, FontAwesome.USER, PersonnalSpaceViewGroup.class) {
+			@Override
+			public void activate(Navigation navigate) {
+				navigate.to().personnalSpace();
+			}
+
+			@Override
+			public int getOrderValue() {
+				return 15;
+			}
+
+			@Override
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
+				return ComponentState.ENABLED;
+			}
+		});
+
+
 		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION,
 				new NavigationItem.Active(HOME, FontAwesome.HOME, RecordsManagementViewGroup.class) {
 					@Override

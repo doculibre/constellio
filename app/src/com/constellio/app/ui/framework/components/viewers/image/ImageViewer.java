@@ -26,6 +26,8 @@ import java.util.Arrays;
 @StyleSheet("theme://iviewer/jquery.iviewer.css")
 public class ImageViewer extends CustomComponent {
 
+	private String javascriptToExecute;
+
 	public static String[] SUPPORTED_EXTENSIONS = {"jpg", "jpeg", "png", "gif", "tif", "tiff"};
 	private static String[] NEED_CONVERSION_EXTENSIONS = {"tif", "tiff"};
 
@@ -115,7 +117,7 @@ public class ImageViewer extends CustomComponent {
 				String contentURL = contentResourceReference.getURL();
 				
 //				String divHTML = "<div id=\"" + divId + "\" class=\"viewer\" style=\"position:relative; width:" + width + "px; height:"+ height + "px;\"></div>";
-				String divHTML = "<div id=\"" + divId + "\" class=\"viewer\" style=\"position:relative; width:100%; height:"+ height + "px;\"></div>";
+
 				StringBuffer js = new StringBuffer();
 				js.append("var $ = jQuery;");
 				js.append("\n");
@@ -134,17 +136,21 @@ public class ImageViewer extends CustomComponent {
 				js.append("\n");
 				js.append("});");
 				js.append("\n");
-
+				String divHTML = "<div id=\"" + divId + "\" class=\"viewer\" style=\"position:relative; width:100%; height:" + height + "px;\"></div>";
 				setCompositionRoot(new Label(divHTML, ContentMode.HTML));
-
-				com.vaadin.ui.JavaScript javascript = com.vaadin.ui.JavaScript.getCurrent();
-				javascript.execute("setTimeout(function() {" + js.toString() + "}, 1)");
+				javascriptToExecute = "setTimeout(function() {" + js.toString() + "}, 1)";
+				show();
 			}
 		} catch (Throwable t) {
 			// FIXME
 			t.printStackTrace();
 			setVisible(false);
 		}
+	}
+
+	public void show() {
+		com.vaadin.ui.JavaScript javascript = com.vaadin.ui.JavaScript.getCurrent();
+		javascript.execute(javascriptToExecute);
 	}
 
 	public static boolean isSupported(String fileName) {

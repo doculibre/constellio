@@ -85,7 +85,7 @@ public class AddEditDocumentViewImpl extends BaseViewImpl implements AddEditDocu
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
 		newForm();
-		
+
 		mainLayout = new I18NHorizontalLayout();
 		mainLayout.setSizeFull();
 
@@ -167,8 +167,6 @@ public class AddEditDocumentViewImpl extends BaseViewImpl implements AddEditDocu
 				} else if (contentViewer != null && contentViewer.isViewerComponentVisible()) {
 					recordForm.setWidth(RECORD_FORM_WIDTH);
 					mainLayout.setExpandRatio(contentViewer, 1);
-				} else {
-
 				}
 
 				mainLayout.replaceComponent(oldRecordForm, recordForm);

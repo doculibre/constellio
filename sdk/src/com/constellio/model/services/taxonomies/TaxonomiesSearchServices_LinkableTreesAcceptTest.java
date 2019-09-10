@@ -75,7 +75,7 @@ import static org.junit.Assert.fail;
 
 public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends ConstellioTest {
 
-	private static final boolean VALIDATE_SOLR_QUERIES_COUNT = false;
+	private static final boolean VALIDATE_SOLR_QUERIES_COUNT = true;
 
 	Users users = new Users();
 	User alice;
@@ -1423,7 +1423,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 				.has(solrQueryCounts(4, 3, 2))
 				.has(secondSolrQueryCounts(4, 3, 2));
 
-		assertThat(queryCount.get()).isEqualTo(10);
+		assertThat(queryCount.get()).isEqualTo(9);
 	}
 
 	@Test
@@ -2705,7 +2705,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 				.has(resultsInOrder(records.categoryId_X, "category_Y_id", records.categoryId_Z))
 				.has(itemsWithChildren(records.categoryId_X, records.categoryId_Z))
 				.has(numFoundAndListSize(3))
-				.has(solrQueryCounts(10, 11, 3))
+				.has(solrQueryCounts(2, 3, 3))
 				.has(secondSolrQueryCounts(1, 3, 0));
 
 		assertThatChildWhenSelectingFolderUsingPlanTaxonomyWithoutCalculatedChildrenFlag(records.getAdmin(), records.categoryId_X,

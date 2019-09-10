@@ -37,6 +37,16 @@ public class PrintableLabel extends Printable implements Dimensionnable {
 		return ((Double) get(LIGNE)).intValue();
 	}
 
+	public PrintableLabel setLigne(int ligne) {
+		set((LIGNE), ligne);
+		return this;
+	}
+
+	public PrintableLabel setColonne(int colonne) {
+		set(COLONNE, colonne);
+		return this;
+	}
+
 	@Override
 	public int getDimension() {
 		return this.getColonne() * this.getLigne();

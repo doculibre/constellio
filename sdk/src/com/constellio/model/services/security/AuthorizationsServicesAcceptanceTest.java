@@ -571,6 +571,21 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 			verifyRecord.detachedAuthorizationFlag().isFalse();
 		}
 
+		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_1_DOC1, FOLDER4_2, FOLDER4_2_DOC1)) {
+			verifyRecord.usersWithHierarchyWriteAccess().containsOnly(bob, charles, dakota, gandalf, chuck, robin);
+			verifyRecord.detachedAuthorizationFlag().isFalse();
+		}
+
+		for (RecordVerifier verifyRecord : $(FOLDER3, FOLDER3_DOC1)) {
+			verifyRecord.usersWithHierarchyWriteAccess().containsOnly(bob, alice, charles, dakota, chuck, robin, gandalf);
+			verifyRecord.detachedAuthorizationFlag().isFalse();
+		}
+
+		for (RecordVerifier verifyRecord : $(FOLDER1)) {
+			verifyRecord.usersWithHierarchyWriteAccess().containsOnly(sasquatch, chuck);
+			verifyRecord.detachedAuthorizationFlag().isFalse();
+		}
+
 	}
 
 	@Test
@@ -4327,7 +4342,6 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		assertThat(instance2Cache.getCached(zeCollection).getAuthorizationWithId(auth1)).isNull();
 
 	}
-
 
 	private void createAFolderOnInstance1() {
 

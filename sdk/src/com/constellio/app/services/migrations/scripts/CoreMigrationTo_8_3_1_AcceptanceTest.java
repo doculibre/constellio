@@ -1,6 +1,7 @@
 package com.constellio.app.services.migrations.scripts;
 
 import com.constellio.app.modules.rm.RMTestRecords;
+import com.constellio.data.utils.Pair;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.schemas.Metadata;
@@ -10,7 +11,6 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.sdk.tests.ConstellioTest;
-import javafx.util.Pair;
 import org.apache.solr.common.SolrDocument;
 import org.junit.Before;
 import org.junit.Test;

@@ -85,36 +85,25 @@ import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.modules.tasks.TaskModule;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.RecordMigrationScript;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.cache.RecordsCache;
-import com.constellio.model.services.search.SearchServices;
-import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.security.GlobalSecuredTypeCondition;
-import com.constellio.model.services.users.UserServices;
-import org.apache.poi.ss.formula.functions.T;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.entities.schemas.Schemas.VISIBLE_IN_TREES;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static java.util.Arrays.asList;
 
 public class ConstellioRMModule implements InstallableSystemModule, ModuleWithComboMigration,
@@ -312,51 +301,13 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		new Thread() {
 			@Override
 			public void run() {
-				preloadCategoryTaxonomyCache(collection, appLayerFactory);
+				RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+				rm.preloadCategoryTaxonomyCache();
 			}
 		}.start();
 
 	}
 
-	private void preloadCategoryTaxonomyCache(String collection, AppLayerFactory appLayerFactory) {
-		UserServices userServices = appLayerFactory.getModelLayerFactory().newUserServices();
-		SearchServices searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
-		List<User> allUsersInCollection = userServices.getAllUsersInCollection(collection);
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
-		for (int i = 0; i < allUsersInCollection.size(); i++) {
-			LOGGER.info("Loading taxonomy cache of user " + i + " / " + allUsersInCollection.size());
-			User user = allUsersInCollection.get(i);
-
-			LogicalSearchQuery query = new LogicalSearchQuery(fromAllSchemasIn(collection)
-					.where(Schemas.SCHEMA).<T>isNot(LogicalSearchQueryOperators.<T>startingWithText(Category.SCHEMA_TYPE + "_"))
-					.andWhere(VISIBLE_IN_TREES).isTrueOrNull());
-
-			query.filteredWithUser(user);
-			query.setFieldFacetLimit(100_000);
-			query.addFieldFacet(rm.folder.category().getDataStoreCode());
-			query.setNumberOfRows(0);
-
-			Set<String> visibleIds = new HashSet<>();
-			for (FacetValue facetValue : searchServices.query(query)
-					.getFieldFacetValues(rm.folder.category().getDataStoreCode())) {
-				if (facetValue.getQuantity() > 0) {
-
-					String id = facetValue.getValue();
-					while (id != null) {
-						visibleIds.add(id);
-						id = rm.getCategory(id).getParent();
-					}
-				}
-			}
-
-			for (Category category : rm.getAllCategories()) {
-				appLayerFactory.getModelLayerFactory().getTaxonomiesSearchServicesCache()
-						.insert(user.getUsername(), category.getId(), "visible", visibleIds.contains(category.getId()));
-			}
-
-		}
-
-	}
 
 	@Override
 	public void stop(String collection, AppLayerFactory appLayerFactory) {

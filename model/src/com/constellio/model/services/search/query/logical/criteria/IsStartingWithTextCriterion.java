@@ -4,9 +4,10 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.DataStoreField;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.services.search.query.logical.LogicalSearchValueCondition;
-import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+
+import java.util.List;
 
 public class IsStartingWithTextCriterion extends LogicalSearchValueCondition {
 
@@ -36,7 +37,24 @@ public class IsStartingWithTextCriterion extends LogicalSearchValueCondition {
 	public boolean testConditionOnField(Metadata metadata, Record record) {
 		Object recordValue = CriteriaUtils.convertMetadataValue(metadata, record);
 
-		throw new NotImplementedException("Not implemented yet");
+		if (metadata.isMultivalue()) {
+			for (String item : (List<String>) recordValue) {
+				if (item.startsWith(text)) {
+					return true;
+				}
+			}
+		} else {
+			if (recordValue != null && ((String) recordValue).startsWith(text)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	@Override
+	public boolean isSupportingMemoryExecution() {
+		return true;
 	}
 
 	@Override

@@ -24,7 +24,7 @@ public class HasChildrenQueryHandler {
 	String cacheMode;
 
 	SearchServices searchServices;
-	TaxonomiesSearchServices services;
+	TaxonomiesSearchServicesCache searchServicesCache;
 
 	LogicalSearchQuery facetQuery;
 
@@ -35,13 +35,13 @@ public class HasChildrenQueryHandler {
 	SPEQueryResponse response;
 
 	public HasChildrenQueryHandler(String username, String cacheMode,
-								   TaxonomiesSearchServices services, SearchServices searchServices,
+								   TaxonomiesSearchServicesCache searchServicesCache, SearchServices searchServices,
 								   LogicalSearchQuery facetQuery) {
 		this.username = username;
 		this.cacheMode = cacheMode;
 
 		this.searchServices = searchServices;
-		this.services = services;
+		this.searchServicesCache = searchServicesCache;
 		this.facetQuery = facetQuery;
 		this.taxonomy = taxonomy;
 	}
@@ -50,7 +50,7 @@ public class HasChildrenQueryHandler {
 		if (response != null) {
 			throw new IllegalStateException("Cannot add record to check after the execution of the query");
 		}
-		Boolean cachedValue = services.getCache().getCachedValue(username, record.getId(), cacheMode);
+		Boolean cachedValue = searchServicesCache.getCachedValue(username, record.getId(), cacheMode);
 		cachedValues.put(record.getId(), cachedValue);
 		if (cachedValue == null) {
 			calculatedIds.add(record.getId());
@@ -68,7 +68,7 @@ public class HasChildrenQueryHandler {
 			query();
 
 			boolean hasChildren = response.getQueryFacetCount(facetQueryFor(record)) > 0;
-			services.getCache().insert(username, record.getId(), cacheMode, hasChildren);
+			searchServicesCache.insert(username, record.getId(), cacheMode, hasChildren);
 			return hasChildren;
 		} else {
 			return cachedValue;

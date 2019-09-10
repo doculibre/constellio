@@ -249,7 +249,7 @@ public class CollectionsAcceptanceTest extends ConstellioTest {
 	}
 
 	private int resultCountWhenSearchingHas(User user) {
-		MetadataSchema folderSchema = metadataSchemasManager.getSchemaTypes(user.getCollection()).getSchema("folder_default");
+		MetadataSchema folderSchema = metadataSchemasManager.getSchemaTypes(user.getCollection()).getSchema("zefolder_default");
 		LogicalSearchCondition condition = LogicalSearchQueryOperators.from(folderSchema).returnAll();
 		LogicalSearchQuery query = new LogicalSearchQuery(condition);
 		query.filteredWithUser(user);

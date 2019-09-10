@@ -519,6 +519,11 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 					// Never paged in table mode
 					return false;
 				}
+
+				@Override
+				public boolean isMenuBarColumn() {
+					return ViewableRecordVOTablePanel.this.isMenuBarColumn();
+				}
 			};
 			resultsTable.setWidth("100%");
 			resultsTable.addStyleName("viewable-record-table-table-mode");
@@ -562,6 +567,10 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		resultsTable.removeStyleName(RecordVOTable.CLICKABLE_ROW_STYLE_NAME);
 
 		return resultsTable;
+	}
+
+	public boolean isMenuBarColumn() {
+		return false;
 	}
 
 	public TableMode getTableMode() {
