@@ -620,7 +620,7 @@ public class FolderMenuItemActionBehaviors {
 				params.getRecordVO().getSchema().getTypeCode());
 	}
 
-	private void deleteFolder(Folder folder, String reason, MenuItemActionBehaviorParams params) {
+	protected void deleteFolder(Folder folder, String reason, MenuItemActionBehaviorParams params) {
 		String parentId = folder.get(Folder.PARENT_FOLDER);
 		SchemaPresenterUtils presenterUtils = new SchemaPresenterUtils(Folder.DEFAULT_SCHEMA,
 				params.getView().getConstellioFactories(), params.getView().getSessionContext());

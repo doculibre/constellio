@@ -1,5 +1,6 @@
 package com.constellio.app.extensions.records;
 
+import com.constellio.app.api.extensions.taxonomies.FolderDeletionEvent;
 import com.constellio.app.extensions.records.params.GetIconPathParams;
 import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
 import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpDocument;
@@ -9,28 +10,38 @@ import com.constellio.app.modules.es.services.ConnectorManager;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.ui.pages.folder.AddEditFolderView;
+import com.constellio.app.modules.rm.services.menu.behaviors.FolderMenuItemActionBehaviors;
 import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderView;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
-import com.constellio.app.ui.application.CoreViews;
+import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
+import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
+import com.constellio.sdk.tests.MockedNavigation;
+import com.constellio.sdk.tests.setups.Users;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Matchers;
 import org.mockito.Mock;
 
 import java.util.Locale;
+import java.util.Map;
 
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Created by Patrick on 2015-11-19.
@@ -38,8 +49,6 @@ import static org.assertj.core.api.Assertions.fail;
 public class RecordAppExtensionAcceptTest extends ConstellioTest {
 
 	RecordToVOBuilder voBuilder = new RecordToVOBuilder();
-	@Mock AddEditFolderView view;
-	@Mock CoreViews navigator;
 	@Mock RecordAppExtension recordAppExtension1;
 	@Mock RecordAppExtension recordAppExtension2;
 	@Mock DisplayFolderView displayFolderView;
@@ -54,6 +63,7 @@ public class RecordAppExtensionAcceptTest extends ConstellioTest {
 	ConnectorSmbDocument connectorSmbDocument;
 	ConnectorHttpInstance connectorHttpInstance;
 	ConnectorHttpDocument connectorHttpDocument;
+	Users users = new Users();
 	Task zeTask;
 
 	@Before
@@ -96,6 +106,8 @@ public class RecordAppExtensionAcceptTest extends ConstellioTest {
 				.setSeeds("share").setUsername("username").setPassword("password").setDomain("domain")
 				.setTraversalCode("zeTraversal"));
 		connectorHttpDocument = es.newConnectorHttpDocument(connectorHttpInstance);
+
+		users.setUp(getModelLayerFactory().newUserServices());
 	}
 
 	@Test
@@ -200,29 +212,52 @@ public class RecordAppExtensionAcceptTest extends ConstellioTest {
 		assertThat(recordVO.getExtension()).isEqualTo("task");
 	}
 
+	public static class FolderMenuItemActionBehaviorsOverrite extends FolderMenuItemActionBehaviors {
+
+		public FolderMenuItemActionBehaviorsOverrite(String collection,
+													 AppLayerFactory appLayerFactory) {
+			super(collection, appLayerFactory);
+		}
+
+		@Override
+		public void deleteFolder(Folder folder, String reason, MenuItemActionBehaviorParams params) {
+			super.deleteFolder(folder, reason, params);
+		}
+	}
+
 	@Test
 	public void givenAFolderIsDeletedThenIsNotified() {
-		fail("TODO: Reimplement");
-		//
-		//		MockedNavigation navigator = new MockedNavigation();
-		//
-		//		UIContext uiContext = mock(UIContext.class);
-		//		when(uiContext.getAttribute(FolderDocumentContainerBreadcrumbTrail.TAXONOMY_CODE)).thenReturn(null);
-		//		when(displayFolderView.getConstellioFactories()).thenReturn(getConstellioFactories());
-		//		when(displayFolderView.getSessionContext()).thenReturn(FakeSessionContext.gandalfInCollection(zeCollection));
-		//		when(displayFolderView.getUIContext()).thenReturn(uiContext);
-		//		when(displayFolderView.getCollection()).thenReturn(zeCollection);
-		//		when(displayFolderView.navigate()).thenReturn(navigator);
-		//		Folder folder = rmSchemasRecordsServices.searchFolders(where(rmSchemasRecordsServices.folder.title()).isContainingText("Avocat")).get(0);
-		//
-		//		getAppLayerFactory().getExtensions().forCollection(zeCollection).recordAppExtensions.add(recordAppExtension1);
-		//		getAppLayerFactory().getExtensions().forCollection(zeCollection).recordAppExtensions.add(recordAppExtension2);
-		//
-		//		DisplayFolderPresenter displayFolderPresenter = new DisplayFolderPresenter(displayFolderView, null, false, false);
-		//		displayFolderPresenter.forParams(folder.getId());
-		//
-		//		displayFolderPresenter.deleteFolderButtonClicked("No reason");
-		//		verify(recordAppExtension1, times(1)).notifyFolderDeleted(any(FolderDeletionEvent.class));
-		//		verify(recordAppExtension2, times(1)).notifyFolderDeleted(any(FolderDeletionEvent.class));
+		MockedNavigation navigator = new MockedNavigation();
+
+		when(displayFolderView.getConstellioFactories()).thenReturn(getConstellioFactories());
+		when(displayFolderView.getSessionContext()).thenReturn(FakeSessionContext.gandalfInCollection(zeCollection));
+		when(displayFolderView.getCollection()).thenReturn(zeCollection);
+		when(displayFolderView.navigate()).thenReturn(navigator);
+		Folder folder = rmSchemasRecordsServices.searchFolders(where(rmSchemasRecordsServices.folder.title()).isContainingText("Avocat")).get(0);
+
+		getAppLayerFactory().getExtensions().forCollection(zeCollection).recordAppExtensions.add(recordAppExtension1);
+		getAppLayerFactory().getExtensions().forCollection(zeCollection).recordAppExtensions.add(recordAppExtension2);
+
+		FolderMenuItemActionBehaviorsOverrite folderMenuItemActionBehaviors = new FolderMenuItemActionBehaviorsOverrite(zeCollection, getAppLayerFactory());
+
+		folderMenuItemActionBehaviors.deleteFolder(folder, "reason", new MenuItemActionBehaviorParams() {
+			@Override
+			public BaseView getView() {
+				return displayFolderView;
+			}
+
+			@Override
+			public Map<String, String> getFormParams() {
+				return null;
+			}
+
+			@Override
+			public User getUser() {
+				return users.gandalfIn(zeCollection);
+			}
+		});
+
+		verify(recordAppExtension1, times(1)).notifyFolderDeleted(Matchers.any(FolderDeletionEvent.class));
+		verify(recordAppExtension2, times(1)).notifyFolderDeleted(Matchers.any(FolderDeletionEvent.class));
 	}
 }
