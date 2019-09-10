@@ -128,12 +128,13 @@ public class TaxonomiesSearchOptions {
 		return includeStatus;
 	}
 
-	public void setIncludeStatus(StatusFilter includeStatus) {
+	public TaxonomiesSearchOptions setIncludeStatus(StatusFilter includeStatus) {
 		if (includeStatus == null) {
 			this.includeStatus = StatusFilter.ALL;
 		} else {
 			this.includeStatus = includeStatus;
 		}
+		return this;
 	}
 
 	public ReturnedMetadatasFilter getReturnedMetadatasFilter() {
