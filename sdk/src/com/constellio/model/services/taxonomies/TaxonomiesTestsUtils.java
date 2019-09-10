@@ -30,7 +30,7 @@ public class TaxonomiesTestsUtils {
 	public static boolean ajustIfBetterThanExpected(StackTraceElement[] stackTraceElements, String current,
 													String expected) {
 
-		String filePath = "/Users/francisbaril/Constellio/IdeaProjects/constellio-dev/constellio/sdk/src/com/constellio/model/services/taxonomies/";
+		String filePath = "/Users/francisbaril/Constellio/IdeaProjects/constellio-dev-2019/constellio/sdk/src/com/constellio/model/services/taxonomies";
 
 		boolean betterThanExpected = isBetterThanExpected(current, expected);
 		if (betterThanExpected) {
@@ -46,7 +46,7 @@ public class TaxonomiesTestsUtils {
 					filename = element.getFileName();
 					lineNumber = element.getLineNumber();
 
-					File file = new File(filePath + filename);
+					File file = new File(filePath + "/" + filename);
 					if (file.exists()) {
 						System.out.println(filename + ":" + lineNumber + " is changed from " + expected + " to " + current);
 						try {
@@ -290,13 +290,13 @@ public class TaxonomiesTestsUtils {
 	}
 
 	private static boolean isBetterThanExpected(String current, String expected) {
-		//		if (!current.equals(expected)) {
+//		if (!current.equals(expected)) {
 		//			int[] currentParts = toInts(current.split("-"));
 		//			int[] expectedParts = toInts(expected.split("-"));
 		//
 		//			if (currentParts[0] <= expectedParts[0]
-		//					&& currentParts[1] <= expectedParts[1]
-		//					&& currentParts[2] <= expectedParts[2]) {
+		//				&& currentParts[1] <= expectedParts[1]
+		//				&& currentParts[2] <= expectedParts[2]) {
 		//				return true;
 		//			}
 		//		}

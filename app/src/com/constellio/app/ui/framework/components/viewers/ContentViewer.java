@@ -71,6 +71,11 @@ public class ContentViewer extends CustomComponent {
 		}
 	}
 
+	public void refresh() {
+		if (viewerComponent instanceof ImageViewer) {
+			((ImageViewer) viewerComponent).show();
+		}
+	}
 
 	protected void fireImageViewerVisibilityChangeListerners(boolean visiblility) {
 		Iterator<VisibilityChangeListener> visibilityChangeListenerIterator = imageViewerVisibilityChangeListenerList.iterator();

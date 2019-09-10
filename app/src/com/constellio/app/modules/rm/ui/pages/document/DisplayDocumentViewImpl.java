@@ -271,8 +271,8 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 				} else if (event.getTabSheet().getSelectedTab() == tasksComponent) {
 					presenter.tasksTabSelected();
 
-				} else if (event.getTabSheet().getSelectedTab() == eventsComponent) {
-					presenter.eventsTabSelected();
+				} else if (event.getTabSheet().getSelectedTab() == contentViewer) {
+					contentViewer.refresh();
 				}
 			}
 		});

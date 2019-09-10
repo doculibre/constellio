@@ -33,6 +33,7 @@ public class MetadataIndexCacheDataStore {
 
 	private static MetadataIndex EMPTY_INDEX = new MetadataIndex(Collections.emptyMap());
 
+
 	private static class MetadataIndex {
 
 		Map<Integer, SortedIdsList> map;
@@ -68,7 +69,9 @@ public class MetadataIndexCacheDataStore {
 		void add(List<String> values, String id) {
 			if (values != null) {
 				for (String value : values) {
-					add(value, id);
+					if (value != null) {
+						add(value, id);
+					}
 				}
 			}
 		}
@@ -83,7 +86,9 @@ public class MetadataIndexCacheDataStore {
 		void remove(List<String> values, String id) {
 			if (values != null) {
 				for (String value : values) {
-					remove(value, id);
+					if (value != null) {
+						remove(value, id);
+					}
 				}
 			}
 		}
@@ -97,12 +102,28 @@ public class MetadataIndexCacheDataStore {
 			SortedIdsList list = map.get(value.hashCode());
 			return list == null ? Collections.emptyList() : list.getValues();
 		}
+
+		public int getIdsCount(String value) {
+			SortedIdsList list = map.get(value.hashCode());
+			return list == null ? 0 : list.size();
+		}
 	}
 
 	private Map<Short, MetadataIndex>[][] cacheIndexMaps = new Map[256][];
 
 	public List<String> search(MetadataSchemaType schemaType, Metadata metadata, String value) {
 
+		ensureSearchable(metadata);
+
+		if (Strings.isBlank(value)) {
+			return Collections.emptyList();
+		}
+
+		MetadataIndex metadataIndex = getMetadataIndexMap(schemaType, metadata, false);
+		return metadataIndex.getIds(value);
+	}
+
+	private void ensureSearchable(Metadata metadata) {
 		if (metadata == null) {
 			throw new IllegalArgumentException("metadata parameter cannot be null");
 		}
@@ -112,13 +133,19 @@ public class MetadataIndexCacheDataStore {
 			|| metadata.getLocalCode().equals(IDENTIFIER.getLocalCode())) {
 			throw new IllegalArgumentException("Metadata in parameter must be a cacheIndex or unique and not ID to search on this cache");
 		}
+	}
+
+
+	public int estimateMaxResultSizeUsingIndexedMetadata(MetadataSchemaType schemaType, Metadata metadata,
+														 String value) {
+		ensureSearchable(metadata);
 
 		if (Strings.isBlank(value)) {
-			return Collections.emptyList();
+			return -1;
 		}
 
 		MetadataIndex metadataIndex = getMetadataIndexMap(schemaType, metadata, false);
-		return metadataIndex.getIds(value);
+		return metadataIndex.getIdsCount(value);
 	}
 
 	public void addUpdate(Record oldVersion, Record newVersion, MetadataSchemaType schemaType, MetadataSchema schema) {

@@ -1,9 +1,11 @@
 package com.constellio.app.modules.rm.ui.pages.decommissioning;
 
 import com.constellio.app.modules.rm.RMTestRecords;
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningListQueryFactory;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.data.utils.TimeProvider;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
@@ -12,6 +14,8 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.ConstellioTest;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -44,9 +48,18 @@ public class DecommissioningListQueryFactoryAcceptanceTest extends ConstellioTes
 	}
 
 	@Test
-	public void givenUserHasApprovalPermissionWhenSearchingGeneratedListsThenReturnNone() {
-		LogicalSearchQuery query = queryFactory.getGeneratedListsQuery(records.getGandalf_managerInABC());
-		assertThat(searchServices.hasResults(query)).isFalse();
+	public void givenUserHasApprovalPermissionWhenSearchingGeneratedListsThenReturnNoneWithProcessPermission() {
+		User gandalf_managerInABC = records.getGandalf_managerInABC();
+		LogicalSearchQuery query = queryFactory.getGeneratedListsQuery(gandalf_managerInABC);
+		List<Record> decommissioningListsProcessable = searchServices.search(query);
+		assertThat(decommissioningListsProcessable).extracting("id").containsOnly(
+				records.list_01, records.list_02, records.list_03, records.list_04, records.list_05, records.list_06,
+				records.list_07, records.list_08, records.list_09, records.list_10, records.list_16, records.list_17,
+				records.list_18, records.list_19, records.list_20, records.list_21);
+		for (Record decommissioningList : decommissioningListsProcessable) {
+			assertThat(gandalf_managerInABC.has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).on(decommissioningList)).isFalse();
+			assertThat(gandalf_managerInABC.has(RMPermissionsTo.CREATE_DECOMMISSIONING_LIST).on(decommissioningList)).isTrue();
+		}
 	}
 
 	@Test
@@ -78,23 +91,30 @@ public class DecommissioningListQueryFactoryAcceptanceTest extends ConstellioTes
 	public void givenUserHasProcessPermissionWhenSearchingListsPendingValidationThenReturnListsPendingValidationNotApproval()
 			throws RecordServicesException {
 		DecommissioningList list = addListWithValidationRequestToBobAndChuck();
-		LogicalSearchQuery query = queryFactory.getListsPendingValidationQuery(records.getAdmin());
-		assertThat(searchServices.search(query)).extracting("id").containsOnly(list.getId());
+		User admin = records.getAdmin();
+		LogicalSearchQuery query = queryFactory.getListsPendingValidationQuery(admin);
+		List<Record> decommissioningListsProcessable = searchServices.search(query);
+		assertThat(decommissioningListsProcessable).extracting("id").containsOnly(list.getId(), records.list_25);
+		for (Record decommissioningList : decommissioningListsProcessable) {
+			assertThat(admin.has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).on(decommissioningList)).isTrue();
+			assertThat(admin.has(RMPermissionsTo.CREATE_DECOMMISSIONING_LIST).on(decommissioningList)).isTrue();
+		}
+
 	}
 
 	@Test
-	public void givenUserHasProcessPermissionWhenSearchingListsPendingValidationThenDoNotReturnListsTheUserMustValidate()
+	public void givenUserHasProcessPermissionWhenSearchingListsPendingValidationThenReturnListsTheUserMustValidate()
 			throws RecordServicesException {
 		addListWithValidationRequestToBobAndChuck();
 		LogicalSearchQuery query = queryFactory.getListsPendingValidationQuery(records.getChuckNorris());
-		assertThat(searchServices.hasResults(query)).isFalse();
+		assertThat(searchServices.search(query)).extracting("id").containsOnly(records.list_25);
 	}
 
 	@Test
-	public void givenNoValidationRequestWhenSearchingListsToValidateThenReturnNone()
+	public void givenNoValidationRequestWhenSearchingListsToValidateThenReturn()
 			throws RecordServicesException {
 		LogicalSearchQuery query = queryFactory.getListsPendingValidationQuery(records.getChuckNorris());
-		assertThat(searchServices.hasResults(query)).isFalse();
+		assertThat(searchServices.search(query)).extracting("id").containsOnly(records.list_25);
 	}
 
 	@Test
@@ -138,8 +158,14 @@ public class DecommissioningListQueryFactoryAcceptanceTest extends ConstellioTes
 		DecommissioningList newList = addListWithValidationRequestToBobAndChuck();
 		addUserValidationToList(newList, records.getBob_userInAC());
 		addUserValidationToList(newList, records.getChuckNorris());
-		LogicalSearchQuery query = queryFactory.getValidatedListsQuery(records.getGandalf_managerInABC());
-		assertThat(searchServices.hasResults(query)).isFalse();
+		User gandalf_managerInABC = records.getGandalf_managerInABC();
+		LogicalSearchQuery query = queryFactory.getValidatedListsQuery(gandalf_managerInABC);
+		List<Record> decommissioningListsProcessable = searchServices.search(query);
+		assertThat(decommissioningListsProcessable).extracting("id").containsOnly(records.list_01);
+		for (Record decommissioningList : decommissioningListsProcessable) {
+			assertThat(gandalf_managerInABC.has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).on(decommissioningList)).isFalse();
+			assertThat(gandalf_managerInABC.has(RMPermissionsTo.CREATE_DECOMMISSIONING_LIST).on(decommissioningList)).isTrue();
+		}
 	}
 
 	@Test
@@ -160,8 +186,14 @@ public class DecommissioningListQueryFactoryAcceptanceTest extends ConstellioTes
 
 	@Test
 	public void givenUserWithApprovePermissionWhenSearchingListsPendingApprovalThenReturnNone() {
-		LogicalSearchQuery query = queryFactory.getListsPendingApprovalQuery(records.getGandalf_managerInABC());
-		assertThat(searchServices.hasResults(query)).isFalse();
+		User gandalf_managerInABC = records.getGandalf_managerInABC();
+		LogicalSearchQuery query = queryFactory.getListsPendingApprovalQuery(gandalf_managerInABC);
+		List<Record> decommissioningListsProcessable = searchServices.search(query);
+		assertThat(decommissioningListsProcessable).extracting("id").containsOnly(records.list_23, records.list_25);
+		for (Record decommissioningList : decommissioningListsProcessable) {
+			assertThat(gandalf_managerInABC.has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).on(decommissioningList)).isFalse();
+			assertThat(gandalf_managerInABC.has(RMPermissionsTo.CREATE_DECOMMISSIONING_LIST).on(decommissioningList)).isTrue();
+		}
 	}
 
 	@Test
@@ -196,8 +228,14 @@ public class DecommissioningListQueryFactoryAcceptanceTest extends ConstellioTes
 
 	@Test
 	public void givenUserWithApprovePermissionWhenSearchingApprovedListsThenReturnNone() {
-		LogicalSearchQuery query = queryFactory.getApprovedListsQuery(records.getGandalf_managerInABC());
-		assertThat(searchServices.hasResults(query)).isFalse();
+		User gandalf_managerInABC = records.getGandalf_managerInABC();
+		LogicalSearchQuery query = queryFactory.getApprovedListsQuery(gandalf_managerInABC);
+		List<Record> decommissioningListsProcessable = searchServices.search(query);
+		assertThat(decommissioningListsProcessable).extracting("id").containsOnly(records.list_24);
+		for (Record decommissioningList : decommissioningListsProcessable) {
+			assertThat(gandalf_managerInABC.has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).on(decommissioningList)).isFalse();
+			assertThat(gandalf_managerInABC.has(RMPermissionsTo.CREATE_DECOMMISSIONING_LIST).on(decommissioningList)).isTrue();
+		}
 	}
 
 	@Test
@@ -214,8 +252,15 @@ public class DecommissioningListQueryFactoryAcceptanceTest extends ConstellioTes
 
 	@Test
 	public void givenUserWithApprovePermissionWhenSearchingProcessedListsThenReturnNone() {
-		LogicalSearchQuery query = queryFactory.getProcessedListsQuery(records.getGandalf_managerInABC());
-		assertThat(searchServices.hasResults(query)).isFalse();
+		User gandalf_managerInABC = records.getGandalf_managerInABC();
+		LogicalSearchQuery query = queryFactory.getProcessedListsQuery(gandalf_managerInABC);
+		List<Record> decommissioningListsProcessable = searchServices.search(query);
+		assertThat(decommissioningListsProcessable).extracting("id").containsOnly(
+				records.list_11, records.list_12, records.list_13, records.list_14, records.list_15);
+		for (Record decommissioningList : decommissioningListsProcessable) {
+			assertThat(gandalf_managerInABC.has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).on(decommissioningList)).isFalse();
+			assertThat(gandalf_managerInABC.has(RMPermissionsTo.CREATE_DECOMMISSIONING_LIST).on(decommissioningList)).isTrue();
+		}
 	}
 
 	@Test
