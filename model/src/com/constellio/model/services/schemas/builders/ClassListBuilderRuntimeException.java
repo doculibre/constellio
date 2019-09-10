@@ -16,13 +16,13 @@ public class ClassListBuilderRuntimeException extends RuntimeException {
 	}
 
 	public static class ClassNotFound extends ClassListBuilderRuntimeException {
-		public ClassNotFound(String className, Exception e) {
+		public ClassNotFound(String className, Throwable e) {
 			super("Class '" + className + "' could not be found in classpath", e);
 		}
 	}
 
 	public static class CannotInstanciate extends ClassListBuilderRuntimeException {
-		public CannotInstanciate(String className, Exception e) {
+		public CannotInstanciate(String className, Throwable e) {
 			super("Cannot instanciate '" + className + "'", e);
 		}
 	}

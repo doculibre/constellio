@@ -274,6 +274,9 @@ public class BorrowingServicesAcceptTest extends ConstellioTest {
 
 		nowDate = nowDate.plusDays(1);
 		givenTimeIs(nowDate);
+		RolesManager rolesManager = getModelLayerFactory().getRolesManager();
+		rolesManager.updateRole(rolesManager.getRole(zeCollection, RMRoles.USER)
+				.withNewPermissions(asList(RMPermissionsTo.BORROWING_FOLDER_DIRECTLY)));
 		borrowingServices.returnFolder(folderC30.getId(), records.getBob_userInAC(), nowDate, true);
 		folderC30 = records.getFolder_C30();
 
