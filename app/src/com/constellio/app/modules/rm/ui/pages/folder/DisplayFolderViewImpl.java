@@ -14,6 +14,7 @@ import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.AddButton;
+import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.DisplayButton;
 import com.constellio.app.ui.framework.buttons.DownloadLink;
 import com.constellio.app.ui.framework.buttons.EditButton;
@@ -50,7 +51,10 @@ import com.vaadin.event.dd.DropHandler;
 import com.vaadin.event.dd.acceptcriteria.AcceptAll;
 import com.vaadin.event.dd.acceptcriteria.AcceptCriterion;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
+import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Page;
+import com.vaadin.server.Page.BrowserWindowResizeEvent;
+import com.vaadin.server.Page.BrowserWindowResizeListener;
 import com.vaadin.server.Resource;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
@@ -79,7 +83,7 @@ import java.util.Set;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolderView, DropHandler {
+public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolderView, DropHandler, BrowserWindowResizeListener {
 
 	private final static Logger LOGGER = LoggerFactory.getLogger(DisplayFolderViewImpl.class);
 
@@ -102,6 +106,8 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 	private Window documentVersionWindow;
 
+	private CollapsibleHorizontalSplitPanel splitPanel;
+
 	private RecordVODataProvider folderContentDataProvider;
 	private RecordVODataProvider tasksDataProvider;
 	private RecordVODataProvider eventsDataProvider;
@@ -122,6 +128,18 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		this.nestedView = nestedView;
 		this.inWindow = inWindow;
 		presenter = new DisplayFolderPresenter(this, recordVO, nestedView, inWindow);
+	}
+
+	@Override
+	public void attach() {
+		super.attach();
+		Page.getCurrent().addBrowserWindowResizeListener(this);
+	}
+
+	@Override
+	public void detach() {
+		Page.getCurrent().removeBrowserWindowResizeListener(this);
+		super.detach();
 	}
 
 	@Override
@@ -246,7 +264,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	}
 
 	private Button newDisplayFolderButton() {
-		Button displayFolderButton;
+		BaseButton displayFolderButton;
 		if (!presenter.isLogicallyDeleted()) {
 			displayFolderButton = new DisplayButton($("DisplayFolderView.displayFolder"), false) {
 				@Override
@@ -254,6 +272,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 					presenter.displayFolderButtonClicked();
 				}
 			};
+			displayFolderButton.setCaptionVisibleOnMobile(false);
 		} else {
 			displayFolderButton = null;
 		}
@@ -261,7 +280,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	}
 
 	private Button newEditFolderButton() {
-		Button editFolderButton;
+		BaseButton editFolderButton;
 		if (!presenter.isLogicallyDeleted()) {
 			editFolderButton = new EditButton($("DisplayFolderView.editFolder")) {
 				@Override
@@ -269,6 +288,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 					presenter.editFolderButtonClicked();
 				}
 			};
+			editFolderButton.setCaptionVisibleOnMobile(false);
 		} else {
 			editFolderButton = null;
 		}
@@ -276,7 +296,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	}
 
 	private Button newAddDocumentButton() {
-		Button addDocumentButton;
+		BaseButton addDocumentButton;
 		if (!presenter.isLogicallyDeleted()) {
 			addDocumentButton = new AddButton($("DisplayFolderView.addDocument")) {
 				@Override
@@ -284,6 +304,8 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 					presenter.addDocumentButtonClicked();
 				}
 			};
+			addDocumentButton.setIcon(FontAwesome.FILE_O);
+			addDocumentButton.setCaptionVisibleOnMobile(false);
 		} else {
 			addDocumentButton = null;
 		}
@@ -380,7 +402,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			};
 			refreshFacets(folderContentDataProvider);
 
-			CollapsibleHorizontalSplitPanel splitPanel = new CollapsibleHorizontalSplitPanel("FolderContent");
+			splitPanel = new CollapsibleHorizontalSplitPanel("FolderContent");
 			splitPanel.setSizeFull();
 
 			viewerPanel = new ViewableRecordVOTablePanel(recordVOContainer) {
@@ -491,6 +513,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	public void selectTasksTab() {
 		if (!(tasksComponent instanceof Table)) {
 			Table table = new RecordVOTable(tasksDataProvider) {
+				@SuppressWarnings("unchecked")
 				@Override
 				protected Component buildMetadataComponent(Object itemId, MetadataValueVO metadataValue,
 														   RecordVO recordVO) {
@@ -758,6 +781,11 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	@Override
 	public RecordVO getReturnRecordVO() {
 		return presenter.getReturnRecordVO();
+	}
+
+	@Override
+	public void browserWindowResized(BrowserWindowResizeEvent event) {
+		// TODO Auto-generated method stub
 	}
 
 }

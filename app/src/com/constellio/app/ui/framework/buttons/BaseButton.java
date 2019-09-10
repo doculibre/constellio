@@ -1,5 +1,7 @@
 package com.constellio.app.ui.framework.buttons;
 
+import com.constellio.app.ui.framework.components.mouseover.NiceTitle;
+import com.constellio.app.ui.util.ResponsiveUtils;
 import com.vaadin.server.Extension;
 import com.vaadin.server.Resource;
 import com.vaadin.ui.Button;
@@ -7,6 +9,8 @@ import com.vaadin.ui.themes.ValoTheme;
 
 @SuppressWarnings("serial")
 public abstract class BaseButton extends Button implements Clickable {
+
+	public static final String RESPONSIVE_BUTTON_STYLE = "responsive-button";
 
 	private String textCaption;
 
@@ -16,6 +20,10 @@ public abstract class BaseButton extends Button implements Clickable {
 
 	private boolean badgeVisibleWhenZero = true;
 
+	private NiceTitle responsiveNiceTitle;
+
+	private boolean captionVisibleOnMobile = true;
+	
 	public BaseButton() {
 		this(null, null);
 	}
@@ -71,11 +79,32 @@ public abstract class BaseButton extends Button implements Clickable {
 		adjustCaption();
 	}
 
+	public boolean isCaptionVisibleOnMobile() {
+		return getStyleName().contains(RESPONSIVE_BUTTON_STYLE);
+	}
+
+	public void setCaptionVisibleOnMobile(boolean captionVisibleOnMobile) {
+		if (captionVisibleOnMobile) {
+			removeStyleName(RESPONSIVE_BUTTON_STYLE);
+		} else {
+			addStyleName(RESPONSIVE_BUTTON_STYLE);
+		}
+		this.captionVisibleOnMobile = captionVisibleOnMobile;
+	}
+
 	private void adjustCaption() {
 		if (badgeVisible && (badgeCount > 0 || badgeVisibleWhenZero)) {
-			super.setCaption("<span class=\"button-badge\" data-badge=\"" + badgeCount + "\">" + textCaption + "</span>");
+			StringBuilder sb = new StringBuilder();
+			sb.append("<span class=\"button-badge\" data-badge=\"" + badgeCount + "\">");
+			if (captionVisibleOnMobile || getIcon() == null || ResponsiveUtils.isDesktop()) {
+				sb.append(textCaption);
+			}
+			sb.append("</span>");
+			super.setCaption(sb.toString());
 		} else {
-			super.setCaption(textCaption);
+			if (captionVisibleOnMobile || getIcon() == null || ResponsiveUtils.isDesktop()) {
+				super.setCaption(textCaption);
+			}
 		}
 	}
 
@@ -84,6 +113,10 @@ public abstract class BaseButton extends Button implements Clickable {
 		super.setCaption(caption);
 		this.textCaption = caption;
 		adjustCaption();
+		if (responsiveNiceTitle != null && getExtensions().contains(responsiveNiceTitle)) {
+			removeExtension(responsiveNiceTitle);
+		}
+		responsiveNiceTitle = new NiceTitle(textCaption);
 	}
 
 	@Override

@@ -167,8 +167,6 @@ public class ViewableRecordVOSearchResultTable extends ViewableRecordVOTablePane
 		String totalCount = $(key, size, qtime);
 		setCountCaption(totalCount);
 
-		setViewActionButtonsLayoutComponents(alwaysActive);
-
 		return null;
 	}
 

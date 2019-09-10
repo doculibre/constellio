@@ -23,6 +23,7 @@ import com.constellio.app.ui.framework.buttons.SelectDeselectAllButton;
 import com.constellio.app.ui.framework.components.RecordDisplayFactory;
 import com.constellio.app.ui.framework.components.ViewWindow;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
+import com.constellio.app.ui.framework.components.layouts.I18NCssLayout;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.components.menuBar.RecordListMenuBar;
 import com.constellio.app.ui.framework.components.mouseover.NiceTitle;
@@ -40,6 +41,7 @@ import com.constellio.app.ui.util.ComponentTreeUtils;
 import com.constellio.app.ui.util.ResponsiveUtils;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.vaadin.data.Item;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.ObjectProperty;
@@ -47,6 +49,8 @@ import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Page;
+import com.vaadin.server.Page.BrowserWindowResizeEvent;
+import com.vaadin.server.Page.BrowserWindowResizeListener;
 import com.vaadin.server.Resource;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.Alignment;
@@ -76,7 +80,7 @@ import java.util.Map;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 //@JavaScript({ "theme://jquery/jquery-2.1.4.min.js", "theme://scroll/fix-vertical-scroll.js" })
-public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
+public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements BrowserWindowResizeListener {
 
 	public static final int MAX_SELECTION_SIZE = 10000;
 
@@ -88,9 +92,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
 
 	private VerticalLayout tableLayout;
 
-	private I18NHorizontalLayout viewActionButtonsLayout;
-
-	private I18NHorizontalLayout tableButtonsLayout;
+	private I18NCssLayout tableButtonsLayout;
 
 	private I18NHorizontalLayout selectionButtonsLayout;
 
@@ -162,8 +164,19 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
 		this.recordVOContainer = container;
 		this.tableMode = tableMode != null ? tableMode : TableMode.LIST;
 		this.initialSelectionActionsMenuBar = recordListMenuBar;
-
 		buildUI();
+	}
+
+	@Override
+	public void attach() {
+		super.attach();
+		Page.getCurrent().addBrowserWindowResizeListener(this);
+	}
+
+	@Override
+	public void detach() {
+		Page.getCurrent().removeBrowserWindowResizeListener(this);
+		super.detach();
 	}
 
 	public RecordVOContainer getRecordVOContainer() {
@@ -194,19 +207,14 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
 		nextButton = buildNextButton();
 		closeViewerButton = buildCloseViewerButton();
 
-		viewActionButtonsLayout = new I18NHorizontalLayout();
-		viewActionButtonsLayout.addStyleName("viewable-record-table-panel-view-action-menu-layout");
-		viewActionButtonsLayout.setSpacing(true);
-		viewActionButtonsLayout.setVisible(false);
-
 		tableLayout = new VerticalLayout();
 		tableLayout.addStyleName("viewable-record-panel-table-layout");
 		tableLayout.setHeight("100%");
 
-		tableButtonsLayout = new I18NHorizontalLayout();
+		tableButtonsLayout = new I18NCssLayout();
 		tableButtonsLayout.addStyleName("table-buttons-layout");
 		tableButtonsLayout.setWidth("100%");
-		tableButtonsLayout.setSpacing(true);
+		//		tableButtonsLayout.setSpacing(true);
 
 		selectionButtonsLayout = new I18NHorizontalLayout();
 		selectionButtonsLayout.addStyleName("selection-buttons-layout");
@@ -226,16 +234,14 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
 
 		tableButtonsLayout.addComponents(selectionButtonsLayout, actionAndModeButtonsLayout);
 
-		tableButtonsLayout.setComponentAlignment(selectionButtonsLayout, Alignment.TOP_LEFT);
-		tableButtonsLayout.setComponentAlignment(actionAndModeButtonsLayout, Alignment.TOP_RIGHT);
+		//		tableButtonsLayout.setComponentAlignment(selectionButtonsLayout, Alignment.TOP_LEFT);
+		//		tableButtonsLayout.setComponentAlignment(actionAndModeButtonsLayout, Alignment.TOP_RIGHT);
 
-		tableLayout.addComponent(viewActionButtonsLayout);
 		tableLayout.addComponent(tableButtonsLayout);
 		tableLayout.addComponent(table);
 		if (table.isPaged()) {
 			tableLayout.addComponent(pagingControls = table.createPagingControls());
 		}
-		tableLayout.setComponentAlignment(viewActionButtonsLayout, Alignment.TOP_RIGHT);
 
 		closeButtonViewerMetadataLayout = new VerticalLayout(closeViewerButton, viewerMetadataPanel);
 		closeButtonViewerMetadataLayout.addStyleName("close-button-viewer-metadata-layout");
@@ -257,17 +263,6 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
 		adjustTableExpansion();
 	}
 
-	public void setQuickActionButtonsToExpend() {
-		tableButtonsLayout.setExpandRatio(actionAndModeButtonsLayout, 1);
-	}
-
-	public void setViewActionButtonsLayoutComponents(List<Component> components) {
-		viewActionButtonsLayout.setVisible(!components.isEmpty());
-		for (Component component : components) {
-			viewActionButtonsLayout.addComponent(component);
-		}
-	}
-
 	public void setCountCaption(String caption) {
 		countLabel.setValue(caption);
 		countLabel.setVisible(StringUtils.isNotBlank(caption));
@@ -277,6 +272,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
 		this.quickActionButton = button;
 		quickActionButton.addStyleName(ValoTheme.BUTTON_LINK);
 		quickActionButton.addStyleName("quick-action-button");
+		quickActionButton.setCaptionVisibleOnMobile(false);
 		actionAndModeButtonsLayout.addComponent(quickActionButton, 0);
 		actionAndModeButtonsLayout.setComponentAlignment(quickActionButton, Alignment.TOP_LEFT);
 	}
@@ -294,11 +290,16 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
 		}
 	}
 
-	private MenuItemRecordProvider getMenuItemProvider() {
+	protected MenuItemRecordProvider getMenuItemProvider() {
 		return new MenuItemRecordProvider() {
 			@Override
 			public List<Record> getRecords() {
-				return ViewableRecordVOTablePanel.this.getRecords();
+				return ViewableRecordVOTablePanel.this.getSelectedRecords();
+			}
+
+			@Override
+			public LogicalSearchQuery getQuery() {
+				return null;
 			}
 		};
 	}
@@ -317,7 +318,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
 		});
 	}
 
-	public List<Record> getRecords() {
+	public List<Record> getSelectedRecords() {
 		List<Record> selectedRecords;
 		if (table.getSelectionManager() instanceof RecordVOSelectionManager) {
 			RecordVOSelectionManager recordVOSelectionManager = (RecordVOSelectionManager) table.getSelectionManager();
@@ -690,7 +691,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
 		if (Folder.SCHEMA_TYPE.equals(schemaTypeCode)) {
 			displayInWindowOnSelection = false;
 		} else {
-			displayInWindowOnSelection = true;
+			displayInWindowOnSelection = !ResponsiveUtils.isDesktop();
 		}
 		return displayInWindowOnSelection;
 	}
@@ -1163,6 +1164,11 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
 			scrolledIntoView = false;
 		}
 		return scrolledIntoView;
+	}
+
+	@Override
+	public void browserWindowResized(BrowserWindowResizeEvent event) {
+		// TODO Auto-generated method stub
 	}
 
 }

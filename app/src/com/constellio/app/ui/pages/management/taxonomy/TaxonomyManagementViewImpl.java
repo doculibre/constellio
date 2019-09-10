@@ -146,14 +146,13 @@ public class TaxonomyManagementViewImpl extends BaseViewImpl implements Taxonomy
 		searchLayout = new HorizontalLayout();
 		searchLayout.setSpacing(true);
 		final TextField searchField = new BaseTextField();
-		Button searchButton = new SearchButton();
-		searchField.focus();
-		searchButton.addClickListener(new ClickListener() {
+		Button searchButton = new SearchButton() {
 			@Override
-			public void buttonClick(ClickEvent event) {
+			protected void buttonClick(ClickEvent event) {
 				presenter.searchConcept(searchField.getValue());
 			}
-		});
+		};
+		searchField.focus();
 		searchLayout.addComponents(searchField, searchButton);
 
 		OnEnterKeyHandler onEnterHandler = new OnEnterKeyHandler() {

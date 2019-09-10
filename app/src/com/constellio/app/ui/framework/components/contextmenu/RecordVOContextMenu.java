@@ -17,6 +17,7 @@ import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.users.UserServices;
 import org.apache.commons.collections4.MapUtils;
 
@@ -91,6 +92,11 @@ public class RecordVOContextMenu extends BaseContextMenu {
 			@Override
 			public List<Record> getRecords() {
 				return Arrays.asList(recordVO.getRecord());
+			}
+
+			@Override
+			public LogicalSearchQuery getQuery() {
+				return null;
 			}
 		});
 	}

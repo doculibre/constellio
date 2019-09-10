@@ -534,6 +534,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		};
 		displayDocumentButton.addStyleName(ValoTheme.BUTTON_LINK);
 		displayDocumentButton.addStyleName("display-document-link");
+		displayDocumentButton.setCaptionVisibleOnMobile(false);
 
 		openDocumentButton = new LinkButton($("DisplayDocumentView.openDocument")) {
 			@Override
@@ -543,6 +544,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		};
 		openDocumentButton.addStyleName(ValoTheme.BUTTON_LINK);
 		openDocumentButton.addStyleName("open-document-link");
+		openDocumentButton.setCaptionVisibleOnMobile(false);
 
 		if (((DocumentVO) documentVO).getContent() != null) {
 			downloadDocumentButton = new DownloadContentVersionLink(((DocumentVO) documentVO).getContent(),
@@ -559,12 +561,17 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 				presenter.editDocumentButtonClicked();
 			}
 		};
+		editDocumentButton.setCaptionVisibleOnMobile(false);
 
 		List<String> excludedActionTypes = Arrays.asList(
 				DocumentMenuItemActionType.DOCUMENT_DISPLAY.name(),
 				DocumentMenuItemActionType.DOCUMENT_OPEN.name(),
 				DocumentMenuItemActionType.DOCUMENT_EDIT.name());
-		return new RecordVOActionButtonFactory(documentVO, excludedActionTypes).build();
+		List<Button> actionMenuButtons = new RecordVOActionButtonFactory(documentVO, excludedActionTypes).build();
+		for (Button actionMenuButton : actionMenuButtons) {
+
+		}
+		return actionMenuButtons;
 	}
 
 	@Override

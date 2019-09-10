@@ -1,8 +1,11 @@
 package com.constellio.app.ui.framework.components.menuBar;
 
 import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.util.ResponsiveUtils;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Page;
+import com.vaadin.server.Page.BrowserWindowResizeEvent;
+import com.vaadin.server.Page.BrowserWindowResizeListener;
 import com.vaadin.server.Resource;
 import com.vaadin.ui.JavaScript;
 import com.vaadin.ui.MenuBar;
@@ -10,15 +13,21 @@ import com.vaadin.ui.Notification;
 import com.vaadin.ui.themes.ValoTheme;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 
-public class BaseMenuBar extends MenuBar {
+public class BaseMenuBar extends MenuBar implements BrowserWindowResizeListener {
 
 	private final boolean lazyLoading;
+
+	private Map<MenuItem, String> rootItemNonResponsiveCaptions = new HashMap<>();
+
+	private boolean desktopMode;
 
 	public BaseMenuBar() {
 		this(false, false);
@@ -36,6 +45,20 @@ public class BaseMenuBar extends MenuBar {
 			addStyleName("compact-menubar");
 			addStyleName(ValoTheme.MENUBAR_BORDERLESS);
 		}
+		desktopMode = ResponsiveUtils.isDesktop();
+	}
+
+	@Override
+	public void attach() {
+		super.attach();
+		Page.getCurrent().addBrowserWindowResizeListener(this);
+		computeResponsive();
+	}
+
+	@Override
+	public void detach() {
+		Page.getCurrent().removeBrowserWindowResizeListener(this);
+		super.detach();
 	}
 
 	public boolean isLazyLoading() {
@@ -89,6 +112,38 @@ public class BaseMenuBar extends MenuBar {
 			rootItem = super.addItem(caption, icon, command);
 		}
 		return rootItem;
+	}
+
+	private void computeResponsive() {
+		boolean switchToMobile;
+		boolean switchToDesktop;
+		if (desktopMode && !ResponsiveUtils.isDesktop()) {
+			switchToMobile = true;
+			switchToDesktop = false;
+		} else if (!desktopMode && ResponsiveUtils.isDesktop()) {
+			switchToMobile = false;
+			switchToDesktop = true;
+		} else {
+			switchToMobile = false;
+			switchToDesktop = false;
+		}
+		if (switchToMobile || switchToDesktop) {
+			for (MenuItem item : getItems()) {
+				if (switchToMobile) {
+					rootItemNonResponsiveCaptions.put(item, item.getText());
+					item.setText("");
+				} else {
+					item.setText(rootItemNonResponsiveCaptions.get(item));
+					rootItemNonResponsiveCaptions.put(item, null);
+				}
+			}
+			desktopMode = ResponsiveUtils.isDesktop();
+		}
+	}
+
+	@Override
+	public void browserWindowResized(BrowserWindowResizeEvent event) {
+		computeResponsive();
 	}
 
 	protected void lazyLoadChildren(MenuItem rootItem) {

@@ -1,12 +1,12 @@
 package com.constellio.app.ui.framework.components.splitpanel;
 
-import javax.servlet.http.Cookie;
-
 import com.vaadin.server.VaadinService;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.HorizontalSplitPanel;
 import com.vaadin.ui.Label;
+
+import javax.servlet.http.Cookie;
 
 public class CollapsibleHorizontalSplitPanel extends HorizontalSplitPanel {
 	
@@ -121,7 +121,6 @@ public class CollapsibleHorizontalSplitPanel extends HorizontalSplitPanel {
 		String cookieName = getCookieName();
 		Cookie cookie = new Cookie(cookieName, "" + cookieValue);
 		if (cookieValue != null) {
-			// Make cookie expire in 2 minutes
 			cookie.setMaxAge(Integer.MAX_VALUE);
 		} else {
 			// Delete the cookie

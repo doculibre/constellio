@@ -16,6 +16,7 @@ import com.constellio.model.frameworks.validation.ValidationError;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
+import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Page;
 import com.vaadin.server.StreamResource;
 import com.vaadin.server.StreamResource.StreamSource;
@@ -66,7 +67,7 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 
 	private Button valoMenuToggleButton;
 
-	private Button systemStateButton;
+	private WindowButton systemStateButton;
 
 	private CssLayout menuItemsLayout;
 
@@ -116,10 +117,25 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 		menuContent.setHeight("100%");
 
 		menuContent.addComponent(buildMainMenu());
+		menuContent.addComponent(buildToggleButton());
 		menuContent.addComponent(buildUserMenu());
 
 		return menuContent;
 	}
+
+	protected Component buildToggleButton() {
+		valoMenuToggleButton = new Button($("ConstellioMenu.menuToggle"), new ClickListener() {
+			@Override
+			public void buttonClick(final ClickEvent event) {
+				toggleMenuVisibility();
+			}
+		});
+		valoMenuToggleButton.setIcon(FontAwesome.LIST);
+		valoMenuToggleButton.addStyleName("valo-menu-toggle");
+		valoMenuToggleButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
+		valoMenuToggleButton.addStyleName(ValoTheme.BUTTON_SMALL);
+		return valoMenuToggleButton;
+	}		
 
 	protected Component buildUserMenu() {
 		userMenu = new BaseMenuBar();
@@ -209,6 +225,7 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 		systemStateButton.addStyleName(ValoTheme.BUTTON_TINY);
 		systemStateButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
 		systemStateButton.addStyleName("constellio-menu-system-state-button");
+		systemStateButton.setCaptionVisibleOnMobile(true);
 		refreshSystemStateButton();
 
 		UI.getCurrent().getNavigator().addViewChangeListener(new ViewChangeListener() {
@@ -264,9 +281,7 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 	}
 
 	private void refreshSystemStateButton() {
-
 		if (new FoldersLocator().getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER) {
-
 			ValidationErrors validationErrors = SystemInfo.getInstance().getValidationErrors();
 			if (!validationErrors.isEmpty()) {
 				systemStateButton.setIcon(new ThemeResource("images/commun/error.gif"));
