@@ -167,6 +167,9 @@ public class ThesaurusService implements Serializable {
 
 		if (StringUtils.isNotBlank(input) && !input.startsWith("*")) {
 			String parsedInput = parseForSearch(input);
+			// replace takes care of PatternSyntaxException on a input with a missing closing or opening parentheses
+			parsedInput = StringUtils.replace(parsedInput, "(", "\\(");
+			parsedInput = StringUtils.replace(parsedInput, ")", "\\)");
 			Pattern p = Pattern.compile(parsedInput + ".*\\(.*\\)"); // search for "generalSearchedWord (specification)"
 
 			// for each concept

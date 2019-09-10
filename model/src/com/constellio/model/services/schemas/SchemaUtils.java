@@ -33,6 +33,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
+import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
 import static com.constellio.model.entities.schemas.Schemas.MIGRATION_DATA_VERSION;
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
 
@@ -306,6 +307,7 @@ public class SchemaUtils {
 			case DATE_TIME:
 			case STRING:
 				summary = metadata.isEssentialInSummary() || metadata.isUniqueValue()
+						  || LEGACY_ID.isSameLocalCode(metadata)
 						  || TITLE.isSameLocalCode(metadata) || metadata.isEssentialInSummary()
 						  || metadata.isCacheIndex() || Schemas.TOKENS.getLocalCode().equals(metadata.getLocalCode())
 						  || Schemas.ALL_REMOVED_AUTHS.getLocalCode().equals(metadata.getLocalCode())

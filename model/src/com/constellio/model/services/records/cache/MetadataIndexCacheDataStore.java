@@ -69,7 +69,9 @@ public class MetadataIndexCacheDataStore {
 		void add(List<String> values, String id) {
 			if (values != null) {
 				for (String value : values) {
-					add(value, id);
+					if (value != null) {
+						add(value, id);
+					}
 				}
 			}
 		}
@@ -84,7 +86,9 @@ public class MetadataIndexCacheDataStore {
 		void remove(List<String> values, String id) {
 			if (values != null) {
 				for (String value : values) {
-					remove(value, id);
+					if (value != null) {
+						remove(value, id);
+					}
 				}
 			}
 		}
