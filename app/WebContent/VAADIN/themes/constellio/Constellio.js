@@ -19,6 +19,7 @@ function constellio_registerScrollListener() {
 				//var closeViewerButton = document.getElementById("close-viewer-button");
 				var closableViewerLayout = document.getElementById("close-button-viewer-metadata-layout");
 				var newScrollTop = contentFooterWrapper.scrollTop;
+				console.log("Scroll top: " + newScrollTop);
 				var scrollingUp = lastScrollTop > newScrollTop;
 				if (closableViewerLayout && (scrollingUp || !constellio_isVisible(closableViewerLayout))) {
 					var mainComponent = document.getElementById("main-component");

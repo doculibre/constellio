@@ -353,6 +353,8 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 	}
 
 	protected MenuBar newActionMenuBar() {
+		actionMenuButtonsAndItems.clear();
+		
 		String menuBarCaption = getActionMenuBarCaption();
 		if (menuBarCaption == null) {
 			menuBarCaption = "";
@@ -381,6 +383,7 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 				@Override
 				public void menuSelected(MenuItem selectedItem) {
 					actionMenuButton.click();
+					updateActionMenuItems();
 				}
 			});
 			actionMenuButtonsAndItems.put(actionMenuButton, actionMenuItem);
@@ -457,11 +460,12 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
                     actionMenuLayout = null;
                 }
                 result = actionMenuLayout;
-            }
-        }
-        if (result != null) {
-			result.addStyleName("action-menu");
-        }
+				result.addStyleName("action-menu");
+			}
+		}
+		//        if (result != null) {
+		//			result.addStyleName("action-menu");
+		//        }
         return result;
     }
 

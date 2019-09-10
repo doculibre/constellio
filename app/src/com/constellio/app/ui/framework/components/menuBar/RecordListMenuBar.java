@@ -18,6 +18,7 @@ import com.vaadin.navigator.View;
 import com.vaadin.server.FontAwesome;
 import org.apache.commons.collections4.MapUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -64,7 +65,8 @@ public class RecordListMenuBar extends BaseMenuBar {
 
 		MenuItem rootItem = addItem(rootItemCaption, FontAwesome.ELLIPSIS_V, null);
 
-		List<MenuItemAction> menuItemActions = menuItemServices.getActionsForRecords(recordProvider.getRecords(), excludedActionTypes,
+		List<MenuItemAction> queryMenuItemActions = menuItemServices.getActionsForRecords(recordProvider.getQuery(),
+				excludedActionTypes,
 				new MenuItemActionBehaviorParams() {
 					@Override
 					public BaseView getView() {
@@ -82,10 +84,32 @@ public class RecordListMenuBar extends BaseMenuBar {
 					}
 				});
 
+		List<MenuItemAction> recordsMenuItemActions = menuItemServices.getActionsForRecords(recordProvider.getRecords(), excludedActionTypes,
+				new MenuItemActionBehaviorParams() {
+					@Override
+					public BaseView getView() {
+						return (BaseView) ConstellioUI.getCurrent().getCurrentView();
+					}
+
+					@Override
+					public Map<String, String> getFormParams() {
+						return MapUtils.emptyIfNull(ParamUtils.getCurrentParams());
+					}
+
+					@Override
+					public User getUser() {
+						return userServices.getUserInCollection(sessionContext.getCurrentUser().getUsername(), collection);
+					}
+				});
+
+		List<MenuItemAction> menuItemActions = new ArrayList<>();
+		menuItemActions.addAll(queryMenuItemActions);
+		menuItemActions.addAll(recordsMenuItemActions);
+
 		final View originalView = ConstellioUI.getCurrent().getCurrentView();
 		menuItemFactory.buildMenuBar(rootItem, menuItemActions, recordProvider, new CommandCallback() {
 			@Override
-			public void actionExecuted(MenuItemAction menuItemAction) {
+			public void actionExecuted(MenuItemAction menuItemAction, Object component) {
 				View currentView = ConstellioUI.getCurrent().getCurrentView();
 				// No point in refreshing menu if we left the original page
 				if (currentView == originalView) {

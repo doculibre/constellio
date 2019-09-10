@@ -91,20 +91,11 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration UPDATE_SERVER_CONNECTION_ENABLED;
 
 	public static final String DEFAULT_CKEDITOR_TOOLBAR_CONFIG = "" +
-																 "   { name: 'document', items: [ 'Source', 'NewPage', 'Preview', 'Print' ] },\n" +
-																 "	{ name: 'clipboard', items: [ 'Cut', 'Copy', 'Paste', 'PasteText', 'PasteFromWord', '-', 'Undo', 'Redo' ] },\n" +
-																 "	{ name: 'editing', items: [ 'Find', 'Replace', '-', 'SelectAll', '-' ] },\n" +
-																 "	'/',\n" +
-																 "	{ name: 'basicstyles', items: [ 'Bold', 'Italic', 'Underline', 'Strike', 'Subscript', 'Superscript', '-', 'RemoveFormat' ] },\n"
-																 +
-																 "	{ name: 'paragraph', items: [ 'NumberedList', 'BulletedList', '-', 'Outdent', 'Indent', '-', 'Blockquote', 'CreateDiv', '-', 'JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock', '-', 'BidiLtr', 'BidiRtl'] },\n"
-																 +
-																 "	{ name: 'links', items: [ 'Link', 'Unlink', 'Anchor' ] },\n" +
-																 "	{ name: 'insert', items: [ 'Image', 'Table', 'HorizontalRule', 'SpecialChar', 'PageBreak' ] },\n" +
-																 "	'/',\n" +
-																 "	{ name: 'styles', items: [ 'Styles', 'Format', 'Font', 'FontSize' ] },\n" +
-																 "	{ name: 'colors', items: [ 'TextColor', 'BGColor' ] },\n" +
-																 "	{ name: 'tools', items: [ 'Maximize', 'ShowBlocks' ] }";
+																 "  { name: 'basicstyles', items: [ 'Bold', 'Italic', 'Underline', 'Strike', '-', 'RemoveFormat' ] },\r\n" +
+																 "	{ name: 'paragraph', items: [ 'NumberedList', 'BulletedList', '-', 'JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock'] },\r\n" +
+																 "	{ name: 'links', items: [ 'Link', 'Unlink', 'Anchor' ] },\r\n" +
+																 "	{ name: 'styles', items: [ 'Styles', 'Format', 'Font', 'FontSize' ] },\r\n" +
+																 "	{ name: 'colors', items: [ 'TextColor', 'BGColor' ] }";
 
 	public static final SystemConfiguration DEFAULT_START_TAB;
 

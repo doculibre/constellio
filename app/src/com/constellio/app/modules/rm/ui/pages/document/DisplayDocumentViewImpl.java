@@ -81,22 +81,6 @@ import java.util.List;
 import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
-import org.apache.commons.io.output.ByteArrayOutputStream;
-import org.apache.commons.lang3.StringUtils;
-import org.vaadin.dialogs.ConfirmDialog;
-
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-import static com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration.modalDialog;
-import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocumentView, DropHandler {
 
@@ -543,6 +527,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		};
 		displayDocumentButton.addStyleName(ValoTheme.BUTTON_LINK);
 		displayDocumentButton.addStyleName("display-document-link");
+		displayDocumentButton.setCaptionVisibleOnMobile(false);
 
 		openDocumentButton = new LinkButton($("DisplayDocumentView.openDocument")) {
 			@Override
@@ -552,6 +537,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		};
 		openDocumentButton.addStyleName(ValoTheme.BUTTON_LINK);
 		openDocumentButton.addStyleName("open-document-link");
+		openDocumentButton.setCaptionVisibleOnMobile(false);
 
 		if (((DocumentVO) documentVO).getContent() != null) {
 			downloadDocumentButton = new DownloadContentVersionLink(((DocumentVO) documentVO).getContent(),
@@ -568,12 +554,17 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 				presenter.editDocumentButtonClicked();
 			}
 		};
+		editDocumentButton.setCaptionVisibleOnMobile(false);
 
 		List<String> excludedActionTypes = Arrays.asList(
 				DocumentMenuItemActionType.DOCUMENT_DISPLAY.name(),
 				DocumentMenuItemActionType.DOCUMENT_OPEN.name(),
 				DocumentMenuItemActionType.DOCUMENT_EDIT.name());
-		return new RecordVOActionButtonFactory(documentVO, excludedActionTypes).build();
+		List<Button> actionMenuButtons = new RecordVOActionButtonFactory(documentVO, excludedActionTypes).build();
+		for (Button actionMenuButton : actionMenuButtons) {
+
+		}
+		return actionMenuButtons;
 	}
 
 	@Override

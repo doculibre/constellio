@@ -43,8 +43,6 @@ import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.Page;
-import com.vaadin.server.Page.BrowserWindowResizeEvent;
-import com.vaadin.server.Page.BrowserWindowResizeListener;
 import com.vaadin.server.RequestHandler;
 import com.vaadin.server.Responsive;
 import com.vaadin.server.VaadinRequest;
@@ -153,15 +151,6 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 
 		Responsive.makeResponsive(this);
 		addStyleName(ValoTheme.UI_WITH_MENU);
-
-		// Some views need to be aware of browser resize events so a
-		// BrowserResizeEvent gets fired to the event but on every occasion.
-		Page.getCurrent().addBrowserWindowResizeListener(
-				new BrowserWindowResizeListener() {
-					@Override
-					public void browserWindowResized(final BrowserWindowResizeEvent event) {
-					}
-				});
 
 		if (getErrorHandler() == null) {
 			setErrorHandler(new ConstellioErrorHandler());

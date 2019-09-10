@@ -215,7 +215,7 @@ public class MenuItemServices {
 
 	public List<MenuItemAction> getActionsForRecords(LogicalSearchQuery query, List<String> excludedActionTypes,
 													 MenuItemActionBehaviorParams params) {
-		if (params.getView() == null) {
+		if (params.getView() == null || query == null) {
 			return Collections.emptyList();
 		}
 

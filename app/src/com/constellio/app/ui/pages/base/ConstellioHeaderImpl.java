@@ -31,10 +31,12 @@ import com.constellio.app.ui.pages.search.AdvancedSearchView;
 import com.constellio.app.ui.pages.search.SearchView;
 import com.constellio.app.ui.pages.search.SimpleSearchView;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
+import com.constellio.app.ui.util.ResponsiveUtils;
 import com.constellio.data.utils.AccentApostropheCleaner;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Collection;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.vaadin.data.Item;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
@@ -46,6 +48,8 @@ import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Page;
+import com.vaadin.server.Page.BrowserWindowResizeEvent;
+import com.vaadin.server.Page.BrowserWindowResizeListener;
 import com.vaadin.server.Resource;
 import com.vaadin.server.Responsive;
 import com.vaadin.server.ThemeResource;
@@ -87,7 +91,7 @@ import java.util.Map;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 @SuppressWarnings("serial")
-public class ConstellioHeaderImpl extends I18NHorizontalLayout implements ConstellioHeader, SelectedRecordIdsChangeListener {
+public class ConstellioHeaderImpl extends I18NHorizontalLayout implements ConstellioHeader, SelectedRecordIdsChangeListener, BrowserWindowResizeListener {
 
 	private static final String POPUP_ID = "header-popup";
 	private static final String SHOW_ADVANCED_SEARCH_POPUP_HIDDEN_STYLE_NAME = "header-show-advanced-search-button-popup-hidden";
@@ -127,10 +131,11 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 
 	public ConstellioHeaderImpl() {
 		presenter = new ConstellioHeaderPresenter(this);
-		Resource resource = presenter.getUserLogoResource();
-		Image logo = new Image("", resource != null ? resource : new ThemeResource("images/logo_eim_406x60.png"));
-		logo.setHeight("30px");
-		logo.setWidth("203px");
+
+		Resource logoResource = presenter.getUserLogoResource();
+		Image logo = new Image("", logoResource != null ? logoResource : new ThemeResource("images/logo_eim_406x60.png"));
+		logo.setWidth("170px");
+		logo.setHeightUndefined();
 		logo.setAlternateText(("logo"));
 
 		logo.addStyleName("header-logo");
@@ -161,6 +166,7 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 		});
 		searchField.setMinChars(3);
 		searchField.addStyleName("header-search");
+		searchField.setWidth("100%");
 		searchField.addFocusListener(new FocusListener() {
 			@Override
 			public void focus(FocusEvent event) {
@@ -181,15 +187,14 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 		});
 		showAdvancedSearchButton.addStyleName(SHOW_ADVANCED_SEARCH_POPUP_HIDDEN_STYLE_NAME);
 
-		Button searchButton = new SearchButton();
-		searchButton.addStyleName("header-search-button");
-		searchButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
-		searchButton.addClickListener(new ClickListener() {
+		BaseButton searchButton = new SearchButton() {
 			@Override
-			public void buttonClick(ClickEvent event) {
+			protected void buttonClick(ClickEvent event) {
 				presenter.searchRequested(searchField.getValue(), getAdvancedSearchSchemaType());
 			}
-		});
+		};
+		searchButton.addStyleName("header-search-button");
+		searchButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
 
 		OnEnterKeyHandler onEnterHandler = new OnEnterKeyHandler() {
 			@Override
@@ -209,9 +214,15 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 		setSelectionButtonIcon();
 		selectionPanel = buildSelectionPanel();
 
-		addComponents(logo, searchField, showAdvancedSearchButton, searchButton, collectionMenu, actionMenu, selectionButton,
+		I18NHorizontalLayout searchFieldLayout = new I18NHorizontalLayout(searchField, showAdvancedSearchButton, searchButton);
+		searchFieldLayout.addStyleName("header-search-field-layout");
+		searchFieldLayout.setWidth("100%");
+		searchFieldLayout.setExpandRatio(searchField, 1);
+
+		addComponents(logo, searchFieldLayout, collectionMenu, actionMenu, selectionButton,
 				popupView);
 		//		setComponentAlignment(headerMenu, Alignment.MIDDLE_RIGHT);
+		setExpandRatio(searchFieldLayout, 1);
 		setSizeFull();
 
 		adjustSearchFieldContent();
@@ -444,6 +455,7 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 	public void attach() {
 		SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
 		sessionContext.addSelectedRecordIdsChangeListener(this);
+		Page.getCurrent().addBrowserWindowResizeListener(this);
 		super.attach();
 	}
 
@@ -451,6 +463,7 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 	public void detach() {
 		SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
 		sessionContext.removeSelectedRecordIdsChangeListener(this);
+		Page.getCurrent().removeBrowserWindowResizeListener(this);
 		super.detach();
 	}
 
@@ -590,6 +603,11 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 			public List<Record> getRecords() {
 				return presenter.getSelectedRecords();
 			}
+
+			@Override
+			public LogicalSearchQuery getQuery() {
+				return null;
+			}
 		};
 		List<String> excludedActionTypes = Arrays.asList(RMRecordsMenuItemActionType.RMRECORDS_ADD_SELECTION.name());
 		RecordListActionButtonFactory actionButtonFactory = new RecordListActionButtonFactory(recordProvider, null, excludedActionTypes);
@@ -692,13 +710,17 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 		} else {
 			caption = "";
 		}
-		collectionSubMenu.setText(caption);
-
+		if (ResponsiveUtils.isDesktop()) {
+			collectionSubMenu.setText(caption);
+		} else {
+			collectionSubMenu.setText("");
+		}
 	}
 
 	protected MenuBar buildCollectionMenu() {
 		MenuBar collectionMenu = new BaseMenuBar();
 		collectionMenu.addStyleName(ValoTheme.MENUBAR_BORDERLESS);
+
 		if (!collections.isEmpty()) {
 			ArrayList<String> sortedCollections = new ArrayList<>(collections);
 			Collections.sort(sortedCollections, new Comparator<String>() {
@@ -889,8 +911,12 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 		}
 	}
 
-
 	public ConstellioHeaderPresenter getPresenter() {
 		return presenter;
+	}
+
+	@Override
+	public void browserWindowResized(BrowserWindowResizeEvent event) {
+		setCollectionSubMenuCaption();
 	}
 }

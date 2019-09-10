@@ -171,13 +171,12 @@ public class TaxonomyManagementSearchViewImpl extends BaseViewImpl implements Ta
 		searchField.setValue(presenter.getQueryExpression());
 		searchField.focus();
 		searchField.setNullRepresentation("");
-		Button searchButton = new SearchButton();
-		searchButton.addClickListener(new ClickListener() {
+		Button searchButton = new SearchButton() {
 			@Override
-			public void buttonClick(ClickEvent event) {
+			protected void buttonClick(ClickEvent event) {
 				presenter.searchConcept(searchField.getValue());
 			}
-		});
+		};
 		searchLayout.addComponents(searchField, searchButton);
 
 		OnEnterKeyHandler onEnterHandler = new OnEnterKeyHandler() {
