@@ -42,6 +42,10 @@ public class RecordsReindexingBackgroundAction implements Runnable {
 
 	@Override
 	public synchronized void run() {
+		run(true);
+	}
+
+	public synchronized void run(boolean waitDuringOfficeHours) {
 
 		boolean officeHours = TimeProvider.getLocalDateTime().getHourOfDay() >= 7
 							  && TimeProvider.getLocalDateTime().getHourOfDay() <= 18;

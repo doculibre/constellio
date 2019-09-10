@@ -18,6 +18,7 @@ import com.constellio.data.dao.services.idGenerator.ZeroPaddedSequentialUniqueId
 import com.constellio.data.extensions.AfterQueryParams;
 import com.constellio.data.extensions.BigVaultServerExtension;
 import com.constellio.data.utils.LangUtils;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.Record;
@@ -73,7 +74,7 @@ import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 
-public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends ConstellioTest {
+public class TaxonomiesSearchServices_LinkableTreesLegacyAcceptTest extends ConstellioTest {
 
 	private static final boolean VALIDATE_SOLR_QUERIES_COUNT = true;
 
@@ -98,7 +99,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 		prepareSystem(withZeCollection().withAllTest(users).withConstellioRMModule().withRMTest(records)
 				.withFoldersAndContainersOfEveryStatus()
 		);
-
+		Toggle.TRY_USING_NEW_CACHE_BASED_TAXONOMIES_SEARCH_SERVICES_QUERY_HANDLER.disable();
 		authsServices = getModelLayerFactory().newAuthorizationsServices();
 		recordServices = getModelLayerFactory().newRecordServices();
 

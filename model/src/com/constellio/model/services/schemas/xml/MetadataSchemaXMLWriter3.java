@@ -249,7 +249,7 @@ public class MetadataSchemaXMLWriter3 {
 		if (metadata.isSearchable()) {
 			metadataElement.setAttribute("searchable", writeBoolean(metadata.isSearchable()));
 		}
-		if(metadata.isCacheIndex()) {
+		if (metadata.isCacheIndex()) {
 			metadataElement.setAttribute("cacheIndex", writeBoolean(metadata.isCacheIndex()));
 		}
 		if (metadata.isSortable()) {

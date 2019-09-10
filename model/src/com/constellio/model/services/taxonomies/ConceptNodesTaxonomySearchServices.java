@@ -165,7 +165,7 @@ public class ConceptNodesTaxonomySearchServices {
 	}
 
 	public LogicalSearchQuery childNodesQuery(Record record, TaxonomiesSearchOptions options,
-													 MetadataSchemaTypes types) {
+											  MetadataSchemaTypes types) {
 		String dataStore = types.getSchema(record.getSchemaCode()).getDataStore();
 		LogicalSearchCondition condition = fromTypesInCollectionOf(record, dataStore)
 				.where(directChildOf(record).andWhere(visibleInTrees));
@@ -180,8 +180,8 @@ public class ConceptNodesTaxonomySearchServices {
 	}
 
 	public LogicalSearchQuery childConceptsQuery(Record record, Taxonomy taxonomy,
-														TaxonomiesSearchOptions options,
-														MetadataSchemaTypes types) {
+												 TaxonomiesSearchOptions options,
+												 MetadataSchemaTypes types) {
 		LogicalSearchCondition condition = fromTypeIn(taxonomy).where(directChildOf(record)).andWhere(visibleInTrees);
 		LogicalSearchQuery query = new LogicalSearchQuery(condition)
 				.filteredByStatus(options.getIncludeStatus())
@@ -211,15 +211,15 @@ public class ConceptNodesTaxonomySearchServices {
 		}
 	}
 
-	static DataStoreFieldLogicalSearchCondition directChildOf(Record record) {
+	public static DataStoreFieldLogicalSearchCondition directChildOf(Record record) {
 		return (DataStoreFieldLogicalSearchCondition) where(Schemas.PATH_PARTS).isEqualTo("_LAST_" + record.getId());
 	}
 
-	static DataStoreFieldLogicalSearchCondition notDirectChildOf(Record record) {
+	public static DataStoreFieldLogicalSearchCondition notDirectChildOf(Record record) {
 		return (DataStoreFieldLogicalSearchCondition) where(Schemas.PATH_PARTS).isNotEqual("_LAST_" + record.getId());
 	}
 
-	static DataStoreFieldLogicalSearchCondition recordInHierarchyOf(Record record) {
+	public static DataStoreFieldLogicalSearchCondition recordInHierarchyOf(Record record) {
 		return (DataStoreFieldLogicalSearchCondition) where(Schemas.PATH_PARTS).isEqualTo(record.getId());
 	}
 

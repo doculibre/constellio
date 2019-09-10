@@ -76,7 +76,7 @@ public class LogicalSearchQueryExecutorInCache {
 		if (!query.getSortFields().isEmpty()) {
 			return stream.sorted(newQuerySortFieldsComparator(query, schemaType));
 		} else {
-			return stream;//.sorted(newIdComparator());
+			return stream;
 		}
 	}
 
@@ -449,5 +449,27 @@ public class LogicalSearchQueryExecutorInCache {
 		} else {
 			return null;
 		}
+	}
+
+	public int estimateMaxResultSize(LogicalSearchQuery query) {
+		if (isQueryExecutableInCache(query)) {
+
+			MetadataSchemaType schemaType = getQueriedSchemaType(query.getCondition());
+
+			DataStoreFieldLogicalSearchCondition requiredFieldEqualCondition =
+					findRequiredFieldEqualCondition(query.getCondition(), schemaType);
+
+			Metadata metadata = (Metadata) requiredFieldEqualCondition.getDataStoreFields().get(0);
+
+			if ((metadata).getCode().startsWith("global")) {
+				metadata = schemaType.getDefaultSchema().getMetadata(metadata.getLocalCode());
+			}
+
+			Object value = ((IsEqualCriterion) requiredFieldEqualCondition.getValueCondition()).getMemoryQueryValue();
+			return recordsCaches.estimateMaxResultSizeUsingIndexedMetadata(schemaType, metadata, (String) value);
+		} else {
+			return -1;
+		}
+
 	}
 }
