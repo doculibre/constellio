@@ -1,9 +1,11 @@
 package com.constellio.app.ui.pages.management;
 
 import com.constellio.app.entities.navigation.NavigationItem;
+import com.constellio.app.entities.navigation.NavigationItem.BaseNavigationItem;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
+import com.vaadin.server.Page;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
@@ -57,9 +59,18 @@ public class AdminViewImpl extends BaseViewImpl implements AdminView {
 		button.addStyleName(ValoTheme.BUTTON_ICON_ALIGN_TOP);
 		button.addStyleName(ValoTheme.BUTTON_BORDERLESS);
 		button.addStyleName(item.getCode());
+		String urlEndWith = ((BaseNavigationItem) item).urlNeedToEndWith();
+
 		ComponentState state = presenter.getStateFor(item);
-		button.setEnabled(state.isEnabled());
-		button.setVisible(state.isVisible());
+
+		boolean isUrlOk = true;
+		if (urlEndWith != null) {
+			String location = Page.getCurrent().getLocation().toString();
+			isUrlOk = location.endsWith(urlEndWith);
+		}
+
+		button.setEnabled(state.isEnabled() && isUrlOk);
+		button.setVisible(state.isVisible() && isUrlOk);
 		button.addClickListener(new ClickListener() {
 			@Override
 			public void buttonClick(ClickEvent event) {
