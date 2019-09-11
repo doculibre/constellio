@@ -119,8 +119,6 @@ public class ImageViewer extends CustomComponent {
 				float heightF = (float) heightWidthRatio * height;
 				height = (int) heightF;
 
-				height = imageHeight;
-
 				ResourceReference contentResourceReference = ResourceReference.create(contentResource, this, "ImageViewer.file");
 				String contentURL = contentResourceReference.getURL();
 				
