@@ -7,6 +7,7 @@ import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.reports.builders.decommissioning.ContainerRecordReportParameters;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
+import com.constellio.app.modules.rm.services.menu.behaviors.util.BehaviorsUtil;
 import com.constellio.app.modules.rm.ui.buttons.CartWindowButton;
 import com.constellio.app.modules.rm.ui.buttons.CartWindowButton.AddedRecordType;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
@@ -142,7 +143,11 @@ public class ContainerRecordMenuItemActionBehaviors {
 	public void delete(ContainerRecord container, MenuItemActionBehaviorParams params) {
 		try {
 			recordServices.logicallyDelete(container.getWrappedRecord(), params.getUser());
-			params.getView().navigate().to(CoreViews.class).home();
+			if (BehaviorsUtil.reloadIfSearchView(params.getView())) {
+				return;
+			} else {
+				params.getView().navigate().to(CoreViews.class).home();
+			}
 		} catch (RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord e) {
 			params.getView().showErrorMessage(MessageUtils.toMessage(e));
 		}

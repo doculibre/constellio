@@ -8,6 +8,7 @@ import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.actions.DocumentRecordActionsServices;
 import com.constellio.app.modules.rm.services.logging.DecommissioningLoggingService;
+import com.constellio.app.modules.rm.services.menu.behaviors.util.BehaviorsUtil;
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
 import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
 import com.constellio.app.modules.rm.ui.buttons.CartWindowButton;
@@ -168,7 +169,9 @@ public class DocumentMenuItemActionBehaviors {
 				params.getView().showMessage(MessageUtils.toMessage(e));
 				return;
 			}
-			if (parentId != null) {
+			if (BehaviorsUtil.reloadIfSearchView(params.getView())) {
+				return;
+			} else if (parentId != null) {
 				navigateToDisplayFolder(parentId, params.getFormParams());
 			} else {
 				params.getView().navigate().to().recordsManagement();
