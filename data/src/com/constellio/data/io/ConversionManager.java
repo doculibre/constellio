@@ -6,6 +6,7 @@ import com.constellio.data.extensions.DataLayerSystemExtensions;
 import com.constellio.data.extensions.extensions.configManager.ExtensionConverter;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.ImageUtils;
+import com.constellio.data.utils.MimeTypes;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.hadoop.util.StringUtils;
@@ -331,6 +332,9 @@ public class ConversionManager implements StatefulService {
 		BufferedImage bufferedImage = ImageIO.read(inputStream);
 		if (dimension != null && ImageUtils.isImageOversized(dimension.getHeight())) {
 			String ext = FilenameUtils.getExtension(originalName);
+			if (mimetype.equals(MimeTypes.MIME_IMAGE_TIFF)) {
+				ext = "jpg";
+			}
 			File outputfile = createTempFile("jpegConversion", originalName + "." + ext, workingFolder);
 			BufferedImage resizedImage = ImageUtils.resize(bufferedImage);
 			ImageIO.write(resizedImage, ext, outputfile);

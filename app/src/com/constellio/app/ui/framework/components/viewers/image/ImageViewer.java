@@ -1,8 +1,11 @@
 package com.constellio.app.ui.framework.components.viewers.image;
 
+import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.resource.ConstellioResourceHandler;
+import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.vaadin.annotations.JavaScript;
 import com.vaadin.annotations.StyleSheet;
 import com.vaadin.server.Page;
@@ -80,14 +83,19 @@ public class ImageViewer extends CustomComponent {
 					ConstellioResourceHandler.isContentOversized(recordVO.getId(), metadataCode, version)) {
 					if (ConstellioResourceHandler.hasContentJpegConversion(recordVO.getId(), metadataCode, version)) {
 						contentResource = ConstellioResourceHandler.createConvertedResource(recordVO.getId(), metadataCode, version, filename);
+
+						ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
+						ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
+						ContentManager contentManager = modelLayerFactory.getContentManager();
+						in = contentManager.getContentJpegConversionInputStream(contentVersionVO.getHash(), getClass().getSimpleName());
 					} else {
 						setVisible(false);
 						return;
 					}
 				} else {
 					contentResource = ConstellioResourceHandler.createResource(recordVO.getId(), metadataCode, version, filename);
+					in = contentVersionVO.getInputStreamProvider().getInputStream(getClass().getSimpleName());
 				}
-				in = contentVersionVO.getInputStreamProvider().getInputStream(getClass().getSimpleName());
 			} else if (file != null) {
 				contentResource = ConstellioResourceHandler.createResource(file);
 				in = new FileInputStream(file);
@@ -110,6 +118,8 @@ public class ImageViewer extends CustomComponent {
 				float heightWidthRatio = (float) imageHeight / imageWidth;
 				float heightF = (float) heightWidthRatio * height;
 				height = (int) heightF;
+
+				height = imageHeight;
 
 				ResourceReference contentResourceReference = ResourceReference.create(contentResource, this, "ImageViewer.file");
 				String contentURL = contentResourceReference.getURL();
