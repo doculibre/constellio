@@ -59,7 +59,11 @@ public class AdminViewImpl extends BaseViewImpl implements AdminView {
 		button.addStyleName(ValoTheme.BUTTON_ICON_ALIGN_TOP);
 		button.addStyleName(ValoTheme.BUTTON_BORDERLESS);
 		button.addStyleName(item.getCode());
-		String urlEndWith = ((BaseNavigationItem) item).urlNeedToEndWith();
+		String urlEndWith = null;
+
+		if (item instanceof BaseNavigationItem) {
+			urlEndWith = ((BaseNavigationItem) item).urlNeedToEndWith();
+		}
 
 		ComponentState state = presenter.getStateFor(item);
 
