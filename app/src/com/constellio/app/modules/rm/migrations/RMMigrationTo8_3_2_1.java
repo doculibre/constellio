@@ -37,7 +37,7 @@ public class RMMigrationTo8_3_2_1 implements MigrationScript {
 
 			MetadataSchemaBuilder folderSchema = types().getSchema(Folder.DEFAULT_SCHEMA);
 			if (folderSchema.hasMetadata(Folder.MAIN_COPY_RULE_ID_ENTERED)) {
-				folderSchema.get(Folder.MAIN_COPY_RULE_ID_ENTERED).required();
+				folderSchema.get(Folder.MAIN_COPY_RULE_ID_ENTERED).setEssential(true);
 			}
 		}
 	}
