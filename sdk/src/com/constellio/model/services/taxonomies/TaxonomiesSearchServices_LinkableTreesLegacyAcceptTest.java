@@ -15,12 +15,10 @@ import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.data.dao.services.idGenerator.ZeroPaddedSequentialUniqueIdGenerator;
-import com.constellio.data.extensions.AfterQueryParams;
 import com.constellio.data.extensions.BigVaultServerExtension;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.Taxonomy;
-import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Group;
@@ -43,7 +41,6 @@ import com.constellio.model.services.search.query.logical.condition.ConditionTem
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServicesRuntimeException.TaxonomiesSearchServicesRuntimeException_CannotFilterNonPrincipalConceptWithWriteOrDeleteAccess;
 import com.constellio.model.services.users.UserServices;
-import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
 import org.apache.solr.common.params.SolrParams;
 import org.assertj.core.api.BooleanAssert;
@@ -68,15 +65,12 @@ import static com.constellio.model.entities.security.global.AuthorizationAddRequ
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.taxonomies.TaxonomiesSearchOptions.HasChildrenFlagCalculated.NEVER;
-import static com.constellio.model.services.taxonomies.TaxonomiesTestsUtils.ajustIfBetterThanExpected;
 import static com.constellio.sdk.tests.TestUtils.englishMessages;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 
-public class TaxonomiesSearchServices_LinkableTreesLegacyAcceptTest extends ConstellioTest {
-
-	private static final boolean VALIDATE_SOLR_QUERIES_COUNT = true;
+public class TaxonomiesSearchServices_LinkableTreesLegacyAcceptTest extends AbstractTaxonomiesSearchServicesAcceptanceTest {
 
 	Users users = new Users();
 	User alice;
@@ -87,10 +81,6 @@ public class TaxonomiesSearchServices_LinkableTreesLegacyAcceptTest extends Cons
 	RMTestRecords records = new RMTestRecords(zeCollection);
 	AuthorizationsServices authsServices;
 	RecordServices recordServices;
-
-	AtomicInteger queriesCount = new AtomicInteger();
-	AtomicInteger facetsCount = new AtomicInteger();
-	AtomicInteger returnedDocumentsCount = new AtomicInteger();
 
 	@Before
 	public void setUp()
@@ -134,19 +124,7 @@ public class TaxonomiesSearchServices_LinkableTreesLegacyAcceptTest extends Cons
 
 		assertThat(getModelLayerFactory().getRecordsCaches().getRecord(records.unitId_20)).isNull();
 
-		getDataLayerFactory().getExtensions().getSystemWideExtensions().bigVaultServerExtension
-				.add(new BigVaultServerExtension() {
-					@Override
-					public void afterQuery(AfterQueryParams params) {
-						queriesCount.incrementAndGet();
-						String[] facetQuery = params.getSolrParams().getParams("facet.query");
-						if (facetQuery != null) {
-							facetsCount.addAndGet(facetQuery.length);
-						}
-
-						returnedDocumentsCount.addAndGet(params.getReturnedResultsCount());
-					}
-				});
+		configureQueryCounter();
 
 		ValidationErrors errors = new RecordsCache2IntegrityDiagnosticService(getModelLayerFactory()).validateIntegrity(false, true);
 		//List<String> messages = englishMessages(errors).stream().map((s) -> substringBefore(s, " :")).collect(toList());
@@ -1413,9 +1391,7 @@ public class TaxonomiesSearchServices_LinkableTreesLegacyAcceptTest extends Cons
 
 		recordServices.refresh(alice);
 
-		facetsCount.set(0);
-		queriesCount.set(0);
-		returnedDocumentsCount.set(0);
+		resetCounters();
 
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_X13, withWriteAccess)
 				.has(resultsInOrder(folderNearEnd.getId(), subFolderNearEnd.getParentFolder()))
@@ -3512,108 +3488,6 @@ public class TaxonomiesSearchServices_LinkableTreesLegacyAcceptTest extends Cons
 		};
 	}
 
-	private abstract class LinkableTaxonomySearchResponseCaller {
-
-		private LinkableTaxonomySearchResponse firstCallAnswer;
-
-		private LinkableTaxonomySearchResponse secondCallAnswer;
-
-		private String firstCallSolrQueries;
-
-		private String secondCallSolrQueries;
-
-		public LinkableTaxonomySearchResponse firstAnswer() {
-			if (firstCallAnswer == null) {
-				queriesCount.set(0);
-				returnedDocumentsCount.set(0);
-				facetsCount.set(0);
-				getDataLayerFactory().getDataLayerLogger().setQueryDebuggingPrefix("First call query");
-				firstCallAnswer = call();
-				getDataLayerFactory().getDataLayerLogger().setQueryDebuggingPrefix(null);
-				firstCallSolrQueries = queriesCount.get() + "-" + returnedDocumentsCount.get() + "-" + facetsCount.get();
-				queriesCount.set(0);
-				returnedDocumentsCount.set(0);
-				facetsCount.set(0);
-			}
-			return firstCallAnswer;
-		}
-
-		public LinkableTaxonomySearchResponse secondAnswer() {
-			firstAnswer();
-			if (secondCallAnswer == null) {
-				queriesCount.set(0);
-				returnedDocumentsCount.set(0);
-				facetsCount.set(0);
-				getDataLayerFactory().getDataLayerLogger().setQueryDebuggingPrefix("Second call query");
-				secondCallAnswer = call();
-				getDataLayerFactory().getDataLayerLogger().setQueryDebuggingPrefix(null);
-				secondCallSolrQueries = queriesCount.get() + "-" + returnedDocumentsCount.get() + "-" + facetsCount.get();
-				queriesCount.set(0);
-				returnedDocumentsCount.set(0);
-				facetsCount.set(0);
-			}
-			return secondCallAnswer;
-		}
-
-		protected abstract LinkableTaxonomySearchResponse call();
-
-		public String firstAnswerSolrQueries() {
-			firstAnswer();
-			return firstCallSolrQueries;
-		}
-
-		public String secondAnswerSolrQueries() {
-			secondAnswer();
-			return secondCallSolrQueries;
-		}
-
-	}
-
-	private Condition<? super LinkableTaxonomySearchResponseCaller> solrQueryCounts(final int queries,
-																					final int queryResults,
-																					final int facets) {
-		final Exception exception = new Exception();
-		return new Condition<LinkableTaxonomySearchResponseCaller>() {
-			@Override
-			public boolean matches(LinkableTaxonomySearchResponseCaller value) {
-				String expected = queries + "-" + queryResults + "-" + facets;
-				String current = value.firstAnswerSolrQueries();
-
-				if (VALIDATE_SOLR_QUERIES_COUNT && !ajustIfBetterThanExpected(exception.getStackTrace(), current, expected)) {
-					assertThat(current).describedAs("First call Queries count - Query resuts count - Facets count")
-							.isEqualTo(expected);
-				}
-				queriesCount.set(0);
-				facetsCount.set(0);
-				returnedDocumentsCount.set(0);
-
-				return true;
-			}
-		};
-	}
-
-	private Condition<? super LinkableTaxonomySearchResponseCaller> secondSolrQueryCounts(final int queries,
-																						  final int queryResults,
-																						  final int facets) {
-		final Exception exception = new Exception();
-		return new Condition<LinkableTaxonomySearchResponseCaller>() {
-			@Override
-			public boolean matches(LinkableTaxonomySearchResponseCaller value) {
-				String expected = queries + "-" + queryResults + "-" + facets;
-				String current = value.secondAnswerSolrQueries();
-
-				if (VALIDATE_SOLR_QUERIES_COUNT && !ajustIfBetterThanExpected(exception.getStackTrace(), current, expected)) {
-					assertThat(current).describedAs("second call Queries count - Query resuts count - Facets count")
-							.isEqualTo(expected);
-				}
-				queriesCount.set(0);
-				facetsCount.set(0);
-				returnedDocumentsCount.set(0);
-
-				return true;
-			}
-		};
-	}
 
 	private void loadCaches() {
 		for (MetadataSchemaType aSchemaType : getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection)
@@ -3622,9 +3496,7 @@ public class TaxonomiesSearchServices_LinkableTreesLegacyAcceptTest extends Cons
 				getModelLayerFactory().newSearchServices().cachedSearch(new LogicalSearchQuery(from(aSchemaType).returnAll()));
 			}
 		}
-		queriesCount.set(0);
-		facetsCount.set(0);
-		returnedDocumentsCount.set(0);
+		resetCounters();
 
 	}
 
@@ -3636,17 +3508,4 @@ public class TaxonomiesSearchServices_LinkableTreesLegacyAcceptTest extends Cons
 		}
 	}
 
-	@Override
-	protected void givenConfig(SystemConfiguration config, Object value) {
-		super.givenConfig(config, value);
-		try {
-			waitForBatchProcess();
-		} catch (InterruptedException e) {
-			throw new RuntimeException(e);
-		}
-		queriesCount.set(0);
-		facetsCount.set(0);
-		returnedDocumentsCount.set(0);
-
-	}
 }

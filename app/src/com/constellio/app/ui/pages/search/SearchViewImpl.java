@@ -78,6 +78,10 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import org.jetbrains.annotations.Nullable;
 import org.vaadin.dialogs.ConfirmDialog;
+import org.vaadin.sliderpanel.SliderPanel;
+import org.vaadin.sliderpanel.SliderPanelBuilder;
+import org.vaadin.sliderpanel.client.SliderMode;
+import org.vaadin.sliderpanel.client.SliderTabPosition;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -442,7 +446,15 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		//
 		//			resultsAndFacetsPanel = body;
 		//		} else {
-		I18NHorizontalLayout body = new I18NHorizontalLayout(resultsArea, facetsArea);
+
+		SliderPanel sliderPanel = new SliderPanelBuilder(facetsArea)
+				.mode(SliderMode.RIGHT)
+				.caption("Facets!")
+				.tabPosition(SliderTabPosition.BEGINNING)
+				.expanded(false)
+				.build();
+
+		I18NHorizontalLayout body = new I18NHorizontalLayout(resultsArea, sliderPanel);
 		body.addStyleName("search-result-and-facets-container");
 		body.setWidth("100%");
 		body.setExpandRatio(resultsArea, 1);

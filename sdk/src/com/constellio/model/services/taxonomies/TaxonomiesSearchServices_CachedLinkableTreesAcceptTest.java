@@ -23,7 +23,6 @@ import com.constellio.data.extensions.AfterQueryParams;
 import com.constellio.data.extensions.BigVaultServerExtension;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.Taxonomy;
-import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Group;
@@ -46,7 +45,6 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServicesRuntimeException.TaxonomiesSearchServicesRuntimeException_CannotFilterNonPrincipalConceptWithWriteOrDeleteAccess;
 import com.constellio.model.services.users.UserServices;
-import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.assertj.core.api.BooleanAssert;
@@ -73,16 +71,13 @@ import static com.constellio.model.entities.security.global.AuthorizationAddRequ
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.taxonomies.TaxonomiesSearchOptions.HasChildrenFlagCalculated.NEVER;
-import static com.constellio.model.services.taxonomies.TaxonomiesTestsUtils.ajustIfBetterThanExpected;
 import static com.constellio.model.services.taxonomies.TaxonomiesTestsUtils.createFoldersAndDocumentsWithNegativeAuths;
 import static com.constellio.model.services.taxonomies.TaxonomiesTestsUtils.createFoldersAndSubFoldersWithNegativeAuths;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 
-public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends ConstellioTest {
-
-	private static final boolean VALIDATE_SOLR_QUERIES_COUNT = true;
+public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends AbstractTaxonomiesSearchServicesAcceptanceTest {
 
 	Users users = new Users();
 	User alice;
@@ -93,10 +88,6 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 	RMTestRecords records = new RMTestRecords(zeCollection);
 	AuthorizationsServices authsServices;
 	RecordServices recordServices;
-
-	AtomicInteger queriesCount = new AtomicInteger();
-	AtomicInteger facetsCount = new AtomicInteger();
-	AtomicInteger returnedDocumentsCount = new AtomicInteger();
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(TaxonomiesSearchServices_CachedLinkableTreesAcceptTest.class);
 
@@ -126,22 +117,7 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 		zeSasquatch = userServices.getUserInCollection(sasquatch, zeCollection);
 		getModelLayerFactory().newRecordServices().update(alice.setCollectionReadAccess(false));
 		waitForBatchProcess();
-		getDataLayerFactory().getExtensions().getSystemWideExtensions().bigVaultServerExtension
-				.add(new BigVaultServerExtension() {
-					@Override
-					public void afterQuery(AfterQueryParams params) {
-
-						//LOGGER.warn("Query " + params.getSolrParams().toQueryString() + ":", new RuntimeException());
-
-						queriesCount.incrementAndGet();
-						String[] facetQuery = params.getSolrParams().getParams("facet.query");
-						if (facetQuery != null) {
-							facetsCount.addAndGet(facetQuery.length);
-						}
-
-						returnedDocumentsCount.addAndGet(params.getReturnedResultsCount());
-					}
-				});
+		configureQueryCounter();
 	}
 
 	@Test
@@ -637,9 +613,7 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				getModelLayerFactory().newSearchServices().cachedSearch(new LogicalSearchQuery(from(aSchemaType).returnAll()));
 			}
 		}
-		queriesCount.set(0);
-		facetsCount.set(0);
-		returnedDocumentsCount.set(0);
+		resetCounters();
 
 	}
 
@@ -3939,104 +3913,6 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 		};
 	}
 
-	private abstract class LinkableTaxonomySearchResponseCaller {
-
-		private LinkableTaxonomySearchResponse firstCallAnswer;
-
-		private LinkableTaxonomySearchResponse secondCallAnswer;
-
-		private String firstCallSolrQueries;
-
-		private String secondCallSolrQueries;
-
-		public LinkableTaxonomySearchResponse firstAnswer() {
-			if (firstCallAnswer == null) {
-				queriesCount.set(0);
-				returnedDocumentsCount.set(0);
-				facetsCount.set(0);
-				firstCallAnswer = call();
-				firstCallSolrQueries = queriesCount.get() + "-" + returnedDocumentsCount.get() + "-" + facetsCount.get();
-				queriesCount.set(0);
-				returnedDocumentsCount.set(0);
-				facetsCount.set(0);
-			}
-			return firstCallAnswer;
-		}
-
-		public LinkableTaxonomySearchResponse secondAnswer() {
-			firstAnswer();
-			if (secondCallAnswer == null) {
-				queriesCount.set(0);
-				returnedDocumentsCount.set(0);
-				facetsCount.set(0);
-				secondCallAnswer = call();
-				secondCallSolrQueries = queriesCount.get() + "-" + returnedDocumentsCount.get() + "-" + facetsCount.get();
-				queriesCount.set(0);
-				returnedDocumentsCount.set(0);
-				facetsCount.set(0);
-			}
-			return secondCallAnswer;
-		}
-
-		protected abstract LinkableTaxonomySearchResponse call();
-
-		public String firstAnswerSolrQueries() {
-			firstAnswer();
-			return firstCallSolrQueries;
-		}
-
-		public String secondAnswerSolrQueries() {
-			secondAnswer();
-			return secondCallSolrQueries;
-		}
-
-	}
-
-	private Condition<? super LinkableTaxonomySearchResponseCaller> solrQueryCounts(final int queries,
-																					final int queryResults,
-																					final int facets) {
-		final Exception exception = new Exception();
-		return new Condition<LinkableTaxonomySearchResponseCaller>() {
-			@Override
-			public boolean matches(LinkableTaxonomySearchResponseCaller value) {
-				String expected = queries + "-" + queryResults + "-" + facets;
-				String current = value.firstAnswerSolrQueries();
-
-				if (VALIDATE_SOLR_QUERIES_COUNT && !ajustIfBetterThanExpected(exception.getStackTrace(), current, expected)) {
-					assertThat(current).describedAs("First call Queries count - Query resuts count - Facets count")
-							.isEqualTo(expected);
-				}
-				queriesCount.set(0);
-				facetsCount.set(0);
-				returnedDocumentsCount.set(0);
-				System.out.println("--------- --------- --------- --------- --------- --------- ---------");
-				return true;
-			}
-		};
-	}
-
-	private Condition<? super LinkableTaxonomySearchResponseCaller> secondSolrQueryCounts(final int queries,
-																						  final int queryResults,
-																						  final int facets) {
-		final Exception exception = new Exception();
-		return new Condition<LinkableTaxonomySearchResponseCaller>() {
-			@Override
-			public boolean matches(LinkableTaxonomySearchResponseCaller value) {
-				String expected = queries + "-" + queryResults + "-" + facets;
-				String current = value.secondAnswerSolrQueries();
-
-				if (VALIDATE_SOLR_QUERIES_COUNT && !ajustIfBetterThanExpected(exception.getStackTrace(), current, expected)) {
-					assertThat(current).describedAs("Second call Queries count - Query resuts count - Facets count")
-							.isEqualTo(expected);
-				}
-				queriesCount.set(0);
-				facetsCount.set(0);
-				returnedDocumentsCount.set(0);
-				System.out.println("--------- --------- --------- --------- --------- --------- ---------");
-				return true;
-			}
-		};
-	}
 
 	public StorageSpace buildStorageSpace() {
 		StorageSpace storageSpace = rm.newStorageSpace().setTitle("storageTest");
@@ -4063,17 +3939,4 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 		getModelLayerFactory().getRecordsCaches().getCache(zeCollection).invalidateVolatileReloadPermanent(asList("storageSpace"));
 	}
 
-	@Override
-	protected void givenConfig(SystemConfiguration config, Object value) {
-		super.givenConfig(config, value);
-		try {
-			waitForBatchProcess();
-		} catch (InterruptedException e) {
-			throw new RuntimeException(e);
-		}
-		queriesCount.set(0);
-		facetsCount.set(0);
-		returnedDocumentsCount.set(0);
-
-	}
 }
