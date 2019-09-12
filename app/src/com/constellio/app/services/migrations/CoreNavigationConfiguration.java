@@ -429,6 +429,11 @@ public class CoreNavigationConfiguration implements Serializable {
 			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				return visibleIf(user.has(CorePermissions.MANAGE_METADATASCHEMAS).globally());
 			}
+
+			@Override
+			public String urlNeedToEndWith() {
+				return "/dev";
+			}
 		});
 		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(IMPORT_AUTHORIZATIONS, IMPORT_AUTHORIZATIONS_ICON) {
 			@Override
@@ -441,6 +446,11 @@ public class CoreNavigationConfiguration implements Serializable {
 				CredentialUserPermissionChecker userHas = appLayerFactory.getModelLayerFactory().newUserServices()
 						.has(user.getUsername());
 				return visibleIf(userHas.globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_DATA_IMPORTS));
+			}
+
+			@Override
+			public String urlNeedToEndWith() {
+				return "/dev";
 			}
 		});
 		//		config.add(AdminView.COLLECTION_SECTION,
