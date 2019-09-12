@@ -75,6 +75,49 @@ $popup-view-z-index: 3;
 
 @mixin constellio {
 
+	.valo-menu {
+		.valo-menu-part {
+		    //min-width: 110px;
+		    padding-top: inherit;
+  			overflow-x: hidden;
+  			line-height: 35px;
+	
+			.valo-menu-item {
+			    color: white;
+			    
+				.v-icon {
+		        	color: white; 
+		        	font-size: 1.4em;
+				}
+		
+				&.selected {
+					background: $v-selection-color;
+					
+					.v-icon {
+			        	color: white; 
+					}
+				}
+			
+			}
+		}
+	}
+	
+	.v-menubar-user-menu {
+		margin: 0;
+		
+  		 > .v-menubar-menuitem img.v-icon {
+  			width: 32px;
+  			height: 32px;
+  			padding: 0;
+  			display: inherit;
+  			margin-right: 6px;
+  		}
+	}
+
+	.v-button-primary {
+		min-width: inherit;
+	}
+
     .v-button.chevron:focus:after  {
         box-shadow: none;
         border: none;
@@ -169,7 +212,7 @@ $popup-view-z-index: 3;
 			padding-right: 10px;
 			position: relative;
 			top: 82px;
-			z-index: 2;
+			z-index: 1000;
 		}
 
 		.v-tabsheet-tabitem {
@@ -1651,8 +1694,10 @@ $popup-view-z-index: 3;
 	}
 
     .constellio-menu-system-state-button {
-		margin: 0.3em 0px 0px;
+		//margin: 0.3em 0px 0px;
 		width: 100%;
+		text-align: left;
+		background: #3a434d;
     }
 
    	.constellio-menu-system-state-button:hover {
@@ -2171,8 +2216,8 @@ $popup-view-z-index: 3;
 		    right: -250px;
   		}
 
-  		.v-slot-selection-buttons-layout {
-  			margin-bottom: -36px;
+  		.table-buttons-layout {
+  			//margin-bottom: -36px;
 			color: #197de1;
 
   			.select-deselect-all-button {
@@ -2183,7 +2228,8 @@ $popup-view-z-index: 3;
 			    position: relative;
 			    top: 6px;
 			    left: 20px;
-			    color: #197de1;
+			    color: #4396ea;
+			    //color: #197de1;
 			    font-weight: 500;
   			}
 
@@ -2199,6 +2245,17 @@ $popup-view-z-index: 3;
 			    position: relative;
 			    top: 5px;
 			    opacity: 1;
+			}
+
+			.v-menubar-menuitem {
+				direction: rtl;
+
+				.v-icon {
+					margin: 0 -6px 0 6px;
+					position: relative;
+					//top: 2px;
+					padding-left: 6px;
+				}
 			}
   		}
 
@@ -2216,6 +2273,14 @@ $popup-view-z-index: 3;
 
   		.table-buttons-layout {
             border-bottom: 1px solid rgb(213, 213, 213);
+
+            .v-button {
+            	z-index: 2;
+            }
+            
+            .action-mode-buttons-layout {
+            	float: right;
+            }
   		}
 
   		.viewable-record-table-table-mode {
@@ -2474,9 +2539,9 @@ $popup-view-z-index: 3;
 
 			.header-logo {
 				cursor: pointer;
-				margin-top: -7px;
-				margin-left: 17px;
-				padding-right: 20px;
+				margin-top: -5px;
+				margin-left: 5px;
+				padding-right: 15px;
 			}
 
 			.header-search {
@@ -2547,14 +2612,27 @@ $popup-view-z-index: 3;
 			
 			.header-collection-menu {
 				position: fixed;
-				right: 150px;
-				margin-top: 15px;
+				right: 130px;
+				padding-top: 15px;
+				padding-right: 6px;
 			}
 			
 			.header-action-menu {
 				position: fixed;
 				right: 10px;
 				margin-top: 15px;
+			}
+
+			.search-button {
+				.v-button-caption {
+					display: none;
+				}
+			}
+
+			.search-button:before {
+				content: "\f002";
+				margin-top: 5px;
+			    margin-left: -14px;
 			}
 		}
 
@@ -2986,26 +3064,34 @@ $popup-view-z-index: 3;
 
 	    .v-tabsheet-display-folder {
 			position: relative;
-			top: -38px;
+			//top: -38px;
 	    }
 
     }
 
     .v-ui[width-range~="1101px-"] {
-    	.user-menu {
-    		bottom: 60px;
+		.v-menubar-user-menu {
+			background: #3a434d;
+	    	
+	    	.user-menu {
+	    		bottom: 20px;
+	    	}	
     	}
 
-	    .valo-menu-part {
-	        @include valo-menu-large-icons-style($valo-menu-background-color);
-	    }
+		.valo-menu {
+			.valo-menu-part {
+			    //min-width: 110px;
+			    min-width: 165px;
+			    max-width: 165px;
+			}
+		}	   
 
     	.header {
-			padding-right: 225px;
+			padding-right: 30px;
 
 			.header-search {
 				margin-left: 5px;
-				width: 600px;
+				//width: 600px;
 			}
     	}
     	
@@ -3055,7 +3141,7 @@ $popup-view-z-index: 3;
 
 	    .constellio-menu-system-state-button {
 	   		position: absolute;
-			bottom: 10px;
+			bottom: 0px;
 	    }
 
         .action-menu-wrapper {
@@ -3110,6 +3196,7 @@ $popup-view-z-index: 3;
 	    }
 
 	    .action-menu-bar-layout {
+	        z-index: 1000;
 			position: absolute;
 			top: 0px;
 			right: 20px;
@@ -3121,7 +3208,7 @@ $popup-view-z-index: 3;
 
   		.viewable-record-table-panel {
 	  		.action-menu-bar-layout {
-	  			top: -60px;
+	  			top: 10px;
 	  			right: 50px;
 	  		}
   		}
@@ -3145,16 +3232,48 @@ $popup-view-z-index: 3;
     }
 
     .v-ui[width-range~="801-1100px"] {
-    	.user-menu {
-    		bottom: 60px;
+    
+    	.responsive-button {
+			[class*="caption"] {
+				display: none;
+			}
+    	}
+
+		.valo-menu {
+			.valo-menu-part {
+				.valo-menu-item {
+					//line-height: 0.3em;
+				
+					.v-icon {
+			        	//font-size: 1.4em;
+			        	font-size: 1em;
+					}
+			
+					&.selected {
+						background: $v-selection-color;
+					}
+
+    				[class*="caption"] {
+    					display: none;
+    				}
+				}
+			}
+		}	
+		
+		.v-menubar-user-menu {
+			background: #3a434d;
+	    	
+	    	.user-menu {
+	    		bottom: 20px;
+	    	}	
     	}
 
     	.sidebar {
-    		overflow-y: auto;
+    		overflow-y: hidden;
     	}
 		
     	.header {
-			padding-right: 95px;
+			padding-right: 30px;
 
 			.header-logo {
 			}
@@ -3163,7 +3282,7 @@ $popup-view-z-index: 3;
 			}
 
 			.header-search {
-				width: 500px;
+				//width: 500px;
 			}
     	}
 
@@ -3189,7 +3308,7 @@ $popup-view-z-index: 3;
 
 	    .constellio-menu-system-state-button {
 	   		position: absolute;
-			bottom: 10px;
+			bottom: 0px;
 	    }
 
         .action-menu-wrapper {
@@ -3256,18 +3375,30 @@ $popup-view-z-index: 3;
 	    		overflow-x: auto;
 	    	}
 		}
+		
+		.task-management-view {
+			.v-slot-task-action-buttons {
+				top: 38px;
+			}
+		}	
 
 	}
 
     .v-ui[width-range~="0-800px"] {
+    
+    	.responsive-button {
+			[class*="caption"] {
+				display: none;
+			}
+    	}
 
     	.header {
 			.header-logo {
 				display: none;
 			}
-
+			
 			.header-search {
-				width: 270px;
+				//width: 270px;
 			}
 			
 			.header-selection-button {
@@ -3282,6 +3413,7 @@ $popup-view-z-index: 3;
 				right: 290px;
 			    z-index: 1000;
 			    margin: 0;
+			    padding-top: 0px;
 			}
 			
 			.header-action-menu {
@@ -3328,21 +3460,18 @@ $popup-view-z-index: 3;
 		.search-button:before {
 			content: "\f002";
 			margin-top: 5px;
-		    margin-left: -8px;
-		}
-
-		.v-slot-search-button {
-		}
-
-		.search-button {
-			.v-button-caption {
-				display: none;
-			}
+		    margin-left: -14px;
 		}
 
     	.v-slot-action-menu {
 	        padding: 10px;
     	}
+		
+		.task-management-view {
+			.v-slot-task-action-buttons {
+				top: 0px;
+			}
+		}	
     }
 
     .v-progressbar {
@@ -4131,123 +4260,10 @@ $popup-view-z-index: 3;
 
 		.search-button:before {
 		    margin-left: inherit;
-		    margin-right: -8px;
+		    margin-right: -14px;
 		}
 
     }
-
-}
-
-/**
- *
- *
- * @param {color} $bg (darken($valo-menu-background-color, 4%)) - 
- *
- * @group valo-menu
- */
- 
-@mixin valo-menu-large-icons-style ($bg: darken($valo-menu-background-color, 4%)) {
-  background-color: $bg;
-  //min-width: $v-unit-size * 2;
-  //max-width: $v-unit-size * 3;
-  min-width: 110px;
-  max-width: 110px;
-  overflow-x: hidden;
-
-  .valo-menu-title {
-    padding: 0;
-    border: none;
-    font-size: round($v-font-size * 0.75);
-
-    .v-label-undef-w {
-      white-space: normal;
-    }
-  }
-
-  .v-menubar-user-menu {
-    margin-left: 0;
-    margin-right: 0;
-    margin-top: 5px;
-    margin-bottom: 10px;
-    font-size: round($v-font-size * 0.7);
-
-    img.v-icon {
-      width: round($v-unit-size/1.3);
-      height: round($v-unit-size/1.3);
-    }
-  }
-
-  [class*="subtitle"] {
-    margin: round($v-unit-size/4) 0 0;
-    padding: round($v-unit-size/5) round($v-unit-size/1.5) round($v-unit-size/5) round($v-unit-size/4);
-    line-height: 1;
-    border: none;
-    text-overflow: ellipsis;
-    overflow: hidden;
-    background: darken($bg, 6%);
-    font-size: round($v-font-size * 0.8);
-    box-shadow: valo-bevel-and-shadow($shadow: $v-shadow);
-
-    [class*="badge"] {
-      right: round($v-unit-size/4);
-    }
-
-    + .valo-menu-item {
-      border-top: none;
-    }
-  }
-  
-  .valo-menu-item {
-    display: block;
-    font-size: round($v-font-size * 1.6);
-    line-height: 1;
-    //padding: round($v-unit-size/3);
-    padding: round($v-unit-size/7);
-    text-align: center;
-    border-top: valo-border($color: $bg, $strength: 0.2, $border: first-number($v-border) solid v-tone);
-
-    &:first-child {
-      border-top: none;
-    }
-
-    [class*="caption"] {
-      display: block;
-      width: auto;
-      margin: .3em 0 0;
-      padding: 0;
-      font-size: round($v-font-size * 0.7);
-      line-height: 1.3;
-    }
-
-    .v-icon {
-      margin: 0;
-    }
-
-    span.v-icon {
-      opacity: 0.8;
-      font-size: round($v-font-size * 1.2);
-    }
-
-    &.selected {
-      background: if(is-dark-color($bg), darken($bg, 3%), lighten($bg, 5%));
-
-      .v-icon {
-        opacity: 1;
-      }
-
-      [class*="badge"] {
-        border-color: darken($bg, 3%);
-      }
-    }
-
-    [class*="badge"] {
-      padding-left: round($v-unit-size/9);
-      padding-right: round($v-unit-size/9);
-      top: round($v-unit-size/5);
-      right: round($v-unit-size/5);
-      border: 2px solid $bg;
-    }
-  }
 
 }
 

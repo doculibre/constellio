@@ -1,5 +1,6 @@
 package com.constellio.app.ui.pages.search;
 
+import com.constellio.app.services.menu.MenuItemFactory.MenuItemRecordProvider;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.FacetVO;
 import com.constellio.app.ui.entities.FacetValueVO;
@@ -35,10 +36,12 @@ import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.search.SearchPresenter.SortOrder;
 import com.constellio.data.utils.KeySetMap;
 import com.constellio.data.utils.dev.Toggle;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Capsule;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.vaadin.data.Container.ItemSetChangeEvent;
 import com.vaadin.data.Container.ItemSetChangeListener;
 import com.vaadin.data.Property;
@@ -49,6 +52,9 @@ import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.lazyloadwrapper.LazyLoadWrapper;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.FontAwesome;
+import com.vaadin.server.Page;
+import com.vaadin.server.Page.BrowserWindowResizeEvent;
+import com.vaadin.server.Page.BrowserWindowResizeListener;
 import com.vaadin.server.Resource;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.shared.ui.label.ContentMode;
@@ -84,7 +90,7 @@ import static com.constellio.app.ui.framework.components.BaseForm.BUTTONS_LAYOUT
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 
-public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchView>> extends BaseViewImpl implements SearchView {
+public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchView>> extends BaseViewImpl implements SearchView, BrowserWindowResizeListener {
 
 	public static final String FACET_BOX_STYLE = "facet-box";
 	public static final String FACET_TITLE_STYLE = "facet-title";
@@ -113,6 +119,18 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	private List<SaveSearchListener> saveSearchListenerList = new ArrayList<>();
 	private Map<String, String> extraParameters = null;
 	private boolean lazyLoadedSearchResults;
+
+	@Override
+	public void attach() {
+		super.attach();
+		Page.getCurrent().addBrowserWindowResizeListener(this);
+	}
+
+	@Override
+	public void detach() {
+		Page.getCurrent().removeBrowserWindowResizeListener(this);
+		super.detach();
+	}
 
 	public void addSaveSearchListenerList(SaveSearchListener saveSearchListener) {
 		saveSearchListenerList.add(saveSearchListener);
@@ -502,6 +520,21 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			}
 
 			@Override
+			protected MenuItemRecordProvider getMenuItemProvider() {
+				return new MenuItemRecordProvider() {
+					@Override
+					public List<Record> getRecords() {
+						return getSelectedRecords();
+					}
+
+					@Override
+					public LogicalSearchQuery getQuery() {
+						return presenter.getSearchQuery();
+					}
+				};
+			}
+
+			@Override
 			protected Component newSearchResultComponent(Object itemId) {
 				Integer index = (Integer) itemId;
 				String query = presenter.getSearchQuery().getFreeTextQuery();
@@ -513,7 +546,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 				return searchResultDisplay;
 			}
 
-			protected ClickListener getElevationClickListener(final SearchResultVO searchResultVO, Integer index) {
+			private ClickListener getElevationClickListener(final SearchResultVO searchResultVO, Integer index) {
 				return new ClickListener() {
 					@Override
 					public void buttonClick(ClickEvent event) {
@@ -522,7 +555,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 				};
 			}
 
-			protected ClickListener getExclusionClickListener(final SearchResultVO searchResultVO, Integer index) {
+			private ClickListener getExclusionClickListener(final SearchResultVO searchResultVO, Integer index) {
 				return new ClickListener() {
 					@Override
 					public void buttonClick(ClickEvent event) {
@@ -1015,6 +1048,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		};
 		button.addStyleName(ValoTheme.BUTTON_LINK);
 		button.addStyleName("save-search-button");
+		button.setIcon(FontAwesome.FLOPPY_O);
 		return button;
 	}
 
@@ -1073,6 +1107,11 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	@Override
 	public RecordVO getReturnRecordVO() {
 		return presenter.getReturnRecordVO();
+	}
+
+	@Override
+	public void browserWindowResized(BrowserWindowResizeEvent event) {
+		// TODO Auto-generated method stub
 	}
 
 }

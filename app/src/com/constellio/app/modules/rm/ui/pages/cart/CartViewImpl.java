@@ -7,7 +7,9 @@ import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.menu.MenuItemAction;
+import com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus;
 import com.constellio.app.services.menu.MenuItemFactory;
+import com.constellio.app.services.menu.MenuItemFactory.CommandCallback;
 import com.constellio.app.services.menu.MenuItemFactory.MenuItemRecordProvider;
 import com.constellio.app.services.menu.MenuItemServices;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
@@ -39,6 +41,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordImpl;
 import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.google.common.base.Strings;
 import com.vaadin.data.Container;
 import com.vaadin.data.Property;
@@ -172,6 +175,25 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 			public List<Record> getRecords() {
 				return presenter.getAllCartItemRecords();
 			}
+
+			@Override
+			public LogicalSearchQuery getQuery() {
+				return null;
+			}
+		}, new CommandCallback() {
+			@Override
+			public void actionExecuted(MenuItemAction menuItemAction, Object component) {
+				Button button = (Button) component;
+				button.setEnabled(menuItemAction.getState().getStatus() != MenuItemActionStateStatus.DISABLED);
+				button.setEnabled(menuItemAction.getState().getStatus() == MenuItemActionStateStatus.VISIBLE);
+				//				View currentView = ConstellioUI.getCurrent().getCurrentView();
+				//				// No point in refreshing menu if we left the original page
+				//				if (currentView == originalView) {
+				//					// Recursive call
+				//					buildMenuItems();
+				//				}
+			}
+
 		});
 	}
 

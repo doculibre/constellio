@@ -97,7 +97,8 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 		footerLayout.addStyleName(footerLayout.getId());
 
 		header = buildHeader();
-		header.setSizeUndefined();
+		header.setWidth("100%");
+		header.setHeightUndefined();
 
 		mainMenu = buildMainMenu();
 
@@ -187,6 +188,8 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 		if (collection != null) {
 			appLayerFactory.getExtensions().forCollection(collection).decorateView(params);
 		}
+
+		footerLayout.setVisible(false);
 
 		buildInitJavascript();
 	}

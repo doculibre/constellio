@@ -4,7 +4,9 @@ import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.menu.MenuItemAction;
+import com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus;
 import com.constellio.app.services.menu.MenuItemFactory;
+import com.constellio.app.services.menu.MenuItemFactory.CommandCallback;
 import com.constellio.app.services.menu.MenuItemFactory.MenuItemRecordProvider;
 import com.constellio.app.services.menu.MenuItemServices;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
@@ -17,6 +19,7 @@ import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.users.UserServices;
 import com.vaadin.ui.Button;
 import org.apache.commons.collections4.MapUtils;
@@ -124,9 +127,27 @@ public class RecordVOActionButtonFactory {
 				if (recordVO == null) {
 					return Collections.emptyList();
 				}
-
 				return Arrays.asList(recordVO.getRecord());
 			}
+
+			@Override
+			public LogicalSearchQuery getQuery() {
+				return null;
+			}
+		}, new CommandCallback() {
+			@Override
+			public void actionExecuted(MenuItemAction menuItemAction, Object component) {
+				Button button = (Button) component;
+				button.setEnabled(menuItemAction.getState().getStatus() != MenuItemActionStateStatus.DISABLED);
+				button.setEnabled(menuItemAction.getState().getStatus() == MenuItemActionStateStatus.VISIBLE);
+				//				View currentView = ConstellioUI.getCurrent().getCurrentView();
+				//				// No point in refreshing menu if we left the original page
+				//				if (currentView == originalView) {
+				//					// Recursive call
+				//					buildMenuItems();
+				//				}
+			}
+
 		});
 	}
 
