@@ -14,6 +14,7 @@ import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
 import com.constellio.app.ui.application.CoreViews;
+import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.ReportButton;
 import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
 import com.constellio.app.ui.framework.components.NewReportPresenter;
@@ -34,6 +35,7 @@ import com.constellio.model.services.search.SearchServices;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import org.joda.time.LocalDate;
+import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.List;
 
@@ -141,16 +143,27 @@ public class ContainerRecordMenuItemActionBehaviors {
 	}
 
 	public void delete(ContainerRecord container, MenuItemActionBehaviorParams params) {
-		try {
-			recordServices.logicallyDelete(container.getWrappedRecord(), params.getUser());
-			if (BehaviorsUtil.reloadIfSearchView(params.getView())) {
-				return;
-			} else {
-				params.getView().navigate().to(CoreViews.class).home();
+		Button deleteButton = new DeleteButton($("delete"), false) {
+			@Override
+			protected void confirmButtonClick(ConfirmDialog dialog) {
+				try {
+					recordServices.logicallyDelete(container.getWrappedRecord(), params.getUser());
+					if (BehaviorsUtil.reloadIfSearchView(params.getView())) {
+						return;
+					} else {
+						params.getView().navigate().to(CoreViews.class).home();
+					}
+				} catch (RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord e) {
+					params.getView().showErrorMessage(MessageUtils.toMessage(e));
+				}
 			}
-		} catch (RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord e) {
-			params.getView().showErrorMessage(MessageUtils.toMessage(e));
-		}
+
+			@Override
+			protected String getConfirmDialogMessage() {
+				return $("ConfirmDialog.confirmDeleteWithRecord", container.getTitle());
+			}
+		};
+		deleteButton.click();
 	}
 
 	public void empty(ContainerRecord container, MenuItemActionBehaviorParams params) {
