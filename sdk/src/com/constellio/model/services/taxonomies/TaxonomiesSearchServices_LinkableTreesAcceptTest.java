@@ -600,7 +600,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends AbstractTa
 		assertThatRootWhenSelectingAnAdministrativeUnitUsingUnitTaxonomy()
 				.is(empty())
 				.has(solrQueryCounts(2, 3, 3))
-				.has(secondSolrQueryCounts(2, 3, 0));
+				.has(secondSolrQueryCounts(1, 3, 0));
 
 	}
 
@@ -1179,22 +1179,22 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends AbstractTa
 				.has(numFoundAndListSize(1))
 				.has(unlinkable(records.unitId_10))
 				.has(itemsWithChildren(records.unitId_10))
-				.has(solrQueryCounts(2, 6, 3))
-				.has(secondSolrQueryCounts(2, 6, 0));
+				.has(solrQueryCounts(2, 3, 3))
+				.has(secondSolrQueryCounts(1, 3, 0));
 
 		assertThatChildWhenSelectingAnAdministrativeUnitUsingUnitTaxonomy(records.unitId_10)
 				.has(numFoundAndListSize(1))
 				.has(linkable(records.unitId_12))
 				.has(itemsWithChildren(records.unitId_12))
-				.has(solrQueryCounts(3, 7, 3))
-				.has(secondSolrQueryCounts(3, 7, 0));
+				.has(solrQueryCounts(3, 4, 3))
+				.has(secondSolrQueryCounts(2, 4, 0));
 		assertThatChildWhenSelectingAnAdministrativeUnitUsingUnitTaxonomy(records.unitId_12)
 				.has(numFoundAndListSize(2))
 				.has(linkable(records.unitId_12b, records.unitId_12c))
 				.has(resultsInOrder(records.unitId_12b, records.unitId_12c))
 				.has(noItemsWithChildren())
-				.has(solrQueryCounts(3, 6, 2))
-				.has(secondSolrQueryCounts(3, 6, 0));
+				.has(solrQueryCounts(3, 3, 2))
+				.has(secondSolrQueryCounts(2, 3, 0));
 
 		assertThatChildWhenSelectingAnAdministrativeUnitUsingUnitTaxonomy(records.unitId_12b)
 				.is(empty())
@@ -1215,23 +1215,23 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends AbstractTa
 				.has(numFoundAndListSize(1))
 				.has(unlinkable(records.unitId_10))
 				.has(itemsWithChildren(records.unitId_10))
-				.has(solrQueryCounts(2, 6, 3))
-				.has(secondSolrQueryCounts(2, 6, 0));
+				.has(solrQueryCounts(2, 3, 3))
+				.has(secondSolrQueryCounts(1, 3, 0));
 
 		assertThatChildWhenSelectingAnAdministrativeUnitUsingUnitTaxonomy(records.unitId_10, withWriteAccess)
 				.has(numFoundAndListSize(1))
 				.has(linkable(records.unitId_12))
 				.has(itemsWithChildren(records.unitId_12))
-				.has(solrQueryCounts(3, 7, 3))
-				.has(secondSolrQueryCounts(3, 7, 0));
+				.has(solrQueryCounts(3, 4, 3))
+				.has(secondSolrQueryCounts(2, 4, 0));
 
 		assertThatChildWhenSelectingAnAdministrativeUnitUsingUnitTaxonomy(records.unitId_12, withWriteAccess)
 				.has(numFoundAndListSize(2))
 				.has(linkable(records.unitId_12b, records.unitId_12c))
 				.has(resultsInOrder(records.unitId_12b, records.unitId_12c))
 				.has(noItemsWithChildren())
-				.has(solrQueryCounts(3, 6, 2))
-				.has(secondSolrQueryCounts(3, 6, 0));
+				.has(solrQueryCounts(3, 3, 2))
+				.has(secondSolrQueryCounts(2, 3, 0));
 
 		assertThatChildWhenSelectingAnAdministrativeUnitUsingUnitTaxonomy(records.unitId_12b, withWriteAccess)
 				.is(empty())
@@ -1390,9 +1390,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends AbstractTa
 
 		recordServices.refresh(alice);
 
-		facetsCount.set(0);
-		queriesCount.set(0);
-		returnedDocumentsCount.set(0);
+		resetCounters();
 
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_X13, withWriteAccess)
 				.has(resultsInOrder(folderNearEnd.getId(), subFolderNearEnd.getParentFolder()))
@@ -1633,7 +1631,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends AbstractTa
 						"category_24", "category_25", "category_26", "category_27", "category_28", "category_29", "category_30"))
 				.has(numFound(60)).has(listSize(30))
 				.has(fastContinuationInfos(false, 30))
-				.has(solrQueryCounts(5, 61, 9))
+				.has(solrQueryCounts(5, 61, 10))
 				.has(secondSolrQueryCounts(4, 61, 0));
 
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("root", options.setStartRow(289).setRows(30)
@@ -1721,7 +1719,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends AbstractTa
 						"category_24", "category_25", "category_26", "category_27", "category_28", "category_29", "category_30"))
 				.has(numFound(60)).has(listSize(30))
 				.has(fastContinuationInfos(false, 30))
-				.has(solrQueryCounts(5, 61, 9))
+				.has(solrQueryCounts(5, 61, 10))
 				.has(secondSolrQueryCounts(4, 61, 0));
 
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("root", options.setStartRow(289).setRows(30)
@@ -1792,8 +1790,8 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends AbstractTa
 				"unit_70", "unit_72", "unit_74", "unit_76", "unit_78", "unit_80", "unit_82", "unit_84", "unit_86",
 				"unit_88", "unit_90", "unit_92", "unit_94", "unit_96", "unit_98", "unit_100"))
 				.has(numFound(150)).has(listSize(50)).has(noFastContinuationInfos())
-				.has(solrQueryCounts(2, 453, 303))
-				.has(secondSolrQueryCounts(2, 453, 0));
+				.has(solrQueryCounts(2, 303, 303))
+				.has(secondSolrQueryCounts(1, 303, 0));
 
 		options.setStartRow(50);
 		assertThat((LinkableTaxonomySearchResponseCaller) new LinkableTaxonomySearchResponseCaller() {
@@ -1810,8 +1808,8 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends AbstractTa
 				"unit_180", "unit_182", "unit_184", "unit_186", "unit_188", "unit_190", "unit_192", "unit_194",
 				"unit_196", "unit_198", "unit_200"))
 				.has(numFound(150)).has(listSize(50)).has(noFastContinuationInfos())
-				.has(solrQueryCounts(2, 453, 0))
-				.has(secondSolrQueryCounts(2, 453, 0));
+				.has(solrQueryCounts(1, 303, 0))
+				.has(secondSolrQueryCounts(1, 303, 0));
 	}
 
 	@Test
@@ -1862,8 +1860,8 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends AbstractTa
 				"unit_70", "unit_72", "unit_74", "unit_76", "unit_78", "unit_80", "unit_82", "unit_84", "unit_86",
 				"unit_88", "unit_90", "unit_92", "unit_94", "unit_96", "unit_98", "unit_100"))
 				.has(numFound(150)).has(listSize(50)).has(noFastContinuationInfos())
-				.has(solrQueryCounts(2, 450, 300))
-				.has(secondSolrQueryCounts(2, 450, 0));
+				.has(solrQueryCounts(2, 300, 300))
+				.has(secondSolrQueryCounts(1, 300, 0));
 
 		options.setStartRow(50);
 		assertThat((LinkableTaxonomySearchResponseCaller) new LinkableTaxonomySearchResponseCaller() {
@@ -1880,8 +1878,8 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends AbstractTa
 				"unit_180", "unit_182", "unit_184", "unit_186", "unit_188", "unit_190", "unit_192", "unit_194",
 				"unit_196", "unit_198", "unit_200"))
 				.has(numFound(150)).has(listSize(50)).has(noFastContinuationInfos())
-				.has(solrQueryCounts(2, 450, 0))
-				.has(secondSolrQueryCounts(2, 450, 0));
+				.has(solrQueryCounts(1, 300, 0))
+				.has(secondSolrQueryCounts(1, 300, 0));
 	}
 
 	@Test
@@ -2483,7 +2481,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends AbstractTa
 		assertThatRootWhenSelectingAnAdministrativeUnitUsingUnitTaxonomy(withWriteAccess)
 				.is(empty())
 				.has(solrQueryCounts(2, 3, 3))
-				.has(secondSolrQueryCounts(2, 3, 0));
+				.has(secondSolrQueryCounts(1, 3, 0));
 
 		assertThatChildWhenSelectingAnAdministrativeUnitUsingUnitTaxonomy(records.unitId_10)
 				.has(numFoundAndListSize(3))
@@ -2496,7 +2494,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends AbstractTa
 		assertThatChildWhenSelectingAnAdministrativeUnitUsingUnitTaxonomy(records.unitId_10, withWriteAccess)
 				.is(empty())
 				.has(solrQueryCounts(3, 4, 3))
-				.has(secondSolrQueryCounts(3, 4, 0));
+				.has(secondSolrQueryCounts(2, 4, 0));
 
 		assertThatChildWhenSelectingAnAdministrativeUnitUsingUnitTaxonomy(records.unitId_12)
 				.has(numFoundAndListSize(2))

@@ -64,7 +64,7 @@ public class RecordProviderTest extends ConstellioTest {
 
 		assertThat(recordProvider.getRecord(secondRecordId)).isEqualTo(secondRecord);
 
-		verify(recordServices).realtimeGetRecordById(secondRecordId);
+		verify(recordServices).getDocumentById(secondRecordId);
 	}
 
 	@Test
