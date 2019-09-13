@@ -2082,7 +2082,7 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Abst
 						"category_24", "category_25", "category_26", "category_27", "category_28", "category_29", "category_30"))
 				.has(numFound(50)).has(listSize(20))
 				.has(fastContinuationInfos(false, 30))
-				.has(solrQueryCounts(1, 0, 10))
+				.has(solrQueryCounts(1, 0, 25))
 				.has(secondSolrQueryCounts(0, 0, 0));
 
 		assertThatRootWhenSelectingAFolderUsingPlanTaxonomy(withWriteAccess.setStartRow(10).setRows(20)
@@ -2092,7 +2092,7 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Abst
 						"category_24", "category_25", "category_26", "category_27", "category_28", "category_29", "category_30"))
 				.has(numFound(35)).has(listSize(20))
 				.has(fastContinuationInfos(false, 30))
-				.has(solrQueryCounts(1, 0, 10))
+				.has(solrQueryCounts(0, 0, 0))
 				.has(secondSolrQueryCounts(0, 0, 0));
 
 		//Calling with an different fast continue (simulating that one of the first ten record was not returned)
@@ -2103,7 +2103,7 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Abst
 						"category_25", "category_26", "category_27", "category_28", "category_29", "category_30", "category_31"))
 				.has(numFound(35)).has(listSize(20))
 				.has(fastContinuationInfos(false, 31))
-				.has(solrQueryCounts(1, 0, 1))
+				.has(solrQueryCounts(0, 0, 0))
 				.has(secondSolrQueryCounts(0, 0, 0));
 
 		assertThatRootWhenSelectingAFolderUsingPlanTaxonomy(withWriteAccess.setStartRow(0).setRows(30).setFastContinueInfos(null))
@@ -2114,7 +2114,7 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Abst
 						"category_24", "category_25", "category_26", "category_27", "category_28", "category_29", "category_30"))
 				.has(numFound(50)).has(listSize(30))
 				.has(fastContinuationInfos(false, 30))
-				.has(solrQueryCounts(1, 0, 14))
+				.has(solrQueryCounts(0, 0, 0))
 				.has(secondSolrQueryCounts(0, 0, 0));
 
 		assertThatRootWhenSelectingAFolderUsingPlanTaxonomy(withWriteAccess.setStartRow(289).setRows(30)

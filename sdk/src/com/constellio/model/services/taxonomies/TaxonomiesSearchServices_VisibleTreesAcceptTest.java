@@ -1140,7 +1140,7 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends AbstractTax
 						"category_24", "category_25", "category_26", "category_27", "category_28", "category_29", "category_30"))
 				.has(numFound(60)).has(listSize(30))
 				.has(fastContinuationInfos(false, 30))
-				.has(solrQueryCounts(5, 61, 9))
+				.has(solrQueryCounts(5, 61, 10))
 				.has(secondCallQueryCounts(4, 61, 0));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(alice, "root", options.setStartRow(289).setRows(30)

@@ -2,11 +2,14 @@ package com.constellio.model.services.taxonomies;
 
 import com.constellio.data.extensions.AfterQueryParams;
 import com.constellio.data.extensions.BigVaultServerExtension;
+import com.constellio.data.utils.Pair;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.sdk.tests.ConstellioTest;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.assertj.core.api.Condition;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.constellio.model.services.taxonomies.TaxonomiesTestsUtils.ajustIfBetterThanExpected;
@@ -17,9 +20,10 @@ public class AbstractTaxonomiesSearchServicesAcceptanceTest extends ConstellioTe
 
 	private static final boolean VALIDATE_SOLR_QUERIES_COUNT = true;
 
-	AtomicInteger queriesCount = new AtomicInteger();
-	AtomicInteger facetsCount = new AtomicInteger();
-	AtomicInteger returnedDocumentsCount = new AtomicInteger();
+	private AtomicInteger queriesCount = new AtomicInteger();
+	private AtomicInteger facetsCount = new AtomicInteger();
+	private AtomicInteger returnedDocumentsCount = new AtomicInteger();
+	private List<String> queryInfos = new ArrayList<>();
 
 	protected void configureQueryCounter() {
 
@@ -33,17 +37,16 @@ public class AbstractTaxonomiesSearchServicesAcceptanceTest extends ConstellioTe
 						String stacktrace = substringAfter(substringAfter(ExceptionUtils.getStackTrace(new Exception()), "\n"), "\n");
 
 						if (stacktrace.contains(className)) {
-
 							queriesCount.incrementAndGet();
+							returnedDocumentsCount.addAndGet(params.getReturnedResultsCount());
 							String[] facetQuery = params.getSolrParams().getParams("facet.query");
 							if (facetQuery != null) {
 								facetsCount.addAndGet(facetQuery.length);
 							}
 
-							returnedDocumentsCount.addAndGet(params.getReturnedResultsCount());
+							String logMessage = "1-" + params.getReturnedResultsCount() + "-" + (facetQuery == null ? 0 : facetQuery.length) + " : " + (params.getQueryName() == null ? "Unnamed query" : params.getQueryName()) + "\n" + stacktrace;
 
-							System.out.println((params.getQueryName() == null ? "Unnamed query" : params.getQueryName()) + " 1-" + (facetQuery == null ? 0 : facetQuery.length) + "-" + params.getReturnedResultsCount()
-											   + "\n" + stacktrace);
+							queryInfos.add(logMessage);
 						}
 					}
 				});
@@ -60,16 +63,23 @@ public class AbstractTaxonomiesSearchServicesAcceptanceTest extends ConstellioTe
 
 		private String secondCallSolrQueries;
 
+		private List<String> firstCallQueries;
+
+		private List<String> secondCallQueries;
+
 		public LinkableTaxonomySearchResponse firstAnswer() {
 			if (firstCallAnswer == null) {
 				queriesCount.set(0);
 				returnedDocumentsCount.set(0);
 				facetsCount.set(0);
+				queryInfos.clear();
 				firstCallAnswer = call();
+				firstCallQueries = new ArrayList<>(queryInfos);
 				firstCallSolrQueries = queriesCount.get() + "-" + returnedDocumentsCount.get() + "-" + facetsCount.get();
 				queriesCount.set(0);
 				returnedDocumentsCount.set(0);
 				facetsCount.set(0);
+				queryInfos.clear();
 			}
 			return firstCallAnswer;
 		}
@@ -80,25 +90,28 @@ public class AbstractTaxonomiesSearchServicesAcceptanceTest extends ConstellioTe
 				queriesCount.set(0);
 				returnedDocumentsCount.set(0);
 				facetsCount.set(0);
+				queryInfos.clear();
 				secondCallAnswer = call();
+				secondCallQueries = new ArrayList<>(queryInfos);
 				secondCallSolrQueries = queriesCount.get() + "-" + returnedDocumentsCount.get() + "-" + facetsCount.get();
 				queriesCount.set(0);
 				returnedDocumentsCount.set(0);
 				facetsCount.set(0);
+				queryInfos.clear();
 			}
 			return secondCallAnswer;
 		}
 
 		protected abstract LinkableTaxonomySearchResponse call();
 
-		public String firstAnswerSolrQueries() {
+		public Pair<String, List<String>> firstAnswerSolrQueries() {
 			firstAnswer();
-			return firstCallSolrQueries;
+			return new Pair(firstCallSolrQueries, firstCallQueries);
 		}
 
-		public String secondAnswerSolrQueries() {
+		public Pair<String, List<String>> secondAnswerSolrQueries() {
 			secondAnswer();
-			return secondCallSolrQueries;
+			return new Pair(secondCallSolrQueries, secondCallQueries);
 		}
 
 	}
@@ -112,17 +125,22 @@ public class AbstractTaxonomiesSearchServicesAcceptanceTest extends ConstellioTe
 			@Override
 			public boolean matches(LinkableTaxonomySearchResponseCaller value) {
 				String expected = queries + "-" + queryResults + "-" + facets;
-				String current = value.firstAnswerSolrQueries();
+				Pair<String, List<String>> current = value.firstAnswerSolrQueries();
 
-				if (VALIDATE_SOLR_QUERIES_COUNT && !ajustIfBetterThanExpected(exception.getStackTrace(), current, expected)) {
-					assertThat(current).describedAs("First call Queries count - Query resuts count - Facets count")
-							.isEqualTo(expected);
+				if (VALIDATE_SOLR_QUERIES_COUNT && !ajustIfBetterThanExpected(exception.getStackTrace(), current.getKey(), expected)) {
+
+					StringBuilder sb = new StringBuilder("First call Queries count - Query resuts count - Facets count");
+					for (int i = 0; i < current.getValue().size(); i++) {
+						String query = current.getValue().get(i);
+						sb.append("\n\n\n\t- Query #" + (1 + i) + " : " + query);
+					}
+
+					assertThat(current.getKey()).describedAs(sb.toString()).isEqualTo(expected);
 				}
 				queriesCount.set(0);
 				facetsCount.set(0);
 				returnedDocumentsCount.set(0);
-
-				System.out.println("--------------------------------------------------------------------------------");
+				queryInfos.clear();
 
 				return true;
 			}
@@ -144,17 +162,22 @@ public class AbstractTaxonomiesSearchServicesAcceptanceTest extends ConstellioTe
 			@Override
 			public boolean matches(LinkableTaxonomySearchResponseCaller value) {
 				String expected = queries + "-" + queryResults + "-" + facets;
-				String current = value.secondAnswerSolrQueries();
+				Pair<String, List<String>> current = value.secondAnswerSolrQueries();
 
-				System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
-				if (VALIDATE_SOLR_QUERIES_COUNT && !ajustIfBetterThanExpected(exception.getStackTrace(), current, expected)) {
-					assertThat(current).describedAs("First call Queries count - Query resuts count - Facets count")
-							.isEqualTo(expected);
+				if (VALIDATE_SOLR_QUERIES_COUNT && !ajustIfBetterThanExpected(exception.getStackTrace(), current.getKey(), expected)) {
+
+					StringBuilder sb = new StringBuilder("Second call Queries count - Query resuts count - Facets count");
+					for (int i = 0; i < current.getValue().size(); i++) {
+						String query = current.getValue().get(i);
+						sb.append("\n\n\n\t- Query #" + (1 + i) + " : " + query);
+					}
+
+					assertThat(current.getKey()).describedAs(sb.toString()).isEqualTo(expected);
 				}
 				queriesCount.set(0);
 				facetsCount.set(0);
 				returnedDocumentsCount.set(0);
-				System.out.println("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
+				queryInfos.clear();
 
 
 				return true;
@@ -174,6 +197,7 @@ public class AbstractTaxonomiesSearchServicesAcceptanceTest extends ConstellioTe
 		queriesCount.set(0);
 		facetsCount.set(0);
 		returnedDocumentsCount.set(0);
+		queryInfos.clear();
 
 	}
 
@@ -182,11 +206,13 @@ public class AbstractTaxonomiesSearchServicesAcceptanceTest extends ConstellioTe
 		queriesCount.set(0);
 		facetsCount.set(0);
 		returnedDocumentsCount.set(0);
+		queryInfos.clear();
 	}
 
 	protected void resetCounters() {
 		queriesCount.set(0);
 		facetsCount.set(0);
 		returnedDocumentsCount.set(0);
+		queryInfos.clear();
 	}
 }

@@ -99,9 +99,9 @@ public class TaxonomiesSearchServicesLegacyQueryHandler
 			LogicalSearchQuery query = new LogicalSearchQuery(condition)
 					.filteredWithUser(ctx.getUser(), options.getRequiredAccess())
 					.filteredByStatus(options.getIncludeStatus())
-					.setReturnedMetadatas(
-							conceptNodesTaxonomySearchServices.returnedMetadatasForRecordsIn(ctx.getTaxonomy().getCollection(), options));
-
+					.setReturnedMetadatas(ReturnedMetadatasFilter.idVersionSchema());
+			//conceptNodesTaxonomySearchServices.returnedMetadatasForRecordsIn(ctx.getTaxonomy().getCollection(), options));
+			//query.setNumberOfRows(0);
 			ModelLayerCollectionExtensions collectionExtensions = extensions.forCollectionOf(ctx.getTaxonomy());
 			Metadata[] sortMetadatas = collectionExtensions.getSortMetadatas(ctx.getTaxonomy());
 			if (sortMetadatas != null) {
@@ -112,10 +112,10 @@ public class TaxonomiesSearchServicesLegacyQueryHandler
 
 			HasChildrenQueryHandler hasChildrenQueryHandler = newHasChildrenQueryHandler(ctx.getUser(), cacheMode, query);
 
+
 			for (Record child : children) {
 				hasChildrenQueryHandler.addRecordToCheck(child);
 			}
-
 			SPEQueryResponse response = hasChildrenQueryHandler.query();
 			List<String> responseRecordIds = new RecordUtils().toIdList(response.getRecords());
 			List<TaxonomySearchRecord> resultVisible = new ArrayList<>();
@@ -124,6 +124,19 @@ public class TaxonomiesSearchServicesLegacyQueryHandler
 				boolean hasVisibleChildren = hasChildrenQueryHandler.hasChildren(child);
 
 				boolean readAuthorizationsOnConcept = responseRecordIds.contains(child.getId());
+				//				if (options.getIncludeStatus() == ACTIVES) {
+				//					readAuthorizationsOnConcept &= LangUtils.isFalseOrNull(child.get(Schemas.LOGICALLY_DELETED_STATUS));
+				//
+				//				} else if (options.getIncludeStatus() == DELETED) {
+				//					readAuthorizationsOnConcept &= Boolean.TRUE.equals(child.get(Schemas.LOGICALLY_DELETED_STATUS));
+				//
+				//				}
+
+
+				//				if (!responseRecordIds.contains(child.getId())) {
+				//					System.out.println("oh oh!");
+				//				}
+
 				boolean conceptIsLinkable = isTrueOrNull(child.get(Schemas.LINKABLE));
 
 
