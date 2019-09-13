@@ -31,14 +31,10 @@ public class RMMigrationTo8_3_2_1 implements MigrationScript {
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder builder) {
 			MetadataSchemaBuilder cartSchema = types().getSchema(Cart.DEFAULT_SCHEMA);
-			if (cartSchema.hasMetadata(Cart.TITLE)) {
-				cartSchema.get(Cart.TITLE).required();
-			}
+			cartSchema.get(Cart.TITLE).required();
 
 			MetadataSchemaBuilder folderSchema = types().getSchema(Folder.DEFAULT_SCHEMA);
-			if (folderSchema.hasMetadata(Folder.MAIN_COPY_RULE_ID_ENTERED)) {
-				folderSchema.get(Folder.MAIN_COPY_RULE_ID_ENTERED).setEssential(true);
-			}
+			folderSchema.get(Folder.MAIN_COPY_RULE_ID_ENTERED).setEssential(true);
 		}
 	}
 }
