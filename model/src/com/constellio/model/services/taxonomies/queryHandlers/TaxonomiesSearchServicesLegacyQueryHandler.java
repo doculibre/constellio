@@ -11,7 +11,6 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.records.utils.RecordCodeComparator;
 import com.constellio.model.services.search.MoreLikeThisRecord;
 import com.constellio.model.services.search.SPEQueryResponse;
@@ -43,6 +42,7 @@ import static com.constellio.model.entities.schemas.Schemas.PATH_PARTS;
 import static com.constellio.model.entities.schemas.Schemas.VISIBLE_IN_TREES;
 import static com.constellio.model.services.schemas.SchemaUtils.getSchemaTypeCode;
 import static com.constellio.model.services.search.StatusFilter.ACTIVES;
+import static com.constellio.model.services.search.StatusFilter.DELETED;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasInCollectionOf;
@@ -83,16 +83,15 @@ public class TaxonomiesSearchServicesLegacyQueryHandler
 					.getCacheMode(ctx.getTaxonomy().getSchemaTypes().get(0), ctx.getOptions().getRequiredAccess(),
 							ctx.getOptions().isShowInvisibleRecordsInLinkingMode(),
 							ctx.getOptions().isAlwaysReturnTaxonomyConceptsWithReadAccessOrLinkable());
-			SPEQueryResponse mainQueryResponse;
+			List<Record> children;
 			options.setRows(10000);
 			options.setStartRow(0);
 			if (ctx.getRecord() == null) {
-				mainQueryResponse = conceptNodesTaxonomySearchServices.getRootConceptResponse(
-						ctx.getTaxonomy().getCollection(), ctx.getTaxonomy().getCode(), options);
+				children = conceptNodesTaxonomySearchServices.getRootConceptResponse(
+						ctx.getTaxonomy().getCollection(), ctx.getTaxonomy().getCode(), options).getRecords();
 			} else {
-				mainQueryResponse = conceptNodesTaxonomySearchServices.getChildNodesResponse(ctx.getRecord(), options);
+				children = conceptNodesTaxonomySearchServices.getChildConcept(ctx.getRecord(), options);
 			}
-			List<Record> children = mainQueryResponse.getRecords();
 
 			LogicalSearchCondition condition = fromAllSchemasIn(ctx.getTaxonomy().getCollection())
 					.where(schemaTypeIsIn(ctx.getTaxonomy().getSchemaTypes()));
@@ -101,7 +100,7 @@ public class TaxonomiesSearchServicesLegacyQueryHandler
 					.filteredByStatus(options.getIncludeStatus())
 					.setReturnedMetadatas(ReturnedMetadatasFilter.idVersionSchema());
 			//conceptNodesTaxonomySearchServices.returnedMetadatasForRecordsIn(ctx.getTaxonomy().getCollection(), options));
-			//query.setNumberOfRows(0);
+			query.setNumberOfRows(0);
 			ModelLayerCollectionExtensions collectionExtensions = extensions.forCollectionOf(ctx.getTaxonomy());
 			Metadata[] sortMetadatas = collectionExtensions.getSortMetadatas(ctx.getTaxonomy());
 			if (sortMetadatas != null) {
@@ -116,20 +115,25 @@ public class TaxonomiesSearchServicesLegacyQueryHandler
 			for (Record child : children) {
 				hasChildrenQueryHandler.addRecordToCheck(child);
 			}
-			SPEQueryResponse response = hasChildrenQueryHandler.query();
-			List<String> responseRecordIds = new RecordUtils().toIdList(response.getRecords());
 			List<TaxonomySearchRecord> resultVisible = new ArrayList<>();
 			for (final Record child : children) {
 
+				boolean concept = ctx.getTaxonomy().getSchemaTypes().contains(child.getTypeCode());
 				boolean hasVisibleChildren = hasChildrenQueryHandler.hasChildren(child);
+				boolean readAuthorizationsOnConcept = ctx.hasRequiredAccessOn(child);// responseRecordIds.contains(child.getId());
 
-				boolean readAuthorizationsOnConcept = responseRecordIds.contains(child.getId());
-				//				if (options.getIncludeStatus() == ACTIVES) {
-				//					readAuthorizationsOnConcept &= LangUtils.isFalseOrNull(child.get(Schemas.LOGICALLY_DELETED_STATUS));
-				//
-				//				} else if (options.getIncludeStatus() == DELETED) {
-				//					readAuthorizationsOnConcept &= Boolean.TRUE.equals(child.get(Schemas.LOGICALLY_DELETED_STATUS));
-				//
+
+				boolean availableConcept = concept;
+				if (options.getIncludeStatus() == ACTIVES) {
+					availableConcept &= LangUtils.isFalseOrNull(child.get(Schemas.LOGICALLY_DELETED_STATUS));
+
+				} else if (options.getIncludeStatus() == DELETED) {
+					availableConcept &= Boolean.TRUE.equals(child.get(Schemas.LOGICALLY_DELETED_STATUS));
+
+				}
+
+				//				if (options.isShowInvisibleRecordsInLinkingMode()) {
+				//					readAuthorizationsOnConcept &= LangUtils.isTrueOrNull(child.get(VISIBLE_IN_TREES));
 				//				}
 
 
@@ -154,7 +158,7 @@ public class TaxonomiesSearchServicesLegacyQueryHandler
 					});
 				}
 
-				if (hasVisibleChildren || (readAuthorizationsOnConcept && conceptIsLinkable)) {
+				if ((concept && hasVisibleChildren) || (availableConcept && readAuthorizationsOnConcept && conceptIsLinkable)) {
 					resultVisible.add(new TaxonomySearchRecord(child, readAuthorizationsOnConcept && conceptIsLinkable,
 							hasVisibleChildren));
 				}
