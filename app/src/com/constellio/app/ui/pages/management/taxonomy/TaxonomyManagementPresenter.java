@@ -137,7 +137,7 @@ public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagemen
 				if (conceptId != null) {
 					Record record = recordServices().getDocumentById(conceptId);
 					ConceptNodesTaxonomySearchServices conceptNodesTaxonomySearchServices = new ConceptNodesTaxonomySearchServices(modelLayerFactory);
-					query = conceptNodesTaxonomySearchServices.childNodesQuery(record, new TaxonomiesSearchOptions(), types);
+					query = conceptNodesTaxonomySearchServices.childNodesQuery(record, new TaxonomiesSearchOptions(), types, false);
 				} else {
 					query = new ConceptNodesTaxonomySearchServices(modelLayerFactory)
 							.getRootConceptsQuery(view.getSessionContext().getCurrentCollection(), taxonomy.getCode(),
@@ -170,7 +170,7 @@ public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagemen
 	public boolean canOnlyConsultTaxonomy() {
 		TaxonomyPresentersService presentersService = new TaxonomyPresentersService(appLayerFactory);
 
-		if(presentersService.canManage(taxonomyCode, getCurrentUser())) {
+		if (presentersService.canManage(taxonomyCode, getCurrentUser())) {
 			return false;
 		}
 
@@ -279,7 +279,7 @@ public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagemen
 		Map<String, String> params = ParamUtils.getParamsMap(parameters);
 		String taxonomyCode = params.get(TAXONOMY_CODE);
 		return new TaxonomyPresentersService(appLayerFactory).canManage(taxonomyCode, user) ||
-				new TaxonomyPresentersService(appLayerFactory).canConsult(taxonomyCode, user);
+			   new TaxonomyPresentersService(appLayerFactory).canConsult(taxonomyCode, user);
 	}
 
 	public void tabElementClicked(RecordVO recordVO) {

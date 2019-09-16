@@ -156,20 +156,27 @@ public class ConceptNodesTaxonomySearchServices {
 	}
 
 	public List<Record> getChildConcept(Record record, TaxonomiesSearchOptions options) {
-		return getChildNodesResponse(record, options).getRecords();
+		return getChildNodesResponse(record, options, true).getRecords();
 	}
 
-	public SPEQueryResponse getChildNodesResponse(Record record, TaxonomiesSearchOptions options) {
+	private SPEQueryResponse getChildNodesResponse(Record record, TaxonomiesSearchOptions options,
+												   boolean onlyConcepts) {
 		MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(record);
-		return searchServices.query(childNodesQuery(record, options, types));
+		return searchServices.query(childNodesQuery(record, options, types, onlyConcepts));
 	}
 
 	public LogicalSearchQuery childNodesQuery(Record record, TaxonomiesSearchOptions options,
-											  MetadataSchemaTypes types) {
+											  MetadataSchemaTypes types, boolean onlyConcepts) {
 		String dataStore = types.getSchema(record.getSchemaCode()).getDataStore();
-		LogicalSearchCondition condition = fromTypesInCollectionOf(record, dataStore)
-				.where(directChildOf(record).andWhere(visibleInTrees));
+		LogicalSearchCondition condition;
 
+		if (onlyConcepts) {
+			condition = from(types.getSchemaType(record.getTypeCode()))
+					.where(directChildOf(record).andWhere(visibleInTrees));
+		} else {
+			condition = fromTypesInCollectionOf(record, dataStore)
+					.where(directChildOf(record).andWhere(visibleInTrees));
+		}
 		return new LogicalSearchQuery(condition)
 				.filteredByStatus(options.getIncludeStatus())
 				.setStartRow(options.getStartRow())

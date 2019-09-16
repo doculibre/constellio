@@ -1199,8 +1199,8 @@ public class TaxonomiesSearchServices_LinkableTreesLegacyAcceptTest extends Abst
 
 		assertThatChildWhenSelectingAnAdministrativeUnitUsingUnitTaxonomy(records.unitId_12b)
 				.is(empty())
-				.has(solrQueryCounts(3, 9, 5))
-				.has(secondSolrQueryCounts(3, 9, 0));
+				.has(solrQueryCounts(2, 1, 0))
+				.has(secondSolrQueryCounts(2, 1, 0));
 
 	}
 
@@ -1236,8 +1236,8 @@ public class TaxonomiesSearchServices_LinkableTreesLegacyAcceptTest extends Abst
 
 		assertThatChildWhenSelectingAnAdministrativeUnitUsingUnitTaxonomy(records.unitId_12b, withWriteAccess)
 				.is(empty())
-				.has(solrQueryCounts(3, 9, 5))
-				.has(secondSolrQueryCounts(3, 9, 0));
+				.has(solrQueryCounts(2, 1, 0))
+				.has(secondSolrQueryCounts(2, 1, 0));
 
 	}
 
