@@ -1,11 +1,11 @@
 package com.constellio.app.modules.tasks.ui.components.fields.list;
 
-import java.util.List;
-
 import com.constellio.app.modules.rm.ui.components.converters.FolderIdToContextCaptionConverter;
 import com.constellio.app.modules.tasks.ui.components.fields.TaskLinkedFoldersFieldImpl;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveField;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupField.SelectionChangeListener;
+
+import java.util.List;
 
 /**
  * Created by Constellio on 2017-03-29.
@@ -31,5 +31,10 @@ public class TaskListAddRemoveLinkedFoldersLookupField extends ListAddRemoveFiel
 	@Override
 	protected String getItemCaption(Object itemId) {
 		return converter.convertToPresentation((String) itemId, String.class, getLocale());
+	}
+
+	@Override
+	protected boolean isEditPossible() {
+		return false;
 	}
 }
