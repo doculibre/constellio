@@ -69,6 +69,14 @@ public class ListAddRemoveCollaboratorsField extends ListAddRemoveField<TaskColl
 					List<Boolean> newWriteAuthorizations = new ArrayList<>();
 					List<String> newCollaboratorsIds = new ArrayList<>();
 					for (TaskCollaboratorItem newItem : taskCollaboratorItem) {
+						if (newCollaboratorsIds.contains(newItem.getTaskCollaborator())) {
+							int index = newCollaboratorsIds.indexOf(newItem.getTaskCollaborator());
+							if (newItem.isTaskCollaboratorsWriteAuthorization() && !newWriteAuthorizations.get(index)) {
+								newWriteAuthorizations.set(index, newItem.isTaskCollaboratorsWriteAuthorization());
+							} else {
+								continue;
+							}
+						}
 						newWriteAuthorizations.add(newItem.isTaskCollaboratorsWriteAuthorization());
 						newCollaboratorsIds.add(newItem.getTaskCollaborator());
 					}

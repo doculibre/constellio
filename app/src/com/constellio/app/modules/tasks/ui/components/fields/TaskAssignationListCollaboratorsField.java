@@ -32,12 +32,12 @@ public class TaskAssignationListCollaboratorsField extends CustomField<TaskColla
 		mainLayout.setSpacing(true);
 
 		authorizationField = new OptionGroup("", asList(false, true));
-		authorizationField.setItemCaption(false, $("AuthorizationsView.READ"));
-		authorizationField.setItemCaption(true, $("AuthorizationsView.WRITE"));
+		authorizationField.setItemCaption(false, $("TaskAssignationListCollaboratorsField.collaboratorReadAuthorization"));
+		authorizationField.setItemCaption(true, $("TaskAssignationListCollaboratorsField.collaboratorWriteAuthorization"));
 		authorizationField.addStyleName(ValoTheme.OPTIONGROUP_HORIZONTAL);
 
 		lookupUserField = new LookupRecordField(User.SCHEMA_TYPE);
-		lookupUserField.setCaption($("init.userTask.default.taskCollaborators"));
+		lookupUserField.setCaption($("TaskAssignationListCollaboratorsField.taskCollaborators"));
 
 		if (taskCollaboratorItem != null) {
 			authorizationField.setValue(taskCollaboratorItem.isTaskCollaboratorsWriteAuthorization());
