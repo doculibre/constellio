@@ -1,21 +1,5 @@
 package com.constellio.app.modules.tasks.ui.components;
 
-import static com.constellio.app.modules.rm.wrappers.Document.TYPE;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.ASSIGNEE;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.DECISION;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.LINKED_DOCUMENTS;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.LINKED_FOLDERS;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.PROGRESS_PERCENTAGE;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.QUESTION;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.RELATIVE_DUE_DATE;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.REMINDERS;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.REMINDER_FREQUENCY;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.TASK_FOLLOWERS;
-
-import java.io.Serializable;
-import java.util.List;
-import java.util.Locale;
-
 import com.constellio.app.api.extensions.params.MetadataFieldExtensionParams;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.modules.tasks.model.wrappers.request.BorrowRequest;
@@ -32,6 +16,7 @@ import com.constellio.app.modules.tasks.ui.components.fields.TaskReminderFrequen
 import com.constellio.app.modules.tasks.ui.components.fields.TaskTypeFieldComboBoxImpl;
 import com.constellio.app.modules.tasks.ui.components.fields.TaskTypeFieldLookupImpl;
 import com.constellio.app.modules.tasks.ui.components.fields.TaskTypeFieldOptionGroupImpl;
+import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveCollaboratorsField;
 import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveTaskFollowerField;
 import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveTaskReminderField;
 import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveWorkflowInclusiveDecisionFieldImpl;
@@ -47,6 +32,23 @@ import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordFiel
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.model.entities.records.wrappers.User;
 import com.vaadin.ui.Field;
+
+import java.io.Serializable;
+import java.util.List;
+import java.util.Locale;
+
+import static com.constellio.app.modules.rm.wrappers.Document.TYPE;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.ASSIGNEE;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.DECISION;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.LINKED_DOCUMENTS;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.LINKED_FOLDERS;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.PROGRESS_PERCENTAGE;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.QUESTION;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.RELATIVE_DUE_DATE;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.REMINDERS;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.REMINDER_FREQUENCY;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.TASK_COLLABORATORS;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.TASK_FOLLOWERS;
 
 public class TaskFieldFactory extends MetadataFieldFactory {
 
@@ -137,6 +139,9 @@ public class TaskFieldFactory extends MetadataFieldFactory {
 			case ASSIGNER:
 				field = new LookupRecordField(User.SCHEMA_TYPE);
 				postBuild(field, metadata);
+				break;
+			case TASK_COLLABORATORS:
+				field = new ListAddRemoveCollaboratorsField(recordVO);
 				break;
 			case ASSIGNEE:
 				field = super.build(metadata, locale);

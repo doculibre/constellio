@@ -87,6 +87,7 @@ public class TaskManagementPresenter extends AbstractTaskPresenter<TaskManagemen
 		tasksTabs.add(TaskManagementView.TASKS_ASSIGNED_BY_CURRENT_USER);
 		tasksTabs.add(TaskManagementView.TASKS_NOT_ASSIGNED);
 		tasksTabs.add(TaskManagementView.TASKS_RECENTLY_COMPLETED);
+		tasksTabs.add(TaskManagementView.SHARED_TASKS);
 
 		view.setTasksTabs(tasksTabs);
 	}
@@ -390,6 +391,22 @@ public class TaskManagementPresenter extends AbstractTaskPresenter<TaskManagemen
 						addStarredSortToQuery(query);
 					}
 				};
+			case TaskManagementView.SHARED_TASKS:
+				return new RecordVODataProvider(schemaVO, new TaskToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
+					@Override
+					public LogicalSearchQuery getQuery() {
+						LogicalSearchQuery query = tasksSearchServices.getTasksSharedToUserQuery(getCurrentUser());
+						addTimeStampToQuery(query);
+						addStarredSortToQuery(query);
+						return query;
+					}
+
+					@Override
+					protected void clearSort(LogicalSearchQuery query) {
+						super.clearSort(query);
+						addStarredSortToQuery(query);
+					}
+				};
 			default:
 				throw new RuntimeException("BUG: Unknown tabId + " + tabId);
 		}
@@ -432,6 +449,7 @@ public class TaskManagementPresenter extends AbstractTaskPresenter<TaskManagemen
 			case TaskManagementView.TASKS_ASSIGNED_BY_CURRENT_USER:
 			case TaskManagementView.TASKS_NOT_ASSIGNED:
 			case TaskManagementView.TASKS_RECENTLY_COMPLETED:
+			case TaskManagementView.SHARED_TASKS:
 				return true;
 			default:
 				return false;

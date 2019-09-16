@@ -204,6 +204,14 @@ public class TasksSchemasRecordsServices extends SchemasRecordsServices {
 			return metadata("assigneeUsersCandidates");
 		}
 
+		public Metadata taskCollaboraors() {
+			return metadata("taskCollaborators");
+		}
+
+		public Metadata collaborators() {
+			return metadata("collaboratorsUsers");
+		}
+
 		public Metadata assigner() {
 			return metadata("assigner");
 		}

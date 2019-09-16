@@ -109,6 +109,32 @@ public class TaskPresenterServices {
 			}
 		}
 
+		//		if (taskVO.getMetadataCodes().contains(taskVO.getSchema().getCode() + "_" + Task.TASK_COLLABORATORS)) {
+		//			List<TaskCollaboratorVO> taskCollaboratorVOS = taskVO.getTaskCollaborators();
+		//			Map<String, TaskCollaborator> taskCollaboratorsMap = new HashMap<>();
+		//			TaskCollaboratorsFromVOBuilder collaboratorsFromVOBuilder = new TaskCollaboratorsFromVOBuilder();
+		//			for (Object taskCollaborator : taskCollaboratorVOS) {
+		//				TaskCollaboratorVO taskCollaboratorVO;
+		//				if (taskCollaborator instanceof TaskCollaboratorVO) {
+		//					taskCollaboratorVO = (TaskCollaboratorVO) taskCollaborator;
+		//				} else {
+		//					taskCollaboratorVO = toCollaboratorVO((TaskCollaborator) taskCollaborator);
+		//				}
+		//				TaskCollaborator currentTaskCollaborators = taskCollaboratorsMap.get(taskCollaboratorVO.getCollaboratorId());
+		//				if (currentTaskCollaborators == null) {
+		//					currentTaskCollaborators = collaboratorsFromVOBuilder.build(taskCollaboratorVO);
+		//				}
+		//				if (taskCollaboratorVO.isCollaboratorReadAuthorization()) {
+		//					currentTaskCollaborators.setCollaboratorReadAuthorization(true);
+		//				}
+		//				if (taskCollaboratorVO.isCollaboratorWriteAuthorization()) {
+		//					currentTaskCollaborators.setCollaboratorWriteAuthorization(true);
+		//				}
+		//
+		//				taskCollaboratorsMap.put(currentTaskCollaborators.getCollaboratorId(), currentTaskCollaborators);
+		//			}
+		//			task.setTaskCollaborators(new ArrayList<>(taskCollaboratorsMap.values()));
+		//		}
 		return task;
 	}
 
@@ -117,6 +143,11 @@ public class TaskPresenterServices {
 				taskFollower.getFollowSubTasksModified(), taskFollower.getFollowTaskStatusModified(),
 				taskFollower.getFollowTaskCompleted(), taskFollower.getFollowTaskDeleted());
 	}
+
+	//	private TaskCollaboratorVO toCollaboratorVO(TaskCollaborator taskCollaborator) {
+	//		return new TaskCollaboratorVO(taskCollaborator.getCollaboratorId(),
+	//				taskCollaborator.getCollaboratorReadAuthorization(), taskCollaborator.getCollaboratorWriteAuthorization());
+	//	}
 
 	public boolean isTaskOverdue(TaskVO task) {
 		LocalDate dueDate = task.getDueDate();
