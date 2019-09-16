@@ -567,10 +567,8 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 				DocumentMenuItemActionType.DOCUMENT_DISPLAY.name(),
 				DocumentMenuItemActionType.DOCUMENT_OPEN.name(),
 				DocumentMenuItemActionType.DOCUMENT_EDIT.name());
-		List<Button> actionMenuButtons = new RecordVOActionButtonFactory(documentVO, excludedActionTypes).build();
-		for (Button actionMenuButton : actionMenuButtons) {
+		List<Button> actionMenuButtons = new RecordVOActionButtonFactory(documentVO, this, excludedActionTypes).build();
 
-		}
 		return actionMenuButtons;
 	}
 
