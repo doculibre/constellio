@@ -53,6 +53,7 @@ import com.constellio.model.services.extensions.ConstellioModulesManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.reindexing.ReindexationMode;
+import com.constellio.model.services.records.reindexing.ReindexationParams;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import org.apache.commons.lang.StringUtils;
@@ -345,7 +346,8 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 
 			try {
 				modelLayerFactory.newReindexingServices().createLockFile();
-				modelLayerFactory.newReindexingServices().reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE);
+				modelLayerFactory.newReindexingServices().reindexCollections(
+						new ReindexationParams(ReindexationMode.RECALCULATE_AND_REWRITE).setRepopulate(false));
 				modelLayerFactory.newReindexingServices().removeLockFile();
 
 				systemGlobalConfigsManager.setReindexingRequired(false);

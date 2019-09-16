@@ -22,7 +22,7 @@ import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServicesException;
-import com.constellio.model.services.records.reindexing.ReindexationMode;
+import com.constellio.model.services.records.reindexing.ReindexationParams;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
@@ -38,6 +38,7 @@ import java.io.OutputStream;
 import static com.constellio.app.services.migrations.VersionsComparator.isFirstVersionBeforeSecond;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.app.ui.pages.management.updates.UpdateNotRecommendedReason.BATCH_PROCESS_IN_PROGRESS;
+import static com.constellio.model.services.records.reindexing.ReindexationMode.RECALCULATE_AND_REWRITE;
 import static java.util.Arrays.asList;
 
 public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
@@ -148,14 +149,15 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 		view.navigate().to().serviceMonitoring();
 	}
 
-	public void restartAndReindex() {
+	public void restartAndReindex(boolean repopulate) {
 		FoldersLocator foldersLocator = new FoldersLocator();
 		if (foldersLocator.getFoldersLocatorMode() == FoldersLocatorMode.PROJECT) {
 			//Application is started from a test, it cannot be restarted
 			RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 			LOGGER.info("Reindexing started");
 			ReindexingServices reindexingServices = modelLayerFactory.newReindexingServices();
-			reindexingServices.reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE);
+			reindexingServices.reindexCollections(new ReindexationParams(RECALCULATE_AND_REWRITE)
+					.setRepopulate(repopulate));
 			LOGGER.info("Reindexing finished");
 			Record eventRestarting = rm.newEvent()
 					.setType(EventType.RESTARTING)

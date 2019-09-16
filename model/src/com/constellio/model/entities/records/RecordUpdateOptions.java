@@ -42,6 +42,8 @@ public class RecordUpdateOptions {
 
 	boolean updateAggregatedMetadatas = false;
 
+	private boolean repopulate = true;
+
 	public RecordUpdateOptions() {
 
 	}
@@ -79,6 +81,8 @@ public class RecordUpdateOptions {
 		this.overwriteModificationDateAndUser = copy.overwriteModificationDateAndUser;
 
 		this.updateAggregatedMetadatas = copy.updateAggregatedMetadatas;
+
+		this.repopulate = copy.repopulate;
 	}
 
 	public boolean isUpdateAggregatedMetadatas() {
@@ -269,6 +273,16 @@ public class RecordUpdateOptions {
 
 	public RecordUpdateOptions setOverwriteModificationDateAndUser(boolean overwriteModificationDateAndUser) {
 		this.overwriteModificationDateAndUser = overwriteModificationDateAndUser;
+		return this;
+	}
+
+
+	public boolean isRepopulate() {
+		return repopulate;
+	}
+
+	public RecordUpdateOptions setRepopulate(boolean repopulate) {
+		this.repopulate = repopulate;
 		return this;
 	}
 }

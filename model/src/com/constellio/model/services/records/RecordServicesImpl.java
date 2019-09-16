@@ -667,7 +667,9 @@ public class RecordServicesImpl extends BaseRecordServices {
 		ParsedContentProvider parsedContentProvider = new ParsedContentProvider(modelFactory.getContentManager(),
 				transaction.getParsedContentCache());
 		for (Record record : transaction.getRecords()) {
-			recordPopulateServices.populate(record, parsedContentProvider);
+			if (transaction.getRecordUpdateOptions().isRepopulate()) {
+				recordPopulateServices.populate(record, parsedContentProvider);
+			}
 
 			MetadataSchema schema = types.getSchema(record.getSchemaCode());
 
@@ -786,17 +788,20 @@ public class RecordServicesImpl extends BaseRecordServices {
 			}
 
 			boolean allParsed = true;
-			for (Metadata contentMetadata : schema.getContentMetadatasForPopulate()) {
-				for (Content aContent : record.<Content>getValues(contentMetadata)) {
-					allParsed &= parsedContentProvider
-										 .getParsedContentIfAlreadyParsed(aContent.getCurrentVersion().getHash()) != null;
-				}
-			}
 
-			if (allParsed) {
-				record.set(Schemas.MARKED_FOR_PARSING, null);
-			} else {
-				record.set(Schemas.MARKED_FOR_PARSING, true);
+			if (transaction.getRecordUpdateOptions().isRepopulate()) {
+				for (Metadata contentMetadata : schema.getContentMetadatasForPopulate()) {
+					for (Content aContent : record.<Content>getValues(contentMetadata)) {
+						allParsed &= parsedContentProvider
+											 .getParsedContentIfAlreadyParsed(aContent.getCurrentVersion().getHash()) != null;
+					}
+				}
+
+				if (allParsed) {
+					record.set(Schemas.MARKED_FOR_PARSING, null);
+				} else {
+					record.set(Schemas.MARKED_FOR_PARSING, true);
+				}
 			}
 
 		}

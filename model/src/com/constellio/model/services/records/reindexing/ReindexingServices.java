@@ -260,7 +260,8 @@ public class ReindexingServices {
 		RecordUpdateOptions transactionOptions = new RecordUpdateOptions().setUpdateModificationInfos(false);
 		transactionOptions.setValidationsEnabled(false).setCatchExtensionsValidationsErrors(true)
 				.setCatchExtensionsExceptions(true).setCatchBrokenReferenceErrors(true)
-				.setUpdateAggregatedMetadatas(false).setOverwriteModificationDateAndUser(false);
+				.setUpdateAggregatedMetadatas(false).setOverwriteModificationDateAndUser(false)
+				.setRepopulate(params.isRepopulate());
 		if (params.getReindexationMode().isFullRecalculation()) {
 			transactionOptions.setForcedReindexationOfMetadatas(TransactionRecordsReindexation.ALL());
 		}
@@ -285,9 +286,9 @@ public class ReindexingServices {
 								   RecordUpdateOptions transactionOptions) {
 		MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
 
-		if (params.getReindexationMode().isFullRewrite()) {
-			recreateIndexes(collection);
-		}
+		//		if (params.getReindexationMode().isFullRewrite()) {
+		//			recreateIndexes(collection);
+		//		}
 
 		ReindexingRecordsProvider recordsProvider = new ReindexingRecordsProvider(modelLayerFactory, mainThreadQueryRows);
 		ReindexingAggregatedValuesTempStorage aggregatedValuesTempStorage = newReindexingAggregatedValuesTempStorage();
@@ -440,6 +441,10 @@ public class ReindexingServices {
 			Iterator<Record> recordsIterator = recordsProvider.startNewSchemaTypeIteration();
 			while (recordsIterator.hasNext()) {
 				REINDEXING_INFOS = new SystemReindexingInfos(type.getCollection(), type.getCode(), current, counter);
+
+				//				if (current % 10000 == 0) {
+				//					RecordsCacheImpl cache = (RecordsCacheImpl) modelLayerFactory.getRecordsCaches().getCache(types.getCollection());
+				//				}
 
 				Record record = recordsIterator.next();
 				if (params.getReindexationMode().isFullRecalculation()) {
