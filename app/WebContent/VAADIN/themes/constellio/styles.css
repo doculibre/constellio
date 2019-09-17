@@ -1595,6 +1595,18 @@ div.v-layout.v-horizontal.v-widget {
 	width: 100%;
 }
 
+.v-sliderpanel-content.facet label {
+	color: #474747;
+}
+
+.v-sliderpanel-content.facet div {
+	color: #474747;
+}
+
+.v-sliderpanel-content facet div {
+	color: #474747;
+}
+
 .constellio {
 	@media screen and (max-width: 480px) {
 	.notifications.v-window {
