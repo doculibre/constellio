@@ -17,6 +17,7 @@ import com.constellio.app.modules.tasks.ui.components.fields.TaskTypeFieldComboB
 import com.constellio.app.modules.tasks.ui.components.fields.TaskTypeFieldLookupImpl;
 import com.constellio.app.modules.tasks.ui.components.fields.TaskTypeFieldOptionGroupImpl;
 import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveCollaboratorsField;
+import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveCollaboratorsGroupsField;
 import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveTaskFollowerField;
 import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveTaskReminderField;
 import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveWorkflowInclusiveDecisionFieldImpl;
@@ -48,6 +49,7 @@ import static com.constellio.app.modules.tasks.model.wrappers.Task.RELATIVE_DUE_
 import static com.constellio.app.modules.tasks.model.wrappers.Task.REMINDERS;
 import static com.constellio.app.modules.tasks.model.wrappers.Task.REMINDER_FREQUENCY;
 import static com.constellio.app.modules.tasks.model.wrappers.Task.TASK_COLLABORATORS;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.TASK_COLLABORATORS_GROUPS;
 import static com.constellio.app.modules.tasks.model.wrappers.Task.TASK_FOLLOWERS;
 
 public class TaskFieldFactory extends MetadataFieldFactory {
@@ -142,6 +144,9 @@ public class TaskFieldFactory extends MetadataFieldFactory {
 				break;
 			case TASK_COLLABORATORS:
 				field = new ListAddRemoveCollaboratorsField(recordVO);
+				break;
+			case TASK_COLLABORATORS_GROUPS:
+				field = new ListAddRemoveCollaboratorsGroupsField(recordVO);
 				break;
 			case ASSIGNEE:
 				field = super.build(metadata, locale);

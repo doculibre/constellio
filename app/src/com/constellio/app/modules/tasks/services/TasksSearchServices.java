@@ -84,7 +84,7 @@ public class TasksSearchServices {
 				where(tasksSchemas.userTask.statusType()).isNotEqual(TERMINATED_STATUS),
 				where(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull(),
 				anyConditions(
-						//						where(tasksSchemas.userTask.assigneeGroupsCandidates()).isIn(user.getUserGroups()),
+						where(tasksSchemas.userTask.taskCollaboraorsGroups()).isIn(user.getUserGroups()),
 						where(tasksSchemas.userTask.taskCollaboraors()).isContaining(asList(user))
 				));
 		return new LogicalSearchQuery(condition).filteredWithUser(user).sortDesc(tasksSchemas.userTask.dueDate()).sortDesc(tasksSchemas.userTask.modifiedOn());

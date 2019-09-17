@@ -28,6 +28,8 @@ public class Task extends RecordWrapper {
 	public static final String ASSIGNEE_GROUPS_CANDIDATES = "assigneeGroupsCandidates";
 	public static final String TASK_COLLABORATORS = "taskCollaborators";
 	public static final String TASK_COLLABORATORS_WRITE_AUTHORIZATIONS = "taskCollaboratorsWriteAuthorizations";
+	public static final String TASK_COLLABORATORS_GROUPS = "taskCollaboratorsGroups";
+	public static final String TASK_COLLABORATORS_GROUPS_WRITE_AUTHORIZATIONS = "taskCollaboratorsGroupsWriteAuthorizations";
 	public static final String ASSIGNED_ON = "assignedOn";
 	public static final String FOLLOWERS_IDS = "taskFollowersIds";
 	public static final String TASK_FOLLOWERS = "taskFollowers";

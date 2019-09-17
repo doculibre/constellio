@@ -11,6 +11,7 @@ import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemaDisplayManagerTransaction;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
+import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
@@ -52,6 +53,9 @@ public class TasksMigrationTo9_0 extends MigrationHelper implements MigrationScr
 			defaultSchema.createUndeletable(Task.TASK_COLLABORATORS).setType(REFERENCE).setMultivalue(true)
 					.defineReferencesTo(typesBuilder.getSchemaType(User.SCHEMA_TYPE));
 			defaultSchema.createUndeletable(Task.TASK_COLLABORATORS_WRITE_AUTHORIZATIONS).setType(BOOLEAN).setMultivalue(true);
+			defaultSchema.createUndeletable(Task.TASK_COLLABORATORS_GROUPS).setType(REFERENCE).setMultivalue(true)
+					.defineReferencesTo(typesBuilder.getSchemaType(Group.SCHEMA_TYPE));
+			defaultSchema.createUndeletable(Task.TASK_COLLABORATORS_GROUPS_WRITE_AUTHORIZATIONS).setType(BOOLEAN).setMultivalue(true);
 			defaultSchema.get(Schemas.TOKENS.getLocalCode()).defineDataEntry().asCalculated(TaskCollaboratorsTokensCalculator.class);
 		}
 	}
@@ -61,11 +65,15 @@ public class TasksMigrationTo9_0 extends MigrationHelper implements MigrationScr
 		SchemaDisplayManagerTransaction transaction = new SchemaDisplayManagerTransaction();
 		String assignmentTab = "init.userTask.assignment";
 		SchemaDisplayConfig tasksDisplayConfig = manager.getSchema(collection, Task.DEFAULT_SCHEMA);
-		transaction.add(tasksDisplayConfig
-				.withNewFormAndDisplayMetadatas(Task.DEFAULT_SCHEMA + "_" + Task.TASK_COLLABORATORS));
 		transaction.add(manager.getMetadata(collection, Task.DEFAULT_SCHEMA, Task.TASK_COLLABORATORS)
 				.withMetadataGroup(assignmentTab).withInputType(LOOKUP).withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getMetadata(collection, Task.DEFAULT_SCHEMA, Task.TASK_COLLABORATORS_WRITE_AUTHORIZATIONS)
+				.withMetadataGroup(assignmentTab).withInputType(LOOKUP).withVisibleInAdvancedSearchStatus(true));
+		transaction.add(tasksDisplayConfig
+				.withNewFormAndDisplayMetadatas(Task.DEFAULT_SCHEMA + "_" + Task.TASK_COLLABORATORS, Task.DEFAULT_SCHEMA + "_" + Task.TASK_COLLABORATORS_GROUPS));
+		transaction.add(manager.getMetadata(collection, Task.DEFAULT_SCHEMA, Task.TASK_COLLABORATORS_GROUPS)
+				.withMetadataGroup(assignmentTab).withInputType(LOOKUP).withVisibleInAdvancedSearchStatus(true));
+		transaction.add(manager.getMetadata(collection, Task.DEFAULT_SCHEMA, Task.TASK_COLLABORATORS_GROUPS_WRITE_AUTHORIZATIONS)
 				.withMetadataGroup(assignmentTab).withInputType(LOOKUP).withVisibleInAdvancedSearchStatus(true));
 		manager.execute(transaction);
 	}
