@@ -20,6 +20,7 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.DataStoreFieldLogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.ongoing.OngoingLogicalSearchCondition;
@@ -159,6 +160,10 @@ public class ConceptNodesTaxonomySearchServices {
 		return getChildNodesResponse(record, options, true).getRecords();
 	}
 
+	public List<Record> getChildConcept(Record record, TaxonomiesSearchOptions options, boolean onlyConcepts) {
+		return getChildNodesResponse(record, options, onlyConcepts).getRecords();
+	}
+
 	private SPEQueryResponse getChildNodesResponse(Record record, TaxonomiesSearchOptions options,
 												   boolean onlyConcepts) {
 		MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(record);
@@ -170,9 +175,15 @@ public class ConceptNodesTaxonomySearchServices {
 		String dataStore = types.getSchema(record.getSchemaCode()).getDataStore();
 		LogicalSearchCondition condition;
 
+		Taxonomy taxonomy = taxonomiesManager.getTaxonomyFor(record.getCollection(), record.getTypeCode());
 		if (onlyConcepts) {
-			condition = from(types.getSchemaType(record.getTypeCode()))
-					.where(directChildOf(record).andWhere(visibleInTrees));
+			if (taxonomy != null) {
+				condition = from(types.getSchemaTypesWithCode(taxonomy.getSchemaTypes()))
+						.where(directChildOf(record).andWhere(visibleInTrees));
+
+			} else {
+				condition = LogicalSearchQueryOperators.impossibleCondition(record.getCollection());
+			}
 		} else {
 			condition = fromTypesInCollectionOf(record, dataStore)
 					.where(directChildOf(record).andWhere(visibleInTrees));
