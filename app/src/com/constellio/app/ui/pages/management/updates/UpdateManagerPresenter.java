@@ -69,6 +69,10 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 		view.showAlternateUpdatePanel(handler);
 	}
 
+	public void backButtonClicked() {
+		view.navigate().to().previousView();
+	}
+
 	public boolean isLicensedForAutomaticUpdate() {
 		return appLayerFactory.newApplicationService().isLicensedForAutomaticUpdate();
 	}
