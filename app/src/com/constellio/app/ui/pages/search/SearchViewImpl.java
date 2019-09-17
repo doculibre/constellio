@@ -449,10 +449,11 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 
 		SliderPanel sliderPanel = new SliderPanelBuilder(facetsArea)
 				.mode(SliderMode.RIGHT)
-				.caption($("SearchView.facets"))
+				.caption($("SearchView.filter"))
 				.tabPosition(SliderTabPosition.BEGINNING)
 				.expanded(false)
 				.build();
+		sliderPanel.addStyleName("facets-sliderpanel");
 
 		sliderPanel.addStyleName("facet");
 

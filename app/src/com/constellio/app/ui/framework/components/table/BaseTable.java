@@ -1,5 +1,22 @@
 package com.constellio.app.ui.framework.components.table;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
+import org.vaadin.peter.contextmenu.ContextMenu;
+import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableFooterEvent;
+import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableHeaderEvent;
+import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableRowEvent;
+
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.SelectDeselectAllButton;
 import com.constellio.app.ui.framework.components.BaseForm;
@@ -12,6 +29,8 @@ import com.constellio.app.ui.framework.components.table.TablePropertyCache.CellK
 import com.constellio.app.ui.framework.components.table.columns.TableColumnsManager;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationException;
+import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.jensjansson.pagedtable.PagedTableContainer;
 import com.vaadin.data.Container;
 import com.vaadin.data.Property;
@@ -32,25 +51,8 @@ import com.vaadin.ui.Table;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
-import org.apache.commons.lang3.StringUtils;
-import org.vaadin.peter.contextmenu.ContextMenu;
-import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableFooterEvent;
-import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableHeaderEvent;
-import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableRowEvent;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 
 public class BaseTable extends Table {
-
-	public static final int MAX_SELECTION_LENGTH = 1000;
 
 	public static final int DEFAULT_PAGE_LENGTH = 10;
 
@@ -1166,6 +1168,11 @@ public class BaseTable extends Table {
 		@Override
 		protected void buttonClickCallBack(boolean selectAllMode) {
 		}
+		
+		private int getMaxSelectableResults() {
+			ModelLayerFactory modelLayerFactory = ConstellioUI.getCurrent().getConstellioFactories().getModelLayerFactory();
+	        return modelLayerFactory.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.MAX_SELECTABLE_SEARCH_RESULTS);
+	    }
 
 		@SuppressWarnings({"rawtypes", "unchecked"})
 		@Override
@@ -1176,14 +1183,15 @@ public class BaseTable extends Table {
 			} else {
 				realSize = size();
 			}
-			if (realSize <= MAX_SELECTION_LENGTH) {
+			int maxSelectableResults = getMaxSelectableResults();
+			if (realSize <= maxSelectableResults) {
 				super.buttonClick(event);
 			} else {
 				if (rangeStart == -1) {
 					rangeStart = 1;
 				}
-				if (rangeEnd == -1 || rangeEnd > (rangeStart + (MAX_SELECTION_LENGTH - 1))) {
-					rangeEnd = rangeStart + (MAX_SELECTION_LENGTH - 1);
+				if (rangeEnd == -1 || rangeEnd > (rangeStart + (maxSelectableResults - 1))) {
+					rangeEnd = rangeStart + (maxSelectableResults - 1);
 					if (rangeEnd > size() - 1) {
 						rangeEnd = size() - 1;
 					}
@@ -1205,7 +1213,7 @@ public class BaseTable extends Table {
 					public void valueChange(com.vaadin.data.Property.ValueChangeEvent event) {
 						try {
 							Integer newRangeStart = (Integer) rangeStartField.getConvertedValue();
-							Integer newRangeEnd = newRangeStart + (MAX_SELECTION_LENGTH - 1);
+							Integer newRangeEnd = newRangeStart + (maxSelectableResults - 1);
 							if (newRangeEnd > size() - 1) {
 								newRangeEnd = size() - 1;
 							}
@@ -1253,9 +1261,9 @@ public class BaseTable extends Table {
 							Map<String, Object> parameters = new HashMap<>();
 							parameters.put("rangeStart", rangeStart);
 							errors.add(BaseTable.class, "rangeStartMustBePositive", parameters);
-						} else if (realRangeEnd > (realRangeStart + MAX_SELECTION_LENGTH - 1) || realRangeEnd > realSize - 1 || realRangeEnd < realRangeStart) {
+						} else if (realRangeEnd > (realRangeStart + maxSelectableResults - 1) || realRangeEnd > realSize - 1 || realRangeEnd < realRangeStart) {
 							int rangeEndMin = rangeStart;
-							int rangeEndMax = rangeStart + MAX_SELECTION_LENGTH - 1;
+							int rangeEndMax = rangeStart + maxSelectableResults - 1;
 							if (rangeEndMax > realSize) {
 								rangeEndMax = realSize;
 							}

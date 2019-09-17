@@ -1270,7 +1270,7 @@ public class TaskTable extends VerticalLayout {
 			for (Object visibleColumn : visibleColumns) {
 				if ((visibleColumn instanceof MetadataVO) && ((MetadataVO) visibleColumn).codeMatches(Task.STARRED_BY_USERS)) {
 					newVisibleColumns.add(0, visibleColumn);
-				} else if (!(visibleColumn instanceof MetadataVO) || !((MetadataVO) visibleColumn).codeMatches(Schemas.CODE.getLocalCode())) {
+				} else if (!(visibleColumn instanceof MetadataVO) || ((MetadataVO) visibleColumn).codeMatches(Schemas.TITLE.getLocalCode())) {
 					newVisibleColumns.add(visibleColumn);
 				}
 			}

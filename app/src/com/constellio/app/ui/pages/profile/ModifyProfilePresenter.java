@@ -1,12 +1,27 @@
 package com.constellio.app.ui.pages.profile;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import org.apache.commons.collections.CollectionUtils;
+
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
+import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
 import com.constellio.app.modules.rm.wrappers.RMUser;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.ContentVersionVO;
+import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
+import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.pages.base.BasePresenter;
+import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.enums.SearchPageLength;
 import com.constellio.model.entities.records.wrappers.User;
@@ -22,16 +37,6 @@ import com.constellio.model.services.users.UserPhotosServices;
 import com.constellio.model.services.users.UserPhotosServicesRuntimeException.UserPhotosServicesRuntimeException_UserHasNoPhoto;
 import com.constellio.model.services.users.UserServices;
 import com.google.common.base.Joiner;
-import org.apache.commons.collections.CollectionUtils;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 
 public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 	public static final String CHANGE_PHOTO_STREAM = "ConstellioMenuPresenter-ChangePhotoStream";
@@ -135,6 +140,15 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 		}
 
 		userServices.addUpdateUserCredential(userCredential);
+
+		SessionContext sessionContext = view.getSessionContext();
+		String collection = view.getCollection();
+		User user = userServices.getUserInCollection(username, collection);
+		
+		UserToVOBuilder voBuilder = new UserToVOBuilder();
+		UserVO userVO = voBuilder
+				.build(user.getWrappedRecord(), VIEW_MODE.DISPLAY, sessionContext);
+		sessionContext.setCurrentUser(userVO);
 	}
 
 	private String getDefaultStartTab() {

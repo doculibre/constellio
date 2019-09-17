@@ -5,6 +5,7 @@ import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.User;
@@ -12,8 +13,11 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.users.UserPhotosServices;
 import com.constellio.model.services.users.UserPhotosServicesRuntimeException.UserPhotosServicesRuntimeException_UserHasNoPhoto;
 import com.constellio.model.services.users.UserServices;
+
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
@@ -190,4 +194,40 @@ public class ConstellioMenuPresenter implements Serializable {
 				sessionContext.getCurrentUser().getUsername(), sessionContext.getCurrentCollection());
 		return user.has(CorePermissions.VIEW_SYSTEM_STATE).onSomething() || user.has(CorePermissions.VIEW_SYSTEM_STATE).globally();
 	}
+
+	public String getCurrentVersion() {
+		AppLayerFactory appLayerFactory = constellioMenu.getConstellioFactories().getAppLayerFactory();
+
+		String version = appLayerFactory.newApplicationService().getWarVersion();
+
+		if (version == null || version.equals("5.0.0")) {
+			File versionFile = new File(new FoldersLocator().getConstellioProject(), "version");
+			if (versionFile.exists()) {
+				try {
+					version = FileUtils.readFileToString(versionFile);
+				} catch (IOException e) {
+					throw new RuntimeException(e);
+				}
+			} else {
+				version = "no version file";
+			}
+
+		}
+
+		if (version != null) {
+			return toPrintableVersion(version);
+		} else {
+			return "";
+		}
+	}
+
+	private String toPrintableVersion(String version) {
+		String[] versionSplitted = version.split("\\.");
+
+		if (versionSplitted.length == 5) {
+			return versionSplitted[0] + "." + versionSplitted[1] + "." + versionSplitted[2] + "." + versionSplitted[3];
+		}
+		return version;
+	}
+	
 }

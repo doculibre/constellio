@@ -1595,18 +1595,6 @@ div.v-layout.v-horizontal.v-widget {
 	width: 100%;
 }
 
-.v-sliderpanel-content.facet label {
-	color: #474747;
-}
-
-.v-sliderpanel-content.facet div {
-	color: #474747;
-}
-
-.v-sliderpanel-content facet div {
-	color: #474747;
-}
-
 .constellio {
 	@media screen and (max-width: 480px) {
 	.notifications.v-window {
@@ -11934,12 +11922,34 @@ div.v-layout.v-horizontal.v-widget {
 	font-size: 1.4em;
 }
 
+.constellio .valo-menu .valo-menu-part .valo-menu-item:hover {
+	color: #197de1;
+}
+
 .constellio .valo-menu .valo-menu-part .valo-menu-item.selected {
 	background: #197de1;
 }
 
 .constellio .valo-menu .valo-menu-part .valo-menu-item.selected .v-icon {
 	color: white;
+}
+
+.constellio .valo-menu .valo-menu-part .valo-menu-item.selected:hover {
+	color: white;
+}
+
+.constellio .valo-menu .valo-menu-constellio-version {
+	text-align: center;
+	color: inherit;
+	font-size: 0.7em;
+	text-decoration: none;
+	white-space: inherit;
+	width: 100%;
+}
+
+.constellio .valo-menu .valo-menu-constellio-version:hover {
+	text-decoration: underline;
+	color: #197de1;
 }
 
 .constellio .v-menubar-user-menu {
@@ -12045,7 +12055,7 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .task-management-view .v-tabsheet-tabitem .v-caption {
-	z-index: 3;
+	z-index: 1001;
 }
 
 .constellio .task-table-layout .v-slot-task-table-controls {
@@ -14378,8 +14388,10 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .constellio-menu-system-state-button {
 	width: 100%;
-	text-align: left;
-	background: #3a434d;
+}
+
+.constellio .constellio-menu-system-state-button [class*="caption"] {
+	padding-left: 14px;
 }
 
 .constellio .constellio-menu-system-state-button:hover {
@@ -14821,6 +14833,25 @@ div.v-layout.v-horizontal.v-widget {
 	vertical-align: middle;
 }
 
+.constellio .-facets-sliderpanel {
+	position: relative;
+	top: -62px;
+}
+
+.constellio .-facets-sliderpanel .v-sliderpanel-wrapper .v-sliderpanel-content {
+	background-color: #414B56;
+	padding-left: 6px;
+}
+
+.constellio .-facets-sliderpanel .v-sliderpanel-wrapper .v-sliderpanel-tab.tab-beginning {
+	background-color: #414B56;
+	top: 114px;
+}
+
+.constellio .-facets-sliderpanel .facet-title, .constellio .-facets-sliderpanel .sort-title {
+	background-color: #414B56;
+}
+
 .constellio .viewable-record-table-panel .v-slot-viewable-record-table-panel-view-action-menu-layout {
 	position: absolute;
 	top: -40px;
@@ -15097,6 +15128,10 @@ div.v-layout.v-horizontal.v-widget {
 	content: "\f100";
 }
 
+.constellio .constellio-layout {
+	background-color: white;
+}
+
 .constellio .constellio-layout .sidebar {
 	overflow-y: hidden;
 }
@@ -15346,7 +15381,6 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .facet-box-viewer {
-	border-radius: 4px 4px 4px 4px;
 	border: 1px solid #d5d5d5;
 	background-color: #fafafa;
 	background-image: -webkit-linear-gradient(top, #fafafa 2%, #f6f6f6 98%);
@@ -15412,7 +15446,6 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .sort-box-viewer {
-	border-radius: 4px 4px 4px 4px;
 	border: 1px solid #d5d5d5;
 	background-color: #fafafa;
 	background-image: -webkit-linear-gradient(top, #fafafa 2%, #f6f6f6 98%);
@@ -15591,15 +15624,30 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .v-ui[width-range~="1101px-"] .v-menubar-user-menu {
 	background: #3a434d;
+	padding-top: 6px;
+	height: 76px;
+	text-align: left;
 }
 
-.constellio .v-ui[width-range~="1101px-"] .v-menubar-user-menu .user-menu {
-	bottom: 20px;
+.constellio .v-ui[width-range~="1101px-"] .v-menubar-user-menu .v-menubar-menuitem {
+	top: 25%;
+	font-size: 0.8em;
+}
+
+.constellio .v-ui[width-range~="1101px-"] .v-menubar-user-menu .v-menubar-menuitem .v-menubar-menuitem-caption {
+	float: left;
+	text-align: left;
+}
+
+.constellio .v-ui[width-range~="1101px-"] .v-menubar-user-menu .v-menubar-menuitem .v-icon {
+	float: left;
+	padding-left: 5px;
 }
 
 .constellio .v-ui[width-range~="1101px-"] .valo-menu .valo-menu-part {
 	min-width: 181px;
 	max-width: 181px;
+	padding-bottom: inherit;
 }
 
 .constellio .v-ui[width-range~="1101px-"] .header {
@@ -15636,11 +15684,6 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .v-ui[width-range~="1101px-"] .batch-processes .v-table .v-scrollable {
 	overflow-x: auto;
-}
-
-.constellio .v-ui[width-range~="1101px-"] .constellio-menu-system-state-button {
-	position: absolute;
-	bottom: 0px;
 }
 
 .constellio .v-ui[width-range~="1101px-"] .action-menu-wrapper {
@@ -15686,7 +15729,6 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .v-ui[width-range~="1101px-"] .action-menu-bar-layout {
 	z-index: 1000;
 	position: absolute;
-	top: 0px;
 	right: 20px;
 }
 
@@ -15730,10 +15772,15 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .v-ui[width-range~="801-1100px"] .v-menubar-user-menu {
 	background: #3a434d;
+	position: absolute;
+	bottom: 0px;
+	width: 100%;
 }
 
-.constellio .v-ui[width-range~="801-1100px"] .v-menubar-user-menu .user-menu {
-	bottom: 20px;
+.constellio .v-ui[width-range~="801-1100px"] .valo-menu-constellio-version {
+	margin-top: 110px;
+	white-space: normal;
+	line-height: initial;
 }
 
 .constellio .v-ui[width-range~="801-1100px"] .sidebar {
@@ -15758,11 +15805,6 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .v-ui[width-range~="801-1100px"] .folder-content-table .v-scrollable {
 	overflow-x: auto;
-}
-
-.constellio .v-ui[width-range~="801-1100px"] .constellio-menu-system-state-button {
-	position: absolute;
-	bottom: 0px;
 }
 
 .constellio .v-ui[width-range~="801-1100px"] .action-menu-wrapper {
@@ -15792,7 +15834,6 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .v-ui[width-range~="801-1100px"] .action-menu-bar-layout {
 	position: absolute;
-	top: 0px;
 	right: 20px;
 }
 
@@ -15826,28 +15867,32 @@ div.v-layout.v-horizontal.v-widget {
 	display: none;
 }
 
+.constellio .v-ui[width-range~="0-800px"] .valo-menu-constellio-version {
+	display: none;
+}
+
 .constellio .v-ui[width-range~="0-800px"] .header .header-logo {
 	display: none;
 }
 
 .constellio .v-ui[width-range~="0-800px"] .header .header-selection-button {
-	top: 0px;
-	right: 220px;
+	top: 53px;
+	right: 68px;
 	z-index: 1000;
 	margin: 0;
 }
 
 .constellio .v-ui[width-range~="0-800px"] .header .header-collection-menu {
-	top: 0px;
-	right: 290px;
+	top: 53px;
+	right: 116px;
 	z-index: 1000;
 	margin: 0;
 	padding-top: 0px;
 }
 
 .constellio .v-ui[width-range~="0-800px"] .header .header-action-menu {
-	top: 0px;
-	right: 150px;
+	top: 53px;
+	right: 2px;
 	z-index: 1000;
 	margin: 0;
 }
@@ -15890,6 +15935,17 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .v-ui[width-range~="0-800px"] .v-slot-action-menu {
 	padding: 10px;
+}
+
+.constellio .v-ui[width-range~="0-800px"] .action-menu-bar-layout {
+	position: absolute;
+	right: 20px;
+	margin-top: -24px;
+}
+
+.constellio .v-ui[width-range~="0-800px"] .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .action-menu-bar {
+	top: inherit;
+	right: inherit;
 }
 
 .constellio .v-ui[width-range~="0-800px"] .task-management-view .v-slot-task-action-buttons {
