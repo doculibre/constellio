@@ -77,7 +77,6 @@ $popup-view-z-index: 3;
 
 	.valo-menu {
 		.valo-menu-part {
-		    //min-width: 110px;
 		    padding-top: inherit;
   			overflow-x: hidden;
   			line-height: 35px;
@@ -90,6 +89,10 @@ $popup-view-z-index: 3;
 		        	color: white; 
 		        	font-size: 1.4em;
 				}
+			
+				&:hover {
+					color: #197de1;
+				}
 		
 				&.selected {
 					background: $v-selection-color;
@@ -97,8 +100,26 @@ $popup-view-z-index: 3;
 					.v-icon {
 			        	color: white; 
 					}
+					
+					&:hover {
+						color: white;
+					}
 				}
 			
+			}
+		}
+		
+		.valo-menu-constellio-version {
+			text-align: center;
+			color: inherit;
+			font-size: 0.7em;
+			text-decoration: none;
+			white-space: inherit;
+			width: 100%;
+			
+			&:hover {
+				text-decoration: underline;
+				color: #197de1;
 			}
 		}
 	}
@@ -218,7 +239,7 @@ $popup-view-z-index: 3;
 
 		.v-tabsheet-tabitem {
 			.v-caption {
-				z-index: 3;
+				z-index: 1001;
 			}
 		}
 	}
@@ -1697,8 +1718,12 @@ $popup-view-z-index: 3;
     .constellio-menu-system-state-button {
 		//margin: 0.3em 0px 0px;
 		width: 100%;
-		text-align: left;
-		background: #3a434d;
+		//text-align: left;
+		//background: #3a434d;
+		
+		[class*="caption"] {
+			padding-left: 14px;
+		}
     }
 
    	.constellio-menu-system-state-button:hover {
@@ -2207,6 +2232,28 @@ $popup-view-z-index: 3;
 			vertical-align: middle;
 		}
 	}
+	
+	.-facets-sliderpanel {
+		position: relative;
+		top: -62px;
+		
+		.v-sliderpanel-wrapper {
+			.v-sliderpanel-content {
+				background-color: $valo-menu-background-color;
+				padding-left: 6px;
+			}
+			
+			.v-sliderpanel-tab.tab-beginning { 
+				background-color: $valo-menu-background-color;
+				top: 114px;
+			}
+		}
+		
+		.facet-title, .sort-title {
+			background-color: $valo-menu-background-color;
+		}
+		
+	}
 
     .viewable-record-table-panel {
   		//min-height: 2000px;
@@ -2525,6 +2572,7 @@ $popup-view-z-index: 3;
 	}
 
     .constellio-layout {
+		background-color: white;
 
 	    .sidebar {
 	    	overflow-y: hidden;
@@ -2808,7 +2856,7 @@ $popup-view-z-index: 3;
 					    }
 
 					    .facet-box-viewer {
-							border-radius: 4px 4px 4px 4px;
+							//border-radius: 4px 4px 4px 4px;
 							border: 1px solid rgb(213, 213, 213);
 							background-color: #fafafa;
 							background-image: -webkit-linear-gradient(top, #fafafa 2%, #f6f6f6 98%);
@@ -2875,7 +2923,7 @@ $popup-view-z-index: 3;
                         }
 
 						.sort-box-viewer {
-							border-radius: 4px 4px 4px 4px;
+							//border-radius: 4px 4px 4px 4px;
 							border: 1px solid rgb(213, 213, 213);
 							background-color: #fafafa;
 							background-image: -webkit-linear-gradient(top, #fafafa 2%, #f6f6f6 98%);
@@ -3073,10 +3121,24 @@ $popup-view-z-index: 3;
     .v-ui[width-range~="1101px-"] {
 		.v-menubar-user-menu {
 			background: #3a434d;
+			padding-top: 6px;
+	    	height: 76px;
+	    	text-align: left;
 	    	
-	    	.user-menu {
-	    		bottom: 20px;
-	    	}	
+	    	.v-menubar-menuitem {
+	    		top: 25%;
+	    		font-size: 0.8em;
+	    		
+				.v-menubar-menuitem-caption {
+					float: left;
+					text-align: left;
+				}
+	    		
+	    		.v-icon {    
+	    			float: left;
+    				padding-left: 5px;
+	    		}
+	    	}
     	}
 
 		.valo-menu {
@@ -3084,6 +3146,7 @@ $popup-view-z-index: 3;
 			    //min-width: 110px;
 			    min-width: 181px;
 			    max-width: 181px;
+			    padding-bottom: inherit;
 			}
 		}	   
 
@@ -3140,10 +3203,10 @@ $popup-view-z-index: 3;
 	    	}
     	}
 
-	    .constellio-menu-system-state-button {
-	   		position: absolute;
-			bottom: 0px;
-	    }
+	    //.constellio-menu-system-state-button {
+	   	//	position: absolute;
+		//	bottom: 80px;
+	    //}
 
         .action-menu-wrapper {
             padding-right: 260px;
@@ -3199,7 +3262,6 @@ $popup-view-z-index: 3;
 	    .action-menu-bar-layout {
 	        z-index: 1000;
 			position: absolute;
-			top: 0px;
 			right: 20px;
 	    }
 	    
@@ -3263,11 +3325,16 @@ $popup-view-z-index: 3;
 		
 		.v-menubar-user-menu {
 			background: #3a434d;
-	    	
-	    	.user-menu {
-	    		bottom: 20px;
-	    	}	
+			position: absolute;
+			bottom: 0px;
+			width: 100%;
     	}
+		
+		.valo-menu-constellio-version {
+			margin-top: 110px;
+			white-space: normal;
+			line-height: initial;
+		}
 
     	.sidebar {
     		overflow-y: hidden;
@@ -3307,11 +3374,6 @@ $popup-view-z-index: 3;
 	    	}
     	}
 
-	    .constellio-menu-system-state-button {
-	   		position: absolute;
-			bottom: 0px;
-	    }
-
         .action-menu-wrapper {
             padding-right: 260px;
 
@@ -3345,7 +3407,6 @@ $popup-view-z-index: 3;
 
 	    .action-menu-bar-layout {
 			position: absolute;
-			top: 0px;
 			right: 20px;
 	    }
 	    
@@ -3392,6 +3453,10 @@ $popup-view-z-index: 3;
 				display: none;
 			}
     	}
+		
+		.valo-menu-constellio-version {
+			display: none;
+		}
 
     	.header {
 			.header-logo {
@@ -3403,23 +3468,23 @@ $popup-view-z-index: 3;
 			}
 			
 			.header-selection-button {
-				top: 0px;
-				right: 220px;
+				top: 53px;
+				right: 68px;
 			    z-index: 1000;
 			    margin: 0;
 			}
 			
 			.header-collection-menu {
-				top: 0px;
-				right: 290px;
+				top: 53px;
+				right: 116px;
 			    z-index: 1000;
 			    margin: 0;
 			    padding-top: 0px;
 			}
 			
 			.header-action-menu {
-				top: 0px;
-				right: 150px;
+				top: 53px;
+				right: 2px;
 			    z-index: 1000;
 			    margin: 0;
 			}
@@ -3467,6 +3532,17 @@ $popup-view-z-index: 3;
     	.v-slot-action-menu {
 	        padding: 10px;
     	}
+    	
+    	.action-menu-bar-layout {
+		    position: absolute;
+		    right: 20px;
+		    margin-top: -24px;
+		}
+		
+		.constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .action-menu-bar {
+			top: inherit;
+			right: inherit;
+		}
 		
 		.task-management-view {
 			.v-slot-task-action-buttons {
@@ -4292,17 +4368,4 @@ $popup-view-z-index: 3;
 			width: 100%;
 		}
 	}
-}
-
-.v-sliderpanel-content.facet {
-    label {
-        color: #474747;
-    }
-    div  {
-        color: #474747;
-    }
-}
-
-.v-sliderpanel-content facet div {
-    color: #474747;
 }

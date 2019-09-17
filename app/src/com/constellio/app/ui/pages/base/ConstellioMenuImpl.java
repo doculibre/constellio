@@ -16,6 +16,7 @@ import com.constellio.model.frameworks.validation.ValidationError;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
+import com.vaadin.server.ExternalResource;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Page;
 import com.vaadin.server.StreamResource;
@@ -29,6 +30,7 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.CssLayout;
 import com.vaadin.ui.CustomComponent;
 import com.vaadin.ui.Label;
+import com.vaadin.ui.Link;
 import com.vaadin.ui.MenuBar;
 import com.vaadin.ui.MenuBar.Command;
 import com.vaadin.ui.MenuBar.MenuItem;
@@ -61,15 +63,7 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 
 	private MenuItem userSettingsItem;
 
-	private CssLayout menuContent;
-
-	private MenuBar userMenu;
-
-	private Button valoMenuToggleButton;
-
 	private WindowButton systemStateButton;
-
-	private CssLayout menuItemsLayout;
 
 	private List<ConstellioMenuButton> mainMenuButtons = new ArrayList<>();
 
@@ -108,23 +102,32 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 	}
 
 	private Component buildContent() {
-		menuContent = new CssLayout();
+		VerticalLayout menuContent = new VerticalLayout();
 		menuContent.addStyleName("sidebar");
 		menuContent.addStyleName(ValoTheme.MENU_PART);
 		menuContent.addStyleName("no-vertical-drag-hints");
 		menuContent.addStyleName("no-horizontal-drag-hints");
 		menuContent.setWidth(null);
 		menuContent.setHeight("100%");
+		
+		Component mainMenu = buildMainMenu();
+		Component toggleButton = buildToggleButton();
+		Component versionInfoLabel = buildVersionInfoComponent();
+		Component userMenu = buildUserMenu();
 
-		menuContent.addComponent(buildMainMenu());
-		menuContent.addComponent(buildToggleButton());
-		menuContent.addComponent(buildUserMenu());
+		menuContent.addComponent(mainMenu);
+		menuContent.addComponent(toggleButton);
+		menuContent.addComponent(versionInfoLabel);
+		menuContent.addComponent(userMenu);
+		
+		menuContent.setExpandRatio(mainMenu, 1);
+//		menuContent.setComponentAlignment(userMenu, Alignment.BOTTOM_CENTER);
 
 		return menuContent;
 	}
 
 	protected Component buildToggleButton() {
-		valoMenuToggleButton = new Button($("ConstellioMenu.menuToggle"), new ClickListener() {
+		Button valoMenuToggleButton = new Button($("ConstellioMenu.menuToggle"), new ClickListener() {
 			@Override
 			public void buttonClick(final ClickEvent event) {
 				toggleMenuVisibility();
@@ -136,45 +139,23 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 		valoMenuToggleButton.addStyleName(ValoTheme.BUTTON_SMALL);
 		return valoMenuToggleButton;
 	}		
-
-	protected Component buildUserMenu() {
-		userMenu = new BaseMenuBar();
-		userMenu.addStyleName("user-menu");
-		buildUserMenuItems(userMenu);
-		return userMenu;
+	
+	protected Component buildVersionInfoComponent() {
+		Link poweredByConstellioLink = new Link($("MainLayout.footerAlt") + "  (" + presenter.getCurrentVersion() + ")",
+				new ExternalResource("http://www.constellio.com"));
+		poweredByConstellioLink.addStyleName("valo-menu-constellio-version");
+		poweredByConstellioLink.setTargetName("_blank");
+		return poweredByConstellioLink;
 	}
-
-	private Component buildMainMenu() {
-		menuItemsLayout = new CssLayout();
-		menuItemsLayout.addStyleName("valo-menuitems");
-		menuItemsLayout.setHeight(100.0f, Unit.PERCENTAGE);
-
-		mainMenuButtons = buildMainMenuButtons();
-
-		for (ConstellioMenuButton mainMenuButton : mainMenuButtons) {
-			Button menuButton = mainMenuButton.getButton();
-			menuButton.addClickListener(new ClickListener() {
-				@Override
-				public void buttonClick(ClickEvent event) {
-					toggleMenuVisibility();
-				}
-			});
-
-			Class<? extends MenuViewGroup> menuViewGroupClass = mainMenuButton.getMenuViewGroup();
-
-			Component mainMenuItemComponent = menuButton;
-			mainMenuItemComponent.setPrimaryStyleName(ValoTheme.MENU_ITEM);
-			if (DisabledMenuViewGroup.class.isAssignableFrom(menuViewGroupClass)) {
-				menuButton.addStyleName("disabled");
-			}
-
-			Label badgeLabel = new Label("1");
-			mainMenuItemComponent = buildBadgeWrapper(menuButton, badgeLabel);
-			badgeLabels.put(mainMenuButton, badgeLabel);
-
-			menuItemsLayout.addComponent(mainMenuItemComponent);
-		}
-
+	
+	protected Component buildUserMenu() {
+		MenuBar userMenuBar = new BaseMenuBar();
+		userMenuBar.addStyleName("user-menu");
+		buildUserMenuItems(userMenuBar);
+		return userMenuBar;
+	}
+	
+	private WindowButton buildSystemStateButton() {
 		systemStateButton = new WindowButton($("SystemInfo.systemStateButtonTitle"), $("SystemInfo.systemStateWindowTitle"), WindowConfiguration.modalDialog("75%", "75%")) {
 			@Override
 			protected Component buildWindowContent() {
@@ -222,11 +203,47 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 				return presenter.hasUserRightToViewSystemState();
 			}
 		};
-		systemStateButton.addStyleName(ValoTheme.BUTTON_TINY);
-		systemStateButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
+		systemStateButton.setPrimaryStyleName(ValoTheme.MENU_ITEM);
+//		systemStateButton.addStyleName(ValoTheme.BUTTON_TINY);
+//		systemStateButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
 		systemStateButton.addStyleName("constellio-menu-system-state-button");
-		systemStateButton.setCaptionVisibleOnMobile(true);
 		refreshSystemStateButton();
+		return systemStateButton;
+	}
+
+	private Component buildMainMenu() {
+		CssLayout menuItemsLayout = new CssLayout();
+		menuItemsLayout.addStyleName("valo-menuitems");
+		menuItemsLayout.setHeight(100.0f, Unit.PERCENTAGE);
+
+		mainMenuButtons = buildMainMenuButtons();
+
+		for (ConstellioMenuButton mainMenuButton : mainMenuButtons) {
+			Button menuButton = mainMenuButton.getButton();
+			menuButton.addClickListener(new ClickListener() {
+				@Override
+				public void buttonClick(ClickEvent event) {
+					toggleMenuVisibility();
+				}
+			});
+
+			Class<? extends MenuViewGroup> menuViewGroupClass = mainMenuButton.getMenuViewGroup();
+
+			Component mainMenuItemComponent = menuButton;
+			mainMenuItemComponent.setPrimaryStyleName(ValoTheme.MENU_ITEM);
+			if (DisabledMenuViewGroup.class.isAssignableFrom(menuViewGroupClass)) {
+				menuButton.addStyleName("disabled");
+			}
+
+			Label badgeLabel = new Label("1");
+			mainMenuItemComponent = buildBadgeWrapper(menuButton, badgeLabel);
+			badgeLabels.put(mainMenuButton, badgeLabel);
+
+			menuItemsLayout.addComponent(mainMenuItemComponent);
+		}
+		
+		systemStateButton = buildSystemStateButton();
+		menuItemsLayout.addComponent(systemStateButton);
 
 		UI.getCurrent().getNavigator().addViewChangeListener(new ViewChangeListener() {
 			@Override
@@ -263,9 +280,7 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 			public void afterViewChange(ViewChangeEvent event) {
 			}
 		});
-
-		menuItemsLayout.addComponent(systemStateButton);
-
+		
 		return menuItemsLayout;
 	}
 
@@ -304,6 +319,8 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 	}
 
 	protected void buildUserMenuItems(MenuBar userMenu) {
+		userMenu.setHtmlContentAllowed(true);
+
 		SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
 		UserVO currentUser = sessionContext.getCurrentUser();
 		String firstName = currentUser.getFirstName();
@@ -326,7 +343,7 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 			StreamResource resource = new StreamResource(source, currentUser.getUsername() + ".png");
 			userSettingsItem = userMenu.addItem("", resource, null);
 		}
-		userSettingsItem.setText(firstName + " " + lastName);
+		userSettingsItem.setText("<span class=\"user-caption\">" + firstName + " " + lastName + "</span>");
 		userSettingsItem.setStyleName(STYLE_USER_SETTINGS);
 
 		userSettingsItem.addItem($("ConstellioMenu.editProfile"), new Command() {

@@ -58,6 +58,7 @@ public abstract class BaseButton extends Button implements Clickable, BrowserWin
 	public void attach() {
 		super.attach();
 		Page.getCurrent().addBrowserWindowResizeListener(this);
+		computeResponsive();
 	}
 
 	@Override

@@ -124,8 +124,12 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	}
 
 	public boolean isShowNumberingColumn(SearchResultVODataProvider dataProvider) {
-		return modelLayerFactory.getSystemConfigs().isShowResultsNumberingInListView() || dataProvider.size() > BaseTable.MAX_SELECTION_LENGTH;
+		return modelLayerFactory.getSystemConfigs().isShowResultsNumberingInListView() || dataProvider.size() > getMaxSelectableResults();
 	}
+	
+	private int getMaxSelectableResults() {
+        return modelLayerFactory.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.MAX_SELECTABLE_SEARCH_RESULTS);
+    }
 
 	public boolean isLazyLoadedSearchResults() {
 		return modelLayerFactory.getSystemConfigs().isLazyLoadedSearchResults();

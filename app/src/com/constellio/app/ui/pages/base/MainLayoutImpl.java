@@ -79,7 +79,8 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 		mainMenuContentFooterLayout.setSizeFull();
 		mainMenuContentFooterLayout.addStyleName("main-menu-content-footer");
 
-		contentViewWrapper = new Panel();
+		contentViewWrapper = new Panel(); 
+		contentViewWrapper.addStyleName(ValoTheme.PANEL_BORDERLESS);
 
 		Navigator navigator = new Navigator(UI.getCurrent(), contentViewWrapper);
 		NavigatorConfigurationService navigatorConfigurationService = appLayerFactory.getNavigatorConfigurationService();
@@ -165,17 +166,6 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 
 		contentFooterLayout.setExpandRatio(contentViewWrapper, 1);
 
-		Component footer = buildFooter();
-		if (footer != null) {
-			boolean isSystemDistributed = appLayerFactory.getModelLayerFactory().getDataLayerFactory().getDataLayerConfiguration().isSystemDistributed();
-			VerticalLayout layoutWithoutSpacing = new VerticalLayout();
-			layoutWithoutSpacing.setSpacing(false);
-			layoutWithoutSpacing.setHeight("75px");
-			layoutWithoutSpacing.addComponent(footer);
-			layoutWithoutSpacing.addComponent(buildInstanceType(isSystemDistributed));
-			footerLayout.addComponent(layoutWithoutSpacing);
-		}
-
 		Component license = buildLicense();
 		if (license != null) {
 			license.addStyleName("license");
@@ -253,16 +243,6 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 		message.addStyleName(ValoTheme.LABEL_BOLD);
 		message.addStyleName("message");
 		return message;
-	}
-
-	protected Component buildFooter() {
-
-		Link poweredByConstellioLink = new Link($("MainLayout.footerAlt") + "  (" + presenter.getCurrentVersion() + ")",
-				new ExternalResource("http://www.constellio.com"));
-		poweredByConstellioLink.setTargetName("_blank");
-		poweredByConstellioLink.addStyleName(ValoTheme.LINK_LARGE);
-		poweredByConstellioLink.addStyleName("footer");
-		return poweredByConstellioLink;
 	}
 
 	protected Component buildInstanceType(boolean isDistributed) {
