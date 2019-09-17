@@ -140,8 +140,16 @@ public class Task extends RecordWrapper {
 		return Collections.unmodifiableList(this.<String>getList(TASK_COLLABORATORS));
 	}
 
+	public List<String> getTaskCollaboratorsGroups() {
+		return Collections.unmodifiableList(this.<String>getList(TASK_COLLABORATORS_GROUPS));
+	}
+
 	public List<Boolean> getTaskCollaboratorsWriteAuthorizations() {
 		return Collections.unmodifiableList(this.<Boolean>getList(TASK_COLLABORATORS_WRITE_AUTHORIZATIONS));
+	}
+
+	public List<Boolean> getTaskCollaboratorsGroupsWriteAuthorizations() {
+		return Collections.unmodifiableList(this.<Boolean>getList(TASK_COLLABORATORS_GROUPS_WRITE_AUTHORIZATIONS));
 	}
 
 	public Task addTaskCollaborator(String taskCollaborator, Boolean taskCollaboratorWriteAuthorization) {
@@ -152,8 +160,8 @@ public class Task extends RecordWrapper {
 			taskCollaborators.add(taskCollaborator);
 			taskCollaboratorWriteAuthorizations.add(taskCollaboratorWriteAuthorization);
 
-			set(TASK_COLLABORATORS, taskCollaborator);
-			set(TASK_COLLABORATORS_WRITE_AUTHORIZATIONS, taskCollaboratorWriteAuthorization);
+			set(TASK_COLLABORATORS, taskCollaborators);
+			set(TASK_COLLABORATORS_WRITE_AUTHORIZATIONS, taskCollaboratorWriteAuthorizations);
 		}
 		return this;
 	}
@@ -167,8 +175,23 @@ public class Task extends RecordWrapper {
 			taskCollaborators.remove(index);
 			taskCollaboratorWriteAuthorizations.remove(index);
 
-			set(TASK_COLLABORATORS, taskCollaborator);
-			set(TASK_COLLABORATORS_WRITE_AUTHORIZATIONS, taskCollaboratorWriteAuthorization);
+			set(TASK_COLLABORATORS, taskCollaborators);
+			set(TASK_COLLABORATORS_WRITE_AUTHORIZATIONS, taskCollaboratorWriteAuthorizations);
+		}
+		return this;
+	}
+
+	public Task addTaskCollaboratorGroup(String taskCollaboratorGroup,
+										 Boolean taskCollaboratorGroupWriteAuthorization) {
+		if (getCollaboratorsGroupsIndex(taskCollaboratorGroup, taskCollaboratorGroupWriteAuthorization) == -1) {
+			List<String> taskCollaboratorsGroups = new ArrayList<>(getTaskCollaboratorsGroups());
+			List<Boolean> taskCollaboratorsGroupsWriteAuthorizations = new ArrayList<>(getTaskCollaboratorsWriteAuthorizations());
+
+			taskCollaboratorsGroups.add(taskCollaboratorGroup);
+			taskCollaboratorsGroupsWriteAuthorizations.add(taskCollaboratorGroupWriteAuthorization);
+
+			set(TASK_COLLABORATORS_GROUPS, taskCollaboratorsGroups);
+			set(TASK_COLLABORATORS_GROUPS_WRITE_AUTHORIZATIONS, taskCollaboratorsGroupsWriteAuthorizations);
 		}
 		return this;
 	}
@@ -179,6 +202,19 @@ public class Task extends RecordWrapper {
 
 		for (int i = 0; i < collaborators.size(); i++) {
 			if (collaboratorId.equals(collaborators.get(i)) && writeAuthorization.equals(writeAuthorizations.get(i))) {
+				return i;
+			}
+		}
+
+		return -1;
+	}
+
+	private int getCollaboratorsGroupsIndex(String collaboratorId, Boolean writeAuthorization) {
+		List<String> collaboratorsGroups = getTaskCollaboratorsGroups();
+		List<Boolean> writeAuthorizations = getTaskCollaboratorsGroupsWriteAuthorizations();
+
+		for (int i = 0; i < collaboratorsGroups.size(); i++) {
+			if (collaboratorId.equals(collaboratorsGroups.get(i)) && writeAuthorization.equals(writeAuthorizations.get(i))) {
 				return i;
 			}
 		}

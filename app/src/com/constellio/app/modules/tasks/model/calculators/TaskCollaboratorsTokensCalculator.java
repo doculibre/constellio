@@ -58,7 +58,7 @@ public class TaskCollaboratorsTokensCalculator extends AbstractMetadataValueCalc
 			}
 		}
 
-		if (collaboratorsReadAuthorizations.isEmpty()) {
+		if (!collaboratorsReadAuthorizations.isEmpty()) {
 			for (String user : collaboratorsReadAuthorizations) {
 				tokens.add("r_" + user);
 			}
@@ -71,7 +71,7 @@ public class TaskCollaboratorsTokensCalculator extends AbstractMetadataValueCalc
 			}
 		}
 
-		if (collaboratorsGroupsReadAuthorizations.isEmpty()) {
+		if (!collaboratorsGroupsReadAuthorizations.isEmpty()) {
 			for (String user : collaboratorsGroupsReadAuthorizations) {
 				tokens.add("r_" + user);
 			}
