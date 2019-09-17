@@ -22,15 +22,6 @@ public class TaskAssignationListRecordLookupField extends ListAddRemoveRecordLoo
 	}
 
 	@Override
-	protected void addValue(String value) {
-		if (value != null) {
-			super.addValue(value);
-
-			fireEvent(new ValueChangeEvent(this));
-		}
-	}
-
-	@Override
 	protected void removeValue(Object value) {
 		if (value != null) {
 			super.removeValue(value);

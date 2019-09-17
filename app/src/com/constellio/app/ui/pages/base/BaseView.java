@@ -48,6 +48,8 @@ public interface BaseView extends ViewComponent {
 
 	void openURL(String url);
 
+	void refreshActionMenu();
+
 	public interface ViewEnterListener extends Serializable {
 
 		void viewEntered(String params);

@@ -264,6 +264,14 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 		}
 	}
 
+	public void refreshActionMenu() {
+		if (actionMenu != null) {
+			Component oldActionMenu = actionMenu;
+			actionMenu = buildActionMenu(null);
+			replaceComponent(oldActionMenu, actionMenu);
+		}
+	}
+
 	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
 		return null;
 	}
@@ -614,6 +622,7 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 		@Override
 		public void addComponents(Component... components) {
 			for (Component component : components) {
+
 				if (component != null) {
 					super.addComponent(component);
 				}

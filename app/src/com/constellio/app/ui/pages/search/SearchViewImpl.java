@@ -449,10 +449,12 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 
 		SliderPanel sliderPanel = new SliderPanelBuilder(facetsArea)
 				.mode(SliderMode.RIGHT)
-				.caption("Facets!")
+				.caption($("SearchView.facets"))
 				.tabPosition(SliderTabPosition.BEGINNING)
 				.expanded(false)
 				.build();
+
+		sliderPanel.addStyleName("facet");
 
 		I18NHorizontalLayout body = new I18NHorizontalLayout(resultsArea, sliderPanel);
 		body.addStyleName("search-result-and-facets-container");

@@ -220,6 +220,8 @@ public class DocumentMenuItemActionBehaviors {
 		document.setPublished(true);
 		try {
 			recordServices.update(document);
+			linkToDocument(document, params);
+			params.getView().refreshActionMenu();
 		} catch (RecordServicesException e) {
 			params.getView().showErrorMessage(MessageUtils.toMessage(e));
 		}
@@ -259,6 +261,7 @@ public class DocumentMenuItemActionBehaviors {
 		document.setPublished(false);
 		try {
 			recordServices.update(document);
+			params.getView().refreshActionMenu();
 		} catch (RecordServicesException e) {
 			params.getView().showErrorMessage(MessageUtils.toMessage(e));
 		}

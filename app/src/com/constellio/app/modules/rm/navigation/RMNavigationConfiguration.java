@@ -69,7 +69,6 @@ import com.constellio.app.ui.pages.home.TaxonomyTabSheet;
 import com.constellio.app.ui.pages.management.AdminView;
 import com.constellio.app.ui.pages.viewGroups.CartViewGroup;
 import com.constellio.app.ui.pages.viewGroups.LogsViewGroup;
-import com.constellio.app.ui.pages.viewGroups.UserDocumentsViewGroup;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.AgentStatus;
@@ -441,23 +440,6 @@ public class RMNavigationConfiguration implements Serializable {
 	}
 
 	private static void configureMainLayoutNavigation(NavigationConfig config) {
-		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION,
-				new NavigationItem.Active(USER_DOCUMENTS, FontAwesome.SUITCASE, UserDocumentsViewGroup.class) {
-					@Override
-					public void activate(Navigation navigate) {
-						navigate.to(RMViews.class).listUserDocuments();
-					}
-
-					@Override
-					public int getOrderValue() {
-						return 30;
-					}
-
-					@Override
-					public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
-						return ComponentState.ENABLED;
-					}
-				});
 		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION,
 				new NavigationItem.Active(MY_CART, FontAwesome.LIST_ALT, CartViewGroup.class) {
 					@Override
