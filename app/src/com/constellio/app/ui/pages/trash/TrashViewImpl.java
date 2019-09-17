@@ -11,6 +11,7 @@ import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Button;
+import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
@@ -201,5 +202,10 @@ public class TrashViewImpl extends BaseViewImpl implements TrashView {
 		Label newMessage = buildRecordsToDeleteMessage();
 		vLayout.replaceComponent(this.recordsToDeleteMessage, newMessage);
 		this.recordsToDeleteMessage = newMessage;
+	}
+
+	@Override
+	protected ClickListener getBackButtonClickListener() {
+		return (ClickListener) event -> presenter.backButtonClicked();
 	}
 }
