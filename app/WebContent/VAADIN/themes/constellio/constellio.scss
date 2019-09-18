@@ -1494,6 +1494,12 @@ $popup-view-z-index: 3;
 		z-index: 2;
 	}
 
+	.action-menu-bar-layout {
+		.v-button, .v-link {
+			z-index: 1002;
+		}
+	}	
+
 	.v-window {
 	
 		.popupContent {
@@ -3260,7 +3266,6 @@ $popup-view-z-index: 3;
 	    }
 
 	    .action-menu-bar-layout {
-	        z-index: 1000;
 			position: absolute;
 			right: 20px;
 	    }
