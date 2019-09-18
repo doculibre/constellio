@@ -95,12 +95,12 @@ public class RecordCommentsEditorImpl extends ListAddRemoveCommentField implemen
 
 	@Override
 	protected boolean isEditButtonVisible(Comment item) {
-		return isEditDeleteButtonVisible(item);
+		return presenter.isAddEditButtonEnabled();
 	}
 
 	@Override
 	protected boolean isDeleteButtonVisible(Comment item) {
-		return isEditDeleteButtonVisible(item);
+		return presenter.isAddEditButtonEnabled();
 	}
 
 	@Override
@@ -109,10 +109,6 @@ public class RecordCommentsEditorImpl extends ListAddRemoveCommentField implemen
 	}
 
 	public boolean isAddButtonVisible() {
-		return presenter.isAddEditButtonEnabled();
-	}
-
-	public boolean isEditDeleteButtonVisible(Comment item) {
 		return presenter.isAddEditButtonEnabled();
 	}
 

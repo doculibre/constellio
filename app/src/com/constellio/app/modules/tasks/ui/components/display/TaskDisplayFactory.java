@@ -75,7 +75,7 @@ public class TaskDisplayFactory extends MetadataDisplayFactory {
 					}
 
 					@Override
-					public boolean isEditDeleteButtonVisible(Comment comment) {
+					public boolean isEditButtonVisible(Comment comment) {
 						String currentUsername = getSessionContext().getCurrentUser().getUsername();
 						String currentCollection = getSessionContext().getCurrentCollection();
 						User user = getConstellioFactories().getModelLayerFactory().newUserServices().getUserInCollection(currentUsername, currentCollection);
@@ -84,7 +84,21 @@ public class TaskDisplayFactory extends MetadataDisplayFactory {
 							taskConfigs = new TaskConfigs(getConstellioFactories().getModelLayerFactory().getSystemConfigurationsManager());
 							return taskConfigs.isAddCommentsWhenReadAuthorization() && comment.getUserId().equals(getSessionContext().getCurrentUser().getId());
 						} else {
-							return super.isEditDeleteButtonVisible(comment);
+							return comment.getUserId().equals(getSessionContext().getCurrentUser().getId());
+						}
+					}
+
+					@Override
+					public boolean isDeleteButtonVisible(Comment comment) {
+						String currentUsername = getSessionContext().getCurrentUser().getUsername();
+						String currentCollection = getSessionContext().getCurrentCollection();
+						User user = getConstellioFactories().getModelLayerFactory().newUserServices().getUserInCollection(currentUsername, currentCollection);
+						Record record = getConstellioFactories().getModelLayerFactory().newRecordServices().getDocumentById(recordVO.getId());
+						if (!user.hasWriteAccess().on(record)) {
+							taskConfigs = new TaskConfigs(getConstellioFactories().getModelLayerFactory().getSystemConfigurationsManager());
+							return taskConfigs.isAddCommentsWhenReadAuthorization() && comment.getUserId().equals(getSessionContext().getCurrentUser().getId());
+						} else {
+							return super.isDeleteButtonVisible(comment);
 						}
 					}
 
