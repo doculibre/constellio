@@ -27,6 +27,7 @@ import com.constellio.app.ui.framework.components.menuBar.RecordListMenuBar;
 import com.constellio.app.ui.framework.components.search.FacetsPanel;
 import com.constellio.app.ui.framework.components.search.ViewableRecordVOSearchResultTable;
 import com.constellio.app.ui.framework.components.table.BaseTable;
+import com.constellio.app.ui.framework.components.table.BaseTable.SelectionChangeListener;
 import com.constellio.app.ui.framework.components.viewers.panel.ViewableRecordVOTablePanel;
 import com.constellio.app.ui.framework.containers.SearchResultContainer;
 import com.constellio.app.ui.framework.containers.SearchResultVOLazyContainer;
@@ -85,6 +86,7 @@ import org.vaadin.sliderpanel.client.SliderTabPosition;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -123,6 +125,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	private List<SaveSearchListener> saveSearchListenerList = new ArrayList<>();
 	private Map<String, String> extraParameters = null;
 	private boolean lazyLoadedSearchResults;
+	private List<SelectionChangeListener> selectionChangeListenerStorage = new ArrayList<>();
 
 	@Override
 	public void attach() {
@@ -364,7 +367,11 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 
 	@Override
 	public List<String> getSelectedRecordIds() {
-		return resultsTable.getSelectedRecordIds();
+		if (resultsTable != null) {
+			return resultsTable.getSelectedRecordIds();
+		} else {
+			return Collections.emptyList();
+		}
 	}
 
 	@Override
@@ -550,6 +557,11 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			}
 
 			@Override
+			protected List<String> excludedMenuItemInDefaultSelectionActionButtons() {
+				return menuItemToExcludeInSelectionMenu();
+			}
+
+			@Override
 			protected Component newSearchResultComponent(Object itemId) {
 				Integer index = (Integer) itemId;
 				String query = presenter.getSearchQuery().getFreeTextQuery();
@@ -588,8 +600,27 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 				presenter.searchResultClicked(searchResultVO.getRecordVO(), index);
 			}
 		});
-		viewerPanel.setQuickActionButton(buildSavedSearchButton());
+
+		viewerPanel.setQuickActionButton(getQuickActionMenuButtons());
+		selectionChangeListenerStorage.forEach(viewerPanel::addSelectionChangeListener);
 		return viewerPanel;
+	}
+
+	public void addSelectionChangeListener(SelectionChangeListener selectionChangeListener) {
+		if (resultsTable == null) {
+			selectionChangeListenerStorage.add(selectionChangeListener);
+		} else {
+			resultsTable.addSelectionChangeListener(selectionChangeListener);
+			selectionChangeListenerStorage.add(selectionChangeListener);
+		}
+	}
+
+	protected List<String> getSelectedRecords() {
+		if (resultsTable == null) {
+			return resultsTable.getSelectedRecordIds();
+		} else {
+			return Collections.emptyList();
+		}
 	}
 
 	protected SearchResultTable buildSimpleResultsTable(SearchResultVODataProvider dataProvider) {
@@ -1129,4 +1160,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		// TODO Auto-generated method stub
 	}
 
+	public List<String> menuItemToExcludeInSelectionMenu() {
+		return Collections.emptyList();
+	}
 }
