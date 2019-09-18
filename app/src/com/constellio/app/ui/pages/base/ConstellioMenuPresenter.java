@@ -188,11 +188,15 @@ public class ConstellioMenuPresenter implements Serializable {
 
 	public boolean hasUserRightToViewSystemState() {
 		SessionContext sessionContext = constellioMenu.getSessionContext();
-		ModelLayerFactory modelLayerFactory = ConstellioFactories.getInstance().getModelLayerFactory();
-		UserServices userServices = modelLayerFactory.newUserServices();
-		User user = userServices.getUserInCollection(
-				sessionContext.getCurrentUser().getUsername(), sessionContext.getCurrentCollection());
-		return user.has(CorePermissions.VIEW_SYSTEM_STATE).onSomething() || user.has(CorePermissions.VIEW_SYSTEM_STATE).globally();
+		if (sessionContext != null) {
+			ModelLayerFactory modelLayerFactory = ConstellioFactories.getInstance().getModelLayerFactory();
+			UserServices userServices = modelLayerFactory.newUserServices();
+			User user = userServices.getUserInCollection(
+					sessionContext.getCurrentUser().getUsername(), sessionContext.getCurrentCollection());
+			return user.has(CorePermissions.VIEW_SYSTEM_STATE).onSomething() || user.has(CorePermissions.VIEW_SYSTEM_STATE).globally();
+		} else {
+			return false;
+		}
 	}
 
 	public String getCurrentVersion() {

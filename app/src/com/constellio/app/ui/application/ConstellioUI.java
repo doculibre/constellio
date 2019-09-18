@@ -130,7 +130,6 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 
 	@Override
 	protected void init(VaadinRequest request) {
-
 		if (!getSession().getRequestHandlers().contains(CONSTELLIO_RESSOURCE_HANDLER)) {
 			getSession().addRequestHandler(CONSTELLIO_RESSOURCE_HANDLER);
 		}
@@ -152,6 +151,10 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 
 		Responsive.makeResponsive(this);
 		addStyleName(ValoTheme.UI_WITH_MENU);
+		
+		int tooltipDelay = 50;
+		getTooltipConfiguration().setOpenDelay(tooltipDelay);
+		getTooltipConfiguration().setQuickOpenDelay(tooltipDelay);
 
 		if (getErrorHandler() == null) {
 			setErrorHandler(new ConstellioErrorHandler());
@@ -365,7 +368,7 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 	}
 
 	public static SessionContext getCurrentSessionContext() {
-		return getCurrent().getSessionContext();
+		return getCurrent() != null ? getCurrent().getSessionContext() : null;
 	}
 
 	public boolean isProductionMode() {
