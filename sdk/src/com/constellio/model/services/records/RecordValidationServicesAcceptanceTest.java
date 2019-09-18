@@ -24,6 +24,7 @@ import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.AnotherSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ThirdSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
+import com.constellio.sdk.tests.setups.Users;
 import org.apache.commons.lang3.StringUtils;
 import org.assertj.core.api.Condition;
 import org.joda.time.LocalDateTime;
@@ -57,6 +58,8 @@ import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultival
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.data.MapEntry.entry;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
@@ -79,6 +82,7 @@ public class RecordValidationServicesAcceptanceTest extends ConstellioTest {
 	ZeSchemaMetadatas zeSchema;
 	AnotherSchemaMetadatas anotherSchema;
 	ThirdSchemaMetadatas thirdSchema;
+	Users users = new Users();
 
 	RecordServices recordServices;
 
@@ -86,6 +90,7 @@ public class RecordValidationServicesAcceptanceTest extends ConstellioTest {
 
 	@Before
 	public void setUp() {
+		prepareSystem(withZeCollection().withAllTest(users));
 		schemas = new RecordValidationServicesTestsSetup();
 		zeSchema = schemas.new ZeSchemaMetadatas();
 		anotherSchema = schemas.new AnotherSchemaMetadatas();
@@ -449,6 +454,35 @@ public class RecordValidationServicesAcceptanceTest extends ConstellioTest {
 
 		assertThat(errors).isEmpty();
 	}
+
+	@Test
+	public void givenUserAccessNotValidatedWhenValidatingRecordWithUserWithReadAuthorizationThenOk()
+			throws Exception {
+		services = spy(services);
+		defineSchemasManager().using(schemas.withAStringMetadata());
+		when(transaction.isSkippingUserAccessValidation()).thenReturn(true);
+		when(transaction.getUser()).thenReturn(users.aliceIn(zeCollection));
+		record = recordServices.newRecordWithSchema(zeSchema.instance());
+		record.set(zeSchema.stringMetadata(), correctStringValue);
+		doReturn(true).when(services).hasSecurityOnSchema(record);
+
+		services.validateAccess(record, transaction);
+	}
+
+	@Test(expected = RecordServicesException.class)
+	public void givenUserAccessValidatedWhenValidatingRecordWithUserWithReadAuthorizationThenThrowValidationException()
+			throws Exception {
+		services = spy(services);
+		defineSchemasManager().using(schemas.withAStringMetadata());
+		when(transaction.isSkippingUserAccessValidation()).thenReturn(false);
+		when(transaction.getUser()).thenReturn(users.aliceIn(zeCollection));
+		record = recordServices.newRecordWithSchema(zeSchema.instance());
+		record.set(zeSchema.stringMetadata(), correctStringValue);
+		doReturn(true).when(services).hasSecurityOnSchema(record);
+
+		services.validateAccess(record, transaction);
+	}
+
 
 	@Test
 	public void givenRequirementValidatorFailingWhenValidatingUndefinedMultivalueMetadataThenErrorInList()

@@ -7,9 +7,7 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveCommentField;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.vaadin.data.Property;
-import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Component;
-import com.vaadin.ui.Label;
 
 import java.util.List;
 
@@ -42,7 +40,7 @@ public class RecordCommentsEditorImpl extends ListAddRemoveCommentField implemen
 	protected Component initContent() {
 		Component finalComponent = super.initContent();
 
-		enableModification(presenter.isAddEditButtonEnabled());
+		enableModification(isAddButtonVisible());
 
 		return finalComponent;
 	}
@@ -54,7 +52,7 @@ public class RecordCommentsEditorImpl extends ListAddRemoveCommentField implemen
 			@Override
 			public void valueChange(Property.ValueChangeEvent event) {
 				List<Comment> comments = (List<Comment>) event.getProperty().getValue();
-				presenter.commentsChanged(comments);
+				presenter.commentsChanged(comments, isUserHasToHaveWriteAuthorization());
 			}
 		});
 		presenter = new RecordCommentsEditorPresenter(this);
@@ -84,30 +82,42 @@ public class RecordCommentsEditorImpl extends ListAddRemoveCommentField implemen
 	protected CommentField newAddEditField() {
 		CommentField components = super.newAddEditField();
 
-		components.setEnabled(presenter.isAddEditButtonEnabled());
+		components.setEnabled(isAddButtonVisible());
 		return components;
 	}
 
 	@Override
 	protected Component newCaptionComponent(Comment itemId, String caption) {
 		Component component = super.newCaptionComponent(itemId, caption);
-		component.setEnabled(presenter.isAddEditButtonEnabled());
+		component.setEnabled(isAddButtonVisible());
 		return component;
 	}
 
 	@Override
 	protected boolean isEditButtonVisible(Comment item) {
-		return presenter.isAddEditButtonEnabled();
+		return isEditDeleteButtonVisible(item);
 	}
 
 	@Override
 	protected boolean isDeleteButtonVisible(Comment item) {
-		return presenter.isAddEditButtonEnabled();
+		return isEditDeleteButtonVisible(item);
 	}
 
 	@Override
 	public void enableModification(boolean modification) {
 		getAddButton().setEnabled(modification);
+	}
+
+	public boolean isAddButtonVisible() {
+		return presenter.isAddEditButtonEnabled();
+	}
+
+	public boolean isEditDeleteButtonVisible(Comment item) {
+		return presenter.isAddEditButtonEnabled();
+	}
+
+	public boolean isUserHasToHaveWriteAuthorization() {
+		return true;
 	}
 }
 

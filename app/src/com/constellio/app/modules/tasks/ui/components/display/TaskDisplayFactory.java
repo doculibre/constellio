@@ -1,14 +1,24 @@
 package com.constellio.app.modules.tasks.ui.components.display;
 
 import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
+import com.constellio.app.modules.rm.wrappers.structures.Comment;
+import com.constellio.app.modules.rm.wrappers.structures.CommentFactory;
+import com.constellio.app.modules.tasks.TaskConfigs;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollower;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskReminder;
 import com.constellio.app.modules.tasks.ui.entities.TaskFollowerVO;
 import com.constellio.app.modules.tasks.ui.entities.TaskReminderVO;
 import com.constellio.app.ui.entities.MetadataVO;
+import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.MetadataDisplayFactory;
 import com.constellio.app.ui.framework.components.display.ReferenceActiveLink;
+import com.constellio.app.ui.framework.components.fields.comment.RecordCommentsDisplayImpl;
+import com.constellio.app.ui.framework.components.fields.comment.RecordCommentsEditorImpl;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.StructureFactory;
 import com.vaadin.ui.Component;
 
 import static com.constellio.app.modules.tasks.model.wrappers.Task.LINKED_DOCUMENTS;
@@ -34,6 +44,61 @@ public class TaskDisplayFactory extends MetadataDisplayFactory {
 			return new ReferenceActiveLink(RMNavigationConfiguration.DISPLAY_FOLDER, displayValue.toString());
 		} else {
 			return super.buildSingleValue(recordVO, metadata, displayValue);
+		}
+	}
+
+	@Override
+	public Component build(RecordVO recordVO, MetadataValueVO metadataValue) {
+		MetadataVO metadataVO = metadataValue.getMetadata();
+		String metadataCode = metadataVO.getCode();
+		StructureFactory structureFactory = metadataVO.getStructureFactory();
+		if (metadataVO.isMultivalue() && structureFactory != null && structureFactory instanceof CommentFactory) {
+			Component displayComponent;
+			if (Boolean.TRUE.equals(recordVO.getMetadataValue(recordVO.getMetadata(Schemas.LOGICALLY_DELETED_STATUS.getLocalCode())).getValue())) {
+				displayComponent = new RecordCommentsDisplayImpl(recordVO, metadataCode);
+			} else {
+				displayComponent = new RecordCommentsEditorImpl(recordVO, metadataCode) {
+					TaskConfigs taskConfigs;
+
+					@Override
+					public boolean isAddButtonVisible() {
+						String currentUsername = getSessionContext().getCurrentUser().getUsername();
+						String currentCollection = getSessionContext().getCurrentCollection();
+						User user = getConstellioFactories().getModelLayerFactory().newUserServices().getUserInCollection(currentUsername, currentCollection);
+						Record record = getConstellioFactories().getModelLayerFactory().newRecordServices().getDocumentById(recordVO.getId());
+						if (!user.hasWriteAccess().on(record)) {
+							taskConfigs = new TaskConfigs(getConstellioFactories().getModelLayerFactory().getSystemConfigurationsManager());
+							return taskConfigs.isAddCommentsWhenReadAuthorization();
+						} else {
+							return super.isAddButtonVisible();
+						}
+					}
+
+					@Override
+					public boolean isEditDeleteButtonVisible(Comment comment) {
+						String currentUsername = getSessionContext().getCurrentUser().getUsername();
+						String currentCollection = getSessionContext().getCurrentCollection();
+						User user = getConstellioFactories().getModelLayerFactory().newUserServices().getUserInCollection(currentUsername, currentCollection);
+						Record record = getConstellioFactories().getModelLayerFactory().newRecordServices().getDocumentById(recordVO.getId());
+						if (!user.hasWriteAccess().on(record)) {
+							taskConfigs = new TaskConfigs(getConstellioFactories().getModelLayerFactory().getSystemConfigurationsManager());
+							return taskConfigs.isAddCommentsWhenReadAuthorization() && comment.getUserId().equals(getSessionContext().getCurrentUser().getId());
+						} else {
+							return super.isEditDeleteButtonVisible(comment);
+						}
+					}
+
+					@Override
+					public boolean isUserHasToHaveWriteAuthorization() {
+						taskConfigs = new TaskConfigs(getConstellioFactories().getModelLayerFactory().getSystemConfigurationsManager());
+						return !taskConfigs.isAddCommentsWhenReadAuthorization();
+					}
+				};
+			}
+			displayComponent.setWidthUndefined();
+			return displayComponent;
+		} else {
+			return super.build(recordVO, metadataValue);
 		}
 	}
 

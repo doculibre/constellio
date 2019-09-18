@@ -42,6 +42,8 @@ public class RecordUpdateOptions {
 
 	boolean updateAggregatedMetadatas = false;
 
+	boolean skipUserAccessValidation = false;
+
 	public RecordUpdateOptions() {
 
 	}
@@ -123,8 +125,17 @@ public class RecordUpdateOptions {
 		return skipMaskedMetadataValidations;
 	}
 
+	public boolean isSkipUserAccessValidation() {
+		return skipUserAccessValidation;
+	}
+
 	public RecordUpdateOptions setSkipMaskedMetadataValidations(boolean skipMaskedMetadataValidations) {
 		this.skipMaskedMetadataValidations = skipMaskedMetadataValidations;
+		return this;
+	}
+
+	public RecordUpdateOptions setSkipUserAccessValidation(boolean skipUserAccessValidation) {
+		this.skipUserAccessValidation = skipUserAccessValidation;
 		return this;
 	}
 

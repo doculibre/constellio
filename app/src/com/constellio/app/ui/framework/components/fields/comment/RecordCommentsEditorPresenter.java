@@ -73,7 +73,7 @@ public class RecordCommentsEditorPresenter implements Serializable {
 		return currentUser.hasWriteAccess().on(record);
 	}
 
-	public void commentsChanged(List<Comment> newComments) {
+	public void commentsChanged(List<Comment> newComments, boolean userHasToHaveWriteAuthorization) {
 		if (newComments != null) {
 			Metadata metadata = presenterUtils.getMetadata(metadataCode);
 
@@ -83,6 +83,8 @@ public class RecordCommentsEditorPresenter implements Serializable {
 				record.set(metadata, newComments);
 				if (presenterUtils.getCurrentUser().hasWriteAccess().on(record)) {
 					presenterUtils.addOrUpdate(record, new RecordUpdateOptions().setSkippingRequiredValuesValidation(true));
+				} else if (!userHasToHaveWriteAuthorization) {
+					presenterUtils.addOrUpdate(record, new RecordUpdateOptions().setSkippingRequiredValuesValidation(true).setSkipUserAccessValidation(true));
 				}
 			}
 		}
