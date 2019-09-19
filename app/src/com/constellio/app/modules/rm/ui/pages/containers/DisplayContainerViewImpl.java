@@ -12,7 +12,6 @@ import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
-import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.ConfirmDialogButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
@@ -66,7 +65,7 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 	private boolean popup = false;
 	private boolean isNested = false;
 	private Button consultButton = null;
-	private MetadataSchemaToVOBuilder schemaVOBuilder = new MetadataSchemaToVOBuilder();
+	private Button editButton = null;
 	public DisplayContainerViewImpl() {
 		this(null, false, false);
 	}
@@ -283,12 +282,26 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 			buttonList.remove(consultButton);
 		}
 
+		editButton = getEditButton(buttonList);
+
+		if (!isNested && editButton != null) {
+			buttonList.remove(editButton);
+		}
+
 		return buttonList;
 	}
 
 	private Button getConsultButton(List<Button> buttons) {
+		return getButtonById(buttons, ContainerRecordMenuItemActionType.CONTAINER_CONSULT.name());
+	}
+
+	private Button getEditButton(List<Button> buttons) {
+		return getButtonById(buttons, ContainerRecordMenuItemActionType.CONTAINER_EDIT.name());
+	}
+
+	private Button getButtonById(List<Button> buttons, String id) {
 		for (Button button : buttons) {
-			if (button.getId().equals(ContainerRecordMenuItemActionType.CONTAINER_CONSULT.name())) {
+			if (button.getId().equals(id)) {
 				return button;
 			}
 		}
@@ -298,8 +311,10 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 
 	@Override
 	protected List<Button> getQuickActionMenuButtons() {
-		if (consultButton != null) {
+		if (consultButton != null && isNested) {
 			return Arrays.asList(consultButton);
+		} else if (editButton != null && !isNested) {
+			return Arrays.asList(editButton);
 		} else {
 			return Collections.emptyList();
 		}
