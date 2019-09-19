@@ -1,20 +1,5 @@
 package com.constellio.app.modules.rm.ui.pages.folder;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType;
 import com.constellio.app.modules.rm.ui.components.RMMetadataDisplayFactory;
 import com.constellio.app.modules.rm.ui.components.content.DocumentContentVersionWindowImpl;
@@ -84,6 +69,20 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.Window.CloseEvent;
 import com.vaadin.ui.themes.ValoTheme;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolderView, DropHandler, BrowserWindowResizeListener {
 
@@ -404,9 +403,6 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			};
 			refreshFacets(folderContentDataProvider);
 
-			contentAndFacetsLayout = new I18NHorizontalLayout();
-			contentAndFacetsLayout.setSizeFull();
-
 			viewerPanel = new ViewableRecordVOTablePanel(recordVOContainer) {
 				@Override
 				protected boolean isSelectColumn() {
@@ -491,6 +487,10 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			//			viewerPanel.addStyleName("search-result-title");
 
 			if (!nestedView) {
+				contentAndFacetsLayout = new I18NHorizontalLayout();
+				contentAndFacetsLayout.setSizeFull();
+				contentAndFacetsLayout.setSpacing(true);
+				
 				FacetsSliderPanel sliderPanel = new FacetsSliderPanel(facetsPanel);
 				contentAndFacetsLayout.addComponents(viewerPanel, sliderPanel);
 				contentAndFacetsLayout.setExpandRatio(viewerPanel, 1);

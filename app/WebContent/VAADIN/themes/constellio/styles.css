@@ -15059,9 +15059,23 @@ div.v-layout.v-horizontal.v-widget {
 	vertical-align: middle;
 }
 
-.constellio .-facets-sliderpanel {
+.constellio .search-main-container .-facets-sliderpanel {
 	position: relative;
 	top: -62px;
+}
+
+.constellio .display-folder-view .-facets-sliderpanel .v-sliderpanel-wrapper {
+	left: 250px;
+}
+
+.constellio .display-folder-view .-facets-sliderpanel .v-sliderpanel-wrapper .v-sliderpanel-content {
+	position: relative;
+	padding-top: 6px;
+	padding-bottom: 100vh;
+}
+
+.constellio .display-folder-view .-facets-sliderpanel .v-sliderpanel-wrapper .tab-beginning {
+	left: -366px;
 }
 
 .constellio .-facets-sliderpanel .v-sliderpanel-wrapper .v-sliderpanel-content {

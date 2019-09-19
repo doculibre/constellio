@@ -1,20 +1,5 @@
 package com.constellio.app.ui.pages.search;
 
-import static com.constellio.app.ui.framework.components.BaseForm.BUTTONS_LAYOUT;
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.jetbrains.annotations.Nullable;
-import org.vaadin.dialogs.ConfirmDialog;
-import org.vaadin.sliderpanel.SliderPanel;
-
 import com.constellio.app.services.menu.MenuItemFactory.MenuItemRecordProvider;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.FacetVO;
@@ -92,6 +77,20 @@ import com.vaadin.ui.Table.ColumnHeaderMode;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+import org.jetbrains.annotations.Nullable;
+import org.vaadin.dialogs.ConfirmDialog;
+import org.vaadin.sliderpanel.SliderPanel;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static com.constellio.app.ui.framework.components.BaseForm.BUTTONS_LAYOUT;
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 
 public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchView>> extends BaseViewImpl implements SearchView, BrowserWindowResizeListener {
 
@@ -428,6 +427,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			protected void facetClosed(String id) {
 				presenter.facetClosed(id);
 			}
+
 		};
 
 		//		if (Toggle.SEARCH_RESULTS_VIEWER.isEnabled()) {

@@ -2239,10 +2239,32 @@ $popup-view-z-index: 3;
 		}
 	}
 	
+	.search-main-container {
+		.-facets-sliderpanel {
+			position: relative;
+			top: -62px;
+		}
+	}
+	
+	.display-folder-view {
+		.-facets-sliderpanel {
+			.v-sliderpanel-wrapper {
+				left: 250px;
+				
+				.v-sliderpanel-content {
+					position: relative;
+					padding-top: 6px;
+					padding-bottom: 100vh;
+				}
+				
+				.tab-beginning {
+					left: -366px;
+				}
+			}
+		}
+	}
+	
 	.-facets-sliderpanel {
-		position: relative;
-		top: -62px;
-		
 		.v-sliderpanel-wrapper {
 			.v-sliderpanel-content {
 				background-color: $valo-menu-background-color;
@@ -2258,7 +2280,6 @@ $popup-view-z-index: 3;
 		.facet-title, .sort-title {
 			background-color: $valo-menu-background-color;
 		}
-		
 	}
 
     .viewable-record-table-panel {
