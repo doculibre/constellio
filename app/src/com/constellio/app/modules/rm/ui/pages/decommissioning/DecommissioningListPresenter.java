@@ -10,8 +10,8 @@ import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.model.enums.DecomListStatus;
 import com.constellio.app.modules.rm.model.enums.OriginStatus;
 import com.constellio.app.modules.rm.navigation.RMViews;
-import com.constellio.app.modules.rm.reports.builders.decommissioning.DecommissioningListExcelReportParameters;
 import com.constellio.app.modules.rm.reports.builders.decommissioning.DecommissioningListReportParameters;
+import com.constellio.app.modules.rm.reports.builders.decommissioning.DecommissioningListXLSDetailedReportParameters;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningEmailService;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningEmailServiceException;
@@ -837,7 +837,7 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		if (report.equals(PDF_REPORT)) {
 			return getRmReportBuilderFactories().decommissioningListBuilderFactory.getValue();
 		} else {
-			return getRmReportBuilderFactories().decommissioningListExcelBuilderFactory.getValue();
+			return getRmReportBuilderFactories().decommissioningListXLSDetailedBuilderFactory.getValue();
 		}
 	}
 
@@ -846,8 +846,8 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		if (report.equals(PDF_REPORT)) {
 			return new DecommissioningListReportParameters(decommissioningList.getId());
 		} else {
-			return new DecommissioningListExcelReportParameters(decommissioningList.getId(),
-					Folder.SCHEMA_TYPE, collection, report, getCurrentUser());
+			return new DecommissioningListXLSDetailedReportParameters(decommissioningList.getId(),
+					DecommissioningList.SCHEMA_TYPE, collection, report, getCurrentUser());
 		}
 	}
 

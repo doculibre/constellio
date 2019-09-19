@@ -10,6 +10,7 @@ import com.constellio.app.modules.rm.reports.builders.administration.plan.UserRe
 import com.constellio.app.modules.rm.reports.builders.decommissioning.ContainerRecordReportParameters;
 import com.constellio.app.modules.rm.reports.builders.decommissioning.DecommissioningListExcelReportParameters;
 import com.constellio.app.modules.rm.reports.builders.decommissioning.DecommissioningListReportParameters;
+import com.constellio.app.modules.rm.reports.builders.decommissioning.DecommissioningListXLSDetailedReportParameters;
 import com.constellio.app.modules.rm.reports.builders.search.stats.StatsReportParameters;
 import com.constellio.app.modules.rm.reports.factories.ExampleReportParameters;
 import com.constellio.app.modules.rm.reports.factories.ExampleReportWithoutRecordsParameters;
@@ -54,6 +55,8 @@ public class RMReportBuilderFactories {
 	public SingleValueExtension<NewReportWriterFactory<AdministrativeUnitExcelReportParameters>> administrativeUnitExcelBuilderFactory = new SingleValueExtension<>();
 
 	public SingleValueExtension<NewReportWriterFactory<DecommissioningListExcelReportParameters>> decommissioningListExcelBuilderFactory = new SingleValueExtension<>();
+
+	public SingleValueExtension<NewReportWriterFactory<DecommissioningListXLSDetailedReportParameters>> decommissioningListXLSDetailedBuilderFactory = new SingleValueExtension<>();
 
 	public RMReportBuilderFactories(AppLayerFactory appLayerFactory) {
 	}
