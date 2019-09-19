@@ -731,6 +731,8 @@ public class CartMenuItemActionBehaviors {
 				super.buttonClick(event);
 			}
 		};
+
+		reportGeneratorButton.click();
 	}
 
 	private class CartNewReportPresenter implements NewReportPresenter {

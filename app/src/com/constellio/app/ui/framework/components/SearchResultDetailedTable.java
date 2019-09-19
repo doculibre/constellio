@@ -2,6 +2,7 @@ package com.constellio.app.ui.framework.components;
 
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.table.BasePagedTable;
+import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.components.table.TablePropertyCache.CellKey;
 import com.constellio.app.ui.framework.components.table.columns.TableColumnsManager;
 import com.constellio.app.ui.framework.containers.SearchResultContainer;
@@ -247,6 +248,12 @@ public class SearchResultDetailedTable extends BasePagedTable<SearchResultContai
 		});
 
 		return summaryBar;
+	}
+
+	@Override
+	public void addSelectionChangeListener(BaseTable.SelectionChangeListener selectionChangeListener) {
+		// Cette classe va disparaitre et elle utilise des evenements créer
+		// internalement qui ne fit pas avec l'interface donc je laisse cette méthode vide.
 	}
 
 	private boolean isComponentDisabledBySelection(Component component) {

@@ -28,7 +28,8 @@ public class RMDecommissioningBuilderMenuItemActionsExtension extends MenuItemAc
 
 	private FolderRecordActionsServices folderRecordActionsServices;
 
-	private static final String RMRECORDS_CREATE_DECOMMISSIONING_LIST = "RMRECORDS_CREATE_DECOMMISSIONING_LIST";
+	public static final String RMRECORDS_CREATE_DECOMMISSIONING_LIST = "RMRECORDS_CREATE_DECOMMISSIONING_LIST";
+
 	private static final int CREATE_DECOMMISSIONING_LIST_LIMIT = 100000;
 
 	public RMDecommissioningBuilderMenuItemActionsExtension(String collection, AppLayerFactory appLayerFactory) {
@@ -44,17 +45,19 @@ public class RMDecommissioningBuilderMenuItemActionsExtension extends MenuItemAc
 			return;
 		}
 
-		MenuItemAction menuItemAction = MenuItemAction.builder()
-				.type(RMRECORDS_CREATE_DECOMMISSIONING_LIST)
-				.state(getActionState(params.getRecords(), params.getBehaviorParams().getUser()))
-				.caption($("DecommissioningBuilderView.createDecommissioningList"))
-				.icon(FontAwesome.ARCHIVE)
-				.group(-1)
-				.priority(1200)
-				.recordsLimit(CREATE_DECOMMISSIONING_LIST_LIMIT)
-				.command((ids) -> createDecommissioningList(params.getRecords(), params.getBehaviorParams()))
-				.build();
-		params.getMenuItemActions().add(menuItemAction);
+		if (!params.getExcludedActionTypes().contains(RMRECORDS_CREATE_DECOMMISSIONING_LIST)) {
+			MenuItemAction menuItemAction = MenuItemAction.builder()
+					.type(RMRECORDS_CREATE_DECOMMISSIONING_LIST)
+					.state(getActionState(params.getRecords(), params.getBehaviorParams().getUser()))
+					.caption($("DecommissioningBuilderView.createDecommissioningList"))
+					.icon(FontAwesome.ARCHIVE)
+					.group(-1)
+					.priority(1200)
+					.recordsLimit(CREATE_DECOMMISSIONING_LIST_LIMIT)
+					.command((ids) -> createDecommissioningList(params.getRecords(), params.getBehaviorParams()))
+					.build();
+			params.getMenuItemActions().add(menuItemAction);
+		}
 	}
 
 	@Override
@@ -94,6 +97,7 @@ public class RMDecommissioningBuilderMenuItemActionsExtension extends MenuItemAc
 				ids, params, appLayerFactory);
 		button.click();
 	}
+
 
 	private MenuItemActionState calculateCorrectActionState(int possibleCount, int notPossibleCount, String reason) {
 		if (possibleCount > 0 && notPossibleCount == 0) {

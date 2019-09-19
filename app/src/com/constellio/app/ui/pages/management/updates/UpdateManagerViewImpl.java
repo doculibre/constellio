@@ -553,4 +553,9 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 		return AcceptAll.get();
 	}
 
+
+	@Override
+	protected ClickListener getBackButtonClickListener() {
+		return (ClickListener) event -> presenter.backButtonClicked();
+	}
 }

@@ -54,6 +54,7 @@ import com.vaadin.server.Page.BrowserWindowResizeListener;
 import com.vaadin.server.Resource;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.Alignment;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
@@ -146,7 +147,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 
 	private Map<Object, Integer> tableModeColumnExpandRatios = new HashMap<>();
 
-	private BaseButton quickActionButton;
+	private Button quickActionButton;
 
 	private RecordListMenuBar selectionActionsMenuBar;
 	private RecordListMenuBar initialSelectionActionsMenuBar = null;
@@ -268,11 +269,19 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		countLabel.setVisible(StringUtils.isNotBlank(caption));
 	}
 
-	public void setQuickActionButton(BaseButton button) {
+	public void setQuickActionButton(List<Button> button) {
+		for (Button baseButton : button) {
+			setQuickActionButton(baseButton);
+		}
+	}
+
+	public void setQuickActionButton(Button button) {
 		this.quickActionButton = button;
 		quickActionButton.addStyleName(ValoTheme.BUTTON_LINK);
 		quickActionButton.addStyleName("quick-action-button");
-		quickActionButton.setCaptionVisibleOnMobile(false);
+		if (quickActionButton instanceof BaseButton) {
+			((BaseButton) quickActionButton).setCaptionVisibleOnMobile(false);
+		}
 		actionAndModeButtonsLayout.addComponent(quickActionButton, 0);
 		actionAndModeButtonsLayout.setComponentAlignment(quickActionButton, Alignment.TOP_LEFT);
 	}
@@ -280,7 +289,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 	public void setSelectionActionButtons() {
 		if (isSelectColumn()) {
 			if (initialSelectionActionsMenuBar == null) {
-				selectionActionsMenuBar = new RecordListMenuBar(getMenuItemProvider(), $("ViewableRecordVOTablePanel.selectionActions"), Collections.emptyList());
+				selectionActionsMenuBar = new RecordListMenuBar(getMenuItemProvider(), $("ViewableRecordVOTablePanel.selectionActions"), excludedMenuItemInDefaultSelectionActionButtons());
 			} else {
 				selectionActionsMenuBar = initialSelectionActionsMenuBar;
 				selectionActionsMenuBar.setRecordProvider(getMenuItemProvider());
@@ -288,6 +297,10 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 
 			addSelectionActionsMenuBarToView();
 		}
+	}
+
+	protected List<String> excludedMenuItemInDefaultSelectionActionButtons() {
+		return Collections.emptyList();
 	}
 
 	protected MenuItemRecordProvider getMenuItemProvider() {
