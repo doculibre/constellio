@@ -40,6 +40,8 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.aggregations.GetMetadatasUsedToCalculateParams;
 import com.constellio.model.services.records.aggregations.MetadataAggregationHandler;
 import com.constellio.model.services.records.aggregations.MetadataAggregationHandlerFactory;
+import com.constellio.model.services.records.cache.CacheConfig;
+import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.records.utils.RecordDTOIterator;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
@@ -61,6 +63,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -106,9 +109,6 @@ public class ReindexingServices {
 
 		} else if (modelLayerFactory.getSystemConfigs().getMemoryConsumptionLevel() == LESS_MEMORY_CONSUMPTION) {
 			this.mainThreadQueryRows = 100;
-
-			//		} else if (modelLayerFactory.getSystemConfigs().getMemoryConsumptionLevel() == NORMAL) {
-			//			this.mainThreadQueryRows = 1000;
 
 		} else {
 			this.mainThreadQueryRows = modelLayerFactory.getConfiguration().getReindexingQueryBatchSize();
@@ -290,6 +290,19 @@ public class ReindexingServices {
 		//			recreateIndexes(collection);
 		//		}
 
+		Map<String, CacheConfig> previousCacheConfigs = new HashMap<>();
+
+		RecordsCache recordsCache = modelLayerFactory.getRecordsCaches().getCache(collection);
+		for (MetadataSchemaType schemaType : types.getSchemaTypes()) {
+			if (recordsCache.isConfigured(schemaType)) {
+				CacheConfig cacheConfig = recordsCache.getCacheConfigOf(schemaType.getCode());
+				if (cacheConfig.isVolatile()) {
+					recordsCache.removeCache(schemaType.getCode());
+					previousCacheConfigs.put(schemaType.getCode(), cacheConfig);
+				}
+			}
+		}
+
 		ReindexingRecordsProvider recordsProvider = new ReindexingRecordsProvider(modelLayerFactory, mainThreadQueryRows);
 		ReindexingAggregatedValuesTempStorage aggregatedValuesTempStorage = newReindexingAggregatedValuesTempStorage();
 
@@ -366,6 +379,10 @@ public class ReindexingServices {
 			level++;
 		}
 		aggregatedValuesTempStorage.clear();
+
+		for (CacheConfig previousCacheConfig : previousCacheConfigs.values()) {
+			recordsCache.configureCache(previousCacheConfig);
+		}
 	}
 
 	@NotNull
