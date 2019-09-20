@@ -26,8 +26,9 @@ import com.constellio.app.ui.framework.components.buttons.RecordVOActionButtonFa
 import com.constellio.app.ui.framework.components.content.ContentVersionVOResource;
 import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
 import com.constellio.app.ui.framework.components.fields.upload.ContentVersionUploadField;
+import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.components.search.FacetsPanel;
-import com.constellio.app.ui.framework.components.splitpanel.CollapsibleHorizontalSplitPanel;
+import com.constellio.app.ui.framework.components.search.FacetsSliderPanel;
 import com.constellio.app.ui.framework.components.table.BaseTable.SelectionChangeEvent;
 import com.constellio.app.ui.framework.components.table.BaseTable.SelectionManager;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
@@ -106,7 +107,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 	private Window documentVersionWindow;
 
-	private CollapsibleHorizontalSplitPanel splitPanel;
+	private I18NHorizontalLayout contentAndFacetsLayout; 
 
 	private RecordVODataProvider folderContentDataProvider;
 	private RecordVODataProvider tasksDataProvider;
@@ -402,9 +403,6 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			};
 			refreshFacets(folderContentDataProvider);
 
-			splitPanel = new CollapsibleHorizontalSplitPanel("FolderContent");
-			splitPanel.setSizeFull();
-
 			viewerPanel = new ViewableRecordVOTablePanel(recordVOContainer) {
 				@Override
 				protected boolean isSelectColumn() {
@@ -488,12 +486,16 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			viewerPanel.addStyleName("folder-content-table");
 			//			viewerPanel.addStyleName("search-result-title");
 
-			splitPanel.setFirstComponent(viewerPanel);
-			splitPanel.setSecondComponent(facetsPanel);
-			splitPanel.setSecondComponentWidth(250, Unit.PIXELS);
-
 			if (!nestedView) {
-				tabSheet.replaceComponent(folderContentComponent, folderContentComponent = splitPanel);
+				contentAndFacetsLayout = new I18NHorizontalLayout();
+				contentAndFacetsLayout.setSizeFull();
+				contentAndFacetsLayout.setSpacing(true);
+				
+				FacetsSliderPanel sliderPanel = new FacetsSliderPanel(facetsPanel);
+				contentAndFacetsLayout.addComponents(viewerPanel, sliderPanel);
+				contentAndFacetsLayout.setExpandRatio(viewerPanel, 1);
+				
+				tabSheet.replaceComponent(folderContentComponent, folderContentComponent = contentAndFacetsLayout);
 			} else {
 				tabSheet.replaceComponent(folderContentComponent, folderContentComponent = viewerPanel);
 			}

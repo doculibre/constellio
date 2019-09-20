@@ -14428,6 +14428,10 @@ div.v-layout.v-horizontal.v-widget {
 	z-index: 2;
 }
 
+.constellio .action-menu-bar-layout .v-button, .constellio .action-menu-bar-layout .v-link {
+	z-index: 1002;
+}
+
 .constellio .v-window .popupContent {
 	z-index: 20001;
 }
@@ -15058,12 +15062,14 @@ div.v-layout.v-horizontal.v-widget {
 	vertical-align: middle;
 }
 
-.constellio .-facets-sliderpanel {
+.constellio .search-main-container .-facets-sliderpanel {
 	position: relative;
 	top: -62px;
 }
 
 .constellio .-facets-sliderpanel .v-sliderpanel-wrapper .v-sliderpanel-content {
+	position: absolute;
+	height: 10000vh;
 	background-color: #414B56;
 	padding-left: 6px;
 }
@@ -15075,6 +15081,10 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .-facets-sliderpanel .facet-title, .constellio .-facets-sliderpanel .sort-title {
 	background-color: #414B56;
+}
+
+.constellio .-facets-sliderpanel .v-radiobutton label {
+	color: #000000;
 }
 
 .constellio .viewable-record-table-panel .v-slot-viewable-record-table-panel-view-action-menu-layout {
@@ -15355,6 +15365,7 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .constellio-layout {
 	background-color: white;
+	font-weight: 400;
 }
 
 .constellio .constellio-layout .sidebar {
@@ -15952,7 +15963,6 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .v-ui[width-range~="1101px-"] .action-menu-bar-layout {
-	z-index: 1000;
 	position: absolute;
 	right: 20px;
 }

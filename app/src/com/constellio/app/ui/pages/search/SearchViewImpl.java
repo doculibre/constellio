@@ -25,6 +25,7 @@ import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveRecor
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.components.menuBar.RecordListMenuBar;
 import com.constellio.app.ui.framework.components.search.FacetsPanel;
+import com.constellio.app.ui.framework.components.search.FacetsSliderPanel;
 import com.constellio.app.ui.framework.components.search.ViewableRecordVOSearchResultTable;
 import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.components.table.BaseTable.SelectionChangeListener;
@@ -80,9 +81,6 @@ import com.vaadin.ui.themes.ValoTheme;
 import org.jetbrains.annotations.Nullable;
 import org.vaadin.dialogs.ConfirmDialog;
 import org.vaadin.sliderpanel.SliderPanel;
-import org.vaadin.sliderpanel.SliderPanelBuilder;
-import org.vaadin.sliderpanel.client.SliderMode;
-import org.vaadin.sliderpanel.client.SliderTabPosition;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -438,9 +436,6 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			}
 
 		};
-		facetsArea.addStyleName("search-result-facets");
-		facetsArea.setWidth("250px");
-		facetsArea.setSpacing(true);
 
 		//		if (Toggle.SEARCH_RESULTS_VIEWER.isEnabled()) {
 		//			viewableSearchResultsPanel = new ViewableRecordTablePanel(resultsArea);
@@ -454,15 +449,8 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		//			resultsAndFacetsPanel = body;
 		//		} else {
 
-		SliderPanel sliderPanel = new SliderPanelBuilder(facetsArea)
-				.mode(SliderMode.RIGHT)
-				.caption($("SearchView.filter"))
-				.tabPosition(SliderTabPosition.BEGINNING)
-				.expanded(false)
-				.build();
-		sliderPanel.addStyleName("facets-sliderpanel");
-
-		sliderPanel.addStyleName("facet");
+		SliderPanel sliderPanel = new FacetsSliderPanel(facetsArea);
+		//sliderPanel.addStyleName("facet");
 
 		I18NHorizontalLayout body = new I18NHorizontalLayout(resultsArea, sliderPanel);
 		body.addStyleName("search-result-and-facets-container");

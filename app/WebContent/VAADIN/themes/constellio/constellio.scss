@@ -1498,6 +1498,12 @@ $popup-view-z-index: 3;
 		z-index: 2;
 	}
 
+	.action-menu-bar-layout {
+		.v-button, .v-link {
+			z-index: 1002;
+		}
+	}	
+
 	.v-window {
 	
 		.popupContent {
@@ -2236,12 +2242,18 @@ $popup-view-z-index: 3;
 		}
 	}
 	
+	.search-main-container {
+		.-facets-sliderpanel {
+			position: relative;
+			top: -62px;
+		}
+	}
+	
 	.-facets-sliderpanel {
-		position: relative;
-		top: -62px;
-		
 		.v-sliderpanel-wrapper {
 			.v-sliderpanel-content {
+			    position: absolute;
+			    height: 10000vh;
 				background-color: $valo-menu-background-color;
 				padding-left: 6px;
 			}
@@ -2256,6 +2268,9 @@ $popup-view-z-index: 3;
 			background-color: $valo-menu-background-color;
 		}
 		
+		.v-radiobutton label {
+			color:#000000; 
+		}
 	}
 
     .viewable-record-table-panel {
@@ -2576,6 +2591,7 @@ $popup-view-z-index: 3;
 
     .constellio-layout {
 		background-color: white;
+		font-weight: 400;
 
 	    .sidebar {
 	    	overflow-y: hidden;
@@ -3263,7 +3279,6 @@ $popup-view-z-index: 3;
 	    }
 
 	    .action-menu-bar-layout {
-	        z-index: 1000;
 			position: absolute;
 			right: 20px;
 	    }

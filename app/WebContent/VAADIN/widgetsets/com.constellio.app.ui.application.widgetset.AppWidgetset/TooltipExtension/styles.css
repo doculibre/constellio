@@ -1,0 +1,91 @@
+div.customTooltipWidget {
+	position: relative;
+}
+.customTooltip {
+	visibility: hidden;  
+	opacity: 0.2;
+	position: absolute;
+	white-space: nowrap;
+}
+.customTooltipText {
+	padding: 0px 5px;
+	border-radius: 3px;
+	border: 1px solid #e0e0e0;
+	font-size: 13px;
+	font-weight: 500;
+    color: black;
+	background-color: #e6e6e6;
+	text-align: center;
+	
+}
+[class*="customTooltipComponent"] {
+	top:95%;
+	bottom:95%;
+	left:95%;
+	right:95%;
+}
+.customTooltipWidget:hover > [class*="customTooltipComponent"]  {
+	visibility: visible;
+	opacity: 1.0;
+	z-index: 9999;
+}
+.customTooltipWidget:hover > .customTooltipComponentRight  {
+	top: 50%;
+	left: 100%;
+	bottom:auto;
+	right:auto;
+	transform: translateY(-50%);
+	margin: auto 5px;
+}
+.customTooltipWidget:hover > .customTooltipComponentLeft  {
+	top: 50%;
+	right: 100%;
+	bottom:auto;
+	left:auto;
+	transform: translateY(-50%);
+	margin: auto 5px;
+}
+.customTooltipWidget:hover > .customTooltipComponentTop  {
+	left: 50%;
+	bottom: 100%;
+	top:auto;
+	right:auto;
+	transform: translateX(-50%);
+	margin:2px auto;
+}
+.customTooltipWidget:hover > .customTooltipComponentBottom  {
+	left: 50%;
+	top: 100%;
+	right:auto;
+	bottom:auto;
+	transform: translateX(-50%);
+	margin: auto;
+}
+.customTooltipComponentTop {
+	-webkit-transition:  bottom 25ms, opacity 25ms ease-in;
+	-ms-transition:  bottom 25ms, opacity 25ms ease-in;
+	-moz-transition: bottom 25ms, opacity 25ms ease-in;
+	-o-transition:  bottom 25ms, opacity 25ms ease-in;
+	transition:  bottom 25ms, opacity 25ms ease-in;
+}
+.customTooltipComponentBottom {
+	-webkit-transition: top 25ms, opacity 25ms ease-in;
+	-ms-transition: top 25ms, opacity 25ms ease-in;
+	-moz-transition: top 25ms, opacity 25ms ease-in;
+	-o-transition: top 25ms, opacity 25ms ease-in;
+	transition: top 25ms, opacity 25ms ease-in;
+}
+.customTooltipComponentRight {
+	-webkit-transition:  left 25ms, opacity 25ms ease-in;
+	-ms-transition: left 25ms, opacity 25ms ease-in;
+	-moz-transition: left 25ms, opacity 25ms ease-in;
+	-o-transition: left 25ms, opacity 25ms ease-in;
+	transition: left 25ms, opacity 25ms ease-in;
+}
+.customTooltipComponentLeft {
+	-webkit-transition: right 25ms, opacity 25ms ease-in;
+	-ms-transition: right 25ms, opacity 25ms ease-in;
+	-moz-transition: right 25ms, opacity 25ms ease-in;
+	-o-transition: right 25ms, opacity 25ms ease-in;
+	transition: right 25ms, opacity 25ms ease-in;
+}

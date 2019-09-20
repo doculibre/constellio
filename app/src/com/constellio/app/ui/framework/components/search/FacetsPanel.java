@@ -37,7 +37,7 @@ public abstract class FacetsPanel extends VerticalLayout {
 	
 	public FacetsPanel() {
 		addStyleName("search-result-facets");
-//		setWidth("300px");
+		setWidth("250px");
 		setSpacing(true);
 	}
 	

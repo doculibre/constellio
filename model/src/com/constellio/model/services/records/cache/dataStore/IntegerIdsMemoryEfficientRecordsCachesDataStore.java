@@ -55,11 +55,13 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 	private MetadataSchemasManager schemasManager;
 
 	private SimpleReadLockMechanism mechanism = new SimpleReadLockMechanism();
+	private short tenantId;
 
 	public IntegerIdsMemoryEfficientRecordsCachesDataStore(ModelLayerFactory modelLayerFactory) {
 		this.modelLayerFactory = modelLayerFactory;
 		this.collectionsListManager = modelLayerFactory.getCollectionsListManager();
 		this.schemasManager = modelLayerFactory.getMetadataSchemasManager();
+		this.tenantId = modelLayerFactory.getInstanceId();
 	}
 
 
@@ -412,7 +414,7 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 			MetadataSchema schema = type.getSchema(schemaId);
 
 			return new ByteArrayRecordDTOWithIntegerId(id, modelLayerFactory.getMetadataSchemasManager(), version, true,
-					schema.getCollection(), collectionId, type.getCode(), typeId, schema.getCode(), schemaId, data);
+					tenantId, schema.getCollection(), collectionId, type.getCode(), typeId, schema.getCode(), schemaId, data);
 
 		} else {
 			return fullyCachedData.get(listIndex);

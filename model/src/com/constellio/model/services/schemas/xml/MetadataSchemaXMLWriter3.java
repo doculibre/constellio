@@ -357,10 +357,16 @@ public class MetadataSchemaXMLWriter3 {
 			different = true;
 		}
 
+		if (globalMetadataInCollection.isCacheIndex() != metadata.isCacheIndex()) {
+			metadataElement.setAttribute("cacheIndex", writeBoolean(metadata.isCacheIndex()));
+			different = true;
+		}
+
 		if (globalMetadataInCollection.isEnabled() != metadata.isEnabled()) {
 			metadataElement.setAttribute("enabled", writeBoolean(metadata.isEnabled()));
 			different = true;
 		}
+
 		if (globalMetadataInCollection.isUndeletable() != metadata.isUndeletable()) {
 			metadataElement.setAttribute("undeletable", writeBoolean(metadata.isUndeletable()));
 			different = true;

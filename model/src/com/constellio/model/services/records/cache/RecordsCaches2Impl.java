@@ -2,6 +2,7 @@ package com.constellio.model.services.records.cache;
 
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordDTOMode;
+import com.constellio.data.dao.dto.records.SolrRecordDTO;
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.services.cache.InsertionReason;
 import com.constellio.data.utils.ImpossibleRuntimeException;
@@ -102,7 +103,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 		this.collectionsListManager = modelLayerFactory.getCollectionsListManager();
 		this.metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
 		this.fileSystemDataStore = fileSystemDataStore;
-		SummaryCacheSingletons.dataStore = fileSystemDataStore;
+		SummaryCacheSingletons.dataStore.put(modelLayerFactory.getInstanceId(), fileSystemDataStore);
 		this.memoryDataStore = memoryDataStore;
 		this.recordServices = new Lazy<RecordServices>() {
 			@Override
@@ -193,6 +194,10 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 		RecordDTO current = insertionReason == LOADING_CACHE ? null : memoryDataStore.get(record.getId());
 		if (current != null && current.getVersion() > record.getVersion()) {
 			return new CacheInsertionResponse(CacheInsertionStatus.REFUSED_OLD_VERSION, null, DEFAULT_INSERT);
+		}
+		if (current instanceof ByteArrayRecordDTO) {
+			//Since persisted values will change during cache insert, we copy the current status of the DTO in a SolrRecordDTO
+			current = new SolrRecordDTO(current);
 		}
 
 		MetadataSchemaTypes schemaTypes = metadataSchemasManager.getSchemaTypes(record);
@@ -879,6 +884,7 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 
 		String collection = (String) dto.getFields().get("collection_s");
 		String schemaCode = (String) dto.getFields().get("schema_s");
+		short instanceId = modelLayerFactory.getInstanceId();
 		MetadataSchemaType type = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection)
 				.getSchemaType(SchemaUtils.getSchemaTypeCode(schemaCode));
 
@@ -894,23 +900,23 @@ public class RecordsCaches2Impl implements RecordsCaches, StatefulService {
 
 		if (intId == RecordUtils.KEY_IS_NOT_AN_INT) {
 			if (bytesArray.bytesToPersist != null && bytesArray.bytesToPersist.length > 0) {
-				SummaryCacheSingletons.dataStore.saveStringKey(dto.getId(), bytesArray.bytesToPersist);
+				SummaryCacheSingletons.dataStore.get(instanceId).saveStringKey(dto.getId(), bytesArray.bytesToPersist);
 
 			} else if (reason != LOADING_CACHE) {
-				SummaryCacheSingletons.dataStore.removeStringKey(dto.getId());
+				SummaryCacheSingletons.dataStore.get(instanceId).removeStringKey(dto.getId());
 			}
 			return new ByteArrayRecordDTOWithStringId(dto.getId(), schemaProvider, dto.getVersion(), true,
-					collectionInfo.getCode(), collectionInfo.getCollectionId(), type.getCode(), type.getId(),
+					instanceId, collectionInfo.getCode(), collectionInfo.getCollectionId(), type.getCode(), type.getId(),
 					schema.getCode(), schema.getId(), bytesArray.bytesToKeepInMemory);
 		} else {
 			if (bytesArray.bytesToPersist != null && bytesArray.bytesToPersist.length > 0) {
-				SummaryCacheSingletons.dataStore.saveIntKey(intId, bytesArray.bytesToPersist);
+				SummaryCacheSingletons.dataStore.get(instanceId).saveIntKey(intId, bytesArray.bytesToPersist);
 
 			} else if (reason != LOADING_CACHE) {
-				SummaryCacheSingletons.dataStore.removeIntKey(intId);
+				SummaryCacheSingletons.dataStore.get(instanceId).removeIntKey(intId);
 			}
 			return new ByteArrayRecordDTOWithIntegerId(intId, schemaProvider, dto.getVersion(), true,
-					collectionInfo.getCode(), collectionInfo.getCollectionId(), type.getCode(), type.getId(),
+					instanceId, collectionInfo.getCode(), collectionInfo.getCollectionId(), type.getCode(), type.getId(),
 					schema.getCode(), schema.getId(), bytesArray.bytesToKeepInMemory);
 		}
 
