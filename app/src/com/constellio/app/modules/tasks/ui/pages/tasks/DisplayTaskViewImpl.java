@@ -1,20 +1,19 @@
 package com.constellio.app.modules.tasks.ui.pages.tasks;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.vaadin.dialogs.ConfirmDialog;
-
+import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.tasks.ui.components.TaskTable;
 import com.constellio.app.modules.tasks.ui.components.breadcrumb.TaskBreadcrumbTrail;
 import com.constellio.app.modules.tasks.ui.components.display.TaskDisplayFactory;
+import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveCollaboratorsField;
+import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveCollaboratorsGroupsField;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.AddButton;
+import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.ConfirmDialogButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
+import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.RecordDisplay;
 import com.constellio.app.ui.framework.components.ReportTabButton;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
@@ -24,6 +23,7 @@ import com.constellio.app.ui.framework.components.table.columns.TableColumnsMana
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.model.entities.records.Record;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
@@ -32,6 +32,16 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomComponent;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.themes.ValoTheme;
+import org.vaadin.dialogs.ConfirmDialog;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import static com.constellio.app.modules.tasks.model.wrappers.Task.TASK_COLLABORATORS;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.TASK_COLLABORATORS_GROUPS;
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DisplayTaskViewImpl extends BaseViewImpl implements DisplayTaskView {
 	public static final String STYLE_NAME = "display-folder";
@@ -226,12 +236,40 @@ public class DisplayTaskViewImpl extends BaseViewImpl implements DisplayTaskView
 					super.buttonClick(event);
 				}
 			};
-
-
 			actionMenuButtons.add(reportGeneratorButton);
+
+			WindowButton shareButton = new WindowButton("Partager", "Partager") {
+				@Override
+				protected Component buildWindowContent() {
+					VerticalLayout mainLayout = new VerticalLayout();
+					RecordVO recordVO = presenter.getTaskVO();
+					ListAddRemoveCollaboratorsField collaboratorsField = new ListAddRemoveCollaboratorsField(recordVO, currentUserIsCollaborator(recordVO));
+					ListAddRemoveCollaboratorsGroupsField collaboratorGroupsField = new ListAddRemoveCollaboratorsGroupsField(recordVO, currentUserIsCollaborator(recordVO));
+					BaseButton saveButton = new BaseButton($("save")) {
+						@Override
+						protected void buttonClick(ClickEvent event) {
+							presenter.addCollaborators(collaboratorsField.getValue(), collaboratorGroupsField.getValue());
+							getWindow().close();
+						}
+					};
+					saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
+					mainLayout.addComponents(collaboratorsField, collaboratorGroupsField, saveButton);
+					return mainLayout;
+				}
+			};
+			actionMenuButtons.add(shareButton);
 		}
 
 		return actionMenuButtons;
+	}
+
+	private boolean currentUserIsCollaborator(RecordVO recordVO) {
+		String userId = getSessionContext().getCurrentUser().getId();
+		AppLayerFactory appLayerFactory = getConstellioFactories().getAppLayerFactory();
+		Record currentUserRecord = appLayerFactory.getModelLayerFactory().newRecordServices().getDocumentById(userId);
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(getCollection(), appLayerFactory);
+		boolean userInGroupCollaborator = !Collections.disjoint(rm.wrapUser(currentUserRecord).getUserGroups(), recordVO.get(TASK_COLLABORATORS_GROUPS));
+		return ((List) recordVO.get(TASK_COLLABORATORS)).contains(userId) || userInGroupCollaborator;
 	}
 
 	@Override

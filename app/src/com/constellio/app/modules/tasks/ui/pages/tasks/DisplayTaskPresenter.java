@@ -22,6 +22,8 @@ import com.constellio.app.ui.framework.builders.EventToVOBuilder;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.buttons.report.ReportGeneratorButton;
 import com.constellio.app.ui.framework.components.RMSelectionPanelReportPresenter;
+import com.constellio.app.ui.framework.components.fields.list.TaskCollaboratorItem;
+import com.constellio.app.ui.framework.components.fields.list.TaskCollaboratorsGroupItem;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
@@ -38,6 +40,7 @@ import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.constellio.app.modules.tasks.model.wrappers.Task.ASSIGNEE;
@@ -473,6 +476,34 @@ public class DisplayTaskPresenter extends AbstractTaskPresenter<DisplayTaskView>
 
 	public AppLayerFactory getApplayerFactory() {
 		return appLayerFactory;
+	}
+
+	public void addCollaborators(List<TaskCollaboratorItem> taskCollaboratorItems,
+								 List<TaskCollaboratorsGroupItem> taskCollaboratorsGroupItems) {
+		List<String> taskCollaborators = new ArrayList<>();
+		List<Boolean> taskCollaboratorsWriteAuthorizations = new ArrayList<>();
+		List<String> taskCollaboratorsGroups = new ArrayList<>();
+		List<Boolean> taskCollaboratorsGroupsWriteAuthorizations = new ArrayList<>();
+		for (TaskCollaboratorItem taskCollaboratorItem : taskCollaboratorItems) {
+			taskCollaborators.add(taskCollaboratorItem.getTaskCollaborator());
+			taskCollaboratorsWriteAuthorizations.add(taskCollaboratorItem.isTaskCollaboratorsWriteAuthorization());
+		}
+		for (TaskCollaboratorsGroupItem taskCollaboratorsGroupItem : taskCollaboratorsGroupItems) {
+			taskCollaboratorsGroups.add(taskCollaboratorsGroupItem.getTaskCollaboratorGroup());
+			taskCollaboratorsGroupsWriteAuthorizations.add(taskCollaboratorsGroupItem.isTaskCollaboratorGroupWriteAuthorization());
+		}
+		taskVO.setTaskCollaborators(taskCollaborators);
+		taskVO.setTaskCollaboratorsWriteAuthorizations(taskCollaboratorsWriteAuthorizations);
+		taskVO.setTaskCollaboratorsGroups(taskCollaboratorsGroups);
+		taskVO.settaskCollaboratorsGroupsWriteAuthorizations(taskCollaboratorsGroupsWriteAuthorizations);
+
+		Record record = toRecord(taskVO);
+		Task task = tasksSchemas.wrapTask(record);
+		try {
+			recordServices().update(task);
+		} catch (RecordServicesException e) {
+			e.printStackTrace();
+		}
 	}
 
 }

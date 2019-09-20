@@ -30,8 +30,11 @@ public class ListAddRemoveCollaboratorsField extends ListAddRemoveField<TaskColl
 
 	private List<TaskCollaboratorItem> taskCollaboratorItem;
 
-	public ListAddRemoveCollaboratorsField(RecordVO taskVO) {
+	private boolean currentUserIsCollaborator;
+
+	public ListAddRemoveCollaboratorsField(RecordVO taskVO, boolean currentUserIsCollaborator) {
 		this.taskVO = taskVO;
+		this.currentUserIsCollaborator = currentUserIsCollaborator;
 		init();
 	}
 
@@ -136,4 +139,21 @@ public class ListAddRemoveCollaboratorsField extends ListAddRemoveField<TaskColl
 		}
 	}
 
+	@Override
+	protected boolean isEditButtonVisible(TaskCollaboratorItem item) {
+		if (currentUserIsCollaborator) {
+			return false;
+		} else {
+			return super.isEditButtonVisible(item);
+		}
+	}
+
+	@Override
+	protected boolean isDeleteButtonVisible(TaskCollaboratorItem item) {
+		if (currentUserIsCollaborator) {
+			return false;
+		} else {
+			return super.isDeleteButtonVisible(item);
+		}
+	}
 }

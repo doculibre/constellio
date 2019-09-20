@@ -2,6 +2,7 @@ package com.constellio.app.modules.tasks.ui.components;
 
 import com.constellio.app.api.extensions.params.MetadataFieldExtensionParams;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
+import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.tasks.model.wrappers.request.BorrowRequest;
 import com.constellio.app.modules.tasks.ui.components.fields.CustomTaskField;
 import com.constellio.app.modules.tasks.ui.components.fields.TaskAcceptedFieldImpl;
@@ -31,10 +32,12 @@ import com.constellio.app.ui.framework.components.MetadataFieldFactory;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupField;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 import com.constellio.app.ui.pages.base.BaseView;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.vaadin.ui.Field;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
@@ -48,6 +51,7 @@ import static com.constellio.app.modules.tasks.model.wrappers.Task.QUESTION;
 import static com.constellio.app.modules.tasks.model.wrappers.Task.RELATIVE_DUE_DATE;
 import static com.constellio.app.modules.tasks.model.wrappers.Task.REMINDERS;
 import static com.constellio.app.modules.tasks.model.wrappers.Task.REMINDER_FREQUENCY;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.STATUS;
 import static com.constellio.app.modules.tasks.model.wrappers.Task.TASK_COLLABORATORS;
 import static com.constellio.app.modules.tasks.model.wrappers.Task.TASK_COLLABORATORS_GROUPS;
 import static com.constellio.app.modules.tasks.model.wrappers.Task.TASK_FOLLOWERS;
@@ -81,6 +85,8 @@ public class TaskFieldFactory extends MetadataFieldFactory {
 	public Field<?> build(MetadataVO metadata, Locale locale) {
 		Field<?> field;
 		MetadataInputType inputType = metadata.getMetadataInputType();
+		AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
+		String currentCollection = metadata.getCollection();
 		switch (metadata.getLocalCode()) {
 			case TYPE:
 				if (MetadataInputType.LOOKUP.equals(inputType)) {
@@ -141,26 +147,32 @@ public class TaskFieldFactory extends MetadataFieldFactory {
 			case ASSIGNER:
 				field = new LookupRecordField(User.SCHEMA_TYPE);
 				postBuild(field, metadata);
+				field.setEnabled(!currentUserIsCollaborator(appLayerFactory));
 				break;
 			case TASK_COLLABORATORS:
-				field = new ListAddRemoveCollaboratorsField(recordVO);
+				field = new ListAddRemoveCollaboratorsField(recordVO, currentUserIsCollaborator(appLayerFactory));
 				break;
 			case TASK_COLLABORATORS_GROUPS:
-				field = new ListAddRemoveCollaboratorsGroupsField(recordVO);
+				field = new ListAddRemoveCollaboratorsGroupsField(recordVO, currentUserIsCollaborator(appLayerFactory));
 				break;
 			case ASSIGNEE:
 				field = super.build(metadata, locale);
 				if(field instanceof LookupField) {
 					((LookupField<Serializable>) field).setReadOnlyMessageI18NKey("TaskAssignee.readOnlyMessage");
 				}
+				field.setEnabled(!currentUserIsCollaborator(appLayerFactory));
 				break;
 			case ASSIGNATION_MODES:
 				field = new TaskAssignationEnumField(metadata.getEnumClass());
 				postBuild(field, metadata);
 				break;
+			case STATUS:
+				field = appLayerFactory.getExtensions().forCollection(currentCollection)
+						.getMetadataField(new MetadataFieldExtensionParams(metadata, recordVO, baseView));
+				postBuild(field, metadata);
+				field.setEnabled(!currentUserIsCollaborator(appLayerFactory));
+				break;
 		default:
-				AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
-				String currentCollection = metadata.getCollection();
 			field = appLayerFactory.getExtensions().forCollection(currentCollection)
 					.getMetadataField(new MetadataFieldExtensionParams(metadata, recordVO, baseView));
 			if (field != null) {
@@ -174,5 +186,13 @@ public class TaskFieldFactory extends MetadataFieldFactory {
 			postBuild(field, metadata);
 		}
 		return field;
+	}
+
+	private boolean currentUserIsCollaborator(AppLayerFactory appLayerFactory) {
+		String userId = baseView.getSessionContext().getCurrentUser().getId();
+		Record currentUserRecord = appLayerFactory.getModelLayerFactory().newRecordServices().getDocumentById(baseView.getSessionContext().getCurrentUser().getId());
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(baseView.getSessionContext().getCurrentCollection(), appLayerFactory);
+		boolean userInGroupCollaborator = !Collections.disjoint(rm.wrapUser(currentUserRecord).getUserGroups(), recordVO.get(TASK_COLLABORATORS_GROUPS));
+		return ((List) recordVO.get(TASK_COLLABORATORS)).contains(userId) || userInGroupCollaborator;
 	}
 }
