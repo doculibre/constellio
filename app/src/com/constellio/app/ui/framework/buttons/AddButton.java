@@ -27,12 +27,6 @@ public abstract class AddButton extends BaseButton {
 			addStyleName(ValoTheme.BUTTON_PRIMARY);
 		}
 		addStyleName(BUTTON_STYLE);
-		addClickListener(new ClickListener() {
-			@Override
-			public void buttonClick(ClickEvent event) {
-				AddButton.this.buttonClick(event);
-			}
-		});
 	}
 
 	protected abstract void buttonClick(ClickEvent event);
