@@ -11,6 +11,8 @@ import com.constellio.model.frameworks.validation.ValidationException;
 import com.jgoodies.common.base.Strings;
 import com.vaadin.data.Item;
 import com.vaadin.data.Property;
+import com.vaadin.data.Property.ValueChangeEvent;
+import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.Validator;
 import com.vaadin.data.util.NestedMethodProperty;
 import com.vaadin.event.dd.DragAndDropEvent;
@@ -106,6 +108,19 @@ public class UpdateContentVersionWindowImpl extends BaseWindow implements Update
 		majorVersionField.setCaption($("UpdateContentVersionWindow.version"));
 		majorVersionField.setRequired(true);
 		majorVersionField.setImmediate(true);
+
+		majorVersionField.addValueChangeListener(new ValueChangeListener() {
+			@Override
+			public void valueChange(ValueChangeEvent event) {
+				Object value = majorVersionField.getValue();
+
+				if (value instanceof String) {
+					uploadField.setRequired(false);
+				} else {
+					uploadField.setRequired(true);
+				}
+			}
+		});
 
 		List<FieldAndPropertyId> fieldsAndPropertyIds = new ArrayList<FieldAndPropertyId>();
 		fieldsAndPropertyIds.add(new FieldAndPropertyId(uploadField, "contentVersion"));

@@ -54,9 +54,11 @@ public class LogicalSearchQueryExecutorInCache {
 	MetadataSchemasManager schemasManager;
 	ModelLayerSystemExtensions modelLayerExtensions;
 	String mainDataLanguage;
+	SearchConfigurationsManager searchConfigurationsManager;
 
 	public LogicalSearchQueryExecutorInCache(SearchServices searchServices, RecordsCaches recordsCaches,
 											 MetadataSchemasManager schemasManager,
+											 SearchConfigurationsManager searchConfigurationsManager,
 											 ModelLayerSystemExtensions modelLayerExtensions,
 											 String mainDataLanguage) {
 		this.searchServices = searchServices;
@@ -64,12 +66,13 @@ public class LogicalSearchQueryExecutorInCache {
 		this.schemasManager = schemasManager;
 		this.modelLayerExtensions = modelLayerExtensions;
 		this.mainDataLanguage = mainDataLanguage;
+		this.searchConfigurationsManager = searchConfigurationsManager;
 	}
 
 	public Stream<Record> stream(LogicalSearchQuery query) {
 		MetadataSchemaType schemaType = getQueriedSchemaType(query.getCondition());
 
-		Predicate<Record> filter = toStreamFilter(query);
+		Predicate<Record> filter = toStreamFilter(query, schemaType);
 
 		Stream<Record> stream = newBaseRecordStream(query, schemaType, filter);
 
@@ -80,7 +83,10 @@ public class LogicalSearchQueryExecutorInCache {
 		}
 	}
 
-	private Predicate<Record> toStreamFilter(LogicalSearchQuery query) {
+	private Predicate<Record> toStreamFilter(LogicalSearchQuery query, MetadataSchemaType schemaType) {
+
+		final List<String> excludedDocs = searchConfigurationsManager.getDocExlusions(schemaType.getCollection());
+
 		Predicate<Record> filter = new Predicate<Record>() {
 			@Override
 			public boolean test(Record record) {
@@ -110,6 +116,8 @@ public class LogicalSearchQueryExecutorInCache {
 						result = !Boolean.TRUE.equals(record.get(Schemas.LOGICALLY_DELETED_STATUS));
 						break;
 				}
+
+				result &= !excludedDocs.contains(record.getId());
 
 				return result;
 			}

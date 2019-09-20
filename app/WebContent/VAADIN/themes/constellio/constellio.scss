@@ -1252,6 +1252,10 @@ $popup-view-z-index: 3;
     	}
     }
 
+    .link.display-value {
+        padding-left: 10px;
+    }
+
     .link {
 	    text-align: left;
     	padding: 0;
@@ -1822,7 +1826,6 @@ $popup-view-z-index: 3;
 	.v-multifileupload-uploads {
 	    float: right;
 	    position: relative;
-	    top: 38px;
 	    margin-top: -38px;
 	    z-index: 1;
 	}

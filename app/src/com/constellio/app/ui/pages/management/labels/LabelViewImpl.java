@@ -1,8 +1,10 @@
 package com.constellio.app.ui.pages.management.labels;
 
+import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.entities.LabelVO;
 import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.components.RecordDisplay;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.breadcrumb.IntermediateBreadCrumbTailItem;
@@ -10,11 +12,13 @@ import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrai
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.params.ParamUtils;
 import com.vaadin.navigator.ViewChangeListener;
+import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.VerticalLayout;
 import org.apache.commons.lang.StringUtils;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -53,6 +57,22 @@ public class LabelViewImpl extends BaseViewImpl implements AddEditLabelView {
 		};
 	}
 
+	private Button newEditButton() {
+		Button modifyButton = new BaseButton($("LabelViewImpl.edit")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				navigate().to(RMViews.class).editLabel(recordVO.getId());
+			}
+		};
+
+		return modifyButton;
+	}
+
+	@Override
+	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
+		return Arrays.asList(newEditButton());
+	}
+
 	@Override
 	public void setLabels(List<LabelVO> list) {
 
@@ -71,6 +91,7 @@ public class LabelViewImpl extends BaseViewImpl implements AddEditLabelView {
 			recordVO = presenter.getRecordVO(paramsMap.get("id"), RecordVO.VIEW_MODE.DISPLAY);
 		}
 	}
+
 
 	@Override
 	protected Component buildMainComponent(ViewChangeListener.ViewChangeEvent event) {

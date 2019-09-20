@@ -336,6 +336,8 @@ public class DocumentMenuItemActionBehaviors {
 
 				DocumentVO documentVO = getDocumentVO(params, document);
 
+				params.getView().refreshActionMenu();
+
 				String checkedOutVersion = content.getCurrentVersion().getVersion();
 				params.getView().showMessage($("DocumentActionsComponent.checkedOut", checkedOutVersion));
 				String agentURL = ConstellioAgentUtils.getAgentURL(documentVO, documentVO.getContent(), params.getView().getSessionContext());

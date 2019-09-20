@@ -21,7 +21,10 @@ public class FileSystemRecordsValuesCacheDataStore {
 
 	private BTreeMap<String, byte[]> stringKeyMap;
 
+	private File file;
+
 	public FileSystemRecordsValuesCacheDataStore(File file) {
+		this.file = file;
 		if (!file.exists() || file.delete()) {
 
 			if (Toggle.USE_FILESYSTEM_DB_FOR_LARGE_METADATAS_CACHE.isEnabled()) {
