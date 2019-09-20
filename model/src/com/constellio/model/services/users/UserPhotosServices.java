@@ -5,6 +5,7 @@ import com.constellio.data.dao.managers.config.ConfigManagerException.Optimistic
 import com.constellio.data.dao.managers.config.values.BinaryConfiguration;
 import com.constellio.data.dao.services.contents.ContentDao;
 import com.constellio.data.dao.services.contents.ContentDaoException.ContentDaoException_NoSuchContent;
+import com.constellio.data.dao.services.contents.FileSystemContentDao;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.services.zip.ZipService;
@@ -107,6 +108,14 @@ public class UserPhotosServices {
 
 	public ContentDao getContentDao() {
 		return dataLayerFactory.getContentsDao();
+	}
+
+	public File getPhotosFolder() {
+		return ((FileSystemContentDao) dataLayerFactory.getContentsDao()).getFileOf("photos");
+	}
+
+	public File getUserLogsFolder() {
+		return ((FileSystemContentDao) dataLayerFactory.getContentsDao()).getFileOf("userlogs");
 	}
 
 	public List<String> getUserLogs(String username) {

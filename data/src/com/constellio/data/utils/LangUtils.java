@@ -1,13 +1,16 @@
 package com.constellio.data.utils;
 
 import org.apache.commons.collections4.list.UnmodifiableList;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 
+import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -28,6 +31,12 @@ public class LangUtils {
 	public static <T, V extends T, D extends T> T valueOrDefault(V value, D defaultValue) {
 		return value != null ? value : defaultValue;
 	}
+
+
+	public static String toNullableString(Object o) {
+		return o == null ? null : o.toString();
+	}
+
 
 	public static Comparator<Entry<String, String>> mapStringStringEntryValueComparator() {
 		return new Comparator<Entry<String, String>>() {
@@ -278,6 +287,18 @@ public class LangUtils {
 		return (modifiedValue instanceof List) && (((List) modifiedValue).isEmpty());
 	}
 
+	public static List<File> listFiles(File tempFolder) {
+		File[] files = tempFolder.listFiles();
+		return files == null ? Collections.<File>emptyList() : Arrays.<File>asList(files);
+
+	}
+
+	public static List<String> listFilenames(File tempFolder) {
+		String[] files = tempFolder.list();
+		return files == null ? Collections.<String>emptyList() : Arrays.<String>asList(files);
+
+	}
+
 	public static class StringReplacer {
 
 		List<StringReplacement> stringReplacements = new ArrayList<>();
@@ -490,5 +511,22 @@ public class LangUtils {
 			throwableList.add(throwable);
 		}
 		return throwableList;
+	}
+
+	public static boolean isNotEmptyValue(Object value) {
+		boolean notEmptyValue = value != null;
+		if (value instanceof String) {
+			notEmptyValue = StringUtils.isNotEmpty((String) value);
+		}
+
+		if (value instanceof Collection) {
+			Iterator<Object> iterator = ((Collection) value).iterator();
+			notEmptyValue = false;
+			while (!notEmptyValue && iterator.hasNext()) {
+				notEmptyValue = isNotEmptyValue(iterator.next());
+			}
+
+		}
+		return notEmptyValue;
 	}
 }

@@ -7,6 +7,8 @@ import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.events.EventBusManager;
 import com.constellio.data.events.SDKEventBusSendingService;
+import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.data.io.services.zip.ZipService;
 import com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
@@ -32,7 +34,9 @@ import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.sdk.tests.setups.SchemaShortcuts;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.common.SolrInputDocument;
 import org.assertj.core.api.Condition;
@@ -50,6 +54,7 @@ import org.mockito.stubbing.Answer;
 
 import java.io.File;
 import java.io.FileWriter;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -487,6 +492,165 @@ public class TestUtils {
 	public static SolrInputDocument solrInputDocumentRemovingMetadatas(String id, Metadata... metadatas) {
 		return solrInputDocumentRemovingMetadatas(id, asList(metadatas));
 	}
+
+	public static Condition<? super File> zipFileWithSameContentThan(final File expectedZipFile) {
+		return zipFileWithSameContentExceptingFiles(expectedZipFile);
+	}
+
+	public static ListAssert<String> assertFilesInZip(File file) {
+
+		File tempFolder = null;
+		try {
+
+			tempFolder = File.createTempFile("temp", Long.toString(System.nanoTime()));
+			tempFolder.delete();
+			ZipService zipService = new ZipService(new IOServices(tempFolder));
+
+			File unzipFolder = new File(tempFolder, "unzipFolder");
+			unzipFolder.mkdirs();
+			zipService.unzip(file, unzipFolder);
+
+			List<String> containedFiles = new ArrayList<>();
+			for (File aContainedFile : FileUtils.listFiles(unzipFolder, TrueFileFilter.INSTANCE, TrueFileFilter.INSTANCE)) {
+				String filePath = aContainedFile.getAbsolutePath().replace(unzipFolder.getAbsolutePath(), "").replace("\\", "/");
+				containedFiles.add(filePath.substring(1));
+			}
+
+			Collections.sort(containedFiles);
+
+			return assertThat(containedFiles);
+
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+
+		} finally {
+			FileUtils.deleteQuietly(tempFolder);
+		}
+	}
+
+	public static Condition<? super File> zipFileWithSameContentExceptingFiles(final File expectedZipFile,
+																			   final String... exceptFiles) {
+		return new Condition<File>() {
+			@Override
+			public boolean matches(File validatedZipFile) {
+				File tempFolder = null;
+				try {
+
+					tempFolder = File.createTempFile("temp", Long.toString(System.nanoTime()));
+					tempFolder.delete();
+
+					ZipService zipService = new ZipService(new IOServices(tempFolder));
+
+					File unzipFolder1 = new File(tempFolder, "unzip1");
+					unzipFolder1.mkdirs();
+					zipService.unzip(validatedZipFile, unzipFolder1);
+
+					File unzipFolder2 = new File(tempFolder, "unzip2");
+					unzipFolder2.mkdirs();
+					zipService.unzip(expectedZipFile, unzipFolder2);
+
+					compareFolder(unzipFolder1.getAbsolutePath(), unzipFolder1, unzipFolder2, asList(exceptFiles));
+
+				} catch (Exception e) {
+					throw new RuntimeException(e);
+
+				} finally {
+					FileUtils.deleteQuietly(tempFolder);
+				}
+
+
+				return true;
+			}
+		};
+	}
+
+	private static void compareFolder(String absolutePathToRemove, File validatedFolder, File expectedFolder,
+									  List<String> exceptFiles) {
+
+		List<String> filesInFolder1 = getFilesInFolder(validatedFolder, exceptFiles);
+		List<String> filesInFolder2 = getFilesInFolder(expectedFolder, exceptFiles);
+
+		String folderAbsolutePath = validatedFolder.getAbsolutePath().replace(absolutePathToRemove, "/");
+		assertThat(filesInFolder1).describedAs("Folder '" + folderAbsolutePath + "'").isEqualTo(filesInFolder2);
+
+		for (String file : filesInFolder1) {
+			File file1 = new File(validatedFolder, file);
+			File file2 = new File(expectedFolder, file);
+			String fileAbsolutePath = folderAbsolutePath + file;
+			//if (!file1.getName().contains("schemasDisplay.xml")) {
+
+			String file1Content = null;
+			try {
+				file1Content = FileUtils.readFileToString(file1, "UTF-8");
+			} catch (IOException e) {
+				file1Content = "<FILE DOES NOT EXIST>";
+			}
+			String file2Content = null;
+			try {
+				file2Content = FileUtils.readFileToString(file2, "UTF-8");
+			} catch (IOException e) {
+				file2Content = "<FILE DOES NOT EXIST>";
+			}
+
+
+			if (!file1Content.equals(file2Content)) {
+				assertThat("FICHIER OBTENU (ne pas tenir compte de cette ligne)" + " :\n"
+						   + file1Content).describedAs("Actual content of file '" + fileAbsolutePath
+													   + "' is not equal to the expected content")
+						.isEqualTo("FICHIER DE RÉFÉRENCE (ne pas tenir compte de cette ligne) :\n"
+								   + file2Content);
+			}
+			System.out.println(file1.getName() + " is OK");
+			//}
+		}
+
+		List<String> foldersInFolder1 = getFoldersInFolder(validatedFolder);
+		List<String> foldersInFolder2 = getFoldersInFolder(expectedFolder);
+		assertThat(foldersInFolder1).describedAs("Folder '" + folderAbsolutePath + "'")
+				.isEqualTo(foldersInFolder2);
+
+		for (String file : foldersInFolder1) {
+			File folder1 = new File(validatedFolder, file);
+			File folder2 = new File(expectedFolder, file);
+
+			compareFolder(absolutePathToRemove, folder1, folder2, exceptFiles);
+		}
+	}
+
+	private static List<String> getFilesInFolder(File folder, List<String> exceptFiles) {
+		String[] filenames = folder.list(onlyFile);
+		if (filenames == null) {
+			return new ArrayList<>();
+		}
+		List<String> files = new ArrayList<>(asList(filenames));
+		files.remove(".DS_Store");
+		Collections.sort(files);
+		files.removeAll(exceptFiles);
+		return files;
+	}
+
+	private static List<String> getFoldersInFolder(File folder) {
+		String[] filenames = folder.list(onlyFolder);
+		if (filenames == null) {
+			return new ArrayList<>();
+		}
+		List<String> files = new ArrayList<>(asList(filenames));
+		Collections.sort(files);
+		return files;
+	}
+
+	private static FilenameFilter onlyFile = new FilenameFilter() {
+		@Override
+		public boolean accept(File dir, String name) {
+			return new File(dir, name).isFile();
+		}
+	};
+	private static FilenameFilter onlyFolder = new FilenameFilter() {
+		@Override
+		public boolean accept(File dir, String name) {
+			return new File(dir, name).isDirectory();
+		}
+	};
 
 	public static class MapBuilder<K, V> {
 

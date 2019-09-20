@@ -265,4 +265,10 @@ public class SolrUtils {
 			}
 		}
 	}
+
+	public static Map<String, Object> atomicSet(Object newValue) {
+		Map<String, Object> atomicValueMap = new HashMap<>();
+		atomicValueMap.put("set", newValue);
+		return atomicValueMap;
+	}
 }

@@ -5,5 +5,5 @@ import com.constellio.model.utils.Parametrized;
 
 public interface AsyncTask extends Parametrized {
 
-	void execute(AsyncTaskExecutionParams params) throws ValidationException;
+	void execute(AsyncTaskExecutionParams params) throws ValidationException, Exception;
 }

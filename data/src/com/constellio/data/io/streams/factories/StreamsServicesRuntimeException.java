@@ -1,5 +1,7 @@
 package com.constellio.data.io.streams.factories;
 
+import java.io.File;
+
 @SuppressWarnings({"serial"})
 public class StreamsServicesRuntimeException extends RuntimeException {
 
@@ -29,6 +31,13 @@ public class StreamsServicesRuntimeException extends RuntimeException {
 
 		public StreamsServicesRuntimeException_FileNotFound(Exception e) {
 			super(e);
+		}
+	}
+
+	public static class StreamsServicesRuntimeException_CannotWriteInFile extends StreamsServicesRuntimeException {
+
+		public StreamsServicesRuntimeException_CannotWriteInFile(File file, Exception e) {
+			super("Cannot write in file '" + file + "'", e);
 		}
 	}
 

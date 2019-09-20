@@ -36,4 +36,8 @@ public class IOServicesFactory {
 	public HashingService newHashingService(HashingEncoding hashingEncoding) {
 		return HashingService.forSHA1(newEncodingService(), hashingEncoding);
 	}
+
+	public File getTempFolder() {
+		return tempFolder;
+	}
 }

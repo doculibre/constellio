@@ -16,13 +16,10 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
 import org.joda.time.LocalDateTime;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 import org.junit.Before;
 import org.junit.Test;
 
 import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import java.io.File;
@@ -56,10 +53,7 @@ public class EventServiceAcceptanceTest extends ConstellioTest {
 	public static final String ZIP_TEMP_FILE_1 = "zipTempFile.zip";
 	public static final String TEMP_FILE_1 = "tempFile1";
 
-	private LocalDateTime getLocalDateTimeFromString(String dateTimeAsString) {
-		DateTimeFormatter dateTimeFormatter = DateTimeFormat.forPattern(EventService.DATE_TIME_FORMAT);
-		return dateTimeFormatter.parseLocalDateTime(dateTimeAsString);
-	}
+
 
 	@Before
 	public void setUp() {
@@ -78,7 +72,7 @@ public class EventServiceAcceptanceTest extends ConstellioTest {
 
 		assertThat(eventService.getLastDayTimeArchived()).isEqualTo(EventService.MIN_LOCAL_DATE_TIME);
 
-		dateTime = getLocalDateTimeFromString(DATE_1);
+		dateTime = EventTestUtil.getLocalDateTimeFromString(DATE_1);
 		eventService.setLastArchivedDayTime(dateTime);
 
 		assertThat(eventService.getLastDayTimeArchived()).isEqualTo(dateTime);
@@ -86,16 +80,16 @@ public class EventServiceAcceptanceTest extends ConstellioTest {
 
 	@Test
 	public void getCutOffDateValueThenOk() {
-		givenTimeIs(getLocalDateTimeFromString(DATE_1));
+		givenTimeIs(EventTestUtil.getLocalDateTimeFromString(DATE_1));
 
 		// Default cutoff is 60 months
 		LocalDateTime cutOffDate = eventService.getDeletetionDateCutOff();
 
-		assertThat(cutOffDate).isEqualTo(getLocalDateTimeFromString(CUT_OFF_DATE_1).minusYears(6334));
+		assertThat(cutOffDate).isEqualTo(EventTestUtil.getLocalDateTimeFromString(CUT_OFF_DATE_1).minusYears(6334));
 
 		getModelLayerFactory().getSystemConfigurationsManager().setValue(ConstellioEIMConfigs.KEEP_EVENTS_FOR_X_MONTH, 12);
 
-		assertThat(eventService.getDeletetionDateCutOff()).isEqualTo(getLocalDateTimeFromString(CUT_OFF_DATE_2));
+		assertThat(eventService.getDeletetionDateCutOff()).isEqualTo(EventTestUtil.getLocalDateTimeFromString(CUT_OFF_DATE_2));
 	}
 
 	@Test
@@ -105,7 +99,7 @@ public class EventServiceAcceptanceTest extends ConstellioTest {
 
 		givenTimeIs(LocalDateTime.now().plusDays(2));
 
-		LocalDateTime event1LocalDateTime = getLocalDateTimeFromString(DATE_1);
+		LocalDateTime event1LocalDateTime = EventTestUtil.getLocalDateTimeFromString(DATE_1);
 		Event event1 = createEvent(event1LocalDateTime.minusSeconds(6));
 		Event event2 = createEvent(event1LocalDateTime.minusSeconds(5));
 
@@ -127,8 +121,7 @@ public class EventServiceAcceptanceTest extends ConstellioTest {
 	@Test
 	public void backupEventInVaultAndRemoveFromSolrThenOk()
 			throws Exception {
-
-		LocalDateTime localDateTime = getLocalDateTimeFromString(DATE_1);
+		LocalDateTime localDateTime = EventTestUtil.getLocalDateTimeFromString(DATE_1);
 
 		LocalDateTime event1LocalDateTime = localDateTime;
 		Event event1 = createEvent(event1LocalDateTime.minusSeconds(6));
@@ -165,7 +158,7 @@ public class EventServiceAcceptanceTest extends ConstellioTest {
 
 		findZipFileAndAssertXml(Arrays.asList(event7),
 				FOLDER_NAME + "/" +
-				eventService.dateAsFileName(eventService.getDeletetionDateCutOff()) + ".zip", 1);
+						eventService.dateAsFileName(eventService.getDeletetionDateCutOff()) + ".zip", 1);
 
 		assertThat(getAppLayerFactory().getModelLayerFactory().getContentManager()
 				.getContentDao().getFolderContents(FOLDER_NAME).size()).isEqualTo(3);
@@ -187,7 +180,7 @@ public class EventServiceAcceptanceTest extends ConstellioTest {
 
 		findZipFileAndAssertXml(Arrays.asList(event8),
 				FOLDER_NAME + "/" +
-				eventService.dateAsFileName(event8.getCreatedOn()) + ".zip", 1);
+						eventService.dateAsFileName(event8.getCreatedOn()) + ".zip", 1);
 
 		assertThat(getAppLayerFactory().getModelLayerFactory().getContentManager()
 				.getContentDao().getFolderContents(FOLDER_NAME).size()).isEqualTo(4);
@@ -197,8 +190,8 @@ public class EventServiceAcceptanceTest extends ConstellioTest {
 
 	}
 
-	private void findZipFileAndAssertXml(List<Event> eventList, String vaultPathToZip, int numberOfEventToBeExpected)
-			throws ContentDaoException.ContentDaoException_NoSuchContent, IOException, ZipServiceException, XMLStreamException {
+
+	private void findZipFileAndAssertXml(List<Event> eventList, String vaultPathToZip, int numberOfEventToBeExpected) throws ContentDaoException.ContentDaoException_NoSuchContent, IOException, ZipServiceException, XMLStreamException {
 		InputStream zipInputStream = getAppLayerFactory().getModelLayerFactory().getContentManager()
 				.getContentDao().getContentInputStream(vaultPathToZip, SDK_STREAM);
 
@@ -221,29 +214,12 @@ public class EventServiceAcceptanceTest extends ConstellioTest {
 		InputStream tmpInputStream1 = ioServices.newFileInputStream(zipFilefolder, SDK_STREAM);
 		XMLStreamReader xmlReader = factory.createXMLStreamReader(tmpInputStream1);
 
-		assertEvent(xmlReader, eventList, numberOfEventToBeExpected);
+		EventTestUtil.assertEvent(xmlReader, eventList, numberOfEventToBeExpected);
 
 		xmlReader.close();
 		tmpInputStream1.close();
 		ioServices.deleteQuietly(zipTEmpFile1);
 		ioServices.deleteQuietly(zipFilefolder);
-	}
-
-	private void assertEvent(XMLStreamReader xmlStreamReader, List<Event> event, int numberOfEventToBeExpected)
-			throws XMLStreamException {
-		int eventCounter = 0;
-		while (xmlStreamReader.hasNext()) {
-			int elementType = xmlStreamReader.next();
-			if (elementType == XMLStreamConstants.START_ELEMENT && xmlStreamReader.getLocalName().equals("Event")) {
-				;
-				for (int i = 0; i < xmlStreamReader.getAttributeCount(); i++) {
-					String key = xmlStreamReader.getAttributeLocalName(i);
-					assertThat(event.get(eventCounter).get(key).toString()).isEqualTo(xmlStreamReader.getAttributeValue(i));
-				}
-				eventCounter++;
-			}
-		}
-		assertThat(eventCounter).isEqualTo(numberOfEventToBeExpected);
 	}
 
 	private Event createEvent(LocalDateTime localDateTime) {
@@ -252,6 +228,5 @@ public class EventServiceAcceptanceTest extends ConstellioTest {
 		event.setType("Type1");
 
 		return event;
-
 	}
 }
