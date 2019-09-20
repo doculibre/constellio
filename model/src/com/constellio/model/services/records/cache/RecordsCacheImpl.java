@@ -444,7 +444,7 @@ public class RecordsCacheImpl implements RecordsCache {
 		cacheById.put(record.getId(), holder);
 		if (cacheConfig.isVolatile()) {
 			VolatileCache cache = volatileCaches.get(cacheConfig.getSchemaType());
-			cache.releaseFor(1);
+			cache.releaseFor(1, this);
 			cache.insert(holder);
 		} else {
 			PermanentCache cache = permanentCaches.get(cacheConfig.getSchemaType());
@@ -458,7 +458,7 @@ public class RecordsCacheImpl implements RecordsCache {
 																	  RecordHolder currentHolder) {
 		if (currentHolder.record == null) {
 			VolatileCache cache = volatileCaches.get(cacheConfig.getSchemaType());
-			cache.releaseFor(1);
+			cache.releaseFor(1, this);
 			cache.insert(currentHolder);
 		}
 
@@ -692,18 +692,22 @@ public class RecordsCacheImpl implements RecordsCache {
 			}
 		}
 
-		void releaseFor(int qty) {
+		void releaseFor(int qty, RecordsCacheImpl recordsCache) {
 			while (recordsInCache + qty > maxSize) {
-				releaseNext();
+				releaseNext(recordsCache);
 			}
 		}
 
-		void releaseNext() {
+		void releaseNext(RecordsCacheImpl recordsCache) {
 			RecordHolder recordHolder = holders.removeFirst();
 			if (recordHolder.volatileCacheOccurences > 1) {
 				recordHolder.volatileCacheOccurences--;
-				releaseNext();
+				releaseNext(recordsCache);
 			} else {
+				if (recordHolder.record != null) {
+					recordsCache.cacheById.remove(recordHolder.record.getId());
+					recordsCache.recordByMetadataCache.get(recordHolder.record.getTypeCode()).invalidate(recordHolder.record);
+				}
 				recordHolder.invalidate();
 				recordsInCache--;
 			}

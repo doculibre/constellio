@@ -5,10 +5,6 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 public class ReindexingRecordsProvider {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ReindexingRecordsProvider.class);
@@ -21,7 +17,6 @@ public class ReindexingRecordsProvider {
 
 	ModelLayerFactory modelLayerFactory;
 
-	Map<String, List<HashMap<String, Integer>>> map;
 
 	public ReindexingRecordsProvider(ModelLayerFactory modelLayerFactory, int mainThreadQueryRows) {
 		this.modelLayerFactory = modelLayerFactory;

@@ -40,6 +40,8 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.aggregations.GetMetadatasUsedToCalculateParams;
 import com.constellio.model.services.records.aggregations.MetadataAggregationHandler;
 import com.constellio.model.services.records.aggregations.MetadataAggregationHandlerFactory;
+import com.constellio.model.services.records.cache.CacheConfig;
+import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.records.utils.RecordDTOIterator;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
@@ -61,6 +63,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -106,9 +109,6 @@ public class ReindexingServices {
 
 		} else if (modelLayerFactory.getSystemConfigs().getMemoryConsumptionLevel() == LESS_MEMORY_CONSUMPTION) {
 			this.mainThreadQueryRows = 100;
-
-			//		} else if (modelLayerFactory.getSystemConfigs().getMemoryConsumptionLevel() == NORMAL) {
-			//			this.mainThreadQueryRows = 1000;
 
 		} else {
 			this.mainThreadQueryRows = modelLayerFactory.getConfiguration().getReindexingQueryBatchSize();
@@ -262,7 +262,8 @@ public class ReindexingServices {
 		RecordUpdateOptions transactionOptions = new RecordUpdateOptions().setUpdateModificationInfos(false);
 		transactionOptions.setValidationsEnabled(false).setCatchExtensionsValidationsErrors(true)
 				.setCatchExtensionsExceptions(true).setCatchBrokenReferenceErrors(true)
-				.setUpdateAggregatedMetadatas(false).setOverwriteModificationDateAndUser(false);
+				.setUpdateAggregatedMetadatas(false).setOverwriteModificationDateAndUser(false)
+				.setRepopulate(params.isRepopulate());
 		if (params.getReindexationMode().isFullRecalculation()) {
 			transactionOptions.setForcedReindexationOfMetadatas(TransactionRecordsReindexation.ALL());
 		}
@@ -287,8 +288,21 @@ public class ReindexingServices {
 								   RecordUpdateOptions transactionOptions) {
 		MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
 
-		if (params.getReindexationMode().isFullRewrite()) {
-			recreateIndexes(collection);
+		//		if (params.getReindexationMode().isFullRewrite()) {
+		//			recreateIndexes(collection);
+		//		}
+
+		Map<String, CacheConfig> previousCacheConfigs = new HashMap<>();
+
+		RecordsCache recordsCache = modelLayerFactory.getRecordsCaches().getCache(collection);
+		for (MetadataSchemaType schemaType : types.getSchemaTypes()) {
+			if (recordsCache.isConfigured(schemaType)) {
+				CacheConfig cacheConfig = recordsCache.getCacheConfigOf(schemaType.getCode());
+				if (cacheConfig.isVolatile()) {
+					recordsCache.removeCache(schemaType.getCode());
+					previousCacheConfigs.put(schemaType.getCode(), cacheConfig);
+				}
+			}
 		}
 
 		ReindexingRecordsProvider recordsProvider = new ReindexingRecordsProvider(modelLayerFactory, mainThreadQueryRows);
@@ -367,6 +381,10 @@ public class ReindexingServices {
 			level++;
 		}
 		aggregatedValuesTempStorage.clear();
+
+		for (CacheConfig previousCacheConfig : previousCacheConfigs.values()) {
+			recordsCache.configureCache(previousCacheConfig);
+		}
 	}
 
 	@NotNull
@@ -442,6 +460,10 @@ public class ReindexingServices {
 			Iterator<Record> recordsIterator = recordsProvider.startNewSchemaTypeIteration();
 			while (recordsIterator.hasNext()) {
 				REINDEXING_INFOS = new SystemReindexingInfos(type.getCollection(), type.getCode(), current, counter);
+
+				//				if (current % 10000 == 0) {
+				//					RecordsCacheImpl cache = (RecordsCacheImpl) modelLayerFactory.getRecordsCaches().getCache(types.getCollection());
+				//				}
 
 				Record record = recordsIterator.next();
 				if (params.getReindexationMode().isFullRecalculation()) {

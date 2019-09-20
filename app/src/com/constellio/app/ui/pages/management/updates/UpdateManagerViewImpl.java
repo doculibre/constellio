@@ -99,7 +99,7 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 
 			@Override
 			protected void confirmButtonClick(ConfirmDialog dialog) {
-				presenter.restartAndReindex();
+				presenter.restartAndReindex(false);
 			}
 		};
 		reindex.setDialogMode(ConfirmDialogButton.DialogMode.WARNING);
