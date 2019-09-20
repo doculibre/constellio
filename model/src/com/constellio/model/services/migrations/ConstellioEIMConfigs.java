@@ -304,7 +304,7 @@ public class ConstellioEIMConfigs {
 		add(GENERATED_EMAIL_FORMAT = others.createEnum("generatedEmailFormat", EmailTextFormat.class).withDefaultValue(EmailTextFormat.PLAIN_TEXT));
 
 
-		add(ENABLE_THUMBNAIL_GENERATION = others.createBooleanFalseByDefault("enableThumbnailGeneration")
+		add(ENABLE_THUMBNAIL_GENERATION = others.createBooleanTrueByDefault("enableThumbnailGeneration")
 				.scriptedBy(EnableThumbnailsScript.class));
 
 		add(UPDATE_SERVER_CONNECTION_ENABLED = advanced.createBooleanTrueByDefault("updateServerConnectionEnabled").whichIsHidden());
