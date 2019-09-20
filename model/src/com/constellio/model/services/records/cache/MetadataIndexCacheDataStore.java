@@ -99,7 +99,8 @@ public class MetadataIndexCacheDataStore {
 
 		public List<String> getIds(String value) {
 
-			SortedIdsList list = map.get(value.hashCode());
+			int valueHashCode = value.hashCode();
+			SortedIdsList list = map.get(valueHashCode);
 			return list == null ? Collections.emptyList() : list.getValues();
 		}
 
@@ -112,6 +113,10 @@ public class MetadataIndexCacheDataStore {
 	private Map<Short, MetadataIndex>[][] cacheIndexMaps = new Map[256][];
 
 	public List<String> search(MetadataSchemaType schemaType, Metadata metadata, String value) {
+
+		if (metadata != null && metadata.getSchemaTypeCode().equals("global")) {
+			metadata = schemaType.getDefaultSchema().get(metadata.getLocalCode());
+		}
 
 		ensureSearchable(metadata);
 
@@ -131,7 +136,7 @@ public class MetadataIndexCacheDataStore {
 		if (!metadata.isCacheIndex() && !metadata.isUniqueValue()
 			&& (metadata.getType() != REFERENCE || metadata.getType() != STRING)
 			|| metadata.getLocalCode().equals(IDENTIFIER.getLocalCode())) {
-			throw new IllegalArgumentException("Metadata in parameter must be a cacheIndex or unique and not ID to search on this cache");
+			throw new IllegalArgumentException("Metadata in parameter must be a cacheIndex or unique and not ID to search on this cache : " + metadata.getCode());
 		}
 	}
 
