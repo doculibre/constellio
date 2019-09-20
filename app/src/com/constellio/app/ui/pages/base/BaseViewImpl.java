@@ -56,6 +56,8 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 	private Label titleLabel;
 
 	private BackButton backButton;
+	
+	private Boolean delayedBackButtonVisible;
 
 	private I18NHorizontalLayout titleBackButtonLayout;
 
@@ -142,7 +144,7 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 			if (isBreadcrumbsVisible()) {
 				if (breadcrumbTrail == null && title != null) {
 					breadcrumbTrail = new TitleBreadcrumbTrail(this, title);
-				} else if (title != null) {
+				} else if (title != null && breadcrumbTrail == null) {
 					titleLabel = new Label(title);
 					titleLabel.addStyleName(ValoTheme.LABEL_H1);
 				}
@@ -151,12 +153,12 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 
 			backButton = new BackButton();
 			ClickListener backButtonClickListener = getBackButtonClickListener();
-			if (backButtonClickListener != null) {
-				backButton.setVisible(true);
-				backButton.addStyleName(BACK_BUTTON_CODE);
-				backButton.addClickListener(backButtonClickListener);
-			} else {
+			backButton.addStyleName(BACK_BUTTON_CODE);
+			if (backButtonClickListener == null) {
 				backButton.setVisible(false);
+			} else {
+				backButton.setVisible(!Boolean.FALSE.equals(delayedBackButtonVisible));
+				backButton.addClickListener(backButtonClickListener);
 			}
 
 			actionMenu = buildActionMenu(event);
@@ -181,7 +183,7 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 				addComponent(actionMenu);
 			}
 
-			if (titleLabel != null || backButton.isVisible()) {
+			if (titleLabel != null || backButton != null) {
 				if (titleLabel != null) {
 					titleBackButtonLayout.addComponents(titleLabel);
 				}
@@ -470,6 +472,34 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 		}
 	}
 
+	protected boolean isBreadcrumbsVisible() {
+		return true;
+	}
+
+	@Override
+	public MainLayout getMainLayout() {
+		return ConstellioUI.getCurrent().getMainLayout();
+	}
+	
+	@Override
+	public void setBackButtonVisible(boolean visible) {
+		if (backButton != null) {
+			backButton.setVisible(visible);
+		} else {
+			delayedBackButtonVisible = visible;
+		}
+	}
+
+	public BaseBreadcrumbTrail getBreadcrumbTrail() {
+		return breadcrumbTrail;
+	}
+	
+	public void replaceBreadcrumbTrail(BaseBreadcrumbTrail newBreadcrumbTrail) {
+		if (breadcrumbTrail != null) {
+			replaceComponent(breadcrumbTrail, breadcrumbTrail = newBreadcrumbTrail);
+		}
+	}
+
 	public class CustomCssLayout extends CssLayout {
 		@Override
 		public void addComponents(Component... components) {
@@ -479,15 +509,6 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 				}
 			}
 		}
-	}
-
-	protected boolean isBreadcrumbsVisible() {
-		return true;
-	}
-
-	@Override
-	public MainLayout getMainLayout() {
-		return ConstellioUI.getCurrent().getMainLayout();
 	}
 
 }

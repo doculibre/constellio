@@ -61,8 +61,12 @@ public class TitleBreadcrumbTrail extends BaseBreadcrumbTrail {
 		}
 
 		if (StringUtils.isNotBlank(viewTitle) && (StringUtils.isBlank(viewGroupLabel) || !viewGroupLabel.equals(viewTitle))) {
-			addItem(new CurrentViewItem(viewTitle));
+			addItem(newCurrentViewItem(viewTitle));
 		}
+	}
+	
+	protected CurrentViewItem newCurrentViewItem(String viewTitle) {
+		return new CurrentViewItem(viewTitle);
 	}
 
 	public BaseView getView() {
@@ -93,9 +97,10 @@ public class TitleBreadcrumbTrail extends BaseBreadcrumbTrail {
 		}
 	}
 
-	class CurrentViewItem implements BreadcrumbItem {
+	public class CurrentViewItem implements BreadcrumbItem {
 
 		private String viewTitle;
+		private boolean enabled;
 
 		CurrentViewItem(String viewTitle) {
 			this.viewTitle = viewTitle;
@@ -108,12 +113,16 @@ public class TitleBreadcrumbTrail extends BaseBreadcrumbTrail {
 
 		@Override
 		public boolean isEnabled() {
-			return false;
+			return enabled;
+		}
+		
+		public void setEnabled(boolean enabled) {
+			this.enabled = enabled;
 		}
 
 	}
 
-	class ViewGroupBreadcrumbItem implements BreadcrumbItem {
+	public class ViewGroupBreadcrumbItem implements BreadcrumbItem {
 
 		private Class<? extends MenuViewGroup> viewGroupClass;
 
