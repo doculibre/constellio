@@ -2246,27 +2246,11 @@ $popup-view-z-index: 3;
 		}
 	}
 	
-	.display-folder-view {
-		.-facets-sliderpanel {
-			.v-sliderpanel-wrapper {
-				left: 250px;
-				
-				.v-sliderpanel-content {
-					position: relative;
-					padding-top: 6px;
-					padding-bottom: 100vh;
-				}
-				
-				.tab-beginning {
-					left: -366px;
-				}
-			}
-		}
-	}
-	
 	.-facets-sliderpanel {
 		.v-sliderpanel-wrapper {
 			.v-sliderpanel-content {
+			    position: absolute;
+			    height: 10000vh;
 				background-color: $valo-menu-background-color;
 				padding-left: 6px;
 			}
@@ -2279,6 +2263,10 @@ $popup-view-z-index: 3;
 		
 		.facet-title, .sort-title {
 			background-color: $valo-menu-background-color;
+		}
+		
+		.v-radiobutton label {
+			color:#000000; 
 		}
 	}
 
@@ -2600,6 +2588,7 @@ $popup-view-z-index: 3;
 
     .constellio-layout {
 		background-color: white;
+		font-weight: 400;
 
 	    .sidebar {
 	    	overflow-y: hidden;

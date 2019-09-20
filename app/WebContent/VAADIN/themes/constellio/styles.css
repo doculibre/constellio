@@ -15064,21 +15064,9 @@ div.v-layout.v-horizontal.v-widget {
 	top: -62px;
 }
 
-.constellio .display-folder-view .-facets-sliderpanel .v-sliderpanel-wrapper {
-	left: 250px;
-}
-
-.constellio .display-folder-view .-facets-sliderpanel .v-sliderpanel-wrapper .v-sliderpanel-content {
-	position: relative;
-	padding-top: 6px;
-	padding-bottom: 100vh;
-}
-
-.constellio .display-folder-view .-facets-sliderpanel .v-sliderpanel-wrapper .tab-beginning {
-	left: -366px;
-}
-
 .constellio .-facets-sliderpanel .v-sliderpanel-wrapper .v-sliderpanel-content {
+	position: absolute;
+	height: 10000vh;
 	background-color: #414B56;
 	padding-left: 6px;
 }
@@ -15090,6 +15078,10 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .-facets-sliderpanel .facet-title, .constellio .-facets-sliderpanel .sort-title {
 	background-color: #414B56;
+}
+
+.constellio .-facets-sliderpanel .v-radiobutton label {
+	color: #000000;
 }
 
 .constellio .viewable-record-table-panel .v-slot-viewable-record-table-panel-view-action-menu-layout {
@@ -15370,6 +15362,7 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .constellio-layout {
 	background-color: white;
+	font-weight: 400;
 }
 
 .constellio .constellio-layout .sidebar {
