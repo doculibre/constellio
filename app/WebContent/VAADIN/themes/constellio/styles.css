@@ -12254,6 +12254,10 @@ div.v-layout.v-horizontal.v-widget {
 	cursor: pointer;
 }
 
+.constellio .v-slot-modify-profile-image .v-widget {
+	text-align: center;
+}
+
 .constellio .task-management-view .v-menubar .v-menubar-submenu-indicator + .v-menubar-menuitem-caption:after {
 	display: none;
 }
@@ -14432,6 +14436,19 @@ div.v-layout.v-horizontal.v-widget {
 	z-index: 1002;
 }
 
+.constellio .v-window[width-range~="0-800px"] .responsive-button [class*="caption"], .constellio .v-window[width-range~="801-1100px"] .responsive-button [class*="caption"] {
+	display: none;
+}
+
+.constellio .v-window[width-range~="0-800px"] .base-display .v-slot-display-value, .constellio .v-window[width-range~="801-1100px"] .base-display .v-slot-display-value {
+	float: left;
+}
+
+.constellio .v-window[width-range~="0-800px"] .v-slot-action-menu-bar-layout, .constellio .v-window[width-range~="801-1100px"] .v-slot-action-menu-bar-layout {
+	top: -50px;
+	margin-bottom: -50px;
+}
+
 .constellio .v-window .popupContent {
 	z-index: 20001;
 }
@@ -14866,7 +14883,7 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .base-form .base-form-buttons-layout {
 	width: 100%;
 	text-align: center;
-	margin-bottom: 20px;
+	padding-bottom: 20px;
 }
 
 .constellio .v-context-menu-container .popupContent {
@@ -15264,7 +15281,7 @@ div.v-layout.v-horizontal.v-widget {
 	width: auto;
 	position: relative;
 	float: right;
-	top: -30px;
+	top: -24px;
 	margin-bottom: -35px;
 }
 
@@ -15273,11 +15290,11 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .viewable-record-table-panel .viewable-record-table .search-result-elevation {
-	right: 36px;
+	right: 6px;
 }
 
 .constellio .viewable-record-table-panel .viewable-record-table .search-result-exclusion {
-	right: 0px;
+	right: -30px;
 }
 
 .constellio .viewable-record-table-panel .viewable-record-table .search-result-elevation:hover, .constellio .viewable-record-table-panel .viewable-record-table .search-result-exclusion:hover {
@@ -16188,16 +16205,8 @@ div.v-layout.v-horizontal.v-widget {
 	top: 0px;
 }
 
-.constellio .v-ui[width-range~="0-800px"] .search-view .viewable-record-table-panel .viewable-record-table .search-result-elevation, .constellio .v-ui[width-range~="0-800px"] .search-view .viewable-record-table-panel .viewable-record-table .search-result-exclusion {
-	top: 0px;
-}
-
-.constellio .v-window[width-range~="801-1100px"] .responsive-button [class*="caption"] {
-	display: none;
-}
-
-.constellio .v-window[width-range~="0-800px"] .responsive-button [class*="caption"] {
-	display: none;
+.constellio .v-ui[width-range~="0-800px"] .search-view .viewable-record-table-panel .viewable-record-table .search-result-with-elevation-buttons .search-result-title {
+	padding-right: 60px;
 }
 
 .constellio .v-progressbar {
