@@ -47,8 +47,8 @@ public class BaseDisplay extends CustomComponent {
 	public BaseDisplay(List<CaptionAndComponent> captionsAndDisplayComponents, boolean useTabSheet) {
 		this.useTabSheet = useTabSheet;
 		addStyleName(STYLE_NAME);
-
 		setSizeFull();
+		setResponsive(true);
 
 		tabSheet = new TabSheet();
 

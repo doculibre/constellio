@@ -109,6 +109,7 @@ public class BaseWindow extends Window {
 	}
 
 	private void init() {
+		setResponsive(true);
 		addStyleName(WINDOW_STYLE_NAME);
 		addStyleName(WINDOW_CONTENT_SCROLL_STYLE_NAME);
 		if (isRightToLeft()) {
