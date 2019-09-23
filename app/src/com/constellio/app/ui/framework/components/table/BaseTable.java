@@ -1,21 +1,5 @@
 package com.constellio.app.ui.framework.components.table;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.lang3.StringUtils;
-import org.vaadin.peter.contextmenu.ContextMenu;
-import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableFooterEvent;
-import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableHeaderEvent;
-import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableRowEvent;
-
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.SelectDeselectAllButton;
@@ -27,6 +11,7 @@ import com.constellio.app.ui.framework.components.fields.number.BaseIntegerField
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.components.table.TablePropertyCache.CellKey;
 import com.constellio.app.ui.framework.components.table.columns.TableColumnsManager;
+import com.constellio.app.ui.util.ResponsiveUtils;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -37,6 +22,9 @@ import com.vaadin.data.Property;
 import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.data.util.ObjectProperty;
 import com.vaadin.data.util.converter.Converter.ConversionException;
+import com.vaadin.server.Page;
+import com.vaadin.server.Page.BrowserWindowResizeEvent;
+import com.vaadin.server.Page.BrowserWindowResizeListener;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
@@ -51,6 +39,21 @@ import com.vaadin.ui.Table;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+import org.apache.commons.lang3.StringUtils;
+import org.vaadin.peter.contextmenu.ContextMenu;
+import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableFooterEvent;
+import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableHeaderEvent;
+import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableRowEvent;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 
 public class BaseTable extends Table {
 
@@ -948,7 +951,7 @@ public class BaseTable extends Table {
 		}
 	}
 
-	public class PagingControls extends I18NHorizontalLayout {
+	public class PagingControls extends I18NHorizontalLayout implements BrowserWindowResizeListener {
 
 		private int itemsPerPageValue = getPageLength();
 
@@ -966,6 +969,7 @@ public class BaseTable extends Table {
 		private HorizontalLayout pageManagementLayout;
 
 		public PagingControls() {
+			addStyleName("paging-controls");
 			if (isPaged()) {
 				itemsPerPageField = new BaseComboBox();
 				itemsPerPageField.setValue(itemsPerPageValue);
@@ -999,9 +1003,10 @@ public class BaseTable extends Table {
 				itemsPerPageField.setEnabled(itemsPerPageField.size() > 1);
 
 				pageSizeLayout = new I18NHorizontalLayout(itemsPerPageLabel, itemsPerPageField);
+				pageSizeLayout.addStyleName("page-size-layout");
+				pageSizeLayout.setSpacing(true);
 				pageSizeLayout.setComponentAlignment(itemsPerPageLabel, Alignment.MIDDLE_LEFT);
 				pageSizeLayout.setComponentAlignment(itemsPerPageField, Alignment.MIDDLE_LEFT);
-				pageSizeLayout.setSpacing(true);
 
 				currentPageLabel = new Label($("SearchResultTable.page"));
 				currentPageField = new TextField();
@@ -1078,6 +1083,8 @@ public class BaseTable extends Table {
 
 				pageManagementLayout = new I18NHorizontalLayout(
 						firstPageButton, previousPageButton, currentPageLabel, currentPageField, separator, totalPagesLabel, nextPageButton, lastPageButton);
+				pageManagementLayout.addStyleName("page-management-layout");
+				pageManagementLayout.setSpacing(true);
 				pageManagementLayout.setComponentAlignment(firstPageButton, Alignment.MIDDLE_LEFT);
 				pageManagementLayout.setComponentAlignment(previousPageButton, Alignment.MIDDLE_LEFT);
 				pageManagementLayout.setComponentAlignment(currentPageLabel, Alignment.MIDDLE_LEFT);
@@ -1086,10 +1093,9 @@ public class BaseTable extends Table {
 				pageManagementLayout.setComponentAlignment(totalPagesLabel, Alignment.MIDDLE_LEFT);
 				pageManagementLayout.setComponentAlignment(nextPageButton, Alignment.MIDDLE_LEFT);
 				pageManagementLayout.setComponentAlignment(lastPageButton, Alignment.MIDDLE_LEFT);
-				pageManagementLayout.setSpacing(true);
 
 				addComponents(pageSizeLayout, pageManagementLayout);
-				setComponentAlignment(pageManagementLayout, Alignment.MIDDLE_CENTER);
+				setComponentAlignment(pageManagementLayout, Alignment.BOTTOM_CENTER);
 				setExpandRatio(pageSizeLayout, 1);
 				setWidth("100%");
 
@@ -1114,6 +1120,32 @@ public class BaseTable extends Table {
 			if (itemsPerPageField != null) {
 				itemsPerPageField.setValue(value);
 			}
+		}
+
+		@Override
+		public void attach() {
+			super.attach();
+			Page.getCurrent().addBrowserWindowResizeListener(this);
+			computeResponsive();
+		}
+
+		@Override
+		public void detach() {
+			Page.getCurrent().removeBrowserWindowResizeListener(this);
+			super.detach();
+		}
+
+		private void computeResponsive() {
+			if (ResponsiveUtils.isPhone()) {
+				setHeight("85px");
+			} else {
+				setHeight(null);
+			}
+		}
+
+		@Override
+		public void browserWindowResized(BrowserWindowResizeEvent event) {
+			computeResponsive();
 		}
 
 	}
