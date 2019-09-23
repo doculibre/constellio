@@ -56,7 +56,7 @@ public abstract class ListAddRemoveField<T extends Serializable, F extends Abstr
 	private HorizontalLayout addEditFieldLayout;
 	protected F addEditField;
 	private Button addButton;
-	private ButtonsContainer<ValuesContainer> valuesAndButtonsContainer;
+	protected ButtonsContainer<ValuesContainer> valuesAndButtonsContainer;
 	protected ValuesContainer valuesContainer;
 	protected Table valuesTable;
 	private Converter<String, T> itemConverter;
@@ -221,7 +221,7 @@ public abstract class ListAddRemoveField<T extends Serializable, F extends Abstr
 	}
 
 	@SuppressWarnings("unchecked")
-	private void notifyValueChange() {
+	protected void notifyValueChange() {
 		if (!isBuffered() && getPropertyDataSource() != null) {
 			getPropertyDataSource().setValue(getInternalValue());
 		} else {
