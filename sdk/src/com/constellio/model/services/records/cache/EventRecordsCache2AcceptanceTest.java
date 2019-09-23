@@ -103,6 +103,7 @@ public class EventRecordsCache2AcceptanceTest extends ConstellioTest {
 
 	boolean useZeroPaddedIds;
 
+
 	public EventRecordsCache2AcceptanceTest(String testCase) {
 		this.useZeroPaddedIds = testCase.equals("zero-padded-ids");
 	}
@@ -111,6 +112,7 @@ public class EventRecordsCache2AcceptanceTest extends ConstellioTest {
 	public static Collection<Object[]> testCases() {
 		return Arrays.asList(new Object[][]{{"zero-padded-ids"}, {"string-ids"}});
 	}
+
 
 
 	@Before

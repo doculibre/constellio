@@ -442,7 +442,7 @@ public class ConceptNodesTaxonomiesSearchServicesAcceptanceTest extends Constell
 		assertThat(recordToDelete.<Boolean>get(Schemas.LOGICALLY_DELETED_STATUS)).isEqualTo(true);
 
 		options.setIncludeStatus(StatusFilter.DELETED);
-		List<Record> folderRecordChildren = services.getChildConcept(folder, options);
+		List<Record> folderRecordChildren = services.getChildConcept(folder, options, false);
 
 		assertThat(folderRecordChildren).extracting("id").containsOnly(subFolder.getId());
 

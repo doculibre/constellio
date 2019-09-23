@@ -1,5 +1,6 @@
 package com.constellio.model.services.search.query.logical.condition;
 
+import com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.DataStoreField;
 import com.constellio.model.services.search.query.logical.LogicalOperator;
@@ -152,4 +153,11 @@ public abstract class LogicalSearchCondition implements Predicate<Record> {
 
 	public abstract boolean isSupportingMemoryExecution(boolean queryingTypesInSummaryCache,
 														boolean requiringExecutionMethod);
+
+	public abstract boolean test(TestedQueryRecord queryRecord);
+
+	@Override
+	public boolean test(Record record) {
+		return test(new TestedQueryRecord(record, null, LocalisedRecordMetadataRetrieval.PREFERRING));
+	}
 }

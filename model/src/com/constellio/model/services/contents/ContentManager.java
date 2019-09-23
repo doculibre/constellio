@@ -804,7 +804,8 @@ public class ContentManager implements StatefulService {
 		return new ContentManagerImportThreadServices(modelLayerFactory).readFileNameSHA1Index();
 	}
 
-	public void convertPendingContentForPreview() {
+	public boolean convertPendingContentForPreview() {
+		boolean converted = false;
 		for (String collection : collectionsListManager.getCollectionsExcludingSystem()) {
 			if (!closing.get()) {
 				List<Record> records = searchServices.search(new LogicalSearchQuery()
@@ -813,6 +814,7 @@ public class ContentManager implements StatefulService {
 						.setName("ContentManager:BackgroundThread:convertPendingContentForPreview()"));
 
 				if (!records.isEmpty()) {
+					converted = true;
 					final File tempFolder = ioServices.newTemporaryFolder("previewConversion");
 					try {
 						Transaction transaction = new Transaction();
@@ -830,7 +832,7 @@ public class ContentManager implements StatefulService {
 							}
 						}
 						try {
-							transaction.setRecordFlushing(RecordsFlushing.LATER());
+							transaction.setRecordFlushing(RecordsFlushing.WITHIN_SECONDS(5));
 							transaction.setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
 							recordServices.executeWithoutImpactHandling(transaction);
 						} catch (RecordServicesException e) {
@@ -843,6 +845,8 @@ public class ContentManager implements StatefulService {
 				}
 			}
 		}
+
+		return converted;
 	}
 
 	private boolean tryConvertRecordContents(Record record, File tempFolder) {

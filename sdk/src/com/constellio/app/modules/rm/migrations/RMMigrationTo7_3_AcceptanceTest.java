@@ -23,25 +23,6 @@ public class RMMigrationTo7_3_AcceptanceTest extends ConstellioTest {
 	RMTestRecords records = new RMTestRecords(zeCollection);
 
 	@Test
-	public void givenSystemMigratedAndBackgroundScriptsHaveBeenExecutedThenContainersModified()
-			throws Exception {
-		givenSystemWithContainers();
-
-		givenBackgroundThreadsEnabled();
-		waitForBatchProcess();
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
-
-		assertThatContainerAdmUnits("00000000078").isEqualTo(asList(null, asList("u1")));
-		assertThatContainerAdmUnits("00000000081").isEqualTo(asList(null, asList("u3", "u2")));
-		assertThatContainerAdmUnits("00000000084").isEqualTo(asList(null, asList()));
-		assertThatContainerAdmUnits("00000000086").isEqualTo(asList(null, asList("u1", "u2", "u3")));
-		assertThat(rm.containerRecord.schema().hasMetadataWithCode("administrativeUnit")).isTrue();
-
-		getConstellioFactories().getModelLayerFactory().getRecordMigrationsManager().checkScriptsToFinish();
-		assertThat(rm.containerRecord.schema().hasMetadataWithCode("administrativeUnit")).isFalse();
-	}
-
-	@Test
 	public void givenNewSystemWithRMModuleThenNoAdministrativeUnitMetadata()
 			throws Exception {
 
