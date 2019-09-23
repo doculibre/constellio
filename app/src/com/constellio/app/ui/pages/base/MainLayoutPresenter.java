@@ -54,7 +54,6 @@ public class MainLayoutPresenter implements Serializable {
 		if (userVO == null) {
 			return null;
 		} else {
-			ModelLayerFactory modelLayerFactory = mainLayout.getHeader().getConstellioFactories().getModelLayerFactory();
 			AppLayerFactory appLayerFactory = mainLayout.getHeader().getConstellioFactories().getAppLayerFactory();
 			RMSchemasRecordsServices schemas = new RMSchemasRecordsServices(collection, appLayerFactory);
 			return schemas.getUser(userVO.getId());

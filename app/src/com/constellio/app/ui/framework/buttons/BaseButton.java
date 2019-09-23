@@ -98,6 +98,7 @@ public abstract class BaseButton extends Button implements Clickable, BrowserWin
 	}
 
 	public void setCaptionVisibleOnMobile(boolean captionVisibleOnMobile) {
+		setResponsive(!captionVisibleOnMobile);
 		if (captionVisibleOnMobile) {
 			removeStyleName(RESPONSIVE_BUTTON_STYLE);
 		} else {

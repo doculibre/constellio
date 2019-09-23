@@ -1578,10 +1578,16 @@ $popup-view-z-index: 3;
 		    	top: -40px;
 		    	right: 30px;
 			}
+			
+			.v-slot-action-menu-bar-layout {    
+				padding-right: 20px;
+			    position: relative;
+			    //top: -50px;
+			    //margin-bottom: -50px;
+			    text-align: right;
+			}
 
 			.action-menu-bar-layout {
-				top: -42px;
-				right: 30px;
 
 				.v-button {
 					padding-left: inherit;
@@ -1617,7 +1623,7 @@ $popup-view-z-index: 3;
 
 			    .action-menu-bar {
 			    	top: 0px;
-			    	right: -24px;
+			    	right: 0px;
 			    }
 			}
 
@@ -3313,12 +3319,6 @@ $popup-view-z-index: 3;
     }
 
     .v-ui[width-range~="801-1100px"] {
-    
-    	.responsive-button {
-			[class*="caption"] {
-				display: none;
-			}
-    	}
 
 		.valo-menu {
 			.valo-menu-part {
@@ -3340,6 +3340,12 @@ $popup-view-z-index: 3;
 				}
 			}
 		}	
+    
+		.responsive-button {
+			[class*="caption"] {
+				display: none;
+			}
+		}
 		
 		.v-menubar-user-menu {
 			background: #3a434d;
@@ -3465,15 +3471,15 @@ $popup-view-z-index: 3;
 	}
 
     .v-ui[width-range~="0-800px"] {
-    
-    	.responsive-button {
-			[class*="caption"] {
-				display: none;
-			}
-    	}
 		
 		.valo-menu-constellio-version {
 			display: none;
+		}
+
+		.responsive-button {
+			[class*="caption"] {
+				display: none;
+			}
 		}
 
     	.header {
@@ -3567,7 +3573,31 @@ $popup-view-z-index: 3;
 				top: 0px;
 			}
 		}	
+		
+		.search-view {
+			.viewable-record-table-panel .viewable-record-table {
+				.search-result-elevation, .search-result-exclusion {
+					top: 0px;
+				}
+			}
+		}
     }
+
+	.v-window[width-range~="801-1100px"] {
+		.responsive-button {
+			[class*="caption"] {
+				display: none;
+			}
+		}
+	}
+
+	.v-window[width-range~="0-800px"] {
+		.responsive-button {
+			[class*="caption"] {
+				display: none;
+			}
+		}
+	}
 
     .v-progressbar {
 		width: 150px;
