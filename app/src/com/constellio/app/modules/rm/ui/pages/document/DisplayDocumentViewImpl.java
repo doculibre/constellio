@@ -45,6 +45,7 @@ import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.decorators.tabs.TabSheetDecorator;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.app.ui.util.ResponsiveUtils;
 import com.constellio.data.utils.dev.Toggle;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
@@ -247,7 +248,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 		recordDisplayPanel.addStyleName(ValoTheme.PANEL_BORDERLESS);
 		recordDisplayPanel.addStyleName(ValoTheme.PANEL_SCROLL_INDICATOR);
-		if (contentViewerInitiallyVisible && nestedView) {
+		if (contentViewerInitiallyVisible && (nestedView || !ResponsiveUtils.isDesktop())) {
 			tabSheet.addTab(contentViewer, $("DisplayDocumentView.tabs.contentViewer"));
 		}
 		tabSheet.addTab(recordDisplayPanel, $("DisplayDocumentView.tabs.metadata"));
@@ -277,7 +278,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 			}
 		});
 
-		if (contentViewerInitiallyVisible && !nestedView) {
+		if (contentViewerInitiallyVisible && !nestedView && ResponsiveUtils.isDesktop()) {
 			CollapsibleHorizontalSplitPanel splitPanel = new CollapsibleHorizontalSplitPanel(DisplayDocumentViewImpl.class.getName());
 			splitPanel.setFirstComponent(contentViewer);
 			splitPanel.setSecondComponent(tabSheet);

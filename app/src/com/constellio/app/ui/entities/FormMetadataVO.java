@@ -88,7 +88,7 @@ public class FormMetadataVO implements Serializable {
 	public FormMetadataVO(SessionContext sessionContext) {
 		super();
 		this.code = "";
-		this.localcode = "USR";
+		this.localcode = "";
 		this.valueType = null;
 		this.required = false;
 		this.schema = null;

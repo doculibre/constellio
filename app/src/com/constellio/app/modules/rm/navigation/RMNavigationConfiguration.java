@@ -496,7 +496,7 @@ public class RMNavigationConfiguration implements Serializable {
 										 user.has(RMPermissionsTo.MANAGE_REPORTS).onSomething());
 					}
 				});
-		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION, new NavigationItem.Active(LOGS, FontAwesome.BOOK, LogsViewGroup.class) {
+		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION, new NavigationItem.Active(LOGS, FontAwesome.AREA_CHART, LogsViewGroup.class) {
 			@Override
 			public void activate(Navigation navigate) {
 				navigate.to(RMViews.class).eventAudit();

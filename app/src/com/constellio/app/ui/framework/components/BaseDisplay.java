@@ -17,9 +17,11 @@ import com.vaadin.ui.themes.ValoTheme;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -54,20 +56,21 @@ public class BaseDisplay extends CustomComponent {
 
 		if (isUseTabsheet()) {
 			int tabCaptionCount = 0;
-	
-			for (CaptionAndComponent captionAndComponent :captionsAndDisplayComponents){
+
+			Set<String> tabCaptions = new HashSet<>();
+			for (CaptionAndComponent captionAndComponent : captionsAndDisplayComponents) {
 				String tabCaption = captionAndComponent.tabCaption;
-				if (StringUtils.isNotBlank(tabCaption)) {
+				if (StringUtils.isNotBlank(tabCaption) && !tabCaptions.contains(tabCaption)) {
+					tabCaptions.add(tabCaption);
 					tabCaptionCount++;
-					break;
 				}
 			}
-			useTabSheet = tabCaptionCount > 0;
+			this.useTabSheet = tabCaptionCount > 1;
 		} else {
-			useTabSheet = false;
+			this.useTabSheet = false;
 		}
 
-		if (useTabSheet) {
+		if (this.useTabSheet) {
 			setCompositionRoot(tabSheet);
 		} else {
 			setCompositionRoot(mainLayout);
