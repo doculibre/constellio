@@ -7,6 +7,8 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.ui.components.fields.StarredFieldImpl;
+import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveCollaboratorsField;
+import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveCollaboratorsGroupsField;
 import com.constellio.app.modules.tasks.ui.entities.TaskVO;
 import com.constellio.app.modules.tasks.ui.pages.tasks.TaskCompleteWindowButton;
 import com.constellio.app.ui.entities.ContentVersionVO;
@@ -28,6 +30,8 @@ import com.constellio.app.ui.framework.components.converters.JodaDateTimeToStrin
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.components.fields.BaseTextArea;
+import com.constellio.app.ui.framework.components.fields.list.TaskCollaboratorItem;
+import com.constellio.app.ui.framework.components.fields.list.TaskCollaboratorsGroupItem;
 import com.constellio.app.ui.framework.components.fields.upload.ContentVersionUploadField;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.components.menuBar.BaseMenuBar;
@@ -444,6 +448,31 @@ public class TaskTable extends VerticalLayout {
 					}
 				});
 			}
+
+			rootItem.addItem($("DisplayTaskView.share"), null, new Command() {
+				@Override
+				public void menuSelected(MenuItem selectedItem) {
+					WindowButton shareButton = new WindowButton($("DisplayTaskView.share"), $("DisplayTaskView.shareWindowCaption")) {
+						@Override
+						protected Component buildWindowContent() {
+							VerticalLayout mainLayout = new VerticalLayout();
+							ListAddRemoveCollaboratorsField collaboratorsField = new ListAddRemoveCollaboratorsField(taskVO, presenter.currentUserIsCollaborator(taskVO));
+							ListAddRemoveCollaboratorsGroupsField collaboratorGroupsField = new ListAddRemoveCollaboratorsGroupsField(taskVO, presenter.currentUserIsCollaborator(taskVO));
+							BaseButton saveButton = new BaseButton($("save")) {
+								@Override
+								protected void buttonClick(ClickEvent event) {
+									presenter.addCollaborators(collaboratorsField.getValue(), collaboratorGroupsField.getValue(), taskVO);
+									getWindow().close();
+								}
+							};
+							saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
+							mainLayout.addComponents(collaboratorsField, collaboratorGroupsField, saveButton);
+							return mainLayout;
+						}
+					};
+					shareButton.click();
+				}
+			});
 
 				if (presenter.isAutoAssignButtonEnabled(taskVO)) {
 					rootItem.addItem($("TaskTable.autoAssignTask"), FontAwesome.HAND_O_RIGHT, new Command() {
@@ -1084,6 +1113,11 @@ public class TaskTable extends VerticalLayout {
 		boolean taskFolderOrDocumentClicked(RecordVO taskVO, String recordId);
 
 		BaseRecordTreeDataProvider getTaskFoldersTreeDataProvider(RecordVO taskVO);
+
+		void addCollaborators(List<TaskCollaboratorItem> taskCollaboratorItems,
+							  List<TaskCollaboratorsGroupItem> taskCollaboratorsGroupItems, RecordVO taskVO);
+
+		boolean currentUserIsCollaborator(RecordVO recordVO);
 	}
 
 	public class TaskStyleGenerator implements CellStyleGenerator {

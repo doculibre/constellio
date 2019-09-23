@@ -4,6 +4,7 @@ import com.constellio.app.api.extensions.params.UpdateComponentExtensionParams;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
+import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.tasks.TasksPermissionsTo;
 import com.constellio.app.modules.tasks.extensions.TaskManagementPresenterExtension;
 import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflow;
@@ -46,6 +47,7 @@ import org.joda.time.LocalDate;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static com.constellio.app.modules.tasks.model.wrappers.Task.ASSIGNEE;
@@ -56,6 +58,8 @@ import static com.constellio.app.modules.tasks.model.wrappers.Task.END_DATE;
 import static com.constellio.app.modules.tasks.model.wrappers.Task.SCHEMA_TYPE;
 import static com.constellio.app.modules.tasks.model.wrappers.Task.STARRED_BY_USERS;
 import static com.constellio.app.modules.tasks.model.wrappers.Task.STATUS;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.TASK_COLLABORATORS;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.TASK_COLLABORATORS_GROUPS;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.entities.records.wrappers.RecordWrapper.TITLE;
 
@@ -511,6 +515,14 @@ public class TaskManagementPresenter extends AbstractTaskPresenter<TaskManagemen
 				extension.beforeCompletionActions(task);
 			}
 		}
+	}
+
+	@Override
+	public boolean currentUserIsCollaborator(RecordVO recordVO) {
+		Record currentUserRecord = appLayerFactory.getModelLayerFactory().newRecordServices().getDocumentById(getCurrentUserId());
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+		boolean userInGroupCollaborator = !Collections.disjoint(rm.wrapUser(currentUserRecord).getUserGroups(), recordVO.get(TASK_COLLABORATORS_GROUPS));
+		return ((List) recordVO.get(TASK_COLLABORATORS)).contains(getCurrentUserId()) || userInGroupCollaborator;
 	}
 
 	@Override
