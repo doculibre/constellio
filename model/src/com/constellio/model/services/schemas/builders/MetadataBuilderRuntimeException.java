@@ -1,5 +1,7 @@
 package com.constellio.model.services.schemas.builders;
 
+import com.constellio.model.entities.schemas.Metadata;
+
 @SuppressWarnings("serial")
 public class MetadataBuilderRuntimeException extends RuntimeException {
 
@@ -34,6 +36,12 @@ public class MetadataBuilderRuntimeException extends RuntimeException {
 	public static class EssentialMetadataCannotBeDisabled extends MetadataBuilderRuntimeException {
 		public EssentialMetadataCannotBeDisabled(String metadata) {
 			super("Essential metadata cannot be disabled");
+		}
+	}
+
+	public static class MultilingualMetadatasNotSupportedWithPermanentSummaryCache extends MetadataBuilderRuntimeException {
+		public MultilingualMetadatasNotSupportedWithPermanentSummaryCache(Metadata metadata) {
+			super("Multilingua metadatas not supported with permanent summary cache : " + metadata.getCode());
 		}
 	}
 

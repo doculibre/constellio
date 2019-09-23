@@ -5,12 +5,14 @@ import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.Collection;
+import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.CannotGetMetadatasOfAnotherSchemaType;
 import com.constellio.model.entities.schemas.RecordCacheType;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.SchemaComparators;
+import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeException.MultilingualMetadatasNotSupportedWithPermanentSummaryCache;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilderRuntimeException.CannotDeleteSchema;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilderRuntimeException.CannotDeleteSchemaSinceItHasRecords;
 import com.constellio.model.services.search.SearchServices;
@@ -227,7 +229,8 @@ public class MetadataSchemaTypeBuilder {
 	}
 
 	public MetadataSchemaType build(DataStoreTypesFactory typesFactory, MetadataSchemaTypesBuilder typesBuilder,
-									ModelLayerFactory modelLayerFactory) {
+									ModelLayerFactory modelLayerFactory)
+			throws MultilingualMetadatasNotSupportedWithPermanentSummaryCache {
 
 
 		if (id == 0) {
@@ -262,6 +265,24 @@ public class MetadataSchemaTypeBuilder {
 		}
 
 		Collections.sort(schemas, SchemaComparators.SCHEMA_COMPARATOR_BY_ASC_LOCAL_CODE);
+
+		if (recordCacheType.isSummaryCache()) {
+
+			for (Metadata metadata : defaultSchema.getMetadatas()) {
+				if (metadata.isMultiLingual()) {
+					throw new MetadataBuilderRuntimeException.MultilingualMetadatasNotSupportedWithPermanentSummaryCache(metadata);
+				}
+			}
+
+			for (MetadataSchema aSchema : schemas) {
+				for (Metadata metadata : aSchema.getMetadatas()) {
+					if (metadata.isMultiLingual()) {
+						throw new MetadataBuilderRuntimeException.MultilingualMetadatasNotSupportedWithPermanentSummaryCache(metadata);
+					}
+				}
+			}
+		}
+
 		return new MetadataSchemaType(id, code, smallCode, collectionInfo, labels, schemas, defaultSchema, undeletable, security,
 				recordCacheType, inTransactionLog,
 				readOnlyLocked, dataStore);
