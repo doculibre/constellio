@@ -1529,6 +1529,7 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 	@Test
 	public void givenARecordHasAParsedContentHigherThanTheLimitThenTrimmed()
 			throws Exception {
+		givenConfig(PARSED_CONTENT_MAX_LENGTH_IN_KILOOCTETS, 3000);
 		SystemConfigurationsManager manager = getModelLayerFactory().getSystemConfigurationsManager();
 		givenSingleValueContentMetadataIsSearchable();
 
