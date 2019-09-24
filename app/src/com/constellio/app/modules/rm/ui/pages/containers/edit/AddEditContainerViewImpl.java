@@ -9,8 +9,6 @@ import com.constellio.model.frameworks.validation.ValidationException;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
-import com.vaadin.ui.Button.ClickEvent;
-import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Field;
 import com.vaadin.ui.VerticalLayout;
@@ -50,16 +48,6 @@ public class AddEditContainerViewImpl extends BaseViewImpl implements AddEditCon
 	@Override
 	protected void initBeforeCreateComponents(ViewChangeEvent event) {
 		container = presenter.forParams(event.getParameters()).getContainerRecord();
-	}
-
-	@Override
-	protected ClickListener getBackButtonClickListener() {
-		return new ClickListener() {
-			@Override
-			public void buttonClick(ClickEvent event) {
-				presenter.cancelRequested();
-			}
-		};
 	}
 
 	@Override
