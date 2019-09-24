@@ -5,6 +5,7 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.services.collections.CollectionsManager;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.sip.record.RecordSIPWriter.RecordInsertionContext;
@@ -214,6 +215,15 @@ public class RecordEADBuilder {
 
 			if (modifiableStructure instanceof MapStringListStringStructure) {
 				mappedStructure = new TreeMap<String, Object>((MapStringListStringStructure) modifiableStructure);
+			}
+
+			if (modifiableStructure instanceof Comment) {
+				Comment comment = (Comment) modifiableStructure;
+				mappedStructure = new TreeMap<String, Object>();
+				mappedStructure.put("userId", comment.getUserId());
+				mappedStructure.put("username", comment.getUsername());
+				mappedStructure.put("dateTime", comment.getDateTime());
+				mappedStructure.put("message", comment.getMessage());
 			}
 
 		}

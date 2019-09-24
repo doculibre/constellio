@@ -225,10 +225,12 @@ public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
 	}
 
 	private void addTabItem(Element tabsElement, ImportedTab tab) {
-		Element tabElem = new Element(TAB);
-		tabElem.setAttribute(CODE, tab.getCode());
-		tabElem.setAttribute(VALUE, tab.getValue());
-		tabsElement.addContent(tabElem);
+		if (StringUtils.isNotBlank(tab.getCode()) && StringUtils.isNotBlank(tab.getValue())) {
+			Element tabElem = new Element(TAB);
+			tabElem.setAttribute(CODE, tab.getCode());
+			tabElem.setAttribute(VALUE, tab.getValue());
+			tabsElement.addContent(tabElem);
+		}
 	}
 
 	private void addMetadatum(Element defaultSchemaElem, ImportedMetadata importedMetadata) {
@@ -359,7 +361,7 @@ public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
 			metadataElem.addContent(writePopulateConfigElement(importedMetadata.getPopulateConfigs()));
 		}
 
-		if(importedMetadata.getRequiredReadRoles() != null && importedMetadata.getRequiredReadRoles().size() > 0) {
+		if (importedMetadata.getRequiredReadRoles() != null && importedMetadata.getRequiredReadRoles().size() > 0) {
 			metadataElem.setAttribute(REQUIRED_READ_ROLES, join(importedMetadata.getRequiredReadRoles(), ","));
 		}
 
