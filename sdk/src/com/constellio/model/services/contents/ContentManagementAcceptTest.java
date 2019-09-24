@@ -4,6 +4,7 @@ import com.constellio.data.dao.services.bigVault.solr.BigVaultException.CouldNot
 import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.utils.LangUtils;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.conf.PropertiesModelLayerConfiguration.InMemoryModelLayerConfiguration;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Language;
@@ -116,6 +117,7 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 
+		Toggle.OLD_DELETE_UNUSED_CONTENT_METHOD.enable();
 		givenHashingEncodingIs(BASE64_URL_ENCODED);
 		withSpiedServices(ContentManager.class);
 
@@ -1339,7 +1341,7 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 				org.joda.time.Duration.standardMinutes(42)
 		);
 
-		assertThat(getModelLayerFactory().getConfiguration().getUnreferencedContentsThreadDelayBetweenChecks()).isEqualTo(
+		assertThat(getModelLayerFactory().getConfiguration().getParsingContentsThreadDelayBetweenChecks()).isEqualTo(
 				org.joda.time.Duration.standardHours(10)
 		);
 

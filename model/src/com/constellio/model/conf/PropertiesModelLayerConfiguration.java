@@ -127,7 +127,7 @@ public class PropertiesModelLayerConfiguration extends PropertiesConfiguration i
 	}
 
 	@Override
-	public Duration getUnreferencedContentsThreadDelayBetweenChecks() {
+	public Duration getParsingContentsThreadDelayBetweenChecks() {
 		return getDuration("unreferencedContentsThread.delayBetweenChecks", Duration.standardSeconds(30));
 	}
 

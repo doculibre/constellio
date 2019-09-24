@@ -33,7 +33,7 @@ public interface ModelLayerConfiguration {
 
 	Duration getDelayBeforeDeletingUnreferencedContents();
 
-	Duration getUnreferencedContentsThreadDelayBetweenChecks();
+	Duration getParsingContentsThreadDelayBetweenChecks();
 
 	Duration getGeneratePreviewsThreadDelayBetweenChecks();
 

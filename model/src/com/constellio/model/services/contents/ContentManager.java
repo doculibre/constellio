@@ -20,13 +20,13 @@ import com.constellio.data.io.streamFactories.CloseableStreamFactory;
 import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.data.io.streamFactories.impl.CopyInputStreamFactory;
 import com.constellio.data.io.streamFactories.services.one.StreamOperationThrowingException;
-import com.constellio.data.threads.BackgroundThreadConfiguration;
 import com.constellio.data.threads.BackgroundThreadExceptionHandling;
 import com.constellio.data.threads.BackgroundThreadsManager;
 import com.constellio.data.utils.BatchBuilderIterator;
 import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.TimeProvider;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.data.utils.hashing.HashingService;
 import com.constellio.data.utils.hashing.HashingServiceException;
 import com.constellio.model.conf.ModelLayerConfiguration;
@@ -85,6 +85,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static com.constellio.data.threads.BackgroundThreadConfiguration.repeatingAction;
 import static com.constellio.data.utils.dev.Toggle.LOG_CONVERSION_FILENAME_AND_SIZE;
 import static com.constellio.model.entities.enums.ParsingBehavior.SYNC_PARSING_FOR_ALL_CONTENTS;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -104,9 +105,11 @@ public class ContentManager implements StatefulService {
 
 	static final String CONTENT_IMPORT_THREAD = "ContentImportThread";
 
-	static final String BACKGROUND_THREAD = "DeleteUnreferencedContent";
+	static final String DEPRECATED_DAILY_DELETE_UNREFERENCED_CONTENT_BACKGROUND_THREAD = "DeprecatedDailyDeleteUnreferencedContent";
 
-	static final String SCAN_VAULT_CONTENTS = "ScanVaultContents";
+	static final String PARSING_BACKGROUND_THREAD = "ParsingContent";
+
+	static final String WEEKLY_DELETE_UNREFERENCED_CONTENT_BACKGROUND_THREAD = "ScanVaultContents";
 
 	static final String PREVIEW_BACKGROUND_THREAD = "GeneratePreviewContent";
 
@@ -157,18 +160,27 @@ public class ContentManager implements StatefulService {
 
 	@Override
 	public void initialize() {
-		Runnable contentActionsInBackgroundRunnable = new Runnable() {
+		Runnable deprecatedDailyDeleteUnreferencedContentRunnable = new Runnable() {
+			@Override
+			public void run() {
+				if (Toggle.OLD_DELETE_UNUSED_CONTENT_METHOD.isEnabled() && serviceThreadEnabled
+					&& ReindexingServices.getReindexingInfos() == null
+					&& modelLayerFactory.getConfiguration().isDeleteUnusedContentEnabled()) {
+					deleteUnreferencedContents();
+
+				}
+			}
+		};
+
+		Runnable handleRecordsMarkedForParsingRunnable = new Runnable() {
 			@Override
 			public void run() {
 				if (serviceThreadEnabled && ReindexingServices.getReindexingInfos() == null) {
-					if (modelLayerFactory.getConfiguration().isDeleteUnusedContentEnabled()) {
-						deleteUnreferencedContents();
-					}
-
 					handleRecordsMarkedForParsing();
 				}
 			}
 		};
+
 		Runnable generatePreviewsInBackgroundRunnable = new Runnable() {
 			@Override
 			public void run() {
@@ -178,7 +190,7 @@ public class ContentManager implements StatefulService {
 				}
 			}
 		};
-		Runnable scanVaultContentsInBackgroundRunnable = new Runnable() {
+		Runnable weeklyDeleteUnreferencedContentRunnable = new Runnable() {
 			@Override
 			public void run() {
 				boolean isInScanVaultContentsSchedule = new ConstellioEIMConfigs(modelLayerFactory).isInScanVaultContentsSchedule();
@@ -199,26 +211,31 @@ public class ContentManager implements StatefulService {
 				} else if (!isInScanVaultContentsSchedule && doesContentScanLockFileExist()) {
 					deleteContentScanLockFile();
 				}
+
 			}
 		};
 
 
 		backgroundThreadsManager.configure(
-				BackgroundThreadConfiguration.repeatingAction(BACKGROUND_THREAD, contentActionsInBackgroundRunnable)
+				repeatingAction(DEPRECATED_DAILY_DELETE_UNREFERENCED_CONTENT_BACKGROUND_THREAD, deprecatedDailyDeleteUnreferencedContentRunnable)
 						.executedEvery(
-								configuration.getUnreferencedContentsThreadDelayBetweenChecks())
+								configuration.getParsingContentsThreadDelayBetweenChecks())
 						.handlingExceptionWith(BackgroundThreadExceptionHandling.CONTINUE));
 
 		backgroundThreadsManager.configure(
-				BackgroundThreadConfiguration.repeatingAction(PREVIEW_BACKGROUND_THREAD, generatePreviewsInBackgroundRunnable)
+				repeatingAction(PARSING_BACKGROUND_THREAD, handleRecordsMarkedForParsingRunnable)
+						.executedEvery(configuration.getParsingContentsThreadDelayBetweenChecks())
+						.handlingExceptionWith(BackgroundThreadExceptionHandling.CONTINUE));
+
+		backgroundThreadsManager.configure(
+				repeatingAction(PREVIEW_BACKGROUND_THREAD, generatePreviewsInBackgroundRunnable)
 						.executedEvery(
 								configuration.getGeneratePreviewsThreadDelayBetweenChecks())
 						.handlingExceptionWith(BackgroundThreadExceptionHandling.CONTINUE));
 
 		backgroundThreadsManager.configure(
-				BackgroundThreadConfiguration.repeatingAction(SCAN_VAULT_CONTENTS, scanVaultContentsInBackgroundRunnable)
+				repeatingAction(WEEKLY_DELETE_UNREFERENCED_CONTENT_BACKGROUND_THREAD, weeklyDeleteUnreferencedContentRunnable)
 						.executedEvery(Duration.standardHours(2))
-						//						.executedEvery(Duration.standardSeconds(10))
 						.handlingExceptionWith(BackgroundThreadExceptionHandling.CONTINUE));
 
 		if (configuration.getContentImportThreadFolder() != null) {
@@ -230,7 +247,7 @@ public class ContentManager implements StatefulService {
 				}
 			};
 			backgroundThreadsManager.configure(
-					BackgroundThreadConfiguration.repeatingAction(CONTENT_IMPORT_THREAD, contentImportAction)
+					repeatingAction(CONTENT_IMPORT_THREAD, contentImportAction)
 							.executedEvery(Duration.standardSeconds(30))
 							.handlingExceptionWith(BackgroundThreadExceptionHandling.CONTINUE));
 		}
@@ -1109,7 +1126,7 @@ public class ContentManager implements StatefulService {
 		}
 
 		public boolean isHandleDeletionOfUnreferencedHashes() {
-			return handleDeletionOfUnreferencedHashes;
+			return handleDeletionOfUnreferencedHashes && Toggle.OLD_DELETE_UNUSED_CONTENT_METHOD.isEnabled();
 		}
 
 		public boolean isParse(boolean defaultBehavior) {
