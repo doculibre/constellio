@@ -55,6 +55,11 @@ public interface Content extends ModifiableStructure {
 	Content updateContentWithVersionAndName(User user, ContentVersionDataSummary newVersion, String version,
 											String name);
 
+	Content updateContentWithVersionAndName(User user, ContentVersionDataSummary newVersion, String version,
+											String name, boolean overwrite);
+
+	Content replaceCurrentVersionContent(User user, ContentVersionDataSummary contentVersionDataSummary);
+
 	LocalDateTime getCheckoutDateTime();
 
 	String getCheckoutUserId();
