@@ -58,6 +58,7 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQueryOper
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.jgoodies.common.base.Strings;
 import com.vaadin.ui.UI;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
@@ -76,6 +77,7 @@ import static com.constellio.model.entities.schemas.MetadataValueType.ENUM;
 import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
 
+@Slf4j
 public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditMetadataView> {
 
 	private String schemaCode;
@@ -665,7 +667,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 			} else if (formMetadataVO.getValueType() == BOOLEAN){
 				inputType = MetadataInputType.FIELD;
 			}
-			if (!inputType.equals(MetadataInputType.CHECKBOXES) && !inputType.equals(MetadataInputType.RADIO_BUTTONS)) {
+			if (inputType != null && !inputType.equals(MetadataInputType.CHECKBOXES) && !inputType.equals(MetadataInputType.RADIO_BUTTONS)) {
 				displayType = MetadataDisplayType.VERTICAL;
 			}
 			if (formMetadataVO.getValueType() == ENUM && editMode) {
@@ -684,8 +686,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 					formMetadataVO.isMultiLingual(), getCurrentLocale(), new HashMap<String, Object>(), collectionInfoVO, formMetadataVO.isSortable());
 			return metadataVO;
 		} catch (Exception ex) {
-
-
+			log.error("error", ex);
 			return null;
 		}
 	}

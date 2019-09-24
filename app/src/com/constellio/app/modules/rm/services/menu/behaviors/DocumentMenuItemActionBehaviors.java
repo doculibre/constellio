@@ -29,6 +29,7 @@ import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.entities.RecordVORuntimeException.RecordVORuntimeException_NoSuchMetadata;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.builders.ContentVersionToVOBuilder;
+import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.DownloadLink;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
@@ -70,6 +71,7 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import org.apache.commons.io.FilenameUtils;
+import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -159,6 +161,18 @@ public class DocumentMenuItemActionBehaviors {
 	}
 
 	public void delete(Document document, MenuItemActionBehaviorParams params) {
+		Button deleteDocumentButton = new DeleteButton($("DisplayDocumentView.deleteDocument")) {
+			@Override
+			protected void confirmButtonClick(ConfirmDialog dialog) {
+				deleteConfirmationDocumentButtonClicked(document, params);
+			}
+		};
+
+		deleteDocumentButton.click();
+
+	}
+
+	private void deleteConfirmationDocumentButtonClicked(Document document, MenuItemActionBehaviorParams params) {
 		if (validateDeleteDocumentPossibleExtensively(document.getWrappedRecord(), params.getUser()).isEmpty()) {
 			String parentId = document.getFolder();
 			try {
