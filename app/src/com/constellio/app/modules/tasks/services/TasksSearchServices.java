@@ -66,13 +66,8 @@ public class TasksSearchServices {
 				where(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull(),
 				anyConditions(
 						where(tasksSchemas.userTask.assignee()).isEqualTo(user),
-						allConditions(
-								where(tasksSchemas.userTask.assignee()).isNull(),
-								anyConditions(
-										where(tasksSchemas.userTask.assigneeGroupsCandidates()).isIn(user.getUserGroups()),
-										where(tasksSchemas.userTask.assigneeUsersCandidates()).isContaining(asList(user))
-								)
-						)
+						where(tasksSchemas.userTask.assigneeGroupsCandidates()).isIn(user.getUserGroups()),
+						where(tasksSchemas.userTask.assigneeUsersCandidates()).isContaining(asList(user))
 				));
 		return new LogicalSearchQuery(condition).filteredWithUser(user).sortDesc(tasksSchemas.userTask.dueDate()).sortDesc(tasksSchemas.userTask.modifiedOn());
 	}
