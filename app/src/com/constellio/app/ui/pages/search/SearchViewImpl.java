@@ -595,6 +595,11 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		return viewerPanel;
 	}
 
+	@Override
+	protected List<Button> getQuickActionMenuButtons() {
+		return Arrays.asList(buildSavedSearchButton());
+	}
+
 	public void addSelectionChangeListener(SelectionChangeListener selectionChangeListener) {
 		if (resultsTable == null) {
 			selectionChangeListenerStorage.add(selectionChangeListener);
