@@ -20,6 +20,7 @@ import com.vaadin.data.util.BeanItem;
 import com.vaadin.data.validator.AbstractValidator;
 import com.vaadin.server.Resource;
 import com.vaadin.ui.AbstractField;
+import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
@@ -204,6 +205,8 @@ public abstract class BaseForm<T> extends CustomComponent {
 
 		formLayout.addComponent(buttonsLayout);
 		buttonsLayout.addComponents(saveButton, cancelButton);
+		buttonsLayout.setComponentAlignment(saveButton, Alignment.BOTTOM_RIGHT);
+		buttonsLayout.setComponentAlignment(cancelButton, Alignment.BOTTOM_LEFT);
 
 		if (useTabSheet) {
 			List<String> orderedTabGroupLabels = getOrderedTabCaptions(viewObject);

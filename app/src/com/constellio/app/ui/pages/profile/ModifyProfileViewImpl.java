@@ -1,33 +1,14 @@
 package com.constellio.app.ui.pages.profile;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static java.util.Arrays.asList;
-
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-
 import com.constellio.app.api.extensions.params.RecordFieldsExtensionParams;
-import com.constellio.app.ui.framework.components.fields.AdditionnalRecordField;
-import com.vaadin.ui.*;
-import org.apache.commons.lang.StringUtils;
-
-import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
-import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.ContentVersionVO;
-import com.constellio.app.ui.entities.TaxonomyVO;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.converters.TempFileUploadToContentVersionVOConverter;
+import com.constellio.app.ui.framework.components.fields.AdditionnalRecordField;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
-import com.constellio.app.ui.framework.components.fields.ListOptionGroup;
-import com.constellio.app.ui.framework.components.fields.enumWithSmallCode.EnumWithSmallCodeComboBox;
-import com.constellio.app.ui.framework.components.fields.enumWithSmallCode.EnumWithSmallCodeOptionGroup;
-import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 import com.constellio.app.ui.framework.components.fields.upload.BaseUploadField;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
-import com.constellio.model.entities.enums.SearchPageLength;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
@@ -35,15 +16,15 @@ import com.vaadin.data.Validator;
 import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.data.validator.EmailValidator;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
+import com.vaadin.server.Resource;
 import com.vaadin.server.StreamResource;
 import com.vaadin.server.StreamResource.StreamSource;
-import com.vaadin.ui.CheckBox;
+import com.vaadin.server.ThemeResource;
+import com.vaadin.ui.Alignment;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Embedded;
 import com.vaadin.ui.Field;
-import com.vaadin.ui.OptionGroup;
-import com.vaadin.ui.Panel;
 import com.vaadin.ui.PasswordField;
 import com.vaadin.ui.TextArea;
 import com.vaadin.ui.TextField;
@@ -51,16 +32,19 @@ import com.vaadin.ui.VerticalLayout;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
 
 public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfileView {
 	public static final String UPDATE_PICTURE_STREAM_SOURCE = "ModifyProfileViewImpl-UpdatePictureStreamSource";
 
 	private ProfileVO profileVO;
 	private VerticalLayout mainLayout;
-	private Panel panel;
-	private StreamResource imageResource;
+	private Resource imageResource;
 	private Embedded image;
 	private BaseForm<ProfileVO> form;
 
@@ -129,12 +113,15 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 		usernameField.setVisible(true);
 		usernameField.setEnabled(false);
 
-		imageResource = new StreamResource(readSourceStream(), presenter.getUsername() + ".png");
+		if (presenter.hasCurrentUserPhoto()) {
+			imageResource = new StreamResource(readSourceStream(), presenter.getUsername() + ".png");
+		} else {
+			imageResource = new ThemeResource("images/profiles/default.jpg");
+		}
 		image = new Embedded("", imageResource);
-		panel = new Panel("", image);
-		panel.setWidth("150");
-		panel.setHeight("150");
-		setupImageSize(image);
+		image.addStyleName("modify-profile-image");
+		image.setWidth("150px");
+		image.setHeight("150px");
 
 		imageField = new BaseUploadField();
 		imageField.setId("image");
@@ -337,21 +324,14 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 			}
 		};
 
-		mainLayout.addComponents(panel, form);
+		mainLayout.addComponents(image, form);
+		mainLayout.setComponentAlignment(image, Alignment.TOP_CENTER);
 		return mainLayout;
 	}
 
-	private void setupImageSize(Embedded image) {
-		image.setHeight("148");
-		image.setWidth("148");
-	}
-
 	private void updatePicture(StreamSource streamSource) {
-		imageResource.setStreamSource(streamSource);
-		Embedded newImage = new Embedded("", imageResource);
-		setupImageSize(newImage);
-		panel.setContent(newImage);
-		image = newImage;
+		imageResource = new StreamResource(streamSource, presenter.getUsername() + ".png");
+		image.setSource(imageResource);
 	}
 
 	private StreamSource readSourceStream() {

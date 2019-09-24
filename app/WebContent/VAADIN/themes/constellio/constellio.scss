@@ -213,6 +213,10 @@ $popup-view-z-index: 3;
 	.v-menubar-popup [class*="disabled"] {
 	    cursor: pointer;
 	}
+	
+	.v-slot-modify-profile-image .v-widget {
+		text-align: center;
+	}
 
 	.task-management-view {
 		.v-menubar .v-menubar-submenu-indicator  + .v-menubar-menuitem-caption:after {
@@ -1503,7 +1507,26 @@ $popup-view-z-index: 3;
 			z-index: 1002;
 		}
 	}	
-
+	
+	.v-window[width-range~="0-800px"], .v-window[width-range~="801-1100px"] {
+		.responsive-button {
+			[class*="caption"] {
+				display: none;
+			}
+		}
+		
+		.base-display {
+			.v-slot-display-value {
+				float: left;
+			}
+		}
+			
+		.v-slot-action-menu-bar-layout {    
+		    top: -50px;
+		    margin-bottom: -50px;
+		}
+	}
+	
 	.v-window {
 	
 		.popupContent {
@@ -2033,7 +2056,7 @@ $popup-view-z-index: 3;
 		.base-form-buttons-layout {
 			width: 100%;
 			text-align: center;
-			margin-bottom: 20px;
+			padding-bottom: 20px;
 		}
 	}
 
@@ -2476,7 +2499,7 @@ $popup-view-z-index: 3;
 				width: auto;
 				position: relative;
 				float: right;
-				top: -30px;
+				top: -24px;
 				margin-bottom: -35px;
 
 				.v-button-caption {
@@ -2485,11 +2508,11 @@ $popup-view-z-index: 3;
 			}
 			
 			.search-result-elevation {
-				right: 36px;
+				right: 6px;
 			}
 
 			.search-result-exclusion {
-				right: 0px;
+				right: -30px;
 			}
 			
 			.search-result-elevation:hover, .search-result-exclusion:hover {
@@ -3576,28 +3599,14 @@ $popup-view-z-index: 3;
 		
 		.search-view {
 			.viewable-record-table-panel .viewable-record-table {
-				.search-result-elevation, .search-result-exclusion {
-					top: 0px;
+				.search-result-with-elevation-buttons {
+					.search-result-title {
+						padding-right: 60px;
+					}
 				}
 			}
 		}
     }
-
-	.v-window[width-range~="801-1100px"] {
-		.responsive-button {
-			[class*="caption"] {
-				display: none;
-			}
-		}
-	}
-
-	.v-window[width-range~="0-800px"] {
-		.responsive-button {
-			[class*="caption"] {
-				display: none;
-			}
-		}
-	}
 
     .v-progressbar {
 		width: 150px;
