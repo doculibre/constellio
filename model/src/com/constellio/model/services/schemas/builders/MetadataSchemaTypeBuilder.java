@@ -10,6 +10,7 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.CannotGetMetadatasOfAnotherSchemaType;
 import com.constellio.model.entities.schemas.RecordCacheType;
+import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.SchemaComparators;
 import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeException.MultilingualMetadatasNotSupportedWithPermanentSummaryCache;
@@ -269,14 +270,14 @@ public class MetadataSchemaTypeBuilder {
 		if (recordCacheType.isSummaryCache()) {
 
 			for (Metadata metadata : defaultSchema.getMetadatas()) {
-				if (metadata.isMultiLingual()) {
+				if (metadata.isMultiLingual() && metadata.getDataEntry().getType() == DataEntryType.MANUAL) {
 					throw new MetadataBuilderRuntimeException.MultilingualMetadatasNotSupportedWithPermanentSummaryCache(metadata);
 				}
 			}
 
 			for (MetadataSchema aSchema : schemas) {
 				for (Metadata metadata : aSchema.getMetadatas()) {
-					if (metadata.isMultiLingual()) {
+					if (metadata.isMultiLingual() && metadata.getDataEntry().getType() == DataEntryType.MANUAL) {
 						throw new MetadataBuilderRuntimeException.MultilingualMetadatasNotSupportedWithPermanentSummaryCache(metadata);
 					}
 				}
