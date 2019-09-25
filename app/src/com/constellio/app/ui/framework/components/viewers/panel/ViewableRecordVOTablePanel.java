@@ -578,6 +578,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 			resultsTable.addItemClickListener(listener);
 		}
 		resultsTable.removeStyleName(RecordVOTable.CLICKABLE_ROW_STYLE_NAME);
+		resultsTable.setAlwaysRecalculateColumnWidths(true);
 
 		return resultsTable;
 	}

@@ -1347,7 +1347,6 @@ $popup-view-z-index: 3;
 
 		li {
 			height: auto;
-			//height: 60px;
 		}
 
 		.v-slot-current {
@@ -2474,10 +2473,18 @@ $popup-view-z-index: 3;
 			}
 
 			.metadata-value {
+				display: block;
 				position: relative;
 				top: -24px;
 				left: 250px;
+				padding-right: 250px;
 				margin-bottom: -24px;
+				
+				.v-icon {
+					position: relative;
+					left: -2px;
+					margin-right: -2px;
+				}
 			}
 
 			.search-result-metadata-layout {
@@ -3604,6 +3611,15 @@ $popup-view-z-index: 3;
 						padding-right: 60px;
 					}
 				}
+			}
+		}
+
+		.xbreadcrumbs {
+			font-size: 16px;
+			padding-right: 40px;
+	
+			.v-link a span,.xbreadcrumbbutton .v-button-caption {
+				font-size: 0.9em;
 			}
 		}
     }
