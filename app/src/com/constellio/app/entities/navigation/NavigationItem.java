@@ -110,6 +110,10 @@ public interface NavigationItem extends CodedItem, Serializable, Comparable<Navi
 		@Override
 		public void viewChanged(BaseView oldView, BaseView newView) {
 		}
+
+		public String urlNeedToEndWith() {
+			return null;
+		}
 	}
 
 	abstract class Active extends BaseNavigationItem implements NavigationItem {

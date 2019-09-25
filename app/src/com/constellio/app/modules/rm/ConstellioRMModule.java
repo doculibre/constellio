@@ -235,6 +235,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		scripts.add(new RMMigrationTo8_2_3());
 		scripts.add(new RMMigrationTo8_3());
 		scripts.add(new RMMigrationTo8_3_1());
+		scripts.add(new RMMigrationTo8_3_1_1());
 		scripts.add(new RMMigrationTo8_3_2());
 		scripts.add(new RMMigrationTo9_0());
 		scripts.add(new RMMigrationTo9_0_1());
@@ -293,10 +294,20 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 	}
 
 	@Override
-	public void start(String collection, AppLayerFactory appLayerFactory) {
+	public void start(final String collection, final AppLayerFactory appLayerFactory) {
 		setupModelLayerExtensions(collection, appLayerFactory);
 		setupAppLayerExtensions(collection, appLayerFactory);
+
+		new Thread() {
+			@Override
+			public void run() {
+				RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+				rm.preloadCategoryTaxonomyCache();
+			}
+		}.start();
+
 	}
+
 
 	@Override
 	public void stop(String collection, AppLayerFactory appLayerFactory) {

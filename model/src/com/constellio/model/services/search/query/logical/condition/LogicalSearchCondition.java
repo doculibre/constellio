@@ -96,8 +96,9 @@ public abstract class LogicalSearchCondition implements Predicate<Record> {
 				LogicalOperator.AND, this, LogicalOperator.AND);
 	}
 
-	public OngoingLogicalSearchConditionWithDataStoreFields andWhereAny(List<DataStoreField> dataStoreFields) {
-		return new OngoingLogicalSearchConditionWithDataStoreFields(filters, dataStoreFields,
+	public OngoingLogicalSearchConditionWithDataStoreFields andWhereAny(
+			List<? extends DataStoreField> dataStoreFields) {
+		return new OngoingLogicalSearchConditionWithDataStoreFields(filters, (List<DataStoreField>) dataStoreFields,
 				LogicalOperator.OR,
 				this, LogicalOperator.AND);
 	}

@@ -98,12 +98,12 @@ public class RetentionRuleToVOBuilder extends RecordToVOBuilder {
 	}
 
 	private List<String> getCategories(String id) {
-		LogicalSearchCondition condition = from(rm.category.schemaType()).where(rm.category.retentionRules())
-				.isEqualTo(id);
-		List<Record> categoryRecords = searchServices.cachedSearch(new LogicalSearchQuery(condition));
+		List<Category> allCategories = rm.getAllCategories();
 		List<Category> categories = new ArrayList<>();
-		for (Record categoryRecord : categoryRecords) {
-			categories.add(rm.wrapCategory(categoryRecord));
+		for (Category category : allCategories) {
+			if (category.getList(rm.category.retentionRules()).contains(id)) {
+				categories.add(category);
+			}
 		}
 		Collections.sort(categories, new AbstractTextComparator<Category>() {
 			@Override

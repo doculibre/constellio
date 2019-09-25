@@ -14,8 +14,8 @@ import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.cache.CacheInsertionResponse;
 import com.constellio.model.services.records.cache.CacheInsertionStatus;
-import com.constellio.model.services.records.cache.dataStore.FileSystemRecordsValuesCacheDataStore;
 import com.constellio.model.services.records.cache.RecordsCaches2Impl;
+import com.constellio.model.services.records.cache.dataStore.FileSystemRecordsValuesCacheDataStore;
 import com.constellio.model.services.records.cache.dataStore.RecordsCachesDataStore;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import org.slf4j.Logger;
@@ -203,11 +203,12 @@ public class EventsBusRecordsCachesImpl extends RecordsCaches2Impl implements Ev
 			case RELOAD_SCHEMA_TYPES:
 				byte collectionId = event.getData("collectionId");
 				String collection = collectionsListManager.getCollectionCode(collectionId);
-				List<String> schemaTypes = event.getData("schemaTypes");
-				boolean forceVolatileCacheClear = event.getData("forceVolatileCacheClear");
-				reload(collectionId, collection, schemaTypes, ONLY_LOCALLY, forceVolatileCacheClear);
+				if (collection != null) {
+					List<String> schemaTypes = event.getData("schemaTypes");
+					boolean forceVolatileCacheClear = event.getData("forceVolatileCacheClear");
+					reload(collectionId, collection, schemaTypes, ONLY_LOCALLY, forceVolatileCacheClear);
+				}
 				break;
-
 			case REMOVE_RECORDS:
 				collectionId = event.getData("collectionId");
 				List<String> ids = event.<List<String>>getData("ids");

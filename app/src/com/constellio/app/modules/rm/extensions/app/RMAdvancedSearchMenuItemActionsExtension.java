@@ -26,6 +26,7 @@ import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingModifyi
 import com.constellio.app.ui.pages.search.criteria.ConditionBuilder;
 import com.constellio.app.ui.pages.search.criteria.ConditionException;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
+import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.enums.BatchProcessingMode;
 import com.constellio.model.entities.records.wrappers.Facet;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
@@ -100,7 +101,7 @@ public class RMAdvancedSearchMenuItemActionsExtension extends MenuItemActionsExt
 
 		MenuItemAction menuItemAction = MenuItemAction.builder()
 				.type(RMRECORDS_GENERATE_REPORT)
-				.state(getActionState(params.getQuery()))
+				.state(getActionStateForReports(params.getQuery()))
 				.caption($("SearchView.metadataReportTitle"))
 				.icon(null)
 				.group(-1)
@@ -112,7 +113,7 @@ public class RMAdvancedSearchMenuItemActionsExtension extends MenuItemActionsExt
 
 		MenuItemAction menuItemAction2 = MenuItemAction.builder()
 				.type(RMRECORDS_BATCH)
-				.state(getActionState(params.getQuery()))
+				.state(getActionStateForBatchProcessing(params.getQuery(), params.getBehaviorParams().getUser()))
 				.caption($("AdvancedSearchView.batchProcessing"))
 				.icon(null)
 				.group(-1)
@@ -127,14 +128,31 @@ public class RMAdvancedSearchMenuItemActionsExtension extends MenuItemActionsExt
 	@Override
 	public MenuItemActionState getActionStateForQuery(MenuItemActionExtensionGetActionStateForQueryParams params) {
 		if (params.getMenuItemActionType().equals(RMRECORDS_GENERATE_REPORT)) {
-			return getActionState(params.getQuery());
+			return getActionStateForBatchProcessing(params.getQuery(), params.getBehaviorParams().getUser());
 		} else if (params.getMenuItemActionType().equals(RMRECORDS_BATCH)) {
-			return getActionState(params.getQuery());
+			return getActionStateForReports(params.getQuery());
 		}
 		return null;
 	}
 
-	private MenuItemActionState getActionState(LogicalSearchQuery query) {
+	private MenuItemActionState getActionStateForBatchProcessing(LogicalSearchQuery query, User user) {
+
+		if (!user.has(CorePermissions.MODIFY_RECORDS_USING_BATCH_PROCESS).globally()) {
+			return new MenuItemActionState(MenuItemActionStateStatus.HIDDEN);
+		}
+
+		String schemaType = getSchemaType(query);
+		if (schemaType == null) {
+			return new MenuItemActionState(MenuItemActionStateStatus.HIDDEN);
+		} else if (!schemaType.equals(Document.SCHEMA_TYPE) && !schemaType.equals(Folder.SCHEMA_TYPE) &&
+				   !schemaType.equals(ContainerRecord.SCHEMA_TYPE) && !schemaType.equals(StorageSpace.SCHEMA_TYPE)) {
+			return new MenuItemActionState(MenuItemActionStateStatus.HIDDEN);
+		}
+
+		return new MenuItemActionState(MenuItemActionStateStatus.VISIBLE);
+	}
+
+	private MenuItemActionState getActionStateForReports(LogicalSearchQuery query) {
 		String schemaType = getSchemaType(query);
 		if (schemaType == null) {
 			return new MenuItemActionState(MenuItemActionStateStatus.HIDDEN);

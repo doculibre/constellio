@@ -85,7 +85,6 @@ import static com.constellio.app.ui.i18n.i18n.$;
 public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocumentView, DropHandler {
 
 	private VerticalLayout mainLayout;
-
 	private Label borrowedLabel;
 	private RecordVO documentVO;
 	private String taxonomyCode;
@@ -112,6 +111,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	private boolean nestedView;
 
 	private List<Window.CloseListener> editWindowCloseListeners = new ArrayList<>();
+	private Component contentMetadataComponent;
 
 	public DisplayDocumentViewImpl() {
 		this(null, false, false);
@@ -135,7 +135,14 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 	@Override
 	protected void afterViewAssembled(ViewChangeEvent event) {
+		if (!contentViewer.isViewerComponentVisible()
+			&& contentMetadataComponent instanceof CollapsibleHorizontalSplitPanel
+			&& ((CollapsibleHorizontalSplitPanel) contentMetadataComponent).getRealFirstComponent() == contentViewer) {
+			mainLayout.replaceComponent(contentMetadataComponent, tabSheet);
+		}
+
 		presenter.viewAssembled();
+
 	}
 
 	@Override
@@ -151,14 +158,10 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		versionTable.setContentVersions(contentVersions);
 	}
 
-	@Override
-	protected String getTitle() {
-		return null;
-	}
-
 	private ContentViewer newContentViewer() {
 		ContentVersionVO contentVersionVO = documentVO.get(Document.CONTENT);
-		ContentViewer contentViewer = new ContentViewer(documentVO, Document.CONTENT, contentVersionVO);
+		final ContentViewer contentViewer = new ContentViewer(documentVO, Document.CONTENT, contentVersionVO);
+
 		return contentViewer;
 	}
 
@@ -249,7 +252,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		}
 		tabSheet.addTab(recordDisplayPanel, $("DisplayDocumentView.tabs.metadata"));
 		tabSheet.addTab(buildVersionTab(), $("DisplayDocumentView.tabs.versions"));
-		tabSheet.addTab(tasksComponent, $("DisplayDocumentView.tabs.tasks", presenter.getTaskCount()));
+		tabSheet.addTab(tasksComponent, $("DisplayDocumentView.tabs.tasks"));
 
 		eventsComponent = new CustomComponent();
 		tabSheet.addTab(eventsComponent, $("DisplayDocumentView.tabs.logs"));
@@ -268,14 +271,12 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 				} else if (event.getTabSheet().getSelectedTab() == tasksComponent) {
 					presenter.tasksTabSelected();
 
-				} else if (event.getTabSheet().getSelectedTab() == eventsComponent) {
-					presenter.eventsTabSelected();
-
+				} else if (event.getTabSheet().getSelectedTab() == contentViewer) {
+					contentViewer.refresh();
 				}
 			}
 		});
 
-		Component contentMetadataComponent;
 		if (contentViewerInitiallyVisible && !nestedView) {
 			CollapsibleHorizontalSplitPanel splitPanel = new CollapsibleHorizontalSplitPanel(DisplayDocumentViewImpl.class.getName());
 			splitPanel.setFirstComponent(contentViewer);
@@ -379,6 +380,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 			favGroupIdKey = presenter.getParams().get(RMViews.FAV_GROUP_ID_KEY);
 		}
+
 
 		SearchType searchType = null;
 		if (searchTypeAsString != null) {
@@ -625,10 +627,6 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	}
 
 	@Override
-	public void setStartWorkflowButtonState(ComponentState state) {
-	}
-
-	@Override
 	public void setUploadButtonState(ComponentState state) {
 	}
 
@@ -768,13 +766,22 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	}
 
 	@Override
+	public String getTitle() {
+		if (!nestedView) {
+			return $("DisplayDocumentView.viewTitle");
+		} else {
+			return null;
+		}
+	}
+
+	@Override
 	protected boolean isActionMenuBar() {
 		return true;
 	}
 
 	@Override
 	protected boolean isBreadcrumbsVisible() {
-		return !nestedView;
+		return !nestedView && !presenter.isInWindow();
 	}
 
 	@Override

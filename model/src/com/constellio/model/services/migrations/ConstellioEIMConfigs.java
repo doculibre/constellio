@@ -5,6 +5,7 @@ import com.constellio.model.entities.configs.AbstractSystemConfigurationScript;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.configs.SystemConfigurationGroup;
 import com.constellio.model.entities.configs.core.listeners.UserTitlePatternConfigScript;
+import com.constellio.model.entities.enums.AutocompleteSplitCriteria;
 import com.constellio.model.entities.enums.BatchProcessingMode;
 import com.constellio.model.entities.enums.EmailTextFormat;
 import com.constellio.model.entities.enums.GroupAuthorizationsInheritance;
@@ -85,8 +86,6 @@ public class ConstellioEIMConfigs {
 
 	public static final SystemConfiguration TRANSACTION_DELAY;
 
-	public static final SystemConfiguration LAZY_LOADED_FACETS;
-
 	public static final SystemConfiguration REPLACE_SPACES_IN_SIMPLE_SEARCH_FOR_ANDS;
 
 	public static final SystemConfiguration UPDATE_SERVER_CONNECTION_ENABLED;
@@ -116,6 +115,7 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration LAZY_TREE_BUFFER_SIZE;
 
 	public static final SystemConfiguration AUTOCOMPLETE_SIZE;
+	public static final SystemConfiguration AUTOCOMPLETE_SPLIT_CRITERIA;
 
 	//public static final SystemConfiguration DEFAULT_FONT_SIZE;
 
@@ -156,7 +156,6 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration ENABLE_SYSTEM_STATE_OPT_DISK_USAGE;
 	public static final SystemConfiguration ENABLE_SYSTEM_STATE_SOLR_DISK_USAGE;
 	public static final SystemConfiguration ENABLE_SYSTEM_STATE_LICENSE;
-	public static final SystemConfiguration NO_LNKS_IN_SEARCH_RESULTS;
 
 	public static final SystemConfiguration ENABLE_THUMBNAIL_GENERATION;
 
@@ -165,7 +164,10 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration SHOW_PATH_TO_RESULT;
 
 	public static final SystemConfiguration ENABLE_LEARN_TO_RANK_FEATURE;
-	;
+
+	public static final SystemConfiguration NO_LINKS_IN_SEARCH_RESULTS;
+	public static final SystemConfiguration LAZY_LOADED_SEARCH_RESULTS;
+
 
 	static {
 		SystemConfigurationGroup others = new SystemConfigurationGroup(null, "others");
@@ -225,6 +227,9 @@ public class ConstellioEIMConfigs {
 		add(SHOW_RESULTS_NUMBERING_IN_LIST_VIEW = search.createBooleanFalseByDefault("showResultsNumberingInListView"));
 		add(SHOW_PATH_TO_RESULT = search.createBooleanFalseByDefault("showPathToResult"));
 
+		add(AUTOCOMPLETE_SPLIT_CRITERIA = search.createEnum("autocompleteSplitCriteria", AutocompleteSplitCriteria.class)
+				.withDefaultValue(AutocompleteSplitCriteria.SPACE).withReIndexationRequired());
+
 		add(MAX_SELECTABLE_SEARCH_RESULTS = advanced.createInteger("maxSelectableSearchResults").withDefaultValue(500));
 		add(WRITE_ZZRECORDS_IN_TLOG = advanced.createBooleanFalseByDefault("writeZZRecordsInTlog")
 				.scriptedBy(WriteZZRecordsScript.class));
@@ -233,8 +238,6 @@ public class ConstellioEIMConfigs {
 		add(REMOVE_EXTENSION_FROM_RECORD_TITLE = advanced.createBooleanFalseByDefault("removeExtensionFromDocument"));
 
 		add(TABLE_DYNAMIC_CONFIGURATION = advanced.createBooleanTrueByDefault("tableDynamicConfiguration"));
-
-		add(LAZY_LOADED_FACETS = search.createBooleanTrueByDefault("lazyLoadedFacets"));
 
 		add(ADD_SECONDARY_SORT_WHEN_SORTING_BY_SCORE = search.createBooleanTrueByDefault("addSecondarySortWhenSortingByScore")
 				.whichIsHidden());
@@ -315,7 +318,8 @@ public class ConstellioEIMConfigs {
 
 		add(UPDATE_SERVER_CONNECTION_ENABLED = advanced.createBooleanTrueByDefault("updateServerConnectionEnabled").whichIsHidden());
 
-		add(NO_LNKS_IN_SEARCH_RESULTS = search.createBooleanFalseByDefault("noLinksInSearchResults"));
+		add(NO_LINKS_IN_SEARCH_RESULTS = search.createBooleanFalseByDefault("noLinksInSearchResults"));
+		add(LAZY_LOADED_SEARCH_RESULTS = search.createBooleanTrueByDefault("lazyLoadedSearchResults"));
 
 		configurations = Collections.unmodifiableList(modifiableConfigs);
 
@@ -407,10 +411,6 @@ public class ConstellioEIMConfigs {
 
 	public Boolean isRemoveExtensionFromRecordTitle() {
 		return manager.getValue(REMOVE_EXTENSION_FROM_RECORD_TITLE);
-	}
-
-	public Boolean isLazyLoadedFacets() {
-		return manager.getValue(LAZY_LOADED_FACETS);
 	}
 
 	public boolean isShowPathToResult() {
@@ -516,6 +516,10 @@ public class ConstellioEIMConfigs {
 
 	public int getAutocompleteSize() {
 		return manager.getValue(AUTOCOMPLETE_SIZE);
+	}
+
+	public AutocompleteSplitCriteria getAutocompleteSplitCriteria() {
+		return manager.getValue(AUTOCOMPLETE_SPLIT_CRITERIA);
 	}
 
 	public boolean isIncludeContentsInSavestate() {
@@ -629,7 +633,11 @@ public class ConstellioEIMConfigs {
 	}
 
 	public boolean isNoLinksInSearchResults() {
-		return manager.getValue(NO_LNKS_IN_SEARCH_RESULTS);
+		return manager.getValue(NO_LINKS_IN_SEARCH_RESULTS);
+	}
+
+	public boolean isLazyLoadedSearchResults() {
+		return manager != null && manager.<Boolean>getValue(LAZY_LOADED_SEARCH_RESULTS);
 	}
 
 	public boolean isLearnToRankFeatureActivated() {

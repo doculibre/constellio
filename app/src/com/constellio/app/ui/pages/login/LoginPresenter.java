@@ -142,9 +142,11 @@ public class LoginPresenter extends BasePresenter<LoginView> {
 	}
 
 	public void signInValidated(User userInLastCollection, String lastCollection) {
+		SessionContext sessionContext = view.getSessionContext();
+		userInLastCollection.setLastIPAddress(sessionContext.getCurrentUserIPAddress());
 		modelLayerFactory.newLoggingServices().login(userInLastCollection);
 		Locale userLocale = getSessionLanguage(userInLastCollection);
-		SessionContext sessionContext = view.getSessionContext();
+
 		UserVO currentUser = voBuilder
 				.build(userInLastCollection.getWrappedRecord(), VIEW_MODE.DISPLAY, sessionContext);
 		sessionContext.setCurrentUser(currentUser);

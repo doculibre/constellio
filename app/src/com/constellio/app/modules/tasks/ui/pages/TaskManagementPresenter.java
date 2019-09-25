@@ -2,7 +2,6 @@ package com.constellio.app.modules.tasks.ui.pages;
 
 import com.constellio.app.api.extensions.params.UpdateComponentExtensionParams;
 import com.constellio.app.modules.rm.ConstellioRMModule;
-import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.tasks.TasksPermissionsTo;
@@ -475,11 +474,6 @@ public class TaskManagementPresenter extends AbstractTaskPresenter<TaskManagemen
 		searchServices = modelLayerFactory.newSearchServices();
 	}
 
-	public boolean areWorkflowsEnabled() {
-		RMConfigs configs = new RMConfigs(modelLayerFactory.getSystemConfigurationsManager());
-		return configs.areWorkflowsEnabled();
-	}
-
 	public boolean hasPermissionToStartWorkflow() {
 		return getCurrentUser().has(TasksPermissionsTo.START_WORKFLOWS).globally();
 	}
@@ -495,7 +489,7 @@ public class TaskManagementPresenter extends AbstractTaskPresenter<TaskManagemen
 	}
 
 	@Override
-	public void reloadTaskModified(Task task) {
+	public void reloadTaskModified(String id) {
 		loadTab(selectedTab);
 	}
 

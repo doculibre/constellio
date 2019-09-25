@@ -271,6 +271,7 @@ public class RecordImpl implements Record {
 	}
 
 	private Record setModifiedValue(Metadata metadata, String language, Object value) {
+		lastCreatedDeltaDTO = null;
 		validateSetArguments(metadata, value);
 
 		Map<String, Object> map = modifiedValues;

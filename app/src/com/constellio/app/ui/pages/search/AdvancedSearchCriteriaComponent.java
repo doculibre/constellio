@@ -23,6 +23,7 @@ import com.constellio.model.entities.schemas.AllowedReferences;
 import com.constellio.model.services.search.query.logical.criteria.MeasuringUnitTime;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.BeanItemContainer;
+import com.vaadin.data.util.converter.Converter.ConversionException;
 import com.vaadin.server.Resource;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.Alignment;
@@ -502,7 +503,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 			value.addValueChangeListener(new ValueChangeListener() {
 				@Override
 				public void valueChange(Property.ValueChangeEvent event) {
-					criterion.setValue(value.getConvertedValue());
+					verifyNewValue(value, criterion);
 				}
 			});
 			value.setVisible(true);
@@ -515,7 +516,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 			endValue.addValueChangeListener(new ValueChangeListener() {
 				@Override
 				public void valueChange(Property.ValueChangeEvent event) {
-					criterion.setEndValue(endValue.getConvertedValue());
+					verifyNewValue(value, criterion);
 				}
 			});
 
@@ -535,6 +536,15 @@ public class AdvancedSearchCriteriaComponent extends Table {
 			component.setSpacing(true);
 
 			return component;
+		}
+
+		private void verifyNewValue(TextField newValue, Criterion criterion) {
+			try {
+				criterion.setValue(newValue.getConvertedValue());
+			} catch (ConversionException e) {
+				criterion.setValue(null);
+				presenter.showErrorMessage($("AdvancedSearchView.invalidDoubleFormat"));
+			}
 		}
 
 		private ComboBox buildComparisonComboBox(final Criterion criterion, final Component firstComponent,
@@ -829,5 +839,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 		MetadataVO getMetadataVO(String metadataCode);
 
 		Component getExtensionComponentForCriterion(Criterion criterion);
+
+		void showErrorMessage(String message);
 	}
 }

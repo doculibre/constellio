@@ -283,9 +283,9 @@
 
 /**
  * Outputs cross-browser Valo-specific linear gradient background-image declarations.
- * 
+ *
  * @group style
- * 
+ *
  * @param {color} $color ($v-background-color) - The base color for the gradient color stops
  * @param {list} $gradient ($v-gradient) - Valo-specific gradient value. See the documentation for $v-gradient.
  * @param {color} $fallback (null) - A fallback color for browser which do not support linear gradients (IE8 and IE9 in particular). If null, the base $color is used instead.
@@ -307,11 +307,11 @@
 
 /**
  * Ouput selectors and properties to vertically center elements inside their parent.
- * 
+ *
  * @param {string} $to-align (()) - The selector to match the elements which you wish to align vertically. The targeted elements should be inline or inline-block elements.
  * @param {string} $align (middle) - The vertical-align value, e.g. top, middle, bottom
  * @param {string} $pseudo-element (after) - Which pseudo element to use for the vertical align guide
- * 
+ *
  * @group util
  */
 
@@ -536,7 +536,7 @@
 
 /**
  * Outputs the context menu selectors and styles, which is used by Table and Tree for instance.
- * 
+ *
  * @requires {mixin} valo-selection-item-style
  * @requires {mixin} valo-selection-item-selected-style
  */
@@ -586,7 +586,7 @@
 /**
  *
  *
- * @param {string} $primary-stylename (v-absolutelayout) - 
+ * @param {string} $primary-stylename (v-absolutelayout) -
  *
  * @group absolutelayout
  */
@@ -609,16 +609,16 @@
  */
 
 /**
- * A list of colors for custom event colors. Can be an empty list of you don't 
+ * A list of colors for custom event colors. Can be an empty list of you don't
  * need any custom event colors.
- * 
+ *
  * @example javascript
  * // Java code
  * // 'event' is an instance of EditableCalendarEvent
  * event.setStyleName("color1"); // 1st color in the list
  * event.setStyleName("color2"); // 2nd color in the list
  * // etc.
- * 
+ *
  * @group calendar
  */
 
@@ -632,7 +632,7 @@
  */
 
 /**
- * Outputs the global selectors and properties for the ColorPicker component - styles which are 
+ * Outputs the global selectors and properties for the ColorPicker component - styles which are
  * considered mandatory for the component to work properly.
  *
  * @param {string} $primary-stylename (v-colorpicker) - the primary style name for the selectors
@@ -652,14 +652,14 @@
 /**
  * The amount of spacing between different widgets in a component group.
  * If null, a computed value is used ($v-border size * -1, or 1px if $v-border size is 0)
- * 
+ *
  * @group csslayout
  */
 
 /**
  *
  *
- * @param {string} $primary-stylename (v-customcomponent) - 
+ * @param {string} $primary-stylename (v-customcomponent) -
  *
  * @group customcomponent
  */
@@ -667,7 +667,7 @@
 /**
  *
  *
- * @param {string} $primary-stylename (v-customlayout) - 
+ * @param {string} $primary-stylename (v-customlayout) -
  *
  * @group customlayout
  */
@@ -683,16 +683,16 @@
 
 /**
  * Outputs the styles and selectors for the DragAndDropWrapper component.
- * 
+ *
  * @param {string} $primary-stylename (v-ddwrapper) - the primary style name for the selectors
- * 
+ *
  * @group drag-n-drop
  */
 
 /**
  *
  *
- * @param {string} $primary-stylename (v-form) - 
+ * @param {string} $primary-stylename (v-form) -
  *
  * @group form
  */
@@ -759,14 +759,14 @@
 /**
  *
  *
- * @param {string} $primary-stylename (v-gridlayout) - 
+ * @param {string} $primary-stylename (v-gridlayout) -
  *
  * @group gridlayout
  */
 
 /**
  * The font weight for headers.
- * 
+ *
  * @group label
  */
 
@@ -778,7 +778,7 @@
 /**
  *
  *
- * @param {string} $primary-stylename (v-loginform) - 
+ * @param {string} $primary-stylename (v-loginform) -
  *
  * @group loginform
  */
@@ -786,8 +786,8 @@
 /**
  *
  *
- * @param {string} $primary-stylename (v-menubar) - 
- * @param {bool} $include-additional-styles - 
+ * @param {string} $primary-stylename (v-menubar) -
+ * @param {bool} $include-additional-styles -
  *
  * @group menubar
  */
@@ -795,7 +795,7 @@
 /**
  *
  *
- * @param {string} $primary-stylename (v-nativebutton) - 
+ * @param {string} $primary-stylename (v-nativebutton) -
  *
  * @group nativebutton
  */
@@ -803,7 +803,7 @@
 /**
  *
  *
- * @param {string} $primary-stylename (v-select) - 
+ * @param {string} $primary-stylename (v-select) -
  *
  * @group nativeselect
  */
@@ -816,8 +816,8 @@
 /**
  *
  *
- * @param {string} $primary-stylename (v-select-optiongroup) - 
- * @param {bool} $include-additional-styles - 
+ * @param {string} $primary-stylename (v-select-optiongroup) -
+ * @param {bool} $include-additional-styles -
  *
  * @group optiongroup
  */
@@ -874,8 +874,8 @@
 /**
  *
  *
- * @param {string} $primary-stylename (v-splitpanel) - 
- * @param {bool} $include-additional-styles - 
+ * @param {string} $primary-stylename (v-splitpanel) -
+ * @param {bool} $include-additional-styles -
  *
  * @group splitpanel
  */
@@ -887,7 +887,7 @@
 
 /**
  * Should the tabsheet content changes be animated.
- * 
+ *
  * @group tabsheet
  */
 
@@ -913,7 +913,7 @@
 /**
  *
  *
- * @param {string} $primary-stylename (v-treetable) - 
+ * @param {string} $primary-stylename (v-treetable) -
  *
  * @group treetable
  */
@@ -921,7 +921,7 @@
 /**
  *
  *
- * @param {string} $primary-stylename (v-select-twincol) - 
+ * @param {string} $primary-stylename (v-select-twincol) -
  *
  * @group twin-column-select
  */
@@ -1603,69 +1603,6 @@ div.v-layout.v-horizontal.v-widget {
 }
 }
 
-.constellio .v-context-menu {
-	float: left;
-	font-family: Arial;
-	font-size: 12px;
-	background-color: #f0f0f0;
-	box-shadow: 5px 5px 10px #999;
-}
-
-.constellio .v-context-menu .v-context-menu-item-basic, .constellio .v-context-menu .v-context-menu-item-basic-submenu {
-	float: left;
-	clear: left;
-	height: 26px;
-	color: #222;
-	cursor: pointer;
-	background-color: #f0f0f0;
-}
-
-.constellio .v-context-menu .v-context-menu-item-basic.v-context-menu-item-separator, .constellio .v-context-menu .v-context-menu-item-basic-submenu.v-context-menu-item-separator {
-	border-bottom: 1px solid #d0d0d0;
-}
-
-.constellio .v-context-menu .v-context-menu-item-basic-submenu {
-	background: transparent url(../../../VAADIN/themes/contextmenu/img/basic/arrow.png) no-repeat center right;
-}
-
-.constellio .v-context-menu .v-context-menu-item-basic:focus, .constellio .v-context-menu .v-context-menu-item-basic-submenu:focus, .constellio .v-context-menu .v-context-menu-item-basic-open {
-	background-color: #e0e0e0;
-	outline: none;
-}
-
-.constellio .v-context-menu .v-context-menu-item-basic.v-context-menu-item-disabled {
-	opacity: 0.3;
-	filter: alpha(opacity = 30);
-	zoom: 1;
-}
-
-.constellio .v-context-menu .v-context-menu-item-basic.v-context-menu-item-disabled:hover, .constellio .v-context-menu .v-context-menu-item-basic-submenu.v-context-menu-item-disabled:hover {
-	background-color: #f0f0f0;
-}
-
-.constellio .v-context-menu .v-context-menu-item-basic-icon-container {
-	float: left;
-	width: 26px;
-	height: 26px;
-	margin-right: 5px;
-	border-right: 1px solid #d0d0d0;
-	text-align: center;
-}
-
-.constellio .v-context-menu .v-context-menu-item-basic-icon-container .v-icon {
-	float: left;
-	width: 16px;
-	height: 16px;
-	padding: 5px;
-}
-
-.constellio .v-context-menu .v-context-menu-item-basic-text {
-	float: left;
-	height: 26px;
-	line-height: 26px;
-	padding: 0 20px 0 10px;
-}
-
 .constellio.v-app, .constellio.v-app-loading {
 	font: 300 16px/1.55 "JF Flat", "Open Sans", sans-serif, FontAwesome;
 	color: #464646;
@@ -2160,8 +2097,8 @@ div.v-layout.v-horizontal.v-widget {
 	padding: 0 16px;
 	color: #191919;
 	font-weight: 400;
-	
-	
+
+
 	border-radius: 4px;
 	border: 1px solid #c5c5c5;
 	border-top-color: #c5c5c5;
@@ -2253,8 +2190,8 @@ div.v-layout.v-horizontal.v-widget {
 	padding: 0 16px;
 	color: #ecf2f8;
 	font-weight: 400;
-	
-	
+
+
 	border-radius: 4px;
 	border: 1px solid #1362b1;
 	border-top-color: #156ab3;
@@ -2301,8 +2238,8 @@ div.v-layout.v-horizontal.v-widget {
 	padding: 0 16px;
 	color: #eaf4e9;
 	font-weight: 400;
-	
-	
+
+
 	border-radius: 4px;
 	border: 1px solid #227719;
 	border-top-color: #257d1a;
@@ -2342,8 +2279,8 @@ div.v-layout.v-horizontal.v-widget {
 	padding: 0 16px;
 	color: #f9f0ef;
 	font-weight: 400;
-	
-	
+
+
 	border-radius: 4px;
 	border: 1px solid #bb382e;
 	border-top-color: #bc3c31;
@@ -2480,10 +2417,10 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .v-button-tiny {
 	height: 28px;
 	padding: 0 13px;
-	
-	
+
+
 	font-size: 12px;
-	
+
 	border-radius: 4px;
 }
 
@@ -2498,10 +2435,10 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .v-button-small {
 	height: 31px;
 	padding: 0 14px;
-	
-	
+
+
 	font-size: 14px;
-	
+
 	border-radius: 4px;
 }
 
@@ -2516,10 +2453,10 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .v-button-large {
 	height: 44px;
 	padding: 0 19px;
-	
-	
+
+
 	font-size: 20px;
-	
+
 	border-radius: 4px;
 }
 
@@ -2534,10 +2471,10 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .v-button-huge {
 	height: 59px;
 	padding: 0 26px;
-	
-	
+
+
 	font-size: 26px;
-	
+
 	border-radius: 4px;
 }
 
@@ -2667,8 +2604,8 @@ div.v-layout.v-horizontal.v-widget {
 	padding: 0 9px;
 	color: #191919;
 	font-weight: 400;
-	
-	
+
+
 	border-radius: 4px;
 	border: 1px solid #c5c5c5;
 	border-top-color: #c5c5c5;
@@ -2797,8 +2734,8 @@ div.v-layout.v-horizontal.v-widget {
 	padding: 0 7px;
 	color: #191919;
 	font-weight: 400;
-	
-	
+
+
 	border-radius: 4px;
 	border: 1px solid #c5c5c5;
 	border-top-color: #c5c5c5;
@@ -2927,8 +2864,8 @@ div.v-layout.v-horizontal.v-widget {
 	padding: 0 10px;
 	color: #191919;
 	font-weight: 400;
-	
-	
+
+
 	border-radius: 4px;
 	border: 1px solid #c5c5c5;
 	border-top-color: #c5c5c5;
@@ -3020,7 +2957,7 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-	
+
 	font-weight: 400;
 	line-height: normal;
 	height: 37px;
@@ -3462,7 +3399,7 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .v-filterselect-tiny {
 	height: 28px;
-	
+
 	font-size: 12px;
 }
 
@@ -3481,14 +3418,14 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-	
+
 	font-weight: 400;
 	line-height: normal;
 	height: 28px;
-	
+
 	padding: 3px 5px;
-	
-	
+
+
 	-webkit-transition: box-shadow 180ms, border 180ms;
 	-moz-transition: box-shadow 180ms, border 180ms;
 	transition: box-shadow 180ms, border 180ms;
@@ -3514,7 +3451,7 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .v-filterselect-tiny span.v-icon {
-	
+
 	width: 28px;
 	line-height: 1;
 	padding-top: 0.12em;
@@ -3590,7 +3527,7 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .v-filterselect-compact, .constellio .v-filterselect-small {
 	height: 31px;
-	
+
 }
 
 .constellio .v-filterselect-compact [class*="input"], .constellio .v-filterselect-small [class*="input"] {
@@ -3608,14 +3545,14 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-	
+
 	font-weight: 400;
 	line-height: normal;
 	height: 31px;
-	
+
 	padding: 3px 6px;
-	
-	
+
+
 	-webkit-transition: box-shadow 180ms, border 180ms;
 	-moz-transition: box-shadow 180ms, border 180ms;
 	transition: box-shadow 180ms, border 180ms;
@@ -3641,7 +3578,7 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .v-filterselect-compact span.v-icon, .constellio .v-filterselect-small span.v-icon {
-	
+
 	width: 31px;
 	line-height: 1;
 	padding-top: 0.12em;
@@ -3721,7 +3658,7 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .v-filterselect-large {
 	height: 44px;
-	
+
 	font-size: 20px;
 }
 
@@ -3740,14 +3677,14 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-	
+
 	font-weight: 400;
 	line-height: normal;
 	height: 44px;
-	
+
 	padding: 5px 8px;
-	
-	
+
+
 	-webkit-transition: box-shadow 180ms, border 180ms;
 	-moz-transition: box-shadow 180ms, border 180ms;
 	transition: box-shadow 180ms, border 180ms;
@@ -3773,7 +3710,7 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .v-filterselect-large span.v-icon {
-	
+
 	width: 44px;
 	line-height: 1;
 	padding-top: 0.12em;
@@ -3849,7 +3786,7 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .v-filterselect-huge {
 	height: 59px;
-	
+
 	font-size: 26px;
 }
 
@@ -3868,14 +3805,14 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-	
+
 	font-weight: 400;
 	line-height: normal;
 	height: 59px;
-	
+
 	padding: 7px 10px;
-	
-	
+
+
 	-webkit-transition: box-shadow 180ms, border 180ms;
 	-moz-transition: box-shadow 180ms, border 180ms;
 	transition: box-shadow 180ms, border 180ms;
@@ -3901,7 +3838,7 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .v-filterselect-huge span.v-icon {
-	
+
 	width: 59px;
 	line-height: 1;
 	padding-top: 0.12em;
@@ -4199,13 +4136,13 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-	
+
 	font-weight: 400;
 	line-height: normal;
 	height: 37px;
 	border-radius: 0;
 	padding: 4px 7px;
-	
+
 	-webkit-box-shadow: none;
 	box-shadow: none;
 	-webkit-transition: box-shadow 180ms, border 180ms;
@@ -4294,7 +4231,7 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-	
+
 	font-weight: 400;
 	line-height: normal;
 	height: 37px;
@@ -4388,14 +4325,14 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-	
+
 	font-weight: 400;
 	line-height: normal;
 	height: 28px;
 	border-radius: 4px;
 	padding: 3px 7px;
-	
-	
+
+
 	-webkit-transition: box-shadow 180ms, border 180ms;
 	-moz-transition: box-shadow 180ms, border 180ms;
 	transition: box-shadow 180ms, border 180ms;
@@ -4420,14 +4357,14 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-	
+
 	font-weight: 400;
 	line-height: normal;
 	height: 31px;
 	border-radius: 4px;
 	padding: 3px 8px;
-	
-	
+
+
 	-webkit-transition: box-shadow 180ms, border 180ms;
 	-moz-transition: box-shadow 180ms, border 180ms;
 	transition: box-shadow 180ms, border 180ms;
@@ -4455,14 +4392,14 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-	
+
 	font-weight: 400;
 	line-height: normal;
 	height: 44px;
 	border-radius: 4px;
 	padding: 5px 10px;
-	
-	
+
+
 	-webkit-transition: box-shadow 180ms, border 180ms;
 	-moz-transition: box-shadow 180ms, border 180ms;
 	transition: box-shadow 180ms, border 180ms;
@@ -4487,14 +4424,14 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-	
+
 	font-weight: 400;
 	line-height: normal;
 	height: 59px;
 	border-radius: 4px;
 	padding: 7px 12px;
-	
-	
+
+
 	-webkit-transition: box-shadow 180ms, border 180ms;
 	-moz-transition: box-shadow 180ms, border 180ms;
 	transition: box-shadow 180ms, border 180ms;
@@ -4761,7 +4698,7 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-	
+
 	font-weight: 400;
 	line-height: normal;
 	height: 37px;
@@ -4864,15 +4801,15 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-	
+
 	font-weight: 400;
 	line-height: normal;
 	height: 28px;
 	border-radius: 4px;
 	padding: 6px;
-	
-	
-	
+
+
+
 	-webkit-transition: box-shadow 180ms, border 180ms;
 	-moz-transition: box-shadow 180ms, border 180ms;
 	transition: box-shadow 180ms, border 180ms;
@@ -4906,15 +4843,15 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-	
+
 	font-weight: 400;
 	line-height: normal;
 	height: 31px;
 	border-radius: 4px;
 	padding: 6px;
-	
-	
-	
+
+
+
 	-webkit-transition: box-shadow 180ms, border 180ms;
 	-moz-transition: box-shadow 180ms, border 180ms;
 	transition: box-shadow 180ms, border 180ms;
@@ -4948,15 +4885,15 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-	
+
 	font-weight: 400;
 	line-height: normal;
 	height: 44px;
 	border-radius: 4px;
 	padding: 6px;
-	
-	
-	
+
+
+
 	-webkit-transition: box-shadow 180ms, border 180ms;
 	-moz-transition: box-shadow 180ms, border 180ms;
 	transition: box-shadow 180ms, border 180ms;
@@ -4990,15 +4927,15 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-	
+
 	font-weight: 400;
 	line-height: normal;
 	height: 59px;
 	border-radius: 4px;
 	padding: 6px;
-	
-	
-	
+
+
+
 	-webkit-transition: box-shadow 180ms, border 180ms;
 	-moz-transition: box-shadow 180ms, border 180ms;
 	transition: box-shadow 180ms, border 180ms;
@@ -5050,7 +4987,7 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-	
+
 	font-weight: 400;
 	line-height: normal;
 	height: 37px;
@@ -5692,15 +5629,15 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-	
+
 	font-weight: 400;
 	line-height: normal;
 	height: 28px;
 	border-radius: 4px;
 	padding: 3px 7px;
-	
-	
-	
+
+
+
 	-webkit-transition: box-shadow 180ms, border 180ms;
 	-moz-transition: box-shadow 180ms, border 180ms;
 	transition: box-shadow 180ms, border 180ms;
@@ -5807,15 +5744,15 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-	
+
 	font-weight: 400;
 	line-height: normal;
 	height: 31px;
 	border-radius: 4px;
 	padding: 3px 8px;
-	
-	
-	
+
+
+
 	-webkit-transition: box-shadow 180ms, border 180ms;
 	-moz-transition: box-shadow 180ms, border 180ms;
 	transition: box-shadow 180ms, border 180ms;
@@ -5927,15 +5864,15 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-	
+
 	font-weight: 400;
 	line-height: normal;
 	height: 44px;
 	border-radius: 4px;
 	padding: 5px 10px;
-	
-	
-	
+
+
+
 	-webkit-transition: box-shadow 180ms, border 180ms;
 	-moz-transition: box-shadow 180ms, border 180ms;
 	transition: box-shadow 180ms, border 180ms;
@@ -6043,15 +5980,15 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-	
+
 	font-weight: 400;
 	line-height: normal;
 	height: 59px;
 	border-radius: 4px;
 	padding: 7px 12px;
-	
-	
-	
+
+
+
 	-webkit-transition: box-shadow 180ms, border 180ms;
 	-moz-transition: box-shadow 180ms, border 180ms;
 	transition: box-shadow 180ms, border 180ms;
@@ -6370,7 +6307,7 @@ div.v-layout.v-horizontal.v-widget {
 	padding: 0 16px;
 	color: #191919;
 	font-weight: 400;
-	
+
 	cursor: default;
 	border-radius: 4px;
 	border: 1px solid #c5c5c5;
@@ -6452,7 +6389,7 @@ div.v-layout.v-horizontal.v-widget {
 	padding: 0 15px;
 	color: inherit;
 	font-weight: 400;
-	
+
 	cursor: pointer;
 	border-radius: 0;
 	border: 1px solid #c5c5c5;
@@ -6549,9 +6486,9 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .v-menubar > .v-menubar-menuitem-selected {
 	color: #ecf2f8;
-	
-	
-	
+
+
+
 	border-radius: 0;
 	border: 1px solid #1362b1;
 	border-top-color: #156ab3;
@@ -6700,9 +6637,9 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .v-menubar-small {
 	height: 31px;
 	padding: 0 14px;
-	
+
 	font-weight: 400;
-	
+
 	cursor: default;
 	border-radius: 4px;
 	padding: 0;
@@ -6853,8 +6790,8 @@ div.v-layout.v-horizontal.v-widget {
 	padding: 0 9px;
 	color: #191919;
 	font-weight: 400;
-	
-	
+
+
 	border-radius: 4px;
 	border: 1px solid #c5c5c5;
 	border-top-color: #c5c5c5;
@@ -7016,8 +6953,8 @@ div.v-layout.v-horizontal.v-widget {
 	padding: 0 7px;
 	color: #191919;
 	font-weight: 400;
-	
-	
+
+
 	border-radius: 4px;
 	border: 1px solid #c5c5c5;
 	border-top-color: #c5c5c5;
@@ -7145,8 +7082,8 @@ div.v-layout.v-horizontal.v-widget {
 	padding: 0 7px;
 	color: #191919;
 	font-weight: 400;
-	
-	
+
+
 	border-radius: 4px;
 	border: 1px solid #c5c5c5;
 	border-top-color: #c5c5c5;
@@ -7308,8 +7245,8 @@ div.v-layout.v-horizontal.v-widget {
 	padding: 0 10px;
 	color: #191919;
 	font-weight: 400;
-	
-	
+
+
 	border-radius: 4px;
 	border: 1px solid #c5c5c5;
 	border-top-color: #c5c5c5;
@@ -7437,8 +7374,8 @@ div.v-layout.v-horizontal.v-widget {
 	padding: 0 10px;
 	color: #191919;
 	font-weight: 400;
-	
-	
+
+
 	border-radius: 4px;
 	border: 1px solid #c5c5c5;
 	border-top-color: #c5c5c5;
@@ -8400,8 +8337,8 @@ div.v-layout.v-horizontal.v-widget {
 	padding: 0 16px;
 	color: #191919;
 	font-weight: 400;
-	
-	
+
+
 	border-radius: 4px;
 	border: 1px solid #c5c5c5;
 	border-top-color: #c5c5c5;
@@ -8513,8 +8450,8 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio tbody.v-drag-element tr {
 	display: block;
-	
-	
+
+
 	-webkit-box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
 	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
 	border-radius: 4px;
@@ -9779,13 +9716,13 @@ div.v-layout.v-horizontal.v-widget {
 	font-size: 2.4em;
 	margin-top: 1.4em;
 	margin-bottom: 1em;
-	
+
 	letter-spacing: -0.03em;
 }
 
 .constellio h2, .constellio .v-label-h2 {
 	font-size: 1.6em;
-	
+
 	margin-top: 1.6em;
 	margin-bottom: 0.77em;
 	letter-spacing: -0.02em;
@@ -9793,7 +9730,7 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio h3, .constellio .v-label-h3 {
 	font-size: 1.2em;
-	
+
 	margin-top: 1.8em;
 	margin-bottom: 0.77em;
 	letter-spacing: 0;
@@ -10065,7 +10002,7 @@ div.v-layout.v-horizontal.v-widget {
 	user-select: text;
 	margin: 0;
 	font: inherit;
-	
+
 	font-weight: 400;
 	line-height: normal;
 	height: 37px;
@@ -11279,7 +11216,7 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .valo-menu .valo-menu-badge, .constellio .dashboard-view .notifications.unread .v-button-caption {
-	
+
 	-webkit-transition: background-color 300ms;
 	-moz-transition: background-color 300ms;
 	transition: background-color 300ms;
@@ -11916,6 +11853,12 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .notifications.v-window .notification-time {
 	font-size: 13px;
 	color: gray;
+}
+
+.constellio .v-button.chevron:focus:after {
+	box-shadow: none;
+	border: none;
+	-webkit-box-shadow: none;
 }
 
 .constellio .djs-container .highlight .djs-outline {
@@ -13851,23 +13794,23 @@ div.v-layout.v-horizontal.v-widget {
 	white-space: normal;
 }
 
-.constellio .base-display .display-caption {
+.constellio .base-display .v-disabled {
+	opacity: inherit;
+	color: inherit;
+}
+
+.constellio .display-caption {
 	width: 300px;
 	word-wrap: break-word;
 	border-bottom: 1px dotted #dfdfdf;
 	font-weight: bold;
 }
 
-.constellio .base-display .display-value, .constellio .base-display .v-caption-display-value {
+.constellio .display-value, .constellio .v-caption-display-value {
 	text-align: left;
 	font-size: inherit;
 	word-break: break-word;
 	padding-left: 10px;
-}
-
-.constellio .base-display .v-disabled {
-	opacity: inherit;
-	color: inherit;
 }
 
 .constellio .error-label {
@@ -13995,7 +13938,7 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .xbreadcrumbs {
 	background-color: #FFFFFF;
 	height: auto;
-	font-size: 20px;
+	font-size: 16px;
 	padding-right: 220px;
 }
 
@@ -14406,7 +14349,7 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .v-multifileupload-dropzone {
-	width: 80%;
+	width: 100%;
 	background-color: #fafafa;
 	background-image: none;
 	padding-top: 8px;
@@ -14414,6 +14357,14 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .v-multifileupload-dropzone .v-label {
 	font-size: inherit;
+}
+
+.constellio .v-multifileupload-uploads {
+	float: right;
+	position: relative;
+	top: 38px;
+	margin-top: -38px;
+	z-index: 1;
 }
 
 .constellio .base-multifileupload-completed:after {
@@ -15440,6 +15391,10 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .viewer-metadata-panel .v-slot-main-component {
 	position: relative;
 	top: 44px;
+}
+
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .nested-view.viewer-metadata-panel {
+	top: 0px;
 }
 
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .no-caption-action-menu-bar .v-menubar-submenu-indicator + .v-menubar-menuitem-caption:after {

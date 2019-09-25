@@ -50,6 +50,7 @@ public class MetadataSchemaTypes implements Serializable {
 
 	private final CollectionInfo collectionInfo;
 
+
 	public MetadataSchemaTypes(CollectionInfo collectionInfo, int version, List<MetadataSchemaType> schemaTypes,
 							   List<String> schemaTypesSortedByDependency, List<String> referenceDefaultValues,
 							   List<Language> languages,

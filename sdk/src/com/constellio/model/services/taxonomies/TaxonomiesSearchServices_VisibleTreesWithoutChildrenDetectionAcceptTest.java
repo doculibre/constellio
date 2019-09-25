@@ -29,6 +29,7 @@ import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.assertj.core.api.Condition;
 import org.assertj.core.api.ObjectAssert;
 import org.joda.time.LocalDate;
@@ -49,11 +50,12 @@ import static com.constellio.model.services.taxonomies.TaxonomiesSearchOptions.H
 import static com.constellio.model.services.taxonomies.TaxonomiesSearchOptions.HasChildrenFlagCalculated.NEVER;
 import static com.constellio.model.services.taxonomies.TaxonomiesTestsUtils.ajustIfBetterThanExpected;
 import static java.util.Arrays.asList;
+import static org.apache.commons.lang3.StringUtils.substringAfter;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAcceptTest extends ConstellioTest {
 
-	private static final boolean VALIDATE_SOLR_QUERIES_COUNT = false;
+	private static final boolean VALIDATE_SOLR_QUERIES_COUNT = true;
 
 	String subFolderId;
 
@@ -121,13 +123,22 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 				.add(new BigVaultServerExtension() {
 					@Override
 					public void afterQuery(AfterQueryParams params) {
-						queriesCount.incrementAndGet();
-						String[] facetQuery = params.getSolrParams().getParams("facet.query");
-						if (facetQuery != null) {
-							facetsCount.addAndGet(facetQuery.length);
-						}
 
-						returnedDocumentsCount.addAndGet(params.getReturnedResultsCount());
+						String stacktrace = substringAfter(substringAfter(ExceptionUtils.getStackTrace(new Exception()), "\n"), "\n");
+
+						if (stacktrace.contains(TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAcceptTest.class.getSimpleName())) {
+
+							queriesCount.incrementAndGet();
+							String[] facetQuery = params.getSolrParams().getParams("facet.query");
+							if (facetQuery != null) {
+								facetsCount.addAndGet(facetQuery.length);
+							}
+
+							returnedDocumentsCount.addAndGet(params.getReturnedResultsCount());
+
+							System.out.println((params.getQueryName() == null ? "Unnamed query" : params.getQueryName()) + " 1-" + (facetQuery == null ? 0 : facetQuery.length) + "-" + params.getReturnedResultsCount()
+											   + "\n" + stacktrace);
+						}
 					}
 				});
 
@@ -153,7 +164,7 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 				.has(recordsInOrder(records.categoryId_X100))
 				.has(recordsWithChildren(records.categoryId_X100))
 				.has(numFoundAndListSize(1))
-				.has(solrQueryCounts(3, 2, 2))
+				.has(solrQueryCounts(2, 0, 1))
 				.has(secondSolrQueryCounts(1, 0, 0));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getDakota_managerInA_userInB(), records.categoryId_X100)
@@ -162,7 +173,7 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 				.has(recordsWithChildren(records.categoryId_X110, records.categoryId_X120, records.folder_A16, records.folder_A17,
 						records.folder_A18, records.folder_B06, records.folder_B32))
 				.has(numFoundAndListSize(7))
-				.has(solrQueryCounts(3, 7, 2))
+				.has(solrQueryCounts(1, 5, 0))
 				.has(secondSolrQueryCounts(1, 5, 0));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getDakota_managerInA_userInB(), records.folder_A16)
@@ -193,28 +204,28 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 				.has(recordsInOrder("categoryId_X110", "categoryId_X120", "A16", "A17", "A18", "C06", "B06", "C32", "B32"))
 				.has(recordsWithChildren("categoryId_X110", "categoryId_X120", "A16", "A17", "A18", "C06", "B06", "C32", "B32"))
 				.has(numFoundAndListSize(9))
-				.has(solrQueryCounts(3, 9, 2))
+				.has(solrQueryCounts(1, 7, 0))
 				.has(secondSolrQueryCounts(1, 7, 0));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_Z)
 				.has(recordsInOrder(records.categoryId_Z100))
 				.has(recordsWithChildren(records.categoryId_Z100))
 				.has(numFoundAndListSize(1))
-				.has(solrQueryCounts(3, 4, 4))
+				.has(solrQueryCounts(1, 0, 0))
 				.has(secondSolrQueryCounts(1, 0, 0));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_Z100)
 				.has(recordsInOrder(records.categoryId_Z110, records.categoryId_Z120))
 				.has(recordsWithChildren(records.categoryId_Z110, records.categoryId_Z120))
 				.has(numFoundAndListSize(2))
-				.has(solrQueryCounts(3, 2, 2))
+				.has(solrQueryCounts(1, 0, 0))
 				.has(secondSolrQueryCounts(1, 0, 0));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_Z110)
 				.has(recordsInOrder(records.categoryId_Z112))
 				.has(recordsWithChildren(records.categoryId_Z112))
 				.has(numFoundAndListSize(1))
-				.has(solrQueryCounts(3, 2, 2))
+				.has(solrQueryCounts(1, 0, 0))
 				.has(secondSolrQueryCounts(1, 0, 0));
 
 	}
@@ -233,21 +244,21 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 				.has(recordsInOrder(records.categoryId_X, "category_Y_id", records.categoryId_Z))
 				.has(recordsWithChildren(records.categoryId_X, records.categoryId_Z))
 				.has(numFoundAndListSize(3))
-				.has(solrQueryCounts(2, 3, 3))
+				.has(solrQueryCounts(1, 0, 2))
 				.has(secondSolrQueryCounts(0, 0, 0));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_X, options)
 				.has(recordsInOrder(records.categoryId_X13, records.categoryId_X100))
 				.has(recordsWithChildren(records.categoryId_X13, records.categoryId_X100))
 				.has(numFoundAndListSize(2))
-				.has(solrQueryCounts(2, 2, 0))
+				.has(solrQueryCounts(1, 0, 0))
 				.has(secondSolrQueryCounts(1, 0, 0));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_X100, options)
 				.has(recordsInOrder("categoryId_X110", "categoryId_X120", "A16", "A17", "A18", "C06", "B06", "C32", "B32"))
 				.has(recordsWithChildren("categoryId_X110", "categoryId_X120", "A16", "A17", "A18", "C06", "B06", "C32", "B32"))
 				.has(numFoundAndListSize(9))
-				.has(solrQueryCounts(2, 9, 0))
+				.has(solrQueryCounts(1, 7, 0))
 				.has(secondSolrQueryCounts(1, 7, 0));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_Z, options)
@@ -256,21 +267,21 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 				.has(recordsWithChildren(records.categoryId_Z100, records.categoryId_Z200, records.categoryId_Z999,
 						records.categoryId_ZE42))
 				.has(numFoundAndListSize(4))
-				.has(solrQueryCounts(2, 4, 0))
+				.has(solrQueryCounts(1, 0, 0))
 				.has(secondSolrQueryCounts(1, 0, 0));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_Z100, options)
 				.has(recordsInOrder(records.categoryId_Z110, records.categoryId_Z120))
 				.has(recordsWithChildren(records.categoryId_Z110, records.categoryId_Z120))
 				.has(numFoundAndListSize(2))
-				.has(solrQueryCounts(2, 2, 0))
+				.has(solrQueryCounts(1, 0, 0))
 				.has(secondSolrQueryCounts(1, 0, 0));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_Z110, options)
 				.has(recordsInOrder(records.categoryId_Z111, records.categoryId_Z112))
 				.has(recordsWithChildren(records.categoryId_Z111, records.categoryId_Z112))
 				.has(numFoundAndListSize(2))
-				.has(solrQueryCounts(2, 2, 0))
+				.has(solrQueryCounts(1, 0, 0))
 				.has(secondSolrQueryCounts(1, 0, 0));
 
 	}
@@ -289,21 +300,21 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 				.has(recordsInOrder(records.categoryId_X, "category_Y_id", records.categoryId_Z))
 				.has(recordsWithChildren(records.categoryId_X, "category_Y_id", records.categoryId_Z))
 				.has(numFoundAndListSize(3))
-				.has(solrQueryCounts(1, 3, 0))
+				.has(solrQueryCounts(0, 0, 0))
 				.has(secondSolrQueryCounts(0, 0, 0));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_X, options)
 				.has(recordsInOrder(records.categoryId_X13, records.categoryId_X100))
 				.has(recordsWithChildren(records.categoryId_X13, records.categoryId_X100))
 				.has(numFoundAndListSize(2))
-				.has(solrQueryCounts(2, 2, 0))
+				.has(solrQueryCounts(1, 0, 0))
 				.has(secondSolrQueryCounts(1, 0, 0));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_X100, options)
 				.has(recordsInOrder("categoryId_X110", "categoryId_X120", "A16", "A17", "A18", "C06", "B06", "C32", "B32"))
 				.has(recordsWithChildren("categoryId_X110", "categoryId_X120", "A16", "A17", "A18", "C06", "B06", "C32", "B32"))
 				.has(numFoundAndListSize(9))
-				.has(solrQueryCounts(2, 9, 0))
+				.has(solrQueryCounts(1, 7, 0))
 				.has(secondSolrQueryCounts(1, 7, 0));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_Z, options)
@@ -312,21 +323,21 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 				.has(recordsWithChildren(records.categoryId_Z100, records.categoryId_Z200, records.categoryId_Z999,
 						records.categoryId_ZE42))
 				.has(numFoundAndListSize(4))
-				.has(solrQueryCounts(2, 4, 0))
+				.has(solrQueryCounts(1, 0, 0))
 				.has(secondSolrQueryCounts(1, 0, 0));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_Z100, options)
 				.has(recordsInOrder(records.categoryId_Z110, records.categoryId_Z120))
 				.has(recordsWithChildren(records.categoryId_Z110, records.categoryId_Z120))
 				.has(numFoundAndListSize(2))
-				.has(solrQueryCounts(2, 2, 0))
+				.has(solrQueryCounts(1, 0, 0))
 				.has(secondSolrQueryCounts(1, 0, 0));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_Z110, options)
 				.has(recordsInOrder(records.categoryId_Z111, records.categoryId_Z112))
 				.has(recordsWithChildren(records.categoryId_Z111, records.categoryId_Z112))
 				.has(numFoundAndListSize(2))
-				.has(solrQueryCounts(2, 2, 0))
+				.has(solrQueryCounts(1, 0, 0))
 				.has(secondSolrQueryCounts(1, 0, 0));
 
 	}
@@ -341,21 +352,21 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 				.has(recordsInOrder(records.unitId_10, records.unitId_30))
 				.has(recordsWithChildren(records.unitId_10, records.unitId_30))
 				.has(numFoundAndListSize(2))
-				.has(solrQueryCounts(2, 3, 3))
+				.has(solrQueryCounts(1, 0, 3))
 				.has(secondSolrQueryCounts(0, 0, 0));
 
 		assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomyWithoutChildrenFlag(records.getAdmin(), records.unitId_12, options)
 				.has(recordsInOrder(records.unitId_12b))
 				.has(recordsWithChildren(records.unitId_12b))
 				.has(numFoundAndListSize(1))
-				.has(solrQueryCounts(3, 2, 2))
+				.has(solrQueryCounts(2, 0, 2))
 				.has(secondSolrQueryCounts(1, 0, 0));
 
 		assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomyWithoutChildrenFlag(records.getAdmin(), records.unitId_12b, options)
 				.has(recordsInOrder("B02", "B04", "B06", "B08", "B32"))
 				.has(recordsWithChildren("B02", "B04", "B06", "B08", "B32"))
 				.has(numFoundAndListSize(5))
-				.has(solrQueryCounts(2, 5, 0))
+				.has(solrQueryCounts(1, 5, 0))
 				.has(secondSolrQueryCounts(1, 5, 0));
 
 	}
@@ -385,28 +396,28 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 				.has(recordsInOrder(records.unitId_10))
 				.has(recordsWithChildren(records.unitId_10))
 				.has(numFoundAndListSize(1))
-				.has(solrQueryCounts(2, 3, 3))
+				.has(solrQueryCounts(1, 0, 3))
 				.has(secondSolrQueryCounts(0, 0, 0));
 
 		assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomyWithoutChildrenFlag(sasquatch, records.unitId_10, options)
 				.has(recordsInOrder(records.unitId_12))
 				.has(recordsWithChildren(records.unitId_12))
 				.has(numFoundAndListSize(1))
-				.has(solrQueryCounts(3, 3, 3))
+				.has(solrQueryCounts(2, 0, 3))
 				.has(secondSolrQueryCounts(1, 0, 0));
 
 		assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomyWithoutChildrenFlag(sasquatch, records.unitId_12, options)
 				.has(recordsInOrder(records.unitId_12b))
 				.has(recordsWithChildren(records.unitId_12b))
 				.has(numFoundAndListSize(1))
-				.has(solrQueryCounts(3, 2, 2))
+				.has(solrQueryCounts(2, 0, 2))
 				.has(secondSolrQueryCounts(1, 0, 0));
 
 		assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomyWithoutChildrenFlag(sasquatch, records.unitId_12b, options)
 				.has(recordsInOrder("B06"))
 				.has(recordsWithChildren("B06"))
 				.has(numFoundAndListSize(1))
-				.has(solrQueryCounts(2, 1, 0))
+				.has(solrQueryCounts(1, 1, 0))
 				.has(secondSolrQueryCounts(1, 1, 0));
 
 		//Robin
@@ -464,33 +475,33 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 				.has(recordsInOrder(records.unitId_10, records.unitId_20))
 				.has(recordsWithChildren(records.unitId_10, records.unitId_20))
 				.has(numFoundAndListSize(2))
-				.has(solrQueryCounts(2, 3, 3))
+				.has(solrQueryCounts(1, 0, 3))
 				.has(secondSolrQueryCounts(0, 0, 0));
 
 		assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomyWithoutChildrenFlag(sasquatch, records.unitId_10, options)
 				.has(recordsInOrder(records.unitId_12))
 				.has(recordsWithChildren(records.unitId_12))
 				.has(numFoundAndListSize(1))
-				.has(solrQueryCounts(3, 3, 3))
+				.has(solrQueryCounts(2, 0, 3))
 				.has(secondSolrQueryCounts(1, 0, 0));
 
 		assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomyWithoutChildrenFlag(sasquatch, records.unitId_12, options)
 				.has(recordsInOrder(records.unitId_12b))
 				.has(recordsWithChildren(records.unitId_12b))
 				.has(numFoundAndListSize(1))
-				.has(solrQueryCounts(3, 2, 2))
+				.has(solrQueryCounts(2, 0, 2))
 				.has(secondSolrQueryCounts(1, 0, 0));
 
 		assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomyWithoutChildrenFlag(sasquatch, records.unitId_12b, options)
 				.has(recordsInOrder("B06"))
 				.has(recordsWithChildren("B06"))
 				.has(numFoundAndListSize(1))
-				.has(solrQueryCounts(2, 1, 0))
+				.has(solrQueryCounts(1, 1, 0))
 				.has(secondSolrQueryCounts(1, 1, 0));
 
 		assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomyWithoutChildrenFlag(sasquatch, records.unitId_12c, options)
 				.has(numFoundAndListSize(0))
-				.has(solrQueryCounts(2, 0, 0))
+				.has(solrQueryCounts(1, 0, 0))
 				.has(secondSolrQueryCounts(1, 0, 0));
 
 		//Robin
@@ -519,7 +530,7 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 				.has(recordsInOrder(records.unitId_30c))
 				.has(recordsWithChildren(records.unitId_30c))
 				.has(numFoundAndListSize(1))
-				.has(solrQueryCounts(2, 1, 0))
+				.has(solrQueryCounts(1, 0, 0))
 				.has(secondSolrQueryCounts(1, 0, 0));
 
 		assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomyWithoutChildrenFlag(robin, records.unitId_12b, options)
@@ -542,21 +553,21 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 				.has(recordsInOrder(records.unitId_10, records.unitId_20, records.unitId_30))
 				.has(recordsWithChildren(records.unitId_10, records.unitId_20, records.unitId_30))
 				.has(numFoundAndListSize(3))
-				.has(solrQueryCounts(2, 3, 3))
+				.has(solrQueryCounts(1, 0, 3))
 				.has(secondSolrQueryCounts(0, 0, 0));
 
 		assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomyWithoutChildrenFlag(records.getAdmin(), records.unitId_12, options)
 				.has(recordsInOrder(records.unitId_12b, records.unitId_12c))
 				.has(recordsWithChildren(records.unitId_12b, records.unitId_12c))
 				.has(numFoundAndListSize(2))
-				.has(solrQueryCounts(2, 2, 0))
+				.has(solrQueryCounts(1, 0, 0))
 				.has(secondSolrQueryCounts(1, 0, 0));
 
 		assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomyWithoutChildrenFlag(records.getAdmin(), records.unitId_12b, options)
 				.has(recordsInOrder("B02", "B04", "B06", "B08", "B32"))
 				.has(recordsWithChildren("B02", "B04", "B06", "B08", "B32"))
 				.has(numFoundAndListSize(5))
-				.has(solrQueryCounts(2, 5, 0))
+				.has(solrQueryCounts(1, 5, 0))
 				.has(secondSolrQueryCounts(1, 5, 0));
 
 	}
@@ -597,7 +608,7 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 				.has(recordsInOrder("categoryId_X110", "categoryId_X120", "A16", "A17", "A18", "C06", "B06", "C32", "B32"))
 				.has(recordsWithChildren("categoryId_X110", "categoryId_X120", "A16", "A17", "A18", "C06", "B06", "C32", "B32"))
 				.has(listSize(9)).has(numFound(9))
-				.has(solrQueryCounts(3, 9, 2))
+				.has(solrQueryCounts(1, 7, 0))
 				.has(secondSolrQueryCounts(1, 7, 0));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_X100, 0, 10)
@@ -1234,6 +1245,8 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 				facetsCount.set(0);
 				returnedDocumentsCount.set(0);
 
+				System.out.println("--------------------------------------------------------------------------------");
+
 				return true;
 			}
 		};
@@ -1250,6 +1263,7 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 				String expected = queries + "-" + queryResults + "-" + facets;
 				String current = value.secondAnswerSolrQueries();
 
+				System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
 				if (VALIDATE_SOLR_QUERIES_COUNT && !ajustIfBetterThanExpected(exception.getStackTrace(), current, expected)) {
 					assertThat(current).describedAs("First call Queries count - Query resuts count - Facets count")
 							.isEqualTo(expected);
@@ -1257,6 +1271,8 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 				queriesCount.set(0);
 				facetsCount.set(0);
 				returnedDocumentsCount.set(0);
+				System.out.println("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
+
 
 				return true;
 			}

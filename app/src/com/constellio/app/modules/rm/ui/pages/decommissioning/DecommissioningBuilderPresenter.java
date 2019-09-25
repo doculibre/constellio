@@ -512,8 +512,13 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 	}
 
 	@Override
+	public void showErrorMessage(String message) {
+		view.showErrorMessage(message);
+	}
+
+	@Override
 	public String getSavedSearchId() {
 		return searchID;
 	}
-	
+
 }

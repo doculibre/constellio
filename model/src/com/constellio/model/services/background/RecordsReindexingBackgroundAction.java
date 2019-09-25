@@ -1,9 +1,12 @@
 package com.constellio.model.services.background;
 
+import com.constellio.data.utils.TimeProvider;
+import com.constellio.data.utils.dev.Toggle;
+import com.constellio.model.conf.FoldersLocator;
+import com.constellio.model.conf.FoldersLocatorMode;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.extensions.events.records.RecordReindexationEvent;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
@@ -39,6 +42,13 @@ public class RecordsReindexingBackgroundAction implements Runnable {
 
 	@Override
 	public synchronized void run() {
+		run(true);
+	}
+
+	public synchronized void run(boolean waitDuringOfficeHours) {
+
+		boolean officeHours = TimeProvider.getLocalDateTime().getHourOfDay() >= 7
+							  && TimeProvider.getLocalDateTime().getHourOfDay() <= 18;
 
 		if (ReindexingServices.getReindexingInfos() == null
 			&& modelLayerFactory.getRecordsCaches().areSummaryCachesInitialized()) {
@@ -46,22 +56,28 @@ public class RecordsReindexingBackgroundAction implements Runnable {
 				LogicalSearchQuery query = new LogicalSearchQuery();
 				query.setCondition(LogicalSearchQueryOperators.fromAllSchemasInExceptEvents(collection)
 						.where(Schemas.MARKED_FOR_REINDEXING).isTrue());
-				query.setNumberOfRows(1000);
+				query.setNumberOfRows(officeHours ? 10 : 100);
 				query.setName("BackgroundThread:RecordsReindexingBackgroundAction:getMarkedForReindexing()");
 				List<Record> records = searchServices.search(query);
 
 				if (!records.isEmpty()) {
-					for (Record record : records) {
-						modelLayerFactory.getExtensions().forCollection(collection)
-								.callRecordReindexed(new RecordReindexationEvent(record));
-					}
-
 					Transaction transaction = new Transaction(records);
 					transaction.setOptions(validationExceptionSafeOptions().setForcedReindexationOfMetadatas(ALL())
 							.setOptimisticLockingResolution(EXCEPTION).setUpdateAggregatedMetadatas(true)
 							.setOverwriteModificationDateAndUser(false));
 
 					executeTransaction(transaction);
+				}
+			}
+
+			if (officeHours) {
+				if (new FoldersLocator().getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER
+					|| Toggle.PERFORMANCE_TESTING.isEnabled()) {
+					try {
+						Thread.sleep(5 * 60 * 1000);
+					} catch (InterruptedException e) {
+						throw new RuntimeException(e);
+					}
 				}
 			}
 		}

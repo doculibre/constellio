@@ -27,7 +27,7 @@ public class ArchiveManagementViewImpl extends BaseViewImpl implements ArchiveMa
 
 	private final ArchiveManagementPresenter presenter;
 
-	private Button decommissioning, multipleContainers, newContainer, containers, reports, availableSpace, baginfo;
+	private Button decommissioning, multipleContainers, containers, reports, availableSpace, baginfo;
 
 	public ArchiveManagementViewImpl() {
 		presenter = new ArchiveManagementPresenter(this);
@@ -48,15 +48,6 @@ public class ArchiveManagementViewImpl extends BaseViewImpl implements ArchiveMa
 		};
 		decommissioning.addStyleName(ValoTheme.BUTTON_ICON_ALIGN_TOP);
 		decommissioning.addStyleName(DECOMMISSIONING);
-
-		newContainer = new IconButton(NEW_CONTAINER_ICON, $("ArchiveManagementView.newContainer"), false) {
-			@Override
-			protected void buttonClick(ClickEvent event) {
-				presenter.newContainerButtonClicked();
-			}
-		};
-		newContainer.addStyleName(ValoTheme.BUTTON_ICON_ALIGN_TOP);
-		newContainer.addStyleName(NEW_CONTAINER);
 
 		multipleContainers = new IconButton(MULTIPLE_CONTAINERS_ICON, $("ArchiveManagementView.newContainers"), false) {
 			@Override
@@ -97,7 +88,7 @@ public class ArchiveManagementViewImpl extends BaseViewImpl implements ArchiveMa
 		baginfo.setVisible(presenter.hasAccessToBagInfoPage());
 
 		presenter.onViewAssembled();
-		CssLayout layout = new CssLayout(decommissioning, multipleContainers, newContainer, containers, reports, baginfo);
+		CssLayout layout = new CssLayout(decommissioning, multipleContainers, containers, reports, baginfo);
 		layout.addStyleName("view-group");
 
 		return layout;
@@ -106,11 +97,6 @@ public class ArchiveManagementViewImpl extends BaseViewImpl implements ArchiveMa
 	@Override
 	public void setDecommissioningButtonVisible(boolean visible) {
 		decommissioning.setVisible(visible);
-	}
-
-	@Override
-	public void setNewContainerButtonVisible(boolean visible) {
-		newContainer.setVisible(visible);
 	}
 
 	@Override

@@ -13,7 +13,6 @@ import com.constellio.app.ui.framework.buttons.SelectDeselectAllButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.components.RecordDisplayFactory;
-import com.constellio.app.ui.framework.components.ReportViewer.DownloadStreamResource;
 import com.constellio.app.ui.framework.components.SearchResultDetailedTable;
 import com.constellio.app.ui.framework.components.SearchResultDisplay;
 import com.constellio.app.ui.framework.components.SearchResultSimpleTable;
@@ -31,6 +30,7 @@ import com.constellio.app.ui.framework.components.viewers.panel.ViewableRecordVO
 import com.constellio.app.ui.framework.containers.SearchResultContainer;
 import com.constellio.app.ui.framework.containers.SearchResultVOLazyContainer;
 import com.constellio.app.ui.framework.data.SearchResultVODataProvider;
+import com.constellio.app.ui.framework.stream.DownloadStreamResource;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.search.SearchPresenter.SortOrder;
 import com.constellio.data.utils.KeySetMap;
@@ -112,6 +112,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	private HashMap<Integer, Boolean> hashMapAllSelection = new HashMap<>();
 	private List<SaveSearchListener> saveSearchListenerList = new ArrayList<>();
 	private Map<String, String> extraParameters = null;
+	private boolean lazyLoadedSearchResults;
 
 	public void addSaveSearchListenerList(SaveSearchListener saveSearchListener) {
 		saveSearchListenerList.add(saveSearchListener);
@@ -293,6 +294,12 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		}
 
 		/* Code from 8.3
+		if (lazyLoadedSearchResults) {
+			resultsArea.addComponent(new LazyLoadWrapper(results));
+		} else {
+			resultsArea.addComponent(results);
+		}
+
 		resultsArea.addComponent(new LazyLoadWrapper(resultsTable));
 		if (isDetailedView()) {
 			resultsArea.addComponent(((SearchResultDetailedTable) resultsTable).createControls());
@@ -311,6 +318,11 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		refreshCapsule();
 
 		return dataProvider;
+	}
+
+	@Override
+	public void setLazyLoadedSearchResults(boolean lazyLoadedSearchResults) {
+		this.lazyLoadedSearchResults = lazyLoadedSearchResults;
 	}
 
 	private boolean isDetailedView() {

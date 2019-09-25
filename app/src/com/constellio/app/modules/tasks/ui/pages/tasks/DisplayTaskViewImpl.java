@@ -1,21 +1,13 @@
 package com.constellio.app.modules.tasks.ui.pages.tasks;
 
+import com.constellio.app.modules.tasks.services.menu.TaskMenuItemServices.TaskItemActionType;
 import com.constellio.app.modules.tasks.ui.components.TaskTable;
 import com.constellio.app.modules.tasks.ui.components.breadcrumb.TaskBreadcrumbTrail;
 import com.constellio.app.modules.tasks.ui.components.display.TaskDisplayFactory;
-import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveCollaboratorsField;
-import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveCollaboratorsGroupsField;
-import com.constellio.app.modules.tasks.ui.entities.TaskVO;
 import com.constellio.app.ui.entities.RecordVO;
-import com.constellio.app.ui.framework.buttons.AddButton;
-import com.constellio.app.ui.framework.buttons.BaseButton;
-import com.constellio.app.ui.framework.buttons.ConfirmDialogButton;
-import com.constellio.app.ui.framework.buttons.DeleteButton;
-import com.constellio.app.ui.framework.buttons.EditButton;
-import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.RecordDisplay;
-import com.constellio.app.ui.framework.components.ReportTabButton;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
+import com.constellio.app.ui.framework.components.buttons.RecordVOActionButtonFactory;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.components.table.columns.EventVOTableColumnsManager;
 import com.constellio.app.ui.framework.components.table.columns.TableColumnsManager;
@@ -30,30 +22,39 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomComponent;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.VerticalLayout;
-import com.vaadin.ui.themes.ValoTheme;
-import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DisplayTaskViewImpl extends BaseViewImpl implements DisplayTaskView {
-	public static final String STYLE_NAME = "display-folder";
 	private final DisplayTaskPresenter presenter;
 	private Component subTasks;
 	private Component eventsComponent;
 	private TabSheet tabSheet;
 	private RecordDisplay recordDisplay;
 	private VerticalLayout recordDisplayLayout;
+	private boolean nestedView = false;
+	private boolean inWindow = false;
 
 	public DisplayTaskViewImpl() {
 		presenter = new DisplayTaskPresenter(this);
 	}
 
+	public DisplayTaskViewImpl(RecordVO recordVO, boolean nestedView, boolean inWindow) {
+		this.nestedView = nestedView;
+		this.inWindow = inWindow;
+		presenter = new DisplayTaskPresenter(this, recordVO, nestedView, inWindow);
+	}
+
 	@Override
 	protected void initBeforeCreateComponents(ViewChangeEvent event) {
-		presenter.initTaskVO(event.getParameters());
+		if (event != null) {
+			presenter.initTaskVO(event.getParameters());
+		}
 	}
 
 	@Override
@@ -71,7 +72,6 @@ public class DisplayTaskViewImpl extends BaseViewImpl implements DisplayTaskView
 		subTasks.setId(SUB_TASKS_ID);
 
 		tabSheet = new TabSheet();
-		tabSheet.addStyleName(STYLE_NAME);
 		tabSheet.addTab(recordDisplayLayout, $("DisplayTaskView.tabs.metadata"));
 		tabSheet.addTab(subTasks, $("DisplayTaskView.tabs.subtasks", presenter.getSubTaskCount()));
 
@@ -94,7 +94,24 @@ public class DisplayTaskViewImpl extends BaseViewImpl implements DisplayTaskView
 
 		verticalLayout.addComponent(tabSheet);
 		presenter.selectInitialTabForUser();
+
+
 		return verticalLayout;
+	}
+
+	@Override
+	protected boolean isFullWidthIfActionMenuAbsent() {
+		return true;
+	}
+
+	@Override
+	protected boolean isActionMenuBar() {
+		return true;
+	}
+
+	@Override
+	protected boolean isBreadcrumbsVisible() {
+		return !nestedView && !inWindow;
 	}
 
 	@Override
@@ -109,154 +126,7 @@ public class DisplayTaskViewImpl extends BaseViewImpl implements DisplayTaskView
 
 	@Override
 	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
-		List<Button> actionMenuButtons = new ArrayList<>();
-
-		if (!presenter.isLogicallyDeleted()) {
-
-			if (!presenter.isClosedOrTerminated()) {
-
-				EditButton editCurrentTask = new EditButton($("DisplayTaskView.modifyTask")) {
-					@Override
-					protected void buttonClick(ClickEvent event) {
-						presenter.editButtonClicked();
-					}
-
-					@Override
-					public boolean isVisible() {
-						return super.isVisible() && presenter.isEditCurrentTaskButtonVisible();
-					}
-				};
-				actionMenuButtons.add(editCurrentTask);
-			}
-			ConfirmDialogButton autoAssignTask = new ConfirmDialogButton($("DisplayTaskView.autoAssignTask")) {
-				@Override
-				protected String getConfirmDialogMessage() {
-					return $("DisplayTaskView.autoAssignTaskDialogMessage");
-				}
-
-				@Override
-				protected void confirmButtonClick(ConfirmDialog dialog) {
-					presenter.autoAssignButtonClicked();
-				}
-
-				@Override
-				public boolean isVisible() {
-					return super.isVisible() && presenter.isAutoAssignButtonEnabled();
-				}
-			};
-			actionMenuButtons.add(autoAssignTask);
-
-			TaskCompleteWindowButton completeTask = new TaskCompleteWindowButton(presenter.getTask(),
-					$("DisplayTaskView.completeTask"), this.getConstellioFactories().getAppLayerFactory(), presenter) {
-				@Override
-				protected String getConfirmDialogMessage() {
-					if (presenter.isSubTaskPresentAndHaveCertainStatus(presenter.getTaskVO())) {
-						return $("DisplayTaskView.subTaskPresentComplete");
-					}
-
-					return $("DisplayTaskView.completeTaskDialogMessage");
-				}
-
-
-				@Override
-				public boolean isVisible() {
-					return super.isVisible() && presenter.isCompleteCurrentTaskButtonVisible();
-				}
-			};
-			actionMenuButtons.add(completeTask);
-
-			ConfirmDialogButton closeTask = new ConfirmDialogButton($("DisplayTaskView.closeTask")) {
-				@Override
-				protected String getConfirmDialogMessage() {
-					return $("DisplayTaskView.closeTaskDialogMessage");
-				}
-
-				@Override
-				protected void confirmButtonClick(ConfirmDialog dialog) {
-					presenter.closeButtonClicked();
-				}
-
-				@Override
-				public boolean isVisible() {
-					return super.isVisible() && presenter.isCloseCurrentTaskButtonVisible();
-				}
-
-				@Override
-				public boolean isEnabled() {
-					return super.isEnabled() && presenter.isCloseCurrentTaskButtonVisible();
-				}
-			};
-			actionMenuButtons.add(closeTask);
-			if (!presenter.isClosedOrTerminated()) {
-				AddButton createSubTask = new AddButton($("DisplayTaskView.createSubTask"), false) {
-					@Override
-					protected void buttonClick(ClickEvent event) {
-						presenter.createSubTaskButtonClicked();
-					}
-
-					@Override
-					public boolean isVisible() {
-						return super.isVisible() && presenter.isCreateCurrentTaskSubTaskButtonVisible();
-					}
-				};
-				actionMenuButtons.add(createSubTask);
-			}
-			DeleteButton deleteTask = new DeleteButton($("DisplayTaskView.deleteTask")) {
-				@Override
-				protected String getConfirmDialogMessage() {
-					if (presenter.isSubTaskPresentAndHaveCertainStatus(recordDisplay.getRecordVO())) {
-						return $("DisplayTaskView.subTaskPresentWarning");
-					} else {
-						return super.getConfirmDialogMessage();
-					}
-				}
-
-				@Override
-				protected void confirmButtonClick(ConfirmDialog dialog) {
-					presenter.deleteButtonClicked();
-				}
-
-				@Override
-				public boolean isVisible() {
-					return super.isVisible() && presenter.isDeleteCurrentTaskButtonVisible();
-				}
-			};
-			actionMenuButtons.add(deleteTask);
-
-			ReportTabButton reportGeneratorButton = new ReportTabButton($("SearchView.metadataReportTitle"), $("SearchView.metadataReportTitle"), presenter.getApplayerFactory(),
-					getCollection(), false, false, presenter.buildReportPresenter(), getSessionContext()) {
-				@Override
-				public void buttonClick(ClickEvent event) {
-					setRecordVoList(getCurrentTask());
-					super.buttonClick(event);
-				}
-			};
-			actionMenuButtons.add(reportGeneratorButton);
-
-			WindowButton shareButton = new WindowButton($("DisplayTaskView.share"), $("DisplayTaskView.shareWindowCaption")) {
-				@Override
-				protected Component buildWindowContent() {
-					VerticalLayout mainLayout = new VerticalLayout();
-					RecordVO recordVO = presenter.getTaskVO();
-					ListAddRemoveCollaboratorsField collaboratorsField = new ListAddRemoveCollaboratorsField(recordVO, presenter.currentUserIsCollaborator(recordVO));
-					ListAddRemoveCollaboratorsGroupsField collaboratorGroupsField = new ListAddRemoveCollaboratorsGroupsField(recordVO, presenter.currentUserIsCollaborator(recordVO));
-					BaseButton saveButton = new BaseButton($("save")) {
-						@Override
-						protected void buttonClick(ClickEvent event) {
-							presenter.addCollaborators(collaboratorsField.getValue(), collaboratorGroupsField.getValue(), (TaskVO) presenter.getTaskVO());
-							getWindow().close();
-						}
-					};
-					saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
-					getWindow().setHeight(collaboratorsField.getHeight() * 80 + "px");
-					mainLayout.addComponents(collaboratorsField, collaboratorGroupsField, saveButton);
-					return mainLayout;
-				}
-			};
-			actionMenuButtons.add(shareButton);
-		}
-
-		return actionMenuButtons;
+		return new RecordVOActionButtonFactory(presenter.getTaskVO(), Arrays.asList(TaskItemActionType.TASK_CONSULT.name())).build();
 	}
 
 	@Override
@@ -292,6 +162,21 @@ public class DisplayTaskViewImpl extends BaseViewImpl implements DisplayTaskView
 	}
 
 	@Override
+	protected List<Button> getQuickActionMenuButtons() {
+		List<Button> buttons = getConsultButton();
+
+		return buttons;
+	}
+
+	private List<Button> getConsultButton() {
+		List<TaskItemActionType> taskItemsToExclude = new ArrayList(Arrays.asList(TaskItemActionType.values()));
+		taskItemsToExclude.remove(TaskItemActionType.TASK_CONSULT);
+
+		return new RecordVOActionButtonFactory(presenter.getTaskVO(),
+				taskItemsToExclude.stream().map((item) -> item.name()).collect(Collectors.toList())).build();
+	}
+
+	@Override
 	public void selectTasksTab() {
 		tabSheet.setSelectedTab(subTasks);
 	}
@@ -310,12 +195,16 @@ public class DisplayTaskViewImpl extends BaseViewImpl implements DisplayTaskView
 
 	@Override
 	protected ClickListener getBackButtonClickListener() {
-		return new ClickListener() {
-			@Override
-			public void buttonClick(ClickEvent event) {
-				presenter.backButtonClicked();
-			}
-		};
+		if (nestedView || inWindow) {
+			return null;
+		} else {
+			return new ClickListener() {
+				@Override
+				public void buttonClick(ClickEvent event) {
+					presenter.backButtonClicked();
+				}
+			};
+		}
 	}
 
 	@Override

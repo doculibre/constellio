@@ -5,6 +5,7 @@ import com.constellio.app.services.extensions.ConstellioModulesManagerImpl;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.extensions.ConstellioModulesManager;
+import com.constellio.model.services.extensions.ConstellioModulesManagerException.ConstellioModulesManagerException_ModuleInstallationFailed;
 
 import java.io.File;
 import java.util.HashMap;
@@ -34,7 +35,11 @@ public class ModuleEnabler {
 
 	public void enabledIn(String collection) {
 		if (!module.isComplementary()) {
-			constellioModulesManager.enableValidModuleAndGetInvalidOnes(collection, module);
+			try {
+				constellioModulesManager.enableValidModuleAndGetInvalidOnes(collection, module);
+			} catch (ConstellioModulesManagerException_ModuleInstallationFailed constellioModulesManagerException_moduleInstallationFailed) {
+				throw new RuntimeException(constellioModulesManagerException_moduleInstallationFailed);
+			}
 		}
 
 	}
@@ -81,10 +86,15 @@ public class ModuleEnabler {
 		//			i18n.registerBundle(value, bundleName);
 		//		}
 
-		constellioModulesManager.installValidModuleAndGetInvalidOnes(module, collectionsListManager);
+		try {
+			constellioModulesManager.installValidModuleAndGetInvalidOnes(module, collectionsListManager);
 
-		if (module.isComplementary()) {
-			((ConstellioModulesManagerImpl) constellioModulesManager).enableComplementaryModules();
+
+			if (module.isComplementary()) {
+				((ConstellioModulesManagerImpl) constellioModulesManager).enableComplementaryModules();
+			}
+		} catch (ConstellioModulesManagerException_ModuleInstallationFailed constellioModulesManagerException_moduleInstallationFailed) {
+			throw new RuntimeException(constellioModulesManagerException_moduleInstallationFailed);
 		}
 
 		return new ModuleEnabler(module, collectionsListManager, constellioModulesManager);

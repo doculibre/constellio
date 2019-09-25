@@ -102,6 +102,7 @@ public class EmailQueueManager implements StatefulService {
 				//	LOGGER.info("Remaining " + searchServices.getResultsCount(query) + " emails in collection " + query.getCondition()
 				//			.getCollection());
 				query.setNumberOfRows(SEND_EMAIL_BATCH);
+				query.setName("EmailQueueManager:BackgroundThread:GetEmailsToSend");
 				List<Record> records = searchServices.search(query);
 				if (records.isEmpty()) {
 					iterator.remove();

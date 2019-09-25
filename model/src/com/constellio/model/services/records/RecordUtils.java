@@ -6,6 +6,7 @@ import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.KeyListMap;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.LangUtils.ListComparisonResults;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
@@ -574,6 +575,11 @@ public class RecordUtils {
 	public static void invalidateTaxonomiesCache(List<Record> records, MetadataSchemaTypes types,
 												 RecordProvider recordProvider,
 												 TaxonomiesSearchServicesCache cache) {
+
+		if (Toggle.NO_TAXONOMIES_CACHE_INVALIDATION.isEnabled()) {
+			return;
+		}
+
 
 		Set<String> idsWithPossibleNewChildren = new HashSet<>();
 		Set<String> idsWithPossibleRemovedChildren = new HashSet<>();

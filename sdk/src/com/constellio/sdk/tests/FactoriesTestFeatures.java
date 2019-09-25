@@ -35,6 +35,11 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.curator.utils.CloseableUtils;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.params.ModifiableSolrParams;
 
 import java.io.File;
@@ -197,6 +202,13 @@ public class FactoriesTestFeatures {
 	}
 
 	private void clearSolrData(BigVaultServer vaultServer, int attempt) {
+		try {
+			vaultServer.softCommit();
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		} catch (SolrServerException e) {
+			throw new RuntimeException(e);
+		}
 		ModifiableSolrParams allRecordsSolrParams = new ModifiableSolrParams();
 		allRecordsSolrParams.set("q", "*:*");
 

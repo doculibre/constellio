@@ -352,9 +352,9 @@ public class RecordAutomaticMetadataServicesCopyAcceptanceTest extends Constelli
 
 		assertThat(record.<String>get(zeSchema.stringCopiedFromFirstReferenceStringMeta())).isEqualTo(aString);
 		assertThat(record.<LocalDateTime>get(zeSchema.dateCopiedFromSecondReferenceDateMeta())).isEqualTo(anotherDate);
-		verify(recordServices).realtimeGetRecordById(idReferencedRecordWithAnotherDateValue);
-		verify(recordServices, never()).realtimeGetRecordById(idReferencedRecordWithoutValue);
-		verify(recordServices, never()).realtimeGetRecordById(idReferencedRecordWithAStringAndADateValue);
+		verify(recordServices).getById("records", idReferencedRecordWithAnotherDateValue, true);
+		verify(recordServices, never()).getById("records", idReferencedRecordWithoutValue, true);
+		verify(recordServices, never()).getById("records", idReferencedRecordWithAStringAndADateValue, true);
 
 	}
 
@@ -372,9 +372,9 @@ public class RecordAutomaticMetadataServicesCopyAcceptanceTest extends Constelli
 
 		assertThat(record.<List<String>>get(zeSchema.stringCopiedFromFirstReferenceStringMeta())).isEqualTo(asList(aString, aString));
 		assertThat(record.<List<LocalDateTime>>get(zeSchema.dateCopiedFromSecondReferenceDateMeta())).isEqualTo(asList(anotherDate));
-		verify(recordServices).realtimeGetRecordById(idReferencedRecordWithAnotherDateValue);
-		verify(recordServices, never()).realtimeGetRecordById(idReferencedRecordWithoutValue);
-		verify(recordServices, never()).realtimeGetRecordById(idReferencedRecordWithAStringAndADateValue);
+		verify(recordServices).getById("records", idReferencedRecordWithAnotherDateValue, true);
+		verify(recordServices, never()).getById("records", idReferencedRecordWithoutValue, true);
+		verify(recordServices, never()).getById("records", idReferencedRecordWithAStringAndADateValue, true);
 
 	}
 
@@ -390,9 +390,9 @@ public class RecordAutomaticMetadataServicesCopyAcceptanceTest extends Constelli
 
 		assertThat(record.<List<String>>get(zeSchema.stringCopiedFromFirstReferenceStringMeta())).isEqualTo(aStringList);
 		assertThat(record.<List<LocalDateTime>>get(zeSchema.dateCopiedFromSecondReferenceDateMeta())).isEqualTo(anotherDateList);
-		verify(recordServices).realtimeGetRecordById(idReferencedRecordWithAnotherDateValue);
-		verify(recordServices, never()).realtimeGetRecordById(idReferencedRecordWithoutValue);
-		verify(recordServices, never()).realtimeGetRecordById(idReferencedRecordWithAStringAndADateValue);
+		verify(recordServices).getById("records", idReferencedRecordWithAnotherDateValue, true);
+		verify(recordServices, never()).getById("records", idReferencedRecordWithoutValue, true);
+		verify(recordServices, never()).getById("records", idReferencedRecordWithAStringAndADateValue, true);
 
 	}
 

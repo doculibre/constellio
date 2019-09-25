@@ -63,7 +63,7 @@ public class DocumentRecordActionsServices {
 	}
 
 	public boolean isCopyActionPossible(Record record, User user) {
-		return !user.hasReadAccess().on(record) &&
+		return user.hasReadAccess().on(record) &&
 			   !record.isLogicallyDeleted() &&
 			   rmModuleExtensions.isCopyActionPossibleOnDocument(rm.wrapDocument(record), user);
 	}

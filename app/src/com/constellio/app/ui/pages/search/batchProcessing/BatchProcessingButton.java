@@ -6,8 +6,8 @@ import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.framework.components.RecordForm;
-import com.constellio.app.ui.framework.components.ReportViewer;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
+import com.constellio.app.ui.framework.stream.DownloadStreamResource;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.records.RecordServicesException;
@@ -236,7 +236,7 @@ public class BatchProcessingButton extends WindowButton {
 		}
 
 		private void downloadBatchProcessingResults(final InputStream stream) {
-			Resource resource = new ReportViewer.DownloadStreamResource(new StreamResource.StreamSource() {
+			Resource resource = new DownloadStreamResource(new StreamResource.StreamSource() {
 				@Override
 				public InputStream getStream() {
 					return stream;

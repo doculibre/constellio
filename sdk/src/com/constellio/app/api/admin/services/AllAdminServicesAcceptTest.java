@@ -6,6 +6,7 @@ import com.constellio.sdk.tests.annotations.SlowTest;
 import org.junit.After;
 import org.junit.Test;
 
+// Comment to test commit
 @SlowTest
 @DriverTest
 public class AllAdminServicesAcceptTest extends ConstellioTest {
@@ -46,12 +47,6 @@ public class AllAdminServicesAcceptTest extends ConstellioTest {
 	public void givenServiceKeyIsModifiedThenPreviousServiceKeyDoNotWorkAnymore()
 			throws Exception {
 		runAdminServicesLoginAcceptanceTest().givenServiceKeyIsModifiedThenPreviousServiceKeyDoNotWorkAnymore();
-	}
-
-	@Test
-	public void whenCreateCollectionThenItIsCreated()
-			throws Exception {
-		runCollectionsManagementAcceptTest().whenCreateCollectionThenItIsCreated();
 	}
 
 	//TODO Broken @Test

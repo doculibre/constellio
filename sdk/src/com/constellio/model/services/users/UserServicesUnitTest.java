@@ -183,6 +183,8 @@ public class UserServicesUnitTest extends ConstellioTest {
 		doReturn(collection1UserSchema).when(userServices).userSchema("collection1");
 		doReturn(collection2GroupSchema).when(userServices).groupSchema("collection2");
 		doReturn(collection2UserSchema).when(userServices).userSchema("collection2");
+
+		when(modelLayerConfiguration.getMainDataLanguage()).thenReturn("fr");
 	}
 
 	@Test

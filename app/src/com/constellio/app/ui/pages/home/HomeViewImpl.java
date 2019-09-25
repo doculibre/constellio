@@ -17,8 +17,6 @@ import com.constellio.app.ui.framework.components.converters.JodaDateTimeToStrin
 import com.constellio.app.ui.framework.components.table.BaseTable.SelectionChangeEvent;
 import com.constellio.app.ui.framework.components.table.BaseTable.SelectionManager;
 import com.constellio.app.ui.framework.components.table.BaseTable.ValueSelectionManager;
-import com.constellio.app.ui.framework.components.table.RecordVOSelectionTableAdapter;
-import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.components.tree.RecordLazyTree;
 import com.constellio.app.ui.framework.components.tree.RecordLazyTreeTabSheet;
 import com.constellio.app.ui.framework.components.tree.TreeItemClickListener;
@@ -177,64 +175,11 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 	}
 
 	private Component buildTable(RecordVODataProvider dataProvider) {
-		RecordVOLazyContainer container = new RecordVOLazyContainer(dataProvider);
-		final RecordVOTable table = new RecordVOTable(container);
+		final ViewableRecordVOTablePanel table = new ViewableRecordItemTablePanel(dataProvider);
 		table.addStyleName("record-table");
 		table.setSizeFull();
-		for (Object item : table.getContainerPropertyIds()) {
-			if (item instanceof MetadataVO) {
-				MetadataVO property = (MetadataVO) item;
-				if (property.getCode() != null && property.getCode().contains(Schemas.MODIFIED_ON.getLocalCode())) {
-					table.setColumnWidth(property, 180);
-				}
-			}
-		}
-		table.addItemClickListener(new ItemClickListener() {
-			@Override
-			public void itemClick(ItemClickEvent event) {
-				if (event.getButton() == MouseButton.LEFT) {
-					RecordVOItem recordItem = (RecordVOItem) event.getItem();
-					RecordVO recordVO = recordItem.getRecord();
-					presenter.recordClicked(recordVO.getId(), null, false);
-				}
-			}
-		});
-		return new RecordVOSelectionTableAdapter(table) {
-			@Override
-			public void selectAll() {
-				selectAllByItemId();
-			}
 
-			@Override
-			public void deselectAll() {
-				deselectAllByItemId();
-			}
-
-			@Override
-			public boolean isAllItemsSelected() {
-				return isAllItemsSelectedByItemId();
-			}
-
-			@Override
-			public boolean isAllItemsDeselected() {
-				return isAllItemsDeselectedByItemId();
-			}
-
-			@Override
-			public boolean isSelected(Object itemId) {
-				RecordVOItem item = (RecordVOItem) table.getItem(itemId);
-				String recordId = item.getRecord().getId();
-				return presenter.isSelected(recordId);
-			}
-
-			@Override
-			public void setSelected(Object itemId, boolean selected) {
-				RecordVOItem item = (RecordVOItem) table.getItem(itemId);
-				String recordId = item.getRecord().getId();
-				presenter.selectionChanged(recordId, selected);
-				adjustSelectAllButton(selected);
-			}
-		};
+		return table;
 	}
 
 	private Component buildRecordTreeOrRecordMultiTree(RecordTree recordTree) {
@@ -408,7 +353,28 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 
 	}
 
-	private class ViewableRecentItemTablePanel extends ViewableRecordVOTablePanel {
+	private class ViewableRecordItemTablePanel extends HomeViewViewableItemTablePanel {
+
+		public ViewableRecordItemTablePanel(RecordVODataProvider dataProvider) {
+			super(new RecordVOLazyContainer(dataProvider) {
+			});
+
+			addItemClickListener(new ItemClickListener() {
+				@SuppressWarnings("unchecked")
+				@Override
+				public void itemClick(ItemClickEvent event) {
+					if (event.getButton() == MouseButton.LEFT) {
+						RecordVOItem item = (RecordVOItem) event.getItem();
+						presenter.recordClicked(item.getRecord().getId(), null, true);
+					}
+				}
+			});
+			setVisibleColumns();
+			setSelectionActionButtons();
+		}
+	}
+
+	private class ViewableRecentItemTablePanel extends HomeViewViewableItemTablePanel {
 
 		public ViewableRecentItemTablePanel(String schemaTypeCode, String tableId, List<RecentItem> recentItems) {
 			super(new RecentItemContainer(schemaTypeCode, tableId, recentItems));
@@ -434,6 +400,20 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 				}
 			});
 			setSelectionActionButtons();
+		}
+
+		@SuppressWarnings("unchecked")
+		@Override
+		protected RecordVO getRecordVOForTitleColumn(Item item) {
+			BeanItem<RecentItem> recordVOItem = (BeanItem<RecentItem>) item;
+			return recordVOItem.getBean().getRecord();
+		}
+			
+	}
+
+	private class HomeViewViewableItemTablePanel extends ViewableRecordVOTablePanel {
+		public HomeViewViewableItemTablePanel(RecordVOContainer container) {
+			super(container);
 		}
 
 		@Override
@@ -530,14 +510,5 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 				}
 			};
 		}
-
-		@SuppressWarnings("unchecked")
-		@Override
-		protected RecordVO getRecordVOForTitleColumn(Item item) {
-			BeanItem<RecentItem> recordVOItem = (BeanItem<RecentItem>) item;
-			return recordVOItem.getBean().getRecord();
-		}
-			
 	}
-
 }

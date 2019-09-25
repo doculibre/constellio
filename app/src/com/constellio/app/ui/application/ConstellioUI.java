@@ -101,6 +101,7 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 											String notOKCaption) {
 					DefaultConfirmDialogFactory factory = new DefaultConfirmDialogFactory();
 					ConfirmDialog confirmDialog = factory.create(windowCaption, message, okTitle, cancelTitle, notOKCaption);
+					confirmDialog.addStyleName("confirm-dialog");
 					confirmDialog.setContentMode(ConfirmDialog.ContentMode.HTML);
 					confirmDialog.setResizable(true);
 					confirmDialog.addAttachListener(new AttachListener() {

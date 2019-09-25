@@ -38,6 +38,7 @@ import com.constellio.model.entities.modules.PluginUtil;
 import com.constellio.model.entities.records.RecordMigrationScript;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.extensions.ConstellioModulesManager;
+import com.constellio.model.services.extensions.ConstellioModulesManagerException.ConstellioModulesManagerException_ModuleInstallationFailed;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.utils.DependencyUtils;
 
@@ -79,7 +80,7 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 		createModulesConfigFileIfNotExist();
 	}
 
-	public void enableComplementaryModules() {
+	public void enableComplementaryModules() throws ConstellioModulesManagerException_ModuleInstallationFailed {
 		for (String collection : modelLayerFactory.getCollectionsListManager().getCollectionsExcludingSystem()) {
 			enableComplementaryModules(collection);
 		}
@@ -226,9 +227,8 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 	}
 
 	@Override
-	public Set<String> installValidModuleAndGetInvalidOnes(final Module module,
-														   CollectionsListManager collectionsListManager) {
-		Set<String> returnList = new HashSet<>();
+	public void installValidModuleAndGetInvalidOnes(final Module module, CollectionsListManager collectionsListManager)
+			throws ConstellioModulesManagerException_ModuleInstallationFailed {
 		markAsInstalled(module, collectionsListManager);
 
 		initializePluginResources(module);
@@ -236,12 +236,11 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 		MigrationServices migrationServices = migrationServicesDelayed.get();
 		for (String collection : collectionsListManager.getCollections()) {
 			try {
-				returnList.addAll(migrationServices.migrate(collection, null, true));
+				migrationServices.migrate(collection, null, true);
 			} catch (OptimisticLockingConfiguration optimisticLockingConfiguration) {
 				throw new RuntimeException(optimisticLockingConfiguration);
 			}
 		}
-		return returnList;
 	}
 
 	private void addModuleInConfigFile(final Module module) {
@@ -271,18 +270,15 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 	}
 
 	@Override
-	public Set<String> enableValidModuleAndGetInvalidOnes(String collection, Module module) {
+	public void enableValidModuleAndGetInvalidOnes(String collection, Module module)
+			throws ConstellioModulesManagerException_ModuleInstallationFailed {
 		markAsEnabled(module, collection);
-		Set<String> returnList = applyModuleMigrations(collection, true);
-		if (startModule(collection, module)) {
-			if (!module.isComplementary()) {
-				returnList.addAll(enableComplementaryModules(collection));
-			}
-		} else {
-			returnList.add(module.getId());
+		applyModuleMigrations(collection, true);
+		startModule(collection, module);
+		if (!module.isComplementary()) {
+			enableComplementaryModules(collection);
 		}
 		applyRecordsMigrationsFinishScript(collection, module);
-		return returnList;
 	}
 
 	private void applyRecordsMigrationsFinishScript(String collection, Module module) {
@@ -297,8 +293,8 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 
 	}
 
-	public Set<String> enableComplementaryModules(String collection) {
-		Set<String> returnList = new HashSet<>();
+	public void enableComplementaryModules(String collection)
+			throws ConstellioModulesManagerException_ModuleInstallationFailed {
 		List<String> enabledModuleIds = new ArrayList<>();
 		for (InstallableModule enabledModule : getEnabledModules(collection)) {
 			enabledModuleIds.add(enabledModule.getId());
@@ -308,19 +304,18 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 		for (InstallableModule complementaryModule : getComplementaryModules()) {
 			if (enabledModuleIds.containsAll(getDependencies(complementaryModule))) {
 				if (!isInstalled(complementaryModule)) {
-					returnList.addAll(installValidModuleAndGetInvalidOnes(complementaryModule,
-							appLayerFactory.getModelLayerFactory().getCollectionsListManager()));
+					installValidModuleAndGetInvalidOnes(complementaryModule,
+							appLayerFactory.getModelLayerFactory().getCollectionsListManager());
 				}
 				if (!isModuleEnabled(collection, complementaryModule)) {
-					returnList.addAll(enableValidModuleAndGetInvalidOnes(collection, complementaryModule));
+					enableValidModuleAndGetInvalidOnes(collection, complementaryModule);
 					newModulesEnabled = true;
 				}
 			}
 		}
 		if (newModulesEnabled) {
-			enabledModuleIds.addAll(enableComplementaryModules(collection));
+			enableComplementaryModules(collection);
 		}
-		return returnList;
 	}
 
 	private List<String> getDependencies(Module module) {
@@ -340,15 +335,15 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 		return complementaryModules;
 	}
 
-	private Set<String> applyModuleMigrations(String collection, boolean newModule) {
+	private void applyModuleMigrations(String collection, boolean newModule)
+			throws ConstellioModulesManagerException_ModuleInstallationFailed {
 		MigrationServices migrationServices = migrationServicesDelayed.get();
 
 		try {
-			return migrationServices.migrate(collection, null, newModule);
+			migrationServices.migrate(collection, null, newModule);
 		} catch (OptimisticLockingConfiguration e) {
 			// TODO: Handle this
 		}
-		return new HashSet<>();
 	}
 
 	public void disableModule(String collection, final Module module) {
@@ -367,7 +362,7 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 		});
 	}
 
-	public boolean startModule(String collection, Module module) {
+	public void startModule(String collection, Module module) {
 
 		if (!startedModulesInCollections.get(collection).contains(module.getId())) {
 			startedModulesInCollections.add(collection, module.getId());
@@ -385,14 +380,12 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 				e.printStackTrace();
 				if (isPluginModule(module)) {
 					constellioPluginManager.handleModuleNotStartedCorrectly(module, collection, e);
-					LOGGER.error("Module did not start propertly : " + module.getName(), e);
-					return false;
+					throw new ConstellioModulesManagerRuntimeException.FailedToStart((InstallableModule) module, collection, e);
 				} else {
 					throw new ConstellioModulesManagerRuntimeException.FailedToStart((InstallableModule) module, collection, e);
 				}
 			}
 		}
-		return true;
 	}
 
 	boolean isPluginModule(Module module) {
@@ -415,15 +408,10 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 		}
 	}
 
-	public Set<String> startModules(String collection) {
-		Set<String> returnList = new HashSet<>();
+	public void startModules(String collection) {
 		for (Module module : getEnabledModules(collection)) {
-			if (!startModule(collection, module)) {
-				returnList.add(module.getId());
-			}
+			startModule(collection, module);
 		}
-
-		return returnList;
 	}
 
 	public void stopModules(String collection) {

@@ -58,7 +58,13 @@ public class CoreViews {
 		}
 	}
 
+	public void personnalSpace() {
+		clearBreadcrumbTrail();
+		navigator.navigateTo(NavigatorConfigurationService.PERSONNAL_SPACE);
+	}
+
 	public void home() {
+
 		clearBreadcrumbTrail();
 		navigator.navigateTo(NavigatorConfigurationService.HOME);
 	}

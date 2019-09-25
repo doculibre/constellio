@@ -214,7 +214,8 @@ public class RecordTextInputDataProvider extends TextInputDataProvider<String> {
 		LogicalSearchQuery query = new LogicalSearchQuery(condition)
 				.setPreferAnalyzedFields(true)
 				.setStartRow(startIndex)
-				.setNumberOfRows(count);
+				.setNumberOfRows(count)
+				.setName("Autocomplete query for input '" + text + "'");
 
 		//		boolean isDDV = schemaTypeCode != null? schemaTypeCode.startsWith("ddv"):schemaCode.startsWith("ddv");
 		if (!includeLogicallyDeleted) {

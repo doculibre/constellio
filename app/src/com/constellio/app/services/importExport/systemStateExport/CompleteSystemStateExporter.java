@@ -23,6 +23,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -34,6 +35,7 @@ public class CompleteSystemStateExporter {
 	private IOServices ioServices;
 	private DataLayerFactory dataLayerFactory;
 	private RecordDao recordsDao, eventsDao, notificationsDao;
+	private AppLayerFactory appLayerFactory;
 
 	public static final String CLOUD_SYSTEM_STATE_EXPORT_TEMP_FOLDER = "CloudSystemStateExporter_exportCompleteSaveState";
 
@@ -45,6 +47,7 @@ public class CompleteSystemStateExporter {
 		recordsDao = dataLayerFactory.newRecordDao();
 		eventsDao = dataLayerFactory.newEventsDao();
 		notificationsDao = dataLayerFactory.newNotificationsDao();
+		this.appLayerFactory = appLayerFactory;
 	}
 
 	public InputStream exportCompleteSaveState() throws Exception {
@@ -95,6 +98,10 @@ public class CompleteSystemStateExporter {
 
 			File settingsFolder = new File(tempFolder, "settings");
 			dataLayerFactory.getConfigManager().exportTo(settingsFolder);
+			filesToZip.add(settingsFolder);
+
+			File contentsFolder = new File(tempFolder, "content");
+			new PartialVaultExporter(contentsFolder, appLayerFactory).export(Collections.<String>emptyList());
 			filesToZip.add(settingsFolder);
 
 			File zipFile = new File(tempFolder, "completeSavestate.zip");

@@ -84,8 +84,9 @@ public class ClassListBuilder<T> {
 			return implementationClass.newInstance();
 		} catch (InstantiationException | IllegalAccessException e) {
 			throw new ClassListBuilderRuntimeException.CannotInstanciate(implementationClassname, e);
-		} catch (ClassNotFoundException e) {
+		} catch (ClassNotFoundException | NoClassDefFoundError e) {
 			throw new ClassListBuilderRuntimeException.ClassNotFound(implementationClassname, e);
+
 		}
 	}
 

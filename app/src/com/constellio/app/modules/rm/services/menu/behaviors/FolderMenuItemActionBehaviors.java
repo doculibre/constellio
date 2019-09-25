@@ -14,6 +14,7 @@ import com.constellio.app.modules.rm.services.actions.FolderRecordActionsService
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
+import com.constellio.app.modules.rm.services.menu.behaviors.util.BehaviorsUtil;
 import com.constellio.app.modules.rm.ui.buttons.CartWindowButton;
 import com.constellio.app.modules.rm.ui.buttons.CartWindowButton.AddedRecordType;
 import com.constellio.app.modules.rm.ui.components.folder.fields.LookupFolderField;
@@ -620,7 +621,7 @@ public class FolderMenuItemActionBehaviors {
 				params.getRecordVO().getSchema().getTypeCode());
 	}
 
-	private void deleteFolder(Folder folder, String reason, MenuItemActionBehaviorParams params) {
+	protected void deleteFolder(Folder folder, String reason, MenuItemActionBehaviorParams params) {
 		String parentId = folder.get(Folder.PARENT_FOLDER);
 		SchemaPresenterUtils presenterUtils = new SchemaPresenterUtils(Folder.DEFAULT_SCHEMA,
 				params.getView().getConstellioFactories(), params.getView().getSessionContext());
@@ -631,7 +632,9 @@ public class FolderMenuItemActionBehaviors {
 
 			boolean isDeleteSuccessful = delete(presenterUtils, params.getView(), folder.getWrappedRecord(), reason, false, 1);
 			if (isDeleteSuccessful) {
-				if (parentId != null) {
+				if (BehaviorsUtil.reloadIfSearchView(params.getView())) {
+					return;
+				} else if (parentId != null) {
 					RMNavigationUtils.navigateToDisplayFolder(parentId, params.getFormParams(), appLayerFactory, collection);
 				} else {
 					params.getView().navigate().to().home();

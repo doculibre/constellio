@@ -124,8 +124,11 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	}
 
 	public boolean isShowNumberingColumn(SearchResultVODataProvider dataProvider) {
-		boolean lazyLoadedFacets = modelLayerFactory.getSystemConfigs().isLazyLoadedFacets();
 		return modelLayerFactory.getSystemConfigs().isShowResultsNumberingInListView() || dataProvider.size() > BaseTable.MAX_SELECTION_LENGTH;
+	}
+
+	public boolean isLazyLoadedSearchResults() {
+		return modelLayerFactory.getSystemConfigs().isLazyLoadedSearchResults();
 	}
 
 	public enum SortOrder {ASCENDING, DESCENDING}
@@ -300,6 +303,10 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		ConstellioModulesManager modulesManager = constellioFactories.getAppLayerFactory().getModulesManager();
 		Module rmModule = modulesManager.getInstalledModule(ConstellioRMModule.ID);
 		allowDownloadZip = modulesManager.isModuleEnabled(collection, rmModule);
+
+
+		ConstellioEIMConfigs configs = new ConstellioEIMConfigs(appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager());
+		view.setLazyLoadedSearchResults(configs.isLazyLoadedSearchResults());
 	}
 
 	public void resetFacetAndOrder() {
@@ -369,7 +376,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		}
 
 		SPEQueryResponse suggestionsResponse = searchServices()
-				.query(getSearchQuery().setNumberOfRows(0).setSpellcheck(true));
+				.query(getSearchQuery().setNumberOfRows(0).setSpellcheck(true).setName("Spell checker Query"));
 		if (suggestionsResponse.isCorrectlySpelt()) {
 			return false;
 		}

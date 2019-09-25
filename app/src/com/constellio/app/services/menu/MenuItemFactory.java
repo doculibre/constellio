@@ -71,6 +71,7 @@ public class MenuItemFactory {
 					menuItemAction.getCommand().accept(getRecordIds(recordProvider.getRecords()));
 				}
 			};
+			actionButton.setId(menuItemAction.getType());
 			actionButton.setEnabled(menuItemAction.getState().getStatus() == VISIBLE);
 			actionButton.setVisible(menuItemAction.getState().getStatus() != HIDDEN);
 			actionButton.setDescription(menuItemAction.getState().getReason());

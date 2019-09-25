@@ -8,6 +8,8 @@ import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.components.viewers.ContentViewer;
+import com.constellio.app.ui.framework.components.viewers.VisibilityChangeEvent;
+import com.constellio.app.ui.framework.components.viewers.VisibilityChangeListener;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.model.entities.records.wrappers.UserDocument;
 import com.constellio.model.frameworks.validation.ValidationException;
@@ -83,7 +85,7 @@ public class AddEditDocumentViewImpl extends BaseViewImpl implements AddEditDocu
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
 		newForm();
-		
+
 		mainLayout = new I18NHorizontalLayout();
 		mainLayout.setSizeFull();
 
@@ -96,7 +98,6 @@ public class AddEditDocumentViewImpl extends BaseViewImpl implements AddEditDocu
 
 			if (userDocumentRecordVO != null) {
 				contentViewer = new ContentViewer(userDocumentRecordVO, UserDocument.CONTENT, userDocumentRecordVO.get(UserDocument.CONTENT));
-				isUserDocumentViewer = true;
 			} else if (duplicateDocumentRecordVO != null) {
 				contentViewer = new ContentViewer(duplicateDocumentRecordVO, Document.CONTENT, duplicateDocumentRecordVO.get(Document.CONTENT));
 				isDuplicateDocumentViewer = true;
@@ -106,15 +107,35 @@ public class AddEditDocumentViewImpl extends BaseViewImpl implements AddEditDocu
 
 			contentViewer.setWidth("100%");
 			contentViewer.setHeight("100%");
+
+			mainLayout.addComponents(recordForm);
+
 			if (contentViewer.isViewerComponentVisible()) {
-				mainLayout.addComponent(contentViewer);
+				mainLayout.addComponent(contentViewer, 0);
 				recordForm.setWidth(RECORD_FORM_WIDTH);
 				mainLayout.setExpandRatio(contentViewer, 1);
+
+				contentViewer.addImageViewerVisibilityChangeListener(new VisibilityChangeListener() {
+					@Override
+					public void onVisibilityChange(VisibilityChangeEvent visibilityChangeEvent) {
+						if (contentViewer != null && !visibilityChangeEvent.isNewVisibilily()) {
+							if (!contentViewer.isViewerComponentVisible() && mainLayout.getComponentIndex(contentViewer) >= 0) {
+								mainLayout.removeComponent(contentViewer);
+								contentViewer = null;
+								visibilityChangeEvent.setRemoveThisVisiblityLisener(true);
+								recordForm.setImmediate(true);
+								recordForm.setWidth("100%");
+							}
+						}
+					}
+				});
 			}
-			mainLayout.addComponents(recordForm);
+
 		} else {
 			mainLayout.addComponent(recordForm);
 		}
+
+
 		return mainLayout;
 	}
 

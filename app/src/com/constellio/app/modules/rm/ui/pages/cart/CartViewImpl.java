@@ -18,7 +18,6 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.components.ReportSelector;
-import com.constellio.app.ui.framework.components.ReportViewer.DownloadStreamResource;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.breadcrumb.IntermediateBreadCrumbTailItem;
 import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
@@ -29,6 +28,7 @@ import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
 import com.constellio.app.ui.framework.containers.RecordVOWithDistinctSchemaTypesLazyContainer;
 import com.constellio.app.ui.framework.data.RecordVOWithDistinctSchemasDataProvider;
+import com.constellio.app.ui.framework.stream.DownloadStreamResource;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.base.SessionContext;
@@ -110,26 +110,26 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 
 	@Override
 	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
-//		List<Button> buttons = super.buildActionMenuButtons(event);
-//		buttons.add(buildRenameButton());
-//		buttons.add(buildPrepareEmailButton());
-//		buttons.add(buildBatchDuplicateButton());
-//		buttons.add(buildDocumentsBatchProcessingButton());
-//		buttons.add(buildFoldersBatchProcessingButton());
-//		buttons.add(buildContainersBatchProcessingButton());
-//		buttons.add(buildFoldersLabelsButton());
-//		buttons.add(buildDocumentLabelsButton());
-//		buttons.add(buildContainersLabelsButton());
-//		buttons.add(buildBatchDeleteButton());
-//		buttons.add(buildEmptyButton());
-//		if (!presenter.isDefaultCart()) {
-//			buttons.add(buildShareButton());
-//		}
-//		buttons.add(buildDecommissionButton());
-//		buttons.add(buildPrintMetadataReportButton());
-//		buttons.add(buildCreateSIPArchivesButton());
-//		buttons.add(buildConsolidatedPdfButton());
-//		return buttons;
+		//		List<Button> buttons = super.buildActionMenuButtons(event);
+		//		buttons.add(buildRenameButton());
+		//		buttons.add(buildPrepareEmailButton());
+		//		buttons.add(buildBatchDuplicateButton());
+		//		buttons.add(buildDocumentsBatchProcessingButton());
+		//		buttons.add(buildFoldersBatchProcessingButton());
+		//		buttons.add(buildContainersBatchProcessingButton());
+		//		buttons.add(buildFoldersLabelsButton());
+		//		buttons.add(buildDocumentLabelsButton());
+		//		buttons.add(buildContainersLabelsButton());
+		//		buttons.add(buildBatchDeleteButton());
+		//		buttons.add(buildEmptyButton());
+		//		if (!presenter.isDefaultCart()) {
+		//			buttons.add(buildShareButton());
+		//		}
+		//		buttons.add(buildDecommissionButton());
+		//		buttons.add(buildPrintMetadataReportButton());
+		//		buttons.add(buildCreateSIPArchivesButton());
+		//		buttons.add(buildConsolidatedPdfButton());
+		//		return buttons;
 
 		Cart cart = presenter.getCart();
 		Record record = null;
@@ -180,7 +180,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		return new TitleBreadcrumbTrail(this, getBreadCrumbTitle(), false) {
 			@Override
 			public List<? extends IntermediateBreadCrumbTailItem> getIntermediateItems() {
-				if(presenter.havePermisionToGroupCart()) {
+				if (presenter.havePermisionToGroupCart()) {
 					return Arrays.asList(new IntermediateBreadCrumbTailItem() {
 						@Override
 						public String getTitle() {
@@ -306,7 +306,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 				Property loadContainerProperty = null;
 				if (itemId instanceof Integer && CommonMetadataBuilder.SUMMARY.equals(propertyId)) {
 					RecordVO recordVO = dataProvider.getRecordVO((int) itemId);
-					if(recordVO.getMetadataOrNull(recordVO.getSchema().getCode() + "_" + Folder.SUMMARY) != null) {
+					if (recordVO.getMetadataOrNull(recordVO.getSchema().getCode() + "_" + Folder.SUMMARY) != null) {
 						MetadataVO metadataVO = recordVO.getSchema().getMetadata(Folder.SUMMARY);
 						String value = recordVO.get(recordVO.getSchema().getMetadata(Folder.SUMMARY));
 						if (metadataVO != null && !Strings.isNullOrEmpty(value)) {
@@ -358,7 +358,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 			@Override
 			protected Property<?> loadContainerProperty(Object itemId, Object propertyId) {
 				Property loadContainerProperty = super.loadContainerProperty(itemId, propertyId);
-				if(loadContainerProperty.getValue() instanceof String) {
+				if (loadContainerProperty.getValue() instanceof String) {
 					String value = (String) loadContainerProperty.getValue();
 					if (Strings.isNullOrEmpty(value)) {
 						loadContainerProperty = super.loadContainerProperty(itemId, Schemas.TITLE.getLocalCode());

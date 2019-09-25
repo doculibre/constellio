@@ -403,11 +403,6 @@ public class DocumentMenuBarImpl extends BaseMenuBar implements DocumentMenuBar 
 	}
 
 	@Override
-	public void setStartWorkflowButtonState(ComponentState state) {
-
-	}
-
-	@Override
 	public void setEditDocumentButtonState(ComponentState state) {
 		editDocumentButtonVisible = state.isEnabled();
 	}

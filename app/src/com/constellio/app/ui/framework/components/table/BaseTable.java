@@ -258,10 +258,10 @@ public class BaseTable extends Table {
 					containerProperty = cellProperties.get(cellKey);
 					if (containerProperty == null) {
 						containerProperty = new ObjectProperty<>(index);
-						cellProperties.put(cellKey, containerProperty);
+						cellProperties.put(cellKey, new Label(index + ""));
 					}
 				} else {
-					containerProperty = new ObjectProperty<>(index);
+					containerProperty = new ObjectProperty<>(new Label(index + ""));
 				}
 				return containerProperty;
 			}
@@ -706,6 +706,10 @@ public class BaseTable extends Table {
 			((ItemSetChangeNotifier) getContainer()).removeListener(listener);
 		}
 
+		@Override
+		public List<?> getItemIds(int startIndex, int numberOfItems) {
+			return this.getContainer().getItemIds(startIndex, numberOfItems);
+		}
 	}
 
 	private class SelectionCheckBox extends CheckBox {

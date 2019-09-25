@@ -60,6 +60,7 @@ public class RecordProvider {
 			if (record != null) {
 				memoryList.put(id, record);
 			}
+
 		}
 		return record;
 	}

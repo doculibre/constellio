@@ -18,10 +18,6 @@ public class ArchiveManagementPresenter extends BasePresenter<ArchiveManagementV
 		view.navigate().to(RMViews.class).decommissioning();
 	}
 
-	public void newContainerButtonClicked() {
-		view.navigate().to(RMViews.class).addContainer();
-	}
-
 	public void multipleContainersButtonClicked() {
 		view.navigate().to(RMViews.class).addMultipleContainers();
 	}
@@ -42,7 +38,6 @@ public class ArchiveManagementPresenter extends BasePresenter<ArchiveManagementV
 		User user = getCurrentUser();
 		DecommissioningSecurityService securityServices = new DecommissioningSecurityService(collection, appLayerFactory);
 		view.setDecommissioningButtonVisible(securityServices.hasAccessToDecommissioningMainPage(user));
-		view.setNewContainerButtonVisible(securityServices.canCreateContainers(user));
 		view.setContainersButtonVisible(securityServices.hasAccessToManageContainersPage(user));
 		view.setPrintReportsButtonVisible(hasAccessToManageReportsPage());
 	}

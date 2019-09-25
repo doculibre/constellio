@@ -236,10 +236,6 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 	}
 
 	@Override
-	public void setStartWorkflowButtonState(ComponentState state) {
-	}
-
-	@Override
 	public void setEditDocumentButtonState(ComponentState state) {
 		editDocumentButtonVisible = state.isEnabled();
 	}

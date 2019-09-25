@@ -1,11 +1,15 @@
 package com.constellio.app.ui.framework.components.viewers.panel;
 
 import com.constellio.app.modules.rm.ui.components.content.ConstellioAgentLink;
+import com.constellio.app.modules.rm.ui.pages.containers.DisplayContainerViewImpl;
 import com.constellio.app.modules.rm.ui.pages.document.DisplayDocumentViewImpl;
 import com.constellio.app.modules.rm.ui.pages.document.DisplayDocumentWindow;
 import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderViewImpl;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.tasks.model.wrappers.Task;
+import com.constellio.app.modules.tasks.ui.pages.tasks.DisplayTaskViewImpl;
 import com.constellio.app.services.menu.MenuItemFactory.MenuItemRecordProvider;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
@@ -514,6 +518,11 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
 					// Never paged in table mode
 					return false;
 				}
+
+				@Override
+				public boolean isMenuBarColumn() {
+					return ViewableRecordVOTablePanel.this.isMenuBarColumn();
+				}
 			};
 			resultsTable.setWidth("100%");
 			resultsTable.addStyleName("viewable-record-table-table-mode");
@@ -557,6 +566,10 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
 		resultsTable.removeStyleName(RecordVOTable.CLICKABLE_ROW_STYLE_NAME);
 
 		return resultsTable;
+	}
+
+	public boolean isMenuBarColumn() {
+		return false;
 	}
 
 	public TableMode getTableMode() {
@@ -779,6 +792,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
 				}
 			}
 		};
+		previousButton.addStyleName("chevron");
 		previousButton.addStyleName("previous-button");
 		previousButton.setWidth("24px");
 		previousButton.addExtension(new NiceTitle(caption, false));
@@ -796,6 +810,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
 				}
 			}
 		};
+		nextButton.addStyleName("chevron");
 		nextButton.addStyleName("next-button");
 		nextButton.setWidth("24px");
 		nextButton.addExtension(new NiceTitle(caption, false));
@@ -971,6 +986,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
 
 		private void setRecordVO(RecordVO recordVO) {
 			mainLayout.removeAllComponents();
+			this.removeStyleName("nested-view");
 
 			if (recordVO != null) {
 				Component panelContent;
@@ -989,9 +1005,18 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout {
 					DisplayFolderViewImpl view = new DisplayFolderViewImpl(recordVO, true, false);
 					view.enter(null);
 					panelContent = view;
+				} else if (Task.SCHEMA_TYPE.equals(schemaTypeCode)) {
+					DisplayTaskViewImpl view = new DisplayTaskViewImpl(recordVO, true, false);
+					view.enter(null);
+					panelContent = view;
+				} else if (ContainerRecord.SCHEMA_TYPE.equals(schemaTypeCode)) {
+					DisplayContainerViewImpl view = new DisplayContainerViewImpl(recordVO, false, true);
+					view.enter(null);
+					panelContent = view;
 				} else {
 					UserVO currentUser = ConstellioUI.getCurrentSessionContext().getCurrentUser();
 					panelContent = new RecordDisplayFactory(currentUser).build(recordVO, true);
+					this.addStyleName("nested-view");
 				}
 				mainLayout.addComponent(panelContent);
 			}

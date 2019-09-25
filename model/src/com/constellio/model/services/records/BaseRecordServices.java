@@ -93,8 +93,8 @@ public abstract class BaseRecordServices implements RecordServices {
 		return executeHandlingImpactsAsync(transaction);
 	}
 
-	public final Record getDocumentById(String id, User user) {
-		Record record = getDocumentById(id);
+	public final Record getDocumentById(String id, User user, boolean callExtensions) {
+		Record record = getDocumentById(id, callExtensions);
 		if (!metadataSchemasManager.getSchemaTypeOf(record).hasSecurity()
 			|| modelLayerFactory.newAuthorizationsServices().canRead(user, record)) {
 			return record;

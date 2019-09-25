@@ -60,7 +60,6 @@ public class RMConfigs {
 			ACTIVES_IN_CONTAINER_ALLOWED,
 			BORROWING_DURATION_IN_DAYS,
 			DOCUMENTS_TYPES_CHOICE,
-			WORKFLOWS_ENABLED,
 			ENFORCE_CATEGORY_AND_RULE_RELATIONSHIP_IN_FOLDER,
 			ALLOW_MODIFICATION_OF_ARCHIVISTIC_STATUS_AND_EXPECTED_DATES,
 			CALCULATED_METADATAS_BASED_ON_FIRST_TIMERANGE_PART,
@@ -110,7 +109,7 @@ public class RMConfigs {
 
 		// Allow to enter retention rules for documents
 		add(DOCUMENT_RETENTION_RULES = decommissioning.createBooleanFalseByDefault("documentRetentionRules")
-				.withReIndexationRequired().scriptedBy(RMDocumentRetentionRulesScript.class));
+				.withReIndexationRequired().scriptedBy(RMDocumentRetentionRulesScript.class).whichIsHidden());
 
 		// Validation exception if a folder's rule and category are not linked
 		add(ENFORCE_CATEGORY_AND_RULE_RELATIONSHIP_IN_FOLDER = decommissioning
@@ -263,8 +262,6 @@ public class RMConfigs {
 
 		add(DOCUMENTS_TYPES_CHOICE = others.createEnum("documentsTypeChoice", DocumentsTypeChoice.class)
 				.withDefaultValue(DocumentsTypeChoice.LIMIT_TO_SAME_DOCUMENTS_TYPES_OF_RETENTION_RULES));
-
-		add(WORKFLOWS_ENABLED = others.createBooleanFalseByDefault("workflowsEnabled"));
 
 		add(ALLOW_MODIFICATION_OF_ARCHIVISTIC_STATUS_AND_EXPECTED_DATES = decommissioning
 				.createEnum("allowModificationOfArchivisticStatusAndExpectedDates",
@@ -515,10 +512,6 @@ public class RMConfigs {
 
 	public boolean isMajorVersionForNewFile() {
 		return manager.getValue(MAJOR_VERSION_FOR_NEW_FILE);
-	}
-
-	public boolean areWorkflowsEnabled() {
-		return manager.getValue(WORKFLOWS_ENABLED);
 	}
 
 	public boolean areUniformSubdivisionEnabled() {

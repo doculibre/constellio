@@ -58,8 +58,9 @@ public class DataLayerLogger {
 
 	public void logQueryResponse(String queryName, SolrParams params, QueryResponse response) {
 
-		if (queryDebuggingMode && (backgroundThreadQueryDebuggingMode || queryName == null || !queryName.toLowerCase()
-				.contains("background"))) {
+		if (queryDebuggingMode
+			&& (backgroundThreadQueryDebuggingMode || queryName == null || !queryName.toLowerCase().contains("background"))
+			&& (queryName == null || !queryName.contains("*SDK* Validate cache"))) {
 
 			StringBuilder queryReport = new StringBuilder();
 

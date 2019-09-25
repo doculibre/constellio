@@ -31,12 +31,14 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
 import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.entry;
 import static org.junit.Assert.fail;
 
 public class TrashServicesAcceptanceTest extends ConstellioTest {
@@ -196,7 +198,7 @@ public class TrashServicesAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenRestorableRecordWhenRestoreSelectionThenOk()
 			throws Exception {
-		List<String> notRestored = trashServices.restoreSelection(new HashSet<>(asList(folderDeletedLogicallyId)), admin);
+		Map<String, String> notRestored = trashServices.restoreSelection(new HashSet<>(asList(folderDeletedLogicallyId)), admin);
 		assertThat(notRestored).isEmpty();
 		Record folder = recordServices.getDocumentById(folderDeletedLogicallyId);
 		assertThatRecord(folder).hasMetadataValue(Schemas.LOGICALLY_DELETED_STATUS, false);
@@ -206,8 +208,9 @@ public class TrashServicesAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenNonRestorableRecordWhenRestoreSelectionThenRecordNotRestored()
 			throws Exception {
-		List<String> notRestored = trashServices.restoreSelection(new HashSet<>(asList(documentInADeletedFolder)), admin);
-		assertThat(notRestored).containsOnly(documentInADeletedFolderTitle);
+		Map<String, String> notRestored = trashServices.restoreSelection(new HashSet<>(asList(documentInADeletedFolder)), admin);
+		assertThat(notRestored).containsOnly(entry(documentInADeletedFolder, documentInADeletedFolderTitle));
+		;
 		Record doc = recordServices.getDocumentById(documentInADeletedFolder);
 		assertThatRecord(doc).hasMetadataValue(Schemas.LOGICALLY_DELETED_STATUS, true);
 	}

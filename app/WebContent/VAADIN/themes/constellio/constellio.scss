@@ -75,6 +75,12 @@ $popup-view-z-index: 3;
 
 @mixin constellio {
 
+    .v-button.chevron:focus:after  {
+        box-shadow: none;
+        border: none;
+        -webkit-box-shadow: none;
+    }
+
 	.djs-container .highlight .djs-outline {
 	   stroke-width: 2px important;
 	   stroke: #08c !important;
@@ -1087,25 +1093,25 @@ $popup-view-z-index: 3;
 			white-space: normal;
 		}
 
-	    .display-caption {
-	    	width: 300px;
-	    	word-wrap: break-word;
-			border-bottom: 1px dotted #dfdfdf;
-	    	font-weight: bold;
-		}
-
-	    .display-value, .v-caption-display-value {
-	    	text-align: left;
-	    	font-size: inherit;
-	    	word-break: break-word;
-	    	padding-left: 10px;
-	    }
-
     	.v-disabled {
     		opacity: inherit;
     		color: inherit;
     	}
 	}
+
+    .display-caption {
+    	width: 300px;
+    	word-wrap: break-word;
+		border-bottom: 1px dotted #dfdfdf;
+    	font-weight: bold;
+	}
+
+    .display-value, .v-caption-display-value {
+    	text-align: left;
+    	font-size: inherit;
+    	word-break: break-word;
+    	padding-left: 10px;
+    }
 
 	.error-label {
 		color: red;
@@ -1259,7 +1265,7 @@ $popup-view-z-index: 3;
 	.xbreadcrumbs {
 		background-color: #FFFFFF;
 		height: auto;
-		font-size: 20px;
+		font-size: 16px;
 		padding-right: 220px;
 
 		.v-link a span,.xbreadcrumbbutton .v-button-caption {
@@ -1726,7 +1732,7 @@ $popup-view-z-index: 3;
 	}
 
 	.v-multifileupload-dropzone {
-		width: 80%;
+		width: 100%;
 		background-color: #fafafa;
 		background-image: none;
 		padding-top: 8px;
@@ -1734,6 +1740,14 @@ $popup-view-z-index: 3;
 		.v-label {
 			font-size: inherit;
 		}
+	}
+
+	.v-multifileupload-uploads {
+	    float: right;
+	    position: relative;
+	    top: 38px;
+	    margin-top: -38px;
+	    z-index: 1;
 	}
 
 	.base-multifileupload-completed:after {
@@ -2902,6 +2916,10 @@ $popup-view-z-index: 3;
 								position: relative;
 								top: 44px;
 							}
+						}
+
+						.nested-view.viewer-metadata-panel {
+                            top: 0px;
 						}
 
 						.no-caption-action-menu-bar .v-menubar-submenu-indicator + .v-menubar-menuitem-caption:after {
