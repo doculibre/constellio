@@ -146,7 +146,6 @@ public class FileEventXMLWriter implements EventXMLWriter {
 			throw new RuntimeException("Error while closing the Event writer outputStream. File : " + file.getName(), e);
 		} finally {
 			if(!isFirstWrite) {
-				ioServices.deleteQuietly(file);
 				ioServices.closeQuietly(fileOutputStream);
 			}
 		}
