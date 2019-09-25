@@ -1,5 +1,6 @@
 package com.constellio.app.modules.tasks.services;
 
+import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.TaskStatusType;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollower;
@@ -10,6 +11,10 @@ import com.constellio.app.modules.tasks.ui.builders.TaskReminderFromVOBuilder;
 import com.constellio.app.modules.tasks.ui.entities.TaskFollowerVO;
 import com.constellio.app.modules.tasks.ui.entities.TaskReminderVO;
 import com.constellio.app.modules.tasks.ui.entities.TaskVO;
+import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.framework.components.fields.list.TaskCollaboratorItem;
+import com.constellio.app.ui.framework.components.fields.list.TaskCollaboratorsGroupItem;
+import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.batchprocess.BatchProcess;
@@ -32,9 +37,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static com.constellio.app.modules.tasks.model.wrappers.Task.TASK_COLLABORATORS;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.TASK_COLLABORATORS_GROUPS;
 
 public class TaskPresenterServices {
 	private static Logger LOGGER = LoggerFactory.getLogger(TaskPresenterServices.class);
@@ -295,5 +304,42 @@ public class TaskPresenterServices {
 		Task task = tasksSchemas.getTask(record.getId());
 		return task.getAssignee() == null && (task.getAssigneeUsersCandidates() == null || task.getAssigneeUsersCandidates()
 				.isEmpty()) && (task.getAssigneeGroupsCandidates() == null || task.getAssigneeGroupsCandidates().isEmpty());
+	}
+
+	public boolean currentUserIsCollaborator(RecordVO recordVO, String currentUserId) {
+		Record currentUserRecord = tasksSchemas.getAppLayerFactory().getModelLayerFactory().newRecordServices().getDocumentById(currentUserId);
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(tasksSchemas.getCollection(), tasksSchemas.getAppLayerFactory());
+		boolean userInGroupCollaborator = !Collections.disjoint(rm.wrapUser(currentUserRecord).getUserGroups(), recordVO.get(TASK_COLLABORATORS_GROUPS));
+		return ((List) recordVO.get(TASK_COLLABORATORS)).contains(currentUserId) || userInGroupCollaborator;
+	}
+
+	public void addCollaborators(List<TaskCollaboratorItem> taskCollaboratorItems,
+								 List<TaskCollaboratorsGroupItem> taskCollaboratorsGroupItems, RecordVO recordVO,
+								 SchemaPresenterUtils schemaPresenterUtils) {
+		List<String> taskCollaborators = new ArrayList<>();
+		List<Boolean> taskCollaboratorsWriteAuthorizations = new ArrayList<>();
+		List<String> taskCollaboratorsGroups = new ArrayList<>();
+		List<Boolean> taskCollaboratorsGroupsWriteAuthorizations = new ArrayList<>();
+		for (TaskCollaboratorItem taskCollaboratorItem : taskCollaboratorItems) {
+			taskCollaborators.add(taskCollaboratorItem.getTaskCollaborator());
+			taskCollaboratorsWriteAuthorizations.add(taskCollaboratorItem.isTaskCollaboratorsWriteAuthorization());
+		}
+		for (TaskCollaboratorsGroupItem taskCollaboratorsGroupItem : taskCollaboratorsGroupItems) {
+			taskCollaboratorsGroups.add(taskCollaboratorsGroupItem.getTaskCollaboratorGroup());
+			taskCollaboratorsGroupsWriteAuthorizations.add(taskCollaboratorsGroupItem.isTaskCollaboratorGroupWriteAuthorization());
+		}
+		TaskVO taskVO = (TaskVO) recordVO;
+		taskVO.setTaskCollaborators(taskCollaborators);
+		taskVO.setTaskCollaboratorsWriteAuthorizations(taskCollaboratorsWriteAuthorizations);
+		taskVO.setTaskCollaboratorsGroups(taskCollaboratorsGroups);
+		taskVO.settaskCollaboratorsGroupsWriteAuthorizations(taskCollaboratorsGroupsWriteAuthorizations);
+
+		Record record = schemaPresenterUtils.toRecord(taskVO);
+		Task task = tasksSchemas.wrapTask(record);
+		try {
+			recordServices.update(task);
+		} catch (RecordServicesException e) {
+			e.printStackTrace();
+		}
 	}
 }

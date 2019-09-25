@@ -18,9 +18,7 @@ import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.tasks.data.trees.TaskFoldersTreeNodesDataProvider;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
-import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.modules.tasks.ui.components.TaskTable.TaskPresenter;
-import com.constellio.app.modules.tasks.ui.entities.TaskVO;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.ContentVersionVO.InputStreamProvider;
@@ -28,8 +26,6 @@ import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
-import com.constellio.app.ui.framework.components.fields.list.TaskCollaboratorItem;
-import com.constellio.app.ui.framework.components.fields.list.TaskCollaboratorsGroupItem;
 import com.constellio.app.ui.framework.data.BaseRecordTreeDataProvider;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
@@ -337,34 +333,4 @@ public abstract class AbstractTaskPresenter<T extends BaseView> extends SingleSc
 		return newDocumentRecordIds;
 	}
 
-	@Override
-	public void addCollaborators(List<TaskCollaboratorItem> taskCollaboratorItems,
-								 List<TaskCollaboratorsGroupItem> taskCollaboratorsGroupItems, RecordVO recordVO) {
-		List<String> taskCollaborators = new ArrayList<>();
-		List<Boolean> taskCollaboratorsWriteAuthorizations = new ArrayList<>();
-		List<String> taskCollaboratorsGroups = new ArrayList<>();
-		List<Boolean> taskCollaboratorsGroupsWriteAuthorizations = new ArrayList<>();
-		for (TaskCollaboratorItem taskCollaboratorItem : taskCollaboratorItems) {
-			taskCollaborators.add(taskCollaboratorItem.getTaskCollaborator());
-			taskCollaboratorsWriteAuthorizations.add(taskCollaboratorItem.isTaskCollaboratorsWriteAuthorization());
-		}
-		for (TaskCollaboratorsGroupItem taskCollaboratorsGroupItem : taskCollaboratorsGroupItems) {
-			taskCollaboratorsGroups.add(taskCollaboratorsGroupItem.getTaskCollaboratorGroup());
-			taskCollaboratorsGroupsWriteAuthorizations.add(taskCollaboratorsGroupItem.isTaskCollaboratorGroupWriteAuthorization());
-		}
-		TaskVO taskVO = (TaskVO) recordVO;
-		taskVO.setTaskCollaborators(taskCollaborators);
-		taskVO.setTaskCollaboratorsWriteAuthorizations(taskCollaboratorsWriteAuthorizations);
-		taskVO.setTaskCollaboratorsGroups(taskCollaboratorsGroups);
-		taskVO.settaskCollaboratorsGroupsWriteAuthorizations(taskCollaboratorsGroupsWriteAuthorizations);
-
-		Record record = toRecord(taskVO);
-		TasksSchemasRecordsServices tasksSchemas = new TasksSchemasRecordsServices(collection, appLayerFactory);
-		Task task = tasksSchemas.wrapTask(record);
-		try {
-			recordServices().update(task);
-		} catch (RecordServicesException e) {
-			e.printStackTrace();
-		}
-	}
 }

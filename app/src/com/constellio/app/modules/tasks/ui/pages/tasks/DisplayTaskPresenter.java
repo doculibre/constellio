@@ -22,6 +22,8 @@ import com.constellio.app.ui.framework.builders.EventToVOBuilder;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.buttons.report.ReportGeneratorButton;
 import com.constellio.app.ui.framework.components.RMSelectionPanelReportPresenter;
+import com.constellio.app.ui.framework.components.fields.list.TaskCollaboratorItem;
+import com.constellio.app.ui.framework.components.fields.list.TaskCollaboratorsGroupItem;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
@@ -38,13 +40,10 @@ import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.List;
 
 import static com.constellio.app.modules.tasks.model.wrappers.Task.ASSIGNEE;
 import static com.constellio.app.modules.tasks.model.wrappers.Task.DUE_DATE;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.TASK_COLLABORATORS;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.TASK_COLLABORATORS_GROUPS;
 import static com.constellio.app.ui.entities.RecordVO.VIEW_MODE.FORM;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.entities.records.wrappers.RecordWrapper.TITLE;
@@ -132,6 +131,12 @@ public class DisplayTaskPresenter extends AbstractTaskPresenter<DisplayTaskView>
 		return task;
 	}
 
+	@Override
+	public void addCollaborators(List<TaskCollaboratorItem> taskCollaboratorItems,
+								 List<TaskCollaboratorsGroupItem> taskCollaboratorsGroupItems, RecordVO taskVO) {
+		taskPresenterServices.addCollaborators(taskCollaboratorItems, taskCollaboratorsGroupItems, taskVO, schemaPresenterUtils);
+	}
+
 	public void afterCompletionActions() {
 		if (rmModuleExtensions != null) {
 			for (TaskManagementPresenterExtension extension : rmModuleExtensions.getTaskManagementPresenterExtensions()) {
@@ -150,10 +155,7 @@ public class DisplayTaskPresenter extends AbstractTaskPresenter<DisplayTaskView>
 
 	@Override
 	public boolean currentUserIsCollaborator(RecordVO recordVO) {
-		Record currentUserRecord = appLayerFactory.getModelLayerFactory().newRecordServices().getDocumentById(getCurrentUserId());
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
-		boolean userInGroupCollaborator = !Collections.disjoint(rm.wrapUser(currentUserRecord).getUserGroups(), recordVO.get(TASK_COLLABORATORS_GROUPS));
-		return ((List) recordVO.get(TASK_COLLABORATORS)).contains(getCurrentUserId()) || userInGroupCollaborator;
+		return taskPresenterServices.currentUserIsCollaborator(recordVO, getCurrentUserId());
 	}
 
 	public RecordVO getTaskVO() {

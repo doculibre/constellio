@@ -106,6 +106,10 @@ public class TaskActionsServices {
 			   && taskModuleExtensions.isDeleteActionPossibleOnTask(rm.wrapRMTask(record), user);
 	}
 
+	public boolean isShareActionPossible(Record record, User user) {
+		return isNotLogicallyDeleted(record);
+	}
+
 	public boolean isGenerateReportActionPossible(Record record, User user) {
 		return isNotLogicallyDeleted(record) &&
 			   taskModuleExtensions.isGenerateReportActionPossibleOnTask(rm.wrapRMTask(record), user);

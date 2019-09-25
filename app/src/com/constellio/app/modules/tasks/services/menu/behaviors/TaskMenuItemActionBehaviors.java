@@ -9,14 +9,19 @@ import com.constellio.app.modules.tasks.navigation.TaskViews;
 import com.constellio.app.modules.tasks.services.TaskPresenterServices;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.modules.tasks.services.TasksSearchServices;
+import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveCollaboratorsField;
+import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveCollaboratorsGroupsField;
 import com.constellio.app.modules.tasks.ui.pages.tasks.TaskCompleteWindowButton;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
+import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.ConfirmDialogButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
+import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.RMSelectionPanelReportPresenter;
 import com.constellio.app.ui.framework.components.ReportTabButton;
 import com.constellio.app.ui.pages.base.BaseView;
+import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
@@ -24,6 +29,9 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.themes.ValoTheme;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.List;
@@ -156,6 +164,30 @@ public class TaskMenuItemActionBehaviors {
 		};
 
 		reportGeneratorButton.click();
+	}
+
+	public void shareTask(Task task, MenuItemActionBehaviorParams params) {
+		WindowButton shareButton = new WindowButton($("DisplayTaskView.share"), $("DisplayTaskView.shareWindowCaption")) {
+			@Override
+			protected Component buildWindowContent() {
+				VerticalLayout mainLayout = new VerticalLayout();
+				ListAddRemoveCollaboratorsField collaboratorsField = new ListAddRemoveCollaboratorsField(params.getRecordVO(), taskPresenterServices.currentUserIsCollaborator(params.getRecordVO(), params.getUser().getId()));
+				ListAddRemoveCollaboratorsGroupsField collaboratorGroupsField = new ListAddRemoveCollaboratorsGroupsField(params.getRecordVO(), taskPresenterServices.currentUserIsCollaborator(params.getRecordVO(), params.getUser().getId()));
+				BaseButton saveButton = new BaseButton($("save")) {
+					@Override
+					protected void buttonClick(ClickEvent event) {
+						taskPresenterServices.addCollaborators(collaboratorsField.getValue(), collaboratorGroupsField.getValue(), params.getRecordVO(),
+								new SchemaPresenterUtils(Task.DEFAULT_SCHEMA, params.getView().getConstellioFactories(), params.getView().getSessionContext()));
+						getWindow().close();
+					}
+				};
+				saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
+				mainLayout.addComponents(collaboratorsField, collaboratorGroupsField, saveButton);
+				getWindow().setHeight(collaboratorsField.getHeight() * 80 + "px");
+				return mainLayout;
+			}
+		};
+		shareButton.click();
 	}
 
 	public interface TaskMenuItemPresenter {
