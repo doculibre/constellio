@@ -248,6 +248,7 @@ public class DisplayTaskViewImpl extends BaseViewImpl implements DisplayTaskView
 						}
 					};
 					saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
+					getWindow().setHeight(collaboratorsField.getHeight() * 80 + "px");
 					mainLayout.addComponents(collaboratorsField, collaboratorGroupsField, saveButton);
 					return mainLayout;
 				}

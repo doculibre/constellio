@@ -467,6 +467,7 @@ public class TaskTable extends VerticalLayout {
 							};
 							saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
 							mainLayout.addComponents(collaboratorsField, collaboratorGroupsField, saveButton);
+							getWindow().setHeight(collaboratorsField.getHeight() * 80 + "px");
 							return mainLayout;
 						}
 					};
