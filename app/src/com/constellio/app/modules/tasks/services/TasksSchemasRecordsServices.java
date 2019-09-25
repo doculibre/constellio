@@ -192,6 +192,10 @@ public class TasksSchemasRecordsServices extends SchemasRecordsServices {
 			return metadata("assignedOn");
 		}
 
+		public Metadata linkedDocuments() {
+			return metadata("linkedDocuments");
+		}
+
 		public Metadata assignee() {
 			return metadata("assignee");
 		}
