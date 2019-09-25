@@ -44,6 +44,7 @@ import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.jensjansson.pagedtable.PagedTable;
 import com.vaadin.data.Container.ItemSetChangeEvent;
 import com.vaadin.data.Container.ItemSetChangeListener;
 import com.vaadin.data.Property;
@@ -451,7 +452,6 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		//		} else {
 
 		SliderPanel sliderPanel = new FacetsSliderPanel(facetsArea);
-		//sliderPanel.addStyleName("facet");
 
 		I18NHorizontalLayout body = new I18NHorizontalLayout(resultsArea, sliderPanel);
 		body.addStyleName("search-result-and-facets-container");
@@ -592,6 +592,30 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 
 		viewerPanel.setQuickActionButton(getQuickActionMenuButtons());
 		selectionChangeListenerStorage.forEach(viewerPanel::addSelectionChangeListener);
+
+
+		int currentPage = presenter.getPageNumber();
+		int selectedPageLength = presenter.getSelectedPageLength();
+
+		viewerPanel.setItemsPerPageValue(selectedPageLength);
+		viewerPanel.getActualTable().setPageLength(selectedPageLength);
+		viewerPanel.getActualTable().setCurrentPage(currentPage);
+		viewerPanel.getActualTable().addPageChangeListener(new BaseTable.PageChangeListener() {
+			public void pageChanged(BaseTable.PagedTableChangeEvent event) {
+				presenter.setPageNumber(event.getCurrentPage());
+				presenter.saveTemporarySearch(false);
+				//					if (selectDeselectAllButton != null) {
+				//						hashMapAllSelection.put(presenter.getLastPageNumber(), selectDeselectAllButton.isSelectAllMode());
+				//						Boolean objIsSelectAllMode = hashMapAllSelection.get(new Integer(presenter.getPageNumber()));
+				//						boolean isSelectAllMode = true;
+				//						if (objIsSelectAllMode != null) {
+				//							isSelectAllMode = objIsSelectAllMode;
+				//						}
+				//						selectDeselectAllButton.setSelectAllMode(isSelectAllMode);
+				//					}
+			}
+		});
+		
 		return viewerPanel;
 	}
 
@@ -617,6 +641,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		}
 	}
 
+	@Deprecated
 	protected SearchResultTable buildSimpleResultsTable(SearchResultVODataProvider dataProvider) {
 		//Fixme : use dataProvider instead
 		final SearchResultContainer container = buildResultContainer(dataProvider);
@@ -634,6 +659,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		return table;
 	}
 
+	@Deprecated
 	protected SearchResultTable buildDetailedResultsTable(SearchResultVODataProvider dataProvider) {
 		SearchResultContainer container = buildResultContainer(dataProvider);
 		SearchResultDetailedTable srTable = new SearchResultDetailedTable(container, presenter.isAllowDownloadZip(), presenter.isShowNumberingColumn(dataProvider)) {
@@ -664,39 +690,35 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		int currentPage = presenter.getPageNumber();
 
 		int selectedPageLength = presenter.getSelectedPageLength();
-		presenter.setSelectedPageLength(selectedPageLength);
+		//		presenter.setSelectedPageLength(selectedPageLength);
 
 		srTable.setPageLength(selectedPageLength);
 		srTable.setItemsPerPageValue(selectedPageLength);
 		srTable.setCurrentPage(currentPage);
 
-		if (false) {
-			//			srTable.addListener(new SearchResultDetailedTable.PageChangeListener() {
-			//				public void pageChanged(PagedTableChangeEvent event) {
-			//					presenter.setPageNumber(event.getCurrentPage());
-			//
-			//					presenter.saveTemporarySearch(false);
-			//					if (selectDeselectAllButton != null) {
-			//						hashMapAllSelection.put(presenter.getLastPageNumber(), selectDeselectAllButton.isSelectAllMode());
-			//						Boolean objIsSelectAllMode = hashMapAllSelection.get(new Integer(presenter.getPageNumber()));
-			//						boolean isSelectAllMode = true;
-			//						if (objIsSelectAllMode != null) {
-			//							isSelectAllMode = objIsSelectAllMode;
-			//						}
-			//						selectDeselectAllButton.setSelectAllMode(isSelectAllMode);
-			//					}
-			//				}
-			//			});
-			//			srTable.getItemsPerPageField().addValueChangeListener(new ValueChangeListener() {
-			//				@Override
-			//				public void valueChange(Property.ValueChangeEvent event) {
-			//					presenter.setSelectedPageLength((int) event.getProperty().getValue());
-			//					hashMapAllSelection = new HashMap<>();
-			//
-			//					presenter.searchNavigationButtonClicked();
-			//				}
-			//			});
-		}
+		srTable.addListener(new PagedTable.PageChangeListener() {
+			public void pageChanged(PagedTable.PagedTableChangeEvent event) {
+				presenter.setPageNumber(event.getCurrentPage());
+				presenter.saveTemporarySearch(false);
+				//					if (selectDeselectAllButton != null) {
+				//						hashMapAllSelection.put(presenter.getLastPageNumber(), selectDeselectAllButton.isSelectAllMode());
+				//						Boolean objIsSelectAllMode = hashMapAllSelection.get(new Integer(presenter.getPageNumber()));
+				//						boolean isSelectAllMode = true;
+				//						if (objIsSelectAllMode != null) {
+				//							isSelectAllMode = objIsSelectAllMode;
+				//						}
+				//						selectDeselectAllButton.setSelectAllMode(isSelectAllMode);
+				//					}
+			}
+		});
+		srTable.getItemsPerPageField().addValueChangeListener(new ValueChangeListener() {
+			@Override
+			public void valueChange(Property.ValueChangeEvent event) {
+				presenter.setSelectedPageLength((int) event.getProperty().getValue());
+				//					hashMapAllSelection = new HashMap<>();
+				presenter.searchNavigationButtonClicked();
+			}
+		});
 
 		srTable.setWidth("100%");
 

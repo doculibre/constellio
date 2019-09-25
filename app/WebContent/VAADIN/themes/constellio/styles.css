@@ -15257,10 +15257,18 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .viewable-record-table-panel .viewable-record-table .metadata-value {
+	display: block;
 	position: relative;
 	top: -24px;
 	left: 250px;
+	padding-right: 250px;
 	margin-bottom: -24px;
+}
+
+.constellio .viewable-record-table-panel .viewable-record-table .metadata-value .v-icon {
+	position: relative;
+	left: -2px;
+	margin-right: -2px;
 }
 
 .constellio .viewable-record-table-panel .viewable-record-table .search-result-metadata-layout {
@@ -16207,6 +16215,15 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .v-ui[width-range~="0-800px"] .search-view .viewable-record-table-panel .viewable-record-table .search-result-with-elevation-buttons .search-result-title {
 	padding-right: 60px;
+}
+
+.constellio .v-ui[width-range~="0-800px"] .xbreadcrumbs {
+	font-size: 16px;
+	padding-right: 40px;
+}
+
+.constellio .v-ui[width-range~="0-800px"] .xbreadcrumbs .v-link a span, .constellio .v-ui[width-range~="0-800px"] .xbreadcrumbs .xbreadcrumbbutton .v-button-caption {
+	font-size: 0.9em;
 }
 
 .constellio .v-progressbar {

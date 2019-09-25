@@ -195,6 +195,7 @@ public class BaseTable extends Table {
 				if (currentPage != pageOfIndex) {
 					setCurrentPage(pageOfIndex);
 				}
+				//				int adjustedFirstIndex = pagingCurrentPageFirstItemIndex - ((currentPage - 1) * getPageLength());
 				super.setCurrentPageFirstItemIndex(pagingCurrentPageFirstItemIndex);
 			}
 		}
@@ -712,8 +713,9 @@ public class BaseTable extends Table {
 		}
 
 		@Override
-		public List<?> getItemIds(int startIndex, int numberOfItems) {
-			return this.getContainer().getItemIds(startIndex, numberOfItems);
+		public List<?> getItemIds(int start, int numberOfItems) {
+			int adjustedStart = getStartIndex() + start;
+			return this.getContainer().getItemIds(adjustedStart, numberOfItems);
 		}
 	}
 
