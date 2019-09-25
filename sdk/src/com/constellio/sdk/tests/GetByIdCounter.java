@@ -1,84 +1,100 @@
 package com.constellio.sdk.tests;
 
 import com.constellio.data.dao.services.factories.DataLayerFactory;
-import com.constellio.data.extensions.AfterQueryParams;
+import com.constellio.data.extensions.AfterGetByIdParams;
 import com.constellio.data.extensions.BigVaultServerExtension;
+import com.constellio.model.services.factories.ModelLayerFactory;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class GetByIdCounter extends BigVaultServerExtension {
 
-	private Function<AfterQueryParams, Boolean> filter;
-	private AtomicInteger queryCounter = new AtomicInteger();
-	private AtomicInteger returnedResultsCounter = new AtomicInteger();
+	private Function<AfterGetByIdParams, Boolean> filter;
+	private List<GetByIdCounterCall> calls = new ArrayList<>();
 
-	public GetByIdCounter(DataLayerFactory dataLayerFactory, ConstellioTest constellioTest) {
-		this.filter = filter;
+	public GetByIdCounter(Class<?> occuringFrom) {
+		this.filter = (AfterGetByIdParams p) -> {
+			for (StackTraceElement stackLine : Thread.currentThread().getStackTrace()) {
+				if (stackLine.getClassName().contains(occuringFrom.getClass().getSimpleName())) {
+					return true;
+				}
+			}
+			return false;
+		};
+	}
+
+
+	public GetByIdCounter listening(DataLayerFactory dataLayerFactory) {
 		dataLayerFactory.getExtensions().getSystemWideExtensions().bigVaultServerExtension.add(this);
+		return this;
+	}
+
+	public GetByIdCounter listening(ModelLayerFactory modelLayerFactory) {
+		return listening(modelLayerFactory.getDataLayerFactory());
 	}
 
 	@Override
-	public void afterQuery(AfterQueryParams params) {
-		if (!isAlwaysExcludedQueryName(params.getQueryName()) && filter.apply(params)) {
-			queryCounter.incrementAndGet();
-			returnedResultsCounter.addAndGet(params.getReturnedResultsCount());
+	public void afterRealtimeGetById(AfterGetByIdParams params) {
+		if (filter.apply(params)) {
+			calls.add(new GetByIdCounterCall(params.getId(), new Throwable(), params.found()));
 		}
 	}
 
-	private boolean isAlwaysExcludedQueryName(String queryName) {
-		return queryName != null && queryName.contains("*SDK*");
+	@Override
+	public void afterGetById(AfterGetByIdParams params) {
+		if (filter.apply(params)) {
+			calls.add(new GetByIdCounterCall(params.getId(), new Throwable(), params.found()));
+		}
 	}
 
-	public int newQueryCalls() {
-		int calls = queryCounter.get();
-		queryCounter.set(0);
-		return calls;
+	public int countNewCalls() {
+		int callsCount = calls.size();
+		calls.clear();
+		return callsCount;
 	}
 
-	public int newQueryReturnedResultsCount() {
-		int calls = returnedResultsCounter.get();
-		returnedResultsCounter.set(0);
-		return calls;
+	public List<GetByIdCounterCall> newCalls() {
+		List<GetByIdCounterCall> newCalls = new ArrayList<>(this.calls);
+		calls.clear();
+		return newCalls;
+	}
+
+	public List<String> newIdCalled() {
+		List<String> newCalls = this.calls.stream().map(GetByIdCounterCall::getId).collect(Collectors.toList());
+		calls.clear();
+		return newCalls;
 	}
 
 	public void reset() {
-		queryCounter.set(0);
-		returnedResultsCounter.set(0);
+		calls.clear();
 	}
 
-	public static Function<AfterQueryParams, Boolean> ON_SCHEMA_TYPES(final String... schemaTypes) {
-		return params -> {
-			for (String fq : params.getSolrParams().getParams("fq")) {
-				for (String schemaType : schemaTypes) {
-					if (fq.equals("schema_s:" + schemaType + "_*")) {
-						return true;
-					}
+	@AllArgsConstructor
+	public static class GetByIdCounterCall {
+		@Getter
+		String id;
+		@Getter
+		Throwable stackTrace;
+		@Getter
+		boolean found;
 
-					if (fq.equals("schema_s:" + schemaType)) {
-						return true;
-					}
+		@Override
+		public String toString() {
+			String stack = ExceptionUtils.getStackTrace(stackTrace);
 
-				}
+			while (stack.startsWith("java.lang.Throwable")
+				   || stack.startsWith("com.constellio.data.extensions.DataLayerSystemExtensions")
+				   || stack.startsWith("com.constellio.data.dao.services.bigVault")) {
+				stack = StringUtils.substringAfter(stack, "\n");
 			}
-			return false;
-		};
+			return "get '" + id + "' : " + stack + "\n\n";
+		}
 	}
-
-	public static Function<AfterQueryParams, Boolean> ON_COLLECTION(final String collection) {
-		return params -> {
-			for (String fq : params.getSolrParams().getParams("fq")) {
-				if (fq.contains("collection_s:" + collection)) {
-					return true;
-				}
-
-				if (fq.contains("collection_s:" + collection)) {
-					return true;
-				}
-
-			}
-			return false;
-		};
-	}
-
 }

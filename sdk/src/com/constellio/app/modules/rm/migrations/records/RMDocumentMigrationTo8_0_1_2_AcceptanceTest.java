@@ -40,7 +40,11 @@ public class RMDocumentMigrationTo8_0_1_2_AcceptanceTest extends ConstellioTest 
 		LogicalSearchQuery query = new LogicalSearchQuery(from(rm.document.schemaType())
 				.where(Schemas.MARKED_FOR_PREVIEW_CONVERSION).isTrue());
 		while (searchServices.hasResults(query)) {
-			contentManager.convertPendingContentForPreview();
+			try {
+				contentManager.convertPendingContentForPreview();
+			} catch (Throwable t) {
+				//Possible
+			}
 			getModelLayerFactory().newRecordServices().flush();
 		}
 

@@ -79,7 +79,6 @@ public class BackgroundReindexingCommandAcceptanceTest extends ConstellioTest {
 		recordServices.execute(transaction);
 
 
-
 		checkCache();
 		setNumberMetadataToABadValueTo(transaction.getRecords());
 		getModelLayerFactory().getRecordsCaches().getCache(zeCollection).invalidateVolatileReloadPermanent(asList("zeSchemaType"));

@@ -71,7 +71,6 @@ public abstract class ByteArrayRecordDTO implements Map<String, Object>, RecordD
 		return schemaId;
 	}
 
-
 	public static ByteArrayRecordDTO create(ModelLayerFactory modelLayerFactory, RecordDTO dto) {
 
 		if (dto.getLoadingMode() == RecordDTOMode.CUSTOM) {
