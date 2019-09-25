@@ -860,9 +860,10 @@ public class RecordServicesImpl extends BaseRecordServices {
 		boolean validations = transaction.getRecordUpdateOptions().isValidationsEnabled();
 		ParsedContentProvider parsedContentProvider = new ParsedContentProvider(modelFactory.getContentManager(),
 				transaction.getParsedContentCache());
-		for (final Record record : transaction.getRecords()) {
-			recordPopulateServices.populate(record, parsedContentProvider);
-
+		for (Record record : transaction.getRecords()) {
+			if (transaction.getRecordUpdateOptions().isRepopulate()) {
+				recordPopulateServices.populate(record, parsedContentProvider);
+			}
 			MetadataSchema schema = types.getSchema(record.getSchemaCode());
 
 			if (onlyValidateRecord == null || onlyValidateRecord.equals(record.getId())) {
@@ -991,6 +992,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 			}
 
 			boolean allParsed = true;
+			if (transaction.getRecordUpdateOptions().isRepopulate()) {
 			for (Metadata contentMetadata : schema.getContentMetadatasForPopulate()) {
 				for (Content aContent : record.<Content>getValues(contentMetadata)) {
 					allParsed &= parsedContentProvider
@@ -1003,7 +1005,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 			} else {
 				record.set(Schemas.MARKED_FOR_PARSING, true);
 			}
-
+			}
 		}
 
 		if (!transaction.getRecordUpdateOptions().isSkipFindingRecordsToReindex()) {
