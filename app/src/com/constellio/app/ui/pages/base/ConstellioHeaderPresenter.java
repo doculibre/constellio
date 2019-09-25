@@ -48,6 +48,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
@@ -98,6 +99,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 
 	private final ConstellioHeader header;
 	private String schemaTypeCode;
+	private String schemaCode;
 	private transient AppLayerFactory appLayerFactory;
 	private transient ModelLayerFactory modelLayerFactory;
 	private transient SchemasDisplayManager schemasDisplayManager;
@@ -111,7 +113,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 	private boolean refreshSelectionPanel;
 	private Map<String, String> deselectedRecordsWithSchema;
 
-	private Map<String, Set<String>> metadataAllowedInCriteria = new HashMap<>();
+	private Map<String, Map<String, Set<String>>> metadataAllowedInCriteria = new HashMap<>();
 
 	public ConstellioHeaderPresenter(ConstellioHeader header) {
 		this.header = header;
@@ -162,7 +164,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		}
 
 		if (AdvancedSearchView.SEARCH_TYPE.equals(searchType)) {
-			search.setSchemaFilter(schemaTypeCode).setAdvancedSearch(header.getAdvancedSearchCriteria())
+			search.setSchemaFilter(schemaTypeCode).setSchemaCodeFilter(schemaCode).setAdvancedSearch(header.getAdvancedSearchCriteria())
 					.setTitle($("SearchView.savedSearch.temporaryAdvance"));
 		} else {
 			search.setTitle($("SearchView.savedSearch.temporarySimple"));
@@ -277,7 +279,11 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		header.setAdvancedSearchSchemaType(schemaTypeCode);
 	}
 
-	@Override
+	public void schemaSelected(String schemaCode) {
+		this.schemaCode = schemaCode;
+		header.setAdvancedSearchSchema(schemaCode);
+	}
+
 	public Map<String, String> getMetadataSchemasList(String schemaTypeCode) {
 		SearchCriteriaPresenterUtils searchCriteriaPresenterUtils = new SearchCriteriaPresenterUtils(
 				ConstellioUI.getCurrentSessionContext());
@@ -300,6 +306,22 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		return result;
 	}
 
+	public List<MetadataSchemaVO> getSchemaOfSelectedType()
+	{
+		MetadataSchemaToVOBuilder builder = new MetadataSchemaToVOBuilder();
+
+		List<MetadataSchemaVO> result = new ArrayList<>();
+		MetadataSchemaTypes types = types();
+		MetadataSchemaType type = types.getSchemaType(getSchemaType());
+		if (types != null) {
+			for (MetadataSchema schema : type.getAllSchemas()) {
+				result.add(builder.build(schema, VIEW_MODE.DISPLAY, header.getSessionContext()));
+			}
+		}
+		return result;
+
+	}
+
 	private boolean isVisibleForUser(MetadataSchemaType type, User currentUser) {
 		if (ContainerRecord.SCHEMA_TYPE.equals(type.getCode()) && !currentUser
 				.hasAny(RMPermissionsTo.DISPLAY_CONTAINERS, RMPermissionsTo.MANAGE_CONTAINERS)
@@ -316,6 +338,10 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		return schemaTypeCode;
 	}
 
+	public String getSchemaSelected() {
+		return schemaCode;
+	}
+
 	public boolean isValidAdvancedSearchCriterionPresent() {
 		return schemaTypeCode != null;
 	}
@@ -325,15 +351,29 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 
 		MetadataSchemaType schemaType = types().getSchemaType(schemaTypeCode);
 
-		Set<String> metadataCodes = metadataAllowedInCriteria.get(schemaTypeCode);
+		Map<String, Set<String>> metadataCodesBySchema = metadataAllowedInCriteria.get(schemaTypeCode);
+		if (metadataCodesBySchema == null){
+			metadataCodesBySchema = new HashMap<>();
+			metadataAllowedInCriteria.put(schemaTypeCode, metadataCodesBySchema);
+		}
+
+		Set<String> metadataCodes = metadataCodesBySchema.get(schemaCode);
 		if (metadataCodes == null) {
 			metadataCodes = new HashSet<>();
-			metadataAllowedInCriteria.put(schemaTypeCode, metadataCodes);
+			metadataCodesBySchema.put(schemaCode, metadataCodes);
 
-			List<FacetValue> schema_s = modelLayerFactory.newSearchServices().query(new LogicalSearchQuery()
-					.setNumberOfRows(0)
-					.setCondition(from(schemaType).returnAll()).addFieldFacet("schema_s").filteredWithUser(getCurrentUser()))
-					.getFieldFacetValues("schema_s");
+			List<FacetValue> schema_s;
+			if (StringUtils.isBlank(schemaCode)){
+				schema_s = modelLayerFactory.newSearchServices().query(new LogicalSearchQuery()
+						.setNumberOfRows(0)
+						.setCondition(from(schemaType).returnAll()).addFieldFacet("schema_s").filteredWithUser(getCurrentUser()))
+						.getFieldFacetValues("schema_s");
+			}else{
+				schema_s = modelLayerFactory.newSearchServices().query(new LogicalSearchQuery()
+						.setNumberOfRows(0)
+						.setCondition(from(schemaType.getSchema(schemaCode)).returnAll()).addFieldFacet("schema_s").filteredWithUser(getCurrentUser()))
+						.getFieldFacetValues("schema_s");
+			}
 
 			if (Toggle.RESTRICT_METADATAS_TO_THOSE_OF_SCHEMAS_WITH_RECORDS.isEnabled()) {
 				if (schema_s != null) {
@@ -341,10 +381,10 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 						if (facetValue.getQuantity() > 0) {
 							String schema = facetValue.getValue();
 							for (Metadata metadata : types().getSchema(schema).getMetadatas()) {
-								if (metadata.getInheritance() != null && metadata.isEnabled()) {
-									metadataCodes.add(metadata.getInheritance().getCode());
-								} else if (metadata.getInheritance() == null && metadata.isEnabled()) {
-									metadataCodes.add(metadata.getCode());
+								if (!metadata.getLocalCode().equals(SCHEMA.getLocalCode())) {
+									if (metadata.isEnabled()) {
+										metadataCodes.add(metadata.getCode());
+									}
 								}
 							}
 						}
@@ -361,7 +401,12 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 
 		List<MetadataVO> result = new ArrayList<>();
 		//		result.add(builder.build(schemaType.getMetadataWithAtomicCode(CommonMetadataBuilder.PATH), header.getSessionContext()));
-		MetadataList allMetadatas = schemaType.getAllMetadatas();
+		MetadataList allMetadatas;
+		if (StringUtils.isBlank(schemaCode)) {
+			allMetadatas = schemaType.getAllMetadatas();
+		}else{
+			allMetadatas = schemaType.getSchema(schemaCode).getMetadatas();
+		}
 		for (Metadata metadata : allMetadatas) {
 			if (!schemaType.hasSecurity() || (metadataCodes.contains(metadata.getCode()))) {
 
@@ -377,9 +422,6 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 									ConnectorSmbDocument.PARENT_CONNECTOR_URL.equals(metadata.getLocalCode());
 				if ((visibleForUserAndInAdvancedSearch && condition) || SCHEMA.getLocalCode().equals(metadata.getLocalCode())) {
 					MetadataVO metadataVO = builder.build(metadata, header.getSessionContext());
-					if (SCHEMA.getLocalCode().equals(metadata.getLocalCode())) {
-						metadataVO.setLabel(Locale.FRENCH, "Schéma de métadonnée");
-					}
 					result.add(metadataVO);
 				}
 			}

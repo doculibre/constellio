@@ -9,6 +9,7 @@ import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.entities.MetadataSchemaTypeVO;
+import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.SearchButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
@@ -109,6 +110,7 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 
 	private Button showAdvancedSearchButton;
 	private ComboBox advancedSearchSchemaTypeField;
+	private ComboBox advancedSearchSchemaField;
 	private Component advancedSearchForm;
 	private Button clearAdvancedSearchButton;
 	private AdvancedSearchCriteriaComponent criteria;
@@ -239,6 +241,8 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 				if (!(event.getNewView() instanceof AdvancedSearchView || event.getNewView() instanceof SimpleSearchView)) {
 					searchField.setValue(null);
 					advancedSearchSchemaTypeField.setValue(null);
+					advancedSearchSchemaField.setValue(null);
+					advancedSearchSchemaField.setEnabled(false);
 					criteria.clear();
 					criteria.addEmptyCriterion().addEmptyCriterion();
 					clearAdvancedSearchButton.setEnabled(false);
@@ -337,8 +341,10 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 		addCriterion.addStyleName(ValoTheme.BUTTON_LINK);
 
 		Component schemaTypeComponent = buildSchemaTypeComponent();
-		I18NHorizontalLayout top = new I18NHorizontalLayout(schemaTypeComponent, addCriterion);
+		Component schemaComponent = buildSchemaComponent();
+		I18NHorizontalLayout top = new I18NHorizontalLayout(schemaTypeComponent, schemaComponent, addCriterion);
 		top.setComponentAlignment(schemaTypeComponent, Alignment.BOTTOM_LEFT);
+		top.setComponentAlignment(schemaComponent, Alignment.BOTTOM_LEFT);
 		top.setComponentAlignment(addCriterion, Alignment.BOTTOM_RIGHT);
 		top.setWidth("100%");
 
@@ -365,6 +371,8 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 			@Override
 			public void buttonClick(ClickEvent event) {
 				advancedSearchSchemaTypeField.setValue(null);
+				advancedSearchSchemaField.setValue(null);
+				advancedSearchSchemaField.setEnabled(false);
 				criteria.clear();
 				criteria.addEmptyCriterion().addEmptyCriterion();
 				clearAdvancedSearchButton.setEnabled(false);
@@ -412,6 +420,49 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 		layout.setComponentAlignment(label, Alignment.MIDDLE_LEFT);
 		layout.setSpacing(true);
 		return layout;
+	}
+
+	private Component buildSchemaComponent() {
+		Label label = new Label($("AdvancedSearchView.schema"));
+
+		advancedSearchSchemaField = new BaseComboBox();
+		advancedSearchSchemaField.setItemCaptionMode(ItemCaptionMode.EXPLICIT);
+		advancedSearchSchemaField.setNullSelectionAllowed(false);
+		advancedSearchSchemaField.addValueChangeListener(new ValueChangeListener() {
+			@Override
+			public void valueChange(ValueChangeEvent event) {
+				selectAdvancedSearchSchema((String) advancedSearchSchemaField.getValue());
+			}
+		});
+		advancedSearchSchemaField.setEnabled(false);
+
+		I18NHorizontalLayout layout = new I18NHorizontalLayout(label, advancedSearchSchemaField);
+		layout.setComponentAlignment(label, Alignment.MIDDLE_LEFT);
+		layout.setSpacing(true);
+		return layout;
+	}
+
+	private void populateSchemaComponent(String schemaTypeCode) {
+		if (schemaTypeCode == null)  return;
+
+		String selectedSchema = presenter.getSchemaSelected();
+		advancedSearchSchemaField.removeAllItems();
+
+		advancedSearchSchemaField.addItem("");
+		advancedSearchSchemaField.setItemCaption("", $("ConstellioHeader.allSchemas"));
+
+		for (MetadataSchemaVO schema : presenter.getSchemaOfSelectedType()) {
+			advancedSearchSchemaField.addItem(schema.getCode());
+			String itemCaption = schema.getLabel(ConstellioUI.getCurrentSessionContext().getCurrentLocale());
+			advancedSearchSchemaField.setItemCaption(schema.getCode(), itemCaption);
+		}
+		advancedSearchSchemaField.setEnabled(true);
+
+		if (selectedSchema == null || advancedSearchSchemaField.getItem(selectedSchema) == null) {
+			advancedSearchSchemaField.select("");
+		}else{
+			advancedSearchSchemaField.select(selectedSchema);
+		}
 	}
 
 	private WindowButton buildSelectionButton() {
@@ -665,7 +716,21 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 
 	@Override
 	public void setAdvancedSearchSchemaType(String schemaTypeCode) {
+		populateSchemaComponent(schemaTypeCode);
 		criteria.setSchemaType(schemaTypeCode);
+	}
+
+	@Override
+	public void selectAdvancedSearchSchema(String schemaCode) {
+		if (schemaCode == null || !schemaCode.equals(advancedSearchSchemaField.getValue())) {
+			advancedSearchSchemaField.setValue(schemaCode);
+		}
+		presenter.schemaSelected(schemaCode);
+	}
+
+	@Override
+	public void setAdvancedSearchSchema(String schemaCode) {
+		criteria.setSchemaSelected(schemaCode);
 	}
 
 	@Override

@@ -67,6 +67,15 @@ public class Criterion implements Serializable, ModifiableStructure {
 		booleanOperator = BooleanOperator.AND;
 	}
 
+	public void setSchemaSelected(String schemaCode) {
+		dirty = true;
+		metadataCode = null;
+		metadataType = null;
+		value = endValue = null;
+		leftParens = rightParens = false;
+		booleanOperator = BooleanOperator.AND;
+	}
+
 	public String getMetadataCode() {
 		return metadataCode;
 	}

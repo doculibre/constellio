@@ -76,6 +76,7 @@ import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.constellio.model.services.search.query.logical.ongoing.OngoingLogicalSearchCondition;
 import com.vaadin.ui.Component;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.common.params.ModifiableSolrParams;
@@ -101,6 +102,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 
 	String searchExpression;
 	String schemaTypeCode;
+	String schemaCode;
 	private int pageNumber;
 	private List<String> listSearchableMetadataSchemaType;
 	private String searchID;
@@ -178,11 +180,13 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		sortCriterion = search.getSortField();
 		sortOrder = SortOrder.valueOf(search.getSortOrder().name());
 		schemaTypeCode = search.getSchemaFilter();
+		schemaCode = search.getSchemaCodeFilter();
 		pageNumber = search.getPageNumber();
 		resultsViewMode = search.getResultsViewMode();
 		setSelectedPageLength(search.getPageLength());
 
 		view.setSchemaType(schemaTypeCode);
+		view.setSchema(schemaCode);
 		view.setSearchExpression(searchExpression);
 		view.setSearchCriteria(search.getAdvancedSearch());
 	}
@@ -341,9 +345,17 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		String languageCode = searchServices().getLanguageCode(view.getCollection());
 		MetadataSchemaType type = schemaType(schemaTypeCode);
 		condition = (view.getSearchCriteria().isEmpty()) ?
-					from(type).returnAll() :
-					new ConditionBuilder(type, languageCode).build(view.getSearchCriteria());
+					generateFrom(type).returnAll() :
+					new ConditionBuilder(type, schemaCode, languageCode).build(view.getSearchCriteria());
 		condition = appCollectionExtentions.adjustSearchPageCondition(new SearchPageConditionParam((Component) view, condition, getCurrentUser()));
+	}
+
+	private OngoingLogicalSearchCondition generateFrom(MetadataSchemaType type) {
+		if (org.apache.commons.lang.StringUtils.isBlank(schemaCode)) {
+			return from(type);
+		}
+
+		return from(type.getSchema(schemaCode));
 	}
 
 	private boolean isRMModuleActivated() {
@@ -531,6 +543,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	protected SavedSearch prepareSavedSearch(SavedSearch search) {
 		return search.setSearchType(AdvancedSearchView.SEARCH_TYPE)
 				.setSchemaFilter(schemaTypeCode)
+				.setSchemaCodeFilter(schemaCode)
 				.setFreeTextSearch(searchExpression)
 				.setAdvancedSearch(view.getSearchCriteria())
 				.setPageNumber(pageNumber);
@@ -573,6 +586,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 				.setTemporary(true)
 				.setSearchType(AdvancedSearchView.SEARCH_TYPE)
 				.setSchemaFilter(schemaTypeCode)
+				.setSchemaCodeFilter(schemaCode)
 				.setFreeTextSearch(searchExpression)
 				.setAdvancedSearch(view.getSearchCriteria())
 				.setPageNumber(pageNumber)

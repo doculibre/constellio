@@ -12,6 +12,8 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.criteria.MeasuringUnitTime;
+import com.constellio.model.services.search.query.logical.ongoing.OngoingLogicalSearchCondition;
+import org.apache.commons.lang.StringUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.joda.time.LocalTime;
@@ -23,12 +25,18 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 
 public class ConditionBuilder {
 	private MetadataSchemaType schemaType;
+	private String schemaCode;
 
 	private String languageCode;
 
 	public ConditionBuilder(MetadataSchemaType schemaType, String languageCode) {
+		this(schemaType, "", languageCode);
+	}
+
+	public ConditionBuilder(MetadataSchemaType schemaType, String schemaCode, String languageCode) {
 		this.schemaType = schemaType;
 		this.languageCode = languageCode;
+		this.schemaCode = schemaCode;
 	}
 
 	public LogicalSearchCondition build(List<Criterion> criteria)
@@ -41,7 +49,7 @@ public class ConditionBuilder {
 
 	private LogicalSearchCondition buildOuterCondition(ListIterator<Criterion> criteria)
 			throws ConditionException {
-		ConditionAppender appender = new ConditionAppender(schemaType);
+		ConditionAppender appender = new ConditionAppender(schemaType, schemaCode);
 		BooleanOperator operator = BooleanOperator.AND;
 		while (criteria.hasNext()) {
 			Criterion criterion = criteria.next();
@@ -61,7 +69,7 @@ public class ConditionBuilder {
 
 	private LogicalSearchCondition buildInnerCondition(Criterion first, ListIterator<Criterion> criteria)
 			throws ConditionException {
-		ConditionAppender appender = new ConditionAppender(schemaType);
+		ConditionAppender appender = new ConditionAppender(schemaType, schemaCode);
 		appender.append(buildClause(first), BooleanOperator.AND);
 		BooleanOperator operator = first.getBooleanOperator();
 		while (criteria.hasNext()) {
@@ -82,50 +90,64 @@ public class ConditionBuilder {
 	}
 
 	private LogicalSearchCondition buildClause(Criterion criterion) {
-		Metadata metadata = schemaType.getMetadata(criterion.getMetadataCode());
+		Metadata metadata;
+		if (StringUtils.isBlank(schemaCode)) {
+			metadata = schemaType.getMetadata(criterion.getMetadataCode());
+		}else{
+			metadata = schemaType.getSchema(schemaCode).getMetadata(criterion.getMetadataCode());
+		}
+
 		Object value;
 		Object endValue;
 		switch (criterion.getSearchOperator()) {
 			case EQUALS:
 				value = getValue(criterion, metadata, false);
 				if (metadata.getType() == MetadataValueType.DATE_TIME && value instanceof LocalDate && value != null) {
-					return from(schemaType).where(metadata).isValueInRange(((LocalDate) value).toLocalDateTime(LocalTime.MIDNIGHT),
+					return generateFrom().where(metadata).isValueInRange(((LocalDate) value).toLocalDateTime(LocalTime.MIDNIGHT),
 							((LocalDate) value).toLocalDateTime(new LocalTime(23, 59, 59, 999)));
 				} else {
-					return from(schemaType).where(metadata).isEqualTo(value);
+					return generateFrom().where(metadata).isEqualTo(value);
 				}
 			case CONTAINS_TEXT:
 				String stringValue = (String) criterion.getValue();
 
 				if (metadata.getType() == MetadataValueType.STRING && !metadata.isSearchable()) {
-					return from(schemaType).where(metadata).isContainingText(stringValue);
+					return generateFrom().where(metadata).isContainingText(stringValue);
 				} else {
-					return from(schemaType).where(metadata.getAnalyzedField(languageCode)).query(stringValue.replace("-", "\\-"));
+					return generateFrom().where(metadata.getAnalyzedField(languageCode)).query(stringValue.replace("-", "\\-"));
 				}
 
 			case LESSER_THAN:
 				value = getValue(criterion, metadata, false);
-				return from(schemaType).where(metadata).isLessThan(value);
+				return generateFrom().where(metadata).isLessThan(value);
 			case GREATER_THAN:
 				value = getValue(criterion, metadata, false);
-				return from(schemaType).where(metadata).isGreaterThan(value);
+				return generateFrom().where(metadata).isGreaterThan(value);
 			case BETWEEN:
 				value = getValue(criterion, metadata, false);
 				endValue = getValue(criterion, metadata, true);
-				return from(schemaType).where(metadata).isValueInRange(value, endValue);
+				return generateFrom().where(metadata).isValueInRange(value, endValue);
 			case IS_TRUE:
-				return from(schemaType).where(metadata).isTrue();
+				return generateFrom().where(metadata).isTrue();
 			case IS_FALSE:
-				return from(schemaType).where(metadata).isFalseOrNull();
+				return generateFrom().where(metadata).isFalseOrNull();
 			case IN_HIERARCHY:
-				return from(schemaType).where(Schemas.PATH).isContainingText("/" + criterion.getValue() + "/");
+				return generateFrom().where(Schemas.PATH).isContainingText("/" + criterion.getValue() + "/");
 			case IS_NULL:
-				return from(schemaType).where(metadata).isNull();
+				return generateFrom().where(metadata).isNull();
 			case IS_NOT_NULL:
-				return from(schemaType).where(metadata).isNotNull();
+				return generateFrom().where(metadata).isNotNull();
 			default:
 				throw new RuntimeException("Unsupported search operator");
 		}
+	}
+
+	private OngoingLogicalSearchCondition generateFrom() {
+		if (StringUtils.isBlank(schemaCode)) {
+			return from(schemaType);
+		}
+
+		return from(schemaType.getSchema(schemaCode));
 	}
 
 	private Object getValue(Criterion criterion, Metadata metadata, boolean isEndValue) {

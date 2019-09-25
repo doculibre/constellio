@@ -6,6 +6,7 @@ import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
@@ -41,6 +42,10 @@ public class RMMigrationTo9_0_1 extends MigrationHelper implements MigrationScri
 
 			taskSchema.createUndeletable(RMTask.CREATED_AUTHORIZATIONS).setSystemReserved(true)
 					.setType(MetadataValueType.STRING).setMultivalue(true);
+
+
+			MetadataSchemaBuilder savedSearchSchema = typesBuilder.getSchemaType(SavedSearch.SCHEMA_TYPE).getDefaultSchema();
+			savedSearchSchema.createUndeletable(SavedSearch.SCHEMA_CODE_FILTER).setType(MetadataValueType.STRING);
 		}
 	}
 }

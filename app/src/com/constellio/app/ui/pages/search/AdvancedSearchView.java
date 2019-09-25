@@ -16,6 +16,8 @@ public interface AdvancedSearchView extends SearchView {
 
 	void setSchemaType(String schemaTypeCode);
 
+	void setSchema(String schemaCode);
+
 	String getSearchExpression();
 
 	void setSearchCriteria(List<Criterion> criteria);

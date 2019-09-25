@@ -91,6 +91,13 @@ public class AdvancedSearchCriteriaComponent extends Table {
 		refreshRowCache();
 	}
 
+	public void setSchemaSelected(String schemaCode) {
+		for (Criterion criterion : container.getItemIds()) {
+			criterion.setSchemaSelected(schemaCode);
+		}
+		refreshRowCache();
+	}
+
 	public AdvancedSearchCriteriaComponent addEmptyCriterion() {
 		addItem(new Criterion(schemaType));
 		setPageLength(size());
