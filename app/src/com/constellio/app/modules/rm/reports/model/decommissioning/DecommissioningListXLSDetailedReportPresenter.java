@@ -38,7 +38,8 @@ public class DecommissioningListXLSDetailedReportPresenter extends BaseExcelRepo
 	protected transient AppLayerCollectionExtensions appCollectionExtentions;
 	protected transient AppLayerSystemExtensions appSystemExtentions;
 	private String decommissioningListId;
-	private String reportTitle;
+	private String includedFolderReportTitle;
+	private String excludedFolderReportTitle;
 	private String collection;
 	private String username;
 	private String schemaTypeCode;
@@ -51,7 +52,8 @@ public class DecommissioningListXLSDetailedReportPresenter extends BaseExcelRepo
 		this.appCollectionExtentions = appLayerFactory.getExtensions().forCollection(collection);
 		this.appSystemExtentions = appLayerFactory.getExtensions().getSystemWideExtensions();
 		this.decommissioningListId = parameters.getDecommissioningListId();
-		this.reportTitle = parameters.getReportTitle();
+		this.includedFolderReportTitle = parameters.getIncludedFolderReportTitle();
+		this.excludedFolderReportTitle = parameters.getExcludedFolderReportTitle();
 		this.collection = parameters.getCollection();
 		this.username = parameters.getUsername();
 		this.schemaTypeCode = parameters.getSchemaType();
@@ -125,18 +127,17 @@ public class DecommissioningListXLSDetailedReportPresenter extends BaseExcelRepo
 	}
 
 	private void buildFolders(DecommissioningListXLSDetailedReportModel model) {
-		RMSchemasRecordsServices rmSchemasRecordsServices = new RMSchemasRecordsServices(collection, appLayerFactory);
-
-		ReportServices reportServices = new ReportServices(modelLayerFactory, collection);
-		List<ReportedMetadata> requestedMetadataList = new ArrayList<>(getReportedMetadataList(reportServices));
-		orderByPosition(requestedMetadataList);
-
-		List<String> metadataCodes = requestedMetadataList.stream().map(ReportedMetadata::getMetadataLocaleCode).collect(Collectors.toList());
-		List<Metadata> folderMetadataList = getMetadataList(metadataCodes, rmSchemasRecordsServices.folderSchemaType().getCode());
+		List<Metadata> folderMetadataList = getFolderMetadataList(includedFolderReportTitle);
 		for (Metadata metadata : folderMetadataList) {
 			model.addFolderTitle(metadata.getLabel(Language.withCode(locale.getLanguage())));
 		}
 
+		List<Metadata> exclusionMetadataList = getFolderMetadataList(excludedFolderReportTitle);
+		for (Metadata metadata : exclusionMetadataList) {
+			model.addExclusionTitle(metadata.getLabel(Language.withCode(locale.getLanguage())));
+		}
+
+		RMSchemasRecordsServices rmSchemasRecordsServices = new RMSchemasRecordsServices(collection, appLayerFactory);
 		DecommissioningList decommissioningList = rmSchemasRecordsServices.getDecommissioningList(decommissioningListId);
 
 		List<String> includedFolders = new ArrayList<>();
@@ -165,8 +166,19 @@ public class DecommissioningListXLSDetailedReportPresenter extends BaseExcelRepo
 
 		folders = new ArrayList<>(rmSchemasRecordsServices.getFolders(excludedFolders));
 		for (Folder folder : folders) {
-			model.addExclusion(getRecordLine(folder.getWrappedRecord(), folderMetadataList));
+			model.addExclusion(getRecordLine(folder.getWrappedRecord(), exclusionMetadataList));
 		}
+	}
+
+	private List<Metadata> getFolderMetadataList(String reportTitle) {
+		RMSchemasRecordsServices rmSchemasRecordsServices = new RMSchemasRecordsServices(collection, appLayerFactory);
+
+		ReportServices reportServices = new ReportServices(modelLayerFactory, collection);
+		List<ReportedMetadata> requestedMetadataList = new ArrayList<>(getReportedMetadataList(reportServices, reportTitle));
+		orderByPosition(requestedMetadataList);
+
+		List<String> metadataCodes = requestedMetadataList.stream().map(ReportedMetadata::getMetadataLocaleCode).collect(Collectors.toList());
+		return getMetadataList(metadataCodes, rmSchemasRecordsServices.folderSchemaType().getCode());
 	}
 
 	private List<Metadata> getMetadataList(List<String> requestedMetadataCodes, String schemaTypeCode) {
@@ -201,7 +213,7 @@ public class DecommissioningListXLSDetailedReportPresenter extends BaseExcelRepo
 		});
 	}
 
-	private List<ReportedMetadata> getReportedMetadataList(ReportServices reportServices) {
+	private List<ReportedMetadata> getReportedMetadataList(ReportServices reportServices, String reportTitle) {
 		Report report = reportServices.getUserReport(username, schemaTypeCode, reportTitle);
 		if (report == null) {
 			report = reportServices.getReport(Folder.SCHEMA_TYPE, reportTitle);

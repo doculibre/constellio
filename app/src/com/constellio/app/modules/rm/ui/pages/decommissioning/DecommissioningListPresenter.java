@@ -847,8 +847,14 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 			return new DecommissioningListReportParameters(decommissioningList.getId());
 		} else {
 			return new DecommissioningListXLSDetailedReportParameters(decommissioningList.getId(),
-					DecommissioningList.SCHEMA_TYPE, collection, report, getCurrentUser());
+					DecommissioningList.SCHEMA_TYPE, collection, getCurrentUser(), report);
 		}
+	}
+
+	public Object getReportParameters(String includedFolderReport, String excludedFolderReport) {
+		return new DecommissioningListXLSDetailedReportParameters(decommissioningList.getId(),
+				DecommissioningList.SCHEMA_TYPE, collection, getCurrentUser(),
+				includedFolderReport, excludedFolderReport);
 	}
 
 	public boolean isDocumentsCertificateButtonVisible() {

@@ -17,6 +17,8 @@ public class DecommissioningListXLSDetailedReportModel {
 
 	private List<Object> folderTitles;
 	private List<List<Object>> folders;
+
+	private List<Object> exclusionTitles;
 	private List<List<Object>> exclusions;
 
 	public DecommissioningListXLSDetailedReportModel() {
@@ -28,11 +30,15 @@ public class DecommissioningListXLSDetailedReportModel {
 		validations = new ArrayList<>();
 		folderTitles = new ArrayList<>();
 		folders = new ArrayList<>();
+		exclusionTitles = new ArrayList<>();
 		exclusions = new ArrayList<>();
 	}
 
 	public String getHeaderSheetName() {
 		return $("DecommissioningListDetailedReport.idSheetName");
+	}
+	public String getCommentSheetName() {
+		return $("DecommissioningListDetailedReport.commentSheetName");
 	}
 	public String getValidationSheetName() {
 		return $("DecommissioningListDetailedReport.validationSheetName");
@@ -61,6 +67,9 @@ public class DecommissioningListXLSDetailedReportModel {
 	public List<Object> getFolderTitles() { return folderTitles; }
 	public void addFolder(List<Object> line) { folders.add(line); }
 	public List<List<Object>> getFolders() { return folders; }
+
+	public void addExclusionTitle(Object title) { exclusionTitles.add(title); }
+	public List<Object> getExclusionTitles() { return exclusionTitles; }
 	public void addExclusion(List<Object> line) { exclusions.add(line); }
 	public List<List<Object>> getExclusions() { return exclusions; }
 }

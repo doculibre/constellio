@@ -6,15 +6,24 @@ public class DecommissioningListXLSDetailedReportParameters {
 	private String decommissioningListId;
 	private String schemaType;
 	private String collection;
-	private String reportTitle;
+	private String includedFolderReportTitle;
+	private String excludedFolderReportTitle;
 	private String username;
 
 	public DecommissioningListXLSDetailedReportParameters(String decommissioningListId, String schemaType,
-                                                          String collection, String reportTitle, User user) {
+														  String collection, User user, String reportTitle) {
+		this(decommissioningListId, schemaType, collection, user, reportTitle, reportTitle);
+	}
+
+	public DecommissioningListXLSDetailedReportParameters(String decommissioningListId, String schemaType,
+														  String collection, User user ,
+														  String includedFolderReportTitle,
+														  String excludedFolderReportTitle) {
 		this.decommissioningListId = decommissioningListId;
 		this.schemaType = schemaType;
 		this.collection = collection;
-		this.reportTitle = reportTitle;
+		this.includedFolderReportTitle = includedFolderReportTitle;
+		this.excludedFolderReportTitle = excludedFolderReportTitle;
 
 		if (user != null) {
 			this.username = user.getUsername();
@@ -35,8 +44,12 @@ public class DecommissioningListXLSDetailedReportParameters {
 		return collection;
 	}
 
-	public String getReportTitle() {
-		return reportTitle;
+	public String getIncludedFolderReportTitle() {
+		return includedFolderReportTitle;
+	}
+
+	public String getExcludedFolderReportTitle() {
+		return excludedFolderReportTitle;
 	}
 
 	public String getUsername() {

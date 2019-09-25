@@ -6,6 +6,7 @@ import jxl.Workbook;
 import jxl.WorkbookSettings;
 import jxl.write.*;
 import jxl.write.Number;
+import org.joda.time.LocalDateTime;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -13,6 +14,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DecommissioningListXLSDetailedReportWriter implements ReportWriter
 {
@@ -21,12 +23,14 @@ public class DecommissioningListXLSDetailedReportWriter implements ReportWriter
 	private WritableCellFormat font;
 	private WritableCellFormat boldFont;
 
-	Locale locale;
-	DecommissioningListXLSDetailedReportModel model;
+	private Locale locale;
+	private DecommissioningListXLSDetailedReportModel model;
+	private int currentSheet;
 
 	public DecommissioningListXLSDetailedReportWriter(DecommissioningListXLSDetailedReportModel model, Locale locale) {
 		this.model = model;
 		this.locale = locale;
+		currentSheet = -1;
 	}
 
 	@Override
@@ -44,10 +48,11 @@ public class DecommissioningListXLSDetailedReportWriter implements ReportWriter
 		boldFont = new WritableCellFormat(new WritableFont(FONT, FONT_SIZE, WritableFont.BOLD));
 
 		try {
-			createHeader(workbook, 0, 3);
-			createValidation(workbook, 1, 4);
-			createFolder(workbook, 2, 7);
-			createExclusion(workbook, 3, 7);
+			createHeader(workbook, 2);
+			createComment(workbook, 3);
+			createValidation(workbook, 4);
+			createFolder(workbook, 7);
+			createExclusion(workbook, 7);
 		} catch (WriteException e) {
 			throw new RuntimeException(e);
 		}
@@ -60,23 +65,30 @@ public class DecommissioningListXLSDetailedReportWriter implements ReportWriter
 		}
 	}
 
-	private void createHeader(WritableWorkbook workbook, int sheetIndex, int columnCount) throws WriteException {
-		WritableSheet sheet = createSheet(workbook, sheetIndex, columnCount, model.getHeaderSheetName());
+	private void createHeader(WritableWorkbook workbook, int columnCount) throws WriteException {
+		WritableSheet sheet = createSheet(workbook, columnCount, model.getHeaderSheetName());
 
 		for(int i = 0; i < model.getHeaderTitles().size(); i++) {
 			writeLine(sheet, Arrays.asList(model.getHeaderTitles().get(i), model.getHeaderInfos().get(i)), i, font,
 					boldFont);
 		}
 
-		int commentLineNumber = model.getHeaderTitles().size() + 1;
-		writeLine(sheet, model.getCommentTitles(), commentLineNumber, boldFont);
+		int generationLineNumber = model.getHeaderTitles().size() + 1;
+		String title = $("DecommissioningListDetailedReport.generationDate");
+		writeLine(sheet, Arrays.asList(title, LocalDateTime.now()), generationLineNumber, font, boldFont);
+	}
+
+	private void createComment(WritableWorkbook workbook, int columnCount) throws WriteException {
+		WritableSheet sheet = createSheet(workbook, columnCount, model.getCommentSheetName());
+
+		writeLine(sheet, model.getCommentTitles(), 0, boldFont);
 		for(int i = 0; i < model.getComments().size(); i++) {
-			writeLine(sheet, model.getComments().get(i), commentLineNumber + 1 + i, font);
+			writeLine(sheet, model.getComments().get(i), 1 + i, font);
 		}
 	}
 
-	private void createValidation(WritableWorkbook workbook, int sheetIndex, int columnCount) throws WriteException {
-		WritableSheet sheet = createSheet(workbook, sheetIndex, columnCount, model.getValidationSheetName());
+	private void createValidation(WritableWorkbook workbook, int columnCount) throws WriteException {
+		WritableSheet sheet = createSheet(workbook, columnCount, model.getValidationSheetName());
 
 		writeLine(sheet, model.getValidationTitles(), 0, boldFont);
 		for (int i = 0; i < model.getValidations().size(); i++) {
@@ -84,8 +96,8 @@ public class DecommissioningListXLSDetailedReportWriter implements ReportWriter
 		}
 	}
 
-	private void createFolder(WritableWorkbook workbook, int sheetIndex, int columnCount) throws WriteException {
-		WritableSheet sheet = createSheet(workbook, sheetIndex, columnCount, model.getFolderSheetName());
+	private void createFolder(WritableWorkbook workbook, int columnCount) throws WriteException {
+		WritableSheet sheet = createSheet(workbook, columnCount, model.getFolderSheetName());
 
 		writeLine(sheet, model.getFolderTitles(), 0, boldFont);
 		for (int i = 0; i < model.getFolders().size(); i++) {
@@ -93,19 +105,20 @@ public class DecommissioningListXLSDetailedReportWriter implements ReportWriter
 		}
 	}
 
-	private void createExclusion(WritableWorkbook workbook, int sheetIndex, int columnCount) throws WriteException {
-		WritableSheet sheet = createSheet(workbook, sheetIndex, columnCount, model.getExclusionSheetName());
+	private void createExclusion(WritableWorkbook workbook, int columnCount) throws WriteException {
+		WritableSheet sheet = createSheet(workbook, columnCount, model.getExclusionSheetName());
 
-		writeLine(sheet, model.getFolderTitles(), 0, boldFont);
+		writeLine(sheet, model.getExclusionTitles(), 0, boldFont);
 		for (int i = 0; i < model.getExclusions().size(); i++) {
 			writeLine(sheet, model.getExclusions().get(i), 1 + i, font);
 		}
 	}
 
-	private WritableSheet createSheet(WritableWorkbook workbook, int sheetIndex, int columnCount, String name)
+	private WritableSheet createSheet(WritableWorkbook workbook, int columnCount, String name)
 			throws WriteException {
-		workbook.createSheet(name, sheetIndex);
-		WritableSheet excelSheet = workbook.getSheet(sheetIndex);
+		currentSheet++;
+		workbook.createSheet(name, currentSheet);
+		WritableSheet excelSheet = workbook.getSheet(currentSheet);
 		for (int i = 0; i < columnCount; i++) {
 			excelSheet.setColumnView(i, 25);
 		}
