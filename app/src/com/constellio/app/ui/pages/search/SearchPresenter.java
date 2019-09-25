@@ -404,22 +404,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 				if (facets) {
 					service.configureQueryToComputeFacets(query);
 				}
-				if (sortCriterion == null) {
-					if (StringUtils.isNotBlank(getUserSearchExpression())) {
-						query.setFieldBoosts(searchBoostManager().getAllSearchBoostsByMetadataType(view.getCollection()));
-						query.setQueryBoosts(searchBoostManager().getAllSearchBoostsByQueryType(view.getCollection()));
-					}
-					if (new ConstellioEIMConfigs(modelLayerFactory.getSystemConfigurationsManager()).isAddingSecondarySortWhenSortingByScore()) {
-						return sortOrder == SortOrder.ASCENDING ?
-							   query.sortFirstOn(new ScoreLogicalSearchQuerySort(true)).sortAsc(Schemas.IDENTIFIER) :
-							   query.sortFirstOn(new ScoreLogicalSearchQuerySort(false)).sortDesc(Schemas.IDENTIFIER);
-					} else {
-						return query;
-					}
-				}
-
-				Metadata metadata = getMetadata(sortCriterion);
-				return sortOrder == SortOrder.ASCENDING ? query.sortAsc(metadata) : query.sortDesc(metadata);
+				return query;
 			}
 
 			boolean hasExtensionsBeenNotified = false;
@@ -730,7 +715,23 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 				LOGGER.warn("Facet '" + id + "' has been deleted");
 			}
 		}
-		return query;
+
+		if (sortCriterion == null) {
+			if (StringUtils.isNotBlank(getUserSearchExpression())) {
+				query.setFieldBoosts(searchBoostManager().getAllSearchBoostsByMetadataType(view.getCollection()));
+				query.setQueryBoosts(searchBoostManager().getAllSearchBoostsByQueryType(view.getCollection()));
+			}
+			if (new ConstellioEIMConfigs(modelLayerFactory.getSystemConfigurationsManager()).isAddingSecondarySortWhenSortingByScore()) {
+				return sortOrder == SortOrder.ASCENDING ?
+					   query.sortFirstOn(new ScoreLogicalSearchQuerySort(true)).sortAsc(Schemas.IDENTIFIER) :
+					   query.sortFirstOn(new ScoreLogicalSearchQuerySort(false)).sortDesc(Schemas.IDENTIFIER);
+			} else {
+				return query;
+			}
+		}
+
+		Metadata metadata = getMetadata(sortCriterion);
+		return sortOrder == SortOrder.ASCENDING ? query.sortAsc(metadata) : query.sortDesc(metadata);
 	}
 
 	public void setHighlighter(boolean highlighter) {
