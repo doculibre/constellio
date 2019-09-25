@@ -139,15 +139,17 @@ public class TaskFieldFactory extends MetadataFieldFactory {
 			case ASSIGNEE_GROUPS_CANDIDATES:
 				field = new TaskAssignationListRecordLookupField(metadata.getSchemaTypeCode());
 				postBuild(field, metadata);
+				field.setVisible(!currentUserIsCollaborator(appLayerFactory));
 				break;
 			case ASSIGNEE_USERS_CANDIDATES:
 				field = new TaskAssignationListRecordLookupField(metadata.getSchemaTypeCode());
 				postBuild(field, metadata);
+				field.setVisible(!currentUserIsCollaborator(appLayerFactory));
 				break;
 			case ASSIGNER:
 				field = new LookupRecordField(User.SCHEMA_TYPE);
 				postBuild(field, metadata);
-				field.setEnabled(!currentUserIsCollaborator(appLayerFactory));
+				field.setVisible(!currentUserIsCollaborator(appLayerFactory));
 				break;
 			case TASK_COLLABORATORS:
 				field = new ListAddRemoveCollaboratorsField(recordVO, currentUserIsCollaborator(appLayerFactory));
@@ -160,17 +162,18 @@ public class TaskFieldFactory extends MetadataFieldFactory {
 				if(field instanceof LookupField) {
 					((LookupField<Serializable>) field).setReadOnlyMessageI18NKey("TaskAssignee.readOnlyMessage");
 				}
-				field.setEnabled(!currentUserIsCollaborator(appLayerFactory));
+				field.setVisible(!currentUserIsCollaborator(appLayerFactory));
 				break;
 			case ASSIGNATION_MODES:
 				field = new TaskAssignationEnumField(metadata.getEnumClass());
 				postBuild(field, metadata);
+				field.setVisible(!currentUserIsCollaborator(appLayerFactory));
 				break;
 			case STATUS:
 				field = appLayerFactory.getExtensions().forCollection(currentCollection)
 						.getMetadataField(new MetadataFieldExtensionParams(metadata, recordVO, baseView));
 				postBuild(field, metadata);
-				field.setEnabled(!currentUserIsCollaborator(appLayerFactory));
+				field.setVisible(!currentUserIsCollaborator(appLayerFactory));
 				break;
 		default:
 			field = appLayerFactory.getExtensions().forCollection(currentCollection)
