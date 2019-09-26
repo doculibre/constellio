@@ -441,7 +441,7 @@ public class RMNavigationConfiguration implements Serializable {
 
 	private static void configureMainLayoutNavigation(NavigationConfig config) {
 		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION,
-				new NavigationItem.Active(MY_CART, FontAwesome.LIST_ALT, CartViewGroup.class) {
+				new NavigationItem.Active(MY_CART, FontAwesome.STAR, CartViewGroup.class) {
 					@Override
 					public void activate(Navigation navigate) {
 						String userId = ConstellioUI.getCurrentSessionContext().getCurrentUser().getId();
@@ -459,7 +459,7 @@ public class RMNavigationConfiguration implements Serializable {
 					}
 				});
 		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION,
-				new NavigationItem.Active(LIST_CARTS, FontAwesome.LIST_ALT, CartViewGroup.class) {
+				new NavigationItem.Active(LIST_CARTS, FontAwesome.STAR, CartViewGroup.class) {
 					@Override
 					public void activate(Navigation navigate) {
 						navigate.to(RMViews.class).listCarts();

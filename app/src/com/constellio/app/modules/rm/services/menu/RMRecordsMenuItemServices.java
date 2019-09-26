@@ -43,6 +43,7 @@ import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActio
 import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus.HIDDEN;
 import static com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus.VISIBLE;
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.vaadin.server.FontAwesome.STAR;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 
@@ -267,7 +268,7 @@ public class RMRecordsMenuItemServices {
 		switch (actionType) {
 			case RMRECORDS_ADD_CART:
 				menuItemAction = buildMenuItemAction(RMRECORDS_ADD_CART, state,
-						$("ConstellioHeader.selection.actions.addToCart"), null, -1, 100,
+						$("ConstellioHeader.selection.actions.addToCart"), STAR, -1, 100,
 						getRecordsLimit(actionType),
 						(ids) -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).addToCart(ids, params));
 				break;

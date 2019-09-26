@@ -82,7 +82,7 @@ public class ContainerMenuItemServices {
 		if (!filteredActionTypes.contains(CONTAINER_ADD_TO_CART.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(CONTAINER_ADD_TO_CART.name(),
 					isMenuItemActionPossible(CONTAINER_ADD_TO_CART.name(), container, user, params),
-					$("DisplayContainerView.addToCart"), FontAwesome.LIST_ALT, -1, 400,
+					$("DisplayContainerView.addToCart"), FontAwesome.STAR, -1, 400,
 					(ids) -> new ContainerRecordMenuItemActionBehaviors(collection, appLayerFactory).addToCart(container, params));
 			menuItemActions.add(menuItemAction);
 		}

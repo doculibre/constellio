@@ -192,7 +192,7 @@ public class DocumentMenuItemServices {
 		if (!filteredActionTypes.contains(DOCUMENT_ADD_TO_CART.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(DOCUMENT_ADD_TO_CART.name(),
 					isMenuItemActionPossible(DOCUMENT_ADD_TO_CART.name(), document, user, params),
-					$("DisplayFolderView.addToCart"), FontAwesome.LIST_ALT, -1, 1400,
+					$("DisplayFolderView.addToCart"), FontAwesome.STAR, -1, 1400,
 					(ids) -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).addToCart(document, params));
 
 			menuItemActions.add(menuItemAction);
